@@ -10,80 +10,83 @@ import (
 	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
 )
 
-func TestFix_EmptyDirectory(t *testing.T) {
+func TestFix(t *testing.T) {
 	t.Parallel()
 
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-all-empty")
+	tests := []struct {
+		name            string
+		setupFiles      func(t *testing.T, tmpDir string)
+		goVersion       string
+		wantProcessed   int
+		wantModified    int
+		wantIssuesFixed int
+		verifyFn        func(t *testing.T, tmpDir string)
+	}{
+		{
+			name:            "empty_directory",
+			setupFiles:      func(t *testing.T, tmpDir string) { t.Helper() },
+			goVersion:       "1.25.4",
+			wantProcessed:   0,
+			wantModified:    0,
+			wantIssuesFixed: 0,
+		},
+		{
+			name: "all_fix_types",
+			setupFiles: func(t *testing.T, tmpDir string) {
+				t.Helper()
 
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 0, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
+				staticcheckContent := "package test\n\nimport \"errors\"\n\nvar ErrFailed = errors.New(\"Failed to process\")\n"
+				require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "errors.go"), []byte(staticcheckContent), 0o600))
 
-func TestFix_AllFixTypes(t *testing.T) {
-	t.Parallel()
+				copyloopvarContent := "package test\n\nfunc Process(items []int) {\n\tfor _, item := range items {\n\t\titem := item\n\t\tprintln(item)\n\t}\n}\n"
+				require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "loop.go"), []byte(copyloopvarContent), 0o600))
 
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-all-combined")
+				thelperContent := "package test\n\nimport \"testing\"\n\nfunc setupTest(t *testing.T) {\n\tt.Log(\"setup\")\n}\n"
+				require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "helpers_test.go"), []byte(thelperContent), 0o600))
+			},
+			goVersion:       "1.25.4",
+			wantProcessed:   5,
+			wantModified:    3,
+			wantIssuesFixed: 3,
+			verifyFn: func(t *testing.T, tmpDir string) {
+				t.Helper()
 
-	// Create file with staticcheck error string issues.
-	staticcheckFile := filepath.Join(tmpDir, "errors.go")
-	staticcheckContent := `package test
+				staticcheckFixed, err := os.ReadFile(filepath.Join(tmpDir, "errors.go"))
+				require.NoError(t, err)
+				require.Contains(t, string(staticcheckFixed), "errors.New(\"failed to process\")")
 
-import "errors"
+				copyloopvarFixed, err := os.ReadFile(filepath.Join(tmpDir, "loop.go"))
+				require.NoError(t, err)
+				require.NotContains(t, string(copyloopvarFixed), "item := item")
 
-var ErrFailed = errors.New("Failed to process")
-`
-	require.NoError(t, os.WriteFile(staticcheckFile, []byte(staticcheckContent), 0o600))
-
-	// Create file with copyloopvar issues.
-	copyloopvarFile := filepath.Join(tmpDir, "loop.go")
-	copyloopvarContent := `package test
-
-func Process(items []int) {
-	for _, item := range items {
-		item := item
-		println(item)
+				thelperFixed, err := os.ReadFile(filepath.Join(tmpDir, "helpers_test.go"))
+				require.NoError(t, err)
+				require.Contains(t, string(thelperFixed), "t.Helper()")
+			},
+		},
 	}
-}
-`
-	require.NoError(t, os.WriteFile(copyloopvarFile, []byte(copyloopvarContent), 0o600))
 
-	// Create test file with thelper issues.
-	thelperFile := filepath.Join(tmpDir, "helpers_test.go")
-	thelperContent := `package test
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-import "testing"
+			tmpDir := t.TempDir()
+			logger := cryptoutilCmd.NewLogger("test-all-" + tc.name)
 
-func setupTest(t *testing.T) {
-	t.Log("setup")
-}
-`
-	require.NoError(t, os.WriteFile(thelperFile, []byte(thelperContent), 0o600))
+			tc.setupFiles(t, tmpDir)
 
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 5, processed) // staticcheck: 2 (errors.go + helpers_test.go), copyloopvar: 2 (errors.go + loop.go), thelper: 1 (helpers_test.go).
-	require.Equal(t, 3, modified)  // All 3 files should be modified.
-	require.Equal(t, 3, issuesFixed)
+			processed, modified, issuesFixed, err := Fix(logger, tmpDir, tc.goVersion)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantProcessed, processed)
+			require.Equal(t, tc.wantModified, modified)
+			require.Equal(t, tc.wantIssuesFixed, issuesFixed)
 
-	// Verify staticcheck fix.
-	staticcheckFixed, err := os.ReadFile(staticcheckFile)
-	require.NoError(t, err)
-	require.Contains(t, string(staticcheckFixed), `errors.New("failed to process")`)
-
-	// Verify copyloopvar fix.
-	copyloopvarFixed, err := os.ReadFile(copyloopvarFile)
-	require.NoError(t, err)
-	require.NotContains(t, string(copyloopvarFixed), "item := item")
-
-	// Verify thelper fix.
-	thelperFixed, err := os.ReadFile(thelperFile)
-	require.NoError(t, err)
-	require.Contains(t, string(thelperFixed), "t.Helper()")
+			if tc.verifyFn != nil {
+				tc.verifyFn(t, tmpDir)
+			}
+		})
+	}
 }
 
 func TestFix_InvalidDirectory(t *testing.T) {
