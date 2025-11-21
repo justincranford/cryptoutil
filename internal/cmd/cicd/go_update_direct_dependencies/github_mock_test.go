@@ -138,7 +138,7 @@ func SampleReleaseJSON(tagName string) string {
 
 // SampleTagsJSON returns sample tags JSON array for testing.
 func SampleTagsJSON(tags ...string) string {
-	var tagObjects []string
+	tagObjects := make([]string, 0, len(tags))
 	for _, tag := range tags {
 		tagObjects = append(tagObjects, fmt.Sprintf(`{"name": "%s"}`, tag))
 	}
