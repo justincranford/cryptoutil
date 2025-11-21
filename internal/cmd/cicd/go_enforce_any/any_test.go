@@ -228,7 +228,9 @@ func main() {
 			require.NoError(t, err)
 
 			defer func() {
-				_ = os.Chdir(oldWd) // Best effort cleanup
+				if err := os.Chdir(oldWd); err != nil {
+					t.Errorf("Failed to restore working directory: %v", err)
+				}
 			}()
 
 			require.NoError(t, os.Chdir(tempDir))

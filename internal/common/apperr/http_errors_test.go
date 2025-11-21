@@ -20,12 +20,12 @@ func TestHTTPErrorConstructors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name             string
-		constructor      func(summary *string, err error) *apperr.Error
-		wantStatusCode   int
-		summary          string
-		baseErr          error
-		wantCode         string
+		name           string
+		constructor    func(summary *string, err error) *apperr.Error
+		wantStatusCode int
+		summary        string
+		baseErr        error
+		wantCode       string
 	}{
 		{
 			name:           "http400_bad_request",
@@ -70,7 +70,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

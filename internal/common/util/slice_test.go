@@ -15,6 +15,17 @@ import (
 func TestContains(t *testing.T) {
 	t.Parallel()
 
+	const (
+		testApple    = "apple"
+		testBanana   = "banana"
+		testCherry   = "cherry"
+		testFirst    = "first"
+		testSecond   = "second"
+		testLast     = "last"
+		testOnly     = "only"
+		testDuplicate = "duplicate"
+	)
+
 	tests := []struct {
 		name       string
 		setupFn    func() (slice any, searchItem any)
@@ -23,11 +34,11 @@ func TestContains(t *testing.T) {
 		{
 			name: "found_element",
 			setupFn: func() (any, any) {
-				val1 := "apple"
-				val2 := "banana"
-				val3 := "cherry"
+				val1 := testApple
+				val2 := testBanana
+				val3 := testCherry
 				slice := []*string{&val1, &val2, &val3}
-				searchItem := "banana"
+				searchItem := testBanana
 
 				return slice, &searchItem
 			},
@@ -36,9 +47,9 @@ func TestContains(t *testing.T) {
 		{
 			name: "not_found_element",
 			setupFn: func() (any, any) {
-				val1 := "apple"
-				val2 := "banana"
-				val3 := "cherry"
+				val1 := testApple
+				val2 := testBanana
+				val3 := testCherry
 				slice := []*string{&val1, &val2, &val3}
 				searchItem := "orange"
 
@@ -50,7 +61,7 @@ func TestContains(t *testing.T) {
 			name: "empty_slice",
 			setupFn: func() (any, any) {
 				slice := []*string{}
-				searchItem := "apple"
+				searchItem := testApple
 
 				return slice, &searchItem
 			},
@@ -59,11 +70,11 @@ func TestContains(t *testing.T) {
 		{
 			name: "first_element",
 			setupFn: func() (any, any) {
-				val1 := "first"
-				val2 := "second"
+				val1 := testFirst
+				val2 := testSecond
 				val3 := "third"
 				slice := []*string{&val1, &val2, &val3}
-				searchItem := "first"
+				searchItem := testFirst
 
 				return slice, &searchItem
 			},
@@ -72,11 +83,11 @@ func TestContains(t *testing.T) {
 		{
 			name: "last_element",
 			setupFn: func() (any, any) {
-				val1 := "first"
-				val2 := "second"
-				val3 := "last"
+				val1 := testFirst
+				val2 := testSecond
+				val3 := testLast
 				slice := []*string{&val1, &val2, &val3}
-				searchItem := "last"
+				searchItem := testLast
 
 				return slice, &searchItem
 			},
@@ -111,9 +122,9 @@ func TestContains(t *testing.T) {
 		{
 			name: "single_element_found",
 			setupFn: func() (any, any) {
-				val := "only"
+				val := testOnly
 				slice := []*string{&val}
-				searchItem := "only"
+				searchItem := testOnly
 
 				return slice, &searchItem
 			},
@@ -122,7 +133,7 @@ func TestContains(t *testing.T) {
 		{
 			name: "single_element_not_found",
 			setupFn: func() (any, any) {
-				val := "only"
+				val := testOnly
 				slice := []*string{&val}
 				searchItem := "different"
 
@@ -133,11 +144,11 @@ func TestContains(t *testing.T) {
 		{
 			name: "duplicate_elements",
 			setupFn: func() (any, any) {
-				val1 := "duplicate"
-				val2 := "duplicate"
+				val1 := testDuplicate
+				val2 := testDuplicate
 				val3 := "unique"
 				slice := []*string{&val1, &val2, &val3}
-				searchItem := "duplicate"
+				searchItem := testDuplicate
 
 				return slice, &searchItem
 			},
@@ -146,7 +157,7 @@ func TestContains(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

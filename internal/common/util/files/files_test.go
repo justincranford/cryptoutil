@@ -112,6 +112,8 @@ func TestWriteFile(t *testing.T) {
 func TestListAllFiles(t *testing.T) {
 	t.Parallel()
 
+	const expectedCount = 3
+
 	tests := []struct {
 		name         string
 		setupFiles   []string                    // Files to create in temp dir
@@ -132,7 +134,7 @@ func TestListAllFiles(t *testing.T) {
 			name:       "Multiple_files_in_directory",
 			setupFiles: []string{"file1.txt", "file2.txt", "file3.txt"},
 			expectedFunc: func(result []string, baseDir string) bool {
-				return len(result) == 3
+				return len(result) == expectedCount
 			},
 			wantErr: false,
 		},
@@ -145,7 +147,7 @@ func TestListAllFiles(t *testing.T) {
 			},
 			setupDirs: []string{"subdir1", filepath.Join("subdir1", "subdir2")},
 			expectedFunc: func(result []string, baseDir string) bool {
-				return len(result) == 3
+				return len(result) == expectedCount
 			},
 			wantErr: false,
 		},

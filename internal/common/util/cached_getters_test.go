@@ -17,6 +17,8 @@ import (
 func TestGetCached(t *testing.T) {
 	t.Parallel()
 
+	const testCachedValue = "cached value"
+
 	tests := []struct {
 		name   string
 		testFn func(t *testing.T)
@@ -30,7 +32,7 @@ func TestGetCached(t *testing.T) {
 
 				getter := func() any {
 					callCount++
-					capturedValue = "cached value"
+					capturedValue = testCachedValue
 
 					return capturedValue
 				}
@@ -38,7 +40,7 @@ func TestGetCached(t *testing.T) {
 				var once sync.Once
 
 				result1 := util.GetCached(true, &once, getter)
-				require.Equal(t, "cached value", result1)
+				require.Equal(t, testCachedValue, result1)
 				require.Equal(t, 1, callCount, "Getter should be called once")
 
 				result2 := util.GetCached(true, &once, getter)
@@ -52,6 +54,7 @@ func TestGetCached(t *testing.T) {
 				callCount := 0
 				getter := func() any {
 					callCount++
+
 					return callCount
 				}
 
@@ -104,7 +107,7 @@ func TestGetCached(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc.testFn(t)
@@ -125,6 +128,7 @@ func TestGetCachedWithError(t *testing.T) {
 				callCount := 0
 				getter := func() (any, error) {
 					callCount++
+
 					return "cached value", nil
 				}
 
@@ -149,6 +153,7 @@ func TestGetCachedWithError(t *testing.T) {
 
 				getter := func() (any, error) {
 					callCount++
+
 					return nil, expectedErr
 				}
 
@@ -172,6 +177,7 @@ func TestGetCachedWithError(t *testing.T) {
 				callCount := 0
 				getter := func() (any, error) {
 					callCount++
+
 					return callCount, nil
 				}
 
@@ -193,6 +199,7 @@ func TestGetCachedWithError(t *testing.T) {
 				callCount := 0
 				getter := func() (any, error) {
 					callCount++
+
 					return nil, errors.New("error")
 				}
 
@@ -250,7 +257,7 @@ func TestGetCachedWithError(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc.testFn(t)

@@ -22,8 +22,11 @@ func TestFix(t *testing.T) {
 		verifyFn        func(t *testing.T, dir string)
 	}{
 		{
-			name:            "empty directory",
-			setupFiles:      func(t *testing.T, dir string) error { t.Helper(); return nil },
+			name: "empty directory",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				return nil
+			},
 			wantProcessed:   0,
 			wantModified:    0,
 			wantIssuesFixed: 0,
@@ -238,7 +241,7 @@ func setupGlobal() {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

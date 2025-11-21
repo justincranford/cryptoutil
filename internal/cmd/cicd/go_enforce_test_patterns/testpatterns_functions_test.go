@@ -78,7 +78,7 @@ func TestCheckTestFile(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -102,6 +102,7 @@ func TestCheckTestFile(t *testing.T) {
 				for _, issue := range issues {
 					if strings.Contains(issue, want) {
 						found = true
+
 						break
 					}
 				}
@@ -125,6 +126,7 @@ func TestEnforce(t *testing.T) {
 			name: "no_test_files",
 			setupFiles: func(t *testing.T, tmpDir string) []string {
 				t.Helper()
+
 				return []string{"main.go", "util.go", "config.go"}
 			},
 			wantError: false,
@@ -194,7 +196,7 @@ func TestEnforce(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
