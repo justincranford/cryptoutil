@@ -15,79 +15,113 @@ import (
 )
 
 func TestCheckFileEncoding(t *testing.T) {
+	t.Parallel()
+
 	tempDir := t.TempDir()
 
-	t.Run("valid UTF-8 file without BOM", func(t *testing.T) {
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "valid_utf8.txt", "Hello, world! This is valid UTF-8 content without BOM.")
+	tests := []struct {
+		name         string
+		fileName     string
+		content      string
+		createFile   bool
+		wantIssues   int
+		wantContains string
+	}{
+		{
+			name:       "valid UTF-8 file without BOM",
+			fileName:   "valid_utf8.txt",
+			content:    "Hello, world! This is valid UTF-8 content without BOM.",
+			createFile: true,
+			wantIssues: 0,
+		},
+		{
+			name:         "file with UTF-8 BOM",
+			fileName:     "utf8_bom.txt",
+			content:      "\xEF\xBB\xBFHello, world! This has UTF-8 BOM.",
+			createFile:   true,
+			wantIssues:   1,
+			wantContains: "contains UTF-8 BOM",
+		},
+		{
+			name:         "file with UTF-16 LE BOM",
+			fileName:     "utf16_le_bom.txt",
+			content:      "\xFF\xFEHello, world! This has UTF-16 LE BOM.",
+			createFile:   true,
+			wantIssues:   1,
+			wantContains: "contains UTF-16 LE BOM",
+		},
+		{
+			name:         "file with UTF-16 BE BOM",
+			fileName:     "utf16_be_bom.txt",
+			content:      "\xFE\xFFHello, world! This has UTF-16 BE BOM.",
+			createFile:   true,
+			wantIssues:   1,
+			wantContains: "contains UTF-16 BE BOM",
+		},
+		{
+			name:         "file with UTF-32 LE BOM",
+			fileName:     "utf32_le_bom.txt",
+			content:      "\xFF\xFE\x00\x00Hello, world! This has UTF-32 LE BOM.",
+			createFile:   true,
+			wantIssues:   1,
+			wantContains: "contains UTF-32 LE BOM",
+		},
+		{
+			name:         "file with UTF-32 BE BOM",
+			fileName:     "utf32_be_bom.txt",
+			content:      "\x00\x00\xFE\xFFHello, world! This has UTF-32 BE BOM.",
+			createFile:   true,
+			wantIssues:   1,
+			wantContains: "contains UTF-32 BE BOM",
+		},
+		{
+			name:         "file does not exist",
+			fileName:     "nonexistent.txt",
+			content:      "",
+			createFile:   false,
+			wantIssues:   1,
+			wantContains: "Error reading file",
+		},
+		{
+			name:       "empty file",
+			fileName:   "empty.txt",
+			content:    "",
+			createFile: true,
+			wantIssues: 0,
+		},
+		{
+			name:         "file with only BOM",
+			fileName:     "only_bom.txt",
+			content:      "\xEF\xBB\xBF",
+			createFile:   true,
+			wantIssues:   1,
+			wantContains: "contains UTF-8 BOM",
+		},
+	}
 
-		issues := checkFileEncoding(filePath)
-		require.Len(t, issues, 0, "Valid UTF-8 file without BOM should have no issues")
-		require.Empty(t, issues, "Valid UTF-8 file without BOM should have no encoding issues")
-	})
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	t.Run("file with UTF-8 BOM", func(t *testing.T) {
-		// UTF-8 BOM: EF BB BF
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf8_bom.txt", "\xEF\xBB\xBFHello, world! This has UTF-8 BOM.")
+			var filePath string
+			if tc.createFile {
+				filePath = cryptoutilTestutil.WriteTempFile(t, tempDir, tc.fileName, tc.content)
+			} else {
+				filePath = filepath.Join(tempDir, tc.fileName)
+			}
 
-		issues := checkFileEncoding(filePath)
-		require.Len(t, issues, 1, "File with UTF-8 BOM should have one issue")
-		require.Contains(t, issues[0], "contains UTF-8 BOM", "Issue should mention UTF-8 BOM")
-	})
-
-	t.Run("file with UTF-16 LE BOM", func(t *testing.T) {
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf16_le_bom.txt", "\xFF\xFEHello, world! This has UTF-16 LE BOM.")
-
-		issues := checkFileEncoding(filePath)
-		require.Len(t, issues, 1, "File with UTF-16 LE BOM should have one issue")
-		require.Contains(t, issues[0], "contains UTF-16 LE BOM", "Issue should mention UTF-16 LE BOM")
-	})
-
-	t.Run("file with UTF-16 BE BOM", func(t *testing.T) {
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf16_be_bom.txt", "\xFE\xFFHello, world! This has UTF-16 BE BOM.")
-
-		issues := checkFileEncoding(filePath)
-		require.Len(t, issues, 1, "File with UTF-16 BE BOM should have one issue")
-		require.Contains(t, issues[0], "contains UTF-16 BE BOM", "Issue should mention UTF-16 BE BOM")
-	})
-
-	t.Run("file with UTF-32 LE BOM", func(t *testing.T) {
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf32_le_bom.txt", "\xFF\xFE\x00\x00Hello, world! This has UTF-32 LE BOM.")
-
-		issues := checkFileEncoding(filePath)
-		require.Len(t, issues, 1, "File with UTF-32 LE BOM should have one issue")
-		require.Contains(t, issues[0], "contains UTF-32 LE BOM", "Issue should mention UTF-32 LE BOM")
-	})
-
-	t.Run("file with UTF-32 BE BOM", func(t *testing.T) {
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf32_be_bom.txt", "\x00\x00\xFE\xFFHello, world! This has UTF-32 BE BOM.")
-
-		issues := checkFileEncoding(filePath)
-		require.Len(t, issues, 1, "File with UTF-32 BE BOM should have one issue")
-		require.Contains(t, issues[0], "contains UTF-32 BE BOM", "Issue should mention UTF-32 BE BOM")
-	})
-
-	t.Run("file does not exist", func(t *testing.T) {
-		nonExistentFile := filepath.Join(tempDir, "nonexistent.txt")
-
-		issues := checkFileEncoding(nonExistentFile)
-		require.Len(t, issues, 1, "Non-existent file should have one issue")
-		require.Contains(t, issues[0], "Error reading file", "Issue should mention file reading error")
-	})
-
-	t.Run("empty file", func(t *testing.T) {
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "empty.txt", "")
-
-		issues := checkFileEncoding(filePath)
-		require.Empty(t, issues, "Empty file should have no encoding issues")
-	})
-
-	t.Run("file with only BOM", func(t *testing.T) {
-		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "only_bom.txt", "\xEF\xBB\xBF")
-
-		issues := checkFileEncoding(filePath)
-		require.Len(t, issues, 1, "File with only BOM should have one issue")
-		require.Contains(t, issues[0], "contains UTF-8 BOM", "Issue should mention UTF-8 BOM")
-	})
+			issues := checkFileEncoding(filePath)
+			if tc.wantIssues == 0 {
+				require.Empty(t, issues, "%s: expected no issues", tc.name)
+			} else {
+				require.Len(t, issues, tc.wantIssues, "%s: unexpected number of issues", tc.name)
+				if tc.wantContains != "" {
+					require.Contains(t, issues[0], tc.wantContains, "%s: issue message mismatch", tc.name)
+				}
+			}
+		})
+	}
 }
 
 func TestEnforce(t *testing.T) {
