@@ -227,7 +227,7 @@ func Process(items []int) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture range variable
+		// Capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -285,7 +285,10 @@ func TestIsGoVersionSupported(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc // Capture range variable
 		t.Run(tc.version, func(t *testing.T) {
+			t.Parallel()
+
 			result := isGoVersionSupported(tc.version)
 			require.Equal(t, tc.expected, result)
 		})

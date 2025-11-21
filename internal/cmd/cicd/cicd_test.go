@@ -13,21 +13,6 @@ import (
 	"cryptoutil/internal/cmd/cicd/common"
 )
 
-// Common test constants to avoid goconst linter violations.
-const (
-	testPackageMain   = "package main"
-	testImportFmt     = `import "fmt"`
-	testFuncMainStart = `
-func main() {`
-	testFuncMainEnd = `}
-`
-	testTypeMyStruct = `
-type MyStruct struct {
-	Data any
-}
-`
-)
-
 func TestRunUsage(t *testing.T) {
 	// Test with no commands (should return error)
 	err := Run([]string{})

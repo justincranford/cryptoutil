@@ -149,7 +149,7 @@ func convert(a any, b any) (any, any) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture range variable
+		// Capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -176,10 +176,10 @@ func TestEnforce(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		files        map[string]string
-		wantError    bool
-		wantAnyStr   bool // expect "any" in at least one file
+		name       string
+		files      map[string]string
+		wantError  bool
+		wantAnyStr bool // expect "any" in at least one file
 	}{
 		{
 			name: "files with interface{} should return error after modification",
@@ -209,11 +209,12 @@ func main() {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture range variable
+		// Capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			tempDir := t.TempDir()
+
 			var filePaths []string
 
 			// Create test files
@@ -246,6 +247,7 @@ func main() {
 			// Verify expected content in modified files
 			if tc.wantAnyStr {
 				foundAny := false
+
 				for _, filePath := range filePaths {
 					modifiedContent := cryptoutilTestutil.ReadTestFile(t, filePath)
 					if strings.Contains(string(modifiedContent), "any") {
@@ -254,6 +256,7 @@ func main() {
 						break
 					}
 				}
+
 				require.True(t, foundAny, "At least one file should contain 'any'")
 			}
 		})

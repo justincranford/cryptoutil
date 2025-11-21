@@ -100,7 +100,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -116,6 +116,7 @@ func TestCheckFileEncoding(t *testing.T) {
 				require.Empty(t, issues, "%s: expected no issues", tc.name)
 			} else {
 				require.Len(t, issues, tc.wantIssues, "%s: unexpected number of issues", tc.name)
+
 				if tc.wantContains != "" {
 					require.Contains(t, issues[0], tc.wantContains, "%s: issue message mismatch", tc.name)
 				}
