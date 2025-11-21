@@ -271,13 +271,25 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeys
 			return fmt.Errorf("failed to get MaterialKeys by ElasticKeyID: %w", err)
 		}
 
+		// Cache GetElasticKey calls to avoid redundant database queries for the same ElasticKeyID
+		elasticKeyCache := make(map[googleUuid.UUID]*cryptoutilOrmRepository.ElasticKey)
+
 		for _, ormMaterialKey := range ormMaterialKeys {
-			// TODO cache GetElasticKey
-			ormElasticKey, err = sqlTransaction.GetElasticKey(&ormMaterialKey.ElasticKeyID)
-			if err != nil {
-				return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
-			} else if ormElasticKey == nil {
-				return fmt.Errorf("got nil ElasticKey by ElasticKeyID: %w", err)
+			elasticKeyID := ormMaterialKey.ElasticKeyID
+
+			// Check cache first
+			if cachedElasticKey, exists := elasticKeyCache[elasticKeyID]; exists {
+				ormElasticKey = cachedElasticKey
+			} else {
+				// Cache miss - fetch from database
+				ormElasticKey, err = sqlTransaction.GetElasticKey(&elasticKeyID)
+				if err != nil {
+					return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
+				} else if ormElasticKey == nil {
+					return fmt.Errorf("got nil ElasticKey by ElasticKeyID: %w", err)
+				}
+				// Cache the result
+				elasticKeyCache[elasticKeyID] = ormElasticKey
 			}
 		}
 
