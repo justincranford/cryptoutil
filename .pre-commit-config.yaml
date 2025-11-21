@@ -166,14 +166,14 @@ repos:
   #       No separate gofumpt hook needed to avoid conflicting formatting passes
   - repo: local
     hooks:
-      # - id: golangci-lint
-      #   name: golangci-lint (incremental auto-fix)
-      #   entry: golangci-lint
-      #   args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
-      #   language: system
-      #   pass_filenames: false
-      #   files: '\.go$'
-      #   stages: [pre-commit]  # Fast incremental check on commit
+      - id: golangci-lint
+        name: golangci-lint (incremental auto-fix)
+        entry: golangci-lint
+        args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
+        language: system
+        pass_filenames: false
+        files: '\.go$'
+        stages: [pre-commit]  # Fast incremental check on commit
 
       - id: golangci-lint-full
         name: golangci-lint (full validation)
