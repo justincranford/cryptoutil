@@ -6,60 +6,135 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_DevMode(t *testing.T) {
-	dbType, url, err := mapDBTypeAndURL(testTelemetryService, true, "ignored-url")
-	require.NoError(t, err, "expected no error for dev mode")
-	require.Equal(t, DBTypeSQLite, dbType, "expected SQLite in dev mode")
-	require.Equal(t, ":memory:", url, "expected SQLite in-memory")
+func TestMapDBTypeAndURL(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		devMode       bool
+		databaseURL   string
+		wantDBType    SupportedDBType
+		wantURL       string
+		wantError     bool
+		errorContains string
+	}{
+		{
+			name:        "dev mode uses SQLite in-memory",
+			devMode:     true,
+			databaseURL: "ignored-url",
+			wantDBType:  DBTypeSQLite,
+			wantURL:     ":memory:",
+			wantError:   false,
+		},
+		{
+			name:        "postgres URL parsed correctly",
+			devMode:     false,
+			databaseURL: "postgres://user:pass@localhost/db",
+			wantDBType:  DBTypePostgres,
+			wantURL:     "postgres://user:pass@localhost/db",
+			wantError:   false,
+		},
+		{
+			name:        "unsupported database type returns error",
+			devMode:     false,
+			databaseURL: "mysql://user:pass@localhost/db",
+			wantDBType:  SupportedDBType(""),
+			wantURL:     "",
+			wantError:   true,
+		},
+		{
+			name:        "empty database URL returns error",
+			devMode:     false,
+			databaseURL: "",
+			wantDBType:  SupportedDBType(""),
+			wantURL:     "",
+			wantError:   true,
+		},
+	}
+
+	for _, tc := range tests {
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dbType, url, err := mapDBTypeAndURL(testTelemetryService, tc.devMode, tc.databaseURL)
+
+			if tc.wantError {
+				require.Error(t, err)
+
+				if tc.errorContains != "" {
+					require.Contains(t, err.Error(), tc.errorContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+
+			require.Equal(t, tc.wantDBType, dbType)
+			require.Equal(t, tc.wantURL, url)
+		})
+	}
 }
 
-func Test_DatabaseUrl_PostgresSQL(t *testing.T) {
-	dbType, url, err := mapDBTypeAndURL(testTelemetryService, false, "postgres://user:pass@localhost/db")
-	require.NoError(t, err, "expected no error for Postgres URL")
-	require.Equal(t, DBTypePostgres, dbType, "expected Postgres dbType")
-	require.Equal(t, "postgres://user:pass@localhost/db", url, "expected Postgres URL")
-}
+func TestMapContainerMode(t *testing.T) {
+	t.Parallel()
 
-func Test_DatabaseUrl_Unsupported(t *testing.T) {
-	dbType, url, err := mapDBTypeAndURL(testTelemetryService, false, "mysql://user:pass@localhost/db")
-	require.Error(t, err, "expected error for unsupported DB URL")
-	require.Equal(t, "", url, "expected empty URL for unsupported DB type")
-	require.Equal(t, SupportedDBType(""), dbType, "expected empty dbType for unsupported URL")
-}
+	tests := []struct {
+		name          string
+		input         string
+		wantMode      ContainerMode
+		wantError     bool
+		errorContains string
+	}{
+		{
+			name:      "disabled mode parsed correctly",
+			input:     string(ContainerModeDisabled),
+			wantMode:  ContainerModeDisabled,
+			wantError: false,
+		},
+		{
+			name:      "preferred mode parsed correctly",
+			input:     string(ContainerModePreferred),
+			wantMode:  ContainerModePreferred,
+			wantError: false,
+		},
+		{
+			name:      "required mode parsed correctly",
+			input:     string(ContainerModeRequired),
+			wantMode:  ContainerModeRequired,
+			wantError: false,
+		},
+		{
+			name:      "invalid mode returns error",
+			input:     "invalid-mode",
+			wantMode:  ContainerMode(""),
+			wantError: true,
+		},
+		{
+			name:      "empty mode returns error",
+			input:     "",
+			wantMode:  ContainerMode(""),
+			wantError: true,
+		},
+	}
 
-func Test_DatabaseUrl_Empty(t *testing.T) {
-	dbType, url, err := mapDBTypeAndURL(testTelemetryService, false, "")
-	require.Error(t, err, "expected error for empty database URL")
-	require.Equal(t, SupportedDBType(""), dbType, "expected empty dbType for empty URL")
-	require.Equal(t, "", url, "expected empty URL for empty input")
-}
+	for _, tc := range tests {
 
-func Test_DatabaseContainerMode_Disabled(t *testing.T) {
-	mode, err := mapContainerMode(testTelemetryService, string(ContainerModeDisabled))
-	require.NoError(t, err, "expected no error for disabled container mode")
-	require.Equal(t, ContainerModeDisabled, mode, "expected mode to match disabled")
-}
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func Test_DatabaseContainerMode_Preferred(t *testing.T) {
-	mode, err := mapContainerMode(testTelemetryService, string(ContainerModePreferred))
-	require.NoError(t, err, "expected no error for preferred container mode")
-	require.Equal(t, ContainerModePreferred, mode, "expected mode to match preferred")
-}
+			mode, err := mapContainerMode(testTelemetryService, tc.input)
 
-func Test_DatabaseContainerMode_Required(t *testing.T) {
-	mode, err := mapContainerMode(testTelemetryService, string(ContainerModeRequired))
-	require.NoError(t, err, "expected no error for required container mode")
-	require.Equal(t, ContainerModeRequired, mode, "expected mode to match required")
-}
+			if tc.wantError {
+				require.Error(t, err)
 
-func Test_DatabaseContainerMode_Invalid(t *testing.T) {
-	mode, err := mapContainerMode(testTelemetryService, "invalid-mode")
-	require.Error(t, err, "expected error for unsupported container mode")
-	require.Equal(t, ContainerMode(""), mode, "expected empty mode for invalid input")
-}
+				if tc.errorContains != "" {
+					require.Contains(t, err.Error(), tc.errorContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
 
-func Test_DatabaseContainerMode_Empty(t *testing.T) {
-	mode, err := mapContainerMode(testTelemetryService, "")
-	require.Error(t, err, "expected error for empty container mode")
-	require.Equal(t, ContainerMode(""), mode, "expected empty mode for empty input")
+			require.Equal(t, tc.wantMode, mode)
+		})
+	}
 }
