@@ -164,6 +164,16 @@ func RequireNewForTest(applicationName string) *Settings {
 		panic("allowedCidrs.value must be []string")
 	}
 
+	swaggerUIUsernameValue, ok := swaggerUIUsername.value.(string)
+	if !ok {
+		panic("swaggerUIUsername.value must be string")
+	}
+
+	swaggerUIPasswordValue, ok := swaggerUIPassword.value.(string)
+	if !ok {
+		panic("swaggerUIPassword.value must be string")
+	}
+
 	databaseContainerValue, ok := databaseContainer.value.(string)
 	if !ok {
 		panic("databaseContainer.value must be string")
@@ -272,6 +282,8 @@ func RequireNewForTest(applicationName string) *Settings {
 		ServiceIPRateLimit:          serviceIPRateLimitValue,
 		AllowedIPs:                  allowedIPsValue,
 		AllowedCIDRs:                allowedCIDRsValue,
+		SwaggerUIUsername:           swaggerUIUsernameValue,
+		SwaggerUIPassword:           swaggerUIPasswordValue,
 		DatabaseContainer:           databaseContainerValue,
 		DatabaseURL:                 databaseURLValue,
 		DatabaseInitTotalTimeout:    databaseInitTotalTimeoutValue,

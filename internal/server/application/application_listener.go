@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"net"
@@ -212,8 +213,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		return c.SendString("Server shutdown initiated")
 	})
 
-	// Public Swagger UI
-	// TODO Add authentication middleware for Swagger UI access
+	// Public Swagger UI with basic authentication
 	swaggerAPI, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
@@ -235,12 +235,12 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		return nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
 	}
 
-	publicFiberApp.Get("/ui/swagger/doc.json", func(c *fiber.Ctx) error {
+	publicFiberApp.Get("/ui/swagger/doc.json", swaggerUIBasicAuthMiddleware(settings.SwaggerUIUsername, settings.SwaggerUIPassword), func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
 
 		return c.Send(swaggerSpecBytes)
 	})
-	publicFiberApp.Get("/ui/swagger/*", func(c *fiber.Ctx) error {
+	publicFiberApp.Get("/ui/swagger/*", swaggerUIBasicAuthMiddleware(settings.SwaggerUIUsername, settings.SwaggerUIPassword), func(c *fiber.Ctx) error {
 		swaggerHandler := swagger.New(swagger.Config{
 			Title:                  "Cryptoutil API",
 			URL:                    "/ui/swagger/doc.json",
@@ -646,6 +646,49 @@ func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings)
 		}
 
 		return c.Status(fiber.StatusMethodNotAllowed).SendString("Method not allowed")
+	}
+}
+
+func swaggerUIBasicAuthMiddleware(username, password string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// If no username/password configured, skip authentication
+		if username == "" && password == "" {
+			return c.Next()
+		}
+
+		// Check for Authorization header
+		auth := c.Get("Authorization")
+		if auth == "" {
+			c.Set("WWW-Authenticate", `Basic realm="Swagger UI"`)
+			return c.Status(fiber.StatusUnauthorized).SendString("Authentication required")
+		}
+
+		// Parse Basic Auth
+		if !strings.HasPrefix(auth, "Basic ") {
+			return c.Status(fiber.StatusUnauthorized).SendString("Invalid authentication method")
+		}
+
+		encoded := strings.TrimPrefix(auth, "Basic ")
+		decoded, err := base64.StdEncoding.DecodeString(encoded)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).SendString("Invalid authentication encoding")
+		}
+
+		credentials := string(decoded)
+		colonIndex := strings.Index(credentials, ":")
+		if colonIndex == -1 {
+			return c.Status(fiber.StatusUnauthorized).SendString("Invalid authentication format")
+		}
+
+		reqUsername := credentials[:colonIndex]
+		reqPassword := credentials[colonIndex+1:]
+
+		// Check credentials
+		if reqUsername != username || reqPassword != password {
+			return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
+		}
+
+		return c.Next()
 	}
 }
 

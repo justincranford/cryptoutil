@@ -13,6 +13,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
+//nolint:thelper // testFn inline functions are NOT test helpers - they're test implementations
 func TestPolicyConstructors(t *testing.T) {
 	t.Parallel()
 

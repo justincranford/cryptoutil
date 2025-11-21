@@ -143,6 +143,10 @@ var defaultTLSPrivateIPAddresses = cryptoutilMagic.DefaultTLSPrivateIPAddresses
 
 var defaultAllowedCIDRs = cryptoutilMagic.DefaultIPFilterAllowedCIDRs
 
+var defaultSwaggerUIUsername = ""
+
+var defaultSwaggerUIPassword = ""
+
 var defaultCORSAllowedMethods = cryptoutilMagic.DefaultCORSAllowedMethods
 
 var defaultCORSAllowedHeaders = cryptoutilMagic.DefaultCORSAllowedHeaders
@@ -202,6 +206,8 @@ type Settings struct {
 	ServiceIPRateLimit          uint16
 	AllowedIPs                  []string
 	AllowedCIDRs                []string
+	SwaggerUIUsername           string
+	SwaggerUIPassword           string
 	DatabaseContainer           string
 	DatabaseURL                 string
 	DatabaseInitTotalTimeout    time.Duration
@@ -485,6 +491,21 @@ var (
 		value:       defaultAllowedCIDRs,
 		usage:       "comma-separated list of allowed CIDRs",
 		description: "Allowed CIDRs",
+	})
+	swaggerUIUsername = *registerSetting(&Setting{
+		name:        "swagger-ui-username",
+		shorthand:   "",
+		value:       defaultSwaggerUIUsername,
+		usage:       "username for Swagger UI basic authentication",
+		description: "Swagger UI Username",
+	})
+	swaggerUIPassword = *registerSetting(&Setting{
+		name:        "swagger-ui-password",
+		shorthand:   "",
+		value:       defaultSwaggerUIPassword,
+		usage:       "password for Swagger UI basic authentication",
+		description: "Swagger UI Password",
+		redacted:    true,
 	})
 	requestBodyLimit = *registerSetting(&Setting{
 		name:        "request-body-limit",
@@ -871,6 +892,10 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  -e, --browser-rate-limit uint16     rate limit for browser API requests per second (default " + formatDefault(defaultBrowserIPRateLimit) + ")")
 		fmt.Println("  -w, --service-rate-limit uint16     rate limit for service API requests per second (default " + formatDefault(defaultServiceIPRateLimit) + ")")
 		fmt.Println("  -L, --request-body-limit int        Maximum request body size in bytes (default " + formatDefault(defaultRequestBodyLimit) + ")")
+		fmt.Println()
+		fmt.Println("SWAGGER UI SETTINGS:")
+		fmt.Println("      --swagger-ui-username string    username for Swagger UI basic authentication")
+		fmt.Println("      --swagger-ui-password string    password for Swagger UI basic authentication")
 		fmt.Println()
 		fmt.Println("BROWSER CORS SECURITY SETTINGS:")
 		fmt.Println("  -o, --cors-origins strings          CORS allowed origins")

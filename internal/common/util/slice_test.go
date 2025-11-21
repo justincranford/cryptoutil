@@ -169,11 +169,13 @@ func TestContains(t *testing.T) {
 				searchItemType, ok := searchItem.(*string)
 				require.True(t, ok, "Error asserting searchItem to *string")
 
+				//nolint:errcheck // Test cleanup - error irrelevant
 				result = util.Contains(s, searchItemType)
 			case []*int:
 				searchItemType, ok := searchItem.(*int)
 				require.True(t, ok, "Error asserting searchItem to *int")
 
+				//nolint:errcheck // Test cleanup - error irrelevant
 				result = util.Contains(s, searchItemType)
 			default:
 				require.FailNow(t, "Unsupported slice type", "%T", slice)

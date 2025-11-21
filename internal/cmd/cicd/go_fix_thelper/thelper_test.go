@@ -11,6 +11,8 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
+const testFileMode = 0o600
+
 func TestFix(t *testing.T) {
 	t.Parallel()
 
@@ -74,7 +76,7 @@ func TestExample(t *testing.T) {
 }
 `
 
-				return os.WriteFile(testFile, []byte(content), 0o600)
+				return os.WriteFile(testFile, []byte(content), testFileMode)
 			},
 			wantProcessed:   1,
 			wantModified:    0,
@@ -210,7 +212,11 @@ func mockService(t *testing.T) {}
 					return fmt.Errorf("failed to write file %q: %w", file2, err)
 				}
 
-				return os.WriteFile(file3, []byte(content), 0o600)
+				if err := os.WriteFile(file3, []byte(content), 0o600); err != nil {
+					return fmt.Errorf("failed to write file %q: %w", file3, err)
+				}
+
+				return nil
 			},
 			wantProcessed:   3,
 			wantModified:    3,
