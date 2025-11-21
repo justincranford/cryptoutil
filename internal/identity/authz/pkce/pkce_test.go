@@ -12,94 +12,119 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
-// TestGenerateCodeVerifier tests PKCE code verifier generation.
 func TestGenerateCodeVerifier(t *testing.T) {
 	t.Parallel()
 
-	verifier, err := GenerateCodeVerifier()
+	tests := []struct {
+		name     string
+		testFn   func(t *testing.T)
+	}{
+		{
+			name: "basic_generation",
+			testFn: func(t *testing.T) {
+				t.Helper()
+				verifier, err := GenerateCodeVerifier()
+				testify.NoError(t, err, "Generate code verifier should succeed")
+				testify.NotEmpty(t, verifier, "Code verifier should not be empty")
+				testify.GreaterOrEqual(t, len(verifier), 43, "Code verifier should be at least 43 characters (RFC 7636)")
+				testify.NotContains(t, verifier, "+", "Code verifier should use base64url encoding")
+				testify.NotContains(t, verifier, "/", "Code verifier should use base64url encoding")
+				testify.NotContains(t, verifier, "=", "Code verifier should not have padding")
+			},
+		},
+		{
+			name: "uniqueness",
+			testFn: func(t *testing.T) {
+				t.Helper()
+				verifiers := make(map[string]bool)
+				for i := 0; i < 100; i++ {
+					verifier, err := GenerateCodeVerifier()
+					testify.NoError(t, err, "Generate code verifier should succeed")
+					testify.False(t, verifiers[verifier], "Code verifiers should be unique")
+					verifiers[verifier] = true
+				}
+			},
+		},
+	}
 
-	testify.NoError(t, err, "Generate code verifier should succeed")
-	testify.NotEmpty(t, verifier, "Code verifier should not be empty")
-
-	// RFC 7636: code verifier should be at least 43 characters
-	testify.GreaterOrEqual(t, len(verifier), 43, "Code verifier should be at least 43 characters")
-
-	// Verify base64url encoding (should not contain + or / or =)
-	testify.NotContains(t, verifier, "+", "Code verifier should use base64url encoding")
-	testify.NotContains(t, verifier, "/", "Code verifier should use base64url encoding")
-	testify.NotContains(t, verifier, "=", "Code verifier should not have padding")
-}
-
-// TestGenerateCodeVerifier_Uniqueness tests that generated verifiers are unique.
-func TestGenerateCodeVerifier_Uniqueness(t *testing.T) {
-	t.Parallel()
-
-	verifiers := make(map[string]bool)
-
-	// Generate multiple verifiers and ensure uniqueness
-	for i := 0; i < 100; i++ {
-		verifier, err := GenerateCodeVerifier()
-		testify.NoError(t, err, "Generate code verifier should succeed")
-		testify.False(t, verifiers[verifier], "Code verifiers should be unique")
-
-		verifiers[verifier] = true
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc.testFn(t)
+		})
 	}
 }
 
-// TestGenerateCodeChallenge_S256 tests S256 code challenge generation.
-func TestGenerateCodeChallenge_S256(t *testing.T) {
+func TestGenerateCodeChallenge(t *testing.T) {
 	t.Parallel()
 
-	verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+	tests := []struct {
+		name            string
+		verifier        string
+		method          string
+		wantEmptyResult bool
+		verifyFn        func(t *testing.T, verifier string, challenge string, method string)
+	}{
+		{
+			name:     "s256_method",
+			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+			method:   cryptoutilIdentityMagic.PKCEMethodS256,
+			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+				t.Helper()
+				testify.NotEmpty(t, challenge, "Code challenge should not be empty")
+				testify.NotEqual(t, verifier, challenge, "Challenge should differ from verifier")
+				hash := sha256.Sum256([]byte(verifier))
+				expected := base64.RawURLEncoding.EncodeToString(hash[:])
+				testify.Equal(t, expected, challenge, "S256 challenge should match expected SHA256 hash")
+			},
+		},
+		{
+			name:     "plain_method",
+			verifier: "test-code-verifier",
+			method:   cryptoutilIdentityMagic.PKCEMethodPlain,
+			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+				t.Helper()
+				testify.Equal(t, verifier, challenge, "Plain challenge should equal verifier")
+			},
+		},
+		{
+			name:     "default_method_s256",
+			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+			method:   "",
+			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+				t.Helper()
+				hash := sha256.Sum256([]byte(verifier))
+				expected := base64.RawURLEncoding.EncodeToString(hash[:])
+				testify.Equal(t, expected, challenge, "Default method should be S256")
+			},
+		},
+		{
+			name:            "invalid_method",
+			verifier:        "test-code-verifier",
+			method:          "invalid-method",
+			wantEmptyResult: true,
+			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+				t.Helper()
+				testify.Empty(t, challenge, "Invalid method should return empty challenge")
+			},
+		},
+	}
 
-	challenge := GenerateCodeChallenge(verifier, cryptoutilIdentityMagic.PKCEMethodS256)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	testify.NotEmpty(t, challenge, "Code challenge should not be empty")
-	testify.NotEqual(t, verifier, challenge, "Challenge should differ from verifier")
+			challenge := GenerateCodeChallenge(tc.verifier, tc.method)
 
-	// Verify expected S256 challenge (SHA256 hash)
-	hash := sha256.Sum256([]byte(verifier))
-	expected := base64.RawURLEncoding.EncodeToString(hash[:])
-	testify.Equal(t, expected, challenge, "S256 challenge should match expected SHA256 hash")
+			if tc.verifyFn != nil {
+				tc.verifyFn(t, tc.verifier, challenge, tc.method)
+			}
+		})
+	}
 }
 
-// TestGenerateCodeChallenge_Plain tests plain code challenge generation.
-func TestGenerateCodeChallenge_Plain(t *testing.T) {
-	t.Parallel()
-
-	verifier := "test-code-verifier"
-
-	challenge := GenerateCodeChallenge(verifier, cryptoutilIdentityMagic.PKCEMethodPlain)
-
-	testify.Equal(t, verifier, challenge, "Plain challenge should equal verifier")
-}
-
-// TestGenerateCodeChallenge_DefaultMethod tests default method (S256).
-func TestGenerateCodeChallenge_DefaultMethod(t *testing.T) {
-	t.Parallel()
-
-	verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-
-	// Empty method should default to S256
-	challenge := GenerateCodeChallenge(verifier, "")
-
-	hash := sha256.Sum256([]byte(verifier))
-	expected := base64.RawURLEncoding.EncodeToString(hash[:])
-	testify.Equal(t, expected, challenge, "Default method should be S256")
-}
-
-// TestGenerateCodeChallenge_InvalidMethod tests handling of invalid method.
-func TestGenerateCodeChallenge_InvalidMethod(t *testing.T) {
-	t.Parallel()
-
-	verifier := "test-code-verifier"
-
-	challenge := GenerateCodeChallenge(verifier, "invalid-method")
-
-	testify.Empty(t, challenge, "Invalid method should return empty challenge")
-}
-
-// TestGenerateS256Challenge tests S256 challenge generation directly.
 func TestGenerateS256Challenge(t *testing.T) {
 	t.Parallel()
 
@@ -108,24 +133,25 @@ func TestGenerateS256Challenge(t *testing.T) {
 		verifier string
 	}{
 		{
-			name:     "Standard verifier",
+			name:     "standard_verifier",
 			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
 		},
 		{
-			name:     "Short verifier",
+			name:     "short_verifier",
 			verifier: "abc",
 		},
 		{
-			name:     "Long verifier",
+			name:     "long_verifier",
 			verifier: "very-long-code-verifier-with-many-characters-for-testing-purposes",
 		},
 		{
-			name:     "Empty verifier",
+			name:     "empty_verifier",
 			verifier: "",
 		},
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -141,81 +167,72 @@ func TestGenerateS256Challenge(t *testing.T) {
 	}
 }
 
-// TestValidateCodeVerifier_S256_Valid tests successful S256 validation.
-func TestValidateCodeVerifier_S256_Valid(t *testing.T) {
+func TestValidateCodeVerifier(t *testing.T) {
 	t.Parallel()
 
-	verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-	challenge := GenerateS256Challenge(verifier)
+	tests := []struct {
+		name         string
+		verifier     string
+		challenge    string
+		method       string
+		wantValid    bool
+	}{
+		{
+			name:      "s256_valid",
+			verifier:  "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+			challenge: GenerateS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+			method:    cryptoutilIdentityMagic.PKCEMethodS256,
+			wantValid: true,
+		},
+		{
+			name:      "s256_invalid",
+			verifier:  "wrong-verifier",
+			challenge: GenerateS256Challenge("correct-verifier"),
+			method:    cryptoutilIdentityMagic.PKCEMethodS256,
+			wantValid: false,
+		},
+		{
+			name:      "plain_valid",
+			verifier:  "test-code-verifier",
+			challenge: "test-code-verifier",
+			method:    cryptoutilIdentityMagic.PKCEMethodPlain,
+			wantValid: true,
+		},
+		{
+			name:      "plain_invalid",
+			verifier:  "correct-verifier",
+			challenge: "wrong-verifier",
+			method:    cryptoutilIdentityMagic.PKCEMethodPlain,
+			wantValid: false,
+		},
+		{
+			name:      "default_method_s256",
+			verifier:  "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+			challenge: GenerateS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+			method:    "",
+			wantValid: true,
+		},
+		{
+			name:      "invalid_method",
+			verifier:  "test-verifier",
+			challenge: "test-challenge",
+			method:    "invalid-method",
+			wantValid: false,
+		},
+	}
 
-	valid := ValidateCodeVerifier(verifier, challenge, cryptoutilIdentityMagic.PKCEMethodS256)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	testify.True(t, valid, "Valid verifier should pass validation")
+			valid := ValidateCodeVerifier(tc.verifier, tc.challenge, tc.method)
+
+			testify.Equal(t, tc.wantValid, valid, "Validation result should match expected")
+		})
+	}
 }
 
-// TestValidateCodeVerifier_S256_Invalid tests failed S256 validation.
-func TestValidateCodeVerifier_S256_Invalid(t *testing.T) {
-	t.Parallel()
-
-	verifier := "correct-verifier"
-	wrongVerifier := "wrong-verifier"
-	challenge := GenerateS256Challenge(verifier)
-
-	valid := ValidateCodeVerifier(wrongVerifier, challenge, cryptoutilIdentityMagic.PKCEMethodS256)
-
-	testify.False(t, valid, "Invalid verifier should fail validation")
-}
-
-// TestValidateCodeVerifier_Plain_Valid tests successful plain validation.
-func TestValidateCodeVerifier_Plain_Valid(t *testing.T) {
-	t.Parallel()
-
-	verifier := "test-code-verifier"
-	challenge := verifier // Plain method uses verifier as challenge
-
-	valid := ValidateCodeVerifier(verifier, challenge, cryptoutilIdentityMagic.PKCEMethodPlain)
-
-	testify.True(t, valid, "Valid plain verifier should pass validation")
-}
-
-// TestValidateCodeVerifier_Plain_Invalid tests failed plain validation.
-func TestValidateCodeVerifier_Plain_Invalid(t *testing.T) {
-	t.Parallel()
-
-	verifier := "correct-verifier"
-	challenge := "wrong-verifier"
-
-	valid := ValidateCodeVerifier(verifier, challenge, cryptoutilIdentityMagic.PKCEMethodPlain)
-
-	testify.False(t, valid, "Invalid plain verifier should fail validation")
-}
-
-// TestValidateCodeVerifier_DefaultMethod tests default method (S256) validation.
-func TestValidateCodeVerifier_DefaultMethod(t *testing.T) {
-	t.Parallel()
-
-	verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-	challenge := GenerateS256Challenge(verifier)
-
-	// Empty method should default to S256
-	valid := ValidateCodeVerifier(verifier, challenge, "")
-
-	testify.True(t, valid, "Default method should be S256")
-}
-
-// TestValidateCodeVerifier_InvalidMethod tests handling of invalid method.
-func TestValidateCodeVerifier_InvalidMethod(t *testing.T) {
-	t.Parallel()
-
-	verifier := "test-verifier"
-	challenge := "test-challenge"
-
-	valid := ValidateCodeVerifier(verifier, challenge, "invalid-method")
-
-	testify.False(t, valid, "Invalid method should fail validation")
-}
-
-// TestValidateS256 tests S256 validation directly.
 func TestValidateS256(t *testing.T) {
 	t.Parallel()
 
@@ -226,31 +243,31 @@ func TestValidateS256(t *testing.T) {
 		expected  bool
 	}{
 		{
-			name:      "Valid verifier and challenge",
+			name:      "valid_verifier_and_challenge",
 			verifier:  "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
 			challenge: GenerateS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
 			expected:  true,
 		},
 		{
-			name:      "Invalid verifier",
+			name:      "invalid_verifier",
 			verifier:  "wrong-verifier",
 			challenge: GenerateS256Challenge("correct-verifier"),
 			expected:  false,
 		},
 		{
-			name:      "Empty verifier",
+			name:      "empty_verifier",
 			verifier:  "",
 			challenge: GenerateS256Challenge(""),
 			expected:  true,
 		},
 		{
-			name:      "Empty verifier with non-empty challenge",
+			name:      "empty_verifier_with_non_empty_challenge",
 			verifier:  "",
 			challenge: GenerateS256Challenge("non-empty"),
 			expected:  false,
 		},
 		{
-			name:      "Non-empty verifier with empty challenge",
+			name:      "non_empty_verifier_with_empty_challenge",
 			verifier:  "non-empty",
 			challenge: "",
 			expected:  false,
@@ -258,6 +275,7 @@ func TestValidateS256(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -268,7 +286,6 @@ func TestValidateS256(t *testing.T) {
 	}
 }
 
-// TestPKCERoundtrip tests full PKCE flow: generate verifier → generate challenge → validate.
 func TestPKCERoundtrip(t *testing.T) {
 	t.Parallel()
 
@@ -277,20 +294,21 @@ func TestPKCERoundtrip(t *testing.T) {
 		method string
 	}{
 		{
-			name:   "S256 method",
+			name:   "s256_method",
 			method: cryptoutilIdentityMagic.PKCEMethodS256,
 		},
 		{
-			name:   "Plain method",
+			name:   "plain_method",
 			method: cryptoutilIdentityMagic.PKCEMethodPlain,
 		},
 		{
-			name:   "Default method (S256)",
+			name:   "default_method_s256",
 			method: "",
 		},
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -309,7 +327,6 @@ func TestPKCERoundtrip(t *testing.T) {
 	}
 }
 
-// TestPKCERoundtrip_MultipleVerifiers tests PKCE with multiple verifiers.
 func TestPKCERoundtrip_MultipleVerifiers(t *testing.T) {
 	t.Parallel()
 
