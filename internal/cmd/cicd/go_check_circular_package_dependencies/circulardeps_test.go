@@ -17,91 +17,183 @@ import (
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
-func TestCheckDependencies_NoCycle(t *testing.T) {
+func TestCheckDependencies(t *testing.T) {
 	t.Parallel()
 
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["cryptoutil/pkg/b"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["cryptoutil/pkg/c"]}
-{"ImportPath":"cryptoutil/pkg/c","Imports":[]}
-`
+	tests := []struct {
+		name         string
+		jsonOutput   string
+		wantError    bool
+		wantContains []string
+	}{
+		{
+			name: "no_cycle",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"cryptoutil/pkg/b\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"cryptoutil/pkg/c\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/c\",\"Imports\":[]}\n",
+			wantError: false,
+		},
+		{
+			name: "with_cycle",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"cryptoutil/pkg/b\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"cryptoutil/pkg/c\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/c\",\"Imports\":[\"cryptoutil/pkg/a\"]}\n",
+			wantError: true,
+			wantContains: []string{
+				"circular dependencies detected",
+				"cryptoutil/pkg/a",
+				"cryptoutil/pkg/b",
+				"cryptoutil/pkg/c",
+			},
+		},
+		{
+			name: "multiple_cycles",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"cryptoutil/pkg/b\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"cryptoutil/pkg/a\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/x\",\"Imports\":[\"cryptoutil/pkg/y\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/y\",\"Imports\":[\"cryptoutil/pkg/x\"]}\n",
+			wantError: true,
+			wantContains: []string{
+				"circular dependencies detected",
+			},
+		},
+		{
+			name: "external_package_ignored",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"github.com/external/pkg\",\"cryptoutil/pkg/b\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"fmt\"]}\n",
+			wantError: false,
+		},
+		{
+			name:       "empty_output",
+			jsonOutput: "",
+			wantError:  true,
+			wantContains: []string{
+				"no packages found",
+			},
+		},
+		{
+			name:       "invalid_json",
+			jsonOutput: "{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"invalid json",
+			wantError:  true,
+			wantContains: []string{
+				"failed to parse package info",
+			},
+		},
+		{
+			name: "self_cycle",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"cryptoutil/pkg/a\"]}\n",
+			wantError: true,
+			wantContains: []string{
+				"circular dependencies detected",
+			},
+		},
+		{
+			name: "complex_cycle",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"cryptoutil/pkg/b\",\"cryptoutil/pkg/c\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"cryptoutil/pkg/d\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/c\",\"Imports\":[\"cryptoutil/pkg/d\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/d\",\"Imports\":[\"cryptoutil/pkg/a\"]}\n",
+			wantError: true,
+			wantContains: []string{
+				"circular dependencies detected",
+				"Chain",
+			},
+		},
+		{
+			name: "long_chain",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"cryptoutil/pkg/b\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"cryptoutil/pkg/c\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/c\",\"Imports\":[\"cryptoutil/pkg/d\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/d\",\"Imports\":[\"cryptoutil/pkg/e\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/e\",\"Imports\":[\"cryptoutil/pkg/f\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/f\",\"Imports\":[]}\n",
+			wantError: false,
+		},
+		{
+			name: "mixed_internal_external",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"github.com/external/x\",\"cryptoutil/pkg/b\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"golang.org/x/tools\",\"cryptoutil/pkg/c\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/c\",\"Imports\":[\"fmt\",\"encoding/json\"]}\n",
+			wantError: false,
+		},
+		{
+			name: "error_message_format",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"cryptoutil/pkg/b\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"cryptoutil/pkg/a\"]}\n",
+			wantError: true,
+			wantContains: []string{
+				"circular dependencies detected:",
+				"Chain 1",
+				"packages)",
+				"→",
+				"Consider refactoring to break these cycles",
+			},
+		},
+		{
+			name:       "no_packages_in_graph",
+			jsonOutput: "",
+			wantError:  true,
+			wantContains: []string{
+				"no packages found",
+			},
+		},
+		{
+			name: "package_with_no_imports",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/standalone\",\"Imports\":[]}\n",
+			wantError: false,
+		},
+		{
+			name: "only_external_imports",
+			jsonOutput: "\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/a\",\"Imports\":[\"github.com/foo/bar\",\"golang.org/x/tools\"]}\n" +
+				"{\"ImportPath\":\"cryptoutil/pkg/b\",\"Imports\":[\"fmt\",\"encoding/json\"]}\n",
+			wantError: false,
+		},
+		{
+			name: "stress_test",
+			jsonOutput: func() string {
+				var builder strings.Builder
+				numPackages := 100
+				for i := 0; i < numPackages; i++ {
+					imports := "[]"
+					if i > 0 {
+						imports = fmt.Sprintf("[\"cryptoutil/pkg/p%d\"]", i-1)
+					}
+					fmt.Fprintf(&builder, "{\"ImportPath\":\"cryptoutil/pkg/p%d\",\"Imports\":%s}\n", i, imports)
+				}
+				return builder.String()
+			}(),
+			wantError: false,
+		},
+	}
 
-	err := CheckDependencies(jsonOutput)
-	testify.NoError(t, err, "Expected no error for acyclic dependency graph")
-}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestCheckDependencies_WithCycle(t *testing.T) {
-	t.Parallel()
+			err := CheckDependencies(tc.jsonOutput)
 
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["cryptoutil/pkg/b"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["cryptoutil/pkg/c"]}
-{"ImportPath":"cryptoutil/pkg/c","Imports":["cryptoutil/pkg/a"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.Error(t, err, "Expected error for cyclic dependency graph")
-	testify.Contains(t, err.Error(), "circular dependencies detected", "Error message should mention circular dependencies")
-	testify.Contains(t, err.Error(), "cryptoutil/pkg/a", "Error should include cycle packages")
-	testify.Contains(t, err.Error(), "cryptoutil/pkg/b", "Error should include cycle packages")
-	testify.Contains(t, err.Error(), "cryptoutil/pkg/c", "Error should include cycle packages")
-}
-
-func TestCheckDependencies_MultipleCycles(t *testing.T) {
-	t.Parallel()
-
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["cryptoutil/pkg/b"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["cryptoutil/pkg/a"]}
-{"ImportPath":"cryptoutil/pkg/x","Imports":["cryptoutil/pkg/y"]}
-{"ImportPath":"cryptoutil/pkg/y","Imports":["cryptoutil/pkg/x"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.Error(t, err, "Expected error for multiple cycles")
-	testify.Contains(t, err.Error(), "circular dependencies detected", "Error message should mention circular dependencies")
-}
-
-func TestCheckDependencies_ExternalPackageIgnored(t *testing.T) {
-	t.Parallel()
-
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["github.com/external/pkg","cryptoutil/pkg/b"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["fmt"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.NoError(t, err, "External package imports should be ignored")
-}
-
-func TestCheckDependencies_EmptyOutput(t *testing.T) {
-	t.Parallel()
-
-	err := CheckDependencies("")
-	testify.Error(t, err, "Expected error for empty JSON output")
-	testify.Contains(t, err.Error(), "no packages found", "Error should mention no packages found")
-}
-
-func TestCheckDependencies_InvalidJSON(t *testing.T) {
-	t.Parallel()
-
-	jsonOutput := `{"ImportPath":"cryptoutil/pkg/a","Imports":["invalid json`
-
-	err := CheckDependencies(jsonOutput)
-	testify.Error(t, err, "Expected error for invalid JSON")
-	testify.Contains(t, err.Error(), "failed to parse package info", "Error should mention parsing failure")
-}
-
-func TestCheckDependencies_SelfCycle(t *testing.T) {
-	t.Parallel()
-
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["cryptoutil/pkg/a"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.Error(t, err, "Expected error for self-import cycle")
-	testify.Contains(t, err.Error(), "circular dependencies detected", "Error message should mention circular dependencies")
+			if tc.wantError {
+				testify.Error(t, err, "Expected error for test case: %s", tc.name)
+				for _, contains := range tc.wantContains {
+					testify.Contains(t, err.Error(), contains, "Error should contain: %s", contains)
+				}
+			} else {
+				testify.NoError(t, err, "Expected no error for test case: %s", tc.name)
+			}
+		})
+	}
 }
 
 func TestCacheOperations(t *testing.T) {
@@ -202,54 +294,6 @@ func TestSaveCircularDepCache_DirectoryCreation(t *testing.T) {
 	testify.DirExists(t, filepath.Dir(cacheFile), "Cache directory should exist")
 }
 
-func TestCheckDependencies_ComplexCycle(t *testing.T) {
-	t.Parallel()
-
-	// Create a complex dependency graph with multiple interconnected packages
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["cryptoutil/pkg/b","cryptoutil/pkg/c"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["cryptoutil/pkg/d"]}
-{"ImportPath":"cryptoutil/pkg/c","Imports":["cryptoutil/pkg/d"]}
-{"ImportPath":"cryptoutil/pkg/d","Imports":["cryptoutil/pkg/a"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.Error(t, err, "Expected error for complex cycle")
-	testify.Contains(t, err.Error(), "circular dependencies detected", "Error should mention circular dependencies")
-	testify.Contains(t, err.Error(), "Chain", "Error should include chain information")
-}
-
-func TestCheckDependencies_LongChain(t *testing.T) {
-	t.Parallel()
-
-	// Test a long chain without cycles
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["cryptoutil/pkg/b"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["cryptoutil/pkg/c"]}
-{"ImportPath":"cryptoutil/pkg/c","Imports":["cryptoutil/pkg/d"]}
-{"ImportPath":"cryptoutil/pkg/d","Imports":["cryptoutil/pkg/e"]}
-{"ImportPath":"cryptoutil/pkg/e","Imports":["cryptoutil/pkg/f"]}
-{"ImportPath":"cryptoutil/pkg/f","Imports":[]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.NoError(t, err, "Long chain without cycles should be valid")
-}
-
-func TestCheckDependencies_MixedInternalExternal(t *testing.T) {
-	t.Parallel()
-
-	// Mix internal and external dependencies
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["github.com/external/x","cryptoutil/pkg/b"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["golang.org/x/tools","cryptoutil/pkg/c"]}
-{"ImportPath":"cryptoutil/pkg/c","Imports":["fmt","encoding/json"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.NoError(t, err, "Mixed internal/external dependencies should be valid")
-}
-
 func TestCacheJSONFormat(t *testing.T) {
 	t.Parallel()
 
@@ -282,61 +326,6 @@ func TestCacheJSONFormat(t *testing.T) {
 	testify.Contains(t, string(content), "has_circular_deps", "JSON should contain has_circular_deps field")
 }
 
-func TestCheckDependencies_ErrorMessageFormat(t *testing.T) {
-	t.Parallel()
-
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["cryptoutil/pkg/b"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["cryptoutil/pkg/a"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.Error(t, err, "Expected error for cycle")
-
-	errMsg := err.Error()
-
-	// Verify error message structure
-	testify.Contains(t, errMsg, "circular dependencies detected:", "Should have main error message")
-	testify.Contains(t, errMsg, "Chain 1", "Should include chain number")
-	testify.Contains(t, errMsg, "packages)", "Should include package count")
-	testify.Contains(t, errMsg, "→", "Should use arrow separator")
-	testify.Contains(t, errMsg, "Consider refactoring to break these cycles", "Should include remediation advice")
-}
-
-func TestCheckDependencies_NoPackagesInGraph(t *testing.T) {
-	t.Parallel()
-
-	// Valid JSON but no packages
-	jsonOutput := ""
-
-	err := CheckDependencies(jsonOutput)
-	testify.Error(t, err, "Should error on empty package list")
-	testify.Contains(t, err.Error(), "no packages found", "Error should mention missing packages")
-}
-
-func TestCheckDependencies_PackageWithNoImports(t *testing.T) {
-	t.Parallel()
-
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/standalone","Imports":[]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.NoError(t, err, "Package with no imports should be valid")
-}
-
-func TestCheckDependencies_OnlyExternalImports(t *testing.T) {
-	t.Parallel()
-
-	jsonOutput := `
-{"ImportPath":"cryptoutil/pkg/a","Imports":["github.com/foo/bar","golang.org/x/tools"]}
-{"ImportPath":"cryptoutil/pkg/b","Imports":["fmt","encoding/json"]}
-`
-
-	err := CheckDependencies(jsonOutput)
-	testify.NoError(t, err, "Packages with only external imports should be valid")
-}
-
 func TestCachePermissions(t *testing.T) {
 	t.Parallel()
 
@@ -355,27 +344,4 @@ func TestCachePermissions(t *testing.T) {
 
 	// Check file exists (permission check is platform-specific, so we skip it)
 	testify.FileExists(t, cacheFile, "Cache file should exist")
-}
-
-func TestCheckDependencies_StressTest(t *testing.T) {
-	t.Parallel()
-
-	// Create a large dependency graph
-	var builder strings.Builder
-
-	numPackages := 100
-
-	for i := 0; i < numPackages; i++ {
-		imports := "[]"
-		if i > 0 {
-			// Each package imports the previous one (linear chain)
-			imports = fmt.Sprintf(`["cryptoutil/pkg/p%d"]`, i-1)
-		}
-
-		fmt.Fprintf(&builder, `{"ImportPath":"cryptoutil/pkg/p%d","Imports":%s}`, i, imports)
-		builder.WriteString("\n")
-	}
-
-	err := CheckDependencies(builder.String())
-	testify.NoError(t, err, "Large linear dependency graph should be valid")
 }
