@@ -19,27 +19,27 @@ const (
 	testFuncMainEnd           = "\n}\n"
 	testTypeMyStructInterface = `
 type MyStruct struct {
-	Data any
+	Data interface{}
 }
 `
 	testStrAssignmentInterface = `
-	str := "any in string should not be replaced"`
+	str := "interface{} in string should not be replaced"`
 )
 
 func TestProcessGoFile(t *testing.T) {
 	// Create a temporary directory for test files
 	tempDir := t.TempDir()
 
-	// Test case 1: File with any that should be replaced
+	// Test case 1: File with interface{} that should be replaced
 	content1 := testPackageMain + `
 
 ` + testImportFmt + `
 
 func main() {
-	var x any
+	var x interface{}
 	fmt.Println(x)
 }` + testTypeMyStructInterface + `
-func process(data any) any {
+func process(data interface{}) interface{} {
 	return data
 }
 `
@@ -72,7 +72,7 @@ func process(data any) any {
 `
 	require.Equal(t, expectedContent1, string(modifiedContent1), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent1), expectedContent1)
 
-	// Test case 2: File with no any (should not be modified)
+	// Test case 2: File with no interface{} (should not be modified)
 	content2 := testPackageMain + `
 
 ` + testImportFmt + testFuncMainStart + `
@@ -98,10 +98,10 @@ func process(data any) any {
 ` + testFuncMainEnd
 	require.Equal(t, expectedContent2, string(modifiedContent2), "File content was not modified as expected.\nGot:\n%s\nExpected:\n%s", string(modifiedContent2), expectedContent2)
 
-	// Test case 3: File with any in comments and strings (currently replaced - limitation of simple regex)
+	// Test case 3: File with interface{} in comments and strings (simple regex replaces everywhere - limitation)
 	content3 := testPackageMain + `
-// This is a comment with any that should not be replaced` + testFuncMainStart + `
-	var x any` + testStrAssignmentInterface + `
+// This is a comment with interface{} that will be replaced (regex limitation)` + testFuncMainStart + `
+	var x interface{}` + testStrAssignmentInterface + `
 	fmt.Println(x, str)
 ` + testFuncMainEnd
 	testFile3 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test3.go", content3)
@@ -110,13 +110,13 @@ func process(data any) any {
 	replacements3, err := processGoFile(testFile3)
 	require.NoError(t, err, "processGoFile failed")
 
-	require.Equal(t, 3, replacements3, "Expected 3 replacements (in comment, string, and code)")
+	require.Equal(t, 3, replacements3, "Expected 3 replacements (in comment, string, and code - regex limitation)")
 
-	// Verify the content was modified (currently replaces everywhere due to simple regex)
+	// Verify the content was modified (simple regex replaces everywhere including comments/strings)
 	modifiedContent3 := cryptoutilTestutil.ReadTestFile(t, testFile3)
 
 	expectedContent3 := `package main
-// This is a comment with any that should not be replaced
+// This is a comment with any that will be replaced (regex limitation)
 func main() {
 	var x any
 	str := "any in string should not be replaced"
@@ -130,10 +130,10 @@ func main() {
 func TestEnforce(t *testing.T) {
 	tempDir := t.TempDir()
 
-	// Create test Go files with any
+	// Create test Go files with interface{}
 	content1 := testPackageMain + `
 func main() {
-	var x any
+	var x interface{}
 }
 `
 	testFile1 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test1.go", content1)

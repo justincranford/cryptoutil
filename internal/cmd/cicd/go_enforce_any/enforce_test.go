@@ -35,7 +35,7 @@ func TestEnforce_AllFilesAlreadyClean(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	// Create Go files with 'any' already used
+	// Create Go files with 'any' already used (no interface{} to replace)
 	content1 := `package test
 
 var x any = 42
@@ -62,25 +62,25 @@ func TestEnforce_ExcludedFiles(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	// Create cicd_enforce_any.go file (should be excluded by pattern)
-	cicdDir := filepath.Join(tempDir, "internal", "cmd", "cicd")
-	err := os.MkdirAll(cicdDir, 0o755)
+	// Create file in go_enforce_any subdirectory (should be excluded by pattern)
+	cicdGoEnforceAnyDir := filepath.Join(tempDir, "internal", "cmd", "cicd", "go_enforce_any")
+	err := os.MkdirAll(cicdGoEnforceAnyDir, 0o755)
 	testify.NoError(t, err, "Create directory should succeed")
 
-	excludedContent := `package cicd
+	excludedContent := `package go_enforce_any
 
 func enforceFn() {
-	var x any
+	var x interface{}
 }
 `
-	excludedFile := filepath.Join(cicdDir, "cicd_enforce_any.go")
+	excludedFile := filepath.Join(cicdGoEnforceAnyDir, "test_excluded.go")
 	err = os.WriteFile(excludedFile, []byte(excludedContent), 0o600)
 	testify.NoError(t, err, "Write excluded file should succeed")
 
-	// Create non-excluded file
+	// Create non-excluded file with interface{} to replace
 	normalContent := `package test
 
-var x any
+var x interface{}
 `
 	normalFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "normal.go", normalContent)
 
@@ -105,24 +105,24 @@ func TestEnforce_MixedFiles(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	// File 1: Needs modification
+	// File 1: Needs modification (has interface{})
 	content1 := `package test
 
-var x any
+var x interface{}
 `
 	testFile1 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test1.go", content1)
 
-	// File 2: Already clean
+	// File 2: Already clean (uses any)
 	content2 := `package test
 
 var y any
 `
 	testFile2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test2.go", content2)
 
-	// File 3: Needs modification
+	// File 3: Needs modification (has interface{})
 	content3 := `package test
 
-func process(data any) {
+func process(data interface{}) {
 }
 `
 	testFile3 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test3.go", content3)
@@ -141,9 +141,9 @@ func TestEnforce_NonGoFilesIgnored(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create mix of Go and non-Go files
-	goFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.go", "package test\nvar x any")
-	txtFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.txt", "any")
-	mdFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "README.md", "any")
+	goFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.go", "package test\nvar x interface{}")
+	txtFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.txt", "interface{}")
+	mdFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "README.md", "interface{}")
 
 	logger := common.NewLogger("test-enforce-nongoignored")
 	err := Enforce(logger, []string{goFile, txtFile, mdFile})
@@ -155,10 +155,10 @@ func TestEnforce_NonGoFilesIgnored(t *testing.T) {
 	testify.Contains(t, string(goContent), "var x any", "Go file should be modified")
 
 	txtContent := cryptoutilTestutil.ReadTestFile(t, txtFile)
-	testify.Equal(t, "any", string(txtContent), "Text file should not be modified")
+	testify.Equal(t, "interface{}", string(txtContent), "Text file should not be modified")
 
 	mdContent := cryptoutilTestutil.ReadTestFile(t, mdFile)
-	testify.Equal(t, "any", string(mdContent), "Markdown file should not be modified")
+	testify.Equal(t, "interface{}", string(mdContent), "Markdown file should not be modified")
 }
 
 // TestEnforce_EmptyFileList tests Enforce with empty file list.
@@ -181,7 +181,7 @@ func TestProcessGoFile_NonExistentFile(t *testing.T) {
 	testify.Contains(t, err.Error(), "failed to read file", "Error should mention read failure")
 }
 
-// TestProcessGoFile_MultipleReplacements tests file with many any occurrences.
+// TestProcessGoFile_MultipleReplacements tests file with many interface{} occurrences.
 func TestProcessGoFile_MultipleReplacements(t *testing.T) {
 	t.Parallel()
 
@@ -190,26 +190,26 @@ func TestProcessGoFile_MultipleReplacements(t *testing.T) {
 	content := `package test
 
 type A struct {
-	Field1 any
-	Field2 any
+	Field1 interface{}
+	Field2 interface{}
 }
 
 type B struct {
-	Field3 any
+	Field3 interface{}
 }
 
-func Fn1(a any) any {
+func Fn1(a interface{}) interface{} {
 	return a
 }
 
-func Fn2(b any, c any) (any, any) {
+func Fn2(b interface{}, c interface{}) (interface{}, interface{}) {
 	return b, c
 }
 
 var (
-	V1 any
-	V2 any
-	V3 any
+	V1 interface{}
+	V2 interface{}
+	V3 interface{}
 )
 `
 	testFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "multi.go", content)
@@ -221,7 +221,7 @@ var (
 
 	// Verify all replaced
 	modifiedContent := cryptoutilTestutil.ReadTestFile(t, testFile)
-	testify.NotContains(t, string(modifiedContent), "any", "Should not contain any after replacement")
+	testify.NotContains(t, string(modifiedContent), "interface{}", "Should not contain interface{} after replacement")
 	testify.Contains(t, string(modifiedContent), "Field1 any", "Field1 should use any")
 	testify.Contains(t, string(modifiedContent), "Field2 any", "Field2 should use any")
 	testify.Contains(t, string(modifiedContent), "Field3 any", "Field3 should use any")
