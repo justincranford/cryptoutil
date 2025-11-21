@@ -10,48 +10,45 @@ import (
 	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
 )
 
-func TestFix_EmptyDirectory(t *testing.T) {
+func TestFix(t *testing.T) {
 	t.Parallel()
 
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-empty")
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 0, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_NoTestFiles(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-no-test")
-
-	// Create non-test Go file.
-	goFile := filepath.Join(tmpDir, "main.go")
-	content := `package main
+	tests := []struct {
+		name           string
+		setupFiles     func(t *testing.T, dir string) error
+		wantProcessed  int
+		wantModified   int
+		wantIssuesFixed int
+		verifyFn       func(t *testing.T, dir string)
+	}{
+		{
+			name:           "empty directory",
+			setupFiles:     func(t *testing.T, dir string) error { t.Helper(); return nil },
+			wantProcessed:  0,
+			wantModified:   0,
+			wantIssuesFixed: 0,
+		},
+		{
+			name: "no test files",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				goFile := filepath.Join(dir, "main.go")
+				content := `package main
 
 func main() {}
 `
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 0, processed) // Non-test files should be skipped.
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_NoHelperFunctions(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-no-helpers")
-
-	testFile := filepath.Join(tmpDir, "test_test.go")
-	content := `package test
+				return os.WriteFile(goFile, []byte(content), 0o600)
+			},
+			wantProcessed:  0,
+			wantModified:   0,
+			wantIssuesFixed: 0,
+		},
+		{
+			name: "no helper functions",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				testFile := filepath.Join(dir, "test_test.go")
+				content := `package test
 
 import "testing"
 
@@ -59,23 +56,18 @@ func TestExample(t *testing.T) {
 	t.Log("test")
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_HelperFunctionMissingTHelper(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-missing")
-
-	testFile := filepath.Join(tmpDir, "helpers_test.go")
-	content := `package test
+				return os.WriteFile(testFile, []byte(content), 0o600)
+			},
+			wantProcessed:  1,
+			wantModified:   0,
+			wantIssuesFixed: 0,
+		},
+		{
+			name: "helper function missing t.Helper()",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				testFile := filepath.Join(dir, "helpers_test.go")
+				content := `package test
 
 import "testing"
 
@@ -83,28 +75,25 @@ func setupTest(t *testing.T) {
 	t.Log("setup")
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 1, modified)
-	require.Equal(t, 1, issuesFixed)
-
-	// Verify t.Helper() was added.
-	fixed, err := os.ReadFile(testFile)
-	require.NoError(t, err)
-	require.Contains(t, string(fixed), "t.Helper()")
-}
-
-func TestFix_HelperFunctionWithTHelper(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-has-helper")
-
-	testFile := filepath.Join(tmpDir, "helpers_test.go")
-	content := `package test
+				return os.WriteFile(testFile, []byte(content), 0o600)
+			},
+			wantProcessed:  1,
+			wantModified:   1,
+			wantIssuesFixed: 1,
+			verifyFn: func(t *testing.T, dir string) {
+				t.Helper()
+				testFile := filepath.Join(dir, "helpers_test.go")
+				fixed, err := os.ReadFile(testFile)
+				require.NoError(t, err)
+				require.Contains(t, string(fixed), "t.Helper()")
+			},
+		},
+		{
+			name: "helper function with t.Helper()",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				testFile := filepath.Join(dir, "helpers_test.go")
+				content := `package test
 
 import "testing"
 
@@ -113,23 +102,18 @@ func setupTest(t *testing.T) {
 	t.Log("setup")
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 0, modified) // Already has t.Helper().
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_MultipleHelperFunctions(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-multiple")
-
-	testFile := filepath.Join(tmpDir, "helpers_test.go")
-	content := `package test
+				return os.WriteFile(testFile, []byte(content), 0o600)
+			},
+			wantProcessed:  1,
+			wantModified:   0,
+			wantIssuesFixed: 0,
+		},
+		{
+			name: "multiple helper functions",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				testFile := filepath.Join(dir, "helpers_test.go")
+				content := `package test
 
 import "testing"
 
@@ -145,30 +129,25 @@ func assertValid(t *testing.T) {
 	t.Log("asserting")
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 1, modified)
-	require.Equal(t, 3, issuesFixed)
-
-	// Verify t.Helper() was added to all functions.
-	fixed, err := os.ReadFile(testFile)
-	require.NoError(t, err)
-
-	fixedStr := string(fixed)
-	require.Contains(t, fixedStr, "t.Helper()")
-}
-
-func TestFix_HelperFunctionPatterns(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-patterns")
-
-	testFile := filepath.Join(tmpDir, "patterns_test.go")
-	content := `package test
+				return os.WriteFile(testFile, []byte(content), 0o600)
+			},
+			wantProcessed:  1,
+			wantModified:   1,
+			wantIssuesFixed: 3,
+			verifyFn: func(t *testing.T, dir string) {
+				t.Helper()
+				testFile := filepath.Join(dir, "helpers_test.go")
+				fixed, err := os.ReadFile(testFile)
+				require.NoError(t, err)
+				require.Contains(t, string(fixed), "t.Helper()")
+			},
+		},
+		{
+			name: "helper function patterns",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				testFile := filepath.Join(dir, "patterns_test.go")
+				content := `package test
 
 import "testing"
 
@@ -181,76 +160,97 @@ func createMock(t *testing.T) {}
 func buildFixture(t *testing.T) {}
 func mockService(t *testing.T) {}
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+				return os.WriteFile(testFile, []byte(content), 0o600)
+			},
+			wantProcessed:  1,
+			wantModified:   1,
+			wantIssuesFixed: 8,
+		},
+		{
+			name: "nested directories",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				subDir := filepath.Join(dir, "sub", "nested")
+				if err := os.MkdirAll(subDir, 0o755); err != nil {
+					return err
+				}
 
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 1, modified)
-	require.Equal(t, 8, issuesFixed) // All 8 helper functions.
-}
+				content := `package test
 
-func TestFix_NestedDirectories(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-nested")
-
-	// Create nested directory structure.
-	subDir := filepath.Join(tmpDir, "sub", "nested")
-	require.NoError(t, os.MkdirAll(subDir, 0o755))
-
-	content := `package test
 import "testing"
+
 func setupTest(t *testing.T) {
 	t.Log("setup")
 }
 `
-	file1 := filepath.Join(tmpDir, "test1_test.go")
-	file2 := filepath.Join(tmpDir, "sub", "test2_test.go")
-	file3 := filepath.Join(subDir, "test3_test.go")
+				file1 := filepath.Join(dir, "test1_test.go")
+				file2 := filepath.Join(dir, "sub", "test2_test.go")
+				file3 := filepath.Join(subDir, "test3_test.go")
 
-	require.NoError(t, os.WriteFile(file1, []byte(content), 0o600))
-	require.NoError(t, os.WriteFile(file2, []byte(content), 0o600))
-	require.NoError(t, os.WriteFile(file3, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 3, processed)
-	require.Equal(t, 3, modified)
-	require.Equal(t, 3, issuesFixed)
-}
-
-func TestFix_InvalidDirectory(t *testing.T) {
-	t.Parallel()
-
-	logger := cryptoutilCmd.NewLogger("test-thelper-invalid")
-
-	processed, modified, issuesFixed, err := Fix(logger, "/nonexistent/path")
-	require.Error(t, err)
-	require.Equal(t, 0, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_HelperWithoutTestingParam(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-thelper-no-param")
-
-	testFile := filepath.Join(tmpDir, "helpers_test.go")
-	content := `package test
+				if err := os.WriteFile(file1, []byte(content), 0o600); err != nil {
+					return err
+				}
+				if err := os.WriteFile(file2, []byte(content), 0o600); err != nil {
+					return err
+				}
+				return os.WriteFile(file3, []byte(content), 0o600)
+			},
+			wantProcessed:  3,
+			wantModified:   3,
+			wantIssuesFixed: 3,
+		},
+		{
+			name: "helper without testing param",
+			setupFiles: func(t *testing.T, dir string) error {
+				t.Helper()
+				testFile := filepath.Join(dir, "helpers_test.go")
+				content := `package test
 
 func setupGlobal() {
 	// No testing.T parameter
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+				return os.WriteFile(testFile, []byte(content), 0o600)
+			},
+			wantProcessed:  1,
+			wantModified:   0,
+			wantIssuesFixed: 0,
+		},
+	}
 
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir)
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 0, modified) // No testing.T parameter, can't add t.Helper().
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := t.TempDir()
+			logger := cryptoutilCmd.NewLogger("test-thelper-" + tc.name)
+
+			if tc.setupFiles != nil {
+				require.NoError(t, tc.setupFiles(t, tmpDir))
+			}
+
+			processed, modified, issuesFixed, err := Fix(logger, tmpDir)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantProcessed, processed)
+			require.Equal(t, tc.wantModified, modified)
+			require.Equal(t, tc.wantIssuesFixed, issuesFixed)
+
+			if tc.verifyFn != nil {
+				tc.verifyFn(t, tmpDir)
+			}
+		})
+	}
+}
+
+func TestFix_InvalidDirectory(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmd.NewLogger("test-thelper")
+
+	processed, modified, issuesFixed, err := Fix(logger, "/nonexistent/path")
+	require.Error(t, err)
+	require.Equal(t, 0, processed)
+	require.Equal(t, 0, modified)
 	require.Equal(t, 0, issuesFixed)
 }
