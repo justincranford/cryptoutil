@@ -51,6 +51,9 @@ Example:
 - **ENFORCEMENT**: If you announce continuation, you MUST follow with actual work in same response
 
 **Token Budget Awareness**
+
+**Note on Token Limit Source:** The 1M token limit is based on observed token usage in GitHub Copilot Chat sessions, where system messages display "Token usage: X/1000000; Y remaining" (e.g., "Token usage: 12345/1000000; 987655 remaining"). These messages appear in the agent's responses and are used for tracking conversation token consumption. They may not be visible to all users in standard Copilot Chat interfaces. No official documentation specifies this exact limit; it's observed from system behavior during conversations. For general Copilot Chat documentation (including the 128k token input context window), see: https://docs.github.com/en/copilot/github-copilot-chat/using-github-copilot-chat
+
 - Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
 - Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
 - STOP only when: tokens used ≥950k OR all tasks complete OR explicit user instruction
