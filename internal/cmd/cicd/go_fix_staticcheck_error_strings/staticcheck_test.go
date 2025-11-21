@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 func TestFix(t *testing.T) {
@@ -43,6 +43,7 @@ func TestFix(t *testing.T) {
 			name: "no_error_strings",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				goFile := filepath.Join(tmpDir, "clean.go")
 				content := "package test\n\nfunc Add(a, b int) int {\n\treturn a + b\n}\n"
 				require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
@@ -55,6 +56,7 @@ func TestFix(t *testing.T) {
 			name: "error_string_with_uppercase",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				goFile := filepath.Join(tmpDir, "errors.go")
 				content := "package test\n\nimport \"errors\"\n\nvar ErrInvalid = errors.New(\"Invalid input provided\")\n"
 				require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
@@ -64,6 +66,7 @@ func TestFix(t *testing.T) {
 			wantIssued:    1,
 			verifyFn: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(tmpDir, "errors.go"))
 				require.NoError(t, err)
 				require.Contains(t, string(fixed), "errors.New(\"invalid input provided\")")
@@ -74,6 +77,7 @@ func TestFix(t *testing.T) {
 			name: "error_string_with_acronym",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				goFile := filepath.Join(tmpDir, "http_errors.go")
 				content := "package test\n\nimport \"errors\"\n\nvar ErrHTTPFailed = errors.New(\"HTTP request failed\")\nvar ErrJSONInvalid = errors.New(\"JSON parsing error\")\nvar ErrURLMalformed = errors.New(\"URL is malformed\")\n"
 				require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
@@ -83,6 +87,7 @@ func TestFix(t *testing.T) {
 			wantIssued:    0,
 			verifyFn: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(tmpDir, "http_errors.go"))
 				require.NoError(t, err)
 				require.Contains(t, string(fixed), "errors.New(\"HTTP request failed\")")
@@ -94,6 +99,7 @@ func TestFix(t *testing.T) {
 			name: "multiple_error_strings",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				goFile := filepath.Join(tmpDir, "multi_errors.go")
 				content := "package test\n\nimport \"errors\"\n\nvar ErrOne = errors.New(\"First error occurred\")\nvar ErrTwo = errors.New(\"Second error occurred\")\nvar ErrThree = errors.New(\"Third error occurred\")\n"
 				require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
@@ -103,6 +109,7 @@ func TestFix(t *testing.T) {
 			wantIssued:    3,
 			verifyFn: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(tmpDir, "multi_errors.go"))
 				require.NoError(t, err)
 				require.Contains(t, string(fixed), "errors.New(\"first error occurred\")")
@@ -114,6 +121,7 @@ func TestFix(t *testing.T) {
 			name: "mixed_acronyms_and_uppercase",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				goFile := filepath.Join(tmpDir, "mixed.go")
 				content := "package test\n\nimport \"errors\"\n\nvar ErrHTTP = errors.New(\"HTTP connection failed\")\nvar ErrGeneric = errors.New(\"Generic error occurred\")\nvar ErrJSON = errors.New(\"JSON decode error\")\nvar ErrBad = errors.New(\"Bad request received\")\n"
 				require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
@@ -123,6 +131,7 @@ func TestFix(t *testing.T) {
 			wantIssued:    2,
 			verifyFn: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(tmpDir, "mixed.go"))
 				require.NoError(t, err)
 				require.Contains(t, string(fixed), "errors.New(\"HTTP connection failed\")")
@@ -135,6 +144,7 @@ func TestFix(t *testing.T) {
 			name: "fmt_errorf",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				goFile := filepath.Join(tmpDir, "fmt_errors.go")
 				content := "package test\n\nimport \"fmt\"\n\nvar ErrFmt = fmt.Errorf(\"Failed to process request\")\n"
 				require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
@@ -144,6 +154,7 @@ func TestFix(t *testing.T) {
 			wantIssued:    1,
 			verifyFn: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(tmpDir, "fmt_errors.go"))
 				require.NoError(t, err)
 				require.Contains(t, string(fixed), "fmt.Errorf(\"failed to process request\")")
@@ -153,6 +164,7 @@ func TestFix(t *testing.T) {
 			name: "test_files_skipped",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				testFile := filepath.Join(tmpDir, "errors_test.go")
 				content := "package test\n\nimport \"errors\"\n\nvar ErrTest = errors.New(\"Test error occurred\")\n"
 				require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
@@ -165,6 +177,7 @@ func TestFix(t *testing.T) {
 			name: "nested_directories",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				subDir := filepath.Join(tmpDir, "sub", "nested")
 				require.NoError(t, os.MkdirAll(subDir, 0o755))
 
@@ -185,6 +198,7 @@ func TestFix(t *testing.T) {
 			name: "const_error_strings",
 			setupFiles: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				goFile := filepath.Join(tmpDir, "const_errors.go")
 				content := "package test\n\nimport \"errors\"\n\nconst (\n\terrMsg = \"Error message one\"\n)\n\nvar ErrConst = errors.New(\"Constant error occurred\")\n"
 				require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
@@ -194,6 +208,7 @@ func TestFix(t *testing.T) {
 			wantIssued:    1,
 			verifyFn: func(t *testing.T, tmpDir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(tmpDir, "const_errors.go"))
 				require.NoError(t, err)
 				require.Contains(t, string(fixed), "errors.New(\"constant error occurred\")")
@@ -207,7 +222,7 @@ func TestFix(t *testing.T) {
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			logger := cryptoutilCmd.NewLogger("test-fix-" + tc.name)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test-fix-" + tc.name)
 
 			tc.setupFiles(t, tmpDir)
 
@@ -227,7 +242,7 @@ func TestFix(t *testing.T) {
 func TestFix_InvalidDirectory(t *testing.T) {
 	t.Parallel()
 
-	logger := cryptoutilCmd.NewLogger("test-fix-invalid")
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-fix-invalid")
 
 	processed, modified, issuesFixed, err := Fix(logger, "/nonexistent/path/to/nowhere")
 	require.Error(t, err)

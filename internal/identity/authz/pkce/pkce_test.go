@@ -16,13 +16,14 @@ func TestGenerateCodeVerifier(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		testFn   func(t *testing.T)
+		name   string
+		testFn func(t *testing.T)
 	}{
 		{
 			name: "basic_generation",
 			testFn: func(t *testing.T) {
 				t.Helper()
+
 				verifier, err := GenerateCodeVerifier()
 				testify.NoError(t, err, "Generate code verifier should succeed")
 				testify.NotEmpty(t, verifier, "Code verifier should not be empty")
@@ -36,7 +37,9 @@ func TestGenerateCodeVerifier(t *testing.T) {
 			name: "uniqueness",
 			testFn: func(t *testing.T) {
 				t.Helper()
+
 				verifiers := make(map[string]bool)
+
 				for i := 0; i < 100; i++ {
 					verifier, err := GenerateCodeVerifier()
 					testify.NoError(t, err, "Generate code verifier should succeed")
@@ -94,6 +97,7 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			method:   "",
 			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
 				t.Helper()
+
 				hash := sha256.Sum256([]byte(verifier))
 				expected := base64.RawURLEncoding.EncodeToString(hash[:])
 				testify.Equal(t, expected, challenge, "Default method should be S256")
@@ -171,11 +175,11 @@ func TestValidateCodeVerifier(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		verifier     string
-		challenge    string
-		method       string
-		wantValid    bool
+		name      string
+		verifier  string
+		challenge string
+		method    string
+		wantValid bool
 	}{
 		{
 			name:      "s256_valid",

@@ -98,12 +98,14 @@ func TestCheckTestFile(t *testing.T) {
 
 			for _, want := range tc.wantContains {
 				found := false
+
 				for _, issue := range issues {
 					if strings.Contains(issue, want) {
 						found = true
 						break
 					}
 				}
+
 				require.True(t, found, "Expected to find %q in issues", want)
 			}
 		})
@@ -114,9 +116,9 @@ func TestEnforce(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		setupFiles func(t *testing.T, tmpDir string) []string
-		wantError bool
+		name         string
+		setupFiles   func(t *testing.T, tmpDir string) []string
+		wantError    bool
 		wantContains string
 	}{
 		{
@@ -131,9 +133,11 @@ func TestEnforce(t *testing.T) {
 			name: "valid_test_files",
 			setupFiles: func(t *testing.T, tmpDir string) []string {
 				t.Helper()
+
 				testFile := filepath.Join(tmpDir, "valid_test.go")
 				err := os.WriteFile(testFile, []byte(testValidTestFileContent), 0o600)
 				require.NoError(t, err)
+
 				return []string{testFile}
 			},
 			wantError: false,
@@ -142,23 +146,27 @@ func TestEnforce(t *testing.T) {
 			name: "invalid_test_file",
 			setupFiles: func(t *testing.T, tmpDir string) []string {
 				t.Helper()
+
 				testFile := filepath.Join(tmpDir, "invalid_test.go")
 				content := "package example_test\n\nimport (\n\t\"testing\"\n\tgoogleUuid \"github.com/google/uuid\"\n)\n\nfunc TestExample(t *testing.T) {\n\tid := googleUuid.New()\n\tt.Errorf(\"error\")\n}\n"
 				err := os.WriteFile(testFile, []byte(content), 0o600)
 				require.NoError(t, err)
+
 				return []string{testFile}
 			},
-			wantError: true,
+			wantError:    true,
 			wantContains: "test pattern violations",
 		},
 		{
 			name: "excluded_files",
 			setupFiles: func(t *testing.T, tmpDir string) []string {
 				t.Helper()
+
 				cicdTestFile := filepath.Join(tmpDir, "cicd_test.go")
 				cicdContent := "package cicd_test\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tt.Errorf(\"deliberate violation\")\n}\n"
 				err := os.WriteFile(cicdTestFile, []byte(cicdContent), 0o600)
 				require.NoError(t, err)
+
 				return []string{cicdTestFile}
 			},
 			wantError: false,
@@ -180,7 +188,7 @@ func TestEnforce(t *testing.T) {
 
 				return []string{file1, file2}
 			},
-			wantError: true,
+			wantError:    true,
 			wantContains: "2 files",
 		},
 	}
@@ -199,6 +207,7 @@ func TestEnforce(t *testing.T) {
 
 			if tc.wantError {
 				require.Error(t, err)
+
 				if tc.wantContains != "" {
 					require.Contains(t, err.Error(), tc.wantContains)
 				}

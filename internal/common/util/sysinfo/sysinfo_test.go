@@ -16,13 +16,14 @@ var testSysInfoProviders = []SysInfoProvider{mockSysInfoProvider, defaultSysInfo
 
 func TestSysInfo(t *testing.T) {
 	tests := []struct {
-		name     string
-		testFn   func(t *testing.T, provider SysInfoProvider)
+		name   string
+		testFn func(t *testing.T, provider SysInfoProvider)
 	}{
 		{
 			name: "runtime_go_arch",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				arch := provider.RuntimeGoArch()
 				fmt.Printf("Time: %.3f msec >>> RuntimeGoArch: %s\n", float32(time.Since(start).Microseconds())/1000, arch)
@@ -33,6 +34,7 @@ func TestSysInfo(t *testing.T) {
 			name: "runtime_go_os",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				os := provider.RuntimeGoOS()
 				fmt.Printf("Time: %.3f msec >>> RuntimeGoOS: %s\n", float32(time.Since(start).Microseconds())/1000, os)
@@ -43,6 +45,7 @@ func TestSysInfo(t *testing.T) {
 			name: "runtime_num_cpu",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				numCPU := provider.RuntimeNumCPU()
 				fmt.Printf("Time: %.3f msec >>> RuntimeNumCPU: %d\n", float32(time.Since(start).Microseconds())/1000, numCPU)
@@ -53,6 +56,7 @@ func TestSysInfo(t *testing.T) {
 			name: "cpu_info",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				vendorID, family, physicalID, modelName, err := provider.CPUInfo()
 				fmt.Printf("Time: %.3f msec >>> CPUInfo: VendorID=%s, Family=%s, PhysicalID=%s, ModelName=%s\n", float32(time.Since(start).Microseconds())/1000, vendorID, family, physicalID, modelName)
@@ -67,6 +71,7 @@ func TestSysInfo(t *testing.T) {
 			name: "ram_size",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				ramSize, err := provider.RAMSize()
 				fmt.Printf("Time: %.3f msec >>> RAMSize: %d\n", float32(time.Since(start).Microseconds())/1000, ramSize)
@@ -78,6 +83,7 @@ func TestSysInfo(t *testing.T) {
 			name: "os_hostname",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				hostname, err := provider.OSHostname()
 				fmt.Printf("Time: %.3f msec >>> OSHostname: %s\n", float32(time.Since(start).Microseconds())/1000, hostname)
@@ -89,6 +95,7 @@ func TestSysInfo(t *testing.T) {
 			name: "host_id",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				hostID, err := provider.HostID()
 				fmt.Printf("Time: %.3f msec >>> HostID: %s\n", float32(time.Since(start).Microseconds())/1000, hostID)
@@ -100,6 +107,7 @@ func TestSysInfo(t *testing.T) {
 			name: "user_info",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
 				start := time.Now().UTC()
 				userID, groupID, username, err := provider.UserInfo()
 				fmt.Printf("Time: %.3f msec >>> UserInfo: UserID=%s, GroupID=%s, Username=%s\n", float32(time.Since(start).Microseconds())/1000, userID, groupID, username)

@@ -108,8 +108,8 @@ func TestClientAuthPolicyManager(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		testFn     func(t *testing.T, manager *ClientAuthPolicyManager)
+		name   string
+		testFn func(t *testing.T, manager *ClientAuthPolicyManager)
 	}{
 		{
 			name: "get_default_policy",
@@ -249,6 +249,7 @@ func TestClientAuthPolicy_ValidateJWTAlgorithm(t *testing.T) {
 			policy: func() *ClientAuthPolicy {
 				policy := DevelopmentClientAuthPolicy()
 				policy.RequireJWTSignature = false
+
 				return policy
 			}(),
 			algorithm: "HS256",

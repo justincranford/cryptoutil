@@ -7,46 +7,49 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 func TestFix(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		setupFiles     func(t *testing.T, dir string) error
-		wantProcessed  int
-		wantModified   int
+		name            string
+		setupFiles      func(t *testing.T, dir string) error
+		wantProcessed   int
+		wantModified    int
 		wantIssuesFixed int
-		verifyFn       func(t *testing.T, dir string)
+		verifyFn        func(t *testing.T, dir string)
 	}{
 		{
-			name:           "empty directory",
-			setupFiles:     func(t *testing.T, dir string) error { t.Helper(); return nil },
-			wantProcessed:  0,
-			wantModified:   0,
+			name:            "empty directory",
+			setupFiles:      func(t *testing.T, dir string) error { t.Helper(); return nil },
+			wantProcessed:   0,
+			wantModified:    0,
 			wantIssuesFixed: 0,
 		},
 		{
 			name: "no test files",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				goFile := filepath.Join(dir, "main.go")
 				content := `package main
 
 func main() {}
 `
+
 				return os.WriteFile(goFile, []byte(content), 0o600)
 			},
-			wantProcessed:  0,
-			wantModified:   0,
+			wantProcessed:   0,
+			wantModified:    0,
 			wantIssuesFixed: 0,
 		},
 		{
 			name: "no helper functions",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "test_test.go")
 				content := `package test
 
@@ -56,16 +59,18 @@ func TestExample(t *testing.T) {
 	t.Log("test")
 }
 `
+
 				return os.WriteFile(testFile, []byte(content), 0o600)
 			},
-			wantProcessed:  1,
-			wantModified:   0,
+			wantProcessed:   1,
+			wantModified:    0,
 			wantIssuesFixed: 0,
 		},
 		{
 			name: "helper function missing t.Helper()",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "helpers_test.go")
 				content := `package test
 
@@ -75,13 +80,15 @@ func setupTest(t *testing.T) {
 	t.Log("setup")
 }
 `
+
 				return os.WriteFile(testFile, []byte(content), 0o600)
 			},
-			wantProcessed:  1,
-			wantModified:   1,
+			wantProcessed:   1,
+			wantModified:    1,
 			wantIssuesFixed: 1,
 			verifyFn: func(t *testing.T, dir string) {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "helpers_test.go")
 				fixed, err := os.ReadFile(testFile)
 				require.NoError(t, err)
@@ -92,6 +99,7 @@ func setupTest(t *testing.T) {
 			name: "helper function with t.Helper()",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "helpers_test.go")
 				content := `package test
 
@@ -102,16 +110,18 @@ func setupTest(t *testing.T) {
 	t.Log("setup")
 }
 `
+
 				return os.WriteFile(testFile, []byte(content), 0o600)
 			},
-			wantProcessed:  1,
-			wantModified:   0,
+			wantProcessed:   1,
+			wantModified:    0,
 			wantIssuesFixed: 0,
 		},
 		{
 			name: "multiple helper functions",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "helpers_test.go")
 				content := `package test
 
@@ -129,13 +139,15 @@ func assertValid(t *testing.T) {
 	t.Log("asserting")
 }
 `
+
 				return os.WriteFile(testFile, []byte(content), 0o600)
 			},
-			wantProcessed:  1,
-			wantModified:   1,
+			wantProcessed:   1,
+			wantModified:    1,
 			wantIssuesFixed: 3,
 			verifyFn: func(t *testing.T, dir string) {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "helpers_test.go")
 				fixed, err := os.ReadFile(testFile)
 				require.NoError(t, err)
@@ -146,6 +158,7 @@ func assertValid(t *testing.T) {
 			name: "helper function patterns",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "patterns_test.go")
 				content := `package test
 
@@ -160,16 +173,18 @@ func createMock(t *testing.T) {}
 func buildFixture(t *testing.T) {}
 func mockService(t *testing.T) {}
 `
+
 				return os.WriteFile(testFile, []byte(content), 0o600)
 			},
-			wantProcessed:  1,
-			wantModified:   1,
+			wantProcessed:   1,
+			wantModified:    1,
 			wantIssuesFixed: 8,
 		},
 		{
 			name: "nested directories",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				subDir := filepath.Join(dir, "sub", "nested")
 				if err := os.MkdirAll(subDir, 0o755); err != nil {
 					return err
@@ -190,19 +205,22 @@ func setupTest(t *testing.T) {
 				if err := os.WriteFile(file1, []byte(content), 0o600); err != nil {
 					return err
 				}
+
 				if err := os.WriteFile(file2, []byte(content), 0o600); err != nil {
 					return err
 				}
+
 				return os.WriteFile(file3, []byte(content), 0o600)
 			},
-			wantProcessed:  3,
-			wantModified:   3,
+			wantProcessed:   3,
+			wantModified:    3,
 			wantIssuesFixed: 3,
 		},
 		{
 			name: "helper without testing param",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				testFile := filepath.Join(dir, "helpers_test.go")
 				content := `package test
 
@@ -210,10 +228,11 @@ func setupGlobal() {
 	// No testing.T parameter
 }
 `
+
 				return os.WriteFile(testFile, []byte(content), 0o600)
 			},
-			wantProcessed:  1,
-			wantModified:   0,
+			wantProcessed:   1,
+			wantModified:    0,
 			wantIssuesFixed: 0,
 		},
 	}
@@ -224,7 +243,7 @@ func setupGlobal() {
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			logger := cryptoutilCmd.NewLogger("test-thelper-" + tc.name)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test-thelper-" + tc.name)
 
 			if tc.setupFiles != nil {
 				require.NoError(t, tc.setupFiles(t, tmpDir))
@@ -246,7 +265,7 @@ func setupGlobal() {
 func TestFix_InvalidDirectory(t *testing.T) {
 	t.Parallel()
 
-	logger := cryptoutilCmd.NewLogger("test-thelper")
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-thelper")
 
 	processed, modified, issuesFixed, err := Fix(logger, "/nonexistent/path")
 	require.Error(t, err)

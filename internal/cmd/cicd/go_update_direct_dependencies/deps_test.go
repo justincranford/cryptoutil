@@ -169,14 +169,15 @@ func TestSaveDepCache(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name            string
-		setupCache      func(t *testing.T, tempDir string) (string, cryptoutilMagic.DepCache)
-		verifyFn        func(t *testing.T, cacheFile string)
+		name       string
+		setupCache func(t *testing.T, tempDir string) (string, cryptoutilMagic.DepCache)
+		verifyFn   func(t *testing.T, cacheFile string)
 	}{
 		{
 			name: "basic save with outdated deps",
 			setupCache: func(t *testing.T, tempDir string) (string, cryptoutilMagic.DepCache) {
 				t.Helper()
+
 				cacheFile := filepath.Join(tempDir, "test_cache.json")
 				cache := cryptoutilMagic.DepCache{
 					LastCheck:    time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -185,14 +186,17 @@ func TestSaveDepCache(t *testing.T) {
 					OutdatedDeps: []string{"github.com/example/old", "github.com/example/older"},
 					Mode:         "direct",
 				}
+
 				return cacheFile, cache
 			},
 			verifyFn: func(t *testing.T, cacheFile string) {
 				t.Helper()
 				content := cryptoutilTestutil.ReadTestFile(t, cacheFile)
+
 				var loadedCache cryptoutilMagic.DepCache
 				require.NoError(t, json.Unmarshal(content, &loadedCache))
 				require.Equal(t, 2, len(loadedCache.OutdatedDeps))
+
 				info, err := os.Stat(cacheFile)
 				require.NoError(t, err)
 				require.True(t, info.Mode().IsRegular(), "Cache file should be a regular file")
@@ -202,6 +206,7 @@ func TestSaveDepCache(t *testing.T) {
 			name: "subdirectory creation",
 			setupCache: func(t *testing.T, tempDir string) (string, cryptoutilMagic.DepCache) {
 				t.Helper()
+
 				cacheFile := filepath.Join(tempDir, "nested", "subdir", "test_cache.json")
 				cache := cryptoutilMagic.DepCache{
 					LastCheck:    time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -210,10 +215,12 @@ func TestSaveDepCache(t *testing.T) {
 					OutdatedDeps: []string{},
 					Mode:         "all",
 				}
+
 				return cacheFile, cache
 			},
 			verifyFn: func(t *testing.T, cacheFile string) {
 				t.Helper()
+
 				_, err := os.Stat(cacheFile)
 				require.NoError(t, err, "Cache file should exist")
 				_, err = os.Stat(filepath.Dir(cacheFile))
@@ -224,6 +231,7 @@ func TestSaveDepCache(t *testing.T) {
 			name: "empty outdated deps",
 			setupCache: func(t *testing.T, tempDir string) (string, cryptoutilMagic.DepCache) {
 				t.Helper()
+
 				cacheFile := filepath.Join(tempDir, "empty_cache.json")
 				cache := cryptoutilMagic.DepCache{
 					LastCheck:    time.Now().UTC(),
@@ -232,11 +240,13 @@ func TestSaveDepCache(t *testing.T) {
 					OutdatedDeps: []string{},
 					Mode:         "direct",
 				}
+
 				return cacheFile, cache
 			},
 			verifyFn: func(t *testing.T, cacheFile string) {
 				t.Helper()
 				content := cryptoutilTestutil.ReadTestFile(t, cacheFile)
+
 				var loadedCache cryptoutilMagic.DepCache
 				require.NoError(t, json.Unmarshal(content, &loadedCache))
 				require.Empty(t, loadedCache.OutdatedDeps, "Empty slice should be preserved")
@@ -246,6 +256,7 @@ func TestSaveDepCache(t *testing.T) {
 			name: "nil outdated deps",
 			setupCache: func(t *testing.T, tempDir string) (string, cryptoutilMagic.DepCache) {
 				t.Helper()
+
 				cacheFile := filepath.Join(tempDir, "nil_cache.json")
 				cache := cryptoutilMagic.DepCache{
 					LastCheck:    time.Now().UTC(),
@@ -254,11 +265,13 @@ func TestSaveDepCache(t *testing.T) {
 					OutdatedDeps: nil,
 					Mode:         "direct",
 				}
+
 				return cacheFile, cache
 			},
 			verifyFn: func(t *testing.T, cacheFile string) {
 				t.Helper()
 				content := cryptoutilTestutil.ReadTestFile(t, cacheFile)
+
 				var loadedCache cryptoutilMagic.DepCache
 				require.NoError(t, json.Unmarshal(content, &loadedCache))
 				require.Nil(t, loadedCache.OutdatedDeps, "Nil slice roundtrips correctly through JSON")

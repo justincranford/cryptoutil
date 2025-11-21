@@ -21,13 +21,14 @@ func TestGitHubAPICache(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		testFn   func(t *testing.T, cache *GitHubAPICache)
+		name   string
+		testFn func(t *testing.T, cache *GitHubAPICache)
 	}{
 		{
 			name: "get cache miss and hit",
 			testFn: func(t *testing.T, cache *GitHubAPICache) {
 				t.Helper()
+
 				value, found := cache.Get("nonexistent")
 				require.False(t, found, "Should not find nonexistent key")
 				require.Empty(t, value, "Should return empty value for nonexistent key")
@@ -200,6 +201,7 @@ func TestGitHubAPICache(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			cache := NewGitHubAPICache()
 			tc.testFn(t, cache)
 		})
@@ -216,6 +218,7 @@ func TestGitHubAPICache_Concurrency(t *testing.T) {
 			cache.Set("key1", "value1")
 			_, _ = cache.Get("key1")
 		}
+
 		done <- true
 	}()
 
@@ -224,6 +227,7 @@ func TestGitHubAPICache_Concurrency(t *testing.T) {
 			cache.Set("key2", "value2")
 			_, _ = cache.Get("key2")
 		}
+
 		done <- true
 	}()
 
@@ -234,4 +238,3 @@ func TestGitHubAPICache_Concurrency(t *testing.T) {
 	_, found2 := cache.Get("key2")
 	require.True(t, found1 || found2, "At least one key should exist (race condition dependent)")
 }
-

@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 
 // Fix removes unnecessary loop variable copies in Go 1.25+ code.
 // Returns the number of files processed, modified, and issues fixed.
-func Fix(logger *cryptoutilCmd.Logger, rootDir string, goVersion string) (int, int, int, error) {
+func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, goVersion string) (int, int, int, error) {
 	// Check Go version.
 	if !isGoVersionSupported(goVersion) {
 		logger.Log(fmt.Sprintf("Skipping: Go version %s < %s (automatic loop variable scoping)", goVersion, minGoVersion))
@@ -64,7 +64,7 @@ func Fix(logger *cryptoutilCmd.Logger, rootDir string, goVersion string) (int, i
 }
 
 // fixCopyLoopVarInFile removes unnecessary loop variable copies from a single file.
-func fixCopyLoopVarInFile(logger *cryptoutilCmd.Logger, filePath string) (bool, int, error) {
+func fixCopyLoopVarInFile(logger *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)

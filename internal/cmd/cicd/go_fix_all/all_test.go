@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 func TestFix(t *testing.T) {
@@ -72,7 +72,7 @@ func TestFix(t *testing.T) {
 			t.Parallel()
 
 			tmpDir := t.TempDir()
-			logger := cryptoutilCmd.NewLogger("test-all-" + tc.name)
+			logger := cryptoutilCmdCicdCommon.NewLogger("test-all-" + tc.name)
 
 			tc.setupFiles(t, tmpDir)
 
@@ -92,7 +92,7 @@ func TestFix(t *testing.T) {
 func TestFix_InvalidDirectory(t *testing.T) {
 	t.Parallel()
 
-	logger := cryptoutilCmd.NewLogger("test-all-invalid")
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-all-invalid")
 
 	processed, modified, issuesFixed, err := Fix(logger, "/nonexistent/path", "1.25.4")
 	require.Error(t, err)

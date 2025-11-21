@@ -163,14 +163,17 @@ func TestCheckDependencies(t *testing.T) {
 			name: "stress_test",
 			jsonOutput: func() string {
 				var builder strings.Builder
+
 				numPackages := 100
 				for i := 0; i < numPackages; i++ {
 					imports := "[]"
 					if i > 0 {
 						imports = fmt.Sprintf("[\"cryptoutil/pkg/p%d\"]", i-1)
 					}
+
 					fmt.Fprintf(&builder, "{\"ImportPath\":\"cryptoutil/pkg/p%d\",\"Imports\":%s}\n", i, imports)
 				}
+
 				return builder.String()
 			}(),
 			wantError: false,
@@ -186,6 +189,7 @@ func TestCheckDependencies(t *testing.T) {
 
 			if tc.wantError {
 				testify.Error(t, err, "Expected error for test case: %s", tc.name)
+
 				for _, contains := range tc.wantContains {
 					testify.Contains(t, err.Error(), contains, "Error should contain: %s", contains)
 				}

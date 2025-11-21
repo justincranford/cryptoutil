@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	"cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
 	"cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
 	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
@@ -12,7 +12,7 @@ import (
 
 // Fix runs all auto-fix commands in sequence.
 // Returns aggregated statistics across all fix commands.
-func Fix(logger *cryptoutilCmd.Logger, rootDir string, goVersion string) (int, int, int, error) {
+func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, goVersion string) (int, int, int, error) {
 	logger.Log("Starting fix-all: running all auto-fix commands")
 
 	var (

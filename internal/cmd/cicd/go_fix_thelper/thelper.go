@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 // helperFunctionPatterns are naming patterns that indicate test helper functions.
@@ -27,7 +27,7 @@ var helperFunctionPatterns = []string{
 
 // Fix adds t.Helper() to test helper functions that are missing it.
 // Returns the number of files processed, modified, and issues fixed.
-func Fix(logger *cryptoutilCmd.Logger, rootDir string) (int, int, int, error) {
+func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int, error) {
 	var processed, modified, issuesFixed int
 
 	if err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
@@ -61,7 +61,7 @@ func Fix(logger *cryptoutilCmd.Logger, rootDir string) (int, int, int, error) {
 }
 
 // fixTHelperInFile adds t.Helper() to test helper functions in a single file.
-func fixTHelperInFile(logger *cryptoutilCmd.Logger, filePath string) (bool, int, error) {
+func fixTHelperInFile(logger *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)

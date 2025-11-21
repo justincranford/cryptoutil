@@ -12,12 +12,12 @@ import (
 	"strings"
 	"sync"
 
-	"cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // Enforce enforces UTF-8 encoding without BOM for all text files.
-func Enforce(logger *common.Logger, allFiles []string) error {
+func Enforce(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
 	logger.Log("Enforcing file encoding (UTF-8 without BOM)")
 
 	finalFiles := filterTextFiles(allFiles)

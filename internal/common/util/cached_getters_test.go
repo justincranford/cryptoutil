@@ -18,18 +18,20 @@ func TestGetCached(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		testFn     func(t *testing.T)
+		name   string
+		testFn func(t *testing.T)
 	}{
 		{
 			name: "cached_true",
 			testFn: func(t *testing.T) {
 				callCount := 0
+
 				var capturedValue any
 
 				getter := func() any {
 					callCount++
 					capturedValue = "cached value"
+
 					return capturedValue
 				}
 

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/cmd/cicd/common"
-	go_update_direct_dependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+	cryptoutilCmdCicdGoUpdateDirectDependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 )
 
 func TestFilterWorkflowFiles(t *testing.T) {
@@ -267,7 +267,7 @@ func TestGetLatestTag_ValidRepo(t *testing.T) {
 	logger := common.NewLogger("TestGetLatestTag_ValidRepo")
 
 	// Test with a known repository
-	tag, err := go_update_direct_dependencies.GetLatestTag(logger, "actions/checkout")
+	tag, err := cryptoutilCmdCicdGoUpdateDirectDependencies.GetLatestTag(logger, "actions/checkout")
 
 	// Result depends on network/GitHub API state
 	// Just verify it doesn't panic and returns valid types
@@ -284,6 +284,6 @@ func TestGetLatestTag_InvalidRepo(t *testing.T) {
 	logger := common.NewLogger("TestGetLatestTag_InvalidRepo")
 
 	// Test with an invalid repository
-	_, err := go_update_direct_dependencies.GetLatestTag(logger, "nonexistent/repository-that-does-not-exist")
+	_, err := cryptoutilCmdCicdGoUpdateDirectDependencies.GetLatestTag(logger, "nonexistent/repository-that-does-not-exist")
 	require.Error(t, err, "Should fail for nonexistent repository")
 }

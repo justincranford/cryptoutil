@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"cryptoutil/internal/cmd/cicd/common"
-	go_update_direct_dependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+	cryptoutilCmdCicdGoUpdateDirectDependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
@@ -249,7 +249,7 @@ func checkActionVersionsConcurrently(logger *common.Logger, actionMap map[string
 				}
 			}
 
-			latest, err := go_update_direct_dependencies.GetLatestVersion(logger, act.Name)
+			latest, err := cryptoutilCmdCicdGoUpdateDirectDependencies.GetLatestVersion(logger, act.Name)
 			results <- result{action: act, latest: latest, err: err, exempted: isExempted}
 		}(action)
 	}

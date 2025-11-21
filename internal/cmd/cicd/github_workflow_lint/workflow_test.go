@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/cmd/cicd/common"
-	go_update_direct_dependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+	cryptoutilCmdCicdGoUpdateDirectDependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
@@ -442,7 +442,7 @@ func TestGetLatestVersion(t *testing.T) {
 	// For now, just test that the function exists and can be called
 	// In a real scenario, you might want to refactor the code to make it more testable
 
-	_, err := go_update_direct_dependencies.GetLatestVersion(logger, "actions/checkout")
+	_, err := cryptoutilCmdCicdGoUpdateDirectDependencies.GetLatestVersion(logger, "actions/checkout")
 	// This will fail due to network call, but we can at least test it doesn't panic
 	if err == nil {
 		t.Log("GetLatestVersion succeeded (network call worked)")

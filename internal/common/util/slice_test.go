@@ -28,6 +28,7 @@ func TestContains(t *testing.T) {
 				val3 := "cherry"
 				slice := []*string{&val1, &val2, &val3}
 				searchItem := "banana"
+
 				return slice, &searchItem
 			},
 			wantResult: true,
@@ -40,6 +41,7 @@ func TestContains(t *testing.T) {
 				val3 := "cherry"
 				slice := []*string{&val1, &val2, &val3}
 				searchItem := "orange"
+
 				return slice, &searchItem
 			},
 			wantResult: false,
@@ -49,6 +51,7 @@ func TestContains(t *testing.T) {
 			setupFn: func() (any, any) {
 				slice := []*string{}
 				searchItem := "apple"
+
 				return slice, &searchItem
 			},
 			wantResult: false,
@@ -61,6 +64,7 @@ func TestContains(t *testing.T) {
 				val3 := "third"
 				slice := []*string{&val1, &val2, &val3}
 				searchItem := "first"
+
 				return slice, &searchItem
 			},
 			wantResult: true,
@@ -73,6 +77,7 @@ func TestContains(t *testing.T) {
 				val3 := "last"
 				slice := []*string{&val1, &val2, &val3}
 				searchItem := "last"
+
 				return slice, &searchItem
 			},
 			wantResult: true,
@@ -85,6 +90,7 @@ func TestContains(t *testing.T) {
 				val3 := 30
 				slice := []*int{&val1, &val2, &val3}
 				searchItem := 20
+
 				return slice, &searchItem
 			},
 			wantResult: true,
@@ -97,6 +103,7 @@ func TestContains(t *testing.T) {
 				val3 := 30
 				slice := []*int{&val1, &val2, &val3}
 				searchItem := 40
+
 				return slice, &searchItem
 			},
 			wantResult: false,
@@ -107,6 +114,7 @@ func TestContains(t *testing.T) {
 				val := "only"
 				slice := []*string{&val}
 				searchItem := "only"
+
 				return slice, &searchItem
 			},
 			wantResult: true,
@@ -117,6 +125,7 @@ func TestContains(t *testing.T) {
 				val := "only"
 				slice := []*string{&val}
 				searchItem := "different"
+
 				return slice, &searchItem
 			},
 			wantResult: false,
@@ -129,6 +138,7 @@ func TestContains(t *testing.T) {
 				val3 := "unique"
 				slice := []*string{&val1, &val2, &val3}
 				searchItem := "duplicate"
+
 				return slice, &searchItem
 			},
 			wantResult: true,

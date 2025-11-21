@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 // commonAcronyms is a map of uppercase acronyms that should be preserved at the start of error strings.
@@ -84,7 +84,7 @@ var errorStringPattern = regexp.MustCompile(`(?m)^\s*(?:var|const)\s+\w+\s*=\s*(
 
 // Fix analyzes Go files and fixes error strings that start with uppercase letters (except acronyms).
 // Returns the number of files processed, modified, and issues fixed.
-func Fix(logger *cryptoutilCmd.Logger, rootDir string) (int, int, int, error) {
+func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) (int, int, int, error) {
 	var processed, modified, issuesFixed int
 
 	if err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
@@ -119,7 +119,7 @@ func Fix(logger *cryptoutilCmd.Logger, rootDir string) (int, int, int, error) {
 
 // fixStaticcheckInFile processes a single file and fixes error strings that start with uppercase letters.
 // Returns whether the file was changed and the number of fixes applied.
-func fixStaticcheckInFile(logger *cryptoutilCmd.Logger, filePath string) (bool, int, error) {
+func fixStaticcheckInFile(logger *cryptoutilCmdCicdCommon.Logger, filePath string) (bool, int, error) {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to read file: %w", err)
