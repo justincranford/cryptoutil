@@ -97,14 +97,14 @@ Examples:
 			// Start services based on profile
 			ctx := context.Background()
 			servicesToStart := []struct {
-				name    string
-				enabled bool
-				binary  string
-				args    []string
+				name       string
+				enabled    bool
+				binary     string
+				configFile string
 			}{
-				{"authz", profileCfg.Services.AuthZ.Enabled, "bin/authz", []string{"--config", configFile}},
-				{"idp", profileCfg.Services.IdP.Enabled, "bin/idp", []string{"--config", configFile}},
-				{"rs", profileCfg.Services.RS.Enabled, "bin/rs", []string{"--config", configFile}},
+				{"authz", profileCfg.Services.AuthZ.Enabled, "bin/authz", "configs/identity/authz.yml"},
+				{"idp", profileCfg.Services.IdP.Enabled, "bin/idp", "configs/identity/idp.yml"},
+				{"rs", profileCfg.Services.RS.Enabled, "bin/rs", "configs/identity/rs.yml"},
 			}
 
 			for _, svc := range servicesToStart {
@@ -114,7 +114,8 @@ Examples:
 				}
 
 				fmt.Printf("Starting %s...\n", svc.name)
-				if err := procManager.Start(ctx, svc.name, svc.binary, svc.args); err != nil {
+				args := []string{"--config", svc.configFile}
+				if err := procManager.Start(ctx, svc.name, svc.binary, args); err != nil {
 					return fmt.Errorf("failed to start %s: %w", svc.name, err)
 				}
 			}
@@ -166,10 +167,10 @@ Examples:
 
 // isServiceEnabled checks if a service is enabled in the services-to-start list.
 func isServiceEnabled(serviceName string, services []struct {
-	name    string
-	enabled bool
-	binary  string
-	args    []string
+	name       string
+	enabled    bool
+	binary     string
+	configFile string
 },
 ) bool {
 	for _, svc := range services {
