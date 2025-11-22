@@ -1,4 +1,40 @@
-# Database Schema Issues - TODO
+# Database Schema Issues - RESOLVED (see Transaction Isolation Issues below)
+
+## ✅ Completed GORM Column Mismatches
+
+All GORM column tags fixed in domain models and SQL migrations:
+
+1. ✅ **MTLSDomains** - Fixed column name in auth_profile.go (commit 6f198651)
+2. ✅ **PhoneVerified** - Fixed column name in user.go (commit e2ed567e)
+3. ✅ **ConsentScreen1Text, ConsentScreen2Text** - Fixed column names in client_profile.go (commit e2ed567e)
+4. ✅ **RevokedAt** - Fixed column name in session.go (commit f1cd0913)
+5. ✅ **CodeChallenge, Nonce** - Fixed column names and added missing column to migration (commit f1cd0913)
+6. ✅ **Test Uniqueness** - Added UUIDv7 suffixes to all test data (commit f1cd0913)
+7. ✅ **Session Foreign Keys** - Added user creation before session in tests (commit f1cd0913)
+
+## 🔄 Transaction Isolation Issues (NEW - In Progress)
+
+### Problem: TestTransactionRollback Failure
+- **Symptom**: Transaction rollback appears successful but rolled-back data is still visible to subsequent reads
+- **Root Cause**: SQLite shared in-memory database (:memory: with cache=shared) + GORM transaction isolation
+- **Investigation Commits**: f1cd0913, 5a86bbdf
+- **Current Status**: Diagnosing transaction isolation behavior with logging
+
+### Problem: Shared Database Pollution
+- **Symptom**: CRUD tests seeing data from other parallel tests (TestUserRepositoryCRUD expects 1 item, finds 2-4)
+- **Root Cause**: All t.Parallel() tests share same :memory: database instance
+- **Affected Tests**: TestUserRepositoryCRUD, TestClientRepositoryCRUD, TestMFAFactorRepositoryCRUD
+- **Investigation Needed**: Unique database instances per test OR test cleanup strategy
+
+## Investigation Leads
+
+1. **GORM Transaction Implementation**: How does GORM handle SQLite transactions with WAL mode?
+2. **SQLite Isolation Levels**: What isolation guarantees exist with shared cache mode?
+3. **Connection Pool Settings**: MaxOpenConns=5 for GORM pattern - does this affect isolation?
+4. **Alternative Approaches**: 
+   - Use unique file-based databases per test
+   - Implement test cleanup with TRUNCATE/DELETE
+   - Use database snapshots/rollback points
 
 ## Critical Fixes Needed
 
