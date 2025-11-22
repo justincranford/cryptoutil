@@ -15,10 +15,10 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 
 servers:
+  - url: https://localhost:8082
+    description: Local Development (SQLite or PostgreSQL)
   - url: https://rs.cryptoutil.local
-    description: Resource Server (Production)
-  - url: http://localhost:8082
-    description: Resource Server (Development)
+    description: Production
 
 tags:
   - name: protected
@@ -34,7 +34,7 @@ paths:
       summary: Protected Resource
       description: |
         Access protected resource data. Requires valid access token with
-        appropriate scopes.
+        'read:resource' scope. Returns sensitive user data.
       operationId: getProtectedResource
       security:
         - BearerAuth:
@@ -46,6 +46,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProtectedResourceResponse'
+              example:
+                message: "Protected resource accessed successfully"
+                data: "Sensitive user information"
+                timestamp: "2024-01-15T10:30:00Z"
+                user_id: "550e8400-e29b-41d4-a716-446655440000"
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -60,6 +65,7 @@ paths:
       summary: Public Resource
       description: |
         Access public resource data. No authentication required.
+        Returns publicly available information.
       operationId: getPublicResource
       responses:
         '200':
@@ -68,8 +74,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicResourceResponse'
+              example:
+                message: "Public resource accessed successfully"
+                data: "Public information available to all"
+                timestamp: "2024-01-15T10:30:00Z"
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /health:
+    get:
+      tags:
+        - public
+      summary: Health Check
+      description: Service health status including database connectivity
+      operationId: healthCheckRS
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "healthy"
+                database: "ok"
+                uptime: 86400
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "unhealthy"
+                database: "error"
+                uptime: 86400
 
 components:
   securitySchemes:
@@ -116,6 +155,26 @@ components:
         timestamp:
           type: string
           format: date-time
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall service health status
+          example: healthy
+        database:
+          type: string
+          enum: [ok, error]
+          description: Database connectivity status
+          example: ok
+        uptime:
+          type: integer
+          description: Service uptime in seconds
+          example: 86400
 
     Error:
       type: object

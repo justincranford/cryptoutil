@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: OpenID Connect Identity Provider API
+  version: 1.0.0
+  description: |
+    OIDC Identity Provider for user authentication.
+    Provides login forms and user credential validation.
+  contact:
+    name: Identity Team
+    email: identity@cryptoutil.local
+
+servers:
+  - url: https://localhost:8081
+    description: Local Development (PostgreSQL)
+  - url: https://localhost:8080
+    description: Local Development (SQLite)
+  - url: https://idp.cryptoutil.local
+    description: Production
+
+paths:
+  /oidc/v1/login:
+    get:
+      summary: Login Form
+      description: |
+        Render HTML login form for user authentication.
+        Includes CSRF token for form submission security.
+      operationId: getLoginForm
+      tags:
+        - Authentication
+      parameters:
+        - name: return_url
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: Redirect URL after successful authentication
+          example: "https://authz.example.com/oauth2/v1/continue"
+      responses:
+        '200':
+          description: HTML login form with CSRF token
+          content:
+            text/html:
+              schema:
+                type: string
+                description: HTML document containing login form
+              example: |
+                <html>
+                <body>
+                <form method="POST" action="/oidc/v1/login">
+                  <input type="text" name="username" placeholder="Username" required>
+                  <input type="password" name="password" placeholder="Password" required>
+                  <input type="hidden" name="csrf_token" value="...">
+                  <input type="hidden" name="return_url" value="...">
+                  <button type="submit">Login</button>
+                </form>
+                </body>
+                </html>
+        '400':
+          description: Missing or invalid return_url parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Authenticate User
+      description: |
+        Process user login credentials.
+        Validates username/password and CSRF token.
+        Creates authenticated session and redirects to return_url.
+      operationId: authenticateUser
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - csrf_token
+              properties:
+                username:
+                  type: string
+                  description: User login name
+                  example: "alice@example.com"
+                password:
+                  type: string
+                  format: password
+                  description: User password
+                  example: "securePassword123"
+                csrf_token:
+                  type: string
+                  description: CSRF protection token from login form
+                  example: "abc123def456"
+                return_url:
+                  type: string
+                  format: uri
+                  description: Redirect URL after successful authentication
+                  example: "https://authz.example.com/oauth2/v1/continue"
+      responses:
+        '302':
+          description: |
+            Redirect to return_url with session cookie set.
+            User is now authenticated.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: return_url from request body
+              example: "https://authz.example.com/oauth2/v1/continue"
+            Set-Cookie:
+              schema:
+                type: string
+              description: Session cookie with HttpOnly and Secure flags
+              example: "session_id=xyz789; Path=/; HttpOnly; Secure; SameSite=Lax"
+        '401':
+          description: Invalid credentials or CSRF token
+          content:
+            text/html:
+              schema:
+                type: string
+                description: HTML login form with error message
+              example: |
+                <html>
+                <body>
+                <div class="error">Invalid username or password</div>
+                <form method="POST" action="/oidc/v1/login">
+                  ...
+                </form>
+                </body>
+                </html>
+        '400':
+          description: Missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      summary: Health Check
+      description: Service health status including database connectivity
+      operationId: healthCheckIdP
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error code or message
+          example: "invalid_request"
+        error_description:
+          type: string
+          description: Human-readable error description
+          example: "Missing required parameter: return_url"
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall service health status
+          example: healthy
+        database:
+          type: string
+          enum: [ok, error]
+          description: Database connectivity status
+          example: ok
+        uptime:
+          type: integer
+          description: Service uptime in seconds
+          example: 86400

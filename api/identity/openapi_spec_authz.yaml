@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: OAuth 2.1 Authorization Server API
+  version: 1.0.0
+  description: |
+    OAuth 2.1 and OpenID Connect Authorization Server providing:
+    - Authorization code flow with mandatory PKCE
+    - Token endpoint for code/refresh/client_credentials grants
+    - Health check endpoint for monitoring
+  contact:
+    name: Identity Team
+    email: identity@cryptoutil.local
+
+servers:
+  - url: https://localhost:8080
+    description: Local Development (SQLite)
+  - url: https://localhost:8081
+    description: Local Development (PostgreSQL Instance 1)
+  - url: https://localhost:8082
+    description: Local Development (PostgreSQL Instance 2)
+  - url: https://authz.cryptoutil.local
+    description: Production
+
+paths:
+  /oauth2/v1/authorize:
+    post:
+      summary: OAuth 2.1 Authorization Request
+      description: |
+        Initiate OAuth 2.1 authorization code flow with mandatory PKCE.
+        Validates client, redirect_uri, and code_challenge.
+        Redirects to IdP login if user not authenticated, or to redirect_uri with authorization code if authenticated.
+      operationId: authorize
+      tags:
+        - OAuth 2.1
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - response_type
+                - client_id
+                - redirect_uri
+                - code_challenge
+                - code_challenge_method
+              properties:
+                response_type:
+                  type: string
+                  enum: [code]
+                  description: Must be "code" for authorization code flow
+                  example: code
+                client_id:
+                  type: string
+                  format: uuid
+                  description: Registered OAuth 2.0 client identifier
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: Client redirect URI (must match registered value)
+                  example: "https://client.example.com/callback"
+                scope:
+                  type: string
+                  description: Space-delimited scope values (e.g., "openid profile email")
+                  example: "openid profile email"
+                state:
+                  type: string
+                  description: Opaque value for CSRF protection
+                  example: "xyz"
+                code_challenge:
+                  type: string
+                  minLength: 43
+                  maxLength: 128
+                  description: PKCE code challenge (base64url-encoded SHA256 hash of code_verifier)
+                  example: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+                code_challenge_method:
+                  type: string
+                  enum: [S256]
+                  description: Must be "S256" (SHA256 hash)
+                  example: S256
+      responses:
+        '302':
+          description: |
+            Redirect to IdP login (if user not authenticated) or redirect_uri with authorization code (if authenticated)
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: IdP login URL or redirect_uri with code and state parameters
+              example: "https://idp.example.com/login?return_url=https://authz.example.com/continue"
+        '400':
+          $ref: '#/components/responses/OAuth2Error'
+        '401':
+          $ref: '#/components/responses/OAuth2Error'
+
+  /oauth2/v1/token:
+    post:
+      summary: OAuth 2.1 Token Endpoint
+      description: |
+        Exchange authorization code, refresh token, or client credentials for access token.
+        Supports grant types: authorization_code, refresh_token, client_credentials.
+        Validates PKCE code_verifier for authorization_code grants.
+      operationId: token
+      tags:
+        - OAuth 2.1
+      security:
+        - clientBasicAuth: []
+        - clientSecretPost: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - grant_type
+              properties:
+                grant_type:
+                  type: string
+                  enum: [authorization_code, refresh_token, client_credentials]
+                  description: OAuth 2.0 grant type
+                  example: authorization_code
+                code:
+                  type: string
+                  description: Authorization code (required for authorization_code grant)
+                  example: "SplxlOBeZQQYbYS6WxSbIA"
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: Client redirect URI (must match authorize request)
+                  example: "https://client.example.com/callback"
+                code_verifier:
+                  type: string
+                  minLength: 43
+                  maxLength: 128
+                  description: PKCE code verifier (required for authorization_code grant)
+                  example: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+                refresh_token:
+                  type: string
+                  description: Refresh token (required for refresh_token grant)
+                  example: "tGzv3JOkF0XG5Qx2TlKWIA"
+                scope:
+                  type: string
+                  description: Space-delimited scope values (optional, for narrowing access)
+                  example: "openid profile"
+      responses:
+        '200':
+          description: Successful token response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/OAuth2Error'
+        '401':
+          $ref: '#/components/responses/OAuth2Error'
+
+  /health:
+    get:
+      summary: Health Check
+      description: Service health status including database connectivity
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    TokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      properties:
+        access_token:
+          type: string
+          description: OAuth 2.0 access token (opaque or JWT)
+          example: "2YotnFZFEjr1zCsicMWpAA"
+        token_type:
+          type: string
+          enum: [Bearer]
+          description: Token type (always "Bearer")
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Token lifetime in seconds
+          example: 3600
+        refresh_token:
+          type: string
+          description: Refresh token (optional, for authorization_code and refresh_token grants)
+          example: "tGzv3JOkF0XG5Qx2TlKWIA"
+        id_token:
+          type: string
+          description: OpenID Connect ID Token (if openid scope requested)
+          example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+        scope:
+          type: string
+          description: Space-delimited granted scopes
+          example: "openid profile email"
+
+    OAuth2Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_request
+            - invalid_client
+            - invalid_grant
+            - unauthorized_client
+            - unsupported_grant_type
+            - invalid_scope
+            - server_error
+            - temporarily_unavailable
+          description: OAuth 2.0 error code
+          example: invalid_request
+        error_description:
+          type: string
+          description: Human-readable error description
+          example: "The request is missing a required parameter"
+        error_uri:
+          type: string
+          format: uri
+          description: URI for error documentation
+          example: "https://docs.example.com/oauth2/errors/invalid_request"
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall service health status
+          example: healthy
+        database:
+          type: string
+          enum: [ok, error]
+          description: Database connectivity status
+          example: ok
+        uptime:
+          type: integer
+          description: Service uptime in seconds
+          example: 86400
+
+  securitySchemes:
+    clientBasicAuth:
+      type: http
+      scheme: basic
+      description: |
+        Client ID and secret via HTTP Basic Authentication.
+        Header format: Authorization: Basic base64(client_id:client_secret)
+
+    clientSecretPost:
+      type: apiKey
+      in: formData
+      name: client_secret
+      description: |
+        Client secret in request body as form parameter.
+        Used when client cannot use HTTP Basic Authentication.
+
+  responses:
+    OAuth2Error:
+      description: OAuth 2.0 error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OAuth2Error'
