@@ -1,0 +1,17 @@
+# Profile: AuthZ + IdP
+# Description: Authorization Server and Identity Provider without Resource Server
+# Use case: Testing OAuth + OIDC flows without resource access
+
+services:
+  authz:
+    enabled: true
+    bind_address: "127.0.0.1:8080"
+    database_url: "file:~/.identity/authz-idp.db"
+    log_level: "info"
+  idp:
+    enabled: true
+    bind_address: "127.0.0.1:8081"
+    database_url: "file:~/.identity/authz-idp.db"  # Shared with authz
+    log_level: "info"
+  rs:
+    enabled: false

@@ -1,0 +1,14 @@
+# Profile: AuthZ Only
+# Description: Just Authorization Server for focused testing
+# Use case: Testing OAuth 2.1 authorization flows in isolation
+
+services:
+  authz:
+    enabled: true
+    bind_address: "127.0.0.1:8080"
+    database_url: "file:~/.identity/authz.db"
+    log_level: "info"
+  idp:
+    enabled: false
+  rs:
+    enabled: false

@@ -1,0 +1,19 @@
+# Profile: Full Stack
+# Description: All services with production-like configuration
+# Use case: Integration testing, pre-production validation
+
+services:
+  authz:
+    enabled: true
+    bind_address: "127.0.0.1:8080"
+    database_url: "file:~/.identity/full-stack.db"
+    log_level: "info"
+  idp:
+    enabled: true
+    bind_address: "127.0.0.1:8081"
+    database_url: "file:~/.identity/full-stack.db"  # Shared with authz
+    log_level: "info"
+  rs:
+    enabled: true
+    bind_address: "127.0.0.1:8082"
+    log_level: "info"

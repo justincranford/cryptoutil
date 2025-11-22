@@ -1,0 +1,19 @@
+# Profile: CI
+# Description: Minimal config for CI/CD pipelines with in-memory SQLite
+# Use case: GitHub Actions, automated testing
+
+services:
+  authz:
+    enabled: true
+    bind_address: "127.0.0.1:8080"
+    database_url: ":memory:"  # In-memory SQLite for speed
+    log_level: "warn"
+  idp:
+    enabled: true
+    bind_address: "127.0.0.1:8081"
+    database_url: ":memory:"  # Separate in-memory DB
+    log_level: "warn"
+  rs:
+    enabled: true
+    bind_address: "127.0.0.1:8082"
+    log_level: "warn"

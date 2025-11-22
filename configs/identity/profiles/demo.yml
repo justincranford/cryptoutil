@@ -1,0 +1,19 @@
+# Profile: Demo
+# Description: Development/demo setup with all services enabled
+# Use case: Local development, testing, demonstrations
+
+services:
+  authz:
+    enabled: true
+    bind_address: "127.0.0.1:8080"
+    database_url: "file:~/.identity/demo.db"
+    log_level: "debug"
+  idp:
+    enabled: true
+    bind_address: "127.0.0.1:8081"
+    database_url: "file:~/.identity/demo.db"  # Shared with authz
+    log_level: "debug"
+  rs:
+    enabled: true
+    bind_address: "127.0.0.1:8082"
+    log_level: "debug"
