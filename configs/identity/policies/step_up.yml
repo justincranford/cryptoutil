@@ -30,7 +30,7 @@ policies:
     risk_level_overrides:
       high: "strong_mfa"      # High-risk contexts require hardware key
       critical: "block"        # Critical-risk contexts blocked
-  
+
   change_password:
     operation_pattern: "change_password"
     required_level: "step_up"
@@ -43,7 +43,7 @@ policies:
     risk_level_overrides:
       high: "strong_mfa"
       critical: "block"
-  
+
   add_payee:
     operation_pattern: "add_payee"
     required_level: "step_up"
@@ -57,7 +57,7 @@ policies:
     risk_level_overrides:
       high: "strong_mfa"
       critical: "block"
-  
+
   delete_account:
     operation_pattern: "delete_account"
     required_level: "strong_mfa"  # AuthLevelStrongMFA (4)
@@ -71,7 +71,7 @@ policies:
       medium: "strong_mfa"  # Even medium-risk requires strong MFA
       high: "block"          # High-risk blocked
       critical: "block"
-  
+
   view_pii:
     operation_pattern: "view_pii"
     required_level: "mfa"  # AuthLevelMFA (2)
@@ -85,7 +85,7 @@ policies:
     risk_level_overrides:
       high: "step_up"
       critical: "block"
-  
+
   modify_2fa_settings:
     operation_pattern: "modify_2fa_settings"
     required_level: "strong_mfa"
@@ -97,7 +97,7 @@ policies:
     risk_level_overrides:
       high: "block"
       critical: "block"
-  
+
   export_data:
     operation_pattern: "export_data"
     required_level: "step_up"
@@ -111,7 +111,7 @@ policies:
     risk_level_overrides:
       high: "strong_mfa"
       critical: "block"
-  
+
   api_key_generation:
     operation_pattern: "api_key_generation"
     required_level: "step_up"
@@ -139,19 +139,19 @@ auth_levels:
   none:
     level: 0
     description: "Not authenticated"
-  
+
   basic:
     level: 1
     description: "Password only"
-  
+
   mfa:
     level: 2
     description: "Multi-factor authentication (SMS OTP, email OTP, TOTP)"
-  
+
   step_up:
     level: 3
     description: "Step-up authentication completed recently"
-  
+
   strong_mfa:
     level: 4
     description: "Strong MFA (hardware key, biometric)"
@@ -163,37 +163,37 @@ step_up_methods:
     type: "otp"
     strength: "medium"
     fallback_priority: 1
-  
+
   email_otp:
     name: "Email OTP"
     type: "otp"
     strength: "medium"
     fallback_priority: 2
-  
+
   totp:
     name: "TOTP (Authenticator App)"
     type: "otp"
     strength: "medium"
     fallback_priority: 3
-  
+
   webauthn:
     name: "WebAuthn (Hardware Key)"
     type: "cryptographic"
     strength: "strong"
     fallback_priority: 4
-  
+
   face_id:
     name: "Face ID (Biometric)"
     type: "biometric"
     strength: "strong"
     fallback_priority: 5
-  
+
   touch_id:
     name: "Touch ID (Biometric)"
     type: "biometric"
     strength: "strong"
     fallback_priority: 6
-  
+
   backup_codes:
     name: "Backup Codes"
     type: "recovery"

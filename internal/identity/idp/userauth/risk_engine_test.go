@@ -170,10 +170,10 @@ behavior_risks: {}
 		KnownLocations: []GeoLocation{
 			{Country: "US"},
 		},
-		KnownDevices:   []string{"device-fingerprint-1"},
-		TypicalHours:   []int{9, 10, 11, 14, 15, 16},
-		KnownNetworks:  []string{"192.168.1.1"},
-		LastAuthTime:   time.Now().Add(-1 * time.Hour),
+		KnownDevices:  []string{"device-fingerprint-1"},
+		TypicalHours:  []int{9, 10, 11, 14, 15, 16},
+		KnownNetworks: []string{"192.168.1.1"},
+		LastAuthTime:  time.Now().Add(-1 * time.Hour),
 	}
 
 	userHistory := &mockUserBehaviorStore{
@@ -186,11 +186,11 @@ behavior_risks: {}
 	engine := NewBehavioralRiskEngine(loader, userHistory, geoIP, deviceDB)
 
 	tests := []struct {
-		name           string
-		authContext    *AuthContext
-		wantRiskLevel  RiskLevel
-		wantLowScore   float64
-		wantHighScore  float64
+		name          string
+		authContext   *AuthContext
+		wantRiskLevel RiskLevel
+		wantLowScore  float64
+		wantHighScore float64
 	}{
 		{
 			name: "low-risk known context",

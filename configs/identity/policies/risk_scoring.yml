@@ -1,6 +1,6 @@
 # Risk Scoring Policy Configuration
 # Defines risk factor weights, thresholds, and confidence scoring for adaptive authentication
-# 
+#
 # CRITICAL: Changes to this file affect authentication security posture
 # Test changes via simulation CLI before deploying to production
 # See: docs/02-identityV2/adaptive-auth-runbook.md
@@ -15,23 +15,23 @@ risk_factors:
   location:
     weight: 0.25  # Geographic location anomalies
     description: "Unknown locations, impossible travel, high-risk countries"
-  
+
   device:
     weight: 0.20  # Device fingerprint anomalies
     description: "Unknown devices, device signature changes"
-  
+
   time:
     weight: 0.15  # Time-based anomalies
     description: "Unusual login times, rapid authentication attempts"
-  
+
   behavior:
     weight: 0.20  # User behavior anomalies
     description: "Deviations from baseline behavior patterns"
-  
+
   network:
     weight: 0.10  # Network-based risk
     description: "VPN usage, proxy detection, Tor exit nodes"
-  
+
   velocity:
     weight: 0.10  # Velocity anomalies
     description: "Rapid login attempts, account enumeration patterns"
@@ -46,7 +46,7 @@ risk_thresholds:
     auth_requirements:
       - "basic"  # Password only
     max_session_duration: "24h"
-  
+
   medium:
     min: 0.1
     max: 0.4
@@ -55,7 +55,7 @@ risk_thresholds:
       - "basic"
       - "mfa"  # Require MFA (SMS OTP, email OTP, TOTP)
     max_session_duration: "1h"
-  
+
   high:
     min: 0.4
     max: 0.7
@@ -65,7 +65,7 @@ risk_thresholds:
       - "strong_mfa"  # Require hardware key or biometric
     max_session_duration: "5m"
     step_up_required: true
-  
+
   critical:
     min: 0.7
     max: 1.0
@@ -81,7 +81,7 @@ confidence_weights:
   factor_count: 0.5    # Contribution from number of factors evaluated
   baseline_data: 0.15  # Contribution from user baseline data quality
   behavior_profile: 0.10  # Contribution from behavior profile completeness
-  
+
 # Confidence thresholds for decision-making
 confidence_thresholds:
   low: 0.3      # Insufficient data, use conservative defaults
@@ -93,15 +93,15 @@ network_risks:
   vpn:
     score: 0.3
     description: "VPN usage increases anonymity risk"
-  
+
   proxy:
     score: 0.4
     description: "Proxy usage suggests evasion attempt"
-  
+
   tor:
     score: 0.8
     description: "Tor exit node indicates high anonymity intent"
-  
+
   known_bad_ip:
     score: 0.9
     description: "IP on threat intelligence blocklist"
@@ -115,7 +115,7 @@ geographic_risks:
       - "SY"  # Syria
     score: 0.6
     description: "Countries with elevated cybercrime risk"
-  
+
   embargoed_countries:
     countries:
       - "CU"  # Cuba
@@ -130,13 +130,13 @@ velocity_limits:
     max_attempts: 5
     risk_score: 0.7
     description: "More than 5 auth attempts in 15 minutes"
-  
+
   location_changes:
     window: "1h"
     max_locations: 3
     risk_score: 0.8
     description: "Impossible travel (3+ locations in 1 hour)"
-  
+
   device_changes:
     window: "24h"
     max_devices: 5
@@ -148,11 +148,11 @@ time_risks:
   unusual_hour:
     score: 0.2
     description: "Login outside user's normal hours (±3 hours from median)"
-  
+
   unusual_day:
     score: 0.3
     description: "Login on day user rarely authenticates (e.g., weekend for weekday user)"
-  
+
   after_hours:
     score: 0.4
     description: "Login during organization's after-hours (configurable per tenant)"
@@ -162,11 +162,11 @@ behavior_risks:
   new_user:
     score: 0.1
     description: "User with <7 days history, limited baseline data"
-  
+
   inactive_user:
     score: 0.3
     description: "User inactive >30 days, baseline may be stale"
-  
+
   behavior_change:
     score: 0.5
     description: "Significant deviation from established behavior pattern"

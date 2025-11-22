@@ -158,11 +158,11 @@ monitoring:
 		wantRequiredLevel AuthenticationLevel
 	}{
 		{
-			name:             "transfer_funds requires step_up - current basic",
-			operation:        "transfer_funds",
-			currentLevel:     AuthLevelBasic,
-			authTime:         time.Now(),
-			wantStepUpNeeded: true,
+			name:              "transfer_funds requires step_up - current basic",
+			operation:         "transfer_funds",
+			currentLevel:      AuthLevelBasic,
+			authTime:          time.Now(),
+			wantStepUpNeeded:  true,
 			wantRequiredLevel: AuthLevelStepUp,
 		},
 		{
@@ -173,11 +173,11 @@ monitoring:
 			wantStepUpNeeded: false,
 		},
 		{
-			name:             "transfer_funds expired - old step_up",
-			operation:        "transfer_funds",
-			currentLevel:     AuthLevelStepUp,
-			authTime:         time.Now().Add(-10 * time.Minute), // Beyond 5m max age.
-			wantStepUpNeeded: true,
+			name:              "transfer_funds expired - old step_up",
+			operation:         "transfer_funds",
+			currentLevel:      AuthLevelStepUp,
+			authTime:          time.Now().Add(-10 * time.Minute), // Beyond 5m max age.
+			wantStepUpNeeded:  true,
 			wantRequiredLevel: AuthLevelStepUp,
 		},
 		{
@@ -195,11 +195,11 @@ monitoring:
 			wantStepUpNeeded: false, // Default policy requires basic.
 		},
 		{
-			name:             "unknown operation with no auth uses default policy",
-			operation:        "unknown_operation",
-			currentLevel:     AuthLevelNone,
-			authTime:         time.Now(),
-			wantStepUpNeeded: true, // Default policy requires basic.
+			name:              "unknown operation with no auth uses default policy",
+			operation:         "unknown_operation",
+			currentLevel:      AuthLevelNone,
+			authTime:          time.Now(),
+			wantStepUpNeeded:  true, // Default policy requires basic.
 			wantRequiredLevel: AuthLevelBasic,
 		},
 	}

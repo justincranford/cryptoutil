@@ -1,0 +1,179 @@
+[
+  {
+    "timestamp": "2025-01-15T08:00:00Z",
+    "user_id": "user-001",
+    "operation": "view_balance",
+    "ip_address": "192.168.1.100",
+    "device_id": "device-trusted-001",
+    "country": "US",
+    "city": "San Francisco",
+    "is_vpn": false,
+    "is_proxy": false,
+    "current_auth_level": "basic",
+    "success": true,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0",
+      "session_duration": "15m"
+    }
+  },
+  {
+    "timestamp": "2025-01-15T08:15:00Z",
+    "user_id": "user-001",
+    "operation": "view_transactions",
+    "ip_address": "192.168.1.100",
+    "device_id": "device-trusted-001",
+    "country": "US",
+    "city": "San Francisco",
+    "is_vpn": false,
+    "is_proxy": false,
+    "current_auth_level": "basic",
+    "success": true,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0",
+      "session_duration": "30m"
+    }
+  },
+  {
+    "timestamp": "2025-01-15T09:00:00Z",
+    "user_id": "user-002",
+    "operation": "transfer_funds",
+    "ip_address": "10.20.30.40",
+    "device_id": "device-new-002",
+    "country": "CA",
+    "city": "Vancouver",
+    "is_vpn": false,
+    "is_proxy": false,
+    "current_auth_level": "basic",
+    "success": false,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/17.0",
+      "failure_reason": "insufficient_auth_level"
+    }
+  },
+  {
+    "timestamp": "2025-01-15T09:05:00Z",
+    "user_id": "user-002",
+    "operation": "transfer_funds",
+    "ip_address": "10.20.30.40",
+    "device_id": "device-new-002",
+    "country": "CA",
+    "city": "Vancouver",
+    "is_vpn": false,
+    "is_proxy": false,
+    "current_auth_level": "mfa",
+    "success": true,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/17.0",
+      "mfa_method": "otp",
+      "step_up_completed": true
+    }
+  },
+  {
+    "timestamp": "2025-01-15T10:00:00Z",
+    "user_id": "user-003",
+    "operation": "change_password",
+    "ip_address": "203.0.113.42",
+    "device_id": "device-unknown-003",
+    "country": "RU",
+    "city": "Moscow",
+    "is_vpn": true,
+    "is_proxy": false,
+    "current_auth_level": "basic",
+    "success": false,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) Firefox/121.0",
+      "vpn_detected": true,
+      "failure_reason": "high_risk_blocked"
+    }
+  },
+  {
+    "timestamp": "2025-01-15T10:30:00Z",
+    "user_id": "user-004",
+    "operation": "view_profile",
+    "ip_address": "172.16.0.50",
+    "device_id": "device-mobile-004",
+    "country": "GB",
+    "city": "London",
+    "is_vpn": false,
+    "is_proxy": false,
+    "current_auth_level": "mfa",
+    "success": true,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) Safari/17.2",
+      "device_type": "mobile"
+    }
+  },
+  {
+    "timestamp": "2025-01-15T11:00:00Z",
+    "user_id": "user-005",
+    "operation": "transfer_funds",
+    "ip_address": "198.51.100.10",
+    "device_id": "device-trusted-005",
+    "country": "US",
+    "city": "New York",
+    "is_vpn": false,
+    "is_proxy": true,
+    "current_auth_level": "mfa",
+    "success": true,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/120.0",
+      "proxy_detected": true,
+      "risk_override": "trusted_proxy"
+    }
+  },
+  {
+    "timestamp": "2025-01-15T11:30:00Z",
+    "user_id": "user-006",
+    "operation": "update_email",
+    "ip_address": "192.0.2.100",
+    "device_id": "device-new-006",
+    "country": "CN",
+    "city": "Beijing",
+    "is_vpn": true,
+    "is_proxy": true,
+    "current_auth_level": "basic",
+    "success": false,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120.0",
+      "vpn_detected": true,
+      "proxy_detected": true,
+      "failure_reason": "critical_risk_blocked",
+      "velocity_anomaly": true
+    }
+  },
+  {
+    "timestamp": "2025-01-15T12:00:00Z",
+    "user_id": "user-007",
+    "operation": "view_balance",
+    "ip_address": "192.168.1.200",
+    "device_id": "device-trusted-007",
+    "country": "US",
+    "city": "Seattle",
+    "is_vpn": false,
+    "is_proxy": false,
+    "current_auth_level": "basic",
+    "success": true,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0",
+      "returning_user": true
+    }
+  },
+  {
+    "timestamp": "2025-01-15T12:30:00Z",
+    "user_id": "user-008",
+    "operation": "transfer_funds",
+    "ip_address": "10.0.0.100",
+    "device_id": "device-trusted-008",
+    "country": "DE",
+    "city": "Berlin",
+    "is_vpn": false,
+    "is_proxy": false,
+    "current_auth_level": "strong_mfa",
+    "success": true,
+    "metadata": {
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0",
+      "mfa_method": "webauthn",
+      "biometric_verified": true
+    }
+  }
+]
