@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"
-	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // TestAdaptiveAuth_E2E_LowRiskNoStepUp tests low-risk scenario requiring no step-up.
@@ -100,10 +101,10 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 
 	// Evaluate step-up for low-risk operation.
 	authState := &AuthenticationState{
-		UserID:           user.ID.UUID.String(),
-		CurrentLevel:     AuthLevelBasic,
-		AuthenticatedAt:  time.Now().Add(-10 * time.Minute), // Recent authentication.
-		SessionID:        googleUuid.New().String(),
+		UserID:          user.ID.UUID.String(),
+		CurrentLevel:    AuthLevelBasic,
+		AuthenticatedAt: time.Now().Add(-10 * time.Minute), // Recent authentication.
+		SessionID:       googleUuid.New().String(),
 	}
 
 	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), "view_balance", authState)
@@ -207,10 +208,10 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 
 	// Evaluate step-up for medium-risk operation (transfer_funds).
 	authState := &AuthenticationState{
-		UserID:           user.ID.UUID.String(),
-		CurrentLevel:     AuthLevelBasic,
-		AuthenticatedAt:  time.Now().Add(-10 * time.Minute),
-		SessionID:        googleUuid.New().String(),
+		UserID:          user.ID.UUID.String(),
+		CurrentLevel:    AuthLevelBasic,
+		AuthenticatedAt: time.Now().Add(-10 * time.Minute),
+		SessionID:       googleUuid.New().String(),
 	}
 
 	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), "transfer_funds", authState)
@@ -313,10 +314,10 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 
 	// Evaluate step-up for high-risk operation.
 	authState := &AuthenticationState{
-		UserID:           user.ID.UUID.String(),
-		CurrentLevel:     AuthLevelBasic,
-		AuthenticatedAt:  time.Now().Add(-10 * time.Minute),
-		SessionID:        googleUuid.New().String(),
+		UserID:          user.ID.UUID.String(),
+		CurrentLevel:    AuthLevelBasic,
+		AuthenticatedAt: time.Now().Add(-10 * time.Minute),
+		SessionID:       googleUuid.New().String(),
 	}
 
 	stepUpRequired, challenge, err := stepUpAuth.EvaluateStepUp(ctx, user.ID.UUID.String(), "transfer_funds", authState)

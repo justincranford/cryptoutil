@@ -1,0 +1,329 @@
+groups:
+  - name: adaptive_auth_alerts
+    interval: 30s
+    rules:
+      # Step-Up Rate Alerts
+      - alert: HighStepUpRate
+        expr: |
+          sum(rate(identity_stepup_triggered_total[5m]))
+          /
+          (sum(rate(identity_operations_blocked_total[5m])) + sum(rate(identity_operations_allowed_total[5m])))
+          > 0.15
+        for: 10m
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: step_up
+        annotations:
+          summary: "High step-up authentication rate detected"
+          description: |
+            Step-up authentication rate is {{ $value | humanizePercentage }} over the last 5 minutes.
+            Threshold: 15% (from step_up.yml step_up_rate_threshold).
+            This may indicate:
+            - Policy configuration too strict
+            - Legitimate increase in risky operations
+            - Attack pattern requiring additional authentication
+            Review recent policy changes and authentication patterns.
+
+      - alert: CriticalStepUpRate
+        expr: |
+          sum(rate(identity_stepup_triggered_total[5m]))
+          /
+          (sum(rate(identity_operations_blocked_total[5m])) + sum(rate(identity_operations_allowed_total[5m])))
+          > 0.30
+        for: 5m
+        labels:
+          severity: critical
+          component: adaptive_auth
+          category: step_up
+        annotations:
+          summary: "Critical step-up authentication rate detected"
+          description: |
+            Step-up authentication rate is {{ $value | humanizePercentage }} over the last 5 minutes.
+            Threshold: 30% (2x step_up.yml step_up_rate_threshold).
+            This is significantly above normal levels.
+            Immediate action required:
+            - Review recent policy changes
+            - Check for widespread attack patterns
+            - Consider temporary policy adjustment
+            - Investigate user experience impact
+
+      # Blocked Operation Alerts
+      - alert: HighBlockedOperationRate
+        expr: |
+          sum(rate(identity_operations_blocked_total[5m]))
+          /
+          (sum(rate(identity_operations_blocked_total[5m])) + sum(rate(identity_operations_allowed_total[5m])))
+          > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: blocked_operations
+        annotations:
+          summary: "High blocked operation rate detected"
+          description: |
+            Blocked operation rate is {{ $value | humanizePercentage }} over the last 5 minutes.
+            Threshold: 5% (from step_up.yml blocked_operation_rate_threshold).
+            This may indicate:
+            - Policy configuration too restrictive
+            - Coordinated attack in progress
+            - Legitimate user access issues
+            Review blocked operation logs and adjust policies if needed.
+
+      - alert: CriticalBlockedOperationRate
+        expr: |
+          sum(rate(identity_operations_blocked_total[5m]))
+          /
+          (sum(rate(identity_operations_blocked_total[5m])) + sum(rate(identity_operations_allowed_total[5m])))
+          > 0.10
+        for: 5m
+        labels:
+          severity: critical
+          component: adaptive_auth
+          category: blocked_operations
+        annotations:
+          summary: "Critical blocked operation rate detected"
+          description: |
+            Blocked operation rate is {{ $value | humanizePercentage }} over the last 5 minutes.
+            Threshold: 10% (2x step_up.yml blocked_operation_rate_threshold).
+            This is a severe issue affecting user access.
+            Immediate action required:
+            - Review policy configuration
+            - Check for DDoS or attack patterns
+            - Consider emergency policy rollback
+            - Communicate with users if widespread
+
+      # Confidence Score Alerts
+      - alert: LowConfidenceScores
+        expr: |
+          histogram_quantile(0.50, sum(rate(identity_risk_confidence_bucket[10m])) by (le))
+          < 0.3
+        for: 10m
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: confidence
+        annotations:
+          summary: "Low confidence scores in risk assessments"
+          description: |
+            Median confidence score is {{ $value | humanize }} over the last 10 minutes.
+            Threshold: 0.3 (baseline quality indicator).
+            This may indicate:
+            - Insufficient behavioral data for new users
+            - Baseline data collection issues
+            - Risk factor calculation problems
+            Review baseline data quality and risk factor weights.
+
+      - alert: CriticalLowConfidenceScores
+        expr: |
+          histogram_quantile(0.50, sum(rate(identity_risk_confidence_bucket[10m])) by (le))
+          < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: adaptive_auth
+          category: confidence
+        annotations:
+          summary: "Critical low confidence scores in risk assessments"
+          description: |
+            Median confidence score is {{ $value | humanize }} over the last 10 minutes.
+            Threshold: 0.1 (severely degraded confidence).
+            Risk assessments are unreliable.
+            Immediate action required:
+            - Check baseline data collection service
+            - Verify risk factor calculation logic
+            - Consider disabling adaptive policies until resolved
+
+      # Critical Risk Alerts
+      - alert: HighCriticalRiskAttempts
+        expr: |
+          sum(increase(identity_risk_level_total{risk_level="critical"}[5m]))
+          /
+          sum(increase(identity_risk_level_total[5m]))
+          > 0.10
+        for: 10m
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: critical_risk
+        annotations:
+          summary: "High rate of critical risk authentication attempts"
+          description: |
+            Critical risk attempts are {{ $value | humanizePercentage }} of total attempts over the last 5 minutes.
+            Threshold: 10% of total attempts.
+            This may indicate:
+            - Coordinated attack from high-risk sources (Tor, proxies)
+            - Compromised account credential stuffing
+            - Legitimate traffic from VPN/privacy services
+            Review critical risk logs and consider rate limiting.
+
+      - alert: SustainedCriticalRiskAttempts
+        expr: |
+          sum(increase(identity_risk_level_total{risk_level="critical"}[15m]))
+          /
+          sum(increase(identity_risk_level_total[15m]))
+          > 0.05
+        for: 15m
+        labels:
+          severity: critical
+          component: adaptive_auth
+          category: critical_risk
+        annotations:
+          summary: "Sustained critical risk authentication attempts"
+          description: |
+            Critical risk attempts are {{ $value | humanizePercentage }} of total attempts over the last 15 minutes.
+            Threshold: 5% sustained over 15 minutes.
+            This indicates a persistent attack pattern.
+            Immediate action required:
+            - Enable additional rate limiting
+            - Review IP/CIDR blocklists
+            - Investigate source patterns
+            - Consider temporary restrictions on high-risk operations
+
+      # Policy Load Alerts
+      - alert: PolicyLoadFailures
+        expr: |
+          sum(rate(identity_policy_load_errors_total[5m])) > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: adaptive_auth
+          category: policy
+        annotations:
+          summary: "Policy load failures detected"
+          description: |
+            Policy load errors detected for {{ $labels.policy_type }} policy.
+            Error rate: {{ $value | humanize }} errors/sec over the last 5 minutes.
+            Adaptive authentication may be using stale or default policies.
+            Immediate action required:
+            - Check policy file syntax and permissions
+            - Verify file paths in configuration
+            - Review application logs for detailed errors
+            - Rollback recent policy changes if needed
+
+      # Policy Evaluation Performance Alerts
+      - alert: HighPolicyEvaluationLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(identity_policy_evaluation_duration_bucket[5m])) by (le, operation))
+          > 500
+        for: 10m
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: performance
+        annotations:
+          summary: "High policy evaluation latency detected"
+          description: |
+            p95 policy evaluation latency is {{ $value | humanize }}ms for {{ $labels.operation }}.
+            Threshold: 500ms (from adaptive_auth.yml max_evaluation_time_ms).
+            This may impact authentication performance.
+            Review:
+            - Policy complexity and risk factor calculations
+            - External service dependencies (GeoIP, device fingerprinting)
+            - Database query performance for baseline lookups
+            - Consider caching or policy simplification
+
+      - alert: CriticalPolicyEvaluationLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(identity_policy_evaluation_duration_bucket[5m])) by (le, operation))
+          > 1000
+        for: 5m
+        labels:
+          severity: critical
+          component: adaptive_auth
+          category: performance
+        annotations:
+          summary: "Critical policy evaluation latency detected"
+          description: |
+            p95 policy evaluation latency is {{ $value | humanize }}ms for {{ $labels.operation }}.
+            Threshold: 1000ms (2x adaptive_auth.yml max_evaluation_time_ms).
+            This severely impacts user experience.
+            Immediate action required:
+            - Check external service health (GeoIP, device fingerprinting)
+            - Review database connection pool and query performance
+            - Consider disabling complex risk factors temporarily
+            - Scale policy evaluation infrastructure if needed
+
+      # Step-Up Success Rate Alerts
+      - alert: LowStepUpSuccessRate
+        expr: |
+          sum(rate(identity_stepup_success_total[5m])) by (method)
+          /
+          (sum(rate(identity_stepup_success_total[5m])) by (method) + sum(rate(identity_stepup_failure_total[5m])) by (method))
+          < 0.80
+        for: 10m
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: step_up
+        annotations:
+          summary: "Low step-up authentication success rate"
+          description: |
+            Step-up authentication success rate for {{ $labels.method }} is {{ $value | humanizePercentage }}.
+            Threshold: 80% success rate.
+            This may indicate:
+            - User experience issues with {{ $labels.method }}
+            - Technical problems with authentication method
+            - Attack attempts failing authentication
+            Review {{ $labels.method }} logs and user feedback.
+
+      # Risk Assessment Error Alerts
+      - alert: HighRiskAssessmentErrorRate
+        expr: |
+          sum(rate(identity_risk_assessment_errors_total[5m])) by (error_type) > 0.01
+        for: 10m
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: errors
+        annotations:
+          summary: "High risk assessment error rate"
+          description: |
+            Risk assessment errors ({{ $labels.error_type }}) occurring at {{ $value | humanize }} errors/sec.
+            Threshold: 0.01 errors/sec (1% of typical load).
+            This may indicate:
+            - External service failures (GeoIP, device fingerprinting)
+            - Baseline data collection issues
+            - Database connectivity problems
+            Review error logs and external service health.
+
+      - alert: CriticalRiskAssessmentErrorRate
+        expr: |
+          sum(rate(identity_risk_assessment_errors_total[5m])) by (error_type) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: adaptive_auth
+          category: errors
+        annotations:
+          summary: "Critical risk assessment error rate"
+          description: |
+            Risk assessment errors ({{ $labels.error_type }}) occurring at {{ $value | humanize }} errors/sec.
+            Threshold: 0.05 errors/sec (5% of typical load).
+            Risk assessments are severely degraded.
+            Immediate action required:
+            - Check external service health (GeoIP, device fingerprinting)
+            - Verify database connectivity and health
+            - Review application logs for detailed errors
+            - Consider fallback to simpler authentication policies
+
+      # Policy Reload Frequency Alert
+      - alert: FrequentPolicyReloads
+        expr: |
+          sum(increase(identity_policy_reload_total[1h])) by (policy_type) > 10
+        for: 1h
+        labels:
+          severity: warning
+          component: adaptive_auth
+          category: policy
+        annotations:
+          summary: "Frequent policy reloads detected"
+          description: |
+            {{ $labels.policy_type }} policy has been reloaded {{ $value | humanize }} times in the last hour.
+            Threshold: 10 reloads/hour.
+            This may indicate:
+            - Frequent manual policy changes (operational churn)
+            - File watch issues causing spurious reloads
+            - Policy file instability or corruption
+            Review policy change logs and file system events.
