@@ -71,11 +71,22 @@
 - Example: Todo list empty but 70k used, 930k remaining = CHECK docs/##-/*.md files for more work ✅
 
 ## Chat Responses
-- Responses must be concise summary with numbered list, and focused on key changes or questions
 
-Example:
-	- Fixed dependency-check NVD parsing error.
-	- Upgraded plugin to 12.1.9 and added a CI `update-only` step.
+**CRITICAL: ONLY provide summaries when user EXPLICITLY requests them**
+
+- **During continuous work**: ZERO text responses - only consecutive tool invocations
+- **When user asks for summary/status/explanation**: Provide concise summary with numbered list
+- **User requests that trigger summaries**: "summarize", "explain", "what have you done", "status update"
+- **ALL OTHER TIMES**: NO TEXT - just invoke next tool immediately after commit
+
+**Summary format** (only when explicitly requested):
+- Concise numbered list focused on key changes or questions
+- Example: "1. Fixed dependency-check NVD parsing error. 2. Upgraded plugin to 12.1.9"
+
+**Default behavior** (99% of the time):
+- commit → IMMEDIATE tool call (manage_todo_list/create_file/read_file)
+- NO text between tool invocations
+- NO status updates unless user explicitly asks
 
 **Token Budget Awareness**
 
