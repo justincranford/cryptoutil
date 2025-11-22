@@ -1,0 +1,30 @@
+# IdP Server Configuration
+
+idp:
+  name: idp-server
+  bind_address: 127.0.0.1
+  port: 8081
+  tls_enabled: false
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 127.0.0.1
+  admin_port: 9091
+
+database:
+  type: sqlite
+  dsn: ":memory:"
+  max_open_conns: 5
+  max_idle_conns: 2
+  conn_max_lifetime: 60m
+  conn_max_idle_time: 10m
+  auto_migrate: true
+
+tokens:
+  access_token_lifetime: 3600s
+  access_token_format: jws
+  id_token_lifetime: 3600s
+  refresh_token_lifetime: 86400s
+  issuer: https://idp.example.com
+  code_lifetime: 600s
