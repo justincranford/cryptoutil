@@ -56,10 +56,10 @@
 - Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
 - Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
 - STOP only when: tokens used ≥950k OR explicit user instruction to stop
-- **CRITICAL**: "All tasks complete" NEVER means stop - always check docs/02-mixed/todos-*.md for additional work
-- After clearing manage_todo_list, IMMEDIATELY check todos-*.md files for next task to work on
+- **CRITICAL**: "All tasks complete" NEVER means stop - always check docs/##-/*.md for additional work
+- After clearing manage_todo_list, IMMEDIATELY check files for next task to work on
 - Example: 58k used, 942k remaining = KEEP WORKING (only 5.8% used) ✅
-- Example: Todo list empty but 70k used, 930k remaining = CHECK todos-*.md files for more work ✅
+- Example: Todo list empty but 70k used, 930k remaining = CHECK docs/##-/*.md files for more work ✅
 
 ## Chat Responses
 - Responses must be concise summary with numbered list, and focused on key changes or questions
