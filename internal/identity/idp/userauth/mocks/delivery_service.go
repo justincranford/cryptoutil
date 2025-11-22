@@ -38,6 +38,14 @@ func NewMockSMSProvider() *MockSMSProvider {
 
 // SendSMS simulates sending an SMS message.
 func (m *MockSMSProvider) SendSMS(ctx context.Context, phoneNumber, message string) error {
+	// Validate inputs.
+	if phoneNumber == "" {
+		return fmt.Errorf("phone number cannot be empty")
+	}
+	if message == "" {
+		return fmt.Errorf("message cannot be empty")
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -58,10 +66,17 @@ func (m *MockSMSProvider) SendSMS(ctx context.Context, phoneNumber, message stri
 	}
 
 	// Record sent message.
+	timestamp := int64(0)
+	if ctx != nil {
+		if ts, ok := ctx.Value("timestamp").(int64); ok {
+			timestamp = ts
+		}
+	}
+
 	m.sentMessages = append(m.sentMessages, SMSMessage{
 		PhoneNumber: phoneNumber,
 		Message:     message,
-		Timestamp:   ctx.Value("timestamp").(int64),
+		Timestamp:   timestamp,
 	})
 
 	return nil
@@ -149,6 +164,17 @@ func NewMockEmailProvider() *MockEmailProvider {
 
 // SendEmail simulates sending an email message.
 func (m *MockEmailProvider) SendEmail(ctx context.Context, to, subject, body string) error {
+	// Validate inputs.
+	if to == "" {
+		return fmt.Errorf("recipient cannot be empty")
+	}
+	if subject == "" {
+		return fmt.Errorf("subject cannot be empty")
+	}
+	if body == "" {
+		return fmt.Errorf("body cannot be empty")
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -169,11 +195,18 @@ func (m *MockEmailProvider) SendEmail(ctx context.Context, to, subject, body str
 	}
 
 	// Record sent email.
+	timestamp := int64(0)
+	if ctx != nil {
+		if ts, ok := ctx.Value("timestamp").(int64); ok {
+			timestamp = ts
+		}
+	}
+
 	m.sentEmails = append(m.sentEmails, EmailMessage{
 		To:        to,
 		Subject:   subject,
 		Body:      body,
-		Timestamp: ctx.Value("timestamp").(int64),
+		Timestamp: timestamp,
 	})
 
 	return nil
