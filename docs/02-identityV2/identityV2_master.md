@@ -94,8 +94,8 @@ This reflection informs the current task's approach and ensures continuous impro
 
 | # | Task | Document | Summary | Status |
 |---|------|----------|---------|--------|
-| 10.5 | AuthZ/IdP Core Endpoints | `docs/identityV2/task-10.5-authz-idp-endpoints.md` | Implement `/oauth2/v1/authorize`, `/oauth2/v1/token`, `/health`, `/oidc/v1/login` to make integration tests pass. | 🔴 **NEXT** |
-| 10.6 | Unified Identity CLI | `docs/identityV2/task-10.6-unified-cli.md` | Create `./identity start --profile <name>` for one-liner bootstrap of all service combinations. | ⏳ Pending |
+| 10.5 | AuthZ/IdP Core Endpoints | `docs/identityV2/task-10.5-authz-idp-endpoints.md` | Implement `/oauth2/v1/authorize`, `/oauth2/v1/token`, `/health`, `/oidc/v1/login` to make integration tests pass. | ✅ Complete |
+| 10.6 | Unified Identity CLI | `docs/identityV2/task-10.6-unified-cli.md` | Create `./identity start --profile <name>` for one-liner bootstrap of all service combinations. | 🔴 **NEXT** |
 | 10.7 | OpenAPI Synchronization | `docs/identityV2/task-10.7-openapi-sync.md` | Synchronize OpenAPI specs with implemented endpoints, generate client libraries, update Swagger UI. | ⏳ Pending |
 
 ### 🟡 PHASE 3: Enhanced Features (Tasks 11-15)
