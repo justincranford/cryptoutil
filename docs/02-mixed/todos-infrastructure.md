@@ -9,18 +9,6 @@
 
 ## 🟡 MEDIUM - Infrastructure & Deployment
 
-### Task INF1: Automated Release Pipeline
-- **Description**: Implement automated release pipeline with semantic versioning
-- **Current State**: Manual releases only
-- **Action Items**:
-  - Create `.github/workflows/release.yml` with automated changelog generation
-  - Implement semantic versioning and automated releases
-  - Set up container registry publishing
-  - Configure multi-environment deployment strategy (dev → staging → production)
-- **Files**: `.github/workflows/release.yml`, release scripts
-- **Expected Outcome**: Automated, reliable release process
-- **Priority**: High - Production deployment
-
 ### Task INF2: Kubernetes Deployment Manifests
 - **Description**: Create production-ready Kubernetes deployment configurations
 - **Current State**: Docker Compose only
