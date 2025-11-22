@@ -472,6 +472,9 @@
     "Dnvd",
     "openvulnerability",
     "nosetests",
-    "circulardeps"
+    "circulardeps",
+    "PITR",
+    "KMIP",
+    "renewables"
   ]
 }
