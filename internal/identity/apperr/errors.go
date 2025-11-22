@@ -78,6 +78,7 @@ var (
 
 	// Credential errors.
 	ErrCredentialNotFound = NewIdentityError("credential_not_found", "Credential not found", http.StatusNotFound, nil)
+	ErrAuthenticationFailed = NewIdentityError("authentication_failed", "Authentication failed", http.StatusUnauthorized, nil)
 
 	// Session errors.
 	ErrSessionNotFound   = NewIdentityError("session_not_found", "Session not found", http.StatusNotFound, nil)
