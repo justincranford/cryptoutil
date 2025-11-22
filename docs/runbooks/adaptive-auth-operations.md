@@ -1,8 +1,8 @@
 # Adaptive Authentication Operations Runbook
 
-**Version**: 1.0  
-**Last Updated**: 2025-01-28  
-**Owner**: Identity Platform Team  
+**Version**: 1.0
+**Last Updated**: 2025-01-28
+**Owner**: Identity Platform Team
 **Scope**: Task 13 - Adaptive Authentication Engine
 
 ---
@@ -406,15 +406,15 @@ kubectl logs -n identity deployment/identity-idp | \
 ```bash
 # Check baseline data coverage
 kubectl exec -n identity deployment/identity-idp -- \
-  psql -c "SELECT 
-    user_id, 
-    baseline_age_days, 
-    event_count, 
-    known_locations_count, 
-    known_devices_count 
-  FROM user_behavioral_baselines 
-  WHERE event_count < 10 
-  ORDER BY event_count ASC 
+  psql -c "SELECT
+    user_id,
+    baseline_age_days,
+    event_count,
+    known_locations_count,
+    known_devices_count
+  FROM user_behavioral_baselines
+  WHERE event_count < 10
+  ORDER BY event_count ASC
   LIMIT 20;"
 
 # Low event counts → low confidence → higher risk scores
@@ -820,7 +820,7 @@ kubectl logs -n identity deployment/identity-idp | \
 risk_factors:
   new_location:
     weight: 0.20  # Reduced from 0.25
-    
+
   # Or add trusted location exceptions
   trusted_locations:
     - country_code: GB
@@ -868,10 +868,10 @@ risk_factors:
 ```bash
 # Check baseline data for new users
 kubectl exec -n identity deployment/identity-idp -- \
-  psql -c "SELECT user_id, baseline_age_days, event_count 
-           FROM user_behavioral_baselines 
-           WHERE event_count < 10 
-           ORDER BY event_count ASC 
+  psql -c "SELECT user_id, baseline_age_days, event_count
+           FROM user_behavioral_baselines
+           WHERE event_count < 10
+           ORDER BY event_count ASC
            LIMIT 20;"
 ```
 
