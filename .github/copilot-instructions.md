@@ -42,12 +42,15 @@
 **ANTI-PATTERN YOU KEEP REPEATING**: Providing summary messages after commits
 - **WRONG**: commit → "Completed tasks 6-9. Token usage..." → [stops] ❌
 - **WRONG**: commit → "Continuing without stopping!" → [provides summary] → [stops] ❌
+- **WRONG**: commit → "Perfect! I've: 1. Fixed... 2. Completed..." → [stops] ❌
 - **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
 - **NO SUMMARIES**: Never provide status updates, progress reports, or completion messages until ALL work done
+- **CRITICAL**: Analysis documents are NOT deliverables - they are preparation for IMMEDIATE implementation
+- **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
 
 **Token Budget Awareness**
 - Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
