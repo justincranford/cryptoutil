@@ -35,7 +35,7 @@
 
 ### Task INF6: IPv6 vs IPv4 Loopback Networking Investigation
 - **Description**: Investigate and resolve IPv6/IPv4 loopback address inconsistencies in containerized deployments
-w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 but application listener only binds to IPv4
+- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 but application listener only binds to IPv4
 - **Action Items**:
   - ✅ Audit entire project for use of "localhost" hostname vs explicit IP addresses (DONE - compose.yml uses 127.0.0.1)
   - ❌ Improve `application_listener.go` to listen on both IPv6 and IPv4 loopback addresses (NEEDS WORK)
@@ -47,28 +47,17 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
 - **Expected Outcome**: Reliable networking in containerized environments with proper IPv4/IPv6 loopback support
 - **Priority**: Medium - Container networking reliability
 
-### Task INF9: Add /admin/v1 Prefix to Private Admin APIs
-- **Description**: Add configurable /admin/v1 prefix to private admin APIs (shutdown, livez, readyz) on HTTPS 127.0.0.1:9090
-- **Current State**: Admin APIs use root paths (/shutdown, /livez, /readyz)
-- **Action Items**:
-  - Add `privateAdminAPIContextPath` setting to config.go with default "/admin/v1"
-  - Update application_listener.go to use prefixed paths for admin endpoints
-  - Update health check functions to use prefixed endpoints
-  - Update e2e tests to use prefixed admin API endpoints
-  - Update documentation with new admin API paths
-- **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `internal/test/e2e/e2e_test.go`, documentation
-- **Expected Outcome**: Properly prefixed admin APIs with configurable context path
-- **Priority**: Medium - API organization and consistency
-
 ---
 
 ## 🔵 HIGH - Artifact Consolidation Refactoring
 
 ### Task INF10: Consolidate All Temporary Artifacts to `.build/` Directory
+
 - **Description**: Refactor entire project to consolidate all temporary build, test, and scan artifacts under single `.build/` directory for easier management, cleanup, and gitignore maintenance
 - **Current State**: Artifacts scattered across 10+ locations (see docs/README.md for architecture details)
 - **Proposed Structure**:
-  ```
+
+  ```text
   .build/                         # Single consolidated directory for ALL temporary artifacts
   ├── bin/                        # Compiled binaries
   │   ├── cryptoutil              # Main application binary
@@ -112,7 +101,9 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
   └── tmp/                        # Ephemeral temporary files
       └── nohup.out
   ```
+
 - **Action Items**:
+
   1. **Phase 1 - Create Directory Structure & Update .gitignore**:
      - Create `.build/` directory and subdirectories
      - Update `.gitignore` to ignore entire `.build/` directory (single line)
