@@ -21,8 +21,8 @@ type ClientProfile struct {
 	Description string `json:"description,omitempty"`            // Profile description.
 
 	// Scope configuration.
-	RequiredScopes []string `gorm:"type:json" json:"required_scopes"` // Required scopes for this profile.
-	OptionalScopes []string `gorm:"type:json" json:"optional_scopes"` // Optional scopes for this profile.
+	RequiredScopes []string `gorm:"serializer:json" json:"required_scopes"` // Required scopes for this profile.
+	OptionalScopes []string `gorm:"serializer:json" json:"optional_scopes"` // Optional scopes for this profile.
 
 	// Consent configuration.
 	ConsentScreenCount int    `gorm:"default:1" json:"consent_screen_count"` // Number of consent screens (1 or 2).
@@ -31,7 +31,7 @@ type ClientProfile struct {
 
 	// MFA configuration for client authentication.
 	RequireClientMFA bool     `gorm:"default:false" json:"require_client_mfa"` // Require MFA for client authentication.
-	ClientMFAChain   []string `gorm:"type:json" json:"client_mfa_chain"`       // Ordered list of client auth methods.
+	ClientMFAChain   []string `gorm:"serializer:json" json:"client_mfa_chain"`       // Ordered list of client auth methods.
 
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Profile enabled status.

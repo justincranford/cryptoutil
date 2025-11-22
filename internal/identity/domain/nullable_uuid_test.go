@@ -23,9 +23,15 @@ func TestNullableUUID_SQLiteIntegration(t *testing.T) {
 	// Open in-memory SQLite database using modernc.org/sqlite (CGO-free).
 	sqlDB, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
+
 	defer func() {
-		_ = sqlDB.Close() // Best effort close
-	}()	// Wrap with GORM.
+		if closeErr := sqlDB.Close(); closeErr != nil {
+			t.Logf("Failed to close test database: %v", closeErr)
+		}
+	}()
+
+	// Wrap with GORM.
+
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})

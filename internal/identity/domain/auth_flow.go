@@ -35,7 +35,8 @@ type AuthFlow struct {
 	PKCEChallengeMethod string `gorm:"default:'S256'" json:"pkce_challenge_method"` // PKCE challenge method (S256 or plain).
 
 	// Scope configuration.
-	AllowedScopes []string `gorm:"type:json" json:"allowed_scopes"` // Allowed scopes for this flow.
+	// Flow configuration.
+	AllowedScopes []string `gorm:"serializer:json" json:"allowed_scopes"` // Allowed scopes for this flow.
 
 	// Consent configuration.
 	RequireConsent     bool `gorm:"default:true" json:"require_consent"`   // Require user consent.
@@ -45,7 +46,7 @@ type AuthFlow struct {
 	// State parameter configuration.
 	RequireState bool `gorm:"default:true" json:"require_state"` // Require state parameter for CSRF protection.
 
-		// Client profile reference (optional).
+	// Client profile reference (optional).
 	ClientProfileID NullableUUID `gorm:"type:text;index" json:"client_profile_id,omitempty"` // Associated client profile.
 
 	// Account status.

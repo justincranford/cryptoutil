@@ -20,8 +20,8 @@ type Session struct {
 	SessionID string `gorm:"uniqueIndex;not null" json:"session_id"` // Session identifier.
 
 	// Session associations.
-	UserID   googleUuid.UUID  `gorm:"type:text;index;not null" json:"user_id"`    // Associated user.
-	ClientID NullableUUID `gorm:"type:text;index" json:"client_id,omitempty"` // Associated client (if applicable).
+	UserID   googleUuid.UUID `gorm:"type:text;index;not null" json:"user_id"`    // Associated user.
+	ClientID NullableUUID    `gorm:"type:text;index" json:"client_id,omitempty"` // Associated client (if applicable).
 
 	// Session metadata.
 	IPAddress string `json:"ip_address,omitempty"` // Client IP address.
@@ -32,17 +32,17 @@ type Session struct {
 	ExpiresAt  time.Time `gorm:"index;not null" json:"expires_at"` // Session expiration time.
 	LastSeenAt time.Time `json:"last_seen_at"`                     // Last activity time.
 
-	// Session status.
-	Active       bool       `gorm:"index;default:true" json:"active"` // Session active status.
-	TerminatedAt *time.Time `json:"terminated_at,omitempty"`          // Session termination time.
+		// Session status.
+	Active    bool       `gorm:"index;not null" json:"active"`              // Session active status.
+	RevokedAt *time.Time `json:"revoked_at,omitempty"`                       // Session revocation time.
 
-	// Authentication context.
-	AuthenticationMethods []string  `gorm:"type:json" json:"authentication_methods"` // Used authentication methods.
+	AuthenticationMethods []string  `gorm:"serializer:json" json:"authentication_methods"` // Used authentication methods.
 	AuthenticationTime    time.Time `json:"authentication_time"`                     // Authentication completion time.
 
-	// OIDC context.
-	Nonce         string   `json:"nonce,omitempty"`         // OIDC nonce for replay protection.
-	GrantedScopes []string `gorm:"type:json" json:"scopes"` // Granted scopes.
+		// OAuth 2.1 / OIDC metadata.
+	Nonce         string   `json:"nonce,omitempty"`  // OIDC nonce value.
+	CodeChallenge string   `json:"-"`                // PKCE code challenge.
+	GrantedScopes []string `gorm:"serializer:json" json:"scopes"` // Granted scopes.
 
 	// GORM timestamps.
 	CreatedAt time.Time  `json:"created_at"`

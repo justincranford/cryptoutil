@@ -56,10 +56,10 @@ type Client struct {
 	TOSURI      string `json:"tos_uri,omitempty"`       // Terms of service URL.
 
 	// OAuth 2.1 configuration.
-	RedirectURIs            []string         `gorm:"type:json" json:"redirect_uris"`             // Allowed redirect URIs.
-	AllowedGrantTypes       []string         `gorm:"type:json" json:"allowed_grant_types"`       // Allowed grant types.
-	AllowedResponseTypes    []string         `gorm:"type:json" json:"allowed_response_types"`    // Allowed response types.
-	AllowedScopes           []string         `gorm:"type:json" json:"allowed_scopes"`            // Allowed scopes.
+	RedirectURIs            []string         `gorm:"serializer:json" json:"redirect_uris"`             // Allowed redirect URIs.
+	AllowedGrantTypes       []string         `gorm:"serializer:json" json:"allowed_grant_types"`       // Allowed grant types.
+	AllowedResponseTypes    []string         `gorm:"serializer:json" json:"allowed_response_types"`    // Allowed response types.
+	AllowedScopes           []string         `gorm:"serializer:json" json:"allowed_scopes"`            // Allowed scopes.
 	TokenEndpointAuthMethod ClientAuthMethod `gorm:"not null" json:"token_endpoint_auth_method"` // Authentication method.
 
 	// PKCE configuration.

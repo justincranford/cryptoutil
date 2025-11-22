@@ -40,11 +40,11 @@ type Token struct {
 	TokenFormat TokenFormat `gorm:"not null" json:"token_format"`     // Token format.
 
 	// Token associations.
-	ClientID googleUuid.UUID `gorm:"type:text;primaryKey" json:"client_id"`      // Associated client.
-	UserID   NullableUUID     `gorm:"type:text;index" json:"user_id,omitempty"`  // Associated user (if applicable).
+	ClientID googleUuid.UUID `gorm:"type:text;primaryKey" json:"client_id"`    // Associated client.
+	UserID   NullableUUID    `gorm:"type:text;index" json:"user_id,omitempty"` // Associated user (if applicable).
 
 	// Token metadata.
-	Scopes    []string  `gorm:"type:json" json:"scopes"`          // Granted scopes.
+	Scopes    []string  `gorm:"serializer:json" json:"scopes"`    // Granted scopes.
 	IssuedAt  time.Time `gorm:"index;not null" json:"issued_at"`  // Token issuance time.
 	ExpiresAt time.Time `gorm:"index;not null" json:"expires_at"` // Token expiration time.
 	NotBefore time.Time `json:"not_before,omitempty"`             // Token not valid before time.
