@@ -46,6 +46,9 @@
 - **WRONG**: commit → "✅ Task Complete ⏳ Next: Task X" → [stops] ❌
 - **WRONG**: commit → "**Summary of work**: ..." → [stops] ❌
 - **WRONG**: commit → "**Token Usage**: Xk/1M" → [stops] ❌
+- **WRONG**: commit → "I've made significant progress... Here's what's been accomplished... Would you like me to continue..." → [stops] ❌
+- **WRONG**: commit → "Next steps for Task X: 1. Do Y 2. Do Z" → [stops without doing Y or Z] ❌
+- **WRONG**: commit → [provides ANY text to user] → [stops] ❌
 - **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
@@ -54,6 +57,7 @@
 - **NO SUMMARIES**: Never provide status updates, progress reports, completion messages, or token usage reports until ALL work done
 - **NO CHECKMARKS**: Never use ✅/❌/⏳ emoji status markers - just invoke next tool immediately
 - **NO "NEXT" STATEMENTS**: Never say "Next: Task X" - just start Task X immediately
+- **NO QUESTIONS**: Never ask "Would you like me to continue?" - ALWAYS CONTINUE
 - **CRITICAL**: Analysis documents are NOT deliverables - they are preparation for IMMEDIATE implementation
 - **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
 
