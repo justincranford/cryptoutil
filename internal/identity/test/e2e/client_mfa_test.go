@@ -12,8 +12,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-
-	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
 // TestClientMFAChainImplementation tests client-side MFA chain execution.
@@ -249,9 +247,10 @@ func TestClientMFAPolicyEnforcement(t *testing.T) {
 		clientID := fmt.Sprintf("policy_client_%s", googleUuid.Must(googleUuid.NewV7()).String())
 
 		// Weak authentication chain (Basic only) should be rejected.
+		// TODO: Define AuthenticationStrength enum in domain package.
 		err := suite.validateClientAuthStrength(ctx, clientID, []ClientAuthMethod{
 			ClientAuthBasic,
-		}, cryptoutilIdentityDomain.AuthStrengthHigh)
+		}, "high")
 
 		require.Error(t, err, "Weak authentication should be rejected when high strength required")
 		require.Contains(t, err.Error(), "insufficient", "Error should indicate insufficient strength")
@@ -266,7 +265,7 @@ func TestClientMFAPolicyEnforcement(t *testing.T) {
 		err := suite.validateClientAuthStrength(ctx, clientID, []ClientAuthMethod{
 			ClientAuthBasic,
 			ClientAuthPrivateKeyJWT,
-		}, cryptoutilIdentityDomain.AuthStrengthHigh)
+		}, "high")
 
 		require.NoError(t, err, "Strong authentication should succeed when high strength required")
 	})
@@ -277,11 +276,12 @@ func (s *E2ETestSuite) validateClientAuthStrength(
 	ctx context.Context,
 	clientID string,
 	methods []ClientAuthMethod,
-	requiredStrength cryptoutilIdentityDomain.AuthenticationStrength,
+	requiredStrength string,
 ) error {
 	// Calculate authentication strength based on methods.
 	actualStrength := s.calculateClientAuthStrength(methods)
 
+	// Compare string representations (TODO: use enum when defined).
 	if actualStrength < requiredStrength {
 		return fmt.Errorf("insufficient authentication strength: got %s, required %s", actualStrength, requiredStrength)
 	}
@@ -290,20 +290,20 @@ func (s *E2ETestSuite) validateClientAuthStrength(
 }
 
 // calculateClientAuthStrength calculates overall authentication strength from chain.
-func (s *E2ETestSuite) calculateClientAuthStrength(methods []ClientAuthMethod) cryptoutilIdentityDomain.AuthenticationStrength {
+func (s *E2ETestSuite) calculateClientAuthStrength(methods []ClientAuthMethod) string {
 	if len(methods) == 0 {
-		return cryptoutilIdentityDomain.AuthStrengthNone
+		return "none"
 	}
 
 	// Single weak method = Low strength.
 	if len(methods) == 1 && (methods[0] == ClientAuthBasic || methods[0] == ClientAuthPost) {
-		return cryptoutilIdentityDomain.AuthStrengthLow
+		return "low"
 	}
 
 	// Multiple methods or strong single method = High strength.
 	if len(methods) >= 2 || methods[0] == ClientAuthPrivateKeyJWT || methods[0] == ClientAuthTLS {
-		return cryptoutilIdentityDomain.AuthStrengthHigh
+		return "high"
 	}
 
-	return cryptoutilIdentityDomain.AuthStrengthMedium
+	return "medium"
 }
