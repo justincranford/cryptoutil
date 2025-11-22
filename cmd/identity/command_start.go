@@ -170,7 +170,8 @@ func isServiceEnabled(serviceName string, services []struct {
 	enabled bool
 	binary  string
 	args    []string
-}) bool {
+},
+) bool {
 	for _, svc := range services {
 		if svc.name == serviceName {
 			return svc.enabled

@@ -5,12 +5,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
+
+	cryptoutilIdentityHealthcheck "cryptoutil/internal/identity/healthcheck"
 )
 
 func newHealthCommand() *cobra.Command {
+	var timeoutStr string
+
 	cmd := &cobra.Command{
 		Use:   "health",
 		Short: "Check health of identity services",
@@ -21,15 +27,56 @@ Examples:
   # Check health of all services
   identity health`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: Implement health checking logic
-			// 1. HTTP GET to https://localhost:{port}/health for each service
-			// 2. Parse JSON response: {"status": "healthy", "database": "ok"}
-			// 3. Aggregate results
-			// 4. Colorized output (green ✅ / red ❌)
+			timeout, err := time.ParseDuration(timeoutStr)
+			if err != nil {
+				return fmt.Errorf("invalid timeout: %w", err)
+			}
 
-			return fmt.Errorf("health command not yet implemented")
+			// Health endpoints for all services
+			healthURLs := []struct {
+				name string
+				url  string
+			}{
+				{"authz", "https://127.0.0.1:8080/health"},
+				{"idp", "https://127.0.0.1:8081/health"},
+				{"rs", "https://127.0.0.1:8082/health"},
+			}
+
+			poller := cryptoutilIdentityHealthcheck.NewPoller(timeout, 3)
+			allHealthy := true
+
+			for _, health := range healthURLs {
+				ctx, cancel := context.WithTimeout(context.Background(), timeout)
+				defer cancel()
+
+				resp, pollErr := poller.Poll(ctx, health.url)
+				if pollErr != nil {
+					fmt.Printf("❌ %s: unhealthy (%v)\n", health.name, pollErr)
+					allHealthy = false
+					continue
+				}
+
+				if resp.Status == "healthy" {
+					fmt.Printf("✅ %s: %s", health.name, resp.Status)
+					if resp.Database != "" {
+						fmt.Printf(" (database: %s)", resp.Database)
+					}
+					fmt.Println()
+				} else {
+					fmt.Printf("❌ %s: %s\n", health.name, resp.Status)
+					allHealthy = false
+				}
+			}
+
+			if !allHealthy {
+				return fmt.Errorf("one or more services unhealthy")
+			}
+
+			return nil
 		},
 	}
+
+	cmd.Flags().StringVar(&timeoutStr, "timeout", "5s", "Health check timeout per service")
 
 	return cmd
 }

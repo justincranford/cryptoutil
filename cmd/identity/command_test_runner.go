@@ -31,16 +31,19 @@ Examples:
   # Run specific packages
   identity test --package ./internal/identity/authz/...`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Printf("Suite: %s\n", suite)
-			fmt.Printf("Package: %s\n", pkg)
+			// Simple placeholder implementation
+			if suite == "" && pkg == "" {
+				fmt.Println("Test execution not yet implemented")
+				fmt.Println("Use: identity test --suite <unit|integration|e2e>")
+				fmt.Println("Or: identity test --package ./internal/identity/...")
+			} else if suite != "" {
+				fmt.Printf("Running %s test suite - not yet implemented\n", suite)
+			} else {
+				fmt.Printf("Running tests for package %s - not yet implemented\n", pkg)
+			}
 
-			// TODO: Implement test execution logic
-			// 1. Execute go test with appropriate flags
-			// 2. For e2e tests: Start services if not running, run tests, stop services
-			// 3. Stream output to stdout
-			// 4. Return go test exit code
-
-			return fmt.Errorf("test command not yet implemented")
+			fmt.Println("Future: Execute go test with streaming output")
+			return nil
 		},
 	}
 

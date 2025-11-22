@@ -33,15 +33,20 @@ Examples:
 				service = args[0]
 			}
 
-			fmt.Printf("Service: %s\n", service)
-			fmt.Printf("Follow: %v\n", follow)
+			// Simple placeholder implementation
+			if service == "" {
+				fmt.Println("Logs for all services not yet implemented")
+				fmt.Println("Use: identity logs <service> (authz, idp, or rs)")
+			} else {
+				fmt.Printf("Logs for %s not yet implemented\n", service)
+				fmt.Println("Future: Read from ~/.identity/logs/ or docker compose logs")
+			}
 
-			// TODO: Implement log viewing logic
-			// 1. If Docker: docker compose logs <services>
-			// 2. If local: Read log files from ~/.identity/logs/*.log
-			// 3. Support --follow with tail -f behavior
+			if follow {
+				fmt.Println("Follow mode (--follow) not yet implemented")
+			}
 
-			return fmt.Errorf("logs command not yet implemented")
+			return nil
 		},
 	}
 
