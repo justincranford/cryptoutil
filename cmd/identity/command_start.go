@@ -5,11 +5,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityHealthcheck "cryptoutil/internal/identity/healthcheck"
+	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
 func newStartCommand() *cobra.Command {
@@ -71,25 +77,79 @@ Examples:
 				return fmt.Errorf("invalid profile configuration: %w", err)
 			}
 
-			fmt.Printf("Starting services: %v\n", services)
-			fmt.Printf("Profile: %s\n", profile)
-			fmt.Printf("Docker mode: %v\n", useDocker)
-			fmt.Printf("Local mode: %v\n", useLocal)
-			fmt.Printf("Background: %v\n", background)
-			fmt.Printf("Wait for health: %v\n", wait)
-			fmt.Printf("Timeout: %s\n", timeout)
-			fmt.Printf("Profile loaded successfully:\n")
-			fmt.Printf("  AuthZ enabled: %v (bind: %s)\n", profileCfg.Services.AuthZ.Enabled, profileCfg.Services.AuthZ.BindAddress)
-			fmt.Printf("  IdP enabled: %v (bind: %s)\n", profileCfg.Services.IdP.Enabled, profileCfg.Services.IdP.BindAddress)
-			fmt.Printf("  RS enabled: %v (bind: %s)\n", profileCfg.Services.RS.Enabled, profileCfg.Services.RS.BindAddress)
+			// Parse timeout duration
+			timeoutDuration, err := time.ParseDuration(timeout)
+			if err != nil {
+				return fmt.Errorf("invalid timeout: %w", err)
+			}
 
-			// TODO: Implement service startup logic
-			// 2. If --docker: Execute docker compose up
-			// 3. If --local: Launch services as child processes
-			// 4. Wait for health checks if --wait=true
-			// 5. Return exit code based on health check results
+			// Create process manager
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("failed to get home directory: %w", err)
+			}
+			pidDir := filepath.Join(homeDir, ".identity", "pids")
+			procManager, err := cryptoutilIdentityProcess.NewManager(pidDir)
+			if err != nil {
+				return fmt.Errorf("failed to create process manager: %w", err)
+			}
 
-			return fmt.Errorf("start command not yet implemented")
+			// Start services based on profile
+			ctx := context.Background()
+			servicesToStart := []struct {
+				name    string
+				enabled bool
+				binary  string
+				args    []string
+			}{
+				{"authz", profileCfg.Services.AuthZ.Enabled, "bin/authz", []string{"--config", configFile}},
+				{"idp", profileCfg.Services.IdP.Enabled, "bin/idp", []string{"--config", configFile}},
+				{"rs", profileCfg.Services.RS.Enabled, "bin/rs", []string{"--config", configFile}},
+			}
+
+			for _, svc := range servicesToStart {
+				if !svc.enabled {
+					fmt.Printf("Skipping %s (disabled in profile)\n", svc.name)
+					continue
+				}
+
+				fmt.Printf("Starting %s...\n", svc.name)
+				if err := procManager.Start(ctx, svc.name, svc.binary, svc.args); err != nil {
+					return fmt.Errorf("failed to start %s: %w", svc.name, err)
+				}
+			}
+
+			// Wait for health checks if requested
+			if wait {
+				poller := cryptoutilIdentityHealthcheck.NewPoller(timeoutDuration, 10)
+				healthURLs := []struct {
+					name string
+					url  string
+				}{
+					{"authz", "https://" + profileCfg.Services.AuthZ.BindAddress + "/health"},
+					{"idp", "https://" + profileCfg.Services.IdP.BindAddress + "/health"},
+					{"rs", "https://" + profileCfg.Services.RS.BindAddress + "/health"},
+				}
+
+				for _, health := range healthURLs {
+					if !isServiceEnabled(health.name, servicesToStart) {
+						continue
+					}
+
+					fmt.Printf("Waiting for %s health check...\n", health.name)
+					ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
+					defer cancel()
+
+					resp, pollErr := poller.Poll(ctx, health.url)
+					if pollErr != nil {
+						return fmt.Errorf("%s health check failed: %w", health.name, pollErr)
+					}
+					fmt.Printf("  %s: %s\n", health.name, resp.Status)
+				}
+			}
+
+			fmt.Println("All services started successfully!")
+			return nil
 		},
 	}
 
@@ -102,4 +162,19 @@ Examples:
 	cmd.Flags().StringVar(&timeout, "timeout", "30s", "Health check timeout")
 
 	return cmd
+}
+
+// isServiceEnabled checks if a service is enabled in the services-to-start list.
+func isServiceEnabled(serviceName string, services []struct {
+	name    string
+	enabled bool
+	binary  string
+	args    []string
+}) bool {
+	for _, svc := range services {
+		if svc.name == serviceName {
+			return svc.enabled
+		}
+	}
+	return false
 }
