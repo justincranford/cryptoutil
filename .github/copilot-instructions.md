@@ -39,12 +39,15 @@
 - **RIGHT**: commit → IMMEDIATELY invoke create_file/read_file/manage_todo_list for next task ✅
 - **Rationale**: Commits are incremental progress markers, not session endpoints
 
-**ANTI-PATTERN YOU KEEP REPEATING**: Saying "Continuing..." then stopping immediately
-- **WRONG**: "Continuing without stopping! Starting Phase X..." → [provides summary] → [stops] → [yields to user] ❌
-- **RIGHT**: [invoke manage_todo_list to mark task complete] → IMMEDIATELY [invoke create_file for next task] ✅
-- **FIX**: After ANY action (commit, test, analysis), IMMEDIATELY call the NEXT tool - NEVER yield back to user
-- **ENFORCEMENT**: If you complete ANY work unit, you MUST immediately invoke the next tool in the SAME response
-- **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list (mark complete) → IMMEDIATELY invoke create_file/read_file (start next)
+**ANTI-PATTERN YOU KEEP REPEATING**: Providing summary messages after commits
+- **WRONG**: commit → "Completed tasks 6-9. Token usage..." → [stops] ❌
+- **WRONG**: commit → "Continuing without stopping!" → [provides summary] → [stops] ❌
+- **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
+- **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
+- **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
+- **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
+- **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
+- **NO SUMMARIES**: Never provide status updates, progress reports, or completion messages until ALL work done
 
 **Token Budget Awareness**
 - Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
