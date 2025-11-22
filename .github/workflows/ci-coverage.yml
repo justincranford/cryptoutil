@@ -110,6 +110,80 @@ jobs:
         cat workflow-reports/coverage/coverage-func.txt >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
+    - name: Calculate coverage trend
+      id: coverage-trend
+      run: |
+        # Extract current coverage percentage from coverage-func.txt
+        CURRENT_COVERAGE=$(grep -oP 'total:\s+\(statements\)\s+\K[\d.]+' workflow-reports/coverage/coverage-func.txt || echo "0.0")
+        echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
+        echo "📊 Current coverage: ${CURRENT_COVERAGE}%"
+        
+        # Try to download previous coverage data
+        PREVIOUS_COVERAGE="baseline"
+        TREND_INDICATOR="📊"
+        TREND_TEXT="baseline"
+        
+        if [ -f workflow-reports/coverage/previous-coverage.txt ]; then
+          PREVIOUS_COVERAGE=$(cat workflow-reports/coverage/previous-coverage.txt)
+          echo "📈 Previous coverage: ${PREVIOUS_COVERAGE}%"
+          
+          # Calculate difference using bc for floating point math
+          DIFF=$(echo "$CURRENT_COVERAGE - $PREVIOUS_COVERAGE" | bc)
+          
+          # Determine trend indicator
+          if (( $(echo "$DIFF > 0.1" | bc -l) )); then
+            TREND_INDICATOR="📈"
+            TREND_TEXT="increased"
+          elif (( $(echo "$DIFF < -0.1" | bc -l) )); then
+            TREND_INDICATOR="📉"
+            TREND_TEXT="decreased"
+          else
+            TREND_INDICATOR="➡️"
+            TREND_TEXT="unchanged"
+          fi
+          
+          echo "trend_indicator=$TREND_INDICATOR" >> $GITHUB_OUTPUT
+          echo "trend_text=$TREND_TEXT" >> $GITHUB_OUTPUT
+          echo "coverage_diff=$DIFF" >> $GITHUB_OUTPUT
+          echo "previous_coverage=$PREVIOUS_COVERAGE" >> $GITHUB_OUTPUT
+          
+          echo "$TREND_INDICATOR Coverage $TREND_TEXT: ${CURRENT_COVERAGE}% (${DIFF:+${DIFF}%})"
+        else
+          echo "trend_indicator=$TREND_INDICATOR" >> $GITHUB_OUTPUT
+          echo "trend_text=$TREND_TEXT" >> $GITHUB_OUTPUT
+          echo "coverage_diff=0.0" >> $GITHUB_OUTPUT
+          echo "previous_coverage=0.0" >> $GITHUB_OUTPUT
+          echo "$TREND_INDICATOR Coverage baseline: ${CURRENT_COVERAGE}%"
+        fi
+        
+        # Store current coverage for next run
+        echo "$CURRENT_COVERAGE" > workflow-reports/coverage/current-coverage.txt
+
+    - name: Download previous coverage data
+      uses: actions/download-artifact@v5.0.0
+      continue-on-error: true
+      with:
+        name: coverage-trend-data
+        path: workflow-reports/coverage/
+      
+    - name: Display coverage trend
+      run: |
+        echo "## 📈 Coverage Trend Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Current Coverage | ${{ steps.coverage-trend.outputs.current_coverage }}% |" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.coverage-trend.outputs.trend_text }}" != "baseline" ]; then
+          echo "| Previous Coverage | ${{ steps.coverage-trend.outputs.previous_coverage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trend | ${{ steps.coverage-trend.outputs.trend_indicator }} ${{ steps.coverage-trend.outputs.trend_text }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Difference | ${{ steps.coverage-trend.outputs.coverage_diff }}% |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Trend | ${{ steps.coverage-trend.outputs.trend_indicator }} ${{ steps.coverage-trend.outputs.trend_text }} |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+
     - name: Upload coverage
       uses: codecov/codecov-action@v5.5.1
       with:
@@ -128,6 +202,14 @@ jobs:
           workflow-reports/coverage/coverage-func.txt
           coverage-upload-artifacts-trivy.sarif
         retention-days: 1
+
+    - name: Upload coverage trend data for next run
+      uses: actions/upload-artifact@v5.0.0
+      if: always()
+      with:
+        name: coverage-trend-data
+        path: workflow-reports/coverage/current-coverage.txt
+        retention-days: 7
 
     - name: Coverage test summary
       uses: ./.github/actions/workflow-job-end
