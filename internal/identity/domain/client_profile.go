@@ -25,9 +25,9 @@ type ClientProfile struct {
 	OptionalScopes []string `gorm:"serializer:json" json:"optional_scopes"` // Optional scopes for this profile.
 
 	// Consent configuration.
-	ConsentScreenCount int    `gorm:"default:1" json:"consent_screen_count"` // Number of consent screens (1 or 2).
-	ConsentScreen1Text string `json:"consent_screen_1_text,omitempty"`       // First consent screen text.
-	ConsentScreen2Text string `json:"consent_screen_2_text,omitempty"`       // Second consent screen text (if count=2).
+	ConsentScreenCount int    `gorm:"default:1" json:"consent_screen_count"`                               // Number of consent screens (1 or 2).
+	ConsentScreen1Text string `gorm:"column:consent_screen_1_text" json:"consent_screen_1_text,omitempty"` // First consent screen text.
+	ConsentScreen2Text string `gorm:"column:consent_screen_2_text" json:"consent_screen_2_text,omitempty"` // Second consent screen text (if count=2).
 
 	// MFA configuration for client authentication.
 	RequireClientMFA bool     `gorm:"default:false" json:"require_client_mfa"` // Require MFA for client authentication.
