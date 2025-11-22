@@ -35,6 +35,7 @@
 - **Note**: godox linter disabled in favor of manual tracking in this file
 
 ### Task CQ3: Enable Additional Quality Linters
+
 - **Description**: Add more golangci-lint linters for enhanced code quality
 - **Current State**: Additional linters enabled incrementally
 - **Action Items**:
@@ -50,10 +51,11 @@
 - **Priority**: Medium - Code quality improvement
 
 ### Task CQ4: Investigate linters for EOL/maintenance mode dependencies
+
 - **Description**: Research and evaluate tools that can detect dependencies in end-of-life or maintenance mode
 - **Current State**: No automated detection of deprecated/unmaintained dependencies
 - **Potential Tools to Investigate**:
-  - `go-mod-outdated`: Shows outdated dependency versions (https://github.com/psampaz/go-mod-outdated)
+  - `go-mod-outdated`: Shows outdated dependency versions (<https://github.com/psampaz/go-mod-outdated>)
   - `govulncheck`: Official Go vulnerability scanner (already in use)
   - Custom scripts to check GitHub repository status/README for maintenance warnings
   - Integration with dependency health services or APIs
