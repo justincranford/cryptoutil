@@ -232,10 +232,42 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 
 ### API Access
 
+#### KMS Server APIs
+
 - **Swagger UI**: <https://localhost:8081/ui/swagger> (PostgreSQL instance 1), <https://localhost:8082/ui/swagger> (PostgreSQL instance 2), or <https://localhost:8080/ui/swagger> (SQLite)
+- **OpenAPI Spec JSON**: <https://localhost:8081/ui/swagger/doc.json>, <https://localhost:8082/ui/swagger/doc.json>, or <https://localhost:8080/ui/swagger/doc.json>
 - **Browser API**: <https://localhost:8081/browser/api/v1/*>, <https://localhost:8082/browser/api/v1/*>, or <https://localhost:8080/browser/api/v1/*>
 - **Service API**: <https://localhost:8081/service/api/v1/*>, <https://localhost:8082/service/api/v1/*>, or <https://localhost:8080/service/api/v1/*>
 - **Health Checks**: <https://localhost:9090/livez>, <https://localhost:9090/readyz>
+
+#### Identity System APIs
+
+- **AuthZ Service** (OAuth 2.1 Authorization Server):
+  - **Base URL**: <https://localhost:8080>
+  - **Swagger UI**: <https://localhost:8080/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8080/ui/swagger/doc.json>
+  - **OAuth 2.1 Endpoints**: `/oauth2/v1/authorize`, `/oauth2/v1/token`, `/oauth2/v1/introspect`, `/oauth2/v1/revoke`
+  - **Health**: `/health`
+  - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/openapi-guide.md) for detailed API documentation
+
+- **IdP Service** (OpenID Connect Identity Provider):
+  - **Base URL**: <https://localhost:8081>
+  - **Swagger UI**: <https://localhost:8081/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8081/ui/swagger/doc.json>
+  - **OIDC Endpoints**: `/oidc/v1/login`, `/oidc/v1/consent`, `/oidc/v1/userinfo`, `/oidc/v1/logout`
+  - **Health**: `/health`
+  - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/openapi-guide.md) for detailed API documentation
+
+- **RS Service** (OAuth 2.1 Resource Server):
+  - **Base URL**: <https://localhost:8082>
+  - **Swagger UI**: <https://localhost:8082/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8082/ui/swagger/doc.json>
+  - **API Endpoints**: `/api/v1/public/health`, `/api/v1/protected/resource`, `/api/v1/admin/*`
+  - **Health**: `/api/v1/public/health`
+  - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/openapi-guide.md) for detailed API documentation
+
+#### Observability
+
 - **Grafana UI**: <http://localhost:3000> (admin/admin)
 - **OpenTelemetry Collector**:
   - **OTLP gRPC**: <http://localhost:4317> (receive telemetry from applications)

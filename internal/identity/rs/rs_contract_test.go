@@ -18,6 +18,7 @@ import (
 
 	cryptoutilApiIdentityRs "cryptoutil/api/identity/rs"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRs "cryptoutil/internal/identity/rs"
 )
 
@@ -33,7 +34,7 @@ func TestRSContractPublicHealth(t *testing.T) {
 	config := &cryptoutilIdentityConfig.Config{}
 
 	// Mock token service for testing.
-	mockTokenSvc := &mockTokenService{}
+	mockTokenSvc := &mockTokenServiceContract{}
 	rsSvc := cryptoutilIdentityRs.NewService(config, nil, mockTokenSvc)
 
 	// Create Fiber app with routes.
@@ -41,8 +42,8 @@ func TestRSContractPublicHealth(t *testing.T) {
 	rsSvc.RegisterMiddleware(app)
 	rsSvc.RegisterRoutes(app)
 
-	// Test GET /api/v1/public/health endpoint.
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/public/health", nil)
+	// Test GET /health endpoint (not /api/v1/public/health).
+	req := httptest.NewRequest(http.MethodGet, "https://localhost:8082/health", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Failed to execute request")
 
@@ -84,12 +85,20 @@ func TestRSContractPublicHealth(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode, "Expected 200 OK")
 }
 
-// mockTokenService is a mock implementation of TokenService for testing.
-type mockTokenService struct{}
+// mockTokenServiceContract is a mock implementation of TokenService for contract testing.
+type mockTokenServiceContract struct{}
 
-func (m *mockTokenService) VerifyAccessToken(ctx context.Context, token string) (map[string]any, error) {
+func (m *mockTokenServiceContract) ValidateAccessToken(ctx context.Context, token string) (map[string]any, error) {
 	return map[string]any{
 		"sub":   "user123",
 		"scope": "read:resource",
 	}, nil
+}
+
+func (m *mockTokenServiceContract) IsTokenActive(claims map[string]any) bool {
+	return true
+}
+
+func (m *mockTokenServiceContract) IntrospectToken(ctx context.Context, token string) (*cryptoutilIdentityIssuer.TokenMetadata, error) {
+	return nil, nil
 }

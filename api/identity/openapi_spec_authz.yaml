@@ -270,12 +270,12 @@ components:
         Header format: Authorization: Basic base64(client_id:client_secret)
 
     clientSecretPost:
-      type: apiKey
-      in: formData
-      name: client_secret
+      type: http
+      scheme: bearer
       description: |
-        Client secret in request body as form parameter.
-        Used when client cannot use HTTP Basic Authentication.
+        Client authentication using client_secret in request body.
+        This is a placeholder for OpenAPI 3.0 validation.
+        Actual implementation uses client_secret as form parameter.
 
   responses:
     OAuth2Error:

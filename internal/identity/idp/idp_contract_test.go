@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
@@ -39,7 +40,7 @@ func TestIdPContractHealth(t *testing.T) {
 			DSN:  ":memory:",
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenDuration: 3600,
+			AccessTokenLifetime: 3600 * time.Second,
 		},
 	}
 
@@ -51,12 +52,7 @@ func TestIdPContractHealth(t *testing.T) {
 		_ = repoFactory.Close()
 	}()
 
-	// Create mock issuers for token service.
-	mockJWSIssuer := &mockJWSIssuer{}
-	mockJWEIssuer := &mockJWEIssuer{}
-	mockUUIDIssuer := &mockUUIDIssuer{}
-
-	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(mockJWSIssuer, mockJWEIssuer, mockUUIDIssuer, config.Tokens)
+	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, config.Tokens)
 	idpSvc := cryptoutilIdentityIdp.NewService(config, repoFactory, tokenSvc)
 
 	// Create Fiber app with routes.
@@ -65,7 +61,7 @@ func TestIdPContractHealth(t *testing.T) {
 	idpSvc.RegisterRoutes(app)
 
 	// Test GET /health endpoint.
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := httptest.NewRequest(http.MethodGet, "https://localhost:8081/health", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Failed to execute request")
 
@@ -110,23 +106,4 @@ func TestIdPContractHealth(t *testing.T) {
 
 	// Verify business logic.
 	require.Equal(t, cryptoutilApiIdentityIdp.Healthy, healthResp.Status, "Health status should be healthy")
-}
-
-// Mock issuers for testing.
-type mockJWSIssuer struct{}
-
-func (m *mockJWSIssuer) Issue(ctx context.Context, claims map[string]any) (string, error) {
-	return "mock.jws.token", nil
-}
-
-type mockJWEIssuer struct{}
-
-func (m *mockJWEIssuer) Issue(ctx context.Context, payload []byte) (string, error) {
-	return "mock.jwe.token", nil
-}
-
-type mockUUIDIssuer struct{}
-
-func (m *mockUUIDIssuer) Issue(ctx context.Context) (string, error) {
-	return "123e4567-e89b-12d3-a456-426614174000", nil
 }
