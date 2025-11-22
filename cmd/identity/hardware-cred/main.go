@@ -175,6 +175,8 @@ func runEnroll(args []string) {
 		"device_name":     *deviceName,
 		"credential_type": credential.Type,
 		"attestation":     credential.AttestationType,
+		"event_category":  "lifecycle",
+		"compliance_flag": "hardware_credential_enrollment",
 	})
 }
 
@@ -245,6 +247,8 @@ func runList(args []string) {
 	// Audit log entry.
 	logAuditEvent(ctx, "CREDENTIALS_LISTED", userID.String(), "", map[string]interface{}{
 		"credential_count": len(credentials),
+		"event_category":   "access",
+		"compliance_flag":  "credential_inventory_access",
 	})
 }
 
@@ -311,6 +315,8 @@ func runRevoke(args []string) {
 		"credential_type": credential.Type,
 		"sign_count":      credential.SignCount,
 		"last_used_at":    credential.LastUsedAt.Format(time.RFC3339),
+		"event_category":  "lifecycle",
+		"compliance_flag": "hardware_credential_revocation",
 	})
 }
 
@@ -413,6 +419,8 @@ func runRenew(args []string) {
 		"old_device_name":   oldDeviceName,
 		"new_device_name":   newDeviceName,
 		"credential_type":   credential.Type,
+		"event_category":    "lifecycle",
+		"compliance_flag":   "hardware_credential_renewal",
 	})
 }
 
@@ -448,7 +456,9 @@ func runInventory(args []string) {
 
 	// Audit log entry.
 	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]interface{}{
-		"timestamp": time.Now().Format(time.RFC3339),
+		"timestamp":       time.Now().Format(time.RFC3339),
+		"event_category":  "access",
+		"compliance_flag": "hardware_credential_inventory",
 	})
 
 	// Stub implementation - repository needs ListAll method for full inventory.
