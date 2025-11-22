@@ -475,6 +475,7 @@
     "circulardeps",
     "PITR",
     "KMIP",
-    "renewables"
+    "renewables",
+    "keygenpooltest"
   ]
 }
