@@ -73,6 +73,14 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 
 // RegisterRoutes registers resource server routes.
 func (s *Service) RegisterRoutes(app *fiber.App) {
+	// Swagger UI OpenAPI spec endpoint.
+	swaggerHandler, err := ServeOpenAPISpec()
+	if err != nil {
+		s.logger.Error("Failed to create Swagger UI handler", "error", err)
+	} else {
+		app.Get("/ui/swagger/doc.json", swaggerHandler)
+	}
+
 	// Resource server API endpoints with /api/v1 prefix.
 	api := app.Group("/api/v1")
 
