@@ -10,6 +10,7 @@
 ## 🟡 MEDIUM - Infrastructure & Deployment
 
 ### Task INF2: Kubernetes Deployment Manifests
+
 - **Description**: Create production-ready Kubernetes deployment configurations
 - **Current State**: Docker Compose only
 - **Action Items**:
@@ -22,6 +23,7 @@
 - **Priority**: Medium - Production infrastructure
 
 ### Task INF3: Helm Charts for Flexible Deployment
+
 - **Description**: Create Helm charts for flexible, templated deployments
 - **Current State**: No Helm support
 - **Action Items**:
@@ -34,6 +36,7 @@
 - **Priority**: Medium - Production infrastructure
 
 ### Task INF6: IPv6 vs IPv4 Loopback Networking Investigation
+
 - **Description**: Investigate and resolve IPv6/IPv4 loopback address inconsistencies in containerized deployments
 - **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 but application listener only binds to IPv4
 - **Action Items**:
