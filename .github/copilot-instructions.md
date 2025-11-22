@@ -52,8 +52,11 @@
 **Token Budget Awareness**
 - Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
 - Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
-- STOP only when: tokens used ≥950k OR all tasks complete OR explicit user instruction
+- STOP only when: tokens used ≥950k OR explicit user instruction to stop
+- **CRITICAL**: "All tasks complete" NEVER means stop - always check docs/02-mixed/todos-*.md for additional work
+- After clearing manage_todo_list, IMMEDIATELY check todos-*.md files for next task to work on
 - Example: 58k used, 942k remaining = KEEP WORKING (only 5.8% used) ✅
+- Example: Todo list empty but 70k used, 930k remaining = CHECK todos-*.md files for more work ✅
 
 ## Chat Responses
 - Responses must be concise summary with numbered list, and focused on key changes or questions
@@ -68,9 +71,12 @@ Example:
 
 - Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
 - Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
-- STOP only when: tokens used ≥950k OR all tasks complete OR explicit user instruction
+- STOP only when: tokens used ≥950k OR explicit user instruction to stop
+- **CRITICAL**: "All tasks complete" NEVER means stop - always check docs/02-mixed/todos-*.md for additional work
+- After clearing manage_todo_list, IMMEDIATELY check todos-*.md files for next task to work on
 - User directive: "NEVER STOP DUE TO TIME OR TOKENS until 95% utilization"
 - Example: 70k used, 930k remaining = KEEP WORKING (only 7% used)
+- Example: Todo list empty but 73k used, 927k remaining = CHECK todos-*.md files for more work ✅
 
 **Speed Optimization for Continuous Work**
 - Use `git commit --no-verify` to skip pre-commit hooks (faster iterations)
