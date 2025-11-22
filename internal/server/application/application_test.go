@@ -221,7 +221,7 @@ func TestHealthChecks(t *testing.T) {
 			name:     "Liveness Check (" + cryptoutilMagic.PrivateAdminLivezRequestPath + ")",
 			endpoint: cryptoutilMagic.PrivateAdminLivezRequestPath,
 			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-				return cryptoutilNetwork.HTTPGetLivez(context.Background(), *baseURL, 2*time.Second, rootCAsPool, false)
+				return cryptoutilNetwork.HTTPGetLivez(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
@@ -248,7 +248,7 @@ func TestHealthChecks(t *testing.T) {
 			name:     "Readiness Check (" + cryptoutilMagic.PrivateAdminReadyzRequestPath + ")",
 			endpoint: cryptoutilMagic.PrivateAdminReadyzRequestPath,
 			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-				return cryptoutilNetwork.HTTPGetReadyz(context.Background(), *baseURL, 2*time.Second, rootCAsPool, false)
+				return cryptoutilNetwork.HTTPGetReadyz(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {

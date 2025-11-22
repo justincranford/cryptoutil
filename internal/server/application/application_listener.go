@@ -73,7 +73,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byt
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
-	_, _, result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	_, _, result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get liveness check: %w", err)
 	}
@@ -85,7 +85,7 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.Settings) ([]by
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
-	_, _, result, err := cryptoutilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	_, _, result, err := cryptoutilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get readiness check: %w", err)
 	}
@@ -97,7 +97,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
-	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
 	}
@@ -199,8 +199,8 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	// shutdownServerFunction stops privateFiberApp and publicFiberApp, it is called via /shutdown hosted by privateFiberApp
 	var shutdownServerFunction func()
 
-	// Private APIs
-	privateFiberApp.Post(cryptoutilMagic.PrivateAdminShutdownRequestPath, func(c *fiber.Ctx) error {
+	// Private APIs - add admin context path prefix
+	privateFiberApp.Post(settings.PrivateAdminAPIContextPath+cryptoutilMagic.PrivateAdminShutdownRequestPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 
 		if shutdownServerFunction != nil {
@@ -696,7 +696,14 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 	return func(c *fiber.Ctx) error {
 		// Check if this is a liveness or readiness probe
 		path := c.Path()
-		isReadiness := strings.HasSuffix(path, cryptoutilMagic.PrivateAdminReadyzRequestPath)
+		adminContextPath := serverApplicationCore.Settings.PrivateAdminAPIContextPath
+		isReadiness := strings.HasSuffix(path, adminContextPath+cryptoutilMagic.PrivateAdminReadyzRequestPath)
+		isLiveness := strings.HasSuffix(path, adminContextPath+cryptoutilMagic.PrivateAdminLivezRequestPath)
+
+		// If not a health check path, continue to next middleware
+		if !isReadiness && !isLiveness {
+			return c.Next()
+		}
 
 		healthStatus := map[string]any{
 			cryptoutilMagic.StringStatus: "ok",

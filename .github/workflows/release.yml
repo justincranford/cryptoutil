@@ -37,7 +37,7 @@ jobs:
     outputs:
       version: ${{ steps.extract-version.outputs.version }}
       is_prerelease: ${{ steps.extract-version.outputs.is_prerelease }}
-    
+
     steps:
       - name: Extract version from tag or input
         id: extract-version
@@ -47,10 +47,10 @@ jobs:
           else
             VERSION="${GITHUB_REF#refs/tags/}"
           fi
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Release version: $VERSION"
-          
+
           # Check if prerelease (contains alpha, beta, rc, etc.)
           if [[ "$VERSION" =~ -(alpha|beta|rc) ]]; then
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
@@ -64,33 +64,33 @@ jobs:
     name: Build and Test
     needs: validate-version
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5.0.1
         with:
           fetch-depth: 0  # Full history for changelog generation
-      
+
       - name: Set up Go
         uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      
+
       - name: Download dependencies
         run: go mod download
-      
+
       - name: Run tests
         run: |
           echo "🧪 Running test suite..."
           go test -count=1 -p=2 -timeout=10m ./internal/...
-      
+
       - name: Run linters
         uses: ./.github/actions/golangci-lint
         with:
-          golangci-lint-version: v2.6.2
+          version: v2.6.2
           timeout: 5m
-      
+
       - name: Build binary
         run: |
           echo "🔨 Building binary for release..."
@@ -99,7 +99,7 @@ jobs:
             -ldflags="-s -w -X 'main.Version=${{ needs.validate-version.outputs.version }}' -X 'main.BuildDate=$(date -u +'%Y-%m-%dT%H:%M:%SZ')' -X 'main.GitCommit=${GITHUB_SHA}'" \
             -o dist/cryptoutil-linux-amd64 \
             ./cmd/cryptoutil
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v5.0.0
         with:
@@ -114,21 +114,21 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5.0.1
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -139,7 +139,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},value=${{ needs.validate-version.outputs.version }}
             type=semver,pattern={{major}},value=${{ needs.validate-version.outputs.version }}
             type=sha,prefix={{branch}}-
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -155,7 +155,7 @@ jobs:
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       - name: Container image summary
         run: |
           echo "## 🐳 Container Image Published" >> $GITHUB_STEP_SUMMARY
@@ -173,58 +173,58 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changelog: ${{ steps.changelog.outputs.changelog }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5.0.1
         with:
           fetch-depth: 0
-      
+
       - name: Generate changelog
         id: changelog
         run: |
           echo "📝 Generating changelog..."
-          
+
           # Get previous tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           CURRENT_TAG="${{ needs.validate-version.outputs.version }}"
-          
+
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "changelog=Initial release" >> $GITHUB_OUTPUT
             echo "Initial release (no previous tag)"
             exit 0
           fi
-          
+
           echo "Changelog from $PREVIOUS_TAG to $CURRENT_TAG"
-          
+
           # Generate changelog using conventional commits
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD | grep -E "^- (feat|fix|docs|style|refactor|perf|test|build|ci|chore):" || echo "- No conventional commits found")
-          
+
           # Group by type
           FEATURES=$(echo "$CHANGELOG" | grep "^- feat:" | sed 's/^- feat: /- /' || echo "")
           FIXES=$(echo "$CHANGELOG" | grep "^- fix:" | sed 's/^- fix: /- /' || echo "")
           OTHERS=$(echo "$CHANGELOG" | grep -v "^- feat:" | grep -v "^- fix:" || echo "")
-          
+
           # Build formatted changelog
           FORMATTED_CHANGELOG="## What's Changed\n\n"
-          
+
           if [ -n "$FEATURES" ]; then
             FORMATTED_CHANGELOG="${FORMATTED_CHANGELOG}### ✨ Features\n${FEATURES}\n\n"
           fi
-          
+
           if [ -n "$FIXES" ]; then
             FORMATTED_CHANGELOG="${FORMATTED_CHANGELOG}### 🐛 Bug Fixes\n${FIXES}\n\n"
           fi
-          
+
           if [ -n "$OTHERS" ]; then
             FORMATTED_CHANGELOG="${FORMATTED_CHANGELOG}### 🔧 Other Changes\n${OTHERS}\n\n"
           fi
-          
+
           # Save to output (escape newlines)
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo -e "$FORMATTED_CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-      
+
       - name: Display changelog
         run: |
           echo "## 📋 Changelog Preview" >> $GITHUB_STEP_SUMMARY
@@ -237,17 +237,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5.0.1
-      
+
       - name: Download build artifacts
         uses: actions/download-artifact@v5.0.0
         with:
           name: release-binaries
           path: dist/
-      
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2.2.0
         with:
@@ -260,7 +260,7 @@ jobs:
             dist/cryptoutil-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Release summary
         run: |
           echo "## 🎉 Release Published" >> $GITHUB_STEP_SUMMARY
@@ -277,14 +277,14 @@ jobs:
     needs: [validate-version, create-release]
     if: needs.validate-version.outputs.is_prerelease == 'true' || github.event.inputs.environment == 'dev'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy to dev environment
         run: |
           echo "🚀 Deploying ${{ needs.validate-version.outputs.version }} to dev environment"
           echo "Note: Actual deployment steps would go here (kubectl apply, helm upgrade, etc.)"
           echo "For now, this is a placeholder for future implementation"
-      
+
       - name: Deployment summary
         run: |
           echo "## 🚀 Development Deployment" >> $GITHUB_STEP_SUMMARY
@@ -298,14 +298,14 @@ jobs:
     needs: [validate-version, create-release, deploy-dev]
     if: needs.validate-version.outputs.is_prerelease == 'false' || github.event.inputs.environment == 'staging'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy to staging environment
         run: |
           echo "🚀 Deploying ${{ needs.validate-version.outputs.version }} to staging environment"
           echo "Note: Actual deployment steps would go here (kubectl apply, helm upgrade, etc.)"
           echo "For now, this is a placeholder for future implementation"
-      
+
       - name: Deployment summary
         run: |
           echo "## 🚀 Staging Deployment" >> $GITHUB_STEP_SUMMARY
@@ -319,14 +319,14 @@ jobs:
     needs: [validate-version, create-release, deploy-staging]
     if: needs.validate-version.outputs.is_prerelease == 'false' && (github.event.inputs.environment == 'production' || github.event_name == 'push')
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy to production environment
         run: |
           echo "🚀 Deploying ${{ needs.validate-version.outputs.version }} to production environment"
           echo "Note: Actual deployment steps would go here (kubectl apply, helm upgrade, etc.)"
           echo "For now, this is a placeholder for future implementation"
-      
+
       - name: Deployment summary
         run: |
           echo "## 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
