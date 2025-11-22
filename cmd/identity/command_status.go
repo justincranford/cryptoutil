@@ -5,9 +5,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
+
+	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
 func newStatusCommand() *cobra.Command {
@@ -25,20 +30,61 @@ Examples:
   # Show status as JSON
   identity status --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Printf("JSON output: %v\n", jsonOutput)
+			// Create process manager
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("failed to get home directory: %w", err)
+			}
+			pidDir := filepath.Join(homeDir, ".identity", "pids")
+			procManager, err := cryptoutilIdentityProcess.NewManager(pidDir)
+			if err != nil {
+				return fmt.Errorf("failed to create process manager: %w", err)
+			}
 
-			// TODO: Implement status checking logic
-			// 1. Check PID files or Docker container status
-			// 2. Query /health endpoints
-			// 3. Format output table (or JSON with --json flag)
-			//
-			// Example output:
-			// SERVICE   STATUS    PID     UPTIME   HEALTH
-			// authz     running   12345   1h23m    healthy
-			// idp       running   12346   1h23m    healthy
-			// rs        running   12347   1h23m    healthy
+			// Check status of each service
+			services := []string{"authz", "idp", "rs"}
+			type ServiceStatus struct {
+				Name    string `json:"name"`
+				Running bool   `json:"running"`
+				PID     int    `json:"pid,omitempty"`
+			}
 
-			return fmt.Errorf("status command not yet implemented")
+			statuses := make([]ServiceStatus, 0, len(services))
+			for _, svc := range services {
+				status := ServiceStatus{Name: svc}
+				if procManager.IsRunning(svc) {
+					status.Running = true
+					pid, pidErr := procManager.GetPID(svc)
+					if pidErr == nil {
+						status.PID = pid
+					}
+				}
+				statuses = append(statuses, status)
+			}
+
+			// Output results
+			if jsonOutput {
+				jsonBytes, err := json.MarshalIndent(statuses, "", "  ")
+				if err != nil {
+					return fmt.Errorf("failed to marshal JSON: %w", err)
+				}
+				fmt.Println(string(jsonBytes))
+			} else {
+				fmt.Println("SERVICE   STATUS      PID")
+				for _, s := range statuses {
+					statusStr := "stopped"
+					pidStr := "-"
+					if s.Running {
+						statusStr = "running"
+						if s.PID > 0 {
+							pidStr = fmt.Sprintf("%d", s.PID)
+						}
+					}
+					fmt.Printf("%-9s %-11s %s\n", s.Name, statusStr, pidStr)
+				}
+			}
+
+			return nil
 		},
 	}
 

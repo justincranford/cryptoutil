@@ -6,12 +6,18 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
+
+	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
 func newStopCommand() *cobra.Command {
 	var force bool
+	var timeoutStr string
 
 	cmd := &cobra.Command{
 		Use:   "stop [services...]",
@@ -29,24 +35,46 @@ Examples:
   identity stop --force`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			services := args
-			if len(services) == 0 {
-				services = []string{"authz", "idp", "rs"}
+
+			// Parse timeout
+			timeout, err := time.ParseDuration(timeoutStr)
+			if err != nil {
+				return fmt.Errorf("invalid timeout: %w", err)
 			}
 
-			fmt.Printf("Stopping services: %v\n", services)
-			fmt.Printf("Force: %v\n", force)
+			// Create process manager
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("failed to get home directory: %w", err)
+			}
+			pidDir := filepath.Join(homeDir, ".identity", "pids")
+			procManager, err := cryptoutilIdentityProcess.NewManager(pidDir)
+			if err != nil {
+				return fmt.Errorf("failed to create process manager: %w", err)
+			}
 
-			// TODO: Implement service shutdown logic
-			// 1. If Docker mode active: docker compose down <services>
-			// 2. If local processes: Send SIGTERM to PIDs
-			// 3. Wait for graceful shutdown (default 10s timeout)
-			// 4. If --force: Send SIGKILL
+			// Stop all services or specific services
+			if len(services) == 0 {
+				fmt.Println("Stopping all services...")
+				if err := procManager.StopAll(force, timeout); err != nil {
+					return fmt.Errorf("failed to stop services: %w", err)
+				}
+			} else {
+				for _, svc := range services {
+					fmt.Printf("Stopping %s...\n", svc)
+					if err := procManager.Stop(svc, force, timeout); err != nil {
+						return fmt.Errorf("failed to stop %s: %w", svc, err)
+					}
+				}
+			}
 
-			return fmt.Errorf("stop command not yet implemented")
+			fmt.Println("All services stopped successfully!")
+			return nil
 		},
 	}
 
 	cmd.Flags().BoolVarP(&force, "force", "f", false, "Force stop without graceful shutdown")
+	cmd.Flags().StringVar(&timeoutStr, "timeout", "10s", "Graceful shutdown timeout")
 
 	return cmd
 }
