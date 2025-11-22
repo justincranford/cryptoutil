@@ -25,6 +25,8 @@ import (
 )
 
 // TestMain sets up and tears down mock services for e2e tests.
+// NOTE: Only used for identity_e2e_test.go tests that require HTTP servers.
+// OTP flow tests (otp_flows_test.go) use in-process mocks only.
 func TestMain(m *testing.M) {
 	// Create mock services
 	mockServices := NewTestableMockServices()

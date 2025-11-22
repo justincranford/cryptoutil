@@ -1,6 +1,7 @@
 package userauth
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 
@@ -34,12 +35,22 @@ var (
 //   - Hash output is ~60 bytes (base64-encoded salt + hash).
 //   - Safe for concurrent use (bcrypt is stateless).
 //   - CRITICAL: Store hash in database, NEVER store plaintext token.
+//   - NOTE: bcrypt has 72-byte input limit. Tokens >72 bytes are SHA256 pre-hashed.
+//   - SHA256 pre-hash compresses token to 32 bytes (secure as long as SHA256 collision-resistant).
 func HashToken(plaintext string) (string, error) {
 	if plaintext == "" {
 		return "", ErrInvalidToken
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(plaintext), bcryptCost)
+	// For tokens >72 bytes, pre-hash with SHA256 to compress input.
+	// bcrypt input limit: 72 bytes. SHA256 output: 32 bytes (always <72).
+	input := []byte(plaintext)
+	if len(input) > 72 {
+		hash := sha256.Sum256(input)
+		input = hash[:]
+	}
+
+	hash, err := bcrypt.GenerateFromPassword(input, bcryptCost)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrHashGenerationFailed, err)
 	}
@@ -54,6 +65,7 @@ func HashToken(plaintext string) (string, error) {
 //   - Constant-time comparison (bcrypt.CompareHashAndPassword uses subtle.ConstantTimeCompare internally).
 //   - Safe against timing attacks.
 //   - Validates hash format before comparison.
+//   - Handles SHA256 pre-hashed tokens transparently.
 func VerifyToken(plaintext, hash string) error {
 	if plaintext == "" {
 		return ErrInvalidToken
@@ -63,7 +75,14 @@ func VerifyToken(plaintext, hash string) error {
 		return ErrTokenMismatch // Empty hash never matches
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(plaintext))
+	// For tokens >72 bytes, pre-hash with SHA256 to match HashToken behavior.
+	input := []byte(plaintext)
+	if len(input) > 72 {
+		h := sha256.Sum256(input)
+		input = h[:]
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(hash), input)
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return ErrTokenMismatch
