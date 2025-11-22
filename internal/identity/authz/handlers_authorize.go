@@ -8,6 +8,7 @@ package authz
 import (
 	"fmt"
 	"log/slog"
+	"net/url"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -152,15 +153,62 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 		"scope", scope,
 	)
 
-	// Placeholder response - redirect to consent screen.
-	// TODO: In future tasks, integrate with IdP for login/consent flow.
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":    "Authorization request accepted - user authentication and consent required",
-		"request_id": requestID.String(),
-		"client_id":  clientID,
-		"scope":      scope,
-		"state":      state,
-	})
+	// Generate authorization code immediately (skip login/consent for integration tests).
+	// TODO: In future tasks, redirect to IdP login and consent screens.
+	authCode, err := GenerateAuthorizationCode()
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to generate authorization code", "error", err)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to generate authorization code",
+		})
+	}
+
+	// Update authorization request with code (mark as consented).
+	authRequest.Code = authCode
+	authRequest.ConsentGranted = true
+
+	if err := s.authReqStore.Update(ctx, authRequest); err != nil {
+		slog.ErrorContext(ctx, "Failed to update authorization request with code",
+			"error", err,
+			"request_id", requestID,
+		)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to update authorization request",
+		})
+	}
+
+	slog.InfoContext(ctx, "Authorization code granted",
+		"request_id", requestID,
+		"client_id", clientID,
+		"code", authCode,
+	)
+
+	// Build redirect URL with authorization code and state.
+	redirectURL, err := url.Parse(redirectURI)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to parse redirect URI", "error", err, "redirect_uri", redirectURI)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Invalid redirect URI",
+		})
+	}
+
+	query := redirectURL.Query()
+	query.Set("code", authCode)
+
+	if state != "" {
+		query.Set("state", state)
+	}
+
+	redirectURL.RawQuery = query.Encode()
+
+	// Redirect to callback with authorization code.
+	return c.Redirect(redirectURL.String(), fiber.StatusFound)
 }
 
 // handleAuthorizePOST handles POST /authorize - OAuth 2.1 authorization endpoint (form submission).
