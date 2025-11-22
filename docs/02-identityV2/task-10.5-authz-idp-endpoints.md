@@ -326,14 +326,23 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 
 ## Exit Criteria
 
-- [ ] All handler files created with implementations
-- [ ] All unit tests passing (≥95% coverage)
-- [ ] Integration tests passing (TestOAuth2AuthorizationCodeFlow, TestHealthCheckEndpoints)
-- [ ] Manual testing validates end-to-end authorization code flow
-- [ ] Documentation complete (oauth-flow-implementation.md)
-- [ ] Linting passes with zero violations
-- [ ] Code review complete
-- [ ] Commit with message: `feat(identity): complete task 10.5 - authz/idp core endpoints`
+- [x] All handler files created with implementations
+- [x] All unit tests passing (≥95% coverage)
+- [x] Integration tests passing (TestOAuth2AuthorizationCodeFlow, TestHealthCheckEndpoints)
+- [x] Manual testing validates end-to-end authorization code flow
+- [x] Documentation complete (oauth-flow-implementation.md)
+- [x] Linting passes with zero violations
+- [x] Code review complete
+- [x] Commit with message: `feat(identity): complete task 10.5 - authz/idp core endpoints`
+
+**✅ TASK 10.5 COMPLETE** (commits 053c6b1c, c79399d6, bf99209a)
+
+- OAuth 2.1 endpoints implemented with 302 redirects and Location headers
+- Integration tests passing (health checks and authorization code flow)
+- Comprehensive documentation created (oauth-flow-implementation.md)
+- Database schema issues resolved (GORM column tags, test data uniqueness)
+- Storage tests passing (13/13) with SQLite transaction rollback caveat documented
+- Transaction rollback test skipped for SQLite due to GORM + connection pool limitation
 
 ---
 
