@@ -1,7 +1,7 @@
 # Identity Services Docker Compose - Quick Start Guide
 
-**Audience**: Developers, QA Engineers  
-**Purpose**: Practical guide for running, debugging, and scaling identity services locally  
+**Audience**: Developers, QA Engineers
+**Purpose**: Practical guide for running, debugging, and scaling identity services locally
 **Prerequisites**: Docker Desktop installed, identity-demo.yml configured with secrets
 
 ---
@@ -63,7 +63,7 @@ docker compose -f deployments/compose/identity-demo.yml --profile demo down -v
 
 ### Demo Profile (1x1x1x1)
 
-**Purpose**: Quick demonstration, functional testing, API exploration  
+**Purpose**: Quick demonstration, functional testing, API exploration
 **Resources**: Minimal (1 instance each: AuthZ, IdP, RS, SPA)
 
 ```bash
@@ -81,7 +81,7 @@ go run ./cmd/identity-orchestrator -operation start -profile demo
 
 ### Development Profile (2x2x2x2)
 
-**Purpose**: High availability testing, load balancer integration, failover scenarios  
+**Purpose**: High availability testing, load balancer integration, failover scenarios
 **Resources**: Medium (2 instances each)
 
 ```bash
@@ -100,7 +100,7 @@ go run ./cmd/identity-orchestrator -operation start -profile development
 
 ### CI Profile (1x1x1x1)
 
-**Purpose**: CI/CD pipelines, automated testing, minimal resource usage  
+**Purpose**: CI/CD pipelines, automated testing, minimal resource usage
 **Resources**: Minimal (same as demo, optimized for CI)
 
 ```bash
@@ -116,7 +116,7 @@ go run ./cmd/identity-orchestrator -operation start -profile ci
 
 ### Production Profile (3x3x3x3)
 
-**Purpose**: Production-like testing, stress testing, scalability validation  
+**Purpose**: Production-like testing, stress testing, scalability validation
 **Resources**: High (3 instances each)
 
 ```bash
