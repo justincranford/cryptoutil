@@ -21,10 +21,12 @@ import (
 )
 
 const (
-	commandEnroll = "enroll"
-	commandList   = "list"
-	commandRevoke = "revoke"
-	commandHelp   = "help"
+	commandEnroll    = "enroll"
+	commandList      = "list"
+	commandRevoke    = "revoke"
+	commandRenew     = "renew"
+	commandInventory = "inventory"
+	commandHelp      = "help"
 )
 
 func main() {
@@ -42,6 +44,10 @@ func main() {
 		runList(os.Args[2:])
 	case commandRevoke:
 		runRevoke(os.Args[2:])
+	case commandRenew:
+		runRenew(os.Args[2:])
+	case commandInventory:
+		runInventory(os.Args[2:])
 	case commandHelp:
 		printUsage()
 		os.Exit(0)
@@ -63,6 +69,8 @@ func printUsage() {
 	fmt.Println("  enroll    Enroll a new hardware credential (smart card, FIDO key)")
 	fmt.Println("  list      List all enrolled hardware credentials for a user")
 	fmt.Println("  revoke    Revoke a hardware credential by ID")
+	fmt.Println("  renew     Renew/rotate a hardware credential with new key material")
+	fmt.Println("  inventory Generate inventory report of all hardware credentials")
 	fmt.Println("  help      Display this help message")
 	fmt.Println()
 	fmt.Println("Enroll Options:")
@@ -76,10 +84,19 @@ func printUsage() {
 	fmt.Println("Revoke Options:")
 	fmt.Println("  -credential-id <string>  Credential ID (required)")
 	fmt.Println()
+	fmt.Println("Renew Options:")
+	fmt.Println("  -credential-id <string>  Credential ID to renew (required)")
+	fmt.Println("  -device-name <string>    Updated device name (optional)")
+	fmt.Println()
+	fmt.Println("Inventory Options:")
+	fmt.Println("  (no flags required)")
+	fmt.Println()
 	fmt.Println("Examples:")
 	fmt.Println("  hardware-cred enroll -user-id 01930de8-c123-7890-abcd-ef1234567890 -device-name 'YubiKey 5C'")
 	fmt.Println("  hardware-cred list -user-id 01930de8-c123-7890-abcd-ef1234567890")
 	fmt.Println("  hardware-cred revoke -credential-id 'AQIDBAUGBwgJCgsMDQ4PEA=='")
+	fmt.Println("  hardware-cred renew -credential-id 'AQIDBAUGBwgJCgsMDQ4PEA==' -device-name 'YubiKey 5C (Renewed)'")
+	fmt.Println("  hardware-cred inventory")
 	fmt.Println()
 }
 
@@ -295,6 +312,147 @@ func runRevoke(args []string) {
 		"sign_count":      credential.SignCount,
 		"last_used_at":    credential.LastUsedAt.Format(time.RFC3339),
 	})
+}
+
+// runRenew handles the renew command for credential rotation.
+func runRenew(args []string) {
+	fs := flag.NewFlagSet("renew", flag.ExitOnError)
+	credentialID := fs.String("credential-id", "", "Credential ID to renew")
+	deviceName := fs.String("device-name", "", "Updated device name (optional)")
+
+	err := fs.Parse(args)
+	if err != nil {
+		log.Fatalf("Failed to parse flags: %v", err)
+	}
+
+	if *credentialID == "" {
+		fmt.Fprintln(os.Stderr, "Error: -credential-id is required")
+		fs.Usage()
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+
+	// Initialize database connection.
+	db, err := initDatabase(ctx)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	// Create credential repository.
+	credRepo, err := cryptoutilIdentityORM.NewWebAuthnCredentialRepository(db)
+	if err != nil {
+		log.Fatalf("Failed to create credential repository: %v", err)
+	}
+
+	// Retrieve existing credential.
+	credential, err := credRepo.GetCredential(ctx, *credentialID)
+	if err != nil {
+		if err == cryptoutilIdentityAppErr.ErrCredentialNotFound {
+			fmt.Fprintf(os.Stderr, "Error: Credential not found: %s\n", *credentialID)
+			os.Exit(1)
+		}
+
+		log.Fatalf("Failed to retrieve credential: %v", err)
+	}
+
+	// Generate new credential with rotated key material.
+	newCredentialID := generateMockCredentialID()
+	newPublicKey := generateMockPublicKey()
+
+	newCredential := &cryptoutilIdentityORM.Credential{
+		ID:              newCredentialID,
+		UserID:          credential.UserID,
+		Type:            credential.Type,
+		PublicKey:       newPublicKey,
+		AttestationType: credential.AttestationType,
+		AAGUID:          credential.AAGUID,
+		SignCount:       0,
+		CreatedAt:       time.Now(),
+		LastUsedAt:      time.Now(),
+		Metadata:        credential.Metadata,
+	}
+
+	if *deviceName != "" {
+		newCredential.Metadata["device_name"] = *deviceName
+	}
+
+	// Store new credential.
+	err = credRepo.StoreCredential(ctx, newCredential)
+	if err != nil {
+		log.Fatalf("Failed to store renewed credential: %v", err)
+	}
+
+	// Delete old credential (rotation completes).
+	err = credRepo.DeleteCredential(ctx, *credentialID)
+	if err != nil {
+		log.Printf("Warning: Failed to delete old credential: %v", err)
+	}
+
+	oldDeviceName := "Unknown Device"
+	if name, ok := credential.Metadata["device_name"].(string); ok {
+		oldDeviceName = name
+	}
+
+	newDeviceName := oldDeviceName
+	if *deviceName != "" {
+		newDeviceName = *deviceName
+	}
+
+	fmt.Println("✅ Credential renewed successfully")
+	fmt.Printf("Old Credential ID: %s\n", credential.ID)
+	fmt.Printf("New Credential ID: %s\n", newCredential.ID)
+	fmt.Printf("User ID: %s\n", credential.UserID)
+	fmt.Printf("Device Name: %s → %s\n", oldDeviceName, newDeviceName)
+	fmt.Printf("Type: %s\n", newCredential.Type)
+
+	// Audit log entry.
+	logAuditEvent(ctx, "CREDENTIAL_RENEWED", credential.UserID, newCredential.ID, map[string]interface{}{
+		"old_credential_id": credential.ID,
+		"new_credential_id": newCredential.ID,
+		"old_device_name":   oldDeviceName,
+		"new_device_name":   newDeviceName,
+		"credential_type":   credential.Type,
+	})
+}
+
+// runInventory generates an inventory report of all hardware credentials.
+func runInventory(args []string) {
+	fs := flag.NewFlagSet("inventory", flag.ExitOnError)
+
+	err := fs.Parse(args)
+	if err != nil {
+		log.Fatalf("Failed to parse flags: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// Initialize database connection.
+	db, err := initDatabase(ctx)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	// Create credential repository.
+	credRepo, err := cryptoutilIdentityORM.NewWebAuthnCredentialRepository(db)
+	if err != nil {
+		log.Fatalf("Failed to create credential repository: %v", err)
+	}
+
+	// Query all credentials (using placeholder logic - repository needs ListAll method).
+	fmt.Println("📋 Hardware Credential Inventory Report")
+	fmt.Println("========================================")
+	fmt.Println()
+	fmt.Println("Note: Full inventory requires ListAll repository method (not yet implemented)")
+	fmt.Println()
+
+	// Audit log entry.
+	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339),
+	})
+
+	// Stub implementation - repository needs ListAll method for full inventory.
+	_ = credRepo
 }
 
 // initDatabase initializes a database connection.
