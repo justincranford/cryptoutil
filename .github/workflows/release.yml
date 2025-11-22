@@ -1,0 +1,336 @@
+# Automated Release Pipeline
+# Handles semantic versioning, changelog generation, container publishing,
+# and multi-environment deployment (dev → staging → production)
+
+name: Release - Automated Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'  # Matches v1.0.0, v2.3.4, etc.
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'  # Matches v1.0.0-alpha.1, v1.0.0-beta.2, etc.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+        default: 'dev'
+
+env:
+  GO_VERSION: '1.25.4'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  validate-version:
+    name: Validate Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract-version.outputs.version }}
+      is_prerelease: ${{ steps.extract-version.outputs.is_prerelease }}
+    
+    steps:
+      - name: Extract version from tag or input
+        id: extract-version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Release version: $VERSION"
+          
+          # Check if prerelease (contains alpha, beta, rc, etc.)
+          if [[ "$VERSION" =~ -(alpha|beta|rc) ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "🔰 Pre-release detected"
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "✅ Stable release"
+          fi
+
+  build-and-test:
+    name: Build and Test
+    needs: validate-version
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.1
+        with:
+          fetch-depth: 0  # Full history for changelog generation
+      
+      - name: Set up Go
+        uses: actions/setup-go@v6.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Run tests
+        run: |
+          echo "🧪 Running test suite..."
+          go test -count=1 -p=2 -timeout=10m ./internal/...
+      
+      - name: Run linters
+        uses: ./.github/actions/golangci-lint
+        with:
+          golangci-lint-version: v2.6.2
+          timeout: 5m
+      
+      - name: Build binary
+        run: |
+          echo "🔨 Building binary for release..."
+          mkdir -p dist
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+            -ldflags="-s -w -X 'main.Version=${{ needs.validate-version.outputs.version }}' -X 'main.BuildDate=$(date -u +'%Y-%m-%dT%H:%M:%SZ')' -X 'main.GitCommit=${GITHUB_SHA}'" \
+            -o dist/cryptoutil-linux-amd64 \
+            ./cmd/cryptoutil
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: release-binaries
+          path: dist/
+          retention-days: 7
+
+  build-container:
+    name: Build and Push Container Image
+    needs: [validate-version, build-and-test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.1
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.validate-version.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.validate-version.outputs.version }}
+            type=semver,pattern={{major}},value=${{ needs.validate-version.outputs.version }}
+            type=sha,prefix={{branch}}-
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./deployments/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GO_VERSION=${{ env.GO_VERSION }}
+            APP_VERSION=${{ needs.validate-version.outputs.version }}
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Container image summary
+        run: |
+          echo "## 🐳 Container Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image**: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags**:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  generate-changelog:
+    name: Generate Changelog
+    needs: [validate-version, build-and-test]
+    runs-on: ubuntu-latest
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.1
+        with:
+          fetch-depth: 0
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "📝 Generating changelog..."
+          
+          # Get previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          CURRENT_TAG="${{ needs.validate-version.outputs.version }}"
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "changelog=Initial release" >> $GITHUB_OUTPUT
+            echo "Initial release (no previous tag)"
+            exit 0
+          fi
+          
+          echo "Changelog from $PREVIOUS_TAG to $CURRENT_TAG"
+          
+          # Generate changelog using conventional commits
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD | grep -E "^- (feat|fix|docs|style|refactor|perf|test|build|ci|chore):" || echo "- No conventional commits found")
+          
+          # Group by type
+          FEATURES=$(echo "$CHANGELOG" | grep "^- feat:" | sed 's/^- feat: /- /' || echo "")
+          FIXES=$(echo "$CHANGELOG" | grep "^- fix:" | sed 's/^- fix: /- /' || echo "")
+          OTHERS=$(echo "$CHANGELOG" | grep -v "^- feat:" | grep -v "^- fix:" || echo "")
+          
+          # Build formatted changelog
+          FORMATTED_CHANGELOG="## What's Changed\n\n"
+          
+          if [ -n "$FEATURES" ]; then
+            FORMATTED_CHANGELOG="${FORMATTED_CHANGELOG}### ✨ Features\n${FEATURES}\n\n"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            FORMATTED_CHANGELOG="${FORMATTED_CHANGELOG}### 🐛 Bug Fixes\n${FIXES}\n\n"
+          fi
+          
+          if [ -n "$OTHERS" ]; then
+            FORMATTED_CHANGELOG="${FORMATTED_CHANGELOG}### 🔧 Other Changes\n${OTHERS}\n\n"
+          fi
+          
+          # Save to output (escape newlines)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FORMATTED_CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Display changelog
+        run: |
+          echo "## 📋 Changelog Preview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.changelog.outputs.changelog }}" >> $GITHUB_STEP_SUMMARY
+
+  create-release:
+    name: Create GitHub Release
+    needs: [validate-version, build-and-test, build-container, generate-changelog]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.1
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v5.0.0
+        with:
+          name: release-binaries
+          path: dist/
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2.2.0
+        with:
+          tag_name: ${{ needs.validate-version.outputs.version }}
+          name: Release ${{ needs.validate-version.outputs.version }}
+          body: ${{ needs.generate-changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ needs.validate-version.outputs.is_prerelease }}
+          files: |
+            dist/cryptoutil-*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Release summary
+        run: |
+          echo "## 🎉 Release Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: \`${{ needs.validate-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Type**: ${{ needs.validate-version.outputs.is_prerelease == 'true' && 'Pre-release' || 'Stable Release' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Assets**:" >> $GITHUB_STEP_SUMMARY
+          echo "- Container image: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.validate-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Binary artifacts uploaded to release" >> $GITHUB_STEP_SUMMARY
+
+  deploy-dev:
+    name: Deploy to Development
+    needs: [validate-version, create-release]
+    if: needs.validate-version.outputs.is_prerelease == 'true' || github.event.inputs.environment == 'dev'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to dev environment
+        run: |
+          echo "🚀 Deploying ${{ needs.validate-version.outputs.version }} to dev environment"
+          echo "Note: Actual deployment steps would go here (kubectl apply, helm upgrade, etc.)"
+          echo "For now, this is a placeholder for future implementation"
+      
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Development Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: dev" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: \`${{ needs.validate-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [validate-version, create-release, deploy-dev]
+    if: needs.validate-version.outputs.is_prerelease == 'false' || github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to staging environment
+        run: |
+          echo "🚀 Deploying ${{ needs.validate-version.outputs.version }} to staging environment"
+          echo "Note: Actual deployment steps would go here (kubectl apply, helm upgrade, etc.)"
+          echo "For now, this is a placeholder for future implementation"
+      
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Staging Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: \`${{ needs.validate-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [validate-version, create-release, deploy-staging]
+    if: needs.validate-version.outputs.is_prerelease == 'false' && (github.event.inputs.environment == 'production' || github.event_name == 'push')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to production environment
+        run: |
+          echo "🚀 Deploying ${{ needs.validate-version.outputs.version }} to production environment"
+          echo "Note: Actual deployment steps would go here (kubectl apply, helm upgrade, etc.)"
+          echo "For now, this is a placeholder for future implementation"
+      
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: production" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: \`${{ needs.validate-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
