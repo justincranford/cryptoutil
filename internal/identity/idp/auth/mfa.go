@@ -22,6 +22,7 @@ type MFAOrchestrator struct {
 	otpService      *OTPService
 	profileRegistry *ProfileRegistry
 	telemetry       *MFATelemetry
+	totpValidator   *TOTPValidator
 }
 
 // NewMFAOrchestrator creates a new MFA orchestrator.
@@ -30,12 +31,14 @@ func NewMFAOrchestrator(
 	otpService *OTPService,
 	profileRegistry *ProfileRegistry,
 	telemetry *MFATelemetry,
+	totpValidator *TOTPValidator,
 ) *MFAOrchestrator {
 	return &MFAOrchestrator{
 		mfaRepo:         mfaRepo,
 		otpService:      otpService,
 		profileRegistry: profileRegistry,
 		telemetry:       telemetry,
+		totpValidator:   totpValidator,
 	}
 }
 
@@ -101,33 +104,40 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 	// Validate factor based on type.
 	switch factorType {
 	case string(OTPMethodTOTP):
-		otpCode, ok := credentials["otp_code"]
-		if !ok || otpCode == "" {
+		valid, err := o.IntegrateTOTPValidation(ctx, matchingFactor, credentials)
+		if err != nil {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
-			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+			return fmt.Errorf("%w: TOTP validation failed: %v", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 		}
-		// TODO: Validate TOTP using library (e.g., pquerna/otp).
-		_ = otpCode
+
+		if !valid {
+			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+			return fmt.Errorf("%w: invalid TOTP code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+		}
 
 	case "email_otp":
-		otpCode, ok := credentials["otp_code"]
-		if !ok || otpCode == "" {
+		valid, err := o.IntegrateTOTPValidation(ctx, matchingFactor, credentials)
+		if err != nil {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
-			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+			return fmt.Errorf("%w: email OTP validation failed: %v", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 		}
-		// TODO: Get user from context for OTP validation.
-		// For now, this is a placeholder.
-		_ = otpCode
+
+		if !valid {
+			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+			return fmt.Errorf("%w: invalid email OTP code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+		}
 
 	case "sms_otp":
-		otpCode, ok := credentials["otp_code"]
-		if !ok || otpCode == "" {
+		valid, err := o.IntegrateTOTPValidation(ctx, matchingFactor, credentials)
+		if err != nil {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
-			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+			return fmt.Errorf("%w: SMS OTP validation failed: %v", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 		}
-		// TODO: Get user from context for OTP validation.
-		// For now, this is a placeholder.
-		_ = otpCode
+
+		if !valid {
+			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+			return fmt.Errorf("%w: invalid SMS OTP code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+		}
 
 	default:
 		o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)

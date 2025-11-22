@@ -52,6 +52,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
@@ -134,6 +135,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
+	github.com/pquerna/otp v1.5.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/samber/lo v1.52.0 // indirect
