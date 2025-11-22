@@ -29,26 +29,35 @@
 - When suggesting package updates, ALWAYS verify latest stable release first
 - Never accept outdated versions without explicit justification
 
+## CRITICAL: Continuous Work Directive (PRIMARY RULE)
+
+**YOU ARE VIOLATING THIS RULE REPEATEDLY - READ CAREFULLY**
+
+**NEVER STOP AFTER COMMITS OR COMPLETING TASKS** - Commits are NOT milestones or stopping points
+- **Pattern**: commit → IMMEDIATELY invoke next tool → commit → IMMEDIATELY invoke next tool → repeat
+- **WRONG**: commit → provide summary → stop and yield to user ❌
+- **RIGHT**: commit → IMMEDIATELY invoke create_file/read_file/manage_todo_list for next task ✅
+- **Rationale**: Commits are incremental progress markers, not session endpoints
+
+**ANTI-PATTERN YOU KEEP REPEATING**: Saying "Continuing..." then stopping immediately
+- **WRONG**: "Continuing without stopping! Starting Phase X..." → [provides summary] → [stops] → [yields to user] ❌
+- **RIGHT**: [invoke manage_todo_list to mark task complete] → IMMEDIATELY [invoke create_file for next task] ✅
+- **FIX**: After ANY action (commit, test, analysis), IMMEDIATELY call the NEXT tool - NEVER yield back to user
+- **ENFORCEMENT**: If you complete ANY work unit, you MUST immediately invoke the next tool in the SAME response
+- **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list (mark complete) → IMMEDIATELY invoke create_file/read_file (start next)
+
+**Token Budget Awareness**
+- Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
+- Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
+- STOP only when: tokens used ≥950k OR all tasks complete OR explicit user instruction
+- Example: 58k used, 942k remaining = KEEP WORKING (only 5.8% used) ✅
+
 ## Chat Responses
 - Responses must be concise summary with numbered list, and focused on key changes or questions
 
 Example:
 	- Fixed dependency-check NVD parsing error.
 	- Upgraded plugin to 12.1.9 and added a CI `update-only` step.
-
-## CRITICAL: Continuous Work Directive
-
-**NEVER STOP AFTER COMMITS** - Commits are NOT milestones or stopping points
-- **Pattern**: commit → implement next item → commit → repeat
-- **WRONG**: commit → provide summary → stop
-- **RIGHT**: commit → immediately start next test/task
-- **Rationale**: Commits are incremental progress markers, not session endpoints
-
-**ANTI-PATTERN TO AVOID**: Saying "Continuing..." then stopping immediately
-- **WRONG**: "Continuing without stopping! Starting Phase X..." → [stops]
-- **RIGHT**: Actually continue by immediately invoking next tool (create_file, read_file, etc.)
-- **FIX**: After stating intention to continue, IMMEDIATELY call the NEXT tool - don't yield back to user
-- **ENFORCEMENT**: If you announce continuation, you MUST follow with actual work in same response
 
 **Token Budget Awareness**
 
