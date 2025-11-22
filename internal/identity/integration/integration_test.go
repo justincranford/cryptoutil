@@ -65,9 +65,9 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 
-	// Create unique database name for this test.
-	// Use simple :memory: for SQLite to avoid query parameter issues.
-	testDBName := ":memory:"
+	// Create unique in-memory database for this test to prevent shared state.
+	// Using file::memory:?mode=memory&cache=private creates isolated database per test.
+	testDBName := "file::memory:?mode=memory&cache=private"
 
 	// Configure all three servers.
 	authzConfig := &cryptoutilIdentityConfig.Config{
