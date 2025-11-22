@@ -46,29 +46,102 @@ type StepUpPolicy struct {
 	MaxAge           time.Duration       // Maximum age of existing authentication.
 }
 
-// StepUpAuthenticator implements step-up authentication.
+// StepUpAuthenticator implements step-up authentication with policy-driven configuration.
 type StepUpAuthenticator struct {
+	policyLoader    PolicyLoader
 	riskEngine      RiskEngine
 	contextAnalyzer ContextAnalyzer
 	challengeStore  ChallengeStore
-	policies        map[string]*StepUpPolicy
 	authenticators  map[string]UserAuthenticator
+
+	// Policies loaded from YAML (cached after first load).
+	policies map[string]*StepUpPolicy
 }
 
-// NewStepUpAuthenticator creates a new step-up authenticator.
+// NewStepUpAuthenticator creates a new step-up authenticator with policy-driven configuration.
 func NewStepUpAuthenticator(
+	policyLoader PolicyLoader,
 	riskEngine RiskEngine,
 	contextAnalyzer ContextAnalyzer,
 	challengeStore ChallengeStore,
-	policies map[string]*StepUpPolicy,
 	authenticators map[string]UserAuthenticator,
 ) *StepUpAuthenticator {
 	return &StepUpAuthenticator{
+		policyLoader:    policyLoader,
 		riskEngine:      riskEngine,
 		contextAnalyzer: contextAnalyzer,
 		challengeStore:  challengeStore,
-		policies:        policies,
 		authenticators:  authenticators,
+	}
+}
+
+// loadPolicies loads step-up policies from YAML if not already loaded.
+func (s *StepUpAuthenticator) loadPolicies(ctx context.Context) error {
+	// Check if policies already loaded.
+	if s.policies != nil {
+		return nil
+	}
+
+	// Load step-up policies.
+	policyConfig, err := s.policyLoader.LoadStepUpPolicies(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load step-up policies: %w", err)
+	}
+
+	// Convert YAML policies to internal policy structure.
+	s.policies = make(map[string]*StepUpPolicy)
+
+	for op, policyYAML := range policyConfig.Policies {
+		maxAge, err := time.ParseDuration(policyYAML.MaxAge)
+		if err != nil {
+			return fmt.Errorf("invalid max_age for operation %s: %w", op, err)
+		}
+
+		requiredLevel := s.parseAuthLevel(policyYAML.RequiredLevel)
+
+		s.policies[op] = &StepUpPolicy{
+			OperationPattern: policyYAML.OperationPattern,
+			RequiredLevel:    requiredLevel,
+			AllowedMethods:   policyYAML.AllowedMethods,
+			MaxAge:           maxAge,
+		}
+	}
+
+	// Add default policy.
+	if policyConfig.DefaultPolicy.RequiredLevel != "" {
+		defaultMaxAge, err := time.ParseDuration(policyConfig.DefaultPolicy.MaxAge)
+		if err != nil {
+			return fmt.Errorf("invalid default max_age: %w", err)
+		}
+
+		defaultLevel := s.parseAuthLevel(policyConfig.DefaultPolicy.RequiredLevel)
+
+		s.policies["default"] = &StepUpPolicy{
+			OperationPattern: "*",
+			RequiredLevel:    defaultLevel,
+			AllowedMethods:   policyConfig.DefaultPolicy.AllowedMethods,
+			MaxAge:           defaultMaxAge,
+		}
+	}
+
+	return nil
+}
+
+// parseAuthLevel converts string auth level to AuthenticationLevel enum.
+func (s *StepUpAuthenticator) parseAuthLevel(level string) AuthenticationLevel {
+	switch level {
+	case "none":
+		return AuthLevelNone
+	case "basic":
+		return AuthLevelBasic
+	case "mfa":
+		return AuthLevelMFA
+	case "step_up":
+		return AuthLevelStepUp
+	case "strong_mfa":
+		return AuthLevelStrongMFA
+	default:
+		return AuthLevelBasic // Default to basic if unknown.
 	}
 }
 
@@ -77,7 +150,7 @@ func (s *StepUpAuthenticator) Method() string {
 	return "step_up"
 }
 
-// EvaluateStepUp determines if step-up authentication is required for an operation.
+// EvaluateStepUp determines if step-up authentication is required for an operation using policy-driven rules.
 func (s *StepUpAuthenticator) EvaluateStepUp(
 	ctx context.Context,
 	userID string,
@@ -85,11 +158,20 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 	currentLevel AuthenticationLevel,
 	authTime time.Time,
 ) (*StepUpChallenge, error) {
+	// Load policies from YAML if not already loaded.
+	if err := s.loadPolicies(ctx); err != nil {
+		return nil, fmt.Errorf("failed to load policies: %w", err)
+	}
+
 	// Find applicable policy.
 	policy, found := s.policies[operation]
 	if !found {
-		// No policy for this operation, no step-up required.
-		return nil, nil
+		// Try default policy.
+		policy, found = s.policies["default"]
+		if !found {
+			// No policy for this operation, no step-up required.
+			return nil, nil
+		}
 	}
 
 	// Check if current authentication level is sufficient.
