@@ -1,0 +1,220 @@
+# Adaptive Authentication Policy Configuration
+# Maps risk levels to authentication requirements
+#
+# CRITICAL: Changes affect user authentication experience
+# Test via simulation before production deployment
+# See: docs/02-identityV2/adaptive-auth-runbook.md
+
+version: "1.0"
+name: "default-adaptive-auth"
+description: "Adaptive authentication requirements by risk level"
+
+# Risk-based authentication requirements
+# Each risk level defines:
+# - required_methods: Authentication methods required
+# - session_duration: Maximum session duration
+# - step_up_required: Whether step-up auth required for sensitive ops
+# - monitoring: Special monitoring requirements
+
+risk_based_auth:
+  low:
+    risk_score_range:
+      min: 0.0
+      max: 0.1
+    
+    required_methods:
+      - "password"  # Basic authentication sufficient
+    
+    optional_methods:
+      - "remember_device"  # Allow device fingerprinting for future logins
+    
+    session_duration: "24h"
+    idle_timeout: "2h"
+    
+    step_up_required: false  # No automatic step-up for low-risk
+    
+    allow_new_device_registration: true
+    allow_password_reset: true
+    
+    monitoring:
+      log_level: "info"
+      alert_on_failure: false
+    
+    description: "Trusted context: known device, known location, normal behavior"
+  
+  medium:
+    risk_score_range:
+      min: 0.1
+      max: 0.4
+    
+    required_methods:
+      - "password"
+      - "mfa"  # Require MFA (SMS OTP, email OTP, TOTP)
+    
+    mfa_methods_allowed:
+      - "sms_otp"
+      - "email_otp"
+      - "totp"
+    
+    session_duration: "1h"
+    idle_timeout: "15m"
+    
+    step_up_required: true  # Require step-up for sensitive operations
+    
+    allow_new_device_registration: true  # But require email confirmation
+    allow_password_reset: true
+    
+    monitoring:
+      log_level: "warn"
+      alert_on_failure: false
+      track_location: true
+      track_device: true
+    
+    description: "Minor anomalies: new location or device, slightly unusual behavior"
+  
+  high:
+    risk_score_range:
+      min: 0.4
+      max: 0.7
+    
+    required_methods:
+      - "password"
+      - "strong_mfa"  # Require hardware key or biometric
+    
+    strong_mfa_methods_allowed:
+      - "webauthn"
+      - "face_id"
+      - "touch_id"
+    
+    fallback_methods_allowed:
+      - "backup_codes"  # Only if strong MFA unavailable
+    
+    session_duration: "5m"
+    idle_timeout: "2m"
+    
+    step_up_required: true
+    
+    allow_new_device_registration: false  # Block new device registration
+    allow_password_reset: false  # Block password reset (requires manual review)
+    
+    additional_checks:
+      - "email_verification"  # Send email notification
+      - "sms_verification"    # Send SMS notification
+      - "fraud_review"        # Flag for fraud team review
+    
+    monitoring:
+      log_level: "error"
+      alert_on_failure: true
+      alert_security_team: true
+      track_location: true
+      track_device: true
+      capture_request_details: true
+    
+    description: "Significant anomalies: VPN + new device, unusual time, behavior change"
+  
+  critical:
+    risk_score_range:
+      min: 0.7
+      max: 1.0
+    
+    required_methods:
+      - "block"  # Block authentication entirely
+    
+    session_duration: "1m"  # Minimal session for manual review
+    idle_timeout: "30s"
+    
+    step_up_required: false  # Blocked, no step-up possible
+    
+    allow_new_device_registration: false
+    allow_password_reset: false
+    
+    additional_checks:
+      - "manual_review_required"  # Require security team approval
+      - "account_lockout"         # Temporarily lock account
+      - "fraud_investigation"     # Trigger fraud investigation
+    
+    monitoring:
+      log_level: "critical"
+      alert_on_failure: true
+      alert_security_team: true
+      alert_fraud_team: true
+      track_location: true
+      track_device: true
+      capture_request_details: true
+      capture_network_details: true
+    
+    description: "Severe anomalies: velocity attack, impossible travel, known bad IP"
+
+# Fallback behavior when risk assessment fails
+fallback_policy:
+  on_error: "medium"  # Default to medium-risk requirements on error
+  on_low_confidence: "medium"  # Default to medium-risk if confidence <0.3
+  description: "Conservative fallback when risk assessment unavailable"
+
+# Grace periods for authentication transitions
+grace_periods:
+  new_user:
+    duration: "7d"
+    risk_level_override: "low"  # New users start at low-risk
+    description: "Grace period for new users to establish baseline"
+  
+  returning_user:
+    duration: "24h"
+    risk_level_override: "medium"  # Returning users (>30 days inactive) at medium-risk
+    description: "Grace period for returning users to re-establish baseline"
+  
+  password_change:
+    duration: "1h"
+    risk_level_override: "medium"  # After password change, require MFA for 1 hour
+    description: "Enhanced security after password change"
+
+# Device trust settings
+device_trust:
+  remember_device_duration: "30d"  # Remember trusted devices for 30 days
+  max_trusted_devices: 5           # Maximum trusted devices per user
+  require_reauth_on_new_device: true
+  
+  device_fingerprint_factors:
+    - "user_agent"
+    - "screen_resolution"
+    - "timezone"
+    - "language"
+    - "canvas_fingerprint"
+    - "webgl_fingerprint"
+
+# Location trust settings
+location_trust:
+  remember_location_duration: "90d"  # Remember trusted locations for 90 days
+  impossible_travel_threshold: "500km/h"  # Flag if travel >500 km/h
+  high_risk_countries_block: true  # Block auth from high-risk countries
+  
+  location_factors:
+    - "ip_address"
+    - "geoip_country"
+    - "geoip_city"
+    - "timezone"
+    - "isp"
+
+# Behavior trust settings
+behavior_trust:
+  baseline_establishment_period: "7d"  # 7 days to establish baseline
+  min_events_for_baseline: 10         # Minimum 10 auth events for baseline
+  
+  tracked_patterns:
+    - "login_time_of_day"
+    - "login_day_of_week"
+    - "session_duration"
+    - "operations_performed"
+    - "device_rotation"
+    - "location_rotation"
+
+# Adaptive authentication tuning parameters
+tuning:
+  risk_score_decay_rate: 0.1  # Risk score decays 10% per day (good behavior)
+  risk_score_spike_factor: 2.0  # Risk spikes 2x on anomaly detection
+  
+  confidence_threshold_low: 0.3   # <0.3 = low confidence, use fallback
+  confidence_threshold_medium: 0.6  # 0.3-0.6 = medium confidence
+  confidence_threshold_high: 0.8    # >0.8 = high confidence
+  
+  baseline_staleness_threshold: "30d"  # Baseline stale if >30 days old

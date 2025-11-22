@@ -1,0 +1,214 @@
+# Step-Up Authentication Policy Configuration
+# Defines when step-up authentication is required for sensitive operations
+#
+# CRITICAL: Changes affect operation security requirements
+# Test via simulation before production deployment
+# See: docs/02-identityV2/adaptive-auth-runbook.md
+
+version: "1.0"
+name: "default-step-up-policies"
+description: "Step-up authentication policies for sensitive operations"
+
+# Step-up policies by operation
+# Each policy defines:
+# - operation: Pattern matching operation name
+# - required_level: Minimum authentication level required
+# - allowed_methods: Step-up methods permitted
+# - max_age: Maximum age of existing authentication before step-up required
+
+policies:
+  transfer_funds:
+    operation_pattern: "transfer_funds"
+    required_level: "step_up"  # AuthLevelStepUp (3)
+    allowed_methods:
+      - "sms_otp"
+      - "email_otp"
+      - "totp"
+      - "webauthn"
+    max_age: "5m"  # 5 minutes
+    description: "Money transfer requires recent step-up authentication"
+    risk_level_overrides:
+      high: "strong_mfa"      # High-risk contexts require hardware key
+      critical: "block"        # Critical-risk contexts blocked
+  
+  change_password:
+    operation_pattern: "change_password"
+    required_level: "step_up"
+    allowed_methods:
+      - "sms_otp"
+      - "email_otp"
+      - "totp"
+    max_age: "2m"  # 2 minutes
+    description: "Password changes require very recent step-up"
+    risk_level_overrides:
+      high: "strong_mfa"
+      critical: "block"
+  
+  add_payee:
+    operation_pattern: "add_payee"
+    required_level: "step_up"
+    allowed_methods:
+      - "sms_otp"
+      - "email_otp"
+      - "totp"
+      - "webauthn"
+    max_age: "5m"
+    description: "Adding payee requires step-up (account modification)"
+    risk_level_overrides:
+      high: "strong_mfa"
+      critical: "block"
+  
+  delete_account:
+    operation_pattern: "delete_account"
+    required_level: "strong_mfa"  # AuthLevelStrongMFA (4)
+    allowed_methods:
+      - "webauthn"      # Hardware key only
+      - "face_id"
+      - "touch_id"
+    max_age: "1m"  # 1 minute
+    description: "Account deletion requires strongest authentication"
+    risk_level_overrides:
+      medium: "strong_mfa"  # Even medium-risk requires strong MFA
+      high: "block"          # High-risk blocked
+      critical: "block"
+  
+  view_pii:
+    operation_pattern: "view_pii"
+    required_level: "mfa"  # AuthLevelMFA (2)
+    allowed_methods:
+      - "sms_otp"
+      - "email_otp"
+      - "totp"
+      - "webauthn"
+    max_age: "10m"  # 10 minutes
+    description: "Viewing PII requires MFA within 10 minutes"
+    risk_level_overrides:
+      high: "step_up"
+      critical: "block"
+  
+  modify_2fa_settings:
+    operation_pattern: "modify_2fa_settings"
+    required_level: "strong_mfa"
+    allowed_methods:
+      - "webauthn"
+      - "backup_codes"  # Backup codes as fallback
+    max_age: "2m"
+    description: "Modifying 2FA settings requires hardware key"
+    risk_level_overrides:
+      high: "block"
+      critical: "block"
+  
+  export_data:
+    operation_pattern: "export_data"
+    required_level: "step_up"
+    allowed_methods:
+      - "sms_otp"
+      - "email_otp"
+      - "totp"
+      - "webauthn"
+    max_age: "5m"
+    description: "Data export requires recent step-up"
+    risk_level_overrides:
+      high: "strong_mfa"
+      critical: "block"
+  
+  api_key_generation:
+    operation_pattern: "api_key_generation"
+    required_level: "step_up"
+    allowed_methods:
+      - "sms_otp"
+      - "email_otp"
+      - "totp"
+      - "webauthn"
+    max_age: "5m"
+    description: "API key generation requires step-up"
+    risk_level_overrides:
+      high: "strong_mfa"
+      critical: "block"
+
+# Default policy for operations without specific policy
+default_policy:
+  required_level: "basic"  # Password only
+  allowed_methods:
+    - "password"
+  max_age: "24h"
+  description: "Default: no step-up required for non-sensitive operations"
+
+# Authentication level definitions (for reference)
+auth_levels:
+  none:
+    level: 0
+    description: "Not authenticated"
+  
+  basic:
+    level: 1
+    description: "Password only"
+  
+  mfa:
+    level: 2
+    description: "Multi-factor authentication (SMS OTP, email OTP, TOTP)"
+  
+  step_up:
+    level: 3
+    description: "Step-up authentication completed recently"
+  
+  strong_mfa:
+    level: 4
+    description: "Strong MFA (hardware key, biometric)"
+
+# Step-up method configurations
+step_up_methods:
+  sms_otp:
+    name: "SMS OTP"
+    type: "otp"
+    strength: "medium"
+    fallback_priority: 1
+  
+  email_otp:
+    name: "Email OTP"
+    type: "otp"
+    strength: "medium"
+    fallback_priority: 2
+  
+  totp:
+    name: "TOTP (Authenticator App)"
+    type: "otp"
+    strength: "medium"
+    fallback_priority: 3
+  
+  webauthn:
+    name: "WebAuthn (Hardware Key)"
+    type: "cryptographic"
+    strength: "strong"
+    fallback_priority: 4
+  
+  face_id:
+    name: "Face ID (Biometric)"
+    type: "biometric"
+    strength: "strong"
+    fallback_priority: 5
+  
+  touch_id:
+    name: "Touch ID (Biometric)"
+    type: "biometric"
+    strength: "strong"
+    fallback_priority: 6
+  
+  backup_codes:
+    name: "Backup Codes"
+    type: "recovery"
+    strength: "medium"
+    fallback_priority: 99  # Last resort
+
+# Session duration by authentication level
+session_durations:
+  basic: "24h"
+  mfa: "12h"
+  step_up: "1h"
+  strong_mfa: "8h"
+
+# Monitoring and alerting thresholds
+monitoring:
+  step_up_rate_threshold: 0.15  # Alert if >15% of operations require step-up
+  blocked_operation_threshold: 0.05  # Alert if >5% of operations blocked
+  fallback_method_threshold: 0.20  # Alert if >20% use fallback methods

@@ -52,9 +52,9 @@ type MFAFactor struct {
 	AuthProfileID googleUuid.UUID `gorm:"type:text;index;not null" json:"auth_profile_id"` // Associated auth profile.
 
 	// Replay prevention (time-bound nonces).
-	Nonce          string     `gorm:"uniqueIndex" json:"-"`                             // One-time nonce for replay prevention.
-	NonceExpiresAt *time.Time `gorm:"index" json:"nonce_expires_at,omitempty"`         // Nonce expiration timestamp.
-	NonceUsedAt    *time.Time `gorm:"index" json:"nonce_used_at,omitempty"`            // Timestamp when nonce was consumed.
+	Nonce          string     `gorm:"uniqueIndex" json:"-"`                    // One-time nonce for replay prevention.
+	NonceExpiresAt *time.Time `gorm:"index" json:"nonce_expires_at,omitempty"` // Nonce expiration timestamp.
+	NonceUsedAt    *time.Time `gorm:"index" json:"nonce_used_at,omitempty"`    // Timestamp when nonce was consumed.
 
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Factor enabled status.

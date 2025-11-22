@@ -20,13 +20,13 @@ import (
 
 // MFATelemetry provides observability instrumentation for MFA operations.
 type MFATelemetry struct {
-	logger                   *slog.Logger
-	tracer                   trace.Tracer
-	validationCounter        metric.Int64Counter
-	validationDuration       metric.Float64Histogram
-	replayAttemptsCounter    metric.Int64Counter
-	requiresMFACounter       metric.Int64Counter
-	getRequiredFactorsGauge  metric.Int64UpDownCounter
+	logger                  *slog.Logger
+	tracer                  trace.Tracer
+	validationCounter       metric.Int64Counter
+	validationDuration      metric.Float64Histogram
+	replayAttemptsCounter   metric.Int64Counter
+	requiresMFACounter      metric.Int64Counter
+	getRequiredFactorsGauge metric.Int64UpDownCounter
 }
 
 // NewMFATelemetry creates MFA telemetry instrumentation.

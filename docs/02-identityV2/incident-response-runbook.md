@@ -32,7 +32,7 @@ This runbook defines procedures for responding to security incidents affecting O
    # Revoke all active challenges for compromised users
    docker compose exec postgres psql -U USR -d DB -c \
      "DELETE FROM auth_challenges WHERE user_id IN ('user1', 'user2', ...);"
-   
+
    # Force password reset for affected accounts
    docker compose exec postgres psql -U USR -d DB -c \
      "UPDATE users SET force_password_reset = true WHERE sub IN ('user1', 'user2', ...);"
@@ -52,7 +52,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```bash
    # Immediate key rotation
    ./scripts/emergency-key-rotation.sh
-   
+
    # Verify new keys loaded
    docker compose logs cryptoutil-sqlite | grep -i "unseal.*success"
    ```
@@ -64,7 +64,7 @@ This runbook defines procedures for responding to security incidents affecting O
    # Export audit logs for forensic analysis
    docker compose logs cryptoutil-sqlite --since 24h | \
      grep "identity.auth.validation_attempt" > audit-$(date +%Y%m%d-%H%M%S).log
-   
+
    # Look for anomalies
    grep "outcome=success" audit-*.log | awk '{print $NF}' | sort | uniq -c | sort -rn
    ```
@@ -77,7 +77,7 @@ This runbook defines procedures for responding to security incidents affecting O
    GROUP BY user_id
    HAVING COUNT(*) > 10
    ORDER BY challenge_count DESC;
-   
+
    -- Check for validation attempts on expired challenges
    SELECT challenge_id, user_id, validation_attempts, last_attempt_at
    FROM challenge_validation_attempts
@@ -98,7 +98,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```bash
    # Grep logs for potential token patterns (6-digit numeric, hex tokens)
    docker compose logs cryptoutil-sqlite | grep -E '\b[0-9]{6}\b|\b[a-f0-9]{32,}\b'
-   
+
    # Check OpenTelemetry spans for token attributes
    # Should find ZERO occurrences of plaintext tokens
    ```
@@ -108,25 +108,25 @@ This runbook defines procedures for responding to security incidents affecting O
    # Send email notification
    cat <<EOF > incident-notification.txt
    Subject: Security Incident Notification
-   
+
    Dear User,
-   
+
    We recently detected unauthorized access attempts on your account.
    As a precaution, we have:
    - Invalidated all active authentication tokens
    - Reset your password (temporary password sent separately)
    - Enabled additional security monitoring
-   
+
    Please:
    1. Change your password immediately
    2. Review recent account activity
    3. Enable multi-factor authentication
-   
+
    If you have questions, contact security@example.com
-   
+
    Security Team
    EOF
-   
+
    # Send via email provider (pseudocode)
    ./scripts/send-bulk-notification.sh --users=affected_users.txt --template=incident-notification.txt
    ```
@@ -150,7 +150,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```bash
    # Check recent delivery failures
    docker compose logs cryptoutil-sqlite | grep -i "failed to send" | tail -50
-   
+
    # Check provider status page
    curl https://status.twilio.com/api/v2/status.json
    curl https://status.sendgrid.com/api/v2/status.json
@@ -195,7 +195,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```bash
    # Check if outage triggered rate limiting false positives
    docker compose logs cryptoutil-sqlite | grep "identity.ratelimit.exceeded"
-   
+
    # Temporarily increase rate limits if users retrying due to delivery failures
    # Update config or use runtime configuration API
    ```
@@ -217,7 +217,7 @@ This runbook defines procedures for responding to security incidents affecting O
    SELECT user_id, phone_number, email, failed_attempts, last_attempt_at
    FROM delivery_failures
    WHERE last_attempt_at BETWEEN '2025-01-15 10:00:00' AND '2025-01-15 12:00:00';
-   
+
    -- Trigger manual resend (via admin API or script)
    ```
 
@@ -227,7 +227,7 @@ This runbook defines procedures for responding to security incidents affecting O
    curl -k https://127.0.0.1:8080/browser/api/v1/identity/auth/otp/initiate \
      -X POST -H "Content-Type: application/json" \
      -d '{"user_id": "test-user"}'
-   
+
    # Test email delivery
    curl -k https://127.0.0.1:8080/browser/api/v1/identity/auth/magic-link/initiate \
      -X POST -H "Content-Type: application/json" \
@@ -250,7 +250,7 @@ This runbook defines procedures for responding to security incidents affecting O
    docker compose logs cryptoutil-sqlite --since 1h | \
      grep "identity.ratelimit.exceeded" | \
      awk '{print $NF}' | sort | uniq -c | sort -rn | head -20
-   
+
    # Top users by rate limit violations
    docker compose logs cryptoutil-sqlite --since 1h | \
      grep "identity.ratelimit.exceeded" | \
@@ -262,7 +262,7 @@ This runbook defines procedures for responding to security incidents affecting O
    # Block abusive IPs at load balancer or firewall level
    # Example: iptables rule
    iptables -A INPUT -s 192.168.1.100 -j DROP
-   
+
    # Or update allowed-ips config to exclude abusive IPs
    ```
 
@@ -286,7 +286,7 @@ This runbook defines procedures for responding to security incidents affecting O
    docker compose logs cryptoutil-sqlite --since 24h | \
      grep "identity.ratelimit.exceeded" | \
      awk '{print $1, $2}' | uniq -c
-   
+
    # Identify target users (if credential stuffing)
    docker compose logs cryptoutil-sqlite --since 24h | \
      grep "invalid_otp" | \
@@ -344,11 +344,11 @@ This runbook defines procedures for responding to security incidents affecting O
    ```bash
    # PostgreSQL health
    docker compose exec postgres pg_isready -U USR -d DB
-   
+
    # Check connection count
    docker compose exec postgres psql -U USR -d DB -c \
      "SELECT count(*) FROM pg_stat_activity WHERE datname='DB';"
-   
+
    # SQLite in-memory (check container health)
    docker compose exec cryptoutil-sqlite wget --no-check-certificate -q -O - https://127.0.0.1:9090/readyz
    ```
@@ -380,7 +380,7 @@ This runbook defines procedures for responding to security incidents affecting O
    FROM pg_stat_statements
    ORDER BY mean_exec_time DESC
    LIMIT 10;
-   
+
    -- Check lock contention
    SELECT blocked_locks.pid AS blocked_pid,
           blocking_locks.pid AS blocking_pid,
@@ -403,7 +403,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```bash
    # Promote PostgreSQL replica to primary
    docker compose exec postgres-replica pg_ctl promote
-   
+
    # Update connection string to point to new primary
    ```
 
@@ -414,7 +414,7 @@ This runbook defines procedures for responding to security incidents affecting O
    FROM auth_challenges ac
    LEFT JOIN users u ON ac.user_id = u.sub
    WHERE u.sub IS NULL;
-   
+
    -- Check for expired challenges not cleaned up
    SELECT COUNT(*) FROM auth_challenges WHERE expires_at < NOW();
    ```

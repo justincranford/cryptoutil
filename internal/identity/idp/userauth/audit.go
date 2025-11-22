@@ -58,9 +58,9 @@ type TokenInvalidationEvent struct {
 
 // TelemetryAuditLogger implements AuditLogger with OpenTelemetry metrics.
 type TelemetryAuditLogger struct {
-	meterProvider      metric.MeterProvider
-	generationCounter  metric.Int64Counter
-	validationCounter  metric.Int64Counter
+	meterProvider       metric.MeterProvider
+	generationCounter   metric.Int64Counter
+	validationCounter   metric.Int64Counter
 	invalidationCounter metric.Int64Counter
 }
 

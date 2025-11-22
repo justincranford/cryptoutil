@@ -64,7 +64,6 @@ func (v *TOTPValidator) ValidateTOTPWithWindow(ctx context.Context, userID strin
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA1,
 	})
-
 	if err != nil {
 		return false, fmt.Errorf("TOTP validation failed: %w", err)
 	}
@@ -86,7 +85,6 @@ func (v *TOTPValidator) ValidateEmailOTP(ctx context.Context, userID string, cod
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA256, // More secure for email
 	})
-
 	if err != nil {
 		return false, fmt.Errorf("email OTP validation failed: %w", err)
 	}
@@ -108,7 +106,6 @@ func (v *TOTPValidator) ValidateSMSOTP(ctx context.Context, userID string, code 
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA256, // More secure for SMS
 	})
-
 	if err != nil {
 		return false, fmt.Errorf("SMS OTP validation failed: %w", err)
 	}

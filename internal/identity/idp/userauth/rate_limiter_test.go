@@ -337,11 +337,11 @@ func TestExtractIPFromContext(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		contextValues  map[string]any
-		expectedIP     string
-		expectError    bool
-		errorContains  string
+		name          string
+		contextValues map[string]any
+		expectedIP    string
+		expectError   bool
+		errorContains string
 	}{
 		{
 			name: "X-Forwarded-For single IP",
@@ -417,4 +417,3 @@ func TestExtractIPFromContext(t *testing.T) {
 		})
 	}
 }
-

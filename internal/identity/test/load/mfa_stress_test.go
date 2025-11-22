@@ -97,7 +97,7 @@ func TestMFASessionCollisions(t *testing.T) {
 	ctx := context.Background()
 
 	const (
-		parallelUpdates = 50
+		parallelUpdates   = 50
 		updatesPerSession = 10
 	)
 
@@ -151,7 +151,7 @@ func TestMFAReplayAttackSimulation(t *testing.T) {
 	ctx := context.Background()
 
 	const (
-		parallelAttacks = 50
+		parallelAttacks   = 50
 		attemptsPerAttack = 5
 	)
 
@@ -209,7 +209,7 @@ func TestMFALongRunningStress(t *testing.T) {
 	ctx := context.Background()
 
 	const (
-		testDuration = 30 * time.Second
+		testDuration    = 30 * time.Second
 		parallelWorkers = 20
 	)
 

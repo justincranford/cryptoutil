@@ -164,7 +164,7 @@ func (a *SMSOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respo
 type DefaultOTPGenerator struct{}
 
 // GenerateOTP generates a random numeric OTP of specified length.
-func (g *DefaultOTPGenerator) GenerateOTP(_ context.Context, length int) (string, error) {
+func (g *DefaultOTPGenerator) GenerateOTP(length int) (string, error) {
 	if length <= 0 {
 		return "", fmt.Errorf("invalid OTP length: %d", length)
 	}
