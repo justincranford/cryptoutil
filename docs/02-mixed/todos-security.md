@@ -2,31 +2,14 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: October 16, 2025
-**Status**: Critical OAuth 2.0 implementation planning underway. Security hardening tasks remain active.
-
 ---
 
 ## 🔴 CRITICAL - OAuth 2.0 Implementation Planning
 
 ---
 
-## ✅ RESOLVED: NVD Data Parsing Error (Dependency-Check)
-
-- **Symptom**: GitHub Actions (ci-sast.yml) or the local Java SAST `test/load` run failed with a JSON parse error from the OWASP Dependency-Check plugin when updating NVD data: "Cannot construct instance of CvssV4Data$ModifiedCiaType, problem: SAFETY".
-- **Root Cause**: The NVD feed added a new CVSSv4 field value `SAFETY` for `modifiedSubIntegrityImpact`. Older versions of the OpenVulnerability client (used by Dependency-Check 10.0.4) couldn't parse this new enum value.
-- **Resolution**:
-  - **Upgraded dependency-check-maven plugin from 10.0.4 to 12.1.9** in `test/load/pom.xml` - includes updated openvulnerability client with SAFETY enum support
-  - **Configured H2 connection string**: `jdbc:h2:file:target/dependency-check/data/dependency-check-db;DB_CLOSE_ON_EXIT=FALSE` to prevent premature database closure during concurrent NVD API processing threads
-  - **Project-local data directory**: `target/dependency-check/data` avoids ~/.m2 locking conflicts
-  - **Separated update and check steps**: CI runs `update-only` goal first (with NVD API key), then `check` goal (with `autoUpdate=false`)
-  - **Added database existence verification** in CI workflow to exit early if NVD database not populated
-  - **Database caching**: GitHub Actions caches dependency-check data directory to speed up subsequent runs
-- **Verification**: Local testing confirms 318,389 NVD records download successfully, check goal completes without errors, 223.5 MB H2 database file created
-- **Status**: ✅ COMPLETE - Working in both local dev and CI workflows
-
-
 ### Task O1: Design OAuth 2.0 Authorization Code Flow for User vs Machine Access
+
 - **Description**: Implement separate OAuth 2.0 flows for browser users vs service machines
 - **Architecture Decision**: Users get bearer tokens for `/browser/api/v1/**`, machines get tokens for `/service/api/v1/**`
 - **Current State**: Both API paths currently accessible without authentication differentiation
@@ -42,6 +25,7 @@
 - **Timeline**: Q4 2025 implementation
 
 ### Task O2: Update API Documentation for OAuth 2.0
+
 - **Description**: Update OpenAPI specs to reflect OAuth 2.0 authentication requirements
 - **Current State**: APIs currently have no authentication documented
 - **Action Items**:

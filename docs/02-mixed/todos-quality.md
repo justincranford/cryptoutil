@@ -34,22 +34,6 @@
 - **Priority**: LOW - Code maintainability improvement
 - **Note**: godox linter disabled in favor of manual tracking in this file
 
-### Task CQ3: Enable Additional Quality Linters
-
-- **Description**: Add more golangci-lint linters for enhanced code quality
-- **Current State**: Additional linters enabled incrementally
-- **Action Items**:
-  - Evaluate and enable:
-    - gocognit (cyclomatic complexity analysis)
-      - Analysis: 10 functions exceed complexity threshold of 30
-      - Files affected: config.go (1), config_test_util.go (1), certificates_server_test_util.go (1), jwe_jwk_util.go (1), jwk_util_test.go (1), jws_jwk_util.go (1), telemetry_service.go (1), application_listener.go (1), sql_provider.go (1), cicd.go (2)
-      - Highest complexity: 157 (jwk_util_test.go)
-  - Configure appropriate settings for each linter
-  - Test CI performance impact
-- **Files**: `.golangci.yml`
-- **Expected Outcome**: Enhanced code quality and consistency checks
-- **Priority**: Medium - Code quality improvement
-
 ### Task CQ4: Investigate linters for EOL/maintenance mode dependencies
 
 - **Description**: Research and evaluate tools that can detect dependencies in end-of-life or maintenance mode
