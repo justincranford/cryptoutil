@@ -1,13 +1,14 @@
 package userauth
 
 import (
-	"context"
+	"math"
 	"testing"
 	"time"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // TestRiskScenario_LowRisk tests low-risk authentication scenarios.
@@ -59,7 +60,7 @@ func TestRiskScenario_LowRisk(t *testing.T) {
 				TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, // Business hours EST.
 				LastLoginTime:     time.Now().Add(-24 * time.Hour),
 				EstablishedAt:     time.Now().Add(-90 * 24 * time.Hour), // 90 days of data.
-				EventCount:        150,                                   // Well-established baseline.
+				EventCount:        150,                                  // Well-established baseline.
 			},
 			expectedMaxScore: 0.2, // Low risk threshold.
 			expectedLevel:    RiskLevelLow,
