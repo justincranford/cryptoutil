@@ -159,7 +159,7 @@ func TestInventoryStub(t *testing.T) {
 	ctx := context.Background()
 
 	// Verify audit event would be logged.
-	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]interface{}{
+	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]any{
 		"timestamp": "2025-01-15T12:00:00Z",
 	})
 

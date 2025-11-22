@@ -171,7 +171,7 @@ func runEnroll(args []string) {
 	fmt.Printf("Created At: %s\n", credential.CreatedAt.Format(time.RFC3339))
 
 	// Audit log entry.
-	logAuditEvent(ctx, "CREDENTIAL_ENROLLED", userID.String(), credential.ID, map[string]interface{}{
+	logAuditEvent(ctx, "CREDENTIAL_ENROLLED", userID.String(), credential.ID, map[string]any{
 		"device_name":     *deviceName,
 		"credential_type": credential.Type,
 		"attestation":     credential.AttestationType,
@@ -245,7 +245,7 @@ func runList(args []string) {
 	}
 
 	// Audit log entry.
-	logAuditEvent(ctx, "CREDENTIALS_LISTED", userID.String(), "", map[string]interface{}{
+	logAuditEvent(ctx, "CREDENTIALS_LISTED", userID.String(), "", map[string]any{
 		"credential_count": len(credentials),
 		"event_category":   "access",
 		"compliance_flag":  "credential_inventory_access",
@@ -310,7 +310,7 @@ func runRevoke(args []string) {
 	fmt.Printf("Type: %s\n", credential.Type)
 
 	// Audit log entry.
-	logAuditEvent(ctx, "CREDENTIAL_REVOKED", credential.UserID, credential.ID, map[string]interface{}{
+	logAuditEvent(ctx, "CREDENTIAL_REVOKED", credential.UserID, credential.ID, map[string]any{
 		"device_name":     deviceName,
 		"credential_type": credential.Type,
 		"sign_count":      credential.SignCount,
@@ -413,7 +413,7 @@ func runRenew(args []string) {
 	fmt.Printf("Type: %s\n", newCredential.Type)
 
 	// Audit log entry.
-	logAuditEvent(ctx, "CREDENTIAL_RENEWED", credential.UserID, newCredential.ID, map[string]interface{}{
+	logAuditEvent(ctx, "CREDENTIAL_RENEWED", credential.UserID, newCredential.ID, map[string]any{
 		"old_credential_id": credential.ID,
 		"new_credential_id": newCredential.ID,
 		"old_device_name":   oldDeviceName,
@@ -455,7 +455,7 @@ func runInventory(args []string) {
 	fmt.Println()
 
 	// Audit log entry.
-	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]interface{}{
+	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]any{
 		"timestamp":       time.Now().Format(time.RFC3339),
 		"event_category":  "access",
 		"compliance_flag": "hardware_credential_inventory",
@@ -497,6 +497,6 @@ func parseCredentialType(typeStr string) cryptoutilIdentityORM.CredentialType {
 }
 
 // logAuditEvent logs hardware credential lifecycle events for compliance traceability.
-func logAuditEvent(ctx context.Context, eventType, userID, credentialID string, metadata map[string]interface{}) {
+func logAuditEvent(ctx context.Context, eventType, userID, credentialID string, metadata map[string]any) {
 	log.Printf("[AUDIT] Event: %s | User: %s | Credential: %s | Metadata: %+v", eventType, userID, credentialID, metadata)
 }

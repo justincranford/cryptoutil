@@ -289,7 +289,7 @@ func TestLogAuditEvent(t *testing.T) {
 
 	// Note: Actual log output capture requires redirecting stdout/stderr.
 	// This test validates that logAuditEvent doesn't panic.
-	logAuditEvent(ctx, "TEST_EVENT", "user-123", "cred-456", map[string]interface{}{
+	logAuditEvent(ctx, "TEST_EVENT", "user-123", "cred-456", map[string]any{
 		"test_key": "test_value",
 	})
 }

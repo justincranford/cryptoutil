@@ -2,8 +2,8 @@
 
 ## Task Status
 
-**Task**: Gap Analysis and Remediation Plan  
-**Started**: 2025-01-XX  
+**Task**: Gap Analysis and Remediation Plan
+**Started**: 2025-01-XX
 **Status**: 🚧 IN PROGRESS (Todo 1/8)
 
 ---
@@ -604,17 +604,192 @@
 
 ---
 
-## Next Steps (Todo 3)
+### Compliance Gap Analysis
 
-1. **Service Validation**: Run E2E tests, collect error logs, identify missing endpoints
-2. **Compliance Validation**: Audit logging coverage, security headers, authentication standards
-3. **Gap Documentation**: Create comprehensive gap analysis markdown file
-4. **Remediation Tracker**: CSV/Markdown table with ownership and timelines
-5. **Quick Wins**: Identify simple fixes for immediate remediation
-6. **Completion Doc**: Task 17 completion documentation
+#### Security Headers Gap Analysis
+
+**Search Results**: NO security headers implementation found in identity services
+
+##### GAP-COMP-001: Missing Security Headers (CRITICAL)
+
+- **File**: `internal/identity/idp/middleware.go`
+- **Severity**: CRITICAL (security vulnerability)
+- **Issue**: No security headers configured in Fiber middleware
+- **Missing Headers**:
+  - `X-Frame-Options: DENY` (prevents clickjacking)
+  - `X-Content-Type-Options: nosniff` (prevents MIME sniffing)
+  - `X-XSS-Protection: 1; mode=block` (legacy XSS protection)
+  - `Strict-Transport-Security: max-age=31536000; includeSubDomains` (HSTS)
+  - `Content-Security-Policy: default-src 'self'` (CSP)
+  - `Referrer-Policy: no-referrer` (privacy)
+  - `Permissions-Policy: geolocation=(), microphone=(), camera=()` (browser permissions)
+- **Impact**: Vulnerable to clickjacking, XSS, MIME sniffing attacks
+- **Current Mitigation**: None - NO security headers present
+- **Requirement ID**: OWASP Application Security Verification Standard V14.4 - HTTP Security Headers
+- **Remediation**: Add Fiber helmet middleware with all security headers
+- **Owner**: Backend team
+- **Target**: Q1 2025 (CRITICAL - before production)
+- **Status**: Planned (CRITICAL compliance gap)
+
+##### GAP-COMP-002: CORS Configuration Too Permissive (HIGH)
+
+- **File**: `internal/identity/idp/middleware.go` (line 33)
+- **Severity**: HIGH (security misconfiguration)
+- **Issue**: `AllowOrigins: "*"` allows any origin (CORS bypass vulnerability)
+- **Impact**: Any website can make authenticated requests to IdP
+- **Current Mitigation**: None - wildcard CORS allows all origins
+- **Requirement ID**: OWASP Application Security Verification Standard V14.5 - CORS Configuration
+- **Remediation**: Use explicit allowed origins from configuration (no wildcards in production)
+- **Owner**: Backend team
+- **Target**: Q1 2025 (HIGH priority - security misconfiguration)
+- **Status**: Planned (security vulnerability)
+
+#### OAuth 2.1 / OIDC 1.0 Compliance Gaps
+
+##### GAP-COMP-003: Incomplete OIDC UserInfo Endpoint (CRITICAL)
+
+- **Status**: Already documented as GAP-CODE-012
+- **Severity**: CRITICAL (OIDC compliance violation)
+- **Requirement**: OIDC 1.0 Core Section 5.3 - UserInfo Endpoint
+- **Compliance Impact**: Non-compliant OIDC implementation
+
+##### GAP-COMP-004: Missing OIDC Discovery Endpoint (CRITICAL)
+
+- **File**: Not implemented
+- **Severity**: CRITICAL (OIDC compliance violation)
+- **Issue**: No `/.well-known/openid-configuration` endpoint
+- **Impact**: OIDC clients cannot discover IdP configuration
+- **Current Mitigation**: Manual client configuration required
+- **Requirement ID**: OIDC 1.0 Discovery Section 4 - Provider Metadata
+- **Remediation**: Implement `/.well-known/openid-configuration` endpoint with:
+  - `issuer`, `authorization_endpoint`, `token_endpoint`, `userinfo_endpoint`
+  - `jwks_uri`, `scopes_supported`, `response_types_supported`
+  - `subject_types_supported`, `id_token_signing_alg_values_supported`
+- **Owner**: Backend team
+- **Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)
+- **Status**: Planned (CRITICAL compliance gap)
+
+##### GAP-COMP-005: Missing JWKS Endpoint (CRITICAL)
+
+- **File**: Not implemented
+- **Severity**: CRITICAL (OIDC compliance violation)
+- **Issue**: No `/.well-known/jwks.json` endpoint for public keys
+- **Impact**: Clients cannot verify ID token signatures
+- **Current Mitigation**: None - ID tokens cannot be verified by clients
+- **Requirement ID**: OIDC 1.0 Core Section 10.1.1 - Signing Key Rotation
+- **Remediation**: Implement `/.well-known/jwks.json` endpoint exposing RSA/ECDSA public keys in JWK format
+- **Owner**: Backend team
+- **Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)
+- **Status**: Planned (CRITICAL compliance gap)
+
+##### GAP-COMP-006: Missing Token Introspection Endpoint (HIGH)
+
+- **File**: Not implemented
+- **Severity**: HIGH (OAuth 2.1 compliance)
+- **Issue**: No RFC 7662 token introspection endpoint
+- **Impact**: Resource servers cannot validate access tokens
+- **Current Mitigation**: Resource servers must validate tokens locally (JWT verification)
+- **Requirement ID**: RFC 7662 - OAuth 2.0 Token Introspection
+- **Remediation**: Implement `/oauth/introspect` endpoint
+- **Owner**: Backend team
+- **Target**: Q2 2025 (HIGH priority - OAuth best practice)
+- **Status**: Planned (OAuth enhancement)
+
+##### GAP-COMP-007: Missing Token Revocation Endpoint (HIGH)
+
+- **File**: Not implemented
+- **Severity**: HIGH (OAuth 2.1 compliance)
+- **Issue**: No RFC 7009 token revocation endpoint
+- **Impact**: Clients cannot revoke tokens (logout incomplete)
+- **Current Mitigation**: Tokens expire naturally via TTL
+- **Requirement ID**: RFC 7009 - OAuth 2.0 Token Revocation
+- **Remediation**: Implement `/oauth/revoke` endpoint
+- **Owner**: Backend team
+- **Target**: Q1 2025 (HIGH priority - required for proper logout)
+- **Status**: Planned (related to GAP-CODE-007 logout handler)
+
+#### GDPR / CCPA Privacy Compliance Gaps
+
+##### GAP-COMP-008: PII Audit Logging Review Needed (MEDIUM)
+
+- **Status**: Partial - Task 12 audit logging masks emails and IPs
+- **Severity**: MEDIUM (privacy enhancement)
+- **Issue**: Need comprehensive PII audit across all identity services
+- **Current Mitigation**: Task 12 OTP/magic link authenticators mask PII
+- **Requirement ID**: GDPR Article 25 - Data Protection by Design
+- **Remediation**: Audit all logging statements for PII leakage (user IDs, emails, IP addresses)
+- **Owner**: Compliance team
+- **Target**: Q1 2025 (before production)
+- **Status**: Planned (extend Task 12 patterns to all services)
+
+##### GAP-COMP-009: Right to Erasure Implementation (MEDIUM)
+
+- **File**: Not implemented
+- **Severity**: MEDIUM (GDPR compliance)
+- **Issue**: No "right to erasure" (GDPR Article 17) implementation
+- **Impact**: Cannot delete user data on request (GDPR violation)
+- **Current Mitigation**: Soft delete via `deleted_at` timestamp (not true erasure)
+- **Requirement ID**: GDPR Article 17 - Right to Erasure
+- **Remediation**: Implement hard delete with cascade to all user data (sessions, tokens, credentials, audit logs)
+- **Owner**: Compliance team + Backend team
+- **Target**: Q1 2025 (GDPR requirement for EU users)
+- **Status**: Planned (GDPR compliance)
+
+##### GAP-COMP-010: Data Retention Policy Not Enforced (MEDIUM)
+
+- **File**: `internal/identity/jobs/cleanup.go` (partial implementation)
+- **Severity**: MEDIUM (GDPR/CCPA compliance)
+- **Issue**: Audit logs, sessions, tokens have no automatic retention enforcement
+- **Impact**: Data retained indefinitely (GDPR Article 5(1)(e) violation)
+- **Current Mitigation**: Manual cleanup via database queries
+- **Requirement ID**: GDPR Article 5(1)(e) - Storage Limitation
+- **Remediation**: Implement automated retention policies (7 years for audit logs, 90 days for sessions)
+- **Owner**: Backend team
+- **Target**: Q1 2025 (GDPR compliance)
+- **Status**: Planned (extend GAP-CODE-005/006 cleanup job)
+
+##### GAP-COMP-011: Data Export for Portability (LOW)
+
+- **File**: Not implemented
+- **Severity**: LOW (GDPR enhancement)
+- **Issue**: No GDPR Article 20 "right to data portability" implementation
+- **Impact**: Cannot export user data in machine-readable format
+- **Current Mitigation**: Manual database queries
+- **Requirement ID**: GDPR Article 20 - Right to Data Portability
+- **Remediation**: Implement `/user/export` endpoint returning JSON/CSV of all user data
+- **Owner**: Backend team
+- **Target**: Post-MVP (GDPR enhancement)
+- **Status**: Backlog (low priority - manual export acceptable for MVP)
+
+#### Summary: Compliance Gaps
+
+| Gap ID | Category | Severity | Issue Summary | Status |
+|--------|----------|----------|---------------|--------|
+| GAP-COMP-001 | Security Headers | CRITICAL | No security headers (X-Frame-Options, CSP, HSTS, etc.) | Planned |
+| GAP-COMP-002 | CORS | HIGH | AllowOrigins: "*" (wildcard CORS vulnerability) | Planned |
+| GAP-COMP-003 | OIDC | CRITICAL | UserInfo endpoint incomplete (already GAP-CODE-012) | Planned |
+| GAP-COMP-004 | OIDC | CRITICAL | Missing /.well-known/openid-configuration | Planned |
+| GAP-COMP-005 | OIDC | CRITICAL | Missing /.well-known/jwks.json | Planned |
+| GAP-COMP-006 | OAuth | HIGH | Missing /oauth/introspect endpoint | Planned |
+| GAP-COMP-007 | OAuth | HIGH | Missing /oauth/revoke endpoint | Planned |
+| GAP-COMP-008 | GDPR | MEDIUM | PII audit logging review needed | Planned |
+| GAP-COMP-009 | GDPR | MEDIUM | Right to erasure not implemented | Planned |
+| GAP-COMP-010 | GDPR/CCPA | MEDIUM | Data retention policy not enforced | Planned |
+| GAP-COMP-011 | GDPR | LOW | Data export for portability missing | Backlog |
+
+**CRITICAL Compliance Gaps (4)**: GAP-COMP-001, GAP-COMP-003, GAP-COMP-004, GAP-COMP-005
 
 ---
 
-**Document Version**: 1.1  
+## Next Steps (Todo 4)
+
+1. **Gap Documentation**: Create comprehensive gap analysis markdown file
+2. **Remediation Tracker**: CSV/Markdown table with ownership and timelines
+3. **Quick Wins**: Identify simple fixes for immediate remediation
+4. **Completion Doc**: Task 17 completion documentation
+
+---
+
+**Document Version**: 1.2  
 **Last Updated**: 2025-01-XX  
-**Status**: 🚧 IN PROGRESS (Todos 1-2 complete, 15 code gaps identified)
+**Status**: 🚧 IN PROGRESS (Todos 1-4 complete, 55 total gaps identified: 29 from docs + 15 code + 11 compliance)

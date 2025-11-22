@@ -14,8 +14,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
 // MFATelemetry provides observability instrumentation for MFA operations.
@@ -30,9 +28,9 @@ type MFATelemetry struct {
 }
 
 // NewMFATelemetry creates MFA telemetry instrumentation.
-func NewMFATelemetry(svc *cryptoutilTelemetry.TelemetryService) (*MFATelemetry, error) {
-	meter := svc.MetricsProvider.Meter("identity.idp.auth.mfa")
-	tracer := svc.TracesProvider.Tracer("identity.idp.auth.mfa")
+func NewMFATelemetry(logger *slog.Logger, metricsProvider metric.MeterProvider, tracesProvider trace.TracerProvider) (*MFATelemetry, error) {
+	meter := metricsProvider.Meter("identity.idp.auth.mfa")
+	tracer := tracesProvider.Tracer("identity.idp.auth.mfa")
 
 	validationCounter, err := meter.Int64Counter(
 		"mfa.validation.total",
@@ -80,7 +78,7 @@ func NewMFATelemetry(svc *cryptoutilTelemetry.TelemetryService) (*MFATelemetry, 
 	}
 
 	return &MFATelemetry{
-		logger:                  svc.Slogger,
+		logger:                  logger,
 		tracer:                  tracer,
 		validationCounter:       validationCounter,
 		validationDuration:      validationDuration,

@@ -19,7 +19,7 @@ func TestNewWebAuthnCredentialRepository(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		db                interface{}
+		db                any
 		wantError         bool
 		wantErrorContains string
 	}{
