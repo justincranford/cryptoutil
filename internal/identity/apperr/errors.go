@@ -77,7 +77,7 @@ var (
 	ErrKeyGenerationFailed = NewIdentityError("key_generation_failed", "Key generation failed", http.StatusInternalServerError, nil)
 
 	// Credential errors.
-	ErrCredentialNotFound = NewIdentityError("credential_not_found", "Credential not found", http.StatusNotFound, nil)
+	ErrCredentialNotFound   = NewIdentityError("credential_not_found", "Credential not found", http.StatusNotFound, nil)
 	ErrAuthenticationFailed = NewIdentityError("authentication_failed", "Authentication failed", http.StatusUnauthorized, nil)
 
 	// Session errors.

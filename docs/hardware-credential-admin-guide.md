@@ -412,7 +412,7 @@ ykman piv change-pin
    ```bash
    # Linux
    systemctl restart pcscd
-   
+
    # Windows
    Restart-Service -Name "Smart Card"
    ```

@@ -257,11 +257,11 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		userID        string
-		setupCreds    []*Credential
-		wantCount     int
-		wantError     bool
+		name       string
+		userID     string
+		setupCreds []*Credential
+		wantCount  int
+		wantError  bool
 	}{
 		{
 			name:   "get user with multiple credentials succeeds",

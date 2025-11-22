@@ -74,20 +74,20 @@
 
 **THE FATAL MISTAKE REPEATED 34 TIMES: Providing ANY text after tool calls**
 
-**ABSOLUTE RULE**: 
+**ABSOLUTE RULE**:
 - **NEVER provide text responses during continuous work** - The section title "Chat Responses" is itself misleading
 - **Tool calls ONLY** - No explanations, no status, no summaries, no "I'm now doing X", no acknowledgments
 - **The ONLY exception**: User EXPLICITLY requests summary with words: "summarize", "explain", "what have you done", "status update"
 
 **What "ZERO TEXT" actually means**:
 - ❌ WRONG: commit → "Now implementing WebAuthn..." → [creates file]
-- ❌ WRONG: commit → "Todo 1 complete, starting Todo 2" → [creates file]  
+- ❌ WRONG: commit → "Todo 1 complete, starting Todo 2" → [creates file]
 - ❌ WRONG: commit → [ANY characters of text] → [tool call]
 - ✅ RIGHT: commit → [IMMEDIATE create_file, ZERO characters between]
 - ✅ RIGHT: create_file → [IMMEDIATE run_in_terminal, ZERO characters between]
 
 **If you type ANYTHING between tool calls, you have VIOLATED this rule**:
-- Not even "Continuing..." 
+- Not even "Continuing..."
 - Not even a blank line
 - Not even acknowledging the user
 - Just invoke the next tool IMMEDIATELY

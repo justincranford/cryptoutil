@@ -142,7 +142,7 @@ This document provides comprehensive browser and platform compatibility informat
 ### Strategy 1: Feature Detection with Graceful Degradation
 
 ```javascript
-if (window.PublicKeyCredential && 
+if (window.PublicKeyCredential &&
     PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
     // WebAuthn supported, check for platform authenticator
     PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()

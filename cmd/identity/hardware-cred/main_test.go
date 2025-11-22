@@ -21,11 +21,11 @@ func TestEnrollCommand(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		args        []string
-		wantErr     bool
-		wantUserID  string
-		wantDevice  string
+		name         string
+		args         []string
+		wantErr      bool
+		wantUserID   string
+		wantDevice   string
 		wantCredType string
 	}{
 		{
@@ -170,9 +170,9 @@ func TestRevokeCommand(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		args           []string
-		wantErr        bool
+		name             string
+		args             []string
+		wantErr          bool
 		wantCredentialID string
 	}{
 		{

@@ -104,7 +104,7 @@ func TestWebAuthnIntegration_CredentialLifecycle(t *testing.T) {
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       5*time.Minute,
+		Timeout:       5 * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -179,7 +179,7 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       5*time.Minute,
+		Timeout:       5 * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -257,7 +257,7 @@ func TestWebAuthnIntegration_ReplayAttackPrevention(t *testing.T) {
 		RPID:          "example.com",
 		RPDisplayName: "Example Corp",
 		RPOrigins:     []string{"https://example.com"},
-		Timeout:       5*time.Minute,
+		Timeout:       5 * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)

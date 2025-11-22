@@ -85,8 +85,8 @@ func TestValidateAuthentication(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name           string
-		authFunc       func(context.Context) error
+		name            string
+		authFunc        func(context.Context) error
 		wantErrContains string
 	}{
 		{

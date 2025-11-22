@@ -372,39 +372,39 @@ Package compiles successfully (pre-existing test file errors unrelated to Task 1
 ## Commit History
 
 ### Commit 1: CLI Enrollment Tool
-**Commit**: `70b6cafe`  
-**Message**: `feat(identity): add hardware credential CLI for enrollment, listing, and revocation with audit logging (Task 15 Todo 1)`  
-**Files**: `cmd/identity/hardware-cred/main.go` (334 lines)  
+**Commit**: `70b6cafe`
+**Message**: `feat(identity): add hardware credential CLI for enrollment, listing, and revocation with audit logging (Task 15 Todo 1)`
+**Files**: `cmd/identity/hardware-cred/main.go` (334 lines)
 **Summary**: Initial CLI implementation with enroll/list/revoke commands
 
 ### Commit 2: CLI Tests
-**Commit**: `54c9319c`  
-**Message**: `test(identity): add comprehensive CLI tests for hardware credential enrollment tool (Task 15 Todo 1)`  
-**Files**: `cmd/identity/hardware-cred/main_test.go` (303 lines)  
+**Commit**: `54c9319c`
+**Message**: `test(identity): add comprehensive CLI tests for hardware credential enrollment tool (Task 15 Todo 1)`
+**Files**: `cmd/identity/hardware-cred/main_test.go` (303 lines)
 **Summary**: Unit tests for CLI flag parsing and validation
 
 ### Commit 3: Lifecycle Management CLI
-**Commit**: `5064a806`  
-**Message**: `feat(identity): add hardware credential lifecycle management CLI with renewal and inventory commands (Task 15 Todo 2)`  
-**Files**: `cmd/identity/hardware-cred/main.go` (updated to 463 lines), `cmd/identity/hardware-cred/lifecycle_test.go` (164 lines)  
+**Commit**: `5064a806`
+**Message**: `feat(identity): add hardware credential lifecycle management CLI with renewal and inventory commands (Task 15 Todo 2)`
+**Files**: `cmd/identity/hardware-cred/main.go` (updated to 463 lines), `cmd/identity/hardware-cred/lifecycle_test.go` (164 lines)
 **Summary**: Added renew/inventory commands with tests
 
 ### Commit 4: Hardware Error Validation
-**Commit**: `721d5923`  
-**Message**: `feat(identity): add hardware authentication error validation with timeout, retry, and device monitoring (Task 15 Todo 3)`  
-**Files**: `internal/identity/idp/userauth/hardware_error_validation.go` (231 lines), `internal/identity/idp/userauth/hardware_error_validation_test.go` (312 lines), `internal/identity/apperr/errors.go` (1 line)  
+**Commit**: `721d5923`
+**Message**: `feat(identity): add hardware authentication error validation with timeout, retry, and device monitoring (Task 15 Todo 3)`
+**Files**: `internal/identity/idp/userauth/hardware_error_validation.go` (231 lines), `internal/identity/idp/userauth/hardware_error_validation_test.go` (312 lines), `internal/identity/apperr/errors.go` (1 line)
 **Summary**: Timeout handling, retry logic, device monitoring, error classification
 
 ### Commit 5: Administrator Guide
-**Commit**: `ae6bb3de`  
-**Message**: `docs(identity): add comprehensive hardware credential administrator guide (Task 15 Todo 4)`  
-**Files**: `docs/hardware-credential-admin-guide.md` (527 lines)  
+**Commit**: `ae6bb3de`
+**Message**: `docs(identity): add comprehensive hardware credential administrator guide (Task 15 Todo 4)`
+**Files**: `docs/hardware-credential-admin-guide.md` (527 lines)
 **Summary**: Day-0 provisioning, break-glass recovery, troubleshooting, compliance
 
 ### Commit 6: Audit Trail Enhancements
-**Commit**: `c92454cf`  
-**Message**: `feat(identity): enhance audit logging with event categories and compliance flags for hardware credential operations (Task 15 Todo 5)`  
-**Files**: `cmd/identity/hardware-cred/main.go` (11 lines changed)  
+**Commit**: `c92454cf`
+**Message**: `feat(identity): enhance audit logging with event categories and compliance flags for hardware credential operations (Task 15 Todo 5)`
+**Files**: `cmd/identity/hardware-cred/main.go` (11 lines changed)
 **Summary**: Added `event_category` and `compliance_flag` to all audit events
 
 ---

@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"time"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -122,10 +122,10 @@ func NewWebAuthnAuthenticator(
 
 	// Create WebAuthn instance.
 	wconfig := &webauthn.Config{
-		RPID:                   config.RPID,
-		RPDisplayName:          config.RPDisplayName,
-		RPOrigins:              config.RPOrigins,
-		AttestationPreference:  protocol.PreferNoAttestation,
+		RPID:                  config.RPID,
+		RPDisplayName:         config.RPDisplayName,
+		RPOrigins:             config.RPOrigins,
+		AttestationPreference: protocol.PreferNoAttestation,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			RequireResidentKey: protocol.ResidentKeyNotRequired(),
 			ResidentKey:        protocol.ResidentKeyRequirementDiscouraged,
@@ -384,11 +384,11 @@ func (w *WebAuthnAuthenticator) InitiateAuth(ctx context.Context, userID string)
 		Method:    "passkey_webauthn",
 		ExpiresAt: time.Now().Add(w.config.Timeout),
 		Metadata: map[string]any{
-			"session_data":          session.Challenge,
-			"operation":             "authentication",
-			"user_handle":           session.UserID,
+			"session_data":           session.Challenge,
+			"operation":              "authentication",
+			"user_handle":            session.UserID,
 			"allowed_credential_ids": session.AllowedCredentialIDs,
-			"assertion":             assertion,
+			"assertion":              assertion,
 		},
 	}
 

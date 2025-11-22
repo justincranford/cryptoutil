@@ -1,0 +1,390 @@
+# Task 17: Gap Analysis and Remediation Plan - Progress Tracker
+
+## Task Status
+
+**Task**: Gap Analysis and Remediation Plan  
+**Started**: 2025-01-XX  
+**Status**: 🚧 IN PROGRESS (Todo 1/8)
+
+---
+
+## Gaps Identified from Task Completion Documentation
+
+### Task 12: OTP and Magic Link Services - Identified Gaps
+
+#### Known Limitations (from Task 12 Completion Doc)
+
+**GAP-12-001: In-Memory Rate Limiting (CRITICAL)**
+- **Severity**: HIGH
+- **Issue**: Rate limit state resets on service restart, allowing attackers to bypass limits
+- **Impact**: Attacker could restart brute force attack after service restart
+- **Current Mitigation**: Database-backed rate limit store (implemented but not used in tests)
+- **Requirement ID**: Task 12 - Rate Limiting (NIST SP 800-63B Section 5.2.2)
+- **Remediation**: Switch to PostgreSQL-backed rate limit store in production deployments
+- **Owner**: Backend team
+- **Target**: Task 18 (Docker Compose orchestration)
+- **Status**: Deferred (acceptable for development/testing)
+
+**GAP-12-002: No Automatic Provider Failover (MEDIUM)**
+- **Severity**: MEDIUM
+- **Issue**: SMS/email provider outage requires manual failover
+- **Impact**: Partial authentication outage during provider downtime
+- **Current Mitigation**: Runbook documents manual failover procedure (<20 min)
+- **Requirement ID**: Task 12 - High Availability
+- **Remediation**: Implement automatic provider health checks + failover
+- **Owner**: SRE team
+- **Target**: Task 13 (covered by adaptive auth monitoring)
+- **Status**: Deferred (manual failover acceptable for MVP)
+
+**GAP-12-003: No Token Refresh (LOW)**
+- **Severity**: LOW
+- **Issue**: User must request new OTP/magic link if first expires
+- **Impact**: UX friction (user frustration if token expires during entry)
+- **Current Mitigation**: Generous expiration windows (15 min OTP, 30 min magic link)
+- **Requirement ID**: Task 12 - User Experience
+- **Remediation**: Token refresh endpoint (extend expiration once, prevent abuse)
+- **Owner**: Product team
+- **Target**: Post-MVP (user research needed to validate demand)
+- **Status**: Backlog (low priority - no customer complaints)
+
+**GAP-12-004: No Multi-Region Support (MEDIUM)**
+- **Severity**: MEDIUM
+- **Issue**: All services in single region, no geographic failover
+- **Impact**: Regional outage causes global authentication downtime
+- **Current Mitigation**: Runbook documents disaster recovery procedures
+- **Requirement ID**: Task 12 - Business Continuity
+- **Remediation**: Multi-region deployment with health-based routing
+- **Owner**: Infrastructure team
+- **Target**: Task 18 (Docker Compose orchestration suite)
+- **Status**: Deferred (single-region acceptable for MVP)
+
+#### Future Enhancements (Task 12)
+
+**GAP-12-005: Device Fingerprinting (Task 13)**
+- **Type**: Enhancement (Task 13 dependency)
+- **Description**: Risk scoring with device fingerprinting, IP reputation, behavioral analysis
+- **Status**: ✅ COMPLETE (Task 13 implemented adaptive auth with device/location/network risk)
+
+**GAP-12-006: WebAuthn Integration (Task 14)**
+- **Type**: Enhancement (Task 14 dependency)
+- **Description**: WebAuthn as fallback for OTP failures, biometric authentication
+- **Status**: ✅ COMPLETE (Task 14 implemented WebAuthn/FIDO2)
+
+**GAP-12-007: Hardware Credential Support (Task 15)**
+- **Type**: Enhancement (Task 15 dependency)
+- **Description**: Smart card integration, YubiKey OTP, TPM integration
+- **Status**: ✅ COMPLETE (Task 15 implemented hardware credential CLI + error validation)
+
+**GAP-12-008: PostgreSQL-backed Rate Limiting (Task 18)**
+- **Type**: Infrastructure (Task 18 dependency)
+- **Description**: Persistent rate limit state, Redis caching, multi-service health checks
+- **Status**: ⏹️ PENDING (Task 18 not started)
+
+**GAP-12-009: Integration Testing Fabric (Task 19)**
+- **Type**: Testing (Task 19 dependency)
+- **Description**: HTTP API tests, real provider integration (Twilio/SendGrid staging), load testing
+- **Status**: ⏹️ PENDING (Task 19 not started)
+
+---
+
+### Task 13: Adaptive Authentication Engine - Identified Gaps
+
+#### Future Improvements (from Task 13 Completion Doc)
+
+**GAP-13-001: Machine Learning Risk Scoring (ENHANCEMENT)**
+- **Severity**: LOW (enhancement)
+- **Issue**: Static risk weights vs ML-based dynamic scoring
+- **Impact**: Higher false positive rate (8.5% current vs <5% target)
+- **Current Mitigation**: Simulation CLI allows policy tuning without ML
+- **Requirement ID**: Task 13 - Adaptive Authentication Accuracy
+- **Remediation**: Replace static weights with gradient boosting/logistic regression
+- **Owner**: Data science team
+- **Target**: Post-MVP (requires 6 months historical data for training)
+- **Status**: Backlog (static weights sufficient for MVP)
+
+**GAP-13-002: User Feedback Loop (ENHANCEMENT)**
+- **Severity**: LOW (enhancement)
+- **Issue**: No mechanism to collect user feedback on step-up prompts
+- **Impact**: Cannot measure user perception of false positives
+- **Current Mitigation**: 8.5% false positive rate acceptable per NIST 800-63B
+- **Requirement ID**: Task 13 - User Experience
+- **Remediation**: Add "Was this step-up necessary?" prompt in UI
+- **Owner**: Product team
+- **Target**: Post-MVP (requires UX research + UI changes)
+- **Status**: Backlog (data-driven tuning sufficient for MVP)
+
+**GAP-13-003: Geo Velocity Detection (ENHANCEMENT)**
+- **Severity**: MEDIUM (security improvement)
+- **Issue**: Simplistic impossible travel detection (lat/lon distance only)
+- **Impact**: Misses edge cases (trans-Atlantic flights, VPN hops)
+- **Current Mitigation**: 25% risk weight for new location sufficient for most cases
+- **Requirement ID**: Task 13 - Location-based Risk Assessment
+- **Remediation**: Implement flight route database for realistic travel time calculations
+- **Owner**: Backend team
+- **Target**: Post-MVP (requires third-party flight data API)
+- **Status**: Backlog (low priority - current detection works for 95% of cases)
+
+**GAP-13-004: Device Fingerprinting Enhancement (ENHANCEMENT)**
+- **Severity**: MEDIUM (security improvement)
+- **Issue**: Basic device fingerprinting (user agent string only)
+- **Impact**: Attackers can spoof user agent to bypass device risk scoring
+- **Current Mitigation**: 22% risk weight for new device + VPN detection
+- **Requirement ID**: Task 13 - Device-based Risk Assessment
+- **Remediation**: Add browser fingerprinting (FingerprintJS, Canvas fingerprinting)
+- **Owner**: Backend team
+- **Target**: Post-MVP (privacy implications require legal review)
+- **Status**: Backlog (privacy concerns outweigh security benefit for MVP)
+
+**GAP-13-005: Behavioral Time-Series Modeling (ENHANCEMENT)**
+- **Severity**: LOW (enhancement)
+- **Issue**: No long-term behavioral modeling (patterns over weeks/months)
+- **Impact**: Cannot detect slow-drift behavioral changes (compromised accounts)
+- **Current Mitigation**: 15% risk weight for unusual time + event count thresholds
+- **Requirement ID**: Task 13 - Behavioral Analytics
+- **Remediation**: Build time-series models for typical user behavior patterns
+- **Owner**: Data science team
+- **Target**: Post-MVP (requires historical data + ML infrastructure)
+- **Status**: Backlog (static policies sufficient for MVP)
+
+---
+
+### Task 14: WebAuthn/FIDO2 - Identified Gaps
+
+#### Future Enhancements (from Task 14 Completion Doc)
+
+**GAP-14-001: Passkey Sync Support (ENHANCEMENT)**
+- **Severity**: MEDIUM (UX improvement)
+- **Issue**: No support for passkey sync across devices (iCloud Keychain, Google Password Manager)
+- **Impact**: Users must manually re-register credentials on each device
+- **Current Mitigation**: Users can register multiple credentials (desktop + mobile)
+- **Requirement ID**: Task 14 - WebAuthn Level 3 Features
+- **Remediation**: Update WebAuthn config to support resident keys (passkeys)
+- **Owner**: Backend team
+- **Target**: Q2 2025 (Phase 1)
+- **Status**: Planned (roadmap item)
+
+**GAP-14-002: QR Code Cross-Device Authentication (ENHANCEMENT)**
+- **Severity**: LOW (UX improvement)
+- **Issue**: No desktop-to-mobile authentication flow (QR code scanning)
+- **Impact**: Desktop users without platform authenticator must use OTP fallback
+- **Current Mitigation**: OTP/magic link fallback available
+- **Requirement ID**: Task 14 - Cross-Device Authentication
+- **Remediation**: Implement desktop QR code + mobile WebAuthn ceremony
+- **Owner**: Full-stack team
+- **Target**: Q3 2025 (Phase 2)
+- **Status**: Planned (roadmap item)
+
+**GAP-14-003: Conditional UI Integration (ENHANCEMENT)**
+- **Severity**: LOW (UX improvement)
+- **Issue**: No browser autofill integration for credential selection
+- **Impact**: Users must manually select credentials from browser UI
+- **Current Mitigation**: Standard WebAuthn credential picker works
+- **Requirement ID**: Task 14 - WebAuthn Level 3 Conditional UI
+- **Remediation**: Use browser's native credential picker UI (autofill)
+- **Owner**: Frontend team
+- **Target**: Q4 2025 (Phase 3)
+- **Status**: Planned (requires WebAuthn Level 3 browser support)
+
+**GAP-14-004: Enterprise Features (ENHANCEMENT)**
+- **Severity**: MEDIUM (enterprise requirement)
+- **Issue**: No Azure AD/Okta integration for enterprise WebAuthn deployments
+- **Impact**: Enterprise customers must manage credentials separately
+- **Current Mitigation**: Manual credential enrollment via CLI/UI
+- **Requirement ID**: Task 14 - Enterprise Integration
+- **Remediation**: Azure AD integration (Windows Hello for Business), Okta FIDO2
+- **Owner**: Integration team
+- **Target**: 2026 (Phase 4)
+- **Status**: Backlog (enterprise customers not target for MVP)
+
+**GAP-14-005: Advanced Security Features (ENHANCEMENT)**
+- **Severity**: MEDIUM (security improvement)
+- **Issue**: No credential backup state detection, multi-credential enforcement
+- **Impact**: Users at risk of account lockout if single credential lost
+- **Current Mitigation**: Documentation recommends registering ≥2 credentials
+- **Requirement ID**: Task 14 - Account Recovery
+- **Remediation**: Detect backup state, enforce multi-credential policies
+- **Owner**: Backend team
+- **Target**: 2026 (Phase 5)
+- **Status**: Backlog (documentation sufficient for MVP)
+
+**GAP-14-006: Mock Integration Test Helpers (TESTING)**
+- **Severity**: MEDIUM (testing coverage)
+- **Issue**: Incomplete integration test mocks (CBOR encoding, cryptographic signing)
+- **Impact**: Cannot test complete registration/authentication flows without real authenticators
+- **Current Mitigation**: Unit tests cover core logic, database integration tests validate storage
+- **Requirement ID**: Task 14 - Testing Coverage
+- **Remediation**: Create mock helpers for CBOR encoding, public key generation, signature creation
+- **Owner**: QA team
+- **Target**: Q1 2025 (before Task 19 E2E tests)
+- **Status**: In-progress (partial mocks exist in webauthn_integration_test.go)
+
+---
+
+### Task 15: Hardware Credential Support - Identified Gaps
+
+#### Skipped Deliverables (from Task 15 Completion Doc)
+
+**GAP-15-001: Integration Testing Skipped (TESTING)**
+- **Severity**: MEDIUM (testing coverage)
+- **Issue**: Todo 6 (integration testing) marked SKIPPED - no mocks for hardware credential operations
+- **Impact**: Cannot test enrollment/authentication flows without physical hardware
+- **Current Mitigation**: CLI tests (12 functions) provide comprehensive coverage of CLI logic
+- **Requirement ID**: Task 15 - Testing Coverage
+- **Remediation**: Create mocks for hardware credential enrollment/authentication flows
+- **Owner**: QA team
+- **Target**: Task 19 (Integration and E2E Testing Fabric)
+- **Status**: Deferred (CLI tests + error validation tests sufficient for MVP)
+
+**GAP-15-002: Manual Hardware Validation Skipped (TESTING)**
+- **Severity**: LOW (validation)
+- **Issue**: Todo 7 (manual hardware validation) marked SKIPPED - no physical testing with YubiKey/smart cards
+- **Impact**: Unknown compatibility with specific hardware devices
+- **Current Mitigation**: Admin guide documents testing procedures for deployment validation
+- **Requirement ID**: Task 15 - Hardware Compatibility
+- **Remediation**: Physical testing with YubiKey, smart card readers, TPM devices
+- **Owner**: QA team
+- **Target**: Pre-production deployment (staging environment)
+- **Status**: Deferred (deployment-time validation acceptable)
+
+#### Future Enhancements (from Task 15 Completion Doc)
+
+**GAP-15-003: Database Configuration Stub (IMPLEMENTATION)**
+- **Severity**: CRITICAL (production blocker)
+- **Issue**: `initDatabase()` returns error - no production database configuration
+- **Impact**: CLI tool cannot run in production without database connection
+- **Current Mitigation**: CLI tests use in-memory SQLite mocks
+- **Requirement ID**: Task 15 - CLI Tool Production Readiness
+- **Remediation**: Implement database config file reading or environment variable parsing
+- **Owner**: Backend team
+- **Target**: Pre-production deployment (before staging)
+- **Status**: In-progress (implementation needed before Task 18)
+
+**GAP-15-004: Repository ListAll Method Missing (IMPLEMENTATION)**
+- **Severity**: MEDIUM (feature incomplete)
+- **Issue**: `inventory` command stub - `WebAuthnCredentialRepository` lacks `ListAll` method
+- **Impact**: Cannot generate full credential inventory for compliance reporting
+- **Current Mitigation**: Individual user credential listing works via `list` command
+- **Requirement ID**: Task 15 - Compliance Reporting
+- **Remediation**: Add `ListAll() ([]Credential, error)` method to repository
+- **Owner**: Backend team
+- **Target**: Q1 2025 (before compliance audit)
+- **Status**: Planned (low priority - can query database directly for now)
+
+**GAP-15-005: Cryptographic Key Generation Mocks (IMPLEMENTATION)**
+- **Severity**: LOW (testing artifact)
+- **Issue**: CLI uses mock generators (deterministic credential IDs, zero-filled public keys)
+- **Impact**: Production CLI would generate insecure credentials
+- **Current Mitigation**: Mocks clearly marked as test-only implementations
+- **Requirement ID**: Task 15 - Cryptographic Security
+- **Remediation**: Replace mocks with `crypto/rand`-based generators for production CLI
+- **Owner**: Backend team
+- **Target**: Pre-production deployment
+- **Status**: Planned (high priority before production use)
+
+**GAP-15-006: Device-Specific Error Handling (ENHANCEMENT)**
+- **Severity**: LOW (UX improvement)
+- **Issue**: Generic hardware error types vs device-specific errors
+- **Impact**: Users receive generic error messages instead of actionable guidance
+- **Current Mitigation**: Hardware error validator classifies 6 error types with context
+- **Requirement ID**: Task 15 - Error Handling
+- **Remediation**: Add device-specific error types (YubiKeyPINLocked, TPMUnavailable, SmartCardReaderDisconnected)
+- **Owner**: Backend team
+- **Target**: Post-MVP (low priority)
+- **Status**: Backlog (generic errors acceptable for MVP)
+
+**GAP-15-007: Recovery Suggestions in Errors (ENHANCEMENT)**
+- **Severity**: LOW (UX improvement)
+- **Issue**: Error messages lack actionable recovery steps
+- **Impact**: Users don't know how to fix issues (e.g., "Remove and re-insert device")
+- **Current Mitigation**: Admin guide documents troubleshooting procedures
+- **Requirement ID**: Task 15 - User Experience
+- **Remediation**: Enhance error messages with recovery suggestions
+- **Owner**: Backend team
+- **Target**: Post-MVP (low priority)
+- **Status**: Backlog (admin support sufficient for MVP)
+
+**GAP-15-008: GDPR Privacy-Preserving Audit Logging (COMPLIANCE)**
+- **Severity**: MEDIUM (compliance)
+- **Issue**: Audit logs may contain PII (user IDs, device names)
+- **Impact**: GDPR Article 25 requires pseudonymization for privacy
+- **Current Mitigation**: Structured logging with compliance flags
+- **Requirement ID**: Task 15 - GDPR Compliance
+- **Remediation**: Add pseudonymization for user IDs in audit logs
+- **Owner**: Compliance team
+- **Target**: Pre-production (GDPR review required)
+- **Status**: Planned (legal review needed)
+
+**GAP-15-009: PSD2 SCA Metadata (COMPLIANCE)**
+- **Severity**: MEDIUM (compliance)
+- **Issue**: No PSD2 SCA-specific metadata capture (transaction amount, merchant ID)
+- **Impact**: Cannot prove Strong Customer Authentication for payment transactions
+- **Current Mitigation**: Audit logging captures credential enrollment/renewal/revocation
+- **Requirement ID**: Task 15 - PSD2 Compliance
+- **Remediation**: Extend audit events to capture SCA-specific metadata
+- **Owner**: Compliance team
+- **Target**: Pre-production (PSD2 review required for EU deployments)
+- **Status**: Backlog (not required for US-only MVP)
+
+---
+
+## Gap Summary Statistics
+
+### By Severity
+
+| Severity | Count | Percentage |
+|----------|-------|------------|
+| CRITICAL | 2 | 9% |
+| HIGH | 1 | 4% |
+| MEDIUM | 11 | 48% |
+| LOW | 9 | 39% |
+| **TOTAL** | **23** | **100%** |
+
+### By Category
+
+| Category | Count | Percentage |
+|----------|-------|------------|
+| Implementation | 4 | 17% |
+| Testing | 4 | 17% |
+| Enhancement | 11 | 48% |
+| Compliance | 2 | 9% |
+| Infrastructure | 2 | 9% |
+| **TOTAL** | **23** | **100%** |
+
+### By Task
+
+| Task | Count | Gaps |
+|------|-------|------|
+| Task 12 | 9 | GAP-12-001 to GAP-12-009 |
+| Task 13 | 5 | GAP-13-001 to GAP-13-005 |
+| Task 14 | 6 | GAP-14-001 to GAP-14-006 |
+| Task 15 | 9 | GAP-15-001 to GAP-15-009 |
+| **TOTAL** | **29** | |
+
+### By Status
+
+| Status | Count | Percentage |
+|--------|-------|------------|
+| ✅ Complete | 3 | 13% |
+| 🚧 In-progress | 2 | 9% |
+| ⏹️ Deferred | 5 | 22% |
+| 📋 Planned | 7 | 30% |
+| 📚 Backlog | 12 | 52% |
+| **TOTAL** | **29** | |
+
+---
+
+## Next Steps (Todo 2)
+
+1. **Service Validation**: Run E2E tests, collect error logs, identify missing endpoints
+2. **Code Review**: Search for TODOs, FIXMEs, placeholder implementations
+3. **Compliance Validation**: Audit logging coverage, security headers, authentication standards
+4. **Gap Documentation**: Create comprehensive gap analysis markdown file
+5. **Remediation Tracker**: CSV/Markdown table with ownership and timelines
+6. **Quick Wins**: Identify simple fixes for immediate remediation
+7. **Completion Doc**: Task 17 completion documentation
+
+---
+
+**Document Version**: 1.0  
+**Last Updated**: 2025-01-XX  
+**Status**: 🚧 IN PROGRESS (Todo 1/8 complete)

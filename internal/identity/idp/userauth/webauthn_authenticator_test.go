@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/go-webauthn/webauthn/protocol"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
