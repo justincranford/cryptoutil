@@ -37,7 +37,7 @@ type AuthProfile struct {
 	MFAChain   []string `gorm:"serializer:json" json:"mfa_chain"` // Ordered list of MFA factors.
 
 	// mTLS configuration.
-	MTLSDomains []string `gorm:"type:json" json:"mtls_domains"` // Allowed client certificate domains.
+	MTLSDomains []string `gorm:"column:mtls_domains;serializer:json" json:"mtls_domains"` // Allowed client certificate domains.
 
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Profile enabled status.
