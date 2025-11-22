@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 
     -- Session status
     active INTEGER DEFAULT 1,
-    terminated_at TIMESTAMP,
+    revoked_at TIMESTAMP,
 
     -- Authentication context (JSON arrays)
     authentication_methods TEXT DEFAULT '[]',
@@ -222,6 +222,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 
     -- OIDC context
     nonce TEXT,
+    code_challenge TEXT,
     granted_scopes TEXT DEFAULT '[]',
 
     -- Timestamps

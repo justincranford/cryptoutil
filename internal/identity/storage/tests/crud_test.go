@@ -13,6 +13,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
 )
@@ -33,10 +34,12 @@ func TestUserRepositoryCRUD(t *testing.T) {
 	userRepo := repoFactory.UserRepository()
 
 	// Test Create
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
 	user := &cryptoutilIdentityDomain.User{
-		Sub:   "test-user-123",
-		Email: "test@example.com",
-		Name:  "Test User",
+		Sub:               "test-user-" + uuidSuffix,
+		Email:             "test-" + uuidSuffix + "@example.com",
+		Name:              "Test User",
+		PreferredUsername: "test-" + uuidSuffix,
 	}
 
 	err := userRepo.Create(ctx, user)
@@ -101,9 +104,11 @@ func TestClientRepositoryCRUD(t *testing.T) {
 
 	clientRepo := repoFactory.ClientRepository()
 
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+
 	// Test Create
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:   "test-client-123",
+		ClientID:   "test-client-" + uuidSuffix,
 		ClientType: cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:       "Test Client",
 	}
@@ -158,9 +163,11 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 
 	tokenRepo := repoFactory.TokenRepository()
 
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+
 	// Create a test client first
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:   "test-client-123",
+		ClientID:   "token-test-client-" + uuidSuffix,
 		ClientType: cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:       "Test Client",
 	}
@@ -170,7 +177,7 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 
 	// Test Create
 	token := &cryptoutilIdentityDomain.Token{
-		TokenValue:  "test-token-123",
+		TokenValue:  "test-token-" + uuidSuffix,
 		TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:    client.ID,
@@ -228,15 +235,28 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 
 	sessionRepo := repoFactory.SessionRepository()
 
+	// Create test user first (foreign key requirement)
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+	user := &cryptoutilIdentityDomain.User{
+		Sub:               "session-test-user-" + uuidSuffix,
+		Email:             "session-test-" + uuidSuffix + "@example.com",
+		Name:              "Session Test User",
+		PreferredUsername: "session-test-" + uuidSuffix,
+	}
+	userRepo := repoFactory.UserRepository()
+	err := userRepo.Create(ctx, user)
+	require.NoError(t, err)
+
 	// Test Create
 	session := &cryptoutilIdentityDomain.Session{
-		SessionID: "test-session-123",
+		SessionID: "test-session-" + uuidSuffix,
+		UserID:    user.ID,
 		Active:    true,
 		IssuedAt:  time.Now(),
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := sessionRepo.Create(ctx, session)
+	err = sessionRepo.Create(ctx, session)
 	require.NoError(t, err)
 	require.NotEmpty(t, session.ID)
 
@@ -471,9 +491,11 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 func setupTestRepositoryFactory(t *testing.T, ctx context.Context) *cryptoutilIdentityRepository.RepositoryFactory {
 	t.Helper()
 
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:            "sqlite",
-		DSN:             ":memory:",
+		DSN:             "file:" + uuidSuffix + ".db?mode=memory&cache=shared",
 		MaxOpenConns:    1,
 		MaxIdleConns:    1,
 		ConnMaxLifetime: 0,

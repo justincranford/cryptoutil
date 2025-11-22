@@ -11,6 +11,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
 )
@@ -28,13 +29,16 @@ func TestTransactionRollback(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+
 	// Test transaction rollback on error
-	err := repoFactory.Transaction(ctx, func(ctx context.Context) error {
+	txErr := repoFactory.Transaction(ctx, func(ctx context.Context) error {
 		// Create a user within transaction
 		user := &cryptoutilIdentityDomain.User{
-			Sub:   "rollback-test-user",
-			Email: "rollback@example.com",
-			Name:  "Rollback Test User",
+			Sub:               "rollback-test-user-" + uuidSuffix,
+			Email:             "rollback-" + uuidSuffix + "@example.com",
+			Name:              "Rollback Test User",
+			PreferredUsername: "rollback-" + uuidSuffix,
 		}
 
 		userRepo := repoFactory.UserRepository()
@@ -43,7 +47,7 @@ func TestTransactionRollback(t *testing.T) {
 
 		// Create a client within transaction
 		client := &cryptoutilIdentityDomain.Client{
-			ClientID:   "rollback-test-client",
+			ClientID:   "rollback-test-client-" + uuidSuffix,
 			ClientType: cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:       "Rollback Test Client",
 		}
@@ -58,16 +62,19 @@ func TestTransactionRollback(t *testing.T) {
 	})
 
 	// Transaction should have failed
-	require.Error(t, err)
+	require.Error(t, txErr)
+	require.Contains(t, txErr.Error(), "simulated error")
 
-	// Verify rollback - neither entity should exist
+	// Verify the user does NOT exist (transaction rolled back) - expect "not found" error
 	userRepo := repoFactory.UserRepository()
-	_, err = userRepo.GetBySub(ctx, "rollback-test-user")
+	foundUser, err := userRepo.GetBySub(ctx, "rollback-test-user-"+uuidSuffix)
 	require.Error(t, err) // Should not find the user
+	require.Nil(t, foundUser)
 
 	clientRepo := repoFactory.ClientRepository()
-	_, err = clientRepo.GetByClientID(ctx, "rollback-test-client")
+	foundClient, err := clientRepo.GetByClientID(ctx, "rollback-test-client-"+uuidSuffix)
 	require.Error(t, err) // Should not find the client
+	require.Nil(t, foundClient)
 }
 
 func TestTransactionCommit(t *testing.T) {
@@ -83,13 +90,16 @@ func TestTransactionCommit(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+
 	// Test successful transaction commit
 	err := repoFactory.Transaction(ctx, func(ctx context.Context) error {
 		// Create a user within transaction
 		user := &cryptoutilIdentityDomain.User{
-			Sub:   "commit-test-user",
-			Email: "commit@example.com",
-			Name:  "Commit Test User",
+			Sub:               "commit-test-user-" + uuidSuffix,
+			Email:             "commit-" + uuidSuffix + "@example.com",
+			Name:              "Commit Test User",
+			PreferredUsername: "commit-" + uuidSuffix,
 		}
 
 		userRepo := repoFactory.UserRepository()
@@ -98,7 +108,7 @@ func TestTransactionCommit(t *testing.T) {
 
 		// Create a client within transaction
 		client := &cryptoutilIdentityDomain.Client{
-			ClientID:   "commit-test-client",
+			ClientID:   "commit-test-client-" + uuidSuffix,
 			ClientType: cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:       "Commit Test Client",
 		}
@@ -115,14 +125,14 @@ func TestTransactionCommit(t *testing.T) {
 
 	// Verify commit - both entities should exist
 	userRepo := repoFactory.UserRepository()
-	user, err := userRepo.GetBySub(ctx, "commit-test-user")
+	user, err := userRepo.GetBySub(ctx, "commit-test-user-"+uuidSuffix)
 	require.NoError(t, err)
-	require.Equal(t, "commit-test-user", user.Sub)
+	require.Equal(t, "commit-test-user-"+uuidSuffix, user.Sub)
 
 	clientRepo := repoFactory.ClientRepository()
-	client, err := clientRepo.GetByClientID(ctx, "commit-test-client")
+	client, err := clientRepo.GetByClientID(ctx, "commit-test-client-"+uuidSuffix)
 	require.NoError(t, err)
-	require.Equal(t, "commit-test-client", client.ClientID)
+	require.Equal(t, "commit-test-client-"+uuidSuffix, client.ClientID)
 }
 
 func TestTransactionIsolation(t *testing.T) {
@@ -138,11 +148,14 @@ func TestTransactionIsolation(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+
 	// Create a user outside transaction
 	externalUser := &cryptoutilIdentityDomain.User{
-		Sub:   "external-user",
-		Email: "external@example.com",
-		Name:  "External User",
+		Sub:               "external-user-" + uuidSuffix,
+		Email:             "external-" + uuidSuffix + "@example.com",
+		Name:              "External User",
+		PreferredUsername: "external-" + uuidSuffix,
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -153,9 +166,10 @@ func TestTransactionIsolation(t *testing.T) {
 	err = repoFactory.Transaction(ctx, func(ctx context.Context) error {
 		// Create a user within transaction
 		user := &cryptoutilIdentityDomain.User{
-			Sub:   "isolated-user",
-			Email: "isolated@example.com",
-			Name:  "Isolated User",
+			Sub:               "isolated-user-" + uuidSuffix,
+			Email:             "isolated-" + uuidSuffix + "@example.com",
+			Name:              "Isolated User",
+			PreferredUsername: "isolated-" + uuidSuffix,
 		}
 
 		err := userRepo.Create(ctx, user)
@@ -171,7 +185,7 @@ func TestTransactionIsolation(t *testing.T) {
 	require.NoError(t, err)
 
 	// After commit, the transaction user should be visible
-	_, err = userRepo.GetBySub(ctx, "isolated-user")
+	_, err = userRepo.GetBySub(ctx, "isolated-user-"+uuidSuffix)
 	require.NoError(t, err)
 }
 
@@ -188,6 +202,9 @@ func TestConcurrentTransactions(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
+	uuidSuffix1 := googleUuid.Must(googleUuid.NewV7()).String()
+	uuidSuffix2 := googleUuid.Must(googleUuid.NewV7()).String()
+
 	// Test concurrent transactions
 	done := make(chan bool, 2)
 
@@ -195,9 +212,10 @@ func TestConcurrentTransactions(t *testing.T) {
 	go func() {
 		err := repoFactory.Transaction(ctx, func(ctx context.Context) error {
 			user := &cryptoutilIdentityDomain.User{
-				Sub:   "concurrent-user-1",
-				Email: "concurrent1@example.com",
-				Name:  "Concurrent User 1",
+				Sub:               "concurrent-user-1-" + uuidSuffix1,
+				Email:             "concurrent1-" + uuidSuffix1 + "@example.com",
+				Name:              "Concurrent User 1",
+				PreferredUsername: "concurrent1-" + uuidSuffix1,
 			}
 
 			userRepo := repoFactory.UserRepository()
@@ -213,9 +231,10 @@ func TestConcurrentTransactions(t *testing.T) {
 	go func() {
 		err := repoFactory.Transaction(ctx, func(ctx context.Context) error {
 			user := &cryptoutilIdentityDomain.User{
-				Sub:   "concurrent-user-2",
-				Email: "concurrent2@example.com",
-				Name:  "Concurrent User 2",
+				Sub:               "concurrent-user-2-" + uuidSuffix2,
+				Email:             "concurrent2-" + uuidSuffix2 + "@example.com",
+				Name:              "Concurrent User 2",
+				PreferredUsername: "concurrent2-" + uuidSuffix2,
 			}
 
 			userRepo := repoFactory.UserRepository()
@@ -233,11 +252,11 @@ func TestConcurrentTransactions(t *testing.T) {
 
 	// Verify both users were created
 	userRepo := repoFactory.UserRepository()
-	user1, err := userRepo.GetBySub(ctx, "concurrent-user-1")
+	user1, err := userRepo.GetBySub(ctx, "concurrent-user-1-"+uuidSuffix1)
 	require.NoError(t, err)
-	require.Equal(t, "concurrent-user-1", user1.Sub)
+	require.Equal(t, "concurrent-user-1-"+uuidSuffix1, user1.Sub)
 
-	user2, err := userRepo.GetBySub(ctx, "concurrent-user-2")
+	user2, err := userRepo.GetBySub(ctx, "concurrent-user-2-"+uuidSuffix2)
 	require.NoError(t, err)
-	require.Equal(t, "concurrent-user-2", user2.Sub)
+	require.Equal(t, "concurrent-user-2-"+uuidSuffix2, user2.Sub)
 }
