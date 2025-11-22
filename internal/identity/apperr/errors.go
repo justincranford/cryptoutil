@@ -76,6 +76,9 @@ var (
 	ErrKeyRotationFailed   = NewIdentityError("key_rotation_failed", "Key rotation failed", http.StatusInternalServerError, nil)
 	ErrKeyGenerationFailed = NewIdentityError("key_generation_failed", "Key generation failed", http.StatusInternalServerError, nil)
 
+	// Credential errors.
+	ErrCredentialNotFound = NewIdentityError("credential_not_found", "Credential not found", http.StatusNotFound, nil)
+
 	// Session errors.
 	ErrSessionNotFound   = NewIdentityError("session_not_found", "Session not found", http.StatusNotFound, nil)
 	ErrSessionExpired    = NewIdentityError("session_expired", "Session has expired", http.StatusUnauthorized, nil)

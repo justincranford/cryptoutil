@@ -1,5 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
+//go:build !windows
+
 package process
 
 import (
@@ -45,9 +47,9 @@ func (m *Manager) Start(ctx context.Context, serviceName string, binary string, 
 	// Create command with context
 	cmd := exec.CommandContext(ctx, binary, args...)
 
-	// Set process group (Windows-compatible)
+	// Set process group (Unix/Linux)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP,
+		Setpgid: true,
 	}
 
 	// Start the process
