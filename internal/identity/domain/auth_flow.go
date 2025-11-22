@@ -23,7 +23,7 @@ const (
 // AuthFlow represents an authorization code flow configuration with PKCE.
 type AuthFlow struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// Flow metadata.
 	Name        string       `gorm:"uniqueIndex;not null" json:"name"` // Flow name.
@@ -45,8 +45,8 @@ type AuthFlow struct {
 	// State parameter configuration.
 	RequireState bool `gorm:"default:true" json:"require_state"` // Require state parameter for CSRF protection.
 
-	// Client profile reference (optional).
-	ClientProfileID *googleUuid.UUID `gorm:"type:uuid;index" json:"client_profile_id,omitempty"` // Associated client profile.
+		// Client profile reference (optional).
+	ClientProfileID NullableUUID `gorm:"type:text;index" json:"client_profile_id,omitempty"` // Associated client profile.
 
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Flow enabled status.

@@ -25,7 +25,7 @@ const (
 // AuthProfile represents a user authentication profile with configurable MFA factors.
 type AuthProfile struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// Profile metadata.
 	Name        string          `gorm:"uniqueIndex;not null" json:"name"` // Profile name.

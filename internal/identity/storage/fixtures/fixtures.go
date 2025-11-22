@@ -155,7 +155,7 @@ func (b *TestTokenBuilder) WithClientID(clientID googleUuid.UUID) *TestTokenBuil
 
 // WithUserID sets the user ID.
 func (b *TestTokenBuilder) WithUserID(userID *googleUuid.UUID) *TestTokenBuilder {
-	b.token.UserID = userID
+	b.token.UserID = cryptoutilIdentityDomain.NewNullableUUID(userID)
 
 	return b
 }

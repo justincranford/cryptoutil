@@ -30,7 +30,7 @@ const (
 // MFAFactor represents a multi-factor authentication factor configuration.
 type MFAFactor struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// Factor metadata.
 	Name        string        `gorm:"uniqueIndex;not null" json:"name"` // Factor name.
@@ -48,8 +48,8 @@ type MFAFactor struct {
 	TOTPDigits    int    `json:"totp_digits,omitempty"`    // TOTP digits (6 or 8).
 	TOTPPeriod    int    `json:"totp_period,omitempty"`    // TOTP period (seconds).
 
-	// Authentication profile reference.
-	AuthProfileID googleUuid.UUID `gorm:"type:uuid;index;not null" json:"auth_profile_id"` // Associated auth profile.
+	// Authentication profile reference (foreign key).
+	AuthProfileID googleUuid.UUID `gorm:"type:text;index;not null" json:"auth_profile_id"` // Associated auth profile.
 
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Factor enabled status.

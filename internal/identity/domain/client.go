@@ -37,7 +37,7 @@ const (
 // Client represents an OAuth 2.1 client configuration.
 type Client struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// Client identification.
 	ClientID     string     `gorm:"uniqueIndex;not null" json:"client_id"` // OAuth 2.1 client identifier.
@@ -72,7 +72,7 @@ type Client struct {
 	IDTokenLifetime      int `gorm:"default:3600" json:"id_token_lifetime"`       // ID token lifetime (seconds).
 
 	// Client profile reference (optional).
-	ClientProfileID *googleUuid.UUID `gorm:"type:uuid;index" json:"client_profile_id,omitempty"` // Associated client profile.
+	ClientProfileID NullableUUID `gorm:"type:text;index" json:"client_profile_id,omitempty"` // Associated client profile.
 
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Client enabled status.

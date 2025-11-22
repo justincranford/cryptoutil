@@ -6,6 +6,7 @@ package testutils
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -13,9 +14,11 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
+
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 // TestDatabaseConfig holds test database configuration.
@@ -27,28 +30,34 @@ type TestDatabaseConfig struct {
 func SetupTestDatabase(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Create in-memory SQLite database.
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		// If this is a CGO error, skip the test instead of failing.
-		if err.Error() == "Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub" {
-			t.Skip("Skipping database tests: CGO not available (required for SQLite)")
-		}
+	ctx := context.Background()
 
-		require.NoError(t, err, "failed to open test database")
-	}
+	// Use shared in-memory SQLite database with modernc driver (CGO-free).
+	dsn := "file::memory:?cache=shared"
 
-	// Auto-migrate all domain models.
-	err = db.AutoMigrate(
-		&cryptoutilIdentityDomain.User{},
-		&cryptoutilIdentityDomain.Client{},
-		&cryptoutilIdentityDomain.ClientProfile{},
-		&cryptoutilIdentityDomain.AuthFlow{},
-		&cryptoutilIdentityDomain.Token{},
-		&cryptoutilIdentityDomain.Session{},
-		&cryptoutilIdentityDomain.AuthProfile{},
-		&cryptoutilIdentityDomain.MFAFactor{},
-	)
+	// Open SQLite database with modernc driver (CGO-free) explicitly.
+	sqlDB, err := sql.Open("sqlite", dsn)
+	require.NoError(t, err, "failed to open SQLite database")
+
+	// Enable WAL mode for better concurrency.
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
+	require.NoError(t, err, "failed to enable WAL mode")
+
+	// Set busy timeout for handling concurrent write operations.
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
+	require.NoError(t, err, "failed to set busy timeout")
+
+	// Use GORM sqlite dialector with existing sql.DB connection from modernc driver.
+	dialector := sqlite.Dialector{Conn: sqlDB}
+
+	// Open database connection with GORM.
+	db, err := gorm.Open(dialector, &gorm.Config{
+		SkipDefaultTransaction: true, // Disable automatic transactions (we manage explicitly).
+	})
+	require.NoError(t, err, "failed to connect to database")
+
+	// Apply SQL migrations using the repository migration system.
+	err = cryptoutilIdentityRepository.Migrate(sqlDB)
 	require.NoError(t, err, "failed to migrate test database")
 
 	return db

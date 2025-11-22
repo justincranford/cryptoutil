@@ -171,7 +171,7 @@ func BuildTokenDomain(
 		TokenFormat: tokenFormat,
 		TokenValue:  tokenValue,
 		ClientID:    clientID,
-		UserID:      &userID,
+		UserID:      cryptoutilIdentityDomain.NewNullableUUID(&userID),
 		Scopes:      scopes,
 		ExpiresAt:   expiresAt,
 		Revoked:     false,

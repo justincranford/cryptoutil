@@ -32,7 +32,7 @@ const (
 // Token represents an OAuth 2.1 / OIDC token.
 type Token struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// Token identification.
 	TokenValue  string      `gorm:"uniqueIndex;not null" json:"-"`    // Token value (JWT or UUID).
@@ -40,8 +40,8 @@ type Token struct {
 	TokenFormat TokenFormat `gorm:"not null" json:"token_format"`     // Token format.
 
 	// Token associations.
-	ClientID googleUuid.UUID  `gorm:"type:uuid;index;not null" json:"client_id"` // Associated client.
-	UserID   *googleUuid.UUID `gorm:"type:uuid;index" json:"user_id,omitempty"`  // Associated user (if applicable).
+	ClientID googleUuid.UUID `gorm:"type:text;primaryKey" json:"client_id"`      // Associated client.
+	UserID   NullableUUID     `gorm:"type:text;index" json:"user_id,omitempty"`  // Associated user (if applicable).
 
 	// Token metadata.
 	Scopes    []string  `gorm:"type:json" json:"scopes"`          // Granted scopes.
@@ -53,8 +53,8 @@ type Token struct {
 	Revoked   bool       `gorm:"index;default:false" json:"revoked"` // Token revocation status.
 	RevokedAt *time.Time `json:"revoked_at,omitempty"`               // Token revocation time.
 
-	// Refresh token association (for access tokens).
-	RefreshTokenID *googleUuid.UUID `gorm:"type:uuid;index" json:"refresh_token_id,omitempty"` // Associated refresh token.
+	// Refresh token association (optional).
+	RefreshTokenID NullableUUID `gorm:"type:text;index" json:"refresh_token_id,omitempty"` // Associated refresh token.
 
 	// PKCE code challenge (for authorization codes).
 	CodeChallenge       string `json:"-"`                               // PKCE code challenge.

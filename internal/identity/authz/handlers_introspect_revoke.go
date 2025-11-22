@@ -70,8 +70,8 @@ func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 	}
 
 	// Add user ID if present (not present for client_credentials).
-	if tokenRecord.UserID != nil {
-		response["sub"] = tokenRecord.UserID.String()
+	if tokenRecord.UserID.Valid {
+		response["sub"] = tokenRecord.UserID.UUID.String()
 	}
 
 	// Add token type hint if provided.

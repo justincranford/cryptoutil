@@ -14,14 +14,14 @@ import (
 // Session represents a user authentication session.
 type Session struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// Session identification.
 	SessionID string `gorm:"uniqueIndex;not null" json:"session_id"` // Session identifier.
 
 	// Session associations.
-	UserID   googleUuid.UUID  `gorm:"type:uuid;index;not null" json:"user_id"`    // Associated user.
-	ClientID *googleUuid.UUID `gorm:"type:uuid;index" json:"client_id,omitempty"` // Associated client (if applicable).
+	UserID   googleUuid.UUID  `gorm:"type:text;index;not null" json:"user_id"`    // Associated user.
+	ClientID NullableUUID `gorm:"type:text;index" json:"client_id,omitempty"` // Associated client (if applicable).
 
 	// Session metadata.
 	IPAddress string `json:"ip_address,omitempty"` // Client IP address.

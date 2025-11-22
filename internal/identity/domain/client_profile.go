@@ -14,7 +14,7 @@ import (
 // ClientProfile represents a parameterized authorization flow profile for OAuth clients.
 type ClientProfile struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// Profile metadata.
 	Name        string `gorm:"uniqueIndex;not null" json:"name"` // Profile name.
