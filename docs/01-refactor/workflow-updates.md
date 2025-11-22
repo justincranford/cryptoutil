@@ -368,7 +368,7 @@ services:
    ```yaml
    # OLD
    command: ["server", "start", "--config", "/app/configs/cryptoutil-sqlite.yml"]
-   
+
    # NEW
    command: ["kms", "server", "start", "--config", "/app/configs/cryptoutil-sqlite.yml"]
    ```
@@ -385,7 +385,7 @@ services:
    ```dockerfile
    # OLD
    ENTRYPOINT ["cryptoutil", "server", "start"]
-   
+
    # NEW
    ENTRYPOINT ["cryptoutil", "kms", "server", "start"]
    ```

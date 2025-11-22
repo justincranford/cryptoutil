@@ -746,6 +746,14 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		return nil, fmt.Errorf("failed to bind flags: %w", err)
 	}
 
+	// Enable environment variable support for all configuration settings.
+	// Environment variables use CRYPTOUTIL_ prefix with underscores instead of hyphens.
+	// Example: CRYPTOUTIL_DATABASE_URL overrides --database-url flag.
+	// Precedence: flags > env vars > config files > defaults
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("CRYPTOUTIL")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
 	configFiles := viper.GetStringSlice(configFile.name)
 	if len(configFiles) > 0 {
 		// Set the first config file
@@ -837,15 +845,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
 	}
 
-	if strings.HasPrefix(s.DatabaseURL, "file://") {
-		filePath := strings.TrimPrefix(s.DatabaseURL, "file://")
-
-		if content, err := os.ReadFile(filePath); err != nil {
-			return nil, fmt.Errorf("failed to read database URL from file %s: %w", filePath, err)
-		} else {
-			s.DatabaseURL = strings.TrimSpace(string(content))
-		}
-	}
+	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.
+	// This allows configuration to reference secret files rather than embedding sensitive values directly.
+	s.DatabaseURL = resolveFileURL(s.DatabaseURL)
 
 	logSettings(s)
 
@@ -1251,4 +1253,24 @@ func validateConfiguration(s *Settings) error {
 	}
 
 	return nil
+}
+
+// resolveFileURL reads the content of a file if the value starts with "file://".
+// This pattern is used for Docker secrets and Kubernetes secrets mounted as files.
+// Example: "file:///run/secrets/database_url" reads the secret file content.
+func resolveFileURL(value string) string {
+	if !strings.HasPrefix(value, "file://") {
+		return value
+	}
+
+	filePath := strings.TrimPrefix(value, "file://")
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Warnf("Failed to read file URL %s: %v (using value as-is)", value, err)
+
+		return value
+	}
+
+	return strings.TrimSpace(string(content))
 }

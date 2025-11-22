@@ -294,7 +294,7 @@ linters-settings:
         alias: cryptoutilKmsServer
       - pkg: cryptoutil/internal/kms/businesslogic
         alias: cryptoutilKmsBusinesslogic
-      
+
       # Legacy (deprecated, remove after migration)
       - pkg: cryptoutil/internal/server/barrier
         alias: cryptoutilBarrier  # Deprecated

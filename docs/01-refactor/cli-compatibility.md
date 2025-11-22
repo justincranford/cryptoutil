@@ -109,7 +109,7 @@ package cmd
 
 import (
     "time"
-    
+
     "cryptoutil/internal/cmd/cryptoutil/ca"
     "cryptoutil/internal/cmd/cryptoutil/identity"
     "cryptoutil/internal/cmd/cryptoutil/kms"
@@ -139,7 +139,7 @@ func Execute() {
         help.PrintVersion()
     case "help":
         printUsage(executable)
-        
+
     // Legacy commands (deprecated)
     case "server":
         // Warn about deprecation
@@ -152,10 +152,10 @@ func Execute() {
                 MigrationGuide: "https://github.com/justincranford/cryptoutil/docs/MIGRATION.md",
             }.Print()
         }
-        
+
         // Route to new command
         kms.Execute(append([]string{"server"}, parameters...))
-        
+
     default:
         printUsage(executable)
         fmt.Printf("Unknown command: %s %s\n", executable, command)

@@ -225,7 +225,7 @@ importas:
     # KMS domain (only new aliases remain)
     - pkg: cryptoutil/internal/kms/businesslogic/barrier
       alias: cryptoutilKmsBarrier
-    
+
     # Legacy aliases REMOVED (breaking change)
 ```
 
@@ -251,7 +251,7 @@ func TestImportAliasCompliance(t *testing.T) {
                 if !strings.HasPrefix(alias, "cryptoutil") {
                     t.Errorf("%s: package %s uses invalid alias %s (must start with 'cryptoutil')", file, pkg, alias)
                 }
-                
+
                 // Check against approved alias map
                 expected := getExpectedAlias(pkg)
                 if alias != expected {

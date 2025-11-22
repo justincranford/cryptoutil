@@ -168,7 +168,7 @@ package kms
 import (
     "fmt"
     "os"
-    
+
     "cryptoutil/internal/cmd/cryptoutil/kms/server"
 )
 
@@ -234,7 +234,7 @@ package identity
 import (
     "fmt"
     "os"
-    
+
     authzServer "cryptoutil/internal/cmd/cryptoutil/identity/authz/server"
     idpServer "cryptoutil/internal/cmd/cryptoutil/identity/idp/server"
     rsServer "cryptoutil/internal/cmd/cryptoutil/identity/rs/server"
@@ -411,7 +411,7 @@ package cmd
 import (
     "fmt"
     "os"
-    
+
     "cryptoutil/internal/cmd/cryptoutil/ca"
     "cryptoutil/internal/cmd/cryptoutil/identity"
     "cryptoutil/internal/cmd/cryptoutil/kms"

@@ -148,7 +148,7 @@ package cmd
 
 import (
     "fmt"
-    
+
     "cryptoutil/internal/common/cli/help"
 )
 
@@ -241,29 +241,29 @@ import "fmt"
 func Render(h CommandHelp) {
     fmt.Printf("%s - %s\n\n", h.Name, h.Synopsis)
     fmt.Printf("Usage:\n  %s\n\n", h.Usage)
-    
+
     if h.Description != "" {
         fmt.Printf("Description:\n%s\n\n", h.Description)
     }
-    
+
     if len(h.GlobalFlags) > 0 {
         fmt.Println("Global Flags:")
         renderFlags(h.GlobalFlags)
         fmt.Println()
     }
-    
+
     if len(h.Flags) > 0 {
         fmt.Println("Flags:")
         renderFlags(h.Flags)
         fmt.Println()
     }
-    
+
     if len(h.Examples) > 0 {
         fmt.Println("Examples:")
         renderExamples(h.Examples)
         fmt.Println()
     }
-    
+
     if len(h.RelatedCmds) > 0 {
         fmt.Println("Related Commands:")
         for _, cmd := range h.RelatedCmds {
@@ -271,13 +271,13 @@ func Render(h CommandHelp) {
         }
         fmt.Println()
     }
-    
+
     if len(h.ExitCodes) > 0 {
         fmt.Println("Exit Codes:")
         renderExitCodes(h.ExitCodes)
         fmt.Println()
     }
-    
+
     if len(h.Troubleshoot) > 0 {
         fmt.Println("Troubleshooting:")
         renderTroubleshooting(h.Troubleshoot)
@@ -496,24 +496,24 @@ package server
 
 import (
     "flag"
-    
+
     "cryptoutil/internal/common/cli/help"
 )
 
 func Execute(parameters []string) {
     flags := flag.NewFlagSet("kms server start", flag.ContinueOnError)
-    
+
     // Define flags
     config := flags.String("config", "", "Configuration file path")
     dev := flags.Bool("dev", false, "Development mode (SQLite in-memory)")
     bindAddress := flags.String("bind-address", "0.0.0.0", "Server bind address")
     port := flags.Int("port", 8080, "Server port")
-    
+
     // Custom usage function
     flags.Usage = func() {
         printServerStartHelp()
     }
-    
+
     // Parse flags
     if err := flags.Parse(parameters); err != nil {
         if err == flag.ErrHelp {
@@ -521,7 +521,7 @@ func Execute(parameters []string) {
         }
         log.Fatal(err)
     }
-    
+
     // ... rest of server start logic
 }
 
@@ -632,10 +632,10 @@ func PrintVersion() {
 
 func Execute() {
     // ... existing command routing ...
-    
+
     case "version":
         help.PrintVersion()
-    
+
     // ... rest of commands ...
 }
 ```

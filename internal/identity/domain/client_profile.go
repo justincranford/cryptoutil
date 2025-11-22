@@ -31,7 +31,7 @@ type ClientProfile struct {
 
 	// MFA configuration for client authentication.
 	RequireClientMFA bool     `gorm:"default:false" json:"require_client_mfa"` // Require MFA for client authentication.
-	ClientMFAChain   []string `gorm:"serializer:json" json:"client_mfa_chain"`       // Ordered list of client auth methods.
+	ClientMFAChain   []string `gorm:"serializer:json" json:"client_mfa_chain"` // Ordered list of client auth methods.
 
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Profile enabled status.

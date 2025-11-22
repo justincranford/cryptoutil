@@ -34,7 +34,7 @@ type AuthProfile struct {
 
 	// MFA configuration.
 	RequireMFA bool     `gorm:"default:false" json:"require_mfa"` // Require MFA for authentication.
-	MFAChain   []string `gorm:"serializer:json" json:"mfa_chain"`       // Ordered list of MFA factors.
+	MFAChain   []string `gorm:"serializer:json" json:"mfa_chain"` // Ordered list of MFA factors.
 
 	// mTLS configuration.
 	MTLSDomains []string `gorm:"type:json" json:"mtls_domains"` // Allowed client certificate domains.

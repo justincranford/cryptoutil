@@ -78,7 +78,7 @@ package domain
 
 import (
     "time"
-    
+
     googleUuid "github.com/google/uuid"
 )
 
@@ -125,7 +125,7 @@ package domain
 
 import (
     "time"
-    
+
     googleUuid "github.com/google/uuid"
 )
 
@@ -196,7 +196,7 @@ package domain
 
 import (
     "time"
-    
+
     googleUuid "github.com/google/uuid"
 )
 
@@ -230,9 +230,9 @@ package repository
 
 import (
     "context"
-    
+
     googleUuid "github.com/google/uuid"
-    
+
     "cryptoutil/internal/ca/domain"
 )
 
@@ -271,7 +271,7 @@ type RepositoryFactory interface {
     CARepository() CARepository
     CertificateRepository() CertificateRepository
     CRLRepository() CRLRepository
-    
+
     // Transaction executes operations within a database transaction.
     Transaction(ctx context.Context, fn func(context.Context) error) error
 }
@@ -300,7 +300,7 @@ err := repoFactory.Transaction(ctx, func(txCtx context.Context) error {
     if err != nil {
         return err
     }
-    
+
     cert := &domain.Certificate{...}
     return repoFactory.CertificateRepository().Create(txCtx, cert)
 })
@@ -326,9 +326,9 @@ package service
 
 import (
     "context"
-    
+
     googleUuid "github.com/google/uuid"
-    
+
     "cryptoutil/internal/ca/domain"
 )
 
@@ -337,10 +337,10 @@ import (
 type ProvisioningService interface {
     // ProvisionRootCA creates a self-signed root CA.
     ProvisionRootCA(ctx context.Context, subject string, validityYears int) (*domain.CA, error)
-    
+
     // ProvisionIntermediateCA creates an intermediate CA signed by a root CA.
     ProvisionIntermediateCA(ctx context.Context, rootCAID googleUuid.UUID, subject string, validityYears int) (*domain.CA, error)
-    
+
     // ProvisionIssuingCA creates an issuing CA signed by an intermediate CA.
     ProvisionIssuingCA(ctx context.Context, intermediateCAID googleUuid.UUID, subject string, validityYears int) (*domain.CA, error)
 }
@@ -349,7 +349,7 @@ type ProvisioningService interface {
 type IssuanceService interface {
     // IssueCertificate issues a certificate using the specified profile.
     IssueCertificate(ctx context.Context, caID googleUuid.UUID, profileName string, subject string) (*domain.Certificate, error)
-    
+
     // RenewCertificate renews an existing certificate (new serial number, same key).
     RenewCertificate(ctx context.Context, certID googleUuid.UUID) (*domain.Certificate, error)
 }
@@ -358,7 +358,7 @@ type IssuanceService interface {
 type LifecycleService interface {
     // RevokeCertificate revokes a certificate and updates CRL.
     RevokeCertificate(ctx context.Context, certID googleUuid.UUID, reason string) error
-    
+
     // GenerateCRL generates a CRL for the specified CA.
     GenerateCRL(ctx context.Context, caID googleUuid.UUID) (*domain.CRL, error)
 }
@@ -501,19 +501,19 @@ import (
 const (
     // DefaultRootCAValidityYears is the default validity period for root CAs.
     DefaultRootCAValidityYears = 20
-    
+
     // DefaultIntermediateCAValidityYears is the default validity period for intermediate CAs.
     DefaultIntermediateCAValidityYears = 10
-    
+
     // DefaultIssuingCAValidityYears is the default validity period for issuing CAs.
     DefaultIssuingCAValidityYears = 5
-    
+
     // DefaultCRLValidityHours is the default validity period for CRLs.
     DefaultCRLValidityHours = 24 * time.Hour
-    
+
     // MinSerialNumberBits is the minimum serial number size per CA/Browser Forum requirements.
     MinSerialNumberBits = 64
-    
+
     // MaxSerialNumberBits is the maximum serial number size (2^159).
     MaxSerialNumberBits = 159
 )

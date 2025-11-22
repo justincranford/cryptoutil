@@ -174,7 +174,7 @@ linters-settings:
         alias: googleUuid
       - pkg: modernc.org/sqlite
         alias: moderncsqlite
-      
+
       # JOSE Libraries (unchanged)
       - pkg: github.com/go-jose/go-jose/v4/jwa
         alias: joseJwa
@@ -184,13 +184,13 @@ linters-settings:
         alias: joseJwk
       - pkg: github.com/go-jose/go-jose/v4/jws
         alias: joseJws
-      
+
       # Standard Library (unchanged)
       - pkg: crypto/rand
         alias: crand
       - pkg: math/rand
         alias: mathrand
-      
+
       # KMS Service Group (NEW - 15 aliases)
       - pkg: cryptoutil/api/kms/client
         alias: cryptoutilKmsClient
@@ -222,7 +222,7 @@ linters-settings:
         alias: cryptoutilKmsContainer
       - pkg: cryptoutil/internal/kms/config
         alias: cryptoutilKmsConfig
-      
+
       # Identity Service Group (conditional - if workspace extracted)
       - pkg: identity/authz
         alias: cryptoutilIdentityAuthz
@@ -244,7 +244,7 @@ linters-settings:
         alias: cryptoutilIdentityRs
       - pkg: identity/spa-rp
         alias: cryptoutilIdentitySpaRp
-      
+
       # CA Service Group (NEW - skeleton)
       - pkg: cryptoutil/internal/ca
         alias: cryptoutilCA
@@ -256,7 +256,7 @@ linters-settings:
         alias: cryptoutilCAService
       - pkg: cryptoutil/internal/ca/config
         alias: cryptoutilCAConfig
-      
+
       # Common Packages (unchanged)
       - pkg: cryptoutil/internal/common/apperr
         alias: cryptoutilAppErr
@@ -268,7 +268,7 @@ linters-settings:
         alias: cryptoutilTestutil
       - pkg: cryptoutil/internal/common/util
         alias: cryptoutilUtil
-      
+
       # Identity Packages (existing - unchanged if not workspace extracted)
       - pkg: cryptoutil/internal/identity/apperr
         alias: cryptoutilIdentityAppErr
@@ -280,7 +280,7 @@ linters-settings:
         alias: cryptoutilIdentityMagic
       - pkg: cryptoutil/internal/identity/repository
         alias: cryptoutilIdentityRepository
-      
+
       # CICD Packages (unchanged)
       - pkg: cryptoutil/internal/cmd/cicd/common
         alias: cryptoutilCmdCicdCommon

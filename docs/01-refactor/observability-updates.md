@@ -152,7 +152,7 @@ services:
       # OLD
       # - ./cryptoutil/configs/cryptoutil-common.yml:/app/configs/cryptoutil-common.yml:ro
       # - ./cryptoutil/configs/cryptoutil-sqlite.yml:/app/configs/cryptoutil-sqlite.yml:ro
-      
+
       # NEW
       - ./cryptoutil/configs/kms-common.yml:/app/configs/kms-common.yml:ro
       - ./cryptoutil/configs/kms-sqlite.yml:/app/configs/kms-sqlite.yml:ro
