@@ -1,8 +1,8 @@
 # Identity Services Gap Analysis
 
-**Document Status**: DRAFT  
-**Version**: 1.0  
-**Last Updated**: 2025-01-XX  
+**Document Status**: DRAFT
+**Version**: 1.0
+**Last Updated**: 2025-01-XX
 **Analysis Period**: Tasks 12-15 Implementation (OTP/Magic Link, Adaptive Engine, WebAuthn, Hardware Credentials)
 
 ---
@@ -41,9 +41,9 @@
 
 ### GAP-COMP-001: Missing Security Headers
 
-**Category**: Compliance (Security Headers)  
-**Severity**: CRITICAL  
-**File**: `internal/identity/idp/middleware.go`  
+**Category**: Compliance (Security Headers)
+**Severity**: CRITICAL
+**File**: `internal/identity/idp/middleware.go`
 **Issue**: No security headers configured in Fiber middleware
 
 **Missing Headers**:
@@ -55,20 +55,20 @@
 - `Referrer-Policy: no-referrer` (privacy)
 - `Permissions-Policy: geolocation=(), microphone=(), camera=()` (browser permissions)
 
-**Impact**: Vulnerable to clickjacking, XSS, MIME sniffing attacks  
-**Requirement**: OWASP Application Security Verification Standard V14.4 - HTTP Security Headers  
-**Remediation**: Add Fiber helmet middleware with all security headers  
-**Owner**: Backend team  
-**Target**: Q1 2025 (CRITICAL - before production)  
+**Impact**: Vulnerable to clickjacking, XSS, MIME sniffing attacks
+**Requirement**: OWASP Application Security Verification Standard V14.4 - HTTP Security Headers
+**Remediation**: Add Fiber helmet middleware with all security headers
+**Owner**: Backend team
+**Target**: Q1 2025 (CRITICAL - before production)
 **Status**: Planned
 
 ---
 
 ### GAP-CODE-007: Logout Handler Incomplete
 
-**Category**: Implementation (Authentication)  
-**Severity**: CRITICAL  
-**File**: `internal/identity/idp/handlers_logout.go`  
+**Category**: Implementation (Authentication)
+**Severity**: CRITICAL
+**File**: `internal/identity/idp/handlers_logout.go`
 **Issue**: 4 TODO steps not implemented
 
 **Missing Steps**:
@@ -77,36 +77,36 @@
 3. Delete session from repository (line 29)
 4. Clear session cookie (line 30)
 
-**Impact**: Logout doesn't actually invalidate sessions (security vulnerability)  
-**Requirement**: OAuth 2.1 Section 5.2 - Logout Functionality  
-**Remediation**: Implement all 4 logout steps, integrate with GAP-COMP-007 (token revocation endpoint)  
-**Owner**: Backend team  
-**Target**: Q1 2025 (CRITICAL - security vulnerability)  
+**Impact**: Logout doesn't actually invalidate sessions (security vulnerability)
+**Requirement**: OAuth 2.1 Section 5.2 - Logout Functionality
+**Remediation**: Implement all 4 logout steps, integrate with GAP-COMP-007 (token revocation endpoint)
+**Owner**: Backend team
+**Target**: Q1 2025 (CRITICAL - security vulnerability)
 **Status**: Planned
 
 ---
 
 ### GAP-CODE-008: Authentication Middleware Missing
 
-**Category**: Implementation (Security)  
-**Severity**: CRITICAL  
-**File**: `internal/identity/idp/middleware.go` (line 39 TODO comment)  
+**Category**: Implementation (Security)
+**Severity**: CRITICAL
+**File**: `internal/identity/idp/middleware.go` (line 39 TODO comment)
 **Issue**: Authentication middleware not implemented - protected endpoints unprotected
 
-**Impact**: No session validation before accessing protected endpoints (authentication bypass)  
-**Requirement**: OAuth 2.1 Section 3.1 - Protected Resources  
-**Remediation**: Implement authentication middleware with session validation, token introspection  
-**Owner**: Backend team  
-**Target**: Q1 2025 (CRITICAL - security vulnerability)  
+**Impact**: No session validation before accessing protected endpoints (authentication bypass)
+**Requirement**: OAuth 2.1 Section 3.1 - Protected Resources
+**Remediation**: Implement authentication middleware with session validation, token introspection
+**Owner**: Backend team
+**Target**: Q1 2025 (CRITICAL - security vulnerability)
 **Status**: Planned
 
 ---
 
 ### GAP-CODE-012 / GAP-COMP-003: UserInfo Handler Incomplete
 
-**Category**: Implementation + Compliance (OIDC)  
-**Severity**: CRITICAL  
-**File**: `internal/identity/idp/handlers_userinfo.go`  
+**Category**: Implementation + Compliance (OIDC)
+**Severity**: CRITICAL
+**File**: `internal/identity/idp/handlers_userinfo.go`
 **Issue**: 4 TODO steps not implemented
 
 **Missing Steps**:
@@ -115,63 +115,63 @@
 3. Fetch user details from repository (line 25)
 4. Map user claims to OIDC standard claims (line 26)
 
-**Impact**: /userinfo endpoint non-functional (OIDC compliance violation)  
-**Requirement**: OIDC 1.0 Core Section 5.3 - UserInfo Endpoint  
-**Remediation**: Implement all 4 UserInfo steps, integrate with GAP-COMP-006 (token introspection)  
-**Owner**: Backend team  
-**Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)  
+**Impact**: /userinfo endpoint non-functional (OIDC compliance violation)
+**Requirement**: OIDC 1.0 Core Section 5.3 - UserInfo Endpoint
+**Remediation**: Implement all 4 UserInfo steps, integrate with GAP-COMP-006 (token introspection)
+**Owner**: Backend team
+**Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)
 **Status**: Planned
 
 ---
 
 ### GAP-COMP-004: Missing OIDC Discovery Endpoint
 
-**Category**: Compliance (OIDC)  
-**Severity**: CRITICAL  
-**File**: Not implemented  
+**Category**: Compliance (OIDC)
+**Severity**: CRITICAL
+**File**: Not implemented
 **Issue**: No `/.well-known/openid-configuration` endpoint
 
-**Impact**: OIDC clients cannot discover IdP configuration (manual configuration required)  
-**Requirement**: OIDC 1.0 Discovery Section 4 - Provider Metadata  
+**Impact**: OIDC clients cannot discover IdP configuration (manual configuration required)
+**Requirement**: OIDC 1.0 Discovery Section 4 - Provider Metadata
 **Remediation**: Implement `/.well-known/openid-configuration` endpoint with:
   - `issuer`, `authorization_endpoint`, `token_endpoint`, `userinfo_endpoint`
   - `jwks_uri`, `scopes_supported`, `response_types_supported`
   - `subject_types_supported`, `id_token_signing_alg_values_supported`
 
-**Owner**: Backend team  
-**Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)  
+**Owner**: Backend team
+**Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)
 **Status**: Planned
 
 ---
 
 ### GAP-COMP-005: Missing JWKS Endpoint
 
-**Category**: Compliance (OIDC)  
-**Severity**: CRITICAL  
-**File**: Not implemented  
+**Category**: Compliance (OIDC)
+**Severity**: CRITICAL
+**File**: Not implemented
 **Issue**: No `/.well-known/jwks.json` endpoint for public keys
 
-**Impact**: Clients cannot verify ID token signatures  
-**Requirement**: OIDC 1.0 Core Section 10.1.1 - Signing Key Rotation  
-**Remediation**: Implement `/.well-known/jwks.json` endpoint exposing RSA/ECDSA public keys in JWK format  
-**Owner**: Backend team  
-**Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)  
+**Impact**: Clients cannot verify ID token signatures
+**Requirement**: OIDC 1.0 Core Section 10.1.1 - Signing Key Rotation
+**Remediation**: Implement `/.well-known/jwks.json` endpoint exposing RSA/ECDSA public keys in JWK format
+**Owner**: Backend team
+**Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)
 **Status**: Planned
 
 ---
 
 ### GAP-15-003: Database Configuration Stub
 
-**Category**: Implementation (Infrastructure)  
-**Severity**: CRITICAL  
-**File**: `internal/identity/repository/database.go`  
+**Category**: Implementation (Infrastructure)
+**Severity**: CRITICAL
+**File**: `internal/identity/repository/database.go`
 **Issue**: Database configuration implementation incomplete (stub code)
 
-**Impact**: Database connection pooling, migrations, health checks not production-ready  
-**Requirement**: Task 16 - Database Layer Implementation  
-**Remediation**: Complete database configuration, connection pooling, migration framework  
-**Owner**: Backend team  
-**Target**: Q1 2025 (CRITICAL - production blocker)  
+**Impact**: Database connection pooling, migrations, health checks not production-ready
+**Requirement**: Task 16 - Database Layer Implementation
+**Remediation**: Complete database configuration, connection pooling, migration framework
+**Owner**: Backend team
+**Target**: Q1 2025 (CRITICAL - production blocker)
 **Status**: In-progress (Task 16 dependency)
 
 ---
@@ -180,64 +180,64 @@
 
 ### GAP-12-001: In-Memory Rate Limiting
 
-**Category**: Infrastructure  
-**Severity**: HIGH  
-**File**: `internal/identity/idp/auth/rate_limiter.go`  
+**Category**: Infrastructure
+**Severity**: HIGH
+**File**: `internal/identity/idp/auth/rate_limiter.go`
 **Issue**: In-memory rate limiting state resets on restart
 
-**Impact**: Rate limit counters lost on deployment/restart, allowing burst attacks  
-**Requirement**: OAuth 2.1 Section 4.1.2 - Rate Limiting  
-**Remediation**: Implement Redis-backed distributed rate limiting (Task 18 dependency)  
-**Owner**: Backend team  
-**Target**: Q1 2025 (HIGH - production resilience)  
+**Impact**: Rate limit counters lost on deployment/restart, allowing burst attacks
+**Requirement**: OAuth 2.1 Section 4.1.2 - Rate Limiting
+**Remediation**: Implement Redis-backed distributed rate limiting (Task 18 dependency)
+**Owner**: Backend team
+**Target**: Q1 2025 (HIGH - production resilience)
 **Status**: Deferred (Task 18 dependency)
 
 ---
 
 ### GAP-COMP-002: CORS Configuration Too Permissive
 
-**Category**: Compliance (Security)  
-**Severity**: HIGH  
-**File**: `internal/identity/idp/middleware.go` (line 33)  
+**Category**: Compliance (Security)
+**Severity**: HIGH
+**File**: `internal/identity/idp/middleware.go` (line 33)
 **Issue**: `AllowOrigins: "*"` allows any origin (CORS bypass vulnerability)
 
-**Impact**: Any website can make authenticated requests to IdP  
-**Requirement**: OWASP Application Security Verification Standard V14.5 - CORS Configuration  
-**Remediation**: Use explicit allowed origins from configuration (no wildcards in production)  
-**Owner**: Backend team  
-**Target**: Q1 2025 (HIGH - security misconfiguration)  
+**Impact**: Any website can make authenticated requests to IdP
+**Requirement**: OWASP Application Security Verification Standard V14.5 - CORS Configuration
+**Remediation**: Use explicit allowed origins from configuration (no wildcards in production)
+**Owner**: Backend team
+**Target**: Q1 2025 (HIGH - security misconfiguration)
 **Status**: Planned
 
 ---
 
 ### GAP-COMP-006: Missing Token Introspection Endpoint
 
-**Category**: Compliance (OAuth)  
-**Severity**: HIGH  
-**File**: Not implemented  
+**Category**: Compliance (OAuth)
+**Severity**: HIGH
+**File**: Not implemented
 **Issue**: No RFC 7662 token introspection endpoint
 
-**Impact**: Resource servers cannot validate access tokens (must use local JWT verification)  
-**Requirement**: RFC 7662 - OAuth 2.0 Token Introspection  
-**Remediation**: Implement `/oauth/introspect` endpoint  
-**Owner**: Backend team  
-**Target**: Q2 2025 (HIGH - OAuth best practice)  
+**Impact**: Resource servers cannot validate access tokens (must use local JWT verification)
+**Requirement**: RFC 7662 - OAuth 2.0 Token Introspection
+**Remediation**: Implement `/oauth/introspect` endpoint
+**Owner**: Backend team
+**Target**: Q2 2025 (HIGH - OAuth best practice)
 **Status**: Planned
 
 ---
 
 ### GAP-COMP-007: Missing Token Revocation Endpoint
 
-**Category**: Compliance (OAuth)  
-**Severity**: HIGH  
-**File**: Not implemented  
+**Category**: Compliance (OAuth)
+**Severity**: HIGH
+**File**: Not implemented
 **Issue**: No RFC 7009 token revocation endpoint
 
-**Impact**: Clients cannot revoke tokens (logout incomplete)  
-**Requirement**: RFC 7009 - OAuth 2.0 Token Revocation  
-**Remediation**: Implement `/oauth/revoke` endpoint, integrate with GAP-CODE-007 (logout handler)  
-**Owner**: Backend team  
-**Target**: Q1 2025 (HIGH - required for proper logout)  
+**Impact**: Clients cannot revoke tokens (logout incomplete)
+**Requirement**: RFC 7009 - OAuth 2.0 Token Revocation
+**Remediation**: Implement `/oauth/revoke` endpoint, integrate with GAP-CODE-007 (logout handler)
+**Owner**: Backend team
+**Target**: Q1 2025 (HIGH - required for proper logout)
 **Status**: Planned (related to GAP-CODE-007)
 
 ---
@@ -656,6 +656,6 @@
 
 ---
 
-**Document Maintainer**: Backend Team  
-**Review Cycle**: Quarterly  
+**Document Maintainer**: Backend Team
+**Review Cycle**: Quarterly
 **Next Review**: 2025-Q2
