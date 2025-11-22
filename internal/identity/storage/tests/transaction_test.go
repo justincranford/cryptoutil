@@ -39,11 +39,15 @@ func TestTransactionRollback(t *testing.T) {
 			Email:             "rollback-" + uuidSuffix + "@example.com",
 			Name:              "Rollback Test User",
 			PreferredUsername: "rollback-" + uuidSuffix,
+			PasswordHash:      "dummy-hash",
 		}
 
 		userRepo := repoFactory.UserRepository()
 		err := userRepo.Create(ctx, user)
 		require.NoError(t, err)
+
+		// Explicitly log that user was created
+		t.Logf("Created user in transaction: ID=%v, Sub=%v", user.ID, user.Sub)
 
 		// Create a client within transaction
 		client := &cryptoutilIdentityDomain.Client{
@@ -56,6 +60,8 @@ func TestTransactionRollback(t *testing.T) {
 		err = clientRepo.Create(ctx, client)
 		require.NoError(t, err)
 
+		t.Logf("Created client in transaction: ID=%v, ClientID=%v", client.ID, client.ClientID)
+
 		// Simulate an error to trigger rollback
 		// The transaction should rollback, so neither user nor client should exist
 		return errors.New("simulated error for rollback test")
@@ -65,16 +71,18 @@ func TestTransactionRollback(t *testing.T) {
 	require.Error(t, txErr)
 	require.Contains(t, txErr.Error(), "simulated error")
 
-	// Verify the user does NOT exist (transaction rolled back) - expect "not found" error
+	// Verify the user does NOT exist (transaction rolled back) - expect record not found
 	userRepo := repoFactory.UserRepository()
-	foundUser, err := userRepo.GetBySub(ctx, "rollback-test-user-"+uuidSuffix)
-	require.Error(t, err) // Should not find the user
-	require.Nil(t, foundUser)
+	foundUser, userErr := userRepo.GetBySub(ctx, "rollback-test-user-"+uuidSuffix)
+	if userErr == nil {
+		t.Fatalf("Expected error finding rolled-back user, but found user with ID: %v, Sub: %v", foundUser.ID, foundUser.Sub)
+	}
 
 	clientRepo := repoFactory.ClientRepository()
-	foundClient, err := clientRepo.GetByClientID(ctx, "rollback-test-client-"+uuidSuffix)
-	require.Error(t, err) // Should not find the client
-	require.Nil(t, foundClient)
+	foundClient, clientErr := clientRepo.GetByClientID(ctx, "rollback-test-client-"+uuidSuffix)
+	if clientErr == nil {
+		t.Fatalf("Expected error finding rolled-back client, but found client with ID: %v, ClientID: %v", foundClient.ID, foundClient.ClientID)
+	}
 }
 
 func TestTransactionCommit(t *testing.T) {

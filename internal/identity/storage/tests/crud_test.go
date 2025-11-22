@@ -491,13 +491,11 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 func setupTestRepositoryFactory(t *testing.T, ctx context.Context) *cryptoutilIdentityRepository.RepositoryFactory {
 	t.Helper()
 
-	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
-
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:            "sqlite",
-		DSN:             "file:" + uuidSuffix + ".db?mode=memory&cache=shared",
-		MaxOpenConns:    1,
-		MaxIdleConns:    1,
+		DSN:             ":memory:",
+		MaxOpenConns:    5,
+		MaxIdleConns:    5,
 		ConnMaxLifetime: 0,
 		ConnMaxIdleTime: 0,
 		AutoMigrate:     true,
