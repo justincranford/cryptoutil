@@ -151,7 +151,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenResponse'
+                $ref: '#/components/schemas/AuthZTokenResponse'
         '400':
           $ref: '#/components/responses/OAuth2Error'
         '401':
@@ -180,7 +180,7 @@ paths:
 
 components:
   schemas:
-    TokenResponse:
+    AuthZTokenResponse:
       type: object
       required:
         - access_token

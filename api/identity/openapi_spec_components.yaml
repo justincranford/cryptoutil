@@ -1,0 +1,137 @@
+openapi: 3.0.3
+info:
+  title: Identity Services - Shared Components
+  version: 1.0.0
+  description: |
+    Shared schemas, responses, and security schemes for
+    OAuth 2.1 AuthZ, OIDC IdP, and Resource Server.
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall service health status
+          example: healthy
+        database:
+          type: string
+          enum: [ok, error]
+          description: Database connectivity status
+          example: ok
+        uptime:
+          type: integer
+          description: Service uptime in seconds
+          example: 86400
+
+    OAuth2Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_request
+            - invalid_client
+            - invalid_grant
+            - unauthorized_client
+            - unsupported_grant_type
+            - invalid_scope
+            - server_error
+            - temporarily_unavailable
+          description: OAuth 2.0 error code
+          example: invalid_request
+        error_description:
+          type: string
+          description: Human-readable error description
+          example: "The request is missing a required parameter"
+        error_uri:
+          type: string
+          format: uri
+          description: URI for error documentation
+          example: "https://docs.example.com/oauth2/errors/invalid_request"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error code or message
+          example: "invalid_request"
+        error_description:
+          type: string
+          description: Human-readable error description
+          example: "Missing required parameter: return_url"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        OAuth 2.0 access token obtained from authorization server.
+        Token must contain required scopes for the endpoint.
+        Header format: Authorization: Bearer <access_token>
+
+    clientBasicAuth:
+      type: http
+      scheme: basic
+      description: |
+        Client ID and secret via HTTP Basic Authentication.
+        Header format: Authorization: Basic base64(client_id:client_secret)
+
+    clientSecretPost:
+      type: apiKey
+      in: formData
+      name: client_secret
+      description: |
+        Client secret in request body as form parameter.
+        Used when client cannot use HTTP Basic Authentication.
+
+  responses:
+    OAuth2Error:
+      description: OAuth 2.0 error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OAuth2Error'
+
+    ErrorResponse:
+      description: Generic error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid access token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+          description: Authentication challenge
+
+    Forbidden:
+      description: Forbidden - insufficient scopes or permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

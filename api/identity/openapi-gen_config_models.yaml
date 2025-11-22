@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+package: models
+output: models/openapi_gen_models.go
+generate:
+  models: true
+output-options:
+  skip-prune: true
+  name-normalizer: ToCamelCaseWithInitialisms
+  additional-initialisms:
+    - IDS    # Intrusion Detection System
+    - JWT    # JSON Web Token
+    - JWK    # JSON Web Key
+    - JWE    # JSON Web Encryption
+    - JWS    # JSON Web Signature
+    - OIDC   # OpenID Connect
+    - OAUTH  # OAuth 2.1
+    - PKCE   # Proof Key for Code Exchange
+    - SAML   # Security Assertion Markup Language
+    - AES    # Advanced Encryption Standard
+    - GCM    # Galois/Counter Mode
+    - CBC    # Cipher Block Chaining
+    - RSA    # Rivest-Shamir-Adleman
+    - EC     # Elliptic Curve
+    - HMAC   # Hash-based Message Authentication Code
+    - SHA    # Secure Hash Algorithm
+    - TLS    # Transport Layer Security
+    - IP     # Internet Protocol
+    - AI     # Artificial Intelligence
+    - ML     # Machine Learning
+    - KEM    # Key Encapsulation Mechanism
+    - CSRF   # Cross-Site Request Forgery
+    - CORS   # Cross-Origin Resource Sharing
