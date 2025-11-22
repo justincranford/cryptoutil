@@ -52,7 +52,7 @@ func (o *MFAOrchestrator) GetRequiredFactors(ctx context.Context, authProfileID 
 	return factorTypes, nil
 }
 
-// ValidateFactor validates a specific MFA factor.
+// ValidateFactor validates a specific MFA factor with replay prevention.
 func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID googleUuid.UUID, factorType string, credentials map[string]string) error {
 	// Fetch MFA factors for authentication profile.
 	factors, err := o.mfaRepo.GetByAuthProfileID(ctx, authProfileID)
@@ -73,6 +73,11 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 
 	if matchingFactor == nil {
 		return fmt.Errorf("%w: MFA factor not configured", cryptoutilIdentityAppErr.ErrMFAFactorNotFound)
+	}
+
+	// Validate nonce for replay prevention.
+	if !matchingFactor.IsNonceValid() {
+		return fmt.Errorf("%w: nonce already used or expired", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	// Validate factor based on type.
@@ -105,6 +110,12 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 
 	default:
 		return fmt.Errorf("%w: unsupported MFA factor type: %s", cryptoutilIdentityAppErr.ErrServerError, factorType)
+	}
+
+	// Mark nonce as used (replay prevention).
+	matchingFactor.MarkNonceAsUsed()
+	if err := o.mfaRepo.Update(ctx, matchingFactor); err != nil {
+		return fmt.Errorf("failed to mark nonce as used: %w", err)
 	}
 
 	return nil

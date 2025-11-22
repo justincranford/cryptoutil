@@ -51,6 +51,11 @@ type MFAFactor struct {
 	// Authentication profile reference (foreign key).
 	AuthProfileID googleUuid.UUID `gorm:"type:text;index;not null" json:"auth_profile_id"` // Associated auth profile.
 
+	// Replay prevention (time-bound nonces).
+	Nonce          string     `gorm:"uniqueIndex" json:"-"`                             // One-time nonce for replay prevention.
+	NonceExpiresAt *time.Time `gorm:"index" json:"nonce_expires_at,omitempty"`         // Nonce expiration timestamp.
+	NonceUsedAt    *time.Time `gorm:"index" json:"nonce_used_at,omitempty"`            // Timestamp when nonce was consumed.
+
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Factor enabled status.
 	CreatedAt time.Time  `json:"created_at"`                        // Creation timestamp.
@@ -58,10 +63,14 @@ type MFAFactor struct {
 	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"` // Soft delete timestamp.
 }
 
-// BeforeCreate generates UUID for new MFA factors.
+// BeforeCreate generates UUID and nonce for new MFA factors.
 func (mf *MFAFactor) BeforeCreate(_ *gorm.DB) error {
 	if mf.ID == googleUuid.Nil {
 		mf.ID = googleUuid.Must(googleUuid.NewV7())
+	}
+
+	if mf.Nonce == "" {
+		mf.Nonce = googleUuid.Must(googleUuid.NewV7()).String()
 	}
 
 	return nil
@@ -70,4 +79,23 @@ func (mf *MFAFactor) BeforeCreate(_ *gorm.DB) error {
 // TableName returns the table name for MFAFactor entities.
 func (MFAFactor) TableName() string {
 	return "mfa_factors"
+}
+
+// IsNonceValid checks if nonce is valid and not expired.
+func (mf *MFAFactor) IsNonceValid() bool {
+	if mf.NonceUsedAt != nil {
+		return false
+	}
+
+	if mf.NonceExpiresAt != nil && time.Now().After(*mf.NonceExpiresAt) {
+		return false
+	}
+
+	return true
+}
+
+// MarkNonceAsUsed marks nonce as consumed with current timestamp.
+func (mf *MFAFactor) MarkNonceAsUsed() {
+	now := time.Now()
+	mf.NonceUsedAt = &now
 }
