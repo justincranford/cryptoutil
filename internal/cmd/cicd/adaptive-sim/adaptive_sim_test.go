@@ -1,23 +1,23 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"os"
 	"testing"
-	"time"
+
+	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityUserauth "cryptoutil/internal/identity/idp/userauth"
-	"github.com/stretchr/testify/require"
 )
 
 func TestLoadHistoricalLogs(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		logData     string
-		wantCount   int
-		wantError   bool
+		name      string
+		logData   string
+		wantCount int
+		wantError bool
 	}{
 		{
 			name: "valid single log entry",
@@ -106,10 +106,10 @@ func TestCalculateRiskScore(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		log           HistoricalAuthLog
-		wantMinScore  float64
-		wantMaxScore  float64
+		name         string
+		log          HistoricalAuthLog
+		wantMinScore float64
+		wantMaxScore float64
 	}{
 		{
 			name: "low risk - no VPN, no proxy, safe country",
@@ -229,11 +229,11 @@ func TestDetermineRequiredLevel(t *testing.T) {
 	}
 
 	tests := []struct {
-		name           string
-		operation      string
-		currentLevel   string
-		wantRequired   string
-		wantStepUp     bool
+		name         string
+		operation    string
+		currentLevel string
+		wantRequired string
+		wantStepUp   bool
 	}{
 		{
 			name:         "step-up required - insufficient level",

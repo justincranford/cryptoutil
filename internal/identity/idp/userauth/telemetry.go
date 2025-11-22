@@ -19,24 +19,24 @@ type TelemetryRecorder struct {
 	meter metric.Meter
 
 	// Risk scoring metrics.
-	riskScoreHistogram        metric.Float64Histogram
-	riskLevelCounter          metric.Int64Counter
-	confidenceScoreHistogram  metric.Float64Histogram
+	riskScoreHistogram       metric.Float64Histogram
+	riskLevelCounter         metric.Int64Counter
+	confidenceScoreHistogram metric.Float64Histogram
 
 	// Step-up metrics.
-	stepUpTriggeredCounter    metric.Int64Counter
-	stepUpMethodCounter       metric.Int64Counter
-	stepUpSuccessCounter      metric.Int64Counter
-	stepUpFailureCounter      metric.Int64Counter
+	stepUpTriggeredCounter metric.Int64Counter
+	stepUpMethodCounter    metric.Int64Counter
+	stepUpSuccessCounter   metric.Int64Counter
+	stepUpFailureCounter   metric.Int64Counter
 
 	// Policy evaluation metrics.
-	policyEvaluationDuration  metric.Float64Histogram
-	policyLoadDuration        metric.Float64Histogram
-	policyReloadCounter       metric.Int64Counter
+	policyEvaluationDuration metric.Float64Histogram
+	policyLoadDuration       metric.Float64Histogram
+	policyReloadCounter      metric.Int64Counter
 
 	// Blocking metrics.
-	blockedOperationsCounter  metric.Int64Counter
-	allowedOperationsCounter  metric.Int64Counter
+	blockedOperationsCounter metric.Int64Counter
+	allowedOperationsCounter metric.Int64Counter
 
 	// Error metrics.
 	riskAssessmentErrorCounter metric.Int64Counter
