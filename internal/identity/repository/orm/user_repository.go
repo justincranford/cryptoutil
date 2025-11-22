@@ -53,12 +53,13 @@ func (r *UserRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (*
 // GetBySub retrieves a user by subject identifier.
 func (r *UserRepositoryGORM) GetBySub(ctx context.Context, sub string) (*cryptoutilIdentityDomain.User, error) {
 	var user cryptoutilIdentityDomain.User
-	if err := getDB(ctx, r.db).WithContext(ctx).Where("sub = ? AND deleted_at IS NULL", sub).First(&user).Error; err != nil {
+	// Enable debug mode to see SQL queries.
+	if err := getDB(ctx, r.db).Debug().WithContext(ctx).Where("sub = ? AND deleted_at IS NULL", sub).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrUserNotFound
 		}
 
-		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get user by sub: %w", err))
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get user by subject: %w", err))
 	}
 
 	return &user, nil

@@ -33,16 +33,16 @@ type Session struct {
 	LastSeenAt time.Time `json:"last_seen_at"`                     // Last activity time.
 
 	// Session status.
-	Active    bool       `gorm:"index;not null" json:"active"`              // Session active status.
+	Active    bool       `gorm:"index;not null" json:"active"`                  // Session active status.
 	RevokedAt *time.Time `gorm:"column:revoked_at" json:"revoked_at,omitempty"` // Session revocation time.
 
 	AuthenticationMethods []string  `gorm:"serializer:json" json:"authentication_methods"` // Used authentication methods.
 	AuthenticationTime    time.Time `json:"authentication_time"`                           // Authentication completion time.
 
 	// OAuth 2.1 / OIDC metadata.
-	Nonce         string   `gorm:"column:nonce" json:"nonce,omitempty"`           // OIDC nonce value.
-	CodeChallenge string   `gorm:"column:code_challenge" json:"-"`                // PKCE code challenge.
-	GrantedScopes []string `gorm:"serializer:json" json:"scopes"` // Granted scopes.
+	Nonce         string   `gorm:"column:nonce" json:"nonce,omitempty"` // OIDC nonce value.
+	CodeChallenge string   `gorm:"column:code_challenge" json:"-"`      // PKCE code challenge.
+	GrantedScopes []string `gorm:"serializer:json" json:"scopes"`       // Granted scopes.
 
 	// GORM timestamps.
 	CreatedAt time.Time  `json:"created_at"`

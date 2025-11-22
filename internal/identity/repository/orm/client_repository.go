@@ -53,7 +53,8 @@ func (r *ClientRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) 
 // GetByClientID retrieves a client by OAuth client_id.
 func (r *ClientRepositoryGORM) GetByClientID(ctx context.Context, clientID string) (*cryptoutilIdentityDomain.Client, error) {
 	var client cryptoutilIdentityDomain.Client
-	if err := getDB(ctx, r.db).WithContext(ctx).Where("client_id = ? AND deleted_at IS NULL", clientID).First(&client).Error; err != nil {
+	// Enable debug mode to see SQL queries.
+	if err := getDB(ctx, r.db).Debug().WithContext(ctx).Where("client_id = ? AND deleted_at IS NULL", clientID).First(&client).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrClientNotFound
 		}

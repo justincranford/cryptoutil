@@ -45,14 +45,14 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	case dbTypePostgres:
 		dialector = postgres.Open(cfg.DSN)
 	case dbTypeSQLite:
-	// Convert :memory: to shared cache mode for connection sharing.
-	// dsn := cfg.DSN
-	// if dsn == dsnMemory {
-	// 	dsn = dsnMemoryShared
-	// }
+		// Convert :memory: to shared cache mode for connection sharing.
+		// INVESTIGATION: Shared cache disabled - MaxOpenConns=1 causes deadlock, MaxOpenConns=5 causes rollback visibility.
+		// dsn := cfg.DSN
+		// if dsn == dsnMemory {
+		// 	dsn = dsnMemoryShared
+		// }
 
-	// INVESTIGATION: Keep original DSN without conversion to test isolation
-	dsn := cfg.DSN		// Open SQLite database with modernc driver (CGO-free) explicitly.
+		dsn := cfg.DSN // Open SQLite database with modernc driver (CGO-free) explicitly.
 		sqlDB, err := sql.Open("sqlite", dsn)
 		if err != nil {
 			return nil, cryptoutilIdentityAppErr.WrapError(

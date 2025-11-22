@@ -72,6 +72,16 @@ func TestTransactionRollback(t *testing.T) {
 	require.Contains(t, txErr.Error(), "simulated error")
 
 	// Verify the user does NOT exist (transaction rolled back) - expect record not found
+	// INVESTIGATION: Use raw SQL to check if the issue is GORM-specific.
+	var count int64
+	err := repoFactory.DB().Raw("SELECT COUNT(*) FROM users WHERE sub = ?", "rollback-test-user-"+uuidSuffix).Scan(&count).Error
+	require.NoError(t, err)
+
+	t.Logf("Raw SQL count for rolled-back user: %d (expected: 0)", count)
+	if count > 0 {
+		t.Fatalf("GORM transaction rollback failed: found %d user(s) with sub='%s' in database", count, "rollback-test-user-"+uuidSuffix)
+	}
+
 	userRepo := repoFactory.UserRepository()
 	foundUser, userErr := userRepo.GetBySub(ctx, "rollback-test-user-"+uuidSuffix)
 	if userErr == nil {

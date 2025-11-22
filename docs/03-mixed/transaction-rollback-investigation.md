@@ -122,7 +122,7 @@ func setupTestRepositoryFactory(t *testing.T, ctx context.Context) *RepositoryFa
 ```go
 func TestTransactionRollback(t *testing.T) {
     // ... create entities in transaction ...
-    
+
     // After rollback, explicitly verify via raw SQL
     var count int64
     repoFactory.DB().Raw("SELECT COUNT(*) FROM users WHERE sub = ?", sub).Scan(&count)
