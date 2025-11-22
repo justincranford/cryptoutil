@@ -86,8 +86,14 @@ func (a *MagicLinkAuthenticator) InitiateAuth(ctx context.Context, userID string
 		Metadata:  map[string]any{"email": user.Email},
 	}
 
-	// Store challenge with token.
-	if err := a.challengeStore.Store(ctx, challenge, token); err != nil {
+	// Hash token before storage (SECURITY: never store plaintext tokens).
+	hashedToken, err := HashToken(token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash token: %w", err)
+	}
+
+	// Store challenge with hashed token.
+	if err := a.challengeStore.Store(ctx, challenge, hashedToken); err != nil {
 		return nil, fmt.Errorf("failed to store challenge: %w", err)
 	}
 
@@ -126,7 +132,7 @@ func (a *MagicLinkAuthenticator) VerifyAuth(ctx context.Context, challengeID, re
 	}
 
 	// Retrieve challenge.
-	challenge, storedToken, err := a.challengeStore.Retrieve(ctx, id)
+	challenge, storedHashedToken, err := a.challengeStore.Retrieve(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("challenge not found: %w", err)
 	}
@@ -141,8 +147,8 @@ func (a *MagicLinkAuthenticator) VerifyAuth(ctx context.Context, challengeID, re
 		return nil, fmt.Errorf("magic link expired")
 	}
 
-	// Verify token.
-	if response != storedToken {
+	// Verify token against stored hash (constant-time comparison).
+	if err := VerifyToken(response, storedHashedToken); err != nil {
 		// Best-effort rate limit tracking.
 		if err := a.rateLimiter.RecordAttempt(ctx, challenge.UserID, false); err != nil {
 			fmt.Printf("warning: failed to record failed attempt: %v\n", err)

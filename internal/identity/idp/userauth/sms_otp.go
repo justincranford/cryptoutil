@@ -85,8 +85,14 @@ func (a *SMSOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (
 		Metadata:  map[string]any{"phone": user.PhoneNumber},
 	}
 
-	// Store challenge with OTP.
-	if err := a.challengeStore.Store(ctx, challenge, otp); err != nil {
+	// Hash OTP before storage (SECURITY: never store plaintext tokens).
+	hashedOTP, err := HashToken(otp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash OTP: %w", err)
+	}
+
+	// Store challenge with hashed OTP.
+	if err := a.challengeStore.Store(ctx, challenge, hashedOTP); err != nil {
 		return nil, fmt.Errorf("failed to store challenge: %w", err)
 	}
 
@@ -115,7 +121,7 @@ func (a *SMSOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respo
 	}
 
 	// Retrieve challenge.
-	challenge, storedOTP, err := a.challengeStore.Retrieve(ctx, id)
+	challenge, storedHashedOTP, err := a.challengeStore.Retrieve(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("challenge not found: %w", err)
 	}
@@ -130,8 +136,8 @@ func (a *SMSOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respo
 		return nil, fmt.Errorf("oTP expired")
 	}
 
-	// Verify OTP.
-	if response != storedOTP {
+	// Verify OTP against stored hash (constant-time comparison).
+	if err := VerifyToken(response, storedHashedOTP); err != nil {
 		// Best-effort rate limit tracking.
 		if err := a.rateLimiter.RecordAttempt(ctx, challenge.UserID, false); err != nil {
 			fmt.Printf("warning: failed to record failed attempt: %v\n", err)
