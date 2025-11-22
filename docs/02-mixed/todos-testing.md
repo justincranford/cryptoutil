@@ -2,47 +2,37 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: November 10, 2025
-**Status**: CRITICAL BLOCKER - GORM AutoMigrate failing in identity integration tests. Testing infrastructure improvements completed - fuzz and benchmark testing implemented for cryptographic operations. Test file organization audit and migration completed.
+**Last Updated**: November 21, 2025
+**Status**: GORM AutoMigrate blocker RESOLVED - Fixed UUID type handling, nullable foreign keys, and JSON serialization for SQLite cross-DB compatibility. TestHealthCheckEndpoints passes. Remaining integration test failures are application logic issues, not database issues.
 
 ---
 
-## 🔴 CRITICAL - Active Blockers
+## ✅ RESOLVED - GORM AutoMigrate SQLite Compatibility Issues
 
-### Task TB1: Fix GORM AutoMigrate Failure in Identity Integration Tests
+### Task TB1: Fix GORM AutoMigrate Failure in Identity Integration Tests - **RESOLVED**
 
-- **Description**: GORM AutoMigrate fails with "no such table: main.users" error when trying to create User table in SQLite
-- **Current State**: **BLOCKED** - Integration tests cannot seed test database
-- **Root Cause Investigation**:
-  - Error: `SQL logic error: no such table: main.users (1)` occurs during User table creation
-  - Not a foreign key issue (PRAGMA foreign_keys OFF doesn't help)
-  - Not a migration ordering issue (User is first model migrated)
-  - Suggests circular dependency or schema generation issue in User domain model
-  - User model has complex structure: embedded Address, multiple unique indexes, OIDC claims
-- **Recent Fixes Applied**:
-  - ✅ Removed `gorm.Model` duplication from all 8 domain models (commit bcd2171)
-  - ✅ Changed User ID type from `gorm:"type:uuid"` to `gorm:"type:text"` for SQLite compatibility
-  - ✅ Added missing DBUpdatedAt field to User model (avoid conflict with OIDC UpdatedAt claim)
-  - ✅ Added PRAGMA foreign_keys OFF during migrations
-  - ✅ Changed AutoMigrate to iterate models individually for better error reporting
-  - ❌ Still failing with same error
-- **Investigation Steps Remaining**:
-  - Try migrating User model alone in minimal test case
-  - Check if embedded Address struct causes issues
-  - Try removing unique indexes temporarily to isolate problem
-  - Check GORM SQLite driver compatibility with UUID fields
-  - Consider using GORM Debug mode to see generated SQL
-  - Review GORM issues for similar "no such table" errors during CREATE TABLE
-- **Files**:
-  - `internal/identity/domain/user.go` - User model with complex structure
-  - `internal/identity/repository/factory.go` - AutoMigrate implementation
-  - `internal/identity/integration/integration_test.go` - Integration test setup
-- **Impact**: Blocks Task 10.5 completion, prevents all identity integration testing
-- **Priority**: **CRITICAL** - Blocks entire identityV2 task chain (10.5 → 10.6 → 10.7 → 11-20)
-- **Timeline**: Must resolve before proceeding to Task 10.6
+- **Resolution Date**: November 21, 2025
+- **Root Causes Identified**:
+  1. **UUID Type Mismatch**: GORM `type:uuid` annotation incompatible with SQLite (no native UUID type)
+  2. **Nullable Foreign Keys**: Pointer UUIDs (`*googleUuid.UUID`) caused "row value misused" errors
+  3. **JSON Serialization**: GORM `type:json` annotation incompatible with SQLite (no native JSON type)
+  4. **Shared Database**: Tests shared `:memory:` database causing unique constraint violations
+- **Fixes Applied**:
+  - ✅ Changed all UUID fields from `type:uuid` to `type:text` (13 fields across 7 models)
+  - ✅ Created `NullableUUID` type with `sql.Scanner`/`driver.Valuer` for proper NULL handling
+  - ✅ Replaced pointer UUID foreign keys with `NullableUUID` (5 fields across 4 models)
+  - ✅ Changed JSON arrays from `type:json` to `serializer:json` (13 fields across 6 models)
+  - ✅ Isolated test databases: `file::memory:?mode=memory&cache=private` per test
+  - ✅ Updated `database.instructions.md` with cross-DB compatibility section
+- **Test Results**:
+  - ✅ TestHealthCheckEndpoints - **PASSES**
+  - ⚠️ Remaining test failures are application logic issues (redirect handling, scope enforcement)
+- **Documentation**: Complete cross-DB compatibility guide in `.github/instructions/01-04.database.instructions.md`
 - **Commits**:
-  - `628f290` - Task 10.5 partial progress (health endpoints, authorize redirect, PKCE)
-  - `bcd2171` - Domain model gorm.Model removal and fixes (still blocked)
+  - `5c8b4b38` - NullableUUID implementation and UUID type fixes
+  - `4993e0c4` - JSON serializer fixes and database instructions update
+  - `85549ad1` - Isolated database instances for tests
+- **Impact**: Unblocks Task 10.5 completion and entire identityV2 task chain (10.5 → 10.6 → 10.7 → 11-20)
 
 ---
 
