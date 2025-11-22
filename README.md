@@ -157,10 +157,46 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 ## Quick Start
 
 ### Prerequisites
+
 - Go 1.25.4+
 - Docker and Docker Compose (for PostgreSQL)
 
-### Running with Docker Compose
+### Identity System: Unified CLI (One-Liner Bootstrap)
+
+The Identity system provides a unified command-line interface for managing OAuth 2.1 services:
+
+```powershell
+# Build unified CLI and service binaries
+go build -o bin/identity.exe ./cmd/identity
+go build -o bin/authz.exe ./cmd/identity/authz
+go build -o bin/idp.exe ./cmd/identity/idp
+go build -o bin/rs.exe ./cmd/identity/rs
+
+# Start all services with one command
+./bin/identity start --profile demo
+
+# Check service health
+./bin/identity health
+
+# View service status
+./bin/identity status
+
+# Stop all services
+./bin/identity stop
+```
+
+**Available Profiles:**
+
+- `demo`: All services (AuthZ, IdP, RS) with SQLite in-memory
+- `authz-only`: Authorization Server only
+- `authz-idp`: AuthZ + IdP without Resource Server
+- `full-stack`: All services with PostgreSQL
+- `ci`: Minimal config for CI/CD testing
+
+For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-guide.md).
+
+### KMS Server: Running with Docker Compose
+
 ```sh
 # Start full stack: PostgreSQL, cryptoutil, and observability
 cd deployments/compose
@@ -176,6 +212,7 @@ docker compose logs -f cryptoutil-postgres-1
 ```
 
 ### Running with Go (Development)
+
 ```sh
 # Clone and setup
 git clone https://github.com/justincranford/cryptoutil
@@ -194,21 +231,23 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 ```
 
 ### API Access
-- **Swagger UI**: https://localhost:8081/ui/swagger (PostgreSQL instance 1), https://localhost:8082/ui/swagger (PostgreSQL instance 2), or https://localhost:8080/ui/swagger (SQLite)
-- **Browser API**: https://localhost:8081/browser/api/v1/*, https://localhost:8082/browser/api/v1/*, or https://localhost:8080/browser/api/v1/*
-- **Service API**: https://localhost:8081/service/api/v1/*, https://localhost:8082/service/api/v1/*, or https://localhost:8080/service/api/v1/*
-- **Health Checks**: https://localhost:9090/livez, https://localhost:9090/readyz
-- **Grafana UI**: http://localhost:3000 (admin/admin)
+
+- **Swagger UI**: <https://localhost:8081/ui/swagger> (PostgreSQL instance 1), <https://localhost:8082/ui/swagger> (PostgreSQL instance 2), or <https://localhost:8080/ui/swagger> (SQLite)
+- **Browser API**: <https://localhost:8081/browser/api/v1/*>, <https://localhost:8082/browser/api/v1/*>, or <https://localhost:8080/browser/api/v1/*>
+- **Service API**: <https://localhost:8081/service/api/v1/*>, <https://localhost:8082/service/api/v1/*>, or <https://localhost:8080/service/api/v1/*>
+- **Health Checks**: <https://localhost:9090/livez>, <https://localhost:9090/readyz>
+- **Grafana UI**: <http://localhost:3000> (admin/admin)
 - **OpenTelemetry Collector**:
-  - **OTLP gRPC**: http://localhost:4317 (receive telemetry from applications)
-  - **OTLP HTTP**: http://localhost:4318 (receive telemetry from applications)
-  - **Self-metrics**: http://localhost:8888/metrics (Prometheus format)
-  - **Received-metrics**: http://localhost:8889/metrics (Prometheus format, for re-export)
-  - **Health Check**: http://127.0.0.1:13133/
-  - **pprof**: http://localhost:1777 (performance profiling)
-  - **zPages**: http://localhost:55679 (debugging UI)
+  - **OTLP gRPC**: <http://localhost:4317> (receive telemetry from applications)
+  - **OTLP HTTP**: <http://localhost:4318> (receive telemetry from applications)
+  - **Self-metrics**: <http://localhost:8888/metrics> (Prometheus format)
+  - **Received-metrics**: <http://localhost:8889/metrics> (Prometheus format, for re-export)
+  - **Health Check**: <http://127.0.0.1:13133/>
+  - **pprof**: <http://localhost:1777> (performance profiling)
+  - **zPages**: <http://localhost:55679> (debugging UI)
 
 ### Example API Usage
+
 ```sh
 # Get CSRF token (for browser API)
 curl -k https://localhost:8080/browser/api/v1/csrf-token
