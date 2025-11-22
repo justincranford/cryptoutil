@@ -373,18 +373,248 @@
 
 ---
 
-## Next Steps (Todo 2)
+## Code Review - TODO/FIXME Analysis
 
-1. **Service Validation**: Run E2E tests, collect error logs, identify missing endpoints
-2. **Code Review**: Search for TODOs, FIXMEs, placeholder implementations
-3. **Compliance Validation**: Audit logging coverage, security headers, authentication standards
-4. **Gap Documentation**: Create comprehensive gap analysis markdown file
-5. **Remediation Tracker**: CSV/Markdown table with ownership and timelines
-6. **Quick Wins**: Identify simple fixes for immediate remediation
-7. **Completion Doc**: Task 17 completion documentation
+### Search Results Summary
+
+**Total TODO/FIXME Comments Found**: 20 unique instances across identity codebase
+
+**Categories**:
+- Test Stubs (MFA flows, client authentication): 10 instances
+- Missing Implementations (repository methods, handlers): 6 instances
+- Domain Enhancements (enums, middleware): 4 instances
+
+### Detailed Gap Analysis from Code Comments
+
+**GAP-CODE-001: AuthenticationStrength Enum Missing (MEDIUM)**
+- **File**: `internal/identity/test/e2e/client_mfa_test.go` (lines 250, 284)
+- **Severity**: MEDIUM (type safety + clarity)
+- **Issue**: Using string literals ("high", "low") instead of enum for authentication strength
+- **Impact**: Type-safety issues, unclear strength levels, no compile-time validation
+- **Current Mitigation**: String comparison works functionally
+- **Requirement ID**: Task 11 - Client MFA Chain Validation
+- **Remediation**: Define `AuthenticationStrength` enum in `domain` package with levels: Weak, Medium, Strong, VeryStrong
+- **Owner**: Backend team
+- **Target**: Q1 2025 (before Task 19 E2E tests expansion)
+- **Status**: Planned (low priority - string comparison works for MVP)
+
+**GAP-CODE-002: User ID from Authentication Context (MEDIUM)**
+- **File**: `internal/identity/idp/auth/mfa_otp.go` (line 133)
+- **Severity**: MEDIUM (correctness)
+- **Issue**: Using `factor.AuthProfileID.String()` as placeholder for user ID instead of retrieving from auth context
+- **Impact**: Incorrect user association for TOTP validation
+- **Current Mitigation**: Placeholder works for single-user test scenarios
+- **Requirement ID**: Task 12 - OTP Validation
+- **Remediation**: Add `GetUserID()` method to authentication context interface
+- **Owner**: Backend team
+- **Target**: Q1 2025 (before multi-user E2E tests)
+- **Status**: Planned (blocks multi-user TOTP validation)
+
+**GAP-CODE-003: MFA Chain Testing Stubs (TESTING)**
+- **File**: `internal/identity/test/e2e/mfa_flows_test.go` (lines 62, 106, 161, 190)
+- **Severity**: MEDIUM (testing coverage)
+- **Issue**: Four test functions marked TODO - not implemented
+  - `testMFAChain`: Multi-factor authentication chain testing
+  - `testStepUpAuth`: Step-up authentication testing
+  - `testRiskBasedAuth`: Risk-based authentication testing
+  - `testClientMFAChain`: Client-side MFA chain testing
+- **Impact**: Missing E2E test coverage for MFA flows
+- **Current Mitigation**: Unit tests cover individual authenticators
+- **Requirement ID**: Task 19 - Integration and E2E Testing Fabric
+- **Remediation**: Implement full E2E tests for MFA flows
+- **Owner**: QA team
+- **Target**: Task 19 (E2E testing fabric)
+- **Status**: Deferred (Task 19 dependency)
+
+**GAP-CODE-004: Repository Integration Tests Stub (TESTING)**
+- **File**: `internal/identity/test/integration/repository_integration_test.go` (line 37)
+- **Severity**: LOW (testing coverage)
+- **Issue**: Comment indicates comprehensive integration tests needed
+- **Impact**: Limited repository integration test coverage
+- **Current Mitigation**: Basic repository tests in orm/*_test.go files
+- **Requirement ID**: Task 19 - Integration Testing
+- **Remediation**: Expand repository_integration_test.go with comprehensive CRUD tests
+- **Owner**: QA team
+- **Target**: Task 19 (E2E testing fabric)
+- **Status**: Deferred (Task 19 dependency)
+
+**GAP-CODE-005: Token Cleanup Repository Method Missing (IMPLEMENTATION)**
+- **File**: `internal/identity/jobs/cleanup.go` (line 104)
+- **Severity**: MEDIUM (feature incomplete)
+- **Issue**: `TokenRepository.DeleteExpiredBefore()` method doesn't exist
+- **Impact**: Expired tokens not cleaned up automatically
+- **Current Mitigation**: Manual cleanup via database queries
+- **Requirement ID**: Task 12 - Token Lifecycle Management
+- **Remediation**: Add `DeleteExpiredBefore(ctx context.Context, cutoff time.Time) error` to TokenRepository interface
+- **Owner**: Backend team
+- **Target**: Q1 2025 (before production deployment)
+- **Status**: Planned (high priority - prevents token table growth)
+
+**GAP-CODE-006: Session Cleanup Repository Method Missing (IMPLEMENTATION)**
+- **File**: `internal/identity/jobs/cleanup.go` (line 124)
+- **Severity**: MEDIUM (feature incomplete)
+- **Issue**: `SessionRepository.DeleteExpiredBefore()` method doesn't exist
+- **Impact**: Expired sessions not cleaned up automatically
+- **Current Mitigation**: Manual cleanup via database queries
+- **Requirement ID**: Task 12 - Session Lifecycle Management
+- **Remediation**: Add `DeleteExpiredBefore(ctx context.Context, cutoff time.Time) error` to SessionRepository interface
+- **Owner**: Backend team
+- **Target**: Q1 2025 (before production deployment)
+- **Status**: Planned (high priority - prevents session table growth)
+
+**GAP-CODE-007: Logout Handler Incomplete (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/handlers_logout.go` (lines 27-30)
+- **Severity**: CRITICAL (security)
+- **Issue**: Four TODO steps not implemented:
+  1. Validate session exists
+  2. Revoke all associated tokens
+  3. Delete session from repository
+  4. Clear session cookie
+- **Impact**: Logout doesn't actually invalidate sessions (security vulnerability)
+- **Current Mitigation**: Sessions expire naturally via TTL
+- **Requirement ID**: OIDC 1.0 - End Session Endpoint
+- **Remediation**: Implement all four logout steps
+- **Owner**: Backend team
+- **Target**: Q1 2025 (CRITICAL - before production)
+- **Status**: Planned (CRITICAL security gap)
+
+**GAP-CODE-008: Authentication Middleware Missing (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/middleware.go` (lines 39-40)
+- **Severity**: CRITICAL (security)
+- **Issue**: Two middleware functions not implemented:
+  1. Authentication middleware for protected endpoints (/userinfo, /logout)
+  2. Session validation middleware
+- **Impact**: Protected endpoints accessible without authentication (security vulnerability)
+- **Current Mitigation**: None - endpoints are unprotected
+- **Requirement ID**: OIDC 1.0 - Protected Resource Access
+- **Remediation**: Implement Bearer token validation middleware
+- **Owner**: Backend team
+- **Target**: Q1 2025 (CRITICAL - before production)
+- **Status**: Planned (CRITICAL security gap)
+
+**GAP-CODE-009: Structured Logging in Routes (LOW)**
+- **File**: `internal/identity/idp/routes.go` (line 17)
+- **Severity**: LOW (observability)
+- **Issue**: Using fmt.Printf instead of structured logger
+- **Impact**: Logs not structured, harder to query/aggregate
+- **Current Mitigation**: Logs still visible in stdout
+- **Requirement ID**: Task 13 - Observability
+- **Remediation**: Add logger field to Service struct, use structured logging
+- **Owner**: Backend team
+- **Target**: Post-MVP (low priority)
+- **Status**: Backlog (functional logging exists)
+
+**GAP-CODE-010: Service Cleanup Logic Missing (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/service.go` (line 48)
+- **Severity**: MEDIUM (resource management)
+- **Issue**: `Stop()` method doesn't clean up sessions, challenges, etc.
+- **Impact**: Graceful shutdown doesn't release resources
+- **Current Mitigation**: Process termination releases OS resources
+- **Requirement ID**: Task 18 - Service Lifecycle Management
+- **Remediation**: Implement cleanup logic (cancel goroutines, close database connections)
+- **Owner**: Backend team
+- **Target**: Task 18 (orchestration suite)
+- **Status**: Deferred (Task 18 dependency)
+
+**GAP-CODE-011: Additional Authentication Profiles Missing (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/service.go` (line 56)
+- **Severity**: MEDIUM (feature incomplete)
+- **Issue**: Only username/password profile registered, missing email+OTP, TOTP, passkey
+- **Impact**: Limited authentication methods available
+- **Current Mitigation**: Tasks 12-15 implemented these profiles separately
+- **Requirement ID**: Task 12-15 - Authentication Profiles
+- **Remediation**: Register all implemented authentication profiles (SMS OTP, email OTP, TOTP, WebAuthn, hardware credentials)
+- **Owner**: Backend team
+- **Target**: Q1 2025 (before E2E tests)
+- **Status**: Planned (integration work needed)
+
+**GAP-CODE-012: UserInfo Handler Incomplete (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/handlers_userinfo.go` (lines 23-26)
+- **Severity**: CRITICAL (OIDC compliance)
+- **Issue**: Four TODO steps not implemented:
+  1. Parse Bearer token from Authorization header
+  2. Introspect/validate token
+  3. Fetch user details from repository
+  4. Map user claims to OIDC standard claims (sub, name, email, etc.)
+- **Impact**: /userinfo endpoint non-functional (OIDC compliance violation)
+- **Current Mitigation**: None - endpoint returns error
+- **Requirement ID**: OIDC 1.0 Core - UserInfo Endpoint
+- **Remediation**: Implement all four steps with proper token validation
+- **Owner**: Backend team
+- **Target**: Q1 2025 (CRITICAL - OIDC compliance)
+- **Status**: Planned (CRITICAL compliance gap)
+
+**GAP-CODE-013: Login Page Rendering Stub (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/handlers_login.go` (line 25)
+- **Severity**: MEDIUM (UX)
+- **Issue**: Login page returns JSON instead of HTML form
+- **Impact**: No user-facing login interface
+- **Current Mitigation**: JSON response works for API testing
+- **Requirement ID**: Task 09 - SPA UX Repair
+- **Remediation**: Implement HTML template rendering for login page
+- **Owner**: Frontend team
+- **Target**: Task 09 (SPA UX repair)
+- **Status**: Deferred (Task 09 dependency)
+
+**GAP-CODE-014: Consent Page Redirect Missing (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/handlers_login.go` (line 110)
+- **Severity**: MEDIUM (OIDC compliance)
+- **Issue**: No redirect to consent page or authorization callback after login
+- **Impact**: Authorization flow incomplete (user can login but can't complete OAuth flow)
+- **Current Mitigation**: Returns JSON success instead of redirect
+- **Requirement ID**: OIDC 1.0 - Authorization Flow
+- **Remediation**: Implement consent page or direct authorization callback based on client configuration
+- **Owner**: Backend team
+- **Target**: Q1 2025 (before authorization flow testing)
+- **Status**: Planned (blocks OAuth flow completion)
+
+**GAP-CODE-015: Username/Password Repository Stub (IMPLEMENTATION)**
+- **File**: `internal/identity/idp/userauth/username_password.go` (line 36)
+- **Severity**: LOW (implementation quality)
+- **Issue**: Comment says "TODO: Replace with proper UserRepository from domain package"
+- **Impact**: Current implementation works but may not use best practices
+- **Current Mitigation**: Functional UserRepository implementation exists
+- **Requirement ID**: Task 11 - Authentication Infrastructure
+- **Remediation**: Review UserRepository usage, ensure domain package patterns followed
+- **Owner**: Backend team
+- **Target**: Post-MVP (code quality improvement)
+- **Status**: Backlog (low priority - functional implementation exists)
+
+### Summary: Code Review Gaps
+
+| Gap ID | File | Severity | Issue Summary | Status |
+|--------|------|----------|---------------|--------|
+| GAP-CODE-001 | client_mfa_test.go | MEDIUM | AuthenticationStrength enum missing | Planned |
+| GAP-CODE-002 | mfa_otp.go | MEDIUM | User ID from auth context missing | Planned |
+| GAP-CODE-003 | mfa_flows_test.go | MEDIUM | MFA chain E2E tests stubs | Deferred (Task 19) |
+| GAP-CODE-004 | repository_integration_test.go | LOW | Repository integration tests stub | Deferred (Task 19) |
+| GAP-CODE-005 | cleanup.go | MEDIUM | TokenRepository.DeleteExpiredBefore missing | Planned |
+| GAP-CODE-006 | cleanup.go | MEDIUM | SessionRepository.DeleteExpiredBefore missing | Planned |
+| GAP-CODE-007 | handlers_logout.go | CRITICAL | Logout handler incomplete (4 steps) | Planned |
+| GAP-CODE-008 | middleware.go | CRITICAL | Authentication middleware missing | Planned |
+| GAP-CODE-009 | routes.go | LOW | Structured logging missing | Backlog |
+| GAP-CODE-010 | service.go | MEDIUM | Service cleanup logic missing | Deferred (Task 18) |
+| GAP-CODE-011 | service.go | MEDIUM | Additional auth profiles not registered | Planned |
+| GAP-CODE-012 | handlers_userinfo.go | CRITICAL | UserInfo handler incomplete (4 steps) | Planned |
+| GAP-CODE-013 | handlers_login.go | MEDIUM | Login page HTML rendering missing | Deferred (Task 09) |
+| GAP-CODE-014 | handlers_login.go | MEDIUM | Consent page redirect missing | Planned |
+| GAP-CODE-015 | username_password.go | LOW | Repository pattern comment | Backlog |
+
+**CRITICAL Issues (3)**: GAP-CODE-007, GAP-CODE-008, GAP-CODE-012 (logout, middleware, userinfo)
 
 ---
 
-**Document Version**: 1.0  
+## Next Steps (Todo 3)
+
+1. **Service Validation**: Run E2E tests, collect error logs, identify missing endpoints
+2. **Compliance Validation**: Audit logging coverage, security headers, authentication standards
+3. **Gap Documentation**: Create comprehensive gap analysis markdown file
+4. **Remediation Tracker**: CSV/Markdown table with ownership and timelines
+5. **Quick Wins**: Identify simple fixes for immediate remediation
+6. **Completion Doc**: Task 17 completion documentation
+
+---
+
+**Document Version**: 1.1  
 **Last Updated**: 2025-01-XX  
-**Status**: 🚧 IN PROGRESS (Todo 1/8 complete)
+**Status**: 🚧 IN PROGRESS (Todos 1-2 complete, 15 code gaps identified)
