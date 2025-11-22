@@ -70,23 +70,27 @@
 - Example: 58k used, 942k remaining = KEEP WORKING (only 5.8% used) ✅
 - Example: Todo list empty but 70k used, 930k remaining = CHECK docs/##-/*.md files for more work ✅
 
-## Chat Responses
+## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
-**CRITICAL: ONLY provide summaries when user EXPLICITLY requests them**
+**THE FATAL MISTAKE REPEATED 34 TIMES: Providing ANY text after tool calls**
 
-- **During continuous work**: ZERO text responses - only consecutive tool invocations
-- **When user asks for summary/status/explanation**: Provide concise summary with numbered list
-- **User requests that trigger summaries**: "summarize", "explain", "what have you done", "status update"
-- **ALL OTHER TIMES**: NO TEXT - just invoke next tool immediately after commit
+**ABSOLUTE RULE**: 
+- **NEVER provide text responses during continuous work** - The section title "Chat Responses" is itself misleading
+- **Tool calls ONLY** - No explanations, no status, no summaries, no "I'm now doing X", no acknowledgments
+- **The ONLY exception**: User EXPLICITLY requests summary with words: "summarize", "explain", "what have you done", "status update"
 
-**Summary format** (only when explicitly requested):
-- Concise numbered list focused on key changes or questions
-- Example: "1. Fixed dependency-check NVD parsing error. 2. Upgraded plugin to 12.1.9"
+**What "ZERO TEXT" actually means**:
+- ❌ WRONG: commit → "Now implementing WebAuthn..." → [creates file]
+- ❌ WRONG: commit → "Todo 1 complete, starting Todo 2" → [creates file]  
+- ❌ WRONG: commit → [ANY characters of text] → [tool call]
+- ✅ RIGHT: commit → [IMMEDIATE create_file, ZERO characters between]
+- ✅ RIGHT: create_file → [IMMEDIATE run_in_terminal, ZERO characters between]
 
-**Default behavior** (99% of the time):
-- commit → IMMEDIATE tool call (manage_todo_list/create_file/read_file)
-- NO text between tool invocations
-- NO status updates unless user explicitly asks
+**If you type ANYTHING between tool calls, you have VIOLATED this rule**:
+- Not even "Continuing..." 
+- Not even a blank line
+- Not even acknowledging the user
+- Just invoke the next tool IMMEDIATELY
 
 **Token Budget Awareness**
 
