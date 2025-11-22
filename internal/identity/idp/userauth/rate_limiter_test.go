@@ -236,3 +236,185 @@ func TestPerUserRateLimiterCleanup(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, count, "Expired attempts should be cleaned up")
 }
+
+// TestPerIPRateLimiterCheckLimit tests IP-based rate limit enforcement.
+func TestPerIPRateLimiterCheckLimit(t *testing.T) {
+	t.Parallel()
+
+	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
+	require.NoError(t, err)
+
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, 5, noop.NewMeterProvider())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	ipAddress := "192.168.1.100"
+
+	// First 5 attempts should succeed.
+	for range 5 {
+		err = limiter.CheckLimit(ctx, ipAddress)
+		require.NoError(t, err, "First 5 attempts should pass")
+
+		err = limiter.RecordAttempt(ctx, ipAddress)
+		require.NoError(t, err)
+	}
+
+	// 6th attempt should fail (rate limit exceeded).
+	err = limiter.CheckLimit(ctx, ipAddress)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "rate limit exceeded")
+	require.Contains(t, err.Error(), ipAddress)
+}
+
+// TestPerIPRateLimiterEmptyIP tests validation of empty IP address.
+func TestPerIPRateLimiterEmptyIP(t *testing.T) {
+	t.Parallel()
+
+	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
+	require.NoError(t, err)
+
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, 10, noop.NewMeterProvider())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Empty IP should fail validation.
+	err = limiter.CheckLimit(ctx, "")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "IP address cannot be empty")
+
+	err = limiter.RecordAttempt(ctx, "")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "IP address cannot be empty")
+}
+
+// TestPerIPRateLimiterConcurrent tests concurrent IP rate limiting.
+func TestPerIPRateLimiterConcurrent(t *testing.T) {
+	t.Parallel()
+
+	store, err := NewDatabaseRateLimitStore(noop.NewMeterProvider())
+	require.NoError(t, err)
+
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, 20, noop.NewMeterProvider())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	ipAddress := "10.0.0.50"
+
+	// 10 concurrent goroutines each make 2 attempts (20 total).
+	done := make(chan bool, 10)
+
+	for range 10 {
+		go func() {
+			defer func() { done <- true }()
+
+			for range 2 {
+				err := limiter.CheckLimit(ctx, ipAddress)
+				if err == nil {
+					_ = limiter.RecordAttempt(ctx, ipAddress)
+				}
+			}
+		}()
+	}
+
+	// Wait for all goroutines.
+	for range 10 {
+		<-done
+	}
+
+	// Total count should be 20 (at rate limit).
+	count, err := store.CountAttempts(ctx, ipAddress, time.Hour)
+	require.NoError(t, err)
+	require.LessOrEqual(t, count, 20, "Total attempts should not exceed rate limit")
+
+	// Next attempt should fail.
+	err = limiter.CheckLimit(ctx, ipAddress)
+	require.Error(t, err)
+}
+
+// TestExtractIPFromContext tests IP extraction from context.
+func TestExtractIPFromContext(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		contextValues  map[string]any
+		expectedIP     string
+		expectError    bool
+		errorContains  string
+	}{
+		{
+			name: "X-Forwarded-For single IP",
+			contextValues: map[string]any{
+				"X-Forwarded-For": "203.0.113.42",
+			},
+			expectedIP:  "203.0.113.42",
+			expectError: false,
+		},
+		{
+			name: "X-Forwarded-For multiple IPs",
+			contextValues: map[string]any{
+				"X-Forwarded-For": "203.0.113.42, 198.51.100.17, 192.0.2.1",
+			},
+			expectedIP:  "203.0.113.42",
+			expectError: false,
+		},
+		{
+			name: "RemoteAddr with port",
+			contextValues: map[string]any{
+				"RemoteAddr": "192.168.1.100:54321",
+			},
+			expectedIP:  "192.168.1.100",
+			expectError: false,
+		},
+		{
+			name: "RemoteAddr without port",
+			contextValues: map[string]any{
+				"RemoteAddr": "10.0.0.50",
+			},
+			expectedIP:  "10.0.0.50",
+			expectError: false,
+		},
+		{
+			name:          "No IP in context",
+			contextValues: map[string]any{},
+			expectedIP:    "",
+			expectError:   true,
+			errorContains: "unable to extract IP address",
+		},
+		{
+			name: "X-Forwarded-For takes precedence over RemoteAddr",
+			contextValues: map[string]any{
+				"X-Forwarded-For": "203.0.113.42",
+				"RemoteAddr":      "192.168.1.100:54321",
+			},
+			expectedIP:  "203.0.113.42",
+			expectError: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+			for key, value := range tc.contextValues {
+				ctx = context.WithValue(ctx, key, value)
+			}
+
+			ip, err := ExtractIPFromContext(ctx)
+
+			if tc.expectError {
+				require.Error(t, err)
+				if tc.errorContains != "" {
+					require.Contains(t, err.Error(), tc.errorContains)
+				}
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIP, ip)
+			}
+		})
+	}
+}
+

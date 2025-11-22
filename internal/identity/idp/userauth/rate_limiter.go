@@ -200,3 +200,126 @@ func (r *PerUserRateLimiter) Cleanup(ctx context.Context) error {
 
 	return nil
 }
+
+// PerIPRateLimiter implements per-IP rate limiting for global abuse protection.
+type PerIPRateLimiter struct {
+	store         RateLimitStore
+	window        time.Duration
+	maxAttempts   int
+	meterProvider metric.MeterProvider
+	exceededCount metric.Int64Counter
+}
+
+// NewPerIPRateLimiter creates a new per-IP rate limiter.
+func NewPerIPRateLimiter(
+	store RateLimitStore,
+	window time.Duration,
+	maxAttempts int,
+	meterProvider metric.MeterProvider,
+) (*PerIPRateLimiter, error) {
+	meter := meterProvider.Meter("identity.ratelimit")
+
+	exceededCount, err := meter.Int64Counter(
+		"identity.ratelimit.exceeded",
+		metric.WithDescription("Number of rate limit violations"),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create exceeded counter: %w", err)
+	}
+
+	return &PerIPRateLimiter{
+		store:         store,
+		window:        window,
+		maxAttempts:   maxAttempts,
+		meterProvider: meterProvider,
+		exceededCount: exceededCount,
+	}, nil
+}
+
+// CheckLimit checks if the IP address has exceeded rate limit.
+func (r *PerIPRateLimiter) CheckLimit(ctx context.Context, ipAddress string) error {
+	if ipAddress == "" {
+		return fmt.Errorf("IP address cannot be empty")
+	}
+
+	count, err := r.store.CountAttempts(ctx, ipAddress, r.window)
+	if err != nil {
+		return fmt.Errorf("failed to count attempts: %w", err)
+	}
+
+	if count >= r.maxAttempts {
+		r.exceededCount.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("ip_address", ipAddress),
+			attribute.String("limit_type", "per_ip"),
+		))
+
+		return fmt.Errorf("rate limit exceeded for IP %s: %d attempts in %s (max %d)", ipAddress, count, r.window, r.maxAttempts)
+	}
+
+	return nil
+}
+
+// RecordAttempt records an authentication attempt for the IP address.
+func (r *PerIPRateLimiter) RecordAttempt(ctx context.Context, ipAddress string) error {
+	if ipAddress == "" {
+		return fmt.Errorf("IP address cannot be empty")
+	}
+
+	if err := r.store.RecordAttempt(ctx, ipAddress, time.Now()); err != nil {
+		return fmt.Errorf("failed to record attempt: %w", err)
+	}
+
+	return nil
+}
+
+// Cleanup removes expired rate limit records.
+func (r *PerIPRateLimiter) Cleanup(ctx context.Context) error {
+	retention := r.window * cryptoutilMagic.RateLimitRetentionMultiplier
+
+	if err := r.store.CleanupExpired(ctx, retention); err != nil {
+		return fmt.Errorf("failed to cleanup expired records: %w", err)
+	}
+
+	return nil
+}
+
+// ExtractIPFromContext extracts the client IP address from the request context.
+// Checks X-Forwarded-For header first (for proxies), then falls back to RemoteAddr.
+func ExtractIPFromContext(ctx context.Context) (string, error) {
+	// Check for X-Forwarded-For header (proxied requests).
+	if xff, ok := ctx.Value("X-Forwarded-For").(string); ok && xff != "" {
+		// X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2, ...).
+		// Use the first IP (original client).
+		if idx := len(xff); idx > 0 {
+			if commaIdx := 0; commaIdx < idx {
+				for i, c := range xff {
+					if c == ',' {
+						commaIdx = i
+
+						break
+					}
+				}
+
+				if commaIdx > 0 {
+					return xff[:commaIdx], nil
+				}
+
+				return xff, nil
+			}
+		}
+	}
+
+	// Fallback to RemoteAddr.
+	if remoteAddr, ok := ctx.Value("RemoteAddr").(string); ok && remoteAddr != "" {
+		// RemoteAddr format: "IP:port" - extract IP only.
+		for i, c := range remoteAddr {
+			if c == ':' {
+				return remoteAddr[:i], nil
+			}
+		}
+
+		return remoteAddr, nil
+	}
+
+	return "", fmt.Errorf("unable to extract IP address from context")
+}
