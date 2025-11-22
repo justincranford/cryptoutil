@@ -48,6 +48,12 @@ const (
 	DBContainerRandSuffixMax = 10000
 )
 
+// Rate limiting configuration.
+const (
+	// RateLimitRetentionMultiplier - Multiplier for rate limit retention period (e.g., 2x window).
+	RateLimitRetentionMultiplier = 2
+)
+
 // SQLite error codes.
 const (
 	// SQLiteErrUniqueConstraint - SQLite unique constraint violation error code.
