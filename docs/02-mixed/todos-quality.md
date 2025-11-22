@@ -11,22 +11,26 @@
 
 ### Task CQ1: Address TODO Comments in Codebase
 - **Description**: Multiple TODO/FIXME comments found throughout codebase requiring attention
-- **godox Issues**:
-  - `internal/client/client_oam_mapper.go:89` - "TODO nil allowed if import not nil"
-  - `internal/common/crypto/jose/jwkgen_service.go:46` - "TODO read from settings"
-  - `internal/common/crypto/jose/jws_message_util.go:148` - "TODO support multiple signatures"
-  - `internal/pool/pool.go:43` - "TODO change generateCounter and getCounter from uint64 to telemetryService.MetricsProvider.Counter()"
-  - `internal/server/application/application_listener.go` - Multiple TODOs:
-    - Line 54: "TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)"
-    - Line 93: "TODO Only use InsecureSkipVerify for DevMode"
-    - Line 240: "TODO Add authentication middleware for Swagger UI access"
+- **Current TODO Inventory (Excluding Identity Subsystem)**:
+  - `internal/common/pool/pool.go:40` - "TODO change generateCounter and getCounter from uint64 to telemetryService.MetricsProvider.Counter()"
+  - `internal/common/crypto/jose/jws_message_util.go:170` - "TODO support multiple signatures"
+  - `internal/server/application/application_listener.go:630` - "TODO: Add actual dependency health checks here"
+  - `internal/server/application/application_listener.go:710` - "TODO Add more readiness checks as needed"
+  - `internal/server/repository/sqlrepository/gormdb.go:62` - "TODO : Enable gorm debug mode if needed"
+  - `internal/server/repository/sqlrepository/sql_schema_util.go` - Multiple context.TODO() usages (lines 28, 62, 100, 132) for database queries
+- **Identity Subsystem TODOs** (40+ items - tracked separately as they represent incomplete features):
+  - User authentication flows (passkey, TOTP, OTP)
+  - Session management (cleanup, validation)
+  - Token operations (introspection, revocation)
+  - Authorization flows (consent, logout, userinfo)
+  - Repository integrations
 - **Action Items**:
-  - Review each TODO comment for relevance and priority
+  - Review non-identity TODOs for relevance and priority
   - Implement high-priority TODOs or convert to proper issues
-  - Remove obsolete TODOs
-  - Add proper documentation for complex TODOs
+  - Document context.TODO() usage patterns for database operations
+  - Track identity subsystem TODOs separately as feature work
 - **Files**: Multiple files across codebase
-- **Expected Outcome**: Clean codebase with actionable TODOs only
+- **Expected Outcome**: Clean codebase with actionable TODOs only; identity subsystem TODOs tracked as feature work
 - **Priority**: LOW - Code maintainability improvement
 - **Note**: godox linter disabled in favor of manual tracking in this file
 
