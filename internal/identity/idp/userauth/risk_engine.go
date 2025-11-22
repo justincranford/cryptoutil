@@ -60,11 +60,14 @@ type RiskEngine interface {
 	CalculateRiskFactors(authContext *AuthContext, baseline *UserBaseline) []RiskFactor
 }
 
-// BehavioralRiskEngine implements risk assessment based on behavioral analytics.
+// BehavioralRiskEngine assesses authentication risk based on behavioral patterns using configurable policies.
 type BehavioralRiskEngine struct {
-	userHistory    UserBehaviorStore
-	geoIP          GeoIPService
-	deviceDB       DeviceFingerprintDB
+	policyLoader PolicyLoader
+	userHistory  UserBehaviorStore
+	geoIP        GeoIPService
+	deviceDB     DeviceFingerprintDB
+
+	// Weights loaded from policy (cached after first load).
 	locationWeight float64
 	deviceWeight   float64
 	timeWeight     float64
@@ -73,36 +76,69 @@ type BehavioralRiskEngine struct {
 	velocityWeight float64
 }
 
-// NewBehavioralRiskEngine creates a new behavioral risk engine.
+// NewBehavioralRiskEngine creates a new behavioral risk engine with policy-driven configuration.
 func NewBehavioralRiskEngine(
+	policyLoader PolicyLoader,
 	userHistory UserBehaviorStore,
 	geoIP GeoIPService,
 	deviceDB DeviceFingerprintDB,
 ) *BehavioralRiskEngine {
-	const (
-		defaultLocationWeight = 0.25
-		defaultDeviceWeight   = 0.20
-		defaultTimeWeight     = 0.15
-		defaultBehaviorWeight = 0.20
-		defaultNetworkWeight  = 0.10
-		defaultVelocityWeight = 0.10
-	)
-
 	return &BehavioralRiskEngine{
-		userHistory:    userHistory,
-		geoIP:          geoIP,
-		deviceDB:       deviceDB,
-		locationWeight: defaultLocationWeight,
-		deviceWeight:   defaultDeviceWeight,
-		timeWeight:     defaultTimeWeight,
-		behaviorWeight: defaultBehaviorWeight,
-		networkWeight:  defaultNetworkWeight,
-		velocityWeight: defaultVelocityWeight,
+		policyLoader: policyLoader,
+		userHistory:  userHistory,
+		geoIP:        geoIP,
+		deviceDB:     deviceDB,
 	}
 }
 
-// AssessRisk evaluates the overall risk for an authentication attempt.
+// loadWeights loads risk factor weights from policy if not already loaded.
+func (e *BehavioralRiskEngine) loadWeights(ctx context.Context) error {
+	// Check if weights already loaded.
+	if e.locationWeight > 0 {
+		return nil
+	}
+
+	// Load risk scoring policy.
+	policy, err := e.policyLoader.LoadRiskScoringPolicy(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load risk scoring policy: %w", err)
+	}
+
+	// Extract weights from policy.
+	if location, ok := policy.RiskFactors["location"]; ok {
+		e.locationWeight = location.Weight
+	}
+
+	if device, ok := policy.RiskFactors["device"]; ok {
+		e.deviceWeight = device.Weight
+	}
+
+	if timeRisk, ok := policy.RiskFactors["time"]; ok {
+		e.timeWeight = timeRisk.Weight
+	}
+
+	if behavior, ok := policy.RiskFactors["behavior"]; ok {
+		e.behaviorWeight = behavior.Weight
+	}
+
+	if network, ok := policy.RiskFactors["network"]; ok {
+		e.networkWeight = network.Weight
+	}
+
+	if velocity, ok := policy.RiskFactors["velocity"]; ok {
+		e.velocityWeight = velocity.Weight
+	}
+
+	return nil
+}
+
+// AssessRisk evaluates the overall risk for an authentication attempt using policy-driven weights.
 func (e *BehavioralRiskEngine) AssessRisk(ctx context.Context, userID string, authContext *AuthContext) (*RiskScore, error) {
+	// Load weights from policy if not already loaded.
+	if err := e.loadWeights(ctx); err != nil {
+		return nil, fmt.Errorf("failed to load policy weights: %w", err)
+	}
+
 	// Get user baseline.
 	baseline, err := e.userHistory.GetBaseline(ctx, userID)
 	if err != nil {
