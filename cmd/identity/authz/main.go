@@ -26,26 +26,18 @@ func main() {
 
 	flag.Parse()
 
-	// TODO: Load configuration from YAML file.
-	// For now, create minimal configuration.
-	config := &cryptoutilIdentityConfig.Config{
-		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
-			Name:        "authz-server",
-			BindAddress: "127.0.0.1",
-			Port:        cryptoutilIdentityMagic.DefaultAuthZPort,
-			TLSEnabled:  false,
-		},
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  ":memory:",
-		},
-		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			AccessTokenFormat: "jws",
-			Issuer:            "https://authz.example.com",
-		},
+	// Load configuration from YAML file.
+	config, err := cryptoutilIdentityConfig.LoadFromFile(*configFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", *configFile, err)
+		os.Exit(1)
 	}
 
-	_ = configFile
+	// Validate configuration.
+	if err := config.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid configuration: %v\n", err)
+		os.Exit(1)
+	}
 
 	// Create context.
 	ctx := context.Background()

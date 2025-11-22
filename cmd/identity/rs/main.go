@@ -27,13 +27,17 @@ func main() {
 
 	flag.Parse()
 
-	// TODO: Load configuration from YAML file at configPath.
-	// For now we create a minimal Config with just the necessary fields.
-	cfg := &cryptoutilIdentityConfig.Config{
-		RS: &cryptoutilIdentityConfig.ServerConfig{
-			Port:        cryptoutilIdentityMagic.DefaultRSPort,
-			BindAddress: "127.0.0.1",
-		},
+	// Load configuration from YAML file.
+	cfg, err := cryptoutilIdentityConfig.LoadFromFile(*configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", *configPath, err)
+		os.Exit(1)
+	}
+
+	// Validate configuration.
+	if err := cfg.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid configuration: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Create logger.
