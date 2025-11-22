@@ -622,24 +622,24 @@ type ServiceConfig struct {
 - [x] YAML config loading removes hard-coded configs (all service main.go files use LoadFromFile())
 - [x] One-liner bootstrap works: `./bin/identity start --profile demo` (infrastructure complete, needs running services for full test)
 - [x] All tests passing (25 tests: 9 config, 4 process, 6 healthcheck, 6 existing config tests)
-- [ ] Documentation complete (unified-cli-guide.md - TODO, README updates - TODO)
+- [x] Documentation complete (unified-cli-guide.md created, README.md updated with quick start)
 - [x] Linting passes with zero violations
 - [ ] Code review complete (self-review done, awaiting peer review)
 - [ ] Commit with message: `feat(identity): complete task 10.6 - unified cli and profiles`
 
-**Implementation Complete - Documentation Remaining**:
+**Implementation Complete - Final Validation Remaining**:
 
 - ✅ **Core Functionality**: All infrastructure and logic implemented
 - ✅ **Testing**: 25/25 tests passing, builds clean
-- ❌ **Documentation**: Need unified-cli-guide.md and README.md updates
+- ✅ **Documentation**: Comprehensive CLI guide and README quick start section
 - ❌ **E2E Validation**: Need full lifecycle test (start → health → status → stop) with real services
+- ❌ **Code Review**: Awaiting peer review before marking complete
 
-**Next Steps for Full Completion**:
+**Final Steps**:
 
-1. Create docs/unified-cli-guide.md with usage examples
-2. Update README.md with CLI quick start section
-3. Test full lifecycle: `./bin/identity start --profile demo → health → status → stop`
-4. Final commit: `feat(identity): complete task 10.6 - unified cli and profiles`
+1. Test full lifecycle: `./bin/identity start --profile demo → health → status → stop`
+2. Final commit: `feat(identity): complete task 10.6 - unified cli and profiles`
+3. Mark task complete and proceed to Task 10.7
 
 ---
 
