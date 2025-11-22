@@ -491,9 +491,12 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 func setupTestRepositoryFactory(t *testing.T, ctx context.Context) *cryptoutilIdentityRepository.RepositoryFactory {
 	t.Helper()
 
+	// Use unique file-based in-memory database per test to prevent data pollution between parallel tests.
+	uuidSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:            "sqlite",
-		DSN:             ":memory:",
+		DSN:             "file:" + uuidSuffix + ".db?mode=memory&cache=shared",
 		MaxOpenConns:    5,
 		MaxIdleConns:    5,
 		ConnMaxLifetime: 0,

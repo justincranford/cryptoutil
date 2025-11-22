@@ -45,13 +45,14 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	case dbTypePostgres:
 		dialector = postgres.Open(cfg.DSN)
 	case dbTypeSQLite:
-		// For in-memory databases, use shared cache mode to ensure all connections share the same database.
-		dsn := cfg.DSN
-		if dsn == dsnMemory {
-			dsn = dsnMemoryShared
-		}
+	// Convert :memory: to shared cache mode for connection sharing.
+	// dsn := cfg.DSN
+	// if dsn == dsnMemory {
+	// 	dsn = dsnMemoryShared
+	// }
 
-		// Open SQLite database with modernc driver (CGO-free) explicitly.
+	// INVESTIGATION: Keep original DSN without conversion to test isolation
+	dsn := cfg.DSN		// Open SQLite database with modernc driver (CGO-free) explicitly.
 		sqlDB, err := sql.Open("sqlite", dsn)
 		if err != nil {
 			return nil, cryptoutilIdentityAppErr.WrapError(
