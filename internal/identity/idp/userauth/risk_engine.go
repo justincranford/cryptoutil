@@ -23,6 +23,11 @@ const (
 	RiskLevelCritical RiskLevel = "critical"
 )
 
+// String returns the string representation of the risk level.
+func (r RiskLevel) String() string {
+	return string(r)
+}
+
 // RiskFactorType represents the type of risk factor.
 type RiskFactorType string
 
