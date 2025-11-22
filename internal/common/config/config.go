@@ -190,6 +190,7 @@ type Settings struct {
 	TLSPrivateIPAddresses       []string
 	PublicBrowserAPIContextPath string
 	PublicServiceAPIContextPath string
+	PrivateAdminAPIContextPath  string
 	CORSAllowedOrigins          []string
 	CORSAllowedMethods          []string
 	CORSAllowedHeaders          []string
@@ -386,6 +387,13 @@ var (
 		value:       defaultPublicServiceAPIContextPath,
 		usage:       "context path for Public Server API",
 		description: "Public Service API Context Path",
+	})
+	privateAdminAPIContextPath = *registerSetting(&Setting{
+		name:        "admin-api-context-path",
+		shorthand:   "",
+		value:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath,
+		usage:       "context path for Private Admin API",
+		description: "Private Admin API Context Path",
 	})
 	corsAllowedOrigins = *registerSetting(&Setting{
 		name:        "cors-origins",
@@ -704,6 +712,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, registerAsUint16Setting(&bindPrivatePort), bindPrivatePort.usage)
 	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, registerAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.usage)
 	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, registerAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.usage)
+	pflag.StringP(privateAdminAPIContextPath.name, privateAdminAPIContextPath.shorthand, registerAsStringSetting(&privateAdminAPIContextPath), privateAdminAPIContextPath.usage)
 	pflag.StringSliceP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, registerAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.usage)
 	pflag.StringSliceP(corsAllowedMethods.name, corsAllowedMethods.shorthand, registerAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.usage)
 	pflag.StringSliceP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, registerAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.usage)
@@ -812,6 +821,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		BindPrivatePort:             viper.GetUint16(bindPrivatePort.name),
 		PublicBrowserAPIContextPath: viper.GetString(publicBrowserAPIContextPath.name),
 		PublicServiceAPIContextPath: viper.GetString(publicServiceAPIContextPath.name),
+		PrivateAdminAPIContextPath:  viper.GetString(privateAdminAPIContextPath.name),
 		CORSAllowedOrigins:          viper.GetStringSlice(corsAllowedOrigins.name),
 		CORSAllowedMethods:          viper.GetStringSlice(corsAllowedMethods.name),
 		CORSAllowedHeaders:          viper.GetStringSlice(corsAllowedHeaders.name),
@@ -986,6 +996,7 @@ func logSettings(s *Settings) {
 			bindPrivatePort.name:             s.BindPrivatePort,
 			publicBrowserAPIContextPath.name: s.PublicBrowserAPIContextPath,
 			publicServiceAPIContextPath.name: s.PublicServiceAPIContextPath,
+			privateAdminAPIContextPath.name:  s.PrivateAdminAPIContextPath,
 			corsAllowedOrigins.name:          s.CORSAllowedOrigins,
 			corsAllowedMethods.name:          s.CORSAllowedMethods,
 			corsAllowedHeaders.name:          s.CORSAllowedHeaders,

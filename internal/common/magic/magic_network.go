@@ -151,11 +151,14 @@ const (
 	// DefaultPublicServiceAPIContextPath - Default public service API context path.
 	DefaultPublicServiceAPIContextPath = "/service/api/v1"
 
-	// PrivateAdminLivezRequestPath - Livez endpoint path.
+	// DefaultPrivateAdminAPIContextPath - Default private admin API context path.
+	DefaultPrivateAdminAPIContextPath = "/admin/v1"
+
+	// PrivateAdminLivezRequestPath - Livez endpoint path (relative to admin context path).
 	PrivateAdminLivezRequestPath = "/livez"
-	// PrivateAdminReadyzRequestPath - Readyz endpoint path.
+	// PrivateAdminReadyzRequestPath - Readyz endpoint path (relative to admin context path).
 	PrivateAdminReadyzRequestPath = "/readyz"
-	// PrivateAdminShutdownRequestPath - Shutdown endpoint path.
+	// PrivateAdminShutdownRequestPath - Shutdown endpoint path (relative to admin context path).
 	PrivateAdminShutdownRequestPath = "/shutdown"
 )
 
