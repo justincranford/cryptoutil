@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 )
 
 func newStartCommand() *cobra.Command {
@@ -46,17 +48,42 @@ Examples:
 				services = []string{"authz", "idp", "rs"}
 			}
 
+			// Load profile configuration
+			var profileCfg *cryptoutilIdentityConfig.ProfileConfig
+			var err error
+
+			if configFile != "" {
+				// Load from custom config file
+				profileCfg, err = cryptoutilIdentityConfig.LoadProfileFromFile(configFile)
+				if err != nil {
+					return fmt.Errorf("failed to load config file %s: %w", configFile, err)
+				}
+			} else {
+				// Load from profile name
+				profileCfg, err = cryptoutilIdentityConfig.LoadProfile(profile)
+				if err != nil {
+					return fmt.Errorf("failed to load profile %s: %w", profile, err)
+				}
+			}
+
+			// Validate profile configuration
+			if err := profileCfg.Validate(); err != nil {
+				return fmt.Errorf("invalid profile configuration: %w", err)
+			}
+
 			fmt.Printf("Starting services: %v\n", services)
 			fmt.Printf("Profile: %s\n", profile)
 			fmt.Printf("Docker mode: %v\n", useDocker)
 			fmt.Printf("Local mode: %v\n", useLocal)
-			fmt.Printf("Config: %s\n", configFile)
 			fmt.Printf("Background: %v\n", background)
 			fmt.Printf("Wait for health: %v\n", wait)
 			fmt.Printf("Timeout: %s\n", timeout)
+			fmt.Printf("Profile loaded successfully:\n")
+			fmt.Printf("  AuthZ enabled: %v (bind: %s)\n", profileCfg.Services.AuthZ.Enabled, profileCfg.Services.AuthZ.BindAddress)
+			fmt.Printf("  IdP enabled: %v (bind: %s)\n", profileCfg.Services.IdP.Enabled, profileCfg.Services.IdP.BindAddress)
+			fmt.Printf("  RS enabled: %v (bind: %s)\n", profileCfg.Services.RS.Enabled, profileCfg.Services.RS.BindAddress)
 
 			// TODO: Implement service startup logic
-			// 1. Load profile configuration or custom config
 			// 2. If --docker: Execute docker compose up
 			// 3. If --local: Launch services as child processes
 			// 4. Wait for health checks if --wait=true
