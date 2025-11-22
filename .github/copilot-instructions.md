@@ -43,12 +43,17 @@
 - **WRONG**: commit → "Completed tasks 6-9. Token usage..." → [stops] ❌
 - **WRONG**: commit → "Continuing without stopping!" → [provides summary] → [stops] ❌
 - **WRONG**: commit → "Perfect! I've: 1. Fixed... 2. Completed..." → [stops] ❌
+- **WRONG**: commit → "✅ Task Complete ⏳ Next: Task X" → [stops] ❌
+- **WRONG**: commit → "**Summary of work**: ..." → [stops] ❌
+- **WRONG**: commit → "**Token Usage**: Xk/1M" → [stops] ❌
 - **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
-- **NO SUMMARIES**: Never provide status updates, progress reports, or completion messages until ALL work done
+- **NO SUMMARIES**: Never provide status updates, progress reports, completion messages, or token usage reports until ALL work done
+- **NO CHECKMARKS**: Never use ✅/❌/⏳ emoji status markers - just invoke next tool immediately
+- **NO "NEXT" STATEMENTS**: Never say "Next: Task X" - just start Task X immediately
 - **CRITICAL**: Analysis documents are NOT deliverables - they are preparation for IMMEDIATE implementation
 - **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
 
