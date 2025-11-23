@@ -96,12 +96,12 @@ const (
 	TestPoolMaxSize = 3
 
 	// PBKDF2 configuration.
-	PBKDF2Prefix           = "pbkdf2"       // Hash format prefix for PBKDF2 hashes.
-	PBKDF2DerivedKeyLength = 32             // Derived key length in bytes (32 = 256 bits).
-	PBKDF2DefaultHashName  = "pbkdf2"       // Algorithm name for PBKDF2.
-	PBKDF2DefaultSaltBytes = 16             // Salt length in bytes (16 = 128 bits).
-	PBKDF2MinIterations    = 210000         // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
-	PBKDF2DefaultIterations = 210000        // Default iteration count for PBKDF2-HMAC-SHA256.
+	PBKDF2Prefix            = "pbkdf2" // Hash format prefix for PBKDF2 hashes.
+	PBKDF2DerivedKeyLength  = 32       // Derived key length in bytes (32 = 256 bits).
+	PBKDF2DefaultHashName   = "pbkdf2" // Algorithm name for PBKDF2.
+	PBKDF2DefaultSaltBytes  = 16       // Salt length in bytes (16 = 128 bits).
+	PBKDF2MinIterations     = 210000   // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
+	PBKDF2DefaultIterations = 210000   // Default iteration count for PBKDF2-HMAC-SHA256.
 )
 
 var (

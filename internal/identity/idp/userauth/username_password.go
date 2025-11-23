@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 
@@ -50,7 +51,6 @@ type UsernamePasswordAuthenticator struct {
 	userStore        UserStore
 	hsm              HardwareSecurityModule // Optional hardware enhancement.
 	requireHardware  bool                   // Whether to require hardware authentication.
-	bcryptCost       int                    // Bcrypt cost factor for password hashing.
 	lockoutThreshold int                    // Failed login attempts before lockout.
 	lockoutDuration  time.Duration          // Duration of account lockout.
 }
@@ -69,7 +69,6 @@ func NewUsernamePasswordAuthenticator(
 		userStore:        userStore,
 		hsm:              hsm,
 		requireHardware:  requireHardware,
-		bcryptCost:       cryptoutilIdentityMagic.DefaultBcryptCost,
 		lockoutThreshold: cryptoutilIdentityMagic.MaxOTPAttempts,
 		lockoutDuration:  cryptoutilIdentityMagic.DefaultOTPLockout,
 	}
@@ -200,12 +199,12 @@ func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, e
 		return nil, fmt.Errorf("password too long (maximum %d characters)", cryptoutilIdentityMagic.MaxPasswordLength)
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), u.bcryptCost)
+	hash, err := cryptoutilCrypto.HashSecret(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	return hash, nil
+	return []byte(hash), nil
 }
 
 // ValidatePassword validates a password against security requirements.

@@ -17,7 +17,6 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 // TestWebAuthnIntegration_RegistrationAndAuthentication tests end-to-end WebAuthn registration and authentication ceremony.
@@ -33,10 +32,10 @@ func TestWebAuthnIntegration_RegistrationAndAuthentication(t *testing.T) {
 
 	// Create WebAuthn authenticator.
 	config := &WebAuthnConfig{
-		RPID:		"example.com",
-		RPDisplayName:	"Example Corp",
-		RPOrigins:	[]string{"https://example.com"},
-		Timeout:	5 * time.Minute,
+		RPID:          "example.com",
+		RPDisplayName: "Example Corp",
+		RPOrigins:     []string{"https://example.com"},
+		Timeout:       5 * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -44,11 +43,11 @@ func TestWebAuthnIntegration_RegistrationAndAuthentication(t *testing.T) {
 
 	// Create test user.
 	user := &cryptoutilIdentityDomain.User{
-		ID:			googleUuid.Must(googleUuid.NewV7()),
-		Sub:			"test-user-webauthn-integration-1",
-		PreferredUsername:	"testuser",
-		Name:			"Test User",
-		Email:			"testuser@example.com",
+		ID:                googleUuid.Must(googleUuid.NewV7()),
+		Sub:               "test-user-webauthn-integration-1",
+		PreferredUsername: "testuser",
+		Name:              "Test User",
+		Email:             "testuser@example.com",
 	}
 
 	// Step 1: Begin registration ceremony.
@@ -104,10 +103,10 @@ func TestWebAuthnIntegration_CredentialLifecycle(t *testing.T) {
 	challengeMetadata := NewChallengeMetadata(ctx, 5*time.Minute)
 
 	config := &WebAuthnConfig{
-		RPID:		"example.com",
-		RPDisplayName:	"Example Corp",
-		RPOrigins:	[]string{"https://example.com"},
-		Timeout:	5 * time.Minute,
+		RPID:          "example.com",
+		RPDisplayName: "Example Corp",
+		RPOrigins:     []string{"https://example.com"},
+		Timeout:       5 * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -115,11 +114,11 @@ func TestWebAuthnIntegration_CredentialLifecycle(t *testing.T) {
 
 	// Create test user.
 	user := &cryptoutilIdentityDomain.User{
-		ID:			googleUuid.Must(googleUuid.NewV7()),
-		Sub:			"test-user-lifecycle-1",
-		PreferredUsername:	"lifecycleuser",
-		Name:			"Lifecycle User",
-		Email:			"lifecycle@example.com",
+		ID:                googleUuid.Must(googleUuid.NewV7()),
+		Sub:               "test-user-lifecycle-1",
+		PreferredUsername: "lifecycleuser",
+		Name:              "Lifecycle User",
+		Email:             "lifecycle@example.com",
 	}
 
 	// Register credential.
@@ -179,10 +178,10 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 	challengeMetadata := NewChallengeMetadata(ctx, 5*time.Minute)
 
 	config := &WebAuthnConfig{
-		RPID:		"example.com",
-		RPDisplayName:	"Example Corp",
-		RPOrigins:	[]string{"https://example.com"},
-		Timeout:	5 * time.Minute,
+		RPID:          "example.com",
+		RPDisplayName: "Example Corp",
+		RPOrigins:     []string{"https://example.com"},
+		Timeout:       5 * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -190,11 +189,11 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 
 	// Create test user.
 	user := &cryptoutilIdentityDomain.User{
-		ID:			googleUuid.Must(googleUuid.NewV7()),
-		Sub:			"test-user-multi-cred-1",
-		PreferredUsername:	"multicreduser",
-		Name:			"Multi Credential User",
-		Email:			"multicred@example.com",
+		ID:                googleUuid.Must(googleUuid.NewV7()),
+		Sub:               "test-user-multi-cred-1",
+		PreferredUsername: "multicreduser",
+		Name:              "Multi Credential User",
+		Email:             "multicred@example.com",
 	}
 
 	// Register 3 credentials (simulating phone, laptop, security key).
@@ -213,7 +212,7 @@ func TestWebAuthnIntegration_MultipleCredentials(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, userCreds, i+1)
 
-		credentialIDs[i] = userCreds[0].ID	// Most recent credential first.
+		credentialIDs[i] = userCreds[0].ID // Most recent credential first.
 	}
 
 	// Verify all credentials registered.
@@ -257,10 +256,10 @@ func TestWebAuthnIntegration_ReplayAttackPrevention(t *testing.T) {
 	challengeMetadata := NewChallengeMetadata(ctx, 5*time.Minute)
 
 	config := &WebAuthnConfig{
-		RPID:		"example.com",
-		RPDisplayName:	"Example Corp",
-		RPOrigins:	[]string{"https://example.com"},
-		Timeout:	5 * time.Minute,
+		RPID:          "example.com",
+		RPDisplayName: "Example Corp",
+		RPOrigins:     []string{"https://example.com"},
+		Timeout:       5 * time.Minute,
 	}
 
 	auth, err := NewWebAuthnAuthenticator(config, challengeMetadata, credStore)
@@ -268,11 +267,11 @@ func TestWebAuthnIntegration_ReplayAttackPrevention(t *testing.T) {
 
 	// Create test user.
 	user := &cryptoutilIdentityDomain.User{
-		ID:			googleUuid.Must(googleUuid.NewV7()),
-		Sub:			"test-user-replay-1",
-		PreferredUsername:	"replayuser",
-		Name:			"Replay User",
-		Email:			"replay@example.com",
+		ID:                googleUuid.Must(googleUuid.NewV7()),
+		Sub:               "test-user-replay-1",
+		PreferredUsername: "replayuser",
+		Name:              "Replay User",
+		Email:             "replay@example.com",
 	}
 
 	// Register credential.

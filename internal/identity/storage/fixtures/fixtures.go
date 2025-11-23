@@ -25,7 +25,7 @@ func NewTestUserBuilder() *TestUserBuilder {
 			Email:        "test@example.com",
 			Name:         "Test User",
 			Enabled:      true,
-			PasswordHash: "$2a$10$example.hash.for.testing.purposes.only", // bcrypt hash for "password"
+			PasswordHash: "pbkdf2$210000$Gpdnumx30ru2iTk0hkEdvQ$4KSkexHlyfwwlhVHm2f/1KqZWewwlQmy0GMvAoeFxsQ", // PBKDF2 hash for "password"
 			CreatedAt:    time.Now(),
 			UpdatedAt:    time.Now(),
 		},

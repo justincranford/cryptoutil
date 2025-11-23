@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestHashToken_Success(t *testing.T) {
@@ -17,7 +16,7 @@ func TestHashToken_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, hash)
 	require.NotEqual(t, plaintext, hash, "Hash must differ from plaintext")
-	require.True(t, strings.HasPrefix(hash, "$2a$"), "Bcrypt hash must have $2a$ prefix")
+	require.True(t, strings.HasPrefix(hash, "pbkdf2$"), "PBKDF2 hash must have pbkdf2$ prefix")
 }
 
 func TestHashToken_EmptyToken(t *testing.T) {
@@ -38,21 +37,18 @@ func TestHashToken_DifferentHashesForSameToken(t *testing.T) {
 
 	require.NoError(t, err1)
 	require.NoError(t, err2)
-	require.NotEqual(t, hash1, hash2, "Bcrypt must produce different hashes due to random salt")
+	require.NotEqual(t, hash1, hash2, "PBKDF2 must produce different hashes due to random salt")
 }
 
-func TestHashToken_CostParameter(t *testing.T) {
+func TestHashToken_PBKDF2Format(t *testing.T) {
 	t.Parallel()
 
-	plaintext := "cost-check-token"
+	plaintext := "format-check-token"
 	hash, err := HashToken(plaintext)
 
 	require.NoError(t, err)
-
-	// Extract cost from bcrypt hash (format: $2a$12$...).
-	cost, err := bcrypt.Cost([]byte(hash))
-	require.NoError(t, err)
-	require.Equal(t, bcryptCost, cost, "Hash must use configured bcrypt cost")
+	require.True(t, strings.HasPrefix(hash, "pbkdf2$"), "Hash must use PBKDF2 format")
+	require.Contains(t, hash, "$", "Hash must contain iteration separator")
 }
 
 func TestVerifyToken_Success(t *testing.T) {
