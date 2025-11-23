@@ -300,6 +300,11 @@ CREATE TABLE IF NOT EXISTS mfa_factors (
     -- Authentication profile reference (foreign key)
     auth_profile_id TEXT NOT NULL,
 
+    -- Replay prevention (time-bound nonces)
+    nonce TEXT,
+    nonce_expires_at TIMESTAMP,
+    nonce_used_at TIMESTAMP,
+
     -- Account status
     enabled INTEGER DEFAULT 1,
 
@@ -313,7 +318,10 @@ CREATE TABLE IF NOT EXISTS mfa_factors (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_mfa_factors_name ON mfa_factors(name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mfa_factors_nonce ON mfa_factors(nonce);
 CREATE INDEX IF NOT EXISTS idx_mfa_factors_auth_profile_id ON mfa_factors(auth_profile_id);
+CREATE INDEX IF NOT EXISTS idx_mfa_factors_nonce_expires_at ON mfa_factors(nonce_expires_at);
+CREATE INDEX IF NOT EXISTS idx_mfa_factors_nonce_used_at ON mfa_factors(nonce_used_at);
 CREATE INDEX IF NOT EXISTS idx_mfa_factors_deleted_at ON mfa_factors(deleted_at);
 
 -- Auth flows table for authorization code flow configuration
