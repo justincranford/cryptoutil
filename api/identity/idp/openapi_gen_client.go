@@ -18,6 +18,12 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+const (
+	BearerAuthScopes    = "bearerAuth.Scopes"
+	SessionCookieScopes = "sessionCookie.Scopes"
 )
 
 // Defines values for HealthResponseDatabase.
@@ -30,6 +36,12 @@ const (
 const (
 	Healthy   HealthResponseStatus = "healthy"
 	Unhealthy HealthResponseStatus = "unhealthy"
+)
+
+// Defines values for SubmitConsentFormdataBodyAction.
+const (
+	Approve SubmitConsentFormdataBodyAction = "approve"
+	Deny    SubmitConsentFormdataBodyAction = "deny"
 )
 
 // ErrorResponse defines model for ErrorResponse.
@@ -59,6 +71,48 @@ type HealthResponseDatabase string
 // HealthResponseStatus Overall service health status
 type HealthResponseStatus string
 
+// UserInfoResponse defines model for UserInfoResponse.
+type UserInfoResponse struct {
+	// Email Email address
+	Email *openapi_types.Email `json:"email,omitempty"`
+
+	// EmailVerified Whether email is verified
+	EmailVerified *bool `json:"email_verified,omitempty"`
+
+	// FamilyName Last name
+	FamilyName *string `json:"family_name,omitempty"`
+
+	// GivenName First name
+	GivenName *string `json:"given_name,omitempty"`
+
+	// Name Full name
+	Name *string `json:"name,omitempty"`
+
+	// PreferredUsername Preferred username
+	PreferredUsername *string `json:"preferred_username,omitempty"`
+
+	// Sub Subject identifier (unique user ID)
+	Sub string `json:"sub"`
+}
+
+// GetConsentFormParams defines parameters for GetConsentForm.
+type GetConsentFormParams struct {
+	// RequestID Authorization request ID to display consent for
+	RequestID openapi_types.UUID `form:"request_id" json:"request_id"`
+}
+
+// SubmitConsentFormdataBody defines parameters for SubmitConsent.
+type SubmitConsentFormdataBody struct {
+	// Action User's consent decision
+	Action SubmitConsentFormdataBodyAction `form:"action" json:"action"`
+
+	// RequestID Authorization request ID from consent form
+	RequestID openapi_types.UUID `form:"request_id" json:"request_id"`
+}
+
+// SubmitConsentFormdataBodyAction defines parameters for SubmitConsent.
+type SubmitConsentFormdataBodyAction string
+
 // GetLoginFormParams defines parameters for GetLoginForm.
 type GetLoginFormParams struct {
 	// ReturnURL Redirect URL after successful authentication
@@ -79,6 +133,9 @@ type AuthenticateUserFormdataBody struct {
 	// Username User login name
 	Username string `form:"username" json:"username"`
 }
+
+// SubmitConsentFormdataRequestBody defines body for SubmitConsent for application/x-www-form-urlencoded ContentType.
+type SubmitConsentFormdataRequestBody SubmitConsentFormdataBody
 
 // AuthenticateUserFormdataRequestBody defines body for AuthenticateUser for application/x-www-form-urlencoded ContentType.
 type AuthenticateUserFormdataRequestBody AuthenticateUserFormdataBody
@@ -159,6 +216,14 @@ type ClientInterface interface {
 	// HealthCheckIDP request
 	HealthCheckIDP(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetConsentForm request
+	GetConsentForm(ctx context.Context, params *GetConsentFormParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// SubmitConsentWithBody request with any body
+	SubmitConsentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SubmitConsentWithFormdataBody(ctx context.Context, body SubmitConsentFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetLoginForm request
 	GetLoginForm(ctx context.Context, params *GetLoginFormParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -166,10 +231,52 @@ type ClientInterface interface {
 	AuthenticateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AuthenticateUserWithFormdataBody(ctx context.Context, body AuthenticateUserFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// Logout request
+	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUserInfo request
+	GetUserInfo(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) HealthCheckIDP(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewHealthCheckIDPRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetConsentForm(ctx context.Context, params *GetConsentFormParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetConsentFormRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SubmitConsentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSubmitConsentRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SubmitConsentWithFormdataBody(ctx context.Context, body SubmitConsentFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSubmitConsentRequestWithFormdataBody(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -216,6 +323,30 @@ func (c *Client) AuthenticateUserWithFormdataBody(ctx context.Context, body Auth
 	return c.Client.Do(req)
 }
 
+func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLogoutRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUserInfo(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUserInfoRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // NewHealthCheckIDPRequest generates requests for HealthCheckIDP
 func NewHealthCheckIDPRequest(server string) (*http.Request, error) {
 	var err error
@@ -239,6 +370,91 @@ func NewHealthCheckIDPRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetConsentFormRequest generates requests for GetConsentForm
+func NewGetConsentFormRequest(server string, params *GetConsentFormParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oidc/v1/consent")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "request_id", runtime.ParamLocationQuery, params.RequestID); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewSubmitConsentRequestWithFormdataBody calls the generic SubmitConsent builder with application/x-www-form-urlencoded body
+func NewSubmitConsentRequestWithFormdataBody(server string, body SubmitConsentFormdataRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyStr, err := runtime.MarshalForm(body, nil)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = strings.NewReader(bodyStr.Encode())
+	return NewSubmitConsentRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
+}
+
+// NewSubmitConsentRequestWithBody generates requests for SubmitConsent with any type of body
+func NewSubmitConsentRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oidc/v1/consent")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -328,6 +544,60 @@ func NewAuthenticateUserRequestWithBody(server string, contentType string, body 
 	return req, nil
 }
 
+// NewLogoutRequest generates requests for Logout
+func NewLogoutRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oidc/v1/logout")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetUserInfoRequest generates requests for GetUserInfo
+func NewGetUserInfoRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oidc/v1/userinfo")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -374,6 +644,14 @@ type ClientWithResponsesInterface interface {
 	// HealthCheckIDPWithResponse request
 	HealthCheckIDPWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthCheckIDPResponse, error)
 
+	// GetConsentFormWithResponse request
+	GetConsentFormWithResponse(ctx context.Context, params *GetConsentFormParams, reqEditors ...RequestEditorFn) (*GetConsentFormResponse, error)
+
+	// SubmitConsentWithBodyWithResponse request with any body
+	SubmitConsentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubmitConsentResponse, error)
+
+	SubmitConsentWithFormdataBodyWithResponse(ctx context.Context, body SubmitConsentFormdataRequestBody, reqEditors ...RequestEditorFn) (*SubmitConsentResponse, error)
+
 	// GetLoginFormWithResponse request
 	GetLoginFormWithResponse(ctx context.Context, params *GetLoginFormParams, reqEditors ...RequestEditorFn) (*GetLoginFormResponse, error)
 
@@ -381,6 +659,12 @@ type ClientWithResponsesInterface interface {
 	AuthenticateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AuthenticateUserResponse, error)
 
 	AuthenticateUserWithFormdataBodyWithResponse(ctx context.Context, body AuthenticateUserFormdataRequestBody, reqEditors ...RequestEditorFn) (*AuthenticateUserResponse, error)
+
+	// LogoutWithResponse request
+	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
+
+	// GetUserInfoWithResponse request
+	GetUserInfoWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUserInfoResponse, error)
 }
 
 type HealthCheckIDPResponse struct {
@@ -400,6 +684,52 @@ func (r HealthCheckIDPResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r HealthCheckIDPResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetConsentFormResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *ErrorResponse
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetConsentFormResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetConsentFormResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type SubmitConsentResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *ErrorResponse
+	JSON404      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r SubmitConsentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SubmitConsentResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -450,6 +780,55 @@ func (r AuthenticateUserResponse) StatusCode() int {
 	return 0
 }
 
+type LogoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Message *string `json:"message,omitempty"`
+	}
+	JSON401 *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r LogoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LogoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetUserInfoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserInfoResponse
+	JSON401      *ErrorResponse
+	JSON403      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUserInfoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUserInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // HealthCheckIDPWithResponse request returning *HealthCheckIDPResponse
 func (c *ClientWithResponses) HealthCheckIDPWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthCheckIDPResponse, error) {
 	rsp, err := c.HealthCheckIDP(ctx, reqEditors...)
@@ -457,6 +836,32 @@ func (c *ClientWithResponses) HealthCheckIDPWithResponse(ctx context.Context, re
 		return nil, err
 	}
 	return ParseHealthCheckIDPResponse(rsp)
+}
+
+// GetConsentFormWithResponse request returning *GetConsentFormResponse
+func (c *ClientWithResponses) GetConsentFormWithResponse(ctx context.Context, params *GetConsentFormParams, reqEditors ...RequestEditorFn) (*GetConsentFormResponse, error) {
+	rsp, err := c.GetConsentForm(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetConsentFormResponse(rsp)
+}
+
+// SubmitConsentWithBodyWithResponse request with arbitrary body returning *SubmitConsentResponse
+func (c *ClientWithResponses) SubmitConsentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SubmitConsentResponse, error) {
+	rsp, err := c.SubmitConsentWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSubmitConsentResponse(rsp)
+}
+
+func (c *ClientWithResponses) SubmitConsentWithFormdataBodyWithResponse(ctx context.Context, body SubmitConsentFormdataRequestBody, reqEditors ...RequestEditorFn) (*SubmitConsentResponse, error) {
+	rsp, err := c.SubmitConsentWithFormdataBody(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSubmitConsentResponse(rsp)
 }
 
 // GetLoginFormWithResponse request returning *GetLoginFormResponse
@@ -483,6 +888,24 @@ func (c *ClientWithResponses) AuthenticateUserWithFormdataBodyWithResponse(ctx c
 		return nil, err
 	}
 	return ParseAuthenticateUserResponse(rsp)
+}
+
+// LogoutWithResponse request returning *LogoutResponse
+func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error) {
+	rsp, err := c.Logout(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLogoutResponse(rsp)
+}
+
+// GetUserInfoWithResponse request returning *GetUserInfoResponse
+func (c *ClientWithResponses) GetUserInfoWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetUserInfoResponse, error) {
+	rsp, err := c.GetUserInfo(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUserInfoResponse(rsp)
 }
 
 // ParseHealthCheckIDPResponse parses an HTTP response from a HealthCheckIDPWithResponse call
@@ -512,6 +935,72 @@ func ParseHealthCheckIDPResponse(rsp *http.Response) (*HealthCheckIDPResponse, e
 			return nil, err
 		}
 		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetConsentFormResponse parses an HTTP response from a GetConsentFormWithResponse call
+func ParseGetConsentFormResponse(rsp *http.Response) (*GetConsentFormResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetConsentFormResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseSubmitConsentResponse parses an HTTP response from a SubmitConsentWithResponse call
+func ParseSubmitConsentResponse(rsp *http.Response) (*SubmitConsentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SubmitConsentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	}
 
@@ -570,35 +1059,126 @@ func ParseAuthenticateUserResponse(rsp *http.Response) (*AuthenticateUserRespons
 	return response, nil
 }
 
+// ParseLogoutResponse parses an HTTP response from a LogoutWithResponse call
+func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LogoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Message *string `json:"message,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUserInfoResponse parses an HTTP response from a GetUserInfoWithResponse call
+func ParseGetUserInfoResponse(rsp *http.Response) (*GetUserInfoResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUserInfoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserInfoResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	}
+
+	return response, nil
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"/1bThXs9EwAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

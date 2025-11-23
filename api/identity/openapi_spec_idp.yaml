@@ -141,6 +141,168 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /oidc/v1/consent:
+    get:
+      summary: Consent Form
+      description: |
+        Render HTML consent form for authorization request approval.
+        Shows client information and requested scopes. Requires authenticated session.
+      operationId: getConsentForm
+      tags:
+        - Authorization
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: request_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Authorization request ID to display consent for
+          example: "01932e4d-7890-7abc-def0-123456789abc"
+      responses:
+        '200':
+          description: HTML consent form
+          content:
+            text/html:
+              schema:
+                type: string
+                description: HTML document containing consent form with client/scope information
+        '401':
+          description: Unauthenticated - missing or invalid session cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Authorization request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Submit Consent Decision
+      description: |
+        Process user's consent decision (approve/deny) for authorization request.
+        Requires authenticated session. On approval, redirects to redirect_uri with authorization code.
+      operationId: submitConsent
+      tags:
+        - Authorization
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - request_id
+                - action
+              properties:
+                request_id:
+                  type: string
+                  format: uuid
+                  description: Authorization request ID from consent form
+                  example: "01932e4d-7890-7abc-def0-123456789abc"
+                action:
+                  type: string
+                  enum: [approve, deny]
+                  description: User's consent decision
+                  example: "approve"
+      responses:
+        '302':
+          description: |
+            Redirect to client's redirect_uri with authorization code (approve) or error (deny).
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: Redirect URI with code/state (approve) or error (deny)
+              example: "https://client.example.com/callback?code=xyz&state=abc"
+        '401':
+          description: Unauthenticated - missing or invalid session cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Authorization request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/logout:
+    post:
+      summary: Logout User
+      description: |
+        Revoke all user tokens, delete session, clear session cookie.
+        Requires authenticated session.
+      operationId: logout
+      tags:
+        - Authentication
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: |
+            Logout successful. All tokens revoked, session deleted, cookie cleared.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Expired session cookie to clear client-side session
+              example: "session_id=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        '401':
+          description: Unauthenticated - missing or invalid session cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/userinfo:
+    get:
+      summary: User Information Endpoint (OIDC)
+      description: |
+        Returns OpenID Connect user information claims based on access token.
+        Token must have 'openid' scope. Returns standard claims (sub, name, email, etc).
+      operationId: getUserInfo
+      tags:
+        - OIDC
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User information claims
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+        '401':
+          description: Invalid or missing access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Token lacks 'openid' scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /health:
     get:
       summary: Health Check
@@ -163,7 +325,55 @@ paths:
                 $ref: '#/components/schemas/HealthResponse'
 
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session cookie set by /oidc/v1/login endpoint
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth 2.0 access token (Bearer token)
+
   schemas:
+    UserInfoResponse:
+      type: object
+      required:
+        - sub
+      properties:
+        sub:
+          type: string
+          description: Subject identifier (unique user ID)
+          example: "01932e4d-1234-5678-9abc-def012345678"
+        name:
+          type: string
+          description: Full name
+          example: "John Doe"
+        given_name:
+          type: string
+          description: First name
+          example: "John"
+        family_name:
+          type: string
+          description: Last name
+          example: "Doe"
+        preferred_username:
+          type: string
+          description: Preferred username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: "john.doe@example.com"
+        email_verified:
+          type: boolean
+          description: Whether email is verified
+          example: true
+
     ErrorResponse:
       type: object
       required:

@@ -28,7 +28,7 @@ const (
 
 // Defines values for AuthZTokenResponseTokenType.
 const (
-	Bearer AuthZTokenResponseTokenType = "Bearer"
+	AuthZTokenResponseTokenTypeBearer AuthZTokenResponseTokenType = "Bearer"
 )
 
 // Defines values for HealthResponseDatabase.
@@ -41,6 +41,11 @@ const (
 const (
 	Healthy   HealthResponseStatus = "healthy"
 	Unhealthy HealthResponseStatus = "unhealthy"
+)
+
+// Defines values for IntrospectionResponseTokenType.
+const (
+	IntrospectionResponseTokenTypeBearer IntrospectionResponseTokenType = "Bearer"
 )
 
 // Defines values for OAuth2ErrorError.
@@ -63,6 +68,18 @@ const (
 // Defines values for AuthorizeFormdataBodyResponseType.
 const (
 	Code AuthorizeFormdataBodyResponseType = "code"
+)
+
+// Defines values for IntrospectFormdataBodyTokenTypeHint.
+const (
+	IntrospectFormdataBodyTokenTypeHintAccessToken  IntrospectFormdataBodyTokenTypeHint = "access_token"
+	IntrospectFormdataBodyTokenTypeHintRefreshToken IntrospectFormdataBodyTokenTypeHint = "refresh_token"
+)
+
+// Defines values for RevokeFormdataBodyTokenTypeHint.
+const (
+	RevokeFormdataBodyTokenTypeHintAccessToken  RevokeFormdataBodyTokenTypeHint = "access_token"
+	RevokeFormdataBodyTokenTypeHintRefreshToken RevokeFormdataBodyTokenTypeHint = "refresh_token"
 )
 
 // Defines values for TokenFormdataBodyGrantType.
@@ -114,6 +131,42 @@ type HealthResponseDatabase string
 // HealthResponseStatus Overall service health status
 type HealthResponseStatus string
 
+// IntrospectionResponse defines model for IntrospectionResponse.
+type IntrospectionResponse struct {
+	// Active Whether the token is currently active
+	Active bool `json:"active"`
+
+	// Aud Audience (intended recipient)
+	Aud *string `json:"aud,omitempty"`
+
+	// ClientID Client ID that token was issued to
+	ClientID *string `json:"client_id,omitempty"`
+
+	// Exp Expiration timestamp (Unix epoch)
+	Exp *int `json:"exp,omitempty"`
+
+	// Iat Issued-at timestamp (Unix epoch)
+	Iat *int `json:"iat,omitempty"`
+
+	// Iss Issuer (authorization server)
+	Iss *string `json:"iss,omitempty"`
+
+	// Scope Space-separated list of scopes
+	Scope *string `json:"scope,omitempty"`
+
+	// Sub Subject identifier
+	Sub *string `json:"sub,omitempty"`
+
+	// TokenType Token type
+	TokenType *IntrospectionResponseTokenType `json:"token_type,omitempty"`
+
+	// Username Username of resource owner
+	Username *string `json:"username,omitempty"`
+}
+
+// IntrospectionResponseTokenType Token type
+type IntrospectionResponseTokenType string
+
 // OAuth2Error defines model for OAuth2Error.
 type OAuth2Error struct {
 	// Error OAuth 2.0 error code
@@ -159,6 +212,30 @@ type AuthorizeFormdataBodyCodeChallengeMethod string
 // AuthorizeFormdataBodyResponseType defines parameters for Authorize.
 type AuthorizeFormdataBodyResponseType string
 
+// IntrospectFormdataBody defines parameters for Introspect.
+type IntrospectFormdataBody struct {
+	// Token Access or refresh token to introspect
+	Token string `form:"token" json:"token"`
+
+	// TokenTypeHint Hint about token type to optimize lookup
+	TokenTypeHint *IntrospectFormdataBodyTokenTypeHint `form:"token_type_hint,omitempty" json:"token_type_hint,omitempty"`
+}
+
+// IntrospectFormdataBodyTokenTypeHint defines parameters for Introspect.
+type IntrospectFormdataBodyTokenTypeHint string
+
+// RevokeFormdataBody defines parameters for Revoke.
+type RevokeFormdataBody struct {
+	// Token Access or refresh token to revoke
+	Token string `form:"token" json:"token"`
+
+	// TokenTypeHint Hint about token type to optimize lookup
+	TokenTypeHint *RevokeFormdataBodyTokenTypeHint `form:"token_type_hint,omitempty" json:"token_type_hint,omitempty"`
+}
+
+// RevokeFormdataBodyTokenTypeHint defines parameters for Revoke.
+type RevokeFormdataBodyTokenTypeHint string
+
 // TokenFormdataBody defines parameters for Token.
 type TokenFormdataBody struct {
 	// Code Authorization code (required for authorization_code grant)
@@ -185,6 +262,12 @@ type TokenFormdataBodyGrantType string
 
 // AuthorizeFormdataRequestBody defines body for Authorize for application/x-www-form-urlencoded ContentType.
 type AuthorizeFormdataRequestBody AuthorizeFormdataBody
+
+// IntrospectFormdataRequestBody defines body for Introspect for application/x-www-form-urlencoded ContentType.
+type IntrospectFormdataRequestBody IntrospectFormdataBody
+
+// RevokeFormdataRequestBody defines body for Revoke for application/x-www-form-urlencoded ContentType.
+type RevokeFormdataRequestBody RevokeFormdataBody
 
 // TokenFormdataRequestBody defines body for Token for application/x-www-form-urlencoded ContentType.
 type TokenFormdataRequestBody TokenFormdataBody
@@ -270,6 +353,16 @@ type ClientInterface interface {
 
 	AuthorizeWithFormdataBody(ctx context.Context, body AuthorizeFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// IntrospectWithBody request with any body
+	IntrospectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	IntrospectWithFormdataBody(ctx context.Context, body IntrospectFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RevokeWithBody request with any body
+	RevokeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	RevokeWithFormdataBody(ctx context.Context, body RevokeFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// TokenWithBody request with any body
 	TokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -302,6 +395,54 @@ func (c *Client) AuthorizeWithBody(ctx context.Context, contentType string, body
 
 func (c *Client) AuthorizeWithFormdataBody(ctx context.Context, body AuthorizeFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAuthorizeRequestWithFormdataBody(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) IntrospectWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIntrospectRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) IntrospectWithFormdataBody(ctx context.Context, body IntrospectFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewIntrospectRequestWithFormdataBody(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RevokeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRevokeRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RevokeWithFormdataBody(ctx context.Context, body RevokeFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRevokeRequestWithFormdataBody(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -384,6 +525,86 @@ func NewAuthorizeRequestWithBody(server string, contentType string, body io.Read
 	}
 
 	operationPath := fmt.Sprintf("/oauth2/v1/authorize")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewIntrospectRequestWithFormdataBody calls the generic Introspect builder with application/x-www-form-urlencoded body
+func NewIntrospectRequestWithFormdataBody(server string, body IntrospectFormdataRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyStr, err := runtime.MarshalForm(body, nil)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = strings.NewReader(bodyStr.Encode())
+	return NewIntrospectRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
+}
+
+// NewIntrospectRequestWithBody generates requests for Introspect with any type of body
+func NewIntrospectRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth2/v1/introspect")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRevokeRequestWithFormdataBody calls the generic Revoke builder with application/x-www-form-urlencoded body
+func NewRevokeRequestWithFormdataBody(server string, body RevokeFormdataRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyStr, err := runtime.MarshalForm(body, nil)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = strings.NewReader(bodyStr.Encode())
+	return NewRevokeRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
+}
+
+// NewRevokeRequestWithBody generates requests for Revoke with any type of body
+func NewRevokeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth2/v1/revoke")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -494,6 +715,16 @@ type ClientWithResponsesInterface interface {
 
 	AuthorizeWithFormdataBodyWithResponse(ctx context.Context, body AuthorizeFormdataRequestBody, reqEditors ...RequestEditorFn) (*AuthorizeResponse, error)
 
+	// IntrospectWithBodyWithResponse request with any body
+	IntrospectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*IntrospectResponse, error)
+
+	IntrospectWithFormdataBodyWithResponse(ctx context.Context, body IntrospectFormdataRequestBody, reqEditors ...RequestEditorFn) (*IntrospectResponse, error)
+
+	// RevokeWithBodyWithResponse request with any body
+	RevokeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RevokeResponse, error)
+
+	RevokeWithFormdataBodyWithResponse(ctx context.Context, body RevokeFormdataRequestBody, reqEditors ...RequestEditorFn) (*RevokeResponse, error)
+
 	// TokenWithBodyWithResponse request with any body
 	TokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TokenResponse, error)
 
@@ -540,6 +771,54 @@ func (r AuthorizeResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AuthorizeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type IntrospectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *IntrospectionResponse
+	JSON401      *OAuth2Error
+}
+
+// Status returns HTTPResponse.Status
+func (r IntrospectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r IntrospectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RevokeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Message *string `json:"message,omitempty"`
+	}
+	JSON401 *OAuth2Error
+}
+
+// Status returns HTTPResponse.Status
+func (r RevokeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RevokeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -594,6 +873,40 @@ func (c *ClientWithResponses) AuthorizeWithFormdataBodyWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseAuthorizeResponse(rsp)
+}
+
+// IntrospectWithBodyWithResponse request with arbitrary body returning *IntrospectResponse
+func (c *ClientWithResponses) IntrospectWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*IntrospectResponse, error) {
+	rsp, err := c.IntrospectWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIntrospectResponse(rsp)
+}
+
+func (c *ClientWithResponses) IntrospectWithFormdataBodyWithResponse(ctx context.Context, body IntrospectFormdataRequestBody, reqEditors ...RequestEditorFn) (*IntrospectResponse, error) {
+	rsp, err := c.IntrospectWithFormdataBody(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseIntrospectResponse(rsp)
+}
+
+// RevokeWithBodyWithResponse request with arbitrary body returning *RevokeResponse
+func (c *ClientWithResponses) RevokeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RevokeResponse, error) {
+	rsp, err := c.RevokeWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRevokeResponse(rsp)
+}
+
+func (c *ClientWithResponses) RevokeWithFormdataBodyWithResponse(ctx context.Context, body RevokeFormdataRequestBody, reqEditors ...RequestEditorFn) (*RevokeResponse, error) {
+	rsp, err := c.RevokeWithFormdataBody(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRevokeResponse(rsp)
 }
 
 // TokenWithBodyWithResponse request with arbitrary body returning *TokenResponse
@@ -679,6 +992,74 @@ func ParseAuthorizeResponse(rsp *http.Response) (*AuthorizeResponse, error) {
 	return response, nil
 }
 
+// ParseIntrospectResponse parses an HTTP response from a IntrospectWithResponse call
+func ParseIntrospectResponse(rsp *http.Response) (*IntrospectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &IntrospectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest IntrospectionResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuth2Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRevokeResponse parses an HTTP response from a RevokeWithResponse call
+func ParseRevokeResponse(rsp *http.Response) (*RevokeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RevokeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Message *string `json:"message,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuth2Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseTokenResponse parses an HTTP response from a TokenWithResponse call
 func ParseTokenResponse(rsp *http.Response) (*TokenResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -722,44 +1103,54 @@ func ParseTokenResponse(rsp *http.Response) (*TokenResponse, error) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"UGWatr5f/ycAAP//xTJiayEdAAA=",
+	"H4sIAAAAAAAC/+xae2/buJb/KoR2/3ABv+O4iYHFbpomjdN2m9rJZKZNYNDSscWGIjUk5cQp8t0vSEqy",
+	"aNNO29vOXFzc/2yJPC+e8zsP6msQ8iTlDJiSweBrIECmnEkwfz4cZSrungjBhf4bcqaAKf0TpyklIVaE",
+	"s9YXyZl+JsMYEqx//beAWTAI/qu1ot2yb2WrSvPp6akeRCBDQVJNKhhYlqjbbCPQS1AhT6CX5jQ0C73s",
+	"0yW/AzYqVgy+BqngKQhFrPg4DEHKidKr9P9tnOw6ZNahGk/xnxkgLtD59eWLoB7AA05SCsEg6P7BFTv9",
+	"dHryRXQejyUJ31+nR0dBPVDLVL+XShA2D570npQIkBPiYWykRpTMQJEEEGFIQshZJKu89vrtdkmXMAVz",
+	"EJowibbqkwIbvkbHnDEIFRq+RpZRjcwQT4GRCMmQp4AE/JmBVBC5ysHyPJ6+CckHcj6+ehx2/p8M5ZCN",
+	"9sPjYX94l/7+2/H5YbPZ9GkrYCZAxtskG9nXKwPr55jW0YwLhDMVc0EejS9NQh4BwixCDkk0F5gp6cqr",
+	"3jwu9s4/3J22f3+z//Ghe0nfXg+9h2HU3hRrnOIQGhFQkhAFkWUCuZWcwwhy+6WCzwgFBAkm1MfJSDux",
+	"j/3Hrt+hGqb3eCnRTfAKsABxExjVWJYEg8/5s+C2KkD+bIOlMf6fGREQ6a2OxzviOC55W9Lh0y8QKi36",
+	"GWCq4u3BFGGFp1h6FHudv0GhdT2yIGqJpMIqkxW1+J3+Y+LeUc083zwzu33TyxcgMKVIgliQEFBsxN7k",
+	"Zp8vg3qQseK3w3a1YIN3lurA9DhMztO+3xK4B/2eL3LXDiqX13cQQ6YEl6k2JN8JboosPEJex6BiEEjF",
+	"kAcckSjMhACm6BLl2yoCK5FBKcaUcwqYaTlwFm1SP8oiAiwEVNOasQh0pIYkJcCUG56xUqkctFo4Jc38",
+	"aTPkic/eIdXbJ8TD79i80mCmYqxyhe6xRETKDCKkuMPUUup097Zg8iaDEx0VBnuQPlSpcJKi2hUjDwhS",
+	"HsaOUp2Xe/v9g8Nt0IzVJv2hkbOhZf828u297hbyUm4hL1DNQVETHCC2nEem4sfnTmQnYkpIscAaKSmR",
+	"CvHZP4OYMpt6+GQmGhCJgCkyIwb5VrTbncO9LvSiRqe712vs918eNA7xNGxEMGvrR/rJj6PzDyJxPcgk",
+	"CIZ9wHGVv9G2EiB5JkJA/J6t6fWFxyzi8A0ob2LYBx5rFZsLGVA83l1y6RxcMQJhC0xJNMnLhqBePrHR",
+	"VnlgMqiB3MIfobIqYzJLUy4U5CuLzFRst15XD6z7Tqy49UBBknKBBaHLScbwAhOKpxTcY9mUcjP+Nb2J",
+	"o/u6Kc6yBLOGABxpDrk9qkuqLC/jspbSGJsQKQmbI4yKs0I6ThJQfnex4mSCePxlNDS1Uc6fh1kCTOEN",
+	"CYqYjngoqyHd4tr+3ZbZL1ubtplxkWi0CjT759ytzNlr3qajF8JMELUc68LcOpk97ldYklD71S5I13We",
+	"hFCAQguC0dnl5QUyG5HeqUPfdhjNG3YGOAKBrNwD876Eu0G+Sdcg/V6tzCaD/Jdl8eJG2850ECbR6S0r",
+	"1bUlV6lobHZccKm2io8dCVFmjt5hqOuDwj2mPFo2b9hlTHTmQhilFIcQc5orhXTxfnQxRHvNNjKHVSh+",
+	"FKoMU0T00ZZOgDIJco0blsY6K59rrim8hltWY32IhM140d7h0Khs4XoQWABWy/8LxTJVPFOENikPsYZy",
+	"C3XBMF+CLgEnwdZ+rmNOe61HcY4RjU3Y65SxIBFh88ENa6wtMe3BjPJ7dE9UjBLMIqy4WKKLt8cnermF",
+	"cWBRyglTxrR6TytvJ1q5zUIBRmxMZd5b6M22BEZhDOGdSyPhjCiuo8MYVRFl4m+lnFeTo4thUA8WIKS1",
+	"RafZbra1iXRyxCkJBsFes93UxUqKVWzCp2XrUv1zDmp7DerUvYiwkGbaZijyFeOBYWnLnGGkcc7sPtaK",
+	"BnW35++22z+t11/rKTztfqEOkagoyJ/qwX577++RYdUrGHTLkgSLZWkvVBhM4bnUyGgfB7d6cYG5i06r",
+	"TH4mBXtRZMiIIlgBqsTHt3t684b9ZkGihIE6EhARAaHSKaVuok3TmIQxphTYHJo3bJQvkUhxNIwuEOVz",
+	"whCZaUARiHEH1yCqIy700ippK49HWDJzN1v8cf3uqLSMTTEg1SseLXcc9kPj/v6+oZGtkQkKTLOK3NN3",
+	"i5wdzcQI5kQq0Jl5VfPY9dtKzf39Nhz02u0GdA+njV4n6jXwy06/0ev1+/v7vV673W47+TQjkbfFcY5i",
+	"UzR9qtaM5SJUswktE7SR643GZ0fd/T6KsYx1LWmoLkAYud1y/+TwPdCY4+6H+8WpOHl/eT7Pjs8wh7cd",
+	"dXA1up5mb87HUt03wvdBPUjwwztgc407ne5BPUgIK/739p5VZ5KAirnH4O8znfsA3QTj7n7/JkC1igLV",
+	"kYd+7dZz5ol31LRyxa3JuViEdCFVS7QUCVZhjMTKAxaYZuBvkaxLOAVViCmdYhP8u2unFZpuaTRWNtFG",
+	"vAk2h2Cr2K9YyBTljoXyMv1Hp112FmisIFENmvNmHd1427Z8OvX9rZ3CCnxzSjNfNZyN8sfj0ammpuzI",
+	"w+H1sHx8tj51DV4dJ6y5y0YYbnNkT63r8FQig6e1vLnX7voQJ3dEB29rWwH3BTIj729A29o63Nr6NjZ1",
+	"shHoHbcQ6kk+pSRXo3d+juUc1hziqqiU3oAhUepEiyH+vwJUJtgkE/R/tg4fWhr2CcugKFUNoj/TnujD",
+	"6NkyxZf5y2Nx7xr0ns537nGKgG3V3mjVcuZ1QblyozQg5XBve21QpPZ8Dq4EgQWgBBTWxZ3FCzPnLapa",
+	"OxaTJsEbFy2KgrUupYlG5khkPgUsqkfNx07WQopJIn2ZezWV/HWpe8v1wZG9njF+Wr1IUByRqlQ/5Spj",
+	"NSOaxIR5TudM9wR4yrNiGmkm+oojniqSkEdAlPO7LK1g99pU3r0tcTB9fX6/E/fK/d+NVT+zxvePqz1l",
+	"tm3NSHU5EiAzqlAt90cuEGH294tKwP4V947+tn6GCYXIGXUEg8+eIcfn26f6V8/04PPt020VQ6wRHJuh",
+	"k6LTrI1Oj9HLfr/74puwRMCC3+3oMUbmfXG7uR4+TfQMWGg0WfC7YqRVjTxMpW4KNHmJMKUIS8lDYmbC",
+	"1ctUL5JYsf6VUEQUEv0HQX4VgrhHlICU2LZBlXGqsYU9iwjJzCgyyyhdevXwiOzDG00vD+YVSdvWWk8W",
+	"gKMlykek/86gM1pZYg1x2u3Db0OcMrT8gHPyEMZYd66b9WrdjTozWMhhpzqLW9U2OUjdsLG9M8jndCZW",
+	"5MDz1UDd/WSgjjZHfc7YpOy4ywZ62+cIdkDog7LLMh5/zShDd3ieK9jNZqC8cdilgtvFjVP6QD+8gk8f",
+	"P/4x/WPcv34YT/2fTzhG2jW6KA35I/JEr77M1Dl86h3/dtFIXh1233ZfZvH06vyqk3bE5P66Mz+9Pv1w",
+	"8uX3ux8YWFTum3bcf61crIq9G+JvIHDZc1acbQ2WfUR+8nCjHDsW1w6/ZrrxPZ/6OH7g+aTnF3/R4844",
+	"3O+OGBaC35vqxgDOrhnHs4m04l5/dz3u+TDON/Ne5UKV58li8V/ZW/+U9Lbqy22iK7LbtpT2VNwwS8PX",
+	"Ncw7HmKKXsMCKE8THW+18cd3RJlRYSZoJZDMRVjMpRoctA/agRb2WVpag7mA8cd3aMikwiwE1HmGdOfH",
+	"SXefId31kL4QPMqKSZy7145vNu4Cn26f/hEAAP//3IMhvEcqAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

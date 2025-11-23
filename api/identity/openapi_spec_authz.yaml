@@ -125,7 +125,7 @@ paths:
                 code:
                   type: string
                   description: Authorization code (required for authorization_code grant)
-                  example: "SplxlOBeZQQYbYS6WxSbIA"
+                  example: "auth_code_example_1234567890"
                 redirect_uri:
                   type: string
                   format: uri
@@ -140,7 +140,7 @@ paths:
                 refresh_token:
                   type: string
                   description: Refresh token (required for refresh_token grant)
-                  example: "tGzv3JOkF0XG5Qx2TlKWIA"
+                  example: "refresh_token_example_1234567890"
                 scope:
                   type: string
                   description: Space-delimited scope values (optional, for narrowing access)
@@ -156,6 +156,98 @@ paths:
           $ref: '#/components/responses/OAuth2Error'
         '401':
           $ref: '#/components/responses/OAuth2Error'
+
+  /oauth2/v1/introspect:
+    post:
+      summary: Token Introspection Endpoint (RFC 7662)
+      description: |
+        Validate and retrieve metadata for access/refresh tokens.
+        Requires client authentication. Returns active status and token claims.
+      operationId: introspect
+      tags:
+        - OAuth 2.1
+      security:
+        - clientBasicAuth: []
+        - clientSecretPost: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Access or refresh token to introspect
+                  example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                token_type_hint:
+                  type: string
+                  enum: [access_token, refresh_token]
+                  description: Hint about token type to optimize lookup
+                  example: "access_token"
+      responses:
+        '200':
+          description: Token introspection result (active or inactive)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectionResponse'
+        '401':
+          description: Client authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuth2Error'
+
+  /oauth2/v1/revoke:
+    post:
+      summary: Token Revocation Endpoint (RFC 7009)
+      description: |
+        Revoke access or refresh token. Requires client authentication.
+        Revoking a refresh token also revokes all associated access tokens.
+      operationId: revoke
+      tags:
+        - OAuth 2.1
+      security:
+        - clientBasicAuth: []
+        - clientSecretPost: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Access or refresh token to revoke
+                  example: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                token_type_hint:
+                  type: string
+                  enum: [access_token, refresh_token]
+                  description: Hint about token type to optimize lookup
+                  example: "access_token"
+      responses:
+        '200':
+          description: Token revocation successful or token already invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token revoked successfully"
+        '401':
+          description: Client authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuth2Error'
 
   /health:
     get:
@@ -190,7 +282,7 @@ components:
         access_token:
           type: string
           description: OAuth 2.0 access token (opaque or JWT)
-          example: "2YotnFZFEjr1zCsicMWpAA"
+          example: "access_token_example_1234567890"
         token_type:
           type: string
           enum: [Bearer]
@@ -203,7 +295,7 @@ components:
         refresh_token:
           type: string
           description: Refresh token (optional, for authorization_code and refresh_token grants)
-          example: "tGzv3JOkF0XG5Qx2TlKWIA"
+          example: "refresh_token_example_0987654321"
         id_token:
           type: string
           description: OpenID Connect ID Token (if openid scope requested)
@@ -260,6 +352,53 @@ components:
           type: integer
           description: Service uptime in seconds
           example: 86400
+
+    IntrospectionResponse:
+      type: object
+      required:
+        - active
+      properties:
+        active:
+          type: boolean
+          description: Whether the token is currently active
+          example: true
+        scope:
+          type: string
+          description: Space-separated list of scopes
+          example: "openid profile email"
+        client_id:
+          type: string
+          description: Client ID that token was issued to
+          example: "client123"
+        username:
+          type: string
+          description: Username of resource owner
+          example: "johndoe"
+        token_type:
+          type: string
+          enum: [Bearer]
+          description: Token type
+          example: "Bearer"
+        exp:
+          type: integer
+          description: Expiration timestamp (Unix epoch)
+          example: 1735689600
+        iat:
+          type: integer
+          description: Issued-at timestamp (Unix epoch)
+          example: 1735603200
+        sub:
+          type: string
+          description: Subject identifier
+          example: "01932e4d-1234-5678-9abc-def012345678"
+        aud:
+          type: string
+          description: Audience (intended recipient)
+          example: "https://api.example.com"
+        iss:
+          type: string
+          description: Issuer (authorization server)
+          example: "https://authz.example.com"
 
   securitySchemes:
     clientBasicAuth:
