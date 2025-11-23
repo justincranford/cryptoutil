@@ -7,7 +7,10 @@ package server
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
+
+	cryptoutilIdentityJobs "cryptoutil/internal/identity/jobs"
 )
 
 // ServerManager manages the lifecycle of all identity servers.
@@ -17,20 +20,42 @@ type ServerManager struct {
 	rsServer    *RSServer
 	wg          sync.WaitGroup
 	errChan     chan error
+	cleanupJob  *cryptoutilIdentityJobs.CleanupJob
+	logger      *slog.Logger
 }
 
 // NewServerManager creates a new server manager.
-func NewServerManager(authzServer *AuthZServer, idpServer *IDPServer, rsServer *RSServer) *ServerManager {
+func NewServerManager(
+	authzServer *AuthZServer,
+	idpServer *IDPServer,
+	rsServer *RSServer,
+	cleanupJob *cryptoutilIdentityJobs.CleanupJob,
+	logger *slog.Logger,
+) *ServerManager {
 	return &ServerManager{
 		authzServer: authzServer,
 		idpServer:   idpServer,
 		rsServer:    rsServer,
 		errChan:     make(chan error, 3),
+		cleanupJob:  cleanupJob,
+		logger:      logger,
 	}
 }
 
 // Start starts all servers concurrently.
 func (m *ServerManager) Start(ctx context.Context) error {
+	// Start cleanup job.
+	if m.cleanupJob != nil {
+		m.logger.Info("Starting cleanup job")
+		m.wg.Add(1)
+
+		go func() {
+			defer m.wg.Done()
+
+			m.cleanupJob.Start(ctx)
+		}()
+	}
+
 	// Start AuthZ server.
 	if m.authzServer != nil {
 		m.wg.Add(1)
@@ -83,6 +108,12 @@ func (m *ServerManager) Start(ctx context.Context) error {
 func (m *ServerManager) Stop(ctx context.Context) error {
 	var errors []error
 
+	// Stop cleanup job.
+	if m.cleanupJob != nil {
+		m.logger.Info("Stopping cleanup job")
+		m.cleanupJob.Stop()
+	}
+
 	// Stop AuthZ server.
 	if m.authzServer != nil {
 		if err := m.authzServer.Stop(ctx); err != nil {
@@ -113,4 +144,22 @@ func (m *ServerManager) Stop(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// GetCleanupMetrics returns current cleanup job metrics.
+func (m *ServerManager) GetCleanupMetrics() cryptoutilIdentityJobs.CleanupJobMetrics {
+	if m.cleanupJob == nil {
+		return cryptoutilIdentityJobs.CleanupJobMetrics{}
+	}
+
+	return m.cleanupJob.GetMetrics()
+}
+
+// IsCleanupHealthy checks if the cleanup job is running successfully.
+func (m *ServerManager) IsCleanupHealthy() bool {
+	if m.cleanupJob == nil {
+		return true // No cleanup job configured, consider healthy.
+	}
+
+	return m.cleanupJob.IsHealthy()
 }
