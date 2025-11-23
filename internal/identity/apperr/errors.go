@@ -31,6 +31,15 @@ func (e *IdentityError) Unwrap() error {
 	return e.Internal
 }
 
+// Is enables error comparison for error wrapping.
+func (e *IdentityError) Is(target error) bool {
+	if t, ok := target.(*IdentityError); ok {
+		return e.Code == t.Code
+	}
+
+	return false
+}
+
 // NewIdentityError creates a new identity error.
 func NewIdentityError(code, message string, httpStatus int, internal error) *IdentityError {
 	return &IdentityError{

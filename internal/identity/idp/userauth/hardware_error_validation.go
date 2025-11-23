@@ -96,41 +96,69 @@ func (v *HardwareErrorValidator) classifyError(err error) error {
 
 	switch {
 	case errors.Is(err, ErrDeviceRemoved):
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrAuthenticationFailed,
-			fmt.Errorf("hardware device removed: %w", err),
-		)
+		wrapped := &cryptoutilIdentityAppErr.IdentityError{
+			Code:       cryptoutilIdentityAppErr.ErrAuthenticationFailed.Code,
+			Message:    cryptoutilIdentityAppErr.ErrAuthenticationFailed.Message,
+			HTTPStatus: cryptoutilIdentityAppErr.ErrAuthenticationFailed.HTTPStatus,
+			Internal:   fmt.Errorf("hardware device removed: %w", err),
+		}
+
+		return wrapped
 	case errors.Is(err, ErrPINRetryExhausted):
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrAuthenticationFailed,
-			fmt.Errorf("PIN retry limit exhausted: %w", err),
-		)
+		wrapped := &cryptoutilIdentityAppErr.IdentityError{
+			Code:       cryptoutilIdentityAppErr.ErrAuthenticationFailed.Code,
+			Message:    cryptoutilIdentityAppErr.ErrAuthenticationFailed.Message,
+			HTTPStatus: cryptoutilIdentityAppErr.ErrAuthenticationFailed.HTTPStatus,
+			Internal:   fmt.Errorf("PIN retry limit exhausted: %w", err),
+		}
+
+		return wrapped
 	case errors.Is(err, ErrAuthenticationTimeout):
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrAuthenticationFailed,
-			fmt.Errorf("authentication timeout: %w", err),
-		)
+		wrapped := &cryptoutilIdentityAppErr.IdentityError{
+			Code:       cryptoutilIdentityAppErr.ErrAuthenticationFailed.Code,
+			Message:    cryptoutilIdentityAppErr.ErrAuthenticationFailed.Message,
+			HTTPStatus: cryptoutilIdentityAppErr.ErrAuthenticationFailed.HTTPStatus,
+			Internal:   fmt.Errorf("authentication timeout: %w", err),
+		}
+
+		return wrapped
 	case errors.Is(err, ErrDeviceUnresponsive):
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrAuthenticationFailed,
-			fmt.Errorf("hardware device unresponsive: %w", err),
-		)
+		wrapped := &cryptoutilIdentityAppErr.IdentityError{
+			Code:       cryptoutilIdentityAppErr.ErrAuthenticationFailed.Code,
+			Message:    cryptoutilIdentityAppErr.ErrAuthenticationFailed.Message,
+			HTTPStatus: cryptoutilIdentityAppErr.ErrAuthenticationFailed.HTTPStatus,
+			Internal:   fmt.Errorf("hardware device unresponsive: %w", err),
+		}
+
+		return wrapped
 	case errors.Is(err, ErrInvalidPIN):
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrAuthenticationFailed,
-			fmt.Errorf("invalid PIN: %w", err),
-		)
+		wrapped := &cryptoutilIdentityAppErr.IdentityError{
+			Code:       cryptoutilIdentityAppErr.ErrAuthenticationFailed.Code,
+			Message:    cryptoutilIdentityAppErr.ErrAuthenticationFailed.Message,
+			HTTPStatus: cryptoutilIdentityAppErr.ErrAuthenticationFailed.HTTPStatus,
+			Internal:   fmt.Errorf("invalid PIN: %w", err),
+		}
+
+		return wrapped
 	case errors.Is(err, ErrDeviceLocked):
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrAuthenticationFailed,
-			fmt.Errorf("hardware device locked: %w", err),
-		)
+		wrapped := &cryptoutilIdentityAppErr.IdentityError{
+			Code:       cryptoutilIdentityAppErr.ErrAuthenticationFailed.Code,
+			Message:    cryptoutilIdentityAppErr.ErrAuthenticationFailed.Message,
+			HTTPStatus: cryptoutilIdentityAppErr.ErrAuthenticationFailed.HTTPStatus,
+			Internal:   fmt.Errorf("hardware device locked: %w", err),
+		}
+
+		return wrapped
 	default:
 		// Unknown hardware error.
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrAuthenticationFailed,
-			fmt.Errorf("hardware authentication error: %w", err),
-		)
+		wrapped := &cryptoutilIdentityAppErr.IdentityError{
+			Code:       cryptoutilIdentityAppErr.ErrAuthenticationFailed.Code,
+			Message:    cryptoutilIdentityAppErr.ErrAuthenticationFailed.Message,
+			HTTPStatus: cryptoutilIdentityAppErr.ErrAuthenticationFailed.HTTPStatus,
+			Internal:   fmt.Errorf("hardware authentication error: %w", err),
+		}
+
+		return wrapped
 	}
 }
 
