@@ -478,6 +478,12 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 }
 
 // TestUnauthorizedAccess verifies that requests without tokens are rejected.
+// TestUnauthorizedAccess verifies protected endpoints require authentication.
+//
+// Validates requirements:
+// - R02-02: UserInfo endpoint validates Bearer token
+// - R05-05: Revoked tokens rejected with 401 Unauthorized
+// - R06-01: Session middleware validates access tokens
 func TestUnauthorizedAccess(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
