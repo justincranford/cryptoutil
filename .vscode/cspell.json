@@ -72,6 +72,7 @@
     "en-us-common-misspellings" // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/en-common-misspellings/dict/en-us-common-misspellings.trie
   ],
   "words": [
+    "ABAC",
     "ADRFY",
     "AESHS",
     "AESHSJWK",
@@ -282,6 +283,7 @@
     "JWSRSAJWK",
     "JWTID",
     "Jwzv",
+    "Kaizen",
     "Kcls",
     "kdks",
     "keks",
@@ -315,6 +317,7 @@
     "modernc",
     "mohae",
     "morikuni",
+    "MTTR",
     "mvdan",
     "MVNW",
     "namev",
@@ -413,6 +416,7 @@
     "spotbugs",
     "sprivate",
     "sqlrepository",
+    "standups",
     "stdr",
     "stretchr",
     "stringish",

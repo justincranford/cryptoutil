@@ -1,17 +1,63 @@
 # Cryptoutil Documentation Plans Index
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-23
 **Purpose**: Organized index of all documentation plan directories, ordered newest to oldest for systematic review
+
+---
+
+## 🎯 Feature Template (NEW - 2025-11-23)
+
+**Location**: `docs/feature-template/`
+**Status**: Active - Reusable Planning Framework
+**Purpose**: Comprehensive template for planning and executing complex feature implementations with LLM Agent autonomy
+
+**Files**:
+
+- `feature-template.md` - Complete feature planning template (40 pages)
+- `usage-example.md` - Filled-out example (OAuth 2.1 Authorization Server)
+- `agent-quick-reference.md` - Condensed checklist for LLM autonomous execution
+- `README.md` - Directory overview and usage guide
+
+**Key Features**:
+
+- **Continuous Work Directive**: LLM agents work until 950k/1M tokens (95% utilization)
+- **Post-Mortem Discipline**: EVERY task requires post-mortem with corrective actions
+- **Quality Gates**: Automated checkpoints (pre-commit, pre-push, CI/CD, production)
+- **Task Execution Checklist**: Per-task loop for consistent implementation
+- **Corrective Action Patterns**: Real-world SDLC practices (retrospectives, root cause analysis, technical debt management)
+
+**When to Use**:
+
+- New feature development (multi-day/week effort)
+- Major refactoring initiatives
+- Cross-cutting infrastructure changes
+- Service extraction or migration
+
+**When NOT to Use**:
+
+- Bug fixes (use issue tracker)
+- Minor enhancements (single file changes)
+- Documentation updates (use README)
+- Dependency updates (use automated tools)
+
+**Template Evolution**:
+
+- Version 1.0 based on analysis of 50+ planning documents
+- Feedback loop: Create feature post-mortem → Update template → Version bump
+- RFC process for major template changes
 
 ---
 
 ## Plan Directories (Newest → Oldest)
 
 ### 01-mixed (2025-11-21)
+
 **Status**: Active/Current
 **Last Updated**: 2025-11-21 10:35 AM
 **Purpose**: Mixed cross-cutting concerns and ongoing maintenance tasks
+
 **Files**:
+
 - `todos-development.md` - Development workflow & configuration (12-factor compliance ✅ COMPLETE)
 - `todos-infrastructure.md` - Infrastructure & deployment tasks
 - `todos-observability.md` - Observability & monitoring enhancements
@@ -20,6 +66,7 @@
 - `todos-testing.md` - Testing infrastructure (⚠️ GORM AutoMigrate blocker active)
 
 **Key Items**:
+
 - ✅ 12-Factor App Compliance COMPLETE
 - ✅ PostgreSQL driver migration (lib/pq → pgx/v5) COMPLETE
 - ⚠️ GORM AutoMigrate failure blocking identity integration tests
@@ -29,22 +76,29 @@
 ---
 
 ### 02-refactor (2025-11-11)
+
 **Status**: Archive/Reference
 **Last Updated**: 2025-11-11 12:04 AM
 **Purpose**: General refactoring initiatives and code improvements
+
 **Files**:
+
 - `README.md` - Refactoring plans and guidelines
 
 **Key Items**:
+
 - TBD - needs review and update based on current project state
 
 ---
 
 ### 03-identityV2 (2025-11-11)
+
 **Status**: Archive/Reference - Superseded by newer identity implementation
 **Last Updated**: 2025-11-11 12:04 AM
 **Purpose**: Second iteration of identity/OAuth2/OIDC implementation
+
 **Files**: 28 files including:
+
 - `README.md` - Identity V2 master plan
 - `identityV2_master.md` - Master tracking document
 - `requirements.yml` - Requirements specification
@@ -52,6 +106,7 @@
 - Supporting docs: topology, config normalization, dependency graph, etc.
 
 **Key Items**:
+
 - ⚠️ Task 10.5 blocked by GORM AutoMigrate failure
 - Tasks 10.6-20 depend on 10.5 completion
 - Comprehensive OAuth2/OIDC implementation plan
@@ -60,11 +115,14 @@
 
 ---
 
-### 04-identity (2025-11-11)
+### 04-identity (Original Implementation - 2025-11-11)
+
 **Status**: Archive/Reference - Original identity implementation (older than 03-identityV2)
 **Last Updated**: 2025-11-11 12:04 AM
 **Purpose**: Original identity/OAuth2/OIDC implementation plans
+
 **Files**: 22 files including:
+
 - `identity_master.md` - Original master plan
 - `01_foundation_setup.md` through `15_user_auth_hardware.md` - 15 task breakdowns
 - `16_gap_analysis.md` - Gap analysis document
@@ -73,6 +131,7 @@
 - `e2e_coverage_report.md` and `e2e_coverage.html` - E2E coverage analysis
 
 **Key Items**:
+
 - Original implementation plan (superseded by 03-identityV2)
 - Completed tasks documented in gap analysis
 - Historical reference for implementation decisions
