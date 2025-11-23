@@ -53,6 +53,9 @@ type ClientRepository interface {
 	// GetByClientID retrieves a client by client ID.
 	GetByClientID(ctx context.Context, clientID string) (*cryptoutilIdentityDomain.Client, error)
 
+	// GetAll retrieves all clients (for secret migration).
+	GetAll(ctx context.Context) ([]*cryptoutilIdentityDomain.Client, error)
+
 	// Update updates an existing client.
 	Update(ctx context.Context, client *cryptoutilIdentityDomain.Client) error
 

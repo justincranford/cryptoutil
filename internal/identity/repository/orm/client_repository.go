@@ -65,6 +65,16 @@ func (r *ClientRepositoryGORM) GetByClientID(ctx context.Context, clientID strin
 	return &client, nil
 }
 
+// GetAll retrieves all clients (for secret migration).
+func (r *ClientRepositoryGORM) GetAll(ctx context.Context) ([]*cryptoutilIdentityDomain.Client, error) {
+	var clients []*cryptoutilIdentityDomain.Client
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("deleted_at IS NULL").Find(&clients).Error; err != nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get all clients: %w", err))
+	}
+
+	return clients, nil
+}
+
 // Update updates an existing client.
 func (r *ClientRepositoryGORM) Update(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
 	client.UpdatedAt = time.Now()
