@@ -48,7 +48,7 @@ func TestRSContractPublicHealth(t *testing.T) {
 	require.NoError(t, err, "Failed to execute request")
 
 	defer func() {
-		_ = resp.Body.Close()
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup - error not critical for test teardown
 	}()
 
 	// Verify response against OpenAPI spec.

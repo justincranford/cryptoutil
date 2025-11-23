@@ -6,6 +6,7 @@ package orm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -108,6 +109,7 @@ func (r *WebAuthnCredentialRepository) StoreCredential(ctx context.Context, cred
 
 	// Check if credential ID already exists (update case).
 	var existing WebAuthnCredential
+
 	result := getDB(ctx, r.db).WithContext(ctx).Where("credential_id = ?", credential.ID).First(&existing)
 
 	if result.Error == nil {
@@ -125,7 +127,7 @@ func (r *WebAuthnCredentialRepository) StoreCredential(ctx context.Context, cred
 		return nil
 	}
 
-	if result.Error != gorm.ErrRecordNotFound {
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrDatabaseQuery,
 			fmt.Errorf("failed to check existing credential: %w", result.Error),
@@ -166,7 +168,7 @@ func (r *WebAuthnCredentialRepository) GetCredential(ctx context.Context, creden
 	var dbCred WebAuthnCredential
 
 	if err := getDB(ctx, r.db).WithContext(ctx).Where("credential_id = ?", credentialID).First(&dbCred).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrCredentialNotFound
 		}
 

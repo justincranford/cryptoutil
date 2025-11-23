@@ -205,7 +205,6 @@ monitoring:
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -241,7 +240,6 @@ func TestStepUpAuthenticator_ParseAuthLevel(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.levelString, func(t *testing.T) {
 			t.Parallel()
 

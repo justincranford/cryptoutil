@@ -12,12 +12,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// contextKey is a custom type for context keys to avoid collisions.
+type contextKey string
+
+const (
+	contextKeyTimestamp contextKey = "timestamp"
+)
+
 // TestMockSMSProviderSuccess tests successful SMS sending.
 func TestMockSMSProviderSuccess(t *testing.T) {
 	t.Parallel()
 
 	provider := NewMockSMSProvider()
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendSMS(ctx, "+15551234567", "Test message")
 	require.NoError(t, err)
@@ -37,7 +44,7 @@ func TestMockSMSProviderFailure(t *testing.T) {
 	provider := NewMockSMSProvider()
 	provider.SetShouldFail(true, fmt.Errorf("network timeout"))
 
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendSMS(ctx, "+15551234567", "Test message")
 	require.Error(t, err)
@@ -54,7 +61,7 @@ func TestMockSMSProviderNetworkErrorInjection(t *testing.T) {
 	provider := NewMockSMSProvider()
 	provider.InjectNetworkError(2, fmt.Errorf("connection refused"))
 
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	// First call succeeds.
 	err := provider.SendSMS(ctx, "+15551234567", "First message")
@@ -82,9 +89,9 @@ func TestMockSMSProviderReset(t *testing.T) {
 	provider.SetShouldFail(true, nil)
 	provider.InjectNetworkError(1, fmt.Errorf("test error"))
 
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
-	_ = provider.SendSMS(ctx, "+15551234567", "Test message")
+	_ = provider.SendSMS(ctx, "+15551234567", "Test message") //nolint:errcheck // Test setup - error intentionally ignored to test reset functionality
 
 	provider.Reset()
 
@@ -102,7 +109,7 @@ func TestMockEmailProviderSuccess(t *testing.T) {
 	t.Parallel()
 
 	provider := NewMockEmailProvider()
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendEmail(ctx, "user@example.com", "Test Subject", "Test body")
 	require.NoError(t, err)
@@ -123,7 +130,7 @@ func TestMockEmailProviderFailure(t *testing.T) {
 	provider := NewMockEmailProvider()
 	provider.SetShouldFail(true, fmt.Errorf("SMTP error"))
 
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendEmail(ctx, "user@example.com", "Test", "Body")
 	require.Error(t, err)
@@ -140,7 +147,7 @@ func TestMockEmailProviderNetworkErrorInjection(t *testing.T) {
 	provider := NewMockEmailProvider()
 	provider.InjectNetworkError(3, fmt.Errorf("DNS resolution failed"))
 
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	// First two calls succeed.
 	err := provider.SendEmail(ctx, "user1@example.com", "Subject 1", "Body 1")
@@ -163,9 +170,11 @@ func TestMockEmailProviderNetworkErrorInjection(t *testing.T) {
 func TestDeliveryServiceInterfaceCompliance(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	t.Run("SMS_Provider_SendEmail_Not_Supported", func(t *testing.T) {
+		t.Parallel()
+
 		provider := NewMockSMSProvider()
 
 		err := provider.SendEmail(ctx, "user@example.com", "Subject", "Body")
@@ -174,6 +183,8 @@ func TestDeliveryServiceInterfaceCompliance(t *testing.T) {
 	})
 
 	t.Run("Email_Provider_SendSMS_Not_Supported", func(t *testing.T) {
+		t.Parallel()
+
 		provider := NewMockEmailProvider()
 
 		err := provider.SendSMS(ctx, "+15551234567", "Message")

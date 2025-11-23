@@ -18,13 +18,15 @@ func TestPollerPollHealthy(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, "/health", r.URL.Path)
+
 		resp := Response{
 			Status:   "healthy",
 			Database: "ok",
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp) //nolint:errcheck // Test HTTP handler - encoding error in test response not critical
 	}))
 	defer server.Close()
 
@@ -45,9 +47,10 @@ func TestPollerPollUnhealthy(t *testing.T) {
 		resp := Response{
 			Status: "unhealthy",
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp) //nolint:errcheck // Test HTTP handler - encoding error in test response not critical
 	}))
 	defer server.Close()
 
@@ -83,7 +86,7 @@ func TestPollerPollInvalidJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("invalid json{{{"))
+		_, _ = w.Write([]byte("invalid json{{{")) //nolint:errcheck // Test HTTP handler - error not critical for test validation
 	}))
 	defer server.Close()
 
@@ -101,8 +104,9 @@ func TestPollerPollContextCanceled(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(2 * time.Second)
+
 		resp := Response{Status: "healthy"}
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp) //nolint:errcheck // Test HTTP handler - encoding error in test response not critical
 	}))
 	defer server.Close()
 
@@ -120,18 +124,21 @@ func TestPollerPollEventuallyHealthy(t *testing.T) {
 	t.Parallel()
 
 	attempts := 0
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		attempts++
 		if attempts < 3 {
 			// First 2 attempts fail
 			w.WriteHeader(http.StatusServiceUnavailable)
+
 			return
 		}
 		// Third attempt succeeds
 		resp := Response{Status: "healthy"}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp) //nolint:errcheck // Test HTTP handler - encoding error in test response not critical
 	}))
 	defer server.Close()
 

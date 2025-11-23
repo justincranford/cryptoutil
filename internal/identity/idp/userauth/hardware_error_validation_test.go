@@ -57,7 +57,6 @@ func TestNewHardwareErrorValidator(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -143,7 +142,6 @@ func TestValidateAuthentication(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -208,7 +206,6 @@ func TestRetryWithBackoff(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -265,7 +262,6 @@ func TestMonitorDevicePresence(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -274,6 +270,7 @@ func TestMonitorDevicePresence(t *testing.T) {
 			if tc.contextCancel {
 				cancelCtx, cancel := context.WithCancel(ctx)
 				cancel()
+
 				ctx = cancelCtx
 			}
 
@@ -324,7 +321,6 @@ func TestClassifyError(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

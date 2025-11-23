@@ -125,7 +125,6 @@ func TestExtractDomain(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -172,7 +171,6 @@ func TestMaskIPAddress(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -208,7 +206,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 				EmailAddress: "",
 			}
 
-			_ = logger.LogTokenGeneration(ctx, genEvent)
+			_ = logger.LogTokenGeneration(ctx, genEvent) //nolint:errcheck // Test audit logging - error not critical for test validation
 
 			// Log validation attempt.
 			valEvent := ValidationAttemptEvent{
@@ -220,7 +218,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 				IPAddress:         "192.168.1.100",
 			}
 
-			_ = logger.LogValidationAttempt(ctx, valEvent)
+			_ = logger.LogValidationAttempt(ctx, valEvent) //nolint:errcheck // Test audit logging - error not critical for test validation
 
 			// Log invalidation.
 			invEvent := TokenInvalidationEvent{
@@ -230,7 +228,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 				Reason:    "used",
 			}
 
-			_ = logger.LogTokenInvalidation(ctx, invEvent)
+			_ = logger.LogTokenInvalidation(ctx, invEvent) //nolint:errcheck // Test audit logging - error not critical for test validation
 		}()
 	}
 

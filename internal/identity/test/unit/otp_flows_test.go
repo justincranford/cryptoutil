@@ -71,6 +71,7 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 
 	// Extract OTP from mock SMS (format: "Your verification code is: 123456 ...").
 	var otp string
+
 	_, err = fmt.Sscanf(messages[0].Message, "Your verification code is: %s", &otp)
 	require.NoError(t, err, "OTP should be extractable from SMS")
 	require.Len(t, otp, cryptoutilIdentityMagic.DefaultOTPLength, "OTP should be 6 digits")
@@ -243,6 +244,7 @@ func TestEmailMagicLinkCompleteFlow(t *testing.T) {
 
 	// Extract token from email body (format: "...?token=abc123&challenge=uuid").
 	var token string
+
 	lines := splitLines(emails[0].Body)
 	for _, line := range lines {
 		if strings.Contains(line, "https://example.com/auth/magic-link/verify?token=") {
@@ -419,6 +421,7 @@ func (r *mockRateLimiter) CheckLimit(ctx context.Context, userID string) error {
 
 	// Remove expired attempts.
 	validAttempts := []time.Time{}
+
 	for _, t := range attempts {
 		if now.Sub(t) < r.window {
 			validAttempts = append(validAttempts, t)

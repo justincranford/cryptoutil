@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -27,6 +28,10 @@ const (
 	commandRenew     = "renew"
 	commandInventory = "inventory"
 	commandHelp      = "help"
+)
+
+const (
+	defaultDeviceName = "Unknown Device"
 )
 
 func main() {
@@ -223,6 +228,7 @@ func runList(args []string) {
 
 	if len(credentials) == 0 {
 		fmt.Printf("No hardware credentials enrolled for user %s\n", userID)
+
 		return
 	}
 
@@ -230,7 +236,7 @@ func runList(args []string) {
 	fmt.Println()
 
 	for i, cred := range credentials {
-		deviceName := "Unknown Device"
+		deviceName := defaultDeviceName
 		if name, ok := cred.Metadata["device_name"].(string); ok {
 			deviceName = name
 		}
@@ -285,7 +291,7 @@ func runRevoke(args []string) {
 	// Retrieve credential before deletion (for audit logging).
 	credential, err := credRepo.GetCredential(ctx, *credentialID)
 	if err != nil {
-		if err == cryptoutilIdentityAppErr.ErrCredentialNotFound {
+		if errors.Is(err, cryptoutilIdentityAppErr.ErrCredentialNotFound) {
 			fmt.Fprintf(os.Stderr, "Error: Credential not found: %s\n", *credentialID)
 			os.Exit(1)
 		}
@@ -293,7 +299,7 @@ func runRevoke(args []string) {
 		log.Fatalf("Failed to retrieve credential: %v", err)
 	}
 
-	deviceName := "Unknown Device"
+	deviceName := defaultDeviceName
 	if name, ok := credential.Metadata["device_name"].(string); ok {
 		deviceName = name
 	}
@@ -354,7 +360,7 @@ func runRenew(args []string) {
 	// Retrieve existing credential.
 	credential, err := credRepo.GetCredential(ctx, *credentialID)
 	if err != nil {
-		if err == cryptoutilIdentityAppErr.ErrCredentialNotFound {
+		if errors.Is(err, cryptoutilIdentityAppErr.ErrCredentialNotFound) {
 			fmt.Fprintf(os.Stderr, "Error: Credential not found: %s\n", *credentialID)
 			os.Exit(1)
 		}
@@ -395,7 +401,7 @@ func runRenew(args []string) {
 		log.Printf("Warning: Failed to delete old credential: %v", err)
 	}
 
-	oldDeviceName := "Unknown Device"
+	oldDeviceName := defaultDeviceName
 	if name, ok := credential.Metadata["device_name"].(string); ok {
 		oldDeviceName = name
 	}

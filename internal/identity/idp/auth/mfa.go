@@ -16,6 +16,11 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
+const (
+	mfaFactorTypeEmailOTP = "email_otp"
+	mfaFactorTypeSMSOTP   = "sms_otp"
+)
+
 // MFAOrchestrator manages multi-factor authentication flows.
 type MFAOrchestrator struct {
 	mfaRepo         cryptoutilIdentityRepository.MFAFactorRepository
@@ -91,6 +96,7 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 
 	if matchingFactor == nil {
 		o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+
 		return fmt.Errorf("%w: MFA factor not configured", cryptoutilIdentityAppErr.ErrMFAFactorNotFound)
 	}
 
@@ -98,6 +104,7 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 	if !matchingFactor.IsNonceValid() {
 		isReplay = true
 		o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), isReplay)
+
 		return fmt.Errorf("%w: nonce already used or expired", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
@@ -107,47 +114,56 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 		valid, err := o.IntegrateTOTPValidation(ctx, matchingFactor, credentials)
 		if err != nil {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
-			return fmt.Errorf("%w: TOTP validation failed: %v", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
+
+			return fmt.Errorf("%w: TOTP validation failed: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 		}
 
 		if !valid {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+
 			return fmt.Errorf("%w: invalid TOTP code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 		}
 
-	case "email_otp":
+	case mfaFactorTypeEmailOTP:
 		valid, err := o.IntegrateTOTPValidation(ctx, matchingFactor, credentials)
 		if err != nil {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
-			return fmt.Errorf("%w: email OTP validation failed: %v", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
+
+			return fmt.Errorf("%w: email OTP validation failed: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 		}
 
 		if !valid {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+
 			return fmt.Errorf("%w: invalid email OTP code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 		}
 
-	case "sms_otp":
+	case mfaFactorTypeSMSOTP:
 		valid, err := o.IntegrateTOTPValidation(ctx, matchingFactor, credentials)
 		if err != nil {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
-			return fmt.Errorf("%w: SMS OTP validation failed: %v", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
+
+			return fmt.Errorf("%w: SMS OTP validation failed: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 		}
 
 		if !valid {
 			o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+
 			return fmt.Errorf("%w: invalid SMS OTP code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 		}
 
 	default:
 		o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+
 		return fmt.Errorf("%w: unsupported MFA factor type: %s", cryptoutilIdentityAppErr.ErrServerError, factorType)
 	}
 
 	// Mark nonce as used (replay prevention).
 	matchingFactor.MarkNonceAsUsed()
+
 	if err := o.mfaRepo.Update(ctx, matchingFactor); err != nil {
 		o.telemetry.RecordValidation(ctx, factorType, false, time.Since(startTime), false)
+
 		return fmt.Errorf("failed to mark nonce as used: %w", err)
 	}
 

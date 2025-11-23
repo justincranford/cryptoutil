@@ -32,9 +32,9 @@ func TestMFAChainConcurrency(t *testing.T) {
 		results := make(chan error, parallelChains)
 
 		for i := 0; i < parallelChains; i++ {
-			i := i
 			go func() {
 				userID := fmt.Sprintf("concurrent_user_%d_%s", i, googleUuid.Must(googleUuid.NewV7()).String())
+
 				err := suite.executeMFAChain(ctx, userID, []UserAuthMethod{
 					UserAuthUsernamePassword,
 					UserAuthTOTP,
@@ -62,9 +62,9 @@ func TestMFAChainConcurrency(t *testing.T) {
 		results := make(chan error, parallelSessions)
 
 		for i, sessionID := range sessions {
-			i, sessionID := i, sessionID
 			go func() {
 				userID := fmt.Sprintf("session_user_%d_%s", i, sessionID)
+
 				err := suite.validateSessionIsolation(ctx, userID, sessionID)
 				results <- err
 			}()

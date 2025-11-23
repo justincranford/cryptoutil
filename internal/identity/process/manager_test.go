@@ -54,7 +54,6 @@ func TestManagerStartStop(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -63,11 +62,14 @@ func TestManagerStartStop(t *testing.T) {
 			require.NoError(t, err)
 
 			ctx := context.Background()
+
 			err = manager.Start(ctx, tc.serviceName, tc.binary, tc.args)
 			if tc.expectStartErr {
 				require.Error(t, err)
+
 				return
 			}
+
 			require.NoError(t, err)
 
 			// Verify PID file exists

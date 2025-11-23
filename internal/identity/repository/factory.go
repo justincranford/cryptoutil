@@ -111,12 +111,18 @@ func (f *RepositoryFactory) DB() *gorm.DB {
 
 // Transaction executes a function within a database transaction.
 func (f *RepositoryFactory) Transaction(ctx context.Context, fn func(context.Context) error) error {
-	return f.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := f.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Enable debug mode to see actual SQL statements during transaction.
 		tx = tx.Debug()
 		txCtx := context.WithValue(ctx, txKey, tx)
+
 		return fn(txCtx)
 	})
+	if err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	return nil
 }
 
 // getDB returns the transaction DB from context if present, otherwise returns the base DB.

@@ -26,6 +26,14 @@ const (
 	AuthLevelStrongMFA AuthenticationLevel = 4 // Strong MFA (hardware key, biometric).
 )
 
+const (
+	authLevelStringNone      = "none"
+	authLevelStringBasic     = "basic"
+	authLevelStringMFA       = "mfa"
+	authLevelStringStepUp    = "step_up"
+	authLevelStringStrongMFA = "strong_mfa"
+)
+
 // StepUpChallenge represents a step-up authentication challenge.
 type StepUpChallenge struct {
 	ChallengeID     string
@@ -130,15 +138,15 @@ func (s *StepUpAuthenticator) loadPolicies(ctx context.Context) error {
 // parseAuthLevel converts string auth level to AuthenticationLevel enum.
 func (s *StepUpAuthenticator) parseAuthLevel(level string) AuthenticationLevel {
 	switch level {
-	case "none":
+	case authLevelStringNone:
 		return AuthLevelNone
-	case "basic":
+	case authLevelStringBasic:
 		return AuthLevelBasic
-	case "mfa":
+	case authLevelStringMFA:
 		return AuthLevelMFA
-	case "step_up":
+	case authLevelStringStepUp:
 		return AuthLevelStepUp
-	case "strong_mfa":
+	case authLevelStringStrongMFA:
 		return AuthLevelStrongMFA
 	default:
 		return AuthLevelBasic // Default to basic if unknown.

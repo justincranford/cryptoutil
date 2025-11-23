@@ -18,14 +18,20 @@ import (
 	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
+const (
+	healthCheckMaxRetries = 10
+)
+
 func newStartCommand() *cobra.Command {
-	var profile string
-	var useDocker bool
-	var useLocal bool
-	var configFile string
-	var background bool
-	var wait bool
-	var timeout string
+	var (
+		profile    string
+		useDocker  bool
+		useLocal   bool
+		configFile string
+		background bool
+		wait       bool
+		timeout    string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "start [services...]",
@@ -49,14 +55,16 @@ Examples:
   # Start in background (local processes)
   identity start --background`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			services := args
-			if len(services) == 0 {
-				services = []string{"authz", "idp", "rs"}
-			}
+			// services := args  // Not used - would filter servicesToStart if implemented
+			// if len(services) == 0 {
+			//	services = []string{"authz", "idp", "rs"}
+			// }
 
 			// Load profile configuration
-			var profileCfg *cryptoutilIdentityConfig.ProfileConfig
-			var err error
+			var (
+				profileCfg *cryptoutilIdentityConfig.ProfileConfig
+				err        error
+			)
 
 			if configFile != "" {
 				// Load from custom config file
@@ -88,7 +96,9 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to get home directory: %w", err)
 			}
+
 			pidDir := filepath.Join(homeDir, ".identity", "pids")
+
 			procManager, err := cryptoutilIdentityProcess.NewManager(pidDir)
 			if err != nil {
 				return fmt.Errorf("failed to create process manager: %w", err)
@@ -110,10 +120,12 @@ Examples:
 			for _, svc := range servicesToStart {
 				if !svc.enabled {
 					fmt.Printf("Skipping %s (disabled in profile)\n", svc.name)
+
 					continue
 				}
 
 				fmt.Printf("Starting %s...\n", svc.name)
+
 				args := []string{"--config", svc.configFile}
 				if err := procManager.Start(ctx, svc.name, svc.binary, args); err != nil {
 					return fmt.Errorf("failed to start %s: %w", svc.name, err)
@@ -122,7 +134,7 @@ Examples:
 
 			// Wait for health checks if requested
 			if wait {
-				poller := cryptoutilIdentityHealthcheck.NewPoller(timeoutDuration, 10)
+				poller := cryptoutilIdentityHealthcheck.NewPoller(timeoutDuration, healthCheckMaxRetries)
 				healthURLs := []struct {
 					name string
 					url  string
@@ -138,6 +150,7 @@ Examples:
 					}
 
 					fmt.Printf("Waiting for %s health check...\n", health.name)
+
 					ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
 					defer cancel()
 
@@ -145,11 +158,13 @@ Examples:
 					if pollErr != nil {
 						return fmt.Errorf("%s health check failed: %w", health.name, pollErr)
 					}
+
 					fmt.Printf("  %s: %s\n", health.name, resp.Status)
 				}
 			}
 
 			fmt.Println("All services started successfully!")
+
 			return nil
 		},
 	}
@@ -178,5 +193,6 @@ func isServiceEnabled(serviceName string, services []struct {
 			return svc.enabled
 		}
 	}
+
 	return false
 }

@@ -660,6 +660,7 @@ func swaggerUIBasicAuthMiddleware(username, password string) fiber.Handler {
 		auth := c.Get("Authorization")
 		if auth == "" {
 			c.Set("WWW-Authenticate", `Basic realm="Swagger UI"`)
+
 			return c.Status(fiber.StatusUnauthorized).SendString("Authentication required")
 		}
 
@@ -669,12 +670,14 @@ func swaggerUIBasicAuthMiddleware(username, password string) fiber.Handler {
 		}
 
 		encoded := strings.TrimPrefix(auth, "Basic ")
+
 		decoded, err := base64.StdEncoding.DecodeString(encoded)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).SendString("Invalid authentication encoding")
 		}
 
 		credentials := string(decoded)
+
 		colonIndex := strings.Index(credentials, ":")
 		if colonIndex == -1 {
 			return c.Status(fiber.StatusUnauthorized).SendString("Invalid authentication format")

@@ -16,7 +16,6 @@ type MockSMSProvider struct {
 	sentMessages  []SMSMessage
 	shouldFail    bool
 	failureError  error
-	sendDelay     bool
 	callCount     int
 	networkErrors map[int]error // Map call count to specific network errors
 }
@@ -42,6 +41,7 @@ func (m *MockSMSProvider) SendSMS(ctx context.Context, phoneNumber, message stri
 	if phoneNumber == "" {
 		return fmt.Errorf("phone number cannot be empty")
 	}
+
 	if message == "" {
 		return fmt.Errorf("message cannot be empty")
 	}
@@ -67,6 +67,7 @@ func (m *MockSMSProvider) SendSMS(ctx context.Context, phoneNumber, message stri
 
 	// Record sent message.
 	timestamp := int64(0)
+
 	if ctx != nil {
 		if ts, ok := ctx.Value("timestamp").(int64); ok {
 			timestamp = ts
@@ -168,9 +169,11 @@ func (m *MockEmailProvider) SendEmail(ctx context.Context, to, subject, body str
 	if to == "" {
 		return fmt.Errorf("recipient cannot be empty")
 	}
+
 	if subject == "" {
 		return fmt.Errorf("subject cannot be empty")
 	}
+
 	if body == "" {
 		return fmt.Errorf("body cannot be empty")
 	}
@@ -196,6 +199,7 @@ func (m *MockEmailProvider) SendEmail(ctx context.Context, to, subject, body str
 
 	// Record sent email.
 	timestamp := int64(0)
+
 	if ctx != nil {
 		if ts, ok := ctx.Value("timestamp").(int64); ok {
 			timestamp = ts

@@ -35,7 +35,9 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to get home directory: %w", err)
 			}
+
 			pidDir := filepath.Join(homeDir, ".identity", "pids")
+
 			procManager, err := cryptoutilIdentityProcess.NewManager(pidDir)
 			if err != nil {
 				return fmt.Errorf("failed to create process manager: %w", err)
@@ -43,6 +45,7 @@ Examples:
 
 			// Check status of each service
 			services := []string{"authz", "idp", "rs"}
+
 			type ServiceStatus struct {
 				Name    string `json:"name"`
 				Running bool   `json:"running"`
@@ -54,11 +57,13 @@ Examples:
 				status := ServiceStatus{Name: svc}
 				if procManager.IsRunning(svc) {
 					status.Running = true
+
 					pid, pidErr := procManager.GetPID(svc)
 					if pidErr == nil {
 						status.PID = pid
 					}
 				}
+
 				statuses = append(statuses, status)
 			}
 
@@ -68,18 +73,23 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to marshal JSON: %w", err)
 				}
+
 				fmt.Println(string(jsonBytes))
 			} else {
 				fmt.Println("SERVICE   STATUS      PID")
+
 				for _, s := range statuses {
 					statusStr := "stopped"
 					pidStr := "-"
+
 					if s.Running {
 						statusStr = "running"
+
 						if s.PID > 0 {
 							pidStr = fmt.Sprintf("%d", s.PID)
 						}
 					}
+
 					fmt.Printf("%-9s %-11s %s\n", s.Name, statusStr, pidStr)
 				}
 			}

@@ -172,6 +172,7 @@ func TestMFAReplayAttackSimulation(t *testing.T) {
 				err := suite.validateWithNonce(ctx, nonce)
 				if err != nil {
 					t.Errorf("First validation failed for attack %d: %v", attackIndex, err)
+
 					return
 				}
 
@@ -234,8 +235,8 @@ func TestMFALongRunningStress(t *testing.T) {
 						return
 					default:
 						userID := fmt.Sprintf("sustained_user_%d_%d", workerID, sessionCount)
-						err := suite.executeMFAChain(ctx, userID, 2)
 
+						err := suite.executeMFAChain(ctx, userID, 2)
 						if err != nil {
 							atomic.AddInt32(&suite.failedSessions, 1)
 						} else {

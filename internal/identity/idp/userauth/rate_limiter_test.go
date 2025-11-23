@@ -16,6 +16,15 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// contextKey is a custom type for context keys to avoid collisions.
+type contextKey string
+
+// contextKeyXForwardedFor is the context key for X-Forwarded-For header.
+const contextKeyXForwardedFor contextKey = "X-Forwarded-For"
+
+// contextKeyRemoteAddr is the context key for RemoteAddr.
+const contextKeyRemoteAddr contextKey = "RemoteAddr"
+
 // TestDatabaseRateLimitStoreRecordAttempt tests recording attempts.
 func TestDatabaseRateLimitStoreRecordAttempt(t *testing.T) {
 	t.Parallel()
@@ -151,7 +160,7 @@ func TestPerUserRateLimiterConcurrent(t *testing.T) {
 			for range 2 {
 				err := limiter.CheckLimit(ctx, userID)
 				if err == nil {
-					_ = limiter.RecordAttempt(ctx, userID)
+					_ = limiter.RecordAttempt(ctx, userID) //nolint:errcheck // Concurrent test - error ignored to test race conditions
 				}
 			}
 		}()
@@ -311,7 +320,7 @@ func TestPerIPRateLimiterConcurrent(t *testing.T) {
 			for range 2 {
 				err := limiter.CheckLimit(ctx, ipAddress)
 				if err == nil {
-					_ = limiter.RecordAttempt(ctx, ipAddress)
+					_ = limiter.RecordAttempt(ctx, ipAddress) //nolint:errcheck // Concurrent test - error ignored to test race conditions
 				}
 			}
 		}()
@@ -338,55 +347,55 @@ func TestExtractIPFromContext(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		contextValues map[string]any
+		contextValues map[contextKey]any
 		expectedIP    string
 		expectError   bool
 		errorContains string
 	}{
 		{
 			name: "X-Forwarded-For single IP",
-			contextValues: map[string]any{
-				"X-Forwarded-For": "203.0.113.42",
+			contextValues: map[contextKey]any{
+				contextKeyXForwardedFor: "203.0.113.42",
 			},
 			expectedIP:  "203.0.113.42",
 			expectError: false,
 		},
 		{
 			name: "X-Forwarded-For multiple IPs",
-			contextValues: map[string]any{
-				"X-Forwarded-For": "203.0.113.42, 198.51.100.17, 192.0.2.1",
+			contextValues: map[contextKey]any{
+				contextKeyXForwardedFor: "203.0.113.42, 198.51.100.17, 192.0.2.1",
 			},
 			expectedIP:  "203.0.113.42",
 			expectError: false,
 		},
 		{
 			name: "RemoteAddr with port",
-			contextValues: map[string]any{
-				"RemoteAddr": "192.168.1.100:54321",
+			contextValues: map[contextKey]any{
+				contextKeyRemoteAddr: "192.168.1.100:54321",
 			},
 			expectedIP:  "192.168.1.100",
 			expectError: false,
 		},
 		{
 			name: "RemoteAddr without port",
-			contextValues: map[string]any{
-				"RemoteAddr": "10.0.0.50",
+			contextValues: map[contextKey]any{
+				contextKeyRemoteAddr: "10.0.0.50",
 			},
 			expectedIP:  "10.0.0.50",
 			expectError: false,
 		},
 		{
 			name:          "No IP in context",
-			contextValues: map[string]any{},
+			contextValues: map[contextKey]any{},
 			expectedIP:    "",
 			expectError:   true,
 			errorContains: "unable to extract IP address",
 		},
 		{
 			name: "X-Forwarded-For takes precedence over RemoteAddr",
-			contextValues: map[string]any{
-				"X-Forwarded-For": "203.0.113.42",
-				"RemoteAddr":      "192.168.1.100:54321",
+			contextValues: map[contextKey]any{
+				contextKeyXForwardedFor: "203.0.113.42",
+				contextKeyRemoteAddr:    "192.168.1.100:54321",
 			},
 			expectedIP:  "203.0.113.42",
 			expectError: false,
@@ -394,7 +403,6 @@ func TestExtractIPFromContext(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -407,6 +415,7 @@ func TestExtractIPFromContext(t *testing.T) {
 
 			if tc.expectError {
 				require.Error(t, err)
+
 				if tc.errorContains != "" {
 					require.Contains(t, err.Error(), tc.errorContains)
 				}

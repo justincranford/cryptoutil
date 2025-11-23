@@ -14,6 +14,12 @@ import (
 	"cryptoutil/internal/identity/idp/userauth/mocks"
 )
 
+// contextKey is a custom type for context keys to avoid collisions.
+type contextKey string
+
+// contextKeyTimestamp is the context key for timestamp values.
+const contextKeyTimestamp contextKey = "timestamp"
+
 // DeliveryServiceContractTests defines standard test scenarios that any DeliveryService implementation must pass.
 // This contract test suite validates interface compliance for both SMS and email delivery providers.
 type DeliveryServiceContractTests struct {
@@ -25,7 +31,7 @@ func (c *DeliveryServiceContractTests) TestDeliverySMSSuccess(t *testing.T) {
 	t.Parallel()
 
 	provider := c.NewProvider()
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendSMS(ctx, "+15551234567", "Test message")
 	require.NoError(t, err, "SendSMS should succeed for valid input")
@@ -61,7 +67,7 @@ func (c *DeliveryServiceContractTests) TestDeliveryEmailSuccess(t *testing.T) {
 	t.Parallel()
 
 	provider := c.NewProvider()
-	ctx := context.WithValue(context.Background(), "timestamp", int64(1234567890))
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendEmail(ctx, "user@example.com", "Test Subject", "Test body")
 	require.NoError(t, err, "SendEmail should succeed for valid input")
@@ -127,12 +133,12 @@ func (c *DeliveryServiceContractTests) TestDeliveryNilContext(t *testing.T) {
 	provider := c.NewProvider()
 
 	// nil context should be handled gracefully (error or use context.Background()).
-	err := provider.SendSMS(nil, "+15551234567", "Message")
+	err := provider.SendSMS(context.TODO(), "+15551234567", "Message")
 	// Don't assert error/success - implementations may handle nil differently.
 	// Just verify it doesn't panic.
 	_ = err
 
-	err = provider.SendEmail(nil, "user@example.com", "Subject", "Body")
+	err = provider.SendEmail(context.TODO(), "user@example.com", "Subject", "Body")
 	_ = err
 }
 
@@ -143,11 +149,12 @@ func RunDeliveryServiceContractTests(t *testing.T, providerType string, newProvi
 	tests := &DeliveryServiceContractTests{NewProvider: newProvider}
 
 	// Only run SMS tests for SMS providers, email tests for email providers.
-	if providerType == "sms" {
+	switch providerType {
+	case "sms":
 		t.Run("SMS_Success", tests.TestDeliverySMSSuccess)
 		t.Run("SMS_Invalid_Phone_Number", tests.TestDeliverySMSInvalidPhoneNumber)
 		t.Run("SMS_Empty_Message", tests.TestDeliverySMSEmptyMessage)
-	} else if providerType == "email" {
+	case "email":
 		t.Run("Email_Success", tests.TestDeliveryEmailSuccess)
 		t.Run("Email_Invalid_Recipient", tests.TestDeliveryEmailInvalidRecipient)
 		t.Run("Email_Empty_Subject", tests.TestDeliveryEmailEmptySubject)

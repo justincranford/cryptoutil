@@ -14,6 +14,11 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+const (
+	composeFilePath = "../../deployments/compose/identity-demo.yml"
+	demoProfile     = "demo"
+)
+
 // TestDockerComposeProfiles validates all Docker Compose profiles (demo, development, ci, production).
 func TestDockerComposeProfiles(t *testing.T) {
 	t.Parallel()
@@ -21,14 +26,13 @@ func TestDockerComposeProfiles(t *testing.T) {
 	profiles := []string{"demo", "development", "ci", "production"}
 
 	for _, profile := range profiles {
-		profile := profile
 		t.Run(profile, func(t *testing.T) {
 			t.Parallel()
 
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			defer cancel()
 
-			composeFile := "../../deployments/compose/identity-demo.yml"
+			composeFile := composeFilePath
 
 			// Start services
 			startCmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "--profile", profile, "up", "-d")
@@ -45,7 +49,7 @@ func TestDockerComposeProfiles(t *testing.T) {
 				downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
 				downCmd.Stdout = os.Stdout
 				downCmd.Stderr = os.Stderr
-				_ = downCmd.Run()
+				_ = downCmd.Run() //nolint:errcheck // Test cleanup - docker compose down may fail but cleanup should continue
 			}()
 
 			// Wait for services to become healthy
@@ -61,6 +65,7 @@ func TestDockerComposeProfiles(t *testing.T) {
 					require.FailNowf(t, "Timeout waiting for services to become healthy", "profile: %s", profile)
 				case <-ticker.C:
 					psCmd := exec.CommandContext(healthyCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "ps", "--format", "json")
+
 					output, err := psCmd.Output()
 					if err != nil {
 						continue
@@ -69,6 +74,7 @@ func TestDockerComposeProfiles(t *testing.T) {
 					// Check if all services are healthy
 					if strings.Contains(string(output), `"Health":"healthy"`) {
 						t.Logf("All services healthy for profile: %s", profile)
+
 						return
 					}
 				}
@@ -109,7 +115,6 @@ func TestDockerComposeScaling(t *testing.T) {
 	}
 
 	for _, scenario := range scalingScenarios {
-		scenario := scenario
 		t.Run(scenario.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -117,7 +122,7 @@ func TestDockerComposeScaling(t *testing.T) {
 			defer cancel()
 
 			composeFile := "deployments/compose/identity-demo.yml"
-			profile := "demo"
+			profile := demoProfile
 
 			// Build scaling arguments
 			args := []string{"compose", "-f", composeFile, "--profile", profile, "up", "-d"}
@@ -140,7 +145,7 @@ func TestDockerComposeScaling(t *testing.T) {
 				downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
 				downCmd.Stdout = os.Stdout
 				downCmd.Stderr = os.Stderr
-				_ = downCmd.Run()
+				_ = downCmd.Run() //nolint:errcheck // Test cleanup - docker compose down may fail but cleanup should continue
 			}()
 
 			// Wait for services to become healthy
@@ -169,8 +174,8 @@ func TestDockerSecretsIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
-	composeFile := "../../deployments/compose/identity-demo.yml"
-	profile := "demo"
+	composeFile := composeFilePath
+	profile := demoProfile
 
 	// Start services
 	startCmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "--profile", profile, "up", "-d")
@@ -187,7 +192,7 @@ func TestDockerSecretsIntegration(t *testing.T) {
 		downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
 		downCmd.Stdout = os.Stdout
 		downCmd.Stderr = os.Stderr
-		_ = downCmd.Run()
+		_ = downCmd.Run() //nolint:errcheck // Test cleanup - docker compose down may fail but cleanup should continue
 	}()
 
 	// Wait for services to start
@@ -213,8 +218,8 @@ func TestHealthChecks(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	composeFile := "../../deployments/compose/identity-demo.yml"
-	profile := "demo"
+	composeFile := composeFilePath
+	profile := demoProfile
 
 	// Start services
 	startCmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "--profile", profile, "up", "-d")
@@ -231,7 +236,7 @@ func TestHealthChecks(t *testing.T) {
 		downCmd := exec.CommandContext(cleanupCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "down", "-v")
 		downCmd.Stdout = os.Stdout
 		downCmd.Stderr = os.Stderr
-		_ = downCmd.Run()
+		_ = downCmd.Run() //nolint:errcheck // Test cleanup - docker compose down may fail but cleanup should continue
 	}()
 
 	// Wait for health checks to pass
@@ -247,6 +252,7 @@ func TestHealthChecks(t *testing.T) {
 			t.Fatal("Timeout waiting for services to become healthy")
 		case <-ticker.C:
 			psCmd := exec.CommandContext(healthyCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "ps", "--format", "json")
+
 			output, err := psCmd.Output()
 			if err != nil {
 				continue
@@ -255,6 +261,7 @@ func TestHealthChecks(t *testing.T) {
 			// Check if all services are healthy
 			if strings.Contains(string(output), `"Health":"healthy"`) {
 				t.Log("All services are healthy")
+
 				return
 			}
 		}

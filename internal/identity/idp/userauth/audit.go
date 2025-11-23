@@ -180,7 +180,7 @@ func extractDomain(email string) string {
 }
 
 // maskIPAddress masks the last octet of an IPv4 address for privacy.
-// Example: 192.168.1.100 → 192.168.1.xxx
+// Example: 192.168.1.100 → 192.168.1.xxx.
 func maskIPAddress(ip string) string {
 	lastDot := -1
 

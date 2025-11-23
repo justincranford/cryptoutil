@@ -16,8 +16,10 @@ import (
 )
 
 func newStopCommand() *cobra.Command {
-	var force bool
-	var timeoutStr string
+	var (
+		force      bool
+		timeoutStr string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "stop [services...]",
@@ -47,7 +49,9 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to get home directory: %w", err)
 			}
+
 			pidDir := filepath.Join(homeDir, ".identity", "pids")
+
 			procManager, err := cryptoutilIdentityProcess.NewManager(pidDir)
 			if err != nil {
 				return fmt.Errorf("failed to create process manager: %w", err)
@@ -56,12 +60,14 @@ Examples:
 			// Stop all services or specific services
 			if len(services) == 0 {
 				fmt.Println("Stopping all services...")
+
 				if err := procManager.StopAll(force, timeout); err != nil {
 					return fmt.Errorf("failed to stop services: %w", err)
 				}
 			} else {
 				for _, svc := range services {
 					fmt.Printf("Stopping %s...\n", svc)
+
 					if err := procManager.Stop(svc, force, timeout); err != nil {
 						return fmt.Errorf("failed to stop %s: %w", svc, err)
 					}
@@ -69,6 +75,7 @@ Examples:
 			}
 
 			fmt.Println("All services stopped successfully!")
+
 			return nil
 		},
 	}

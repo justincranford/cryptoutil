@@ -10,17 +10,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testRiskScoringYAML = `version: "1.0"
+risk_factors:
+  location:
+    weight: 1.0
+    description: ""
+risk_thresholds:
+  low:
+    min: 0.0
+    max: 0.1
+    auth_requirements: ["basic"]
+    max_session_duration: "24h"
+    description: ""
+confidence_weights:
+  factor_count: 0.5
+  baseline_data: 0.15
+  behavior_profile: 0.10
+  description: ""
+network_risks: {}
+geographic_risks:
+  high_risk_countries:
+    countries: []
+    score: 0.6
+    description: ""
+  embargoed_countries:
+    countries: []
+    score: 0.8
+    description: ""
+velocity_limits: {}
+time_risks: {}
+behavior_risks: {}
+`
+
 func TestYAMLPolicyLoader_LoadRiskScoringPolicy(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		yamlContent   string
-		wantVersion   string
-		wantFactors   int
+		name           string
+		yamlContent    string
+		wantVersion    string
+		wantFactors    int
 		wantThresholds int
-		wantError     bool
-		errorContains string
+		wantError      bool
+		errorContains  string
 	}{
 		{
 			name: "valid risk scoring policy",
@@ -164,7 +196,6 @@ behavior_risks: {}
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -184,6 +215,7 @@ behavior_risks: {}
 
 			if tc.wantError {
 				require.Error(t, err)
+
 				if tc.errorContains != "" {
 					require.Contains(t, err.Error(), tc.errorContains)
 				}
@@ -199,6 +231,7 @@ behavior_risks: {}
 				for _, factor := range policy.RiskFactors {
 					weightSum += factor.Weight
 				}
+
 				require.InDelta(t, 1.0, weightSum, 0.001)
 			}
 		})
@@ -311,7 +344,6 @@ monitoring:
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -331,6 +363,7 @@ monitoring:
 
 			if tc.wantError {
 				require.Error(t, err)
+
 				if tc.errorContains != "" {
 					require.Contains(t, err.Error(), tc.errorContains)
 				}
@@ -349,12 +382,12 @@ func TestYAMLPolicyLoader_LoadAdaptiveAuthPolicy(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		yamlContent   string
-		wantVersion   string
+		name           string
+		yamlContent    string
+		wantVersion    string
 		wantRiskLevels int
-		wantError     bool
-		errorContains string
+		wantError      bool
+		errorContains  string
 	}{
 		{
 			name: "valid adaptive auth policy",
@@ -519,7 +552,6 @@ tuning:
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -539,6 +571,7 @@ tuning:
 
 			if tc.wantError {
 				require.Error(t, err)
+
 				if tc.errorContains != "" {
 					require.Contains(t, err.Error(), tc.errorContains)
 				}
@@ -564,37 +597,7 @@ func TestYAMLPolicyLoader_Caching(t *testing.T) {
 	stepUpFile := filepath.Join(tempDir, "step_up.yml")
 	adaptiveAuthFile := filepath.Join(tempDir, "adaptive_auth.yml")
 
-	riskScoringContent := `version: "1.0"
-risk_factors:
-  location:
-    weight: 1.0
-    description: ""
-risk_thresholds:
-  low:
-    min: 0.0
-    max: 0.1
-    auth_requirements: ["basic"]
-    max_session_duration: "24h"
-    description: ""
-confidence_weights:
-  factor_count: 0.5
-  baseline_data: 0.15
-  behavior_profile: 0.10
-  description: ""
-network_risks: {}
-geographic_risks:
-  high_risk_countries:
-    countries: []
-    score: 0.6
-    description: ""
-  embargoed_countries:
-    countries: []
-    score: 0.8
-    description: ""
-velocity_limits: {}
-time_risks: {}
-behavior_risks: {}
-`
+	riskScoringContent := testRiskScoringYAML
 
 	stepUpContent := `version: "1.0"
 policies:
@@ -707,37 +710,7 @@ func TestYAMLPolicyLoader_HotReload(t *testing.T) {
 	tempDir := t.TempDir()
 	riskScoringFile := filepath.Join(tempDir, "risk_scoring.yml")
 
-	initialContent := `version: "1.0"
-risk_factors:
-  location:
-    weight: 1.0
-    description: ""
-risk_thresholds:
-  low:
-    min: 0.0
-    max: 0.1
-    auth_requirements: ["basic"]
-    max_session_duration: "24h"
-    description: ""
-confidence_weights:
-  factor_count: 0.5
-  baseline_data: 0.15
-  behavior_profile: 0.10
-  description: ""
-network_risks: {}
-geographic_risks:
-  high_risk_countries:
-    countries: []
-    score: 0.6
-    description: ""
-  embargoed_countries:
-    countries: []
-    score: 0.8
-    description: ""
-velocity_limits: {}
-time_risks: {}
-behavior_risks: {}
-`
+	initialContent := testRiskScoringYAML
 
 	err := os.WriteFile(riskScoringFile, []byte(initialContent), 0o600)
 	require.NoError(t, err)

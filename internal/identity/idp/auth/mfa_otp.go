@@ -15,6 +15,12 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
+const (
+	totpPeriod30Seconds  = 30
+	totpPeriod300Seconds = 300
+	totpPeriod600Seconds = 600
+)
+
 // TOTPValidator handles Time-based One-Time Password validation.
 type TOTPValidator struct {
 	secretStore OTPSecretStore
@@ -59,7 +65,7 @@ func (v *TOTPValidator) ValidateTOTPWithWindow(ctx context.Context, userID strin
 
 	// Validate with time window (e.g., windowSize=1 allows 30s before/after current time).
 	valid, err := totp.ValidateCustom(code, secret, time.Now(), totp.ValidateOpts{
-		Period:    30, // Standard TOTP period (30 seconds)
+		Period:    totpPeriod30Seconds, // Standard TOTP period (30 seconds)
 		Skew:      windowSize,
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA1,
@@ -80,8 +86,8 @@ func (v *TOTPValidator) ValidateEmailOTP(ctx context.Context, userID string, cod
 
 	// Email OTP typically uses longer period (e.g., 5-10 minutes).
 	valid, err := totp.ValidateCustom(code, secret, time.Now(), totp.ValidateOpts{
-		Period:    300, // 5 minutes
-		Skew:      1,   // Allow 1 period before/after
+		Period:    totpPeriod300Seconds, // 5 minutes
+		Skew:      1,                    // Allow 1 period before/after
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA256, // More secure for email
 	})
@@ -101,8 +107,8 @@ func (v *TOTPValidator) ValidateSMSOTP(ctx context.Context, userID string, code 
 
 	// SMS OTP typically uses longer period (e.g., 10 minutes).
 	valid, err := totp.ValidateCustom(code, secret, time.Now(), totp.ValidateOpts{
-		Period:    600, // 10 minutes
-		Skew:      1,   // Allow 1 period before/after
+		Period:    totpPeriod600Seconds, // 10 minutes
+		Skew:      1,                    // Allow 1 period before/after
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA256, // More secure for SMS
 	})

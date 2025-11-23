@@ -39,11 +39,11 @@ func setupTestDB(t *testing.T) *testDB {
 	require.NoError(t, err)
 
 	// Apply SQLite PRAGMA settings for WAL mode and busy timeout.
-	if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;"); err != nil {
 		require.FailNowf(t, "failed to enable WAL mode", "%v", err)
 	}
 
-	if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {
+	if _, err := sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;"); err != nil {
 		require.FailNowf(t, "failed to set busy timeout", "%v", err)
 	}
 
@@ -75,7 +75,7 @@ func setupTestDB(t *testing.T) *testDB {
 
 	// Cleanup function to close database.
 	t.Cleanup(func() {
-		sqlDB.Close()
+		_ = sqlDB.Close() //nolint:errcheck // Test cleanup - error not critical for test teardown
 	})
 
 	return &testDB{db: db}

@@ -14,6 +14,10 @@ import (
 	cryptoutilIdentityHealthcheck "cryptoutil/internal/identity/healthcheck"
 )
 
+const (
+	defaultMaxRetries = 3
+)
+
 func newHealthCommand() *cobra.Command {
 	var timeoutStr string
 
@@ -42,7 +46,7 @@ Examples:
 				{"rs", "https://127.0.0.1:8082/health"},
 			}
 
-			poller := cryptoutilIdentityHealthcheck.NewPoller(timeout, 3)
+			poller := cryptoutilIdentityHealthcheck.NewPoller(timeout, defaultMaxRetries)
 			allHealthy := true
 
 			for _, health := range healthURLs {
@@ -52,18 +56,23 @@ Examples:
 				resp, pollErr := poller.Poll(ctx, health.url)
 				if pollErr != nil {
 					fmt.Printf("❌ %s: unhealthy (%v)\n", health.name, pollErr)
+
 					allHealthy = false
+
 					continue
 				}
 
 				if resp.Status == "healthy" {
 					fmt.Printf("✅ %s: %s", health.name, resp.Status)
+
 					if resp.Database != "" {
 						fmt.Printf(" (database: %s)", resp.Database)
 					}
+
 					fmt.Println()
 				} else {
 					fmt.Printf("❌ %s: %s\n", health.name, resp.Status)
+
 					allHealthy = false
 				}
 			}

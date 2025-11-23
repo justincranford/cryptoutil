@@ -64,7 +64,6 @@ func TestEnrollCommand(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -76,17 +75,20 @@ func TestEnrollCommand(t *testing.T) {
 			err := fs.Parse(tc.args)
 			if err != nil {
 				require.True(t, tc.wantErr, "unexpected flag parse error: %v", err)
+
 				return
 			}
 
 			if *userIDStr == "" {
 				require.True(t, tc.wantErr, "missing user-id should cause error")
+
 				return
 			}
 
 			userID, err := googleUuid.Parse(*userIDStr)
 			if err != nil {
 				require.True(t, tc.wantErr, "invalid user-id UUID should cause error")
+
 				return
 			}
 
@@ -135,7 +137,6 @@ func TestListCommand(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -145,17 +146,20 @@ func TestListCommand(t *testing.T) {
 			err := fs.Parse(tc.args)
 			if err != nil {
 				require.True(t, tc.wantErr, "unexpected flag parse error: %v", err)
+
 				return
 			}
 
 			if *userIDStr == "" {
 				require.True(t, tc.wantErr, "missing user-id should cause error")
+
 				return
 			}
 
 			userID, err := googleUuid.Parse(*userIDStr)
 			if err != nil {
 				require.True(t, tc.wantErr, "invalid user-id UUID should cause error")
+
 				return
 			}
 
@@ -191,7 +195,6 @@ func TestRevokeCommand(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -201,11 +204,13 @@ func TestRevokeCommand(t *testing.T) {
 			err := fs.Parse(tc.args)
 			if err != nil {
 				require.True(t, tc.wantErr, "unexpected flag parse error: %v", err)
+
 				return
 			}
 
 			if *credentialID == "" {
 				require.True(t, tc.wantErr, "missing credential-id should cause error")
+
 				return
 			}
 
@@ -265,7 +270,6 @@ func TestParseCredentialType(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -283,6 +287,7 @@ func TestLogAuditEvent(t *testing.T) {
 
 	// Capture log output.
 	oldOutput := os.Stdout
+
 	defer func() {
 		os.Stdout = oldOutput
 	}()

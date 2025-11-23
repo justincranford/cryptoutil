@@ -46,6 +46,7 @@ func LoadProfile(profileName string) (*ProfileConfig, error) {
 	}
 
 	profilePath := filepath.Join(projectRoot, "configs", "identity", "profiles", profileName+".yml")
+
 	return LoadProfileFromFile(profilePath)
 }
 

@@ -27,11 +27,6 @@ const (
 	dbTypePostgres = "postgres"
 	dbTypeSQLite   = "sqlite"
 
-	// dsnMemory is the DSN for in-memory SQLite databases.
-	dsnMemory = ":memory:"
-	// dsnMemoryShared is the DSN for shared in-memory SQLite databases.
-	dsnMemoryShared = "file::memory:?cache=shared"
-
 	// SQLite connection pool settings for GORM transaction pattern.
 	sqliteMaxOpenConns = 5 // Balance between concurrency and resource usage.
 	sqliteMaxIdleConns = 5
@@ -51,8 +46,8 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 		// if dsn == dsnMemory {
 		// 	dsn = dsnMemoryShared
 		// }
-
 		dsn := cfg.DSN // Open SQLite database with modernc driver (CGO-free) explicitly.
+
 		sqlDB, err := sql.Open("sqlite", dsn)
 		if err != nil {
 			return nil, cryptoutilIdentityAppErr.WrapError(

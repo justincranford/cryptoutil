@@ -91,7 +91,7 @@ type NetworkRisk struct {
 
 // GeographicRisks represents risk scores for geographic locations.
 type GeographicRisks struct {
-	HighRiskCountries HighRiskCountries `yaml:"high_risk_countries"`
+	HighRiskCountries  HighRiskCountries  `yaml:"high_risk_countries"`
 	EmbargoedCountries EmbargoedCountries `yaml:"embargoed_countries"`
 }
 
@@ -111,12 +111,12 @@ type EmbargoedCountries struct {
 
 // VelocityLimit represents threshold for velocity-based risk.
 type VelocityLimit struct {
-	Window      string  `yaml:"window"`
-	MaxAttempts int     `yaml:"max_attempts,omitempty"`
-	MaxLocations int    `yaml:"max_locations,omitempty"`
-	MaxDevices  int     `yaml:"max_devices,omitempty"`
-	RiskScore   float64 `yaml:"risk_score"`
-	Description string  `yaml:"description"`
+	Window       string  `yaml:"window"`
+	MaxAttempts  int     `yaml:"max_attempts,omitempty"`
+	MaxLocations int     `yaml:"max_locations,omitempty"`
+	MaxDevices   int     `yaml:"max_devices,omitempty"`
+	RiskScore    float64 `yaml:"risk_score"`
+	Description  string  `yaml:"description"`
 }
 
 // TimeRisk represents risk score for time-based anomalies.
@@ -156,12 +156,12 @@ type StepUpPolicies struct {
 
 // OperationPolicy represents policy for specific operation.
 type OperationPolicy struct {
-	OperationPattern   string              `yaml:"operation_pattern,omitempty"`
-	RequiredLevel      string              `yaml:"required_level"`
-	AllowedMethods     []string            `yaml:"allowed_methods"`
-	MaxAge             string              `yaml:"max_age"`
-	RiskLevelOverrides map[string]string   `yaml:"risk_level_overrides,omitempty"`
-	Description        string              `yaml:"description,omitempty"`
+	OperationPattern   string            `yaml:"operation_pattern,omitempty"`
+	RequiredLevel      string            `yaml:"required_level"`
+	AllowedMethods     []string          `yaml:"allowed_methods"`
+	MaxAge             string            `yaml:"max_age"`
+	RiskLevelOverrides map[string]string `yaml:"risk_level_overrides,omitempty"`
+	Description        string            `yaml:"description,omitempty"`
 }
 
 // StepUpMethod represents configuration for step-up method.
@@ -209,20 +209,20 @@ type AdaptiveAuthPolicy struct {
 
 // RiskBasedAuthRequirement represents authentication requirements for risk level.
 type RiskBasedAuthRequirement struct {
-	RiskScoreRange            RiskScoreRange `yaml:"risk_score_range"`
-	RequiredMethods           []string       `yaml:"required_methods"`
-	OptionalMethods           []string       `yaml:"optional_methods,omitempty"`
-	MFAMethodsAllowed         []string       `yaml:"mfa_methods_allowed,omitempty"`
-	StrongMFAMethodsAllowed   []string       `yaml:"strong_mfa_methods_allowed,omitempty"`
-	FallbackMethodsAllowed    []string       `yaml:"fallback_methods_allowed,omitempty"`
-	SessionDuration           string         `yaml:"session_duration"`
-	IdleTimeout               string         `yaml:"idle_timeout"`
-	StepUpRequired            bool           `yaml:"step_up_required"`
-	AllowNewDeviceRegistration bool          `yaml:"allow_new_device_registration"`
-	AllowPasswordReset        bool           `yaml:"allow_password_reset"`
-	AdditionalChecks          []string       `yaml:"additional_checks,omitempty"`
-	Monitoring                MonitoringConfig `yaml:"monitoring"`
-	Description               string         `yaml:"description"`
+	RiskScoreRange             RiskScoreRange   `yaml:"risk_score_range"`
+	RequiredMethods            []string         `yaml:"required_methods"`
+	OptionalMethods            []string         `yaml:"optional_methods,omitempty"`
+	MFAMethodsAllowed          []string         `yaml:"mfa_methods_allowed,omitempty"`
+	StrongMFAMethodsAllowed    []string         `yaml:"strong_mfa_methods_allowed,omitempty"`
+	FallbackMethodsAllowed     []string         `yaml:"fallback_methods_allowed,omitempty"`
+	SessionDuration            string           `yaml:"session_duration"`
+	IdleTimeout                string           `yaml:"idle_timeout"`
+	StepUpRequired             bool             `yaml:"step_up_required"`
+	AllowNewDeviceRegistration bool             `yaml:"allow_new_device_registration"`
+	AllowPasswordReset         bool             `yaml:"allow_password_reset"`
+	AdditionalChecks           []string         `yaml:"additional_checks,omitempty"`
+	Monitoring                 MonitoringConfig `yaml:"monitoring"`
+	Description                string           `yaml:"description"`
 }
 
 // RiskScoreRange represents min/max risk score range.
@@ -259,18 +259,18 @@ type GracePeriod struct {
 
 // DeviceTrust represents device trust settings.
 type DeviceTrust struct {
-	RememberDeviceDuration    string   `yaml:"remember_device_duration"`
-	MaxTrustedDevices         int      `yaml:"max_trusted_devices"`
-	RequireReauthOnNewDevice  bool     `yaml:"require_reauth_on_new_device"`
-	DeviceFingerprintFactors  []string `yaml:"device_fingerprint_factors"`
+	RememberDeviceDuration   string   `yaml:"remember_device_duration"`
+	MaxTrustedDevices        int      `yaml:"max_trusted_devices"`
+	RequireReauthOnNewDevice bool     `yaml:"require_reauth_on_new_device"`
+	DeviceFingerprintFactors []string `yaml:"device_fingerprint_factors"`
 }
 
 // LocationTrust represents location trust settings.
 type LocationTrust struct {
-	RememberLocationDuration   string   `yaml:"remember_location_duration"`
-	ImpossibleTravelThreshold  string   `yaml:"impossible_travel_threshold"`
-	HighRiskCountriesBlock     bool     `yaml:"high_risk_countries_block"`
-	LocationFactors            []string `yaml:"location_factors"`
+	RememberLocationDuration  string   `yaml:"remember_location_duration"`
+	ImpossibleTravelThreshold string   `yaml:"impossible_travel_threshold"`
+	HighRiskCountriesBlock    bool     `yaml:"high_risk_countries_block"`
+	LocationFactors           []string `yaml:"location_factors"`
 }
 
 // BehaviorTrust represents behavior trust settings.
@@ -282,12 +282,12 @@ type BehaviorTrust struct {
 
 // TuningParameters represents adaptive authentication tuning parameters.
 type TuningParameters struct {
-	RiskScoreDecayRate           float64 `yaml:"risk_score_decay_rate"`
-	RiskScoreSpikeFactor         float64 `yaml:"risk_score_spike_factor"`
-	ConfidenceThresholdLow       float64 `yaml:"confidence_threshold_low"`
-	ConfidenceThresholdMedium    float64 `yaml:"confidence_threshold_medium"`
-	ConfidenceThresholdHigh      float64 `yaml:"confidence_threshold_high"`
-	BaselineStalenessThreshold   string  `yaml:"baseline_staleness_threshold"`
+	RiskScoreDecayRate         float64 `yaml:"risk_score_decay_rate"`
+	RiskScoreSpikeFactor       float64 `yaml:"risk_score_spike_factor"`
+	ConfidenceThresholdLow     float64 `yaml:"confidence_threshold_low"`
+	ConfidenceThresholdMedium  float64 `yaml:"confidence_threshold_medium"`
+	ConfidenceThresholdHigh    float64 `yaml:"confidence_threshold_high"`
+	BaselineStalenessThreshold string  `yaml:"baseline_staleness_threshold"`
 }
 
 // YAMLPolicyLoader implements PolicyLoader using YAML files.
@@ -321,11 +321,14 @@ func NewYAMLPolicyLoader(riskScoringPath, stepUpPoliciesPath, adaptiveAuthPath s
 func (l *YAMLPolicyLoader) LoadRiskScoringPolicy(ctx context.Context) (*RiskScoringPolicy, error) {
 	// Check cache first.
 	l.mu.RLock()
+
 	if l.riskScoringPolicy != nil {
 		cached := l.riskScoringPolicy
 		l.mu.RUnlock()
+
 		return cached, nil
 	}
+
 	l.mu.RUnlock()
 
 	// Load from file.
@@ -356,11 +359,14 @@ func (l *YAMLPolicyLoader) LoadRiskScoringPolicy(ctx context.Context) (*RiskScor
 func (l *YAMLPolicyLoader) LoadStepUpPolicies(ctx context.Context) (*StepUpPolicies, error) {
 	// Check cache first.
 	l.mu.RLock()
+
 	if l.stepUpPolicies != nil {
 		cached := l.stepUpPolicies
 		l.mu.RUnlock()
+
 		return cached, nil
 	}
+
 	l.mu.RUnlock()
 
 	// Load from file.
@@ -391,11 +397,14 @@ func (l *YAMLPolicyLoader) LoadStepUpPolicies(ctx context.Context) (*StepUpPolic
 func (l *YAMLPolicyLoader) LoadAdaptiveAuthPolicy(ctx context.Context) (*AdaptiveAuthPolicy, error) {
 	// Check cache first.
 	l.mu.RLock()
+
 	if l.adaptiveAuthPolicy != nil {
 		cached := l.adaptiveAuthPolicy
 		l.mu.RUnlock()
+
 		return cached, nil
 	}
+
 	l.mu.RUnlock()
 
 	// Load from file.
@@ -436,6 +445,7 @@ func (l *YAMLPolicyLoader) EnableHotReload(ctx context.Context, interval time.Du
 	l.hotReloadEnabled = true
 
 	l.hotReloadWg.Add(1)
+
 	go l.hotReloadWorker(hotReloadCtx, interval)
 
 	return nil
@@ -444,8 +454,10 @@ func (l *YAMLPolicyLoader) EnableHotReload(ctx context.Context, interval time.Du
 // DisableHotReload stops automatic policy reload.
 func (l *YAMLPolicyLoader) DisableHotReload() {
 	l.mu.Lock()
+
 	if !l.hotReloadEnabled {
 		l.mu.Unlock()
+
 		return
 	}
 

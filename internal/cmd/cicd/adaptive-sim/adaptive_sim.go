@@ -22,6 +22,25 @@ const (
 	exitError   = 1
 )
 
+const (
+	dirPerms755  = 0o755
+	filePerms600 = 0o600
+)
+
+const (
+	authLevelNone   = 0
+	authLevelBasic  = 1
+	authLevelMFA    = 2
+	authLevelStepUp = 3
+	authLevelBlock  = 4
+)
+
+const (
+	decisionAllow  = "allow"
+	decisionStepUp = "step_up"
+	decisionBlock  = "block"
+)
+
 // AdaptiveSimulator simulates adaptive authentication policy changes against historical data.
 type AdaptiveSimulator struct {
 	policyLoader cryptoutilIdentityUserauth.PolicyLoader
@@ -81,6 +100,7 @@ func main() {
 		outputDir       = flag.String("output", "test-output/adaptive-sim", "Output directory for simulation results")
 		policyVersion   = flag.String("version", "v1.0", "Policy version identifier")
 	)
+
 	flag.Parse()
 
 	if *historicalLogs == "" {
@@ -92,7 +112,7 @@ func main() {
 	}
 
 	// Create output directory.
-	if err := os.MkdirAll(*outputDir, 0o755); err != nil {
+	if err := os.MkdirAll(*outputDir, dirPerms755); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create output directory: %v\n", err)
 		os.Exit(exitError)
 	}
@@ -168,11 +188,11 @@ func (s *AdaptiveSimulator) Simulate(ctx context.Context, logsPath, policyVersio
 		result.RiskDistribution[eval.RiskLevel]++
 
 		switch eval.Decision {
-		case "allow":
+		case decisionAllow:
 			result.AllowedOperations++
-		case "step_up":
+		case decisionStepUp:
 			result.StepUpRequired++
-		case "block":
+		case decisionBlock:
 			result.BlockedOperations++
 		}
 	}
@@ -244,6 +264,7 @@ func (s *AdaptiveSimulator) CalculateRiskScore(
 	for _, highRiskCountry := range policy.GeographicRisks.HighRiskCountries.Countries {
 		if log.Country == highRiskCountry {
 			score += policy.GeographicRisks.HighRiskCountries.Score * policy.RiskFactors["location"].Weight
+
 			break
 		}
 	}
@@ -297,11 +318,11 @@ func (s *AdaptiveSimulator) DetermineRequiredLevel(
 // AuthLevelToInt converts auth level string to integer for comparison.
 func (s *AdaptiveSimulator) AuthLevelToInt(level string) int {
 	levels := map[string]int{
-		"none":       0,
-		"basic":      1,
-		"mfa":        2,
-		"step_up":    3,
-		"strong_mfa": 4,
+		"none":    authLevelNone,
+		"basic":   authLevelBasic,
+		"mfa":     authLevelMFA,
+		"step_up": authLevelStepUp,
+		"block":   authLevelBlock,
 	}
 
 	if val, ok := levels[level]; ok {
@@ -354,6 +375,7 @@ func (s *AdaptiveSimulator) GenerateRecommendations(result *SimulationResult) []
 
 	// Check risk distribution.
 	criticalCount := result.RiskDistribution["critical"]
+
 	const criticalPercentageThreshold = 0.10
 
 	if float64(criticalCount)/float64(result.TotalAttempts) > criticalPercentageThreshold {
@@ -396,7 +418,7 @@ func (s *AdaptiveSimulator) SaveResults(result *SimulationResult) error {
 		return fmt.Errorf("failed to marshal results: %w", err)
 	}
 
-	if err := os.WriteFile(outputPath, data, 0o600); err != nil {
+	if err := os.WriteFile(outputPath, data, filePerms600); err != nil {
 		return fmt.Errorf("failed to write results: %w", err)
 	}
 

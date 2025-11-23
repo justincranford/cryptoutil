@@ -13,6 +13,12 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+const (
+	defaultTailLines      = 100
+	defaultHealthRetries  = 30
+	defaultHealthInterval = 5 * time.Second
+)
+
 // identityOrchestrator manages Docker Compose operations for identity services.
 type identityOrchestrator struct {
 	logger      *slog.Logger
@@ -54,6 +60,7 @@ func (o *identityOrchestrator) start(ctx context.Context) error {
 	}
 
 	o.logger.Info("Identity services started successfully")
+
 	return nil
 }
 
@@ -75,6 +82,7 @@ func (o *identityOrchestrator) stop(ctx context.Context, removeVolumes bool) err
 	}
 
 	o.logger.Info("Identity services stopped successfully")
+
 	return nil
 }
 
@@ -83,6 +91,7 @@ func (o *identityOrchestrator) healthCheck(ctx context.Context) error {
 	o.logger.Info("Checking identity services health")
 
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", o.composeFile, "--profile", o.profile, "ps", "--format", "json")
+
 	output, err := cmd.Output()
 	if err != nil {
 		return fmt.Errorf("failed to get service status: %w", err)
@@ -92,10 +101,12 @@ func (o *identityOrchestrator) healthCheck(ctx context.Context) error {
 	// For simplicity, we check if output contains "healthy" status
 	if !strings.Contains(string(output), `"Health":"healthy"`) {
 		o.logger.Warn("Some services may not be healthy", "output", string(output))
+
 		return fmt.Errorf("services not yet healthy")
 	}
 
 	o.logger.Info("All identity services are healthy")
+
 	return nil
 }
 
@@ -127,9 +138,11 @@ func (o *identityOrchestrator) logs(ctx context.Context, service string, follow 
 	if follow {
 		args = append(args, "-f")
 	}
+
 	if tail > 0 {
 		args = append(args, "--tail", fmt.Sprintf("%d", tail))
 	}
+
 	if service != "" {
 		args = append(args, service)
 	}
@@ -160,6 +173,7 @@ func parseScaling(scalingStr string) (map[string]int, error) {
 		}
 
 		service := strings.TrimSpace(parts[0])
+
 		var count int
 		if _, err := fmt.Sscanf(parts[1], "%d", &count); err != nil {
 			return nil, fmt.Errorf("invalid replica count for service %s: %w", service, err)
@@ -180,11 +194,12 @@ func main() {
 		operation      = flag.String("operation", "start", "Operation: start, stop, health, logs")
 		removeVolumes  = flag.Bool("remove-volumes", false, "Remove volumes when stopping")
 		follow         = flag.Bool("follow", false, "Follow log output")
-		tail           = flag.Int("tail", 100, "Number of log lines to show")
+		tail           = flag.Int("tail", defaultTailLines, "Number of log lines to show")
 		service        = flag.String("service", "", "Service name for logs command")
-		healthRetries  = flag.Int("health-retries", 30, "Number of health check retries")
-		healthInterval = flag.Duration("health-interval", 5*time.Second, "Interval between health checks")
+		healthRetries  = flag.Int("health-retries", defaultHealthRetries, "Number of health check retries")
+		healthInterval = flag.Duration("health-interval", defaultHealthInterval, "Interval between health checks")
 	)
+
 	flag.Parse()
 
 	// Setup logger

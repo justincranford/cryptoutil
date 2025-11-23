@@ -19,6 +19,11 @@ type Response struct {
 	Details  map[string]string `json:"details,omitempty"`
 }
 
+const (
+	defaultInitialInterval = 1 * time.Second
+	defaultMaxInterval     = 30 * time.Second
+)
+
 // Poller polls service health endpoints with exponential backoff retry.
 type Poller struct {
 	client          *http.Client
@@ -39,8 +44,8 @@ func NewPoller(timeout time.Duration, maxRetries int) *Poller {
 			},
 		},
 		maxRetries:      maxRetries,
-		initialInterval: 1 * time.Second,
-		maxInterval:     30 * time.Second,
+		initialInterval: defaultInitialInterval,
+		maxInterval:     defaultMaxInterval,
 	}
 }
 
@@ -51,7 +56,7 @@ func (p *Poller) Poll(ctx context.Context, url string) (*Response, error) {
 	for attempt := 0; attempt < p.maxRetries; attempt++ {
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, fmt.Errorf("polling canceled: %w", ctx.Err())
 		default:
 		}
 
@@ -63,6 +68,7 @@ func (p *Poller) Poll(ctx context.Context, url string) (*Response, error) {
 		// Wait with exponential backoff before retry
 		if attempt < p.maxRetries-1 {
 			time.Sleep(interval)
+
 			interval = interval * 2
 			if interval > p.maxInterval {
 				interval = p.maxInterval
@@ -84,7 +90,10 @@ func (p *Poller) check(ctx context.Context, url string) (*Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer httpResp.Body.Close()
+
+	defer func() {
+		_ = httpResp.Body.Close() //nolint:errcheck // HTTP response body close - error not critical in health check context
+	}()
 
 	if httpResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", httpResp.StatusCode)

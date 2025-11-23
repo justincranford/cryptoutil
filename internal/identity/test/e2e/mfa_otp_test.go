@@ -71,10 +71,12 @@ func TestTOTPValidation(t *testing.T) {
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
 
 	// Generate TOTP secret.
+	// cspell:disable-next-line
 	secret := "JBSWY3DPEHPK3PXP" // Base32-encoded secret.
 	secretStore.totpSecrets[userID] = secret
 
 	t.Run("Valid_TOTP_Code", func(t *testing.T) {
+		t.Parallel()
 		// Generate current TOTP code.
 		code, err := totp.GenerateCode(secret, time.Now())
 		require.NoError(t, err)
@@ -86,6 +88,7 @@ func TestTOTPValidation(t *testing.T) {
 	})
 
 	t.Run("Invalid_TOTP_Code", func(t *testing.T) {
+		t.Parallel()
 		// Use invalid code.
 		invalidCode := "000000"
 
@@ -95,6 +98,7 @@ func TestTOTPValidation(t *testing.T) {
 	})
 
 	t.Run("TOTP_With_Time_Window", func(t *testing.T) {
+		t.Parallel()
 		// Generate code for 30 seconds ago (outside standard window).
 		pastTime := time.Now().Add(-30 * time.Second)
 		pastCode, err := totp.GenerateCode(secret, pastTime)
@@ -119,10 +123,12 @@ func TestEmailOTPValidation(t *testing.T) {
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
 
 	// Generate email OTP secret.
+	// cspell:disable-next-line
 	secret := "KBSWY3DPEHPK3PXQ"
 	secretStore.emailSecrets[userID] = secret
 
 	t.Run("Valid_Email_OTP", func(t *testing.T) {
+		t.Parallel()
 		// Generate current email OTP code (5-minute period).
 		code, err := totp.GenerateCode(secret, time.Now())
 		require.NoError(t, err)
@@ -133,6 +139,8 @@ func TestEmailOTPValidation(t *testing.T) {
 	})
 
 	t.Run("Invalid_Email_OTP", func(t *testing.T) {
+		t.Parallel()
+
 		invalidCode := "111111"
 
 		valid, err := validator.ValidateEmailOTP(ctx, userID, invalidCode)
@@ -153,10 +161,12 @@ func TestSMSOTPValidation(t *testing.T) {
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
 
 	// Generate SMS OTP secret.
+	// cspell:disable-next-line
 	secret := "LBSWY3DPEHPK3PXR"
 	secretStore.smsSecrets[userID] = secret
 
 	t.Run("Valid_SMS_OTP", func(t *testing.T) {
+		t.Parallel()
 		// Generate current SMS OTP code (10-minute period).
 		code, err := totp.GenerateCode(secret, time.Now())
 		require.NoError(t, err)
@@ -167,6 +177,8 @@ func TestSMSOTPValidation(t *testing.T) {
 	})
 
 	t.Run("Invalid_SMS_OTP", func(t *testing.T) {
+		t.Parallel()
+
 		invalidCode := "222222"
 
 		valid, err := validator.ValidateSMSOTP(ctx, userID, invalidCode)
@@ -187,6 +199,9 @@ func TestOTPConcurrency(t *testing.T) {
 	const parallelValidations = 10
 
 	t.Run("Concurrent_TOTP_Validation", func(t *testing.T) {
+		t.Parallel()
+
+		// cspell:disable-next-line
 		secret := "MBSWY3DPEHPK3PXS"
 
 		// Create 10 users with same TOTP secret.
@@ -240,10 +255,12 @@ func TestOTPExpiration(t *testing.T) {
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
 
+	// cspell:disable-next-line
 	secret := "NBSWY3DPEHPK3PXT"
 	secretStore.totpSecrets[userID] = secret
 
 	t.Run("Expired_TOTP_Code", func(t *testing.T) {
+		t.Parallel()
 		// Generate code for 2 minutes ago (outside all windows).
 		expiredTime := time.Now().Add(-2 * time.Minute)
 		expiredCode, err := totp.GenerateCode(secret, expiredTime)
@@ -256,6 +273,7 @@ func TestOTPExpiration(t *testing.T) {
 	})
 
 	t.Run("Expired_Code_With_Window", func(t *testing.T) {
+		t.Parallel()
 		// Generate code for 90 seconds ago.
 		expiredTime := time.Now().Add(-90 * time.Second)
 		expiredCode, err := totp.GenerateCode(secret, expiredTime)

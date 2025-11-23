@@ -27,6 +27,7 @@ func ServeOpenAPISpec() (func(c *fiber.Ctx) error, error) {
 
 	return func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
+
 		return c.Status(http.StatusOK).Send(specJSON)
 	}, nil
 }

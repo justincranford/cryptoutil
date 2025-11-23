@@ -14,6 +14,10 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 )
 
+const (
+	invalidUserID = "not-a-valid-uuid"
+)
+
 func TestNewWebAuthnCredentialRepository(t *testing.T) {
 	t.Parallel()
 
@@ -37,17 +41,18 @@ func TestNewWebAuthnCredentialRepository(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			var repo *WebAuthnCredentialRepository
-			var err error
+			var (
+				repo *WebAuthnCredentialRepository
+				err  error
+			)
 
 			if tc.db != nil {
-				repo, err = NewWebAuthnCredentialRepository(tc.db.(*testDB).db)
+				repo, err = NewWebAuthnCredentialRepository(tc.db.(*testDB).db) //nolint:errcheck // Error checked conditionally below based on test case expectations
 			} else {
-				repo, err = NewWebAuthnCredentialRepository(nil)
+				repo, err = NewWebAuthnCredentialRepository(nil) //nolint:errcheck // Error checked conditionally below based on test case expectations
 			}
 
 			if tc.wantError {
@@ -99,7 +104,7 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 			name: "invalid user ID returns error",
 			credential: &Credential{
 				ID:              "invalid-user-id-cred",
-				UserID:          "not-a-valid-uuid",
+				UserID:          invalidUserID,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: "none",
@@ -113,7 +118,6 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -123,7 +127,7 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 			require.NoError(t, err)
 
 			// Seed test user if credential has valid user ID.
-			if tc.credential != nil && tc.credential.UserID != "not-a-valid-uuid" {
+			if tc.credential != nil && tc.credential.UserID != invalidUserID {
 				seedTestUser(ctx, t, db.db, tc.credential.UserID)
 			}
 
@@ -221,7 +225,6 @@ func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -300,7 +303,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 		},
 		{
 			name:       "invalid user ID returns error",
-			userID:     "not-a-valid-uuid",
+			userID:     invalidUserID,
 			setupCreds: nil,
 			wantCount:  0,
 			wantError:  true,
@@ -308,7 +311,6 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -318,7 +320,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 			require.NoError(t, err)
 
 			// Seed user for credential tests.
-			if tc.userID != "not-a-valid-uuid" {
+			if tc.userID != invalidUserID {
 				seedTestUser(ctx, t, db.db, tc.userID)
 			}
 
@@ -381,7 +383,6 @@ func TestWebAuthnCredentialRepository_DeleteCredential(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -444,8 +445,8 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 	require.NoError(t, err)
 
 	// Simulate authentication (counter increment).
-	for i := 6; i <= 10; i++ {
-		cred.SignCount = uint32(i)
+	for i := uint32(6); i <= 10; i++ {
+		cred.SignCount = i
 		cred.LastUsedAt = time.Now().Add(time.Duration(i) * time.Second)
 
 		err = repo.StoreCredential(ctx, cred)

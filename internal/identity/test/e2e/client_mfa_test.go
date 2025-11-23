@@ -179,9 +179,9 @@ func TestClientMFAConcurrency(t *testing.T) {
 		results := make(chan error, parallelClients)
 
 		for i := 0; i < parallelClients; i++ {
-			i := i
 			go func() {
 				clientID := fmt.Sprintf("concurrent_client_%d_%s", i, googleUuid.Must(googleUuid.NewV7()).String())
+
 				err := suite.executeClientMFAChain(ctx, clientID, []ClientAuthMethod{
 					ClientAuthBasic,
 					ClientAuthSecretJWT,

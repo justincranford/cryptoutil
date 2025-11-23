@@ -49,7 +49,7 @@ func TestIdPContractHealth(t *testing.T) {
 	require.NoError(t, err, "Failed to create repository factory")
 
 	defer func() {
-		_ = repoFactory.Close()
+		_ = repoFactory.Close() //nolint:errcheck // Test cleanup - error not critical
 	}()
 
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, config.Tokens)
@@ -66,7 +66,7 @@ func TestIdPContractHealth(t *testing.T) {
 	require.NoError(t, err, "Failed to execute request")
 
 	defer func() {
-		_ = resp.Body.Close()
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup - error not critical
 	}()
 
 	// Verify response against OpenAPI spec.
@@ -101,6 +101,7 @@ func TestIdPContractHealth(t *testing.T) {
 
 	// Parse response body.
 	var healthResp cryptoutilApiIdentityIdp.HealthResponse
+
 	err = json.Unmarshal(bodyBytes, &healthResp)
 	require.NoError(t, err, "Failed to parse response body")
 

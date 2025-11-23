@@ -11,8 +11,10 @@ import (
 )
 
 func newTestCommand() *cobra.Command {
-	var suite string
-	var pkg string
+	var (
+		suite string
+		pkg   string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "test",
@@ -43,6 +45,7 @@ Examples:
 			}
 
 			fmt.Println("Future: Execute go test with streaming output")
+
 			return nil
 		},
 	}

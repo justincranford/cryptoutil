@@ -137,6 +137,7 @@ func (v *HardwareErrorValidator) classifyError(err error) error {
 // RetryWithBackoff retries hardware operations with exponential backoff.
 func (v *HardwareErrorValidator) RetryWithBackoff(ctx context.Context, maxRetries int, operation func(context.Context) error) error {
 	var lastErr error
+
 	backoff := v.devicePollInterval
 
 	for attempt := 0; attempt < maxRetries; attempt++ {

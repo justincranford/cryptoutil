@@ -27,7 +27,7 @@ func NewTOTPProfile(mfaRepo cryptoutilIdentityRepository.MFAFactorRepository) *T
 
 // Name returns the profile name.
 func (p *TOTPProfile) Name() string {
-	return "totp"
+	return string(OTPMethodTOTP)
 }
 
 // Authenticate performs TOTP/HOTP authentication.
