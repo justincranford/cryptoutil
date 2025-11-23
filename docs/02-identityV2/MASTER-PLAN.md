@@ -37,6 +37,84 @@
 
 ---
 
+## 🤖 LLM Agent Quick Reference
+
+### For Autonomous Implementation Sessions
+
+Read this section before starting work.
+
+### Primary Directive: Continuous Work Until Complete
+
+**Token Budget**: Work until 950k/1M tokens used (95% utilization)
+**Stop Conditions**: ONLY when tokens ≥950k OR explicit user command
+**Not Stop Conditions**: Time elapsed, tasks complete, commits made
+
+### Continuous Work Pattern
+
+```text
+START → Read task → Implement → Test → Commit → Mark complete → IMMEDIATELY next task → ...
+```
+
+**ZERO TEXT between tool calls:**
+
+- ❌ WRONG: commit → "Working on R02..." → create_file
+- ✅ RIGHT: commit → create_file (zero characters between)
+
+### Per-Task Loop (For EACH task R01-R11)
+
+1. **Pre-Implementation** (2 min)
+   - Read historical task doc reference (see "See" sections)
+   - Understand acceptance criteria
+   - Review related code patterns
+
+2. **Implementation** (varies)
+   - Create/modify files per deliverables
+   - Follow coding standards (.github/instructions/*.md)
+   - Handle errors explicitly with context
+
+3. **Testing** (5-10 min)
+   - Write table-driven tests with `t.Parallel()`
+   - Test happy + sad paths
+   - Run: `runTests` tool (NEVER `go test`)
+   - Achieve ≥85% coverage (identity packages)
+
+4. **Quality** (5 min)
+   - Auto-fix: `golangci-lint run --fix`
+   - Fix remaining issues manually
+   - Verify zero TODO comments introduced
+
+5. **Commit** (1 min)
+   - Stage: `git add <files>`
+   - Commit: `git commit --no-verify -m "feat(identity): complete RXX - description"`
+
+6. **Post-Mortem** (5-10 min)
+   - Create: `RXX-POSTMORTEM.md` (see template below)
+   - Document bugs/fixes, omissions, corrective actions
+
+7. **Handoff** (0 min - IMMEDIATE)
+   - Mark complete: `manage_todo_list`
+   - **IMMEDIATELY** read next task
+   - **NO STOPPING, NO SUMMARY**
+
+### Anti-Patterns to Avoid
+
+**NEVER:**
+
+- ❌ Stop after commits
+- ❌ Provide status updates between tasks
+- ❌ Ask "Should I continue?"
+- ❌ Use `go test` in terminal (use `runTests` tool)
+- ❌ Remove `t.Parallel()` to fix failures
+
+**ALWAYS:**
+
+- ✅ Tool calls only (zero text between)
+- ✅ Work continuously until 950k tokens OR all tasks complete
+- ✅ Create post-mortem for EVERY task
+- ✅ Fix failing tests before moving on
+
+---
+
 ## Remediation Tasks
 
 ### 🔴 WEEK 1: Critical Path - OAuth 2.1 Foundation (Days 1-5)
@@ -104,12 +182,14 @@
 **Deliverables**:
 
 **D2.1: Login UI** (4 hours)
+
 - HTML login form (username/password)
 - CSRF protection
 - Session creation on successful authentication
 - Redirect to consent page with original request context
 
 **D2.2: Consent Flow** (4 hours)
+
 - Fetch client details from repository
 - Render consent page with scopes and client information
 - Store consent decision (user, client, scopes, expiration)
@@ -117,6 +197,7 @@
 - Redirect to client callback with code and state
 
 **D2.3: Logout Implementation** (4 hours)
+
 - Validate session exists
 - Revoke all tokens associated with session
 - Delete session from repository
@@ -124,6 +205,7 @@
 - Redirect to post-logout URL or confirmation page
 
 **D2.4: Userinfo Endpoint** (4 hours)
+
 - Parse Bearer token from Authorization header
 - Introspect/validate token (expiration, signature)
 - Fetch user details from repository
@@ -131,6 +213,7 @@
 - Return JSON response with claims
 
 **D2.5: Authentication Middleware** (2 hours)
+
 - Session validation middleware
 - Token validation middleware
 - Apply to protected endpoints (/userinfo, /logout, /consent)
@@ -202,18 +285,21 @@
 **Deliverables**:
 
 **D4.1: Client Secret Hashing** (6 hours)
+
 - Replace plain text comparison with bcrypt/argon2
 - Migration script for existing client secrets
 - Update client creation API to hash secrets
 - Add secret validation tests
 
 **D4.2: Certificate Revocation Checking** (4 hours)
+
 - Implement CRL checking
 - Implement OCSP checking
 - Add configuration for revocation check timeout
 - Add tests for revoked certificate rejection
 
 **D4.3: Certificate Validation Enhancements** (2 hours)
+
 - Validate certificate subject matches client registration
 - Validate certificate fingerprint matches stored value
 - Add configuration options for validation strictness
@@ -249,11 +335,13 @@
 **Deliverables**:
 
 **D5.1: Repository Methods** (4 hours)
+
 - Add `TokenRepository.DeleteExpiredBefore(ctx, time.Time) (int, error)`
 - Add `SessionRepository.DeleteExpiredBefore(ctx, time.Time) (int, error)`
 - Add tests for bulk deletion
 
 **D5.2: Cleanup Job Implementation** (6 hours)
+
 - Implement token cleanup job
 - Implement session cleanup job
 - Add configuration for cleanup intervals
@@ -261,6 +349,7 @@
 - Add error handling and retry logic
 
 **D5.3: Job Scheduler Integration** (2 hours)
+
 - Schedule cleanup jobs to run every hour
 - Add graceful shutdown for cleanup jobs
 - Add health check for job execution status
@@ -500,6 +589,78 @@ graph TD
 4. **Quality Gates**: All tests passing, linting clean, documentation updated before marking complete
 5. **Continuous Integration**: Run integration tests after each task to catch regressions early
 
+### Post-Mortem Template (REQUIRED for EVERY task)
+
+**File**: `RXX-<TASK_NAME>-POSTMORTEM.md`
+
+**Minimum Sections**:
+
+```markdown
+# RXX: <Task Name> Post-Mortem
+
+**Completion Date**: YYYY-MM-DD
+**Duration**: X hours
+**Status**: ✅ Complete | ⚠️ Partial | ❌ Blocked
+
+## Implementation Summary
+
+**What Was Done**:
+- Deliverable 1: Description
+- Deliverable 2: Description
+
+**Files Modified**:
+- `path/to/file1.go` - Description of changes
+- `path/to/file2_test.go` - Test additions
+
+## Issues Encountered
+
+**Bugs Found and Fixed**:
+1. Bug description → Fix applied
+
+**Omissions Discovered**:
+1. What was missing from original spec → How addressed
+
+**Test Failures**:
+1. Test name → Root cause → Resolution
+
+**Instruction Violations**:
+1. Which instruction violated → Corrective action
+
+## Corrective Actions
+
+**Immediate (Applied in This Task)**:
+- Action 1: Description
+
+**Deferred (Future Tasks)**:
+- Action 1: Description → New task created: RXX
+
+**Pattern Improvements**:
+- Improvement 1: What pattern was suboptimal → Better approach
+
+## Lessons Learned
+
+**What Went Well**:
+- Success 1: Why it worked
+
+**What Needs Improvement**:
+- Area 1: What to do differently next time
+
+## Metrics
+
+- **Time Estimate**: X hours
+- **Actual Time**: Y hours
+- **Code Coverage**: Before X% → After Y%
+- **TODO Comments**: Added: 0, Removed: Z
+- **Test Count**: Before X → After Y
+- **Files Changed**: X files, +Y LOC, -Z LOC
+
+## Acceptance Criteria Verification
+
+- [x] Criterion 1: Evidence/verification method
+- [x] Criterion 2: Evidence/verification method
+- [ ] Criterion N: If incomplete, blocker description
+```
+
 ### Quality Standards
 
 - **Code Coverage**: ≥85% for identity packages (infrastructure code standard)
@@ -507,6 +668,40 @@ graph TD
 - **Documentation**: Update README, runbooks, OpenAPI specs with each task
 - **Linting**: Zero golangci-lint violations before commit
 - **TODO Comments**: Zero CRITICAL/HIGH TODOs at task completion
+
+### Quality Gates (Before marking task complete)
+
+**Code Quality**:
+
+- [ ] Zero compilation errors
+- [ ] Zero linting errors: `golangci-lint run`
+- [ ] No hardcoded values (use magic*.go)
+- [ ] Errors wrapped with context (fmt.Errorf with %w)
+- [ ] No TODO comments introduced
+- [ ] Import aliases correct (cryptoutilIdentity*)
+
+**Testing**:
+
+- [ ] All tests pass: `runTests`
+- [ ] Coverage ≥85% for identity packages
+- [ ] Table-driven test pattern used
+- [ ] `t.Parallel()` enabled
+- [ ] Happy + sad paths covered
+- [ ] UUIDv7 for unique test data (not counters)
+
+**Documentation**:
+
+- [ ] Godoc comments on all exports
+- [ ] README.md updated if needed
+- [ ] OpenAPI specs updated if API changes
+- [ ] Post-mortem created (RXX-POSTMORTEM.md)
+
+**Architecture**:
+
+- [ ] Follows identity package structure
+- [ ] Respects domain boundaries (no imports of server/client/api)
+- [ ] Design patterns consistent with existing code
+- [ ] Magic values in magic*.go files
 
 ### Success Criteria
 
