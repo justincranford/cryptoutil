@@ -19,3 +19,11 @@ const (
 	// TestServerWaitTickerInterval is the interval for checking server readiness.
 	TestServerWaitTickerInterval = 100 * time.Millisecond
 )
+
+// Base64 encoding constants.
+const (
+	// Base64ExpansionNumerator is the numerator for base64 expansion ratio (3 bytes → 4 chars).
+	Base64ExpansionNumerator = 3
+	// Base64ExpansionDenominator is the denominator for base64 expansion ratio (3 bytes → 4 chars).
+	Base64ExpansionDenominator = 4
+)

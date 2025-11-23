@@ -75,21 +75,38 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Validate authorization code.
-	// TODO: Validate PKCE code_verifier against stored code_challenge.
-	// TODO: Validate client credentials.
-	// TODO: Generate access token and refresh token.
-
 	ctx := c.Context()
 
-	// Retrieve authorization request by code.
-	authRequest, err := s.authReqStore.GetByCode(ctx, code)
+	// Retrieve authorization request by code from database.
+	authzReqRepo := s.repoFactory.AuthorizationRequestRepository()
+
+	authRequest, err := authzReqRepo.GetByCode(ctx, code)
 	if err != nil {
 		slog.ErrorContext(ctx, "Authorization code not found or expired", "error", err, "code", code)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
 			"error_description": "Invalid or expired authorization code",
+		})
+	}
+
+	// Validate code not expired.
+	if authRequest.IsExpired() {
+		slog.ErrorContext(ctx, "Authorization code expired", "request_id", authRequest.ID, "expires_at", authRequest.ExpiresAt)
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error_description": "Authorization code has expired",
+		})
+	}
+
+	// Validate code not already used (single-use enforcement).
+	if authRequest.IsUsed() {
+		slog.ErrorContext(ctx, "Authorization code already used", "request_id", authRequest.ID, "used_at", authRequest.UsedAt)
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error_description": "Authorization code has already been used",
 		})
 	}
 
@@ -123,10 +140,15 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		})
 	}
 
-	// Delete authorization code (single-use).
-	if err := s.authReqStore.Delete(ctx, authRequest.RequestID); err != nil {
-		// Continue anyway - token issuance is more important.
-		slog.ErrorContext(ctx, "Failed to delete authorization code", "error", err, "request_id", authRequest.RequestID)
+	// Mark authorization code as used (single-use enforcement).
+	now := time.Now()
+	authRequest.Used = true
+	authRequest.UsedAt = &now
+
+	if err := authzReqRepo.Update(ctx, authRequest); err != nil {
+		slog.ErrorContext(ctx, "Failed to mark authorization code as used", "error", err, "request_id", authRequest.ID)
+
+		// Continue anyway - token issuance is more important than cleanup.
 	}
 
 	// Get client for token configuration.
@@ -184,7 +206,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 	slog.InfoContext(ctx, "Token exchange successful",
 		"client_id", clientID,
 		"scope", authRequest.Scope,
-		"request_id", authRequest.RequestID,
+		"request_id", authRequest.ID,
 	)
 
 	// Return tokens.
