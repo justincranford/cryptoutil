@@ -16,12 +16,6 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-// Define standard context keys matching rate_limiter.go expectations.
-const (
-	contextKeyXForwardedFor = "X-Forwarded-For"
-	contextKeyRemoteAddr    = "RemoteAddr"
-)
-
 // TestDatabaseRateLimitStoreRecordAttempt tests recording attempts.
 func TestDatabaseRateLimitStoreRecordAttempt(t *testing.T) {
 	t.Parallel()
@@ -344,14 +338,14 @@ func TestExtractIPFromContext(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		contextValues map[string]any
+		contextValues map[any]any
 		expectedIP    string
 		expectError   bool
 		errorContains string
 	}{
 		{
 			name: "X-Forwarded-For single IP",
-			contextValues: map[string]any{
+			contextValues: map[any]any{
 				contextKeyXForwardedFor: "203.0.113.42",
 			},
 			expectedIP:  "203.0.113.42",
@@ -359,7 +353,7 @@ func TestExtractIPFromContext(t *testing.T) {
 		},
 		{
 			name: "X-Forwarded-For multiple IPs",
-			contextValues: map[string]any{
+			contextValues: map[any]any{
 				contextKeyXForwardedFor: "203.0.113.42, 198.51.100.17, 192.0.2.1",
 			},
 			expectedIP:  "203.0.113.42",
@@ -367,7 +361,7 @@ func TestExtractIPFromContext(t *testing.T) {
 		},
 		{
 			name: "RemoteAddr with port",
-			contextValues: map[string]any{
+			contextValues: map[any]any{
 				contextKeyRemoteAddr: "192.168.1.100:54321",
 			},
 			expectedIP:  "192.168.1.100",
@@ -375,7 +369,7 @@ func TestExtractIPFromContext(t *testing.T) {
 		},
 		{
 			name: "RemoteAddr without port",
-			contextValues: map[string]any{
+			contextValues: map[any]any{
 				contextKeyRemoteAddr: "10.0.0.50",
 			},
 			expectedIP:  "10.0.0.50",
@@ -383,14 +377,14 @@ func TestExtractIPFromContext(t *testing.T) {
 		},
 		{
 			name:          "No IP in context",
-			contextValues: map[string]any{},
+			contextValues: map[any]any{},
 			expectedIP:    "",
 			expectError:   true,
 			errorContains: "unable to extract IP address",
 		},
 		{
 			name: "X-Forwarded-For takes precedence over RemoteAddr",
-			contextValues: map[string]any{
+			contextValues: map[any]any{
 				contextKeyXForwardedFor: "203.0.113.42",
 				contextKeyRemoteAddr:    "192.168.1.100:54321",
 			},

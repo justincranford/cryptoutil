@@ -283,34 +283,36 @@ func (r *PerIPRateLimiter) Cleanup(ctx context.Context) error {
 	return nil
 }
 
+// Context keys for IP extraction.
+type contextKey string
+
+const (
+	contextKeyXForwardedFor contextKey = "X-Forwarded-For"
+	contextKeyRemoteAddr    contextKey = "RemoteAddr"
+)
+
 // ExtractIPFromContext extracts the client IP address from the request context.
 // Checks X-Forwarded-For header first (for proxies), then falls back to RemoteAddr.
 func ExtractIPFromContext(ctx context.Context) (string, error) {
 	// Check for X-Forwarded-For header (proxied requests).
-	if xff, ok := ctx.Value("X-Forwarded-For").(string); ok && xff != "" {
+	if xff, ok := ctx.Value(contextKeyXForwardedFor).(string); ok && xff != "" {
 		// X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2, ...).
 		// Use the first IP (original client).
-		if idx := len(xff); idx > 0 {
-			if commaIdx := 0; commaIdx < idx {
-				for i, c := range xff {
-					if c == ',' {
-						commaIdx = i
+		for i, c := range xff {
+			if c == ',' {
+				// Trim whitespace after comma.
+				ip := xff[:i]
 
-						break
-					}
-				}
-
-				if commaIdx > 0 {
-					return xff[:commaIdx], nil
-				}
-
-				return xff, nil
+				return ip, nil
 			}
 		}
+
+		// Single IP, no comma.
+		return xff, nil
 	}
 
 	// Fallback to RemoteAddr.
-	if remoteAddr, ok := ctx.Value("RemoteAddr").(string); ok && remoteAddr != "" {
+	if remoteAddr, ok := ctx.Value(contextKeyRemoteAddr).(string); ok && remoteAddr != "" {
 		// RemoteAddr format: "IP:port" - extract IP only.
 		for i, c := range remoteAddr {
 			if c == ':' {
@@ -318,6 +320,7 @@ func ExtractIPFromContext(ctx context.Context) (string, error) {
 			}
 		}
 
+		// No port, return as-is.
 		return remoteAddr, nil
 	}
 
