@@ -31,21 +31,21 @@ func TestEnrollCommand(t *testing.T) {
 		{
 			name: "missing credential type uses default",
 			args: []string{
-				"-user-id", googleUuid.Must(googleUuid.NewV7()).String(),
+				"-user-id", "01930de8-c123-7890-abcd-ef1234567890",
 				"-device-name", "Test Device",
 			},
 			wantErr:      false,
-			wantUserID:   googleUuid.Must(googleUuid.NewV7()).String(),
+			wantUserID:   "01930de8-c123-7890-abcd-ef1234567890",
 			wantDevice:   "Test Device",
 			wantCredType: "passkey",
 		},
 		{
 			name: "valid enrollment with default device name",
 			args: []string{
-				"-user-id", googleUuid.Must(googleUuid.NewV7()).String(),
+				"-user-id", "01930de8-c123-7890-abcd-ef1234567891",
 			},
 			wantErr:      false,
-			wantUserID:   googleUuid.Must(googleUuid.NewV7()).String(),
+			wantUserID:   "01930de8-c123-7890-abcd-ef1234567891",
 			wantCredType: "passkey",
 		},
 		{
