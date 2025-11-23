@@ -31,15 +31,27 @@ type CACertificateValidator struct {
 	crlCache map[string]*pkix.CertificateList
 	// revocationChecker handles CRL/OCSP revocation checking
 	revocationChecker RevocationChecker
+	// validateSubject enables certificate subject validation
+	validateSubject bool
+	// validateFingerprint enables certificate fingerprint validation
+	validateFingerprint bool
 }
 
 // NewCACertificateValidator creates a new CA certificate validator.
 func NewCACertificateValidator(trustedCAs *x509.CertPool, revocationChecker RevocationChecker) *CACertificateValidator {
 	return &CACertificateValidator{
-		trustedCAs:        trustedCAs,
-		crlCache:          make(map[string]*pkix.CertificateList),
-		revocationChecker: revocationChecker,
+		trustedCAs:          trustedCAs,
+		crlCache:            make(map[string]*pkix.CertificateList),
+		revocationChecker:   revocationChecker,
+		validateSubject:     true, // Enable subject validation by default.
+		validateFingerprint: true, // Enable fingerprint validation by default.
 	}
+}
+
+// SetValidationOptions configures certificate validation strictness.
+func (v *CACertificateValidator) SetValidationOptions(validateSubject, validateFingerprint bool) {
+	v.validateSubject = validateSubject
+	v.validateFingerprint = validateFingerprint
 }
 
 // ValidateCertificate validates a client certificate against trusted CAs.

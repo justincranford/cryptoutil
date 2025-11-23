@@ -6,6 +6,9 @@ package clientauth
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/hex"
 	"fmt"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
@@ -75,10 +78,49 @@ func (s *SelfSignedAuthenticator) Authenticate(ctx context.Context, clientID, cr
 		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
-	// TODO: Optionally validate that the certificate fingerprint matches stored client certificate info
-	// This could be done by storing certificate fingerprints in the client record
+	// Validate certificate subject if configured.
+	if err := s.validateCertificateSubject(client, clientCert); err != nil {
+		return nil, err
+	}
+
+	// Validate certificate fingerprint if configured.
+	if err := s.validateCertificateFingerprint(client, clientCert); err != nil {
+		return nil, err
+	}
 
 	return client, nil
+}
+
+// validateCertificateSubject checks if certificate subject matches client registration.
+func (s *SelfSignedAuthenticator) validateCertificateSubject(client *cryptoutilIdentityDomain.Client, clientCert *x509.Certificate) error {
+	if client.CertificateSubject == "" {
+		// No subject validation required.
+		return nil
+	}
+
+	if clientCert.Subject.CommonName != client.CertificateSubject {
+		return fmt.Errorf("certificate subject mismatch: expected %s, got %s", client.CertificateSubject, clientCert.Subject.CommonName)
+	}
+
+	return nil
+}
+
+// validateCertificateFingerprint checks if certificate fingerprint matches stored value.
+func (s *SelfSignedAuthenticator) validateCertificateFingerprint(client *cryptoutilIdentityDomain.Client, clientCert *x509.Certificate) error {
+	if client.CertificateFingerprint == "" {
+		// No fingerprint validation required.
+		return nil
+	}
+
+	// Compute SHA-256 fingerprint of certificate.
+	hash := sha256.Sum256(clientCert.Raw)
+	fingerprint := hex.EncodeToString(hash[:])
+
+	if fingerprint != client.CertificateFingerprint {
+		return fmt.Errorf("certificate fingerprint mismatch: expected %s, got %s", client.CertificateFingerprint, fingerprint)
+	}
+
+	return nil
 }
 
 // validateAuthMethod checks if the client supports this authentication method.

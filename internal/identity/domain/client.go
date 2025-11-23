@@ -74,6 +74,10 @@ type Client struct {
 	// Client profile reference (optional).
 	ClientProfileID NullableUUID `gorm:"type:text;index" json:"client_profile_id,omitempty"` // Associated client profile.
 
+	// Certificate-based authentication fields.
+	CertificateSubject     string `gorm:"index" json:"certificate_subject,omitempty"`     // Expected certificate subject (CN).
+	CertificateFingerprint string `gorm:"index" json:"certificate_fingerprint,omitempty"` // Expected certificate SHA-256 fingerprint (hex).
+
 	// Account status.
 	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Client enabled status.
 	CreatedAt time.Time  `json:"created_at"`                        // Creation timestamp.
