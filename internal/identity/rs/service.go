@@ -92,7 +92,7 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	protected.Use(s.validator.ValidateToken())
 	protected.Get("/resource", s.RequireScopes("read:resource"), s.handleProtectedResource)
 	protected.Post("/resource", s.RequireScopes("write:resource"), s.handleCreateResource)
-	protected.Delete("/resource/:id", s.RequireScopes("delete:resource"), s.handleDeleteResource)
+	protected.Delete("/resource", s.RequireScopes("delete:resource"), s.handleDeleteResource)
 
 	// Admin endpoints (require admin scope).
 	admin := api.Group("/admin")
@@ -212,13 +212,13 @@ func (s *Service) handleCreateResource(c *fiber.Ctx) error {
 	s.logger.Info("Resource created",
 		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":     "Resource created successfully",
 		"resource_id": "new-resource-456",
 	})
 }
 
-// handleDeleteResource handles DELETE /api/v1/protected/resource/:id - delete resource.
+// handleDeleteResource handles DELETE /api/v1/protected/resource - delete resource.
 func (s *Service) handleDeleteResource(c *fiber.Ctx) error {
 	claims, ok := c.Locals("token_claims").(map[string]any)
 	if !ok {
@@ -228,15 +228,11 @@ func (s *Service) handleDeleteResource(c *fiber.Ctx) error {
 		})
 	}
 
-	resourceID := c.Params("id")
-
 	s.logger.Info("Resource deleted",
-		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID],
-		"resource_id", resourceID)
+		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":     "Resource deleted successfully",
-		"resource_id": resourceID,
+		"message": "Resource deleted successfully",
 	})
 }
 

@@ -389,43 +389,57 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 		name           string
 		endpoint       string
 		method         string
-		requiredScopes []string
+		tokenScopes    []string
 		expectedStatus int
 	}{
 		{
 			name:           "GET Protected Resource",
 			endpoint:       "/api/v1/protected/resource",
 			method:         http.MethodGet,
-			requiredScopes: []string{"read:resource"},
+			tokenScopes:    []string{"read:resource"},
 			expectedStatus: http.StatusOK,
 		},
 		{
 			name:           "POST Protected Resource",
 			endpoint:       "/api/v1/protected/resource",
 			method:         http.MethodPost,
-			requiredScopes: []string{"write:resource"},
+			tokenScopes:    []string{"write:resource"},
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name:           "DELETE Protected Resource",
+			name:           "DELETE Protected Resource - Without Delete Scope",
 			endpoint:       "/api/v1/protected/resource",
 			method:         http.MethodDelete,
-			requiredScopes: []string{"delete:resource"},
-			expectedStatus: http.StatusForbidden, // Will fail if token doesn't have delete scope.
+			tokenScopes:    []string{"read:resource", "write:resource"},
+			expectedStatus: http.StatusForbidden,
 		},
 		{
-			name:           "Admin Users",
+			name:           "DELETE Protected Resource - With Delete Scope",
+			endpoint:       "/api/v1/protected/resource",
+			method:         http.MethodDelete,
+			tokenScopes:    []string{"delete:resource"},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin Users - Without Admin Scope",
 			endpoint:       "/api/v1/admin/users",
 			method:         http.MethodGet,
-			requiredScopes: []string{testAdminScope},
-			expectedStatus: http.StatusForbidden, // Will fail if token doesn't have admin scope.
+			tokenScopes:    []string{"read:resource", "write:resource"},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "Admin Users - With Admin Scope",
+			endpoint:       "/api/v1/admin/users",
+			method:         http.MethodGet,
+			tokenScopes:    []string{testAdminScope},
+			expectedStatus: http.StatusOK,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Get access token with specified scopes.
-			accessToken := getTestAccessToken(t, servers, strings.Join(tt.requiredScopes, " "))
+			accessToken := getTestAccessToken(t, servers, strings.Join(tt.tokenScopes, " "))
 
 			// Make request to protected resource.
 			resourceURL := testRSBaseURL + tt.endpoint
