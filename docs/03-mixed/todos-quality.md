@@ -2,37 +2,32 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: October 26, 2025
-**Status**: Active code quality enhancements in progress - File extension pattern review completed
+**Last Updated**: November 23, 2025
+**Status**: Identity subsystem TODOs tracked in docs/02-identityV2/current/MASTER-PLAN.md
 
 ---
 
 ## 🟡 MEDIUM - Code Quality & Linting Enhancements
 
-### Task CQ1: Address TODO Comments in Codebase
-- **Description**: Multiple TODO/FIXME comments found throughout codebase requiring attention
-- **Current TODO Inventory (Excluding Identity Subsystem)**:
-- `internal/common/pool/pool.go:40` - COMPLETED: Changed generateCounter and getCounter to use telemetry Int64Counter metrics alongside uint64 for logic
-  - `internal/common/crypto/jose/jws_message_util.go:170` - COMPLETED: Modified ExtractKidAlgFromJWSMessage to support multiple signatures by returning the first signature's kid and alg
-  - `internal/server/application/application_listener.go:630` - COMPLETED: Added note that no external dependencies exist; database and telemetry checked separately
-  - `internal/server/application/application_listener.go:710` - COMPLETED: Readiness checks framework implemented with database, memory, sidecar, dependencies checks
-  - `internal/server/repository/sqlrepository/gormdb.go:62` - COMPLETED: Enabled GORM debug mode when verbose mode is enabled
-  - `internal/server/repository/sqlrepository/sql_schema_util.go` - COMPLETED: Replaced all context.TODO() usages with context.Background() for database schema logging queries
+### Task CQ1: Identity Subsystem TODO Comments
+
+- **Description**: Identity subsystem contains 40+ TODO comments representing incomplete features
+- **Current State**: All non-identity TODOs completed; identity TODOs tracked as feature work in docs/02-identityV2/current/MASTER-PLAN.md
 - **Identity Subsystem TODOs** (40+ items - tracked separately as they represent incomplete features):
-  - User authentication flows (passkey, TOTP, OTP)
-  - Session management (cleanup, validation)
-  - Token operations (introspection, revocation)
-  - Authorization flows (consent, logout, userinfo)
+  - OAuth 2.1 authorization code flow (16 TODOs - Task R01)
+  - OIDC login/consent/logout/userinfo endpoints (11 TODOs - Task R02)
+  - Client authentication security (5 TODOs - Task R04)
+  - Session/token lifecycle management (6 TODOs - Task R05, R08)
+  - Advanced authentication (WebAuthn, TOTP, OTP flows)
   - Repository integrations
 - **Action Items**:
-  - Review non-identity TODOs for relevance and priority
-  - Implement high-priority TODOs or convert to proper issues
-  - Document context.TODO() usage patterns for database operations
-  - Track identity subsystem TODOs separately as feature work
-- **Files**: Multiple files across codebase
-- **Expected Outcome**: Clean codebase with actionable TODOs only; identity subsystem TODOs tracked as feature work
-- **Priority**: LOW - Code maintainability improvement
-- **Note**: godox linter disabled in favor of manual tracking in this file
+  - Follow remediation plan in docs/02-identityV2/current/MASTER-PLAN.md
+  - Complete critical path tasks (R01-R03) before production
+  - Track progress in COMPLETION-STATUS-REPORT.md
+- **Files**: `internal/identity/**/*.go`
+- **Expected Outcome**: Production-ready OAuth 2.1 / OIDC identity platform
+- **Priority**: TRACKED IN IDENTITY V2 MASTER PLAN
+- **Note**: godox linter disabled in favor of manual tracking in remediation plan
 
 ### Task CQ4: Investigate linters for EOL/maintenance mode dependencies
 
