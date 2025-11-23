@@ -6,6 +6,7 @@ package idp
 
 import (
 	"context"
+	"embed"
 	"html/template"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
@@ -13,6 +14,11 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
+
+// Embed HTML templates at compile time.
+//
+//go:embed templates/*.html
+var templatesFS embed.FS
 
 // Service provides OIDC identity provider functionality.
 type Service struct {
@@ -29,8 +35,8 @@ func NewService(
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory,
 	tokenSvc *cryptoutilIdentityIssuer.TokenService,
 ) *Service {
-	// Parse HTML templates.
-	templates := template.Must(template.ParseGlob("internal/identity/idp/templates/*.html"))
+	// Parse HTML templates from embedded filesystem.
+	templates := template.Must(template.ParseFS(templatesFS, "templates/*.html"))
 
 	return &Service{
 		config:       config,
