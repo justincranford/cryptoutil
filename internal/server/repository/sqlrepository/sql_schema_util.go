@@ -25,7 +25,7 @@ func LogSchema(sqlRepository *SQLRepository) error {
 
 func logSQLiteSchema(sqlRepository *SQLRepository) error {
 	tableNames, err := func() ([]string, error) {
-		queryResults, err := sqlRepository.sqlDB.QueryContext(context.TODO(), `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`)
+		queryResults, err := sqlRepository.sqlDB.QueryContext(context.Background(), `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query SQLite table names: %w", err)
 		}
@@ -59,7 +59,7 @@ func logSQLiteSchema(sqlRepository *SQLRepository) error {
 		fmt.Printf("Table: %s\n", tableName)
 
 		err = func() error {
-			queryResults, err := sqlRepository.sqlDB.QueryContext(context.TODO(), fmt.Sprintf("PRAGMA table_info(%s);", tableName))
+			queryResults, err := sqlRepository.sqlDB.QueryContext(context.Background(), fmt.Sprintf("PRAGMA table_info(%s);", tableName))
 			if err != nil {
 				return fmt.Errorf("failed to query table info for %s: %w", tableName, err)
 			}
@@ -97,7 +97,7 @@ func logSQLiteSchema(sqlRepository *SQLRepository) error {
 
 func logPostgresSchema(sqlRepository *SQLRepository) error {
 	tableNames, err := func() ([]string, error) {
-		queryResults, err := sqlRepository.sqlDB.QueryContext(context.TODO(), `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';`)
+		queryResults, err := sqlRepository.sqlDB.QueryContext(context.Background(), `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';`)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query PostgreSQL table names: %w", err)
 		}
@@ -129,7 +129,7 @@ func logPostgresSchema(sqlRepository *SQLRepository) error {
 		fmt.Printf("Table: %s\n", tableName)
 
 		err = func() error {
-			queryResults, err := sqlRepository.sqlDB.QueryContext(context.TODO(), fmt.Sprintf(`SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = '%s';`, tableName))
+			queryResults, err := sqlRepository.sqlDB.QueryContext(context.Background(), fmt.Sprintf(`SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = '%s';`, tableName))
 			if err != nil {
 				return fmt.Errorf("failed to query column info for %s: %w", tableName, err)
 			}

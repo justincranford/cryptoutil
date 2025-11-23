@@ -17,7 +17,7 @@
   - `internal/server/application/application_listener.go:630` - COMPLETED: Added note that no external dependencies exist; database and telemetry checked separately
   - `internal/server/application/application_listener.go:710` - COMPLETED: Readiness checks framework implemented with database, memory, sidecar, dependencies checks
   - `internal/server/repository/sqlrepository/gormdb.go:62` - COMPLETED: Enabled GORM debug mode when verbose mode is enabled
-  - `internal/server/repository/sqlrepository/sql_schema_util.go` - Multiple context.TODO() usages (lines 28, 62, 100, 132) for database queries
+  - `internal/server/repository/sqlrepository/sql_schema_util.go` - COMPLETED: Replaced all context.TODO() usages with context.Background() for database schema logging queries
 - **Identity Subsystem TODOs** (40+ items - tracked separately as they represent incomplete features):
   - User authentication flows (passkey, TOTP, OTP)
   - Session management (cleanup, validation)
