@@ -248,6 +248,11 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 }
 
 // TestHealthCheckEndpoints verifies all servers respond to health checks.
+//
+// Validates requirements:
+// - R03-01: Integration tests use real SQLite database
+// - R03-02: Integration tests start all three servers
+// - R03-04: Integration tests validate cross-server interactions
 func TestHealthCheckEndpoints(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
@@ -280,6 +285,14 @@ func TestHealthCheckEndpoints(t *testing.T) {
 }
 
 // TestOAuth2AuthorizationCodeFlow tests the complete OAuth 2.0 authorization code flow.
+//
+// Validates requirements:
+// - R01-01: /oauth2/v1/authorize stores authorization request and redirects to login
+// - R01-02: User login associates real user ID with authorization request
+// - R01-03: Consent approval generates authorization code with user context
+// - R01-04: Token exchange returns access token with real user ID in sub claim
+// - R01-05: Authorization code single-use enforcement
+// - R01-06: Integration test validates end-to-end OAuth 2.1 flow
 func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
@@ -380,6 +393,10 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 }
 
 // TestResourceServerScopeEnforcement verifies scope-based access control.
+//
+// Validates requirements:
+// - R06-02: CSRF protection for state-changing requests
+// - R06-03: Rate limiting per IP and per client
 func TestResourceServerScopeEnforcement(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
@@ -492,6 +509,9 @@ func TestUnauthorizedAccess(t *testing.T) {
 }
 
 // TestGracefulShutdown verifies servers shut down cleanly.
+//
+// Validates requirements:
+// - R03-03: Integration tests clean up resources
 func TestGracefulShutdown(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 

@@ -1,0 +1,768 @@
+# Identity V2 Requirements Specification
+# Auto-extracted from MASTER-PLAN.md acceptance criteria
+
+metadata:
+  version: "1.0"
+  last_updated: "2025-01-19"
+  source: "docs/02-identityV2/current/MASTER-PLAN.md"
+  total_requirements: 65
+  tasks_covered: 11
+
+# ============================================================
+# R01: OAuth 2.1 Authorization Code Flow with PKCE
+# ============================================================
+
+R01-01:
+  task: "R01"
+  id: "R01-01"
+  description: "/oauth2/v1/authorize stores authorization request and redirects to login"
+  category: "authorization_flow"
+  priority: "CRITICAL"
+  acceptance_criteria: "GET /oauth2/v1/authorize creates AuthorizationRequest in database and returns 302 redirect to /oidc/v1/login?request_id={uuid}"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R01-02:
+  task: "R01"
+  id: "R01-02"
+  description: "User login associates real user ID with authorization request"
+  category: "authorization_flow"
+  priority: "CRITICAL"
+  acceptance_criteria: "POST /oidc/v1/login updates AuthorizationRequest.UserID with authenticated user's ID from credentials validation"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R01-03:
+  task: "R01"
+  id: "R01-03"
+  description: "Consent approval generates authorization code with user context"
+  category: "authorization_flow"
+  priority: "CRITICAL"
+  acceptance_criteria: "POST /oidc/v1/consent generates authorization_code tied to UserID from AuthorizationRequest, not random UUID"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R01-04:
+  task: "R01"
+  id: "R01-04"
+  description: "Token exchange returns access token with real user ID in sub claim"
+  category: "token_exchange"
+  priority: "CRITICAL"
+  acceptance_criteria: "POST /oauth2/v1/token returns access_token JWT with sub claim = UserID from AuthorizationRequest.UserID"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R01-05:
+  task: "R01"
+  id: "R01-05"
+  description: "Authorization code single-use enforcement"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "Second POST /oauth2/v1/token with same authorization code returns 400 invalid_grant error"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R01-06:
+  task: "R01"
+  id: "R01-06"
+  description: "Integration test validates end-to-end OAuth 2.1 flow"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "TestOAuth2AuthorizationCodeFlow passes without mocks, validates authorize→login→consent→token with real database"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R02: OIDC Core Endpoints (UserInfo, Discovery)
+# ============================================================
+
+R02-01:
+  task: "R02"
+  id: "R02-01"
+  description: "UserInfo endpoint returns authenticated user profile"
+  category: "oidc_core"
+  priority: "CRITICAL"
+  acceptance_criteria: "GET /oidc/v1/userinfo with valid Bearer token returns JSON with sub, name, email, email_verified fields"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R02-02:
+  task: "R02"
+  id: "R02-02"
+  description: "UserInfo endpoint validates Bearer token"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "GET /oidc/v1/userinfo without Bearer token returns 401 Unauthorized error"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R02-03:
+  task: "R02"
+  id: "R02-03"
+  description: "Discovery endpoint exposes OIDC metadata"
+  category: "oidc_core"
+  priority: "CRITICAL"
+  acceptance_criteria: "GET /.well-known/openid-configuration returns JSON with issuer, authorization_endpoint, token_endpoint, userinfo_endpoint, jwks_uri"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R02-04:
+  task: "R02"
+  id: "R02-04"
+  description: "JWKS endpoint exposes public signing keys"
+  category: "oidc_core"
+  priority: "CRITICAL"
+  acceptance_criteria: "GET /oidc/v1/jwks returns JSON Web Key Set with RSA public keys for JWT signature verification"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R02-05:
+  task: "R02"
+  id: "R02-05"
+  description: "UserInfo response includes all required OIDC claims"
+  category: "oidc_core"
+  priority: "HIGH"
+  acceptance_criteria: "UserInfo response includes sub (required), name, email, email_verified, and respects scope-based claim filtering"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R02-06:
+  task: "R02"
+  id: "R02-06"
+  description: "Discovery metadata includes all required OIDC fields"
+  category: "oidc_core"
+  priority: "HIGH"
+  acceptance_criteria: "Discovery response includes issuer, authorization_endpoint, token_endpoint, userinfo_endpoint, jwks_uri, response_types_supported, subject_types_supported, id_token_signing_alg_values_supported"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R02-07:
+  task: "R02"
+  id: "R02-07"
+  description: "Integration tests validate OIDC endpoints"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "Integration tests validate UserInfo, Discovery, JWKS endpoints with real database and JWT validation"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R03: Integration Testing Infrastructure
+# ============================================================
+
+R03-01:
+  task: "R03"
+  id: "R03-01"
+  description: "Integration tests use real SQLite database"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "Integration tests create ephemeral SQLite databases with migrations applied before each test"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R03-02:
+  task: "R03"
+  id: "R03-02"
+  description: "Integration tests start all three servers"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "TestMain starts AuthZ server (8100), IdP server (8101), Resource Server (8102) with real HTTP listeners"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R03-03:
+  task: "R03"
+  id: "R03-03"
+  description: "Integration tests clean up resources"
+  category: "testing"
+  priority: "MEDIUM"
+  acceptance_criteria: "TestMain defers server shutdown, database cleanup, temp file deletion for graceful teardown"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R03-04:
+  task: "R03"
+  id: "R03-04"
+  description: "Integration tests validate cross-server interactions"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "Tests validate AuthZ server issues tokens, IdP handles login/consent, Resource Server validates tokens across server boundaries"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R03-05:
+  task: "R03"
+  id: "R03-05"
+  description: "Integration tests run in parallel safely"
+  category: "testing"
+  priority: "MEDIUM"
+  acceptance_criteria: "Tests use t.Parallel() with isolated databases and port assignments to avoid collisions"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R04: Client Authentication Security Hardening
+# ============================================================
+
+R04-01:
+  task: "R04"
+  id: "R04-01"
+  description: "Client secrets hashed with PBKDF2-HMAC-SHA256"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "Client secrets stored as PBKDF2-HMAC-SHA256 hashes (100k iterations, 32-byte salt, 64-byte output) for FIPS 140-3 compliance"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R04-02:
+  task: "R04"
+  id: "R04-02"
+  description: "Client certificate validation for mTLS"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "Client certificate authentication validates X.509 certificates against trusted CA chain with CRL/OCSP checking"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R04-03:
+  task: "R04"
+  id: "R04-03"
+  description: "Client private_key_jwt authentication"
+  category: "security"
+  priority: "HIGH"
+  acceptance_criteria: "Token endpoint accepts client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer with JWT signed by client's private key"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R04-04:
+  task: "R04"
+  id: "R04-04"
+  description: "Client authentication method enforcement"
+  category: "security"
+  priority: "HIGH"
+  acceptance_criteria: "Token endpoint rejects mismatched authentication methods (e.g., client_secret_post when client configured for tls_client_auth)"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R04-05:
+  task: "R04"
+  id: "R04-05"
+  description: "Security tests validate attack prevention"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "Tests validate replay attack prevention, timing attack resistance, and constant-time comparison for secrets"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R04-06:
+  task: "R04"
+  id: "R04-06"
+  description: "Client secret rotation support"
+  category: "security"
+  priority: "MEDIUM"
+  acceptance_criteria: "Clients support multiple active secrets for zero-downtime rotation with grace period"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R05: Token Lifecycle Management (Refresh, Revocation)
+# ============================================================
+
+R05-01:
+  task: "R05"
+  id: "R05-01"
+  description: "Refresh token issuance with offline_access scope"
+  category: "token_lifecycle"
+  priority: "CRITICAL"
+  acceptance_criteria: "Token endpoint returns refresh_token only when offline_access scope requested and granted"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R05-02:
+  task: "R05"
+  id: "R05-02"
+  description: "Refresh token exchange for new access tokens"
+  category: "token_lifecycle"
+  priority: "CRITICAL"
+  acceptance_criteria: "POST /oauth2/v1/token with grant_type=refresh_token returns new access_token and optionally new refresh_token (rotation)"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R05-03:
+  task: "R05"
+  id: "R05-03"
+  description: "Refresh token rotation for security"
+  category: "security"
+  priority: "HIGH"
+  acceptance_criteria: "Each refresh token use invalidates old token and issues new refresh_token with updated expiration"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R05-04:
+  task: "R05"
+  id: "R05-04"
+  description: "Token revocation endpoint"
+  category: "token_lifecycle"
+  priority: "CRITICAL"
+  acceptance_criteria: "POST /oauth2/v1/revoke accepts token parameter and invalidates access_token or refresh_token immediately"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R05-05:
+  task: "R05"
+  id: "R05-05"
+  description: "Revoked token rejection"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "Resource server rejects requests with revoked access tokens with 401 Unauthorized error"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R05-06:
+  task: "R05"
+  id: "R05-06"
+  description: "Token expiration enforcement"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "Resource server validates JWT exp claim and rejects expired tokens with 401 Unauthorized error"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R06: Authentication Middleware (Session, CSRF, Rate Limiting)
+# ============================================================
+
+R06-01:
+  task: "R06"
+  id: "R06-01"
+  description: "Session middleware stores authenticated user state"
+  category: "authentication"
+  priority: "HIGH"
+  acceptance_criteria: "Session middleware stores user_id, login_time, expires_at in secure session storage after successful login"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R06-02:
+  task: "R06"
+  id: "R06-02"
+  description: "CSRF protection for state-changing requests"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "POST /oidc/v1/login and POST /oidc/v1/consent validate CSRF token from form or header, reject invalid tokens with 403"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R06-03:
+  task: "R06"
+  id: "R06-03"
+  description: "Rate limiting per IP and per client"
+  category: "security"
+  priority: "HIGH"
+  acceptance_criteria: "Rate limiter enforces 100 req/min per IP and 1000 req/min per client_id, returns 429 Too Many Requests when exceeded"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R06-04:
+  task: "R06"
+  id: "R06-04"
+  description: "Session expiration and cleanup"
+  category: "security"
+  priority: "MEDIUM"
+  acceptance_criteria: "Sessions expire after 30 minutes inactivity, background job cleans expired sessions every 5 minutes"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R07: Repository Integration Tests (PostgreSQL + SQLite)
+# ============================================================
+
+R07-01:
+  task: "R07"
+  id: "R07-01"
+  description: "Repository tests run against SQLite"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "All repository tests pass with SQLite in-memory database using modernc.org/sqlite (CGO-free)"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R07-02:
+  task: "R07"
+  id: "R07-02"
+  description: "Repository tests run against PostgreSQL"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "All repository tests pass with PostgreSQL database using pgx driver and transactions"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R07-03:
+  task: "R07"
+  id: "R07-03"
+  description: "Repository tests validate concurrent operations"
+  category: "testing"
+  priority: "MEDIUM"
+  acceptance_criteria: "Tests use t.Parallel() to validate concurrent Create/Update/Delete with isolated test data (UUIDv7 suffixes)"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R07-04:
+  task: "R07"
+  id: "R07-04"
+  description: "Repository tests validate GORM transaction patterns"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "Tests validate context-based transaction propagation, rollback on error, commit on success"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R07-05:
+  task: "R07"
+  id: "R07-05"
+  description: "Repository tests achieve 85%+ coverage"
+  category: "testing"
+  priority: "HIGH"
+  acceptance_criteria: "Repository package code coverage ≥85% for ORM implementations, error paths, edge cases"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R08: OpenAPI Specification Synchronization
+# ============================================================
+
+R08-01:
+  task: "R08"
+  id: "R08-01"
+  description: "OpenAPI specs match actual endpoint implementations"
+  category: "documentation"
+  priority: "HIGH"
+  acceptance_criteria: "api/identity/authz.yaml, idp.yaml, rs.yaml definitions match handler functions for all endpoints"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R08-02:
+  task: "R08"
+  id: "R08-02"
+  description: "Generated client libraries functional"
+  category: "code_generation"
+  priority: "HIGH"
+  acceptance_criteria: "oapi-codegen generates Go client libraries from OpenAPI specs, clients can call all endpoints successfully"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R08-03:
+  task: "R08"
+  id: "R08-03"
+  description: "Swagger UI reflects real API"
+  category: "documentation"
+  priority: "CRITICAL"
+  acceptance_criteria: "Swagger UI at /ui/swagger shows all endpoints with correct request/response schemas, no placeholder data"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R08-04:
+  task: "R08"
+  id: "R08-04"
+  description: "No placeholder or TODO endpoints in specs"
+  category: "documentation"
+  priority: "MEDIUM"
+  acceptance_criteria: "OpenAPI YAML files contain zero TODO comments, all endpoint descriptions complete and accurate"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R08-05:
+  task: "R08"
+  id: "R08-05"
+  description: "OpenAPI schema validation in tests"
+  category: "testing"
+  priority: "MEDIUM"
+  acceptance_criteria: "Tests validate actual HTTP responses match OpenAPI schema definitions using validation library"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R08-06:
+  task: "R08"
+  id: "R08-06"
+  description: "API documentation includes OAuth 2.1 security schemes"
+  category: "documentation"
+  priority: "HIGH"
+  acceptance_criteria: "OpenAPI specs include securitySchemes for Bearer tokens, OAuth2 flows, and security requirements on protected endpoints"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R09: Configuration Normalization (Templates + Validation)
+# ============================================================
+
+R09-01:
+  task: "R09"
+  id: "R09-01"
+  description: "Configuration templates for all deployment scenarios"
+  category: "configuration"
+  priority: "HIGH"
+  acceptance_criteria: "configs/identity/ contains templates for development, testing, production with clear documentation"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R09-02:
+  task: "R09"
+  id: "R09-02"
+  description: "Configuration validation tool"
+  category: "configuration"
+  priority: "MEDIUM"
+  acceptance_criteria: "identity-config-validate command validates YAML configs against schema, reports errors with actionable messages"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R09-03:
+  task: "R09"
+  id: "R09-03"
+  description: "Configuration hot-reload for development"
+  category: "configuration"
+  priority: "LOW"
+  acceptance_criteria: "Development mode watches config file for changes, reloads without restart for rapid iteration"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R09-04:
+  task: "R09"
+  id: "R09-04"
+  description: "Configuration documentation completeness"
+  category: "documentation"
+  priority: "MEDIUM"
+  acceptance_criteria: "Every config field documented in README with purpose, default value, valid range, example usage"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R10: Requirements Validation Automation
+# ============================================================
+
+R10-01:
+  task: "R10"
+  id: "R10-01"
+  description: "Requirements extracted to machine-readable format"
+  category: "validation"
+  priority: "MEDIUM"
+  acceptance_criteria: "requirements.yml contains all acceptance criteria from R01-R11 with IDs, descriptions, priorities"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R10-02:
+  task: "R10"
+  id: "R10-02"
+  description: "Requirements-to-test mapping tool"
+  category: "validation"
+  priority: "MEDIUM"
+  acceptance_criteria: "identity-requirements-check scans test files, maps requirements to test functions, generates coverage report"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R10-03:
+  task: "R10"
+  id: "R10-03"
+  description: "Coverage report shows validation status"
+  category: "reporting"
+  priority: "MEDIUM"
+  acceptance_criteria: "Coverage report shows total requirements, validated count, percentage by priority and category"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R10-04:
+  task: "R10"
+  id: "R10-04"
+  description: "CI/CD integration for requirements validation"
+  category: "ci_cd"
+  priority: "MEDIUM"
+  acceptance_criteria: "GitHub Actions workflow runs requirements check, fails if critical requirements uncovered"
+  test_files: []
+  test_functions: []
+  validated: false
+
+# ============================================================
+# R11: Final Verification and Production Readiness
+# ============================================================
+
+R11-01:
+  task: "R11"
+  id: "R11-01"
+  description: "All integration tests passing"
+  category: "testing"
+  priority: "CRITICAL"
+  acceptance_criteria: "go test ./internal/identity/integration returns zero failures, all subtests pass"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-02:
+  task: "R11"
+  id: "R11-02"
+  description: "Code coverage meets target"
+  category: "testing"
+  priority: "CRITICAL"
+  acceptance_criteria: "Core identity packages achieve ≥85% code coverage (authz, idp, issuer, repository, domain)"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-03:
+  task: "R11"
+  id: "R11-03"
+  description: "Zero CRITICAL/HIGH TODO comments"
+  category: "code_quality"
+  priority: "HIGH"
+  acceptance_criteria: "grep -r 'TODO.*CRITICAL\\|TODO.*HIGH' returns zero matches in identity package"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-04:
+  task: "R11"
+  id: "R11-04"
+  description: "Security scanning clean"
+  category: "security"
+  priority: "CRITICAL"
+  acceptance_criteria: "gosec, govulncheck, and SAST tools report zero CRITICAL/HIGH findings"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-05:
+  task: "R11"
+  id: "R11-05"
+  description: "Performance benchmarks baseline"
+  category: "performance"
+  priority: "MEDIUM"
+  acceptance_criteria: "Benchmarks established for token issuance, validation, refresh with acceptable latency thresholds"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-06:
+  task: "R11"
+  id: "R11-06"
+  description: "Load testing validation"
+  category: "performance"
+  priority: "MEDIUM"
+  acceptance_criteria: "Load tests validate 1000 req/s token issuance, 5000 req/s validation without errors"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-07:
+  task: "R11"
+  id: "R11-07"
+  description: "DAST scanning clean"
+  category: "security"
+  priority: "HIGH"
+  acceptance_criteria: "OWASP ZAP and Nuclei scans report zero CRITICAL/HIGH vulnerabilities"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-08:
+  task: "R11"
+  id: "R11-08"
+  description: "Docker Compose stack healthy"
+  category: "deployment"
+  priority: "HIGH"
+  acceptance_criteria: "docker compose up starts all services, health checks pass, services accessible on documented ports"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-09:
+  task: "R11"
+  id: "R11-09"
+  description: "Production deployment checklist"
+  category: "deployment"
+  priority: "HIGH"
+  acceptance_criteria: "Deployment checklist covers secrets management, TLS configuration, database migrations, monitoring, rollback procedures"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-10:
+  task: "R11"
+  id: "R11-10"
+  description: "Observability configured"
+  category: "operations"
+  priority: "MEDIUM"
+  acceptance_criteria: "OpenTelemetry exports traces/metrics/logs to OTEL collector, Grafana dashboards show key metrics"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-11:
+  task: "R11"
+  id: "R11-11"
+  description: "Documentation completeness"
+  category: "documentation"
+  priority: "HIGH"
+  acceptance_criteria: "README, API docs, deployment guides, troubleshooting runbooks complete and tested"
+  test_files: []
+  test_functions: []
+  validated: false
+
+R11-12:
+  task: "R11"
+  id: "R11-12"
+  description: "Production readiness report approved"
+  category: "governance"
+  priority: "CRITICAL"
+  acceptance_criteria: "R11 postmortem includes go/no-go decision, known issues documented, production deployment approved by stakeholders"
+  test_files: []
+  test_functions: []
+  validated: false
