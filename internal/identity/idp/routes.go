@@ -27,8 +27,8 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oidc := app.Group("/oidc/v1")
 	oidc.Get("/login", s.handleLogin)
 	oidc.Post("/login", s.handleLoginSubmit)
-	oidc.Get("/consent", s.handleConsent)
-	oidc.Post("/consent", s.handleConsentSubmit)
-	oidc.Get("/userinfo", s.handleUserInfo)
-	oidc.Post("/logout", s.handleLogout)
+	oidc.Get("/consent", s.AuthMiddleware(), s.handleConsent)
+	oidc.Post("/consent", s.AuthMiddleware(), s.handleConsentSubmit)
+	oidc.Get("/userinfo", s.TokenAuthMiddleware(), s.handleUserInfo)
+	oidc.Post("/logout", s.AuthMiddleware(), s.handleLogout)
 }
