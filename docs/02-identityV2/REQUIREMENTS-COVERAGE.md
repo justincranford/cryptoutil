@@ -58,10 +58,10 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | R02-07 | HIGH | Integration tests validate OIDC endpoints |
-| R02-03 | CRITICAL | Discovery endpoint exposes OIDC metadata |
-| R02-06 | HIGH | Discovery metadata includes all required OIDC fields |
 | R02-05 | HIGH | UserInfo response includes all required OIDC claims |
 | R02-04 | CRITICAL | JWKS endpoint exposes public signing keys |
+| R02-06 | HIGH | Discovery metadata includes all required OIDC fields |
+| R02-03 | CRITICAL | Discovery endpoint exposes OIDC metadata |
 | R02-01 | CRITICAL | UserInfo endpoint returns authenticated user profile |
 
 ### R03
@@ -74,10 +74,10 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
+| R04-02 | CRITICAL | Client certificate validation for mTLS |
+| R04-05 | HIGH | Security tests validate attack prevention |
 | R04-06 | MEDIUM | Client secret rotation support |
 | R04-03 | HIGH | Client private_key_jwt authentication |
-| R04-05 | HIGH | Security tests validate attack prevention |
-| R04-02 | CRITICAL | Client certificate validation for mTLS |
 
 ### R05
 
@@ -97,12 +97,12 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| R08-05 | MEDIUM | OpenAPI schema validation in tests |
-| R08-02 | HIGH | Generated client libraries functional |
-| R08-03 | CRITICAL | Swagger UI reflects real API |
-| R08-06 | HIGH | API documentation includes OAuth 2.1 security schemes |
-| R08-04 | MEDIUM | No placeholder or TODO endpoints in specs |
 | R08-01 | HIGH | OpenAPI specs match actual endpoint implementations |
+| R08-05 | MEDIUM | OpenAPI schema validation in tests |
+| R08-06 | HIGH | API documentation includes OAuth 2.1 security schemes |
+| R08-02 | HIGH | Generated client libraries functional |
+| R08-04 | MEDIUM | No placeholder or TODO endpoints in specs |
+| R08-03 | CRITICAL | Swagger UI reflects real API |
 
 ### R09
 
@@ -116,24 +116,24 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | R10-02 | MEDIUM | Requirements-to-test mapping tool |
-| R10-03 | MEDIUM | Coverage report shows validation status |
-| R10-01 | MEDIUM | Requirements extracted to machine-readable format |
 | R10-04 | MEDIUM | CI/CD integration for requirements validation |
+| R10-01 | MEDIUM | Requirements extracted to machine-readable format |
+| R10-03 | MEDIUM | Coverage report shows validation status |
 
 ### R11
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| R11-06 | MEDIUM | Load testing validation |
 | R11-12 | CRITICAL | Production readiness report approved |
-| R11-10 | MEDIUM | Observability configured |
 | R11-07 | HIGH | DAST scanning clean |
+| R11-06 | MEDIUM | Load testing validation |
+| R11-09 | HIGH | Production deployment checklist |
 | R11-05 | MEDIUM | Performance benchmarks baseline |
 | R11-04 | CRITICAL | Security scanning clean |
-| R11-11 | HIGH | Documentation completeness |
-| R11-08 | HIGH | Docker Compose stack healthy |
-| R11-09 | HIGH | Production deployment checklist |
 | R11-03 | HIGH | Zero CRITICAL/HIGH TODO comments |
+| R11-08 | HIGH | Docker Compose stack healthy |
+| R11-10 | MEDIUM | Observability configured |
+| R11-11 | HIGH | Documentation completeness |
 
 
 ---
