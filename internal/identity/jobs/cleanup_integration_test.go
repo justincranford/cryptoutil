@@ -24,7 +24,11 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	repoFactory := createTestRepoFactory(t)
 
+	// Run migrations before test execution.
 	ctx := context.Background()
+
+	err := repoFactory.AutoMigrate(ctx)
+	testify.NoError(t, err, "Failed to run migrations")
 
 	// Create expired token (expires in the past).
 	tokenRepo := repoFactory.TokenRepository()
@@ -40,8 +44,9 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		CodeChallenge: "",
 	}
 
-	err := tokenRepo.Create(ctx, expiredToken)
-	testify.NoError(t, err, "Failed to create expired token")
+	if err := tokenRepo.Create(ctx, expiredToken); err != nil {
+		testify.Fail(t, "Failed to create expired token", err.Error())
+	}
 
 	// Create non-expired token (expires in the future).
 	validToken := &cryptoutilIdentityDomain.Token{
@@ -89,7 +94,11 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	repoFactory := createTestRepoFactory(t)
 
+	// Run migrations before test execution.
 	ctx := context.Background()
+
+	err := repoFactory.AutoMigrate(ctx)
+	testify.NoError(t, err, "Failed to run migrations")
 
 	// Create expired session (expires in the past).
 	sessionRepo := repoFactory.SessionRepository()
@@ -105,8 +114,9 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 		Active:             true,
 	}
 
-	err := sessionRepo.Create(ctx, expiredSession)
-	testify.NoError(t, err, "Failed to create expired session")
+	if err := sessionRepo.Create(ctx, expiredSession); err != nil {
+		testify.Fail(t, "Failed to create expired session", err.Error())
+	}
 
 	// Create non-expired session (expires in the future).
 	validSession := &cryptoutilIdentityDomain.Session{
@@ -154,7 +164,13 @@ func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	repoFactory := createTestRepoFactory(t)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	// Run migrations before test execution.
+	ctx := context.Background()
+
+	err := repoFactory.AutoMigrate(ctx)
+	testify.NoError(t, err, "Failed to run migrations")
+
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	// Create cleanup job with very short interval.
@@ -164,7 +180,7 @@ func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 	done := make(chan struct{})
 
 	go func() {
-		job.Start(ctx)
+		job.Start(ctxWithTimeout)
 		close(done)
 	}()
 
@@ -194,7 +210,11 @@ func TestCleanupJob_Integration_HealthCheck(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	repoFactory := createTestRepoFactory(t)
 
+	// Run migrations before test execution.
 	ctx := context.Background()
+
+	err := repoFactory.AutoMigrate(ctx)
+	testify.NoError(t, err, "Failed to run migrations")
 
 	// Create cleanup job with 1 hour interval.
 	job := NewCleanupJob(repoFactory, logger, 1*time.Hour)
