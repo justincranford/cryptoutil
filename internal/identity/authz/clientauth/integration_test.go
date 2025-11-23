@@ -39,6 +39,8 @@ func setupTestRepository(t *testing.T) (*cryptoutilIdentityRepository.Repository
 	return repoFactory, ctx
 }
 
+// Validates requirements:
+// - R04-04: Client authentication method enforcement
 func TestRegistry_AllAuthMethods(t *testing.T) {
 	t.Parallel()
 
