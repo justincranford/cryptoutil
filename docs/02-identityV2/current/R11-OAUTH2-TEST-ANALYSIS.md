@@ -1,7 +1,7 @@
 # R11 OAuth2 Integration Test Analysis
 
-**Date**: 2025-11-23  
-**Test**: `TestOAuth2AuthorizationCodeFlow`  
+**Date**: 2025-11-23
+**Test**: `TestOAuth2AuthorizationCodeFlow`
 **Status**: EXPECTED BEHAVIOR - Test design issue, not code bug
 
 ---
@@ -98,7 +98,7 @@ code := redirectURL.Query().Get("code")
 testify.NotEmpty(t, code, "Authorization code should be present")
 ```
 
-**What it gets**: `/oidc/v1/login?request_id=...` (no code parameter yet)  
+**What it gets**: `/oidc/v1/login?request_id=...` (no code parameter yet)
 **What it expects**: `<redirect_uri>?code=...&state=...` (code after full flow)
 
 **Fix Required**: Either refactor test to follow full flow OR document as known limitation and skip test.

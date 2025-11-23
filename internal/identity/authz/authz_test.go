@@ -15,6 +15,8 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
+// Validates requirements:
+// - R01-01: /oauth2/v1/authorize stores authorization request and redirects to login
 func TestAuthorizationRequestStore_CRUD(t *testing.T) {
 	t.Parallel()
 
@@ -101,6 +103,8 @@ func TestAuthorizationRequestStore_Expiration(t *testing.T) {
 	require.Equal(t, requestID1, retrievedByCode.RequestID)
 }
 
+// Validates requirements:
+// - R01-03: Consent approval generates authorization code with user context
 func TestGenerateAuthorizationCode(t *testing.T) {
 	t.Parallel()
 
@@ -122,6 +126,8 @@ func TestGenerateAuthorizationCode(t *testing.T) {
 	require.Greater(t, len(code), 40) // Base64 URL encoding produces 44 characters for 32 bytes.
 }
 
+// Validates requirements:
+// - R01-05: Authorization code single-use enforcement
 func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 	t.Parallel()
 

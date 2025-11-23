@@ -1,7 +1,7 @@
 # R11 Test Failure Analysis
 
-**Date**: 2025-11-23  
-**Task**: R11 Final Verification and Production Readiness  
+**Date**: 2025-11-23
+**Task**: R11 Final Verification and Production Readiness
 **Status**: IN PROGRESS - Categorizing test failures
 
 ## Executive Summary
@@ -30,7 +30,7 @@ Initial full test suite run revealed **16 test failures** across 6 packages out 
 
 ### Category 1: Template Loading Failures (HIGH PRIORITY)
 
-**Impact**: IdP service cannot start without HTML templates  
+**Impact**: IdP service cannot start without HTML templates
 **Packages**: `internal/identity/idp`, `internal/identity/integration`
 
 **Root Cause**: Hardcoded template path `internal/identity/idp/templates/*.html` breaks when running from different working directories.
@@ -55,7 +55,7 @@ panic: html/template: pattern matches no files: `internal/identity/idp/templates
 
 ### Category 2: Docker Compose Infrastructure Failures (MEDIUM PRIORITY)
 
-**Impact**: Demo orchestration tests cannot run (not production code)  
+**Impact**: Demo orchestration tests cannot run (not production code)
 **Package**: `internal/identity/demo`
 
 **Root Cause**: Missing or incorrect path to `identity-demo.yml` compose file. Tests try multiple paths:
@@ -83,7 +83,7 @@ open C:\Dev\Projects\cryptoutil\internal\deployments\compose\identity-demo.yml: 
 
 ### Category 3: Database Table Not Found Failures (MEDIUM PRIORITY)
 
-**Impact**: Cleanup job integration tests fail  
+**Impact**: Cleanup job integration tests fail
 **Package**: `internal/identity/jobs`
 
 **Root Cause**: Migrations not running in test setup, causing missing `tokens` and `sessions` tables.
@@ -109,7 +109,7 @@ time=2025-11-23T15:21:49.336-05:00 level=ERROR msg="Failed to cleanup expired to
 
 ### Category 4: Rate Limiter IP Extraction Failures (HIGH PRIORITY)
 
-**Impact**: Rate limiting by IP cannot function  
+**Impact**: Rate limiting by IP cannot function
 **Package**: `internal/identity/idp/userauth`
 
 **Root Cause**: `extractIPFromContext` function unable to extract IP from test context. Likely Fiber-specific context keys not being set in test setup.
@@ -141,7 +141,7 @@ rate_limiter_test.go:423:
 
 ### Category 5: Step-Up Authentication Nil Pointer Dereference (HIGH PRIORITY)
 
-**Impact**: Step-up authentication logic crashes  
+**Impact**: Step-up authentication logic crashes
 **Package**: `internal/identity/idp/userauth`
 
 **Root Cause**: Nil pointer dereference in `StepUpAuthenticator.EvaluateStepUp` method.
@@ -170,7 +170,7 @@ cryptoutil/internal/identity/idp/userauth.(*StepUpAuthenticator).EvaluateStepUp(
 
 ### Category 6: Process Manager Failures (LOW PRIORITY)
 
-**Impact**: Background process management tests fail on Windows  
+**Impact**: Background process management tests fail on Windows
 **Package**: `internal/identity/process`
 
 **Root Cause**: Platform-specific issues with `sleep` command (Unix) vs `timeout` (Windows) or PowerShell `Start-Sleep`.
@@ -199,7 +199,7 @@ manager_test.go:80:
 
 ### Category 7: Mock Delivery Service Return Values (LOW PRIORITY)
 
-**Impact**: Mock services not returning expected values  
+**Impact**: Mock services not returning expected values
 **Package**: `internal/identity/idp/userauth/mocks`
 
 **Root Cause**: Mock implementations returning 0 instead of expected timestamps.
@@ -228,7 +228,7 @@ delivery_service_test.go:36:
 
 ### Category 8: Health Check Poller Context Error (LOW PRIORITY)
 
-**Impact**: Poller test expecting exact error type  
+**Impact**: Poller test expecting exact error type
 **Package**: `internal/identity/healthcheck`
 
 **Root Cause**: Test expects `context.Canceled` error directly, but gets wrapped error.
@@ -256,7 +256,7 @@ poller_test.go:119:
 
 ### Category 9: Resource Server Health Check (LOW PRIORITY)
 
-**Impact**: RS health endpoint returns 404 instead of 200  
+**Impact**: RS health endpoint returns 404 instead of 200
 **Package**: `internal/identity/rs`
 
 **Root Cause**: Likely routing issue or missing `/health` endpoint registration.
@@ -285,7 +285,7 @@ rs_contract_test.go:85:
 
 ### Category 10: E2E Test Failures (LOW PRIORITY)
 
-**Impact**: End-to-end test infrastructure failing  
+**Impact**: End-to-end test infrastructure failing
 **Package**: `internal/identity/test/e2e`
 
 **Root Cause**: Mock services failing to start due to missing TLS certificates.
@@ -311,7 +311,7 @@ rs_contract_test.go:85:
 
 ### Category 11: Load Test UUID Parsing (LOW PRIORITY)
 
-**Impact**: MFA stress test UUID generation issue  
+**Impact**: MFA stress test UUID generation issue
 **Package**: `internal/identity/test/load`
 
 **Root Cause**: UUID string generation producing invalid length (51 chars instead of 36).

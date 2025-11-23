@@ -48,7 +48,6 @@ func TestUserRepository_CRUD(t *testing.T) {
 
 	db := cryptoutilIdentityTestTestutils.SetupTestDatabase(t)
 
-
 	userRepo := cryptoutilIdentityORM.NewUserRepository(db)
 
 	tests := []struct {
@@ -60,7 +59,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 			operation: func(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					Sub:               "test-user-" + googleUuid.Must(googleUuid.NewV7()).String(),
-					Email: "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
+					Email:             "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
 					Name:              "Test User",
 					PreferredUsername: "testuser-" + googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -75,7 +74,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 			operation: func(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					Sub:               "test-user-" + googleUuid.Must(googleUuid.NewV7()).String(),
-					Email: "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
+					Email:             "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
 					Name:              "Test User",
 					PreferredUsername: "testuser-" + googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -93,7 +92,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 			operation: func(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					Sub:               "test-user-" + googleUuid.Must(googleUuid.NewV7()).String(),
-					Email: "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
+					Email:             "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
 					Name:              "Test User",
 					PreferredUsername: "testuser-" + googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -110,7 +109,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 			operation: func(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					Sub:               "test-user-" + googleUuid.Must(googleUuid.NewV7()).String(),
-					Email: "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
+					Email:             "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
 					Name:              "Test User",
 					PreferredUsername: "testuser-" + googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -131,7 +130,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 			operation: func(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					Sub:               "test-user-" + googleUuid.Must(googleUuid.NewV7()).String(),
-					Email: "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
+					Email:             "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
 					Name:              "Test User",
 					PreferredUsername: "testuser-" + googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -173,7 +172,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 			operation: func(t *testing.T) {
 				user := &cryptoutilIdentityDomain.User{
 					Sub:               "test-user-" + googleUuid.Must(googleUuid.NewV7()).String(),
-					Email: "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
+					Email:             "test-" + googleUuid.Must(googleUuid.NewV7()).String() + "@example.com",
 					Name:              "Test User",
 					PreferredUsername: "testuser-" + googleUuid.Must(googleUuid.NewV7()).String(),
 				}
@@ -202,7 +201,6 @@ func TestClientRepository_CRUD(t *testing.T) {
 	ctx := context.Background()
 
 	db := cryptoutilIdentityTestTestutils.SetupTestDatabase(t)
-
 
 	clientRepo := cryptoutilIdentityORM.NewClientRepository(db)
 
@@ -349,7 +347,6 @@ func TestTokenRepository_CRUD(t *testing.T) {
 	ctx := context.Background()
 
 	db := cryptoutilIdentityTestTestutils.SetupTestDatabase(t)
-
 
 	tokenRepo := cryptoutilIdentityORM.NewTokenRepository(db)
 	clientRepo := cryptoutilIdentityORM.NewClientRepository(db)
@@ -538,7 +535,6 @@ func TestSessionRepository_CRUD(t *testing.T) {
 	ctx := context.Background()
 
 	db := cryptoutilIdentityTestTestutils.SetupTestDatabase(t)
-
 
 	sessionRepo := cryptoutilIdentityORM.NewSessionRepository(db)
 	userRepo := cryptoutilIdentityORM.NewUserRepository(db)

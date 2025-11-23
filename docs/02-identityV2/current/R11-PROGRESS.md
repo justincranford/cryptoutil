@@ -1,7 +1,7 @@
 # R11 Test Fixing Progress Summary
 
-**Date**: 2025-11-23  
-**Session**: Copilot instruction fixes + R11 test remediation  
+**Date**: 2025-11-23
+**Session**: Copilot instruction fixes + R11 test remediation
 **Token Usage**: 92k/950k (9.7% used, 90.3% remaining)
 
 ---
@@ -88,8 +88,8 @@
 
 ## Progress Summary
 
-**Initial State**: 16 test failures across 6 packages  
-**Current State**: 11 test failures (estimate - need full test run to confirm)  
+**Initial State**: 16 test failures across 6 packages
+**Current State**: 11 test failures (estimate - need full test run to confirm)
 **Fixed**: 5+ failures (IP extraction: 7 subtests, cleanup jobs: 4 tests)
 
 **Categories Fixed**: ✅ 3/11 categories
