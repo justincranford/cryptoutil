@@ -12,7 +12,7 @@
 ### Task CQ1: Address TODO Comments in Codebase
 - **Description**: Multiple TODO/FIXME comments found throughout codebase requiring attention
 - **Current TODO Inventory (Excluding Identity Subsystem)**:
-  - `internal/common/pool/pool.go:40` - "TODO change generateCounter and getCounter from uint64 to telemetryService.MetricsProvider.Counter()"
+- `internal/common/pool/pool.go:40` - COMPLETED: Changed generateCounter and getCounter to use telemetry Int64Counter metrics alongside uint64 for logic
   - `internal/common/crypto/jose/jws_message_util.go:170` - "TODO support multiple signatures"
   - `internal/server/application/application_listener.go:630` - "TODO: Add actual dependency health checks here"
   - `internal/server/application/application_listener.go:710` - "TODO Add more readiness checks as needed"
