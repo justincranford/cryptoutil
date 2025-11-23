@@ -5,6 +5,7 @@
 package clientauth
 
 import (
+	"context"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // CertificateValidator defines the interface for certificate validation.
@@ -25,15 +27,18 @@ type CertificateValidator interface {
 type CACertificateValidator struct {
 	// trustedCAs contains the trusted Certificate Authorities
 	trustedCAs *x509.CertPool
-	// crlCache caches Certificate Revocation Lists
+	// crlCache caches Certificate Revocation Lists (deprecated - use revocationChecker instead)
 	crlCache map[string]*pkix.CertificateList
+	// revocationChecker handles CRL/OCSP revocation checking
+	revocationChecker RevocationChecker
 }
 
 // NewCACertificateValidator creates a new CA certificate validator.
-func NewCACertificateValidator(trustedCAs *x509.CertPool) *CACertificateValidator {
+func NewCACertificateValidator(trustedCAs *x509.CertPool, revocationChecker RevocationChecker) *CACertificateValidator {
 	return &CACertificateValidator{
-		trustedCAs: trustedCAs,
-		crlCache:   make(map[string]*pkix.CertificateList),
+		trustedCAs:        trustedCAs,
+		crlCache:          make(map[string]*pkix.CertificateList),
+		revocationChecker: revocationChecker,
 	}
 }
 
@@ -80,19 +85,31 @@ func (v *CACertificateValidator) ValidateCertificate(clientCert *x509.Certificat
 		return fmt.Errorf("no valid certificate chains found")
 	}
 
-	// Check revocation status (simplified - in production, check CRL/OCSP)
-	if v.IsRevoked(clientCert.SerialNumber) {
-		return fmt.Errorf("certificate has been revoked")
+	// Check revocation status using CRL/OCSP
+	if v.revocationChecker != nil {
+		// Extract issuer certificate from chain for revocation checking.
+		var issuer *x509.Certificate
+		if len(chains) > 0 && len(chains[0]) > 1 {
+			issuer = chains[0][1] // Issuer is second cert in first valid chain.
+		}
+
+		if issuer != nil {
+			// Create context with timeout for revocation check.
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilIdentityMagic.DefaultRevocationTimeout)
+			defer cancel()
+
+			if err := v.revocationChecker.CheckRevocation(ctx, clientCert, issuer); err != nil {
+				return fmt.Errorf("certificate revocation check failed: %w", err)
+			}
+		}
 	}
 
 	return nil
 }
 
 // IsRevoked checks if a certificate has been revoked.
-// This is a simplified implementation - in production, this would check CRLs or OCSP.
+// Deprecated: Use revocationChecker.CheckRevocation instead.
 func (v *CACertificateValidator) IsRevoked(serialNumber *big.Int) bool {
-	// TODO: Implement CRL/OCSP checking
-	// For now, return false (not revoked)
 	return false
 }
 

@@ -7,6 +7,7 @@ package clientauth
 import (
 	"crypto/x509"
 
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
@@ -26,7 +27,15 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory) *R
 		systemCertPool = x509.NewCertPool()
 	}
 
-	caValidator := NewCACertificateValidator(systemCertPool)
+	// Create combined CRL/OCSP revocation checker
+	// OCSP timeout: 5s, CRL timeout: 10s, CRL cache: 1 hour
+	revocationChecker := NewCombinedRevocationChecker(
+		cryptoutilIdentityMagic.DefaultOCSPTimeout,
+		cryptoutilIdentityMagic.DefaultCRLTimeout,
+		cryptoutilIdentityMagic.DefaultCRLCacheMaxAge,
+	)
+
+	caValidator := NewCACertificateValidator(systemCertPool, revocationChecker)
 	// For self-signed, start with empty pinned certificates (would be configured per deployment)
 	selfSignedValidator := NewSelfSignedCertificateValidator(make(map[string]*x509.Certificate))
 

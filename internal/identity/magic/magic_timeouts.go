@@ -138,3 +138,11 @@ const (
 	AuthMethodBiometric        = "biometric"         // Biometric authentication method.
 	AuthMethodUsernamePassword = "username_password" // Username/password authentication method.
 )
+
+// Certificate revocation checking timeouts.
+const (
+	DefaultOCSPTimeout       = 5 * time.Second  // Default OCSP request timeout.
+	DefaultCRLTimeout        = 10 * time.Second // Default CRL download timeout.
+	DefaultCRLCacheMaxAge    = 1 * time.Hour    // Default CRL cache max age.
+	DefaultRevocationTimeout = 10 * time.Second // Default revocation check timeout (certificate validator).
+)
