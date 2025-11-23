@@ -29,7 +29,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 
 	// Parse Bearer token.
 	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || parts[0] != "Bearer" {
+	if len(parts) != 2 || parts[0] != cryptoutilIdentityMagic.AuthorizationBearer {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
 			"error_description": "Invalid Authorization header format",
