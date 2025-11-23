@@ -52,6 +52,10 @@ const (
 )
 
 // testServers holds all three identity servers for integration testing.
+//
+// Validates requirements:
+// - R11-01: All integration tests passing
+// - R11-02: Code coverage meets target (≥85%)
 type testServers struct {
 	authzServer *cryptoutilIdentityServer.AuthZServer
 	idpServer   *cryptoutilIdentityServer.IDPServer
