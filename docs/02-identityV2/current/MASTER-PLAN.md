@@ -64,6 +64,62 @@ Read this section before starting work.
 **Stop Conditions**: ONLY when tokens ≥950k OR explicit user command
 **Not Stop Conditions**: Time elapsed, tasks complete, commits made
 
+#### Token Budget Math - CRITICAL
+
+YOU MUST CALCULATE PERCENTAGE CORRECTLY
+
+**Formula**: `Percentage Used = (Tokens Used / 1,000,000) × 100`
+
+**Examples**:
+
+- 10,000 used → (10,000 / 1,000,000) × 100 = 1.0% used → KEEP WORKING ✅
+- 100,000 used → (100,000 / 1,000,000) × 100 = 10.0% used → KEEP WORKING ✅
+- 500,000 used → (500,000 / 1,000,000) × 100 = 50.0% used → KEEP WORKING ✅
+- 940,000 used → (940,000 / 1,000,000) × 100 = 94.0% used → KEEP WORKING ✅
+- 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used → STOP ❌
+
+**NEVER STOP BECAUSE**:
+
+- "Token usage seems high" - Only stop at 950k tokens (95%), not before
+- "Good progress made" - Progress is NOT a stop condition
+
+#### FIPS 140-3 Compliance - CRITICAL
+
+ONLY use NIST FIPS 140-3 approved algorithms
+
+**BANNED Algorithms** (NEVER use):
+
+- ❌ **bcrypt** - NOT FIPS-approved, use PBKDF2-HMAC-SHA256 instead
+- ❌ **scrypt** - NOT FIPS-approved, use PBKDF2-HMAC-SHA256 instead
+- ❌ **Argon2** - NOT FIPS-approved, use PBKDF2-HMAC-SHA256 instead
+- ❌ **MD5** - NOT FIPS-approved, use SHA-256 or SHA-512 instead
+- ❌ **SHA-1** - NOT FIPS-approved, use SHA-256 or SHA-512 instead
+
+**Password Hashing**: MUST use PBKDF2-HMAC-SHA256 (FIPS-approved)
+
+#### Test Value Policy - CRITICAL
+
+NEVER Use Hardcoded Test Values
+
+**Option A**: Magic values from `internal/identity/magic` package
+
+```go
+username: identityMagic.TestUsername
+```
+
+**Option B**: Random values generated at runtime
+
+```go
+id := googleUuid.NewV7()  // Generate once
+sessionID: id,            // Reuse in test
+```
+
+**NEVER**:
+
+- ❌ Hardcoded UUIDs: `googleUuid.MustParse("123e4567-...")`
+- ❌ Hardcoded strings: `username := "testuser123"`
+- ❌ Generating twice: `expected: googleUuid.NewV7(), actual: googleUuid.NewV7()` (different values!)
+
 ### Continuous Work Pattern
 
 ```text

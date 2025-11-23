@@ -61,14 +61,44 @@
 - **CRITICAL**: Analysis documents are NOT deliverables - they are preparation for IMMEDIATE implementation
 - **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
 
-**Token Budget Awareness**
-- Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
-- Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
-- STOP only when: tokens used ≥950k OR explicit user instruction to stop
-- **CRITICAL**: "All tasks complete" NEVER means stop - always check docs/##-/*.md for additional work
-- After clearing manage_todo_list, IMMEDIATELY check files for next task to work on
-- Example: 58k used, 942k remaining = KEEP WORKING (only 5.8% used) ✅
-- Example: Todo list empty but 70k used, 930k remaining = CHECK docs/##-/*.md files for more work ✅
+**Token Budget Awareness - MATH RULES**
+
+**CRITICAL: YOU MUST CALCULATE PERCENTAGE CORRECTLY**
+- **Target**: 950,000 tokens used (95% of 1,000,000 budget)
+- **Stop threshold**: 950,000 tokens used
+- **Remaining at stop**: 50,000 tokens (5% of budget)
+
+**PERCENTAGE CALCULATION FORMULA**:
+```
+Percentage Used = (Tokens Used / 1,000,000) × 100
+Example: 102,000 used → (102,000 / 1,000,000) × 100 = 10.2% used
+Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
+```
+
+**WHEN TO CONTINUE WORKING** (tokens used < 950k):
+- 10,000 used (1% used) → 990,000 remaining (99% remaining) = KEEP WORKING ✅
+- 50,000 used (5% used) → 950,000 remaining (95% remaining) = KEEP WORKING ✅
+- 100,000 used (10% used) → 900,000 remaining (90% remaining) = KEEP WORKING ✅
+- 200,000 used (20% used) → 800,000 remaining (80% remaining) = KEEP WORKING ✅
+- 500,000 used (50% used) → 500,000 remaining (50% remaining) = KEEP WORKING ✅
+- 800,000 used (80% used) → 200,000 remaining (20% remaining) = KEEP WORKING ✅
+- 900,000 used (90% used) → 100,000 remaining (10% remaining) = KEEP WORKING ✅
+- 940,000 used (94% used) → 60,000 remaining (6% remaining) = KEEP WORKING ✅
+
+**WHEN TO STOP** (tokens used ≥ 950k):
+- 950,000 used (95% used) → 50,000 remaining (5% remaining) = STOP ❌
+- 960,000 used (96% used) → 40,000 remaining (4% remaining) = STOP ❌
+- 1,000,000 used (100% used) → 0 remaining (0% remaining) = STOP ❌
+
+**STOP CONDITIONS** (only these two):
+1. Tokens used ≥ 950,000 (95% threshold reached)
+2. User explicitly instructs you to stop
+
+**NEVER STOP BECAUSE**:
+- "All tasks complete" - ALWAYS check docs/##-/*.md for more work
+- "Todo list empty" - ALWAYS check project files for next task
+- "I've made good progress" - Progress is NOT a stop condition
+- "Token usage seems high" - Only stop at 950k tokens, not before
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
