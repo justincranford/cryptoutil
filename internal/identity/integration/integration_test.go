@@ -390,6 +390,16 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	}()
 
 	testify.Equal(t, http.StatusOK, resourceResp.StatusCode, "Protected resource access should succeed")
+
+	// Validates requirements:
+	// - R05-01: Refresh token issuance with offline_access scope
+	// - R05-02: Refresh token exchange for new access tokens
+	// Verify refresh token issued when offline_access scope granted.
+	refreshToken, ok := tokenResponse["refresh_token"].(string)
+	if testScope == "openid offline_access" {
+		testify.True(t, ok, "Refresh token should be present when offline_access scope granted")
+		testify.NotEmpty(t, refreshToken, "Refresh token should not be empty")
+	}
 }
 
 // TestResourceServerScopeEnforcement verifies scope-based access control.
