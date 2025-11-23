@@ -6,6 +6,7 @@ package jobs
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -14,8 +15,19 @@ import (
 
 const (
 	defaultCleanupInterval = 1 * time.Hour
-	defaultTokenExpiration = 24 * time.Hour
 )
+
+// CleanupJobMetrics tracks cleanup job execution metrics.
+type CleanupJobMetrics struct {
+	LastRunTime        time.Time // Last time the cleanup job ran successfully.
+	TokensDeleted      int       // Total tokens deleted by last run.
+	SessionsDeleted    int       // Total sessions deleted by last run.
+	ErrorCount         int       // Number of errors encountered.
+	LastError          error     // Last error encountered.
+	TotalRunCount      int       // Total number of successful runs.
+	TotalTokensDeleted int       // Cumulative tokens deleted.
+	TotalSessionsDel   int       // Cumulative sessions deleted.
+}
 
 // CleanupJob handles periodic cleanup of expired tokens and sessions.
 type CleanupJob struct {
@@ -23,6 +35,7 @@ type CleanupJob struct {
 	logger      *slog.Logger
 	interval    time.Duration
 	stopChan    chan struct{}
+	metrics     *CleanupJobMetrics
 }
 
 // NewCleanupJob creates a new cleanup job.
@@ -36,6 +49,7 @@ func NewCleanupJob(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, 
 		logger:      logger,
 		interval:    interval,
 		stopChan:    make(chan struct{}),
+		metrics:     &CleanupJobMetrics{},
 	}
 }
 
@@ -74,55 +88,79 @@ func (j *CleanupJob) Stop() {
 func (j *CleanupJob) cleanup(ctx context.Context) {
 	j.logger.Debug("Running cleanup tasks")
 
+	now := time.Now()
+
 	// Cleanup expired tokens.
-	if err := j.cleanupExpiredTokens(ctx); err != nil {
+	tokensDeleted, err := j.cleanupExpiredTokens(ctx, now)
+	if err != nil {
 		j.logger.Error("Failed to cleanup expired tokens", "error", err)
+		j.metrics.ErrorCount++
+		j.metrics.LastError = fmt.Errorf("token cleanup failed: %w", err)
+
+		return
 	}
 
 	// Cleanup expired sessions.
-	if err := j.cleanupExpiredSessions(ctx); err != nil {
+	sessionsDeleted, err := j.cleanupExpiredSessions(ctx, now)
+	if err != nil {
 		j.logger.Error("Failed to cleanup expired sessions", "error", err)
+		j.metrics.ErrorCount++
+		j.metrics.LastError = fmt.Errorf("session cleanup failed: %w", err)
+
+		return
 	}
 
-	j.logger.Debug("Cleanup tasks completed")
+	// Update metrics on successful cleanup.
+	j.metrics.LastRunTime = now
+	j.metrics.TokensDeleted = tokensDeleted
+	j.metrics.SessionsDeleted = sessionsDeleted
+	j.metrics.TotalRunCount++
+	j.metrics.TotalTokensDeleted += tokensDeleted
+	j.metrics.TotalSessionsDel += sessionsDeleted
+
+	j.logger.Debug("Cleanup tasks completed", "tokens_deleted", tokensDeleted, "sessions_deleted", sessionsDeleted)
 }
 
 // cleanupExpiredTokens removes expired access tokens from the database.
-func (j *CleanupJob) cleanupExpiredTokens(ctx context.Context) error {
+func (j *CleanupJob) cleanupExpiredTokens(ctx context.Context, beforeTime time.Time) (int, error) {
 	tokenRepo := j.repoFactory.TokenRepository()
 
-	// Calculate expiration cutoff time.
-	cutoffTime := time.Now().Add(-defaultTokenExpiration)
+	j.logger.Debug("Cleaning up expired tokens", "before_time", beforeTime)
 
-	j.logger.Debug("Cleaning up expired tokens", "cutoff_time", cutoffTime)
+	// Delete all tokens expired before the given time.
+	deletedCount, err := tokenRepo.DeleteExpiredBefore(ctx, beforeTime)
+	if err != nil {
+		return 0, fmt.Errorf("failed to delete expired tokens: %w", err)
+	}
 
-	// In a real implementation, this would call a repository method to delete expired tokens.
-	// For now, we log the operation.
-	_ = tokenRepo
-	_ = cutoffTime
-
-	// TODO: Implement actual token cleanup when TokenRepository has DeleteExpiredBefore method.
-	// return tokenRepo.DeleteExpiredBefore(ctx, cutoffTime)
-
-	return nil
+	return deletedCount, nil
 }
 
 // cleanupExpiredSessions removes expired sessions from the database.
-func (j *CleanupJob) cleanupExpiredSessions(ctx context.Context) error {
+func (j *CleanupJob) cleanupExpiredSessions(ctx context.Context, beforeTime time.Time) (int, error) {
 	sessionRepo := j.repoFactory.SessionRepository()
 
-	// Calculate expiration cutoff time.
-	cutoffTime := time.Now().Add(-defaultTokenExpiration)
+	j.logger.Debug("Cleaning up expired sessions", "before_time", beforeTime)
 
-	j.logger.Debug("Cleaning up expired sessions", "cutoff_time", cutoffTime)
+	// Delete all sessions expired before the given time.
+	deletedCount, err := sessionRepo.DeleteExpiredBefore(ctx, beforeTime)
+	if err != nil {
+		return 0, fmt.Errorf("failed to delete expired sessions: %w", err)
+	}
 
-	// In a real implementation, this would call a repository method to delete expired sessions.
-	// For now, we log the operation.
-	_ = sessionRepo
-	_ = cutoffTime
+	return deletedCount, nil
+}
 
-	// TODO: Implement actual session cleanup when SessionRepository has DeleteExpiredBefore method.
-	// return sessionRepo.DeleteExpiredBefore(ctx, cutoffTime)
+// GetMetrics returns the current cleanup job metrics.
+func (j *CleanupJob) GetMetrics() CleanupJobMetrics {
+	return *j.metrics
+}
 
-	return nil
+// IsHealthy checks if the cleanup job is running successfully.
+func (j *CleanupJob) IsHealthy() bool {
+	// Job is healthy if last run was within 2x the interval.
+	maxAge := j.interval * 2
+	timeSinceLastRun := time.Since(j.metrics.LastRunTime)
+
+	return timeSinceLastRun < maxAge && j.metrics.LastError == nil
 }
