@@ -22,8 +22,10 @@ import (
 
 type ValueGenPool[T any] struct {
 	poolStartTime               time.Time               // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
-	generateCounter             uint64                  // needed to enforce maxLifetimeValues   in N workers amd 1 closeChannelsThread thread, and log metrics
-	getCounter                  uint64                  // log metrics for how many times Get() was called successfully
+	generateCounter             uint64                  // needed to enforce maxLifetimeValues   in N workers amd 1 closeChannelsThread thread
+	getCounter                  uint64                  // needed to enforce logic, but metrics use telemetry counters
+	generateCounterMetric       metric.Int64Counter     // telemetry counter for how many times Generate() was called
+	getCounterMetric            metric.Int64Counter     // telemetry counter for how many times Get() was called successfully
 	cfg                         *ValueGenPoolConfig[T]  // container for all configuration parameters, including telemetryService and poolName
 	stopGeneratingCtx           context.Context         // Exposes Done() signal to N workers, 1 closeChannelsThread, and M getters
 	stopGeneratingFunction      context.CancelFunc      // Cancel() invokes this to raise the Done() signal
@@ -37,7 +39,7 @@ type ValueGenPool[T any] struct {
 
 type ValueGenPoolConfig[T any] struct {
 	ctx                 context.Context
-	telemetryService    *cryptoutilTelemetry.TelemetryService // TODO change generateCounter and getCounter from uint64 to telemetryService.MetricsProvider.Counter()
+	telemetryService    *cryptoutilTelemetry.TelemetryService // telemetry service for metrics and logging
 	poolName            string
 	numWorkers          uint32
 	poolSize            uint32
@@ -88,9 +90,23 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 		return nil, fmt.Errorf("failed to create generate metric: %w", err)
 	}
 
+	getCounterMetric, err := meter.Int64Counter("cryptoutil.pool.get.count")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create get counter metric: %w", err)
+	}
+
+	generateCounterMetric, err := meter.Int64Counter("cryptoutil.pool.generate.count")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create generate counter metric: %w", err)
+	}
+
 	stopGeneratingCtx, stopGeneratingFunction := context.WithCancel(cfg.ctx)
 	valuePool := &ValueGenPool[T]{
 		poolStartTime:               poolStartTime,
+		generateCounter:             0,
+		getCounter:                  0,
+		generateCounterMetric:       generateCounterMetric,
+		getCounterMetric:            getCounterMetric,
 		cfg:                         cfg,
 		stopGeneratingCtx:           stopGeneratingCtx,
 		stopGeneratingFunction:      stopGeneratingFunction,
@@ -161,6 +177,7 @@ func (pool *ValueGenPool[T]) Get() T {
 		}
 
 		getCounter := atomic.AddUint64(&pool.getCounter, 1)
+		pool.getCounterMetric.Add(pool.cfg.ctx, 1)
 
 		defer func() {
 			if pool.cfg.verbose {
@@ -299,6 +316,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 
 	// permission granted, worker is promising to generate a value if time not exceeded, of if this counter value doesn't exceed the generate limit
 	generateCounter := atomic.AddUint64(&pool.generateCounter, 1)
+	pool.generateCounterMetric.Add(pool.cfg.ctx, 1)
 
 	if pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration {
 		if pool.cfg.verbose {
