@@ -1,8 +1,8 @@
 # Identity V2 Master Remediation Plan
 
 **Plan Date**: November 23, 2025
-**Status**: ACTIVE - 7/11 tasks complete (64%), 4 tasks remaining
-**Progress**: Foundation COMPLETE (R01-R07), Quality/Verification remaining (R08-R11)
+**Status**: ACTIVE - 8/11 tasks complete (73%), 3 tasks remaining
+**Progress**: Foundation COMPLETE (R01-R07), Config verified (R09), Quality/Verification remaining (R08, R10-R11)
 **Goal**: Production-ready OAuth 2.1 / OIDC identity platform
 
 ---
@@ -11,15 +11,15 @@
 
 ### Current Reality (Updated 2025-11-23)
 
-**MAJOR PROGRESS**: Foundation remediation COMPLETE - OAuth 2.1 authorization code flow functional, repository layer validated, token lifecycle operational.
+**MAJOR PROGRESS**: Foundation remediation COMPLETE - OAuth 2.1 authorization code flow functional, repository layer validated, token lifecycle operational, resource server scope enforcement validated.
 
 | Status | Tasks | Percentage |
 |--------|-------|------------|
-| ✅ Complete & Verified | 7/11 | 64% |
+| ✅ Complete & Verified | 8/11 | 73% |
 | ⏳ In Progress | 0/11 | 0% |
-| 🔜 Pending | 4/11 | 36% |
+| 🔜 Pending | 3/11 | 27% |
 
-**Completed Tasks** (R01-R07):
+**Completed Tasks** (R01-R07, R09):
 
 - ✅ R01: OAuth 2.1 Authorization Code Flow (100% COMPLETE)
 - ✅ R02: OIDC Core Endpoints (100% COMPLETE)
@@ -28,11 +28,11 @@
 - ✅ R05: Token Lifecycle Management (100% COMPLETE)
 - ✅ R06: Authentication Middleware (100% COMPLETE)
 - ✅ R07: Repository Integration Tests (100% COMPLETE)
+- ✅ R09: Configuration Normalization (100% COMPLETE)
 
-**Remaining Tasks** (R08-R11):
+**Remaining Tasks** (R08, R10-R11):
 
 - 🔜 R08: OpenAPI Specification Synchronization (1.5 days)
-- 🔜 R09: Config Normalization (0.5 days)
 - 🔜 R10: Requirements Validation (1 day)
 - 🔜 R11: Final Verification (1 day)
 
@@ -44,9 +44,10 @@
 - OIDC core endpoints (login, consent, logout, userinfo) functional
 - Repository layer validated with 28 integration tests
 - Token cleanup jobs preventing resource leaks
-- Client authentication security hardened (bcrypt secrets, certificate validation)
+- Client authentication security hardened (PBKDF2-HMAC-SHA256 secrets, certificate validation)
+- Resource server scope enforcement validated (7 integration tests passing)
 
-**Remaining Work**: API documentation, configuration cleanup, final validation
+**Remaining Work**: API documentation, requirements traceability, final validation
 
 **Timeline**: 3 days remaining (assumes full-time focus)
 
