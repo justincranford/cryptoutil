@@ -627,12 +627,14 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 }
 
 func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
-	// TODO: Add actual dependency health checks here (e.g., external APIs, message queues, etc.)
+	// No external dependencies (APIs, message queues, etc.) are currently used by cryptoutil server
+	// Database and telemetry sidecar health are checked separately in their own health endpoints
 	services := map[string]any{}
 
 	return map[string]any{
 		"status":   "ok",
 		"services": services,
+		"note":     "No external dependencies configured",
 	}
 }
 

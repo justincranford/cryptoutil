@@ -14,7 +14,7 @@
 - **Current TODO Inventory (Excluding Identity Subsystem)**:
 - `internal/common/pool/pool.go:40` - COMPLETED: Changed generateCounter and getCounter to use telemetry Int64Counter metrics alongside uint64 for logic
   - `internal/common/crypto/jose/jws_message_util.go:170` - COMPLETED: Modified ExtractKidAlgFromJWSMessage to support multiple signatures by returning the first signature's kid and alg
-  - `internal/server/application/application_listener.go:630` - "TODO: Add actual dependency health checks here"
+  - `internal/server/application/application_listener.go:630` - COMPLETED: Added note that no external dependencies exist; database and telemetry checked separately
   - `internal/server/application/application_listener.go:710` - "TODO Add more readiness checks as needed"
   - `internal/server/repository/sqlrepository/gormdb.go:62` - "TODO : Enable gorm debug mode if needed"
   - `internal/server/repository/sqlrepository/sql_schema_util.go` - Multiple context.TODO() usages (lines 28, 62, 100, 132) for database queries
