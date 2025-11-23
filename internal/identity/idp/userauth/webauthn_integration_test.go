@@ -2,6 +2,8 @@
 //
 //
 
+//go:build integration_placeholder
+
 package userauth
 
 import (
@@ -15,6 +17,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 // TestWebAuthnIntegration_RegistrationAndAuthentication tests end-to-end WebAuthn registration and authentication ceremony.

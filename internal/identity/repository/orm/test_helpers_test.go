@@ -40,11 +40,11 @@ func setupTestDB(t *testing.T) *testDB {
 
 	// Apply SQLite PRAGMA settings for WAL mode and busy timeout.
 	if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
-		t.Fatalf("failed to enable WAL mode: %v", err)
+		require.FailNowf(t, "failed to enable WAL mode", "%v", err)
 	}
 
 	if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {
-		t.Fatalf("failed to set busy timeout: %v", err)
+		require.FailNowf(t, "failed to set busy timeout", "%v", err)
 	}
 
 	// Create GORM database with explicit connection.

@@ -56,13 +56,13 @@ func TestMain(m *testing.M) {
     if err != nil {
         log.Fatalf("Failed to start mock services: %v", err)
     }
-    
+
     // Run tests
     code := m.Run()
-    
+
     // Stop mock services
     services.Stop()
-    
+
     os.Exit(code)
 }
 ```

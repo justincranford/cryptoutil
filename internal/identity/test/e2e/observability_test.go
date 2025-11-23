@@ -322,7 +322,7 @@ func checkGrafanaHealth(ctx context.Context) error {
 }
 
 // Helper: fetchGrafanaDataSources fetches Grafana data sources.
-func fetchGrafanaDataSources(ctx context.Context) ([]map[string]interface{}, error) {
+func fetchGrafanaDataSources(ctx context.Context) ([]map[string]any, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
 	dataSourcesURL := fmt.Sprintf("%s/datasources", grafanaAPIURL)
@@ -346,7 +346,7 @@ func fetchGrafanaDataSources(ctx context.Context) ([]map[string]interface{}, err
 		return nil, fmt.Errorf("data sources request failed, status: %d", resp.StatusCode)
 	}
 
-	var dataSources []map[string]interface{}
+	var dataSources []map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&dataSources); err != nil {
 		return nil, fmt.Errorf("failed to decode data sources: %w", err)
 	}
@@ -355,7 +355,7 @@ func fetchGrafanaDataSources(ctx context.Context) ([]map[string]interface{}, err
 }
 
 // Helper: containsDataSource checks if data sources contain a specific type.
-func containsDataSource(dataSources []map[string]interface{}, dsType string) bool {
+func containsDataSource(dataSources []map[string]any, dsType string) bool {
 	for _, ds := range dataSources {
 		if t, ok := ds["type"].(string); ok && strings.EqualFold(t, dsType) {
 			return true

@@ -61,7 +61,7 @@ func TestMFAStress100ConcurrentSessions(t *testing.T) {
 				err := suite.executeMFAChain(ctx, userID, factorsPerChain)
 				if err != nil {
 					atomic.AddInt32(&suite.failedSessions, 1)
-					t.Errorf("MFA chain failed for session %d: %v", sessionIndex, err)
+									require.NoErrorf(t, err, "iteration %d failed", i)
 				} else {
 					atomic.AddInt32(&suite.completedSessions, 1)
 				}

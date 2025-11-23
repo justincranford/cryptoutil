@@ -56,9 +56,9 @@ func TestDockerComposeProfiles(t *testing.T) {
 			defer ticker.Stop()
 
 			for {
-				select {
-				case <-healthyCtx.Done():
-					t.Fatalf("Timeout waiting for services to become healthy (profile: %s)", profile)
+			select {
+			case <-healthyCtx.Done():
+				require.FailNowf(t, "Timeout waiting for services to become healthy", "profile: %s", profile)
 				case <-ticker.C:
 					psCmd := exec.CommandContext(healthyCtx, "docker", "compose", "-f", composeFile, "--profile", profile, "ps", "--format", "json")
 					output, err := psCmd.Output()

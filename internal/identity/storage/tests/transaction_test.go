@@ -87,19 +87,19 @@ func TestTransactionRollback(t *testing.T) {
 
 	t.Logf("Raw SQL count for rolled-back user: %d (expected: 0)", count)
 	if count > 0 {
-		t.Fatalf("GORM transaction rollback failed: found %d user(s) with sub='%s' in database", count, "rollback-test-user-"+uuidSuffix)
+		require.FailNowf(t, "GORM transaction rollback failed", "found %d user(s) with sub='%s' in database", count, "rollback-test-user-"+uuidSuffix)
 	}
 
 	userRepo := repoFactory.UserRepository()
 	foundUser, userErr := userRepo.GetBySub(ctx, "rollback-test-user-"+uuidSuffix)
 	if userErr == nil {
-		t.Fatalf("Expected error finding rolled-back user, but found user with ID: %v, Sub: %v", foundUser.ID, foundUser.Sub)
+		require.FailNowf(t, "Expected error finding rolled-back user", "but found user with ID: %v, Sub: %v", foundUser.ID, foundUser.Sub)
 	}
 
 	clientRepo := repoFactory.ClientRepository()
 	foundClient, clientErr := clientRepo.GetByClientID(ctx, "rollback-test-client-"+uuidSuffix)
 	if clientErr == nil {
-		t.Fatalf("Expected error finding rolled-back client, but found client with ID: %v, ClientID: %v", foundClient.ID, foundClient.ClientID)
+		require.FailNowf(t, "Expected error finding rolled-back client", "but found client with ID: %v, ClientID: %v", foundClient.ID, foundClient.ClientID)
 	}
 }
 

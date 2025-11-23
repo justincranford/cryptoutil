@@ -14,6 +14,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // Manager handles starting, stopping, and tracking service processes.
@@ -24,15 +26,15 @@ type Manager struct {
 
 // NewManager creates a new process manager with the specified PID directory.
 func NewManager(pidDir string) (*Manager, error) {
-	if err := os.MkdirAll(pidDir, 0o755); err != nil {
+	if err := os.MkdirAll(pidDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		return nil, fmt.Errorf("failed to create PID directory: %w", err)
 	}
 
 	return &Manager{pidDir: pidDir}, nil
 }
 
-// StartService starts a service process in the background.
-func (m *Manager) StartService(ctx context.Context, serviceName, binary string, args ...string) error {
+// Start launches a service process in the background.
+func (m *Manager) Start(ctx context.Context, serviceName string, binary string, args []string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -56,15 +58,21 @@ func (m *Manager) StartService(ctx context.Context, serviceName, binary string, 
 
 	// Write PID file
 	pidFile := filepath.Join(m.pidDir, serviceName+".pid")
-	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0o644); err != nil {
+	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), cryptoutilMagic.FilePermOwnerReadWriteGroupRead); err != nil {
+		// Kill the process if we can't write PID
+		if killErr := cmd.Process.Kill(); killErr != nil {
+			// Log but continue with original error
+			_ = killErr
+		}
+
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}
 
 	return nil
 }
 
-// StopService stops a running service process.
-func (m *Manager) StopService(serviceName string) error {
+// Stop terminates a running service process.
+func (m *Manager) Stop(serviceName string, force bool, timeout time.Duration) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -75,49 +83,56 @@ func (m *Manager) StopService(serviceName string) error {
 
 	process, err := os.FindProcess(pid)
 	if err != nil {
+		// Clean up stale PID file
+		if removeErr := m.removePIDFile(serviceName); removeErr != nil {
+			// Log but continue with original error
+			_ = removeErr
+		}
+
 		return fmt.Errorf("failed to find process %d: %w", pid, err)
 	}
 
-	// Send SIGTERM signal (graceful shutdown)
-	if err := process.Signal(syscall.SIGTERM); err != nil {
-		// If SIGTERM fails, force kill
-		if killErr := process.Kill(); killErr != nil {
-			return fmt.Errorf("failed to kill process %d: %w", pid, killErr)
-		}
-	}
-
-	// Wait for process to exit (with timeout)
-	done := make(chan error, 1)
-	go func() {
-		_, waitErr := process.Wait()
-		done <- waitErr
-	}()
-
-	const gracefulShutdownTimeout = 10 * time.Second
-
-	select {
-	case <-time.After(gracefulShutdownTimeout):
-		// Force kill if process doesn't exit within timeout
+	if force {
+		// Force kill immediately
 		if err := process.Kill(); err != nil {
-			return fmt.Errorf("failed to force kill process %d: %w", pid, err)
+			return fmt.Errorf("failed to kill process %d: %w", pid, err)
 		}
-	case err := <-done:
-		if err != nil && err.Error() != "os: process already finished" {
-			return fmt.Errorf("error waiting for process %d: %w", pid, err)
+	} else {
+		// Send SIGTERM signal (graceful shutdown)
+		if err := process.Signal(syscall.SIGTERM); err != nil {
+			// If SIGTERM fails, force kill
+			if killErr := process.Kill(); killErr != nil {
+				return fmt.Errorf("failed to kill process %d: %w", pid, killErr)
+			}
+		}
+
+		// Wait for process to exit (with timeout)
+		done := make(chan error, 1)
+
+		go func() {
+			_, waitErr := process.Wait()
+			done <- waitErr
+		}()
+
+		select {
+		case <-time.After(timeout):
+			// Force kill if process doesn't exit within timeout
+			if err := process.Kill(); err != nil {
+				return fmt.Errorf("failed to force kill process %d: %w", pid, err)
+			}
+		case err := <-done:
+			if err != nil && err.Error() != "os: process already finished" {
+				return fmt.Errorf("error waiting for process %d: %w", pid, err)
+			}
 		}
 	}
 
 	// Remove PID file
-	pidFile := filepath.Join(m.pidDir, serviceName+".pid")
-	if err := os.Remove(pidFile); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("failed to remove PID file: %w", err)
-	}
-
-	return nil
+	return m.removePIDFile(serviceName)
 }
 
-// StopAll stops all managed service processes.
-func (m *Manager) StopAll() error {
+// StopAll stops all tracked services.
+func (m *Manager) StopAll(force bool, timeout time.Duration) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -126,21 +141,24 @@ func (m *Manager) StopAll() error {
 		return fmt.Errorf("failed to read PID directory: %w", err)
 	}
 
+	var errs []error
+
 	for _, file := range files {
-		if filepath.Ext(file.Name()) != ".pid" {
-			continue
+		if !file.IsDir() && filepath.Ext(file.Name()) == ".pid" {
+			serviceName := file.Name()[:len(file.Name())-4] // Remove .pid extension
+
+			m.mu.Unlock() // Unlock before recursive call
+
+			if stopErr := m.Stop(serviceName, force, timeout); stopErr != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", serviceName, stopErr))
+			}
+
+			m.mu.Lock() // Re-lock
 		}
+	}
 
-		serviceName := file.Name()[:len(file.Name())-4]
-
-		m.mu.Unlock()
-		if err := m.StopService(serviceName); err != nil {
-			m.mu.Lock()
-
-			return err
-		}
-
-		m.mu.Lock()
+	if len(errs) > 0 {
+		return fmt.Errorf("errors stopping services: %v", errs)
 	}
 
 	return nil
@@ -152,6 +170,14 @@ func (m *Manager) IsRunning(serviceName string) bool {
 	defer m.mu.Unlock()
 
 	return m.isRunning(serviceName)
+}
+
+// GetPID returns the PID of a running service.
+func (m *Manager) GetPID(serviceName string) (int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	return m.readPID(serviceName)
 }
 
 // isRunning checks if a service is running (caller must hold lock).
@@ -181,7 +207,7 @@ func (m *Manager) readPID(serviceName string) (int, error) {
 
 	data, err := os.ReadFile(pidFile)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to read PID file: %w", err)
 	}
 
 	pid, err := strconv.Atoi(string(data))
@@ -190,4 +216,14 @@ func (m *Manager) readPID(serviceName string) (int, error) {
 	}
 
 	return pid, nil
+}
+
+// removePIDFile deletes a service's PID file (caller must hold mutex).
+func (m *Manager) removePIDFile(serviceName string) error {
+	pidFile := filepath.Join(m.pidDir, serviceName+".pid")
+	if err := os.Remove(pidFile); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove PID file: %w", err)
+	}
+
+	return nil
 }
