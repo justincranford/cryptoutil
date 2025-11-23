@@ -7,6 +7,7 @@ package idp
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,6 +16,49 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
+
+// ScopeDescription describes a single OAuth scope for UI rendering.
+type ScopeDescription struct {
+	Name        string
+	Description string
+}
+
+// parseScopeDescriptions parses space-separated scope string into ScopeDescription structs.
+func parseScopeDescriptions(scopeStr string) []ScopeDescription {
+	scopeNames := strings.Split(scopeStr, " ")
+	descriptions := make([]ScopeDescription, 0, len(scopeNames))
+
+	for _, scope := range scopeNames {
+		if scope == "" {
+			continue
+		}
+
+		descriptions = append(descriptions, ScopeDescription{
+			Name:        scope,
+			Description: getScopeDescription(scope),
+		})
+	}
+
+	return descriptions
+}
+
+// getScopeDescription returns human-readable description for standard OIDC scopes.
+func getScopeDescription(scope string) string {
+	descriptions := map[string]string{
+		"openid":  "Access your basic identity information",
+		"profile": "Access your profile information (name, picture, etc.)",
+		"email":   "Access your email address",
+		"address": "Access your address information",
+		"phone":   "Access your phone number",
+		"offline_access": "Maintain access when you're offline (refresh token)",
+	}
+
+	if desc, ok := descriptions[scope]; ok {
+		return desc
+	}
+
+	return fmt.Sprintf("Access %s data", scope)
+}
 
 // handleConsent handles GET /consent - Display consent page.
 func (s *Service) handleConsent(c *fiber.Ctx) error {
@@ -69,11 +113,22 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	// Retrieve client details.
 	clientRepo := s.repoFactory.ClientRepository()
 
-	_, err = clientRepo.GetByClientID(ctx, authRequest.ClientID)
+	client, err := clientRepo.GetByClientID(ctx, authRequest.ClientID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
 			"error_description": "Client not found",
+		})
+	}
+
+	// Retrieve user details.
+	userRepo := s.repoFactory.UserRepository()
+
+	user, err := userRepo.GetByID(ctx, authRequest.UserID.UUID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error_description": "User not found",
 		})
 	}
 
@@ -101,12 +156,17 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 		return c.Redirect(redirectURI, fiber.StatusFound)
 	}
 
-	// TODO: Render HTML consent page with request_id, client name, scopes.
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":    "Consent page",
-		"request_id": requestID.String(),
-		"client_id":  authRequest.ClientID,
-		"scope":      authRequest.Scope,
+	// Parse scopes and create scope descriptions.
+	scopeDescriptions := parseScopeDescriptions(authRequest.Scope)
+
+	// Render HTML consent page with request_id, client name, scopes, user.
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	return s.templates.ExecuteTemplate(c.Response().BodyWriter(), "consent.html", fiber.Map{
+		"RequestID":  requestID.String(),
+		"ClientName": client.Name,
+		"Username":   user.PreferredUsername,
+		"Scopes":     scopeDescriptions,
 	})
 }
 
@@ -114,7 +174,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	// Extract parameters.
 	requestIDStr := c.FormValue("request_id")
-	approved := c.FormValue("approved")
+	decision := c.FormValue("decision")
 
 	// Validate required parameters.
 	if requestIDStr == "" {
@@ -124,8 +184,16 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 		})
 	}
 
-	// Validate approval decision.
-	if approved != "true" {
+	// Validate decision parameter.
+	if decision == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error_description": "decision is required",
+		})
+	}
+
+	// Check if user denied consent.
+	if decision == "deny" {
 		// User denied consent - redirect back to client with error.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorAccessDenied,

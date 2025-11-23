@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent - Identity Provider</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .client-info {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .client-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .client-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        .scopes {
+            margin-bottom: 30px;
+        }
+        .scopes h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .scope-item {
+            display: flex;
+            align-items: start;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .scope-icon {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            margin-right: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        .scope-text {
+            flex: 1;
+        }
+        .scope-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .scope-desc {
+            font-size: 13px;
+            color: #666;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-approve {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-approve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-deny {
+            background: white;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        .btn-deny:hover {
+            background: #f5f5f5;
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .user-info {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            color: #1565c0;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grant Permission</h1>
+        <p class="subtitle">Review the requested permissions</p>
+        
+        <div class="user-info">
+            Signed in as <strong>{{.Username}}</strong>
+        </div>
+        
+        <div class="client-info">
+            <div class="client-name">{{.ClientName}}</div>
+            <div class="client-desc">wants to access your account</div>
+        </div>
+        
+        <div class="scopes">
+            <h2>Permissions Requested</h2>
+            {{range .Scopes}}
+            <div class="scope-item">
+                <div class="scope-icon">✓</div>
+                <div class="scope-text">
+                    <div class="scope-name">{{.Name}}</div>
+                    <div class="scope-desc">{{.Description}}</div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        
+        <form method="POST" action="/oidc/v1/consent">
+            <input type="hidden" name="request_id" value="{{.RequestID}}">
+            <div class="actions">
+                <button type="submit" name="decision" value="deny" class="btn btn-deny">Deny</button>
+                <button type="submit" name="decision" value="approve" class="btn btn-approve">Approve</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

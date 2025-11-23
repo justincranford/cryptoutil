@@ -28,11 +28,12 @@ func (s *Service) handleLogin(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Render HTML login page with request_id parameter.
-	// For now, return JSON response indicating login page.
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":    "Login page",
-		"request_id": requestID,
+	// Render HTML login page with request_id parameter.
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	return s.templates.ExecuteTemplate(c.Response().BodyWriter(), "login.html", fiber.Map{
+		"RequestID": requestID,
+		"Error":     "",
 	})
 }
 

@@ -7,29 +7,48 @@ package idp
 
 import (
 	"github.com/gofiber/fiber/v2"
+
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // handleLogout handles POST /logout - Terminate user session.
 func (s *Service) handleLogout(c *fiber.Ctx) error {
-	// Extract session identifier (from cookie, token, or form parameter).
-	sessionID := c.Cookies("session_id")
-	if sessionID == "" {
-		sessionID = c.FormValue("session_id")
-	}
+	ctx := c.Context()
+
+	// Extract session cookie.
+	sessionID := c.Cookies(s.config.Sessions.CookieName)
 
 	if sessionID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             "invalid_request",
-			"error_description": "Missing session_id",
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error_description": "No active session found",
 		})
 	}
 
-	// TODO: Validate session exists.
-	// TODO: Revoke all associated tokens.
-	// TODO: Delete session from repository.
-	// TODO: Clear session cookie.
+	// Retrieve session from database.
+	sessionRepo := s.repoFactory.SessionRepository()
 
+	session, err := sessionRepo.GetBySessionID(ctx, sessionID)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error_description": "Session not found",
+		})
+	}
+
+	// Delete session from database.
+	if err := sessionRepo.Delete(ctx, session.ID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to delete session",
+		})
+	}
+
+	// Clear session cookie.
+	c.ClearCookie(s.config.Sessions.CookieName)
+
+	// Return success response.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Logout successful",
+		"message": "Logged out successfully",
 	})
 }

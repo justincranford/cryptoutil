@@ -6,6 +6,7 @@ package idp
 
 import (
 	"context"
+	"html/template"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"
@@ -19,6 +20,7 @@ type Service struct {
 	repoFactory  *cryptoutilIdentityRepository.RepositoryFactory
 	tokenSvc     *cryptoutilIdentityIssuer.TokenService
 	authProfiles *cryptoutilIdentityAuth.ProfileRegistry
+	templates    *template.Template
 }
 
 // NewService creates a new identity provider service.
@@ -27,11 +29,15 @@ func NewService(
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory,
 	tokenSvc *cryptoutilIdentityIssuer.TokenService,
 ) *Service {
+	// Parse HTML templates.
+	templates := template.Must(template.ParseGlob("internal/identity/idp/templates/*.html"))
+
 	return &Service{
 		config:       config,
 		repoFactory:  repoFactory,
 		tokenSvc:     tokenSvc,
 		authProfiles: cryptoutilIdentityAuth.NewProfileRegistry(),
+		templates:    templates,
 	}
 }
 
