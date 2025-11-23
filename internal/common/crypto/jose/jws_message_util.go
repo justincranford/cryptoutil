@@ -167,37 +167,34 @@ func JWSHeadersString(jwsMessage *joseJws.Message) (string, error) {
 }
 
 func ExtractKidAlgFromJWSMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, error) {
-	if len(jwsMessage.Signatures()) > 1 { // TODO support multiple signatures
-		return nil, nil, fmt.Errorf("unsupported extract kid and alg from JWS with multiple signatures")
+	if len(jwsMessage.Signatures()) == 0 {
+		return nil, nil, fmt.Errorf("JWS message has no signatures")
 	}
 
-	for _, jwsMessageSignature := range jwsMessage.Signatures() {
-		// Only process first signature since we already checked for multiple signatures above
-		jwsMessageProtectedHeaders := jwsMessageSignature.ProtectedHeaders()
+	// Support multiple signatures by returning the first signature's kid and alg
+	jwsMessageSignature := jwsMessage.Signatures()[0]
+	jwsMessageProtectedHeaders := jwsMessageSignature.ProtectedHeaders()
 
-		var kidUUIDString string
+	var kidUUIDString string
 
-		err := jwsMessageProtectedHeaders.Get(joseJwk.KeyIDKey, &kidUUIDString)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
-		}
-
-		kidUUID, err := googleUuid.Parse(kidUUIDString)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to parse kid UUID: %w", err)
-		}
-
-		var alg joseJwa.SignatureAlgorithm
-
-		err = jwsMessageProtectedHeaders.Get(joseJwk.AlgorithmKey, &alg)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get alg: %w", err)
-		}
-
-		return &kidUUID, &alg, nil //nolint:staticcheck // SA4004: intentionally process only first signature
+	err := jwsMessageProtectedHeaders.Get(joseJwk.KeyIDKey, &kidUUIDString)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
 	}
 
-	return nil, nil, nil
+	kidUUID, err := googleUuid.Parse(kidUUIDString)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse kid UUID: %w", err)
+	}
+
+	var alg joseJwa.SignatureAlgorithm
+
+	err = jwsMessageProtectedHeaders.Get(joseJwk.AlgorithmKey, &alg)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get alg: %w", err)
+	}
+
+	return &kidUUID, &alg, nil
 }
 
 func LogJWSInfo(jwsMessage *joseJws.Message) error {
