@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityPKCE "cryptoutil/internal/identity/authz/pkce"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -105,6 +106,15 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenFormat: "jws",
 			Issuer:            testIDPBaseURL,
+		},
+		Sessions: &cryptoutilIdentityConfig.SessionConfig{
+			SessionLifetime: 3600 * time.Second,
+			IdleTimeout:     1800 * time.Second,
+			CookieName:      "session_id",
+			CookiePath:      "/",
+			CookieSecure:    false,
+			CookieHTTPOnly:  true,
+			CookieSameSite:  "Lax",
 		},
 	}
 
@@ -218,18 +228,22 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 	testUserUUID := googleUuid.Must(googleUuid.NewV7())
 	now := time.Now()
 
+	// Generate password hash using the same crypto package used by authentication
+	passwordHash, err := cryptoutilCrypto.HashSecret(testPassword)
+	testify.NoError(t, err, "Failed to hash test password")
+
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:                testUserUUID,
 		Sub:               testUserID,
 		PreferredUsername: testUsername,
 		Email:             "testuser@example.com",
-		PasswordHash:      "$2a$10$ABCDEFGHIJKLMNOPQRSTUV", // Dummy bcrypt hash for testing
+		PasswordHash:      passwordHash,
 		Enabled:           true,
 		CreatedAt:         now,
 		UpdatedAt:         now,
 	}
 
-	err := userRepo.Create(ctx, testUser)
+	err = userRepo.Create(ctx, testUser)
 	testify.NoError(t, err, "Failed to create test user")
 
 	// Create test client using repository.
@@ -381,6 +395,12 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	defer func() {
 		defer func() { _ = loginSubmitResp.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}()
+
+	// Debug: print response body if not 302
+	if loginSubmitResp.StatusCode != http.StatusFound {
+		bodyBytes, _ := io.ReadAll(loginSubmitResp.Body) //nolint:errcheck // Debug logging only
+		t.Logf("Login submit response status: %d, body: %s", loginSubmitResp.StatusCode, string(bodyBytes))
+	}
 
 	// Should redirect to consent page (302 Found).
 	testify.Equal(t, http.StatusFound, loginSubmitResp.StatusCode, "Should redirect to consent page after login")
