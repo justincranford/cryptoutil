@@ -55,8 +55,8 @@ linters:
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping (fmt.Errorf %w usage)
 
     # Testing quality
-    - thelper       # Check test helper functions (ensures t.Helper() usage)
-    - tparallel     # Check for parallel test issues (validates t.Parallel() correctness)
+    # thelper: DISABLED - false positives on table-driven test anonymous funcs (not actual test helpers)
+    # tparallel: DISABLED - false positives on t.Cleanup vs defer, both are valid patterns
     - testpackage   # Test package naming conventions (enforces _test package suffix for external testing)
     - gomodguard    # Prevent importing blocked modules (blocks github.com/pkg/errors, use stdlib instead)
     - gomoddirectives # Validate Go module directives (ensures clean go.mod)

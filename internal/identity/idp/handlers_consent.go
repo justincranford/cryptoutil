@@ -45,11 +45,11 @@ func parseScopeDescriptions(scopeStr string) []ScopeDescription {
 // getScopeDescription returns human-readable description for standard OIDC scopes.
 func getScopeDescription(scope string) string {
 	descriptions := map[string]string{
-		"openid":  "Access your basic identity information",
-		"profile": "Access your profile information (name, picture, etc.)",
-		"email":   "Access your email address",
-		"address": "Access your address information",
-		"phone":   "Access your phone number",
+		"openid":         "Access your basic identity information",
+		"profile":        "Access your profile information (name, picture, etc.)",
+		"email":          "Access your email address",
+		"address":        "Access your address information",
+		"phone":          "Access your phone number",
 		"offline_access": "Maintain access when you're offline (refresh token)",
 	}
 

@@ -14,8 +14,8 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 func TestOIDCCoreEndpoints(t *testing.T) {

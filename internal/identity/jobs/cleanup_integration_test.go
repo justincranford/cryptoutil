@@ -29,14 +29,14 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 	// Create expired token (expires in the past).
 	tokenRepo := repoFactory.TokenRepository()
 	expiredToken := &cryptoutilIdentityDomain.Token{
-		TokenValue:   googleUuid.NewString(),
-		TokenType:    cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:  cryptoutilIdentityDomain.TokenFormatUUID,
-		ExpiresAt:    time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
-		IssuedAt:     time.Now().Add(-2 * time.Hour),
-		Scopes:       []string{"read", "write"},
-		ClientID:     googleUuid.Must(googleUuid.NewV7()),
-		UserID:       cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		TokenValue:    googleUuid.NewString(),
+		TokenType:     cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
+		ExpiresAt:     time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
+		IssuedAt:      time.Now().Add(-2 * time.Hour),
+		Scopes:        []string{"read", "write"},
+		ClientID:      googleUuid.Must(googleUuid.NewV7()),
+		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		CodeChallenge: "",
 	}
 
@@ -45,14 +45,14 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 
 	// Create non-expired token (expires in the future).
 	validToken := &cryptoutilIdentityDomain.Token{
-		TokenValue:   googleUuid.NewString(),
-		TokenType:    cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:  cryptoutilIdentityDomain.TokenFormatUUID,
-		ExpiresAt:    time.Now().Add(1 * time.Hour), // Expires 1 hour from now.
-		IssuedAt:     time.Now(),
-		Scopes:       []string{"read", "write"},
-		ClientID:     googleUuid.Must(googleUuid.NewV7()),
-		UserID:       cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		TokenValue:    googleUuid.NewString(),
+		TokenType:     cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
+		ExpiresAt:     time.Now().Add(1 * time.Hour), // Expires 1 hour from now.
+		IssuedAt:      time.Now(),
+		Scopes:        []string{"read", "write"},
+		ClientID:      googleUuid.Must(googleUuid.NewV7()),
+		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		CodeChallenge: "",
 	}
 

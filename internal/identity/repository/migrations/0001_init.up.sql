@@ -125,6 +125,10 @@ CREATE TABLE IF NOT EXISTS clients (
     -- Client profile reference (optional foreign key)
     client_profile_id TEXT,
 
+    -- Certificate-based authentication fields (added R04)
+    certificate_subject TEXT,
+    certificate_fingerprint TEXT,
+
     -- Account status
     enabled INTEGER DEFAULT 1,
 
@@ -138,6 +142,8 @@ CREATE TABLE IF NOT EXISTS clients (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_client_id ON clients(client_id);
+CREATE INDEX IF NOT EXISTS idx_clients_certificate_subject ON clients(certificate_subject) WHERE certificate_subject IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_clients_certificate_fingerprint ON clients(certificate_fingerprint) WHERE certificate_fingerprint IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_clients_client_profile_id ON clients(client_profile_id);
 CREATE INDEX IF NOT EXISTS idx_clients_deleted_at ON clients(deleted_at);
 

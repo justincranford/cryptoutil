@@ -145,16 +145,16 @@
     <div class="container">
         <h1>Grant Permission</h1>
         <p class="subtitle">Review the requested permissions</p>
-        
+
         <div class="user-info">
             Signed in as <strong>{{.Username}}</strong>
         </div>
-        
+
         <div class="client-info">
             <div class="client-name">{{.ClientName}}</div>
             <div class="client-desc">wants to access your account</div>
         </div>
-        
+
         <div class="scopes">
             <h2>Permissions Requested</h2>
             {{range .Scopes}}
@@ -167,7 +167,7 @@
             </div>
             {{end}}
         </div>
-        
+
         <form method="POST" action="/oidc/v1/consent">
             <input type="hidden" name="request_id" value="{{.RequestID}}">
             <div class="actions">

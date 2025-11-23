@@ -7,6 +7,7 @@ package testutils
 import (
 	"context"
 	"database/sql"
+	"sync"
 	"testing"
 	"time"
 
@@ -21,55 +22,71 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
+var (
+	// Global sql.DB connection for shared in-memory SQLite database.
+	globalSQLDB     *sql.DB
+	globalSQLDBOnce sync.Once
+)
+
 // TestDatabaseConfig holds test database configuration.
 type TestDatabaseConfig struct {
 	DB *gorm.DB
 }
 
-// SetupTestDatabase creates an in-memory SQLite database for testing.
+// SetupTestDatabase creates or reuses a shared in-memory SQLite database for tests.
 func SetupTestDatabase(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	ctx := context.Background()
 
-	// Use shared in-memory SQLite database with modernc driver (CGO-free).
-	dsn := "file::memory:?cache=shared"
+	// Initialize shared sql.DB once for all tests in this package.
+	globalSQLDBOnce.Do(func() {
+		// Use shared in-memory SQLite database for all tests in this package.
+		dsn := "file::memory:?cache=shared"
 
-	// Open SQLite database with modernc driver (CGO-free) explicitly.
-	sqlDB, err := sql.Open("sqlite", dsn)
-	require.NoError(t, err, "failed to open SQLite database")
+		// Open SQLite database with modernc driver (CGO-free) explicitly.
+		var err error
 
-	// Enable WAL mode for better concurrency.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err, "failed to enable WAL mode")
+		globalSQLDB, err = sql.Open("sqlite", dsn)
+		require.NoError(t, err, "failed to open SQLite database")
 
-	// Set busy timeout for handling concurrent write operations.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err, "failed to set busy timeout")
+		// Enable WAL mode for better concurrency.
+		_, err = globalSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
+		require.NoError(t, err, "failed to enable WAL mode")
 
-	// Use GORM sqlite dialector with existing sql.DB connection from modernc driver.
-	dialector := sqlite.Dialector{Conn: sqlDB}
+		// Set busy timeout for handling concurrent write operations.
+		_, err = globalSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
+		require.NoError(t, err, "failed to set busy timeout")
 
-	// Open database connection with GORM.
+		// Apply SQL migrations using the repository migration system (once for shared DB).
+		err = cryptoutilIdentityRepository.Migrate(globalSQLDB)
+		if err != nil {
+			t.Logf("Migration error details: %+v", err)
+		}
+
+		require.NoError(t, err, "failed to migrate test database")
+	})
+
+	// Use GORM sqlite dialector with shared sql.DB connection.
+	dialector := sqlite.Dialector{Conn: globalSQLDB}
+
+	// Open database connection with GORM (each test gets its own GORM instance).
 	db, err := gorm.Open(dialector, &gorm.Config{
 		SkipDefaultTransaction: true, // Disable automatic transactions (we manage explicitly).
 	})
 	require.NoError(t, err, "failed to connect to database")
 
-	// Apply SQL migrations using the repository migration system.
-	err = cryptoutilIdentityRepository.Migrate(sqlDB)
-	require.NoError(t, err, "failed to migrate test database")
-
 	return db
 }
 
-// CleanupTestDatabase closes the test database connection.
+// CleanupTestDatabase truncates all tables to cleanup between tests using shared database.
 func CleanupTestDatabase(t *testing.T, db *gorm.DB) {
 	t.Helper()
 
-	sqlDB, err := db.DB()
-	if err == nil {
-		_ = sqlDB.Close() //nolint:errcheck // Test helper cleanup
+	// Truncate tables in reverse dependency order to avoid foreign key violations.
+	tables := []string{"sessions", "tokens", "clients", "users"}
+	for _, table := range tables {
+		_ = db.Exec("DELETE FROM " + table).Error //nolint:errcheck // Best effort cleanup
 	}
 }
 
