@@ -227,3 +227,48 @@ type MFAFactorRepository interface {
 	// Count returns the total number of MFA factors.
 	Count(ctx context.Context) (int64, error)
 }
+
+// AuthorizationRequestRepository defines operations for OAuth 2.1 authorization request persistence.
+type AuthorizationRequestRepository interface {
+	// Create creates a new authorization request.
+	Create(ctx context.Context, request *cryptoutilIdentityDomain.AuthorizationRequest) error
+
+	// GetByID retrieves an authorization request by ID.
+	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.AuthorizationRequest, error)
+
+	// GetByCode retrieves an authorization request by authorization code.
+	GetByCode(ctx context.Context, code string) (*cryptoutilIdentityDomain.AuthorizationRequest, error)
+
+	// Update updates an existing authorization request.
+	Update(ctx context.Context, request *cryptoutilIdentityDomain.AuthorizationRequest) error
+
+	// Delete deletes an authorization request by ID.
+	Delete(ctx context.Context, id googleUuid.UUID) error
+
+	// DeleteExpired deletes all expired authorization requests.
+	DeleteExpired(ctx context.Context) (int64, error)
+}
+
+// ConsentDecisionRepository defines operations for consent decision persistence.
+type ConsentDecisionRepository interface {
+	// Create creates a new consent decision.
+	Create(ctx context.Context, consent *cryptoutilIdentityDomain.ConsentDecision) error
+
+	// GetByID retrieves a consent decision by ID.
+	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.ConsentDecision, error)
+
+	// GetByUserClientScope retrieves a consent decision by user, client, and scope.
+	GetByUserClientScope(ctx context.Context, userID googleUuid.UUID, clientID, scope string) (*cryptoutilIdentityDomain.ConsentDecision, error)
+
+	// Update updates an existing consent decision.
+	Update(ctx context.Context, consent *cryptoutilIdentityDomain.ConsentDecision) error
+
+	// Delete deletes a consent decision by ID.
+	Delete(ctx context.Context, id googleUuid.UUID) error
+
+	// RevokeByID revokes a consent decision by ID.
+	RevokeByID(ctx context.Context, id googleUuid.UUID) error
+
+	// DeleteExpired deletes all expired consent decisions.
+	DeleteExpired(ctx context.Context) (int64, error)
+}

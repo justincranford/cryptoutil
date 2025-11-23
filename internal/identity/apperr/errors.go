@@ -95,6 +95,10 @@ var (
 	ErrInvalidScope         = NewIdentityError("invalid_scope", "Invalid scope", http.StatusBadRequest, nil)
 	ErrServerError          = NewIdentityError("server_error", "Internal server error", http.StatusInternalServerError, nil)
 
+	// Authorization request errors.
+	ErrAuthorizationRequestNotFound = NewIdentityError("authorization_request_not_found", "Authorization request not found", http.StatusNotFound, nil)
+	ErrConsentNotFound              = NewIdentityError("consent_not_found", "Consent decision not found", http.StatusNotFound, nil)
+
 	// PKCE errors.
 	ErrPKCERequired         = NewIdentityError("pkce_required", "PKCE is required for this flow", http.StatusBadRequest, nil)
 	ErrInvalidCodeChallenge = NewIdentityError("invalid_code_challenge", "Invalid PKCE code challenge", http.StatusBadRequest, nil)
