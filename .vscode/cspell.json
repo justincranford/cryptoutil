@@ -486,6 +486,10 @@
     "PITR",
     "KMIP",
     "renewables",
-    "keygenpooltest"
+    "keygenpooltest",
+    "parseable",
+    "Utimaco",
+    "CTAP",
+    "dashboarding"
   ]
 }
