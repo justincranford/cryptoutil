@@ -18,6 +18,8 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+// Validates requirements:
+// - R06-04: Session expiration and cleanup
 func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 	t.Parallel()
 

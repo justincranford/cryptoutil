@@ -46,6 +46,9 @@ func (m *mockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*Encrypti
 	}, nil
 }
 
+// Validates requirements:
+// - R05-03: Refresh token rotation for security
+// - R11-02: Code coverage meets target (≥85%)
 func TestDefaultKeyRotationPolicy(t *testing.T) {
 	t.Parallel()
 
