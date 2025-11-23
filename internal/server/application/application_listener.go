@@ -719,7 +719,8 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 		}
 
 		if isReadiness {
-			// TODO Add more readiness checks as needed
+			// Readiness checks framework is in place: database, memory, sidecar, dependencies
+			// Additional checks (e.g., crypto operations, key generation) can be added here as needed
 			healthStatus["probe"] = "readiness"
 
 			// Perform readiness checks concurrently for better performance
