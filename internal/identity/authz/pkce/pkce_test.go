@@ -14,7 +14,7 @@ import (
 
 // Validates requirements:
 // - R01-03: Consent approval generates authorization code with user context
-// - R01-05: Authorization code single-use enforcement
+// - R01-05: Authorization code single-use enforcement.
 func TestGenerateCodeVerifier(t *testing.T) {
 	t.Parallel()
 

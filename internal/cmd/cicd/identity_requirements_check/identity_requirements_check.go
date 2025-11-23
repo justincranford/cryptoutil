@@ -133,7 +133,7 @@ func loadRequirements(filePath string) (*RequirementsDoc, error) {
 		return nil, fmt.Errorf("read file: %w", err)
 	}
 
-	var raw map[string]interface{}
+	var raw map[string]any
 	if err := yaml.Unmarshal(data, &raw); err != nil {
 		return nil, fmt.Errorf("unmarshal yaml: %w", err)
 	}
@@ -142,7 +142,7 @@ func loadRequirements(filePath string) (*RequirementsDoc, error) {
 		Requirements: make(map[string]Requirement),
 	}
 
-	if metadataRaw, ok := raw["metadata"].(map[string]interface{}); ok {
+	if metadataRaw, ok := raw["metadata"].(map[string]any); ok {
 		metadataBytes, _ := yaml.Marshal(metadataRaw)
 		yaml.Unmarshal(metadataBytes, &doc.Metadata)
 	}

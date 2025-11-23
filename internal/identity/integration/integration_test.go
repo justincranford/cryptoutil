@@ -213,10 +213,28 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 	// Use GORM AutoMigrate now that gorm.Model duplication is fixed.
 	db := repoFactory.DB()
 
+	// Create test user for authentication.
+	userRepo := repoFactory.UserRepository()
+	testUserUUID := googleUuid.Must(googleUuid.NewV7())
+	now := time.Now()
+
+	testUser := &cryptoutilIdentityDomain.User{
+		ID:                testUserUUID,
+		Sub:               testUserID,
+		PreferredUsername: testUsername,
+		Email:             "testuser@example.com",
+		PasswordHash:      "$2a$10$ABCDEFGHIJKLMNOPQRSTUV", // Dummy bcrypt hash for testing
+		Enabled:           true,
+		CreatedAt:         now,
+		UpdatedAt:         now,
+	}
+
+	err := userRepo.Create(ctx, testUser)
+	testify.NoError(t, err, "Failed to create test user")
+
 	// Create test client using repository.
 	clientRepo := repoFactory.ClientRepository()
 	testClientUUID := googleUuid.Must(googleUuid.NewV7())
-	now := time.Now()
 
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      testClientUUID,
@@ -240,7 +258,7 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 		UpdatedAt:               now,
 	}
 
-	err := clientRepo.Create(ctx, testClient)
+	err = clientRepo.Create(ctx, testClient)
 	testify.NoError(t, err, "Failed to create test client")
 
 	// Verify client was created.
@@ -308,14 +326,15 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 
 	codeChallenge := cryptoutilIdentityPKCE.GenerateCodeChallenge(codeVerifier, "S256")
 
-	// Step 1: Request authorization code with PKCE.
+	// Step 1a: Request authorization code with PKCE.
+	// This should redirect to login page with request_id.
 	authorizeURL := fmt.Sprintf("%s/oauth2/v1/authorize?response_type=code&client_id=%s&redirect_uri=%s&scope=%s&state=test-state&code_challenge=%s&code_challenge_method=S256",
 		testAuthZBaseURL, testClientID, url.QueryEscape(testRedirectURI), url.QueryEscape(testScope), codeChallenge)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, authorizeURL, nil)
 	testify.NoError(t, err, "Failed to create authorize request")
 
-	// Don't follow redirects - we need to inspect the redirect location.
+	// Don't follow redirects - we need to handle login/consent flow manually.
 	client := &http.Client{
 		Timeout: httpClientTimeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -323,25 +342,92 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 		},
 	}
 
-	resp, err := client.Do(req)
+	authResp, err := client.Do(req)
 	testify.NoError(t, err, "Authorization request failed")
 
 	defer func() {
-		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
+		defer func() { _ = authResp.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}()
 
-	// Should get 302 redirect.
-	testify.Equal(t, http.StatusFound, resp.StatusCode, "Should redirect to callback")
+	// Should redirect to login page (302 Found).
+	testify.Equal(t, http.StatusFound, authResp.StatusCode, "Should redirect to login page")
+
+	// Extract request_id from login redirect.
+	loginLocation := authResp.Header.Get("Location")
+	testify.NotEmpty(t, loginLocation, "Login redirect location should be set")
+	testify.Contains(t, loginLocation, "/oidc/v1/login?request_id=", "Should redirect to login page")
+
+	loginURL, err := url.Parse(loginLocation)
+	testify.NoError(t, err, "Invalid login URL")
+
+	requestIDStr := loginURL.Query().Get("request_id")
+	testify.NotEmpty(t, requestIDStr, "request_id should be present in login redirect")
+
+	// Step 1b: Submit login credentials (simulate user login).
+	loginSubmitURL := testIDPBaseURL + "/oidc/v1/login"
+	loginFormData := url.Values{}
+	loginFormData.Set("username", testUsername)
+	loginFormData.Set("password", testPassword)
+	loginFormData.Set("request_id", requestIDStr)
+
+	loginSubmitReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, loginSubmitURL, strings.NewReader(loginFormData.Encode()))
+	testify.NoError(t, err, "Failed to create login submit request")
+
+	loginSubmitReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	loginSubmitResp, err := client.Do(loginSubmitReq)
+	testify.NoError(t, err, "Login submit request failed")
+
+	defer func() {
+		defer func() { _ = loginSubmitResp.Body.Close() }() //nolint:errcheck // Test code cleanup
+	}()
+
+	// Should redirect to consent page (302 Found).
+	testify.Equal(t, http.StatusFound, loginSubmitResp.StatusCode, "Should redirect to consent page after login")
+
+	consentLocation := loginSubmitResp.Header.Get("Location")
+	testify.NotEmpty(t, consentLocation, "Consent redirect location should be set")
+	testify.Contains(t, consentLocation, "/oidc/v1/consent?request_id=", "Should redirect to consent page")
+
+	// Extract session cookie for consent request.
+	sessionCookies := loginSubmitResp.Cookies()
+	testify.NotEmpty(t, sessionCookies, "Session cookie should be set after login")
+
+	// Step 1c: Submit consent decision (simulate user consent).
+	consentSubmitURL := testIDPBaseURL + "/oidc/v1/consent"
+	consentFormData := url.Values{}
+	consentFormData.Set("request_id", requestIDStr)
+	consentFormData.Set("decision", "allow")
+
+	consentSubmitReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, consentSubmitURL, strings.NewReader(consentFormData.Encode()))
+	testify.NoError(t, err, "Failed to create consent submit request")
+
+	consentSubmitReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Add session cookie to consent request.
+	for _, cookie := range sessionCookies {
+		consentSubmitReq.AddCookie(cookie)
+	}
+
+	consentSubmitResp, err := client.Do(consentSubmitReq)
+	testify.NoError(t, err, "Consent submit request failed")
+
+	defer func() {
+		defer func() { _ = consentSubmitResp.Body.Close() }() //nolint:errcheck // Test code cleanup
+	}()
+
+	// Should redirect to callback with authorization code (302 Found).
+	testify.Equal(t, http.StatusFound, consentSubmitResp.StatusCode, "Should redirect to callback after consent")
 
 	// Extract authorization code from redirect location.
-	location := resp.Header.Get("Location")
-	testify.NotEmpty(t, location, "Redirect location should be set")
+	location := consentSubmitResp.Header.Get("Location")
+	testify.NotEmpty(t, location, "Callback redirect location should be set")
 
 	redirectURL, err := url.Parse(location)
 	testify.NoError(t, err, "Invalid redirect URL")
 
 	code := redirectURL.Query().Get("code")
-	testify.NotEmpty(t, code, "Authorization code should be present")
+	testify.NotEmpty(t, code, "Authorization code should be present in callback redirect")
 
 	state := redirectURL.Query().Get("state")
 	testify.Equal(t, "test-state", state, "State parameter should match")
