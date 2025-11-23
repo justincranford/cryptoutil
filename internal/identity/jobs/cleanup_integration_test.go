@@ -30,6 +30,35 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 	err := repoFactory.AutoMigrate(ctx)
 	testify.NoError(t, err, "Failed to run migrations")
 
+	// Create test user (required for foreign key constraint).
+	userRepo := repoFactory.UserRepository()
+	testUser := &cryptoutilIdentityDomain.User{
+		Sub:               "test-user-" + googleUuid.NewString(),
+		PreferredUsername: "test-user-" + googleUuid.NewString(),
+		Email:             "test-" + googleUuid.NewString() + "@example.com",
+		PasswordHash:      "hash123",
+		EmailVerified:     false,
+	}
+
+	err = userRepo.Create(ctx, testUser)
+	testify.NoError(t, err, "Failed to create test user")
+
+	// Create test client (required for foreign key constraint).
+	clientRepo := repoFactory.ClientRepository()
+	testClient := &cryptoutilIdentityDomain.Client{
+		ClientID:                "client-" + googleUuid.NewString(),
+		ClientSecret:            "secret123",
+		Name:                    "test-client",
+		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+		AllowedScopes:           []string{"read", "write"},
+		AllowedGrantTypes:       []string{"authorization_code"},
+		AllowedResponseTypes:    []string{"code"},
+		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
+	}
+
+	err = clientRepo.Create(ctx, testClient)
+	testify.NoError(t, err, "Failed to create test client")
+
 	// Create expired token (expires in the past).
 	tokenRepo := repoFactory.TokenRepository()
 	expiredToken := &cryptoutilIdentityDomain.Token{
@@ -39,8 +68,8 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		ExpiresAt:     time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
 		IssuedAt:      time.Now().Add(-2 * time.Hour),
 		Scopes:        []string{"read", "write"},
-		ClientID:      googleUuid.Must(googleUuid.NewV7()),
-		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		ClientID:      testClient.ID,
+		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 		CodeChallenge: "",
 	}
 
@@ -56,8 +85,8 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		ExpiresAt:     time.Now().Add(1 * time.Hour), // Expires 1 hour from now.
 		IssuedAt:      time.Now(),
 		Scopes:        []string{"read", "write"},
-		ClientID:      googleUuid.Must(googleUuid.NewV7()),
-		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		ClientID:      testClient.ID,
+		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 		CodeChallenge: "",
 	}
 
@@ -100,11 +129,24 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 	err := repoFactory.AutoMigrate(ctx)
 	testify.NoError(t, err, "Failed to run migrations")
 
+	// Create test user (required for foreign key constraint).
+	userRepo := repoFactory.UserRepository()
+	testUser := &cryptoutilIdentityDomain.User{
+		Sub:               "test-user-" + googleUuid.NewString(),
+		PreferredUsername: "test-user-" + googleUuid.NewString(),
+		Email:             "test-" + googleUuid.NewString() + "@example.com",
+		PasswordHash:      "hash123",
+		EmailVerified:     false,
+	}
+
+	err = userRepo.Create(ctx, testUser)
+	testify.NoError(t, err, "Failed to create test user")
+
 	// Create expired session (expires in the past).
 	sessionRepo := repoFactory.SessionRepository()
 	expiredSession := &cryptoutilIdentityDomain.Session{
 		SessionID:          googleUuid.NewString(),
-		UserID:             googleUuid.Must(googleUuid.NewV7()),
+		UserID:             testUser.ID,
 		IssuedAt:           time.Now().Add(-2 * time.Hour),
 		LastSeenAt:         time.Now().Add(-2 * time.Hour),
 		ExpiresAt:          time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
@@ -121,7 +163,7 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 	// Create non-expired session (expires in the future).
 	validSession := &cryptoutilIdentityDomain.Session{
 		SessionID:          googleUuid.NewString(),
-		UserID:             googleUuid.Must(googleUuid.NewV7()),
+		UserID:             testUser.ID,
 		IssuedAt:           time.Now(),
 		LastSeenAt:         time.Now(),
 		ExpiresAt:          time.Now().Add(1 * time.Hour), // Expires 1 hour from now.
