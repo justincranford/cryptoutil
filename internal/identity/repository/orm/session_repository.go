@@ -134,6 +134,19 @@ func (r *SessionRepositoryGORM) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
+// DeleteExpiredBefore deletes all sessions expired before the given time (hard delete).
+func (r *SessionRepositoryGORM) DeleteExpiredBefore(ctx context.Context, beforeTime time.Time) (int, error) {
+	result := getDB(ctx, r.db).WithContext(ctx).Unscoped().
+		Where("expires_at < ?", beforeTime).
+		Delete(&cryptoutilIdentityDomain.Session{})
+
+	if result.Error != nil {
+		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired sessions before %s: %w", beforeTime, result.Error))
+	}
+
+	return int(result.RowsAffected), nil
+}
+
 // List lists sessions with pagination.
 func (r *SessionRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Session, error) {
 	var sessions []*cryptoutilIdentityDomain.Session

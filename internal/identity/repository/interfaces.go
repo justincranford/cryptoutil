@@ -6,6 +6,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 
@@ -95,6 +96,9 @@ type TokenRepository interface {
 	// DeleteExpired deletes all expired tokens.
 	DeleteExpired(ctx context.Context) error
 
+	// DeleteExpiredBefore deletes all tokens expired before the given time.
+	DeleteExpiredBefore(ctx context.Context, beforeTime time.Time) (int, error)
+
 	// List lists tokens with pagination.
 	List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Token, error)
 
@@ -127,6 +131,9 @@ type SessionRepository interface {
 
 	// DeleteExpired deletes all expired sessions.
 	DeleteExpired(ctx context.Context) error
+
+	// DeleteExpiredBefore deletes all sessions expired before the given time.
+	DeleteExpiredBefore(ctx context.Context, beforeTime time.Time) (int, error)
 
 	// List lists sessions with pagination.
 	List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Session, error)

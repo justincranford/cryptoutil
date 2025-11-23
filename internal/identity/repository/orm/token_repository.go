@@ -128,6 +128,19 @@ func (r *TokenRepositoryGORM) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
+// DeleteExpiredBefore deletes all tokens expired before the given time (hard delete).
+func (r *TokenRepositoryGORM) DeleteExpiredBefore(ctx context.Context, beforeTime time.Time) (int, error) {
+	result := getDB(ctx, r.db).WithContext(ctx).Unscoped().
+		Where("expires_at < ?", beforeTime).
+		Delete(&cryptoutilIdentityDomain.Token{})
+
+	if result.Error != nil {
+		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired tokens before %s: %w", beforeTime, result.Error))
+	}
+
+	return int(result.RowsAffected), nil
+}
+
 // List lists tokens with pagination.
 func (r *TokenRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Token, error) {
 	var tokens []*cryptoutilIdentityDomain.Token
