@@ -18,6 +18,9 @@ const (
 	invalidUserID = "not-a-valid-uuid"
 )
 
+// Validates requirements:
+// - R07-01: Repository tests run against SQLite
+// - R07-03: Repository tests validate concurrent operations
 func TestNewWebAuthnCredentialRepository(t *testing.T) {
 	t.Parallel()
 
