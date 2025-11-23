@@ -218,6 +218,11 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 		},
 	}
 
+	// Nil check for challenge store before storing.
+	if s.challengeStore == nil {
+		return challenge, nil // Return challenge without storing if no store configured.
+	}
+
 	// Store challenge.
 	authChallenge := &AuthChallenge{
 		ID:        challengeID,
