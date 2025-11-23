@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"golang.org/x/crypto/bcrypt"
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -60,8 +60,13 @@ func (p *UsernamePasswordProfile) Authenticate(ctx context.Context, credentials 
 		return nil, fmt.Errorf("%w: account locked", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
-	// Validate password hash using bcrypt.
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	// Validate password hash using configured crypto wrapper (PBKDF2 default). Supports legacy bcrypt entries.
+	ok, verr := cryptoutilCrypto.VerifySecret(user.PasswordHash, password)
+	if verr != nil {
+		return nil, fmt.Errorf("%w: password verification error: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, verr)
+	}
+
+	if !ok {
 		return nil, fmt.Errorf("%w: invalid password", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
