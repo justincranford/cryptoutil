@@ -70,6 +70,8 @@ func TestNewWebAuthnCredentialRepository(t *testing.T) {
 	}
 }
 
+// Validates requirements:
+// - R07-04: Repository tests validate GORM transaction patterns
 func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 	t.Parallel()
 
