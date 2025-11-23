@@ -54,7 +54,11 @@ cp docs/feature-template/feature-template.md docs/<FEATURE_ID>/MASTER-PLAN.md
 - Read `usage-example.md` for guidance
 - Fill in Executive Summary (current reality, goals, constraints)
 - Define Implementation Tasks table (task breakdown with dependencies)
-- Create individual task documents (01-<TASK>.md, 02-<TASK>.md, etc.)
+- Create individual task documents:
+  - Naming: `01-<TASK>.md`, `02-<TASK>.md` (zero-padded sequential)
+  - Structure: Copy from `task-template.md` or follow MASTER-PLAN task sections
+  - Dependencies: Reference parent/blocker tasks in Prerequisites section
+  - Acceptance: Define measurable success criteria per task
 - Customize acceptance criteria per task
 - Scale sections based on feature complexity (remove unused sections)
 
