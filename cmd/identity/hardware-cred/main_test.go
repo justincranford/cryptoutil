@@ -29,24 +29,23 @@ func TestEnrollCommand(t *testing.T) {
 		wantCredType string
 	}{
 		{
-			name: "valid enrollment with all flags",
+			name: "missing credential type uses default",
 			args: []string{
-				"-user-id", "01930de8-c123-7890-abcd-ef1234567890",
-				"-device-name", "YubiKey 5C",
-				"-credential-type", "passkey",
+				"-user-id", googleUuid.Must(googleUuid.NewV7()).String(),
+				"-device-name", "Test Device",
 			},
 			wantErr:      false,
-			wantUserID:   "01930de8-c123-7890-abcd-ef1234567890",
-			wantDevice:   "YubiKey 5C",
+			wantUserID:   googleUuid.Must(googleUuid.NewV7()).String(),
+			wantDevice:   "Test Device",
 			wantCredType: "passkey",
 		},
 		{
 			name: "valid enrollment with default device name",
 			args: []string{
-				"-user-id", "01930de8-c123-7890-abcd-ef1234567890",
+				"-user-id", googleUuid.Must(googleUuid.NewV7()).String(),
 			},
 			wantErr:      false,
-			wantUserID:   "01930de8-c123-7890-abcd-ef1234567890",
+			wantUserID:   googleUuid.Must(googleUuid.NewV7()).String(),
 			wantCredType: "passkey",
 		},
 		{

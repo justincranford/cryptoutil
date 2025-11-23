@@ -170,11 +170,7 @@ func TestMFAReplayAttackSimulation(t *testing.T) {
 
 				// First attempt should succeed (nonce valid).
 				err := suite.validateWithNonce(ctx, nonce)
-				if err != nil {
-					t.Errorf("First validation failed for attack %d: %v", attackIndex, err)
-
-					return
-				}
+				require.NoError(t, err, "First validation failed for attack %d", attackIndex)
 
 				// Subsequent attempts should be detected as replays.
 				for j := 0; j < attemptsPerAttack; j++ {
