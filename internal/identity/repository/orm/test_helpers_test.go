@@ -74,6 +74,7 @@ func setupTestDB(t *testing.T) *testDB {
 		&cryptoutilIdentityDomain.Token{},
 		&WebAuthnCredential{},
 		&cryptoutilIdentityDomain.AuthFlow{},
+		&cryptoutilIdentityDomain.AuthProfile{},
 	)
 	require.NoError(t, err)
 
