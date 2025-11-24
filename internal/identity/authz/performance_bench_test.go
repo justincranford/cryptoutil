@@ -48,6 +48,10 @@ func BenchmarkJWTSigning(b *testing.B) {
 		b.Fatalf("failed to set algorithm: %v", err)
 	}
 
+	if err := key.Set(joseJwk.KeyIDKey, "bench-key-id"); err != nil {
+		b.Fatalf("failed to set kid: %v", err)
+	}
+
 	// Create test JWT payload.
 	token := joseJwt.New()
 	if err := token.Set(joseJwt.IssuerKey, "bench_issuer"); err != nil {
@@ -89,6 +93,10 @@ func BenchmarkJWTValidation(b *testing.B) {
 
 	if err := key.Set(joseJwk.AlgorithmKey, joseJwa.RS256()); err != nil {
 		b.Fatalf("failed to set algorithm: %v", err)
+	}
+
+	if err := key.Set(joseJwk.KeyIDKey, "bench-key-id"); err != nil {
+		b.Fatalf("failed to set kid: %v", err)
 	}
 
 	publicKey, err := key.PublicKey()
