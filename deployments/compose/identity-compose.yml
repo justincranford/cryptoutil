@@ -38,13 +38,15 @@ services:
         VCS_REF: "local"
         BUILD_DATE: "2025-11-07T00:00:00Z"
     image: cryptoutil-identity:dev
-    command: ["identity", "authz", "start", "--port=8080", "--bind=0.0.0.0", "--db-url=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable"]
+    command: ["identity", "authz", "--config=/app/config/authz-docker.yml"]
     ports:
       - "8080:8080"  # OAuth 2.1 authorization endpoints
       - "9080:9090"  # Admin API (health, metrics)
     environment:
-      - LOG_LEVEL=INFO
+      - IDENTITY_DB_DSN=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+    volumes:
+      - ../../configs/identity/authz-docker.yml:/app/config/authz-docker.yml:ro
     depends_on:
       identity-postgres:
         condition: service_healthy
@@ -66,13 +68,16 @@ services:
   # OIDC Identity Provider
   identity-idp:
     image: cryptoutil-identity:dev
-    command: ["identity", "idp", "start", "--port=8081", "--bind=0.0.0.0", "--db-url=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable", "--authz-url=https://identity-authz:8080"]
+    command: ["identity", "idp", "--config=/app/config/idp-docker.yml"]
     ports:
       - "8081:8081"  # OIDC identity provider endpoints
       - "9081:9090"  # Admin API (health, metrics)
     environment:
-      - LOG_LEVEL=INFO
+      - IDENTITY_DB_DSN=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable
+      - AUTHZ_URL=http://identity-authz:8080
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+    volumes:
+      - ../../configs/identity/idp-docker.yml:/app/config/idp-docker.yml:ro
     depends_on:
       identity-postgres:
         condition: service_healthy
@@ -96,13 +101,15 @@ services:
   # Resource Server
   identity-rs:
     image: cryptoutil-identity:dev
-    command: ["identity", "rs", "start", "--port=8082", "--bind=0.0.0.0", "--authz-url=https://identity-authz:8080"]
+    command: ["identity", "rs", "--config=/app/config/rs-docker.yml"]
     ports:
       - "8082:8082"  # Resource server API endpoints
       - "9082:9090"  # Admin API (health, metrics)
     environment:
-      - LOG_LEVEL=INFO
+      - AUTHZ_URL=http://identity-authz:8080
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+    volumes:
+      - ../../configs/identity/rs-docker.yml:/app/config/rs-docker.yml:ro
     depends_on:
       identity-authz:
         condition: service_healthy
