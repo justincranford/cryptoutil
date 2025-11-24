@@ -289,8 +289,8 @@ type KeyRepository interface {
 	// Create creates a new key.
 	Create(ctx context.Context, key *cryptoutilIdentityDomain.Key) error
 
-	// GetByID retrieves a key by ID.
-	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Key, error)
+	// FindByID retrieves a key by ID.
+	FindByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Key, error)
 
 	// FindByUsage retrieves keys by usage type and active status.
 	FindByUsage(ctx context.Context, usage string, active bool) ([]*cryptoutilIdentityDomain.Key, error)
@@ -302,7 +302,7 @@ type KeyRepository interface {
 	Delete(ctx context.Context, id googleUuid.UUID) error
 
 	// List lists keys with pagination.
-	List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Key, error)
+	List(ctx context.Context, limit, offset int) ([]*cryptoutilIdentityDomain.Key, error)
 
 	// Count returns the total number of keys.
 	Count(ctx context.Context) (int64, error)

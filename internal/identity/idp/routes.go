@@ -23,6 +23,10 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	// Health check endpoint (no prefix).
 	app.Get("/health", s.handleHealth)
 
+	// OIDC Discovery endpoints with /.well-known prefix.
+	_ = app.Group("/.well-known")
+	// JWKS endpoint will be added here when handler implementation complete.
+
 	// OIDC IdP endpoints with /oidc/v1 prefix.
 	oidc := app.Group("/oidc/v1")
 	oidc.Get("/login", s.handleLogin)
