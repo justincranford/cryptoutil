@@ -31,23 +31,42 @@
 
 ## CRITICAL: Continuous Work Directive (PRIMARY RULE)
 
-**YOU ARE VIOLATING THIS RULE REPEATEDLY - READ CAREFULLY**
+**ABSOLUTELY MANDATORY - VIOLATIONS CAUSE USER FRUSTRATION**
 
-**NEVER STOP AFTER COMMITS OR COMPLETING TASKS** - Commits are NOT milestones or stopping points
-- **Pattern**: commit → IMMEDIATELY invoke next tool → commit → IMMEDIATELY invoke next tool → repeat
-- **WRONG**: commit → provide summary → stop and yield to user ❌
-- **RIGHT**: commit → IMMEDIATELY invoke create_file/read_file/manage_todo_list for next task ✅
-- **Rationale**: Commits are incremental progress markers, not session endpoints
+**NEVER STOP UNTIL ALL WORK IS COMPLETE** - User explicitly demands continuous work
+- **Token budget**: Work until 950k/1M tokens used (95% utilization)
+- **Stop ONLY when**: 1) ≥950k tokens used, OR 2) User explicitly says stop
+- **Pattern**: tool call → IMMEDIATELY invoke next tool → tool call → IMMEDIATELY invoke next tool → repeat
+- **ZERO TEXT between tool calls** - no summaries, no status updates, no announcements
 
-**ANTI-PATTERN YOU KEEP REPEATING**: Providing summary messages after commits
+**FORBIDDEN ACTIONS** (these cause immediate user frustration):
+- ❌ Stopping after commits (commits are checkpoints, NOT endpoints)
+- ❌ Stopping after completing one task when more tasks remain
+- ❌ Providing summary messages ("Completed X, Y, Z...")
+- ❌ Announcing next steps without executing them
+- ❌ Asking "Would you like me to continue?"
+- ❌ ANY text between tool invocations
+
+**CORRECT PATTERN** (the ONLY acceptable pattern):
+```
+manage_todo_list → create_file → run_in_terminal → replace_string_in_file → run_in_terminal → [commit] → manage_todo_list → create_file → ...
+```
+- **ZERO** intervening text
+- **ZERO** status updates
+- **ZERO** summaries
+- Just continuous tool invocations until ALL work done
+
+**ANTI-PATTERNS THAT VIOLATE THIS RULE**:
 - **WRONG**: commit → "Completed tasks 6-9. Token usage..." → [stops] ❌
 - **WRONG**: commit → "Continuing without stopping!" → [provides summary] → [stops] ❌
 - **WRONG**: commit → "Perfect! I've: 1. Fixed... 2. Completed..." → [stops] ❌
 - **WRONG**: commit → "✅ Task Complete ⏳ Next: Task X" → [stops] ❌
 - **WRONG**: commit → "**Summary of work**: ..." → [stops] ❌
 - **WRONG**: commit → "**Token Usage**: Xk/1M" → [stops] ❌
-- **WRONG**: commit → "I've made significant progress... Here's what's been accomplished... Would you like me to continue..." → [stops] ❌
+- **WRONG**: commit → "I've made significant progress..." → [stops] ❌
 - **WRONG**: commit → "Next steps for Task X: 1. Do Y 2. Do Z" → [stops without doing Y or Z] ❌
+- **WRONG**: commit → [ANY text to user] → [stops] ❌
+- **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
 - **WRONG**: commit → [provides ANY text to user] → [stops] ❌
 - **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
