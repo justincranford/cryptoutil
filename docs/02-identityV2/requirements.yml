@@ -673,9 +673,13 @@ R10-04:
   category: "ci_cd"
   priority: "MEDIUM"
   acceptance_criteria: "GitHub Actions workflow runs requirements check, fails if critical requirements uncovered"
-  test_files: []
-  test_functions: []
-  validated: false
+  test_files:
+    - .github/actions/custom-cicd-lint/action.yml
+    - .github/workflows/ci-quality.yml
+    - internal/cmd/cicd/identity_requirements_check/identity_requirements_check.go
+  test_functions:
+    - main (with --fail=true flag in CI)
+  validated: true
 
 # ============================================================
 # R11: Final Verification and Production Readiness
