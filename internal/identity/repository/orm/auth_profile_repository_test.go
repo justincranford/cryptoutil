@@ -15,6 +15,11 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
+const (
+	nonexistentProfile            = "nonexistent_profile"
+	updatedDescriptionAuthProfile = "Updated description"
+)
+
 func TestAuthProfileRepository_Create(t *testing.T) {
 	t.Parallel()
 
@@ -73,7 +78,8 @@ func TestAuthProfileRepository_GetByName(t *testing.T) {
 					RequireMFA:  false,
 					Enabled:     true,
 				}
-				_ = repo.Create(context.Background(), profile)
+				err := repo.Create(context.Background(), profile)
+				require.NoError(t, err)
 
 				return profile.Name
 			},
@@ -82,14 +88,13 @@ func TestAuthProfileRepository_GetByName(t *testing.T) {
 		{
 			name: "auth_profile_not_found",
 			setup: func() string {
-				return "nonexistent_profile"
+				return nonexistentProfile
 			},
 			wantErr: cryptoutilIdentityAppErr.ErrAuthProfileNotFound,
 		},
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -120,7 +125,7 @@ func TestAuthProfileRepository_Update(t *testing.T) {
 	err := repo.Create(context.Background(), profile)
 	require.NoError(t, err)
 
-	profile.Description = "Updated description"
+	profile.Description = updatedDescriptionAuthProfile
 	profile.RequireMFA = true
 	profile.MFAChain = []string{"totp"}
 	err = repo.Update(context.Background(), profile)
@@ -128,7 +133,7 @@ func TestAuthProfileRepository_Update(t *testing.T) {
 
 	retrieved, err := repo.GetByID(context.Background(), profile.ID)
 	require.NoError(t, err)
-	require.Equal(t, "Updated description", retrieved.Description)
+	require.Equal(t, updatedDescriptionAuthProfile, retrieved.Description)
 	require.True(t, retrieved.RequireMFA)
 	require.Len(t, retrieved.MFAChain, 1)
 }

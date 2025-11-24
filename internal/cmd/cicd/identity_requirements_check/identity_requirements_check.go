@@ -19,6 +19,20 @@ const (
 	defaultRequirementsFile = "docs/02-identityV2/requirements.yml"
 	defaultRootPath         = "./internal/identity"
 	defaultReportFile       = "docs/02-identityV2/REQUIREMENTS-COVERAGE.md"
+
+	// File permissions.
+	reportFilePermissions = 0o600
+
+	// Percentage constants.
+	percentComplete      = 100.0
+	percentCompleteAsInt = 100
+	percentMultiplier    = 100.0
+	percentZero          = 0.0
+
+	// Status emojis.
+	statusComplete   = "✅"
+	statusIncomplete = "⚠️"
+	statusNone       = "❌"
 )
 
 type Requirement struct {
@@ -113,7 +127,7 @@ func main() {
 
 	report := generateCoverageReport(reqDoc, stats)
 
-	if err := os.WriteFile(*reportFile, []byte(report), 0o644); err != nil {
+	if err := os.WriteFile(*reportFile, []byte(report), reportFilePermissions); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Failed to write report: %v\n", err)
 		os.Exit(1)
 	}
@@ -144,8 +158,14 @@ func loadRequirements(filePath string) (*RequirementsDoc, error) {
 	}
 
 	if metadataRaw, ok := raw["metadata"].(map[string]any); ok {
-		metadataBytes, _ := yaml.Marshal(metadataRaw)
-		yaml.Unmarshal(metadataBytes, &doc.Metadata)
+		metadataBytes, err := yaml.Marshal(metadataRaw)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal metadata: %w", err)
+		}
+
+		if err := yaml.Unmarshal(metadataBytes, &doc.Metadata); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
+		}
 	}
 
 	for key, value := range raw {
@@ -326,7 +346,7 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 	sb.WriteString("# Identity V2 Requirements Coverage Report\n\n")
 	sb.WriteString(fmt.Sprintf("**Generated**: %s\n", doc.Metadata.LastUpdated))
 	sb.WriteString(fmt.Sprintf("**Total Requirements**: %d\n", stats.TotalRequirements))
-	sb.WriteString(fmt.Sprintf("**Validated**: %d (%.1f%%)\n", stats.ValidatedRequirements, float64(stats.ValidatedRequirements)/float64(stats.TotalRequirements)*100))
+	sb.WriteString(fmt.Sprintf("**Validated**: %d (%.1f%%)\n", stats.ValidatedRequirements, float64(stats.ValidatedRequirements)/float64(stats.TotalRequirements)*percentMultiplier))
 	sb.WriteString(fmt.Sprintf("**Uncovered CRITICAL**: %d\n", stats.UncoveredCritical))
 	sb.WriteString(fmt.Sprintf("**Uncovered HIGH**: %d\n", stats.UncoveredHigh))
 	sb.WriteString(fmt.Sprintf("**Uncovered MEDIUM**: %d\n", stats.UncoveredMedium))
@@ -343,15 +363,15 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 
 	for _, taskID := range taskIDs {
 		taskStats := stats.ByTask[taskID]
-		pct := float64(taskStats.Validated) / float64(taskStats.Total) * 100
+		pct := float64(taskStats.Validated) / float64(taskStats.Total) * percentMultiplier
 
-		status := "✅"
-		if pct < 100 {
-			status = "⚠️"
+		status := statusComplete
+		if pct < percentComplete {
+			status = statusIncomplete
 		}
 
-		if pct == 0 {
-			status = "❌"
+		if pct == percentZero {
+			status = statusNone
 		}
 
 		sb.WriteString(fmt.Sprintf("| %s | %d | %d | %.1f%% %s |\n", taskID, taskStats.Total, taskStats.Validated, pct, status))
@@ -368,14 +388,14 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 
 	for _, cat := range categories {
 		catStats := stats.ByCategory[cat]
-		pct := float64(catStats.Validated) / float64(catStats.Total) * 100
+		pct := float64(catStats.Validated) / float64(catStats.Total) * percentMultiplier
 
-		status := "✅"
-		if pct < 100 {
-			status = "⚠️"
+		status := statusComplete
+		if pct < percentComplete {
+			status = statusIncomplete
 		}
 
-		if pct == 0 {
+		if pct == percentZero {
 			status = "❌"
 		}
 
@@ -387,15 +407,15 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 	priorities := []string{"CRITICAL", "HIGH", "MEDIUM", "LOW"}
 	for _, pri := range priorities {
 		if priStats, exists := stats.ByPriority[pri]; exists {
-			pct := float64(priStats.Validated) / float64(priStats.Total) * 100
+			pct := float64(priStats.Validated) / float64(priStats.Total) * percentMultiplier
 
-			status := "✅"
-			if pct < 100 {
-				status = "⚠️"
+			status := statusComplete
+			if pct < percentComplete {
+				status = statusIncomplete
 			}
 
-			if pct == 0 {
-				status = "❌"
+			if pct == percentZero {
+				status = statusNone
 			}
 
 			sb.WriteString(fmt.Sprintf("### %s: %d/%d (%.1f%%) %s\n", pri, priStats.Validated, priStats.Total, pct, status))
@@ -430,7 +450,7 @@ func printSummary(stats *CoverageStats) {
 	fmt.Println()
 	fmt.Println("📊 Coverage Summary:")
 	fmt.Printf("   Total Requirements: %d\n", stats.TotalRequirements)
-	fmt.Printf("   Validated: %d (%.1f%%)\n", stats.ValidatedRequirements, float64(stats.ValidatedRequirements)/float64(stats.TotalRequirements)*100)
+	fmt.Printf("   Validated: %d (%.1f%%)\n", stats.ValidatedRequirements, float64(stats.ValidatedRequirements)/float64(stats.TotalRequirements)*percentMultiplier)
 	fmt.Printf("   Uncovered CRITICAL: %d\n", stats.UncoveredCritical)
 	fmt.Printf("   Uncovered HIGH: %d\n", stats.UncoveredHigh)
 	fmt.Printf("   Uncovered MEDIUM: %d\n", stats.UncoveredMedium)

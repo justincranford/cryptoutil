@@ -86,7 +86,8 @@ func TestAuthorizationRequestRepository_GetByCode(t *testing.T) {
 					CreatedAt:           time.Now(),
 					ExpiresAt:           time.Now().Add(10 * time.Minute),
 				}
-				_ = repo.Create(context.Background(), request)
+				err := repo.Create(context.Background(), request)
+				require.NoError(t, err)
 
 				return request.Code
 			},
@@ -102,7 +103,6 @@ func TestAuthorizationRequestRepository_GetByCode(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

@@ -52,7 +52,6 @@ func TestNewHandler(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -170,7 +169,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -187,7 +185,8 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			handler.ServeHTTP(w, req)
 
 			resp := w.Result()
-			defer resp.Body.Close()
+			closeErr := resp.Body.Close()
+			require.NoError(t, closeErr)
 
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 

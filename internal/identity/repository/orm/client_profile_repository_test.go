@@ -15,6 +15,8 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
+const updatedDescriptionClientProfile = "Updated description"
+
 func TestClientProfileRepository_Create(t *testing.T) {
 	t.Parallel()
 
@@ -120,7 +122,7 @@ func TestClientProfileRepository_Update(t *testing.T) {
 	err := repo.Create(context.Background(), profile)
 	require.NoError(t, err)
 
-	profile.Description = "Updated description"
+	profile.Description = updatedDescriptionClientProfile
 	profile.RequireClientMFA = true
 	profile.ClientMFAChain = []string{"mtls"}
 	err = repo.Update(context.Background(), profile)
@@ -128,7 +130,7 @@ func TestClientProfileRepository_Update(t *testing.T) {
 
 	retrieved, err := repo.GetByID(context.Background(), profile.ID)
 	require.NoError(t, err)
-	require.Equal(t, "Updated description", retrieved.Description)
+	require.Equal(t, updatedDescriptionClientProfile, retrieved.Description)
 	require.True(t, retrieved.RequireClientMFA)
 	require.Len(t, retrieved.ClientMFAChain, 1)
 }

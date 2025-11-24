@@ -18,9 +18,8 @@ import (
 
 // Handler provides JWKS endpoint for exposing public signing keys.
 type Handler struct {
-	logger   *slog.Logger
-	keyRepo  cryptoutilIdentityRepository.KeyRepository
-	cacheKey *joseJwk.Set
+	logger  *slog.Logger
+	keyRepo cryptoutilIdentityRepository.KeyRepository
 }
 
 // NewHandler creates a new JWKS handler instance.

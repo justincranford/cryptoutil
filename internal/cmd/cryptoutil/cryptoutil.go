@@ -75,13 +75,18 @@ func identity(parameters []string) {
 	}
 }
 
+const (
+	configFlag      = "--config"
+	configFlagShort = "-c"
+)
+
 func identityAuthz(parameters []string) {
 	// Default config file
 	configFile := "configs/identity/authz.yml"
 
 	// Parse command-line flags for config override
 	for i, param := range parameters {
-		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
+		if (param == configFlag || param == configFlagShort) && i+1 < len(parameters) {
 			configFile = parameters[i+1]
 
 			break
@@ -163,7 +168,7 @@ func identityIdp(parameters []string) {
 
 	// Parse command-line flags for config override
 	for i, param := range parameters {
-		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
+		if (param == configFlag || param == configFlagShort) && i+1 < len(parameters) {
 			configFile = parameters[i+1]
 
 			break

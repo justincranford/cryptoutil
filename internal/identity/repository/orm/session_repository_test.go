@@ -88,7 +88,8 @@ func TestSessionRepository_GetBySessionID(t *testing.T) {
 					LastSeenAt: time.Now(),
 					Active:     true,
 				}
-				_ = repo.Create(context.Background(), session)
+				err := repo.Create(context.Background(), session)
+				require.NoError(t, err)
 
 				return session.SessionID
 			},
@@ -104,7 +105,6 @@ func TestSessionRepository_GetBySessionID(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

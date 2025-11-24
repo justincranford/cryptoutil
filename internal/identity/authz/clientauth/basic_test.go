@@ -67,11 +67,16 @@ func TestBasicAuthenticator_MethodName(t *testing.T) {
 	require.Equal(t, cryptoutilIdentityMagic.ClientAuthMethodSecretBasic, auth.Method())
 }
 
+const (
+	testClientSecretStr = "test-client-secret"
+	testClientIDStr     = "test-client-id"
+)
+
 func TestBasicAuthenticator_Authenticate(t *testing.T) {
 	t.Parallel()
 
-	testClientID := "test-client-id"
-	testClientSecret := "test-client-secret"
+	testClientID := testClientIDStr
+	testClientSecret := testClientSecretStr
 	testClientIDUUID := googleUuid.New()
 
 	// Hash the client secret for storage.
