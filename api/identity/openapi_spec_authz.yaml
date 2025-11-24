@@ -23,6 +23,90 @@ servers:
 
 paths:
   /oauth2/v1/authorize:
+    get:
+      summary: OAuth 2.1 Authorization Request (Initial)
+      description: |
+        Initiate OAuth 2.1 authorization code flow with mandatory PKCE.
+        Accepts authorization parameters as query parameters.
+        Validates client, redirect_uri, and code_challenge.
+        Redirects to IdP login if user not authenticated, or to consent form if authenticated.
+        This is the standard OAuth 2.1 authorization endpoint used by clients to start the flow.
+      operationId: authorizeGET
+      tags:
+        - OAuth 2.1
+      parameters:
+        - name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [code]
+          description: Must be "code" for authorization code flow
+          example: code
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Registered OAuth 2.0 client identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: Client redirect URI (must match registered value)
+          example: "https://client.example.com/callback"
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Space-delimited scope values (e.g., "openid profile email")
+          example: "openid profile email"
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Opaque value for CSRF protection
+          example: "xyz"
+        - name: code_challenge
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 43
+            maxLength: 128
+          description: PKCE code challenge (base64url-encoded SHA256 hash of code_verifier)
+          example: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+        - name: code_challenge_method
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [S256]
+          description: Must be "S256" (SHA256 hash)
+          example: S256
+      responses:
+        '302':
+          description: |
+            Redirect to IdP login (if user not authenticated) or consent form (if authenticated).
+            Location header contains target URL with return_url parameter for continuation.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: IdP login URL or consent form URL with return_url parameter
+              example: "https://idp.example.com/oidc/v1/login?return_url=https://authz.example.com/oauth2/v1/continue"
+        '400':
+          $ref: '#/components/responses/OAuth2Error'
+        '401':
+          $ref: '#/components/responses/OAuth2Error'
+
     post:
       summary: OAuth 2.1 Authorization Request
       description: |
