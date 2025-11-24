@@ -625,9 +625,14 @@ R10-01:
   category: "validation"
   priority: "MEDIUM"
   acceptance_criteria: "requirements.yml contains all acceptance criteria from R01-R11 with IDs, descriptions, priorities"
-  test_files: []
-  test_functions: []
-  validated: false
+  test_files:
+    - docs/02-identityV2/requirements.yml
+    - internal/cmd/cicd/identity_requirements_check/identity_requirements_check.go
+  test_functions:
+    - loadRequirements
+    - RequirementsDoc
+    - Requirement
+  validated: true
 
 R10-02:
   task: "R10"
@@ -636,9 +641,13 @@ R10-02:
   category: "validation"
   priority: "MEDIUM"
   acceptance_criteria: "identity-requirements-check scans test files, maps requirements to test functions, generates coverage report"
-  test_files: []
-  test_functions: []
-  validated: false
+  test_files:
+    - internal/cmd/cicd/identity_requirements_check/identity_requirements_check.go
+  test_functions:
+    - scanTestFiles
+    - mapRequirementsToTests
+    - TestMapping
+  validated: true
 
 R10-03:
   task: "R10"
@@ -647,9 +656,15 @@ R10-03:
   category: "reporting"
   priority: "MEDIUM"
   acceptance_criteria: "Coverage report shows total requirements, validated count, percentage by priority and category"
-  test_files: []
-  test_functions: []
-  validated: false
+  test_files:
+    - internal/cmd/cicd/identity_requirements_check/identity_requirements_check.go
+    - docs/02-identityV2/REQUIREMENTS-COVERAGE.md
+  test_functions:
+    - calculateCoverageStats
+    - generateCoverageReport
+    - printSummary
+    - CoverageStats
+  validated: true
 
 R10-04:
   task: "R10"
