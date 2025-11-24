@@ -121,10 +121,12 @@ R02-04:
   description: "JWKS endpoint exposes public signing keys"
   category: "oidc_core"
   priority: "CRITICAL"
-  acceptance_criteria: "GET /oidc/v1/jwks returns JSON Web Key Set with RSA public keys for JWT signature verification"
-  test_files: []
-  test_functions: []
-  validated: false
+  acceptance_criteria: "GET /.well-known/jwks.json returns valid JWK Set with public keys for token validation"
+  test_files:
+    - "internal/identity/jwks/handler_test.go"
+  test_functions:
+    - "TestHandler_ServeHTTP"
+  validated: true
 
 R02-05:
   task: "R02"
@@ -685,10 +687,14 @@ R11-05:
   description: "Performance benchmarks baseline"
   category: "performance"
   priority: "MEDIUM"
-  acceptance_criteria: "Benchmarks established for token issuance, validation, refresh with acceptable latency thresholds"
-  test_files: []
-  test_functions: []
-  validated: false
+  acceptance_criteria: "Benchmarks establish baseline for token generation/validation latency and throughput"
+  test_files:
+    - "internal/identity/authz/performance_bench_test.go"
+  test_functions:
+    - "BenchmarkUUIDTokenIssuance"
+    - "BenchmarkJWTSigning"
+    - "BenchmarkJWTValidation"
+  validated: true
 
 R11-06:
   task: "R11"
