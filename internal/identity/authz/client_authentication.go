@@ -6,6 +6,7 @@ package authz
 
 import (
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"strings"
 
@@ -81,15 +82,37 @@ func (s *Service) authenticateClient(c *fiber.Ctx) (*cryptoutilIdentityDomain.Cl
 				return nil, fiber.ErrUnauthorized
 			}
 
-			// For mTLS, the credential is the client certificate chain
-			// In a real implementation, this would be extracted from the TLS connection
-			// For now, we'll expect it to be passed as a form parameter
-			clientCert := c.FormValue("client_certificate")
-			if clientCert == "" {
-				return nil, fiber.ErrUnauthorized
+			// Extract client certificate from TLS connection.
+			// Fiber stores TLS peer certificates in c.Context().TLS.PeerCertificates.
+			// For mTLS auth, the client certificate chain must be provided via TLS handshake.
+			tlsConn := c.Context().Conn()
+			if tlsConn == nil {
+				return nil, fmt.Errorf("mTLS required but no TLS connection found")
 			}
 
-			client, err := authenticator.Authenticate(c.Context(), clientID, clientCert)
+			// Get the first certificate (client certificate) from the peer chain.
+			// The TLS handshake has already validated the certificate chain using the configured ClientCAs.
+			// Here we just need to extract it for application-level verification (subject, fingerprint).
+			// Note: In production, Fiber/fasthttp must be configured with tls.Config.ClientAuth = tls.RequireAndVerifyClientCert
+			// and tls.Config.ClientCAs set to the trusted CA pool.
+			peerCerts := c.Context().TLSConnectionState().PeerCertificates
+			if len(peerCerts) == 0 {
+				return nil, fmt.Errorf("mTLS required but no client certificate provided")
+			}
+
+			// Encode peer certificates as PEM for authenticator.
+			var pemChain strings.Builder
+			for _, cert := range peerCerts {
+				err := pem.Encode(&pemChain, &pem.Block{
+					Type:  "CERTIFICATE",
+					Bytes: cert.Raw,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to encode certificate: %w", err)
+				}
+			}
+
+			client, err := authenticator.Authenticate(c.Context(), clientID, pemChain.String())
 			if err != nil {
 				return nil, fmt.Errorf("mTLS auth failed: %w", err)
 			}
