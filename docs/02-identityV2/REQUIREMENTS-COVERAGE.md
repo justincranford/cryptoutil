@@ -119,7 +119,7 @@
 | R11-07 | HIGH | DAST scanning clean | ⏭️ BLOCKED (act not installed - see docs/DEV-SETUP.md) |
 | R11-08 | HIGH | Docker Compose stack healthy | ⏭️ BLOCKED (Identity servers not in main binary yet) |
 | R11-09 | HIGH | Production deployment checklist | ✅ VALIDATED |
-| R11-10 | MEDIUM | Observability configured | ⏳ NOT STARTED |
+| R11-10 | MEDIUM | Observability configured | ✅ VALIDATED |
 | R11-11 | HIGH | Documentation completeness | ⏳ NOT STARTED |
 | R11-12 | CRITICAL | Production readiness report approved | ⏳ NOT STARTED |
 
