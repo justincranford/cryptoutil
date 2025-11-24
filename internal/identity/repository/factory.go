@@ -34,6 +34,7 @@ type RepositoryFactory struct {
 	mfaFactorRepo     MFAFactorRepository
 	authzReqRepo      AuthorizationRequestRepository
 	consentRepo       ConsentDecisionRepository
+	keyRepo           KeyRepository
 }
 
 // NewRepositoryFactory creates a new repository factory with database initialization.
@@ -55,6 +56,7 @@ func NewRepositoryFactory(ctx context.Context, cfg *cryptoutilIdentityConfig.Dat
 		mfaFactorRepo:     cryptoutilIdentityORM.NewMFAFactorRepository(db),
 		authzReqRepo:      cryptoutilIdentityORM.NewAuthorizationRequestRepository(db),
 		consentRepo:       cryptoutilIdentityORM.NewConsentDecisionRepository(db),
+		keyRepo:           cryptoutilIdentityORM.NewKeyRepository(db),
 	}, nil
 }
 
@@ -116,6 +118,11 @@ func (f *RepositoryFactory) AuthorizationRequestRepository() AuthorizationReques
 // ConsentDecisionRepository returns the consent decision repository.
 func (f *RepositoryFactory) ConsentDecisionRepository() ConsentDecisionRepository {
 	return f.consentRepo
+}
+
+// KeyRepository returns the cryptographic key repository.
+func (f *RepositoryFactory) KeyRepository() KeyRepository {
+	return f.keyRepo
 }
 
 // DB returns the underlying database connection for transaction management.
