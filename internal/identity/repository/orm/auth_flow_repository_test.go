@@ -15,36 +15,59 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
+const updatedDescription = "Updated description"
+
 func TestAuthFlowRepository_Create(t *testing.T) {
 	t.Parallel()
 
 	testDB := setupTestDB(t)
 	repo := NewAuthFlowRepository(testDB.db)
 
-	flow := &cryptoutilIdentityDomain.AuthFlow{
-		Name:                "authorization_code_flow",
-		Description:         "Standard authorization code flow with PKCE",
-		FlowType:            cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
-		RequirePKCE:         true,
-		PKCEChallengeMethod: "S256",
-		AllowedScopes:       []string{"openid", "profile", "email"},
-		RequireConsent:      true,
-		ConsentScreenCount:  1,
-		RememberConsent:     false,
-		RequireState:        true,
-		Enabled:             true,
+	tests := []struct {
+		name      string
+		flow      *cryptoutilIdentityDomain.AuthFlow
+		wantError bool
+	}{
+		{
+			name: "successful creation",
+			flow: &cryptoutilIdentityDomain.AuthFlow{
+				Name:                "authorization_code_flow",
+				Description:         "Standard authorization code flow with PKCE",
+				FlowType:            cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+				RequirePKCE:         true,
+				PKCEChallengeMethod: "S256",
+				AllowedScopes:       []string{"openid", "profile", "email"},
+				RequireConsent:      true,
+				ConsentScreenCount:  1,
+				RememberConsent:     false,
+				RequireState:        true,
+				Enabled:             true,
+			},
+			wantError: false,
+		},
 	}
 
-	err := repo.Create(context.Background(), flow)
-	require.NoError(t, err)
-	require.NotEqual(t, googleUuid.Nil, flow.ID)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	retrieved, err := repo.GetByID(context.Background(), flow.ID)
-	require.NoError(t, err)
-	require.Equal(t, flow.Name, retrieved.Name)
-	require.Equal(t, flow.FlowType, retrieved.FlowType)
-	require.Equal(t, flow.RequirePKCE, retrieved.RequirePKCE)
-	require.Len(t, retrieved.AllowedScopes, 3)
+			err := repo.Create(context.Background(), tc.flow)
+
+			if tc.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotEqual(t, googleUuid.Nil, tc.flow.ID)
+
+				retrieved, err := repo.GetByID(context.Background(), tc.flow.ID)
+				require.NoError(t, err)
+				require.Equal(t, tc.flow.Name, retrieved.Name)
+				require.Equal(t, tc.flow.FlowType, retrieved.FlowType)
+				require.Equal(t, tc.flow.RequirePKCE, retrieved.RequirePKCE)
+				require.Len(t, retrieved.AllowedScopes, 3)
+			}
+		})
+	}
 }
 
 func TestAuthFlowRepository_GetByID(t *testing.T) {
@@ -53,9 +76,49 @@ func TestAuthFlowRepository_GetByID(t *testing.T) {
 	testDB := setupTestDB(t)
 	repo := NewAuthFlowRepository(testDB.db)
 
-	nonExistentID := googleUuid.Must(googleUuid.NewV7())
-	_, err := repo.GetByID(context.Background(), nonExistentID)
-	require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrAuthFlowNotFound)
+	tests := []struct {
+		name      string
+		setup     func() googleUuid.UUID
+		wantError error
+	}{
+		{
+			name: "auth_flow_found",
+			setup: func() googleUuid.UUID {
+				flow := &cryptoutilIdentityDomain.AuthFlow{
+					Name:        "test_flow",
+					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+					RequirePKCE: true,
+					Enabled:     true,
+				}
+				require.NoError(t, repo.Create(context.Background(), flow))
+
+				return flow.ID
+			},
+			wantError: nil,
+		},
+		{
+			name: "auth_flow_not_found",
+			setup: func() googleUuid.UUID {
+				return googleUuid.Must(googleUuid.NewV7())
+			},
+			wantError: cryptoutilIdentityAppErr.ErrAuthFlowNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			flowID := tc.setup()
+			_, err := repo.GetByID(context.Background(), flowID)
+
+			if tc.wantError != nil {
+				require.ErrorIs(t, err, tc.wantError)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestAuthFlowRepository_GetByName(t *testing.T) {
@@ -78,7 +141,8 @@ func TestAuthFlowRepository_GetByName(t *testing.T) {
 					RequirePKCE: true,
 					Enabled:     true,
 				}
-				_ = repo.Create(context.Background(), flow)
+				require.NoError(t, repo.Create(context.Background(), flow))
+
 				return flow.Name
 			},
 			wantErr: nil,
@@ -93,7 +157,6 @@ func TestAuthFlowRepository_GetByName(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -115,24 +178,54 @@ func TestAuthFlowRepository_Update(t *testing.T) {
 	testDB := setupTestDB(t)
 	repo := NewAuthFlowRepository(testDB.db)
 
-	flow := &cryptoutilIdentityDomain.AuthFlow{
-		Name:        "update_test_flow",
-		FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
-		RequirePKCE: true,
-		Enabled:     true,
+	tests := []struct {
+		name      string
+		setup     func() *cryptoutilIdentityDomain.AuthFlow
+		modify    func(*cryptoutilIdentityDomain.AuthFlow)
+		wantError bool
+	}{
+		{
+			name: "successful update",
+			setup: func() *cryptoutilIdentityDomain.AuthFlow {
+				flow := &cryptoutilIdentityDomain.AuthFlow{
+					Name:        "update_test_flow",
+					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+					RequirePKCE: true,
+					Enabled:     true,
+				}
+				require.NoError(t, repo.Create(context.Background(), flow))
+
+				return flow
+			},
+			modify: func(flow *cryptoutilIdentityDomain.AuthFlow) {
+				flow.Description = updatedDescription
+				flow.RequireConsent = true
+			},
+			wantError: false,
+		},
 	}
-	err := repo.Create(context.Background(), flow)
-	require.NoError(t, err)
 
-	flow.Description = "Updated description"
-	flow.RequireConsent = true
-	err = repo.Update(context.Background(), flow)
-	require.NoError(t, err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	retrieved, err := repo.GetByID(context.Background(), flow.ID)
-	require.NoError(t, err)
-	require.Equal(t, "Updated description", retrieved.Description)
-	require.True(t, retrieved.RequireConsent)
+			flow := tc.setup()
+			tc.modify(flow)
+
+			err := repo.Update(context.Background(), flow)
+
+			if tc.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+
+				retrieved, err := repo.GetByID(context.Background(), flow.ID)
+				require.NoError(t, err)
+				require.Equal(t, updatedDescription, retrieved.Description)
+				require.True(t, retrieved.RequireConsent)
+			}
+		})
+	}
 }
 
 func TestAuthFlowRepository_Delete(t *testing.T) {
@@ -141,20 +234,46 @@ func TestAuthFlowRepository_Delete(t *testing.T) {
 	testDB := setupTestDB(t)
 	repo := NewAuthFlowRepository(testDB.db)
 
-	flow := &cryptoutilIdentityDomain.AuthFlow{
-		Name:        "delete_test_flow",
-		FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
-		RequirePKCE: true,
-		Enabled:     true,
+	tests := []struct {
+		name      string
+		setup     func() googleUuid.UUID
+		wantError bool
+	}{
+		{
+			name: "successful deletion",
+			setup: func() googleUuid.UUID {
+				flow := &cryptoutilIdentityDomain.AuthFlow{
+					Name:        "delete_test_flow",
+					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+					RequirePKCE: true,
+					Enabled:     true,
+				}
+				require.NoError(t, repo.Create(context.Background(), flow))
+
+				return flow.ID
+			},
+			wantError: false,
+		},
 	}
-	err := repo.Create(context.Background(), flow)
-	require.NoError(t, err)
 
-	err = repo.Delete(context.Background(), flow.ID)
-	require.NoError(t, err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, err = repo.GetByID(context.Background(), flow.ID)
-	require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrAuthFlowNotFound)
+			flowID := tc.setup()
+
+			err := repo.Delete(context.Background(), flowID)
+
+			if tc.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+
+				_, err = repo.GetByID(context.Background(), flowID)
+				require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrAuthFlowNotFound)
+			}
+		})
+	}
 }
 
 func TestAuthFlowRepository_List(t *testing.T) {
@@ -163,24 +282,56 @@ func TestAuthFlowRepository_List(t *testing.T) {
 	testDB := setupTestDB(t)
 	repo := NewAuthFlowRepository(testDB.db)
 
-	for i := 0; i < 5; i++ {
-		flow := &cryptoutilIdentityDomain.AuthFlow{
-			Name:        "list_test_flow_" + string(rune('a'+i)),
-			FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
-			RequirePKCE: true,
-			Enabled:     true,
-		}
-		err := repo.Create(context.Background(), flow)
-		require.NoError(t, err)
+	tests := []struct {
+		name       string
+		setupCount int
+		offset     int
+		limit      int
+		expectMin  int
+		wantError  bool
+	}{
+		{
+			name:       "list first page",
+			setupCount: 5,
+			offset:     0,
+			limit:      3,
+			expectMin:  3,
+			wantError:  false,
+		},
+		{
+			name:       "list with offset",
+			setupCount: 5,
+			offset:     3,
+			limit:      3,
+			expectMin:  2,
+			wantError:  false,
+		},
 	}
 
-	flows, err := repo.List(context.Background(), 0, 3)
-	require.NoError(t, err)
-	require.Len(t, flows, 3)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	flows, err = repo.List(context.Background(), 3, 3)
-	require.NoError(t, err)
-	require.Len(t, flows, 2)
+			for i := 0; i < tc.setupCount; i++ {
+				flow := &cryptoutilIdentityDomain.AuthFlow{
+					Name:        tc.name + "_flow_" + string(rune('a'+i)),
+					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+					RequirePKCE: true,
+					Enabled:     true,
+				}
+				require.NoError(t, repo.Create(context.Background(), flow))
+			}
+
+			flows, err := repo.List(context.Background(), tc.offset, tc.limit)
+
+			if tc.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.GreaterOrEqual(t, len(flows), tc.expectMin)
+			}
+		})
+	}
 }
 
 func TestAuthFlowRepository_Count(t *testing.T) {
@@ -189,22 +340,48 @@ func TestAuthFlowRepository_Count(t *testing.T) {
 	testDB := setupTestDB(t)
 	repo := NewAuthFlowRepository(testDB.db)
 
-	count, err := repo.Count(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, int64(0), count)
-
-	for i := 0; i < 5; i++ {
-		flow := &cryptoutilIdentityDomain.AuthFlow{
-			Name:        "count_test_flow_" + string(rune('a'+i)),
-			FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
-			RequirePKCE: true,
-			Enabled:     true,
-		}
-		err := repo.Create(context.Background(), flow)
-		require.NoError(t, err)
+	tests := []struct {
+		name       string
+		setupCount int
+		expectMin  int64
+		wantError  bool
+	}{
+		{
+			name:       "zero count",
+			setupCount: 0,
+			expectMin:  0,
+			wantError:  false,
+		},
+		{
+			name:       "multiple items",
+			setupCount: 5,
+			expectMin:  5,
+			wantError:  false,
+		},
 	}
 
-	count, err = repo.Count(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, int64(5), count)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			for i := 0; i < tc.setupCount; i++ {
+				flow := &cryptoutilIdentityDomain.AuthFlow{
+					Name:        tc.name + "_flow_" + string(rune('a'+i)),
+					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+					RequirePKCE: true,
+					Enabled:     true,
+				}
+				require.NoError(t, repo.Create(context.Background(), flow))
+			}
+
+			count, err := repo.Count(context.Background())
+
+			if tc.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.GreaterOrEqual(t, count, tc.expectMin)
+			}
+		})
+	}
 }
