@@ -24,17 +24,17 @@ func TestTokenRepository_Create(t *testing.T) {
 	ctx := context.Background()
 
 	token := &cryptoutilIdentityDomain.Token{
-		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		TokenValue:              "access_token_create",
-		TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-		ClientID:                googleUuid.Must(googleUuid.NewV7()),
-		UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:                  []string{"openid", "profile"},
-		IssuedAt:                time.Now(),
-		ExpiresAt:               time.Now().Add(time.Hour),
-		Revoked:                 false,
-		RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_create",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid", "profile"},
+		IssuedAt:       time.Now(),
+		ExpiresAt:      time.Now().Add(time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
 
 	err := repo.Create(ctx, token)
@@ -83,17 +83,17 @@ func TestTokenRepository_GetByTokenValue(t *testing.T) {
 	ctx := context.Background()
 
 	testToken := &cryptoutilIdentityDomain.Token{
-		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		TokenValue:              "access_token_getbyvalue",
-		TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-		ClientID:                googleUuid.Must(googleUuid.NewV7()),
-		UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:                  []string{"openid", "profile"},
-		IssuedAt:                time.Now(),
-		ExpiresAt:               time.Now().Add(time.Hour),
-		Revoked:                 false,
-		RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_getbyvalue",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid", "profile"},
+		IssuedAt:       time.Now(),
+		ExpiresAt:      time.Now().Add(time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
 
 	err := repo.Create(ctx, testToken)
@@ -142,17 +142,17 @@ func TestTokenRepository_Update(t *testing.T) {
 	ctx := context.Background()
 
 	token := &cryptoutilIdentityDomain.Token{
-		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		TokenValue:              "access_token_update",
-		TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-		ClientID:                googleUuid.Must(googleUuid.NewV7()),
-		UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:                  []string{"openid", "profile"},
-		IssuedAt:                time.Now(),
-		ExpiresAt:               time.Now().Add(time.Hour),
-		Revoked:                 false,
-		RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_update",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid", "profile"},
+		IssuedAt:       time.Now(),
+		ExpiresAt:      time.Now().Add(time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
 
 	err := repo.Create(ctx, token)
@@ -175,17 +175,17 @@ func TestTokenRepository_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	token := &cryptoutilIdentityDomain.Token{
-		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		TokenValue:              "access_token_delete",
-		TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-		ClientID:                googleUuid.Must(googleUuid.NewV7()),
-		UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:                  []string{"openid", "profile"},
-		IssuedAt:                time.Now(),
-		ExpiresAt:               time.Now().Add(time.Hour),
-		Revoked:                 false,
-		RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_delete",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid", "profile"},
+		IssuedAt:       time.Now(),
+		ExpiresAt:      time.Now().Add(time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
 
 	err := repo.Create(ctx, token)
@@ -207,17 +207,17 @@ func TestTokenRepository_RevokeByID(t *testing.T) {
 	ctx := context.Background()
 
 	token := &cryptoutilIdentityDomain.Token{
-		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		TokenValue:              "access_token_revoke",
-		TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-		ClientID:                googleUuid.Must(googleUuid.NewV7()),
-		UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:                  []string{"openid", "profile"},
-		IssuedAt:                time.Now(),
-		ExpiresAt:               time.Now().Add(time.Hour),
-		Revoked:                 false,
-		RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_revoke",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid", "profile"},
+		IssuedAt:       time.Now(),
+		ExpiresAt:      time.Now().Add(time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
 
 	err := repo.Create(ctx, token)
@@ -239,26 +239,26 @@ func TestTokenRepository_RevokeByTokenValue(t *testing.T) {
 	ctx := context.Background()
 
 	token := &cryptoutilIdentityDomain.Token{
-		ID:                      googleUuid.Must(googleUuid.NewV7()),
-		TokenValue:              "access_token_revokevalue",
-		TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-		TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-		ClientID:                googleUuid.Must(googleUuid.NewV7()),
-		UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-		Scopes:                  []string{"openid", "profile"},
-		IssuedAt:                time.Now(),
-		ExpiresAt:               time.Now().Add(time.Hour),
-		Revoked:                 false,
-		RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_revoke_value",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid", "profile"},
+		IssuedAt:       time.Now(),
+		ExpiresAt:      time.Now().Add(time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
 
 	err := repo.Create(ctx, token)
 	require.NoError(t, err)
 
-	err = repo.RevokeByTokenValue(ctx, "access_token_revokevalue")
+	err = repo.RevokeByTokenValue(ctx, "access_token_revoke_value")
 	require.NoError(t, err)
 
-	retrieved, err := repo.GetByTokenValue(ctx, "access_token_revokevalue")
+	retrieved, err := repo.GetByTokenValue(ctx, "access_token_revoke_value")
 	require.NoError(t, err)
 	require.True(t, retrieved.Revoked)
 }
@@ -272,17 +272,17 @@ func TestTokenRepository_List(t *testing.T) {
 
 	for i := range 5 {
 		token := &cryptoutilIdentityDomain.Token{
-			ID:                      googleUuid.Must(googleUuid.NewV7()),
-			TokenValue:              "access_token_list_" + string(rune('0'+i)),
-			TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-			TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-			ClientID:                googleUuid.Must(googleUuid.NewV7()),
-			UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-			Scopes:                  []string{"openid", "profile"},
-			IssuedAt:                time.Now(),
-			ExpiresAt:               time.Now().Add(time.Hour),
-			Revoked:                 false,
-			RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+			ID:             googleUuid.Must(googleUuid.NewV7()),
+			TokenValue:     "access_token_list_" + string(rune('0'+i)),
+			TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+			TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+			ClientID:       googleUuid.Must(googleUuid.NewV7()),
+			UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+			Scopes:         []string{"openid", "profile"},
+			IssuedAt:       time.Now(),
+			ExpiresAt:      time.Now().Add(time.Hour),
+			Revoked:        false,
+			RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 		}
 		err := repo.Create(ctx, token)
 		require.NoError(t, err)
@@ -310,17 +310,17 @@ func TestTokenRepository_Count(t *testing.T) {
 
 	for i := range 5 {
 		token := &cryptoutilIdentityDomain.Token{
-			ID:                      googleUuid.Must(googleUuid.NewV7()),
-			TokenValue:              "access_token_count_" + string(rune('0'+i)),
-			TokenType:               cryptoutilIdentityDomain.TokenTypeAccess,
-			TokenFormat:             cryptoutilIdentityDomain.TokenFormatUUID,
-			ClientID:                googleUuid.Must(googleUuid.NewV7()),
-			UserID:                  cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
-			Scopes:                  []string{"openid", "profile"},
-			IssuedAt:                time.Now(),
-			ExpiresAt:               time.Now().Add(time.Hour),
-			Revoked:                 false,
-			RefreshTokenID:          cryptoutilIdentityDomain.NullableUUID{Valid: false},
+			ID:             googleUuid.Must(googleUuid.NewV7()),
+			TokenValue:     "access_token_count_" + string(rune('0'+i)),
+			TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+			TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+			ClientID:       googleUuid.Must(googleUuid.NewV7()),
+			UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+			Scopes:         []string{"openid", "profile"},
+			IssuedAt:       time.Now(),
+			ExpiresAt:      time.Now().Add(time.Hour),
+			Revoked:        false,
+			RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 		}
 		err := repo.Create(ctx, token)
 		require.NoError(t, err)

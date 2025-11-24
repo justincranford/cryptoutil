@@ -74,7 +74,9 @@ func TestClientProfileRepository_GetByName(t *testing.T) {
 					RequiredScopes: []string{"openid"},
 					Enabled:        true,
 				}
-				_ = repo.Create(context.Background(), profile)
+				err := repo.Create(context.Background(), profile)
+				require.NoError(t, err)
+
 				return profile.Name
 			},
 			wantErr: nil,
@@ -89,7 +91,6 @@ func TestClientProfileRepository_GetByName(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
