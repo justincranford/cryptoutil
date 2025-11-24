@@ -1,0 +1,241 @@
+# Identity V2 Project Status (Single Source of Truth)
+
+**Document Purpose**: ONLY authoritative source for Identity V2 project status
+**Last Updated**: November 24, 2025
+**Commit Hash**: (to be updated after commit)
+
+---
+
+## Current Status: ❌ NOT READY FOR PRODUCTION
+
+**Critical Context**: Two parallel work streams exist with different completion metrics:
+
+1. **Original Implementation Plan (Tasks 01-20)**: 45% complete (NOT production ready)
+2. **Remediation Plan (Tasks R01-R11)**: 100% complete (production ready WITH documented limitations)
+
+**This document tracks the COMBINED status**, acknowledging both work streams.
+
+---
+
+## Completion Metrics
+
+### Original Implementation Plan (Tasks 01-20)
+
+| Status | Count | Percentage | Details |
+|--------|-------|------------|---------|
+| ✅ Fully Complete | 9 | 45% | Foundation, config, storage, integration infra |
+| ⚠️ Partially Complete | 5 | 25% | OAuth 2.1, client auth, token service, SPA, OIDC |
+| ❌ Incomplete | 6 | 30% | Login UI, consent, logout, userinfo, secrets, lifecycle |
+
+**Total Progress**: 9/20 tasks fully complete = **45% completion**
+
+### Remediation Plan (Tasks R01-R11)
+
+| Status | Count | Percentage | Details |
+|--------|-------|------------|---------|
+| ✅ Complete | 11 | 100% | All R01-R11 tasks complete including 2 retries |
+
+**Total Progress**: 11/11 tasks complete = **100% completion**
+
+### Requirements Coverage
+
+**From REQUIREMENTS-COVERAGE.md** (automated tool):
+
+| Priority | Validated | Total | Percentage | Uncovered |
+|----------|-----------|-------|------------|-----------|
+| CRITICAL | 15 | 22 | 68.2% | 7 |
+| HIGH | 13 | 26 | 50.0% | 13 |
+| MEDIUM | 10 | 16 | 62.5% | 6 |
+| LOW | 0 | 1 | 0.0% | 1 |
+| **TOTAL** | **38** | **65** | **58.5%** | **27** |
+
+**Overall Requirements Coverage**: 38/65 validated = **58.5%**
+
+### TODO/FIXME Comments
+
+**From grep_search** (internal/identity/**/*.go):
+
+| Severity | Count | Examples |
+|----------|-------|----------|
+| 🔴 CRITICAL | 0 | None (all production blockers resolved) |
+| ⚠️ HIGH | 4 | Database health checks, cleanup jobs, user repository integration |
+| 📋 MEDIUM | 12 | Structured logging, auth profile registration, validation completeness |
+| ℹ️ LOW | 21 | Test enhancements, observability, future MFA features |
+| **TOTAL** | **37** | Across test files, handlers, auth profiles, services |
+
+---
+
+## Known Limitations
+
+**From R11-KNOWN-LIMITATIONS.md** (documented as part of R01-R11 remediation):
+
+1. **client_secret_jwt Authentication**:
+   - Status: Implementation exists but not tested/validated
+   - Impact: JWT-based client authentication unavailable
+   - Workaround: Use client_secret_basic or client_secret_post
+   - Remediation: Deferred to future pass
+
+2. **Advanced MFA Features**:
+   - Status: Email/SMS OTP delivery not implemented (7 TODOs in otp.go)
+   - Impact: OTP MFA factor unavailable for end users
+   - Workaround: Use TOTP or passkey MFA instead
+   - Remediation: Deferred to future pass
+
+3. **Test Failures in Future Features**:
+   - Status: 23 test failures out of 105 total tests (77.9% pass rate)
+   - Impact: Failures in deferred features (client_secret_jwt, email/SMS OTP)
+   - Note: Core OAuth/OIDC flows have 100% test pass rate
+   - Remediation: Fix when implementing deferred features
+
+4. **OpenAPI Synchronization**:
+   - Status: Phase 3 deferred (swagger specs not fully synced with implementation)
+   - Impact: API documentation may not match actual endpoints
+   - Workaround: Test against actual endpoints, not just documentation
+   - Remediation: Scheduled for R11 Phase 3 completion
+
+5. **Configuration Templates**:
+   - Status: Templates exist but validation tooling incomplete
+   - Impact: No automated config validation before deployment
+   - Workaround: Manual config review
+   - Remediation: Create config validation tool in future pass
+
+---
+
+## Production Blockers
+
+**CRITICAL blockers preventing production deployment** (based on original 20-task plan):
+
+| Blocker ID | Description | Affected Components | Remediation Status |
+|------------|-------------|---------------------|-------------------|
+| BLOCK-01 | No login UI (returns JSON not HTML) | IDP /login endpoint | R10.5 partial - 2 TODOs remain |
+| BLOCK-02 | No consent UI (not implemented) | IDP /consent endpoint | R10.5 incomplete - 3 TODOs remain |
+| BLOCK-03 | Logout doesn't work | IDP /logout endpoint | R10.5 incomplete - 2 TODOs remain |
+| BLOCK-04 | Userinfo endpoint non-functional | IDP /userinfo endpoint | R10.5 incomplete - 2 TODOs remain |
+| BLOCK-05 | Token-user association uses placeholder | Token service handlers_token.go:148 | R08 partial - 1 TODO remains |
+| BLOCK-06 | Client secrets stored in plain text | Client auth validation | R07 partial - 1 TODO remains |
+| BLOCK-07 | No token lifecycle cleanup jobs | Token service background jobs | R08 partial - 1 TODO remains |
+| BLOCK-08 | No CRL/OCSP revocation checking | Client cert validation | R07 partial - 1 TODO remains |
+
+**Total Production Blockers**: 8 (from original plan perspective)
+
+**Note**: R01-R11 remediation plan considers these "known limitations" with workarounds, not blockers. Production approval granted with documented limitations for R01-R11 scope.
+
+---
+
+## Production Readiness Assessment
+
+### For Original Plan (Tasks 01-20): ❌ NOT READY
+
+**Reasons**:
+- 45% completion (9/20 fully complete)
+- 8 critical production blockers
+- 58.5% requirements coverage (below 85% threshold)
+- 4 HIGH severity TODOs, 12 MEDIUM TODOs
+
+**Required Actions**:
+1. Complete login/consent/logout/userinfo UI implementation
+2. Fix token-user association (remove placeholder)
+3. Implement client secret hashing
+4. Add token lifecycle cleanup jobs
+5. Implement CRL/OCSP revocation checking
+6. Increase requirements coverage to ≥85%
+7. Resolve all HIGH severity TODOs
+
+### For Remediation Plan (Tasks R01-R11): ⚠️ CONDITIONAL YES
+
+**Status**: Production approved WITH documented limitations
+
+**Conditions**:
+- Known limitations acknowledged (5 documented in R11-KNOWN-LIMITATIONS.md)
+- Core OAuth/OIDC flows functional (100% test pass rate for core features)
+- Deferred features excluded from scope (client_secret_jwt, email/SMS OTP)
+- Workarounds documented for all limitations
+- Future remediation plan exists for deferred features
+
+**Production Deployment Recommendation**:
+- ✅ Approved for deployment IF:
+  - Users understand known limitations
+  - Deferred features not required for initial launch
+  - Core OAuth/OIDC flows sufficient for use case
+- ❌ NOT approved for deployment IF:
+  - Full feature completeness required
+  - No acceptable workarounds for limitations
+  - Production SLA requires 100% feature implementation
+
+---
+
+## Recent Activity
+
+**November 24, 2025**:
+- Comprehensive gap analysis completed (GAP-ANALYSIS.md)
+- Documentation contradictions identified and resolved
+- Passthru3 documentation archived (historical reference)
+- Template improvements documented (TEMPLATE-IMPROVEMENTS.md)
+- This PROJECT-STATUS.md created as single source of truth
+
+**Previous Activity** (from archived passthru3):
+- R01-R11 remediation tasks completed (November 2025)
+- Post-mortems created for each task
+- Known limitations documented
+- Production readiness report approved (with conditions)
+
+---
+
+## Next Steps (Passthru4 Remediation)
+
+**See**: `MASTER-PLAN-V4.md` (to be created)
+
+**Planned Work**:
+1. Address 8 production blockers from original plan
+2. Increase requirements coverage to ≥85%
+3. Resolve HIGH severity TODOs (4 items)
+4. Implement login/consent/logout/userinfo UI
+5. Fix token-user association
+6. Implement client secret hashing
+7. Add token lifecycle cleanup
+8. Implement CRL/OCSP checking
+
+**Approach**: Foundation-first with evidence-based validation gates (see TEMPLATE-IMPROVEMENTS.md)
+
+---
+
+## Documentation References
+
+### Primary Documents (This Directory)
+- **PROJECT-STATUS.md** (THIS FILE): Single source of truth for project status
+- **GAP-ANALYSIS.md**: Comprehensive evidence-based gap analysis
+- **TEMPLATE-IMPROVEMENTS.md**: SDLC template enhancement recommendations
+- **MASTER-PLAN-V4.md**: Remediation plan with validation gates (to be created)
+
+### Archived Documents (Passthru3)
+- **passthru3/ARCHIVE-README.md**: Why passthru3 was archived
+- **passthru3/README.md**: Original plan status (45% complete)
+- **passthru3/MASTER-PLAN.md**: Remediation plan (100% complete)
+- **passthru3/COMPLETION-STATUS-REPORT.md**: Evidence-based gaps
+- **passthru3/REQUIREMENTS-COVERAGE.md**: Automated validation (58.5%)
+
+### Historical Context
+- **Passthru1**: Original implementation (unknown outcome)
+- **Passthru2**: First remediation (unknown outcome)
+- **Passthru3**: Second remediation (archived due to documentation contradictions)
+- **Passthru4**: Current remediation (this directory)
+
+---
+
+## Status Update Triggers
+
+**This document MUST be updated when**:
+- Any task completes (update completion metrics)
+- Requirements validation runs (update coverage percentage)
+- TODO scan runs (update TODO counts)
+- Production blocker resolved (remove from blocker list)
+- Known limitation discovered (add to limitations section)
+- Production readiness changes (update assessment)
+
+**Update Frequency**: After every major milestone or at minimum weekly
+
+---
+
+**Last Updated By**: GitHub Copilot (automated)
+**Next Review**: After MASTER-PLAN-V4.md task completion
+**Contact**: See project maintainers in repository README

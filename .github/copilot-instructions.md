@@ -69,16 +69,23 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
 - **WRONG**: commit → [provides ANY text to user] → [stops] ❌
 - **WRONG**: ANY TEXT BETWEEN TOOL CALLS ❌
+- **WRONG**: create_file (GAP-ANALYSIS.md) → create_file (TEMPLATE-IMPROVEMENTS.md) → create_directory → run_in_terminal (copy files) → create_file (ARCHIVE-README.md) → [stops] ❌
+- **WRONG**: After creating analysis documents → [stops instead of implementing fixes] ❌
+- **WRONG**: After creating 3-5 files → [stops thinking work complete] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
+- **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
+- **SPECIFIC ENFORCEMENT #2**: After creating analysis documents, IMMEDIATELY start implementing fixes based on analysis
 - **NO SUMMARIES**: Never provide status updates, progress reports, completion messages, or token usage reports until ALL work done
 - **NO CHECKMARKS**: Never use ✅/❌/⏳ emoji status markers - just invoke next tool immediately
 - **NO "NEXT" STATEMENTS**: Never say "Next: Task X" - just start Task X immediately
 - **NO QUESTIONS**: Never ask "Would you like me to continue?" - ALWAYS CONTINUE
 - **CRITICAL**: Analysis documents are NOT deliverables - they are preparation for IMMEDIATE implementation
+- **CRITICAL #2**: Creating 3-5 files is NOT completion - it's the BEGINNING of work
 - **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
+- **PATTERN #2**: create_file (analysis) → IMMEDIATELY implement changes from analysis → commit → next work
 
 **Token Budget Awareness - MATH RULES**
 
