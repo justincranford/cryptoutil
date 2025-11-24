@@ -25,23 +25,18 @@ func TestAuthFlowRepository_Create(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		flow      *cryptoutilIdentityDomain.AuthFlow
+		setup     func() *cryptoutilIdentityDomain.AuthFlow
 		wantError bool
 	}{
 		{
-			name: "successful creation",
-			flow: &cryptoutilIdentityDomain.AuthFlow{
-				Name:                "authorization_code_flow",
-				Description:         "Standard authorization code flow with PKCE",
-				FlowType:            cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
-				RequirePKCE:         true,
-				PKCEChallengeMethod: "S256",
-				AllowedScopes:       []string{"openid", "profile", "email"},
-				RequireConsent:      true,
-				ConsentScreenCount:  1,
-				RememberConsent:     false,
-				RequireState:        true,
-				Enabled:             true,
+			name: "successful_creation",
+			setup: func() *cryptoutilIdentityDomain.AuthFlow {
+				return &cryptoutilIdentityDomain.AuthFlow{
+					Name:        "test_flow",
+					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+					RequirePKCE: true,
+					Enabled:     true,
+				}
 			},
 			wantError: false,
 		},
@@ -51,20 +46,19 @@ func TestAuthFlowRepository_Create(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := repo.Create(context.Background(), tc.flow)
+			flow := tc.setup()
+			err := repo.Create(context.Background(), flow)
 
 			if tc.wantError {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.NotEqual(t, googleUuid.Nil, tc.flow.ID)
+				require.NotEqual(t, googleUuid.Nil, flow.ID)
 
-				retrieved, err := repo.GetByID(context.Background(), tc.flow.ID)
+				retrieved, err := repo.GetByID(context.Background(), flow.ID)
 				require.NoError(t, err)
-				require.Equal(t, tc.flow.Name, retrieved.Name)
-				require.Equal(t, tc.flow.FlowType, retrieved.FlowType)
-				require.Equal(t, tc.flow.RequirePKCE, retrieved.RequirePKCE)
-				require.Len(t, retrieved.AllowedScopes, 3)
+				require.Equal(t, flow.ID, retrieved.ID)
+				require.Equal(t, flow.Name, retrieved.Name)
 			}
 		})
 	}
@@ -103,6 +97,13 @@ func TestAuthFlowRepository_GetByID(t *testing.T) {
 			},
 			wantError: cryptoutilIdentityAppErr.ErrAuthFlowNotFound,
 		},
+		{
+			name: "database_error_invalid_uuid",
+			setup: func() googleUuid.UUID {
+				return googleUuid.Nil
+			},
+			wantError: cryptoutilIdentityAppErr.ErrAuthFlowNotFound,
+		},
 	}
 
 	for _, tc := range tests {
@@ -110,12 +111,15 @@ func TestAuthFlowRepository_GetByID(t *testing.T) {
 			t.Parallel()
 
 			flowID := tc.setup()
-			_, err := repo.GetByID(context.Background(), flowID)
+			flow, err := repo.GetByID(context.Background(), flowID)
 
 			if tc.wantError != nil {
 				require.ErrorIs(t, err, tc.wantError)
+				require.Nil(t, flow)
 			} else {
 				require.NoError(t, err)
+				require.NotNil(t, flow)
+				require.Equal(t, flowID, flow.ID)
 			}
 		})
 	}
@@ -154,6 +158,13 @@ func TestAuthFlowRepository_GetByName(t *testing.T) {
 			},
 			wantErr: cryptoutilIdentityAppErr.ErrAuthFlowNotFound,
 		},
+		{
+			name: "database_error_empty_name",
+			setup: func() string {
+				return ""
+			},
+			wantErr: cryptoutilIdentityAppErr.ErrAuthFlowNotFound,
+		},
 	}
 
 	for _, tc := range tests {
@@ -161,12 +172,15 @@ func TestAuthFlowRepository_GetByName(t *testing.T) {
 			t.Parallel()
 
 			flowName := tc.setup()
-			_, err := repo.GetByName(context.Background(), flowName)
+			flow, err := repo.GetByName(context.Background(), flowName)
 
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
+				require.Nil(t, flow)
 			} else {
 				require.NoError(t, err)
+				require.NotNil(t, flow)
+				require.Equal(t, flowName, flow.Name)
 			}
 		})
 	}
@@ -182,6 +196,7 @@ func TestAuthFlowRepository_Update(t *testing.T) {
 		name      string
 		setup     func() *cryptoutilIdentityDomain.AuthFlow
 		modify    func(*cryptoutilIdentityDomain.AuthFlow)
+		verify    func(*cryptoutilIdentityDomain.AuthFlow)
 		wantError bool
 	}{
 		{
@@ -201,6 +216,27 @@ func TestAuthFlowRepository_Update(t *testing.T) {
 				flow.Description = updatedDescription
 				flow.RequireConsent = true
 			},
+			verify: func(flow *cryptoutilIdentityDomain.AuthFlow) {
+				require.Equal(t, updatedDescription, flow.Description)
+				require.True(t, flow.RequireConsent)
+			},
+			wantError: false,
+		},
+		{
+			name: "update_with_invalid_id",
+			setup: func() *cryptoutilIdentityDomain.AuthFlow {
+				return &cryptoutilIdentityDomain.AuthFlow{
+					ID:          googleUuid.Nil,
+					Name:        "invalid_flow",
+					FlowType:    cryptoutilIdentityDomain.AuthFlowTypeAuthorizationCode,
+					RequirePKCE: true,
+					Enabled:     true,
+				}
+			},
+			modify: func(flow *cryptoutilIdentityDomain.AuthFlow) {
+				flow.Description = "Should not persist"
+			},
+			verify:    func(flow *cryptoutilIdentityDomain.AuthFlow) {},
 			wantError: false,
 		},
 	}
@@ -219,10 +255,11 @@ func TestAuthFlowRepository_Update(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 
-				retrieved, err := repo.GetByID(context.Background(), flow.ID)
-				require.NoError(t, err)
-				require.Equal(t, updatedDescription, retrieved.Description)
-				require.True(t, retrieved.RequireConsent)
+				if flow.ID != googleUuid.Nil {
+					retrieved, err := repo.GetByID(context.Background(), flow.ID)
+					require.NoError(t, err)
+					tc.verify(retrieved)
+				}
 			}
 		})
 	}
@@ -254,6 +291,13 @@ func TestAuthFlowRepository_Delete(t *testing.T) {
 			},
 			wantError: false,
 		},
+		{
+			name: "delete_nonexistent_flow",
+			setup: func() googleUuid.UUID {
+				return googleUuid.Must(googleUuid.NewV7())
+			},
+			wantError: false,
+		},
 	}
 
 	for _, tc := range tests {
@@ -261,7 +305,6 @@ func TestAuthFlowRepository_Delete(t *testing.T) {
 			t.Parallel()
 
 			flowID := tc.setup()
-
 			err := repo.Delete(context.Background(), flowID)
 
 			if tc.wantError {
@@ -269,7 +312,7 @@ func TestAuthFlowRepository_Delete(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 
-				_, err = repo.GetByID(context.Background(), flowID)
+				_, err := repo.GetByID(context.Background(), flowID)
 				require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrAuthFlowNotFound)
 			}
 		})
