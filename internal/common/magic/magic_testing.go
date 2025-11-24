@@ -30,16 +30,20 @@ const (
 )
 
 const (
-	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize.
-	TestTimeoutDockerHealth = 10 * time.Second //nolint:stylecheck // established API name
-	// TestTimeoutDockerHealth - Timeout for Docker health checks.
-	TestTimeoutCryptoutilReady = 10 * time.Second //nolint:stylecheck // Cryptoutil needs time to unseal - reduced for fast fail
-	// TestTimeoutCryptoutilReady - Timeout for Cryptoutil readiness checks.
-	TestTimeoutTestExecution = 60 * time.Second //nolint:stylecheck // Overall test timeout - reduced for fast fail
-	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize.
-	TestTimeoutDockerComposeInit = 5 * time.Second //nolint:stylecheck // Time to wait for Docker Compose services to initialize after startup
-	// TestTimeoutServiceRetry - Timeout for service retry intervals.
-	TestTimeoutServiceRetry = 500 * time.Millisecond //nolint:stylecheck // Check more frequently
+	// TestTimeoutDockerHealth - Timeout for Docker health checks. Allows for:
+	// - postgres: start_period=5s + (interval=5s * retries=5) = up to 30s
+	// - cryptoutil: start_period=10s + (interval=5s * retries=5) = up to 35s
+	// - dependency chain: healthcheck-secrets → builder → postgres → otel → cryptoutil instances
+	// Total: 2 minutes allows comfortable margin for all services to become healthy.
+	TestTimeoutDockerHealth = 120 * time.Second //nolint:stylecheck // established API name
+	// TestTimeoutCryptoutilReady - Timeout for Cryptoutil readiness checks. Cryptoutil needs time to unseal.
+	TestTimeoutCryptoutilReady = 30 * time.Second //nolint:stylecheck // Cryptoutil needs time to unseal
+	// TestTimeoutTestExecution - Overall test execution timeout.
+	TestTimeoutTestExecution = 5 * time.Minute //nolint:stylecheck // Overall test timeout
+	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize after startup.
+	TestTimeoutDockerComposeInit = 10 * time.Second //nolint:stylecheck // Time to wait for Docker Compose services to initialize after startup
+	// TestTimeoutServiceRetry - Timeout for service retry intervals. Check frequently.
+	TestTimeoutServiceRetry = 2 * time.Second //nolint:stylecheck // Check every 2 seconds
 
 	// TimeoutTestServerReady - Test server ready timeout.
 	TimeoutTestServerReady = 30 * time.Second
