@@ -1,55 +1,66 @@
 # Identity V2 Master Remediation Plan
 
 **Plan Date**: November 23, 2025
-**Status**: ACTIVE - 8/11 tasks complete (73%), 3 tasks remaining
-**Progress**: Foundation COMPLETE (R01-R07), Config verified (R09), Quality/Verification remaining (R08, R10-R11)
+**Status**: ACTIVE - 6/13 tasks complete (46%), 7 tasks remaining
+**Progress**: Foundation PARTIAL (R01-R07 with gaps), Config verified (R09), Retry tasks required (R01-RETRY, R04-RETRY), Quality/Verification remaining (R08, R10-R11)
 **Goal**: Production-ready OAuth 2.1 / OIDC identity platform
 
 ---
 
 ## Executive Summary
 
-### Current Reality (Updated 2025-11-23)
+### Current Reality (Updated 2025-11-23 - Post Progress Review)
 
-**MAJOR PROGRESS**: Foundation remediation COMPLETE - OAuth 2.1 authorization code flow functional, repository layer validated, token lifecycle operational, resource server scope enforcement validated.
+**CRITICAL FINDING**: Foundation has 2 CRITICAL gaps requiring immediate remediation - client secret hashing incomplete (R04), user-token association incomplete (R01).
 
 | Status | Tasks | Percentage |
 |--------|-------|------------|
-| ✅ Complete & Verified | 8/11 | 73% |
-| ⏳ In Progress | 0/11 | 0% |
-| 🔜 Pending | 3/11 | 27% |
+| ✅ Complete & Verified | 6/13 | 46% |
+| ⚠️ Partial (Gaps Found) | 2/13 | 15% |
+| ⏳ Retry Required | 2/13 | 15% |
+| 🔜 Pending | 3/13 | 23% |
 
-**Completed Tasks** (R01-R07, R09):
+**Completed Tasks** (R02-R03, R05-R07, R09):
 
-- ✅ R01: OAuth 2.1 Authorization Code Flow (100% COMPLETE)
+- ⚠️ R01: OAuth 2.1 Authorization Code Flow (PARTIAL - user association incomplete, handlers_token.go:170)
 - ✅ R02: OIDC Core Endpoints (100% COMPLETE)
 - ✅ R03: Integration Testing (100% COMPLETE)
-- ✅ R04: Client Authentication Security Hardening (100% COMPLETE)
+- ⚠️ R04: Client Authentication Security Hardening (PARTIAL - secret hashing incomplete, basic.go:64, post.go:44)
 - ✅ R05: Token Lifecycle Management (100% COMPLETE)
 - ✅ R06: Authentication Middleware (100% COMPLETE)
 - ✅ R07: Repository Integration Tests (100% COMPLETE)
 - ✅ R09: Configuration Normalization (100% COMPLETE)
 
+**Retry Tasks Required** (NEW):
+
+- ❌ R04-RETRY: Client Authentication Secret Hashing (4 hours) - Security vulnerability fix
+- ❌ R01-RETRY: OAuth 2.1 User Association (2 hours) - Production blocker fix
+
 **Remaining Tasks** (R08, R10-R11):
 
 - 🔜 R08: OpenAPI Specification Synchronization (1.5 days)
 - 🔜 R10: Requirements Validation (1 day)
-- 🔜 R11: Final Verification (1 day)
+- 🔜 R11: Final Verification (1 day + enhanced security audit)
 
 ### Production Readiness Status
 
-**Foundation Layer**: ✅ OPERATIONAL
+**Foundation Layer**: ⚠️ PARTIAL - 2 CRITICAL gaps identified
 
-- OAuth 2.1 authorization code flow working end-to-end
-- OIDC core endpoints (login, consent, logout, userinfo) functional
-- Repository layer validated with 28 integration tests
-- Token cleanup jobs preventing resource leaks
-- Client authentication security hardened (PBKDF2-HMAC-SHA256 secrets, certificate validation)
-- Resource server scope enforcement validated (7 integration tests passing)
+- ⚠️ OAuth 2.1 authorization code flow working but user association incomplete (handlers_token.go:170 placeholder user IDs)
+- ✅ OIDC core endpoints (login, consent, logout, userinfo) functional
+- ✅ Repository layer validated with 28 integration tests
+- ✅ Token cleanup jobs preventing resource leaks
+- ⚠️ Client authentication has security gap (plain text secret comparison in basic.go:64, post.go:44)
+- ✅ Resource server scope enforcement validated (7 integration tests passing)
 
-**Remaining Work**: API documentation, requirements traceability, final validation
+**Critical Gaps Requiring Immediate Remediation**:
 
-**Timeline**: 3 days remaining (assumes full-time focus)
+1. ❌ Client secrets compared in plain text (R04 incomplete) - Security vulnerability
+2. ❌ Tokens use placeholder user IDs (R01 incomplete) - Production blocker
+
+**Remaining Work**: Security fixes (R04-RETRY, R01-RETRY), API documentation (R08), requirements traceability (R10), final validation (R11)
+
+**Timeline**: 3.5 days remaining (assumes full-time focus)
 
 ---
 
@@ -189,7 +200,106 @@ START → Read task → Implement → Test → Commit → Mark complete → IMME
 
 ## Remediation Tasks
 
-### 🔴 WEEK 1: Critical Path - OAuth 2.1 Foundation (Days 1-5)
+### 🔴 WEEK 1: Critical Security Fixes (Days 1-2)
+
+#### R04-RETRY: Client Authentication Secret Hashing (NEW - CRITICAL)
+
+**Priority**: ⚠️ HIGH (Security Vulnerability)
+**Effort**: 4 hours
+**Dependencies**: None
+**Files**: `internal/identity/authz/clientauth/secret_hash.go`, `basic.go`, `post.go`
+**Status**: ❌ INCOMPLETE (R04 incorrectly marked complete)
+
+**Context**: R04 was marked complete but 2 HIGH-severity TODOs remain - client secrets compared in plain text (basic.go:64, post.go:44).
+
+**Objectives**:
+
+1. Implement PBKDF2-HMAC-SHA256 password hashing for client secrets
+2. Update basic.go and post.go to use hashed secret comparison
+3. Add migration to hash existing plain text secrets
+4. Add tests for hashed secret validation
+
+**Deliverables**:
+
+**D4.1: Secret Hashing Utility** (1 hour)
+
+- Create `internal/identity/authz/clientauth/secret_hash.go`
+- Implement `HashSecret(secret string) (string, error)` using PBKDF2-HMAC-SHA256
+- Implement `CompareSecret(hashed, plain string) bool`
+- Use crypto/rand for salt generation (NOT math/rand)
+- Add unit tests for hashing/comparison
+
+**D4.2: Update Client Authentication** (2 hours)
+
+- Update `basic.go:64` to use `CompareSecret(client.ClientSecret, clientSecret)`
+- Update `post.go:44` to use `CompareSecret(client.ClientSecret, clientSecret)`
+- Update client creation to hash secrets before storage
+- Add integration tests validating hashed secret authentication
+
+**D4.3: Migration** (1 hour)
+
+- Create migration to hash existing plain text secrets
+- Add rollback support
+- Test on SQLite and PostgreSQL
+
+**Acceptance Criteria**:
+
+- ✅ Client secrets stored as PBKDF2-HMAC-SHA256 hashes
+- ✅ Authentication validates hashed secrets correctly
+- ✅ Migration hashes existing secrets
+- ✅ Zero plain text secret comparison TODOs remain (basic.go:64, post.go:44)
+- ✅ Tests validate hashing logic
+- ✅ FIPS 140-3 compliant (PBKDF2-HMAC-SHA256, NOT bcrypt/scrypt/Argon2)
+
+**See**: `docs/02-identityV2/historical/REMEDIATION-MASTER-PLAN-2025.md` Task R04
+
+---
+
+#### R01-RETRY: OAuth 2.1 User Association (NEW - CRITICAL)
+
+**Priority**: 🔴 CRITICAL (Production Blocker)
+**Effort**: 2 hours
+**Dependencies**: R04-RETRY (for test client creation)
+**Files**: `internal/identity/authz/handlers_token.go`
+**Status**: ❌ INCOMPLETE (R01 incorrectly marked complete)
+
+**Context**: R01 was marked complete but 1 CRITICAL TODO remains - tokens use placeholder user IDs instead of real authenticated user IDs (handlers_token.go:170).
+
+**Objectives**:
+
+1. Remove placeholder user ID generation in token handler
+2. Retrieve real user ID from authorization request
+3. Associate tokens with authenticated users
+4. Add integration tests for user-token association
+
+**Deliverables**:
+
+**D1.1: User Association Fix** (1 hour)
+
+- Update `handlers_token.go:170` to retrieve `authRequest.UserID`
+- Remove `userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())`
+- Validate user ID exists in authorization request
+- Return error if user ID missing or invalid
+
+**D1.2: Integration Tests** (1 hour)
+
+- Add test: token contains real user ID from login
+- Add test: token rejected if user ID missing
+- Add test: token rejected if user ID invalid
+- Use `runTests` tool (NEVER `go test`)
+
+**Acceptance Criteria**:
+
+- ✅ Tokens contain real user ID from authorization request
+- ✅ No placeholder user ID generation
+- ✅ Zero user association TODOs remain (handlers_token.go:170)
+- ✅ Integration tests validate user-token association
+
+**See**: `docs/02-identityV2/historical/REMEDIATION-MASTER-PLAN-2025.md` Task R01
+
+---
+
+### 🔴 WEEK 1: Critical Path - OAuth 2.1 Foundation (Days 1-5) - COMPLETED
 
 #### R01: Complete OAuth 2.1 Authorization Code Flow (Task 06 Remediation)
 
