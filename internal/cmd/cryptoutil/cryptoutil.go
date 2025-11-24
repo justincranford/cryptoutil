@@ -83,6 +83,7 @@ func identityAuthz(parameters []string) {
 	for i, param := range parameters {
 		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
 			configFile = parameters[i+1]
+
 			break
 		}
 	}
@@ -164,6 +165,7 @@ func identityIdp(parameters []string) {
 	for i, param := range parameters {
 		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
 			configFile = parameters[i+1]
+
 			break
 		}
 	}
@@ -245,6 +247,7 @@ func identityRs(parameters []string) {
 	for i, param := range parameters {
 		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
 			configFile = parameters[i+1]
+
 			break
 		}
 	}

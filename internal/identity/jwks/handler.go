@@ -10,8 +10,8 @@ import (
 	"net/http"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	identityMagic "cryptoutil/internal/identity/magic"
-	identityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
@@ -19,15 +19,16 @@ import (
 // Handler provides JWKS endpoint for exposing public signing keys.
 type Handler struct {
 	logger   *slog.Logger
-	keyRepo  identityRepository.KeyRepository
+	keyRepo  cryptoutilIdentityRepository.KeyRepository
 	cacheKey *joseJwk.Set
 }
 
 // NewHandler creates a new JWKS handler instance.
-func NewHandler(logger *slog.Logger, keyRepo identityRepository.KeyRepository) (*Handler, error) {
+func NewHandler(logger *slog.Logger, keyRepo cryptoutilIdentityRepository.KeyRepository) (*Handler, error) {
 	if logger == nil {
 		return nil, fmt.Errorf("logger cannot be nil: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
+
 	if keyRepo == nil {
 		return nil, fmt.Errorf("keyRepo cannot be nil: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
@@ -46,6 +47,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		h.logger.WarnContext(ctx, "JWKS endpoint only supports GET", "method", r.Method)
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+
 		return
 	}
 
@@ -54,6 +56,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.logger.ErrorContext(ctx, "Failed to get public signing keys", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -62,6 +65,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.logger.ErrorContext(ctx, "Failed to marshal JWKS", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -69,6 +73,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour.
 	w.WriteHeader(http.StatusOK)
+
 	if _, writeErr := w.Write(jwksBytes); writeErr != nil {
 		h.logger.ErrorContext(ctx, "Failed to write JWKS response", "error", writeErr)
 	}
@@ -77,7 +82,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // getPublicSigningKeys retrieves all active public signing keys.
 func (h *Handler) getPublicSigningKeys(ctx context.Context) (joseJwk.Set, error) {
 	// Get all active public signing keys.
-	keys, err := h.keyRepo.FindByUsage(ctx, identityMagic.KeyUsageSigning, true)
+	keys, err := h.keyRepo.FindByUsage(ctx, cryptoutilIdentityMagic.KeyUsageSigning, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find active signing keys: %w", err)
 	}
@@ -95,12 +100,14 @@ func (h *Handler) getPublicSigningKeys(ctx context.Context) (joseJwk.Set, error)
 		publicJWK, parseErr := joseJwk.ParseKey([]byte(key.PublicKey))
 		if parseErr != nil {
 			h.logger.WarnContext(ctx, "Skipping invalid public key", "key_id", key.ID, "error", parseErr)
+
 			continue
 		}
 
 		// Add to set.
 		if addErr := jwkSet.AddKey(publicJWK); addErr != nil {
 			h.logger.WarnContext(ctx, "Failed to add key to JWKS", "key_id", key.ID, "error", addErr)
+
 			continue
 		}
 	}

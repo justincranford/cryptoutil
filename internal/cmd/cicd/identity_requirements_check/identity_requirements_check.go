@@ -88,6 +88,7 @@ func main() {
 	rootPath := flag.String("root", defaultRootPath, "Root path for test file scanning")
 	reportFile := flag.String("report", defaultReportFile, "Path to output coverage report")
 	failOnUncovered := flag.Bool("fail", true, "Exit with error if critical requirements uncovered")
+
 	flag.Parse()
 
 	reqDoc, err := loadRequirements(*requirementsFile)
@@ -191,12 +192,15 @@ func scanTestFiles(ctx context.Context, rootPath string) ([]TestMapping, error) 
 		}
 
 		lines := strings.Split(string(content), "\n")
+
 		var currentReqIDs []string
+
 		inRequirementsBlock := false
 
 		for i, line := range lines {
 			if strings.Contains(line, "Validates requirements:") {
 				inRequirementsBlock = true
+
 				continue
 			}
 
@@ -286,6 +290,7 @@ func calculateCoverageStats(doc *RequirementsDoc, coverage map[string]Requiremen
 				Uncovered: []Requirement{},
 			}
 		}
+
 		stats.ByTask[req.Task].Total++
 		if req.Validated {
 			stats.ByTask[req.Task].Validated++
@@ -296,6 +301,7 @@ func calculateCoverageStats(doc *RequirementsDoc, coverage map[string]Requiremen
 		if _, exists := stats.ByCategory[req.Category]; !exists {
 			stats.ByCategory[req.Category] = &CategoryStats{Category: req.Category}
 		}
+
 		stats.ByCategory[req.Category].Total++
 		if req.Validated {
 			stats.ByCategory[req.Category].Validated++
@@ -304,6 +310,7 @@ func calculateCoverageStats(doc *RequirementsDoc, coverage map[string]Requiremen
 		if _, exists := stats.ByPriority[req.Priority]; !exists {
 			stats.ByPriority[req.Priority] = &PriorityStats{Priority: req.Priority}
 		}
+
 		stats.ByPriority[req.Priority].Total++
 		if req.Validated {
 			stats.ByPriority[req.Priority].Validated++
@@ -331,18 +338,22 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 	for taskID := range stats.ByTask {
 		taskIDs = append(taskIDs, taskID)
 	}
+
 	sort.Strings(taskIDs)
 
 	for _, taskID := range taskIDs {
 		taskStats := stats.ByTask[taskID]
 		pct := float64(taskStats.Validated) / float64(taskStats.Total) * 100
+
 		status := "✅"
 		if pct < 100 {
 			status = "⚠️"
 		}
+
 		if pct == 0 {
 			status = "❌"
 		}
+
 		sb.WriteString(fmt.Sprintf("| %s | %d | %d | %.1f%% %s |\n", taskID, taskStats.Total, taskStats.Validated, pct, status))
 	}
 
@@ -352,18 +363,22 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 	for cat := range stats.ByCategory {
 		categories = append(categories, cat)
 	}
+
 	sort.Strings(categories)
 
 	for _, cat := range categories {
 		catStats := stats.ByCategory[cat]
 		pct := float64(catStats.Validated) / float64(catStats.Total) * 100
+
 		status := "✅"
 		if pct < 100 {
 			status = "⚠️"
 		}
+
 		if pct == 0 {
 			status = "❌"
 		}
+
 		sb.WriteString(fmt.Sprintf("### %s: %d/%d (%.1f%%) %s\n", cat, catStats.Validated, catStats.Total, pct, status))
 	}
 
@@ -373,13 +388,16 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 	for _, pri := range priorities {
 		if priStats, exists := stats.ByPriority[pri]; exists {
 			pct := float64(priStats.Validated) / float64(priStats.Total) * 100
+
 			status := "✅"
 			if pct < 100 {
 				status = "⚠️"
 			}
+
 			if pct == 0 {
 				status = "❌"
 			}
+
 			sb.WriteString(fmt.Sprintf("### %s: %d/%d (%.1f%%) %s\n", pri, priStats.Validated, priStats.Total, pct, status))
 		}
 	}
@@ -392,9 +410,11 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 			sb.WriteString(fmt.Sprintf("### %s\n\n", taskID))
 			sb.WriteString("| ID | Priority | Description |\n")
 			sb.WriteString("|----|----------|-------------|\n")
+
 			for _, req := range taskStats.Uncovered {
 				sb.WriteString(fmt.Sprintf("| %s | %s | %s |\n", req.ID, req.Priority, req.Description))
 			}
+
 			sb.WriteString("\n")
 		}
 	}

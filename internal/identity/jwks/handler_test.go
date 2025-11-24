@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
-	identityDomain "cryptoutil/internal/identity/domain"
-	identityMagic "cryptoutil/internal/identity/magic"
-	identityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -52,7 +52,7 @@ func TestNewHandler(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -61,7 +61,7 @@ func TestNewHandler(t *testing.T) {
 				logger = nil
 			}
 
-			var keyRepo identityRepository.KeyRepository = &MockKeyRepository{}
+			var keyRepo cryptoutilIdentityRepository.KeyRepository = &MockKeyRepository{}
 			if !tc.keyRepo {
 				keyRepo = nil
 			}
@@ -97,24 +97,26 @@ func TestHandler_ServeHTTP(t *testing.T) {
 				kid := googleUuid.Must(googleUuid.NewV7())
 				privateKey, publicKey := generateTestRSAKeyPair(t)
 
-				key := &identityDomain.Key{
+				key := &cryptoutilIdentityDomain.Key{
 					ID:         kid,
-					Usage:      identityMagic.KeyUsageSigning,
+					Usage:      cryptoutilIdentityMagic.KeyUsageSigning,
 					Algorithm:  joseJwa.RS256().String(),
 					PrivateKey: privateKey,
 					PublicKey:  publicKey,
 					Active:     true,
 				}
 
-				repo.On("FindByUsage", mock.Anything, identityMagic.KeyUsageSigning, true).
-					Return([]*identityDomain.Key{key}, nil)
+				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+					Return([]*cryptoutilIdentityDomain.Key{key}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()
+
 				var jwksResponse struct {
 					Keys []json.RawMessage `json:"keys"`
 				}
+
 				err := json.Unmarshal(body, &jwksResponse)
 				require.NoError(t, err)
 				require.Greater(t, len(jwksResponse.Keys), 0, "JWKS should contain at least one key")
@@ -136,7 +138,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			name:   "repository error",
 			method: http.MethodGet,
 			setupMock: func(repo *MockKeyRepository) {
-				repo.On("FindByUsage", mock.Anything, identityMagic.KeyUsageSigning, true).
+				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
 					Return(nil, errors.New("repository error"))
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -149,15 +151,17 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			name:   "no active signing keys",
 			method: http.MethodGet,
 			setupMock: func(repo *MockKeyRepository) {
-				repo.On("FindByUsage", mock.Anything, identityMagic.KeyUsageSigning, true).
-					Return([]*identityDomain.Key{}, nil)
+				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+					Return([]*cryptoutilIdentityDomain.Key{}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()
+
 				var jwksResponse struct {
 					Keys []json.RawMessage `json:"keys"`
 				}
+
 				err := json.Unmarshal(body, &jwksResponse)
 				require.NoError(t, err)
 				require.Equal(t, 0, len(jwksResponse.Keys), "JWKS should be empty when no keys exist")
@@ -166,7 +170,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -177,7 +181,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			handler, err := NewHandler(logger, keyRepo)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(tc.method, identityMagic.PathJWKS, nil)
+			req := httptest.NewRequest(tc.method, cryptoutilIdentityMagic.PathJWKS, nil)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, req)
@@ -212,6 +216,7 @@ func generateTestRSAKeyPair(t *testing.T) (string, string) {
 
 	// Set kid on both keys.
 	require.NoError(t, privateJWK.Set(joseJwk.KeyIDKey, kid.String()))
+
 	if publicJWK != nil {
 		require.NoError(t, publicJWK.Set(joseJwk.KeyIDKey, kid.String()))
 	}

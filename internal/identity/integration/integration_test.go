@@ -56,7 +56,7 @@ const (
 //
 // Validates requirements:
 // - R11-01: All integration tests passing
-// - R11-02: Code coverage meets target (≥85%)
+// - R11-02: Code coverage meets target (≥85%).
 type testServers struct {
 	authzServer *cryptoutilIdentityServer.AuthZServer
 	idpServer   *cryptoutilIdentityServer.IDPServer
@@ -288,7 +288,7 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 // Validates requirements:
 // - R03-01: Integration tests use real SQLite database
 // - R03-02: Integration tests start all three servers
-// - R03-04: Integration tests validate cross-server interactions
+// - R03-04: Integration tests validate cross-server interactions.
 func TestHealthCheckEndpoints(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
@@ -328,7 +328,7 @@ func TestHealthCheckEndpoints(t *testing.T) {
 // - R01-03: Consent approval generates authorization code with user context
 // - R01-04: Token exchange returns access token with real user ID in sub claim
 // - R01-05: Authorization code single-use enforcement
-// - R01-06: Integration test validates end-to-end OAuth 2.1 flow
+// - R01-06: Integration test validates end-to-end OAuth 2.1 flow.
 func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
@@ -516,7 +516,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 //
 // Validates requirements:
 // - R06-02: CSRF protection for state-changing requests
-// - R06-03: Rate limiting per IP and per client
+// - R06-03: Rate limiting per IP and per client.
 func TestResourceServerScopeEnforcement(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
@@ -603,7 +603,7 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 // Validates requirements:
 // - R02-02: UserInfo endpoint validates Bearer token
 // - R05-05: Revoked tokens rejected with 401 Unauthorized
-// - R06-01: Session middleware validates access tokens
+// - R06-01: Session middleware validates access tokens.
 func TestUnauthorizedAccess(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 	defer cancel()
@@ -637,7 +637,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 // TestGracefulShutdown verifies servers shut down cleanly.
 //
 // Validates requirements:
-// - R03-03: Integration tests clean up resources
+// - R03-03: Integration tests clean up resources.
 func TestGracefulShutdown(t *testing.T) {
 	servers, cancel := setupTestServers(t)
 

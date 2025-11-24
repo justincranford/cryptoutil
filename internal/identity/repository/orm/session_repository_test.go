@@ -89,6 +89,7 @@ func TestSessionRepository_GetBySessionID(t *testing.T) {
 					Active:     true,
 				}
 				_ = repo.Create(context.Background(), session)
+
 				return session.SessionID
 			},
 			wantErr: nil,
@@ -103,7 +104,7 @@ func TestSessionRepository_GetBySessionID(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

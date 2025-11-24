@@ -16,7 +16,7 @@ import (
 )
 
 // Validates requirements:
-// - R01-01: /oauth2/v1/authorize stores authorization request and redirects to login
+// - R01-01: /oauth2/v1/authorize stores authorization request and redirects to login.
 func TestAuthorizationRequestStore_CRUD(t *testing.T) {
 	t.Parallel()
 
@@ -104,7 +104,7 @@ func TestAuthorizationRequestStore_Expiration(t *testing.T) {
 }
 
 // Validates requirements:
-// - R01-03: Consent approval generates authorization code with user context
+// - R01-03: Consent approval generates authorization code with user context.
 func TestGenerateAuthorizationCode(t *testing.T) {
 	t.Parallel()
 
@@ -127,7 +127,7 @@ func TestGenerateAuthorizationCode(t *testing.T) {
 }
 
 // Validates requirements:
-// - R01-05: Authorization code single-use enforcement
+// - R01-05: Authorization code single-use enforcement.
 func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 	t.Parallel()
 

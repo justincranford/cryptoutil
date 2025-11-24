@@ -46,6 +46,7 @@ func (p *PostAuthenticator) Authenticate(ctx context.Context, clientID, credenti
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare client secret: %w", err)
 	}
+
 	if !match {
 		return nil, cryptoutilIdentityAppErr.ErrInvalidClientSecret
 	}

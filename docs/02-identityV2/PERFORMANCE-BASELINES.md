@@ -141,7 +141,7 @@ Add to `.github/workflows/ci-quality.yml`:
   run: |
     go test -bench=. -benchmem -run=^$ ./internal/identity/authz/ \
       | tee benchmark-results.txt
-    
+
     # Fail if performance degrades >20%
     # (implement regression comparison logic)
 ```

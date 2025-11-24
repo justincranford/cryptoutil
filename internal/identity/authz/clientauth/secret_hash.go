@@ -70,11 +70,14 @@ func CompareSecret(hashed, plain string) (bool, error) {
 // splitHashedSecret splits "salt:hash" into [salt, hash].
 func splitHashedSecret(hashed string) []string {
 	result := make([]string, 0, 2)
+
 	for i := 0; i < len(hashed); i++ {
 		if hashed[i] == ':' {
 			result = append(result, hashed[:i], hashed[i+1:])
+
 			break
 		}
 	}
+
 	return result
 }

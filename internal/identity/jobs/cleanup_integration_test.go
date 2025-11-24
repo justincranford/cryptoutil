@@ -19,7 +19,7 @@ import (
 )
 
 // Validates requirements:
-// - R06-04: Session expiration and cleanup
+// - R06-04: Session expiration and cleanup.
 func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 	t.Parallel()
 

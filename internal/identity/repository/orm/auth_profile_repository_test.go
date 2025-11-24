@@ -74,6 +74,7 @@ func TestAuthProfileRepository_GetByName(t *testing.T) {
 					Enabled:     true,
 				}
 				_ = repo.Create(context.Background(), profile)
+
 				return profile.Name
 			},
 			wantErr: nil,
@@ -88,7 +89,7 @@ func TestAuthProfileRepository_GetByName(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

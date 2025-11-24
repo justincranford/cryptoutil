@@ -8,7 +8,7 @@ import (
 )
 
 // Validates requirements:
-// - R04-01: Client secrets hashed with PBKDF2-HMAC-SHA256
+// - R04-01: Client secrets hashed with PBKDF2-HMAC-SHA256.
 func TestHashToken_Success(t *testing.T) {
 	t.Parallel()
 

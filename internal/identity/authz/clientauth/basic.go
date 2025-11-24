@@ -66,6 +66,7 @@ func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credent
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare client secret: %w", err)
 	}
+
 	if !match {
 		return nil, cryptoutilIdentityAppErr.ErrInvalidClientSecret
 	}

@@ -7,7 +7,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	identityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
 // KeyRepositoryGORM implements KeyRepository using GORM ORM.
@@ -21,7 +21,7 @@ func NewKeyRepository(db *gorm.DB) *KeyRepositoryGORM {
 }
 
 // Create inserts a new cryptographic key into the database.
-func (r *KeyRepositoryGORM) Create(ctx context.Context, key *identityDomain.Key) error {
+func (r *KeyRepositoryGORM) Create(ctx context.Context, key *cryptoutilIdentityDomain.Key) error {
 	if key == nil {
 		return fmt.Errorf("key cannot be nil")
 	}
@@ -30,18 +30,21 @@ func (r *KeyRepositoryGORM) Create(ctx context.Context, key *identityDomain.Key)
 }
 
 // FindByID retrieves a key by its unique identifier.
-func (r *KeyRepositoryGORM) FindByID(ctx context.Context, id googleUuid.UUID) (*identityDomain.Key, error) {
-	var key identityDomain.Key
+func (r *KeyRepositoryGORM) FindByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Key, error) {
+	var key cryptoutilIdentityDomain.Key
+
 	err := getDB(ctx, r.db).WithContext(ctx).Where("id = ?", id).First(&key).Error
 	if err != nil {
 		return nil, err
 	}
+
 	return &key, nil
 }
 
 // FindByUsage retrieves all keys matching the specified usage and active status.
-func (r *KeyRepositoryGORM) FindByUsage(ctx context.Context, usage string, active bool) ([]*identityDomain.Key, error) {
-	var keys []*identityDomain.Key
+func (r *KeyRepositoryGORM) FindByUsage(ctx context.Context, usage string, active bool) ([]*cryptoutilIdentityDomain.Key, error) {
+	var keys []*cryptoutilIdentityDomain.Key
+
 	query := getDB(ctx, r.db).WithContext(ctx).Where("usage = ?", usage)
 
 	if active {
@@ -57,7 +60,7 @@ func (r *KeyRepositoryGORM) FindByUsage(ctx context.Context, usage string, activ
 }
 
 // Update modifies an existing key in the database.
-func (r *KeyRepositoryGORM) Update(ctx context.Context, key *identityDomain.Key) error {
+func (r *KeyRepositoryGORM) Update(ctx context.Context, key *cryptoutilIdentityDomain.Key) error {
 	if key == nil {
 		return fmt.Errorf("key cannot be nil")
 	}
@@ -67,17 +70,19 @@ func (r *KeyRepositoryGORM) Update(ctx context.Context, key *identityDomain.Key)
 
 // Delete removes a key from the database (soft delete).
 func (r *KeyRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
-	return getDB(ctx, r.db).WithContext(ctx).Delete(&identityDomain.Key{}, "id = ?", id).Error
+	return getDB(ctx, r.db).WithContext(ctx).Delete(&cryptoutilIdentityDomain.Key{}, "id = ?", id).Error
 }
 
 // List retrieves all keys with optional pagination.
-func (r *KeyRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*identityDomain.Key, error) {
-	var keys []*identityDomain.Key
+func (r *KeyRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*cryptoutilIdentityDomain.Key, error) {
+	var keys []*cryptoutilIdentityDomain.Key
+
 	query := getDB(ctx, r.db).WithContext(ctx).Order("created_at DESC")
 
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
+
 	if offset > 0 {
 		query = query.Offset(offset)
 	}
@@ -93,6 +98,8 @@ func (r *KeyRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*ide
 // Count returns the total number of keys in the database.
 func (r *KeyRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
-	err := getDB(ctx, r.db).WithContext(ctx).Model(&identityDomain.Key{}).Count(&count).Error
+
+	err := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Key{}).Count(&count).Error
+
 	return count, err
 }

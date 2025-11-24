@@ -38,6 +38,7 @@ func (k *Key) BeforeCreate(tx *gorm.DB) error {
 	if k.ID == googleUuid.Nil {
 		k.ID = googleUuid.Must(googleUuid.NewV7())
 	}
+
 	return nil
 }
 

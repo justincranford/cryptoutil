@@ -15,7 +15,7 @@ import (
 
 // Validates requirements:
 // - R09-01: Configuration templates for all deployment scenarios
-// - R09-02: Configuration validation prevents startup errors
+// - R09-02: Configuration validation prevents startup errors.
 func TestDefaultConfig(t *testing.T) {
 	cfg := DefaultConfig()
 	require.NotNil(t, cfg)

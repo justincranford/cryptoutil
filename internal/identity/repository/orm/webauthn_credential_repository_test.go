@@ -20,7 +20,7 @@ const (
 
 // Validates requirements:
 // - R07-01: Repository tests run against SQLite
-// - R07-03: Repository tests validate concurrent operations
+// - R07-03: Repository tests validate concurrent operations.
 func TestNewWebAuthnCredentialRepository(t *testing.T) {
 	t.Parallel()
 
@@ -71,7 +71,7 @@ func TestNewWebAuthnCredentialRepository(t *testing.T) {
 }
 
 // Validates requirements:
-// - R07-04: Repository tests validate GORM transaction patterns
+// - R07-04: Repository tests validate GORM transaction patterns.
 func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 	t.Parallel()
 

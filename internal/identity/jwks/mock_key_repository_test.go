@@ -5,7 +5,7 @@ package jwks
 import (
 	"context"
 
-	identityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -17,52 +17,59 @@ type MockKeyRepository struct {
 }
 
 // FindByUsage mocks the FindByUsage method.
-func (m *MockKeyRepository) FindByUsage(ctx context.Context, usage string, active bool) ([]*identityDomain.Key, error) {
+func (m *MockKeyRepository) FindByUsage(ctx context.Context, usage string, active bool) ([]*cryptoutilIdentityDomain.Key, error) {
 	args := m.Called(ctx, usage, active)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*identityDomain.Key), args.Error(1)
+
+	return args.Get(0).([]*cryptoutilIdentityDomain.Key), args.Error(1)
 }
 
 // Create mocks the Create method.
-func (m *MockKeyRepository) Create(ctx context.Context, key *identityDomain.Key) error {
+func (m *MockKeyRepository) Create(ctx context.Context, key *cryptoutilIdentityDomain.Key) error {
 	args := m.Called(ctx, key)
+
 	return args.Error(0)
 }
 
 // FindByID mocks the FindByID method.
-func (m *MockKeyRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*identityDomain.Key, error) {
+func (m *MockKeyRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Key, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*identityDomain.Key), args.Error(1)
+
+	return args.Get(0).(*cryptoutilIdentityDomain.Key), args.Error(1)
 }
 
 // Update mocks the Update method.
-func (m *MockKeyRepository) Update(ctx context.Context, key *identityDomain.Key) error {
+func (m *MockKeyRepository) Update(ctx context.Context, key *cryptoutilIdentityDomain.Key) error {
 	args := m.Called(ctx, key)
+
 	return args.Error(0)
 }
 
 // Delete mocks the Delete method.
 func (m *MockKeyRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
 	args := m.Called(ctx, id)
+
 	return args.Error(0)
 }
 
 // List mocks the List method.
-func (m *MockKeyRepository) List(ctx context.Context, limit, offset int) ([]*identityDomain.Key, error) {
+func (m *MockKeyRepository) List(ctx context.Context, limit, offset int) ([]*cryptoutilIdentityDomain.Key, error) {
 	args := m.Called(ctx, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*identityDomain.Key), args.Error(1)
+
+	return args.Get(0).([]*cryptoutilIdentityDomain.Key), args.Error(1)
 }
 
 // Count mocks the Count method.
 func (m *MockKeyRepository) Count(ctx context.Context) (int64, error) {
 	args := m.Called(ctx)
+
 	return args.Get(0).(int64), args.Error(1)
 }

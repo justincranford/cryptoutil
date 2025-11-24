@@ -6,6 +6,7 @@ package authz
 
 import (
 	"context"
+
 	"cryptoutil/internal/identity/authz/clientauth"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
