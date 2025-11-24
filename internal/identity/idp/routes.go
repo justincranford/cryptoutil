@@ -24,7 +24,8 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	app.Get("/health", s.handleHealth)
 
 	// OIDC Discovery endpoints with /.well-known prefix.
-	_ = app.Group("/.well-known")
+	wellKnown := app.Group("/.well-known")
+	wellKnown.Get("/openid-configuration", s.handleDiscovery)
 	// JWKS endpoint will be added here when handler implementation complete.
 
 	// OIDC IdP endpoints with /oidc/v1 prefix.
