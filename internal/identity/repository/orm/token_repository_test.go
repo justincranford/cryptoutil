@@ -330,3 +330,113 @@ func TestTokenRepository_Count(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(5), count)
 }
+
+func TestTokenRepository_DeleteExpired(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewTokenRepository(testDB.db)
+	ctx := context.Background()
+
+	// Create expired token.
+	expiredToken := &cryptoutilIdentityDomain.Token{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_expired",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid"},
+		IssuedAt:       time.Now().Add(-2 * time.Hour),
+		ExpiresAt:      time.Now().Add(-1 * time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
+	}
+	err := repo.Create(ctx, expiredToken)
+	require.NoError(t, err)
+
+	// Create valid token.
+	validToken := &cryptoutilIdentityDomain.Token{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_valid",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid"},
+		IssuedAt:       time.Now(),
+		ExpiresAt:      time.Now().Add(1 * time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
+	}
+	err = repo.Create(ctx, validToken)
+	require.NoError(t, err)
+
+	// Delete expired tokens.
+	err = repo.DeleteExpired(ctx)
+	require.NoError(t, err)
+
+	// Expired token should be gone.
+	_, err = repo.GetByID(ctx, expiredToken.ID)
+	require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrTokenNotFound)
+
+	// Valid token should still exist.
+	_, err = repo.GetByID(ctx, validToken.ID)
+	require.NoError(t, err)
+}
+
+func TestTokenRepository_DeleteExpiredBefore(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewTokenRepository(testDB.db)
+	ctx := context.Background()
+
+	// Create token expired 2 hours ago.
+	token1 := &cryptoutilIdentityDomain.Token{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_expired_2h",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid"},
+		IssuedAt:       time.Now().Add(-3 * time.Hour),
+		ExpiresAt:      time.Now().Add(-2 * time.Hour),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
+	}
+	err := repo.Create(ctx, token1)
+	require.NoError(t, err)
+
+	// Create token expired 30 minutes ago.
+	token2 := &cryptoutilIdentityDomain.Token{
+		ID:             googleUuid.Must(googleUuid.NewV7()),
+		TokenValue:     "access_token_expired_30m",
+		TokenType:      cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat:    cryptoutilIdentityDomain.TokenFormatUUID,
+		ClientID:       googleUuid.Must(googleUuid.NewV7()),
+		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
+		Scopes:         []string{"openid"},
+		IssuedAt:       time.Now().Add(-1 * time.Hour),
+		ExpiresAt:      time.Now().Add(-30 * time.Minute),
+		Revoked:        false,
+		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
+	}
+	err = repo.Create(ctx, token2)
+	require.NoError(t, err)
+
+	// Delete tokens expired before 1 hour ago.
+	cutoffTime := time.Now().Add(-1 * time.Hour)
+	deletedCount, err := repo.DeleteExpiredBefore(ctx, cutoffTime)
+	require.NoError(t, err)
+	require.Equal(t, 1, deletedCount) // Only token1 deleted.
+
+	// token1 should be gone.
+	_, err = repo.GetByID(ctx, token1.ID)
+	require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrTokenNotFound)
+
+	// token2 should still exist.
+	_, err = repo.GetByID(ctx, token2.ID)
+	require.NoError(t, err)
+}
