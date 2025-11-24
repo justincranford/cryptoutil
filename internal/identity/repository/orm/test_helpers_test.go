@@ -70,6 +70,7 @@ func setupTestDB(t *testing.T) *testDB {
 	// Auto-migrate test schemas.
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
+		&cryptoutilIdentityDomain.Client{},
 		&WebAuthnCredential{},
 	)
 	require.NoError(t, err)

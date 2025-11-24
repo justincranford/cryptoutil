@@ -1,0 +1,325 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package orm
+
+import (
+	"context"
+	"testing"
+
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+)
+
+func TestClientRepository_Create(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	client := &cryptoutilIdentityDomain.Client{
+		ID:                      googleUuid.Must(googleUuid.NewV7()),
+		ClientID:                "test-client-create",
+		ClientSecret:            "secret",
+		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+		Name:                    "Test Client",
+		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+		AllowedGrantTypes:       []string{"authorization_code"},
+		AllowedResponseTypes:    []string{"code"},
+		AllowedScopes:           []string{"openid"},
+		RedirectURIs:            []string{"https://example.com/callback"},
+		RequirePKCE:             true,
+		AccessTokenLifetime:     3600,
+		RefreshTokenLifetime:    86400,
+		IDTokenLifetime:         3600,
+		Enabled:                 true,
+	}
+
+	err := repo.Create(ctx, client)
+	require.NoError(t, err)
+
+	retrieved, err := repo.GetByID(ctx, client.ID)
+	require.NoError(t, err)
+	require.Equal(t, client.ClientID, retrieved.ClientID)
+}
+
+func TestClientRepository_GetByID(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		id      googleUuid.UUID
+		wantErr error
+	}{
+		{
+			name:    "client not found",
+			id:      googleUuid.Must(googleUuid.NewV7()),
+			wantErr: cryptoutilIdentityAppErr.ErrClientNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			client, err := repo.GetByID(ctx, tc.id)
+			require.ErrorIs(t, err, tc.wantErr)
+			require.Nil(t, client)
+		})
+	}
+}
+
+func TestClientRepository_GetByClientID(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	testClient := &cryptoutilIdentityDomain.Client{
+		ID:                      googleUuid.Must(googleUuid.NewV7()),
+		ClientID:                "test-client-get",
+		ClientSecret:            "secret",
+		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+		Name:                    "Test Client",
+		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+		AllowedGrantTypes:       []string{"authorization_code"},
+		AllowedResponseTypes:    []string{"code"},
+		AllowedScopes:           []string{"openid"},
+		RedirectURIs:            []string{"https://example.com/callback"},
+		RequirePKCE:             true,
+		AccessTokenLifetime:     3600,
+		RefreshTokenLifetime:    86400,
+		IDTokenLifetime:         3600,
+		Enabled:                 true,
+	}
+
+	err := repo.Create(ctx, testClient)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name     string
+		clientID string
+		wantErr  error
+	}{
+		{
+			name:     "client found",
+			clientID: "test-client-get",
+			wantErr:  nil,
+		},
+		{
+			name:     "client not found",
+			clientID: "nonexistent",
+			wantErr:  cryptoutilIdentityAppErr.ErrClientNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			client, err := repo.GetByClientID(ctx, tc.clientID)
+
+			if tc.wantErr != nil {
+				require.ErrorIs(t, err, tc.wantErr)
+				require.Nil(t, client)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, client)
+				require.Equal(t, tc.clientID, client.ClientID)
+			}
+		})
+	}
+}
+
+func TestClientRepository_Update(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	client := &cryptoutilIdentityDomain.Client{
+		ID:                      googleUuid.Must(googleUuid.NewV7()),
+		ClientID:                "test-client-update",
+		ClientSecret:            "secret",
+		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+		Name:                    "Test Client",
+		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+		AllowedGrantTypes:       []string{"authorization_code"},
+		AllowedResponseTypes:    []string{"code"},
+		AllowedScopes:           []string{"openid"},
+		RedirectURIs:            []string{"https://example.com/callback"},
+		RequirePKCE:             true,
+		AccessTokenLifetime:     3600,
+		RefreshTokenLifetime:    86400,
+		IDTokenLifetime:         3600,
+		Enabled:                 true,
+	}
+
+	err := repo.Create(ctx, client)
+	require.NoError(t, err)
+
+	client.Name = "Updated Client"
+	err = repo.Update(ctx, client)
+	require.NoError(t, err)
+
+	retrieved, err := repo.GetByID(ctx, client.ID)
+	require.NoError(t, err)
+	require.Equal(t, "Updated Client", retrieved.Name)
+}
+
+func TestClientRepository_Delete(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	client := &cryptoutilIdentityDomain.Client{
+		ID:                      googleUuid.Must(googleUuid.NewV7()),
+		ClientID:                "test-client-delete",
+		ClientSecret:            "secret",
+		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+		Name:                    "Test Client",
+		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+		AllowedGrantTypes:       []string{"authorization_code"},
+		AllowedResponseTypes:    []string{"code"},
+		AllowedScopes:           []string{"openid"},
+		RedirectURIs:            []string{"https://example.com/callback"},
+		RequirePKCE:             true,
+		AccessTokenLifetime:     3600,
+		RefreshTokenLifetime:    86400,
+		IDTokenLifetime:         3600,
+		Enabled:                 true,
+	}
+
+	err := repo.Create(ctx, client)
+	require.NoError(t, err)
+
+	err = repo.Delete(ctx, client.ID)
+	require.NoError(t, err)
+
+	retrieved, err := repo.GetByID(ctx, client.ID)
+	require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrClientNotFound)
+	require.Nil(t, retrieved)
+}
+
+func TestClientRepository_List(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	for i := range 5 {
+		client := &cryptoutilIdentityDomain.Client{
+			ID:                      googleUuid.Must(googleUuid.NewV7()),
+			ClientID:                "test-client-" + string(rune('0'+i)),
+			ClientSecret:            "secret",
+			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+			Name:                    "Test Client",
+			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+			AllowedGrantTypes:       []string{"authorization_code"},
+			AllowedResponseTypes:    []string{"code"},
+			AllowedScopes:           []string{"openid"},
+			RedirectURIs:            []string{"https://example.com/callback"},
+			RequirePKCE:             true,
+			AccessTokenLifetime:     3600,
+			RefreshTokenLifetime:    86400,
+			IDTokenLifetime:         3600,
+			Enabled:                 true,
+		}
+		err := repo.Create(ctx, client)
+		require.NoError(t, err)
+	}
+
+	clients, err := repo.List(ctx, 0, 3)
+	require.NoError(t, err)
+	require.Len(t, clients, 3)
+
+	clients, err = repo.List(ctx, 3, 3)
+	require.NoError(t, err)
+	require.Len(t, clients, 2)
+}
+
+func TestClientRepository_Count(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	count, err := repo.Count(ctx)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count)
+
+	for i := range 5 {
+		client := &cryptoutilIdentityDomain.Client{
+			ID:                      googleUuid.Must(googleUuid.NewV7()),
+			ClientID:                "test-client-count-" + string(rune('0'+i)),
+			ClientSecret:            "secret",
+			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+			Name:                    "Test Client",
+			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+			AllowedGrantTypes:       []string{"authorization_code"},
+			AllowedResponseTypes:    []string{"code"},
+			AllowedScopes:           []string{"openid"},
+			RedirectURIs:            []string{"https://example.com/callback"},
+			RequirePKCE:             true,
+			AccessTokenLifetime:     3600,
+			RefreshTokenLifetime:    86400,
+			IDTokenLifetime:         3600,
+			Enabled:                 true,
+		}
+		err := repo.Create(ctx, client)
+		require.NoError(t, err)
+	}
+
+	count, err = repo.Count(ctx)
+	require.NoError(t, err)
+	require.Equal(t, int64(5), count)
+}
+
+func TestClientRepository_GetAll(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewClientRepository(testDB.db)
+	ctx := context.Background()
+
+	for i := range 5 {
+		client := &cryptoutilIdentityDomain.Client{
+			ID:                      googleUuid.Must(googleUuid.NewV7()),
+			ClientID:                "test-client-getall-" + string(rune('0'+i)),
+			ClientSecret:            "secret",
+			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+			Name:                    "Test Client",
+			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+			AllowedGrantTypes:       []string{"authorization_code"},
+			AllowedResponseTypes:    []string{"code"},
+			AllowedScopes:           []string{"openid"},
+			RedirectURIs:            []string{"https://example.com/callback"},
+			RequirePKCE:             true,
+			AccessTokenLifetime:     3600,
+			RefreshTokenLifetime:    86400,
+			IDTokenLifetime:         3600,
+			Enabled:                 true,
+		}
+		err := repo.Create(ctx, client)
+		require.NoError(t, err)
+	}
+
+	clients, err := repo.GetAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, clients, 5)
+}
