@@ -242,9 +242,22 @@ R04-02:
   category: "security"
   priority: "CRITICAL"
   acceptance_criteria: "Client certificate authentication validates X.509 certificates against trusted CA chain with CRL/OCSP checking"
-  test_files: []
-  test_functions: []
-  validated: false
+  test_files:
+    - internal/identity/authz/clientauth/certificate_validator.go
+    - internal/identity/authz/clientauth/revocation.go
+    - internal/identity/authz/clientauth/registry.go
+    - internal/identity/magic/magic_timeouts.go
+  test_functions:
+    - NewCACertificateValidator
+    - NewSelfSignedCertificateValidator
+    - NewCombinedRevocationChecker
+    - NewOCSPRevocationChecker
+    - NewCRLRevocationChecker
+    - CACertificateValidator.ValidateCertificate
+    - CombinedRevocationChecker.CheckRevocation
+    - OCSPRevocationChecker.CheckRevocation
+    - CRLRevocationChecker.CheckRevocation
+  validated: true
 
 R04-03:
   task: "R04"
