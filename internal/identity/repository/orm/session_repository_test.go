@@ -322,3 +322,70 @@ func TestSessionRepository_DeleteExpiredBefore(t *testing.T) {
 	_, err = repo.GetByID(context.Background(), session2.ID)
 	require.NoError(t, err) // session2 still exists (expired 12h ago).
 }
+
+func TestSessionRepository_List(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewSessionRepository(testDB.db)
+
+	userID := googleUuid.Must(googleUuid.NewV7())
+
+	// Create 5 sessions.
+	for i := 0; i < 5; i++ {
+		session := &cryptoutilIdentityDomain.Session{
+			SessionID:  googleUuid.Must(googleUuid.NewV7()).String(),
+			UserID:     userID,
+			IPAddress:  "127.0.0.1",
+			IssuedAt:   time.Now(),
+			ExpiresAt:  time.Now().Add(24 * time.Hour),
+			LastSeenAt: time.Now(),
+			Active:     true,
+		}
+		err := repo.Create(context.Background(), session)
+		require.NoError(t, err)
+	}
+
+	// Test pagination.
+	sessions, err := repo.List(context.Background(), 0, 3)
+	require.NoError(t, err)
+	require.Len(t, sessions, 3)
+
+	sessions, err = repo.List(context.Background(), 3, 5)
+	require.NoError(t, err)
+	require.Len(t, sessions, 2)
+}
+
+func TestSessionRepository_Count(t *testing.T) {
+	t.Parallel()
+
+	testDB := setupTestDB(t)
+	repo := NewSessionRepository(testDB.db)
+
+	// Initial count should be 0.
+	count, err := repo.Count(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count)
+
+	userID := googleUuid.Must(googleUuid.NewV7())
+
+	// Create 5 sessions.
+	for i := 0; i < 5; i++ {
+		session := &cryptoutilIdentityDomain.Session{
+			SessionID:  googleUuid.Must(googleUuid.NewV7()).String(),
+			UserID:     userID,
+			IPAddress:  "127.0.0.1",
+			IssuedAt:   time.Now(),
+			ExpiresAt:  time.Now().Add(24 * time.Hour),
+			LastSeenAt: time.Now(),
+			Active:     true,
+		}
+		err := repo.Create(context.Background(), session)
+		require.NoError(t, err)
+	}
+
+	// Count should be 5.
+	count, err = repo.Count(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, int64(5), count)
+}
