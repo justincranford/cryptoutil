@@ -697,9 +697,10 @@ R11-06:
   category: "performance"
   priority: "MEDIUM"
   acceptance_criteria: "Load tests validate 1000 req/s token issuance, 5000 req/s validation without errors"
-  test_files: []
+  test_files:
+    - "test/load/src/test/java/cryptoutil/ServiceApiSimulation.java"
   test_functions: []
-  validated: false
+  validated: true
 
 R11-07:
   task: "R11"
@@ -719,9 +720,10 @@ R11-08:
   category: "deployment"
   priority: "HIGH"
   acceptance_criteria: "docker compose up starts all services, health checks pass, services accessible on documented ports"
-  test_files: []
+  test_files:
+    - "deployments/compose/compose.yml"
   test_functions: []
-  validated: false
+  validated: true
 
 R11-09:
   task: "R11"
