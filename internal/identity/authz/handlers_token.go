@@ -167,11 +167,18 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 	}
 
 	// Generate access token.
-	// TODO: In future tasks, populate with real user ID from authRequest.UserID after login/consent integration.
-	userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
+	// Validate user ID from authorization request (required after login/consent).
+	if !authRequest.UserID.Valid || authRequest.UserID.UUID == googleUuid.Nil {
+		slog.ErrorContext(ctx, "User ID missing from authorization request", "auth_request_id", authRequest.ID)
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error_description": "Authorization request missing user ID (login/consent not completed)",
+		})
+	}
 
 	accessTokenClaims := map[string]any{
-		"sub":       userIDPlaceholder.String(),
+		"sub":       authRequest.UserID.UUID.String(),
 		"client_id": clientID,
 		"scope":     authRequest.Scope,
 		"exp":       time.Now().Add(time.Duration(client.AccessTokenLifetime) * time.Second).Unix(),
