@@ -235,7 +235,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	// Validation should fail due to expiration.
 	_, err = validator.ValidateJWT(ctx, string(signedToken), client)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "JWT expired")
+	require.Contains(t, err.Error(), "token is expired")
 }
 
 func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
