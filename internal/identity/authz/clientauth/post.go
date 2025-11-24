@@ -41,8 +41,12 @@ func (p *PostAuthenticator) Authenticate(ctx context.Context, clientID, credenti
 		return nil, fmt.Errorf("failed to get client: %w", err)
 	}
 
-	// Validate client secret (TODO: implement proper hash comparison).
-	if client.ClientSecret != clientSecret {
+	// Validate client secret using PBKDF2-HMAC-SHA256 hash comparison.
+	match, err := CompareSecret(client.ClientSecret, clientSecret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compare client secret: %w", err)
+	}
+	if !match {
 		return nil, cryptoutilIdentityAppErr.ErrInvalidClientSecret
 	}
 

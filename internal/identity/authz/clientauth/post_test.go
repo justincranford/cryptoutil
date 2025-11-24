@@ -27,16 +27,20 @@ func TestPostAuthenticator_MethodName(t *testing.T) {
 func TestPostAuthenticator_Authenticate(t *testing.T) {
 	t.Parallel()
 
-	testClientID := "test-client-id-post"
-	testClientSecret := "test-client-secret-post"
+	testClientID := "test-client-id"
+	testClientSecret := "test-client-secret"
 	testClientIDUUID := googleUuid.New()
+
+	// Hash the client secret for storage.
+	hashedSecret, err := HashSecret(testClientSecret)
+	require.NoError(t, err)
 
 	repo := &mockClientRepo{
 		clients: map[string]*cryptoutilIdentityDomain.Client{
 			testClientID: {
 				ID:                      testClientIDUUID,
 				ClientID:                testClientID,
-				ClientSecret:            testClientSecret,
+				ClientSecret:            hashedSecret,
 				ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 				AllowedGrantTypes:       []string{"authorization_code"},

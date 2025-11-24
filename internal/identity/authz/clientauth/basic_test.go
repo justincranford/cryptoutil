@@ -74,12 +74,16 @@ func TestBasicAuthenticator_Authenticate(t *testing.T) {
 	testClientSecret := "test-client-secret"
 	testClientIDUUID := googleUuid.New()
 
+	// Hash the client secret for storage.
+	hashedSecret, err := HashSecret(testClientSecret)
+	require.NoError(t, err)
+
 	repo := &mockClientRepo{
 		clients: map[string]*cryptoutilIdentityDomain.Client{
 			testClientID: {
 				ID:                      testClientIDUUID,
 				ClientID:                testClientID,
-				ClientSecret:            testClientSecret,
+				ClientSecret:            hashedSecret,
 				ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 				AllowedGrantTypes:       []string{"authorization_code"},
