@@ -5,6 +5,7 @@
 package cicd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"runtime"
@@ -22,24 +23,26 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
 	"cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
 	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
+	"cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
 	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
 const (
-	cmdAllEnforceUTF8 = "all-enforce-utf8"
-	cmdGoEnforceAny = "go-enforce-any"
-	cmdGoEnforceTestPatterns = "go-enforce-test-patterns"
-	cmdGitHubWorkflowLint = "github-workflow-lint"
-	cmdGoFixStaticcheckErrorStrings = "go-fix-staticcheck-error-strings"
-	cmdGoFixCopyLoopVar = "go-fix-copyloopvar"
-	cmdGoFixTHelper = "go-fix-thelper"
-	cmdGoFixAll = "go-fix-all"
+	cmdAllEnforceUTF8                     = "all-enforce-utf8"
+	cmdGoEnforceAny                       = "go-enforce-any"
+	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"
+	cmdGitHubWorkflowLint                 = "github-workflow-lint"
+	cmdGoFixStaticcheckErrorStrings       = "go-fix-staticcheck-error-strings"
+	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"
+	cmdGoFixTHelper                       = "go-fix-thelper"
+	cmdGoFixAll                           = "go-fix-all"
 	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies"
-	cmdGoCheckIdentityImports = "go-check-identity-imports"
-	cmdGoUpdateDirectDependencies = "go-update-direct-dependencies"
-	cmdGoUpdateAllDependencies = "go-update-all-dependencies"
+	cmdGoCheckIdentityImports             = "go-check-identity-imports"
+	cmdGoIdentityRequirementsCheck        = "go-identity-requirements-check"
+	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"
+	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"
 )
 
 // Run executes the specified CI/CD check commands.
@@ -79,17 +82,54 @@ func Run(commands []string) error {
 		logger.Log(fmt.Sprintf("collectAllFiles completed in %.2fs", time.Since(listFilesStart).Seconds()))
 	}
 
-	logger.Log(fmt.Sprintf("Executing %d commands", len(commands)))
+	// Extract actual commands (skip flags starting with -)
+	actualCommands := []string{}
+
+	for _, cmd := range commands {
+		if !strings.HasPrefix(cmd, "-") {
+			actualCommands = append(actualCommands, cmd)
+		}
+	}
+
+	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
 
 	// Execute all commands and collect results
-	results := make([]common.CommandResult, 0, len(commands))
+	results := make([]common.CommandResult, 0, len(actualCommands))
 
-	for i, command := range commands {
+	// Find index of first actual command to get remaining args
+	cmdStartIndex := 0
+
+	for i, arg := range commands {
+		if !strings.HasPrefix(arg, "-") {
+			cmdStartIndex = i
+
+			break
+		}
+	}
+
+	for i, command := range actualCommands {
 		cmdStart := time.Now()
 
-		logger.Log(fmt.Sprintf("Executing command %d/%d: %s", i+1, len(commands), command))
+		logger.Log(fmt.Sprintf("Executing command %d/%d: %s", i+1, len(actualCommands), command))
 
 		var cmdErr error
+
+		// Get remaining args after current command for commands that accept flags
+		// Find this command in original args list
+		cmdIndex := cmdStartIndex
+		for j := cmdStartIndex; j < len(commands); j++ {
+			if commands[j] == command {
+				cmdIndex = j
+
+				break
+			}
+		}
+
+		// Remaining args = everything after this command
+		remainingArgs := []string{}
+		if cmdIndex < len(commands)-1 {
+			remainingArgs = commands[cmdIndex+1:]
+		}
 
 		switch command {
 		case cmdAllEnforceUTF8:
@@ -102,6 +142,9 @@ func Run(commands []string) error {
 			cmdErr = go_check_circular_package_dependencies.Check(logger)
 		case cmdGoCheckIdentityImports:
 			cmdErr = go_check_identity_imports.Check(logger)
+		case cmdGoIdentityRequirementsCheck:
+			// Pass remaining args for flag parsing (--strict, --task-threshold, etc.)
+			cmdErr = go_identity_requirements_check.Enforce(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateDirectDependencies:
 			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
 		case cmdGoUpdateAllDependencies:
@@ -128,7 +171,7 @@ func Run(commands []string) error {
 		logger.Log(fmt.Sprintf("Command '%s' completed in %.2fs", command, cmdDuration.Seconds()))
 
 		// Add a separator between multiple commands
-		if i < len(commands)-1 {
+		if i < len(actualCommands)-1 {
 			common.PrintCommandSeparator()
 		}
 	}
@@ -163,6 +206,12 @@ func validateCommands(commands []string) error {
 	commandCounts := make(map[string]int)
 
 	for _, command := range commands {
+		// Skip flag arguments (--strict, --task-threshold, etc.)
+		// Flags are passed to subcommand Enforce functions, not validated as commands
+		if strings.HasPrefix(command, "-") {
+			continue
+		}
+
 		if cryptoutilMagic.ValidCommands[command] {
 			commandCounts[command]++
 		} else {
