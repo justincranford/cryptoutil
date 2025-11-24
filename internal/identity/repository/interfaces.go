@@ -37,6 +37,7 @@ type UserRepository interface {
 	Delete(ctx context.Context, id googleUuid.UUID) error
 
 	// List lists users with pagination.
+	// List lists users with pagination.
 	List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.User, error)
 
 	// Count returns the total number of users.
@@ -281,4 +282,28 @@ type ConsentDecisionRepository interface {
 
 	// DeleteExpired deletes all expired consent decisions.
 	DeleteExpired(ctx context.Context) (int64, error)
+}
+
+// KeyRepository defines operations for cryptographic key persistence.
+type KeyRepository interface {
+	// Create creates a new key.
+	Create(ctx context.Context, key *cryptoutilIdentityDomain.Key) error
+
+	// GetByID retrieves a key by ID.
+	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Key, error)
+
+	// FindByUsage retrieves keys by usage type and active status.
+	FindByUsage(ctx context.Context, usage string, active bool) ([]*cryptoutilIdentityDomain.Key, error)
+
+	// Update updates an existing key.
+	Update(ctx context.Context, key *cryptoutilIdentityDomain.Key) error
+
+	// Delete deletes a key by ID (soft delete).
+	Delete(ctx context.Context, id googleUuid.UUID) error
+
+	// List lists keys with pagination.
+	List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Key, error)
+
+	// Count returns the total number of keys.
+	Count(ctx context.Context) (int64, error)
 }
