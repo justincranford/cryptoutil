@@ -1207,13 +1207,15 @@ go tool cover -func=test-output/coverage_identity.out | grep total
 runTests files=["path/to/integration_test.go"]
 ```
 
-**Requirements Validation**:
+#### Requirements Validation
+
 ```bash
 # Requirements coverage check (must meet ≥90% per-task, ≥85% overall)
 go run ./cmd/cicd go-identity-requirements-check --strict
 ```
 
-**Documentation**:
+#### Documentation Validation
+
 ```bash
 # README consistency check
 # Verify all task changes documented in appropriate README files
@@ -1225,7 +1227,10 @@ git diff api/ # Must show no unexpected changes
 
 ### Quality Gate Enforcement
 
-**Pre-Commit Gate** (local development):
+#### Pre-Commit Gate
+
+Local development automated by pre-commit hooks:
+
 ```bash
 # Automated by pre-commit hooks
 - UTF-8 encoding validation
@@ -1235,7 +1240,10 @@ git diff api/ # Must show no unexpected changes
 - go test ./... -cover
 ```
 
-**Pre-Push Gate** (before git push):
+#### Pre-Push Gate
+
+Before git push - automated by pre-push hooks:
+
 ```bash
 # Automated by pre-push hooks
 - All pre-commit checks
@@ -1245,7 +1253,10 @@ git diff api/ # Must show no unexpected changes
 - Import alias validation
 ```
 
-**PR Merge Gate** (CI/CD):
+#### PR Merge Gate
+
+CI/CD automated by GitHub Actions:
+
 ```bash
 # Automated by GitHub Actions
 - All tests passing (unit, integration, e2e)
@@ -1256,7 +1267,10 @@ git diff api/ # Must show no unexpected changes
 - Performance benchmarks within limits
 ```
 
-**Production Deployment Gate**:
+#### Production Deployment Gate
+
+Automated by deployment pipeline:
+
 ```bash
 # Automated by deployment pipeline
 - All PR merge gates passed
