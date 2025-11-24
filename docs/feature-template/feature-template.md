@@ -1126,6 +1126,16 @@ fi
 
 ### Task-Specific Acceptance Criteria
 
+**CRITICAL ENFORCEMENT**: Every acceptance criterion MUST include "Evidence Required" subsection with specific validation commands and expected outputs.
+
+**Pattern**: NO vague criteria like "feature functional" - ONLY objective, verifiable outcomes with command-line evidence
+
+**Why Evidence Required**:
+- Makes completion objective and verifiable (not subjective "looks done")
+- Prevents agent claiming completion without running validation commands
+- Enables automated quality gate enforcement
+- Provides audit trail for compliance/review
+
 **Template for task-specific criteria:**
 
 ```markdown
@@ -1134,19 +1144,21 @@ fi
 ### Functional Requirements
 - [ ] Requirement 1: Specific, measurable, testable outcome
   - **Evidence Required**:
-    - [ ] Test result: `runTests` shows TestRequirement1 passes
-    - [ ] TODO scan: Zero TODOs in affected files
-    - [ ] Requirements validation: R01-01 through R01-05 verified
+    - [ ] Test result: `runTests ./path/to/package` shows TestRequirement1 passes (exit code 0)
+    - [ ] TODO scan: `grep -r "TODO\|FIXME" <modified_files>` shows empty output (zero TODOs)
+    - [ ] Requirements validation: `identity-requirements-check --strict` shows R01-01 through R01-05 verified
+    - [ ] Code coverage: `go test -cover ./path/to/package` shows ≥85% coverage
 - [ ] Requirement 2: Specific, measurable, testable outcome
   - **Evidence Required**:
-    - [ ] Coverage report: ≥90% coverage in new files
-    - [ ] Integration test: TestRequirement2Integration passes
-    - [ ] Manual verification: Steps documented and tested
+    - [ ] Integration test: `runTests ./path/to/integration` shows TestRequirement2Integration passes
+    - [ ] Manual verification: Documented curl/API test succeeds (terminal output captured)
+    - [ ] Regression check: Existing tests still pass (runTests shows no new failures)
 - [ ] Requirement N: Specific, measurable, testable outcome
   - **Evidence Required**:
-    - [ ] Build output: `go build` succeeds with no warnings
-    - [ ] Lint output: `golangci-lint run` shows zero errors
-    - [ ] Documentation: README/godoc updated and reviewed
+    - [ ] Build output: `go build ./...` succeeds with exit code 0
+    - [ ] Lint output: `golangci-lint run ./...` shows zero errors (exit code 0)
+    - [ ] Documentation: README updated, OpenAPI synced (if applicable), godoc reviewed
+    - [ ] Import compliance: `golangci-lint run --enable-only=importas ./...` shows zero errors
 
 ### Non-Functional Requirements
 - [ ] Performance: Response time < Xms for Y% of requests
