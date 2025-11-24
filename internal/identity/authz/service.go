@@ -32,7 +32,7 @@ func NewService(
 		config:       config,
 		repoFactory:  repoFactory,
 		tokenSvc:     tokenSvc,
-		clientAuth:   clientauth.NewRegistry(repoFactory),
+		clientAuth:   clientauth.NewRegistry(repoFactory, config),
 		authReqStore: NewInMemoryAuthorizationRequestStore(),
 	}
 }

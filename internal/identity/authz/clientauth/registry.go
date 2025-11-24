@@ -7,6 +7,7 @@ package clientauth
 import (
 	"crypto/x509"
 
+	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -16,8 +17,8 @@ type Registry struct {
 	authenticators map[string]ClientAuthenticator
 }
 
-// NewRegistry creates a new authentication method registry.
-func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory) *Registry {
+// NewRegistry creates a new client authentication registry.
+func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, config *cryptoutilIdentityConfig.Config) *Registry {
 	clientRepo := repoFactory.ClientRepository()
 
 	// Create certificate validators
@@ -39,12 +40,17 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory) *R
 	// For self-signed, start with empty pinned certificates (would be configured per deployment)
 	selfSignedValidator := NewSelfSignedCertificateValidator(make(map[string]*x509.Certificate))
 
+	// Get token issuer URL from config for JWT-based authenticators
+	tokenEndpointURL := config.Tokens.Issuer + "/token"
+
 	return &Registry{
 		authenticators: map[string]ClientAuthenticator{
 			"client_secret_basic":         NewBasicAuthenticator(clientRepo),
 			"client_secret_post":          NewPostAuthenticator(clientRepo),
 			"tls_client_auth":             NewTLSClientAuthenticator(clientRepo, caValidator),
 			"self_signed_tls_client_auth": NewSelfSignedAuthenticator(clientRepo, selfSignedValidator),
+			"private_key_jwt":             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo),
+			"client_secret_jwt":           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo),
 		},
 	}
 }

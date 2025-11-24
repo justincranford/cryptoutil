@@ -297,7 +297,7 @@
     "https://json.schemastore.org/prometheus.json": [ "prometheus.yml" ],
     "https://json.schemastore.org/grafana-dashboard.json": [ "**/grafana/dashboards/*.json" ]
   },
-  "yaml.validate": true, // Enable YAML validation - Default: true
+  "yaml.validate": false, // Disable YAML validation - Requirements.yml doesn't have a schema
   "yaml.format.enable": true, // Enable YAML formatting - Default: true
   "yaml.format.singleQuote": false, // Use double quotes in YAML - Default: false
   "yaml.format.bracketSpacing": true, // Add spaces inside brackets - Default: true

@@ -253,9 +253,25 @@ R04-03:
   category: "security"
   priority: "HIGH"
   acceptance_criteria: "Token endpoint accepts client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer with JWT signed by client's private key"
-  test_files: []
-  test_functions: []
-  validated: false
+  test_files:
+    - internal/identity/authz/clientauth/private_key_jwt.go
+    - internal/identity/authz/clientauth/jwt_validator.go
+    - internal/identity/authz/clientauth/jwt_validator_test.go
+    - internal/identity/authz/clientauth/registry.go
+    - internal/identity/authz/clientauth/integration_test.go
+  test_functions:
+    - TestPrivateKeyJWTAuthenticator_Method
+    - TestPrivateKeyJWTAuthenticator_Authenticate_MissingAssertion
+    - TestPrivateKeyJWTValidator_ValidateJWT_Success
+    - TestPrivateKeyJWTValidator_ValidateJWT_NoJWKSet
+    - TestPrivateKeyJWTValidator_ValidateJWT_InvalidJWKSet
+    - TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature
+    - TestPrivateKeyJWTValidator_ValidateJWT_ExpiredToken
+    - TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer
+    - TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience
+    - TestPrivateKeyJWTValidator_ExtractClaims_AllClaimsPresent
+    - TestRegistry_AllAuthMethods
+  validated: true
 
 R04-04:
   task: "R04"

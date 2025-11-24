@@ -40,7 +40,7 @@ func setupTestRepository(t *testing.T) (*cryptoutilIdentityRepository.Repository
 }
 
 // Validates requirements:
-// - R04-04: Client authentication method enforcement
+// - R04-04: Client authentication method enforcement.
 func TestRegistry_AllAuthMethods(t *testing.T) {
 	t.Parallel()
 
@@ -48,7 +48,13 @@ func TestRegistry_AllAuthMethods(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
-	registry := NewRegistry(repoFactory)
+	config := &cryptoutilIdentityConfig.Config{
+		Tokens: &cryptoutilIdentityConfig.TokenConfig{
+			Issuer: "https://authz.example.com",
+		},
+	}
+
+	registry := NewRegistry(repoFactory, config)
 
 	// Test all auth methods are registered.
 	authMethods := []string{
@@ -56,6 +62,8 @@ func TestRegistry_AllAuthMethods(t *testing.T) {
 		"client_secret_post",
 		"tls_client_auth",
 		"self_signed_tls_client_auth",
+		"private_key_jwt",
+		"client_secret_jwt",
 	}
 
 	for _, method := range authMethods {
@@ -73,7 +81,13 @@ func TestRegistry_UnknownMethod(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
-	registry := NewRegistry(repoFactory)
+	config := &cryptoutilIdentityConfig.Config{
+		Tokens: &cryptoutilIdentityConfig.TokenConfig{
+			Issuer: "https://authz.example.com",
+		},
+	}
+
+	registry := NewRegistry(repoFactory, config)
 
 	_, ok := registry.GetAuthenticator("unknown_method")
 	require.False(t, ok)
@@ -86,7 +100,13 @@ func TestRegistry_RegisterCustomAuthenticator(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
-	registry := NewRegistry(repoFactory)
+	config := &cryptoutilIdentityConfig.Config{
+		Tokens: &cryptoutilIdentityConfig.TokenConfig{
+			Issuer: "https://authz.example.com",
+		},
+	}
+
+	registry := NewRegistry(repoFactory, config)
 
 	// Create a mock authenticator.
 	mockAuth := NewBasicAuthenticator(repoFactory.ClientRepository())
