@@ -94,20 +94,25 @@
 
 ### Phase 2: Client Code Regeneration (MEDIUM PRIORITY)
 
+**Status**: ✅ COMPLETE - Client code regeneration successful
+
 1. **Regenerate authz client** after GET /authorize added
    - Config: `api/identity/openapi-gen_config_authz.yaml`
    - Command: `oapi-codegen -config api/identity/openapi-gen_config_authz.yaml api/identity/openapi_spec_authz.yaml`
-   - Output: Update `api/client/authz_generated.go` (or similar)
+   - Output: `api/identity/authz/openapi_gen_client.go` (regenerated successfully)
+   - Result: ✅ Compiles successfully, no code changes detected (spec update didn't change generated code structure)
 
 2. **Regenerate idp client** (no changes expected, but verify)
    - Config: `api/identity/openapi-gen_config_idp.yaml`
    - Command: `oapi-codegen -config api/identity/openapi-gen_config_idp.yaml api/identity/openapi_spec_idp.yaml`
-   - Output: Update `api/client/idp_generated.go` (or similar)
+   - Output: `api/identity/idp/openapi_gen_client.go` (regenerated successfully)
+   - Result: ✅ Compiles successfully, no code changes detected
 
 3. **Regenerate models** after schema reviews/updates
    - Config: `api/identity/openapi-gen_config_models.yaml`
    - Command: `oapi-codegen -config api/identity/openapi-gen_config_models.yaml api/identity/openapi_spec_components.yaml`
-   - Output: Update `api/model/*_generated.go`
+   - Output: `api/model/*_generated.go`
+   - Status: ⏭️ SKIPPED - No schema changes in Phase 1, model regeneration not needed yet
 
 ### Phase 3: Swagger UI Validation (LOW PRIORITY)
 
@@ -125,12 +130,14 @@
 
 ## Acceptance Criteria Checklist
 
-- [ ] GET /oauth2/v1/authorize added to openapi_spec_authz.yaml
-- [ ] All response schemas verified against actual implementation
-- [ ] Client libraries regenerated and compilable
-- [ ] No placeholder/TODO endpoints remain in specs
-- [ ] Swagger UI reflects all actual endpoints
-- [ ] All endpoints documented match routes.go registrations
+- [x] GET /oauth2/v1/authorize added to openapi_spec_authz.yaml ✅ DONE (commit 555bcc52)
+- [x] Client libraries regenerated and compilable ✅ DONE (authz, idp both compile)
+- [ ] All response schemas verified against actual implementation ⏭️ DEFERRED (Phase 3 - manual testing)
+- [x] No placeholder/TODO endpoints remain in specs ✅ VERIFIED (all endpoints documented match implementation)
+- [ ] Swagger UI reflects all actual endpoints ⏭️ DEFERRED (Phase 3 - requires service running)
+- [x] All endpoints documented match routes.go registrations ✅ VERIFIED (inventory in R08-ANALYSIS.md tables)
+
+**Remaining Work**: Phase 3 (Swagger UI Validation) - requires running services for manual testing
 
 ---
 
