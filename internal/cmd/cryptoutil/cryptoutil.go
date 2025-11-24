@@ -5,8 +5,18 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
 )
 
 func Execute() {
@@ -66,24 +76,237 @@ func identity(parameters []string) {
 }
 
 func identityAuthz(parameters []string) {
-	fmt.Println("Starting OAuth 2.1 Authorization Server...")
-	// TODO: Implement OAuth 2.1 Authorization Server
-	fmt.Println("OAuth 2.1 Authorization Server not yet implemented")
-	os.Exit(1)
+	// Default config file
+	configFile := "configs/identity/authz.yml"
+
+	// Parse command-line flags for config override
+	for i, param := range parameters {
+		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
+			configFile = parameters[i+1]
+			break
+		}
+	}
+
+	// Load configuration from YAML file
+	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", configFile, err)
+		os.Exit(1)
+	}
+
+	// Validate configuration
+	if err := config.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid configuration: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create context
+	ctx := context.Background()
+
+	// Initialize repository factory
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to initialize repository factory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// TODO: Create JWS, JWE, UUID issuers properly
+	// For now, use placeholders
+	jwsIssuer := &cryptoutilIdentityIssuer.JWSIssuer{}
+	jweIssuer := &cryptoutilIdentityIssuer.JWEIssuer{}
+	uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
+
+	// Create token service
+	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, config.Tokens)
+
+	// Create AuthZ server
+	authzServer := cryptoutilIdentityServer.NewAuthZServer(config, repoFactory, tokenSvc)
+
+	// Create context with cancellation
+	serverCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in goroutine
+	go func() {
+		fmt.Printf("Starting OAuth 2.1 Authorization Server on %s:%d\n", config.AuthZ.BindAddress, config.AuthZ.Port)
+
+		if err := authzServer.Start(serverCtx); err != nil {
+			fmt.Fprintf(os.Stderr, "Server error: %v\n", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Wait for interrupt signal
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+
+	fmt.Println("\nShutting down server...")
+
+	// Create shutdown context with timeout
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second)
+	defer shutdownCancel()
+
+	// Stop server gracefully
+	if err := authzServer.Stop(shutdownCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "Server shutdown error: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Server stopped successfully")
 }
 
 func identityIdp(parameters []string) {
-	fmt.Println("Starting OIDC Identity Provider...")
-	// TODO: Implement OIDC Identity Provider
-	fmt.Println("OIDC Identity Provider not yet implemented")
-	os.Exit(1)
+	// Default config file
+	configFile := "configs/identity/idp.yml"
+
+	// Parse command-line flags for config override
+	for i, param := range parameters {
+		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
+			configFile = parameters[i+1]
+			break
+		}
+	}
+
+	// Load configuration from YAML file
+	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", configFile, err)
+		os.Exit(1)
+	}
+
+	// Validate configuration
+	if err := config.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid configuration: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create context
+	ctx := context.Background()
+
+	// Initialize repository factory
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to initialize repository factory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// TODO: Create JWS, JWE, UUID issuers properly
+	// For now, use placeholders
+	jwsIssuer := &cryptoutilIdentityIssuer.JWSIssuer{}
+	jweIssuer := &cryptoutilIdentityIssuer.JWEIssuer{}
+	uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
+
+	// Create token service
+	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, config.Tokens)
+
+	// Create IdP server
+	idpServer := cryptoutilIdentityServer.NewIDPServer(config, repoFactory, tokenSvc)
+
+	// Create context with cancellation
+	serverCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in goroutine
+	go func() {
+		fmt.Printf("Starting OIDC Identity Provider Server on %s:%d\n", config.IDP.BindAddress, config.IDP.Port)
+
+		if err := idpServer.Start(serverCtx); err != nil {
+			fmt.Fprintf(os.Stderr, "Server error: %v\n", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Wait for interrupt signal
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+
+	fmt.Println("\nShutting down server...")
+
+	// Create shutdown context with timeout
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second)
+	defer shutdownCancel()
+
+	// Stop server gracefully
+	if err := idpServer.Stop(shutdownCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "Server shutdown error: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Server stopped successfully")
 }
 
 func identityRs(parameters []string) {
-	fmt.Println("Starting Resource Server...")
-	// TODO: Implement Resource Server
-	fmt.Println("Resource Server not yet implemented")
-	os.Exit(1)
+	// Default config file
+	configFile := "configs/identity/rs.yml"
+
+	// Parse command-line flags for config override
+	for i, param := range parameters {
+		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
+			configFile = parameters[i+1]
+			break
+		}
+	}
+
+	// Load configuration from YAML file
+	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", configFile, err)
+		os.Exit(1)
+	}
+
+	// Validate configuration
+	if err := config.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid configuration: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create context
+	ctx := context.Background()
+
+	// Create token service (stub for now - would be initialized from issuer module)
+	var tokenSvc *cryptoutilIdentityIssuer.TokenService
+
+	// Create RS server
+	rsServer, err := cryptoutilIdentityServer.NewRSServer(ctx, config, nil, tokenSvc)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create RS server: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create context with cancellation
+	serverCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in goroutine
+	go func() {
+		fmt.Printf("Starting Resource Server on %s:%d\n", config.RS.BindAddress, config.RS.Port)
+
+		if err := rsServer.Start(serverCtx); err != nil {
+			fmt.Fprintf(os.Stderr, "Server error: %v\n", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Wait for interrupt signal
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+
+	fmt.Println("\nShutting down server...")
+
+	// Create shutdown context with timeout
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second)
+	defer shutdownCancel()
+
+	// Stop server gracefully
+	if err := rsServer.Stop(shutdownCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "Server shutdown error: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Server stopped successfully")
 }
 
 func identitySpaRp(parameters []string) {
