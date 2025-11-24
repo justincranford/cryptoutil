@@ -88,8 +88,7 @@ func (r *SessionRepositoryGORM) TerminateByID(ctx context.Context, id googleUuid
 	result := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).
 		Where("id = ? AND deleted_at IS NULL", id).
 		Updates(map[string]any{
-			"active":        false,
-			"terminated_at": time.Now(),
+			"active": false,
 		})
 
 	if result.Error != nil {
@@ -108,8 +107,7 @@ func (r *SessionRepositoryGORM) TerminateBySessionID(ctx context.Context, sessio
 	result := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).
 		Where("session_id = ? AND deleted_at IS NULL", sessionID).
 		Updates(map[string]any{
-			"active":        false,
-			"terminated_at": time.Now(),
+			"active": false,
 		})
 
 	if result.Error != nil {
