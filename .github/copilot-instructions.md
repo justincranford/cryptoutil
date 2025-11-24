@@ -111,10 +111,13 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 2. User explicitly instructs you to stop
 
 **NEVER STOP BECAUSE**:
-- "All tasks complete" - ALWAYS check docs/##-/*.md for more work
+- "All tasks complete" - ALWAYS check docs/02-identityV2/*.md AND docs/03-mixed/*.md for more work
 - "Todo list empty" - ALWAYS check project files for next task
 - "I've made good progress" - Progress is NOT a stop condition
 - "Token usage seems high" - Only stop at 950k tokens, not before
+- "Finished current phase" - Phases are NOT stopping points, continue to next phase
+- "Completed analysis" - Analysis is preparation, IMMEDIATELY implement the findings
+- "Need user input" - ONLY stop if genuinely blocked, otherwise make reasonable assumptions and continue
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
@@ -145,11 +148,13 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 - Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
 - Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
 - STOP only when: tokens used ≥950k OR explicit user instruction to stop
-- **CRITICAL**: "All tasks complete" NEVER means stop - always check docs/02-mixed/todos-*.md for additional work
-- After clearing manage_todo_list, IMMEDIATELY check todos-*.md files for next task to work on
+- **CRITICAL**: "All tasks complete" NEVER means stop - always check docs/02-identityV2/*.md AND docs/03-mixed/*.md for additional work
+- After clearing manage_todo_list, IMMEDIATELY check docs directories for next task to work on
+- **CRITICAL**: If docs/02-identityV2/ has remaining work, CONTINUE with those tasks IMMEDIATELY
+- **CRITICAL**: After finishing docs/02-identityV2/, IMMEDIATELY check docs/03-mixed/ for additional tasks
 - User directive: "NEVER STOP DUE TO TIME OR TOKENS until 95% utilization"
 - Example: 70k used, 930k remaining = KEEP WORKING (only 7% used)
-- Example: Todo list empty but 73k used, 927k remaining = CHECK todos-*.md files for more work ✅
+- Example: Todo list empty but 73k used, 927k remaining = CHECK docs directories for more work ✅
 
 **Speed Optimization for Continuous Work**
 - Use `git commit --no-verify` to skip pre-commit hooks (faster iterations)
