@@ -31,8 +31,8 @@ func (m *MockKeyRepository) Create(ctx context.Context, key *identityDomain.Key)
 	return args.Error(0)
 }
 
-// GetByID mocks the GetByID method.
-func (m *MockKeyRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*identityDomain.Key, error) {
+// FindByID mocks the FindByID method.
+func (m *MockKeyRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*identityDomain.Key, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -53,8 +53,8 @@ func (m *MockKeyRepository) Delete(ctx context.Context, id googleUuid.UUID) erro
 }
 
 // List mocks the List method.
-func (m *MockKeyRepository) List(ctx context.Context, offset, limit int) ([]*identityDomain.Key, error) {
-	args := m.Called(ctx, offset, limit)
+func (m *MockKeyRepository) List(ctx context.Context, limit, offset int) ([]*identityDomain.Key, error) {
+	args := m.Called(ctx, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

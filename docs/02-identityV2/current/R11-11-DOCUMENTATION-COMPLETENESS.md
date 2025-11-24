@@ -159,7 +159,7 @@ api/identity/
    - Rollback procedures (triggers, steps, validation)
    - Monitoring and dashboards
    - Emergency contacts
-   
+
 2. **adaptive-auth-operations.md**
    - Adaptive authentication system operations
    - Risk scoring monitoring

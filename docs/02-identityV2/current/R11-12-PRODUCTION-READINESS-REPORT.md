@@ -361,7 +361,7 @@ cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collecto
    - Implement `cryptoutil identity authz` command (call `cmd/identity/authz/main.go` logic)
    - Implement `cryptoutil identity idp` command (call `cmd/identity/idp/main.go` logic)
    - Implement `cryptoutil identity rs` command (call `cmd/identity/rs/main.go` logic)
-   
+
 2. **Update Docker Compose health checks** (1 hour):
    - Change health check endpoints from `/livez` (KMS) to `/health` (Identity)
    - Update ports from 9090 (KMS admin) to 8080-8082 (Identity public)
