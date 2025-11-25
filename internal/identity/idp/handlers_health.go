@@ -11,9 +11,29 @@ import (
 
 // handleHealth handles GET /health - health check endpoint.
 func (s *Service) handleHealth(c *fiber.Ctx) error {
-	// Check database connectivity via repository HealthCheck method.
-	// For now, assume healthy if service is running.
-	// TODO: Add actual database health check when repository interface supports it.
+	ctx := c.Context()
+
+	// Check database connectivity via Ping().
+	db := s.repoFactory.DB()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"status":   "unhealthy",
+			"database": "unavailable",
+			"service":  "idp",
+			"error":    err.Error(),
+		})
+	}
+
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"status":   "unhealthy",
+			"database": "unreachable",
+			"service":  "idp",
+			"error":    err.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":   "healthy",
 		"database": "ok",

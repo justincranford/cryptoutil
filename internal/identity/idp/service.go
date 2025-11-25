@@ -57,7 +57,12 @@ func (s *Service) Start(ctx context.Context) error {
 
 // Stop stops the identity provider service.
 func (s *Service) Stop(ctx context.Context) error {
-	// TODO: Implement cleanup logic for sessions, challenges, etc.
+	// Clean up expired sessions.
+	sessionRepo := s.repoFactory.SessionRepository()
+	if err := sessionRepo.DeleteExpired(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 

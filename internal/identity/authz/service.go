@@ -40,12 +40,34 @@ func NewService(
 
 // Start starts the authorization server.
 func (s *Service) Start(ctx context.Context) error {
-	// TODO: Implement server startup logic.
+	// Validate database connectivity at startup.
+	db := s.repoFactory.DB()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Stop stops the authorization server.
 func (s *Service) Stop(ctx context.Context) error {
-	// TODO: Implement server shutdown logic.
-	return nil
+	// Clean up expired tokens.
+	tokenRepo := s.repoFactory.TokenRepository()
+	if err := tokenRepo.DeleteExpired(ctx); err != nil {
+		return err
+	}
+
+	// Close database connections gracefully.
+	db := s.repoFactory.DB()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+
+	return sqlDB.Close()
 }

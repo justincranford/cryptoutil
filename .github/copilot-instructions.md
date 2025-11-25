@@ -106,6 +106,8 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **Target**: 990,000 tokens used (99% of 1,000,000 budget)
 - **Stop threshold**: 990,000 tokens used
 - **Remaining at stop**: 10,000 tokens (1% of budget)
+- **YOU HAVE BEEN STOPPING AT 6-10% USAGE - THIS IS WRONG!!!**
+- **YOU MUST CONTINUE UNTIL 99% USAGE (990k tokens)**
 
 **PERCENTAGE CALCULATION FORMULA**:
 ```
