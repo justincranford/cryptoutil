@@ -13,8 +13,8 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	// Swagger UI OpenAPI spec endpoint.
 	swaggerHandler, err := ServeOpenAPISpec()
 	if err != nil {
-		// Log error but continue - Swagger UI is non-critical.
-		// TODO: Add structured logging when logger available in Service.
+		// Swagger UI is non-critical, skip if spec generation fails.
+		// Error already includes context from ServeOpenAPISpec().
 		_ = err
 	} else {
 		app.Get("/ui/swagger/doc.json", swaggerHandler)
