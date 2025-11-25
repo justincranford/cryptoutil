@@ -2,9 +2,9 @@
 
 **Generated**: 2025-01-19
 **Total Requirements**: 65
-**Validated**: 39 (60.0%)
+**Validated**: 40 (61.5%)
 **Uncovered CRITICAL**: 7
-**Uncovered HIGH**: 12
+**Uncovered HIGH**: 11
 **Uncovered MEDIUM**: 6
 
 ## Summary by Task
@@ -12,7 +12,7 @@
 | Task | Requirements | Validated | Coverage |
 |------|--------------|-----------|----------|
 | R01 | 6 | 6 | 100.0% ✅ |
-| R02 | 7 | 2 | 28.6% ⚠️ |
+| R02 | 7 | 3 | 42.9% ⚠️ |
 | R03 | 5 | 4 | 80.0% ⚠️ |
 | R04 | 6 | 4 | 66.7% ⚠️ |
 | R05 | 6 | 4 | 66.7% ⚠️ |
@@ -59,7 +59,6 @@
 |----|----------|-------------|
 | R02-03 | CRITICAL | Discovery endpoint exposes OIDC metadata |
 | R02-06 | HIGH | Discovery metadata includes all required OIDC fields |
-| R02-05 | HIGH | UserInfo response includes all required OIDC claims |
 | R02-07 | HIGH | Integration tests validate OIDC endpoints |
 | R02-01 | CRITICAL | UserInfo endpoint returns authenticated user profile |
 
