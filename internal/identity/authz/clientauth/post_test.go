@@ -11,6 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -31,8 +32,8 @@ func TestPostAuthenticator_Authenticate(t *testing.T) {
 	testClientSecret := "test-client-secret"
 	testClientIDUUID := googleUuid.New()
 
-	// Hash the client secret for storage.
-	hashedSecret, err := HashSecret(testClientSecret)
+	// Hash the client secret for storage using PBKDF2 (format: pbkdf2$iter$salt$hash).
+	hashedSecret, err := cryptoutilCrypto.HashSecretPBKDF2(testClientSecret)
 	require.NoError(t, err)
 
 	repo := &mockClientRepo{
