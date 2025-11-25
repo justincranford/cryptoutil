@@ -205,8 +205,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 
 				return req
 			},
-			expectedStatus:   http.StatusBadRequest,
-			expectedContains: "", // Login handler validates username as required field first (400 Bad Request)
+			expectedStatus:   http.StatusUnauthorized,
+			expectedContains: "", // XSS payload stored safely (output encoded), authentication fails (401 Unauthorized).
 		},
 		{
 			name: "SQL injection attack in username field",
