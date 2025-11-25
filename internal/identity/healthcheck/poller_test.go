@@ -116,7 +116,7 @@ func TestPollerPollContextCanceled(t *testing.T) {
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
 	require.Error(t, err)
-	require.Equal(t, context.Canceled, err)
+	require.ErrorIs(t, err, context.Canceled)
 	require.Nil(t, resp)
 }
 
