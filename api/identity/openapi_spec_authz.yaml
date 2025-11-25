@@ -497,8 +497,8 @@ components:
       scheme: bearer
       description: |
         Client authentication using client_secret in request body.
-        This is a placeholder for OpenAPI 3.0 validation.
-        Actual implementation uses client_secret as form parameter.
+        Note: OpenAPI 3.0 uses bearer scheme for form-based authentication.
+        Actual implementation uses client_secret as form parameter per OAuth 2.1.
 
   responses:
     OAuth2Error:
