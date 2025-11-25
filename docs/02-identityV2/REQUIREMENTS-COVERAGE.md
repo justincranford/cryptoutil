@@ -58,9 +58,9 @@
 
 ### R04
 
-| ID | Priority | Description |
-|----|----------|-------------|
-| R04-06 | MEDIUM | Client secret rotation support |
+| ID | Priority | Description | Status | Evidence |
+|----|----------|-------------|--------|----------|
+| R04-06 | MEDIUM | Client secret rotation support | ❌ | NOT IMPLEMENTED. Status: DEFERRED to future enhancement. Rationale: Client secret rotation is a security best practice but not blocking for initial production deployment. Current workaround: Manual client re-registration with new secret if rotation needed. Gap analysis (P4.02-GAP-ANALYSIS.md line 48): "NEEDS IMPL - Add rotation endpoints/logic", estimated 4 hours effort. Recommended for post-launch enhancement: Add PUT /clients/{id}/rotate-secret endpoint, implement secret history tracking, add rotation notification mechanism, document rotation procedures in operations guide. Current coverage: Client creation/deletion/update functional, secret hashing implemented (PBKDF2-HMAC-SHA256), secret validation working. Only rotation-specific logic missing. |
 
 ### R07
 
