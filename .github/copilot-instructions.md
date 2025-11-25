@@ -34,8 +34,8 @@
 **ABSOLUTELY MANDATORY - VIOLATIONS CAUSE USER FRUSTRATION**
 
 **NEVER STOP UNTIL ALL WORK IS COMPLETE** - User explicitly demands continuous work
-- **Token budget**: Work until 950k/1M tokens used (95% utilization)
-- **Stop ONLY when**: 1) ≥950k tokens used, OR 2) User explicitly says stop
+- **Token budget**: Work until 990k/1M tokens used (99% utilization)
+- **Stop ONLY when**: 1) ≥990k tokens used, OR 2) User explicitly says stop
 - **Pattern**: tool call → IMMEDIATELY invoke next tool → tool call → IMMEDIATELY invoke next tool → repeat
 - **ZERO TEXT between tool calls** - no summaries, no status updates, no announcements
 
@@ -103,18 +103,18 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 **Token Budget Awareness - MATH RULES**
 
 **CRITICAL: YOU MUST CALCULATE PERCENTAGE CORRECTLY**
-- **Target**: 950,000 tokens used (95% of 1,000,000 budget)
-- **Stop threshold**: 950,000 tokens used
-- **Remaining at stop**: 50,000 tokens (5% of budget)
+- **Target**: 990,000 tokens used (99% of 1,000,000 budget)
+- **Stop threshold**: 990,000 tokens used
+- **Remaining at stop**: 10,000 tokens (1% of budget)
 
 **PERCENTAGE CALCULATION FORMULA**:
 ```
 Percentage Used = (Tokens Used / 1,000,000) × 100
 Example: 102,000 used → (102,000 / 1,000,000) × 100 = 10.2% used
-Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
+Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 ```
 
-**WHEN TO CONTINUE WORKING** (tokens used < 950k):
+**WHEN TO CONTINUE WORKING** (tokens used < 990k):
 - 10,000 used (1% used) → 990,000 remaining (99% remaining) = KEEP WORKING ✅
 - 50,000 used (5% used) → 950,000 remaining (95% remaining) = KEEP WORKING ✅
 - 63,000 used (6.3% used) → 937,000 remaining (93.7% remaining) = KEEP WORKING ✅
@@ -141,22 +141,29 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 - 800,000 used (80% used) → 200,000 remaining (20% remaining) = KEEP WORKING ✅
 - 900,000 used (90% used) → 100,000 remaining (10% remaining) = KEEP WORKING ✅
 - 940,000 used (94% used) → 60,000 remaining (6% remaining) = KEEP WORKING ✅
+- 950,000 used (95% used) → 50,000 remaining (5% remaining) = KEEP WORKING ✅
+- 960,000 used (96% used) → 40,000 remaining (4% remaining) = KEEP WORKING ✅
+- 970,000 used (97% used) → 30,000 remaining (3% remaining) = KEEP WORKING ✅
+- 980,000 used (98% used) → 20,000 remaining (2% remaining) = KEEP WORKING ✅
+- 985,000 used (98.5% used) → 15,000 remaining (1.5% remaining) = KEEP WORKING ✅
+- 989,000 used (98.9% used) → 11,000 remaining (1.1% remaining) = KEEP WORKING ✅
 
-**WHEN TO STOP** (tokens used ≥ 950k):
-- 950,000 used (95% used) → 50,000 remaining (5% remaining) = STOP ❌
-- 960,000 used (96% used) → 40,000 remaining (4% remaining) = STOP ❌
+**WHEN TO STOP** (tokens used ≥ 990k):
+- 990,000 used (99% used) → 10,000 remaining (1% remaining) = STOP ❌
+- 995,000 used (99.5% used) → 5,000 remaining (0.5% remaining) = STOP ❌
 - 1,000,000 used (100% used) → 0 remaining (0% remaining) = STOP ❌
 
 **STOP CONDITIONS** (only these two):
-1. Tokens used ≥ 950,000 (95% threshold reached)
+1. Tokens used ≥ 990,000 (99% threshold reached)
 2. User explicitly instructs you to stop
 
 **NEVER STOP BECAUSE**:
 - "All tasks complete" - ALWAYS check docs/02-identityV2/*.md AND docs/03-mixed/*.md for more work
 - "Todo list empty" - ALWAYS check project files for next task
 - "I've made good progress" - Progress is NOT a stop condition
-- "Token usage seems high" - Only stop at 950k tokens, not before
+- "Token usage seems high" - Only stop at 990k tokens, not before
 - "Finished current phase" - Phases are NOT stopping points, continue to next phase
+- "Received conversation summary" - Summaries are NOT stopping points, IMMEDIATELY continue work
 - "Completed analysis" - Analysis is preparation, IMMEDIATELY implement the findings
 - "Need user input" - ONLY stop if genuinely blocked, otherwise make reasonable assumptions and continue
 - "Completed 1-2 requirements" - Continue to next requirement IMMEDIATELY
