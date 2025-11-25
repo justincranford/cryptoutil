@@ -193,12 +193,28 @@ func (m *Manager) isRunning(serviceName string) bool {
 	}
 
 	// On Windows, FindProcess always succeeds, so we need to check if process is actually running
-	// Try to get process state
-	if err := process.Signal(syscall.Signal(0)); err != nil {
+	// Signal(0) doesn't work on Windows - attempt to get process state via Wait with timeout
+	done := make(chan error, 1)
+
+	go func() {
+		_, waitErr := process.Wait()
+		done <- waitErr
+	}()
+
+	const processStatusCheckTimeout = 10 * time.Millisecond
+
+	select {
+	case <-time.After(processStatusCheckTimeout):
+		// Process hasn't exited yet - it's running
+		return true
+	case err := <-done:
+		// Process exited or error occurred
+		if err != nil && err.Error() == "os: process already finished" {
+			return false
+		}
+
 		return false
 	}
-
-	return true
 }
 
 // readPID reads the PID from a PID file (caller must hold lock).
