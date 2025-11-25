@@ -84,7 +84,10 @@ func (m *Manager) Stop(serviceName string, force bool, timeout time.Duration) er
 	process, err := os.FindProcess(pid)
 	if err != nil {
 		// Clean up stale PID file
-		_ = m.removePIDFile(serviceName)
+		err2 := m.removePIDFile(serviceName)
+		if err2 != nil {
+			return fmt.Errorf("failed to find process: %w; additionally failed to remove stale PID file: %w", err, err2)
+		}
 		return fmt.Errorf("failed to find process %d: %w", pid, err)
 	}
 
