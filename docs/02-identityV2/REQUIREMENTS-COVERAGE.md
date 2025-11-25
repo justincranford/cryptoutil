@@ -2,9 +2,9 @@
 
 **Generated**: 2025-01-19
 **Total Requirements**: 65
-**Validated**: 47 (72.3%)
+**Validated**: 48 (73.8%)
 **Uncovered CRITICAL**: 3
-**Uncovered HIGH**: 10
+**Uncovered HIGH**: 9
 **Uncovered MEDIUM**: 4
 
 ## Summary by Task
@@ -12,7 +12,7 @@
 | Task | Requirements | Validated | Coverage |
 |------|--------------|-----------|----------|
 | R01 | 6 | 6 | 100.0% ✅ |
-| R02 | 7 | 6 | 85.7% ✅ |
+| R02 | 7 | 7 | 100.0% ✅ |
 | R03 | 5 | 5 | 100.0% ✅ |
 | R04 | 6 | 4 | 66.7% ⚠️ |
 | R05 | 6 | 6 | 100.0% ✅ |
@@ -53,12 +53,6 @@
 ### LOW: 0/1 (0.0%) ❌
 
 ## Uncovered Requirements
-
-### R02
-
-| ID | Priority | Description |
-|----|----------|-------------|
-| R02-07 | HIGH | Integration tests validate OIDC endpoints |
 
 ### R04
 
