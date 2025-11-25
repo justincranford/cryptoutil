@@ -15,6 +15,7 @@ import (
 // Registry manages client authentication methods.
 type Registry struct {
 	authenticators map[string]ClientAuthenticator
+	hasher         *SecretBasedAuthenticator
 }
 
 // NewRegistry creates a new client authentication registry.
@@ -43,6 +44,9 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 	// Get token issuer URL from config for JWT-based authenticators
 	tokenEndpointURL := config.Tokens.Issuer + "/token"
 
+	// Create secret-based authenticator for shared use
+	secretAuth := NewSecretBasedAuthenticator(clientRepo)
+
 	return &Registry{
 		authenticators: map[string]ClientAuthenticator{
 			"client_secret_basic":         NewBasicAuthenticator(clientRepo),
@@ -52,6 +56,7 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 			"private_key_jwt":             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo),
 			"client_secret_jwt":           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo),
 		},
+		hasher: secretAuth,
 	}
 }
 
@@ -65,4 +70,9 @@ func (r *Registry) GetAuthenticator(method string) (ClientAuthenticator, bool) {
 // RegisterAuthenticator registers a new authentication method.
 func (r *Registry) RegisterAuthenticator(authenticator ClientAuthenticator) {
 	r.authenticators[authenticator.Method()] = authenticator
+}
+
+// GetHasher returns the secret-based authenticator for migration operations.
+func (r *Registry) GetHasher() *SecretBasedAuthenticator {
+	return r.hasher
 }

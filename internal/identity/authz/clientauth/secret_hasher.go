@@ -8,50 +8,19 @@ import (
 	"context"
 	"fmt"
 
-	"golang.org/x/crypto/bcrypt"
-
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
-// SecretHasher provides bcrypt hashing for client secrets.
+// SecretHasher provides FIPS 140-3 approved hashing for client secrets.
 type SecretHasher interface {
 	HashSecret(plaintext string) (string, error)
 	CompareSecret(hashed, plaintext string) error
 }
 
-// BcryptHasher implements SecretHasher using bcrypt algorithm.
-type BcryptHasher struct {
-	cost int
-}
+// Legacy comment - implementation replaced with FIPS 140-3 approved PBKDF2-HMAC-SHA256.
 
-// NewBcryptHasher creates a new bcrypt hasher with default cost.
-func NewBcryptHasher() *BcryptHasher {
-	return &BcryptHasher{
-		cost: bcrypt.DefaultCost, // Cost 10 (2^10 = 1024 iterations).
-	}
-}
-
-// HashSecret hashes a plaintext client secret using bcrypt.
-func (h *BcryptHasher) HashSecret(plaintext string) (string, error) {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(plaintext), h.cost)
-	if err != nil {
-		return "", fmt.Errorf("failed to hash client secret: %w", err)
-	}
-
-	return string(hashed), nil
-}
-
-// CompareSecret compares a hashed secret with a plaintext secret.
-func (h *BcryptHasher) CompareSecret(hashed, plaintext string) error {
-	if err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plaintext)); err != nil {
-		return fmt.Errorf("client secret mismatch: %w", err)
-	}
-
-	return nil
-}
-
-// MigrateClientSecrets migrates all client secrets from plaintext to bcrypt hashes.
+// MigrateClientSecrets migrates all client secrets from plaintext to PBKDF2-HMAC-SHA256 hashes.
 func MigrateClientSecrets(ctx context.Context, clientRepo cryptoutilIdentityRepository.ClientRepository, hasher SecretHasher) (int, error) {
 	// Fetch all clients.
 	clients, err := clientRepo.GetAll(ctx)
@@ -67,8 +36,8 @@ func MigrateClientSecrets(ctx context.Context, clientRepo cryptoutilIdentityRepo
 			continue
 		}
 
-		// Check if secret is already hashed (bcrypt hashes start with "$2a$" or "$2b$").
-		if isBcryptHash(client.ClientSecret) {
+		// Check if secret is already hashed (PBKDF2 hashes start with "$pbkdf2-sha256$").
+		if isPBKDF2Hash(client.ClientSecret) {
 			continue
 		}
 
@@ -91,24 +60,23 @@ func MigrateClientSecrets(ctx context.Context, clientRepo cryptoutilIdentityRepo
 	return migrated, nil
 }
 
-// isBcryptHash checks if a string is a bcrypt hash.
-func isBcryptHash(secret string) bool {
-	// Bcrypt hashes have format: $2a$cost$salt+hash (60 characters).
-	// Example: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy.
-	return len(secret) == 60 && (secret[:4] == "$2a$" || secret[:4] == "$2b$" || secret[:4] == "$2y$")
+// isPBKDF2Hash checks if a string is a PBKDF2-HMAC-SHA256 hash.
+func isPBKDF2Hash(secret string) bool {
+	// PBKDF2 hashes have format: $pbkdf2-sha256$iterations$salt$hash.
+	return len(secret) > 16 && secret[:16] == "$pbkdf2-sha256$"
 }
 
-// SecretBasedAuthenticator provides client authentication with bcrypt secret hashing.
+// SecretBasedAuthenticator provides client authentication with FIPS 140-3 approved PBKDF2-HMAC-SHA256 hashing.
 type SecretBasedAuthenticator struct {
 	clientRepo cryptoutilIdentityRepository.ClientRepository
 	hasher     SecretHasher
 }
 
-// NewSecretBasedAuthenticator creates a new client authenticator with bcrypt hashing.
+// NewSecretBasedAuthenticator creates a new client authenticator with PBKDF2-HMAC-SHA256 hashing.
 func NewSecretBasedAuthenticator(clientRepo cryptoutilIdentityRepository.ClientRepository) *SecretBasedAuthenticator {
 	return &SecretBasedAuthenticator{
 		clientRepo: clientRepo,
-		hasher:     NewBcryptHasher(),
+		hasher:     NewPBKDF2Hasher(),
 	}
 }
 
@@ -125,7 +93,7 @@ func (a *SecretBasedAuthenticator) AuthenticateBasic(ctx context.Context, client
 		return nil, fmt.Errorf("client is disabled")
 	}
 
-	// Compare client secret using bcrypt.
+	// Compare client secret using PBKDF2-HMAC-SHA256.
 	if err := a.hasher.CompareSecret(client.ClientSecret, clientSecret); err != nil {
 		return nil, fmt.Errorf("invalid client credentials: %w", err)
 	}
@@ -137,4 +105,9 @@ func (a *SecretBasedAuthenticator) AuthenticateBasic(ctx context.Context, client
 func (a *SecretBasedAuthenticator) AuthenticatePost(ctx context.Context, clientID, clientSecret string) (*cryptoutilIdentityDomain.Client, error) {
 	// Same logic as Basic auth (different HTTP transport, same validation).
 	return a.AuthenticateBasic(ctx, clientID, clientSecret)
+}
+
+// MigrateSecrets wraps MigrateClientSecrets for use through registry.
+func (a *SecretBasedAuthenticator) MigrateSecrets(ctx context.Context, clientRepo cryptoutilIdentityRepository.ClientRepository) (int, error) {
+	return MigrateClientSecrets(ctx, clientRepo, a.hasher)
 }

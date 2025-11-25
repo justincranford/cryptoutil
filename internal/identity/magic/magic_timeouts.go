@@ -17,6 +17,9 @@ const (
 	AccessTokenExpirySeconds  = 3600  // Access token expiry in seconds (1 hour).
 	RefreshTokenExpirySeconds = 86400 // Refresh token expiry in seconds (24 hours).
 	IDTokenExpirySeconds      = 3600  // ID token expiry in seconds (1 hour).
+
+	// Token cleanup interval.
+	DefaultTokenCleanupInterval = 1 * time.Hour // Run cleanup every hour.
 )
 
 // Session lifetimes.
