@@ -10,6 +10,13 @@ import (
 	"sync"
 )
 
+// contextKey is a custom type for context keys to avoid collisions.
+type contextKey string
+
+const (
+	contextKeyTimestamp contextKey = "timestamp"
+)
+
 // MockSMSProvider implements DeliveryService for testing SMS delivery.
 type MockSMSProvider struct {
 	mu            sync.RWMutex
@@ -69,7 +76,7 @@ func (m *MockSMSProvider) SendSMS(ctx context.Context, phoneNumber, message stri
 	timestamp := int64(0)
 
 	if ctx != nil {
-		if ts, ok := ctx.Value("timestamp").(int64); ok {
+		if ts, ok := ctx.Value(contextKeyTimestamp).(int64); ok {
 			timestamp = ts
 		}
 	}
@@ -201,7 +208,7 @@ func (m *MockEmailProvider) SendEmail(ctx context.Context, to, subject, body str
 	timestamp := int64(0)
 
 	if ctx != nil {
-		if ts, ok := ctx.Value("timestamp").(int64); ok {
+		if ts, ok := ctx.Value(contextKeyTimestamp).(int64); ok {
 			timestamp = ts
 		}
 	}

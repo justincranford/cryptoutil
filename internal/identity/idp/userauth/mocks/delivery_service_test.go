@@ -12,13 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// contextKey is a custom type for context keys to avoid collisions.
-type contextKey string
-
-const (
-	contextKeyTimestamp contextKey = "timestamp"
-)
-
 // TestMockSMSProviderSuccess tests successful SMS sending.
 func TestMockSMSProviderSuccess(t *testing.T) {
 	t.Parallel()
