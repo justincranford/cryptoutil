@@ -2,6 +2,7 @@
 //
 //
 
+//nolint:goconst // Linter suggests extracting testPassword to magic constant - intentionally inline for test clarity
 package idp_test
 
 import (
