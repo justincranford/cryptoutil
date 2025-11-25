@@ -37,7 +37,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				return settings
 			},
 			expectError: true,
-			errorText:   "context cannot be nil",
+			errorText:   "ctx must be non-nil",
 		},
 		{
 			name: "Nil telemetry service",
@@ -49,7 +49,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				return settings
 			},
 			expectError: true,
-			errorText:   "telemetry service cannot be nil",
+			errorText:   "telemetryService must be non-nil",
 		},
 		{
 			name: "Nil settings",
@@ -57,7 +57,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				return nil
 			},
 			expectError: true,
-			errorText:   "settings cannot be nil",
+			errorText:   "settings must be non-nil",
 		},
 		{
 			name: "Empty database URL (non-dev mode)",
