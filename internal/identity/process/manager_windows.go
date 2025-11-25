@@ -18,6 +18,10 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+const (
+	processFinishedError = "os: process already finished"
+)
+
 // Manager handles starting, stopping, and tracking service processes.
 type Manager struct {
 	pidDir string
@@ -121,7 +125,7 @@ func (m *Manager) Stop(serviceName string, force bool, timeout time.Duration) er
 				return fmt.Errorf("failed to force kill process %d: %w", pid, err)
 			}
 		case err := <-done:
-			if err != nil && err.Error() != "os: process already finished" {
+			if err != nil && err.Error() != processFinishedError {
 				return fmt.Errorf("error waiting for process %d: %w", pid, err)
 			}
 		}
@@ -209,7 +213,7 @@ func (m *Manager) isRunning(serviceName string) bool {
 		return true
 	case err := <-done:
 		// Process exited or error occurred
-		if err != nil && err.Error() == "os: process already finished" {
+		if err != nil && err.Error() == processFinishedError {
 			return false
 		}
 

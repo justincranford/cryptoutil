@@ -27,6 +27,10 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
+const (
+	testPassword = "TestPassword123!" // pragma: allowlist secret
+)
+
 // TestOIDCFlow_IDPEndpointsIntegration tests that IDP endpoints work together correctly.
 // This validates login → consent flow and userinfo endpoint functionality.
 //
@@ -144,7 +148,6 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Create test user with hashed password.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPassword := "TestPassword123!" // pragma: allowlist secret
 	testPasswordHash, err := cryptoutilCrypto.HashSecret(testPassword)
 	require.NoError(t, err, "Failed to hash password")
 
