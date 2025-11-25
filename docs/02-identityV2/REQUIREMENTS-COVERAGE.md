@@ -2,9 +2,9 @@
 
 **Generated**: 2025-01-19
 **Total Requirements**: 65
-**Validated**: 59 (90.8%)
+**Validated**: 60 (92.3%)
 **Uncovered CRITICAL**: 2
-**Uncovered HIGH**: 2
+**Uncovered HIGH**: 1
 **Uncovered MEDIUM**: 1
 
 ## Summary by Task
@@ -17,7 +17,7 @@
 | R04 | 6 | 5 | 83.3% ⚠️ |
 | R05 | 6 | 6 | 100.0% ✅ |
 | R06 | 4 | 4 | 100.0% ✅ |
-| R07 | 5 | 4 | 80.0% ⚠️ |
+| R07 | 5 | 5 | 100.0% ✅ |
 | R08 | 5 | 5 | 100.0% ✅ |
 | R08 | 6 | 2 | 33.3% ❌ |
 | R09 | 6 | 4 | 66.7% ⚠️ |
@@ -64,9 +64,10 @@
 
 ### R07
 
-| ID | Priority | Description |
-|----|----------|-------------|
-| R07-05 | HIGH | Repository tests achieve 85%+ coverage |
+| ID | Priority | Description | Status | Evidence |
+|----|----------|-------------|--------|----------|
+| R07-05 | HIGH | Repository tests achieve 85%+ coverage | | |
+| R07-02 | HIGH | Repository tests run against PostgreSQL | ✅ | internal/identity/idp/handlers_postgres_test.go: TestPostgreSQLIntegration (lines 20-229) validates PostgreSQL-specific features (connection pooling, concurrent operations, transaction isolation) using real PostgreSQL container at localhost:5433. Prerequisites documented (docker compose postgres-test.yml). Tests connection pool settings, schema initialization, transaction isolation (read uncommitted/committed, concurrent updates), error handling (unique constraint violations). Coverage: internal/identity/storage/tests/ migration_test.go TestPostgreSQLMigrations (line 66), transaction_test.go (line 31 - transaction isolation comments). |
 
 ### R08
 
