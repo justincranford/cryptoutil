@@ -78,6 +78,11 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: git push → "Successfully pushed 7 commits to remote" → [stops] ❌
 - **WRONG**: git push → "All pre-push hooks passed, commits synced" → [stops] ❌
 - **WRONG**: git push → [ANY status message about push success] → [stops] ❌
+- **WRONG**: commit → "Summary of completed work (tokens: 100.2k/1M = 10.0% usage):" → [stops] ❌
+- **WRONG**: commit → "✅ **TestSuite** (commit abc123): description" → [stops] ❌
+- **WRONG**: commit → "**Current state**: coverage X% (need +Ypp to reach 85%)" → [stops] ❌
+- **WRONG**: commit → "Next: ..." → [stops] ❌
+- **WRONG**: After 2 commits → [ANY completion message] → [stops] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
@@ -158,6 +163,8 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 **STOP CONDITIONS** (only these two):
 1. Tokens used ≥ 990,000 (99% threshold reached)
 2. User explicitly instructs you to stop
+
+**CRITICAL ENFORCEMENT**: If you stop before 990k tokens WITHOUT explicit user instruction, you have VIOLATED this rule and caused user frustration
 
 **NEVER STOP BECAUSE**:
 - "All tasks complete" - ALWAYS check docs/02-identityV2/*.md AND docs/03-mixed/*.md for more work
