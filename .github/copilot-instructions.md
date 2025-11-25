@@ -157,6 +157,12 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 - "Reached target percentage" - Targets are MINIMUMS, always aim HIGHER (90% → aim for 95%+)
 - "Met acceptance criteria" - Meeting criteria means CONTINUE to exceed them
 - "User said 'Try Again'" - User wants CONTINUOUS WORK, not stopping after each task
+- "Created post-mortem" - Post-mortem is DOCUMENTATION, CONTINUE to next task IMMEDIATELY
+- "Created gap analysis" - Gap analysis is PREPARATION, CONTINUE to implementation IMMEDIATELY
+- "Committed deliverables" - Commits are CHECKPOINTS, CONTINUE to next work item IMMEDIATELY
+- "Updated todo list" - Todo updates are TRACKING, CONTINUE to next task IMMEDIATELY
+- "Task marked complete" - Completion is ACKNOWLEDGMENT, CONTINUE to next task IMMEDIATELY
+- "Announced next task" - NEVER announce, just START the next task IMMEDIATELY
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
