@@ -2,9 +2,9 @@
 
 **Generated**: 2025-01-19
 **Total Requirements**: 65
-**Validated**: 51 (78.5%)
+**Validated**: 52 (80.0%)
 **Uncovered CRITICAL**: 3
-**Uncovered HIGH**: 7
+**Uncovered HIGH**: 6
 **Uncovered MEDIUM**: 3
 
 ## Summary by Task
@@ -14,7 +14,7 @@
 | R01 | 6 | 6 | 100.0% ✅ |
 | R02 | 7 | 7 | 100.0% ✅ |
 | R03 | 5 | 5 | 100.0% ✅ |
-| R04 | 6 | 4 | 66.7% ⚠️ |
+| R04 | 6 | 5 | 83.3% ⚠️ |
 | R05 | 6 | 6 | 100.0% ✅ |
 | R06 | 4 | 4 | 100.0% ✅ |
 | R07 | 5 | 4 | 80.0% ⚠️ |
@@ -61,7 +61,6 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | R04-06 | MEDIUM | Client secret rotation support |
-| R04-05 | HIGH | Security tests validate attack prevention |
 
 ### R07
 
