@@ -40,7 +40,7 @@ func TestConsentDecision_IsExpired(t *testing.T) {
 		},
 		{
 			name:     "consent expiring now",
-			expiryFn: func() time.Time { return time.Now() },
+			expiryFn: func() time.Time { return time.Now().Add(1 * time.Millisecond) },
 			want:     false,
 		},
 	}

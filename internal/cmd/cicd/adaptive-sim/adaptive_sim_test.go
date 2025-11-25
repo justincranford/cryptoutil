@@ -498,6 +498,9 @@ risk_factors:
   network:
     weight: 0.30
     description: "Network-based risk"
+  behavior:
+    weight: 0.25
+    description: "Behavioral risk patterns"
 risk_thresholds:
   low:
     min: 0.0

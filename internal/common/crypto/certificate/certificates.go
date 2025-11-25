@@ -367,7 +367,7 @@ func serializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 	} else if len(keyMaterial.CertificateChain) == 0 {
 		return nil, fmt.Errorf("certificate chain cannot be empty")
 	} else if keyMaterial.PublicKey == nil {
-		return nil, fmt.Errorf("publicKey cannot be nil")
+		return nil, fmt.Errorf("PublicKey cannot be nil")
 	}
 
 	for i, certificate := range keyMaterial.CertificateChain {
