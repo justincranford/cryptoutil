@@ -41,6 +41,7 @@
 
 **FORBIDDEN ACTIONS** (these cause immediate user frustration):
 - ❌ Stopping after commits (commits are checkpoints, NOT endpoints)
+- ❌ Stopping after git push (git push is synchronization, NOT completion)
 - ❌ Stopping after completing one task when more tasks remain
 - ❌ Providing summary messages ("Completed X, Y, Z...")
 - ❌ Announcing next steps without executing them
@@ -74,22 +75,30 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: After creating 3-5 files → [stops thinking work complete] ❌
 - **WRONG**: commit → "**Phase 2 Progress**: R02-07 + R04-05 complete (1 hour) - Continuing to R07-02..." → [stops] ❌
 - **WRONG**: commit → "**Token Usage**: 98,049/1,000,000 (9.8%) - **901,951 tokens remaining (90.2%)**" → [stops] ❌
+- **WRONG**: git push → "Successfully pushed 7 commits to remote" → [stops] ❌
+- **WRONG**: git push → "All pre-push hooks passed, commits synced" → [stops] ❌
+- **WRONG**: git push → [ANY status message about push success] → [stops] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
+- **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
 - **SPECIFIC ENFORCEMENT #2**: After creating analysis documents, IMMEDIATELY start implementing fixes based on analysis
+- **SPECIFIC ENFORCEMENT #3**: After git push, IMMEDIATELY invoke next task tool (manage_todo_list, read_file, grep_search, etc.)
 - **NO SUMMARIES**: Never provide status updates, progress reports, completion messages, or token usage reports until ALL work done
 - **NO CHECKMARKS**: Never use ✅/❌/⏳ emoji status markers - just invoke next tool immediately
 - **NO "NEXT" STATEMENTS**: Never say "Next: Task X" - just start Task X immediately
 - **NO QUESTIONS**: Never ask "Would you like me to continue?" - ALWAYS CONTINUE
 - **NO PHASE PROGRESS**: Never provide "Phase X Progress: completed Y/Z" - just continue to next task
 - **NO TOKEN USAGE REPORTS**: Never provide token usage statistics during work - only at 950k threshold
+- **NO GIT SUCCESS MESSAGES**: Never provide "pushed successfully", "all commits synced", "remote updated" - just continue
 - **CRITICAL**: Analysis documents are NOT deliverables - they are preparation for IMMEDIATE implementation
 - **CRITICAL #2**: Creating 3-5 files is NOT completion - it's the BEGINNING of work
+- **CRITICAL #3**: Git push success is NOT completion - it's synchronization, CONTINUE to next task
 - **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
 - **PATTERN #2**: create_file (analysis) → IMMEDIATELY implement changes from analysis → commit → next work
+- **PATTERN #3**: git push → IMMEDIATELY start next task (no text, no announcement, just continue)
 
 **Token Budget Awareness - MATH RULES**
 
@@ -163,6 +172,9 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 - "Updated todo list" - Todo updates are TRACKING, CONTINUE to next task IMMEDIATELY
 - "Task marked complete" - Completion is ACKNOWLEDGMENT, CONTINUE to next task IMMEDIATELY
 - "Announced next task" - NEVER announce, just START the next task IMMEDIATELY
+- "Successfully pushed to git remote" - Git push is SYNCHRONIZATION, CONTINUE to next task IMMEDIATELY
+- "Pre-push hooks passed" - Hook success is VALIDATION, CONTINUE to next task IMMEDIATELY
+- "All commits pushed" - Git operations are CHECKPOINTS, CONTINUE to next task IMMEDIATELY
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
