@@ -154,6 +154,9 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 - "Made commits" - Commits are checkpoints, CONTINUE to next task
 - "Tests passing" - Tests passing means CONTINUE to next requirement
 - "Wrote summary comment" - NEVER write summary comments, ALWAYS continue working
+- "Reached target percentage" - Targets are MINIMUMS, always aim HIGHER (90% → aim for 95%+)
+- "Met acceptance criteria" - Meeting criteria means CONTINUE to exceed them
+- "User said 'Try Again'" - User wants CONTINUOUS WORK, not stopping after each task
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
