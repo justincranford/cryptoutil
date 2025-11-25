@@ -56,7 +56,9 @@ func TestMFAStress100ConcurrentSessions(t *testing.T) {
 
 				atomic.AddInt32(&suite.concurrentSessions, 1)
 
-				userID := fmt.Sprintf("stress_user_%d_%s", sessionIndex, googleUuid.Must(googleUuid.NewV7()).String())
+				// Generate unique user ID using UUIDv7 only (not concatenated string)
+				// to avoid "invalid UUID length" errors when creating domain.User.
+				userID := googleUuid.Must(googleUuid.NewV7()).String()
 
 				err := suite.executeMFAChain(ctx, userID, factorsPerChain)
 				if err != nil {
@@ -230,7 +232,9 @@ func TestMFALongRunningStress(t *testing.T) {
 					case <-stopSignal:
 						return
 					default:
-						userID := fmt.Sprintf("sustained_user_%d_%d", workerID, sessionCount)
+						// Generate unique user ID using UUIDv7 instead of string formatting
+						// to avoid "invalid UUID length" errors when creating domain.User.
+						userID := googleUuid.Must(googleUuid.NewV7()).String()
 
 						err := suite.executeMFAChain(ctx, userID, 2)
 						if err != nil {
