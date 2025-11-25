@@ -23,7 +23,7 @@ func TestUserInfoClaims(t *testing.T) {
 	tests := []struct {
 		name              string
 		user              *cryptoutilIdentityDomain.User
-		expectedClaims    map[string]interface{}
+		expectedClaims    map[string]any
 		unexpectedClaims  []string
 		verifyClaimValues bool
 	}{
@@ -42,7 +42,7 @@ func TestUserInfoClaims(t *testing.T) {
 				Zoneinfo:          "America/New_York",
 				UpdatedAt:         time.Now().UTC(),
 			},
-			expectedClaims: map[string]interface{}{
+			expectedClaims: map[string]any{
 				"sub":                nil, // Value validated separately
 				"preferred_username": "testuser_standard",
 				"email":              "standard@example.com",
@@ -65,7 +65,7 @@ func TestUserInfoClaims(t *testing.T) {
 				Email:             "minimal@example.com",
 				EmailVerified:     false,
 			},
-			expectedClaims: map[string]interface{}{
+			expectedClaims: map[string]any{
 				"sub":                nil,
 				"preferred_username": "testuser_minimal",
 				"email":              "minimal@example.com",
@@ -89,7 +89,7 @@ func TestUserInfoClaims(t *testing.T) {
 				Email:             "verified@example.com",
 				EmailVerified:     true,
 			},
-			expectedClaims: map[string]interface{}{
+			expectedClaims: map[string]any{
 				"email_verified": true,
 			},
 			verifyClaimValues: true,
@@ -103,7 +103,7 @@ func TestUserInfoClaims(t *testing.T) {
 				Email:             "unverified@example.com",
 				EmailVerified:     false,
 			},
-			expectedClaims: map[string]interface{}{
+			expectedClaims: map[string]any{
 				"email_verified": false,
 			},
 			verifyClaimValues: true,
@@ -140,7 +140,7 @@ func TestUserInfoClaims(t *testing.T) {
 			require.NotNil(t, retrievedUser, "retrieved user should not be nil")
 
 			// Convert user to UserInfo claims (JSON representation).
-			claimsJSON, err := json.Marshal(map[string]interface{}{
+			claimsJSON, err := json.Marshal(map[string]any{
 				"sub":                retrievedUser.Sub,
 				"preferred_username": retrievedUser.PreferredUsername,
 				"email":              retrievedUser.Email,
@@ -154,7 +154,7 @@ func TestUserInfoClaims(t *testing.T) {
 			})
 			require.NoError(t, err, "failed to marshal claims to JSON")
 
-			var claims map[string]interface{}
+			var claims map[string]any
 
 			err = json.Unmarshal(claimsJSON, &claims)
 			require.NoError(t, err, "failed to unmarshal claims from JSON")

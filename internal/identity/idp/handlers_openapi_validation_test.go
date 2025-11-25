@@ -40,7 +40,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 		setupFunc        func(*testing.T, *gorm.DB) string // Returns token/path parameter
 		requiredFields   []string
 		optionalFields   []string
-		validateResponse func(*testing.T, map[string]interface{})
+		validateResponse func(*testing.T, map[string]any)
 	}{
 		{
 			name:     "userinfo_endpoint_schema",
@@ -104,7 +104,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				"locale",
 				"zoneinfo",
 			},
-			validateResponse: func(t *testing.T, resp map[string]interface{}) {
+			validateResponse: func(t *testing.T, resp map[string]any) {
 				t.Helper()
 
 				// Validate sub is a valid UUID
@@ -149,7 +149,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				"claims_supported",
 				"grant_types_supported",
 			},
-			validateResponse: func(t *testing.T, resp map[string]interface{}) {
+			validateResponse: func(t *testing.T, resp map[string]any) {
 				t.Helper()
 
 				// Validate issuer is a URL
@@ -158,12 +158,12 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				require.NotEmpty(t, issuer, "issuer must not be empty")
 
 				// Validate response_types_supported is array
-				responseTypes, ok := resp["response_types_supported"].([]interface{})
+				responseTypes, ok := resp["response_types_supported"].([]any)
 				require.True(t, ok, "response_types_supported must be array")
 				require.NotEmpty(t, responseTypes, "response_types_supported must not be empty")
 
 				// Validate subject_types_supported is array
-				subjectTypes, ok := resp["subject_types_supported"].([]interface{})
+				subjectTypes, ok := resp["subject_types_supported"].([]any)
 				require.True(t, ok, "subject_types_supported must be array")
 				require.NotEmpty(t, subjectTypes, "subject_types_supported must not be empty")
 			},
@@ -233,7 +233,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 				"id_token",
 				"scope",
 			},
-			validateResponse: func(t *testing.T, resp map[string]interface{}) {
+			validateResponse: func(t *testing.T, resp map[string]any) {
 				t.Helper()
 
 				// Validate access_token is non-empty string
@@ -321,11 +321,11 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			// Handler implementation would be added here in actual integration.
 
 			// For schema validation, we use mock responses based on OpenAPI spec
-			var respBody map[string]interface{}
+			var respBody map[string]any
 
 			switch tc.endpoint {
 			case endpointUserInfo:
-				respBody = map[string]interface{}{
+				respBody = map[string]any{
 					"sub":            "550e8400-e29b-41d4-a716-446655440000",
 					"email":          "test@example.com",
 					"email_verified": true,
@@ -336,20 +336,20 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					"zoneinfo":       "America/New_York",
 				}
 			case endpointDiscovery:
-				respBody = map[string]interface{}{
+				respBody = map[string]any{
 					"issuer":                                "https://example.com",
 					"authorization_endpoint":                "https://example.com/authorize",
 					"token_endpoint":                        "https://example.com/token",
 					"userinfo_endpoint":                     "https://example.com/userinfo",
 					"jwks_uri":                              "https://example.com/jwks",
-					"response_types_supported":              []interface{}{"code", "token", "id_token"},
-					"subject_types_supported":               []interface{}{"public"},
-					"id_token_signing_alg_values_supported": []interface{}{"RS256"},
-					"scopes_supported":                      []interface{}{"openid", "profile", "email"},
-					"claims_supported":                      []interface{}{"sub", "email", "name"},
+					"response_types_supported":              []any{"code", "token", "id_token"},
+					"subject_types_supported":               []any{"public"},
+					"id_token_signing_alg_values_supported": []any{"RS256"},
+					"scopes_supported":                      []any{"openid", "profile", "email"},
+					"claims_supported":                      []any{"sub", "email", "name"},
 				}
 			case endpointToken:
-				respBody = map[string]interface{}{
+				respBody = map[string]any{
 					"access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
 					"token_type":   "Bearer",
 					"expires_in":   float64(3600),
@@ -372,7 +372,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			jsonBytes, err := json.Marshal(respBody)
 			require.NoError(t, err, "Response must be JSON serializable")
 
-			var unmarshaledResp map[string]interface{}
+			var unmarshaledResp map[string]any
 
 			err = json.Unmarshal(jsonBytes, &unmarshaledResp)
 			require.NoError(t, err, "Response must be JSON deserializable")

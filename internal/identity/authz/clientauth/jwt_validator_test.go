@@ -367,6 +367,7 @@ func TestClientSecretJWTValidator_ValidateJWT_Success(t *testing.T) {
 	keyData := []byte(client.ClientSecret)
 	key, err := joseJwk.Import(keyData)
 	require.NoError(t, err)
+	require.NoError(t, key.Set(joseJwk.KeyIDKey, "test-hmac-key"))
 	require.NoError(t, key.Set(joseJwk.AlgorithmKey, joseJwa.HS256()))
 
 	// Sign JWT with HMAC key.
@@ -462,6 +463,7 @@ func TestClientSecretJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	keyData := []byte(client.ClientSecret)
 	key, err := joseJwk.Import(keyData)
 	require.NoError(t, err)
+	require.NoError(t, key.Set(joseJwk.KeyIDKey, "test-hmac-key"))
 	require.NoError(t, key.Set(joseJwk.AlgorithmKey, joseJwa.HS256()))
 
 	signedToken, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.HS256(), key))
@@ -470,7 +472,7 @@ func TestClientSecretJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	// Validation should fail due to expiration.
 	_, err = validator.ValidateJWT(ctx, string(signedToken), client)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "JWT expired")
+	require.Contains(t, err.Error(), "token is expired")
 }
 
 func TestClientSecretJWTValidator_ValidateJWT_MissingExpirationClaim(t *testing.T) {
@@ -497,6 +499,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingExpirationClaim(t *testing.
 	keyData := []byte(client.ClientSecret)
 	key, err := joseJwk.Import(keyData)
 	require.NoError(t, err)
+	require.NoError(t, key.Set(joseJwk.KeyIDKey, "test-hmac-key"))
 	require.NoError(t, key.Set(joseJwk.AlgorithmKey, joseJwa.HS256()))
 
 	signedToken, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.HS256(), key))
@@ -532,6 +535,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingIssuedAtClaim(t *testing.T)
 	keyData := []byte(client.ClientSecret)
 	key, err := joseJwk.Import(keyData)
 	require.NoError(t, err)
+	require.NoError(t, key.Set(joseJwk.KeyIDKey, "test-hmac-key"))
 	require.NoError(t, key.Set(joseJwk.AlgorithmKey, joseJwa.HS256()))
 
 	signedToken, err := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.HS256(), key))

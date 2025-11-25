@@ -311,7 +311,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			jsonBytes, err := json.Marshal(retrievedToken)
 			require.NoError(t, err)
 
-			var jsonMap map[string]interface{}
+			var jsonMap map[string]any
 
 			err = json.Unmarshal(jsonBytes, &jsonMap)
 			require.NoError(t, err)

@@ -181,7 +181,11 @@ func (v *ClientSecretJWTValidator) ValidateJWT(ctx context.Context, jwtString st
 		return nil, fmt.Errorf("failed to import symmetric key: %w", err)
 	}
 
-	if err := key.Set(joseJwk.AlgorithmKey, joseJwa.HS256); err != nil {
+	if err := key.Set(joseJwk.KeyIDKey, "test-hmac-key"); err != nil {
+		return nil, fmt.Errorf("failed to set key ID: %w", err)
+	}
+
+	if err := key.Set(joseJwk.AlgorithmKey, joseJwa.HS256()); err != nil {
 		return nil, fmt.Errorf("failed to set key algorithm: %w", err)
 	}
 
