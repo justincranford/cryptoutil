@@ -61,7 +61,10 @@ func (m *Manager) Start(ctx context.Context, serviceName string, binary string, 
 	pidFile := filepath.Join(m.pidDir, serviceName+".pid")
 	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0o644); err != nil {
 		// Kill the process if we can't write PID
-		_ = cmd.Process.Kill()
+		err2 := cmd.Process.Kill()
+		if err2 != nil {
+			return fmt.Errorf("failed to write PID file: %w; additionally failed to kill process: %w", err, err2)
+		}
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}
 
