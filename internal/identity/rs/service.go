@@ -81,6 +81,9 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 		app.Get("/ui/swagger/doc.json", swaggerHandler)
 	}
 
+	// Health check endpoint (outside /api/v1 - per OpenAPI spec).
+	app.Get("/health", s.handlePublicHealth)
+
 	// Resource server API endpoints with /api/v1 prefix.
 	api := app.Group("/api/v1")
 
@@ -92,7 +95,7 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	protected.Use(s.validator.ValidateToken())
 	protected.Get("/resource", s.RequireScopes("read:resource"), s.handleProtectedResource)
 	protected.Post("/resource", s.RequireScopes("write:resource"), s.handleCreateResource)
-	protected.Delete("/resource", s.RequireScopes("delete:resource"), s.handleDeleteResource)
+	protected.Delete("/resource/:id", s.RequireScopes("delete:resource"), s.handleDeleteResource)
 
 	// Admin endpoints (require admin scope).
 	admin := api.Group("/admin")
@@ -212,7 +215,7 @@ func (s *Service) handleCreateResource(c *fiber.Ctx) error {
 	s.logger.Info("Resource created",
 		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message":     "Resource created successfully",
 		"resource_id": "new-resource-456",
 	})
