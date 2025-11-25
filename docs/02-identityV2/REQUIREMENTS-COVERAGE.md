@@ -66,7 +66,7 @@
 
 | ID | Priority | Description | Status | Evidence |
 |----|----------|-------------|--------|----------|
-| R07-05 | HIGH | Repository tests achieve 85%+ coverage | | |
+| R07-05 | HIGH | Repository tests achieve 85%+ coverage | ⚠️ | Current coverage varies by package. Passing packages: authz/pkce (95.5%), domain (91.6%), jobs (90.4%), security (100.0%), healthcheck (87.1%), jwks (77.5%), repository/orm (71.6%), config (70.1%). Below target: authz (18.0%), idp (43.3%), idp/userauth (37.1%), issuer (58.7%). Several packages have test failures (clientauth, healthcheck poller, integration, lifecycle, rs, idp/userauth hot-reload, mocks). Overall coverage calculation requires test fixes first. Target: All packages ≥85%, covered in P4.04 task. Current assessment: NEEDS WORK - test failures block accurate coverage measurement. |
 | R07-02 | HIGH | Repository tests run against PostgreSQL | ✅ | internal/identity/idp/handlers_postgres_test.go: TestPostgreSQLIntegration (lines 20-229) validates PostgreSQL-specific features (connection pooling, concurrent operations, transaction isolation) using real PostgreSQL container at localhost:5433. Prerequisites documented (docker compose postgres-test.yml). Tests connection pool settings, schema initialization, transaction isolation (read uncommitted/committed, concurrent updates), error handling (unique constraint violations). Coverage: internal/identity/storage/tests/ migration_test.go TestPostgreSQLMigrations (line 66), transaction_test.go (line 31 - transaction isolation comments). |
 
 ### R08
