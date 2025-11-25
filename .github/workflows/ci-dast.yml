@@ -135,7 +135,8 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5.0.1
+      # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -193,7 +194,8 @@ jobs:
 
     - name: Cache Nuclei Templates
       id: cache-nuclei-templates
-      uses: actions/cache@v4
+      # https://github.com/actions/cache/releases (v4.2.3, 2025-04-18)
+      uses: actions/cache@v4.2.3
       with:
         path: /root/nuclei-templates
         key: nuclei-templates-${{ runner.os }}-${{ steps.nuclei-version.outputs.templates_version }}
@@ -504,6 +506,7 @@ jobs:
     - name: Run OWASP ZAP DAST Scan
       if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
       continue-on-error: true  # ZAP exit code 3 (informational findings) treated as failure by action
+      # https://github.com/zaproxy/action-full-scan/releases (v0.13.0, 2025-02-19)
       uses: zaproxy/action-full-scan@v0.13.0
       with:
         target: ${{ env.ZAP_PUBLIC_TARGET_URL }}
@@ -561,6 +564,7 @@ jobs:
     - name: Run OWASP ZAP API Scan
       if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
       continue-on-error: true  # ZAP exit code 3 (informational findings) treated as failure by action
+      # https://github.com/zaproxy/action-api-scan/releases (v0.10.0, 2025-01-08)
       uses: zaproxy/action-api-scan@v0.10.0
       with:
         target: '${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json'
@@ -648,6 +652,7 @@ jobs:
     - name: Nuclei - Vulnerability Scan (${{ steps.nuclei_config.outputs.description }})
       if: ${{ steps.diagnostic_connectivity.outputs.NUCLEI_REACHABLE == 'true' }}
       id: nuclei_scan
+      # https://github.com/projectdiscovery/nuclei-action (main branch, no versioned releases)
       uses: projectdiscovery/nuclei-action@main
       continue-on-error: true  # Continue even if nuclei finds vulnerabilities (exit code 1) or has errors
       with:
@@ -748,7 +753,8 @@ jobs:
 
     - name: Upload container logs
       if: always()
-      uses: actions/upload-artifact@v5.0.0
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: container-logs
         path: workflow-reports/dast/container-logs/
@@ -756,7 +762,8 @@ jobs:
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
-      uses: actions/upload-artifact@v5.0.0
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: dast-workflow-reports
         path: |
@@ -766,7 +773,8 @@ jobs:
         retention-days: 1
 
     - name: GitHub Security Dashboard Alerts update
-      uses: github/codeql-action/upload-sarif@v3
+      # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+      uses: github/codeql-action/upload-sarif@v3.28.19
       # Skip entirely when running under act; also ensure SARIF file actually exists
       if: ${{ github.actor != 'nektos/act' && hashFiles('nuclei.sarif') != '' }}
       with:

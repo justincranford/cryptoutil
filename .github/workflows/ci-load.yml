@@ -80,7 +80,8 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5.0.0
+      # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -97,7 +98,8 @@ jobs:
         go-mod-tidy: true
 
     - name: Set up Java
-      uses: actions/setup-java@v5
+      # https://github.com/actions/setup-java/releases (v4.7.1, 2025-04-21)
+      uses: actions/setup-java@v4.7.1
       with:
         distribution: 'temurin'
         java-version: ${{ steps.begin-workflow-job.outputs.java-version }}
@@ -331,7 +333,8 @@ jobs:
 
     - name: Upload Gatling reports
       if: always()
-      uses: actions/upload-artifact@v5
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: gatling-reports-${{ env.LOAD_PROFILE }}
         path: test/load/target/gatling/
@@ -339,7 +342,8 @@ jobs:
 
     - name: Upload infrastructure metrics
       if: always()
-      uses: actions/upload-artifact@v5
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: infrastructure-metrics-${{ env.LOAD_PROFILE }}
         path: load-reports/infrastructure/
@@ -347,7 +351,8 @@ jobs:
 
     - name: Upload service logs
       if: always()
-      uses: actions/upload-artifact@v5
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: service-logs-${{ env.LOAD_PROFILE }}
         path: load-reports/service-logs/
@@ -355,7 +360,8 @@ jobs:
 
     - name: Upload load test summary
       if: always()
-      uses: actions/upload-artifact@v5
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: load-test-summary-${{ env.LOAD_PROFILE }}
         path: load-reports/load-test-summary.md

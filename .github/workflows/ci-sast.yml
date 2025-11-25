@@ -64,7 +64,8 @@ jobs:
       actions: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -73,13 +74,15 @@ jobs:
         uses: ./.github/actions/workflow-job-begin
 
       - name: Set up Java
-        uses: actions/setup-java@v5.0.0
+        # https://github.com/actions/setup-java/releases (v4.7.1, 2025-04-21)
+        uses: actions/setup-java@v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v4
+        # https://github.com/actions/cache/releases (v4.2.3, 2025-04-18)
+        uses: actions/cache@v4.2.3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -112,7 +115,8 @@ jobs:
           grep -n "nvdApiKey" effective-pom.xml || echo "ℹ️ nvdApiKey not configured in effective POM"
 
       - name: Cache dependency-check data
-        uses: actions/cache@v4
+        # https://github.com/actions/cache/releases (v4.2.3, 2025-04-18)
+        uses: actions/cache@v4.2.3
         with:
           path: test/load/target/dependency-check/data
           key: ${{ runner.os }}-dependency-check-data-${{ hashFiles('test/load/pom.xml') }}
@@ -220,7 +224,8 @@ jobs:
           fi
 
       - name: Upload OWASP Dependency Check results
-        uses: github/codeql-action/upload-sarif@v3
+        # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+        uses: github/codeql-action/upload-sarif@v3.28.19
         with:
           sarif_file: test/load/target/dependency-check/dependency-check-report.sarif
         if: always() && hashFiles('test/load/target/dependency-check/dependency-check-report.sarif') != ''
@@ -241,7 +246,8 @@ jobs:
       actions: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -339,7 +345,8 @@ jobs:
           echo "⏱️ Staticcheck analysis completed in: ${DURATION}s"
 
       - name: Upload Staticcheck results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+        uses: github/codeql-action/upload-sarif@v3.28.19
         with:
           sarif_file: staticcheck.sarif
         if: always() && hashFiles('staticcheck.sarif') != ''
@@ -400,7 +407,8 @@ jobs:
         language: ['go', 'javascript']  # go: Go code, javascript: JS+shell scripts (Java moved to dedicated job)
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -414,7 +422,8 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
       - name: Execute CodeQL initialization
-        uses: github/codeql-action/init@v3
+        # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+        uses: github/codeql-action/init@v3.28.19
         with:
           languages: ${{ matrix.language }}
 
@@ -431,7 +440,8 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
       - name: Execute CodeQL autobuild
-        uses: github/codeql-action/autobuild@v3
+        # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+        uses: github/codeql-action/autobuild@v3.28.19
 
       - name: Complete CodeQL autobuild timing
         run: |
@@ -446,7 +456,8 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
       - name: Execute CodeQL analysis
-        uses: github/codeql-action/analyze@v3
+        # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+        uses: github/codeql-action/analyze@v3.28.19
         with:
           category: "/language:${{matrix.language}}"
 

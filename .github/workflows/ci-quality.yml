@@ -58,7 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5.0.1
+      # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -94,7 +95,8 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -153,7 +155,8 @@ jobs:
 
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        # https://github.com/docker/login-action/releases (v3.4.0, 2025-11-11)
+        uses: docker/login-action@v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -161,7 +164,8 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        # https://github.com/docker/metadata-action/releases (v5.7.0, 2025-11-11)
+        uses: docker/metadata-action@v5.7.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -229,13 +233,15 @@ jobs:
         continue-on-error: true
 
       - name: Enable Docker Scout
-        uses: docker/scout-action@v1
+        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
+        uses: docker/scout-action@v1.18.1
         with:
           command: version
         if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Docker Scout - Quick Overview
-        uses: docker/scout-action@v1
+        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
+        uses: docker/scout-action@v1.18.1
         with:
           command: quickview
           image: ${{ steps.first-tag.outputs.tag }}
@@ -244,7 +250,8 @@ jobs:
         if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Docker Scout - CVE Analysis
-        uses: docker/scout-action@v1
+        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
+        uses: docker/scout-action@v1.18.1
         with:
           command: cves
           image: ${{ steps.first-tag.outputs.tag }}
@@ -255,13 +262,15 @@ jobs:
         if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Upload Docker Scout CVE results
-        uses: github/codeql-action/upload-sarif@v3
+        # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+        uses: github/codeql-action/upload-sarif@v3.28.19
         with:
           sarif_file: 'docker-scout-cves.sarif'
         if: steps.scout-auth.outputs.authenticated == 'true' && hashFiles('docker-scout-cves.sarif') != ''
 
       - name: Docker Scout - Security Recommendations
-        uses: docker/scout-action@v1
+        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
+        uses: docker/scout-action@v1.18.1
         with:
           command: recommendations
           image: ${{ steps.first-tag.outputs.tag }}
@@ -310,7 +319,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -352,14 +362,16 @@ jobs:
           echo "⏱️ SBOM generation completed in: ${DURATION}s"
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v5.0.0
+        # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: sbom
           path: sbom.spdx.json
           retention-days: 1
 
       - name: Upload SBOM to dependency graph
-        uses: anchore/sbom-action@v0
+        # https://github.com/anchore/sbom-action/releases (v0.17.9, 2025-10-23)
+        uses: anchore/sbom-action@v0.17.9
         with:
           path: ./
           format: spdx-json
@@ -379,7 +391,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -494,7 +507,8 @@ jobs:
           fi
 
       - name: Upload mutation testing reports
-        uses: actions/upload-artifact@v5.0.0
+        # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+        uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
           name: mutation-testing-reports

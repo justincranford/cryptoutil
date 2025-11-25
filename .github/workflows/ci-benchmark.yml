@@ -56,7 +56,8 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5.0.1
+      # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -92,7 +93,8 @@ jobs:
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v5.0.0
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: benchmark-results
         path: benchmark-results.txt
