@@ -7,6 +7,7 @@ package idp
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -45,6 +46,38 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 			"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
 			"error_description": "Invalid or expired access token",
 		})
+	}
+
+	// For UUID tokens, fetch from database to check expiration and get claims.
+	// JWT tokens have expiration checked during validation above.
+	tokenRepo := s.repoFactory.TokenRepository()
+
+	dbToken, err := tokenRepo.GetByTokenValue(ctx, accessToken)
+	if err != nil {
+		// Token not found in database (might be JWT - continue with claims from validation).
+		// JWT tokens don't exist in database, so this is expected for JWT format.
+		if len(claims) == 0 {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+				"error_description": "Token not found",
+			})
+		}
+	} else {
+		// Check token expiration for UUID tokens.
+		if time.Now().After(dbToken.ExpiresAt) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+				"error_description": "Token has expired",
+			})
+		}
+
+		// Populate claims from database token for UUID format.
+		if len(claims) == 0 {
+			claims = map[string]any{
+				"sub":   dbToken.UserID.UUID.String(),
+				"scope": dbToken.Scopes,
+			}
+		}
 	}
 
 	// Extract sub (subject) claim to identify user.
