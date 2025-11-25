@@ -25,6 +25,7 @@ type MFAStressTestSuite struct {
 	completedSessions  int32
 	failedSessions     int32
 	replayAttempts     int32
+	usedNonces         sync.Map // Track used nonces for replay detection
 }
 
 // TestMFAStress100ConcurrentSessions tests MFA under high concurrency load.
@@ -317,13 +318,15 @@ func (s *MFAStressTestSuite) updateSession(ctx context.Context, sessionID string
 
 // validateWithNonce simulates nonce-based validation with replay detection.
 func (s *MFAStressTestSuite) validateWithNonce(ctx context.Context, nonce string) error {
-	// In production, this would check nonce in database.
-	// Stub: Use in-memory map for load testing.
-	// First call with nonce succeeds, subsequent calls fail.
-
 	// Simulate validation delay.
 	time.Sleep(3 * time.Millisecond)
 
-	// Stub: Always succeed for load testing (replay detection tested separately).
+	// Check if nonce was already used (replay detection).
+	if _, exists := s.usedNonces.LoadOrStore(nonce, true); exists {
+		// Nonce already used - replay attack detected.
+		return fmt.Errorf("replay attack detected: nonce already used")
+	}
+
+	// First use of this nonce - validation succeeds.
 	return nil
 }
