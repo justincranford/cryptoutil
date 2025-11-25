@@ -30,6 +30,8 @@ type SQLTransactionState struct {
 func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SQLTransaction) error) error {
 	if ctx == nil {
 		return fmt.Errorf("context cannot be nil")
+	} else if function == nil {
+		return fmt.Errorf("function cannot be nil")
 	}
 
 	if readOnly {
