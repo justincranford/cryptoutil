@@ -72,6 +72,8 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: create_file (GAP-ANALYSIS.md) → create_file (TEMPLATE-IMPROVEMENTS.md) → create_directory → run_in_terminal (copy files) → create_file (ARCHIVE-README.md) → [stops] ❌
 - **WRONG**: After creating analysis documents → [stops instead of implementing fixes] ❌
 - **WRONG**: After creating 3-5 files → [stops thinking work complete] ❌
+- **WRONG**: commit → "**Phase 2 Progress**: R02-07 + R04-05 complete (1 hour) - Continuing to R07-02..." → [stops] ❌
+- **WRONG**: commit → "**Token Usage**: 98,049/1,000,000 (9.8%) - **901,951 tokens remaining (90.2%)**" → [stops] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
@@ -82,6 +84,8 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **NO CHECKMARKS**: Never use ✅/❌/⏳ emoji status markers - just invoke next tool immediately
 - **NO "NEXT" STATEMENTS**: Never say "Next: Task X" - just start Task X immediately
 - **NO QUESTIONS**: Never ask "Would you like me to continue?" - ALWAYS CONTINUE
+- **NO PHASE PROGRESS**: Never provide "Phase X Progress: completed Y/Z" - just continue to next task
+- **NO TOKEN USAGE REPORTS**: Never provide token usage statistics during work - only at 950k threshold
 - **CRITICAL**: Analysis documents are NOT deliverables - they are preparation for IMMEDIATE implementation
 - **CRITICAL #2**: Creating 3-5 files is NOT completion - it's the BEGINNING of work
 - **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
@@ -104,12 +108,14 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 **WHEN TO CONTINUE WORKING** (tokens used < 950k):
 - 10,000 used (1% used) → 990,000 remaining (99% remaining) = KEEP WORKING ✅
 - 50,000 used (5% used) → 950,000 remaining (95% remaining) = KEEP WORKING ✅
+- 63,000 used (6.3% used) → 937,000 remaining (93.7% remaining) = KEEP WORKING ✅
 - 80,000 used (8% used) → 920,000 remaining (92% remaining) = KEEP WORKING ✅
 - 85,000 used (8.5% used) → 915,000 remaining (91.5% remaining) = KEEP WORKING ✅
 - 90,000 used (9% used) → 910,000 remaining (91% remaining) = KEEP WORKING ✅
 - 92,500 used (9.25% used) → 907,500 remaining (90.75% remaining) = KEEP WORKING ✅
 - 95,000 used (9.5% used) → 905,000 remaining (90.5% remaining) = KEEP WORKING ✅
 - 97,000 used (9.7% used) → 903,000 remaining (90.3% remaining) = KEEP WORKING ✅ ← YOU STOPPED HERE - WRONG!
+- 98,000 used (9.8% used) → 902,000 remaining (90.2% remaining) = KEEP WORKING ✅ ← YOU ALSO STOPPED HERE - WRONG!
 - 100,000 used (10% used) → 900,000 remaining (90% remaining) = KEEP WORKING ✅
 - 105,000 used (10.5% used) → 895,000 remaining (89.5% remaining) = KEEP WORKING ✅
 - 110,000 used (11% used) → 890,000 remaining (89% remaining) = KEEP WORKING ✅
@@ -144,6 +150,10 @@ Example: 950,000 used → (950,000 / 1,000,000) × 100 = 95.0% used (STOP)
 - "Finished current phase" - Phases are NOT stopping points, continue to next phase
 - "Completed analysis" - Analysis is preparation, IMMEDIATELY implement the findings
 - "Need user input" - ONLY stop if genuinely blocked, otherwise make reasonable assumptions and continue
+- "Completed 1-2 requirements" - Continue to next requirement IMMEDIATELY
+- "Made commits" - Commits are checkpoints, CONTINUE to next task
+- "Tests passing" - Tests passing means CONTINUE to next requirement
+- "Wrote summary comment" - NEVER write summary comments, ALWAYS continue working
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
