@@ -131,7 +131,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 	// Concurrent user creation.
 	for i := 0; i < concurrency; i++ {
 		go func(index int) {
-			uniqueID := googleUuid.Must(googleUuid.NewV7()).String()[:8]
+			uniqueID := googleUuid.Must(googleUuid.NewV7()).String()
 
 			user := &cryptoutilIdentityDomain.User{
 				ID:                googleUuid.Must(googleUuid.NewV7()),
@@ -159,7 +159,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 	}
 
 	// Concurrent token creation (requires valid user/client, so create them first).
-	uniqueIDToken := googleUuid.Must(googleUuid.NewV7()).String()[:8]
+	uniqueIDToken := googleUuid.Must(googleUuid.NewV7()).String()
 	testUser := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.Must(googleUuid.NewV7()),
 		Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
