@@ -2,10 +2,10 @@
 
 **Generated**: 2025-01-19
 **Total Requirements**: 65
-**Validated**: 41 (63.1%)
+**Validated**: 42 (64.6%)
 **Uncovered CRITICAL**: 7
 **Uncovered HIGH**: 11
-**Uncovered MEDIUM**: 5
+**Uncovered MEDIUM**: 4
 
 ## Summary by Task
 
@@ -18,6 +18,7 @@
 | R05 | 6 | 4 | 66.7% ⚠️ |
 | R06 | 4 | 4 | 100.0% ✅ |
 | R07 | 5 | 4 | 80.0% ⚠️ |
+| R08 | 5 | 5 | 100.0% ✅ |
 | R08 | 6 | 0 | 0.0% ❌ |
 | R09 | 4 | 2 | 50.0% ⚠️ |
 | R10 | 4 | 4 | 100.0% ✅ |
@@ -86,7 +87,6 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| R08-05 | MEDIUM | OpenAPI schema validation in tests |
 | R08-03 | CRITICAL | Swagger UI reflects real API |
 | R08-06 | HIGH | API documentation includes OAuth 2.1 security schemes |
 | R08-02 | HIGH | Generated client libraries functional |
