@@ -55,7 +55,7 @@ func TestHandleHealth_Success(t *testing.T) {
 	// Execute request.
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request failed")
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Validate response.
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Expected 200 OK status")
@@ -105,6 +105,7 @@ func TestHandleHealth_DatabaseUnavailable(t *testing.T) {
 	// Execute request.
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request failed")
+	defer func() { _ = resp.Body.Close() }()
 
 	// Validate response - should return 503 when database is unavailable.
 	require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode, "Expected 503 Service Unavailable status")
