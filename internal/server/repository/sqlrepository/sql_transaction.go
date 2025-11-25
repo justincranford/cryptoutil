@@ -31,6 +31,7 @@ func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, func
 	if ctx == nil {
 		return fmt.Errorf("context cannot be nil")
 	}
+
 	if readOnly {
 		switch s.dbType {
 		case DBTypeSQLite: // SQLite lacks support for read-only transactions
