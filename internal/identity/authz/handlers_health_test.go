@@ -4,15 +4,15 @@
 
 package authz_test
 
-	import (
-		"context"
-		"net/http/httptest"
-		"testing"
+import (
+	"context"
+	"net/http/httptest"
+	"testing"
 
-		"github.com/gofiber/fiber/v2"
-		"github.com/stretchr/testify/require"
+	"github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/require"
 
-		cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
