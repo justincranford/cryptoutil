@@ -46,12 +46,31 @@ runs:
           ARCH="x64"  # Default fallback
         fi
 
-        # Get latest release info from GitHub API
-        LATEST_RELEASE=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest)
-        DOWNLOAD_URL=$(echo "$LATEST_RELEASE" | jq -r ".assets[] | select(.name | contains(\"$PLATFORM\") and contains(\"$ARCH\")) | .browser_download_url" | head -1)
+        # Get latest release info from GitHub API with error handling
+        echo "📥 Fetching latest GitLeaks release info..."
+        LATEST_RELEASE=$(curl -sf https://api.github.com/repos/gitleaks/gitleaks/releases/latest || echo "")
 
-        if [[ -z "$DOWNLOAD_URL" ]]; then
+        # Validate API response
+        if [[ -z "$LATEST_RELEASE" ]]; then
+          echo "❌ Failed to fetch GitLeaks release info from GitHub API (rate limiting or network error)"
+          exit 1
+        fi
+
+        # Check if response contains assets
+        ASSETS_CHECK=$(echo "$LATEST_RELEASE" | jq -r '.assets // empty')
+        if [[ -z "$ASSETS_CHECK" ]]; then
+          echo "❌ GitHub API response does not contain assets (may be rate limited)"
+          echo "📋 API Response preview: $(echo "$LATEST_RELEASE" | head -c 500)"
+          exit 1
+        fi
+
+        # Find download URL with explicit null handling
+        DOWNLOAD_URL=$(echo "$LATEST_RELEASE" | jq -r ".assets[]? | select(.name | contains(\"$PLATFORM\") and contains(\"$ARCH\")) | .browser_download_url" 2>/dev/null | head -1)
+
+        if [[ -z "$DOWNLOAD_URL" || "$DOWNLOAD_URL" == "null" ]]; then
           echo "❌ Could not find GitLeaks download URL for $PLATFORM-$ARCH"
+          echo "📋 Available assets:"
+          echo "$LATEST_RELEASE" | jq -r '.assets[]?.name // "No assets found"' 2>/dev/null || echo "Failed to parse assets"
           exit 1
         fi
 
