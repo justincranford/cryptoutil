@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAuthzClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -16,12 +17,14 @@ import (
 // EmailPasswordProfile implements email/password authentication.
 type EmailPasswordProfile struct {
 	userRepo cryptoutilIdentityRepository.UserRepository
+	hasher   *cryptoutilIdentityAuthzClientAuth.PBKDF2Hasher
 }
 
 // NewEmailPasswordProfile creates a new email/password authentication profile.
 func NewEmailPasswordProfile(userRepo cryptoutilIdentityRepository.UserRepository) *EmailPasswordProfile {
 	return &EmailPasswordProfile{
 		userRepo: userRepo,
+		hasher:   cryptoutilIdentityAuthzClientAuth.NewPBKDF2Hasher(),
 	}
 }
 
@@ -48,9 +51,10 @@ func (p *EmailPasswordProfile) Authenticate(ctx context.Context, credentials map
 		return nil, fmt.Errorf("%w: user lookup failed: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 	}
 
-	// TODO: Validate password hash using bcrypt or argon2.
-	// For now, this is a placeholder that always succeeds if the user exists.
-	_ = password
+	// Validate password hash using PBKDF2-HMAC-SHA256 (FIPS 140-3 approved).
+	if err := p.hasher.CompareSecret(user.PasswordHash, password); err != nil {
+		return nil, fmt.Errorf("%w: invalid credentials", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+	}
 
 	return user, nil
 }
