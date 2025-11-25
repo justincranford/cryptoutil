@@ -16,6 +16,11 @@ import (
 	"time"
 )
 
+const (
+	dirPermission755  = 0o755
+	filePermission600 = 0o600
+)
+
 // Manager handles starting, stopping, and tracking service processes.
 type Manager struct {
 	pidDir string
@@ -25,7 +30,7 @@ type Manager struct {
 // NewManager creates a new process manager.
 func NewManager(pidDir string) (*Manager, error) {
 	// Create PID directory if it doesn't exist
-	if err := os.MkdirAll(pidDir, 0o755); err != nil {
+	if err := os.MkdirAll(pidDir, dirPermission755); err != nil {
 		return nil, fmt.Errorf("failed to create PID directory: %w", err)
 	}
 
@@ -59,7 +64,7 @@ func (m *Manager) Start(ctx context.Context, serviceName string, binary string, 
 
 	// Write PID file
 	pidFile := filepath.Join(m.pidDir, serviceName+".pid")
-	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0o644); err != nil {
+	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), filePermission600); err != nil {
 		// Kill the process if we can't write PID
 		err2 := cmd.Process.Kill()
 		if err2 != nil {
