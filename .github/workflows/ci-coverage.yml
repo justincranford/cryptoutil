@@ -59,7 +59,8 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5.0.1
+      # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+      uses: actions/checkout@v6.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
@@ -160,7 +161,8 @@ jobs:
         echo "$CURRENT_COVERAGE" > workflow-reports/coverage/current-coverage.txt
 
     - name: Download previous coverage data
-      uses: actions/download-artifact@v5.0.0
+      # https://github.com/actions/download-artifact/releases (v4.3.0, 2025-04-21)
+      uses: actions/download-artifact@v4.3.0
       continue-on-error: true
       with:
         name: coverage-trend-data
@@ -185,6 +187,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
 
     - name: Upload coverage
+      # https://github.com/codecov/codecov-action/releases (v5.5.1, 2025-11-15)
       uses: codecov/codecov-action@v5.5.1
       with:
         files: ./workflow-reports/coverage/coverage.out
@@ -193,7 +196,8 @@ jobs:
         fail_ci_if_error: false
 
     - name: Upload coverage artifacts
-      uses: actions/upload-artifact@v5.0.0
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: coverage-reports
         path: |
@@ -204,7 +208,8 @@ jobs:
         retention-days: 1
 
     - name: Upload coverage trend data for next run
-      uses: actions/upload-artifact@v5.0.0
+      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+      uses: actions/upload-artifact@v4.6.2
       if: always()
       with:
         name: coverage-trend-data

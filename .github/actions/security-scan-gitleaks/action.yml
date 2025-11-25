@@ -137,7 +137,8 @@ runs:
         echo "⏱️ GitLeaks scan completed in: ${DURATION}s"
 
     - name: Upload GitLeaks results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      # https://github.com/github/codeql-action/releases (v3.28.19, 2025-11-06)
+      uses: github/codeql-action/upload-sarif@v3.28.19
       with:
         sarif_file: ${{ inputs.sarif-output-name }}
         category: "${{ inputs.scan-name }}-gitleaks"

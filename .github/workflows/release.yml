@@ -67,11 +67,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
         with:
           fetch-depth: 0  # Full history for changelog generation
 
       - name: Set up Go
+        # https://github.com/actions/setup-go/releases (v6.0.0, 2025-11-11)
         uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -101,7 +103,8 @@ jobs:
             ./cmd/cryptoutil
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5.0.0
+        # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: release-binaries
           path: dist/
@@ -117,13 +120,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        # https://github.com/docker/setup-buildx-action/releases (v3.10.0, 2025-10-29)
+        uses: docker/setup-buildx-action@v3.10.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        # https://github.com/docker/login-action/releases (v3.4.0, 2025-11-11)
+        uses: docker/login-action@v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -131,7 +137,8 @@ jobs:
 
       - name: Extract metadata for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        # https://github.com/docker/metadata-action/releases (v5.7.0, 2025-11-11)
+        uses: docker/metadata-action@v5.7.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -141,7 +148,8 @@ jobs:
             type=sha,prefix={{branch}}-
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        # https://github.com/docker/build-push-action/releases (v6.17.0, 2025-10-28)
+        uses: docker/build-push-action@v6.17.0
         with:
           context: .
           file: ./deployments/Dockerfile
@@ -176,7 +184,8 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
         with:
           fetch-depth: 0
 
@@ -240,15 +249,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5.0.1
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v5.0.0
+        # https://github.com/actions/download-artifact/releases (v4.3.0, 2025-04-21)
+        uses: actions/download-artifact@v4.3.0
         with:
           name: release-binaries
           path: dist/
 
       - name: Create GitHub Release
+        # https://github.com/softprops/action-gh-release/releases (v2.2.0, 2025-09-06)
         uses: softprops/action-gh-release@v2.2.0
         with:
           tag_name: ${{ needs.validate-version.outputs.version }}
