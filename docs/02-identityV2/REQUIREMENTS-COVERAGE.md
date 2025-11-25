@@ -2,9 +2,9 @@
 
 **Generated**: 2025-01-19
 **Total Requirements**: 65
-**Validated**: 62 (95.4%)
+**Validated**: 63 (96.9%)
 **Uncovered CRITICAL**: 1
-**Uncovered HIGH**: 1
+**Uncovered HIGH**: 0
 **Uncovered MEDIUM**: 1
 
 ## Summary by Task
@@ -19,7 +19,7 @@
 | R06 | 4 | 4 | 100.0% ✅ |
 | R07 | 5 | 5 | 100.0% ✅ |
 | R08 | 5 | 5 | 100.0% ✅ |
-| R08 | 6 | 4 | 66.7% ⚠️ |
+| R08 | 6 | 5 | 83.3% ⚠️ |
 | R09 | 6 | 4 | 66.7% ⚠️ |
 | R11 | 13 | 10 | 76.9% ⚠️ |
 | R09 | 4 | 4 | 100.0% ✅ |
@@ -74,7 +74,7 @@
 | ID | Priority | Description | Status | Evidence |
 |----|----------|-------------|--------|----------|
 | R08-03 | CRITICAL | Swagger UI reflects real API | ✅ | OpenAPI spec served at `/ui/swagger/doc.json` endpoint. Implementation: authz/swagger.go ServeOpenAPISpec() (lines 8-35) serves embedded spec from GetSwagger(), registered in routes.go (line 20). Test: authz_contract_test.go TestAuthZContractHealth (lines 29-113) validates OpenAPI spec compliance using kin-openapi validator, loads spec with GetSwagger(), creates gorillamux router, validates response against spec paths/schemas. Similar implementations in idp/swagger.go and rs/swagger.go. Contract tests ensure Swagger UI reflects actual API behavior. |
-| R08-02 | HIGH | Generated client libraries functional | | |
+| R08-02 | HIGH | Generated client libraries functional | ✅ | Generated clients used in production and tests. Generation: api/identity/generate.go uses oapi-codegen v2.4.1 to generate client code from OpenAPI specs (lines 7-9), creates ClientWithResponses interface with HTTP methods. Usage: internal/client/client_test_util.go RequireClientWithResponses() (line 106) creates client instances, internal/client/client_test.go uses generated client for API calls (lines 232, 339). Pattern: NewClientWithResponses(*baseURL) creates client → client.OperationNameWithResponse() makes type-safe API calls → response unmarshals to generated types. Tests validate client libraries work against real server. |
 | R08-01 | HIGH | OpenAPI specs match actual endpoint implementations | ✅ | Contract tests validate spec-implementation alignment. authz_contract_test.go (lines 29-113): loads OpenAPI spec with GetSwagger(), creates request validation against spec using kin-openapi/openapi3filter, validates /health endpoint response matches spec schema/status codes. Similar contract tests in idp_contract_test.go (line 33) and rs_contract_test.go (line 30). Pattern: Load spec → Create router → Find route → Validate request/response against spec. Tests fail if implementation deviates from OpenAPI spec. |
 
 ### R09
