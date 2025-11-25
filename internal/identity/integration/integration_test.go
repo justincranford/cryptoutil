@@ -250,10 +250,15 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 	clientRepo := repoFactory.ClientRepository()
 	testClientUUID := googleUuid.Must(googleUuid.NewV7())
 
+	// Hash the client secret using PBKDF2-HMAC-SHA256 (same as production).
+	// Integration test uses same hashing as production to validate authentication flow.
+	hashedClientSecret, err := cryptoutilCrypto.HashSecret(testClientSecret)
+	testify.NoError(t, err, "Failed to hash client secret")
+
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      testClientUUID,
 		ClientID:                testClientID,
-		ClientSecret:            testClientSecret, // pragma: allowlist secret
+		ClientSecret:            hashedClientSecret, // Store hashed secret
 		ClientType:              "confidential",
 		Name:                    "Test Client",
 		Description:             "Test client for integration tests",
@@ -541,18 +546,18 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 			endpoint:       "/api/v1/protected/resource",
 			method:         http.MethodPost,
 			tokenScopes:    []string{"write:resource"},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusCreated, // POST returns 201 Created, not 200 OK
 		},
 		{
 			name:           "DELETE Protected Resource - Without Delete Scope",
-			endpoint:       "/api/v1/protected/resource",
+			endpoint:       "/api/v1/protected/resource/test-id",
 			method:         http.MethodDelete,
 			tokenScopes:    []string{"read:resource", "write:resource"},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
 			name:           "DELETE Protected Resource - With Delete Scope",
-			endpoint:       "/api/v1/protected/resource",
+			endpoint:       "/api/v1/protected/resource/test-id",
 			method:         http.MethodDelete,
 			tokenScopes:    []string{"delete:resource"},
 			expectedStatus: http.StatusOK,

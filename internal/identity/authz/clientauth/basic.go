@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -62,7 +63,9 @@ func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credent
 	}
 
 	// Validate client secret using PBKDF2-HMAC-SHA256 hash comparison.
-	match, err := CompareSecret(client.ClientSecret, clientSecret)
+	// Use cryptoutilCrypto.VerifySecret (format: pbkdf2$iter$salt$hash) instead of
+	// clientauth.CompareSecret (format: salt:hash).
+	match, err := cryptoutilCrypto.VerifySecret(client.ClientSecret, clientSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare client secret: %w", err)
 	}

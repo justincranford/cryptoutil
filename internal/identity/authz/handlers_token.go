@@ -231,6 +231,11 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 	// Authenticate client.
 	client, err := s.authenticateClient(c)
 	if err != nil {
+		slog.ErrorContext(c.Context(), "Client authentication failed in client_credentials grant",
+			"error", err,
+			"client_id", c.FormValue(cryptoutilIdentityMagic.ParamClientID),
+		)
+
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
 			"error_description": "Client authentication failed",
