@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilIdentityIDP "cryptoutil/internal/identity/idp"
+	cryptoutilIdentityIdp "cryptoutil/internal/identity/idp"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -43,7 +43,7 @@ func TestHandleHealth_Success(t *testing.T) {
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
 
 	// Create IDP service.
-	idpSvc := cryptoutilIdentityIDP.NewService(appCfg, repoFactory, tokenSvc)
+	idpSvc := cryptoutilIdentityIdp.NewService(appCfg, repoFactory, tokenSvc)
 
 	// Create Fiber app and register routes.
 	app := fiber.New()
@@ -55,6 +55,7 @@ func TestHandleHealth_Success(t *testing.T) {
 	// Execute request.
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request failed")
+	defer resp.Body.Close()
 
 	// Validate response.
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Expected 200 OK status")
@@ -92,7 +93,7 @@ func TestHandleHealth_DatabaseUnavailable(t *testing.T) {
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
 
 	// Create IDP service.
-	idpSvc := cryptoutilIdentityIDP.NewService(appCfg, repoFactory, tokenSvc)
+	idpSvc := cryptoutilIdentityIdp.NewService(appCfg, repoFactory, tokenSvc)
 
 	// Create Fiber app and register routes.
 	app := fiber.New()
@@ -104,6 +105,7 @@ func TestHandleHealth_DatabaseUnavailable(t *testing.T) {
 	// Execute request.
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request failed")
+	defer resp.Body.Close()
 
 	// Validate response - should return 503 when database is unavailable.
 	require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode, "Expected 503 Service Unavailable status")

@@ -7,6 +7,7 @@ package idp
 import (
 	"context"
 	"embed"
+	"fmt"
 	"html/template"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
@@ -59,8 +60,9 @@ func (s *Service) Start(ctx context.Context) error {
 func (s *Service) Stop(ctx context.Context) error {
 	// Clean up expired sessions.
 	sessionRepo := s.repoFactory.SessionRepository()
+
 	if err := sessionRepo.DeleteExpired(ctx); err != nil {
-		return err
+		return fmt.Errorf("failed to delete expired sessions during shutdown: %w", err)
 	}
 
 	return nil

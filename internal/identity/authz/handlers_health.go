@@ -15,6 +15,7 @@ func (s *Service) handleHealth(c *fiber.Ctx) error {
 
 	// Check database connectivity via Ping().
 	db := s.repoFactory.DB()
+
 	sqlDB, err := db.DB()
 	if err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{

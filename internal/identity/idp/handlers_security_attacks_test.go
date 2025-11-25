@@ -146,8 +146,7 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 
 	// 11. Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPassword := "TestPassword123!" // pragma: allowlist secret
-	testPasswordHash, err := cryptoutilCrypto.HashSecret(testPassword)
+	testPasswordHash, err := cryptoutilCrypto.HashSecret(cryptoutilIdentityIdp.TestPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -183,7 +182,7 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 	// Attack 1: Submit login form without state parameter.
 	loginFormData := url.Values{}
 	loginFormData.Set("username", testUsername)
-	loginFormData.Set("password", testPassword)
+	loginFormData.Set("password", cryptoutilIdentityIdp.TestPassword)
 	loginFormData.Set("request_id", authzReqNoState.ID.String())
 
 	loginReq := httptest.NewRequest(

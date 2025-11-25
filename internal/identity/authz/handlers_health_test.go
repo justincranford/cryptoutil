@@ -4,15 +4,15 @@
 
 package authz_test
 
-import (
-	"context"
-	"net/http/httptest"
-	"testing"
+	import (
+		"context"
+		"net/http/httptest"
+		"testing"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/stretchr/testify/require"
+		"github.com/gofiber/fiber/v2"
+		"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityAuthZ "cryptoutil/internal/identity/authz"
+		cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -43,7 +43,7 @@ func TestHandleHealth_Success(t *testing.T) {
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
 
 	// Create AuthZ service.
-	authzSvc := cryptoutilIdentityAuthZ.NewService(appCfg, repoFactory, tokenSvc)
+	authzSvc := cryptoutilIdentityAuthz.NewService(appCfg, repoFactory, tokenSvc)
 
 	// Create Fiber app and register routes.
 	app := fiber.New()
@@ -55,6 +55,7 @@ func TestHandleHealth_Success(t *testing.T) {
 	// Execute request.
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request failed")
+	defer resp.Body.Close()
 
 	// Validate response.
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Expected 200 OK status")
@@ -92,7 +93,7 @@ func TestHandleHealth_DatabaseUnavailable(t *testing.T) {
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, appCfg.Tokens)
 
 	// Create AuthZ service.
-	authzSvc := cryptoutilIdentityAuthZ.NewService(appCfg, repoFactory, tokenSvc)
+	authzSvc := cryptoutilIdentityAuthz.NewService(appCfg, repoFactory, tokenSvc)
 
 	// Create Fiber app and register routes.
 	app := fiber.New()

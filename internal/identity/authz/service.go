@@ -6,6 +6,7 @@ package authz
 
 import (
 	"context"
+	"fmt"
 
 	"cryptoutil/internal/identity/authz/clientauth"
 
@@ -42,13 +43,14 @@ func NewService(
 func (s *Service) Start(ctx context.Context) error {
 	// Validate database connectivity at startup.
 	db := s.repoFactory.DB()
+
 	sqlDB, err := db.DB()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get database connection for startup validation: %w", err)
 	}
 
 	if err := sqlDB.PingContext(ctx); err != nil {
-		return err
+		return fmt.Errorf("failed to ping database during startup: %w", err)
 	}
 
 	return nil
@@ -58,16 +60,22 @@ func (s *Service) Start(ctx context.Context) error {
 func (s *Service) Stop(ctx context.Context) error {
 	// Clean up expired tokens.
 	tokenRepo := s.repoFactory.TokenRepository()
+
 	if err := tokenRepo.DeleteExpired(ctx); err != nil {
-		return err
+		return fmt.Errorf("failed to delete expired tokens during shutdown: %w", err)
 	}
 
 	// Close database connections gracefully.
 	db := s.repoFactory.DB()
+
 	sqlDB, err := db.DB()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get database connection for shutdown: %w", err)
 	}
 
-	return sqlDB.Close()
+	if err := sqlDB.Close(); err != nil {
+		return fmt.Errorf("failed to close database connection: %w", err)
+	}
+
+	return nil
 }
