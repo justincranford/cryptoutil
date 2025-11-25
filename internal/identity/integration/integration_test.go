@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -70,9 +71,9 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 
-	// Create unique in-memory database for this test to prevent shared state.
-	// Using file::memory:?mode=memory&cache=private creates isolated database per test.
-	testDBName := "file::memory:?mode=memory&cache=private"
+	// Generate unique DB name per test using UUID to ensure test isolation.
+	testUUID := googleUuid.New()
+	testDBName := fmt.Sprintf("file:%s.db?mode=memory&cache=shared", testUUID.String())
 
 	// Configure all three servers.
 	authzConfig := &cryptoutilIdentityConfig.Config{
@@ -168,27 +169,44 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		httpClient:  httpClient,
 	}
 
-	// Start all servers in background.
+	// Start all servers in background with synchronized error handling.
+	// Use buffered channel to prevent goroutine leaks if server starts before we read.
+	errChan := make(chan error, 3)
+
 	go func() {
 		if err := authzServer.Start(ctx); err != nil {
 			t.Logf("AuthZ server error: %v", err)
+
+			errChan <- err
 		}
 	}()
 
 	go func() {
 		if err := idpServer.Start(ctx); err != nil {
 			t.Logf("IdP server error: %v", err)
+
+			errChan <- err
 		}
 	}()
 
 	go func() {
 		if err := rsServer.Start(ctx); err != nil {
 			t.Logf("RS server error: %v", err)
+
+			errChan <- err
 		}
 	}()
 
-	// Wait for servers to start.
+	// Wait for servers to start, checking for startup errors.
 	time.Sleep(serverStartDelay)
+
+	// Check if any server failed to start.
+	select {
+	case err := <-errChan:
+		t.Fatalf("Server failed to start: %v", err)
+	default:
+		// All servers started successfully.
+	}
 
 	// Seed test data: create test client.
 	seedTestData(t, ctx, repoFactory)
@@ -200,20 +218,49 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 func shutdownTestServers(t *testing.T, servers *testServers) {
 	t.Helper()
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	// Use longer timeout to allow servers to clean up properly.
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
 
-	if err := servers.authzServer.Stop(shutdownCtx); err != nil {
-		t.Logf("AuthZ server shutdown error: %v", err)
-	}
+	// Shutdown servers in parallel to speed up test cleanup.
+	var wg sync.WaitGroup
+	wg.Add(3)
 
-	if err := servers.idpServer.Stop(shutdownCtx); err != nil {
-		t.Logf("IdP server shutdown error: %v", err)
-	}
+	go func() {
+		defer wg.Done()
 
-	if err := servers.rsServer.Stop(shutdownCtx); err != nil {
-		t.Logf("RS server shutdown error: %v", err)
-	}
+		if err := servers.authzServer.Stop(shutdownCtx); err != nil {
+			// Don't fail tests on shutdown errors - database may already be closed.
+			if !strings.Contains(err.Error(), "database is closed") {
+				t.Logf("AuthZ server shutdown error: %v", err)
+			}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		if err := servers.idpServer.Stop(shutdownCtx); err != nil {
+			// Don't fail tests on shutdown errors - database may already be closed.
+			if !strings.Contains(err.Error(), "database is closed") {
+				t.Logf("IdP server shutdown error: %v", err)
+			}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		if err := servers.rsServer.Stop(shutdownCtx); err != nil {
+			// Don't fail tests on shutdown errors - database may already be closed.
+			if !strings.Contains(err.Error(), "database is closed") {
+				t.Logf("RS server shutdown error: %v", err)
+			}
+		}
+	}()
+
+	// Wait for all servers to finish shutting down.
+	wg.Wait()
 }
 
 // seedTestData seeds the database with test client.
@@ -335,6 +382,7 @@ func TestHealthCheckEndpoints(t *testing.T) {
 // - R01-05: Authorization code single-use enforcement
 // - R01-06: Integration test validates end-to-end OAuth 2.1 flow.
 func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
+	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -523,6 +571,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 // - R06-02: CSRF protection for state-changing requests
 // - R06-03: Rate limiting per IP and per client.
 func TestResourceServerScopeEnforcement(t *testing.T) {
+	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -610,6 +659,7 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 // - R05-05: Revoked tokens rejected with 401 Unauthorized
 // - R06-01: Session middleware validates access tokens.
 func TestUnauthorizedAccess(t *testing.T) {
+	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -644,6 +694,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 // Validates requirements:
 // - R03-03: Integration tests clean up resources.
 func TestGracefulShutdown(t *testing.T) {
+	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
 	servers, cancel := setupTestServers(t)
 
 	// Start servers normally.
