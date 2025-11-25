@@ -390,7 +390,7 @@ var (
 	})
 	privateAdminAPIContextPath = *registerSetting(&Setting{
 		name:        "admin-api-context-path",
-		shorthand:   "",
+		shorthand:   "0",
 		value:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath,
 		usage:       "context path for Private Admin API",
 		description: "Private Admin API Context Path",
@@ -502,14 +502,14 @@ var (
 	})
 	swaggerUIUsername = *registerSetting(&Setting{
 		name:        "swagger-ui-username",
-		shorthand:   "",
+		shorthand:   "1",
 		value:       defaultSwaggerUIUsername,
 		usage:       "username for Swagger UI basic authentication",
 		description: "Swagger UI Username",
 	})
 	swaggerUIPassword = *registerSetting(&Setting{
 		name:        "swagger-ui-password",
-		shorthand:   "",
+		shorthand:   "2",
 		value:       defaultSwaggerUIPassword,
 		usage:       "password for Swagger UI basic authentication",
 		description: "Swagger UI Password",
@@ -553,7 +553,7 @@ var (
 	})
 	serverShutdownTimeout = *registerSetting(&Setting{
 		name:        "server-shutdown-timeout",
-		shorthand:   "",
+		shorthand:   "3",
 		value:       defaultServerShutdownTimeout,
 		usage:       "server shutdown timeout",
 		description: "Server Shutdown Timeout",
@@ -602,7 +602,7 @@ var (
 	})
 	otlpEndpoint = *registerSetting(&Setting{
 		name:        "otlp-endpoint",
-		shorthand:   "Q",
+		shorthand:   "4",
 		value:       defaultOTLPEndpoint,
 		usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
 		description: "OTLP Endpoint",
@@ -616,7 +616,7 @@ var (
 	})
 	unsealMode = *registerSetting(&Setting{
 		name:        "unseal-mode",
-		shorthand:   "U",
+		shorthand:   "5",
 		value:       defaultUnsealMode,
 		usage:       "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
 		description: "Unseal Mode",
