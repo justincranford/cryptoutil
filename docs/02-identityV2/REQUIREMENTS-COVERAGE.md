@@ -2,9 +2,9 @@
 
 **Generated**: 2025-01-19
 **Total Requirements**: 65
-**Validated**: 48 (73.8%)
+**Validated**: 49 (75.4%)
 **Uncovered CRITICAL**: 3
-**Uncovered HIGH**: 9
+**Uncovered HIGH**: 8
 **Uncovered MEDIUM**: 4
 
 ## Summary by Task
@@ -19,7 +19,7 @@
 | R06 | 4 | 4 | 100.0% ✅ |
 | R07 | 5 | 4 | 80.0% ⚠️ |
 | R08 | 5 | 5 | 100.0% ✅ |
-| R08 | 6 | 0 | 0.0% ❌ |
+| R08 | 6 | 1 | 16.7% ❌ |
 | R09 | 4 | 2 | 50.0% ⚠️ |
 | R10 | 4 | 4 | 100.0% ✅ |
 | R11 | 12 | 5 | 41.7% ⚠️ |
@@ -72,7 +72,6 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | R08-03 | CRITICAL | Swagger UI reflects real API |
-| R08-06 | HIGH | API documentation includes OAuth 2.1 security schemes |
 | R08-02 | HIGH | Generated client libraries functional |
 | R08-01 | HIGH | OpenAPI specs match actual endpoint implementations |
 | R08-04 | MEDIUM | No placeholder or TODO endpoints in specs |
