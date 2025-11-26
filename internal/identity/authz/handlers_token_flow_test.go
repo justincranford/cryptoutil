@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/identity/authz"

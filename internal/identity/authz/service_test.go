@@ -13,9 +13,9 @@ import (
 
 	"cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 func TestService_Creation(t *testing.T) {
@@ -71,10 +71,10 @@ func TestService_StartStop(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		setupRepo   func(*testing.T) *cryptoutilIdentityRepository.RepositoryFactory
-		startErr    bool
-		stopErr     bool
+		name      string
+		setupRepo func(*testing.T) *cryptoutilIdentityRepository.RepositoryFactory
+		startErr  bool
+		stopErr   bool
 	}{
 		{
 			name: "successful start and stop",
@@ -125,10 +125,10 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 	testSecret := "test-secret-plaintext"
 
 	tests := []struct {
-		name        string
+		name         string
 		setupClients func(*testing.T, *cryptoutilIdentityRepository.RepositoryFactory) []*cryptoutilIdentityDomain.Client
-		wantErr     bool
-		errContains string
+		wantErr      bool
+		errContains  string
 	}{
 		{
 			name: "migrate clients with legacy plaintext secrets",

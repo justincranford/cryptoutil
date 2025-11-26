@@ -196,7 +196,7 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 			wantError: true,
 		},
 		{
-			name:      "malformed hash (invalid iterations)",
+			name: "malformed hash (invalid iterations)",
 			// cspell:disable-next-line
 			hash:      "pbkdf2$notanumber$abcdef$ghijkl",
 			secret:    password,
@@ -204,7 +204,7 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 			wantError: true,
 		},
 		{
-			name:      "malformed hash (invalid salt base64)",
+			name: "malformed hash (invalid salt base64)",
 			// cspell:disable-next-line
 			hash:      "pbkdf2$100000$!!!invalid!!!$ghijkl",
 			secret:    password,

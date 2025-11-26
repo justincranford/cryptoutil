@@ -5,6 +5,7 @@
 package clientauth_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,7 +13,6 @@ import (
 	"cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	"context"
 )
 
 // TestRegistry_Creation validates registry creation with all authenticators.
