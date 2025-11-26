@@ -1,0 +1,348 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package issuer_test
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
+	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+)
+
+// TestNewJWSIssuer validates JWS issuer initialization.
+func TestNewJWSIssuer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockJWSKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		"https://localhost:8080",
+		keyRotationMgr,
+		"RS256",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, jwsIssuer)
+}
+
+// TestNewJWSIssuer_MissingIssuer validates error when issuer is empty.
+func TestNewJWSIssuer_MissingIssuer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockJWSKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	_, err = cryptoutilIdentityIssuer.NewJWSIssuer(
+		"",
+		keyRotationMgr,
+		"RS256",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.Error(t, err)
+}
+
+// TestNewJWSIssuer_MissingAlgorithm validates error when algorithm is empty.
+func TestNewJWSIssuer_MissingAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockJWSKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	_, err = cryptoutilIdentityIssuer.NewJWSIssuer(
+		"https://localhost:8080",
+		keyRotationMgr,
+		"",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.Error(t, err)
+}
+
+// TestNewJWSIssuer_NilKeyRotationManager validates error when key rotation manager is nil.
+func TestNewJWSIssuer_NilKeyRotationManager(t *testing.T) {
+	t.Parallel()
+
+	_, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		"https://localhost:8080",
+		nil,
+		"RS256",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.Error(t, err)
+}
+
+// TestJWSIssueAccessToken validates JWS access token generation.
+func TestJWSIssueAccessToken(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockJWSKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		"https://localhost:8080",
+		keyRotationMgr,
+		"RS256",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	claims := map[string]interface{}{
+		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+		"email": "test@example.com",
+		"name":  "Test User",
+	}
+
+	token, err := jwsIssuer.IssueAccessToken(ctx, claims)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+}
+
+// TestIssueIDToken validates ID token generation.
+func TestIssueIDToken(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockJWSKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		"https://localhost:8080",
+		keyRotationMgr,
+		"RS256",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	claims := map[string]interface{}{
+		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
+		"aud": "client123",
+	}
+
+	token, err := jwsIssuer.IssueIDToken(ctx, claims)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+}
+
+// TestIssueIDToken_MissingSub validates error when sub claim is missing.
+func TestIssueIDToken_MissingSub(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockJWSKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		"https://localhost:8080",
+		keyRotationMgr,
+		"RS256",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	claims := map[string]interface{}{
+		"aud": "client123",
+	}
+
+	_, err = jwsIssuer.IssueIDToken(ctx, claims)
+	require.Error(t, err)
+}
+
+// TestIssueIDToken_MissingAud validates error when aud claim is missing.
+func TestIssueIDToken_MissingAud(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockJWSKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		"https://localhost:8080",
+		keyRotationMgr,
+		"RS256",
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	claims := map[string]interface{}{
+		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
+	}
+
+	_, err = jwsIssuer.IssueIDToken(ctx, claims)
+	require.Error(t, err)
+}
+
+// mockJWSKeyGenerator implements KeyGenerator for JWS testing.
+type mockJWSKeyGenerator struct{}
+
+func (m *mockJWSKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
+	return &cryptoutilIdentityIssuer.SigningKey{
+		KeyID:         googleUuid.NewString(),
+		Key:           []byte("mock-signing-key"),
+		Algorithm:     algorithm,
+		CreatedAt:     time.Now(),
+		Active:        false,
+		ValidForVerif: false,
+	}, nil
+}
+
+func (m *mockJWSKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
+	return &cryptoutilIdentityIssuer.EncryptionKey{
+		KeyID:        googleUuid.NewString(),
+		Key:          []byte("0123456789abcdef0123456789abcdef"),
+		CreatedAt:    time.Now(),
+		Active:       false,
+		ValidForDecr: false,
+	}, nil
+}
