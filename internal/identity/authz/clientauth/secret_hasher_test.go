@@ -12,7 +12,11 @@ import (
 )
 
 func mustNewUUID() googleUuid.UUID {
-	id, _ := googleUuid.NewV7()
+	id, err := googleUuid.NewV7()
+	if err != nil {
+		panic(err)
+	}
+
 	return id
 }
 
@@ -42,7 +46,6 @@ func TestPBKDF2Hasher_HashSecret(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -51,6 +54,7 @@ func TestPBKDF2Hasher_HashSecret(t *testing.T) {
 
 			if tc.wantErr {
 				require.Error(t, err)
+
 				return
 			}
 
@@ -103,7 +107,6 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -111,6 +114,7 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 
 			if tc.wantErr {
 				require.Error(t, err)
+
 				return
 			}
 
@@ -159,18 +163,19 @@ func TestMigrateClientSecrets(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			mockRepo := &mockClientRepository{clients: make([]*cryptoutilIdentityDomain.Client, len(tc.clients))}
 			copy(mockRepo.clients, tc.clients)
+
 			hasher := NewPBKDF2Hasher()
 
 			migrated, err := MigrateClientSecrets(ctx, mockRepo, hasher)
 
 			if tc.wantErr {
 				require.Error(t, err)
+
 				return
 			}
 
@@ -178,6 +183,83 @@ func TestMigrateClientSecrets(t *testing.T) {
 			require.Equal(t, tc.expectedMigrate, migrated)
 		})
 	}
+}
+
+// TestSecretBasedAuthenticator_AuthenticatePost tests the AuthenticatePost method wrapper.
+func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	hasher := NewPBKDF2Hasher()
+	hashedSecret, err := hasher.HashSecret("correct-secret")
+	require.NoError(t, err)
+
+	clientID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	client := &cryptoutilIdentityDomain.Client{
+		ID:           clientID,
+		ClientID:     "test-client",
+		ClientSecret: hashedSecret,
+		Enabled:      true,
+	}
+
+	mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{client}}
+	auth := NewSecretBasedAuthenticator(mockRepo)
+
+	// Test successful authentication via POST method.
+	authenticatedClient, err := auth.AuthenticatePost(ctx, "test-client", "correct-secret")
+	require.NoError(t, err)
+	require.NotNil(t, authenticatedClient)
+	require.Equal(t, "test-client", authenticatedClient.ClientID)
+
+	// Test failed authentication with wrong secret.
+	_, err = auth.AuthenticatePost(ctx, "test-client", "wrong-secret")
+	require.Error(t, err)
+}
+
+// TestSecretBasedAuthenticator_MigrateSecrets tests the MigrateSecrets method wrapper.
+func TestSecretBasedAuthenticator_MigrateSecrets(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	clientID1, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	client1 := &cryptoutilIdentityDomain.Client{
+		ID:           clientID1,
+		ClientID:     "client1",
+		ClientSecret: "plaintext-secret-1",
+		Enabled:      true,
+	}
+
+	clientID2, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	client2 := &cryptoutilIdentityDomain.Client{
+		ID:           clientID2,
+		ClientID:     "client2",
+		ClientSecret: "plaintext-secret-2",
+		Enabled:      true,
+	}
+
+	mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{client1, client2}}
+	auth := NewSecretBasedAuthenticator(mockRepo)
+
+	// Test migration via method wrapper.
+	migrated, err := auth.MigrateSecrets(ctx, mockRepo)
+	require.NoError(t, err)
+	require.Equal(t, 2, migrated)
+
+	// Verify both clients now have hashed secrets by checking the updated clients in the repository.
+	updatedClient1, err := mockRepo.GetByClientID(ctx, "client1")
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(updatedClient1.ClientSecret, "$pbkdf2-sha256$"), "client1 secret should be hashed")
+
+	updatedClient2, err := mockRepo.GetByClientID(ctx, "client2")
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(updatedClient2.ClientSecret, "$pbkdf2-sha256$"), "client2 secret should be hashed")
 }
 
 func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
@@ -188,7 +270,9 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 	hashedSecret, err := hasher.HashSecret("correct-secret")
 	require.NoError(t, err)
 
-	clientID, _ := googleUuid.NewV7()
+	clientID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
 	enabledClient := &cryptoutilIdentityDomain.Client{
 		ID:           clientID,
 		ClientID:     "enabled-client",
@@ -196,7 +280,9 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 		Enabled:      true,
 	}
 
-	disabledClientID, _ := googleUuid.NewV7()
+	disabledClientID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
 	disabledClient := &cryptoutilIdentityDomain.Client{
 		ID:           disabledClientID,
 		ClientID:     "disabled-client",
@@ -235,7 +321,6 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -247,6 +332,7 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, client)
+
 				return
 			}
 
@@ -264,6 +350,7 @@ type mockClientRepository struct {
 
 func (m *mockClientRepository) Create(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
 	m.clients = append(m.clients, client)
+
 	return nil
 }
 
@@ -273,6 +360,7 @@ func (m *mockClientRepository) GetByClientID(ctx context.Context, clientID strin
 			return c, nil
 		}
 	}
+
 	return nil, nil
 }
 
@@ -284,9 +372,11 @@ func (m *mockClientRepository) Update(ctx context.Context, client *cryptoutilIde
 	for i, c := range m.clients {
 		if c.ID == client.ID {
 			m.clients[i] = client
+
 			return nil
 		}
 	}
+
 	return nil
 }
 
@@ -294,9 +384,11 @@ func (m *mockClientRepository) Delete(ctx context.Context, id googleUuid.UUID) e
 	for i, c := range m.clients {
 		if c.ID == id {
 			m.clients = append(m.clients[:i], m.clients[i+1:]...)
+
 			return nil
 		}
 	}
+
 	return nil
 }
 
@@ -306,6 +398,7 @@ func (m *mockClientRepository) GetByID(ctx context.Context, id googleUuid.UUID) 
 			return c, nil
 		}
 	}
+
 	return nil, nil
 }
 
@@ -317,9 +410,11 @@ func (m *mockClientRepository) List(ctx context.Context, offset, limit int) ([]*
 	if offset >= len(m.clients) {
 		return []*cryptoutilIdentityDomain.Client{}, nil
 	}
+
 	end := offset + limit
 	if end > len(m.clients) {
 		end = len(m.clients)
 	}
+
 	return m.clients[offset:end], nil
 }

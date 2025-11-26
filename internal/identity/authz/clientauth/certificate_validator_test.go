@@ -8,8 +8,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/pem"
 	"math/big"
 	"testing"
 	"time"
@@ -171,4 +173,230 @@ func createExpiredClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecds
 	require.NoError(t, err, "Expired certificate parsing should succeed")
 
 	return cert
+}
+
+// TestCACertificateValidator_IsRevoked_Deprecated tests the deprecated IsRevoked method.
+func TestCACertificateValidator_IsRevoked_Deprecated(t *testing.T) {
+	t.Parallel()
+
+	validator := clientauth.NewCACertificateValidator(nil, nil)
+
+	// Deprecated method always returns false.
+	isRevoked := validator.IsRevoked(big.NewInt(42))
+	require.False(t, isRevoked, "deprecated IsRevoked should always return false")
+}
+
+// TestSelfSignedCertificateValidator_ValidateCertificate tests self-signed certificate validation.
+func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
+	t.Parallel()
+
+	// Create test self-signed certificate.
+	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	certTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			CommonName:   "Test Self-Signed Client",
+			Organization: []string{"Test Org"},
+		},
+		NotBefore:             time.Now().Add(-1 * time.Hour),
+		NotAfter:              time.Now().Add(24 * time.Hour),
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		BasicConstraintsValid: true,
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, certTemplate, certTemplate, &privKey.PublicKey, privKey)
+	require.NoError(t, err)
+
+	cert, err := x509.ParseCertificate(certDER)
+	require.NoError(t, err)
+
+	// Create expired certificate.
+	expiredTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(2),
+		Subject: pkix.Name{
+			CommonName:   "Expired Client",
+			Organization: []string{"Test Org"},
+		},
+		NotBefore:             time.Now().Add(-48 * time.Hour),
+		NotAfter:              time.Now().Add(-24 * time.Hour),
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		BasicConstraintsValid: true,
+	}
+
+	expiredCertDER, err := x509.CreateCertificate(rand.Reader, expiredTemplate, expiredTemplate, &privKey.PublicKey, privKey)
+	require.NoError(t, err)
+
+	expiredCert, err := x509.ParseCertificate(expiredCertDER)
+	require.NoError(t, err)
+
+	// Create not-yet-valid certificate.
+	futureTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(3),
+		Subject: pkix.Name{
+			CommonName:   "Future Client",
+			Organization: []string{"Test Org"},
+		},
+		NotBefore:             time.Now().Add(24 * time.Hour),
+		NotAfter:              time.Now().Add(48 * time.Hour),
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		BasicConstraintsValid: true,
+	}
+
+	futureCertDER, err := x509.CreateCertificate(rand.Reader, futureTemplate, futureTemplate, &privKey.PublicKey, privKey)
+	require.NoError(t, err)
+
+	futureCert, err := x509.ParseCertificate(futureCertDER)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		pinnedCerts map[string]*x509.Certificate
+		clientCert  *x509.Certificate
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid pinned certificate",
+			pinnedCerts: map[string]*x509.Certificate{
+				"test-client": cert,
+			},
+			clientCert: cert,
+			wantErr:    false,
+		},
+		{
+			name:        "nil certificate",
+			pinnedCerts: map[string]*x509.Certificate{},
+			clientCert:  nil,
+			wantErr:     true,
+			errContains: "Invalid client authentication",
+		},
+		{
+			name: "expired certificate",
+			pinnedCerts: map[string]*x509.Certificate{
+				"expired-client": expiredCert,
+			},
+			clientCert:  expiredCert,
+			wantErr:     true,
+			errContains: "certificate has expired",
+		},
+		{
+			name: "not yet valid certificate",
+			pinnedCerts: map[string]*x509.Certificate{
+				"future-client": futureCert,
+			},
+			clientCert:  futureCert,
+			wantErr:     true,
+			errContains: "certificate is not yet valid",
+		},
+		{
+			name:        "certificate not pinned",
+			pinnedCerts: map[string]*x509.Certificate{},
+			clientCert:  cert,
+			wantErr:     true,
+			errContains: "certificate not found in pinned certificates",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := clientauth.NewSelfSignedCertificateValidator(tc.pinnedCerts)
+			err := validator.ValidateCertificate(tc.clientCert, nil)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestSelfSignedCertificateValidator_IsRevoked tests IsRevoked for self-signed certs.
+func TestSelfSignedCertificateValidator_IsRevoked(t *testing.T) {
+	t.Parallel()
+
+	validator := clientauth.NewSelfSignedCertificateValidator(nil)
+
+	// IsRevoked always returns false for self-signed certificates.
+	isRevoked := validator.IsRevoked(big.NewInt(42))
+	require.False(t, isRevoked, "self-signed validator IsRevoked should always return false")
+}
+
+// TestCertificateParser_ParsePEMCertificate tests PEM certificate parsing.
+func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
+	t.Parallel()
+
+	// Create test certificate.
+	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			CommonName: "Test Certificate",
+		},
+		NotBefore: time.Now().Add(-1 * time.Hour),
+		NotAfter:  time.Now().Add(24 * time.Hour),
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &privKey.PublicKey, privKey)
+	require.NoError(t, err)
+
+	// Encode as PEM.
+	pemData := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: certDER,
+	})
+
+	tests := []struct {
+		name        string
+		pemData     []byte
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:    "valid PEM certificate",
+			pemData: pemData,
+			wantErr: false,
+		},
+		{
+			name:        "invalid PEM data",
+			pemData:     []byte("not a PEM certificate"),
+			wantErr:     true,
+			errContains: "failed to decode PEM certificate",
+		},
+		{
+			name: "invalid certificate data",
+			pemData: pem.EncodeToMemory(&pem.Block{
+				Type:  "CERTIFICATE",
+				Bytes: []byte("invalid certificate bytes"),
+			}),
+			wantErr:     true,
+			errContains: "failed to parse certificate",
+		},
+	}
+
+	parser := &clientauth.CertificateParser{}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cert, err := parser.ParsePEMCertificate(tc.pemData)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+				require.Nil(t, cert)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, cert)
+				require.Equal(t, template.Subject.CommonName, cert.Subject.CommonName)
+			}
+		})
+	}
 }
