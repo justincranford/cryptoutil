@@ -163,3 +163,260 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 }
+
+// TestIssueAccessTokenJWE validates JWE access token generation.
+func TestIssueAccessTokenJWE(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	// Run migrations.
+	db := repoFactory.DB()
+	err = db.AutoMigrate(
+		&cryptoutilIdentityDomain.Key{},
+	)
+	require.NoError(t, err)
+
+	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
+		Issuer:            "https://localhost:8080",
+		SigningAlgorithm:  "RS256",
+		AccessTokenFormat: "jwe",
+	}
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	// Initialize signing and encryption keys.
+	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	err = keyRotationMgr.RotateEncryptionKey(ctx)
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		tokenConfig.Issuer,
+		keyRotationMgr,
+		tokenConfig.SigningAlgorithm,
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	require.NoError(t, err)
+
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
+
+	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
+
+	claims := map[string]interface{}{
+		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+		"email": "test@example.com",
+		"name":  "Test User",
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(1 * time.Hour).Unix(),
+	}
+
+	token, err := service.IssueAccessToken(ctx, claims)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+}
+
+// TestIssueAccessTokenUUID validates UUID access token generation.
+func TestIssueAccessTokenUUID(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	// Run migrations.
+	db := repoFactory.DB()
+	err = db.AutoMigrate(
+		&cryptoutilIdentityDomain.Key{},
+	)
+	require.NoError(t, err)
+
+	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
+		Issuer:            "https://localhost:8080",
+		SigningAlgorithm:  "RS256",
+		AccessTokenFormat: "uuid",
+	}
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		tokenConfig.Issuer,
+		keyRotationMgr,
+		tokenConfig.SigningAlgorithm,
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	require.NoError(t, err)
+
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
+
+	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
+
+	claims := map[string]interface{}{
+		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+		"email": "test@example.com",
+	}
+
+	token, err := service.IssueAccessToken(ctx, claims)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+
+	// Verify token is valid UUID.
+	_, err = googleUuid.Parse(token)
+	require.NoError(t, err)
+}
+
+// TestIssueIDTokenService validates ID token generation via service.
+func TestIssueIDTokenService(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	// Run migrations.
+	db := repoFactory.DB()
+	err = db.AutoMigrate(
+		&cryptoutilIdentityDomain.Key{},
+	)
+	require.NoError(t, err)
+
+	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
+		Issuer:            "https://localhost:8080",
+		SigningAlgorithm:  "RS256",
+		AccessTokenFormat: "jws",
+	}
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	// Initialize signing key.
+	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		tokenConfig.Issuer,
+		keyRotationMgr,
+		tokenConfig.SigningAlgorithm,
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	require.NoError(t, err)
+
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
+
+	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
+
+	claims := map[string]interface{}{
+		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
+		"aud": "client123",
+	}
+
+	token, err := service.IssueIDToken(ctx, claims)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+}
+
+// TestIssueRefreshToken validates refresh token generation via service.
+func TestIssueRefreshToken(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	// Run migrations.
+	db := repoFactory.DB()
+	err = db.AutoMigrate(
+		&cryptoutilIdentityDomain.Key{},
+	)
+	require.NoError(t, err)
+
+	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
+		Issuer:            "https://localhost:8080",
+		SigningAlgorithm:  "RS256",
+		AccessTokenFormat: "jws",
+	}
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		tokenConfig.Issuer,
+		keyRotationMgr,
+		tokenConfig.SigningAlgorithm,
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	require.NoError(t, err)
+
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
+
+	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
+
+	token, err := service.IssueRefreshToken(ctx)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+
+	// Verify token is valid UUID.
+	_, err = googleUuid.Parse(token)
+	require.NoError(t, err)
+}
