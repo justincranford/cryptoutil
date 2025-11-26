@@ -1,0 +1,38 @@
+package idp
+
+import (
+	"context"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+)
+
+func TestNewService(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  "file::memory:?cache=shared",
+	}
+
+	config := &cryptoutilIdentityConfig.Config{}
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+	defer repoFactory.Close()
+
+	tokenSvc := &cryptoutilIdentityIssuer.TokenService{}
+
+	service := NewService(config, repoFactory, tokenSvc)
+
+	require.NotNil(t, service)
+	require.NotNil(t, service.config)
+	require.NotNil(t, service.repoFactory)
+	require.NotNil(t, service.tokenSvc)
+	require.NotNil(t, service.authProfiles)
+	require.NotNil(t, service.templates)
+}

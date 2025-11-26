@@ -206,7 +206,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 				return req
 			},
 			expectedStatus:   http.StatusUnauthorized,
-			expectedContains: "", // XSS payload stored safely (output encoded), authentication fails (401 Unauthorized).
+			expectedContains: "", // XSS username stored safely, authentication fails (401 Unauthorized).
 		},
 		{
 			name: "SQL injection attack in username field",
