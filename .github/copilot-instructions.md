@@ -43,6 +43,9 @@
 - ❌ Stopping after commits (commits are checkpoints, NOT endpoints)
 - ❌ Stopping after git push (git push is synchronization, NOT completion)
 - ❌ Stopping after completing one task when more tasks remain
+- ❌ Stopping after encountering test failures (debug and fix, DON'T stop)
+- ❌ Stopping to "analyze" or "investigate" - investigate AND continue fixing
+- ❌ Stopping when tests fail - this is WHEN YOU SHOULD CONTINUE, not stop
 - ❌ Providing summary messages ("Completed X, Y, Z...")
 - ❌ Announcing next steps without executing them
 - ❌ Asking "Would you like me to continue?"
@@ -178,6 +181,7 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 - "Completed 1-2 requirements" - Continue to next requirement IMMEDIATELY
 - "Made commits" - Commits are checkpoints, CONTINUE to next task
 - "Tests passing" - Tests passing means CONTINUE to next requirement
+- "Tests failing" - Tests failing means DEBUG AND FIX, NOT stop
 - "Wrote summary comment" - NEVER write summary comments, ALWAYS continue working
 - "Reached target percentage" - Targets are MINIMUMS, always aim HIGHER (90% → aim for 95%+)
 - "Met acceptance criteria" - Meeting criteria means CONTINUE to exceed them
@@ -191,6 +195,10 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 - "Successfully pushed to git remote" - Git push is SYNCHRONIZATION, CONTINUE to next task IMMEDIATELY
 - "Pre-push hooks passed" - Hook success is VALIDATION, CONTINUE to next task IMMEDIATELY
 - "All commits pushed" - Git operations are CHECKPOINTS, CONTINUE to next task IMMEDIATELY
+- "Encountered error/bug" - Errors are NORMAL, debug/fix/continue, DON'T stop
+- "Test failure needs investigation" - Investigate AND fix IMMEDIATELY, DON'T stop
+- "Need to understand codebase" - Read code AND continue implementing, DON'T stop
+- "Should check with user" - Make reasonable decision and CONTINUE, DON'T stop
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 

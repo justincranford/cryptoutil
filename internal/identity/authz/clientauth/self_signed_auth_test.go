@@ -30,12 +30,12 @@ func TestSelfSignedAuthenticator_Authenticate(t *testing.T) {
 		{
 			name: "valid self-signed certificate",
 			client: &cryptoutilIdentityDomain.Client{
-				ID:                       mustNewUUID(),
-				ClientID:                 "self-signed-client",
-				TokenEndpointAuthMethod:  cryptoutilIdentityDomain.ClientAuthMethodSelfSignedTLSAuth,
-				CertificateSubject:       "Test Client",
-				CertificateFingerprint:   fingerprint,
-				Enabled:                  true,
+				ID:                      mustNewUUID(),
+				ClientID:                "self-signed-client",
+				TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSelfSignedTLSAuth,
+				CertificateSubject:      "Test Client",
+				CertificateFingerprint:  fingerprint,
+				Enabled:                 true,
 			},
 			clientID:   "self-signed-client",
 			credential: string(clientPEM),

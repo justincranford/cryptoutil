@@ -208,7 +208,11 @@ func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 	var keyID string
 
 	// Get active signing key (or use legacy key).
-	if i.keyRotationMgr != nil {
+	if i.legacySigningKey != nil {
+		// Legacy mode: use single signing key.
+		signingAlg = i.legacySigningAlg
+		keyID = "" // No key ID in legacy mode.
+	} else if i.keyRotationMgr != nil {
 		activeKey, err := i.keyRotationMgr.GetActiveSigningKey()
 		if err != nil {
 			return "", cryptoutilIdentityAppErr.WrapError(
@@ -220,9 +224,10 @@ func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 		signingAlg = activeKey.Algorithm
 		keyID = activeKey.KeyID
 	} else {
-		// Legacy mode: use single signing key.
-		signingAlg = i.legacySigningAlg
-		keyID = "" // No key ID in legacy mode.
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
+			fmt.Errorf("no signing key available: neither legacy key nor key rotation manager configured"),
+		)
 	}
 
 	// Create JWS header.

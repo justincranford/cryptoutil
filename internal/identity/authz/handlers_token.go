@@ -259,6 +259,12 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 	if err != nil {
 		appErr := cryptoutilIdentityAppErr.ErrTokenIssuanceFailed
 
+		slog.ErrorContext(ctx, "Access token issuance failed in client_credentials grant",
+			"error", err,
+			"client_id", client.ClientID,
+			"scope", scope,
+		)
+
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,
 			"error_description": appErr.Message,
