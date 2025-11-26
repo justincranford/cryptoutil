@@ -632,7 +632,9 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 // - R06-02: CSRF protection for state-changing requests
 // - R06-03: Rate limiting per IP and per client.
 func TestResourceServerScopeEnforcement(t *testing.T) {
-	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
+	// TEMPORARY: Sequential execution to avoid port conflicts
+	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
+	// t.Parallel() removed due to port conflicts with hardcoded ports
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -720,7 +722,9 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 // - R05-05: Revoked tokens rejected with 401 Unauthorized
 // - R06-01: Session middleware validates access tokens.
 func TestUnauthorizedAccess(t *testing.T) {
-	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
+	// TEMPORARY: Sequential execution to avoid port conflicts
+	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
+	// t.Parallel() removed due to port conflicts with hardcoded ports
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -755,7 +759,9 @@ func TestUnauthorizedAccess(t *testing.T) {
 // Validates requirements:
 // - R03-03: Integration tests clean up resources.
 func TestGracefulShutdown(t *testing.T) {
-	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
+	// TEMPORARY: Sequential execution to avoid port conflicts
+	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
+	// t.Parallel() removed due to port conflicts with hardcoded ports
 	servers, cancel := setupTestServers(t)
 
 	// Start servers normally.
