@@ -34,9 +34,8 @@ func TestCleanupService_DeletesExpiredTokens(t *testing.T) {
 	// Create client for token association.
 	testClient := createCleanupTestClient(ctx, t, repoFactory)
 
-	// Parse client ID to UUID for token foreign key.
-	clientUUID, err := googleUuid.Parse(testClient.ClientID)
-	require.NoError(t, err, "Failed to parse client ID")
+	// Client.ID (UUID) is the foreign key for tokens, NOT ClientID (string).
+	clientUUID := testClient.ID
 
 	// Create expired access token.
 	expiredAccessToken := &cryptoutilIdentityDomain.Token{
@@ -53,7 +52,7 @@ func TestCleanupService_DeletesExpiredTokens(t *testing.T) {
 	}
 
 	tokenRepo := repoFactory.TokenRepository()
-	err = tokenRepo.Create(ctx, expiredAccessToken)
+	err := tokenRepo.Create(ctx, expiredAccessToken)
 	require.NoError(t, err, "Failed to create expired access token")
 
 	// Create valid access token (should NOT be deleted).
@@ -181,8 +180,9 @@ func createCleanupTestClient(
 ) *cryptoutilIdentityDomain.Client {
 	t.Helper()
 
+	clientID := "test-client-" + googleUuid.NewString()
 	client := &cryptoutilIdentityDomain.Client{
-		ClientID:                googleUuid.NewString(),
+		ClientID:                clientID,
 		ClientSecret:            "cleanup-test-secret",
 		Name:                    "Cleanup Test Client",
 		RedirectURIs:            []string{"https://example.com/callback"},
