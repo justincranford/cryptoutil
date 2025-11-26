@@ -194,8 +194,8 @@ jobs:
 
     - name: Cache Nuclei Templates
       id: cache-nuclei-templates
-      # https://github.com/actions/cache/releases (v4.2.3, 2025-04-18)
-      uses: actions/cache@v4.2.3
+      # https://github.com/actions/cache/releases (v4.3.0, 2025-04-18)
+      uses: actions/cache@v4.3.0
       with:
         path: /root/nuclei-templates
         key: nuclei-templates-${{ runner.os }}-${{ steps.nuclei-version.outputs.templates_version }}
@@ -753,8 +753,8 @@ jobs:
 
     - name: Upload container logs
       if: always()
-      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
-      uses: actions/upload-artifact@v4.6.2
+      # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+      uses: actions/upload-artifact@v5.0.0
       with:
         name: container-logs
         path: workflow-reports/dast/container-logs/
@@ -762,8 +762,8 @@ jobs:
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
-      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
-      uses: actions/upload-artifact@v4.6.2
+      # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+      uses: actions/upload-artifact@v5.0.0
       with:
         name: dast-workflow-reports
         path: |

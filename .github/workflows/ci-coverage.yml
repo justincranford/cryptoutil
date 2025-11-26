@@ -196,8 +196,8 @@ jobs:
         fail_ci_if_error: false
 
     - name: Upload coverage artifacts
-      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
-      uses: actions/upload-artifact@v4.6.2
+      # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+      uses: actions/upload-artifact@v5.0.0
       with:
         name: coverage-reports
         path: |
@@ -208,8 +208,8 @@ jobs:
         retention-days: 1
 
     - name: Upload coverage trend data for next run
-      # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
-      uses: actions/upload-artifact@v4.6.2
+      # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+      uses: actions/upload-artifact@v5.0.0
       if: always()
       with:
         name: coverage-trend-data

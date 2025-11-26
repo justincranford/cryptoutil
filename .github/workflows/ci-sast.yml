@@ -74,15 +74,15 @@ jobs:
         uses: ./.github/actions/workflow-job-begin
 
       - name: Set up Java
-        # https://github.com/actions/setup-java/releases (v4.7.1, 2025-04-21)
-        uses: actions/setup-java@v4.7.1
+        # https://github.com/actions/setup-java/releases (v5.0.0, 2025-04-21)
+        uses: actions/setup-java@v5.0.0
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Cache Maven dependencies
-        # https://github.com/actions/cache/releases (v4.2.3, 2025-04-18)
-        uses: actions/cache@v4.2.3
+        # https://github.com/actions/cache/releases (v4.3.0, 2025-04-18)
+        uses: actions/cache@v4.3.0
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -115,8 +115,8 @@ jobs:
           grep -n "nvdApiKey" effective-pom.xml || echo "ℹ️ nvdApiKey not configured in effective POM"
 
       - name: Cache dependency-check data
-        # https://github.com/actions/cache/releases (v4.2.3, 2025-04-18)
-        uses: actions/cache@v4.2.3
+        # https://github.com/actions/cache/releases (v4.3.0, 2025-04-18)
+        uses: actions/cache@v4.3.0
         with:
           path: test/load/target/dependency-check/data
           key: ${{ runner.os }}-dependency-check-data-${{ hashFiles('test/load/pom.xml') }}

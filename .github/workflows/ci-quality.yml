@@ -155,8 +155,8 @@ jobs:
 
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
-        # https://github.com/docker/login-action/releases (v3.4.0, 2025-11-11)
-        uses: docker/login-action@v3.4.0
+        # https://github.com/docker/login-action/releases (v3.6.0, 2025-11-11)
+        uses: docker/login-action@v3.6.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -164,8 +164,8 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        # https://github.com/docker/metadata-action/releases (v5.7.0, 2025-11-11)
-        uses: docker/metadata-action@v5.7.0
+        # https://github.com/docker/metadata-action/releases (v5.9.0, 2025-11-11)
+        uses: docker/metadata-action@v5.9.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -233,15 +233,15 @@ jobs:
         continue-on-error: true
 
       - name: Enable Docker Scout
-        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
-        uses: docker/scout-action@v1.18.1
+        # https://github.com/docker/scout-action/releases (v1.18.2, 2025-11-20)
+        uses: docker/scout-action@v1.18.2
         with:
           command: version
         if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Docker Scout - Quick Overview
-        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
-        uses: docker/scout-action@v1.18.1
+        # https://github.com/docker/scout-action/releases (v1.18.2, 2025-11-20)
+        uses: docker/scout-action@v1.18.2
         with:
           command: quickview
           image: ${{ steps.first-tag.outputs.tag }}
@@ -250,8 +250,8 @@ jobs:
         if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Docker Scout - CVE Analysis
-        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
-        uses: docker/scout-action@v1.18.1
+        # https://github.com/docker/scout-action/releases (v1.18.2, 2025-11-20)
+        uses: docker/scout-action@v1.18.2
         with:
           command: cves
           image: ${{ steps.first-tag.outputs.tag }}
@@ -269,8 +269,8 @@ jobs:
         if: steps.scout-auth.outputs.authenticated == 'true' && hashFiles('docker-scout-cves.sarif') != ''
 
       - name: Docker Scout - Security Recommendations
-        # https://github.com/docker/scout-action/releases (v1.18.1, 2025-11-20)
-        uses: docker/scout-action@v1.18.1
+        # https://github.com/docker/scout-action/releases (v1.18.2, 2025-11-20)
+        uses: docker/scout-action@v1.18.2
         with:
           command: recommendations
           image: ${{ steps.first-tag.outputs.tag }}
@@ -362,16 +362,16 @@ jobs:
           echo "⏱️ SBOM generation completed in: ${DURATION}s"
 
       - name: Upload SBOM
-        # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
-        uses: actions/upload-artifact@v4.6.2
+        # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: sbom
           path: sbom.spdx.json
           retention-days: 1
 
       - name: Upload SBOM to dependency graph
-        # https://github.com/anchore/sbom-action/releases (v0.17.9, 2025-10-23)
-        uses: anchore/sbom-action@v0.17.9
+        # https://github.com/anchore/sbom-action/releases (v0.20.10, 2025-10-23)
+        uses: anchore/sbom-action@v0.20.10
         with:
           path: ./
           format: spdx-json
@@ -507,8 +507,8 @@ jobs:
           fi
 
       - name: Upload mutation testing reports
-        # https://github.com/actions/upload-artifact/releases (v4.6.2, 2025-04-21)
-        uses: actions/upload-artifact@v4.6.2
+        # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+        uses: actions/upload-artifact@v5.0.0
         if: always()
         with:
           name: mutation-testing-reports
