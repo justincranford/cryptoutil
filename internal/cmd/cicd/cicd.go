@@ -25,6 +25,7 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
 	"cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
 	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+	"cryptoutil/internal/cmd/cicd/go_update_project_status"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
@@ -43,6 +44,7 @@ const (
 	cmdGoIdentityRequirementsCheck        = "go-identity-requirements-check"
 	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"
 	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"
+	cmdGoUpdateProjectStatus              = "go-update-project-status"
 )
 
 // Run executes the specified CI/CD check commands.
@@ -145,6 +147,8 @@ func Run(commands []string) error {
 		case cmdGoIdentityRequirementsCheck:
 			// Pass remaining args for flag parsing (--strict, --task-threshold, etc.)
 			cmdErr = go_identity_requirements_check.Enforce(context.Background(), logger, remainingArgs)
+		case cmdGoUpdateProjectStatus:
+			cmdErr = go_update_project_status.Update(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateDirectDependencies:
 			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
 		case cmdGoUpdateAllDependencies:

@@ -548,6 +548,33 @@ jobs:
           mkdir -p docs/02-identityV2
           cp docs/02-identityV2/passthru4/REQUIREMENTS-COVERAGE.md docs/02-identityV2/REQUIREMENTS-COVERAGE.md
 
+      - name: Check PROJECT-STATUS.md freshness
+        run: |
+          echo "📋 Checking PROJECT-STATUS.md age..."
+          STATUS_FILE="docs/02-identityV2/PROJECT-STATUS.md"
+
+          if [ ! -f "$STATUS_FILE" ]; then
+            echo "❌ ERROR: PROJECT-STATUS.md not found at $STATUS_FILE"
+            exit 1
+          fi
+
+          # Get file last modified time (Unix timestamp)
+          LAST_MODIFIED=$(stat -c %Y "$STATUS_FILE")
+          CURRENT_TIME=$(date +%s)
+          AGE_SECONDS=$((CURRENT_TIME - LAST_MODIFIED))
+          AGE_DAYS=$((AGE_SECONDS / 86400))
+
+          echo "📅 Last modified: $(stat -c %y "$STATUS_FILE")"
+          echo "⏱️ Age: ${AGE_DAYS} days"
+
+          if [ "$AGE_DAYS" -gt 7 ]; then
+            echo "❌ ERROR: PROJECT-STATUS.md is ${AGE_DAYS} days old (>7 days threshold)"
+            echo "💡 Run: go run ./cmd/cicd go-update-project-status"
+            exit 1
+          fi
+
+          echo "✅ PROJECT-STATUS.md is ${AGE_DAYS} days old (within 7-day threshold)"
+
       - name: Run identity requirements coverage check (strict mode)
         run: |
           echo "📋 Checking requirements coverage with strict thresholds..."

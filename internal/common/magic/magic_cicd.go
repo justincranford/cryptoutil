@@ -117,6 +117,7 @@ var ValidCommands = map[string]bool{
 	"go-identity-requirements-check":         true,
 	"go-update-direct-dependencies":          true,
 	"go-update-all-dependencies":             true,
+	"go-update-project-status":               true,
 	"github-workflow-lint":                   true,
 	"go-fix-staticcheck-error-strings":       true,
 	"go-fix-copyloopvar":                     true,

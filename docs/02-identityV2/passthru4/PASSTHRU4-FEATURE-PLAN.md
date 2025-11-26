@@ -72,7 +72,7 @@
 
 **Root Cause**: No single source of truth; each document tracks different work streams
 
-**Fix**: Enforce PROJECT-STATUS.md as ONLY authoritative source, updated via defined triggers
+**Fix**: Enforce ../PROJECT-STATUS.md as ONLY authoritative source, updated via automation (go-update-project-status)
 
 ### Pattern 3: Manual Quality Gates Easy to Skip
 
@@ -182,21 +182,19 @@
 
 **Problem**: Multiple documents claim authority, causing contradictions
 
-**Solution**: Enforce PROJECT-STATUS.md as ONLY source with defined update triggers
+**Solution**: Enforce ../PROJECT-STATUS.md as ONLY source, updated by go-update-project-status automation
 
 **Example**:
 ```markdown
-### Status Update Triggers
+### Status Update Automation
 
-**MUST update PROJECT-STATUS.md when**:
-- Task completion (update completion metrics)
-- Requirements validation (update coverage percentages)
-- TODO changes (update TODO counts)
-- Test results change (update pass rates)
+**Automatic updates via go-update-project-status when**:
+- Requirements coverage changes (from REQUIREMENTS-COVERAGE.md)
+- TODO counts change (from grep search)
+- Commit hash changes (from git)
 
 **Automated Enforcement**:
-- Pre-commit hook: Verify PROJECT-STATUS.md updated if task files change
-- CI/CD: Fail build if status out of sync with code
+- CI/CD: Fail build if ../PROJECT-STATUS.md >7 days stale (coming in P5.02)
 ```
 
 **Impact**: Eliminates documentation contradictions
