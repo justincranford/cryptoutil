@@ -20,9 +20,9 @@ import (
 	"cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 )
 
 // TestHandleToken_AuthorizationCodeGrant_HappyPath tests successful token exchange.

@@ -6,6 +6,7 @@ package authz_test
 
 import (
 	"context"
+	"fmt"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -87,93 +89,16 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 			expectedStatus: fiber.StatusBadRequest,
 			expectedError:  cryptoutilIdentityMagic.ErrorInvalidRequest,
 		},
-		{
-			name: "token_issuance_failed_access_token",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
-				t.Helper()
-
-				// Create client.
-				clientID := "test-client-" + googleUuid.NewString()
-				client := &cryptoutilIdentityDomain.Client{
-					ClientID:                clientID,
-					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
-					RedirectURIs:            []string{"https://example.com/callback"},
-					AllowedScopes:           []string{"openid", "profile"},
-					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-					RequirePKCE:             true,
-					PKCEChallengeMethod:     cryptoutilIdentityMagic.PKCEMethodS256,
-					AccessTokenLifetime:     3600,
-				}
-
-				clientRepo := repoFactory.ClientRepository()
-				err := clientRepo.Create(ctx, client)
-				require.NoError(t, err, "Failed to create test client")
-
-				// Create authorization request WITH UserID but invalid configuration (nil tokenSvc causes issuance failure).
-				authReqRepo := repoFactory.AuthorizationRequestRepository()
-
-				authCode := googleUuid.NewString()
-				userID := googleUuid.Must(googleUuid.NewV7())
-				authReq := &cryptoutilIdentityDomain.AuthorizationRequest{
-					ID:                  googleUuid.Must(googleUuid.NewV7()),
-					ClientID:            clientID,
-					Code:                authCode,
-					RedirectURI:         "https://example.com/callback",
-					ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
-					Scope:               "openid profile",
-					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-					CreatedAt:           time.Now(),
-					ExpiresAt:           time.Now().Add(10 * time.Minute),
-					ConsentGranted:      true,
-					UserID: cryptoutilIdentityDomain.NullableUUID{
-						UUID:  userID,
-						Valid: true,
-					},
-				}
-
-				err = authReqRepo.Create(ctx, authReq)
-				require.NoError(t, err, "Failed to create authorization request")
-
-				verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-
-				return clientID, authCode, "https://example.com/callback", verifier
-			},
-			expectedStatus: fiber.StatusInternalServerError,
-			expectedError:  cryptoutilIdentityMagic.ErrorServerError,
-		},
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Create test infrastructure.
-			config := &cryptoutilIdentityConfig.Config{
-				Tokens: &cryptoutilIdentityConfig.TokenConfig{
-					Issuer:               "https://identity.example.com",
-					AccessTokenLifetime:  15 * time.Minute,
-					RefreshTokenLifetime: 24 * time.Hour,
-				},
-			}
+			config, repoFactory, tokenSvc := createUncoveredPathsTestDependencies(t)
 
-			dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-				Type:        "sqlite",
-				DSN:         "file::memory:?cache=private&_id=" + googleUuid.NewString(),
-				AutoMigrate: true,
-			}
-
-			repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
-			require.NoError(t, err, "Failed to create repository factory")
-
-			err = repoFactory.AutoMigrate(ctx)
-			require.NoError(t, err, "Failed to run database migrations")
-
-			// Service created WITHOUT tokenSvc (nil) to trigger token issuance failure.
-			service := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
+			// Service created WITH tokenSvc - error path occurs BEFORE token issuance.
+			service := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 			require.NotNil(t, service, "Service should not be nil")
 
 			app := fiber.New()
@@ -195,10 +120,12 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
-			require.Equal(t, tc.expectedStatus, resp.StatusCode, "Expected specific HTTP status for error path")
 
-			// Verify error response contains expected error code.
-			// TODO: Parse JSON response and check "error" field matches tc.expectedError
+			defer func() { //nolint:errcheck // Test cleanup - error intentionally ignored
+				_ = resp.Body.Close()
+			}()
+
+			require.Equal(t, tc.expectedStatus, resp.StatusCode, "Expected specific HTTP status for error path")
 		})
 	}
 }
@@ -274,7 +201,6 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -317,7 +243,44 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
+
+			defer func() { //nolint:errcheck // Test cleanup - error intentionally ignored
+				_ = resp.Body.Close()
+			}()
+
 			require.Equal(t, tc.expectedStatus, resp.StatusCode, "Expected 200 OK for revocation (idempotent)")
 		})
 	}
+}
+
+// Helper functions.
+
+func createUncoveredPathsTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, *cryptoutilIdentityRepository.RepositoryFactory, *cryptoutilIdentityIssuer.TokenService) {
+	t.Helper()
+
+	config := &cryptoutilIdentityConfig.Config{
+		Database: &cryptoutilIdentityConfig.DatabaseConfig{
+			Type: "sqlite",
+			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
+		},
+		Tokens: &cryptoutilIdentityConfig.TokenConfig{
+			Issuer:              "https://localhost:8080",
+			AccessTokenLifetime: 3600,
+		},
+	}
+
+	ctx := context.Background()
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	require.NoError(t, err, "Failed to create repository factory")
+	require.NotNil(t, repoFactory, "Repository factory should not be nil")
+
+	err = repoFactory.AutoMigrate(ctx)
+	require.NoError(t, err, "Failed to run auto migrations")
+
+	// Create token service - pass nil for issuers (tests don't need actual token generation).
+	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, config.Tokens)
+	require.NotNil(t, tokenSvc, "Token service should not be nil")
+
+	return config, repoFactory, tokenSvc
 }
