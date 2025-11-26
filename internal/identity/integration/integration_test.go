@@ -35,12 +35,6 @@ const (
 	serverStartDelay  = 500 * time.Millisecond
 	httpClientTimeout = 5 * time.Second
 	shutdownTimeout   = 3 * time.Second
-	testAuthZPort     = 18080
-	testIDPPort       = 18081
-	testRSPort        = 18082
-	testAuthZBaseURL  = "http://127.0.0.1:18080"
-	testIDPBaseURL    = "http://127.0.0.1:18081"
-	testRSBaseURL     = "http://127.0.0.1:18082"
 	testRedirectURI   = "http://127.0.0.1:18083/callback"
 	testClientID      = "test-client"
 	testClientSecret  = "test-secret" // pragma: allowlist secret
@@ -59,10 +53,13 @@ const (
 // - R11-01: All integration tests passing
 // - R11-02: Code coverage meets target (≥85%).
 type testServers struct {
-	authzServer *cryptoutilIdentityServer.AuthZServer
-	idpServer   *cryptoutilIdentityServer.IDPServer
-	rsServer    *cryptoutilIdentityServer.RSServer
-	httpClient  *http.Client
+	authzServer  *cryptoutilIdentityServer.AuthZServer
+	idpServer    *cryptoutilIdentityServer.IDPServer
+	rsServer     *cryptoutilIdentityServer.RSServer
+	httpClient   *http.Client
+	authzBaseURL string
+	idpBaseURL   string
+	rsBaseURL    string
 }
 
 // setupTestServers creates and starts all three identity servers.
@@ -75,12 +72,12 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 	testUUID := googleUuid.New()
 	testDBName := fmt.Sprintf("file:%s.db?mode=memory&cache=shared", testUUID.String())
 
-	// Configure all three servers.
+	// Configure all three servers with dynamic port allocation (port 0 = OS assigns free port).
 	authzConfig := &cryptoutilIdentityConfig.Config{
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-authz",
 			BindAddress: "127.0.0.1",
-			Port:        testAuthZPort,
+			Port:        0, // Dynamic port allocation
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
@@ -89,7 +86,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenFormat: "jws",
-			Issuer:            testAuthZBaseURL,
+			Issuer:            "http://127.0.0.1", // Will update with actual port after server starts
 		},
 	}
 
@@ -97,7 +94,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-idp",
 			BindAddress: "127.0.0.1",
-			Port:        testIDPPort,
+			Port:        0, // Dynamic port allocation
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
@@ -106,7 +103,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenFormat: "jws",
-			Issuer:            testIDPBaseURL,
+			Issuer:            "http://127.0.0.1", // Will update with actual port after server starts
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
 			SessionLifetime: 3600 * time.Second,
@@ -123,7 +120,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		RS: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-rs",
 			BindAddress: "127.0.0.1",
-			Port:        testRSPort,
+			Port:        0, // Dynamic port allocation
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{

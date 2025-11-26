@@ -173,7 +173,7 @@ func createClientAuthFlowTestConfig(t *testing.T) *cryptoutilIdentityConfig.Conf
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
 			SigningAlgorithm:    "RS256",
-			AccessTokenFormat:   "jws",  // Use JWS format for testing (legacy issuer)
+			AccessTokenFormat:   "jws", // Use JWS format for testing (legacy issuer)
 			AccessTokenLifetime: 3600,
 		},
 	}
@@ -239,7 +239,7 @@ func createClientAuthFlowTestJWSIssuerLegacy(t *testing.T, config *cryptoutilIde
 
 	// Use legacy JWS issuer with simple signing key (no key rotation manager)
 	signingKey := []byte("test-signing-key-32-bytes-long!!") // 32 bytes for HS256
-	signingAlg := "HS256"                                     // HMAC SHA-256 for testing
+	signingAlg := "HS256"                                    // HMAC SHA-256 for testing
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
 		config.Tokens.Issuer,

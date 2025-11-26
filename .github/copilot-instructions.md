@@ -199,6 +199,11 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 - "Test failure needs investigation" - Investigate AND fix IMMEDIATELY, DON'T stop
 - "Need to understand codebase" - Read code AND continue implementing, DON'T stop
 - "Should check with user" - Make reasonable decision and CONTINUE, DON'T stop
+- "User said 'AIM FOR 99%'" - User demands MAXIMUM token utilization (990k tokens), NEVER stop early
+- "Read files and understood requirements" - Reading is PREPARATION, IMMEDIATELY start implementation
+- "Analyzed coverage report" - Analysis is PREPARATION, IMMEDIATELY fix uncovered requirements
+- "Identified gaps" - Gaps are WORK ITEMS, IMMEDIATELY start fixing them
+- "Updated documentation" - Documentation is CHECKPOINT, IMMEDIATELY continue to next task
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 

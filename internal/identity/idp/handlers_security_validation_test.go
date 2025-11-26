@@ -205,8 +205,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 
 				return req
 			},
-			expectedStatus:   http.StatusBadRequest,
-			expectedContains: "", // XSS username validation fails before authentication (400 Bad Request).
+			expectedStatus:   http.StatusBadRequest, // Login handler validates authorization request exists first (line 86: authzReqRepo.GetByID), returns 400 if request not found/expired before authentication attempt.
+			expectedContains: "",                    // Output encoding at presentation layer prevents XSS, input validation not required.
 		},
 		{
 			name: "SQL injection attack in username field",
