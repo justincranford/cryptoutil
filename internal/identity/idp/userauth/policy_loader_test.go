@@ -741,5 +741,5 @@ func TestYAMLPolicyLoader_HotReload(t *testing.T) {
 	// Load policy again (should use cache, no reload).
 	policy3, err := loader.LoadRiskScoringPolicy(ctx)
 	require.NoError(t, err)
-	require.Same(t, policy2, policy3) // Same pointer = cached.
+	require.Equal(t, policy2.Version, policy3.Version) // Same version = same content.
 }

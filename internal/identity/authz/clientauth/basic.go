@@ -6,9 +6,7 @@ package clientauth
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
-	"strings"
 
 	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
@@ -35,26 +33,10 @@ func (b *BasicAuthenticator) Method() string {
 }
 
 // Authenticate authenticates a client using HTTP Basic authentication.
+// The credential parameter should be the plaintext client_secret (not base64-encoded).
 func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credential string) (*cryptoutilIdentityDomain.Client, error) {
-	// credential should be the base64-encoded client_id:client_secret.
-	decoded, err := base64.StdEncoding.DecodeString(credential)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode basic auth credentials: %w", err)
-	}
-
-	// Split into client_id:client_secret.
-	parts := strings.SplitN(string(decoded), ":", 2)
-	if len(parts) != 2 {
-		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
-	}
-
-	decodedClientID := parts[0]
-	clientSecret := parts[1]
-
-	// Validate client_id matches.
-	if decodedClientID != clientID {
-		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
-	}
+	// credential is the plaintext client_secret.
+	clientSecret := credential
 
 	// Fetch client from database.
 	client, err := b.clientRepo.GetByClientID(ctx, clientID)

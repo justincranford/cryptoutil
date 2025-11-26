@@ -6,7 +6,6 @@ package clientauth
 
 import (
 	"context"
-	"encoding/base64"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -116,42 +115,21 @@ func TestBasicAuthenticator_Authenticate(t *testing.T) {
 		{
 			name:        "valid basic auth",
 			clientID:    testClientID,
-			credential:  base64.StdEncoding.EncodeToString([]byte(testClientID + ":" + testClientSecret)),
+			credential:  testClientSecret, // Plaintext client secret
 			wantErr:     false,
 			wantErrType: nil,
 		},
 		{
-			name:        "invalid base64 encoding",
-			clientID:    testClientID,
-			credential:  "not-base64!!!",
-			wantErr:     true,
-			wantErrType: nil, // fmt.Errorf wrapper
-		},
-		{
-			name:        "missing colon separator",
-			clientID:    testClientID,
-			credential:  base64.StdEncoding.EncodeToString([]byte("no-colon")),
-			wantErr:     true,
-			wantErrType: cryptoutilIdentityAppErr.ErrInvalidClientAuth,
-		},
-		{
-			name:        "client ID mismatch",
-			clientID:    testClientID,
-			credential:  base64.StdEncoding.EncodeToString([]byte("wrong-id:" + testClientSecret)),
-			wantErr:     true,
-			wantErrType: cryptoutilIdentityAppErr.ErrInvalidClientAuth,
-		},
-		{
 			name:        "invalid client secret",
 			clientID:    testClientID,
-			credential:  base64.StdEncoding.EncodeToString([]byte(testClientID + ":wrong-secret")),
+			credential:  "wrong-secret", // Plaintext wrong secret
 			wantErr:     true,
 			wantErrType: cryptoutilIdentityAppErr.ErrInvalidClientSecret,
 		},
 		{
 			name:        "client not found",
 			clientID:    "nonexistent",
-			credential:  base64.StdEncoding.EncodeToString([]byte("nonexistent:secret")),
+			credential:  testClientSecret, // Plaintext client secret
 			wantErr:     true,
 			wantErrType: nil, // fmt.Errorf wrapper
 		},
