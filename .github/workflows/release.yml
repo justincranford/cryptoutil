@@ -66,6 +66,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Log workflow execution
+        run: |
+          echo "📋 Workflow: ${{ github.workflow }}"
+          echo "📁 Workflow file: .github/workflows/release.yml"
+          echo "🏷️ Release version: ${{ needs.validate-version.outputs.version }}"
+
       - name: Checkout code
         # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
         uses: actions/checkout@v6.0.0

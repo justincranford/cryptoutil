@@ -168,10 +168,14 @@ func validateAndParseWorkflowFile(workflowFile string) (map[string]WorkflowActio
 
 	workflowFileContents := string(workflowFileBytes)
 
-	// 1) Filename prefix check
+	// 1) Filename prefix check - allow CI workflows and release/deployment workflows
 	base := filepath.Base(workflowFile)
-	if !strings.HasPrefix(base, "ci-") {
-		validationErrors = append(validationErrors, "workflow filename must be prefixed with 'ci-'")
+	isCI := strings.HasPrefix(base, "ci-")
+	isRelease := strings.HasPrefix(base, "release")
+
+	isDeployment := strings.HasPrefix(base, "deploy")
+	if !isCI && !isRelease && !isDeployment {
+		validationErrors = append(validationErrors, "workflow filename must be prefixed with 'ci-', 'release', or 'deploy'")
 	}
 
 	if !strings.HasSuffix(base, ".yml") && !strings.HasSuffix(base, ".yaml") {
