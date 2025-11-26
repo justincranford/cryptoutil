@@ -6,6 +6,8 @@ package integration
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,11 +32,47 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+// mockKeyGenerator implements KeyGenerator for integration tests.
+type mockKeyGenerator struct{}
+
+func (m *mockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
+	// Use test key bytes (mock RSA private key for testing).
+	keyBytes := []byte("mock-rsa-private-key-bytes-for-testing")
+
+	return &cryptoutilIdentityIssuer.SigningKey{
+		KeyID:         googleUuid.NewString(),
+		Key:           keyBytes,
+		Algorithm:     algorithm,
+		CreatedAt:     time.Now(),
+		Active:        false,
+		ValidForVerif: false,
+	}, nil
+}
+
+func (m *mockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
+	// Use test key bytes (32-byte AES-256 key for testing).
+	keyBytes := []byte("01234567890123456789012345678901")
+
+	return &cryptoutilIdentityIssuer.EncryptionKey{
+		KeyID:        googleUuid.NewString(),
+		Key:          keyBytes,
+		CreatedAt:    time.Now(),
+		Active:       false,
+		ValidForDecr: false,
+	}, nil
+}
+
 const (
 	testTimeout       = 30 * time.Second
 	serverStartDelay  = 500 * time.Millisecond
 	httpClientTimeout = 5 * time.Second
 	shutdownTimeout   = 3 * time.Second
+	testAuthZPort     = 18080
+	testIDPPort       = 18081
+	testRSPort        = 18082
+	testAuthZBaseURL  = "http://127.0.0.1:18080"
+	testIDPBaseURL    = "http://127.0.0.1:18081"
+	testRSBaseURL     = "http://127.0.0.1:18082"
 	testRedirectURI   = "http://127.0.0.1:18083/callback"
 	testClientID      = "test-client"
 	testClientSecret  = "test-secret" // pragma: allowlist secret
@@ -53,13 +91,10 @@ const (
 // - R11-01: All integration tests passing
 // - R11-02: Code coverage meets target (≥85%).
 type testServers struct {
-	authzServer  *cryptoutilIdentityServer.AuthZServer
-	idpServer    *cryptoutilIdentityServer.IDPServer
-	rsServer     *cryptoutilIdentityServer.RSServer
-	httpClient   *http.Client
-	authzBaseURL string
-	idpBaseURL   string
-	rsBaseURL    string
+	authzServer *cryptoutilIdentityServer.AuthZServer
+	idpServer   *cryptoutilIdentityServer.IDPServer
+	rsServer    *cryptoutilIdentityServer.RSServer
+	httpClient  *http.Client
 }
 
 // setupTestServers creates and starts all three identity servers.
@@ -72,12 +107,11 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 	testUUID := googleUuid.New()
 	testDBName := fmt.Sprintf("file:%s.db?mode=memory&cache=shared", testUUID.String())
 
-	// Configure all three servers with dynamic port allocation (port 0 = OS assigns free port).
 	authzConfig := &cryptoutilIdentityConfig.Config{
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-authz",
 			BindAddress: "127.0.0.1",
-			Port:        0, // Dynamic port allocation
+			Port:        testAuthZPort,
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
@@ -86,7 +120,8 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenFormat: "jws",
-			Issuer:            "http://127.0.0.1", // Will update with actual port after server starts
+			Issuer:            testAuthZBaseURL,
+			SigningAlgorithm:  "RS256",
 		},
 	}
 
@@ -94,7 +129,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-idp",
 			BindAddress: "127.0.0.1",
-			Port:        0, // Dynamic port allocation
+			Port:        testIDPPort,
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
@@ -103,7 +138,8 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenFormat: "jws",
-			Issuer:            "http://127.0.0.1", // Will update with actual port after server starts
+			Issuer:            testAuthZBaseURL,
+			SigningAlgorithm:  "RS256",
 		},
 		Sessions: &cryptoutilIdentityConfig.SessionConfig{
 			SessionLifetime: 3600 * time.Second,
@@ -120,7 +156,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		RS: &cryptoutilIdentityConfig.ServerConfig{
 			Name:        "test-rs",
 			BindAddress: "127.0.0.1",
-			Port:        0, // Dynamic port allocation
+			Port:        testRSPort,
 			TLSEnabled:  false,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
@@ -142,10 +178,36 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 		Level: slog.LevelError, // Reduce noise in test output.
 	}))
 
-	// Create token service for AuthZ and IdP.
-	jwsIssuer := &cryptoutilIdentityIssuer.JWSIssuer{}
-	jweIssuer := &cryptoutilIdentityIssuer.JWEIssuer{}
-	uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
+	// TEMPORARY: Use legacy JWS issuer without key rotation for integration tests.
+	// TODO: Implement proper key rotation testing infrastructure.
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	testify.NoError(t, err, "Failed to generate RSA key")
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
+		authzConfig.Tokens.Issuer,
+		privateKey,
+		authzConfig.Tokens.SigningAlgorithm,
+		1*time.Hour,
+		1*time.Hour,
+	)
+	testify.NoError(t, err, "Failed to create JWS issuer")
+
+	// Create key rotation manager for JWE encryption only.
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockKeyGenerator{},
+		nil,
+	)
+	testify.NoError(t, err, "Failed to create key rotation manager")
+
+	// Initialize encryption keys by triggering first rotation.
+	err = keyRotationMgr.RotateEncryptionKey(ctx)
+	testify.NoError(t, err, "Failed to rotate initial encryption key")
+
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	testify.NoError(t, err, "Failed to create JWE issuer")
+
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, authzConfig.Tokens)
 
 	// Create all three servers.
@@ -379,7 +441,9 @@ func TestHealthCheckEndpoints(t *testing.T) {
 // - R01-05: Authorization code single-use enforcement
 // - R01-06: Integration test validates end-to-end OAuth 2.1 flow.
 func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
-	// REMOVED t.Parallel() - sequential execution prevents port conflicts (TODO: implement dynamic port allocation).
+	// TEMPORARY: Sequential execution to avoid port conflicts
+	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
+	// t.Parallel() removed due to port conflicts with hardcoded ports
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
