@@ -26,6 +26,7 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
 	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	"cryptoutil/internal/cmd/cicd/go_update_project_status"
+	"cryptoutil/internal/cmd/cicd/identity_progressive_validation"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
@@ -45,6 +46,7 @@ const (
 	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"
 	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"
 	cmdGoUpdateProjectStatus              = "go-update-project-status"
+	cmdIdentityProgressiveValidation      = "identity-progressive-validation"
 )
 
 // Run executes the specified CI/CD check commands.
@@ -149,6 +151,8 @@ func Run(commands []string) error {
 			cmdErr = go_identity_requirements_check.Enforce(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateProjectStatus:
 			cmdErr = go_update_project_status.Update(context.Background(), logger, remainingArgs)
+		case cmdIdentityProgressiveValidation:
+			cmdErr = identity_progressive_validation.Validate(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateDirectDependencies:
 			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
 		case cmdGoUpdateAllDependencies:
