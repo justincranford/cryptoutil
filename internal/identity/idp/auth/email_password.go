@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
-	cryptoutilIdentityAuthzClientAuth "cryptoutil/internal/identity/authz/clientauth"
+	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -17,14 +17,14 @@ import (
 // EmailPasswordProfile implements email/password authentication.
 type EmailPasswordProfile struct {
 	userRepo cryptoutilIdentityRepository.UserRepository
-	hasher   *cryptoutilIdentityAuthzClientAuth.PBKDF2Hasher
+	hasher   *cryptoutilIdentityClientAuth.PBKDF2Hasher
 }
 
 // NewEmailPasswordProfile creates a new email/password authentication profile.
 func NewEmailPasswordProfile(userRepo cryptoutilIdentityRepository.UserRepository) *EmailPasswordProfile {
 	return &EmailPasswordProfile{
 		userRepo: userRepo,
-		hasher:   cryptoutilIdentityAuthzClientAuth.NewPBKDF2Hasher(),
+		hasher:   cryptoutilIdentityClientAuth.NewPBKDF2Hasher(),
 	}
 }
 

@@ -42,6 +42,11 @@ func TestClientAuthentication_BasicAuth_InvalidFormat(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode, "Should return 401 Unauthorized")
 }
 
@@ -71,6 +76,11 @@ func TestClientAuthentication_BasicAuth_InvalidClientID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode, "Should return 401 Unauthorized")
 }
 
@@ -96,6 +106,11 @@ func TestClientAuthentication_PostAuth_MissingClientID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode, "Should return 401 Unauthorized")
 }
 
@@ -122,6 +137,11 @@ func TestClientAuthentication_PostAuth_InvalidClientID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode, "Should return 401 Unauthorized")
 }
 

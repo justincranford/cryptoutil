@@ -97,7 +97,6 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -114,6 +113,9 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			// Execute request.
 			resp, err := app.Test(req)
 			require.NoError(t, err)
+
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 			require.Equal(t, tc.wantStatusCode, resp.StatusCode)
 		})
 	}
@@ -171,6 +173,8 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	// Should fail with 401 (client authentication required).
 	require.Equal(t, 401, resp.StatusCode)
 }
@@ -187,9 +191,9 @@ func setupAuthzTestDependencies(t *testing.T, ctx context.Context) (*cryptoutilI
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		sqlDB, _ := repoFactory.DB().DB()
+		sqlDB, _ := repoFactory.DB().DB() //nolint:errcheck // Test cleanup
 		if sqlDB != nil {
-			_ = sqlDB.Close()
+			_ = sqlDB.Close() //nolint:errcheck // Test cleanup
 		}
 	})
 

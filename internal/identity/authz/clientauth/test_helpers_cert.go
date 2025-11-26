@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testCertValidityHours = 24 // Test certificates valid for 24 hours
+
 // Helper functions for certificate generation in tests.
 
 func createTestCAForAuth(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
@@ -26,8 +28,8 @@ func createTestCAForAuth(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 		Subject: pkix.Name{
 			CommonName: "Test CA",
 		},
-		NotBefore:             time.Now().Add(-1 * time.Hour),
-		NotAfter:              time.Now().Add(24 * time.Hour),
+		NotBefore:             time.Now().Add(-testCertValidityHours * time.Hour),
+		NotAfter:              time.Now().Add(testCertValidityHours * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -54,7 +56,7 @@ func createTestClientCertForAuth(t *testing.T, caCert *x509.Certificate, caKey *
 			CommonName: "Test Client",
 		},
 		NotBefore: time.Now().Add(-1 * time.Hour),
-		NotAfter:  time.Now().Add(24 * time.Hour),
+		NotAfter:  time.Now().Add(testCertValidityHours * time.Hour),
 		KeyUsage:  x509.KeyUsageDigitalSignature,
 	}
 

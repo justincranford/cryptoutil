@@ -56,9 +56,9 @@ func TestServiceStart(t *testing.T) {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		sqlDB, _ := repoFactory.DB().DB()
+		sqlDB, _ := repoFactory.DB().DB() //nolint:errcheck // Test cleanup
 		if sqlDB != nil {
-			_ = sqlDB.Close()
+			_ = sqlDB.Close() //nolint:errcheck // Test cleanup
 		}
 	})
 

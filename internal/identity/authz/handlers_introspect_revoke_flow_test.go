@@ -47,6 +47,9 @@ func TestHandleIntrospect_ActiveToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK for active token")
 }
 
@@ -75,6 +78,9 @@ func TestHandleIntrospect_RevokedToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK with active:false for revoked token")
 }
 
@@ -121,6 +127,9 @@ func TestHandleIntrospect_ExpiredToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK with active:false for expired token")
 }
 
@@ -149,6 +158,9 @@ func TestHandleRevoke_ValidToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK for successful revocation")
 }
 
@@ -174,6 +186,9 @@ func TestHandleRevoke_NonExistentToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK for non-existent token (RFC 7009 section 2.2)")
 }
 

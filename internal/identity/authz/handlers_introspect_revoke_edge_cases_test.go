@@ -63,7 +63,9 @@ func TestHandleIntrospect_InvalidTokenFormat(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for empty token")
 }
 
@@ -107,7 +109,9 @@ func TestHandleRevoke_InvalidTokenFormat(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for empty token")
 }
 
@@ -153,10 +157,13 @@ func TestHandleIntrospect_UnknownToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK")
 
 	var body map[string]any
+
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
@@ -263,6 +270,8 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK for already revoked token")
 }

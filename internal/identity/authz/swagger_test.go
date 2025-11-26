@@ -30,6 +30,9 @@ func TestServeOpenAPISpec_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/spec", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200")
 	require.Equal(t, "application/json", resp.Header.Get("Content-Type"), "Content-Type should be JSON")
 
@@ -59,6 +62,9 @@ func TestServeOpenAPISpec_HandlerInvocation(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/spec", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err, "Request should succeed")
+
+		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 		require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200")
 	}
 }

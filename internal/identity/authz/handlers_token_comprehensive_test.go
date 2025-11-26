@@ -54,6 +54,9 @@ func TestHandleToken_AuthorizationCodeGrant_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK with tokens")
 }
 
@@ -87,6 +90,8 @@ func TestHandleToken_ClientCredentialsGrant_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	// May return 401 due to auth issues, but test structure is correct.
 	require.Contains(t, []int{fiber.StatusOK, fiber.StatusUnauthorized}, resp.StatusCode,
@@ -142,6 +147,9 @@ func TestHandleToken_InvalidGrant_ExpiredCode(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should reject expired authorization code")
 }
 
@@ -196,6 +204,9 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should reject already-used code")
 }
 
@@ -228,6 +239,9 @@ func TestHandleToken_InvalidGrant_ClientIDMismatch(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should reject mismatched client ID")
 }
 
@@ -260,6 +274,9 @@ func TestHandleToken_InvalidGrant_PKCEValidationFailed(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should reject invalid PKCE verifier")
 }
 

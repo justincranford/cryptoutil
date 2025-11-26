@@ -143,6 +143,9 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Refresh token grant should succeed")
 
 	var body map[string]any
@@ -208,7 +211,9 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for missing refresh_token parameter")
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for missing refresh_token")
 
@@ -272,6 +277,8 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	// Token lookup fails (404 Not Found) because token doesn't exist
 	require.Contains(t, []int{fiber.StatusBadRequest, fiber.StatusNotFound}, resp.StatusCode, "Should return 400 or 404 for invalid refresh token")
@@ -389,6 +396,9 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for revoked refresh token")
 
 	var body map[string]any

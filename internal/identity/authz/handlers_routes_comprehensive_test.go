@@ -35,6 +35,9 @@ func TestRegisterRoutes_AllEndpointsRegistered(t *testing.T) {
 	req := httptest.NewRequest("GET", "/health", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Health check should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Health check should return 200 OK")
 
 	// Test OAuth 2.1 endpoints exist (will return errors without proper setup, but routes should be registered).
@@ -53,6 +56,9 @@ func TestRegisterRoutes_AllEndpointsRegistered(t *testing.T) {
 		req := httptest.NewRequest(endpoint.method, endpoint.path, nil)
 		resp, err := app.Test(req, -1)
 		require.NoError(t, err, "Route %s %s should be registered", endpoint.method, endpoint.path)
+
+		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 		require.NotEqual(t, fiber.StatusNotFound, resp.StatusCode, "Route %s %s should not return 404", endpoint.method, endpoint.path)
 	}
 }

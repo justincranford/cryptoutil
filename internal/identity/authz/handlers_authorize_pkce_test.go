@@ -104,6 +104,9 @@ func TestHandleAuthorizeGET_PKCE(t *testing.T) {
 
 			resp, err := app.Test(req)
 			require.NoError(t, err, "Request should succeed")
+
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 			require.Equal(t, tc.wantStatus, resp.StatusCode, "Status code should match expected")
 		})
 	}
@@ -186,6 +189,9 @@ func TestHandleAuthorizePOST_PKCE(t *testing.T) {
 
 			resp, err := app.Test(req)
 			require.NoError(t, err, "Request should succeed")
+
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 			require.Equal(t, tc.wantStatus, resp.StatusCode, "Status code should match expected")
 		})
 	}
@@ -220,6 +226,11 @@ func TestHandleAuthorizeGET_ValidRequestCreatesAuthorizationRequest(t *testing.T
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusFound, resp.StatusCode, "Should redirect to login")
 
 	locationHeader := resp.Header.Get("Location")

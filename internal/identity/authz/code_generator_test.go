@@ -33,6 +33,7 @@ func TestGenerateAuthorizationCode_Uniqueness(t *testing.T) {
 	t.Parallel()
 
 	const iterations = 100
+
 	codes := make(map[string]bool, iterations)
 
 	for range iterations {

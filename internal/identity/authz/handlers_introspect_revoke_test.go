@@ -39,6 +39,9 @@ func TestHandleIntrospect_MissingToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
 }
 
@@ -63,6 +66,9 @@ func TestHandleIntrospect_MissingClient(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK with inactive token")
 }
 
@@ -85,6 +91,9 @@ func TestHandleRevoke_MissingToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
 }
 
@@ -109,6 +118,9 @@ func TestHandleRevoke_MissingClient(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200 OK even without client auth")
 }
 

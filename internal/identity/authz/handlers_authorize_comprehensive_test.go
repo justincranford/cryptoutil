@@ -55,6 +55,9 @@ func TestHandleAuthorizeGET_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusFound, resp.StatusCode, "Should return 302 redirect to login")
 	require.Contains(t, resp.Header.Get("Location"), "/oidc/v1/login", "Should redirect to login with request_id")
 }
@@ -86,6 +89,9 @@ func TestHandleAuthorizeGET_InvalidClientID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request for invalid client")
 }
 
@@ -120,7 +126,12 @@ func TestHandleAuthorizeGET_InvalidRedirectURI(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request for invalid redirect URI")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request for invalid client")
 }
 
 // TestHandleAuthorizeGET_UnsupportedResponseType tests authorization with non-code response type.
@@ -154,6 +165,11 @@ func TestHandleAuthorizeGET_UnsupportedResponseType(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should reject implicit flow (OAuth 2.1)")
 }
 
@@ -186,7 +202,12 @@ func TestHandleAuthorizeGET_MissingCodeChallenge(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should require PKCE (OAuth 2.1)")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should only accept S256 PKCE method")
 }
 
 // TestHandleAuthorizeGET_InvalidCodeChallengeMethod tests authorization with unsupported PKCE method.
@@ -220,7 +241,12 @@ func TestHandleAuthorizeGET_InvalidCodeChallengeMethod(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
-	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should only accept S256 PKCE method")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request for invalid redirect URI")
 }
 
 // TestHandleAuthorizePOST_HappyPath tests successful POST authorization request.
@@ -255,6 +281,9 @@ func TestHandleAuthorizePOST_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusFound, resp.StatusCode, "Should return 302 redirect to login")
 	require.Contains(t, resp.Header.Get("Location"), "/oidc/v1/login", "Should redirect to login with request_id")
 }
@@ -289,6 +318,11 @@ func TestHandleAuthorizePOST_MissingPKCE(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should require PKCE in POST requests")
 }
 

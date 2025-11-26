@@ -23,7 +23,10 @@ func TestNewService(t *testing.T) {
 	config := &cryptoutilIdentityConfig.Config{}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
-	defer repoFactory.Close()
+
+	defer func() {
+		_ = repoFactory.Close() //nolint:errcheck // Test cleanup
+	}()
 
 	tokenSvc := &cryptoutilIdentityIssuer.TokenService{}
 

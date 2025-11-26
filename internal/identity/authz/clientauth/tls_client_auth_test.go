@@ -85,7 +85,6 @@ func TestTLSClientAuthenticator_Authenticate_Cert(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -101,6 +100,7 @@ func TestTLSClientAuthenticator_Authenticate_Cert(t *testing.T) {
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, client)
+
 				return
 			}
 
@@ -132,5 +132,6 @@ func encodeCertToPEM(cert *x509.Certificate) []byte {
 
 func computeSHA256Fingerprint(cert *x509.Certificate) string {
 	hash := sha256.Sum256(cert.Raw)
+
 	return hex.EncodeToString(hash[:])
 }

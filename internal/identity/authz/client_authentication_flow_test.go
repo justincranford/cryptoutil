@@ -76,10 +76,12 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
 
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	// Log response details if not 200
 	if resp.StatusCode != fiber.StatusOK {
 		bodyBytes := make([]byte, 1024)
-		n, _ := resp.Body.Read(bodyBytes)
+		n, _ := resp.Body.Read(bodyBytes) //nolint:errcheck // Test logging
 		t.Logf("Response status: %d, body: %s", resp.StatusCode, string(bodyBytes[:n]))
 	}
 
@@ -124,6 +126,9 @@ func TestAuthenticateClient_PostAuthSuccess(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "POST auth should succeed")
 }
 
@@ -157,6 +162,9 @@ func TestAuthenticateClient_NoCredentialsFailure(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode, "Should return 401 for missing credentials")
 }
 
@@ -270,128 +278,4 @@ func createClientAuthFlowTestTokenServiceLegacy(
 	require.NotNil(t, tokenSvc, "Token service should not be nil")
 
 	return tokenSvc
-}
-
-func createClientAuthFlowTestJWSIssuer(t *testing.T, config *cryptoutilIdentityConfig.Config) *cryptoutilIdentityIssuer.JWSIssuer {
-	t.Helper()
-
-	ctx := context.Background()
-
-	// Create in-memory database for key storage
-	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
-	}
-
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
-	require.NoError(t, err, "Failed to create repository factory for JWS issuer")
-
-	// Run migrations
-	db := repoFactory.DB()
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
-	require.NoError(t, err, "Failed to run key migrations")
-
-	// Create key rotation manager with mock generator
-	keyGen := &clientAuthMockKeyGenerator{}
-	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
-		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		keyGen,
-		nil,
-	)
-	require.NoError(t, err, "Failed to create key rotation manager")
-
-	// Rotate to create initial active signing key
-	err = keyRotationMgr.RotateSigningKey(ctx, config.Tokens.SigningAlgorithm)
-	require.NoError(t, err, "Failed to rotate initial signing key")
-
-	// Create JWS issuer
-	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
-		config.Tokens.Issuer,
-		keyRotationMgr,
-		config.Tokens.SigningAlgorithm,
-		time.Duration(config.Tokens.AccessTokenLifetime)*time.Second,
-		time.Duration(config.Tokens.AccessTokenLifetime)*time.Second,
-	)
-	require.NoError(t, err, "Failed to create JWS issuer")
-	require.NotNil(t, jwsIssuer, "JWS issuer should not be nil")
-
-	return jwsIssuer
-}
-
-func createClientAuthFlowTestTokenService(
-	t *testing.T,
-	jwsIssuer *cryptoutilIdentityIssuer.JWSIssuer,
-	config *cryptoutilIdentityConfig.Config,
-) *cryptoutilIdentityIssuer.TokenService {
-	t.Helper()
-
-	ctx := context.Background()
-
-	// Create in-memory database for key storage
-	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type: "sqlite",
-		DSN:  ":memory:",
-	}
-
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
-	require.NoError(t, err, "Failed to create repository factory for token service")
-
-	// Run migrations
-	db := repoFactory.DB()
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
-	require.NoError(t, err, "Failed to run key migrations")
-
-	// Create key rotation manager with mock generator
-	keyGen := &clientAuthMockKeyGenerator{}
-	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
-		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		keyGen,
-		nil,
-	)
-	require.NoError(t, err, "Failed to create key rotation manager")
-
-	// Create JWE issuer
-	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
-	require.NoError(t, err, "Failed to create JWE issuer")
-	require.NotNil(t, jweIssuer, "JWE issuer should not be nil")
-
-	// Create UUID issuer
-	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
-	require.NotNil(t, uuidIssuer, "UUID issuer should not be nil")
-
-	// Create token service
-	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, config.Tokens)
-	require.NotNil(t, tokenSvc, "Token service should not be nil")
-
-	return tokenSvc
-}
-
-// clientAuthMockKeyGenerator implements KeyGenerator for testing.
-type clientAuthMockKeyGenerator struct{}
-
-func (m *clientAuthMockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
-	now := time.Now()
-
-	return &cryptoutilIdentityIssuer.SigningKey{
-		KeyID:         googleUuid.NewString(),
-		Key:           []byte("mock-signing-key-0123456789abcdef0123456789abcdef"),
-		Algorithm:     algorithm,
-		CreatedAt:     now,
-		ExpiresAt:     now.Add(24 * time.Hour),
-		Active:        true,
-		ValidForVerif: true,
-	}, nil
-}
-
-func (m *clientAuthMockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
-	now := time.Now()
-
-	return &cryptoutilIdentityIssuer.EncryptionKey{
-		KeyID:        googleUuid.NewString(),
-		Key:          []byte("0123456789abcdef0123456789abcdef"),
-		CreatedAt:    now,
-		ExpiresAt:    now.Add(24 * time.Hour),
-		Active:       true,
-		ValidForDecr: true,
-	}, nil
 }

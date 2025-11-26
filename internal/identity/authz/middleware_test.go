@@ -34,6 +34,9 @@ func TestRegisterMiddleware_RecoverPanic(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/panic", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed despite panic")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode, "Should return 500 from panic recovery")
 }
 
@@ -54,12 +57,15 @@ func TestRegisterMiddleware_RateLimiting(t *testing.T) {
 
 	// Make multiple requests quickly.
 	const requests = 50
+
 	successCount := 0
 
 	for range requests {
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err, "Request should succeed")
+
+		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 		if resp.StatusCode == fiber.StatusOK {
 			successCount++
@@ -91,6 +97,9 @@ func TestRegisterMiddleware_CORS(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "CORS preflight should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusNoContent, resp.StatusCode, "CORS preflight should return 204")
 
 	// Verify CORS headers are present.
@@ -115,6 +124,9 @@ func TestRegisterMiddleware_Logging(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Should return 200")
 
 	body, err := io.ReadAll(resp.Body)

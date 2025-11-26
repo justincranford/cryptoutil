@@ -42,6 +42,11 @@ func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
 }
 
@@ -68,6 +73,11 @@ func TestHandleAuthorizeGET_MissingResponseType(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() {
+		_ = resp.Body.Close() //nolint:errcheck // Test cleanup
+	}()
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
 }
 
@@ -94,6 +104,9 @@ func TestHandleAuthorizeGET_MissingRedirectURI(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
 }
 
@@ -122,6 +135,9 @@ func TestHandleAuthorizePOST_MissingClientID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request")
 }
 

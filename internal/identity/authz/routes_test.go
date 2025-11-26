@@ -36,6 +36,9 @@ func TestRegisterRoutes_HealthEndpoint(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Health check request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Health check should return 200")
 }
 
@@ -92,13 +95,15 @@ func TestRegisterRoutes_OAuth2Endpoints(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			req := httptest.NewRequest(tc.method, tc.path, nil)
 			resp, err := app.Test(req)
 			require.NoError(t, err, "Request should succeed")
+
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 			require.Equal(t, tc.wantStatus, resp.StatusCode, "Status code should match expected")
 		})
 	}
@@ -121,6 +126,8 @@ func TestRegisterRoutes_SwaggerEndpoint(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/ui/swagger/doc.json", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Swagger request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	// Swagger endpoint may or may not be registered depending on spec generation.
 	require.Contains(t, []int{fiber.StatusOK, fiber.StatusNotFound}, resp.StatusCode, "Swagger should return 200 or 404")

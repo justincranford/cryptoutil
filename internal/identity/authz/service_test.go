@@ -48,7 +48,6 @@ func TestService_Creation(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -87,7 +86,6 @@ func TestService_StartStop(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -182,7 +180,6 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -205,6 +202,7 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 
 			if tc.wantErr {
 				require.Error(t, err, "MigrateClientSecrets should fail")
+
 				if tc.errContains != "" {
 					require.Contains(t, err.Error(), tc.errContains, "Error message mismatch")
 				}

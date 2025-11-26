@@ -34,7 +34,7 @@ func NewPBKDF2Hasher() *PBKDF2Hasher {
 }
 
 // HashSecret hashes a plaintext client secret using PBKDF2-HMAC-SHA256.
-// Format: $pbkdf2-sha256$iterations$base64(salt)$base64(hash)
+// Format: $pbkdf2-sha256$iterations$base64(salt)$base64(hash).
 func (h *PBKDF2Hasher) HashSecret(plaintext string) (string, error) {
 	// Generate cryptographically secure random salt.
 	salt := make([]byte, h.saltLength)

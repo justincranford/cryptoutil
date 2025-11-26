@@ -38,6 +38,9 @@ func TestRegisterMiddleware_ComprehensivePipeline(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Response should be 200 OK")
 }
 
@@ -60,6 +63,9 @@ func TestRegisterMiddleware_PanicRecovery(t *testing.T) {
 	req := httptest.NewRequest("GET", "/panic", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should not error (panic recovered)")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode, "Should return 500 after panic recovery")
 }
 
@@ -84,6 +90,9 @@ func TestRegisterMiddleware_CORSHeaders(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "OPTIONS request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusNoContent, resp.StatusCode, "CORS preflight should return 204")
 	require.NotEmpty(t, resp.Header.Get("Access-Control-Allow-Origin"), "CORS headers should be present")
 }
@@ -108,6 +117,9 @@ func TestRegisterMiddleware_RateLimitEnforcement(t *testing.T) {
 		req := httptest.NewRequest("GET", "/rate-limited", nil)
 		resp, err := app.Test(req, -1)
 		require.NoError(t, err, "Request should succeed")
+
+		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 		require.NotEqual(t, fiber.StatusTooManyRequests, resp.StatusCode, "Rate limit should not be hit with 5 requests")
 	}
 }

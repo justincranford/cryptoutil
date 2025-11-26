@@ -42,6 +42,9 @@ func TestHandleAuthorizationCodeGrant_MissingCodeVerifier(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for missing code_verifier")
 }
 
@@ -63,6 +66,9 @@ func TestHandleAuthorizationCodeGrant_InvalidCode(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for invalid code")
 }
 
@@ -99,6 +105,8 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
 
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	// Client authentication will fail since we can't hash the secret properly in test.
 	// This validates the handler is invoked and processes client_credentials grant.
 	require.Contains(t, []int{fiber.StatusUnauthorized, fiber.StatusOK}, resp.StatusCode, "Handler should process client_credentials")
@@ -119,6 +127,9 @@ func TestHandleRefreshTokenGrant_MissingRefreshToken(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
+
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for missing refresh_token")
 }
 

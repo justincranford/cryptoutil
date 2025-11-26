@@ -82,7 +82,6 @@ func TestSelfSignedAuthenticator_Authenticate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -98,6 +97,7 @@ func TestSelfSignedAuthenticator_Authenticate(t *testing.T) {
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, client)
+
 				return
 			}
 

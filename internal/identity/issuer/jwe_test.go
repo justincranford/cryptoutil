@@ -87,12 +87,12 @@ func TestEncryptToken(t *testing.T) {
 	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
 	require.NoError(t, err)
 
-	plaintext := "test-plaintext-token"
+	const testPlaintextToken = "test-plaintext-token"
 
-	encrypted, err := jweIssuer.EncryptToken(ctx, plaintext)
+	encrypted, err := jweIssuer.EncryptToken(ctx, testPlaintextToken)
 	require.NoError(t, err)
 	require.NotEmpty(t, encrypted)
-	require.NotEqual(t, plaintext, encrypted)
+	require.NotEqual(t, testPlaintextToken, encrypted)
 }
 
 // TestDecryptToken validates token decryption.
@@ -126,14 +126,14 @@ func TestDecryptToken(t *testing.T) {
 	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
 	require.NoError(t, err)
 
-	plaintext := "test-plaintext-token"
+	const testPlaintextToken = "test-plaintext-token"
 
-	encrypted, err := jweIssuer.EncryptToken(ctx, plaintext)
+	encrypted, err := jweIssuer.EncryptToken(ctx, testPlaintextToken)
 	require.NoError(t, err)
 
 	decrypted, err := jweIssuer.DecryptToken(ctx, encrypted)
 	require.NoError(t, err)
-	require.Equal(t, plaintext, decrypted)
+	require.Equal(t, testPlaintextToken, decrypted)
 }
 
 // TestDecryptToken_InvalidFormat validates error for invalid encrypted token format.
