@@ -605,6 +605,21 @@ Each task MUST complete this checklist before marking complete:
 - [ ] List corrective actions for future tasks
 - [ ] Identify instruction violations and corrections
 
+#### Progressive Validation (MANDATORY)
+- [ ] Run 6-step validation: `go run ./cmd/cicd identity-progressive-validation`
+- [ ] Step 1 PASS: TODO scan (0 CRITICAL/HIGH TODOs)
+- [ ] Step 2 PASS: Tests (100% pass rate)
+- [ ] Step 3 PASS: Coverage (≥85% infrastructure, ≥80% features, ≥95% utilities)
+- [ ] Step 4 PASS: Requirements (≥85% overall coverage)
+- [ ] Step 5 PASS: Integration (E2E smoke test)
+- [ ] Step 6 PASS: Documentation (PROJECT-STATUS.md <7 days old)
+- [ ] All 6 steps passed before marking task complete
+
+**If validation fails:**
+- Fix issues immediately
+- Re-run progressive validation
+- Do NOT mark task complete until 6/6 steps pass
+
 #### Handoff
 - [ ] Mark task complete in `manage_todo_list`
 - [ ] IMMEDIATELY start next task (no stopping, no summary)
@@ -1043,13 +1058,13 @@ Based on industry best practices, here are additional corrective action strategi
 - [ ] Architecture diagrams updated if structural changes
 - [ ] Migration guide created if breaking changes
 
-#### Single Source of Truth (SSOT)
+#### Single Source of Truth (Single Source Of Truth)
 
 **MANDATORY: Maintain PROJECT-STATUS.md as authoritative status document**
 
 **Purpose**: Prevent contradictory documentation (README claiming 100%, STATUS-REPORT showing 45%)
 
-**SSOT Structure** (`docs/[feature-name]/PROJECT-STATUS.md`):
+**Single Source Of Truth Structure** (`docs/[feature-name]/PROJECT-STATUS.md`):
 ```markdown
 # [Feature Name] - Project Status
 
