@@ -320,6 +320,10 @@ func shutdownTestServers(t *testing.T, servers *testServers) {
 
 	// Wait for all servers to finish shutting down.
 	wg.Wait()
+
+	// CRITICAL: Add delay after shutdown to allow OS to release ports.
+	// Without this, next test may fail with "bind: address already in use".
+	time.Sleep(100 * time.Millisecond)
 }
 
 // seedTestData seeds the database with test client.
