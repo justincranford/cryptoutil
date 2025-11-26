@@ -204,6 +204,10 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 - "Analyzed coverage report" - Analysis is PREPARATION, IMMEDIATELY fix uncovered requirements
 - "Identified gaps" - Gaps are WORK ITEMS, IMMEDIATELY start fixing them
 - "Updated documentation" - Documentation is CHECKPOINT, IMMEDIATELY continue to next task
+- "Need to refactor to return dynamic port" - DO THE REFACTORING IMMEDIATELY, don't defer
+- "Should defer work until later" - NEVER DEFER, implement IMMEDIATELY to unblock progress
+- "Work seems complex" - Complexity is EXPECTED, implement AND continue, DON'T stop
+- "Could do X later" - Do X NOW unless explicitly told to defer by user
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 

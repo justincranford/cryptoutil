@@ -367,10 +367,10 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 		// For this test, we create a minimal valid response.
 		basicResp := struct {
 			TBSResponseData struct {
-				Version            int `asn1:"optional,explicit,default:0,tag:0"`
-				ResponderID        asn1.RawValue
-				ProducedAt         time.Time `asn1:"generalized"`
-				Responses          []any
+				Version     int `asn1:"optional,explicit,default:0,tag:0"`
+				ResponderID asn1.RawValue
+				ProducedAt  time.Time `asn1:"generalized"`
+				Responses   []any
 			}
 			SignatureAlgorithm pkix.AlgorithmIdentifier
 			Signature          asn1.BitString
@@ -392,7 +392,7 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 			ResponseType asn1.ObjectIdentifier
 			Response     []byte `asn1:"explicit,tag:0"`
 		}{
-			Status:       0, // Successful.
+			Status:       0,                                                    // Successful.
 			ResponseType: asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 48, 1, 1}, // id-pkix-ocsp-basic.
 			Response:     basicRespBytes,
 		}
