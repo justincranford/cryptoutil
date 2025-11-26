@@ -32,13 +32,14 @@ func (s *Service) authenticateClient(c *fiber.Ctx) (*cryptoutilIdentityDomain.Cl
 		parts := strings.SplitN(string(decoded), ":", 2)
 		if len(parts) == 2 {
 			clientID := parts[0]
+			clientSecret := parts[1]
 
 			authenticator, ok := s.clientAuth.GetAuthenticator(cryptoutilIdentityMagic.ClientAuthMethodSecretBasic)
 			if !ok {
 				return nil, fiber.ErrUnauthorized
 			}
 
-			client, err := authenticator.Authenticate(c.Context(), clientID, credential)
+			client, err := authenticator.Authenticate(c.Context(), clientID, clientSecret)
 			if err != nil {
 				return nil, fmt.Errorf("basic auth failed: %w", err)
 			}

@@ -85,7 +85,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	err = clientRepo.Create(ctx, testClient)
 	require.NoError(t, err, "Failed to create test client")
 
-	// Create valid refresh token in database  
+	// Create valid refresh token in database
 	userUUID := googleUuid.Must(googleUuid.NewV7())
 	tokenValue := googleUuid.NewString()
 
@@ -146,6 +146,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, resp.StatusCode, "Refresh token grant should succeed")
 
 	var body map[string]any
+
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
@@ -207,9 +208,12 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err, "Request should succeed")
+	defer resp.Body.Close()
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for missing refresh_token parameter")
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for missing refresh_token")
 
 	var body map[string]any
+
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
@@ -273,6 +277,7 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 	require.Contains(t, []int{fiber.StatusBadRequest, fiber.StatusNotFound}, resp.StatusCode, "Should return 400 or 404 for invalid refresh token")
 
 	var body map[string]any
+
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 
@@ -387,6 +392,7 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 for revoked refresh token")
 
 	var body map[string]any
+
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err, "Response body should be valid JSON")
 

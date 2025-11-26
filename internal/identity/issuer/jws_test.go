@@ -175,7 +175,7 @@ func TestJWSIssueAccessToken(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 		"email": "test@example.com",
 		"name":  "Test User",
@@ -223,7 +223,7 @@ func TestIssueIDToken(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
 		"aud": "client123",
 	}
@@ -270,7 +270,7 @@ func TestIssueIDToken_MissingSub(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"aud": "client123",
 	}
 
@@ -315,7 +315,7 @@ func TestIssueIDToken_MissingAud(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
 	}
 

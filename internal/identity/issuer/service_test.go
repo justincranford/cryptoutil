@@ -151,7 +151,7 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 		"email": "test@example.com",
 		"name":  "Test User",
@@ -221,7 +221,7 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 		"email": "test@example.com",
 		"name":  "Test User",
@@ -284,7 +284,7 @@ func TestIssueAccessTokenUUID(t *testing.T) {
 
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 		"email": "test@example.com",
 	}
@@ -352,7 +352,7 @@ func TestIssueIDTokenService(t *testing.T) {
 
 	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"sub": googleUuid.Must(googleUuid.NewV7()).String(),
 		"aud": "client123",
 	}
