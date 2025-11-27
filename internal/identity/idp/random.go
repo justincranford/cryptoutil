@@ -5,28 +5,15 @@
 package idp
 
 import (
-	crand "crypto/rand"
-	"encoding/base64"
-	"fmt"
-
-	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	googleUuid "github.com/google/uuid"
 )
 
-// generateRandomString generates a cryptographically secure random string of specified length.
-// Uses crypto/rand for security and base64 URL encoding for safe string representation.
-func generateRandomString(length int) string {
-	// Calculate required bytes for desired string length after base64 encoding.
-	// Base64 encoding expands 3 bytes to 4 characters, so we need length*3/4 bytes.
-	// Add extra bytes to ensure we have enough after encoding and trimming.
-	numBytes := (length*cryptoutilIdentityMagic.Base64ExpansionNumerator)/cryptoutilIdentityMagic.Base64ExpansionDenominator + 1
-
-	bytes := make([]byte, numBytes)
-
-	if _, err := crand.Read(bytes); err != nil {
-		// Critical error: crypto/rand failure is a security issue.
-		panic(fmt.Sprintf("Failed to generate random string: %v", err))
-	}
-
-	// Use URL-safe base64 encoding and trim to exact length.
-	return base64.URLEncoding.EncodeToString(bytes)[:length]
+// generateRandomString generates a cryptographically secure random string.
+// Uses UUIDv7 for time-ordered uniqueness to prevent UNIQUE constraint violations
+// in parallel test execution.
+func generateRandomString(_ int) string {
+	// Use UUIDv7 for time-ordered uniqueness (prevents race conditions).
+	// UUIDv7 provides 128-bit randomness + timestamp ordering.
+	// Length parameter ignored - UUID format is fixed 36 characters.
+	return googleUuid.Must(googleUuid.NewV7()).String()
 }
