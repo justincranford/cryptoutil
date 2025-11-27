@@ -310,6 +310,17 @@ repos:
         files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
         exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/)'
 
+  # Markdown linting with auto-fix
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.17.1
+    hooks:
+      - id: markdownlint-cli2
+        name: Lint and fix markdown files
+        args: [--fix]
+        files: '\.(md|markdown)$'
+        exclude: '^(node_modules/|vendor/|\.git/)'
+        stages: [pre-commit]
+
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.10.0
