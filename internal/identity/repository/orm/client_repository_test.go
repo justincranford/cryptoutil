@@ -43,9 +43,35 @@ func TestClientRepository_Create(t *testing.T) {
 	err := repo.Create(ctx, client)
 	require.NoError(t, err)
 
+	// Verify client was created.
 	retrieved, err := repo.GetByID(ctx, client.ID)
 	require.NoError(t, err)
 	require.Equal(t, client.ClientID, retrieved.ClientID)
+
+	// Verify ClientSecretVersion was created (version 1, active).
+	var secretVersions []cryptoutilIdentityDomain.ClientSecretVersion
+	err = testDB.db.Where("client_id = ?", client.ID).Find(&secretVersions).Error
+	require.NoError(t, err)
+	require.Len(t, secretVersions, 1, "Expected exactly 1 initial secret version")
+	require.Equal(t, 1, secretVersions[0].Version, "Expected version 1 for initial secret")
+	require.Equal(t, cryptoutilIdentityDomain.SecretStatusActive, secretVersions[0].Status, "Expected active status")
+	require.Nil(t, secretVersions[0].ExpiresAt, "Expected no expiration for initial secret")
+	require.NotEmpty(t, secretVersions[0].SecretHash, "Expected non-empty secret hash")
+
+	// Verify KeyRotationEvent was created.
+	var events []cryptoutilIdentityDomain.KeyRotationEvent
+	err = testDB.db.Where("key_id = ?", client.ID.String()).Find(&events).Error
+	require.NoError(t, err)
+	require.Len(t, events, 1, "Expected exactly 1 audit event for client creation")
+	require.Equal(t, "secret_created", events[0].EventType, "Expected secret_created event type")
+	require.Equal(t, "client_secret", events[0].KeyType, "Expected client_secret key type")
+	require.Equal(t, client.ID.String(), events[0].KeyID, "Expected client ID in event")
+	require.Equal(t, "system", events[0].Initiator, "Expected system initiator")
+	require.NotNil(t, events[0].OldKeyVersion, "Expected OldKeyVersion to be set")
+	require.Equal(t, 0, *events[0].OldKeyVersion, "Expected OldKeyVersion = 0")
+	require.NotNil(t, events[0].NewKeyVersion, "Expected NewKeyVersion to be set")
+	require.Equal(t, 1, *events[0].NewKeyVersion, "Expected NewKeyVersion = 1")
+	require.True(t, events[0].Success, "Expected successful event")
 }
 
 func TestClientRepository_GetByID(t *testing.T) {

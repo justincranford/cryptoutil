@@ -6,11 +6,14 @@ package orm
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"time"
 
 	googleUuid "github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
@@ -27,13 +30,80 @@ func NewClientRepository(db *gorm.DB) *ClientRepositoryGORM {
 	return &ClientRepositoryGORM{db: db}
 }
 
-// Create creates a new client.
+// Create creates a new client with an initial secret (version 1).
 func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
-	if err := getDB(ctx, r.db).WithContext(ctx).Create(client).Error; err != nil {
-		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create client: %w", err))
-	}
+	return getDB(ctx, r.db).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 1. Create client record.
+		if err := tx.Create(client).Error; err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create client: %w", err))
+		}
 
-	return nil
+		// 2. Generate initial secret (32 bytes).
+		initialSecret, err := generateRandomSecret(32)
+		if err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrKeyGenerationFailed, fmt.Errorf("failed to generate initial secret: %w", err))
+		}
+
+		// 3. Hash secret.
+		secretHash, err := hashSecret(initialSecret)
+		if err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrPasswordHashFailed, fmt.Errorf("failed to hash initial secret: %w", err))
+		}
+
+		// 4. Store ClientSecretVersion (version 1, active, no expiration).
+		now := time.Now()
+		version := &cryptoutilIdentityDomain.ClientSecretVersion{
+			ID:         googleUuid.New(),
+			ClientID:   client.ID,
+			Version:    1,
+			SecretHash: secretHash,
+			Status:     cryptoutilIdentityDomain.SecretStatusActive,
+			CreatedAt:  now,
+			ExpiresAt:  nil,
+		}
+		if err := tx.Create(version).Error; err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create initial secret version: %w", err))
+		}
+
+		// 5. Create KeyRotationEvent audit log.
+		oldVersion := 0
+		newVersion := 1
+		event := &cryptoutilIdentityDomain.KeyRotationEvent{
+			ID:            googleUuid.New(),
+			EventType:     "secret_created",
+			KeyType:       "client_secret",
+			KeyID:         client.ID.String(),
+			Timestamp:     now,
+			Initiator:     "system",
+			OldKeyVersion: &oldVersion,
+			NewKeyVersion: &newVersion,
+			Reason:        "Initial client creation",
+			Success:       true,
+		}
+		if err := tx.Create(event).Error; err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create audit event: %w", err))
+		}
+
+		return nil
+	})
+}
+
+// generateRandomSecret generates a cryptographically secure random secret.
+func generateRandomSecret(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("failed to generate random bytes: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
+}
+
+// hashSecret hashes a plaintext secret using bcrypt.
+func hashSecret(secret string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("failed to hash secret: %w", err)
+	}
+	return string(hash), nil
 }
 
 // GetByID retrieves a client by ID.
