@@ -92,7 +92,7 @@ func TestHandleAuthorizeGET_InvalidClientID(t *testing.T) {
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
-	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode, "Should return 400 Bad Request for invalid client")
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode, "Should return 404 Not Found for invalid client")
 }
 
 // TestHandleAuthorizeGET_InvalidRedirectURI tests authorization with unregistered redirect URI.

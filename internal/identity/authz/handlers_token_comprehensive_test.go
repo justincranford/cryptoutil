@@ -291,9 +291,11 @@ func createTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config
 			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
-			Issuer:              "https://localhost:8080",
-			AccessTokenLifetime: 3600,
-			AccessTokenFormat:   "jws",
+			Issuer:               "https://localhost:8080",
+			AccessTokenLifetime:  3600,
+			RefreshTokenLifetime: 86400,
+			AccessTokenFormat:    "jws",
+			SigningAlgorithm:     "RS256",
 		},
 	}
 
@@ -306,8 +308,41 @@ func createTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run auto migrations")
 
-	// Create token service - pass nil for issuers (tests don't need actual token generation).
-	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(nil, nil, nil, config.Tokens)
+	// Create key rotation manager for token issuers.
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		&mockKeyGenerator{},
+		nil,
+	)
+	require.NoError(t, err, "Failed to create key rotation manager")
+
+	// Generate initial signing and encryption keys.
+	err = keyRotationMgr.RotateSigningKey(ctx, config.Tokens.SigningAlgorithm)
+	require.NoError(t, err, "Failed to rotate initial signing key")
+
+	err = keyRotationMgr.RotateEncryptionKey(ctx)
+	require.NoError(t, err, "Failed to rotate initial encryption key")
+
+	// Create JWS issuer for access tokens.
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		config.Tokens.Issuer,
+		keyRotationMgr,
+		config.Tokens.SigningAlgorithm,
+		time.Duration(config.Tokens.AccessTokenLifetime)*time.Second,
+		time.Duration(config.Tokens.RefreshTokenLifetime)*time.Second,
+	)
+	require.NoError(t, err, "Failed to create JWS issuer")
+
+	// Create JWE issuer.
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	require.NoError(t, err, "Failed to create JWE issuer")
+
+	// Create UUID issuer.
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
+	require.NotNil(t, uuidIssuer, "UUID issuer should not be nil")
+
+	// Create token service with proper issuers.
+	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, config.Tokens)
 	require.NotNil(t, tokenSvc, "Token service should not be nil")
 
 	return config, repoFactory, tokenSvc
