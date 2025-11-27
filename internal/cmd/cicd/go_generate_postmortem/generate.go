@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,12 +57,19 @@ func Generate(ctx context.Context, opts Options) error {
 		opts.ProjectStatusPath = "docs/02-identityV2/PROJECT-STATUS.md"
 	}
 
-	// Extract task numbers for range (P5.01 → 01, P5.05 → 05)
-	startNum := extractTaskNumber(opts.StartTask)
-	endNum := extractTaskNumber(opts.EndTask)
+	// Extract task numbers for range (P5.01 → 1, P5.05 → 5)
+	startNum, err := extractTaskNumber(opts.StartTask)
+	if err != nil {
+		return fmt.Errorf("invalid start task: %w", err)
+	}
 
-	if startNum == "" || endNum == "" {
-		return fmt.Errorf("invalid task format: start=%s, end=%s (expected format: P5.01)", opts.StartTask, opts.EndTask)
+	endNum, err := extractTaskNumber(opts.EndTask)
+	if err != nil {
+		return fmt.Errorf("invalid end task: %w", err)
+	}
+
+	if startNum > endNum {
+		return fmt.Errorf("start task number (%d) must be <= end task number (%d)", startNum, endNum)
 	}
 
 	// Parse task documents for evidence
@@ -70,33 +78,44 @@ func Generate(ctx context.Context, opts Options) error {
 		return fmt.Errorf("failed to parse task documents: %w", err)
 	}
 
-	// Parse requirements coverage metrics
-	reqMetrics, err := parseRequirementsCoverage(opts.RequirementsCoveragePath)
-	if err != nil {
-		return fmt.Errorf("failed to parse requirements coverage: %w", err)
+	// Parse requirements coverage metrics (optional)
+	var reqMetrics RequirementsMetrics
+	if _, err := os.Stat(opts.RequirementsCoveragePath); err == nil {
+		reqMetrics, err = parseRequirementsCoverage(opts.RequirementsCoveragePath)
+		if err != nil {
+			return fmt.Errorf("failed to parse requirements coverage: %w", err)
+		}
 	}
 
-	// Parse PROJECT-STATUS.md for status transitions
-	statusTransitions, err := parseProjectStatus(opts.ProjectStatusPath)
-	if err != nil {
-		return fmt.Errorf("failed to parse project status: %w", err)
+	// Parse PROJECT-STATUS.md for status transitions (optional)
+	var statusTransitions []StatusTransition
+	if _, err := os.Stat(opts.ProjectStatusPath); err == nil {
+		statusTransitions, err = parseProjectStatus(opts.ProjectStatusPath)
+		if err != nil {
+			return fmt.Errorf("failed to parse project status: %w", err)
+		}
 	}
 
 	// Generate post-mortem content
 	content := generatePostMortem(taskData, reqMetrics, statusTransitions)
 
-	// Write output file
+	// Create output directory if it doesn't exist.
+	outputDir := filepath.Dir(opts.OutputPath)
+	if outputDir != "" && outputDir != "." {
+		err = os.MkdirAll(outputDir, cryptoutilMagic.CICDOutputDirPermissions)
+		if err != nil {
+			return fmt.Errorf("failed to create output directory: %w", err)
+		}
+	}
+
+	// Write output file.
 	err = os.WriteFile(opts.OutputPath, []byte(content), cryptoutilMagic.FilePermissionsDefault)
 	if err != nil {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
-	fmt.Printf("✅ Post-mortem generated: %s\n", opts.OutputPath)
-
 	return nil
-}
-
-// TaskData contains parsed data from a single task document.
+} // TaskData contains parsed data from a single task document.
 type TaskData struct {
 	TaskID       string   // P5.01
 	Title        string   // Automated Quality Gates
@@ -504,14 +523,19 @@ func generatePostMortem(taskData []TaskData, reqMetrics RequirementsMetrics, sta
 
 // Helper functions
 
-func extractTaskNumber(task string) string {
-	// Extract number from P5.01 → 01
+func extractTaskNumber(task string) (int, error) {
+	// Extract number from P5.01 → 1
 	parts := strings.Split(task, ".")
-	if len(parts) != 2 {
-		return ""
+	if len(parts) != minTaskIDSegments-1 {
+		return 0, fmt.Errorf("invalid task format: %s (expected format: P5.01)", task)
 	}
 
-	return parts[1]
+	num, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, fmt.Errorf("invalid task number: %s: %w", task, err)
+	}
+
+	return num, nil
 }
 
 func isTaskInRange(taskID, startTask, endTask string) bool {
