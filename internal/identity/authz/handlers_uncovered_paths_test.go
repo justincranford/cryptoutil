@@ -60,15 +60,15 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 				err := clientRepo.Create(ctx, client)
 				require.NoError(t, err, "Failed to create test client")
 
-				// Create authorization request WITHOUT UserID (simulates incomplete login/consent).
-				authReqRepo := repoFactory.AuthorizationRequestRepository()
+			// Create authorization request WITHOUT UserID (simulates incomplete login/consent).
+			authReqRepo := repoFactory.AuthorizationRequestRepository()
 
-				authCode := googleUuid.NewString()
-				authReq := &cryptoutilIdentityDomain.AuthorizationRequest{
-					ID:                  googleUuid.Must(googleUuid.NewV7()),
-					ClientID:            clientID,
-					Code:                authCode,
-					RedirectURI:         "https://example.com/callback",
+			authCode := googleUuid.Must(googleUuid.NewV7()).String() // Use UUIDv7 for time-ordered uniqueness
+			authReq := &cryptoutilIdentityDomain.AuthorizationRequest{
+				ID:                  googleUuid.Must(googleUuid.NewV7()),
+				ClientID:            clientID,
+				Code:                authCode,
+				RedirectURI:         "https://example.com/callback",
 					ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
 					Scope:               "openid profile",
 					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
