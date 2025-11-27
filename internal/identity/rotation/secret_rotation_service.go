@@ -1,0 +1,280 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package rotation
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"time"
+
+	googleUuid "github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+	"cryptoutil/internal/identity/domain"
+)
+
+// SecretRotationService handles client secret rotation operations.
+type SecretRotationService struct {
+	db *gorm.DB
+}
+
+// NewSecretRotationService creates a new secret rotation service.
+func NewSecretRotationService(db *gorm.DB) *SecretRotationService {
+	return &SecretRotationService{
+		db: db,
+	}
+}
+
+// RotateClientSecretResult contains the results of a secret rotation operation.
+type RotateClientSecretResult struct {
+	OldVersion         int
+	NewVersion         int
+	NewSecretPlaintext string
+	GracePeriodEnd     time.Time
+	EventID            googleUuid.UUID
+}
+
+// RotateClientSecret rotates a client secret with grace period support.
+func (s *SecretRotationService) RotateClientSecret(
+	ctx context.Context,
+	clientID googleUuid.UUID,
+	gracePeriodDuration time.Duration,
+	initiator string,
+	reason string,
+) (*RotateClientSecretResult, error) {
+	var result RotateClientSecretResult
+
+	// Generate new secret.
+	newSecretPlaintext, err := generateRandomSecret(cryptoutilMagic.SecretGenerationDefaultByteLength)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate new secret: %w", err)
+	}
+
+	// Hash new secret.
+	newSecretHash, err := hashSecret(newSecretPlaintext)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash new secret: %w", err)
+	}
+
+	// Execute rotation in transaction.
+	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Get current active secret version.
+		var currentVersion domain.ClientSecretVersion
+
+		err := tx.Where("client_id = ? AND status = ?", clientID, domain.SecretStatusActive).
+			Order("version DESC").
+			First(&currentVersion).Error
+
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return fmt.Errorf("failed to query current version: %w", err)
+		}
+
+		// Determine new version number.
+		newVersionNum := 1
+		if err == nil {
+			// Found existing version.
+			newVersionNum = currentVersion.Version + 1
+			result.OldVersion = currentVersion.Version
+
+			// Mark old version as expired (after grace period).
+			expiresAt := time.Now().Add(gracePeriodDuration)
+			currentVersion.ExpiresAt = &expiresAt
+
+			if updateErr := tx.Save(&currentVersion).Error; updateErr != nil {
+				return fmt.Errorf("failed to update old version expiration: %w", updateErr)
+			}
+		}
+
+		// Create new secret version.
+		newVersion := &domain.ClientSecretVersion{
+			ClientID:   clientID,
+			Version:    newVersionNum,
+			SecretHash: newSecretHash,
+			Status:     domain.SecretStatusActive,
+		}
+
+		if createErr := tx.Create(newVersion).Error; createErr != nil {
+			return fmt.Errorf("failed to create new version: %w", createErr)
+		}
+
+		result.NewVersion = newVersionNum
+		result.NewSecretPlaintext = newSecretPlaintext
+		result.GracePeriodEnd = time.Now().Add(gracePeriodDuration)
+
+		// Create rotation event.
+		oldVersionPtr := &result.OldVersion
+		newVersionPtr := &result.NewVersion
+
+		if result.OldVersion == 0 {
+			oldVersionPtr = nil
+		}
+
+		gracePeriodStr := gracePeriodDuration.String()
+
+		event := &domain.KeyRotationEvent{
+			EventType:     domain.EventTypeRotation,
+			KeyType:       domain.KeyTypeClientSecret,
+			KeyID:         clientID.String(),
+			Initiator:     initiator,
+			OldKeyVersion: oldVersionPtr,
+			NewKeyVersion: newVersionPtr,
+			GracePeriod:   &gracePeriodStr,
+			Reason:        reason,
+			Success:       true,
+		}
+
+		if eventErr := tx.Create(event).Error; eventErr != nil {
+			return fmt.Errorf("failed to create rotation event: %w", eventErr)
+		}
+
+		result.EventID = event.ID
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("rotation transaction failed: %w", err)
+	}
+
+	return &result, nil
+}
+
+// GetActiveSecretVersion retrieves the current active secret version for a client.
+func (s *SecretRotationService) GetActiveSecretVersion(
+	ctx context.Context,
+	clientID googleUuid.UUID,
+) (*domain.ClientSecretVersion, error) {
+	var version domain.ClientSecretVersion
+
+	err := s.db.WithContext(ctx).
+		Where("client_id = ? AND status = ?", clientID, domain.SecretStatusActive).
+		Order("version DESC").
+		First(&version).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("failed to query active version: %w", err)
+	}
+
+	return &version, nil
+}
+
+// ValidateSecretDuringGracePeriod validates a secret against active + grace period versions.
+func (s *SecretRotationService) ValidateSecretDuringGracePeriod(
+	ctx context.Context,
+	clientID googleUuid.UUID,
+	secretPlaintext string,
+) (bool, error) {
+	// Query active versions (including those in grace period).
+	var versions []domain.ClientSecretVersion
+
+	err := s.db.WithContext(ctx).
+		Where("client_id = ? AND status = ?", clientID, domain.SecretStatusActive).
+		Order("version DESC").
+		Find(&versions).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to query secret versions: %w", err)
+	}
+
+	// Validate against all active versions (grace period support).
+	now := time.Now()
+
+	for i := range versions {
+		if versions[i].IsValid(now) {
+			if compareSecret(secretPlaintext, versions[i].SecretHash) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+// RevokeSecretVersion revokes a specific secret version.
+func (s *SecretRotationService) RevokeSecretVersion(
+	ctx context.Context,
+	clientID googleUuid.UUID,
+	version int,
+	revokerID string,
+	reason string,
+) error {
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Find and revoke the version.
+		var secretVersion domain.ClientSecretVersion
+
+		err := tx.Where("client_id = ? AND version = ?", clientID, version).
+			First(&secretVersion).Error
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return fmt.Errorf("secret version %d not found", version)
+			}
+
+			return fmt.Errorf("failed to query secret version: %w", err)
+		}
+
+		secretVersion.MarkRevoked(revokerID)
+
+		if updateErr := tx.Save(&secretVersion).Error; updateErr != nil {
+			return fmt.Errorf("failed to revoke secret version: %w", updateErr)
+		}
+
+		// Create revocation event.
+		versionPtr := &version
+
+		event := &domain.KeyRotationEvent{
+			EventType:     domain.EventTypeRevocation,
+			KeyType:       domain.KeyTypeClientSecret,
+			KeyID:         clientID.String(),
+			Initiator:     revokerID,
+			OldKeyVersion: versionPtr,
+			Reason:        reason,
+			Success:       true,
+		}
+
+		if eventErr := tx.Create(event).Error; eventErr != nil {
+			return fmt.Errorf("failed to create revocation event: %w", eventErr)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to revoke secret version: %w", err)
+	}
+
+	return nil
+}
+
+// generateRandomSecret generates a cryptographically secure random secret.
+func generateRandomSecret(length int) (string, error) {
+	bytes := make([]byte, length)
+
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("failed to read random bytes: %w", err)
+	}
+
+	return base64.URLEncoding.EncodeToString(bytes), nil
+}
+
+// hashSecret hashes a secret using bcrypt.
+func hashSecret(secret string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("failed to hash secret: %w", err)
+	}
+
+	return string(hash), nil
+}
+
+// compareSecret compares a plaintext secret with a bcrypt hash.
+func compareSecret(plaintext, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(plaintext))
+
+	return err == nil
+}

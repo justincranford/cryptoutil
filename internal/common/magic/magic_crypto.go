@@ -50,6 +50,9 @@ const (
 	JWEA384KeySize = SymmetricKeySize384
 	JWEA512KeySize = SymmetricKeySize512
 
+	// Secret generation byte lengths.
+	SecretGenerationDefaultByteLength = 32
+
 	// AES key sizes in bits.
 	AESKeySize128 = SymmetricKeySize128
 	AESKeySize192 = SymmetricKeySize192
