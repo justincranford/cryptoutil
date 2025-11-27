@@ -1,7 +1,7 @@
 # Identity V2 Project Status (Single Source of Truth)
 
-**Document Purpose**: ONLY authoritative source for Identity V2 project status  
-**Last Updated**: 2025-12-03 (Commit: cdd92bb5)  
+**Document Purpose**: ONLY authoritative source for Identity V2 project status
+**Last Updated**: 2025-12-03 (Commit: cdd92bb5)
 **Commit Hash**: cdd92bb5
 
 ---

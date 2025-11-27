@@ -99,6 +99,9 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: [user complains about stopping] → [provides ANY text acknowledging error] → [continues] ❌
 - **WRONG**: commit → [reads conversation summary] → "I see I stopped at 6.3% usage, continuing now" → [stops] ❌
 - **WRONG**: [ANY acknowledgment of user frustration or stopping mistake] → [stops or delays continuation] ❌
+- **WRONG**: [user says "YOU STOPPED AGAIN"] → [ANY text response] → [tool call] ❌
+- **WRONG**: [user says "AIM FOR 99%"] → "I'll aim for 99%" → [tool call] ❌
+- **WRONG**: [reads conversation summary] → [provides ANY acknowledgment] → [continues] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
@@ -107,6 +110,7 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **RIGHT**: [user complains "YOU STOPPED AGAIN"] → [IMMEDIATE read_file or grep_search to find next work] → [IMMEDIATE tool call to continue] ✅
 - **RIGHT**: [receives conversation summary] → [IMMEDIATE grep_search for pending work] → [IMMEDIATE continue implementation] ✅
 - **RIGHT**: [user says "DON'T STOP"] → [IMMEDIATE file_search for task docs] → [IMMEDIATE read next task] → [IMMEDIATE start work] ✅
+- **RIGHT**: [user says "AIM FOR 99%"] → [IMMEDIATE file_search for pending work] → [IMMEDIATE continue implementation] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
