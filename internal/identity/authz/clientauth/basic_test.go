@@ -17,47 +17,7 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
-// MockClientRepo is a mock implementation of ClientRepository for testing.
-type mockClientRepo struct {
-	clients map[string]*cryptoutilIdentityDomain.Client
-}
-
-func (m *mockClientRepo) GetByClientID(_ context.Context, clientID string) (*cryptoutilIdentityDomain.Client, error) {
-	client, ok := m.clients[clientID]
-	if !ok {
-		return nil, cryptoutilIdentityAppErr.ErrClientNotFound
-	}
-
-	return client, nil
-}
-
-func (m *mockClientRepo) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.Client, error) {
-	return nil, nil
-}
-
-func (m *mockClientRepo) GetAll(_ context.Context) ([]*cryptoutilIdentityDomain.Client, error) {
-	return nil, nil
-}
-
-func (m *mockClientRepo) Create(_ context.Context, _ *cryptoutilIdentityDomain.Client) error {
-	return nil
-}
-
-func (m *mockClientRepo) Update(_ context.Context, _ *cryptoutilIdentityDomain.Client) error {
-	return nil
-}
-
-func (m *mockClientRepo) Delete(_ context.Context, _ googleUuid.UUID) error {
-	return nil
-}
-
-func (m *mockClientRepo) List(_ context.Context, _ int, _ int) ([]*cryptoutilIdentityDomain.Client, error) {
-	return nil, nil
-}
-
-func (m *mockClientRepo) Count(_ context.Context) (int64, error) {
-	return 0, nil
-}
+// mockClientRepo moved to test_helpers_test.go (shared across all clientauth test files)
 
 func TestBasicAuthenticator_MethodName(t *testing.T) {
 	t.Parallel()

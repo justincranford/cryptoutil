@@ -93,13 +93,11 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 		})
 	}
 
-	// Update client with new secret.
-	// Store old secret hash in rotation history (future enhancement: ClientSecretHistory table).
-	oldSecretHash := client.ClientSecret
-	client.ClientSecret = hashedSecret
-	client.UpdatedAt = time.Now()
+	// Rotate secret in repository (archives old secret in history table, updates client).
+	rotatedBy := authenticatedClient.ClientID
+	reason := "Client-initiated rotation"
 
-	err = clientRepo.Update(ctx, client)
+	err = clientRepo.RotateSecret(ctx, clientID, hashedSecret, rotatedBy, reason)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,
@@ -107,14 +105,11 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 		})
 	}
 
-	// Note: In production, log rotation for audit trail with old/new hash prefixes.
-	_ = oldSecretHash // Suppress unused variable warning
-
 	// Return the new plaintext secret (this is the ONLY time it will be available).
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"client_id":     client.ClientID,
 		"client_secret": newSecretPlaintext,
-		"rotated_at":    client.UpdatedAt,
+		"rotated_at":    time.Now(),
 		"message":       "Client secret rotated successfully. Store this secret securely - it will not be shown again.",
 	})
 }

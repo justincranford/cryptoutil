@@ -69,6 +69,12 @@ type ClientRepository interface {
 
 	// Count returns the total number of clients.
 	Count(ctx context.Context) (int64, error)
+
+	// RotateSecret rotates client secret and archives old secret in history.
+	RotateSecret(ctx context.Context, clientID googleUuid.UUID, newSecretHash string, rotatedBy string, reason string) error
+
+	// GetSecretHistory retrieves secret rotation history for a client.
+	GetSecretHistory(ctx context.Context, clientID googleUuid.UUID) ([]cryptoutilIdentityDomain.ClientSecretHistory, error)
 }
 
 // TokenRepository defines operations for token persistence.

@@ -113,3 +113,64 @@ func (r *ClientRepositoryGORM) Count(ctx context.Context) (int64, error) {
 
 	return count, nil
 }
+
+// RotateSecret rotates client secret and archives old secret in history.
+func (r *ClientRepositoryGORM) RotateSecret(ctx context.Context, clientID googleUuid.UUID, newSecretHash string, rotatedBy string, reason string) error {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// 1. Fetch current client.
+		var client cryptoutilIdentityDomain.Client
+		if err := tx.Where("id = ? AND deleted_at IS NULL", clientID).First(&client).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return cryptoutilIdentityAppErr.ErrClientNotFound
+			}
+
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to find client: %w", err))
+		}
+
+		// 2. Archive old secret to history.
+		historyID, err := googleUuid.NewV7()
+		if err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to generate history ID: %w", err))
+		}
+
+		history := cryptoutilIdentityDomain.ClientSecretHistory{
+			ID:         historyID,
+			ClientID:   clientID,
+			SecretHash: client.ClientSecret,
+			RotatedAt:  time.Now(),
+			RotatedBy:  rotatedBy,
+			Reason:     reason,
+			ExpiresAt:  nil,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+		}
+		if err := tx.Create(&history).Error; err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create secret history: %w", err))
+		}
+
+		// 3. Update client with new secret hash.
+		if err := tx.Model(&client).Update("client_secret", newSecretHash).Error; err != nil {
+			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update client secret: %w", err))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to rotate client secret: %w", err))
+	}
+
+	return nil
+}
+
+// GetSecretHistory retrieves secret rotation history for a client.
+func (r *ClientRepositoryGORM) GetSecretHistory(ctx context.Context, clientID googleUuid.UUID) ([]cryptoutilIdentityDomain.ClientSecretHistory, error) {
+	var history []cryptoutilIdentityDomain.ClientSecretHistory
+	if err := getDB(ctx, r.db).WithContext(ctx).
+		Where("client_id = ?", clientID).
+		Order("rotated_at DESC").
+		Find(&history).Error; err != nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get secret history: %w", err))
+	}
+
+	return history, nil
+}

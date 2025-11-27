@@ -406,6 +406,14 @@ func (m *mockClientRepository) Count(ctx context.Context) (int64, error) {
 	return int64(len(m.clients)), nil
 }
 
+func (m *mockClientRepository) RotateSecret(_ context.Context, _ googleUuid.UUID, _ string, _ string, _ string) error {
+	return nil
+}
+
+func (m *mockClientRepository) GetSecretHistory(_ context.Context, _ googleUuid.UUID) ([]cryptoutilIdentityDomain.ClientSecretHistory, error) {
+	return nil, nil
+}
+
 func (m *mockClientRepository) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Client, error) {
 	if offset >= len(m.clients) {
 		return []*cryptoutilIdentityDomain.Client{}, nil

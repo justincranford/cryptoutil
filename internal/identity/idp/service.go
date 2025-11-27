@@ -79,3 +79,29 @@ func (s *Service) initializeAuthProfiles() {
 	// - TOTP: cryptoutilIdentityAuth.NewTOTPProfile(...)
 	// - Passkey (WebAuthn): cryptoutilIdentityAuth.NewPasskeyProfile(...)
 }
+
+// RotateClientSecret rotates a client secret and returns the new plaintext secret.
+// The new secret is returned ONCE - caller MUST save it.
+// Old secret is archived in history and immediately invalidated.
+func (s *Service) RotateClientSecret(ctx context.Context, clientID string, rotatedBy string, reason string) (string, error) {
+	clientRepo := s.repoFactory.ClientRepository()
+
+	// 1. Find client by OAuth client_id.
+	client, err := clientRepo.GetByClientID(ctx, clientID)
+	if err != nil {
+		return "", fmt.Errorf("failed to find client: %w", err)
+	}
+
+	// 2. Generate new secret.
+	newPlaintext, newHashed, err := GenerateClientSecret()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate new secret: %w", err)
+	}
+
+	// 3. Rotate in repository (archives old secret, updates client).
+	if err := clientRepo.RotateSecret(ctx, client.ID, newHashed, rotatedBy, reason); err != nil {
+		return "", fmt.Errorf("failed to rotate secret in repository: %w", err)
+	}
+
+	return newPlaintext, nil
+}
