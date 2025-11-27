@@ -14,9 +14,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	googleUuid "github.com/google/uuid"
+
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
-	googleUuid "github.com/google/uuid"
 )
 
 func TestScheduledRotation_NoExpiringSecrets(t *testing.T) {

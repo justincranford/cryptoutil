@@ -11,9 +11,9 @@ import (
 
 	"gorm.io/gorm"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // ScheduledRotationConfig holds configuration for scheduled rotation.
@@ -47,7 +47,6 @@ func ScheduledRotation(ctx context.Context, db *gorm.DB, config *ScheduledRotati
 			cryptoutilIdentityDomain.SecretStatusActive, expirationCutoff).
 		Order("expires_at ASC").
 		Find(&secretsToRotate).Error
-
 	if err != nil {
 		return 0, fmt.Errorf("failed to query secrets for rotation: %w", err)
 	}
@@ -76,7 +75,6 @@ func ScheduledRotation(ctx context.Context, db *gorm.DB, config *ScheduledRotati
 			Where("client_id = ? AND status = ?", secret.ClientID, cryptoutilIdentityDomain.SecretStatusActive).
 			Order("version DESC").
 			First(&latestActiveVersion).Error
-
 		if err != nil {
 			return rotatedCount, fmt.Errorf("failed to query latest version for client %s: %w", clientID, err)
 		}
@@ -104,7 +102,6 @@ func ScheduledRotation(ctx context.Context, db *gorm.DB, config *ScheduledRotati
 			cryptoutilMagic.SystemInitiatorName,
 			fmt.Sprintf("Automatic rotation (expiring in %s)", gracePeriod),
 		)
-
 		if err != nil {
 			return rotatedCount, fmt.Errorf("failed to rotate secret for client %s: %w", secret.ClientID, err)
 		}
