@@ -9,11 +9,9 @@ import (
 	crand "crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	googleUuid "github.com/google/uuid"
 
 	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
@@ -25,19 +23,10 @@ import (
 func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	ctx := c.Context()
 
-	// Parse client ID from URL parameter.
-	idParam := c.Params("id")
-
-	clientID, err := googleUuid.Parse(idParam)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
-			"error_description": fmt.Sprintf("Invalid client ID format: %v", err),
-		})
-	}
+	// Parse client_id from URL parameter (string, not UUID).
+	clientIDParam := c.Params("id")
 
 	// Authenticate the requesting client (must be the client itself or an admin).
-	// For this implementation, we'll use the Authorization header to authenticate.
 	authenticatedClient, err := s.authenticateClient(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -48,7 +37,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 
 	// Verify the authenticated client is the same as the client being rotated.
 	// In production, you might also allow admin clients to rotate any client's secret.
-	if authenticatedClient.ID != clientID {
+	if authenticatedClient.ClientID != clientIDParam {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorAccessDenied,
 			"error_description": "Client can only rotate its own secret",
@@ -58,7 +47,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	// Retrieve the client from database.
 	clientRepo := s.repoFactory.ClientRepository()
 
-	client, err := clientRepo.GetByID(ctx, clientID)
+	client, err := clientRepo.GetByClientID(ctx, clientIDParam)
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrClientNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -97,7 +86,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	rotatedBy := authenticatedClient.ClientID
 	reason := "Client-initiated rotation"
 
-	err = clientRepo.RotateSecret(ctx, clientID, hashedSecret, rotatedBy, reason)
+	err = clientRepo.RotateSecret(ctx, client.ID, hashedSecret, rotatedBy, reason)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,

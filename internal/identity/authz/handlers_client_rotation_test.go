@@ -75,7 +75,8 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	require.True(t, match)
 
 	// Rotate the secret via HTTP endpoint.
-	reqURL := fmt.Sprintf("/oauth2/v1/clients/%s/rotate-secret", client.ID.String())
+	// Note: Use client.ClientID (string) instead of client.ID (UUID) for URL parameter.
+	reqURL := fmt.Sprintf("/oauth2/v1/clients/%s/rotate-secret", client.ClientID)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, nil)
 	require.NoError(t, err)
 	req.SetBasicAuth(client.ClientID, originalSecret)
@@ -118,7 +119,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	assert.True(t, match, "New secret should work after rotation")
 }
 
-// TestClientSecretRotation_InvalidClientID validates error handling for invalid UUID.
+// TestClientSecretRotation_InvalidClientID validates error when authentication missing.
 func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 	t.Parallel()
 
@@ -146,8 +147,8 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 	app := fiber.New()
 	service.RegisterRoutes(app)
 
-	// Attempt to rotate with invalid client ID.
-	reqURL := "/oauth2/v1/clients/invalid-uuid/rotate-secret"
+	// Attempt to rotate without authentication.
+	reqURL := "/oauth2/v1/clients/some-client-id/rotate-secret"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, nil)
 	require.NoError(t, err)
 
@@ -159,14 +160,14 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 		_ = resp.Body.Close()
 	}()
 
-	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 
 	var result map[string]any
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	assert.Equal(t, cryptoutilIdentityMagic.ErrorInvalidRequest, result["error"])
-	assert.Contains(t, result["error_description"], "Invalid client ID format")
+	assert.Equal(t, cryptoutilIdentityMagic.ErrorInvalidClient, result["error"])
+	assert.Contains(t, result["error_description"], "Client authentication failed")
 }
 
 // TestClientSecretRotation_ClientNotFound validates error handling for non-existent client.

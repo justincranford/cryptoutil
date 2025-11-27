@@ -32,5 +32,5 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oauth.Post("/revoke", s.handleRevoke)
 
 	// Client management endpoints.
-	oauth.Put("/clients/:id/rotate-secret", s.handleClientSecretRotation)
+	oauth.Post("/clients/:id/rotate-secret", s.handleClientSecretRotation)
 }
