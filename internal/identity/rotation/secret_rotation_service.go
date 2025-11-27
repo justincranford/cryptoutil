@@ -166,35 +166,48 @@ func (s *SecretRotationService) GetActiveSecretVersion(
 	return &version, nil
 }
 
-// ValidateSecretDuringGracePeriod validates a secret against active + grace period versions.
+// ValidateSecretDuringGracePeriod validates a client secret against all active versions.
 func (s *SecretRotationService) ValidateSecretDuringGracePeriod(
 	ctx context.Context,
 	clientID googleUuid.UUID,
 	secretPlaintext string,
-) (bool, error) {
-	// Query active versions (including those in grace period).
-	var versions []domain.ClientSecretVersion
+) (bool, int, error) {
+	// Get all active versions (including expired but within grace period).
+	activeVersions, err := s.GetActiveSecretVersions(ctx, clientID)
+	if err != nil {
+		return false, 0, fmt.Errorf("failed to query active versions: %w", err)
+	}
+
+	// Validate against all active versions.
+	now := time.Now()
+
+	for i := range activeVersions {
+		if activeVersions[i].IsValid(now) {
+			if compareSecret(secretPlaintext, activeVersions[i].SecretHash) {
+				return true, activeVersions[i].Version, nil
+			}
+		}
+	}
+
+	return false, 0, nil
+}
+
+// GetActiveSecretVersions returns all active secret versions for grace period validation.
+func (s *SecretRotationService) GetActiveSecretVersions(
+	ctx context.Context,
+	clientID googleUuid.UUID,
+) ([]*domain.ClientSecretVersion, error) {
+	var versions []*domain.ClientSecretVersion
 
 	err := s.db.WithContext(ctx).
 		Where("client_id = ? AND status = ?", clientID, domain.SecretStatusActive).
 		Order("version DESC").
 		Find(&versions).Error
 	if err != nil {
-		return false, fmt.Errorf("failed to query secret versions: %w", err)
+		return nil, fmt.Errorf("failed to query active secrets: %w", err)
 	}
 
-	// Validate against all active versions (grace period support).
-	now := time.Now()
-
-	for i := range versions {
-		if versions[i].IsValid(now) {
-			if compareSecret(secretPlaintext, versions[i].SecretHash) {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
+	return versions, nil
 }
 
 // RevokeSecretVersion revokes a specific secret version.

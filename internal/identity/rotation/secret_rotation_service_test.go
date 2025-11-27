@@ -201,22 +201,24 @@ func TestValidateSecretDuringGracePeriod(t *testing.T) {
 	secret2 := result2.NewSecretPlaintext
 
 	// Both secrets should validate during grace period.
-	valid1, validateErr1 := service.ValidateSecretDuringGracePeriod(ctx, clientID, secret1)
+	valid1, version1, validateErr1 := service.ValidateSecretDuringGracePeriod(ctx, clientID, secret1)
 	require.NoError(t, validateErr1)
 	require.True(t, valid1, "Old secret should be valid during grace period")
+	require.Equal(t, result1.NewVersion, version1, "Should return version 1")
 
-	valid2, validateErr2 := service.ValidateSecretDuringGracePeriod(ctx, clientID, secret2)
+	valid2, version2, validateErr2 := service.ValidateSecretDuringGracePeriod(ctx, clientID, secret2)
 	require.NoError(t, validateErr2)
 	require.True(t, valid2, "New secret should be valid")
+	require.Equal(t, result2.NewVersion, version2, "Should return version 2")
 
-	// Invalid secret should fail.
-	validInvalid, validateErrInvalid := service.ValidateSecretDuringGracePeriod(
+	// Invalid secret should not validate.
+	validInvalid, _, validateErrInvalid := service.ValidateSecretDuringGracePeriod(
 		ctx,
 		clientID,
 		"invalid-secret",
 	)
 	require.NoError(t, validateErrInvalid)
-	require.False(t, validInvalid, "Invalid secret should fail validation")
+	require.False(t, validInvalid, "Invalid secret should not validate")
 }
 
 func TestRevokeSecretVersion(t *testing.T) {
