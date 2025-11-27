@@ -60,6 +60,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 		&cryptoutilIdentityDomain.Token{},
 		&cryptoutilIdentityDomain.Session{},
 		&cryptoutilIdentityDomain.AuthorizationRequest{},

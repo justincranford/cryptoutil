@@ -60,6 +60,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 		&cryptoutilIdentityDomain.Token{},
 		&cryptoutilIdentityDomain.Session{},
 		&cryptoutilIdentityDomain.AuthorizationRequest{},
@@ -351,6 +353,8 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 		&cryptoutilIdentityDomain.Token{},
 		&cryptoutilIdentityDomain.Session{},
 		&cryptoutilIdentityDomain.AuthorizationRequest{},

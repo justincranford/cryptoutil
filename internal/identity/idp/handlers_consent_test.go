@@ -117,6 +117,8 @@ func TestHandleConsentSubmit_POST(t *testing.T) {
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 		&cryptoutilIdentityDomain.AuthorizationRequest{},
 		&cryptoutilIdentityDomain.ConsentDecision{},
 	)

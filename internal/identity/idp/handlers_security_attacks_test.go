@@ -58,6 +58,8 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 		&cryptoutilIdentityDomain.Token{},
 		&cryptoutilIdentityDomain.Session{},
 		&cryptoutilIdentityDomain.AuthorizationRequest{},
@@ -233,6 +235,8 @@ func TestSecurityAttacks_SessionFixation(t *testing.T) {
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 		&cryptoutilIdentityDomain.Token{},
 		&cryptoutilIdentityDomain.Session{},
 		&cryptoutilIdentityDomain.AuthorizationRequest{},
