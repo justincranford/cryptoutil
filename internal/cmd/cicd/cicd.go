@@ -23,6 +23,7 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
 	"cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
 	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
+	cryptoutilGoGeneratePostmortem "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
 	"cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
 	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	"cryptoutil/internal/cmd/cicd/go_update_project_status"
@@ -42,6 +43,7 @@ const (
 	cmdGoFixAll                           = "go-fix-all"
 	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies"
 	cmdGoCheckIdentityImports             = "go-check-identity-imports"
+	cmdGoGeneratePostmortem               = "go-generate-postmortem"
 	cmdGoIdentityRequirementsCheck        = "go-identity-requirements-check"
 	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"
 	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"
@@ -53,6 +55,7 @@ const (
 // Commands are executed sequentially, collecting results for each.
 // Returns an error if any command fails, but continues executing all commands.
 func Run(commands []string) error {
+	ctx := context.Background()
 	logger := common.NewLogger("Run")
 	startTime := time.Now()
 
@@ -86,13 +89,24 @@ func Run(commands []string) error {
 		logger.Log(fmt.Sprintf("collectAllFiles completed in %.2fs", time.Since(listFilesStart).Seconds()))
 	}
 
-	// Extract actual commands (skip flags starting with -)
+	// Extract actual commands (skip flags starting with - and their values)
 	actualCommands := []string{}
+	skipNext := false
 
 	for _, cmd := range commands {
-		if !strings.HasPrefix(cmd, "-") {
-			actualCommands = append(actualCommands, cmd)
+		if skipNext {
+			skipNext = false
+
+			continue
 		}
+
+		if strings.HasPrefix(cmd, "-") {
+			skipNext = true // Next arg is flag value, skip it
+
+			continue
+		}
+
+		actualCommands = append(actualCommands, cmd)
 	}
 
 	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
@@ -167,6 +181,32 @@ func Run(commands []string) error {
 			_, _, _, cmdErr = go_fix_thelper.Fix(logger, ".")
 		case cmdGoFixAll:
 			_, _, _, cmdErr = go_fix_all.Fix(logger, ".", runtime.Version())
+	case cmdGoGeneratePostmortem:
+		// Parse flags: --start-task P5.01 --end-task P5.05 --output path
+		startTask := ""
+		endTask := ""
+		outputPath := ""
+
+		for i := 0; i < len(remainingArgs); i++ {
+			if remainingArgs[i] == "--start-task" && i+1 < len(remainingArgs) {
+					startTask = remainingArgs[i+1]
+				} else if remainingArgs[i] == "--end-task" && i+1 < len(remainingArgs) {
+					endTask = remainingArgs[i+1]
+				} else if remainingArgs[i] == "--output" && i+1 < len(remainingArgs) {
+					outputPath = remainingArgs[i+1]
+				}
+			}
+
+			if startTask == "" || endTask == "" || outputPath == "" {
+				cmdErr = errors.New("go-generate-postmortem requires --start-task, --end-task, and --output flags")
+			} else {
+				opts := cryptoutilGoGeneratePostmortem.Options{
+					StartTask:  startTask,
+					EndTask:    endTask,
+					OutputPath: outputPath,
+				}
+				cmdErr = cryptoutilGoGeneratePostmortem.Generate(ctx, opts)
+			}
 		}
 
 		cmdDuration := time.Since(cmdStart)
@@ -213,10 +253,21 @@ func validateCommands(commands []string) error {
 
 	commandCounts := make(map[string]int)
 
+	skipNext := false
+
 	for _, command := range commands {
-		// Skip flag arguments (--strict, --task-threshold, etc.)
+		// Skip flag values after flag names (e.g., skip "P5.01" after "--start-task")
+		if skipNext {
+			skipNext = false
+
+			continue
+		}
+
+		// Skip flag arguments (--strict, --task-threshold, --start-task, --end-task, --output, etc.)
 		// Flags are passed to subcommand Enforce functions, not validated as commands
 		if strings.HasPrefix(command, "-") {
+			skipNext = true // Next argument is flag value, skip it
+
 			continue
 		}
 

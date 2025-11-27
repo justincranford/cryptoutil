@@ -216,6 +216,8 @@ linters:
           alias: cryptoutilCmdCicdGoFixStaticcheckErrorStrings
         - pkg: cryptoutil/internal/cmd/cicd/go_fix_thelper
           alias: cryptoutilCmdCicdGoFixTHelper
+        - pkg: cryptoutil/internal/cmd/cicd/go_generate_postmortem
+          alias: cryptoutilGoGeneratePostmortem
         - pkg: cryptoutil/internal/cmd/cicd/go_update_direct_dependencies
           alias: cryptoutilCmdCicdGoUpdateDirectDependencies
         - pkg: cryptoutil/internal/cmd/cicd/github_workflow_lint
