@@ -94,11 +94,19 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: commit → "**P5.07 Progress:** Phase 1 ✅ Phase 2 ✅" → [stops] ❌
 - **WRONG**: commit → "Continuing immediately with Phase 3" → [stops without invoking tool] ❌
 - **WRONG**: ANY STATUS MESSAGE WHATSOEVER → [stops] ❌
+- **WRONG**: [conversation summary received] → "Thank you for the summary" → [stops] ❌
+- **WRONG**: [user says "YOU STOPPED AGAIN"] → "I apologize, I'll continue now" → [starts working] ❌
+- **WRONG**: [user complains about stopping] → [provides ANY text acknowledging error] → [continues] ❌
+- **WRONG**: commit → [reads conversation summary] → "I see I stopped at 6.3% usage, continuing now" → [stops] ❌
+- **WRONG**: [ANY acknowledgment of user frustration or stopping mistake] → [stops or delays continuation] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
 - **RIGHT**: create_file (P5.05 task doc) → commit → [IMMEDIATE run_in_terminal for P5.05 Phase 1] ✅
 - **RIGHT**: commit Phase 2 → [IMMEDIATE create_directory Phase 3] → [IMMEDIATE create_file Phase 3] ✅
+- **RIGHT**: [user complains "YOU STOPPED AGAIN"] → [IMMEDIATE read_file or grep_search to find next work] → [IMMEDIATE tool call to continue] ✅
+- **RIGHT**: [receives conversation summary] → [IMMEDIATE grep_search for pending work] → [IMMEDIATE continue implementation] ✅
+- **RIGHT**: [user says "DON'T STOP"] → [IMMEDIATE file_search for task docs] → [IMMEDIATE read next task] → [IMMEDIATE start work] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
