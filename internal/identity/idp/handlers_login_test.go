@@ -116,15 +116,8 @@ func TestHandleLoginSubmit_POST(t *testing.T) {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
 
-	// Run migrations.
-	db := repoFactory.DB()
-	err = db.AutoMigrate(
-		&cryptoutilIdentityDomain.User{},
-		&cryptoutilIdentityDomain.Client{},
-		&cryptoutilIdentityDomain.Session{},
-		&cryptoutilIdentityDomain.AuthorizationRequest{},
-		&cryptoutilIdentityDomain.AuthProfile{},
-	)
+	// Run database migrations.
+	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err)
 
 	// Initialize IDP service.

@@ -10,6 +10,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -19,8 +20,25 @@ import (
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
 
+// Migration state tracking for parallel test safety.
+var (
+	migrationMutex sync.Mutex
+	migratedDBs    = make(map[string]bool)
+)
+
 // Migrate applies SQL migrations from embedded files.
+// Thread-safe for concurrent test execution via mutex protection.
 func Migrate(db *sql.DB) error {
+	migrationMutex.Lock()
+	defer migrationMutex.Unlock()
+
+	// Generate unique key for this DB instance.
+	dbKey := fmt.Sprintf("%p", db)
+
+	if migratedDBs[dbKey] {
+		return nil // Already migrated this DB instance
+	}
+
 	ctx := context.TODO() // Migration runs during startup, no request context available
 
 	// Enable SQLite pragmas for proper foreign key handling.
@@ -66,5 +84,11 @@ func Migrate(db *sql.DB) error {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
+	// Validate schema after migration.
+	if err := validateSchema(db, ctx); err != nil {
+		return fmt.Errorf("schema validation failed: %w", err)
+	}
+
+	migratedDBs[dbKey] = true
 	return nil
 }

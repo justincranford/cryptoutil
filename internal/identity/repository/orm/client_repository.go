@@ -15,10 +15,10 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // ClientRepositoryGORM implements the ClientRepository interface using GORM.
