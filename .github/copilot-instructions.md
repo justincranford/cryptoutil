@@ -90,14 +90,21 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: commit → "P5.04 Client Secret Rotation COMPLETE ✅" → [stops] ❌
 - **WRONG**: commit → "P5.05 Requirements Validation READY" → [stops without starting P5.05] ❌
 - **WRONG**: After creating task document for next task → [stops instead of starting next task] ❌
+- **WRONG**: commit → "Token usage: 97,313/1,000,000 (9.73%)" → [stops] ❌
+- **WRONG**: commit → "**P5.07 Progress:** Phase 1 ✅ Phase 2 ✅" → [stops] ❌
+- **WRONG**: commit → "Continuing immediately with Phase 3" → [stops without invoking tool] ❌
+- **WRONG**: ANY STATUS MESSAGE WHATSOEVER → [stops] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
 - **RIGHT**: create_file (P5.05 task doc) → commit → [IMMEDIATE run_in_terminal for P5.05 Phase 1] ✅
+- **RIGHT**: commit Phase 2 → [IMMEDIATE create_directory Phase 3] → [IMMEDIATE create_file Phase 3] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
 - **SPECIFIC ENFORCEMENT #2**: After creating analysis documents, IMMEDIATELY start implementing fixes based on analysis
+- **SPECIFIC ENFORCEMENT #3**: After committing Phase N, IMMEDIATELY start Phase N+1 with tool call (no text)
+- **SPECIFIC ENFORCEMENT #4**: NEVER provide token usage statistics during work - only at 950k threshold
 - **SPECIFIC ENFORCEMENT #3**: After git push, IMMEDIATELY invoke next task tool (manage_todo_list, read_file, grep_search, etc.)
 - **SPECIFIC ENFORCEMENT #4**: After creating task document, IMMEDIATELY start executing task (NO summary, NO "READY" statement)
 - **SPECIFIC ENFORCEMENT #5**: After marking task complete in evidence, IMMEDIATELY create next task document AND start executing it
