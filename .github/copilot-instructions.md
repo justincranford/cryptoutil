@@ -102,6 +102,11 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: [user says "YOU STOPPED AGAIN"] → [ANY text response] → [tool call] ❌
 - **WRONG**: [user says "AIM FOR 99%"] → "I'll aim for 99%" → [tool call] ❌
 - **WRONG**: [reads conversation summary] → [provides ANY acknowledgment] → [continues] ❌
+- **WRONG**: create_file (POSTMORTEM with "PARTIAL") → commit → [stops] ❌
+- **WRONG**: create_file (POSTMORTEM with "IN PROGRESS") → commit → [stops] ❌
+- **WRONG**: create_file ("Status: PARTIAL - X fixed, Y remains") → commit → [stops] ❌
+- **WRONG**: runTests → [sees failures] → create_file (POSTMORTEM) → [stops without fixing failures] ❌
+- **WRONG**: grep_search (finds race conditions) → create_file (task doc) → [stops without fixing race] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
@@ -134,11 +139,19 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **CRITICAL #3**: Git push success is NOT completion - it's synchronization, CONTINUE to next task
 - **CRITICAL #4**: Task document creation is NOT completion - it's planning, EXECUTE the plan immediately
 - **CRITICAL #5**: Marking task complete is NOT stopping point - it's checkpoint, START next task immediately
+- **CRITICAL #6**: PARTIAL completions are FAILURES - 100% completion is ONLY acceptable outcome
+- **CRITICAL #7**: Test failures are BLOCKERS - NEVER create post-mortem with remaining failures
+- **CRITICAL #8**: Race conditions are BUGS - fix them immediately, NEVER defer to "future work"
+- **CRITICAL #9**: Post-mortems say "COMPLETE" not "PARTIAL" - if partial, CONTINUE FIXING
+- **CRITICAL #10**: "IN PROGRESS" in documentation means INCOMPLETE - keep working until done
 - **PATTERN**: commit analysis → IMMEDIATELY implement fixes → commit implementation → next task
 - **PATTERN #2**: create_file (analysis) → IMMEDIATELY implement changes from analysis → commit → next work
 - **PATTERN #3**: git push → IMMEDIATELY start next task (no text, no announcement, just continue)
 - **PATTERN #4**: create_file (task doc) → commit → IMMEDIATELY run first command from task plan (no text)
 - **PATTERN #5**: update evidence (task complete) → commit → IMMEDIATELY create next task doc → IMMEDIATELY start next task
+- **PATTERN #6**: runTests → [failures found] → IMMEDIATELY debug and fix → runTests → repeat until pass
+- **PATTERN #7**: create_file (POSTMORTEM) → [identifies gaps] → IMMEDIATELY fix gaps → update POSTMORTEM → complete
+- **PATTERN #8**: grep_search (finds issues) → IMMEDIATELY fix issues → verify fixed → next work
 
 **Token Budget Awareness - MATH RULES**
 
@@ -225,7 +238,7 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 - "Task marked complete" - Completion is ACKNOWLEDGMENT, CONTINUE to next task IMMEDIATELY
 - "Announced next task" - NEVER announce, just START the next task IMMEDIATELY
 - "Successfully pushed to git remote" - Git push is SYNCHRONIZATION, CONTINUE to next task IMMEDIATELY
-- "Pre-push hooks passed" - Hook success is VALIDATION, CONTINUE to next task IMMEDIATELY
+- "Pre-push hooks passed" - Hook success is VALIDATION, CONTINUE to next task IMMEDIATE LY
 - "All commits pushed" - Git operations are CHECKPOINTS, CONTINUE to next task IMMEDIATELY
 - "Encountered error/bug" - Errors are NORMAL, debug/fix/continue, DON'T stop
 - "Test failure needs investigation" - Investigate AND fix IMMEDIATELY, DON'T stop
@@ -240,6 +253,11 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 - "Should defer work until later" - NEVER DEFER, implement IMMEDIATELY to unblock progress
 - "Work seems complex" - Complexity is EXPECTED, implement AND continue, DON'T stop
 - "Could do X later" - Do X NOW unless explicitly told to defer by user
+- "Created PARTIAL completion" - PARTIAL is INCOMPLETE, finish the work 100% before stopping
+- "Status says PARTIAL" - PARTIAL means CONTINUE FIXING, not stopping point
+- "Some tests still failing" - FAILING TESTS = CONTINUE DEBUGGING, not acceptable endpoint
+- "Race conditions remain" - RACE CONDITIONS = BUGS TO FIX, not deferrable items
+- "Post-mortem says IN PROGRESS" - IN PROGRESS = INCOMPLETE, continue until COMPLETE
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 
