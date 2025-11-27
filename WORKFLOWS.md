@@ -1,8 +1,44 @@
-# GitHub Actions Workflow Review
+# GitHub Actions Workflows
 
-This document captures a snapshot of the ten workflows under `.github/workflows/` and outlines actionable improvements, refactors, and potential additions. Recommendations are based on current workflow definitions (as of 2025-11-08) and on existing project instructions in `.github/instructions`.
+This document describes the GitHub Actions workflows configured for the cryptoutil project.
 
-## Cross-Cutting Opportunities
+## Identity Module Validation
+
+### ci-identity-validation.yml
+
+**Purpose**: Automated validation for identity module changes
+
+**Triggers**:
+
+- Pull requests: paths: ['internal/identity/**', 'docs/02-identityV2/**']
+- Push to main: paths: ['internal/identity/**']
+- workflow_dispatch: manual trigger
+
+**Jobs**:
+
+- **validate-requirements**: Requirements coverage check (≥85% threshold)
+- **validate-tests**: Test execution + coverage validation (≥85% threshold)
+- **validate-todos**: TODO severity check (CRITICAL/HIGH blockers)
+- **update-project-status**: Auto-update PROJECT-STATUS.md (push to main only)
+
+**Artifacts**:
+
+- requirements-validation-report: Validation report + JSON metrics
+- identity-test-results: Test execution results
+- identity-coverage-report: Coverage report
+- todo-scan-results: TODO scan output
+
+**Benefits**:
+
+- Automatic validation on every PR (50% manual QA reduction)
+- Instant feedback on coverage/requirements regressions
+- Automatic PROJECT-STATUS.md updates on main push
+
+## Workflow Review and Recommendations
+
+This section captures a snapshot of the ten workflows under `.github/workflows/` and outlines actionable improvements, refactors, and potential additions. Recommendations are based on current workflow definitions (as of 2025-11-08) and on existing project instructions in `.github/instructions`.
+
+### Cross-Cutting Opportunities
 
 - **Introduce concurrency controls**: Add `concurrency: { group: "${{ github.workflow }}-${{ github.ref }}", cancel-in-progress: true }` to every workflow to prevent redundant runs when developers push multiple commits in quick succession.
 - **Harmonize permissions blocks**: Several workflows omit an explicit `permissions:` stanza (e.g., `ci-benchmark.yml`, `ci-fuzz.yml`). Add least-privilege permissions (`contents: read`) and opt-in scopes (`security-events: write`) only where required.

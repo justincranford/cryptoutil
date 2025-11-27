@@ -181,14 +181,14 @@ func Run(commands []string) error {
 			_, _, _, cmdErr = go_fix_thelper.Fix(logger, ".")
 		case cmdGoFixAll:
 			_, _, _, cmdErr = go_fix_all.Fix(logger, ".", runtime.Version())
-	case cmdGoGeneratePostmortem:
-		// Parse flags: --start-task P5.01 --end-task P5.05 --output path
-		startTask := ""
-		endTask := ""
-		outputPath := ""
+		case cmdGoGeneratePostmortem:
+			// Parse flags: --start-task P5.01 --end-task P5.05 --output path
+			startTask := ""
+			endTask := ""
+			outputPath := ""
 
-		for i := 0; i < len(remainingArgs); i++ {
-			if remainingArgs[i] == "--start-task" && i+1 < len(remainingArgs) {
+			for i := 0; i < len(remainingArgs); i++ {
+				if remainingArgs[i] == "--start-task" && i+1 < len(remainingArgs) {
 					startTask = remainingArgs[i+1]
 				} else if remainingArgs[i] == "--end-task" && i+1 < len(remainingArgs) {
 					endTask = remainingArgs[i+1]

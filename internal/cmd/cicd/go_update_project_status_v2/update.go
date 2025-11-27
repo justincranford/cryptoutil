@@ -141,8 +141,8 @@ func parseRequirementsCoverage(path string) (*CoverageMetrics, error) {
 	// Extract total coverage: "Total: 65/65 (100.0%)".
 	totalPattern := regexp.MustCompile(`Total:\s+(\d+)/(\d+)\s+\((\d+(?:\.\d+)?)%\)`)
 	if matches := totalPattern.FindStringSubmatch(text); len(matches) == cryptoutilMagic.RequirementsTotalPatternGroups {
-		metrics.TotalValidated, _ = strconv.Atoi(matches[1])           //nolint:errcheck // Regex validated format
-		metrics.TotalRequirements, _ = strconv.Atoi(matches[2])        //nolint:errcheck // Regex validated format
+		metrics.TotalValidated, _ = strconv.Atoi(matches[1])            //nolint:errcheck // Regex validated format
+		metrics.TotalRequirements, _ = strconv.Atoi(matches[2])         //nolint:errcheck // Regex validated format
 		metrics.CoveragePercent, _ = strconv.ParseFloat(matches[3], 64) //nolint:errcheck // Regex validated format
 	}
 

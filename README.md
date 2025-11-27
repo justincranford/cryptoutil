@@ -13,12 +13,14 @@ cryptoutil is a production-ready embedded Key Management System (KMS) and crypto
 ## Key Features
 
 ### 🔐 Cryptographic Standards
+
 - **FIPS 140-3 Compliance**: Only uses NIST-approved algorithms (RSA ≥2048, AES ≥128, NIST curves, EdDSA)
 - **Key Generation**: RSA, ECDSA, ECDH, EdDSA, AES, HMAC, UUIDv7 with concurrent key pools
 - **JWE/JWS Support**: Full JSON Web Encryption and Signature implementation
 - **Hierarchical Key Management**: Multi-tier barrier system (unseal → root → intermediate → content keys)
 
 ### 🌐 API Architecture
+
 - **Dual Context Design**:
   - **Browser API** (`/browser/api/v1/*`) - Full browser security (CORS, CSRF, CSP)
   - **Service API** (`/service/api/v1/*`) - Optimized for service-to-service communication
@@ -26,6 +28,7 @@ cryptoutil is a production-ready embedded Key Management System (KMS) and crypto
 - **OpenAPI-Driven**: Auto-generated handlers, models, and interactive Swagger UI
 
 #### Context Paths Hierarchy
+
 ```
 cryptoutil Server Applications
 │
@@ -82,6 +85,7 @@ cryptoutil Server Applications
 ```
 
 ### 🛡️ Security Features
+
 - **Multi-layered IP allowlisting** (individual IPs + CIDR blocks)
 - **Per-IP rate limiting** with separate thresholds for browser vs service APIs (100 req/sec browser, 25 req/sec service)
 - **CSRF protection** with secure token handling for browser clients
@@ -90,6 +94,7 @@ cryptoutil Server Applications
 - **Encrypted key storage** with barrier system protection
 
 ### 📊 Observability & Monitoring
+
 - **OpenTelemetry integration** (traces, metrics, logs via OTLP)
 - **Structured logging** with slog
 - **Kubernetes-ready health endpoints** (`/livez`, `/readyz`)
@@ -102,9 +107,11 @@ cryptoutil Server Applications
 **Dual Telemetry Flows for Complete Observability:**
 
 **Application Telemetry (Push-based):**
+
 ```
 cryptoutil services (OTLP GRPC:4317 or HTTP:4318) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (OTLP HTTP:4318)
 ```
+
 - **Purpose**: Business application traces, logs, and metrics
 - **Protocol**: OTLP (OpenTelemetry Protocol) - push-based with automatic protocol detection
 - **Data**: Crypto operations, API calls, business logic telemetry
@@ -112,9 +119,11 @@ cryptoutil services (OTLP GRPC:4317 or HTTP:4318) → OpenTelemetry Collector Co
 - **Data**: Crypto operations, API calls, business logic telemetry
 
 **Infrastructure Telemetry (Pull-based):**
+
 ```
 Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/metrics)
 ```
+
 - **Purpose**: Monitor collector health and performance
 - **Protocol**: Prometheus scraping - pull-based
 - **Data**: Collector throughput, error rates, queue depths, resource usage
@@ -124,6 +133,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 #### Port Architecture
 
 **OpenTelemetry Collector Ports:**
+
 - **4317**: OTLP gRPC receiver (application telemetry ingress)
 - **4318**: OTLP HTTP receiver (application telemetry ingress)
 - **8888**: Self-metrics (Prometheus, internal scraping)
@@ -133,6 +143,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **55679**: zPages (debugging UI)
 
 **Application Ports:**
+
 - **3000**: Grafana UI
 - **5432**: PostgreSQL database
 - **8080**: cryptoutil public API (HTTPS)
@@ -142,13 +153,15 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
 
 **Services:**
-- **Grafana**: http://localhost:3000 (admin/admin)
+
+- **Grafana**: <http://localhost:3000> (admin/admin)
 - **Prometheus**: Integrated into Grafana-OTEL-LGTM stack
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
 
 ### 🏗️ Production Ready
+
 - **Database support**: PostgreSQL (production), SQLite (development/testing)
 - **Container deployment**: Docker Compose with secret management
 - **Configuration management**: YAML files + CLI parameters
@@ -160,6 +173,15 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 - Go 1.25.4+
 - Docker and Docker Compose (for PostgreSQL)
+
+### Automation Tools
+
+- **go-generate-postmortem**: Automated post-mortem generation (50% time reduction)
+- **go-update-project-status-v2**: Automated PROJECT-STATUS.md updates (100% elimination of manual work)
+- **ci-identity-validation**: Automated PR validation (50% manual QA reduction)
+- **markdownlint-cli2**: Automated markdown formatting
+
+See [docs/TOOLS.md](docs/TOOLS.md) for detailed tool documentation.
 
 ### Identity System: Unified CLI (One-Liner Bootstrap)
 
@@ -300,6 +322,7 @@ curl -k -X POST https://localhost:8080/elastickey/{elasticKeyID}/encrypt \
 cryptoutil uses hierarchical configuration supporting multiple sources:
 
 ### Configuration Files (YAML)
+
 ```yaml
 # Example: postgresql.yml
 bind_public_address: "0.0.0.0"
@@ -329,6 +352,7 @@ unseal_files:
 ```
 
 ### Command Line Parameters
+
 ```sh
 # Key configuration options
 go run main.go \
@@ -342,6 +366,7 @@ go run main.go \
 ```
 
 ### Security Configuration
+
 - **IP Allowlisting**: Configure `allowed_ips` and `allowed_cidrs` for production
 - **Rate Limiting**: Set conservative `browser_ip_rate_limit` (10-100 requests/second per IP) and `service_ip_rate_limit` (10-25 requests/second per IP)
 - **CORS**: Configure specific origins, avoid wildcards in production
@@ -352,6 +377,7 @@ go run main.go \
 ## Testing
 
 ### Automated Tests
+
 ```sh
 # Run all tests with coverage
 go test ./... -coverprofile=coverage.out
@@ -364,6 +390,7 @@ xdg-open coverage.html  # Linux
 ```
 
 ### Manual Testing
+
 ```sh
 # Start server
 go run main.go --dev --verbose
@@ -383,6 +410,7 @@ curl -k https://localhost:9090/readyz
 ```
 
 ### Integration Testing
+
 ```sh
 # Run with test containers
 go run cmd/pgtest/main.go  # PostgreSQL integration tests
@@ -393,13 +421,16 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 This project uses **Go fuzz testing** for property-based testing to find edge cases and potential crashes in cryptographic functions.
 
 #### Automated Execution (CI/CD)
+
 Fuzz tests run automatically in GitHub Actions on:
+
 - Push to `main` branch
 - Pull requests
 
 #### Fuzz Test Coverage
 
 **Key Generation Functions (7 fuzz tests):**
+
 - `FuzzGenerateRSAKeyPair` - RSA key pair generation
 - `FuzzGenerateECDSAKeyPair` - ECDSA key pair generation
 - `FuzzGenerateECDHKeyPair` - ECDH key pair generation
@@ -409,6 +440,7 @@ Fuzz tests run automatically in GitHub Actions on:
 - `FuzzGenerateHMACKey` - HMAC key generation
 
 **Digest Functions (9 fuzz tests):**
+
 - `FuzzHKDF` - HMAC-based Key Derivation Function
 - `FuzzHKDFWithSHA256` - HKDF with SHA-256
 - `FuzzHKDFWithSHA384` - HKDF with SHA-384
@@ -420,6 +452,7 @@ Fuzz tests run automatically in GitHub Actions on:
 - `FuzzSHA3_512` - SHA3-512 hashing
 
 #### Manual Execution
+
 ```sh
 # Run specific fuzz tests (use regex anchors for exact matching)
 go test -fuzz=^FuzzHKDF$ -fuzztime=5s ./internal/common/crypto/digests/
@@ -435,6 +468,7 @@ go test -fuzz=^FuzzHKDF$ -fuzztime=5s ./internal/common/crypto/digests/
 **Important**: Always use regex anchors (`^FuzzXXX$`) for exact function matching when multiple fuzz tests exist in the same package, as Go's `-fuzz` flag uses prefix matching by default.
 
 #### Fuzz Test Organization
+
 - **File naming**: `*_fuzz_test.go` (separate from unit tests)
 - **Function naming**: `FuzzXXX` where XXX describes the function being fuzzed
 - **Duration**: 5 seconds for development, 1 minute for CI/CD
@@ -456,6 +490,7 @@ docker compose down --volumes --rmi all
 ```
 
 **Always use `docker compose down --volumes` before starting new tests** after `compose.yml` changes to ensure:
+
 - No state interference from previous tests
 - Fresh database state for each test execution
 - Proper resource management in CI/CD environments
@@ -482,10 +517,12 @@ The CI/CD pipeline is organized into 6 specialized workflows, each with differen
 Three distinct techniques are used across the workflows for service readiness verification:
 
 **1. No Verification Required** (ci-quality.yml, ci-sast.yml, ci-robust.yml)
+
 - **Approach**: Static analysis and unit tests don't start services
 - **Rationale**: No runtime connectivity needed for code analysis or isolated tests
 
 **2. Go-Based E2E Infrastructure** (ci-e2e.yml)
+
 - **Approach**: Go test suite orchestrates Docker Compose with comprehensive health checks
 - **Components**:
   - `infrastructure.go`: Docker Compose orchestration and health monitoring
@@ -501,8 +538,10 @@ Three distinct techniques are used across the workflows for service readiness ve
   - Comprehensive error reporting with detailed health status
 
 **3. Bash/Curl Verification** (ci-dast.yml, ci-load.yml)
+
 - **Approach**: Shell scripts with curl for HTTPS endpoints with self-signed certificates
 - **Pattern**:
+
   ```bash
   # CORRECT: curl with -s (silent), -k (insecure/skip cert verification), -f (fail on HTTP errors)
   curl -skf --connect-timeout 10 --max-time 15 "$url" -o /tmp/response.json
@@ -510,6 +549,7 @@ Three distinct techniques are used across the workflows for service readiness ve
   # INCORRECT: wget does not reliably verify HTTPS with self-signed certs
   wget --no-check-certificate --spider "$url"  # ❌ FAILS
   ```
+
 - **Health Verification Flow**:
   1. Retry loop with exponential backoff (max 30 attempts, 5s max backoff)
   2. Verify response body is non-empty (successful connection indicator)
@@ -520,6 +560,7 @@ Three distinct techniques are used across the workflows for service readiness ve
   - Exponential backoff prevents overwhelming services during startup
 
 **Common Mistakes to Avoid**:
+
 - ❌ Using `wget` for HTTPS with self-signed certs (unreliable)
 - ❌ Using `localhost` in workflows (use `127.0.0.1` for explicit IPv4, see localhost-vs-ip.instructions.md)
 - ❌ Checking only HTTP status codes without verifying response body
@@ -531,14 +572,17 @@ Three distinct techniques are used across the workflows for service readiness ve
 Automated code quality and container security validation:
 
 #### Mutation Testing
+
 This project uses **Gremlins mutation testing** to assess test suite quality by introducing artificial faults and measuring test detection rates.
 
 **Automated Execution (CI/CD):**
+
 - Runs automatically on push to `main` branch and pull requests
 - Targets high-coverage packages with mutation operators
 - Generates mutation testing reports and coverage metrics
 
 **Manual Execution:**
+
 ```sh
 # Run mutation tests on specific packages
 gremlins unleash --paths=./internal/common/crypto/keygen/
@@ -546,9 +590,11 @@ gremlins unleash --paths=./internal/common/crypto/digests/
 ```
 
 #### Container Security & SBOM
+
 Container vulnerability scanning and software bill of materials generation:
 
 **Automated Analysis (CI/CD):**
+
 - **Docker Scout**: Container image vulnerability scanning
 - **SBOM Generation**: Software Bill of Materials creation using Syft
 - **Security Policy**: Automated security gate for container deployments
@@ -560,12 +606,14 @@ Container vulnerability scanning and software bill of materials generation:
 Comprehensive static analysis using multiple security-focused tools:
 
 **Automated SAST Pipeline (CI/CD):**
+
 - **Staticcheck**: Advanced static analysis for Go code quality and security
 - **Govulncheck**: Official Go vulnerability database scanning
 - **Trivy**: Container and filesystem vulnerability scanning
 - **CodeQL**: Semantic code analysis (Go, JavaScript, Python)
 
 **Manual SAST Execution:**
+
 ```sh
 # Run individual SAST tools
 staticcheck ./...
@@ -578,11 +626,13 @@ trivy filesystem .
 Runtime security testing with active vulnerability scanning:
 
 **Automated DAST Pipeline (CI/CD):**
+
 - **OWASP ZAP**: Comprehensive web application security scanning
 - **Nuclei**: Fast template-based vulnerability detection
 - Scans all cryptoutil service instances (SQLite, PostgreSQL instances)
 
 **DAST Scan Profiles:**
+
 - **Quick**: Basic security checks (3-5 minutes)
 - **Full**: Comprehensive scanning (10-15 minutes)
 - **Deep**: Exhaustive security assessment (20-25 minutes)
@@ -592,17 +642,21 @@ Runtime security testing with active vulnerability scanning:
 Thread safety and performance validation:
 
 #### Concurrency & Race Detection
+
 Thread safety validation with Go's race detector:
 
 **Automated Testing (CI/CD):**
+
 - Runs all tests with race detection enabled (`-race` flag)
 - Identifies potential race conditions and data races
 - Validates thread-safe cryptographic operations
 
 #### Benchmark Testing
+
 Performance regression detection and optimization validation:
 
 **Automated Testing (CI/CD):**
+
 - Executes performance benchmarks across all packages
 - Measures cryptographic operation throughput and latency
 - Detects performance regressions between commits
@@ -614,11 +668,13 @@ Performance regression detection and optimization validation:
 Performance validation using **Gatling** load testing framework:
 
 **Automated Load Testing (CI/CD):**
+
 - Runs comprehensive load tests against cryptoutil APIs
 - Measures response times, throughput, and error rates
 - Generates detailed performance reports and metrics
 
 **Manual Load Testing:**
+
 ```sh
 # Run load tests from project root
 cd test/load
@@ -631,6 +687,7 @@ mvnw gatling:test
 Full system validation using Docker Compose orchestration:
 
 **Automated E2E Pipeline (CI/CD):**
+
 - Deploys complete cryptoutil stack (PostgreSQL, services, observability)
 - Executes comprehensive API test suites
 - Validates service-to-service communication and data flow
@@ -662,6 +719,7 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
 #### Manual Nuclei Scan Examples
 
 **Quick Security Scan (Info/Low severity, fast):**
+
 ```sh
 # Scan all three cryptoutil instances
 nuclei -target https://localhost:8080/ -severity info,low
@@ -670,6 +728,7 @@ nuclei -target https://localhost:8082/ -severity info,low
 ```
 
 **Comprehensive Security Scan (All severities):**
+
 ```sh
 # Full vulnerability assessment
 nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
@@ -678,6 +737,7 @@ nuclei -target https://localhost:8082/ -severity info,low,medium,high,critical
 ```
 
 **Targeted Scan Examples:**
+
 ```sh
 # Scan for specific vulnerability types
 nuclei -target https://localhost:8080/ -tags cves,vulnerabilities
@@ -689,6 +749,7 @@ nuclei -target https://localhost:8080/ -c 10 -rl 50 -severity high,critical
 ```
 
 **Batch Scan All Services:**
+
 ```sh
 # PowerShell: Scan all three services sequentially
 foreach ($port in @(8080, 8081, 8082)) {
@@ -714,12 +775,14 @@ foreach ($port in @(8080, 8081, 8082)) {
 #### Troubleshooting
 
 **Nuclei templates not found:**
+
 ```sh
 # Install/update nuclei templates
 nuclei -update-templates
 ```
 
 **Services not responding:**
+
 ```sh
 # Check service health
 curl -k https://localhost:8080/ui/swagger/doc.json
@@ -727,6 +790,7 @@ curl -k https://localhost:9090/livez  # Admin health endpoint
 ```
 
 **Clean restart:**
+
 ```sh
 docker compose -f ./deployments/compose/compose.yml down -v
 docker compose -f ./deployments/compose/compose.yml up -d
@@ -739,6 +803,7 @@ docker compose -f ./deployments/compose/compose.yml up -d
 This project uses **automated code formatting** that runs on every commit. The formatting is enforced in CI/CD.
 
 **Setup (Required for Contributors):**
+
 ```sh
 # Install pre-commit hooks (runs comprehensive code quality checks)
 pip install pre-commit
@@ -762,6 +827,7 @@ pre-commit run --all-files
 See [docs/DEV-SETUP.md](docs/DEV-SETUP.md) for comprehensive pre-commit setup instructions covering Windows, Linux, and macOS.
 
 **What Gets Checked Automatically:**
+
 - **File formatting**: End-of-file fixes, trailing whitespace removal
 - **Syntax validation**: YAML, JSON, GitHub Actions workflows, Dockerfiles
 - **Go tools**: `gofumpt` (strict formatting), `goimports` (import organization), `errcheck` (error checking), `go build`

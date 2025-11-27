@@ -18,11 +18,13 @@ This guide covers setting up a complete development environment for the cryptout
 ## Prerequisites
 
 ### Core Requirements (All Platforms)
+
 - **Go 1.25.4+** - The project requires Go 1.25.4 or later
 - **Docker & Docker Compose** - Required for PostgreSQL database and containerized testing
 - **Git** - Version control (usually pre-installed on most systems)
 
 ### Development Tools
+
 - **Python 3.8+** - Required for utility scripts and pre-commit hooks
 - **pip** - Python package manager (usually comes with Python)
 - **VS Code** - Recommended IDE with Go extension
@@ -34,6 +36,7 @@ This guide covers setting up a complete development environment for the cryptout
 #### 1. Install Core Prerequisites
 
 **Go 1.25.4+**
+
 ```powershell
 # Download and install from https://golang.org/dl/
 # Or use winget:
@@ -41,6 +44,7 @@ winget install --id Google.Go --source winget
 ```
 
 **Docker Desktop**
+
 ```powershell
 # Download and install from https://www.docker.com/products/docker-desktop
 # Or use winget:
@@ -48,6 +52,7 @@ winget install --id Docker.DockerDesktop --source winget
 ```
 
 **Python 3.8+**
+
 ```powershell
 # Download and install from https://python.org/downloads/
 # Or use winget:
@@ -55,6 +60,7 @@ winget install --id Python.Python.3 --source winget
 ```
 
 **Git**
+
 ```powershell
 # Usually pre-installed, otherwise:
 winget install --id Git.Git --source winget
@@ -130,12 +136,14 @@ go env GOCACHE
 ```
 
 **Why This Matters:**
+
 - `GOTMPDIR`: Controls where Go stores temporary compilation files
 - `GOCACHE`: Controls where Go stores build cache and compiled executables
 - Setting both to your excluded temp directory prevents antivirus scanning delays
 - First run after changing may be slower (cache rebuild), subsequent runs are fast
 
 **Expected Performance:**
+
 - **Before**: `cicd` commands take 30-60+ seconds (antivirus scanning)
 - **After**: Same commands complete in 2-5 seconds (excluded directory)
 
@@ -144,6 +152,7 @@ go env GOCACHE
 #### 1. Install Core Prerequisites
 
 **Ubuntu/Debian:**
+
 ```bash
 # Update package list
 sudo apt update
@@ -168,6 +177,7 @@ sudo apt install -y git
 ```
 
 **Fedora/RHEL/CentOS:**
+
 ```bash
 # Install Go
 ```bash
@@ -234,6 +244,7 @@ sudo chmod +x /usr/local/bin/act
 #### 1. Install Core Prerequisites
 
 **Using Homebrew (Recommended):**
+
 ```bash
 # Install Homebrew if not already installed
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -252,6 +263,7 @@ brew install git
 ```
 
 **Manual Installation:**
+
 ```bash
 # Go - Download from https://golang.org/dl/
 # Docker Desktop - Download from https://www.docker.com/products/docker-desktop
@@ -306,50 +318,38 @@ cd cryptoutil
 go mod tidy
 ```
 
-### 2. Setup Pre-commit Hooks
+## Pre-commit Hooks
 
-Pre-commit hooks ensure code quality by running automated checks before each commit. The project uses pre-commit to enforce linting, formatting, and security standards.
+Install pre-commit hooks:
 
-#### Windows
-
-**1. Install pre-commit:**
-```powershell
-# Install pre-commit globally
-python -m pip install pre-commit
+```bash
+pip install pre-commit
+pre-commit install
 ```
 
-**2. Configure pre-commit cache location (recommended for performance):**
-```powershell
-# Set consistent cache location to avoid antivirus scanning delays
-$cachePath = "$env:USERPROFILE\.cache\pre-commit"
-[Environment]::SetEnvironmentVariable("PRE_COMMIT_HOME", $cachePath, "User")
-Write-Host "Set PRE_COMMIT_HOME to: $cachePath"
+### Markdownlint Setup
+
+Install markdownlint-cli2 for markdown formatting:
+
+```bash
+npm install -g markdownlint-cli2
 ```
 
-**3. Install pre-commit hooks:**
-```powershell
-# Navigate to project root
-cd C:\Dev\Projects\cryptoutil
+Pre-commit hook automatically fixes markdown issues.
 
-# Install the hooks
-python -m pre_commit install
-```
-
-**4. Test the setup:**
-```powershell
-# Run all hooks on all files to verify installation
-python -m pre_commit run --all-files
-```
+## Editor Setup
 
 #### Linux
 
 **1. Install pre-commit:**
+
 ```bash
 # Install pre-commit globally
 pip3 install pre-commit
 ```
 
 **2. Install pre-commit hooks:**
+
 ```bash
 # Navigate to project root
 cd ~/cryptoutil
@@ -359,6 +359,7 @@ pre-commit install
 ```
 
 **3. Test the setup:**
+
 ```bash
 # Run all hooks on all files to verify installation
 pre-commit run --all-files
@@ -367,12 +368,14 @@ pre-commit run --all-files
 #### macOS
 
 **1. Install pre-commit:**
+
 ```bash
 # Install pre-commit globally
 pip3 install pre-commit
 ```
 
 **2. Install pre-commit hooks:**
+
 ```bash
 # Navigate to project root
 cd ~/cryptoutil
@@ -382,12 +385,14 @@ pre-commit install
 ```
 
 **3. Test the setup:**
+
 ```bash
 # Run all hooks on all files to verify installation
 pre-commit run --all-files
 ```
 
 **Pre-commit Hook Details:**
+
 - **Automatic execution**: Hooks run automatically on `git commit`
 - **Manual execution**: Run `pre-commit run --all-files` to check all files
 - **Selective execution**: Run `pre-commit run <hook-name>` for specific hooks
@@ -430,7 +435,7 @@ act --version
 ### VS Code Setup
 
 1. **Install VS Code**
-   - Download from https://code.visualstudio.com/
+   - Download from <https://code.visualstudio.com/>
 
 2. **Install Go Extension**
    - Open VS Code
@@ -446,6 +451,7 @@ act --version
    - F2 rename symbol support for intelligent variable naming
 
 4. **Key VS Code Settings Applied:**
+
    ```json
    {
      "go.useLanguageServer": true,
@@ -466,11 +472,14 @@ act --version
 ### Alternative IDEs
 
 **GoLand/IntelliJ IDEA:**
+
 - Install Go plugin
 - Import project as Go module
+
 # Configure Go SDK to 1.25.4+
 
 **Vim/Neovim:**
+
 - Install vim-go plugin
 - Configure gopls integration
 
@@ -479,6 +488,7 @@ act --version
 ### 1. Environment Configuration
 
 **Development with SQLite (Recommended for development):**
+
 ```bash
 # Copy SQLite config
 cp configs/test/config.yml configs/dev/config.yml
@@ -487,6 +497,7 @@ cp configs/test/config.yml configs/dev/config.yml
 ```
 
 **Development with PostgreSQL:**
+
 ```bash
 # Start PostgreSQL with Docker Compose
 cd deployments/compose
@@ -511,9 +522,9 @@ go run main.go --dev --config=configs/dev/config.yml
 
 ### 3. Access the Application
 
-- **API Documentation**: http://localhost:8080/ui/swagger
-- **Health Checks**: http://localhost:9090/livez, http://localhost:9090/readyz
-- **Grafana**: http://localhost:3000 (admin/admin)
+- **API Documentation**: <http://localhost:8080/ui/swagger>
+- **Health Checks**: <http://localhost:9090/livez>, <http://localhost:9090/readyz>
+- **Grafana**: <http://localhost:3000> (admin/admin)
 
 ### 4. Documentation Maintenance
 
@@ -537,6 +548,7 @@ go run main.go --dev --config=configs/dev/config.yml
 - **`scripts/`** - All utility scripts and their documentation
 
 **When making changes:**
+
 - Update tool versions and installation instructions when dependencies change
 - Document new setup requirements or configuration options
 - Keep platform-specific instructions current across Windows, Linux, and macOS
@@ -587,11 +599,13 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
 #### Manual Nuclei Scan Examples
 
 **Service Endpoints:**
+
 - **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
 - **cryptoutil-postgres-1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
 - **cryptoutil-postgres-2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
 
 **Basic Security Scans:**
+
 ```bash
 # Quick scan - Info and Low severity (fast, ~5-10 seconds)
 nuclei -target https://localhost:8080/ -severity info,low
@@ -608,6 +622,7 @@ nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
 ```
 
 **Targeted Vulnerability Scans:**
+
 ```bash
 # CVE scanning (recent and historical vulnerabilities)
 nuclei -target https://localhost:8080/ -tags cves -severity high,critical
@@ -623,6 +638,7 @@ nuclei -target https://localhost:8080/ -tags tech-detect
 ```
 
 **Performance-Optimized Scans:**
+
 ```bash
 # High-performance scanning (adjust concurrency and rate limiting as needed)
 nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
@@ -632,6 +648,7 @@ nuclei -target https://localhost:8080/ -c 10 -rl 25 -severity medium,high,critic
 ```
 
 **Batch Scanning Script (PowerShell - Windows):**
+
 ```powershell
 # Scan all three cryptoutil instances
 $targets = @(
@@ -649,6 +666,7 @@ foreach ($target in $targets) {
 ```
 
 **Batch Scanning Script (Bash - Linux/macOS):**
+
 ```bash
 # Scan all three cryptoutil instances
 targets=(
@@ -685,11 +703,13 @@ nuclei -tl | findstr http       # Windows PowerShell
 #### Interpreting Scan Results
 
 **Expected Results:**
+
 - **✅ "No results found"**: Indicates no vulnerabilities detected - good security posture
 - **⚠️ Vulnerabilities found**: Review findings and address security issues
 - **🔄 Scan performance**: Typically 5-60 seconds per service depending on scan profile
 
 **Common False Positives to Ignore:**
+
 - Some generic web server detections that don't apply to cryptoutil's security model
 - Default credential checks (cryptoutil uses proper authentication)
 - Generic misconfiguration checks that don't apply to the custom security implementation
@@ -713,6 +733,7 @@ open http://localhost:8080/ui/swagger
 ### Common Issues
 
 **Go tools not found in PATH:**
+
 ```bash
 # Add Go bin to PATH
 export PATH=$PATH:$(go env GOPATH)/bin
@@ -720,12 +741,14 @@ export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
 **Docker permission issues (Linux):**
+
 ```bash
 sudo usermod -aG docker $USER
 # Logout and login again, or run: newgrp docker
 ```
 
 **Pre-commit hooks not working:**
+
 ```bash
 # Reinstall hooks
 pre-commit install --force
@@ -735,6 +758,7 @@ pre-commit clean
 ```
 
 **VS Code Go extension issues:**
+
 ```bash
 # Restart gopls
 # In VS Code: Ctrl+Shift+P → "Go: Restart Language Server"
@@ -744,6 +768,7 @@ gopls version
 ```
 
 **PowerShell execution policy reset after reboot:**
+
 ```powershell
 # If scripts stop working after system reboot
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
@@ -757,6 +782,7 @@ Get-ExecutionPolicy -List
 - Check the main [README.md](../README.md) for application-specific documentation
 - Check GitHub Issues for known problems
 - Run diagnostic commands:
+
   ```bash
   # Check all tool versions
   go version && docker --version && python3 --version && golangci-lint --version

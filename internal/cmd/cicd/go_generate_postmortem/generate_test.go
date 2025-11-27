@@ -9,8 +9,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilGoGeneratePostmortem "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilGoGeneratePostmortem "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
 )
 
 const (

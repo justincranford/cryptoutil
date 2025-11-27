@@ -69,10 +69,10 @@ const (
 	CICDIdentityTaskDocsDir              = "docs/02-identityV2/passthru5/"
 
 	// Requirements coverage regex pattern groups.
-	RequirementsTotalPatternGroups         = 4
-	RequirementsPriorityPatternGroups      = 4
-	RequirementsTaskCoveragePatternGroups  = 3
-	RequirementsUncoveredPatternGroups     = 2
+	RequirementsTotalPatternGroups        = 4
+	RequirementsPriorityPatternGroups     = 4
+	RequirementsTaskCoveragePatternGroups = 3
+	RequirementsUncoveredPatternGroups    = 2
 
 	// Test coverage regex pattern groups.
 	TestCoveragePatternGroups = 2
