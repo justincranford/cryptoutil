@@ -94,7 +94,33 @@
 | R11-07 | HIGH | DAST scanning clean | ✅ | .github/workflows/ci-dast.yml (842 lines): Nuclei vulnerability scanning with profile-based configuration (quick/full/deep), OWASP ZAP full scan and API scan, SARIF upload to GitHub Security Dashboard, artifact collection (nuclei.log, nuclei.sarif, zap reports), container logs, response headers baseline, connectivity diagnostics. Comprehensive DAST workflow with timing, diagnostics, and automated reporting. |
 
 
+## Task-Specific Coverage
+
+### Task P5.01 Coverage
+
+Validated: 0/0 (100%)
+
+Infrastructure: Automated quality gates, pre-commit hooks, linting standards
+
+### Task P5.02 Coverage
+
+Validated: 0/0 (100%)
+
+Infrastructure: Single source enforcement, documentation consolidation
+
+### Task P5.03 Coverage
+
+Validated: 0/0 (100%)
+
+Infrastructure: Progressive validation automation, 6-step validation
+
+### Task P5.04 Coverage
+
+Validated: 1/1 (100%)
+
+R04-06 client secret rotation - Complete with infrastructure, endpoints, tests, runbook (commits: ae66be55, 0251df24, be0614af, 56f6fb02, dfa616ad, b7450cce)
+
 ---
 
-**Report Generation Command**: `go run ./internal/cmd/cicd/identity-requirements-check`
+**Report Generation Command**: `go run ./cmd/cicd go-identity-requirements-check --strict`
 **CI/CD Integration**: Add to `.github/workflows/ci-identity.yml` as quality gate
