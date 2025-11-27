@@ -60,6 +60,42 @@ const (
 	// and simplify VS Code settings.json file exclusions.
 	CICDOutputDir = ".cicd"
 
+	// CICD output file permissions (owner read/write, group/others read).
+	CICDOutputFilePermissions = 0o644
+
+	// Identity project paths.
+	CICDIdentityProjectStatusPath        = "docs/02-identityV2/PROJECT-STATUS.md"
+	CICDIdentityRequirementsCoveragePath = "docs/02-identityV2/REQUIREMENTS-COVERAGE.md"
+	CICDIdentityTaskDocsDir              = "docs/02-identityV2/passthru5/"
+
+	// Requirements coverage regex pattern groups.
+	RequirementsTotalPatternGroups         = 4
+	RequirementsPriorityPatternGroups      = 4
+	RequirementsTaskCoveragePatternGroups  = 3
+	RequirementsUncoveredPatternGroups     = 2
+
+	// Test coverage regex pattern groups.
+	TestCoveragePatternGroups = 2
+
+	// Git short hash length.
+	GitShortHashLength = 8
+
+	// Git recent activity days lookback.
+	GitRecentActivityDays = 7
+
+	// Date format for PROJECT-STATUS.md timestamps.
+	DateFormatYYYYMMDD = "2006-01-02"
+
+	// Percent multiplier for coverage calculations.
+	PercentMultiplier = 100.0
+
+	// Production readiness thresholds.
+	RequirementsProductionReadyThreshold = 85.0
+	TestCoverageProductionReadyThreshold = 85.0
+	RequirementsConditionalThreshold     = 80.0
+	TestCoverageConditionalThreshold     = 80.0
+	RequirementsTaskMinimumThreshold     = 90.0
+
 	// Dependency cache file name.
 	DepCacheFileName = ".cicd/dep-cache.json"
 
