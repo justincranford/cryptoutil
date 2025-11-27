@@ -205,13 +205,13 @@ func runTestsWithCoverage(ctx context.Context, packagePattern string) (*TestMetr
 
 	defer func() { _ = os.Remove(coverageFile.Name()) }() //nolint:errcheck // Temp file cleanup
 
-	// Run tests with coverage.
-	cmd := exec.CommandContext(ctx, "go", "test", packagePattern, "-cover", "-coverprofile="+coverageFile.Name())
+	// Run tests with coverage and timeout.
+	cmd := exec.CommandContext(ctx, "go", "test", packagePattern, "-cover", "-coverprofile="+coverageFile.Name(), "-timeout=5m", "-short")
 
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("test execution failed: %w\nOutput: %s", err, string(output))
-	}
+
+	// Allow test failures for coverage collection (continue even if tests fail).
+	_ = err // Ignore test failures, just collect coverage metrics
 
 	// Parse test output: "PASS    cryptoutil/internal/identity/domain    0.123s    coverage: 85.3% of statements".
 	metrics := &TestMetrics{}

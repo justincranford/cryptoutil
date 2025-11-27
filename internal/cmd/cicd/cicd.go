@@ -27,6 +27,7 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
 	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	"cryptoutil/internal/cmd/cicd/go_update_project_status"
+	cryptoutilGoUpdateProjectStatusV2 "cryptoutil/internal/cmd/cicd/go_update_project_status_v2"
 	"cryptoutil/internal/cmd/cicd/identity_progressive_validation"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
@@ -48,6 +49,7 @@ const (
 	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"
 	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"
 	cmdGoUpdateProjectStatus              = "go-update-project-status"
+	cmdGoUpdateProjectStatusV2            = "go-update-project-status-v2"
 	cmdIdentityProgressiveValidation      = "identity-progressive-validation"
 )
 
@@ -207,6 +209,8 @@ func Run(commands []string) error {
 				}
 				cmdErr = cryptoutilGoGeneratePostmortem.Generate(ctx, opts)
 			}
+		case cmdGoUpdateProjectStatusV2:
+			cmdErr = cryptoutilGoUpdateProjectStatusV2.Update(ctx, cryptoutilGoUpdateProjectStatusV2.Options{})
 		}
 
 		cmdDuration := time.Since(cmdStart)

@@ -154,6 +154,7 @@ var ValidCommands = map[string]bool{
 	"go-update-direct-dependencies":          true,
 	"go-update-all-dependencies":             true,
 	"go-update-project-status":               true,
+	"go-update-project-status-v2":            true,
 	"go-generate-postmortem":                 true,
 	"identity-progressive-validation":        true,
 	"github-workflow-lint":                   true,
