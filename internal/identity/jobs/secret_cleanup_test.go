@@ -177,7 +177,12 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	})
 	require.NoError(t, err)
 
-	err = db.AutoMigrate(&cryptoutilIdentityDomain.ClientSecretVersion{})
+	// Auto-migrate schema (clients, client_secret_versions, key_rotation_events).
+	err = db.AutoMigrate(
+		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
+	)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {

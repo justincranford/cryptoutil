@@ -1,5 +1,7 @@
 package magic
 
+import "time"
+
 // Identity service scaling constants.
 const (
 	// IdentityScaling1x - Single instance scaling (demo, ci).
@@ -8,4 +10,16 @@ const (
 	IdentityScaling2x = 2
 	// IdentityScaling3x - Production-like scaling (production).
 	IdentityScaling3x = 3
+)
+
+// Secret rotation configuration constants.
+const (
+	// SecretRotationExpirationThreshold - Rotate secrets expiring within 7 days.
+	SecretRotationExpirationThreshold = 7 * 24 * time.Hour
+
+	// SecretRotationCheckInterval - Check for expiring secrets every hour.
+	SecretRotationCheckInterval = 1 * time.Hour
+
+	// SystemInitiatorName - System initiator name for automated operations.
+	SystemInitiatorName = "system"
 )
