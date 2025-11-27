@@ -293,6 +293,7 @@ func createTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
 			AccessTokenLifetime: 3600,
+			AccessTokenFormat:   "jws",
 		},
 	}
 
@@ -356,7 +357,7 @@ func createTestAuthorizationCode(ctx context.Context, t *testing.T, repoFactory 
 		Scope:               "openid profile email",
 		State:               "test-state",
 		Code:                googleUuid.New().String(),
-		CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", // SHA256 of "test-verifier-12345678901234567890123456789012".
+		CodeChallenge:       "UjvqC9mj0YVcV_IU0g-ZN4N3PCwI_ls67w8ToZVLJMA", // SHA256 of "test-verifier-12345678901234567890123456789012".
 		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
 		CreatedAt:           time.Now(),
 		ExpiresAt:           time.Now().Add(10 * time.Minute),
