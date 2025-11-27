@@ -116,7 +116,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture range variable.
+		// Capture range variable.
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -137,6 +137,7 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 			// Verify status updated correctly.
 			if tc.wantRows > 0 {
 				var updatedSecrets []cryptoutilIdentityDomain.ClientSecretVersion
+
 				err = db.Where("status = ?", cryptoutilIdentityDomain.SecretStatusExpired).Find(&updatedSecrets).Error
 				require.NoError(t, err)
 				require.Equal(t, int(tc.wantRows), len(updatedSecrets))
@@ -149,6 +150,8 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
+	ctx := context.Background()
+
 	dbID := googleUuid.Must(googleUuid.NewV7())
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
@@ -157,11 +160,11 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Apply SQLite PRAGMA settings.
-	if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
 		require.FailNowf(t, "failed to enable WAL mode", "%v", err)
 	}
 
-	if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
 		require.FailNowf(t, "failed to set busy timeout", "%v", err)
 	}
 
