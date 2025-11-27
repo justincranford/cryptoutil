@@ -129,6 +129,7 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 		State:               state,
 		CodeChallenge:       codeChallenge,
 		CodeChallengeMethod: codeChallengeMethod,
+		Code:                googleUuid.Must(googleUuid.NewV7()).String(), // Pre-generate authorization code (GET handler)
 		CreatedAt:           time.Now(),
 		ExpiresAt:           time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
 		ConsentGranted:      false,
@@ -267,6 +268,7 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 		State:               state,
 		CodeChallenge:       codeChallenge,
 		CodeChallengeMethod: codeChallengeMethod,
+		Code:                googleUuid.Must(googleUuid.NewV7()).String(), // Pre-generate authorization code (POST handler)
 		CreatedAt:           time.Now(),
 		ExpiresAt:           time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
 		ConsentGranted:      false,
