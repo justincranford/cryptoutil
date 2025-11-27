@@ -13,6 +13,7 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )
 
 // Service provides OAuth 2.1 authorization server functionality.
@@ -30,11 +31,14 @@ func NewService(
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory,
 	tokenSvc *cryptoutilIdentityIssuer.TokenService,
 ) *Service {
+	// Create rotation service for multi-secret authentication
+	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(repoFactory.DB())
+
 	return &Service{
 		config:       config,
 		repoFactory:  repoFactory,
 		tokenSvc:     tokenSvc,
-		clientAuth:   clientauth.NewRegistry(repoFactory, config),
+		clientAuth:   clientauth.NewRegistry(repoFactory, config, rotationService),
 		authReqStore: NewInMemoryAuthorizationRequestStore(),
 	}
 }

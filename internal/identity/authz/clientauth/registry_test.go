@@ -22,7 +22,7 @@ func TestRegistry_Creation(t *testing.T) {
 	repoFactory := createRegistryTestRepoFactory(t)
 	config := createRegistryTestConfig()
 
-	registry := clientauth.NewRegistry(repoFactory, config)
+	registry := clientauth.NewRegistry(repoFactory, config, nil)
 	require.NotNil(t, registry, "Registry should not be nil")
 
 	// Verify all expected authenticators are registered.
@@ -50,7 +50,7 @@ func TestRegistry_GetAuthenticator(t *testing.T) {
 	repoFactory := createRegistryTestRepoFactory(t)
 	config := createRegistryTestConfig()
 
-	registry := clientauth.NewRegistry(repoFactory, config)
+	registry := clientauth.NewRegistry(repoFactory, config, nil)
 
 	auth, ok := registry.GetAuthenticator("client_secret_basic")
 	require.True(t, ok, "Should find client_secret_basic authenticator")
@@ -65,7 +65,7 @@ func TestRegistry_GetAuthenticator_NotFound(t *testing.T) {
 	repoFactory := createRegistryTestRepoFactory(t)
 	config := createRegistryTestConfig()
 
-	registry := clientauth.NewRegistry(repoFactory, config)
+	registry := clientauth.NewRegistry(repoFactory, config, nil)
 
 	auth, ok := registry.GetAuthenticator("nonexistent_method")
 	require.False(t, ok, "Should not find nonexistent authenticator")
@@ -79,7 +79,7 @@ func TestRegistry_GetHasher(t *testing.T) {
 	repoFactory := createRegistryTestRepoFactory(t)
 	config := createRegistryTestConfig()
 
-	registry := clientauth.NewRegistry(repoFactory, config)
+	registry := clientauth.NewRegistry(repoFactory, config, nil)
 
 	hasher := registry.GetHasher()
 	require.NotNil(t, hasher, "Hasher should not be nil")

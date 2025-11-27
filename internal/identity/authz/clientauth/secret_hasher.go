@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 
+	googleUuid "github.com/google/uuid"
+
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -16,6 +18,11 @@ import (
 type SecretHasher interface {
 	HashSecret(plaintext string) (string, error)
 	CompareSecret(hashed, plaintext string) error
+}
+
+// RotationService provides client secret rotation functionality.
+type RotationService interface {
+	ValidateSecretDuringGracePeriod(ctx context.Context, clientID googleUuid.UUID, secretPlaintext string) (bool, int, error)
 }
 
 // Legacy comment - implementation replaced with FIPS 140-3 approved PBKDF2-HMAC-SHA256.
@@ -68,15 +75,17 @@ func isPBKDF2Hash(secret string) bool {
 
 // SecretBasedAuthenticator provides client authentication with FIPS 140-3 approved PBKDF2-HMAC-SHA256 hashing.
 type SecretBasedAuthenticator struct {
-	clientRepo cryptoutilIdentityRepository.ClientRepository
-	hasher     SecretHasher
+	clientRepo      cryptoutilIdentityRepository.ClientRepository
+	hasher          SecretHasher
+	rotationService RotationService
 }
 
 // NewSecretBasedAuthenticator creates a new client authenticator with PBKDF2-HMAC-SHA256 hashing.
-func NewSecretBasedAuthenticator(clientRepo cryptoutilIdentityRepository.ClientRepository) *SecretBasedAuthenticator {
+func NewSecretBasedAuthenticator(clientRepo cryptoutilIdentityRepository.ClientRepository, rotationService RotationService) *SecretBasedAuthenticator {
 	return &SecretBasedAuthenticator{
-		clientRepo: clientRepo,
-		hasher:     NewPBKDF2Hasher(),
+		clientRepo:      clientRepo,
+		hasher:          NewPBKDF2Hasher(),
+		rotationService: rotationService,
 	}
 }
 
@@ -93,7 +102,21 @@ func (a *SecretBasedAuthenticator) AuthenticateBasic(ctx context.Context, client
 		return nil, fmt.Errorf("client is disabled")
 	}
 
-	// Compare client secret using PBKDF2-HMAC-SHA256.
+	// Multi-secret validation: check all active secrets during grace period.
+	if a.rotationService != nil {
+		valid, version, err := a.rotationService.ValidateSecretDuringGracePeriod(ctx, client.ID, clientSecret)
+		if err != nil {
+			return nil, fmt.Errorf("failed to validate secret: %w", err)
+		}
+		if valid {
+			// Log which version was used for audit purposes.
+			_ = version // TODO: Add audit logging for secret version usage
+			return client, nil
+		}
+		return nil, fmt.Errorf("invalid client credentials")
+	}
+
+	// Fallback: single-secret validation for backward compatibility.
 	if err := a.hasher.CompareSecret(client.ClientSecret, clientSecret); err != nil {
 		return nil, fmt.Errorf("invalid client credentials: %w", err)
 	}
@@ -105,6 +128,16 @@ func (a *SecretBasedAuthenticator) AuthenticateBasic(ctx context.Context, client
 func (a *SecretBasedAuthenticator) AuthenticatePost(ctx context.Context, clientID, clientSecret string) (*cryptoutilIdentityDomain.Client, error) {
 	// Same logic as Basic auth (different HTTP transport, same validation).
 	return a.AuthenticateBasic(ctx, clientID, clientSecret)
+}
+
+// Authenticate implements ClientAuthenticator interface - delegates to AuthenticateBasic.
+func (a *SecretBasedAuthenticator) Authenticate(ctx context.Context, clientID, credential string) (*cryptoutilIdentityDomain.Client, error) {
+	return a.AuthenticateBasic(ctx, clientID, credential)
+}
+
+// Method implements ClientAuthenticator interface - returns basic auth method (registry handles mapping).
+func (a *SecretBasedAuthenticator) Method() string {
+	return "client_secret_basic"
 }
 
 // MigrateSecrets wraps MigrateClientSecrets for use through registry.

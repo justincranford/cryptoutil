@@ -19,7 +19,7 @@ type Registry struct {
 }
 
 // NewRegistry creates a new client authentication registry.
-func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, config *cryptoutilIdentityConfig.Config) *Registry {
+func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, config *cryptoutilIdentityConfig.Config, rotationService RotationService) *Registry {
 	clientRepo := repoFactory.ClientRepository()
 
 	// Create certificate validators
@@ -44,13 +44,13 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 	// Get token issuer URL from config for JWT-based authenticators
 	tokenEndpointURL := config.Tokens.Issuer + "/token"
 
-	// Create secret-based authenticator for shared use
-	secretAuth := NewSecretBasedAuthenticator(clientRepo)
+	// Create secret-based authenticator with rotation service support
+	secretAuth := NewSecretBasedAuthenticator(clientRepo, rotationService)
 
 	return &Registry{
 		authenticators: map[string]ClientAuthenticator{
-			"client_secret_basic":         NewBasicAuthenticator(clientRepo),
-			"client_secret_post":          NewPostAuthenticator(clientRepo),
+			"client_secret_basic":         secretAuth,
+			"client_secret_post":          secretAuth,
 			"tls_client_auth":             NewTLSClientAuthenticator(clientRepo, caValidator),
 			"self_signed_tls_client_auth": NewSelfSignedAuthenticator(clientRepo, selfSignedValidator),
 			"private_key_jwt":             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo),

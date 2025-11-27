@@ -54,7 +54,7 @@ func TestRegistry_AllAuthMethods(t *testing.T) {
 		},
 	}
 
-	registry := NewRegistry(repoFactory, config)
+	registry := NewRegistry(repoFactory, config, nil)
 
 	// Test all auth methods are registered.
 	authMethods := []string{
@@ -87,7 +87,7 @@ func TestRegistry_UnknownMethod(t *testing.T) {
 		},
 	}
 
-	registry := NewRegistry(repoFactory, config)
+	registry := NewRegistry(repoFactory, config, nil)
 
 	_, ok := registry.GetAuthenticator("unknown_method")
 	require.False(t, ok)
@@ -106,7 +106,7 @@ func TestRegistry_RegisterCustomAuthenticator(t *testing.T) {
 		},
 	}
 
-	registry := NewRegistry(repoFactory, config)
+	registry := NewRegistry(repoFactory, config, nil)
 
 	// Create a mock authenticator.
 	mockAuth := NewBasicAuthenticator(repoFactory.ClientRepository())

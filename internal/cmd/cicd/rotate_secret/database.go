@@ -8,8 +8,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	_ "modernc.org/sqlite"
+
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
 func setupDatabase() (*gorm.DB, error) {

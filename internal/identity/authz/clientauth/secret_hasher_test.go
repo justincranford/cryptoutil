@@ -205,7 +205,7 @@ func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
 	}
 
 	mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{client}}
-	auth := NewSecretBasedAuthenticator(mockRepo)
+	auth := NewSecretBasedAuthenticator(mockRepo, nil)
 
 	// Test successful authentication via POST method.
 	authenticatedClient, err := auth.AuthenticatePost(ctx, "test-client", "correct-secret")
@@ -245,7 +245,7 @@ func TestSecretBasedAuthenticator_MigrateSecrets(t *testing.T) {
 	}
 
 	mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{client1, client2}}
-	auth := NewSecretBasedAuthenticator(mockRepo)
+	auth := NewSecretBasedAuthenticator(mockRepo, nil)
 
 	// Test migration via method wrapper.
 	migrated, err := auth.MigrateSecrets(ctx, mockRepo)
@@ -325,7 +325,7 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 			t.Parallel()
 
 			mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{tc.client}}
-			authenticator := NewSecretBasedAuthenticator(mockRepo)
+			authenticator := NewSecretBasedAuthenticator(mockRepo, nil)
 
 			client, err := authenticator.AuthenticateBasic(ctx, tc.clientID, tc.clientSecret)
 
