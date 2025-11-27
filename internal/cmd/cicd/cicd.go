@@ -29,6 +29,7 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_update_project_status"
 	cryptoutilGoUpdateProjectStatusV2 "cryptoutil/internal/cmd/cicd/go_update_project_status_v2"
 	"cryptoutil/internal/cmd/cicd/identity_progressive_validation"
+	"cryptoutil/internal/cmd/cicd/rotate_secret"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
@@ -51,6 +52,7 @@ const (
 	cmdGoUpdateProjectStatus              = "go-update-project-status"
 	cmdGoUpdateProjectStatusV2            = "go-update-project-status-v2"
 	cmdIdentityProgressiveValidation      = "identity-progressive-validation"
+	cmdRotateSecret                       = "rotate-secret"
 )
 
 // Run executes the specified CI/CD check commands.
@@ -211,6 +213,8 @@ func Run(commands []string) error {
 			}
 		case cmdGoUpdateProjectStatusV2:
 			cmdErr = cryptoutilGoUpdateProjectStatusV2.Update(ctx, cryptoutilGoUpdateProjectStatusV2.Options{})
+		case cmdRotateSecret:
+			cmdErr = rotate_secret.Execute(logger, remainingArgs)
 		}
 
 		cmdDuration := time.Since(cmdStart)
