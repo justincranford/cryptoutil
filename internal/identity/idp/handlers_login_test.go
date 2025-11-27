@@ -37,6 +37,10 @@ func TestHandleLogin_GET(t *testing.T) {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
 
+	// Run database migrations.
+	err = repoFactory.AutoMigrate(ctx)
+	require.NoError(t, err)
+
 	// Initialize IDP service.
 	config := &cryptoutilIdentityConfig.Config{
 		IDP: &cryptoutilIdentityConfig.ServerConfig{

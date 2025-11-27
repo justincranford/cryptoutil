@@ -53,6 +53,8 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	app := fiber.New()
 	service.RegisterRoutes(app)
 
+	// CRITICAL: Generate plaintext secret FIRST, then hash it.
+	// Client.Create() will use the provided hash to create ClientSecretVersion.
 	// Create test client with known secret.
 	originalSecret := "original-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
 	hashedSecret, err := cryptoutilCrypto.HashSecret(originalSecret)
@@ -66,11 +68,16 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
 
+	// Create client - this will create ClientSecretVersion (version 1) using provided hash.
 	err = repoFactory.ClientRepository().Create(ctx, client)
 	require.NoError(t, err)
 
+	// Fetch created client to get updated state after ClientSecretVersion creation.
+	createdClient, err := repoFactory.ClientRepository().GetByClientID(ctx, client.ClientID)
+	require.NoError(t, err)
+
 	// Verify original secret works before rotation.
-	match, err := cryptoutilCrypto.VerifySecret(client.ClientSecret, originalSecret)
+	match, err := cryptoutilCrypto.VerifySecret(createdClient.ClientSecret, originalSecret)
 	require.NoError(t, err)
 	require.True(t, match)
 

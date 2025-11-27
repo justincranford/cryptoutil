@@ -10,12 +10,11 @@ import (
 	"testing"
 	"time"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	googleUuid "github.com/google/uuid"
-
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )
@@ -163,6 +162,7 @@ func TestScheduledRotation_SecretsOutsideThreshold(t *testing.T) {
 	versions1, err := rotationService.GetActiveSecretVersions(ctx, client1.ID)
 	require.NoError(t, err)
 	require.Len(t, versions1, 1, "Client1 should have 1 active secret after creation")
+
 	soonExpiration := time.Now().Add(3 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client1.ID, versions1[0].Version).
@@ -173,6 +173,7 @@ func TestScheduledRotation_SecretsOutsideThreshold(t *testing.T) {
 	versions2, err2 := rotationService.GetActiveSecretVersions(ctx, client2.ID)
 	require.NoError(t, err2)
 	require.Len(t, versions2, 1, "Client2 should have 1 active secret after creation")
+
 	laterExpiration := time.Now().Add(10 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client2.ID, versions2[0].Version).
@@ -315,12 +316,12 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 
 		// Generate and hash initial secret (version 1).
 		initialSecret := "test-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
-		secretHash, err := hashSecret(initialSecret)
+
+		secretHash, err := cryptoutilCrypto.HashSecret(initialSecret)
 		if err != nil {
 			return fmt.Errorf("failed to hash initial secret: %w", err)
-		}
+		} // Create ClientSecretVersion.
 
-		// Create ClientSecretVersion.
 		version := &cryptoutilIdentityDomain.ClientSecretVersion{
 			ID:         googleUuid.Must(googleUuid.NewV7()),
 			ClientID:   client.ID,
@@ -349,19 +350,11 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 			Reason:        "Initial client creation (test)",
 			Success:       true,
 		}
+
 		return tx.Create(event).Error
 	})
 	require.NoError(t, err)
 
 	// Version 1 secret created via transaction.
 	return client
-}
-
-// hashSecret hashes a plaintext secret using bcrypt.
-func hashSecret(secret string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
-	if err != nil {
-		return "", fmt.Errorf("failed to hash secret: %w", err)
-	}
-	return string(hash), nil
 }

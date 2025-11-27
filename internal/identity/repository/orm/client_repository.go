@@ -13,11 +13,12 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // ClientRepositoryGORM implements the ClientRepository interface using GORM.
@@ -38,16 +39,20 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create client: %w", err))
 		}
 
-		// 2. Generate initial secret (32 bytes).
-		initialSecret, err := generateRandomSecret(32)
-		if err != nil {
-			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrKeyGenerationFailed, fmt.Errorf("failed to generate initial secret: %w", err))
-		}
+		// 2. Use provided client secret hash if available.
+		// Tests typically pre-hash secrets before calling Create().
+		secretHash := client.ClientSecret
+		if secretHash == "" {
+			// Generate and hash new secret if none provided.
+			initialSecret, err := generateRandomSecret(cryptoutilMagic.SecretGenerationDefaultByteLength)
+			if err != nil {
+				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrKeyGenerationFailed, fmt.Errorf("failed to generate initial secret: %w", err))
+			}
 
-		// 3. Hash secret.
-		secretHash, err := hashSecret(initialSecret)
-		if err != nil {
-			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrPasswordHashFailed, fmt.Errorf("failed to hash initial secret: %w", err))
+			secretHash, err = cryptoutilCrypto.HashSecret(initialSecret)
+			if err != nil {
+				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrPasswordHashFailed, fmt.Errorf("failed to hash initial secret: %w", err))
+			}
 		}
 
 		// 4. Store ClientSecretVersion (version 1, active, no expiration).
@@ -95,15 +100,6 @@ func generateRandomSecret(length int) (string, error) {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 	return base64.URLEncoding.EncodeToString(bytes), nil
-}
-
-// hashSecret hashes a plaintext secret using bcrypt.
-func hashSecret(secret string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
-	if err != nil {
-		return "", fmt.Errorf("failed to hash secret: %w", err)
-	}
-	return string(hash), nil
 }
 
 // GetByID retrieves a client by ID.

@@ -12,10 +12,10 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilCrypto "cryptoutil/internal/crypto"
 	"cryptoutil/internal/identity/domain"
 )
 
@@ -57,12 +57,10 @@ func (s *SecretRotationService) RotateClientSecret(
 	}
 
 	// Hash new secret.
-	newSecretHash, err := hashSecret(newSecretPlaintext)
+	newSecretHash, err := cryptoutilCrypto.HashSecret(newSecretPlaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash new secret: %w", err)
-	}
-
-	// Execute rotation in transaction.
+	} // Execute rotation in transaction.
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Get current active secret version.
 		var currentVersion domain.ClientSecretVersion
@@ -267,27 +265,15 @@ func (s *SecretRotationService) RevokeSecretVersion(
 // generateRandomSecret generates a cryptographically secure random secret.
 func generateRandomSecret(length int) (string, error) {
 	bytes := make([]byte, length)
-
 	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("failed to read random bytes: %w", err)
+		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
-
 	return base64.URLEncoding.EncodeToString(bytes), nil
 }
 
-// hashSecret hashes a secret using bcrypt.
-func hashSecret(secret string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
-	if err != nil {
-		return "", fmt.Errorf("failed to hash secret: %w", err)
-	}
-
-	return string(hash), nil
-}
-
-// compareSecret compares a plaintext secret with a bcrypt hash.
+// compareSecret compares a plaintext secret against a stored hash using PBKDF2.
 func compareSecret(plaintext, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(plaintext))
+	match, err := cryptoutilCrypto.VerifySecret(hash, plaintext)
 
-	return err == nil
+	return err == nil && match
 }
