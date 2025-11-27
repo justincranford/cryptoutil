@@ -1,11 +1,11 @@
 # Identity V2 Requirements Coverage Report
 
-**Generated**: 2025-01-19
+**Generated**: 2025-01-26
 **Total Requirements**: 65
-**Validated**: 64 (98.5%)
+**Validated**: 65 (100.0%)
 **Uncovered CRITICAL**: 0
 **Uncovered HIGH**: 0
-**Uncovered MEDIUM**: 1
+**Uncovered MEDIUM**: 0
 
 ## Summary by Task
 
@@ -14,7 +14,7 @@
 | R01 | 6 | 6 | 100.0% ✅ |
 | R02 | 7 | 7 | 100.0% ✅ |
 | R03 | 5 | 5 | 100.0% ✅ |
-| R04 | 6 | 5 | 83.3% ⚠️ |
+| R04 | 6 | 6 | 100.0% ✅ |
 | R05 | 6 | 6 | 100.0% ✅ |
 | R06 | 4 | 4 | 100.0% ✅ |
 | R07 | 5 | 5 | 100.0% ✅ |
@@ -60,7 +60,7 @@
 
 | ID | Priority | Description | Status | Evidence |
 |----|----------|-------------|--------|----------|
-| R04-06 | MEDIUM | Client secret rotation support | ❌ | NOT IMPLEMENTED. Status: DEFERRED to future enhancement. Rationale: Client secret rotation is a security best practice but not blocking for initial production deployment. Current workaround: Manual client re-registration with new secret if rotation needed. Gap analysis (P4.02-GAP-ANALYSIS.md line 48): "NEEDS IMPL - Add rotation endpoints/logic", estimated 4 hours effort. Recommended for post-launch enhancement: Add PUT /clients/{id}/rotate-secret endpoint, implement secret history tracking, add rotation notification mechanism, document rotation procedures in operations guide. Current coverage: Client creation/deletion/update functional, secret hashing implemented (PBKDF2-HMAC-SHA256), secret validation working. Only rotation-specific logic missing. |
+| R04-06 | MEDIUM | Client secret rotation support | ✅ | IMPLEMENTED. Infrastructure: Database migration 0003_client_secret_rotation creates client_secret_history table (client_id, old_secret_hash, new_secret_hash, rotated_at, rotated_by, rotation_reason, metadata). Domain model: internal/identity/domain/client_secret_history.go with proper GORM annotations. Repository: RotateSecret() method (atomic transaction: archive old secret, update client, create history record), GetSecretHistory() method (pagination support). API endpoint: POST /oauth2/v1/clients/{id}/rotate-secret (authentication required, authorization enforced, returns new plaintext secret once). Operations: docs/runbooks/client-secret-rotation.md (rotation procedures, rollback, monitoring, troubleshooting). Tests: handlers_client_rotation_test.go validates end-to-end flow, authentication, authorization, error handling (3/3 passing). Evidence commits: 0251df24 (infrastructure), be0614af (endpoint fixes), 56f6fb02 (runbook). Status: Production ready. |
 
 ### R07
 
