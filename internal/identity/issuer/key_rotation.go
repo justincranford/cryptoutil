@@ -6,7 +6,12 @@ package issuer
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
+	"encoding/base64"
 	"fmt"
+	"math/big"
 	"sync"
 	"time"
 
@@ -133,6 +138,27 @@ func (m *KeyRotationManager) GetActiveSigningKey() (*SigningKey, error) {
 		cryptoutilIdentityAppErr.ErrKeyNotFound,
 		fmt.Errorf("no active signing key available"),
 	)
+}
+
+// GetPublicKeys returns all valid signing keys in JWK format for JWKS endpoint.
+func (m *KeyRotationManager) GetPublicKeys() []map[string]any {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	keys := make([]map[string]any, 0)
+
+	for _, key := range m.signingKeys {
+		if !key.ValidForVerif || time.Now().After(key.ExpiresAt) {
+			continue
+		}
+
+		jwk := convertToJWK(key)
+		if jwk != nil {
+			keys = append(keys, jwk)
+		}
+	}
+
+	return keys
 }
 
 // GetSigningKeyByID retrieves a signing key by its ID for verification.
@@ -349,5 +375,65 @@ func (m *KeyRotationManager) StartAutoRotation(ctx context.Context, algorithm st
 				continue
 			}
 		}
+	}
+}
+
+// convertToJWK converts a SigningKey to JWK format for JWKS endpoint.
+func convertToJWK(key *SigningKey) map[string]any {
+	if key == nil || key.Key == nil {
+		return nil
+	}
+
+	jwk := map[string]any{
+		"kid": key.KeyID,
+		"use": "sig",
+		"alg": key.Algorithm,
+	}
+
+	switch k := key.Key.(type) {
+	case *rsa.PrivateKey:
+		jwk["kty"] = "RSA"
+		jwk["n"] = base64URLEncode(k.N.Bytes())
+		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
+	case *rsa.PublicKey:
+		jwk["kty"] = "RSA"
+		jwk["n"] = base64URLEncode(k.N.Bytes())
+		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
+	case *ecdsa.PrivateKey:
+		jwk["kty"] = "EC"
+		jwk["crv"] = ecdsaCurveName(k.Curve)
+		jwk["x"] = base64URLEncode(k.X.Bytes())
+		jwk["y"] = base64URLEncode(k.Y.Bytes())
+	case *ecdsa.PublicKey:
+		jwk["kty"] = "EC"
+		jwk["crv"] = ecdsaCurveName(k.Curve)
+		jwk["x"] = base64URLEncode(k.X.Bytes())
+		jwk["y"] = base64URLEncode(k.Y.Bytes())
+	case []byte:
+		// HMAC keys - don't expose in JWKS (symmetric)
+		return nil
+	default:
+		return nil
+	}
+
+	return jwk
+}
+
+// base64URLEncode encodes bytes to base64url without padding.
+func base64URLEncode(data []byte) string {
+	return base64.RawURLEncoding.EncodeToString(data)
+}
+
+// ecdsaCurveName returns the curve name for JWK.
+func ecdsaCurveName(curve elliptic.Curve) string {
+	switch curve {
+	case elliptic.P256():
+		return "P-256"
+	case elliptic.P384():
+		return "P-384"
+	case elliptic.P521():
+		return "P-521"
+	default:
+		return ""
 	}
 }

@@ -24,6 +24,10 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	// Health check endpoint (no prefix).
 	app.Get("/health", s.handleHealth)
 
+	// OAuth 2.1 Discovery endpoints (RFC 8414).
+	app.Get("/.well-known/oauth-authorization-server", s.handleOAuthMetadata)
+	app.Get("/.well-known/openid-configuration", s.handleOIDCDiscovery)
+
 	// OAuth 2.1 endpoints with /oauth2/v1 prefix.
 	oauth := app.Group("/oauth2/v1")
 	oauth.Get("/authorize", s.handleAuthorizeGET)
@@ -31,6 +35,7 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oauth.Post("/token", s.handleToken)
 	oauth.Post("/introspect", s.handleIntrospect)
 	oauth.Post("/revoke", s.handleRevoke)
+	oauth.Get("/jwks", s.handleJWKS)
 
 	// Client management endpoints.
 	oauth.Post("/clients/:id/rotate-secret", s.handleClientSecretRotation)

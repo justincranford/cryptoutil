@@ -157,6 +157,15 @@ type TokenMetadata struct {
 	ExpiresAt *time.Time     `json:"expires_at,omitempty"`
 }
 
+// GetPublicKeys returns the public keys for JWT signature verification.
+func (s *TokenService) GetPublicKeys() []map[string]any {
+	if s.jwsIssuer == nil || s.jwsIssuer.keyRotationMgr == nil {
+		return []map[string]any{}
+	}
+
+	return s.jwsIssuer.keyRotationMgr.GetPublicKeys()
+}
+
 // BuildTokenDomain builds a domain Token entity from issuance parameters.
 func BuildTokenDomain(
 	tokenType cryptoutilIdentityDomain.TokenType,
