@@ -65,6 +65,16 @@ const (
 	AES256KeySize             = 32 // AES-256 key size in bytes.
 	JWSPartCount              = 3  // JWT JWS part count (header.payload.signature).
 	ByteShift                 = 8  // Bit shift for byte operations.
+
+	// RSA key sizes (bits).
+	RSA2048KeySize = 2048 // RSA-2048 key size (minimum for FIPS 140-3).
+	RSA3072KeySize = 3072 // RSA-3072 key size.
+	RSA4096KeySize = 4096 // RSA-4096 key size.
+
+	// HMAC key sizes (bytes).
+	HMACSHA256KeySize = 32 // HMAC-SHA256 key size (32 bytes = 256 bits).
+	HMACSHA384KeySize = 48 // HMAC-SHA384 key size (48 bytes = 384 bits).
+	HMACSHA512KeySize = 64 // HMAC-SHA512 key size (64 bytes = 512 bits).
 )
 
 // Password hashing.

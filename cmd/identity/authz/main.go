@@ -49,11 +49,56 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO: Create JWS, JWE, UUID issuers properly.
-	// For now, use placeholders.
-	jwsIssuer := &cryptoutilIdentityIssuer.JWSIssuer{}
-	jweIssuer := &cryptoutilIdentityIssuer.JWEIssuer{}
-	uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
+	// Create production key generator.
+	keyGenerator := cryptoutilIdentityIssuer.NewProductionKeyGenerator()
+
+	// Create key rotation manager with default policy.
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		keyGenerator,
+		func(keyID string) {
+			fmt.Printf("Key rotated: %s\n", keyID)
+		},
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create key rotation manager: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Rotate initial signing key.
+	if err := keyRotationMgr.RotateSigningKey(ctx, config.Tokens.SigningAlgorithm); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to rotate initial signing key: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Rotate initial encryption key.
+	if err := keyRotationMgr.RotateEncryptionKey(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to rotate initial encryption key: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create JWS issuer.
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		config.Tokens.Issuer,
+		keyRotationMgr,
+		config.Tokens.SigningAlgorithm,
+		config.Tokens.AccessTokenLifetime,
+		config.Tokens.IDTokenLifetime,
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create JWS issuer: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create JWE issuer.
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create JWE issuer: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create UUID issuer.
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
 
 	// Create token service.
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, config.Tokens)
