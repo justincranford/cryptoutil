@@ -198,11 +198,14 @@ func createAuthzCodeAdditionalTestDependencies(t *testing.T) (*cryptoutilIdentit
 	ctx := context.Background()
 
 	// Create unique in-memory database.
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New()),
+		AutoMigrate: true,
+	}
+
 	config := &cryptoutilIdentityConfig.Config{
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New()),
-		},
+		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:               "https://localhost:8080",
 			AccessTokenLifetime:  3600,
@@ -211,7 +214,7 @@ func createAuthzCodeAdditionalTestDependencies(t *testing.T) (*cryptoutilIdentit
 	}
 
 	// Create repository factory and run migrations.
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
 	require.NoError(t, repoFactory.AutoMigrate(ctx))
 

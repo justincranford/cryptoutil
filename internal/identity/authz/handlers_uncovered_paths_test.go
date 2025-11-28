@@ -60,15 +60,15 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 				err := clientRepo.Create(ctx, client)
 				require.NoError(t, err, "Failed to create test client")
 
-			// Create authorization request WITHOUT UserID (simulates incomplete login/consent).
-			authReqRepo := repoFactory.AuthorizationRequestRepository()
+				// Create authorization request WITHOUT UserID (simulates incomplete login/consent).
+				authReqRepo := repoFactory.AuthorizationRequestRepository()
 
-			authCode := googleUuid.Must(googleUuid.NewV7()).String() // Use UUIDv7 for time-ordered uniqueness
-			authReq := &cryptoutilIdentityDomain.AuthorizationRequest{
-				ID:                  googleUuid.Must(googleUuid.NewV7()),
-				ClientID:            clientID,
-				Code:                authCode,
-				RedirectURI:         "https://example.com/callback",
+				authCode := googleUuid.Must(googleUuid.NewV7()).String() // Use UUIDv7 for time-ordered uniqueness
+				authReq := &cryptoutilIdentityDomain.AuthorizationRequest{
+					ID:                  googleUuid.Must(googleUuid.NewV7()),
+					ClientID:            clientID,
+					Code:                authCode,
+					RedirectURI:         "https://example.com/callback",
 					ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
 					Scope:               "openid profile",
 					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
@@ -271,7 +271,13 @@ func createUncoveredPathsTestDependencies(t *testing.T) (*cryptoutilIdentityConf
 
 	ctx := context.Background()
 
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        config.Database.Type,
+		DSN:         config.Database.DSN,
+		AutoMigrate: true,
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err, "Failed to create repository factory")
 	require.NotNil(t, repoFactory, "Repository factory should not be nil")
 

@@ -243,11 +243,14 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 func createRefreshTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, *cryptoutilIdentityRepository.RepositoryFactory, *cryptoutilIdentityIssuer.TokenService) {
 	t.Helper()
 
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
+		AutoMigrate: true,
+	}
+
 	config := &cryptoutilIdentityConfig.Config{
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
-		},
+		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
 			AccessTokenLifetime: 3600,
@@ -256,7 +259,7 @@ func createRefreshTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig
 
 	ctx := context.Background()
 
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err, "Failed to create repository factory")
 	require.NotNil(t, repoFactory, "Repository factory should not be nil")
 

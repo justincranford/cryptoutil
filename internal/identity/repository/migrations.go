@@ -26,6 +26,15 @@ var (
 	migratedDBs    = make(map[string]bool)
 )
 
+// ResetMigrationStateForTesting clears the migration state cache.
+// ONLY for use in test setup to ensure clean migration state per test.
+// NOT safe for production use - only call from test initialization code.
+func ResetMigrationStateForTesting() {
+	migrationMutex.Lock()
+	defer migrationMutex.Unlock()
+	migratedDBs = make(map[string]bool)
+}
+
 // Migrate applies SQL migrations from embedded files.
 // Thread-safe for concurrent test execution via mutex protection.
 func Migrate(db *sql.DB) error {

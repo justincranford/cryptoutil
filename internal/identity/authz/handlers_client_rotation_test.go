@@ -32,7 +32,11 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup database and service.
-	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{Type: "sqlite", DSN: ":memory:"}
+	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         ":memory:",
+		AutoMigrate: true,
+	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbCfg)
 	require.NoError(t, err)
 
@@ -132,8 +136,12 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Setup service.
-	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{Type: "sqlite", DSN: ":memory:"}
+	// Setup database and service.
+	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         ":memory:",
+		AutoMigrate: true,
+	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbCfg)
 	require.NoError(t, err)
 
@@ -184,7 +192,11 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup service.
-	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{Type: "sqlite", DSN: ":memory:"}
+	dbCfg := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         ":memory:",
+		AutoMigrate: true,
+	}
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbCfg)
 	require.NoError(t, err)
 

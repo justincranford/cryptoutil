@@ -214,7 +214,16 @@ func createIntrospectRevokeTestRepoFactory(t *testing.T) *cryptoutilIdentityRepo
 	cfg := createIntrospectRevokeTestConfig(t)
 	ctx := context.Background()
 
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg.Database)
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        cfg.Database.Type,
+		DSN:         cfg.Database.DSN,
+		AutoMigrate: true,
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err, "Failed to create repository factory")
 	require.NotNil(t, repoFactory, "Repository factory should not be nil")
 

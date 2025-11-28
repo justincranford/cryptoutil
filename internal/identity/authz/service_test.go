@@ -230,11 +230,14 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 func createServiceTestConfig(t *testing.T) *cryptoutilIdentityConfig.Config {
 	t.Helper()
 
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         "file::memory:?cache=private",
+		AutoMigrate: true,
+	}
+
 	return &cryptoutilIdentityConfig.Config{
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  "file::memory:?cache=private",
-		},
+		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer: "https://localhost:8080",
 		},

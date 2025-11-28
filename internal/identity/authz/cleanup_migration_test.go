@@ -25,17 +25,23 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 	ctx := context.Background()
 	testID := googleUuid.Must(googleUuid.NewV7()).String()
 
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
+		AutoMigrate: true,
+	}
+
 	cfg := &cryptoutilIdentityConfig.Config{
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
-		},
+		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime: 3600,
 		},
 	}
 
-	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg.Database)
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err, "Failed to create repository factory")
 
 	err = repoFactory.AutoMigrate(ctx)
@@ -94,11 +100,17 @@ func TestMigrateClientSecrets_NoClients(t *testing.T) {
 	ctx := context.Background()
 	testID := googleUuid.Must(googleUuid.NewV7()).String()
 
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
+		AutoMigrate: true,
+	}
+
 	cfg := &cryptoutilIdentityConfig.Config{
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  fmt.Sprintf("file:test_%s.db?mode=memory&cache=shared", testID),
-		},
+		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime: 3600,
 		},

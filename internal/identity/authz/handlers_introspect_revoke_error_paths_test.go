@@ -159,11 +159,14 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 func createRevokeErrorPathTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config, *cryptoutilIdentityRepository.RepositoryFactory, *cryptoutilIdentityIssuer.TokenService) {
 	t.Helper()
 
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type:        "sqlite",
+		DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
+		AutoMigrate: true,
+	}
+
 	config := &cryptoutilIdentityConfig.Config{
-		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
-		},
+		Database: dbConfig,
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
 			AccessTokenLifetime: 3600,

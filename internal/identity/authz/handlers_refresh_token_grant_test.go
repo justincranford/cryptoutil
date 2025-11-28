@@ -31,6 +31,9 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	ctx := context.Background()
 	testID := googleUuid.Must(googleUuid.NewV7()).String()
 
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
+
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: "sqlite",
@@ -169,6 +172,9 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 	ctx := context.Background()
 	testID := googleUuid.Must(googleUuid.NewV7()).String()
 
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
+
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type: "sqlite",
@@ -233,6 +239,9 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 
 	ctx := context.Background()
 	testID := googleUuid.Must(googleUuid.NewV7()).String()
+
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
@@ -299,6 +308,9 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 
 	ctx := context.Background()
 	testID := googleUuid.Must(googleUuid.NewV7()).String()
+
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
 
 	cfg := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{

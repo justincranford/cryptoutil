@@ -287,8 +287,9 @@ func createTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config
 
 	config := &cryptoutilIdentityConfig.Config{
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
+			Type:        "sqlite",
+			DSN:         fmt.Sprintf("file::memory:?cache=private&mode=memory&_id=%s", googleUuid.New().String()),
+			AutoMigrate: true,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:               "https://localhost:8080",

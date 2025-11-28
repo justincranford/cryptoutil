@@ -348,6 +348,9 @@ func createAuthorizeComprehensiveTestRepoFactory(t *testing.T) *cryptoutilIdenti
 	cfg := createAuthorizeComprehensiveTestConfig(t)
 	ctx := context.Background()
 
+	// Clear migration state to ensure fresh database for this test.
+	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
+
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg.Database)
 	require.NoError(t, err, "Failed to create repository factory")
 	require.NotNil(t, repoFactory, "Repository factory should not be nil")
