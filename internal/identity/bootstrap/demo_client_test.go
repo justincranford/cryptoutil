@@ -108,5 +108,6 @@ func TestBootstrapClients(t *testing.T) {
 	require.NotNil(t, client, "Demo client should exist")
 	require.Equal(t, "demo-client", client.ClientID, "Client ID should match")
 	require.Equal(t, "Demo Client", client.Name, "Client name should match")
-	require.True(t, client.Enabled, "Client should be enabled")
+	require.NotNil(t, client.Enabled, "Enabled field should not be nil")
+	require.True(t, *client.Enabled, "Client should be enabled")
 }

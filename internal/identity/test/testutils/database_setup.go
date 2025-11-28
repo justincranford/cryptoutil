@@ -59,7 +59,7 @@ func SetupTestDatabase(t *testing.T) *gorm.DB {
 		require.NoError(t, err, "failed to set busy timeout")
 
 		// Apply SQL migrations using the repository migration system (once for shared DB).
-		err = cryptoutilIdentityRepository.Migrate(globalSQLDB)
+		err = cryptoutilIdentityRepository.Migrate(globalSQLDB, "sqlite")
 		if err != nil {
 			t.Logf("Migration error details: %+v", err)
 		}

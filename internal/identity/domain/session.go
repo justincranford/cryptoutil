@@ -33,8 +33,8 @@ type Session struct {
 	LastSeenAt time.Time `json:"last_seen_at"`                     // Last activity time.
 
 	// Session status.
-	Active    bool       `gorm:"index;not null" json:"active"`                  // Session active status.
-	RevokedAt *time.Time `gorm:"column:revoked_at" json:"revoked_at,omitempty"` // Session revocation time.
+	Active    *bool      `gorm:"type:boolean;default:true;not null" json:"active"` // Session active status.
+	RevokedAt *time.Time `gorm:"column:revoked_at" json:"revoked_at,omitempty"`    // Session revocation time.
 
 	AuthenticationMethods []string  `gorm:"serializer:json" json:"authentication_methods"` // Used authentication methods.
 	AuthenticationTime    time.Time `json:"authentication_time"`                           // Authentication completion time.
@@ -75,5 +75,5 @@ func (s *Session) IsExpired() bool {
 
 // IsValid checks if the session is valid (not expired and active).
 func (s *Session) IsValid() bool {
-	return !s.IsExpired() && s.Active
+	return !s.IsExpired() && s.Active != nil && *s.Active
 }

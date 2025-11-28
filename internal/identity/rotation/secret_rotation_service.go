@@ -124,7 +124,7 @@ func (s *SecretRotationService) RotateClientSecret(
 			NewKeyVersion: newVersionPtr,
 			GracePeriod:   &gracePeriodStr,
 			Reason:        reason,
-			Success:       true,
+			Success:       &[]bool{true}[0],
 		}
 
 		if eventErr := tx.Create(event).Error; eventErr != nil {
@@ -238,6 +238,7 @@ func (s *SecretRotationService) RevokeSecretVersion(
 
 		// Create revocation event.
 		versionPtr := &version
+		success := true
 
 		event := &domain.KeyRotationEvent{
 			EventType:     domain.EventTypeRevocation,
@@ -246,7 +247,7 @@ func (s *SecretRotationService) RevokeSecretVersion(
 			Initiator:     revokerID,
 			OldKeyVersion: versionPtr,
 			Reason:        reason,
-			Success:       true,
+			Success:       &success,
 		}
 
 		if eventErr := tx.Create(event).Error; eventErr != nil {

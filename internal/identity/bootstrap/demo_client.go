@@ -50,6 +50,9 @@ func CreateDemoClient(
 	}
 
 	// Create demo client.
+	requirePKCE := true
+	enabled := true
+
 	demoClient := &cryptoutilIdentityDomain.Client{
 		ID:           googleUuid.Must(googleUuid.NewV7()),
 		ClientID:     demoClientID,
@@ -77,12 +80,12 @@ func CreateDemoClient(
 			"write",
 		},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
-		RequirePKCE:             true,
+		RequirePKCE:             &requirePKCE,
 		PKCEChallengeMethod:     "S256",
 		AccessTokenLifetime:     int(cryptoutilIdentityMagic.DefaultAccessTokenLifetime.Seconds()),
 		RefreshTokenLifetime:    int(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime.Seconds()),
 		IDTokenLifetime:         int(cryptoutilIdentityMagic.DefaultIDTokenLifetime.Seconds()),
-		Enabled:                 true,
+		Enabled:                 &enabled,
 	}
 
 	if err := clientRepo.Create(ctx, demoClient); err != nil {

@@ -830,7 +830,7 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		AllowMethods: strings.Join(settings.CORSAllowedMethods, ","), // cryptoutilConfig.defaultAllowedCORSMethods
 		AllowHeaders: strings.Join(settings.CORSAllowedHeaders, ","), // cryptoutilConfig.defaultAllowedCORSHeaders
 		MaxAge:       int(settings.CORSMaxAge),
-		Next:         isNonBrowserUserAPIRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		Next:         isNonBrowserUserAPIRequestFunc(settings), // Skip CORS for /service/api/v1/*, /oauth2/v1/*, /openid/v1/* (non-browser clients)
 	})
 }
 
@@ -840,7 +840,7 @@ func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.Settings) fib
 	csp := buildContentSecurityPolicy(settings)
 
 	return helmet.New(helmet.Config{
-		Next: isNonBrowserUserAPIRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		Next: isNonBrowserUserAPIRequestFunc(settings), // Skip XSS check for /service/api/v1/*, /oauth2/v1/*, /openid/v1/* (non-browser clients)
 
 		// Content Security Policy implementation
 		ContentSecurityPolicy: csp,
@@ -1042,7 +1042,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		SingleUseToken:    settings.CSRFTokenSingleUseToken,
-		Next:              isNonBrowserUserAPIRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		Next:              isNonBrowserUserAPIRequestFunc(settings), // Skip CSRF for /service/api/v1/*, /oauth2/v1/*, /openid/v1/* (non-browser clients)
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			if settings.DevMode {
 				cookieToken := c.Cookies(settings.CSRFTokenName)
@@ -1082,11 +1082,15 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 
 // TRUE  => Skip CSRF check for /service/api/v1/* requests by non-browser clients (e.g. curl, Postman, service-to-service calls)
 // ASSUME: Non-browser Authentication only authorizes clients to access /service/api/v1/*
+// TRUE  => Skip CSRF check for /oauth2/v1/* and /openid/v1/* OAuth 2.1 endpoints (machine-to-machine, never browser-based)
 // FALSE => Enforce CSRF check for /browser/api/v1/* requests by browser clients (e.g. web apps, Swagger UI)
 // ASSUME: UI Authentication only authorizes browser users to access /browser/api/v1/*.
 func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) bool {
 	return func(c *fiber.Ctx) bool {
-		return strings.HasPrefix(c.OriginalURL(), settings.PublicServiceAPIContextPath+"/")
+		url := c.OriginalURL()
+		return strings.HasPrefix(url, settings.PublicServiceAPIContextPath+"/") ||
+			strings.HasPrefix(url, "/oauth2/v1/") ||
+			strings.HasPrefix(url, "/openid/v1/")
 	}
 }
 

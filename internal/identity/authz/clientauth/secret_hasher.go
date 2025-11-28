@@ -98,7 +98,7 @@ func (a *SecretBasedAuthenticator) AuthenticateBasic(ctx context.Context, client
 	}
 
 	// Validate client is enabled.
-	if !client.Enabled {
+	if client.Enabled == nil || !*client.Enabled {
 		return nil, fmt.Errorf("client is disabled")
 	}
 

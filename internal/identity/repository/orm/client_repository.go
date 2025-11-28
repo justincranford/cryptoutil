@@ -73,6 +73,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 		// 5. Create KeyRotationEvent audit log.
 		oldVersion := 0
 		newVersion := 1
+		success := true
 		event := &cryptoutilIdentityDomain.KeyRotationEvent{
 			ID:            googleUuid.New(),
 			EventType:     "secret_created",
@@ -83,7 +84,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 			OldKeyVersion: &oldVersion,
 			NewKeyVersion: &newVersion,
 			Reason:        "Initial client creation",
-			Success:       true,
+			Success:       &success,
 		}
 		if err := tx.Create(event).Error; err != nil {
 			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create audit event: %w", err))

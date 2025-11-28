@@ -108,6 +108,9 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: create_file ("Status: PARTIAL - X fixed, Y remains") → commit → [stops] ❌
 - **WRONG**: runTests → [sees failures] → create_file (POSTMORTEM) → [stops without fixing failures] ❌
 - **WRONG**: grep_search (finds race conditions) → create_file (task doc) → [stops without fixing race] ❌
+- **WRONG**: [user says "YOU STOPPED AGAIN"] → [reads copilot-instructions.md] → [provides apology] → [stops] ❌
+- **WRONG**: [user complains about stopping] → "I apologize for stopping. I'll fix..." → [stops] ❌
+- **WRONG**: read_file (copilot-instructions.md) → replace_string_in_file (add anti-pattern) → [stops] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
@@ -117,13 +120,16 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **RIGHT**: [receives conversation summary] → [IMMEDIATE grep_search for pending work] → [IMMEDIATE continue implementation] ✅
 - **RIGHT**: [user says "DON'T STOP"] → [IMMEDIATE file_search for task docs] → [IMMEDIATE read next task] → [IMMEDIATE start work] ✅
 - **RIGHT**: [user says "AIM FOR 99%"] → [IMMEDIATE file_search for pending work] → [IMMEDIATE continue implementation] ✅
+- **RIGHT**: [user says "YOU STOPPED AGAIN"] → [IMMEDIATE grep_search to find blocker] → [IMMEDIATE replace_string_in_file to fix] → [IMMEDIATE continue] ✅
+- **RIGHT**: [user complains about stopping] → [IMMEDIATE continue from last blocking issue WITHOUT acknowledging] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
 - **SPECIFIC ENFORCEMENT #2**: After creating analysis documents, IMMEDIATELY start implementing fixes based on analysis
 - **SPECIFIC ENFORCEMENT #3**: After committing Phase N, IMMEDIATELY start Phase N+1 with tool call (no text)
 - **SPECIFIC ENFORCEMENT #4**: NEVER provide token usage statistics during work - only at 950k threshold
-- **SPECIFIC ENFORCEMENT #3**: After git push, IMMEDIATELY invoke next task tool (manage_todo_list, read_file, grep_search, etc.)
+- **SPECIFIC ENFORCEMENT #5**: After git push, IMMEDIATELY invoke next task tool (manage_todo_list, read_file, grep_search, etc.)
+- **SPECIFIC ENFORCEMENT #6**: After user complaint about stopping, IMMEDIATELY continue work WITHOUT apology or acknowledgment
 - **SPECIFIC ENFORCEMENT #4**: After creating task document, IMMEDIATELY start executing task (NO summary, NO "READY" statement)
 - **SPECIFIC ENFORCEMENT #5**: After marking task complete in evidence, IMMEDIATELY create next task document AND start executing it
 - **NO SUMMARIES**: Never provide status updates, progress reports, completion messages, or token usage reports until ALL work done
@@ -259,6 +265,8 @@ Example: 990,000 used → (990,000 / 1,000,000) × 100 = 99.0% used (STOP)
 - "Some tests still failing" - FAILING TESTS = CONTINUE DEBUGGING, not acceptable endpoint
 - "Race conditions remain" - RACE CONDITIONS = BUGS TO FIX, not deferrable items
 - "Post-mortem says IN PROGRESS" - IN PROGRESS = INCOMPLETE, continue until COMPLETE
+- "User complained about stopping" - User frustration means IMMEDIATELY continue work WITHOUT acknowledging complaint
+- "Need to read/update copilot-instructions.md" - Update instructions WHILE continuing work, don't stop to update
 
 ## ANTI-PATTERN: Never Provide Text Responses During Continuous Work
 

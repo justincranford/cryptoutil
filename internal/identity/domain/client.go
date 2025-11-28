@@ -63,8 +63,8 @@ type Client struct {
 	TokenEndpointAuthMethod ClientAuthMethod `gorm:"not null" json:"token_endpoint_auth_method"`    // Authentication method.
 
 	// PKCE configuration.
-	RequirePKCE         bool   `gorm:"default:true" json:"require_pkce"`            // Require PKCE for authorization code flow.
-	PKCEChallengeMethod string `gorm:"default:'S256'" json:"pkce_challenge_method"` // PKCE challenge method (S256 or plain).
+	RequirePKCE         *bool  `gorm:"type:boolean;default:true" json:"require_pkce"` // Require PKCE for authorization code flow.
+	PKCEChallengeMethod string `gorm:"default:'S256'" json:"pkce_challenge_method"`   // PKCE challenge method (S256 or plain).
 
 	// Token configuration.
 	AccessTokenLifetime  int `gorm:"default:3600" json:"access_token_lifetime"`   // Access token lifetime (seconds).
@@ -79,10 +79,10 @@ type Client struct {
 	CertificateFingerprint string `gorm:"index" json:"certificate_fingerprint,omitempty"` // Expected certificate SHA-256 fingerprint (hex).
 
 	// Account status.
-	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Client enabled status.
-	CreatedAt time.Time  `json:"created_at"`                        // Creation timestamp.
-	UpdatedAt time.Time  `json:"updated_at"`                        // Last update timestamp.
-	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"` // Soft delete timestamp.
+	Enabled   *bool      `gorm:"type:boolean;default:true" json:"enabled"` // Client enabled status.
+	CreatedAt time.Time  `json:"created_at"`                               // Creation timestamp.
+	UpdatedAt time.Time  `json:"updated_at"`                               // Last update timestamp.
+	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"`        // Soft delete timestamp.
 }
 
 // BeforeCreate generates UUID for new clients.

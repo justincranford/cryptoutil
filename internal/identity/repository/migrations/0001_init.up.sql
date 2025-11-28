@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
 
     -- Account status
-    enabled INTEGER DEFAULT 1,
-    locked INTEGER DEFAULT 0,
+    enabled BOOLEAN DEFAULT true,
+    locked BOOLEAN DEFAULT false,
 
     -- Timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -71,11 +71,11 @@ CREATE TABLE IF NOT EXISTS client_profiles (
     consent_screen_2_text TEXT,
 
     -- MFA configuration for client authentication (JSON arrays)
-    require_client_mfa INTEGER DEFAULT 0,
+    require_client_mfa BOOLEAN DEFAULT false,
     client_mfa_chain TEXT DEFAULT '[]',
 
     -- Account status
-    enabled INTEGER DEFAULT 1,
+    enabled BOOLEAN DEFAULT true,
 
     -- Timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS clients (
     token_endpoint_auth_method TEXT NOT NULL,
 
     -- PKCE configuration
-    require_pkce INTEGER DEFAULT 1,
+    require_pkce BOOLEAN DEFAULT true,
     pkce_challenge_method TEXT DEFAULT 'S256',
 
     -- Token configuration (lifetimes in seconds)
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS clients (
     certificate_fingerprint TEXT,
 
     -- Account status
-    enabled INTEGER DEFAULT 1,
+    enabled BOOLEAN DEFAULT true,
 
     -- Timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -219,7 +219,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     last_seen_at TIMESTAMP,
 
     -- Session status
-    active INTEGER DEFAULT 1,
+    active BOOLEAN DEFAULT true,
     revoked_at TIMESTAMP,
 
     -- Authentication context (JSON arrays)
@@ -259,14 +259,14 @@ CREATE TABLE IF NOT EXISTS auth_profiles (
     profile_type TEXT NOT NULL,
 
     -- MFA configuration (JSON arrays)
-    require_mfa INTEGER DEFAULT 0,
+    require_mfa BOOLEAN DEFAULT false,
     mfa_chain TEXT DEFAULT '[]',
 
     -- mTLS configuration (JSON array)
     mtls_domains TEXT DEFAULT '[]',
 
     -- Account status
-    enabled INTEGER DEFAULT 1,
+    enabled BOOLEAN DEFAULT true,
 
     -- Timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -306,7 +306,7 @@ CREATE TABLE IF NOT EXISTS mfa_factors (
     nonce_used_at TIMESTAMP,
 
     -- Account status
-    enabled INTEGER DEFAULT 1,
+    enabled BOOLEAN DEFAULT true,
 
     -- Timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -334,25 +334,25 @@ CREATE TABLE IF NOT EXISTS auth_flows (
     flow_type TEXT NOT NULL,
 
     -- PKCE configuration
-    require_pkce INTEGER DEFAULT 1,
+    require_pkce BOOLEAN DEFAULT true,
     pkce_challenge_method TEXT DEFAULT 'S256',
 
     -- Scope configuration (JSON array)
     allowed_scopes TEXT DEFAULT '[]',
 
     -- Consent configuration
-    require_consent INTEGER DEFAULT 1,
+    require_consent BOOLEAN DEFAULT true,
     consent_screen_count INTEGER DEFAULT 1,
-    remember_consent INTEGER DEFAULT 0,
+    remember_consent BOOLEAN DEFAULT false,
 
     -- State parameter configuration
-    require_state INTEGER DEFAULT 1,
+    require_state BOOLEAN DEFAULT true,
 
     -- Client profile reference (optional foreign key)
     client_profile_id TEXT,
 
     -- Account status
-    enabled INTEGER DEFAULT 1,
+    enabled BOOLEAN DEFAULT true,
 
     -- Timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

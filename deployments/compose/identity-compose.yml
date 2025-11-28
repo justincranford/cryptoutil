@@ -38,15 +38,15 @@ services:
         VCS_REF: "local"
         BUILD_DATE: "2025-11-07T00:00:00Z"
     image: cryptoutil-identity:dev
-    command: ["identity", "authz", "--config=/app/config/authz-docker.yml"]
+    command: ["identity", "authz"]
     ports:
-      - "8080:8080"  # OAuth 2.1 authorization endpoints
+      - "8090:8080"  # OAuth 2.1 authorization endpoints
       - "9080:9090"  # Admin API (health, metrics)
     environment:
       - IDENTITY_DB_DSN=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
     volumes:
-      - ../../configs/identity/authz-docker.yml:/app/config/authz-docker.yml:ro
+      - ../../configs/identity/authz-docker.yml:/app/run/authz-docker.yml:ro
     depends_on:
       identity-postgres:
         condition: service_healthy

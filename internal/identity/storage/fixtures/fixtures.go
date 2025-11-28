@@ -72,12 +72,13 @@ type TestClientBuilder struct {
 
 // NewTestClientBuilder creates a new test client builder with default values.
 func NewTestClientBuilder() *TestClientBuilder {
+	enabled := true
 	return &TestClientBuilder{
 		client: &cryptoutilIdentityDomain.Client{
 			ClientID:   googleUuid.Must(googleUuid.NewV7()).String(),
 			ClientType: cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:       "Test Client",
-			Enabled:    true,
+			Enabled:    &enabled,
 			CreatedAt:  time.Now(),
 			UpdatedAt:  time.Now(),
 		},
@@ -107,7 +108,7 @@ func (b *TestClientBuilder) WithName(name string) *TestClientBuilder {
 
 // WithEnabled sets the enabled status.
 func (b *TestClientBuilder) WithEnabled(enabled bool) *TestClientBuilder {
-	b.client.Enabled = enabled
+	b.client.Enabled = &enabled
 
 	return b
 }
@@ -184,13 +185,15 @@ type TestSessionBuilder struct {
 	session *cryptoutilIdentityDomain.Session
 }
 
-// NewTestSessionBuilder creates a new test session builder with default values.
+// NewTestSessionBuilder creates a new builder for session test data.
 func NewTestSessionBuilder() *TestSessionBuilder {
+	active := true
+
 	return &TestSessionBuilder{
 		session: &cryptoutilIdentityDomain.Session{
 			SessionID: googleUuid.Must(googleUuid.NewV7()).String(),
 			UserID:    googleUuid.Must(googleUuid.NewV7()), // Will be overridden in tests
-			Active:    true,
+			Active:    &active,
 			IssuedAt:  time.Now(),
 			ExpiresAt: time.Now().Add(time.Hour),
 			CreatedAt: time.Now(),
@@ -215,7 +218,7 @@ func (b *TestSessionBuilder) WithUserID(userID googleUuid.UUID) *TestSessionBuil
 
 // WithActive sets the active status.
 func (b *TestSessionBuilder) WithActive(active bool) *TestSessionBuilder {
-	b.session.Active = active
+	b.session.Active = &active
 
 	return b
 }

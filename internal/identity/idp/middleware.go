@@ -76,7 +76,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 		}
 
 		// Validate session is active.
-		if !session.Active {
+		if session.Active == nil || !*session.Active {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error":             cryptoutilIdentityMagic.ErrorAccessDenied,
 				"error_description": "Session is no longer active",

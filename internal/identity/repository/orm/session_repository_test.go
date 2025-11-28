@@ -24,6 +24,7 @@ func TestSessionRepository_Create(t *testing.T) {
 
 	userID := googleUuid.Must(googleUuid.NewV7())
 	clientID := googleUuid.Must(googleUuid.NewV7())
+	active := true
 
 	session := &cryptoutilIdentityDomain.Session{
 		SessionID:             "session-12345",
@@ -34,7 +35,7 @@ func TestSessionRepository_Create(t *testing.T) {
 		IssuedAt:              time.Now(),
 		ExpiresAt:             time.Now().Add(24 * time.Hour),
 		LastSeenAt:            time.Now(),
-		Active:                true,
+		Active:                &active,
 		AuthenticationMethods: []string{"password", "totp"},
 		AuthenticationTime:    time.Now(),
 		GrantedScopes:         []string{"openid", "profile"},

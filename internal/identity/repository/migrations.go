@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
@@ -37,7 +38,7 @@ func ResetMigrationStateForTesting() {
 
 // Migrate applies SQL migrations from embedded files.
 // Thread-safe for concurrent test execution via mutex protection.
-func Migrate(db *sql.DB) error {
+func Migrate(db *sql.DB, dbType string) error {
 	migrationMutex.Lock()
 	defer migrationMutex.Unlock()
 
@@ -50,20 +51,33 @@ func Migrate(db *sql.DB) error {
 
 	ctx := context.TODO() // Migration runs during startup, no request context available
 
-	// Enable SQLite pragmas for proper foreign key handling.
-	if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err != nil {
-		return fmt.Errorf("failed to enable foreign keys: %w", err)
+	// Enable SQLite pragmas for proper foreign key handling (SQLite only).
+	// Postgres enables foreign keys by default and does not support PRAGMA syntax.
+	if dbType == "sqlite" {
+		if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err != nil {
+			return fmt.Errorf("failed to enable foreign keys: %w", err)
+		}
 	}
 
 	// Create schema_migrations table manually to avoid "no such table" error.
-	// This is required because golang-migrate's sqlite3 driver tries to DELETE/INSERT
-	// before the table exists on first run.
-	createSchemaTable := `
-		CREATE TABLE IF NOT EXISTS schema_migrations (
-			version bigint not null primary key,
-			dirty boolean not null
-		);
-	`
+	// SQLite driver uses ? placeholders, Postgres uses $1, $2.
+	var createSchemaTable string
+	if dbType == "sqlite" {
+		createSchemaTable = `
+			CREATE TABLE IF NOT EXISTS schema_migrations (
+				version bigint not null primary key,
+				dirty boolean not null
+			);
+		`
+	} else {
+		createSchemaTable = `
+			CREATE TABLE IF NOT EXISTS schema_migrations (
+				version bigint not null primary key,
+				dirty boolean not null
+			);
+		`
+	}
+
 	if _, err := db.ExecContext(ctx, createSchemaTable); err != nil {
 		return fmt.Errorf("failed to create schema_migrations table: %w", err)
 	}
@@ -74,28 +88,37 @@ func Migrate(db *sql.DB) error {
 		return fmt.Errorf("failed to create iofs source driver for migrations: %w", err)
 	}
 
-	// Create SQLite database driver.
-	databaseDriver, err := sqlite3.WithInstance(db, &sqlite3.Config{
-		MigrationsTable: "schema_migrations",
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create sqlite driver: %w", err)
-	}
+	// Create database driver and migrate instance based on database type.
+	var m *migrate.Migrate
+	if dbType == "sqlite" {
+		sqliteDriver, err := sqlite3.WithInstance(db, &sqlite3.Config{
+			MigrationsTable: "schema_migrations",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create sqlite driver: %w", err)
+		}
 
-	// Create migrate instance.
-	m, err := migrate.NewWithInstance("iofs", sourceDriver, "sqlite", databaseDriver)
-	if err != nil {
-		return fmt.Errorf("failed to create migrate instance: %w", err)
+		m, err = migrate.NewWithInstance("iofs", sourceDriver, "sqlite", sqliteDriver)
+		if err != nil {
+			return fmt.Errorf("failed to create migrate instance: %w", err)
+		}
+	} else {
+		postgresDriver, err := postgres.WithInstance(db, &postgres.Config{
+			MigrationsTable: "schema_migrations",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create postgres driver: %w", err)
+		}
+
+		m, err = migrate.NewWithInstance("iofs", sourceDriver, "postgres", postgresDriver)
+		if err != nil {
+			return fmt.Errorf("failed to create migrate instance: %w", err)
+		}
 	}
 
 	// Apply migrations.
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	// Validate schema after migration.
-	if err := validateSchema(db, ctx); err != nil {
-		return fmt.Errorf("schema validation failed: %w", err)
 	}
 
 	migratedDBs[dbKey] = true

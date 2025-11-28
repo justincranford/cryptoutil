@@ -9,10 +9,9 @@ $body = @{
 }
 
 try {
-    $response = Invoke-WebRequest -Method POST -Uri "https://127.0.0.1:8080/oauth2/v1/token" `
+    $response = Invoke-WebRequest -Method POST -Uri "http://127.0.0.1:8090/oauth2/v1/token" `
         -ContentType "application/x-www-form-urlencoded" `
-        -Body $body `
-        -SkipCertificateCheck
+        -Body $body
 
     Write-Host "Status Code: $($response.StatusCode)" -ForegroundColor Green
     Write-Host ""

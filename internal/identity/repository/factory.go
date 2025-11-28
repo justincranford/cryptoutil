@@ -24,6 +24,7 @@ const txKey contextKey = "gorm_tx"
 // RepositoryFactory creates and manages repository instances.
 type RepositoryFactory struct {
 	db                *gorm.DB
+	dbType            string
 	userRepo          UserRepository
 	clientRepo        ClientRepository
 	tokenRepo         TokenRepository
@@ -46,6 +47,7 @@ func NewRepositoryFactory(ctx context.Context, cfg *cryptoutilIdentityConfig.Dat
 
 	return &RepositoryFactory{
 		db:                db,
+		dbType:            cfg.Type,
 		userRepo:          cryptoutilIdentityORM.NewUserRepository(db),
 		clientRepo:        cryptoutilIdentityORM.NewClientRepository(db),
 		tokenRepo:         cryptoutilIdentityORM.NewTokenRepository(db),
@@ -186,8 +188,8 @@ func (f *RepositoryFactory) AutoMigrate(_ context.Context) error {
 		)
 	}
 
-	// Apply migrations using golang-migrate.
-	if err := Migrate(sqlDB); err != nil {
+	// Apply migrations using golang-migrate with database type.
+	if err := Migrate(sqlDB, f.dbType); err != nil {
 		return cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrDatabaseQuery,
 			fmt.Errorf("database migration failed: %w", err),

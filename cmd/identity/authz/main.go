@@ -23,9 +23,19 @@ import (
 
 func main() {
 	// Parse command-line flags.
-	configFile := flag.String("config", "configs/identity/authz.yml", "Path to configuration file")
+	configFile := flag.String("config", "/app/run/authz-docker.yml", "Path to configuration file")
 
 	flag.Parse()
+
+	// Debug: Print actual config path being used
+	fmt.Fprintf(os.Stderr, "Loading config from: %s\n", *configFile)
+	fmt.Fprintf(os.Stderr, "Working directory: %s\n", func() string {
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Sprintf("<error: %v>", err)
+		}
+		return wd
+	}())
 
 	// Load configuration from YAML file.
 	config, err := cryptoutilIdentityConfig.LoadFromFile(*configFile)

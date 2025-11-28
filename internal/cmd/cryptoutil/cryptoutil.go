@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -82,7 +83,7 @@ const (
 
 func identityAuthz(parameters []string) {
 	// Default config file
-	configFile := "configs/identity/authz.yml"
+	configFile := "/app/run/authz-docker.yml"
 
 	// Parse command-line flags for config override
 	for i, param := range parameters {
@@ -92,6 +93,11 @@ func identityAuthz(parameters []string) {
 			break
 		}
 	}
+
+	// Debug logging
+	fmt.Fprintf(os.Stderr, "identityAuthz: Loading config from: %s\n", configFile)
+	wd, _ := os.Getwd()
+	fmt.Fprintf(os.Stderr, "identityAuthz: Working directory: %s\n", wd)
 
 	// Load configuration from YAML file
 	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)
@@ -116,11 +122,67 @@ func identityAuthz(parameters []string) {
 		os.Exit(1)
 	}
 
-	// TODO: Create JWS, JWE, UUID issuers properly
-	// For now, use placeholders
-	jwsIssuer := &cryptoutilIdentityIssuer.JWSIssuer{}
-	jweIssuer := &cryptoutilIdentityIssuer.JWEIssuer{}
-	uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
+	// Run database migrations if auto_migrate enabled
+	if config.Database.AutoMigrate {
+		fmt.Fprintf(os.Stderr, "Running database migrations...\n")
+
+		if err := repoFactory.AutoMigrate(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to run database migrations: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Fprintf(os.Stderr, "Database migrations completed successfully\n")
+	}
+
+	// Bootstrap demo client for testing
+	if err := cryptoutilIdentityBootstrap.BootstrapClients(ctx, config, repoFactory); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to bootstrap clients: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create key generator and key rotation manager
+	keyGenerator := cryptoutilIdentityIssuer.NewProductionKeyGenerator()
+	keyRotationPolicy := cryptoutilIdentityIssuer.DevelopmentKeyRotationPolicy()
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(keyRotationPolicy, keyGenerator, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create key rotation manager: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Generate initial signing key
+	if err := keyRotationMgr.RotateSigningKey(ctx, config.Tokens.SigningAlgorithm); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to generate initial signing key: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Generate initial encryption key
+	if err := keyRotationMgr.RotateEncryptionKey(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to generate initial encryption key: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create JWS issuer with key rotation manager
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		config.Tokens.Issuer,
+		keyRotationMgr,
+		config.Tokens.SigningAlgorithm,
+		config.Tokens.AccessTokenLifetime,
+		config.Tokens.IDTokenLifetime,
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create JWS issuer: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create JWE issuer with key rotation manager
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create JWE issuer: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create UUID issuer
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
 
 	// Create token service
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, config.Tokens)

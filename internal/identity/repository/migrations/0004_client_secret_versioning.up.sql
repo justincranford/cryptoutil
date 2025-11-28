@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS key_rotation_events (
     grace_period TEXT,
     reason TEXT,
     metadata TEXT,
-    success INTEGER NOT NULL DEFAULT 1,
+    success BOOLEAN NOT NULL DEFAULT true,
     error_message TEXT,
     deleted_at TIMESTAMP
 );
