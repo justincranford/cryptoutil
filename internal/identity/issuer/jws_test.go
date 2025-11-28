@@ -38,7 +38,7 @@ func TestNewJWSIssuer(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockJWSKeyGenerator{},
+		newMockJWSKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -74,7 +74,7 @@ func TestNewJWSIssuer_MissingIssuer(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockJWSKeyGenerator{},
+		newMockJWSKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestNewJWSIssuer_MissingAlgorithm(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockJWSKeyGenerator{},
+		newMockJWSKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -158,7 +158,7 @@ func TestJWSIssueAccessToken(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockJWSKeyGenerator{},
+		newMockJWSKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -206,7 +206,7 @@ func TestIssueIDToken(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockJWSKeyGenerator{},
+		newMockJWSKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -253,7 +253,7 @@ func TestIssueIDToken_MissingSub(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockJWSKeyGenerator{},
+		newMockJWSKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -298,7 +298,7 @@ func TestIssueIDToken_MissingAud(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockJWSKeyGenerator{},
+		newMockJWSKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -324,25 +324,21 @@ func TestIssueIDToken_MissingAud(t *testing.T) {
 }
 
 // mockJWSKeyGenerator implements KeyGenerator for JWS testing.
-type mockJWSKeyGenerator struct{}
+// Uses ProductionKeyGenerator to generate real RSA keys for signature testing.
+type mockJWSKeyGenerator struct {
+	productionGen *cryptoutilIdentityIssuer.ProductionKeyGenerator
+}
+
+func newMockJWSKeyGenerator() *mockJWSKeyGenerator {
+	return &mockJWSKeyGenerator{
+		productionGen: cryptoutilIdentityIssuer.NewProductionKeyGenerator(),
+	}
+}
 
 func (m *mockJWSKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
-	return &cryptoutilIdentityIssuer.SigningKey{
-		KeyID:         googleUuid.NewString(),
-		Key:           []byte("mock-signing-key"),
-		Algorithm:     algorithm,
-		CreatedAt:     time.Now(),
-		Active:        false,
-		ValidForVerif: false,
-	}, nil
+	return m.productionGen.GenerateSigningKey(ctx, algorithm)
 }
 
 func (m *mockJWSKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
-	return &cryptoutilIdentityIssuer.EncryptionKey{
-		KeyID:        googleUuid.NewString(),
-		Key:          []byte("0123456789abcdef0123456789abcdef"),
-		CreatedAt:    time.Now(),
-		Active:       false,
-		ValidForDecr: false,
-	}, nil
+	return m.productionGen.GenerateEncryptionKey(ctx)
 }

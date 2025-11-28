@@ -18,28 +18,23 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
-// mockKeyGenerator implements KeyGenerator for testing.
-type mockKeyGenerator struct{}
+// mockKeyGenerator implements KeyGenerator for testing using real RSA keys.
+type mockKeyGenerator struct {
+	productionGen *cryptoutilIdentityIssuer.ProductionKeyGenerator
+}
+
+func newMockKeyGenerator() *mockKeyGenerator {
+	return &mockKeyGenerator{
+		productionGen: cryptoutilIdentityIssuer.NewProductionKeyGenerator(),
+	}
+}
 
 func (m *mockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
-	return &cryptoutilIdentityIssuer.SigningKey{
-		KeyID:         googleUuid.NewString(),
-		Key:           []byte("mock-signing-key"),
-		Algorithm:     algorithm,
-		CreatedAt:     time.Now(),
-		Active:        false,
-		ValidForVerif: false,
-	}, nil
+	return m.productionGen.GenerateSigningKey(ctx, algorithm)
 }
 
 func (m *mockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
-	return &cryptoutilIdentityIssuer.EncryptionKey{
-		KeyID:        googleUuid.NewString(),
-		Key:          []byte("0123456789abcdef0123456789abcdef"),
-		CreatedAt:    time.Now(),
-		Active:       false,
-		ValidForDecr: false,
-	}, nil
+	return m.productionGen.GenerateEncryptionKey(ctx)
 }
 
 // TestNewTokenService validates service initialization.
@@ -71,7 +66,7 @@ func TestNewTokenService(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockKeyGenerator{},
+		newMockKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -126,7 +121,7 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockKeyGenerator{},
+		newMockKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -193,7 +188,7 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockKeyGenerator{},
+		newMockKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -263,7 +258,7 @@ func TestIssueAccessTokenUUID(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockKeyGenerator{},
+		newMockKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -327,7 +322,7 @@ func TestIssueIDTokenService(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockKeyGenerator{},
+		newMockKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)
@@ -391,7 +386,7 @@ func TestIssueRefreshToken(t *testing.T) {
 
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockKeyGenerator{},
+		newMockKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err)

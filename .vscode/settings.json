@@ -330,49 +330,60 @@
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
-    "/^git (pull|reset|rebase).*/": false,
-    "/^docker compose (exec).*/": false,
-    "/^docker container exec.*/": false,
-    "/^docker (run|exec).*/": false,
-    "/^(rm|Remove-Item|del)\\b/i.*/": false,
+    // Dangerous operations - DENY (evaluated first due to false value)
+    "git pull": false,
+    "git reset": false,
+    "git rebase": false,
+    "rm ": false,
+    "Remove-Item": false,
+    "del ": false,
 
-    "/^(code|pre-commit|golangci-lint|gofumpt|goimports|gremlins|act|cspell).*/": true,
-    "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify|mod edit).*/": true,
-    "/^git (push|status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|stash pop|stash list|fetch|mv|commit|rev-parse|restore|describe).*/": true,
-    "/^(gradlew|gradle|mvnw|mvn|javac|java|javap|javadoc|jps|jstat|jinfo|keytool|jmap|jstack|jar)\\b.*/": true,
-    "/^(python|python3|pip|pip3|pytest|codecov|black|isort|flake8|mypy|sphinx-build)\\b.*/": true,
-    "/^docker compose (up|down|logs|ps|build|pull|start|stop|restart|config).*/": true,
-    "/^docker container (create|start|stop|restart|rm|logs|inspect|stats|top|update|scale|rollback|prune).*/": true,
-    "/^docker service (create|inspect|logs|ls|ps|rm|rollback|scale|update).*/": true,
-    "/^docker (image|images) (ls|inspect|rm|prune|history|pull|push|build|import|load|save|tag).*/": true,
-    "/^docker volume (ls|inspect|create|rm|prune).*/": true,
-    "/^docker network (ls|inspect|create|rm|prune|connect|disconnect).*/": true,
-    "/^docker context (ls|inspect|create|update|export|import|rm|show|use).*/": true,
-    "/^docker plugin (ls|inspect|create|update|disable|enable|install|push|rm|set|upgrade).*/": true,
-    "/^docker secret (ls|inspect|create|update|rm).*/": true,
-    "/^docker config (ls|inspect|create|update|rm).*/": true,
-    "/^docker stack (config|deploy|ls|ps|rm|services).*/": true,
-    "/^docker system (df|info|prune).*/": true,
-    "/^docker pull.*/": true,
-    "/^docker build.*/": true,
-    "/^docker tag.*/": true,
-    "/^docker inspect.*/": true,
-    "/^docker version.*/": true,
-    "/^docker info.*/": true,
-    "/^docker search.*/": true,
-    "/^docker stop.*/": true,
-    "/^docker kill.*/": true,
-    "/^docker rm.*/": true,
-    "/^docker rmi.*/": true,
-    "/^(ls|which|find|grep|sed|awk|cat|netstat|head|tail|wc|sort|uniq|cut|tr|ps|df|du|tar|gzip|gunzip|less|file|id)\\b.*/": true, // Linux
-    "/^(dir|where|findstr|type|tasklist|systeminfo|hostname|tree|fc|more|attrib|mode)\\b.*/": true, // Windows
-    "/^(openssl|jq|yq|mkdir|tee|make|cmake|ninja|ssh|scp|perl)\\b.*/": true, // Cross-platform
-    "/^(curl|curl\\.exe|wget)\\s.*/": true, // HTTP clients
-    "/^Invoke-WebRequest\\s.*/": true, // PowerShell Invoke-WebRequest
-    "/^Invoke-RestMethod\\s.*/": true, // PowerShell Invoke-RestMethod
-    "/^(iwr|irm)\\s.*/": true, // PowerShell HTTP aliases
-    "/^(Get-Command|Get-Help|Get-ChildItem|Get-Process|Test-Path|Copy-Item|Get-Content|Receive-Job|Get-Job|Start-Job|Stop-Job|Start-Sleep|Get-Service|Get-Date|Get-Location|Set-Location|Select-Object|Where-Object|ForEach-Object|Sort-Object|Group-Object|Measure-Object|Format-Table|Format-List|Out-String|ConvertTo-Json|ConvertFrom-Json|Get-Alias)\\b.*/": true, // PowerShell
-  }, // Auto-approve terminal commands - Patterns ordered for precedence: false first, then true
+    // Safe operations - ALLOW ALL (simple prefix matching)
+    "go ": true,
+    "docker ": true,
+    "git ": true,
+    "code ": true,
+    "pre-commit ": true,
+    "golangci-lint ": true,
+    "gofumpt ": true,
+    "goimports ": true,
+    "gremlins ": true,
+    "act ": true,
+    "cspell ": true,
+    "gradlew ": true,
+    "gradle ": true,
+    "mvnw ": true,
+    "mvn ": true,
+    "javac ": true,
+    "java ": true,
+    "python ": true,
+    "python3 ": true,
+    "pip ": true,
+    "pip3 ": true,
+    "pytest ": true,
+    "ls ": true,
+    "which ": true,
+    "find ": true,
+    "grep ": true,
+    "cat ": true,
+    "head ": true,
+    "tail ": true,
+    "mkdir ": true,
+    "dir ": true,
+    "type ": true,
+    "curl ": true,
+    "wget ": true,
+    "openssl ": true,
+    "jq ": true,
+    "Invoke-WebRequest ": true,
+    "Invoke-RestMethod ": true,
+    "Get-ChildItem ": true,
+    "Get-Content ": true,
+    "Select-Object ": true,
+    "Select-String ": true,
+    "Test-Path ": true,
+    "Get-Command ": true
+  },
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
   "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv
