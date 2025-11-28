@@ -330,59 +330,97 @@
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
-    // Dangerous operations - DENY (evaluated first due to false value)
-    "git pull": false,
-    "git reset": false,
-    "git rebase": false,
-    "rm ": false,
-    "Remove-Item": false,
-    "del ": false,
+      //
+      // ─────────────────────────────────────────────────────────────
+      // Mandatory safety overrides (cannot be bypassed)
+      // https://code.visualstudio.com/docs/copilot/terminal#_safety-guards
+      // Copilot Terminal will ALWAYS prompt for:
+      //   - destructive ops (rm, del, Remove-Item)
+      //   - git operations that rewrite history (reset, rebase)
+      //   - PowerShell network commands (Invoke-WebRequest, Invoke-RestMethod)
+      //   - privilege escalation (sudo, chmod on Linux)
+      // Prefix-based allowList CANNOT override these rules.
+      // ─────────────────────────────────────────────────────────────
+      "git pull": false,
+      "git reset": false,
+      "git rebase": false,
+      "rm ": false,
+      "del ": false,
+      "Remove-Item": false,
+      "Invoke-WebRequest": false,   // Always prompts (network)
+      "Invoke-RestMethod": false,   // Always prompts (network)
 
-    // Safe operations - ALLOW ALL (simple prefix matching)
-    "go ": true,
-    "docker ": true,
-    "git ": true,
-    "code ": true,
-    "pre-commit ": true,
-    "golangci-lint ": true,
-    "gofumpt ": true,
-    "goimports ": true,
-    "gremlins ": true,
-    "act ": true,
-    "cspell ": true,
-    "gradlew ": true,
-    "gradle ": true,
-    "mvnw ": true,
-    "mvn ": true,
-    "javac ": true,
-    "java ": true,
-    "python ": true,
-    "python3 ": true,
-    "pip ": true,
-    "pip3 ": true,
-    "pytest ": true,
-    "ls ": true,
-    "which ": true,
-    "find ": true,
-    "grep ": true,
-    "cat ": true,
-    "head ": true,
-    "tail ": true,
-    "mkdir ": true,
-    "dir ": true,
-    "type ": true,
-    "curl ": true,
-    "wget ": true,
-    "openssl ": true,
-    "jq ": true,
-    "Invoke-WebRequest ": true,
-    "Invoke-RestMethod ": true,
-    "Get-ChildItem ": true,
-    "Get-Content ": true,
-    "Select-Object ": true,
-    "Select-String ": true,
-    "Test-Path ": true,
-    "Get-Command ": true
+      // ─────────────────────────────────────────────────────────────
+      // SAFE COMMANDS — autoApprove allowed
+      // https://code.visualstudio.com/docs/copilot/chat/copilot-chat#_terminal-commands
+      // Prefix matching: "ls " matches "ls -la". Exact matches also work.
+      // ─────────────────────────────────────────────────────────────
+
+      // General CLI tools
+      "go ": true,
+      "docker ": true,
+      "git ": true,
+      "code ": true,
+      "pre-commit ": true,
+      "golangci-lint ": true,
+      "gofumpt ": true,
+      "goimports ": true,
+      "gremlins ": true,
+      "act ": true,
+      "cspell ": true,
+      "openssl ": true,
+      "jq ": true,
+      "yq ": true,
+      "yamllint ": true,
+
+      // Java build tools
+      "gradlew ": true,
+      "gradle ": true,
+      "mvnw ": true,
+      "mvn ": true,
+      "javac ": true,
+      "java ": true,
+
+      // Python tooling
+      "python ": true,
+      "python3 ": true,
+      "pip ": true,
+      "pip3 ": true,
+      "pytest ": true,
+
+      // Built-in shell commands (safe)
+      "ls ": true,
+      "which ": true,
+      "find ": true,
+      "grep ": true,
+      "cat ": true,
+      "head ": true,
+      "tail ": true,
+      "mkdir ": true,
+      "dir ": true,
+      "type ": true,
+
+      // curl/wget (Linux/macOS/Windows)
+      "curl ": true,
+      "wget ": true,
+
+      // PowerShell safe cmdlets (no network, no mutation)
+      "Get-ChildItem ": true,
+      "Get-Content ": true,
+      "Select-Object ": true,
+      "Select-String ": true,
+      "Test-Path ": true,
+      "Get-Command ": true,
+      "Measure-Object ": true,
+      "Format-Table ": true,
+      "Format-List ": true,
+
+      // PowerShell “semi-safe” cmdlets; Allowed because they do not perform download or mutation
+      "Get-Process ": true,
+      "Get-Service ": true,
+      "Get-Location ": true,
+      "Set-Location ": true,
+      "Get-Alias ": true
   },
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
