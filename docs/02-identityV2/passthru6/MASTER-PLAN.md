@@ -1,18 +1,263 @@
-# Identity V2 Passthru6 Master Plan
+# Passthru6: OAuth 2.1 Functional Delivery - Master Plan
+
+**Feature Plan ID**: PASSTHRU6
+**Created**: November 27, 2025
+**Purpose**: Deliver ACTUALLY WORKING OAuth 2.1 Authorization Server with E2E validation
+**Template Version**: 3.0 (evidence-based validation + production code path testing + E2E mandatory)
+**Passthru5 Post-Mortem**: `docs/02-identityV2/passthru5/PASSTHRU5-POSTMORTEM.md`
+
+---
 
 ## Mission Statement
 
 **MAKE THE OAUTH 2.1 AUTHORIZATION SERVER ACTUALLY WORK FOR REAL OAUTH FLOWS**
 
-Passthru5 achieved 100% requirements coverage on paper but delivered **non-functional services**. Passthru6 will deliver a **demonstrably working OAuth 2.1 implementation** with evidence-based validation of every endpoint.
+Passthru5 achieved 100% requirements coverage on paper but delivered **non-functional production code**. Passthru6 will deliver a **demonstrably working OAuth 2.1 implementation** validated through:
+1. **E2E tests using production code paths** (go run ./cmd/identity/...)
+2. **Manual smoke testing** (curl examples that actually work)
+3. **Evidence-based validation** (screenshots, console output, JWT validation)
+
+---
 
 ## Executive Summary
 
-- **Current State**: Services start, health checks pass, but OAuth endpoints return errors
-- **Root Cause**: Token issuers not initialized, missing production key generator
-- **Passthru6 Goal**: Functional OAuth 2.1 server with working authorization code + client credentials flows
-- **Timeline**: 5 phases, 20 tasks, estimated 15-20 hours of work
-- **Success Metric**: Complete OAuth flow from client registration → authorization → token → resource access
+### Current State Analysis
+
+**Services Infrastructure**: ✅ Working
+- Services start successfully
+- Health checks pass (database connectivity verified)
+- Logging infrastructure functional
+- Configuration validation working
+
+**OAuth Functionality**: ❌ **COMPLETELY BROKEN**
+- Token endpoint: 401 Unauthorized (issuers uninitialized)
+- Authorization endpoint: Untested (requires functional issuers)
+- OpenAPI spec: 404 Not Found (error swallowed)
+- Client registration: No bootstrap client
+- OAuth metadata: Endpoints missing
+- JWKS: Endpoint missing
+
+**Root Cause**: `cmd/identity/authz/main.go` lines 52-54 create empty issuer structs instead of proper initialization with KeyRotationManager.
+
+### Passthru6 Goals
+
+**Primary Goals** (MUST complete ALL):
+
+1. **Production KeyGenerator Implementation**: Real RSA/ECDSA/HMAC key generation
+2. **Token Issuers Initialization**: Proper KeyRotationManager setup in main.go
+3. **Bootstrap Client Creation**: demo-client for testing OAuth flows
+4. **Token Endpoint Functional**: 200 OK for client_credentials + authorization_code
+5. **E2E Tests with Production Code Paths**: Tests start services via `go run ./cmd/...`
+6. **OAuth Metadata Endpoints**: `/.well-known/oauth-authorization-server` + JWKS
+7. **Demo Guide with Working Examples**: All curl examples execute successfully
+
+**Success Metric**: Complete OAuth flow from client registration → authorization → token → resource access → refresh → revocation, **validated via E2E tests AND manual curl examples**.
+
+### Timeline and Token Budget
+
+**Estimated Effort**: 35 hours across 8-9 sessions
+**Token Budget**: 950,000 tokens (95% utilization target)
+**Critical Path**: Phase 1 + 2 (Core Infrastructure + Token Validation) = 16 hours for MVP
+
+---
+
+## Template Evolution and Lessons Learned
+
+**Template Version History**:
+- **v1.0**: Initial task tracking (Passthru1-3)
+- **v2.0**: Added root cause analysis, critical success factors (Passthru4-5)
+- **v3.0**: Evidence-based validation + production code path testing + E2E mandatory (Passthru6)
+
+### Critical Lessons from Passthru5 Failure
+
+**The Problem**: Passthru5 claimed "100% requirements coverage" and "all tests passing" but delivered **non-functional OAuth endpoints**.
+
+**Root Causes**:
+1. **Test/Production Code Divergence**: Integration tests used mocks + legacy code paths; production used empty structs
+2. **Missing Manual Validation**: No smoke testing performed; relied solely on automated tests
+3. **Error Swallowing**: Service health checks passed while critical functionality broken
+4. **TODOs as Production Code**: `// TODO: Create JWS issuer properly` left in production startup code
+5. **"Coverage" Misinterpretation**: 100% requirements coverage measured test infrastructure, not production functionality
+
+**Financial Impact**: 10.5x token multiplier (1,049,368 tokens total vs 99,368 in passthru5 work)
+**Time Impact**: 4.5x time multiplier (45 hours total vs 10 hours passthru5 work)
+
+### Corrective Actions Applied to Passthru6
+
+**1. Evidence-Based Validation (Mandatory)**
+- **Every task MUST include**: Working curl examples OR screenshots OR console output
+- **Acceptance criteria MUST specify**: What manual evidence is required
+- **Example**: "Token endpoint returns 200 OK - EVIDENCE: curl output showing JWT in response body"
+
+**2. E2E Tests with Production Code Paths (Mandatory)**
+- **NEVER use mocks in E2E tests** - only use mocks in unit tests
+- **E2E tests MUST start services via**: `go run ./cmd/identity/authz` (production startup)
+- **E2E tests MUST validate**: Complete OAuth flows (authorize → token → validate → refresh → revoke)
+- **E2E tests MUST cover**: ALL identity modes (not just demo mode)
+
+**3. Manual Smoke Testing Checklist (Mandatory for Every Task)**
+```bash
+# After completing ANY task involving OAuth functionality:
+
+# 1. Start services
+go run ./cmd/identity/authz --config configs/identity/authz.yml &
+go run ./cmd/identity/idp --config configs/identity/idp.yml &
+go run ./cmd/identity/rs --config configs/identity/rs.yml &
+
+# 2. Validate OpenAPI spec loads
+curl http://localhost:8080/ui/swagger/doc.json | jq '.info.title'
+
+# 3. Validate token endpoint (client_credentials)
+curl -X POST http://localhost:8080/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=demo-client&client_secret=demo-secret" \
+  | jq '.access_token'
+
+# 4. Validate token introspection
+curl -X POST http://localhost:8080/oauth/introspect \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "token=<access_token>&client_id=demo-client&client_secret=demo-secret" \
+  | jq '.active'
+
+# 5. Stop services
+killall authz idp rs
+```
+
+**4. Pre-Commit Hook: Block TODOs in Production Code**
+```bash
+# Add to .pre-commit-config.yaml
+- id: no-todos-in-main
+  name: Block TODOs in main.go files
+  entry: bash -c 'grep -r "TODO" cmd/**/main.go && exit 1 || exit 0'
+  language: system
+  pass_filenames: false
+```
+
+**5. Acceptance Criteria Format Update**
+
+**OLD FORMAT** (Passthru5 - vague, no evidence):
+```
+✅ Token endpoint returns 200 OK
+✅ Access token generated
+```
+
+**NEW FORMAT** (Passthru6 - specific, evidence-required):
+```
+✅ Token endpoint returns 200 OK for client_credentials grant
+   EVIDENCE: curl output showing HTTP 200 + JWT access_token in response body
+   MANUAL TEST: curl -X POST http://localhost:8080/oauth/token -d "grant_type=client_credentials&client_id=demo-client&client_secret=demo-secret"
+   
+✅ Access token is valid JWT with correct claims
+   EVIDENCE: jwt.io decode screenshot showing iss, sub, aud, exp, iat claims
+   MANUAL TEST: Copy access_token from previous step, paste into jwt.io, verify claims
+```
+
+**6. Definition of "Complete"**
+
+**NOT Complete** (Passthru5 mistakes to avoid):
+- ✅ Tests pass (but using mocks)
+- ✅ Service starts (but errors swallowed)
+- ✅ Code compiles (but TODOs in critical paths)
+- ✅ Requirements coverage 100% (but measuring test infrastructure)
+
+**ACTUALLY Complete** (Passthru6 standard):
+- ✅ Tests pass **using production code paths** (go run ./cmd/...)
+- ✅ Service starts **AND returns correct responses** (validated via curl)
+- ✅ Code compiles **AND zero TODOs in production code** (enforced via pre-commit)
+- ✅ Requirements coverage 100% **of production functionality** (manual evidence provided)
+- ✅ E2E tests validate complete OAuth flows (authorize → token → validate → refresh → revoke)
+- ✅ Demo guide curl examples ALL execute successfully (documented in evidence)
+
+---
+
+## E2E Testing Requirements (Mandatory Phase 0)
+
+**User Directive**: "demonstrability of identity to be covered in e2e tests as part of passthru6. Those e2e tests need to cover all of the other modes for identity, not just demo."
+
+### Phase 0: E2E Test Infrastructure (MUST COMPLETE BEFORE PHASE 1)
+
+**Task P6.00.01: Create E2E Test Framework with Production Code Paths**
+
+**Location**: `internal/identity/test/e2e/`
+
+**Requirements**:
+1. E2E tests MUST start services via `go run ./cmd/identity/authz` (production startup code)
+2. E2E tests MUST NOT use mocks - only use production implementations
+3. E2E tests MUST validate complete OAuth flows:
+   - Client registration (if dynamic)
+   - Authorization request (authorization_code flow)
+   - Token request (client_credentials + authorization_code grants)
+   - Token introspection
+   - Token refresh
+   - Token revocation
+4. E2E tests MUST cover ALL identity modes:
+   - **Demo mode**: Basic client_credentials flow with demo-client
+   - **TODO: Clarify "all modes"** - What other identity modes exist? (Password? Social login? MFA?)
+
+**Test Structure**:
+```go
+// internal/identity/test/e2e/oauth_flows_test.go
+func TestE2E_ClientCredentialsFlow_DemoMode(t *testing.T) {
+    // 1. Start AuthZ service via production code path
+    authzCmd := exec.Command("go", "run", "./cmd/identity/authz", "--config", "configs/identity/authz.yml")
+    require.NoError(t, authzCmd.Start())
+    defer authzCmd.Process.Kill()
+    
+    // 2. Wait for service ready (health check)
+    require.Eventually(t, func() bool {
+        resp, err := http.Get("http://localhost:8080/health")
+        return err == nil && resp.StatusCode == 200
+    }, 30*time.Second, 1*time.Second)
+    
+    // 3. Execute OAuth client_credentials flow
+    tokenResp := requestToken(t, "client_credentials", "demo-client", "demo-secret")
+    require.Equal(t, 200, tokenResp.StatusCode)
+    
+    var tokenData map[string]interface{}
+    json.NewDecoder(tokenResp.Body).Decode(&tokenData)
+    require.NotEmpty(t, tokenData["access_token"])
+    
+    // 4. Validate token via introspection
+    accessToken := tokenData["access_token"].(string)
+    introspectResp := introspectToken(t, accessToken, "demo-client", "demo-secret")
+    require.Equal(t, 200, introspectResp.StatusCode)
+    
+    var introspectData map[string]interface{}
+    json.NewDecoder(introspectResp.Body).Decode(&introspectData)
+    require.True(t, introspectData["active"].(bool))
+    
+    // 5. Revoke token
+    revokeResp := revokeToken(t, accessToken, "demo-client", "demo-secret")
+    require.Equal(t, 200, revokeResp.StatusCode)
+    
+    // 6. Verify token now inactive
+    introspectResp2 := introspectToken(t, accessToken, "demo-client", "demo-secret")
+    json.NewDecoder(introspectResp2.Body).Decode(&introspectData)
+    require.False(t, introspectData["active"].(bool))
+}
+```
+
+**Acceptance Criteria**:
+1. ✅ E2E test starts AuthZ service via `go run ./cmd/identity/authz`
+   EVIDENCE: Test logs show "Starting AuthZ service..." from production startup code
+   
+2. ✅ E2E test validates complete client_credentials flow (token → introspect → revoke)
+   EVIDENCE: Test passes with 200 OK at each step, token active→inactive after revocation
+   
+3. ✅ E2E test validates complete authorization_code flow (authorize → callback → token → refresh)
+   EVIDENCE: Test passes with valid authorization code, exchange for tokens, refresh succeeds
+   
+4. ✅ E2E test coverage ≥85% of OAuth handlers
+   EVIDENCE: go test -cover shows coverage report
+   
+5. ✅ E2E tests run in CI/CD pipeline
+   EVIDENCE: GitHub Actions workflow shows E2E test stage passing
+
+**Dependencies**: None (Phase 0 blocks all other phases)
+
+**Estimated Effort**: 4-5 hours
+
+**BLOCKER**: All Phase 1-5 tasks blocked until E2E test framework complete
 
 ## Task Organization
 
@@ -71,7 +316,7 @@ func (g *ProductionKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*En
     if _, err := rand.Read(keyBytes); err != nil {
         return nil, err
     }
-    
+
     return &EncryptionKey{
         KeyID:        uuid.NewString(),
         Key:          keyBytes,
@@ -84,15 +329,38 @@ func (g *ProductionKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*En
 
 **Acceptance Criteria**:
 1. ✅ ProductionKeyGenerator implements KeyGenerator interface
+   EVIDENCE: Code compiles, interface compliance verified via unit test
+   
 2. ✅ Generates RSA keys for RS256/384/512 algorithms
+   EVIDENCE: Unit test shows 2048/3072/4096-bit RSA keys generated successfully
+   
 3. ✅ Generates ECDSA keys for ES256/384/512 algorithms
+   EVIDENCE: Unit test shows P-256/P-384/P-521 ECDSA keys generated successfully
+   
 4. ✅ Generates HMAC keys for HS256/384/512 algorithms
+   EVIDENCE: Unit test shows 32/48/64-byte HMAC keys generated successfully
+   
 5. ✅ Generates AES-256 encryption keys
+   EVIDENCE: Unit test shows 32-byte AES keys generated via crypto/rand
+   
 6. ✅ All key generation uses crypto/rand (cryptographically secure)
+   EVIDENCE: grep shows zero imports of "math/rand", all use "crypto/rand"
+   
 7. ✅ Unit tests achieve ≥85% coverage
+   EVIDENCE: go test -cover shows ≥85% coverage for key_generator.go
+   MANUAL TEST: go test ./internal/identity/issuer -coverprofile=coverage.out && go tool cover -func=coverage.out | grep key_generator.go
+   
 8. ✅ Integration test validates key usage in JWS/JWE
+   EVIDENCE: Integration test generates key → signs JWT → verifies signature → test passes
+   MANUAL TEST: go test ./internal/identity/issuer -run TestIntegration_ProductionKeyGenerator
 
 **Dependencies**: None
+
+**Manual Smoke Test** (REQUIRED before marking complete):
+```bash
+# Generate test key and validate it works
+go run -c 'package main; import "internal/identity/issuer"; kg := issuer.NewProductionKeyGenerator(nil); key, _ := kg.GenerateSigningKey(context.Background(), "RS256"); fmt.Println(key.KeyID)'
+```
 
 **Estimated Effort**: 3-4 hours
 
@@ -167,17 +435,55 @@ uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
 
 **Acceptance Criteria**:
 1. ✅ ProductionKeyGenerator instantiated in main.go
+   EVIDENCE: grep shows NewProductionKeyGenerator() call in cmd/identity/authz/main.go
+   
 2. ✅ KeyRotationManager created with DefaultKeyRotationPolicy
+   EVIDENCE: Code shows NewKeyRotationManager(DefaultKeyRotationPolicy(), ...) call
+   
 3. ✅ Initial signing key rotated on startup
+   EVIDENCE: Logs show "Key rotated" message on startup with key_id field
+   
 4. ✅ Initial encryption key rotated on startup
+   EVIDENCE: Logs show second "Key rotated" message with different key_id
+   
 5. ✅ JWS issuer initialized with KeyRotationManager
+   EVIDENCE: Code shows NewJWSIssuer(issuer, keyRotationMgr, algorithm, ttl) call
+   
 6. ✅ JWE issuer initialized with KeyRotationManager
+   EVIDENCE: Code shows NewJWEIssuer(keyRotationMgr) call
+   
 7. ✅ UUID issuer initialized
+   EVIDENCE: Code shows NewUUIDIssuer() call
+   
 8. ✅ Startup fails gracefully if any initialization errors
+   EVIDENCE: Error handling shows logger.Error() + os.Exit(1) for each initialization step
+   
 9. ✅ Logging shows successful initialization
+   EVIDENCE: Startup logs show "Key rotated" (2x) + "AuthZ service started successfully"
+   MANUAL TEST: go run ./cmd/identity/authz --config configs/identity/authz.yml | grep "Key rotated"
+   
 10. ✅ Service starts without errors
+    EVIDENCE: Health check returns 200 OK
+    MANUAL TEST: curl http://localhost:8080/health (expect {"status":"ok"})
 
 **Dependencies**: P6.01.01 (ProductionKeyGenerator must exist)
+
+**Manual Smoke Test** (REQUIRED before marking complete):
+```bash
+# Start service and validate initialization
+go run ./cmd/identity/authz --config configs/identity/authz.yml &
+PID=$!
+sleep 5
+
+# Check health endpoint
+curl http://localhost:8080/health | jq '.status'  # Expect: "ok"
+
+# Check logs show key rotation
+ps aux | grep authz  # Should show running process
+
+# Cleanup
+kill $PID
+```
 
 **Estimated Effort**: 1 hour
 
@@ -233,7 +539,7 @@ if err != nil {
 
 **Apply to**:
 - internal/identity/authz/routes.go
-- internal/identity/idp/routes.go  
+- internal/identity/idp/routes.go
 - internal/identity/rs/service.go
 
 **Acceptance Criteria**:
@@ -258,14 +564,14 @@ if err != nil {
 // Location: internal/identity/authz/bootstrap.go
 func (s *Service) createBootstrapClient(ctx context.Context) error {
     clientRepo := s.repoFactory.ClientRepository()
-    
+
     // Check if bootstrap client exists
     _, err := clientRepo.GetByClientID(ctx, "demo-client")
     if err == nil {
         // Client already exists, skip bootstrap
         return nil
     }
-    
+
     // Create bootstrap client
     client := &domain.Client{
         ID:                  uuid.New(),
@@ -280,11 +586,11 @@ func (s *Service) createBootstrapClient(ctx context.Context) error {
         CreatedAt:           time.Now(),
         UpdatedAt:           time.Now(),
     }
-    
+
     if err := clientRepo.Create(ctx, client); err != nil {
         return fmt.Errorf("failed to create bootstrap client: %w", err)
     }
-    
+
     s.logger.Info("Created bootstrap OAuth client", "client_id", client.ClientID)
     return nil
 }
@@ -375,16 +681,16 @@ func TestTokenEndpoint_AuthorizationCodeGrant(t *testing.T) {
     // Generate PKCE parameters
     verifier := pkce.GenerateCodeVerifier()
     challenge := pkce.S256Challenge(verifier)
-    
+
     // Step 1: Request authorization code
     authURL := buildAuthURL(clientID, redirectURI, challenge)
     // ... mock user authentication ...
     code := extractAuthorizationCode(authResponse)
-    
+
     // Step 2: Exchange code for tokens
     tokenReq := buildTokenRequest(code, verifier)
     tokenResp := executeTokenRequest(tokenReq)
-    
+
     // Verify response
     require.Equal(t, 200, tokenResp.StatusCode)
     require.NotEmpty(t, tokenResp.AccessToken)
@@ -511,7 +817,7 @@ func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
         "token_endpoint_auth_methods_supported": s.config.ClientAuthMethods,
         "scopes_supported": []string{"openid", "profile", "email"},
     }
-    
+
     return c.JSON(metadata)
 }
 ```
@@ -556,11 +862,11 @@ func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
 func (s *Service) handleJWKS(c *fiber.Ctx) error {
     // Get all valid signing keys from KeyRotationManager
     keys := s.tokenService.GetPublicKeys()
-    
+
     jwks := map[string]any{
         "keys": keys,
     }
-    
+
     return c.JSON(jwks)
 }
 
@@ -601,14 +907,14 @@ func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
         // OAuth fields (from P6.03.01)
         "issuer": s.config.Tokens.Issuer,
         // ... all OAuth metadata ...
-        
+
         // OIDC-specific fields
         "userinfo_endpoint": fmt.Sprintf("%s/oidc/v1/userinfo", s.config.Tokens.Issuer),
         "id_token_signing_alg_values_supported": []string{"RS256"},
         "subject_types_supported": []string{"public"},
         "claims_supported": []string{"sub", "name", "email", "email_verified"},
     }
-    
+
     return c.JSON(metadata)
 }
 ```
@@ -767,7 +1073,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/clients/demo-client/rotate-secret \
 // Location: internal/identity/integration/oauth_flow_e2e_test.go
 func TestCompleteOAuthFlow(t *testing.T) {
     // Setup: Start all 3 services (AuthZ, IdP, RS)
-    
+
     // Step 1: Client registration (or use bootstrap client)
     // Step 2: Authorization request with PKCE
     // Step 3: User authentication (mock)
@@ -775,7 +1081,7 @@ func TestCompleteOAuthFlow(t *testing.T) {
     // Step 5: Resource access with access token
     // Step 6: Token refresh
     // Step 7: Token revocation
-    
+
     // Verify: Each step succeeds with expected responses
 }
 ```
@@ -889,7 +1195,7 @@ sequenceDiagram
     participant AuthZ
     participant IdP
     participant RS
-    
+
     Client->>AuthZ: GET /authorize (code_challenge)
     AuthZ->>IdP: Redirect to login
     IdP->>Client: Login page
@@ -927,13 +1233,13 @@ sequenceDiagram
 func TestRS_ValidateAccessToken(t *testing.T) {
     // Setup: Start RS service
     // Get valid token from AuthZ service
-    
+
     // Test 1: Valid token → 200 OK
     req := httptest.NewRequest("GET", "/resource", nil)
     req.Header.Set("Authorization", "Bearer " + validToken)
     resp := app.Test(req)
     require.Equal(t, 200, resp.StatusCode)
-    
+
     // Test 2: Expired token → 401 Unauthorized
     // Test 3: Invalid signature → 401 Unauthorized
     // Test 4: Missing token → 401 Unauthorized
@@ -1081,28 +1387,28 @@ Must have ALL MVP + ALL of:
 ## Risk Mitigation
 
 ### Risk 1: Issuer Initialization Complexity
-**Probability**: Medium  
-**Impact**: High (blocks everything)  
+**Probability**: Medium
+**Impact**: High (blocks everything)
 **Mitigation**: Implement P6.01.01 first, validate with unit tests before integration
 
 ### Risk 2: PKCE Validation Edge Cases
-**Probability**: Medium  
-**Impact**: Medium (security issue)  
+**Probability**: Medium
+**Impact**: Medium (security issue)
 **Mitigation**: Comprehensive test matrix for code_challenge/verifier combinations
 
 ### Risk 3: Key Rotation Complications
-**Probability**: Low  
-**Impact**: Medium (token validation breaks)  
+**Probability**: Low
+**Impact**: Medium (token validation breaks)
 **Mitigation**: Use DefaultKeyRotationPolicy (no automatic rotation) for Passthru6
 
 ### Risk 4: Integration Test Flakiness
-**Probability**: Medium  
-**Impact**: Low (CI/CD noise)  
+**Probability**: Medium
+**Impact**: Low (CI/CD noise)
 **Mitigation**: Proper service startup synchronization, unique test data (UUIDs)
 
 ### Risk 5: Scope Creep
-**Probability**: High  
-**Impact**: High (timeline overrun)  
+**Probability**: High
+**Impact**: High (timeline overrun)
 **Mitigation**: Strict adherence to deferred features list, no new requirements
 
 ## Post-Passthru6 Roadmap
@@ -1139,25 +1445,25 @@ graph TD
     P6_01_03[P6.01.03: IdP Issuers]
     P6_01_04[P6.01.04: OpenAPI Logging]
     P6_01_05[P6.01.05: Bootstrap Client]
-    
+
     P6_02_01[P6.02.01: Client Creds Test]
     P6_02_02[P6.02.02: Auth Code Test]
     P6_02_03[P6.02.03: Refresh Test]
     P6_02_04[P6.02.04: Client Auth Methods]
-    
+
     P6_03_01[P6.03.01: OAuth Metadata]
     P6_03_02[P6.03.02: JWKS]
     P6_03_03[P6.03.03: OIDC Discovery]
-    
+
     P6_04_01[P6.04.01: Introspection Test]
     P6_04_02[P6.04.02: Revocation Test]
     P6_04_03[P6.04.03: Secret Rotation Test]
-    
+
     P6_05_01[P6.05.01: E2E Flow Test]
     P6_05_02[P6.05.02: Demo Guide Update]
     P6_05_03[P6.05.03: Sequence Diagrams]
     P6_05_04[P6.05.04: RS Validation Test]
-    
+
     P6_01_01 --> P6_01_02
     P6_01_01 --> P6_01_03
     P6_01_02 --> P6_02_01
@@ -1170,7 +1476,7 @@ graph TD
     P6_04_01 --> P6_04_02
     P6_01_02 --> P6_03_02
     P6_03_01 --> P6_03_03
-    
+
     P6_02_01 --> P6_05_01
     P6_02_02 --> P6_05_01
     P6_02_03 --> P6_05_01
@@ -1178,7 +1484,7 @@ graph TD
     P6_04_02 --> P6_05_01
     P6_05_01 --> P6_05_02
     P6_05_02 --> P6_05_03
-    
+
     P6_02_01 --> P6_05_04
     P6_03_02 --> P6_05_04
 ```
@@ -1209,8 +1515,8 @@ graph TD
 
 ---
 
-**Document Status**: Master Plan Complete  
-**Date**: 2025-01-15  
-**Author**: GitHub Copilot  
-**Next Action**: Begin P6.01.01 (Production KeyGenerator)  
+**Document Status**: Master Plan Complete
+**Date**: 2025-01-15
+**Author**: GitHub Copilot
+**Next Action**: Begin P6.01.01 (Production KeyGenerator)
 **Tracking**: Use manage_todo_list for task-level progress
