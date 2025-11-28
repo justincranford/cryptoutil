@@ -12,7 +12,8 @@
 - Each instruction should not be verbose
 - Do reference external resources in instructions
 - Do reference project resources in instructions
-- When calling terminal commands, avoid commands that require prepending environment variables
+- **CRITICAL: NEVER use PowerShell scripts or complex command chaining** - use only simple direct commands (see 03-02.cross-platform.instructions.md)
+- **CRITICAL: NEVER chain commands with `;` or use variables** - each command must be a single direct invocation to avoid manual authorization
 - GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
 - Each instruction should use a one-line headline and a one-sentence summary. Optional: up to 3 short bullet details.
 
