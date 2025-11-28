@@ -5,6 +5,8 @@
 package authz
 
 import (
+	"log/slog"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -13,9 +15,8 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	// Swagger UI OpenAPI spec endpoint.
 	swaggerHandler, err := ServeOpenAPISpec()
 	if err != nil {
-		// Swagger UI is non-critical, skip if spec generation fails.
-		// Error already includes context from ServeOpenAPISpec().
-		_ = err
+		// Swagger UI is non-critical, but log error for diagnostics.
+		slog.Warn("Failed to generate OpenAPI spec for Swagger UI", "error", err)
 	} else {
 		app.Get("/ui/swagger/doc.json", swaggerHandler)
 	}
