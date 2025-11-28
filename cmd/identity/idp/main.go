@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -46,6 +47,12 @@ func main() {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize repository factory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Bootstrap demo client for testing.
+	if err := cryptoutilIdentityBootstrap.BootstrapClients(ctx, config, repoFactory); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to bootstrap clients: %v\n", err)
 		os.Exit(1)
 	}
 
