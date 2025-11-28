@@ -6,9 +6,15 @@ package issuer
 
 import (
 	"context"
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
@@ -165,13 +171,35 @@ func (i *JWSIssuer) IssueIDToken(ctx context.Context, claims map[string]any) (st
 	return i.buildJWS(tokenClaims)
 }
 
-// ValidateToken validates a JWS token and returns its claims (stub for now).
+// ValidateToken validates a JWS token and returns its claims.
 func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[string]any, error) {
 	// Parse JWT parts (header.claims.signature).
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != cryptoutilIdentityMagic.JWSPartCount {
 		return nil, cryptoutilIdentityAppErr.ErrInvalidToken
 	}
+
+	// Decode header.
+	headerBytes, err := base64.RawURLEncoding.DecodeString(parts[0])
+	if err != nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
+			fmt.Errorf("failed to decode header: %w", err),
+		)
+	}
+
+	// Parse header JSON.
+	var header map[string]any
+	if err := json.Unmarshal(headerBytes, &header); err != nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
+			fmt.Errorf("failed to parse header: %w", err),
+		)
+	}
+
+	// Get algorithm and key ID from header.
+	alg, _ := header["alg"].(string)
+	kid, _ := header["kid"].(string)
 
 	// Decode claims.
 	claimsBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
@@ -191,6 +219,25 @@ func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[
 		)
 	}
 
+	// Decode signature.
+	signature, err := base64.RawURLEncoding.DecodeString(parts[2])
+	if err != nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
+			fmt.Errorf("failed to decode signature: %w", err),
+		)
+	}
+
+	// Verify signature using the appropriate key.
+	signingInput := parts[0] + "." + parts[1]
+
+	if err := i.verifySignature(signingInput, signature, alg, kid); err != nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
+			fmt.Errorf("signature verification failed: %w", err),
+		)
+	}
+
 	// Validate expiration.
 	if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
 		if time.Now().Unix() > int64(exp) {
@@ -201,17 +248,112 @@ func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[
 	return claims, nil
 }
 
+// verifySignature verifies the JWT signature using the key with the given key ID.
+func (i *JWSIssuer) verifySignature(signingInput string, signature []byte, algorithm, keyID string) error {
+	// Get the public key for verification.
+	var publicKey any
+
+	if i.legacySigningKey != nil {
+		// Legacy mode: use single signing key.
+		publicKey = i.legacySigningKey
+	} else if i.keyRotationMgr != nil {
+		// Try to find the key by key ID.
+		var signingKey *SigningKey
+
+		if keyID != "" {
+			key, err := i.keyRotationMgr.GetSigningKeyByID(keyID)
+			if err == nil {
+				signingKey = key
+			}
+		}
+
+		// If no key found by ID, try all valid verification keys.
+		if signingKey == nil {
+			keys := i.keyRotationMgr.GetAllValidVerificationKeys()
+			if len(keys) == 0 {
+				return fmt.Errorf("no valid verification keys available")
+			}
+			// Use the first available key for verification.
+			signingKey = keys[0]
+		}
+
+		// Extract public key from signing key.
+		switch key := signingKey.Key.(type) {
+		case *rsa.PrivateKey:
+			publicKey = &key.PublicKey
+		case *ecdsa.PrivateKey:
+			publicKey = &key.PublicKey
+		default:
+			publicKey = signingKey.Key
+		}
+	} else {
+		return fmt.Errorf("no signing key available for verification")
+	}
+
+	// Verify the signature.
+	return verifyJWTSignature(signingInput, signature, algorithm, publicKey)
+}
+
+// verifyJWTSignature verifies the JWT signature with the given algorithm and public key.
+func verifyJWTSignature(signingInput string, signature []byte, algorithm string, publicKey any) error {
+	// Hash the signing input.
+	hash := sha256.Sum256([]byte(signingInput))
+
+	// Verify based on algorithm.
+	switch algorithm {
+	case cryptoutilIdentityMagic.AlgorithmRS256:
+		rsaPubKey, ok := publicKey.(*rsa.PublicKey)
+		if !ok {
+			return fmt.Errorf("expected RSA public key for %s algorithm", algorithm)
+		}
+
+		if err := rsa.VerifyPKCS1v15(rsaPubKey, crypto.SHA256, hash[:], signature); err != nil {
+			return fmt.Errorf("RSA signature verification failed: %w", err)
+		}
+
+		return nil
+
+	case cryptoutilIdentityMagic.AlgorithmES256:
+		ecPubKey, ok := publicKey.(*ecdsa.PublicKey)
+		if !ok {
+			return fmt.Errorf("expected ECDSA public key for %s algorithm", algorithm)
+		}
+
+		// ECDSA signature for ES256 is r || s, each 32 bytes.
+		const es256ComponentSize = 32
+
+		if len(signature) != es256ComponentSize*2 {
+			return fmt.Errorf("invalid ECDSA signature length: %d", len(signature))
+		}
+
+		r := new(big.Int).SetBytes(signature[:es256ComponentSize])
+		s := new(big.Int).SetBytes(signature[es256ComponentSize:])
+
+		if !ecdsa.Verify(ecPubKey, hash[:], r, s) {
+			return fmt.Errorf("ECDSA signature verification failed")
+		}
+
+		return nil
+
+	default:
+		return fmt.Errorf("unsupported verification algorithm: %s", algorithm)
+	}
+}
+
 // buildJWS builds a JWS token using the active signing key.
 func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 	var signingAlg string
 
 	var keyID string
 
+	var signingKey any
+
 	// Get active signing key (or use legacy key).
 	if i.legacySigningKey != nil {
 		// Legacy mode: use single signing key.
 		signingAlg = i.legacySigningAlg
 		keyID = "" // No key ID in legacy mode.
+		signingKey = i.legacySigningKey
 	} else if i.keyRotationMgr != nil {
 		activeKey, err := i.keyRotationMgr.GetActiveSigningKey()
 		if err != nil {
@@ -223,6 +365,7 @@ func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 
 		signingAlg = activeKey.Algorithm
 		keyID = activeKey.KeyID
+		signingKey = activeKey.Key
 	} else {
 		return "", cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
@@ -266,10 +409,64 @@ func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 	// Create signing input.
 	signingInput := headerEncoded + "." + claimsEncoded
 
-	// For MVP: use a stub signature (will integrate cryptoutil signing later).
-	signature := base64.RawURLEncoding.EncodeToString([]byte("stub-signature"))
+	// Sign the token with the actual private key.
+	signature, err := signJWT(signingInput, signingAlg, signingKey)
+	if err != nil {
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
+			fmt.Errorf("failed to sign token: %w", err),
+		)
+	}
 
 	return signingInput + "." + signature, nil
+}
+
+// signJWT signs the JWT signing input with the given algorithm and private key.
+func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
+	// Hash the signing input.
+	hash := sha256.Sum256([]byte(signingInput))
+
+	// Sign based on algorithm.
+	switch algorithm {
+	case cryptoutilIdentityMagic.AlgorithmRS256:
+		rsaKey, ok := privateKey.(*rsa.PrivateKey)
+		if !ok {
+			return "", fmt.Errorf("expected RSA private key for %s algorithm", algorithm)
+		}
+
+		signature, err := rsa.SignPKCS1v15(rand.Reader, rsaKey, crypto.SHA256, hash[:])
+		if err != nil {
+			return "", fmt.Errorf("RSA signing failed: %w", err)
+		}
+
+		return base64.RawURLEncoding.EncodeToString(signature), nil
+
+	case cryptoutilIdentityMagic.AlgorithmES256:
+		ecKey, ok := privateKey.(*ecdsa.PrivateKey)
+		if !ok {
+			return "", fmt.Errorf("expected ECDSA private key for %s algorithm", algorithm)
+		}
+
+		r, s, err := ecdsa.Sign(rand.Reader, ecKey, hash[:])
+		if err != nil {
+			return "", fmt.Errorf("ECDSA signing failed: %w", err)
+		}
+
+		// ECDSA signature for ES256 is r || s, each 32 bytes.
+		const es256ComponentSize = 32
+
+		signature := make([]byte, es256ComponentSize*2)
+		rBytes := r.Bytes()
+		sBytes := s.Bytes()
+
+		copy(signature[es256ComponentSize-len(rBytes):es256ComponentSize], rBytes)
+		copy(signature[es256ComponentSize*2-len(sBytes):], sBytes)
+
+		return base64.RawURLEncoding.EncodeToString(signature), nil
+
+	default:
+		return "", fmt.Errorf("unsupported signing algorithm: %s", algorithm)
+	}
 }
 
 // isStandardClaim checks if a claim is a standard JWT/OIDC claim.

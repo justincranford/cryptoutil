@@ -6,6 +6,7 @@
 package authz
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -30,9 +31,63 @@ func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 	}
 
 	ctx := c.Context()
+
+	// First, try to validate as a JWT (self-contained token).
+	if isJWT(token) {
+		claims, err := s.tokenSvc.ValidateAccessToken(ctx, token)
+		if err == nil {
+			// Token is a valid JWT - return introspection response from claims.
+			response := fiber.Map{
+				"active":     true,
+				"token_type": "Bearer",
+			}
+
+			// Extract standard claims.
+			if clientID, ok := claims["client_id"].(string); ok {
+				response["client_id"] = clientID
+			}
+
+			if sub, ok := claims["sub"].(string); ok {
+				response["sub"] = sub
+			}
+
+			if scope, ok := claims["scope"].(string); ok {
+				response["scope"] = scope
+			}
+
+			if exp, ok := claims["exp"].(float64); ok {
+				response["exp"] = int64(exp)
+			}
+
+			if iat, ok := claims["iat"].(float64); ok {
+				response["iat"] = int64(iat)
+			}
+
+			if iss, ok := claims["iss"].(string); ok {
+				response["iss"] = iss
+			}
+
+			if aud, ok := claims["aud"]; ok {
+				response["aud"] = aud
+			}
+
+			if jti, ok := claims["jti"].(string); ok {
+				response["jti"] = jti
+			}
+
+			// Add token type hint if provided.
+			if tokenTypeHint != "" {
+				response["token_type_hint"] = tokenTypeHint
+			}
+
+			return c.Status(fiber.StatusOK).JSON(response)
+		}
+		// JWT validation failed - fall through to database lookup.
+	}
+
+	// Fallback: lookup token in database (for opaque tokens).
 	tokenRepo := s.repoFactory.TokenRepository()
 
-	// Lookup token in database.
 	tokenRecord, err := tokenRepo.GetByTokenValue(ctx, token)
 	if err != nil {
 		// Token not found - return inactive response.
@@ -80,6 +135,13 @@ func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+// isJWT checks if a token looks like a JWT (three base64url parts separated by dots).
+func isJWT(token string) bool {
+	parts := strings.Split(token, ".")
+
+	return len(parts) == cryptoutilIdentityMagic.JWSPartCount
 }
 
 // handleRevoke handles POST /revoke - OAuth 2.1 token revocation endpoint.

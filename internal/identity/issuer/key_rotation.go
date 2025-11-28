@@ -178,6 +178,22 @@ func (m *KeyRotationManager) GetSigningKeyByID(keyID string) (*SigningKey, error
 	)
 }
 
+// GetAllValidVerificationKeys returns all signing keys that are valid for verification.
+func (m *KeyRotationManager) GetAllValidVerificationKeys() []*SigningKey {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	keys := make([]*SigningKey, 0)
+
+	for _, key := range m.signingKeys {
+		if key.ValidForVerif && (key.ExpiresAt.IsZero() || time.Now().Before(key.ExpiresAt)) {
+			keys = append(keys, key)
+		}
+	}
+
+	return keys
+}
+
 // GetActiveEncryptionKey returns the currently active encryption key.
 func (m *KeyRotationManager) GetActiveEncryptionKey() (*EncryptionKey, error) {
 	m.mu.RLock()
