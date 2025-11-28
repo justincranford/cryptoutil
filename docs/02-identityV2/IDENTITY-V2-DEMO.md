@@ -256,13 +256,35 @@ foreach ($svc in $services) {
 
 ### ⚠️ OpenAPI Spec Endpoints Not Working
 
-**Issue**: Swagger UI endpoints return "Cannot GET /ui/swagger/doc.json"
+**Issue**: Swagger UI endpoints return 404 Not Found
 
-**Root Cause**: OpenAPI spec generation failing (needs investigation)
+**Root Cause**: The `ServeOpenAPISpec()` function is likely returning an error during initialization, causing the route registration to be skipped (silently due to error swallowing in routes.go line 17: `_ = err`)
 
-**Workaround**: Direct endpoint testing via curl/Invoke-WebRequest
+**Evidence**:
 
-**Status**: ⏳ Deferred to future iteration
+- Health check at `/health` works → Fiber app is running
+- Service reports "12 handlers" registered → Expected count
+- GET `/ui/swagger/doc.json` returns 404 → Route not actually registered
+
+**Investigation Needed**:
+
+```go
+// From routes.go:
+swaggerHandler, err := ServeOpenAPISpec()
+if err != nil {
+    // Swagger UI is non-critical, skip if spec generation fails.
+    // Error already includes context from ServeOpenAPISpec().
+    _ = err  // ← ERROR IS BEING SWALLOWED!
+} else {
+    app.Get("/ui/swagger/doc.json", swaggerHandler)
+}
+```
+
+**Fix Required**: Add logging to surface the error instead of silently swallowing it
+
+**Workaround**: Use direct endpoint testing via curl/Invoke-WebRequest; endpoints themselves work correctly
+
+**Status**: ⏳ Needs investigation - requires error logging to diagnose spec generation failure
 
 ### ⚠️ Metadata Endpoints Missing
 
@@ -295,7 +317,8 @@ foreach ($svc in $services) {
 ```
 
 **Expected Output:**
-```
+
+```text
 SERVICE   STATUS      PID
 authz     stopped     -
 idp       stopped     -
@@ -360,6 +383,7 @@ go test ./internal/identity/... -cover
 **Rationale**: Requires stakeholder coordination and production environment access
 
 **Tasks**:
+
 1. Production deployment checklist
 2. Final validation and approval
 3. Security hardening
