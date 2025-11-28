@@ -34,3 +34,7 @@ allowed-cidrs:
 
 # Disable CSRF for API testing
 csrf-token-single-use-token: false
+
+# Security settings
+security:
+  csrf_enabled: false
