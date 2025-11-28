@@ -25,6 +25,9 @@ tokens:
   access_token_lifetime: 3600s
   access_token_format: jws
   id_token_lifetime: 3600s
+  id_token_format: jws
   refresh_token_lifetime: 86400s
+  refresh_token_format: uuid
   issuer: https://idp.example.com
+  signing_algorithm: RS256
   code_lifetime: 600s
