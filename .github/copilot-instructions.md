@@ -111,6 +111,11 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **WRONG**: [user says "YOU STOPPED AGAIN"] → [reads copilot-instructions.md] → [provides apology] → [stops] ❌
 - **WRONG**: [user complains about stopping] → "I apologize for stopping. I'll fix..." → [stops] ❌
 - **WRONG**: read_file (copilot-instructions.md) → replace_string_in_file (add anti-pattern) → [stops] ❌
+- **WRONG**: [user says "WHY DID YOU STOP"] → [provides explanation] → [stops] ❌
+- **WRONG**: [user says "FIX COPILOT INSTRUCTIONS"] → [updates instructions] → [stops] ❌
+- **WRONG**: [user says "ALWAYS CONTINUE WITHOUT STOPPING"] → [makes commit] → [stops] ❌
+- **WRONG**: After making commit with instruction fixes → [stops instead of continuing task work] ❌
+- **WRONG**: After updating instructions → [ANY response to user] → [stops] ❌
 - **RIGHT**: commit → [IMMEDIATE tool call: manage_todo_list] → [IMMEDIATE tool call: create_file] ✅
 - **RIGHT**: create_file (analysis) → [IMMEDIATE multi_replace_string_in_file implementing fixes] → [IMMEDIATE run_in_terminal git add] → commit ✅
 - **RIGHT**: git push → [IMMEDIATE tool call: next task] → [IMMEDIATE tool call: continue work] ✅
@@ -122,6 +127,9 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **RIGHT**: [user says "AIM FOR 99%"] → [IMMEDIATE file_search for pending work] → [IMMEDIATE continue implementation] ✅
 - **RIGHT**: [user says "YOU STOPPED AGAIN"] → [IMMEDIATE grep_search to find blocker] → [IMMEDIATE replace_string_in_file to fix] → [IMMEDIATE continue] ✅
 - **RIGHT**: [user complains about stopping] → [IMMEDIATE continue from last blocking issue WITHOUT acknowledging] ✅
+- **RIGHT**: [user says "WHY DID YOU STOP"] → [IMMEDIATE tool call to continue work] ✅
+- **RIGHT**: [user says "FIX COPILOT INSTRUCTIONS"] → [fix instructions] → [IMMEDIATE continue task work] ✅
+- **RIGHT**: After instruction fix commit → [IMMEDIATE tool call for pending task] ✅
 - **FIX**: ZERO TEXT between tool calls - only invoke tools consecutively
 - **ENFORCEMENT**: After ANY tool call (commit, create_file, read_file), IMMEDIATELY invoke next tool with ZERO intervening text
 - **SPECIFIC ENFORCEMENT**: After git commit, IMMEDIATELY invoke manage_todo_list → IMMEDIATELY invoke create_file/read_file
@@ -168,6 +176,13 @@ manage_todo_list → create_file → run_in_terminal → replace_string_in_file 
 - **Remaining at stop**: 10,000 tokens (1% of budget)
 - **YOU HAVE BEEN STOPPING AT 6-10% USAGE - THIS IS WRONG!!!**
 - **YOU MUST CONTINUE UNTIL 99% USAGE (990k tokens)**
+
+**Claude Opus 4.5 Token Usage Monitoring**:
+- Claude Opus 4.5 has stricter rate limiting than previous models
+- Monitor token usage proactively to avoid throttling
+- If throttling occurs, wait briefly then continue - DON'T stop working
+- Throttling is temporary - CONTINUE working after brief pause
+- NEVER use throttling as excuse to stop - wait and continue
 
 **PERCENTAGE CALCULATION FORMULA**:
 ```
