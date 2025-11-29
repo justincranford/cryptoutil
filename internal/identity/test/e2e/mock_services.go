@@ -1,3 +1,5 @@
+//go:build e2e
+
 // Copyright (c) 2025 Justin Cranford
 //
 //
@@ -28,7 +30,6 @@ const (
 	httpMethodOptions      = "OPTIONS"
 	tokenExpirySeconds     = 3600
 	shutdownTimeout        = 10 * time.Second
-	healthCheckTimeout     = 5 * time.Second
 	serviceReadyMaxRetries = 30
 	serviceReadyRetryDelay = 1 * time.Second
 	alphabetSize           = 26 // Number of letters in English alphabet (A-Z)
@@ -546,7 +547,7 @@ func (tms *TestableMockServices) startSPARPServer(ctx context.Context) error {
 
 func (tms *TestableMockServices) waitForServicesReady(ctx context.Context) error {
 	client := &http.Client{
-		Timeout: healthCheckTimeout,
+		Timeout: healthCheckTimeoutService,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
@@ -622,7 +623,7 @@ func generateRandomString(length int) string {
 	bytes := make([]byte, length)
 	if _, err := rand.Read(bytes); err != nil {
 		log.Printf("Failed to generate random string: %v", err)
-		// Fallback to a simple pattern for testing
+		// Fallback to a simple pattern for testing.
 		for i := range bytes {
 			bytes[i] = 'A' + byte(i%alphabetSize) // A-Z pattern
 		}

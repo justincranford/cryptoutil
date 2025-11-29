@@ -16,13 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	composeFile        = "../../../../deployments/compose/identity-demo.yml"
-	defaultProfile     = "demo"
-	healthCheckTimeout = 90 * time.Second
-	healthCheckRetry   = 5 * time.Second
-)
-
 // TestOAuthFlowFailover validates OAuth 2.1 authorization code flow continues working after service instance failures.
 func TestOAuthFlowFailover(t *testing.T) {
 	t.Parallel()
@@ -44,7 +37,7 @@ func TestOAuthFlowFailover(t *testing.T) {
 
 	// Wait for all services healthy
 	t.Log("⏳ Waiting for all services to become healthy...")
-	require.NoError(t, waitForHealthy(ctx, defaultProfile, healthCheckTimeout, healthCheckRetry))
+	require.NoError(t, waitForHealthy(ctx, defaultProfile, healthCheckTimeoutE2E, healthCheckRetry))
 
 	// Perform successful OAuth flow (baseline)
 	suite := NewE2ETestSuite()
@@ -95,7 +88,7 @@ func TestResourceServerFailover(t *testing.T) {
 
 	// Wait for all services healthy
 	t.Log("⏳ Waiting for all services to become healthy...")
-	require.NoError(t, waitForHealthy(ctx, defaultProfile, healthCheckTimeout, healthCheckRetry))
+	require.NoError(t, waitForHealthy(ctx, defaultProfile, healthCheckTimeoutE2E, healthCheckRetry))
 
 	// Get access token
 	suite := NewE2ETestSuite()
@@ -149,7 +142,7 @@ func TestIdentityProviderFailover(t *testing.T) {
 
 	// Wait for all services healthy
 	t.Log("⏳ Waiting for all services to become healthy...")
-	require.NoError(t, waitForHealthy(ctx, defaultProfile, healthCheckTimeout, healthCheckRetry))
+	require.NoError(t, waitForHealthy(ctx, defaultProfile, healthCheckTimeoutE2E, healthCheckRetry))
 
 	// Perform user authentication via first IdP instance (baseline)
 	suite := NewE2ETestSuite()

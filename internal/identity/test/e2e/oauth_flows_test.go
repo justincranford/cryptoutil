@@ -55,9 +55,9 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 	// Step 1: Authorization request
 	authURL := fmt.Sprintf("%s/authorize", suite.AuthZURL)
 	redirectURI := "https://example.com/callback"
-	state := generateRandomString(32)
+	state := generateRandomStringOAuthFlows(32)
 
-	authReq := fmt.Sprintf("%s?response_type=code&client_id=test-client&redirect_uri=%s&state=%s&code_challenge=%s&code_challenge_method=S256&scope=openid profile email",
+	_ = fmt.Sprintf("%s?response_type=code&client_id=test-client&redirect_uri=%s&state=%s&code_challenge=%s&code_challenge_method=S256&scope=openid profile email",
 		authURL, url.QueryEscape(redirectURI), state, codeChallenge)
 
 	// For E2E test: skip interactive login, use mock authorization code
@@ -352,7 +352,7 @@ func TestPKCEFlow(t *testing.T) {
 	require.Equal(t, 43, len(codeChallenge), "Code challenge should be 43 characters (base64url SHA256)")
 
 	// Verify code challenge is derived from code verifier
-	expectedChallenge := generateCodeChallenge(codeVerifier)
+	expectedChallenge := generateCodeChallengeOAuthFlows(codeVerifier)
 	require.Equal(t, expectedChallenge, codeChallenge, "Code challenge should match SHA256(verifier)")
 
 	t.Log("✅ PKCE validation passed")
@@ -360,28 +360,29 @@ func TestPKCEFlow(t *testing.T) {
 
 // Helper: generatePKCEChallenge generates PKCE code verifier and challenge.
 func generatePKCEChallenge() (codeVerifier, codeChallenge string) {
-	// Generate code verifier (43-128 characters)
+	// Generate code verifier (43-128 characters).
 	verifierBytes := make([]byte, 32)
 	if _, err := io.ReadFull(crand.Reader, verifierBytes); err != nil {
 		panic(fmt.Sprintf("failed to generate code verifier: %v", err))
 	}
+
 	codeVerifier = base64.RawURLEncoding.EncodeToString(verifierBytes)
 
-	// Generate code challenge (SHA256 hash of verifier)
-	codeChallenge = generateCodeChallenge(codeVerifier)
+	// Generate code challenge (SHA256 hash of verifier).
+	codeChallenge = generateCodeChallengeOAuthFlows(codeVerifier)
 
 	return codeVerifier, codeChallenge
 }
 
-// Helper: generateCodeChallenge generates SHA256 hash of code verifier.
-func generateCodeChallenge(verifier string) string {
+// Helper: generateCodeChallengeOAuthFlows generates SHA256 hash of code verifier for OAuth flows.
+func generateCodeChallengeOAuthFlows(verifier string) string {
 	hash := sha256.Sum256([]byte(verifier))
 
 	return base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
-// Helper: generateRandomString generates a random string of specified length.
-func generateRandomString(length int) string {
+// Helper: generateRandomStringOAuthFlows generates a random string of specified length for OAuth flows.
+func generateRandomStringOAuthFlows(length int) string {
 	bytes := make([]byte, length)
 	if _, err := io.ReadFull(crand.Reader, bytes); err != nil {
 		panic(fmt.Sprintf("failed to generate random string: %v", err))

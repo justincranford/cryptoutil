@@ -371,11 +371,11 @@ func (s *E2ETestSuite) performHardwareKeyAuth(ctx context.Context) error {
 
 // initiateAuthorizationCodeFlow initiates the OAuth 2.1 authorization code flow.
 func (s *E2ETestSuite) initiateAuthorizationCodeFlow(ctx context.Context, scenario TestScenario) (string, error) {
-	// Generate PKCE code verifier and challenge
+	// Generate PKCE code verifier and challenge.
 	codeVerifier := generateCodeVerifier()
-	codeChallenge := generateCodeChallenge(codeVerifier)
+	codeChallenge := generateCodeChallengeE2E(codeVerifier)
 
-	// Generate state parameter for CSRF protection
+	// Generate state parameter for CSRF protection.
 	state := generateState()
 
 	authorizeURL := fmt.Sprintf("%s/authorize", s.AuthZURL)
@@ -782,47 +782,47 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 
 // generateCodeVerifier generates a cryptographically secure random code verifier for PKCE.
 func generateCodeVerifier() string {
-	// Generate 32 bytes of random data (256 bits)
+	// Generate 32 bytes of random data (256 bits).
 	verifierBytes := make([]byte, 32)
 	if _, err := crand.Read(verifierBytes); err != nil {
 		panic(fmt.Sprintf("failed to generate code verifier: %v", err))
 	}
 
-	// Base64URL encode the verifier
+	// Base64URL encode the verifier.
 	return base64.RawURLEncoding.EncodeToString(verifierBytes)
 }
 
-// generateCodeChallenge generates a code challenge from a code verifier using S256 method.
-func generateCodeChallenge(verifier string) string {
-	// Hash the verifier with SHA256
+// generateCodeChallengeE2E generates a code challenge from a code verifier using S256 method.
+func generateCodeChallengeE2E(verifier string) string {
+	// Hash the verifier with SHA256.
 	hash := sha256.Sum256([]byte(verifier))
 
-	// Base64URL encode the hash
+	// Base64URL encode the hash.
 	return base64.RawURLEncoding.EncodeToString(hash[:])
 }
 
 // generateClientSecretJWT generates a JWT signed with client secret for client authentication.
 func (s *E2ETestSuite) generateClientSecretJWT() (string, error) {
-	// This is a simplified implementation for testing
-	// In a real implementation, this would create a proper JWT with the required claims
+	// This is a simplified implementation for testing.
+	// In a real implementation, this would create a proper JWT with the required claims.
 	return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test_client_secret_jwt", nil
 }
 
 // generatePrivateKeyJWT generates a JWT signed with private key for client authentication.
 func (s *E2ETestSuite) generatePrivateKeyJWT() (string, error) {
-	// This is a simplified implementation for testing
-	// In a real implementation, this would create a proper JWT signed with the client's private key
+	// This is a simplified implementation for testing.
+	// In a real implementation, this would create a proper JWT signed with the client's private key.
 	return "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.test_private_key_jwt", nil
 }
 
 // generateState generates a random state parameter for CSRF protection.
 func generateState() string {
-	// Generate 16 bytes of random data (128 bits)
+	// Generate 16 bytes of random data (128 bits).
 	stateBytes := make([]byte, 16)
 	if _, err := crand.Read(stateBytes); err != nil {
 		panic(fmt.Sprintf("failed to generate state: %v", err))
 	}
 
-	// Base64URL encode the state
+	// Base64URL encode the state.
 	return base64.RawURLEncoding.EncodeToString(stateBytes)
 }
