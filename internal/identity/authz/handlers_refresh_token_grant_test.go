@@ -53,16 +53,27 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	// Create legacy JWS issuer and token service
-	signingKey := []byte("test-signing-key-32-bytes-long!!")
-	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
+	// Create key rotation manager for token issuers.
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		cryptoutilIdentityIssuer.NewProductionKeyGenerator(),
+		nil,
+	)
+	require.NoError(t, err, "Failed to create key rotation manager")
+
+	// Generate initial signing key.
+	err = keyRotationMgr.RotateSigningKey(ctx, cfg.Tokens.SigningAlgorithm)
+	require.NoError(t, err, "Failed to rotate initial signing key")
+
+	// Create JWS issuer for access tokens.
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		cfg.Tokens.Issuer,
-		signingKey,
-		"HS256",
+		keyRotationMgr,
+		cfg.Tokens.SigningAlgorithm,
 		time.Duration(cfg.Tokens.AccessTokenLifetime)*time.Second,
 		time.Duration(cfg.Tokens.AccessTokenLifetime)*time.Second,
 	)
-	require.NoError(t, err, "Failed to create legacy JWS issuer")
+	require.NoError(t, err, "Failed to create JWS issuer")
 
 	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
 	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, nil, uuidIssuer, cfg.Tokens)
