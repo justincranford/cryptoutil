@@ -41,7 +41,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:              "https://localhost:8080",
-			SigningAlgorithm:    "HS256",
+			SigningAlgorithm:    "RS256",
 			AccessTokenFormat:   "jws",
 			AccessTokenLifetime: 3600,
 		},
@@ -148,8 +148,8 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	formBody := url.Values{
 		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
 		cryptoutilIdentityMagic.ParamRefreshToken: []string{tokenValue},
-		cryptoutilIdentityMagic.ParamClientID:     []string{"test-client"},
-		cryptoutilIdentityMagic.ParamScope:        []string{"openid profile"},
+		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilIdentityMagic.ParamScope:        []string{"openid"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
