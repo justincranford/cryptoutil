@@ -50,6 +50,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Run database migrations.
+	if err := repoFactory.AutoMigrate(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to run database migrations: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Bootstrap demo client for testing.
 	if err := cryptoutilIdentityBootstrap.BootstrapClients(ctx, config, repoFactory); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to bootstrap clients: %v\n", err)
