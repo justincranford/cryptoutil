@@ -145,31 +145,31 @@ func TestSession_IsValid(t *testing.T) {
 	tests := []struct {
 		name     string
 		expiryFn func() time.Time
-		active   bool
+		active   *bool
 		want     bool
 	}{
 		{
 			name:     "valid active session",
 			expiryFn: func() time.Time { return time.Now().Add(1 * time.Hour) },
-			active:   true,
+			active:   boolPtr(true),
 			want:     true,
 		},
 		{
 			name:     "expired but active",
 			expiryFn: func() time.Time { return time.Now().Add(-1 * time.Hour) },
-			active:   true,
+			active:   boolPtr(true),
 			want:     false,
 		},
 		{
 			name:     "valid but inactive",
 			expiryFn: func() time.Time { return time.Now().Add(1 * time.Hour) },
-			active:   false,
+			active:   boolPtr(false),
 			want:     false,
 		},
 		{
 			name:     "expired and inactive",
 			expiryFn: func() time.Time { return time.Now().Add(-1 * time.Hour) },
-			active:   false,
+			active:   boolPtr(false),
 			want:     false,
 		},
 	}

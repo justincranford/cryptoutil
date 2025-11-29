@@ -88,7 +88,7 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 			"phone",
 		},
 		TokenEndpointAuthMethod: "client_secret_basic",
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 		CreatedAt:               time.Now(),
 		UpdatedAt:               time.Now(),
 	}
@@ -129,7 +129,7 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 		IssuedAt:              time.Now(),
 		ExpiresAt:             time.Now().Add(30 * time.Minute),
 		LastSeenAt:            time.Now(),
-		Active:                true,
+		Active:                boolPtr(true),
 		AuthenticationMethods: []string{"username_password"},
 		AuthenticationTime:    time.Now(),
 	}

@@ -20,6 +20,11 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
+// boolPtr converts bool to *bool for struct literals requiring pointer fields.
+func boolPtr(b bool) *bool {
+	return &b
+}
+
 // testDB wraps a GORM database connection for testing.
 type testDB struct {
 	db *gorm.DB

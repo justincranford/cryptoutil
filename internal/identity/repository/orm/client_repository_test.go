@@ -33,11 +33,11 @@ func TestClientRepository_Create(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 
 	err := repo.Create(ctx, client)
@@ -71,7 +71,8 @@ func TestClientRepository_Create(t *testing.T) {
 	require.Equal(t, 0, *events[0].OldKeyVersion, "Expected OldKeyVersion = 0")
 	require.NotNil(t, events[0].NewKeyVersion, "Expected NewKeyVersion to be set")
 	require.Equal(t, 1, *events[0].NewKeyVersion, "Expected NewKeyVersion = 1")
-	require.True(t, events[0].Success, "Expected successful event")
+	require.NotNil(t, events[0].Success, "Expected Success to be set")
+	require.True(t, *events[0].Success, "Expected successful event")
 }
 
 func TestClientRepository_GetByID(t *testing.T) {
@@ -122,11 +123,11 @@ func TestClientRepository_GetByClientID(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 
 	err := repo.Create(ctx, testClient)
@@ -185,11 +186,11 @@ func TestClientRepository_Update(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 
 	err := repo.Create(ctx, client)
@@ -222,11 +223,11 @@ func TestClientRepository_Delete(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 
 	err := repo.Create(ctx, client)
@@ -259,11 +260,11 @@ func TestClientRepository_List(t *testing.T) {
 			AllowedResponseTypes:    []string{"code"},
 			AllowedScopes:           []string{"openid"},
 			RedirectURIs:            []string{"https://example.com/callback"},
-			RequirePKCE:             true,
+			RequirePKCE:             boolPtr(true),
 			AccessTokenLifetime:     3600,
 			RefreshTokenLifetime:    86400,
 			IDTokenLifetime:         3600,
-			Enabled:                 true,
+			Enabled:                 boolPtr(true),
 		}
 		err := repo.Create(ctx, client)
 		require.NoError(t, err)
@@ -301,11 +302,11 @@ func TestClientRepository_Count(t *testing.T) {
 			AllowedResponseTypes:    []string{"code"},
 			AllowedScopes:           []string{"openid"},
 			RedirectURIs:            []string{"https://example.com/callback"},
-			RequirePKCE:             true,
+			RequirePKCE:             boolPtr(true),
 			AccessTokenLifetime:     3600,
 			RefreshTokenLifetime:    86400,
 			IDTokenLifetime:         3600,
-			Enabled:                 true,
+			Enabled:                 boolPtr(true),
 		}
 		err := repo.Create(ctx, client)
 		require.NoError(t, err)
@@ -335,11 +336,11 @@ func TestClientRepository_GetAll(t *testing.T) {
 			AllowedResponseTypes:    []string{"code"},
 			AllowedScopes:           []string{"openid"},
 			RedirectURIs:            []string{"https://example.com/callback"},
-			RequirePKCE:             true,
+			RequirePKCE:             boolPtr(true),
 			AccessTokenLifetime:     3600,
 			RefreshTokenLifetime:    86400,
 			IDTokenLifetime:         3600,
-			Enabled:                 true,
+			Enabled:                 boolPtr(true),
 		}
 		err := repo.Create(ctx, client)
 		require.NoError(t, err)

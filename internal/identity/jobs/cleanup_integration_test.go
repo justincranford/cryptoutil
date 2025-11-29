@@ -155,7 +155,7 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 		IPAddress:          "192.168.1.100",
 		UserAgent:          "Mozilla/5.0",
 		AuthenticationTime: time.Now().Add(-2 * time.Hour),
-		Active:             true,
+		Active:             boolPtr(true),
 	}
 
 	if err := sessionRepo.Create(ctx, expiredSession); err != nil {
@@ -172,7 +172,7 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 		IPAddress:          "192.168.1.101",
 		UserAgent:          "Mozilla/5.0",
 		AuthenticationTime: time.Now(),
-		Active:             true,
+		Active:             boolPtr(true),
 	}
 
 	err = sessionRepo.Create(ctx, validSession)

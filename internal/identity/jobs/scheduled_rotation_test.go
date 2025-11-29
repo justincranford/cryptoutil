@@ -300,11 +300,11 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 
 	// Use the same transaction pattern as ClientRepositoryGORM.Create().

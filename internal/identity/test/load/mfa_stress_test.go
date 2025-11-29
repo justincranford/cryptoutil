@@ -284,7 +284,7 @@ func (s *MFAStressTestSuite) executeMFAChain(ctx context.Context, userID string,
 		UserID:    googleUuid.MustParse(userID),
 		IssuedAt:  time.Now(),
 		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
-		Active:    true,
+		Active:    boolPtr(true),
 	}
 
 	// Simulate factor validations.

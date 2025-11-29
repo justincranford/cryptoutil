@@ -87,7 +87,7 @@ func TestSessionRepository_GetBySessionID(t *testing.T) {
 					IssuedAt:   time.Now(),
 					ExpiresAt:  time.Now().Add(24 * time.Hour),
 					LastSeenAt: time.Now(),
-					Active:     true,
+					Active:     boolPtr(true),
 				}
 				err := repo.Create(context.Background(), session)
 				require.NoError(t, err)
@@ -136,7 +136,7 @@ func TestSessionRepository_Update(t *testing.T) {
 		IssuedAt:   time.Now(),
 		ExpiresAt:  time.Now().Add(24 * time.Hour),
 		LastSeenAt: time.Now(),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
 	require.NoError(t, err)
@@ -166,7 +166,7 @@ func TestSessionRepository_Delete(t *testing.T) {
 		IssuedAt:   time.Now(),
 		ExpiresAt:  time.Now().Add(24 * time.Hour),
 		LastSeenAt: time.Now(),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
 	require.NoError(t, err)
@@ -193,7 +193,7 @@ func TestSessionRepository_TerminateByID(t *testing.T) {
 		IssuedAt:   time.Now(),
 		ExpiresAt:  time.Now().Add(24 * time.Hour),
 		LastSeenAt: time.Now(),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
 	require.NoError(t, err)
@@ -222,7 +222,7 @@ func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 		IssuedAt:   time.Now(),
 		ExpiresAt:  time.Now().Add(24 * time.Hour),
 		LastSeenAt: time.Now(),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
 	require.NoError(t, err)
@@ -252,7 +252,7 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 		IssuedAt:   time.Now().Add(-48 * time.Hour),
 		ExpiresAt:  time.Now().Add(-24 * time.Hour), // Expired.
 		LastSeenAt: time.Now().Add(-24 * time.Hour),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), expiredSession)
 	require.NoError(t, err)
@@ -265,7 +265,7 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 		IssuedAt:   time.Now(),
 		ExpiresAt:  time.Now().Add(24 * time.Hour), // Not expired.
 		LastSeenAt: time.Now(),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err = repo.Create(context.Background(), validSession)
 	require.NoError(t, err)
@@ -296,7 +296,7 @@ func TestSessionRepository_DeleteExpiredBefore(t *testing.T) {
 		IssuedAt:   time.Now().Add(-72 * time.Hour),
 		ExpiresAt:  time.Now().Add(-48 * time.Hour), // Expired 48h ago.
 		LastSeenAt: time.Now().Add(-48 * time.Hour),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session1)
 	require.NoError(t, err)
@@ -308,7 +308,7 @@ func TestSessionRepository_DeleteExpiredBefore(t *testing.T) {
 		IssuedAt:   time.Now().Add(-36 * time.Hour),
 		ExpiresAt:  time.Now().Add(-12 * time.Hour), // Expired 12h ago.
 		LastSeenAt: time.Now().Add(-12 * time.Hour),
-		Active:     true,
+		Active:     boolPtr(true),
 	}
 	err = repo.Create(context.Background(), session2)
 	require.NoError(t, err)
@@ -342,7 +342,7 @@ func TestSessionRepository_List(t *testing.T) {
 			IssuedAt:   time.Now(),
 			ExpiresAt:  time.Now().Add(24 * time.Hour),
 			LastSeenAt: time.Now(),
-			Active:     true,
+			Active:     boolPtr(true),
 		}
 		err := repo.Create(context.Background(), session)
 		require.NoError(t, err)
@@ -380,7 +380,7 @@ func TestSessionRepository_Count(t *testing.T) {
 			IssuedAt:   time.Now(),
 			ExpiresAt:  time.Now().Add(24 * time.Hour),
 			LastSeenAt: time.Now(),
-			Active:     true,
+			Active:     boolPtr(true),
 		}
 		err := repo.Create(context.Background(), session)
 		require.NoError(t, err)

@@ -71,7 +71,7 @@ func TestKeyRotationEvent_FieldValidation(t *testing.T) {
 		GracePeriod:   &gracePeriod,
 		Reason:        "scheduled",
 		Metadata:      `{"test": "data"}`,
-		Success:       true,
+		Success:       boolPtr(true),
 		ErrorMessage:  "",
 	}
 
@@ -88,6 +88,7 @@ func TestKeyRotationEvent_FieldValidation(t *testing.T) {
 	require.Equal(t, "24h", *event.GracePeriod)
 	require.Equal(t, "scheduled", event.Reason)
 	require.Equal(t, `{"test": "data"}`, event.Metadata)
-	require.True(t, event.Success)
+	require.NotNil(t, event.Success)
+	require.True(t, *event.Success)
 	require.Empty(t, event.ErrorMessage)
 }

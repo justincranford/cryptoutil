@@ -141,7 +141,7 @@ func TestMigrateClientSecrets(t *testing.T) {
 					ID:           mustNewUUID(),
 					ClientID:     "plaintext-client",
 					ClientSecret: "plaintext-secret",
-					Enabled:                 boolPtr(true),
+					Enabled:      boolPtr(true),
 				},
 			},
 			expectedMigrate: 1,
@@ -154,7 +154,7 @@ func TestMigrateClientSecrets(t *testing.T) {
 					ID:           mustNewUUID(),
 					ClientID:     "public-client",
 					ClientSecret: "",
-					Enabled:                 boolPtr(true),
+					Enabled:      boolPtr(true),
 				},
 			},
 			expectedMigrate: 0,
@@ -201,7 +201,7 @@ func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
 		ID:           clientID,
 		ClientID:     "test-client",
 		ClientSecret: hashedSecret,
-		Enabled:                 boolPtr(true),
+		Enabled:      boolPtr(true),
 	}
 
 	mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{client}}
@@ -231,7 +231,7 @@ func TestSecretBasedAuthenticator_MigrateSecrets(t *testing.T) {
 		ID:           clientID1,
 		ClientID:     "client1",
 		ClientSecret: "plaintext-secret-1",
-		Enabled:                 boolPtr(true),
+		Enabled:      boolPtr(true),
 	}
 
 	clientID2, err := googleUuid.NewV7()
@@ -241,7 +241,7 @@ func TestSecretBasedAuthenticator_MigrateSecrets(t *testing.T) {
 		ID:           clientID2,
 		ClientID:     "client2",
 		ClientSecret: "plaintext-secret-2",
-		Enabled:                 boolPtr(true),
+		Enabled:      boolPtr(true),
 	}
 
 	mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{client1, client2}}
@@ -277,7 +277,7 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 		ID:           clientID,
 		ClientID:     "enabled-client",
 		ClientSecret: hashedSecret,
-		Enabled:                 boolPtr(true),
+		Enabled:      boolPtr(true),
 	}
 
 	disabledClientID, err := googleUuid.NewV7()

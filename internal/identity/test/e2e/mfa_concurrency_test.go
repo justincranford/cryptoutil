@@ -86,7 +86,7 @@ func (s *E2ETestSuite) executeMFAChain(ctx context.Context, userID string, metho
 		UserID:    googleUuid.MustParse(userID),
 		IssuedAt:  time.Now(),
 		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
-		Active:    true,
+		Active:    boolPtr(true),
 	}
 
 	// Execute each authentication method in chain.

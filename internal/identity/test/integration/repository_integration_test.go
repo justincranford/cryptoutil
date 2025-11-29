@@ -559,7 +559,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				session := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}
@@ -575,7 +575,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				session := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}
@@ -594,7 +594,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				session := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}
@@ -612,20 +612,20 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				session := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}
 				err := sessionRepo.Create(ctx, session)
 				require.NoError(t, err)
 
-				session.Active = false
+				session.Active = boolPtr(false)
 				err = sessionRepo.Update(ctx, session)
 				require.NoError(t, err)
 
 				retrieved, err := sessionRepo.GetByID(ctx, session.ID)
 				require.NoError(t, err)
-				assert.False(t, retrieved.Active)
+				assert.False(t, *retrieved.Active)
 			},
 		},
 		{
@@ -634,7 +634,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				session := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}
@@ -651,14 +651,14 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				session1 := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-1-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}
 				session2 := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-2-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}
@@ -679,7 +679,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 				session := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
-					Active:    true,
+					Active:    boolPtr(true),
 					IssuedAt:  time.Now(),
 					ExpiresAt: time.Now().Add(time.Hour),
 				}

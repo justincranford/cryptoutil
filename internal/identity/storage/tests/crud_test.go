@@ -251,7 +251,7 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 	session := &cryptoutilIdentityDomain.Session{
 		SessionID: "test-session-" + uuidSuffix,
 		UserID:    user.ID,
-		Active:    true,
+		Active:    boolPtr(true),
 		IssuedAt:  time.Now(),
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
@@ -272,7 +272,7 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 
 	// Test Update
 	updatedSession := *retrievedSession
-	updatedSession.Active = false
+	updatedSession.Active = boolPtr(false)
 	err = sessionRepo.Update(ctx, &updatedSession)
 	require.NoError(t, err)
 
