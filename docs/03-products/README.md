@@ -6,6 +6,20 @@
 
 ---
 
+## Active Project: Passthru1
+
+**See [passthru1/README.md](passthru1/README.md) for current implementation work.**
+
+Passthru1 focuses on getting 3 working demos:
+
+1. **KMS Demo** - Protect existing manual implementation
+2. **Identity Demo** - Fix LLM-generated code to working state
+3. **Integration Demo** - KMS authenticated by Identity
+
+Timeline: 1-2 weeks aggressive
+
+---
+
 ## Vision Overview
 
 ### Current Reality
