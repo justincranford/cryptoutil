@@ -97,20 +97,20 @@ func runDemo(ctx context.Context) error {
 	// Create HTTP client for requests.
 	client := createHTTPClient()
 
-	// Step 2: Check discovery endpoints.
-	fmt.Println("🔍 Step 2: Verifying Discovery Endpoints...")
+	// Step 3: Check discovery endpoints.
+	fmt.Println("🔍 Step 3: Verifying Discovery Endpoints...")
 	if err := checkDiscoveryEndpoints(ctx, client); err != nil {
 		return fmt.Errorf("discovery check failed: %w", err)
 	}
 	fmt.Println()
 
-	// Step 3: Demonstrate OAuth 2.1 endpoints.
-	fmt.Println("📋 Step 3: OAuth 2.1 Endpoint Summary")
+	// Step 4: Demonstrate OAuth 2.1 endpoints.
+	fmt.Println("📋 Step 4: OAuth 2.1 Endpoint Summary")
 	printEndpointSummary()
 	fmt.Println()
 
-	// Step 4: Demonstrate authorization endpoint.
-	fmt.Println("🔐 Step 4: Authorization Endpoint Demo...")
+	// Step 5: Demonstrate authorization endpoint.
+	fmt.Println("🔐 Step 5: Authorization Endpoint Demo...")
 	_, codeChallenge := generatePKCE()
 	state := generateState()
 
@@ -119,22 +119,22 @@ func runDemo(ctx context.Context) error {
 	}
 	fmt.Println()
 
-	// Step 5: Demonstrate token endpoint.
-	fmt.Println("🔑 Step 5: Token Endpoint Demo...")
+	// Step 6: Demonstrate token endpoint.
+	fmt.Println("🔑 Step 6: Token Endpoint Demo...")
 	if err := demonstrateTokenEndpoint(ctx, client); err != nil {
 		fmt.Printf("⚠️ Token endpoint info: %v\n", err)
 	}
 	fmt.Println()
 
-	// Step 6: Demonstrate introspection endpoint.
-	fmt.Println("🔬 Step 6: Introspection Endpoint Demo...")
+	// Step 7: Demonstrate introspection endpoint.
+	fmt.Println("🔬 Step 7: Introspection Endpoint Demo...")
 	if err := demonstrateIntrospection(ctx, client); err != nil {
 		fmt.Printf("⚠️ Introspection info: %v\n", err)
 	}
 	fmt.Println()
 
-	// Step 7: Demonstrate revocation endpoint.
-	fmt.Println("🗑️ Step 7: Revocation Endpoint Demo...")
+	// Step 8: Demonstrate revocation endpoint.
+	fmt.Println("🗑️ Step 8: Revocation Endpoint Demo...")
 	if err := demonstrateRevocation(ctx, client); err != nil {
 		fmt.Printf("⚠️ Revocation info: %v\n", err)
 	}
