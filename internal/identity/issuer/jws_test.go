@@ -336,9 +336,9 @@ func newMockJWSKeyGenerator() *mockJWSKeyGenerator {
 }
 
 func (m *mockJWSKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
-	return m.productionGen.GenerateSigningKey(ctx, algorithm)
+	return m.productionGen.GenerateSigningKey(ctx, algorithm) //nolint:wrapcheck // Test wrapper
 }
 
 func (m *mockJWSKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
-	return m.productionGen.GenerateEncryptionKey(ctx)
+	return m.productionGen.GenerateEncryptionKey(ctx) //nolint:wrapcheck // Test wrapper
 }

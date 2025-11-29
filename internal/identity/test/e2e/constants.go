@@ -13,6 +13,7 @@ const (
 
 	// Health check timeouts - longer timeout for orchestration/failover tests.
 	healthCheckTimeoutE2E     = 90 * time.Second
+	healthCheckTimeout        = 90 * time.Second // Alias for compatibility.
 	healthCheckTimeoutService = 5 * time.Second
 	healthCheckRetry          = 5 * time.Second
 )

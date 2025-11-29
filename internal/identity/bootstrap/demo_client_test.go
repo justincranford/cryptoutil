@@ -28,7 +28,8 @@ func TestCreateDemoClient_NewClient(t *testing.T) {
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
 	require.NoError(t, err, "Repository factory creation should succeed")
-	defer repoFactory.Close()
+
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	// Run migrations.
 	err = repoFactory.AutoMigrate(ctx)
@@ -56,7 +57,8 @@ func TestCreateDemoClient_ExistingClient(t *testing.T) {
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
 	require.NoError(t, err, "Repository factory creation should succeed")
-	defer repoFactory.Close()
+
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	// Run migrations.
 	err = repoFactory.AutoMigrate(ctx)
@@ -88,7 +90,8 @@ func TestBootstrapClients(t *testing.T) {
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg)
 	require.NoError(t, err, "Repository factory creation should succeed")
-	defer repoFactory.Close()
+
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	// Run migrations.
 	err = repoFactory.AutoMigrate(ctx)

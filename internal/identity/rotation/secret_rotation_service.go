@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"time"
 
@@ -61,6 +62,7 @@ func (s *SecretRotationService) RotateClientSecret(
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash new secret: %w", err)
 	} // Execute rotation in transaction.
+
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Get current active secret version.
 		var currentVersion domain.ClientSecretVersion
@@ -69,7 +71,7 @@ func (s *SecretRotationService) RotateClientSecret(
 			Order("version DESC").
 			First(&currentVersion).Error
 
-		if err != nil && err != gorm.ErrRecordNotFound {
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("failed to query current version: %w", err)
 		}
 
@@ -154,7 +156,7 @@ func (s *SecretRotationService) GetActiveSecretVersion(
 		Order("version DESC").
 		First(&version).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
@@ -223,7 +225,7 @@ func (s *SecretRotationService) RevokeSecretVersion(
 		err := tx.Where("client_id = ? AND version = ?", clientID, version).
 			First(&secretVersion).Error
 		if err != nil {
-			if err == gorm.ErrRecordNotFound {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return fmt.Errorf("secret version %d not found", version)
 			}
 
@@ -269,6 +271,7 @@ func generateRandomSecret(length int) (string, error) {
 	if _, err := rand.Read(bytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
+
 	return base64.URLEncoding.EncodeToString(bytes), nil
 }
 

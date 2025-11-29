@@ -26,11 +26,13 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
+	ctx := context.Background()
+
 	// Apply PRAGMA settings.
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	// Pass existing connection to GORM.

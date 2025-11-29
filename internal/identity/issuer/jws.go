@@ -198,8 +198,8 @@ func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[
 	}
 
 	// Get algorithm and key ID from header.
-	alg, _ := header["alg"].(string)
-	kid, _ := header["kid"].(string)
+	alg, _ := header["alg"].(string) //nolint:errcheck // Type assertion ok ignored
+	kid, _ := header["kid"].(string) //nolint:errcheck // Type assertion ok ignored
 
 	// Decode claims.
 	claimsBytes, err := base64.RawURLEncoding.DecodeString(parts[1])

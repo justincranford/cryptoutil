@@ -207,7 +207,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 
 				return req
 			},
-			expectedStatus:   http.StatusUnauthorized, // Login handler validates authorization request exists first (line 86: authzReqRepo.GetByID), returns 401 Unauthorized if request not found/expired before authentication attempt.
+			expectedStatus:   http.StatusUnauthorized, // Login handler validates authz request then authenticates - XSS username fails auth = 401.
 			expectedContains: "",                      // Output encoding at presentation layer prevents XSS, input validation not required.
 		},
 		{
@@ -309,8 +309,9 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
+			// NOTE: Subtests must NOT run in parallel because they share the same database
+			// created in the parent test. The buildRequest functions modify database state
+			// (creating authorization requests), which causes race conditions if run in parallel.
 			req := tc.buildRequest()
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err, "Request failed")

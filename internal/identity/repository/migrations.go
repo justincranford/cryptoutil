@@ -33,6 +33,7 @@ var (
 func ResetMigrationStateForTesting() {
 	migrationMutex.Lock()
 	defer migrationMutex.Unlock()
+
 	migratedDBs = make(map[string]bool)
 }
 
@@ -48,12 +49,18 @@ func Migrate(db *sql.DB, dbType string) error {
 	// This handles parallel tests where each test should have its own database.
 	// For persistent databases (file-based or postgres), use pointer caching.
 	isMemoryDB := false
+
 	if dbType == "sqlite" {
 		// Check if this is an in-memory database by querying the database path.
 		var dbPath string
+
 		row := db.QueryRowContext(ctx, "PRAGMA database_list")
-		var seq int
-		var name string
+
+		var (
+			seq  int
+			name string
+		)
+
 		if err := row.Scan(&seq, &name, &dbPath); err == nil && (dbPath == "" || dbPath == ":memory:") {
 			isMemoryDB = true
 		}
@@ -70,30 +77,20 @@ func Migrate(db *sql.DB, dbType string) error {
 
 	// Enable SQLite pragmas for proper foreign key handling (SQLite only).
 	// Postgres enables foreign keys by default and does not support PRAGMA syntax.
-	if dbType == "sqlite" {
+	if dbType == dbTypeSQLite {
 		if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err != nil {
 			return fmt.Errorf("failed to enable foreign keys: %w", err)
 		}
 	}
 
 	// Create schema_migrations table manually to avoid "no such table" error.
-	// SQLite driver uses ? placeholders, Postgres uses $1, $2.
-	var createSchemaTable string
-	if dbType == "sqlite" {
-		createSchemaTable = `
-			CREATE TABLE IF NOT EXISTS schema_migrations (
-				version bigint not null primary key,
-				dirty boolean not null
-			);
-		`
-	} else {
-		createSchemaTable = `
-			CREATE TABLE IF NOT EXISTS schema_migrations (
-				version bigint not null primary key,
-				dirty boolean not null
-			);
-		`
-	}
+	// SQLite and Postgres use the same schema for the migrations table.
+	const createSchemaTable = `
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version bigint not null primary key,
+			dirty boolean not null
+		);
+	`
 
 	if _, err := db.ExecContext(ctx, createSchemaTable); err != nil {
 		return fmt.Errorf("failed to create schema_migrations table: %w", err)
@@ -107,7 +104,8 @@ func Migrate(db *sql.DB, dbType string) error {
 
 	// Create database driver and migrate instance based on database type.
 	var m *migrate.Migrate
-	if dbType == "sqlite" {
+
+	if dbType == dbTypeSQLite {
 		sqliteDriver, err := sqlite3.WithInstance(db, &sqlite3.Config{
 			MigrationsTable: "schema_migrations",
 		})
@@ -115,7 +113,7 @@ func Migrate(db *sql.DB, dbType string) error {
 			return fmt.Errorf("failed to create sqlite driver: %w", err)
 		}
 
-		m, err = migrate.NewWithInstance("iofs", sourceDriver, "sqlite", sqliteDriver)
+		m, err = migrate.NewWithInstance("iofs", sourceDriver, dbTypeSQLite, sqliteDriver)
 		if err != nil {
 			return fmt.Errorf("failed to create migrate instance: %w", err)
 		}

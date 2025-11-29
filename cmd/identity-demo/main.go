@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	crand "crypto/rand"
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/base64"
@@ -31,13 +32,12 @@ import (
 )
 
 const (
-	demoTimeout     = 30 * time.Second
-	requestTimeout  = 10 * time.Second
-	demoIssuer      = "http://127.0.0.1:8080"
-	demoPort        = ":8080"
-	demoClientID    = "demo-client"
-	demoClientName  = "Demo Client"
-	demoRedirectURI = "https://example.com/callback"
+	demoIssuer           = "http://127.0.0.1:8080"
+	demoPort             = ":8080"
+	demoClientID         = "demo-client"
+	demoClientName       = "Demo Client"
+	demoRedirectURI      = "https://example.com/callback"
+	sampleAccessTokenFmt = "sample-access-token"
 )
 
 var demoClientSecret = "demo-secret-" + googleUuid.New().String()[:8]
@@ -47,7 +47,7 @@ func main() {
 	fmt.Println("=========================================================")
 	fmt.Println()
 
-	ctx, cancel := context.WithTimeout(context.Background(), demoTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilIdentityMagic.DemoTimeout)
 	defer cancel()
 
 	// Run the demo.
@@ -63,6 +63,7 @@ func main() {
 func runDemo(ctx context.Context) error {
 	// Step 1: Start AuthZ server.
 	fmt.Println("📦 Step 1: Starting Authorization Server...")
+
 	app, repoFactory, cleanup, err := startAuthZServer(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
@@ -78,15 +79,18 @@ func runDemo(ctx context.Context) error {
 	}()
 
 	// Give server time to start.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(cryptoutilIdentityMagic.DemoStartupDelay)
+
 	fmt.Println("✅ Authorization server started on http://127.0.0.1:8080")
 	fmt.Println()
 
 	// Step 2: Register demo client.
 	fmt.Println("📝 Step 2: Registering Demo Client...")
+
 	if err := registerDemoClient(ctx, repoFactory); err != nil {
 		return fmt.Errorf("failed to register client: %w", err)
 	}
+
 	fmt.Printf("   ✅ Client ID: %s\n", demoClientID)
 	fmt.Printf("   ✅ Client Name: %s\n", demoClientName)
 	fmt.Printf("   ✅ Redirect URI: %s\n", demoRedirectURI)
@@ -97,9 +101,11 @@ func runDemo(ctx context.Context) error {
 
 	// Step 3: Check discovery endpoints.
 	fmt.Println("🔍 Step 3: Verifying Discovery Endpoints...")
+
 	if err := checkDiscoveryEndpoints(ctx, client); err != nil {
 		return fmt.Errorf("discovery check failed: %w", err)
 	}
+
 	fmt.Println()
 
 	// Step 4: Demonstrate OAuth 2.1 endpoints.
@@ -109,41 +115,51 @@ func runDemo(ctx context.Context) error {
 
 	// Step 5: Demonstrate authorization endpoint.
 	fmt.Println("🔐 Step 5: Authorization Endpoint Demo...")
+
 	_, codeChallenge := generatePKCE()
 	state := generateState()
 
 	if err := demonstrateAuthorization(ctx, client, codeChallenge, state); err != nil {
 		fmt.Printf("⚠️ Authorization demo info: %v\n", err)
 	}
+
 	fmt.Println()
 
 	// Step 6: Demonstrate token endpoint and get access token.
 	fmt.Println("🔑 Step 6: Token Endpoint Demo...")
+
 	accessToken, err := demonstrateTokenEndpoint(ctx, client)
 	if err != nil {
 		fmt.Printf("⚠️ Token endpoint info: %v\n", err)
 	}
+
 	fmt.Println()
 
 	// Step 7: Demonstrate introspection endpoint with real token.
 	fmt.Println("🔬 Step 7: Token Introspection (BEFORE revocation)...")
+
 	if err := demonstrateIntrospection(ctx, client, accessToken); err != nil {
 		fmt.Printf("⚠️ Introspection info: %v\n", err)
 	}
+
 	fmt.Println()
 
 	// Step 8: Demonstrate revocation endpoint with real token.
 	fmt.Println("🗑️ Step 8: Token Revocation...")
+
 	if err := demonstrateRevocation(ctx, client, accessToken); err != nil {
 		fmt.Printf("⚠️ Revocation info: %v\n", err)
 	}
+
 	fmt.Println()
 
 	// Step 9: Demonstrate introspection after revocation.
 	fmt.Println("🔬 Step 9: Token Introspection (AFTER revocation)...")
+
 	if err := demonstrateIntrospectionAfterRevoke(ctx, client, accessToken); err != nil {
 		fmt.Printf("⚠️ Introspection info: %v\n", err)
 	}
+
 	fmt.Println()
 
 	return nil
@@ -155,27 +171,27 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "identity-authz-demo",
 			BindAddress:  "127.0.0.1",
-			Port:         8080,
+			Port:         cryptoutilIdentityMagic.DemoServerPort,
 			TLSEnabled:   false,
-			ReadTimeout:  30 * time.Second,
-			WriteTimeout: 30 * time.Second,
-			IdleTimeout:  120 * time.Second,
+			ReadTimeout:  cryptoutilIdentityMagic.DefaultReadTimeout,
+			WriteTimeout: cryptoutilIdentityMagic.DefaultWriteTimeout,
+			IdleTimeout:  cryptoutilIdentityMagic.DefaultIdleServerTimeout,
 			AdminEnabled: true,
-			AdminPort:    9090,
+			AdminPort:    cryptoutilIdentityMagic.DemoAdminPort,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type:            "sqlite",
 			DSN:             "file::memory:?cache=shared",
-			MaxOpenConns:    5,
-			MaxIdleConns:    2,
-			ConnMaxLifetime: 60 * time.Minute,
+			MaxOpenConns:    cryptoutilIdentityMagic.DefaultMaxOpenConns,
+			MaxIdleConns:    cryptoutilIdentityMagic.DefaultMaxIdleConns,
+			ConnMaxLifetime: cryptoutilIdentityMagic.DefaultConnMaxLifetime,
 			AutoMigrate:     true,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:               demoIssuer,
-			AccessTokenLifetime:  3600 * time.Second,
-			RefreshTokenLifetime: 86400 * time.Second,
-			IDTokenLifetime:      3600 * time.Second,
+			AccessTokenLifetime:  cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
+			RefreshTokenLifetime: cryptoutilIdentityMagic.DefaultRefreshTokenLifetime,
+			IDTokenLifetime:      cryptoutilIdentityMagic.DefaultIDTokenLifetime,
 			SigningAlgorithm:     "RS256",
 			AccessTokenFormat:    cryptoutilIdentityMagic.TokenFormatJWS,
 		},
@@ -194,6 +210,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 
 	// Create production key generator and key rotation manager.
 	keyGenerator := cryptoutilIdentityIssuer.NewProductionKeyGenerator()
+
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DevelopmentKeyRotationPolicy(),
 		keyGenerator,
@@ -238,9 +255,11 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 
 	cleanup := func() {
 		fmt.Println("🛑 Shutting down server...")
+
 		if shutdownErr := app.Shutdown(); shutdownErr != nil {
 			fmt.Printf("⚠️ Shutdown error: %v\n", shutdownErr)
 		}
+
 		fmt.Println("✅ Server stopped")
 	}
 
@@ -272,9 +291,9 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 		RequirePKCE:             &trueVal,
 		PKCEChallengeMethod:     "S256",
-		AccessTokenLifetime:     3600,
-		RefreshTokenLifetime:    86400,
-		IDTokenLifetime:         3600,
+		AccessTokenLifetime:     cryptoutilIdentityMagic.AccessTokenExpirySeconds,
+		RefreshTokenLifetime:    cryptoutilIdentityMagic.RefreshTokenExpirySeconds,
+		IDTokenLifetime:         cryptoutilIdentityMagic.IDTokenExpirySeconds,
 		Enabled:                 &trueVal,
 	}
 
@@ -288,7 +307,7 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 
 func createHTTPClient() *http.Client {
 	return &http.Client{
-		Timeout: requestTimeout,
+		Timeout: cryptoutilIdentityMagic.DemoRequestDelay,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // Demo only
@@ -300,25 +319,30 @@ func createHTTPClient() *http.Client {
 func checkDiscoveryEndpoints(ctx context.Context, client *http.Client) error {
 	// Check OAuth metadata.
 	oauthURL := fmt.Sprintf("%s/.well-known/oauth-authorization-server", demoIssuer)
+
 	oauthMeta, err := getJSON(ctx, client, oauthURL)
 	if err != nil {
 		return fmt.Errorf("oauth metadata: %w", err)
 	}
+
 	fmt.Printf("   ✅ OAuth Metadata: issuer=%s\n", oauthMeta["issuer"])
 
-	grantTypes, _ := oauthMeta["grant_types_supported"].([]any)
+	grantTypes, _ := oauthMeta["grant_types_supported"].([]any) //nolint:errcheck // Demo ok assertion
 	fmt.Printf("   ✅ Grant Types: %v\n", grantTypes)
 
 	// Check OIDC discovery.
 	oidcURL := fmt.Sprintf("%s/.well-known/openid-configuration", demoIssuer)
+
 	oidcMeta, err := getJSON(ctx, client, oidcURL)
 	if err != nil {
 		return fmt.Errorf("oidc discovery: %w", err)
 	}
+
 	fmt.Printf("   ✅ OIDC Discovery: issuer=%s\n", oidcMeta["issuer"])
 
 	// Check JWKS.
 	jwksURL := fmt.Sprintf("%s/oauth2/v1/jwks", demoIssuer)
+
 	jwks, err := getJSON(ctx, client, jwksURL)
 	if err != nil {
 		return fmt.Errorf("jwks: %w", err)
@@ -362,7 +386,7 @@ func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChal
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("create authorization request: %w", err)
 	}
 
 	// Don't follow redirects.
@@ -372,10 +396,10 @@ func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChal
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("execute authorization request: %w", err)
 	}
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
 	fmt.Printf("   Request: GET %s?...\n", authURL)
 	fmt.Printf("   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
@@ -395,7 +419,7 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("create token request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -405,12 +429,15 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("execute token request: %w", err)
 	}
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read token response: %w", err)
+	}
 
 	fmt.Printf("   Request: POST %s\n", tokenURL)
 	fmt.Printf("   Grant:   client_credentials\n")
@@ -421,10 +448,13 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 
 	if resp.StatusCode == http.StatusOK {
 		var tokenResp map[string]any
+
 		if err := json.Unmarshal(body, &tokenResp); err == nil {
 			if at, ok := tokenResp["access_token"].(string); ok {
 				accessToken = at
-				fmt.Printf("   ✅ Access Token (first 20): %s...\n", accessToken[:min(20, len(accessToken))])
+				fmt.Printf("   ✅ Access Token (first %d): %s...\n",
+					cryptoutilIdentityMagic.DemoMinTokenChars,
+					accessToken[:min(cryptoutilIdentityMagic.DemoMinTokenChars, len(accessToken))])
 			}
 
 			if tokenType, ok := tokenResp["token_type"].(string); ok {
@@ -449,7 +479,7 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 	// Use the actual access token if available, otherwise use a sample.
 	tokenToIntrospect := accessToken
 	if tokenToIntrospect == "" {
-		tokenToIntrospect = "sample-access-token"
+		tokenToIntrospect = sampleAccessTokenFmt
 	}
 
 	data := url.Values{
@@ -458,7 +488,7 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, introspectURL, strings.NewReader(data.Encode()))
 	if err != nil {
-		return err
+		return fmt.Errorf("create introspection request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -468,12 +498,15 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("execute introspection request: %w", err)
 	}
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read introspection response: %w", err)
+	}
 
 	fmt.Printf("   Request: POST %s\n", introspectURL)
 	fmt.Printf("   Client:  %s (Basic Auth)\n", demoClientID)
@@ -481,7 +514,7 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 
 	var introspectResp map[string]any
 	if err := json.Unmarshal(body, &introspectResp); err == nil {
-		active, _ := introspectResp["active"].(bool)
+		active, _ := introspectResp["active"].(bool) //nolint:errcheck // Demo ok assertion
 
 		if active && accessToken != "" {
 			fmt.Println("   ✅ Token Active: true (issued access token validated)")
@@ -510,7 +543,7 @@ func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, revokeURL, strings.NewReader(data.Encode()))
 	if err != nil {
-		return err
+		return fmt.Errorf("create revocation request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -520,10 +553,10 @@ func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("execute revocation request: %w", err)
 	}
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
 	fmt.Printf("   Request: POST %s\n", revokeURL)
 	fmt.Printf("   Client:  %s (Basic Auth)\n", demoClientID)
@@ -539,7 +572,7 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 	// Use the revoked access token.
 	tokenToIntrospect := accessToken
 	if tokenToIntrospect == "" {
-		tokenToIntrospect = "sample-access-token"
+		tokenToIntrospect = sampleAccessTokenFmt
 	}
 
 	data := url.Values{
@@ -548,7 +581,7 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, introspectURL, strings.NewReader(data.Encode()))
 	if err != nil {
-		return err
+		return fmt.Errorf("create post-revoke introspection request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -558,12 +591,15 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("execute post-revoke introspection request: %w", err)
 	}
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read post-revoke introspection response: %w", err)
+	}
 
 	fmt.Printf("   Request: POST %s\n", introspectURL)
 	fmt.Printf("   Client:  %s (Basic Auth)\n", demoClientID)
@@ -571,7 +607,7 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 
 	var introspectResp map[string]any
 	if err := json.Unmarshal(body, &introspectResp); err == nil {
-		active, _ := introspectResp["active"].(bool)
+		active, _ := introspectResp["active"].(bool) //nolint:errcheck // Demo ok assertion
 
 		if !active && accessToken != "" {
 			fmt.Println("   ✅ Token Active: false (revoked token correctly invalidated)")
@@ -588,15 +624,15 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 func getJSON(ctx context.Context, client *http.Client, urlStr string) (map[string]any, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create GET request: %w", err)
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("execute GET request: %w", err)
 	}
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
@@ -604,15 +640,20 @@ func getJSON(ctx context.Context, client *http.Client, urlStr string) (map[strin
 
 	var result map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode JSON response: %w", err)
 	}
 
 	return result, nil
 }
 
 func generatePKCE() (verifier, challenge string) {
-	verifierBytes := make([]byte, 32)
-	_, _ = io.ReadFull(strings.NewReader("abcdefghijklmnopqrstuvwxyz0123456789AB"), verifierBytes)
+	verifierBytes := make([]byte, cryptoutilIdentityMagic.DefaultStateLength)
+
+	if _, err := crand.Read(verifierBytes); err != nil {
+		// Fall back to deterministic value for demo purposes.
+		copy(verifierBytes, []byte("abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ12"))
+	}
+
 	verifier = base64.RawURLEncoding.EncodeToString(verifierBytes)
 
 	hash := sha256.Sum256([]byte(verifier))
@@ -622,8 +663,12 @@ func generatePKCE() (verifier, challenge string) {
 }
 
 func generateState() string {
-	stateBytes := make([]byte, 16)
-	_, _ = io.ReadFull(strings.NewReader("ABCDEFGHIJKLMNOPQRSTUVWXYZ012345"), stateBytes)
+	stateBytes := make([]byte, cryptoutilIdentityMagic.DefaultNonceLength/2)
+
+	if _, err := crand.Read(stateBytes); err != nil {
+		// Fall back to deterministic value for demo purposes.
+		copy(stateBytes, []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ012345"))
+	}
 
 	return base64.RawURLEncoding.EncodeToString(stateBytes)
 }

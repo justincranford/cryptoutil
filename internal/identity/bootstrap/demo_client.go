@@ -6,6 +6,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	googleUuid "github.com/google/uuid"
@@ -30,7 +31,7 @@ func CreateDemoClient(
 	const demoClientID = "demo-client"
 
 	existingClient, err := clientRepo.GetByClientID(ctx, demoClientID)
-	if err != nil && err != cryptoutilIdentityAppErr.ErrClientNotFound {
+	if err != nil && !errors.Is(err, cryptoutilIdentityAppErr.ErrClientNotFound) {
 		return "", "", false, fmt.Errorf("failed to check for existing demo-client: %w", err)
 	}
 
@@ -41,6 +42,7 @@ func CreateDemoClient(
 
 	// Generate demo client secret.
 	plainSecret = "demo-secret"
+
 	secretHash, err := cryptoutilCrypto.HashSecret(plainSecret)
 	if err != nil {
 		return "", "", false, cryptoutilIdentityAppErr.WrapError(

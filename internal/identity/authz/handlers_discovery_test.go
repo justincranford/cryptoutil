@@ -84,7 +84,6 @@ func TestHandleOAuthMetadata(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -105,13 +104,14 @@ func TestHandleOAuthMetadata(t *testing.T) {
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 
-			defer func() { _ = resp.Body.Close() }()
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 			// Validate status.
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
 			// Parse and validate body.
 			var body map[string]any
+
 			err = json.NewDecoder(resp.Body).Decode(&body)
 			require.NoError(t, err)
 
@@ -194,7 +194,6 @@ func TestHandleOIDCDiscovery(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -215,13 +214,14 @@ func TestHandleOIDCDiscovery(t *testing.T) {
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 
-			defer func() { _ = resp.Body.Close() }()
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 			// Validate status.
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
 			// Parse and validate body.
 			var body map[string]any
+
 			err = json.NewDecoder(resp.Body).Decode(&body)
 			require.NoError(t, err)
 
@@ -270,7 +270,6 @@ func TestHandleJWKS(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -291,13 +290,14 @@ func TestHandleJWKS(t *testing.T) {
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 
-			defer func() { _ = resp.Body.Close() }()
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 			// Validate status.
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
 			// Parse and validate body.
 			var body map[string]any
+
 			err = json.NewDecoder(resp.Body).Decode(&body)
 			require.NoError(t, err)
 

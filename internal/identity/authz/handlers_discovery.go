@@ -31,7 +31,7 @@ func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
 		"service_documentation":                 fmt.Sprintf("%s/docs", baseURL),
 	}
 
-	return c.JSON(metadata)
+	return c.JSON(metadata) //nolint:wrapcheck // Fiber JSON returns internal error
 }
 
 // handleOIDCDiscovery handles GET /.well-known/openid-configuration.
@@ -68,7 +68,7 @@ func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
 		"service_documentation":            fmt.Sprintf("%s/docs", baseURL),
 	}
 
-	return c.JSON(metadata)
+	return c.JSON(metadata) //nolint:wrapcheck // Fiber JSON returns internal error
 }
 
 // handleJWKS handles GET /oauth2/v1/jwks.
@@ -84,5 +84,5 @@ func (s *Service) handleJWKS(c *fiber.Ctx) error {
 		"keys": publicKeys,
 	}
 
-	return c.JSON(jwks)
+	return c.JSON(jwks) //nolint:wrapcheck // Fiber JSON returns internal error
 }

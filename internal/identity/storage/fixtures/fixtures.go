@@ -73,6 +73,7 @@ type TestClientBuilder struct {
 // NewTestClientBuilder creates a new test client builder with default values.
 func NewTestClientBuilder() *TestClientBuilder {
 	enabled := true
+
 	return &TestClientBuilder{
 		client: &cryptoutilIdentityDomain.Client{
 			ClientID:   googleUuid.Must(googleUuid.NewV7()).String(),

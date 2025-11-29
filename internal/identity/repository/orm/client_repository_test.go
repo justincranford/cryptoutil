@@ -50,6 +50,7 @@ func TestClientRepository_Create(t *testing.T) {
 
 	// Verify ClientSecretVersion was created (version 1, active).
 	var secretVersions []cryptoutilIdentityDomain.ClientSecretVersion
+
 	err = testDB.db.Where("client_id = ?", client.ID).Find(&secretVersions).Error
 	require.NoError(t, err)
 	require.Len(t, secretVersions, 1, "Expected exactly 1 initial secret version")
@@ -60,6 +61,7 @@ func TestClientRepository_Create(t *testing.T) {
 
 	// Verify KeyRotationEvent was created.
 	var events []cryptoutilIdentityDomain.KeyRotationEvent
+
 	err = testDB.db.Where("key_id = ?", client.ID.String()).Find(&events).Error
 	require.NoError(t, err)
 	require.Len(t, events, 1, "Expected exactly 1 audit event for client creation")

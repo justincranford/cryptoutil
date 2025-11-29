@@ -8,6 +8,13 @@ const (
 	KeyUsageEncryption = "encryption" // Encryption keys for JWE.
 )
 
+// JWK key types (RFC 7518 Section 6).
+const (
+	KeyTypeRSA = "RSA" // RSA key type.
+	KeyTypeEC  = "EC"  // Elliptic Curve key type.
+	KeyTypeOct = "oct" // Symmetric (octet sequence) key type.
+)
+
 // JWS signing algorithms (RFC 7518).
 const (
 	AlgorithmRS256 = "RS256" // RSA PKCS#1 v1.5 with SHA-256.

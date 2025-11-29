@@ -34,6 +34,7 @@ func main() {
 		if err != nil {
 			return fmt.Sprintf("<error: %v>", err)
 		}
+
 		return wd
 	}())
 

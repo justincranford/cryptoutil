@@ -408,20 +408,20 @@ func convertToJWK(key *SigningKey) map[string]any {
 
 	switch k := key.Key.(type) {
 	case *rsa.PrivateKey:
-		jwk["kty"] = "RSA"
+		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeRSA
 		jwk["n"] = base64URLEncode(k.N.Bytes())
 		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
 	case *rsa.PublicKey:
-		jwk["kty"] = "RSA"
+		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeRSA
 		jwk["n"] = base64URLEncode(k.N.Bytes())
 		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
 	case *ecdsa.PrivateKey:
-		jwk["kty"] = "EC"
+		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeEC
 		jwk["crv"] = ecdsaCurveName(k.Curve)
 		jwk["x"] = base64URLEncode(k.X.Bytes())
 		jwk["y"] = base64URLEncode(k.Y.Bytes())
 	case *ecdsa.PublicKey:
-		jwk["kty"] = "EC"
+		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeEC
 		jwk["crv"] = ecdsaCurveName(k.Curve)
 		jwk["x"] = base64URLEncode(k.X.Bytes())
 		jwk["y"] = base64URLEncode(k.Y.Bytes())

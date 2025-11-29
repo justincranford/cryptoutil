@@ -108,11 +108,14 @@ func (a *SecretBasedAuthenticator) AuthenticateBasic(ctx context.Context, client
 		if err != nil {
 			return nil, fmt.Errorf("failed to validate secret: %w", err)
 		}
+
 		if valid {
 			// Log which version was used for audit purposes.
 			_ = version // TODO: Add audit logging for secret version usage
+
 			return client, nil
 		}
+
 		return nil, fmt.Errorf("invalid client credentials")
 	}
 

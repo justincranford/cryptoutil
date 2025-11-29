@@ -30,11 +30,11 @@ func NewProductionKeyGenerator() *ProductionKeyGenerator {
 // GenerateSigningKey generates a signing key for the specified algorithm.
 func (g *ProductionKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*SigningKey, error) {
 	switch algorithm {
-	case "RS256", "RS384", "RS512":
+	case cryptoutilIdentityMagic.AlgorithmRS256, cryptoutilIdentityMagic.AlgorithmRS384, cryptoutilIdentityMagic.AlgorithmRS512:
 		return g.generateRSASigningKey(ctx, algorithm)
-	case "ES256", "ES384", "ES512":
+	case cryptoutilIdentityMagic.AlgorithmES256, cryptoutilIdentityMagic.AlgorithmES384, cryptoutilIdentityMagic.AlgorithmES512:
 		return g.generateECDSASigningKey(ctx, algorithm)
-	case "HS256", "HS384", "HS512":
+	case cryptoutilIdentityMagic.AlgorithmHS256, cryptoutilIdentityMagic.AlgorithmHS384, cryptoutilIdentityMagic.AlgorithmHS512:
 		return g.generateHMACSigningKey(ctx, algorithm)
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(

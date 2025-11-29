@@ -35,6 +35,7 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 		Next: func(c *fiber.Ctx) bool {
 			// Skip CORS for OAuth 2.1 endpoints (machine-to-machine, not browser-based).
 			url := c.OriginalURL()
+
 			return strings.HasPrefix(url, "/oauth2/v1/") || strings.HasPrefix(url, "/openid/v1/")
 		},
 	}))
@@ -44,6 +45,7 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 		Next: func(c *fiber.Ctx) bool {
 			// Skip CSRF for OAuth 2.1 endpoints (machine-to-machine, never browser-based).
 			url := c.OriginalURL()
+
 			return strings.HasPrefix(url, "/oauth2/v1/") || strings.HasPrefix(url, "/openid/v1/")
 		},
 	}))

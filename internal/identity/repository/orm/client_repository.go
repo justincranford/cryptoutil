@@ -33,7 +33,7 @@ func NewClientRepository(db *gorm.DB) *ClientRepositoryGORM {
 
 // Create creates a new client with an initial secret (version 1).
 func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
-	return getDB(ctx, r.db).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := getDB(ctx, r.db).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 1. Create client record.
 		if err := tx.Create(client).Error; err != nil {
 			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create client: %w", err))
@@ -57,6 +57,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 
 		// 4. Store ClientSecretVersion (version 1, active, no expiration).
 		now := time.Now()
+
 		version := &cryptoutilIdentityDomain.ClientSecretVersion{
 			ID:         googleUuid.New(),
 			ClientID:   client.ID,
@@ -74,6 +75,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 		oldVersion := 0
 		newVersion := 1
 		success := true
+
 		event := &cryptoutilIdentityDomain.KeyRotationEvent{
 			ID:            googleUuid.New(),
 			EventType:     "secret_created",
@@ -92,6 +94,11 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 
 		return nil
 	})
+	if err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	return nil
 }
 
 // generateRandomSecret generates a cryptographically secure random secret.
@@ -100,6 +107,7 @@ func generateRandomSecret(length int) (string, error) {
 	if _, err := rand.Read(bytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
+
 	return base64.URLEncoding.EncodeToString(bytes), nil
 }
 

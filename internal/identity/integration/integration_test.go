@@ -413,6 +413,7 @@ func TestHealthCheckEndpoints(t *testing.T) {
 	testMutex.Lock()
 
 	servers, cancel := setupTestServers(t)
+
 	defer func() {
 		shutdownTestServers(t, servers)
 		cancel()
@@ -459,6 +460,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	testMutex.Lock()
 
 	servers, cancel := setupTestServers(t)
+
 	defer func() {
 		shutdownTestServers(t, servers)
 		cancel()
@@ -653,6 +655,7 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 	testMutex.Lock()
 
 	servers, cancel := setupTestServers(t)
+
 	defer func() {
 		shutdownTestServers(t, servers)
 		cancel()
@@ -746,6 +749,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 	testMutex.Lock()
 
 	servers, cancel := setupTestServers(t)
+
 	defer func() {
 		shutdownTestServers(t, servers)
 		cancel()

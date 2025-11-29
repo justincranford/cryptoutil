@@ -65,8 +65,10 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 	// Step 3: Simulate expiration by setting version 1 expires_at in past
 	// Re-query secret1 to get current database state before updating
 	var secret1Fresh domain.ClientSecretVersion
+
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&secret1Fresh).Error
 	require.NoError(t, err)
+
 	secret1Fresh.ExpiresAt = timePtr(time.Now().Add(-1 * time.Hour))
 	err = db.Save(&secret1Fresh).Error
 	require.NoError(t, err)
@@ -84,6 +86,7 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 
 	// Verify version 1 status is expired (not revoked - cleanup marks as expired)
 	var expiredSecret domain.ClientSecretVersion
+
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&expiredSecret).Error
 	require.NoError(t, err)
 	require.Equal(t, domain.SecretStatusExpired, expiredSecret.Status)
@@ -132,6 +135,7 @@ func TestMultiClientConcurrentRotation(t *testing.T) {
 	errChan := make(chan error, clientCount)
 	for i := 0; i < clientCount; i++ {
 		clientID := clients[i].ID
+
 		go func() {
 			_, err := rotationService.RotateClientSecret(ctx, clientID, gracePeriod, "admin", "concurrent rotation")
 			errChan <- err
@@ -182,8 +186,10 @@ func TestGracePeriodOverlap(t *testing.T) {
 
 	// Step 2: Simulate 12 hours later by adjusting version 1 expiration
 	var secret1 domain.ClientSecretVersion
+
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&secret1).Error
 	require.NoError(t, err)
+
 	secret1.ExpiresAt = timePtr(time.Now().Add(12 * time.Hour)) // 12h remaining
 	err = db.Save(&secret1).Error
 	require.NoError(t, err)
