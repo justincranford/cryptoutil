@@ -117,24 +117,32 @@ func runDemo(ctx context.Context) error {
 	}
 	fmt.Println()
 
-	// Step 6: Demonstrate token endpoint.
+	// Step 6: Demonstrate token endpoint and get access token.
 	fmt.Println("🔑 Step 6: Token Endpoint Demo...")
-	if err := demonstrateTokenEndpoint(ctx, client); err != nil {
+	accessToken, err := demonstrateTokenEndpoint(ctx, client)
+	if err != nil {
 		fmt.Printf("⚠️ Token endpoint info: %v\n", err)
 	}
 	fmt.Println()
 
-	// Step 7: Demonstrate introspection endpoint.
-	fmt.Println("🔬 Step 7: Introspection Endpoint Demo...")
-	if err := demonstrateIntrospection(ctx, client); err != nil {
+	// Step 7: Demonstrate introspection endpoint with real token.
+	fmt.Println("🔬 Step 7: Token Introspection (BEFORE revocation)...")
+	if err := demonstrateIntrospection(ctx, client, accessToken); err != nil {
 		fmt.Printf("⚠️ Introspection info: %v\n", err)
 	}
 	fmt.Println()
 
-	// Step 8: Demonstrate revocation endpoint.
-	fmt.Println("🗑️ Step 8: Revocation Endpoint Demo...")
-	if err := demonstrateRevocation(ctx, client); err != nil {
+	// Step 8: Demonstrate revocation endpoint with real token.
+	fmt.Println("🗑️ Step 8: Token Revocation...")
+	if err := demonstrateRevocation(ctx, client, accessToken); err != nil {
 		fmt.Printf("⚠️ Revocation info: %v\n", err)
+	}
+	fmt.Println()
+
+	// Step 9: Demonstrate introspection after revocation.
+	fmt.Println("🔬 Step 9: Token Introspection (AFTER revocation)...")
+	if err := demonstrateIntrospectionAfterRevoke(ctx, client, accessToken); err != nil {
+		fmt.Printf("⚠️ Introspection info: %v\n", err)
 	}
 	fmt.Println()
 
@@ -377,7 +385,7 @@ func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChal
 	return nil
 }
 
-func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) error {
+func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string, error) {
 	tokenURL := fmt.Sprintf("%s/oauth2/v1/token", demoIssuer)
 
 	data := url.Values{
@@ -387,7 +395,7 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) error {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -397,7 +405,7 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) error {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	defer func() { _ = resp.Body.Close() }()
@@ -409,10 +417,13 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) error {
 	fmt.Printf("   Client:  %s (Basic Auth)\n", demoClientID)
 	fmt.Printf("   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 
+	var accessToken string
+
 	if resp.StatusCode == http.StatusOK {
 		var tokenResp map[string]any
 		if err := json.Unmarshal(body, &tokenResp); err == nil {
-			if accessToken, ok := tokenResp["access_token"].(string); ok {
+			if at, ok := tokenResp["access_token"].(string); ok {
+				accessToken = at
 				fmt.Printf("   ✅ Access Token (first 20): %s...\n", accessToken[:min(20, len(accessToken))])
 			}
 
@@ -429,14 +440,20 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) error {
 		fmt.Println("   📝 Note: Token service may need to be configured for token issuance")
 	}
 
-	return nil
+	return accessToken, nil
 }
 
-func demonstrateIntrospection(ctx context.Context, client *http.Client) error {
+func demonstrateIntrospection(ctx context.Context, client *http.Client, accessToken string) error {
 	introspectURL := fmt.Sprintf("%s/oauth2/v1/introspect", demoIssuer)
 
+	// Use the actual access token if available, otherwise use a sample.
+	tokenToIntrospect := accessToken
+	if tokenToIntrospect == "" {
+		tokenToIntrospect = "sample-access-token"
+	}
+
 	data := url.Values{
-		"token": {"sample-access-token"},
+		"token": {tokenToIntrospect},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, introspectURL, strings.NewReader(data.Encode()))
@@ -465,17 +482,30 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client) error {
 	var introspectResp map[string]any
 	if err := json.Unmarshal(body, &introspectResp); err == nil {
 		active, _ := introspectResp["active"].(bool)
-		fmt.Printf("   ✅ Token Active: %v (unknown token returns inactive)\n", active)
+
+		if active && accessToken != "" {
+			fmt.Println("   ✅ Token Active: true (issued access token validated)")
+		} else if !active && accessToken != "" {
+			fmt.Println("   ⚠️ Token Active: false (token may not be stored)")
+		} else {
+			fmt.Printf("   ✅ Token Active: %v (unknown token returns inactive)\n", active)
+		}
 	}
 
 	return nil
 }
 
-func demonstrateRevocation(ctx context.Context, client *http.Client) error {
+func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken string) error {
 	revokeURL := fmt.Sprintf("%s/oauth2/v1/revoke", demoIssuer)
 
+	// Use the actual access token if available, otherwise use a sample.
+	tokenToRevoke := accessToken
+	if tokenToRevoke == "" {
+		tokenToRevoke = "sample-token-to-revoke"
+	}
+
 	data := url.Values{
-		"token": {"sample-token-to-revoke"},
+		"token": {tokenToRevoke},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, revokeURL, strings.NewReader(data.Encode()))
@@ -499,6 +529,58 @@ func demonstrateRevocation(ctx context.Context, client *http.Client) error {
 	fmt.Printf("   Client:  %s (Basic Auth)\n", demoClientID)
 	fmt.Printf("   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 	fmt.Println("   ✅ Revocation endpoint returns 200 per RFC 7009")
+
+	return nil
+}
+
+func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Client, accessToken string) error {
+	introspectURL := fmt.Sprintf("%s/oauth2/v1/introspect", demoIssuer)
+
+	// Use the revoked access token.
+	tokenToIntrospect := accessToken
+	if tokenToIntrospect == "" {
+		tokenToIntrospect = "sample-access-token"
+	}
+
+	data := url.Values{
+		"token": {tokenToIntrospect},
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, introspectURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Use Basic authentication with registered client credentials.
+	req.SetBasicAuth(demoClientID, demoClientSecret)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Printf("   Request: POST %s\n", introspectURL)
+	fmt.Printf("   Client:  %s (Basic Auth)\n", demoClientID)
+	fmt.Printf("   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+
+	var introspectResp map[string]any
+	if err := json.Unmarshal(body, &introspectResp); err == nil {
+		active, _ := introspectResp["active"].(bool)
+
+		if !active && accessToken != "" {
+			fmt.Println("   ✅ Token Active: false (revoked token correctly invalidated)")
+		} else if active && accessToken != "" {
+			fmt.Println("   ⚠️ Token Active: true (revocation may not have persisted)")
+		} else {
+			fmt.Printf("   ✅ Token Active: %v\n", active)
+		}
+	}
 
 	return nil
 }
