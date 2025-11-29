@@ -6,8 +6,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/base64"
@@ -186,16 +184,26 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 		return nil, nil, nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	// Generate RSA-2048 signing key for JWT tokens.
-	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	// Create production key generator and key rotation manager.
+	keyGenerator := cryptoutilIdentityIssuer.NewProductionKeyGenerator()
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DevelopmentKeyRotationPolicy(),
+		keyGenerator,
+		nil,
+	)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to generate RSA key: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to create key rotation manager: %w", err)
 	}
 
-	// Create JWS issuer for token signing.
-	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
+	// Rotate to generate initial signing key.
+	if err := keyRotationMgr.RotateSigningKey(ctx, "RS256"); err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to rotate signing key: %w", err)
+	}
+
+	// Create JWS issuer for token signing with key rotation.
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		demoIssuer,
-		rsaKey,
+		keyRotationMgr,
 		"RS256",
 		config.Tokens.AccessTokenLifetime,
 		config.Tokens.IDTokenLifetime,
