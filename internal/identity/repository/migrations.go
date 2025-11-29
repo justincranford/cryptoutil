@@ -42,14 +42,31 @@ func Migrate(db *sql.DB, dbType string) error {
 	migrationMutex.Lock()
 	defer migrationMutex.Unlock()
 
-	// Generate unique key for this DB instance.
-	dbKey := fmt.Sprintf("%p", db)
+	ctx := context.TODO() // Migration runs during startup, no request context available
 
-	if migratedDBs[dbKey] {
-		return nil // Already migrated this DB instance
+	// For in-memory databases, skip the cache entirely and always run migrations.
+	// This handles parallel tests where each test should have its own database.
+	// For persistent databases (file-based or postgres), use pointer caching.
+	isMemoryDB := false
+	if dbType == "sqlite" {
+		// Check if this is an in-memory database by querying the database path.
+		var dbPath string
+		row := db.QueryRowContext(ctx, "PRAGMA database_list")
+		var seq int
+		var name string
+		if err := row.Scan(&seq, &name, &dbPath); err == nil && (dbPath == "" || dbPath == ":memory:") {
+			isMemoryDB = true
+		}
 	}
 
-	ctx := context.TODO() // Migration runs during startup, no request context available
+	var dbKey string
+	if !isMemoryDB {
+		// For persistent databases, use pointer-based caching.
+		dbKey = fmt.Sprintf("%p", db)
+		if migratedDBs[dbKey] {
+			return nil // Already migrated this DB instance
+		}
+	}
 
 	// Enable SQLite pragmas for proper foreign key handling (SQLite only).
 	// Postgres enables foreign keys by default and does not support PRAGMA syntax.
@@ -121,6 +138,10 @@ func Migrate(db *sql.DB, dbType string) error {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	migratedDBs[dbKey] = true
+	// Only cache persistent databases (not in-memory).
+	if dbKey != "" {
+		migratedDBs[dbKey] = true
+	}
+
 	return nil
 }

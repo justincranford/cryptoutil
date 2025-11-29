@@ -25,9 +25,12 @@ func setupTestRepository(t *testing.T) (*cryptoutilIdentityRepository.Repository
 
 	ctx := context.Background()
 
+	// Use unique DSN to avoid migration cache conflicts across concurrent tests.
+	dsn := "file::memory:?cache=private&_id=" + googleUuid.NewString()
+
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:            "sqlite",
-		DSN:             ":memory:",
+		DSN:             dsn,
 		MaxOpenConns:    1,
 		MaxIdleConns:    1,
 		ConnMaxLifetime: 0,
