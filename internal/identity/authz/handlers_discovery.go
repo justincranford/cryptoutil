@@ -74,8 +74,11 @@ func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
 // handleJWKS handles GET /oauth2/v1/jwks.
 // Returns JSON Web Key Set containing public signing keys.
 func (s *Service) handleJWKS(c *fiber.Ctx) error {
-	// Get public keys from token service
-	publicKeys := s.tokenSvc.GetPublicKeys()
+	// Get public keys from token service if available.
+	publicKeys := make([]map[string]any, 0)
+	if s.tokenSvc != nil {
+		publicKeys = s.tokenSvc.GetPublicKeys()
+	}
 
 	jwks := fiber.Map{
 		"keys": publicKeys,
