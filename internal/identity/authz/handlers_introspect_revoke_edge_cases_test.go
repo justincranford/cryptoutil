@@ -241,11 +241,11 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 		AllowedGrantTypes:    []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
 		AllowedScopes:        []string{"test-scope"},
 		RedirectURIs:         []string{"https://example.com/callback"},
-		RequirePKCE:          false,
+		RequirePKCE:          boolPtr(false),
 		AccessTokenLifetime:  3600,
 		RefreshTokenLifetime: 86400,
 		IDTokenLifetime:      3600,
-		Enabled:              true,
+		Enabled:              boolPtr(true),
 		CreatedAt:            time.Now(),
 		UpdatedAt:            time.Now(),
 	}

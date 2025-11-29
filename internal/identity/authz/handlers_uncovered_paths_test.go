@@ -42,21 +42,21 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
 				t.Helper()
 
-				// Create client.
-				clientID := "test-client-" + googleUuid.NewString()
-				client := &cryptoutilIdentityDomain.Client{
-					ClientID:                clientID,
-					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
-					RedirectURIs:            []string{"https://example.com/callback"},
-					AllowedScopes:           []string{"openid", "profile"},
-					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-					RequirePKCE:             true,
-					PKCEChallengeMethod:     cryptoutilIdentityMagic.PKCEMethodS256,
-				}
+			// Create client.
+			clientID := "test-client-" + googleUuid.NewString()
+			client := &cryptoutilIdentityDomain.Client{
+				ClientID:                clientID,
+				ClientSecret:            "test-secret",
+				Name:                    "Test Client",
+				RedirectURIs:            []string{"https://example.com/callback"},
+				AllowedScopes:           []string{"openid", "profile"},
+				ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+			RequirePKCE:             boolPtr(true),
+			PKCEChallengeMethod:     cryptoutilIdentityMagic.PKCEMethodS256,
+		}
 
-				clientRepo := repoFactory.ClientRepository()
+		clientRepo := repoFactory.ClientRepository()
 				err := clientRepo.Create(ctx, client)
 				require.NoError(t, err, "Failed to create test client")
 
@@ -146,19 +146,19 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) string {
 				t.Helper()
 
-				// Create client for token association.
-				client := &cryptoutilIdentityDomain.Client{
-					ClientID:                "test-client-" + googleUuid.NewString(),
-					ClientSecret:            "test-secret",
-					Name:                    "Test Client",
-					RedirectURIs:            []string{"https://example.com/callback"},
-					AllowedScopes:           []string{"read", "write"},
-					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
-					RequirePKCE:             true,
-				}
+			// Create client for token association.
+			client := &cryptoutilIdentityDomain.Client{
+				ClientID:                "test-client-" + googleUuid.NewString(),
+				ClientSecret:            "test-secret",
+				Name:                    "Test Client",
+				RedirectURIs:            []string{"https://example.com/callback"},
+				AllowedScopes:           []string{"read", "write"},
+				ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
+			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
+			RequirePKCE:             boolPtr(true),
+		}
 
-				clientRepo := repoFactory.ClientRepository()
+		clientRepo := repoFactory.ClientRepository()
 				err := clientRepo.Create(ctx, client)
 				require.NoError(t, err, "Failed to create test client")
 

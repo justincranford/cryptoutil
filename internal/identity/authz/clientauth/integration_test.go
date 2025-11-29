@@ -170,11 +170,11 @@ func TestClientAuthentication_MultiSecretValidation(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
 	require.NoError(t, err)
@@ -225,11 +225,11 @@ func TestClientAuthentication_OldSecretExpired(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
 	require.NoError(t, err)
@@ -290,11 +290,11 @@ func TestClientAuthentication_NewSecretImmediate(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
 	require.NoError(t, err)
@@ -336,11 +336,11 @@ func TestClientAuthentication_RevokedSecretRejected(t *testing.T) {
 		AllowedResponseTypes:    []string{"code"},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 	}
 	err := clientRepo.Create(ctx, client)
 	require.NoError(t, err)

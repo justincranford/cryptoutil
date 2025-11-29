@@ -10,6 +10,11 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
+// boolPtr converts bool to *bool for struct literals requiring pointer fields.
+func boolPtr(b bool) *bool {
+	return &b
+}
+
 // mockClientRepo is a shared mock implementation used across multiple test files.
 // It implements cryptoutilIdentityRepository.ClientRepository interface.
 type mockClientRepo struct {

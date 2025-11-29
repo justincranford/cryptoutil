@@ -312,7 +312,7 @@ func createTokenTestDependencies(t *testing.T) (*cryptoutilIdentityConfig.Config
 	// Create key rotation manager for token issuers.
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
-		&mockKeyGenerator{},
+		cryptoutilIdentityIssuer.NewProductionKeyGenerator(),
 		nil,
 	)
 	require.NoError(t, err, "Failed to create key rotation manager")
@@ -367,9 +367,9 @@ func createTestClientForToken(ctx context.Context, t *testing.T, repoFactory *cr
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		PKCEChallengeMethod:     "S256",
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 		CreatedAt:               time.Now(),
 		UpdatedAt:               time.Now(),
 	}

@@ -379,9 +379,9 @@ func createTestClient(ctx context.Context, t *testing.T, repoFactory *cryptoutil
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		IDTokenLifetime:         3600,
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 		PKCEChallengeMethod:     "S256",
-		Enabled:                 true,
+		Enabled:                 boolPtr(true),
 		CreatedAt:               time.Now(),
 		UpdatedAt:               time.Now(),
 	}

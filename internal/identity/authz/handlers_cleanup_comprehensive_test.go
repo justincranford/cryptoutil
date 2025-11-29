@@ -189,7 +189,7 @@ func createCleanupTestClient(
 		AllowedScopes:           []string{"read", "write"},
 		ClientType:              "confidential",
 		TokenEndpointAuthMethod: cryptoutilIdentityMagic.ClientAuthMethodSecretPost,
-		RequirePKCE:             true,
+		RequirePKCE:             boolPtr(true),
 	}
 
 	clientRepo := repoFactory.ClientRepository()
