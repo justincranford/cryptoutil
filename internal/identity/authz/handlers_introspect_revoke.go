@@ -31,12 +31,22 @@ func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 	}
 
 	ctx := c.Context()
+	tokenRepo := s.repoFactory.TokenRepository()
 
 	// First, try to validate as a JWT (self-contained token).
 	if isJWT(token) {
 		claims, err := s.tokenSvc.ValidateAccessToken(ctx, token)
 		if err == nil {
-			// Token is a valid JWT - return introspection response from claims.
+			// JWT signature is valid - check database for revocation status.
+			tokenRecord, dbErr := tokenRepo.GetByTokenValue(ctx, token)
+			if dbErr == nil && tokenRecord.Revoked {
+				// Token was revoked in database - return inactive.
+				return c.Status(fiber.StatusOK).JSON(fiber.Map{
+					"active": false,
+				})
+			}
+
+			// Token is a valid JWT and not revoked - return introspection response from claims.
 			response := fiber.Map{
 				"active":     true,
 				"token_type": "Bearer",
@@ -85,9 +95,7 @@ func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 		// JWT validation failed - fall through to database lookup.
 	}
 
-	// Fallback: lookup token in database (for opaque tokens).
-	tokenRepo := s.repoFactory.TokenRepository()
-
+	// Fallback: lookup token in database (for opaque tokens or JWTs with invalid signatures).
 	tokenRecord, err := tokenRepo.GetByTokenValue(ctx, token)
 	if err != nil {
 		// Token not found - return inactive response.

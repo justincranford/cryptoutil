@@ -7,6 +7,7 @@ package authz
 
 import (
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -270,11 +271,14 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 	}
 
 	// Generate access token.
+	now := time.Now()
+	expiresAt := now.Add(time.Duration(cryptoutilIdentityMagic.AccessTokenExpirySeconds) * time.Second)
+
 	accessTokenClaims := map[string]any{
 		"client_id": client.ClientID,
 		"scope":     scope,
-		"exp":       time.Now().Add(time.Hour).Unix(),
-		"iat":       time.Now().Unix(),
+		"exp":       expiresAt.Unix(),
+		"iat":       now.Unix(),
 	}
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)
@@ -291,6 +295,31 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 			"error":             cryptoutilIdentityMagic.ErrorServerError,
 			"error_description": appErr.Message,
 		})
+	}
+
+	// Store token in database for revocation support.
+	var scopes []string
+	if scope != "" {
+		scopes = strings.Split(scope, " ")
+	}
+
+	tokenRecord := &cryptoutilIdentityDomain.Token{
+		TokenValue:  accessToken,
+		TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
+		TokenFormat: cryptoutilIdentityDomain.TokenFormatJWS,
+		ClientID:    client.ID,
+		Scopes:      scopes,
+		IssuedAt:    now,
+		ExpiresAt:   expiresAt,
+	}
+
+	tokenRepo := s.repoFactory.TokenRepository()
+	if err := tokenRepo.Create(ctx, tokenRecord); err != nil {
+		slog.WarnContext(ctx, "Failed to store access token for revocation tracking",
+			"error", err,
+			"client_id", client.ClientID,
+		)
+		// Continue anyway - token was issued successfully, just won't be revokable.
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

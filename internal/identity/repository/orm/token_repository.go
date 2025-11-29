@@ -102,9 +102,13 @@ func (r *TokenRepositoryGORM) RevokeByID(ctx context.Context, id googleUuid.UUID
 
 // RevokeByTokenValue revokes a token by token value.
 func (r *TokenRepositoryGORM) RevokeByTokenValue(ctx context.Context, tokenValue string) error {
+	now := time.Now()
 	result := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Token{}).
 		Where("token_value = ? AND deleted_at IS NULL", tokenValue).
-		Update("revoked", true)
+		Updates(map[string]any{
+			"revoked":    true,
+			"revoked_at": now,
+		})
 
 	if result.Error != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to revoke token by value: %w", result.Error))
