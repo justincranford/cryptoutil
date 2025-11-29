@@ -1,8 +1,64 @@
 # Passthru1: Aggressive Task List
 
-**Purpose**: Prioritized implementation order for working demos
+**Purpose**: Prioritized implementation order for working demos with 85%+ coverage
 **Created**: November 29, 2025
+**Updated**: Coverage baseline added
 **Timeline**: 1-2 weeks aggressive
+
+---
+
+## Coverage Baseline (2025-01-07)
+
+### KMS Server Coverage (internal/server)
+
+| Package | Coverage | Target | Gap |
+|---------|----------|--------|-----|
+| application | 65.8% | 85% | +19.2% |
+| barrier | 75.5% | 85% | +9.5% |
+| contentkeysservice | 81.2% | 85% | +3.8% |
+| intermediatekeysservice | 79.2% | 85% | +5.8% |
+| rootkeysservice | 79.2% | 85% | +5.8% |
+| unsealkeysservice | 49.4% | 85% | +35.6% |
+| businesslogic | 37.7% | 85% | +47.3% |
+| handler | 27.8% | 85% | +57.2% |
+| repository/orm | 90.8% | 85% | ✅ |
+| sqlrepository | 77.7% | 85% | +7.3% |
+
+### Identity Server Coverage (internal/identity)
+
+| Package | Coverage | Target | Gap |
+|---------|----------|--------|-----|
+| authz | 77.1% | 85% | +7.9% |
+| authz/clientauth | 78.4% | 85% | +6.6% |
+| authz/pkce | 95.5% | 85% | ✅ |
+| bootstrap | 82.8% | 85% | +2.2% |
+| config | 70.1% | 85% | +14.9% |
+| domain | 92.3% | 85% | ✅ |
+| healthcheck | 87.1% | 85% | ✅ |
+| idp | 57.9% | 85% | +27.1% |
+| idp/userauth | 37.1% | 85% | +47.9% |
+| issuer | 60.1% | 85% | +24.9% |
+| jobs | 89.0% | 85% | ✅ |
+| jwks | 77.5% | 85% | +7.5% |
+| notifications | 87.8% | 85% | ✅ |
+| repository/orm | 67.5% | 85% | +17.5% |
+| rotation | 83.7% | 85% | +1.3% |
+| rs | 76.4% | 85% | +8.6% |
+| security | 100.0% | 85% | ✅ |
+
+### Critical Coverage Gaps (>30% to target)
+
+**KMS (PROTECT - only add tests, don't refactor):**
+
+- handler: 27.8% → 85% (+57.2%) - NEEDS TESTS
+- businesslogic: 37.7% → 85% (+47.3%) - NEEDS TESTS
+- unsealkeysservice: 49.4% → 85% (+35.6%) - NEEDS TESTS
+
+**Identity (CAN REFACTOR):**
+
+- idp/userauth: 37.1% → 85% (+47.9%) - NEEDS WORK
+- idp: 57.9% → 85% (+27.1%) - NEEDS WORK
+- issuer: 60.1% → 85% (+24.9%) - NEEDS WORK
 
 ---
 
@@ -33,12 +89,13 @@ Protect existing manual work while improving demo experience.
 - Sign data via API
 - Verify signature via API
 
-### T1.4: KMS Demo Enhancements (Optional)
+### T1.4: KMS Coverage (Add Tests Only - Don't Refactor Code)
 
-- Add pre-seeded demo accounts
-- Add pre-seeded key hierarchies
-- Improve Swagger UI descriptions
-- Add demo reset capability
+- Add tests to handler package (+57.2% needed)
+- Add tests to businesslogic package (+47.3% needed)
+- Add tests to unsealkeysservice (+35.6% needed)
+- Add tests to application package (+19.2% needed)
+- Target: All KMS packages ≥85%
 
 ---
 
@@ -76,6 +133,15 @@ Audit LLM-generated code and identify what's broken.
 - Test Read operations
 - Test Update operations
 - Test Delete operations
+
+### T2.5: Identity Coverage Priority (Fix + Tests)
+
+- Fix and test idp/userauth package (+47.9% needed)
+- Fix and test idp package (+27.1% needed)
+- Fix and test issuer package (+24.9% needed)
+- Fix and test repository/orm (+17.5% needed)
+- Fix and test config (+14.9% needed)
+- Target: All Identity packages ≥85%
 
 ---
 
@@ -216,12 +282,20 @@ Final polish and documentation.
 | Phase | Tasks | Done | Status |
 |-------|-------|------|--------|
 | Phase 1: KMS | 4 | 0 | Not started |
-| Phase 2: Identity Assess | 4 | 0 | Not started |
+| Phase 2: Identity Assess | 5 | 0 | Not started |
 | Phase 3: Identity Flows | 5 | 0 | Not started |
 | Phase 4: Identity Polish | 3 | 0 | Not started |
 | Phase 5: Integration | 4 | 0 | Not started |
 | Phase 6: Docs | 2 | 0 | Not started |
-| **TOTAL** | **22** | **0** | **0%** |
+| **TOTAL** | **23** | **0** | **0%** |
+
+### Coverage Milestones
+
+| Milestone | Current | Target | Gap |
+|-----------|---------|--------|-----|
+| KMS Overall | ~65% | 85% | +20% |
+| Identity Overall | ~72% | 85% | +13% |
+| Combined | ~68% | 85% | +17% |
 
 ---
 
