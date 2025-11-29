@@ -44,6 +44,10 @@ func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credent
 		return nil, fmt.Errorf("failed to get client: %w", err)
 	}
 
+	if client == nil {
+		return nil, cryptoutilIdentityAppErr.ErrClientNotFound
+	}
+
 	// Validate client secret using PBKDF2-HMAC-SHA256 hash comparison.
 	// Use cryptoutilCrypto.VerifySecret (format: pbkdf2$iter$salt$hash) instead of
 	// clientauth.CompareSecret (format: salt:hash).

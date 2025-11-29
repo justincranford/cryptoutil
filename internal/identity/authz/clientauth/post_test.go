@@ -84,7 +84,7 @@ func TestPostAuthenticator_Authenticate(t *testing.T) {
 			clientID:    "nonexistent",
 			credential:  "some-secret",
 			wantErr:     true,
-			wantErrType: nil, // fmt.Errorf wrapper
+			wantErrType: cryptoutilIdentityAppErr.ErrClientNotFound,
 		},
 	}
 

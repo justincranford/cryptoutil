@@ -91,7 +91,7 @@ func TestBasicAuthenticator_Authenticate(t *testing.T) {
 			clientID:    "nonexistent",
 			credential:  testClientSecret, // Plaintext client secret
 			wantErr:     true,
-			wantErrType: nil, // fmt.Errorf wrapper
+			wantErrType: cryptoutilIdentityAppErr.ErrClientNotFound,
 		},
 	}
 

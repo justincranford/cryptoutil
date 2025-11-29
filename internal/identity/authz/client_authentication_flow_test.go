@@ -34,9 +34,8 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 
 	testClient := createClientAuthFlowTestClient(t, repoFactory, cryptoutilIdentityDomain.ClientAuthMethodSecretBasic)
 
-	// Create token service using legacy JWS issuer (no key rotation manager needed for testing)
-	jwsIssuer := createClientAuthFlowTestJWSIssuerLegacy(t, config)
-	tokenSvc := createClientAuthFlowTestTokenServiceLegacy(t, jwsIssuer, config)
+	// Create token service using ProductionKeyGenerator with RS256 signing.
+	tokenSvc := createClientAuthFlowTestTokenService(t, config)
 
 	svc := authz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
@@ -97,9 +96,8 @@ func TestAuthenticateClient_PostAuthSuccess(t *testing.T) {
 
 	testClient := createClientAuthFlowTestClient(t, repoFactory, cryptoutilIdentityDomain.ClientAuthMethodSecretPost)
 
-	// Create token service using legacy JWS issuer (no key rotation manager needed for testing)
-	jwsIssuer := createClientAuthFlowTestJWSIssuerLegacy(t, config)
-	tokenSvc := createClientAuthFlowTestTokenServiceLegacy(t, jwsIssuer, config)
+	// Create token service using ProductionKeyGenerator with RS256 signing.
+	tokenSvc := createClientAuthFlowTestTokenService(t, config)
 
 	svc := authz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
@@ -251,40 +249,34 @@ func createClientAuthFlowTestClient(
 	return testClient
 }
 
-func createClientAuthFlowTestJWSIssuerLegacy(t *testing.T, config *cryptoutilIdentityConfig.Config) *cryptoutilIdentityIssuer.JWSIssuer {
+func createClientAuthFlowTestTokenService(t *testing.T, config *cryptoutilIdentityConfig.Config) *cryptoutilIdentityIssuer.TokenService {
 	t.Helper()
 
-	// Use legacy JWS issuer with simple signing key (no key rotation manager)
-	signingKey := []byte("test-signing-key-32-bytes-long!!") // 32 bytes for HS256
-	signingAlg := "HS256"                                    // HMAC SHA-256 for testing
+	ctx := context.Background()
 
-	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
+	// Create key rotation manager for token issuers.
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		cryptoutilIdentityIssuer.NewProductionKeyGenerator(),
+		nil,
+	)
+	require.NoError(t, err, "Failed to create key rotation manager")
+
+	// Generate initial signing key.
+	err = keyRotationMgr.RotateSigningKey(ctx, config.Tokens.SigningAlgorithm)
+	require.NoError(t, err, "Failed to rotate initial signing key")
+
+	// Create JWS issuer for access tokens.
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
 		config.Tokens.Issuer,
-		signingKey,
-		signingAlg,
+		keyRotationMgr,
+		config.Tokens.SigningAlgorithm,
 		time.Duration(config.Tokens.AccessTokenLifetime)*time.Second,
 		time.Duration(config.Tokens.AccessTokenLifetime)*time.Second,
 	)
-	require.NoError(t, err, "Failed to create legacy JWS issuer")
-	require.NotNil(t, jwsIssuer, "JWS issuer should not be nil")
+	require.NoError(t, err, "Failed to create JWS issuer")
 
-	return jwsIssuer
-}
-
-func createClientAuthFlowTestTokenServiceLegacy(
-	t *testing.T,
-	jwsIssuer *cryptoutilIdentityIssuer.JWSIssuer,
-	config *cryptoutilIdentityConfig.Config,
-) *cryptoutilIdentityIssuer.TokenService {
-	t.Helper()
-
-	// Create UUID issuer (no JWE needed for testing)
 	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
-	require.NotNil(t, uuidIssuer, "UUID issuer should not be nil")
 
-	// Create token service with nil JWE issuer (not needed for client_credentials grant)
-	tokenSvc := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, nil, uuidIssuer, config.Tokens)
-	require.NotNil(t, tokenSvc, "Token service should not be nil")
-
-	return tokenSvc
+	return cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, nil, uuidIssuer, config.Tokens)
 }
