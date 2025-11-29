@@ -81,7 +81,7 @@ func TestHandleLogout_POST(t *testing.T) {
 		IssuedAt:              time.Now(),
 		ExpiresAt:             time.Now().Add(1 * time.Hour),
 		LastSeenAt:            time.Now(),
-		Active:                true,
+		Active:                boolPtr(true),
 		AuthenticationMethods: []string{"username_password"},
 		AuthenticationTime:    time.Now(),
 	}

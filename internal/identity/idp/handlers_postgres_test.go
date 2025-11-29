@@ -152,7 +152,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 				ClientID:     googleUuid.Must(googleUuid.NewV7()).String(),
 				ClientSecret: "hashedsecret", // pragma: allowlist secret
 				ClientType:   cryptoutilIdentityDomain.ClientTypeConfidential,
-				Enabled:      true,
+				Enabled:      boolPtr(true),
 			}
 			done <- clientRepo.Create(ctx, client)
 		}(i)
@@ -175,7 +175,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 		ClientID:     googleUuid.Must(googleUuid.NewV7()).String(),
 		ClientSecret: "hashedsecret", // pragma: allowlist secret
 		ClientType:   cryptoutilIdentityDomain.ClientTypeConfidential,
-		Enabled:      true,
+		Enabled:      boolPtr(true),
 	}
 	err = clientRepo.Create(ctx, testClient)
 	require.NoError(t, err, "failed to create test client for tokens")

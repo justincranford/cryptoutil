@@ -49,7 +49,8 @@ func TestSessionRepository_Create(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, session.SessionID, retrieved.SessionID)
 	require.Equal(t, session.UserID, retrieved.UserID)
-	require.True(t, retrieved.Active)
+	require.NotNil(t, retrieved.Active)
+	require.True(t, *retrieved.Active)
 	require.Len(t, retrieved.AuthenticationMethods, 2)
 	require.Len(t, retrieved.GrantedScopes, 2)
 }
@@ -197,14 +198,16 @@ func TestSessionRepository_TerminateByID(t *testing.T) {
 	}
 	err := repo.Create(context.Background(), session)
 	require.NoError(t, err)
-	require.True(t, session.Active)
+	require.NotNil(t, session.Active)
+	require.True(t, *session.Active)
 
 	err = repo.TerminateByID(context.Background(), session.ID)
 	require.NoError(t, err)
 
 	retrieved, err := repo.GetByID(context.Background(), session.ID)
 	require.NoError(t, err)
-	require.False(t, retrieved.Active)
+	require.NotNil(t, retrieved.Active)
+	require.False(t, *retrieved.Active)
 }
 
 func TestSessionRepository_TerminateBySessionID(t *testing.T) {
@@ -226,14 +229,16 @@ func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 	}
 	err := repo.Create(context.Background(), session)
 	require.NoError(t, err)
-	require.True(t, session.Active)
+	require.NotNil(t, session.Active)
+	require.True(t, *session.Active)
 
 	err = repo.TerminateBySessionID(context.Background(), session.SessionID)
 	require.NoError(t, err)
 
 	retrieved, err := repo.GetBySessionID(context.Background(), session.SessionID)
 	require.NoError(t, err)
-	require.False(t, retrieved.Active)
+	require.NotNil(t, retrieved.Active)
+	require.False(t, *retrieved.Active)
 }
 
 func TestSessionRepository_DeleteExpired(t *testing.T) {

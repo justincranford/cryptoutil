@@ -348,7 +348,7 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 			OldKeyVersion: &oldVersion,
 			NewKeyVersion: &newVersion,
 			Reason:        "Initial client creation (test)",
-			Success:       true,
+			Success:       boolPtr(true),
 		}
 
 		return tx.Create(event).Error
