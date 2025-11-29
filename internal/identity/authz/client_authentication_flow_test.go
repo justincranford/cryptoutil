@@ -30,7 +30,7 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 	t.Parallel()
 
 	config := createClientAuthFlowTestConfig(t)
-	repoFactory := createClientAuthFlowTestRepoFactory(t)
+	repoFactory := createClientAuthFlowTestRepoFactory(t, config)
 
 	testClient := createClientAuthFlowTestClient(t, repoFactory, cryptoutilIdentityDomain.ClientAuthMethodSecretBasic)
 
@@ -92,7 +92,7 @@ func TestAuthenticateClient_PostAuthSuccess(t *testing.T) {
 	t.Parallel()
 
 	config := createClientAuthFlowTestConfig(t)
-	repoFactory := createClientAuthFlowTestRepoFactory(t)
+	repoFactory := createClientAuthFlowTestRepoFactory(t, config)
 
 	testClient := createClientAuthFlowTestClient(t, repoFactory, cryptoutilIdentityDomain.ClientAuthMethodSecretPost)
 
@@ -135,7 +135,7 @@ func TestAuthenticateClient_NoCredentialsFailure(t *testing.T) {
 	t.Parallel()
 
 	config := createClientAuthFlowTestConfig(t)
-	repoFactory := createClientAuthFlowTestRepoFactory(t)
+	repoFactory := createClientAuthFlowTestRepoFactory(t, config)
 
 	svc := authz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
@@ -185,10 +185,9 @@ func createClientAuthFlowTestConfig(t *testing.T) *cryptoutilIdentityConfig.Conf
 	}
 }
 
-func createClientAuthFlowTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository.RepositoryFactory {
+func createClientAuthFlowTestRepoFactory(t *testing.T, cfg *cryptoutilIdentityConfig.Config) *cryptoutilIdentityRepository.RepositoryFactory {
 	t.Helper()
 
-	cfg := createClientAuthFlowTestConfig(t)
 	ctx := context.Background()
 
 	// Clear migration state to ensure fresh database for this test.

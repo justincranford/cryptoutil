@@ -85,6 +85,10 @@ const (
 	bearerTokenPrefix = "Bearer "
 )
 
+// testMutex ensures integration tests run sequentially to avoid port conflicts.
+// These tests use hardcoded ports (18080, 18081, 18082) and cannot run in parallel.
+var testMutex sync.Mutex //nolint:gochecknoglobals // Required for test synchronization
+
 // testServers holds all three identity servers for integration testing.
 //
 // Validates requirements:
@@ -405,6 +409,9 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 // - R03-02: Integration tests start all three servers
 // - R03-04: Integration tests validate cross-server interactions.
 func TestHealthCheckEndpoints(t *testing.T) {
+	testMutex.Lock()
+	defer testMutex.Unlock()
+
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -445,9 +452,10 @@ func TestHealthCheckEndpoints(t *testing.T) {
 // - R01-05: Authorization code single-use enforcement
 // - R01-06: Integration test validates end-to-end OAuth 2.1 flow.
 func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
-	// TEMPORARY: Sequential execution to avoid port conflicts
-	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
-	// t.Parallel() removed due to port conflicts with hardcoded ports
+	// Sequential execution to avoid port conflicts with hardcoded ports.
+	testMutex.Lock()
+	defer testMutex.Unlock()
+
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -636,9 +644,10 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 // - R06-02: CSRF protection for state-changing requests
 // - R06-03: Rate limiting per IP and per client.
 func TestResourceServerScopeEnforcement(t *testing.T) {
-	// TEMPORARY: Sequential execution to avoid port conflicts
-	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
-	// t.Parallel() removed due to port conflicts with hardcoded ports
+	// Sequential execution to avoid port conflicts with hardcoded ports.
+	testMutex.Lock()
+	defer testMutex.Unlock()
+
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -726,9 +735,10 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 // - R05-05: Revoked tokens rejected with 401 Unauthorized
 // - R06-01: Session middleware validates access tokens.
 func TestUnauthorizedAccess(t *testing.T) {
-	// TEMPORARY: Sequential execution to avoid port conflicts
-	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
-	// t.Parallel() removed due to port conflicts with hardcoded ports
+	// Sequential execution to avoid port conflicts with hardcoded ports.
+	testMutex.Lock()
+	defer testMutex.Unlock()
+
 	servers, cancel := setupTestServers(t)
 	defer cancel()
 	defer shutdownTestServers(t, servers)
@@ -763,9 +773,10 @@ func TestUnauthorizedAccess(t *testing.T) {
 // Validates requirements:
 // - R03-03: Integration tests clean up resources.
 func TestGracefulShutdown(t *testing.T) {
-	// TEMPORARY: Sequential execution to avoid port conflicts
-	// TODO: Implement dynamic port allocation (see P4.05-E2E-PORT-FIX-DEFERRED.md)
-	// t.Parallel() removed due to port conflicts with hardcoded ports
+	// Sequential execution to avoid port conflicts with hardcoded ports.
+	testMutex.Lock()
+	defer testMutex.Unlock()
+
 	servers, cancel := setupTestServers(t)
 
 	// Start servers normally.
