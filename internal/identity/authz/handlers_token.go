@@ -177,6 +177,16 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		})
 	}
 
+	// Ensure token service is configured.
+	if s.tokenSvc == nil {
+		slog.ErrorContext(ctx, "Token service not configured")
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Token service not configured",
+		})
+	}
+
 	accessTokenClaims := map[string]any{
 		"sub":       authRequest.UserID.UUID.String(),
 		"client_id": clientID,
@@ -246,6 +256,18 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 	scope := c.FormValue(cryptoutilIdentityMagic.ParamScope)
 
 	ctx := c.Context()
+
+	// Ensure token service is configured.
+	if s.tokenSvc == nil {
+		slog.ErrorContext(ctx, "Token service not configured for client_credentials grant",
+			"client_id", client.ClientID,
+		)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Token service not configured",
+		})
+	}
 
 	// Generate access token.
 	accessTokenClaims := map[string]any{
@@ -336,6 +358,18 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
 			"error_description": "Refresh token has expired",
+		})
+	}
+
+	// Ensure token service is configured.
+	if s.tokenSvc == nil {
+		slog.ErrorContext(ctx, "Token service not configured for refresh_token grant",
+			"client_id", clientID,
+		)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Token service not configured",
 		})
 	}
 
