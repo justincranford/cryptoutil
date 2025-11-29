@@ -327,7 +327,8 @@ func shutdownTestServers(t *testing.T, servers *testServers) {
 
 	// CRITICAL: Add delay after shutdown to allow OS to release ports.
 	// Without this, next test may fail with "bind: address already in use".
-	time.Sleep(100 * time.Millisecond)
+	// Increased from 100ms to 500ms to handle TCP TIME_WAIT state properly.
+	time.Sleep(500 * time.Millisecond)
 }
 
 // seedTestData seeds the database with test client.
@@ -410,11 +411,13 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 // - R03-04: Integration tests validate cross-server interactions.
 func TestHealthCheckEndpoints(t *testing.T) {
 	testMutex.Lock()
-	defer testMutex.Unlock()
 
 	servers, cancel := setupTestServers(t)
-	defer cancel()
-	defer shutdownTestServers(t, servers)
+	defer func() {
+		shutdownTestServers(t, servers)
+		cancel()
+		testMutex.Unlock()
+	}()
 
 	tests := []struct {
 		name     string
@@ -454,11 +457,13 @@ func TestHealthCheckEndpoints(t *testing.T) {
 func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	// Sequential execution to avoid port conflicts with hardcoded ports.
 	testMutex.Lock()
-	defer testMutex.Unlock()
 
 	servers, cancel := setupTestServers(t)
-	defer cancel()
-	defer shutdownTestServers(t, servers)
+	defer func() {
+		shutdownTestServers(t, servers)
+		cancel()
+		testMutex.Unlock()
+	}()
 
 	// Generate PKCE code verifier and challenge (OAuth 2.1 requirement).
 	codeVerifier, err := cryptoutilIdentityPKCE.GenerateCodeVerifier()
@@ -646,11 +651,13 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 func TestResourceServerScopeEnforcement(t *testing.T) {
 	// Sequential execution to avoid port conflicts with hardcoded ports.
 	testMutex.Lock()
-	defer testMutex.Unlock()
 
 	servers, cancel := setupTestServers(t)
-	defer cancel()
-	defer shutdownTestServers(t, servers)
+	defer func() {
+		shutdownTestServers(t, servers)
+		cancel()
+		testMutex.Unlock()
+	}()
 
 	tests := []struct {
 		name           string
@@ -737,11 +744,13 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 func TestUnauthorizedAccess(t *testing.T) {
 	// Sequential execution to avoid port conflicts with hardcoded ports.
 	testMutex.Lock()
-	defer testMutex.Unlock()
 
 	servers, cancel := setupTestServers(t)
-	defer cancel()
-	defer shutdownTestServers(t, servers)
+	defer func() {
+		shutdownTestServers(t, servers)
+		cancel()
+		testMutex.Unlock()
+	}()
 
 	endpoints := []string{
 		"/api/v1/protected/resource",

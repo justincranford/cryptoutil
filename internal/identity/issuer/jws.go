@@ -254,8 +254,15 @@ func (i *JWSIssuer) verifySignature(signingInput string, signature []byte, algor
 	var publicKey any
 
 	if i.legacySigningKey != nil {
-		// Legacy mode: use single signing key.
-		publicKey = i.legacySigningKey
+		// Legacy mode: extract public key from private key.
+		switch key := i.legacySigningKey.(type) {
+		case *rsa.PrivateKey:
+			publicKey = &key.PublicKey
+		case *ecdsa.PrivateKey:
+			publicKey = &key.PublicKey
+		default:
+			publicKey = i.legacySigningKey
+		}
 	} else if i.keyRotationMgr != nil {
 		// Try to find the key by key ID.
 		var signingKey *SigningKey
