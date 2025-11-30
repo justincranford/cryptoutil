@@ -299,7 +299,7 @@ repos:
         files: '\.py$'
         require_serial: false
 
-  # Spell checking
+  # Spell checking (expensive - moved to pre-push)
   - repo: local
     hooks:
       - id: cspell
@@ -309,6 +309,7 @@ repos:
         language: system
         files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
         exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/)'
+        stages: [pre-push]
 
   # Markdown linting with auto-fix
   - repo: https://github.com/DavidAnson/markdownlint-cli2
