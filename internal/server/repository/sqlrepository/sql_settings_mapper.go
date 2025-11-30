@@ -9,9 +9,11 @@ import (
 
 func mapDBTypeAndURL(telemetryService *cryptoutilTelemetry.TelemetryService, devMode bool, databaseURL string) (SupportedDBType, string, error) {
 	if devMode {
-		telemetryService.Slogger.Debug("running in dev mode, using in-memory SQLite database")
+		telemetryService.Slogger.Debug("running in dev mode, using in-memory SQLite database with shared cache")
 
-		return DBTypeSQLite, ":memory:", nil
+		// Use file::memory:?cache=shared to ensure all connections share the same in-memory database.
+		// Plain :memory: creates isolated databases per connection, causing transaction visibility issues.
+		return DBTypeSQLite, "file::memory:?cache=shared", nil
 	} else if strings.HasPrefix(databaseURL, "postgres://") {
 		telemetryService.Slogger.Debug("running in production mode, using PostgreSQL database")
 

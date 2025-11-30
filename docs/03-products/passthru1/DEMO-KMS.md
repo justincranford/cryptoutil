@@ -11,13 +11,31 @@
 The KMS server was manually implemented and is the most stable component:
 
 - Server starts and serves HTTPS
-- Swagger UI works
-- Browser API has CORS/CSRF support
-- Service API works for machine-to-machine
+- Swagger UI works at `https://127.0.0.1:8080/ui/swagger`
+- Admin health at `https://127.0.0.1:9090/admin/v1/livez` and `/readyz`
+- Browser API has CORS/CSRF support (`/browser/api/v1/`)
+- Service API works for machine-to-machine (`/service/api/v1/`)
 - 3-tier key hierarchy (root → intermediate → content)
 - Key pools with configurable algorithms
 - Encrypt/decrypt operations
 - Sign/verify operations
+
+---
+
+## Known Issues (As of 2025-01-07)
+
+### Issue #1: Key Hierarchy Initialization Bug
+
+**Symptom**: API calls to create elastic keys fail with "record not found" error
+
+**Root Cause**: The root/intermediate key initialization happens during startup
+but may not complete properly on SQLite in-memory databases after restart.
+
+**Impact**: CRUD operations on elastic keys fail until key hierarchy is initialized
+
+**Workaround**: Need to investigate startup initialization flow
+
+**Status**: INVESTIGATION NEEDED
 
 ---
 
@@ -30,12 +48,11 @@ User Action                          Expected Result
 -----------                          ---------------
 docker compose up -d                 → KMS starts on https://localhost:8080
 Open https://localhost:8080/ui/swagger → Swagger UI loads
-Try /livez endpoint                  → Returns healthy
-Try /readyz endpoint                 → Returns ready
-Create key pool (AES-256)            → Pool created successfully
-Create key in pool                   → Key created with ID
-Encrypt "hello world"                → Ciphertext returned
-Decrypt ciphertext                   → "hello world" returned
+Try /admin/v1/livez endpoint         → Returns healthy
+Try /admin/v1/readyz endpoint        → Returns ready with database info
+Create elastic key (AES-256)         → Key created successfully (BLOCKED)
+Encrypt "hello world"                → Ciphertext returned (BLOCKED)
+Decrypt ciphertext                   → "hello world" returned (BLOCKED)
 ```
 
 ### Enhanced Demo (Time Permitting)

@@ -117,14 +117,14 @@ func TokenValidation(identityURL string) gin.HandlerFunc {
             c.AbortWithStatusJSON(401, gin.H{"error": "missing token"})
             return
         }
-        
+
         // Validate with Identity introspection endpoint
         active, claims, err := introspectToken(identityURL, token)
         if err != nil || !active {
             c.AbortWithStatusJSON(401, gin.H{"error": "invalid token"})
             return
         }
-        
+
         c.Set("claims", claims)
         c.Next()
     }
@@ -158,7 +158,7 @@ func RequireScopes(requiredScopes ...string) gin.HandlerFunc {
     return func(c *gin.Context) {
         claims := c.MustGet("claims").(TokenClaims)
         tokenScopes := strings.Split(claims.Scope, " ")
-        
+
         for _, required := range requiredScopes {
             if !contains(tokenScopes, required) {
                 c.AbortWithStatusJSON(403, gin.H{"error": "insufficient scope"})
@@ -170,7 +170,7 @@ func RequireScopes(requiredScopes ...string) gin.HandlerFunc {
 }
 
 // Route registration
-router.POST("/api/v1/pools", 
+router.POST("/api/v1/pools",
     TokenValidation(identityURL),
     RequireScopes("kms:write"),
     handlers.CreatePool)
@@ -255,7 +255,7 @@ services:
       - "9000:9000"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "https://127.0.0.1:9000/healthz"]
-      
+
   kms:
     image: cryptoutil/kms:latest
     ports:

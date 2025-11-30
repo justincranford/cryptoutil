@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -60,15 +61,23 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 
 		return nil
 	})
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+
+	// DEBUG: Log error handling decision.
+	isRecordNotFoundErr := errors.Is(err, gorm.ErrRecordNotFound)
+	log.Printf("DEBUG initializeFirstIntermediateJWK: err=%v, isRecordNotFound=%v, encryptedIntermediateKeyLatest=%v", err, isRecordNotFoundErr, encryptedIntermediateKeyLatest)
+
+	if err != nil && !isRecordNotFoundErr {
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 
 	if encryptedIntermediateKeyLatest == nil {
+		log.Printf("DEBUG initializeFirstIntermediateJWK: Creating first intermediate JWK")
 		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
+			log.Printf("DEBUG initializeFirstIntermediateJWK: GenerateJWEJWK failed: %v", err)
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
+		log.Printf("DEBUG initializeFirstIntermediateJWK: Generated JWK with kid=%v", intermediateKeyKidUUID)
 
 		var encryptedIntermediateKeyBytes []byte
 
@@ -77,21 +86,27 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 		err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 			encryptedIntermediateKeyBytes, rootKeyKidUUID, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
 			if err != nil {
+				log.Printf("DEBUG initializeFirstIntermediateJWK: EncryptKey failed: %v", err)
 				return fmt.Errorf("failed to encrypt first intermediate JWK: %w", err)
 			}
+			log.Printf("DEBUG initializeFirstIntermediateJWK: Encrypted intermediate JWK, len=%d, rootKeyKid=%v", len(encryptedIntermediateKeyBytes), rootKeyKidUUID)
 
 			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.BarrierIntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
 
 			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {
+				log.Printf("DEBUG initializeFirstIntermediateJWK: AddIntermediateKey failed: %v", err)
 				return fmt.Errorf("failed to store first intermediate JWK: %w", err)
 			}
+			log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully stored first intermediate JWK")
 
 			return nil
 		})
 		if err != nil {
+			log.Printf("DEBUG initializeFirstIntermediateJWK: Transaction failed: %v", err)
 			return fmt.Errorf("failed to encrypt and store first intermediate first JWK: %w", err)
 		}
+		log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully created first intermediate JWK")
 	}
 
 	return nil

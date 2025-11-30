@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -59,20 +60,30 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepo
 
 		return nil
 	})
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+
+	// DEBUG: Log error handling decision
+	isRecordNotFoundErr := errors.Is(err, gorm.ErrRecordNotFound)
+	log.Printf("DEBUG initializeFirstRootJWK: err=%v, isRecordNotFound=%v, encryptedRootKeyLatest=%v", err, isRecordNotFoundErr, encryptedRootKeyLatest)
+
+	if err != nil && !isRecordNotFoundErr {
 		return fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
 	}
 
 	if encryptedRootKeyLatest == nil {
+		log.Printf("DEBUG initializeFirstRootJWK: Creating first root JWK")
 		rootKeyKidUUID, clearRootKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
+			log.Printf("DEBUG initializeFirstRootJWK: GenerateJWEJWK failed: %v", err)
 			return fmt.Errorf("failed to generate first root JWK latest: %w", err)
 		}
+		log.Printf("DEBUG initializeFirstRootJWK: Generated JWK with kid=%v", rootKeyKidUUID)
 
 		encryptedRootKeyBytes, err := unsealKeysService.EncryptKey(clearRootKey)
 		if err != nil {
+			log.Printf("DEBUG initializeFirstRootJWK: EncryptKey failed: %v", err)
 			return fmt.Errorf("failed to encrypt first root JWK: %w", err)
 		}
+		log.Printf("DEBUG initializeFirstRootJWK: Encrypted root JWK, len=%d", len(encryptedRootKeyBytes))
 
 		firstEncryptedRootKey := &cryptoutilOrmRepository.BarrierRootKey{UUID: *rootKeyKidUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
 
@@ -80,8 +91,10 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepo
 			return sqlTransaction.AddRootKey(firstEncryptedRootKey)
 		})
 		if err != nil {
+			log.Printf("DEBUG initializeFirstRootJWK: AddRootKey failed: %v", err)
 			return fmt.Errorf("failed to encrypt and store first root JWK: %w", err)
 		}
+		log.Printf("DEBUG initializeFirstRootJWK: Successfully created first root JWK")
 	}
 
 	return nil
