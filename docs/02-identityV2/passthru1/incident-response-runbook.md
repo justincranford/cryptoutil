@@ -20,6 +20,7 @@ This runbook defines procedures for responding to security incidents affecting O
 ### 1. Compromised Token Discovery
 
 **Indicators:**
+
 - Token values found in logs, traces, or monitoring dashboards
 - Unauthorized access using valid OTP/magic link tokens
 - Mass token validation attempts from single IP
@@ -28,6 +29,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Immediate Actions (< 15 minutes):**
 
 1. **Isolate Affected Users**:
+
    ```bash
    # Revoke all active challenges for compromised users
    docker compose exec postgres psql -U USR -d DB -c \
@@ -39,6 +41,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Block Suspicious IPs**:
+
    ```bash
    # Add IP to blocklist (if IP-based attack)
    # Update config file or use runtime configuration
@@ -49,6 +52,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 3. **Rotate Cryptographic Keys** (see Token Rotation Runbook):
+
    ```bash
    # Immediate key rotation
    ./scripts/emergency-key-rotation.sh
@@ -60,6 +64,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Investigation (< 1 hour):**
 
 1. **Audit Log Analysis**:
+
    ```bash
    # Export audit logs for forensic analysis
    docker compose logs cryptoutil-sqlite --since 24h | \
@@ -70,6 +75,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Database Forensics**:
+
    ```sql
    -- Check for mass token generation from single user
    SELECT user_id, COUNT(*) as challenge_count, MIN(created_at), MAX(created_at)
@@ -86,6 +92,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 3. **OpenTelemetry Trace Analysis**:
+
    ```bash
    # Check Grafana Tempo for suspicious traces
    # Look for token values in trace spans (CRITICAL: should never appear)
@@ -95,6 +102,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Recovery (< 4 hours):**
 
 1. **Validate No Token Leakage**:
+
    ```bash
    # Grep logs for potential token patterns (6-digit numeric, hex tokens)
    docker compose logs cryptoutil-sqlite | grep -E '\b[0-9]{6}\b|\b[a-f0-9]{32,}\b'
@@ -104,6 +112,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Notify Affected Users**:
+
    ```bash
    # Send email notification
    cat <<EOF > incident-notification.txt
@@ -140,6 +149,7 @@ This runbook defines procedures for responding to security incidents affecting O
 ### 2. SMS/Email Provider Outage
 
 **Indicators:**
+
 - High rate of delivery failures (SendSMS/SendEmail errors)
 - Provider API returning 5xx errors or timeouts
 - Monitoring alerts for provider uptime degradation
@@ -147,6 +157,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Immediate Actions (< 15 minutes):**
 
 1. **Verify Outage Scope**:
+
    ```bash
    # Check recent delivery failures
    docker compose logs cryptoutil-sqlite | grep -i "failed to send" | tail -50
@@ -157,6 +168,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Switch to Backup Provider** (if configured):
+
    ```yaml
    # Update config file (configs/identity/production.yml)
    delivery:
@@ -171,6 +183,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 3. **Enable Graceful Degradation**:
+
    ```yaml
    # Allow email-only auth if SMS unavailable
    auth:
@@ -183,6 +196,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Investigation (< 1 hour):**
 
 1. **Provider Status Monitoring**:
+
    ```bash
    # Poll provider status API every 30 seconds
    while true; do
@@ -192,6 +206,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Rate Limiting Impact Analysis**:
+
    ```bash
    # Check if outage triggered rate limiting false positives
    docker compose logs cryptoutil-sqlite | grep "identity.ratelimit.exceeded"
@@ -203,6 +218,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Recovery (< 4 hours):**
 
 1. **Re-enable Primary Provider**:
+
    ```yaml
    # Restore primary provider when status confirmed healthy
    delivery:
@@ -212,6 +228,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Resend Failed Notifications** (if applicable):
+
    ```sql
    -- Identify users with failed delivery attempts during outage
    SELECT user_id, phone_number, email, failed_attempts, last_attempt_at
@@ -222,6 +239,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 3. **Validate Service Recovery**:
+
    ```bash
    # Test SMS delivery
    curl -k https://127.0.0.1:8080/browser/api/v1/identity/auth/otp/initiate \
@@ -237,6 +255,7 @@ This runbook defines procedures for responding to security incidents affecting O
 ### 3. Abuse Detection (Rate Limiting Violations)
 
 **Indicators:**
+
 - Sustained high rate of `identity.ratelimit.exceeded` metrics
 - Single IP generating excessive token requests
 - Single user generating excessive challenges
@@ -245,6 +264,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Immediate Actions (< 30 minutes):**
 
 1. **Identify Abusive Patterns**:
+
    ```bash
    # Top IPs by rate limit violations (last hour)
    docker compose logs cryptoutil-sqlite --since 1h | \
@@ -258,6 +278,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Temporary IP Blocking** (if automated attack):
+
    ```bash
    # Block abusive IPs at load balancer or firewall level
    # Example: iptables rule
@@ -267,6 +288,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 3. **Increase Rate Limiting Strictness** (temporary):
+
    ```yaml
    # Reduce rate limits during attack
    rate_limiting:
@@ -281,6 +303,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Investigation (< 2 hours):**
 
 1. **Attack Pattern Analysis**:
+
    ```bash
    # Extract attack timeline
    docker compose logs cryptoutil-sqlite --since 24h | \
@@ -294,6 +317,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **CAPTCHA Integration** (if persistent abuse):
+
    ```yaml
    # Enable CAPTCHA for high-risk operations
    auth:
@@ -308,6 +332,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Recovery (< 4 hours):**
 
 1. **Restore Normal Rate Limits**:
+
    ```yaml
    # Return to standard rate limits once attack subsides
    rate_limiting:
@@ -320,6 +345,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Unblock Legitimate Users** (if false positives):
+
    ```sql
    -- Clear rate limit state for legitimate users
    DELETE FROM rate_limit_attempts WHERE user_id IN ('user1', 'user2', ...);
@@ -333,6 +359,7 @@ This runbook defines procedures for responding to security incidents affecting O
 ### 4. Database Connectivity Issues
 
 **Indicators:**
+
 - High rate of `failed to store challenge` errors
 - Database connection pool exhaustion
 - Slow query performance (>1s for token operations)
@@ -341,6 +368,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Immediate Actions (< 15 minutes):**
 
 1. **Check Database Health**:
+
    ```bash
    # PostgreSQL health
    docker compose exec postgres pg_isready -U USR -d DB
@@ -354,6 +382,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Increase Connection Pool** (temporary):
+
    ```yaml
    # Update database config (configs/identity/production.yml)
    database:
@@ -363,6 +392,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 3. **Graceful Degradation**:
+
    ```yaml
    # Enable in-memory fallback (if PostgreSQL unavailable)
    database:
@@ -374,6 +404,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Investigation (< 1 hour):**
 
 1. **Query Performance Analysis**:
+
    ```sql
    -- Check slow queries (PostgreSQL)
    SELECT query, mean_exec_time, calls
@@ -392,6 +423,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Connection Pool Monitoring**:
+
    ```bash
    # Check Prometheus metrics for connection pool usage
    curl -s http://127.0.0.1:8888/metrics | grep db_connections
@@ -400,6 +432,7 @@ This runbook defines procedures for responding to security incidents affecting O
 **Recovery (< 4 hours):**
 
 1. **Database Failover** (if primary unavailable):
+
    ```bash
    # Promote PostgreSQL replica to primary
    docker compose exec postgres-replica pg_ctl promote
@@ -408,6 +441,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 2. **Validate Data Consistency**:
+
    ```sql
    -- Check for orphaned challenges (no corresponding user)
    SELECT ac.id, ac.user_id
@@ -420,6 +454,7 @@ This runbook defines procedures for responding to security incidents affecting O
    ```
 
 3. **Restore Connection Pool Defaults**:
+
    ```yaml
    # Return to normal connection pool settings
    database:
@@ -433,11 +468,11 @@ This runbook defines procedures for responding to security incidents affecting O
 
 | Role | Contact | Responsibility | Escalation Trigger |
 |------|---------|----------------|-------------------|
-| **On-Call Engineer** | oncall@example.com | Initial response, triage | Incident detected |
-| **Security Team Lead** | security-lead@example.com | Security incident coordination | P0/P1 security incidents |
-| **Database Administrator** | dba@example.com | Database performance/recovery | Database connectivity issues |
-| **Engineering Manager** | eng-manager@example.com | Resource allocation, external comms | P0 incidents >1 hour |
-| **VP Engineering** | vp-eng@example.com | Executive decision-making | P0 incidents >4 hours, data breach |
+| **On-Call Engineer** | <oncall@example.com> | Initial response, triage | Incident detected |
+| **Security Team Lead** | <security-lead@example.com> | Security incident coordination | P0/P1 security incidents |
+| **Database Administrator** | <dba@example.com> | Database performance/recovery | Database connectivity issues |
+| **Engineering Manager** | <eng-manager@example.com> | Resource allocation, external comms | P0 incidents >1 hour |
+| **VP Engineering** | <vp-eng@example.com> | Executive decision-making | P0 incidents >4 hours, data breach |
 
 ### External Escalation
 
@@ -450,6 +485,7 @@ This runbook defines procedures for responding to security incidents affecting O
 ### Communication Templates
 
 **Internal Incident Notification (Slack/Teams):**
+
 ```
 🚨 INCIDENT ALERT - P{SEVERITY}
 Title: {Brief incident description}
@@ -463,6 +499,7 @@ Updates: {Thread below}
 ```
 
 **External Customer Notification:**
+
 ```
 Subject: Service Incident Notification - {Date}
 

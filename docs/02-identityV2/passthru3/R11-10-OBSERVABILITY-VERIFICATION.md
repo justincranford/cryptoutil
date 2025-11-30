@@ -35,27 +35,32 @@ otlp-environment: "docker compose"
 **File**: `deployments/compose/otel/otel-collector-config.yaml`
 
 **Receivers** (Configured ✅):
+
 - `otlp/grpc` on port 4317 - receives application telemetry via gRPC
 - `otlp/http` on port 4318 - receives application telemetry via HTTP
 - `prometheus/self` on port 8888 - scrapes collector's own metrics
 
 **Processors** (Configured ✅):
+
 - `resourcedetection` - adds Docker/system metadata
 - `attributes` - enriches telemetry with container IDs
 - `memory_limiter` - prevents OOM (512MB limit)
 - `batch` - batches telemetry for efficiency
 
 **Exporters** (Configured ✅):
+
 - `otlphttp` - forwards to Grafana LGTM on port 4318
 - `debug` - logs telemetry to stdout for troubleshooting
 
 **Pipelines** (Configured ✅):
+
 - `logs` - application logs: otlp → processors → grafana
 - `metrics` - application metrics: otlp → processors → grafana
 - `traces` - application traces: otlp → processors → grafana
 - `metrics/internal` - collector self-metrics: prometheus → processors → grafana
 
 **Extensions** (Configured ✅):
+
 - `health_check` on port 13133 - liveness/readiness probes
 - `pprof` on port 1777 - performance profiling
 - `zpages` on port 55679 - in-memory trace debugging
@@ -68,12 +73,14 @@ otlp-environment: "docker compose"
 
 **Grafana UI**: Port 3000
 **OTLP Receivers**:
+
 - gRPC: Port 14317 (mapped from 4317)
 - HTTP: Port 14318 (mapped from 4318)
 
 **Health Check**: `curl http://127.0.0.1:3000/api/health`
 
 **Integrated Components**:
+
 - **Loki** - log aggregation and querying
 - **Tempo** - distributed tracing backend
 - **Mimir** - Prometheus-compatible metrics storage
@@ -119,19 +126,23 @@ ls -la deployments/compose/grafana-otel-lgtm/dashboards/
 ### 2. Endpoints Configured ✅
 
 **Application OTLP Export**:
+
 - Endpoint: `http://opentelemetry-collector-contrib:4318`
 - Protocol: HTTP
 - Format: OTLP
 
 **Collector Receivers**:
+
 - OTLP gRPC: `0.0.0.0:4317`
 - OTLP HTTP: `0.0.0.0:4318`
 - Prometheus self-metrics: `127.0.0.1:8888`
 
 **Collector Exporters**:
+
 - Grafana LGTM: `http://grafana-otel-lgtm:4318`
 
 **Collector Admin Endpoints**:
+
 - Health check: `0.0.0.0:13133`
 - pprof profiling: `0.0.0.0:1777`
 - zPages debugging: `0.0.0.0:55679`
@@ -139,12 +150,14 @@ ls -la deployments/compose/grafana-otel-lgtm/dashboards/
 ### 3. Docker Compose Service Definitions ✅
 
 **OpenTelemetry Collector** (lines 83-108):
+
 - Exposed ports: 4317, 4318, 8888, 8889, 13133, 1777, 55679
 - Volume mount: collector config at `/etc/otel-collector-config.yaml`
 - Health check: External sidecar validates port 13133
 - Resource limits: 256M memory, 0.25 CPU
 
 **Grafana LGTM** (lines 109-144):
+
 - Exposed ports: 3000 (UI), 14317 (OTLP gRPC), 14318 (OTLP HTTP)
 - Health check: `curl http://127.0.0.1:3000/api/health`
 - Provisioning volumes mounted for dashboards/datasources
@@ -153,21 +166,25 @@ ls -la deployments/compose/grafana-otel-lgtm/dashboards/
 ### 4. Telemetry Pipelines ✅
 
 **Logs Pipeline**:
+
 - Receivers: `otlp`
 - Processors: `resourcedetection, attributes, memory_limiter, batch`
 - Exporters: `otlphttp, debug`
 
 **Metrics Pipeline**:
+
 - Receivers: `otlp`
 - Processors: `resourcedetection, attributes, memory_limiter, batch`
 - Exporters: `otlphttp, debug`
 
 **Traces Pipeline**:
+
 - Receivers: `otlp`
 - Processors: `resourcedetection, attributes, memory_limiter, batch`
 - Exporters: `otlphttp, debug`
 
 **Collector Self-Monitoring**:
+
 - Receivers: `prometheus/self`
 - Processors: `resourcedetection, attributes, memory_limiter, batch`
 - Exporters: `otlphttp, debug`
@@ -198,6 +215,7 @@ curl http://127.0.0.1:3000/api/datasources
 ```
 
 **Telemetry Flow Validation**:
+
 1. Start cryptoutil services (emit telemetry to collector:4318)
 2. Wait 10-30s for telemetry propagation
 3. Query Grafana datasources for metrics/logs/traces
@@ -208,16 +226,19 @@ curl http://127.0.0.1:3000/api/datasources
 ## Documentation References
 
 **Configuration**:
+
 - OTLP endpoint: `deployments/compose/otel/cryptoutil-otel.yml`
 - Collector config: `deployments/compose/otel/otel-collector-config.yaml`
 - Docker Compose: `deployments/compose/compose.yml`
 
 **Architecture**:
+
 - Telemetry flow: `.github/instructions/02-03.observability.instructions.md`
 - E2E testing: `internal/test/e2e/E2E.md`
 - Integration: `docs/02-identityV2/historical/task-19-integration-e2e-fabric-COMPLETE.md`
 
 **Operational**:
+
 - Grafana provisioning: `deployments/compose/grafana-otel-lgtm/provisioning/`
 - Dashboards: `deployments/compose/grafana-otel-lgtm/dashboards/`
 - E2E assertions: `internal/test/e2e/assertions.go`

@@ -60,6 +60,7 @@ type AuthorizationRequestRepository interface {
 **File**: `internal/identity/authz/handlers_authorize.go`
 
 **Replace lines 112-114**:
+
 ```go
 // Store authorization request in database
 authRequest := &domain.AuthorizationRequest{
@@ -93,6 +94,7 @@ return c.Redirect(loginURL, fiber.StatusFound)
 **File**: `internal/identity/authz/handlers_token.go`
 
 **Replace lines 78-81**:
+
 ```go
 // Retrieve authorization request by code
 authRequest, err := s.authzRepo.GetAuthorizationRequestByCode(ctx, authCode)
@@ -137,6 +139,7 @@ if err := s.authzRepo.UpdateAuthorizationRequest(ctx, authRequest); err != nil {
 **File**: `internal/identity/idp/handlers_consent.go`
 
 **Replace lines 46-48**:
+
 ```go
 // Store consent decision
 consent := &domain.ConsentDecision{
@@ -170,6 +173,7 @@ return c.Redirect(callbackURL, fiber.StatusFound)
 ```
 
 **Helper Function**:
+
 ```go
 func generateSecureCode() string {
     b := make([]byte, 32)
@@ -189,6 +193,7 @@ func generateSecureCode() string {
 **File**: `internal/identity/authz/handlers_token.go`
 
 **Replace lines 148-149**:
+
 ```go
 // Use real user ID from authorization request (populated during consent)
 userID := authRequest.UserID
@@ -207,17 +212,20 @@ if userID == googleUuid.Nil {
 ### Unit Tests
 
 **File**: `internal/identity/authz/handlers_authorize_test.go`
+
 - Authorization request persistence (table-driven test with valid/invalid clients, PKCE methods)
 - Redirect URL construction validation
 - Error handling (database failures, invalid parameters)
 
 **File**: `internal/identity/authz/handlers_token_test.go`
+
 - PKCE validation (SHA-256 challenge/verifier pairs)
 - Authorization code expiration (5 minutes)
 - Single-use enforcement (attempt code reuse)
 - Placeholder user ID replacement
 
 **File**: `internal/identity/idp/handlers_consent_test.go`
+
 - Consent decision storage (30-day expiration)
 - Authorization code generation (uniqueness, format)
 - Callback redirect URL construction
@@ -225,6 +233,7 @@ if userID == googleUuid.Nil {
 ### Integration Tests
 
 **File**: `internal/identity/test/e2e/oauth_authorization_code_flow_test.go`
+
 - End-to-end authorization code flow:
   1. Client initiates `/oauth2/v1/authorize` with PKCE challenge
   2. User redirected to `/oidc/v1/login`
@@ -250,6 +259,7 @@ if userID == googleUuid.Nil {
 ## Validation
 
 **Success Criteria**:
+
 - [ ] Authorization request persisted with PKCE challenge
 - [ ] PKCE code_verifier validated correctly
 - [ ] Authorization codes single-use enforced
@@ -266,5 +276,5 @@ if userID == googleUuid.Nil {
 
 - GAP-ANALYSIS-DETAILED.md: Priority 1 issues (lines 39-176)
 - REMEDIATION-MASTER-PLAN-2025.md: R01 section (lines 36-220)
-- OAuth 2.1 Draft: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11
-- PKCE RFC 7636: https://datatracker.ietf.org/doc/html/rfc7636
+- OAuth 2.1 Draft: <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11>
+- PKCE RFC 7636: <https://datatracker.ietf.org/doc/html/rfc7636>

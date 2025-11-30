@@ -131,12 +131,14 @@
 | GAP-XXX-XXX | Team | Old → New | None/Description | Action items | YYYY-MM-DD |
 
 **Summary**:
+
 - **Completed This Week**: X gaps
 - **In Progress**: X gaps
 - **Blocked**: X gaps
 - **At Risk**: X gaps (deadline approaching, no progress)
 
 **Escalations**:
+
 - List any gaps requiring leadership attention
 
 ---
@@ -178,6 +180,7 @@
 ## Next Review: 2025-02-01
 
 **Agenda**:
+
 1. Review Q1 2025 CRITICAL gaps progress (7 gaps due 2025-01-31)
 2. Assess Task 16, 18, 19 dependency resolution timeline
 3. Identify at-risk gaps requiring escalation

@@ -56,6 +56,7 @@ These tasks have verified implementation with minimal or no blocking gaps:
 
 **Status**: ✅ COMPLETE (8 commits)
 **Evidence**:
+
 - Replay prevention with time-bound nonces
 - OTLP telemetry (5 metrics, distributed tracing)
 - Concurrency tests (10 parallel sessions)
@@ -122,11 +123,13 @@ These tasks have completion documentation but critical TODO comments or missing 
 
 **Status**: ⚠️ PARTIAL COMPLETE
 **What Works**:
+
 - ✅ GORM repositories operational
 - ✅ SQLite/PostgreSQL migrations
 - ✅ Cross-DB compatibility (TEXT for UUIDs, serializer:json)
 
 **Implementation Gaps**:
+
 - ❌ Integration tests skeleton only (`repository_integration_test.go:37` TODO)
 - ❌ Missing `DeleteExpiredBefore` methods (blocks cleanup jobs)
 - ❌ Health check placeholders (`handlers_health.go` TODOs)
@@ -139,6 +142,7 @@ These tasks have completion documentation but critical TODO comments or missing 
 
 **Status**: ❌ CRITICAL GAPS (16 TODO comments)
 **What Works**:
+
 - ✅ PKCE generation/validation (S256 method)
 - ✅ Authorization request in-memory storage
 - ✅ Single-use code enforcement
@@ -147,6 +151,7 @@ These tasks have completion documentation but critical TODO comments or missing 
 **Critical Gaps**:
 
 **Authorization Flow** (`handlers_authorize.go`):
+
 ```go
 // Line 112-114: Authorization request storage
 // TODO: Store authorization request with PKCE challenge.
@@ -165,6 +170,7 @@ These tasks have completion documentation but critical TODO comments or missing 
 ```
 
 **Token Generation** (`handlers_token.go`):
+
 ```go
 // Line 78-81: Validation
 // TODO: Validate authorization code.
@@ -186,6 +192,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 
 **Status**: ⚠️ PARTIAL COMPLETE
 **What Works**:
+
 - ✅ Basic authentication (RFC 6749)
 - ✅ POST body authentication
 - ✅ mTLS client authentication (RFC 8705)
@@ -195,18 +202,21 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Security Gaps**:
 
 **Secret Hashing** (`basic.go:64`, `post.go:44`):
+
 ```go
 // TODO: implement proper hash comparison
 if client.ClientSecret != clientSecret { // ❌ Plain text comparison
 ```
 
 **Certificate Revocation** (`certificate_validator.go:94`):
+
 ```go
 // TODO: Implement CRL/OCSP checking
 // ❌ No revocation validation
 ```
 
 **Certificate Validation** (`tls_client_auth.go:78`, `self_signed_auth.go:78`):
+
 ```go
 // TODO: Optionally validate that the certificate subject matches the client
 // TODO: Optionally validate that the certificate fingerprint matches stored client certificate info
@@ -220,6 +230,7 @@ if client.ClientSecret != clientSecret { // ❌ Plain text comparison
 
 **Status**: ⚠️ PARTIAL COMPLETE
 **What Works**:
+
 - ✅ JWT access token generation
 - ✅ Refresh token generation
 - ✅ Token expiration
@@ -228,6 +239,7 @@ if client.ClientSecret != clientSecret { // ❌ Plain text comparison
 **Critical Gaps**:
 
 **Token Lifecycle** (`jobs/cleanup.go:104, 124`):
+
 ```go
 // TODO: Implement actual token cleanup when TokenRepository has DeleteExpiredBefore method.
 // TODO: Implement actual session cleanup when SessionRepository has DeleteExpiredBefore method.
@@ -235,6 +247,7 @@ if client.ClientSecret != clientSecret { // ❌ Plain text comparison
 ```
 
 **User Association** (`handlers_token.go:148`):
+
 ```go
 // TODO: In future tasks, populate with real user ID from authRequest.UserID after login/consent integration.
 userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
@@ -249,6 +262,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 
 **Status**: ⚠️ PARTIAL COMPLETE (11 TODO comments)
 **What Works**:
+
 - ✅ Endpoint routing (`/authorize`, `/token`, `/login`, `/consent`, `/logout`, `/userinfo`)
 - ✅ Basic request handling
 - ✅ Health endpoints
@@ -256,17 +270,20 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Critical Gaps**:
 
 **Login UI** (`idp/handlers_login.go:25`):
+
 ```go
 // TODO: Render login page with parameters.
 return c.JSON(fiber.Map{"message": "Login page"}) // ❌ Returns JSON, not HTML
 ```
 
 **Post-Login Redirect** (`idp/handlers_login.go:110`):
+
 ```go
 // TODO: Redirect to consent page or authorization callback based on original request.
 ```
 
 **Consent Flow** (`idp/handlers_consent.go:21-22, 46-48`):
+
 ```go
 // TODO: Fetch client details.
 // TODO: Render consent page with scopes and client information.
@@ -276,6 +293,7 @@ return c.JSON(fiber.Map{"message": "Login page"}) // ❌ Returns JSON, not HTML
 ```
 
 **Logout** (`idp/handlers_logout.go:27-30`):
+
 ```go
 // TODO: Validate session exists.
 // TODO: Revoke all associated tokens.
@@ -285,6 +303,7 @@ return c.JSON(fiber.Map{"message": "Login page"}) // ❌ Returns JSON, not HTML
 ```
 
 **Userinfo** (`idp/handlers_userinfo.go:23-26`):
+
 ```go
 // TODO: Parse Bearer token.
 // TODO: Introspect/validate token.
@@ -294,6 +313,7 @@ return c.JSON(fiber.Map{"message": "Login page"}) // ❌ Returns JSON, not HTML
 ```
 
 **Authentication Middleware** (`idp/middleware.go:39-40`):
+
 ```go
 // TODO: Add authentication middleware for protected endpoints (/userinfo, /logout).
 // TODO: Add session validation middleware.
@@ -312,10 +332,12 @@ These tasks have documentation but no implementation or are not started:
 
 **Status**: ❌ INCOMPLETE
 **What Exists**:
+
 - ⚠️ YAML/JSON schema files (`requirements.yml`, `requirements.schema.json`)
 - ⚠️ Manual requirements documentation
 
 **Missing**:
+
 - ❌ Automated requirements validation
 - ❌ Requirements traceability tooling
 - ❌ Success criteria test mapping
@@ -329,10 +351,12 @@ These tasks have documentation but no implementation or are not started:
 
 **Status**: ❌ INCOMPLETE
 **What Exists**:
+
 - ⚠️ Configuration files in `configs/identity/`
 - ⚠️ Documentation (`config-normalization-report.md`)
 
 **Missing**:
+
 - ❌ Canonical configuration templates
 - ❌ Configuration validation tooling
 - ❌ Cross-service consistency checks
@@ -346,12 +370,14 @@ These tasks have documentation but no implementation or are not started:
 
 **Status**: ⚠️ BLOCKED (code complete, but blocked by Task 06/10.5 gaps)
 **What Exists**:
+
 - ✅ SPA implementation (`cmd/identity/spa-rp/`)
 - ✅ PKCE flow JavaScript
 - ✅ OAuth 2.1 authorization code flow client
 - ✅ Diagnostic logging
 
 **Blocked By**:
+
 - ❌ Task 06 gaps (authorization code flow incomplete)
 - ❌ Task 08 gaps (placeholder user IDs)
 - ❌ Task 10.5 gaps (no login UI, consent broken)
@@ -364,10 +390,12 @@ These tasks have documentation but no implementation or are not started:
 
 **Status**: ❌ INCOMPLETE
 **What Exists**:
+
 - ⚠️ OpenAPI 3.0 specs (`api/identity/`)
 - ⚠️ Code generation setup (oapi-codegen)
 
 **Missing**:
+
 - ❌ Specs synchronized with actual implementation
 - ❌ Updated client libraries
 - ❌ Swagger UI reflecting real endpoints (including TODO placeholders)
@@ -380,6 +408,7 @@ These tasks have documentation but no implementation or are not started:
 
 **Status**: ❌ NOT STARTED
 **Blocked By**:
+
 - Task 10.7 (OpenAPI sync incomplete)
 - Task 06 (OAuth endpoints not functional)
 - Task 10.5 (IdP endpoints not functional)
@@ -391,6 +420,7 @@ These tasks have documentation but no implementation or are not started:
 #### 6. Additional Gaps in Tests and Future Features
 
 **Test Gaps** (13 TODO comments):
+
 - `test/integration/repository_integration_test.go:37` - Comprehensive integration tests
 - `test/e2e/mfa_flows_test.go:62, 106, 161, 190` - MFA chain testing enhancements
 - `test/e2e/observability_test.go:226, 237` - Grafana API queries

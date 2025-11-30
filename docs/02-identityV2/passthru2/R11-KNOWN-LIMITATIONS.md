@@ -277,9 +277,9 @@ client.ClientSecret = hashed           // Stored in database
 
 ## References
 
-- **OAuth 2.1 Specification**: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11
-- **OIDC Core Specification**: https://openid.net/specs/openid-connect-core-1_0.html
-- **FIPS 140-3 Standard**: https://csrc.nist.gov/pubs/fips/140-3/final
-- **PBKDF2 Recommendations**: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+- **OAuth 2.1 Specification**: <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-11>
+- **OIDC Core Specification**: <https://openid.net/specs/openid-connect-core-1_0.html>
+- **FIPS 140-3 Standard**: <https://csrc.nist.gov/pubs/fips/140-3/final>
+- **PBKDF2 Recommendations**: <https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html>
 - **R04-RETRY Post-Mortem**: `docs/02-identityV2/current/R04-RETRY-POSTMORTEM.md`
 - **R01-RETRY Post-Mortem**: `docs/02-identityV2/current/R01-RETRY-POSTMORTEM.md`

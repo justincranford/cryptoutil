@@ -7,18 +7,21 @@ This runbook documents procedures for rotating cryptographic keys used for signi
 ## Token Types and Storage
 
 ### OTP Tokens (SMS)
+
 - **Generation**: 6-digit numeric codes via crypto/rand
 - **Storage**: Bcrypt-hashed (cost 12) in challenge store
 - **Lifetime**: 5 minutes (configurable via `DefaultOTPLifetime`)
 - **Verification**: Constant-time comparison via `VerifyToken(plaintext, hash)`
 
 ### Magic Link Tokens (Email)
+
 - **Generation**: 32-byte secure random tokens (hex-encoded)
 - **Storage**: Bcrypt-hashed (cost 12) in challenge store
 - **Lifetime**: 15 minutes (configurable via `DefaultMagicLinkLifetime`)
 - **Verification**: Constant-time comparison via `VerifyToken(plaintext, hash)`
 
 ### Token Hashing Details
+
 - **Algorithm**: bcrypt with cost 12 (2^12 = 4096 iterations)
 - **Salt**: Random per token (bcrypt handles automatically)
 - **Hash Output**: ~60 bytes (base64-encoded salt + hash)
@@ -38,6 +41,7 @@ This runbook documents procedures for rotating cryptographic keys used for signi
 #### Step 1: Generate New Keys
 
 **For development/testing (SQLite in-memory):**
+
 ```bash
 # Generate new unseal secrets (5-of-5 shares)
 go run ./cmd/cryptoutil keygen unseal \
@@ -50,6 +54,7 @@ ls -la ./deployments/compose/cryptoutil/*.secret
 ```
 
 **For production (PostgreSQL with Docker secrets):**
+
 ```bash
 # Generate new unseal secrets on secure host
 go run ./cmd/cryptoutil keygen unseal \
@@ -64,6 +69,7 @@ chmod 600 /secure/secrets/new/*.secret
 #### Step 2: Deploy New Keys (Rolling Update)
 
 **Development/testing:**
+
 ```bash
 # Stop services
 docker compose -f deployments/compose/compose.yml down -v
@@ -76,6 +82,7 @@ docker compose -f deployments/compose/compose.yml up -d
 ```
 
 **Production (zero-downtime rolling update):**
+
 ```bash
 # Deploy new keys to Docker secrets volume (Kubernetes ConfigMap for K8s)
 docker secret create cryptoutil_unseal_1of5_v2.secret /secure/secrets/new/cryptoutil_unseal_1of5.secret
@@ -95,6 +102,7 @@ docker service update --secret-rm cryptoutil_unseal_5of5.secret --secret-add cry
 #### Step 3: Verify Key Rotation
 
 **Check service health:**
+
 ```bash
 # Verify all instances healthy
 docker compose ps
@@ -112,6 +120,7 @@ curl -k https://127.0.0.1:8080/browser/api/v1/identity/auth/otp/initiate \
 ```
 
 **Verify old tokens invalidated:**
+
 ```bash
 # Attempt to verify old OTP (should fail)
 curl -k https://127.0.0.1:8080/browser/api/v1/identity/auth/otp/verify \
@@ -146,7 +155,9 @@ shred -u -n 3 deployments/compose/cryptoutil/*.secret
 ### Scenario: Suspected Token Compromise
 
 **Immediate Actions:**
+
 1. **Invalidate All Active Challenges**:
+
    ```bash
    # Connect to database
    docker compose exec postgres psql -U USR -d DB
@@ -166,6 +177,7 @@ shred -u -n 3 deployments/compose/cryptoutil/*.secret
    - Provide incident timeline and resolution steps
 
 4. **Audit Logging Review**:
+
    ```bash
    # Check audit logs for suspicious token validation attempts
    docker compose logs cryptoutil-sqlite | grep "identity.auth.validation_attempt"
@@ -177,7 +189,9 @@ shred -u -n 3 deployments/compose/cryptoutil/*.secret
 ### Scenario: SMS/Email Provider Compromise
 
 **Immediate Actions:**
+
 1. **Disable Compromised Provider**:
+
    ```yaml
    # Update config file (configs/identity/production.yml)
    delivery:
@@ -188,6 +202,7 @@ shred -u -n 3 deployments/compose/cryptoutil/*.secret
    ```
 
 2. **Switch to Backup Provider** (if available):
+
    ```yaml
    # Configure alternate provider
    delivery:
@@ -206,6 +221,7 @@ shred -u -n 3 deployments/compose/cryptoutil/*.secret
 ### OpenTelemetry Metrics
 
 **Token Generation Events:**
+
 ```prometheus
 # Total token generation count (by method: sms_otp, magic_link)
 identity_auth_token_generation_total{method="sms_otp"} 1500
@@ -219,6 +235,7 @@ identity_ratelimit_exceeded_total{scope="ip"} 120
 ```
 
 **Token Validation Events:**
+
 ```prometheus
 # Validation attempt outcomes (success, invalid_otp, expired)
 identity_auth_validation_attempt_total{outcome="success"} 1200
@@ -231,6 +248,7 @@ identity_auth_token_generation_duration_seconds_bucket{method="sms_otp",le="0.5"
 ```
 
 **Token Invalidation Events:**
+
 ```prometheus
 # Manual token invalidations (admin action or user logout)
 identity_auth_token_invalidation_total{reason="user_logout"} 320
@@ -241,6 +259,7 @@ identity_auth_token_invalidation_total{reason="expired_cleanup"} 580
 ### Prometheus Alerting Rules
 
 **High Rate Limit Exceeded Rate:**
+
 ```yaml
 groups:
   - name: identity_auth_alerts
@@ -258,6 +277,7 @@ groups:
 ```
 
 **Unusual Token Validation Failure Rate:**
+
 ```yaml
       - alert: HighTokenValidationFailureRate
         expr: |
@@ -275,6 +295,7 @@ groups:
 ```
 
 **Token Generation Latency Spike:**
+
 ```yaml
       - alert: TokenGenerationLatencyHigh
         expr: |
@@ -292,23 +313,27 @@ groups:
 ### Grafana Dashboard Queries
 
 **Token Generation Rate (by method):**
+
 ```promql
 rate(identity_auth_token_generation_total[5m])
 ```
 
 **Validation Success Rate:**
+
 ```promql
 rate(identity_auth_validation_attempt_total{outcome="success"}[5m]) /
 rate(identity_auth_validation_attempt_total[5m])
 ```
 
 **Rate Limit Exceeded Percentage (per-user):**
+
 ```promql
 rate(identity_ratelimit_exceeded_total{scope="user"}[5m]) /
 rate(identity_ratelimit_attempts_total{scope="user"}[5m])
 ```
 
 **Token Expiration Before Use (wasted tokens):**
+
 ```promql
 rate(identity_auth_validation_attempt_total{outcome="expired"}[5m]) /
 rate(identity_auth_token_generation_total[5m])
@@ -319,6 +344,7 @@ rate(identity_auth_token_generation_total[5m])
 ### If Key Rotation Fails
 
 **Immediate rollback:**
+
 ```bash
 # Restore old keys from backup
 gpg --decrypt /secure/key-archive/cryptoutil-unseal-keys-YYYYMMDD.tar.gz.gpg | tar -xzf -
@@ -338,6 +364,7 @@ docker compose logs cryptoutil-sqlite | grep -i "unseal"
 ### If Emergency Invalidation Too Broad
 
 **Restore specific challenges (if backup available):**
+
 ```sql
 -- Example: Restore valid challenges from backup table
 INSERT INTO auth_challenges (id, user_id, method, expires_at, metadata, token_hash)

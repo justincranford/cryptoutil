@@ -12,11 +12,13 @@
 This plan remediates the **critical disconnect** between documentation completion claims and actual implementation status. While the system has impressive advanced features (WebAuthn, adaptive auth, hardware credentials), **foundational OAuth 2.1 flows are broken** due to 16 TODO comments blocking authorization code flow, user login, consent, and token generation.
 
 **Current State**:
+
 - ✅ 9/20 tasks production-ready (Tasks 01, 04, 10.5, 10.6, 11-15, 17-20)
 - ⚠️ 5/20 tasks documented complete but have blocking gaps (Tasks 06-08, partial 07, partial 09)
 - ❌ 6/20 tasks incomplete or not started (Tasks 02, 03, 05, 09, 10.7, 16)
 
 **Production Blockers**:
+
 1. 🔴 **Authorization code flow** broken (request persistence, PKCE validation missing)
 2. 🔴 **User login** returns JSON instead of HTML (no login UI)
 3. 🔴 **Token generation** uses placeholder user IDs (not associated with real users)
@@ -25,6 +27,7 @@ This plan remediates the **critical disconnect** between documentation completio
 6. ⚠️ **Logout** not implemented (session/token leaks)
 
 **Remediation Approach**:
+
 - **Week 1**: Complete OAuth 2.1 authorization code flow (Tasks 06, 09)
 - **Week 2**: Security hardening (Tasks 07, 10)
 - **Week 3**: Testing quality and documentation sync (Tasks 03, 10.7, 19)
@@ -45,6 +48,7 @@ This plan remediates the **critical disconnect** between documentation completio
 **Dependencies**: None
 
 **Objectives**:
+
 1. Implement authorization request persistence with PKCE challenge storage
 2. Add PKCE code_verifier validation in token endpoint
 3. Implement consent decision storage and retrieval
@@ -55,8 +59,10 @@ This plan remediates the **critical disconnect** between documentation completio
 **Deliverables**:
 
 **D1.1: Authorization Request Persistence** (4 hours)
+
 - File: `internal/identity/authz/handlers_authorize.go` (lines 112-114)
 - Implementation:
+
   ```go
   // Store authorization request in database
   authRequest := &domain.AuthorizationRequest{
@@ -79,6 +85,7 @@ This plan remediates the **critical disconnect** between documentation completio
   loginURL := fmt.Sprintf("%s/oidc/v1/login?request_id=%s", s.cfg.IDP.BaseURL, authRequest.ID)
   return c.Redirect(loginURL, fiber.StatusFound)
   ```
+
 - Repository methods:
   - `CreateAuthorizationRequest(ctx, *AuthorizationRequest) error`
   - `GetAuthorizationRequestByID(ctx, uuid.UUID) (*AuthorizationRequest, error)`
@@ -89,8 +96,10 @@ This plan remediates the **critical disconnect** between documentation completio
   - Redirect to IdP with request_id
 
 **D1.2: PKCE Verifier Validation** (6 hours)
+
 - File: `internal/identity/authz/handlers_token.go` (lines 78-81)
 - Implementation:
+
   ```go
   // Retrieve authorization request by code
   authRequest, err := s.authzRepo.GetAuthorizationRequestByCode(ctx, authCode)
@@ -118,6 +127,7 @@ This plan remediates the **critical disconnect** between documentation completio
       return fiber.NewError(fiber.StatusInternalServerError, "Failed to mark code used")
   }
   ```
+
 - Repository methods:
   - `UpdateAuthorizationRequest(ctx, *AuthorizationRequest) error`
 - Tests:
@@ -127,8 +137,10 @@ This plan remediates the **critical disconnect** between documentation completio
   - Code reuse attempt logging
 
 **D1.3: Consent Decision Storage** (5 hours)
+
 - File: `internal/identity/idp/handlers_consent.go` (lines 46-48)
 - Implementation:
+
   ```go
   // Store consent decision
   consent := &domain.ConsentDecision{
@@ -158,6 +170,7 @@ This plan remediates the **critical disconnect** between documentation completio
   callbackURL := fmt.Sprintf("%s?code=%s&state=%s", authRequest.RedirectURI, authCode, authRequest.State)
   return c.Redirect(callbackURL, fiber.StatusFound)
   ```
+
 - Repository methods:
   - `CreateConsent(ctx, *ConsentDecision) error`
   - `GetConsent(ctx, userID, clientID, scope) (*ConsentDecision, error)`
@@ -170,8 +183,10 @@ This plan remediates the **critical disconnect** between documentation completio
   - Callback redirect validation
 
 **D1.4: Real User ID in Tokens** (1 hour)
+
 - File: `internal/identity/authz/handlers_token.go` (lines 148-149)
 - Implementation:
+
   ```go
   // Use real user ID from authorization request
   userID := authRequest.UserID
@@ -179,12 +194,14 @@ This plan remediates the **critical disconnect** between documentation completio
       return fiber.NewError(fiber.StatusInternalServerError, "Request missing user ID")
   }
   ```
+
 - Tests:
   - Token contains correct user ID
   - Token validation with real user
   - Missing user ID error handling
 
 **Success Criteria**:
+
 - [ ] Authorization requests persist in database with PKCE challenge
 - [ ] PKCE code_verifier validation against code_challenge works
 - [ ] Consent decisions stored and retrieved correctly
@@ -195,6 +212,7 @@ This plan remediates the **critical disconnect** between documentation completio
 - [ ] Zero TODO comments in production code paths
 
 **Validation**:
+
 ```bash
 # Run authorization code flow E2E test
 go test ./internal/identity/test/e2e -run TestAuthorizationCodeFlow -v
@@ -216,6 +234,7 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
 **Dependencies**: R01 (authorization request persistence)
 
 **Objectives**:
+
 1. Replace JSON response with HTML login page rendering
 2. Add CSRF protection for login form
 3. Implement consent redirect logic with skip-consent optimization
@@ -224,9 +243,11 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
 **Deliverables**:
 
 **D2.1: Login Page HTML Template** (8 hours)
+
 - File: `internal/identity/idp/templates/login.html` (new)
 - File: `internal/identity/idp/handlers_login.go` (line 25 fix)
 - Implementation:
+
   ```go
   // Render login page template
   return c.Render("login", fiber.Map{
@@ -239,7 +260,9 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
       "error_desc":   c.Query("error_description"),
   })
   ```
+
 - Template structure:
+
   ```html
   <!DOCTYPE html>
   <html>
@@ -266,6 +289,7 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
   </body>
   </html>
   ```
+
 - CSS styling:
   - Responsive design (mobile-first)
   - Accessibility (WCAG 2.1 AA)
@@ -281,8 +305,10 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
   - Form submission redirects to consent
 
 **D2.2: Consent Redirect with Skip-Consent** (6 hours)
+
 - File: `internal/identity/idp/handlers_login.go` (line 110)
 - Implementation:
+
   ```go
   // Retrieve authorization request
   authRequest, err := s.authzRepo.GetAuthorizationRequestByID(ctx, requestID)
@@ -311,6 +337,7 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
   consentURL := fmt.Sprintf("/oidc/v1/consent?request_id=%s", requestID)
   return c.Redirect(consentURL, fiber.StatusFound)
   ```
+
 - Tests:
   - Skip-consent when valid consent exists
   - Redirect to consent when no consent exists
@@ -318,6 +345,7 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
   - Code generation after skip-consent
 
 **Success Criteria**:
+
 - [ ] Login page renders HTML (not JSON)
 - [ ] CSRF protection active and validated
 - [ ] Login form submits credentials securely
@@ -328,6 +356,7 @@ psql -d identity -c "SELECT id, user_id, client_id FROM access_tokens WHERE user
 - [ ] Unit test coverage ≥90% on new code
 
 **Validation**:
+
 ```bash
 # Manual browser test
 open https://localhost:8080/oidc/v1/login?request_id=<uuid>
@@ -353,6 +382,7 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
 **Dependencies**: None
 
 **Objectives**:
+
 1. Implement bcrypt secret hashing for client credentials
 2. Migrate existing plaintext secrets to hashed format
 3. Add CRL/OCSP validation for mTLS certificates
@@ -361,11 +391,13 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
 **Deliverables**:
 
 **D3.1: Client Secret bcrypt Hashing** (8 hours)
+
 - Files:
   - `internal/identity/authz/clientauth/secret_hash.go` (new)
   - `internal/identity/authz/clientauth/client_secret_basic.go` (update)
   - `internal/identity/authz/clientauth/client_secret_post.go` (update)
 - Implementation:
+
   ```go
   import "golang.org/x/crypto/bcrypt"
 
@@ -384,7 +416,9 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
       return err == nil
   }
   ```
+
 - Migration:
+
   ```sql
   -- Migrate existing plaintext secrets
   ALTER TABLE clients ADD COLUMN client_secret_hash TEXT;
@@ -392,6 +426,7 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
   ALTER TABLE clients DROP COLUMN client_secret;
   ALTER TABLE clients RENAME COLUMN client_secret_hash TO client_secret;
   ```
+
 - Update authentication methods:
   - `client_secret_basic`: verify hash instead of plaintext comparison
   - `client_secret_post`: verify hash instead of plaintext comparison
@@ -402,11 +437,13 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
   - Failed authentication logging
 
 **D3.2: CRL/OCSP Validation for mTLS** (10 hours)
+
 - Files:
   - `internal/identity/authz/clientauth/cert_revocation.go` (new)
   - `internal/identity/authz/clientauth/tls_client_auth.go` (update)
   - `internal/identity/authz/clientauth/self_signed_auth.go` (update)
 - Implementation:
+
   ```go
   import (
       "crypto/x509"
@@ -505,6 +542,7 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
       return isCertificateRevoked(cert, crl), nil
   }
   ```
+
 - Caching:
   - OCSP responses: 1 hour TTL
   - CRL downloads: 24 hour TTL
@@ -517,6 +555,7 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
   - Expired certificate detection
 
 **Success Criteria**:
+
 - [ ] Client secrets hashed with bcrypt cost 12
 - [ ] Migration completes without data loss
 - [ ] Authentication methods verify hashed secrets
@@ -528,6 +567,7 @@ curl -X POST https://localhost:8080/oidc/v1/login -d "username=test&password=tes
 - [ ] Security scan shows no plaintext secrets
 
 **Validation**:
+
 ```bash
 # Verify secrets hashed in database
 psql -d identity -c "SELECT id, client_id, client_secret FROM clients LIMIT 5;" # Should see bcrypt hashes
@@ -552,6 +592,7 @@ gosec ./internal/identity/authz/clientauth/...
 **Dependencies**: R01 (token generation with real user IDs)
 
 **Objectives**:
+
 1. Implement logout handler with session cleanup
 2. Revoke access and refresh tokens on logout
 3. Validate post-logout redirect URIs
@@ -560,8 +601,10 @@ gosec ./internal/identity/authz/clientauth/...
 **Deliverables**:
 
 **D4.1: Logout Handler** (8 hours)
+
 - File: `internal/identity/idp/handlers_logout.go`
 - Implementation:
+
   ```go
   func (s *Service) HandleLogout(c *fiber.Ctx) error {
       ctx := c.Context()
@@ -621,6 +664,7 @@ gosec ./internal/identity/authz/clientauth/...
       return c.Redirect(postLogoutRedirect, fiber.StatusSeeOther)
   }
   ```
+
 - Repository methods:
   - `GetSession(ctx, sessionID) (*Session, error)`
   - `DeleteSession(ctx, sessionID) error`
@@ -635,6 +679,7 @@ gosec ./internal/identity/authz/clientauth/...
   - Audit logging
 
 **Success Criteria**:
+
 - [ ] Logout handler cleans up sessions
 - [ ] All tokens revoked on logout
 - [ ] Post-logout redirect validated
@@ -644,6 +689,7 @@ gosec ./internal/identity/authz/clientauth/...
 - [ ] Unit test coverage ≥90%
 
 **Validation**:
+
 ```bash
 # Manual logout test
 curl -X POST https://localhost:8080/oidc/v1/logout -b "session_id=<uuid>"
@@ -672,6 +718,7 @@ go test ./internal/identity/idp -run TestHandleLogout -v
 **Dependencies**: R01-R04 (implementation complete)
 
 **Objectives**:
+
 1. Add internal state validation to E2E tests
 2. Detect incomplete implementations (TODOs, placeholders)
 3. Validate database persistence in OAuth flows
@@ -680,8 +727,10 @@ go test ./internal/identity/idp -run TestHandleLogout -v
 **Deliverables**:
 
 **D5.1: Internal State Validation Tests** (12 hours)
+
 - File: `internal/identity/test/e2e/oauth_flows_internal_test.go` (new)
 - Implementation:
+
   ```go
   // Validate authorization request persisted
   func TestAuthorizationRequestPersistence(t *testing.T) {
@@ -775,6 +824,7 @@ go test ./internal/identity/idp -run TestHandleLogout -v
       }
   }
   ```
+
 - Tests:
   - Authorization request persistence
   - PKCE verifier validation
@@ -787,6 +837,7 @@ go test ./internal/identity/idp -run TestHandleLogout -v
   - Fail builds if internal validation fails
 
 **Success Criteria**:
+
 - [ ] Internal state validated in E2E tests
 - [ ] Database persistence checked
 - [ ] Placeholder values detected and failed
@@ -795,6 +846,7 @@ go test ./internal/identity/idp -run TestHandleLogout -v
 - [ ] Coverage ≥95% on OAuth critical paths
 
 **Validation**:
+
 ```bash
 # Run internal validation tests
 go test ./internal/identity/test/e2e -run TestInternal -v -tags=e2e
@@ -816,6 +868,7 @@ act -j e2e-tests
 **Dependencies**: None
 
 **Objectives**:
+
 1. Validate configuration values on startup
 2. Enforce cross-service consistency
 3. Add configuration tests
@@ -824,8 +877,10 @@ act -j e2e-tests
 **Deliverables**:
 
 **D6.1: Configuration Validation** (6 hours)
+
 - File: `internal/identity/config/validation.go` (new)
 - Implementation:
+
   ```go
   func ValidateConfig(cfg *Config) error {
       // Validate port ranges
@@ -865,6 +920,7 @@ act -j e2e-tests
       return nil
   }
   ```
+
 - Startup integration:
   - Call `ValidateConfig()` before starting services
   - Fail fast on validation errors
@@ -877,6 +933,7 @@ act -j e2e-tests
   - Token lifetime validations
 
 **Success Criteria**:
+
 - [ ] Configuration validated on startup
 - [ ] Invalid configs fail fast
 - [ ] Cross-service consistency enforced
@@ -884,6 +941,7 @@ act -j e2e-tests
 - [ ] Documentation updated
 
 **Validation**:
+
 ```bash
 # Test with invalid config
 cat > configs/identity/authz/invalid.yml <<EOF
@@ -907,6 +965,7 @@ go test ./internal/identity/config -run TestValidateConfig -v
 **Dependencies**: R01-R04 (implementation complete)
 
 **Objectives**:
+
 1. Update OpenAPI specs to match current implementation
 2. Regenerate client libraries
 3. Update Swagger UI
@@ -915,6 +974,7 @@ go test ./internal/identity/config -run TestValidateConfig -v
 **Deliverables**:
 
 **D7.1: OpenAPI Spec Updates** (8 hours)
+
 - Files:
   - `api/identity/authz/openapi.yml`
   - `api/identity/idp/openapi.yml`
@@ -926,14 +986,17 @@ go test ./internal/identity/config -run TestValidateConfig -v
   - `/oidc/v1/consent`: Document consent flow, scope approval
   - `/oidc/v1/logout`: Document logout endpoint, post-logout redirect
 - Client library regeneration:
+
   ```bash
   # Regenerate Go client
   oapi-codegen -config api/identity/authz/oapi-config.yml api/identity/authz/openapi.yml > api/identity/authz/client.gen.go
   ```
+
 - Swagger UI update:
   - Deploy updated specs to `/ui/swagger`
   - Test interactive API documentation
 - CI validation:
+
   ```yaml
   # .github/workflows/ci-openapi.yml
   - name: Validate OpenAPI specs
@@ -945,12 +1008,14 @@ go test ./internal/identity/config -run TestValidateConfig -v
       # Validate specs match implementation
       go run ./scripts/validate-openapi.go
   ```
+
 - Tests:
   - Spec validation (syntax, semantics)
   - Client library generation
   - Swagger UI rendering
 
 **Success Criteria**:
+
 - [ ] OpenAPI specs match implementation
 - [ ] Client libraries regenerated
 - [ ] Swagger UI updated
@@ -958,6 +1023,7 @@ go test ./internal/identity/config -run TestValidateConfig -v
 - [ ] Documentation reflects reality
 
 **Validation**:
+
 ```bash
 # Lint OpenAPI specs
 spectral lint api/identity/authz/openapi.yml
@@ -1023,6 +1089,7 @@ act -j openapi-validation
 **Files**: `internal/identity/middleware/rate_limit.go`
 
 Implementation:
+
 ```go
 import "github.com/gofiber/fiber/v2/middleware/limiter"
 
@@ -1041,6 +1108,7 @@ func RateLimitMiddleware() fiber.Handler {
 ```
 
 Apply to endpoints:
+
 - `/oauth2/v1/token` (10 req/sec per IP)
 - `/oidc/v1/login` (5 req/sec per IP)
 
@@ -1052,6 +1120,7 @@ Apply to endpoints:
 **Files**: All OAuth handlers
 
 Add audit logs:
+
 ```go
 s.logger.Info("Authorization code granted",
     "client_id", clientID,
@@ -1063,6 +1132,7 @@ s.logger.Info("Authorization code granted",
 ```
 
 Events to log:
+
 - Authorization request
 - Authorization code generation
 - Token issuance (access, refresh, ID)
@@ -1077,16 +1147,19 @@ Events to log:
 **Requirement**: All cryptographic operations, defaults, and test harnesses MUST be FIPS-140-3 compliant by default. `bcrypt` is NOT FIPS-approved and therefore cannot be the default hashing algorithm for production secrets.
 
 Key obligations:
+
 - **Configurable algorithms**: Every crypto operation (password hashing, key derivation, signing, encryption, MAC, key wrapping) MUST support configurable algorithms and parameters. Defaults must be FIPS-140-3 approved (e.g., PBKDF2-HMAC-SHA256 for KDF/secret hashing with strong iteration counts, AES-GCM with 128/256-bit keys, RSA >= 2048, ECDSA on approved curves such as P-256/P-384, EdDSA where FIPS-approved alternatives exist).
 - **Algorithm agility**: Implement an algorithm registry and configuration layer so operators can swap algorithms and parameters without code changes. Provide migration helpers for key and secret re-encryption/hashing.
 - **FIPS mode**: Add a `--crypto-mode=fips` startup flag and configuration entry which enforces only FIPS-approved algorithms and rejects non-compliant configurations at startup.
 - **Testing**: Unit and integration tests must include FIPS-mode test matrices verifying that code paths behave correctly under FIPS defaults and reject disallowed algorithms.
 
 Implementation notes:
+
 - Replace `bcrypt` defaults with PBKDF2-HMAC-SHA256 (configurable) or KDFs approved by FIPS 140-3. If Argon2 is preferred for memory-hard hashing, provide it as an opt-in non-FIPS mode and document tradeoffs.
 - Provide wrappers in `internal/crypto` that expose `HashSecret`, `VerifySecret`, `DeriveKey`, `Sign`, `Verify` and route to configured algorithms.
 
 Acceptance criteria:
+
 - FIPS mode startup validates configuration and exits on non-FIPS algorithms.
 - All identity tasks use `internal/crypto` wrappers.
 - CI includes matrix testing for FIPS-mode and non-FIPS-mode.
@@ -1098,12 +1171,14 @@ Acceptance criteria:
 **Requirement**: Cross-DB compatibility must be validated. PostgreSQL 18.1 is the canonical integration test DB and must be used in CI where Postgres-specific behavior is tested.
 
 Policy:
+
 - Unit tests may run against SQLite for speed, but any DB-compatible behavior that differs (SQL types, transactions, locking, JSONB semantics, concurrency) must have targeted integration tests that run against a **PostgreSQL 18.1** Docker container in CI. The repository already references `postgres:18` images in compose files; CI must pin to `postgres:18.1` for integration runs when supported.
 - Classify tests:
   - Unit tests: fast, isolated, may use in-memory/SQLite.
   - Integration tests: database-backed tests that run against PostgreSQL 18.1 container (annotated `//go:build integration` or similar). These tests are required for schema, migrations, transaction semantics and concurrency behaviors.
 
 Validation steps:
+
 ```bash
 # Start Postgres 18.1 for integration tests
 docker run --rm -d --name ci-postgres-18.1 -e POSTGRES_USER=usr -e POSTGRES_PASSWORD=pwd -e POSTGRES_DB=identity postgres:18.1
@@ -1119,11 +1194,13 @@ go test ./internal/identity/... -tags=integration -run TestIntegration -v
 **Requirement**: Code coverage, benchmarks, and fuzz tests must be part of the remediation effort and validated in CI.
 
 Policy:
+
 - **Coverage**: Identity packages must meet a minimum of 80% statement coverage; critical cryptographic and OAuth core packages should target ≥90%. Add coverage checks to CI and fail builds that regress coverage below thresholds.
 - **Benchmarks**: Add `*_bench_test.go` for performance-critical paths (token issuance, PKCE verification, crypto key wraps). Run benchmarks in CI optionally or nightly, and record baselines.
 - **Fuzz tests**: Add fuzz tests for parsers, token input validation, JWS/JWE handling, and any untrusted input surfaces (e.g., client metadata parsing). Use `go test -fuzz` in CI/nightly runs.
 
 Acceptance criteria:
+
 - Coverage gates in CI for identity packages.
 - Benchmarks added for token and crypto hot paths with baselines stored in `test-output/benchmarks`.
 - Fuzz tests added and run nightly (or per PR for changed packages) with failure triage documented.
@@ -1135,12 +1212,14 @@ Acceptance criteria:
 **Requirement**: Support multiple hardware crypto backends via PKCS#11 and token integrations.
 
 Policy & implementation:
+
 - Provide a PKCS#11 abstraction in `internal/crypto/pkcs11backend` with connectors for SoftHSM2 (for CI and dev), and configuration hooks for enterprise HSMs (Utimaco, Luna, nShield). Support multiple slot discovery and PIN/passphrase mechanisms.
 - Provide token support for YubiKey (CTAP/U2F/WebAuthn attestation flows) and other vendor SDKs where required.
 - The system must be able to fallback to software keys when hardware is not configured, but in FIPS mode prefer HSM-backed keys where available.
 - Provide example Docker Compose profiles for testing SoftHSM2 and for YubiKey passthrough (document host requirements).
 
 Tests:
+
 - SoftHSM2 integration tests in CI for key generation, signing, and key import/export where supported.
 - Manual tests documented for YubiKey (developer has a YubiKey installed) and CI harnesses that can optionally access a YubiKey if provided by the runner.
 
@@ -1151,6 +1230,7 @@ Tests:
 **Requirement**: WebAuthn testing must include virtual authenticators for headless CI and optional real-device testing (YubiKey).
 
 Policy & Implementation:
+
 - Use Chrome in Docker with Selenium/Playwright and the Chrome Virtual Authenticator API to simulate passkeys in CI for registration and authentication flows.
 - Provide a `webauthn-e2e` compose profile that runs a Chrome container with Virtual Authenticator enabled and a test harness that exercises registration/auth flows.
 - Provide optional real-device tests that can be run locally (or in a dedicated hardware lab) that use the developer's YubiKey via USB passthrough.
@@ -1163,6 +1243,7 @@ Policy & Implementation:
 **Requirement**: OTEL must forward to `opentelemetry-collector-contrib` and onward to `grafana/otel-lgtm` for dashboarding. Integration tests must validate traces/metrics ingestion.
 
 Policy & Implementation:
+
 - Compose file includes `opentelemetry-collector-contrib` and `grafana/otel-lgtm`. CI must bring up the collector and a lightweight Grafana (or LGTM) stack for integration tests.
 - Provide a smoke test that sends a sample trace and validates via OTLP HTTP that the collector accepted the data and Grafana datasource is available.
 
@@ -1173,6 +1254,7 @@ Policy & Implementation:
 **Requirement**: During remediation, ALL code changes must pass linters, formatters, and pre-commit hooks. Commits MUST NOT use `--no-verify` in remediation branches and CI must fail on pre-commit violations.
 
 Policy:
+
 - Update CI to run the same pre-commit hooks used locally. Failing hooks block merges.
 - Each remediation task includes a checklist item: "pre-commit hooks pass locally and in CI".
 
@@ -1183,6 +1265,7 @@ Policy:
 ### Functional Requirements
 
 **OAuth 2.1 Authorization Code Flow**:
+
 - [ ] Authorization request persisted with PKCE challenge
 - [ ] Login page renders HTML (not JSON)
 - [ ] Consent page stores approval decision
@@ -1192,30 +1275,35 @@ Policy:
 - [ ] Authorization code flow works end-to-end without mocks
 
 **Client Authentication**:
+
 - [ ] Client secrets hashed with bcrypt
 - [ ] mTLS certificates validated (CRL/OCSP)
 - [ ] Authentication failures logged
 - [ ] Migration completes without data loss
 
 **Session Management**:
+
 - [ ] Logout revokes all tokens
 - [ ] Sessions cleaned up on logout
 - [ ] Post-logout redirect validated
 - [ ] Session lifecycle managed correctly
 
 **Testing**:
+
 - [ ] E2E tests validate internal state (not just HTTP responses)
 - [ ] Unit tests cover all new code paths (≥90%)
 - [ ] Integration tests validate database persistence
 - [ ] Tests detect placeholders and fail
 
 **Security**:
+
 - [ ] Rate limiting active on authentication endpoints
 - [ ] Audit logging covers all OAuth operations
 - [ ] No TODO comments in production code paths
 - [ ] Security scan passes (gosec, staticcheck)
 
 **Documentation**:
+
 - [ ] OpenAPI specs match implementation
 - [ ] Configuration validation enforced
 - [ ] Runbooks updated with new flows
@@ -1228,21 +1316,25 @@ Policy:
 ### Key Metrics
 
 **Authorization Code Flow**:
+
 - `authz_requests_persisted_total`
 - `pkce_validations_total{result="success|failure"}`
 - `authz_code_reuse_attempts_total` (should be zero in production)
 
 **Token Service**:
+
 - `tokens_issued_total{type="access|refresh|id"}`
 - `tokens_placeholder_user_total` (should be zero)
 - `tokens_revoked_total`
 
 **Session Management**:
+
 - `sessions_active_gauge`
 - `logout_events_total{result="success|failure"}`
 - `sessions_cleaned_total`
 
 **Security**:
+
 - `rate_limit_exceeded_total{endpoint}`
 - `client_auth_failures_total{method}`
 - `cert_validation_failures_total{type="crl|ocsp"}`

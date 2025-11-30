@@ -26,6 +26,7 @@
 **Effort**: 1-2 days
 **Dependencies**: None
 **Implementation**:
+
 ```go
 // Add Fiber helmet middleware in internal/identity/idp/middleware.go
 import "github.com/gofiber/fiber/v3/middleware/helmet"
@@ -47,8 +48,9 @@ app.Use(helmet.New(helmet.Config{
 ```
 
 **Verification**:
+
 - Unit test: verify headers present in HTTP response
-- E2E test: curl -I https://localhost:8080/browser/login
+- E2E test: curl -I <https://localhost:8080/browser/login>
 - Expected: all security headers in response
 
 **Owner**: Backend team
@@ -63,6 +65,7 @@ app.Use(helmet.New(helmet.Config{
 **Effort**: 1 day
 **Dependencies**: None
 **Implementation**:
+
 ```go
 // Update internal/identity/idp/middleware.go
 app.Use(cors.New(cors.Config{
@@ -75,6 +78,7 @@ app.Use(cors.New(cors.Config{
 ```
 
 **Configuration**:
+
 ```yaml
 # configs/identity/production.yml
 cors:
@@ -85,9 +89,10 @@ cors:
 ```
 
 **Verification**:
+
 - Unit test: verify CORS headers match config
-- E2E test: curl -H "Origin: https://malicious.com" (should reject)
-- E2E test: curl -H "Origin: https://app.example.com" (should accept)
+- E2E test: curl -H "Origin: <https://malicious.com>" (should reject)
+- E2E test: curl -H "Origin: <https://app.example.com>" (should accept)
 
 **Owner**: Backend team
 **Target**: 2025-01-16 (Week 1)
@@ -101,6 +106,7 @@ cors:
 **Effort**: 1 day
 **Dependencies**: None
 **Implementation**:
+
 ```go
 // internal/identity/domain/authentication_strength.go
 package domain
@@ -131,6 +137,7 @@ func (a AuthenticationStrength) String() string {
 ```
 
 **Verification**:
+
 - Unit test: verify enum values and string conversion
 - Update client_mfa_test.go line 248 to use enum
 
@@ -146,6 +153,7 @@ func (a AuthenticationStrength) String() string {
 **Effort**: 1 day
 **Dependencies**: None
 **Implementation**:
+
 ```go
 // internal/identity/idp/auth/context.go
 package auth
@@ -167,6 +175,7 @@ func GetUserID(ctx context.Context) (string, bool) {
 ```
 
 **Verification**:
+
 - Unit test: verify context storage/retrieval
 - Update mfa_otp.go line 125 to use GetUserID()
 
@@ -184,6 +193,7 @@ func GetUserID(ctx context.Context) (string, bool) {
 **Effort**: 3-5 days
 **Dependencies**: GAP-CODE-005, GAP-CODE-006 (repository methods)
 **Implementation**:
+
 ```go
 // internal/identity/idp/handlers_logout.go
 func (s *Service) HandleLogout(c *fiber.Ctx) error {
@@ -229,6 +239,7 @@ func (s *Service) HandleLogout(c *fiber.Ctx) error {
 ```
 
 **Verification**:
+
 - E2E test: login → logout → verify session invalid
 - E2E test: verify tokens revoked after logout
 - E2E test: verify cookie cleared
@@ -245,6 +256,7 @@ func (s *Service) HandleLogout(c *fiber.Ctx) error {
 **Effort**: 5-7 days
 **Dependencies**: GAP-COMP-006 (token introspection endpoint)
 **Implementation**:
+
 ```go
 // internal/identity/idp/middleware.go
 func (s *Service) AuthenticationMiddleware() fiber.Handler {
@@ -277,6 +289,7 @@ func (s *Service) AuthenticationMiddleware() fiber.Handler {
 ```
 
 **Verification**:
+
 - E2E test: access protected endpoint without session (should reject)
 - E2E test: access protected endpoint with valid session (should allow)
 - E2E test: access protected endpoint with expired session (should reject)
@@ -293,6 +306,7 @@ func (s *Service) AuthenticationMiddleware() fiber.Handler {
 **Effort**: 3-5 days
 **Dependencies**: GAP-COMP-006 (token introspection), GAP-CODE-008 (auth middleware)
 **Implementation**:
+
 ```go
 // internal/identity/idp/handlers_userinfo.go
 func (s *Service) HandleUserInfo(c *fiber.Ctx) error {
@@ -333,6 +347,7 @@ func (s *Service) HandleUserInfo(c *fiber.Ctx) error {
 ```
 
 **Verification**:
+
 - E2E test: GET /userinfo with valid Bearer token (should return claims)
 - E2E test: GET /userinfo without token (should reject)
 - E2E test: GET /userinfo with expired token (should reject)
@@ -390,6 +405,7 @@ func (s *Service) HandleUserInfo(c *fiber.Ctx) error {
 **Effort**: 2-3 days
 **Dependencies**: GAP-CODE-005 (TokenRepository.Revoke method)
 **Implementation**:
+
 ```go
 // internal/identity/idp/handlers_revoke.go
 func (s *Service) HandleTokenRevocation(c *fiber.Ctx) error {
@@ -418,6 +434,7 @@ func (s *Service) HandleTokenRevocation(c *fiber.Ctx) error {
 ```
 
 **Verification**:
+
 - E2E test: POST /oauth/revoke with valid token (should revoke)
 - E2E test: POST /oauth/revoke with invalid token (should still return 200)
 - E2E test: verify revoked token cannot be used
@@ -452,6 +469,7 @@ func (s *Service) HandleTokenRevocation(c *fiber.Ctx) error {
 **Gap**: Repository ListAll method missing
 **Effort**: 1 day
 **Implementation**:
+
 ```go
 // internal/identity/repository/orm/webauthn_credential_repository.go
 func (r *WebAuthnCredentialRepository) ListAll(ctx context.Context, userID string) ([]*domain.WebAuthnCredential, error) {
@@ -479,6 +497,7 @@ func (r *WebAuthnCredentialRepository) ListAll(ctx context.Context, userID strin
 **Gap**: Service cleanup logic missing
 **Effort**: 1-2 days
 **Implementation**:
+
 ```go
 // internal/identity/idp/service.go
 func (s *Service) Cleanup() error {
@@ -606,12 +625,14 @@ func (s *Service) Cleanup() error {
 ### Sprint 1 (Week 1: 2025-01-13 to 2025-01-19)
 
 **CRITICAL Quick Wins (4 gaps)**:
+
 - Day 1-2: GAP-COMP-001 (Security headers)
 - Day 3: GAP-COMP-002 (CORS config)
 - Day 4: GAP-CODE-001 (AuthenticationStrength enum)
 - Day 5: GAP-CODE-002 (User ID from context)
 
 **HIGH Quick Wins (1 gap)**:
+
 - Day 6-7: GAP-COMP-007 (Token revocation endpoint)
 
 **Total**: 5 gaps, 7 days
@@ -621,6 +642,7 @@ func (s *Service) Cleanup() error {
 ### Sprint 2 (Week 2-3: 2025-01-20 to 2025-01-31)
 
 **CRITICAL Complex Changes (6 gaps)**:
+
 - Day 1-5: GAP-CODE-007 (Logout handler)
 - Day 6-10: GAP-CODE-012 (UserInfo handler)
 - Day 11-15: GAP-CODE-008 (Authentication middleware)
@@ -635,6 +657,7 @@ func (s *Service) Cleanup() error {
 ### Sprint 3 (Week 4-5: 2025-02-03 to 2025-02-14)
 
 **MEDIUM Quick Wins (13 gaps)**:
+
 - Week 4: GAP-14-006, GAP-15-001, GAP-15-004, GAP-15-008, GAP-CODE-010 (5 gaps)
 - Week 5: GAP-CODE-005, GAP-CODE-006, GAP-CODE-011, GAP-CODE-013, GAP-CODE-014, GAP-15-002, GAP-15-005, GAP-CODE-003 (8 gaps)
 
@@ -653,6 +676,7 @@ func (s *Service) Cleanup() error {
 | **Total** | **23** | **32** | **55** |
 
 **Q1 2025 Targets**:
+
 - Sprint 1: 5 quick wins (CRITICAL/HIGH)
 - Sprint 2: 6 complex changes (CRITICAL)
 - Sprint 3: 13 quick wins (MEDIUM)

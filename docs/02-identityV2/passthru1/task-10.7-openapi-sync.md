@@ -568,9 +568,11 @@ View interactive docs:
 ```
 
 Regenerate client code:
+
 ```bash
 go generate ./api/identity/...
 ```
+
 ```
 
 ---

@@ -64,7 +64,6 @@
 
 **Resolution Plan**: Observability infrastructure (OTEL collector, Grafana) configured. E2E tests validate metrics endpoint; Tempo/Loki querying deferred to Phase 2.
 
-
 ---
 
 ## LOW Priority (25) - Enhancements

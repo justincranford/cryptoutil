@@ -13,6 +13,7 @@
 **MAKE THE OAUTH 2.1 AUTHORIZATION SERVER ACTUALLY WORK FOR REAL OAUTH FLOWS**
 
 Passthru5 achieved 100% requirements coverage on paper but delivered **non-functional production code**. Passthru6 will deliver a **demonstrably working OAuth 2.1 implementation** validated through:
+
 1. **E2E tests using production code paths** (go run ./cmd/identity/...)
 2. **Manual smoke testing** (curl examples that actually work)
 3. **Evidence-based validation** (screenshots, console output, JWT validation)
@@ -24,12 +25,14 @@ Passthru5 achieved 100% requirements coverage on paper but delivered **non-funct
 ### Current State Analysis
 
 **Services Infrastructure**: ✅ Working
+
 - Services start successfully
 - Health checks pass (database connectivity verified)
 - Logging infrastructure functional
 - Configuration validation working
 
 **OAuth Functionality**: ❌ **COMPLETELY BROKEN**
+
 - Token endpoint: 401 Unauthorized (issuers uninitialized)
 - Authorization endpoint: Untested (requires functional issuers)
 - OpenAPI spec: 404 Not Found (error swallowed)
@@ -64,6 +67,7 @@ Passthru5 achieved 100% requirements coverage on paper but delivered **non-funct
 ## Template Evolution and Lessons Learned
 
 **Template Version History**:
+
 - **v1.0**: Initial task tracking (Passthru1-3)
 - **v2.0**: Added root cause analysis, critical success factors (Passthru4-5)
 - **v3.0**: Evidence-based validation + production code path testing + E2E mandatory (Passthru6)
@@ -73,6 +77,7 @@ Passthru5 achieved 100% requirements coverage on paper but delivered **non-funct
 **The Problem**: Passthru5 claimed "100% requirements coverage" and "all tests passing" but delivered **non-functional OAuth endpoints**.
 
 **Root Causes**:
+
 1. **Test/Production Code Divergence**: Integration tests used mocks + legacy code paths; production used empty structs
 2. **Missing Manual Validation**: No smoke testing performed; relied solely on automated tests
 3. **Error Swallowing**: Service health checks passed while critical functionality broken
@@ -85,17 +90,20 @@ Passthru5 achieved 100% requirements coverage on paper but delivered **non-funct
 ### Corrective Actions Applied to Passthru6
 
 **1. Evidence-Based Validation (Mandatory)**
+
 - **Every task MUST include**: Working curl examples OR screenshots OR console output
 - **Acceptance criteria MUST specify**: What manual evidence is required
 - **Example**: "Token endpoint returns 200 OK - EVIDENCE: curl output showing JWT in response body"
 
 **2. E2E Tests with Production Code Paths (Mandatory)**
+
 - **NEVER use mocks in E2E tests** - only use mocks in unit tests
 - **E2E tests MUST start services via**: `go run ./cmd/identity/authz` (production startup)
 - **E2E tests MUST validate**: Complete OAuth flows (authorize → token → validate → refresh → revoke)
 - **E2E tests MUST cover**: ALL identity modes (not just demo mode)
 
 **3. Manual Smoke Testing Checklist (Mandatory for Every Task)**
+
 ```bash
 # After completing ANY task involving OAuth functionality:
 
@@ -124,6 +132,7 @@ killall authz idp rs
 ```
 
 **4. Pre-Commit Hook: Block TODOs in Production Code**
+
 ```bash
 # Add to .pre-commit-config.yaml
 - id: no-todos-in-main
@@ -136,12 +145,14 @@ killall authz idp rs
 **5. Acceptance Criteria Format Update**
 
 **OLD FORMAT** (Passthru5 - vague, no evidence):
+
 ```
 ✅ Token endpoint returns 200 OK
 ✅ Access token generated
 ```
 
 **NEW FORMAT** (Passthru6 - specific, evidence-required):
+
 ```
 ✅ Token endpoint returns 200 OK for client_credentials grant
    EVIDENCE: curl output showing HTTP 200 + JWT access_token in response body
@@ -155,12 +166,14 @@ killall authz idp rs
 **6. Definition of "Complete"**
 
 **NOT Complete** (Passthru5 mistakes to avoid):
+
 - ✅ Tests pass (but using mocks)
 - ✅ Service starts (but errors swallowed)
 - ✅ Code compiles (but TODOs in critical paths)
 - ✅ Requirements coverage 100% (but measuring test infrastructure)
 
 **ACTUALLY Complete** (Passthru6 standard):
+
 - ✅ Tests pass **using production code paths** (go run ./cmd/...)
 - ✅ Service starts **AND returns correct responses** (validated via curl)
 - ✅ Code compiles **AND zero TODOs in production code** (enforced via pre-commit)
@@ -181,6 +194,7 @@ killall authz idp rs
 **Location**: `internal/identity/test/e2e/`
 
 **Requirements**:
+
 1. E2E tests MUST start services via `go run ./cmd/identity/authz` (production startup code)
 2. E2E tests MUST NOT use mocks - only use production implementations
 3. E2E tests MUST validate complete OAuth flows:
@@ -195,6 +209,7 @@ killall authz idp rs
    - **TODO: Clarify "all modes"** - What other identity modes exist? (Password? Social login? MFA?)
 
 **Test Structure**:
+
 ```go
 // internal/identity/test/e2e/oauth_flows_test.go
 func TestE2E_ClientCredentialsFlow_DemoMode(t *testing.T) {
@@ -238,6 +253,7 @@ func TestE2E_ClientCredentialsFlow_DemoMode(t *testing.T) {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ E2E test starts AuthZ service via `go run ./cmd/identity/authz`
    EVIDENCE: Test logs show "Starting AuthZ service..." from production startup code
 
@@ -264,6 +280,7 @@ func TestE2E_ClientCredentialsFlow_DemoMode(t *testing.T) {
 ### Task Naming Convention
 
 Tasks use format: **P6.##.## Description**
+
 - P6 = Passthru 6
 - First ## = Phase number (01-05)
 - Second ## = Task number within phase (01-99)
@@ -287,6 +304,7 @@ Tasks use format: **P6.##.## Description**
 **Current State**: Only mockKeyGenerator exists in test files
 
 **Required Implementation**:
+
 ```go
 // Location: internal/identity/issuer/key_generator.go
 type ProductionKeyGenerator struct {
@@ -328,6 +346,7 @@ func (g *ProductionKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*En
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ ProductionKeyGenerator implements KeyGenerator interface
    EVIDENCE: Code compiles, interface compliance verified via unit test
 
@@ -357,6 +376,7 @@ func (g *ProductionKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*En
 **Dependencies**: None
 
 **Manual Smoke Test** (REQUIRED before marking complete):
+
 ```bash
 # Generate test key and validate it works
 go run -c 'package main; import "internal/identity/issuer"; kg := issuer.NewProductionKeyGenerator(nil); key, _ := kg.GenerateSigningKey(context.Background(), "RS256"); fmt.Println(key.KeyID)'
@@ -371,6 +391,7 @@ go run -c 'package main; import "internal/identity/issuer"; kg := issuer.NewProd
 **Description**: Replace empty struct initialization with proper issuer construction using KeyRotationManager
 
 **Current Code** (cmd/identity/authz/main.go lines 52-54):
+
 ```go
 // TODO: Create JWS, JWE, UUID issuers properly.
 // For now, use placeholders.
@@ -380,6 +401,7 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
 ```
 
 **Required Implementation**:
+
 ```go
 // Create production key generator
 keyGenerator := cryptoutilIdentityIssuer.NewProductionKeyGenerator(logger)
@@ -434,6 +456,7 @@ uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ ProductionKeyGenerator instantiated in main.go
    EVIDENCE: grep shows NewProductionKeyGenerator() call in cmd/identity/authz/main.go
 
@@ -464,11 +487,12 @@ uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
 
 10. ✅ Service starts without errors
     EVIDENCE: Health check returns 200 OK
-    MANUAL TEST: curl http://localhost:8080/health (expect {"status":"ok"})
+    MANUAL TEST: curl <http://localhost:8080/health> (expect {"status":"ok"})
 
 **Dependencies**: P6.01.01 (ProductionKeyGenerator must exist)
 
 **Manual Smoke Test** (REQUIRED before marking complete):
+
 ```bash
 # Start service and validate initialization
 go run ./cmd/identity/authz --config configs/identity/authz.yml &
@@ -498,6 +522,7 @@ kill $PID
 **Implementation**: Copy pattern from P6.01.02 with IdP-specific config
 
 **Acceptance Criteria**:
+
 1. ✅ Same initialization pattern as AuthZ service
 2. ✅ IdP service starts without errors
 3. ✅ Token issuers functional in IdP context
@@ -514,6 +539,7 @@ kill $PID
 **Description**: Add logging to expose OpenAPI spec generation failures
 
 **Current Code** (internal/identity/authz/routes.go lines 14-20):
+
 ```go
 swaggerHandler, err := ServeOpenAPISpec()
 if err != nil {
@@ -526,6 +552,7 @@ if err != nil {
 ```
 
 **Required Implementation**:
+
 ```go
 swaggerHandler, err := ServeOpenAPISpec()
 if err != nil {
@@ -538,11 +565,13 @@ if err != nil {
 ```
 
 **Apply to**:
+
 - internal/identity/authz/routes.go
 - internal/identity/idp/routes.go
 - internal/identity/rs/service.go
 
 **Acceptance Criteria**:
+
 1. ✅ Warning logged if OpenAPI spec generation fails
 2. ✅ Info logged if OpenAPI spec endpoint registered
 3. ✅ Service continues startup even if spec fails
@@ -560,6 +589,7 @@ if err != nil {
 **Description**: Create default OAuth client on first startup for testing
 
 **Implementation**:
+
 ```go
 // Location: internal/identity/authz/bootstrap.go
 func (s *Service) createBootstrapClient(ctx context.Context) error {
@@ -599,10 +629,11 @@ func (s *Service) createBootstrapClient(ctx context.Context) error {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ Bootstrap client created on first startup
 2. ✅ Bootstrap skipped if client already exists
 3. ✅ Client credentials: demo-client / demo-secret
-4. ✅ Redirect URI: http://localhost:3000/callback
+4. ✅ Redirect URI: <http://localhost:3000/callback>
 5. ✅ Grant types: authorization_code, refresh_token, client_credentials
 6. ✅ Scope: openid profile email
 7. ✅ Logged to info level on creation
@@ -623,6 +654,7 @@ func (s *Service) createBootstrapClient(ctx context.Context) error {
 **Description**: Validate token endpoint returns 200 OK for client_credentials grant
 
 **Test Implementation**:
+
 ```bash
 # Test with client_secret_post
 curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
@@ -638,6 +670,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 ```
 
 **Automated Test**:
+
 ```go
 // Location: internal/identity/authz/handlers_token_e2e_test.go
 func TestTokenEndpoint_ClientCredentialsGrant(t *testing.T) {
@@ -650,6 +683,7 @@ func TestTokenEndpoint_ClientCredentialsGrant(t *testing.T) {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ POST /oauth2/v1/token returns 200 OK
 2. ✅ Response contains valid access_token (JWT format)
 3. ✅ Response contains token_type: "Bearer"
@@ -670,12 +704,14 @@ func TestTokenEndpoint_ClientCredentialsGrant(t *testing.T) {
 **Description**: Validate complete authorization code flow with PKCE
 
 **Test Scenario**:
+
 1. Generate code_verifier and code_challenge
 2. Request authorization code
 3. Exchange code for tokens
 4. Verify token validity
 
 **Automated Test**:
+
 ```go
 func TestTokenEndpoint_AuthorizationCodeGrant(t *testing.T) {
     // Generate PKCE parameters
@@ -700,6 +736,7 @@ func TestTokenEndpoint_AuthorizationCodeGrant(t *testing.T) {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ Authorization request returns 302 redirect with code
 2. ✅ Token exchange returns 200 OK
 3. ✅ Response contains access_token (JWT)
@@ -720,6 +757,7 @@ func TestTokenEndpoint_AuthorizationCodeGrant(t *testing.T) {
 **Description**: Validate refresh token exchange for new access tokens
 
 **Test Implementation**:
+
 ```bash
 # Step 1: Get initial tokens via authorization_code
 # ... (see P6.02.02) ...
@@ -733,6 +771,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ POST /oauth2/v1/token with grant_type=refresh_token → 200 OK
 2. ✅ Response contains new access_token (different from original)
 3. ✅ Response contains same refresh_token (or new if rotation enabled)
@@ -763,6 +802,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 | self_signed_tls_client_auth | Self-signed cert | ⏳ TODO |
 
 **Acceptance Criteria**:
+
 1. ✅ client_secret_post works (already tested)
 2. ✅ client_secret_basic works with Authorization header
 3. ✅ client_secret_jwt validated (JWT assertion with client_secret)
@@ -787,6 +827,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 **Description**: Add `/.well-known/oauth-authorization-server` endpoint per RFC 8414
 
 **OpenAPI Spec Addition** (api/identity/authz/openapi.yaml):
+
 ```yaml
 /.well-known/oauth-authorization-server:
   get:
@@ -802,6 +843,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 ```
 
 **Implementation** (internal/identity/authz/handlers_metadata.go):
+
 ```go
 func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
     metadata := map[string]any{
@@ -823,6 +865,7 @@ func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ GET /.well-known/oauth-authorization-server → 200 OK
 2. ✅ Response is valid JSON
 3. ✅ Contains all required RFC 8414 fields
@@ -843,6 +886,7 @@ func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
 **Description**: Add `/oauth2/v1/jwks` endpoint to expose public signing keys
 
 **OpenAPI Spec Addition**:
+
 ```yaml
 /oauth2/v1/jwks:
   get:
@@ -858,6 +902,7 @@ func (s *Service) handleOAuthMetadata(c *fiber.Ctx) error {
 ```
 
 **Implementation**:
+
 ```go
 func (s *Service) handleJWKS(c *fiber.Ctx) error {
     // Get all valid signing keys from KeyRotationManager
@@ -879,6 +924,7 @@ func (ts *TokenService) GetPublicKeys() []map[string]any {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ GET /oauth2/v1/jwks → 200 OK
 2. ✅ Response contains "keys" array
 3. ✅ Each key has: kty, use, kid, alg
@@ -901,6 +947,7 @@ func (ts *TokenService) GetPublicKeys() []map[string]any {
 **Location**: internal/identity/idp (IdP service, not AuthZ)
 
 **Implementation**: Superset of OAuth metadata + OIDC-specific fields:
+
 ```go
 func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
     metadata := map[string]any{
@@ -920,6 +967,7 @@ func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ GET /.well-known/openid-configuration → 200 OK
 2. ✅ Contains all OAuth metadata fields
 3. ✅ Contains OIDC-specific fields
@@ -942,6 +990,7 @@ func (s *Service) handleOIDCDiscovery(c *fiber.Ctx) error {
 **Description**: Validate introspection endpoint per RFC 7662
 
 **Test Implementation**:
+
 ```bash
 # Step 1: Get access token
 # ... (see P6.02.01) ...
@@ -965,6 +1014,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/introspect \
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ POST /oauth2/v1/introspect → 200 OK
 2. ✅ Valid token returns active: true
 3. ✅ Expired token returns active: false
@@ -984,6 +1034,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/introspect \
 **Description**: Validate revocation endpoint per RFC 7009
 
 **Test Implementation**:
+
 ```bash
 # Step 1: Get tokens
 # ... (see P6.02.02) ...
@@ -1004,6 +1055,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ POST /oauth2/v1/revoke → 200 OK
 2. ✅ Revoked token cannot be used
 3. ✅ Introspection shows active: false
@@ -1022,6 +1074,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 **Description**: Validate client secret rotation (implemented in Passthru5)
 
 **Test Implementation**:
+
 ```bash
 curl -X POST http://127.0.0.1:8080/oauth2/v1/clients/demo-client/rotate-secret \
   -H "Content-Type: application/json" \
@@ -1036,6 +1089,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/clients/demo-client/rotate-secret \
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ POST /oauth2/v1/clients/:id/rotate-secret → 200 OK
 2. ✅ Response contains new client_secret
 3. ✅ Old secret still valid during grace period
@@ -1059,6 +1113,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/clients/demo-client/rotate-secret \
 **Description**: Comprehensive test of complete authorization code flow
 
 **Test Scenario**:
+
 1. Register client (if dynamic registration implemented)
 2. Request authorization with PKCE
 3. Authenticate user (IdP integration)
@@ -1069,6 +1124,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/clients/demo-client/rotate-secret \
 8. Revoke tokens
 
 **Implementation**:
+
 ```go
 // Location: internal/identity/integration/oauth_flow_e2e_test.go
 func TestCompleteOAuthFlow(t *testing.T) {
@@ -1087,6 +1143,7 @@ func TestCompleteOAuthFlow(t *testing.T) {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ Complete flow executes without errors
 2. ✅ Each step returns expected HTTP status
 3. ✅ Tokens are valid and functional
@@ -1108,6 +1165,7 @@ func TestCompleteOAuthFlow(t *testing.T) {
 **Location**: docs/02-identityV2/IDENTITY-V2-DEMO.md
 
 **Required Updates**:
+
 1. Add "Quick Start" section with working curl examples
 2. Document all endpoints with request/response samples
 3. Add troubleshooting section with common errors
@@ -1117,6 +1175,7 @@ func TestCompleteOAuthFlow(t *testing.T) {
 7. Include Postman/Insomnia collection link
 
 **Example Addition**:
+
 ```markdown
 ## Quick Start: Client Credentials Flow
 
@@ -1128,6 +1187,7 @@ go run ./cmd/identity/rs
 ```
 
 ### 2. Get Access Token
+
 ```bash
 curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -1135,6 +1195,7 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -1144,7 +1205,9 @@ curl -X POST http://127.0.0.1:8080/oauth2/v1/token \
 ```
 
 ### 3. Decode JWT (jwt.io)
+
 Paste access_token into jwt.io to see claims:
+
 ```json
 {
   "iss": "https://authz.cryptoutil.local",
@@ -1155,6 +1218,7 @@ Paste access_token into jwt.io to see claims:
   "scope": "openid"
 }
 ```
+
 ```
 
 **Acceptance Criteria**:
@@ -1207,6 +1271,7 @@ sequenceDiagram
     Client->>RS: GET /resource (Authorization: Bearer <token>)
     RS->>Client: 200 OK (resource data)
 ```
+
 ```
 
 **Acceptance Criteria**:
@@ -1248,6 +1313,7 @@ func TestRS_ValidateAccessToken(t *testing.T) {
 ```
 
 **Acceptance Criteria**:
+
 1. ✅ Valid access token → 200 OK
 2. ✅ Expired access token → 401 Unauthorized
 3. ✅ Invalid signature → 401 Unauthorized
@@ -1267,28 +1333,33 @@ func TestRS_ValidateAccessToken(t *testing.T) {
 The following features are **intentionally excluded** from Passthru6 to maintain focus on core OAuth functionality:
 
 ### Client Registration (Dynamic)
+
 - **Reason**: Bootstrap client sufficient for demo
 - **Endpoints**: POST/GET/PUT/DELETE /oauth2/v1/clients
 - **Deferred To**: Passthru7 or later
 - **Note**: Static client registration via database/config acceptable for now
 
 ### IdP Integration
+
 - **Reason**: Complex user authentication flow requires significant effort
 - **Components**: User login page, consent screen, session management
 - **Deferred To**: Passthru7 (focus on identity integration)
 - **Workaround**: Mock user authentication in tests
 
 ### MFA and Advanced Authentication
+
 - **Reason**: Not required for basic OAuth flows
 - **Features**: TOTP, WebAuthn, SMS, Email MFA
 - **Deferred To**: Post-MVP (see TODOs in codebase)
 
 ### Dynamic Scope Management
+
 - **Reason**: Static scopes sufficient for demo
 - **Features**: Scope registration, custom scopes per client
 - **Deferred To**: Future enhancement
 
 ### Token Encryption (JWE)
+
 - **Reason**: JWS tokens sufficient for demo
 - **Note**: JWE issuer initialized but not required for basic flows
 - **Deferred To**: Production hardening phase
@@ -1309,39 +1380,48 @@ The following features are **intentionally excluded** from Passthru6 to maintain
 ### Development Schedule (Recommended)
 
 **Session 1 (4 hours)**: Phase 1 Complete
+
 - P6.01.01: Production KeyGenerator (3h)
 - P6.01.02: Initialize AuthZ issuers (1h)
 
 **Session 2 (4 hours)**: Token Endpoint Working
+
 - P6.01.03: Initialize IdP issuers (0.5h)
 - P6.01.04: Fix OpenAPI logging (0.5h)
 - P6.01.05: Bootstrap client (1h)
 - P6.02.01: Test client credentials (2h)
 
 **Session 3 (4 hours)**: Authorization Code Flow
+
 - P6.02.02: Test auth code grant (3h)
 - P6.02.03: Test refresh token (1h)
 
 **Session 4 (4 hours)**: Client Auth + Discovery
+
 - P6.02.04: Client auth methods (3h)
 - P6.03.01: OAuth metadata (1h)
 
 **Session 5 (3 hours)**: JWKS and OIDC
+
 - P6.03.02: JWKS endpoint (2.5h)
 - P6.03.03: OIDC discovery (0.5h - copy pattern)
 
 **Session 6 (3 hours)**: Additional Endpoints
+
 - P6.04.01: Introspection (1.5h)
 - P6.04.02: Revocation (1.5h)
 
 **Session 7 (4 hours)**: Integration Testing
+
 - P6.04.03: Secret rotation test (1h)
 - P6.05.01: E2E flow test (3h)
 
 **Session 8 (2 hours)**: Documentation
+
 - P6.05.02: Update demo guide (2h)
 
 **OPTIONAL Session 9 (3.5 hours)**: Polish
+
 - P6.05.03: Sequence diagrams (1.5h)
 - P6.05.04: RS token validation (2h)
 
@@ -1354,6 +1434,7 @@ The following features are **intentionally excluded** from Passthru6 to maintain
 **Phase 1 + 2 Complete = Working OAuth Server**
 
 Must have ALL of:
+
 1. ✅ Token endpoint returns 200 OK for client_credentials
 2. ✅ Token endpoint returns 200 OK for authorization_code
 3. ✅ Refresh token flow works
@@ -1361,6 +1442,7 @@ Must have ALL of:
 5. ✅ Bootstrap client exists and works
 
 **Evidence Required**:
+
 - Curl examples execute successfully
 - Automated tests pass
 - Logs show successful initialization
@@ -1371,6 +1453,7 @@ Must have ALL of:
 **Passthru6 = Production-Ready OAuth 2.1 Server**
 
 Must have ALL MVP + ALL of:
+
 1. ✅ OAuth metadata endpoint working
 2. ✅ JWKS endpoint returning public keys
 3. ✅ Token introspection working
@@ -1379,6 +1462,7 @@ Must have ALL MVP + ALL of:
 6. ✅ Demo guide updated with working examples
 
 **Evidence Required**:
+
 - All automated tests pass
 - All curl examples work
 - Demo guide walkthrough successful
@@ -1387,26 +1471,31 @@ Must have ALL MVP + ALL of:
 ## Risk Mitigation
 
 ### Risk 1: Issuer Initialization Complexity
+
 **Probability**: Medium
 **Impact**: High (blocks everything)
 **Mitigation**: Implement P6.01.01 first, validate with unit tests before integration
 
 ### Risk 2: PKCE Validation Edge Cases
+
 **Probability**: Medium
 **Impact**: Medium (security issue)
 **Mitigation**: Comprehensive test matrix for code_challenge/verifier combinations
 
 ### Risk 3: Key Rotation Complications
+
 **Probability**: Low
 **Impact**: Medium (token validation breaks)
 **Mitigation**: Use DefaultKeyRotationPolicy (no automatic rotation) for Passthru6
 
 ### Risk 4: Integration Test Flakiness
+
 **Probability**: Medium
 **Impact**: Low (CI/CD noise)
 **Mitigation**: Proper service startup synchronization, unique test data (UUIDs)
 
 ### Risk 5: Scope Creep
+
 **Probability**: High
 **Impact**: High (timeline overrun)
 **Mitigation**: Strict adherence to deferred features list, no new requirements
@@ -1414,23 +1503,27 @@ Must have ALL MVP + ALL of:
 ## Post-Passthru6 Roadmap
 
 ### Passthru7 (IdP Integration)
+
 - User authentication flows
 - Consent screen
 - Session management
 - Login/logout endpoints
 
 ### Passthru8 (Dynamic Client Registration)
+
 - Client registration API (RFC 7591)
 - Client metadata management
 - Client deletion/rotation
 
 ### Passthru9 (Advanced Security)
+
 - MFA flows
 - Hardware credential support
 - Adaptive authentication
 - Risk-based auth
 
 ### Passthru10 (Production Hardening)
+
 - Rate limiting
 - IP allowlisting validation
 - Audit logging enhancement

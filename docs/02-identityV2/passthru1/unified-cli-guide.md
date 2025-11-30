@@ -128,6 +128,7 @@ Display running/stopped status of all services:
 **Output Formats:**
 
 **Table (default):**
+
 ```
 SERVICE  STATUS   PID
 authz    running  12345
@@ -136,6 +137,7 @@ rs       stopped  -
 ```
 
 **JSON:**
+
 ```json
 [
   {"name": "authz", "running": true, "pid": 12345},
@@ -165,6 +167,7 @@ Poll service health endpoints and report status:
 ```
 
 **Output Example:**
+
 ```
 Checking service health...
 ✅ authz: healthy (database: ok)
@@ -447,21 +450,25 @@ Service logs will be stored in `~/.identity/logs/`:
 **Solutions:**
 
 1. Check if ports are already in use:
+
    ```powershell
    netstat -ano | Select-String "8080|8081|8082"
    ```
 
 2. Verify service binaries exist:
+
    ```powershell
    Test-Path bin/authz.exe, bin/idp.exe, bin/rs.exe
    ```
 
 3. Check profile configuration:
+
    ```powershell
    Get-Content configs/identity/profiles/demo.yml
    ```
 
 4. Remove stale PID files:
+
    ```powershell
    Remove-Item -Force ~/.identity/pids/*.pid
    ```
@@ -473,16 +480,19 @@ Service logs will be stored in `~/.identity/logs/`:
 **Solutions:**
 
 1. Verify services are actually running:
+
    ```powershell
    ./bin/identity status
    ```
 
 2. Check if services are listening on expected ports:
+
    ```powershell
    netstat -ano | Select-String "8080|8081|8082"
    ```
 
 3. Manually test health endpoint:
+
    ```powershell
    curl.exe -k https://127.0.0.1:8080/health
    ```
@@ -496,16 +506,19 @@ Service logs will be stored in `~/.identity/logs/`:
 **Solutions:**
 
 1. Use force stop:
+
    ```powershell
    ./bin/identity stop --force
    ```
 
 2. Manually kill processes (if PID files exist):
+
    ```powershell
    Get-Content ~/.identity/pids/authz.pid | ForEach-Object { Stop-Process -Id $_ -Force }
    ```
 
 3. Kill by port:
+
    ```powershell
    # Find process on port 8080
    $pid = (netstat -ano | Select-String "8080" | Select-String "LISTENING")[0].ToString().Split()[-1]
@@ -519,16 +532,19 @@ Service logs will be stored in `~/.identity/logs/`:
 **Solutions:**
 
 1. Verify profile file exists:
+
    ```powershell
    Test-Path configs/identity/profiles/custom.yml
    ```
 
 2. List available profiles:
+
    ```powershell
    Get-ChildItem configs/identity/profiles/*.yml | Select-Object Name
    ```
 
 3. Use absolute path:
+
    ```powershell
    ./bin/identity start --config C:/Dev/Projects/cryptoutil/configs/identity/profiles/custom.yml
    ```
@@ -540,16 +556,19 @@ Service logs will be stored in `~/.identity/logs/`:
 **Solutions:**
 
 1. For SQLite (in-memory), ensure correct DSN format:
+
    ```yaml
    database_url: "sqlite://file::memory:?cache=shared"
    ```
 
 2. For PostgreSQL, verify database is running:
+
    ```powershell
    docker compose -f deployments/compose/compose.yml ps postgres
    ```
 
 3. Check PostgreSQL connection:
+
    ```powershell
    psql -h localhost -p 5432 -U user -d authz_db
    ```

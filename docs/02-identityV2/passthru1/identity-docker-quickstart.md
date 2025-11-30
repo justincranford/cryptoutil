@@ -71,6 +71,7 @@ go run ./cmd/identity-orchestrator -operation start -profile demo
 ```
 
 **Exposed Ports**:
+
 - AuthZ: `http://localhost:8080` (OAuth 2.1 endpoints)
 - IdP: `http://localhost:8100` (OIDC endpoints)
 - RS: `http://localhost:8200` (Resource server API)
@@ -89,6 +90,7 @@ go run ./cmd/identity-orchestrator -operation start -profile development
 ```
 
 **Exposed Ports**:
+
 - AuthZ: `http://localhost:8080-8081` (2 instances)
 - IdP: `http://localhost:8100-8101` (2 instances)
 - RS: `http://localhost:8200-8201` (2 instances)
@@ -108,6 +110,7 @@ go run ./cmd/identity-orchestrator -operation start -profile ci
 ```
 
 **Differences from Demo**:
+
 - Same topology as demo
 - Optimized for fast startup in CI environments
 - Health check retries configured for CI timeouts
@@ -124,6 +127,7 @@ go run ./cmd/identity-orchestrator -operation start -profile production
 ```
 
 **Exposed Ports**:
+
 - AuthZ: `http://localhost:8080-8082` (3 instances)
 - IdP: `http://localhost:8100-8102` (3 instances)
 - RS: `http://localhost:8200-8202` (3 instances)
@@ -259,6 +263,7 @@ go run ./cmd/identity-orchestrator -operation logs -profile production -tail 200
 **Symptom**: Services show as "unhealthy" in `docker compose ps`
 
 **Common Causes**:
+
 1. **Database not ready**: PostgreSQL initialization takes 5-10 seconds
 2. **Incorrect health check URL**: Verify IPv4 loopback (127.0.0.1)
 3. **Port conflicts**: Check if ports 8080-8309 are already in use
@@ -288,6 +293,7 @@ lsof -i :8080                 # macOS/Linux
 **Symptom**: Logs show "connection refused" or "database does not exist"
 
 **Common Causes**:
+
 1. **Docker secrets not mounted**: Verify `/run/secrets/postgres_*` files exist
 2. **Database not initialized**: PostgreSQL container not fully started
 3. **Network configuration**: Services not on same Docker network
@@ -317,6 +323,7 @@ docker compose -f deployments/compose/identity-demo.yml --profile demo up -d
 **Symptom**: `docker compose up` fails with "port already allocated"
 
 **Common Causes**:
+
 1. **Multiple Compose stacks running**: cryptoutil + identity services
 2. **Previous containers not stopped**: zombie containers holding ports
 3. **Host services using same ports**: local development server
@@ -346,6 +353,7 @@ go run ./cmd/identity-orchestrator -operation start -profile demo
 **Symptom**: Services cannot communicate with each other
 
 **Common Causes**:
+
 1. **Wrong network configuration**: Services not on identity-network
 2. **Firewall blocking**: Docker Desktop firewall rules
 3. **DNS resolution failing**: Service names not resolving
@@ -409,6 +417,7 @@ open http://localhost:3000  # Username: admin, Password: admin
 ```
 
 **Key Metrics to Monitor**:
+
 - **Request Rate**: OAuth token requests/sec, OIDC authentication requests/sec
 - **Error Rate**: Failed logins, token validation errors
 - **Latency**: p50/p95/p99 response times

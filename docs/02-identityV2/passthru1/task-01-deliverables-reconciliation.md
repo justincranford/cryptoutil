@@ -20,6 +20,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - `internal/identity/repository/orm/` contains all entity repositories
 - GORM integration with SQLite/PostgreSQL support
 - Transaction support via context-aware repository factory
@@ -36,10 +37,12 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ⚠️ **PARTIAL**
 
 **Evidence**:
+
 - Authenticators exist: `internal/identity/authz/clientauth/` (basic.go, post.go, tls_client_auth.go, self_signed_auth.go)
 - Policy enforcement implemented in `client_authentication_policy.go`
 
 **Gaps**:
+
 - TODO: Proper secret hash comparison in basic.go (line 64) and post.go (line 44)
 - TODO: CRL/OCSP checking in certificate_validator.go (line 94)
 - Not integrated into authorization code flow yet (noted in handlers_authorize.go)
@@ -53,6 +56,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - PKCE validation logic in `internal/identity/authz/pkce/pkce.go`
 - S256 enforcement in authorization endpoint (handlers_authorize.go lines 62-77)
 - Code verifier requirement in token endpoint (handlers_token.go line 74)
@@ -68,11 +72,13 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ⚠️ **PARTIAL - CRITICAL GAPS**
 
 **Evidence**:
+
 - Authorization endpoint exists (handlers_authorize.go) with parameter validation
 - Token endpoint supports 3 grant types: authorization_code, client_credentials, refresh_token
 - Introspection/revocation implemented (handlers_introspect_revoke.go)
 
 **Critical Gaps**:
+
 - ❌ Authorization code persistence missing (handlers_authorize.go line 112-114)
 - ❌ PKCE verifier validation missing in token endpoint (handlers_token.go line 79)
 - ❌ Client credential validation missing (handlers_token.go line 80)
@@ -90,11 +96,13 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ⚠️ **PARTIAL**
 
 **Evidence**:
+
 - Token repository exists (repository/orm/token_repository.go)
 - Token creation logic in handlers_token.go (lines 136-167)
 - Key rotation support via cryptoutil KMS integration
 
 **Gaps**:
+
 - Placeholder user ID used (handlers_token.go line 148) - awaits login/consent integration
 - Cleanup job implemented but disabled (jobs/cleanup.go line 104, 124)
 
@@ -107,10 +115,12 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ❌ **MISSING**
 
 **Evidence**:
+
 - RS server exists (cmd/identity/rs/main.go, internal/identity/server/rs_server.go)
 - Routes return placeholder JSON
 
 **Critical Gaps**:
+
 - TODO: Token validation (server/rs_server.go line 27-33)
 - TODO: Scope enforcement
 - TODO: Telemetry integration
@@ -126,11 +136,13 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ⚠️ **PARTIAL - CRITICAL GAPS**
 
 **Evidence**:
+
 - Login endpoint exists (idp/handlers_login.go)
 - Username/password authenticator implemented (idp/userauth/username_password.go)
 - Session creation logic present (handlers_login.go lines 80-99)
 
 **Critical Gaps**:
+
 - ❌ Login page rendering missing (handlers_login.go line 25)
 - ❌ Redirect to consent/callback missing (handlers_login.go line 110)
 - ❌ Password validation uses mock users (userauth/username_password.go line 36)
@@ -146,9 +158,11 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ❌ **MISSING**
 
 **Evidence**:
+
 - Consent handler exists (idp/handlers_consent.go)
 
 **Critical Gaps**:
+
 - TODO: Fetch client details (line 21)
 - TODO: Render consent page (line 22)
 - TODO: Store consent decision (line 46)
@@ -166,9 +180,11 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ❌ **MISSING**
 
 **Evidence**:
+
 - UserInfo handler exists (idp/handlers_userinfo.go)
 
 **Critical Gaps**:
+
 - TODO: Parse Bearer token (line 23)
 - TODO: Introspect/validate token (line 24)
 - TODO: Fetch user details (line 25)
@@ -185,9 +201,11 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ❌ **MISSING**
 
 **Evidence**:
+
 - Logout handler exists (idp/handlers_logout.go)
 
 **Critical Gaps**:
+
 - TODO: Validate session (line 27)
 - TODO: Revoke tokens (line 28)
 - TODO: Delete session (line 29)
@@ -204,6 +222,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - MFA orchestrator implemented (idp/auth/mfa_orchestrator.go)
 - TOTP validation using pquerna/otp library
 - Client MFA chain tests passing (test/e2e/client_mfa_test.go)
@@ -221,6 +240,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - OTP/magic link authenticators implemented (idp/auth/otp_authenticator.go, magic_link_authenticator.go)
 - Mock SMS/email providers for testing (idp/auth/mock_providers.go)
 - Bcrypt token hashing implemented
@@ -239,6 +259,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - Risk scoring engine implemented (idp/auth/behavioral_risk_engine.go)
 - Step-up authenticator with policy support
 - Policy loader with YAML hot-reload
@@ -256,6 +277,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - WebAuthn authenticator implemented using go-webauthn/webauthn library
 - Credential repository with GORM
 - Integration tests for registration, authentication, lifecycle
@@ -272,6 +294,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - Hardware credential CLI implemented (cmd/identity/hardware-cred/main.go)
 - Lifecycle management (enrollment, renewal, revocation)
 - Audit logging with event categories
@@ -289,6 +312,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - OpenAPI specs created (api/identity/{authz,idp,rs}/)
 - Swagger UI endpoints configured
 - Contract tests using kin-openapi validation
@@ -305,6 +329,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - gap-analysis.md: 55 gaps identified
 - gap-remediation-tracker.md: Priority/effort/status tracking
 - gap-quick-wins.md: 23 simple vs 32 complex gaps
@@ -321,6 +346,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - identity-demo.yml with 4 profiles (demo/development/ci/production)
 - identity-orchestrator CLI (start/stop/health/logs)
 - identity-docker-quickstart.md (499 lines)
@@ -337,6 +363,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - OAuth 2.1 flow tests: authorization code, client credentials, introspection, refresh, PKCE
 - Failover tests: AuthZ/IdP/RS with 2x2x2x2 scaling
 - Observability tests: OTEL collector, Grafana, Prometheus integration
@@ -353,6 +380,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Current State**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - task-20-final-verification-COMPLETE.md (556 lines)
 - Delivery readiness assessment
 - Production deployment checklist
@@ -369,6 +397,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Files**: handlers_authorize.go, handlers_token.go, handlers_consent.go
 
 **Missing**:
+
 1. Authorization request persistence with PKCE challenge
 2. Login/consent redirect integration
 3. Authorization code generation and storage
@@ -385,6 +414,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Files**: handlers_login.go, handlers_consent.go
 
 **Missing**:
+
 1. Login page rendering
 2. Password validation (mock users only)
 3. Consent page rendering
@@ -399,6 +429,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Files**: server/rs_server.go
 
 **Missing**:
+
 1. Bearer token parsing
 2. Token introspection
 3. Scope enforcement
@@ -413,6 +444,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Files**: handlers_logout.go, handlers_userinfo.go
 
 **Missing**:
+
 1. Logout implementation (session/token cleanup)
 2. UserInfo token validation and claim mapping
 3. Session expiration cleanup job
@@ -426,6 +458,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Total**: 71 TODOs found across identity codebase
 
 **Distribution**:
+
 - AuthZ service: 18 TODOs (handlers_authorize.go, handlers_token.go, clientauth/)
 - IdP service: 25 TODOs (handlers_login.go, handlers_consent.go, handlers_userinfo.go, handlers_logout.go, auth/)
 - RS service: 1 TODO (server/rs_server.go)
@@ -434,6 +467,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 - Other: 18 TODOs (middleware, routes, service lifecycle)
 
 **Prioritization**:
+
 1. **High**: Authorization code flow TODOs (18 items) - blocks all OAuth
 2. **High**: IdP login/consent TODOs (13 items) - blocks user authentication
 3. **Medium**: RS token validation TODOs (1 item) - no API protection
@@ -477,16 +511,19 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 **Problem**: Authorization endpoint redirects to placeholder URLs instead of IdP login
 
 **Current Flow**:
+
 ```
 SPA → AuthZ /authorize → Placeholder redirect → BLOCKED
 ```
 
 **Expected Flow**:
+
 ```
 SPA → AuthZ /authorize → IdP /login → User authenticates → IdP /consent → User approves → AuthZ callback with code → SPA exchanges code for tokens
 ```
 
 **Files Affected**:
+
 - handlers_authorize.go (line 157, 343)
 - handlers_login.go (line 110)
 - handlers_consent.go (line 46-48)
@@ -500,6 +537,7 @@ SPA → AuthZ /authorize → IdP /login → User authenticates → IdP /consent 
 **Impact**: Token exchange fails; no OAuth flows work
 
 **Files Affected**:
+
 - handlers_authorize.go (line 112-114, 305-306)
 - handlers_token.go (line 78-81)
 
@@ -512,6 +550,7 @@ SPA → AuthZ /authorize → IdP /login → User authenticates → IdP /consent 
 **Impact**: APIs unprotected; no scope enforcement
 
 **Files Affected**:
+
 - server/rs_server.go (line 27-33)
 
 ---
@@ -536,6 +575,7 @@ SPA → AuthZ /authorize → IdP /login → User authenticates → IdP /consent 
 **Purpose**: Add deterministic service orchestration for E2E testing
 
 **Changes**:
+
 - Added mock-identity-services.go (later moved to cmd/identity/)
 - Configured Docker orchestration for predictable startup
 - Exposed behavioral gaps in identity flows
@@ -551,6 +591,7 @@ SPA → AuthZ /authorize → IdP /login → User authenticates → IdP /consent 
 **Purpose**: Create 20-task implementation blueprint
 
 **Changes**:
+
 - Added comprehensive task plans (docs/02-identityV2/)
 - Documented gaps and remediation priorities
 - Superseded by Identity V2 master plan
@@ -566,6 +607,7 @@ SPA → AuthZ /authorize → IdP /login → User authenticates → IdP /consent 
 **Purpose**: Reorganize Identity V2 remediation plan
 
 **Changes**:
+
 - Created identityV2_master.md with 20 tasks
 - Established task dependency graph
 - Defined success criteria and exit gates

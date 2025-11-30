@@ -17,11 +17,13 @@
 ### 1. CLI Enrollment Utilities (Todos 1-2)
 
 **Files Created**:
+
 - `cmd/identity/hardware-cred/main.go` (501 lines)
 - `cmd/identity/hardware-cred/main_test.go` (303 lines)
 - `cmd/identity/hardware-cred/lifecycle_test.go` (164 lines)
 
 **Commands Implemented**:
+
 - **enroll**: Enroll new hardware credential (smart card, FIDO key)
   - Flags: `-user-id` (UUID, required), `-device-name` (string, optional), `-credential-type` (passkey/smart_card/security_key, optional)
   - Generates mock credential ID (base64-encoded 16 bytes)
@@ -51,6 +53,7 @@
   - Logs audit event: `INVENTORY_GENERATED`
 
 **Test Coverage**:
+
 - 12 test functions covering:
   - Flag parsing (enroll, list, revoke, renew, inventory)
   - UUID validation
@@ -69,11 +72,13 @@
 ### 2. Runtime Error Validation (Todo 3)
 
 **Files Created**:
+
 - `internal/identity/idp/userauth/hardware_error_validation.go` (231 lines)
 - `internal/identity/idp/userauth/hardware_error_validation_test.go` (312 lines)
 - `internal/identity/apperr/errors.go` (1 line change - added `ErrAuthenticationFailed`)
 
 **Hardware Error Types**:
+
 - `ErrDeviceRemoved`: Hardware device removed during authentication
 - `ErrPINRetryExhausted`: PIN retry limit exceeded (default 3 attempts)
 - `ErrAuthenticationTimeout`: Hardware authentication timed out (default 30s)
@@ -82,17 +87,20 @@
 - `ErrDeviceLocked`: Hardware device locked (too many failed attempts)
 
 **HardwareErrorValidator Features**:
+
 - **Timeout Handling**: `ValidateAuthentication` wraps operations with `context.WithTimeout` (default 30s)
 - **Error Classification**: `classifyError` maps hardware errors to `ErrAuthenticationFailed` with context
 - **Retry with Backoff**: `RetryWithBackoff` implements exponential backoff for transient errors (non-retriable: PIN exhausted, device locked)
 - **Device Presence Monitoring**: `MonitorDevicePresence` polls device status at intervals (default 1s)
 
 **Configuration**:
+
 - `maxPINRetries`: 3 (configurable)
 - `authTimeout`: 30 seconds (configurable)
 - `devicePollInterval`: 1 second (configurable)
 
 **Test Coverage**:
+
 - 5 test functions covering:
   - Validator creation with invalid configurations
   - Authentication validation with various hardware errors
@@ -107,34 +115,40 @@
 ### 3. Administrator Documentation (Todo 4)
 
 **Files Created**:
+
 - `docs/hardware-credential-admin-guide.md` (527 lines)
 
 **Guide Sections**:
 
 **Prerequisites**:
+
 - Access control requirements for administrators
 - CLI installation instructions
 - Database connectivity requirements
 - Break-glass credential maintenance
 
 **Day-0 Provisioning**:
+
 - Dependency installation (Go CLI utility)
 - Database configuration (DSN, hardware settings)
 - Administrator hardware credential provisioning (smart cards, FIDO keys)
 - Enrollment verification
 
 **User Enrollment Workflows**:
+
 - Self-service enrollment (CLI, WebAuthn web interface)
 - Bulk enrollment via CSV (corporate device provisioning)
 - Integration with WebAuthn browser flows
 
 **Lifecycle Management**:
+
 - Credential renewal/rotation procedures (annual key rotation)
 - Credential revocation (lost/stolen devices)
 - Inventory tracking (compliance reporting)
 - Automated renewal via cron jobs
 
 **Break-Glass Recovery Procedures**:
+
 - **Scenario 1: User Lost Hardware Device**
   - Offline identity verification
   - Credential revocation
@@ -155,16 +169,19 @@
   - Audit trail verification
 
 **PIN Management**:
+
 - PIN reset procedures (smart cards, FIDO keys)
 - Security considerations (credential erasure on PIN reset)
 - PIN policy configuration (complexity, expiration, retry limits)
 
 **Device Replacement Workflows**:
+
 - Lost/stolen device replacement (revoke → verify → re-enroll)
 - Malfunctioning device replacement (enroll backup → verify → revoke primary)
 - Recommendation: Multiple device enrollment (primary + backup)
 
 **Troubleshooting Guide**:
+
 - Common errors with resolution steps:
   - "Device removed during authentication"
   - "PIN retry limit exhausted"
@@ -174,11 +191,13 @@
 - Audit log analysis queries
 
 **Compliance and Audit**:
+
 - Required audit events (`CREDENTIAL_ENROLLED`, `CREDENTIAL_RENEWED`, `CREDENTIAL_REVOKED`, `BREAK_GLASS_LOGIN`, `PIN_RESET`)
 - Compliance reporting queries
 - Retention requirements (7 years for financial institutions)
 
 **Best Practices**:
+
 - Multiple device enrollment per user
 - Annual credential rotation
 - Immediate revocation on user offboarding
@@ -190,11 +209,13 @@
 ### 4. Audit Trail Enhancements (Todo 5)
 
 **Files Modified**:
+
 - `cmd/identity/hardware-cred/main.go` (4 audit logging enhancements)
 
 **Enhanced Audit Event Metadata**:
 
 **Lifecycle Events** (category: `"lifecycle"`):
+
 - **CREDENTIAL_ENROLLED**:
   - `device_name`, `credential_type`, `attestation`
   - `event_category`: `"lifecycle"`
@@ -211,6 +232,7 @@
   - `compliance_flag`: `"hardware_credential_revocation"`
 
 **Access Events** (category: `"access"`):
+
 - **CREDENTIALS_LISTED**:
   - `credential_count`
   - `event_category`: `"access"`
@@ -222,6 +244,7 @@
   - `compliance_flag`: `"hardware_credential_inventory"`
 
 **Compliance Traceability**:
+
 - All events tagged with `event_category` for filtering lifecycle vs access events
 - All events tagged with `compliance_flag` for regulatory reporting
 - Audit logs structured for 7-year retention (financial institution requirement)
@@ -233,11 +256,13 @@
 **Status**: ⏹️ **SKIPPED** - CLI enrollment tool tests provide comprehensive coverage; full integration tests require database mock setup beyond current scope.
 
 **Existing Test Coverage**:
+
 - CLI enrollment tests (12 test functions, commit 54c9319c)
 - Lifecycle management tests (4 test functions, commit 5064a806)
 - Hardware error validation tests (5 test functions, commit 721d5923)
 
 **Mock Implementation**:
+
 - Mock credential ID generation (`generateMockCredentialID`: deterministic base64 encoding)
 - Mock public key generation (`generateMockPublicKey`: 65-byte ECDSA P-256 zero-filled array)
 - Mock audit logging (`logAuditEvent`: structured logging to stdout)
@@ -251,11 +276,13 @@
 **Status**: ⏹️ **SKIPPED** - Physical hardware testing requires YubiKey or smart card reader; documented in admin guide for deployment validation.
 
 **Validation Documented in Admin Guide**:
+
 - Smart card reader detection (Windows: `certutil -scinfo`, Linux: `lsusb`)
 - FIDO key functionality testing (YubiKey: `ykman info`, `ykman piv keys generate`)
 - Break-glass procedure validation (quarterly testing recommended)
 
 **References**:
+
 - `docs/hardware-credential-admin-guide.md` - Troubleshooting Guide section
 - `docs/webauthn/browser-compatibility.md` - External FIDO authenticator support
 
@@ -324,10 +351,12 @@ HardwareErrorValidator
 ### CLI Tests
 
 **Test Files**:
+
 - `cmd/identity/hardware-cred/main_test.go` (303 lines, 8 test functions)
 - `cmd/identity/hardware-cred/lifecycle_test.go` (164 lines, 4 test functions)
 
 **Coverage**:
+
 - **Enroll Command**: Flag parsing, UUID validation, device name defaults, credential type parsing
 - **List Command**: User ID validation, credential display format
 - **Revoke Command**: Credential ID validation, error handling (not found)
@@ -338,6 +367,7 @@ HardwareErrorValidator
 - **Help Command**: Help text display verification
 
 **Test Execution**:
+
 ```bash
 # Run all CLI tests
 $env:GOOS="windows"; go test ./cmd/identity/hardware-cred -v
@@ -349,9 +379,11 @@ PASS: 12/12 tests (100% pass rate)
 ### Hardware Error Validation Tests
 
 **Test File**:
+
 - `internal/identity/idp/userauth/hardware_error_validation_test.go` (312 lines, 5 test functions)
 
 **Coverage**:
+
 - **Validator Creation**: Invalid configuration handling (zero values)
 - **Authentication Validation**: Timeout handling, error classification
 - **Retry Logic**: Exponential backoff, retriable vs non-retriable errors
@@ -359,6 +391,7 @@ PASS: 12/12 tests (100% pass rate)
 - **Error Classification**: Nil errors, known hardware errors, unknown errors
 
 **Test Execution**:
+
 ```bash
 # Run hardware error validation tests (package compile-only due to pre-existing test file errors)
 go build ./internal/identity/idp/userauth
@@ -372,36 +405,42 @@ Package compiles successfully (pre-existing test file errors unrelated to Task 1
 ## Commit History
 
 ### Commit 1: CLI Enrollment Tool
+
 **Commit**: `70b6cafe`
 **Message**: `feat(identity): add hardware credential CLI for enrollment, listing, and revocation with audit logging (Task 15 Todo 1)`
 **Files**: `cmd/identity/hardware-cred/main.go` (334 lines)
 **Summary**: Initial CLI implementation with enroll/list/revoke commands
 
 ### Commit 2: CLI Tests
+
 **Commit**: `54c9319c`
 **Message**: `test(identity): add comprehensive CLI tests for hardware credential enrollment tool (Task 15 Todo 1)`
 **Files**: `cmd/identity/hardware-cred/main_test.go` (303 lines)
 **Summary**: Unit tests for CLI flag parsing and validation
 
 ### Commit 3: Lifecycle Management CLI
+
 **Commit**: `5064a806`
 **Message**: `feat(identity): add hardware credential lifecycle management CLI with renewal and inventory commands (Task 15 Todo 2)`
 **Files**: `cmd/identity/hardware-cred/main.go` (updated to 463 lines), `cmd/identity/hardware-cred/lifecycle_test.go` (164 lines)
 **Summary**: Added renew/inventory commands with tests
 
 ### Commit 4: Hardware Error Validation
+
 **Commit**: `721d5923`
 **Message**: `feat(identity): add hardware authentication error validation with timeout, retry, and device monitoring (Task 15 Todo 3)`
 **Files**: `internal/identity/idp/userauth/hardware_error_validation.go` (231 lines), `internal/identity/idp/userauth/hardware_error_validation_test.go` (312 lines), `internal/identity/apperr/errors.go` (1 line)
 **Summary**: Timeout handling, retry logic, device monitoring, error classification
 
 ### Commit 5: Administrator Guide
+
 **Commit**: `ae6bb3de`
 **Message**: `docs(identity): add comprehensive hardware credential administrator guide (Task 15 Todo 4)`
 **Files**: `docs/hardware-credential-admin-guide.md` (527 lines)
 **Summary**: Day-0 provisioning, break-glass recovery, troubleshooting, compliance
 
 ### Commit 6: Audit Trail Enhancements
+
 **Commit**: `c92454cf`
 **Message**: `feat(identity): enhance audit logging with event categories and compliance flags for hardware credential operations (Task 15 Todo 5)`
 **Files**: `cmd/identity/hardware-cred/main.go` (11 lines changed)
@@ -412,23 +451,27 @@ Package compiles successfully (pre-existing test file errors unrelated to Task 1
 ## Security Analysis
 
 ### Credential Storage
+
 - **Database Schema**: Credentials stored via `WebAuthnCredentialRepository` (GORM)
 - **Fields**: ID (base64 string), UserID (UUID string), Type (passkey/smart_card/security_key), PublicKey ([]byte), AttestationType (string), AAGUID ([]byte), SignCount (uint32), Metadata (map[string]any)
 - **Encryption**: Public keys stored in plaintext (intentional - public keys are not secrets)
 - **Access Control**: CLI requires database credentials (production: use environment variables or secrets management)
 
 ### PIN Management
+
 - **Retry Limit**: 3 attempts (configurable via `maxPINRetries`)
 - **Lockout**: Device locked after 3 failed attempts (requires PIN reset or factory reset)
 - **Reset Impact**: PIN reset erases all stored credentials (security feature)
 
 ### Audit Logging
+
 - **Events Captured**: Enrollment, renewal, revocation, listing, inventory generation
 - **Metadata**: Device name, credential type, sign count, timestamps, event category, compliance flag
 - **Retention**: 7 years for financial institutions (regulatory requirement)
 - **Format**: Structured logging (JSON-compatible for log aggregation)
 
 ### Break-Glass Procedures
+
 - **Emergency Access**: Offline password-based break-glass account
 - **Usage Tracking**: `BREAK_GLASS_LOGIN` audit events
 - **Rotation**: Break-glass password rotated after each use
@@ -439,14 +482,17 @@ Package compiles successfully (pre-existing test file errors unrelated to Task 1
 ## Integration Points
 
 ### Task 11: MFA Stabilization
+
 - **CLI Integration**: Hardware credential enrollment complements MFA factor management
 - **MFA Chains**: Hardware credentials can be added to MFA chains via CLI or WebAuthn flows
 
 ### Task 13: Adaptive Authentication
+
 - **Error Validation**: Hardware error types (`ErrDeviceRemoved`, `ErrPINRetryExhausted`) used in adaptive policies
 - **Risk Scoring**: Hardware credential failures increase risk scores for adaptive authentication
 
 ### Task 14: WebAuthn/FIDO2
+
 - **Credential Repository**: Shares `WebAuthnCredentialRepository` with WebAuthn authenticator
 - **Browser Compatibility**: CLI enrollment complements browser WebAuthn registration flows
 - **Platform Authenticators**: Windows Hello, TouchID, FaceID supported via WebAuthn (not CLI)
@@ -456,20 +502,24 @@ Package compiles successfully (pre-existing test file errors unrelated to Task 1
 ## Future Enhancements
 
 ### CLI Tool
+
 - **Database Configuration**: Implement `initDatabase` to read from config file or environment variables
 - **Repository Method**: Add `ListAll` method to `WebAuthnCredentialRepository` for full inventory reporting
 - **Credential Types**: Expand `CredentialType` enum to include `smart_card` and `security_key` (currently only `passkey` defined)
 - **Cryptographic Key Generation**: Replace mock generators with actual crypto/rand-based key generation
 
 ### Error Handling
+
 - **Device-Specific Errors**: Add error types for specific hardware devices (YubiKey, TPM, smart card reader)
 - **Recovery Suggestions**: Provide actionable recovery steps in error messages (e.g., "Remove and re-insert device")
 
 ### Compliance
+
 - **GDPR**: Add privacy-preserving audit logging (e.g., pseudonymization of user IDs)
 - **PSD2**: Extend audit events to capture SCA-specific metadata (transaction amount, merchant ID)
 
 ### Integration Tests
+
 - **Mock Implementations**: Create hardware device mocks for enrollment/authentication flow testing
 - **CI Automation**: Add GitHub Actions workflow for hardware credential integration tests
 

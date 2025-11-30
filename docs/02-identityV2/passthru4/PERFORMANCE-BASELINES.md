@@ -24,6 +24,7 @@ BenchmarkUUIDTokenIssuance-8     3266893     353.9 ns/op     168 B/op     4 allo
 ```
 
 **Interpretation**:
+
 - **Throughput**: 3.27M ops/sec (single core)
 - **Latency**: 353.9 nanoseconds per operation
 - **Memory**: 168 bytes per operation (4 allocations)
@@ -43,6 +44,7 @@ BenchmarkJWTSigning-8     860     1419453 ns/op     9481 B/op     89 allocs/op
 ```
 
 **Interpretation**:
+
 - **Throughput**: 860 ops/sec (single core)
 - **Latency**: 1.42 milliseconds per operation
 - **Memory**: 9.5 KB per operation (89 allocations)
@@ -64,6 +66,7 @@ BenchmarkJWTValidation-8     21742     56336 ns/op     10978 B/op     201 allocs
 ```
 
 **Interpretation**:
+
 - **Throughput**: 21,742 ops/sec (single core)
 - **Latency**: 56.3 microseconds per operation
 - **Memory**: 11 KB per operation (201 allocations)

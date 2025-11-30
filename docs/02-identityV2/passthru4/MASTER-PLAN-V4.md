@@ -12,6 +12,7 @@
 ### Current Status: ❌ NOT READY FOR PRODUCTION
 
 **Context**: Passthru3 remediation claimed "100% complete" but evidence showed:
+
 - Original plan (Tasks 01-20): 45% complete
 - Requirements coverage: 58.5% (38/65 validated)
 - TODO comments: 37 found (0 CRITICAL, 4 HIGH, 12 MEDIUM, 21 LOW)
@@ -32,6 +33,7 @@
 ### Production Readiness Targets
 
 **Foundation Layer** (MUST complete):
+
 - OAuth 2.1 authorization code flow (complete, verified)
 - OIDC core endpoints (login, consent, logout, userinfo) functional
 - Token-user association using real user IDs (no placeholders)
@@ -42,6 +44,7 @@
 - Zero CRITICAL/HIGH TODOs
 
 **Validation Gates** (enforced at each task):
+
 - ✅ Zero TODO comments in modified files
 - ✅ All tests passing (runTests)
 - ✅ Requirements coverage ≥90% for task
@@ -61,10 +64,12 @@
 **Token Budget**: Work until 950k/1M tokens used (95% utilization)
 
 **Stop Conditions**: ONLY when:
+
 1. Tokens ≥950,000 (95% of budget), OR
 2. User explicitly says "stop"
 
 **Not Stop Conditions** (these are NOT reasons to stop):
+
 - ❌ Time elapsed
 - ❌ Tasks complete (unless ALL tasks + validation complete)
 - ❌ Commits made (commits are checkpoints, not endpoints)
@@ -80,6 +85,7 @@
 **Formula**: `Percentage Used = (Tokens Used / 1,000,000) × 100`
 
 **Examples**:
+
 - 10,000 used → 1.0% used → KEEP WORKING ✅
 - 75,000 used → 7.5% used → KEEP WORKING ✅
 - 100,000 used → 10.0% used → KEEP WORKING ✅
@@ -92,23 +98,27 @@
 **Password Hashing**: MUST use PBKDF2-HMAC-SHA256 (FIPS-approved)
 
 **BANNED Algorithms** (NEVER use):
+
 - ❌ bcrypt, scrypt, Argon2 (password hashing)
 - ❌ MD5, SHA-1 (digests)
 
 ### Test Value Policy - CRITICAL
 
 **Option A**: Magic values from `internal/identity/magic` package
+
 ```go
 username: identityMagic.TestUsername
 ```
 
 **Option B**: Random values generated at runtime (generate once, reuse)
+
 ```go
 id := googleUuid.NewV7()  // Generate once
 sessionID: id,            // Reuse in test
 ```
 
 **NEVER**:
+
 - ❌ Hardcoded UUIDs
 - ❌ Generating random value twice expecting same result
 
@@ -117,27 +127,32 @@ sessionID: id,            // Reuse in test
 **Before marking ANY task complete, ALL of these MUST be TRUE**:
 
 **Code Evidence**:
+
 - [ ] Zero compilation errors: `go build ./...`
 - [ ] Zero linting errors: `golangci-lint run ./...`
 - [ ] Zero TODOs in task files: `grep -r "TODO\|FIXME" <files>` = 0
 - [ ] Coverage met: ≥85% (infrastructure) or ≥80% (features)
 
 **Test Evidence**:
+
 - [ ] All tests pass: `runTests ./path` = PASS (0 failures)
 - [ ] Integration tests pass: E2E flow validated
 - [ ] Manual validation: curl/Swagger UI test successful
 
 **Requirements Evidence**:
+
 - [ ] Requirements coverage: ≥90% for this task
 - [ ] Acceptance criteria: All checkboxes checked with evidence
 - [ ] Task deliverables: All promised items exist and functional
 
 **Documentation Evidence**:
+
 - [ ] Post-mortem created: `RXX-POSTMORTEM.md` exists
 - [ ] Corrective actions: All gaps converted to tasks OR immediate fixes
 - [ ] PROJECT-STATUS.md updated: Latest metrics, limitations, blockers
 
 **Git Evidence**:
+
 - [ ] Commit message: Conventional commit format
 - [ ] All files staged: `git status` clean
 - [ ] No uncommitted changes
@@ -188,6 +203,7 @@ sessionID: id,            // Reuse in test
 ### Anti-Patterns to Avoid
 
 **NEVER**:
+
 - ❌ Stop after commits
 - ❌ Provide status updates between tasks
 - ❌ Ask "Should I continue?"
@@ -197,6 +213,7 @@ sessionID: id,            // Reuse in test
 - ❌ Stop after creating 3-5 files
 
 **ALWAYS**:
+
 - ✅ Tool calls only (zero text between)
 - ✅ Work continuously until 950k tokens OR all tasks complete
 - ✅ Create post-mortem for EVERY task
@@ -208,18 +225,21 @@ sessionID: id,            // Reuse in test
 ## Foundation-First Task Ordering
 
 **Phase 1: Core OAuth/OIDC Foundation** (MUST complete before Phase 2)
+
 - P4.01: Fix 8 production blockers (login UI, consent, logout, userinfo, token association, secrets, cleanup, revocation)
 - P4.02: Increase requirements coverage to ≥90%
 - P4.03: Resolve all HIGH severity TODOs (4 items)
 - **Exit Criteria**: Core flows work, 0 HIGH TODOs, ≥90% coverage, 8 blockers resolved
 
 **Phase 2: Quality and Testing** (MUST complete before Phase 3)
+
 - P4.04: Achieve ≥85% test coverage
 - P4.05: Zero test failures (all tests passing)
 - P4.06: OpenAPI synchronization (specs match implementation)
 - **Exit Criteria**: Tests pass, coverage ≥85%, OpenAPI synced
 
 **Phase 3: Production Readiness** (Only after Phase 1+2)
+
 - P4.07: Resolve MEDIUM TODOs (12 items - structured logging, auth profiles)
 - P4.08: Final verification with production readiness checklist
 - **Exit Criteria**: Production ready, all quality gates passed, documentation complete
@@ -241,6 +261,7 @@ sessionID: id,            // Reuse in test
 **Context**: From GAP-ANALYSIS.md - 8 blockers prevent production deployment
 
 **Objectives**:
+
 1. Implement login/consent/logout/userinfo UI (4 blockers)
 2. Fix token-user association (1 blocker)
 3. Implement client secret hashing (1 blocker)
@@ -250,6 +271,7 @@ sessionID: id,            // Reuse in test
 **Deliverables**:
 
 **D1.1: Login UI Implementation** (4 hours)
+
 - File: `internal/identity/idp/handlers_login.go`
 - Implement HTML login form (not JSON response)
 - CSRF protection
@@ -259,6 +281,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-01 (no login UI)
 
 **D1.2: Consent UI Implementation** (4 hours)
+
 - File: `internal/identity/idp/handlers_consent.go`
 - Fetch client details from repository
 - Render consent page with scopes and client info
@@ -269,6 +292,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-02 (no consent UI)
 
 **D1.3: Logout Implementation** (2 hours)
+
 - File: `internal/identity/idp/handlers_logout.go`
 - Validate session exists
 - Revoke tokens for session
@@ -279,6 +303,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-03 (logout doesn't work)
 
 **D1.4: Userinfo Endpoint** (2 hours)
+
 - File: `internal/identity/idp/handlers_userinfo.go`
 - Extract token from Authorization header
 - Introspect token (validate, check expiration)
@@ -289,6 +314,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-04 (userinfo non-functional)
 
 **D1.5: Token-User Association Fix** (1 hour)
+
 - File: `internal/identity/authz/handlers_token.go`
 - Remove `userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())`
 - Use `authRequest.UserID` instead
@@ -297,6 +323,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-05 (token uses placeholder)
 
 **D1.6: Client Secret Hashing** (2 hours)
+
 - File: `internal/identity/authz/clientauth/secret_hash.go`, `basic.go`, `post.go`
 - Implement PBKDF2-HMAC-SHA256 hashing
 - Update basic.go/post.go to use `CompareSecret()`
@@ -305,6 +332,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-06 (plain text secrets)
 
 **D1.7: Token Cleanup Jobs** (1 hour)
+
 - File: `internal/identity/authz/service/cleanup.go`
 - Implement background job to delete expired tokens
 - Run every 1 hour (configurable)
@@ -313,6 +341,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-07 (no cleanup jobs)
 
 **D1.8: CRL/OCSP Revocation Checking** (2 hours)
+
 - File: `internal/identity/authz/clientauth/cert_validation.go`
 - Check CRL distribution points
 - Check OCSP responder
@@ -321,6 +350,7 @@ sessionID: id,            // Reuse in test
 - **Blocker Resolved**: BLOCK-08 (no revocation checking)
 
 **Acceptance Criteria**:
+
 - [ ] Login UI renders HTML form (not JSON)
 - [ ] Consent UI renders with client/scope details
 - [ ] Logout revokes tokens and clears session
@@ -336,6 +366,7 @@ sessionID: id,            // Reuse in test
 - [ ] Post-mortem created: `P4.01-POSTMORTEM.md`
 
 **Validation Commands**:
+
 ```bash
 # Zero TODOs in modified files
 grep -r "TODO\|FIXME" internal/identity/idp/handlers_{login,consent,logout,userinfo}.go
@@ -363,6 +394,7 @@ identity-requirements-check --task P4.01
 **Context**: Current coverage 58.5% (38/65), need ≥90% (59/65)
 
 **Objectives**:
+
 1. Identify 27 uncovered requirements
 2. Create tests/implementations for each
 3. Run validation to confirm ≥90%
@@ -370,11 +402,13 @@ identity-requirements-check --task P4.01
 **Deliverables**:
 
 **D2.1: Requirements Gap Analysis** (1 hour)
+
 - Run: `identity-requirements-check --uncovered-only`
 - Categorize by package (OIDC, client auth, token lifecycle)
 - Prioritize CRITICAL (7) and HIGH (13) uncovered requirements
 
 **D2.2: OIDC Requirements** (3 hours)
+
 - R02-03: Discovery endpoint (metadata JSON)
 - R02-01: UserInfo endpoint (DONE in P4.01)
 - R02-06: Discovery metadata completeness
@@ -383,11 +417,13 @@ identity-requirements-check --task P4.01
 - **Evidence**: 5/7 R02 requirements validated
 
 **D2.3: Token Lifecycle Requirements** (2 hours)
+
 - R05-06: Token expiration enforcement
 - R05-04: Token revocation endpoint
 - **Evidence**: 6/6 R05 requirements validated
 
 **D2.4: OpenAPI Requirements** (2 hours)
+
 - R08-03: Swagger UI reflects API (deferred in passthru3)
 - R08-06: Security schemes documented
 - R08-02: Generated clients functional
@@ -397,6 +433,7 @@ identity-requirements-check --task P4.01
 - **Evidence**: 6/6 R08 requirements validated
 
 **Acceptance Criteria**:
+
 - [ ] Requirements coverage ≥90% (59/65 validated)
 - [ ] All CRITICAL requirements covered (22/22)
 - [ ] All HIGH requirements covered (26/26)
@@ -406,6 +443,7 @@ identity-requirements-check --task P4.01
 - [ ] Post-mortem created: `P4.02-POSTMORTEM.md`
 
 **Validation Commands**:
+
 ```bash
 # Requirements coverage
 identity-requirements-check --format json | jq '.overall_coverage_percentage'
@@ -430,6 +468,7 @@ identity-requirements-check --by-priority
 **Context**: From GAP-ANALYSIS.md - 4 HIGH TODOs identified
 
 **Objectives**:
+
 1. Fix database health checks (2 TODOs)
 2. Fix cleanup logic for sessions/challenges (1 TODO)
 3. Fix server startup/shutdown (2 TODOs)
@@ -438,6 +477,7 @@ identity-requirements-check --by-priority
 **Deliverables**:
 
 **D3.1: Database Health Checks** (1 hour)
+
 - File: `internal/identity/idp/handlers_health.go`
 - File: `internal/identity/authz/handlers_health.go`
 - Implement: `db.Ping()` to validate connectivity
@@ -446,6 +486,7 @@ identity-requirements-check --by-priority
 - **TODO Resolved**: IMP-01, IMP-08
 
 **D3.2: Session/Challenge Cleanup** (1 hour)
+
 - File: `internal/identity/idp/service.go`
 - Implement cleanup logic for expired sessions/challenges
 - Run on service shutdown
@@ -453,6 +494,7 @@ identity-requirements-check --by-priority
 - **TODO Resolved**: IMP-02
 
 **D3.3: Server Lifecycle** (2 hours)
+
 - File: `internal/identity/authz/service.go`
 - Implement graceful startup (health check, migration)
 - Implement graceful shutdown (cleanup, connection close)
@@ -460,6 +502,7 @@ identity-requirements-check --by-priority
 - **TODO Resolved**: IMP-03
 
 **Acceptance Criteria**:
+
 - [ ] Database health checks functional
 - [ ] Session/challenge cleanup on shutdown
 - [ ] Graceful server startup/shutdown
@@ -468,6 +511,7 @@ identity-requirements-check --by-priority
 - [ ] Post-mortem created: `P4.03-POSTMORTEM.md`
 
 **Validation Commands**:
+
 ```bash
 # Zero HIGH TODOs
 grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
@@ -489,6 +533,7 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Context**: Ensure all packages meet coverage thresholds
 
 **Objectives**:
+
 1. Identify packages below 85% coverage
 2. Add tests for uncovered code paths
 3. Verify overall coverage ≥85%
@@ -496,21 +541,25 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Deliverables**:
 
 **D4.1: Coverage Analysis** (1 hour)
+
 - Run: `go test ./internal/identity/... -cover -coverprofile=coverage.out`
 - Identify packages <85%
 - Generate HTML report: `go tool cover -html=coverage.out`
 
 **D4.2: Add Missing Tests** (6 hours)
+
 - Write table-driven tests for uncovered functions
 - Test error paths and edge cases
 - Use `t.Parallel()` for all tests
 
 **D4.3: Verification** (1 hour)
+
 - Re-run coverage
 - Verify ≥85% overall
 - Update PROJECT-STATUS.md
 
 **Acceptance Criteria**:
+
 - [ ] Overall coverage ≥85% for identity packages
 - [ ] No package <80% coverage
 - [ ] All new tests passing
@@ -529,6 +578,7 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Context**: Passthru3 had 23 test failures (77.9% pass rate)
 
 **Objectives**:
+
 1. Identify all failing tests
 2. Fix or remove failing tests
 3. Achieve 100% pass rate
@@ -536,15 +586,18 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Deliverables**:
 
 **D5.1: Test Failure Analysis** (1 hour)
+
 - Run: `runTests ./internal/identity/...`
 - Categorize failures (flaky, deferred features, bugs)
 
 **D5.2: Fix Failing Tests** (3 hours)
+
 - Fix flaky tests (timing, race conditions)
 - Skip deferred feature tests with `t.Skip("deferred to future")`
 - Fix bug-related failures
 
 **Acceptance Criteria**:
+
 - [ ] All tests passing (100% pass rate)
 - [ ] Deferred tests skipped with clear reason
 - [ ] No flaky tests remain
@@ -563,6 +616,7 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Context**: Passthru3 deferred Phase 3 OpenAPI sync
 
 **Objectives**:
+
 1. Update OpenAPI specs to match implementation
 2. Regenerate client libraries
 3. Validate Swagger UI
@@ -570,21 +624,25 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Deliverables**:
 
 **D6.1: Spec Updates** (2 hours)
+
 - Add missing endpoints (login, consent, logout, userinfo)
 - Update request/response schemas
 - Add security schemes (OAuth 2.1)
 
 **D6.2: Client Regeneration** (1 hour)
+
 - Run: `make generate-openapi-clients`
 - Verify generated code compiles
 - Test client library usage
 
 **D6.3: Swagger UI Validation** (1 hour)
+
 - Start server: `cryptoutil server start --dev`
 - Navigate: `https://127.0.0.1:8080/ui/swagger`
 - Test endpoints via Swagger UI
 
 **Acceptance Criteria**:
+
 - [ ] OpenAPI specs match implementation
 - [ ] Client libraries regenerated and functional
 - [ ] Swagger UI reflects all endpoints
@@ -606,12 +664,14 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Context**: From GAP-ANALYSIS.md - 12 MEDIUM TODOs for polish
 
 **Objectives**:
+
 1. Add structured logging (2 TODOs)
 2. Register additional auth profiles (1 TODO)
 3. Complete TOTP/passkey validation (7 TODOs)
 4. Add MFA context retrieval (2 TODOs)
 
 **Acceptance Criteria**:
+
 - [ ] Structured logging added
 - [ ] Auth profiles registered
 - [ ] TOTP/passkey validation complete
@@ -629,6 +689,7 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Status**: 🔜 PENDING
 
 **Objectives**:
+
 1. Run all validation checks
 2. Update PROJECT-STATUS.md
 3. Create production readiness report
@@ -637,6 +698,7 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 **Deliverables**:
 
 **D8.1: Validation Checks** (4 hours)
+
 - Requirements coverage: ≥90%
 - Test coverage: ≥85%
 - Test pass rate: 100%
@@ -645,16 +707,19 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 - Security scan: Zero CRITICAL/HIGH findings
 
 **D8.2: Documentation** (2 hours)
+
 - Update PROJECT-STATUS.md (final metrics)
 - Create PRODUCTION-READINESS-REPORT.md
 - Document known limitations (21 LOW TODOs)
 
 **D8.3: Production Deployment Approval** (2 hours)
+
 - Review all acceptance criteria
 - Verify all quality gates passed
 - Update status: ✅ PRODUCTION READY
 
 **Acceptance Criteria**:
+
 - [ ] Requirements coverage ≥90%
 - [ ] Test coverage ≥85%
 - [ ] Test pass rate 100%
@@ -721,6 +786,7 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 ## Success Criteria
 
 **Production Ready When**:
+
 - ✅ All 8 tasks complete (P4.01-P4.08)
 - ✅ Requirements coverage ≥90% (59/65)
 - ✅ Test coverage ≥85%

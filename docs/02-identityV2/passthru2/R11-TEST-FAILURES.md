@@ -9,12 +9,14 @@
 Initial full test suite run revealed **16 test failures** across 6 packages out of 24 identity packages tested. Most failures are **environmental/configuration issues** (missing files, incorrect paths) rather than **code logic errors**.
 
 **Test Run Summary**:
+
 - **Total Packages Tested**: 24
 - **Packages with Failures**: 6 (25%)
 - **Packages Passing**: 18 (75%)
 - **Total Test Failures**: 16
 
 **Critical Findings**:
+
 1. ✅ **ORM layer fixed**: Added missing SQLite driver import (`modernc.org/sqlite`)
 2. ✅ **Migration schema fixed**: Added missing nonce columns to `mfa_factors` table
 3. ❌ **Template loading failures**: HTML templates not found (hardcoded path issue)
@@ -36,15 +38,18 @@ Initial full test suite run revealed **16 test failures** across 6 packages out 
 **Root Cause**: Hardcoded template path `internal/identity/idp/templates/*.html` breaks when running from different working directories.
 
 **Error**:
+
 ```
 panic: html/template: pattern matches no files: `internal/identity/idp/templates/*.html`
 ```
 
 **Failed Tests**:
+
 - `TestIdPContractHealth` (idp package)
 - `TestHealthCheckEndpoints` (integration package)
 
 **Solution**:
+
 - Use `embed.FS` to embed templates at compile time (Go best practice)
 - OR use relative path resolution from executable location
 - Pattern from KMS server: embedded resources via `//go:embed`
@@ -59,21 +64,25 @@ panic: html/template: pattern matches no files: `internal/identity/idp/templates
 **Package**: `internal/identity/demo`
 
 **Root Cause**: Missing or incorrect path to `identity-demo.yml` compose file. Tests try multiple paths:
+
 - `C:\Dev\Projects\cryptoutil\internal\deployments\compose\identity-demo.yml`
 - `C:\Dev\Projects\cryptoutil\internal\identity\demo\deployments\compose\identity-demo.yml`
 
 **Error**:
+
 ```
 open C:\Dev\Projects\cryptoutil\internal\deployments\compose\identity-demo.yml: The system cannot find the path specified.
 ```
 
 **Failed Tests**:
+
 - `TestDockerComposeProfiles` (development, ci, production, demo)
 - `TestDockerComposeScaling` (2x2x2x2, 3x3x3x3)
 - `TestDockerSecretsIntegration`
 - `TestHealthChecks`
 
 **Solution**:
+
 - Create missing `identity-demo.yml` compose file
 - OR skip demo tests in CI (they're infrastructure demos, not unit/integration tests)
 
@@ -89,17 +98,20 @@ open C:\Dev\Projects\cryptoutil\internal\deployments\compose\identity-demo.yml: 
 **Root Cause**: Migrations not running in test setup, causing missing `tokens` and `sessions` tables.
 
 **Error**:
+
 ```
 time=2025-11-23T15:21:49.336-05:00 level=ERROR msg="Failed to cleanup expired tokens" error="failed to delete expired tokens: database_query: Database query failed (internal: failed to delete expired tokens before 2025-11-23 15:21:49.3327586 -0500 EST m=+0.062643801: SQL logic error: no such table: tokens (1))"
 ```
 
 **Failed Tests**:
+
 - `TestCleanupJob_Integration_TokenDeletion`
 - `TestCleanupJob_Integration_SessionDeletion`
 - `TestCleanupJob_Integration_HealthCheck`
 - `TestCleanupJob_Integration_ScheduledExecution`
 
 **Solution**:
+
 - Run migrations in `cleanup_integration_test.go` setup function
 - Follow pattern from `internal/identity/storage/tests/crud_test.go` (which passes migrations)
 
@@ -115,6 +127,7 @@ time=2025-11-23T15:21:49.336-05:00 level=ERROR msg="Failed to cleanup expired to
 **Root Cause**: `extractIPFromContext` function unable to extract IP from test context. Likely Fiber-specific context keys not being set in test setup.
 
 **Error**:
+
 ```
 rate_limiter_test.go:423:
     Error Trace:    C:/Dev/Projects/cryptoutil/internal/identity/idp/userauth/rate_limiter_test.go:423
@@ -124,6 +137,7 @@ rate_limiter_test.go:423:
 ```
 
 **Failed Tests**:
+
 - `TestExtractIPFromContext/X-Forwarded-For_single_IP`
 - `TestExtractIPFromContext/X-Forwarded-For_takes_precedence_over_RemoteAddr`
 - `TestExtractIPFromContext/RemoteAddr_without_port`
@@ -131,6 +145,7 @@ rate_limiter_test.go:423:
 - `TestExtractIPFromContext/X-Forwarded-For_multiple_IPs`
 
 **Solution**:
+
 - Review how Fiber context is created in tests
 - Ensure `X-Forwarded-For` header and `RemoteAddr` are properly set in test Fiber contexts
 - May need Fiber test helpers to construct proper request contexts
@@ -147,6 +162,7 @@ rate_limiter_test.go:423:
 **Root Cause**: Nil pointer dereference in `StepUpAuthenticator.EvaluateStepUp` method.
 
 **Error**:
+
 ```
 panic: runtime error: invalid memory address or nil pointer dereference [recovered, re-panicked]
 [signal 0xc0000005 code=0x0 addr=0x28 pc=0x7ff776c4b603]
@@ -157,9 +173,11 @@ cryptoutil/internal/identity/idp/userauth.(*StepUpAuthenticator).EvaluateStepUp(
 ```
 
 **Failed Tests**:
+
 - `TestStepUpAuthenticator_EvaluateStepUp/transfer_funds_requires_step_up_-_current_basic`
 
 **Solution**:
+
 - Add nil checks in `step_up_auth.go:235`
 - Review all pointer dereferences in `EvaluateStepUp` method
 - Add defensive programming for nil session/user data
@@ -176,6 +194,7 @@ cryptoutil/internal/identity/idp/userauth.(*StepUpAuthenticator).EvaluateStepUp(
 **Root Cause**: Platform-specific issues with `sleep` command (Unix) vs `timeout` (Windows) or PowerShell `Start-Sleep`.
 
 **Error**:
+
 ```
 manager_test.go:80:
     Error Trace:    C:/Dev/Projects/cryptoutil/internal/identity/process/manager_test.go:80
@@ -184,12 +203,14 @@ manager_test.go:80:
 ```
 
 **Failed Tests**:
+
 - `TestManagerStartStop/start_and_stop_sleep_process`
 - `TestManagerStartStop/start_and_force_kill_sleep_process`
 - `TestManagerStopAll`
 - `TestManagerDoubleStart`
 
 **Solution**:
+
 - Use platform-specific commands for tests (Windows: `timeout`, Unix: `sleep`)
 - OR use Go's `time.Sleep` in a test binary instead of shell commands
 
@@ -205,6 +226,7 @@ manager_test.go:80:
 **Root Cause**: Mock implementations returning 0 instead of expected timestamps.
 
 **Error**:
+
 ```
 delivery_service_test.go:36:
     Error Trace:    C:/Dev/Projects/cryptoutil/internal/identity/idp/userauth/mocks/delivery_service_test.go:36
@@ -215,10 +237,12 @@ delivery_service_test.go:36:
 ```
 
 **Failed Tests**:
+
 - `TestMockSMSProviderSuccess`
 - `TestMockEmailProviderSuccess`
 
 **Solution**:
+
 - Review mock implementations to ensure return values are set
 - May be intentional (mocks don't track timestamps?) - review test expectations
 
@@ -234,6 +258,7 @@ delivery_service_test.go:36:
 **Root Cause**: Test expects `context.Canceled` error directly, but gets wrapped error.
 
 **Error**:
+
 ```
 poller_test.go:119:
     Error Trace:    C:/Dev/Projects/cryptoutil/internal/identity/poller_test.go:119
@@ -244,9 +269,11 @@ poller_test.go:119:
 ```
 
 **Failed Tests**:
+
 - `TestPollerPollContextCanceled`
 
 **Solution**:
+
 - Use `errors.Is(err, context.Canceled)` instead of direct equality check
 - Wrapped errors are Go best practice; test should accommodate
 
@@ -262,6 +289,7 @@ poller_test.go:119:
 **Root Cause**: Likely routing issue or missing `/health` endpoint registration.
 
 **Error**:
+
 ```
 rs_contract_test.go:85:
     Error Trace:    C:/Dev/Projects/cryptoutil/internal/identity/rs/rs_contract_test.go:85
@@ -273,9 +301,11 @@ rs_contract_test.go:85:
 ```
 
 **Failed Tests**:
+
 - `TestRSContractPublicHealth`
 
 **Solution**:
+
 - Review RS server routes to ensure `/health` endpoint is registered
 - Check if endpoint path is `/health` vs `/api/health` or similar
 
@@ -291,6 +321,7 @@ rs_contract_test.go:85:
 **Root Cause**: Mock services failing to start due to missing TLS certificates.
 
 **Error**:
+
 ```
 2025/11/23 15:21:58 Starting testable mock identity services...
 2025/11/23 15:21:58 Certificate files not found in project root or CWD, using relative paths
@@ -301,6 +332,7 @@ rs_contract_test.go:85:
 ```
 
 **Solution**:
+
 - Generate or locate mock TLS certificates for E2E tests
 - Use self-signed certificates from `testdata/` directory
 - OR configure E2E tests to use HTTP instead of HTTPS for simplicity
@@ -317,6 +349,7 @@ rs_contract_test.go:85:
 **Root Cause**: UUID string generation producing invalid length (51 chars instead of 36).
 
 **Error**:
+
 ```
 panic: uuid: Parse(stress_user_42_019ab261-63aa-7884-ba95-082136e6f04c): invalid UUID length: 51
 
@@ -325,6 +358,7 @@ github.com/google/uuid.MustParse({0xc000014340, 0x33})
 ```
 
 **Solution**:
+
 - Review UUID generation logic in `mfa_stress_test.go:279`
 - Likely prefixing issue: `"stress_user_42_" + uuid.String()` creates 51 chars
 - Use `uuid.NewV7()` directly without prefix
@@ -338,6 +372,7 @@ github.com/google/uuid.MustParse({0xc000014340, 0x33})
 **Overall Coverage**: Not yet calculated (pending full passing test suite)
 
 **Packages with 0% Coverage** (no statements or test failures):
+
 - `internal/identity/apperr` - Error definitions (expected, no logic)
 - `internal/identity/idp/auth` - Auth profiles (stub)
 - `internal/identity/repository` - Interfaces (expected, no logic)
@@ -346,6 +381,7 @@ github.com/google/uuid.MustParse({0xc000014340, 0x33})
 - `internal/identity/test/testutils` - Test helpers (no logic)
 
 **Packages with Good Coverage** (>80%):
+
 - `internal/identity/authz/pkce` - **95.5%** ✅
 - `internal/identity/healthcheck` - **87.1%** ✅ (1 test failure)
 - `internal/identity/idp/userauth/mocks` - **81.8%** ✅ (2 test failures)
@@ -356,6 +392,7 @@ github.com/google/uuid.MustParse({0xc000014340, 0x33})
 - `internal/identity/issuer` - **58.7%** ✅
 
 **Packages with Low Coverage** (<50%):
+
 - `internal/identity/authz` - **18.5%** ❌
 - `internal/identity/domain` - **10.3%** ❌
 - `internal/identity/authz/clientauth` - **5.4%** ❌

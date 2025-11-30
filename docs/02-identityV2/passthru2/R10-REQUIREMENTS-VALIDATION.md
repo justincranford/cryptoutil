@@ -17,12 +17,14 @@ Create automated requirements traceability tooling to map functional requirement
 ## Context
 
 **Current State**:
+
 - Acceptance criteria defined in MASTER-PLAN.md for each task (R01-R11)
 - Tests exist but no formal mapping to requirements
 - No automated validation of requirements coverage
 - Manual verification time-consuming and error-prone
 
 **Target State**:
+
 - Requirements extracted from acceptance criteria into machine-readable format
 - Automated mapping from requirements to test files/functions
 - Coverage report showing which requirements validated by which tests
@@ -328,21 +330,25 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 ## Implementation Notes
 
 **Parsing Strategy**:
+
 - Extract acceptance criteria from MASTER-PLAN.md using regex patterns
 - Generate unique requirement IDs: `{TASK}-{SEQ}` (e.g., R01-01, R01-02)
 - Store in YAML for easy editing and version control
 
 **Test Annotation Strategy**:
+
 - Use structured comments in test function godoc
 - Pattern: `// Validates requirements: R##-##, R##-##`
 - Parser scans for this pattern in *_test.go files
 
 **Coverage Calculation**:
+
 - Requirement VALIDATED if referenced by at least one test
 - Report shows percentage by task and by priority level
 - Highlight gaps for manual review
 
 **CI/CD Integration**:
+
 - Run on every PR to identity package
 - Block merge if critical requirements uncovered
 - Generate coverage report artifact for download
@@ -352,10 +358,12 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 ## Dependencies
 
 **Requires Completion**:
+
 - R07: Repository integration tests (provides test coverage baseline)
 - R08: OpenAPI sync (provides endpoint validation tests)
 
 **Provides Input To**:
+
 - R11: Final verification (uses coverage report for readiness decision)
 
 ---
@@ -379,6 +387,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 4. **Historical Tracking**: Track coverage over time to show progress?
 
 **Decisions**:
+
 - Allow one test to validate multiple requirements (more realistic)
 - Tag manual tests with `// Validates (manual): R##-##` for tracking
 - Prioritize automation over 1:1 mapping

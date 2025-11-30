@@ -12,6 +12,7 @@ Task 10 (Integration Layer Completion) originally mentioned implementing queue l
 ## Current Architecture
 
 The identity service stack consists of:
+
 - **AuthZ Server**: OAuth 2.1 Authorization Server (synchronous HTTP API)
 - **IdP Server**: OIDC Identity Provider (synchronous HTTP API)
 - **RS Server**: Resource Server with OAuth 2.0 Bearer token validation (synchronous HTTP API)
@@ -22,6 +23,7 @@ The identity service stack consists of:
 ## Analysis
 
 ### Current Async Operations
+
 1. **Background Cleanup Jobs**: Implemented using Go time.Ticker for periodic execution
    - Token expiration cleanup
    - Session expiration cleanup
@@ -40,6 +42,7 @@ The identity service stack consists of:
 ### When Message Queues Would Be Beneficial
 
 Message queues (RabbitMQ, Kafka, NATS, etc.) become valuable when:
+
 1. **Decoupling Services**: Multiple services need to react to events asynchronously
 2. **Load Buffering**: Need to handle traffic spikes by queuing requests
 3. **Guaranteed Delivery**: Critical operations must not be lost
@@ -106,6 +109,7 @@ func (q *QueueListener) Start(ctx context.Context) error {
 ```
 
 **Integration points**:
+
 - Add to `jobs/` package alongside `cleanup.go`
 - Wire into ServerManager lifecycle (Start/Stop methods)
 - Add queue configuration to `config/config.go`
@@ -114,12 +118,14 @@ func (q *QueueListener) Start(ctx context.Context) error {
 ## Recommendation
 
 **DO NOT implement message queues now**:
+
 - Current architecture is simple and sufficient
 - No identified use cases requiring queues
 - Premature optimization adds complexity without benefit
 - Easy to add when actually needed
 
 **REVISIT when**:
+
 - Adding Task 12 (OTP/Magic Link Services) - email/SMS delivery
 - Adding webhooks or external integrations
 - Adding complex multi-step workflows

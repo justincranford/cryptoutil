@@ -80,6 +80,7 @@ flowchart TB
 ```
 
 **Legend**:
+
 - 🟢 Green: Complete and working
 - 🟡 Yellow: Partial implementation with TODOs
 - 🔴 Red: Missing critical functionality

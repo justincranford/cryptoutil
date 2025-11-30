@@ -11,9 +11,11 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 ## Deliverables Completed
 
 ### D4.1: Client Secret Hashing (Commit 526a1cf3)
+
 **Status**: ✅ COMPLETE
 **Files Modified**: 3 files, 153 insertions
 **Implementation**:
+
 - Created `SecretHasher` interface with `BcryptHasher` implementation
 - Implemented `HashSecret` using bcrypt with `DefaultCost` (10 = 2^10 iterations)
 - Implemented `CompareSecret` with constant-time comparison (prevents timing attacks)
@@ -24,16 +26,19 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 - Implemented `GetAll` in `ClientRepositoryGORM` (WHERE deleted_at IS NULL)
 
 **Security Impact**:
+
 - Client secrets no longer stored as plaintext in database
 - Constant-time comparison prevents timing side-channel attacks
 - Bcrypt cost 10 balances security (2^10 iterations) and performance
 - Migration function enables zero-downtime secret hash upgrades
 
 ### D4.2: Certificate Revocation Checking (Commit 3a1a8d47)
+
 **Status**: ✅ COMPLETE
 **Files Created**: 1 new file (revocation.go - 285 lines)
 **Files Modified**: 4 files, 328 insertions total
 **Implementation**:
+
 - Added `RevocationChecker` interface for pluggable revocation checking
 - Implemented `CRLCache` with TTL-based caching (1 hour default)
 - Implemented `CRLRevocationChecker` with CRL download/parse/verify (10s timeout)
@@ -52,6 +57,7 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 - Multi-URL fallback for OCSP/CRL reliability
 
 **Security Impact**:
+
 - Detects revoked certificates before authentication (prevents compromised cert usage)
 - Real-time OCSP checking provides fastest revocation detection
 - CRL caching reduces network overhead and latency (1-hour TTL)
@@ -59,6 +65,7 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 - Multi-URL fallback improves reliability when primary servers unavailable
 
 **Technical Decisions**:
+
 - **OCSP before CRL**: Faster, real-time status checks preferred
 - **Caching strategy**: 1-hour CRL cache balances freshness and performance
 - **Timeout values**: 5s OCSP (network round-trip), 10s CRL (download + parse)
@@ -66,9 +73,11 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 - **Error handling**: Continue to next URL on failure, aggregate errors for debugging
 
 ### D4.3: Certificate Validation Enhancements (Commit cb1ebb7a)
+
 **Status**: ✅ COMPLETE
 **Files Modified**: 4 files, 107 insertions
 **Implementation**:
+
 - Added `CertificateSubject` field to `Client` domain model (validates CN)
 - Added `CertificateFingerprint` field to `Client` domain model (SHA-256 hex)
 - Added `validateCertificateSubject` to `TLSClientAuthenticator`
@@ -83,12 +92,14 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 - Optional validation (skipped if fields empty in client record)
 
 **Security Impact**:
+
 - Prevents certificate substitution attacks (attacker cannot use different cert with same CA)
 - Ensures only registered certificates can authenticate (fingerprint pinning)
 - Validates certificate identity against client registration (CN matching)
 - Defense-in-depth: subject + fingerprint validation layers
 
 **Database Schema Impact**:
+
 - New nullable columns: `certificate_subject` (TEXT), `certificate_fingerprint` (TEXT)
 - Migration required for existing deployments
 - Indexed columns for faster certificate lookups
@@ -131,10 +142,12 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 **Linting**: ✅ CLEAN (0 issues after final golangci-lint run)
 **Security Scan**: ✅ CLEAN (no gosec issues)
 **Files Changed**: 11 files total
+
 - **Created**: 1 file (revocation.go)
 - **Modified**: 10 files (secret_hasher.go, interfaces.go, client_repository.go, certificate_validator.go, registry.go, magic_timeouts.go, client.go, tls_client_auth.go, self_signed_auth.go, integration_test.go)
 
 **Code Stats**:
+
 - **D4.1**: 153 insertions (secret hashing + migration)
 - **D4.2**: 328 insertions (revocation checking)
 - **D4.3**: 107 insertions (subject/fingerprint validation)
@@ -155,6 +168,7 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 **After R04**: 0 security-related TODO comments
 
 **Removed TODOs**:
+
 1. `certificate_validator.go:90` - "TODO: Implement CRL/OCSP checking" → Implemented in D4.2
 2. `tls_client_auth.go:90` - "TODO: Optionally validate that the certificate subject matches the client" → Implemented in D4.3
 3. `self_signed_auth.go:90` - "TODO: Optionally validate that the certificate fingerprint matches" → Implemented in D4.3
@@ -164,12 +178,14 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 ## Performance Impact
 
 **Bcrypt Hashing** (D4.1):
+
 - **Cost**: 10 (2^10 = 1024 iterations)
 - **Hash Time**: ~50-100ms per secret (acceptable for authentication)
 - **Verification Time**: ~50-100ms per request (within 200ms target)
 - **Impact**: Minimal (client authentication already requires database lookup)
 
 **Revocation Checking** (D4.2):
+
 - **OCSP Time**: 5s timeout (typically <100ms for good responses)
 - **CRL Time**: 10s timeout (typically <500ms with caching)
 - **Cache Hit**: <1ms (in-memory lookup)
@@ -177,6 +193,7 @@ Hardened OAuth 2.1 client authentication security by implementing bcrypt secret 
 - **Impact**: Moderate on first certificate usage, negligible with caching
 
 **Subject/Fingerprint Validation** (D4.3):
+
 - **SHA-256 Time**: <1ms (single hash operation)
 - **String Comparison**: <1ms (simple string equality)
 - **Impact**: Negligible (sub-millisecond overhead)

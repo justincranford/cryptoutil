@@ -22,6 +22,7 @@ go build -o bin/identity.exe ./cmd/identity
 ```
 
 **Expected Output:**
+
 ```
 SERVICE   STATUS      PID
 authz     running     19640
@@ -54,6 +55,7 @@ Invoke-WebRequest -Uri "http://127.0.0.1:8082/api/v1/public/health" -UseBasicPar
 **Configuration**: `configs/identity/authz.yml`
 
 **Endpoints:**
+
 - `GET /health` - Health check endpoint
 - `GET /ui/swagger/doc.json` - OpenAPI specification
 - `GET /oauth2/v1/authorize` - Authorization endpoint (GET)
@@ -66,6 +68,7 @@ Invoke-WebRequest -Uri "http://127.0.0.1:8082/api/v1/public/health" -UseBasicPar
 **Database**: SQLite in-memory (`:memory:`)
 
 **Token Configuration:**
+
 ```yaml
 tokens:
   access_token_lifetime: 3600s
@@ -84,6 +87,7 @@ tokens:
 **Configuration**: `configs/identity/idp.yml`
 
 **Endpoints:**
+
 - `GET /health` - Health check endpoint
 - `GET /ui/swagger/doc.json` - OpenAPI specification
 - (Additional OIDC endpoints not yet fully documented)
@@ -95,6 +99,7 @@ tokens:
 **Configuration**: `configs/identity/rs.yml`
 
 **Endpoints:**
+
 - `GET /health` - Health check endpoint (via service routes)
 - `GET /api/v1/public/health` - Public health endpoint
 - `GET /api/v1/protected/resource` - Protected resource (requires token + `read:resource` scope)
@@ -113,6 +118,7 @@ tokens:
 **Status**: ✅ COMPLETE (65/65 requirements validated)
 
 **Progression**:
+
 - Before Passthru4: 58.5% (38/65)
 - After Passthru4: 98.5% (64/65)
 - After Passthru5: **100.0% (65/65)** ✅
@@ -122,6 +128,7 @@ tokens:
 **Status**: ✅ COMPLETE (13 commits, 2000+ lines)
 
 **Features Implemented**:
+
 1. **Domain Models**:
    - `ClientSecretVersion` - Multi-version secret storage
    - `KeyRotationEvent` - Audit trail for rotations
@@ -150,6 +157,7 @@ tokens:
 ### 📊 Quality Infrastructure (P5.01-P5.03)
 
 **Achievements**:
+
 - ✅ Automated post-mortem generation (50% time reduction)
 - ✅ PROJECT-STATUS.md automation (100% accuracy)
 - ✅ CI/CD validation workflow (4-job pipeline)
@@ -158,12 +166,14 @@ tokens:
 ### 🏗️ Architecture Compliance
 
 **NIST SP 800-57 Compliance**:
+
 - ✅ Key rotation lifecycle
 - ✅ Secure key storage (encrypted at rest)
 - ✅ Grace period transitions
 - ✅ Audit logging
 
 **OAuth 2.1 Compliance**:
+
 - ✅ Authorization Code flow with PKCE
 - ✅ Client Credentials flow
 - ✅ Refresh Token flow
@@ -171,6 +181,7 @@ tokens:
 - ✅ Token revocation
 
 **OpenID Connect (OIDC)**:
+
 - ⚠️ Partial implementation (IdP server structure in place)
 - ⏳ Full OIDC flows deferred to future iteration
 
@@ -239,11 +250,13 @@ foreach ($svc in $services) {
 ### OAuth 2.1 Token Flow (Future Demo)
 
 **Note**: Full OAuth flow demonstration requires:
+
 - Client registration implementation
 - Token issuance implementation
 - Currently endpoints exist but require database setup and client credentials
 
 **Planned Flow**:
+
 1. Register client: `POST /oauth2/v1/clients`
 2. Get authorization code: `GET /oauth2/v1/authorize`
 3. Exchange code for token: `POST /oauth2/v1/token`

@@ -1,5 +1,6 @@
 # Task 18 – Docker Compose Orchestration Suite
-## ⚠️ NOTE: Core orchestration functionality **PARTIALLY MOVED** to Task 10.6 (Unified CLI) in refactored plan.
+
+## ⚠️ NOTE: Core orchestration functionality **PARTIALLY MOVED** to Task 10.6 (Unified CLI) in refactored plan
 
 **Original Task 18 content retained. This task now focuses on advanced orchestration patterns (scaling, templating, Docker profiles).**
 

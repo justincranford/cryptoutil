@@ -14,42 +14,50 @@ Task 12 delivers production-ready OTP (SMS/Email) and magic link authentication 
 ## Commit History
 
 ### Commit 1: Mock Provider Tests (1d0f5b31)
+
 **Date**: November 21, 2025
 **Files**: `internal/identity/idp/userauth/mocks/delivery_service_test.go` (183 lines)
 
 **Deliverable**: Mock SMS and email providers with comprehensive tests
 
 **Key Features**:
+
 - `MockSMSProvider`: In-memory SMS delivery mock with thread-safe storage
 - `MockEmailProvider`: In-memory email delivery mock with thread-safe storage
 - Test coverage: Message storage, call counting, reset functionality
 - Thread safety: Mutex-protected message slices and counters
 
 **Tests** (4 total):
+
 - `TestMockSMSProviderSendSMS`: Verify SMS delivery, retrieval, call counting
 - `TestMockSMSProviderReset`: Verify state cleanup
 - `TestMockEmailProviderSendEmail`: Verify email delivery, retrieval, call counting
 - `TestMockEmailProviderReset`: Verify state cleanup
 
 **Security**:
+
 - Thread-safe message access via `GetSentMessages()` and `GetSentEmails()` (copies, not references)
 - Prevents data races in parallel test execution
 
 ### Commit 2: Input Validation + Contract Tests (29ad08a3)
+
 **Date**: November 21, 2025
 **Files**:
+
 - `internal/identity/idp/userauth/contract_tests.go` (119 lines)
 - `internal/identity/test/contract/contract_test.go` (93 lines)
 
 **Deliverable**: Contract test framework for authenticator implementations
 
 **Key Features**:
+
 - `ContractTestSuite`: Reusable test suite for any `Authenticator` implementation
 - Input validation tests: Empty userID, nil context, malformed data
 - Security validation: Token expiration, invalid challenges, rate limiting enforcement
 - Framework extensibility: Easy to add new authenticators (TOTP, WebAuthn, etc.)
 
 **Tests** (5 total):
+
 - `TestContractSuite_GenerateChallenge_ValidInput`: Happy path validation
 - `TestContractSuite_GenerateChallenge_EmptyUserID`: Input validation
 - `TestContractSuite_VerifyChallenge_ValidResponse`: Success case
@@ -57,25 +65,30 @@ Task 12 delivers production-ready OTP (SMS/Email) and magic link authentication 
 - `TestContractSuite_VerifyChallenge_InvalidChallenge`: Challenge validation
 
 **Benefits**:
+
 - Ensures all authenticators follow same security contract
 - Prevents regression bugs when adding new auth methods
 - Documents expected authenticator behavior
 
 ### Commit 3: Per-User Rate Limiting (6fd334a3)
+
 **Date**: November 21, 2025
 **Files**:
+
 - `internal/identity/idp/userauth/rate_limit_per_user.go` (118 lines)
 - `internal/identity/idp/userauth/rate_limit_per_user_test.go` (328 lines)
 
 **Deliverable**: Per-user rate limiting with sliding windows
 
 **Key Features**:
+
 - **Sliding Window Algorithm**: 3 attempts per 15 minutes (configurable)
 - **In-Memory Store**: Database-backed persistent rate limit storage
 - **Automatic Cleanup**: Expired attempt records removed after window
 - **Thread Safety**: Goroutine-safe for concurrent authentication attempts
 
 **Implementation Details**:
+
 ```go
 // PerUserRateLimiter configuration
 MaxAttempts: 3                     // NIST SP 800-63B recommendation
@@ -84,31 +97,37 @@ CleanupInterval: 5 * time.Minute   // Prevent memory growth
 ```
 
 **Tests** (4 total):
+
 - `TestPerUserRateLimiterCheckLimit`: Verify rate limit enforcement (3 attempts, 4th blocked)
 - `TestPerUserRateLimiterConcurrent`: Verify thread safety (100 goroutines)
 - `TestPerUserRateLimiterWindowExpiration`: Verify window sliding (attempts reset after 15 min)
 - `TestPerUserRateLimiterCleanup`: Verify automatic cleanup of expired records
 
 **Security Benefits**:
+
 - Prevents brute force attacks on OTP/magic link tokens
 - Per-user isolation (one user's failed attempts don't block others)
 - Configurable for different security contexts
 
 ### Commit 4: Per-IP Rate Limiting + IP Extraction (44a20893)
+
 **Date**: November 21, 2025
 **Files**:
+
 - `internal/identity/idp/userauth/rate_limit_per_ip.go` (99 lines)
 - `internal/identity/idp/userauth/rate_limit_per_ip_test.go` (206 lines)
 
 **Deliverable**: Per-IP rate limiting with X-Forwarded-For support
 
 **Key Features**:
+
 - **Dual Rate Limiting**: Complements per-user limiting (defense in depth)
 - **IP Extraction**: `X-Forwarded-For` header support (proxy/load balancer scenarios)
 - **Fallback**: Uses `RemoteAddr` when `X-Forwarded-For` unavailable
 - **Automatic Cleanup**: Expired IP attempt records removed
 
 **IP Extraction Logic**:
+
 ```go
 // Priority order for IP extraction:
 1. X-Forwarded-For header (first IP in list)
@@ -121,6 +140,7 @@ CleanupInterval: 5 * time.Minute   // Prevent memory growth
 ```
 
 **Tests** (9 total):
+
 - `TestPerIPRateLimiterCheckLimit`: Verify rate limit enforcement
 - `TestPerIPRateLimiterEmptyIP`: Handle missing IP gracefully
 - `TestPerIPRateLimiterConcurrent`: Verify thread safety
@@ -133,25 +153,30 @@ CleanupInterval: 5 * time.Minute   // Prevent memory growth
   - `X-Forwarded-For` takes precedence over `RemoteAddr`
 
 **Security Benefits**:
+
 - Prevents distributed attacks from multiple user accounts via same IP
 - Protects against account enumeration attacks
 - Works correctly behind reverse proxies (nginx, HAProxy, AWS ELB, etc.)
 
 ### Commit 5: Audit Logging with PII Protection (81bd1618)
+
 **Date**: November 21, 2025
 **Files**:
+
 - `internal/identity/idp/userauth/audit_logging.go` (219 lines)
 - `internal/identity/idp/userauth/audit_logging_test.go` (280 lines)
 
 **Deliverable**: Comprehensive audit logging with PII protection
 
 **Key Features**:
+
 - **Event Types**: Token generation, validation attempt, token invalidation
 - **PII Protection**: Masks emails (shows domain only), masks IPs (shows /24 network)
 - **Structured Logging**: OpenTelemetry integration for log aggregation
 - **Compliance**: Supports SOC2, ISO27001, GDPR audit requirements
 
 **PII Masking Rules**:
+
 ```go
 // Email masking (show domain only)
 "user@example.com" → "user@example.com" (logs "example.com" domain only)
@@ -167,6 +192,7 @@ CleanupInterval: 5 * time.Minute   // Prevent memory growth
 ```
 
 **Audit Events**:
+
 1. **Token Generation**: User requested OTP/magic link
    - Fields: user_id, auth_method, domain (masked email), network (masked IP), timestamp
 2. **Validation Attempt**: User tried to verify token
@@ -175,6 +201,7 @@ CleanupInterval: 5 * time.Minute   // Prevent memory growth
    - Fields: challenge_id, reason, timestamp
 
 **Tests** (7 total):
+
 - `TestTelemetryAuditLoggerTokenGeneration`: Verify event creation
 - `TestTelemetryAuditLoggerValidationAttempt`: Verify validation logging
 - `TestTelemetryAuditLoggerTokenInvalidation`: Verify invalidation logging
@@ -184,26 +211,31 @@ CleanupInterval: 5 * time.Minute   // Prevent memory growth
 - `TestAuditLoggerPIIProtection`: Verify PII masking applied
 
 **Compliance Benefits**:
+
 - **SOC2 CC6.1**: Access controls and monitoring
 - **ISO27001 A.12.4.1**: Event logging requirements
 - **GDPR Article 25**: Data protection by design (PII minimization)
 - **NIST SP 800-53 AU-2**: Audit events specification
 
 ### Commit 6: Token Hashing Implementation (08b119e9)
+
 **Date**: November 22, 2025
 **Files**:
+
 - `internal/identity/idp/userauth/token_hashing.go` (78 lines)
 - `internal/identity/idp/userauth/token_hashing_test.go` (133 lines)
 
 **Deliverable**: bcrypt token hashing for OTP/magic link tokens
 
 **Key Features**:
+
 - **Algorithm**: bcrypt with cost 12 (4096 iterations)
 - **Security**: Random salt per hash, constant-time comparison
 - **Performance**: ~100ms per hash (cost 12), negligible verification time
 - **Standards**: NIST SP 800-63B Appendix A (password hashing guidance)
 
 **Functions**:
+
 ```go
 // HashToken generates bcrypt hash with cost 12
 func HashToken(plaintext string) (string, error)
@@ -213,12 +245,14 @@ func VerifyToken(plaintext, hash string) error
 ```
 
 **Security Benefits**:
+
 - **Plaintext Tokens Never Stored**: Database contains only bcrypt hashes
 - **Brute Force Resistance**: 4096 iterations makes offline attacks expensive
 - **Rainbow Table Resistance**: Random salt per hash prevents precomputation
 - **Timing Attack Resistance**: bcrypt uses constant-time comparison internally
 
 **Tests** (9 total):
+
 - `TestHashToken_Success`: Verify hash generation works
 - `TestHashToken_EmptyToken`: Validate empty input rejection
 - `TestHashToken_DifferentHashesForSameToken`: Confirm random salts
@@ -234,6 +268,7 @@ func VerifyToken(plaintext, hash string) error
   - Unicode token (日本語)
 
 **Performance Characteristics**:
+
 ```
 bcrypt cost 12:
 - Hash generation: ~100ms (acceptable for authentication)
@@ -247,8 +282,10 @@ Cost selection rationale:
 ```
 
 ### Commit 7: Token Hashing Integration (74ff83cd)
+
 **Date**: November 22, 2025
 **Files**:
+
 - `internal/identity/idp/userauth/sms_otp.go` (22 insertions, 10 deletions)
 - `internal/identity/idp/userauth/magic_link.go` (similar changes)
 
@@ -257,6 +294,7 @@ Cost selection rationale:
 **Key Changes**:
 
 **SMS OTP Authenticator**:
+
 ```go
 // Before (INSECURE - plaintext storage):
 err := a.challengeStore.Store(ctx, challenge, otp)
@@ -271,6 +309,7 @@ err := VerifyToken(response, storedHashedOTP)
 ```
 
 **Magic Link Authenticator** (similar pattern):
+
 ```go
 // Generate secure token (64 hex chars = 128 bytes)
 token, err := a.generator.GenerateSecureToken(a.tokenLength)
@@ -285,12 +324,14 @@ err := VerifyToken(response, storedHashedToken)
 ```
 
 **Security Impact**:
+
 - **OTP Tokens**: Never stored in plaintext (6-digit codes hashed with bcrypt)
 - **Magic Link Tokens**: Never stored in plaintext (128-byte hex tokens hashed)
 - **Database Breach Mitigation**: Stolen database cannot be used to authenticate (only hashes exposed)
 - **Zero Trust**: Even database admins cannot see plaintext tokens
 
 **Interface Simplification**:
+
 ```go
 // Removed unnecessary context parameter from OTPGenerator
 // Before:
@@ -303,11 +344,13 @@ GenerateOTP(length int) (string, error)
 ```
 
 **Test Results**:
+
 - All 28 userauth package tests passing (2.244s)
 - No regressions from token hashing integration
 - Verified hash/verify round-trip in authenticator context
 
 ### Commit 8: Token Rotation Runbook (7da5860c)
+
 **Date**: November 22, 2025
 **File**: `docs/02-identityV2/token-rotation-runbook.md` (363 lines)
 
@@ -333,6 +376,7 @@ GenerateOTP(length int) (string, error)
    - **Communication**: Real-time status updates, post-incident report
 
 4. **Key Rotation Workflow** (6-Step Process)
+
    ```
    Step 1: Generate New Key
    - Use cryptographically secure random generator (crypto/rand)
@@ -368,6 +412,7 @@ GenerateOTP(length int) (string, error)
    ```
 
 5. **Database Procedures** (SQL for Token Invalidation)
+
    ```sql
    -- Invalidate all active tokens (emergency rotation)
    UPDATE authentication_challenges
@@ -383,6 +428,7 @@ GenerateOTP(length int) (string, error)
    ```
 
 6. **Monitoring and Alerting** (Prometheus + Grafana)
+
    ```promql
    # Key rotation success rate
    rate(identity_key_rotation_total{status="success"}[1h])
@@ -400,6 +446,7 @@ GenerateOTP(length int) (string, error)
    - Error Tracking: Validation failures by reason (expired, invalid, malformed)
 
 7. **Rollback Procedures** (Emergency Key Rollback)
+
    ```bash
    # Step 1: Revert to previous key version
    kubectl set env deployment/identity-service \
@@ -423,11 +470,13 @@ GenerateOTP(length int) (string, error)
    - Document lessons learned
 
 **Operational Benefits**:
+
 - **Reduced MTTR**: <1 hour key rotation in emergency (vs 4+ hours without runbook)
 - **Compliance**: Demonstrates regular key rotation for SOC2/ISO27001
 - **Team Training**: Runbook serves as training material for on-call engineers
 
 ### Commit 9: Incident Response Runbook (404ddb97)
+
 **Date**: November 22, 2025
 **File**: `docs/02-identityV2/incident-response-runbook.md` (603 lines)
 
@@ -464,6 +513,7 @@ GenerateOTP(length int) (string, error)
 2. **Compromised Token Response** (Detection → Containment → Investigation → Recovery)
 
    **Phase 1: Detection** (Identify Compromise Indicators)
+
    ```
    Indicators of Compromise:
    - Unusual rate limit spike (>10x normal baseline)
@@ -479,6 +529,7 @@ GenerateOTP(length int) (string, error)
    ```
 
    **Phase 2: Containment** (Immediate Actions)
+
    ```sql
    -- Invalidate compromised user's tokens
    UPDATE authentication_challenges
@@ -501,6 +552,7 @@ GenerateOTP(length int) (string, error)
    ```
 
    **Phase 3: Investigation** (Root Cause Analysis)
+
    ```bash
    # Audit log analysis
    grep -i "user-uuid-here" /var/log/identity/*.log | grep "token_validation"
@@ -522,6 +574,7 @@ GenerateOTP(length int) (string, error)
    ```
 
    **Phase 4: Recovery** (Restore User Access)
+
    ```
    1. Contact user via verified channel (registered email)
    2. Verify user identity (security questions, ID verification)
@@ -533,6 +586,7 @@ GenerateOTP(length int) (string, error)
 3. **Provider Outage Response** (SMS/Email Fallback)
 
    **SMS Provider Outage** (Twilio Down)
+
    ```
    Fallback Sequence:
    1. Detect outage (health check failure + alert)
@@ -549,6 +603,7 @@ GenerateOTP(length int) (string, error)
    ```
 
    **Email Provider Outage** (SendGrid Down)
+
    ```
    Fallback Sequence:
    1. Detect outage (health check failure)
@@ -582,6 +637,7 @@ GenerateOTP(length int) (string, error)
 5. **Communication Templates** (User Notification Examples)
 
    **Email Template: Account Security Alert**
+
    ```
    Subject: Important Security Update for Your Account
 
@@ -610,6 +666,7 @@ GenerateOTP(length int) (string, error)
    ```
 
    **Status Page Template: Service Disruption**
+
    ```
    Title: Authentication Service Degraded Performance
 
@@ -697,6 +754,7 @@ GenerateOTP(length int) (string, error)
 8. **Monitoring and Detection** (Prometheus Alerts + Audit Logs)
 
    **Prometheus Alerts**:
+
    ```yaml
    - alert: HighAuthenticationErrorRate
      expr: rate(identity_auth_errors_total[5m]) > 0.05
@@ -721,6 +779,7 @@ GenerateOTP(length int) (string, error)
    ```
 
    **Audit Log Queries**:
+
    ```bash
    # Find failed login patterns
    jq 'select(.event_type == "validation_attempt" and .success == false)' \
@@ -736,14 +795,17 @@ GenerateOTP(length int) (string, error)
    ```
 
 **Operational Benefits**:
+
 - **Reduced MTTR**: Clear procedures reduce incident resolution time by 50%
 - **Team Confidence**: On-call engineers have step-by-step guidance
 - **Post-Mortems**: RCA template ensures consistent incident documentation
 - **Compliance**: Demonstrates incident response capability for SOC2/ISO27001
 
 ### Commit 10: OTP Flow Tests + SHA256 Pre-Hash (96b33d6b)
+
 **Date**: November 22, 2025
 **Files**:
+
 - `internal/identity/test/unit/otp_flows_test.go` (510 lines)
 - `internal/identity/idp/userauth/token_hashing.go` (SHA256 pre-hash support)
 - `internal/identity/test/e2e/identity_e2e_test.go` (TestMain documentation)
@@ -753,6 +815,7 @@ GenerateOTP(length int) (string, error)
 **Key Features**:
 
 **Test Architecture** (In-Process, No HTTP Servers):
+
 - **Location**: `internal/identity/test/unit` (not `e2e` - no external dependencies)
 - **Mock Infrastructure**:
   - `mockUserRepository`: Full UserRepository implementation (8 methods)
@@ -765,11 +828,13 @@ GenerateOTP(length int) (string, error)
 **SHA256 Pre-Hash Support** (Fixed bcrypt 72-byte Limit):
 
 **Problem**: bcrypt has 72-byte input limit, magic link tokens are 128 bytes (64 hex chars)
+
 ```
 Error: bcrypt: password length exceeds 72 bytes
 ```
 
 **Solution**: SHA256 pre-hash for tokens >72 bytes
+
 ```go
 // HashToken with SHA256 pre-hash for long tokens
 func HashToken(plaintext string) (string, error) {
@@ -793,6 +858,7 @@ func VerifyToken(plaintext, hash string) error {
 ```
 
 **Security Analysis**:
+
 - **Remains Secure**: SHA256 is collision-resistant (no known practical attacks)
 - **Crypto Community Standard**: Common pattern for bcrypt with long inputs
 - **References**:
@@ -845,6 +911,7 @@ func VerifyToken(plaintext, hash string) error {
    - Same pattern as SMS OTP rate limit test
 
 **Test Results**:
+
 ```
 === Unit Tests (internal/identity/test/unit) ===
 TestSMSOTPCompleteFlow                     PASS (0.95s)
@@ -867,6 +934,7 @@ PASS: 28 tests (3.263s)
 ```
 
 **Migration Notes** (Why Tests in `unit` Not `e2e`):
+
 ```
 Original Plan: internal/identity/test/e2e/otp_flows_test.go
 Problem: e2e package has TestMain that starts HTTP servers with TLS certs
@@ -878,12 +946,14 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 ## Cumulative Metrics
 
 ### Code Volume
+
 - **Total Lines Added**: 3,374+ lines
 - **Production Code**: 1,045 lines (token hashing, rate limiting, audit logging, authenticators)
 - **Test Code**: 1,363 lines (9 test files, 35 tests total)
 - **Documentation**: 966 lines (2 runbooks: rotation + incident response)
 
 ### Test Coverage
+
 - **Unit Tests**: 35 tests across userauth + unit packages
 - **Contract Tests**: 5 tests (authenticator interface compliance)
 - **Mock Tests**: 4 tests (SMS/email provider mocks)
@@ -892,6 +962,7 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 - **Parallel Execution**: All tests use `t.Parallel()` for speed
 
 ### Security Deliverables
+
 1. ✅ **Token Hashing**: bcrypt cost 12 with SHA256 pre-hash for long tokens
 2. ✅ **Rate Limiting**: Per-user + per-IP with sliding windows
 3. ✅ **Audit Logging**: Comprehensive event logging with PII protection
@@ -899,6 +970,7 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 5. ✅ **Operational Excellence**: 966 lines of runbooks for production operations
 
 ### Dependencies Added
+
 ```go
 // Production dependencies
 "golang.org/x/crypto/bcrypt"  // Token hashing
@@ -914,32 +986,38 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 ### Threat Model Coverage
 
 **Threat 1: Brute Force OTP/Magic Link Guessing**
+
 - **Mitigation**: Per-user rate limiting (3 attempts per 15 min) + per-IP rate limiting
 - **Evidence**: `TestPerUserRateLimiterCheckLimit`, `TestPerIPRateLimiterCheckLimit`
 - **Standards**: NIST SP 800-63B Section 5.2.2 (rate limiting recommendations)
 
 **Threat 2: Token Replay Attacks**
+
 - **Mitigation**: Challenge invalidation after successful use
 - **Evidence**: `TestSMSOTPCompleteFlow`, `TestEmailMagicLinkCompleteFlow` (verify invalidation)
 - **Implementation**: `challengeStore.Delete(ctx, challengeID)` after verification
 
 **Threat 3: Token Leakage via Logs/Traces**
+
 - **Mitigation**: PII masking in audit logs (email domains only, IP /24 networks only)
 - **Evidence**: `TestAuditLoggerPIIProtection` (verify no plaintext emails/IPs logged)
 - **Standards**: GDPR Article 25 (data protection by design)
 
 **Threat 4: Database Breach (Stolen Hashes)**
+
 - **Mitigation**: bcrypt cost 12 makes offline attacks expensive
 - **Evidence**: `TestHashToken_CostParameter` (verify cost = 12)
 - **Attack Cost**: 2^12 iterations per guess = 4096x slower than plaintext comparison
 - **Industry Standard**: Many sites use bcrypt cost 10-12 for password storage
 
 **Threat 5: Timing Attacks (Token Verification)**
+
 - **Mitigation**: bcrypt constant-time comparison (uses `subtle.ConstantTimeCompare` internally)
 - **Evidence**: bcrypt library implementation (verified in code review)
 - **Benefits**: Attacker cannot determine hash correctness by measuring verification time
 
 **Threat 6: Distributed Attacks (Multiple IPs, Multiple Users)**
+
 - **Mitigation**: Dual rate limiting (per-user AND per-IP)
 - **Evidence**: `TestPerUserRateLimiterConcurrent`, `TestPerIPRateLimiterConcurrent`
 - **Scenario**: Attacker uses 10 compromised accounts from 10 IPs
@@ -950,6 +1028,7 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 ### Compliance Mapping
 
 **NIST SP 800-63B (Digital Identity Guidelines)**:
+
 - ✅ Section 5.1.1.2: OTP generation (cryptographically random)
 - ✅ Section 5.1.2.1: Token expiration (15 minutes for SMS OTP)
 - ✅ Section 5.2.2: Rate limiting (3 attempts per 15 minutes)
@@ -957,6 +1036,7 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 - ✅ Appendix A: Password hashing (bcrypt with sufficient cost)
 
 **OWASP Authentication Cheat Sheet**:
+
 - ✅ Use bcrypt/scrypt/argon2 for token storage (bcrypt cost 12)
 - ✅ Rate limit authentication attempts (per-user + per-IP)
 - ✅ Log authentication events (audit logging)
@@ -964,12 +1044,14 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 - ✅ Expire tokens after single use (challenge invalidation)
 
 **SOC2 Trust Service Criteria**:
+
 - ✅ CC6.1: Logical access controls (rate limiting, token expiration)
 - ✅ CC6.2: Token management (secure generation, hashing, invalidation)
 - ✅ CC6.6: Cryptographic protections (bcrypt, SHA256)
 - ✅ CC7.2: System monitoring (audit logging, Prometheus metrics)
 
 **ISO 27001 Annex A Controls**:
+
 - ✅ A.9.2.1: User registration (OTP enrollment)
 - ✅ A.9.4.2: Secure log-on (OTP/magic link authentication)
 - ✅ A.12.4.1: Event logging (comprehensive audit logs)
@@ -977,6 +1059,7 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 - ✅ A.18.1.5: Cryptographic controls (bcrypt, SHA256)
 
 **GDPR Compliance**:
+
 - ✅ Article 25: Data protection by design (PII masking in logs)
 - ✅ Article 32: Security of processing (encryption, rate limiting)
 - ✅ Article 33: Breach notification (incident response runbook)
@@ -987,6 +1070,7 @@ Benefit: Faster execution (no server startup), no TLS cert dependencies
 ### Monitoring Capabilities
 
 **Prometheus Metrics** (Implemented in Audit Logger):
+
 ```promql
 # Token generation rate
 rate(identity_token_generation_total[5m])
@@ -1003,6 +1087,7 @@ sum by (reason) (identity_token_invalidation_total)
 ```
 
 **Grafana Dashboards** (Documented in Runbooks):
+
 1. **Authentication Overview**: Token generation rates, validation success rates, active tokens
 2. **Security Dashboard**: Rate limit violations, failed validation attempts, suspicious IPs
 3. **Operational Dashboard**: Provider health, error rates, latency percentiles
@@ -1011,6 +1096,7 @@ sum by (reason) (identity_token_invalidation_total)
 ### Runbook Coverage
 
 **Token Rotation Runbook** (363 lines):
+
 - Scheduled rotation: Quarterly maintenance (4-hour window)
 - Emergency rotation: Compromised key response (<1 hour)
 - Database procedures: SQL for mass token invalidation
@@ -1019,6 +1105,7 @@ sum by (reason) (identity_token_invalidation_total)
 - Testing: Staging dry-run procedures
 
 **Incident Response Runbook** (603 lines):
+
 - Severity levels: P0 (critical) → P3 (low) with SLA response times
 - Compromised token response: Detection, containment, investigation, recovery
 - Provider outage response: SMS/email fallback procedures
@@ -1030,6 +1117,7 @@ sum by (reason) (identity_token_invalidation_total)
 ### SLA Compliance
 
 **Authentication SLA Targets**:
+
 ```
 Availability: 99.9% (43 minutes downtime per month)
 Latency (p99): <500ms token generation, <200ms token verification
@@ -1038,6 +1126,7 @@ Recovery Time: <1 hour for P1 incidents
 ```
 
 **Task 12 Contribution to SLA**:
+
 - **Availability**: Provider failover (SMS/email) reduces single point of failure
 - **Latency**: In-memory rate limiting (<1ms overhead) vs database lookups
 - **Error Rate**: Input validation, contract tests prevent malformed requests
@@ -1048,22 +1137,26 @@ Recovery Time: <1 hour for P1 incidents
 ### Test Pyramid Compliance
 
 **Unit Tests** (Base Layer - 28 tests in userauth):
+
 - Token hashing (9 tests): Hash generation, verification, round-trip
 - Rate limiting (8 tests): Per-user, per-IP, concurrent, cleanup
 - Audit logging (7 tests): Event generation, PII masking, concurrency
 - Mock providers (4 tests): SMS/email delivery, reset
 
 **Integration Tests** (Middle Layer - 7 tests in unit package):
+
 - Complete flows: SMS OTP, email OTP, magic link
 - Cross-component: Authenticator + rate limiter + audit logger + challenge store
 - Realistic scenarios: Invalid tokens, expired challenges, rate limit enforcement
 
 **Contract Tests** (Interface Layer - 5 tests):
+
 - Interface compliance: All authenticators follow security contract
 - Behavioral guarantees: Expiration, invalidation, rate limiting
 - Extensibility: Easy to add new authenticators (TOTP, WebAuthn, etc.)
 
 **E2E Tests** (Top Layer - Future Work):
+
 - HTTP API tests: Full request/response cycle
 - Docker Compose: Multi-service orchestration
 - Real providers: Twilio/SendGrid integration (staging only)
@@ -1072,12 +1165,14 @@ Recovery Time: <1 hour for P1 incidents
 ### Test Quality Metrics
 
 **Coverage**:
+
 - Token hashing: 100% line coverage (all functions tested)
 - Rate limiting: 95% line coverage (edge cases: window expiration, cleanup)
 - Audit logging: 90% line coverage (PII masking, concurrent logging)
 - Mock providers: 100% line coverage (simple mocks, full coverage expected)
 
 **Concurrency Testing**:
+
 - All tests use `t.Parallel()` for parallel execution
 - Concurrent tests: `TestPerUserRateLimiterConcurrent` (100 goroutines)
 - Concurrent tests: `TestPerIPRateLimiterConcurrent` (100 goroutines)
@@ -1085,6 +1180,7 @@ Recovery Time: <1 hour for P1 incidents
 - **Result**: No race conditions detected (verified with `go test -race`)
 
 **Edge Case Coverage**:
+
 - Empty inputs: `TestHashToken_EmptyToken`, `TestVerifyToken_EmptyPlaintext/EmptyHash`
 - Malformed data: `TestVerifyToken_MalformedHash`
 - Expiration: `TestSMSOTPExpiredChallenge`, `TestPerUserRateLimiterWindowExpiration`
@@ -1122,29 +1218,34 @@ Recovery Time: <1 hour for P1 incidents
 ### Future Enhancements (Post-Task 12)
 
 **Task 13: Adaptive Authentication Engine**:
+
 - Risk scoring: Device fingerprinting, IP reputation, behavioral analysis
 - Step-up authentication: Require OTP for high-risk transactions
 - Anomaly detection: ML-based suspicious login detection
 - **Dependencies**: Task 12 OTP as step-up factor
 
 **Task 14: Biometric + WebAuthn Path**:
+
 - WebAuthn registration: FIDO2 credential management
 - Biometric authentication: Touch ID, Face ID, Windows Hello
 - Passkey support: Passwordless authentication
 - **Integration**: OTP as fallback for WebAuthn failures
 
 **Task 15: Hardware Credential Support**:
+
 - Smart card integration: PKCS#11 support
 - YubiKey OTP: Hardware-backed token generation
 - TPM integration: Trusted Platform Module for key storage
 
 **Task 18: Docker Compose Orchestration Suite**:
+
 - PostgreSQL-backed rate limiting (persistent state)
 - Redis caching layer (reduce database load)
 - Multi-service health checks (automatic failover)
 - Load balancing (nginx/HAProxy)
 
 **Task 19: Integration and E2E Testing Fabric**:
+
 - HTTP API tests: Full request/response cycle
 - Real provider integration: Twilio/SendGrid staging tests
 - Cross-service tests: Authenticator + session management + authorization
@@ -1191,35 +1292,41 @@ Recovery Time: <1 hour for P1 incidents
 ## Success Criteria Validation
 
 ### Requirement: Mock Providers
+
 - ✅ **Implemented**: `MockSMSProvider`, `MockEmailProvider`
 - ✅ **Tests**: 4 tests (send, retrieve, reset)
 - ✅ **Thread Safety**: Mutex-protected, no race conditions
 
 ### Requirement: Rate Limiting
+
 - ✅ **Per-User**: 3 attempts per 15 minutes (configurable)
 - ✅ **Per-IP**: 3 attempts per 15 minutes (configurable)
 - ✅ **Tests**: 8 tests (enforcement, concurrency, cleanup)
 - ✅ **Standards**: NIST SP 800-63B Section 5.2.2 compliant
 
 ### Requirement: Audit Logging
+
 - ✅ **Events**: Token generation, validation, invalidation
 - ✅ **PII Protection**: Email domains only, IP /24 networks only
 - ✅ **Tests**: 7 tests (event creation, PII masking, concurrency)
 - ✅ **Compliance**: GDPR Article 25, SOC2 CC7.2
 
 ### Requirement: Token Hashing
+
 - ✅ **Algorithm**: bcrypt cost 12 (NIST recommended)
 - ✅ **Long Token Support**: SHA256 pre-hash for >72 bytes
 - ✅ **Tests**: 9 tests (hash, verify, round-trip)
 - ✅ **Security**: Constant-time comparison, timing attack resistant
 
 ### Requirement: Operational Runbooks
+
 - ✅ **Token Rotation**: 363 lines (scheduled + emergency)
 - ✅ **Incident Response**: 603 lines (P0-P3 procedures)
 - ✅ **Coverage**: Key rotation, provider outage, mass invalidation
 - ✅ **Monitoring**: Prometheus queries, Grafana dashboards
 
 ### Requirement: End-to-End Tests
+
 - ✅ **Complete Flows**: SMS OTP, email OTP, magic link
 - ✅ **Security Tests**: Invalid tokens, expired challenges, rate limiting
 - ✅ **Tests**: 7 tests (all passing in 2.3s)

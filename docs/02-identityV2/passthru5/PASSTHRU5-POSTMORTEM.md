@@ -31,6 +31,7 @@
 **Location**: `cmd/identity/authz/main.go` lines 52-54
 
 **Code**:
+
 ```go
 // TODO: Create JWS, JWE, UUID issuers properly.
 // For now, use placeholders.
@@ -42,12 +43,14 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
 **Impact**: ALL OAuth endpoints return errors because issuers cannot sign/encrypt tokens.
 
 **Evidence**:
+
 - Token endpoint: `POST /oauth2/v1/token` → 401 Unauthorized
 - Authorization endpoint: Untested (requires functional issuers)
 - Introspection endpoint: Untested (requires functional issuers)
 - Revocation endpoint: Untested (requires functional issuers)
 
 **Why This Happened**:
+
 1. **Test-only validation**: Integration tests used `mockKeyGenerator` and legacy JWS issuer
 2. **No end-to-end manual testing**: Services started successfully, assumed functional
 3. **Unit tests passed**: Handler tests mocked token service, never exercised real issuers
@@ -60,6 +63,7 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
 ### Testing Infrastructure (✅ Working)
 
 **Achievements**:
+
 - 100% requirements coverage in automated tests
 - 43/43 tests passing
 - 85%+ test coverage across packages
@@ -71,6 +75,7 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
 ### Production Services (❌ Broken)
 
 **Failures**:
+
 1. **Token issuers uninitialized**: Empty structs instead of proper KeyRotationManager setup
 2. **No production KeyGenerator**: Only mockKeyGenerator exists
 3. **No bootstrap client**: Cannot test OAuth flows without manual database setup
@@ -86,11 +91,13 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
 ### The Coverage Illusion
 
 **Requirements Coverage Tool Reports**:
+
 - R01-01 through R04-05: ✅ VERIFIED (test implementations)
 - R04-06: ✅ VERIFIED (client secret rotation)
 - **Total**: 65/65 = 100%
 
 **Reality Check**:
+
 - Requirements verified via **unit/integration tests with mocks**
 - **Zero manual validation** of actual OAuth flows
 - **Zero end-to-end testing** of production initialization code
@@ -105,6 +112,7 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}
 ### Integration Tests Use Different Code Paths
 
 **Test Pattern** (internal/identity/integration/integration_test.go):
+
 ```go
 // TEMPORARY: Use legacy JWS issuer without key rotation for integration tests.
 privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -124,6 +132,7 @@ keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
 ```
 
 **Production Pattern** (cmd/identity/authz/main.go):
+
 ```go
 // TODO: Create JWS, JWE, UUID issuers properly.
 // For now, use placeholders.
@@ -141,18 +150,21 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{} // EMPTY STRUCT
 ### Missing Validation Gates
 
 **No Manual Smoke Testing**:
+
 - Never attempted: `curl -X POST http://127.0.0.1:8080/oauth2/v1/token ...`
 - Never checked: OpenAPI spec accessible at `/ui/swagger/doc.json`
 - Never validated: Bootstrap client exists in database
 - Never tested: Authorization code flow end-to-end
 
 **No Production Code Path Testing**:
+
 - E2E tests bypass production main.go initialization
 - Integration tests use test-specific setup code
 - Unit tests mock all dependencies
 - **Zero tests exercise actual production startup sequence**
 
 **Acceptance Criteria Weakness**:
+
 - "All tests pass" ✅ (tests use mocks)
 - "Coverage ≥85%" ✅ (test code covered)
 - "Requirements 100%" ✅ (test infrastructure)
@@ -165,11 +177,13 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{} // EMPTY STRUCT
 ### 1. Evidence-Based Acceptance Criteria
 
 **WRONG** (Passthru5 approach):
+
 - ✅ All unit tests pass
 - ✅ Integration tests pass
 - ✅ Requirements coverage 100%
 
 **RIGHT** (Should have been):
+
 - ✅ `curl -X POST http://127.0.0.1:8080/oauth2/v1/token -d "grant_type=client_credentials&client_id=demo-client&client_secret=demo-secret"` returns 200 OK
 - ✅ Response contains valid JWT access_token
 - ✅ JWT signature validates using JWKS endpoint
@@ -179,6 +193,7 @@ uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{} // EMPTY STRUCT
 ### 2. Production Code Path Testing
 
 **Add to E2E Tests**:
+
 ```go
 func TestProductionInitialization(t *testing.T) {
     // Start services using actual main.go entry points
@@ -197,6 +212,7 @@ func TestProductionInitialization(t *testing.T) {
 ### 3. Smoke Testing Checklist
 
 **Before marking ANY task complete**:
+
 1. Start services manually: `go run ./cmd/identity/authz`
 2. Test token endpoint: `curl -X POST http://127.0.0.1:8080/oauth2/v1/token ...`
 3. Verify OpenAPI spec: `curl http://127.0.0.1:8080/ui/swagger/doc.json`
@@ -226,6 +242,7 @@ func TestProductionInitialization(t *testing.T) {
 ### User Frustration and Lost Productivity
 
 **User's Timeline**:
+
 1. Passthru4: Incomplete, gaps identified
 2. Passthru5: "FINAL iteration to make identity working and demonstrable"
 3. Reality: Passthru5 delivered non-functional system
@@ -235,6 +252,7 @@ func TestProductionInitialization(t *testing.T) {
 **Blocker**: Identity V2 still not finished after **5 supposed "complete" passthroughs**
 
 **Time Waste**:
+
 - Passthru5: ~10 hours of development
 - Passthru6: ~35 hours estimated (to fix Passthru5 failures)
 - **Total**: 45 hours to deliver what Passthru5 should have delivered in 10 hours
@@ -250,6 +268,7 @@ func TestProductionInitialization(t *testing.T) {
 **Problem**: Tests passed using mocks while production code remained broken.
 
 **Solution**:
+
 - Always include **at least one test** that exercises production initialization
 - Smoke test actual binaries: `go run ./cmd/...` + manual endpoint calls
 - E2E tests should use real main.go entry points, not test-specific setup
@@ -259,6 +278,7 @@ func TestProductionInitialization(t *testing.T) {
 **Problem**: Requirements tool measured test infrastructure, not production functionality.
 
 **Solution**:
+
 - Requirements acceptance criteria MUST include manual validation
 - Example: "R01-02: Token endpoint returns 200 OK (evidence: curl output screenshot)"
 - Automated coverage is **necessary** but **not sufficient**
@@ -268,6 +288,7 @@ func TestProductionInitialization(t *testing.T) {
 **Problem**: `// TODO: Create JWS, JWE, UUID issuers properly.` left in production code.
 
 **Solution**:
+
 - Pre-commit hook: Fail on ANY TODO in production code (cmd/, internal/ non-test files)
 - Only allow TODOs in test files or docs
 - Force immediate implementation or defer to explicit task document
@@ -277,6 +298,7 @@ func TestProductionInitialization(t *testing.T) {
 **Problem**: OpenAPI spec generation error swallowed, endpoint returns 404.
 
 **Solution**:
+
 - **NEVER** silently ignore errors with `_ = err`
 - **ALWAYS** log errors at appropriate level (even if non-critical)
 - Startup validation: Log all successful initializations explicitly
@@ -286,6 +308,7 @@ func TestProductionInitialization(t *testing.T) {
 **Problem**: Health checks passed, assumed system functional.
 
 **Solution**:
+
 - Health checks test **infrastructure** (database connection)
 - Smoke tests validate **business functionality** (OAuth flows)
 - Both required for production readiness
@@ -297,28 +320,33 @@ func TestProductionInitialization(t *testing.T) {
 ### Immediate Changes
 
 **1. E2E Tests MUST Use Production Code Paths**
+
 - Start services via `go run ./cmd/identity/authz`
 - Test OAuth flows with real HTTP requests
 - Validate JWT signatures using actual JWKS endpoint
 - No mocks for integration tests (only unit tests)
 
 **2. Acceptance Criteria MUST Include Manual Evidence**
+
 - Every task: "curl example executes successfully"
 - Screenshot or console output as proof
 - Demo guide examples tested before task marked complete
 
 **3. Pre-Commit Hook: Block TODOs in Production Code**
+
 - Allow TODOs only in: `*_test.go`, `docs/`, `scripts/`
 - Fail commit if TODO found in: `cmd/`, `internal/**/*.go` (non-test)
 - Force immediate resolution or task document creation
 
 **4. Smoke Testing Mandatory for Every Task**
+
 - Start services manually
 - Execute demo guide curl examples
 - Verify expected responses match documentation
 - Test failure scenarios (invalid credentials, expired tokens)
 
 **5. OpenAPI Spec Validation**
+
 - Ensure `/ui/swagger/doc.json` returns 200 OK
 - Validate spec against schema
 - Test all documented endpoints exist and respond
@@ -330,6 +358,7 @@ func TestProductionInitialization(t *testing.T) {
 **Section: Acceptance Criteria (MANDATORY ITEMS)**
 
 Every task MUST include ALL of:
+
 1. ✅ Automated tests pass (unit + integration)
 2. ✅ Coverage ≥85% for infrastructure, ≥80% for features
 3. ✅ **Manual smoke test passes** (curl/Postman example)
@@ -341,6 +370,7 @@ Every task MUST include ALL of:
 **Section: Definition of Done (UPDATED)**
 
 Task is NOT complete until:
+
 - [ ] All automated tests pass
 - [ ] Manual curl examples work (copy-paste from console)
 - [ ] Demo guide examples verified (screenshot or output)
@@ -357,6 +387,7 @@ Task is NOT complete until:
 ### What Passthru6 Must Deliver
 
 **NON-NEGOTIABLE**:
+
 1. ✅ Token endpoint returns 200 OK for client_credentials grant
 2. ✅ Token endpoint returns 200 OK for authorization_code grant
 3. ✅ All OAuth endpoints functional (authorize, token, introspect, revoke)
@@ -369,6 +400,7 @@ Task is NOT complete until:
 10. ✅ **E2E tests validate production code paths**
 
 **EVIDENCE REQUIRED**:
+
 - Screenshot of curl commands returning 200 OK
 - JWT.io validation of access tokens
 - Full authorization code flow trace
@@ -379,6 +411,7 @@ Task is NOT complete until:
 
 **Passthru6 Budget**: 950,000 tokens (95% utilization target)
 **Critical Path**:
+
 1. Production KeyGenerator (P6.01.01) - BLOCKER
 2. Initialize issuers (P6.01.02) - BLOCKER
 3. Bootstrap client (P6.01.05) - CRITICAL
@@ -386,6 +419,7 @@ Task is NOT complete until:
 5. E2E flow test (P6.05.01) - VALIDATION
 
 **Must NOT waste tokens on**:
+
 - Analysis paralysis
 - Over-documenting
 - Creating intermediate "almost working" states

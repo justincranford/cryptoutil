@@ -169,17 +169,20 @@ Both plans assumed foundation was complete - actual implementation analysis reve
 **Current Estimate**: 11.5 days (assumes full-time focus)
 
 **Week 1 (Days 1-5)**: OAuth 2.1 foundation
+
 - R01: Complete authorization code flow (2 days)
 - R02: Complete OIDC core endpoints (2 days)
 - R03: Integration testing (1 day)
 
 **Week 2 (Days 6-10)**: Security hardening
+
 - R04: Client authentication security (1.5 days)
 - R05: Token lifecycle management (1.5 days)
 - R06: Authentication middleware (1 day)
 - R07: Repository integration tests (1 day)
 
 **Week 3 (Days 11-14)**: Testing, documentation, sync
+
 - R08: OpenAPI synchronization (1.5 days)
 - R09: Configuration normalization (1 day)
 - R10: Requirements validation (1 day)

@@ -187,6 +187,7 @@ All servers expose admin health endpoints on port 9090 (not exposed to host in D
 - `POST /shutdown` - Graceful shutdown trigger
 
 Public health endpoints:
+
 - AuthZ: `GET /health` (planned)
 - IdP: `GET /health` (planned)
 - RS: `GET /api/v1/public/health` (implemented)
@@ -194,6 +195,7 @@ Public health endpoints:
 ## Port Allocation
 
 ### Host Ports (Exposed)
+
 - 8080: AuthZ Server (OAuth 2.1 endpoints)
 - 8081: IdP Server (OIDC endpoints)
 - 8082: RS Server (Protected resources)
@@ -203,6 +205,7 @@ Public health endpoints:
 - 4317/4318: OTEL Collector (OTLP gRPC/HTTP)
 
 ### Internal Ports (Container-only)
+
 - 9090: Admin APIs (all servers, not exposed to host)
 - 5432: PostgreSQL (internal container port)
 

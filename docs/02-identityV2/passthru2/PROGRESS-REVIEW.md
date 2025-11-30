@@ -42,6 +42,7 @@
 **Reality**: ❌ 2 HIGH-severity TODOs remain
 
 **Evidence**:
+
 ```go
 // internal/identity/authz/clientauth/basic.go:64
 // Validate client secret (TODO: implement proper hash comparison).
@@ -66,6 +67,7 @@ if client.ClientSecret != clientSecret { // ❌ Plain text comparison
 **Reality**: ❌ 1 CRITICAL TODO remains
 
 **Evidence**:
+
 ```go
 // internal/identity/authz/handlers_token.go:170
 // TODO: In future tasks, populate with real user ID from authRequest.UserID after login/consent integration.
@@ -96,6 +98,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Category**: Future improvements, not production blockers
 
 **Examples**:
+
 - Grafana API queries for traces/logs (observability_test.go)
 - MFA chain testing (mfa_flows_test.go)
 - AuthenticationStrength enum (client_mfa_test.go)
@@ -113,6 +116,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Files**: `idp/auth/totp.go`, `idp/auth/otp.go`, `idp/auth/passkey.go`, `idp/userauth/username_password.go`
 
 **Rationale**:
+
 - Primary auth flow (username+password) functional
 - Advanced auth (WebAuthn, hardware credentials) already production-ready (Tasks 14, 15)
 - These TODOs represent alternative auth profiles (email+OTP, TOTP, passkey login)
@@ -140,23 +144,27 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Deliverables**:
 
 **D4.1: Secret Hashing Utility** (1 hour)
+
 - Create `internal/identity/authz/clientauth/secret_hash.go`
 - Implement `HashSecret(secret string) (string, error)` using PBKDF2-HMAC-SHA256
 - Implement `CompareSecret(hashed, plain string) bool`
 - Add unit tests for hashing/comparison
 
 **D4.2: Update Client Authentication** (2 hours)
+
 - Update `basic.go:64` to use `CompareSecret(client.ClientSecret, clientSecret)`
 - Update `post.go:44` to use `CompareSecret(client.ClientSecret, clientSecret)`
 - Update client creation to hash secrets before storage
 - Add integration tests
 
 **D4.3: Migration** (1 hour)
+
 - Create migration to hash existing plain text secrets
 - Add rollback support
 - Test on SQLite and PostgreSQL
 
 **Acceptance Criteria**:
+
 - ✅ Client secrets stored as PBKDF2-HMAC-SHA256 hashes
 - ✅ Authentication validates hashed secrets correctly
 - ✅ Migration hashes existing secrets
@@ -181,17 +189,20 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Deliverables**:
 
 **D1.1: User Association Fix** (1 hour)
+
 - Update `handlers_token.go:170` to retrieve `authRequest.UserID`
 - Remove `userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())`
 - Validate user ID exists in authorization request
 - Return error if user ID missing
 
 **D1.2: Integration Tests** (1 hour)
+
 - Add test: token contains real user ID from login
 - Add test: token rejected if user ID missing
 - Add test: token rejected if user ID invalid
 
 **Acceptance Criteria**:
+
 - ✅ Tokens contain real user ID from authorization request
 - ✅ No placeholder user ID generation
 - ✅ Zero user association TODOs remain
@@ -228,18 +239,21 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Additional Verification Steps**:
 
 **D11.1: TODO Comment Audit** (2 hours)
+
 - Scan ALL `internal/identity/**/*.go` files for TODO/FIXME
 - Categorize by severity (CRITICAL, HIGH, MEDIUM, LOW)
 - Verify zero CRITICAL/HIGH TODOs remain
 - Document acceptable LOW/MEDIUM TODOs with justification
 
 **D11.2: FIPS 140-3 Compliance Audit** (2 hours)
+
 - Verify no bcrypt/scrypt/Argon2 usage
 - Verify PBKDF2-HMAC-SHA256 for password hashing
 - Verify SHA-256/SHA-512 for digests
 - Verify RSA ≥2048, AES ≥128, NIST curves
 
 **D11.3: Security Checklist** (2 hours)
+
 - Client secrets hashed (not plain text)
 - Tokens associated with real users
 - Session cleanup jobs functional
@@ -248,6 +262,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 - CRL/OCSP checking enabled (if implemented)
 
 **Acceptance Criteria**:
+
 - ✅ All tests passing (zero failures)
 - ✅ Zero CRITICAL/HIGH TODO comments (verified by scan)
 - ✅ FIPS 140-3 compliance verified
@@ -285,16 +300,19 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 ### ❌ MISTAKE PATTERNS IDENTIFIED
 
 **Pattern 1: Premature Task Completion**
+
 - **What Happened**: Tasks marked ✅ COMPLETE without TODO comment verification
 - **Impact**: Security vulnerabilities (plain text secrets) and production blockers (placeholder user IDs) overlooked
 - **Corrective Action**: Add TODO scan to quality gates; require evidence of zero TODOs before marking complete
 
 **Pattern 2: Missing End-to-End Validation**
+
 - **What Happened**: Individual components tested in isolation, but full flow not validated
 - **Impact**: User association broken despite login/consent/token endpoints individually functional
 - **Corrective Action**: Add E2E integration tests to each task; validate complete user journey
 
 **Pattern 3: Documentation vs. Implementation Gap**
+
 - **What Happened**: MASTER-PLAN.md completion status diverged from actual code state
 - **Impact**: False sense of completion; critical work items missed
 - **Corrective Action**: Automated TODO comment tracking; require code scan evidence for completion claims
@@ -323,6 +341,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 ### Quality Gate Enhancements
 
 **Before Marking Task Complete**:
+
 - [ ] Run: `grep -r "TODO\|FIXME" internal/identity/` and categorize findings
 - [ ] Verify: Zero CRITICAL/HIGH TODOs in modified files
 - [ ] Document: Any acceptable MEDIUM/LOW TODOs with justification
@@ -332,6 +351,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 ### Documentation Updates
 
 **Update MASTER-PLAN.md**:
+
 - Change R01 status: ✅ → ⚠️ (PARTIAL - user association incomplete)
 - Change R04 status: ✅ → ⚠️ (PARTIAL - secret hashing incomplete)
 - Add R04-RETRY task (4 hours)
@@ -345,10 +365,12 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Current Reality**: Foundation 70% complete (not 73% as claimed)
 
 **Critical Gaps**:
+
 1. ❌ Client secret hashing (R04 incomplete)
 2. ❌ User-token association (R01 incomplete)
 
 **Path Forward**:
+
 1. Fix security vulnerability (R04-RETRY: secret hashing)
 2. Fix production blocker (R01-RETRY: user association)
 3. Complete API documentation (R08)

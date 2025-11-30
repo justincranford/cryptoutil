@@ -15,10 +15,12 @@
 **Status**: ✅ **COMPLETE**
 
 **Evidence**:
+
 - **Identity System section** (lines 164-196): Documents unified CLI, build commands, start/stop/health commands, available profiles (demo, authz-only, authz-idp, full-stack, ci)
 - **Identity System APIs section** (lines 243-267): Documents all three services (AuthZ, IdP, RS) with base URLs, Swagger UI links, OpenAPI spec paths, OAuth 2.1/OIDC endpoints, health endpoints
 
 **Content Quality**:
+
 ```markdown
 ### Identity System: Unified CLI (One-Liner Bootstrap)
 - Build commands for identity.exe, authz.exe, idp.exe, rs.exe binaries
@@ -41,6 +43,7 @@
 **Status**: ✅ **COMPLETE**
 
 **Structure**:
+
 ```
 docs/02-identityV2/
 ├── current/           (Active documentation - 23 files)
@@ -63,6 +66,7 @@ docs/02-identityV2/
 ```
 
 **Key Findings**:
+
 - **Navigation**: `current/README.md` provides clear entry points for developers, product managers, operations teams
 - **Traceability**: Complete timeline from original Task 1-20 plans through R01-R11 remediation tasks
 - **Archival Pattern**: Historical documents preserved in `historical/` subdirectory with clear deprecation notice
@@ -78,6 +82,7 @@ docs/02-identityV2/
 **Location**: `docs/02-identityV2/historical/task-01-architecture-diagrams.md` (372 lines)
 
 **Content**:
+
 - **6 Mermaid diagrams** documenting post-Task 20 state:
   1. Identity Services Architecture (AuthZ, IdP, RS with component status indicators)
   2. MFA Authentication Flow (TOTP, OTP, WebAuthn, Adaptive Auth sequencing)
@@ -87,6 +92,7 @@ docs/02-identityV2/
   6. Observability Pipeline (OTLP → Collector → Grafana LGTM stack)
 
 **Architectural Decisions Captured**:
+
 - Three-service separation (AuthZ, IdP, RS) for compliance with OAuth 2.1 separation of concerns
 - GORM repository pattern with PostgreSQL/SQLite dual-backend support
 - Session cache (in-memory) with planned cleanup job
@@ -94,6 +100,7 @@ docs/02-identityV2/
 - OpenTelemetry Collector forwarding pattern (services → collector → Grafana)
 
 **Status Indicators in Diagrams**:
+
 - ✅ Green: Complete and working (SPA RP, CLI orchestrator, E2E tests, observability)
 - ⚠️ Yellow: Partial implementation with TODOs (AuthZ consent, IdP UI, session cleanup)
 - ❌ Red: Missing critical functionality (RS token validation, scope enforcement)
@@ -109,6 +116,7 @@ docs/02-identityV2/
 **Evidence**:
 
 **OpenAPI Specifications** (✅ Complete):
+
 ```
 api/identity/
 ├── authz/openapi.yaml           (Authorization Server API spec)
@@ -120,25 +128,29 @@ api/identity/
 ```
 
 **Generation Configurations** (✅ Complete):
+
 - `openapi-gen_config_authz.yaml` - oapi-codegen config for AuthZ
 - `openapi-gen_config_idp.yaml` - oapi-codegen config for IdP
 - `openapi-gen_config_rs.yaml` - oapi-codegen config for RS
 - `openapi-gen_config_models.yaml` - Shared models generation
 
 **API Documentation Guide** (❌ Referenced but Archived):
+
 - **README.md references**: `[OpenAPI Guide](docs/02-identityV2/openapi-guide.md)` (lines 251, 259, 267)
 - **Actual location**: `docs/02-identityV2/historical/openapi-guide.md` (archived)
 - **Impact**: Broken documentation link for users following README.md
 
 **Swagger UI Integration** (✅ Complete):
-- AuthZ: https://localhost:8080/ui/swagger
-- IdP: https://localhost:8081/ui/swagger
-- RS: https://localhost:8082/ui/swagger
+
+- AuthZ: <https://localhost:8080/ui/swagger>
+- IdP: <https://localhost:8081/ui/swagger>
+- RS: <https://localhost:8082/ui/swagger>
 - All services expose `/ui/swagger/doc.json` for OpenAPI spec download
 
 **Critical Gap**: README.md references `docs/02-identityV2/openapi-guide.md` but file is in `historical/` subdirectory. Users following README.md links will encounter 404.
 
 **Recommendation**: Either:
+
 1. **Move** `historical/openapi-guide.md` to `current/openapi-guide.md` (if still relevant)
 2. **Update** README.md links to `historical/openapi-guide.md`
 3. **Create** new consolidated API guide in `current/` directory
@@ -152,6 +164,7 @@ api/identity/
 **Status**: ✅ **COMPLETE** (with archived historical runbooks)
 
 **Active Runbooks** (`docs/runbooks/`):
+
 1. **production-deployment-checklist.md** (371 lines, created in R11-09)
    - Pre-deployment checklist (prerequisites, config, security, testing, backup)
    - Deployment procedures (Docker Compose, Kubernetes, health validation)
@@ -166,11 +179,13 @@ api/identity/
    - MFA escalation procedures
 
 **Archived Runbooks** (`docs/02-identityV2/historical/`):
+
 1. **operational-runbook.md** - Service management, health checks, log analysis
 2. **incident-response-runbook.md** - Security incident procedures, escalation paths
 3. **token-rotation-runbook.md** - Key rotation procedures, rollback steps
 
 **Coverage Assessment**:
+
 | Operational Area | Documented | Location |
 |------------------|-----------|----------|
 | Production Deployment | ✅ | docs/runbooks/production-deployment-checklist.md |
@@ -189,6 +204,7 @@ api/identity/
 **Status**: ❌ **BROKEN LINK** - Guide exists but referenced incorrectly
 
 **README.md Reference** (line 196):
+
 ```markdown
 For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-guide.md).
 ```
@@ -230,6 +246,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-
 ### Issue 1: Broken Documentation Links in README.md
 
 **Problem**: README.md references two guides that were moved to `historical/` subdirectory during documentation reorganization:
+
 1. `docs/02-identityV2/unified-cli-guide.md` → Actually in `historical/` (README line 196)
 2. `docs/02-identityV2/openapi-guide.md` → Actually in `historical/` (README lines 251, 259, 267)
 
@@ -238,6 +255,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-
 **Root Cause**: Documentation reorganization moved files to `historical/` but didn't update README.md references.
 
 **Resolution Options**:
+
 1. **Option A** (Preferred): Move guides from `historical/` to `current/` if content is still relevant
 2. **Option B**: Update README.md links to `historical/openapi-guide.md` and `historical/unified-cli-guide.md`
 3. **Option C**: Create new consolidated guides in `current/` directory with updated content
@@ -249,6 +267,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-
 ### Issue 2: Historical vs Current Documentation Boundary
 
 **Observation**: Some operational runbooks remain in `historical/` while similar documents exist in `docs/runbooks/`:
+
 - `historical/operational-runbook.md` (general operations)
 - `docs/runbooks/adaptive-auth-operations.md` (specific feature operations)
 - `docs/runbooks/production-deployment-checklist.md` (deployment procedures)
@@ -266,6 +285,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-
 ### Immediate Actions (Required for R11-11 PASS)
 
 1. **Fix Broken Links** (CRITICAL):
+
    ```bash
    # Option: Update README.md to reference historical/ paths
    sed -i 's|docs/02-identityV2/unified-cli-guide.md|docs/02-identityV2/historical/unified-cli-guide.md|' README.md
@@ -323,6 +343,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-
 **Documentation Completeness Assessment**: ⚠️ **PARTIAL** (73% complete)
 
 **Strengths**:
+
 - Comprehensive README.md coverage of Identity system
 - Well-organized documentation hierarchy (current/historical)
 - Excellent architectural documentation with visual diagrams
@@ -331,10 +352,12 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-
 - Clear requirements tracking and production readiness documentation
 
 **Critical Gaps**:
+
 - 2 broken documentation links in README.md (unified-cli-guide.md, openapi-guide.md)
 - Referenced guides exist but in wrong directory (historical/ instead of current/)
 
 **Remediation Required**:
+
 - Update README.md to reference correct paths: `historical/unified-cli-guide.md` and `historical/openapi-guide.md`
 - Validate all documentation links after fix
 - Consider consolidating or promoting historical guides to current/ if content is still relevant
@@ -342,6 +365,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/unified-cli-
 **R11-11 Status**: ⚠️ **PARTIAL** - Core documentation complete but requires link fixes to achieve VALIDATED status.
 
 **Next Steps**:
+
 1. Fix broken README.md links (5 minutes)
 2. Test all documentation paths (5 minutes)
 3. Update REQUIREMENTS-COVERAGE.md: R11-11 → VALIDATED (after link fixes)

@@ -13,6 +13,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 **File**: `internal/identity/authz/authorization_request.go` (196 lines)
 
 **Implementation**:
+
 - `AuthorizationRequest` struct with full OAuth 2.1 parameters
 - `AuthorizationRequestStore` interface for storage abstraction
 - `InMemoryAuthorizationRequestStore` implementation with:
@@ -22,6 +23,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
   - Expiration-based cleanup of stale authorization requests
 
 **Key Features**:
+
 - Single-use authorization codes
 - PKCE challenge/verifier storage
 - Time-based expiration with automatic cleanup
@@ -32,12 +34,14 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 **File**: `internal/identity/authz/code_generator.go` (20 lines)
 
 **Implementation**:
+
 - `GenerateAuthorizationCode()` function using `crypto/rand`
 - Base64 URL encoding for URI safety
 - 32-byte cryptographically secure random codes
 - Uses `cryptoutilIdentityMagic.DefaultAuthCodeLength` constant
 
 **Security Properties**:
+
 - Cryptographic randomness (crypto/rand, not math/rand)
 - Sufficient entropy for anti-replay protection
 - URL-safe encoding for redirect URI compatibility
@@ -47,6 +51,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 **File**: `internal/identity/authz/handlers_authorize.go` (~250 lines)
 
 **Implemented**:
+
 - `handleAuthorizeGET`: Stores authorization requests with PKCE challenges and expiry
 - `handleAuthorizePOST`: Generates authorization codes after simulated consent
 - Structured logging with slog for all operations
@@ -55,6 +60,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 - State parameter preservation
 
 **OAuth 2.1 Compliance**:
+
 - Mandatory PKCE validation (draft 15, Section 7.6)
 - Authorization code generation and storage
 - Proper error responses per spec
@@ -65,6 +71,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 **File**: `internal/identity/authz/handlers_token.go` (~280 lines)
 
 **Implemented**:
+
 - Authorization code validation and retrieval
 - Client ID verification against stored request
 - Redirect URI validation against stored request
@@ -75,6 +82,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 - Comprehensive structured logging
 
 **OAuth 2.1 Compliance**:
+
 - Mandatory PKCE verification (draft 15, Section 7.6)
 - Single-use authorization codes
 - Client authentication
@@ -85,6 +93,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 **File**: `internal/identity/authz/service.go`
 
 **Changes**:
+
 - Added `authReqStore` field to Service struct
 - Initialized `NewInMemoryAuthorizationRequestStore()` in `NewService`
 - Integrated with existing token service and repository factory
@@ -94,6 +103,7 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 **File**: `internal/identity/magic/magic_timeouts.go`
 
 **Added**:
+
 - `ChallengeCleanupInterval = 5 * time.Minute` for authorization request cleanup
 
 ### 7. Comprehensive Test Suite
@@ -101,12 +111,14 @@ Brought the authorization server back into alignment with OAuth 2.1 draft 15, ad
 **File**: `internal/identity/authz/authz_test.go` (195 lines)
 
 **Tests Implemented**:
+
 1. `TestAuthorizationRequestStore_CRUD`: Store, retrieve by request ID, update, retrieve by code, delete
 2. `TestAuthorizationRequestStore_Expiration`: Verifies non-expired requests are retrievable
 3. `TestGenerateAuthorizationCode`: Uniqueness and length validation (100 unique codes)
 4. `TestAuthorizationRequestStore_CodeIndexing`: Multiple requests, code indexing, deletion cleanup
 
 **Coverage**:
+
 - ✅ Storage operations (create, read, update, delete)
 - ✅ Code generation (uniqueness, length, randomness)
 - ✅ Code indexing (lookup optimization)
@@ -167,6 +179,7 @@ authRequest.ConsentGranted = true
 **Current Implementation**: Authorization requests stored in memory (not database-persisted)
 
 **Rationale**:
+
 - Authorization requests are short-lived (5-minute expiry)
 - Database persistence overhead not justified for ephemeral data
 - Simplifies implementation and testing
@@ -207,17 +220,20 @@ authRequest.ConsentGranted = true
 ## Files Modified/Created
 
 ### Created (3 files, 216 lines)
+
 - `internal/identity/authz/authorization_request.go` (196 lines)
 - `internal/identity/authz/code_generator.go` (20 lines)
 - `internal/identity/authz/authz_test.go` (195 lines - comprehensive test suite)
 
 ### Modified (4 files)
+
 - `internal/identity/authz/handlers_authorize.go` (~100 lines added: storage, code generation, logging)
 - `internal/identity/authz/handlers_token.go` (~80 lines added: PKCE validation, code exchange)
 - `internal/identity/authz/service.go` (2 lines added: authReqStore field)
 - `internal/identity/magic/magic_timeouts.go` (1 constant added)
 
 ### Documentation (1 file)
+
 - `docs/identityV2/task-06-deliverables.md` (this file)
 
 **Total Impact**: 7 files modified/created, ~416 new lines of production code, 195 lines of tests
@@ -231,6 +247,7 @@ go test ./internal/identity/authz/...
 ```
 
 **Results**: 4/4 tests passing
+
 - ✅ `TestAuthorizationRequestStore_CRUD`
 - ✅ `TestAuthorizationRequestStore_Expiration`
 - ✅ `TestGenerateAuthorizationCode`
@@ -239,6 +256,7 @@ go test ./internal/identity/authz/...
 ### Manual Testing Readiness
 
 **Prerequisites for Manual Testing**:
+
 1. Full token service initialization required (JWS/JWE/UUID issuers)
 2. Database with client records (requires Task 05 storage verification)
 3. User authentication system (deferred to Task 07)

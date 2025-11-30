@@ -1,18 +1,16 @@
 # Task 8: Integration Testing - E2E & Integration Tests
+
 **Status:** status:pending
 **Estimated Time:** 40 minutes
 **Priority:** High (Quality assurance)
-
 
 🎯 GOAL
 
 Implement comprehensive integration and end-to-end tests covering the complete OAuth 2.1 + OIDC specification. This ensures the identity module works correctly as a cohesive system.
 
-
 📋 TASK OVERVIEW
 
 Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, and integration scenarios. Include E2E tests with real HTTP servers and comprehensive unit/integration test coverage.
-
 
 🔧 INPUTS & CONTEXT
 
@@ -23,7 +21,6 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 **Testing:** Unit, integration, E2E test patterns
 
 **Constraints:** Use testify, follow cryptoutil testing patterns
-
 
 📁 FILES TO CREATE
 
@@ -66,7 +63,6 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 
 ``
 
-
 🎯 IMPLEMENTATION REQUIREMENTS
 
 ### OAuth 2.1 Testing
@@ -98,7 +94,6 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 **SPA Integration:** Complete browser-based flows
 
 **Error Recovery:** Network failures, timeouts
-
 
 ## ✅ COMPLETION CRITERIA
 
@@ -176,6 +171,7 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 #### GitHub Workflows (Automated CI/CD)
 
 ##### New: Identity Compliance Workflow (`ci-identity-compliance.yml`)
+
 - [ ] **OAuth 2.1 Flow Testing**: Complete authorization code flow with PKCE validation
 - [ ] **OIDC Core Compliance**: ID token validation, UserInfo endpoint testing
 - [ ] **oauth2c Integration**: Automated OAuth 2.0 compliance testing tool
@@ -183,12 +179,14 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 - [ ] **Nuclei OAuth Templates**: OAuth-specific vulnerability scanning
 
 ##### Extend Existing DAST Workflow (`ci-dast.yml`)
+
 - [ ] **OAuth Template Scanning**: Nuclei templates for OAuth/OIDC vulnerabilities
 - [ ] **ZAP OAuth Scripts**: Automated OAuth flow security testing
 
 #### Integration Tests (Component Level)
 
 ##### AuthZ Server Integration Tests
+
 - [ ] **PKCE Enforcement**: Mandatory PKCE for all authorization code flows
 - [ ] **State Parameter Validation**: Required state validation and replay prevention
 - [ ] **Redirect URI Strict Matching**: Exact redirect URI matching
@@ -196,6 +194,7 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 - [ ] **Client Authentication**: JWT-based client authentication support
 
 ##### IdP Server Integration Tests
+
 - [ ] **OIDC Discovery**: Complete `.well-known/openid-configuration` validation
 - [ ] **JWKS Endpoint**: JSON Web Key Set availability and format
 - [ ] **ID Token Issuance**: Proper ID token creation and signing
@@ -203,6 +202,7 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 - [ ] **Session Management**: OIDC session and logout functionality
 
 ##### RS Server Integration Tests
+
 - [ ] **JWT Token Validation**: Access token signature verification
 - [ ] **Token Introspection**: RFC 7662 compliant introspection
 - [ ] **Scope-based Access**: Proper scope validation and enforcement
@@ -212,6 +212,7 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 #### E2E Tests (Full System Integration)
 
 ##### Complete OAuth 2.1 + OIDC Flows
+
 - [ ] **Authorization Code Flow**: End-to-end flow with PKCE and state validation
 - [ ] **Client Credentials Flow**: Service-to-service authentication
 - [ ] **Refresh Token Flow**: Token renewal and rotation validation
@@ -221,18 +222,21 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 - [ ] **Logout Flow**: Proper session termination across all services
 
 ##### Multi-Server Coordination
+
 - [ ] **AuthZ + IdP Integration**: Seamless authorization and identity flows
 - [ ] **AuthZ + RS Integration**: Token validation between services
 - [ ] **IdP + RS Integration**: User context propagation
 - [ ] **Full System Flow**: Complete user journey across all three services
 
 ##### SPA Integration Testing
+
 - [ ] **Browser-based OAuth Flow**: Complete SPA authorization code flow
 - [ ] **PKCE in Browser**: Secure code challenge/verifier generation
 - [ ] **Token Management**: Secure storage and automatic refresh
 - [ ] **Error Handling**: Network failures and invalid token scenarios
 
 ##### Security and Compliance Validation
+
 - [ ] **OAuth 2.1 BCP Compliance**: Security best current practices
 - [ ] **OIDC Core 1.0 Certification**: Official OIDC compliance
 - [ ] **JWT Security**: Proper token signing and validation
@@ -242,29 +246,32 @@ Create extensive test suites covering all OAuth 2.1 flows, OIDC functionality, a
 #### Compliance Testing Tools Integration
 
 ##### oauth2c (OAuth 2.0 Compliance Testing)
+
 - [ ] **Automated Flow Testing**: Command-line OAuth compliance validation
 - [ ] **PKCE Validation**: Code challenge/verifier verification
 - [ ] **State Parameter Testing**: State parameter handling validation
 - [ ] **Error Response Testing**: Proper error code and message validation
 
 ##### OpenID Connect Conformance Suite
+
 - [ ] **Official OIDC Testing**: Certified OIDC compliance validation
 - [ ] **ID Token Validation**: Complete ID token structure and claims testing
 - [ ] **Discovery Document Testing**: Provider metadata validation
 - [ ] **Dynamic Client Registration**: Client registration flow testing
 
 ##### OWASP ZAP OAuth Add-on
+
 - [ ] **Security Vulnerability Scanning**: OAuth-specific security testing
 - [ ] **Token Leakage Detection**: Sensitive token exposure detection
 - [ ] **Redirect URI Validation**: Open redirect vulnerability testing
 - [ ] **CSRF Protection Testing**: State parameter validation
 
 ##### Nuclei OAuth Templates
+
 - [ ] **OAuth Vulnerability Scanning**: Template-based OAuth security testing
 - [ ] **OIDC Misconfiguration Detection**: Common OIDC setup issues
 - [ ] **Token Handling Validation**: Secure token storage and transmission
 - [ ] **Endpoint Security Testing**: OAuth endpoint security validation
-
 
 ## 🔗 NEXT STEPS
 
@@ -273,7 +280,6 @@ After completion:
 1. **Commit:** `feat: complete Task 8 - integration testing`
 2. **Update:** `identity_master.md` status to completed
 3. **Final Review:** Complete identity module implementation
-
 
 📝 NOTES
 

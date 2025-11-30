@@ -23,12 +23,14 @@
 ### Current Reality (from Passthru4 Analysis)
 
 **Project Status** (from PROJECT-STATUS.md):
+
 - Original Plan: 45% complete (9/20 tasks)
 - Requirements Coverage: 98.5% (64/65 requirements) - MASSIVE IMPROVEMENT from 58.5%
 - TODO Count: 37 total (0 CRITICAL, 4 HIGH, 12 MEDIUM, 21 LOW)
 - Production Blockers: 1 remaining (R04-06 client secret rotation - DEFERRED)
 
 **Known Issues from Passthru4**:
+
 1. E2E test failures fixed (P4.05) but workaround used (sequential execution instead of dynamic ports)
 2. Template improvements documented (P4.04) but not yet applied systematically
 3. Multiple documentation files still exist (README vs STATUS vs COVERAGE) - single source not enforced
@@ -74,6 +76,7 @@
 **Problem**: Requirements coverage tool exists but doesn't fail builds on low coverage
 
 **Evidence**:
+
 - `identity-requirements-check` reports 98.5% but doesn't enforce threshold
 - CI/CD doesn't fail on coverage < 90% per-task or < 85% overall
 - Agent can claim "complete" despite uncovered requirements
@@ -85,6 +88,7 @@
 **Problem**: P4.05 used sequential test execution instead of fixing port conflicts
 
 **Evidence**:
+
 - E2E tests marked "complete" with known limitation (sequential execution)
 - Proper fix (dynamic port allocation) deferred to "future enhancement"
 - Technical debt accumulated without tracking
@@ -96,6 +100,7 @@
 **Problem**: README, PROJECT-STATUS, REQUIREMENTS-COVERAGE all claim different status
 
 **Evidence**:
+
 - README: User-facing guide (may not reflect current implementation status)
 - PROJECT-STATUS: Intended single source but not enforced
 - REQUIREMENTS-COVERAGE: Automated report (accurate but not integrated)
@@ -108,6 +113,7 @@
 **Problem**: R04-06 client secret rotation deferred without creating task/issue
 
 **Evidence**:
+
 - REQUIREMENTS-COVERAGE shows R04-06 as "DEFERRED to future enhancement"
 - No task document created for implementation
 - No GitHub issue tracking the work
@@ -120,6 +126,7 @@
 **Problem**: Tasks marked complete without running validation checklist
 
 **Evidence**:
+
 - No evidence of post-task TODO scans
 - No evidence of coverage regression checks
 - No evidence of integration smoke tests after each task
@@ -135,6 +142,7 @@
 
 **Task Numbering**: `P5.##-<TASK_NAME>.md`
 **Phases**:
+
 - Phase 1: Quality Infrastructure (P5.01-P5.03) - Foundation improvements
 - Phase 2: Requirements Completion (P5.04-P5.06) - Missing requirements
 - Phase 3: Technical Debt (P5.07-P5.08) - Proper fixes for workarounds
@@ -185,6 +193,7 @@ P5.09 → P5.10
 **Focus**: Build automated quality gates to prevent future gap accumulation
 
 **P5.01: Automated Quality Gate Enforcement** ✅ COMPLETE
+
 - Add `--strict` mode to identity-requirements-check with threshold enforcement
 - Integrate into `.github/workflows/ci-quality.yml` as required check
 - Add pre-commit hook for TODO scan with fail-fast on CRITICAL/HIGH
@@ -192,6 +201,7 @@ P5.09 → P5.10
 - **Evidence**: Commit 2e45a21a (P5.01 implementation, all success criteria met)
 
 **P5.02: Single Source Enforcement** ✅ COMPLETE
+
 - Consolidate README status section → reference PROJECT-STATUS.md
 - Remove duplicate status info from PASSTHRU4-FEATURE-PLAN.md
 - Automate PROJECT-STATUS.md updates from identity-requirements-check
@@ -199,6 +209,7 @@ P5.09 → P5.10
 - **Evidence**: Commit 6ade5993 (P5.02 implementation, all success criteria met)
 
 **P5.03: Progressive Validation Tool** ✅ COMPLETE
+
 - Create `go run ./cmd/cicd identity-progressive-validation` command
 - Implement 6-step validation checklist (TODO → tests → coverage → requirements → integration → docs)
 - Add to TASK-EXECUTION-TEMPLATE.md as mandatory step
@@ -206,6 +217,7 @@ P5.09 → P5.10
 - **Evidence**: Commits 9fc99714, d2241ddc, 9a2c89f7, e07c4c8a, b0438fec (all success criteria met)
 
 **Exit Criteria for Phase 1**:
+
 - [x] CI/CD fails on requirements coverage < 90% per-task or < 85% overall
 - [x] PROJECT-STATUS.md is ONLY status source (other docs reference it)
 - [x] Progressive validation tool exists and documented
@@ -218,6 +230,7 @@ P5.09 → P5.10
 **Focus**: Complete ALL uncovered requirements and resolve HIGH TODOs
 
 **P5.04: Client Secret Rotation (R04-06)**
+
 - Implement `PUT /clients/{id}/rotate-secret` endpoint
 - Add secret history tracking in database schema
 - Implement rotation notification mechanism (email/webhook)
@@ -225,18 +238,21 @@ P5.09 → P5.10
 - Tests: rotation flow, secret history, notifications
 
 **P5.05: Requirements Validation**
+
 - Run identity-requirements-check --strict to identify remaining gaps
 - Validate R04-06 (client secret rotation) with evidence
 - Ensure 100% requirements coverage (65/65)
 - Update PROJECT-STATUS.md with final coverage metrics
 
 **P5.06: HIGH TODO Resolution**
+
 - Identify all 4 HIGH priority TODOs from passthru4
 - Create sub-tasks for each HIGH TODO resolution
 - Implement fixes with tests and documentation
 - Verify grep search shows 0 HIGH TODOs remaining
 
 **Exit Criteria for Phase 2**:
+
 - [ ] Requirements coverage: 100% (65/65) validated with evidence
 - [ ] HIGH TODOs: 0 remaining (verified via grep search)
 - [ ] R04-06 client secret rotation fully functional with tests
@@ -247,6 +263,7 @@ P5.09 → P5.10
 **Focus**: Proper fixes for workarounds from passthru4
 
 **P5.07: Dynamic Port Allocation**
+
 - Refactor `integration_test.go` to use dynamic ports (0 → OS-assigned)
 - Add server listener inspection to read assigned ports
 - Construct base URLs dynamically from assigned ports
@@ -254,12 +271,14 @@ P5.09 → P5.10
 - Tests: verify port allocation, parallel execution, no conflicts
 
 **P5.08: MEDIUM TODO Reduction**
+
 - Target: 12 MEDIUM TODOs → 6 or fewer
 - Prioritize by impact (structured logging, auth profile registration, validation)
 - Implement highest-value TODOs first
 - Document remaining 6 TODOs with justification for deferral
 
 **Exit Criteria for Phase 3**:
+
 - [ ] E2E tests use dynamic port allocation (no hardcoded ports)
 - [ ] Tests run in parallel without port conflicts
 - [ ] MEDIUM TODOs: ≤6 remaining (50% reduction from 12)
@@ -272,6 +291,7 @@ P5.09 → P5.10
 **Status**: NOT STARTED
 
 **P5.09: Production Deployment Checklist**
+
 - Complete `docs/runbooks/production-deployment-checklist.md` validation
 - Security validation: DAST/SAST scans clean, vulnerability scans clean
 - Performance validation: Load tests passing, benchmarks within SLAs
@@ -279,12 +299,14 @@ P5.09 → P5.10
 - Documentation completeness: README, API docs, architecture diagrams up-to-date
 
 **P5.10: Final Validation and Approval**
+
 - Run full smoke test suite (OAuth flows, OIDC flows, WebAuthn, MFA)
 - Verify all quality gates passing (tests, coverage, linting, security)
 - Generate final status report: PROJECT-STATUS.md with production-ready stamp
 - Stakeholder sign-off: Product owner, security team, operations team
 
 **Exit Criteria for Phase 4**:
+
 - [ ] All production checklist items complete with evidence
 - [ ] Smoke tests: 100% passing (all core flows functional)
 - [ ] PROJECT-STATUS.md: Status = ✅ PRODUCTION READY
@@ -303,27 +325,32 @@ P5.09 → P5.10
 ### Universal Quality Gates (ALL Tasks)
 
 **Code Quality** (run before marking task complete):
+
 - [ ] `go build ./...` → Zero compilation errors
 - [ ] `golangci-lint run ./...` → Zero linting errors
 - [ ] `grep -r "TODO\|FIXME" <modified_files>` → Zero new TODOs vs baseline
 - [ ] Import aliases correct: `golangci-lint run --enable-only=importas ./...`
 
 **Testing** (run before marking task complete):
+
 - [ ] `runTests` → All tests passing (0 failures)
 - [ ] `go test -cover` → Coverage ≥85% infrastructure, ≥80% features
 - [ ] No test skips: `grep -r "t.Skip" <modified_files>` → 0 results
 
 **Requirements** (run before marking task complete):
+
 - [ ] `go run ./cmd/cicd identity-requirements-check --strict` → Pass
 - [ ] Per-task coverage ≥90% (for tasks with requirements)
 - [ ] Overall coverage ≥85% (maintained or improved)
 
 **Documentation** (verify before marking task complete):
+
 - [ ] PROJECT-STATUS.md updated with latest metrics
 - [ ] Post-mortem created: `P5.##-POSTMORTEM.md`
 - [ ] OpenAPI synced if API changes: `go run ./api/generate.go`
 
 **Progressive Validation** (after EVERY task):
+
 1. TODO Scan: Zero new TODOs introduced
 2. Test Run: All tests passing
 3. Coverage Check: Coverage maintained/improved
@@ -334,6 +361,7 @@ P5.09 → P5.10
 ### Evidence-Based Completion Checklist
 
 **Before marking ANY task complete:**
+
 - [ ] Code evidence: Compilation, linting, TODO scan outputs captured
 - [ ] Test evidence: Test run output shows PASS, coverage report generated
 - [ ] Requirements evidence: identity-requirements-check output captured
@@ -343,6 +371,7 @@ P5.09 → P5.10
 ### Requirements Coverage Threshold Enforcement
 
 **Automated Enforcement**:
+
 ```bash
 # In CI/CD (.github/workflows/ci-quality.yml)
 go run ./cmd/cicd identity-requirements-check --strict \
@@ -377,6 +406,7 @@ go run ./cmd/cicd identity-requirements-check --strict \
 ### Production Readiness Criteria
 
 **ALL must be TRUE for production approval**:
+
 - [ ] Requirements coverage: 100% (65/65)
 - [ ] HIGH TODOs: 0 remaining
 - [ ] Test pass rate: 100%
@@ -404,21 +434,25 @@ go run ./cmd/cicd identity-requirements-check --strict \
 ### Risk Mitigation Strategies
 
 **R01 Mitigation**:
+
 - Start with warning-only mode, graduate to fail-fast
 - Allow temporary threshold reduction via PR comment (requires approval)
 - Document all quality gate bypasses with justification
 
 **R02 Mitigation**:
+
 - Test dynamic ports with act local workflow runner first
 - Run E2E tests in GitHub Actions with dynamic ports before merge
 - Keep sequential execution as fallback (environment variable toggle)
 
 **R03 Mitigation**:
+
 - Implement feature flag: `ENABLE_CLIENT_SECRET_ROTATION=false` default
 - Create migration guide with rollback procedure
 - Test rollback scenario in staging environment
 
 **R04 Mitigation**:
+
 - Strict adherence to P5.01-P5.10 scope
 - New feature requests → backlog for post-production
 - Focus on completion, not expansion
@@ -430,6 +464,7 @@ go run ./cmd/cicd identity-requirements-check --strict \
 **EVERY task MUST create post-mortem**: `P5.##-POSTMORTEM.md`
 
 **Mandatory Sections**:
+
 1. Implementation Summary: What was implemented, what was deferred
 2. Issues Encountered: Bugs, omissions, suboptimal patterns, test failures
 3. Corrective Actions: Immediate fixes, deferred fixes (new tasks), pattern improvements
@@ -438,6 +473,7 @@ go run ./cmd/cicd identity-requirements-check --strict \
 6. Risk Updates: Realized risks, new risks identified
 
 **Corrective Action Enforcement**:
+
 - ALL gaps → immediate fixes OR new task docs (MUST create task doc, not optional)
 - ALL deferred fixes → added to manage_todo_list with priority
 - ALL pattern improvements → documented in LESSONS-LEARNED.md
@@ -449,25 +485,30 @@ go run ./cmd/cicd identity-requirements-check --strict \
 ### A. References to Passthru4 Artifacts
 
 **Gap Analysis**:
+
 - `docs/02-identityV2/passthru4/GAP-ANALYSIS.md` - Identified gaps from passthru1-3
 - `docs/02-identityV2/passthru4/TEMPLATE-IMPROVEMENTS.md` - Template enhancement proposals
 - `docs/02-identityV2/passthru4/PASSTHRU4-FEATURE-PLAN.md` - Passthru4 planning
 
 **Status Reports**:
+
 - `docs/02-identityV2/passthru4/PROJECT-STATUS.md` - Current project status
 - `docs/02-identityV2/passthru4/REQUIREMENTS-COVERAGE.md` - Requirements coverage report
 - `docs/02-identityV2/passthru4/P4.05-POSTMORTEM.md` - E2E test fix postmortem
 
 **Deferred Items**:
+
 - `docs/02-identityV2/passthru4/P4.05-E2E-PORT-FIX-DEFERRED.md` - Dynamic ports deferred
 
 ### B. New Template and Instructions
 
 **Template Enhancements**:
+
 - `docs/feature-template/feature-template.md` v2.0 - Enhanced with evidence-based validation
 - `.github/instructions/05-01.evidence-based-completion.instructions.md` - New completion guidelines
 
 **Template Improvements Applied**:
+
 1. Evidence-based acceptance criteria
 2. Automated quality gates
 3. Post-mortem corrective action enforcement
@@ -488,6 +529,7 @@ go run ./cmd/cicd identity-requirements-check --strict \
 **THIS IS THE FINAL PASSTHROUGH** - No more gaps, no more workarounds, no more incomplete status.
 
 **Completion Commitment**:
+
 - 100% requirements coverage
 - Zero CRITICAL/HIGH TODOs
 - Production-ready with stakeholder approval

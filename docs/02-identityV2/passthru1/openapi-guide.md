@@ -3,6 +3,7 @@
 ## Overview
 
 The Identity System provides comprehensive OpenAPI 3.0.3 specifications for all three services:
+
 - **AuthZ**: OAuth 2.1 Authorization Server
 - **IdP**: OpenID Connect Identity Provider
 - **RS**: OAuth 2.1 Resource Server
@@ -47,6 +48,7 @@ curl -k https://localhost:8082/ui/swagger/doc.json
 **Base URL**: `https://localhost:8080`
 
 **OAuth 2.1 Endpoints**:
+
 - `POST /oauth2/v1/authorize` - Authorization code flow with mandatory PKCE
 - `POST /oauth2/v1/token` - Token endpoint (3 grant types)
 - `POST /oauth2/v1/introspect` - Token introspection
@@ -54,11 +56,13 @@ curl -k https://localhost:8082/ui/swagger/doc.json
 - `GET /health` - Service health check
 
 **Grant Types Supported**:
+
 1. **Authorization Code** (`authorization_code`) - For browser-based apps with PKCE S256
 2. **Refresh Token** (`refresh_token`) - For obtaining new access tokens
 3. **Client Credentials** (`client_credentials`) - For service-to-service authentication
 
 **Security Schemes**:
+
 - `clientBasicAuth` - HTTP Basic authentication with client_id/client_secret
 - `clientSecretPost` - Client secret in request body (form parameter)
 
@@ -67,6 +71,7 @@ curl -k https://localhost:8082/ui/swagger/doc.json
 **Base URL**: `https://localhost:8081`
 
 **OIDC Endpoints**:
+
 - `GET /oidc/v1/login` - HTML login form with CSRF token
 - `POST /oidc/v1/login` - User authentication
 - `GET /oidc/v1/consent` - Consent page
@@ -76,6 +81,7 @@ curl -k https://localhost:8082/ui/swagger/doc.json
 - `GET /health` - Service health check
 
 **Session Management**:
+
 - Session cookie: `session_id` (HttpOnly, Secure, SameSite=Lax)
 - CSRF protection: Required for all POST requests
 
@@ -84,6 +90,7 @@ curl -k https://localhost:8082/ui/swagger/doc.json
 **Base URL**: `https://localhost:8082`
 
 **API Endpoints**:
+
 - `GET /api/v1/public/health` - Public health check (no auth)
 - `GET /api/v1/protected/resource` - Protected resource (requires `read:resource` scope)
 - `POST /api/v1/protected/resource` - Create resource (requires `write:resource` scope)
@@ -92,6 +99,7 @@ curl -k https://localhost:8082/ui/swagger/doc.json
 - `GET /api/v1/admin/metrics` - Admin metrics endpoint (requires `admin` scope)
 
 **Security Scheme**:
+
 - `BearerAuth` - OAuth 2.0 access token (JWT format)
 
 ## Authentication Flows
@@ -122,6 +130,7 @@ sequenceDiagram
 **Step-by-Step Example**:
 
 1. **Generate PKCE Challenge**:
+
 ```bash
 # Generate code_verifier (random 43-128 char string)
 CODE_VERIFIER=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-43)
@@ -131,6 +140,7 @@ CODE_CHALLENGE=$(echo -n $CODE_VERIFIER | openssl dgst -sha256 -binary | base64 
 ```
 
 2. **Authorization Request**:
+
 ```bash
 curl -X POST 'https://localhost:8080/oauth2/v1/authorize' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -144,6 +154,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/authorize' \
 ```
 
 3. **Token Exchange**:
+
 ```bash
 curl -X POST 'https://localhost:8080/oauth2/v1/token' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -156,6 +167,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/token' \
 ```
 
 4. **Access Protected Resource**:
+
 ```bash
 curl -X GET 'https://localhost:8082/api/v1/protected/resource' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
@@ -193,6 +205,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/token' \
 ### Common Response Types
 
 #### HealthResponse
+
 ```json
 {
   "status": "healthy",     // "healthy" or "unhealthy"
@@ -202,6 +215,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/token' \
 ```
 
 #### OAuth2Error
+
 ```json
 {
   "error": "invalid_request",           // RFC 6749 error code
@@ -211,6 +225,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/token' \
 ```
 
 #### ErrorResponse (IdP)
+
 ```json
 {
   "error": "invalid_request",
@@ -234,6 +249,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/token' \
 ### RS Response Types
 
 #### ProtectedResourceResponse
+
 ```json
 {
   "message": "Protected resource accessed successfully",
@@ -289,6 +305,7 @@ go test ./internal/identity/rs -run=TestRSContractPublicHealth
 ```
 
 **Example Contract Test**:
+
 ```go
 func TestAuthZContractHealth(t *testing.T) {
     // Load OpenAPI spec
@@ -361,18 +378,22 @@ swagger-cli validate api/identity/openapi_spec_components.yaml
 ### Common Issues
 
 **Problem**: "Failed to find route in OpenAPI spec"
+
 - **Cause**: URL path doesn't match spec exactly
 - **Solution**: Check for trailing slashes, query parameters, case sensitivity
 
 **Problem**: "Response does not match OpenAPI spec"
+
 - **Cause**: Response schema mismatch (missing fields, wrong types)
 - **Solution**: Validate response JSON against schema, check required fields
 
 **Problem**: "Client authentication failed"
+
 - **Cause**: Invalid credentials or wrong auth method
 - **Solution**: Verify client_id/client_secret, use correct security scheme
 
 **Problem**: "Invalid PKCE challenge"
+
 - **Cause**: code_challenge doesn't match code_verifier
 - **Solution**: Use S256 method, verify base64url encoding
 

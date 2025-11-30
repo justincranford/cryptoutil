@@ -42,6 +42,7 @@ The user login page returns JSON instead of HTML, preventing users from authenti
 **Directory**: `internal/identity/idp/templates/`
 
 **File**: `login.html`
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -89,6 +90,7 @@ The user login page returns JSON instead of HTML, preventing users from authenti
 ```
 
 **File**: `static/css/auth.css`
+
 ```css
 /* Minimal auth form styling */
 .auth-container {
@@ -167,6 +169,7 @@ The user login page returns JSON instead of HTML, preventing users from authenti
 **File**: `internal/identity/idp/handlers_login.go`
 
 **Replace line 25**:
+
 ```go
 // Render login page HTML template
 return c.Render("login", fiber.Map{
@@ -181,6 +184,7 @@ return c.Render("login", fiber.Map{
 ```
 
 **CSRF Token Generation**:
+
 ```go
 func generateCSRFToken(c *fiber.Ctx) string {
     // Generate 32-byte random token
@@ -210,6 +214,7 @@ func validateCSRFToken(c *fiber.Ctx, providedToken string) bool {
 ```
 
 **Template Engine Setup** (in service initialization):
+
 ```go
 import "html/template"
 
@@ -229,6 +234,7 @@ app := fiber.New(fiber.Config{
 **File**: `internal/identity/idp/handlers_login.go`
 
 **Replace line 110**:
+
 ```go
 // Retrieve authorization request to determine next step
 authRequest, err := s.authzRepo.GetAuthorizationRequestByID(ctx, requestID)
@@ -264,6 +270,7 @@ return c.Redirect(consentURL, fiber.StatusFound)
 ```
 
 **Consent Repository Method**:
+
 ```go
 type ConsentRepository interface {
     GetConsent(ctx context.Context, userID googleUuid.UUID, clientID string, scope string) (*domain.ConsentDecision, error)
@@ -272,6 +279,7 @@ type ConsentRepository interface {
 ```
 
 **Domain Method**:
+
 ```go
 func (c *ConsentDecision) IsExpired() bool {
     return time.Now().After(c.ExpiresAt)
@@ -300,6 +308,7 @@ app.Static("/static", "./internal/identity/idp/static")
 ### Unit Tests
 
 **File**: `internal/identity/idp/handlers_login_test.go`
+
 - Login page rendering (table-driven test with various error states)
 - CSRF token generation and validation
 - Consent skip logic (existing consent, expired consent, no consent)
@@ -308,6 +317,7 @@ app.Static("/static", "./internal/identity/idp/static")
 ### Integration Tests
 
 **File**: `internal/identity/test/e2e/oauth_login_flow_test.go`
+
 - End-to-end login flow:
   1. Client initiates authorization request
   2. User redirected to login page (verify HTML response, not JSON)
@@ -341,6 +351,7 @@ app.Static("/static", "./internal/identity/idp/static")
 ## Validation
 
 **Success Criteria**:
+
 - [ ] Login page renders HTML form (not JSON)
 - [ ] CSRF token generation and validation works
 - [ ] Consent skip logic correctly handles existing/expired consent
@@ -357,5 +368,5 @@ app.Static("/static", "./internal/identity/idp/static")
 
 - GAP-ANALYSIS-DETAILED.md: Priority 2 issues (lines 178-244)
 - REMEDIATION-MASTER-PLAN-2025.md: R02 section (lines 222-334)
-- OIDC Core 1.0: https://openid.net/specs/openid-connect-core-1_0.html
-- Fiber template engine: https://docs.gofiber.io/guide/templates
+- OIDC Core 1.0: <https://openid.net/specs/openid-connect-core-1_0.html>
+- Fiber template engine: <https://docs.gofiber.io/guide/templates>

@@ -15,14 +15,17 @@
 **Recommendation**: **DO NOT DEPLOY TO PRODUCTION** until blockers resolved
 
 **Critical Blockers**:
+
 1. ⏭️ **Identity V2 CLI Integration Incomplete** (R11-08)
 2. ⏭️ **DAST Scanning Infrastructure Missing** (R11-07)
 
 **Pending Validation**:
+
 1. ⏳ **Performance Benchmarks** (R11-05) - Not yet executed
 2. ⏳ **Load Testing** (R11-06) - Not yet executed
 
 **Validated Components**:
+
 1. ✅ **Security Posture** (R11-03, R11-04) - No CRITICAL/HIGH TODOs, 43 gosec findings all justified
 2. ✅ **Operational Readiness** (R11-09) - Comprehensive deployment checklist created
 3. ✅ **Observability** (R11-10) - OTLP pipeline configured, Grafana LGTM integrated
@@ -53,11 +56,13 @@
 **Method**: Automated grep searches across `internal/identity/**/*.go` and `cmd/identity/**/*.go` for `CRITICAL` and `HIGH` severity TODO comments
 
 **Results**:
+
 - **CRITICAL TODOs**: 0 found
 - **HIGH TODOs**: 0 found
 - **Total TODOs**: 37 (12 MEDIUM, 25 LOW)
 
 **Evidence**:
+
 ```bash
 # Search commands executed:
 grep -rn "TODO.*CRITICAL" internal/identity/ cmd/identity/  # 0 matches
@@ -83,18 +88,21 @@ grep -rn "TODO.*HIGH" internal/identity/ cmd/identity/      # 0 matches
 **Scan Coverage**: All Go files in `internal/identity/`, `cmd/identity/`
 
 **Findings Summary**:
+
 - **Total Findings**: 43
 - **Critical**: 0
 - **High**: 0 (all previously flagged issues resolved with nolint justifications)
 - **Medium/Low**: 43 (all justified)
 
 **Breakdown by Issue Type**:
+
 | Issue Type | Count | Severity | Justification |
 |------------|-------|----------|---------------|
 | **G505: SHA1 usage** | 12 | Medium | Required by RFC 6238 (TOTP), crypto-safe usage, not for password hashing |
 | **G115: Integer overflow** | 31 | Low | Safe integer conversions with controlled ranges (timestamps, ports, durations) |
 
 **Nolint Annotations**:
+
 - All 43 findings have explicit `//nolint:gosec` comments with technical rationale
 - SHA1 usage documented as RFC 6238 compliance requirement (TOTP HMAC-SHA1)
 - Integer conversions documented as safe due to controlled input ranges
@@ -102,6 +110,7 @@ grep -rn "TODO.*HIGH" internal/identity/ cmd/identity/      # 0 matches
 **Production Impact**: ✅ **ACCEPTABLE** - All findings justified with industry-standard patterns (RFC compliance, safe conversions)
 
 **Validation Command**:
+
 ```bash
 gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/...
 ```
@@ -117,6 +126,7 @@ gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/..
 **Reason**: Benchmarking requires fully functional services, blocked by R11-08 (Identity V2 CLI integration incomplete)
 
 **Required Benchmarks**:
+
 1. OAuth 2.1 authorization code flow (end-to-end latency)
 2. Token generation throughput (tokens/second)
 3. Token introspection latency (ms per validation)
@@ -124,6 +134,7 @@ gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/..
 5. MFA orchestration latency (TOTP, OTP, WebAuthn)
 
 **Tooling**:
+
 - Go benchmarks (`go test -bench=.`)
 - Custom load generators (test/load/)
 
@@ -140,6 +151,7 @@ gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/..
 **Reason**: Load testing requires fully functional services, blocked by R11-08 (Identity V2 CLI integration incomplete)
 
 **Required Load Tests**:
+
 1. **OAuth 2.1 Authorization Code Flow**: 100 concurrent users, 1000 requests/user
 2. **Token Introspection**: 500 concurrent validators, 10000 tokens/second
 3. **Database Concurrency**: 50 concurrent writes, verify transaction isolation
@@ -147,6 +159,7 @@ gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/..
 5. **Session Management**: 1000 concurrent sessions, verify cleanup
 
 **Tooling**:
+
 - Gatling (test/load/gatling/)
 - Custom Go load generators
 
@@ -163,10 +176,12 @@ gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/..
 **Blocker**: `act` executable not installed on development environment
 
 **Required Tooling**:
+
 - **act**: GitHub Actions local runner (required for executing `.github/workflows/ci-dast.yml` locally)
 - Installation: `choco install act-cli` (Windows), `brew install act` (macOS), `apt-get install act` (Linux)
 
 **Affected Tests**:
+
 - Nuclei vulnerability scanning (quick/full/deep profiles)
 - OWASP ZAP scanning (baseline/full scans)
 - Combined DAST workflow validation
@@ -176,6 +191,7 @@ gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/..
 **Production Impact**: ⚠️ **MEDIUM** - DAST scanning provides runtime security validation, but CI/CD coverage mitigates local testing gap
 
 **Recommendation**:
+
 1. **Short-term**: Rely on GitHub Actions CI/CD for DAST validation (already operational)
 2. **Long-term**: Install `act` on development environments for local DAST testing
 
@@ -192,11 +208,13 @@ gosec -fmt=json -out=gosec-report.json ./internal/identity/... ./cmd/identity/..
 **Technical Details**:
 
 **Current Architecture**:
+
 - **Standalone Binaries Exist**: `cmd/identity/{authz,idp,rs}/main.go` (fully functional)
 - **CLI Integration Missing**: `cryptoutil identity {authz|idp|rs}` commands return "not implemented"
 - **Docker Compose Mismatch**: `deployments/compose/identity-compose.yml` references `cryptoutil identity {authz|idp|rs}` commands
 
 **Evidence**:
+
 ```go
 // internal/cmd/cryptoutil/identity.go
 func identityAuthz(ctx context.Context, logger *common.Logger) error {
@@ -205,11 +223,13 @@ func identityAuthz(ctx context.Context, logger *common.Logger) error {
 ```
 
 **Health Check Failures**:
+
 - Docker Compose health checks target KMS endpoints (`/livez` on port 9090)
 - Identity servers use different health endpoints (`/health` on ports 8080-8082)
 - Health check commands fail with 404 errors
 
 **Resolution Options**:
+
 1. **Option A** (Preferred): Integrate Identity servers into `cryptoutil` binary as subcommands
 2. **Option B**: Update `Dockerfile` to build separate Identity binaries (`authz.exe`, `idp.exe`, `rs.exe`)
 3. **Option C**: Update Docker Compose to use standalone binaries directly
@@ -231,6 +251,7 @@ func identityAuthz(ctx context.Context, logger *common.Logger) error {
 **Deliverable**: `docs/runbooks/production-deployment-checklist.md` (371 lines)
 
 **Content Coverage**:
+
 1. **Pre-Deployment Checklist** (21 items):
    - Prerequisites verification (Docker, PostgreSQL, OpenTelemetry Collector, Grafana LGTM)
    - Configuration validation (secrets, TLS certificates, database DSNs, OTLP endpoints)
@@ -291,6 +312,7 @@ func identityAuthz(ctx context.Context, logger *common.Logger) error {
 | **Documentation** | ✅ PASS | Architecture, config, operations documented |
 
 **Telemetry Data Flow**:
+
 ```
 cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collector
                                                        ↓
@@ -332,6 +354,7 @@ cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collecto
 | **Observability** | ✅ PASS | `R11-10-OBSERVABILITY-VERIFICATION.md` (258 lines) |
 
 **Link Fixes Applied**:
+
 1. `docs/02-identityV2/unified-cli-guide.md` → `docs/02-identityV2/historical/unified-cli-guide.md`
 2. `docs/02-identityV2/openapi-guide.md` → `docs/02-identityV2/historical/openapi-guide.md` (3 occurrences)
 
@@ -350,6 +373,7 @@ cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collecto
 **Description**: Identity V2 servers (AuthZ, IdP, RS) exist as standalone binaries (`cmd/identity/{authz,idp,rs}/main.go`) but are not integrated into the main `cryptoutil` CLI. Docker Compose configuration references non-existent `cryptoutil identity {authz|idp|rs}` commands.
 
 **Impact**:
+
 - Cannot deploy Identity V2 via Docker Compose
 - Inconsistent operational model (KMS via `cryptoutil`, Identity via standalone binaries)
 - Docker health checks fail (targeting KMS endpoints instead of Identity endpoints)
@@ -357,6 +381,7 @@ cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collecto
 **Root Cause**: Identity V2 implementation focused on server functionality, CLI integration deferred
 
 **Resolution Path**:
+
 1. **Integrate servers into cryptoutil CLI** (1-2 days):
    - Implement `cryptoutil identity authz` command (call `cmd/identity/authz/main.go` logic)
    - Implement `cryptoutil identity idp` command (call `cmd/identity/idp/main.go` logic)
@@ -386,6 +411,7 @@ cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collecto
 **Description**: `act` executable not installed on development environments, preventing local execution of DAST workflows (Nuclei, OWASP ZAP).
 
 **Impact**:
+
 - Cannot run DAST scans locally during development
 - Dependency on GitHub Actions CI/CD for DAST validation
 - Slower feedback loop for security testing
@@ -393,6 +419,7 @@ cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collecto
 **Root Cause**: `act` not included in standard development environment setup
 
 **Resolution Path**:
+
 1. **Install act on development machines** (10 minutes per machine):
    - Windows: `choco install act-cli`
    - macOS: `brew install act`
@@ -500,21 +527,25 @@ cryptoutil services → OTLP (gRPC:4317 or HTTP:4318) → OpenTelemetry Collecto
 **Deployment Decision**: **DO NOT DEPLOY TO PRODUCTION** until R11-08 blocker resolved
 
 **Rationale**:
+
 - **Core implementation complete**: Security posture strong, observability configured, documentation comprehensive
 - **Critical blocker exists**: Identity V2 CLI integration incomplete, preventing Docker Compose deployment
 - **Pending validation**: Performance benchmarks and load testing not yet executed
 
 **Estimated Time to Production**: **4 days**
+
 1. Day 1-2: Resolve R11-08 (CLI integration)
 2. Day 3: Execute R11-05 (benchmarks) and R11-06 (load testing)
 3. Day 4: Final validation and production deployment
 
 **Risk Assessment**: **MEDIUM**
+
 - ✅ **Low security risk**: No unmitigated vulnerabilities
 - ⚠️ **Medium operational risk**: Performance characteristics unknown until benchmarks/load tests complete
 - ⚠️ **Medium deployment risk**: CLI integration requires testing before production
 
 **Conditional Approval Conditions**:
+
 1. R11-08 blocker resolved and validated
 2. R11-05 benchmarks executed with acceptable results
 3. R11-06 load testing passed with acceptable performance

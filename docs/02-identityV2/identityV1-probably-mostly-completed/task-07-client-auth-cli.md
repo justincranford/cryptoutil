@@ -9,12 +9,14 @@ This document provides CLI commands and examples for testing and configuring cli
 ### 1. client_secret_basic (HTTP Basic Auth)
 
 **Configuration:**
+
 ```yaml
 # In client registration
 token_endpoint_auth_method: client_secret_basic
 ```
 
 **Testing with curl:**
+
 ```bash
 # Authorization Code Token Request
 curl -X POST https://localhost:8443/oauth2/token \
@@ -33,6 +35,7 @@ curl -X POST https://localhost:8443/oauth2/token \
 ```
 
 **PowerShell Example:**
+
 ```powershell
 $clientId = "your_client_id"
 $clientSecret = "your_client_secret"
@@ -54,12 +57,14 @@ Invoke-RestMethod -Method Post -Uri "https://localhost:8443/oauth2/token" `
 ### 2. client_secret_post (Form-Encoded Body)
 
 **Configuration:**
+
 ```yaml
 # In client registration
 token_endpoint_auth_method: client_secret_post
 ```
 
 **Testing with curl:**
+
 ```bash
 curl -X POST https://localhost:8443/oauth2/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -70,6 +75,7 @@ curl -X POST https://localhost:8443/oauth2/token \
 ```
 
 **PowerShell Example:**
+
 ```powershell
 Invoke-RestMethod -Method Post -Uri "https://localhost:8443/oauth2/token" `
   -Headers @{ "Content-Type" = "application/x-www-form-urlencoded" } `
@@ -86,6 +92,7 @@ Invoke-RestMethod -Method Post -Uri "https://localhost:8443/oauth2/token" `
 ### 3. client_secret_jwt (HMAC-signed JWT)
 
 **Configuration:**
+
 ```yaml
 # In client registration
 token_endpoint_auth_method: client_secret_jwt
@@ -93,6 +100,7 @@ token_endpoint_auth_signing_alg: HS256  # or HS384, HS512
 ```
 
 **Generate JWT (Go):**
+
 ```go
 import (
     "time"
@@ -120,6 +128,7 @@ signed, _ := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.HS256, key))
 ```
 
 **Testing with curl:**
+
 ```bash
 curl -X POST https://localhost:8443/oauth2/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -135,6 +144,7 @@ curl -X POST https://localhost:8443/oauth2/token \
 ### 4. private_key_jwt (RSA/ECDSA-signed JWT)
 
 **Configuration:**
+
 ```yaml
 # In client registration
 token_endpoint_auth_method: private_key_jwt
@@ -152,6 +162,7 @@ jwks:
 ```
 
 **Generate RSA Key Pair (OpenSSL):**
+
 ```bash
 # Generate private key
 openssl genrsa -out client_private_key.pem 2048
@@ -164,6 +175,7 @@ openssl pkcs8 -topk8 -inform PEM -outform PEM -in client_private_key.pem -nocryp
 ```
 
 **Generate ECDSA Key Pair (OpenSSL):**
+
 ```bash
 # Generate P-256 private key
 openssl ecparam -name prime256v1 -genkey -noout -out client_ec_private_key.pem
@@ -173,6 +185,7 @@ openssl ec -in client_ec_private_key.pem -pubout -out client_ec_public_key.pem
 ```
 
 **Generate JWT (Go):**
+
 ```go
 import (
     "crypto/rsa"
@@ -213,6 +226,7 @@ signed, _ := joseJwt.Sign(token, joseJwt.WithKey(joseJwa.RS256, key))
 ### 5. tls_client_auth (mTLS with CA-signed Certificates)
 
 **Configuration:**
+
 ```yaml
 # In client registration
 token_endpoint_auth_method: tls_client_auth
@@ -226,6 +240,7 @@ tls_client_auth_san_ip: 192.0.2.1
 ```
 
 **Server Configuration:**
+
 ```yaml
 # Enable mTLS on token endpoint
 tls:
@@ -236,6 +251,7 @@ tls:
 ```
 
 **Generate CA-Signed Client Certificate (OpenSSL):**
+
 ```bash
 # 1. Generate client private key
 openssl genrsa -out client_tls_key.pem 2048
@@ -256,6 +272,7 @@ EOF
 ```
 
 **Testing with curl:**
+
 ```bash
 curl -X POST https://localhost:8443/oauth2/token \
   --cert client_tls_cert.pem \
@@ -268,6 +285,7 @@ curl -X POST https://localhost:8443/oauth2/token \
 ```
 
 **Testing with PowerShell:**
+
 ```powershell
 # Import client certificate to Windows cert store first, then:
 $cert = Get-ChildItem -Path Cert:\CurrentUser\My | Where-Object { $_.Subject -match "client.example.com" }
@@ -287,6 +305,7 @@ Invoke-RestMethod -Method Post -Uri "https://localhost:8443/oauth2/token" `
 ### 6. self_signed_tls_client_auth (mTLS with Self-Signed Certificates)
 
 **Configuration:**
+
 ```yaml
 # In client registration
 token_endpoint_auth_method: self_signed_tls_client_auth
@@ -300,6 +319,7 @@ jwks:
 ```
 
 **Generate Self-Signed Certificate (OpenSSL):**
+
 ```bash
 # Generate private key and self-signed certificate in one command
 openssl req -x509 -newkey rsa:2048 -keyout client_self_signed_key.pem \
@@ -320,6 +340,7 @@ base64 -w 0 client_self_signed_cert.der
 ## Security Policy Profiles
 
 ### Default Policy
+
 ```yaml
 # Allowed methods: all except 'none'
 allowed_methods:
@@ -346,6 +367,7 @@ allowed_jwt_algorithms:
 ```
 
 ### Strict Policy
+
 ```yaml
 # Allowed methods: strongest only
 allowed_methods:
@@ -370,6 +392,7 @@ allowed_jwt_algorithms:
 ```
 
 ### Public Client Policy
+
 ```yaml
 # Allowed methods: none (PKCE required instead)
 allowed_methods:
@@ -381,6 +404,7 @@ require_jwt_signature: false
 ```
 
 ### Development Policy
+
 ```yaml
 # Allowed methods: all including 'none'
 allowed_methods:
@@ -414,6 +438,7 @@ allowed_jwt_algorithms:
 ### 1. Planning Certificate Rotation
 
 **Timeline:**
+
 - **Production (Strict Policy)**: Rotate certificates every 60 days (before 90-day limit)
 - **Production (Default Policy)**: Rotate certificates every 300 days (before 365-day limit)
 - **Development**: Rotate as needed (10-year limit)
@@ -421,6 +446,7 @@ allowed_jwt_algorithms:
 ### 2. Rotation Process (Zero-Downtime)
 
 **Step 1: Generate New Certificate**
+
 ```bash
 # Generate new key pair
 openssl genrsa -out client_new_key.pem 2048
@@ -435,6 +461,7 @@ openssl x509 -req -in client_new.csr -CA ca.crt -CAkey ca.key \
 ```
 
 **Step 2: Update Client Registration (Add New Certificate)**
+
 ```bash
 # Add new certificate to client's JWKS (for self_signed_tls_client_auth)
 curl -X PATCH https://localhost:8443/admin/clients/your_client_id \
@@ -459,6 +486,7 @@ curl -X PATCH https://localhost:8443/admin/clients/your_client_id \
 ```
 
 **Step 3: Test New Certificate**
+
 ```bash
 # Verify new certificate works
 curl -X POST https://localhost:8443/oauth2/token \
@@ -468,11 +496,13 @@ curl -X POST https://localhost:8443/oauth2/token \
 ```
 
 **Step 4: Deploy New Certificate to Client Applications**
+
 - Update client application configurations
 - Monitor error rates during rollout
 - Keep old certificate available for rollback
 
 **Step 5: Remove Old Certificate (After Grace Period)**
+
 ```bash
 # After 7-14 days, remove old certificate
 curl -X PATCH https://localhost:8443/admin/clients/your_client_id \
@@ -494,6 +524,7 @@ curl -X PATCH https://localhost:8443/admin/clients/your_client_id \
 ### 3. Automated Rotation (Recommended)
 
 **Using cert-manager (Kubernetes):**
+
 ```yaml
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -512,6 +543,7 @@ spec:
 ```
 
 **Using Let's Encrypt (for public clients):**
+
 ```bash
 # Install certbot
 apt-get install certbot
@@ -530,21 +562,25 @@ certbot certonly --standalone -d client.example.com
 ### Common Errors
 
 **1. "invalid_client: Client authentication failed"**
+
 - Check client_id and client_secret are correct
 - For JWT methods, verify JWT signature and claims (iss, sub, aud, exp)
 - For mTLS, verify certificate is valid and matches registration
 
 **2. "invalid_client: Unsupported authentication method"**
+
 - Verify client's `token_endpoint_auth_method` matches request
 - Check policy allows the authentication method
 
 **3. "invalid_client: Certificate validation failed"**
+
 - For CA-signed: Verify certificate is signed by trusted CA
 - For self-signed: Verify certificate matches JWKS in client registration
 - Check certificate is not expired
 - Verify certificate age is within policy limits (90 or 365 days)
 
 **4. "invalid_client: JWT validation failed"**
+
 - Check JWT `aud` claim matches token endpoint URL
 - Verify JWT `exp` claim is not expired (must be future timestamp)
 - Ensure JWT `iat` claim is not in the future
@@ -552,6 +588,7 @@ certbot certonly --standalone -d client.example.com
 - For private_key_jwt: Verify public key in JWKS matches private key used to sign
 
 **5. "invalid_client: JWKS fetch failed"**
+
 - Verify `jwks_uri` is accessible from authorization server
 - Check JWKS JSON format is correct
 - Ensure JWKS contains required fields (kty, kid, use, n, e for RSA)
@@ -559,6 +596,7 @@ certbot certonly --standalone -d client.example.com
 ### Debugging Commands
 
 **Test JWT Decoding:**
+
 ```bash
 # Decode JWT without verification (inspect claims)
 echo "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." | \
@@ -566,6 +604,7 @@ echo "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." | \
 ```
 
 **Test Certificate Chain:**
+
 ```bash
 # Verify certificate is signed by CA
 openssl verify -CAfile ca.crt client_cert.pem
@@ -578,6 +617,7 @@ openssl x509 -in client_cert.pem -noout -dates
 ```
 
 **Test mTLS Connection:**
+
 ```bash
 # Test TLS handshake with client certificate
 openssl s_client -connect localhost:8443 \

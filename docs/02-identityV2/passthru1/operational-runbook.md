@@ -182,6 +182,7 @@ docker compose exec identity-authz \
 6. Server exits with code 0
 
 **Timeout handling:**
+
 - Request timeout: 30 seconds (configurable)
 - Shutdown timeout: 30 seconds (configurable)
 - If timeout exceeded, remaining connections are forcibly terminated
@@ -210,6 +211,7 @@ docker inspect identity-authz
 ```
 
 **Common causes**:
+
 - Database not ready (check PostgreSQL healthcheck)
 - Port already in use (check `netstat -an | grep :8080`)
 - Invalid configuration file
@@ -234,6 +236,7 @@ docker compose logs identity-postgres
 ```
 
 **Resolution**:
+
 - Ensure PostgreSQL is healthy before starting application services
 - Verify database DSN in configuration
 - Check network connectivity between containers
@@ -280,6 +283,7 @@ docker inspect identity-authz | jq '.[0].HostConfig.Memory'
 ```
 
 **Resolution**:
+
 - Increase memory limits in compose file (`deploy.resources.limits.memory`)
 - Review token cache size configuration
 - Check for memory leaks in logs
@@ -292,10 +296,12 @@ docker inspect identity-authz | jq '.[0].HostConfig.Memory'
 ### Telemetry Stack
 
 **OpenTelemetry Collector** aggregates telemetry from all services:
+
 - Endpoint: `http://127.0.0.1:4317` (gRPC), `http://127.0.0.1:4318` (HTTP)
 - Health: `http://127.0.0.1:13133/`
 
 **Grafana OTEL LGTM** provides visualization:
+
 - UI: `http://127.0.0.1:3000` (admin/admin)
 - OTLP Receiver: `http://127.0.0.1:14317` (gRPC), `http://127.0.0.1:14318` (HTTP)
 
@@ -422,12 +428,14 @@ EOF
 ### Backup Strategy
 
 **What to backup:**
+
 - PostgreSQL database (tokens, sessions, clients, users)
 - Configuration files (`configs/identity/*.yml`)
 - TLS certificates (if not using generated certs)
 - Secrets (Docker secrets in `deployments/compose/`)
 
 **Backup frequency:**
+
 - **Database**: Daily automated backups
 - **Configs**: Version controlled (git)
 - **Secrets**: Secure backup on change
@@ -484,6 +492,7 @@ EOF
 | RS | 256M | 128M | N/A |
 
 **Tuning guidance:**
+
 - Increase memory if OOM killed
 - Increase CPU limit for high-throughput scenarios
 - Monitor with `docker stats`
@@ -491,6 +500,7 @@ EOF
 ### Database Connection Pooling
 
 **PostgreSQL connection pool** (GORM defaults):
+
 - Max open connections: 100
 - Max idle connections: 10
 - Connection max lifetime: 1 hour
@@ -507,6 +517,7 @@ database:
 ### HTTP Server Tuning
 
 **Fiber server defaults:**
+
 - Read timeout: 30 seconds
 - Write timeout: 120 seconds
 - Idle timeout: 120 seconds

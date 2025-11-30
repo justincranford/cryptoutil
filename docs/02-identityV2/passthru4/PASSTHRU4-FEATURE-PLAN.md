@@ -11,6 +11,7 @@
 ### Problem Statement
 
 **Critical Pattern Identified**: Issues keep "falling through the cracks" across multiple passthroughs:
+
 - **Passthru1**: Initial implementation claimed "complete" but had major gaps
 - **Passthru2**: Remediation effort (R01-R11) claimed "100% complete" with documented limitations
 - **Passthru3**: Documentation contradictions discovered (100% vs 45% complete)
@@ -52,6 +53,7 @@
 **Observation**: Agent marks tasks "✅ COMPLETE" in MASTER-PLAN.md without running validation commands
 
 **Evidence**:
+
 - MASTER-PLAN.md: "TODO audit: 0 CRITICAL, 0 HIGH"
 - Actual codebase grep: 4 HIGH TODOs found
 - MASTER-PLAN.md: "Production Deployment: 🟢 APPROVED"
@@ -66,6 +68,7 @@
 **Observation**: Three different documents claim different completion percentages
 
 **Evidence**:
+
 - MASTER-PLAN.md: "100% COMPLETE (11/11 tasks)"
 - README.md: "45% complete (9/20 fully complete)"
 - REQUIREMENTS-COVERAGE.md: "58.5% (38/65 requirements)"
@@ -79,6 +82,7 @@
 **Observation**: Quality gates rely on agent/human memory, no enforcement
 
 **Evidence**:
+
 - Template says "run tests" but doesn't specify exact command
 - Template says "check coverage" but no threshold enforcement
 - Template says "scan TODOs" but no automated fail-fast
@@ -92,6 +96,7 @@
 **Observation**: Post-mortems document gaps but don't create follow-up tasks
 
 **Evidence**:
+
 - COMPLETION-STATUS-REPORT.md identifies 55 gaps
 - Gaps documented in post-mortems
 - No corresponding tasks created to fix gaps
@@ -105,6 +110,7 @@
 **Observation**: Tasks marked complete without incremental validation
 
 **Evidence**:
+
 - Large tasks completed in single commit
 - No evidence of intermediate testing
 - Quality issues discovered after "completion"
@@ -118,6 +124,7 @@
 **Observation**: Validation tools don't fail fast, discouraging frequent use
 
 **Evidence**:
+
 - `identity-requirements-check` reports coverage but doesn't enforce thresholds
 - No quick "am I done?" command
 - Manual grep for TODOs instead of automated scan
@@ -137,6 +144,7 @@
 **Solution**: Add "Evidence Required" subsection to every acceptance criterion
 
 **Example**:
+
 ```markdown
 - [ ] OAuth 2.1 authorization code flow functional
   - **Evidence Required**:
@@ -158,6 +166,7 @@
 **Solution**: Add specific commands with pass/fail criteria
 
 **Example**:
+
 ```markdown
 ### Pre-Task Completion Quality Gates
 
@@ -185,6 +194,7 @@
 **Solution**: Enforce ../PROJECT-STATUS.md as ONLY source, updated by go-update-project-status automation
 
 **Example**:
+
 ```markdown
 ### Status Update Automation
 
@@ -208,6 +218,7 @@
 **Solution**: Add mandatory task creation rule
 
 **Example**:
+
 ```markdown
 ### Post-Mortem Corrective Action Enforcement
 
@@ -233,6 +244,7 @@
 **Solution**: Add 6-step validation checklist
 
 **Example**:
+
 ```markdown
 ### Progressive Validation Checklist
 
@@ -259,6 +271,7 @@
 **Solution**: Add `--strict` mode to `identity-requirements-check` with threshold enforcement
 
 **Example**:
+
 ```bash
 # Current behavior (report only)
 $ identity-requirements-check
@@ -303,6 +316,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 8. CRL/OCSP revocation checking
 
 **Acceptance Criteria**:
+
 - [ ] Zero TODO comments in modified files (automated scan)
 - [ ] All tests passing (runTests shows 100% pass rate)
 - [ ] Requirements coverage ≥90% for this task (identity-requirements-check --strict)
@@ -311,6 +325,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 - [ ] Post-mortem created documenting corrective actions
 
 **Evidence Required**:
+
 - Terminal output showing zero TODO grep results
 - Terminal output showing 100% test pass rate
 - Terminal output showing ≥90% requirements coverage
@@ -324,6 +339,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Target**: 59/65 validated (90.8%)
 
 **Acceptance Criteria**:
+
 - [ ] 59+ requirements validated (identity-requirements-check shows ≥90%)
 - [ ] Validation methods documented in REQUIREMENTS-COVERAGE.md
 - [ ] All CRITICAL requirements validated (currently 15/22)
@@ -331,6 +347,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 - [ ] PROJECT-STATUS.md updated with new coverage metrics
 
 **Evidence Required**:
+
 - `identity-requirements-check` output showing ≥90%
 - REQUIREMENTS-COVERAGE.md updated with validation methods
 - Git diff showing requirement validation additions
@@ -343,12 +360,14 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Target**: 0 HIGH TODOs
 
 **Acceptance Criteria**:
+
 - [ ] All 4 HIGH TODOs resolved (fix OR task created)
 - [ ] `grep -r "TODO" internal/identity | grep -i "high\|critical"` → Empty output
 - [ ] Post-mortem documents resolution approach for each TODO
 - [ ] PROJECT-STATUS.md updated with TODO counts
 
 **Evidence Required**:
+
 - Terminal output showing zero HIGH TODOs
 - Task files created for deferred work (if applicable)
 - Git log showing HIGH TODO resolution commits
@@ -361,12 +380,14 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Target**: ≥85% overall
 
 **Acceptance Criteria**:
+
 - [ ] `go test ./internal/identity/... -cover` → Overall coverage ≥85%
 - [ ] All packages ≥80% coverage (infrastructure code ≥85%)
 - [ ] Zero skipped tests without issue tracking
 - [ ] Test results documented in PROJECT-STATUS.md
 
 **Evidence Required**:
+
 - Coverage report showing ≥85% overall
 - Per-package coverage report
 - Explanation for any packages below threshold
@@ -379,12 +400,14 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Target**: 0 failures (100% pass rate)
 
 **Acceptance Criteria**:
+
 - [ ] `runTests ./internal/identity/...` → 100% pass rate (0 failures)
 - [ ] All deferred features have tests marked with tracking issues
 - [ ] Test failure root causes documented in post-mortem
 - [ ] PROJECT-STATUS.md updated with test metrics
 
 **Evidence Required**:
+
 - Terminal output showing 100% pass rate
 - Issue tracking for deferred feature tests
 - Git log showing test fix commits
@@ -397,6 +420,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Target**: Full synchronization
 
 **Acceptance Criteria**:
+
 - [ ] OpenAPI specs updated for all endpoints
 - [ ] `make generate-openapi-clients` → Zero unexpected changes
 - [ ] Swagger UI matches actual API behavior
@@ -404,6 +428,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 - [ ] PROJECT-STATUS.md updated
 
 **Evidence Required**:
+
 - Git diff showing spec updates
 - Terminal output showing clean code generation
 - Manual Swagger UI validation
@@ -416,12 +441,14 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Target**: 0 MEDIUM TODOs
 
 **Acceptance Criteria**:
+
 - [ ] All 12 MEDIUM TODOs resolved (fix OR task created)
 - [ ] `grep -r "TODO" internal/identity | grep -i "medium"` → Empty output
 - [ ] Post-mortem documents resolution approach
 - [ ] PROJECT-STATUS.md updated with TODO counts
 
 **Evidence Required**:
+
 - Terminal output showing zero MEDIUM TODOs
 - Task files created for deferred work (if applicable)
 - Git log showing MEDIUM TODO resolution commits
@@ -433,6 +460,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Purpose**: Run all quality gates and verify production readiness
 
 **Acceptance Criteria**:
+
 - [ ] All previous tasks (P4.01-P4.07) complete with evidence
 - [ ] `identity-requirements-check --strict --task-threshold=90 --overall-threshold=85` → Exit code 0
 - [ ] `runTests ./internal/identity/...` → 100% pass rate
@@ -442,6 +470,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 - [ ] PRODUCTION-READINESS-REPORT.md created with evidence
 
 **Evidence Required**:
+
 - All quality gate terminal outputs
 - PROJECT-STATUS.md showing PRODUCTION READY status
 - PRODUCTION-READINESS-REPORT.md with comprehensive evidence
@@ -455,6 +484,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 ### Phase 1: Template & Tooling Improvements (5 hours)
 
 **Tasks**:
+
 1. Update feature-template.md with 5 improvements (5 hours)
    - Evidence-based acceptance criteria
    - Automated quality gate commands
@@ -472,6 +502,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 ### Phase 2: Identity V2 Production Blockers (16 hours)
 
 **Tasks**:
+
 1. Execute P4.01: Fix 8 production blockers (16 hours)
    - Login/consent/logout/userinfo UI
    - Token-user association
@@ -484,6 +515,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 ### Phase 3: Quality & Testing (32 hours)
 
 **Tasks**:
+
 1. Execute P4.02: Requirements coverage ≥90% (8 hours)
 2. Execute P4.03: Resolve 4 HIGH TODOs (4 hours)
 3. Execute P4.04: Test coverage ≥85% (8 hours)
@@ -495,6 +527,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 ### Phase 4: Polish & Verification (12 hours)
 
 **Tasks**:
+
 1. Execute P4.07: Resolve 12 MEDIUM TODOs (8 hours)
 2. Execute P4.08: Final verification (4 hours)
 
@@ -517,11 +550,13 @@ $ identity-requirements-check --strict --skip-slow-checks
 ## Success Criteria
 
 ### Process Improvements
+
 - [ ] Feature template updated with 5 improvements
 - [ ] identity-requirements-check has `--strict` mode
 - [ ] All improvements documented and committed
 
 ### Identity V2 Completion
+
 - [ ] Requirements coverage ≥90% (currently 58.5%)
 - [ ] Test coverage ≥85%
 - [ ] Test pass rate 100% (currently 77.9%)
@@ -538,6 +573,7 @@ $ identity-requirements-check --strict --skip-slow-checks
 **Mitigation**: Add `--skip-slow-checks` flag to bypass expensive validation
 
 **Example**:
+
 ```bash
 # Full validation (may be slow)
 identity-requirements-check --strict
@@ -551,6 +587,7 @@ identity-requirements-check --strict --skip-slow-checks
 **Mitigation**: Apply post-mortem enforcement rule - every gap creates task OR gets immediate fix
 
 **Pattern**:
+
 - Gap discovered → Create P4.09-TASK.md OR fix immediately
 - NO deferred work without documentation
 
@@ -570,12 +607,14 @@ identity-requirements-check --strict --skip-slow-checks
 **Pattern**: complete_task → commit → next_task → commit → repeat (ZERO TEXT between tasks)
 
 **Checkpoints**:
+
 - After Phase 1: Template improvements committed
 - After Phase 2: Production blockers committed
 - After Phase 3: Quality improvements committed
 - After Phase 4: Final verification committed
 
 **NO STOPPING UNTIL**:
+
 - All 8 phases complete AND all feature gates passed
 - OR token usage ≥950k
 - OR explicit user instruction to stop

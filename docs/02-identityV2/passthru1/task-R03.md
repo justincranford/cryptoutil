@@ -46,10 +46,12 @@ Client authentication has critical security gaps that violate FIPS-140-3 complia
 ### Step 1: Use FIPS-Approved Secret Hashing Infrastructure (2 hours)
 
 **Files**:
+
 - `internal/crypto/secret.go` (ALREADY CREATED - use this)
 - `internal/crypto/registry.go` (ALREADY CREATED - remove bcrypt option)
 
 **Update `internal/crypto/registry.go`**:
+
 ```go
 package crypto
 
@@ -82,6 +84,7 @@ func VerifySecret(secret, hash string) error {
 **File**: `internal/identity/authz/clientauth/client_secret_basic.go`
 
 **Replace bcrypt usage**:
+
 ```go
 import (
     cryptoutilCrypto "cryptoutil/internal/crypto"
@@ -121,6 +124,7 @@ func (a *ClientSecretBasicAuthenticator) Authenticate(ctx context.Context, r *fi
 **File**: `internal/identity/authz/handlers_client_registration.go`
 
 **Hash secret before storage**:
+
 ```go
 import (
     cryptoutilCrypto "cryptoutil/internal/crypto"
@@ -186,6 +190,7 @@ func generateClientSecret() string {
 **File**: `internal/identity/storage/migrations/0003_hash_client_secrets.up.sql`
 
 **Migration strategy**:
+
 1. Add new column `client_secret_hash_pbkdf2`
 2. For each client with plaintext `client_secret`, hash it with PBKDF2
 3. Copy PBKDF2 hash to `client_secret_hash_pbkdf2`
@@ -193,6 +198,7 @@ func generateClientSecret() string {
 5. Drop old `client_secret` column
 
 **SQL Migration** (PostgreSQL):
+
 ```sql
 -- Add temporary column for PBKDF2 hashes
 ALTER TABLE clients ADD COLUMN client_secret_hash_pbkdf2 TEXT;
@@ -206,6 +212,7 @@ ALTER TABLE clients DROP COLUMN client_secret IF EXISTS;
 ```
 
 **Go Migration Code**:
+
 ```go
 func MigrateClientSecretsToPBKDF2(ctx context.Context, db *gorm.DB) error {
     var clients []domain.Client
@@ -245,6 +252,7 @@ func MigrateClientSecretsToPBKDF2(ctx context.Context, db *gorm.DB) error {
 **File**: `internal/identity/authz/clientauth/tls_client_auth.go`
 
 **Add CRL validation**:
+
 ```go
 import (
     "crypto/x509"
@@ -320,6 +328,7 @@ func checkCRL(cert *x509.Certificate) (bool, error) {
 **File**: `internal/identity/authz/clientauth/tls_client_auth.go`
 
 **Add OCSP validation** (prioritize OCSP over CRL):
+
 ```go
 import (
     "crypto/x509/ocsp"
@@ -393,18 +402,21 @@ func checkOCSP(cert *x509.Certificate) (int, error) {
 ### Unit Tests
 
 **File**: `internal/crypto/secret_test.go`
+
 - PBKDF2 hash generation (table-driven test with various iteration counts)
 - PBKDF2 hash verification (valid/invalid secrets)
 - Legacy bcrypt hash verification (backward compatibility)
 - Hash format validation (pbkdf2$ prefix, components)
 
 **File**: `internal/identity/authz/clientauth/client_secret_basic_test.go`
+
 - Client secret verification with PBKDF2 hashes
 - Legacy bcrypt hash support during migration
 - Authentication failure logging
 - Invalid client ID handling
 
 **File**: `internal/identity/authz/clientauth/tls_client_auth_test.go`
+
 - CRL download and parsing (mock HTTP server)
 - OCSP request/response handling (mock HTTP server)
 - Certificate revocation detection
@@ -413,6 +425,7 @@ func checkOCSP(cert *x509.Certificate) (int, error) {
 ### Integration Tests
 
 **File**: `internal/identity/test/e2e/client_authentication_test.go`
+
 - End-to-end client authentication:
   1. Register client with generated secret
   2. Authenticate with client_secret_basic (PBKDF2 hash)
@@ -437,6 +450,7 @@ func checkOCSP(cert *x509.Certificate) (int, error) {
 ## Validation
 
 **Success Criteria**:
+
 - [ ] Client secrets hashed with PBKDF2-HMAC-SHA256 (FIPS-approved)
 - [ ] Legacy bcrypt hashes verified during migration
 - [ ] Database migration hashes all plaintext secrets
@@ -455,7 +469,7 @@ func checkOCSP(cert *x509.Certificate) (int, error) {
 
 - GAP-ANALYSIS-DETAILED.md: Priority 3 issues (lines 246-327)
 - REMEDIATION-MASTER-PLAN-2025.md: R03 section (updated with FIPS requirements)
-- FIPS-140-3: https://csrc.nist.gov/publications/detail/fips/140/3/final
-- PBKDF2 RFC 2898: https://datatracker.ietf.org/doc/html/rfc2898
-- OCSP RFC 6960: https://datatracker.ietf.org/doc/html/rfc6960
+- FIPS-140-3: <https://csrc.nist.gov/publications/detail/fips/140/3/final>
+- PBKDF2 RFC 2898: <https://datatracker.ietf.org/doc/html/rfc2898>
+- OCSP RFC 6960: <https://datatracker.ietf.org/doc/html/rfc6960>
 - internal/crypto/secret.go: PBKDF2 implementation reference

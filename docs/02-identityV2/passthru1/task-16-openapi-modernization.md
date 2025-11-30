@@ -1,5 +1,6 @@
 # Task 16 – OpenAPI 3.0 Spec Modernization
-## ⚠️ NOTE: This task has been **REPLACED** by Task 10.7 (OpenAPI Synchronization) in the refactored plan.
+
+## ⚠️ NOTE: This task has been **REPLACED** by Task 10.7 (OpenAPI Synchronization) in the refactored plan
 
 **Original Task 16 content retained for historical reference only.**
 

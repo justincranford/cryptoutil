@@ -1,5 +1,7 @@
 # IDENTITY MODULE - MASTER COORDINATION FILE
+
 # OAuth 2.1 + OpenID Connect Identity Provider
+
 # Multi-File Session Management
 
 ## 🎯 SESSION OVERVIEW

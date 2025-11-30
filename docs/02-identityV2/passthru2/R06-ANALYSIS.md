@@ -1,6 +1,7 @@
 # R06 Authentication Middleware and Session Management - Analysis
 
 ## Metadata
+
 - **Requirement**: R06 Authentication Middleware and Session Management
 - **Status**: ANALYSIS COMPLETE - Already satisfied by R02 implementation
 - **Analysis Date**: 2025-01-XX
@@ -28,6 +29,7 @@
 **R06 Requirement**: Session validation middleware (cookie-based)
 
 **R02 Implementation** (middleware.go lines 54-100):
+
 ```go
 func (s *Service) AuthMiddleware() fiber.Handler {
     return func(c *fiber.Ctx) error {
@@ -68,6 +70,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 ```
 
 **Coverage**:
+
 - ✅ Cookie extraction (`c.Cookies()`)
 - ✅ Session retrieval from database
 - ✅ Active status validation
@@ -81,6 +84,7 @@ func (s *Service) AuthMiddleware() fiber.Handler {
 **R06 Requirement**: Token validation middleware (Bearer token)
 
 **R02 Implementation** (middleware.go lines 103-140):
+
 ```go
 func (s *Service) TokenAuthMiddleware() fiber.Handler {
     return func(c *fiber.Ctx) error {
@@ -118,6 +122,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 ```
 
 **Coverage**:
+
 - ✅ Authorization header extraction
 - ✅ Bearer token parsing
 - ✅ Token validation via TokenService
@@ -131,6 +136,7 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 **R06 Requirement**: Middleware applied to `/userinfo`, `/logout`, `/consent`
 
 **R02 Implementation** (routes.go):
+
 ```go
 // Protected endpoints requiring session authentication
 app.Get("/oidc/v1/consent", s.AuthMiddleware(), s.handleConsentGET)
@@ -142,6 +148,7 @@ app.Get("/oidc/v1/userinfo", s.TokenAuthMiddleware(), s.handleUserinfoGET)
 ```
 
 **Coverage**:
+
 - ✅ `/consent` requires session (AuthMiddleware)
 - ✅ `/logout` requires session (AuthMiddleware)
 - ✅ `/userinfo` requires Bearer token (TokenAuthMiddleware)
@@ -153,12 +160,14 @@ app.Get("/oidc/v1/userinfo", s.TokenAuthMiddleware(), s.handleUserinfoGET)
 **R06 Requirement**: Session storage (in-memory or database)
 
 **R02 Implementation**:
+
 - **Storage**: PostgreSQL/SQLite via SessionRepository (GORM ORM)
 - **Retrieval**: `sessionRepo.GetBySessionID(ctx, sessionID)` in AuthMiddleware
 - **Creation**: Session creation in login flow (handlers_login.go)
 - **Deletion**: Session deletion in logout flow (handlers_logout.go)
 
 **Coverage**:
+
 - ✅ Persistent database storage (PostgreSQL/SQLite)
 - ✅ Repository pattern for CRUD operations
 - ✅ Session lifecycle management (create, retrieve, delete)
@@ -170,11 +179,13 @@ app.Get("/oidc/v1/userinfo", s.TokenAuthMiddleware(), s.handleUserinfoGET)
 **R06 Requirement**: Middleware tests validate authentication logic
 
 **R02 Implementation** (integration_test.go):
+
 - **E2E OIDC flow test**: Validates complete flow including protected endpoints
 - **Session validation**: Tests session-protected consent/logout endpoints
 - **Token validation**: Tests Bearer token-protected userinfo endpoint
 
 **Coverage**:
+
 - ✅ Unauthenticated requests return 401 (implicit in E2E flow)
 - ✅ Valid session grants access to protected endpoints
 - ✅ Valid token grants access to API endpoints
@@ -211,6 +222,7 @@ app.Get("/oidc/v1/userinfo", s.TokenAuthMiddleware(), s.handleUserinfoGET)
 ---
 
 ## References
+
 - **Master Plan**: docs/02-identityV2/current/MASTER-PLAN.md (R02, R06)
 - **R02 Implementation**: Commits 7d51d4a0, 4b7439f8, d1bca2d6, 1611bad6
 - **Middleware Code**: internal/identity/idp/middleware.go

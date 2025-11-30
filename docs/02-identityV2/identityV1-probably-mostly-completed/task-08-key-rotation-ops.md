@@ -7,6 +7,7 @@ This guide covers operational procedures for managing cryptographic key rotation
 ## Key Rotation Policies
 
 ### Default Policy (Balanced Security)
+
 ```yaml
 rotation_interval: 720h  # 30 days
 grace_period: 168h       # 7 days
@@ -15,11 +16,13 @@ auto_rotation: false     # Manual rotation recommended
 ```
 
 **Use Cases:**
+
 - Standard production deployments
 - Services with moderate security requirements
 - Environments where manual rotation oversight is preferred
 
 **Characteristics:**
+
 - 30-day rotation cycle balances security and operational overhead
 - 7-day grace period ensures smooth transitions
 - Up to 3 active keys supported for extended grace periods
@@ -27,6 +30,7 @@ auto_rotation: false     # Manual rotation recommended
 ---
 
 ### Strict Policy (Maximum Security)
+
 ```yaml
 rotation_interval: 168h  # 7 days
 grace_period: 24h        # 1 day
@@ -35,11 +39,13 @@ auto_rotation: true      # Automated rotation enabled
 ```
 
 **Use Cases:**
+
 - High-security production environments
 - Financial services, healthcare, government
 - Compliance-driven deployments (PCI-DSS, HIPAA)
 
 **Characteristics:**
+
 - Weekly rotation minimizes key exposure window
 - 1-day grace period enforces rapid key turnover
 - Automated rotation reduces manual errors
@@ -50,6 +56,7 @@ auto_rotation: true      # Automated rotation enabled
 ---
 
 ### Development Policy (Relaxed)
+
 ```yaml
 rotation_interval: 8760h  # 365 days
 grace_period: 720h        # 30 days
@@ -58,11 +65,13 @@ auto_rotation: false
 ```
 
 **Use Cases:**
+
 - Development and testing environments
 - CI/CD pipelines
 - Local development workstations
 
 **Characteristics:**
+
 - Annual rotation reduces operational friction
 - 30-day grace period accommodates long-running tests
 - 5 active keys support extended testing scenarios
@@ -76,6 +85,7 @@ auto_rotation: false
 ### Manual Rotation (Recommended for Production)
 
 **Step 1: Pre-Rotation Checklist**
+
 ```bash
 # Verify current key status
 curl -X GET https://localhost:8443/admin/keys/status \
@@ -91,6 +101,7 @@ curl -X GET https://localhost:8443/admin/health/telemetry \
 ```
 
 **Step 2: Trigger Rotation**
+
 ```bash
 # Rotate signing keys
 curl -X POST https://localhost:8443/admin/keys/rotate/signing \
@@ -104,6 +115,7 @@ curl -X POST https://localhost:8443/admin/keys/rotate/encryption \
 ```
 
 **Step 3: Verify Rotation**
+
 ```bash
 # Check new active key
 curl -X GET https://localhost:8443/admin/keys/active \
@@ -120,6 +132,7 @@ curl -X POST https://localhost:8443/oauth2/token \
 ```
 
 **Step 4: Monitor Grace Period**
+
 ```bash
 # Monitor token validation failures (should remain low)
 curl -X GET https://localhost:8443/admin/metrics/token-validation-errors \
@@ -131,6 +144,7 @@ curl -X GET https://localhost:8443/admin/keys/usage-stats \
 ```
 
 **Step 5: Wait for Grace Period Expiration**
+
 - Default policy: Wait 7 days
 - Strict policy: Wait 1 day
 - Monitor key usage throughout grace period
@@ -141,6 +155,7 @@ curl -X GET https://localhost:8443/admin/keys/usage-stats \
 ### Automated Rotation (Strict Policy)
 
 **Enable Automated Rotation:**
+
 ```go
 policy := StrictKeyRotationPolicy()
 policy.AutoRotationEnabled = true
@@ -159,6 +174,7 @@ go manager.StartAutoRotation(ctx, "RS256")
 ```
 
 **Monitoring Automated Rotation:**
+
 ```bash
 # Check rotation schedule
 curl -X GET https://localhost:8443/admin/keys/rotation-schedule \
@@ -186,12 +202,14 @@ curl -X POST https://localhost:8443/admin/alerts/configure \
 ### When to Perform Emergency Rotation
 
 **IMMEDIATE rotation required if:**
+
 - Key compromise suspected or confirmed
 - Insider threat detected
 - Security breach involving token systems
 - Compliance violation requiring key invalidation
 
 **Step 1: Disable Current Keys**
+
 ```bash
 # Immediately mark active key as invalid
 curl -X POST https://localhost:8443/admin/keys/invalidate \
@@ -201,6 +219,7 @@ curl -X POST https://localhost:8443/admin/keys/invalidate \
 ```
 
 **Step 2: Force Immediate Rotation**
+
 ```bash
 # Rotate without waiting for grace period
 curl -X POST https://localhost:8443/admin/keys/rotate/signing \
@@ -219,6 +238,7 @@ curl -X POST https://localhost:8443/admin/keys/rotate/encryption \
 ```
 
 **Step 3: Revoke All Tokens Signed with Compromised Key**
+
 ```bash
 # Revoke tokens by key ID
 curl -X POST https://localhost:8443/admin/tokens/revoke-by-key \
@@ -228,6 +248,7 @@ curl -X POST https://localhost:8443/admin/tokens/revoke-by-key \
 ```
 
 **Step 4: Force Client Re-Authentication**
+
 ```bash
 # Invalidate all active sessions
 curl -X POST https://localhost:8443/admin/sessions/invalidate-all \
@@ -237,6 +258,7 @@ curl -X POST https://localhost:8443/admin/sessions/invalidate-all \
 ```
 
 **Step 5: Communicate to Stakeholders**
+
 - Notify security team immediately
 - Alert affected clients/users
 - Document incident timeline
@@ -249,6 +271,7 @@ curl -X POST https://localhost:8443/admin/sessions/invalidate-all \
 ### Scenario: New Key Causing Validation Failures
 
 **Step 1: Identify Issue**
+
 ```bash
 # Check token validation error rates
 curl -X GET https://localhost:8443/admin/metrics/validation-errors \
@@ -260,6 +283,7 @@ curl -X GET https://localhost:8443/admin/keys/error-stats \
 ```
 
 **Step 2: Reactivate Previous Key**
+
 ```bash
 # Mark previous key as active again
 curl -X POST https://localhost:8443/admin/keys/reactivate \
@@ -269,6 +293,7 @@ curl -X POST https://localhost:8443/admin/keys/reactivate \
 ```
 
 **Step 3: Deactivate Problematic Key**
+
 ```bash
 # Mark new key as inactive (keep for verification only)
 curl -X POST https://localhost:8443/admin/keys/deactivate \
@@ -278,12 +303,14 @@ curl -X POST https://localhost:8443/admin/keys/deactivate \
 ```
 
 **Step 4: Investigate Root Cause**
+
 - Check key generation logs
 - Verify algorithm compatibility
 - Test key material integrity
 - Review cryptographic library versions
 
 **Step 5: Retry Rotation**
+
 ```bash
 # After fixing issue, retry rotation
 curl -X POST https://localhost:8443/admin/keys/rotate/signing \
@@ -316,6 +343,7 @@ curl -X POST https://localhost:8443/admin/keys/rotate/signing \
 ### Monitoring and Alerting
 
 **Key Metrics to Monitor:**
+
 - Token issuance rate by key ID
 - Token validation success/failure rates
 - Key age and expiration times
@@ -323,6 +351,7 @@ curl -X POST https://localhost:8443/admin/keys/rotate/signing \
 - Number of active keys
 
 **Alert Thresholds:**
+
 ```yaml
 alerts:
   - name: key_expiring_soon
@@ -364,12 +393,14 @@ alerts:
 ### Compliance and Audit
 
 **Audit Log Requirements:**
+
 - All key rotation events (who, when, why)
 - Key invalidation events
 - Emergency rotation triggers
 - Rollback procedures executed
 
 **Compliance Documentation:**
+
 ```bash
 # Generate rotation audit report
 curl -X GET https://localhost:8443/admin/audit/key-rotation \
@@ -385,6 +416,7 @@ curl -X GET https://localhost:8443/admin/audit/key-rotation \
 ### Common Issues
 
 **Issue: "No active signing key available"**
+
 ```bash
 # Cause: Rotation failed or key expired without replacement
 # Solution: Force immediate rotation
@@ -395,6 +427,7 @@ curl -X POST https://localhost:8443/admin/keys/rotate/signing \
 ```
 
 **Issue: Token validation failures after rotation**
+
 ```bash
 # Cause: Clock skew or grace period too short
 # Solution: Extend grace period temporarily
@@ -405,6 +438,7 @@ curl -X PATCH https://localhost:8443/admin/keys/policy \
 ```
 
 **Issue: Key rotation taking too long**
+
 ```bash
 # Cause: Large number of tokens to re-sign
 # Solution: Monitor progress and wait for completion
@@ -417,6 +451,7 @@ curl -X GET https://localhost:8443/admin/keys/rotation-progress \
 ## CLI Commands Reference
 
 ### Key Status and Information
+
 ```bash
 # List all keys
 curl -X GET https://localhost:8443/admin/keys
@@ -435,6 +470,7 @@ curl -X GET https://localhost:8443/admin/keys/policy
 ```
 
 ### Key Rotation Operations
+
 ```bash
 # Rotate signing key
 curl -X POST https://localhost:8443/admin/keys/rotate/signing \
@@ -449,6 +485,7 @@ curl -X POST https://localhost:8443/admin/keys/rotate/all \
 ```
 
 ### Policy Management
+
 ```bash
 # Update rotation policy
 curl -X PATCH https://localhost:8443/admin/keys/policy \

@@ -37,6 +37,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Identity-Related Commits**: ~179 commits (33% of total)
 
 **Key Milestones**:
+
 - Commits `1974b06` - `2514fef`: Original Tasks 1-15 implementation
 - Commit `5c04e44`: Mock service orchestration (E2E infrastructure)
 - Commit `80d4e00`: Documentation refresh (3 strategic plans)
@@ -92,6 +93,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Files**: handlers_authorize.go, handlers_token.go, handlers_consent.go
 
 **Missing Functionality**:
+
 1. Authorization request persistence with PKCE challenge (line 112-114)
 2. PKCE verifier validation in token endpoint (line 79)
 3. Consent decision storage (line 46-48)
@@ -109,6 +111,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Files**: handlers_login.go, handlers_consent.go
 
 **Missing Functionality**:
+
 1. Login page rendering (returns JSON instead of HTML)
 2. Consent page rendering (no scope approval UI)
 3. Redirect to authorization callback
@@ -126,6 +129,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Files**: server/rs_server.go
 
 **Missing Functionality**:
+
 1. Bearer token parsing and introspection
 2. Scope enforcement on protected endpoints
 
@@ -142,6 +146,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Files**: handlers_logout.go, handlers_userinfo.go
 
 **Missing Functionality**:
+
 1. Logout implementation (session/token cleanup)
 2. UserInfo token validation and claim mapping
 
@@ -162,16 +167,19 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Status**: ✅ Complete, infrastructure stable
 
 **Files Modified**:
+
 - mock_services.go (NEW, 622 lines)
 - identity_e2e_test.go (+23 lines)
 - TestMain function for automatic service lifecycle
 
 **Benefits**:
+
 - E2E tests no longer require manual service startup
 - Deterministic orchestration improves reliability
 - Cross-platform compatibility (Windows path resolution fixed)
 
 **Gaps Exposed**:
+
 - Authorization code persistence missing
 - IdP login/consent integration issues
 - RS token validation missing
@@ -186,6 +194,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Status**: ⚠️ Superseded by c91278f master plan restructure
 
 **Files Created**:
+
 - identityV2/README.md (176 lines) - 20-task overview
 - ca/README.md (176 lines) - CA system plan
 - refactor/README.md (156 lines) - Repository restructure plan
@@ -202,10 +211,12 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Status**: ✅ Complete, guiding Tasks 01-20 execution
 
 **Files Modified**:
+
 - identityV2_master.md (NEW, 62 lines) - Master plan with historical context
 - task-01-*.md through task-20-*.md (20 NEW files, ~750 lines) - Per-task guides
 
 **Structure**:
+
 - Foundation tasks (01-05)
 - Core implementation (06-10)
 - Advanced features (11-15)
@@ -220,6 +231,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Status**: Partial implementation with TODO gaps
 
 **Components**:
+
 - AuthZ: Handlers with code persistence TODOs
 - IdP: Login/consent stubs
 - RS: Token validation TODO
@@ -232,6 +244,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Status**: Advanced features complete, core flows incomplete
 
 **Completed**:
+
 - ✅ MFA orchestrator (TOTP, OTP, WebAuthn, hardware credentials)
 - ✅ Adaptive authentication engine
 - ✅ Docker Compose orchestration (4 profiles, scaling support)
@@ -240,6 +253,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 - ✅ OTLP telemetry integration
 
 **Incomplete**:
+
 - ❌ Authorization code flow (code persistence, PKCE validation, consent)
 - ❌ IdP login/consent pages (rendering, redirect)
 - ❌ Resource server token validation
@@ -277,6 +291,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Effort**: ~25 days total
 
 **Milestones**:
+
 - Week 1-2: Task 06 (AuthZ rehab) - 3 critical gaps
 - Week 3-4: Task 07 (Client auth) - 2 critical + 3 high gaps
 - Week 5-6: Task 08 (Token service) - 1 critical gap
@@ -292,6 +307,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 **Effort**: ~20 days total
 
 **Milestones**:
+
 - Week 11-14: Task 03 (Config normalization) - 3 medium gaps
 - Week 15-18: Testing & enhancement - 10 medium gaps
 

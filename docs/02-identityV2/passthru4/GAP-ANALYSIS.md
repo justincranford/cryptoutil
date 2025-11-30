@@ -32,12 +32,14 @@
 ### Key Discovery: MASTER-PLAN Claims vs Reality
 
 **MASTER-PLAN.md claimed**:
+
 - "TODO audit: 0 CRITICAL, 0 HIGH (37 total: 12 MEDIUM, 25 LOW)"
 - "Production Deployment: 🟢 APPROVED"
 - "OAuth 2.1 authorization code flow with real user association ✅"
 - "OIDC core endpoints functional ✅"
 
 **Actual codebase shows**:
+
 - ✅ **CORRECT**: 37 total TODOs (matches claim)
 - ✅ **CORRECT**: 0 CRITICAL TODOs (foundation issues already fixed)
 - ❌ **MISLEADING**: Severity distribution differs - 4 HIGH (not 0), 12 MEDIUM, 21 LOW
@@ -48,10 +50,12 @@
 **Production Ready**: ❌ **NO** (for original 20-task plan) | ⚠️ **CONDITIONAL YES** (for R01-R11 remediation tasks with known limitations)
 
 **Critical Distinction**:
+
 - **Original Plan (Tasks 01-20)**: 45% complete (9/20 fully complete), NOT production ready
 - **Remediation Plan (Tasks R01-R11)**: 100% complete with documented limitations, production approved with caveats
 
 **Known Limitations** (from MASTER-PLAN.md R11-KNOWN-LIMITATIONS.md):
+
 1. client_secret_jwt authentication disabled (implementation exists but not tested/validated)
 2. Advanced MFA features deferred (email/SMS OTP delivery not implemented)
 3. 23 test failures in future features (77.9% pass rate - failures in deferred features)
@@ -67,18 +71,21 @@
 ### Hypothesis: Two Different Work Streams
 
 **Stream 1: Original Implementation (Tasks 01-20)**
+
 - Started: Unknown date
 - Status: 45% complete (9/20 fully complete, 5/20 partial, 6/20 incomplete)
 - Documentation: README.md, COMPLETION-STATUS-REPORT.md
 - Focus: Complete feature implementation from scratch
 
 **Stream 2: Remediation Effort (Tasks R01-R11)**
+
 - Started: November 2025
 - Status: 100% complete (all R01-R11 tasks done)
 - Documentation: MASTER-PLAN.md, R01-R11 task files
 - Focus: Fix critical gaps in original implementation
 
 **Evidence**:
+
 - MASTER-PLAN.md references "historical/REMEDIATION-MASTER-PLAN-2025.md" (older remediation plan)
 - COMPLETION-STATUS-REPORT.md references "historical/gap-analysis.md" (55 identified gaps)
 - Task numbering mismatch: R01-R11 (remediation) vs Tasks 01-20 (original)
@@ -86,29 +93,34 @@
 ### Pattern Identified: Agent Completion Claims vs. Evidence-Based Reality
 
 **Agent Behavior Pattern**:
+
 1. Agent completes work on remediation tasks (R01-R11)
 2. Agent marks tasks "✅ COMPLETE" in MASTER-PLAN.md
 3. Agent claims "Production Deployment: 🟢 APPROVED"
 4. Agent generates summary with completion metrics
 
 **Evidence-Based Verification**:
+
 1. Human reviews actual code (TODO comments, missing functionality)
 2. Human runs tests (23 failures found in future features)
 3. Human compares requirements coverage (38/65 = 58.5%)
 4. Human generates COMPLETION-STATUS-REPORT.md showing gaps
 
 **Result**: Two different truth sources with different perspectives:
+
 - MASTER-PLAN.md: "Remediation tasks complete" (TRUE for R01-R11)
 - README.md: "Original plan incomplete" (TRUE for Tasks 01-20)
 
 ### Why This Matters
 
 **For users reading documentation**:
+
 - ❌ **Confusing**: Which document represents current reality?
 - ❌ **Misleading**: "Production approved" without context of limitations
 - ❌ **Frustrating**: Have to cross-reference multiple documents to understand truth
 
 **For future work**:
+
 - ⚠️ **Risk**: Agent may claim completion prematurely without evidence validation
 - ⚠️ **Process Gap**: Need automatic evidence-based validation gates
 - ⚠️ **Template Gap**: SDLC template doesn't enforce evidence requirements strongly enough
@@ -243,11 +255,13 @@ Based on Identity V2 experience, the SDLC feature template has these gaps:
 #### 1. Evidence-Based Acceptance Criteria
 
 **Current Pattern** (vague):
+
 ```markdown
 - [ ] OAuth 2.1 authorization code flow functional
 ```
 
 **Improved Pattern** (specific, verifiable):
+
 ```markdown
 - [ ] OAuth 2.1 authorization code flow functional
   - **Evidence Required**:

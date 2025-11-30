@@ -9,16 +9,19 @@
 ## Test Failure Root Cause
 
 ### What the Test Does
+
 1. Sends GET request to `/oauth2/v1/authorize` with PKCE parameters
 2. Expects to immediately receive authorization code in redirect location
 3. Does NOT follow redirects (uses `CheckRedirect` to prevent automatic following)
 
 ### What the Code Does (Correct OAuth 2.1 Flow)
+
 1. GET `/oauth2/v1/authorize` → Creates authorization request → Redirects to `/oidc/v1/login`
 2. POST `/oidc/v1/login` → Authenticates user → Redirects to `/oidc/v1/consent`
 3. POST `/oidc/v1/consent` → User approves → Generates authorization code → Redirects to client callback
 
 ### Why Test Fails
+
 - **Test expects**: `GET /authorize` → `302 redirect with code parameter`
 - **Code provides**: `GET /authorize` → `302 redirect to login` → *(user interaction)* → *(code generated later)*
 - **Gap**: Test stops at first redirect (login page), never reaches consent page where code is generated
@@ -55,6 +58,7 @@ Authorization flow implementation is **CORRECT** according to OAuth 2.1 spec:
 ## Test Needs Refactoring
 
 ### Option 1: Programmatic Flow Simulation
+
 ```go
 // Step 1: Start authorization
 authResp := GET /authorize (don't follow redirects)
@@ -75,11 +79,13 @@ code := extractCode(callbackURL)
 ```
 
 ### Option 2: Headless Browser (Playwright/Selenium)
+
 - Use browser automation to fill forms and follow redirects
 - Tests full user experience including JavaScript
 - Higher fidelity but more complex setup
 
 ### Option 3: Unit Test Each Handler Separately
+
 - Test `/authorize` handler separately (verify redirect to login)
 - Test `/login` handler separately (verify redirect to consent)
 - Test `/consent` handler separately (verify code generation)
@@ -93,6 +99,7 @@ code := extractCode(callbackURL)
 ## Current Test Implementation Issue
 
 **Line 327** in `integration_test.go`:
+
 ```go
 code := redirectURL.Query().Get("code")
 testify.NotEmpty(t, code, "Authorization code should be present")

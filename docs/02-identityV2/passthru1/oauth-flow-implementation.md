@@ -33,6 +33,7 @@ This document describes the OAuth 2.1 authorization code flow implementation wit
 **Endpoint**: `GET /oauth2/v1/authorize`
 
 **Required Parameters**:
+
 - `response_type=code` - Must be "code" (OAuth 2.1 removes implicit flow)
 - `client_id` - Client identifier
 - `redirect_uri` - Callback URL (must match registered URI)
@@ -40,14 +41,17 @@ This document describes the OAuth 2.1 authorization code flow implementation wit
 - `code_challenge_method=S256` - Only S256 supported (OAuth 2.1 requirement)
 
 **Optional Parameters**:
+
 - `scope` - Requested scopes (space-separated)
 - `state` - CSRF protection token
 
 **Response**: 302 redirect to `redirect_uri` with:
+
 - `code` - Authorization code (single-use, expires in 5 minutes)
 - `state` - Preserved from request (if provided)
 
 **Example Request**:
+
 ```http
 GET /oauth2/v1/authorize?
   response_type=code&
@@ -60,6 +64,7 @@ GET /oauth2/v1/authorize?
 ```
 
 **Example Response**:
+
 ```http
 HTTP/1.1 302 Found
 Location: https://localhost:3000/callback?code=ZG5Bb3eVyGxgBSEJXY8ejPLXa9DeizcOUcyFySyxKsc&state=xyz123
@@ -70,6 +75,7 @@ Location: https://localhost:3000/callback?code=ZG5Bb3eVyGxgBSEJXY8ejPLXa9DeizcOU
 **Endpoint**: `POST /oauth2/v1/token`
 
 **Required Parameters** (application/x-www-form-urlencoded):
+
 - `grant_type=authorization_code`
 - `code` - Authorization code from Step 1
 - `redirect_uri` - Must match original request
@@ -78,6 +84,7 @@ Location: https://localhost:3000/callback?code=ZG5Bb3eVyGxgBSEJXY8ejPLXa9DeizcOU
 - `code_verifier` - PKCE code verifier (proves possession)
 
 **Response** (application/json):
+
 ```json
 {
   "access_token": "eyJhbGc...",
@@ -89,6 +96,7 @@ Location: https://localhost:3000/callback?code=ZG5Bb3eVyGxgBSEJXY8ejPLXa9DeizcOU
 ```
 
 **Example Request**:
+
 ```http
 POST /oauth2/v1/token
 Content-Type: application/x-www-form-urlencoded
@@ -106,6 +114,7 @@ code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
 **Endpoint**: `GET /api/v1/protected/resource`
 
 **Required Header**:
+
 - `Authorization: Bearer <access_token>`
 
 **Response**: Protected resource data (if token valid and scopes sufficient)
@@ -146,11 +155,13 @@ const codeChallenge = base64url(sha256(codeVerifier))
 ### Current Implementation (Task 10.5)
 
 **Auto-consent for integration tests**:
+
 - Authorization codes generated immediately
 - No user authentication required
 - No consent screen shown
 
 **Storage**:
+
 - In-memory authorization request store
 - Thread-safe with sync.RWMutex
 - Authorization codes expire in 5 minutes
@@ -159,6 +170,7 @@ const codeChallenge = base64url(sha256(codeVerifier))
 ### Future Implementation (Task 10.6+)
 
 **User authentication flow**:
+
 1. Check session cookie for authenticated user
 2. If not authenticated: 302 redirect to IdP `/oidc/v1/login`
 3. IdP authenticates user (username/password, MFA, etc.)
@@ -170,6 +182,7 @@ const codeChallenge = base64url(sha256(codeVerifier))
 9. AuthZ redirects to client callback with code
 
 **Session storage**:
+
 - Database-backed session repository
 - Secure session tokens (UUIDv7)
 - Configurable lifetime (default 1 hour)
@@ -182,6 +195,7 @@ const codeChallenge = base64url(sha256(codeVerifier))
 **Purpose**: Prevents cross-site request forgery attacks
 
 **Flow**:
+
 1. Client generates random state: `crypto.randomBytes(16).toString('hex')`
 2. Client stores state in session storage
 3. Client includes state in authorization request
@@ -190,6 +204,7 @@ const codeChallenge = base64url(sha256(codeVerifier))
 6. If mismatch, reject response as potential attack
 
 **Example**:
+
 ```javascript
 // Before authorization request
 const state = crypto.randomBytes(16).toString('hex')
@@ -210,6 +225,7 @@ if (returnedState !== storedState) {
 #### Authorization Endpoint Errors
 
 **invalid_request**: Missing or invalid required parameter
+
 ```json
 {
   "error": "invalid_request",
@@ -218,6 +234,7 @@ if (returnedState !== storedState) {
 ```
 
 **unauthorized_client**: Client not authorized for requested grant type
+
 ```json
 {
   "error": "unauthorized_client",
@@ -226,6 +243,7 @@ if (returnedState !== storedState) {
 ```
 
 **access_denied**: User or authorization server denied request
+
 ```json
 {
   "error": "access_denied",
@@ -234,6 +252,7 @@ if (returnedState !== storedState) {
 ```
 
 **unsupported_response_type**: Response type not supported
+
 ```json
 {
   "error": "unsupported_response_type",
@@ -242,6 +261,7 @@ if (returnedState !== storedState) {
 ```
 
 **invalid_scope**: Requested scope invalid or exceeds granted scopes
+
 ```json
 {
   "error": "invalid_scope",
@@ -250,6 +270,7 @@ if (returnedState !== storedState) {
 ```
 
 **server_error**: Internal server error
+
 ```json
 {
   "error": "server_error",
@@ -260,6 +281,7 @@ if (returnedState !== storedState) {
 #### Token Endpoint Errors
 
 **invalid_grant**: Authorization code invalid, expired, or already used
+
 ```json
 {
   "error": "invalid_grant",
@@ -268,6 +290,7 @@ if (returnedState !== storedState) {
 ```
 
 **invalid_client**: Client authentication failed
+
 ```json
 {
   "error": "invalid_client",
@@ -276,6 +299,7 @@ if (returnedState !== storedState) {
 ```
 
 **unsupported_grant_type**: Grant type not supported
+
 ```json
 {
   "error": "unsupported_grant_type",
@@ -286,11 +310,13 @@ if (returnedState !== storedState) {
 ### Error Response Patterns
 
 **Authorization Endpoint**:
+
 - Parameter validation errors: 400 Bad Request with JSON error
 - Redirect URI validation errors: 400 Bad Request (NO redirect for security)
 - After successful client validation: Redirect to redirect_uri with error query params
 
 **Token Endpoint**:
+
 - All errors: 400/401 status with JSON error response
 - Never redirect (token endpoint is POST, not GET)
 
@@ -307,6 +333,7 @@ if (returnedState !== storedState) {
 ### Redirect URI Validation
 
 **Exact match required** - no wildcards, no regex:
+
 ```go
 validRedirectURI := false
 for _, uri := range client.RedirectURIs {
@@ -318,6 +345,7 @@ for _, uri := range client.RedirectURIs {
 ```
 
 **Why strict validation?**
+
 - Prevents open redirect vulnerabilities
 - Prevents authorization code theft
 - OAuth 2.1 security best practice
@@ -325,6 +353,7 @@ for _, uri := range client.RedirectURIs {
 ### Client Authentication
 
 **Confidential Clients** (backend applications):
+
 - `client_secret_basic` - HTTP Basic authentication
 - `client_secret_post` - POST body authentication
 - `client_secret_jwt` - JWT signed with client secret
@@ -333,6 +362,7 @@ for _, uri := range client.RedirectURIs {
 - `self_signed_tls_client_auth` - mTLS with pinned certificate
 
 **Public Clients** (SPAs, mobile apps):
+
 - No client secret
 - PKCE mandatory for security
 - Registered redirect URIs strictly enforced
@@ -344,6 +374,7 @@ for _, uri := range client.RedirectURIs {
 **Format**: JWS (JSON Web Signature)
 
 **Claims**:
+
 ```json
 {
   "sub": "user-uuid",
@@ -371,6 +402,7 @@ for _, uri := range client.RedirectURIs {
 **Format**: JWS (OIDC standard)
 
 **Claims**:
+
 ```json
 {
   "sub": "user-uuid",
@@ -452,6 +484,7 @@ database:
 **File**: `internal/identity/integration/integration_test.go`
 
 **TestOAuth2AuthorizationCodeFlow**:
+
 1. Generates PKCE code verifier and challenge
 2. Requests authorization code from `/oauth2/v1/authorize`
 3. Validates 302 redirect with code and state
@@ -460,32 +493,38 @@ database:
 6. Uses access_token to access protected resource
 
 **TestHealthCheckEndpoints**:
+
 - Validates AuthZ, IdP, RS health endpoints return 200 OK
 - Validates JSON response format
 
 **TestResourceServerScopeEnforcement**:
+
 - Validates scope-based access control
 - Tests read, write, delete, admin scopes
 - Validates 403 Forbidden for insufficient scopes
 
 **TestUnauthorizedAccess**:
+
 - Validates 401 Unauthorized for missing Authorization header
 - Tests protected and admin endpoints
 
 **TestGracefulShutdown**:
+
 - Validates servers shut down cleanly
 - Validates connections fail after shutdown
 
 ### Manual Testing with SPA Relying Party
 
 **Start services**:
+
 ```bash
 docker compose -f deployments/compose/identity-compose.yml up -d
 ```
 
-**Access SPA**: http://localhost:8446
+**Access SPA**: <http://localhost:8446>
 
 **Test flow**:
+
 1. Configure AuthZ URL, IdP URL, client ID, redirect URI
 2. Click "Login with OAuth 2.1"
 3. Verify redirect to callback with authorization code

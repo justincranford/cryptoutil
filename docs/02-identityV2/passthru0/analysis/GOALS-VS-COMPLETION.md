@@ -11,6 +11,7 @@
 This matrix evaluates **stated goals** from task documentation against **actual implementation status** discovered through code inspection. Analysis reveals a **critical disconnect** between documentation completion claims and production-ready functionality.
 
 **Key Metrics**:
+
 - **Documentation Claims**: 14/20 tasks marked complete (70%)
 - **Actual Production-Ready**: 9/20 tasks functional (45%)
 - **Implementation Gap**: 5 tasks marked complete but have blocking issues (25%)
@@ -108,6 +109,7 @@ This matrix evaluates **stated goals** from task documentation against **actual 
 | Structured logging | ✅ Complete | ✅ **COMPLETE** | OpenTelemetry integration active |
 
 **Critical Gaps**:
+
 ```go
 // handlers_authorize.go lines 112-114
 // TODO: Store authorization request with PKCE challenge.
@@ -172,6 +174,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 | Consent redirect | ❌ Missing | 🔴 **BROKEN** | handlers_login.go line 110 |
 
 **Critical Gap**:
+
 ```go
 // handlers_login.go line 25
 // TODO: Render login page with parameters.
@@ -426,13 +429,16 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 ### The Documentation vs Reality Gap
 
 **Documentation Claims** (14/20 tasks complete):
+
 - Tasks 01, 04, 06, 07, 08, 10.5, 10.6, 11-15, 17-20 marked complete
 
 **Implementation Reality** (9/20 functional):
+
 - Tasks 01, 04, 10.5, 10.6, 11-15, 17-20 actually complete
 - **Tasks 06, 07, 08, 09 documented as complete but have blocking gaps**
 
 **Production-Blocking Issues**:
+
 1. **Task 06** (OAuth Core): 16 TODOs in handlers_authorize.go, handlers_token.go, handlers_consent.go
 2. **Task 09** (SPA UX): Login page returns JSON instead of HTML, no consent redirect
 3. **Task 08** (Token Service): Uses placeholder user IDs (googleUuid.NewV7() instead of real user)
@@ -441,17 +447,20 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 ### The Testing Paradox
 
 **E2E Tests Pass** (Task 19 complete):
+
 - oauth_flows_test.go validates authorization code flow ✅
 - Failover tests validate service resilience ✅
 - Observability tests validate telemetry ✅
 
 **But Production Flows Broken**:
+
 - Authorization code flow has missing persistence (handlers_authorize.go line 112-114)
 - Token endpoint missing PKCE validation (handlers_token.go line 79)
 - Tokens use placeholder user IDs (handlers_token.go line 148-149)
 - Login page returns JSON instead of HTML (handlers_login.go line 25)
 
 **How Tests Pass with Broken Code**:
+
 - Mock services in E2E infrastructure simulate complete flows
 - Tests validate external behavior (HTTP responses) not internal implementation
 - Integration points exist but internal logic incomplete
@@ -459,6 +468,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 ### The Advanced Features Paradox
 
 **What Works** (Tasks 11-15 complete):
+
 - Hardware credential CLI with enrollment, lifecycle, audit logging
 - WebAuthn/FIDO2 with registration, authentication, replay prevention
 - Adaptive authentication with risk scoring and policy simulation
@@ -466,6 +476,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 - Client MFA with TOTP, telemetry, load testing
 
 **What Doesn't Work** (Tasks 06-09 incomplete):
+
 - Users cannot log in (JSON response instead of HTML page)
 - Authorization code flow non-functional (missing request persistence)
 - Tokens use fake user IDs (no real user association)

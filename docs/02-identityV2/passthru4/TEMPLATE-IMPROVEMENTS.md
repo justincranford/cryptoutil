@@ -9,6 +9,7 @@
 ## Executive Summary
 
 Identity V2 implementation revealed critical gaps in the SDLC feature template that allowed:
+
 - Agent completion claims without evidence validation
 - Documentation contradictions (100% complete vs. 45% complete)
 - Multiple truth sources causing confusion
@@ -21,12 +22,15 @@ This document proposes **8 major template improvements** to enforce evidence-bas
 ## Improvement 1: Evidence-Based Acceptance Criteria
 
 ### Current Problem
+
 Acceptance criteria are vague, allowing subjective "complete" claims:
+
 ```markdown
 - [ ] OAuth 2.1 authorization code flow functional
 ```
 
 ### Recommended Improvement
+
 Add **"Evidence Required"** subsection to every acceptance criterion:
 
 ```markdown
@@ -40,9 +44,11 @@ Add **"Evidence Required"** subsection to every acceptance criterion:
 ```
 
 ### Template Addition Location
+
 Section: "Quality Gates and Acceptance Criteria" → "Task-Specific Acceptance Criteria"
 
 ### Rationale
+
 - Makes completion criteria objective and verifiable
 - Prevents "looks done" vs. "actually done" discrepancies
 - Provides clear checklist for validation
@@ -52,12 +58,15 @@ Section: "Quality Gates and Acceptance Criteria" → "Task-Specific Acceptance C
 ## Improvement 2: Automated Quality Gates
 
 ### Current Problem
+
 Quality gates rely on manual checks, easy to skip:
+
 - Agent may not run TODO scans
 - Test failures may go unnoticed
 - Requirements coverage unchecked
 
 ### Recommended Improvement
+
 Add **automated quality gates** to template with specific commands:
 
 ```markdown
@@ -86,9 +95,11 @@ Add **automated quality gates** to template with specific commands:
 ```
 
 ### Template Addition Location
+
 Section: "Quality Gates and Acceptance Criteria" → New subsection "Automated Quality Gates"
 
 ### Rationale
+
 - Removes subjectivity from quality validation
 - Provides exact commands to run
 - Makes quality gates enforceable by automation
@@ -98,12 +109,15 @@ Section: "Quality Gates and Acceptance Criteria" → New subsection "Automated Q
 ## Improvement 3: Post-Mortem Corrective Action Enforcement
 
 ### Current Problem
+
 Post-mortems identify gaps but don't enforce fixes:
+
 - Corrective actions documented but not converted to tasks
 - Gaps accumulate without resolution
 - No follow-up mechanism
 
 ### Recommended Improvement
+
 Make corrective actions **mandatory with enforcement**:
 
 ```markdown
@@ -135,9 +149,11 @@ Make corrective actions **mandatory with enforcement**:
 ```
 
 ### Template Addition Location
+
 Section: "Post-Mortem and Corrective Actions" → Add new "Corrective Action Enforcement" subsection
 
 ### Rationale
+
 - Ensures gaps don't accumulate
 - Makes post-mortem actionable, not just documentation
 - Prevents "known issues" from lingering unaddressed
@@ -147,13 +163,16 @@ Section: "Post-Mortem and Corrective Actions" → Add new "Corrective Action Enf
 ## Improvement 4: Single Source of Truth Documentation Pattern
 
 ### Current Problem
+
 Multiple conflicting status documents:
+
 - MASTER-PLAN.md: "100% complete"
 - README.md: "45% complete"
 - STATUS-REPORT.md: Evidence-based gaps
 Users don't know which to trust.
 
 ### Recommended Improvement
+
 Enforce **single source of truth (SSOT)** pattern:
 
 ```markdown
@@ -184,9 +203,11 @@ Enforce **single source of truth (SSOT)** pattern:
 ```
 
 ### Template Addition Location
+
 Section: "Documentation" → New subsection "Single Source of Truth Pattern"
 
 ### Rationale
+
 - Eliminates confusion about "which document is correct?"
 - Provides single update point for status
 - Makes status tracking consistent across all features
@@ -196,12 +217,15 @@ Section: "Documentation" → New subsection "Single Source of Truth Pattern"
 ## Improvement 5: Progressive Validation Pattern
 
 ### Current Problem
+
 Gaps accumulate across multiple tasks:
+
 - Agent completes Task 01-05 without validation
 - TODOs, test failures, coverage regressions pile up
 - Issues discovered only at end during final verification
 
 ### Recommended Improvement
+
 Add **progressive validation after every task**:
 
 ```markdown
@@ -247,9 +271,11 @@ Add **progressive validation after every task**:
 ```
 
 ### Template Addition Location
+
 Section: "Task Execution Instructions" → New subsection "Progressive Validation"
 
 ### Rationale
+
 - Prevents gap accumulation
 - Catches regressions early when context is fresh
 - Maintains quality continuously instead of "big bang" validation at end
@@ -259,11 +285,14 @@ Section: "Task Execution Instructions" → New subsection "Progressive Validatio
 ## Improvement 6: Foundation-Before-Features Enforcement
 
 ### Current Problem
+
 Identity V2 implemented advanced features (MFA, WebAuthn) before foundation (OAuth flows) worked:
+
 - Result: Production-ready advanced features on broken foundation
 - Wasted effort implementing features that can't be used
 
 ### Recommended Improvement
+
 Add **strict phase ordering with dependency checks**:
 
 ```markdown
@@ -312,9 +341,11 @@ Add **strict phase ordering with dependency checks**:
 ```
 
 ### Template Addition Location
+
 Section: "Implementation Phases" → Replace existing phase structure with strict ordering
 
 ### Rationale
+
 - Prevents building on unstable foundation
 - Ensures advanced features have working base to integrate with
 - Avoids rework when foundation issues discovered late
@@ -324,12 +355,15 @@ Section: "Implementation Phases" → Replace existing phase structure with stric
 ## Improvement 7: Evidence-Based Task Completion Checklist
 
 ### Current Problem
+
 Task completion is subjective:
+
 - Agent claims "complete" without objective validation
 - No standard checklist for what "complete" means
 - Easy to skip validation steps
 
 ### Recommended Improvement
+
 Add **mandatory evidence-based completion checklist**:
 
 ```markdown
@@ -371,9 +405,11 @@ Add **mandatory evidence-based completion checklist**:
 ```
 
 ### Template Addition Location
+
 Section: "Task Execution Instructions" → New subsection "Evidence-Based Task Completion Checklist"
 
 ### Rationale
+
 - Removes subjectivity from completion decisions
 - Provides objective, verifiable completion criteria
 - Makes it impossible to claim completion without evidence
@@ -383,12 +419,15 @@ Section: "Task Execution Instructions" → New subsection "Evidence-Based Task C
 ## Improvement 8: Requirements Coverage Threshold Enforcement
 
 ### Current Problem
+
 Requirements coverage can drift low without detection:
+
 - Identity V2: 58.5% coverage (38/65 requirements)
 - No enforcement mechanism
 - Agent claims "complete" despite uncovered requirements
 
 ### Recommended Improvement
+
 Add **hard requirements coverage threshold**:
 
 ```markdown
@@ -422,16 +461,19 @@ fi
 ```
 
 **Acceptance Criteria Addition**:
+
 - [ ] Requirements coverage: ≥90% for this task (verified via automated check)
 - [ ] Overall coverage maintained: ≥85% (no regression from previous task)
 - [ ] Uncovered requirements documented: If <100%, list uncovered requirements with justification
 
 **CI/CD Integration**:
+
 - Pre-commit hook: Warn if coverage drops
 - PR checks: Fail if coverage < threshold
 - Production deployment gate: Block if overall coverage < 85%
 
 **Example Violation**: Identity V2 with 58.5% coverage allowed to claim "production ready".
+
 ```
 
 ### Template Addition Location

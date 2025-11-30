@@ -1,18 +1,16 @@
 # Task 6: HTTP Servers, APIs & Command-Line Applications - Fiber Servers, APIs & CLI Apps
+
 **Status:** status:pending
 **Estimated Time:** 35 minutes
 **Priority:** High (HTTP server orchestration)
-
 
 🎯 GOAL
 
 Implement the three independent HTTP servers (AuthZ, IdP, RS) with CLI clients, admin APIs, command-line applications, and proper server lifecycle management. This provides the complete HTTP interface layer including headless client for automated testing and SPA RP application for manual demonstration.
 
-
 📋 TASK OVERVIEW
 
 Create three independent Fiber HTTP servers for AuthZ, IdP, and RS services. Implement CLI and agent clients for each server, plus admin APIs for management operations. Build command-line applications for all services including headless client for CI/CD testing and SPA RP application for manual testing.
-
 
 🔧 INPUTS & CONTEXT
 
@@ -23,7 +21,6 @@ Create three independent Fiber HTTP servers for AuthZ, IdP, and RS services. Imp
 **Servers:** AuthZ (OAuth), IdP (OIDC), RS (Resource Server)
 
 **Constraints:** Independent startup, maximum decoupling
-
 
 📁 FILES TO CREATE
 
@@ -76,7 +73,6 @@ Create three independent Fiber HTTP servers for AuthZ, IdP, and RS services. Imp
 
 ``
 
-
 🎯 IMPLEMENTATION REQUIREMENTS
 
 ### HTTP Servers
@@ -120,7 +116,6 @@ Create three independent Fiber HTTP servers for AuthZ, IdP, and RS services. Imp
 **SPA RP Application:** Command-line SPA relying party for manual testing
 
 **Configuration:** YAML-based configuration for all applications
-
 
 ## ✅ COMPLETION CRITERIA
 
@@ -238,7 +233,6 @@ Create three independent Fiber HTTP servers for AuthZ, IdP, and RS services. Imp
 - [ ] **Security Scanning**: OWASP ZAP OAuth add-on testing
 - [ ] **Nuclei OAuth Templates**: Vulnerability scanning with OAuth-specific templates
 
-
 ## 🔗 NEXT STEPS
 
 After completion:
@@ -246,7 +240,6 @@ After completion:
 1. **Commit:** `feat: complete Task 6 - HTTP servers, APIs and command-line applications`
 2. **Update:** `identity_master.md` status to completed
 3. **Begin:** Task 7 - SPA Relying Party
-
 
 📝 NOTES
 

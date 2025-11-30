@@ -22,6 +22,7 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 ### Critical Gaps (10 total)
 
 **Authorization Server (AuthZ) - Priority 1**:
+
 1. **Authorization code persistence missing** (handlers_authorize.go line 112-114)
    - **Impact**: Blocks all OAuth 2.1 flows, SPA cannot authenticate
    - **Owner**: Task 06 (AuthZ Core Rehab)
@@ -42,10 +43,11 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 
 **Identity Provider (IdP) - Priority 1**:
 4. **Login page rendering missing** (handlers_login.go line 25)
-   - **Impact**: Returns JSON instead of HTML login form
-   - **Owner**: Task 09 (SPA UX Repair)
-   - **Effort**: 3 days
-   - **Dependencies**: None
+
+- **Impact**: Returns JSON instead of HTML login form
+- **Owner**: Task 09 (SPA UX Repair)
+- **Effort**: 3 days
+- **Dependencies**: None
 
 5. **Login/consent redirect missing** (handlers_login.go line 110)
    - **Impact**: Cannot complete authorization flow
@@ -67,10 +69,11 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 
 **Compliance - Priority 1**:
 8. **Security headers missing** (GAP-COMP-001)
-   - **Impact**: Vulnerable to clickjacking, XSS, MIME sniffing
-   - **Owner**: Task 07 (Client Auth Enhancements)
-   - **Effort**: 0.5 days
-   - **Dependencies**: None
+
+- **Impact**: Vulnerable to clickjacking, XSS, MIME sniffing
+- **Owner**: Task 07 (Client Auth Enhancements)
+- **Effort**: 0.5 days
+- **Dependencies**: None
 
 9. **OIDC discovery endpoint missing** (GAP-COMP-004)
    - **Impact**: OIDC clients cannot discover IdP configuration
@@ -89,6 +92,7 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 ### High Priority Gaps (7 total)
 
 **Resource Server (RS) - Priority 3**:
+
 1. **Token validation missing** (server/rs_server.go line 27)
    - **Impact**: No API protection, all endpoints return static JSON
    - **Owner**: Task 10 (Integration Layer Completion)
@@ -103,10 +107,11 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 
 **Session Lifecycle - Priority 4**:
 3. **Logout implementation missing** (handlers_logout.go line 27-30)
-   - **Impact**: Session hijacking after logout, resource leaks
-   - **Owner**: Task 07 (Client Auth Enhancements)
-   - **Effort**: 1 day
-   - **Dependencies**: None
+
+- **Impact**: Session hijacking after logout, resource leaks
+- **Owner**: Task 07 (Client Auth Enhancements)
+- **Effort**: 1 day
+- **Dependencies**: None
 
 4. **UserInfo token validation missing** (handlers_userinfo.go line 23-26)
    - **Impact**: No OIDC compliance, cannot return user claims
@@ -116,10 +121,11 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 
 **Compliance - High Priority**:
 5. **CORS wildcard vulnerability** (GAP-COMP-002)
-   - **Impact**: Any website can make authenticated requests
-   - **Owner**: Task 07 (Client Auth Enhancements)
-   - **Effort**: 0.5 days
-   - **Dependencies**: None
+
+- **Impact**: Any website can make authenticated requests
+- **Owner**: Task 07 (Client Auth Enhancements)
+- **Effort**: 0.5 days
+- **Dependencies**: None
 
 6. **Token introspection endpoint missing** (GAP-COMP-006)
    - **Impact**: Resource servers cannot validate tokens
@@ -138,6 +144,7 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 ### Medium Priority Gaps (33 total)
 
 **Client Authentication - Task 07**:
+
 1. Secret hash comparison missing (basic.go line 64, post.go line 44)
 2. CRL/OCSP checking missing (certificate_validator.go line 94)
 3. Client auth not integrated into authorization flow
@@ -206,11 +213,13 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 ### Q1 2025 (17 gaps - Critical & High Priority)
 
 **Week 1-2: Task 06 (AuthZ Core Rehab)**
+
 - GAP #1: Authorization code persistence (3 days)
 - GAP #2: PKCE verifier validation (1 day)
 - GAP #3: Consent storage (2 days)
 
 **Week 3-4: Task 07 (Client Auth Enhancements)**
+
 - GAP #7: Authentication middleware (1 day)
 - GAP #8: Security headers (0.5 days)
 - HIGH #3: Logout implementation (1 day)
@@ -219,11 +228,13 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 - MEDIUM: Secret hash comparison, CRL/OCSP (2 days)
 
 **Week 5-6: Task 08 (Token Service Hardening)**
+
 - GAP #10: JWKS endpoint (1 day)
 - MEDIUM: Cleanup job enablement (1 day)
 - MEDIUM: DeleteExpiredBefore methods (1 day)
 
 **Week 7-8: Task 09 (SPA UX Repair)**
+
 - GAP #4: Login page rendering (3 days)
 - GAP #5: Login redirect (1 day)
 - GAP #6: Consent page rendering (2 days)
@@ -231,6 +242,7 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 - HIGH #4: UserInfo token validation (1 day)
 
 **Week 9-10: Task 10 (Integration Layer Completion)**
+
 - HIGH #1: RS token validation (2 days)
 - HIGH #2: RS scope enforcement (1 day)
 - HIGH #6: Token introspection endpoint (1 day)
@@ -240,9 +252,11 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 ### Q2 2025 (13 gaps - Medium Priority)
 
 **Week 11-14: Task 03 (Configuration Normalization)**
+
 - MEDIUM: YAML standardization (2 weeks)
 
 **Week 15-18: Testing & Enhancement**
+
 - MEDIUM: Mock authenticators, E2E tests, integration coverage (4 weeks)
 
 ---
@@ -250,11 +264,13 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 ### Post-MVP (25 gaps - Low Priority + Deferred)
 
 **Deferred to Task 13-15 Integration**:
+
 - MFA chain orchestration
 - WebAuthn automation
 - Hardware credential integration
 
 **Post-MVP Features**:
+
 - ML risk scoring
 - QR cross-device auth
 - Conditional UI

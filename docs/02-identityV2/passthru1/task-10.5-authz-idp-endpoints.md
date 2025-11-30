@@ -3,6 +3,7 @@
 ## Task Reflection
 
 ### What Went Well
+
 - ✅ **OAuth 2.1 Endpoints Working**: Modified `handleAuthorizeGET` to return 302 redirect with authorization code instead of JSON
 - ✅ **PKCE Implementation**: S256 challenge method validation working, authorization code flow with mandatory PKCE complete
 - ✅ **Integration Tests Passing**: `TestOAuth2AuthorizationCodeFlow` and `TestHealthCheckEndpoints` both pass
@@ -11,18 +12,21 @@
 - ✅ **Auto-Consent Pattern**: Implemented for testing to unblock integration tests (skips user authentication/consent screens)
 
 ### At Risk Items
+
 - ⚠️ **Database Schema Issues**: Storage tests failing with "table users has no column named phone_verified", "dirty database version 1"
 - ⚠️ **Concurrent Transaction Test**: `TestConcurrentTransactions` hanging for 10 minutes, needs investigation
 - ⚠️ **Resource Server Tests**: Scope enforcement tests failing (returns 201/405 instead of 200/403) - out of scope for Task 10.5
 - ⚠️ **Mock Service Startup**: E2E test failing due to missing TLS certificate files (`mock_cert.pem` not found)
 
 ### Could Be Improved
+
 - **User Authentication**: Auto-consent skips login/consent screens, full UI deferred to Task 10.6+
 - **Unit Test Coverage**: Only integration tests validate handler behavior, unit tests for handlers not created
 - **Error Context**: Some error messages could be more descriptive for debugging
 - **Database Schema Sync**: Migration files need updating to match domain model changes
 
 ### Dependencies and Blockers
+
 - **UNBLOCKED**: Tasks 11-15 can now proceed with working `/authorize` and `/token` endpoints
 - **UNBLOCKED**: Task 10.6 (Unified CLI) can use `/health` endpoints for service readiness checks
 - **UNBLOCKED**: Task 10.7 (OpenAPI Sync) can document implemented endpoints
@@ -35,6 +39,7 @@
 Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider protocol endpoints** required for the authorization code flow, token issuance, user authentication, and health checking. This task makes the integration tests from Task 10 pass and unblocks all feature additions.
 
 **Acceptance Criteria**:
+
 - AuthZ `/oauth2/v1/authorize` endpoint returns 302 redirect to IdP login (not 400)
 - AuthZ `/oauth2/v1/token` endpoint returns access_token/id_token/refresh_token (not 401)
 - AuthZ `/health` endpoint returns 200 OK with service status
@@ -56,6 +61,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 ## Scope
 
 ### In-Scope
+
 1. **AuthZ OAuth 2.1 Endpoints**:
    - `GET/POST /oauth2/v1/authorize` - Authorization code flow initiation with redirect to IdP
    - `POST /oauth2/v1/token` - Token exchange (authorization_code, refresh_token, client_credentials grants)
@@ -77,6 +83,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
    - Add positive flow assertions (follow redirects, validate tokens)
 
 ### Out-of-Scope
+
 - **Token Introspection/Revocation**: Defer to future tasks
 - **OIDC Discovery** (`/.well-known/openid-configuration`): Defer to Task 10.7 (OpenAPI Sync)
 - **UserInfo Endpoint** (`/oidc/v1/userinfo`): Defer to Task 10.7
@@ -92,6 +99,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **File**: `internal/identity/authz/handler/authorize.go` (new file)
 
 **Functionality**:
+
 - Validate OAuth 2.1 parameters: `response_type=code`, `client_id`, `redirect_uri`, `scope`, `state`, `code_challenge`, `code_challenge_method`
 - Lookup client in database via `authz.ClientRepository`
 - Validate `redirect_uri` matches registered client URIs
@@ -101,6 +109,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 - Error handling: Invalid client → 400 with error description, invalid redirect_uri → 400 (no redirect for security)
 
 **Tests**: `internal/identity/authz/handler/authorize_test.go`
+
 - Valid request with authenticated user → 302 with authorization code
 - Valid request without authentication → 302 to IdP login
 - Invalid client_id → 400 invalid_client
@@ -112,6 +121,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **File**: `internal/identity/authz/handler/token.go` (new file)
 
 **Functionality**:
+
 - Support grant types: `authorization_code`, `refresh_token`, `client_credentials`
 - Validate client authentication (Basic Auth, client_secret_post, mTLS)
 - **Authorization Code Grant**:
@@ -130,6 +140,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 - Error responses: RFC 6749 format `{"error": "invalid_grant", "error_description": "..."}`
 
 **Tests**: `internal/identity/authz/handler/token_test.go`
+
 - Authorization code grant with valid code → 200 with tokens
 - Authorization code grant with invalid code → 400 invalid_grant
 - Authorization code grant with expired code → 400 invalid_grant
@@ -142,11 +153,13 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **File**: `internal/identity/authz/handler/health.go` (new file)
 
 **Functionality**:
+
 - Check database connectivity via `authz.ClientRepository.HealthCheck()`
 - Return 200 OK with JSON: `{"status": "healthy", "database": "ok"}`
 - If unhealthy: 503 Service Unavailable with details
 
 **Tests**: `internal/identity/authz/handler/health_test.go`
+
 - Database healthy → 200 healthy
 - Database down → 503 unhealthy
 
@@ -155,6 +168,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **File**: `internal/identity/idp/handler/login.go` (new file)
 
 **Functionality**:
+
 - **GET**: Render HTML login form with username/password fields, CSRF token, return_url hidden field
 - **POST**: Validate CSRF token, authenticate user via `idp.UserRepository.AuthenticateUser(username, password)`
 - If authentication succeeds: Create session, set session cookie, 302 redirect to return_url (AuthZ `/authorize`)
@@ -162,6 +176,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 - Error handling: Invalid CSRF → 403 Forbidden, invalid credentials → 401 with error message
 
 **Tests**: `internal/identity/idp/handler/login_test.go`
+
 - GET /login → 200 with HTML form
 - POST with valid credentials → 302 to return_url with session cookie
 - POST with invalid credentials → 401 with error message
@@ -172,11 +187,13 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **File**: `internal/identity/idp/handler/health.go` (new file)
 
 **Functionality**:
+
 - Check database connectivity via `idp.UserRepository.HealthCheck()`
 - Return 200 OK with JSON: `{"status": "healthy", "database": "ok"}`
 - If unhealthy: 503 Service Unavailable
 
 **Tests**: `internal/identity/idp/handler/health_test.go`
+
 - Database healthy → 200
 - Database down → 503
 
@@ -185,6 +202,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **Files**: `internal/identity/authz/server.go`, `internal/identity/idp/server.go`
 
 **Changes**:
+
 - Register new handlers in router setup functions
 - AuthZ routes: `router.HandleFunc("/oauth2/v1/authorize", authorizeHandler)`, `router.HandleFunc("/oauth2/v1/token", tokenHandler)`, `router.HandleFunc("/health", healthHandler)`
 - IdP routes: `router.HandleFunc("/oidc/v1/login", loginHandler)`, `router.HandleFunc("/health", healthHandler)`
@@ -194,6 +212,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **File**: `internal/identity/integration/integration_test.go`
 
 **Changes**:
+
 - Update `TestOAuth2AuthorizationCodeFlow`:
   - Change expectation from 400 → 302 for `/authorize` request
   - Follow redirect to IdP login
@@ -209,6 +228,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 **File**: `docs/identityV2/oauth-flow-implementation.md` (new file)
 
 **Content**:
+
 - OAuth 2.1 authorization code flow diagram with PKCE
 - Endpoint specifications (request/response examples)
 - Session management approach (cookies, lifetimes)
@@ -221,13 +241,16 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 ## Validation Criteria
 
 ### Automated Tests
+
 - ✅ All unit tests passing: `go test ./internal/identity/authz/handler/... ./internal/identity/idp/handler/...`
 - ✅ Integration tests passing: `go test ./internal/identity/integration/...`
 - ✅ Coverage ≥95% on new handler code
 - ✅ Linting passes: `golangci-lint run`
 
 ### Manual Testing
+
 1. **Authorization Code Flow**:
+
    ```bash
    # Start services
    docker compose -f deployments/compose/identity-compose.yml up -d
@@ -252,6 +275,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
    ```
 
 2. **Health Checks**:
+
    ```bash
    curl https://localhost:8080/health  # AuthZ
    curl https://localhost:8081/health  # IdP
@@ -259,6 +283,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
    ```
 
 ### Success Metrics
+
 - Integration test `TestOAuth2AuthorizationCodeFlow` passes (currently fails)
 - Integration test `TestHealthCheckEndpoints` passes (currently fails)
 - Zero 400/404 errors in integration test output
@@ -269,11 +294,13 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 ## Dependencies
 
 ### Depends On (Must Be Complete)
+
 - ✅ **Task 05**: Storage layer with client/user repositories
 - ✅ **Task 06**: AuthZ service structure (repository, service layers exist)
 - ✅ **Task 10**: Integration test infrastructure
 
 ### Enables (Blocked Until Complete)
+
 - **Task 10.6**: Unified CLI (needs health endpoints for readiness checks)
 - **Task 10.7**: OpenAPI Sync (needs implemented endpoints to document)
 - **Task 11**: Client MFA (needs working OAuth flows)
@@ -305,6 +332,7 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 ## Implementation Notes
 
 ### Phased Approach
+
 1. **Phase 1**: AuthZ `/health` and IdP `/health` (simplest, unblocks health checks)
 2. **Phase 2**: IdP `/login` endpoint (enables user authentication)
 3. **Phase 3**: AuthZ `/authorize` endpoint (initiate OAuth flow)
@@ -312,12 +340,14 @@ Implement the **core OAuth 2.1 Authorization Server and OIDC Identity Provider p
 5. **Phase 5**: Update integration tests to validate positive flows
 
 ### Code Organization
+
 - **Handler Layer**: Request parsing, validation, HTTP responses
 - **Service Layer**: Business logic (authorization code generation, token issuance)
 - **Repository Layer**: Data persistence (already exists from Task 05/06)
 - **Error Handling**: Centralized error mapping to OAuth 2.1 error codes
 
 ### Testing Strategy
+
 - **Unit Tests**: Each handler function with mocked services/repositories
 - **Integration Tests**: Full HTTP request/response cycle with real database (SQLite in-memory)
 - **Table-Driven Tests**: Cover parameter variations, error cases

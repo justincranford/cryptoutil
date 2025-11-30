@@ -963,26 +963,31 @@ cat simulation_results/simulation_report.json | jq .
 ### NIST 800-63B Adaptive Authentication
 
 ✅ **Risk-Based Authentication** (Section 5.1.1.1)
+
 - Implements multi-factor risk assessment with 8 risk factors
 - Dynamic risk scoring based on authentication context
 - Configurable risk thresholds (low/medium/high/critical)
 
 ✅ **Step-Up Authentication** (Section 4.3)
+
 - AAL1 (basic): Password-only for low-risk operations
 - AAL2 (mfa): Password + OTP/TOTP for medium-risk
 - AAL3 (strong_mfa): Password + WebAuthn for high-risk
 
 ✅ **Behavioral Analytics** (Section 5.2.5)
+
 - User behavioral baselines with historical data
 - Confidence scoring based on baseline quality
 - Anomaly detection (velocity, location, time, device)
 
 ✅ **Policy Flexibility** (Section 4.1)
+
 - Externalized YAML policies with version control
 - Hot-reload capability for policy updates
 - Simulation tool for testing policy changes
 
 ✅ **Logging & Monitoring** (Section 5.4)
+
 - OpenTelemetry metrics for risk scoring, step-up, operations
 - Grafana dashboards for real-time monitoring
 - Prometheus alerts for anomalies and policy issues
@@ -1022,16 +1027,19 @@ cat simulation_results/simulation_report.json | jq .
 With Task 13 complete, the identity platform has robust adaptive authentication. Next tasks:
 
 **Task 14**: Biometric WebAuthn (Strong MFA)
+
 - Implement WebAuthn registration and authentication
 - Support FIDO2 security keys, platform authenticators (FaceID, TouchID, Windows Hello)
 - Integration with Task 13 step-up authentication (AuthLevelStrongMFA)
 
 **Task 15**: Session Management
+
 - Secure session tokens with rotation
 - Session risk re-evaluation on critical operations
 - Idle timeout and absolute timeout policies
 
 **Task 16**: Account Recovery
+
 - Multi-factor account recovery (email + SMS + security questions)
 - Risk-based recovery (high-risk scenarios require additional verification)
 - Recovery code generation and validation

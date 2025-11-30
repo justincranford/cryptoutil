@@ -21,6 +21,7 @@ This analysis identifies **specific code-level gaps** preventing production depl
 **Impact**: 🔴 **CRITICAL** - No OAuth flows functional, blocks all authentication
 
 **Affected Files**:
+
 - `internal/identity/authz/handlers_authorize.go`
 - `internal/identity/authz/handlers_token.go`
 - `internal/identity/idp/handlers_consent.go`
@@ -30,6 +31,7 @@ This analysis identifies **specific code-level gaps** preventing production depl
 **File**: `handlers_authorize.go`
 **Lines**: 112-114
 **Current State**:
+
 ```go
 // TODO: Store authorization request with PKCE challenge.
 // TODO: Redirect to login/consent flow.
@@ -37,6 +39,7 @@ This analysis identifies **specific code-level gaps** preventing production depl
 ```
 
 **Required Implementation**:
+
 ```go
 // Store authorization request with PKCE params in database
 authRequest := &domain.AuthorizationRequest{
@@ -69,6 +72,7 @@ return c.Redirect(loginURL, fiber.StatusFound)
 **File**: `handlers_token.go`
 **Lines**: 78-81
 **Current State**:
+
 ```go
 // TODO: Validate authorization code.
 // TODO: Validate PKCE code_verifier against stored code_challenge.
@@ -77,6 +81,7 @@ return c.Redirect(loginURL, fiber.StatusFound)
 ```
 
 **Required Implementation**:
+
 ```go
 // Retrieve authorization request by code
 authRequest, err := s.authzRepo.GetAuthorizationRequestByCode(ctx, authCode)
@@ -114,6 +119,7 @@ if err := s.authzRepo.UpdateAuthorizationRequest(ctx, authRequest); err != nil {
 **File**: `handlers_consent.go`
 **Lines**: 46-48
 **Current State**:
+
 ```go
 // TODO: Store consent decision.
 // TODO: Generate authorization code.
@@ -121,6 +127,7 @@ if err := s.authzRepo.UpdateAuthorizationRequest(ctx, authRequest); err != nil {
 ```
 
 **Required Implementation**:
+
 ```go
 // Store consent decision
 consent := &domain.ConsentDecision{
@@ -160,12 +167,14 @@ return c.Redirect(callbackURL, fiber.StatusFound)
 **File**: `handlers_token.go`
 **Lines**: 148-149
 **Current State**:
+
 ```go
 // TODO: In future tasks, populate with real user ID from authRequest.UserID after login/consent integration.
 userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 ```
 
 **Required Fix**:
+
 ```go
 // Use real user ID from authorization request (populated during consent)
 userID := authRequest.UserID
@@ -187,6 +196,7 @@ if userID == googleUuid.Nil {
 **Impact**: 🔴 **CRITICAL** - Users cannot authenticate, no login UI
 
 **Affected Files**:
+
 - `internal/identity/idp/handlers_login.go`
 
 #### Gap 2.1: Login Page Rendering Missing
@@ -194,11 +204,13 @@ if userID == googleUuid.Nil {
 **File**: `handlers_login.go`
 **Line**: 25
 **Current State**:
+
 ```go
 // TODO: Render login page with parameters.
 ```
 
 **Required Implementation**:
+
 ```go
 // Render login page HTML template
 return c.Render("login", fiber.Map{
@@ -213,6 +225,7 @@ return c.Render("login", fiber.Map{
 ```
 
 **Dependencies**:
+
 - Create HTML template: `internal/identity/idp/templates/login.html`
 - Integrate template engine (html/template or Fiber's built-in)
 - Add CSRF token generation and validation
@@ -227,11 +240,13 @@ return c.Render("login", fiber.Map{
 **File**: `handlers_login.go`
 **Line**: 110
 **Current State**:
+
 ```go
 // TODO: Redirect to consent page or authorization callback based on original request.
 ```
 
 **Required Implementation**:
+
 ```go
 // Retrieve authorization request to determine next step
 authRequest, err := s.authzRepo.GetAuthorizationRequestByID(ctx, requestID)
@@ -274,6 +289,7 @@ return c.Redirect(consentURL, fiber.StatusFound)
 **Impact**: ⚠️ **HIGH** - Security vulnerabilities in client authentication
 
 **Affected Files**:
+
 - `internal/identity/authz/clientauth/*.go`
 - Client credential storage in database
 
@@ -282,6 +298,7 @@ return c.Redirect(consentURL, fiber.StatusFound)
 **Current State**: Client secrets stored in plaintext in database (security vulnerability)
 
 **Required Implementation**:
+
 ```go
 // Hash client secret with bcrypt before storing
 import "golang.org/x/crypto/bcrypt"
@@ -302,12 +319,14 @@ func VerifyClientSecret(hashedSecret, providedSecret string) bool {
 ```
 
 **Migration Required**:
+
 ```sql
 -- Add migration to hash existing plaintext secrets
 UPDATE clients SET client_secret = bcrypt_hash(client_secret) WHERE client_secret IS NOT NULL;
 ```
 
 **Affected Methods**:
+
 - `client_secret_basic` authenticator
 - `client_secret_post` authenticator
 - Client registration endpoint
@@ -321,6 +340,7 @@ UPDATE clients SET client_secret = bcrypt_hash(client_secret) WHERE client_secre
 **Current State**: `tls_client_auth` and `self_signed_tls_client_auth` don't validate certificate revocation
 
 **Required Implementation**:
+
 ```go
 import (
     "crypto/x509"
@@ -367,6 +387,7 @@ func ValidateCertificateRevocation(cert *x509.Certificate) error {
 **Impact**: ⚠️ **HIGH** - Security risk (session/token leaks), resource leaks
 
 **Affected Files**:
+
 - `internal/identity/idp/handlers_logout.go`
 
 #### Gap 4.1: Logout Handler Empty
@@ -374,6 +395,7 @@ func ValidateCertificateRevocation(cert *x509.Certificate) error {
 **Current State**: `/oidc/v1/logout` endpoint exists but has no implementation
 
 **Required Implementation**:
+
 ```go
 func (s *Service) HandleLogout(c *fiber.Ctx) error {
     ctx := c.Context()
@@ -427,6 +449,7 @@ func (s *Service) HandleLogout(c *fiber.Ctx) error {
 ```
 
 **Dependencies**:
+
 - Session repository method: `GetSession`, `DeleteSession`
 - Token repository methods: `RevokeTokensBySession`, `RevokeRefreshTokensBySession`
 - Validate `post_logout_redirect_uri` against registered client URIs
@@ -446,11 +469,13 @@ func (s *Service) HandleLogout(c *fiber.Ctx) error {
 **Current State**: E2E tests in `internal/identity/test/e2e/oauth_flows_test.go` pass but validate incomplete implementations
 
 **Problem**:
+
 - Tests use mock services that simulate complete OAuth flows
 - Tests validate external HTTP behavior (200 OK responses)
 - Tests do NOT validate internal implementation (request persistence, PKCE validation, real user IDs)
 
 **Example**:
+
 ```go
 // Test validates HTTP 200 response
 resp, err := client.Get("https://localhost:8080/oauth2/v1/authorize?client_id=...")
@@ -462,6 +487,7 @@ require.Equal(t, 200, resp.StatusCode)
 ```
 
 **Required Fix**:
+
 ```go
 // Add internal validation tests
 func TestAuthorizationRequestPersisted(t *testing.T) {
@@ -487,6 +513,7 @@ func TestAuthorizationRequestPersisted(t *testing.T) {
 **Current State**: Configuration files exist but no validation of values or cross-service consistency
 
 **Required Implementation**:
+
 ```go
 // Add configuration validation on startup
 func ValidateConfig(cfg *Config) error {
@@ -523,11 +550,13 @@ func ValidateConfig(cfg *Config) error {
 **Current State**: OpenAPI specs in `api/identity/` don't reflect implemented endpoints
 
 **Examples of Drift**:
+
 - `/oauth2/v1/authorize` documented with different parameters than implementation
 - `/oidc/v1/login` spec shows HTML response but implementation returns JSON
 - `/oauth2/v1/token` spec missing PKCE `code_verifier` parameter
 
 **Required Actions**:
+
 1. Update OpenAPI specs to match current implementation
 2. Regenerate client libraries with oapi-codegen
 3. Update Swagger UI
@@ -544,6 +573,7 @@ func ValidateConfig(cfg *Config) error {
 **Current State**: No rate limiting on authentication endpoints (brute-force vulnerability)
 
 **Required Implementation**:
+
 ```go
 // Per-IP rate limiting on /oauth2/v1/token endpoint
 func RateLimitMiddleware() fiber.Handler {
@@ -570,6 +600,7 @@ func RateLimitMiddleware() fiber.Handler {
 **Current State**: Some operations logged (Task 12, 13, 15) but OAuth core flows missing audit logs
 
 **Required Implementation**:
+
 ```go
 // Audit log all authorization decisions
 s.logger.Info("Authorization code granted",
@@ -625,12 +656,14 @@ s.logger.Info("Access token issued",
 ### Week 1: Critical Path (OAuth Flows)
 
 **Days 1-2**: Task 06 Remediation (16 hours)
+
 - Authorization request persistence with PKCE
 - PKCE verifier validation in token endpoint
 - Consent decision storage
 - Replace placeholder user IDs
 
 **Days 3-4**: Task 09 Remediation (14 hours)
+
 - Login page HTML template
 - CSRF protection
 - Consent redirect logic
@@ -642,11 +675,13 @@ s.logger.Info("Access token issued",
 ### Week 2: Security Hardening
 
 **Days 5-6**: Task 07 Remediation (18 hours)
+
 - Client secret bcrypt hashing
 - Migration of existing secrets
 - CRL/OCSP validation for mTLS
 
 **Day 7**: Task 10 Remediation (8 hours)
+
 - Logout handler implementation
 - Session/token cleanup
 
@@ -657,14 +692,17 @@ s.logger.Info("Access token issued",
 ### Week 3: Quality & Documentation
 
 **Days 8-9**: Testing & Configuration (18 hours)
+
 - E2E test internal validation (12h)
 - Configuration validation (6h)
 
 **Day 10**: OpenAPI & Security (12 hours)
+
 - OpenAPI spec synchronization (8h)
 - Rate limiting (4h)
 
 **Day 11**: Final Hardening (6 hours)
+
 - Audit logging OAuth flows
 - Final regression testing
 
@@ -677,6 +715,7 @@ s.logger.Info("Access token issued",
 ### Functional Requirements
 
 ✅ **Authorization Code Flow**:
+
 - [ ] Authorization request persisted with PKCE challenge
 - [ ] Login page renders HTML (not JSON)
 - [ ] Consent page stores approval decision
@@ -685,26 +724,31 @@ s.logger.Info("Access token issued",
 - [ ] Tokens contain real user ID (not placeholder)
 
 ✅ **Client Authentication**:
+
 - [ ] Client secrets hashed with bcrypt
 - [ ] mTLS certificates validated (CRL/OCSP)
 - [ ] Authentication failures logged
 
 ✅ **Session Management**:
+
 - [ ] Logout revokes all tokens
 - [ ] Sessions cleaned up on logout
 - [ ] Post-logout redirect validated
 
 ✅ **Testing**:
+
 - [ ] E2E tests validate internal state (not just HTTP responses)
 - [ ] Unit tests cover all new code paths
 - [ ] Integration tests validate database persistence
 
 ✅ **Security**:
+
 - [ ] Rate limiting active on authentication endpoints
 - [ ] Audit logging covers all OAuth operations
 - [ ] No TODO comments in production code paths
 
 ✅ **Documentation**:
+
 - [ ] OpenAPI specs match implementation
 - [ ] Configuration validation enforced
 - [ ] Runbooks updated with new flows

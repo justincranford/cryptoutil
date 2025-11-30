@@ -12,12 +12,14 @@
 **Total Gaps Identified**: 55 gaps across implementation, testing, enhancement, compliance, and infrastructure categories.
 
 **Severity Breakdown**:
+
 - **CRITICAL (7)**: Security vulnerabilities, compliance violations requiring immediate remediation before production
 - **HIGH (4)**: Production blockers, significant security risks requiring Q1 2025 resolution
 - **MEDIUM (20)**: Feature incompleteness, operational issues planned for Q1-Q2 2025
 - **LOW (24)**: UX improvements, code quality enhancements planned for post-MVP
 
 **Risk Assessment**:
+
 - **Production Readiness**: BLOCKED by 7 CRITICAL gaps (security headers, OIDC endpoints, logout/userinfo handlers, authentication middleware, database config)
 - **Compliance Readiness**: PARTIAL - OIDC/OAuth standards require 4 CRITICAL fixes; GDPR/CCPA require 3 MEDIUM fixes
 - **Operational Readiness**: ACCEPTABLE for MVP - 4 HIGH gaps (in-memory rate limiting, CORS config, token endpoints) acceptable with documented mitigation
@@ -47,6 +49,7 @@
 **Issue**: No security headers configured in Fiber middleware
 
 **Missing Headers**:
+
 - `X-Frame-Options: DENY` (prevents clickjacking)
 - `X-Content-Type-Options: nosniff` (prevents MIME sniffing)
 - `X-XSS-Protection: 1; mode=block` (legacy XSS protection)
@@ -72,6 +75,7 @@
 **Issue**: 4 TODO steps not implemented
 
 **Missing Steps**:
+
 1. Validate session exists (line 27)
 2. Revoke all associated tokens (line 28)
 3. Delete session from repository (line 29)
@@ -110,6 +114,7 @@
 **Issue**: 4 TODO steps not implemented
 
 **Missing Steps**:
+
 1. Parse Bearer token from Authorization header (line 23)
 2. Introspect/validate token (line 24)
 3. Fetch user details from repository (line 25)
@@ -134,9 +139,10 @@
 **Impact**: OIDC clients cannot discover IdP configuration (manual configuration required)
 **Requirement**: OIDC 1.0 Discovery Section 4 - Provider Metadata
 **Remediation**: Implement `/.well-known/openid-configuration` endpoint with:
-  - `issuer`, `authorization_endpoint`, `token_endpoint`, `userinfo_endpoint`
-  - `jwks_uri`, `scopes_supported`, `response_types_supported`
-  - `subject_types_supported`, `id_token_signing_alg_values_supported`
+
+- `issuer`, `authorization_endpoint`, `token_endpoint`, `userinfo_endpoint`
+- `jwks_uri`, `scopes_supported`, `response_types_supported`
+- `subject_types_supported`, `id_token_signing_alg_values_supported`
 
 **Owner**: Backend team
 **Target**: Q1 2025 (CRITICAL - OIDC compliance requirement)
@@ -247,24 +253,28 @@
 ### Task 12 Gaps (4)
 
 **GAP-12-002: No Automatic Provider Failover** (MEDIUM)
+
 - **File**: `internal/identity/idp/auth/otp_authenticator.go`
 - **Issue**: SMS/email provider failures require manual intervention
 - **Remediation**: Implement provider failover logic with health checks (Task 19)
 - **Target**: Q2 2025
 
 **GAP-12-003: No Token Refresh** (LOW → upgraded to MEDIUM for production)
+
 - **File**: Not implemented
 - **Issue**: Magic link tokens expire without refresh mechanism
 - **Remediation**: Implement refresh token flow (RFC 6749 Section 6)
 - **Target**: Q2 2025
 
 **GAP-12-004: No Multi-Region Support** (MEDIUM)
+
 - **File**: `internal/identity/idp/auth/rate_limiter.go`
 - **Issue**: In-memory state doesn't replicate across regions
 - **Remediation**: Distributed Redis rate limiting, multi-region session storage (Task 18)
 - **Target**: Q2 2025
 
 **GAP-12-009: Notification Templates Not Externalizable** (MEDIUM)
+
 - **File**: `internal/identity/idp/auth/otp_authenticator.go`
 - **Issue**: Templates hardcoded in authenticators
 - **Remediation**: Externalize to database/filesystem (Task 19)
@@ -273,18 +283,21 @@
 ### Task 13 Gaps (3)
 
 **GAP-13-003: Geo Velocity Detection** (MEDIUM)
+
 - **File**: `internal/identity/idp/auth/adaptive_engine.go`
 - **Issue**: IP geolocation not integrated
 - **Remediation**: Integrate MaxMind GeoIP2 for velocity detection (Task 19)
 - **Target**: Q2 2025
 
 **GAP-13-004: Device Fingerprinting Enhancement** (MEDIUM)
+
 - **File**: `internal/identity/idp/auth/device_trust.go`
 - **Issue**: Basic User-Agent parsing only
 - **Remediation**: Integrate advanced fingerprinting library (FingerprintJS) (Task 19)
 - **Target**: Q2 2025
 
 **GAP-13-005: Behavioral Time-Series Modeling** (LOW → upgraded to MEDIUM for anomaly detection)
+
 - **File**: Not implemented
 - **Issue**: No user behavior baselines
 - **Remediation**: Implement time-series analysis for anomaly detection (Task 20)
@@ -293,24 +306,28 @@
 ### Task 14 Gaps (4)
 
 **GAP-14-001: Passkey Sync Support** (MEDIUM)
+
 - **File**: `internal/identity/idp/userauth/webauthn_authenticator.go`
 - **Issue**: Passkeys not synced across devices
 - **Remediation**: Implement Apple/Google passkey sync APIs (Task 19)
 - **Target**: Q2 2025
 
 **GAP-14-004: Enterprise Features** (MEDIUM)
+
 - **File**: Not implemented
 - **Issue**: No attestation validation, enterprise authenticator support
 - **Remediation**: Implement attestation validation, enterprise policy engine (Task 19)
 - **Target**: Q2 2025
 
 **GAP-14-005: Advanced Security Features** (MEDIUM)
+
 - **File**: Not implemented
 - **Issue**: No biometric requirement, conditional UI
 - **Remediation**: Implement WebAuthn Level 3 features (Task 19)
 - **Target**: Q2 2025
 
 **GAP-14-006: Mock Integration Test Helpers** (MEDIUM)
+
 - **File**: `internal/identity/test/mocks/`
 - **Issue**: No mock WebAuthn authenticators for integration tests
 - **Remediation**: Create mock helpers for E2E testing (Task 17 quick win)
@@ -319,18 +336,21 @@
 ### Task 15 Gaps (3)
 
 **GAP-15-001: Integration Testing Skipped** (MEDIUM)
+
 - **File**: `cmd/identity/hardware-cred/main_test.go`
 - **Issue**: No E2E integration tests with real hardware devices
 - **Remediation**: Add E2E tests using virtual smart cards (Task 17 quick win)
 - **Target**: Q1 2025
 
 **GAP-15-004: Repository ListAll Method Missing** (MEDIUM)
+
 - **File**: `internal/identity/repository/orm/webauthn_credential_repository.go`
 - **Issue**: No method to list all user credentials
 - **Remediation**: Add `ListAll(ctx, userID)` repository method (Task 17 quick win)
 - **Target**: Q1 2025
 
 **GAP-15-008: Recovery Suggestions for Hardware Failures** (MEDIUM)
+
 - **File**: `internal/identity/domain/apperr/errors.go`
 - **Issue**: Error messages lack recovery guidance
 - **Remediation**: Add recovery suggestions to error messages (Task 17 quick win)
@@ -339,18 +359,21 @@
 ### Code Review Gaps (3)
 
 **GAP-CODE-001: AuthenticationStrength Enum Missing** (MEDIUM)
+
 - **File**: `internal/identity/test/e2e/client_mfa_test.go` (line 248)
 - **Issue**: No enum for authentication strength levels
 - **Remediation**: Create `AuthenticationStrength` enum (LOW, MEDIUM, HIGH, VERY_HIGH)
 - **Target**: Q1 2025
 
 **GAP-CODE-002: User ID from Authentication Context** (MEDIUM)
+
 - **File**: `internal/identity/idp/auth/mfa_otp.go` (line 125)
 - **Issue**: User ID retrieval from context not implemented
 - **Remediation**: Implement context-based user ID extraction
 - **Target**: Q1 2025
 
 **GAP-CODE-010: Service Cleanup Logic Missing** (MEDIUM)
+
 - **File**: `internal/identity/idp/service.go` (line 40)
 - **Issue**: No cleanup for authenticators, repositories on shutdown
 - **Remediation**: Implement `Cleanup()` method for graceful shutdown
@@ -359,18 +382,21 @@
 ### Compliance Gaps (3)
 
 **GAP-COMP-008: PII Audit Logging Review Needed** (MEDIUM)
+
 - **File**: All identity services
 - **Issue**: Need comprehensive PII audit across all services
 - **Remediation**: Extend Task 12 audit logging masking to all services
 - **Target**: Q1 2025
 
 **GAP-COMP-009: Right to Erasure Implementation** (MEDIUM)
+
 - **File**: Not implemented
 - **Issue**: No GDPR Article 17 "right to erasure" implementation
 - **Remediation**: Implement hard delete with cascade to all user data
 - **Target**: Q1 2025
 
 **GAP-COMP-010: Data Retention Policy Not Enforced** (MEDIUM)
+
 - **File**: `internal/identity/jobs/cleanup.go`
 - **Issue**: Audit logs, sessions, tokens have no automatic retention enforcement
 - **Remediation**: Implement automated retention policies (7 years for audit logs, 90 days for sessions)
@@ -387,20 +413,24 @@
 ### Task 13 Gaps (2)
 
 **GAP-13-001: ML Risk Scoring** (LOW)
+
 - **Issue**: Static risk weights vs ML-based scoring
 - **Target**: Post-MVP
 
 **GAP-13-002: User Feedback Loop** (LOW)
+
 - **Issue**: No user feedback on risk decisions
 - **Target**: Post-MVP
 
 ### Task 14 Gaps (3)
 
 **GAP-14-002: QR Code Cross-Device Auth** (LOW)
+
 - **Issue**: No QR code workflow for desktop enrollment from mobile
 - **Target**: Post-MVP
 
 **GAP-14-003: Conditional UI Integration** (LOW)
+
 - **Issue**: No conditional UI support (WebAuthn Level 3)
 - **Target**: Post-MVP
 
@@ -409,56 +439,68 @@
 ### Task 15 Gaps (6)
 
 **GAP-15-002: Manual Hardware Validation Skipped** (LOW)
+
 - **Issue**: No manual testing with physical YubiKeys
 - **Target**: Q1 2025
 
 **GAP-15-005: Cryptographic Key Generation Mocks** (LOW)
+
 - **Issue**: No mocks for crypto operations in tests
 - **Target**: Q1 2025
 
 **GAP-15-006 to GAP-15-007**: Device-specific error codes, certificate chain validation details
 
 **GAP-15-009: GDPR/PSD2 Compliance Enhancements** (LOW)
+
 - **Issue**: Transaction metadata for PSD2 SCA not captured
 - **Target**: Q2 2025
 
 ### Code Review Gaps (7)
 
 **GAP-CODE-003: MFA Chain Testing Stubs** (MEDIUM → downgraded to LOW)
+
 - **Issue**: MFA chain tests stub implementation
 - **Target**: Q1 2025
 
 **GAP-CODE-004: Repository Integration Tests Stub** (LOW)
+
 - **Issue**: Integration test stubs in repositories
 - **Target**: Q1 2025
 
 **GAP-CODE-005: TokenRepository.DeleteExpiredBefore** (MEDIUM → downgraded to LOW for MVP)
+
 - **Issue**: Cleanup job missing token deletion
 - **Target**: Q1 2025
 
 **GAP-CODE-006: SessionRepository.DeleteExpiredBefore** (MEDIUM → downgraded to LOW for MVP)
+
 - **Issue**: Cleanup job missing session deletion
 - **Target**: Q1 2025
 
 **GAP-CODE-009: Structured Logging in Routes** (LOW)
+
 - **Issue**: Routes use basic logging instead of structured slog
 - **Target**: Q2 2025
 
 **GAP-CODE-011: Additional Auth Profiles Not Registered** (MEDIUM → downgraded to LOW)
+
 - **Issue**: Only basic profile registered in service
 - **Target**: Q1 2025
 
 **GAP-CODE-013: Login Page HTML Rendering Stub** (MEDIUM → downgraded to LOW)
+
 - **Issue**: Login page rendering not implemented
 - **Target**: Q1 2025
 
 **GAP-CODE-014: Consent Page Redirect Missing** (MEDIUM → downgraded to LOW)
+
 - **Issue**: Consent page redirect logic incomplete
 - **Target**: Q1 2025
 
 ### Compliance Gaps (1)
 
 **GAP-COMP-011: Data Export for Portability** (LOW)
+
 - **Issue**: No GDPR Article 20 "right to data portability" implementation
 - **Remediation**: Implement `/user/export` endpoint returning JSON/CSV
 - **Target**: Post-MVP
@@ -470,6 +512,7 @@
 ### Q1 2025 (17 gaps) - Production Readiness
 
 **CRITICAL Priorities (7 gaps)**:
+
 1. GAP-COMP-001: Security headers (Fiber helmet middleware)
 2. GAP-CODE-007: Logout handler (4 steps)
 3. GAP-CODE-008: Authentication middleware
@@ -479,11 +522,13 @@
 7. GAP-15-003: Database configuration (Task 16 dependency)
 
 **HIGH Priorities (3 gaps)**:
+
 1. GAP-COMP-002: CORS configuration (explicit origins)
 2. GAP-COMP-007: Token revocation endpoint
 3. GAP-12-001: Redis-backed rate limiting (Task 18 dependency)
 
 **MEDIUM Priorities (7 gaps)**:
+
 1. GAP-14-006: Mock integration test helpers
 2. GAP-15-001: E2E integration tests
 3. GAP-15-004: Repository ListAll method
@@ -495,9 +540,11 @@
 ### Q2 2025 (13 gaps) - Operational Enhancements
 
 **HIGH Priorities (1 gap)**:
+
 1. GAP-COMP-006: Token introspection endpoint
 
 **MEDIUM Priorities (12 gaps)**:
+
 1. GAP-12-002: Provider failover (Task 19)
 2. GAP-12-003: Token refresh flow
 3. GAP-12-004: Multi-region support (Task 18)
@@ -514,6 +561,7 @@
 ### Post-MVP (25 gaps) - Future Enhancements
 
 **LOW Priorities (24 gaps)**:
+
 - Task 12 gaps (5): Dependencies on Tasks 18-19
 - Task 13 gaps (2): ML risk scoring, user feedback loop
 - Task 14 gaps (3): QR code auth, conditional UI
@@ -528,29 +576,35 @@
 ### Production Blockers (7 CRITICAL gaps)
 
 **Security Risk**: HIGH
+
 - Missing security headers expose application to clickjacking, XSS, MIME sniffing attacks
 - Incomplete logout handler allows session hijacking after logout
 - Missing authentication middleware bypasses session validation
 
 **Compliance Risk**: HIGH
+
 - Non-compliant OIDC implementation (missing discovery, JWKS, UserInfo endpoints)
 - OIDC clients cannot discover IdP configuration or verify ID tokens
 
 **Mitigation**: REQUIRED before production deployment
+
 - All 7 CRITICAL gaps must be resolved in Q1 2025
 - No workarounds available - these are fundamental security/compliance requirements
 
 ### Operational Risks (4 HIGH gaps)
 
 **Security Risk**: MEDIUM
+
 - Wildcard CORS configuration allows any origin to make authenticated requests
 - Missing token revocation endpoint prevents proper logout flow
 
 **Operational Risk**: MEDIUM
+
 - In-memory rate limiting resets on deployment (allows burst attacks)
 - Resource servers cannot validate tokens server-side (must use local JWT verification)
 
 **Mitigation**: Acceptable for MVP with documented limitations
+
 - CORS: Restrict origins in production configuration (quick fix)
 - Rate limiting: Accept reset behavior for MVP, Redis backend in Q1 2025
 - Token introspection: Accept local JWT verification for MVP, endpoint in Q2 2025
@@ -558,11 +612,13 @@
 ### Technical Debt (44 MEDIUM + LOW gaps)
 
 **Risk**: LOW
+
 - No production blockers
 - Feature incompleteness acceptable for MVP
 - Enhancement opportunities for future releases
 
 **Mitigation**: Prioritized roadmap in Q1-Q2 2025
+
 - 7 MEDIUM gaps in Q1 2025 (integration tests, recovery suggestions, compliance)
 - 12 MEDIUM gaps in Q2 2025 (provider failover, passkey sync, enterprise features)
 - 24 LOW gaps post-MVP (ML scoring, advanced WebAuthn, GDPR enhancements)
