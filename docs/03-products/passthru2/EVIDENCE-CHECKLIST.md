@@ -1,31 +1,83 @@
 # Passthru2 Evidence & Completion Checklist
 
+**Updated**: 2025-11-30 (aligned with Grooming Session 1 decisions)
+
 Use this checklist to validate that tasks are complete and that acceptance criteria are met.
 
-## Demo & DX
-- [ ] `make demo-kms` or `docker compose -f deployments/telemetry/compose.yml -f deployments/kms/compose.demo.yml up` boots KMS with seeded accounts
-- [ ] `make demo-identity` or `docker compose -f deployments/telemetry/compose.yml -f deployments/identity/compose.demo.yml up` boots Identity with seeded users
+---
+
+## Phase 0: Developer Experience Foundation
+
+- [ ] `deployments/telemetry/compose.yml` created and working (Q6)
+- [ ] `deployments/<product>/config/` structure standardized (Q7)
+- [ ] All secrets converted to Docker secrets (Q7, Q10)
+- [ ] Compose profiles `dev`, `demo`, `ci` created per product (Q8)
+
+---
+
+## Demo & DX (from Q25)
+
+- [ ] **A**: `docker compose` starts KMS with seeded accounts and data
+- [ ] **A**: `docker compose` starts Identity with seeded users and clients
+- [ ] **B**: KMS Swagger UI "Try it out" works with demo credentials
+- [ ] **B**: Identity discovery endpoints functional
 - [ ] Both demos run with `demo` profile and health checks pass
 
-## CI & Tests
-- [ ] Per-product `go test` runs with coverage ≥ target (KMS & Identity 85%)
-- [ ] infra/test coverage ≥ 95%
-- [ ] Lint and formatting checks pass (`golangci-lint run --fix` and gofumpt applied)
+---
 
-## Security
-- [ ] Password & client secret hashing uses PBKDF2
+## Integration (from Q25)
+
+- [ ] **C**: Integration demo starts both services with shared telemetry
+- [ ] **C**: KMS accepts tokens from Identity
+- [ ] **C**: KMS enforces scopes correctly (hybrid model - Q18)
+- [ ] Token validation uses mixed approach (local + introspection - Q17)
+
+---
+
+## CI & Tests (from Q21, Q24)
+
+- [ ] **D**: Per-product `go test` runs with coverage ≥ 80% minimum
+- [ ] Coverage threshold enforced in CI
+- [ ] Demo profile CI jobs added for KMS and Identity
+- [ ] SQLite and PostgreSQL matrix runs in CI (Q20)
+- [ ] Lint and formatting checks pass (`golangci-lint run --fix`)
+
+---
+
+## Security (from Q16)
+
+- [ ] Password & client secret hashing uses PBKDF2 (NO bcrypt!)
 - [ ] PKCE enforced for public clients
 - [ ] TLS endpoints use valid certs or `localhost` debug certs
-- [ ] Docker secrets in place for DB credentials
+- [ ] Docker secrets in place for all credentials
 
-## Migration
-- [ ] Telemetry extracted into `deployments/telemetry/compose.yml` and used by both products
-- [ ] `deployments/<product>/config/` standardized across products
-- [ ] No duplicate infra packages remain (or a plan to migrate them)
+---
+
+## Infrastructure (from Q6, Q7, Q10)
+
+- [ ] **E**: Telemetry extracted into `deployments/telemetry/compose.yml`
+- [ ] **E**: Secrets standardized to Docker secrets across all products
+- [ ] Config locations standardized under `deployments/<product>/config/`
+- [ ] Empty directories removed
+
+---
 
 ## Documentation
-- [ ] `docs/03-products/passthru2/README.md` includes step-by-step quickstart
-- [ ] `docs/03-products/passthru2/TASK-LIST.md` updated
-- [ ] `grooming/GROOMING-QUESTIONS.md` answered and committed
 
-**Sign-off**: commit reviewer, tests green, and coverage pass
+- [ ] `docs/03-products/passthru2/README.md` includes decision summary
+- [ ] `docs/03-products/passthru2/TASK-LIST.md` updated with phases
+- [ ] `grooming/GROOMING-SESSION-1.md` answered and committed
+- [ ] `grooming/GROOMING-SESSION-2.md` prepared
+
+---
+
+## Final Sign-off Criteria (Q25 - ALL must be true)
+
+- [ ] **A**: KMS and Identity demos both start with `docker compose` and include seeded data
+- [ ] **B**: KMS and Identity both have interactive demo scripts and Swagger UI usable with demo creds
+- [ ] **C**: Integration demo runs and validates token-based auth and scopes
+- [ ] **D**: All product tests pass with coverage targets achieved (80%+)
+- [ ] **E**: Telemetry extracted to shared compose and secrets standardized
+
+**Sign-off**: Commit reviewer, tests green, and coverage pass
+

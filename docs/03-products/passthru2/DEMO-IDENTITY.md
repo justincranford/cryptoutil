@@ -2,7 +2,8 @@
 
 **Purpose**: Stabilize Identity demo and provide feature parity for KMS demo experiences
 **Priority**: HIGH
-**Timeline**: Day 2-5
+**Timeline**: Day 3-5
+**Updated**: 2025-11-30 (aligned with Grooming Session 1 decisions)
 
 ---
 
@@ -11,15 +12,85 @@
 - Prioritize demo seeding and a `demo` mode for Identity
 - Fix missing flows (authorize, PKCE, refresh rotation)
 - Seed clients and users with the same standard used in KMS demo
+- Go CLI demo orchestration (NO bash/PowerShell scripts - banned per Q12)
 
 ---
 
 ## Key Tasks
 
-- Add `--demo` mode to identity server for auto seeding demo data
-- Add robust PKCE handling and validations
-- Implement and test token revocation and refresh token rotation
-- Add identity demo script, similar to KMS, with sample calls and Compose profile
+### Missing Endpoints
+
+- [ ] Implement `/authorize` endpoint
+- [ ] Implement full PKCE validation
+- [ ] Implement redirect handling
+- [ ] Fix refresh token rotation
+
+### Demo Mode
+
+- [ ] Add `--demo` flag to identity server for auto seeding demo data
+- [ ] Seed demo users (admin, user, service)
+- [ ] Seed demo clients (public with PKCE, confidential)
+- [ ] Add `cmd/demo-identity/main.go` Go CLI (Q12)
+
+### Token Endpoints
+
+- [ ] Complete token introspection tests
+- [ ] Complete token revocation tests
+
+---
+
+## Demo Accounts
+
+```yaml
+# Demo users
+users:
+  demo-admin:
+    email: admin@demo.local
+    password: demo-admin-password
+    roles: [admin]
+  demo-user:
+    email: user@demo.local
+    password: demo-user-password
+    roles: [user]
+  demo-service:
+    email: service@demo.local
+    password: demo-service-password
+    roles: [service]
+
+# Demo clients
+clients:
+  demo-public-client:
+    type: public
+    redirect_uris: [http://localhost:3000/callback]
+    pkce_required: true
+  demo-confidential-client:
+    type: confidential
+    client_secret: demo-client-secret
+    scopes: [openid, profile, email]
+```
+
+---
+
+## Quick Start Commands
+
+```bash
+# Option 1: Docker Compose (primary - Q12 priority 1)
+docker compose -f deployments/telemetry/compose.yml \
+               -f deployments/identity/compose.demo.yml up -d
+
+# Option 2: Go CLI (Q12 priority 2)
+go run ./cmd/demo-identity
+
+# Verify health
+curl -k https://localhost:8080/livez
+curl -k https://localhost:8080/readyz
+
+# Discovery endpoint
+curl -k https://localhost:8080/.well-known/openid-configuration
+
+# JWKS endpoint
+curl -k https://localhost:8080/.well-known/jwks.json
+```
 
 ---
 
@@ -32,4 +103,5 @@
 
 ---
 
-**Status**: WIP
+**Status**: IN PROGRESS
+
