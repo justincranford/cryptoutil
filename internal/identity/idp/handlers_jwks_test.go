@@ -54,13 +54,13 @@ func TestHandleJWKS_EmptySet(t *testing.T) {
 	require.Equal(t, "public, max-age=3600", resp.Header.Get("Cache-Control"))
 
 	// Parse JWKS response.
-	var jwks map[string]interface{}
+	var jwks map[string]any
 
 	err = json.NewDecoder(resp.Body).Decode(&jwks)
 	require.NoError(t, err, "Failed to decode JWKS response")
 
 	// Verify empty keys array.
-	keys, ok := jwks["keys"].([]interface{})
+	keys, ok := jwks["keys"].([]any)
 	require.True(t, ok, "JWKS should contain 'keys' array")
 	require.Empty(t, keys, "Keys array should be empty when no signing keys exist")
 }
