@@ -15,7 +15,6 @@
     "ms-python.debugpy",                                 // Python debugger (debugpy)
     "ms-python.vscode-pylance",                          // Python language server (Pylance)
     "ms-python.vscode-python-envs",                      // Python environments utility
-    "charliermarsh.ruff",                                // Ruff Python linter
 
     // Java Development (for Gatling load tests)
     "vscjava.vscode-java-pack",                          // Java development pack
@@ -30,7 +29,6 @@
     // Configuration Files
     "redhat.vscode-yaml",                                // YAML language support
     "tamasfe.even-better-toml",                          // TOML language support
-    "esbenp.prettier-vscode",                            // Prettier code formatter
 
     // Documentation & Markdown
     "yzhang.markdown-all-in-one",                        // Markdown tooling
@@ -53,11 +51,9 @@
 
     // Shell & Terminal
     "ms-vscode.powershell",                              // PowerShell language support
-    "timonwong.shellcheck",                              // Shell script linting
 
     // Data & Utilities
     "mechatroner.rainbow-csv",                           // CSV highlighting
-    "humao.rest-client",                                 // REST API client
 
     // Security
     "ms-vscode.vscode-eslint"                            // ESLint for JavaScript/TypeScript
@@ -67,6 +63,10 @@
     "gitkraken.gitkraken",                               // GitKraken GUI - use terminal git
     "eamodio.gitlens",                                   // GitLens - too heavy, use git-graph
     "formulahendry.auto-close-tag",                      // Not needed for Go/YAML
-    "formulahendry.auto-rename-tag"                      // Not needed for Go/YAML
+    "formulahendry.auto-rename-tag",                      // Not needed for Go/YAML
+    "humao.rest-client",                                 // REST API client
+    "charliermarsh.ruff",                                // Ruff Python linter
+    "timonwong.shellcheck",                              // Shell script linting
+    "esbenp.prettier-vscode",                            // Prettier code formatter
   ]
 }
