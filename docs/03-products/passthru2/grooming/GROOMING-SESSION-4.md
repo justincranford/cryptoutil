@@ -219,10 +219,11 @@ What exit code strategy should demo CLI use?
 
 - [ ] A. 0 success, 1 failure (simple)
 - [ ] B. Different codes for different failure types
-- [ ] C. Match sysexits.h conventions
-- [ ] D. 0 success, 1 partial, 2 complete failure
+- [x] C. Match sysexits.h conventions
+- [x] D. 0 success, 1 partial, 2 complete failure
 
 Notes:
+I don't know what is sysexits.h, so I can't decide for sure. Maybe D unless C is better.
 
 ---
 
@@ -234,10 +235,11 @@ Should benchmarks track baseline/regression?
 
 - [ ] A. No baseline (just current numbers)
 - [ ] B. Store baseline in git
-- [ ] C. Compare against previous run
-- [ ] D. CI-based regression detection
+- [x] C. Compare against previous run
+- [x] D. CI-based regression detection
 
 Notes:
+Store baseline in untracked local directory
 
 ---
 
