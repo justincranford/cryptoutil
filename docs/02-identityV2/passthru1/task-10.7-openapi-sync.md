@@ -597,7 +597,7 @@ go generate ./api/identity/...
    # Expect: No errors
    ```
 
-2. **Swagger UI Exploration**:
+1. **Swagger UI Exploration**:
 
    ```bash
    ./identity start --profile demo
@@ -606,7 +606,7 @@ go generate ./api/identity/...
    # Test /health endpoint via "Try it out"
    ```
 
-3. **Client Code Generation**:
+2. **Client Code Generation**:
 
    ```bash
    cd api/identity
@@ -617,7 +617,7 @@ go generate ./api/identity/...
    # Expect: Compilation succeeds
    ```
 
-4. **Contract Testing**:
+3. **Contract Testing**:
 
    ```bash
    go test ./internal/identity/contract/... -v

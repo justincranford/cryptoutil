@@ -31,7 +31,7 @@ go install cryptoutil/cmd/identity/hardware-cred@latest
 hardware-cred help
 ```
 
-2. **Configure Database Connection**:
+1. **Configure Database Connection**:
 
 Edit configuration file (e.g., `/etc/identity/config.yml`):
 
@@ -45,7 +45,7 @@ hardware:
   device_poll_interval: 1s
 ```
 
-3. **Provision Administrator Hardware Credentials**:
+1. **Provision Administrator Hardware Credentials**:
 
 ```bash
 # Enroll admin smart card
@@ -61,7 +61,7 @@ hardware-cred enroll \
   -credential-type security_key
 ```
 
-4. **Verify Enrollment**:
+1. **Verify Enrollment**:
 
 ```bash
 # List admin credentials
@@ -189,14 +189,14 @@ hardware-cred inventory > hardware-inventory-$(date +%Y%m%d).txt
 hardware-cred revoke -credential-id <LOST_CREDENTIAL_ID>
 ```
 
-3. **Provision Temporary Password**:
+1. **Provision Temporary Password**:
 
 ```bash
 # Issue temporary password (password authentication must be enabled as fallback)
 identity-cli user reset-password -user-id <USER_UUID> --temporary
 ```
 
-4. **Re-Enroll New Hardware Device**:
+1. **Re-Enroll New Hardware Device**:
 
 ```bash
 # After user obtains replacement device
@@ -206,7 +206,7 @@ hardware-cred enroll \
   -credential-type security_key
 ```
 
-5. **Audit Logging**:
+1. **Audit Logging**:
 
 ```bash
 # Verify break-glass event logged
@@ -235,7 +235,7 @@ lsusb | grep -i yubi
 certutil -scinfo
 ```
 
-2. **Test Device with CLI**:
+1. **Test Device with CLI**:
 
 ```bash
 # Attempt enrollment to verify device functionality
@@ -245,14 +245,14 @@ hardware-cred enroll \
   -credential-type security_key
 ```
 
-3. **Check Error Logs**:
+1. **Check Error Logs**:
 
 ```bash
 # Review hardware authentication errors
 tail -f /var/log/identity/hardware-auth.log | grep ERROR
 ```
 
-4. **Common Resolutions**:
+1. **Common Resolutions**:
    - **Device Locked (PIN retries exhausted)**: Reset device PIN via manufacturer tool (e.g., `ykman piv reset` for YubiKey)
    - **Driver Issues**: Update smart card reader drivers or USB controller firmware
    - **Certificate Expiration**: Renew device certificates (smart cards)
@@ -275,7 +275,7 @@ tail -f /var/log/identity/hardware-auth.log | grep ERROR
 identity-cli login --username breakglass-admin --password <SECURE_PASSWORD>
 ```
 
-2. **Provision New Admin Hardware Credential**:
+1. **Provision New Admin Hardware Credential**:
 
 ```bash
 # Enroll replacement admin device
@@ -285,14 +285,14 @@ hardware-cred enroll \
   -credential-type security_key
 ```
 
-3. **Rotate Break-Glass Password**:
+1. **Rotate Break-Glass Password**:
 
 ```bash
 # Change break-glass password after use
 identity-cli user reset-password -user-id <BREAKGLASS_UUID>
 ```
 
-4. **Audit Break-Glass Usage**:
+1. **Audit Break-Glass Usage**:
 
 ```bash
 # Log break-glass account activation

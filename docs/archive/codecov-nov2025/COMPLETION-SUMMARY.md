@@ -289,24 +289,24 @@ From `docs/codecov/prompt.txt`:
 
 ### Short-term Actions
 
-3. **Performance Analysis**
+1. **Performance Analysis**
    - Create DB performance documentation
    - Benchmark query patterns
    - Compare SQLite vs PostgreSQL
 
-4. **Additional Package Testing**
+2. **Additional Package Testing**
    - Work through 15-package list
    - Prioritize by business criticality
    - Use table-driven test pattern
 
 ### Long-term Actions
 
-5. **Coverage Monitoring**
+1. **Coverage Monitoring**
    - Add CI gates for coverage thresholds
    - Track coverage trends
    - Review regularly
 
-6. **Test Infrastructure**
+2. **Test Infrastructure**
    - Improve database test setup
    - Better mocking utilities
    - Parallel test optimization

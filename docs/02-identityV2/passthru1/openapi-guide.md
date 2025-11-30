@@ -139,7 +139,7 @@ CODE_VERIFIER=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-43)
 CODE_CHALLENGE=$(echo -n $CODE_VERIFIER | openssl dgst -sha256 -binary | base64 | tr -d "=" | tr "+/" "-_")
 ```
 
-2. **Authorization Request**:
+1. **Authorization Request**:
 
 ```bash
 curl -X POST 'https://localhost:8080/oauth2/v1/authorize' \
@@ -153,7 +153,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/authorize' \
   -d 'code_challenge_method=S256'
 ```
 
-3. **Token Exchange**:
+1. **Token Exchange**:
 
 ```bash
 curl -X POST 'https://localhost:8080/oauth2/v1/token' \
@@ -166,7 +166,7 @@ curl -X POST 'https://localhost:8080/oauth2/v1/token' \
   -d 'client_secret=demo-secret'
 ```
 
-4. **Access Protected Resource**:
+1. **Access Protected Resource**:
 
 ```bash
 curl -X GET 'https://localhost:8082/api/v1/protected/resource' \

@@ -1229,13 +1229,13 @@ git status  # Should show NO changes to internal/cmd/cicd/**/*.go files
   files: \.go$
 ```
 
-2. Test pre-commit hook locally:
+1. Test pre-commit hook locally:
 
 ```bash
 pre-commit run cicd-checks-internal --all-files
 ```
 
-3. Verify no errors and no self-modification
+1. Verify no errors and no self-modification
 
 **Estimated Effort**: 15 minutes
 
@@ -1257,8 +1257,8 @@ pre-commit run cicd-checks-internal --all-files
     go run ./cmd/cicd go-check-identity-imports
 ```
 
-2. Create test PR to verify CI passes
-3. Monitor for self-modification in CI logs
+1. Create test PR to verify CI passes
+2. Monitor for self-modification in CI logs
 
 **Estimated Effort**: 30 minutes
 

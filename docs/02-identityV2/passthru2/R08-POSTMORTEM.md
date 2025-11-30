@@ -151,7 +151,7 @@
 **Task Status**: ✅ COMPLETE (Phases 1 & 2), ⏭️ Phase 3 Deferred to R11
 3. **RFC Compliance**: Referenced RFC standards (7662 for introspection, 7009 for revocation, OIDC Core for userinfo)
 
-4. **Example Values**: Provided realistic examples for all parameters and responses
+1. **Example Values**: Provided realistic examples for all parameters and responses
 
 ### Code Generation Quality
 

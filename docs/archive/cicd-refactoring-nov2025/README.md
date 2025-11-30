@@ -158,24 +158,24 @@ This refactoring was part of a larger effort to improve code quality:
 
 ### Checking Commands
 
-4. `go-check-circular-package-dependencies` - Circular dependency detection
-5. `go-check-identity-imports` - Identity domain isolation validation
+1. `go-check-circular-package-dependencies` - Circular dependency detection
+2. `go-check-identity-imports` - Identity domain isolation validation
 
 ### Auto-Fix Commands
 
-6. `go-fix-staticcheck-error-strings` - Fix ST1005 violations
-7. `go-fix-copyloopvar` - Fix loop variable capture
-8. `go-fix-thelper` - Add missing t.Helper()
-9. `go-fix-all` - Run all auto-fix commands
+1. `go-fix-staticcheck-error-strings` - Fix ST1005 violations
+2. `go-fix-copyloopvar` - Fix loop variable capture
+3. `go-fix-thelper` - Add missing t.Helper()
+4. `go-fix-all` - Run all auto-fix commands
 
 ### Update Commands
 
-10. `go-update-direct-dependencies` - Check direct dependency updates
-11. `go-update-all-dependencies` - Check all dependency updates
+1. `go-update-direct-dependencies` - Check direct dependency updates
+2. `go-update-all-dependencies` - Check all dependency updates
 
 ### Linting Commands
 
-12. `github-workflow-lint` - GitHub workflow validation
+1. `github-workflow-lint` - GitHub workflow validation
 
 ---
 

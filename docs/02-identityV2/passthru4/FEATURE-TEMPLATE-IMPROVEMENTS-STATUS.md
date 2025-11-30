@@ -211,34 +211,34 @@
 
 ### Short-Term (Task 2: Remaining Improvements)
 
-5. **Evidence-Based Acceptance Criteria**:
+1. **Evidence-Based Acceptance Criteria**:
    - Read lines 1125-1175 for exact text
    - Craft oldString with 10 lines context
    - Insert "Evidence Required" subsection template
 
-6. **Post-Mortem Enforcement**:
+2. **Post-Mortem Enforcement**:
    - Read lines 750-900 for exact text
    - Craft oldString with 10 lines context
    - Insert CRITICAL ENFORCEMENT rules and mandatory task creation pattern
 
-7. **Progressive Validation**:
+3. **Progressive Validation**:
    - Read lines 550-700 for exact text
    - Craft oldString with 10 lines context
    - Insert 6-step validation checklist
 
-8. **Foundation-Before-Features** (if time):
+4. **Foundation-Before-Features** (if time):
    - Already partially addressed in commit 05fa350c (Phase 1: Foundation pattern)
    - May need additional enforcement language
 
 ### Medium-Term (Tasks 3-4: Identity Tooling)
 
-9. Create identity-todo-scan cicd command
-10. Enhance identity-requirements-check with threshold enforcement
+1. Create identity-todo-scan cicd command
+2. Enhance identity-requirements-check with threshold enforcement
 
 ### Long-Term (Tasks 5-6: Identity V2 Remediation)
 
-11. Execute MASTER-PLAN-V4.md Phase 1 tasks (fix 8 production blockers)
-12. Execute MASTER-PLAN-V4.md Phase 2-3 tasks (quality, testing, final verification)
+1. Execute MASTER-PLAN-V4.md Phase 1 tasks (fix 8 production blockers)
+2. Execute MASTER-PLAN-V4.md Phase 2-3 tasks (quality, testing, final verification)
 
 ---
 

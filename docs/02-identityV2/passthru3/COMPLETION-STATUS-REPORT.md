@@ -532,12 +532,12 @@ These tasks have documentation but no implementation or are not started:
 
 ### Short-Term Actions (Week 2-3)
 
-3. **Security Hardening** (Task R03-R04)
+1. **Security Hardening** (Task R03-R04)
    - Implement client secret hashing (bcrypt/argon2)
    - Add CRL/OCSP validation
    - Implement token/session cleanup jobs
 
-4. **Testing and Documentation** (Task R05-R11)
+2. **Testing and Documentation** (Task R05-R11)
    - Complete integration tests
    - Synchronize OpenAPI specs
    - Update client libraries
@@ -545,12 +545,12 @@ These tasks have documentation but no implementation or are not started:
 
 ### Long-Term Actions (Q1 2025)
 
-5. **Complete Remaining Tasks**
+1. **Complete Remaining Tasks**
    - Task 02: Requirements validation automation
    - Task 03: Configuration normalization tooling
    - Task 16: OpenAPI modernization
 
-6. **Address MEDIUM/LOW Priority Gaps**
+2. **Address MEDIUM/LOW Priority Gaps**
    - 13 test infrastructure enhancements
    - 27 future enhancement TODOs
 

@@ -105,7 +105,7 @@ BenchmarkJWTValidation-8     21742     56336 ns/op     10978 B/op     201 allocs
 
 ### Low-Priority Optimizations
 
-3. **UUID Token Issuance** (4 allocs/op)
+1. **UUID Token Issuance** (4 allocs/op)
    - **Impact**: Already extremely fast, minimal optimization gain
    - **Note**: Not performance bottleneck
 

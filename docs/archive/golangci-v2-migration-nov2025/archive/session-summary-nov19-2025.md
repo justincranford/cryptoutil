@@ -280,16 +280,16 @@ blockedPackages := []string{
 
 ### Short-Term (Medium Priority)
 
-4. **Address errcheck issues**: Fix resource cleanup (defer file.Close(), resp.Body.Close())
-5. **Address wsl_v5 issues**: Fix whitespace consistency
-6. **Address noctx issues**: Add context parameters to stdlib calls
+1. **Address errcheck issues**: Fix resource cleanup (defer file.Close(), resp.Body.Close())
+2. **Address wsl_v5 issues**: Fix whitespace consistency
+3. **Address noctx issues**: Add context parameters to stdlib calls
 
 ### Long-Term (Low Priority)
 
-7. **Update instruction files**: Document v2 specifics
-8. **Test CI/CD workflows**: Trigger full pipeline validation
-9. **Monitor behavior**: Compare v1 vs v2 linter outputs
-10. **Cleanup artifacts**: Archive migration docs after 30 days
+1. **Update instruction files**: Document v2 specifics
+2. **Test CI/CD workflows**: Trigger full pipeline validation
+3. **Monitor behavior**: Compare v1 vs v2 linter outputs
+4. **Cleanup artifacts**: Archive migration docs after 30 days
 
 ---
 

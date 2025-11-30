@@ -411,14 +411,14 @@ defer cancel()
 
 ### Medium Priority (Phase 2 - Crypto Promotion)
 
-4. **Promote crypto packages to pkg/**
+1. **Promote crypto packages to pkg/**
    - **Packages:** keygen, digests, asn1, certificate
    - **Effort:** 4-6 hours (import updates across codebase)
    - **Risk:** Medium (breaking change, import path updates)
    - **Dependencies:** Requires blueprint.md Phase 2 migration strategy
    - **Tests:** Run full test suite after promotion
 
-5. **Move KMS-specific utilities** to `internal/kms/`
+2. **Move KMS-specific utilities** to `internal/kms/`
    - **Packages:** jose, pool, telemetry, container
    - **Effort:** 4-6 hours (import updates, tests)
    - **Risk:** Medium (coupling changes)
@@ -427,14 +427,14 @@ defer cancel()
 
 ### Low Priority (Post-Refactor Cleanup)
 
-6. **Audit util/ for additional duplication**
+1. **Audit util/ for additional duplication**
    - **Focus:** uuid.go, random.go, yml_json.go
    - **Effort:** 2-3 hours
    - **Risk:** Low (mostly discovery work)
    - **Dependencies:** None
    - **Outcome:** Identify candidates for future extraction
 
-7. **Delete keygenpooltest/**
+2. **Delete keygenpooltest/**
    - **Rationale:** Test-only code, not production package
    - **Effort:** 15 minutes
    - **Risk:** None (not used in production)

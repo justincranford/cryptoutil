@@ -422,7 +422,7 @@ Systematic review of all 15 original tasks to verify complete implementation acc
 
 ### Moderate Gaps (Recommend Implementation)
 
-2. **Task 5d - WebAuthn/FIDO2 Passkey Authentication**
+1. **Task 5d - WebAuthn/FIDO2 Passkey Authentication**
    - **Priority:** MEDIUM
    - **Impact:** Modern passwordless authentication, phishing resistance
    - **Effort:** 30-35 minutes implementation
@@ -435,7 +435,7 @@ Systematic review of all 15 original tasks to verify complete implementation acc
 
 ### Minor Gaps (Future Enhancements)
 
-3. **Task 5e - Hardware Security Integration (HSM/TPM/Secure Element)**
+1. **Task 5e - Hardware Security Integration (HSM/TPM/Secure Element)**
    - **Priority:** LOW
    - **Impact:** Enterprise-grade hardware-backed security
    - **Effort:** 40+ minutes per component
@@ -459,7 +459,7 @@ Systematic review of all 15 original tasks to verify complete implementation acc
 
 ### Recommended Actions
 
-2. **Complete Task 5d (WebAuthn)**
+1. **Complete Task 5d (WebAuthn)**
    - Implement full FIDO2/WebAuthn protocol
    - Add passkey credential management
    - Integrate with existing auth flows
@@ -467,7 +467,7 @@ Systematic review of all 15 original tasks to verify complete implementation acc
 
 ### Optional Enhancements
 
-3. **Enterprise Hardware Integration (Task 5e)**
+1. **Enterprise Hardware Integration (Task 5e)**
    - Defer until enterprise deployment requirements confirmed
    - Current username/password implementation is production-ready
    - HSM/TPM/Secure Element require specific infrastructure

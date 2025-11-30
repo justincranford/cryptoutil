@@ -109,7 +109,7 @@ ORDER BY rotated_at DESC
 LIMIT 2;
 ```
 
-2. **Extract old secret hash** from most recent history record:
+1. **Extract old secret hash** from most recent history record:
 
 ```sql
 SELECT old_secret_hash FROM client_secret_history
@@ -118,7 +118,7 @@ ORDER BY rotated_at DESC
 LIMIT 1;
 ```
 
-3. **Manual database update** (requires database admin access):
+1. **Manual database update** (requires database admin access):
 
 ```sql
 UPDATE clients
@@ -126,7 +126,7 @@ SET client_secret = '<old_secret_hash_from_step_2>'
 WHERE client_id = 'example-client';
 ```
 
-4. **Verify rollback**:
+1. **Verify rollback**:
 
 ```bash
 curl -X POST https://authz-server/oauth2/v1/token \
@@ -134,7 +134,7 @@ curl -X POST https://authz-server/oauth2/v1/token \
   -d "grant_type=client_credentials"
 ```
 
-5. **Notify operations team** of rollback for audit trail
+1. **Notify operations team** of rollback for audit trail
 
 ### Rollback Limitations
 

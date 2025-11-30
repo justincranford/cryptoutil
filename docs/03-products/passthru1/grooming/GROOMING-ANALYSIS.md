@@ -235,14 +235,14 @@ Based on this analysis, here are follow-up questions:
 
 ### KMS MVP Scope
 
-3. What's the minimum viable KMS?
+1. What's the minimum viable KMS?
    - [ ] Key generation only
    - [ ] Key generation + storage
    - [ ] Key generation + storage + rotation
    - [ ] Full hierarchy (root → intermediate → content keys)
    - [ ] All above + HSM support
 
-4. What key types are must-have for MVP?
+2. What key types are must-have for MVP?
    - [ ] RSA (signing, encryption)
    - [ ] ECDSA (signing)
    - [ ] ECDH (key agreement)
@@ -251,7 +251,7 @@ Based on this analysis, here are follow-up questions:
 
 ### Identity Integration
 
-5. When KMS uses Identity for auth, what's the auth model?
+1. When KMS uses Identity for auth, what's the auth model?
    - [ ] API keys (simple)
    - [ ] OAuth 2.1 client credentials
    - [ ] OAuth 2.1 authorization code (user context)

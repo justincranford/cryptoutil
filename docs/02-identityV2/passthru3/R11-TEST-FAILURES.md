@@ -426,36 +426,36 @@ github.com/google/uuid.MustParse({0xc000014340, 0x33})
 
 ### Phase 2: Medium Priority Fixes (SHOULD FIX for R11)
 
-4. **Cleanup Job Migrations** (Category 3)
+1. **Cleanup Job Migrations** (Category 3)
    - Add migration runner to `cleanup_integration_test.go` setup
    - Follow pattern from `storage/tests/crud_test.go`
    - Verify all 4 cleanup job tests pass
 
-5. **Docker Compose Demo Tests** (Category 2)
+2. **Docker Compose Demo Tests** (Category 2)
    - Create `identity-demo.yml` compose file
    - OR skip demo tests in CI (add build tag `//go:build demo`)
    - Verify demo tests pass or are properly skipped
 
 ### Phase 3: Low Priority Fixes (NICE TO HAVE)
 
-6. **Process Manager Platform Support** (Category 6)
+1. **Process Manager Platform Support** (Category 6)
    - Use platform-specific sleep commands in tests
    - OR replace with Go native `time.Sleep` binary
 
-7. **Mock Delivery Return Values** (Category 7)
+2. **Mock Delivery Return Values** (Category 7)
    - Review mock implementation expectations
    - Fix return value assertions or mock implementations
 
-8. **Health Check Poller Error Assertion** (Category 8)
+3. **Health Check Poller Error Assertion** (Category 8)
    - Use `errors.Is()` for wrapped error checks
 
-9. **RS Health Endpoint** (Category 9)
+4. **RS Health Endpoint** (Category 9)
    - Register `/health` endpoint in RS routes
 
-10. **E2E Test Certificates** (Category 10)
+5. **E2E Test Certificates** (Category 10)
     - Generate mock TLS certificates for E2E tests
 
-11. **Load Test UUID Generation** (Category 11)
+6. **Load Test UUID Generation** (Category 11)
     - Fix UUID string concatenation logic
 
 ---

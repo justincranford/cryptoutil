@@ -49,19 +49,19 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 - **Effort**: 3 days
 - **Dependencies**: None
 
-5. **Login/consent redirect missing** (handlers_login.go line 110)
+1. **Login/consent redirect missing** (handlers_login.go line 110)
    - **Impact**: Cannot complete authorization flow
    - **Owner**: Task 09 (SPA UX Repair)
    - **Effort**: 1 day
    - **Dependencies**: GAP #4 (login rendering)
 
-6. **Consent page rendering missing** (handlers_consent.go line 22)
+2. **Consent page rendering missing** (handlers_consent.go line 22)
    - **Impact**: Users cannot approve scope requests
    - **Owner**: Task 09 (SPA UX Repair)
    - **Effort**: 2 days
    - **Dependencies**: None
 
-7. **Authentication middleware missing** (idp/middleware.go line 39-40)
+3. **Authentication middleware missing** (idp/middleware.go line 39-40)
    - **Impact**: Protected endpoints unprotected, authentication bypass
    - **Owner**: Task 07 (Client Auth Enhancements)
    - **Effort**: 1 day
@@ -75,13 +75,13 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 - **Effort**: 0.5 days
 - **Dependencies**: None
 
-9. **OIDC discovery endpoint missing** (GAP-COMP-004)
+1. **OIDC discovery endpoint missing** (GAP-COMP-004)
    - **Impact**: OIDC clients cannot discover IdP configuration
    - **Owner**: Task 09 (SPA UX Repair)
    - **Effort**: 1 day
    - **Dependencies**: None
 
-10. **JWKS endpoint missing** (GAP-COMP-005)
+2. **JWKS endpoint missing** (GAP-COMP-005)
     - **Impact**: Clients cannot verify ID token signatures
     - **Owner**: Task 08 (Token Service Hardening)
     - **Effort**: 1 day
@@ -113,7 +113,7 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 - **Effort**: 1 day
 - **Dependencies**: None
 
-4. **UserInfo token validation missing** (handlers_userinfo.go line 23-26)
+1. **UserInfo token validation missing** (handlers_userinfo.go line 23-26)
    - **Impact**: No OIDC compliance, cannot return user claims
    - **Owner**: Task 09 (SPA UX Repair)
    - **Effort**: 1 day
@@ -127,13 +127,13 @@ Aggregates gaps from history-baseline.md, gap-analysis.md, task-01-deliverables-
 - **Effort**: 0.5 days
 - **Dependencies**: None
 
-6. **Token introspection endpoint missing** (GAP-COMP-006)
+1. **Token introspection endpoint missing** (GAP-COMP-006)
    - **Impact**: Resource servers cannot validate tokens
    - **Owner**: Task 10 (Integration Layer Completion)
    - **Effort**: 1 day
    - **Dependencies**: None
 
-7. **Token revocation endpoint missing** (GAP-COMP-007)
+2. **Token revocation endpoint missing** (GAP-COMP-007)
    - **Impact**: Clients cannot revoke compromised tokens
    - **Owner**: Task 07 (Client Auth Enhancements)
    - **Effort**: 1 day

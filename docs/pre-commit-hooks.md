@@ -61,8 +61,8 @@ This staged approach provides optimal developer experience:
 5. **Comprehensive Verification**: Pre-push validates entire codebase
 6. **Dependency Management**: Module dependencies are cleaned before expensive linting operations
 7. **Build Validation**: Code compilation is verified after linting passes
-6. **Custom Checks**: Project-specific rules run after basic validation
-7. **Specialized Linting**: File-type specific checks run last for comprehensive coverage
+8. **Custom Checks**: Project-specific rules run after basic validation
+9. **Specialized Linting**: File-type specific checks run last for comprehensive coverage
 
 ### Performance Optimization
 

@@ -435,34 +435,34 @@ Based on Identity V2 experience, the SDLC feature template has these gaps:
 
 ### Short-Term Actions (Next Session)
 
-4. **Implement Automated Validation**
+1. **Implement Automated Validation**
    - Create `identity-todo-scan` command (similar to identity-requirements-check)
    - Add to pre-commit hooks
    - Add to CI/CD quality gates
 
-5. **Requirements Coverage Enforcement**
+2. **Requirements Coverage Enforcement**
    - Set threshold: ≥90% requirements coverage before "complete" claim
    - Add to acceptance criteria template
    - Run validation after each task
 
-6. **Test Failure Detection**
+3. **Test Failure Detection**
    - Add "zero test failures" to acceptance criteria
    - Run full test suite before task completion
    - Document test failures in post-mortem
 
 ### Long-Term Actions (Process Improvements)
 
-7. **SDLC Template Updates**
+1. **SDLC Template Updates**
    - Incorporate all improvements from TMPL-01 through TMPL-08
    - Create template validation checklist
    - Document lessons learned from Identity V2
 
-8. **Evidence-Based Validation Framework**
+2. **Evidence-Based Validation Framework**
    - Create tools for automatic evidence collection
    - Add evidence requirements to all acceptance criteria
    - Enforce evidence before "complete" claim
 
-9. **Single Source of Truth Pattern**
+3. **Single Source of Truth Pattern**
    - Standardize on PROJECT-STATUS.md across all features
    - Deprecate multiple conflicting status documents
    - Add automatic status file generation

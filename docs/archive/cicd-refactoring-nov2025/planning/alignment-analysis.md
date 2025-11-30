@@ -253,28 +253,28 @@ The refactoring plan correctly identifies this and provides the fix.
 
 ### Short-term Actions (This Sprint)
 
-4. 🟡 **MEDIUM PRIORITY**: Audit file sizes
+1. 🟡 **MEDIUM PRIORITY**: Audit file sizes
    - Run analysis on all `internal/cmd/cicd/*.go` files
    - Identify files >300 lines for refactoring
    - **Addressed by**: Refactoring plan Phase 4
 
-5. 🟡 **MEDIUM PRIORITY**: Boost cicd coverage to 85%+
+2. 🟡 **MEDIUM PRIORITY**: Boost cicd coverage to 85%+
    - Focus on self-exclusion pattern tests
    - Add edge case coverage
    - **Addressed by**: Refactoring plan Phase 6
 
-6. 🟡 **MEDIUM PRIORITY**: Validate VS Code and workflow integration
+3. 🟡 **MEDIUM PRIORITY**: Validate VS Code and workflow integration
    - Test golangci-lint v2 in IDE
    - Verify CI/CD workflow performance
 
 ### Long-term Actions (Future)
 
-7. 🟢 **LOW PRIORITY**: Archive completed golangci tasks
+1. 🟢 **LOW PRIORITY**: Archive completed golangci tasks
    - Once all HIGH/MEDIUM tasks complete
    - Move `docs/golangci/` to `docs/golangci/archive/` or delete
    - Keep only active tracking documents
 
-8. 🟢 **LOW PRIORITY**: Consider AST-based auto-fixes
+2. 🟢 **LOW PRIORITY**: Consider AST-based auto-fixes
    - Evaluate additional patterns for automation
    - Low priority due to current coverage being acceptable
 
