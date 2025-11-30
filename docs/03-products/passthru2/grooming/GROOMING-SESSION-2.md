@@ -319,7 +319,7 @@ How should tests be isolated from each other?
 Notes:
 CRITICAL: Must use UUIDv7 as part of unique prefixes per test.
 There should be Copilot instructions about that.
-Reason was `go test` concurrency runs as multiple processes, which don't share counters, so UUIDv7 is mandatory to ensure orthagonal test data prefixes during concurrent tests
+Reason was `go test` concurrency runs as multiple processes, which don't share counters, so UUIDv7 is mandatory to ensure orthogonal test data prefixes during concurrent tests
 
 ---
 
