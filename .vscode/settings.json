@@ -329,7 +329,6 @@
   "workbench.editor.empty.hint": "hidden", // Show hint when no editor is open - Default: "welcomeView", Recommended: "hidden" (reduce clutter)
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
-  "chat.tools.global.autoApprove": false,
   "chat.tools.terminal.autoApprove": {
       //
       // ─────────────────────────────────────────────────────────────
@@ -342,7 +341,7 @@
       //   - privilege escalation (sudo, chmod on Linux)
       // Prefix-based allowList CANNOT override these rules.
       // ─────────────────────────────────────────────────────────────
-      "git push": false,
+      "git push": true,
       "git pull": false,
       "git reset": false,
       "git rebase": false,
