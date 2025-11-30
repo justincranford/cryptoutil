@@ -1,6 +1,11 @@
 # $schema: https://json.schemastore.org/pre-commit-config.json
+# Pre-commit hooks configuration for automatic code formatting
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
 repos:
-  # Manual hooks (expensive - run manually)
+  # Check pre-commit hook versions, and auto-update them
+  # NOTE: This is expensive (network calls), run manually: pre-commit run autoupdate-all-hooks --hook-stage manual
   - repo: local
     hooks:
       - id: autoupdate-all-hooks
@@ -9,17 +14,21 @@ repos:
         args: [-m, pre_commit, autoupdate]
         language: system
         pass_filenames: false
-        stages: [manual]
+        stages: [manual]  # Run manually, not on every push
 
+  # Check Go direct dependency versions (expensive - network calls)
+  # NOTE: Run manually: pre-commit run go-update-direct-dependencies --hook-stage manual
+  - repo: local
+    hooks:
       - id: go-update-direct-dependencies
         name: Check Go direct dependency updates (manual)
         entry: go
         args: [run, cmd/cicd/main.go, go-update-direct-dependencies]
         language: system
         pass_filenames: false
-        stages: [manual]
+        stages: [manual]  # Run manually, not on every push
 
-  # GitHub workflow linting
+  # GitHub workflow linting (only when workflows change)
   - repo: local
     hooks:
       - id: github-workflow-lint
@@ -29,66 +38,132 @@ repos:
         language: system
         pass_filenames: false
         files: '\.github/workflows/.*\.(yml|yaml)$'
-        stages: [pre-push]
+        stages: [pre-push]  # Only run when workflow files change
 
-  # Generic file checks
+  # Generic file checks (lightweight and reliable)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Ensure files end with newline
       - id: end-of-file-fixer
-        exclude: '\.(exe|dll|so|dylib|key|crt)$'
+        name: Fix end of files
+        exclude: '\.(exe|dll|so|dylib|key|crt)$'  # Skip binary/executable files
         stages: [pre-commit]
+
+      # Remove trailing whitespace
       - id: trailing-whitespace
+        name: Remove trailing whitespace
         args: [--markdown-linebreak-ext=md]
         stages: [pre-commit]
+
+      # Check for UTF-8 encoding without BOM
       - id: fix-byte-order-marker
-        exclude: '\.(exe|dll|so|dylib|key|crt)$'
+        name: Fix UTF-8 without BOM
+        exclude: '\.(exe|dll|so|dylib|key|crt)$'  # Skip binary files
         stages: [pre-commit]
+
+      # Check YAML syntax
       - id: check-yaml
+        name: Check YAML syntax
         require_serial: false
         stages: [pre-commit]
+
+      # Check JSON syntax (excluding VS Code JSONC files with comments)
       - id: check-json
-        exclude: '\.vscode/.*\.json$'
+        name: Check JSON syntax
+        exclude: '\.vscode/.*\.json$'  # Skip VS Code settings with comments
         require_serial: false
         stages: [pre-commit]
+
+      # Prevent large files from being committed
       - id: check-added-large-files
+        name: Check for large files
         args: ['--maxkb=1024']
         stages: [pre-commit]
+
+      # Prevent merge conflict markers
       - id: check-merge-conflict
+        name: Check for merge conflict markers
         stages: [pre-commit]
+
+      # Security checks (critical for crypto project)
       - id: detect-aws-credentials
+        name: Check for AWS credentials
         args: [--allow-missing-credentials]
         stages: [pre-commit]
-      - id: detect-private-key
-        stages: [pre-commit]
-      - id: check-case-conflict
-        stages: [pre-commit]
-      - id: check-illegal-windows-names
-        stages: [pre-commit]
-      - id: check-toml
-        require_serial: false
-        stages: [pre-commit]
-      - id: check-xml
-        require_serial: false
-        stages: [pre-commit]
-      - id: check-symlinks
-        stages: [pre-commit]
-      - id: check-executables-have-shebangs
-        exclude: '\.(exe|dll|so|dylib|key|crt|pem|der|bin|dat|db|sqlite|pdf|jpg|jpeg|png|gif|bmp|ico|mp4|avi|mov|zip|tar|gz|bz2|7z|rar)$'
-        stages: [pre-commit]
-      - id: check-shebang-scripts-are-executable
-        exclude: '\.(ps1|sh)$'
-        stages: [pre-commit]
-      - id: check-vcs-permalinks
-        stages: [pre-commit]
-      - id: forbid-new-submodules
-        stages: [pre-commit]
-      - id: pretty-format-json
-        args: [--autofix, --indent=2]
-        exclude: '(\.vscode/.*\.json$|\.cicd/.*\.json$)'
-      - id: mixed-line-ending
 
-  # Go linting with auto-fix
+      # Private key detection
+      - id: detect-private-key
+        name: Check for private keys
+        stages: [pre-commit]
+
+      # Cross-platform compatibility
+      - id: check-case-conflict
+        name: Check for case conflicts
+        stages: [pre-commit]
+
+      # Windows-specific checks
+      - id: check-illegal-windows-names
+        name: Check for illegal Windows filenames
+        stages: [pre-commit]
+
+      # File validation
+      - id: check-toml
+        name: Check TOML syntax
+        require_serial: false
+        stages: [pre-commit]
+
+      # XML syntax check
+      - id: check-xml
+        name: Check XML syntax
+        require_serial: false
+        stages: [pre-commit]
+
+      # Symlink validation
+      - id: check-symlinks
+        name: Check for broken symlinks
+        stages: [pre-commit]
+
+      # Script validation
+      - id: check-executables-have-shebangs
+        name: Check executables have shebangs
+        exclude: '\.(exe|dll|so|dylib|key|crt|pem|der|bin|dat|db|sqlite|pdf|jpg|jpeg|png|gif|bmp|ico|mp4|avi|mov|zip|tar|gz|bz2|7z|rar)$'  # Skip binary/executable files
+        stages: [pre-commit]
+
+      # Ensure shebang scripts are executable
+      - id: check-shebang-scripts-are-executable
+        name: Check shebang scripts are executable
+        exclude: '\.(ps1|sh)$'  # Skip PowerShell and shell scripts (don't need execute permission on Windows)
+        stages: [pre-commit]
+
+      # VCS and repository checks
+      - id: check-vcs-permalinks
+        name: Check VCS permalinks
+        stages: [pre-commit]
+
+      # Prevent new git submodules
+      - id: forbid-new-submodules
+        name: Prevent new git submodules
+        stages: [pre-commit]
+
+      # Formatting and branch protection
+      - id: pretty-format-json
+        name: Pretty format JSON files
+        args: [--autofix, --indent=2]
+        exclude: '(\.vscode/.*\.json$|\.cicd/.*\.json$)'  # Skip VS Code settings with comments and CI/CD cache files
+
+      # Mixed line endings
+      - id: mixed-line-ending
+        name: Fix mixed line endings
+
+      # - id: no-commit-to-branch
+      #   name: Prevent commits to protected branches
+      #   args: [--branch, main]
+      #   stages: [pre-push]  # Only run on push, not on commit
+
+  # Go linting with auto-fix (includes gofumpt with extra-rules, imports, and all enabled linters)
+  # NOTE: golangci-lint includes gofumpt with extra-rules: true in .golangci.yml
+  #       No separate gofumpt hook needed to avoid conflicting formatting passes
   - repo: local
     hooks:
       - id: golangci-lint
@@ -98,7 +173,7 @@ repos:
         language: system
         pass_filenames: false
         files: '\.go$'
-        stages: [pre-commit]
+        stages: [pre-commit]  # Fast incremental check on commit
 
       - id: golangci-lint-full
         name: golangci-lint (full validation)
@@ -106,9 +181,9 @@ repos:
         args: [run, --timeout=30m]
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        stages: [pre-push]  # Full check before push
 
-  # Custom project checks
+  # Custom project checks (fast, internal checks)
   - repo: local
     hooks:
       - id: identity-progressive-validation
@@ -117,7 +192,7 @@ repos:
         args: [run, cmd/cicd/main.go, identity-progressive-validation]
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        stages: [pre-push]  # Validate quality gates before push
 
       - id: cicd-checks-internal
         name: Run custom CI/CD checks (go-circ-dep, go-identity-imports)
@@ -132,9 +207,9 @@ repos:
         args: [-Command, "go run cmd/cicd/main.go all-enforce-utf8 go-enforce-test-patterns go-enforce-any; exit 0"]
         language: system
         pass_filenames: false
-        always_run: true
+        always_run: true  # Allow enforce commands to "fail" (modify files)
 
-  # Go dependency management
+  # Go dependency management (clean state before linting)
   - repo: local
     hooks:
       - id: go-mod-tidy
@@ -145,7 +220,7 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Check TODO/FIXME severity
+  # Check TODO/FIXME severity (fail on CRITICAL/HIGH)
   - repo: local
     hooks:
       - id: check-todo-severity
@@ -165,7 +240,7 @@ repos:
         files: '\.go$'
         stages: [pre-commit]
 
-  # Go auto-fix commands
+  # Go auto-fix commands (apply before linting)
   - repo: local
     hooks:
       - id: go-fix-all
@@ -177,7 +252,7 @@ repos:
         files: '\.go$'
         stages: [pre-commit]
 
-  # Go build validation
+  # Go build validation (moved to pre-push for faster pre-commit)
   - repo: local
     hooks:
       - id: go-build
@@ -187,9 +262,9 @@ repos:
         language: system
         pass_filenames: false
         files: '\.go$|go\.mod$|go\.sum$'
-        stages: [pre-push]
+        stages: [pre-push]  # Build validation before push, not on every commit
 
-  # Specialized file linting
+  # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.8
     hooks:
@@ -197,6 +272,7 @@ repos:
         files: '\.github/workflows/.*\.(yml|yaml)$'
         require_serial: false
 
+  # Specialized file linting: Dockerfile linting
   - repo: https://github.com/hadolint/hadolint
     rev: v2.14.0
     hooks:
@@ -204,6 +280,7 @@ repos:
         files: 'Dockerfile.*|Dockerfile$'
         require_serial: false
 
+  # Specialized file linting: POSIX shell script linting
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0
     hooks:
@@ -213,6 +290,7 @@ repos:
         files: '\.(sh|bash|zsh)$|^(\.bashrc|\.zshrc|\.bash_profile|\.profile|\.zprofile|\.zshenv|\.bash_logout|\.zlogin|\.zlogout)$'
         require_serial: false
 
+  # Specialized file linting: Python security linting
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.1
     hooks:
@@ -232,7 +310,7 @@ repos:
         files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
         exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/)'
 
-  # Markdown linting
+  # Markdown linting with auto-fix
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.17.1
     hooks:
@@ -251,5 +329,6 @@ repos:
         name: Check conventional commit message
         stages: [commit-msg]
 
+# Global configuration
 default_stages: [pre-commit]
 minimum_pre_commit_version: '2.20.0'
