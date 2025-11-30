@@ -17,8 +17,8 @@ Reference:
 import argparse
 import ipaddress
 import os
+import platform
 import re
-import resource
 import subprocess
 import sys
 import time
@@ -26,6 +26,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
+
+# Import resource module only on Unix (not available on Windows).
+if platform.system() != "Windows":
+    import resource
 
 
 # Allowed loopback addresses and hostnames.
@@ -153,8 +157,14 @@ def create_report_directory(command_name: str) -> Path:
 
 
 def get_resource_usage() -> dict[str, float]:
-    """Get current resource usage statistics."""
-    rusage = resource.getrusage(resource.RUSAGE_CHILDREN)
+    """Get current resource usage statistics (Unix only, returns zeros on Windows)."""
+    if platform.system() == "Windows":
+        return {
+            "user_time_seconds": 0.0,
+            "system_time_seconds": 0.0,
+            "max_memory_kb": 0,
+        }
+    rusage = resource.getrusage(resource.RUSAGE_CHILDREN)  # type: ignore[name-defined]
     return {
         "user_time_seconds": rusage.ru_utime,
         "system_time_seconds": rusage.ru_stime,
