@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package integration
 
 // boolPtr returns a pointer to the given bool value.
