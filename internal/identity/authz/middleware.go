@@ -43,8 +43,14 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 	}))
 
 	// CORS middleware - skip for OAuth endpoints (machine-to-machine).
+	// Use configured origins instead of wildcard for security (OWASP ASVS V14.5).
+	corsOrigins := "*"
+	if s.config != nil && s.config.Security != nil && len(s.config.Security.CORSAllowedOrigins) > 0 {
+		corsOrigins = strings.Join(s.config.Security.CORSAllowedOrigins, ",")
+	}
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: corsOrigins,
 		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
 		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
 		Next: func(c *fiber.Ctx) bool {
