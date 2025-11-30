@@ -10,6 +10,7 @@
 ## 🟡 MEDIUM - Observability & Monitoring
 
 ### Task OB1: Expand Grafana Dashboards for Custom Metrics
+
 - **Description**: Current Grafana dashboard only covers basic HTTP metrics but misses all custom application metrics
 - **Current State**: Dashboard shows only `http_requests_total` and `http_request_duration_seconds_bucket` from otelfiber middleware
 - **Missing Metrics Categories**:
@@ -28,6 +29,7 @@
 - **Timeline**: Q4 2025
 
 ### Task OB2: Implement Prometheus Metrics Exposition
+
 - **Description**: Add comprehensive Prometheus metrics for monitoring and alerting
 - **Current State**: Basic HTTP metrics only
 - **Action Items**:
@@ -40,6 +42,7 @@
 - **Priority**: Medium - Production readiness
 
 ### Task OB4: Enhance Readiness Checks Performance and Coverage
+
 - **Description**: Improve readiness checks with concurrent execution and additional health validations
 - **Current State**: Readiness checks run sequentially and may be incomplete
 - **Action Items**:
@@ -79,9 +82,11 @@ The existing `cryptoutil.json` dashboard only includes basic HTTP metrics from t
 ### Missing Custom Metrics Categories
 
 #### 1. Pool Performance Metrics
+
 **Source**: `internal/common/pool/pool.go`
 
 **Available Metrics**:
+
 - `cryptoutil.pool.get` - Histogram of get operation duration (milliseconds)
 - `cryptoutil.pool.permission` - Histogram of permission wait duration (milliseconds)
 - `cryptoutil.pool.generate` - Histogram of generate operation duration (milliseconds)
@@ -89,6 +94,7 @@ The existing `cryptoutil.json` dashboard only includes basic HTTP metrics from t
 **Attributes**: `workers`, `size`, `values`, `duration`, `type` (per pool instance)
 
 **Recommended Dashboard Panels**:
+
 ```json
 {
   "title": "Pool Get Latency (95th percentile)",
@@ -114,12 +120,15 @@ The existing `cryptoutil.json` dashboard only includes basic HTTP metrics from t
 ```
 
 #### 2. Security Header Validation Metrics
+
 **Source**: `internal/server/application/application_listener.go`
 
 **Available Metrics**:
+
 - `security_headers_missing_total` - Counter of requests with missing security headers
 
 **Recommended Dashboard Panels**:
+
 ```json
 {
   "title": "Security Header Violations",
@@ -140,11 +149,13 @@ The existing `cryptoutil.json` dashboard only includes basic HTTP metrics from t
 ### Implementation Architecture
 
 **Metrics Flow**:
+
 ```
 Application (OpenTelemetry) → OTEL Collector → Grafana-OTEL-LGTM (Prometheus + Grafana)
 ```
 
 **Dashboard Updates Needed**:
+
 1. **Add Pool Performance Dashboard**:
    - Pool utilization metrics
    - Latency percentiles per pool type
@@ -163,6 +174,7 @@ Application (OpenTelemetry) → OTEL Collector → Grafana-OTEL-LGTM (Prometheus
 ### OpenTelemetry to Prometheus Metric Name Mapping
 
 OpenTelemetry metrics are automatically converted to Prometheus format:
+
 - `cryptoutil.pool.get` → `cryptoutil_pool_get`
 - `security_headers_missing_total` → `security_headers_missing_total`
 

@@ -15,6 +15,7 @@
 #### Known Limitations (from Task 12 Completion Doc)
 
 **GAP-12-001: In-Memory Rate Limiting (CRITICAL)**
+
 - **Severity**: HIGH
 - **Issue**: Rate limit state resets on service restart, allowing attackers to bypass limits
 - **Impact**: Attacker could restart brute force attack after service restart
@@ -26,6 +27,7 @@
 - **Status**: Deferred (acceptable for development/testing)
 
 **GAP-12-002: No Automatic Provider Failover (MEDIUM)**
+
 - **Severity**: MEDIUM
 - **Issue**: SMS/email provider outage requires manual failover
 - **Impact**: Partial authentication outage during provider downtime
@@ -37,6 +39,7 @@
 - **Status**: Deferred (manual failover acceptable for MVP)
 
 **GAP-12-003: No Token Refresh (LOW)**
+
 - **Severity**: LOW
 - **Issue**: User must request new OTP/magic link if first expires
 - **Impact**: UX friction (user frustration if token expires during entry)
@@ -48,6 +51,7 @@
 - **Status**: Backlog (low priority - no customer complaints)
 
 **GAP-12-004: No Multi-Region Support (MEDIUM)**
+
 - **Severity**: MEDIUM
 - **Issue**: All services in single region, no geographic failover
 - **Impact**: Regional outage causes global authentication downtime
@@ -61,26 +65,31 @@
 #### Future Enhancements (Task 12)
 
 **GAP-12-005: Device Fingerprinting (Task 13)**
+
 - **Type**: Enhancement (Task 13 dependency)
 - **Description**: Risk scoring with device fingerprinting, IP reputation, behavioral analysis
 - **Status**: ✅ COMPLETE (Task 13 implemented adaptive auth with device/location/network risk)
 
 **GAP-12-006: WebAuthn Integration (Task 14)**
+
 - **Type**: Enhancement (Task 14 dependency)
 - **Description**: WebAuthn as fallback for OTP failures, biometric authentication
 - **Status**: ✅ COMPLETE (Task 14 implemented WebAuthn/FIDO2)
 
 **GAP-12-007: Hardware Credential Support (Task 15)**
+
 - **Type**: Enhancement (Task 15 dependency)
 - **Description**: Smart card integration, YubiKey OTP, TPM integration
 - **Status**: ✅ COMPLETE (Task 15 implemented hardware credential CLI + error validation)
 
 **GAP-12-008: PostgreSQL-backed Rate Limiting (Task 18)**
+
 - **Type**: Infrastructure (Task 18 dependency)
 - **Description**: Persistent rate limit state, Redis caching, multi-service health checks
 - **Status**: ⏹️ PENDING (Task 18 not started)
 
 **GAP-12-009: Integration Testing Fabric (Task 19)**
+
 - **Type**: Testing (Task 19 dependency)
 - **Description**: HTTP API tests, real provider integration (Twilio/SendGrid staging), load testing
 - **Status**: ⏹️ PENDING (Task 19 not started)
@@ -92,6 +101,7 @@
 #### Future Improvements (from Task 13 Completion Doc)
 
 **GAP-13-001: Machine Learning Risk Scoring (ENHANCEMENT)**
+
 - **Severity**: LOW (enhancement)
 - **Issue**: Static risk weights vs ML-based dynamic scoring
 - **Impact**: Higher false positive rate (8.5% current vs <5% target)
@@ -103,6 +113,7 @@
 - **Status**: Backlog (static weights sufficient for MVP)
 
 **GAP-13-002: User Feedback Loop (ENHANCEMENT)**
+
 - **Severity**: LOW (enhancement)
 - **Issue**: No mechanism to collect user feedback on step-up prompts
 - **Impact**: Cannot measure user perception of false positives
@@ -114,6 +125,7 @@
 - **Status**: Backlog (data-driven tuning sufficient for MVP)
 
 **GAP-13-003: Geo Velocity Detection (ENHANCEMENT)**
+
 - **Severity**: MEDIUM (security improvement)
 - **Issue**: Simplistic impossible travel detection (lat/lon distance only)
 - **Impact**: Misses edge cases (trans-Atlantic flights, VPN hops)
@@ -125,6 +137,7 @@
 - **Status**: Backlog (low priority - current detection works for 95% of cases)
 
 **GAP-13-004: Device Fingerprinting Enhancement (ENHANCEMENT)**
+
 - **Severity**: MEDIUM (security improvement)
 - **Issue**: Basic device fingerprinting (user agent string only)
 - **Impact**: Attackers can spoof user agent to bypass device risk scoring
@@ -136,6 +149,7 @@
 - **Status**: Backlog (privacy concerns outweigh security benefit for MVP)
 
 **GAP-13-005: Behavioral Time-Series Modeling (ENHANCEMENT)**
+
 - **Severity**: LOW (enhancement)
 - **Issue**: No long-term behavioral modeling (patterns over weeks/months)
 - **Impact**: Cannot detect slow-drift behavioral changes (compromised accounts)
@@ -153,6 +167,7 @@
 #### Future Enhancements (from Task 14 Completion Doc)
 
 **GAP-14-001: Passkey Sync Support (ENHANCEMENT)**
+
 - **Severity**: MEDIUM (UX improvement)
 - **Issue**: No support for passkey sync across devices (iCloud Keychain, Google Password Manager)
 - **Impact**: Users must manually re-register credentials on each device
@@ -164,6 +179,7 @@
 - **Status**: Planned (roadmap item)
 
 **GAP-14-002: QR Code Cross-Device Authentication (ENHANCEMENT)**
+
 - **Severity**: LOW (UX improvement)
 - **Issue**: No desktop-to-mobile authentication flow (QR code scanning)
 - **Impact**: Desktop users without platform authenticator must use OTP fallback
@@ -175,6 +191,7 @@
 - **Status**: Planned (roadmap item)
 
 **GAP-14-003: Conditional UI Integration (ENHANCEMENT)**
+
 - **Severity**: LOW (UX improvement)
 - **Issue**: No browser autofill integration for credential selection
 - **Impact**: Users must manually select credentials from browser UI
@@ -186,6 +203,7 @@
 - **Status**: Planned (requires WebAuthn Level 3 browser support)
 
 **GAP-14-004: Enterprise Features (ENHANCEMENT)**
+
 - **Severity**: MEDIUM (enterprise requirement)
 - **Issue**: No Azure AD/Okta integration for enterprise WebAuthn deployments
 - **Impact**: Enterprise customers must manage credentials separately
@@ -197,6 +215,7 @@
 - **Status**: Backlog (enterprise customers not target for MVP)
 
 **GAP-14-005: Advanced Security Features (ENHANCEMENT)**
+
 - **Severity**: MEDIUM (security improvement)
 - **Issue**: No credential backup state detection, multi-credential enforcement
 - **Impact**: Users at risk of account lockout if single credential lost
@@ -208,6 +227,7 @@
 - **Status**: Backlog (documentation sufficient for MVP)
 
 **GAP-14-006: Mock Integration Test Helpers (TESTING)**
+
 - **Severity**: MEDIUM (testing coverage)
 - **Issue**: Incomplete integration test mocks (CBOR encoding, cryptographic signing)
 - **Impact**: Cannot test complete registration/authentication flows without real authenticators
@@ -225,6 +245,7 @@
 #### Skipped Deliverables (from Task 15 Completion Doc)
 
 **GAP-15-001: Integration Testing Skipped (TESTING)**
+
 - **Severity**: MEDIUM (testing coverage)
 - **Issue**: Todo 6 (integration testing) marked SKIPPED - no mocks for hardware credential operations
 - **Impact**: Cannot test enrollment/authentication flows without physical hardware
@@ -236,6 +257,7 @@
 - **Status**: Deferred (CLI tests + error validation tests sufficient for MVP)
 
 **GAP-15-002: Manual Hardware Validation Skipped (TESTING)**
+
 - **Severity**: LOW (validation)
 - **Issue**: Todo 7 (manual hardware validation) marked SKIPPED - no physical testing with YubiKey/smart cards
 - **Impact**: Unknown compatibility with specific hardware devices
@@ -249,6 +271,7 @@
 #### Future Enhancements (from Task 15 Completion Doc)
 
 **GAP-15-003: Database Configuration Stub (IMPLEMENTATION)**
+
 - **Severity**: CRITICAL (production blocker)
 - **Issue**: `initDatabase()` returns error - no production database configuration
 - **Impact**: CLI tool cannot run in production without database connection
@@ -260,6 +283,7 @@
 - **Status**: In-progress (implementation needed before Task 18)
 
 **GAP-15-004: Repository ListAll Method Missing (IMPLEMENTATION)**
+
 - **Severity**: MEDIUM (feature incomplete)
 - **Issue**: `inventory` command stub - `WebAuthnCredentialRepository` lacks `ListAll` method
 - **Impact**: Cannot generate full credential inventory for compliance reporting
@@ -271,6 +295,7 @@
 - **Status**: Planned (low priority - can query database directly for now)
 
 **GAP-15-005: Cryptographic Key Generation Mocks (IMPLEMENTATION)**
+
 - **Severity**: LOW (testing artifact)
 - **Issue**: CLI uses mock generators (deterministic credential IDs, zero-filled public keys)
 - **Impact**: Production CLI would generate insecure credentials
@@ -282,6 +307,7 @@
 - **Status**: Planned (high priority before production use)
 
 **GAP-15-006: Device-Specific Error Handling (ENHANCEMENT)**
+
 - **Severity**: LOW (UX improvement)
 - **Issue**: Generic hardware error types vs device-specific errors
 - **Impact**: Users receive generic error messages instead of actionable guidance
@@ -293,6 +319,7 @@
 - **Status**: Backlog (generic errors acceptable for MVP)
 
 **GAP-15-007: Recovery Suggestions in Errors (ENHANCEMENT)**
+
 - **Severity**: LOW (UX improvement)
 - **Issue**: Error messages lack actionable recovery steps
 - **Impact**: Users don't know how to fix issues (e.g., "Remove and re-insert device")
@@ -304,6 +331,7 @@
 - **Status**: Backlog (admin support sufficient for MVP)
 
 **GAP-15-008: GDPR Privacy-Preserving Audit Logging (COMPLIANCE)**
+
 - **Severity**: MEDIUM (compliance)
 - **Issue**: Audit logs may contain PII (user IDs, device names)
 - **Impact**: GDPR Article 25 requires pseudonymization for privacy
@@ -315,6 +343,7 @@
 - **Status**: Planned (legal review needed)
 
 **GAP-15-009: PSD2 SCA Metadata (COMPLIANCE)**
+
 - **Severity**: MEDIUM (compliance)
 - **Issue**: No PSD2 SCA-specific metadata capture (transaction amount, merchant ID)
 - **Impact**: Cannot prove Strong Customer Authentication for payment transactions
@@ -380,6 +409,7 @@
 **Total TODO/FIXME Comments Found**: 20 unique instances across identity codebase
 
 **Categories**:
+
 - Test Stubs (MFA flows, client authentication): 10 instances
 - Missing Implementations (repository methods, handlers): 6 instances
 - Domain Enhancements (enums, middleware): 4 instances
@@ -387,6 +417,7 @@
 ### Detailed Gap Analysis from Code Comments
 
 **GAP-CODE-001: AuthenticationStrength Enum Missing (MEDIUM)**
+
 - **File**: `internal/identity/test/e2e/client_mfa_test.go` (lines 250, 284)
 - **Severity**: MEDIUM (type safety + clarity)
 - **Issue**: Using string literals ("high", "low") instead of enum for authentication strength
@@ -399,6 +430,7 @@
 - **Status**: Planned (low priority - string comparison works for MVP)
 
 **GAP-CODE-002: User ID from Authentication Context (MEDIUM)**
+
 - **File**: `internal/identity/idp/auth/mfa_otp.go` (line 133)
 - **Severity**: MEDIUM (correctness)
 - **Issue**: Using `factor.AuthProfileID.String()` as placeholder for user ID instead of retrieving from auth context
@@ -411,6 +443,7 @@
 - **Status**: Planned (blocks multi-user TOTP validation)
 
 **GAP-CODE-003: MFA Chain Testing Stubs (TESTING)**
+
 - **File**: `internal/identity/test/e2e/mfa_flows_test.go` (lines 62, 106, 161, 190)
 - **Severity**: MEDIUM (testing coverage)
 - **Issue**: Four test functions marked TODO - not implemented
@@ -427,6 +460,7 @@
 - **Status**: Deferred (Task 19 dependency)
 
 **GAP-CODE-004: Repository Integration Tests Stub (TESTING)**
+
 - **File**: `internal/identity/test/integration/repository_integration_test.go` (line 37)
 - **Severity**: LOW (testing coverage)
 - **Issue**: Comment indicates comprehensive integration tests needed
@@ -439,6 +473,7 @@
 - **Status**: Deferred (Task 19 dependency)
 
 **GAP-CODE-005: Token Cleanup Repository Method Missing (IMPLEMENTATION)**
+
 - **File**: `internal/identity/jobs/cleanup.go` (line 104)
 - **Severity**: MEDIUM (feature incomplete)
 - **Issue**: `TokenRepository.DeleteExpiredBefore()` method doesn't exist
@@ -451,6 +486,7 @@
 - **Status**: Planned (high priority - prevents token table growth)
 
 **GAP-CODE-006: Session Cleanup Repository Method Missing (IMPLEMENTATION)**
+
 - **File**: `internal/identity/jobs/cleanup.go` (line 124)
 - **Severity**: MEDIUM (feature incomplete)
 - **Issue**: `SessionRepository.DeleteExpiredBefore()` method doesn't exist
@@ -463,6 +499,7 @@
 - **Status**: Planned (high priority - prevents session table growth)
 
 **GAP-CODE-007: Logout Handler Incomplete (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/handlers_logout.go` (lines 27-30)
 - **Severity**: CRITICAL (security)
 - **Issue**: Four TODO steps not implemented:
@@ -479,6 +516,7 @@
 - **Status**: Planned (CRITICAL security gap)
 
 **GAP-CODE-008: Authentication Middleware Missing (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/middleware.go` (lines 39-40)
 - **Severity**: CRITICAL (security)
 - **Issue**: Two middleware functions not implemented:
@@ -493,6 +531,7 @@
 - **Status**: Planned (CRITICAL security gap)
 
 **GAP-CODE-009: Structured Logging in Routes (LOW)**
+
 - **File**: `internal/identity/idp/routes.go` (line 17)
 - **Severity**: LOW (observability)
 - **Issue**: Using fmt.Printf instead of structured logger
@@ -505,6 +544,7 @@
 - **Status**: Backlog (functional logging exists)
 
 **GAP-CODE-010: Service Cleanup Logic Missing (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/service.go` (line 48)
 - **Severity**: MEDIUM (resource management)
 - **Issue**: `Stop()` method doesn't clean up sessions, challenges, etc.
@@ -517,6 +557,7 @@
 - **Status**: Deferred (Task 18 dependency)
 
 **GAP-CODE-011: Additional Authentication Profiles Missing (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/service.go` (line 56)
 - **Severity**: MEDIUM (feature incomplete)
 - **Issue**: Only username/password profile registered, missing email+OTP, TOTP, passkey
@@ -529,6 +570,7 @@
 - **Status**: Planned (integration work needed)
 
 **GAP-CODE-012: UserInfo Handler Incomplete (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/handlers_userinfo.go` (lines 23-26)
 - **Severity**: CRITICAL (OIDC compliance)
 - **Issue**: Four TODO steps not implemented:
@@ -545,6 +587,7 @@
 - **Status**: Planned (CRITICAL compliance gap)
 
 **GAP-CODE-013: Login Page Rendering Stub (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/handlers_login.go` (line 25)
 - **Severity**: MEDIUM (UX)
 - **Issue**: Login page returns JSON instead of HTML form
@@ -557,6 +600,7 @@
 - **Status**: Deferred (Task 09 dependency)
 
 **GAP-CODE-014: Consent Page Redirect Missing (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/handlers_login.go` (line 110)
 - **Severity**: MEDIUM (OIDC compliance)
 - **Issue**: No redirect to consent page or authorization callback after login
@@ -569,6 +613,7 @@
 - **Status**: Planned (blocks OAuth flow completion)
 
 **GAP-CODE-015: Username/Password Repository Stub (IMPLEMENTATION)**
+
 - **File**: `internal/identity/idp/userauth/username_password.go` (line 36)
 - **Severity**: LOW (implementation quality)
 - **Issue**: Comment says "TODO: Replace with proper UserRepository from domain package"

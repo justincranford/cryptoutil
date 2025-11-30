@@ -10,6 +10,7 @@
 ## 🟢 LOW - Development Workflow & Configuration
 
 ### Task DW2: Implement Hot Config File Reload
+
 - **Description**: Add ability to reload configuration files without restarting the server
 - **Current State**: Configuration loaded only at startup
 - **Action Items**:
@@ -28,6 +29,7 @@
 ## 🟢 LOW - Documentation & API Management
 
 ### Task DOC1: API Versioning Strategy Documentation
+
 - **Description**: Document comprehensive API versioning strategy and deprecation policy
 - **Current State**: Basic API versioning exists but not formally documented
 - **Action Items**:

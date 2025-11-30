@@ -22,6 +22,7 @@
 **Status**: ✅ **FUTURE ENHANCEMENTS**
 
 **Items**:
+
 - **Task DW2**: Hot config file reload (LOW priority, developer experience)
 - **Task DOC1**: API versioning strategy documentation (LOW priority, API management)
 
@@ -36,6 +37,7 @@
 **Status**: ✅ **TRACKED SEPARATELY**
 
 **Items**:
+
 - **Task CQ1**: Identity subsystem TODOs (tracked in docs/02-identityV2/MASTER-PLAN.md)
 - **Task CQ4**: Investigate linters for EOL/maintenance mode dependencies (LOW priority, Q2 2026)
 
@@ -50,6 +52,7 @@
 **Status**: ✅ **RESOLVED/FUTURE ENHANCEMENTS**
 
 **Items**:
+
 - **GORM AutoMigrate blocker**: RESOLVED (UUID types, nullable foreign keys, JSON serialization fixed)
 - **Testing patterns**: Recommendations for external/internal/integration/benchmark/fuzz/E2E tests
 
@@ -64,6 +67,7 @@
 **Status**: ⚠️ **OVERLAP WITH IDENTITY V2 (ALREADY TRACKED)**
 
 **Items**:
+
 - **Task O1**: OAuth 2.0 Authorization Code flow (CRITICAL, Q4 2025) - **OVERLAPS WITH R01-R03 in MASTER-PLAN.md**
 - **Task O2**: Update API documentation for OAuth 2.0 (MEDIUM) - **OVERLAPS WITH Identity V2 docs**
 - **Task O3**: Token scope validation middleware (MEDIUM) - **OVERLAPS WITH Identity V2 implementation**
@@ -79,6 +83,7 @@
 **Status**: ✅ **FUTURE ENHANCEMENTS**
 
 **Items**:
+
 - **Task INF2**: Kubernetes deployment manifests (MEDIUM priority, production infrastructure)
 - **Task INF3**: Helm charts (MEDIUM priority, production infrastructure)
 - **Task INF6**: IPv6 vs IPv4 loopback networking (MEDIUM priority, partially complete)
@@ -95,6 +100,7 @@
 **Status**: ✅ **FUTURE ENHANCEMENTS**
 
 **Items**:
+
 - **Task OB1**: Expand Grafana dashboards (MEDIUM priority, Q4 2025)
 - **Task OB2**: Prometheus metrics exposition (MEDIUM priority, production readiness)
 - **Task OB4**: Enhance readiness checks (MEDIUM priority, performance improvement)
@@ -110,6 +116,7 @@
 **Status**: ✅ **RESOLVED**
 
 **Items**:
+
 - **GORM column mismatches**: FIXED (7 items resolved in commits 6f198651, e2ed567e, f1cd0913)
 - **Transaction isolation investigation**: ONGOING (TestTransactionRollback failure, shared database pollution)
 
@@ -178,15 +185,18 @@
 All remaining TODO items in docs/03-mixed represent future enhancements that should be incorporated into post-R11 development roadmap:
 
 **Q1 2026**:
+
 - Hot config reload (todos-development.md Task DW2)
 - API versioning documentation (todos-development.md Task DOC1)
 
 **Q2 2026**:
+
 - EOL dependency linter investigation (todos-quality.md Task CQ4)
 - IPv6/IPv4 networking improvements (todos-infrastructure.md Task INF6)
 - Expand Grafana dashboards (todos-observability.md Task OB1)
 
 **Q3-Q4 2026**:
+
 - Kubernetes deployment manifests (todos-infrastructure.md Task INF2)
 - Helm charts (todos-infrastructure.md Task INF3)
 - Artifact consolidation refactoring (todos-infrastructure.md Task INF10)

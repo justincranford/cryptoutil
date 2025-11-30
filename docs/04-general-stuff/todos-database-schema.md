@@ -38,7 +38,6 @@ All GORM column tags fixed in domain models and SQL migrations:
    - Implement test cleanup with TRUNCATE/DELETE
    - Use database snapshots/rollback points
 
-
 ## ✅ Historical Issues (Archived - Fixed in commits f1cd0913, 5a86bbdf, 6a463f9f)
 
 ### 1. AuthProfile.MTLSDomains Column Name Mismatch

@@ -63,6 +63,7 @@ s.DatabaseURL = viper.GetString(databaseURL.name)  // etc.
 **Problem**: Viper is NOT configured to read from environment variables
 
 **Current State**:
+
 - No `viper.AutomaticEnv()` call
 - No `viper.BindEnv()` calls
 - Environment variables are NOT part of precedence chain
@@ -74,6 +75,7 @@ s.DatabaseURL = viper.GetString(databaseURL.name)  // etc.
 #### ❌ ISSUE 2: Secrets handling via file:// URLs
 
 **Current Implementation**:
+
 ```go
 if strings.HasPrefix(s.DatabaseURL, "file://") {
     filePath := strings.TrimPrefix(s.DatabaseURL, "file://")
@@ -99,6 +101,7 @@ if strings.HasPrefix(s.DatabaseURL, "file://") {
 **Current**: Config files override profile defaults ✅
 
 **Missing**: No distinction between:
+
 - Sensitive data (should come from Docker/K8s secrets)
 - Non-sensitive data (should come from YAML files)
 
@@ -118,19 +121,23 @@ if strings.HasPrefix(s.DatabaseURL, "file://") {
 ### Rationale for Precedence
 
 **Command flags > Env vars**:
+
 - Allows operators to override any config temporarily
 - Useful for debugging and emergency interventions
 
 **Env vars > Secrets**:
+
 - Env vars can override secrets for non-production environments
 - Supports containerized development workflows
 
 **Secrets > Config files**:
+
 - Secrets contain sensitive data (passwords, keys)
 - Config files contain non-sensitive settings (ports, timeouts)
 - Secrets should override generic config file values
 
 **Config files > Profiles**:
+
 - Config files are deployment-specific
 - Profiles are generic templates
 
@@ -150,6 +157,7 @@ viper.AutomaticEnv()
 ### Step 2: Extend file:// Support to All Sensitive Settings
 
 **Sensitive settings requiring file:// support**:
+
 - `database-url` (currently supported ✅)
 - `tls-public-cert-file` (need to add)
 - `tls-public-key-file` (need to add)
@@ -158,6 +166,7 @@ viper.AutomaticEnv()
 - `unseal-files` (already supports file paths ✅)
 
 **Implementation**:
+
 ```go
 func resolveFileURL(value string) (string, error) {
     if strings.HasPrefix(value, "file://") {
@@ -208,6 +217,7 @@ s.DatabaseURL, err = resolveFileURL(viper.GetString(databaseURL.name))
 ### Step 4: Testing Configuration Precedence
 
 **Test scenarios**:
+
 1. **Command flag overrides all**: `--database-url=value1` + `CRYPTOUTIL_DATABASE_URL=value2` + `config.yml` → value1
 2. **Env var overrides config**: `CRYPTOUTIL_DATABASE_URL=value2` + `config.yml` → value2
 3. **Secret file overrides config**: `database-url: file:///run/secrets/db_url` + `config.yml` → secret content
@@ -276,6 +286,7 @@ spec:
       secret:
         secretName: cryptoutil-secrets
 ```
+
 ```
 
 ### 2. Architecture Instructions Update

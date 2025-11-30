@@ -39,6 +39,7 @@
 - **Dependencies**: Task O1 completion
 
 ### Task O3: Implement Token Scope Validation Middleware
+
 - **Description**: Add middleware to validate OAuth tokens have appropriate scope for endpoint access
 - **Current State**: No authentication middleware implemented
 - **Action Items**:
@@ -56,6 +57,7 @@
 ## 🟡 MEDIUM - Security Hardening & Compliance
 
 ### Task S1: Fix Cookie HttpOnly Flag Security Issue
+
 - **Description**: ZAP detected cookies without HttpOnly flag set (Rule 10010)
 - **Root Cause**: CSRF and other security cookies may not have HttpOnly enabled
 - **Current State**: CSRF middleware uses configurable `CookieHTTPOnly` setting
@@ -69,6 +71,7 @@
 - **ZAP Reference**: WARN-NEW: Cookie No HttpOnly Flag [10010] x 6
 
 ### Task S2: Investigate JSON Parsing Issues in API Endpoints
+
 - **Description**: ZAP VariantJSONQuery failing to parse request bodies
 - **Root Cause**: API endpoints expect JSON but receive string data
 - **Current State**: Multiple WARN messages about invalid JSON parsing
@@ -83,6 +86,7 @@
 - **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failures
 
 ### Task S5: Add Java Static Analysis to CI/CD Workflow
+
 - **Description**: Re-add Java static analysis to a dedicated workflow for load testing code
 - **Current State**: Java was removed from ci-sast.yml matrix to focus on Go and JavaScript analysis
 - **Action Items**:
@@ -102,9 +106,11 @@
 ### Recommended Architecture: Hybrid Approach
 
 #### Option 1: Ory Hydra + Custom Provider (RECOMMENDED)
+
 **Best for your requirements - supports both custom auth provider and GitHub**
 
 **Dependencies to Add:**
+
 ```go
 require (
     github.com/ory/hydra-client-go v2.2.0+incompatible
@@ -115,6 +121,7 @@ require (
 ```
 
 **Pros:**
+
 - ✅ Ory Hydra is Go-based, production-ready OAuth2/OIDC server
 - ✅ Supports Authorization Code + PKCE natively
 - ✅ Easy integration with GitHub OAuth2
@@ -123,6 +130,7 @@ require (
 - ✅ Active CNCF project
 
 **Implementation Example:**
+
 ```go
 // Hydra client setup
 hydraAdmin := hydra.NewAPIClient(&hydra.Configuration{
@@ -157,14 +165,17 @@ func (h *Handler) handleLogin(c *fiber.Ctx) error {
 ```
 
 #### Option 2: Zitadel OIDC Framework (Pure Go)
+
 **Excellent for custom implementation with GitHub support**
 
 **Dependencies:**
+
 ```go
 require github.com/zitadel/oidc/v2 v2.12.3
 ```
 
 **Pros:**
+
 - ✅ Pure Go implementation
 - ✅ Built-in Authorization Code + PKCE support
 - ✅ Excellent for custom auth providers
@@ -172,6 +183,7 @@ require github.com/zitadel/oidc/v2 v2.12.3
 - ✅ Modern security standards
 
 **Implementation:**
+
 ```go
 // Zitadel OIDC provider
 provider, err := oidc.NewProvider(context.Background(),
@@ -199,9 +211,11 @@ func (h *Handler) handleCallback(c *fiber.Ctx) error {
 ```
 
 #### Option 3: CoreOS go-oidc + Custom OAuth2 Server
+
 **If you want full control over the OAuth2 server**
 
 **Dependencies:**
+
 ```go
 require (
     github.com/coreos/go-oidc/v3 v3.14.1
@@ -210,6 +224,7 @@ require (
 ```
 
 **Pros:**
+
 - ✅ Maximum control over implementation
 - ✅ Can build custom OAuth2 server
 - ✅ GitHub integration straightforward
@@ -291,6 +306,7 @@ app.Get("/service/api/v1/*", h.authMiddleware("service:api"))
 ### Recommended Choice for Cryptoutil Project
 
 **Go with Option 1 (Ory Hydra)** because:
+
 - Production-ready OAuth2/OIDC server
 - Excellent GitHub integration
 - Your custom provider can leverage Hydra's battle-tested implementation
@@ -300,12 +316,14 @@ app.Get("/service/api/v1/*", h.authMiddleware("service:api"))
 ### Alternative OAuth2/OIDC Servers
 
 **Production-Ready Options:**
+
 - **Keycloak**: Java-based, feature-rich, enterprise-grade
 - **Auth0**: SaaS solution, easy integration
 - **Dex**: CNCF project, Go-based, Kubernetes-native
 - **Fosite**: Ory's OAuth2 framework for custom implementations
 
 **GitHub OAuth2 Integration:**
+
 ```go
 // Direct GitHub OAuth2 (simplest)
 githubConfig := &oauth2.Config{
