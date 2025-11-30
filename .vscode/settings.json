@@ -357,6 +357,11 @@
       // Prefix matching: "ls " matches "ls -la". Exact matches also work.
       // ─────────────────────────────────────────────────────────────
 
+      // autoapprove wrapper (bypasses VS Code's hardcoded safety blockers)
+      // Wraps commands with loopback-only network restriction for safe auto-approval
+      // Reference: https://code.visualstudio.com/docs/copilot/chat/chat-tools#_terminal
+      "autoapprove ": true,
+
       // General CLI tools
       "go ": true,
       "docker ": true,

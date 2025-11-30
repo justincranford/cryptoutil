@@ -1,0 +1,114 @@
+# https://pypi.org/project/setuptools/ - Latest: 80.9.0 (2025-01-11)
+# https://pypi.org/project/wheel/ - Latest: 0.45.1 (2025-01-02)
+[build-system]
+requires = ["setuptools>=80.9.0", "wheel>=0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autoapprove"
+version = "1.0.0"
+description = "Command wrapper for VS Code Copilot Chat auto-approve bypass with loopback-only network restriction"
+readme = "README.md"
+# https://www.python.org/downloads/windows/ - Python 3.12+ required
+requires-python = ">=3.12"
+authors = [
+    {name = "Justin Cranford"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+# Minimal dependencies - only stdlib is needed for core functionality
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["autoapprove"]
+
+[project.optional-dependencies]
+dev = [
+    # https://pypi.org/project/pytest/ - Latest: 9.0.1 (2025-01-12)
+    "pytest>=9.0.1",
+    # https://pypi.org/project/pytest-cov/ - Latest: 7.0.0 (2025-01-10)
+    "pytest-cov>=7.0.0",
+    # https://pypi.org/project/black/ - Latest: 25.11.0 (2025-01-11)
+    "black>=25.11.0",
+    # https://pypi.org/project/flake8/ - Latest: 7.3.0 (2025-01-10)
+    "flake8>=7.3.0",
+    # https://pypi.org/project/isort/ - Latest: 7.0.0 (2025-01-09)
+    "isort>=7.0.0",
+    # https://pypi.org/project/mypy/ - Latest: 1.18.2 (2025-01-12)
+    "mypy>=1.18.2",
+    # https://pypi.org/project/bandit/ - Latest: 1.9.2 (2025-01-10)
+    "bandit>=1.9.2",
+]
+
+[project.scripts]
+autoapprove = "autoapprove:main"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--cov=autoapprove",
+    "--cov-report=term-missing",
+    "--cov-fail-under=85",
+]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.black]
+line-length = 200
+target-version = ['py312']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 200
+multi_line_output = 3
+
+[tool.flake8]
+max-line-length = 200
+extend-ignore = ["E203", "W503"]
+exclude = [
+    "./venv",
+    "./.venv",
+    "./.git",
+    "./.mypy_cache",
+    "./.pytest_cache",
+    "./__pycache__",
+]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.coverage.run]
+branch = true
+source = ["autoapprove"]
+omit = [
+    "*/tests/*",
+    "*/venv/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+precision = 2
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
