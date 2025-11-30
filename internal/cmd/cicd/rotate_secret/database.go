@@ -26,13 +26,15 @@ func setupDatabase() (*gorm.DB, error) {
 	// Apply SQLite pragmas for concurrent operations.
 	ctx := context.Background()
 	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		sqlDB.Close()
+		_ = sqlDB.Close()
+
 		return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
 	}
 
 	const busyTimeout = "PRAGMA busy_timeout = 30000;"
 	if _, err := sqlDB.ExecContext(ctx, busyTimeout); err != nil {
-		sqlDB.Close()
+		_ = sqlDB.Close()
+
 		return nil, fmt.Errorf("failed to set busy timeout: %w", err)
 	}
 
@@ -49,7 +51,8 @@ func setupDatabase() (*gorm.DB, error) {
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
-		sqlDB.Close()
+		_ = sqlDB.Close()
+
 		return nil, fmt.Errorf("failed to create GORM instance: %w", err)
 	}
 
@@ -58,7 +61,8 @@ func setupDatabase() (*gorm.DB, error) {
 		&cryptoutilIdentityDomain.ClientSecretVersion{},
 		&cryptoutilIdentityDomain.KeyRotationEvent{},
 	); err != nil {
-		sqlDB.Close()
+		_ = sqlDB.Close()
+
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 

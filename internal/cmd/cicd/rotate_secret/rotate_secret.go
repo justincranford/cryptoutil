@@ -38,8 +38,10 @@ func Execute(logger *cryptoutilCmdCicdCommon.Logger, args []string) error {
 	if err != nil {
 		return fmt.Errorf("database setup error: %w", err)
 	}
+
 	sqlDB, _ := db.DB()
-	defer sqlDB.Close()
+
+	defer func() { _ = sqlDB.Close() }()
 
 	// Create rotation service.
 	service := cryptoutilIdentityRotation.NewSecretRotationService(db)
@@ -52,7 +54,9 @@ func Execute(logger *cryptoutilCmdCicdCommon.Logger, args []string) error {
 
 	// Perform rotation.
 	ctx := context.Background()
+
 	const defaultInitiator = "cli-tool"
+
 	result, err := service.RotateClientSecret(ctx, clientID, cfg.GracePeriod, defaultInitiator, cfg.Reason)
 	if err != nil {
 		return fmt.Errorf("rotation failed: %w", err)
@@ -64,6 +68,7 @@ func Execute(logger *cryptoutilCmdCicdCommon.Logger, args []string) error {
 	}
 
 	logger.Log("Secret rotation completed successfully")
+
 	return nil
 }
 
@@ -71,17 +76,19 @@ func parseFlags(args []string) (*Config, error) {
 	fs := flag.NewFlagSet("rotate-secret", flag.ContinueOnError)
 
 	cfg := &Config{}
+
 	const (
 		defaultGracePeriod  = 24 * time.Hour
 		defaultOutputFormat = "text"
 	)
+
 	fs.StringVar(&cfg.ClientID, "client-id", "", "Client UUID (required)")
 	fs.DurationVar(&cfg.GracePeriod, "grace-period", defaultGracePeriod, "Grace period for old secret (default: 24h)")
 	fs.StringVar(&cfg.Reason, "reason", "", "Rotation reason for audit trail")
 	fs.StringVar(&cfg.OutputFormat, "output", defaultOutputFormat, "Output format: text or json (default: text)")
 
 	if err := fs.Parse(args); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse flags: %w", err)
 	}
 
 	return cfg, nil
@@ -133,7 +140,12 @@ func outputJSON(result *cryptoutilIdentityRotation.RotateClientSecretResult) err
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
-	return enc.Encode(output)
+
+	if err := enc.Encode(output); err != nil {
+		return fmt.Errorf("failed to encode JSON output: %w", err)
+	}
+
+	return nil
 }
 
 func outputText(result *cryptoutilIdentityRotation.RotateClientSecretResult) error {
@@ -143,5 +155,6 @@ func outputText(result *cryptoutilIdentityRotation.RotateClientSecretResult) err
 	fmt.Printf("New Secret: %s\n", result.NewSecretPlaintext)
 	fmt.Printf("Grace Period Ends: %s\n", result.GracePeriodEnd.Format(time.RFC3339))
 	fmt.Printf("Event ID: %s\n", result.EventID.String())
+
 	return nil
 }
