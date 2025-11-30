@@ -262,7 +262,7 @@ repos:
         require_serial: false
         stages: [pre-commit]
 
-  # Go auto-fix commands (apply before linting)
+  # Go auto-fix commands (moved to pre-push for faster pre-commit)
   - repo: local
     hooks:
       - id: go-fix-all
@@ -272,7 +272,7 @@ repos:
         language: system
         pass_filenames: false
         files: '\.go$'
-        stages: [pre-commit]
+        stages: [pre-push]
 
   # Go build validation (moved to pre-push for faster pre-commit)
   - repo: local
