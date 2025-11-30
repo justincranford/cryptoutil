@@ -158,7 +158,9 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 
 	// Common base middlewares shared by both private and public apps
 	commonBaseMiddlewares := []fiber.Handler{
-		recover.New(),
+		recover.New(recover.Config{
+			EnableStackTrace: true,
+		}),
 		requestid.New(),
 		commonIPFilterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonOtelFiberTelemetryMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
