@@ -48,6 +48,7 @@ linters:
     - exhaustive
     - nilnil
     - nilerr
+    - makezero
   disable:
     - dupl
     - gocyclo
