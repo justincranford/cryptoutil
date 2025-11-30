@@ -174,7 +174,7 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 	require.NoError(t, err, "Failed to retrieve authorization request by code")
 	require.NotNil(t, retrievedAuthRequest, "Authorization request should exist")
 	require.Equal(t, authRequest.Code, retrievedAuthRequest.Code, "Authorization code mismatch")
-	require.True(t, retrievedAuthRequest.ConsentGranted, "Consent should be granted")
+	require.True(t, retrievedAuthRequest.ConsentGranted.Bool(), "Consent should be granted")
 	require.False(t, retrievedAuthRequest.IsExpired(), "Authorization request should not be expired")
 	require.False(t, retrievedAuthRequest.IsUsed(), "Authorization request should not be used yet")
 
