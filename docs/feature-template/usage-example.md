@@ -32,12 +32,14 @@ This document shows a **filled-out version** of the feature template for a real 
 The identity module lacks a fully compliant OAuth 2.1 authorization server, preventing secure API access delegation and third-party integrations. Current authentication is limited to basic username/password with no token-based delegation.
 
 **Current State Analysis**:
+
 - Existing: Basic user authentication, session management
 - Missing: OAuth 2.1 flows (authorization code, client credentials, device flow)
 - Impact: Cannot support SPA applications, mobile apps, or third-party integrations
 - Technical Debt: Authentication coupled tightly to session cookies, not stateless
 
 **Production Blockers**:
+
 1. 🔴 Authorization code flow non-functional (16 TODO comments)
 2. 🔴 PKCE validation missing (security vulnerability for public clients)
 3. 🔴 Token lifecycle management incomplete (no cleanup, tokens persist indefinitely)
@@ -64,6 +66,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 **Timeline**: 12 days (assumes full-time focus, 8 hours/day)
 
 **Effort Distribution**:
+
 - Foundation: 25% (3 days) - Domain models, database schema
 - Core Features: 50% (6 days) - Authorization code flow, token endpoints
 - Advanced Features: 15% (2 days) - Client authentication methods
@@ -76,6 +79,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ### Primary Goals
 
 **Goal 1**: Implement OAuth 2.1 Authorization Code Flow
+
 - **Description**: Enable web applications to obtain access tokens on behalf of users via authorization code flow with PKCE
 - **Success Criteria**: Full authorization code flow functional (authorize → login → consent → code → token)
 - **Priority**: CRITICAL
@@ -83,6 +87,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 - **Risk Level**: MEDIUM (well-defined specification, but integration complexity)
 
 **Goal 2**: Implement Token Lifecycle Management
+
 - **Description**: Issue, validate, refresh, and revoke access/refresh tokens with proper expiration
 - **Success Criteria**: Tokens expire correctly, refresh flow works, revocation immediate
 - **Priority**: HIGH
@@ -90,6 +95,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 - **Risk Level**: LOW (standard patterns)
 
 **Goal 3**: Support Multiple Client Authentication Methods
+
 - **Description**: client_secret_basic, client_secret_post, private_key_jwt
 - **Success Criteria**: Each method validates client credentials correctly
 - **Priority**: HIGH
@@ -99,12 +105,14 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ### Secondary Goals (Nice-to-Have)
 
 **Goal 4**: Device Authorization Flow (RFC 8628)
+
 - **Description**: Enable devices without browsers (smart TVs, CLI tools) to obtain tokens
 - **Success Criteria**: Device flow functional end-to-end
 - **Priority**: LOW
 - **Dependencies**: Primary goals 1-3 complete
 
 **Goal 5**: Mutual TLS Client Authentication
+
 - **Description**: Support certificate-based client authentication for high-security scenarios
 - **Success Criteria**: mTLS client authentication validates certificates
 - **Priority**: LOW
@@ -119,24 +127,28 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ### Constraints and Boundaries
 
 **Technical Constraints**:
+
 - Use ONLY existing go.mod dependencies (no new OAuth libraries)
 - Use lestrrat-go/jwx/v3 for JWT operations (already in use)
 - GORM for database access (already in use)
 - Fiber for HTTP endpoints (already in use)
 
 **Architectural Constraints**:
+
 - Authorization server CANNOT import Identity Provider packages (domain isolation)
 - Must use `internal/identity/authz/` namespace
 - Import alias: `cryptoutilIdentityAuthz` (defined in .golangci.yml)
 - Magic values in `internal/identity/authz/magic*.go`
 
 **Security Constraints**:
+
 - FIPS 140-3 compliance MANDATORY (no bcrypt, use PBKDF2-HMAC-SHA256 for secrets)
 - PKCE MANDATORY for all public clients
 - Authorization code single-use enforcement
 - State parameter validation MANDATORY
 
 **Operational Constraints**:
+
 - Backward compatible with existing session-based authentication
 - Support both PostgreSQL (production) and SQLite (dev/test)
 - Observability: OTLP traces for all flows, metrics for token issuance rates
@@ -148,15 +160,18 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ### Historical Context
 
 **Previous Attempts**:
+
 - Attempt 1 (2024 Q3): Started OAuth implementation but abandoned due to complexity
   - Why it failed: Tried to build custom OAuth library instead of using established patterns
   - Lessons learned: Use proven patterns from RFC specs, don't reinvent the wheel
 
 **Related Work**:
+
 - IDENTITY-IDP-V1: Identity Provider (separate feature, provides login/consent UI)
 - IDENTITY-RS-V1: Resource Server (separate feature, validates tokens)
 
 **Evolution Timeline**:
+
 - Phase 1 (2024 Q1-Q2): Basic username/password authentication with sessions
 - Phase 2 (2024 Q3): Attempted OAuth 2.0 implementation (abandoned)
 - Current State (2025 Q4): Restarting with OAuth 2.1 spec, cleaner architecture
@@ -164,23 +179,27 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ### Baseline Assessment
 
 **Current Implementation Status**:
+
 - ✅ Complete: User domain models, session management, database repositories
 - ⚠️ Partial: Client domain models exist but missing OAuth-specific fields
 - ❌ Missing: Authorization request storage, PKCE validation, token endpoints
 
 **Code Analysis**:
+
 - Total files: 15 files (5 domain models, 5 repositories, 5 handlers)
 - Total lines: 2,400 lines (1,200 production, 800 test, 400 docs)
 - Test coverage: 72% overall (85% domain, 65% repositories, 55% handlers)
 - TODO count: 16 critical (authorization flow), 4 high (token lifecycle), 8 medium (client auth)
 
 **Dependency Analysis**:
+
 - External: lestrrat-go/jwx/v3 (JWT), gorm.io/gorm (ORM), gofiber/fiber/v2 (HTTP)
 - Internal: internal/common/crypto (key operations), internal/common/util (helpers)
 - Circular: NONE (clean dependency graph)
 - Coupling: LOW (well-isolated authz package)
 
 **Technical Debt Assessment**:
+
 - Architecture debt: Authorization code stored in-memory (not persistent)
 - Code quality debt: 12 linting issues (wsl spacing, godot periods)
 - Test debt: Missing E2E tests for full authorization flow
@@ -189,11 +208,13 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ### Stakeholder Analysis
 
 **Primary Stakeholders**:
+
 - Application Developers: Need OAuth 2.1 for secure API access from SPAs/mobile apps
 - Security Team: Require PKCE, state validation, short-lived tokens
 - Operations Team: Need monitoring, token cleanup jobs, incident response runbooks
 
 **User Impact**:
+
 - End Users: Better experience with SSO, less frequent re-authentication
 - Third-Party Developers: Can build integrations using standard OAuth 2.1
 
@@ -204,6 +225,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ### System Architecture
 
 **High-Level Architecture**:
+
 ```
 ┌─────────────┐       ┌──────────────────┐       ┌─────────────┐
 │   Client    │──────▶│ Authorization    │──────▶│  Identity   │
@@ -220,6 +242,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 ```
 
 **Component Breakdown**:
+
 - Authorization Handler: Receives authorization requests, validates parameters, redirects to IdP
 - Token Handler: Exchanges authorization codes for tokens, validates PKCE
 - Client Authenticator: Validates client credentials (basic, post, jwt)
@@ -227,6 +250,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 - Auth Request Repository: Stores authorization requests with PKCE challenges
 
 **Data Flow**:
+
 ```
 Client → /authorize (with PKCE challenge) → AuthZ validates → Store request → Redirect to IdP login
       ← 302 redirect to IdP
@@ -239,6 +263,7 @@ Client → /token (with code + PKCE verifier) → AuthZ validates PKCE → Issue
 ```
 
 **Technology Stack**:
+
 - Language: Go 1.25.4+
 - HTTP Framework: Fiber v2
 - Database: GORM with PostgreSQL/SQLite
@@ -248,18 +273,21 @@ Client → /token (with code + PKCE verifier) → AuthZ validates PKCE → Issue
 ### Design Patterns
 
 **Pattern 1**: Repository Pattern
+
 - **Use Case**: Data access abstraction for clients, tokens, authorization requests
 - **Implementation**: Interface in `repository/repository.go`, GORM impl in `repository/gorm/`
 - **Benefits**: Database-agnostic, testable with mocks, swap PostgreSQL ↔ SQLite
 - **Trade-offs**: Extra abstraction layer, but well worth it for testing
 
 **Pattern 2**: Strategy Pattern (Client Authentication)
+
 - **Use Case**: Multiple client authentication methods (basic, post, jwt, mtls)
 - **Implementation**: `ClientAuthenticator` interface with method-specific implementations
 - **Benefits**: Easily add new auth methods, test each independently
 - **Trade-offs**: More files, but cleaner than if/else chains
 
 **Pattern 3**: Factory Pattern (Repository Creation)
+
 - **Use Case**: Create repositories with proper database connection
 - **Implementation**: `NewRepositoryFactory(db *gorm.DB)` returns configured repositories
 - **Benefits**: Consistent initialization, dependency injection
@@ -268,6 +296,7 @@ Client → /token (with code + PKCE verifier) → AuthZ validates PKCE → Issue
 ### Directory Structure
 
 **Target Directory Layout**:
+
 ```
 internal/identity/authz/
 ├── handler/                      # HTTP handlers
@@ -306,6 +335,7 @@ internal/identity/authz/
 ### API Design
 
 **Endpoint Structure**:
+
 - `GET /oauth2/v1/authorize` - Initiate authorization code flow
 - `POST /oauth2/v1/authorize` - Submit authorization decision (from IdP)
 - `POST /oauth2/v1/token` - Exchange code for tokens
@@ -313,11 +343,13 @@ internal/identity/authz/
 - `POST /oauth2/v1/revoke` - Revoke token
 
 **OpenAPI Specification**:
+
 - Location: `api/identity/authz/openapi.yaml`
 - Generation: `oapi-codegen` with strict server pattern
 - Validation: Request/response validation middleware
 
 **Authentication/Authorization**:
+
 - Authorize endpoint: Session-based (user must be logged in via IdP)
 - Token endpoint: Client authentication (basic, post, jwt)
 - Introspect/Revoke: Bearer token (resource server validates tokens)
@@ -325,6 +357,7 @@ internal/identity/authz/
 ### Database Schema
 
 **Entity Relationship Diagram**:
+
 ```
 ┌─────────────────┐       ┌──────────────────────┐
 │     Client      │───────│   AuthRequest        │
@@ -350,12 +383,14 @@ internal/identity/authz/
 ```
 
 **Schema Evolution Strategy**:
+
 - Migration tool: GORM AutoMigrate for development, golang-migrate for production
 - Versioning: `0001_initial_schema.up.sql`
 - Rollback: Down migrations for each change
 - Zero-downtime: N/A (new tables, no existing data)
 
 **Cross-Database Compatibility**:
+
 - PostgreSQL: Production database (UUID native type)
 - SQLite: Development/testing (UUID as TEXT)
 - Type mapping: `gorm:"type:text"` for UUIDs (works on both)
@@ -365,11 +400,13 @@ internal/identity/authz/
 ### Security Design
 
 **Threat Model**:
+
 - Threat 1: Authorization code interception → Mitigate with PKCE (S256 required)
 - Threat 2: Client impersonation → Mitigate with client authentication (secret/jwt/mtls)
 - Threat 3: Token theft → Mitigate with short-lived tokens, refresh rotation
 
 **Security Controls**:
+
 - PKCE: Mandatory for public clients, optional for confidential (but recommended)
 - State parameter: Validated to prevent CSRF attacks
 - Redirect URI: Exact match required (no substring matching)
@@ -377,6 +414,7 @@ internal/identity/authz/
 - Token signing: RS256, ES256 (FIPS 140-3 approved algorithms)
 
 **Compliance Requirements**:
+
 - FIPS 140-3: All cryptographic operations use approved algorithms
 - OAuth 2.1: Follow draft specification (includes PKCE, deprecates implicit flow)
 - Security best practices: Short-lived access tokens (15 min), refresh tokens rotated
@@ -388,10 +426,12 @@ internal/identity/authz/
 ### Task Organization
 
 **Task Numbering Convention**:
+
 - Primary tasks: `01-foundation.md` through `08-integration.md`
 - No sub-tasks in this feature (tasks atomic enough)
 
 **Task Categories**:
+
 - **Foundation**: Core infrastructure (Tasks 01-02)
 - **Core Features**: OAuth flows (Tasks 03-05)
 - **Advanced Features**: Client auth methods (Tasks 06-07)
@@ -415,6 +455,7 @@ internal/identity/authz/
 ### Task Dependencies Graph
 
 **Critical Path**:
+
 ```
 01 → 02 → 03 → 04 → 05 → 08
          ↓
@@ -422,6 +463,7 @@ internal/identity/authz/
 ```
 
 **Parallel Execution**:
+
 - Week 1: Tasks 01-02 (sequential foundation)
 - Week 2: Task 03 (authorization flow) + Task 06 (client auth basic) - parallel
 - Week 3: Task 04 (token endpoints) + Task 07 (client auth jwt) - parallel
@@ -430,24 +472,28 @@ internal/identity/authz/
 ### Implementation Phases
 
 **Phase 1: Foundation** (Days 1-2)
+
 - Focus: Domain models, database schema, repositories
 - Tasks: 01, 02
 - Deliverables: Working database with CRUD operations
 - Exit Criteria: All repository tests passing, migrations applied
 
 **Phase 2: Authorization Flow** (Days 3-6)
+
 - Focus: Authorization code flow with PKCE
 - Tasks: 03, 06 (parallel)
 - Deliverables: Functional /authorize and /token endpoints
 - Exit Criteria: E2E authorization flow works (manual testing)
 
 **Phase 3: Token Management** (Days 7-9)
+
 - Focus: Token refresh, revocation, introspection
 - Tasks: 04, 05, 07 (parallel)
 - Deliverables: Complete token lifecycle
 - Exit Criteria: All token operations functional
 
 **Phase 4: Integration Testing** (Days 10-12)
+
 - Focus: Automated E2E test suite
 - Tasks: 08
 - Deliverables: Comprehensive test coverage
@@ -462,6 +508,7 @@ internal/identity/authz/
 **Follow continuous work pattern from template** (see feature-template.md "Task Execution Instructions")
 
 **Key directives for this feature**:
+
 1. NEVER stop between tasks - commit → immediately start next task
 2. Work until 950k tokens used (95% of 1M budget)
 3. Use `runTests` tool exclusively (NEVER `go test` in terminal)
@@ -471,18 +518,21 @@ internal/identity/authz/
 ### Task-Specific Notes
 
 **Task 03 (Authorization Flow)**:
+
 - CRITICAL: PKCE S256 mandatory for public clients
 - Store authorization requests with expiration (5 minutes)
 - Single-use authorization codes (delete after exchange)
 - Validate redirect_uri exact match
 
 **Task 04 (Token Endpoints)**:
+
 - Access tokens: 15 minute expiration (short-lived)
 - Refresh tokens: 30 day expiration, rotate on use
 - Use RS256 for JWS (FIPS 140-3 compliant)
 - Include OTLP tracing for all token operations
 
 **Task 07 (Client Auth JWT)**:
+
 - Validate JWT signature using client's registered public key
 - Check `aud` claim matches token endpoint
 - Enforce JWT expiration (max 5 minutes)
@@ -503,15 +553,18 @@ internal/identity/authz/
 **Root Cause**: Misread RFC 7636 specification, confused hash algorithm naming
 
 **Immediate Fix**:
+
 - Replaced MD5 with SHA-256 in `pkce/pkce.go`
 - Added test vectors from RFC 7636 Appendix B
 - Verified against reference implementation
 
 **Deferred Actions**:
+
 - Task 08.1: Add PKCE compliance test suite with RFC test vectors
 - Task 09: Security audit of all crypto operations (ensure FIPS 140-3 compliance)
 
 **Pattern Improvement**:
+
 - Created checklist for crypto implementations: verify algorithm, test with spec examples, cross-reference FIPS 140-3 approved list
 
 ---
@@ -523,6 +576,7 @@ internal/identity/authz/
 **Feature-specific acceptance criteria**:
 
 ### OAuth 2.1 Compliance
+
 - [ ] Authorization code flow matches RFC 6749 Section 4.1
 - [ ] PKCE implementation matches RFC 7636
 - [ ] Token endpoint matches RFC 6749 Section 3.2
@@ -530,6 +584,7 @@ internal/identity/authz/
 - [ ] Revocation matches RFC 7009
 
 ### Security Requirements
+
 - [ ] PKCE mandatory for public clients
 - [ ] Client secrets hashed with PBKDF2-HMAC-SHA256 (FIPS 140-3)
 - [ ] JWT signatures use RS256 or ES256 (FIPS 140-3)
@@ -537,12 +592,14 @@ internal/identity/authz/
 - [ ] Redirect URI exact match enforced
 
 ### Performance Requirements
+
 - [ ] /authorize endpoint: < 50ms P95
 - [ ] /token endpoint: < 100ms P95 (includes JWT signing)
 - [ ] /introspect endpoint: < 50ms P95
 - [ ] Token cleanup job: < 1 second for 10k expired tokens
 
 ### Operational Requirements
+
 - [ ] OTLP traces for all OAuth flows
 - [ ] Metrics: token_issued_total, token_revoked_total, authorization_code_generated_total
 - [ ] Runbook: "OAuth Authorization Flow Troubleshooting"
@@ -571,16 +628,19 @@ internal/identity/authz/
 ## Success Metrics
 
 ### Completion Metrics
+
 - Target: 8/8 tasks complete by end of month
 - Current: 2/8 complete (25%)
 - Trend: +1 task/week (on track)
 
 ### Performance Metrics
+
 - Token issuance: Target 100 tokens/sec, Current N/A (not launched)
 - P95 latency: Target <100ms, Current N/A (not launched)
 - Error rate: Target <0.1%, Current N/A (not launched)
 
 ### Quality Metrics
+
 - Code coverage: Target ≥85%, Current 92% (Tasks 01-02)
 - Linting issues: Target 0, Current 0
 - TODO comments: Target 0, Current 16 (in Task 03)

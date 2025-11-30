@@ -104,12 +104,14 @@ kubectl get pods -n cryptoutil-prod
 - [ ] **Wait for Services to Start** (90-120 seconds)
 
 - [ ] **Verify Docker Compose Health**:
+
 ```bash
 # All services should show "healthy" status
 docker compose -f deployments/compose/compose.yml ps
 ```
 
 - [ ] **Verify Kubernetes Health**:
+
 ```bash
 # All pods should show "Running" and pass readiness probes
 kubectl get pods -n cryptoutil-prod
@@ -133,6 +135,7 @@ curl -k https://127.0.0.1:8082/health
 ```
 
 - [ ] **Database Connectivity**:
+
 ```bash
 # PostgreSQL readiness
 docker compose exec postgres pg_isready -U <username> -d <database>
@@ -152,6 +155,7 @@ docker compose exec postgres pg_isready -U <username> -d <database>
   - [ ] Key generation endpoints (if KMS deployed)
 
 - [ ] **API Endpoint Validation**:
+
 ```bash
 # Test Swagger UI accessible
 curl -k https://127.0.0.1:8080/ui/swagger/doc.json
@@ -160,8 +164,8 @@ curl -k https://127.0.0.1:8080/ui/swagger/doc.json
 ```
 
 - [ ] **Telemetry Validation**:
-  - [ ] OTLP collector receiving telemetry (http://127.0.0.1:13133/)
-  - [ ] Grafana dashboards showing metrics (http://127.0.0.1:3000)
+  - [ ] OTLP collector receiving telemetry (<http://127.0.0.1:13133/>)
+  - [ ] Grafana dashboards showing metrics (<http://127.0.0.1:3000>)
   - [ ] Logs flowing to Loki
   - [ ] Traces available in Tempo
 
@@ -288,35 +292,40 @@ kubectl get pods -n cryptoutil-prod
 ### Key Metrics to Monitor (First 24 Hours)
 
 **Service Health**:
+
 - Container/pod status (running, healthy)
 - Health check success rate (target: 100%)
 - Service uptime (target: 99.9%)
 
 **Performance Metrics**:
+
 - Request latency (p50, p95, p99)
 - Throughput (requests/second)
 - Error rate (2xx, 4xx, 5xx responses)
 
 **Resource Utilization**:
+
 - CPU usage (% per container/pod)
 - Memory usage (MB per container/pod)
 - Database connections (active, idle)
 
 **Business Metrics** (Identity Services):
+
 - Authorization requests/minute
 - Token issuance rate
 - Failed authentication attempts
 
 **Business Metrics** (KMS):
+
 - Encryption operations/minute
 - Decryption operations/minute
 - Key generation rate
 
 ### Grafana Dashboard URLs
 
-- **Service Overview**: http://127.0.0.1:3000/d/cryptoutil-overview
-- **Performance Metrics**: http://127.0.0.1:3000/d/cryptoutil-performance
-- **Error Tracking**: http://127.0.0.1:3000/d/cryptoutil-errors
+- **Service Overview**: <http://127.0.0.1:3000/d/cryptoutil-overview>
+- **Performance Metrics**: <http://127.0.0.1:3000/d/cryptoutil-performance>
+- **Error Tracking**: <http://127.0.0.1:3000/d/cryptoutil-errors>
 
 ---
 
@@ -346,6 +355,7 @@ kubectl get pods -n cryptoutil-prod
 ### Identity V2 Integration Status
 
 **BLOCKED**: Identity servers (authz, idp, rs) are not yet integrated into main `cryptoutil` binary:
+
 - Standalone binaries exist in `cmd/identity/{authz,idp,rs}/main.go`
 - Docker Compose files reference `cryptoutil identity` commands that are not implemented
 - Resolution required before production deployment of Identity V2 services
@@ -355,6 +365,7 @@ kubectl get pods -n cryptoutil-prod
 ### Tooling Requirements
 
 **act (GitHub Actions Local Runner)**:
+
 - Required for DAST scanning workflows
 - Installation: `choco install act-cli` (Windows)
 - See [Development Setup Guide](../DEV-SETUP.md)

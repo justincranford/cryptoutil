@@ -7,6 +7,7 @@ Successfully migrated `.golangci.yml` from mixed v1/v2 configuration to clean go
 ## Strategy
 
 **Incremental 12-step migration** with verification after each step:
+
 1. Reset to minimal v2 config (header + version only)
 2. Add configuration in order of execution speed (fastest → slowest)
 3. Commit with pre-commit verification after each step
@@ -17,16 +18,19 @@ Successfully migrated `.golangci.yml` from mixed v1/v2 configuration to clean go
 ### Removed Properties (v1 → v2)
 
 **Run Section:**
+
 - `skip-dirs` - removed (directory exclusions now automatic for generated code)
 - `skip-files` - removed (file pattern exclusions now automatic)
 - `build-cache` - removed (always enabled in v2)
 - `modules-download-mode` - removed
 
 **Output Section:**
+
 - `formats.text` structure → `formats` map with format names as keys
 - `sort-results: true` → `sort-order: [linter, severity, file]`
 
 **Linters Section:**
+
 - `gosimple` - merged into `staticcheck`
 - `stylecheck` - merged into `staticcheck`
 - `gofmt` - now a formatter, not a linter
@@ -35,11 +39,13 @@ Successfully migrated `.golangci.yml` from mixed v1/v2 configuration to clean go
 - `wsl` - deprecated, replaced by `wsl_v5`
 
 **Settings Section:**
+
 - `goconst.ignore-tests` - removed
 - `misspell.ignore-words` - removed
 - `wrapcheck.ignoreSigs` - removed (API changed)
 
 **Issues/Exclusions Section:**
+
 - `exclude-dirs` - removed
 - `exclude-files` - removed
 - `exclude-rules` - removed
@@ -47,19 +53,23 @@ Successfully migrated `.golangci.yml` from mixed v1/v2 configuration to clean go
 - `exclude-dirs-use-default` - removed
 
 **Severity Section:**
+
 - `default-severity` → `default`
 
 ### New/Changed Properties (v2)
 
 **Output:**
+
 - `formats` is now a map: `formats: { tab: { path: stdout } }`
 - `sort-order` replaces `sort-results`
 
 **Linters:**
+
 - `wsl_v5` replaces deprecated `wsl`
 - `depguard` now requires explicit `rules` configuration
 
 **Issues:**
+
 - Simplified to just `max-issues-per-linter` and `max-same-issues`
 - Most exclusions now automatic via generated code detection
 
@@ -85,6 +95,7 @@ Successfully migrated `.golangci.yml` from mixed v1/v2 configuration to clean go
 ## Final Configuration
 
 **Linters Enabled (22):**
+
 - Essential: errcheck, govet, ineffassign, staticcheck, unused
 - Code Quality: revive, godot, copyloopvar, goconst, importas
 - Security: gosec, noctx, wrapcheck, errorlint
@@ -93,11 +104,13 @@ Successfully migrated `.golangci.yml` from mixed v1/v2 configuration to clean go
 - Maintainability: goheader, depguard
 
 **Linters Disabled (3):**
+
 - dupl (code duplication)
 - gocyclo (cyclomatic complexity)
 - godox (TODO/FIXME tracking)
 
 **Key Settings:**
+
 - 60+ import aliases (cryptoutil packages + dependencies)
 - gosec excludes: G204, G301, G302, G304, G402
 - mnd ignored: '2', math.*, len, make
@@ -107,6 +120,7 @@ Successfully migrated `.golangci.yml` from mixed v1/v2 configuration to clean go
 ## Testing Results
 
 **Final Configuration Validates:**
+
 ```bash
 golangci-lint run --timeout=10m
 ```

@@ -37,12 +37,14 @@
 **Problem Statement**: Clear articulation of the problem this feature solves
 
 **Current State Analysis**:
+
 - What exists today
 - What's broken or missing
 - Impact on users/system
 - Technical debt incurred
 
 **Production Blockers** (if applicable):
+
 1. 🔴 Blocker 1: Description with impact
 2. 🔴 Blocker 2: Description with impact
 3. ⚠️ High-priority issue: Description
@@ -69,6 +71,7 @@
 **Timeline**: X days/weeks/months (assumes full-time focus or specific allocation)
 
 **Effort Distribution**:
+
 - Foundation: X% (Y days)
 - Core Features: X% (Y days)
 - Advanced Features: X% (Y days)
@@ -82,6 +85,7 @@
 ### Primary Goals
 
 **Goal 1**: `<GOAL_NAME>`
+
 - **Description**: What this goal achieves
 - **Success Criteria**: Measurable outcomes
 - **Priority**: CRITICAL/HIGH/MEDIUM/LOW
@@ -89,6 +93,7 @@
 - **Risk Level**: LOW/MEDIUM/HIGH/CRITICAL
 
 **Goal 2**: `<GOAL_NAME>`
+
 - **Description**: What this goal achieves
 - **Success Criteria**: Measurable outcomes
 - **Priority**: CRITICAL/HIGH/MEDIUM/LOW
@@ -98,6 +103,7 @@
 ### Secondary Goals (Nice-to-Have)
 
 **Goal N**: `<GOAL_NAME>`
+
 - **Description**: What this goal achieves
 - **Success Criteria**: Measurable outcomes
 - **Priority**: LOW
@@ -112,24 +118,28 @@
 ### Constraints and Boundaries
 
 **Technical Constraints**:
+
 - Dependency restrictions (e.g., "Use ONLY existing go.mod dependencies")
 - Technology stack limitations
 - Performance requirements
 - Security requirements (e.g., "FIPS 140-3 compliance mandatory")
 
 **Architectural Constraints**:
+
 - Domain isolation rules (e.g., "Identity module CANNOT import KMS packages")
 - Import restrictions enforced by tooling
 - Code reuse boundaries
 - Magic values management patterns
 
 **Resource Constraints**:
+
 - Timeline restrictions
 - Budget limitations
 - Team size/availability
 - Infrastructure limitations
 
 **Operational Constraints**:
+
 - Backward compatibility requirements
 - Migration strategy restrictions
 - Deployment constraints
@@ -142,14 +152,17 @@
 ### Historical Context
 
 **Previous Attempts**:
+
 - Attempt 1: What was tried, why it failed, lessons learned
 - Attempt 2: What was tried, why it failed, lessons learned
 
 **Related Work**:
+
 - Related Feature 1: How it connects to this feature
 - Related Feature 2: Dependencies or interactions
 
 **Evolution Timeline**:
+
 - Phase 1 (Date Range): What was implemented, outcomes
 - Phase 2 (Date Range): What was implemented, outcomes
 - Current State (Date): Where we are today
@@ -157,11 +170,13 @@
 ### Baseline Assessment
 
 **Current Implementation Status**:
+
 - ✅ Complete Components: List with verification evidence
 - ⚠️ Partial Components: List with gap analysis
 - ❌ Missing Components: List with impact assessment
 
 **Code Analysis**:
+
 - Total files: X files
 - Total lines: Y lines (X production, Y test, Z docs)
 - Test coverage: Z% overall (breakdown by package)
@@ -169,12 +184,14 @@
 - Known bugs: X critical, Y high, Z medium
 
 **Dependency Analysis**:
+
 - External dependencies: List with versions
 - Internal dependencies: Package dependency graph
 - Circular dependencies: Identified and resolution plan
 - Coupling analysis: Tight/loose coupling assessment
 
 **Technical Debt Assessment**:
+
 - Architecture debt: Areas not following design patterns
 - Code quality debt: Linting/formatting issues
 - Test debt: Missing test coverage areas
@@ -183,13 +200,16 @@
 ### Stakeholder Analysis
 
 **Primary Stakeholders**:
+
 - Stakeholder 1: Role, expectations, success criteria
 - Stakeholder 2: Role, expectations, success criteria
 
 **Secondary Stakeholders**:
+
 - Stakeholder N: Role, expectations, success criteria
 
 **User Impact**:
+
 - User Group 1: Impact description, mitigation plan
 - User Group 2: Impact description, mitigation plan
 
@@ -200,6 +220,7 @@
 ### System Architecture
 
 **High-Level Architecture Diagram**:
+
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                 │
@@ -209,11 +230,13 @@
 ```
 
 **Component Breakdown**:
+
 - Component 1: Responsibility, interfaces, dependencies
 - Component 2: Responsibility, interfaces, dependencies
 - Component N: Responsibility, interfaces, dependencies
 
 **Data Flow**:
+
 ```
 Client → API Gateway → Service A → Database
                     ↓
@@ -221,6 +244,7 @@ Client → API Gateway → Service A → Database
 ```
 
 **Technology Stack**:
+
 - Language/Runtime: Version requirements, constraints
 - Frameworks: Version requirements, rationale
 - Databases: Type, version, usage patterns
@@ -229,12 +253,14 @@ Client → API Gateway → Service A → Database
 ### Design Patterns
 
 **Pattern 1**: `<PATTERN_NAME>`
+
 - **Use Case**: When/where this pattern applies
 - **Implementation**: How it's implemented in codebase
 - **Benefits**: Why this pattern was chosen
 - **Trade-offs**: What compromises were made
 
 **Pattern 2**: `<PATTERN_NAME>`
+
 - **Use Case**: When/where this pattern applies
 - **Implementation**: How it's implemented in codebase
 - **Benefits**: Why this pattern was chosen
@@ -243,6 +269,7 @@ Client → API Gateway → Service A → Database
 ### Directory Structure
 
 **Target Directory Layout**:
+
 ```
 project-root/
 ├── cmd/                          # CLI entry points
@@ -264,6 +291,7 @@ project-root/
 ```
 
 **Migration Path** (if refactoring):
+
 | Source | Destination | Rationale | Risk Level |
 |--------|-------------|-----------|------------|
 | `old/path/` | `new/path/` | Why this move | LOW/MEDIUM/HIGH |
@@ -271,6 +299,7 @@ project-root/
 ### API Design
 
 **Endpoint Structure**:
+
 - `GET /api/v1/resource` - List resources
 - `POST /api/v1/resource` - Create resource
 - `GET /api/v1/resource/{id}` - Get resource
@@ -278,11 +307,13 @@ project-root/
 - `DELETE /api/v1/resource/{id}` - Delete resource
 
 **OpenAPI Specification**:
+
 - Location: `api/service-name/openapi.yaml`
 - Generation: `oapi-codegen` configuration
 - Validation: Request/response validation patterns
 
 **Authentication/Authorization**:
+
 - Auth mechanism: OAuth 2.1, mTLS, API keys, etc.
 - Authorization model: RBAC, ABAC, ACL
 - Token format: JWT, opaque tokens, etc.
@@ -290,6 +321,7 @@ project-root/
 ### Database Schema
 
 **Entity Relationship Diagram**:
+
 ```
 ┌─────────────┐       ┌─────────────┐
 │    User     │───────│   Session   │
@@ -301,12 +333,14 @@ project-root/
 ```
 
 **Schema Evolution Strategy**:
+
 - Migration tool: golang-migrate, GORM AutoMigrate, etc.
 - Versioning: Sequential numbering (0001, 0002, etc.)
 - Rollback: Up/down migration scripts
 - Zero-downtime: Expand-contract pattern for schema changes
 
 **Cross-Database Compatibility** (if applicable):
+
 - PostgreSQL: Production database
 - SQLite: Development/testing database
 - Type mapping: UUID as TEXT, JSON as TEXT with serializer, etc.
@@ -315,14 +349,17 @@ project-root/
 ### Security Design
 
 **Threat Model**:
+
 - Threat 1: Description, impact, mitigation
 - Threat 2: Description, impact, mitigation
 
 **Security Controls**:
+
 - Control 1: Implementation, verification
 - Control 2: Implementation, verification
 
 **Compliance Requirements**:
+
 - FIPS 140-3: Approved algorithms only
 - GDPR: Data protection measures
 - SOC 2: Access controls, audit logging
@@ -334,11 +371,13 @@ project-root/
 ### Task Organization
 
 **Task Numbering Convention**:
+
 - Primary tasks: `01-<TASK_NAME>.md` through `##-<TASK_NAME>.md`
 - Sub-tasks: `##.##-<TASK_NAME>.md` (e.g., `10.5-login-ui.md`)
 - Parallel tracks: Use prefixes (e.g., `R01-`, `R02-` for remediation tasks)
 
 **Task Categories**:
+
 - **Foundation**: Core infrastructure and models (Tasks 01-05)
 - **Core Features**: Primary functionality (Tasks 06-10)
 - **Advanced Features**: Enhanced capabilities (Tasks 11-15)
@@ -358,6 +397,7 @@ project-root/
 | R01 | `R01-remediation.md` | ✅/⚠️/❌ | 🔴 CRITICAL | 1 day | None | HIGH | Remediation task |
 
 **Status Legend**:
+
 - ✅ **COMPLETE** - Fully implemented, tested, documented, verified
 - ⚠️ **PARTIAL** - Documented as complete but has implementation gaps
 - 🔄 **IN PROGRESS** - Currently being worked on
@@ -366,12 +406,14 @@ project-root/
 - 🗄️ **ARCHIVED** - Obsolete or superseded
 
 **Priority Legend**:
+
 - 🔴 **CRITICAL** - Production blocker, must complete for basic functionality
 - ⚠️ **HIGH** - Important feature or significant impact
 - 🟡 **MEDIUM** - Nice-to-have, moderate impact
 - 🟢 **LOW** - Optional enhancement, minimal impact
 
 **Risk Legend**:
+
 - **CRITICAL** - High probability of failure with severe impact
 - **HIGH** - Moderate probability of failure with significant impact
 - **MEDIUM** - Low probability with moderate impact or moderate probability with low impact
@@ -380,6 +422,7 @@ project-root/
 ### Task Dependencies Graph
 
 **Critical Path**:
+
 ```
 01 → 02 → 03 → 04 → 05 (Primary sequential path)
          ↓
@@ -387,6 +430,7 @@ project-root/
 ```
 
 **Parallel Execution Opportunities**:
+
 - Tasks X, Y, Z can run in parallel (no shared dependencies)
 - Week 1: Tasks 01-03 (sequential)
 - Week 2: Tasks 04, 05, R01 (parallel streams)
@@ -394,30 +438,35 @@ project-root/
 ### Implementation Phases
 
 **Phase 1: Foundation** (Days 1-X)
+
 - Focus: Core infrastructure, domain models, data access
 - Tasks: 01, 02
 - Deliverables: Working database, domain models, repositories
 - Exit Criteria: All tests passing, 85%+ coverage
 
 **Phase 2: Core Features** (Days X-Y)
+
 - Focus: Primary business logic, API endpoints
 - Tasks: 03, 04
 - Deliverables: Functional APIs, core workflows
 - Exit Criteria: E2E tests passing, API documented
 
 **Phase 3: Advanced Features** (Days Y-Z)
+
 - Focus: Enhanced capabilities, optimizations
 - Tasks: 05, 06, etc.
 - Deliverables: Advanced features, performance optimizations
 - Exit Criteria: Performance benchmarks met, security audited
 
 **Phase 4: Integration & Testing** (Days Z-W)
+
 - Focus: System integration, comprehensive testing
 - Tasks: Testing tasks
 - Deliverables: E2E test suites, integration verified
 - Exit Criteria: 90%+ coverage, load tests passing
 
 **Phase 5: Documentation & Handoff** (Days W-V)
+
 - Focus: Documentation, knowledge transfer
 - Tasks: Documentation tasks
 - Deliverables: Complete documentation, runbooks
@@ -436,15 +485,18 @@ This directive ensures autonomous LLM Agent sessions continue until all work is 
 #### 1. Continuous Execution Pattern
 
 **ALWAYS follow this loop:**
+
 ```
 START → Task 01 → Commit → Task 02 → Commit → ... → Task ## → Commit → END
 ```
 
 **NEVER introduce delays between tasks:**
+
 - ❌ WRONG: commit → summary message → stop → wait for user
 - ✅ RIGHT: commit → IMMEDIATELY invoke next tool (manage_todo_list, read_file, create_file)
 
 **Token Budget Management:**
+
 - Work until 950k tokens used (95% of 1M budget)
 - Check `<system_warning>` after each tool call: "Token usage: X/1000000; Y remaining"
 - STOP only when: tokens used ≥950k OR explicit user instruction to stop
@@ -453,6 +505,7 @@ START → Task 01 → Commit → Task 02 → Commit → ... → Task ## → Comm
 #### 2. Tool Call Chaining
 
 **ZERO TEXT between tool calls:**
+
 ```
 ✅ CORRECT:
 commit → manage_todo_list (mark task complete) → read_file (next task doc) → create_file (implement)
@@ -466,6 +519,7 @@ commit → "Now working on Task 2..." → read_file (violates zero-text rule)
 #### 3. Task Progression Strategy
 
 **Sequential Task Execution:**
+
 1. Read task doc: `read_file` on `##-<TASK>.md`
 2. Implement: `create_file`, `replace_string_in_file`, `multi_replace_string_in_file`
 3. Test: `runTests` tool (NEVER use `go test` in terminal)
@@ -474,6 +528,7 @@ commit → "Now working on Task 2..." → read_file (violates zero-text rule)
 6. IMMEDIATELY start next task: `read_file` on next task doc
 
 **Parallel Task Execution** (when applicable):
+
 - Identify independent tasks (no shared file dependencies)
 - Execute file reads in parallel batches
 - Implement changes in parallel batches
@@ -482,16 +537,19 @@ commit → "Now working on Task 2..." → read_file (violates zero-text rule)
 #### 4. Commit Strategy
 
 **Commit frequently, push when ready:**
+
 - Commit after each task completion (atomic units of work)
 - Use conventional commit format: `type(scope): description`
 - Push only when passing all quality gates (tests, linting, pre-commit)
 
 **Skip pre-commit for speed during iteration:**
+
 ```bash
 git commit --no-verify -m "feat(task-01): implement foundation models"
 ```
 
 **Always run quality checks before push:**
+
 ```bash
 go test ./... -cover
 golangci-lint run ./...
@@ -501,6 +559,7 @@ pre-commit run --all-files  # Before git push
 #### 5. Quality Gates
 
 **ALWAYS enforce before marking task complete:**
+
 - ✅ All tests passing: `runTests` tool shows 0 failures
 - ✅ Coverage threshold: ≥85% for infrastructure, ≥80% for features, ≥95% for utilities
 - ✅ No linting errors: `golangci-lint run ./...` shows 0 issues
@@ -508,6 +567,7 @@ pre-commit run --all-files  # Before git push
 - ✅ Documentation updated: README, inline docs, API specs
 
 **Progressive quality approach:**
+
 - During iteration: Use `git commit --no-verify` for speed
 - Before task complete: Run full quality checks
 - Before push: Run pre-commit hooks
@@ -515,6 +575,7 @@ pre-commit run --all-files  # Before git push
 #### 6. Error Handling
 
 **When tests fail:**
+
 1. Analyze failure output
 2. Fix implementation
 3. Re-run tests
@@ -522,12 +583,14 @@ pre-commit run --all-files  # Before git push
 5. NEVER skip failing tests
 
 **When linting fails:**
+
 1. Run `golangci-lint run --fix` first (auto-fixes formatting, imports, etc.)
 2. Manual fix remaining issues
 3. Re-run linter
 4. Repeat until clean
 
 **When blocked:**
+
 1. Document blocker in task doc post-mortem section
 2. Create new task doc for blocker resolution
 3. Continue with other independent tasks
@@ -536,16 +599,19 @@ pre-commit run --all-files  # Before git push
 #### 7. Task Documentation Maintenance
 
 **ALWAYS update task status immediately:**
+
 ```
 manage_todo_list → update task status to "completed"
 ```
 
 **ALWAYS create post-mortem after task completion:**
+
 ```
 create_file → ##-<TASK>-POSTMORTEM.md with corrective actions
 ```
 
 **ALWAYS check for new tasks:**
+
 ```
 After clearing todo list, check docs/##-*/todos-*.md for additional work
 ```
@@ -555,6 +621,7 @@ After clearing todo list, check docs/##-*/todos-*.md for additional work
 Each task MUST complete this checklist before marking complete:
 
 #### Pre-Implementation
+
 - [ ] Read task documentation thoroughly
 - [ ] Understand acceptance criteria
 - [ ] Identify dependencies (prior tasks, external packages)
@@ -562,6 +629,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Check for existing implementations to reuse
 
 #### Implementation
+
 - [ ] Create/modify files according to task spec
 - [ ] Follow project coding standards and patterns
 - [ ] Add comprehensive inline documentation
@@ -569,6 +637,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Handle error cases explicitly
 
 #### Testing
+
 - [ ] Write table-driven tests for all functionality
 - [ ] Test happy paths (expected inputs/outputs)
 - [ ] Test sad paths (error conditions, edge cases)
@@ -577,6 +646,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Run tests: `runTests` tool (NEVER `go test` in terminal)
 
 #### Quality Assurance
+
 - [ ] Run auto-fix: `golangci-lint run --fix`
 - [ ] Fix remaining lint issues manually
 - [ ] Verify no TODO comments introduced
@@ -584,6 +654,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Validate magic values in `magic*.go` files (not inline)
 
 #### Documentation
+
 - [ ] Update inline code comments (godoc format)
 - [ ] Update README if user-facing changes
 - [ ] Update OpenAPI specs if API changes
@@ -591,12 +662,14 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Update architecture diagrams if structural changes
 
 #### Commit
+
 - [ ] Stage files: `git add <files>`
 - [ ] Commit with conventional message: `git commit -m "type(scope): description"`
 - [ ] Use `--no-verify` during iteration for speed
 - [ ] Verify commit successful
 
 #### Post-Mortem
+
 - [ ] Create `##-<TASK>-POSTMORTEM.md`
 - [ ] Document bugs encountered and fixes
 - [ ] Document omissions discovered
@@ -606,6 +679,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Identify instruction violations and corrections
 
 #### Progressive Validation (MANDATORY)
+
 - [ ] Run 6-step validation: `go run ./cmd/cicd identity-progressive-validation`
 - [ ] Step 1 PASS: TODO scan (0 CRITICAL/HIGH TODOs)
 - [ ] Step 2 PASS: Tests (100% pass rate)
@@ -616,17 +690,20 @@ Each task MUST complete this checklist before marking complete:
 - [ ] All 6 steps passed before marking task complete
 
 **If validation fails:**
+
 - Fix issues immediately
 - Re-run progressive validation
 - Do NOT mark task complete until 6/6 steps pass
 
 #### Handoff
+
 - [ ] Mark task complete in `manage_todo_list`
 - [ ] IMMEDIATELY start next task (no stopping, no summary)
 
 ### Testing Guidelines
 
 **Test File Organization:**
+
 - Unit tests: `*_test.go` (same package)
 - Benchmarks: `*_bench_test.go` (performance testing)
 - Fuzz tests: `*_fuzz_test.go` (property-based testing)
@@ -634,6 +711,7 @@ Each task MUST complete this checklist before marking complete:
 - E2E: `e2e_test.go` with `//go:build e2e` (full system)
 
 **Test Patterns:**
+
 ```go
 func TestFunction(t *testing.T) {
     t.Parallel() // ALWAYS enable parallel testing
@@ -681,6 +759,7 @@ func TestFunction(t *testing.T) {
 ```
 
 **Test Data Isolation:**
+
 - Use `t.TempDir()` for file-based tests
 - Use UUIDv7 for unique test data (time-ordered, no collisions)
 - NEVER use sequential counters or timestamps for uniqueness
@@ -809,6 +888,7 @@ create_file → ##-<NEXT_TASK>.md
 | ##+1 | Modify acceptance criteria | Add validation for Y | MEDIUM |
 
 **Update patterns**:
+
 ```bash
 # Add subtask to existing task doc
 replace_string_in_file → ##-<TASK>.md (add subtask section)
@@ -920,6 +1000,7 @@ replace_string_in_file → ##-<TASK>.md (update criteria)
 - [ ] Documented P lessons learned for knowledge base
 
 **Next Task Modifications**:
+
 ```
 Task ##+1:
 - Add subtask: X
@@ -930,6 +1011,7 @@ Task ##+2:
 - New task for: A
 - Priority: HIGH (addresses critical gap from this task)
 ```
+
 ```
 
 ### Real-World SDLC Corrective Action Patterns
@@ -1112,12 +1194,14 @@ fi
 ```
 
 **Benefits**:
+
 - ✅ Single authoritative source for status queries
 - ✅ Prevents contradictory claims across multiple docs
 - ✅ Forces regular status assessment
 - ✅ Easy to verify actual vs claimed progress
 
 #### Architecture Compliance
+
 - [ ] Follows project directory structure
 - [ ] Respects domain boundaries (no prohibited imports)
 - [ ] Import aliases follow `.golangci.yml` conventions
@@ -1147,6 +1231,7 @@ fi
 **Pattern**: NO vague criteria like "feature functional" - ONLY objective, verifiable outcomes with command-line evidence
 
 **Why Evidence Required**:
+
 - Makes completion objective and verifiable (not subjective "looks done")
 - Prevents agent claiming completion without running validation commands
 - Enables automated quality gate enforcement
@@ -1321,12 +1406,14 @@ Automated by deployment pipeline:
 - **Acceptance**: Task NOT complete until threshold met
 
 **Overall Coverage Threshold**:
+
 - **Minimum**: ≥85% of total requirements validated across all tasks
 - **Enforcement**: `go run ./cmd/cicd go-identity-requirements-check --strict --overall-threshold=85`
 - **Rationale**: Ensures comprehensive feature implementation
 - **Acceptance**: Feature NOT production-ready until threshold met
 
 **CI/CD Integration**:
+
 ```yaml
 # .github/workflows/ci-quality.yml
 - name: Validate Requirements Coverage
@@ -1337,6 +1424,7 @@ Automated by deployment pipeline:
 ```
 
 **Acceptance Criteria Addition**:
+
 - [ ] Per-task coverage ≥90% (run `go-identity-requirements-check --strict`)
 - [ ] Overall coverage ≥85% (verified in PROJECT-STATUS.md)
 - [ ] CI/CD enforces thresholds (workflow passes)
@@ -1348,6 +1436,7 @@ Automated by deployment pipeline:
 ### Risk Categories
 
 **Technical Risks**:
+
 - Architecture complexity
 - Technology maturity
 - Dependency risks
@@ -1355,6 +1444,7 @@ Automated by deployment pipeline:
 - Security vulnerabilities
 
 **Process Risks**:
+
 - Schedule delays
 - Scope creep
 - Resource availability
@@ -1362,6 +1452,7 @@ Automated by deployment pipeline:
 - Communication breakdown
 
 **Operational Risks**:
+
 - Deployment failures
 - Data migration issues
 - Backward compatibility breaks
@@ -1377,17 +1468,20 @@ Automated by deployment pipeline:
 | R03 | Security vulnerability | LOW | CRITICAL | HIGH | Security review, penetration test | Team C | ⚠️ ACTIVE |
 
 **Probability Legend**:
+
 - **LOW**: < 25% chance of occurrence
 - **MEDIUM**: 25-75% chance of occurrence
 - **HIGH**: > 75% chance of occurrence
 
 **Impact Legend**:
+
 - **LOW**: Minor inconvenience, easy workaround
 - **MEDIUM**: Significant disruption, impacts subset of users
 - **HIGH**: Major disruption, impacts most users
 - **CRITICAL**: System-wide failure, data loss, security breach
 
 **Severity Calculation**:
+
 - CRITICAL: High probability + Critical impact OR Medium probability + Critical impact
 - HIGH: High probability + High impact OR Medium probability + High impact
 - MEDIUM: Any combination not meeting HIGH or CRITICAL thresholds
@@ -1396,26 +1490,32 @@ Automated by deployment pipeline:
 ### Risk Mitigation Strategies
 
 **Avoidance**: Eliminate the risk by changing approach
+
 - Example: Use proven technology instead of experimental framework
 
 **Reduction**: Minimize probability or impact
+
 - Example: Add automated tests to reduce probability of bugs
 
 **Transfer**: Shift risk to third party
+
 - Example: Use managed service instead of self-hosting
 
 **Acceptance**: Acknowledge risk and plan response
+
 - Example: Document known limitation and support workaround
 
 ### Risk Monitoring
 
 **Risk Reviews**:
+
 - Daily: Critical risks during active sprints
 - Weekly: High risks and new risk identification
 - Monthly: Medium/low risks and trend analysis
 - Quarterly: Risk register cleanup and archival
 
 **Risk Escalation**:
+
 - Critical severity: Immediate escalation to stakeholders
 - High severity: Escalate within 24 hours
 - Medium severity: Escalate within 1 week
@@ -1428,16 +1528,19 @@ Automated by deployment pipeline:
 ### Completion Metrics
 
 **Task Completion Rate**:
+
 - Target: 100% of planned tasks complete
 - Current: X% (Y/Z tasks)
 - Trend: +/-X% from last period
 
 **On-Time Delivery**:
+
 - Target: 90% of tasks on schedule
 - Current: X% on-time
 - Variance: Average +/-X days
 
 **Quality Metrics**:
+
 - Zero CRITICAL bugs in production
 - < 5% MEDIUM/LOW bugs per release
 - 100% test pass rate
@@ -1446,16 +1549,19 @@ Automated by deployment pipeline:
 ### Performance Metrics
 
 **Response Time**:
+
 - Target: P95 < 100ms, P99 < 500ms
 - Current: P95 = Xms, P99 = Yms
 - SLA: 99.9% uptime
 
 **Throughput**:
+
 - Target: X requests/second
 - Current: Y requests/second
 - Peak: Z requests/second sustained
 
 **Resource Utilization**:
+
 - CPU: Target < 70%, Current X%
 - Memory: Target < 80%, Current Y%
 - Disk: Target < 75%, Current Z%
@@ -1463,16 +1569,19 @@ Automated by deployment pipeline:
 ### Business Metrics
 
 **User Adoption**:
+
 - Active users: Target X, Current Y
 - New user growth: Target +X% MoM, Current +Y%
 - User retention: Target >X%, Current Y%
 
 **Feature Usage**:
+
 - Feature A adoption: Target X%, Current Y%
 - Feature B usage: Target X requests/day, Current Y
 - Feature satisfaction: Target NPS >X, Current Y
 
 **Operational Efficiency**:
+
 - Deployment frequency: Target X/week, Current Y
 - Mean time to recovery (MTTR): Target <X hours, Current Y
 - Change failure rate: Target <X%, Current Y%
@@ -1480,21 +1589,25 @@ Automated by deployment pipeline:
 ### Quality Metrics
 
 **Defect Density**:
+
 - Target: <0.5 bugs per 100 LOC
 - Current: X bugs per 100 LOC
 - Trend: Decreasing/stable/increasing
 
 **Test Coverage**:
+
 - Target: ≥85% for infrastructure, ≥80% for features
 - Current: X% overall, Y% infrastructure, Z% features
 - Trend: Increasing/stable/decreasing
 
 **Technical Debt**:
+
 - Target: <X hours per sprint on debt reduction
 - Current: Y hours per sprint
 - Trend: Decreasing/stable/increasing
 
 **Code Quality**:
+
 - Cyclomatic complexity: Target <10, Current X avg
 - File size: Target <500 lines, Current Y avg
 - Linting issues: Target 0, Current Z
@@ -1516,6 +1629,7 @@ Automated by deployment pipeline:
 ### B. References
 
 **Internal Documentation**:
+
 - [Coding Instructions](.github/instructions/01-01.coding.instructions.md)
 - [Testing Instructions](.github/instructions/01-02.testing.instructions.md)
 - [Go Instructions](.github/instructions/01-03.golang.instructions.md)
@@ -1524,6 +1638,7 @@ Automated by deployment pipeline:
 - [Linting Instructions](.github/instructions/01-06.linting.instructions.md)
 
 **External Standards**:
+
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Go Project Layout](https://github.com/golang-standards/project-layout)
 - [OpenAPI 3.0 Specification](https://spec.openapis.org/oas/v3.0.3)
@@ -1538,24 +1653,28 @@ Automated by deployment pipeline:
 ### D. Template Usage Guidelines
 
 **When to Use This Template**:
+
 - New feature development (multi-day/week effort)
 - Major refactoring initiatives
 - Cross-cutting infrastructure changes
 - Service extraction or migration
 
 **When NOT to Use This Template**:
+
 - Bug fixes (use issue tracker)
 - Minor enhancements (single file changes)
 - Documentation updates (use README)
 - Dependency updates (use automated tools)
 
 **Customization Guidelines**:
+
 - Remove sections not applicable to your feature
 - Add domain-specific sections as needed
 - Adjust task granularity based on complexity
 - Scale acceptance criteria based on criticality
 
 **Living Document**:
+
 - Update template based on learnings from each feature
 - Incorporate feedback from team retrospectives
 - Version control template changes

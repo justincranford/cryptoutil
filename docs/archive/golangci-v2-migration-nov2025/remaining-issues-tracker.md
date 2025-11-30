@@ -22,6 +22,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: Pre-commit hook documentation in `docs/pre-commit-hooks.md` may not reflect all v2 changes
 
 **Completed Actions**:
+
 - ✅ Reviewed `docs/pre-commit-hooks.md` - already reflects v2 migration (updated Oct 26, 2025)
 - ✅ Verified tool ordering diagrams show current pipeline with v2 golangci-lint
 - ✅ Confirmed hook configuration examples match `.pre-commit-config.yaml`
@@ -42,12 +43,14 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: `.github/instructions/01-03.golang.instructions.md` importas section must stay synchronized with `.golangci.yml`
 
 **Completed Actions**:
+
 - ✅ Audited all import aliases in `.golangci.yml` importas section (79 aliases)
 - ✅ Verified matching aliases in copilot instructions file - 100% synchronized
 - ✅ Confirmed all identity-related package aliases present
 - ✅ Both files include synchronization warning at top of importas section
 
 **Files**:
+
 - `.golangci.yml` (importas section) - Lines 152-295
 - `.github/instructions/01-03.golang.instructions.md` (Import Alias Conventions) - Lines 74-138
 
@@ -63,6 +66,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: CI/CD workflows (ci-quality.yml, etc.) may not fully leverage v2 capabilities
 
 **Completed Actions**:
+
 - ✅ Verified `ci-quality.yml` uses `.github/actions/golangci-lint` composite action
 - ✅ Composite action uses `golangci/golangci-lint-action@v8` (latest stable)
 - ✅ Confirmed default version: v2.0.0 with timeout: 10m
@@ -70,6 +74,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 - ✅ Confirmed auto-fix integration: `--fix` flag used in all runs
 
 **Files**:
+
 - `.github/workflows/ci-quality.yml` - Uses composite action (line 78)
 - `.github/actions/golangci-lint/action.yml` - v8 action, v2.0.0 default
 
@@ -85,6 +90,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: `.github/instructions/01-06.linting.instructions.md` should cover all v2 migration patterns
 
 **Completed Actions**:
+
 - ✅ Verified all v2 removed settings documented (wsl.force-err-cuddling, misspell.ignore-words, etc.)
 - ✅ Confirmed wsl_v5 configuration patterns documented with NO //nolint:wsl directive rule
 - ✅ Verified depguard limitation workarounds documented (go-check-identity-imports custom cicd check)
@@ -104,6 +110,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: Not all auto-fixable patterns are covered by `golangci-lint run --fix`
 
 **Current Coverage**:
+
 - ✅ gofumpt (formatting)
 - ✅ goimports (imports)
 - ✅ wsl (whitespace)
@@ -113,6 +120,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 - ✅ thelper (via cicd)
 
 **Missing Auto-Fixes** (from `docs/golangci/auto-fix-integration-plan.md`):
+
 - ❌ errcheck defer closures (too context-dependent)
 - ❌ wrapcheck file-level nolint (too project-specific)
 - ❌ tparallel cleanup conversion (too context-dependent)
@@ -120,6 +128,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 - ❌ goconst constant extraction (requires semantic analysis)
 
 **Action Items**:
+
 - [ ] Document which patterns require manual intervention
 - [ ] Create troubleshooting guide for common manual fix scenarios
 - [ ] Consider AST-based auto-fix for high-value patterns (thelper already done)
@@ -137,6 +146,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: `.vscode/settings.json` should reflect v2 configuration and capabilities
 
 **Completed Actions**:
+
 - ✅ Verified `go.lintTool` setting uses golangci-lint (line 401)
 - ✅ Confirmed golangci-lint JSON schema configured for autocomplete (line 318)
 - ✅ Validated terminal command auto-approval includes golangci-lint (line 339)
@@ -156,6 +166,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: `.github/instructions/01-02.testing.instructions.md` should cover v2 linting integration
 
 **Action Items**:
+
 - [ ] Document test file linting best practices with v2
 - [ ] Update pre-commit test execution guidance
 - [ ] Add troubleshooting for thelper, tparallel, testpackage linters
@@ -174,6 +185,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: hadolint integration for Dockerfile linting
 
 **Current State**:
+
 - ✅ hadolint configured in `.pre-commit-config.yaml`
 - ✅ Running on Dockerfile and Dockerfile.* files
 
@@ -188,6 +200,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: actionlint integration for workflow validation
 
 **Current State**:
+
 - ✅ actionlint configured in `.pre-commit-config.yaml`
 - ✅ Custom cicd check (github-workflow-lint) for additional validations
 - ✅ Running on `.github/workflows/*.yml` files
@@ -203,6 +216,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 **Issue**: Clean up temporary migration documentation
 
 **Current State**:
+
 - ✅ Migration artifacts archived in `docs/golangci/archive/`
 - ✅ `MIGRATION-COMPLETE.md` documents final state
 - ✅ `auto-fix-integration-plan.md` preserved for reference
@@ -233,6 +247,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 All critical golangci-lint v2 migration documentation tasks completed as of November 20, 2025:
 
 **Completed This Session**:
+
 1. ✅ Pre-commit hook documentation validated (already current from Oct 26)
 2. ✅ Import alias synchronization confirmed (79 aliases, 100% match)
 3. ✅ Workflow integration tested (golangci-lint-action@v8, v2.0.0)
@@ -240,6 +255,7 @@ All critical golangci-lint v2 migration documentation tasks completed as of Nove
 5. ✅ VS Code integration validated (golangci-lint configured at line 401)
 
 **Remaining Low-Priority Items**:
+
 - 🟡 Auto-fix integration gaps (AST-based fixes for mnd, goconst) - acceptable as manual
 - 🟡 Testing instructions review - stable practices, minimal v2 impact
 
@@ -250,6 +266,7 @@ All critical golangci-lint v2 migration documentation tasks completed as of Nove
 ## Success Criteria
 
 Migration is considered fully complete when:
+
 - ✅ All documentation accurately reflects v2 configuration (verified Nov 20, 2025)
 - ✅ Import alias synchronization validated (79 aliases match exactly)
 - ✅ CI/CD workflows validated with v2 (golangci-lint-action@v8, timeout 10m)

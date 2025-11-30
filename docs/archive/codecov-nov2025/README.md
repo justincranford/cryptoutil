@@ -15,31 +15,40 @@ This archive contains documentation from the November 2025 test coverage improve
 ## Archive Contents
 
 ### COMPLETION-SUMMARY.md
+
 Comprehensive summary of coverage improvements including:
+
 - Coverage results by package (before/after comparisons)
 - Test pattern improvements adopted
 - Lessons learned (especially the "don't stop after commits" insight)
 - Remaining work and recommendations
 
 ### tracking/
+
 Active task tracking documents:
 
 #### completed.txt (496 lines)
+
 Log of completed tasks including:
+
 - Priority 0: Pre-commit/pre-push hook optimization
 - Priority 1: os.Exit() architecture fixes (CICD package)
 - Priority 2: Database performance optimization (partial)
 - Detailed commit references and coverage metrics
 
 #### dont_stop.txt
+
 Critical lesson on continuous work patterns:
+
 - **Anti-pattern**: Stopping after git commits as if they're milestones
 - **Correct pattern**: commit → implement → commit → repeat until complete
 - **Token budget**: Work until 95% utilization (950k of 1M tokens)
 - Explains why stopping after commits wastes tokens and time
 
 #### prompt.txt (125 lines)
+
 Remaining tasks list:
+
 - Priority 1: Achieve 96% coverage for CICD package (DONE: 98.6%)
 - Priority 2: Database optimization (IN PROGRESS: 60.7% of 90% target)
 - Priority 3: Add tests to 15 additional packages (NOT STARTED)
@@ -64,6 +73,7 @@ Remaining tasks list:
 | `internal/cmd/cicd/go_fix_all` | ~85% | 100% | +15% | ✅ Perfect |
 
 **Key Improvements**:
+
 - Removed os.Exit() calls from library code for testability
 - Added comprehensive parameterized tests
 - Implemented self-exclusion pattern tests
@@ -81,6 +91,7 @@ Remaining tasks list:
 | Target | 90% | 90% | -29.3% | ❌ Not met |
 
 **Test Files Added** (669 lines total):
+
 - `sql_comprehensive_test.go` (209 lines)
 - `sql_additional_coverage_test.go` (135 lines)
 - `sql_coverage_boost_test.go` (123 lines)
@@ -88,6 +99,7 @@ Remaining tasks list:
 - `sql_schema_shutdown_test.go` (93 lines)
 
 **Why Not Complete**:
+
 - PostgreSQL-specific code requires real database integration
 - Transaction error handling needs sophisticated test setup
 - Migration edge cases not fully tested
@@ -101,6 +113,7 @@ Remaining tasks list:
 ### ❌ TERTIARY GOAL: Additional Packages (NOT STARTED)
 
 **15 packages identified**:
+
 - internal/server/barrier/intermediatekeysservice
 - internal/server/barrier/contentkeysservice
 - internal/server/application
@@ -167,6 +180,7 @@ Remaining tasks list:
 **Problem**: Treating git commits as milestones/stopping points
 
 **Correct Pattern**:
+
 1. Identify next test/task
 2. **Immediately** create/modify files (no announcement)
 3. Run tests with `runTests` tool
@@ -175,11 +189,13 @@ Remaining tasks list:
 6. Repeat until ALL tasks complete
 
 **Token Budget Awareness**:
+
 - Work until 950k tokens used (95% of 1M budget)
 - Only 50k tokens (5% of budget) remaining
 - User directive: "NEVER STOP DUE TO TIME OR TOKENS until 95% utilization"
 
 **Speed Optimization**:
+
 - Use `git commit --no-verify` to skip pre-commit hooks (faster iterations)
 - Use `runTests` tool exclusively (NEVER `go test` - it can hang)
 - Batch related file operations when possible
@@ -226,6 +242,7 @@ Remaining tasks list:
 ### Priority 1: Complete Database Coverage
 
 **internal/server/repository/sqlrepository** (need +29.3% coverage):
+
 - [ ] Add PostgreSQL-specific tests (requires real DB container)
 - [ ] Test migration failure scenarios
 - [ ] Test transaction rollback paths
@@ -234,6 +251,7 @@ Remaining tasks list:
 - [ ] Document in `docs/DB-PERF-kms-sql.md`
 
 **internal/identity/repository** (not started):
+
 - [ ] Add comprehensive GORM repository tests
 - [ ] Test SQLite WAL mode concurrency
 - [ ] Test transaction context propagation
@@ -333,6 +351,7 @@ This coverage campaign was part of a larger quality improvement effort:
 | Other Packages | 15 | Unknown | ❌ Not Started |
 
 ### Documentation Added
+
 - **Planning**: 2,059 lines (refactoring plan + analysis)
 - **Tracking**: 621 lines (completed + prompt + lessons)
 - **Completion**: Summaries and READMEs

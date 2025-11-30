@@ -43,11 +43,13 @@ Successfully migrated from golangci-lint v1 to v2.6.2 with comprehensive testing
 ### Enabled Linters (22)
 
 **Auto-fixable**:
+
 - gofmt, gofumpt, goimports
 - wsl (wsl_v5 config), godot, goconst
 - importas, copyloopvar, testpackage, revive
 
 **Manual Review**:
+
 - errcheck, gosimple, govet, ineffassign, staticcheck, unused
 - gosec, noctx, wrapcheck, thelper, tparallel
 - gomodguard, prealloc, bodyclose, errorlint, stylecheck
@@ -62,6 +64,7 @@ Successfully migrated from golangci-lint v1 to v2.6.2 with comprehensive testing
 ### Custom Solutions
 
 **Domain Isolation** (`go-check-identity-imports`):
+
 - Blocks 9 KMS infrastructure packages from identity module
 - File: `internal/cmd/cicd/cicd_check_identity_imports.go`
 - Integration: Pre-commit hook (cicd-checks-internal)
@@ -166,6 +169,7 @@ golangci-lint run --timeout=10m
 **Location**: `docs/golangci/archive/`
 
 **Files**:
+
 - migrate-v2-todos.md (task tracking)
 - migrate-v2-summary.md (comprehensive summary)
 - migrate-v2-problems.md (identified issues)
@@ -176,6 +180,7 @@ golangci-lint run --timeout=10m
 - README.md (archive index and reference)
 
 **Deleted**:
+
 - `.golangci.yml.backup` (v1 config - preserved in git history)
 
 ---
@@ -215,9 +220,9 @@ golangci-lint run --timeout=10m
 
 ### External Resources
 
-- **golangci-lint v2 docs**: https://golangci-lint.run/
-- **Migration guide**: https://golangci-lint.run/usage/migration/
-- **v2 API reference**: https://golangci-lint.run/usage/configuration/
+- **golangci-lint v2 docs**: <https://golangci-lint.run/>
+- **Migration guide**: <https://golangci-lint.run/usage/migration/>
+- **v2 API reference**: <https://golangci-lint.run/usage/configuration/>
 
 ---
 

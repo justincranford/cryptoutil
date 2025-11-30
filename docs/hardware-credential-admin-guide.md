@@ -164,6 +164,7 @@ hardware-cred inventory > hardware-inventory-$(date +%Y%m%d).txt
 ```
 
 **Inventory Report Contents**:
+
 - Total credentials by type (smart_card, security_key, passkey)
 - Credentials by user
 - Enrollment dates and last usage timestamps
@@ -217,6 +218,7 @@ grep "BREAK_GLASS_RECOVERY" /var/log/identity/audit.log | grep <USER_UUID>
 **Goal**: Troubleshoot device not responding during authentication
 
 **Symptoms**:
+
 - User reports "Device unresponsive" error
 - Authentication times out (30+ seconds)
 - Device not detected by system
@@ -260,6 +262,7 @@ tail -f /var/log/identity/hardware-auth.log | grep ERROR
 **Goal**: Recover administrator access when all hardware credentials fail
 
 **Prerequisites**:
+
 - Offline emergency access account (password-based)
 - Physical access to server or secure console
 
@@ -323,6 +326,7 @@ ykman piv change-pin
 ```
 
 **Security Considerations**:
+
 - PIN resets erase all stored credentials
 - User must re-enroll device after PIN reset
 - Audit log must record PIN reset events
@@ -330,6 +334,7 @@ ykman piv change-pin
 ### PIN Policy Configuration
 
 **Best Practices**:
+
 - Minimum PIN length: 8 characters
 - Maximum retry attempts: 3
 - PIN complexity: Require alphanumeric + special characters
@@ -376,6 +381,7 @@ ykman piv change-pin
 **Cause**: User physically removed device before authentication completed
 
 **Resolution**:
+
 - Educate user to leave device inserted until authentication success/failure message appears
 - Increase authentication timeout if device requires extended processing time
 
@@ -386,6 +392,7 @@ ykman piv change-pin
 **Cause**: User entered incorrect PIN 3+ times
 
 **Resolution**:
+
 1. Reset device PIN (see PIN Reset Procedures above)
 2. Re-enroll device after PIN reset
 3. Provide user training on PIN management
@@ -397,6 +404,7 @@ ykman piv change-pin
 **Cause**: Device locked due to security policy (e.g., too many failed PIN attempts)
 
 **Resolution**:
+
 - Smart cards: Use PUK (PIN Unblocking Key) to unlock
 - FIDO keys: Perform factory reset (erases credentials)
 
@@ -407,8 +415,10 @@ ykman piv change-pin
 **Cause**: Device not responding within configured timeout (default 30s)
 
 **Resolution**:
+
 1. Check device connectivity (USB connection, smart card reader)
 2. Restart smart card reader service:
+
    ```bash
    # Linux
    systemctl restart pcscd
@@ -416,6 +426,7 @@ ykman piv change-pin
    # Windows
    Restart-Service -Name "Smart Card"
    ```
+
 3. Increase timeout in configuration if device legitimately requires longer processing
 
 ---
@@ -463,12 +474,14 @@ grep "CREDENTIAL_ENROLLED" /var/log/identity/audit.log | \
 ### Required Audit Events
 
 **Lifecycle Events**:
+
 - `CREDENTIAL_ENROLLED`: User enrolls new hardware credential
 - `CREDENTIAL_RENEWED`: User rotates credential keys
 - `CREDENTIAL_REVOKED`: Administrator or user revokes credential
 - `CREDENTIAL_USAGE`: User authenticates with hardware credential (captured by authentication log)
 
 **Break-Glass Events**:
+
 - `BREAK_GLASS_LOGIN`: Administrator uses emergency access account
 - `BREAK_GLASS_RECOVERY`: User recovers access without hardware credential
 - `PIN_RESET`: Device PIN reset performed
@@ -486,6 +499,7 @@ grep -E "CREDENTIAL_|BREAK_GLASS_|PIN_RESET" \
 ```
 
 **Required Retention**:
+
 - Audit logs: 7 years (regulatory requirement for financial institutions)
 - Credential metadata: Duration of user account lifecycle + 1 year
 

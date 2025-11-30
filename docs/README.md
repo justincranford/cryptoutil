@@ -7,6 +7,7 @@
 ## Key Architecture Components
 
 ### 1. **Core Design Philosophy**
+
 - **FIPS 140-3 Compliance**: Only uses NIST-approved algorithms (RSA ≥2048, AES ≥128, NIST curves, EdDSA)
 - **Defense in Depth**: Multi-layered security with barrier system, unsealing mechanisms, and encrypted key storage
 - **API-First Design**: OpenAPI-driven development with automatic code generation
@@ -17,17 +18,20 @@
 The system implements a sophisticated multi-tier key hierarchy:
 
 **Barrier System (Vault-like)**:
+
 - **Unseal Keys**: Root-level keys for system initialization
 - **Root Keys**: Master keys encrypted by unseal keys
 - **Intermediate Keys**: Secondary encryption layer
 - **Content Keys**: Material key encryption keys
 
 **Key Types Supported**:
+
 - **Elastic Keys**: Logical key containers with metadata and policies
 - **Material Keys**: Actual cryptographic keys (versioned within Elastic Keys)
 - **Algorithm Support**: RSA (2048-4096), ECDSA/ECDH (P-256/384/521), EdDSA (Ed25519), AES (128/192/256), HMAC
 
 ### 3. **JWE/JWS Implementation**
+
 - Full **JSON Web Encryption** and **JSON Web Signature** support
 - Comprehensive algorithm combinations (75+ supported)
 - Key wrapping vs. direct encryption modes
@@ -36,11 +40,13 @@ The system implements a sophisticated multi-tier key hierarchy:
 ### 4. **Performance & Scalability**
 
 **Key Generation Pools**:
+
 - Pre-generated key pools for different algorithms
 - Concurrent key generation with configurable pool sizes
 - Optimized for high-throughput operations
 
 **Database Support**:
+
 - PostgreSQL for production
 - SQLite for development/testing
 - GORM ORM with migration support
@@ -49,12 +55,14 @@ The system implements a sophisticated multi-tier key hierarchy:
 ### 5. **Security Features**
 
 **Multi-Layered Network Security**:
+
 - IP allowlisting (individual IPs and CIDR blocks)
 - Per-IP rate limiting with configurable thresholds
 - DDoS protection through request throttling
 - Automatic blocking of excessive requests
 
 **Browser Security Stack**:
+
 - CORS configuration for cross-origin resource sharing
 - CSRF protection with secure token handling
 - Content Security Policy (CSP) for XSS prevention
@@ -62,12 +70,14 @@ The system implements a sophisticated multi-tier key hierarchy:
 - Sophisticated Swagger UI integration with automatic CSRF token injection
 
 **Transport & Application Security**:
+
 - TLS 1.3 with auto-generated certificates for development
 - Certificate validation and management
 - Secure cookie handling with HttpOnly and Secure flags
 - Request/response validation middleware
 
 **Operational Security**:
+
 - Multiple unseal modes (simple keys, shared secrets, system fingerprinting)
 - M-of-N secret sharing for high availability
 - Encrypted storage of all sensitive material at rest
@@ -78,6 +88,7 @@ The system implements a sophisticated multi-tier key hierarchy:
 #### Security Architecture Detail
 
 **Multi-Layer Security Model**:
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Network Security                         │
@@ -120,6 +131,7 @@ The system implements a sophisticated multi-tier key hierarchy:
 ```
 
 **Security Configuration Examples**:
+
 ```yaml
 # Network Security
 allowed_ips: ["127.0.0.1", "::1", "192.168.1.100"]
@@ -145,6 +157,7 @@ tls_public_ip_addresses: ["192.168.1.100"]
 ```
 
 **Security Headers Applied**:
+
 ```http
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
@@ -156,12 +169,14 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 ```
 
 **Multi-Layered Network Security**:
+
 - IP allowlisting (individual IPs and CIDR blocks)
 - Per-IP rate limiting with configurable thresholds
 - DDoS protection through request throttling
 - Automatic blocking of excessive requests
 
 **Browser Security Stack**:
+
 - CORS configuration for cross-origin resource sharing
 - CSRF protection with secure token handling
 - Content Security Policy (CSP) for XSS prevention
@@ -169,6 +184,7 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 - Sophisticated Swagger UI integration with automatic CSRF token injection
 
 **Operational Security**:
+
 - Multiple unseal modes (simple keys, shared secrets, system fingerprinting)
 - M-of-N secret sharing for high availability
 - Encrypted storage of all sensitive material at rest
@@ -179,6 +195,7 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 ### 6. **Observability & Monitoring**
 
 **OpenTelemetry Integration**:
+
 - Distributed tracing with correlation across API contexts
 - Metrics collection (request rates, latencies, error rates)
 - Structured logging with slog
@@ -186,6 +203,7 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 - Prometheus-compatible metrics
 
 **Health Checks & Management**:
+
 - Kubernetes-ready health endpoints (`/livez`, `/readyz`)
 - Private management interface (port 9090)
 - Graceful shutdown handling with proper connection draining
@@ -194,11 +212,13 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 ### 7. **API Design & Context Architecture**
 
 **Dual-Context API Architecture**:
+
 - **Browser Context** (`/browser/api/v1/*`): Full browser security (CORS, CSRF, CSP)
 - **Service Context** (`/service/api/v1/*`): Streamlined for service-to-service
 - **Management Interface**: Private health checks and administrative operations
 
 **OpenAPI-First Development**:
+
 - Comprehensive schemas for all operations (Elastic Keys, Material Keys, Crypto Operations)
 - Auto-generated client/server code with oapi-codegen
 - Built-in Swagger UI with sophisticated CSRF token handling
@@ -207,12 +227,14 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 ### 8. **Development & Testing**
 
 **Code Quality**:
+
 - Comprehensive test coverage
 - Test containers for integration testing
 - Proper error handling and validation
 - Structured configuration management
 
 **Security Testing Strategy**:
+
 - **Multi-Tool Approach**: Comprehensive security scanning with Staticcheck, govulncheck, Trivy, and Docker Scout
 - **Local Development Integration**: Cross-platform security scan scripts (Windows PowerShell and Linux/macOS Bash)
 - **CI/CD Security Pipeline**: Automated security scanning with SARIF reports and artifact generation
@@ -248,11 +270,13 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2 (por
 #### Manual Nuclei Scan Commands
 
 **Service Configuration:**
+
 - **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
 - **cryptoutil-postgres-1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
 - **cryptoutil-postgres-2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
 
 **Basic Security Scans:**
+
 ```sh
 # Quick scan - Info and Low severity issues only (fast, ~5-10 seconds)
 nuclei -target https://localhost:8080/ -severity info,low
@@ -271,6 +295,7 @@ nuclei -target https://localhost:8082/ -severity info,low,medium,high,critical
 ```
 
 **Targeted Vulnerability Scans:**
+
 ```sh
 # CVE scanning (recent and historical vulnerabilities)
 nuclei -target https://localhost:8080/ -tags cves -severity high,critical
@@ -289,6 +314,7 @@ nuclei -target https://localhost:8080/ -tags default-logins
 ```
 
 **Performance-Optimized Scans:**
+
 ```sh
 # High-performance scanning (adjust concurrency and rate limiting as needed)
 nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
@@ -298,6 +324,7 @@ nuclei -target https://localhost:8080/ -c 10 -rl 25 -severity medium,high,critic
 ```
 
 **Batch Scanning Script (PowerShell):**
+
 ```powershell
 # Scan all three cryptoutil instances
 $targets = @(
@@ -315,6 +342,7 @@ foreach ($target in $targets) {
 ```
 
 **Batch Scanning Script (Bash):**
+
 ```bash
 # Scan all three cryptoutil instances
 targets=(
@@ -334,6 +362,7 @@ done
 #### Nuclei Configuration and Troubleshooting
 
 **Template Management:**
+
 ```sh
 # Update nuclei templates to latest version
 nuclei -update-templates
@@ -352,6 +381,7 @@ nuclei -tl | findstr http  # Windows PowerShell
 **Common Issues and Solutions:**
 
 **Templates not found:**
+
 ```sh
 # Force template update
 nuclei -update-templates
@@ -362,6 +392,7 @@ ls ~/nuclei-templates                     # Linux/macOS
 ```
 
 **Services not responding:**
+
 ```sh
 # Check service health
 curl -k https://localhost:8080/ui/swagger/doc.json
@@ -375,6 +406,7 @@ docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite
 ```
 
 **Clean restart:**
+
 ```sh
 # Complete cleanup and restart
 cd deployments/compose
@@ -389,21 +421,25 @@ curl -k https://localhost:8080/ui/swagger/doc.json
 #### Interpreting Scan Results
 
 **Expected Results:**
+
 - **✅ "No results found"**: Indicates no vulnerabilities detected - good security posture
 - **⚠️ Vulnerabilities found**: Review findings and address security issues
 - **🔄 Scan performance**: Typically 5-60 seconds per service depending on scan profile
 
 **Common False Positives to Ignore:**
+
 - Some generic web server detections that don't apply to cryptoutil's security model
 - Default credential checks (cryptoutil uses proper authentication)
 - Generic misconfiguration checks that don't apply to the custom security implementation
 
 **Security Validation:**
+
 - Regular nuclei scanning helps validate the effectiveness of security controls
 - Compare scan results across different instances (SQLite vs PostgreSQL)
 - Use findings to improve security configurations and threat models
 
 **Build & Deployment**:
+
 - Multi-stage Docker builds
 - Docker Compose for local development
 - Production-ready container images
@@ -412,6 +448,7 @@ curl -k https://localhost:8080/ui/swagger/doc.json
 ## Recent Enhancements (September 2025)
 
 ### Advanced Security Architecture
+
 - **Dual API Context Design**: Separate browser and service API paths with context-appropriate middleware
 - **Enhanced CSRF Protection**: Sophisticated token handling with Swagger UI integration
 - **Content Security Policy**: Comprehensive CSP implementation with development/production modes
@@ -419,6 +456,7 @@ curl -k https://localhost:8080/ui/swagger/doc.json
 - **Rate Limiting**: Per-IP throttling with configurable thresholds and logging
 
 ### Production-Ready Features
+
 - **Container Orchestration**: Complete Docker Compose setup with PostgreSQL and secret management
 - **Health Monitoring**: Kubernetes-ready health endpoints with proper liveness/readiness probes
 - **Configuration Management**: Hierarchical YAML configuration with CLI parameter overrides
@@ -452,6 +490,7 @@ curl -k https://localhost:8080/ui/swagger/doc.json
 ## Use Cases
 
 This system is well-suited for:
+
 - **Microservices Security**: Providing cryptographic services to distributed applications
 - **Data Protection**: Encrypting sensitive data at rest and in transit
 - **Digital Signatures**: Document signing and verification workflows
@@ -539,17 +578,20 @@ OTEL Collector self-metrics → Prometheus scraping (8888)
 ### Security Architecture
 
 **Docker Secrets (Best Practice Implementation):**
+
 - Database URLs: `cryptoutil_database_url.secret`
 - Unseal Keys: 5-of-5 Shamir secret shares
 - No environment variables for sensitive data
 - Secrets mounted to `/run/secrets/` in containers
 
 **Network Isolation:**
+
 - All services communicate via `cryptoutil-network` bridge
 - No direct host network exposure except mapped ports
 - Service-to-service DNS resolution
 
 **Volume Management:**
+
 - `postgres_data`: Persistent PostgreSQL storage
 - `grafana_data`: Persistent Grafana configuration and dashboards
 - Named volumes for data persistence across restarts

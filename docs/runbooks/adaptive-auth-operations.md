@@ -261,6 +261,7 @@ kubectl logs -n identity deployment/identity-idp | grep "user_id: USER123" | tai
 **Step 2: Analyze Risk Factors**
 
 Example log entry:
+
 ```json
 {
   "timestamp": "2025-01-28T14:30:00Z",

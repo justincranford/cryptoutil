@@ -26,24 +26,28 @@ The pre-commit hooks pipeline is designed with a **fail-fast, progressive valida
 The pipeline uses a **three-tier approach** to balance speed and thoroughness:
 
 **Tier 1: Pre-commit (Fast & Iterative)**
+
 - **Purpose**: Catch common issues quickly during development
 - **Target Time**: 8-12 seconds for typical changes
 - **Approach**: Incremental validation of changed files only
 - **Benefits**: Fast feedback loop, minimal interruption to flow state
 
 **Tier 2: Pre-push (Comprehensive)**
+
 - **Purpose**: Full validation before sharing code with team
 - **Target Time**: 45-60 seconds
 - **Approach**: Complete codebase analysis and build verification
 - **Benefits**: Ensures CI/CD will succeed, catches integration issues
 
 **Tier 3: Manual (As-needed)**
+
 - **Purpose**: Expensive maintenance tasks run on-demand
 - **Target Time**: Varies (2-5 minutes)
 - **Approach**: Network-dependent operations (dependency updates, hook updates)
 - **Benefits**: Eliminates unnecessary network calls, run on your schedule
 
 This staged approach provides optimal developer experience:
+
 - **Rapid iteration** during active development (pre-commit)
 - **Confidence before pushing** to shared branches (pre-push)
 - **Flexible maintenance** scheduling (manual)
@@ -65,21 +69,25 @@ This staged approach provides optimal developer experience:
 The hook pipeline is optimized for both speed and thoroughness through a strategic pre-commit vs pre-push split:
 
 **Pre-commit (Fast - ~8-12 seconds for incremental changes)**:
+
 - Incremental golangci-lint with `--new-from-rev=HEAD~1` (only checks changed files)
 - Quick file checks and formatting
 - Fast custom checks
 - Spell checking with cache
 
 **Pre-push (Thorough - ~45-60 seconds)**:
+
 - Full golangci-lint validation (all files)
 - Go build verification
 - GitHub workflow linting (when workflows change)
 
 **Manual (Run weekly or as-needed)**:
+
 - Pre-commit hook version updates: `pre-commit run autoupdate-all-hooks --hook-stage manual`
 - Go dependency updates: `pre-commit run go-update-direct-dependencies --hook-stage manual`
 
 This approach provides:
+
 - **~70% faster development workflow** for typical commits
 - **Full validation before pushing** to ensure CI/CD success
 - **Flexible scheduling** for expensive maintenance tasks
@@ -105,18 +113,21 @@ This approach provides:
 **If pre-commit is slow (>15 seconds for small changes)**:
 
 1. **Check if running on all files**:
+
    ```bash
    # Should only show changed files
    git diff --name-only HEAD~1
    ```
 
 2. **Verify incremental mode is working**:
+
    ```bash
    # Should see --new-from-rev in output
    pre-commit run --verbose | grep golangci-lint
    ```
 
 3. **Clear pre-commit cache**:
+
    ```bash
    pre-commit clean
    pre-commit install --install-hooks
@@ -125,6 +136,7 @@ This approach provides:
 **If pre-push is very slow (>2 minutes)**:
 
 1. **Run golangci-lint directly to identify slow linters**:
+
    ```bash
    golangci-lint run --timeout=30m --verbose
    ```
@@ -132,6 +144,7 @@ This approach provides:
 2. **Check for large generated files** that should be excluded
 
 3. **Verify build cache is working**:
+
    ```bash
    go clean -cache
    go build ./...  # Rebuild cache
@@ -172,6 +185,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Fast, universal validation of file formatting and basic syntax.
 
 **Tools Included**:
+
 - `end-of-file-fixer`: Ensures files end with newline
 - `trailing-whitespace`: Removes trailing whitespace
 - `fix-byte-order-marker`: Removes UTF-8 BOM
@@ -201,6 +215,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Cleans up Go module dependencies by removing unused modules and adding missing ones.
 
 **Configuration**:
+
 ```yaml
 - id: go-mod-tidy
   name: go mod tidy
@@ -212,6 +227,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Parameters**:
+
 - `files: go\.mod$`: Only runs when go.mod changes
 - `pass_filenames: false`: Operates on entire module
 
@@ -226,6 +242,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Version**: Custom cicd utility (internal/cmd/cicd)
 
 **Configuration**:
+
 ```yaml
 - id: go-fix-all
   name: Auto-fix Go issues (staticcheck, copyloopvar, thelper)
@@ -238,16 +255,19 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Commands Executed**:
+
 1. **go-fix-staticcheck-error-strings**: Fixes ST1005 violations (lowercase error strings, preserves acronyms)
 2. **go-fix-copyloopvar**: Fixes loop variable capture issues (for Go <1.25, no-op for Go ≥1.25)
 3. **go-fix-thelper**: Adds missing `t.Helper()` calls to test helper functions
 
 **Key Parameters**:
+
 - `files: '\.go$'`: Only runs when Go files change
 - `pass_filenames: false`: Processes all Go files matching filter
 - `stages: [pre-commit]`: Runs before golangci-lint for maximum effectiveness
 
 **Behavior**:
+
 - Returns error when fixes are applied (allows review before committing)
 - Skips generated files (`_gen.go`, `/vendor/`, `/api/`)
 - Safe to run multiple times (idempotent)
@@ -263,6 +283,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Version**: v2.6.2 (migrated November 2025)
 
 **Configuration**:
+
 ```yaml
 - id: golangci-lint
   name: golangci-lint (auto-fix + validation)
@@ -274,11 +295,13 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Parameters**:
+
 - `--fix`: Automatically fixes all auto-fixable issues (formatting, imports, whitespace, etc.)
 - `--timeout=10m`: Prevents hanging on complex codebases
 - `stages: [pre-commit]`: Runs on commit (not just push)
 
 **Auto-Fixable Linters** (enabled via --fix):
+
 - `gofmt`: Go code formatting
 - `gofumpt`: Stricter Go formatting with extra rules (replaces standalone gofumpt -extra -w)
 - `goimports`: Import organization and formatting (replaces standalone goimports -w)
@@ -291,18 +314,21 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - `revive`: Fixes various style and code quality issues (subset of rules)
 
 **v2 Built-in Formatters**:
+
 - **gofumpt** and **goimports** are built into golangci-lint v2
 - No separate installation required
 - Configuration files (`.gofumpt.toml`) still respected
 - Both run automatically with `--fix` flag
 
 **v2 Configuration Changes**:
+
 - **wsl**: Configuration key renamed to `wsl_v5` (linter name unchanged)
 - **Removed settings**: `wsl.force-err-cuddling`, `misspell.ignore-words`, `wrapcheck.ignoreSigs`
 - **Depguard**: File-scoped rules removed; use custom cicd checks instead
 - See `.github/instructions/01-06.linting.instructions.md` for complete v2 migration details
 
 **Integration**: Uses [../.golangci.yml](../.golangci.yml) for detailed configuration including:
+
 - Enabled/disabled linters (22 enabled in v2)
 - Custom settings per linter (gofumpt extra-rules, module-path)
 - Exclusion rules for generated code
@@ -317,6 +343,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Verifies that Go code compiles successfully.
 
 **Configuration**:
+
 ```yaml
 - id: go-build
   name: go build
@@ -327,6 +354,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Parameters**:
+
 - `./...`: Builds all packages recursively
 - `pass_filenames: false`: Operates on entire project
 
@@ -339,6 +367,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Enforce project-specific patterns and validations across multiple domains.
 
 **Configuration**:
+
 ```yaml
 - id: go-check-circular-package-dependencies
   name: Check for circular package dependencies
@@ -370,10 +399,12 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Parameters**:
+
 - All commands run on every commit (no file restrictions)
 - Custom scripts: [../cmd/cicd/main.go](../cmd/cicd/main.go) (wrapper), [../internal/cmd/cicd/cicd.go](../internal/cmd/cicd/cicd.go) (implementation)
 
 **Enforced Validations**:
+
 - **go-check-circular-package-dependencies**: Prevents circular import dependencies
 - **github-workflow-lint**: Validates GitHub Actions workflow naming and version conventions
 - **go-enforce-any**: Applies strict Go code formatting (superset of gofmt)
@@ -386,6 +417,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Lints GitHub Actions workflow files for syntax and best practices.
 
 **Configuration**:
+
 ```yaml
 - repo: https://github.com/rhysd/actionlint
   rev: v1.7.8
@@ -394,6 +426,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Features**:
+
 - Validates workflow syntax
 - Checks for deprecated features
 - Ensures security best practices
@@ -406,6 +439,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Lints Dockerfiles for best practices and security issues.
 
 **Configuration**:
+
 ```yaml
 - repo: https://github.com/hadolint/hadolint
   rev: v2.14.0
@@ -414,6 +448,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Features**:
+
 - Dockerfile best practices
 - Security vulnerability detection
 - Performance optimization suggestions
@@ -426,6 +461,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Lints shell scripts for common issues and best practices.
 
 **Configuration**:
+
 ```yaml
 - repo: https://github.com/koalaman/shellcheck-precommit
   rev: v0.10.0
@@ -436,6 +472,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Parameters**:
+
 - `--severity=warning`: Only show warnings and above
 - `--exclude=SC1111`: Exclude specific rule (SC1111 is about dynamic paths)
 
@@ -446,6 +483,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Security linting for Python code in scripts and utilities.
 
 **Configuration**:
+
 ```yaml
 - repo: https://github.com/PyCQA/bandit
   rev: 1.8.0
@@ -456,6 +494,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Features**:
+
 - Detects common security issues in Python code
 - Configurable severity levels
 - Integration with safety vulnerability database
@@ -467,6 +506,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Checks spelling in code, comments, and documentation files.
 
 **Configuration**:
+
 ```yaml
 - repo: https://github.com/streetsidesoftware/cspell-precommit
   rev: v4.0.0
@@ -477,6 +517,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Features**:
+
 - Validates spelling in source code and documentation
 - Uses custom dictionaries for technical terms
 - Configurable via .vscode/cspell.json
@@ -488,6 +529,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Purpose**: Enforces conventional commit message formatting.
 
 **Configuration**:
+
 ```yaml
 - repo: https://github.com/commitizen-tools/commitizen
   rev: v3.29.1
@@ -498,6 +540,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ```
 
 **Key Features**:
+
 - Validates commit message format
 - Supports conventional commits specification
 - Configurable commit types and scopes
@@ -523,6 +566,7 @@ To modify hook ordering or configuration:
 ### Troubleshooting
 
 **Common Issues**:
+
 - **Hook failures**: Run `pre-commit run --all-files` to identify issues
 - **Cache issues**: Clear cache with `pre-commit clean`
 - **Version conflicts**: Update hooks with `pre-commit autoupdate`
@@ -532,6 +576,7 @@ To modify hook ordering or configuration:
 ## Integration with Development Workflow
 
 This pipeline integrates with:
+
 - **VS Code**: Settings in [../.vscode/settings.json](../.vscode/settings.json)
 - **CI/CD**: GitHub Actions workflows in [../.github/workflows/](../.github/workflows/)
 - **Scripts**: Utility scripts in [../scripts/](../scripts/)

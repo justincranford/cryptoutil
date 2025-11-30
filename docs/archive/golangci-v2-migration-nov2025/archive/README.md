@@ -60,6 +60,7 @@ git show <commit-hash>:.golangci.yml.backup
 **Domain Isolation Enforcement**: v2 removed file-scoped depguard rules
 
 **Solution**: Custom cicd check (`go-check-identity-imports`)
+
 - File: `internal/cmd/cicd/cicd_check_identity_imports.go`
 - Integration: Pre-commit hook (cicd-checks-internal)
 - Purpose: Blocks identity module from importing KMS infrastructure packages
@@ -120,7 +121,7 @@ git show <commit-hash>:.golangci.yml.backup
 
 ## References
 
-- **v2 Documentation**: https://golangci-lint.run/
+- **v2 Documentation**: <https://golangci-lint.run/>
 - **Migration Guide**: See archived files in this directory
 - **Instruction Files**: `.github/instructions/01-06.linting.instructions.md`
 - **Pre-commit Docs**: `docs/pre-commit-hooks.md`

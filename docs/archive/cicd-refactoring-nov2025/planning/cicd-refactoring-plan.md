@@ -99,6 +99,7 @@ internal/cmd/cicd/
 ```
 
 **CRITICAL NAMING RULE**:
+
 - Command name: `go-enforce-any` (kebab-case)
 - Subdirectory name: `go_enforce_any` (snake_case - exact conversion of command name)
 
@@ -112,6 +113,7 @@ internal/cmd/cicd/
 4. **Two update commands share code**: `go-update-direct-dependencies` and `go-update-all-dependencies` need shared implementation
 
 **Impact**:
+
 - New subdirectory code is NOT being used
 - Categorized structure violates flat snake_case pattern
 - Test code in old root files still vulnerable to self-modification
@@ -252,53 +254,63 @@ GoFixStaticcheckErrorStringsFileExcludePatterns = []string{
 #### Commands with Potential Overlap
 
 **1. `go-enforce-any` (interface{} → any)**
+
 - **golangci-lint v2**: No built-in linter for this pattern
 - **Decision**: **KEEP** - Project-specific requirement, not covered by v2
 - **Justification**: Enforces Go 1.18+ type parameter syntax
 
 **2. `go-fix-staticcheck-error-strings` (ST1005 auto-fix)**
+
 - **golangci-lint v2**: staticcheck linter detects, but doesn't auto-fix ST1005
 - **Decision**: **KEEP** - Provides auto-fix capability v2 lacks
 - **Justification**: Saves manual editing, preserves acronyms
 
 **3. `go-fix-copyloopvar` (loop variable capture)**
+
 - **golangci-lint v2**: copyloopvar linter detects issues
 - **Go 1.22+**: Automatic loop variable capture makes this obsolete
 - **Decision**: **DEPRECATE for Go 1.25+** - No-op for current Go version
 - **Migration Path**: Keep for backwards compatibility, mark as deprecated
 
 **4. `go-fix-thelper` (missing t.Helper())**
+
 - **golangci-lint v2**: thelper linter detects, doesn't auto-fix
 - **Decision**: **KEEP** - Provides auto-fix capability v2 lacks
 - **Justification**: Common pattern in test code, saves manual editing
 
 **5. `go-enforce-test-patterns` (UUIDv7, testify)**
+
 - **golangci-lint v2**: No built-in support for these patterns
 - **Decision**: **KEEP** - Project-specific testing standards
 - **Justification**: Enforces test quality and consistency
 
 **6. `all-enforce-utf8` (UTF-8 encoding)**
+
 - **golangci-lint v2**: No encoding enforcement
 - **pre-commit hooks**: `fix-byte-order-marker` removes BOM, doesn't enforce UTF-8
 - **Decision**: **KEEP** - Critical for cross-platform compatibility
 - **Justification**: PowerShell UTF-16 LE breaks Docker secrets
 
 **7. `github-workflow-lint` (workflow validation)**
+
 - **golangci-lint v2**: Go-only, doesn't lint YAML
 - **pre-commit**: actionlint covers basic workflow syntax
 - **cicd check**: Adds version pinning, naming conventions
 - **Decision**: **KEEP** - Complements actionlint with project standards
 
 **8. `go-check-circular-package-dependencies`**
+
 - **golangci-lint v2**: No circular dependency detection
 - **Decision**: **KEEP** - Important architectural validation
 
 **9. `go-check-identity-imports`**
+
 - **golangci-lint v2**: depguard removed file-scoped rules in v2
 - **Decision**: **KEEP** - Replaces v2 missing functionality
 - **Justification**: Critical for domain isolation (identity vs KMS)
 
 **10. `go-update-direct-dependencies` / `go-update-all-dependencies`**
+
 - **golangci-lint v2**: No dependency update functionality
 - **Decision**: **KEEP** - Unique capability, no overlap
 
@@ -376,6 +388,7 @@ internal/cmd/cicd/
 ### File Size Targets
 
 **Large Files to Split** (>300 lines):
+
 - `cicd_enforce_test_patterns.go` → Split into multiple focused files
 - `cicd_go_fix_staticcheck.go` → Split validation, transformation, formatting
 - `cicd_update_deps.go` → Split API calls, parsing, analysis
@@ -646,9 +659,11 @@ go_update_all_dependencies/
 **Target**: `internal/cmd/cicd/go_check_circular_package_dependencies/`
 
 **Files to migrate**:
+
 - `cicd_check_circular_deps_test.go` → `go_check_circular_package_dependencies/circulardeps_test.go`
 
 **Actions**:
+
 1. Move file to flat subdirectory
 2. Update package declaration to `package go_check_circular_package_dependencies`
 3. Update imports if needed
@@ -661,9 +676,11 @@ go_update_all_dependencies/
 **Target**: `internal/cmd/cicd/go_check_identity_imports/`
 
 **Files to migrate**:
+
 - `cicd_check_identity_imports_test.go` → `go_check_identity_imports/identityimports_test.go`
 
 **Actions**:
+
 1. Move file to flat subdirectory
 2. Update package declaration to `package go_check_identity_imports`
 3. Update imports if needed
@@ -676,9 +693,11 @@ go_update_all_dependencies/
 **Target**: `internal/cmd/cicd/go_enforce_any/`
 
 **Files to migrate**:
+
 - `cicd_enforce_any_test.go` → `go_enforce_any/any_test.go`
 
 **Actions**:
+
 1. Move file to flat subdirectory
 2. Update package declaration to `package go_enforce_any`
 3. Update imports if needed
@@ -691,9 +710,11 @@ go_update_all_dependencies/
 **Target**: `internal/cmd/cicd/go_enforce_test_patterns/`
 
 **Files to migrate**:
+
 - `cicd_enforce_test_patterns_test.go` → `go_enforce_test_patterns/testpatterns_test.go`
 
 **Actions**:
+
 1. Move file to flat subdirectory
 2. Update package declaration to `package go_enforce_test_patterns`
 3. Update imports if needed
@@ -706,9 +727,11 @@ go_update_all_dependencies/
 **Target**: `internal/cmd/cicd/all_enforce_utf8/`
 
 **Files to migrate**:
+
 - `cicd_enforce_utf8_test.go` → `all_enforce_utf8/utf8_test.go`
 
 **Actions**:
+
 1. Move file to flat subdirectory
 2. Update package declaration to `package all_enforce_utf8`
 3. Update imports if needed
@@ -721,11 +744,13 @@ go_update_all_dependencies/
 **Targets**: Multiple flat subdirectories
 
 **Files to migrate**:
+
 - `cicd_go_fix_copyloopvar_test.go` → `go_fix_copyloopvar/copyloopvar_test.go`
 - `cicd_go_fix_staticcheck_test.go` → `go_fix_staticcheck_error_strings/staticcheck_test.go`
 - `cicd_go_fix_thelper_test.go` → `go_fix_thelper/thelper_test.go`
 
 **Actions for each file**:
+
 1. Move file to appropriate flat subdirectory
 2. Update package declaration to match subdirectory name
 3. Update imports if needed
@@ -738,11 +763,13 @@ go_update_all_dependencies/
 **Target**: `internal/cmd/cicd/go_update_direct_dependencies/` and `internal/cmd/cicd/go_update_all_dependencies/`
 
 **Files to migrate**:
+
 - `cicd_update_deps_test.go` → Split into:
   - `go_update_direct_dependencies/deps_test.go` (tests for UpdateDirect function)
   - `go_update_all_dependencies/deps_test.go` (tests for UpdateAll function)
 
 **Actions**:
+
 1. Analyze `cicd_update_deps_test.go` to identify which tests belong to which command
 2. Split tests appropriately
 3. Move/copy files to both flat subdirectories
@@ -758,12 +785,14 @@ go_update_all_dependencies/
 **Target**: `internal/cmd/cicd/github_workflow_lint/`
 
 **Files to migrate**:
+
 - `cicd_workflow_lint_test.go` → `github_workflow_lint/workflow_test.go`
 - `cicd_workflow_lint_checkfunc_test.go` → `github_workflow_lint/workflow_checkfunc_test.go`
 - `cicd_workflow_lint_integration_test.go` → `github_workflow_lint/workflow_integration_test.go`
 - `cicd_workflow_functions_test.go` → `github_workflow_lint/workflow_functions_test.go`
 
 **Actions**:
+
 1. Move all 4 test files to flat subdirectory
 2. Update package declarations to `package github_workflow_lint`
 3. Update imports if needed
@@ -776,16 +805,19 @@ go_update_all_dependencies/
 **Target**: Shared between `go_update_direct_dependencies/` and `go_update_all_dependencies/`
 
 **Files to migrate**:
+
 - `cicd_github_api_cache_test.go` → Shared test helper
 - `cicd_github_api_mock_test.go` → Shared test helper
 
 **Options**:
 
 **Option A**: Duplicate in both subdirectories (simpler, more isolated tests)
+
 - Copy to `go_update_direct_dependencies/github_cache_test.go` and `github_mock_test.go`
 - Copy to `go_update_all_dependencies/github_cache_test.go` and `github_mock_test.go`
 
 **Option B**: Create shared test package (more DRY, added complexity)
+
 - Create `internal/cmd/cicd/testutil/github_test_helpers.go`
 - Import from both update subdirectories
 
@@ -814,6 +846,7 @@ go_update_all_dependencies/
 - `cicd_github_api_mock_test.go`
 
 **Verification**:
+
 ```bash
 # Ensure all tests still pass
 go test ./internal/cmd/cicd/... -v
@@ -942,6 +975,7 @@ func Enforce(logger *common.Logger, allFiles []string) error {
 ```
 
 **Commands requiring updates** (12 total):
+
 1. `all_enforce_utf8/utf8.go` → use `AllEnforceUtf8FileExcludePatterns`
 2. `go_enforce_any/any.go` → use `GoEnforceAnyFileExcludePatterns`
 3. `go_enforce_test_patterns/testpatterns.go` → use `GoEnforceTestPatternsFileExcludePatterns`
@@ -1132,6 +1166,7 @@ go tool cover -html=test-output/coverage_cicd_refactored.out -o test-output/cove
 **Section**: `cicd Utility Organization and Self-Exclusion Patterns`
 
 **Verification checklist**:
+
 - ✅ Flat subdirectory structure documented
 - ✅ All 12 command-to-subdirectory mappings listed
 - ✅ Self-exclusion pattern implementation example provided
@@ -1232,6 +1267,7 @@ pre-commit run cicd-checks-internal --all-files
 ## Implementation Timeline
 
 ### Week 1: Foundation (Phases 1-2)
+
 - **Day 1-2**: Phase 1 - Flatten directory structure (12 subdirectories)
 - **Day 3**: Phase 2 - Update main dispatcher
 - **Day 4-5**: Buffer for issues, testing
@@ -1239,6 +1275,7 @@ pre-commit run cicd-checks-internal --all-files
 **Deliverable**: Flat subdirectory structure with working dispatcher
 
 ### Week 2: Migration & Testing (Phases 3-4)
+
 - **Day 1-2**: Phase 3 - Migrate remaining old root files
 - **Day 3**: Phase 4 - Migrate old root test files
 - **Day 4-5**: Verify all tests pass, fix any issues
@@ -1246,6 +1283,7 @@ pre-commit run cicd-checks-internal --all-files
 **Deliverable**: Complete file migration with passing tests
 
 ### Week 3: Self-Exclusion & Coverage (Phases 5-6)
+
 - **Day 1-2**: Phase 5 - Add self-exclusion patterns and tests
 - **Day 3-4**: Phase 6 - Test coverage enhancement
 - **Day 5**: Phase 7 - Update Copilot instructions
@@ -1253,6 +1291,7 @@ pre-commit run cicd-checks-internal --all-files
 **Deliverable**: 95%+ test coverage with self-exclusion protection
 
 ### Week 4: Re-integration (Phase 8)
+
 - **Day 1**: Phase 8 - Re-enable automation, testing
 - **Day 2-3**: Full integration testing, bug fixes
 - **Day 4**: Documentation cleanup
@@ -1265,6 +1304,7 @@ pre-commit run cicd-checks-internal --all-files
 ## Success Criteria
 
 ### Structural Goals (UPDATED for Flat Structure)
+
 - ✅ **12 flat snake_case subdirectories** created under `internal/cmd/cicd/`
 - ✅ **NO categorized subdirectories** (check/, enforce/, fix/, lint/, update/)
 - ✅ Each command in single dedicated subdirectory with snake_case naming
@@ -1272,6 +1312,7 @@ pre-commit run cicd-checks-internal --all-files
 - ✅ All old root `cicd_*.go` files deleted after migration
 
 ### Functional Goals
+
 - ✅ All 12 commands execute without errors
 - ✅ **Self-exclusion patterns implemented for ALL commands**
 - ✅ Commands do NOT modify their own subdirectories
@@ -1288,11 +1329,13 @@ pre-commit run cicd-checks-internal --all-files
 - ✅ No golangci-lint errors in cicd code
 
 ### Integration Goals
+
 - ✅ Pre-commit hooks re-enabled and working
 - ✅ CI/CD workflows re-enabled and passing
 - ✅ No self-modification detected in automation runs
 
 ### Documentation Goals
+
 - ✅ Copilot instructions updated with flat subdirectory pattern
 - ✅ Self-exclusion pattern documented with examples
 - ✅ Command-to-subdirectory mapping table maintained
@@ -1324,7 +1367,7 @@ pre-commit run cicd-checks-internal --all-files
 **For each command migration**:
 
 - [ ] Create flat snake_case subdirectory
-- [ ] Move production files (*.go excluding *_test.go)
+- [ ] Move production files (*.go excluding*_test.go)
 - [ ] Move test files (*_test.go)
 - [ ] Update package declarations
 - [ ] Update imports in moved files
@@ -1340,17 +1383,20 @@ pre-commit run cicd-checks-internal --all-files
 ### Appendix C: Testing Strategy
 
 **Unit Testing**:
+
 - Each command has dedicated test file(s) in its subdirectory
 - Table-driven tests for various input scenarios
 - Mock file systems for file operations
 - Self-exclusion tests for every command
 
 **Integration Testing**:
+
 - Main dispatcher routes to correct command implementations
 - Commands work with real file system operations
 - Pre-commit hook integration
 
 **Regression Testing**:
+
 - Commands produce same results before/after refactoring
 - No unintended file modifications
 - CLI interface backward compatible
@@ -1375,6 +1421,7 @@ pre-commit run cicd-checks-internal --all-files
 This refactoring plan provides a systematic approach to reorganizing the cicd utilities with a **flat snake_case subdirectory structure** that prevents self-modification through comprehensive self-exclusion patterns.
 
 **Key Changes from Original Plan**:
+
 - **FLAT subdirectory structure** instead of categorized (check/, enforce/, fix/, lint/, update/)
 - **Snake_case subdirectory naming** matching command names exactly
 - **12 independent subdirectories** for maximum isolation and clarity
@@ -1401,6 +1448,7 @@ This refactoring plan provides a systematic approach to reorganizing the cicd ut
   language: system
   pass_filenames: false
   args: [run, cmd/cicd/main.go, go-fix-all]
+
 ```
 
 **Test**: Run `pre-commit run --all-files`

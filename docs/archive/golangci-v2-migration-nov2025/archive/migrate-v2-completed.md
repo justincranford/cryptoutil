@@ -35,6 +35,7 @@ This document tracks completed migration steps and validation results.
 See `migrate-v2-summary.md` for comprehensive details.
 
 ### Removed v1 Properties
+
 - `run.skip-dirs`, `run.skip-files`, `run.build-cache`, `run.modules-download-mode`
 - `output.formats.text` structure, `output.sort-results`
 - Linters: `gosimple`, `stylecheck`, `gofmt`, `gofumpt`, `goimports`, `wsl` (merged/deprecated)
@@ -42,6 +43,7 @@ See `migrate-v2-summary.md` for comprehensive details.
 - Issues: `exclude-dirs`, `exclude-files`, `exclude-rules`, `exclude-generated`
 
 ### New/Changed v2 Properties
+
 - `output.formats` map structure, `output.sort-order`
 - `wsl_v5` replaces `wsl`
 - `depguard.rules` required
