@@ -6,6 +6,11 @@ run:
   issues-exit-code: 1
   tests: true
   concurrency: 0
+  exclude-dirs:
+    - test-output
+    - test-reports
+    - workflow-reports
+    - vendor
 
 output:
   formats:
