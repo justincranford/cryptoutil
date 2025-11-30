@@ -5,6 +5,7 @@
 This document defines the target directory structure for cryptoutil's multi-service repository architecture, migration paths from current structure, and import stability strategy during the transition.
 
 **Cross-references:**
+
 - [Service Groups Taxonomy](./service-groups.md) - Defines 43 service groups
 - [Dependency Analysis](./dependency-analysis.md) - Identifies coupling risks and migration phases
 
@@ -91,6 +92,7 @@ cryptoutil/
 **Status:** No migration needed - architecture already follows target blueprint
 
 **Validation:**
+
 - ✅ Identity imports only `internal/common/magic` (LOW coupling)
 - ✅ depguard + cicd checks enforce isolation
 - ✅ Repository structure matches target layout
@@ -117,6 +119,7 @@ Move KMS-coupled utilities from `internal/common/` to `internal/kms/`:
 | `internal/common/container/` | `internal/kms/container/` | KMS dependency injection |
 
 **Import updates:**
+
 ```go
 // Before
 import cryptoutilJose "cryptoutil/internal/common/crypto/jose"
@@ -139,6 +142,7 @@ Move reusable crypto from `internal/common/crypto/` to `pkg/crypto/`:
 | `internal/common/crypto/certificate/` | `pkg/crypto/certificate/` | X.509 operations (CA, KMS, Identity) |
 
 **Import updates:**
+
 ```go
 // Before
 import cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
@@ -150,6 +154,7 @@ import "cryptoutil/pkg/crypto/digests"
 ```
 
 **Why pkg/ promotion:**
+
 - CA service will need keygen, certificate, asn1
 - Identity may need digests for password hashing
 - These are general-purpose crypto primitives (not KMS-specific)
@@ -168,6 +173,7 @@ Consolidate KMS server code under `internal/kms/`:
 | `internal/client/` | `internal/kms/client/` | KMS Go client SDK |
 
 **Import updates:**
+
 ```go
 // Before
 import cryptoutilBarrier "cryptoutil/internal/server/barrier"
@@ -189,6 +195,7 @@ Reorganize OpenAPI generated code:
 | `api/server/` | `api/kms/server/` | KMS server stubs |
 
 **Import updates:**
+
 ```go
 // Before
 import cryptoutilOpenapiClient "cryptoutil/api/client"
@@ -210,6 +217,7 @@ import cryptoutilKmsModel "cryptoutil/api/kms/model"
 **Preparation steps:**
 
 1. **Directory scaffold:**
+
    ```
    internal/ca/
    ├── server/           # CA HTTP server
@@ -220,6 +228,7 @@ import cryptoutilKmsModel "cryptoutil/api/kms/model"
    ```
 
 2. **CLI scaffold:**
+
    ```
    cmd/ca/
    ├── main.go          # CA CLI entry point
@@ -230,6 +239,7 @@ import cryptoutilKmsModel "cryptoutil/api/kms/model"
    ```
 
 3. **API scaffold:**
+
    ```
    api/ca/
    ├── openapi_spec.yaml      # CA API specification
@@ -239,6 +249,7 @@ import cryptoutilKmsModel "cryptoutil/api/kms/model"
    ```
 
 **Import conventions:**
+
 ```go
 import cryptoutilCaServer "cryptoutil/internal/ca/server"
 import cryptoutilCaBusinesslogic "cryptoutil/internal/ca/businesslogic"
@@ -275,6 +286,7 @@ func NewBarrier(ctx context.Context, logger *slog.Logger) (*Barrier, error) {
 ```
 
 **Deprecation timeline:**
+
 - Week 1-2: Create new structure, add compatibility shims
 - Week 3-4: Update all internal imports to new paths
 - Week 5-6: Update tests, configs, documentation
@@ -301,6 +313,7 @@ linters-settings:
 ```
 
 **Migration validation:**
+
 - Run `golangci-lint run` after each package move
 - Use `go list -m all` to verify module consistency
 - Test full build: `go build ./...`
@@ -396,6 +409,7 @@ internal/common/         ✅ Minimal shared utilities
 **Applies to:** Code tightly coupled to one service group
 
 **Examples:**
+
 - KMS barrier unsealing → `internal/kms/businesslogic/barrier/`
 - Identity OAuth handlers → `internal/identity/authz/handler/`
 - CA certificate issuance → `internal/ca/businesslogic/issuance/`
@@ -409,6 +423,7 @@ internal/common/         ✅ Minimal shared utilities
 **Applies to:** Code usable across multiple service groups or external projects
 
 **Examples:**
+
 - Crypto key generation → `pkg/crypto/keygen/`
 - ASN.1 encoding → `pkg/crypto/asn1/`
 - X.509 certificate parsing → `pkg/crypto/certificate/`
@@ -422,6 +437,7 @@ internal/common/         ✅ Minimal shared utilities
 **Applies to:** Internal-only code used by 2+ service groups
 
 **Examples:**
+
 - Magic constants → `internal/common/magic/`
 - File utilities → `internal/common/util/files/`
 - Network utilities → `internal/common/util/network/`

@@ -5,6 +5,7 @@
 This document defines the import alias policy for the cryptoutil multi-service repository. It extends `.golangci.yml` importas rules to support the new service group structure defined in the blueprint.
 
 **Cross-references:**
+
 - [Service Groups Taxonomy](./service-groups.md) - Defines 43 service groups
 - [Dependency Analysis](./dependency-analysis.md) - Identifies coupling risks
 - [Group Directory Blueprint](./blueprint.md) - Defines target directory structure
@@ -20,6 +21,7 @@ This document defines the import alias policy for the cryptoutil multi-service r
 **Pattern:** `cryptoutil<ServiceGroup><Package>`
 
 **Examples:**
+
 ```go
 import cryptoutilKmsServer "cryptoutil/internal/kms/server"
 import cryptoutilKmsBarrier "cryptoutil/internal/kms/businesslogic/barrier"
@@ -211,6 +213,7 @@ importas:
 ```
 
 **Allows:**
+
 - Gradual code migration without breaking builds
 - CI/CD continues passing during transition
 - Test suite remains green throughout
@@ -291,6 +294,7 @@ func TestMigrationProgress(t *testing.T) {
 See `.golangci.yml` lines 153-326 for current importas configuration
 
 **Coverage:**
+
 - ✅ JOSE libraries (4 aliases)
 - ✅ Standard library (3 aliases)
 - ✅ Third-party (2 aliases)

@@ -61,6 +61,7 @@ internal/common/                        # STAYS (shared by KMS + identity)
 ### External Consumers
 
 **From `internal/cmd/cryptoutil/server.go`**:
+
 ```go
 import (
     cryptoutilConfig "cryptoutil/internal/common/config"
@@ -69,9 +70,11 @@ import (
 ```
 
 **From `api/server/openapi_gen_server.go`** (OpenAPI generated code):
+
 - Imports handler package for server interface implementation
 
 **From workflows**:
+
 - Path filters: `internal/server/**` in ci-quality.yml, ci-coverage.yml, ci-e2e.yml
 
 ### Shared Utilities Decision (KMS-Specific vs Shared)
@@ -232,6 +235,7 @@ find internal/kms -name "*.go" -type f -exec sed -i \
 ```
 
 **Decision on jose**:
+
 - **Option A**: Move to `internal/kms/crypto/jose/` (KMS-specific crypto)
 - **Option B**: Keep in `internal/common/crypto/jose/` (shared crypto utility)
 - **Recommendation**: **KEEP IN COMMON** (jose is general-purpose JWE/JWS, identity may use later)
@@ -259,6 +263,7 @@ find . -name "*.go" -type f -exec sed -i \
 ```
 
 **Files requiring manual review**:
+
 - `internal/cmd/cryptoutil/server.go` - imports server/application
 - `api/server/openapi_gen_server.go` - OpenAPI generated imports handler package
 - Workflow path filters
@@ -323,6 +328,7 @@ paths:
 ```
 
 **Workflows to update**:
+
 - `ci-quality.yml`
 - `ci-coverage.yml`
 - `ci-e2e.yml`
@@ -355,6 +361,7 @@ go generate ./...
 ```
 
 **Verify**:
+
 - Check generated import paths reference `cryptoutil/internal/kms/handler`
 
 ### Phase 7: VS Code Configuration
@@ -409,11 +416,13 @@ RUN go build -o /app/cryptoutil ./cmd/cryptoutil
 ## Project Structure
 
 ```
+
 internal/
 ├── kms/           # Key Management Service (previously server/)
 ├── identity/      # OAuth 2.1 / OIDC Identity Platform
 ├── ca/            # Certificate Authority (future)
 └── common/        # Shared utilities
+
 ```
 ```
 
@@ -442,6 +451,7 @@ go test ./... -coverprofile=test-output/coverage_kms.out
 ```
 
 **Validation checklist**:
+
 - [ ] All imports resolve (`go list -m all`)
 - [ ] All tests pass (`go test ./...`)
 - [ ] golangci-lint passes
@@ -524,6 +534,7 @@ go test ./... -coverprofile=test-output/coverage_kms.out
 ## Next Steps
 
 After KMS extraction:
+
 1. **Task 12**: CA structure preparation
 2. **Task 13-15**: CLI restructuring (kms, identity, ca commands)
 3. **Task 16-18**: Infrastructure updates (workflows, importas, telemetry)

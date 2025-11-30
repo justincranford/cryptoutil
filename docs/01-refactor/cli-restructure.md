@@ -23,6 +23,7 @@ cryptoutil
 ```
 
 **Issues**:
+
 - `server` is ambiguous (actually KMS server, not identity/CA)
 - No `kms` top-level command (inconsistent with service groups)
 - `identity` subcommands not implemented in main CLI
@@ -500,6 +501,7 @@ func deprecationWarning(oldCommand, newCommand string) {
 ```
 
 **Validation checklist**:
+
 - [ ] `cryptoutil kms server start` works (same as old `server start`)
 - [ ] `cryptoutil server start` shows deprecation warning but still works
 - [ ] `cryptoutil identity authz server start` shows placeholder message
@@ -562,6 +564,7 @@ cryptoutil server start --config configs/production/config.yml
 # NEW (recommended)
 cryptoutil kms server start --config configs/production/config.yml
 ```
+
 ```
 
 **Update docs/01-refactor/cli-strategy.md** with implementation details

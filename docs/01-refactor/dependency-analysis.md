@@ -11,12 +11,14 @@
 **Total Packages Analyzed**: 85 packages across 4 major domains (KMS, Identity, CICD, Shared)
 
 **Key Findings**:
+
 - ✅ **Identity domain isolation working well** - only imports `internal/common/magic` as intended
 - ⚠️ **KMS/Server domain highly coupled** - `internal/server/**` imports from common crypto, jose, telemetry
 - ⚠️ **Common utilities need extraction** - several utilities used across domains (crypto, pool, telemetry)
 - ✅ **CICD utilities properly isolated** - cicd commands import only common utilities, no cross-domain coupling
 
 **Coupling Risk Assessment**: MEDIUM
+
 - Identity → Common: LOW (only magic constants)
 - KMS → Common: HIGH (crypto, jose, telemetry, pool, config, container, util)
 - CICD → Common: LOW (magic, util/files)
@@ -45,6 +47,7 @@
 | `cmd/cryptoutil` | KMS CLI application | None | common/config, server/application |
 
 **Key Observations**:
+
 - Server packages heavily depend on `common/crypto/jose` for JWE/JWS operations
 - All layers use `common/telemetry` for observability (OTEL)
 - Barrier services form clear hierarchy: unseal → root → intermediate → content
@@ -83,6 +86,7 @@
 | `internal/identity/test/e2e` | E2E testing infrastructure | None | common/magic |
 
 **Key Observations**:
+
 - ✅ **Domain isolation enforced** - Identity ONLY imports `internal/common/magic` from common
 - ✅ **Self-contained crypto** - Uses stdlib crypto (bcrypt, SHA-256, HMAC) instead of common/crypto
 - ✅ **No KMS coupling** - Identity does NOT import server, client, or api packages
@@ -111,6 +115,7 @@
 | `internal/cmd/cicd/github_workflow_lint` | GitHub Actions workflow validation | None | cmd/cicd/common, cmd/cicd/go_update_direct_dependencies, common/magic |
 
 **Key Observations**:
+
 - ✅ **No cross-domain coupling** - CICD tools only import common utilities
 - ✅ **Self-exclusion pattern** - Commands exclude their own subdirectories from processing
 - Tools organized as flat snake_case subdirectories (NOT categorized)
@@ -146,6 +151,7 @@
 | `internal/common/util/thread` | Thread-safe utilities (sync helpers) | None | None |
 
 **Key Observations**:
+
 - ✅ **Shared foundation** - Used by KMS and CICD (NOT Identity, except magic)
 - `common/crypto/jose` is KMS-specific (should move to KMS domain)
 - `common/pool` is KMS-specific (should move to KMS domain)
@@ -169,18 +175,21 @@
 ### Coupling Risk Assessment
 
 #### Risk Level: LOW (Identity → Common)
+
 - **Import**: `internal/common/magic` ONLY
 - **Purpose**: Shared constants (timeouts, buffer sizes, file permissions)
 - **Impact**: Read-only dependency; no business logic coupling
 - **Mitigation**: None needed - intentional design
 
 #### Risk Level: MEDIUM (CICD → Common)
+
 - **Import**: `internal/common/magic`, `internal/common/util/files`
 - **Purpose**: Magic constants + file I/O utilities
 - **Impact**: Utility dependency; no domain logic coupling
 - **Mitigation**: None needed - tools legitimately need file utilities
 
 #### Risk Level: HIGH (KMS → Common)
+
 - **Import**: `common/crypto/jose`, `common/pool`, `common/telemetry`, `common/config`, `common/container`, `common/util/*`, `common/magic`
 - **Purpose**: Cryptographic operations, resource pooling, observability, configuration
 - **Impact**: Heavy coupling to shared utilities; refactor risk when moving KMS packages
@@ -196,9 +205,11 @@
 ### Strategy 1: Extract KMS-Specific Utilities
 
 **Move to `internal/kms/crypto/jose`**:
+
 - `internal/common/crypto/jose` (JWE/JWS is KMS-specific, not used by Identity)
 
 **Move to `internal/kms/pool`**:
+
 - `internal/common/pool` (Resource pooling for concurrent key generation - KMS only)
 
 **Rationale**: These utilities are tightly coupled to KMS business logic; no other domain uses them.
@@ -208,15 +219,19 @@
 ### Strategy 2: Promote General-Purpose Crypto to `pkg/`
 
 **Move to `pkg/crypto/keygen`**:
+
 - `internal/common/crypto/keygen` (Key generation primitives could be reused by CA, Secrets, Vault)
 
 **Move to `pkg/crypto/digests`**:
+
 - `internal/common/crypto/digests` (HKDF key derivation - general-purpose)
 
 **Move to `pkg/crypto/asn1`**:
+
 - `internal/common/crypto/asn1` (ASN.1/DER/PEM utilities - needed by CA)
 
 **Move to `pkg/crypto/certificate`**:
+
 - `internal/common/crypto/certificate` (Certificate generation - needed by CA)
 
 **Rationale**: These utilities implement cryptographic primitives that could be used by multiple service groups (CA, Secrets, Vault). Making them public (`pkg/`) enables reuse while maintaining clean boundaries.
@@ -226,6 +241,7 @@
 ### Strategy 3: Keep Truly Shared Utilities in `internal/common/`
 
 **Retain in `internal/common/`**:
+
 - `common/telemetry` (OpenTelemetry - all services need observability)
 - `common/config` (Configuration loading - all services need config)
 - `common/magic` (Shared constants - all domains use this)
@@ -243,6 +259,7 @@
 **Current State**: ✅ Identity only imports `internal/common/magic`
 
 **golangci-lint depguard enforcement** (already in place):
+
 ```yaml
 identity-domain-isolation:
   deny:
@@ -266,6 +283,7 @@ identity-domain-isolation:
 ## Part 4: Migration Sequence
 
 ### Phase 1: Extract KMS-Specific Utilities
+
 1. Move `internal/common/crypto/jose` → `internal/kms/crypto/jose`
 2. Move `internal/common/pool` → `internal/kms/pool`
 3. Update all KMS imports to use new paths
@@ -278,6 +296,7 @@ identity-domain-isolation:
 ---
 
 ### Phase 2: Promote General-Purpose Crypto to pkg/
+
 1. Move `internal/common/crypto/keygen` → `pkg/crypto/keygen`
 2. Move `internal/common/crypto/digests` → `pkg/crypto/digests`
 3. Move `internal/common/crypto/asn1` → `pkg/crypto/asn1`
@@ -292,6 +311,7 @@ identity-domain-isolation:
 ---
 
 ### Phase 3: Reorganize KMS Packages
+
 1. Move `internal/server` → `internal/kms/server`
 2. Move `internal/client` → `internal/kms/client`
 3. Move `cmd/cryptoutil` → `cmd/kms`
@@ -309,6 +329,7 @@ identity-domain-isolation:
 ## Part 5: Validation Checklist
 
 ### Pre-Refactor Validation
+
 - [ ] Run full test suite: `go test ./... -cover`
 - [ ] Run linter: `golangci-lint run`
 - [ ] Run CICD checks: `go run ./cmd/cicd go-check-circular-package-dependencies`
@@ -317,6 +338,7 @@ identity-domain-isolation:
 - [ ] Capture baseline test coverage: `go test ./... -coverprofile=test-output/coverage_baseline.out`
 
 ### Post-Refactor Validation
+
 - [ ] All tests pass: `go test ./... -cover`
 - [ ] No new lint errors: `golangci-lint run`
 - [ ] No circular dependencies: `go run ./cmd/cicd go-check-circular-package-dependencies`

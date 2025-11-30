@@ -13,6 +13,7 @@ Prepare skeleton structure for future Certificate Authority (CA) implementation,
 From [Service Groups Taxonomy](service-groups.md) Group 3:
 
 ### Scope
+
 - Root, Intermediate, and Issuing CA provisioning
 - 20+ certificate profile library (TLS server/client, S/MIME, code signing, document signing, VPN, IoT, SAML, JWT, OCSP, RA, TSA, CT log, ACME, SCEP, EST, CMP, enterprise custom)
 - Certificate lifecycle management (issuance, renewal, revocation)
@@ -22,6 +23,7 @@ From [Service Groups Taxonomy](service-groups.md) Group 3:
 - Certificate transparency log integration
 
 ### Key Features
+
 - CA/Browser Forum Baseline Requirements compliance
 - RFC 5280 strict enforcement
 - YAML-driven configuration for crypto, subject, and certificate profiles
@@ -29,6 +31,7 @@ From [Service Groups Taxonomy](service-groups.md) Group 3:
 - Observability and audit logging for compliance
 
 ### Dependencies
+
 - **Depends On**: KMS (key storage and operations), `internal/common/crypto` (certificate utilities)
 - **Used By**: Identity (mTLS), Secrets (TLS), PKI utilities (future)
 
@@ -311,6 +314,7 @@ err := repoFactory.Transaction(ctx, func(txCtx context.Context) error {
 - **ORM Repository**: `repository/orm/` (GORM-based, PostgreSQL/SQLite)
 - **Migrations**: `repository/migrations/` (SQL schema files, golang-migrate)
 - **Error Mapping**: `repository/orm/errors.go` (GORM → application errors)
+
 ```
 
 ### Phase 4: Service Interfaces
@@ -582,6 +586,7 @@ POST /browser/api/v1/crypto/sign
 ### Identity Integration (mTLS)
 
 Identity service will use CA for client certificate validation:
+
 ```go
 // Validate client certificate chain
 cert, err := x509.ParseCertificate(clientCertDER)
@@ -597,6 +602,7 @@ chains, err := cert.Verify(x509.VerifyOptions{
 - [Service Groups Taxonomy](../../../docs/01-refactor/service-groups.md) - Group 3: CA
 - [CA/Browser Forum Baseline Requirements](https://cabforum.org/baseline-requirements-documents/)
 - [RFC 5280 - Internet X.509 Public Key Infrastructure](https://tools.ietf.org/html/rfc5280)
+
 ```
 
 ### Phase 8: Importas Rules
@@ -622,6 +628,7 @@ chains, err := cert.Verify(x509.VerifyOptions{
 ### Phase 9: Testing & Validation
 
 **Validation checklist**:
+
 - [ ] Skeleton structure created (`internal/ca/`)
 - [ ] Domain models compile (`domain/*.go`)
 - [ ] Repository interfaces compile (`repository/interfaces.go`)
@@ -695,6 +702,7 @@ golangci-lint run --timeout=10m
 ## Next Steps
 
 After CA skeleton:
+
 1. **Task 13-15**: CLI restructuring (kms, identity, ca commands)
 2. **Task 16-18**: Infrastructure updates (workflows, importas, telemetry)
 3. **Task 19-20**: Integration testing and handoff

@@ -5,6 +5,7 @@
 This document analyzes the impact of the service group refactoring on GitHub Actions workflows, pre-commit hooks, composite actions, and CI/CD infrastructure. It provides a migration checklist and validation plan.
 
 **Cross-references:**
+
 - [Group Directory Blueprint](./blueprint.md) - Defines target package locations
 - [Import Alias Policy](./import-aliases.md) - Import alias migration strategy
 - [Shared Utilities Extraction](./shared-utilities.md) - Utility package moves
@@ -111,10 +112,12 @@ paths-ignore:
 ```
 
 **Refactor Impact:**
+
 - **No changes needed** - Filters are file type/directory-based, not package-based
 - After docs/ reorganization (Task 9), verify `docs/**` filter still covers all documentation
 
 **Recommendation:**
+
 - Add `test-output/**` to paths-ignore (temporary test artifacts)
 - Consider adding `workflow-reports/**` (already present)
 
@@ -125,6 +128,7 @@ paths-ignore:
 ### Phase 1: Identity Extraction (Task 10)
 
 **Workflows Affected:**
+
 1. **ci-quality.yml**
    - Build step: No change (still `./cmd/cryptoutil`)
    - Linting: Update `.golangci.yml` importas rules
@@ -138,10 +142,12 @@ paths-ignore:
    - Docker Compose: Verify identity service references
 
 **Pre-Commit Hooks:**
+
 - Update `.golangci.yml` importas (add identity service group aliases)
 - No cicd command changes needed
 
 **Validation:**
+
 ```bash
 # Verify workflows pass after identity extraction
 go run ./cmd/workflow -workflows=quality,coverage,e2e
@@ -152,6 +158,7 @@ go run ./cmd/workflow -workflows=quality,coverage,e2e
 ### Phase 2: KMS Extraction (Task 11)
 
 **Workflows Affected:**
+
 1. **ci-quality.yml**
    - Build step: Update `./cmd/cryptoutil` to `./cmd/kms/cryptoutil` (if CLI moves)
    - Linting: Update `.golangci.yml` importas rules (KMS aliases)
@@ -181,20 +188,24 @@ go run ./cmd/workflow -workflows=quality,coverage,e2e
    - Docker Compose: Update service references
 
 **Pre-Commit Hooks:**
+
 - Update `.golangci.yml` importas (KMS service group aliases)
 - Update `custom-cicd-lint` if cicd package moves
 
 **Composite Actions:**
+
 - `golangci-lint`: Auto-updated via `.golangci.yml` changes
 - `custom-cicd-lint`: Verify `internal/cmd/cicd/` path stable
 - `fuzz-test`: Update crypto package paths
 
 **Docker Compose:**
+
 - Update `./deployments/compose/compose.yml` service names
 - Update health check endpoints
 - Update Swagger UI URLs
 
 **Validation:**
+
 ```bash
 # Verify all workflows pass after KMS extraction
 go run ./cmd/workflow -workflows=all
@@ -205,6 +216,7 @@ go run ./cmd/workflow -workflows=all
 ### Phase 3: CA Preparation (Task 12)
 
 **Workflows Affected:**
+
 1. **ci-quality.yml**
    - Build step: Add CA CLI build (if implemented)
    - Linting: Update `.golangci.yml` importas rules (CA aliases)
@@ -218,9 +230,11 @@ go run ./cmd/workflow -workflows=all
    - Update test suite to include CA tests
 
 **Pre-Commit Hooks:**
+
 - Update `.golangci.yml` importas (CA service group aliases)
 
 **Validation:**
+
 ```bash
 # Verify workflows pass after CA structure added
 go run ./cmd/workflow -workflows=quality,coverage
@@ -233,15 +247,18 @@ go run ./cmd/workflow -workflows=quality,coverage
 ### Current Caching
 
 **Go Module Caching:**
+
 - `go-setup` action uses `actions/setup-go@v6` with `cache: true`
 - Cache key: `go.sum` hash + OS
 - **Impact:** None - Go module cache is path-agnostic
 
 **Docker Layer Caching:**
+
 - No explicit layer caching currently
 - **Opportunity:** Add Docker BuildKit cache to speed up builds post-refactor
 
 **Recommendation:**
+
 ```yaml
 - name: Set up Docker Buildx with cache
   uses: docker/setup-buildx-action@v4
@@ -269,10 +286,12 @@ go run ./cmd/workflow -workflows=quality,coverage
 | load | `gatling-results` | `test/load/results/` | 7 days | None |
 
 **Refactor Impact:**
+
 - **Low:** Most artifacts use `workflow-reports/` directory (stable)
 - **Medium:** Fuzz test corpus path may change with crypto package moves
 
 **Recommendation:**
+
 - Standardize all artifacts under `workflow-reports/<workflow-name>/`
 - Update artifact paths in `ci-fuzz.yml` after crypto promotion
 
@@ -294,6 +313,7 @@ go run ./cmd/workflow -workflows=quality,coverage
 | gitleaks | GitLeaks | `workflow-reports/gitleaks/gitleaks.sarif` | ✅ Yes |
 
 **Refactor Impact:**
+
 - **None** - SARIF uploads are path-agnostic
 - All uploads use `github/codeql-action/upload-sarif@v3` (stable API)
 
@@ -348,6 +368,7 @@ go run ./cmd/workflow -workflows=quality,coverage
 ### Proposed importas Updates (30 New Aliases)
 
 **KMS Service Group** (12 new aliases):
+
 ```yaml
 # internal/kms/application → cryptoutilKmsApplication
 - pkg: "cryptoutil/internal/kms/application"
@@ -365,6 +386,7 @@ go run ./cmd/workflow -workflows=quality,coverage
 ```
 
 **Crypto Promotion** (5 new aliases):
+
 ```yaml
 # pkg/crypto/keygen → cryptoutilKeygen
 - pkg: "cryptoutil/pkg/crypto/keygen"
@@ -384,6 +406,7 @@ go run ./cmd/workflow -workflows=quality,coverage
 ```
 
 **KMS Utilities** (4 new aliases):
+
 ```yaml
 # internal/kms/crypto/jose → cryptoutilKmsJose
 - pkg: "cryptoutil/internal/kms/crypto/jose"
@@ -403,6 +426,7 @@ go run ./cmd/workflow -workflows=quality,coverage
 ```
 
 **CA Service Group** (9 new aliases):
+
 ```yaml
 # internal/ca/application → cryptoutilCaApplication
 - pkg: "cryptoutil/internal/ca/application"
@@ -472,6 +496,7 @@ git push origin refactor-baseline-$(date +%Y%m%d)
    - Phase 3 (CA): `quality,coverage`
 
 4. **Compare coverage**
+
    ```bash
    go test ./... -coverprofile=test-output/coverage_post_phaseN.out
    go tool cover -func=test-output/coverage_post_phaseN.out > test-output/coverage_post_phaseN_func.txt

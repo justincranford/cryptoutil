@@ -5,6 +5,7 @@
 This document defines the reorganization of documentation to align with the service group refactoring, ensuring clear navigation, consistent structure, and accurate cross-references.
 
 **Cross-references:**
+
 - [Group Directory Blueprint](./blueprint.md) - Defines target package locations
 - [Service Group Taxonomy](./service-groups.md) - Defines 43 service groups
 - [CLI Strategy Framework](./cli-strategy.md) - CLI command structure
@@ -16,6 +17,7 @@ This document defines the reorganization of documentation to align with the serv
 ### Root README.md
 
 **Current Sections:**
+
 1. Notice (ASUS RMA status)
 2. Introduction & Key Features
 3. Cryptographic Standards
@@ -32,6 +34,7 @@ This document defines the reorganization of documentation to align with the serv
 14. Documentation Organization (points to docs/README.md)
 
 **Refactor Impact:**
+
 - **Medium** - CLI commands change (server → kms server)
 - Add service group navigation section
 - Update Docker Compose service names (optional)
@@ -41,6 +44,7 @@ This document defines the reorganization of documentation to align with the serv
 ### docs/ Directory Structure
 
 **Current Organization:**
+
 ```
 docs/
 ├── 01-refactor/             # NEW - Current refactoring planning
@@ -56,6 +60,7 @@ docs/
 ```
 
 **Problems:**
+
 - Numbered directories (01-05) are ad-hoc, not aligned with service groups
 - Mixed active/archive content (03-identityV2 superseded)
 - No clear service group navigation
@@ -131,6 +136,7 @@ cryptoutil is organized into three primary service groups:
 ```
 
 **Update Quick Start section:**
+
 ```markdown
 ## Quick Start
 
@@ -146,6 +152,7 @@ docker compose -f ./deployments/compose/compose.yml up -d
 ```
 
 #### 🔑 Identity Services
+
 ```sh
 # Start OAuth2 Authorization Server
 cryptoutil identity authz start --config=configs/identity/development.yml
@@ -155,10 +162,12 @@ cryptoutil identity idp start --config=configs/identity/development.yml
 ```
 
 #### 🏛️ CA Server (Planned)
+
 ```sh
 # Start CA server
 cryptoutil ca server start --config=configs/ca/development.yml
 ```
+
 ```
 
 ---
@@ -167,6 +176,7 @@ cryptoutil ca server start --config=configs/ca/development.yml
 
 **Proposed Structure:**
 ```
+
 docs/
 ├── README.md                # Project deep dive (updated with service group TOC)
 ├── PLANS-INDEX.md           # Documentation index (updated for refactor)
@@ -227,6 +237,7 @@ docs/
     ├── ca-planning/         # Renamed from 05-ca (after implementation)
     ├── cicd-refactoring-nov2025/
     └── codecov-nov2025/
+
 ```
 
 **Key Changes:**
@@ -302,6 +313,7 @@ Common issues and solutions.
 ### Update All Documentation Cross-References
 
 **Search Patterns:**
+
 ```
 docs/01-refactor/  → docs/refactor/
 docs/02-mixed/     → docs/mixed/
@@ -311,6 +323,7 @@ docs/05-ca/        → docs/ca/
 ```
 
 **Files Requiring Updates:**
+
 - Root README.md
 - docs/README.md
 - docs/PLANS-INDEX.md
@@ -320,6 +333,7 @@ docs/05-ca/        → docs/ca/
 - GitHub Copilot instructions (.github/copilot-instructions.md)
 
 **Tool for automated updates:**
+
 ```sh
 # Find all cross-references (dry run)
 grep -r "docs/01-refactor/" docs/ .github/
@@ -484,7 +498,7 @@ find docs/ .github/ -type f -name "*.md" -exec sed -i 's|docs/02-mixed/|docs/mix
 
 - **Headers**: Use ATX-style (`#`, `##`, `###`)
 - **Lists**: Use `-` for unordered, `1.` for ordered
-- **Code blocks**: Always specify language (```go, ```sh, ```yaml)
+- **Code blocks**: Always specify language (```go,```sh, ```yaml)
 - **Links**: Use relative paths for internal docs, absolute for external
 - **Cross-references**: Always use relative paths from current file
 - **Tables**: Use pipe-separated markdown tables with header separators

@@ -300,6 +300,7 @@ golangci-lint run --disable-all --enable=importas ./...
 ```
 
 **Expected output**:
+
 ```
 # Initial run will show import alias mismatches (expected)
 internal/server/application/application.go:15:2: import "cryptoutil/internal/server/barrier" imported as "cryptoutilBarrierService" but must be "cryptoutilKmsBarrier" according to config (importas)
@@ -421,6 +422,7 @@ golangci-lint run ./...
 ```
 
 **Validation checklist**:
+
 - [ ] No importas linting errors
 - [ ] All imports use correct aliases
 - [ ] Go builds successfully: `go build ./...`
@@ -445,6 +447,7 @@ pre-commit run --all-files
 ```
 
 **Validation checklist**:
+
 - [ ] All tests pass
 - [ ] Code coverage maintained (≥80% production, ≥85% cicd, ≥95% util)
 - [ ] No linting errors
@@ -484,6 +487,7 @@ import (
 ```
 
 See [Import Alias Policy](docs/01-refactor/import-aliases.md) for complete list.
+
 ```
 
 ## Risk Assessment
@@ -694,6 +698,7 @@ See [Import Alias Policy](docs/01-refactor/import-aliases.md) for complete list.
 ## Next Steps
 
 After importas migration:
+
 1. **Task 18**: Observability updates (OTLP service names)
 2. **Task 19**: Integration testing (full test suite validation)
 3. **Task 20**: Documentation finalization (handoff package)

@@ -5,6 +5,7 @@
 This document audits code duplication across the cryptoutil repository, identifies utilities suitable for `internal/common` or `pkg` packages, and provides a staged extraction plan with risk assessment.
 
 **Cross-references:**
+
 - [Dependency Analysis](./dependency-analysis.md) - Identifies coupling risks (KMS → common utilities)
 - [Group Directory Blueprint](./blueprint.md) - Defines target package locations
 - [Import Alias Policy](./import-aliases.md) - Import alias conventions for new packages
@@ -47,6 +48,7 @@ internal/common/
 ### Pattern 1: UUID Generation Duplication
 
 **Location 1:** `internal/common/util/uuid.go`
+
 ```go
 func GenerateUUIDv7() (*googleUuid.UUID, error) {
     uuid, err := googleUuid.NewV7()
@@ -58,6 +60,7 @@ func GenerateUUIDv7() (*googleUuid.UUID, error) {
 ```
 
 **Location 2:** `internal/identity/domain/nullable_uuid.go`
+
 ```go
 // Similar UUID generation with null handling
 func NewNullableUUID() NullableUUID {
@@ -67,6 +70,7 @@ func NewNullableUUID() NullableUUID {
 ```
 
 **Assessment:**
+
 - **Duplication level:** Moderate (different null-handling semantics)
 - **Action:** Keep separate - identity domain needs NullableUUID wrapper
 - **Rationale:** NullableUUID is domain-specific (identity only), not general-purpose
@@ -76,6 +80,7 @@ func NewNullableUUID() NullableUUID {
 ### Pattern 2: Error Wrapping Duplication
 
 **Location 1:** `internal/server/repository/orm/business_entities.go`
+
 ```go
 func (r *ORMRepository) toAppErr(err error, operation string) error {
     if err == nil {
@@ -86,6 +91,7 @@ func (r *ORMRepository) toAppErr(err error, operation string) error {
 ```
 
 **Location 2:** `internal/identity/repository/orm/user_repository.go`
+
 ```go
 func toAppErr(err error, operation string) error {
     if err == nil {
@@ -96,12 +102,14 @@ func toAppErr(err error, operation string) error {
 ```
 
 **Assessment:**
+
 - **Duplication level:** High (very similar GORM error → HTTP status code mapping)
 - **Action:** Extract to `internal/common/repository/gorm_errors.go`
 - **Rationale:** Both KMS and Identity use GORM with similar error handling patterns
 - **Risk:** Medium (changes error handling behavior if extraction introduces bugs)
 
 **Extraction plan:**
+
 ```go
 // internal/common/repository/gorm_errors.go
 
@@ -152,6 +160,7 @@ func ToAppErr(err error, operation string, entityType string) error {
 ### Pattern 3: Configuration Loading Duplication
 
 **Location 1:** `internal/server/config/config.go` (KMS)
+
 ```go
 func LoadConfig(path string) (*Config, error) {
     data, err := os.ReadFile(path)
@@ -169,6 +178,7 @@ func LoadConfig(path string) (*Config, error) {
 ```
 
 **Location 2:** `internal/identity/config/config.go` (Identity)
+
 ```go
 func LoadConfig(path string) (*Config, error) {
     data, err := os.ReadFile(path)
@@ -186,12 +196,14 @@ func LoadConfig(path string) (*Config, error) {
 ```
 
 **Assessment:**
+
 - **Duplication level:** High (identical code, different Config structs)
 - **Action:** Extract to `internal/common/config/loader.go`
 - **Rationale:** Generic YAML config loading pattern used by all service groups
 - **Risk:** Low (straightforward utility function with no side effects)
 
 **Extraction plan:**
+
 ```go
 // internal/common/config/loader.go
 
@@ -226,6 +238,7 @@ func SaveYAML[T any](path string, cfg *T) error {
 ```
 
 **Usage (post-extraction):**
+
 ```go
 // internal/server/config/config.go (KMS)
 func LoadConfig(path string) (*Config, error) {
@@ -243,6 +256,7 @@ func LoadConfig(path string) (*Config, error) {
 ### Pattern 4: HTTP Client Creation Duplication
 
 **Location 1:** `internal/test/e2e/http_utils.go`
+
 ```go
 func CreateInsecureHTTPClient() *http.Client {
     return &http.Client{
@@ -259,12 +273,14 @@ func CreateInsecureHTTPClient() *http.Client {
 **Location 2:** Similar patterns in integration tests across packages
 
 **Assessment:**
+
 - **Duplication level:** Low-Medium (test-only code)
 - **Action:** Consolidate in `internal/common/testutil/http.go`
 - **Rationale:** E2E and integration tests need HTTP clients for self-signed cert testing
 - **Risk:** Low (test-only utility, not production code)
 
 **Extraction plan:**
+
 ```go
 // internal/common/testutil/http.go
 
@@ -286,6 +302,7 @@ func CreateTestHTTPClient(timeout time.Duration) *http.Client {
 ### Pattern 5: Context Timeout Duplication
 
 **Location 1:** Multiple files use similar context timeout patterns
+
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 defer cancel()
@@ -294,6 +311,7 @@ defer cancel()
 **Location 2:** Scattered across server, repository, test files
 
 **Assessment:**
+
 - **Duplication level:** Low (standard Go idiom)
 - **Action:** No extraction needed - keep inline for clarity
 - **Rationale:** Standard context pattern, extraction adds no value
@@ -315,12 +333,14 @@ defer cancel()
 | certificate | `internal/common/crypto/certificate` | `pkg/crypto/certificate` | X.509 certificate operations - useful for CA, TLS configuration, certificate validation |
 
 **Benefits:**
+
 - External tools can import cryptoutil's crypto primitives without internal dependencies
 - CA service will need keygen, certificate, asn1
 - Identity may need digests for password hashing (Argon2, bcrypt, scrypt)
 - Promotes code reuse across service groups
 
 **Risks:**
+
 - **Medium:** Breaking change for existing code (import path changes)
 - **Mitigation:** Use compatibility shims during migration (see blueprint.md Phase 2)
 
@@ -336,6 +356,7 @@ defer cancel()
 | container | `internal/common/container` | KMS dependency injection (service-specific) |
 
 **Target locations:**
+
 - `jose` → `internal/kms/crypto/jose`
 - `pool` → `internal/kms/pool`
 - `telemetry` → `internal/kms/telemetry`
@@ -356,6 +377,7 @@ defer cancel()
 | util | `internal/common/util` | General utilities (UUID, YAML/JSON, byte operations) |
 
 **Rationale:**
+
 - Used by 2+ service groups
 - No service-specific business logic
 - Internal-only (not suitable for public API)
@@ -451,6 +473,7 @@ defer cancel()
 **Goal:** Consolidate duplicated code in `internal/common/`
 
 **Tasks:**
+
 1. Extract GORM error mapping → `internal/common/repository/gorm_errors.go`
 2. Extract generic config loader → `internal/common/config/loader.go`
 3. Consolidate test HTTP client → `internal/common/testutil/http.go`
@@ -458,6 +481,7 @@ defer cancel()
 5. Commit with message: "refactor: extract shared utilities to internal/common"
 
 **Validation:**
+
 - [ ] `go test ./... --count=1 -timeout=10m` passes
 - [ ] `golangci-lint run ./...` passes
 - [ ] Coverage diff shows ±0% change
@@ -470,6 +494,7 @@ defer cancel()
 **Goal:** Make general-purpose crypto available as public API
 
 **Tasks:**
+
 1. Create `pkg/crypto/` directory structure
 2. Move keygen → `pkg/crypto/keygen`
 3. Move digests → `pkg/crypto/digests`
@@ -481,6 +506,7 @@ defer cancel()
 9. Commit with message: "refactor: promote general-purpose crypto to pkg/"
 
 **Validation:**
+
 - [ ] `go test ./... --count=1 -timeout=10m` passes
 - [ ] `golangci-lint run ./...` passes (importas enforcement)
 - [ ] Coverage diff shows ±0% change
@@ -493,6 +519,7 @@ defer cancel()
 **Goal:** Move KMS-coupled utilities to `internal/kms/`
 
 **Tasks:**
+
 1. Create `internal/kms/` subdirectories (crypto/jose, pool, telemetry, container)
 2. Move jose → `internal/kms/crypto/jose`
 3. Move pool → `internal/kms/pool`
@@ -504,6 +531,7 @@ defer cancel()
 9. Commit with message: "refactor: extract KMS-specific utilities to internal/kms"
 
 **Validation:**
+
 - [ ] `go test ./internal/kms/... --count=1 -timeout=10m` passes
 - [ ] `go test ./internal/server/... --count=1 -timeout=10m` passes
 - [ ] `golangci-lint run ./...` passes

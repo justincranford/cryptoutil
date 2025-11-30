@@ -15,18 +15,21 @@ From `deployments/compose/cryptoutil/configs/`:
 ### KMS Services (3 instances)
 
 **cryptoutil-sqlite.yml**:
+
 ```yaml
 otlp-service: cryptoutil-sqlite
 otlp-hostname: cryptoutil-sqlite
 ```
 
 **cryptoutil-postgresql-1.yml**:
+
 ```yaml
 otlp-service: cryptoutil-postgresql-1
 otlp-hostname: cryptoutil-postgresql-1
 ```
 
 **cryptoutil-postgresql-2.yml**:
+
 ```yaml
 otlp-service: cryptoutil-postgresql-2
 otlp-hostname: cryptoutil-postgresql-2
@@ -39,18 +42,21 @@ otlp-hostname: cryptoutil-postgresql-2
 ### KMS Services (New Naming)
 
 **cryptoutil-sqlite.yml** → **kms-sqlite.yml**:
+
 ```yaml
 otlp-service: kms-server-sqlite
 otlp-hostname: kms-server-sqlite
 ```
 
 **cryptoutil-postgresql-1.yml** → **kms-postgresql-1.yml**:
+
 ```yaml
 otlp-service: kms-server-postgresql-1
 otlp-hostname: kms-server-postgresql-1
 ```
 
 **cryptoutil-postgresql-2.yml** → **kms-postgresql-2.yml**:
+
 ```yaml
 otlp-service: kms-server-postgresql-2
 otlp-hostname: kms-server-postgresql-2
@@ -59,24 +65,28 @@ otlp-hostname: kms-server-postgresql-2
 ### Identity Services (Future)
 
 **identity-authz.yml**:
+
 ```yaml
 otlp-service: identity-authz-server
 otlp-hostname: identity-authz-server
 ```
 
 **identity-idp.yml**:
+
 ```yaml
 otlp-service: identity-idp-server
 otlp-hostname: identity-idp-server
 ```
 
 **identity-rs.yml**:
+
 ```yaml
 otlp-service: identity-rs-server
 otlp-hostname: identity-rs-server
 ```
 
 **identity-spa-rp.yml**:
+
 ```yaml
 otlp-service: identity-spa-rp-server
 otlp-hostname: identity-spa-rp-server
@@ -85,6 +95,7 @@ otlp-hostname: identity-spa-rp-server
 ### CA Services (Future - Skeleton)
 
 **ca-server.yml**:
+
 ```yaml
 otlp-service: ca-server
 otlp-hostname: ca-server
@@ -127,12 +138,14 @@ dev: true
 ```
 
 **Update kms-postgresql-1.yml**:
+
 ```yaml
 otlp-service: kms-server-postgresql-1
 otlp-hostname: kms-server-postgresql-1
 ```
 
 **Update kms-postgresql-2.yml**:
+
 ```yaml
 otlp-service: kms-server-postgresql-2
 otlp-hostname: kms-server-postgresql-2
@@ -301,6 +314,7 @@ docker compose -f deployments/compose/compose.yml up -d
 ```
 
 **Validation checklist**:
+
 - [ ] Config files renamed correctly
 - [ ] Docker Compose services start successfully
 - [ ] OTLP telemetry received by collector
@@ -355,18 +369,22 @@ Examples:
 ### Telemetry Flow
 
 ```
+
 KMS Services → OTEL Collector (4317/4318) → Grafana LGTM (14317/14318)
 Identity Services → OTEL Collector → Grafana LGTM
 CA Services → OTEL Collector → Grafana LGTM
+
 ```
 
 ### Grafana Dashboard Filters
 
 Filter by service group:
 ```
+
 service.name =~ "kms-.*"        # All KMS services
 service.name =~ "identity-.*"   # All identity services
 service.name =~ "ca-.*"         # All CA services
+
 ```
 ```
 
@@ -531,5 +549,6 @@ deployment.environment: production
 ## Next Steps
 
 After observability updates:
+
 1. **Task 19**: Integration testing (full test suite validation)
 2. **Task 20**: Documentation finalization (handoff package)

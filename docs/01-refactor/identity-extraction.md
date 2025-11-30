@@ -46,6 +46,7 @@ Total: 119 Go files across 25 subdirectories
 ### External Consumers (Import Dependencies)
 
 **From `cmd/` directory**:
+
 - `cmd/identity/authz/main.go` - AuthZ server entry point (5 imports)
 - `cmd/identity/idp/main.go` - IdP server entry point (5 imports)
 - `cmd/identity/rs/main.go` - RS server entry point (5 imports)
@@ -93,12 +94,14 @@ Total: 13 identity-specific importas rules
 **Path**: `cryptoutil/internal/identity` → NO CHANGE
 
 **Pros**:
+
 - No migration work required
 - No import path changes
 - Existing importas rules remain valid
 - Consistent with current architecture (KMS also in `internal/`)
 
 **Cons**:
+
 - Cannot be imported by external projects (Go enforces `internal/` visibility)
 - No independent versioning (tied to cryptoutil releases)
 - Cannot publish as standalone Go module
@@ -111,6 +114,7 @@ Total: 13 identity-specific importas rules
 **Path**: `cryptoutil/internal/identity` → `cryptoutil/pkg/identity`
 
 **Pros**:
+
 - Public Go package (can be imported by external projects)
 - Still part of cryptoutil monorepo
 - Independent versioning possible via Go modules replace directives
@@ -118,6 +122,7 @@ Total: 13 identity-specific importas rules
 - Minimal import path changes
 
 **Cons**:
+
 - Requires updating ALL 119 files with import path changes
 - Need to audit API surface for stability (breaking changes impact external users)
 - `pkg/` pattern less common in modern Go (internal-first preferred)
@@ -130,6 +135,7 @@ Total: 13 identity-specific importas rules
 **Path**: `cryptoutil/internal/identity` → `identity/` (sibling to `cryptoutil/`)
 
 **Module structure**:
+
 ```
 /
 ├── cryptoutil/          # KMS module (existing)
@@ -146,6 +152,7 @@ Total: 13 identity-specific importas rules
 ```
 
 **Pros**:
+
 - True module independence (separate go.mod, versioning, releases)
 - Clear separation of concerns (OAuth 2.1 ≠ KMS)
 - Independent CI/CD pipelines possible
@@ -153,6 +160,7 @@ Total: 13 identity-specific importas rules
 - Go workspace provides monorepo benefits (shared tooling, atomic commits)
 
 **Cons**:
+
 - Highest migration complexity (new module, workspace setup)
 - Requires updating 119 files + build scripts + workflows
 - Learning curve for Go workspace pattern
@@ -295,6 +303,7 @@ import (
 ```
 
 **Manual verification required**:
+
 - Check cmd/identity/* entry points
 - Check test files for relative imports
 - Verify go.mod replace directives if needed
@@ -555,6 +564,7 @@ cd identity && go test ./... -coverprofile=coverage.out && cd ..
 ```
 
 **Validation checklist**:
+
 - [ ] All imports resolve correctly (no "cannot find package" errors)
 - [ ] All tests pass (`go test ./...` in both modules)
 - [ ] golangci-lint passes (both modules)
@@ -652,6 +662,7 @@ git checkout HEAD -- cryptoutil/.golangci.yml
 ## Next Steps
 
 After identity extraction:
+
 1. **Task 11**: KMS extraction (internal/server → internal/kms)
 2. **Task 12**: CA preparation (internal/ca skeleton)
 3. **Task 13-15**: CLI restructuring (service group commands)

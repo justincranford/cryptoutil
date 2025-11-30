@@ -5,6 +5,7 @@
 This document defines the CLI patterns for service APIs and administration across the cryptoutil multi-service repository. It establishes consistent command structure, flag conventions, output expectations, and shared helper packages.
 
 **Cross-references:**
+
 - [Service Groups Taxonomy](./service-groups.md) - Defines 43 service groups
 - [Group Directory Blueprint](./blueprint.md) - Defines target directory structure
 - [Import Alias Policy](./import-aliases.md) - Import alias conventions
@@ -18,6 +19,7 @@ This document defines the CLI patterns for service APIs and administration acros
 **Pattern:** `cryptoutil <service-group> <subcommand> [flags]`
 
 **Examples:**
+
 ```bash
 # KMS operations
 cryptoutil kms server start --config configs/kms/production.yml
@@ -46,6 +48,7 @@ cryptoutil kms server start --config configs/kms/production.yml  # New (canonica
 ```
 
 **Deprecation strategy:**
+
 - Warn users when legacy command used: "DEPRECATED: Use 'cryptoutil kms server' instead"
 - Support legacy commands for 12 months after refactor completion
 - Remove legacy aliases in major version release (v2.0.0)
@@ -66,6 +69,7 @@ cryptoutil kms server start --config configs/kms/production.yml  # New (canonica
 | `--help` | bool | false | Show help message |
 
 **Examples:**
+
 ```bash
 # Enable verbose output
 cryptoutil kms key generate --type rsa --verbose
@@ -89,6 +93,7 @@ cryptoutil kms server start --log-level DEBUG
 | `--config` | string | required | Path to server configuration YAML file |
 
 **Examples:**
+
 ```bash
 # Production server with TLS
 cryptoutil kms server start \
@@ -114,6 +119,7 @@ cryptoutil kms server start --dev
 | `--export-format` | string | `pem` | Export format: `pem`, `der`, `jwk` |
 
 **Examples:**
+
 ```bash
 # Generate RSA key
 cryptoutil kms key generate --type rsa --size 4096 --name production-signing-key
@@ -137,6 +143,7 @@ cryptoutil kms key export --name production-signing-key --format jwk
 | `--reason` | string | required | Revocation reason (for revoke command) |
 
 **Examples:**
+
 ```bash
 # Issue webserver certificate with SANs
 cryptoutil ca cert issue \
@@ -170,6 +177,7 @@ $ cryptoutil kms key generate --type rsa --size 2048
 ```
 
 **Characteristics:**
+
 - Color-coded status (✓ green, ✗ red, ⚠ yellow)
 - Emojis for visual clarity (✓, ✗, ⚠, 🔑, 📜, 🔒)
 - Indented key-value pairs
@@ -181,7 +189,7 @@ $ cryptoutil kms key generate --type rsa --size 2048
 **Machine-readable output for automation:**
 
 ```bash
-$ cryptoutil kms key generate --type rsa --size 2048 --output-format json
+cryptoutil kms key generate --type rsa --size 2048 --output-format json
 ```
 
 ```json
@@ -203,6 +211,7 @@ $ cryptoutil kms key generate --type rsa --size 2048 --output-format json
 ```
 
 **Characteristics:**
+
 - Snake_case field names
 - ISO 8601 timestamps
 - Consistent structure: `status`, `data`, `metadata`
@@ -213,7 +222,7 @@ $ cryptoutil kms key generate --type rsa --size 2048 --output-format json
 **Configuration-friendly output:**
 
 ```bash
-$ cryptoutil kms key list --output-format yaml
+cryptoutil kms key list --output-format yaml
 ```
 
 ```yaml
@@ -236,6 +245,7 @@ metadata:
 ```
 
 **Characteristics:**
+
 - Snake_case field names
 - Quoted timestamps
 - Easy copy/paste into config files
@@ -247,6 +257,7 @@ metadata:
 ### Error Output Format
 
 **Text format (stderr):**
+
 ```
 ✗ Error: Failed to generate RSA key
   Cause: insufficient entropy
@@ -255,6 +266,7 @@ metadata:
 ```
 
 **JSON format (stdout):**
+
 ```json
 {
   "status": "error",
@@ -287,6 +299,7 @@ metadata:
 | 8 | Database error |
 
 **Examples:**
+
 ```bash
 # Success
 $ cryptoutil kms key generate --type rsa

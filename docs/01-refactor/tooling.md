@@ -5,6 +5,7 @@
 This document defines VS Code configuration updates required for the service group refactoring, including settings, launch configurations, tasks, and terminal auto-approval patterns.
 
 **Cross-references:**
+
 - [Group Directory Blueprint](./blueprint.md) - Defines target package locations
 - [Import Alias Policy](./import-aliases.md) - Import alias migration strategy
 - [CLI Strategy Framework](./cli-strategy.md) - New CLI command structure
@@ -16,6 +17,7 @@ This document defines VS Code configuration updates required for the service gro
 ### gopls Configuration
 
 **Current Configuration:**
+
 ```jsonc
 "gopls": {
   "formatting.local": "cryptoutil",
@@ -24,10 +26,12 @@ This document defines VS Code configuration updates required for the service gro
 ```
 
 **Refactor Impact:**
+
 - **No changes needed** - `cryptoutil` prefix covers all refactored packages
 - `buildFlags` includes E2E tests regardless of package location
 
 **Recommendation:**
+
 - Keep existing gopls settings unchanged
 
 ---
@@ -37,6 +41,7 @@ This document defines VS Code configuration updates required for the service gro
 **Current Pattern Count:** ~50 patterns (git, docker, go, python, java, linux, windows, powershell commands)
 
 **Refactor Impact:**
+
 - **Medium** - New CLI commands need auto-approval patterns
 - Add patterns for `cryptoutil <service-group> <subcommand>`
 
@@ -58,6 +63,7 @@ This document defines VS Code configuration updates required for the service gro
 ```
 
 **Rationale:**
+
 - Auto-approve all service group CLI commands (safe, informational, or controlled by flags)
 - Includes subcommands: server start/stop, client operations, keygen, barrier management
 - Backward compatibility for deprecated `cryptoutil server` commands
@@ -71,18 +77,21 @@ This document defines VS Code configuration updates required for the service gro
 **Current Exclusions:**
 
 **`files.exclude`:**
-- Build artifacts (bin/, *.exe, *.dll, *.so, *.dylib)
+
+- Build artifacts (bin/, *.exe,*.dll, *.so,*.dylib)
 - Test artifacts (coverage*, test-results/)
 - Cache files (.cspellcache, .cicd/)
 - Dependencies (vendor/, node_modules/)
-- Python artifacts (__pycache__/, *.pyc, venv/, .pytest_cache/)
+- Python artifacts (**pycache**/, *.pyc, venv/, .pytest_cache/)
 - Java artifacts (out/, .mvn/, .gradle/)
 
 **Refactor Impact:**
+
 - **None** - Exclusions are artifact-based, not package-based
 - Post-refactor structure generates same artifacts
 
 **Recommendation:**
+
 - No changes needed to `files.exclude`, `search.exclude`, `files.watcherExclude`
 
 ---
@@ -90,6 +99,7 @@ This document defines VS Code configuration updates required for the service gro
 ### YAML Schema Validation
 
 **Current Schemas:**
+
 - Docker Compose: `**/*compose*.{yml,yaml}`
 - GitHub Workflows: `.github/workflows/*.{yml,yaml}`
 - GitHub Actions: `.github/actions/**/*.{yml,yaml}`
@@ -98,10 +108,12 @@ This document defines VS Code configuration updates required for the service gro
 - Prometheus, Grafana, Kustomization, Helmfile schemas
 
 **Refactor Impact:**
+
 - **None** - Schemas are file pattern-based
 - Docker Compose and workflow files remain in same locations
 
 **Recommendation:**
+
 - No changes needed to `yaml.schemas`
 
 ---
@@ -121,13 +133,16 @@ This document defines VS Code configuration updates required for the service gro
 ### Refactor Impact
 
 **Phase 1 (Identity Extraction):**
+
 - **Add:** Identity service launch configurations
 
 **Phase 2 (KMS Extraction):**
+
 - **Update:** KMS launch configurations to reference new paths
 - **Rename:** `cryptoutil sqlite` → `KMS (SQLite)`, `cryptoutil postgres` → `KMS (PostgreSQL)`
 
 **Phase 3 (CA Preparation):**
+
 - **Add:** CA service launch configurations
 
 ---
@@ -439,6 +454,7 @@ This document defines VS Code configuration updates required for the service gro
 ```
 
 **Task Categories:**
+
 - **Build:** `Build All`, `Generate OpenAPI Code`
 - **Test:** `Test All`, `Test KMS`, `Test Identity`, `Test CA`, `Run E2E Tests`, `Run DAST Tests`, `Run All Workflows`
 - **Lint:** `Lint All`, `Format All`, `CICD - Enforce Test Patterns`, `CICD - Enforce Any`
@@ -446,6 +462,7 @@ This document defines VS Code configuration updates required for the service gro
 - **Maintenance:** `CICD - Update Direct Dependencies`
 
 **Default Tasks:**
+
 - **Build (default):** `Build All`
 - **Test (default):** `Test All`
 
@@ -456,6 +473,7 @@ This document defines VS Code configuration updates required for the service gro
 ### Current .vscode/extensions.json
 
 **Expected Extensions:**
+
 - **Go:** `golang.go`
 - **YAML:** `redhat.vscode-yaml`
 - **Docker:** `ms-azuretools.vscode-docker`
@@ -467,9 +485,11 @@ This document defines VS Code configuration updates required for the service gro
 - **OpenAPI:** `42Crunch.vscode-openapi` (for OpenAPI editing)
 
 **Refactor Impact:**
+
 - **None** - Extensions are language/tooling-based, not package-based
 
 **Recommendation:**
+
 - Verify `.vscode/extensions.json` includes recommended extensions
 - No updates needed for refactor
 
@@ -480,6 +500,7 @@ This document defines VS Code configuration updates required for the service gro
 ### gopls Diagnostic Validation
 
 **After Refactor:**
+
 1. Open VS Code
 2. Navigate to refactored packages (e.g., `internal/kms/`, `pkg/crypto/`)
 3. Verify gopls diagnostics work correctly:
@@ -489,6 +510,7 @@ This document defines VS Code configuration updates required for the service gro
    - Inlay hints display for parameters, types, constants
 
 **Expected Behavior:**
+
 - No gopls errors related to package paths
 - Code completion works for new import paths
 - Go to Definition works across service group boundaries
@@ -496,6 +518,7 @@ This document defines VS Code configuration updates required for the service gro
 ### Terminal Auto-Approval Validation
 
 **Test Commands:**
+
 ```bash
 # Should auto-approve (new patterns)
 cryptoutil kms server start --help
@@ -514,6 +537,7 @@ rm -rf ./test-output
 ```
 
 **Validation:**
+
 - Auto-approved commands execute immediately
 - Manual approval commands prompt user
 

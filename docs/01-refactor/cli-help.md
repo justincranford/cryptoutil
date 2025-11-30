@@ -34,6 +34,7 @@ func printUsage(executable string) {
 ```
 
 **Issues**:
+
 - Minimal help text (command list only)
 - No subcommand-specific help
 - No examples or common workflows
@@ -741,6 +742,7 @@ Justin Cranford <justin@example.com>
 ```
 
 **Create subcommand man pages**:
+
 - `cryptoutil-kms.1`
 - `cryptoutil-identity.1`
 - `cryptoutil-ca.1`
@@ -793,6 +795,7 @@ func TestKMSHelp(t *testing.T) {
 ```
 
 **Validation checklist**:
+
 - [ ] `cryptoutil help` shows top-level help
 - [ ] `cryptoutil kms help` shows KMS service group help
 - [ ] `cryptoutil identity help` shows identity service group help
@@ -846,6 +849,7 @@ man cryptoutil
 man cryptoutil-kms
 man cryptoutil-identity
 ```
+
 ```
 
 ## Risk Assessment

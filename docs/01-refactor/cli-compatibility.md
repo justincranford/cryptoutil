@@ -48,6 +48,7 @@ switch command {
 ```
 
 **Warning characteristics**:
+
 - Printed to stderr (not stdout) so scripts don't break
 - Shows new command syntax
 - Includes removal date
@@ -247,6 +248,7 @@ Update internal documentation, runbooks, and onboarding guides with new command 
 ### Service Group Organization
 
 cryptoutil now supports three service groups:
+
 - **kms**: Key Management Service (hierarchical key management)
 - **identity**: OAuth 2.1 / OIDC Identity Platform (authorization, authentication)
 - **ca**: Certificate Authority (PKI operations) [future]
@@ -327,7 +329,7 @@ cryptoutil kms server start --help
 
 ### Support
 
-- **GitHub Issues**: https://github.com/justincranford/cryptoutil/issues
+- **GitHub Issues**: <https://github.com/justincranford/cryptoutil/issues>
 - **Migration Questions**: Tag issues with `migration` label
 
 ## FAQ
@@ -346,6 +348,7 @@ A: File a GitHub issue with `bug` and `migration` labels.
 
 **Q: Can I use both old and new commands during migration?**
 A: Yes. Legacy commands route to new commands internally, so they're functionally identical.
+
 ```
 
 ### Phase 4: Update CHANGELOG
@@ -411,6 +414,7 @@ cryptoutil kms server start --dev
 ```
 
 **Validation checklist**:
+
 - [ ] Legacy `cryptoutil server` commands show deprecation warning
 - [ ] Deprecation warning includes new command syntax
 - [ ] Deprecation warning includes removal date
@@ -455,6 +459,7 @@ cryptoutil kms server start --config configs/kms/production.yml
 ```
 
 See [MIGRATION.md](docs/MIGRATION.md) for migration guide.
+
 ```
 
 **Update help messages**:
@@ -550,32 +555,38 @@ Write-Host "Starting KMS server in development mode..."
 ## Deprecation Timeline (Detailed)
 
 ### 2025-01-01: v1.1.0 Release (Deprecation Announced)
+
 - Legacy commands deprecated
 - Deprecation warnings added
 - Migration guide published
 - New commands fully functional
 
 ### 2025-03-01: 3-Month Checkpoint
+
 - Review deprecation warning metrics (how many users still using legacy commands)
 - Send email to mailing list with migration reminders
 - Update documentation with migration examples
 
 ### 2025-06-01: 6-Month Checkpoint
+
 - Review usage metrics again
 - Identify holdout users and reach out individually
 - Blog post: "6 Months Until CLI v2.0"
 
 ### 2025-09-01: 9-Month Checkpoint
+
 - Final migration reminders
 - Update deprecation warnings with stronger language
 - Offer migration assistance to enterprise users
 
 ### 2025-12-01: 12-Month Checkpoint
+
 - Last call for migration
 - Blog post: "Final Warning: CLI v2.0 in 6 Months"
 - Update warnings with "URGENT" prefix
 
 ### 2026-06-01: v2.0.0 Release (Legacy Commands Removed)
+
 - Remove all legacy command aliases
 - Remove deprecation warning code
 - Celebrate clean, consistent CLI structure 🎉
@@ -590,6 +601,7 @@ Write-Host "Starting KMS server in development mode..."
 ## Next Steps
 
 After backward compatibility layer:
+
 1. **Task 16**: Workflow path filter updates
 2. **Task 17**: Importas migration
 3. **Task 18**: Observability updates

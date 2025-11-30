@@ -13,11 +13,13 @@ Validate refactor planning completeness by running full test suite, checking cov
 ### Test Suite Execution
 
 **Command**:
+
 ```powershell
 go test ./... -cover -timeout=10m
 ```
 
 **Expected Outcome**:
+
 - All tests pass (KMS server, identity services, common utilities)
 - Coverage meets targets: ≥80% production, ≥85% cicd, ≥95% util
 - No race conditions detected
@@ -34,6 +36,7 @@ go test ./... -cover -timeout=10m
 ### CI/CD Workflow Validation
 
 **Workflows to verify**:
+
 1. **ci-quality.yml**: Build and lint checks
 2. **ci-coverage.yml**: Test coverage collection
 3. **ci-benchmark.yml**: Performance benchmarks
@@ -44,6 +47,7 @@ go test ./... -cover -timeout=10m
 8. **ci-load.yml**: Load and performance testing
 
 **Expected Results**:
+
 - All workflows pass on current main branch
 - No workflow failures from recent planning commits
 - Path filters correctly match existing file structure
@@ -66,6 +70,7 @@ if ($LASTEXITCODE -ne 0) {
 ```
 
 **Expected Coverage Output**:
+
 ```
 ok      cryptoutil/internal/server              5.123s  coverage: 85.2% of statements
 ok      cryptoutil/internal/identity/authz      3.456s  coverage: 82.1% of statements
@@ -84,6 +89,7 @@ go test ./... -race -timeout=15m
 ```
 
 **Expected Output**:
+
 ```
 ok      cryptoutil/internal/server              8.234s
 ok      cryptoutil/internal/identity/authz      5.678s
@@ -108,6 +114,7 @@ go test -fuzz=FuzzDigest -fuzztime=15s ./internal/common/crypto/digests
 ```
 
 **Expected Output**:
+
 ```
 fuzz: elapsed: 15s, execs: 12345 (823/sec), new interesting: 0
 ```
@@ -130,6 +137,7 @@ go run ./cmd/workflow -workflows=e2e
 ```
 
 **Expected Output**:
+
 ```
 ✅ Workflow: quality - PASSED
 ✅ Workflow: coverage - PASSED
@@ -137,6 +145,7 @@ go run ./cmd/workflow -workflows=e2e
 ```
 
 **Failure Investigation**:
+
 - Check workflow analysis markdown files in root directory
 - Review step timing diagnostics for bottlenecks
 - Verify path filters match expected file structure
@@ -166,6 +175,7 @@ Select-String -Path test-output/coverage_detail.txt -Pattern "internal/server|in
 ```
 
 **Coverage Thresholds**:
+
 - **KMS Server** (`internal/server`): ≥80%
 - **Identity Services** (`internal/identity/*`): ≥80%
 - **Common Utilities** (`internal/common/util`): ≥95%
@@ -274,6 +284,7 @@ Create `test-output/test-validation-report.md`:
 ## Success Criteria
 
 ### Must-Have (Blocking)
+
 - [ ] All unit tests pass (`go test ./...`)
 - [ ] No race conditions detected (`go test ./... -race`)
 - [ ] Fuzz tests complete without crashes
@@ -281,6 +292,7 @@ Create `test-output/test-validation-report.md`:
 - [ ] CI/CD quality workflow passes
 
 ### Should-Have (Warning)
+
 - [ ] KMS server coverage ≥80%
 - [ ] Identity services coverage ≥80%
 - [ ] CICD utilities coverage ≥85%
@@ -289,6 +301,7 @@ Create `test-output/test-validation-report.md`:
 - [ ] CI/CD e2e workflow passes
 
 ### Nice-to-Have (Informational)
+
 - [ ] No test flakiness observed over 3 runs
 - [ ] Benchmark results stable (no performance regression)
 - [ ] Load tests pass (Gatling scenarios)
@@ -299,6 +312,7 @@ Create `test-output/test-validation-report.md`:
 ### SQLite Transaction Tests
 
 **Issue**: Some SQLite transaction tests may be slow (10+ seconds) due to:
+
 - PRAGMA settings (WAL mode, busy timeout)
 - Connection pool configuration (MaxOpenConns=5 for GORM)
 - Parallel test execution with `t.Parallel()`
@@ -310,6 +324,7 @@ Create `test-output/test-validation-report.md`:
 **Issue**: PostgreSQL tests require Docker Compose services running
 
 **Mitigation**:
+
 ```powershell
 # Start PostgreSQL before running integration tests
 docker compose -f deployments/compose/compose.yml up -d postgres
@@ -326,6 +341,7 @@ go test ./internal/identity/repository/orm -v
 **Issue**: E2E tests with Docker Compose orchestration can take 5-10 minutes
 
 **Mitigation**: Run E2E tests separately from unit tests
+
 ```powershell
 # Unit tests only (fast)
 go test ./internal/... -short
@@ -337,11 +353,13 @@ go test ./internal/test/e2e/... -v
 ## Post-Validation Actions
 
 ### If Tests Pass
+
 1. Document baseline coverage in test report
 2. Commit test report to `test-output/` directory
 3. Proceed with refactor implementation (follow plans in `docs/01-refactor/`)
 
 ### If Tests Fail
+
 1. Investigate test failures and fix issues
 2. Re-run test suite to confirm fixes
 3. Document any deviations from baseline
@@ -367,6 +385,7 @@ go test ./internal/test/e2e/... -v
 ## Next Steps
 
 After testing validation:
+
 1. **Document baseline**: Create test validation report
 2. **Task 20**: Documentation finalization (handoff package)
 3. **Begin implementation**: Follow refactor plans in sequence

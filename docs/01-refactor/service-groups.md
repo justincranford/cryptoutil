@@ -23,6 +23,7 @@ These groups represent core functionality already implemented or in active devel
 **Status**: ✅ Implemented, needs reorganization
 
 **Scope**:
+
 - Hierarchical key management (unseal → root → intermediate → content keys)
 - FIPS 140-3 compliant cryptographic operations
 - JWE/JWS support for encrypted key storage
@@ -31,6 +32,7 @@ These groups represent core functionality already implemented or in active devel
 - Elastic keys (tenant-specific) and material keys (key material management)
 
 **Key Features**:
+
 - Dual-context API: browser (`/browser/api/v1/*`) and service (`/service/api/v1/*`)
 - PostgreSQL and SQLite backend support
 - OpenTelemetry instrumentation (traces, metrics, logs)
@@ -38,6 +40,7 @@ These groups represent core functionality already implemented or in active devel
 - CSRF protection and comprehensive security headers
 
 **Dependencies**:
+
 - Depends On: `internal/common/magic`, `internal/common/crypto`, `internal/common/pool`, `internal/common/telemetry`
 - Used By: Identity, CA, Secrets (future)
 
@@ -52,6 +55,7 @@ These groups represent core functionality already implemented or in active devel
 **Status**: ✅ Partially implemented (authorization server, identity provider, resource server)
 
 **Scope**:
+
 - OAuth 2.1 Authorization Server (AuthZ) with PKCE enforcement
 - OpenID Connect Identity Provider (IdP) with UserInfo endpoint
 - Resource Server (RS) with token validation
@@ -61,6 +65,7 @@ These groups represent core functionality already implemented or in active devel
 - Client authentication (client_secret_post, client_secret_basic, private_key_jwt, mTLS)
 
 **Key Features**:
+
 - Adaptive authentication with risk-based step-up
 - Proof Key for Code Exchange (PKCE) mandatory for authorization code flow
 - GORM-based persistence (PostgreSQL, SQLite)
@@ -68,6 +73,7 @@ These groups represent core functionality already implemented or in active devel
 - JWT-based access and refresh tokens
 
 **Dependencies**:
+
 - Depends On: `internal/common/magic` ONLY (domain isolation enforced via lint rules)
 - Does NOT depend on: KMS server, client, API, crypto utilities (uses stdlib)
 - Used By: SPA applications, microservices requiring authentication
@@ -83,6 +89,7 @@ These groups represent core functionality already implemented or in active devel
 **Status**: 📋 Planned (20 tasks documented)
 
 **Scope**:
+
 - Root, Intermediate, and Issuing CA provisioning
 - 20+ certificate profile library (TLS server/client, S/MIME, code signing, document signing, VPN, IoT, SAML, JWT, OCSP, RA, TSA, CT log, ACME, SCEP, EST, CMP, enterprise custom)
 - Certificate lifecycle management (issuance, renewal, revocation)
@@ -92,6 +99,7 @@ These groups represent core functionality already implemented or in active devel
 - Certificate transparency log integration
 
 **Key Features**:
+
 - CA/Browser Forum Baseline Requirements compliance
 - RFC 5280 strict enforcement
 - YAML-driven configuration for crypto, subject, and certificate profiles
@@ -99,6 +107,7 @@ These groups represent core functionality already implemented or in active devel
 - Observability and audit logging for compliance
 
 **Dependencies**:
+
 - Depends On: `internal/common/magic`, `internal/common/crypto` (key generation)
 - May Use: KMS for key storage (optional HSM integration)
 - Used By: Identity (mTLS certificates), microservices (service mesh), IoT devices
@@ -117,6 +126,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - Centralized secrets storage and retrieval
 - Dynamic secrets generation (database credentials, API keys)
 - Secrets rotation and expiration policies
@@ -124,6 +134,7 @@ These groups represent strategic enhancements to existing functionality or close
 - Integration with Kubernetes secrets, Vault, AWS Secrets Manager
 
 **Dependencies**:
+
 - Depends On: KMS (encryption at rest)
 - Used By: All services requiring secrets management
 
@@ -137,12 +148,14 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - Multi-tenant secure storage (documents, files, credentials)
 - Versioning and access control per vault
 - Encryption at rest using KMS
 - Compliance with data residency requirements
 
 **Dependencies**:
+
 - Depends On: KMS (encryption), Identity (authentication/authorization)
 - Used By: SaaS applications, enterprise customers
 
@@ -156,6 +169,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - PKCS#7, PKCS#12, PEM/DER utilities
 - CSR generation and validation
 - Certificate chain building and verification
@@ -163,6 +177,7 @@ These groups represent strategic enhancements to existing functionality or close
 - S/MIME and CMS message support
 
 **Dependencies**:
+
 - Depends On: CA (certificate operations), `internal/common/crypto`
 - Used By: Identity (mTLS), email encryption, document signing
 
@@ -176,12 +191,14 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - Certificate lifecycle automation (renewal, revocation)
 - Key rotation automation
 - Policy enforcement automation
 - Integration with CI/CD pipelines (GitHub Actions, GitLab CI, Jenkins)
 
 **Dependencies**:
+
 - Depends On: KMS (key operations), CA (certificate operations)
 - Used By: DevOps teams, infrastructure automation
 
@@ -195,6 +212,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - Reverse proxy with TLS termination
 - Rate limiting and quota management
 - Request routing and load balancing
@@ -202,6 +220,7 @@ These groups represent strategic enhancements to existing functionality or close
 - API key management
 
 **Dependencies**:
+
 - Depends On: Identity (authentication), CA (TLS certificates)
 - Used By: Microservices, API consumers
 
@@ -215,6 +234,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future (basic observability already exists)
 
 **Scope**:
+
 - Custom Grafana dashboards for KMS, Identity, CA
 - Alert rules for security events (failed unseal, unauthorized access)
 - Performance monitoring (key generation latency, certificate issuance throughput)
@@ -222,6 +242,7 @@ These groups represent strategic enhancements to existing functionality or close
 - Anomaly detection for cryptographic operations
 
 **Dependencies**:
+
 - Depends On: OpenTelemetry infrastructure (already exists)
 - Used By: Operations teams, security teams
 
@@ -235,6 +256,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - Automated backup of KMS keys, CA hierarchies, identity data
 - Encrypted backup storage (local, S3, GCS, Azure Blob)
 - Point-in-time recovery (PITR) for databases
@@ -242,6 +264,7 @@ These groups represent strategic enhancements to existing functionality or close
 - Cross-region replication
 
 **Dependencies**:
+
 - Depends On: KMS (encryption), all service databases
 - Used By: Operations teams, compliance teams
 
@@ -255,6 +278,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future (basic audit logging exists)
 
 **Scope**:
+
 - Centralized audit log collection (KMS, Identity, CA operations)
 - Tamper-proof audit trails (signed logs, blockchain anchoring)
 - Compliance reporting (SOC 2, ISO 27001, PCI-DSS)
@@ -262,6 +286,7 @@ These groups represent strategic enhancements to existing functionality or close
 - Forensic analysis tools
 
 **Dependencies**:
+
 - Depends On: All services (audit log sources)
 - Used By: Compliance teams, security teams, auditors
 
@@ -275,6 +300,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - Policy definition and enforcement (e.g., key rotation every 90 days)
 - Compliance checks (FIPS 140-3, CA/Browser Forum)
 - Automated remediation workflows
@@ -282,6 +308,7 @@ These groups represent strategic enhancements to existing functionality or close
 - Integration with GRC platforms
 
 **Dependencies**:
+
 - Depends On: Audit (compliance data), all services (policy enforcement)
 - Used By: Compliance officers, security teams
 
@@ -295,6 +322,7 @@ These groups represent strategic enhancements to existing functionality or close
 **Status**: 🔮 Future
 
 **Scope**:
+
 - Go SDK for KMS, Identity, CA APIs
 - Python, JavaScript/TypeScript, Java, C# SDKs
 - Code generation from OpenAPI specs
@@ -302,6 +330,7 @@ These groups represent strategic enhancements to existing functionality or close
 - SDK versioning and compatibility guarantees
 
 **Dependencies**:
+
 - Depends On: All service APIs (OpenAPI specs)
 - Used By: Application developers, integrators
 
@@ -598,26 +627,31 @@ These groups represent strategic expansion opportunities into related markets an
 ## Implementation Roadmap
 
 ### Phase 1: Consolidation (Tasks 1-9)
+
 - Reorganize existing KMS, Identity, CA packages
 - Establish import policies and documentation standards
 - Update tooling and workflows
 
 ### Phase 2: Core Expansion (Tasks 10-13)
+
 - Implement Secrets, Vault, PKI groups
 - Deliver unified CLI across core services
 - Enhance observability for new groups
 
 ### Phase 3: Infrastructure & Automation (Tasks 14-16)
+
 - Build Automation, Gateway, Monitoring groups
 - Integrate with CI/CD pipelines
 - Establish backup and disaster recovery
 
 ### Phase 4: Governance & Compliance (Tasks 17-20)
+
 - Implement Audit and Compliance groups
 - Deliver SDKs for Go, Python, JavaScript
 - Achieve SOC 2, ISO 27001 certifications
 
 ### Phase 5: Strategic Expansion (Tasks 21+)
+
 - Prioritize adjacent-market groups based on customer demand
 - Focus on HSM, PQC, IoT for enterprise adoption
 - Expand cloud-native and multi-cloud capabilities
@@ -627,6 +661,7 @@ These groups represent strategic expansion opportunities into related markets an
 ## Review Checklist
 
 ### Stakeholder Validation
+
 - [ ] Engineering leadership approves taxonomy structure
 - [ ] Product management aligns roadmap with service groups
 - [ ] Security team validates compliance and audit requirements
@@ -634,6 +669,7 @@ These groups represent strategic expansion opportunities into related markets an
 - [ ] Sales/marketing validates adjacent-market priorities
 
 ### Requirements Alignment
+
 - [ ] KMS requirements satisfied (hierarchical keys, FIPS 140-3)
 - [ ] Identity requirements satisfied (OAuth 2.1, OIDC, domain isolation)
 - [ ] CA requirements satisfied (20+ profiles, CA/Browser Forum compliance)
@@ -641,6 +677,7 @@ These groups represent strategic expansion opportunities into related markets an
 - [ ] Adjacent-market groups address customer pain points
 
 ### Technical Validation
+
 - [ ] Import boundaries defined and enforceable via lint rules
 - [ ] Package naming conventions consistent with Go standards
 - [ ] Dependencies mapped and coupling risks identified
@@ -648,6 +685,7 @@ These groups represent strategic expansion opportunities into related markets an
 - [ ] Testing strategies defined for each group
 
 ### Documentation Standards
+
 - [ ] Each group has clear scope and rationale
 - [ ] Dependencies and consumers documented
 - [ ] Roadmap aligns with business priorities

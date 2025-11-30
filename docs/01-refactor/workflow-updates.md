@@ -56,6 +56,7 @@ From [Pipeline Impact Assessment](pipeline-impact.md):
 ### Phase 1: Identity Extraction (Task 10 - Go Workspace)
 
 **Directory Changes**:
+
 - Identity module: `cryptoutil/internal/identity` → `identity/` (sibling workspace)
 - KMS module: `cryptoutil/internal/server`, `internal/client`, `internal/common` → remains in `cryptoutil/` workspace
 
@@ -77,10 +78,12 @@ From [Pipeline Impact Assessment](pipeline-impact.md):
    - **Docker Compose**: Verify identity service references (if identity servers start)
 
 **Composite Actions**:
+
 - `golangci-lint`: Update `.golangci.yml` importas (add `cryptoutilIdentity*` aliases)
 - No other action changes needed (identity workspace transparent to CI)
 
 **Validation**:
+
 ```bash
 # Verify workflows pass after identity extraction
 go run ./cmd/workflow -workflows=quality,coverage,e2e -inputs="scan_profile=quick"
@@ -89,6 +92,7 @@ go run ./cmd/workflow -workflows=quality,coverage,e2e -inputs="scan_profile=quic
 ### Phase 2: KMS Extraction (Task 11 - Rename server→kms)
 
 **Directory Changes**:
+
 - KMS server: `internal/server` → `internal/kms`
 - KMS client: `internal/client` → `internal/kms/client`
 - Utilities: `internal/common/{pool,container}` → `internal/kms/{pool,container}`
@@ -126,16 +130,19 @@ go run ./cmd/workflow -workflows=quality,coverage,e2e -inputs="scan_profile=quic
    - **New**: Unchanged (API endpoints independent of internal packages)
 
 **Composite Actions**:
+
 - `golangci-lint`: Update `.golangci.yml` importas (KMS aliases)
 - `custom-cicd-lint`: Verify `internal/cmd/cicd/` path stable (unchanged)
 - `fuzz-test`: No changes (crypto package paths unchanged)
 
 **Docker Compose**:
+
 - **Service names**: Keep `cryptoutil-sqlite`, `cryptoutil-postgres-1`, `cryptoutil-postgres-2` (no change)
 - **Config files**: Update volume mounts from `configs/production/` to `configs/kms/`
 - **Health checks**: Unchanged (endpoints same)
 
 **Validation**:
+
 ```bash
 # Verify all workflows pass after KMS extraction
 go run ./cmd/workflow -workflows=all -inputs="scan_profile=quick"
@@ -144,6 +151,7 @@ go run ./cmd/workflow -workflows=all -inputs="scan_profile=quick"
 ### Phase 3: CA Preparation (Task 12 - Skeleton Structure)
 
 **Directory Changes**:
+
 - CA structure: Add `internal/ca/{domain,repository,service,config,magic}`
 - No existing code moves (skeleton only)
 
@@ -159,9 +167,11 @@ go run ./cmd/workflow -workflows=all -inputs="scan_profile=quick"
    - **Coverage thresholds**: Define CA coverage target (future)
 
 **Composite Actions**:
+
 - `golangci-lint`: Update `.golangci.yml` importas (CA aliases)
 
 **Validation**:
+
 ```bash
 # Verify workflows pass after CA structure added
 go run ./cmd/workflow -workflows=quality,coverage -inputs="scan_profile=quick"
@@ -170,6 +180,7 @@ go run ./cmd/workflow -workflows=quality,coverage -inputs="scan_profile=quick"
 ### Phase 4: CLI Restructure (Tasks 13-15)
 
 **Directory Changes**:
+
 - CLI commands: `internal/cmd/cryptoutil/server.go` → `internal/cmd/cryptoutil/kms/server/server.go`
 - CLI commands: Add `internal/cmd/cryptoutil/identity/`, `internal/cmd/cryptoutil/ca/`
 - Main dispatcher: Update `internal/cmd/cryptoutil/cryptoutil.go`
@@ -190,10 +201,12 @@ go run ./cmd/workflow -workflows=quality,coverage -inputs="scan_profile=quick"
    - **New**: `docker compose exec cryptoutil-sqlite ./cryptoutil kms server start`
 
 **Docker Entrypoint**:
+
 - **Dockerfile**: Update `ENTRYPOINT ["cryptoutil", "kms", "server", "start"]`
 - **compose.yml**: Update `command:` directives to use `kms server start` instead of `server start`
 
 **Validation**:
+
 ```bash
 # Verify CLI restructure doesn't break workflows
 go run ./cmd/workflow -workflows=e2e,dast -inputs="scan_profile=quick"
@@ -254,6 +267,7 @@ func checkPatterns(file, content string, patterns []string) {
 ```
 
 **Run checklist generator**:
+
 ```bash
 go run ./internal/cmd/cicd/workflow_migrate/migrate.go > workflow-migration-checklist.txt
 ```
@@ -343,6 +357,7 @@ linters-settings:
 ```
 
 **Validation**:
+
 ```bash
 # Run golangci-lint to verify importas rules
 golangci-lint run ./... --disable-all --enable=importas
@@ -365,6 +380,7 @@ services:
 **Updates**:
 
 1. **Change command from `server` to `kms server`**:
+
    ```yaml
    # OLD
    command: ["server", "start", "--config", "/app/configs/cryptoutil-sqlite.yml"]
@@ -374,6 +390,7 @@ services:
    ```
 
 2. **Update config volume paths** (if configs/ restructured):
+
    ```yaml
    # If configs/production/ → configs/kms/
    volumes:
@@ -382,6 +399,7 @@ services:
    ```
 
 3. **Update Dockerfile `ENTRYPOINT`**:
+
    ```dockerfile
    # OLD
    ENTRYPOINT ["cryptoutil", "server", "start"]
@@ -391,6 +409,7 @@ services:
    ```
 
 **Validation**:
+
 ```bash
 # Verify Docker Compose services start correctly
 docker compose -f deployments/compose/compose.yml up -d
@@ -512,6 +531,7 @@ go run ./cmd/workflow -workflows=all -inputs="scan_profile=quick"
 ```
 
 **Validation checklist**:
+
 - [ ] `ci-quality.yml` passes (build succeeds, linting passes with new importas)
 - [ ] `ci-coverage.yml` passes (tests run, coverage reported)
 - [ ] `ci-benchmark.yml` passes (benchmarks run with new paths)
@@ -599,6 +619,7 @@ After refactoring:
 ## Next Steps
 
 After workflow updates:
+
 1. **Task 17**: Importas migration (update all import statements)
 2. **Task 18**: Observability updates (OTLP service names)
 3. **Task 19-20**: Integration testing, documentation finalization
