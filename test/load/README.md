@@ -25,30 +25,33 @@ These performance tests use [Gatling](https://gatling.io/) to load test the cryp
 cryptoutil exposes three distinct API contexts with different security and performance characteristics:
 
 ### 1. Service API (`/service/api/v1/*`)
-- **Purpose**: Machine-to-machine service communication
-- **Security**: Core security only (no browser-specific middleware)
-- **Base URL**: `https://localhost:8080/service/api/v1/`
-- **Parameter**: `virtualclients`
-- **Endpoints**: Key management, encryption/decryption operations
+
+* **Purpose**: Machine-to-machine service communication
+* **Security**: Core security only (no browser-specific middleware)
+* **Base URL**: `https://localhost:8080/service/api/v1/`
+* **Parameter**: `virtualclients`
+* **Endpoints**: Key management, encryption/decryption operations
 
 ### 2. Browser API (`/browser/api/v1/*`)
-- **Purpose**: Browser/web client communication
-- **Security**: Full browser security (CORS, CSRF, CSP, security headers)
-- **Base URL**: `https://localhost:8080/browser/api/v1/`
-- **Parameter**: `virtualusers`
-- **Endpoints**: Same operations as service API but with CSRF protection
+
+* **Purpose**: Browser/web client communication
+* **Security**: Full browser security (CORS, CSRF, CSP, security headers)
+* **Base URL**: `https://localhost:8080/browser/api/v1/`
+* **Parameter**: `virtualusers`
+* **Endpoints**: Same operations as service API but with CSRF protection
 
 ### 3. Admin API (Port 9090)
-- **Purpose**: Health checks and system monitoring
-- **Security**: Private interface for Kubernetes probes
-- **Base URL**: `http://localhost:9090/`
-- **Parameter**: `virtualadminclients`
-- **Endpoints**: `/livez` (liveness), `/readyz` (readiness)
+
+* **Purpose**: Health checks and system monitoring
+* **Security**: Private interface for Kubernetes probes
+* **Base URL**: `http://localhost:9090/`
+* **Parameter**: `virtualadminclients`
+* **Endpoints**: `/livez` (liveness), `/readyz` (readiness)
 
 ## Prerequisites
 
-- Java 21 or higher
-- Maven (or use the included Maven Wrapper)
+* Java 21 or higher
+* Maven (or use the included Maven Wrapper)
 
 ## JDK Configuration
 
@@ -129,11 +132,13 @@ Then update the pom.xml to use toolchains:
 ### Run Tests with Maven Wrapper (Recommended)
 
 #### Run All Simulations
+
 ```bash
 ./mvnw gatling:test
 ```
 
 #### Run Specific API Simulations
+
 ```bash
 # Service API tests
 ./mvnw gatling:test -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation -Dvirtualclients=10
@@ -152,29 +157,33 @@ mvnw.cmd gatling:test
 ### System Properties
 
 #### Service API Configuration
-- `baseurl`: Base URL for service API (default: `https://localhost:8080/service/api/v1/`)
-- `virtualclients`: Number of virtual clients for service API tests (default: `1`)
+
+* `baseurl`: Base URL for service API (default: `https://localhost:8080/service/api/v1/`)
+* `virtualclients`: Number of virtual clients for service API tests (default: `1`)
 
 #### Browser API Configuration
-- `browserApiBaseUrl`: Base URL for browser API (default: `https://localhost:8080/browser/api/v1/`)
-- `virtualusers`: Number of virtual users for browser API tests (default: `1`)
+
+* `browserApiBaseUrl`: Base URL for browser API (default: `https://localhost:8080/browser/api/v1/`)
+* `virtualusers`: Number of virtual users for browser API tests (default: `1`)
 
 #### Admin API Configuration
-- `adminApiBaseUrl`: Base URL for admin API (default: `http://localhost:9090/`)
-- `virtualadminclients`: Number of virtual admin clients for health check tests (default: `1`)
+
+* `adminApiBaseUrl`: Base URL for admin API (default: `http://localhost:9090/`)
+* `virtualadminclients`: Number of virtual admin clients for health check tests (default: `1`)
 
 ### Gatling Maven Plugin Properties
 
-- `gatling.simulationClass`: Fully qualified class name of the simulation to run (default: runs all simulations)
-- `gatling.runDescription`: Description for the test run
-- `gatling.outputDirectory`: Directory for test results (default: `target/gatling`)
-- `gatling.resultsFolder`: Subfolder name for results (default: timestamp-based)
-- `gatling.noReports`: Skip HTML report generation (default: `false`)
-- `gatling.reportsOnly`: Only generate reports from existing results (default: `false`)
+* `gatling.simulationClass`: Fully qualified class name of the simulation to run (default: runs all simulations)
+* `gatling.runDescription`: Description for the test run
+* `gatling.outputDirectory`: Directory for test results (default: `target/gatling`)
+* `gatling.resultsFolder`: Subfolder name for results (default: timestamp-based)
+* `gatling.noReports`: Skip HTML report generation (default: `false`)
+* `gatling.reportsOnly`: Only generate reports from existing results (default: `false`)
 
 ### Example Usage
 
 #### Service API Testing
+
 ```bash
 # Test service API with 5 virtual clients
 ./mvnw gatling:test -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation -Dvirtualclients=5
@@ -187,6 +196,7 @@ mvnw.cmd gatling:test
 ```
 
 #### Browser API Testing
+
 ```bash
 # Test browser API with 3 virtual users
 ./mvnw gatling:test -Dgatling.simulationClass=cryptoutil.BrowserApiSimulation -Dvirtualusers=3
@@ -199,6 +209,7 @@ mvnw.cmd gatling:test
 ```
 
 #### Admin API Testing
+
 ```bash
 # Test admin API health checks with 2 virtual admin clients
 ./mvnw gatling:test -Dgatling.simulationClass=cryptoutil.AdminApiSimulation -Dvirtualadminclients=2
@@ -211,6 +222,7 @@ mvnw.cmd gatling:test
 ```
 
 #### Combined Testing
+
 ```bash
 # Run all simulations
 ./mvnw gatling:test
@@ -290,17 +302,19 @@ go run ./cmd/workflow -workflows=load -inputs="load_profile=stress"
 ```
 
 **Workflow Features:**
-- Automatic Docker Compose service orchestration
-- Real-time infrastructure monitoring (CPU, memory, network, disk)
-- Service health verification before tests
-- Comprehensive artifact collection (Gatling reports, metrics, logs)
-- Three load profiles: quick (10 clients/30s), standard (50 clients/120s), stress (200 clients/300s)
+
+* Automatic Docker Compose service orchestration
+* Real-time infrastructure monitoring (CPU, memory, network, disk)
+* Service health verification before tests
+* Comprehensive artifact collection (Gatling reports, metrics, logs)
+* Three load profiles: quick (10 clients/30s), standard (50 clients/120s), stress (200 clients/300s)
 
 **GitHub Actions Integration:**
 
 Add to your CI/CD pipeline:
 
 #### Service API Testing
+
 ```yaml
 - name: Run Service API Performance Tests
   run: |
@@ -312,6 +326,7 @@ Add to your CI/CD pipeline:
 ```
 
 #### Browser API Testing
+
 ```yaml
 - name: Run Browser API Performance Tests
   run: |
@@ -323,6 +338,7 @@ Add to your CI/CD pipeline:
 ```
 
 #### Admin API Health Check Testing
+
 ```yaml
 - name: Run Admin API Health Check Tests
   run: |
@@ -334,6 +350,7 @@ Add to your CI/CD pipeline:
 ```
 
 #### Matrix Testing (All APIs)
+
 ```yaml
 - name: Run All API Performance Tests
   strategy:
@@ -363,10 +380,10 @@ Add to your CI/CD pipeline:
 
 The Gatling Maven plugin provides several goals:
 
-- `gatling:test`: Run Gatling simulations (default goal)
-- `gatling:recorder`: Start the Gatling recorder for creating new simulations
-- `gatling:enterpriseDeploy`: Deploy to Gatling Enterprise Cloud
-- `gatling:enterpriseStart`: Start simulations on Gatling Enterprise Cloud
+* `gatling:test`: Run Gatling simulations (default goal)
+* `gatling:recorder`: Start the Gatling recorder for creating new simulations
+* `gatling:enterpriseDeploy`: Deploy to Gatling Enterprise Cloud
+* `gatling:enterpriseStart`: Start simulations on Gatling Enterprise Cloud
 
 ### Advanced Usage
 
@@ -383,6 +400,7 @@ The Gatling Maven plugin provides several goals:
 Configure performance assertions in your simulations based on API type:
 
 ### Service API (Machine-to-Machine)
+
 ```java
 private static final Assertion serviceAssertions = global()
   .responseTime().percentile(95).lt(1000)  // 95th percentile < 1s
@@ -390,6 +408,7 @@ private static final Assertion serviceAssertions = global()
 ```
 
 ### Browser API (User-to-Machine)
+
 ```java
 private static final Assertion browserAssertions = global()
   .responseTime().percentile(95).lt(1500)  // 95th percentile < 1.5s (CSRF overhead)
@@ -397,6 +416,7 @@ private static final Assertion browserAssertions = global()
 ```
 
 ### Admin API (Health Checks)
+
 ```java
 private static final Assertion adminAssertions = global()
   .responseTime().percentile(95).lt(100)   // 95th percentile < 100ms (very fast)
@@ -413,9 +433,9 @@ private static final Assertion adminAssertions = global()
 4. **CSRF token errors**: Browser API requires CSRF tokens; ensure `/csrf-token` endpoint is accessible
 5. **Network timeouts**: Adjust HTTP timeouts in protocol configuration for slower browser API calls
 6. **API context confusion**: Use correct base URLs for each API type:
-   - Service API: `https://localhost:8080/service/api/v1/`
-   - Browser API: `https://localhost:8080/browser/api/v1/`
-   - Admin API: `http://localhost:9090/`
+   * Service API: `https://localhost:8080/service/api/v1/`
+   * Browser API: `https://localhost:8080/browser/api/v1/`
+   * Admin API: `http://localhost:9090/`
 
 ### Debug Mode
 
@@ -446,6 +466,6 @@ Enable debug logging and additional output:
 
 ## Resources
 
-- [Gatling Documentation](https://docs.gatling.io/)
-- [Gatling Maven Plugin](https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/)
-- [Cryptoutil API Documentation](../../docs/README.md)
+* [Gatling Documentation](https://docs.gatling.io/)
+* [Gatling Maven Plugin](https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/)
+* [Cryptoutil API Documentation](../../docs/README.md)

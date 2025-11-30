@@ -7,6 +7,7 @@ Command wrapper for VS Code Copilot Chat auto-approve bypass with loopback-only 
 VS Code Copilot Chat has [mandatory safety overrides](https://code.visualstudio.com/docs/copilot/chat/chat-tools#_terminal) that cannot be bypassed for certain commands deemed potentially unsafe. This includes network commands that may connect to external hosts.
 
 This wrapper provides a workaround by:
+
 1. Enforcing that all network-related arguments only reference loopback addresses (127.0.0.1, ::1, localhost)
 2. Logging detailed execution information for audit trails
 3. Passing through all I/O transparently to the wrapped command
@@ -55,6 +56,7 @@ autoapprove --skip-validation curl http://example.com
 The wrapper validates all arguments that appear to be URLs or network addresses:
 
 **Allowed:**
+
 - `127.0.0.1` (IPv4 loopback)
 - `::1` (IPv6 loopback)
 - `localhost`
@@ -63,6 +65,7 @@ The wrapper validates all arguments that appear to be URLs or network addresses:
 - `ip6-loopback`
 
 **Blocked:**
+
 - Any other IP address
 - Any external hostname
 

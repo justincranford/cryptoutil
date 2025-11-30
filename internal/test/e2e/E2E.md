@@ -5,6 +5,7 @@
 The e2e test suite follows a **layered, component-based architecture** designed for comprehensive end-to-end testing of the cryptoutil application stack.
 
 ### **Core Design Principles**
+
 - **Separation of Concerns**: Each component has a single responsibility
 - **Test Lifecycle Management**: Proper setup/teardown with resource cleanup
 - **Dual Output Logging**: Console + timestamped file logging for debugging
@@ -12,6 +13,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
 - **Infrastructure as Code**: Docker Compose-based service orchestration
 
 ### **Test Execution Flow**
+
 ```
 1. Suite Setup → 2. Infrastructure Setup → 3. Service Health Checks →
 4. API Testing → 5. Telemetry Verification → 6. Suite Teardown
@@ -20,6 +22,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
 ## 📁 **File Structure & Responsibilities**
 
 ### **`e2e_test.go`** - Test Entry Points
+
 - **Purpose**: Main test entry points and quick demonstration suite
 - **Contains**:
   - `TestE2E()` - Full end-to-end test suite
@@ -28,6 +31,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
 - **Design**: Minimal orchestration, delegates to `E2ETestSuite`
 
 ### **`test_suite.go`** - Core Test Orchestration
+
 - **Purpose**: Main test suite with step tracking and summary reporting
 - **Key Components**:
   - `E2ETestSuite` - Main test suite struct
@@ -40,6 +44,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
   - Dual logging (console + files)
 
 ### **`fixtures.go`** - Test Infrastructure Setup
+
 - **Purpose**: Shared test infrastructure and utilities
 - **Key Components**:
   - `TestFixture` - Central fixture managing all test resources
@@ -52,6 +57,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
   - Cross-platform path handling
 
 ### **`infrastructure.go`** - Docker Service Management
+
 - **Purpose**: Docker Compose operations and service health monitoring
 - **Key Components**:
   - `InfrastructureManager` - Docker orchestration
@@ -64,6 +70,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
   - HTTP endpoint verification
 
 ### **`assertions.go`** - Service Verification Logic
+
 - **Purpose**: Common assertions for service testing
 - **Key Components**:
   - `ServiceAssertions` - Assertion helper methods
@@ -76,6 +83,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
   - Telemetry data flow verification
 
 ### **`e2e-reports/`** - Generated Test Artifacts
+
 - **Purpose**: Timestamped log files for test execution records
 - **Contents**:
   - `e2e-test-YYYY-MM-DD_HH-MM-SS.log` - Detailed execution logs
@@ -87,6 +95,7 @@ The e2e test suite follows a **layered, component-based architecture** designed 
 ## 🔄 **Data Flow Architecture**
 
 ### **Test Execution Pipeline**
+
 ```
 TestRunner → TestSuite → TestFixture → InfrastructureManager
                                       ↓
@@ -96,6 +105,7 @@ TestRunner → TestSuite → TestFixture → InfrastructureManager
 ```
 
 ### **Logging Flow**
+
 ```
 Test Methods → logStep() → TestSummary.Steps[] → completeStep()
      ↓              ↓                    ↓              ↓
@@ -103,6 +113,7 @@ Console Output  Log File            Timing Tracking   Status Updates
 ```
 
 ### **Infrastructure Flow**
+
 ```
 Setup() → InfrastructureManager.StartServices() → WaitForServicesReady()
      ↓                                                ↓
@@ -114,26 +125,31 @@ Teardown() ← StopServices() ← Context Cancellation
 ## 🎯 **Key Design Patterns**
 
 ### **1. Test Suite Pattern**
+
 - Uses `testify/suite` for structured test organization
 - `SetupSuite`/`TearDownSuite` for lifecycle management
 - `SetupTest`/`TearDownTest` for per-test setup
 
 ### **2. Fixture Pattern**
+
 - Central `TestFixture` manages all shared resources
 - Resource initialization and cleanup
 - Cross-cutting concerns (logging, context management)
 
 ### **3. Manager Pattern**
+
 - `InfrastructureManager` handles Docker operations
 - `ServiceAssertions` provides reusable verification logic
 - Single responsibility per manager
 
 ### **4. Step Tracking Pattern**
+
 - `TestStep` captures individual operations
 - `TestSummary` aggregates execution metrics
 - Timing and status monitoring for debugging
 
 ### **5. Dual Logging Pattern**
+
 - Console output for real-time visibility
 - File logging for permanent records
 - Structured format with timestamps and elapsed time
@@ -141,11 +157,13 @@ Teardown() ← StopServices() ← Context Cancellation
 ## 🔧 **Configuration & Constants**
 
 ### **Magic Values**
+
 - All timeouts, ports, URLs defined in `cryptoutilMagic` package
 - Centralized configuration prevents hard-coded values
 - Cross-platform compatibility
 
 ### **Service Configuration**
+
 - Multiple cryptoutil instances (SQLite, PostgreSQL x2)
 - Supporting services (Grafana, OTEL collector, PostgreSQL)
 - Port-based service isolation
@@ -153,17 +171,20 @@ Teardown() ← StopServices() ← Context Cancellation
 ## 📊 **Execution Monitoring**
 
 ### **Step Tracking**
+
 - Each test operation creates a `TestStep`
 - Captures start time, description, duration, status
 - Aggregated into `TestSummary` for reporting
 
 ### **Summary Reports**
+
 - Execution date and total duration
 - Step-by-step breakdown with timings
 - Success rate calculation
 - Status indicators (✅ PASS, ❌ FAIL, ⏭️ SKIP)
 
 ### **Health Monitoring**
+
 - Docker service health checks
 - HTTP endpoint readiness verification
 - Telemetry flow validation
@@ -172,16 +193,19 @@ Teardown() ← StopServices() ← Context Cancellation
 ## 🛡️ **Error Handling & Resilience**
 
 ### **Panic Recovery**
+
 - Each test method wrapped in `recover()` blocks
 - Proper error reporting through step completion
 - Test suite continues despite individual failures
 
 ### **Timeout Management**
+
 - Configurable timeouts for different operations
 - Context-based cancellation
 - Graceful degradation on failures
 
 ### **Resource Cleanup**
+
 - Guaranteed teardown execution
 - Docker service cleanup
 - Log file closure
@@ -190,16 +214,19 @@ Teardown() ← StopServices() ← Context Cancellation
 ## 🚀 **Usage Examples**
 
 ### **Full E2E Test Run**
+
 ```bash
 go test -tags e2e ./internal/cmd/e2e -run TestE2E -v -timeout 30s
 ```
 
 ### **Quick Summary Demo**
+
 ```bash
 go test -tags e2e ./internal/cmd/e2e -run TestSummaryReportOnly -v
 ```
 
 ### **Log File Location**
+
 ```
 internal/cmd/e2e/e2e-reports/e2e-test-YYYY-MM-DD_HH-MM-SS.log
 ```
