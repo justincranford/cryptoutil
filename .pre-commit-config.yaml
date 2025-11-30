@@ -48,18 +48,21 @@ repos:
       - id: end-of-file-fixer
         name: Fix end of files
         exclude: '\.(exe|dll|so|dylib|key|crt)$'  # Skip binary/executable files
+        require_serial: false
         stages: [pre-commit]
 
       # Remove trailing whitespace
       - id: trailing-whitespace
         name: Remove trailing whitespace
         args: [--markdown-linebreak-ext=md]
+        require_serial: false
         stages: [pre-commit]
 
       # Check for UTF-8 encoding without BOM
       - id: fix-byte-order-marker
         name: Fix UTF-8 without BOM
         exclude: '\.(exe|dll|so|dylib|key|crt)$'  # Skip binary files
+        require_serial: false
         stages: [pre-commit]
 
       # Check YAML syntax
@@ -79,32 +82,38 @@ repos:
       - id: check-added-large-files
         name: Check for large files
         args: ['--maxkb=1024']
+        require_serial: false
         stages: [pre-commit]
 
       # Prevent merge conflict markers
       - id: check-merge-conflict
         name: Check for merge conflict markers
+        require_serial: false
         stages: [pre-commit]
 
       # Security checks (critical for crypto project)
       - id: detect-aws-credentials
         name: Check for AWS credentials
         args: [--allow-missing-credentials]
+        require_serial: false
         stages: [pre-commit]
 
       # Private key detection
       - id: detect-private-key
         name: Check for private keys
+        require_serial: false
         stages: [pre-commit]
 
       # Cross-platform compatibility
       - id: check-case-conflict
         name: Check for case conflicts
+        require_serial: false
         stages: [pre-commit]
 
       # Windows-specific checks
       - id: check-illegal-windows-names
         name: Check for illegal Windows filenames
+        require_serial: false
         stages: [pre-commit]
 
       # File validation
@@ -122,28 +131,33 @@ repos:
       # Symlink validation
       - id: check-symlinks
         name: Check for broken symlinks
+        require_serial: false
         stages: [pre-commit]
 
       # Script validation
       - id: check-executables-have-shebangs
         name: Check executables have shebangs
         exclude: '\.(exe|dll|so|dylib|key|crt|pem|der|bin|dat|db|sqlite|pdf|jpg|jpeg|png|gif|bmp|ico|mp4|avi|mov|zip|tar|gz|bz2|7z|rar)$'  # Skip binary/executable files
+        require_serial: false
         stages: [pre-commit]
 
       # Ensure shebang scripts are executable
       - id: check-shebang-scripts-are-executable
         name: Check shebang scripts are executable
         exclude: '\.(ps1|sh)$'  # Skip PowerShell and shell scripts (don't need execute permission on Windows)
+        require_serial: false
         stages: [pre-commit]
 
       # VCS and repository checks
       - id: check-vcs-permalinks
         name: Check VCS permalinks
+        require_serial: false
         stages: [pre-commit]
 
       # Prevent new git submodules
       - id: forbid-new-submodules
         name: Prevent new git submodules
+        require_serial: false
         stages: [pre-commit]
 
       # Formatting and branch protection
@@ -151,10 +165,12 @@ repos:
         name: Pretty format JSON files
         args: [--autofix, --indent=2]
         exclude: '(\.vscode/.*\.json$|\.cicd/.*\.json$)'  # Skip VS Code settings with comments and CI/CD cache files
+        require_serial: false
 
       # Mixed line endings
       - id: mixed-line-ending
         name: Fix mixed line endings
+        require_serial: false
 
       # - id: no-commit-to-branch
       #   name: Prevent commits to protected branches
@@ -178,9 +194,10 @@ repos:
       - id: golangci-lint-full
         name: golangci-lint (full validation)
         entry: golangci-lint
-        args: [run, --timeout=30m]
+        args: [run, --cache, --timeout=30m]
         language: system
         pass_filenames: false
+        files: '\.go$'
         stages: [pre-push]  # Full check before push
 
   # Custom project checks (fast, internal checks)
@@ -238,6 +255,7 @@ repos:
         language: system
         pass_filenames: false
         files: '\.go$'
+        require_serial: false
         stages: [pre-commit]
 
   # Go auto-fix commands (apply before linting)
@@ -262,6 +280,7 @@ repos:
         language: system
         pass_filenames: false
         files: '\.go$|go\.mod$|go\.sum$'
+        require_serial: false
         stages: [pre-push]  # Build validation before push, not on every commit
 
   # Specialized file linting: GitHub Actions workflow linting
@@ -309,6 +328,7 @@ repos:
         language: system
         files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
         exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/)'
+        require_serial: false
         stages: [pre-push]
 
   # Markdown linting with auto-fix
@@ -320,6 +340,7 @@ repos:
         args: [--fix]
         files: '\.(md|markdown)$'
         exclude: '^(node_modules/|vendor/|\.git/)'
+        require_serial: false
         stages: [pre-commit]
 
   # Conventional commit validation
