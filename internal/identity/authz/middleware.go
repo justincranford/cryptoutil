@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -21,6 +22,20 @@ import (
 func (s *Service) RegisterMiddleware(app *fiber.App) {
 	// Recover from panics.
 	app.Use(recover.New())
+
+	// Security headers middleware (OWASP ASVS V14.4 compliance).
+	// Adds: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection,
+	// Referrer-Policy, Content-Security-Policy, Permissions-Policy.
+	app.Use(helmet.New(helmet.Config{
+		XSSProtection:             "1; mode=block",
+		ContentTypeNosniff:        "nosniff",
+		XFrameOptions:             "DENY",
+		ReferrerPolicy:            "strict-origin-when-cross-origin",
+		CrossOriginEmbedderPolicy: "require-corp",
+		CrossOriginOpenerPolicy:   "same-origin",
+		CrossOriginResourcePolicy: "same-origin",
+		PermissionPolicy:          "geolocation=(), microphone=(), camera=()",
+	}))
 
 	// Logging middleware.
 	app.Use(logger.New(logger.Config{
