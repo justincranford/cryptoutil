@@ -28,7 +28,7 @@ token_validation:
     enabled: true
     cache_ttl: 5m
     jwks_refresh_interval: 1h
-  
+
   # Introspection for revocation checks
   introspection:
     enabled: true
@@ -121,4 +121,3 @@ curl -X POST https://localhost:8081/api/v1/encrypt \
 ---
 
 **Status**: IN PROGRESS
-

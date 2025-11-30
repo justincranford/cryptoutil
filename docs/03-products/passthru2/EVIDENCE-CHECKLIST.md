@@ -80,4 +80,3 @@ Use this checklist to validate that tasks are complete and that acceptance crite
 - [ ] **E**: Telemetry extracted to shared compose and secrets standardized
 
 **Sign-off**: Commit reviewer, tests green, and coverage pass
-
