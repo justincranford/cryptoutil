@@ -15,6 +15,7 @@ import (
 
 // LoadFromFile reads a configuration file and returns a Config instance.
 // Environment variables in the config file (e.g., ${VAR_NAME}) are expanded before parsing.
+// Fields not specified in the config file retain their default values.
 func LoadFromFile(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -24,8 +25,9 @@ func LoadFromFile(path string) (*Config, error) {
 	// Expand environment variables in the config file content
 	expandedData := os.ExpandEnv(string(data))
 
-	var cfg Config
-	if err := yaml.Unmarshal([]byte(expandedData), &cfg); err != nil {
+	// Start from default config to ensure all fields have sensible values.
+	cfg := DefaultConfig()
+	if err := yaml.Unmarshal([]byte(expandedData), cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
@@ -34,7 +36,7 @@ func LoadFromFile(path string) (*Config, error) {
 		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
 
-	return &cfg, nil
+	return cfg, nil
 }
 
 // SaveToFile writes a Config instance to a YAML file.
