@@ -98,15 +98,17 @@ This approach provides:
 |---------------|-------|---------------|-------|
 | Generic File Checks | pre-commit | 1-2s | Very fast, runs on all files |
 | go mod tidy | pre-commit | 0.5-1s | Only when go.mod changes |
-| go-fix-all | pre-commit | 1-3s | Auto-fixes for Go files |
 | golangci-lint (incremental) | pre-commit | 2-5s | Only changed files |
+| yamllint | pre-commit | 1-2s | Stricter YAML validation |
 | Custom CI/CD checks | pre-commit | 3-5s | Fast internal validations |
-| cspell | pre-commit | 1-3s | Cached spell checking |
+| cspell | pre-push | 1-3s | Cached spell checking |
+| go-fix-all | pre-push | 1-3s | Auto-fixes for Go files |
 | golangci-lint (full) | pre-push | 30-60s | Complete codebase validation |
 | go build | pre-push | 10-20s | Full compilation check |
+| gitleaks | pre-push | 2-5s | Secrets scanning |
 | github-workflow-lint | pre-push | 2-5s | Only when .github/workflows/ changes |
-| **Total pre-commit** | - | **10-15s** | Incremental changes |
-| **Total pre-push** | - | **45-60s** | Full validation |
+| **Total pre-commit** | - | **8-12s** | Incremental changes |
+| **Total pre-push** | - | **50-90s** | Full validation |
 
 ### Troubleshooting Slow Hooks
 
@@ -251,7 +253,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
   language: system
   pass_filenames: false
   files: '\.go$'
-  stages: [pre-commit]
+  stages: [pre-push]
 ```
 
 **Commands Executed**:
@@ -264,7 +266,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 - `files: '\.go$'`: Only runs when Go files change
 - `pass_filenames: false`: Processes all Go files matching filter
-- `stages: [pre-commit]`: Runs before golangci-lint for maximum effectiveness
+- `stages: [pre-push]`: Runs before full golangci-lint validation (moved from pre-commit for faster pre-commit)
 
 **Behavior**:
 
@@ -272,7 +274,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - Skips generated files (`_gen.go`, `/vendor/`, `/api/`)
 - Safe to run multiple times (idempotent)
 
-**Rationale**: Applying auto-fixes before golangci-lint reduces linter errors and allows incremental linting to focus on real issues rather than auto-fixable violations.
+**Rationale**: Moved to pre-push stage to optimize pre-commit speed. Auto-fixes are applied before full golangci-lint validation on push.
 
 **Documentation**: See `internal/cmd/cicd/cicd_go_fix_*.go` for implementation details
 
@@ -329,10 +331,11 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Integration**: Uses [../.golangci.yml](../.golangci.yml) for detailed configuration including:
 
-- Enabled/disabled linters (22 enabled in v2)
-- Custom settings per linter (gofumpt extra-rules, module-path)
-- Exclusion rules for generated code
+- Enabled/disabled linters (29 enabled, including exhaustive, nilnil, nilerr, makezero)
+- Custom settings per linter (gofumpt extra-rules, module-path, exhaustive)
+- Exclusion rules for generated code and intentional patterns
 - Severity levels and output formatting
+- Exclude-dirs for test-output, test-reports, workflow-reports
 
 **Rationale**: Single tool consolidates all auto-fixes (formatting, imports, style) plus validation, eliminating need for separate gofumpt/goimports hooks. This reduces hook count, simplifies pipeline, and ensures consistency.
 
@@ -501,7 +504,57 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [bandit](https://bandit.readthedocs.io/)
 
-### 10. Spell Checking (cSpell)
+### 10. Secrets Scanning (gitleaks)
+
+**Purpose**: Scans for secrets, credentials, and API keys in code to prevent accidental exposure.
+
+**Configuration**:
+
+```yaml
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.27.2
+  hooks:
+    - id: gitleaks
+      name: Scan for secrets
+      stages: [pre-push]
+```
+
+**Key Features**:
+
+- Detects API keys, passwords, and tokens
+- Supports custom patterns for project-specific secrets
+- Critical for crypto projects handling sensitive key material
+
+**Rationale**: Runs on pre-push stage to catch secrets before they are shared, while keeping pre-commit fast.
+
+**Documentation**: [gitleaks](https://github.com/gitleaks/gitleaks)
+
+### 11. YAML Linting (yamllint)
+
+**Purpose**: Stricter YAML validation beyond basic syntax checking.
+
+**Configuration**:
+
+```yaml
+- repo: https://github.com/adrienverge/yamllint
+  rev: v1.37.1
+  hooks:
+    - id: yamllint
+      name: YAML strict lint
+      args: [-d, relaxed]
+      files: '\.(yaml|yml)$'
+      stages: [pre-commit]
+```
+
+**Key Features**:
+
+- Validates YAML indentation and formatting
+- Checks for duplicate keys
+- Enforces consistent style across YAML files
+
+**Documentation**: [yamllint](https://yamllint.readthedocs.io/)
+
+### 12. Spell Checking (cSpell)
 
 **Purpose**: Checks spelling in code, comments, and documentation files.
 
@@ -524,7 +577,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [cSpell](https://cspell.org/)
 
-### 11. Conventional Commit Validation (commitizen)
+### 13. Conventional Commit Validation (commitizen)
 
 **Purpose**: Enforces conventional commit message formatting.
 

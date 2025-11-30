@@ -147,10 +147,13 @@ ALWAYS HEADER: ALWAYS linked to HTTP "Authorization" header
 - Service APIs: Configurable ;
 - User UI/APIs: Session UUIDv7 cookie mapped to server-side session in Redis cache
 - Basic
-Configuration options:
-- Bearer: issued opaque access token of type UUIDv7 or UUIDv4, mapped server-side to 
-- Bearer: issued JWT access token with UUIDv7 or UUIDv4 tenant claim
-- , claim persisted in server-side linked to issued UUIDv7 opaque token, TLS Client Cert custom SAN
+Configurable options in Authz Provider:
+- Bearer: issued UUID access token (UUIDv7 or UUIDv4), statefully mapped by issuer to tenant UUIDv4
+- Bearer: issued JWT  access token, statelessly mapped by issuer by tenant UUIDv4
+Configurable options in KMS File/Database realms:
+ - Basic: File-realm username/password Base64URL encoded
+ - Basic: Database-realm username/password Base64URL encoded
+ - 
 
 ---
 
