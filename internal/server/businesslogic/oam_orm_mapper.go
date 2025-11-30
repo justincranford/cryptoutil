@@ -25,18 +25,47 @@ func NewOamOrmMapper() *oamOrmMapper {
 
 var ErrInvalidUUID = "invalid UUIDs"
 
+// Default values for optional ElasticKey fields.
+var (
+	defaultElasticKeyProvider          = cryptoutilOpenapiModel.Internal
+	defaultElasticKeyAlgorithm         = cryptoutilOpenapiModel.A256GCMA256KW
+	defaultElasticKeyVersioningAllowed = true
+	defaultElasticKeyImportAllowed     = false
+)
+
 // oam => orm
 
 func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
+	// Apply defaults for optional fields
+	provider := defaultElasticKeyProvider
+	if oamElasticKeyCreate.Provider != nil {
+		provider = *oamElasticKeyCreate.Provider
+	}
+
+	algorithm := defaultElasticKeyAlgorithm
+	if oamElasticKeyCreate.Algorithm != nil {
+		algorithm = *oamElasticKeyCreate.Algorithm
+	}
+
+	versioningAllowed := defaultElasticKeyVersioningAllowed
+	if oamElasticKeyCreate.VersioningAllowed != nil {
+		versioningAllowed = *oamElasticKeyCreate.VersioningAllowed
+	}
+
+	importAllowed := defaultElasticKeyImportAllowed
+	if oamElasticKeyCreate.ImportAllowed != nil {
+		importAllowed = *oamElasticKeyCreate.ImportAllowed
+	}
+
 	return &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                *elasticKeyID,
 		ElasticKeyName:              oamElasticKeyCreate.Name,
 		ElasticKeyDescription:       oamElasticKeyCreate.Description,
-		ElasticKeyProvider:          *oamElasticKeyCreate.Provider,
-		ElasticKeyAlgorithm:         *oamElasticKeyCreate.Algorithm,
-		ElasticKeyVersioningAllowed: *oamElasticKeyCreate.VersioningAllowed,
-		ElasticKeyImportAllowed:     *oamElasticKeyCreate.ImportAllowed,
-		ElasticKeyStatus:            *toOamElasticKeyStatus(oamElasticKeyCreate.ImportAllowed),
+		ElasticKeyProvider:          provider,
+		ElasticKeyAlgorithm:         algorithm,
+		ElasticKeyVersioningAllowed: versioningAllowed,
+		ElasticKeyImportAllowed:     importAllowed,
+		ElasticKeyStatus:            toElasticKeyStatusFromImportAllowed(importAllowed),
 	}
 }
 
@@ -48,6 +77,15 @@ func (*oamOrmMapper) toOrmAddMaterialKey(elasticKeyID, materialKeyID *googleUuid
 		MaterialKeyEncryptedNonPublic: materialKeyEncryptedNonPublicJWKBytes, // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
 		MaterialKeyGenerateDate:       &materialKeyGenerateDate,              // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
 	}
+}
+
+// toElasticKeyStatusFromImportAllowed returns the initial status based on import allowed flag.
+func toElasticKeyStatusFromImportAllowed(isImportAllowed bool) cryptoutilOpenapiModel.ElasticKeyStatus {
+	if isImportAllowed {
+		return cryptoutilOpenapiModel.PendingImport
+	}
+
+	return cryptoutilOpenapiModel.PendingGenerate
 }
 
 func toOamElasticKeyStatus(isImportAllowed *bool) *cryptoutilOpenapiModel.ElasticKeyStatus {
