@@ -133,6 +133,7 @@ internal/product/<product-name>/
 **Goal**: Move common infrastructure to `internal/infra/*` without breaking existing code
 
 **Steps**:
+
 1. Create `internal/infra/` directory structure
 2. Move shared components (telemetry, crypto, database) to infra packages
 3. Update import paths in existing code to use infra packages
@@ -140,6 +141,7 @@ internal/product/<product-name>/
 5. Update documentation to reflect new structure
 
 **Risk Mitigation**:
+
 - Work incrementally (one infrastructure component at a time)
 - Run full test suite after each component move
 - Keep git history clean with descriptive commit messages
@@ -149,6 +151,7 @@ internal/product/<product-name>/
 **Goal**: Reorganize existing products into `internal/product/*` structure
 
 **Steps**:
+
 1. Create `internal/product/jose/` from scattered JOSE code
 2. Consolidate `internal/identity/` → `internal/product/identity/`
 3. Consolidate `internal/server/*` + `internal/client/*` → `internal/product/kms/`
@@ -156,6 +159,7 @@ internal/product/<product-name>/
 5. Update `cmd/` entry points to use product packages
 
 **Risk Mitigation**:
+
 - Test each product independently after reorganization
 - Maintain backward compatibility for external APIs
 - Document breaking changes in migration guide
@@ -165,6 +169,7 @@ internal/product/<product-name>/
 **Goal**: Build P4 (Certificates) as proof-of-concept for new architecture
 
 **Steps**:
+
 1. Design certificates product architecture (following product pattern)
 2. Leverage existing I6 (crypto), I7 (database), I11 (auditing) infrastructure
 3. Implement X.509 certificate operations (CSR, issuance, revocation)
@@ -172,6 +177,7 @@ internal/product/<product-name>/
 5. Create embedded service for certificate operations in other products
 
 **Success Metrics**:
+
 - P4 built using ONLY infrastructure components (no duplicate code)
 - P4 deployable standalone or embedded in other products
 - P4 demonstrates reusability benefits of new architecture
@@ -181,6 +187,7 @@ internal/product/<product-name>/
 **Goal**: Refine architecture based on learnings, add missing infrastructure
 
 **Ongoing Activities**:
+
 - Extract additional infrastructure components as patterns emerge
 - Build new products (P5, P6, etc.) using established patterns
 - Improve cross-product integration and testing
@@ -226,6 +233,7 @@ docs/03-products/
 ### Documentation Standards
 
 **Infrastructure Component Docs** (I##-*.md):
+
 - Component overview and purpose
 - API surface (packages, interfaces, functions)
 - Usage examples and patterns
@@ -235,6 +243,7 @@ docs/03-products/
 - Performance considerations
 
 **Product Planning Docs** (P##-*.md):
+
 - Product overview and use cases
 - Architecture (what infrastructure components are used)
 - API design (endpoints, schemas)
@@ -250,12 +259,14 @@ docs/03-products/
 ### When to Use This Structure
 
 **For Infrastructure Work**:
+
 - Adding new infrastructure components (I10-I16)
 - Refactoring existing code into infrastructure packages
 - Improving shared utilities and libraries
 - Enhancing cross-cutting concerns (logging, metrics, security)
 
 **For Product Work**:
+
 - Building new products (P4 Certificates, P5, etc.)
 - Enhancing existing products (P1 JOSE, P2 Identity, P3 KMS)
 - Creating embedded service libraries
@@ -264,24 +275,28 @@ docs/03-products/
 ### How to Analyze and Plan
 
 **Step 1: Understand Current State**
+
 - Read relevant infrastructure component docs (I##-*.md)
 - Review existing product docs (P##-*.md)
 - Examine current code structure
 - Identify gaps and opportunities
 
 **Step 2: Plan Changes**
+
 - Determine if change is infrastructure or product work
 - Identify affected infrastructure components
 - Plan minimal set of changes to achieve goal
 - Consider impact on other products/components
 
 **Step 3: Execute Incrementally**
+
 - Work on one infrastructure component or product at a time
 - Run tests after each incremental change
 - Update documentation as you go
 - Create ADRs for significant architectural decisions
 
 **Step 4: Validate and Document**
+
 - Verify all tests passing
 - Update README and component/product docs
 - Create migration guide if breaking changes

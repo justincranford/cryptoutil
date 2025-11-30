@@ -19,11 +19,13 @@ Select your answer by changing `[ ]` to `[x]` for each question. Add comments in
 The plan shows 12+ weeks of phased work.
 
 **Team size:**
+
 - [x] Solo project
 - [ ] 2-3 people
 - [ ] 4+ team members
 
 **Weekly time commitment:**
+
 - [ ] <5 hours/week (hobby pace)
 - [ ] 5-15 hours/week (side project)
 - [x] 15-30 hours/week (part-time focus)
@@ -100,6 +102,7 @@ What's your repo strategy?
 Which THREE infrastructure components cause you the most pain TODAY?
 
 **1st Priority:**
+
 - [ ] I1. Configuration - config loading is duplicated/inconsistent
 - [ ] I2. Networking - HTTP/TLS setup is messy
 - [ ] I3. Testing - test utilities are scattered
@@ -112,6 +115,7 @@ Which THREE infrastructure components cause you the most pain TODAY?
 - [x] I10. EASY OF DEMONSTRABILITY AND EASY OF USE (Write in vote)
 
 **2nd Priority:**
+
 - [ ] I1. Configuration
 - [ ] I2. Networking
 - [ ] I3. Testing
@@ -124,6 +128,7 @@ Which THREE infrastructure components cause you the most pain TODAY?
 - [x] I10. EASY OF DEMONSTRABILITY AND EASY OF USE (Write in vote)
 
 **3rd Priority:**
+
 - [ ] I1. Configuration
 - [ ] I2. Networking
 - [ ] I3. Testing

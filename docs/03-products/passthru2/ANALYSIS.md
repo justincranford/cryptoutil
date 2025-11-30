@@ -3,6 +3,7 @@
 This document distills the status and gaps found in `docs/03-products/passthru1` and maps required improvements for `passthru2`.
 
 ## 1) Completed Items (from passthru1)
+
 - KMS server startup, Swagger UI, `/livez` and `/readyz` endpoints verified
 - KMS: encrypt/decrypt, sign/verify functionality verified
 - Identity: token endpoint, client_credentials flow, basic discovery partially working
@@ -14,6 +15,7 @@ This document distills the status and gaps found in `docs/03-products/passthru1`
 ---
 
 ## 2) Not Completed / Pending Items
+
 - Identity: Authorization Code flow (/authorize) and full PKCE support
 - Identity: Session management, refresh token rotation, some revocation/inspect tests incomplete
 - Identity: Domain & repository test coverage gaps especially in `idp` & `idp/userauth`
@@ -25,6 +27,7 @@ This document distills the status and gaps found in `docs/03-products/passthru1`
 ---
 
 ## 3) Bugs, Mistakes & Inconsistencies
+
 - Inconsistent documentation: `README.md` vs `TASK-LIST.md` in KMS regarding "Create key pool" status (blocked vs working). Consolidate authoritative checklist.
 - Duplicate code: Identity contains copies of `apperr/`, `config/`, `magic/`, etc. Strategy is to extract and consolidate in infra.
 - Telemetry coupling: `deployments/kms/compose.yml` contains telemetry; Identity references telemetry but doesn't include a `telemetry` compose file. This prevents running Identity independently.
@@ -34,6 +37,7 @@ This document distills the status and gaps found in `docs/03-products/passthru1`
 ---
 
 ## 4) Missed Requirements & Non-Functional Gaps
+
 - Non-functional: No per-product `demo` compose profile for KMS (Identity has this in practice), lacking scripted demo experiences.
 - Non-functional: Insufficient test coverage in KMS handler & businesslogic packages, especially for behavior and errors.
 - Non-functional: No consistent audit logging approach; KMS and Identity have different levels of audit detail.
@@ -43,7 +47,9 @@ This document distills the status and gaps found in `docs/03-products/passthru1`
 ---
 
 ## 5) Copilot / Project Instruction Compliance
+
 Key checks against repo instruction files:
+
 - Coding & Patterns: `passthru1` proposals use switch statements and default values; KMS code follows the `internal/` split; Identity replication duplicates some infra which will be consolidated as per instructions.
 - Testing: Table-driven tests and `t.Parallel()` are used across the project but the identity packages show deficiencies in coverage and need to adhere to `t.Parallel()` patterns and table-driven tests (see coverage gaps in TASK-LIST).
 - Database: GORM SQLite setup and `PRAGMA` settings for concurrency are implemented in both KMS and Identity; Identity uses `sql.Open` + `sqlite.Dialector` pattern per instructions.
@@ -53,7 +59,9 @@ Key checks against repo instruction files:
 ---
 
 ## 6) Identity vs KMS Best Practices Comparison
+
 What identity lacks compared to KMS best practices:
+
 - KMS: Strong unit test coverage for core logic; Identity has low coverage in important packages (handler, idp).
 - KMS: Demonstrated stable deployments and UI demo; Identity lacks seeded demo users/clients account parity and certain flows.
 - KMS: Consistent DB settings and GORM usage for SQLite in-memory; Identity follows these best practices but earlier had issues (fixed) and some duplicated helpers that differ.
@@ -64,6 +72,7 @@ Risk: If Identity remains inconsistent, KMS may end up reusing identity-specific
 ---
 
 ## 7) Design, Security & Implementation Observations
+
 - JOSE Authority: Good idea to extract from Identity issuer; centralizing JWT/JWS operations improves consistency and eliminates duplicated implementations.
 - Key Management: KMS demonstrates 3-tier key hierarchy; ensure Identity's JWK rotation uses KMS where needed, or be explicit in design for usage when JOSE Authority is KMS-backed vs standalone.
 - Token Validation: KMS should support both introspection and local JWT verification with caching for performance (choose mix per Q17 in GROOMING Qs).
@@ -72,6 +81,7 @@ Risk: If Identity remains inconsistent, KMS may end up reusing identity-specific
 ---
 
 ## 8) Scalability & Parallel Testability
+
 - The PRAGMA + MaxOpenConns pattern for SQLite is used correctly in both KMS and Identity packages, enabling parallel test runs with WAL+busy_timeout and proper connection pool sizing.
 - However, ensure that GORM with transactions (SkipDefaultTransaction) config usage is consistent; GORM transactions with MaxOpenConns settings must be tested across packages.
 - Suggest: Run a focused set of parallel tests for Identity and KMS to find any deadlocks.
@@ -79,6 +89,7 @@ Risk: If Identity remains inconsistent, KMS may end up reusing identity-specific
 ---
 
 ## 9) E2E & Integration
+
 - E2E tests need per-product demo orchestration and cross-product orchestration in `internal/product/e2e/` or `test/e2e/`.
 - Compose merging: implement `deployments/telemetry/compose.yml` for central telemetry and optional local telemetry runs.
 - Compose `demo` profile should seed data to ensure deterministic E2E runs.
@@ -86,7 +97,9 @@ Risk: If Identity remains inconsistent, KMS may end up reusing identity-specific
 ---
 
 ## 10) Recommended Improvement Tasks (map to passthru2 grooming: RESEARCH.md)
+
 Immediate (Phase 0):
+
 - Add `demo` mode and seeding for KMS and Identity
 - Extract telemetry to `deployments/telemetry/compose.yml` and update product compose files to reference it
 - Standardize secret usage: Docker secrets across products
@@ -94,12 +107,14 @@ Immediate (Phase 0):
 - Remove empty directories and document expected structure
 
 Short term:
+
 - Add missing flows: Identity `/authorize`, PKCE validation, redirect handling, token rotation logic, refresh tests
 - KMS UI demo: ensure `Try it out` and seeded accounts work in Swagger UI
 - Fix coverage gaps: KMS handler/businesslogic and Identity `idp/userauth` need + tests
 - Consolidate duplicate infra code in `internal/infra/` and update import paths
 
 Medium term:
+
 - Implement JOSE Authority extraction and define JWK/JWS profiles
 - E2E tests that run entire demo workflow with seeded data (integration mode)
 - CI updates: coverage gates & demo-run CI job
@@ -107,6 +122,7 @@ Medium term:
 ---
 
 ## 11) Suggested Next Steps & Quick Wins
+
 - Answer 25 grooming questions in `docs/03-products/passthru2/grooming/GROOMING-QUESTIONS.md`
 - Implement Phase 0 tasks: demo seeding + telemetry extraction
 - Add per-product `demo` orchestration scripts

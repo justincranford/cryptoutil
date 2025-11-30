@@ -93,6 +93,7 @@ You mentioned "jose authority" - what does this mean to you?
 - [ ] F. Something else (explain in notes)
 
 **Notes**: Basic JOSE operations can be in the common shared crypto code, but JOSE Authority would contain:
+
 - Embedded services for server-side issuance and client-side verification/usage
 - Microservices for server and client
 - Working demo of many different servers and clients running with different PKC domains
@@ -368,6 +369,7 @@ After refactoring completes, what's the demo?
 - [x] E. Multiple demos for different audiences
 
 **Notes**:
+
 1. Docker compose per product, so they can be setup/torn down independently, for manual testing each one
 2. Demo executable to orchestrate docker compose per product, to simplify ease of use for demo
 3. Overarching demo executable that will orchestrate the per-product demos, with configuration that sets up delegation between the independent product clusters
@@ -438,6 +440,7 @@ After refactoring completes, what's the demo?
 ### Post-Refactoring Coverage Task
 
 Create max 6 independent Cloud Agent Session prompts for concurrent GitHub PRs:
+
 - Single request each (no multi-iteration)
 - Merge without conflicts
 - Target 90% coverage

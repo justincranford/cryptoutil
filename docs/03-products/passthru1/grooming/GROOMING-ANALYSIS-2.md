@@ -125,35 +125,45 @@ Session 2 focused on deep-dive questions across 6 areas. User's answers reveal c
 Based on Session 2 answers, the following need deeper exploration:
 
 ### 1. Self-Documenting UI Design
+
 User's "nowhere" answer about documentation means we need to define:
+
 - What makes a UI self-documenting?
 - Inline help strategy
 - First-time user flow
 - Error message quality
 
 ### 2. Identity Embedding Architecture
+
 "Identity embeddable in KMS" requires:
+
 - Go library interface design
 - Configuration when embedded vs standalone
 - Auth bypass for embedded mode?
 - Session handling when embedded
 
 ### 3. Three-Tier Key Hierarchy Details
+
 User selected three-tier but didn't specify:
+
 - Key derivation vs separate keys?
 - Rotation strategy per tier
 - Access control per tier
 - UI representation of hierarchy
 
 ### 4. Scope System Design
+
 User wants resource-based + key-specific + hierarchical scopes:
+
 - Scope syntax/format
 - Scope inheritance rules
 - Default scopes
 - UI for scope management
 
 ### 5. Demo Data Strategy
+
 User wants pre-loaded sample data:
+
 - What specific data?
 - How to reset demo?
 - Multi-tenant demo or single user?

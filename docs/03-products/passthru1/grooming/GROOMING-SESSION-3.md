@@ -3,6 +3,7 @@
 ## Purpose
 
 Session 3 dives into implementation specifics based on your Session 2 decisions:
+
 - Self-documenting UI requirements
 - Identity embedding mechanics
 - Key hierarchy implementation
@@ -109,7 +110,7 @@ How important is mobile/tablet support?
 
 User runs `docker compose up`. What appears first?
 
-- [x] Terminal output with "Open http://localhost:8080"
+- [x] Terminal output with "Open <http://localhost:8080>"
 - [ ] Browser auto-opens to welcome page
 - [ ] Terminal shows service status table
 - [ ] Swagger UI links printed

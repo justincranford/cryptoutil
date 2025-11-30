@@ -25,7 +25,7 @@ Session 3 revealed remarkably clear and decisive technical preferences across al
 
 | Decision | User's Choice | Implication |
 |----------|---------------|-------------|
-| Starting Point | Terminal: "Open http://localhost:8080" | Simple, direct instructions |
+| Starting Point | Terminal: "Open <http://localhost:8080>" | Simple, direct instructions |
 | Accounts | All three: Admin + Regular + Service | Comprehensive demo coverage |
 | Keys | Multiple hierarchies | Show different use cases |
 | Walkthrough Order | Login → Logout → View → Generate → Use → Audit | Logical learning progression |
@@ -124,16 +124,19 @@ Based on Session 3 answers, here's the emerging architecture:
 ## Critical Gaps Identified
 
 ### 1. Identity Embedding Use Cases
+
 **GAP**: User marked "Unsure - need to think about this more"
 **Impact**: This affects the entire product architecture
 **Needed**: Clear scenarios where embedding makes sense vs standalone
 
 ### 2. Current Implementation Assessment
+
 **GAP**: User references "current implementation" but we don't know its state
 **Impact**: May affect timeline and scope
 **Needed**: Assessment of existing code quality and completeness
 
 ### 3. React UI Development Approach
+
 **GAP**: No preference for how to integrate React with Go backend
 **Impact**: Affects development workflow and deployment
 **Needed**: Decide on separate frontend vs embedded approach
@@ -169,6 +172,7 @@ Based on Session 3 clarity:
 ## Implementation Readiness Assessment
 
 **Areas Ready Now:**
+
 - ✅ UI framework and design philosophy
 - ✅ Demo scenario and user experience
 - ✅ Key hierarchy and security model
@@ -176,6 +180,7 @@ Based on Session 3 clarity:
 - ✅ Identity embedding technical approach
 
 **Areas Needing Clarification:**
+
 - ❌ Identity embedding business cases
 - ❌ Current codebase assessment
 - ❌ React + Go integration approach

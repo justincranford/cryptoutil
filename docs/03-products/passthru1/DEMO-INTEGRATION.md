@@ -86,9 +86,9 @@ Option B: Embedded (Development/Simple)
 
 | User | Role | Accessible Scopes |
 |------|------|-------------------|
-| admin@kms.local | Admin | kms:admin, kms:* |
-| user@kms.local | User | kms:read, kms:encrypt, kms:decrypt |
-| auditor@kms.local | Auditor | kms:read |
+| <admin@kms.local> | Admin | kms:admin, kms:* |
+| <user@kms.local> | User | kms:read, kms:encrypt, kms:decrypt |
+| <auditor@kms.local> | Auditor | kms:read |
 
 ---
 

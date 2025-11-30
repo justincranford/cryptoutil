@@ -3,6 +3,7 @@
 ## Purpose
 
 Session 4 resolves the remaining gaps identified in Session 3 analysis:
+
 - Identity embedding business cases (you marked "unsure")
 - Current codebase assessment
 - React + Go integration strategy

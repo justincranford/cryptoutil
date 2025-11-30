@@ -26,6 +26,7 @@ Configuration infrastructure provides centralized configuration management for a
 ### Existing Configuration Patterns
 
 **KMS Server** (`internal/server/config/config.go`):
+
 - YAML-based configuration with CLI flag overrides
 - Unseal secrets from Docker secrets (`/run/secrets/*`)
 - TLS certificate configuration
@@ -34,6 +35,7 @@ Configuration infrastructure provides centralized configuration management for a
 - Structured config validation with defaults
 
 **Identity Server** (`internal/identity/config/config.go`):
+
 - Similar YAML + CLI pattern
 - OAuth2.1/OIDC specific configuration
 - Client registration and credential management
@@ -41,6 +43,7 @@ Configuration infrastructure provides centralized configuration management for a
 - Session management configuration
 
 **Common Patterns Across Products**:
+
 ```go
 // Config loading pattern
 config, err := LoadConfig(configFile)
@@ -165,6 +168,7 @@ type ConfigManager interface {
 **Goal**: Create base configuration infrastructure without breaking existing code
 
 **Tasks**:
+
 1. Create `internal/infra/configuration/` package
 2. Implement `ConfigProvider` interface and basic providers (file, env, secret)
 3. Implement `ConfigValidator` with struct tag-based validation
@@ -172,6 +176,7 @@ type ConfigManager interface {
 5. Add comprehensive tests (≥95% coverage)
 
 **Success Criteria**:
+
 - All tests passing
 - No changes to existing product code yet
 - Documentation complete with usage examples
@@ -181,6 +186,7 @@ type ConfigManager interface {
 **Goal**: Replace KMS server config code with infra configuration
 
 **Tasks**:
+
 1. Update `internal/server/config/config.go` to use `ConfigManager`
 2. Add struct tags for validation rules
 3. Configure providers (file: `configs/kms/config.yml`, secrets: `/run/secrets/*`)
@@ -188,6 +194,7 @@ type ConfigManager interface {
 5. Run full KMS test suite to verify no regressions
 
 **Success Criteria**:
+
 - All KMS tests passing
 - Config loading behavior unchanged
 - Code reduction in `internal/server/config/`
@@ -197,6 +204,7 @@ type ConfigManager interface {
 **Goal**: Replace Identity server config code with infra configuration
 
 **Tasks**:
+
 1. Update `internal/identity/config/config.go` to use `ConfigManager`
 2. Add struct tags for validation rules
 3. Configure providers (file: `configs/identity/config.yml`, secrets: Docker secrets)
@@ -204,6 +212,7 @@ type ConfigManager interface {
 5. Run full Identity test suite to verify no regressions
 
 **Success Criteria**:
+
 - All Identity tests passing
 - Config loading behavior unchanged
 - Code reduction in `internal/identity/config/`
@@ -213,6 +222,7 @@ type ConfigManager interface {
 **Goal**: Enable runtime configuration updates for non-critical settings
 
 **Tasks**:
+
 1. Implement file watching in `watcher.go`
 2. Add `ConfigChange` event handling in `ConfigManager`
 3. Document which settings support hot reload vs require restart
@@ -220,6 +230,7 @@ type ConfigManager interface {
 5. Update product configs to specify reload behavior
 
 **Success Criteria**:
+
 - Hot reload working for logging levels, timeouts, feature flags
 - Sensitive settings (TLS, database) still require restart
 - Clear documentation on reload behavior
