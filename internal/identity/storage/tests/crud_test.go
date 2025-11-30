@@ -213,7 +213,7 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 	// Verify revocation
 	retrievedRevoked, err := tokenRepo.GetByID(ctx, token.ID)
 	require.NoError(t, err)
-	require.True(t, retrievedRevoked.Revoked)
+	require.True(t, retrievedRevoked.Revoked.Bool())
 
 	// Test Delete
 	err = tokenRepo.Delete(ctx, token.ID)

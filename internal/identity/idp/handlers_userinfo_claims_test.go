@@ -182,7 +182,7 @@ func TestUserInfoClaims(t *testing.T) {
 				require.Equal(t, tc.user.Sub, claims["sub"], "sub claim should match")
 				require.Equal(t, tc.user.PreferredUsername, claims["preferred_username"], "preferred_username claim should match")
 				require.Equal(t, tc.user.Email, claims["email"], "email claim should match")
-				require.Equal(t, tc.user.EmailVerified, claims["email_verified"], "email_verified claim should match")
+				require.Equal(t, tc.user.EmailVerified.Bool(), claims["email_verified"], "email_verified claim should match")
 
 				// Verify optional claims if present.
 				if tc.user.GivenName != "" {

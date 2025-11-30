@@ -106,31 +106,31 @@ func TestToken_IsValid(t *testing.T) {
 	tests := []struct {
 		name      string
 		expiresAt time.Time
-		revoked   bool
+		revoked   domain.IntBool
 		valid     bool
 	}{
 		{
 			name:      "valid active token",
 			expiresAt: time.Now().Add(1 * time.Hour),
-			revoked:   false,
+			revoked:   domain.IntBool(false),
 			valid:     true,
 		},
 		{
 			name:      "expired active token",
 			expiresAt: time.Now().Add(-1 * time.Hour),
-			revoked:   false,
+			revoked:   domain.IntBool(false),
 			valid:     false,
 		},
 		{
 			name:      "valid revoked token",
 			expiresAt: time.Now().Add(1 * time.Hour),
-			revoked:   true,
+			revoked:   domain.IntBool(true),
 			valid:     false,
 		},
 		{
 			name:      "expired revoked token",
 			expiresAt: time.Now().Add(-1 * time.Hour),
-			revoked:   true,
+			revoked:   domain.IntBool(true),
 			valid:     false,
 		},
 	}

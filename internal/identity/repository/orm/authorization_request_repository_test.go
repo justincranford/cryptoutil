@@ -146,8 +146,8 @@ func TestAuthorizationRequestRepository_Update(t *testing.T) {
 
 	retrieved, err := repo.GetByID(context.Background(), request.ID)
 	require.NoError(t, err)
-	require.True(t, retrieved.ConsentGranted)
-	require.True(t, retrieved.Used)
+	require.True(t, retrieved.ConsentGranted.Bool())
+	require.True(t, retrieved.Used.Bool())
 }
 
 func TestAuthorizationRequestRepository_Delete(t *testing.T) {

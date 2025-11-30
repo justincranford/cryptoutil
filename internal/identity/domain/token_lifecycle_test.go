@@ -181,49 +181,49 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 	tests := []struct {
 		name            string
 		tokenType       cryptoutilIdentityDomain.TokenType
-		revoked         bool
+		revoked         cryptoutilIdentityDomain.IntBool
 		revokedAt       *time.Time
-		wantRevoked     bool
+		wantRevoked     cryptoutilIdentityDomain.IntBool
 		wantRevokedTime bool
 	}{
 		{
 			name:            "access_token_not_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeAccess,
-			revoked:         false,
+			revoked:         cryptoutilIdentityDomain.IntBool(false),
 			revokedAt:       nil,
-			wantRevoked:     false,
+			wantRevoked:     cryptoutilIdentityDomain.IntBool(false),
 			wantRevokedTime: false,
 		},
 		{
 			name:            "access_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeAccess,
-			revoked:         true,
+			revoked:         cryptoutilIdentityDomain.IntBool(true),
 			revokedAt:       timePtr(time.Now().Add(-5 * time.Minute)),
-			wantRevoked:     true,
+			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
 		{
 			name:            "refresh_token_not_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeRefresh,
-			revoked:         false,
+			revoked:         cryptoutilIdentityDomain.IntBool(false),
 			revokedAt:       nil,
-			wantRevoked:     false,
+			wantRevoked:     cryptoutilIdentityDomain.IntBool(false),
 			wantRevokedTime: false,
 		},
 		{
 			name:            "refresh_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeRefresh,
-			revoked:         true,
+			revoked:         cryptoutilIdentityDomain.IntBool(true),
 			revokedAt:       timePtr(time.Now().Add(-1 * time.Hour)),
-			wantRevoked:     true,
+			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
 		{
 			name:            "id_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeID,
-			revoked:         true,
+			revoked:         cryptoutilIdentityDomain.IntBool(true),
 			revokedAt:       timePtr(time.Now().Add(-30 * time.Second)),
-			wantRevoked:     true,
+			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
 	}

@@ -261,7 +261,7 @@ func TestUserRepository_Update(t *testing.T) {
 
 	retrieved, err := repo.GetByID(ctx, user.ID)
 	require.NoError(t, err)
-	require.True(t, retrieved.EmailVerified)
+	require.True(t, retrieved.EmailVerified.Bool())
 }
 
 func TestUserRepository_Delete(t *testing.T) {

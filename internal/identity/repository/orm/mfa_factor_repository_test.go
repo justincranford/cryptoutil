@@ -129,7 +129,7 @@ func TestMFAFactorRepository_Update(t *testing.T) {
 	updated, err := repo.GetByID(ctx, factor.ID)
 	require.NoError(t, err, "GetByID should find updated factor")
 	require.Equal(t, "Updated description", updated.Description)
-	require.True(t, updated.Required)
+	require.True(t, updated.Required.Bool())
 }
 
 func TestMFAFactorRepository_Delete(t *testing.T) {

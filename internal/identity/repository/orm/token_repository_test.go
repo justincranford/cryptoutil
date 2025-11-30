@@ -228,7 +228,7 @@ func TestTokenRepository_RevokeByID(t *testing.T) {
 
 	retrieved, err := repo.GetByID(ctx, token.ID)
 	require.NoError(t, err)
-	require.True(t, retrieved.Revoked)
+	require.True(t, retrieved.Revoked.Bool())
 }
 
 func TestTokenRepository_RevokeByTokenValue(t *testing.T) {
@@ -260,7 +260,7 @@ func TestTokenRepository_RevokeByTokenValue(t *testing.T) {
 
 	retrieved, err := repo.GetByTokenValue(ctx, "access_token_revoke_value")
 	require.NoError(t, err)
-	require.True(t, retrieved.Revoked)
+	require.True(t, retrieved.Revoked.Bool())
 }
 
 func TestTokenRepository_List(t *testing.T) {
