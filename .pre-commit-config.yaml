@@ -287,6 +287,14 @@ repos:
         require_serial: false
         stages: [pre-push]  # Build validation before push, not on every commit
 
+  # Secrets scanning (critical for crypto project)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.27.2
+    hooks:
+      - id: gitleaks
+        name: Scan for secrets
+        stages: [pre-push]
+
   # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.8
