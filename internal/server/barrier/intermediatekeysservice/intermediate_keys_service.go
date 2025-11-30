@@ -72,11 +72,14 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 
 	if encryptedIntermediateKeyLatest == nil {
 		log.Printf("DEBUG initializeFirstIntermediateJWK: Creating first intermediate JWK")
+
 		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
 			log.Printf("DEBUG initializeFirstIntermediateJWK: GenerateJWEJWK failed: %v", err)
+
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
+
 		log.Printf("DEBUG initializeFirstIntermediateJWK: Generated JWK with kid=%v", intermediateKeyKidUUID)
 
 		var encryptedIntermediateKeyBytes []byte
@@ -87,8 +90,10 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 			encryptedIntermediateKeyBytes, rootKeyKidUUID, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
 			if err != nil {
 				log.Printf("DEBUG initializeFirstIntermediateJWK: EncryptKey failed: %v", err)
+
 				return fmt.Errorf("failed to encrypt first intermediate JWK: %w", err)
 			}
+
 			log.Printf("DEBUG initializeFirstIntermediateJWK: Encrypted intermediate JWK, len=%d, rootKeyKid=%v", len(encryptedIntermediateKeyBytes), rootKeyKidUUID)
 
 			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.BarrierIntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
@@ -96,16 +101,20 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {
 				log.Printf("DEBUG initializeFirstIntermediateJWK: AddIntermediateKey failed: %v", err)
+
 				return fmt.Errorf("failed to store first intermediate JWK: %w", err)
 			}
+
 			log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully stored first intermediate JWK")
 
 			return nil
 		})
 		if err != nil {
 			log.Printf("DEBUG initializeFirstIntermediateJWK: Transaction failed: %v", err)
+
 			return fmt.Errorf("failed to encrypt and store first intermediate first JWK: %w", err)
 		}
+
 		log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully created first intermediate JWK")
 	}
 

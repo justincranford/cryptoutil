@@ -96,6 +96,7 @@ func identityAuthz(parameters []string) {
 
 	// Debug logging
 	fmt.Fprintf(os.Stderr, "identityAuthz: Loading config from: %s\n", configFile)
+
 	wd, _ := os.Getwd()
 	fmt.Fprintf(os.Stderr, "identityAuthz: Working directory: %s\n", wd)
 
@@ -143,6 +144,7 @@ func identityAuthz(parameters []string) {
 	// Create key generator and key rotation manager
 	keyGenerator := cryptoutilIdentityIssuer.NewProductionKeyGenerator()
 	keyRotationPolicy := cryptoutilIdentityIssuer.DevelopmentKeyRotationPolicy()
+
 	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(keyRotationPolicy, keyGenerator, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create key rotation manager: %v\n", err)

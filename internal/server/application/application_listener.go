@@ -1088,6 +1088,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) bool {
 	return func(c *fiber.Ctx) bool {
 		url := c.OriginalURL()
+
 		return strings.HasPrefix(url, settings.PublicServiceAPIContextPath+"/") ||
 			strings.HasPrefix(url, "/oauth2/v1/") ||
 			strings.HasPrefix(url, "/openid/v1/")
