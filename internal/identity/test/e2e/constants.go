@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 //go:build e2e
 
 // Package e2e provides end-to-end integration tests for identity services.

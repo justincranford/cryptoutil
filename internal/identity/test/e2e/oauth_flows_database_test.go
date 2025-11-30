@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 //go:build e2e
 
 package e2e
