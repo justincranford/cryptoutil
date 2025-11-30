@@ -1,14 +1,58 @@
 # Identity V2 Project Status (Single Source of Truth)
 
 **Document Purpose**: ONLY authoritative source for Identity V2 project status
-**Last Updated**: 2025-11-28 (Commit: fccf64c9)
-**Commit Hash**: fccf64c9
+**Last Updated**: 2025-11-30 (Passthru1 OAuth 2.1 Demo)
+**Commit Hash**: 12f17433
 
 ---
 
 ## Current Status
 
-**Production Readiness**: ✅ PRODUCTION READY (Core OAuth 2.1 + Secret Rotation Complete)
+**Production Readiness**: ✅ PRODUCTION READY (Core OAuth 2.1 + Secret Rotation + Demo Working)
+
+---
+
+## Recent Activity
+
+**November 30, 2025** (Passthru1 - OAuth 2.1 Demo Sprint):
+
+### OAuth 2.1 Authorization Code Flow - VERIFIED WORKING ✅
+
+Complete end-to-end OAuth 2.1 flow verified:
+
+1. **Authorization Request** → `GET /oauth2/v1/authorize` with PKCE
+2. **Login Flow** → `POST /oidc/v1/login` with demo user (demo/demo-password)
+3. **Consent Flow** → `POST /oidc/v1/consent` with approval
+4. **Token Exchange** → `POST /oauth2/v1/token` returns access_token + refresh_token
+
+### Gap Remediation Progress
+
+| Gap ID | Severity | Description | Status |
+|--------|----------|-------------|--------|
+| GAP-COMP-001 | CRITICAL | Security headers missing | ✅ RESOLVED - Helmet middleware added |
+| GAP-COMP-002 | HIGH | CORS wildcard vulnerability | ✅ RESOLVED - Config-based origins |
+| GAP-COMP-004 | CRITICAL | Discovery endpoint missing | ✅ RESOLVED - /.well-known/openid-configuration |
+| GAP-COMP-005 | CRITICAL | JWKS endpoint missing | ✅ RESOLVED - /.well-known/jwks.json |
+| GAP-COMP-006 | HIGH | Token introspection missing | ✅ ALREADY EXISTS - /oauth2/v1/introspect |
+| GAP-COMP-007 | HIGH | Token revocation missing | ✅ ALREADY EXISTS - /oauth2/v1/revoke |
+
+### Technical Fixes
+
+1. **IntBool Type**: Cross-database bool↔INTEGER compatibility for PostgreSQL/SQLite
+2. **Config Loader**: Fixed nil pointer when Sessions config missing
+3. **Demo User Bootstrap**: Created demo-user/demo-password for testing
+4. **Docker Compose**: Fixed IDP port conflict (8081→8091 on host)
+
+### Docker Services Running
+
+| Service | Port | Status |
+|---------|------|--------|
+| identity-authz | 8090 | ✅ Healthy |
+| identity-idp | 8091 | ✅ Healthy |
+| identity-postgres | 5433 | ✅ Healthy |
+| KMS cryptoutil-sqlite | 8080 | ✅ Healthy |
+| KMS cryptoutil-postgres-1 | 8081 | ✅ Healthy |
+| KMS cryptoutil-postgres-2 | 8082 | ✅ Healthy |
 
 ## Completion Metrics
 
@@ -186,7 +230,7 @@
 
 ---
 
-## Recent Activity
+## Historical Activity
 
 **November 26, 2025** (Passthru5):
 
