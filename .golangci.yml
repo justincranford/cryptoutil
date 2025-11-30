@@ -41,6 +41,8 @@ linters:
     - goheader
     - depguard
     - exhaustive
+    - nilnil
+    - nilerr
   disable:
     - dupl
     - gocyclo
@@ -60,6 +62,36 @@ linters:
       # Exclude test-output directory from goheader (temp test artifacts).
       - path: "test_error\\.go$"
         linters: [goheader]
+      # Exclude nilnil from pool.go (intentional "nothing to report" pattern).
+      - path: "internal/common/pool/pool\\.go$"
+        linters: [nilnil]
+      # Exclude nilnil from datetime.go (intentional "not found" pattern).
+      - path: "internal/common/util/datetime/datetime\\.go$"
+        linters: [nilnil]
+      # Exclude nilnil from test files (mock implementations).
+      - path: "_test\\.go$"
+        linters: [nilnil]
+      # Exclude nilnil from step_up_auth.go (intentional pattern).
+      - path: "internal/identity/idp/userauth/step_up_auth\\.go$"
+        linters: [nilnil]
+      # Exclude nilnil from oam_orm_mapper.go (intentional pattern).
+      - path: "internal/server/businesslogic/oam_orm_mapper\\.go$"
+        linters: [nilnil]
+      # Exclude nilnil from nullable_uuid.go (intentional pattern for sql.Scanner).
+      - path: "internal/identity/domain/nullable_uuid\\.go$"
+        linters: [nilnil]
+      # Exclude nilnil from secret_rotation_service.go (intentional pattern).
+      - path: "internal/identity/rotation/secret_rotation_service\\.go$"
+        linters: [nilnil]
+      # Exclude nilerr from jwk_util.go (intentional type-check pattern).
+      - path: "internal/common/crypto/jose/jwk_util\\.go$"
+        linters: [nilerr]
+      # Exclude nilerr from secret.go (intentional pattern).
+      - path: "internal/crypto/secret\\.go$"
+        linters: [nilerr]
+      # Exclude nilerr from issuer service (intentional pattern).
+      - path: "internal/identity/issuer/service\\.go$"
+        linters: [nilerr]
 
   settings:
     errcheck:

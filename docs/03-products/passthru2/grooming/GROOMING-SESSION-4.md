@@ -144,9 +144,13 @@ Notes:
 NEVER PATH
 NEVER QUERY PARAMETERS
 ALWAYS HEADER: ALWAYS linked to HTTP "Authorization" header
-- Service Bearer: JWT Embedded claim
-- User Bearer: Session UUIDv7 cookie mapped to server-side session in Redis cache
+- Service APIs: Configurable ;
+- User UI/APIs: Session UUIDv7 cookie mapped to server-side session in Redis cache
 - Basic
+Configuration options:
+- Bearer: issued opaque access token of type UUIDv7 or UUIDv4, mapped server-side to 
+- Bearer: issued JWT access token with UUIDv7 or UUIDv4 tenant claim
+- , claim persisted in server-side linked to issued UUIDv7 opaque token, TLS Client Cert custom SAN
 
 ---
 
