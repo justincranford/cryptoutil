@@ -81,8 +81,6 @@ linters:
     goheader:
       template: |-
         Copyright (c) {{ YEAR }} Justin Cranford
-        All rights reserved.
-      template-path: ""
     depguard:
       rules:
         main:
@@ -182,6 +180,19 @@ linters:
 issues:
   max-issues-per-linter: 50
   max-same-issues: 5
+  exclude-rules:
+    # Exclude goheader from generated code files
+    - path: "openapi_gen_.*\\.go$"
+      linters: [goheader]
+    - path: "api/(client|model|server)/.*\\.go$"
+      linters: [goheader]
+    - path: "api/(idp|authz)/.*\\.go$"
+      linters: [goheader]
+    - path: "api/fix_external_ref/.*\\.go$"
+      linters: [goheader]
+    # Exclude test-output directory from goheader (temp test artifacts)
+    - path: "test_error\\.go$"
+      linters: [goheader]
 
 severity:
   default: error
