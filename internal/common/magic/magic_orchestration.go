@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package magic
 
 // Docker Compose scaling constants.

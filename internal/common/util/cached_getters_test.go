@@ -1,6 +1,4 @@
 // Copyright (c) 2025 Justin Cranford
-//
-// SPDX-License-Identifier: Apache-2.0
 
 package util_test
 
