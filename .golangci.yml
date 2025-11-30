@@ -1,329 +1,177 @@
 # $schema: https://json.schemastore.org/golangci-lint.json
-# schema: https://golangci-lint.run/jsonschema/golangci.jsonschema.json
-# doc: https://golangci-lint.run/docs/configuration/file/
-# reference: https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
-# github repo: https://github.com/golangci/golangci-lint/tree/main
-#
-# golangci-lint configuration for cryptoutil project
-# This project uses Go 1.25.4 with golangci-lint v2.6.2
-#
-# Usage: golangci-lint run --timeout=10m
-
 version: "2"
 
 run:
   timeout: 10m
   issues-exit-code: 1
   tests: true
-  concurrency: 0  # Use all available CPUs
-
-# NOTE: gofumpt and goimports are NOT linters in v2 (moved to formatters)
-# They are applied automatically when using: golangci-lint run --fix
-# Pre-commit hooks run with --fix flag, ensuring formatting is applied
-# gofumpt: Stricter Go formatting (superset of gofmt) with extra rules enabled
-# goimports: Import organization (stdlib → third-party → cryptoutil)
+  concurrency: 0
 
 output:
   formats:
     tab:
       path: stdout
-  sort-order:
-    - linter
-    - severity
-    - file
+  sort-order: [linter, severity, file]
 
 linters:
   enable:
-    # Essential linters (fast static analysis)
-    - errcheck      # Check for unchecked errors (return values must be handled)
-    - govet         # Reports suspicious constructs (Go's built-in vet tool)
-    - ineffassign   # Detect ineffectual assignments (assigned but never used)
-    - staticcheck   # Advanced static analysis (includes gosimple, stylecheck in v2 - merged for performance)
-    - unused        # Find unused constants, variables, functions and types (dead code detection)
-
-    # Code quality linters (fast)
-    - revive        # Golint replacement with more rules (style and best practices)
-    - godot         # Check for missing periods in documentation comments (enforces proper documentation)
-    - copyloopvar   # Check for loop variables captured by reference (Go 1.22+ automatic capture detection)
-    - goconst       # Find repeated strings that could be constants (DRY principle, magic values in magic/ package)
-    - importas      # Enforce consistent import aliasing (60+ aliases configured below, cryptoutil* prefix required)
-
-    # Security and error handling
-    - gosec         # Security-focused static analysis (detects common security issues, excludes configured below)
-    - noctx         # Check for missing context in HTTP requests (ensures proper cancellation/timeout)
-    - wrapcheck     # Check error wrapping consistency (ensures proper error context propagation)
-    - errorlint     # Find code that will cause problems with Go 1.13 error wrapping (fmt.Errorf %w usage)
-
-    # Testing quality
-    # thelper: DISABLED - false positives on table-driven test anonymous funcs (not actual test helpers)
-    # tparallel: DISABLED - false positives on t.Cleanup vs defer, both are valid patterns
-    - testpackage   # Test package naming conventions (enforces _test package suffix for external testing)
-    - gomodguard    # Prevent importing blocked modules (blocks github.com/pkg/errors, use stdlib instead)
-    - gomoddirectives # Validate Go module directives (ensures clean go.mod)
-
-    # Performance and style
-    - prealloc      # Find slice declarations that could pre-allocate (performance optimization)
-    - bodyclose     # Check for HTTP response body closure (prevents resource leaks)
-    - mnd           # Detect magic numbers (enforces named constants in magic/ package)
-    - wsl_v5        # Whitespace linter v5 (enforces consistent blank lines, NO //nolint:wsl suppressions allowed)
-    - nlreturn      # Enforce newlines after return statements (readability)
-
-    # Maintainability
-    - goheader      # Copyright header enforcement (ensures license headers present)
-    - depguard      # Enforce allowed/disallowed import dependencies (domain isolation, prevents cross-boundary imports)
-
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - godot
+    - copyloopvar
+    - goconst
+    - importas
+    - gosec
+    - noctx
+    - wrapcheck
+    - errorlint
+    - testpackage
+    - gomodguard
+    - gomoddirectives
+    - prealloc
+    - bodyclose
+    - mnd
+    - wsl_v5
+    - nlreturn
+    - goheader
+    - depguard
   disable:
-    # Disabled for code quality/complexity management
-    - dupl      # Code duplication detection (intentionally disabled, prefer manual refactoring)
-    - gocyclo   # Cyclomatic complexity (intentionally disabled, prefer code reviews)
-    - godox     # TODO/FIXME comments (tracked in docs/todos-*.md instead)
+    - dupl
+    - gocyclo
+    - godox
 
   settings:
     errcheck:
-      # Check type assertions for error conditions
       check-type-assertions: true
-      # Allow blank identifier assignments for intentional error discarding
       check-blank: false
-
     gosec:
-      # Security linter sensitivity (medium = reasonable balance)
       severity: medium
       confidence: medium
-      # Exclude specific security rules (acceptable in test/development contexts)
-      excludes:
-        - G204  # Subprocess launched with variable - acceptable for controlled docker compose commands in tests
-        - G301  # Directory permissions too permissive - acceptable for test directories
-        - G302  # File permissions too permissive - acceptable for test files
-        - G304  # Potential file inclusion via variable - acceptable for controlled test file operations
-        - G402  # TLS InsecureSkipVerify set true - required for test code connecting to self-signed certificates
-
+      excludes: [G204, G301, G302, G304, G402]
     gocyclo:
       min-complexity: 15
-
     goconst:
       min-len: 1
       min-occurrences: 2
       numbers: true
-
     mnd:
-      # Magic Number Detector - enforces named constants for clarity
-      # Define magic values in internal/common/magic/ package files (magic_*.go)
-      # OR in identity-specific magic files: internal/identity/<package>/magic*.go
-      ignored-numbers:
-        - '2'        # Common in bit operations, array splits, mathematical operations (context makes meaning clear)
-      ignored-functions:
-        - 'math.*'   # Mathematical functions (math.Pow(2, 8) is self-documenting)
-        - 'len'      # Length checks (if len(slice) > 0)
-        - 'make'     # Buffer allocation (make([]byte, 1024))
-
+      ignored-numbers: ['2']
+      ignored-functions: ['math.*', 'len', 'make']
     dupl:
       threshold: 100
-
     misspell:
       locale: US
-
     revive:
       severity: warning
-
     godot:
       scope: declarations
       capital: false
-
     godox:
-      keywords:
-        - TODO
-        - FIXME
-        - BUG
-        - HACK
-
+      keywords: [TODO, FIXME, BUG, HACK]
     thelper:
       test:
         begin: true
-
     testpackage:
       skip-regexp: '.*_test\.go$'
-
     depguard:
-      # Dependency guard - prevents importing discouraged packages
-      # NOTE: v2 simplified from v1's complex identity-domain-isolation rules
-      # Domain isolation (identity vs KMS) now enforced via manual code review
       rules:
         main:
           deny:
             - pkg: github.com/pkg/errors
-              desc: "Use Go 1.13+ error wrapping instead (fmt.Errorf with %w)"
-
+              desc: "Use Go 1.13+ error wrapping instead"
     importas:
-      # Import alias enforcement - ensures consistent package naming across codebase
-      # CRITICAL: ALL cryptoutil imports MUST use camelCase aliases starting with "cryptoutil" prefix
-      # This synchronizes with .github/instructions/01-03.golang.instructions.md importas section
       alias:
-        # JOSE libraries (JSON Web Encryption/Signatures)
-        - pkg: github.com/lestrrat-go/jwx/v3/jwe
-          alias: joseJwe
-        - pkg: github.com/lestrrat-go/jwx/v3/jwk
-          alias: joseJwk
-        - pkg: github.com/lestrrat-go/jwx/v3/jws
-          alias: joseJws
-        - pkg: github.com/lestrrat-go/jwx/v3/jwa
-          alias: joseJwa
-        # Google UUID
-        - pkg: github.com/google/uuid
-          alias: googleUuid
-        # Standard library
-        - pkg: encoding/json
-          alias: json
-        - pkg: encoding/xml
-          alias: xml
-        - pkg: net/http
-          alias: http
+        # JOSE libraries
+        - { pkg: "github.com/lestrrat-go/jwx/v3/jwe", alias: joseJwe }
+        - { pkg: "github.com/lestrrat-go/jwx/v3/jwk", alias: joseJwk }
+        - { pkg: "github.com/lestrrat-go/jwx/v3/jws", alias: joseJws }
+        - { pkg: "github.com/lestrrat-go/jwx/v3/jwa", alias: joseJwa }
         # Third-party
-        - pkg: github.com/gofiber/fiber/v2
-          alias: fiber
-        - pkg: github.com/stretchr/testify
-          alias: testify
-        # Cryptoutil API packages
-        - pkg: cryptoutil/api/client
-          alias: cryptoutilOpenapiClient
-        - pkg: cryptoutil/api/model
-          alias: cryptoutilOpenapiModel
-        - pkg: cryptoutil/api/server
-          alias: cryptoutilOpenapiServer
-        # Cryptoutil internal - command/testing/utilities
-        - pkg: cryptoutil/internal/cmd
-          alias: cryptoutilCmd
-        - pkg: cryptoutil/internal/cmd/cryptoutil
-          alias: cryptoutilCmdCryptoutil
-        - pkg: cryptoutil/internal/cmd/workflow
-          alias: cryptoutilWorkflow
-        - pkg: cryptoutil/internal/cmd/cicd/common
-          alias: cryptoutilCmdCicdCommon
-        - pkg: cryptoutil/internal/cmd/cicd/all_enforce_utf8
-          alias: cryptoutilCmdCicdAllEnforceUtf8
-        - pkg: cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies
-          alias: cryptoutilCmdCicdGoCheckCircularPackageDependencies
-        - pkg: cryptoutil/internal/cmd/cicd/go_check_identity_imports
-          alias: cryptoutilCmdCicdGoCheckIdentityImports
-        - pkg: cryptoutil/internal/cmd/cicd/go_enforce_any
-          alias: cryptoutilCmdCicdGoEnforceAny
-        - pkg: cryptoutil/internal/cmd/cicd/go_enforce_test_patterns
-          alias: cryptoutilCmdCicdGoEnforceTestPatterns
-        - pkg: cryptoutil/internal/cmd/cicd/go_fix_all
-          alias: cryptoutilCmdCicdGoFixAll
-        - pkg: cryptoutil/internal/cmd/cicd/go_fix_copyloopvar
-          alias: cryptoutilCmdCicdGoFixCopyLoopVar
-        - pkg: cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings
-          alias: cryptoutilCmdCicdGoFixStaticcheckErrorStrings
-        - pkg: cryptoutil/internal/cmd/cicd/go_fix_thelper
-          alias: cryptoutilCmdCicdGoFixTHelper
-        - pkg: cryptoutil/internal/cmd/cicd/go_generate_postmortem
-          alias: cryptoutilGoGeneratePostmortem
-        - pkg: cryptoutil/internal/cmd/cicd/go_update_direct_dependencies
-          alias: cryptoutilCmdCicdGoUpdateDirectDependencies
-        - pkg: cryptoutil/internal/cmd/cicd/github_workflow_lint
-          alias: cryptoutilCmdCicdGithubWorkflowLint
-        # Cryptoutil internal - test
-        - pkg: cryptoutil/internal/test/e2e
-          alias: cryptoutilE2E
-        - pkg: cryptoutil/internal/identity/test/testutils
-          alias: cryptoutilIdentityTestTestutils
-        # Cryptoutil internal - common
-        - pkg: cryptoutil/internal/common/apperr
-          alias: cryptoutilAppErr
-        - pkg: cryptoutil/internal/common/config
-          alias: cryptoutilConfig
-        - pkg: cryptoutil/internal/common/container
-          alias: cryptoutilContainer
-        - pkg: cryptoutil/internal/common/magic
-          alias: cryptoutilMagic
-        - pkg: cryptoutil/internal/common/pool
-          alias: cryptoutilPool
-        - pkg: cryptoutil/internal/common/telemetry
-          alias: cryptoutilTelemetry
-        - pkg: cryptoutil/internal/common/testutil
-          alias: cryptoutilTestutil
-        - pkg: cryptoutil/internal/common/util
-          alias: cryptoutilUtil
-        - pkg: cryptoutil/internal/common/util/combinations
-          alias: cryptoutilCombinations
-        - pkg: cryptoutil/internal/common/util/datetime
-          alias: cryptoutilDateTime
-        - pkg: cryptoutil/internal/common/util/files
-          alias: cryptoutilFiles
-        - pkg: cryptoutil/internal/common/util/network
-          alias: cryptoutilNetwork
-        - pkg: cryptoutil/internal/common/util/sysinfo
-          alias: cryptoutilSysinfo
-        # Cryptoutil internal - crypto
-        - pkg: cryptoutil/internal/common/crypto/asn1
-          alias: cryptoutilAsn1
-        - pkg: cryptoutil/internal/common/crypto/certificate
-          alias: cryptoutilCertificate
-        - pkg: cryptoutil/internal/common/crypto/digests
-          alias: cryptoutilDigests
-        - pkg: cryptoutil/internal/common/crypto/jose
-          alias: cryptoutilJose
-        - pkg: cryptoutil/internal/common/crypto/keygen
-          alias: cryptoutilKeyGen
-        # Cryptoutil internal - server
-        - pkg: cryptoutil/internal/server/application
-          alias: cryptoutilServerApplication
-        - pkg: cryptoutil/internal/server/businesslogic
-          alias: cryptoutilBusinessLogic
-        - pkg: cryptoutil/internal/server/handler
-          alias: cryptoutilOpenapiHandler
-        - pkg: cryptoutil/internal/server/barrier
-          alias: cryptoutilBarrierService
-        - pkg: cryptoutil/internal/server/barrier/contentkeysservice
-          alias: cryptoutilContentKeysService
-        - pkg: cryptoutil/internal/server/barrier/intermediatekeysservice
-          alias: cryptoutilIntermediateKeysService
-        - pkg: cryptoutil/internal/server/barrier/rootkeysservice
-          alias: cryptoutilRootKeysService
-        - pkg: cryptoutil/internal/server/barrier/unsealkeysservice
-          alias: cryptoutilUnsealKeysService
-        - pkg: cryptoutil/internal/server/repository/orm
-          alias: cryptoutilOrmRepository
-        - pkg: cryptoutil/internal/server/repository/sqlrepository
-          alias: cryptoutilSQLRepository
-        # Cryptoutil internal - identity
-        - pkg: cryptoutil/internal/identity/apperr
-          alias: cryptoutilIdentityAppErr
-        - pkg: cryptoutil/internal/identity/config
-          alias: cryptoutilIdentityConfig
-        - pkg: cryptoutil/internal/identity/domain
-          alias: cryptoutilIdentityDomain
-        - pkg: cryptoutil/internal/identity/magic
-          alias: cryptoutilIdentityMagic
-        - pkg: cryptoutil/internal/identity/repository
-          alias: cryptoutilIdentityRepository
-        - pkg: cryptoutil/internal/identity/issuer
-          alias: cryptoutilIdentityIssuer
-        - pkg: cryptoutil/internal/identity/authz
-          alias: cryptoutilIdentityAuthz
-        - pkg: cryptoutil/internal/identity/authz/clientauth
-          alias: cryptoutilIdentityClientAuth
-        - pkg: cryptoutil/internal/identity/idp
-          alias: cryptoutilIdentityIdp
-        - pkg: cryptoutil/internal/identity/idp/auth
-          alias: cryptoutilIdentityAuth
-        - pkg: cryptoutil/internal/identity/server
-          alias: cryptoutilIdentityServer
+        - { pkg: "github.com/google/uuid", alias: googleUuid }
+        - { pkg: "encoding/json", alias: json }
+        - { pkg: "encoding/xml", alias: xml }
+        - { pkg: "net/http", alias: http }
+        - { pkg: "github.com/gofiber/fiber/v2", alias: fiber }
+        - { pkg: "github.com/stretchr/testify", alias: testify }
+        # Cryptoutil API
+        - { pkg: "cryptoutil/api/client", alias: cryptoutilOpenapiClient }
+        - { pkg: "cryptoutil/api/model", alias: cryptoutilOpenapiModel }
+        - { pkg: "cryptoutil/api/server", alias: cryptoutilOpenapiServer }
+        # Cryptoutil cmd
+        - { pkg: "cryptoutil/internal/cmd", alias: cryptoutilCmd }
+        - { pkg: "cryptoutil/internal/cmd/cryptoutil", alias: cryptoutilCmdCryptoutil }
+        - { pkg: "cryptoutil/internal/cmd/workflow", alias: cryptoutilWorkflow }
+        - { pkg: "cryptoutil/internal/cmd/cicd/common", alias: cryptoutilCmdCicdCommon }
+        - { pkg: "cryptoutil/internal/cmd/cicd/all_enforce_utf8", alias: cryptoutilCmdCicdAllEnforceUtf8 }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies", alias: cryptoutilCmdCicdGoCheckCircularPackageDependencies }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_check_identity_imports", alias: cryptoutilCmdCicdGoCheckIdentityImports }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_enforce_any", alias: cryptoutilCmdCicdGoEnforceAny }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns", alias: cryptoutilCmdCicdGoEnforceTestPatterns }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_all", alias: cryptoutilCmdCicdGoFixAll }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar", alias: cryptoutilCmdCicdGoFixCopyLoopVar }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings", alias: cryptoutilCmdCicdGoFixStaticcheckErrorStrings }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_thelper", alias: cryptoutilCmdCicdGoFixTHelper }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_generate_postmortem", alias: cryptoutilGoGeneratePostmortem }
+        - { pkg: "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies", alias: cryptoutilCmdCicdGoUpdateDirectDependencies }
+        - { pkg: "cryptoutil/internal/cmd/cicd/github_workflow_lint", alias: cryptoutilCmdCicdGithubWorkflowLint }
+        # Cryptoutil test
+        - { pkg: "cryptoutil/internal/test/e2e", alias: cryptoutilE2E }
+        - { pkg: "cryptoutil/internal/identity/test/testutils", alias: cryptoutilIdentityTestTestutils }
+        # Cryptoutil common
+        - { pkg: "cryptoutil/internal/common/apperr", alias: cryptoutilAppErr }
+        - { pkg: "cryptoutil/internal/common/config", alias: cryptoutilConfig }
+        - { pkg: "cryptoutil/internal/common/container", alias: cryptoutilContainer }
+        - { pkg: "cryptoutil/internal/common/magic", alias: cryptoutilMagic }
+        - { pkg: "cryptoutil/internal/common/pool", alias: cryptoutilPool }
+        - { pkg: "cryptoutil/internal/common/telemetry", alias: cryptoutilTelemetry }
+        - { pkg: "cryptoutil/internal/common/testutil", alias: cryptoutilTestutil }
+        - { pkg: "cryptoutil/internal/common/util", alias: cryptoutilUtil }
+        - { pkg: "cryptoutil/internal/common/util/combinations", alias: cryptoutilCombinations }
+        - { pkg: "cryptoutil/internal/common/util/datetime", alias: cryptoutilDateTime }
+        - { pkg: "cryptoutil/internal/common/util/files", alias: cryptoutilFiles }
+        - { pkg: "cryptoutil/internal/common/util/network", alias: cryptoutilNetwork }
+        - { pkg: "cryptoutil/internal/common/util/sysinfo", alias: cryptoutilSysinfo }
+        # Cryptoutil crypto
+        - { pkg: "cryptoutil/internal/common/crypto/asn1", alias: cryptoutilAsn1 }
+        - { pkg: "cryptoutil/internal/common/crypto/certificate", alias: cryptoutilCertificate }
+        - { pkg: "cryptoutil/internal/common/crypto/digests", alias: cryptoutilDigests }
+        - { pkg: "cryptoutil/internal/common/crypto/jose", alias: cryptoutilJose }
+        - { pkg: "cryptoutil/internal/common/crypto/keygen", alias: cryptoutilKeyGen }
+        # Cryptoutil server
+        - { pkg: "cryptoutil/internal/server/application", alias: cryptoutilServerApplication }
+        - { pkg: "cryptoutil/internal/server/businesslogic", alias: cryptoutilBusinessLogic }
+        - { pkg: "cryptoutil/internal/server/handler", alias: cryptoutilOpenapiHandler }
+        - { pkg: "cryptoutil/internal/server/barrier", alias: cryptoutilBarrierService }
+        - { pkg: "cryptoutil/internal/server/barrier/contentkeysservice", alias: cryptoutilContentKeysService }
+        - { pkg: "cryptoutil/internal/server/barrier/intermediatekeysservice", alias: cryptoutilIntermediateKeysService }
+        - { pkg: "cryptoutil/internal/server/barrier/rootkeysservice", alias: cryptoutilRootKeysService }
+        - { pkg: "cryptoutil/internal/server/barrier/unsealkeysservice", alias: cryptoutilUnsealKeysService }
+        - { pkg: "cryptoutil/internal/server/repository/orm", alias: cryptoutilOrmRepository }
+        - { pkg: "cryptoutil/internal/server/repository/sqlrepository", alias: cryptoutilSQLRepository }
+        # Cryptoutil identity
+        - { pkg: "cryptoutil/internal/identity/apperr", alias: cryptoutilIdentityAppErr }
+        - { pkg: "cryptoutil/internal/identity/config", alias: cryptoutilIdentityConfig }
+        - { pkg: "cryptoutil/internal/identity/domain", alias: cryptoutilIdentityDomain }
+        - { pkg: "cryptoutil/internal/identity/magic", alias: cryptoutilIdentityMagic }
+        - { pkg: "cryptoutil/internal/identity/repository", alias: cryptoutilIdentityRepository }
+        - { pkg: "cryptoutil/internal/identity/issuer", alias: cryptoutilIdentityIssuer }
+        - { pkg: "cryptoutil/internal/identity/authz", alias: cryptoutilIdentityAuthz }
+        - { pkg: "cryptoutil/internal/identity/authz/clientauth", alias: cryptoutilIdentityClientAuth }
+        - { pkg: "cryptoutil/internal/identity/idp", alias: cryptoutilIdentityIdp }
+        - { pkg: "cryptoutil/internal/identity/idp/auth", alias: cryptoutilIdentityAuth }
+        - { pkg: "cryptoutil/internal/identity/server", alias: cryptoutilIdentityServer }
         # Crypto packages
-        - pkg: crypto/aes
-          alias: aes
-        - pkg: crypto/ecdsa
-          alias: ecdsa
-        - pkg: crypto/hmac
-          alias: hmac
-        - pkg: crypto/rsa
-          alias: rsa
-        - pkg: crypto/sha256
-          alias: sha256
-        - pkg: crypto/sha512
-          alias: sha512
-        - pkg: crypto/rand
-          alias: crand
+        - { pkg: "crypto/aes", alias: aes }
+        - { pkg: "crypto/ecdsa", alias: ecdsa }
+        - { pkg: "crypto/hmac", alias: hmac }
+        - { pkg: "crypto/rsa", alias: rsa }
+        - { pkg: "crypto/sha256", alias: sha256 }
+        - { pkg: "crypto/sha512", alias: sha512 }
+        - { pkg: "crypto/rand", alias: crand }
 
 issues:
   max-issues-per-linter: 100
@@ -332,10 +180,7 @@ issues:
 severity:
   default: error
   rules:
-    - linters:
-        - revive
-        - godot
+    - linters: [revive, godot]
       severity: warning
-    - linters:
-        - misspell
+    - linters: [misspell]
       severity: info

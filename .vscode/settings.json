@@ -1,493 +1,219 @@
 {
   "$schema": "vscode://schemas/settings/user",
-  // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
-  "github.copilot.enable": { "*": true }, // Enable Copilot for all languages by default (workspace-level). Caution: confirm policy.
-  "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
-  "github.copilot.chat.generateTests.codeLens": true, // Enable test generation code lens - Default: false, Recommended: true (experimental)
-  "github.copilot.chat.editor.temporalContext.enabled": true, // Enable temporal context in editor - Default: false, Recommended: true (experimental)
-  "github.copilot.nextEditSuggestions.enabled": true, // Enable next edit suggestions - Default: false, Recommended: true (experimental)
-  "chat.agentSessionsViewLocation": "view", // Agent sessions view location - Default: "auxiliary", Recommended: "view" (main view)
-  "chat.agent.maxRequests": 1000, // Maximum agent requests - Default: 25, Recommended: 1000 (higher limit for complex tasks)
-  "chat.math.enabled": true, // Enable math expressions in chat - Default: false, Recommended: true (experimental)
-  "chat.fontSize": 14, // Increase GitHub Copilot Chat font size for non-code text (default 12)
-  "chat.editor.fontSize": 14, // Increase GitHub Copilot Chat font size for code text (default 12)
-  "workbench.secondarySideBar.defaultVisibility": "visible", // Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
+  "github.copilot.enable": { "*": true },
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.generateTests.codeLens": true,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "chat.agentSessionsViewLocation": "view",
+  "chat.agent.maxRequests": 1000,
+  "chat.math.enabled": true,
+  "chat.fontSize": 14,
+  "chat.editor.fontSize": 14,
+  "workbench.secondarySideBar.defaultVisibility": "visible",
 
-  "git.enableSmartCommit": true, // Commit button is only enabled when you have staged changes - Default: true
-  "git.confirmSync": false, // Confirm git sync operations - Default: true, Recommended: false (optional)
-  "git.openRepositoryInParentFolders": "always", // Open git repository in parent folders - Default: "never", Recommended: "always" (enables nested repo support)
-  "git.blame.editorDecoration.enabled": true, // Show git blame information inline in the editor
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.openRepositoryInParentFolders": "always",
+  "git.blame.editorDecoration.enabled": true,
 
-  // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
-  "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
-  "terminal.integrated.shellIntegration.enabled": true, // Enable shell integration for better command detection
+  "terminal.integrated.fontSize": 15,
+  "terminal.integrated.shellIntegration.enabled": true,
   "terminal.integrated.shellIntegration.history": 500,
-  "terminal.integrated.defaultProfile.windows": "PowerShell Core", // Set PowerShell Core (pwsh) as default terminal profile
+  "terminal.integrated.defaultProfile.windows": "PowerShell Core",
   "terminal.integrated.profiles.windows": {
-    "PowerShell Core": {
-      "source": "PowerShell",
-      "icon": "terminal-powershell",
-      "args": ["-NoLogo"]
-    },
-    "PowerShell": {
-      "source": "PowerShell",
-      "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"]
-    }
-  }, // Configure PowerShell Core (pwsh) terminal for shell integration support; fallback to Windows PowerShell 5.1 if needed
+    "PowerShell Core": { "source": "PowerShell", "icon": "terminal-powershell", "args": ["-NoLogo"] },
+    "PowerShell": { "source": "PowerShell", "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"] }
+  },
 
-    // Diff Editor Settings
-  "diffEditor.ignoreTrimWhitespace": true, // Ignore trimmed whitespace in diff - Default: true
-  "diffEditor.hideUnchangedRegions.enabled": false, // Hide unchanged regions in diff - Default: false
+  "diffEditor.ignoreTrimWhitespace": true,
+  "diffEditor.hideUnchangedRegions.enabled": false,
 
-  // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
-  "files.encoding": "utf8", // File encoding to use - Default: "utf8"
-  "files.insertFinalNewline": true, // Ensure files end with a newline - Recommended to align with project policy
-  "files.trimFinalNewlines": true, // Trim extra final newlines - Recommended for consistent file endings
+  "files.encoding": "utf8",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
   "files.associations": { "*.py": "python" },
-  "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
+  "files.trimTrailingWhitespace": true,
   "files.exclude": {
-    // System/OS files
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-
-    // Temporary files
-    "**/*.tmp": true,
-    "**/*.swp": true,
-    "**/*.swo": true,
-
-    // Build artifacts
-    "**/bin": true,
-    "**/*.exe": true,
-    "**/*.exe~": true,
-    "**/*.dll": true,
-    "**/*.so": true,
-    "**/*.dylib": true,
-
-    // Java/Maven/Gradle build artifacts
-    "**/out": true,
-
-    // Maven/Gradle caches
-    "**/.mvn": true,
-    "**/.gradle": true,
-
-    // Go workspace files
-    "**/go.work": true,
-    "**/go.work.sum": true,
-
-    // Dependencies
-    "**/vendor": true,
-    "**/node_modules": true,
-
-    // Cache files and cicd outputs
-    "**/.cspellcache": true,
-    "**/.cicd": true,
-
-    // Environment files
-    "**/.env": true,
-
-    // Test artifacts
-    "**/*.test": true,
-    "**/coverage": true,
-    "**/coverage_*": true,
-    "**/coverage*.out": true,
-    "**/coverage*.txt": true,
-    "**/coverage.xml": true,
-    "**/coverage.html": true,
-    "**/coverage.json": true,
-    "**/coverage.lcov": true,
-    "**/orm_coverage": true,
-    "**/*_coverage": true,
-    "**/*_functions.txt": true,
-    "**/test-results": true,
-
-    // Python artifacts
-    "**/__pycache__": true,
-    "**/*.pyc": true,
-    "**/*.pyo": true,
-    "**/*.pyd": true,
-    "**/.Python": true,
-    "**/pip-log.txt": true,
-    "**/pip-delete-this-directory.txt": true,
-    "**/.venv": true,
-    "**/venv": true,
-    "**/env": true,
-    "**/ENV": true,
-    "**/.tox": true,
-    "**/.coverage": true,
-    "**/.coverage.*": true,
-    "**/*.cover": true,
-    "**/.hypothesis": true,
-    "**/.pytest_cache": true,
-    "**/.mypy_cache": true,
-    "**/.nox": true,
-    "**/htmlcov": true,
-    "**/.python-version": true,
-    "**/Pipfile.lock": true,
-    "**/poetry.lock": true,
-    "**/__pypackages__": true,
-    "**/.ruff_cache": true,
-    "**/.dmypy.json": true,
-    "**/pyrightconfig.json": true,
-    "**/.pdm.toml": true,
-    "**/.pdm-python": true
+    "**/.DS_Store": true, "**/Thumbs.db": true,
+    "**/*.tmp": true, "**/*.swp": true, "**/*.swo": true,
+    "**/bin": true, "**/*.exe": true, "**/*.exe~": true, "**/*.dll": true, "**/*.so": true, "**/*.dylib": true,
+    "**/out": true, "**/.mvn": true, "**/.gradle": true,
+    "**/go.work": true, "**/go.work.sum": true,
+    "**/vendor": true, "**/node_modules": true,
+    "**/.cspellcache": true, "**/.cicd": true, "**/.env": true,
+    "**/*.test": true, "**/coverage": true, "**/coverage_*": true, "**/coverage*.out": true,
+    "**/test-results": true, "**/orm_coverage": true, "**/*_coverage": true, "**/*_functions.txt": true,
+    "**/__pycache__": true, "**/*.pyc": true, "**/*.pyo": true, "**/*.pyd": true,
+    "**/.venv": true, "**/venv": true, "**/env": true, "**/ENV": true,
+    "**/.tox": true, "**/.coverage": true, "**/.coverage.*": true,
+    "**/.hypothesis": true, "**/.pytest_cache": true, "**/.mypy_cache": true,
+    "**/.ruff_cache": true
   },
   "search.exclude": {
-    // Git internal files
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-
-    // Dependencies
-    "**/node_modules": true,
-    "**/vendor": true,
-
-    // Java/Maven/Gradle build artifacts
-    "**/out": true,
-
-    // Maven/Gradle caches
-    "**/.mvn": true,
-    "**/.gradle": true,
-
-    // Cache files
-    "**/.cspellcache": true,
-    "**/go.work.sum": true,
-
-    // Build artifacts
-    "**/bin": true,
-    "**/*.exe": true,
-
-    // Environment files
-    "**/.env": true,
-
-    // Test artifacts
-    "**/*.test": true,
-    "**/coverage": true,
-    "**/coverage_*": true,
-    "**/coverage*.out": true,
-    "**/coverage*.txt": true,
-    "**/coverage.xml": true,
-    "**/coverage.html": true,
-    "**/coverage.json": true,
-    "**/coverage.lcov": true,
-    "**/orm_coverage": true,
-    "**/*_coverage": true,
-    "**/*_functions.txt": true,
-    "**/test-results": true,
-
-    // Python artifacts
-    "**/__pycache__": true,
-    "**/*.pyc": true,
-    "**/*.pyo": true,
-    "**/*.pyd": true,
-    "**/.Python": true,
-    "**/pip-log.txt": true,
-    "**/pip-delete-this-directory.txt": true,
-    "**/.venv": true,
-    "**/venv": true,
-    "**/env": true,
-    "**/ENV": true,
-    "**/.tox": true,
-    "**/.coverage": true,
-    "**/.coverage.*": true,
-    "**/*.cover": true,
-    "**/.hypothesis": true,
-    "**/.pytest_cache": true,
-    "**/.mypy_cache": true,
-    "**/.nox": true,
-    "**/htmlcov": true,
-    "**/.python-version": true,
-    "**/Pipfile.lock": true,
-    "**/poetry.lock": true,
-    "**/__pypackages__": true,
-    "**/.ruff_cache": true,
-    "**/.dmypy.json": true,
-    "**/pyrightconfig.json": true,
-    "**/.pdm.toml": true,
-    "**/.pdm-python": true
+    "**/.git/objects/**": true, "**/.git/subtree-cache/**": true,
+    "**/node_modules": true, "**/vendor": true,
+    "**/out": true, "**/.mvn": true, "**/.gradle": true,
+    "**/bin": true, "**/*.exe": true,
+    "**/coverage": true, "**/coverage_*": true, "**/test-results": true,
+    "**/__pycache__": true, "**/*.pyc": true, "**/.venv": true, "**/venv": true
   },
   "files.watcherExclude": {
-    // Git internal files
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-
-    // Dependencies
-    "**/node_modules/**": true,
-    "**/vendor/**": true,
-
-    // Java/Maven/Gradle build artifacts
-    "**/out": true,
-
-    // Maven/Gradle caches
-    "**/.mvn/**": true,
-    "**/.gradle/**": true,
-
-    // Build artifacts
-    "**/bin/**": true,
-
-    // Cache files
-    "**/.cspellcache": true,
-    "**/go.work.sum": true,
-
-    // Environment files
-    "**/.env": true,
-
-    // Test artifacts
-    "**/test-results/**": true,
-    "**/coverage": true,
-    "**/coverage_*": true,
-    "**/coverage*.out": true,
-    "**/coverage*.txt": true,
-    "**/coverage.html": true,
-    "**/coverage.json": true,
-    "**/coverage.lcov": true,
-    "**/orm_coverage": true,
-    "**/*_coverage": true,
-    "**/*_functions.txt": true,
-
-    // Python artifacts
-    "**/__pycache__/**": true,
-    "**/*.pyc": true,
-    "**/*.pyo": true,
-    "**/*.pyd": true,
-    "**/.Python": true,
-    "**/pip-log.txt": true,
-    "**/pip-delete-this-directory.txt": true,
-    "**/.venv/**": true,
-    "**/venv/**": true,
-    "**/env/**": true,
-    "**/ENV/**": true,
-    "**/.tox/**": true,
-    "**/.coverage": true,
-    "**/.coverage.*": true,
-    "**/coverage.xml": true,
-    "**/*.cover": true,
-    "**/.hypothesis/**": true,
-    "**/.pytest_cache/**": true,
-    "**/.mypy_cache/**": true,
-    "**/.nox/**": true,
-    "**/htmlcov/**": true,
-    "**/.python-version": true,
-    "**/Pipfile.lock": true,
-    "**/poetry.lock": true,
-    "**/__pypackages__/**": true,
-    "**/.ruff_cache/**": true,
-    "**/.dmypy.json": true,
-    "**/pyrightconfig.json": true,
-    "**/.pdm.toml": true,
-    "**/.pdm-python": true
+    "**/.git/objects/**": true, "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true, "**/vendor/**": true,
+    "**/out": true, "**/.mvn/**": true, "**/.gradle/**": true,
+    "**/bin/**": true, "**/test-results/**": true,
+    "**/coverage": true, "**/coverage_*": true,
+    "**/__pycache__/**": true, "**/.venv/**": true, "**/venv/**": true
   },
 
-  // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
-  "markdown.preview.scrollEditorWithPreview": true, // Sync scroll between editor and preview - Default: true
-  "markdown.preview.openMarkdownLinks": "inPreview", // How to open links in markdown files - Default: "inPreview"
-  "markdown.validate.enabled": true, // Enable markdown validation - Default: true
-  "markdown.updateLinksOnFileMove.enabled": "prompt", // Update links when files are moved - Default: "prompt"
-  "markdown.math.enabled": true, // Enable math expressions in markdown - Default: false, Recommended: true (experimental)
-  "markdown.validate.fragmentLinks.enabled": "warning", // Validate fragment links in markdown - Default: "ignore", Recommended: "warning"
-  "markdown.validate.fileLinks.enabled": "warning", // Validate file links in markdown - Default: "ignore", Recommended: "warning"
+  "markdown.preview.scrollEditorWithPreview": true,
+  "markdown.preview.openMarkdownLinks": "inPreview",
+  "markdown.validate.enabled": true,
+  "markdown.updateLinksOnFileMove.enabled": "prompt",
+  "markdown.math.enabled": true,
+  "markdown.validate.fragmentLinks.enabled": "warning",
+  "markdown.validate.fileLinks.enabled": "warning",
 
-  // YAML Schema Validation https://code.visualstudio.com/docs/languages/yaml
   "yaml.schemas": {
-    "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": [ "**/*compose*.{yml,yaml}" ],
-    "https://json.schemastore.org/github-workflow.json": [ ".github/workflows/*.{yml,yaml}" ],
-    "https://json.schemastore.org/github-action.json": [ ".github/actions/**/*.{yml,yaml}", "**/action.{yml,yaml}" ],
-    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.json": [ "api/openapi_spec*.{yaml,yml}" ],
-    "https://json.schemastore.org/kustomization.json": [ "**/kustomization.{yaml,yml}"],
-    "https://json.schemastore.org/helmfile.json": [ "**/helmfile.{yaml,yml}" ],
-    "https://json.schemastore.org/pre-commit-config.json": [ ".pre-commit-config.yml", ".pre-commit-config.yaml" ],
-    "https://json.schemastore.org/prometheus.json": [ "prometheus.yml" ],
-    "https://json.schemastore.org/grafana-dashboard.json": [ "**/grafana/dashboards/*.json" ]
+    "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": ["**/*compose*.{yml,yaml}"],
+    "https://json.schemastore.org/github-workflow.json": [".github/workflows/*.{yml,yaml}"],
+    "https://json.schemastore.org/github-action.json": [".github/actions/**/*.{yml,yaml}", "**/action.{yml,yaml}"],
+    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.json": ["api/openapi_spec*.{yaml,yml}"],
+    "https://json.schemastore.org/pre-commit-config.json": [".pre-commit-config.yml", ".pre-commit-config.yaml"]
   },
-  "yaml.validate": false, // Disable YAML validation - Requirements.yml doesn't have a schema
-  "yaml.format.enable": true, // Enable YAML formatting - Default: true
-  "yaml.format.singleQuote": false, // Use double quotes in YAML - Default: false
-  "yaml.format.bracketSpacing": true, // Add spaces inside brackets - Default: true
-  "yaml.format.proseWrap": "preserve", // Preserve prose wrapping - Default: "preserve"
+  "yaml.validate": false,
+  "yaml.format.enable": true,
+  "yaml.format.singleQuote": false,
+  "yaml.format.bracketSpacing": true,
 
-  // JSON Schema Validation https://code.visualstudio.com/docs/languages/json
   "json.schemas": [
     { "fileMatch": ["go.mod"], "url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/go-mod.json" },
-    { "fileMatch": ["Dockerfile*"], "url": "https://raw.githubusercontent.com/moby/buildkit/master/frontend/dockerfile/cmd/dockerfile-parser/schema.json" },
-    { "fileMatch": ["docker-compose*.json"], "url": "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json" },
     { "fileMatch": ["pyproject.toml"], "url": "https://json.schemastore.org/pyproject.toml" },
-    { "fileMatch": ["dependabot.yml", "dependabot.yaml"], "url": "https://json.schemastore.org/dependabot.json" },
     { "fileMatch": ["package.json"], "url": "https://json.schemastore.org/package.json" },
-    { "fileMatch": ["tsconfig*.json"], "url": "https://json.schemastore.org/tsconfig.json" },
-    { "fileMatch": ["jsconfig*.json"], "url": "https://json.schemastore.org/jsconfig.json" },
-    { "fileMatch": [".eslintrc.json", ".eslintrc"], "url": "https://json.schemastore.org/eslintrc.json" },
-    { "fileMatch": ["renovate.json", "renovate.json5"], "url": "https://docs.renovatebot.com/renovate-schema.json" },
     { "fileMatch": ["golangci.json"], "url": "https://golangci-lint.run/jsonschema/golangci.jsonschema.json" }
   ],
 
-  // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
-  "editor.aiStats.enabled": true, // Enable AI-powered statistics in editor - Default: false, Recommended: true (experimental)
-  "editor.rulers": [80, 120, 160, 200], // Show vertical rulers at specified columns - Default: [], Recommended: [80, 120]
-  "editor.minimap.enabled": false, // Show minimap in editor - Default: true, Recommended: false (optional)
-  "explorer.confirmDragAndDrop": false, // Confirm drag and drop operations - Default: true, Recommended: false (review)
-  "explorer.confirmDelete": false, // Confirm delete operations - Default: true, Recommended: false (review)
-  "terminal.integrated.enableMultiLinePasteWarning": "never", // Enable multi-line paste warning - Default: "auto", Recommended: "never" (reduce interruptions)
-  "terminal.integrated.scrollback": 100000, // Terminal scrollback buffer size - Default: 1000, Recommended: 100000 (increased for long outputs)
-  "workbench.editor.empty.hint": "hidden", // Show hint when no editor is open - Default: "welcomeView", Recommended: "hidden" (reduce clutter)
+  "editor.aiStats.enabled": true,
+  "editor.rulers": [80, 120, 160, 200],
+  "editor.minimap.enabled": false,
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDelete": false,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "terminal.integrated.scrollback": 100000,
+  "workbench.editor.empty.hint": "hidden",
 
-  // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
-      //
-      // ─────────────────────────────────────────────────────────────
-      // Mandatory safety overrides (cannot be bypassed)
-      // https://code.visualstudio.com/docs/copilot/terminal#_safety-guards
-      // Copilot Terminal will ALWAYS prompt for:
-      //   - destructive ops (rm, del, Remove-Item)
-      //   - git operations that rewrite history (reset, rebase)
-      //   - PowerShell network commands (Invoke-WebRequest, Invoke-RestMethod)
-      //   - privilege escalation (sudo, chmod on Linux)
-      // Prefix-based allowList CANNOT override these rules.
-      // ─────────────────────────────────────────────────────────────
-      "git push": true,
-      "git pull": false,
-      "git reset": false,
-      "git rebase": false,
-      "rm ": false,
-      "del ": false,
-      "Remove-Item": false,
-      "Invoke-WebRequest": false,   // Always prompts (network)
-      "Invoke-RestMethod": false,   // Always prompts (network)
-      "curl ": true,   // Always prompts (network)
-      "wget ": true,   // Always prompts (network)
-
-      // ─────────────────────────────────────────────────────────────
-      // SAFE COMMANDS — autoApprove allowed
-      // https://code.visualstudio.com/docs/copilot/chat/copilot-chat#_terminal-commands
-      // Prefix matching: "ls " matches "ls -la". Exact matches also work.
-      // ─────────────────────────────────────────────────────────────
-
-      // autoapprove wrapper (bypasses VS Code's hardcoded safety blockers)
-      // Wraps commands with loopback-only network restriction for safe auto-approval
-      // Reference: https://code.visualstudio.com/docs/copilot/chat/chat-tools#_terminal
-      "autoapprove ": true,
-
-      // Prefix matching (General CLI tools)
-      "go ": true,
-      "docker ": true,
-      "git ": true,
-      "code ": true,
-      "pre-commit ": true,
-      "golangci-lint ": true,
-      "gofumpt ": true,
-      "goimports ": true,
-      "yamllint ": true,
-      "cspell ": true,
-      "jq ": true,
-      "yq ": true,
-      "gremlins ": true,
-      "act ": true,
-      "netstat": true,
-      "openssl ": true,
-
-      // Prefix matching (Java build tools)
-      "gradlew ": true,
-      "gradle ": true,
-      "mvnw ": true,
-      "mvn ": true,
-      "javac ": true,
-      "java ": true,
-
-      // Prefix matching (Python tooling)
-      "python ": true,
-      "python3 ": true,
-      "pip ": true,
-      "pip3 ": true,
-      "pytest ": true,
-
-      // Prefix matching (Built-in shell commands) (safe)
-      "ls ": true,
-      "which ": true,
-      "find ": true,
-      "grep ": true,
-      "cat ": true,
-      "head ": true,
-      "tail ": true,
-      "mkdir ": true,
-      "dir ": true,
-      "type ": true,
-
-      // Prefix matching (PowerShell safe cmdlets) (no network, no mutation)
-      "Get-ChildItem ": true,
-      "Get-Content ": true,
-      "Set-Content": true,
-      "New-Object": true,
-      "Select-Object ": true,
-      "Select-String ": true,
-      "Test-Path ": true,
-      "Resolve-Path": true,
-      "Measure-Object ": true,
-      "Format-Table ": true,
-      "Format-List ": true,
-      "Out-String": true,
-      "Get-NetTCPConnection": true,
-      "ForEach-Object": true,
-
-      // Prefix matching (PowerShell “semi-safe” cmdlets); Allowed because they do not perform download or mutation
-      "Get-Process ": true,
-      "Get-Service ": true,
-      "Get-Command ": true,
-      "Get-Location ": true,
-      "Set-Location ": true,
-      "Get-Alias ": true
+    "git push": true,
+    "git pull": false,
+    "git reset": false,
+    "git rebase": false,
+    "rm ": false,
+    "del ": false,
+    "Remove-Item": false,
+    "Invoke-WebRequest": false,
+    "Invoke-RestMethod": false,
+    "curl ": true,
+    "wget ": true,
+    "autoapprove ": true,
+    "go ": true,
+    "docker ": true,
+    "git ": true,
+    "code ": true,
+    "pre-commit ": true,
+    "golangci-lint ": true,
+    "gofumpt ": true,
+    "goimports ": true,
+    "yamllint ": true,
+    "cspell ": true,
+    "jq ": true,
+    "yq ": true,
+    "act ": true,
+    "netstat": true,
+    "openssl ": true,
+    "gradlew ": true,
+    "gradle ": true,
+    "mvnw ": true,
+    "mvn ": true,
+    "java ": true,
+    "python ": true,
+    "python3 ": true,
+    "pip ": true,
+    "pip3 ": true,
+    "pytest ": true,
+    "ls ": true,
+    "which ": true,
+    "find ": true,
+    "grep ": true,
+    "cat ": true,
+    "head ": true,
+    "tail ": true,
+    "mkdir ": true,
+    "dir ": true,
+    "type ": true,
+    "Get-ChildItem ": true,
+    "Get-Content ": true,
+    "Set-Content": true,
+    "New-Object": true,
+    "Select-Object ": true,
+    "Select-String ": true,
+    "Test-Path ": true,
+    "Resolve-Path": true,
+    "Measure-Object ": true,
+    "Format-Table ": true,
+    "Format-List ": true,
+    "Out-String": true,
+    "Get-NetTCPConnection": true,
+    "ForEach-Object": true,
+    "Get-Process ": true,
+    "Get-Service ": true,
+    "Get-Command ": true,
+    "Get-Location ": true,
+    "Set-Location ": true,
+    "Get-Alias ": true
   },
 
-  // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
-  "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv
+  "python.terminal.activateEnvironment": true,
   "python.defaultInterpreterPath": "python3",
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.testing.pytestArgs": ["."],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
 
-  // Java Extension Settings
-  "maven.terminal.useJavaHome": true, // Use JAVA_HOME in Maven terminal - Default: false, Recommended: true (consistent Java version)
-  "java.import.maven.enabled": true, // Enable Maven import - Default: true, Recommended: true (standard Maven support)
-  "java.configuration.updateBuildConfiguration": "automatic", // Update build configuration automatically - Default: "interactive", Recommended: "automatic" (streamlined workflow)
+  "maven.terminal.useJavaHome": true,
+  "java.import.maven.enabled": true,
+  "java.configuration.updateBuildConfiguration": "automatic",
 
-  // ESLint Extension Settings (for JavaScript files in the project)
-  "eslint.enable": true, // Enable ESLint - Default: true, Recommended: true (lint JavaScript files)
-  "eslint.validate": ["javascript", "javascriptreact"], // File types to validate - Default: ["javascript", "javascriptreact"], Recommended: includes TypeScript if added later
-  "eslint.workingDirectories": ["."], // Working directories for ESLint - Default: [], Recommended: project root
+  "eslint.enable": true,
+  "eslint.validate": ["javascript", "javascriptreact"],
+  "eslint.workingDirectories": ["."],
 
-  // Go Extension Settings https://github.com/golang/vscode-go/blob/master/docs/settings.md
-  "go.alternateTools": {
-    "gopls": "gopls"
-  }, // Override default tools - Default: {}, Recommended: {"gopls": "gopls"}
-  "go.languageServerFlags": [
-    "-rpc.trace",
-    "serve",
-    "--debug=localhost:6060"
-  ], // Additional flags for language server - Default: [], Recommended: ["-rpc.trace", "serve", "--debug=localhost:6060"]
-  "go.formatTool": "gofumpt", // Tool to use for formatting - Default: "gofmt", Recommended: "gofumpt"
-  "go.lintTool": "golangci-lint", // Tool to use for linting - Default: "golint", Recommended: "golangci-lint"
-  "go.vetOnSave": "off", // Run go vet on save - Default: "package", Recommended: "off"
-  "go.lintOnSave": "file", // Run linter on save - Default: "package", Recommended: "file"
-  "go.testOnSave": false, // Run tests on save - Default: false
-  "go.coverOnSave": false, // Run coverage on save - Default: false
-  "go.testExplorer.enable": true, // Enable test explorer - Default: false, Recommended: true
-  "go.toolsManagement.autoUpdate": true, // Auto-update Go tools - Default: true, Recommended: true (keep tools current)
-  "go.terminal.activateEnvironment": true, // Activate Go environment in terminal - Default: true
+  "go.alternateTools": { "gopls": "gopls" },
+  "go.languageServerFlags": ["-rpc.trace", "serve", "--debug=localhost:6060"],
+  "go.formatTool": "gofumpt",
+  "go.lintTool": "golangci-lint",
+  "go.vetOnSave": "off",
+  "go.lintOnSave": "file",
+  "go.testOnSave": false,
+  "go.coverOnSave": false,
+  "go.testExplorer.enable": true,
+  "go.toolsManagement.autoUpdate": true,
+  "go.terminal.activateEnvironment": true,
   "gopls": {
-    "ui.completion.usePlaceholders": false, // Use placeholders in completion - Default: true, Recommended: false
-    "ui.completion.completionBudget": "200ms", // Time budget for completion - Default: "100ms"
-    "ui.diagnostic.analyses": {
-      "unusedparams": true,
-      "unusedvariables": true
-    }, // Enable specific diagnostic analyses - Default: {}, Recommended: {"unusedparams": true, "unusedvariables": true}
-    "formatting.gofumpt": true, // Use gofumpt for formatting - Default: false, Recommended: true
-    "formatting.local": "cryptoutil", // Local import prefix - Default: "", Recommended: "cryptoutil"
-    "buildFlags": ["-tags=e2e"], // Include files with e2e build tag in analysis - Required for e2e test files
+    "ui.completion.usePlaceholders": false,
+    "ui.completion.completionBudget": "200ms",
+    "ui.diagnostic.analyses": { "unusedparams": true, "unusedvariables": true },
+    "formatting.gofumpt": true,
+    "formatting.local": "cryptoutil",
+    "buildFlags": ["-tags=e2e"],
     "ui.inlayhint.hints": {
-      "assignVariableTypes": true, // Show variable types in assignments - Default: false, Recommended: true
-      "compositeLiteralFields": true, // Show field names in composite literals - Default: false, Recommended: true
-      "compositeLiteralTypes": true, // Show types in composite literals - Default: false, Recommended: true
-      "constantValues": true, // Show constant values - Default: false, Recommended: true
-      "functionTypeParameters": true, // Show function type parameters - Default: false, Recommended: true
-      "parameterNames": true, // Show parameter names - Default: false, Recommended: true
-      "rangeVariableTypes": true // Show range variable types - Default: false, Recommended: true
-    } // Configure inlay hints - Default: {}, Recommended: all enabled
-  } // gopls language server configuration - Default: {}, Recommended: configured settings
+      "assignVariableTypes": true,
+      "compositeLiteralFields": true,
+      "compositeLiteralTypes": true,
+      "constantValues": true,
+      "functionTypeParameters": true,
+      "parameterNames": true,
+      "rangeVariableTypes": true
+    }
+  }
 }
