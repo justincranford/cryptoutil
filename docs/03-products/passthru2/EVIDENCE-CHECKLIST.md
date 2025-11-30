@@ -29,4 +29,3 @@ Use this checklist to validate that tasks are complete and that acceptance crite
 - [ ] `grooming/GROOMING-QUESTIONS.md` answered and committed
 
 **Sign-off**: commit reviewer, tests green, and coverage pass
-
