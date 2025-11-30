@@ -19,6 +19,10 @@ This wrapper provides a workaround by:
 - [GitHub Issue #265775 - Auto-approve network commands](https://github.com/microsoft/vscode/issues/265775)
 - [GitHub Issue #266651 - Terminal command safety](https://github.com/microsoft/vscode/issues/266651)
 
+## Requirements
+
+- Python 3.14+ ([released Oct 7, 2025](https://www.python.org/downloads/release/python-3140/))
+
 ## Installation
 
 ```bash
@@ -64,10 +68,10 @@ The wrapper validates all arguments that appear to be URLs or network addresses:
 
 ## Output Logging
 
-Each command execution creates a timestamped directory under `./test-reports/`:
+Each command execution creates a timestamped directory under `./test-reports/autoapprove/`:
 
 ```
-./test-reports/autoapprove.2025-01-15T10-30-45.123.curl/
+./test-reports/autoapprove/2025-01-15T10-30-45.123-curl/
 ├── STDIN.log      # Input sent to command
 ├── STDOUT.log     # Standard output from command
 ├── STDERR.log     # Standard error from command

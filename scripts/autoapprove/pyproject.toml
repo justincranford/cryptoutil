@@ -9,8 +9,8 @@ name = "autoapprove"
 version = "1.0.0"
 description = "Command wrapper for VS Code Copilot Chat auto-approve bypass with loopback-only network restriction"
 readme = "README.md"
-# https://www.python.org/downloads/windows/ - Python 3.12+ required
-requires-python = ">=3.12"
+# https://www.python.org/downloads/release/python-3140/ - Python 3.14 required (released Oct 7, 2025)
+requires-python = ">=3.14"
 authors = [
     {name = "Justin Cranford"}
 ]
@@ -19,8 +19,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU Affero General Public License v3",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
 
@@ -65,7 +63,7 @@ pythonpath = ["."]
 
 [tool.black]
 line-length = 200
-target-version = ['py312']
+target-version = ['py314']
 include = '\.pyi?$'
 
 [tool.isort]
@@ -86,7 +84,7 @@ exclude = [
 ]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

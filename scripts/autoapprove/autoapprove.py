@@ -146,8 +146,8 @@ def create_report_directory(command_name: str) -> Path:
     """Create the report directory for this execution."""
     timestamp = get_timestamp()
     safe_command_name = re.sub(r"[^\w\-.]", "_", command_name)
-    dir_name = f"autoapprove.{timestamp}.{safe_command_name}"
-    report_dir = Path("./test-reports") / dir_name
+    dir_name = f"{timestamp}-{safe_command_name}"
+    report_dir = Path("./test-reports") / "autoapprove" / dir_name
     report_dir.mkdir(parents=True, exist_ok=True)
     return report_dir
 
