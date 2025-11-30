@@ -366,7 +366,6 @@
       "autoapprove ": true,
 
       // Prefix matching (General CLI tools)
-      "autoapprove ": true,
       "go ": true,
       "docker ": true,
       "git ": true,
