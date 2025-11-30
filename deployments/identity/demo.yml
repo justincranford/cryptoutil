@@ -43,7 +43,7 @@ services:
       POSTGRES_DB_FILE: /run/secrets/postgres_db
     shm_size: 256mb
     ports:
-      - "5433:5432"  # Different port to avoid conflict with cryptoutil postgres
+      - "5433:5432"  # Different port to avoid conflict with cryptoutil kms postgres
     volumes:
       - identity_postgres_data:/var/lib/postgresql/data
     healthcheck:

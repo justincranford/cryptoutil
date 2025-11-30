@@ -1,8 +1,8 @@
-# CRITICAL: This file contains COMMON settings used by ALL cryptoutil services in compose.yml
-# ALL cryptoutil instances (cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2)
+# CRITICAL: This file contains COMMON settings used by ALL kms services in compose.yml
+# ALL kms instances (kms-sqlite, kms-postgres-1, kms-postgres-2)
 # MUST use this file for shared configuration. Instance-specific settings belong in
-# their respective config files (cryptoutil-sqlite.yml, cryptoutil-postgresql-1.yml, cryptoutil-postgresql-2.yml)
-# Changing settings here affects ALL cryptoutil services.
+# their respective config files (kms-sqlite.yml, kms-postgresql-1.yml, kms-postgresql-2.yml)
+# Changing settings here affects ALL kms services.
 
 # Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
 # log-level: "INFO"
@@ -17,11 +17,11 @@ tls-key-file: /app/tls_public_server_private_key.pem
 unseal-mode: "3-of-5"
 
 unseal-files:
-  - /run/secrets/cryptoutil_unseal_1of5.secret
-  - /run/secrets/cryptoutil_unseal_2of5.secret
-  - /run/secrets/cryptoutil_unseal_3of5.secret
-  - /run/secrets/cryptoutil_unseal_4of5.secret
-  - /run/secrets/cryptoutil_unseal_5of5.secret
+  - /run/secrets/kms_unseal_1of5.secret
+  - /run/secrets/kms_unseal_2of5.secret
+  - /run/secrets/kms_unseal_3of5.secret
+  - /run/secrets/kms_unseal_4of5.secret
+  - /run/secrets/kms_unseal_5of5.secret
 
 # Allow all IPs for development/testing
 allowed-ips:

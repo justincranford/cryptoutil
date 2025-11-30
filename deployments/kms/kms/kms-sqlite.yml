@@ -1,4 +1,4 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-sqlite' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'kms-sqlite' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -7,8 +7,8 @@ cors-origins:
   - "https://127.0.0.1:8080"
   - "https://[::1]:8080"
 
-otlp-service: cryptoutil-sqlite
-otlp-hostname: cryptoutil-sqlite
+otlp-service: kms-sqlite
+otlp-hostname: kms-sqlite
 
 # Development mode - enables in-memory SQLite
 dev: true

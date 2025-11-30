@@ -1,4 +1,4 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-postgres-2' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'kms-postgres-2' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -7,5 +7,5 @@ cors-origins:
   - "https://127.0.0.1:8082"
   - "https://[::1]:8082"
 
-otlp-service: cryptoutil-postgresql-2
-otlp-hostname: cryptoutil-postgresql-2
+otlp-service: kms-postgresql-2
+otlp-hostname: kms-postgresql-2

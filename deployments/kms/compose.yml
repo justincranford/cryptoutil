@@ -24,12 +24,12 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
-      - cryptoutil-network
+      - kms-network
 
   builder-cryptoutil:
     image: cryptoutil:dev
     build:
-      context: ../..
+      context: ../../..
       dockerfile: deployments/Dockerfile
       args:
         APP_VERSION: "dev"
@@ -67,7 +67,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - cryptoutil-network
+      - kms-network
     deploy:
       resources:
         limits:
@@ -96,7 +96,7 @@ services:
         # condition: service_healthy
         condition: service_started
     networks:
-      - cryptoutil-network
+      - kms-network
     deploy:
       resources:
         limits:
@@ -132,7 +132,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - cryptoutil-network
+      - kms-network
     deploy:
       resources:
         limits:
@@ -142,15 +142,15 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  cryptoutil-sqlite:
+  kms-sqlite:
     image: cryptoutil:dev
-    command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
+    command: ["server", "start", "--config=/app/config/kms-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8080:8080"    # HTTPS public
       # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
     volumes:
-      - ./cryptoutil/cryptoutil-sqlite.yml:/app/config/cryptoutil-sqlite.yml:ro
+      - ./cryptoutil/kms-sqlite.yml:/app/config/kms-sqlite.yml:ro
       - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
       - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
@@ -162,7 +162,7 @@ services:
       - cryptoutil_unseal_3of5.secret
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL cryptoutil-sqlite instances MUST NOT use url secret
+      # IMPORTANT: ALL kms-sqlite instances MUST NOT use url secret
       # for database connection, as they do not share data.
     depends_on:
       healthcheck-secrets:
@@ -184,7 +184,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - cryptoutil-network
+      - kms-network
     deploy:
       resources:
         limits:
@@ -192,7 +192,7 @@ services:
         reservations:
           memory: 128M
 
-  cryptoutil-postgres-1:
+  kms-postgres-1:
     image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
@@ -211,7 +211,7 @@ services:
       - cryptoutil_unseal_3of5.secret
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
+      # IMPORTANT: ALL kms-postgres instances MUST use the SAME url secret
       # for database connection to enable shared data in the database.
       - postgres_url.secret
     depends_on:
@@ -236,7 +236,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - cryptoutil-network
+      - kms-network
     deploy:
       resources:
         limits:
@@ -244,7 +244,7 @@ services:
         reservations:
           memory: 128M
 
-  cryptoutil-postgres-2:
+  kms-postgres-2:
     image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
@@ -264,7 +264,7 @@ services:
       - cryptoutil_unseal_3of5.secret
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
+      # IMPORTANT: ALL kms-postgres instances MUST use the SAME url secret
       # for database connection to enable shared data in the database.
       - postgres_url.secret
     depends_on:
@@ -280,8 +280,8 @@ services:
       # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
-      # Wait for cryptoutil-postgres-1 to be healthy, so shared database is initialized
-      cryptoutil-postgres-1:
+      # Wait for kms-postgres-1 to be healthy, so shared database is initialized
+      kms-postgres-1:
         condition: service_healthy
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
@@ -292,7 +292,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - cryptoutil-network
+      - kms-network
     deploy:
       resources:
         limits:
@@ -301,24 +301,24 @@ services:
           memory: 128M
 
 networks:
-  cryptoutil-network:
+  kms-network:
     driver: bridge
 
 volumes:
   postgres_data:
-    name: cryptoutil-postgres-volume
+    name: kms-postgres-volume
   cryptoutil-sqlite_certs:
     name: cryptoutil-sqlite_certs_volume
-  cryptoutil-postgres-certs:
-    name: cryptoutil-postgres-certs_volume
+  kms-postgres-certs:
+    name: kms-postgres-certs_volume
   grafana_data:
     name: cryptoutil_grafana_volume
 
 secrets:
-  # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME secrets
+  # IMPORTANT: ALL kms-postgres instances MUST use the SAME secrets
   # for database connection to enable shared data in the database.
   # NEVER create instance-specific database connection.
-  # IMPORTANT: All cryptoutil-sqlite instances MAY use different database
+  # IMPORTANT: All kms-sqlite instances MAY use different database
   # connection secrets as they do not share data.
   postgres_username.secret:
     file: ./postgres/postgres_username.secret

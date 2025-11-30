@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: identity_db
     shm_size: 256mb
     ports:
-      - "5433:5432"  # Different port to avoid conflict with cryptoutil postgres
+      - "5433:5432"  # Different port to avoid conflict with identity postgres
     volumes:
       - identity_postgres_data:/var/lib/postgresql
     healthcheck:
@@ -31,7 +31,7 @@ services:
   # OAuth 2.1 Authorization Server
   identity-authz:
     build:
-      context: ../..
+      context: ../../..
       dockerfile: deployments/Dockerfile
       args:
         APP_VERSION: "dev"
@@ -67,7 +67,7 @@ services:
 
   # OIDC Identity Provider
   identity-idp:
-    image: cryptoutil-identity:dev
+    image: identity-identity:dev
     command: ["identity", "idp", "--config=/app/config/idp-docker.yml"]
     ports:
       - "8091:8081"  # OIDC identity provider endpoints (using 8091 to avoid conflict with KMS)
@@ -100,7 +100,7 @@ services:
 
   # Resource Server
   identity-rs:
-    image: cryptoutil-identity:dev
+    image: identity-identity:dev
     command: ["identity", "rs", "--config=/app/config/rs-docker.yml"]
     ports:
       - "8082:8082"  # Resource server API endpoints
@@ -130,7 +130,7 @@ services:
 
   # SPA Relying Party Application
   identity-spa-rp:
-    image: cryptoutil-identity:dev
+    image: identity-identity:dev
     command: ["identity", "spa-rp", "start", "--port=8083", "--bind=0.0.0.0", "--authz-url=https://identity-authz:8080", "--idp-url=https://identity-idp:8081"]
     ports:
       - "8083:8083"  # SPA application

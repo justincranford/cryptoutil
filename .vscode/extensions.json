@@ -46,8 +46,6 @@
     // Code Quality & Productivity
     "streetsidesoftware.code-spell-checker",             // Spell checking
     "gruntfuggly.todo-tree",                             // TODO/FIXME tree
-    "visualstudioexptteam.intellicode-api-usage-examples", // IntelliCode API usage
-    "visualstudioexptteam.vscodeintellicode",            // IntelliCode
 
     // Shell & Terminal
     "ms-vscode.powershell",                              // PowerShell language support
@@ -60,13 +58,15 @@
   ],
   "unwantedRecommendations": [
     // These extensions conflict with project tooling or are deprecated
-    "gitkraken.gitkraken",                               // GitKraken GUI - use terminal git
-    "eamodio.gitlens",                                   // GitLens - too heavy, use git-graph
-    "formulahendry.auto-close-tag",                      // Not needed for Go/YAML
-    "formulahendry.auto-rename-tag",                      // Not needed for Go/YAML
-    "humao.rest-client",                                 // REST API client
-    "charliermarsh.ruff",                                // Ruff Python linter
-    "timonwong.shellcheck",                              // Shell script linting
-    "esbenp.prettier-vscode",                            // Prettier code formatter
+    "gitkraken.gitkraken",                                 // GitKraken GUI - use terminal git
+    "eamodio.gitlens",                                     // GitLens - too heavy, use git-graph
+    "visualstudioexptteam.intellicode-api-usage-examples", // IntelliCode API usage (deprecated)
+    "visualstudioexptteam.vscodeintellicode",              // IntelliCode (deprecated)
+    "formulahendry.auto-close-tag",                        // Not needed for Go/YAML
+    "formulahendry.auto-rename-tag",                       // Not needed for Go/YAML
+    "humao.rest-client",                                   // REST API client
+    "charliermarsh.ruff",                                  // Ruff Python linter
+    "timonwong.shellcheck",                                // Shell script linting
+    "esbenp.prettier-vscode",                              // Prettier code formatter
   ]
 }

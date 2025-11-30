@@ -4,7 +4,7 @@
 # Docs: https://opentelemetry.io/docs/collector/configuration/
 #
 # This collector runs in a Docker container and:
-#   • Receives OTLP telemetry (metrics, logs, traces) from cryptoutil services
+#   • Receives OTLP telemetry (metrics, logs, traces) from cryptoutil products and services
 #   • Exports them to Grafana-OTEL-LGTM via OTLP/HTTP
 #   • Collects its own metrics, logs, and traces for self-observability
 #######################################################################
