@@ -144,6 +144,7 @@ Notes:
 NEVER PATH
 NEVER QUERY PARAMETERS
 ALWAYS HEADER: ALWAYS linked to HTTP "Authorization" header
+
 - Service APIs: Configurable ;
 - User UI/APIs: Session UUIDv7 cookie mapped to server-side session in Redis cache
 - Basic
@@ -151,9 +152,10 @@ Configurable options in Authz Provider:
 - Bearer: issued UUID access token (UUIDv7 or UUIDv4), statefully mapped by issuer to tenant UUIDv4
 - Bearer: issued JWT  access token, statelessly mapped by issuer by tenant UUIDv4
 Configurable options in KMS File/Database realms:
- - Basic: File-realm username/password Base64URL encoded
- - Basic: Database-realm username/password Base64URL encoded
- - 
+- Basic: File-realm username/password Base64URL encoded
+- Basic: Database-realm username/password Base64URL encoded
+- Bearer: Federated to Identity (stateless if JWT access token, stateful if UUID access token)
+- TLS Client: Custom SAN extension (uri? other? need to consider options...)
 
 ---
 
@@ -164,8 +166,8 @@ Configurable options in KMS File/Database realms:
 How should multiple errors be collected and reported?
 
 - [ ] A. Simple list of error messages
-- [ ] B. Structured error with step/phase info
-- [ ] C. Error tree (nested errors with context)
+- [x] B. Structured error with step/phase info
+- [x] C. Error tree (nested errors with context)
 - [ ] D. Match existing apperr patterns
 
 Notes:
@@ -176,10 +178,10 @@ Notes:
 
 If some demo steps succeed but others fail, what should happen?
 
-- [ ] A. Report partial success, cleanup successful parts
-- [ ] B. Leave successful parts running
+- [x] A. Report partial success, cleanup successful parts
+- [x] B. Leave successful parts running
 - [ ] C. Rollback all on any failure
-- [ ] D. Configurable behavior
+- [x] D. Configurable behavior
 
 Notes:
 
@@ -192,7 +194,7 @@ Should demo CLI support retries for transient failures?
 - [ ] A. No retries (fail fast)
 - [ ] B. Fixed retry count with delay
 - [ ] C. Exponential backoff
-- [ ] D. Configurable retry strategy
+- [x] D. Configurable retry strategy
 
 Notes:
 
@@ -202,9 +204,9 @@ Notes:
 
 How should demo CLI show progress?
 
-- [ ] A. Simple step counter (1/5, 2/5...)
+- [x] A. Simple step counter (1/5, 2/5...)
 - [ ] B. Progress bar
-- [ ] C. Spinner with step description
+- [x] C. Spinner with step description
 - [ ] D. Configurable (spinner default)
 
 Notes:

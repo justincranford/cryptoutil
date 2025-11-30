@@ -196,7 +196,7 @@ repos:
       - id: golangci-lint-full
         name: golangci-lint (full validation)
         entry: golangci-lint
-        args: [run, --cache, --timeout=30m]
+        args: [run, --timeout=30m]
         language: system
         pass_filenames: false
         files: '\.go$'
