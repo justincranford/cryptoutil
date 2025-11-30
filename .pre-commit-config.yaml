@@ -295,6 +295,16 @@ repos:
         name: Scan for secrets
         stages: [pre-push]
 
+  # Stricter YAML validation
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        name: YAML strict lint
+        args: [-d, relaxed]
+        files: '\.(yaml|yml)$'
+        stages: [pre-commit]
+
   # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.8
