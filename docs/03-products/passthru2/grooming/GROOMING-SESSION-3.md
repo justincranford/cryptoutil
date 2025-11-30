@@ -14,7 +14,7 @@ Where are the KMS cert utility functions that Identity should reuse?
 
 - [ ] A. `internal/crypto/cert/` (existing location)
 - [ ] B. `internal/common/tls/` (needs extraction)
-- [ ] C. `internal/infra/tls/` (create new)
+- [x] C. `internal/infra/tls/` (create new)
 - [ ] D. Other location: _______________
 
 Notes:
@@ -28,7 +28,7 @@ What should be the default CA chain length?
 - [ ] A. 1 (Root CA → Leaf)
 - [ ] B. 2 (Root CA → Intermediate CA → Leaf)
 - [ ] C. 3 (Root CA → Policy CA → Issuing CA → Leaf)
-- [ ] D. Configurable with default of 2
+- [x] D. Configurable with default of 3
 
 Notes:
 
@@ -40,8 +40,8 @@ What CN pattern should be used for demo certs?
 
 - [ ] A. Service name only (e.g., `kms`, `identity`)
 - [ ] B. Service + domain (e.g., `kms.demo.local`)
-- [ ] C. FQDN style (e.g., `kms.cryptoutil.demo.local`)
-- [ ] D. Configurable via config file
+- [x] C. FQDN style (e.g., `kms.cryptoutil.demo.local`)
+- [x] D. Configurable via config file
 
 Notes:
 
@@ -51,10 +51,10 @@ Notes:
 
 Should mTLS be enabled by default for service-to-service communication?
 
-- [ ] A. Yes, mTLS required for all internal communication
+- [x] A. Yes, mTLS required for all internal communication
 - [ ] B. Yes for KMS→Identity, optional for others
 - [ ] C. No, TLS server-only by default, mTLS opt-in
-- [ ] D. Configurable per service pair
+- [x] D. Configurable per service pair
 
 Notes:
 
@@ -67,9 +67,10 @@ How should certificate rotation be handled in demo mode?
 - [ ] A. No rotation (certs valid for demo duration)
 - [ ] B. Long validity (365 days) with manual rotation
 - [ ] C. Auto-rotation with configurable interval
-- [ ] D. Not needed for passthru2 (defer to passthru3)
+- [x] D. Not needed for passthru2 (defer to passthru3)
 
 Notes:
+Auto-rotation with configurable interval later
 
 ---
 
@@ -79,7 +80,7 @@ Notes:
 
 Where should `realms.yml` be located relative to main config?
 
-- [ ] A. Same directory as main config
+- [x] A. Same directory as main config
 - [ ] B. Subdirectory: `config/realms/`
 - [ ] C. Separate directory: `realms/`
 - [ ] D. Embedded in main config with include directive
@@ -98,6 +99,7 @@ What PBKDF2 hash format should be used?
 - [ ] D. Match existing Identity PBKDF2 format
 
 Notes:
+Configurable to use other digest, iterations, salt length in bytes
 
 ---
 
@@ -105,10 +107,10 @@ Notes:
 
 What fields should realm users have?
 
-- [ ] A. Minimal: `username`, `password_hash`, `roles`
-- [ ] B. Standard: + `tenant_id`, `enabled`, `created_at`
-- [ ] C. Extended: + `email`, `display_name`, `metadata`
-- [ ] D. Flexible: Core fields + extensible JSON metadata
+- [x] A. Minimal: `username`, `password_hash`, `roles`
+- [x] B. Standard: + `tenant_id`, `enabled`, `created_at`
+- [x] C. Extended: + `email`, `display_name`, `metadata`
+- [x] D. Flexible: Core fields + extensible JSON metadata
 
 Notes:
 
@@ -119,9 +121,9 @@ Notes:
 How should KMS roles be defined?
 
 - [ ] A. Hardcoded in code (admin, tenant-admin, user, service)
-- [ ] B. Configurable in `realms.yml`
-- [ ] C. Hierarchical with inheritance
-- [ ] D. Mapped from Identity roles when federated
+- [x] B. Configurable in `realms.yml`
+- [x] C. Hierarchical with inheritance
+- [x] D. Mapped from Identity roles when federated
 
 Notes:
 
@@ -137,6 +139,8 @@ What format should tenant IDs use?
 - [ ] D. Configurable per deployment
 
 Notes:
+UUIDv4, this is a special case where maximum randomness is preferred for external facing tenant IDs,
+not predictable
 
 ---
 
@@ -146,9 +150,9 @@ Notes:
 
 How should demo CLIs be structured?
 
-- [ ] A. Single binary with subcommands (`demo kms`, `demo identity`, `demo all`)
+- [x] A. Single binary with subcommands (`demo kms`, `demo identity`, `demo all`)
 - [ ] B. Separate binaries (`demo-kms`, `demo-identity`, `demo-all`)
-- [ ] C. Library with thin CLI wrappers
+- [x] C. Library with thin CLI wrappers
 - [ ] D. Cobra-based with shared utilities
 
 Notes:
@@ -159,10 +163,10 @@ Notes:
 
 What output format should demo CLIs use?
 
-- [ ] A. Human-readable with colors/emojis
-- [ ] B. JSON for machine parsing
-- [ ] C. Both (default human, `--json` flag)
-- [ ] D. Structured logging format (compatible with OTLP)
+- [x] A. Human-readable with colors/emojis
+- [x] B. JSON for machine parsing
+- [x] C. Both (default human, `--json` flag)
+- [x] D. Structured logging format (compatible with OTLP)
 
 Notes:
 
@@ -173,9 +177,9 @@ Notes:
 How should demo flows handle failures?
 
 - [ ] A. Stop on first error with detailed message
-- [ ] B. Continue on error, report summary at end
+- [x] B. Continue on error, report summary at end
 - [ ] C. Retry with backoff, then fail
-- [ ] D. Configurable behavior via flag
+- [x] D. Configurable behavior via flag
 
 Notes:
 
@@ -186,7 +190,7 @@ Notes:
 How long should demo CLI wait for services to be healthy?
 
 - [ ] A. Fixed timeout (60 seconds)
-- [ ] B. Configurable timeout with default (120 seconds)
+- [x] B. Configurable timeout with default (30 seconds)
 - [ ] C. Infinite wait with progress indicator
 - [ ] D. Exponential backoff with max attempts
 
@@ -198,7 +202,7 @@ Notes:
 
 Should demo CLI verify seeded data after startup?
 
-- [ ] A. Yes, query and validate all demo entities
+- [x] A. Yes, query and validate all demo entities
 - [ ] B. Yes, but only critical entities (users, clients)
 - [ ] C. No, rely on health checks only
 - [ ] D. Configurable via `--verify` flag
@@ -219,6 +223,7 @@ What caching library should be used for JWKS?
 - [ ] D. Custom implementation matching existing patterns
 
 Notes:
+No preference, I don't know which one to use
 
 ---
 
@@ -226,12 +231,13 @@ Notes:
 
 Should introspection requests be batched?
 
-- [ ] A. No, one introspection per token per request
-- [ ] B. Yes, batch multiple tokens in single request
-- [ ] C. Yes, with request deduplication
+- [X] A. No, one introspection per token per request
+- [X] B. Yes, batch multiple tokens in single request
+- [X] C. Yes, with request deduplication
 - [ ] D. Not needed for passthru2 (defer optimization)
 
 Notes:
+Both
 
 ---
 
@@ -242,7 +248,7 @@ What structure should token validation errors use?
 - [ ] A. RFC 6749 OAuth 2.0 error response
 - [ ] B. RFC 7807 Problem Details for HTTP APIs
 - [ ] C. Custom error structure matching existing apperr
-- [ ] D. Hybrid (OAuth errors for auth, Problem Details for others)
+- [X] D. Hybrid (OAuth errors for auth, Problem Details for others)
 
 Notes:
 
@@ -253,7 +259,7 @@ Notes:
 How should scope strings be parsed and validated?
 
 - [ ] A. Simple string split on space
-- [ ] B. Structured parser with validation
+- [X] B. Structured parser with validation
 - [ ] C. Regex-based with format enforcement
 - [ ] D. Match Identity's scope parsing implementation
 
@@ -265,8 +271,8 @@ Notes:
 
 How should extracted claims be propagated through the request context?
 
-- [ ] A. Custom context key with typed struct
-- [ ] B. Standard OIDC claims struct
+- [X] A. Custom context key with typed struct
+- [X] B. Standard OIDC claims struct
 - [ ] C. Map[string]interface{} for flexibility
 - [ ] D. Protobuf-style generated types
 
@@ -280,8 +286,8 @@ Notes:
 
 Should passthru2 use a factory pattern for test data?
 
-- [ ] A. Yes, dedicated `testutil` package with factories
-- [ ] B. Yes, per-package test helpers
+- [X] A. Yes, dedicated `testutil` package with factories
+- [X] B. Yes, per-package test helpers
 - [ ] C. No, inline test data generation
 - [ ] D. Combination (factories for complex, inline for simple)
 
@@ -293,10 +299,10 @@ Notes:
 
 What operations should have benchmarks?
 
-- [ ] A. Crypto operations only (encrypt, decrypt, sign)
-- [ ] B. + Token validation (JWT parsing, introspection)
-- [ ] C. + Database operations (CRUD)
-- [ ] D. All public API endpoints
+- [X] A. Crypto operations only (encrypt, decrypt, sign)
+- [X] B. + Token validation (JWT parsing, introspection)
+- [X] C. + Database operations (CRUD)
+- [X] D. All public API endpoints
 
 Notes:
 
@@ -306,10 +312,10 @@ Notes:
 
 Should E2E tests run in parallel?
 
-- [ ] A. No, sequential for predictability
+- [X] A. No, sequential for predictability
 - [ ] B. Yes, with proper isolation (UUIDv7 prefixes)
-- [ ] C. Configurable via test flag
-- [ ] D. Parallel for independent flows, sequential for dependent
+- [X] C. Configurable via test flag
+- [X] D. Parallel for independent flows, sequential for dependent
 
 Notes:
 
@@ -322,7 +328,7 @@ What coverage reporting format should be used?
 - [ ] A. Go native coverage profile
 - [ ] B. HTML report for local review
 - [ ] C. Codecov/Coveralls integration
-- [ ] D. All of the above
+- [X] D. All of the above
 
 Notes:
 
@@ -333,12 +339,12 @@ Notes:
 What should be the default timeout for integration tests?
 
 - [ ] A. 30 seconds per test
-- [ ] B. 60 seconds per test
+- [X] B. 60 seconds per test
 - [ ] C. 5 minutes for full suite
-- [ ] D. Configurable with sensible defaults
+- [X] D. Configurable with sensible defaults
 
 Notes:
 
 ---
 
-**Status**: AWAITING YOUR ANSWERS (Change [ ] to [x] as applicable and add notes if needed)
+**Status**: ✅ COMPLETED (2025-11-30)

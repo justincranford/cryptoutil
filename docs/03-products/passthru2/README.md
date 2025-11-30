@@ -2,7 +2,7 @@
 
 **Purpose**: Apply lessons learned from `passthru1` to rework demos, solidify best practices, and implement demo parity and developer experience improvements.
 **Created**: 2025-11-30
-**Updated**: 2025-11-30 (incorporated Grooming Sessions 1 & 2 answers)
+**Updated**: 2025-11-30 (incorporated Grooming Sessions 1, 2 & 3 answers)
 **Status**: IN PROGRESS
 
 ---
@@ -128,6 +128,60 @@
 
 ---
 
+## Summary of Decisions from Grooming Session 3
+
+### TLS/HTTPS Implementation (Q1-5)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Cert Utility Location** | C: `internal/infra/tls/` | Create new shared package |
+| **CA Chain Length** | D: Configurable, default 3 | Root→Policy→Issuing→Leaf |
+| **Certificate CNs** | C+D: FQDN + configurable | `kms.cryptoutil.demo.local` style |
+| **mTLS Mode** | A+D: Required + configurable | mTLS for all internal, configurable per pair |
+| **Cert Rotation** | D: Defer to passthru3 | Auto-rotation planned later |
+
+### Realm Configuration Details (Q6-10)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Realm File Location** | A: Same directory as config | Simple co-location |
+| **Password Hash Format** | Configurable | Digest, iterations, salt length configurable |
+| **User Schema** | A+B+C+D: All fields | Full flexibility with JSON metadata |
+| **Role Definition** | B+C+D: Configurable + hierarchical | Mapped from Identity when federated |
+| **Tenant ID Format** | **UUIDv4** | Special case: max randomness, unpredictable |
+
+### Demo CLI Implementation (Q11-15)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **CLI Architecture** | A+C: Single binary + library | `demo kms`, `demo identity`, `demo all` |
+| **Output Format** | A+B+C+D: All formats | Human, JSON, structured logging |
+| **Failure Handling** | B+D: Continue + configurable | Report summary at end |
+| **Health Timeout** | B: 30s default configurable | Reasonable default |
+| **Data Verification** | A: Verify all entities | Query and validate after startup |
+
+### Token Validation Implementation (Q16-20)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **JWKS Cache** | No preference | Choose appropriate library |
+| **Introspection Batching** | A+B+C: Single + batch + dedup | Support both patterns |
+| **Error Response** | D: Hybrid | OAuth for auth, Problem Details otherwise |
+| **Scope Parsing** | B: Structured parser | With validation |
+| **Claims Propagation** | A+B: Typed struct + OIDC | Custom context key |
+
+### Testing & Quality (Q21-25)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Test Factories** | A+B: Both patterns | testutil + per-package helpers |
+| **Benchmark Targets** | A+B+C+D: All | Crypto, tokens, DB, APIs |
+| **E2E Parallelization** | A+C+D: Sequential default | Parallel for independent, configurable |
+| **Coverage Reporting** | D: All formats | Native, HTML, Codecov |
+| **Integration Timeout** | B+D: 60s configurable | Per-test timeout |
+
+---
+
 ## KMS Authentication Strategy (from Q11)
 
 KMS will support two identity/authentication/authorization strategies:
@@ -192,7 +246,8 @@ identity-providers:
 | DEMO-INTEGRATION.md | 🔄 Needs update | `docs/03-products/passthru2/` |
 | GROOMING-SESSION-1.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
 | GROOMING-SESSION-2.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
-| GROOMING-SESSION-3.md | 📝 Awaiting answers | `docs/03-products/passthru2/grooming/` |
+| GROOMING-SESSION-3.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
+| GROOMING-SESSION-4.md | 📝 Awaiting answers | `docs/03-products/passthru2/grooming/` |
 
 ---
 
@@ -212,10 +267,10 @@ docker compose -f deployments/telemetry/compose.yml \
                -f deployments/kms/compose.demo.yml \
                -f deployments/identity/compose.demo.yml up -d
 
-# Or using Go CLI
-go run ./cmd/demo-kms
-go run ./cmd/demo-identity
-go run ./cmd/demo-all
+# Or using Go CLI (single binary with subcommands - from Session 3)
+go run ./cmd/demo kms
+go run ./cmd/demo identity
+go run ./cmd/demo all
 ```
 
 ---
@@ -224,10 +279,11 @@ go run ./cmd/demo-all
 
 1. ✅ Complete GROOMING-SESSION-1.md answers
 2. ✅ Complete GROOMING-SESSION-2.md answers
-3. 📝 Answer GROOMING-SESSION-3.md for implementation details
-4. 🔨 Implement Phase 0: Developer Experience foundation
-5. 🔨 Fix TLS/HTTPS pattern (Identity reuse KMS cert utils)
-6. 🔨 Implement demo seeding and compose profiles
+3. ✅ Complete GROOMING-SESSION-3.md answers
+4. 📝 Answer GROOMING-SESSION-4.md for final details
+5. 🔨 Implement Phase 0: Developer Experience foundation
+6. 🔨 Create `internal/infra/tls/` package (from Session 3 Q1)
+7. 🔨 Implement demo CLI with single binary architecture
 
 ---
 

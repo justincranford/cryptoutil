@@ -2,7 +2,7 @@
 
 **Purpose**: Tasks for applying improvements, demo parity, and developer experience improvements after passthru1
 **Created**: 2025-11-30
-**Updated**: 2025-11-30 (aligned with Grooming Sessions 1 & 2 decisions)
+**Updated**: 2025-11-30 (aligned with Grooming Sessions 1, 2 & 3 decisions)
 
 ---
 
@@ -25,12 +25,13 @@
 - [ ] **P0.8**: Create `compose.demo.yml` for KMS with health checks (Q12)
 - [ ] **P0.9**: Create `compose.demo.yml` for Identity with health checks (Q12)
 
-### TLS/HTTPS Fix (CRITICAL from Q20)
+### TLS/HTTPS Fix (CRITICAL from Session 2 Q20 + Session 3 Q1-5)
 
-- [ ] **P0.10**: Fix HTTPS/HTTP mixing in passthru2
-- [ ] **P0.11**: Ensure Identity reuses KMS cert utility functions
-- [ ] **P0.12**: Configure CA-chained certs (never self-signed leaf certs)
-- [ ] **P0.13**: Pass config options for cert chain lengths and TLS parameters
+- [ ] **P0.10**: Create `internal/infra/tls/` package (Session 3 Q1)
+- [ ] **P0.11**: Implement CA chain with configurable length, default 3 (Session 3 Q2)
+- [ ] **P0.12**: Use FQDN style CNs, configurable (Session 3 Q3)
+- [ ] **P0.13**: Enable mTLS for all internal comms, configurable per pair (Session 3 Q4)
+- [ ] **P0.14**: Ensure Identity reuses new `internal/infra/tls/` package
 
 ---
 
@@ -51,23 +52,27 @@
 - [ ] **P1.6**: Auto-seed encryption keys for demo
 - [ ] **P1.7**: Implement `--reset-demo` flag for data cleanup (Q15)
 
-### CLI Demo Orchestration (Third priority)
+### CLI Demo Orchestration (Session 3 Q11-15)
 
-- [ ] **P1.8**: Create `cmd/demo-kms/main.go` Go CLI
-- [ ] **P1.9**: Implement health check waiting
-- [ ] **P1.10**: Implement demo flow execution (create pool → create key → encrypt → decrypt)
+- [ ] **P1.8**: Create `cmd/demo/main.go` single binary with subcommands (Session 3 Q11)
+- [ ] **P1.9**: Implement `demo kms` subcommand
+- [ ] **P1.10**: Support all output formats: human/JSON/structured (Session 3 Q12)
+- [ ] **P1.11**: Continue on error, report summary (Session 3 Q13)
+- [ ] **P1.12**: Implement health check waiting, 30s default (Session 3 Q14)
+- [ ] **P1.13**: Verify all demo entities after startup (Session 3 Q15)
 
-### KMS Realm Configuration (from Q1-5)
+### KMS Realm Configuration (from Session 2 Q1-5 + Session 3 Q6-10)
 
-- [ ] **P1.11**: Create `realms.yml` file format (separate from main config)
-- [ ] **P1.12**: Support PBKDF2 hashed passwords (Q2)
-- [ ] **P1.13**: Support plaintext passwords for demo mode (Q2)
-- [ ] **P1.14**: Implement configurable realm priority order (Q4)
+- [ ] **P1.14**: Create `realms.yml` in same directory as config (Session 3 Q6)
+- [ ] **P1.15**: Implement configurable PBKDF2 (digest, iterations, salt length) (Session 3 Q7)
+- [ ] **P1.16**: Implement full user schema with JSON metadata (Session 3 Q8)
+- [ ] **P1.17**: Implement configurable hierarchical roles (Session 3 Q9)
+- [ ] **P1.18**: Use UUIDv4 for tenant IDs (Session 3 Q10 - max randomness)
 
 ### Coverage Improvements
 
-- [ ] **P1.15**: Add KMS handler unit tests (target: 85%)
-- [ ] **P1.16**: Add KMS businesslogic unit tests (target: 85%)
+- [ ] **P1.19**: Add KMS handler unit tests (target: 85%)
+- [ ] **P1.20**: Add KMS businesslogic unit tests (target: 85%)
 
 ---
 
@@ -131,11 +136,20 @@
 - [ ] **P3.14**: Add fine scopes: `kms:encrypt`, `kms:decrypt`, `kms:sign`
 - [ ] **P3.15**: Add scope enforcement tests
 
-### Integration Demo
+### Integration Demo (Session 3 Q11-15)
 
-- [ ] **P3.16**: Create `cmd/demo-all/main.go` Go CLI (Q12)
-- [ ] **P3.17**: Create integration compose file
-- [ ] **P3.18**: Implement demo script (get token → KMS operation)
+- [ ] **P3.16**: Add `demo identity` subcommand to single binary
+- [ ] **P3.17**: Add `demo all` subcommand for full integration
+- [ ] **P3.18**: Create integration compose file
+- [ ] **P3.19**: Implement demo script (get token → KMS operation)
+
+### Token Validation Implementation (Session 3 Q16-20)
+
+- [ ] **P3.20**: Implement JWKS cache (library TBD per Q16)
+- [ ] **P3.21**: Support single + batch introspection + dedup (Session 3 Q17)
+- [ ] **P3.22**: Implement hybrid error responses (OAuth + Problem Details) (Session 3 Q18)
+- [ ] **P3.23**: Implement structured scope parser with validation (Session 3 Q19)
+- [ ] **P3.24**: Implement typed claims struct with OIDC fields (Session 3 Q20)
 
 ---
 
@@ -174,9 +188,9 @@
 
 **Priority: MEDIUM** - Based on Q21 (80% coverage) and Q24 (all CI changes)
 
-### Coverage Gates
+### Coverage Gates (Session 3 Q21-25)
 
-- [ ] **P5.1**: Add coverage threshold enforcement (80% minimum)
+- [ ] **P5.1**: Add coverage threshold enforcement (80% minimum per Q21)
 - [ ] **P5.2**: Add per-package coverage reporting
 - [ ] **P5.3**: Add coverage trend tracking
 
@@ -188,14 +202,17 @@
 
 ### Database Matrix
 
-- [ ] **P5.7**: Add SQLite test runs in CI (Q20)
-- [ ] **P5.8**: Add PostgreSQL test runs in CI (Q20)
+- [ ] **P5.7**: Add SQLite test runs in CI
+- [ ] **P5.8**: Add PostgreSQL test runs in CI
 
-### Testing Improvements (from Q21-25)
+### Testing Improvements (Session 3 Q21-25)
 
-- [ ] **P5.9**: Ensure all tests use UUIDv7 unique prefixes (Q23 - CRITICAL)
-- [ ] **P5.10**: Add basic benchmarks for critical paths (Q24)
-- [ ] **P5.11**: Add test case descriptions in code (Q25)
+- [ ] **P5.9**: Implement testutil package with test factories for common entities (Session 3 Q21)
+- [ ] **P5.10**: Add per-package factories as needed (Session 3 Q21)
+- [ ] **P5.11**: Ensure all tests use UUIDv7 unique prefixes (CRITICAL)
+- [ ] **P5.12**: Add basic benchmarks for critical paths (Session 3 Q24)
+- [ ] **P5.13**: Set 60s configurable integration timeout (Session 3 Q25)
+- [ ] **P5.14**: Add test case descriptions in code (Session 3 Q25)
 
 ---
 
@@ -209,12 +226,17 @@
 - [ ] **P6.2**: Move `internal/common/config` to `internal/infra/config`
 - [ ] **P6.3**: Move `internal/common/magic` to `internal/infra/magic`
 - [ ] **P6.4**: Move `internal/common/telemetry` to `internal/infra/telemetry`
+- [ ] **P6.5**: Create `internal/infra/tls/` package (Session 3 Q1)
+- [ ] **P6.6**: Support chain length 3 (root→intermediate→leaf) (Session 3 Q2)
+- [ ] **P6.7**: Support both FQDN and descriptive CNs via config (Session 3 Q3)
+- [ ] **P6.8**: Implement mTLS required + configurable fallback (Session 3 Q4)
+- [ ] **P6.9**: Handle clock skew in development mode only (Session 3 Q5)
 
 ### Product Package Migration
 
-- [ ] **P6.5**: Consolidate Identity duplicate code
-- [ ] **P6.6**: Update all import paths
-- [ ] **P6.7**: Verify build + test + lint after each move
+- [ ] **P6.10**: Consolidate Identity duplicate code
+- [ ] **P6.11**: Update all import paths
+- [ ] **P6.12**: Verify build + test + lint after each move
 
 ---
 
@@ -228,6 +250,9 @@ All must be true before closing passthru2:
 - [ ] **D**: All product tests pass with coverage targets achieved (80%+)
 - [ ] **E**: Telemetry extracted to shared compose and secrets standardized
 - [ ] **F**: TLS/HTTPS pattern fixed - Identity uses KMS cert utilities (CRITICAL)
+- [ ] **G**: Single demo binary with subcommands (kms, identity, all) implemented (Session 3)
+- [ ] **H**: UUIDv4 for realm/tenant IDs standardized (Session 3)
+- [ ] **I**: 60s configurable integration timeout implemented (Session 3)
 
 ---
 
