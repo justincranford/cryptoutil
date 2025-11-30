@@ -223,11 +223,15 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 				if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, "A192GCM"); err != nil {
 					return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'A192GCM' in JWK: %w", err)
 				}
+			default:
+				return nil, nil, nil, nil, nil, fmt.Errorf("unexpected algorithm %s for secret key in AES switch", *alg)
 			}
 
 			if err = nonPublicJWK.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'use' header to 'enc' in JWK: %w", err)
 			}
+		default:
+			return nil, nil, nil, nil, nil, fmt.Errorf("unexpected algorithm %s for secret key", *alg)
 		}
 	case *cryptoutilKeyGen.KeyPair: // RSA, ECDSA, EdDSA
 		if nonPublicJWK, err = joseJwk.Import(typedKey.Private); err != nil {

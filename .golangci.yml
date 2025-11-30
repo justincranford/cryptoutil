@@ -40,6 +40,7 @@ linters:
     - nlreturn
     - goheader
     - depguard
+    - exhaustive
   disable:
     - dupl
     - gocyclo
@@ -88,6 +89,8 @@ linters:
       capital: false
     godox:
       keywords: [TODO, FIXME, BUG, HACK]
+    exhaustive:
+      default-signifies-exhaustive: true
     thelper:
       test:
         begin: true

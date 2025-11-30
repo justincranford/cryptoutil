@@ -45,6 +45,8 @@ Should demo mode use a custom root CA or system trust store?
 - [ ] D. Custom root CA with option to add to system store
 
 Notes:
+99% always custom CAs
+Maybe in future I would support adding system trust store for HTTPS Server front-end UI and CLI certs
 
 ---
 
@@ -52,12 +54,13 @@ Notes:
 
 How strict should certificate validation be in demo mode?
 
-- [ ] A. Full validation (hostname, expiry, chain)
+- [x] A. Full validation (hostname, expiry, chain)
 - [ ] B. Relaxed (skip hostname check for localhost)
 - [ ] C. Skip validation entirely in demo (dangerous)
 - [ ] D. Configurable validation level
 
 Notes:
+CRITICAL ALWAYS FULL VALIDATION
 
 ---
 
@@ -66,7 +69,7 @@ Notes:
 What minimum TLS version should be required?
 
 - [ ] A. TLS 1.2 (broad compatibility)
-- [ ] B. TLS 1.3 only (best security)
+- [x] B. TLS 1.3 only (best security)
 - [ ] C. TLS 1.2 minimum, prefer 1.3
 - [ ] D. Configurable with secure defaults
 
@@ -82,7 +85,7 @@ How should UUIDv4 tenant IDs be generated?
 
 - [ ] A. `crypto/rand` directly
 - [ ] B. `github.com/google/uuid` NewRandom()
-- [ ] C. Match existing UUIDv7 generation pattern but v4
+- [x] C. Match existing UUIDv7 generation pattern but v4
 - [ ] D. Use existing project UUID utilities
 
 Notes:
@@ -93,7 +96,7 @@ Notes:
 
 How should tenant IDs be validated on input?
 
-- [ ] A. Strict UUID format only
+- [x] A. Strict UUID format only
 - [ ] B. Accept with/without hyphens
 - [ ] C. Case-insensitive
 - [ ] D. All of the above
@@ -106,7 +109,7 @@ Notes:
 
 How should tenant IDs be displayed in logs/responses?
 
-- [ ] A. Full UUID with hyphens
+- [x] A. Full UUID with hyphens
 - [ ] B. Short form (first 8 chars)
 - [ ] C. Configurable (full/short)
 - [ ] D. Full in responses, short in logs
@@ -120,7 +123,7 @@ Notes:
 Should demo tenants have predictable or random UUIDs?
 
 - [ ] A. Predictable (e.g., well-known UUIDs for demo)
-- [ ] B. Random (regenerated each startup)
+- [x] B. Random (regenerated each startup)
 - [ ] C. Predictable with option to randomize
 - [ ] D. Fixed UUIDs documented in demo docs
 
@@ -138,6 +141,12 @@ Should tenant ID be in URL path or header?
 - [ ] D. Configurable (default path)
 
 Notes:
+NEVER PATH
+NEVER QUERY PARAMETERS
+ALWAYS HEADER: ALWAYS linked to HTTP "Authorization" header
+- Service Bearer: JWT Embedded claim
+- User Bearer: Session UUIDv7 cookie mapped to server-side session in Redis cache
+- Basic
 
 ---
 

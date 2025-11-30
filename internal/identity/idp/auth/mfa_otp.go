@@ -129,7 +129,7 @@ func (o *MFAOrchestrator) IntegrateTOTPValidation(ctx context.Context, factor *c
 
 	// Determine factor type and validate accordingly.
 	switch factor.FactorType {
-	case "totp":
+	case cryptoutilIdentityDomain.MFAFactorTypeTOTP:
 		// TOTP validation with 1-period window (30s before/after).
 		if o.totpValidator == nil {
 			return false, fmt.Errorf("TOTP validator not configured")
@@ -146,7 +146,7 @@ func (o *MFAOrchestrator) IntegrateTOTPValidation(ctx context.Context, factor *c
 
 		return valid, nil
 
-	case "email_otp":
+	case cryptoutilIdentityDomain.MFAFactorTypeEmailOTP:
 		// Email OTP validation with 5-minute period.
 		if o.totpValidator == nil {
 			return false, fmt.Errorf("TOTP validator not configured")
@@ -161,7 +161,7 @@ func (o *MFAOrchestrator) IntegrateTOTPValidation(ctx context.Context, factor *c
 
 		return valid, nil
 
-	case "sms_otp":
+	case cryptoutilIdentityDomain.MFAFactorTypeSMSOTP:
 		// SMS OTP validation with 10-minute period.
 		if o.totpValidator == nil {
 			return false, fmt.Errorf("TOTP validator not configured")
@@ -176,7 +176,15 @@ func (o *MFAOrchestrator) IntegrateTOTPValidation(ctx context.Context, factor *c
 
 		return valid, nil
 
-	default:
+	case cryptoutilIdentityDomain.MFAFactorTypePassword,
+		cryptoutilIdentityDomain.MFAFactorTypeHOTP,
+		cryptoutilIdentityDomain.MFAFactorTypePasskey,
+		cryptoutilIdentityDomain.MFAFactorTypeMagicLink,
+		cryptoutilIdentityDomain.MFAFactorTypeMTLS,
+		cryptoutilIdentityDomain.MFAFactorTypeHardwareToken,
+		cryptoutilIdentityDomain.MFAFactorTypeBiometric:
 		return false, fmt.Errorf("unsupported OTP factor type: %s", factor.FactorType)
 	}
+
+	return false, fmt.Errorf("unknown factor type: %s", factor.FactorType)
 }
