@@ -24,18 +24,22 @@ The KMS server was manually implemented and is the most stable component:
 
 ## Known Issues (As of 2025-01-07)
 
-### Issue #1: Key Hierarchy Initialization Bug
+### Issue #1: Key Hierarchy Initialization Bug - RESOLVED
 
-**Symptom**: API calls to create elastic keys fail with "record not found" error
+**Symptom**: API calls to create elastic keys failed with "runtime error: invalid memory address or nil pointer dereference"
 
-**Root Cause**: The root/intermediate key initialization happens during startup
-but may not complete properly on SQLite in-memory databases after restart.
+**Root Cause**: In `oam_orm_mapper.go`, the `toOrmAddElasticKey()` function dereferenced optional pointer fields (Provider, Algorithm, VersioningAllowed, ImportAllowed) without nil checks.
 
-**Impact**: CRUD operations on elastic keys fail until key hierarchy is initialized
+**Resolution**: Added nil checks and default values for optional fields:
 
-**Workaround**: Need to investigate startup initialization flow
+- Provider defaults to "Internal"
+- Algorithm defaults to "A256GCM/A256KW"
+- VersioningAllowed defaults to true
+- ImportAllowed defaults to false
 
-**Status**: INVESTIGATION NEEDED
+**Fixed in commit**: 8439613e (2025-11-30)
+
+**Status**: ✅ RESOLVED
 
 ---
 
@@ -200,13 +204,13 @@ Includes all of quick demo plus:
 
 Before marking KMS Demo complete:
 
-- [ ] `docker compose up -d` starts successfully
-- [ ] Health endpoints return 200
-- [ ] Swagger UI loads and is interactive
+- [x] `docker compose up -d` starts successfully
+- [x] Health endpoints return 200
+- [x] Swagger UI loads and is interactive
 - [ ] Can create key pools
-- [ ] Can create keys
-- [ ] Can encrypt/decrypt
-- [ ] Can sign/verify
+- [x] Can create keys (POST /elastickey fixed 2025-11-30)
+- [x] Can encrypt/decrypt (verified working 2025-11-30)
+- [x] Can sign/verify (verified working 2025-11-30)
 - [ ] Demo script runs without errors
 - [ ] Documentation is accurate
 
@@ -233,5 +237,5 @@ Before marking KMS Demo complete:
 
 ---
 
-**Status**: NOT STARTED
+**Status**: IN PROGRESS (core operations working 2025-11-30)
 **Blocks**: Identity Demo (T2.x), Integration Demo (T5.x)
