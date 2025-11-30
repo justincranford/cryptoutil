@@ -98,15 +98,15 @@ func TestParallelTestSafety(t *testing.T) {
 			gormDB.SetConnMaxLifetime(0) // In-memory DB: never close connections.
 			gormDB.SetConnMaxIdleTime(0)
 
-		// Auto-migrate test schemas.
-		err = db.AutoMigrate(
-			&cryptoutilIdentityDomain.User{},
-			&cryptoutilIdentityDomain.Client{},
-			&cryptoutilIdentityDomain.ClientSecretVersion{}, // Required for client creation
-			&cryptoutilIdentityDomain.KeyRotationEvent{},    // Required for secret rotation audit
-			&cryptoutilIdentityDomain.Token{},
-		)
-		require.NoError(t, err)			// Cleanup function to close database.
+			// Auto-migrate test schemas.
+			err = db.AutoMigrate(
+				&cryptoutilIdentityDomain.User{},
+				&cryptoutilIdentityDomain.Client{},
+				&cryptoutilIdentityDomain.ClientSecretVersion{}, // Required for client creation
+				&cryptoutilIdentityDomain.KeyRotationEvent{},    // Required for secret rotation audit
+				&cryptoutilIdentityDomain.Token{},
+			)
+			require.NoError(t, err) // Cleanup function to close database.
 			t.Cleanup(func() {
 				_ = sqlDB.Close() //nolint:errcheck // Test cleanup - error not critical for test teardown
 			})
