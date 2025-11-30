@@ -2,7 +2,7 @@
 
 **Purpose**: Tasks for applying improvements, demo parity, and developer experience improvements after passthru1
 **Created**: 2025-11-30
-**Updated**: 2025-11-30 (aligned with Grooming Session 1 decisions)
+**Updated**: 2025-11-30 (aligned with Grooming Sessions 1 & 2 decisions)
 
 ---
 
@@ -25,6 +25,13 @@
 - [ ] **P0.8**: Create `compose.demo.yml` for KMS with health checks (Q12)
 - [ ] **P0.9**: Create `compose.demo.yml` for Identity with health checks (Q12)
 
+### TLS/HTTPS Fix (CRITICAL from Q20)
+
+- [ ] **P0.10**: Fix HTTPS/HTTP mixing in passthru2
+- [ ] **P0.11**: Ensure Identity reuses KMS cert utility functions
+- [ ] **P0.12**: Configure CA-chained certs (never self-signed leaf certs)
+- [ ] **P0.13**: Pass config options for cert chain lengths and TLS parameters
+
 ---
 
 ## Phase 1: KMS Demo Parity (Day 2-3)
@@ -42,17 +49,25 @@
 - [ ] **P1.4**: Implement `--demo` flag for KMS server
 - [ ] **P1.5**: Auto-seed key pools on demo startup
 - [ ] **P1.6**: Auto-seed encryption keys for demo
+- [ ] **P1.7**: Implement `--reset-demo` flag for data cleanup (Q15)
 
 ### CLI Demo Orchestration (Third priority)
 
-- [ ] **P1.7**: Create `cmd/demo-kms/main.go` Go CLI
-- [ ] **P1.8**: Implement health check waiting
-- [ ] **P1.9**: Implement demo flow execution (create pool → create key → encrypt → decrypt)
+- [ ] **P1.8**: Create `cmd/demo-kms/main.go` Go CLI
+- [ ] **P1.9**: Implement health check waiting
+- [ ] **P1.10**: Implement demo flow execution (create pool → create key → encrypt → decrypt)
+
+### KMS Realm Configuration (from Q1-5)
+
+- [ ] **P1.11**: Create `realms.yml` file format (separate from main config)
+- [ ] **P1.12**: Support PBKDF2 hashed passwords (Q2)
+- [ ] **P1.13**: Support plaintext passwords for demo mode (Q2)
+- [ ] **P1.14**: Implement configurable realm priority order (Q4)
 
 ### Coverage Improvements
 
-- [ ] **P1.10**: Add KMS handler unit tests (target: 85%)
-- [ ] **P1.11**: Add KMS businesslogic unit tests (target: 85%)
+- [ ] **P1.15**: Add KMS handler unit tests (target: 85%)
+- [ ] **P1.16**: Add KMS businesslogic unit tests (target: 85%)
 
 ---
 
@@ -78,11 +93,13 @@
 - [ ] **P2.8**: Create `cmd/demo-identity/main.go` Go CLI (Q12)
 - [ ] **P2.9**: Seed demo users (admin, user, service)
 - [ ] **P2.10**: Seed demo clients (public, confidential)
+- [ ] **P2.11**: Implement `--reset-demo` flag for data cleanup (Q15)
+- [ ] **P2.12**: Profile-based persistence: dev=persist, ci=ephemeral (Q12)
 
 ### Identity Coverage Improvements
 
-- [ ] **P2.11**: Add Identity idp/userauth tests (target: 80%)
-- [ ] **P2.12**: Add Identity handler tests (target: 80%)
+- [ ] **P2.13**: Add Identity idp/userauth tests (target: 80%)
+- [ ] **P2.14**: Add Identity handler tests (target: 80%)
 
 ---
 
@@ -90,25 +107,35 @@
 
 **Priority: HIGH** - Based on Q2 (Integration demo parity)
 
-### Token Validation in KMS
+### Token Validation in KMS (from Q6-10)
 
 - [ ] **P3.1**: Implement token validation middleware (Q17 - mixed approach)
-- [ ] **P3.2**: Implement local JWT validation with caching
-- [ ] **P3.3**: Implement introspection for revocation checks
-- [ ] **P3.4**: Make token validation configurable
+- [ ] **P3.2**: Implement local JWT validation with in-memory JWKS caching (Q6)
+- [ ] **P3.3**: Implement configurable JWKS TTL (Q6)
+- [ ] **P3.4**: Implement introspection for revocation checks
+- [ ] **P3.5**: Make revocation check frequency configurable (Q7): every-request / sensitive-only / interval
+- [ ] **P3.6**: Implement 401/403 error split + configurable detail level (Q8)
 
-### Scope Enforcement
+### Service-to-Service Auth (from Q9)
 
-- [ ] **P3.5**: Implement hybrid scope model (Q18)
-- [ ] **P3.6**: Add coarse scopes: `kms:admin`, `kms:read`, `kms:write`
-- [ ] **P3.7**: Add fine scopes: `kms:encrypt`, `kms:decrypt`, `kms:sign`
-- [ ] **P3.8**: Add scope enforcement tests
+- [ ] **P3.7**: Implement client credentials auth option
+- [ ] **P3.8**: Implement mTLS auth option
+- [ ] **P3.9**: Implement API key auth option
+- [ ] **P3.10**: Make auth method configurable
+
+### Claims & Scopes (from Q10, Q18)
+
+- [ ] **P3.11**: Extract all OIDC + custom claims from tokens (Q10)
+- [ ] **P3.12**: Implement hybrid scope model (Q18)
+- [ ] **P3.13**: Add coarse scopes: `kms:admin`, `kms:read`, `kms:write`
+- [ ] **P3.14**: Add fine scopes: `kms:encrypt`, `kms:decrypt`, `kms:sign`
+- [ ] **P3.15**: Add scope enforcement tests
 
 ### Integration Demo
 
-- [ ] **P3.9**: Create `cmd/demo-all/main.go` Go CLI (Q12)
-- [ ] **P3.10**: Create integration compose file
-- [ ] **P3.11**: Implement demo script (get token → KMS operation)
+- [ ] **P3.16**: Create `cmd/demo-all/main.go` Go CLI (Q12)
+- [ ] **P3.17**: Create integration compose file
+- [ ] **P3.18**: Implement demo script (get token → KMS operation)
 
 ---
 
@@ -123,17 +150,23 @@
 - [ ] **P4.3**: Implement basic auth for file realm
 - [ ] **P4.4**: Add file realm tests
 
-### DB Realm Implementation (PostgreSQL only)
+### DB Realm Implementation (PostgreSQL only - Q3)
 
-- [ ] **P4.5**: Design realm database schema
+- [ ] **P4.5**: Design `kms_realm_users` table schema (separate from Identity)
 - [ ] **P4.6**: Implement native realm repository
 - [ ] **P4.7**: Add DB realm tests
 
+### Tenant Isolation (from Q5)
+
+- [ ] **P4.8**: Implement database-level tenant isolation
+- [ ] **P4.9**: Support separate schemas per tenant
+- [ ] **P4.10**: Add tenant isolation tests
+
 ### Federation Support
 
-- [ ] **P4.8**: Implement identity provider federation config
-- [ ] **P4.9**: Implement multi-tenant authority mapping
-- [ ] **P4.10**: Add federation tests
+- [ ] **P4.11**: Implement identity provider federation config
+- [ ] **P4.12**: Implement multi-tenant authority mapping
+- [ ] **P4.13**: Add federation tests
 
 ---
 
@@ -157,6 +190,12 @@
 
 - [ ] **P5.7**: Add SQLite test runs in CI (Q20)
 - [ ] **P5.8**: Add PostgreSQL test runs in CI (Q20)
+
+### Testing Improvements (from Q21-25)
+
+- [ ] **P5.9**: Ensure all tests use UUIDv7 unique prefixes (Q23 - CRITICAL)
+- [ ] **P5.10**: Add basic benchmarks for critical paths (Q24)
+- [ ] **P5.11**: Add test case descriptions in code (Q25)
 
 ---
 
@@ -188,6 +227,7 @@ All must be true before closing passthru2:
 - [ ] **C**: Integration demo runs and validates token-based auth and scopes
 - [ ] **D**: All product tests pass with coverage targets achieved (80%+)
 - [ ] **E**: Telemetry extracted to shared compose and secrets standardized
+- [ ] **F**: TLS/HTTPS pattern fixed - Identity uses KMS cert utilities (CRITICAL)
 
 ---
 
