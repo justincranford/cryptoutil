@@ -329,6 +329,7 @@
   "workbench.editor.empty.hint": "hidden", // Show hint when no editor is open - Default: "welcomeView", Recommended: "hidden" (reduce clutter)
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
+  "chat.tools.global.autoApprove": false,
   "chat.tools.terminal.autoApprove": {
       //
       // ─────────────────────────────────────────────────────────────
@@ -350,6 +351,8 @@
       "Remove-Item": false,
       "Invoke-WebRequest": false,   // Always prompts (network)
       "Invoke-RestMethod": false,   // Always prompts (network)
+      "curl ": true,   // Always prompts (network)
+      "wget ": true,   // Always prompts (network)
 
       // ─────────────────────────────────────────────────────────────
       // SAFE COMMANDS — autoApprove allowed
@@ -362,7 +365,8 @@
       // Reference: https://code.visualstudio.com/docs/copilot/chat/chat-tools#_terminal
       "autoapprove ": true,
 
-      // General CLI tools
+      // Prefix matching (General CLI tools)
+      "autoapprove ": true,
       "go ": true,
       "docker ": true,
       "git ": true,
@@ -371,15 +375,16 @@
       "golangci-lint ": true,
       "gofumpt ": true,
       "goimports ": true,
-      "gremlins ": true,
-      "act ": true,
+      "yamllint ": true,
       "cspell ": true,
-      "openssl ": true,
       "jq ": true,
       "yq ": true,
-      "yamllint ": true,
+      "gremlins ": true,
+      "act ": true,
+      "netstat": true,
+      "openssl ": true,
 
-      // Java build tools
+      // Prefix matching (Java build tools)
       "gradlew ": true,
       "gradle ": true,
       "mvnw ": true,
@@ -387,14 +392,14 @@
       "javac ": true,
       "java ": true,
 
-      // Python tooling
+      // Prefix matching (Python tooling)
       "python ": true,
       "python3 ": true,
       "pip ": true,
       "pip3 ": true,
       "pytest ": true,
 
-      // Built-in shell commands (safe)
+      // Prefix matching (Built-in shell commands) (safe)
       "ls ": true,
       "which ": true,
       "find ": true,
@@ -406,24 +411,26 @@
       "dir ": true,
       "type ": true,
 
-      // curl/wget (Linux/macOS/Windows)
-      "curl ": true,
-      "wget ": true,
-
-      // PowerShell safe cmdlets (no network, no mutation)
+      // Prefix matching (PowerShell safe cmdlets) (no network, no mutation)
       "Get-ChildItem ": true,
       "Get-Content ": true,
+      "Set-Content": true,
+      "New-Object": true,
       "Select-Object ": true,
       "Select-String ": true,
       "Test-Path ": true,
-      "Get-Command ": true,
+      "Resolve-Path": true,
       "Measure-Object ": true,
       "Format-Table ": true,
       "Format-List ": true,
+      "Out-String": true,
+      "Get-NetTCPConnection": true,
+      "ForEach-Object": true,
 
-      // PowerShell “semi-safe” cmdlets; Allowed because they do not perform download or mutation
+      // Prefix matching (PowerShell “semi-safe” cmdlets); Allowed because they do not perform download or mutation
       "Get-Process ": true,
       "Get-Service ": true,
+      "Get-Command ": true,
       "Get-Location ": true,
       "Set-Location ": true,
       "Get-Alias ": true
