@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package go_fix_staticcheck_error_strings
 
 import (

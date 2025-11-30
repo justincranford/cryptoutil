@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 // Package main implements the identity-requirements-check tool for validating
 // requirements traceability from acceptance criteria to test implementations.
 package main

@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 // Package cicd provides GitHub API caching functionality for CI/CD operations.
 //
 // This file contains the caching layer for GitHub API responses to improve

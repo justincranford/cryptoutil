@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package go_generate_postmortem_test
 
 import (

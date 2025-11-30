@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 // Package go_update_direct_dependencies provides tests for GitHub API caching functionality.
 package go_update_direct_dependencies
 
