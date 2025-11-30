@@ -2,7 +2,7 @@
 
 **Purpose**: Final edge cases and implementation details based on Sessions 1-3 decisions.
 **Created**: 2025-11-30
-**Status**: AWAITING ANSWERS
+**Status**: ✅ COMPLETED
 
 ---
 
@@ -274,7 +274,7 @@ Notes:
 How should large test fixtures be managed?
 
 - [ ] A. Inline in test files
-- [ ] B. testdata/ directories
+- [x] B. testdata/ directories
 - [ ] C. Generated at test time
 - [ ] D. External fixture files with embed
 
@@ -288,8 +288,8 @@ How should integration tests be isolated from each other?
 
 - [ ] A. Unique database per test
 - [ ] B. Unique table prefix per test
-- [ ] C. Transaction rollback (where possible)
-- [ ] D. UUIDv7 prefix in all test data
+- [x] C. Transaction rollback (where possible)
+- [x] D. UUIDv7 prefix in all test data
 
 Notes:
 
@@ -301,10 +301,10 @@ Notes:
 
 What config file format should be primary?
 
-- [ ] A. YAML only
+- [x] A. YAML only
 - [ ] B. YAML with JSON fallback
 - [ ] C. YAML, JSON, TOML all supported
-- [ ] D. YAML primary, others via converter
+- [x] D. YAML primary, others via converter
 
 Notes:
 
@@ -314,10 +314,10 @@ Notes:
 
 When should config be validated?
 
-- [ ] A. At load time only
-- [ ] B. At startup (after load, before use)
+- [x] A. At load time only
+- [x] B. At startup (after load, before use)
 - [ ] C. Continuous validation (on change)
-- [ ] D. Load + startup validation
+- [x] D. Load + startup validation
 
 Notes:
 
@@ -329,7 +329,7 @@ Where should default config files be located?
 
 - [ ] A. Current working directory
 - [ ] B. Executable directory
-- [ ] C. Standard paths (/etc, ~/.config)
+- [x] C. Standard paths (/etc, ~/.config)
 - [ ] D. Configurable with sensible search order
 
 Notes:
@@ -343,9 +343,10 @@ Should config support hot reload?
 - [ ] A. No (restart required)
 - [ ] B. Yes for all settings
 - [ ] C. Yes for non-critical settings only
-- [ ] D. Not needed for passthru2 (defer)
+- [x] D. Not needed for passthru2 (defer)
 
 Notes:
+If easy to add then do it for C
 
 ---
 
@@ -354,7 +355,7 @@ Notes:
 What compose profiles should be defined?
 
 - [ ] A. dev, demo, ci (from Session 1)
-- [ ] B. + prod (production template)
+- [x] B. + prod (production template)
 - [ ] C. + minimal (single service)
 - [ ] D. dev, demo, ci only (keep simple)
 
@@ -363,3 +364,19 @@ Notes:
 ---
 
 **Status**: AWAITING YOUR ANSWERS (Change [ ] to [x] as applicable and add notes if needed)
+
+---
+
+## Analysis Summary
+
+All 25 questions answered. Key decisions:
+
+- **TLS**: Std lib + x/crypto, TLS 1.3 only, full validation always, PEM + PKCS#12 storage
+- **UUIDv4**: Match v7 generation pattern, strict format, regenerate demo tenants on startup
+- **Auth**: Always Authorization header, never path/query params
+- **CLI**: Structured errors + tree, partial success handling, configurable retries, counter + spinner
+- **Config**: YAML primary, load + startup validation, standard paths, defer hot reload
+- **Benchmarks**: Store baseline locally, compare previous run, CI regression detection
+- **Compose**: Add prod profile (dev, demo, ci + prod)
+
+**Status**: ✅ COMPLETED (2025-11-30)

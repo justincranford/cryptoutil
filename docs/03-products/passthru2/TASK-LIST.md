@@ -33,6 +33,14 @@
 - [ ] **P0.13**: Enable mTLS for all internal comms, configurable per pair (Session 3 Q4)
 - [ ] **P0.14**: Ensure Identity reuses new `internal/infra/tls/` package
 
+### TLS Infrastructure (Session 4 Q1-5)
+
+- [ ] **P0.15**: Use std lib + golang.org/x/crypto only (no ACME in passthru2) (Session 4 Q1)
+- [ ] **P0.16**: Support PEM + PKCS#12 cert storage formats (Session 4 Q2)
+- [ ] **P0.17**: Custom CA only for demo (no system trust store) (Session 4 Q3)
+- [ ] **P0.18**: ALWAYS full TLS validation (hostname, expiry, chain) (Session 4 Q4)
+- [ ] **P0.19**: TLS 1.3 only (no TLS 1.2 fallback) (Session 4 Q5)
+
 ---
 
 ## Phase 1: KMS Demo Parity (Day 2-3)
@@ -52,7 +60,7 @@
 - [ ] **P1.6**: Auto-seed encryption keys for demo
 - [ ] **P1.7**: Implement `--reset-demo` flag for data cleanup (Q15)
 
-### CLI Demo Orchestration (Session 3 Q11-15)
+### CLI Demo Orchestration (Session 3 Q11-15 + Session 4 Q11-15)
 
 - [ ] **P1.8**: Create `cmd/demo/main.go` single binary with subcommands (Session 3 Q11)
 - [ ] **P1.9**: Implement `demo kms` subcommand
@@ -60,6 +68,11 @@
 - [ ] **P1.11**: Continue on error, report summary (Session 3 Q13)
 - [ ] **P1.12**: Implement health check waiting, 30s default (Session 3 Q14)
 - [ ] **P1.13**: Verify all demo entities after startup (Session 3 Q15)
+- [ ] **P1.13a**: Implement structured error aggregation with step/phase info (Session 4 Q11)
+- [ ] **P1.13b**: Handle partial success: report + keep running + configurable (Session 4 Q12)
+- [ ] **P1.13c**: Implement configurable retry strategy (Session 4 Q13)
+- [ ] **P1.13d**: Show progress with step counter + spinner (Session 4 Q14)
+- [ ] **P1.13e**: Implement exit codes (sysexits.h or 0/1/2 pattern) (Session 4 Q15)
 
 ### KMS Realm Configuration (from Session 2 Q1-5 + Session 3 Q6-10)
 
@@ -69,10 +82,18 @@
 - [ ] **P1.17**: Implement configurable hierarchical roles (Session 3 Q9)
 - [ ] **P1.18**: Use UUIDv4 for tenant IDs (Session 3 Q10 - max randomness)
 
+### UUIDv4 Tenant ID (Session 4 Q6-10)
+
+- [ ] **P1.19**: Implement UUIDv4 generation matching v7 pattern (Session 4 Q6)
+- [ ] **P1.20**: Strict UUID format validation for tenant IDs (Session 4 Q7)
+- [ ] **P1.21**: Full UUID display format with hyphens (Session 4 Q8)
+- [ ] **P1.22**: Regenerate demo tenant IDs on each startup (Session 4 Q9)
+- [ ] **P1.23**: Tenant ID always via Authorization header, never path/query (Session 4 Q10)
+
 ### Coverage Improvements
 
-- [ ] **P1.19**: Add KMS handler unit tests (target: 85%)
-- [ ] **P1.20**: Add KMS businesslogic unit tests (target: 85%)
+- [ ] **P1.24**: Add KMS handler unit tests (target: 85%)
+- [ ] **P1.25**: Add KMS businesslogic unit tests (target: 85%)
 
 ---
 
@@ -188,11 +209,14 @@
 
 **Priority: MEDIUM** - Based on Q21 (80% coverage) and Q24 (all CI changes)
 
-### Coverage Gates (Session 3 Q21-25)
+### Coverage Gates (Session 3 Q21-25 + Session 4 Q16-20)
 
 - [ ] **P5.1**: Add coverage threshold enforcement (80% minimum per Q21)
 - [ ] **P5.2**: Add per-package coverage reporting
 - [ ] **P5.3**: Add coverage trend tracking
+- [ ] **P5.3a**: Store benchmark baseline in untracked local directory (Session 4 Q16)
+- [ ] **P5.3b**: Compare benchmarks against previous run (Session 4 Q16)
+- [ ] **P5.3c**: CI-based regression detection for benchmarks (Session 4 Q16)
 
 ### Demo CI Jobs
 
@@ -213,6 +237,14 @@
 - [ ] **P5.12**: Add basic benchmarks for critical paths (Session 3 Q24)
 - [ ] **P5.13**: Set 60s configurable integration timeout (Session 3 Q25)
 - [ ] **P5.14**: Add test case descriptions in code (Session 3 Q25)
+
+### Config & Deployment (Session 4 Q21-25)
+
+- [ ] **P5.15**: YAML primary config format with converter option (Session 4 Q21)
+- [ ] **P5.16**: Config validation at load + startup time (Session 4 Q22)
+- [ ] **P5.17**: Standard config paths (/etc, ~/.config search order) (Session 4 Q23)
+- [ ] **P5.18**: Defer hot reload to passthru3 (document option C if easy) (Session 4 Q24)
+- [ ] **P5.19**: Add prod profile to compose (dev, demo, ci + prod) (Session 4 Q25)
 
 ---
 
@@ -253,7 +285,11 @@ All must be true before closing passthru2:
 - [ ] **G**: Single demo binary with subcommands (kms, identity, all) implemented (Session 3)
 - [ ] **H**: UUIDv4 for realm/tenant IDs standardized (Session 3)
 - [ ] **I**: 60s configurable integration timeout implemented (Session 3)
+- [ ] **J**: TLS 1.3 only, full validation, PEM/PKCS#12 storage (Session 4)
+- [ ] **K**: Demo CLI with structured errors, progress, exit codes (Session 4)
+- [ ] **L**: Benchmark baseline tracking with CI regression detection (Session 4)
 
 ---
 
 **Status**: IN PROGRESS
+**Updated**: 2025-11-30 (aligned with Grooming Sessions 1, 2, 3 & 4 decisions)

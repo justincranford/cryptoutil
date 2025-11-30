@@ -182,6 +182,117 @@
 
 ---
 
+## Summary of Decisions from Grooming Session 4
+
+### TLS Infrastructure (Q1-5)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **TLS Dependencies** | A+B+D: Std lib + x/crypto, minimal | No ACME for passthru2 |
+| **Cert Storage** | A+B+D: PEM + PKCS#12 configurable | PEM default, PKCS#11/YubiKey future |
+| **Root CA Trust** | A: Custom CA only | 99% always custom CAs |
+| **Validation Strictness** | A: Full validation ALWAYS | CRITICAL: No relaxed modes |
+| **TLS Version** | B: TLS 1.3 only | Best security |
+
+### UUIDv4 Tenant ID (Q6-10)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **UUIDv4 Generation** | C: Match existing v7 pattern | Use keygen consistency |
+| **Tenant Validation** | A: Strict UUID format only | Standard format |
+| **Display Format** | A: Full UUID with hyphens | Consistent display |
+| **Demo Tenants** | B: Random per startup | Regenerated each run |
+| **Tenant in Header** | ALWAYS Authorization header | Never path/query params |
+
+### Demo CLI Error Handling (Q11-15)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Error Aggregation** | B+C: Structured + tree | apperr-style nested |
+| **Partial Success** | A+B+D: Report + keep running | Graceful degradation |
+| **Retry Strategy** | D: Configurable | Exponential backoff option |
+| **Progress Display** | A+C: Counter + spinner | Dual progress indicators |
+| **Exit Codes** | C+D: sysexits.h or 0/1/2 | Need clarification |
+
+### Benchmark & Coverage (Q16-20)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Benchmark Baseline** | C+D: Previous run + CI | Store baseline locally |
+| **Test Fixtures** | B: testdata/ directories | Standard Go convention |
+| **Test Isolation** | C+D: Tx rollback + UUIDv7 | Dual isolation strategy |
+
+### Config & Deployment (Q21-25)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Config Format** | A+D: YAML primary | Converter for others |
+| **Config Validation** | A+B+D: Load + startup | Fail fast |
+| **Config Location** | C: Standard paths | /etc, ~/.config |
+| **Hot Reload** | D: Defer to passthru3 | Maybe C if easy |
+| **Compose Profiles** | B: dev, demo, ci + prod | Production template |
+
+---
+
+### Auth Strategy from Session 4 (Q10 Notes)
+
+**Authorization Header Mapping Strategy:**
+
+| API Type | Auth Method | Tenant Resolution |
+|----------|-------------|-------------------|
+| Service APIs | Configurable | Header-linked |
+| User UI/APIs | Session cookie (UUIDv7) | Redis cache server-side |
+
+**Authz Provider Options:**
+
+| Method | Token Type | State |
+|--------|------------|-------|
+| Bearer | UUID access token (UUIDv7/v4) | Stateful (issuer maps to tenant) |
+| Bearer | JWT access token | Stateless (tenant in claims) |
+
+**KMS Realm Options:**
+
+| Method | Storage | Notes |
+|--------|---------|-------|
+| Basic | File realm | Config-mounted, Base64URL encoded |
+| Basic | DB realm | Shared across instances |
+| Bearer | Federated to Identity | JWT (stateless) or UUID (stateful) |
+| TLS Client | Custom SAN extension | URI or other (future) |
+
+---
+
+## CRITICAL FIX: TLS/HTTPS Pattern (from Q20)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **CLI Architecture** | A+C: Single binary + library | `demo kms`, `demo identity`, `demo all` |
+| **Output Format** | A+B+C+D: All formats | Human, JSON, structured logging |
+| **Failure Handling** | B+D: Continue + configurable | Report summary at end |
+| **Health Timeout** | B: 30s default configurable | Reasonable default |
+| **Data Verification** | A: Verify all entities | Query and validate after startup |
+
+### Token Validation Implementation (Q16-20)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **JWKS Cache** | No preference | Choose appropriate library |
+| **Introspection Batching** | A+B+C: Single + batch + dedup | Support both patterns |
+| **Error Response** | D: Hybrid | OAuth for auth, Problem Details otherwise |
+| **Scope Parsing** | B: Structured parser | With validation |
+| **Claims Propagation** | A+B: Typed struct + OIDC | Custom context key |
+
+### Testing & Quality (Q21-25)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Test Factories** | A+B: Both patterns | testutil + per-package helpers |
+| **Benchmark Targets** | A+B+C+D: All | Crypto, tokens, DB, APIs |
+| **E2E Parallelization** | A+C+D: Sequential default | Parallel for independent, configurable |
+| **Coverage Reporting** | D: All formats | Native, HTML, Codecov |
+| **Integration Timeout** | B+D: 60s configurable | Per-test timeout |
+
+---
+
 ## KMS Authentication Strategy (from Q11)
 
 KMS will support two identity/authentication/authorization strategies:
@@ -247,7 +358,8 @@ identity-providers:
 | GROOMING-SESSION-1.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
 | GROOMING-SESSION-2.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
 | GROOMING-SESSION-3.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
-| GROOMING-SESSION-4.md | 📝 Awaiting answers | `docs/03-products/passthru2/grooming/` |
+| GROOMING-SESSION-4.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
+| GROOMING-SESSION-5.md | 📝 Awaiting answers | `docs/03-products/passthru2/grooming/` |
 
 ---
 
@@ -280,10 +392,11 @@ go run ./cmd/demo all
 1. ✅ Complete GROOMING-SESSION-1.md answers
 2. ✅ Complete GROOMING-SESSION-2.md answers
 3. ✅ Complete GROOMING-SESSION-3.md answers
-4. 📝 Answer GROOMING-SESSION-4.md for final details
-5. 🔨 Implement Phase 0: Developer Experience foundation
-6. 🔨 Create `internal/infra/tls/` package (from Session 3 Q1)
-7. 🔨 Implement demo CLI with single binary architecture
+4. ✅ Complete GROOMING-SESSION-4.md answers
+5. 📝 Answer GROOMING-SESSION-5.md for final clarifications
+6. 🔨 Implement Phase 0: Developer Experience foundation
+7. 🔨 Create `internal/infra/tls/` package (from Session 3 Q1)
+8. 🔨 Implement demo CLI with single binary architecture
 
 ---
 
