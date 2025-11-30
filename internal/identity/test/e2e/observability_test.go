@@ -38,6 +38,7 @@ func TestOTELCollectorIntegration(t *testing.T) {
 		"identity-rs":    1,
 		"identity-spa":   1,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -54,6 +55,7 @@ func TestOTELCollectorIntegration(t *testing.T) {
 	suite := NewE2ETestSuite()
 
 	t.Log("🔑 Performing OAuth flow to generate telemetry...")
+
 	token, err := performClientCredentialsFlow(suite, "test-client-otel", "test-secret-otel")
 	require.NoError(t, err, "Client credentials flow should succeed")
 	require.NotEmpty(t, token, "Access token should be returned")
@@ -64,6 +66,7 @@ func TestOTELCollectorIntegration(t *testing.T) {
 
 	// Verify metrics are available from OTEL collector
 	t.Log("📊 Verifying metrics available from OTEL collector...")
+
 	metrics, err := fetchOTELCollectorMetrics(ctx)
 	require.NoError(t, err, "Should fetch metrics from OTEL collector")
 	require.NotEmpty(t, metrics, "Metrics should be available")
@@ -91,6 +94,7 @@ func TestGrafanaIntegration(t *testing.T) {
 		"identity-rs":    1,
 		"identity-spa":   1,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -107,6 +111,7 @@ func TestGrafanaIntegration(t *testing.T) {
 	suite := NewE2ETestSuite()
 
 	t.Log("🔑 Performing OAuth flow to generate telemetry...")
+
 	token, err := performClientCredentialsFlow(suite, "test-client-grafana", "test-secret-grafana")
 	require.NoError(t, err, "Client credentials flow should succeed")
 	require.NotEmpty(t, token, "Access token should be returned")
@@ -117,6 +122,7 @@ func TestGrafanaIntegration(t *testing.T) {
 
 	// Verify Grafana data sources configured
 	t.Log("📊 Verifying Grafana data sources...")
+
 	dataSources, err := fetchGrafanaDataSources(ctx)
 	require.NoError(t, err, "Should fetch Grafana data sources")
 	require.NotEmpty(t, dataSources, "Data sources should be configured")
@@ -151,6 +157,7 @@ func TestPrometheusMetricScraping(t *testing.T) {
 		"identity-rs":    1,
 		"identity-spa":   1,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -163,6 +170,7 @@ func TestPrometheusMetricScraping(t *testing.T) {
 	suite := NewE2ETestSuite()
 
 	t.Log("🔑 Performing OAuth flow to generate metrics...")
+
 	token, err := performClientCredentialsFlow(suite, "test-client-prometheus", "test-secret-prometheus")
 	require.NoError(t, err, "Client credentials flow should succeed")
 	require.NotEmpty(t, token, "Access token should be returned")
@@ -173,6 +181,7 @@ func TestPrometheusMetricScraping(t *testing.T) {
 
 	// Query Prometheus for identity service metrics
 	t.Log("📊 Querying Prometheus for identity service metrics...")
+
 	metrics, err := queryPrometheusMetrics(ctx, "http_server_request_duration_count")
 	require.NoError(t, err, "Should query Prometheus metrics")
 	require.NotEmpty(t, metrics, "Metrics should be available in Prometheus")
@@ -195,6 +204,7 @@ func TestTelemetryEndToEnd(t *testing.T) {
 		"identity-rs":    1,
 		"identity-spa":   1,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -207,12 +217,14 @@ func TestTelemetryEndToEnd(t *testing.T) {
 	suite := NewE2ETestSuite()
 
 	t.Log("🔑 Performing complete OAuth flow...")
+
 	token, err := performAuthorizationCodeFlow(suite, "test-client-e2e", "test-secret-e2e")
 	require.NoError(t, err, "Authorization code flow should succeed")
 	require.NotEmpty(t, token, "Access token should be returned")
 
 	// Access protected resource to generate traces
 	t.Log("📄 Accessing protected resource...")
+
 	resource, err := accessProtectedResource(suite, suite.RSURL, token)
 	require.NoError(t, err, "Resource access should succeed")
 	require.NotEmpty(t, resource, "Resource data should be returned")
@@ -228,6 +240,7 @@ func TestTelemetryEndToEnd(t *testing.T) {
 
 	// Verify metrics available in Prometheus
 	t.Log("📊 Verifying metrics available in Prometheus...")
+
 	metrics, err := queryPrometheusMetrics(ctx, "http_server_request_duration_count")
 	require.NoError(t, err, "Should query Prometheus metrics")
 	require.NotEmpty(t, metrics, "Metrics should be available")

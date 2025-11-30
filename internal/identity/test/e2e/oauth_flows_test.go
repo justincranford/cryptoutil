@@ -36,6 +36,7 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -65,6 +66,7 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 
 	// Step 2: Token request with authorization code
 	t.Log("🔑 Exchanging authorization code for access token...")
+
 	tokenURL := fmt.Sprintf("%s/token", suite.AuthZURL)
 
 	tokenReqData := url.Values{
@@ -121,6 +123,7 @@ func TestClientCredentialsFlow(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -133,6 +136,7 @@ func TestClientCredentialsFlow(t *testing.T) {
 	suite := NewE2ETestSuite()
 
 	t.Log("🔑 Performing OAuth 2.1 client credentials flow...")
+
 	tokenURL := fmt.Sprintf("%s/token", suite.AuthZURL)
 
 	tokenReqData := url.Values{
@@ -186,6 +190,7 @@ func TestTokenIntrospection(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -198,6 +203,7 @@ func TestTokenIntrospection(t *testing.T) {
 	suite := NewE2ETestSuite()
 
 	t.Log("🔑 Getting access token for introspection test...")
+
 	token, err := performClientCredentialsFlow(suite, "test-client-introspect", "test-secret-introspect")
 	if err != nil || token == "" {
 		t.Skip("Skipping introspection test - token acquisition failed (expected for mock implementation)")
@@ -207,6 +213,7 @@ func TestTokenIntrospection(t *testing.T) {
 
 	// Introspect token
 	t.Log("🔍 Introspecting access token...")
+
 	introspectURL := fmt.Sprintf("%s/introspect", suite.AuthZURL)
 
 	introspectReqData := url.Values{
@@ -260,6 +267,7 @@ func TestTokenRefresh(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -275,6 +283,7 @@ func TestTokenRefresh(t *testing.T) {
 
 	// Refresh token
 	t.Log("🔄 Refreshing access token...")
+
 	tokenURL := fmt.Sprintf("%s/token", suite.AuthZURL)
 
 	tokenReqData := url.Values{
@@ -328,6 +337,7 @@ func TestPKCEFlow(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -335,8 +345,6 @@ func TestPKCEFlow(t *testing.T) {
 	// Wait for healthy
 	t.Log("⏳ Waiting for services to become healthy...")
 	require.NoError(t, waitForHealthy(ctx, defaultProfile, healthCheckTimeout, healthCheckRetry))
-
-	suite := NewE2ETestSuite()
 
 	t.Log("🔐 Validating PKCE flow...")
 

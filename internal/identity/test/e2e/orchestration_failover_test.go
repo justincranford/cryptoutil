@@ -16,6 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	// authzURL1 is the URL for the first AuthZ instance.
+	authzURL1 = "https://127.0.0.1:8080"
+	// authzURL2 is the URL for the second AuthZ instance.
+	authzURL2 = "https://127.0.0.1:8081"
+)
+
 // TestOAuthFlowFailover validates OAuth 2.1 authorization code flow continues working after service instance failures.
 func TestOAuthFlowFailover(t *testing.T) {
 	t.Parallel()
@@ -31,6 +38,7 @@ func TestOAuthFlowFailover(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling2x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling2x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -41,9 +49,10 @@ func TestOAuthFlowFailover(t *testing.T) {
 
 	// Perform successful OAuth flow (baseline)
 	suite := NewE2ETestSuite()
-	suite.AuthZURL = "https://127.0.0.1:8080" // First AuthZ instance
+	suite.AuthZURL = authzURL1 // First AuthZ instance
 
 	t.Log("✅ Performing baseline OAuth 2.1 authorization code flow...")
+
 	token1, err := performAuthorizationCodeFlow(suite, "test-client-1", "test-secret-1")
 	require.NoError(t, err, "Baseline OAuth flow should succeed")
 	require.NotEmpty(t, token1, "Access token should be returned")
@@ -57,9 +66,10 @@ func TestOAuthFlowFailover(t *testing.T) {
 	time.Sleep(3 * time.Second) // Give time for health check to update
 
 	// Perform OAuth flow against second instance
-	suite.AuthZURL = "https://127.0.0.1:8081" // Second AuthZ instance
+	suite.AuthZURL = authzURL2 // Second AuthZ instance
 
 	t.Log("✅ Performing OAuth flow against second AuthZ instance...")
+
 	token2, err := performAuthorizationCodeFlow(suite, "test-client-2", "test-secret-2")
 	require.NoError(t, err, "OAuth flow should succeed against second instance")
 	require.NotEmpty(t, token2, "Access token should be returned from second instance")
@@ -82,6 +92,7 @@ func TestResourceServerFailover(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling2x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling2x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -92,16 +103,18 @@ func TestResourceServerFailover(t *testing.T) {
 
 	// Get access token
 	suite := NewE2ETestSuite()
-	suite.AuthZURL = "https://127.0.0.1:8080"
+	suite.AuthZURL = authzURL1
 	suite.RSURL = "https://127.0.0.1:8200" // First RS instance
 
 	t.Log("🔑 Getting access token for resource server access...")
+
 	token, err := performClientCredentialsFlow(suite, "test-client-3", "test-secret-3")
 	require.NoError(t, err, "Client credentials flow should succeed")
 	require.NotEmpty(t, token, "Access token should be returned")
 
 	// Access resource via first RS instance (baseline)
 	t.Log("📄 Accessing resource via first RS instance (baseline)...")
+
 	resource1, err := accessProtectedResource(suite, suite.RSURL, token)
 	require.NoError(t, err, "Resource access should succeed")
 	require.NotEmpty(t, resource1, "Resource data should be returned")
@@ -114,6 +127,7 @@ func TestResourceServerFailover(t *testing.T) {
 	suite.RSURL = "https://127.0.0.1:8201" // Second RS instance
 
 	t.Log("📄 Accessing resource via second RS instance...")
+
 	resource2, err := accessProtectedResource(suite, suite.RSURL, token)
 	require.NoError(t, err, "Resource access should succeed against second instance")
 	require.NotEmpty(t, resource2, "Resource data should be returned from second instance")
@@ -136,6 +150,7 @@ func TestIdentityProviderFailover(t *testing.T) {
 		"identity-rs":    cryptoutilMagic.IdentityScaling2x,
 		"identity-spa":   cryptoutilMagic.IdentityScaling2x,
 	}))
+
 	defer func() {
 		_ = stopCompose(context.Background(), defaultProfile, true)
 	}()
@@ -149,6 +164,7 @@ func TestIdentityProviderFailover(t *testing.T) {
 	suite.IDPURL = "https://127.0.0.1:8100" // First IdP instance
 
 	t.Log("🔐 Performing user authentication via first IdP instance...")
+
 	session1, err := performUserAuthentication(suite, "testuser1", "testpass1")
 	require.NoError(t, err, "User authentication should succeed")
 	require.NotEmpty(t, session1, "Session ID should be returned")
@@ -161,6 +177,7 @@ func TestIdentityProviderFailover(t *testing.T) {
 	suite.IDPURL = "https://127.0.0.1:8101" // Second IdP instance
 
 	t.Log("🔐 Performing user authentication via second IdP instance...")
+
 	session2, err := performUserAuthentication(suite, "testuser2", "testpass2")
 	require.NoError(t, err, "User authentication should succeed against second instance")
 	require.NotEmpty(t, session2, "Session ID should be returned from second instance")
@@ -178,6 +195,7 @@ func startCompose(ctx context.Context, profile string, scaling map[string]int) e
 	}
 
 	cmd := exec.CommandContext(ctx, "docker", args...)
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("docker compose up failed: %w, output: %s", err, string(output))
@@ -194,6 +212,7 @@ func stopCompose(ctx context.Context, profile string, removeVolumes bool) error 
 	}
 
 	cmd := exec.CommandContext(ctx, "docker", args...)
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("docker compose down failed: %w, output: %s", err, string(output))
@@ -209,12 +228,13 @@ func waitForHealthy(ctx context.Context, profile string, timeout, retryInterval 
 	for time.Now().Before(deadline) {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("context cancelled while waiting for healthy services: %w", ctx.Err())
 		default:
 		}
 
 		// Check health status
 		cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "--profile", profile, "ps", "--format", "json")
+
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("docker compose ps failed: %w, output: %s", err, string(output))
@@ -267,6 +287,7 @@ func waitForHealthy(ctx context.Context, profile string, timeout, retryInterval 
 // Helper: killContainer kills a specific Docker container.
 func killContainer(ctx context.Context, containerName string) error {
 	cmd := exec.CommandContext(ctx, "docker", "kill", containerName)
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("docker kill failed: %w, output: %s", err, string(output))

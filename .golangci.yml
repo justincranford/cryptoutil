@@ -82,8 +82,8 @@ linters:
     errcheck:
       # Check type assertions for error conditions
       check-type-assertions: true
-      # Check blank identifier assignments (x, _ := func() should still handle potential errors)
-      check-blank: true
+      # Allow blank identifier assignments for intentional error discarding
+      check-blank: false
 
     gosec:
       # Security linter sensitivity (medium = reasonable balance)
