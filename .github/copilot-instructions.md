@@ -1,9 +1,9 @@
 # Copilot Instructions
 
 ## Core Principles
-- Instruction files auto-discovered from `.github/instructions/` with `.instructions.md` extension
-- Keep instructions short, self-contained, one statement per rule
-- Reference external/project resources instead of duplicating content
+- Instruction files auto-discovered from .github/instructions/*.instructions.md
+- Keep rules short, one directive per line
+- Reference external & project resources; avoid duplication of content
 - NEVER use PowerShell scripts or complex command chaining (see 03-02.cross-platform.instructions.md)
 
 ## Version Requirements
@@ -22,42 +22,49 @@
 
 ## Continuous Work Directive
 
-**MANDATORY: Work continuously until 990k tokens used (99%) or user stops**
+**MANDATORY: Work continuously until ≥990k tokens used or the user explicitly stops**
 
-**Pattern**: tool call → next tool → repeat. ZERO text between tool calls.
+**Pattern**: tool call → next tool → repeat
 
-**FORBIDDEN**: Stopping after commits/pushes, providing summaries, announcing plans, asking to continue
+**FORBIDDEN**: No summaries, explanations, plans, or “continue?” prompts.
 
-**STOP ONLY**: ≥990k tokens used OR user explicitly says stop
+**STOP ONLY**: ≥990k tokens used OR user says stop
 
 ## Token Budget
-- Target: 990k/1M tokens (99% utilization)
-- Continue working regardless of task completion - check docs/ for more work
+- Target: 99% of the 1M-token budget
+- Keep working even if task appears complete; consult docs/ for more work
 - Use `git commit --no-verify` and `runTests` tool for speed
 
 ## File Size Limits
-- Soft: 300 lines, Medium: 400 lines, Hard: 500 lines (must refactor)
+File Size Limits
+- Soft: 300 lines
+- Medium: 400 lines
+- Hard: 500 lines → refactor required
 
 ## Tool Preferences
 - ALWAYS use built-in tools over terminal commands
-- Use: `create_file`, `read_file`, `runTests`, `list_dir`, `semantic_search`, `file_search`
-- Use terminal git commands, NEVER GitKraken MCP tools
+ - create_file
+ - read_file
+ - runTests
+ - list_dir
+ - semantic_search
+ - file_search
 
 ## Instruction Files Reference
 | File | Description |
 |------|-------------|
-| 01-01.coding | Coding patterns and standards |
-| 01-02.testing | Testing patterns and best practices |
-| 01-03.golang | Go project structure and standards |
-| 01-04.database | Database and ORM patterns |
-| 01-05.security | Security implementation patterns |
-| 01-06.linting | Code quality and linting standards |
-| 02-01.github | CI/CD workflow configuration |
-| 02-02.docker | Docker and Docker Compose |
-| 02-03.observability | Observability and monitoring |
-| 03-01.openapi | OpenAPI specification |
-| 03-02.cross-platform | Platform-specific tooling |
-| 03-03.git | Git workflow and commits |
+| 01-01.coding | Coding patterns & standards |
+| 01-02.testing | Testing patterns & best practices |
+| 01-03.golang | Go project structure & conventions |
+| 01-04.database | Database & ORM patterns |
+| 01-05.security | Security patterns |
+| 01-06.linting | Code quality & linting standards |
+| 02-01.github | CI/CD workflow |
+| 02-02.docker | Docker & Compose |
+| 02-03.observability | Observability & monitoring |
+| 03-01.openapi | OpenAPI rules |
+| 03-02.cross-platform | Cross-platform tooling |
+| 03-03.git | Git workflow rules |
 | 03-04.dast | DAST scanning |
-| 04-01.sqlite-gorm | SQLite GORM configuration |
+| 04-01.sqlite-gorm | SQLite GORM config |
 | 05-01.evidence-based | Evidence-based task completion |
