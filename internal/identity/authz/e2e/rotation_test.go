@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package e2e
 
 import (
