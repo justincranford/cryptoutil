@@ -1,8 +1,8 @@
-# Passthru1: Aggressive Task List
+# Passthru1: Implementation Task List
 
 **Purpose**: Prioritized implementation order for working demos with 85%+ coverage
 **Created**: November 29, 2025
-**Updated**: Coverage baseline added
+**Updated**: November 30, 2025 (Grooming Sessions 5-6 decisions incorporated)
 **Timeline**: 1-2 weeks aggressive
 
 ---
