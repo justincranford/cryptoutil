@@ -40,11 +40,11 @@ type AuthorizationRequest struct {
 	CreatedAt time.Time `gorm:"not null" json:"created_at"`
 	ExpiresAt time.Time `gorm:"not null;index" json:"expires_at"`
 
-	// Consent status.
-	ConsentGranted bool `gorm:"not null;default:false" json:"consent_granted"`
+	// Consent status - use IntBool for cross-DB compatibility (INTEGER in both SQLite and PostgreSQL).
+	ConsentGranted IntBool `gorm:"type:integer;not null;default:0" json:"consent_granted"`
 
-	// Single-use enforcement.
-	Used   bool       `gorm:"not null;default:false;index" json:"used"`
+	// Single-use enforcement - use IntBool for cross-DB compatibility.
+	Used   IntBool    `gorm:"type:integer;not null;default:0;index" json:"used"`
 	UsedAt *time.Time `gorm:"index" json:"used_at,omitempty"`
 }
 
@@ -60,5 +60,5 @@ func (a *AuthorizationRequest) IsExpired() bool {
 
 // IsUsed checks if the authorization code has been used.
 func (a *AuthorizationRequest) IsUsed() bool {
-	return a.Used
+	return a.Used.Bool()
 }

@@ -64,7 +64,7 @@ func TestAuthorizationRequest_IsUsed(t *testing.T) {
 
 	tests := []struct {
 		name string
-		used bool
+		used cryptoutilIdentityDomain.IntBool
 		want bool
 	}{
 		{
