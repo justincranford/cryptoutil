@@ -41,7 +41,7 @@ type MFAFactor struct {
 	Order int `gorm:"not null" json:"order"` // Factor order in MFA chain (1-N).
 
 	// Factor configuration.
-	Required bool `gorm:"default:false" json:"required"` // Factor is required.
+	Required IntBool `gorm:"type:integer;default:0" json:"required"` // Factor is required (INTEGER for cross-DB compatibility).
 
 	// TOTP/HOTP configuration.
 	TOTPAlgorithm string `json:"totp_algorithm,omitempty"` // TOTP algorithm (SHA1, SHA256, SHA512).

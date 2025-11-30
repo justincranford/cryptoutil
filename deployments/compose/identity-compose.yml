@@ -70,8 +70,8 @@ services:
     image: cryptoutil-identity:dev
     command: ["identity", "idp", "--config=/app/config/idp-docker.yml"]
     ports:
-      - "8081:8081"  # OIDC identity provider endpoints
-      - "9081:9090"  # Admin API (health, metrics)
+      - "8091:8081"  # OIDC identity provider endpoints (using 8091 to avoid conflict with KMS)
+      - "9091:9090"  # Admin API (health, metrics)
     environment:
       - IDENTITY_DB_DSN=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable
       - AUTHZ_URL=http://identity-authz:8080

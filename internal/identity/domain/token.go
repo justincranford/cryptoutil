@@ -50,8 +50,8 @@ type Token struct {
 	NotBefore time.Time `json:"not_before,omitempty"`             // Token not valid before time.
 
 	// Token status.
-	Revoked   bool       `gorm:"index;default:false" json:"revoked"` // Token revocation status.
-	RevokedAt *time.Time `json:"revoked_at,omitempty"`               // Token revocation time.
+	Revoked   IntBool    `gorm:"type:integer;index;default:0" json:"revoked"` // Token revocation status (INTEGER for cross-DB compatibility).
+	RevokedAt *time.Time `json:"revoked_at,omitempty"`                        // Token revocation time.
 
 	// Refresh token association (optional).
 	RefreshTokenID NullableUUID `gorm:"type:text;index" json:"refresh_token_id,omitempty"` // Associated refresh token.
@@ -87,5 +87,5 @@ func (t *Token) IsExpired() bool {
 
 // IsValid checks if the token is valid (not expired and not revoked).
 func (t *Token) IsValid() bool {
-	return !t.IsExpired() && !t.Revoked
+	return !t.IsExpired() && !t.Revoked.Bool()
 }

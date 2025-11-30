@@ -81,18 +81,34 @@ const (
 	configFlagShort = "-c"
 )
 
-func identityAuthz(parameters []string) {
-	// Default config file
-	configFile := "/app/run/authz-docker.yml"
-
-	// Parse command-line flags for config override
+// parseConfigFlag extracts config file path from parameters.
+// Supports both "--config /path" and "--config=/path" formats.
+func parseConfigFlag(parameters []string, defaultConfig string) string {
 	for i, param := range parameters {
-		if (param == configFlag || param == configFlagShort) && i+1 < len(parameters) {
-			configFile = parameters[i+1]
+		// Support --config /path format
+		if param == configFlag || param == configFlagShort {
+			if i+1 < len(parameters) {
+				return parameters[i+1]
+			}
+		}
 
-			break
+		// Support --config=/path format
+		if len(param) > len(configFlag) && param[:len(configFlag)+1] == configFlag+"=" {
+			return param[len(configFlag)+1:]
+		}
+
+		// Support -c=/path format
+		if len(param) > len(configFlagShort) && param[:len(configFlagShort)+1] == configFlagShort+"=" {
+			return param[len(configFlagShort)+1:]
 		}
 	}
+
+	return defaultConfig
+}
+
+func identityAuthz(parameters []string) {
+	// Default config file
+	configFile := parseConfigFlag(parameters, "/app/run/authz-docker.yml")
 
 	// Debug logging
 	fmt.Fprintf(os.Stderr, "identityAuthz: Loading config from: %s\n", configFile)
@@ -227,17 +243,8 @@ func identityAuthz(parameters []string) {
 }
 
 func identityIdp(parameters []string) {
-	// Default config file
-	configFile := "configs/identity/idp.yml"
-
-	// Parse command-line flags for config override
-	for i, param := range parameters {
-		if (param == configFlag || param == configFlagShort) && i+1 < len(parameters) {
-			configFile = parameters[i+1]
-
-			break
-		}
-	}
+	// Parse config file from parameters
+	configFile := parseConfigFlag(parameters, "configs/identity/idp.yml")
 
 	// Load configuration from YAML file
 	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)
@@ -259,6 +266,12 @@ func identityIdp(parameters []string) {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize repository factory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Bootstrap demo user for testing
+	if err := cryptoutilIdentityBootstrap.BootstrapUsers(ctx, repoFactory); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to bootstrap users: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -309,17 +322,8 @@ func identityIdp(parameters []string) {
 }
 
 func identityRs(parameters []string) {
-	// Default config file
-	configFile := "configs/identity/rs.yml"
-
-	// Parse command-line flags for config override
-	for i, param := range parameters {
-		if (param == "--config" || param == "-c") && i+1 < len(parameters) {
-			configFile = parameters[i+1]
-
-			break
-		}
-	}
+	// Parse config file from parameters
+	configFile := parseConfigFlag(parameters, "configs/identity/rs.yml")
 
 	// Load configuration from YAML file
 	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)

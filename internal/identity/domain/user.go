@@ -22,20 +22,20 @@ type User struct {
 	GivenName         string   `json:"given_name,omitempty"`                                                // Given name(s) or first name(s).
 	FamilyName        string   `json:"family_name,omitempty"`                                               // Surname(s) or last name(s).
 	MiddleName        string   `json:"middle_name,omitempty"`                                               // Middle name(s).
-	Nickname          string   `json:"nickname,omitempty"`                                                  // Casual name.
-	PreferredUsername string   `gorm:"uniqueIndex" json:"preferred_username,omitempty"`                     // Shorthand name.
-	Profile           string   `json:"profile,omitempty"`                                                   // Profile page URL.
-	Picture           string   `json:"picture,omitempty"`                                                   // Profile picture URL.
-	Website           string   `json:"website,omitempty"`                                                   // Web page or blog URL.
-	Email             string   `gorm:"uniqueIndex" json:"email,omitempty"`                                  // Email address.
-	EmailVerified     bool     `json:"email_verified,omitempty"`                                            // Email verification status.
-	Gender            string   `json:"gender,omitempty"`                                                    // Gender.
-	Birthdate         string   `json:"birthdate,omitempty"`                                                 // Birthday (YYYY-MM-DD).
-	Zoneinfo          string   `json:"zoneinfo,omitempty"`                                                  // Time zone.
-	Locale            string   `json:"locale,omitempty"`                                                    // Locale.
-	PhoneNumber       string   `json:"phone_number,omitempty"`                                              // Phone number.
-	PhoneVerified     bool     `gorm:"column:phone_number_verified" json:"phone_number_verified,omitempty"` // Phone verification status.
-	Address           *Address `gorm:"embedded;embeddedPrefix:address_" json:"address,omitempty"`           // Physical address.
+	Nickname          string   `json:"nickname,omitempty"`                                                                      // Casual name.
+	PreferredUsername string   `gorm:"uniqueIndex" json:"preferred_username,omitempty"`                                         // Shorthand name.
+	Profile           string   `json:"profile,omitempty"`                                                                        // Profile page URL.
+	Picture           string   `json:"picture,omitempty"`                                                                        // Profile picture URL.
+	Website           string   `json:"website,omitempty"`                                                                        // Web page or blog URL.
+	Email             string   `gorm:"uniqueIndex" json:"email,omitempty"`                                                       // Email address.
+	EmailVerified     IntBool  `gorm:"type:integer;default:0" json:"email_verified,omitempty"`                                   // Email verification status (INTEGER for cross-DB compatibility).
+	Gender            string   `json:"gender,omitempty"`                                                                         // Gender.
+	Birthdate         string   `json:"birthdate,omitempty"`                                                                      // Birthday (YYYY-MM-DD).
+	Zoneinfo          string   `json:"zoneinfo,omitempty"`                                                                       // Time zone.
+	Locale            string   `json:"locale,omitempty"`                                                                         // Locale.
+	PhoneNumber       string   `json:"phone_number,omitempty"`                                                                   // Phone number.
+	PhoneVerified     IntBool  `gorm:"column:phone_number_verified;type:integer;default:0" json:"phone_number_verified,omitempty"` // Phone verification status (INTEGER for cross-DB compatibility).
+	Address           *Address `gorm:"embedded;embeddedPrefix:address_" json:"address,omitempty"`                                // Physical address.
 
 	// Authentication credentials.
 	PasswordHash string `gorm:"not null" json:"-"` // Bcrypt password hash.
