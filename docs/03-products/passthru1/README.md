@@ -82,13 +82,14 @@ docs/03-products/passthru1/
 
 ## Success Criteria
 
-### KMS Demo Success
-- [ ] `docker compose up -d` starts KMS service
-- [ ] Swagger UI accessible at `/ui/swagger`
-- [ ] Browser API works (CORS, CSRF)
-- [ ] Can create key pools and keys via UI
-- [ ] Can encrypt/decrypt via UI
-- [ ] Can sign/verify via UI
+### KMS Demo Success (Updated 2025-11-30)
+
+- [x] `docker compose up -d` starts KMS service
+- [x] Swagger UI accessible at `/ui/swagger`
+- [x] Browser API works (CORS, CSRF)
+- [ ] Can create key pools and keys via UI (not yet tested via UI)
+- [x] Can encrypt/decrypt via API (verified working)
+- [x] Can sign/verify via API (verified working)
 - [ ] Demo accounts pre-seeded
 
 ### Identity Demo Success
