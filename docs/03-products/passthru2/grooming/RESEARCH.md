@@ -140,7 +140,7 @@ deployments/
 # Run KMS with telemetry
 docker compose -f deployments/telemetry/compose.yml -f deployments/kms/compose.yml up
 
-# Run Identity with telemetry  
+# Run Identity with telemetry
 docker compose -f deployments/telemetry/compose.yml -f deployments/identity/compose.yml up
 
 # Run product without telemetry
