@@ -9,9 +9,10 @@ run:
 
 output:
   formats:
-    tab:
+    text:
       path: stdout
   sort-order: [linter, severity, file]
+  show-stats: false
 
 linters:
   enable:
@@ -77,6 +78,11 @@ linters:
         begin: true
     testpackage:
       skip-regexp: '.*_test\.go$'
+    goheader:
+      template: |-
+        Copyright (c) {{ YEAR }} Justin Cranford
+        All rights reserved.
+      template-path: ""
     depguard:
       rules:
         main:
@@ -174,8 +180,8 @@ linters:
         - { pkg: "crypto/rand", alias: crand }
 
 issues:
-  max-issues-per-linter: 100
-  max-same-issues: 20
+  max-issues-per-linter: 50
+  max-same-issues: 5
 
 severity:
   default: error

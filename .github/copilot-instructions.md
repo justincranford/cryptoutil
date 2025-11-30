@@ -8,7 +8,17 @@
 
 ## Version Requirements
 - Go: 1.25.4+, Python: 3.14+, golangci-lint: v2.6.2+, Node: v24.11.1+
+- Java: 21 LTS (required for Gatling load tests in test/load/)
+- Maven: 3.9+, pre-commit: 2.20.0+, Docker: 24+, Docker Compose: v2+
 - Always use latest stable versions; verify before suggesting updates
+
+## Code Quality - MANDATORY
+
+**ALL linting/formatting errors are MANDATORY to fix - NO EXCEPTIONS**
+- Production code, test code, demos, examples, utilities - ALL must pass linting
+- NEVER use `//nolint:` directives except for documented linter bugs
+- NEVER downplay linting errors in tests/demos - fix them all
+- wsl, errcheck, godot, etc apply equally to ALL code
 
 ## Continuous Work Directive
 

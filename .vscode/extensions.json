@@ -2,33 +2,71 @@
   // Schema: vscode://schemas/extensions
   // Recommended extensions for the CryptoUtil workspace
   "recommendations": [
-    "github.copilot", // GitHub: Copilot AI pair programmer
-    "github.copilot-chat", // GitHub: Copilot Chat features
-    "github.vscode-github-actions", // GitHub: Actions workflows support
+    // AI & Productivity
+    "github.copilot",                                    // GitHub: Copilot AI pair programmer
+    "github.copilot-chat",                               // GitHub: Copilot Chat features
+    "github.vscode-github-actions",                      // GitHub: Actions workflows support
+
+    // Go Development
+    "golang.go",                                         // Go language support and tooling
+
+    // Python Development
+    "ms-python.python",                                  // Python language support
+    "ms-python.debugpy",                                 // Python debugger (debugpy)
+    "ms-python.vscode-pylance",                          // Python language server (Pylance)
+    "ms-python.vscode-python-envs",                      // Python environments utility
+    "charliermarsh.ruff",                                // Ruff Python linter
+
+    // Java Development (for Gatling load tests)
+    "vscjava.vscode-java-pack",                          // Java development pack
+    "redhat.java",                                       // Java Language Support
+    "vscjava.vscode-maven",                              // Maven for Java
+
+    // DevOps & Containers
+    "ms-azuretools.vscode-docker",                       // Docker and Docker Compose
+    "ms-vscode-remote.remote-containers",                // Remote container development
+    "ms-azuretools.vscode-containers",                   // Azure containers tooling
+
+    // Configuration Files
+    "redhat.vscode-yaml",                                // YAML language support
+    "tamasfe.even-better-toml",                          // TOML language support
+    "esbenp.prettier-vscode",                            // Prettier code formatter
+
+    // Documentation & Markdown
+    "yzhang.markdown-all-in-one",                        // Markdown tooling
+    "davidanson.vscode-markdownlint",                    // Markdown linting
+    "bierner.markdown-mermaid",                          // Mermaid diagram support
+
+    // API & OpenAPI
+    "42Crunch.vscode-openapi",                           // OpenAPI spec validation and editing
+    "arjun.swagger-viewer",                              // Swagger preview
+
+    // Git & Version Control
+    "mhutchie.git-graph",                                // Visual Git graph
+    "donjayamanne.githistory",                           // Git history viewer
+
+    // Code Quality & Productivity
+    "streetsidesoftware.code-spell-checker",             // Spell checking
+    "gruntfuggly.todo-tree",                             // TODO/FIXME tree
     "visualstudioexptteam.intellicode-api-usage-examples", // IntelliCode API usage
-    "visualstudioexptteam.vscodeintellicode", // IntelliCode
-    "ms-python.python", // Python language support
-    "ms-python.debugpy", // Python debugger (debugpy)
-    "ms-python.vscode-pylance", // Python language server (Pylance)
-    "ms-python.vscode-python-envs", // Python environments utility
-    "ms-vscode.powershell", // PowerShell language support
-    "ms-vscode-remote.remote-containers", // Remote container development
-    "ms-azuretools.vscode-containers", // Azure containers tooling
-    "docker.docker", // Docker extension
-    "redhat.vscode-yaml", // YAML language support
-    "mhutchie.git-graph", // Visual Git graph
-    "yzhang.markdown-all-in-one", // Markdown tooling
-    "gruntfuggly.todo-tree", // TODO/FIXME tree
-    "mechatroner.rainbow-csv", // CSV highlighting
-    "golang.go",              // Go language support and tooling
-    "vscjava.vscode-java-pack", // Java development pack (for Gatling load tests)
-    "ms-vscode.vscode-eslint", // ESLint for JavaScript/TypeScript (if needed)
-    "ms-azuretools.vscode-docker", // Docker and Docker Compose authoring
-    "42Crunch.vscode-openapi", // OpenAPI spec validation and editing
-    "streetsidesoftware.code-spell-checker", // Spell checking docs/instructions
+    "visualstudioexptteam.vscodeintellicode",            // IntelliCode
+
+    // Shell & Terminal
+    "ms-vscode.powershell",                              // PowerShell language support
+    "timonwong.shellcheck",                              // Shell script linting
+
+    // Data & Utilities
+    "mechatroner.rainbow-csv",                           // CSV highlighting
+    "humao.rest-client",                                 // REST API client
+
+    // Security
+    "ms-vscode.vscode-eslint"                            // ESLint for JavaScript/TypeScript
   ],
   "unwantedRecommendations": [
-    "gitkraken.gitkraken", // GitKraken GUI client
-    "eamodio.gitlens" // GitLens GUI client (deprecated/blocked)
+    // These extensions conflict with project tooling or are deprecated
+    "gitkraken.gitkraken",                               // GitKraken GUI - use terminal git
+    "eamodio.gitlens",                                   // GitLens - too heavy, use git-graph
+    "formulahendry.auto-close-tag",                      // Not needed for Go/YAML
+    "formulahendry.auto-rename-tag"                      // Not needed for Go/YAML
   ]
 }

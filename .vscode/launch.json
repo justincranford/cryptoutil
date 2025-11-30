@@ -1,65 +1,327 @@
 {
     "$schema": "vscode://schemas/launch",
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
+    // Comprehensive launch configurations for cryptoutil development
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        // ═══════════════════════════════════════════════════════════════════════
+        // KMS SERVER LAUNCHES
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "KMS: SQLite (dev mode)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cryptoutil",
+            "args": ["--dev=true", "--log-level=INFO"]
+        },
+        {
+            "name": "KMS: PostgreSQL",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cryptoutil",
+            "args": ["--database-url=postgres://USR:PWD@localhost:5432/DB?sslmode=disable", "--log-level=INFO"]
+        },
 
-         {
-            "name": "cryptoutil sqlite",
+        // ═══════════════════════════════════════════════════════════════════════
+        // IDENTITY SERVER LAUNCHES
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "Identity: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": [
-                "--dev=true",
-                "--log-level=INFO",
-            ],
+            "program": "${workspaceFolder}/cmd/identity",
+            "args": ["--dev=true", "--log-level=INFO"]
         },
         {
-            "name": "cryptoutil postgres",
+            "name": "Identity: PostgreSQL",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": [
-                "--database-url=postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
-                "--log-level=ALL",
-            ],
+            "program": "${workspaceFolder}/cmd/identity",
+            "args": ["--database-url=postgres://USR:PWD@localhost:5432/DB?sslmode=disable", "--log-level=INFO"]
         },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // DEMOS
+        // ═══════════════════════════════════════════════════════════════════════
         {
-            "name": "cryptoutil model",
+            "name": "Demo: Identity",
             "type": "go",
             "request": "launch",
-            "program": "${workspaceFolder}/../oapi-codegen/cmd/oapi-codegen/oapi-codegen.go",
-            "cwd": "${workspaceFolder}/api",
-            "args": [
-                "--config=./openapi_gen_model.yaml",
-                "./openapi_spec_components.yaml"
-            ]
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/identity-demo"
         },
         {
-            "name": "cryptoutil client",
+            "name": "Demo: Identity Orchestrator",
             "type": "go",
             "request": "launch",
-            "program": "${workspaceFolder}/../oapi-codegen/cmd/oapi-codegen/oapi-codegen.go",
-            "cwd": "${workspaceFolder}/api",
-            "args": [
-                "--config=./openapi_gen_client.yaml",
-                "./openapi_spec_paths.yaml"
-            ]
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/identity-orchestrator"
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // OPENAPI CODE GENERATION
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "OpenAPI: Generate Model",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/api",
+            "args": ["generate"]
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // CICD UTILITIES
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "CICD: go-fix-all",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["go-fix-all"]
         },
         {
-            "name": "cryptoutil server",
+            "name": "CICD: go-check-circular-deps",
             "type": "go",
             "request": "launch",
-            "program": "${workspaceFolder}/../oapi-codegen/cmd/oapi-codegen/oapi-codegen.go",
-            "cwd": "${workspaceFolder}/api",
-            "args": [
-                "--config=./openapi_gen_server.yaml",
-                "./openapi_spec_paths.yaml"
-            ]
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["go-check-circular-package-dependencies"]
+        },
+        {
+            "name": "CICD: go-check-identity-imports",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["go-check-identity-imports"]
+        },
+        {
+            "name": "CICD: all-enforce-utf8",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["all-enforce-utf8"]
+        },
+        {
+            "name": "CICD: identity-progressive-validation",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["identity-progressive-validation"]
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // WORKFLOW RUNNER
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "Workflow: ci-quality",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=quality"]
+        },
+        {
+            "name": "Workflow: ci-coverage",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=coverage"]
+        },
+        {
+            "name": "Workflow: ci-e2e",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=e2e"]
+        },
+        {
+            "name": "Workflow: ci-dast (quick)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=dast", "-inputs=scan_profile=quick"]
+        },
+        {
+            "name": "Workflow: ci-dast (full)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=dast", "-inputs=scan_profile=full"]
+        },
+        {
+            "name": "Workflow: ci-load",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=load"]
+        },
+        {
+            "name": "Workflow: ci-benchmark",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=benchmark"]
+        },
+        {
+            "name": "Workflow: ci-fuzz",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=fuzz"]
+        },
+        {
+            "name": "Workflow: ci-race",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=race"]
+        },
+        {
+            "name": "Workflow: ci-sast",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=sast"]
+        },
+        {
+            "name": "Workflow: ci-gitleaks",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/workflow",
+            "args": ["-workflows=gitleaks"]
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // GO TESTING
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "Test: Current Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": ["-v", "-count=1"]
+        },
+        {
+            "name": "Test: Current Package (with coverage)",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": ["-v", "-count=1", "-coverprofile=${workspaceFolder}/test-output/coverage.out"]
+        },
+        {
+            "name": "Test: All Packages",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}/...",
+            "args": ["-v", "-count=1", "-timeout=30m"]
+        },
+        {
+            "name": "Test: Current Function",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": ["-v", "-count=1", "-run", "${selectedText}"]
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // BENCHMARKS
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "Bench: Current Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": ["-bench=.", "-benchmem", "-run=^$"]
+        },
+        {
+            "name": "Bench: All Packages",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}/...",
+            "args": ["-bench=.", "-benchmem", "-run=^$", "-timeout=30m"]
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // FUZZ TESTING
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "Fuzz: Current Package (15s)",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": ["-fuzz=.", "-fuzztime=15s"]
+        },
+        {
+            "name": "Fuzz: Current Package (60s)",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": ["-fuzz=.", "-fuzztime=60s"]
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // E2E TESTING
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "E2E: Full Suite",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}/internal/test/e2e",
+            "args": ["-v", "-count=1", "-timeout=30m"],
+            "buildFlags": "-tags=e2e"
+        },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // LOAD TESTING (Gatling)
+        // ═══════════════════════════════════════════════════════════════════════
+        {
+            "name": "Load: Gatling (KMS)",
+            "type": "shell",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/test/load",
+            "command": "./mvnw gatling:test -Dgatling.simulationClass=simulations.KmsSimulation"
+        },
+        {
+            "name": "Load: Gatling (Identity)",
+            "type": "shell",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/test/load",
+            "command": "./mvnw gatling:test -Dgatling.simulationClass=simulations.IdentitySimulation"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Docker: Full Stack (KMS + Identity)",
+            "configurations": [],
+            "preLaunchTask": "docker-compose-up"
         }
     ]
 }
