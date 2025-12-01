@@ -10,7 +10,7 @@
 
 | Phase | Status | Progress | Next Task |
 |-------|--------|----------|-----------|
-| **Phase 0** | 🔄 IN PROGRESS | 5/19 | P0.12 |
+| **Phase 0** | 🔄 IN PROGRESS | 6/19 | P0.13 |
 | **Phase 1** | ⏳ PENDING | 0/25 | - |
 | **Phase 2** | ⏳ PENDING | 0/14 | - |
 | **Phase 3** | ⏳ PENDING | 0/24 | - |
@@ -50,7 +50,7 @@
 |------|--------|-------|
 | P0.10 | ✅ | Create `internal/infra/tls/` package - DONE: config.go, storage.go, chain.go, tls_test.go |
 | P0.11 | ✅ | Implement CA chain (configurable, default 3) - DONE: DefaultCAChainLength=3 in chain.go |
-| P0.12 | ⏳ | Use FQDN style CNs, configurable |
+| P0.12 | ✅ | Use FQDN style CNs, configurable - DONE: ValidateFQDN(), CNStyle (FQDN/Descriptive) |
 | P0.13 | ⏳ | Enable mTLS for internal comms |
 | P0.14 | ⏳ | Identity reuses `internal/infra/tls/` |
 | P0.15 | ✅ | Use std lib + x/crypto only - DONE: only uses crypto/* and golang.org/x/crypto |

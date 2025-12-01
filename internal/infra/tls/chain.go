@@ -10,10 +10,56 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"regexp"
+	"strings"
 	"time"
 
 	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+)
+
+// fqdnPattern validates FQDN-style names (per Session 3 Q3).
+// Allows alphanumeric, hyphens, and dots. Must start/end with alphanumeric.
+var fqdnPattern = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$`)
+
+// ValidateFQDN checks if the given name is a valid FQDN-style name.
+// This is used for certificate CNs per Session 3 Q3.
+func ValidateFQDN(name string) error {
+	if name == "" {
+		return fmt.Errorf("FQDN cannot be empty")
+	}
+
+	if len(name) > cryptoutilMagic.FQDNMaxLength {
+		return fmt.Errorf("FQDN too long: %d characters (max %d)", len(name), cryptoutilMagic.FQDNMaxLength)
+	}
+
+	if !fqdnPattern.MatchString(name) {
+		return fmt.Errorf("invalid FQDN format: %s", name)
+	}
+
+	// Validate each label.
+	labels := strings.Split(name, ".")
+	for _, label := range labels {
+		if len(label) > cryptoutilMagic.FQDNLabelMaxLength {
+			return fmt.Errorf("FQDN label too long: %s (%d characters, max %d)", label, len(label), cryptoutilMagic.FQDNLabelMaxLength)
+		}
+	}
+
+	return nil
+}
+
+// CNStyle specifies the style of Common Name for certificates.
+type CNStyle string
+
+const (
+	// CNStyleFQDN uses FQDN format (e.g., "kms.cryptoutil.demo.local").
+	// This is the default per Session 3 Q3.
+	CNStyleFQDN CNStyle = "fqdn"
+
+	// CNStyleDescriptive uses descriptive format (e.g., "KMS Root CA").
+	// Useful for human-readable CA certificates.
+	CNStyleDescriptive CNStyle = "descriptive"
 )
 
 // ECCurve defines the elliptic curve to use for key generation.
@@ -33,6 +79,9 @@ const (
 // DefaultECCurve is P-256 (most commonly used, good balance of security and performance).
 const DefaultECCurve = CurveP256
 
+// DefaultCNStyle is FQDN per Session 3 Q3.
+const DefaultCNStyle = CNStyleFQDN
+
 // CAChainOptions holds options for creating a CA chain.
 type CAChainOptions struct {
 	// ChainLength is the number of CAs in the chain (including root).
@@ -40,8 +89,13 @@ type CAChainOptions struct {
 	ChainLength int
 
 	// CommonNamePrefix is the prefix for CA common names.
-	// Example: "cryptoutil.demo" produces "cryptoutil.demo Root CA 0", etc.
+	// For FQDN style: "cryptoutil.demo" produces "root.cryptoutil.demo", "policy.cryptoutil.demo", etc.
+	// For Descriptive style: "cryptoutil.demo" produces "cryptoutil.demo Root CA", etc.
 	CommonNamePrefix string
+
+	// CNStyle specifies the Common Name style.
+	// Default: FQDN (per Session 3 Q3).
+	CNStyle CNStyle
 
 	// Duration is the validity duration for all CA certificates.
 	Duration time.Duration
@@ -56,6 +110,7 @@ func DefaultCAChainOptions(commonNamePrefix string) *CAChainOptions {
 	return &CAChainOptions{
 		ChainLength:      DefaultCAChainLength,
 		CommonNamePrefix: commonNamePrefix,
+		CNStyle:          DefaultCNStyle,
 		Duration:         DefaultCADuration,
 		Curve:            DefaultECCurve,
 	}
@@ -163,6 +218,18 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 		return nil, fmt.Errorf("duration must be positive")
 	}
 
+	// Validate FQDN style prefix if using FQDN style.
+	cnStyle := opts.CNStyle
+	if cnStyle == "" {
+		cnStyle = DefaultCNStyle
+	}
+
+	if cnStyle == CNStyleFQDN {
+		if err := ValidateFQDN(opts.CommonNamePrefix); err != nil {
+			return nil, fmt.Errorf("invalid common name prefix for FQDN style: %w", err)
+		}
+	}
+
 	// Generate key pairs for all CAs.
 	ellipticCurve := curveToElliptic(opts.Curve)
 	keyPairs := make([]*cryptoutilKeyGen.KeyPair, opts.ChainLength)
@@ -176,8 +243,17 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 		keyPairs[i] = keyPair
 	}
 
-	// Create CA subjects.
-	caSubjectNamePrefix := opts.CommonNamePrefix + " CA"
+	// Build CA subject name prefix based on style.
+	// For FQDN: "cryptoutil.demo" → "ca.cryptoutil.demo" (the certificate package adds " 0", " 1" suffixes)
+	// For Descriptive: "cryptoutil.demo" → "cryptoutil.demo CA" (the certificate package adds " 0", " 1" suffixes)
+	var caSubjectNamePrefix string
+
+	switch cnStyle {
+	case CNStyleFQDN:
+		caSubjectNamePrefix = "ca." + opts.CommonNamePrefix
+	default:
+		caSubjectNamePrefix = opts.CommonNamePrefix + " CA"
+	}
 
 	caSubjects, err := cryptoutilCertificate.CreateCASubjects(keyPairs, caSubjectNamePrefix, opts.Duration)
 	if err != nil {

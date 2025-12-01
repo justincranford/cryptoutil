@@ -48,6 +48,14 @@ const (
 	HostnameLocalhost = "localhost"
 )
 
+// DNS/FQDN limits per RFC 1035.
+const (
+	// FQDNMaxLength - Maximum length of a fully qualified domain name (253 characters).
+	FQDNMaxLength = 253
+
+	// FQDNLabelMaxLength - Maximum length of a single DNS label (63 characters).
+	FQDNLabelMaxLength = 63
+)
 const (
 	// LoopbackCIDRv4 - Localhost IPv4 CIDR.
 	LoopbackCIDRv4 = "127.0.0.0/8"

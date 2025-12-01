@@ -18,6 +18,76 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestValidateFQDN(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		fqdn        string
+		expectError bool
+	}{
+		{
+			name:        "empty string",
+			fqdn:        "",
+			expectError: true,
+		},
+		{
+			name:        "valid simple",
+			fqdn:        "example.com",
+			expectError: false,
+		},
+		{
+			name:        "valid with subdomain",
+			fqdn:        "kms.cryptoutil.demo.local",
+			expectError: false,
+		},
+		{
+			name:        "valid single label",
+			fqdn:        "localhost",
+			expectError: false,
+		},
+		{
+			name:        "invalid starts with hyphen",
+			fqdn:        "-invalid.com",
+			expectError: true,
+		},
+		{
+			name:        "invalid ends with hyphen",
+			fqdn:        "invalid-.com",
+			expectError: true,
+		},
+		{
+			name:        "invalid has underscore",
+			fqdn:        "invalid_name.com",
+			expectError: true,
+		},
+		{
+			name:        "valid with hyphen",
+			fqdn:        "my-service.example.com",
+			expectError: false,
+		},
+		{
+			name:        "valid alphanumeric",
+			fqdn:        "service123.example456.com",
+			expectError: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := ValidateFQDN(tc.fqdn)
+
+			if tc.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestCreateCAChain(t *testing.T) {
 	t.Parallel()
 
@@ -35,7 +105,7 @@ func TestCreateCAChain(t *testing.T) {
 			name: "zero chain length",
 			opts: &CAChainOptions{
 				ChainLength:      0,
-				CommonNamePrefix: "test",
+				CommonNamePrefix: "test.chain",
 				Duration:         time.Hour,
 			},
 			expectError: true,
@@ -53,24 +123,45 @@ func TestCreateCAChain(t *testing.T) {
 			name: "negative duration",
 			opts: &CAChainOptions{
 				ChainLength:      1,
-				CommonNamePrefix: "test",
+				CommonNamePrefix: "test.chain",
 				Duration:         -time.Hour,
 			},
 			expectError: true,
 		},
 		{
-			name:        "valid single CA",
+			name:        "valid single CA FQDN style",
 			opts:        DefaultCAChainOptions("test.single"),
 			expectError: false,
 		},
 		{
-			name: "valid chain length 3",
+			name: "valid chain length 3 FQDN style",
 			opts: &CAChainOptions{
 				ChainLength:      3,
 				CommonNamePrefix: "test.chain3",
+				CNStyle:          CNStyleFQDN,
 				Duration:         time.Hour,
 			},
 			expectError: false,
+		},
+		{
+			name: "valid chain length 3 descriptive style",
+			opts: &CAChainOptions{
+				ChainLength:      3,
+				CommonNamePrefix: "Test CA Chain",
+				CNStyle:          CNStyleDescriptive,
+				Duration:         time.Hour,
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid FQDN prefix with FQDN style",
+			opts: &CAChainOptions{
+				ChainLength:      1,
+				CommonNamePrefix: "invalid_prefix",
+				CNStyle:          CNStyleFQDN,
+				Duration:         time.Hour,
+			},
+			expectError: true,
 		},
 	}
 
