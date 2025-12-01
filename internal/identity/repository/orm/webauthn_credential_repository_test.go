@@ -9,13 +9,10 @@ import (
 	"testing"
 	"time"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
-)
-
-const (
-	invalidUserID = "not-a-valid-uuid"
 )
 
 // Validates requirements:
@@ -75,6 +72,7 @@ func TestNewWebAuthnCredentialRepository(t *testing.T) {
 func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 	t.Parallel()
 
+	invalidUserID := googleUuid.Must(googleUuid.NewV7()).String() + "-invalid"
 	tests := []struct {
 		name              string
 		credential        *Credential
@@ -85,7 +83,7 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 			name: "store new credential succeeds",
 			credential: &Credential{
 				ID:              "new-cred-id-webauthn-store-new-1",
-				UserID:          "00000000-0000-7000-8000-000000000011",
+				UserID:          googleUuid.Must(googleUuid.NewV7()).String(),
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: "none",
@@ -166,9 +164,10 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create initial credential.
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
 	cred := &Credential{
 		ID:              "update-cred-id-webauthn-update-1",
-		UserID:          "00000000-0000-7000-8000-000000000012",
+		UserID:          userID,
 		Type:            CredentialTypePasskey,
 		PublicKey:       []byte("public-key-data"),
 		AttestationType: "none",
@@ -200,6 +199,8 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 	t.Parallel()
 
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
+
 	tests := []struct {
 		name         string
 		credentialID string
@@ -211,7 +212,7 @@ func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 			credentialID: "existing-cred-id-webauthn-get-1",
 			setupCred: &Credential{
 				ID:              "existing-cred-id-webauthn-get-1",
-				UserID:          "00000000-0000-7000-8000-000000000013",
+				UserID:          userID,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: "none",
@@ -264,6 +265,10 @@ func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 	t.Parallel()
 
+	userID1 := googleUuid.Must(googleUuid.NewV7()).String()
+	userID2 := googleUuid.Must(googleUuid.NewV7()).String()
+	invalidUserID := googleUuid.Must(googleUuid.NewV7()).String() + "-invalid"
+
 	tests := []struct {
 		name       string
 		userID     string
@@ -273,11 +278,11 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 	}{
 		{
 			name:   "get user with multiple credentials succeeds",
-			userID: "00000000-0000-7000-8000-000000000014",
+			userID: userID1,
 			setupCreds: []*Credential{
 				{
 					ID:              "user-cred-1-webauthn-list-1",
-					UserID:          "00000000-0000-7000-8000-000000000014",
+					UserID:          userID1,
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("public-key-1"),
 					AttestationType: "none",
@@ -287,7 +292,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 				},
 				{
 					ID:              "user-cred-2-webauthn-list-2",
-					UserID:          "00000000-0000-7000-8000-000000000014",
+					UserID:          userID1,
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("public-key-2"),
 					AttestationType: "none",
@@ -301,7 +306,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 		},
 		{
 			name:       "get user with no credentials returns empty list",
-			userID:     "00000000-0000-7000-8000-000000000015",
+			userID:     userID2,
 			setupCreds: nil,
 			wantCount:  0,
 			wantError:  false,
@@ -358,6 +363,7 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 func TestWebAuthnCredentialRepository_DeleteCredential(t *testing.T) {
 	t.Parallel()
 
+	userID1 := googleUuid.Must(googleUuid.NewV7()).String()
 	tests := []struct {
 		name         string
 		credentialID string
@@ -369,7 +375,7 @@ func TestWebAuthnCredentialRepository_DeleteCredential(t *testing.T) {
 			credentialID: "delete-cred-id-webauthn-delete-1",
 			setupCred: &Credential{
 				ID:              "delete-cred-id-webauthn-delete-1",
-				UserID:          "00000000-0000-7000-8000-000000000016",
+				UserID:          userID1,
 				Type:            CredentialTypePasskey,
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: "none",
@@ -430,7 +436,7 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 	require.NoError(t, err)
 
 	// Seed user first.
-	userID := "00000000-0000-7000-8000-000000000017"
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
 	seedTestUser(ctx, t, db.db, userID)
 
 	// Create credential with initial counter.
