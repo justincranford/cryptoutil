@@ -6,11 +6,6 @@ run:
   issues-exit-code: 1
   tests: true
   concurrency: 0
-  exclude-dirs:
-    - test-output
-    - test-reports
-    - workflow-reports
-    - vendor
 
 output:
   formats:
@@ -55,19 +50,17 @@ linters:
     - godox
 
   exclusions:
+    paths:
+      - api/client
+      - api/model
+      - api/server
+      - api/idp
+      - api/authz
+      - test-output
+      - test-reports
+      - workflow-reports
+      - vendor
     rules:
-      # Exclude goheader from generated code files.
-      - path: "openapi_gen_.*\\.go$"
-        linters: [goheader]
-      - path: "api/(client|model|server)/.*\\.go$"
-        linters: [goheader]
-      - path: "api/(idp|authz)/.*\\.go$"
-        linters: [goheader]
-      - path: "api/fix_external_ref/.*\\.go$"
-        linters: [goheader]
-      # Exclude test-output directory from goheader (temp test artifacts).
-      - path: "test_error\\.go$"
-        linters: [goheader]
       # Exclude nilnil from pool.go (intentional "nothing to report" pattern).
       - path: "internal/common/pool/pool\\.go$"
         linters: [nilnil]
