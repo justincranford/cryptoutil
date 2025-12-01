@@ -266,7 +266,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 	// Check if any server failed to start.
 	select {
 	case err := <-errChan:
-		t.Fatalf("Server failed to start: %v", err)
+		testify.FailNowf(t, "Server failed to start: %v", err)
 	default:
 		// All servers started successfully.
 	}

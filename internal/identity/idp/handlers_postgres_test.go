@@ -4,6 +4,7 @@ package idp
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -40,7 +41,7 @@ func TestPostgreSQLIntegration(t *testing.T) {
 		sqlDB, err := repoFactory.DB().DB()
 		if err == nil {
 			if closeErr := sqlDB.Close(); closeErr != nil {
-				t.Errorf("failed to close database: %v", closeErr)
+				require.Fail(t, fmt.Sprintf("failed to close database: %v", closeErr))
 			}
 		}
 	}()

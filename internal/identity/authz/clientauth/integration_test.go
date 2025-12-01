@@ -6,6 +6,7 @@ package clientauth
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -157,7 +158,7 @@ func TestClientAuthentication_MultiSecretValidation(t *testing.T) {
 
 	defer func() {
 		if err := repoFactory.Close(); err != nil {
-			t.Errorf("failed to close repository factory: %v", err)
+			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
 		}
 	}()
 
@@ -212,7 +213,7 @@ func TestClientAuthentication_OldSecretExpired(t *testing.T) {
 
 	defer func() {
 		if err := repoFactory.Close(); err != nil {
-			t.Errorf("failed to close repository factory: %v", err)
+			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
 		}
 	}()
 
@@ -277,7 +278,7 @@ func TestClientAuthentication_NewSecretImmediate(t *testing.T) {
 
 	defer func() {
 		if err := repoFactory.Close(); err != nil {
-			t.Errorf("failed to close repository factory: %v", err)
+			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
 		}
 	}()
 
@@ -323,7 +324,7 @@ func TestClientAuthentication_RevokedSecretRejected(t *testing.T) {
 
 	defer func() {
 		if err := repoFactory.Close(); err != nil {
-			t.Errorf("failed to close repository factory: %v", err)
+			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
 		}
 	}()
 
