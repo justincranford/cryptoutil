@@ -86,14 +86,19 @@ func TestFilterTextFiles(t *testing.T) {
 			expected: 3,
 		},
 		{
-			name:     "mixed files",
+			name:     "all files passed through after directory-level filtering",
 			input:    []string{"main.go", "image.png", "data.json", "binary.exe"},
-			expected: 2, // main.go and data.json
+			expected: 4, // All files passed through since directory-level filtering happens in ListAllFiles.
 		},
 		{
-			name:     "excluded patterns",
-			input:    []string{"vendor/lib.go", "api/client/gen.go"},
-			expected: 0,
+			name:     "self-exclusion for lint-text command",
+			input:    []string{"internal/cmd/cicd/lint_text/utf8.go", "other.go"},
+			expected: 1, // Self-exclusion filters lint_text directory.
+		},
+		{
+			name:     "generated files excluded",
+			input:    []string{"model_gen.go", "service.pb.go", "regular.go"},
+			expected: 1, // Generated files filtered by pattern.
 		},
 	}
 

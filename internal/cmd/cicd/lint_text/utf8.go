@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
 	"sync"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
@@ -55,60 +52,9 @@ func enforceUTF8(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[st
 }
 
 func filterTextFiles(allFiles []string) []string {
-	var finalFiles []string
-
-	for _, filePath := range allFiles {
-		included := false
-
-		for _, pattern := range cryptoutilMagic.EnforceUtf8FileIncludePatterns {
-			if pattern == "" {
-				continue
-			}
-
-			// Handle different pattern types.
-			if strings.HasPrefix(pattern, "*.") {
-				// Extension pattern like "*.go".
-				ext := strings.TrimPrefix(pattern, "*")
-				if strings.HasSuffix(filePath, ext) {
-					included = true
-
-					break
-				}
-			} else {
-				// Exact filename match like "Dockerfile".
-				if filepath.Base(filePath) == pattern {
-					included = true
-
-					break
-				}
-			}
-		}
-
-		if !included {
-			continue
-		}
-
-		excluded := false
-
-		for _, pattern := range cryptoutilMagic.LintTextFileExcludePatterns {
-			matched, err := regexp.MatchString(pattern, filePath)
-			if err != nil {
-				continue
-			}
-
-			if matched {
-				excluded = true
-
-				break
-			}
-		}
-
-		if !excluded {
-			finalFiles = append(finalFiles, filePath)
-		}
-	}
-
-	return finalFiles
+	// Apply command-specific filtering (self-exclusion and generated files).
+	// Directory-level exclusions already applied by ListAllFiles.
+	return cryptoutilCmdCicdCommon.FilterFilesForCommand(allFiles, "lint-text")
 }
 
 func checkFilesEncoding(finalFiles []string) []string {

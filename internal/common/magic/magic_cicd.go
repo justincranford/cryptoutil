@@ -167,66 +167,24 @@ var (
 
 // File patterns for CI/CD enforcement commands.
 var (
-	// LintTextFileExcludePatterns - File patterns to exclude from lint-text (UTF-8 encoding checks).
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	LintTextFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]lint_text[/\\].*\.go$`, // Exclude files in itself to prevent self-modification.
-		`_gen\.go$`,     // Generated files.
-		`\.pb\.go$`,     // Protocol buffer files.
-		`vendor/`,       // Vendored dependencies.
-		`api/client`,    // Generated API client.
-		`api/model`,     // Generated API models.
-		`api/server`,    // Generated API server.
-		`.git/`,         // Git directory.
-		`node_modules/`, // Node.js dependencies.
+	// CICDSelfExclusionPatterns - Self-exclusion patterns for each cicd command.
+	// CRITICAL: Each command excludes its own subdirectory to prevent self-modification.
+	// Keys match command names: lint-text, lint-go, format-go, lint-go-test, format-go-test, lint-workflow, lint-go-mod.
+	CICDSelfExclusionPatterns = map[string]string{
+		"lint-text":      `internal[/\\]cmd[/\\]cicd[/\\]lint_text[/\\].*\.go$`,
+		"lint-go":        `internal[/\\]cmd[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
+		"format-go":      `internal[/\\]cmd[/\\]cicd[/\\]format_go[/\\].*\.go$`,
+		"lint-go-test":   `internal[/\\]cmd[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,
+		"format-go-test": `internal[/\\]cmd[/\\]cicd[/\\]format_gotest[/\\].*\.go$`,
+		"lint-workflow":  `internal[/\\]cmd[/\\]cicd[/\\]lint_workflow[/\\].*\.go$`,
+		"lint-go-mod":    `internal[/\\]cmd[/\\]cicd[/\\]lint_go_mod[/\\].*\.go$`,
 	}
 
-	// LintGoFileExcludePatterns - File patterns to exclude from lint-go.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	LintGoFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// FormatGoFileExcludePatterns - File patterns to exclude from format-go.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	FormatGoFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]format_go[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// LintGoTestFileExcludePatterns - File patterns to exclude from lint-go-test.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	LintGoTestFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// FormatGoTestFileExcludePatterns - File patterns to exclude from format-go-test.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	FormatGoTestFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]format_gotest[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// LintWorkflowFileExcludePatterns - File patterns to exclude from lint-workflow.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	LintWorkflowFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]lint_workflow[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// LintGoModFileExcludePatterns - File patterns to exclude from lint-go-mod.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	LintGoModFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]lint_go_mod[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
+	// GeneratedFileExcludePatterns - File patterns for generated files that should be excluded from linting.
+	// These are excluded in addition to directory-level exclusions.
+	GeneratedFileExcludePatterns = []string{
+		`_gen\.go$`, // Generated files.
+		`\.pb\.go$`, // Protocol buffer files.
 	}
 
 	// EnforceUtf8FileIncludePatterns - File patterns to include in UTF-8 encoding checks.
@@ -314,14 +272,16 @@ var (
 	// DirectoryNameExclusions defines directories to skip when scanning.
 	// Used by ListAllFiles to exclude generated/vendored directories.
 	DirectoryNameExclusions = []string{
+		".git",
 		"api/client",
 		"api/model",
 		"api/server",
 		"api/idp",
 		"api/authz",
+		"node_modules",
 		"test-output",
 		"test-reports",
-		"workflow-reports",
 		"vendor",
+		"workflow-reports",
 	}
 )

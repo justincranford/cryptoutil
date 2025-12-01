@@ -107,30 +107,8 @@ func processGoFile(filePath string) (int, error) {
 
 // filterGoFiles extracts Go files from the file map and applies exclusion patterns.
 func filterGoFiles(filesByExtension map[string][]string) []string {
-	var goFiles []string
-
-	// Get files with "go" extension.
-	for _, path := range filesByExtension["go"] {
-		// Check if file should be excluded.
-		excluded := false
-
-		for _, pattern := range cryptoutilMagic.FormatGoFileExcludePatterns {
-			matched, err := regexp.MatchString(pattern, path)
-			if err != nil {
-				continue
-			}
-
-			if matched {
-				excluded = true
-
-				break
-			}
-		}
-
-		if !excluded {
-			goFiles = append(goFiles, path)
-		}
-	}
-
-	return goFiles
+	// Apply command-specific filtering (self-exclusion and generated files).
+	// Directory-level exclusions already applied by ListAllFiles.
+	return cryptoutilCmdCicdCommon.GetGoFiles(filesByExtension, "format-go")
 }
+
