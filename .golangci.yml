@@ -167,8 +167,6 @@ linters:
           alias: cryptoutilCmdCicdAllEnforceUtf8
         - pkg: "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
           alias: cryptoutilCmdCicdGoCheckCircularPackageDependencies
-        - pkg: "cryptoutil/internal/cmd/cicd/go_check_identity_imports"
-          alias: cryptoutilCmdCicdGoCheckIdentityImports
         - pkg: "cryptoutil/internal/cmd/cicd/go_enforce_any"
           alias: cryptoutilCmdCicdGoEnforceAny
         - pkg: "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
@@ -177,14 +175,10 @@ linters:
           alias: cryptoutilCmdCicdGoFixAll
         - pkg: "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
           alias: cryptoutilCmdCicdGoFixCopyLoopVar
-        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
-          alias: cryptoutilCmdCicdGoFixStaticcheckErrorStrings
         - pkg: "cryptoutil/internal/cmd/cicd/go_fix_thelper"
           alias: cryptoutilCmdCicdGoFixTHelper
         - pkg: "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
           alias: cryptoutilGoGeneratePostmortem
-        - pkg: "cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
-          alias: cryptoutilCmdCicdGoIdentityRequirementsCheck
         - pkg: "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
           alias: cryptoutilCmdCicdGoUpdateDirectDependencies
         - pkg: "cryptoutil/internal/cmd/cicd/go_update_project_status"
@@ -193,10 +187,6 @@ linters:
           alias: cryptoutilGoUpdateProjectStatusV2
         - pkg: "cryptoutil/internal/cmd/cicd/github_workflow_lint"
           alias: cryptoutilCmdCicdGithubWorkflowLint
-        - pkg: "cryptoutil/internal/cmd/cicd/identity_progressive_validation"
-          alias: cryptoutilCmdCicdIdentityProgressiveValidation
-        - pkg: "cryptoutil/internal/cmd/cicd/rotate_secret"
-          alias: cryptoutilCmdCicdRotateSecret
         # Cryptoutil test
         - pkg: "cryptoutil/internal/test/e2e"
           alias: cryptoutilE2E

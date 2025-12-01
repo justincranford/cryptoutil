@@ -133,11 +133,9 @@ const (
 	  go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
 	  go-enforce-any                         - Custom Go source code fixes (any -> any, etc.)
 	  go-check-circular-package-dependencies - Check for circular dependencies in Go packages
-	  go-check-identity-imports              - Check identity module domain isolation (forbidden imports)
 	  go-update-direct-dependencies          - Check direct Go dependencies only
 	  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
 	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions
-	  go-fix-staticcheck-error-strings       - Auto-fix: Lowercase error string first characters (staticcheck ST1005)
 	  go-fix-copyloopvar                     - Auto-fix: Remove unnecessary loop variable copies (Go 1.25+)
 	  go-fix-thelper                         - Auto-fix: Add t.Helper() to test helper functions
 	  go-fix-all                             - Auto-fix: Run all go-fix-* commands in sequence`
@@ -149,13 +147,9 @@ var ValidCommands = map[string]bool{
 	"go-enforce-test-patterns":               true,
 	"go-enforce-any":                         true,
 	"go-check-circular-package-dependencies": true,
-	"go-check-identity-imports":              true,
-	"go-identity-requirements-check":         true,
 	"go-update-direct-dependencies":          true,
 	"go-update-all-dependencies":             true,
-	"identity-progressive-validation":        true,
 	"github-workflow-lint":                   true,
-	"go-fix-staticcheck-error-strings":       true,
 	"go-fix-copyloopvar":                     true,
 	"go-fix-thelper":                         true,
 	"go-fix-all":                             true,
@@ -276,22 +270,6 @@ var (
 	// CRITICAL: Exclude own subdirectory to prevent self-modification.
 	GoCheckCircularPackageDependenciesFileExcludePatterns = []string{
 		`internal[/\\]cmd[/\\]cicd[/\\]go_check_circular_package_dependencies[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoCheckIdentityImportsFileExcludePatterns - Files excluded from go-check-identity-imports command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoCheckIdentityImportsFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_check_identity_imports[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoFixStaticcheckErrorStringsFileExcludePatterns - Files excluded from go-fix-staticcheck-error-strings command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoFixStaticcheckErrorStringsFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_fix_staticcheck_error_strings[/\\].*\.go$`,
 		`api/client`, `api/model`, `api/server`,
 		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
 	}

@@ -8,7 +8,6 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	"cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
-	"cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
 	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
 )
 
@@ -22,24 +21,10 @@ func Fix(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, goVersion strin
 		errors                                          []error
 	)
 
-	// Run staticcheck fixes.
-
-	logger.Log("Running staticcheck error string fixes")
-
-	processed, modified, issuesFixed, err := go_fix_staticcheck_error_strings.Fix(logger, rootDir)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("staticcheck failed: %w", err))
-	} else {
-		totalProcessed += processed
-		totalModified += modified
-		totalIssuesFixed += issuesFixed
-		logger.Log(fmt.Sprintf("staticcheck: processed=%d, modified=%d, fixed=%d", processed, modified, issuesFixed))
-	}
-
 	// Run copyloopvar fixes.
 	logger.Log("Running copyloopvar fixes")
 
-	processed, modified, issuesFixed, err = go_fix_copyloopvar.Fix(logger, rootDir, goVersion)
+	processed, modified, issuesFixed, err := go_fix_copyloopvar.Fix(logger, rootDir, goVersion)
 	if err != nil {
 		errors = append(errors, fmt.Errorf("copyloopvar failed: %w", err))
 	} else {

@@ -5,7 +5,6 @@
 package cicd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"runtime"
@@ -16,17 +15,12 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	cryptoutilCmdCicdGithubWorkflowLint "cryptoutil/internal/cmd/cicd/github_workflow_lint"
 	cryptoutilCmdCicdGoCheckCircularPackageDependencies "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
-	cryptoutilCmdCicdGoCheckIdentityImports "cryptoutil/internal/cmd/cicd/go_check_identity_imports"
 	cryptoutilCmdCicdGoEnforceAny "cryptoutil/internal/cmd/cicd/go_enforce_any"
 	cryptoutilCmdCicdGoEnforceTestPatterns "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
 	cryptoutilCmdCicdGoFixAll "cryptoutil/internal/cmd/cicd/go_fix_all"
 	cryptoutilCmdCicdGoFixCopyLoopVar "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
-	cryptoutilCmdCicdGoFixStaticcheckErrorStrings "cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
 	cryptoutilCmdCicdGoFixTHelper "cryptoutil/internal/cmd/cicd/go_fix_thelper"
-	cryptoutilCmdCicdGoIdentityRequirementsCheck "cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
 	cryptoutilCmdCicdGoUpdateDirectDependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
-	cryptoutilCmdCicdIdentityProgressiveValidation "cryptoutil/internal/cmd/cicd/identity_progressive_validation"
-	cryptoutilCmdCicdRotateSecret "cryptoutil/internal/cmd/cicd/rotate_secret"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
@@ -34,19 +28,14 @@ import (
 const (
 	cmdAllEnforceUTF8                     = "all-enforce-utf8"                       // Works on all text files
 	cmdGoEnforceAny                       = "go-enforce-any"                         // Works on *.go files
-	cmdGoFixStaticcheckErrorStrings       = "go-fix-staticcheck-error-strings"       // Works on *.go files
 	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"                     // Works on *.go files
-	cmdIdentityProgressiveValidation      = "identity-progressive-validation"        // Works on *.go files
 	cmdGoFixAll                           = "go-fix-all"                             // Works on *.go files
 	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies" // Works on *.go files
-	cmdGoCheckIdentityImports             = "go-check-identity-imports"              // Works on *.go files
-	cmdGoIdentityRequirementsCheck        = "go-identity-requirements-check"         // Works on *.go files
 	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"               // Works on *_test.go files
 	cmdGoFixTHelper                       = "go-fix-thelper"                         // Works on *_test.go files
 	cmdGitHubWorkflowLint                 = "github-workflow-lint"                   // Works on *.yml, *.yaml files
 	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"          // Works on go.mod, go.sum
 	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"             // Works on go.mod, go.sum
-	cmdRotateSecret                       = "rotate-secret"                          // Works on configuration files
 )
 
 // Run executes the specified CI/CD check commands.
@@ -80,7 +69,7 @@ func Run(commands []string) error {
 	doListAllFiles := false
 
 	for _, cmd := range commands {
-		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint || cmd == cmdGoFixStaticcheckErrorStrings || cmd == cmdGoFixCopyLoopVar || cmd == cmdGoFixTHelper || cmd == cmdGoFixAll {
+		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint || cmd == cmdGoFixCopyLoopVar || cmd == cmdGoFixTHelper || cmd == cmdGoFixAll {
 			doListAllFiles = true
 
 			break
@@ -123,40 +112,12 @@ func Run(commands []string) error {
 	// Execute all commands and collect results
 	results := make([]cryptoutilCmdCicdCommon.CommandResult, 0, len(actualCommands))
 
-	// Find index of first actual command to get remaining args
-	cmdStartIndex := 0
-
-	for i, arg := range commands {
-		if !strings.HasPrefix(arg, "-") {
-			cmdStartIndex = i
-
-			break
-		}
-	}
-
 	for i, command := range actualCommands {
 		cmdStart := time.Now()
 
 		logger.Log(fmt.Sprintf("Executing command %d/%d: %s", i+1, len(actualCommands), command))
 
 		var cmdErr error
-
-		// Get remaining args after current command for commands that accept flags
-		// Find this command in original args list
-		cmdIndex := cmdStartIndex
-		for j := cmdStartIndex; j < len(commands); j++ {
-			if commands[j] == command {
-				cmdIndex = j
-
-				break
-			}
-		}
-
-		// Remaining args = everything after this command
-		remainingArgs := []string{}
-		if cmdIndex < len(commands)-1 {
-			remainingArgs = commands[cmdIndex+1:]
-		}
 
 		switch command {
 		case cmdAllEnforceUTF8:
@@ -167,29 +128,18 @@ func Run(commands []string) error {
 			cmdErr = cryptoutilCmdCicdGoEnforceAny.Enforce(logger, allFiles)
 		case cmdGoCheckCircularPackageDependencies:
 			cmdErr = cryptoutilCmdCicdGoCheckCircularPackageDependencies.Check(logger)
-		case cmdGoCheckIdentityImports:
-			cmdErr = cryptoutilCmdCicdGoCheckIdentityImports.Check(logger)
-		case cmdGoIdentityRequirementsCheck:
-			// Pass remaining args for flag parsing (--strict, --task-threshold, etc.)
-			cmdErr = cryptoutilCmdCicdGoIdentityRequirementsCheck.Enforce(context.Background(), logger, remainingArgs)
-		case cmdIdentityProgressiveValidation:
-			cmdErr = cryptoutilCmdCicdIdentityProgressiveValidation.Validate(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateDirectDependencies:
 			cmdErr = cryptoutilCmdCicdGoUpdateDirectDependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
 		case cmdGoUpdateAllDependencies:
 			cmdErr = cryptoutilCmdCicdGoUpdateDirectDependencies.Update(logger, cryptoutilMagic.DepCheckAll)
 		case cmdGitHubWorkflowLint:
 			cmdErr = cryptoutilCmdCicdGithubWorkflowLint.Lint(logger, allFiles)
-		case cmdGoFixStaticcheckErrorStrings:
-			_, _, _, cmdErr = cryptoutilCmdCicdGoFixStaticcheckErrorStrings.Fix(logger, ".")
 		case cmdGoFixCopyLoopVar:
 			_, _, _, cmdErr = cryptoutilCmdCicdGoFixCopyLoopVar.Fix(logger, ".", runtime.Version())
 		case cmdGoFixTHelper:
 			_, _, _, cmdErr = cryptoutilCmdCicdGoFixTHelper.Fix(logger, ".")
 		case cmdGoFixAll:
 			_, _, _, cmdErr = cryptoutilCmdCicdGoFixAll.Fix(logger, ".", runtime.Version())
-		case cmdRotateSecret:
-			cmdErr = cryptoutilCmdCicdRotateSecret.Execute(logger, remainingArgs)
 		}
 
 		cmdDuration := time.Since(cmdStart)

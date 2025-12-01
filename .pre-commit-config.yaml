@@ -215,9 +215,9 @@ repos:
         stages: [pre-push]  # Validate quality gates before push
 
       - id: cicd-checks-internal
-        name: Run custom CI/CD checks (go-circ-dep, go-identity-imports)
+        name: Run custom CI/CD checks (go-circ-dep)
         entry: go
-        args: [run, cmd/cicd/main.go, go-check-circular-package-dependencies, go-check-identity-imports]
+        args: [run, cmd/cicd/main.go, go-check-circular-package-dependencies]
         language: system
         pass_filenames: false
         require_serial: false

@@ -86,20 +86,12 @@
             "args": ["go-fix-all"]
         },
         {
-            "name": "CICD: go-check-circular-deps",
+            "name": "CICD: go-check-circular-package-dependencies",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/cicd",
             "args": ["go-check-circular-package-dependencies"]
-        },
-        {
-            "name": "CICD: go-check-identity-imports",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/cicd",
-            "args": ["go-check-identity-imports"]
         },
         {
             "name": "CICD: all-enforce-utf8",

@@ -406,11 +406,3 @@ jobs:
 	// May succeed or fail depending on action versions, but should not panic.
 	_ = err
 }
-
-// TestRun_GoCheckIdentityImports tests Run with go-check-identity-imports command.
-func TestRun_GoCheckIdentityImports(t *testing.T) {
-	// This command requires workspace context, so we just verify it doesn't panic.
-	err := Run([]string{"go-check-identity-imports"})
-	// May succeed or fail, but should not panic.
-	_ = err
-}
