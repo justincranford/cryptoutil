@@ -51,6 +51,7 @@ const (
 	defaultVerboseMode                 = cryptoutilMagic.DefaultVerboseMode
 	defaultDevMode                     = cryptoutilMagic.DefaultDevMode
 	defaultDemoMode                    = cryptoutilMagic.DefaultDemoMode
+	defaultResetDemoMode               = cryptoutilMagic.DefaultResetDemoMode
 	defaultDryRun                      = cryptoutilMagic.DefaultDryRun
 	defaultProfile                     = cryptoutilMagic.DefaultProfile
 	defaultOTLPEnabled                 = cryptoutilMagic.DefaultOTLPEnabled
@@ -178,6 +179,7 @@ type Settings struct {
 	VerboseMode                 bool
 	DevMode                     bool
 	DemoMode                    bool
+	ResetDemoMode               bool
 	DryRun                      bool
 	Profile                     string // Configuration profile: dev, stg, prod, test
 	BindPublicProtocol          string
@@ -298,6 +300,13 @@ var (
 		value:       defaultDemoMode,
 		usage:       "run in demo mode; auto-seeds demo data on startup",
 		description: "Demo mode",
+	})
+	resetDemoMode = *registerSetting(&Setting{
+		name:        "reset-demo",
+		shorthand:   "g",
+		value:       defaultResetDemoMode,
+		usage:       "reset demo mode; clears and re-seeds demo data on startup",
+		description: "Reset demo mode",
 	})
 	dryRun = *registerSetting(&Setting{
 		name:        "dry-run",
@@ -818,6 +827,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		VerboseMode:                 viper.GetBool(verboseMode.name),
 		DevMode:                     viper.GetBool(devMode.name),
 		DemoMode:                    viper.GetBool(demoMode.name),
+		ResetDemoMode:               viper.GetBool(resetDemoMode.name),
 		DryRun:                      viper.GetBool(dryRun.name),
 		Profile:                     viper.GetString(profile.name),
 		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),

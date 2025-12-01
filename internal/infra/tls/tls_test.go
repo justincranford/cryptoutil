@@ -444,7 +444,7 @@ func TestStoreCertificatePEM(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		subject     interface{}
+		subject     any
 		opts        *StorageOptions
 		expectError bool
 	}{

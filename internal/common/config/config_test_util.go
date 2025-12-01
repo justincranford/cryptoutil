@@ -260,6 +260,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		VerboseMode:                 verboseModeValue,
 		DevMode:                     devModeValue,
 		DemoMode:                    demoModeValue,
+		ResetDemoMode:               false, // Default to false for tests
 		BindPublicProtocol:          bindPublicProtocolValue,
 		BindPublicAddress:           bindPublicAddressValue,
 		BindPublicPort:              uint16(0), // Let OS assign port to avoid conflict during parallel testing

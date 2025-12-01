@@ -77,7 +77,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 
 	serverApplicationCore.BusinessLogicService = businessLogicService
 
-	// Seed demo data if demo mode is enabled.
+	// Seed or reset demo data if demo mode is enabled.
 	if settings.DemoMode {
 		serverApplicationBasic.TelemetryService.Slogger.Info("Demo mode enabled, seeding demo data")
 
@@ -87,6 +87,16 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 			serverApplicationCore.Shutdown()
 
 			return nil, fmt.Errorf("failed to seed demo data: %w", err)
+		}
+	} else if settings.ResetDemoMode {
+		serverApplicationBasic.TelemetryService.Slogger.Info("Reset demo mode enabled, resetting demo data")
+
+		err = cryptoutilDemo.ResetDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
+		if err != nil {
+			serverApplicationBasic.TelemetryService.Slogger.Error("failed to reset demo data", "error", err)
+			serverApplicationCore.Shutdown()
+
+			return nil, fmt.Errorf("failed to reset demo data: %w", err)
 		}
 	}
 

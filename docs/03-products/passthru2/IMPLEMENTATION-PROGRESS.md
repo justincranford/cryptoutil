@@ -11,7 +11,7 @@
 | Phase | Status | Progress | Next Task |
 |-------|--------|----------|-----------|
 | **Phase 0** | ✅ COMPLETE | 19/19 | - |
-| **Phase 1** | ⏳ PENDING | 0/25 | P1.1 |
+| **Phase 1** | 🔄 IN PROGRESS | 3/25 | P1.4 |
 | **Phase 2** | ⏳ PENDING | 0/14 | - |
 | **Phase 3** | ⏳ PENDING | 0/24 | - |
 | **Phase 4** | ⏳ PENDING | 0/13 | - |
@@ -70,9 +70,9 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| P1.1 | ⏳ | Swagger UI works with demo credentials |
-| P1.2 | ⏳ | Interactive demo steps in Swagger |
-| P1.3 | ⏳ | Document Swagger UI demo flow |
+| P1.1 | ✅ | Swagger UI works with demo credentials - DONE: common.yml has demo/demo-password |
+| P1.2 | ✅ | Interactive demo steps in Swagger - DONE: docs/README.md Swagger UI Demo Guide |
+| P1.3 | ✅ | Document Swagger UI demo flow - DONE: Step-by-step demo flow documented |
 
 ### Auto-seed Demo Mode
 
