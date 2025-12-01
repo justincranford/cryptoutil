@@ -1,31 +1,40 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
-services:
+#
+# KMS Docker Compose Configuration
+#
+# This compose file provides the KMS (Key Management System) services.
+# It includes shared telemetry services from deployments/telemetry/compose.yml.
+#
+# Usage:
+#   docker compose -f compose.yml up -d
+#
+# Profiles:
+#   - dev: Development mode (default) - SQLite backend
+#   - demo: Demo mode with seeded data
+#   - ci: CI mode for testing
+#
+include:
+  - path: ../telemetry/compose.yml
 
+services:
+  # Healthcheck for Docker secrets availability.
   healthcheck-secrets:
     image: alpine:latest
     secrets:
-      - cryptoutil_unseal_1of5.secret
-      - cryptoutil_unseal_2of5.secret
-      - cryptoutil_unseal_3of5.secret
-      - cryptoutil_unseal_4of5.secret
-      - cryptoutil_unseal_5of5.secret
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
       - postgres_url.secret
       - postgres_username.secret
       - postgres_password.secret
       - postgres_database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
-
-  healthcheck-opentelemetry-collector-contrib:
-    image: alpine:latest
-    command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib >/dev/null 2>&1; }; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 15); do echo \"Attempt $$i: Checking OTEL collector...\"; if ping_success; then echo 'Ping successful, checking health endpoint...'; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying...'; fi; else echo 'Ping failed, waiting...'; fi; sleep 2; done; echo 'Health check failed after 15 attempts'; exit 1"]
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      opentelemetry-collector-contrib:
-        condition: service_started
     networks:
       - kms-network
 
+  # Build cryptoutil image from source.
   builder-cryptoutil:
     image: cryptoutil:dev
     build:
@@ -34,13 +43,14 @@ services:
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
-        BUILD_DATE: "2025-10-29T00:00:00Z"
+        BUILD_DATE: "2025-11-30T00:00:00Z"
     entrypoint: ["sh", "-c"]
     command: ["echo 'Build completed successfully'"]
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
 
+  # PostgreSQL database for KMS persistence.
   # See https://hub.docker.com/_/postgres#how-to-use-this-image
   postgres:
     image: postgres:18
@@ -75,109 +85,37 @@ services:
         reservations:
           memory: 256M
 
-  opentelemetry-collector-contrib:
-    image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8888:8888"   # Self-metrics (Prometheus)
-      - "8889:8889"   # Received-metrics (Prometheus, for re-export)
-      - "13133:13133" # Health check
-      - "1777:1777"   # pprof
-      - "55679:55679" # zPages
-    volumes:
-      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-      # IMPORTANT: Grafana OTEL LGTM takes long time to be healthy; only wait for started, don't wait for healthy
-      grafana-otel-lgtm:
-        # condition: service_healthy
-        condition: service_started
-    networks:
-      - kms-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.25'
-        reservations:
-          memory: 128M
-          cpus: '0.1'
-
-  grafana-otel-lgtm:
-    image: grafana/otel-lgtm:latest
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
-      GF_USERS_ALLOW_SIGN_UP: "false"
-    ports:
-      - "3000:3000"    # Grafana UI
-      - "14317:4317"   # OTLP gRPC
-      - "14318:4318"   # OTLP HTTP
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-    healthcheck:
-      # curl is available in this container, but using wget would be consistent with other containers
-      # however wget is not available here, so curl is used for this container only
-      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
-      start_period: 15s
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - kms-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
-
+  # KMS server with SQLite backend (dev/demo mode).
   kms-sqlite:
     image: cryptoutil:dev
-    command: ["server", "start", "--config=/app/config/kms-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
-    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
+    command: ["server", "start", "--config=/app/config/sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
     ports:
-      - "8080:8080"    # HTTPS public
-      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
+      - "8080:8080"  # HTTPS public
     volumes:
-      - ./cryptoutil/kms-sqlite.yml:/app/config/kms-sqlite.yml:ro
-      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
-      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
+      - ./config/sqlite.yml:/app/config/sqlite.yml:ro
+      - ./config/common.yml:/app/config/common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
-      # to enable shared encryption/decryption of data in the database. NEVER use
-      # instance-specific secrets as this breaks cryptographic interoperability.
-      - cryptoutil_unseal_1of5.secret
-      - cryptoutil_unseal_2of5.secret
-      - cryptoutil_unseal_3of5.secret
-      - cryptoutil_unseal_4of5.secret
-      - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL kms-sqlite instances MUST NOT use url secret
-      # for database connection, as they do not share data.
+      # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets
+      # for shared encryption/decryption. NEVER use instance-specific secrets.
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
       builder-cryptoutil:
         condition: service_completed_successfully
-      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       opentelemetry-collector-contrib:
         condition: service_started
-      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      # curl is not available in Alpine-based containers, use wget instead
-      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
+      # Use wget (available in Alpine), not curl.
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers.
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
       start_period: 60s
       interval: 5s
@@ -185,6 +123,7 @@ services:
       retries: 10
     networks:
       - kms-network
+      - telemetry-network
     deploy:
       resources:
         limits:
@@ -192,27 +131,25 @@ services:
         reservations:
           memory: 128M
 
+  # KMS server with PostgreSQL backend (instance 1).
   kms-postgres-1:
     image: cryptoutil:dev
-    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
-    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
+    command: ["server", "start", "--config=/app/config/postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    working_dir: /tmp
     ports:
-      - "8081:8080"    # HTTPS public
+      - "8081:8080"  # HTTPS public
     volumes:
-      - ./cryptoutil/cryptoutil-postgresql-1.yml:/app/config/cryptoutil-postgresql-1.yml:ro
-      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
-      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
+      - ./config/postgresql-1.yml:/app/config/postgresql-1.yml:ro
+      - ./config/common.yml:/app/config/common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
-      # to enable shared encryption/decryption of data in the database. NEVER use
-      # instance-specific secrets as this breaks cryptographic interoperability.
-      - cryptoutil_unseal_1of5.secret
-      - cryptoutil_unseal_2of5.secret
-      - cryptoutil_unseal_3of5.secret
-      - cryptoutil_unseal_4of5.secret
-      - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL kms-postgres instances MUST use the SAME url secret
-      # for database connection to enable shared data in the database.
+      # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets.
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      # PostgreSQL connection URL.
       - postgres_url.secret
     depends_on:
       healthcheck-secrets:
@@ -221,15 +158,11 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       opentelemetry-collector-contrib:
         condition: service_started
-      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      # curl is not available in Alpine-based containers, use wget instead
-      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
       start_period: 60s
       interval: 5s
@@ -237,6 +170,7 @@ services:
       retries: 5
     networks:
       - kms-network
+      - telemetry-network
     deploy:
       resources:
         limits:
@@ -244,28 +178,25 @@ services:
         reservations:
           memory: 128M
 
+  # KMS server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   kms-postgres-2:
     image: cryptoutil:dev
-    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
-    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
+    command: ["server", "start", "--config=/app/config/postgresql-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    working_dir: /tmp
     ports:
-      - "8082:8080"    # HTTPS public
-      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
+      - "8082:8080"  # HTTPS public
     volumes:
-      - ./cryptoutil/cryptoutil-postgresql-2.yml:/app/config/cryptoutil-postgresql-2.yml:ro
-      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
-      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
+      - ./config/postgresql-2.yml:/app/config/postgresql-2.yml:ro
+      - ./config/common.yml:/app/config/common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
-      # to enable shared encryption/decryption of data in the database. NEVER use
-      # instance-specific secrets as this breaks cryptographic interoperability.
-      - cryptoutil_unseal_1of5.secret
-      - cryptoutil_unseal_2of5.secret
-      - cryptoutil_unseal_3of5.secret
-      - cryptoutil_unseal_4of5.secret
-      - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL kms-postgres instances MUST use the SAME url secret
-      # for database connection to enable shared data in the database.
+      # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets.
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      # PostgreSQL connection URL (shared with instance 1).
       - postgres_url.secret
     depends_on:
       healthcheck-secrets:
@@ -274,18 +205,14 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       opentelemetry-collector-contrib:
         condition: service_started
-      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
-      # Wait for kms-postgres-1 to be healthy, so shared database is initialized
+      # Wait for instance 1 to initialize shared database.
       kms-postgres-1:
         condition: service_healthy
     healthcheck:
-      # curl is not available in Alpine-based containers, use wget instead
-      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
       start_period: 60s
       interval: 5s
@@ -293,6 +220,7 @@ services:
       retries: 5
     networks:
       - kms-network
+      - telemetry-network
     deploy:
       resources:
         limits:
@@ -307,38 +235,29 @@ networks:
 volumes:
   postgres_data:
     name: kms-postgres-volume
-  cryptoutil-sqlite_certs:
-    name: cryptoutil-sqlite_certs_volume
-  kms-postgres-certs:
-    name: kms-postgres-certs_volume
-  grafana_data:
-    name: cryptoutil_grafana_volume
 
 secrets:
-  # IMPORTANT: ALL kms-postgres instances MUST use the SAME secrets
-  # for database connection to enable shared data in the database.
-  # NEVER create instance-specific database connection.
-  # IMPORTANT: All kms-sqlite instances MAY use different database
-  # connection secrets as they do not share data.
+  # PostgreSQL secrets.
   postgres_username.secret:
-    file: ./postgres/postgres_username.secret
+    file: ./secrets/postgres_username.secret
   postgres_password.secret:
-    file: ./postgres/postgres_password.secret
+    file: ./secrets/postgres_password.secret
   postgres_database.secret:
-    file: ./postgres/postgres_database.secret
+    file: ./secrets/postgres_database.secret
   postgres_url.secret:
-    file: ./postgres/postgres_url.secret
+    file: ./secrets/postgres_url.secret
 
-  # IMPORTANT: ALL cryptoutil instances MUST use the SAME unseal secrets
+  # Unseal secrets (MUST be identical across all KMS instances).
+  # CRITICAL: ALL cryptoutil instances MUST use the SAME unseal secrets
   # to enable shared encryption/decryption of data in the database.
-  # NEVER create instance-specific secrets as this breaks cryptographic interoperability.
-  cryptoutil_unseal_1of5.secret:
-    file: ./cryptoutil/cryptoutil_unseal_1of5.secret # pragma: allowlist secret
-  cryptoutil_unseal_2of5.secret:
-    file: ./cryptoutil/cryptoutil_unseal_2of5.secret
-  cryptoutil_unseal_3of5.secret:
-    file: ./cryptoutil/cryptoutil_unseal_3of5.secret
-  cryptoutil_unseal_4of5.secret:
-    file: ./cryptoutil/cryptoutil_unseal_4of5.secret
-  cryptoutil_unseal_5of5.secret:
-    file: ./cryptoutil/cryptoutil_unseal_5of5.secret
+  # NEVER create instance-specific secrets - breaks cryptographic interoperability.
+  unseal_1of5.secret:
+    file: ./secrets/unseal_1of5.secret # pragma: allowlist secret
+  unseal_2of5.secret:
+    file: ./secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ./secrets/unseal_3of5.secret
+  unseal_4of5.secret:
+    file: ./secrets/unseal_4of5.secret
+  unseal_5of5.secret:
+    file: ./secrets/unseal_5of5.secret

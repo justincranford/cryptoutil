@@ -1,20 +1,55 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
-services:
+#
+# Identity Services Docker Compose Configuration
+#
+# This compose file provides the Identity services (AuthZ, IdP, Resource Server, SPA RP).
+# It includes shared telemetry services from deployments/telemetry/compose.yml.
+#
+# Usage:
+#   docker compose -f compose.yml up -d
+#
+# Profiles:
+#   - dev: Development mode (default)
+#   - demo: Demo mode with seeded data
+#   - ci: CI mode for testing
+#
+include:
+  - path: ../telemetry/compose.yml
 
-  # PostgreSQL database for identity services
+services:
+  # Healthcheck for Docker secrets availability.
+  healthcheck-secrets:
+    image: alpine:latest
+    secrets:
+      - postgres_url.secret
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    networks:
+      - identity-network
+
+  # PostgreSQL database for identity services.
   identity-postgres:
     image: postgres:18
     environment:
-      POSTGRES_USER: identity_user
-      POSTGRES_PASSWORD: identity_pass # pragma: allowlist secret
-      POSTGRES_DB: identity_db
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
     shm_size: 256mb
     ports:
-      - "5433:5432"  # Different port to avoid conflict with identity postgres
+      - "5433:5432"  # Different port to avoid conflict with KMS postgres
     volumes:
       - identity_postgres_data:/var/lib/postgresql
+    secrets:
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U identity_user -d identity_db"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
       start_period: 5s
       interval: 5s
       timeout: 3s
@@ -28,28 +63,45 @@ services:
         reservations:
           memory: 256M
 
-  # OAuth 2.1 Authorization Server
-  identity-authz:
+  # Build cryptoutil-identity image from source.
+  builder-identity:
+    image: cryptoutil-identity:dev
     build:
       context: ../../..
       dockerfile: deployments/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
-        BUILD_DATE: "2025-11-07T00:00:00Z"
+        BUILD_DATE: "2025-11-30T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+
+  # OAuth 2.1 Authorization Server.
+  identity-authz:
     image: cryptoutil-identity:dev
-    command: ["identity", "authz"]
+    command: ["identity", "authz", "--config=/app/config/authz.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     ports:
       - "8090:8080"  # OAuth 2.1 authorization endpoints
       - "9080:9090"  # Admin API (health, metrics)
-    environment:
-      - IDENTITY_DB_DSN=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable
-      - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
     volumes:
-      - ../../configs/identity/authz-docker.yml:/app/run/authz-docker.yml:ro
+      - ./config/authz.yml:/app/config/authz.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - postgres_url.secret
     depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-identity:
+        condition: service_completed_successfully
       identity-postgres:
         condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
       start_period: 10s
@@ -58,6 +110,7 @@ services:
       retries: 5
     networks:
       - identity-network
+      - telemetry-network
     deploy:
       resources:
         limits:
@@ -65,24 +118,31 @@ services:
         reservations:
           memory: 128M
 
-  # OIDC Identity Provider
+  # OIDC Identity Provider.
   identity-idp:
-    image: identity-identity:dev
-    command: ["identity", "idp", "--config=/app/config/idp-docker.yml"]
+    image: cryptoutil-identity:dev
+    command: ["identity", "idp", "--config=/app/config/idp.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     ports:
-      - "8091:8081"  # OIDC identity provider endpoints (using 8091 to avoid conflict with KMS)
+      - "8091:8081"  # OIDC identity provider endpoints
       - "9091:9090"  # Admin API (health, metrics)
-    environment:
-      - IDENTITY_DB_DSN=postgres://identity_user:identity_pass@identity-postgres:5432/identity_db?sslmode=disable
-      - AUTHZ_URL=http://identity-authz:8080
-      - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
     volumes:
-      - ../../configs/identity/idp-docker.yml:/app/config/idp-docker.yml:ro
+      - ./config/idp.yml:/app/config/idp.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - postgres_url.secret
     depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-identity:
+        condition: service_completed_successfully
       identity-postgres:
         condition: service_healthy
       identity-authz:
         condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8081/health"]
       start_period: 10s
@@ -91,6 +151,7 @@ services:
       retries: 5
     networks:
       - identity-network
+      - telemetry-network
     deploy:
       resources:
         limits:
@@ -98,21 +159,27 @@ services:
         reservations:
           memory: 128M
 
-  # Resource Server
+  # Resource Server.
   identity-rs:
-    image: identity-identity:dev
-    command: ["identity", "rs", "--config=/app/config/rs-docker.yml"]
+    image: cryptoutil-identity:dev
+    command: ["identity", "rs", "--config=/app/config/rs.yml"]
     ports:
-      - "8082:8082"  # Resource server API endpoints
-      - "9082:9090"  # Admin API (health, metrics)
-    environment:
-      - AUTHZ_URL=http://identity-authz:8080
-      - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - "8092:8082"  # Resource server API endpoints
+      - "9092:9090"  # Admin API (health, metrics)
     volumes:
-      - ../../configs/identity/rs-docker.yml:/app/config/rs-docker.yml:ro
+      - ./config/rs.yml:/app/config/rs.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-identity:
+        condition: service_completed_successfully
       identity-authz:
         condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8082/health"]
       start_period: 10s
@@ -121,6 +188,7 @@ services:
       retries: 5
     networks:
       - identity-network
+      - telemetry-network
     deploy:
       resources:
         limits:
@@ -128,21 +196,26 @@ services:
         reservations:
           memory: 128M
 
-  # SPA Relying Party Application
+  # SPA Relying Party Application.
   identity-spa-rp:
-    image: identity-identity:dev
+    image: cryptoutil-identity:dev
     command: ["identity", "spa-rp", "start", "--port=8083", "--bind=0.0.0.0", "--authz-url=https://identity-authz:8080", "--idp-url=https://identity-idp:8081"]
     ports:
-      - "8083:8083"  # SPA application
-      - "9083:9090"  # Admin API (health, metrics)
-    environment:
-      - LOG_LEVEL=INFO
-      - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - "8093:8083"  # SPA application
+      - "9093:9090"  # Admin API (health, metrics)
+    volumes:
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     depends_on:
+      builder-identity:
+        condition: service_completed_successfully
       identity-authz:
         condition: service_healthy
       identity-idp:
         condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8083/health"]
       start_period: 10s
@@ -151,6 +224,7 @@ services:
       retries: 5
     networks:
       - identity-network
+      - telemetry-network
     deploy:
       resources:
         limits:
@@ -165,3 +239,14 @@ networks:
 volumes:
   identity_postgres_data:
     name: identity-postgres-volume
+
+secrets:
+  # PostgreSQL secrets.
+  postgres_username.secret:
+    file: ./secrets/postgres_username.secret
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
+  postgres_database.secret:
+    file: ./secrets/postgres_database.secret
+  postgres_url.secret:
+    file: ./secrets/postgres_url.secret

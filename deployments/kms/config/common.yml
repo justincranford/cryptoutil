@@ -17,11 +17,11 @@ tls-key-file: /app/tls_public_server_private_key.pem
 unseal-mode: "3-of-5"
 
 unseal-files:
-  - /run/secrets/kms_unseal_1of5.secret
-  - /run/secrets/kms_unseal_2of5.secret
-  - /run/secrets/kms_unseal_3of5.secret
-  - /run/secrets/kms_unseal_4of5.secret
-  - /run/secrets/kms_unseal_5of5.secret
+  - /run/secrets/unseal_1of5.secret
+  - /run/secrets/unseal_2of5.secret
+  - /run/secrets/unseal_3of5.secret
+  - /run/secrets/unseal_4of5.secret
+  - /run/secrets/unseal_5of5.secret
 
 # Allow all IPs for development/testing
 allowed-ips:
