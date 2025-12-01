@@ -39,10 +39,10 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| P0.6 | ⏳ | Add demo seed data for KMS |
-| P0.7 | ⏳ | Add demo seed data for Identity |
-| P0.8 | ⏳ | Create compose.demo.yml for KMS |
-| P0.9 | ⏳ | Create compose.demo.yml for Identity |
+| P0.6 | ✅ | Add demo seed data for KMS - DONE: deployments/kms/config/demo-seed.yml |
+| P0.7 | ✅ | Add demo seed data for Identity - DONE: deployments/identity/config/demo-seed.yml |
+| P0.8 | ✅ | Create compose.demo.yml for KMS - DONE: deployments/kms/compose.demo.yml |
+| P0.9 | ✅ | Create compose.demo.yml for Identity - DONE: deployments/identity/compose.demo.yml |
 
 ### TLS/HTTPS (CRITICAL)
 
