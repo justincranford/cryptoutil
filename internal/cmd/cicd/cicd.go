@@ -23,29 +23,14 @@ import (
 )
 
 const (
-	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
 	cmdLintText     = "lint-text"      // [Linter] Text file linters (UTF-8 encoding).
+	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
 	cmdLintGo       = "lint-go"        // [Linter] Go package linters (circular dependencies).
 	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
 	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
 	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
 	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
 )
-
-var (
-	exclusions = []string{
-		"api/client",
-		"api/model",
-		"api/server",
-		"api/idp",
-		"api/authz",
-		"test-output",
-		"test-reports",
-		"workflow-reports",
-		"vendor",
-	}
-)
-
 
 // Run executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
@@ -61,30 +46,12 @@ func Run(commands []string) error {
 
 	logger.Log("validateCommands completed")
 
-	var allFiles []string
-
-	doListAllFiles := false
-
-	for _, cmd := range commands {
-		if cmd == cmdLintText || cmd == cmdLintGoTest || cmd == cmdFormatGo || cmd == cmdLintWorkflow || cmd == cmdFormatGoTest {
-			doListAllFiles = true
-
-			break
-		}
+	filesByExtension, err := cryptoutilFiles.ListAllFiles(cryptoutilMagic.ListAllFilesStartDirectory)
+	if err != nil {
+		return fmt.Errorf("failed to collect files: %w", err)
 	}
 
-	if doListAllFiles {
-		listFilesStart := time.Now()
-
-		allFiles, err = cryptoutilFiles.ListAllFiles(".", exclusions...)
-		if err != nil {
-			return fmt.Errorf("failed to collect files: %w", err)
-		}
-
-		logger.Log(fmt.Sprintf("collectAllFiles completed in %.2fs", time.Since(listFilesStart).Seconds()))
-	}
-
-	// Extract actual commands (skip flags starting with - and their values)
+	// Extract actual commands (skip flags starting with - and their values).
 	actualCommands := []string{}
 	skipNext := false
 
@@ -106,7 +73,7 @@ func Run(commands []string) error {
 
 	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
 
-	// Execute all commands and collect results
+	// Execute all commands and collect results.
 	results := make([]cryptoutilCmdCicdCommon.CommandResult, 0, len(actualCommands))
 
 	for i, command := range actualCommands {
@@ -118,17 +85,17 @@ func Run(commands []string) error {
 
 		switch command {
 		case cmdLintText:
-			cmdErr = cryptoutilCmdCicdLintText.Lint(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdLintText.Lint(logger, filesByExtension)
 		case cmdLintGo:
 			cmdErr = cryptoutilCmdCicdLintGo.Lint(logger)
 		case cmdFormatGo:
-			cmdErr = cryptoutilCmdCicdFormatGo.Format(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdFormatGo.Format(logger, filesByExtension)
 		case cmdLintGoTest:
-			cmdErr = cryptoutilCmdCicdLintGotest.Lint(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
 		case cmdFormatGoTest:
 			cmdErr = cryptoutilCmdCicdFormatGotest.Format(logger)
 		case cmdLintWorkflow:
-			cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, filesByExtension)
 		case cmdLintGoMod:
 			cmdErr = cryptoutilCmdCicdLintGoMod.Lint(logger)
 		}
@@ -142,7 +109,7 @@ func Run(commands []string) error {
 
 		logger.Log(fmt.Sprintf("Command '%s' completed in %.2fs", command, cmdDuration.Seconds()))
 
-		// Add a separator between multiple commands
+		// Add a separator between multiple commands.
 		if i < len(actualCommands)-1 {
 			cryptoutilCmdCicdCommon.PrintCommandSeparator()
 		}

@@ -17,37 +17,11 @@ import (
 // It applies automated fixes like replacing interface{} with any.
 // Files matching exclusion patterns are skipped to prevent self-modification.
 // Returns an error if any files were modified (to indicate changes were made).
-func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
+func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Enforcing 'any' instead of 'interface{}' in Go files...")
 
-	// Filter to *.go files only.
-	var goFiles []string
-
-	for _, path := range allFiles {
-		if strings.HasSuffix(path, ".go") {
-			// Check if file should be excluded.
-			excluded := false
-
-			for _, pattern := range cryptoutilMagic.FormatGoFileExcludePatterns {
-				matched, err := regexp.MatchString(pattern, path)
-				if err != nil {
-					logger.Log(fmt.Sprintf("Error matching pattern %s: %v", pattern, err))
-
-					continue
-				}
-
-				if matched {
-					excluded = true
-
-					break
-				}
-			}
-
-			if !excluded {
-				goFiles = append(goFiles, path)
-			}
-		}
-	}
+	// Get only Go files from the map.
+	goFiles := filterGoFiles(filesByExtension)
 
 	if len(goFiles) == 0 {
 		logger.Log("Any enforcement completed (no Go files)")
@@ -129,4 +103,34 @@ func processGoFile(filePath string) (int, error) {
 	}
 
 	return replacements, nil
+}
+
+// filterGoFiles extracts Go files from the file map and applies exclusion patterns.
+func filterGoFiles(filesByExtension map[string][]string) []string {
+	var goFiles []string
+
+	// Get files with "go" extension.
+	for _, path := range filesByExtension["go"] {
+		// Check if file should be excluded.
+		excluded := false
+
+		for _, pattern := range cryptoutilMagic.FormatGoFileExcludePatterns {
+			matched, err := regexp.MatchString(pattern, path)
+			if err != nil {
+				continue
+			}
+
+			if matched {
+				excluded = true
+
+				break
+			}
+		}
+
+		if !excluded {
+			goFiles = append(goFiles, path)
+		}
+	}
+
+	return goFiles
 }

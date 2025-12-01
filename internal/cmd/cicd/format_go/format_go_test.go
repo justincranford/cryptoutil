@@ -16,7 +16,7 @@ func TestFormat_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Format(logger, []string{})
+	err := Format(logger, map[string][]string{})
 
 	require.NoError(t, err, "Format should succeed with no files")
 }

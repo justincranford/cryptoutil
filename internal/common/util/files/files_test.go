@@ -112,29 +112,37 @@ func TestWriteFile(t *testing.T) {
 func TestListAllFiles(t *testing.T) {
 	t.Parallel()
 
-	const expectedCount = 3
+	const expectedTxtFilesCount = 3
 
 	tests := []struct {
-		name         string
-		setupFiles   []string                    // Files to create in temp dir
-		setupDirs    []string                    // Subdirectories to create
-		expectedFunc func([]string, string) bool // Custom validation function
-		wantErr      bool
-		errContains  string
+		name               string
+		setupFiles         []string // Files to create in temp dir
+		setupDirs          []string // Subdirectories to create
+		expectedExtensions []string // Extensions expected in result
+		expectedTotalFiles int      // Total files expected across all extensions
+		validateFunc       func(map[string][]string, string) bool
+		wantErr            bool
+		errContains        string
 	}{
 		{
-			name:       "Single_file_in_directory",
-			setupFiles: []string{"file1.txt"},
-			expectedFunc: func(result []string, baseDir string) bool {
-				return len(result) == 1 && filepath.Base(result[0]) == "file1.txt"
+			name:               "Single_txt_file_in_directory",
+			setupFiles:         []string{"file1.txt"},
+			expectedExtensions: []string{"txt"},
+			expectedTotalFiles: 1,
+			validateFunc: func(result map[string][]string, baseDir string) bool {
+				txtFiles := result["txt"]
+
+				return len(txtFiles) == 1
 			},
 			wantErr: false,
 		},
 		{
-			name:       "Multiple_files_in_directory",
-			setupFiles: []string{"file1.txt", "file2.txt", "file3.txt"},
-			expectedFunc: func(result []string, baseDir string) bool {
-				return len(result) == expectedCount
+			name:               "Multiple_txt_files_in_directory",
+			setupFiles:         []string{"file1.txt", "file2.txt", "file3.txt"},
+			expectedExtensions: []string{"txt"},
+			expectedTotalFiles: expectedTxtFilesCount,
+			validateFunc: func(result map[string][]string, baseDir string) bool {
+				return len(result["txt"]) == expectedTxtFilesCount
 			},
 			wantErr: false,
 		},
@@ -145,26 +153,41 @@ func TestListAllFiles(t *testing.T) {
 				filepath.Join("subdir1", "file2.txt"),
 				filepath.Join("subdir1", "subdir2", "file3.txt"),
 			},
-			setupDirs: []string{"subdir1", filepath.Join("subdir1", "subdir2")},
-			expectedFunc: func(result []string, baseDir string) bool {
-				return len(result) == expectedCount
+			setupDirs:          []string{"subdir1", filepath.Join("subdir1", "subdir2")},
+			expectedExtensions: []string{"txt"},
+			expectedTotalFiles: expectedTxtFilesCount,
+			validateFunc: func(result map[string][]string, baseDir string) bool {
+				return len(result["txt"]) == expectedTxtFilesCount
 			},
 			wantErr: false,
 		},
 		{
-			name:       "Empty_directory",
-			setupFiles: []string{},
-			expectedFunc: func(result []string, baseDir string) bool {
+			name:               "Empty_directory",
+			setupFiles:         []string{},
+			expectedExtensions: []string{},
+			expectedTotalFiles: 0,
+			validateFunc: func(result map[string][]string, baseDir string) bool {
 				return len(result) == 0
 			},
 			wantErr: false,
 		},
 		{
-			name:       "Mixed_files_and_empty_subdirectories",
-			setupFiles: []string{"file1.txt"},
-			setupDirs:  []string{"emptydir"},
-			expectedFunc: func(result []string, baseDir string) bool {
-				return len(result) == 1 // Only file1.txt, not the empty directory
+			name:               "Mixed_extensions",
+			setupFiles:         []string{"file1.txt", "file2.go", "file3.yml"},
+			expectedExtensions: []string{"txt", "go", "yml"},
+			expectedTotalFiles: expectedTxtFilesCount,
+			validateFunc: func(result map[string][]string, baseDir string) bool {
+				return len(result["txt"]) == 1 && len(result["go"]) == 1 && len(result["yml"]) == 1
+			},
+			wantErr: false,
+		},
+		{
+			name:               "Dotfiles_like_gitignore",
+			setupFiles:         []string{".gitignore"},
+			expectedExtensions: []string{"gitignore"},
+			expectedTotalFiles: 1,
+			validateFunc: func(result map[string][]string, baseDir string) bool {
+				return len(result["gitignore"]) == 1
 			},
 			wantErr: false,
 		},
@@ -174,35 +197,82 @@ func TestListAllFiles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Create temp directory
+			// Create temp directory.
 			tempDir := t.TempDir()
 
-			// Create subdirectories
+			// Create subdirectories.
 			for _, dir := range tc.setupDirs {
 				dirPath := filepath.Join(tempDir, dir)
 				err := os.MkdirAll(dirPath, 0o755)
 				require.NoError(t, err, "Should create subdirectory")
 			}
 
-			// Create files
+			// Create files.
 			for _, file := range tc.setupFiles {
 				filePath := filepath.Join(tempDir, file)
 				err := files.WriteFile(filePath, "test content", 0o600)
 				require.NoError(t, err, "Should create test file")
 			}
 
-			// Call function under test
-			result, err := files.ListAllFiles(tempDir)
+			// Call function under test with custom options to include all test file extensions.
+			inclusions := []string{"txt", "go", "yml", "gitignore"}
+			exclusions := []string{}
+
+			result, err := files.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 
 			if tc.wantErr {
 				require.Error(t, err, "ListAllFiles should return error")
 				require.Contains(t, err.Error(), tc.errContains, "Error message should match")
 			} else {
 				require.NoError(t, err, "ListAllFiles should succeed")
-				require.True(t, tc.expectedFunc(result, tempDir), "Result validation failed")
+				require.True(t, tc.validateFunc(result, tempDir), "Result validation failed")
+
+				// Verify total file count.
+				totalFiles := 0
+				for _, fileList := range result {
+					totalFiles += len(fileList)
+				}
+
+				require.Equal(t, tc.expectedTotalFiles, totalFiles, "Total file count should match")
 			}
 		})
 	}
+}
+
+func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
+	t.Parallel()
+
+	// Create temp directory.
+	tempDir := t.TempDir()
+
+	// Create directories including one to exclude.
+	includedDir := filepath.Join(tempDir, "included")
+	excludedDir := filepath.Join(tempDir, "excluded")
+
+	err := os.MkdirAll(includedDir, 0o755)
+	require.NoError(t, err, "Should create included directory")
+
+	err = os.MkdirAll(excludedDir, 0o755)
+	require.NoError(t, err, "Should create excluded directory")
+
+	// Create files in both directories.
+	err = files.WriteFile(filepath.Join(includedDir, "included.go"), "package included", 0o600)
+	require.NoError(t, err, "Should create included file")
+
+	err = files.WriteFile(filepath.Join(excludedDir, "excluded.go"), "package excluded", 0o600)
+	require.NoError(t, err, "Should create excluded file")
+
+	// Call function with exclusion using the normalized excluded directory path.
+	inclusions := []string{"go"}
+	excludedNormalized := filepath.ToSlash(excludedDir)
+	exclusions := []string{excludedNormalized}
+
+	result, err := files.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
+	require.NoError(t, err, "ListAllFilesWithOptions should succeed")
+
+	// Should only have 1 file (from included directory).
+	require.Equal(t, 1, len(result["go"]), "Should have exactly 1 go file")
+	require.Contains(t, result["go"][0], "included", "File should be from included directory")
 }
 
 func TestListAllFiles_NonExistentDirectory(t *testing.T) {

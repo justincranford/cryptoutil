@@ -13,8 +13,8 @@ import (
 // Each formatter receives a logger, root directory, and Go version, returning counts and error.
 type FormatterFunc func(logger *cryptoutilCmdCicdCommon.Logger, rootDir string, goVersion string) (processed, modified, fixed int, err error)
 
-// FormatterFuncSimple is a function type for formatters that don't need goVersion.
-type FormatterFuncSimple func(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error
+// FormatterFuncSimple is a function type for formatters that work on files by extension.
+type FormatterFuncSimple func(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error
 
 // registeredFormatters holds all formatters to run as part of format-go.
 var registeredFormatters = []struct {
@@ -34,7 +34,7 @@ var registeredSimpleFormatters = []struct {
 
 // Format runs all registered Go formatters.
 // Returns an error if any formatter finds issues.
-func Format(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
+func Format(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Running Go formatters...")
 
 	var errors []error
@@ -58,7 +58,7 @@ func Format(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
 	for _, f := range registeredSimpleFormatters {
 		logger.Log(fmt.Sprintf("Running formatter: %s", f.name))
 
-		if err := f.formatter(logger, allFiles); err != nil {
+		if err := f.formatter(logger, filesByExtension); err != nil {
 			errors = append(errors, fmt.Errorf("%s: %w", f.name, err))
 		}
 	}

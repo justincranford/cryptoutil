@@ -16,7 +16,7 @@ func TestLint_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Lint(logger, []string{})
+	err := Lint(logger, map[string][]string{})
 
 	require.NoError(t, err, "Lint should succeed with no files")
 }
@@ -36,9 +36,12 @@ func TestLint_ValidUTF8Files(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	files := []string{validFile, validGoFile}
+	filesByExtension := map[string][]string{
+		"txt": {validFile},
+		"go":  {validGoFile},
+	}
 
-	err = Lint(logger, files)
+	err = Lint(logger, filesByExtension)
 	require.NoError(t, err, "Lint should succeed with valid UTF-8 files")
 }
 
@@ -55,9 +58,11 @@ func TestLint_FileWithBOM(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	files := []string{bomFile}
+	filesByExtension := map[string][]string{
+		"txt": {bomFile},
+	}
 
-	err = Lint(logger, files)
+	err = Lint(logger, filesByExtension)
 	require.Error(t, err, "Lint should fail with BOM file")
 	require.Contains(t, err.Error(), "lint-text failed", "Error should indicate lint-text failure")
 }

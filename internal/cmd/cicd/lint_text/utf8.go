@@ -17,9 +17,11 @@ import (
 )
 
 // enforceUTF8 enforces UTF-8 encoding without BOM for all text files.
-func enforceUTF8(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
+func enforceUTF8(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Enforcing file encoding (UTF-8 without BOM)")
 
+	// Flatten all files from the map into a single slice.
+	allFiles := flattenFileMap(filesByExtension)
 	finalFiles := filterTextFiles(allFiles)
 
 	if len(finalFiles) == 0 {
@@ -189,4 +191,15 @@ func checkFileEncoding(filePath string) []string {
 	}
 
 	return issues
+}
+
+// flattenFileMap converts a map of extension -> files to a flat slice of all files.
+func flattenFileMap(filesByExtension map[string][]string) []string {
+	var allFiles []string
+
+	for _, files := range filesByExtension {
+		allFiles = append(allFiles, files...)
+	}
+
+	return allFiles
 }

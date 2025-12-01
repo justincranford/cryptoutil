@@ -17,7 +17,7 @@ func TestLint_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := cryptoutilCmdCicdLintGotest.Lint(logger, []string{})
+	err := cryptoutilCmdCicdLintGotest.Lint(logger, map[string][]string{})
 
 	require.NoError(t, err, "Lint should succeed with no files")
 }
@@ -26,9 +26,13 @@ func TestLint_NoTestFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	files := []string{"main.go", "util.go", "config.json"}
+	// Files without _test.go suffix.
+	filesByExtension := map[string][]string{
+		"go":   {"main.go", "util.go"},
+		"json": {"config.json"},
+	}
 
-	err := cryptoutilCmdCicdLintGotest.Lint(logger, files)
+	err := cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
 	require.NoError(t, err, "Lint should succeed with no test files")
 }
 
@@ -56,7 +60,11 @@ func TestExample(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = cryptoutilCmdCicdLintGotest.Lint(logger, []string{testFile})
+	filesByExtension := map[string][]string{
+		"go": {testFile},
+	}
+
+	err = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
 
 	require.NoError(t, err, "Lint should succeed with valid test file")
 }
@@ -85,7 +93,11 @@ func TestUUID(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = cryptoutilCmdCicdLintGotest.Lint(logger, []string{testFile})
+	filesByExtension := map[string][]string{
+		"go": {testFile},
+	}
+
+	err = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
 
 	require.Error(t, err, "Should find uuid.New() issue")
 }
@@ -109,7 +121,11 @@ func TestExample(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err = cryptoutilCmdCicdLintGotest.Lint(logger, []string{testFile})
+	filesByExtension := map[string][]string{
+		"go": {testFile},
+	}
+
+	err = cryptoutilCmdCicdLintGotest.Lint(logger, filesByExtension)
 
 	require.Error(t, err, "Should find testify import issue")
 }

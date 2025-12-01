@@ -102,6 +102,9 @@ const (
 	// Circular dependency cache file name.
 	CircularDepCacheFileName = ".cicd/circular-dep-cache.json"
 
+	// ListAllFiles start directory.
+	ListAllFilesStartDirectory = "."
+
 	// Dependency check mode names.
 	ModeNameDirect = "direct"
 	ModeNameAll    = "all"
@@ -283,5 +286,42 @@ var (
 		"*.txt",      // Text files
 		"*.asciidoc", // AsciiDoc files
 		"*.adoc",     // AsciiDoc files
+	}
+
+	// TextFilenameExtensionInclusions defines which file extensions to include when scanning.
+	// Used by ListAllFiles to filter files by extension.
+	TextFilenameExtensionInclusions = []string{
+		"go",
+		"yml",
+		"yaml",
+		"mod",
+		"sum",
+		"json",
+		"md",
+		"txt",
+		"toml",
+		"ps1",
+		"sh",
+		"sql",
+		"gitignore",
+		"dockerignore",
+		"properties",
+		"log",
+		"out",
+		"pem",
+	}
+
+	// DirectoryNameExclusions defines directories to skip when scanning.
+	// Used by ListAllFiles to exclude generated/vendored directories.
+	DirectoryNameExclusions = []string{
+		"api/client",
+		"api/model",
+		"api/server",
+		"api/idp",
+		"api/authz",
+		"test-output",
+		"test-reports",
+		"workflow-reports",
+		"vendor",
 	}
 )

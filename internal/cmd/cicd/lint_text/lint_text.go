@@ -9,8 +9,8 @@ import (
 )
 
 // LinterFunc is a function type for individual text linters.
-// Each linter receives a logger and a list of files, returning an error if issues are found.
-type LinterFunc func(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error
+// Each linter receives a logger and a map of files by extension, returning an error if issues are found.
+type LinterFunc func(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error
 
 // registeredLinters holds all linters to run as part of lint-text.
 var registeredLinters = []struct {
@@ -22,7 +22,7 @@ var registeredLinters = []struct {
 
 // Lint runs all registered text linters on the provided files.
 // Returns an error if any linter finds issues.
-func Lint(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
+func Lint(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Running text linters...")
 
 	var errors []error
@@ -30,7 +30,7 @@ func Lint(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
 	for _, l := range registeredLinters {
 		logger.Log(fmt.Sprintf("Running linter: %s", l.name))
 
-		if err := l.linter(logger, allFiles); err != nil {
+		if err := l.linter(logger, filesByExtension); err != nil {
 			errors = append(errors, fmt.Errorf("%s: %w", l.name, err))
 		}
 	}

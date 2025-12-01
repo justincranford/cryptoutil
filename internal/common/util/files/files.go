@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // WriteFile writes content to a file with the specified permissions.
@@ -37,21 +40,41 @@ func WriteFile(filePath string, bytesOrString any, permissions os.FileMode) erro
 	return nil
 }
 
-// ListAllFiles walks the directory tree starting from startDirectory and returns all file paths.
-// It excludes directories and only includes regular files.
+// ListAllFiles walks the directory tree starting from startDirectory and returns files grouped by extension.
+// It uses the extension inclusions and directory exclusions from magic constants.
+// Returns a map where keys are file extensions (without dot) and values are slices of relative file paths.
 // Paths are normalized to use forward slashes for cross-platform compatibility.
 // Excluded directories are skipped entirely.
-func ListAllFiles(startDirectory string, exclusions ...string) ([]string, error) {
-	var allFiles []string
+func ListAllFiles(startDirectory string) (map[string][]string, error) {
+	return ListAllFilesWithOptions(startDirectory, cryptoutilMagic.TextFilenameExtensionInclusions, cryptoutilMagic.DirectoryNameExclusions)
+}
+
+// ListAllFilesWithOptions walks the directory tree starting from startDirectory and returns files grouped by extension.
+// It uses the provided extension inclusions and directory exclusions.
+// Returns a map where keys are file extensions (without dot) and values are slices of relative file paths.
+// Paths are normalized to use forward slashes for cross-platform compatibility.
+// Excluded directories are skipped entirely.
+func ListAllFilesWithOptions(startDirectory string, inclusions []string, exclusions []string) (map[string][]string, error) {
+	matches := make(map[string][]string)
+
+	// Build a set of included extensions for fast lookup.
+	includedExtensions := make(map[string]bool)
+	for _, ext := range inclusions {
+		includedExtensions[ext] = true
+	}
 
 	err := filepath.Walk(startDirectory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
+		// Normalize path to forward slashes for consistency.
+		normalizedPath := filepath.ToSlash(path)
+
 		if info.IsDir() {
 			for _, excl := range exclusions {
-				if path == excl || (len(path) > len(excl) && path[:len(excl)+1] == excl+"/") {
+				// Check if the path matches the exclusion (exact match or prefix).
+				if normalizedPath == excl || strings.HasPrefix(normalizedPath, excl+"/") {
 					return filepath.SkipDir
 				}
 			}
@@ -59,9 +82,22 @@ func ListAllFiles(startDirectory string, exclusions ...string) ([]string, error)
 			return nil
 		}
 
-		// Normalize path to forward slashes
-		normalizedPath := filepath.ToSlash(path)
-		allFiles = append(allFiles, normalizedPath)
+		// Extract the extension (without the dot).
+		ext := strings.TrimPrefix(filepath.Ext(path), ".")
+
+		// Handle files without extension (like .gitignore, .dockerignore).
+		if ext == "" {
+			// Check if the base name itself is in inclusions (e.g., "gitignore" for ".gitignore").
+			baseName := filepath.Base(path)
+			if strings.HasPrefix(baseName, ".") {
+				ext = strings.TrimPrefix(baseName, ".")
+			}
+		}
+
+		// Only include files with matching extensions.
+		if includedExtensions[ext] {
+			matches[ext] = append(matches[ext], normalizedPath)
+		}
 
 		return nil
 	})
@@ -69,5 +105,5 @@ func ListAllFiles(startDirectory string, exclusions ...string) ([]string, error)
 		return nil, fmt.Errorf("failed to walk directory: %w", err)
 	}
 
-	return allFiles, nil
+	return matches, nil
 }

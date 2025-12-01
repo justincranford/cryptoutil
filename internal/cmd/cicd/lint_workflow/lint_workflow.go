@@ -9,7 +9,7 @@ import (
 )
 
 // LinterFunc is a function type for individual workflow linters.
-// Each linter receives a logger and a list of files, returning an error if issues are found.
+// Each linter receives a logger and a list of workflow files, returning an error if issues are found.
 type LinterFunc func(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error
 
 // registeredLinters holds all linters to run as part of lint-workflow.
@@ -23,11 +23,11 @@ var registeredLinters = []struct {
 // Lint runs all registered workflow linters.
 // It filters the provided files to only include workflow files.
 // Returns an error if any linter finds issues.
-func Lint(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
+func Lint(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Running workflow linters...")
 
-	// Filter to workflow files only.
-	workflowFiles := filterWorkflowFiles(allFiles)
+	// Filter to workflow files only from yml and yaml extensions.
+	workflowFiles := filterWorkflowFiles(filesByExtension)
 
 	if len(workflowFiles) == 0 {
 		logger.Log("lint-workflow completed (no workflow files)")
@@ -58,11 +58,19 @@ func Lint(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
 	return nil
 }
 
-// filterWorkflowFiles returns only GitHub workflow files from the input.
-func filterWorkflowFiles(allFiles []string) []string {
+// filterWorkflowFiles returns only GitHub workflow files from the yml/yaml files in the map.
+func filterWorkflowFiles(filesByExtension map[string][]string) []string {
 	var workflowFiles []string
 
-	for _, f := range allFiles {
+	// Check yml files.
+	for _, f := range filesByExtension["yml"] {
+		if isWorkflowFile(f) {
+			workflowFiles = append(workflowFiles, f)
+		}
+	}
+
+	// Check yaml files.
+	for _, f := range filesByExtension["yaml"] {
 		if isWorkflowFile(f) {
 			workflowFiles = append(workflowFiles, f)
 		}

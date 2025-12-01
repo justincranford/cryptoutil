@@ -4,12 +4,13 @@ package lint_gotest
 
 import (
 	"fmt"
+	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 // LinterFunc is a function type for individual Go test file linters.
-// Each linter receives a logger and a list of files, returning an error if issues are found.
+// Each linter receives a logger and a list of test files, returning an error if issues are found.
 type LinterFunc func(logger *cryptoutilCmdCicdCommon.Logger, testFiles []string) error
 
 // registeredLinters holds all linters to run as part of lint-go-test.
@@ -23,11 +24,11 @@ var registeredLinters = []struct {
 // Lint runs all registered Go test file linters.
 // It filters the provided files to only include *_test.go files.
 // Returns an error if any linter finds issues.
-func Lint(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
+func Lint(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Running Go test linters...")
 
-	// Filter to *_test.go files only.
-	testFiles := filterTestFiles(allFiles)
+	// Filter to *_test.go files only from Go files.
+	testFiles := filterTestFiles(filesByExtension)
 
 	if len(testFiles) == 0 {
 		logger.Log("lint-go-test completed (no test files)")
@@ -58,12 +59,13 @@ func Lint(logger *cryptoutilCmdCicdCommon.Logger, allFiles []string) error {
 	return nil
 }
 
-// filterTestFiles returns only *_test.go files from the input.
-func filterTestFiles(allFiles []string) []string {
+// filterTestFiles returns only *_test.go files from the Go files in the map.
+func filterTestFiles(filesByExtension map[string][]string) []string {
 	var testFiles []string
 
-	for _, f := range allFiles {
-		if len(f) > 8 && f[len(f)-8:] == "_test.go" {
+	// Get Go files and filter for test files.
+	for _, f := range filesByExtension["go"] {
+		if strings.HasSuffix(f, "_test.go") {
 			testFiles = append(testFiles, f)
 		}
 	}

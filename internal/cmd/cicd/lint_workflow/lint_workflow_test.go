@@ -16,7 +16,7 @@ func TestLint_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := Lint(logger, []string{})
+	err := Lint(logger, map[string][]string{})
 
 	require.NoError(t, err, "Lint should succeed with no files")
 }
@@ -25,9 +25,14 @@ func TestLint_NoWorkflowFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	files := []string{"main.go", "config.yaml", "test.yml"}
+	// Files not in .github/workflows/.
+	filesByExtension := map[string][]string{
+		"go":   {"main.go"},
+		"yaml": {"config.yaml"},
+		"yml":  {"test.yml"},
+	}
 
-	err := Lint(logger, files)
+	err := Lint(logger, filesByExtension)
 	require.NoError(t, err, "Lint should succeed with no workflow files")
 }
 
@@ -36,27 +41,37 @@ func TestFilterWorkflowFiles(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		input    []string
+		input    map[string][]string
 		expected int
 	}{
 		{
 			name:     "empty input",
-			input:    []string{},
+			input:    map[string][]string{},
 			expected: 0,
 		},
 		{
-			name:     "no workflow files",
-			input:    []string{"main.go", "config.yaml"},
+			name: "no workflow files",
+			input: map[string][]string{
+				"go":   {"main.go"},
+				"yaml": {"config.yaml"},
+			},
 			expected: 0,
 		},
 		{
-			name:     "workflow files",
-			input:    []string{".github/workflows/ci.yml", ".github/workflows/cd.yaml"},
+			name: "workflow files",
+			input: map[string][]string{
+				"yml":  {".github/workflows/ci.yml"},
+				"yaml": {".github/workflows/cd.yaml"},
+			},
 			expected: 2,
 		},
 		{
-			name:     "mixed files",
-			input:    []string{".github/workflows/ci.yml", "main.go", "config.yaml"},
+			name: "mixed files",
+			input: map[string][]string{
+				"yml":  {".github/workflows/ci.yml"},
+				"go":   {"main.go"},
+				"yaml": {"config.yaml"},
+			},
 			expected: 1,
 		},
 	}
