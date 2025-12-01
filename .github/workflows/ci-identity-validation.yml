@@ -30,6 +30,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -55,6 +59,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -98,6 +106,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
 
       - name: Set up Go
         uses: actions/setup-go@v5
