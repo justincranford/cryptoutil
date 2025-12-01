@@ -165,6 +165,10 @@ func TestNewWebAuthnAuthenticator(t *testing.T) {
 func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 	t.Parallel()
 
+	// Generate test UUIDs
+	userID1 := googleUuid.Must(googleUuid.NewV7())
+	userID2 := googleUuid.Must(googleUuid.NewV7())
+
 	tests := []struct {
 		name              string
 		user              *cryptoutilIdentityDomain.User
@@ -175,7 +179,7 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 		{
 			name: "begin registration for new user succeeds",
 			user: &cryptoutilIdentityDomain.User{
-				ID:                googleUuid.MustParse("00000000-0000-7000-8000-000000000001"),
+				ID:                userID1,
 				PreferredUsername: "test-user-webauthn-reg-new",
 				Name:              "Test User",
 			},
@@ -185,14 +189,14 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 		{
 			name: "begin registration for user with existing credentials succeeds",
 			user: &cryptoutilIdentityDomain.User{
-				ID:                googleUuid.MustParse("00000000-0000-7000-8000-000000000002"),
+				ID:                userID2,
 				PreferredUsername: "test-user-webauthn-reg-existing",
 				Name:              "Test User",
 			},
 			existingCreds: []*Credential{
 				{
 					ID:              "existing-cred-id",
-					UserID:          "00000000-0000-7000-8000-000000000002",
+					UserID:          userID2.String(),
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("stub-public-key"),
 					AttestationType: "none",
@@ -256,6 +260,10 @@ func TestWebAuthnAuthenticator_BeginRegistration(t *testing.T) {
 func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 	t.Parallel()
 
+	// Generate test UUIDs
+	userID1 := googleUuid.Must(googleUuid.NewV7()).String()
+	userID2 := googleUuid.Must(googleUuid.NewV7()).String()
+
 	tests := []struct {
 		name              string
 		userID            string
@@ -265,11 +273,11 @@ func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 	}{
 		{
 			name:   "initiate auth for user with credentials succeeds",
-			userID: "00000000-0000-7000-8000-000000000003",
+			userID: userID1,
 			existingCreds: []*Credential{
 				{
 					ID:              "cred-id-1",
-					UserID:          "00000000-0000-7000-8000-000000000003",
+					UserID:          userID1,
 					Type:            CredentialTypePasskey,
 					PublicKey:       []byte("stub-public-key"),
 					AttestationType: "none",
@@ -280,7 +288,7 @@ func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 		},
 		{
 			name:              "initiate auth for user with no credentials fails",
-			userID:            "00000000-0000-7000-8000-000000000004",
+			userID:            userID2,
 			existingCreds:     nil,
 			wantError:         true,
 			wantErrorContains: "no WebAuthn credentials registered",
@@ -352,7 +360,7 @@ func TestWebAuthnAuthenticator_ChallengeExpiration(t *testing.T) {
 	require.NoError(t, err)
 
 	user := &cryptoutilIdentityDomain.User{
-		ID:                googleUuid.MustParse("00000000-0000-7000-8000-000000000005"),
+		ID:                googleUuid.Must(googleUuid.NewV7()),
 		PreferredUsername: "test-user-webauthn-expiration",
 		Name:              "Test User",
 	}
@@ -397,7 +405,7 @@ func TestWebAuthnUser_Adapter(t *testing.T) {
 	t.Parallel()
 
 	user := &cryptoutilIdentityDomain.User{
-		ID:                googleUuid.MustParse("00000000-0000-7000-8000-000000000006"),
+		ID:                googleUuid.Must(googleUuid.NewV7()),
 		PreferredUsername: "test-user-adapter",
 		Name:              "Test User Display",
 	}
@@ -418,7 +426,7 @@ func TestWebAuthnUser_AdapterNoDisplayName(t *testing.T) {
 	t.Parallel()
 
 	user := &cryptoutilIdentityDomain.User{
-		ID:                googleUuid.MustParse("00000000-0000-7000-8000-000000000007"),
+		ID:                googleUuid.Must(googleUuid.NewV7()),
 		PreferredUsername: "test-user-no-display",
 		Name:              "",
 	}

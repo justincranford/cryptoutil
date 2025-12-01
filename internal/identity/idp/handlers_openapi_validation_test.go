@@ -29,6 +29,9 @@ import (
 func TestOpenAPISchemaValidation(t *testing.T) {
 	t.Parallel()
 
+	// Generate test UUID for mock data
+	testUUID := googleUuid.Must(googleUuid.NewV7()).String()
+
 	const (
 		endpointUserInfo  = "/browser/api/v1/userinfo"
 		endpointDiscovery = "/.well-known/openid-configuration"
@@ -328,7 +331,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			switch tc.endpoint {
 			case endpointUserInfo:
 				respBody = map[string]any{
-					"sub":            "550e8400-e29b-41d4-a716-446655440000",
+					"sub":            testUUID,
 					"email":          "test@example.com",
 					"email_verified": true,
 					"name":           "Test User",

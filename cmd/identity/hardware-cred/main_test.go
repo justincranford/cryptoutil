@@ -20,6 +20,10 @@ import (
 func TestEnrollCommand(t *testing.T) {
 	t.Parallel()
 
+	// Generate test UUIDs
+	userID1 := googleUuid.Must(googleUuid.NewV7()).String()
+	userID2 := googleUuid.Must(googleUuid.NewV7()).String()
+
 	tests := []struct {
 		name         string
 		args         []string
@@ -31,21 +35,21 @@ func TestEnrollCommand(t *testing.T) {
 		{
 			name: "missing credential type uses default",
 			args: []string{
-				"-user-id", "01930de8-c123-7890-abcd-ef1234567890",
+				"-user-id", userID1,
 				"-device-name", "Test Device",
 			},
 			wantErr:      false,
-			wantUserID:   "01930de8-c123-7890-abcd-ef1234567890",
+			wantUserID:   userID1,
 			wantDevice:   "Test Device",
 			wantCredType: "passkey",
 		},
 		{
 			name: "valid enrollment with default device name",
 			args: []string{
-				"-user-id", "01930de8-c123-7890-abcd-ef1234567891",
+				"-user-id", userID2,
 			},
 			wantErr:      false,
-			wantUserID:   "01930de8-c123-7890-abcd-ef1234567891",
+			wantUserID:   userID2,
 			wantCredType: "passkey",
 		},
 		{
@@ -107,6 +111,9 @@ func TestEnrollCommand(t *testing.T) {
 func TestListCommand(t *testing.T) {
 	t.Parallel()
 
+	// Generate test UUID
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
+
 	tests := []struct {
 		name       string
 		args       []string
@@ -116,10 +123,10 @@ func TestListCommand(t *testing.T) {
 		{
 			name: "valid list command",
 			args: []string{
-				"-user-id", "01930de8-c123-7890-abcd-ef1234567890",
+				"-user-id", userID,
 			},
 			wantErr:    false,
-			wantUserID: "01930de8-c123-7890-abcd-ef1234567890",
+			wantUserID: userID,
 		},
 		{
 			name:    "missing user-id flag",
