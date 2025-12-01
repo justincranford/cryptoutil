@@ -497,6 +497,110 @@ This system is well-suited for:
 - **Compliance**: Meeting regulatory requirements for key management
 - **Development**: Providing crypto-as-a-service for development teams
 
+## Swagger UI Demo Guide
+
+### Quick Start
+
+1. **Start the KMS server with Docker Compose:**
+
+   ```bash
+   cd deployments/kms
+   docker compose --profile dev up -d
+   ```
+
+2. **Access Swagger UI:**
+
+   Open `https://localhost:8080/ui/swagger/` in your browser.
+
+3. **Authenticate with demo credentials:**
+   - Username: `demo`
+   - Password: `demo-password`
+
+### Demo Flow: Key Pool → Key → Encrypt → Decrypt
+
+#### Step 1: Create a Key Pool
+
+1. In Swagger UI, expand **POST /api/browser/v1/pools**
+2. Click "Try it out"
+3. Enter request body:
+
+   ```json
+   {
+     "algorithm": "A256GCM",
+     "name": "demo-encryption-pool"
+   }
+   ```
+
+4. Click "Execute"
+5. Note the `pool_id` from the response.
+
+#### Step 2: Create an Encryption Key
+
+1. Expand **POST /api/browser/v1/keys**
+2. Click "Try it out"
+3. Enter request body (replace `{pool_id}` with actual ID):
+
+   ```json
+   {
+     "pool_id": "{pool_id}"
+   }
+   ```
+
+4. Click "Execute"
+5. Note the `key_id` from the response.
+
+#### Step 3: Encrypt Data
+
+1. Expand **POST /api/browser/v1/keys/{keyId}/encrypt**
+2. Click "Try it out"
+3. Enter the `key_id` in the path parameter
+4. Enter request body:
+
+   ```json
+   {
+     "plaintext": "SGVsbG8gV29ybGQh"
+   }
+   ```
+
+   Note: `SGVsbG8gV29ybGQh` is "Hello World!" base64-encoded.
+
+5. Click "Execute"
+6. Note the `ciphertext` from the response.
+
+#### Step 4: Decrypt Data
+
+1. Expand **POST /api/browser/v1/keys/{keyId}/decrypt**
+2. Click "Try it out"
+3. Enter the same `key_id` in the path parameter
+4. Enter request body (replace with actual ciphertext):
+
+   ```json
+   {
+     "ciphertext": "{ciphertext_from_step_3}"
+   }
+   ```
+
+5. Click "Execute"
+6. Verify the `plaintext` matches `SGVsbG8gV29ybGQh`.
+
+### CSRF Token Handling
+
+The Swagger UI automatically handles CSRF tokens:
+
+1. Before executing any modifying request (POST, PUT, DELETE), the UI fetches a CSRF token.
+2. The token is included in the `X-CSRF-Token` header automatically.
+3. If you see 403 errors, refresh the page to get a new CSRF token.
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Connection refused | Ensure Docker containers are running: `docker compose ps` |
+| 401 Unauthorized | Verify demo credentials: `demo` / `demo-password` |
+| 403 Forbidden | CSRF token expired; refresh the page |
+| Certificate error | Add `--insecure` flag in curl, or accept certificate in browser |
+| TLS handshake error | Ensure TLS 1.3 is supported by your client |
+
 ## Docker Compose Architecture
 
 The project includes a comprehensive multi-service Docker Compose setup for local development, testing, and observability:
