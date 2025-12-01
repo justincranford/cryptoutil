@@ -1,0 +1,89 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# Shared Telemetry Services for cryptoutil
+# This compose file provides OpenTelemetry Collector and Grafana OTEL LGTM stack.
+# Include this file from product-specific compose files using Docker Compose includes.
+#
+# Usage: Include this in your product compose.yml:
+#   include:
+#     - path: ../telemetry/compose.yml
+#
+services:
+  opentelemetry-collector-contrib:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Self-metrics (Prometheus)
+      - "8889:8889"   # Received-metrics (Prometheus, for re-export)
+      - "13133:13133" # Health check
+      - "1777:1777"   # pprof
+      - "55679:55679" # zPages
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    depends_on:
+      grafana-otel-lgtm:
+        condition: service_started
+    networks:
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  grafana-otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"    # Grafana UI
+      - "14317:4317"   # OTLP gRPC
+      - "14318:4318"   # OTLP HTTP
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      # curl is available in this container, but using wget would be consistent with other containers.
+      # however wget is not available here, so curl is used for this container only.
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures.
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Healthcheck sidecar for opentelemetry-collector-contrib.
+  # Required because otel-collector-contrib image doesn't include shell/wget.
+  healthcheck-opentelemetry-collector-contrib:
+    image: alpine:latest
+    command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib >/dev/null 2>&1; }; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 15); do echo \"Attempt $$i: Checking OTEL collector...\"; if ping_success; then echo 'Ping successful, checking health endpoint...'; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying...'; fi; else echo 'Ping failed, waiting...'; fi; sleep 2; done; echo 'Health check failed after 15 attempts'; exit 1"]
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_started
+    networks:
+      - telemetry-network
+
+networks:
+  telemetry-network:
+    driver: bridge
+
+volumes:
+  grafana_data:
+    name: cryptoutil_grafana_volume

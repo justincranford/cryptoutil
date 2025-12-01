@@ -10,7 +10,7 @@
 
 | Phase | Status | Progress | Next Task |
 |-------|--------|----------|-----------|
-| **Phase 0** | 🔄 IN PROGRESS | 7/19 | P0.13 |
+| **Phase 0** | 🔄 IN PROGRESS | 9/19 | P0.2 |
 | **Phase 1** | ⏳ PENDING | 0/25 | - |
 | **Phase 2** | ⏳ PENDING | 0/14 | - |
 | **Phase 3** | ⏳ PENDING | 0/24 | - |
@@ -29,10 +29,10 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| P0.1 | ⏳ | Extract telemetry to `deployments/telemetry/compose.yml` |
+| P0.1 | ✅ | Extract telemetry to `deployments/telemetry/compose.yml` - DONE |
 | P0.2 | ⏳ | Create `deployments/<product>/config/` structure |
 | P0.3 | ⏳ | Convert all secrets to Docker secrets |
-| P0.4 | ⏳ | Remove empty directories |
+| P0.4 | ✅ | Remove empty directories - DONE: Removed identity/identity/ and identity/postgres/ |
 | P0.5 | ⏳ | Create compose profiles: dev, demo, ci |
 
 ### Demo Seeding Tasks
