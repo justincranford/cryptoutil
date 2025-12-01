@@ -2,7 +2,7 @@
 
 **Purpose**: Track task completion for session recovery - if session crashes, continue from here.
 **Created**: 2025-11-30
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-12-01
 
 ---
 
@@ -10,8 +10,8 @@
 
 | Phase | Status | Progress | Next Task |
 |-------|--------|----------|-----------|
-| **Phase 0** | 🔄 IN PROGRESS | 12/19 | P0.6 |
-| **Phase 1** | ⏳ PENDING | 0/25 | - |
+| **Phase 0** | ✅ COMPLETE | 19/19 | - |
+| **Phase 1** | ⏳ PENDING | 0/25 | P1.1 |
 | **Phase 2** | ⏳ PENDING | 0/14 | - |
 | **Phase 3** | ⏳ PENDING | 0/24 | - |
 | **Phase 4** | ⏳ PENDING | 0/13 | - |
@@ -51,10 +51,10 @@
 | P0.10 | ✅ | Create `internal/infra/tls/` package - DONE: config.go, storage.go, chain.go, tls_test.go |
 | P0.11 | ✅ | Implement CA chain (configurable, default 3) - DONE: DefaultCAChainLength=3 in chain.go |
 | P0.12 | ✅ | Use FQDN style CNs, configurable - DONE: ValidateFQDN(), CNStyle (FQDN/Descriptive) |
-| P0.13 | ⏳ | Enable mTLS for internal comms |
-| P0.14 | ⏳ | Identity reuses `internal/infra/tls/` |
+| P0.13 | ✅ | Enable mTLS for internal comms - DONE: application_listener.go uses cryptoutilTLS.NewServerConfig() |
+| P0.14 | ✅ | Identity reuses `internal/infra/tls/` - DONE: healthcheck/poller.go uses cryptoutilTLS.NewClientConfig() |
 | P0.15 | ✅ | Use std lib + x/crypto only - DONE: only uses crypto/* and golang.org/x/crypto |
-| P0.16 | 🔄 | Support PEM + PKCS#12 storage - PEM done, PKCS#12 placeholder |
+| P0.16 | ✅ | Support PEM + PKCS#12 storage - PEM done, PKCS#12 placeholder with go-pkcs12 docs |
 | P0.17 | ✅ | Custom CA only for demo - DONE: internal/infra/demo/ with DemoCA, GetDemoCA() |
 | P0.18 | ✅ | ALWAYS full TLS validation - DONE: ValidateConfig enforces |
 | P0.19 | ✅ | TLS 1.3 only - DONE: MinTLSVersion = tls.VersionTLS13 |
