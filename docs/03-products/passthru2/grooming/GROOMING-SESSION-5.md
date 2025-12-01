@@ -52,7 +52,7 @@ You mentioned "sysexits.h or D" - sysexits.h is a Unix convention with codes lik
 
 Which do you prefer?
 
-- [ ] A. Simple (0=success, 1=partial, 2=failure)
+- [x] A. Simple (0=success, 1=partial, 2=failure)
 - [ ] B. sysexits.h compatible for detailed diagnostics
 - [ ] C. Hybrid (0/1/2 for categories, sysexits for specific failures)
 - [ ] D. Custom enum in magic package
@@ -66,9 +66,9 @@ Notes:
 You mentioned PKCS#11 and YubiKey support needed in future. Should we:
 
 - [ ] A. Add interface stubs now for future implementation
-- [ ] B. Design cert storage API to be extensible
+- [x] B. Design cert storage API to be extensible
 - [ ] C. Just document as future work, no code changes
-- [ ] D. Create `internal/infra/tls/hsm/` placeholder package
+- [x] D. Create `internal/infra/tls/hsm/` placeholder package
 
 Notes:
 
@@ -78,7 +78,7 @@ Notes:
 
 You mentioned "Maybe in future I would support adding system trust store for HTTPS Server front-end UI and CLI certs". Should we:
 
-- [ ] A. Design for this now with feature flag (disabled)
+- [x] A. Design for this now with feature flag (disabled)
 - [ ] B. Defer entirely to future passthru
 - [ ] C. Add config option now, implement later
 - [ ] D. Document in architecture decisions only
@@ -93,10 +93,13 @@ You specified multiple auth modes. For initial implementation priority:
 
 - [ ] A. Bearer (JWT) first, Basic later
 - [ ] B. Basic (realm) first, Bearer (federated) second
-- [ ] C. Both in parallel (different code paths)
+- [x] C. Both in parallel (different code paths)
 - [ ] D. Depends on demo being showcased
 
 Notes:
+KMS server supports service-to-service API and browser-to-service UI/API.
+Service-to-service authn could be token (bearer) or clientid/clientsecret (basic).
+Browser-to-service UI/API must be session cookie (Cookie header), except for the initial authn: File/DB realms, or Delegate to Authz service.
 
 ---
 
@@ -104,12 +107,18 @@ Notes:
 
 You mentioned "TLS Client: Custom SAN extension (uri? other? need to consider options...)". Options:
 
-- [ ] A. URI SAN with tenant ID (e.g., `urn:tenant:uuid`)
+- [x] A. URI SAN with tenant ID (e.g., `urn:tenant:uuid`)
 - [ ] B. Custom OID extension (non-standard)
 - [ ] C. DNS SAN with tenant prefix (e.g., `tenant1.kms.local`)
 - [ ] D. Defer to Phase 4 realm implementation
 
 Notes:
+I have been thinking about it, and not sure if SAN is a good idea.
+TLS Client cert Subject is a Client or User, whereas Tenant is an attribute of the Client or User.
+Since SAN means Subject Alt Name, then SAN should describe the Client or User, not a Tenant.
+I think I want you to suggest different ideas for representing a Tenant in a Subject certificate.
+What best practices exist in the real world?
+The only one I can think of is maybe LDAP, but I don't want to restrict Distinguished Names to conform to LDAP RDNs/AVAs, DNs should be more free-form.
 
 ---
 
@@ -119,10 +128,10 @@ Notes:
 
 Which Phase 0 task should be implemented first?
 
-- [ ] A. P0.10: Create `internal/infra/tls/` package (foundation for all TLS)
-- [ ] B. P0.1: Extract telemetry to shared compose
-- [ ] C. P0.6: Add demo seed data for KMS
-- [ ] D. P0.5: Create compose profiles
+- [2] A. P0.10: Create `internal/infra/tls/` package (foundation for all TLS)
+- [3] B. P0.1: Extract telemetry to shared compose
+- [1] C. P0.6: Add demo seed data for KMS
+- [4] D. P0.5: Create compose profiles
 
 Notes:
 
@@ -135,7 +144,7 @@ What should `internal/infra/tls/` initially include?
 - [ ] A. CA chain generation only
 - [ ] B. CA chain + server/client cert generation
 - [ ] C. CA chain + certs + TLS config helpers
-- [ ] D. Full: CA chain + certs + config + mTLS helpers + validation
+- [x] D. Full: CA chain + certs + config + mTLS helpers + validation
 
 Notes:
 
@@ -145,7 +154,7 @@ Notes:
 
 For demo mode, should config validation be:
 
-- [ ] A. Same strictness as production
+- [x] A. Same strictness as production
 - [ ] B. Relaxed (warnings instead of errors for non-critical issues)
 - [ ] C. Minimal (only check required fields)
 - [ ] D. Configurable per profile
@@ -164,6 +173,8 @@ What should be the service startup order in demo compose?
 - [ ] D. All parallel with health check dependencies
 
 Notes:
+None of the above.
+Use the KMS compose.yml order.
 
 ---
 
@@ -174,7 +185,7 @@ Before starting implementation, should we establish a coverage baseline?
 - [ ] A. Yes, run coverage now and document current state
 - [ ] B. No, just track from first commit
 - [ ] C. Yes, and create coverage trend file
-- [ ] D. Coverage tracking starts after Phase 0
+- [x] D. Coverage tracking starts after Phase 0
 
 Notes:
 
@@ -186,9 +197,9 @@ Notes:
 
 When mTLS cert rotation is eventually implemented, how should services be notified?
 
-- [ ] A. SIGHUP signal (Unix convention)
-- [ ] B. Admin API endpoint (`POST /admin/reload-certs`)
-- [ ] C. File system watcher (inotify-style)
+- [3] A. SIGHUP signal (Unix convention)
+- [2] B. Admin API endpoint (`POST /admin/reload-certs`)
+- [1] C. File system watcher (inotify-style)
 - [ ] D. All of the above, defer implementation
 
 Notes:
@@ -199,7 +210,7 @@ Notes:
 
 What should the default PBKDF2 parameters be?
 
-- [ ] A. SHA-256, 600,000 iterations, 32-byte salt (OWASP 2024)
+- [x] A. SHA-256, 600,000 iterations, 32-byte salt (OWASP 2024)
 - [ ] B. SHA-512, 210,000 iterations, 32-byte salt (OWASP 2024)
 - [ ] C. SHA-256, 100,000 iterations, 16-byte salt (faster for demo)
 - [ ] D. Configurable with OWASP defaults
@@ -213,11 +224,13 @@ Notes:
 For the extensible JSON metadata field in realm users, should we:
 
 - [ ] A. Leave fully unstructured (any JSON)
-- [ ] B. Define optional schema with validation
-- [ ] C. Require specific top-level keys (e.g., `custom`, `attributes`)
+- [x] B. Define optional schema with validation
+- [x] C. Require specific top-level keys (e.g., `custom`, `attributes`)
 - [ ] D. Just store raw JSON, no validation
 
 Notes:
+Make sure to create a working schema file, which can be used to validate realm config,
+for easy detection and reporting of errors back to admins and LLM agents.
 
 ---
 
@@ -225,12 +238,19 @@ Notes:
 
 For database-level tenant isolation, should we:
 
-- [ ] A. Separate PostgreSQL schemas per tenant
+- [x] A. Separate PostgreSQL schemas per tenant
 - [ ] B. Separate PostgreSQL databases per tenant
 - [ ] C. Schema-per-tenant with connection pool per tenant
 - [ ] D. Defer tenant isolation to Phase 4
 
 Notes:
+A is possible for both SQLite and PostgreSQL using schema.table syntax:
+
+- PostgreSQL: CREATE SCHEMA tenant1; CREATE TABLE tenant1.users
+- SQLite: ATTACH 'tenant1.db' AS tenant1; CREATE TABLE tenant1.users
+- Same SQL interface: SELECT * FROM tenant1.users
+- Provides tenant isolation while maintaining code uniformity
+- Scales better than separate databases (connection pooling, etc.)
 
 ---
 
@@ -241,7 +261,7 @@ Should demo CLI color output work on Windows?
 - [ ] A. Yes, use library that handles Windows ANSI (e.g., fatih/color)
 - [ ] B. Yes, but disable colors in CI automatically
 - [ ] C. Yes, with `--no-color` flag for CI/logging
-- [ ] D. All of the above
+- [x] D. All of the above
 
 Notes:
 
@@ -256,7 +276,7 @@ What format should demo documentation use?
 - [ ] A. Markdown with code blocks
 - [ ] B. Markdown + embedded diagrams (Mermaid)
 - [ ] C. Markdown + screenshots
-- [ ] D. All of the above
+- [x] D. All of the above
 
 Notes:
 
@@ -269,9 +289,10 @@ Should OpenAPI specs be updated as part of passthru2?
 - [ ] A. Yes, ensure all endpoints documented
 - [ ] B. Yes, add examples for demo flows
 - [ ] C. No, defer to separate docs task
-- [ ] D. Only update if implementation changes API
+- [x] D. Only update if implementation changes API
 
 Notes:
+I am unsure how to answer. It might require observation to determine emergent design while you implement other changes.
 
 ---
 
@@ -279,7 +300,7 @@ Notes:
 
 What files should be excluded from coverage requirements?
 
-- [ ] A. Only generated code (api/client, api/server)
+- [x] A. Only generated code (api/client, api/server)
 - [ ] B. + Test utilities and testdata
 - [ ] C. + Demo/example binaries
 - [ ] D. Explicit list in codecov.yml or similar
@@ -292,9 +313,9 @@ Notes:
 
 How should benchmark baselines be stored?
 
-- [ ] A. JSON file (machine-readable)
-- [ ] B. Go test benchmark output format
-- [ ] C. SQLite database (trend analysis)
+- [x] A. JSON file (machine-readable)
+- [x] B. Go test benchmark output format
+- [x] C. SQLite database (trend analysis)
 - [ ] D. Simple text file with key metrics
 
 Notes:
@@ -306,7 +327,7 @@ Notes:
 Should error messages follow a specific pattern?
 
 - [ ] A. Match existing apperr patterns exactly
-- [ ] B. Update to RFC 7807 Problem Details style
+- [x] B. Update to RFC 7807 Problem Details style
 - [ ] C. Simple descriptive messages (no formal structure)
 - [ ] D. Structured internally, human-readable externally
 
@@ -322,7 +343,7 @@ Is the scope from Sessions 1-4 now locked, or can new features be added?
 
 - [ ] A. Scope locked - only bug fixes and clarifications
 - [ ] B. Minor additions OK if they don't delay timeline
-- [ ] C. Open to additions that improve demo experience
+- [x] C. Open to additions that improve demo experience
 - [ ] D. Strict scope lock - anything else goes to passthru3
 
 Notes:
@@ -336,9 +357,13 @@ Can multiple phases be worked on in parallel?
 - [ ] A. Yes, all phases can progress together
 - [ ] B. Phase 0 must complete before others start
 - [ ] C. Phase 0 and 1 can parallel, 2+ must wait
-- [ ] D. Sequential only for clean commits
+- [x] D. Sequential only for clean commits
 
 Notes:
+I don't really have a strong opinion here. Sequential is easier for human readability,
+but passthru2 is going to be LLM Agent heavy. I only care about final results,
+and having milestones or checkpoints where I can do spot checks to validate that
+progress is tracking in the direction I want it to go.
 
 ---
 
@@ -352,6 +377,11 @@ If breaking changes occur, how should they be documented?
 - [ ] D. All of the above
 
 Notes:
+IMPORTANT Breaking changes an completely irrelevant. This project has never been released.
+No backwards compatibility or migration is necessary at all.
+Make sure this is clear in the 03-products docs, as it might save time from being
+wasted on worrying about migration. There is no such thing as migration, this is
+an unrelated project.
 
 ---
 
@@ -362,7 +392,7 @@ Should passthru2 deliverables include demo recordings?
 - [ ] A. Yes, short video for each demo flow
 - [ ] B. Yes, GIF animations in docs
 - [ ] C. No, documentation sufficient
-- [ ] D. Only if time permits
+- [x] D. Only if time permits
 
 Notes:
 
@@ -372,8 +402,8 @@ Notes:
 
 How should passthru2 success be measured?
 
-- [ ] A. All acceptance criteria met (from Task List)
-- [ ] B. Coverage targets achieved (80%+)
+- [x] A. All acceptance criteria met (from Task List)
+- [x] B. Coverage targets achieved (80%+)
 - [ ] C. Demo runs in <30 seconds from clone
 - [ ] D. All of the above
 
