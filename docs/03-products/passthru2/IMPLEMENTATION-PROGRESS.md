@@ -2,7 +2,7 @@
 
 **Purpose**: Track task completion for session recovery - if session crashes, continue from here.
 **Created**: 2025-11-30
-**Last Updated**: 2025-12-01
+**Last Updated**: 2025-12-01 (Grooming Session 5 complete, Session 6 created)
 
 ---
 
@@ -10,13 +10,26 @@
 
 | Phase | Status | Progress | Next Task |
 |-------|--------|----------|-----------|
-| **Phase 0** | ✅ COMPLETE | 19/19 | - |
-| **Phase 1** | 🔄 IN PROGRESS | 3/25 | P1.4 |
+| **Phase 0** | ✅ COMPLETE | 20/20 | - |
+| **Phase 1** | 🔄 IN PROGRESS | 3/26 | P1.4 |
 | **Phase 2** | ⏳ PENDING | 0/14 | - |
 | **Phase 3** | ⏳ PENDING | 0/24 | - |
 | **Phase 4** | ⏳ PENDING | 0/13 | - |
-| **Phase 5** | ⏳ PENDING | 0/19 | - |
+| **Phase 5** | ⏳ PENDING | 0/21 | - |
 | **Phase 6** | ⏳ PENDING | 0/12 | - |
+
+---
+
+## Grooming Sessions Status
+
+| Session | Status | Key Decisions |
+|---------|--------|---------------|
+| Session 1 | ✅ COMPLETE | Vision, infrastructure, parity priorities |
+| Session 2 | ✅ COMPLETE | Realm auth, token validation, demo data |
+| Session 3 | ✅ COMPLETE | TLS package, CLI architecture, testing |
+| Session 4 | ✅ COMPLETE | TLS deps, UUIDv4 tenant, error handling |
+| Session 5 | ✅ COMPLETE | Exit codes, HSM placeholder, tenant cert |
+| Session 6 | 📝 AWAITING | Tenant cert deep dive, demo CLI details |
 
 ---
 
@@ -59,6 +72,12 @@
 | P0.18 | ✅ | ALWAYS full TLS validation - DONE: ValidateConfig enforces |
 | P0.19 | ✅ | TLS 1.3 only - DONE: MinTLSVersion = tls.VersionTLS13 |
 
+### HSM Placeholder (Session 5 Q2)
+
+| Task | Status | Notes |
+|------|--------|-------|
+| P0.20 | ⏳ | Create `internal/infra/tls/hsm/` placeholder package |
+
 ---
 
 ## Phase 1: KMS Demo Parity
@@ -97,15 +116,16 @@
 | P1.13b | ⏳ | Handle partial success |
 | P1.13c | ⏳ | Configurable retry strategy |
 | P1.13d | ⏳ | Progress counter + spinner |
-| P1.13e | ⏳ | Exit codes (sysexits/0/1/2) |
+| P1.13e | ⏳ | Exit codes (0/1/2) |
+| P1.13f | ⏳ | CLI colors with Windows ANSI + --no-color |
 
 ### KMS Realm Configuration
 
 | Task | Status | Notes |
 |------|--------|-------|
 | P1.14 | ⏳ | Create realms.yml |
-| P1.15 | ⏳ | Configurable PBKDF2 |
-| P1.16 | ⏳ | Full user schema with JSON metadata |
+| P1.15 | ⏳ | PBKDF2: SHA-256, 600K iterations, 32-byte salt |
+| P1.16 | ⏳ | Full user schema with JSON metadata + validation |
 | P1.17 | ⏳ | Configurable hierarchical roles |
 | P1.18 | ⏳ | UUIDv4 for tenant IDs |
 | P1.19 | ⏳ | UUIDv4 generation matching v7 pattern |
@@ -113,13 +133,14 @@
 | P1.21 | ⏳ | Full UUID display with hyphens |
 | P1.22 | ⏳ | Regenerate demo tenants on startup |
 | P1.23 | ⏳ | Tenant ID via Authorization header |
+| P1.24 | ⏳ | Schema-per-tenant isolation |
 
 ### Coverage
 
 | Task | Status | Notes |
 |------|--------|-------|
-| P1.24 | ⏳ | KMS handler tests (85%) |
-| P1.25 | ⏳ | KMS businesslogic tests (85%) |
+| P1.25 | ⏳ | KMS handler tests (85%) |
+| P1.26 | ⏳ | KMS businesslogic tests (85%) |
 
 ---
 

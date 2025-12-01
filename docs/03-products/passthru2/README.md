@@ -234,6 +234,60 @@
 
 ---
 
+## Summary of Decisions from Grooming Session 5
+
+### Clarifications (Q1-5)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Exit Code Strategy** | A: Simple (0/1/2) | 0=success, 1=partial, 2=failure |
+| **PKCS#11/YubiKey** | B+D: Extensible API + placeholder | `internal/infra/tls/hsm/` placeholder |
+| **System Trust Store** | A: Feature flag (disabled) | Design for future enablement |
+| **Auth Priority** | C: Both in parallel | Bearer + Basic in different paths |
+| **TLS Client SAN** | A: URI SAN with tenant | Consider alternatives for tenant representation |
+
+### Implementation Priorities (Q6-10)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Phase 0 First Task** | Priority: P0.6 → P0.10 → P0.1 → P0.5 | Demo seed → TLS pkg → Telemetry → Profiles |
+| **TLS Package Scope** | D: Full scope | CA chain + certs + config + mTLS helpers + validation |
+| **Config Validation** | A: Same strictness | Demo mode = production strictness |
+| **Demo Compose Order** | Use KMS compose.yml order | Match existing patterns |
+| **Coverage Baseline** | D: After Phase 0 | Start tracking after Phase 0 complete |
+
+### Technical Deep Dive (Q11-15)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **mTLS Cert Rotation** | Priority: FS watcher → Admin API → SIGHUP | Multiple notification options |
+| **PBKDF2 Defaults** | A: SHA-256, 600K iterations, 32-byte salt | OWASP 2024 recommendation |
+| **User Metadata Schema** | B+C: Optional schema + required top-level keys | Working schema file for validation |
+| **Tenant Isolation** | A: Schema-per-tenant | Works for both SQLite and PostgreSQL |
+| **Demo CLI Color** | D: All options | Windows ANSI + auto-disable CI + --no-color flag |
+
+### Documentation & Testing (Q16-20)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Demo Docs Format** | D: All formats | Markdown + Mermaid + screenshots |
+| **API Documentation** | D: Update if API changes | Observe emergent design |
+| **Coverage Exclusions** | A: Only generated code | api/client, api/server excluded |
+| **Benchmark Storage** | A+B+C: All formats | JSON + Go bench format + SQLite |
+| **Error Message Pattern** | B: RFC 7807 Problem Details | Standardized error format |
+
+### Final Confirmations (Q21-25)
+
+| Decision | Answer | Notes |
+|----------|--------|-------|
+| **Scope Lock** | C: Open for demo improvements | Additions OK if improve demo UX |
+| **Implementation Order** | D: Sequential only | Clean commits, milestone checkpoints |
+| **Breaking Changes** | N/A - Unreleased project | No migration needed |
+| **Demo Recordings** | D: If time permits | Documentation sufficient |
+| **Success Metrics** | A+B: Criteria + coverage | Acceptance criteria + 80%+ coverage |
+
+---
+
 ### Auth Strategy from Session 4 (Q10 Notes)
 
 **Authorization Header Mapping Strategy:**
@@ -359,7 +413,8 @@ identity-providers:
 | GROOMING-SESSION-2.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
 | GROOMING-SESSION-3.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
 | GROOMING-SESSION-4.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
-| GROOMING-SESSION-5.md | 📝 Awaiting answers | `docs/03-products/passthru2/grooming/` |
+| GROOMING-SESSION-5.md | ✅ Answered | `docs/03-products/passthru2/grooming/` |
+| GROOMING-SESSION-6.md | 📝 Awaiting answers | `docs/03-products/passthru2/grooming/` |
 
 ---
 
@@ -393,10 +448,10 @@ go run ./cmd/demo all
 2. ✅ Complete GROOMING-SESSION-2.md answers
 3. ✅ Complete GROOMING-SESSION-3.md answers
 4. ✅ Complete GROOMING-SESSION-4.md answers
-5. 📝 Answer GROOMING-SESSION-5.md for final clarifications
-6. 🔨 Implement Phase 0: Developer Experience foundation
-7. 🔨 Create `internal/infra/tls/` package (from Session 3 Q1)
-8. 🔨 Implement demo CLI with single binary architecture
+5. ✅ Complete GROOMING-SESSION-5.md answers
+6. 📝 Answer GROOMING-SESSION-6.md for final implementation decisions
+7. 🔨 Continue Phase 1: KMS Demo Parity
+8. 🔨 Continue Phase 2: Identity Demo Parity
 
 ---
 
