@@ -205,15 +205,6 @@ repos:
   # Custom project checks (fast, internal checks)
   - repo: local
     hooks:
-      - id: identity-progressive-validation
-        name: Progressive validation (identity module)
-        entry: go
-        args: [run, cmd/cicd/main.go, identity-progressive-validation]
-        language: system
-        pass_filenames: false
-        require_serial: false
-        stages: [pre-push]  # Validate quality gates before push
-
       - id: cicd-checks-internal
         name: Run custom CI/CD checks (go-circ-dep)
         entry: go

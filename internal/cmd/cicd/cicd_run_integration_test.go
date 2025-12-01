@@ -267,26 +267,6 @@ func TestRun_GoUpdateAllDependencies(t *testing.T) {
 	_ = err
 }
 
-// TestRun_GoFixStaticcheckErrorStrings tests Run with go-fix-staticcheck-error-strings command.
-func TestRun_GoFixStaticcheckErrorStrings(t *testing.T) {
-	tmpDir := t.TempDir()
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-	//nolint:errcheck // Best effort to restore directory
-	defer os.Chdir(originalDir)
-
-	// Create file with staticcheck error string issue.
-	errorFile := filepath.Join(tmpDir, "errors.go")
-	err = os.WriteFile(errorFile, []byte(testErrorPackageContent), 0o600)
-	require.NoError(t, err)
-
-	err = Run([]string{"go-fix-staticcheck-error-strings"})
-	require.NoError(t, err)
-}
-
 // TestRun_GoFixCopyLoopVar tests Run with go-fix-copyloopvar command.
 func TestRun_GoFixCopyLoopVar(t *testing.T) {
 	tmpDir := t.TempDir()

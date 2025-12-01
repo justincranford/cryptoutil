@@ -101,14 +101,6 @@
             "program": "${workspaceFolder}/cmd/cicd",
             "args": ["all-enforce-utf8"]
         },
-        {
-            "name": "CICD: identity-progressive-validation",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/cicd",
-            "args": ["identity-progressive-validation"]
-        },
 
         // ═══════════════════════════════════════════════════════════════════════
         // WORKFLOW RUNNER
