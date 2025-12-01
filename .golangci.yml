@@ -269,24 +269,34 @@ linters:
         # Cryptoutil identity
         - pkg: "cryptoutil/internal/identity/apperr"
           alias: cryptoutilIdentityAppErr
-        - pkg: "cryptoutil/internal/identity/config"
-          alias: cryptoutilIdentityConfig
-        - pkg: "cryptoutil/internal/identity/domain"
-          alias: cryptoutilIdentityDomain
-        - pkg: "cryptoutil/internal/identity/magic"
-          alias: cryptoutilIdentityMagic
-        - pkg: "cryptoutil/internal/identity/repository"
-          alias: cryptoutilIdentityRepository
-        - pkg: "cryptoutil/internal/identity/issuer"
-          alias: cryptoutilIdentityIssuer
         - pkg: "cryptoutil/internal/identity/authz"
           alias: cryptoutilIdentityAuthz
         - pkg: "cryptoutil/internal/identity/authz/clientauth"
           alias: cryptoutilIdentityClientAuth
+        - pkg: "cryptoutil/internal/identity/bootstrap"
+          alias: cryptoutilIdentityBootstrap
+        - pkg: "cryptoutil/internal/identity/config"
+          alias: cryptoutilIdentityConfig
+        - pkg: "cryptoutil/internal/identity/domain"
+          alias: cryptoutilIdentityDomain
+        - pkg: "cryptoutil/internal/identity/healthcheck"
+          alias: cryptoutilIdentityHealthcheck
         - pkg: "cryptoutil/internal/identity/idp"
           alias: cryptoutilIdentityIdp
         - pkg: "cryptoutil/internal/identity/idp/auth"
           alias: cryptoutilIdentityAuth
+        - pkg: "cryptoutil/internal/identity/issuer"
+          alias: cryptoutilIdentityIssuer
+        - pkg: "cryptoutil/internal/identity/magic"
+          alias: cryptoutilIdentityMagic
+        - pkg: "cryptoutil/internal/identity/process"
+          alias: cryptoutilIdentityProcess
+        - pkg: "cryptoutil/internal/identity/repository"
+          alias: cryptoutilIdentityRepository
+        - pkg: "cryptoutil/internal/identity/repository/orm"
+          alias: cryptoutilIdentityORM
+        - pkg: "cryptoutil/internal/identity/rotation"
+          alias: cryptoutilIdentityRotation
         - pkg: "cryptoutil/internal/identity/server"
           alias: cryptoutilIdentityServer
         # Crypto packages

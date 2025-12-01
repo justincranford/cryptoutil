@@ -14,7 +14,7 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	"cryptoutil/internal/identity/repository"
-	cryptoutilIdentityRepositoryOrm "cryptoutil/internal/identity/repository/orm"
+	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
 )
 
 // TestUserInfoClaims validates OIDC UserInfo endpoint returns all required standard claims
@@ -132,7 +132,7 @@ func TestUserInfoClaims(t *testing.T) {
 			require.NoError(t, err, "failed to auto-migrate User")
 
 			// Create user in database.
-			userRepo := cryptoutilIdentityRepositoryOrm.NewUserRepository(db)
+			userRepo := cryptoutilIdentityORM.NewUserRepository(db)
 			err = userRepo.Create(ctx, tc.user)
 			require.NoError(t, err, "failed to create test user")
 

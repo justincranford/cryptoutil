@@ -18,7 +18,7 @@ import (
 	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityRepositoryOrm "cryptoutil/internal/identity/repository/orm"
+	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
 )
 
 // TestParallelTestSafety validates integration tests run safely in parallel without race
@@ -119,7 +119,7 @@ func TestParallelTestSafety(t *testing.T) {
 
 			switch tc.entityType {
 			case "user":
-				userRepo := cryptoutilIdentityRepositoryOrm.NewUserRepository(db)
+				userRepo := cryptoutilIdentityORM.NewUserRepository(db)
 
 				for i := 0; i < tc.parallelOps; i++ {
 					wg.Add(1)
@@ -148,7 +148,7 @@ func TestParallelTestSafety(t *testing.T) {
 				}
 
 			case "client":
-				clientRepo := cryptoutilIdentityRepositoryOrm.NewClientRepository(db)
+				clientRepo := cryptoutilIdentityORM.NewClientRepository(db)
 
 				for i := 0; i < tc.parallelOps; i++ {
 					wg.Add(1)
@@ -176,8 +176,8 @@ func TestParallelTestSafety(t *testing.T) {
 				}
 
 			case "mixed":
-				userRepo := cryptoutilIdentityRepositoryOrm.NewUserRepository(db)
-				clientRepo := cryptoutilIdentityRepositoryOrm.NewClientRepository(db)
+				userRepo := cryptoutilIdentityORM.NewUserRepository(db)
+				clientRepo := cryptoutilIdentityORM.NewClientRepository(db)
 
 				for i := 0; i < tc.parallelOps; i++ {
 					wg.Add(1)
