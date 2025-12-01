@@ -23,6 +23,11 @@ unseal-files:
   - /run/secrets/unseal_4of5.secret
   - /run/secrets/unseal_5of5.secret
 
+# Swagger UI demo credentials
+# WARNING: These credentials are for demonstration only. NEVER use in production.
+swagger-ui-username: "demo"  # pragma: allowlist secret
+swagger-ui-password: "demo-password"  # pragma: allowlist secret
+
 # Allow all IPs for development/testing
 allowed-ips:
   - "127.0.0.1"
