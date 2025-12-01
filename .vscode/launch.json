@@ -78,28 +78,60 @@
         // CICD UTILITIES
         // ═══════════════════════════════════════════════════════════════════════
         {
-            "name": "CICD: go-fix-all",
+            "name": "CICD: lint-text",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/cicd",
-            "args": ["go-fix-all"]
+            "args": ["lint-text"]
         },
         {
-            "name": "CICD: go-check-circular-package-dependencies",
+            "name": "CICD: lint-go",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/cicd",
-            "args": ["go-check-circular-package-dependencies"]
+            "args": ["lint-go"]
         },
         {
-            "name": "CICD: all-enforce-utf8",
+            "name": "CICD: format-go",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/cicd",
-            "args": ["all-enforce-utf8"]
+            "args": ["format-go"]
+        },
+        {
+            "name": "CICD: lint-go-test",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["lint-go-test"]
+        },
+        {
+            "name": "CICD: format-go-test",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["format-go-test"]
+        },
+        {
+            "name": "CICD: lint-workflow",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["lint-workflow"]
+        },
+        {
+            "name": "CICD: lint-go-mod",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/cicd",
+            "args": ["lint-go-mod"]
         },
 
         // ═══════════════════════════════════════════════════════════════════════

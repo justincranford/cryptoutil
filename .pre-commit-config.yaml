@@ -17,13 +17,13 @@ repos:
         stages: [manual]  # Run manually, not on every push
 
   # Check Go direct dependency versions (expensive - network calls)
-  # NOTE: Run manually: pre-commit run go-update-direct-dependencies --hook-stage manual
+  # NOTE: Run manually: pre-commit run lint-go-mod --hook-stage manual
   - repo: local
     hooks:
-      - id: go-update-direct-dependencies
+      - id: lint-go-mod
         name: Check Go direct dependency updates (manual)
         entry: go
-        args: [run, cmd/cicd/main.go, go-update-direct-dependencies]
+        args: [run, cmd/cicd/main.go, lint-go-mod]
         language: system
         pass_filenames: false
         stages: [manual]  # Run manually, not on every push
@@ -31,10 +31,10 @@ repos:
   # GitHub workflow linting (only when workflows change)
   - repo: local
     hooks:
-      - id: github-workflow-lint
+      - id: lint-workflow
         name: GitHub workflow lint
         entry: go
-        args: [run, cmd/cicd/main.go, github-workflow-lint]
+        args: [run, cmd/cicd/main.go, lint-workflow]
         language: system
         pass_filenames: false
         files: '\.github/workflows/.*\.(yml|yaml)$'
@@ -205,18 +205,18 @@ repos:
   # Custom project checks (fast, internal checks)
   - repo: local
     hooks:
-      - id: cicd-checks-internal
-        name: Run custom CI/CD checks (go-circ-dep)
+      - id: lint-go
+        name: Run custom CI/CD checks (circular dependencies)
         entry: go
-        args: [run, cmd/cicd/main.go, go-check-circular-package-dependencies]
+        args: [run, cmd/cicd/main.go, lint-go]
         language: system
         pass_filenames: false
         require_serial: false
 
       - id: cicd-enforce-internal
-        name: Run custom CI/CD enforcement (text-utf8, go-any, go-testify)
+        name: Run custom CI/CD enforcement (text-utf8, go-formatters, test-patterns)
         entry: powershell
-        args: [-Command, "go run cmd/cicd/main.go all-enforce-utf8 go-enforce-test-patterns go-enforce-any; exit 0"]
+        args: [-Command, "go run cmd/cicd/main.go lint-text lint-go-test format-go; exit 0"]
         language: system
         pass_filenames: false
         always_run: true  # Allow enforce commands to "fail" (modify files)
@@ -256,13 +256,22 @@ repos:
   # Go auto-fix commands (moved to pre-push for faster pre-commit)
   - repo: local
     hooks:
-      - id: go-fix-all
-        name: Auto-fix Go issues (staticcheck, copyloopvar, thelper)
+      - id: format-go
+        name: Auto-fix Go files (any, copyloopvar)
         entry: go
-        args: [run, cmd/cicd/main.go, go-fix-all]
+        args: [run, cmd/cicd/main.go, format-go]
         language: system
         pass_filenames: false
         files: '\.go$'
+        stages: [pre-push]
+
+      - id: format-go-test
+        name: Auto-fix Go test files (t.Helper)
+        entry: go
+        args: [run, cmd/cicd/main.go, format-go-test]
+        language: system
+        pass_filenames: false
+        files: '_test\.go$'
         stages: [pre-push]
 
   # Go build validation (moved to pre-push for faster pre-commit)

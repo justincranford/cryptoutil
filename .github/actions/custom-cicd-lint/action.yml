@@ -24,35 +24,11 @@ runs:
         echo "🔤 Enforcing UTF-8 file encoding..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd all-enforce-utf8
+        ./cicd lint-text
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ UTF-8 enforcement completed in: ${DURATION}s"
-
-    - name: Enforce test patterns
-      shell: bash
-      run: |
-        echo "🧪 Enforcing test patterns..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd go-enforce-test-patterns
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Test pattern enforcement completed in: ${DURATION}s"
-
-    - name: Run custom Go source code fixes
-      shell: bash
-      run: |
-        echo "🔧 Running custom Go source code fixes..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd go-enforce-any
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Custom Go fixes completed in: ${DURATION}s"
 
     - name: Check for circular Go package dependencies
       shell: bash
@@ -60,23 +36,47 @@ runs:
         echo "🔄 Checking for circular Go package dependencies..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd go-check-circular-package-dependencies
+        ./cicd lint-go
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ Circular dependency check completed in: ${DURATION}s"
 
-    - name: Check Go direct dependencies
+    - name: Run Go code formatters (interface{} to any, copyloopvar)
       shell: bash
       run: |
-        echo "📦 Checking Go direct dependencies..."
+        echo "🔧 Running Go code formatters..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd go-update-direct-dependencies
+        ./cicd format-go
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Direct dependencies check completed in: ${DURATION}s"
+        echo "⏱️ Go code formatters completed in: ${DURATION}s"
+
+    - name: Enforce Go test patterns
+      shell: bash
+      run: |
+        echo "🧪 Enforcing Go test patterns..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-go-test
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Test pattern enforcement completed in: ${DURATION}s"
+
+    - name: Run Go test file formatters (t.Helper)
+      shell: bash
+      run: |
+        echo "🔧 Running Go test file formatters..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd format-go-test
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Go test formatters completed in: ${DURATION}s"
 
     - name: Check GitHub Actions versions
       shell: bash
@@ -84,8 +84,20 @@ runs:
         echo "🔄 Checking GitHub Actions versions..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        ./cicd github-workflow-lint
+        ./cicd lint-workflow
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ GitHub Actions version check completed in: ${DURATION}s"
+
+    - name: Check Go direct dependencies
+      shell: bash
+      run: |
+        echo "📦 Checking Go direct dependencies..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-go-mod
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Direct dependencies check completed in: ${DURATION}s"

@@ -7,36 +7,45 @@ package cicd
 import (
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 	"time"
 
-	cryptoutilCmdCicdAllEnforceUtf8 "cryptoutil/internal/cmd/cicd/all_enforce_utf8"
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilCmdCicdGithubWorkflowLint "cryptoutil/internal/cmd/cicd/github_workflow_lint"
-	cryptoutilCmdCicdGoCheckCircularPackageDependencies "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
-	cryptoutilCmdCicdGoEnforceAny "cryptoutil/internal/cmd/cicd/go_enforce_any"
-	cryptoutilCmdCicdGoEnforceTestPatterns "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
-	cryptoutilCmdCicdGoFixAll "cryptoutil/internal/cmd/cicd/go_fix_all"
-	cryptoutilCmdCicdGoFixCopyLoopVar "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
-	cryptoutilCmdCicdGoFixTHelper "cryptoutil/internal/cmd/cicd/go_fix_thelper"
-	cryptoutilCmdCicdGoUpdateDirectDependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+	cryptoutilCmdCicdFormatGo "cryptoutil/internal/cmd/cicd/format_go"
+	cryptoutilCmdCicdFormatGotest "cryptoutil/internal/cmd/cicd/format_gotest"
+	cryptoutilCmdCicdLintGo "cryptoutil/internal/cmd/cicd/lint_go"
+	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/cmd/cicd/lint_go_mod"
+	cryptoutilCmdCicdLintGotest "cryptoutil/internal/cmd/cicd/lint_gotest"
+	cryptoutilCmdCicdLintText "cryptoutil/internal/cmd/cicd/lint_text"
+	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/cmd/cicd/lint_workflow"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
 const (
-	cmdAllEnforceUTF8                     = "all-enforce-utf8"                       // [Linter] Enforces UTF-8 encoding without BOM - works on all text files
-	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies" // [Linter] Checks for circular Go package dependencies - works on *.go files
-	cmdGoEnforceAny                       = "go-enforce-any"                         // [Formatter] Replaces interface{} with any - works on *.go files
-	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"                     // [Formatter] Fixes Go 1.22+ loop variable scoping - works on *.go files
-	cmdGoFixAll                           = "go-fix-all"                             // [Formatter] Runs all go-fix-* commands in sequence - works on *.go files
-	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"               // [Linter] Enforces test patterns (UUIDv7 usage, testify assertions) - works on *_test.go files
-	cmdGoFixTHelper                       = "go-fix-thelper"                         // [Formatter] Adds t.Helper() to test helper functions - works on *_test.go files
-	cmdGitHubWorkflowLint                 = "github-workflow-lint"                   // [Linter] Validates GitHub Actions workflow naming and structure - works on *.yml, *.yaml files
-	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"          // [Linter] Checks direct Go dependencies for updates - works on go.mod, go.sum
-	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"             // [Linter] Checks all Go dependencies for updates - works on go.mod, go.sum
+	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
+	cmdLintText     = "lint-text"      // [Linter] Text file linters (UTF-8 encoding).
+	cmdLintGo       = "lint-go"        // [Linter] Go package linters (circular dependencies).
+	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
+	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
+	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
+	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
 )
+
+var (
+	exclusions = []string{
+		"api/client",
+		"api/model",
+		"api/server",
+		"api/idp",
+		"api/authz",
+		"test-output",
+		"test-reports",
+		"workflow-reports",
+		"vendor",
+	}
+)
+
 
 // Run executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
@@ -54,22 +63,10 @@ func Run(commands []string) error {
 
 	var allFiles []string
 
-	exclusions := []string{
-		"api/client",
-		"api/model",
-		"api/server",
-		"api/idp",
-		"api/authz",
-		"test-output",
-		"test-reports",
-		"workflow-reports",
-		"vendor",
-	}
-
 	doListAllFiles := false
 
 	for _, cmd := range commands {
-		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint || cmd == cmdGoFixCopyLoopVar || cmd == cmdGoFixTHelper || cmd == cmdGoFixAll {
+		if cmd == cmdLintText || cmd == cmdLintGoTest || cmd == cmdFormatGo || cmd == cmdLintWorkflow || cmd == cmdFormatGoTest {
 			doListAllFiles = true
 
 			break
@@ -120,26 +117,20 @@ func Run(commands []string) error {
 		var cmdErr error
 
 		switch command {
-		case cmdAllEnforceUTF8:
-			cmdErr = cryptoutilCmdCicdAllEnforceUtf8.Enforce(logger, allFiles)
-		case cmdGoEnforceTestPatterns:
-			cmdErr = cryptoutilCmdCicdGoEnforceTestPatterns.Enforce(logger, allFiles)
-		case cmdGoEnforceAny:
-			cmdErr = cryptoutilCmdCicdGoEnforceAny.Enforce(logger, allFiles)
-		case cmdGoCheckCircularPackageDependencies:
-			cmdErr = cryptoutilCmdCicdGoCheckCircularPackageDependencies.Check(logger)
-		case cmdGoUpdateDirectDependencies:
-			cmdErr = cryptoutilCmdCicdGoUpdateDirectDependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
-		case cmdGoUpdateAllDependencies:
-			cmdErr = cryptoutilCmdCicdGoUpdateDirectDependencies.Update(logger, cryptoutilMagic.DepCheckAll)
-		case cmdGitHubWorkflowLint:
-			cmdErr = cryptoutilCmdCicdGithubWorkflowLint.Lint(logger, allFiles)
-		case cmdGoFixCopyLoopVar:
-			_, _, _, cmdErr = cryptoutilCmdCicdGoFixCopyLoopVar.Fix(logger, ".", runtime.Version())
-		case cmdGoFixTHelper:
-			_, _, _, cmdErr = cryptoutilCmdCicdGoFixTHelper.Fix(logger, ".")
-		case cmdGoFixAll:
-			_, _, _, cmdErr = cryptoutilCmdCicdGoFixAll.Fix(logger, ".", runtime.Version())
+		case cmdLintText:
+			cmdErr = cryptoutilCmdCicdLintText.Lint(logger, allFiles)
+		case cmdLintGo:
+			cmdErr = cryptoutilCmdCicdLintGo.Lint(logger)
+		case cmdFormatGo:
+			cmdErr = cryptoutilCmdCicdFormatGo.Format(logger, allFiles)
+		case cmdLintGoTest:
+			cmdErr = cryptoutilCmdCicdLintGotest.Lint(logger, allFiles)
+		case cmdFormatGoTest:
+			cmdErr = cryptoutilCmdCicdFormatGotest.Format(logger)
+		case cmdLintWorkflow:
+			cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, allFiles)
+		case cmdLintGoMod:
+			cmdErr = cryptoutilCmdCicdLintGoMod.Lint(logger)
 		}
 
 		cmdDuration := time.Since(cmdStart)
@@ -211,16 +202,11 @@ func validateCommands(commands []string) error {
 		}
 	}
 
-	// Check for duplicate commands
+	// Check for duplicate commands.
 	for command, count := range commandCounts {
 		if count > 1 {
 			errs = append(errs, fmt.Errorf("command '%s' specified %d times - each command can only be used once", command, count))
 		}
-	}
-
-	// Check for mutually exclusive commands
-	if commandCounts[cmdGoUpdateDirectDependencies] > 0 && commandCounts[cmdGoUpdateAllDependencies] > 0 {
-		errs = append(errs, fmt.Errorf("commands '%s' and '%s' cannot be used together - choose one dependency update mode", cmdGoUpdateDirectDependencies, cmdGoUpdateAllDependencies))
 	}
 
 	if len(errs) > 0 {

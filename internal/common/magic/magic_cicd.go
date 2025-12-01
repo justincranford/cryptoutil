@@ -129,30 +129,24 @@ const (
 	UsageCICD = `Usage: cicd <command> [command...]
 
 	Commands:
-	  all-enforce-utf8                       - [Linter] Enforce UTF-8 encoding without BOM
-	  go-enforce-test-patterns               - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
-	  go-enforce-any                         - [Formatter] Custom Go source code fixes (any -> any, etc.)
-	  go-check-circular-package-dependencies - [Linter] Check for circular dependencies in Go packages
-	  go-update-direct-dependencies          - [Linter] Check direct Go dependencies only
-	  go-update-all-dependencies             - [Linter] Check all Go dependencies (direct + transitive)
-	  github-workflow-lint                   - [Linter] Validate GitHub Actions workflow naming and structure, and check for outdated actions
-	  go-fix-copyloopvar                     - [Formatter] Auto-fix: Remove unnecessary loop variable copies (Go 1.25+)
-	  go-fix-thelper                         - [Formatter] Auto-fix: Add t.Helper() to test helper functions
-	  go-fix-all                             - [Formatter] Auto-fix: Run all go-fix-* commands in sequence`
+	  lint-text      - [Linter] Enforce UTF-8 encoding without BOM for text files
+	  lint-go        - [Linter] Check for circular dependencies in Go packages
+	  format-go      - [Formatter] Auto-fix Go files (any -> any, loop var copies)
+	  lint-go-test   - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
+	  format-go-test - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
+	  lint-workflow  - [Linter] Validate GitHub Actions workflow naming and versions
+	  lint-go-mod    - [Linter] Check direct Go dependencies for updates`
 )
 
 // ValidCommands defines the set of valid cicd commands.
 var ValidCommands = map[string]bool{
-	"all-enforce-utf8":                       true,
-	"go-enforce-test-patterns":               true,
-	"go-enforce-any":                         true,
-	"go-check-circular-package-dependencies": true,
-	"go-update-direct-dependencies":          true,
-	"go-update-all-dependencies":             true,
-	"github-workflow-lint":                   true,
-	"go-fix-copyloopvar":                     true,
-	"go-fix-thelper":                         true,
-	"go-fix-all":                             true,
+	"lint-text":      true,
+	"lint-go":        true,
+	"format-go":      true,
+	"lint-go-test":   true,
+	"format-go-test": true,
+	"lint-workflow":  true,
+	"lint-go-mod":    true,
 }
 
 // Regex patterns for test enforcement.
@@ -170,24 +164,71 @@ var (
 
 // File patterns for CI/CD enforcement commands.
 var (
-	// GoEnforceAnyFileExcludePatterns - Files excluded from go-enforce-any command to prevent self-modification.
-	// CRITICAL: Test files containing deliberate `interface {}` (note space) patterns MUST be excluded to prevent modification.
-	// When adding new tests for `interface {}` to `any` enforcement, add them to cicd_enforce_any_test.go.
-	GoEnforceAnyFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_enforce_any[/\\].*\.go$`, // Exclude files in itself to prevent self-modification and self-destruction
-		`api/client`,    // Generated API client
-		`api/model`,     // Generated API models
-		`api/server`,    // Generated API server
-		`_gen\.go$`,     // Generated files
-		`\.pb\.go$`,     // Protocol buffer files
-		`vendor/`,       // Vendored dependencies
-		`.git/`,         // Git directory
-		`node_modules/`, // Node.js dependencies
+	// LintTextFileExcludePatterns - File patterns to exclude from lint-text (UTF-8 encoding checks).
+	// CRITICAL: Exclude own subdirectory to prevent self-modification.
+	LintTextFileExcludePatterns = []string{
+		`internal[/\\]cmd[/\\]cicd[/\\]lint_text[/\\].*\.go$`, // Exclude files in itself to prevent self-modification.
+		`_gen\.go$`,     // Generated files.
+		`\.pb\.go$`,     // Protocol buffer files.
+		`vendor/`,       // Vendored dependencies.
+		`api/client`,    // Generated API client.
+		`api/model`,     // Generated API models.
+		`api/server`,    // Generated API server.
+		`.git/`,         // Git directory.
+		`node_modules/`, // Node.js dependencies.
+	}
+
+	// LintGoFileExcludePatterns - File patterns to exclude from lint-go.
+	// CRITICAL: Exclude own subdirectory to prevent self-modification.
+	LintGoFileExcludePatterns = []string{
+		`internal[/\\]cmd[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
+		`api/client`, `api/model`, `api/server`,
+		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
+	}
+
+	// FormatGoFileExcludePatterns - File patterns to exclude from format-go.
+	// CRITICAL: Exclude own subdirectory to prevent self-modification.
+	FormatGoFileExcludePatterns = []string{
+		`internal[/\\]cmd[/\\]cicd[/\\]format_go[/\\].*\.go$`,
+		`api/client`, `api/model`, `api/server`,
+		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
+	}
+
+	// LintGoTestFileExcludePatterns - File patterns to exclude from lint-go-test.
+	// CRITICAL: Exclude own subdirectory to prevent self-modification.
+	LintGoTestFileExcludePatterns = []string{
+		`internal[/\\]cmd[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,
+		`api/client`, `api/model`, `api/server`,
+		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
+	}
+
+	// FormatGoTestFileExcludePatterns - File patterns to exclude from format-go-test.
+	// CRITICAL: Exclude own subdirectory to prevent self-modification.
+	FormatGoTestFileExcludePatterns = []string{
+		`internal[/\\]cmd[/\\]cicd[/\\]format_gotest[/\\].*\.go$`,
+		`api/client`, `api/model`, `api/server`,
+		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
+	}
+
+	// LintWorkflowFileExcludePatterns - File patterns to exclude from lint-workflow.
+	// CRITICAL: Exclude own subdirectory to prevent self-modification.
+	LintWorkflowFileExcludePatterns = []string{
+		`internal[/\\]cmd[/\\]cicd[/\\]lint_workflow[/\\].*\.go$`,
+		`api/client`, `api/model`, `api/server`,
+		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
+	}
+
+	// LintGoModFileExcludePatterns - File patterns to exclude from lint-go-mod.
+	// CRITICAL: Exclude own subdirectory to prevent self-modification.
+	LintGoModFileExcludePatterns = []string{
+		`internal[/\\]cmd[/\\]cicd[/\\]lint_go_mod[/\\].*\.go$`,
+		`api/client`, `api/model`, `api/server`,
+		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
 	}
 
 	// EnforceUtf8FileIncludePatterns - File patterns to include in UTF-8 encoding checks.
 	EnforceUtf8FileIncludePatterns = []string{
-		// Source code files
+		// Source code files.
 		"*.go",    // Go source files
 		"*.java",  // Java source files
 		"*.sh",    // Shell scripts
@@ -210,7 +251,7 @@ var (
 		"*.kt",    // Kotlin source files
 		"*.kts",   // Kotlin script files
 		"*.swift", // Swift source files
-		// Database and configuration files
+		// Database and configuration files.
 		"*.sql",        // SQL files
 		"*.xml",        // XML configuration and data files
 		"*.yml",        // YAML files
@@ -242,83 +283,5 @@ var (
 		"*.txt",      // Text files
 		"*.asciidoc", // AsciiDoc files
 		"*.adoc",     // AsciiDoc files
-	}
-
-	// AllEnforceUtf8FileExcludePatterns - File patterns to exclude from UTF-8 encoding checks.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	AllEnforceUtf8FileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]all_enforce_utf8[/\\].*\.go$`, // Exclude files in itself to prevent self-modification
-		`_gen\.go$`,     // Generated files
-		`\.pb\.go$`,     // Protocol buffer files
-		`vendor/`,       // Vendored dependencies
-		`api/client`,    // Generated API client
-		`api/model`,     // Generated API models
-		`api/server`,    // Generated API server
-		`.git/`,         // Git directory
-		`node_modules/`, // Node.js dependencies
-	}
-
-	// GoEnforceTestPatternsFileExcludePatterns - Files excluded from go-enforce-test-patterns command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoEnforceTestPatternsFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_enforce_test_patterns[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoCheckCircularPackageDependenciesFileExcludePatterns - Files excluded from go-check-circular-package-dependencies command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoCheckCircularPackageDependenciesFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_check_circular_package_dependencies[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoFixCopyLoopVarFileExcludePatterns - Files excluded from go-fix-copyloopvar command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoFixCopyLoopVarFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_fix_copyloopvar[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoFixTHelperFileExcludePatterns - Files excluded from go-fix-thelper command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoFixTHelperFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_fix_thelper[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoFixAllFileExcludePatterns - Files excluded from go-fix-all command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoFixAllFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_fix_all[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoUpdateDirectDependenciesFileExcludePatterns - Files excluded from go-update-direct-dependencies command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoUpdateDirectDependenciesFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_update_direct_dependencies[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GoUpdateAllDependenciesFileExcludePatterns - Files excluded from go-update-all-dependencies command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GoUpdateAllDependenciesFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]go_update_all_dependencies[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
-	}
-
-	// GithubWorkflowLintFileExcludePatterns - Files excluded from github-workflow-lint command.
-	// CRITICAL: Exclude own subdirectory to prevent self-modification.
-	GithubWorkflowLintFileExcludePatterns = []string{
-		`internal[/\\]cmd[/\\]cicd[/\\]github_workflow_lint[/\\].*\.go$`,
-		`api/client`, `api/model`, `api/server`,
-		`_gen\.go$`, `\.pb\.go$`, `vendor/`, `.git/`, `node_modules/`,
 	}
 )
