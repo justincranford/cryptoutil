@@ -56,6 +56,7 @@ const (
 	// FQDNLabelMaxLength - Maximum length of a single DNS label (63 characters).
 	FQDNLabelMaxLength = 63
 )
+
 const (
 	// LoopbackCIDRv4 - Localhost IPv4 CIDR.
 	LoopbackCIDRv4 = "127.0.0.0/8"

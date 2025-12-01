@@ -46,7 +46,10 @@ Examples:
 				{"rs", "https://127.0.0.1:8082/health"},
 			}
 
-			poller := cryptoutilIdentityHealthcheck.NewPoller(timeout, defaultMaxRetries)
+			// In development/local environments, skip TLS verification for self-signed certs.
+			// TODO: Make this configurable via command flag for production deployments.
+			skipTLSVerify := true
+			poller := cryptoutilIdentityHealthcheck.NewPoller(timeout, defaultMaxRetries, skipTLSVerify)
 			allHealthy := true
 
 			for _, health := range healthURLs {

@@ -134,7 +134,10 @@ Examples:
 
 			// Wait for health checks if requested
 			if wait {
-				poller := cryptoutilIdentityHealthcheck.NewPoller(timeoutDuration, healthCheckMaxRetries)
+				// In development/local environments, skip TLS verification for self-signed certs.
+				// TODO: Make this configurable via config file for production deployments.
+				skipTLSVerify := true
+				poller := cryptoutilIdentityHealthcheck.NewPoller(timeoutDuration, healthCheckMaxRetries, skipTLSVerify)
 				healthURLs := []struct {
 					name string
 					url  string

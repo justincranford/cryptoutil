@@ -22,10 +22,10 @@ import (
 
 	cryptoutilOpenapiServer "cryptoutil/api/server"
 	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilNetwork "cryptoutil/internal/common/util/network"
+	cryptoutilTLS "cryptoutil/internal/infra/tls"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 
 	"go.opentelemetry.io/otel/metric"
@@ -124,35 +124,43 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 			return nil, fmt.Errorf("failed to run new function: %w", err)
 		}
 
-		publicTLSServerCertificate, publicTLSServerRootCACertsPool, publicTLSServerIntermediateCertsPool, err := cryptoutilCertificate.BuildTLSCertificate(publicTLSServerSubject)
+		// Public server: TLS 1.3 only, no client certificate required (browser access).
+		publicTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
+			Subject:    publicTLSServerSubject,
+			ClientAuth: tls.NoClientCert,
+		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
-		}
-
-		privateTLSServerCertificate, privateTLSServerRootCACertsPool, privateTLSServerIntermediateCertsPool, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
+			return nil, fmt.Errorf("failed to build public TLS server config: %w", err)
 		}
 
 		publicTLSServer = &TLSServerConfig{
-			Certificate:         publicTLSServerCertificate,
-			RootCAsPool:         publicTLSServerRootCACertsPool,
-			IntermediateCAsPool: publicTLSServerIntermediateCertsPool,
-			Config: &tls.Config{
-				Certificates: []tls.Certificate{*publicTLSServerCertificate},
-				ClientAuth:   tls.NoClientCert,
-				MinVersion:   tls.VersionTLS12,
-			},
+			Certificate:         publicTLSConfig.Certificate,
+			RootCAsPool:         publicTLSConfig.RootCAsPool,
+			IntermediateCAsPool: publicTLSConfig.IntermediateCAsPool,
+			Config:              publicTLSConfig.TLSConfig,
 		}
+
+		// Private server: TLS 1.3 only with optional mTLS for internal service-to-service communication.
+		// In production, uses RequireAndVerifyClientCert to enforce mutual authentication on admin/internal APIs.
+		// In dev mode, uses NoClientCert for easier local development and testing.
+		privateClientAuth := tls.RequireAndVerifyClientCert
+		if settings.DevMode {
+			privateClientAuth = tls.NoClientCert
+		}
+
+		privateTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
+			Subject:    privateTLSServerSubject,
+			ClientAuth: privateClientAuth,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to build private TLS server config: %w", err)
+		}
+
 		privateTLSServer = &TLSServerConfig{
-			Certificate:         privateTLSServerCertificate,
-			RootCAsPool:         privateTLSServerRootCACertsPool,
-			IntermediateCAsPool: privateTLSServerIntermediateCertsPool,
-			Config: &tls.Config{
-				Certificates: []tls.Certificate{*privateTLSServerCertificate},
-				ClientAuth:   tls.NoClientCert,
-				MinVersion:   tls.VersionTLS12,
-			},
+			Certificate:         privateTLSConfig.Certificate,
+			RootCAsPool:         privateTLSConfig.RootCAsPool,
+			IntermediateCAsPool: privateTLSConfig.IntermediateCAsPool,
+			Config:              privateTLSConfig.TLSConfig,
 		}
 	}
 

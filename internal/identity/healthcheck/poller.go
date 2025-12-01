@@ -4,12 +4,13 @@ package healthcheck
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
+
+	cryptoutilTLS "cryptoutil/internal/infra/tls"
 )
 
 // Response represents a health check JSON response.
@@ -33,14 +34,29 @@ type Poller struct {
 }
 
 // NewPoller creates a new health check poller.
-func NewPoller(timeout time.Duration, maxRetries int) *Poller {
+// The skipTLSVerify parameter should only be true in development/testing environments.
+func NewPoller(timeout time.Duration, maxRetries int, skipTLSVerify bool) *Poller {
+	// Use internal/infra/tls/ for consistent TLS configuration across the project.
+	tlsConfig, err := cryptoutilTLS.NewClientConfig(&cryptoutilTLS.ClientConfigOptions{
+		SkipVerify: skipTLSVerify, // Only true in dev/test per Session 4 Q4
+	})
+	if err != nil {
+		// Fallback to nil transport if TLS config fails (should not happen).
+		return &Poller{
+			client: &http.Client{
+				Timeout: timeout,
+			},
+			maxRetries:      maxRetries,
+			initialInterval: defaultInitialInterval,
+			maxInterval:     defaultMaxInterval,
+		}
+	}
+
 	return &Poller{
 		client: &http.Client{
 			Timeout: timeout,
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true, // Development/testing only
-				},
+				TLSClientConfig: tlsConfig.TLSConfig,
 			},
 		},
 		maxRetries:      maxRetries,

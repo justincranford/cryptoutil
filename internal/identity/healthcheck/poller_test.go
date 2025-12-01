@@ -30,7 +30,7 @@ func TestPollerPollHealthy(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 3)
+	poller := NewPoller(5*time.Second, 3, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
@@ -54,7 +54,7 @@ func TestPollerPollUnhealthy(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 2)
+	poller := NewPoller(5*time.Second, 2, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
@@ -71,7 +71,7 @@ func TestPollerPollNotFound(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 2)
+	poller := NewPoller(5*time.Second, 2, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
@@ -90,7 +90,7 @@ func TestPollerPollInvalidJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 2)
+	poller := NewPoller(5*time.Second, 2, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")
@@ -110,7 +110,7 @@ func TestPollerPollContextCanceled(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 10)
+	poller := NewPoller(5*time.Second, 10, true) // skipTLSVerify=true for tests
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
 
@@ -142,7 +142,7 @@ func TestPollerPollEventuallyHealthy(t *testing.T) {
 	}))
 	defer server.Close()
 
-	poller := NewPoller(5*time.Second, 5)
+	poller := NewPoller(5*time.Second, 5, true) // skipTLSVerify=true for tests
 	ctx := context.Background()
 
 	resp, err := poller.Poll(ctx, server.URL+"/health")

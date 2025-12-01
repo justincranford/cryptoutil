@@ -157,10 +157,30 @@ func storePEM(subject *cryptoutilCertificate.Subject, opts *StorageOptions) (*St
 }
 
 // storePKCS12 stores a certificate in PKCS#12 format.
-// Note: PKCS#12 encoding requires additional implementation.
-// This is a placeholder for future implementation (Session 4 Q2 notes: "PKCS#11 and YubiKey support needed in future too").
+// PKCS#12 (also known as PFX) is a binary format that stores certificates with private keys.
+//
+// Future implementation will:
+//   - Use software.sslmate.com/src/go-pkcs12 for PKCS#12 encoding
+//   - Support password-protected keystores
+//   - Enable cross-platform certificate exchange (Windows, macOS, browsers)
+//
+// Note: PKCS#11 (HSM) and YubiKey support planned for future phases.
+// Reference: Session 4 Q2 notes.
 func storePKCS12(_ *cryptoutilCertificate.Subject, _ *StorageOptions) (*StoredCertificate, error) {
 	return nil, fmt.Errorf("PKCS#12 storage format not yet implemented (planned for future)")
+}
+
+// LoadCertificatePKCS12 loads a certificate and private key from a PKCS#12 file.
+// This is a placeholder for future implementation.
+//
+// Future implementation will:
+//   - Use software.sslmate.com/src/go-pkcs12 for PKCS#12 decoding
+//   - Support password-protected keystores
+//   - Parse certificate chains and private keys from PFX/P12 files
+//
+// Reference: Session 4 Q2 notes.
+func LoadCertificatePKCS12(_ string, _ string) (*cryptoutilCertificate.Subject, error) {
+	return nil, fmt.Errorf("PKCS#12 loading not yet implemented (planned for future)")
 }
 
 // LoadCertificatePEM loads a certificate and private key from PEM files.
