@@ -129,16 +129,16 @@ const (
 	UsageCICD = `Usage: cicd <command> [command...]
 
 	Commands:
-	  all-enforce-utf8                       - Enforce UTF-8 encoding without BOM
-	  go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
-	  go-enforce-any                         - Custom Go source code fixes (any -> any, etc.)
-	  go-check-circular-package-dependencies - Check for circular dependencies in Go packages
-	  go-update-direct-dependencies          - Check direct Go dependencies only
-	  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
-	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions
-	  go-fix-copyloopvar                     - Auto-fix: Remove unnecessary loop variable copies (Go 1.25+)
-	  go-fix-thelper                         - Auto-fix: Add t.Helper() to test helper functions
-	  go-fix-all                             - Auto-fix: Run all go-fix-* commands in sequence`
+	  all-enforce-utf8                       - [Linter] Enforce UTF-8 encoding without BOM
+	  go-enforce-test-patterns               - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
+	  go-enforce-any                         - [Formatter] Custom Go source code fixes (any -> any, etc.)
+	  go-check-circular-package-dependencies - [Linter] Check for circular dependencies in Go packages
+	  go-update-direct-dependencies          - [Linter] Check direct Go dependencies only
+	  go-update-all-dependencies             - [Linter] Check all Go dependencies (direct + transitive)
+	  github-workflow-lint                   - [Linter] Validate GitHub Actions workflow naming and structure, and check for outdated actions
+	  go-fix-copyloopvar                     - [Formatter] Auto-fix: Remove unnecessary loop variable copies (Go 1.25+)
+	  go-fix-thelper                         - [Formatter] Auto-fix: Add t.Helper() to test helper functions
+	  go-fix-all                             - [Formatter] Auto-fix: Run all go-fix-* commands in sequence`
 )
 
 // ValidCommands defines the set of valid cicd commands.

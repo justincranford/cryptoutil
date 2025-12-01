@@ -26,16 +26,16 @@ import (
 )
 
 const (
-	cmdAllEnforceUTF8                     = "all-enforce-utf8"                       // Works on all text files
-	cmdGoEnforceAny                       = "go-enforce-any"                         // Works on *.go files
-	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"                     // Works on *.go files
-	cmdGoFixAll                           = "go-fix-all"                             // Works on *.go files
-	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies" // Works on *.go files
-	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"               // Works on *_test.go files
-	cmdGoFixTHelper                       = "go-fix-thelper"                         // Works on *_test.go files
-	cmdGitHubWorkflowLint                 = "github-workflow-lint"                   // Works on *.yml, *.yaml files
-	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"          // Works on go.mod, go.sum
-	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"             // Works on go.mod, go.sum
+	cmdAllEnforceUTF8                     = "all-enforce-utf8"                       // [Linter] Enforces UTF-8 encoding without BOM - works on all text files
+	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies" // [Linter] Checks for circular Go package dependencies - works on *.go files
+	cmdGoEnforceAny                       = "go-enforce-any"                         // [Formatter] Replaces interface{} with any - works on *.go files
+	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"                     // [Formatter] Fixes Go 1.22+ loop variable scoping - works on *.go files
+	cmdGoFixAll                           = "go-fix-all"                             // [Formatter] Runs all go-fix-* commands in sequence - works on *.go files
+	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"               // [Linter] Enforces test patterns (UUIDv7 usage, testify assertions) - works on *_test.go files
+	cmdGoFixTHelper                       = "go-fix-thelper"                         // [Formatter] Adds t.Helper() to test helper functions - works on *_test.go files
+	cmdGitHubWorkflowLint                 = "github-workflow-lint"                   // [Linter] Validates GitHub Actions workflow naming and structure - works on *.yml, *.yaml files
+	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"          // [Linter] Checks direct Go dependencies for updates - works on go.mod, go.sum
+	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"             // [Linter] Checks all Go dependencies for updates - works on go.mod, go.sum
 )
 
 // Run executes the specified CI/CD check commands.
