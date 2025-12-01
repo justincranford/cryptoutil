@@ -10,7 +10,7 @@
 
 | Phase | Status | Progress | Next Task |
 |-------|--------|----------|-----------|
-| **Phase 0** | 🔄 IN PROGRESS | 6/19 | P0.13 |
+| **Phase 0** | 🔄 IN PROGRESS | 7/19 | P0.13 |
 | **Phase 1** | ⏳ PENDING | 0/25 | - |
 | **Phase 2** | ⏳ PENDING | 0/14 | - |
 | **Phase 3** | ⏳ PENDING | 0/24 | - |
@@ -55,7 +55,7 @@
 | P0.14 | ⏳ | Identity reuses `internal/infra/tls/` |
 | P0.15 | ✅ | Use std lib + x/crypto only - DONE: only uses crypto/* and golang.org/x/crypto |
 | P0.16 | 🔄 | Support PEM + PKCS#12 storage - PEM done, PKCS#12 placeholder |
-| P0.17 | ⏳ | Custom CA only for demo |
+| P0.17 | ✅ | Custom CA only for demo - DONE: internal/infra/demo/ with DemoCA, GetDemoCA() |
 | P0.18 | ✅ | ALWAYS full TLS validation - DONE: ValidateConfig enforces |
 | P0.19 | ✅ | TLS 1.3 only - DONE: MinTLSVersion = tls.VersionTLS13 |
 

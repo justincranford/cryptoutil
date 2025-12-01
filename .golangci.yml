@@ -196,7 +196,8 @@ linters:
         - { pkg: "cryptoutil/internal/common/util/network", alias: cryptoutilNetwork }
         - { pkg: "cryptoutil/internal/common/util/sysinfo", alias: cryptoutilSysinfo }
         # Cryptoutil infra
-        - { pkg: "cryptoutil/internal/infra/tls", alias: cryptoutilInfraTLS }
+        - { pkg: "cryptoutil/internal/infra/tls", alias: cryptoutilTLS }
+        - { pkg: "cryptoutil/internal/infra/demo", alias: cryptoutilDemo }
         # Cryptoutil crypto
         - { pkg: "cryptoutil/internal/common/crypto/asn1", alias: cryptoutilAsn1 }
         - { pkg: "cryptoutil/internal/common/crypto/certificate", alias: cryptoutilCertificate }
