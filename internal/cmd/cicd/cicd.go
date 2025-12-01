@@ -35,24 +35,24 @@ import (
 )
 
 const (
-	cmdAllEnforceUTF8                     = "all-enforce-utf8"
-	cmdGoEnforceAny                       = "go-enforce-any"
-	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"
-	cmdGitHubWorkflowLint                 = "github-workflow-lint"
-	cmdGoFixStaticcheckErrorStrings       = "go-fix-staticcheck-error-strings"
-	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"
-	cmdGoFixTHelper                       = "go-fix-thelper"
-	cmdGoFixAll                           = "go-fix-all"
-	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies"
-	cmdGoCheckIdentityImports             = "go-check-identity-imports"
-	cmdGoGeneratePostmortem               = "go-generate-postmortem"
-	cmdGoIdentityRequirementsCheck        = "go-identity-requirements-check"
-	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"
-	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"
-	cmdGoUpdateProjectStatus              = "go-update-project-status"
-	cmdGoUpdateProjectStatusV2            = "go-update-project-status-v2"
-	cmdIdentityProgressiveValidation      = "identity-progressive-validation"
-	cmdRotateSecret                       = "rotate-secret"
+	cmdAllEnforceUTF8                     = "all-enforce-utf8"                       // Works on all files
+	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"               // Works on all files
+	cmdGoUpdateProjectStatus              = "go-update-project-status"               // Works on project files
+	cmdGoUpdateProjectStatusV2            = "go-update-project-status-v2"            // Works on project files
+	cmdGoEnforceAny                       = "go-enforce-any"                         // Works on *.go files
+	cmdGoFixStaticcheckErrorStrings       = "go-fix-staticcheck-error-strings"       // Works on *.go files
+	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"                     // Works on *.go files
+	cmdIdentityProgressiveValidation      = "identity-progressive-validation"        // Works on *.go files
+	cmdGoFixAll                           = "go-fix-all"                             // Works on *.go files
+	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies" // Works on *.go files
+	cmdGoCheckIdentityImports             = "go-check-identity-imports"              // Works on *.go files
+	cmdGoIdentityRequirementsCheck        = "go-identity-requirements-check"         // Works on *.go files
+	cmdGoFixTHelper                       = "go-fix-thelper"                         // Works on *_test.go files
+	cmdGitHubWorkflowLint                 = "github-workflow-lint"                   // Works on *.yml, *.yaml files
+	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"          // Works on go.mod, go.sum
+	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"             // Works on go.mod, go.sum
+	cmdRotateSecret                       = "rotate-secret"                          // Works on configuration files
+	cmdGoGeneratePostmortem               = "go-generate-postmortem"                 // Works on project files
 )
 
 // Run executes the specified CI/CD check commands.
