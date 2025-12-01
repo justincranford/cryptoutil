@@ -34,6 +34,11 @@ func RequireNewForTest(applicationName string) *Settings {
 		panic("devMode.value must be bool")
 	}
 
+	demoModeValue, ok := demoMode.value.(bool)
+	if !ok {
+		panic("demoMode.value must be bool")
+	}
+
 	bindPublicProtocolValue, ok := bindPublicProtocol.value.(string)
 	if !ok {
 		panic("bindPublicProtocol.value must be string")
@@ -254,6 +259,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		LogLevel:                    logLevelValue,
 		VerboseMode:                 verboseModeValue,
 		DevMode:                     devModeValue,
+		DemoMode:                    demoModeValue,
 		BindPublicProtocol:          bindPublicProtocolValue,
 		BindPublicAddress:           bindPublicAddressValue,
 		BindPublicPort:              uint16(0), // Let OS assign port to avoid conflict during parallel testing

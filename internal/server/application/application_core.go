@@ -11,6 +11,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
+	cryptoutilDemo "cryptoutil/internal/server/demo"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 )
@@ -75,6 +76,19 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	}
 
 	serverApplicationCore.BusinessLogicService = businessLogicService
+
+	// Seed demo data if demo mode is enabled.
+	if settings.DemoMode {
+		serverApplicationBasic.TelemetryService.Slogger.Info("Demo mode enabled, seeding demo data")
+
+		err = cryptoutilDemo.SeedDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
+		if err != nil {
+			serverApplicationBasic.TelemetryService.Slogger.Error("failed to seed demo data", "error", err)
+			serverApplicationCore.Shutdown()
+
+			return nil, fmt.Errorf("failed to seed demo data: %w", err)
+		}
+	}
 
 	return serverApplicationCore, nil
 }

@@ -40,6 +40,8 @@ const (
 	DefaultHelp = false
 	// DefaultDevMode - Default dev mode flag value.
 	DefaultDevMode = false
+	// DefaultDemoMode - Default demo mode flag value.
+	DefaultDemoMode = false
 	// DefaultDryRun - Default dry run flag value.
 	DefaultDryRun = false
 

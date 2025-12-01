@@ -50,6 +50,7 @@ const (
 	defaultHelp                        = cryptoutilMagic.DefaultHelp
 	defaultVerboseMode                 = cryptoutilMagic.DefaultVerboseMode
 	defaultDevMode                     = cryptoutilMagic.DefaultDevMode
+	defaultDemoMode                    = cryptoutilMagic.DefaultDemoMode
 	defaultDryRun                      = cryptoutilMagic.DefaultDryRun
 	defaultProfile                     = cryptoutilMagic.DefaultProfile
 	defaultOTLPEnabled                 = cryptoutilMagic.DefaultOTLPEnabled
@@ -176,6 +177,7 @@ type Settings struct {
 	LogLevel                    string
 	VerboseMode                 bool
 	DevMode                     bool
+	DemoMode                    bool
 	DryRun                      bool
 	Profile                     string // Configuration profile: dev, stg, prod, test
 	BindPublicProtocol          string
@@ -289,6 +291,13 @@ var (
 		value:       defaultDevMode,
 		usage:       "run in development mode; enables in-memory SQLite",
 		description: "Dev mode",
+	})
+	demoMode = *registerSetting(&Setting{
+		name:        "demo",
+		shorthand:   "X",
+		value:       defaultDemoMode,
+		usage:       "run in demo mode; auto-seeds demo data on startup",
+		description: "Demo mode",
 	})
 	dryRun = *registerSetting(&Setting{
 		name:        "dry-run",
@@ -698,6 +707,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(logLevel.name, logLevel.shorthand, registerAsStringSetting(&logLevel), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, registerAsBoolSetting(&verboseMode), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, registerAsBoolSetting(&devMode), devMode.usage)
+	pflag.BoolP(demoMode.name, demoMode.shorthand, registerAsBoolSetting(&demoMode), demoMode.usage)
 	pflag.BoolP(dryRun.name, dryRun.shorthand, registerAsBoolSetting(&dryRun), dryRun.usage)
 	pflag.StringP(profile.name, profile.shorthand, registerAsStringSetting(&profile), profile.usage)
 	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, registerAsStringSetting(&bindPublicProtocol), bindPublicProtocol.usage)
@@ -807,6 +817,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		LogLevel:                    viper.GetString(logLevel.name),
 		VerboseMode:                 viper.GetBool(verboseMode.name),
 		DevMode:                     viper.GetBool(devMode.name),
+		DemoMode:                    viper.GetBool(demoMode.name),
 		DryRun:                      viper.GetBool(dryRun.name),
 		Profile:                     viper.GetString(profile.name),
 		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),
