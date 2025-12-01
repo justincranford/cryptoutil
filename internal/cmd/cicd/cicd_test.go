@@ -69,8 +69,9 @@ func TestValidateCommands_HappyPath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := validateCommands(tc.commands)
+			actualCommands, err := validateCommands(tc.commands)
 			require.NoError(t, err, "Expected no error for valid commands: %v", tc.commands)
+			require.Equal(t, tc.commands, actualCommands, "Expected actualCommands to match input commands")
 		})
 	}
 }
@@ -109,7 +110,7 @@ func TestValidateCommands_DuplicateCommands(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := validateCommands(tc.commands)
+			_, err := validateCommands(tc.commands)
 			require.Error(t, err, "Expected error for duplicate commands: %v", tc.commands)
 			require.Contains(t, err.Error(), tc.expectedText, "Error message should contain expected text")
 		})
@@ -145,7 +146,7 @@ func TestValidateCommands_UnknownCommands(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := validateCommands(tc.commands)
+			_, err := validateCommands(tc.commands)
 			require.Error(t, err, "Expected error for unknown command: %v", tc.commands)
 			require.Contains(t, err.Error(), tc.expectedText, "Error message should contain expected text")
 		})
@@ -156,19 +157,22 @@ func TestValidateCommands_EdgeCases(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		commands  []string
-		expectErr bool
+		name         string
+		commands     []string
+		expectErr    bool
+		expectedCmds []string
 	}{
 		{
-			name:      "empty commands",
-			commands:  []string{},
-			expectErr: true,
+			name:         "empty commands",
+			commands:     []string{},
+			expectErr:    true,
+			expectedCmds: nil,
 		},
 		{
-			name:      "valid commands with flags (flags are skipped)",
-			commands:  []string{"--strict", "true", "lint-text"},
-			expectErr: false,
+			name:         "valid commands with flags (flags are skipped)",
+			commands:     []string{"--strict", "true", "lint-text"},
+			expectErr:    false,
+			expectedCmds: []string{"lint-text"},
 		},
 	}
 
@@ -176,11 +180,12 @@ func TestValidateCommands_EdgeCases(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := validateCommands(tc.commands)
+			actualCommands, err := validateCommands(tc.commands)
 			if tc.expectErr {
 				require.Error(t, err, "Expected error for test case: %s", tc.name)
 			} else {
 				require.NoError(t, err, "Expected no error for test case: %s", tc.name)
+				require.Equal(t, tc.expectedCmds, actualCommands, "Expected actualCommands to match")
 			}
 		})
 	}

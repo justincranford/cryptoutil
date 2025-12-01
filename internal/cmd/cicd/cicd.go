@@ -39,9 +39,9 @@ func Run(commands []string) error {
 	logger := cryptoutilCmdCicdCommon.NewLogger("Run")
 	startTime := time.Now()
 
-	err := validateCommands(commands)
+	actualCommands, err := validateCommands(commands)
 	if err != nil {
-		return err
+		return fmt.Errorf("command validation failed: %w", err)
 	}
 
 	logger.Log("validateCommands completed")
@@ -49,26 +49,6 @@ func Run(commands []string) error {
 	filesByExtension, err := cryptoutilFiles.ListAllFiles(cryptoutilMagic.ListAllFilesStartDirectory)
 	if err != nil {
 		return fmt.Errorf("failed to collect files: %w", err)
-	}
-
-	// Extract actual commands (skip flags starting with - and their values).
-	actualCommands := []string{}
-	skipNext := false
-
-	for _, cmd := range commands {
-		if skipNext {
-			skipNext = false
-
-			continue
-		}
-
-		if strings.HasPrefix(cmd, "-") {
-			skipNext = true // Next arg is flag value, skip it
-
-			continue
-		}
-
-		actualCommands = append(actualCommands, cmd)
 	}
 
 	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
@@ -131,37 +111,46 @@ func Run(commands []string) error {
 	return nil
 }
 
-func validateCommands(commands []string) error {
+func validateCommands(commands []string) ([]string, error) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("validateCommands")
 
 	if len(commands) == 0 {
 		logger.Log("validateCommands: empty commands")
 
-		return fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
+		return nil, fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
 	}
 
-	var errs []error
-
-	commandCounts := make(map[string]int)
-
+	// Extract actual commands (skip flags starting with - and their values).
+	actualCommands := []string{}
 	skipNext := false
 
-	for _, command := range commands {
-		// Skip flag values after flag names (e.g., skip "P5.01" after "--start-task")
+	for _, cmd := range commands {
 		if skipNext {
 			skipNext = false
 
 			continue
 		}
 
-		// Skip flag arguments (--strict, --task-threshold, --start-task, --end-task, --output, etc.)
-		// Flags are passed to subcommand Enforce functions, not validated as commands
-		if strings.HasPrefix(command, "-") {
-			skipNext = true // Next argument is flag value, skip it
+		if strings.HasPrefix(cmd, "-") {
+			skipNext = true // Next arg is flag value, skip it
 
 			continue
 		}
 
+		actualCommands = append(actualCommands, cmd)
+	}
+
+	if len(actualCommands) == 0 {
+		logger.Log("validateCommands: no actual commands after flag extraction")
+
+		return nil, fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
+	}
+
+	var errs []error
+
+	commandCounts := make(map[string]int)
+
+	for _, command := range actualCommands {
 		if cryptoutilMagic.ValidCommands[command] {
 			commandCounts[command]++
 		} else {
@@ -179,10 +168,10 @@ func validateCommands(commands []string) error {
 	if len(errs) > 0 {
 		logger.Log("validateCommands: validation errors")
 
-		return fmt.Errorf("command validation failed: %w", errors.Join(errs...))
+		return nil, fmt.Errorf("command validation failed: %w", errors.Join(errs...))
 	}
 
 	logger.Log("validateCommands: success")
 
-	return nil
+	return actualCommands, nil
 }

@@ -111,4 +111,3 @@ func filterGoFiles(filesByExtension map[string][]string) []string {
 	// Directory-level exclusions already applied by ListAllFiles.
 	return cryptoutilCmdCicdCommon.GetGoFiles(filesByExtension, "format-go")
 }
-
