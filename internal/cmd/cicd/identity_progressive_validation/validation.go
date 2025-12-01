@@ -5,16 +5,14 @@ package identity_progressive_validation
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
-	"time"
 
 	"cryptoutil/internal/cmd/cicd/common"
 )
 
-// Validate runs 6-step progressive validation: TODO scan, tests, coverage, requirements, integration, docs.
+// Validate runs 5-step progressive validation: TODO scan, tests, coverage, requirements, integration.
 func Validate(ctx context.Context, logger *common.Logger, args []string) error {
-	logger.Log("📋 Starting progressive validation (6 steps)...")
+	logger.Log("📋 Starting progressive validation (5 steps)...")
 
 	steps := []validationStep{
 		{name: "TODO Scan", fn: validateTODOs},
@@ -22,17 +20,16 @@ func Validate(ctx context.Context, logger *common.Logger, args []string) error {
 		{name: "Coverage", fn: validateCoverage},
 		{name: "Requirements", fn: validateRequirements},
 		{name: "Integration", fn: validateIntegration},
-		{name: "Documentation", fn: validateDocumentation},
 	}
 
 	passed := 0
 
 	for i, step := range steps {
-		logger.Log(fmt.Sprintf("📋 Step %d/6: %s", i+1, step.name))
+		logger.Log(fmt.Sprintf("📋 Step %d/5: %s", i+1, step.name))
 
 		if err := step.fn(ctx, logger); err != nil {
 			logger.Log(fmt.Sprintf("❌ %s failed: %v", step.name, err))
-			logger.Log(fmt.Sprintf("Progressive validation: %d/6 steps passed", passed))
+			logger.Log(fmt.Sprintf("Progressive validation: %d/5 steps passed", passed))
 
 			return fmt.Errorf("progressive validation failed at step %d (%s): %w", i+1, step.name, err)
 		}
@@ -98,30 +95,6 @@ func validateIntegration(ctx context.Context, logger *common.Logger) error {
 	// For now, skip E2E tests (no smoke test implemented yet)
 	// TODO(P5.03): Implement core OAuth flow E2E test for validation
 	logger.Log("⏭️ Integration test skipped (no E2E smoke test implemented yet)")
-
-	return nil
-}
-
-const sevenDaysInSeconds = 7 * 24 * 60 * 60 //nolint:mnd // 7 days = 604800 seconds
-
-func validateDocumentation(ctx context.Context, logger *common.Logger) error {
-	// Check PROJECT-STATUS.md freshness (<7 days old)
-	statusFile := "docs/02-identityV2/PROJECT-STATUS.md"
-
-	fileInfo, err := os.Stat(statusFile)
-	if err != nil {
-		return fmt.Errorf("failed to stat PROJECT-STATUS.md: %w", err)
-	}
-
-	modTime := fileInfo.ModTime()
-	age := time.Since(modTime)
-	ageDays := int(age.Hours() / 24) //nolint:mnd // convert hours to days
-
-	logger.Log(fmt.Sprintf("PROJECT-STATUS.md age: %d days", ageDays))
-
-	if age.Seconds() > sevenDaysInSeconds {
-		return fmt.Errorf("PROJECT-STATUS.md is %d days old (>7 days threshold). Run: go run ./cmd/cicd go-update-project-status", ageDays)
-	}
 
 	return nil
 }

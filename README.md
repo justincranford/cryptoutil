@@ -176,8 +176,6 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 ### Automation Tools
 
-- **go-generate-postmortem**: Automated post-mortem generation (50% time reduction)
-- **go-update-project-status-v2**: Automated PROJECT-STATUS.md updates (100% elimination of manual work)
 - **ci-identity-validation**: Automated PR validation (50% manual QA reduction)
 - **markdownlint-cli2**: Automated markdown formatting
 

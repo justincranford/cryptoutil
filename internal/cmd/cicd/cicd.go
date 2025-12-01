@@ -23,11 +23,8 @@ import (
 	cryptoutilCmdCicdGoFixCopyLoopVar "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
 	cryptoutilCmdCicdGoFixStaticcheckErrorStrings "cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
 	cryptoutilCmdCicdGoFixTHelper "cryptoutil/internal/cmd/cicd/go_fix_thelper"
-	cryptoutilGoGeneratePostmortem "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
 	cryptoutilCmdCicdGoIdentityRequirementsCheck "cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
 	cryptoutilCmdCicdGoUpdateDirectDependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
-	cryptoutilCmdCicdGoUpdateProjectStatus "cryptoutil/internal/cmd/cicd/go_update_project_status"
-	cryptoutilGoUpdateProjectStatusV2 "cryptoutil/internal/cmd/cicd/go_update_project_status_v2"
 	cryptoutilCmdCicdIdentityProgressiveValidation "cryptoutil/internal/cmd/cicd/identity_progressive_validation"
 	cryptoutilCmdCicdRotateSecret "cryptoutil/internal/cmd/cicd/rotate_secret"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
@@ -35,10 +32,7 @@ import (
 )
 
 const (
-	cmdAllEnforceUTF8                     = "all-enforce-utf8"                       // Works on all files
-	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"               // Works on all files
-	cmdGoUpdateProjectStatus              = "go-update-project-status"               // Works on project files
-	cmdGoUpdateProjectStatusV2            = "go-update-project-status-v2"            // Works on project files
+	cmdAllEnforceUTF8                     = "all-enforce-utf8"                       // Works on all text files
 	cmdGoEnforceAny                       = "go-enforce-any"                         // Works on *.go files
 	cmdGoFixStaticcheckErrorStrings       = "go-fix-staticcheck-error-strings"       // Works on *.go files
 	cmdGoFixCopyLoopVar                   = "go-fix-copyloopvar"                     // Works on *.go files
@@ -47,19 +41,18 @@ const (
 	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies" // Works on *.go files
 	cmdGoCheckIdentityImports             = "go-check-identity-imports"              // Works on *.go files
 	cmdGoIdentityRequirementsCheck        = "go-identity-requirements-check"         // Works on *.go files
+	cmdGoEnforceTestPatterns              = "go-enforce-test-patterns"               // Works on *_test.go files
 	cmdGoFixTHelper                       = "go-fix-thelper"                         // Works on *_test.go files
 	cmdGitHubWorkflowLint                 = "github-workflow-lint"                   // Works on *.yml, *.yaml files
 	cmdGoUpdateDirectDependencies         = "go-update-direct-dependencies"          // Works on go.mod, go.sum
 	cmdGoUpdateAllDependencies            = "go-update-all-dependencies"             // Works on go.mod, go.sum
 	cmdRotateSecret                       = "rotate-secret"                          // Works on configuration files
-	cmdGoGeneratePostmortem               = "go-generate-postmortem"                 // Works on project files
 )
 
 // Run executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
 // Returns an error if any command fails, but continues executing all commands.
 func Run(commands []string) error {
-	ctx := context.Background()
 	logger := cryptoutilCmdCicdCommon.NewLogger("Run")
 	startTime := time.Now()
 
@@ -179,8 +172,6 @@ func Run(commands []string) error {
 		case cmdGoIdentityRequirementsCheck:
 			// Pass remaining args for flag parsing (--strict, --task-threshold, etc.)
 			cmdErr = cryptoutilCmdCicdGoIdentityRequirementsCheck.Enforce(context.Background(), logger, remainingArgs)
-		case cmdGoUpdateProjectStatus:
-			cmdErr = cryptoutilCmdCicdGoUpdateProjectStatus.Update(context.Background(), logger, remainingArgs)
 		case cmdIdentityProgressiveValidation:
 			cmdErr = cryptoutilCmdCicdIdentityProgressiveValidation.Validate(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateDirectDependencies:
@@ -197,34 +188,6 @@ func Run(commands []string) error {
 			_, _, _, cmdErr = cryptoutilCmdCicdGoFixTHelper.Fix(logger, ".")
 		case cmdGoFixAll:
 			_, _, _, cmdErr = cryptoutilCmdCicdGoFixAll.Fix(logger, ".", runtime.Version())
-		case cmdGoGeneratePostmortem:
-			// Parse flags: --start-task P5.01 --end-task P5.05 --output path
-			startTask := ""
-			endTask := ""
-			outputPath := ""
-
-			for i := 0; i < len(remainingArgs); i++ {
-				if remainingArgs[i] == "--start-task" && i+1 < len(remainingArgs) {
-					startTask = remainingArgs[i+1]
-				} else if remainingArgs[i] == "--end-task" && i+1 < len(remainingArgs) {
-					endTask = remainingArgs[i+1]
-				} else if remainingArgs[i] == "--output" && i+1 < len(remainingArgs) {
-					outputPath = remainingArgs[i+1]
-				}
-			}
-
-			if startTask == "" || endTask == "" || outputPath == "" {
-				cmdErr = errors.New("go-generate-postmortem requires --start-task, --end-task, and --output flags")
-			} else {
-				opts := cryptoutilGoGeneratePostmortem.Options{
-					StartTask:  startTask,
-					EndTask:    endTask,
-					OutputPath: outputPath,
-				}
-				cmdErr = cryptoutilGoGeneratePostmortem.Generate(ctx, opts)
-			}
-		case cmdGoUpdateProjectStatusV2:
-			cmdErr = cryptoutilGoUpdateProjectStatusV2.Update(ctx, cryptoutilGoUpdateProjectStatusV2.Options{})
 		case cmdRotateSecret:
 			cmdErr = cryptoutilCmdCicdRotateSecret.Execute(logger, remainingArgs)
 		}

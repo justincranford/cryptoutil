@@ -126,37 +126,3 @@ jobs:
           name: todo-scan-results
           path: test-output/todo-scan.txt
           retention-days: 7
-
-  update-project-status:
-    name: Update PROJECT-STATUS.md
-    runs-on: ubuntu-latest
-    needs: [validate-requirements, validate-tests, validate-todos]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Run project status updater
-        run: go run ./cmd/cicd go-update-project-status-v2
-
-      - name: Check for changes
-        id: git-check
-        run: |
-          git diff --exit-code docs/02-identityV2/PROJECT-STATUS.md || echo "changed=true" >> $GITHUB_OUTPUT
-
-      - name: Commit updated PROJECT-STATUS.md
-        if: steps.git-check.outputs.changed == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add docs/02-identityV2/PROJECT-STATUS.md
-          git commit -m "chore(docs): auto-update PROJECT-STATUS.md [skip ci]"
-          git push
