@@ -39,7 +39,9 @@ func WriteFile(filePath string, bytesOrString any, permissions os.FileMode) erro
 
 // ListAllFiles walks the directory tree starting from startDirectory and returns all file paths.
 // It excludes directories and only includes regular files.
-func ListAllFiles(startDirectory string) ([]string, error) {
+// Paths are normalized to use forward slashes for cross-platform compatibility.
+// Excluded directories are skipped entirely.
+func ListAllFiles(startDirectory string, exclusions ...string) ([]string, error) {
 	var allFiles []string
 
 	err := filepath.Walk(startDirectory, func(path string, info os.FileInfo, err error) error {
@@ -47,9 +49,19 @@ func ListAllFiles(startDirectory string) ([]string, error) {
 			return err
 		}
 
-		if !info.IsDir() {
-			allFiles = append(allFiles, path)
+		if info.IsDir() {
+			for _, excl := range exclusions {
+				if path == excl || (len(path) > len(excl) && path[:len(excl)+1] == excl+"/") {
+					return filepath.SkipDir
+				}
+			}
+
+			return nil
 		}
+
+		// Normalize path to forward slashes
+		normalizedPath := filepath.ToSlash(path)
+		allFiles = append(allFiles, normalizedPath)
 
 		return nil
 	})

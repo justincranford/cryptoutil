@@ -76,7 +76,7 @@ linters:
       # Exclude nilnil from oam_orm_mapper.go (intentional pattern).
       - path: "internal/server/businesslogic/oam_orm_mapper\\.go$"
         linters: [nilnil]
-      # Exclude nilnil from nullable_uuid.go (intentional pattern for sql.Scanner).
+      # Exclude nilnil from nullable_uuid.go (sql.Scanner pattern).
       - path: "internal/identity/domain/nullable_uuid\\.go$"
         linters: [nilnil]
       # Exclude nilnil from secret_rotation_service.go (intentional pattern).
@@ -155,71 +155,140 @@ linters:
         - { pkg: "cryptoutil/api/model", alias: cryptoutilOpenapiModel }
         - { pkg: "cryptoutil/api/server", alias: cryptoutilOpenapiServer }
         # Cryptoutil cmd
-        - { pkg: "cryptoutil/internal/cmd", alias: cryptoutilCmd }
-        - { pkg: "cryptoutil/internal/cmd/cryptoutil", alias: cryptoutilCmdCryptoutil }
-        - { pkg: "cryptoutil/internal/cmd/workflow", alias: cryptoutilWorkflow }
-        - { pkg: "cryptoutil/internal/cmd/cicd/common", alias: cryptoutilCmdCicdCommon }
-        - { pkg: "cryptoutil/internal/cmd/cicd/all_enforce_utf8", alias: cryptoutilCmdCicdAllEnforceUtf8 }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies", alias: cryptoutilCmdCicdGoCheckCircularPackageDependencies }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_check_identity_imports", alias: cryptoutilCmdCicdGoCheckIdentityImports }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_enforce_any", alias: cryptoutilCmdCicdGoEnforceAny }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns", alias: cryptoutilCmdCicdGoEnforceTestPatterns }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_all", alias: cryptoutilCmdCicdGoFixAll }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar", alias: cryptoutilCmdCicdGoFixCopyLoopVar }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings", alias: cryptoutilCmdCicdGoFixStaticcheckErrorStrings }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_fix_thelper", alias: cryptoutilCmdCicdGoFixTHelper }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_generate_postmortem", alias: cryptoutilGoGeneratePostmortem }
-        - { pkg: "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies", alias: cryptoutilCmdCicdGoUpdateDirectDependencies }
-        - { pkg: "cryptoutil/internal/cmd/cicd/github_workflow_lint", alias: cryptoutilCmdCicdGithubWorkflowLint }
+        - pkg: "cryptoutil/internal/cmd"
+          alias: cryptoutilCmd
+        - pkg: "cryptoutil/internal/cmd/cryptoutil"
+          alias: cryptoutilCmdCryptoutil
+        - pkg: "cryptoutil/internal/cmd/workflow"
+          alias: cryptoutilWorkflow
+        - pkg: "cryptoutil/internal/cmd/cicd/common"
+          alias: cryptoutilCmdCicdCommon
+        - pkg: "cryptoutil/internal/cmd/cicd/all_enforce_utf8"
+          alias: cryptoutilCmdCicdAllEnforceUtf8
+        - pkg: "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
+          alias: cryptoutilCmdCicdGoCheckCircularPackageDependencies
+        - pkg: "cryptoutil/internal/cmd/cicd/go_check_identity_imports"
+          alias: cryptoutilCmdCicdGoCheckIdentityImports
+        - pkg: "cryptoutil/internal/cmd/cicd/go_enforce_any"
+          alias: cryptoutilCmdCicdGoEnforceAny
+        - pkg: "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
+          alias: cryptoutilCmdCicdGoEnforceTestPatterns
+        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_all"
+          alias: cryptoutilCmdCicdGoFixAll
+        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
+          alias: cryptoutilCmdCicdGoFixCopyLoopVar
+        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
+          alias: cryptoutilCmdCicdGoFixStaticcheckErrorStrings
+        - pkg: "cryptoutil/internal/cmd/cicd/go_fix_thelper"
+          alias: cryptoutilCmdCicdGoFixTHelper
+        - pkg: "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
+          alias: cryptoutilGoGeneratePostmortem
+        - pkg: "cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
+          alias: cryptoutilCmdCicdGoIdentityRequirementsCheck
+        - pkg: "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+          alias: cryptoutilCmdCicdGoUpdateDirectDependencies
+        - pkg: "cryptoutil/internal/cmd/cicd/go_update_project_status"
+          alias: cryptoutilCmdCicdGoUpdateProjectStatus
+        - pkg: "cryptoutil/internal/cmd/cicd/go_update_project_status_v2"
+          alias: cryptoutilGoUpdateProjectStatusV2
+        - pkg: "cryptoutil/internal/cmd/cicd/github_workflow_lint"
+          alias: cryptoutilCmdCicdGithubWorkflowLint
+        - pkg: "cryptoutil/internal/cmd/cicd/identity_progressive_validation"
+          alias: cryptoutilCmdCicdIdentityProgressiveValidation
+        - pkg: "cryptoutil/internal/cmd/cicd/rotate_secret"
+          alias: cryptoutilCmdCicdRotateSecret
         # Cryptoutil test
-        - { pkg: "cryptoutil/internal/test/e2e", alias: cryptoutilE2E }
-        - { pkg: "cryptoutil/internal/identity/test/testutils", alias: cryptoutilIdentityTestTestutils }
+        - pkg: "cryptoutil/internal/test/e2e"
+          alias: cryptoutilE2E
+        - pkg: "cryptoutil/internal/identity/test/testutils"
+          alias: cryptoutilIdentityTestTestutils
         # Cryptoutil common
-        - { pkg: "cryptoutil/internal/common/apperr", alias: cryptoutilAppErr }
-        - { pkg: "cryptoutil/internal/common/config", alias: cryptoutilConfig }
-        - { pkg: "cryptoutil/internal/common/container", alias: cryptoutilContainer }
-        - { pkg: "cryptoutil/internal/common/magic", alias: cryptoutilMagic }
-        - { pkg: "cryptoutil/internal/common/pool", alias: cryptoutilPool }
-        - { pkg: "cryptoutil/internal/common/telemetry", alias: cryptoutilTelemetry }
-        - { pkg: "cryptoutil/internal/common/testutil", alias: cryptoutilTestutil }
-        - { pkg: "cryptoutil/internal/common/util", alias: cryptoutilUtil }
-        - { pkg: "cryptoutil/internal/common/util/combinations", alias: cryptoutilCombinations }
-        - { pkg: "cryptoutil/internal/common/util/datetime", alias: cryptoutilDateTime }
-        - { pkg: "cryptoutil/internal/common/util/files", alias: cryptoutilFiles }
-        - { pkg: "cryptoutil/internal/common/util/network", alias: cryptoutilNetwork }
-        - { pkg: "cryptoutil/internal/common/util/sysinfo", alias: cryptoutilSysinfo }
+        - pkg: "cryptoutil/internal/common/apperr"
+          alias: cryptoutilAppErr
+        - pkg: "cryptoutil/internal/common/config"
+          alias: cryptoutilConfig
+        - pkg: "cryptoutil/internal/common/container"
+          alias: cryptoutilContainer
+        - pkg: "cryptoutil/internal/common/magic"
+          alias: cryptoutilMagic
+        - pkg: "cryptoutil/internal/common/pool"
+          alias: cryptoutilPool
+        - pkg: "cryptoutil/internal/common/telemetry"
+          alias: cryptoutilTelemetry
+        - pkg: "cryptoutil/internal/common/testutil"
+          alias: cryptoutilTestutil
+        - pkg: "cryptoutil/internal/common/util"
+          alias: cryptoutilUtil
+        - pkg: "cryptoutil/internal/common/util/combinations"
+          alias: cryptoutilCombinations
+        - pkg: "cryptoutil/internal/common/util/datetime"
+          alias: cryptoutilDateTime
+        - pkg: "cryptoutil/internal/common/util/files"
+          alias: cryptoutilFiles
+        - pkg: "cryptoutil/internal/common/util/network"
+          alias: cryptoutilNetwork
+        - pkg: "cryptoutil/internal/common/util/sysinfo"
+          alias: cryptoutilSysinfo
         # Cryptoutil infra
-        - { pkg: "cryptoutil/internal/infra/tls", alias: cryptoutilTLS }
-        - { pkg: "cryptoutil/internal/infra/demo", alias: cryptoutilDemo }
+        - pkg: "cryptoutil/internal/infra/tls"
+          alias: cryptoutilTLS
+        - pkg: "cryptoutil/internal/infra/demo"
+          alias: cryptoutilDemo
         # Cryptoutil crypto
-        - { pkg: "cryptoutil/internal/common/crypto/asn1", alias: cryptoutilAsn1 }
-        - { pkg: "cryptoutil/internal/common/crypto/certificate", alias: cryptoutilCertificate }
-        - { pkg: "cryptoutil/internal/common/crypto/digests", alias: cryptoutilDigests }
-        - { pkg: "cryptoutil/internal/common/crypto/jose", alias: cryptoutilJose }
-        - { pkg: "cryptoutil/internal/common/crypto/keygen", alias: cryptoutilKeyGen }
+        - pkg: "cryptoutil/internal/common/crypto/asn1"
+          alias: cryptoutilAsn1
+        - pkg: "cryptoutil/internal/common/crypto/certificate"
+          alias: cryptoutilCertificate
+        - pkg: "cryptoutil/internal/common/crypto/digests"
+          alias: cryptoutilDigests
+        - pkg: "cryptoutil/internal/common/crypto/jose"
+          alias: cryptoutilJose
+        - pkg: "cryptoutil/internal/common/crypto/keygen"
+          alias: cryptoutilKeyGen
         # Cryptoutil server
-        - { pkg: "cryptoutil/internal/server/application", alias: cryptoutilServerApplication }
-        - { pkg: "cryptoutil/internal/server/businesslogic", alias: cryptoutilBusinessLogic }
-        - { pkg: "cryptoutil/internal/server/handler", alias: cryptoutilOpenapiHandler }
-        - { pkg: "cryptoutil/internal/server/barrier", alias: cryptoutilBarrierService }
-        - { pkg: "cryptoutil/internal/server/barrier/contentkeysservice", alias: cryptoutilContentKeysService }
-        - { pkg: "cryptoutil/internal/server/barrier/intermediatekeysservice", alias: cryptoutilIntermediateKeysService }
-        - { pkg: "cryptoutil/internal/server/barrier/rootkeysservice", alias: cryptoutilRootKeysService }
-        - { pkg: "cryptoutil/internal/server/barrier/unsealkeysservice", alias: cryptoutilUnsealKeysService }
-        - { pkg: "cryptoutil/internal/server/repository/orm", alias: cryptoutilOrmRepository }
-        - { pkg: "cryptoutil/internal/server/repository/sqlrepository", alias: cryptoutilSQLRepository }
+        - pkg: "cryptoutil/internal/server/application"
+          alias: cryptoutilServerApplication
+        - pkg: "cryptoutil/internal/server/businesslogic"
+          alias: cryptoutilBusinessLogic
+        - pkg: "cryptoutil/internal/server/handler"
+          alias: cryptoutilOpenapiHandler
+        - pkg: "cryptoutil/internal/server/barrier"
+          alias: cryptoutilBarrierService
+        - pkg: "cryptoutil/internal/server/barrier/contentkeysservice"
+          alias: cryptoutilContentKeysService
+        - pkg: "cryptoutil/internal/server/barrier/intermediatekeysservice"
+          alias: cryptoutilIntermediateKeysService
+        - pkg: "cryptoutil/internal/server/barrier/rootkeysservice"
+          alias: cryptoutilRootKeysService
+        - pkg: "cryptoutil/internal/server/barrier/unsealkeysservice"
+          alias: cryptoutilUnsealKeysService
+        - pkg: "cryptoutil/internal/server/repository/orm"
+          alias: cryptoutilOrmRepository
+        - pkg: "cryptoutil/internal/server/repository/sqlrepository"
+          alias: cryptoutilSQLRepository
         # Cryptoutil identity
-        - { pkg: "cryptoutil/internal/identity/apperr", alias: cryptoutilIdentityAppErr }
-        - { pkg: "cryptoutil/internal/identity/config", alias: cryptoutilIdentityConfig }
-        - { pkg: "cryptoutil/internal/identity/domain", alias: cryptoutilIdentityDomain }
-        - { pkg: "cryptoutil/internal/identity/magic", alias: cryptoutilIdentityMagic }
-        - { pkg: "cryptoutil/internal/identity/repository", alias: cryptoutilIdentityRepository }
-        - { pkg: "cryptoutil/internal/identity/issuer", alias: cryptoutilIdentityIssuer }
-        - { pkg: "cryptoutil/internal/identity/authz", alias: cryptoutilIdentityAuthz }
-        - { pkg: "cryptoutil/internal/identity/authz/clientauth", alias: cryptoutilIdentityClientAuth }
-        - { pkg: "cryptoutil/internal/identity/idp", alias: cryptoutilIdentityIdp }
-        - { pkg: "cryptoutil/internal/identity/idp/auth", alias: cryptoutilIdentityAuth }
-        - { pkg: "cryptoutil/internal/identity/server", alias: cryptoutilIdentityServer }
+        - pkg: "cryptoutil/internal/identity/apperr"
+          alias: cryptoutilIdentityAppErr
+        - pkg: "cryptoutil/internal/identity/config"
+          alias: cryptoutilIdentityConfig
+        - pkg: "cryptoutil/internal/identity/domain"
+          alias: cryptoutilIdentityDomain
+        - pkg: "cryptoutil/internal/identity/magic"
+          alias: cryptoutilIdentityMagic
+        - pkg: "cryptoutil/internal/identity/repository"
+          alias: cryptoutilIdentityRepository
+        - pkg: "cryptoutil/internal/identity/issuer"
+          alias: cryptoutilIdentityIssuer
+        - pkg: "cryptoutil/internal/identity/authz"
+          alias: cryptoutilIdentityAuthz
+        - pkg: "cryptoutil/internal/identity/authz/clientauth"
+          alias: cryptoutilIdentityClientAuth
+        - pkg: "cryptoutil/internal/identity/idp"
+          alias: cryptoutilIdentityIdp
+        - pkg: "cryptoutil/internal/identity/idp/auth"
+          alias: cryptoutilIdentityAuth
+        - pkg: "cryptoutil/internal/identity/server"
+          alias: cryptoutilIdentityServer
         # Crypto packages
         - { pkg: "crypto/aes", alias: aes }
         - { pkg: "crypto/ecdsa", alias: ecdsa }

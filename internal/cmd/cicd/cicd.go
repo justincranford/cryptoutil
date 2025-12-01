@@ -12,24 +12,24 @@ import (
 	"strings"
 	"time"
 
-	"cryptoutil/internal/cmd/cicd/all_enforce_utf8"
-	"cryptoutil/internal/cmd/cicd/common"
-	"cryptoutil/internal/cmd/cicd/github_workflow_lint"
-	"cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
-	"cryptoutil/internal/cmd/cicd/go_check_identity_imports"
-	"cryptoutil/internal/cmd/cicd/go_enforce_any"
-	"cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
-	"cryptoutil/internal/cmd/cicd/go_fix_all"
-	"cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
-	"cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
-	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
+	cryptoutilCmdCicdAllEnforceUtf8 "cryptoutil/internal/cmd/cicd/all_enforce_utf8"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdGithubWorkflowLint "cryptoutil/internal/cmd/cicd/github_workflow_lint"
+	cryptoutilCmdCicdGoCheckCircularPackageDependencies "cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
+	cryptoutilCmdCicdGoCheckIdentityImports "cryptoutil/internal/cmd/cicd/go_check_identity_imports"
+	cryptoutilCmdCicdGoEnforceAny "cryptoutil/internal/cmd/cicd/go_enforce_any"
+	cryptoutilCmdCicdGoEnforceTestPatterns "cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
+	cryptoutilCmdCicdGoFixAll "cryptoutil/internal/cmd/cicd/go_fix_all"
+	cryptoutilCmdCicdGoFixCopyLoopVar "cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
+	cryptoutilCmdCicdGoFixStaticcheckErrorStrings "cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
+	cryptoutilCmdCicdGoFixTHelper "cryptoutil/internal/cmd/cicd/go_fix_thelper"
 	cryptoutilGoGeneratePostmortem "cryptoutil/internal/cmd/cicd/go_generate_postmortem"
-	"cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
-	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
-	"cryptoutil/internal/cmd/cicd/go_update_project_status"
+	cryptoutilCmdCicdGoIdentityRequirementsCheck "cryptoutil/internal/cmd/cicd/go_identity_requirements_check"
+	cryptoutilCmdCicdGoUpdateDirectDependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
+	cryptoutilCmdCicdGoUpdateProjectStatus "cryptoutil/internal/cmd/cicd/go_update_project_status"
 	cryptoutilGoUpdateProjectStatusV2 "cryptoutil/internal/cmd/cicd/go_update_project_status_v2"
-	"cryptoutil/internal/cmd/cicd/identity_progressive_validation"
-	"cryptoutil/internal/cmd/cicd/rotate_secret"
+	cryptoutilCmdCicdIdentityProgressiveValidation "cryptoutil/internal/cmd/cicd/identity_progressive_validation"
+	cryptoutilCmdCicdRotateSecret "cryptoutil/internal/cmd/cicd/rotate_secret"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
@@ -60,7 +60,7 @@ const (
 // Returns an error if any command fails, but continues executing all commands.
 func Run(commands []string) error {
 	ctx := context.Background()
-	logger := common.NewLogger("Run")
+	logger := cryptoutilCmdCicdCommon.NewLogger("Run")
 	startTime := time.Now()
 
 	err := validateCommands(commands)
@@ -71,6 +71,18 @@ func Run(commands []string) error {
 	logger.Log("validateCommands completed")
 
 	var allFiles []string
+
+	exclusions := []string{
+		"api/client",
+		"api/model",
+		"api/server",
+		"api/idp",
+		"api/authz",
+		"test-output",
+		"test-reports",
+		"workflow-reports",
+		"vendor",
+	}
 
 	doListAllFiles := false
 
@@ -85,7 +97,7 @@ func Run(commands []string) error {
 	if doListAllFiles {
 		listFilesStart := time.Now()
 
-		allFiles, err = cryptoutilFiles.ListAllFiles(".")
+		allFiles, err = cryptoutilFiles.ListAllFiles(".", exclusions...)
 		if err != nil {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}
@@ -116,7 +128,7 @@ func Run(commands []string) error {
 	logger.Log(fmt.Sprintf("Executing %d commands", len(actualCommands)))
 
 	// Execute all commands and collect results
-	results := make([]common.CommandResult, 0, len(actualCommands))
+	results := make([]cryptoutilCmdCicdCommon.CommandResult, 0, len(actualCommands))
 
 	// Find index of first actual command to get remaining args
 	cmdStartIndex := 0
@@ -155,36 +167,36 @@ func Run(commands []string) error {
 
 		switch command {
 		case cmdAllEnforceUTF8:
-			cmdErr = all_enforce_utf8.Enforce(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdAllEnforceUtf8.Enforce(logger, allFiles)
 		case cmdGoEnforceTestPatterns:
-			cmdErr = go_enforce_test_patterns.Enforce(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdGoEnforceTestPatterns.Enforce(logger, allFiles)
 		case cmdGoEnforceAny:
-			cmdErr = go_enforce_any.Enforce(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdGoEnforceAny.Enforce(logger, allFiles)
 		case cmdGoCheckCircularPackageDependencies:
-			cmdErr = go_check_circular_package_dependencies.Check(logger)
+			cmdErr = cryptoutilCmdCicdGoCheckCircularPackageDependencies.Check(logger)
 		case cmdGoCheckIdentityImports:
-			cmdErr = go_check_identity_imports.Check(logger)
+			cmdErr = cryptoutilCmdCicdGoCheckIdentityImports.Check(logger)
 		case cmdGoIdentityRequirementsCheck:
 			// Pass remaining args for flag parsing (--strict, --task-threshold, etc.)
-			cmdErr = go_identity_requirements_check.Enforce(context.Background(), logger, remainingArgs)
+			cmdErr = cryptoutilCmdCicdGoIdentityRequirementsCheck.Enforce(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateProjectStatus:
-			cmdErr = go_update_project_status.Update(context.Background(), logger, remainingArgs)
+			cmdErr = cryptoutilCmdCicdGoUpdateProjectStatus.Update(context.Background(), logger, remainingArgs)
 		case cmdIdentityProgressiveValidation:
-			cmdErr = identity_progressive_validation.Validate(context.Background(), logger, remainingArgs)
+			cmdErr = cryptoutilCmdCicdIdentityProgressiveValidation.Validate(context.Background(), logger, remainingArgs)
 		case cmdGoUpdateDirectDependencies:
-			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
+			cmdErr = cryptoutilCmdCicdGoUpdateDirectDependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
 		case cmdGoUpdateAllDependencies:
-			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckAll)
+			cmdErr = cryptoutilCmdCicdGoUpdateDirectDependencies.Update(logger, cryptoutilMagic.DepCheckAll)
 		case cmdGitHubWorkflowLint:
-			cmdErr = github_workflow_lint.Lint(logger, allFiles)
+			cmdErr = cryptoutilCmdCicdGithubWorkflowLint.Lint(logger, allFiles)
 		case cmdGoFixStaticcheckErrorStrings:
-			_, _, _, cmdErr = go_fix_staticcheck_error_strings.Fix(logger, ".")
+			_, _, _, cmdErr = cryptoutilCmdCicdGoFixStaticcheckErrorStrings.Fix(logger, ".")
 		case cmdGoFixCopyLoopVar:
-			_, _, _, cmdErr = go_fix_copyloopvar.Fix(logger, ".", runtime.Version())
+			_, _, _, cmdErr = cryptoutilCmdCicdGoFixCopyLoopVar.Fix(logger, ".", runtime.Version())
 		case cmdGoFixTHelper:
-			_, _, _, cmdErr = go_fix_thelper.Fix(logger, ".")
+			_, _, _, cmdErr = cryptoutilCmdCicdGoFixTHelper.Fix(logger, ".")
 		case cmdGoFixAll:
-			_, _, _, cmdErr = go_fix_all.Fix(logger, ".", runtime.Version())
+			_, _, _, cmdErr = cryptoutilCmdCicdGoFixAll.Fix(logger, ".", runtime.Version())
 		case cmdGoGeneratePostmortem:
 			// Parse flags: --start-task P5.01 --end-task P5.05 --output path
 			startTask := ""
@@ -214,11 +226,11 @@ func Run(commands []string) error {
 		case cmdGoUpdateProjectStatusV2:
 			cmdErr = cryptoutilGoUpdateProjectStatusV2.Update(ctx, cryptoutilGoUpdateProjectStatusV2.Options{})
 		case cmdRotateSecret:
-			cmdErr = rotate_secret.Execute(logger, remainingArgs)
+			cmdErr = cryptoutilCmdCicdRotateSecret.Execute(logger, remainingArgs)
 		}
 
 		cmdDuration := time.Since(cmdStart)
-		results = append(results, common.CommandResult{
+		results = append(results, cryptoutilCmdCicdCommon.CommandResult{
 			Command:  command,
 			Duration: cmdDuration,
 			Error:    cmdErr,
@@ -228,16 +240,16 @@ func Run(commands []string) error {
 
 		// Add a separator between multiple commands
 		if i < len(actualCommands)-1 {
-			common.PrintCommandSeparator()
+			cryptoutilCmdCicdCommon.PrintCommandSeparator()
 		}
 	}
 
 	// Print summary
 	totalDuration := time.Since(startTime)
-	common.PrintExecutionSummary(results, totalDuration)
+	cryptoutilCmdCicdCommon.PrintExecutionSummary(results, totalDuration)
 
 	// Collect all errors
-	failedCommands := common.GetFailedCommands(results)
+	failedCommands := cryptoutilCmdCicdCommon.GetFailedCommands(results)
 
 	if len(failedCommands) > 0 {
 		return fmt.Errorf("failed commands: %s", strings.Join(failedCommands, ", "))
@@ -249,7 +261,7 @@ func Run(commands []string) error {
 }
 
 func validateCommands(commands []string) error {
-	logger := common.NewLogger("validateCommands")
+	logger := cryptoutilCmdCicdCommon.NewLogger("validateCommands")
 
 	if len(commands) == 0 {
 		logger.Log("validateCommands: empty commands")
