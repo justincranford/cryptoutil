@@ -6,12 +6,17 @@
 # It includes shared telemetry services from deployments/telemetry/compose.yml.
 #
 # Usage:
-#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml up -d                        # Default (dev profile)
+#   docker compose -f compose.yml --profile dev up -d          # Development mode - SQLite
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode with seeded data
+#   docker compose -f compose.yml --profile ci up -d           # CI mode for testing
+#   docker compose -f compose.yml --profile postgres up -d     # PostgreSQL backend
 #
 # Profiles:
-#   - dev: Development mode (default) - SQLite backend
-#   - demo: Demo mode with seeded data
-#   - ci: CI mode for testing
+#   - dev: Development mode (default) - SQLite backend, minimal services
+#   - demo: Demo mode with seeded data, SQLite backend
+#   - ci: CI mode for testing, SQLite backend
+#   - postgres: PostgreSQL backend with multiple instances
 #
 include:
   - path: ../telemetry/compose.yml
@@ -53,6 +58,7 @@ services:
   # PostgreSQL database for KMS persistence.
   # See https://hub.docker.com/_/postgres#how-to-use-this-image
   postgres:
+    profiles: ["postgres"]
     image: postgres:18
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
@@ -85,8 +91,9 @@ services:
         reservations:
           memory: 256M
 
-  # KMS server with SQLite backend (dev/demo mode).
+  # KMS server with SQLite backend (dev/demo/ci mode).
   kms-sqlite:
+    profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
@@ -133,6 +140,7 @@ services:
 
   # KMS server with PostgreSQL backend (instance 1).
   kms-postgres-1:
+    profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp
@@ -180,6 +188,7 @@ services:
 
   # KMS server with PostgreSQL backend (instance 2 - shared DB with instance 1).
   kms-postgres-2:
+    profiles: ["postgres"]
     image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/postgresql-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp

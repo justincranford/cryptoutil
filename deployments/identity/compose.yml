@@ -6,7 +6,10 @@
 # It includes shared telemetry services from deployments/telemetry/compose.yml.
 #
 # Usage:
-#   docker compose -f compose.yml up -d
+#   docker compose -f compose.yml up -d                        # Default (dev profile)
+#   docker compose -f compose.yml --profile dev up -d          # Development mode
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode with seeded data
+#   docker compose -f compose.yml --profile ci up -d           # CI mode for testing
 #
 # Profiles:
 #   - dev: Development mode (default)
@@ -31,6 +34,7 @@ services:
 
   # PostgreSQL database for identity services.
   identity-postgres:
+    profiles: ["dev", "demo", "ci"]
     image: postgres:18
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
@@ -81,6 +85,7 @@ services:
 
   # OAuth 2.1 Authorization Server.
   identity-authz:
+    profiles: ["dev", "demo", "ci"]
     image: cryptoutil-identity:dev
     command: ["identity", "authz", "--config=/app/config/authz.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     ports:
@@ -120,6 +125,7 @@ services:
 
   # OIDC Identity Provider.
   identity-idp:
+    profiles: ["dev", "demo", "ci"]
     image: cryptoutil-identity:dev
     command: ["identity", "idp", "--config=/app/config/idp.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     ports:
@@ -161,6 +167,7 @@ services:
 
   # Resource Server.
   identity-rs:
+    profiles: ["dev", "demo", "ci"]
     image: cryptoutil-identity:dev
     command: ["identity", "rs", "--config=/app/config/rs.yml"]
     ports:
@@ -198,6 +205,7 @@ services:
 
   # SPA Relying Party Application.
   identity-spa-rp:
+    profiles: ["dev", "demo", "ci"]
     image: cryptoutil-identity:dev
     command: ["identity", "spa-rp", "start", "--port=8083", "--bind=0.0.0.0", "--authz-url=https://identity-authz:8080", "--idp-url=https://identity-idp:8081"]
     ports:

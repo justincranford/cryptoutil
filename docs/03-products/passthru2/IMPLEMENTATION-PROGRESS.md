@@ -10,7 +10,7 @@
 
 | Phase | Status | Progress | Next Task |
 |-------|--------|----------|-----------|
-| **Phase 0** | 🔄 IN PROGRESS | 11/19 | P0.5 |
+| **Phase 0** | 🔄 IN PROGRESS | 12/19 | P0.6 |
 | **Phase 1** | ⏳ PENDING | 0/25 | - |
 | **Phase 2** | ⏳ PENDING | 0/14 | - |
 | **Phase 3** | ⏳ PENDING | 0/24 | - |
@@ -33,7 +33,7 @@
 | P0.2 | ✅ | Create `deployments/<product>/config/` structure - DONE: KMS and Identity use config/ and secrets/ |
 | P0.3 | ✅ | Convert all secrets to Docker secrets - DONE: Both products now use Docker secrets |
 | P0.4 | ✅ | Remove empty directories - DONE: Removed identity/identity/ and identity/postgres/ |
-| P0.5 | ⏳ | Create compose profiles: dev, demo, ci |
+| P0.5 | ✅ | Create compose profiles: dev, demo, ci - DONE: Both products have profiles |
 
 ### Demo Seeding Tasks
 
