@@ -551,6 +551,23 @@
     "parseable",
     "Utimaco",
     "CTAP",
-    "dashboarding"
+    "dashboarding",
+    "TKTK",
+    "taskstoissues",
+    "qwen",
+    "kilocode",
+    "auggie",
+    "codebuddy",
+    "shai",
+    "qoder",
+    "nfrontend",
+    "terraformignore",
+    "helmignore",
+    "rlib",
+    "swiftpm",
+    "Rproj",
+    "Ruserdata",
+    "packrat",
+    "renv"
   ]
 }
