@@ -18,13 +18,22 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+// Test constants for configuration.
+const (
+	testOTLPService  = "test-service"
+	testOTLPEndpoint = "http://localhost:4318"
+	testLogLevel     = "INFO"
+)
+
 func TestNewBusinessLogicService(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	settings := &cryptoutilConfig.Settings{
-		OTLPService:  "test-service",
-		OTLPEndpoint: "http://localhost:4318",
-		LogLevel:     "INFO",
+		OTLPService:  testOTLPService,
+		OTLPEndpoint: testOTLPEndpoint,
+		LogLevel:     testLogLevel,
 	}
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
@@ -106,6 +115,8 @@ func TestNewBusinessLogicService(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			service, err := NewBusinessLogicService(tc.ctx, tc.telemetryService, tc.jwkGenService, tc.ormRepository, tc.barrierService)
 
 			if tc.expectError {
@@ -126,12 +137,14 @@ func TestNewBusinessLogicService(t *testing.T) {
 }
 
 func TestGenerateJWK(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	settings := &cryptoutilConfig.Settings{
-		OTLPService:  "test-service",
-		OTLPEndpoint: "http://localhost:4318",
-		LogLevel:     "INFO",
+		OTLPService:  testOTLPService,
+		OTLPEndpoint: testOTLPEndpoint,
+		LogLevel:     testLogLevel,
 	}
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
@@ -147,55 +160,173 @@ func TestGenerateJWK(t *testing.T) {
 		barrierService:   &cryptoutilBarrierService.BarrierService{},
 	}
 
-	jweAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+	// Comprehensive JWE algorithm tests - symmetric (dir) and asymmetric (RSA, ECDH).
+	jweSymmetricAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 		cryptoutilOpenapiModel.A128CBCHS256Dir,
 		cryptoutilOpenapiModel.A128GCMDir,
-		cryptoutilOpenapiModel.A128CBCHS256RSAOAEP,
-		cryptoutilOpenapiModel.A128CBCHS256ECDHES,
+		cryptoutilOpenapiModel.A192CBCHS384Dir,
+		cryptoutilOpenapiModel.A192GCMDir,
+		cryptoutilOpenapiModel.A256CBCHS512Dir,
+		cryptoutilOpenapiModel.A256GCMDir,
 	}
 
-	jwsAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+	jweAsymmetricRSAAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+		cryptoutilOpenapiModel.A128CBCHS256RSAOAEP,
+		cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256,
+		cryptoutilOpenapiModel.A256GCMRSAOAEP,
+		cryptoutilOpenapiModel.A256GCMRSAOAEP256,
+	}
+
+	jweAsymmetricECDHAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+		cryptoutilOpenapiModel.A128CBCHS256ECDHES,
+		cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW,
+		cryptoutilOpenapiModel.A256GCMECDHES,
+		cryptoutilOpenapiModel.A256GCMECDHESA256KW,
+	}
+
+	// Comprehensive JWS algorithm tests - symmetric (HMAC) and asymmetric (RSA, EC, EdDSA).
+	jwsSymmetricAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 		cryptoutilOpenapiModel.HS256,
+		cryptoutilOpenapiModel.HS384,
+		cryptoutilOpenapiModel.HS512,
+	}
+
+	jwsAsymmetricRSAAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 		cryptoutilOpenapiModel.RS256,
+		cryptoutilOpenapiModel.RS384,
+		cryptoutilOpenapiModel.RS512,
+		cryptoutilOpenapiModel.PS256,
+		cryptoutilOpenapiModel.PS384,
+		cryptoutilOpenapiModel.PS512,
+	}
+
+	jwsAsymmetricECAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 		cryptoutilOpenapiModel.ES256,
+		cryptoutilOpenapiModel.ES384,
+		cryptoutilOpenapiModel.ES512,
+	}
+
+	jwsAsymmetricEdDSAAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 		cryptoutilOpenapiModel.EdDSA,
 	}
 
-	for _, alg := range jweAlgorithms {
-		t.Run("JWE_"+string(alg), func(t *testing.T) {
+	// Test JWE symmetric algorithms (dir) - no public key expected.
+	for _, alg := range jweSymmetricAlgorithms {
+		t.Run("JWE_Symmetric_"+string(alg), func(t *testing.T) {
+			t.Parallel()
+
 			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
 
 			testify.NoError(t, err)
 			testify.NotNil(t, materialKeyID)
 			testify.NotNil(t, materialKeyNonPublicJWK)
 			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
-
-			// Asymmetric algorithms should have public key
-			if alg == cryptoutilOpenapiModel.A128CBCHS256RSAOAEP || alg == cryptoutilOpenapiModel.A128CBCHS256ECDHES {
-				testify.NotNil(t, materialKeyPublicJWK)
-				testify.NotEmpty(t, materialKeyPublicJWKBytes)
-			}
+			// Symmetric algorithms should NOT have separate public key.
+			testify.Nil(t, materialKeyPublicJWK)
+			testify.Nil(t, materialKeyPublicJWKBytes)
 		})
 	}
 
-	for _, alg := range jwsAlgorithms {
-		t.Run("JWS_"+string(alg), func(t *testing.T) {
+	// Test JWE asymmetric RSA algorithms - public key expected.
+	for _, alg := range jweAsymmetricRSAAlgorithms {
+		t.Run("JWE_RSA_"+string(alg), func(t *testing.T) {
+			t.Parallel()
+
 			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
 
 			testify.NoError(t, err)
 			testify.NotNil(t, materialKeyID)
 			testify.NotNil(t, materialKeyNonPublicJWK)
 			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+			testify.NotNil(t, materialKeyPublicJWK)
+			testify.NotEmpty(t, materialKeyPublicJWKBytes)
+		})
+	}
 
-			// Asymmetric algorithms should have public key
-			if alg == cryptoutilOpenapiModel.RS256 || alg == cryptoutilOpenapiModel.ES256 || alg == cryptoutilOpenapiModel.EdDSA {
-				testify.NotNil(t, materialKeyPublicJWK)
-				testify.NotEmpty(t, materialKeyPublicJWKBytes)
-			}
+	// Test JWE asymmetric ECDH algorithms - public key expected.
+	for _, alg := range jweAsymmetricECDHAlgorithms {
+		t.Run("JWE_ECDH_"+string(alg), func(t *testing.T) {
+			t.Parallel()
+
+			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+
+			testify.NoError(t, err)
+			testify.NotNil(t, materialKeyID)
+			testify.NotNil(t, materialKeyNonPublicJWK)
+			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+			testify.NotNil(t, materialKeyPublicJWK)
+			testify.NotEmpty(t, materialKeyPublicJWKBytes)
+		})
+	}
+
+	// Test JWS symmetric algorithms (HMAC) - no public key expected.
+	for _, alg := range jwsSymmetricAlgorithms {
+		t.Run("JWS_HMAC_"+string(alg), func(t *testing.T) {
+			t.Parallel()
+
+			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+
+			testify.NoError(t, err)
+			testify.NotNil(t, materialKeyID)
+			testify.NotNil(t, materialKeyNonPublicJWK)
+			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+			// Symmetric HMAC algorithms should NOT have separate public key.
+			testify.Nil(t, materialKeyPublicJWK)
+			testify.Nil(t, materialKeyPublicJWKBytes)
+		})
+	}
+
+	// Test JWS asymmetric RSA algorithms - public key expected.
+	for _, alg := range jwsAsymmetricRSAAlgorithms {
+		t.Run("JWS_RSA_"+string(alg), func(t *testing.T) {
+			t.Parallel()
+
+			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+
+			testify.NoError(t, err)
+			testify.NotNil(t, materialKeyID)
+			testify.NotNil(t, materialKeyNonPublicJWK)
+			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+			testify.NotNil(t, materialKeyPublicJWK)
+			testify.NotEmpty(t, materialKeyPublicJWKBytes)
+		})
+	}
+
+	// Test JWS asymmetric EC algorithms - public key expected.
+	for _, alg := range jwsAsymmetricECAlgorithms {
+		t.Run("JWS_EC_"+string(alg), func(t *testing.T) {
+			t.Parallel()
+
+			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+
+			testify.NoError(t, err)
+			testify.NotNil(t, materialKeyID)
+			testify.NotNil(t, materialKeyNonPublicJWK)
+			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+			testify.NotNil(t, materialKeyPublicJWK)
+			testify.NotEmpty(t, materialKeyPublicJWKBytes)
+		})
+	}
+
+	// Test JWS asymmetric EdDSA algorithms - public key expected.
+	for _, alg := range jwsAsymmetricEdDSAAlgorithms {
+		t.Run("JWS_EdDSA_"+string(alg), func(t *testing.T) {
+			t.Parallel()
+
+			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+
+			testify.NoError(t, err)
+			testify.NotNil(t, materialKeyID)
+			testify.NotNil(t, materialKeyNonPublicJWK)
+			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+			testify.NotNil(t, materialKeyPublicJWK)
+			testify.NotEmpty(t, materialKeyPublicJWKBytes)
 		})
 	}
 
 	t.Run("unsupported algorithm", func(t *testing.T) {
+		t.Parallel()
+
 		unsupported := cryptoutilOpenapiModel.ElasticKeyAlgorithm("UNSUPPORTED")
 		materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&unsupported)
 
