@@ -101,7 +101,7 @@ const (
 	// PBKDF2 configuration (Session 5 Q12: SHA-256, 600K iterations, 32-byte salt).
 	PBKDF2Prefix            = "pbkdf2-sha256" // Hash format prefix for PBKDF2-HMAC-SHA256 hashes.
 	PBKDF2DerivedKeyLength  = 32              // Derived key length in bytes (32 = 256 bits).
-	PBKDF2DefaultHashName   = "pbkdf2"        // Algorithm name for PBKDF2.
+	PBKDF2DefaultHashName   = "pbkdf2-sha256" // Algorithm name for PBKDF2 (must match PBKDF2Prefix).
 	PBKDF2DefaultAlgorithm  = "SHA-256"       // Default PRF algorithm for PBKDF2.
 	PBKDF2DefaultSaltBytes  = 32              // Salt length in bytes (32 = 256 bits, Session 5 Q12).
 	PBKDF2DefaultHashBytes  = 32              // Derived key length in bytes (32 = 256 bits).
