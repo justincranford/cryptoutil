@@ -155,7 +155,7 @@ EXPOSE 8080
 
 # Healthcheck available with Alpine base image
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD /app/cryptoutil server ready --dev || exit 1
+  CMD /app/kms cryptoutil server ready --dev || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:

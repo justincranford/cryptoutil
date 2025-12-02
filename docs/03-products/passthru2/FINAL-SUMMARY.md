@@ -94,7 +94,7 @@ docker compose -f deployments/identity/compose.demo.yml --profile demo down -v
 
 ```powershell
 # KMS Server with SQLite in-memory
-go run ./cmd/cryptoutil server start --dev
+go run ./cmd/kms cryptoutil server start --dev
 
 # Identity CLI shows available commands
 go run ./cmd/identity help

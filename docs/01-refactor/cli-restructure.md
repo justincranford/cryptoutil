@@ -483,7 +483,7 @@ func deprecationWarning(oldCommand, newCommand string) {
 ./cryptoutil kms server ready
 
 # Test legacy alias (should warn)
-./cryptoutil server start --dev  # Should show deprecation warning
+./kms cryptoutil server start --dev  # Should show deprecation warning
 
 # Test identity commands (should show "not yet implemented")
 ./cryptoutil identity authz server start
@@ -503,7 +503,7 @@ func deprecationWarning(oldCommand, newCommand string) {
 **Validation checklist**:
 
 - [ ] `cryptoutil kms server start` works (same as old `server start`)
-- [ ] `cryptoutil server start` shows deprecation warning but still works
+- [ ] `kms cryptoutil server start` shows deprecation warning but still works
 - [ ] `cryptoutil identity authz server start` shows placeholder message
 - [ ] `cryptoutil ca server start` shows placeholder message
 - [ ] Help messages show new command structure
@@ -559,7 +559,7 @@ cryptoutil ca cert revoke --serial 0x1234567890abcdef --reason keyCompromise
 
 ```bash
 # OLD (deprecated, shows warning)
-cryptoutil server start --config configs/production/config.yml
+kms cryptoutil server start --config configs/production/config.yml
 
 # NEW (recommended)
 cryptoutil kms server start --config configs/production/config.yml
@@ -594,7 +594,7 @@ cryptoutil kms server start --config configs/production/config.yml
 ## Success Metrics
 
 - [ ] `cryptoutil kms server start` works (same functionality as old `server start`)
-- [ ] `cryptoutil server start` shows deprecation warning but works
+- [ ] `kms cryptoutil server start` shows deprecation warning but works
 - [ ] `cryptoutil identity <service> server <start|stop>` structure implemented
 - [ ] `cryptoutil ca` skeleton commands created
 - [ ] Help messages show new structure with examples

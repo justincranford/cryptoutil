@@ -458,7 +458,7 @@ go test ./... -coverprofile=test-output/coverage_kms.out
 - [ ] Coverage unchanged
 - [ ] Workflows pass (quality, coverage, e2e)
 - [ ] Docker builds succeed
-- [ ] Server starts: `./cryptoutil server start --dev`
+- [ ] Server starts: `./kms cryptoutil server start --dev`
 
 ## Risk Assessment
 
@@ -506,7 +506,7 @@ go test ./... -coverprofile=test-output/coverage_kms.out
 - [ ] Test coverage ≥ baseline (85%+ for KMS infrastructure)
 - [ ] All workflows pass
 - [ ] OpenAPI server code regenerated successfully
-- [ ] Server starts: `./cryptoutil server start --dev`
+- [ ] Server starts: `./kms cryptoutil server start --dev`
 
 ## Timeline
 

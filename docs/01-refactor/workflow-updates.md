@@ -192,12 +192,12 @@ go run ./cmd/workflow -workflows=quality,coverage -inputs="scan_profile=quick"
    - **New**: Unchanged (main entry point `cmd/cryptoutil/main.go` stable)
 
 2. **ci-e2e.yml** (Server commands)
-   - **Current**: `./cryptoutil server start --dev`
+   - **Current**: `./kms cryptoutil server start --dev`
    - **New**: `./cryptoutil kms server start --dev` (legacy alias still works)
    - **Recommendation**: Use new commands to avoid deprecation warnings in CI logs
 
 3. **ci-dast.yml** (Server commands)
-   - **Current**: `docker compose exec cryptoutil-sqlite ./cryptoutil server start`
+   - **Current**: `docker compose exec cryptoutil-sqlite ./kms cryptoutil server start`
    - **New**: `docker compose exec cryptoutil-sqlite ./cryptoutil kms server start`
 
 **Docker Entrypoint**:
@@ -250,7 +250,7 @@ func main() {
         checkPatterns(path, string(content), []string{
             "internal/server",            // → internal/kms
             "internal/client",            // → internal/kms/client
-            "cryptoutil server",          // → cryptoutil kms server
+            "kms cryptoutil server",          // → cryptoutil kms server
             "configs/production",         // → configs/kms
             "cryptoutilServer",          // → cryptoutilKms (importas)
         })

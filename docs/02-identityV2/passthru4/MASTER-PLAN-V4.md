@@ -637,7 +637,7 @@ grep -r "TODO\|FIXME" internal/identity/ | grep -i "high\|critical" | wc -l
 
 **D6.3: Swagger UI Validation** (1 hour)
 
-- Start server: `cryptoutil server start --dev`
+- Start server: `kms cryptoutil server start --dev`
 - Navigate: `https://127.0.0.1:8080/ui/swagger`
 - Test endpoints via Swagger UI
 

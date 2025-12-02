@@ -201,7 +201,7 @@ docs/
 │   ├── api-reference.md     # Browser/Service API endpoints
 │   ├── deployment.md        # Docker Compose, Kubernetes, production config
 │   ├── security.md          # IP allowlisting, rate limiting, unseal modes
-│   ├── migration.md         # Migration from legacy 'cryptoutil server' commands
+│   ├── migration.md         # Migration from legacy 'kms cryptoutil server' commands
 │   └── troubleshooting.md   # Common issues and solutions
 │
 ├── identity/                # Identity service group documentation

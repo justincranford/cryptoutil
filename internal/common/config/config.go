@@ -972,12 +972,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  Examples: CRYPTOUTIL_LOG_LEVEL=DEBUG, CRYPTOUTIL_DATABASE_URL=...")
 		fmt.Println()
 		fmt.Println("Quickstart Examples:")
-		fmt.Println("  cryptoutil server start --d                              Start server with in-memory SQLite")
-		fmt.Println("  cryptoutil server stop  --d                               Stop server")
-		fmt.Println("  cryptoutil server start --D required                     Start server with PostgreSQL container")
-		fmt.Println("  cryptoutil server start --y global.yml --y preprod.yml   Start server with settings in YAML config files")
-		fmt.Println("  cryptoutil server start --Y --y config.yml               Validate configuration without starting")
-		fmt.Println("  cryptoutil server stop                                   Stop server")
+		fmt.Println("  kms cryptoutil server start --d                              Start server with in-memory SQLite")
+		fmt.Println("  kms cryptoutil server stop  --d                              Stop server")
+		fmt.Println("  kms cryptoutil server start --D required                     Start server with PostgreSQL container")
+		fmt.Println("  kms cryptoutil server start --y global.yml --y preprod.yml   Start server with settings in YAML config files")
+		fmt.Println("  kms cryptoutil server start --Y --y config.yml               Validate configuration without starting")
+		fmt.Println("  kms cryptoutil server stop                                   Stop server")
 
 		if exitIfHelp {
 			os.Exit(0)

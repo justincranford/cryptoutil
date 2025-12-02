@@ -22,7 +22,7 @@ switch command {
 }
 ```
 
-**Legacy command**: `cryptoutil server <start|stop|live|ready|init>`
+**Legacy command**: `kms cryptoutil server <start|stop|live|ready|init>`
 **New command**: `cryptoutil kms server <start|stop|live|ready|init>`
 
 ## Backward Compatibility Strategy
@@ -39,7 +39,7 @@ switch command {
 **Deprecation warning output**:
 
 ```
-⚠️  DEPRECATED: 'cryptoutil server start' is deprecated.
+⚠️  DEPRECATED: 'kms cryptoutil server start' is deprecated.
    Use 'cryptoutil kms server start' instead.
    This alias will be removed in cryptoutil v2.0.0 (scheduled for 2026-06-01).
    Migration guide: https://github.com/justincranford/cryptoutil/docs/MIGRATION.md
@@ -146,7 +146,7 @@ func Execute() {
         // Warn about deprecation
         if !deprecation.SuppressWarnings() {
             deprecation.Warning{
-                OldCommand:     "cryptoutil server",
+                OldCommand:     "kms cryptoutil server",
                 NewCommand:     "cryptoutil kms server",
                 RemovalVersion: "2.0.0",
                 RemovalDate:    time.Date(2026, time.June, 1, 0, 0, 0, 0, time.UTC),
@@ -186,11 +186,11 @@ cryptoutil v2.0 introduces a service-group-based CLI structure for better organi
 
 ```bash
 # Legacy KMS server commands
-cryptoutil server start --config configs/production/config.yml
-cryptoutil server stop
-cryptoutil server live
-cryptoutil server ready
-cryptoutil server init
+kms cryptoutil server start --config configs/production/config.yml
+kms cryptoutil server stop
+kms cryptoutil server live
+kms cryptoutil server ready
+kms cryptoutil server init
 ```
 
 #### After (v2.0+ - Recommended)
@@ -212,7 +212,7 @@ Search your scripts, CI/CD workflows, and documentation for legacy commands:
 
 ```bash
 # Search for legacy commands
-grep -r "cryptoutil server" .
+grep -r "kms cryptoutil server" .
 ```
 
 #### Step 2: Update to New Commands
@@ -221,11 +221,11 @@ Replace legacy commands with new equivalents:
 
 | Legacy Command | New Command |
 |----------------|-------------|
-| `cryptoutil server start` | `cryptoutil kms server start` |
-| `cryptoutil server stop` | `cryptoutil kms server stop` |
-| `cryptoutil server live` | `cryptoutil kms server live` |
-| `cryptoutil server ready` | `cryptoutil kms server ready` |
-| `cryptoutil server init` | `cryptoutil kms server init` |
+| `kms cryptoutil server start` | `cryptoutil kms server start` |
+| `kms cryptoutil server stop` | `cryptoutil kms server stop` |
+| `kms cryptoutil server live` | `cryptoutil kms server live` |
+| `kms cryptoutil server ready` | `cryptoutil kms server ready` |
+| `kms cryptoutil server init` | `cryptoutil kms server init` |
 
 #### Step 3: Test New Commands
 
@@ -253,7 +253,7 @@ cryptoutil now supports three service groups:
 - **identity**: OAuth 2.1 / OIDC Identity Platform (authorization, authentication)
 - **ca**: Certificate Authority (PKI operations) [future]
 
-Old `cryptoutil server` was ambiguous (which server?). New `cryptoutil kms server` is explicit and consistent.
+Old `kms cryptoutil server` was ambiguous (which server?). New `cryptoutil kms server` is explicit and consistent.
 
 ### Consistency Across Services
 
@@ -298,7 +298,7 @@ For automated scripts where warnings cause issues, suppress warnings via environ
 
 ```bash
 export CRYPTOUTIL_SUPPRESS_DEPRECATION_WARNINGS=1
-cryptoutil server start  # No warning printed
+kms cryptoutil server start  # No warning printed
 ```
 
 **Note**: This is a temporary workaround. Migrate to new commands as soon as possible.
@@ -374,13 +374,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version information command (`cryptoutil version`)
 
 ### Changed
-- **BREAKING (v2.0.0)**: `cryptoutil server` → `cryptoutil kms server`
+- **BREAKING (v2.0.0)**: `kms cryptoutil server` → `cryptoutil kms server`
   - Legacy alias supported until v2.0.0 (June 2026)
   - Deprecation warnings added
   - See [MIGRATION.md](docs/MIGRATION.md) for migration guide
 
 ### Deprecated
-- `cryptoutil server` commands (use `cryptoutil kms server` instead)
+- `kms cryptoutil server` commands (use `cryptoutil kms server` instead)
   - Removal scheduled for v2.0.0 (June 2026)
 
 ## [1.0.0] - 2025-01-01
@@ -401,11 +401,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ```bash
 # Test legacy command shows warning
-cryptoutil server start --dev
+kms cryptoutil server start --dev
 # Expected: Warning printed to stderr, then server starts
 
 # Test warning suppression
-CRYPTOUTIL_SUPPRESS_DEPRECATION_WARNINGS=1 cryptoutil server start --dev
+CRYPTOUTIL_SUPPRESS_DEPRECATION_WARNINGS=1 kms cryptoutil server start --dev
 # Expected: No warning, server starts normally
 
 # Test new command (no warning)
@@ -415,7 +415,7 @@ cryptoutil kms server start --dev
 
 **Validation checklist**:
 
-- [ ] Legacy `cryptoutil server` commands show deprecation warning
+- [ ] Legacy `kms cryptoutil server` commands show deprecation warning
 - [ ] Deprecation warning includes new command syntax
 - [ ] Deprecation warning includes removal date
 - [ ] Deprecation warning links to migration guide
@@ -452,7 +452,7 @@ cryptoutil kms server ready
 
 ```bash
 # OLD (deprecated, shows warning)
-cryptoutil server start --config configs/production/config.yml
+kms cryptoutil server start --config configs/production/config.yml
 
 # NEW (recommended)
 cryptoutil kms server start --config configs/kms/production.yml
@@ -531,7 +531,7 @@ Write-Host "Starting KMS server in development mode..."
 
 ## Success Metrics
 
-- [ ] Legacy `cryptoutil server` commands show deprecation warning
+- [ ] Legacy `kms cryptoutil server` commands show deprecation warning
 - [ ] Deprecation warning includes new command, removal date, migration guide link
 - [ ] `CRYPTOUTIL_SUPPRESS_DEPRECATION_WARNINGS=1` suppresses warnings
 - [ ] New `cryptoutil kms server` commands work without warnings

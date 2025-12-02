@@ -11,7 +11,7 @@ import (
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )
 
-func server(parameters []string) {
+func Server(parameters []string) {
 	// reuse same Settings for start, ready, live, stop sub-commands, since they need to share private API coordinates
 	settings, err := cryptoutilConfig.Parse(parameters, true)
 	if err != nil {

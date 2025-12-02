@@ -39,11 +39,11 @@ cryptoutil ca cert revoke --serial 0x1234567890abcdef --reason keyCompromise
 
 ### Backward Compatibility Aliases
 
-**Legacy command:** `cryptoutil server` → **New command:** `cryptoutil kms server`
+**Legacy command:** `kms cryptoutil server` → **New command:** `cryptoutil kms server`
 
 ```bash
 # Both commands work during transition period
-cryptoutil server start --config configs/kms/production.yml  # Legacy (deprecated)
+kms cryptoutil server start --config configs/kms/production.yml  # Legacy (deprecated)
 cryptoutil kms server start --config configs/kms/production.yml  # New (canonical)
 ```
 
@@ -678,7 +678,7 @@ func TestJSONFormatter(t *testing.T) {
 ## Notes
 
 - **Consistency:** All service groups follow same CLI patterns (flags, output, errors)
-- **Backward compatibility:** Legacy `cryptoutil server` command supported during transition
+- **Backward compatibility:** Legacy `kms cryptoutil server` command supported during transition
 - **Configuration first:** Prefer YAML config files over environment variables
 - **Output flexibility:** Support text (human), JSON (automation), YAML (config) formats
 - **Error clarity:** Provide actionable error messages with solutions

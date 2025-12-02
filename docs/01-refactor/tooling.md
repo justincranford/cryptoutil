@@ -66,7 +66,7 @@ This document defines VS Code configuration updates required for the service gro
 
 - Auto-approve all service group CLI commands (safe, informational, or controlled by flags)
 - Includes subcommands: server start/stop, client operations, keygen, barrier management
-- Backward compatibility for deprecated `cryptoutil server` commands
+- Backward compatibility for deprecated `kms cryptoutil server` commands
 
 **Total Auto-Approval Patterns:** ~50 existing + 5 new = 55 patterns
 
@@ -128,7 +128,7 @@ This document defines VS Code configuration updates required for the service gro
 | `cryptoutil postgres` | go | `${workspaceFolder}/main.go` | `--database-url=postgres://..., --log-level=ALL` | Run KMS with PostgreSQL |
 | `cryptoutil model` | go | `oapi-codegen` | OpenAPI model generation | Generate OpenAPI models |
 | `cryptoutil client` | go | `oapi-codegen` | OpenAPI client generation | Generate OpenAPI client |
-| `cryptoutil server` | go | `oapi-codegen` | OpenAPI server generation | Generate OpenAPI server |
+| `kms cryptoutil server` | go | `oapi-codegen` | OpenAPI server generation | Generate OpenAPI server |
 
 ### Refactor Impact
 
@@ -561,7 +561,7 @@ rm -rf ./test-output
 - [ ] Update tasks in `.vscode/tasks.json` (Test KMS, Build KMS)
 - [ ] Verify gopls diagnostics work for KMS packages
 - [ ] Test terminal auto-approval for KMS CLI commands
-- [ ] Validate backward compatibility patterns (`cryptoutil server`)
+- [ ] Validate backward compatibility patterns (`kms cryptoutil server`)
 
 ### Phase 3: CA Preparation
 

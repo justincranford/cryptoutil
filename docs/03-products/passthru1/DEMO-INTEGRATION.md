@@ -337,7 +337,7 @@ docker compose -f deployments/compose/compose-integration.yml down -v
 
 ```bash
 # 1. Start KMS with embedded Identity
-./cryptoutil server start --config configs/kms/kms-embedded.yml
+./kms cryptoutil server start --config configs/kms/kms-embedded.yml
 
 # 2. Get token from embedded Identity endpoint
 TOKEN=$(curl -sk -X POST https://localhost:8080/oauth2/token \

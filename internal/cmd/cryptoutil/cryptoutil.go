@@ -18,6 +18,7 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
+	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
 
 func Execute() {
@@ -27,23 +28,27 @@ func Execute() {
 		os.Exit(1)
 	}
 
-	command := os.Args[1]     // Example command: server
+	product := os.Args[1]     // Example product: kms, identity, jose, ca
 	parameters := os.Args[2:] // Example parameters: --config-file, --port, --host, etc.
 
-	switch command {
-	case "server":
-		server(parameters)
+	switch product {
+	case "kms":
+		cryptoutilKmsCmd.Server(parameters)
 	case "identity":
 		identity(parameters)
-	// case "kv":
-	// 	kv(parameters)
 	case "help":
 		printUsage(executable)
 	default:
 		printUsage(executable)
-		fmt.Printf("Unknown command: %s %s\n", executable, command)
+		fmt.Printf("Unknown command: %s %s\n", executable, product)
 		os.Exit(1)
 	}
+}
+
+func printUsage(executable string) {
+	fmt.Printf("Usage: %s <product> [options]\n", executable)
+	fmt.Println("  kms")
+	fmt.Println("  identity")
 }
 
 func identity(parameters []string) {
@@ -390,10 +395,4 @@ func identitySpaRp(parameters []string) {
 	// TODO: Implement SPA Relying Party
 	fmt.Println("SPA Relying Party not yet implemented")
 	os.Exit(1)
-}
-
-func printUsage(executable string) {
-	fmt.Printf("Usage: %s <command> [options]\n", executable)
-	fmt.Println("  server")
-	fmt.Println("  identity")
 }
