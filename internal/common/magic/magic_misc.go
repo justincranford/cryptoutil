@@ -22,6 +22,8 @@ const (
 	StringUTCFormat = "2006-01-02T15:04:05Z"
 	// StringUUIDRegexPattern - UUID regex pattern for validation.
 	StringUUIDRegexPattern = `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`
+	// UUIDStringLength - Length of UUID string with hyphens (8-4-4-4-12 = 36).
+	UUIDStringLength = 36
 
 	// FilePermissionsDefault - Default file permissions for created files.
 	FilePermissionsDefault = 0o600
