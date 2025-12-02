@@ -102,7 +102,7 @@ func TestHashSecret(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
-				require.True(t, strings.HasPrefix(hash, "pbkdf2$"))
+				require.True(t, strings.HasPrefix(hash, "pbkdf2-sha256$"))
 			}
 		})
 	}
@@ -160,7 +160,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid iterations in hash",
 			setup: func() (string, string) {
-				return "pbkdf2$invalid$salt$dk", testPassword
+				return "pbkdf2-sha256$invalid$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -169,7 +169,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "zero iterations in hash",
 			setup: func() (string, string) {
-				return "pbkdf2$0$salt$dk", testPassword
+				return "pbkdf2-sha256$0$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -178,7 +178,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid salt encoding",
 			setup: func() (string, string) {
-				return "pbkdf2$1000$!!!invalid!!!$dk", testPassword
+				return "pbkdf2-sha256$1000$!!!invalid!!!$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -187,7 +187,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid dk encoding",
 			setup: func() (string, string) {
-				return "pbkdf2$1000$dGVzdA$!!!invalid!!!", testPassword
+				return "pbkdf2-sha256$1000$dGVzdA$!!!invalid!!!", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
