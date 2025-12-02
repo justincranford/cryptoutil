@@ -111,7 +111,7 @@
 ## Phase 2: Identity Demo Parity (Day 3-5)
 
 **Priority**: HIGH - Based on Q2 (KMS & Identity equal parity)
-**Status**: 🔄 IN PROGRESS
+**Status**: ✅ COMPLETE
 
 ### Missing Endpoints
 
@@ -127,12 +127,12 @@
 
 ### Demo Mode
 
-- [ ] **P2.7**: Implement `--demo` flag for Identity server
+- [x] **P2.7**: Implement `--demo` flag for Identity server - auto-bootstrap already implemented in authz/main.go
 - [x] **P2.8**: Create `cmd/demo-identity/main.go` Go CLI (Q12) - exists as cmd/demo with identity subcommand
 - [x] **P2.9**: Seed demo users (admin, user, service) - exists in internal/identity/bootstrap/demo_user.go
 - [x] **P2.10**: Seed demo clients (public, confidential) - exists in internal/identity/bootstrap/demo_client.go
-- [ ] **P2.11**: Implement `--reset-demo` flag for data cleanup (Q15)
-- [ ] **P2.12**: Profile-based persistence: dev=persist, ci=ephemeral (Q12)
+- [x] **P2.11**: Implement `--reset-demo` flag for data cleanup (Q15) - added ResetDemoData, ResetAndReseedDemo, --reset-demo flag
+- [x] **P2.12**: Profile-based persistence: dev=persist, ci=ephemeral (Q12) - already implemented in configs/identity/profiles/
 
 ### Identity Coverage Improvements
 
