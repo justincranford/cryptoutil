@@ -12,7 +12,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilServerApplication "cryptoutil/internal/server/application"
+	cryptoutilServerApplication "cryptoutil/internal/kms/application"
 )
 
 // KMS demo step counts.

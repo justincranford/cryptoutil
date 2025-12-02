@@ -1,0 +1,128 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package application
+
+import (
+	"context"
+	"fmt"
+
+	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilBarrierService "cryptoutil/internal/kms/barrier"
+	cryptoutilBusinessLogic "cryptoutil/internal/kms/businesslogic"
+	cryptoutilDemo "cryptoutil/internal/kms/demo"
+	cryptoutilOrmRepository "cryptoutil/internal/kms/repository/orm"
+	cryptoutilSQLRepository "cryptoutil/internal/kms/repository/sqlrepository"
+)
+
+type ServerApplicationCore struct {
+	ServerApplicationBasic *ServerApplicationBasic
+	SQLRepository          *cryptoutilSQLRepository.SQLRepository
+	OrmRepository          *cryptoutilOrmRepository.OrmRepository
+	BarrierService         *cryptoutilBarrierService.BarrierService
+	BusinessLogicService   *cryptoutilBusinessLogic.BusinessLogicService
+	Settings               *cryptoutilConfig.Settings
+}
+
+func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.Settings) (*ServerApplicationCore, error) {
+	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start basic server application: %w", err)
+	}
+
+	jwkGenService := serverApplicationBasic.JWKGenService
+
+	serverApplicationCore := &ServerApplicationCore{}
+	serverApplicationCore.ServerApplicationBasic = serverApplicationBasic
+	serverApplicationCore.Settings = settings
+
+	sqlRepository, err := cryptoutilSQLRepository.NewSQLRepository(ctx, serverApplicationBasic.TelemetryService, settings)
+	if err != nil {
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
+		serverApplicationCore.Shutdown()
+
+		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
+	}
+
+	serverApplicationCore.SQLRepository = sqlRepository
+
+	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, serverApplicationBasic.TelemetryService, sqlRepository, jwkGenService, settings)
+	if err != nil {
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create ORM repository", "error", err)
+		serverApplicationCore.Shutdown()
+
+		return nil, fmt.Errorf("failed to create ORM repository: %w", err)
+	}
+
+	serverApplicationCore.OrmRepository = ormRepository
+
+	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, serverApplicationBasic.UnsealKeysService)
+	if err != nil {
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
+		serverApplicationCore.Shutdown()
+
+		return nil, fmt.Errorf("failed to create barrier service: %w", err)
+	}
+
+	serverApplicationCore.BarrierService = barrierService
+
+	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, barrierService)
+	if err != nil {
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
+		serverApplicationCore.Shutdown()
+
+		return nil, fmt.Errorf("failed to initialize business logic service: %w", err)
+	}
+
+	serverApplicationCore.BusinessLogicService = businessLogicService
+
+	// Seed or reset demo data if demo mode is enabled.
+	if settings.DemoMode {
+		serverApplicationBasic.TelemetryService.Slogger.Info("Demo mode enabled, seeding demo data")
+
+		err = cryptoutilDemo.SeedDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
+		if err != nil {
+			serverApplicationBasic.TelemetryService.Slogger.Error("failed to seed demo data", "error", err)
+			serverApplicationCore.Shutdown()
+
+			return nil, fmt.Errorf("failed to seed demo data: %w", err)
+		}
+	} else if settings.ResetDemoMode {
+		serverApplicationBasic.TelemetryService.Slogger.Info("Reset demo mode enabled, resetting demo data")
+
+		err = cryptoutilDemo.ResetDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
+		if err != nil {
+			serverApplicationBasic.TelemetryService.Slogger.Error("failed to reset demo data", "error", err)
+			serverApplicationCore.Shutdown()
+
+			return nil, fmt.Errorf("failed to reset demo data: %w", err)
+		}
+	}
+
+	return serverApplicationCore, nil
+}
+
+func (c *ServerApplicationCore) Shutdown() func() {
+	return func() {
+		if c.ServerApplicationBasic.TelemetryService != nil {
+			c.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping server core")
+		}
+
+		if c.BarrierService != nil {
+			c.BarrierService.Shutdown()
+		}
+
+		if c.OrmRepository != nil {
+			c.OrmRepository.Shutdown()
+		}
+
+		if c.SQLRepository != nil {
+			c.SQLRepository.Shutdown()
+		}
+
+		if c.ServerApplicationBasic != nil {
+			c.ServerApplicationBasic.Shutdown()
+		}
+	}
+}

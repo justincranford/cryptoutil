@@ -73,7 +73,7 @@ linters:
       - path: "internal/identity/idp/userauth/step_up_auth\\.go$"
         linters: [nilnil]
       # Exclude nilnil from oam_orm_mapper.go (intentional pattern).
-      - path: "internal/server/businesslogic/oam_orm_mapper\\.go$"
+      - path: "internal/kms/businesslogic/oam_orm_mapper\\.go$"
         linters: [nilnil]
       # Exclude nilnil from nullable_uuid.go (sql.Scanner pattern).
       - path: "internal/identity/domain/nullable_uuid\\.go$"
@@ -82,7 +82,7 @@ linters:
       - path: "internal/identity/rotation/secret_rotation_service\\.go$"
         linters: [nilnil]
       # Exclude nilerr from jwk_util.go (intentional type-check pattern).
-      - path: "internal/common/crypto/jose/jwk_util\\.go$"
+      - path: "internal/jose/jwk_util\\.go$"
         linters: [nilerr]
       # Exclude nilerr from secret.go (intentional pattern).
       - path: "internal/crypto/secret\\.go$"
@@ -230,30 +230,30 @@ linters:
           alias: cryptoutilCertificate
         - pkg: "cryptoutil/internal/common/crypto/digests"
           alias: cryptoutilDigests
-        - pkg: "cryptoutil/internal/common/crypto/jose"
+        - pkg: "cryptoutil/internal/jose"
           alias: cryptoutilJose
         - pkg: "cryptoutil/internal/common/crypto/keygen"
           alias: cryptoutilKeyGen
-        # Cryptoutil server
-        - pkg: "cryptoutil/internal/server/application"
+        # Cryptoutil KMS
+        - pkg: "cryptoutil/internal/kms/application"
           alias: cryptoutilServerApplication
-        - pkg: "cryptoutil/internal/server/businesslogic"
+        - pkg: "cryptoutil/internal/kms/businesslogic"
           alias: cryptoutilBusinessLogic
-        - pkg: "cryptoutil/internal/server/handler"
+        - pkg: "cryptoutil/internal/kms/handler"
           alias: cryptoutilOpenapiHandler
-        - pkg: "cryptoutil/internal/server/barrier"
+        - pkg: "cryptoutil/internal/kms/barrier"
           alias: cryptoutilBarrierService
-        - pkg: "cryptoutil/internal/server/barrier/contentkeysservice"
+        - pkg: "cryptoutil/internal/kms/barrier/contentkeysservice"
           alias: cryptoutilContentKeysService
-        - pkg: "cryptoutil/internal/server/barrier/intermediatekeysservice"
+        - pkg: "cryptoutil/internal/kms/barrier/intermediatekeysservice"
           alias: cryptoutilIntermediateKeysService
-        - pkg: "cryptoutil/internal/server/barrier/rootkeysservice"
+        - pkg: "cryptoutil/internal/kms/barrier/rootkeysservice"
           alias: cryptoutilRootKeysService
-        - pkg: "cryptoutil/internal/server/barrier/unsealkeysservice"
+        - pkg: "cryptoutil/internal/kms/barrier/unsealkeysservice"
           alias: cryptoutilUnsealKeysService
-        - pkg: "cryptoutil/internal/server/repository/orm"
+        - pkg: "cryptoutil/internal/kms/repository/orm"
           alias: cryptoutilOrmRepository
-        - pkg: "cryptoutil/internal/server/repository/sqlrepository"
+        - pkg: "cryptoutil/internal/kms/repository/sqlrepository"
           alias: cryptoutilSQLRepository
         # Cryptoutil identity
         - pkg: "cryptoutil/internal/identity/apperr"

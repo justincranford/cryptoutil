@@ -17,9 +17,9 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
+	cryptoutilJose "cryptoutil/internal/jose"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilServerApplication "cryptoutil/internal/server/application"
+	cryptoutilServerApplication "cryptoutil/internal/kms/application"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"

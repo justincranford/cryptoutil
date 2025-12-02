@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
+	cryptoutilJose "cryptoutil/internal/jose"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
