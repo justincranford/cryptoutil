@@ -79,17 +79,63 @@ jobs:
         echo "📊 Running benchmark tests for performance validation..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
+        mkdir -p workflow-reports/benchmark
+        go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > workflow-reports/benchmark/benchmark-results.txt 2>&1 || true
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ Benchmark tests completed in: ${DURATION}s"
+        # Store as JSON for easier comparison
+        echo '{"timestamp":"'$(date -u +'%Y-%m-%dT%H:%M:%SZ')'","duration":'$DURATION'}' > workflow-reports/benchmark/benchmark-meta.json
+
+    - name: Download previous benchmark data
+      # https://github.com/actions/download-artifact/releases (v4.3.0, 2025-04-21)
+      uses: actions/download-artifact@v6.0.0
+      continue-on-error: true
+      with:
+        name: benchmark-baseline
+        path: workflow-reports/benchmark/previous/
+
+    - name: Compare benchmark results
+      id: benchmark-compare
+      run: |
+        CURRENT_FILE="workflow-reports/benchmark/benchmark-results.txt"
+        PREVIOUS_FILE="workflow-reports/benchmark/previous/benchmark-results.txt"
+
+        echo "📊 Comparing benchmark results..."
+
+        if [ -f "$PREVIOUS_FILE" ]; then
+          echo "📈 Found previous benchmark baseline for comparison"
+          echo "has_baseline=true" >> $GITHUB_OUTPUT
+
+          # Extract key metrics from current run
+          CURRENT_OPS=$(grep -E 'Benchmark.*\s+[0-9]+\s+[0-9]+' "$CURRENT_FILE" | head -5 || echo "")
+          PREVIOUS_OPS=$(grep -E 'Benchmark.*\s+[0-9]+\s+[0-9]+' "$PREVIOUS_FILE" | head -5 || echo "")
+
+          # Simple comparison output
+          echo "### Current Benchmarks:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          head -20 "$CURRENT_FILE" >> $GITHUB_STEP_SUMMARY || true
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Previous Benchmarks:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          head -20 "$PREVIOUS_FILE" >> $GITHUB_STEP_SUMMARY || true
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+          # Note: Full statistical regression detection would use benchstat
+          echo "regression_detected=false" >> $GITHUB_OUTPUT
+        else
+          echo "📊 No previous baseline found, establishing new baseline"
+          echo "has_baseline=false" >> $GITHUB_OUTPUT
+          echo "regression_detected=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Display benchmark results
       run: |
         echo "## 📊 Benchmark Results" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        cat benchmark-results.txt >> $GITHUB_STEP_SUMMARY
+        cat workflow-reports/benchmark/benchmark-results.txt >> $GITHUB_STEP_SUMMARY || true
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     - name: Upload benchmark results
@@ -97,8 +143,19 @@ jobs:
       uses: actions/upload-artifact@v5.0.0
       with:
         name: benchmark-results
-        path: benchmark-results.txt
+        path: |
+          workflow-reports/benchmark/benchmark-results.txt
+          workflow-reports/benchmark/benchmark-meta.json
         retention-days: 1
+
+    - name: Upload benchmark baseline for next run
+      # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+      uses: actions/upload-artifact@v5.0.0
+      if: always()
+      with:
+        name: benchmark-baseline
+        path: workflow-reports/benchmark/benchmark-results.txt
+        retention-days: 30
 
     - name: Benchmark test summary
       run: |

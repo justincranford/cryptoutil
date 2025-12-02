@@ -119,6 +119,16 @@ jobs:
         echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
         echo "📊 Current coverage: ${CURRENT_COVERAGE}%"
 
+        # Coverage threshold enforcement (80% minimum per Phase 5 P5.1)
+        MINIMUM_COVERAGE=80.0
+        if (( $(echo "$CURRENT_COVERAGE < $MINIMUM_COVERAGE" | bc -l) )); then
+          echo "❌ Coverage ${CURRENT_COVERAGE}% is below minimum threshold ${MINIMUM_COVERAGE}%"
+          echo "coverage_passed=false" >> $GITHUB_OUTPUT
+        else
+          echo "✅ Coverage ${CURRENT_COVERAGE}% meets minimum threshold ${MINIMUM_COVERAGE}%"
+          echo "coverage_passed=true" >> $GITHUB_OUTPUT
+        fi
+
         # Try to download previous coverage data
         PREVIOUS_COVERAGE="baseline"
         TREND_INDICATOR="📊"
@@ -175,6 +185,8 @@ jobs:
         echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
         echo "| Current Coverage | ${{ steps.coverage-trend.outputs.current_coverage }}% |" >> $GITHUB_STEP_SUMMARY
+        echo "| Minimum Threshold | 80.0% |" >> $GITHUB_STEP_SUMMARY
+        echo "| Threshold Status | ${{ steps.coverage-trend.outputs.coverage_passed == 'true' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
 
         if [ "${{ steps.coverage-trend.outputs.trend_text }}" != "baseline" ]; then
           echo "| Previous Coverage | ${{ steps.coverage-trend.outputs.previous_coverage }}% |" >> $GITHUB_STEP_SUMMARY
@@ -185,6 +197,13 @@ jobs:
         fi
 
         echo "" >> $GITHUB_STEP_SUMMARY
+
+    - name: Enforce coverage threshold
+      if: steps.coverage-trend.outputs.coverage_passed == 'false'
+      run: |
+        echo "❌ Coverage below minimum threshold of 80%"
+        echo "Current coverage: ${{ steps.coverage-trend.outputs.current_coverage }}%"
+        exit 1
 
     - name: Upload coverage
       # https://github.com/codecov/codecov-action/releases (v5.5.1, 2025-11-15)

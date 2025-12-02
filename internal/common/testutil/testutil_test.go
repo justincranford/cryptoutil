@@ -268,3 +268,135 @@ func TestWriteAndRead_Roundtrip(t *testing.T) {
 		})
 	}
 }
+
+func TestIntegrationTimeout(t *testing.T) {
+	t.Parallel()
+
+	t.Run("default timeout", func(t *testing.T) {
+		t.Parallel()
+
+		timeout := testutil.IntegrationTimeout()
+		require.Equal(t, testutil.DefaultIntegrationTimeout, timeout)
+	})
+}
+
+func TestIntegrationContext(t *testing.T) {
+	t.Parallel()
+
+	ctx := testutil.IntegrationContext(t)
+	require.NotNil(t, ctx)
+
+	// Context should have deadline.
+	_, hasDeadline := ctx.Deadline()
+	require.True(t, hasDeadline, "Context should have deadline")
+}
+
+func TestTestID(t *testing.T) {
+	t.Parallel()
+
+	t.Run("without prefix", func(t *testing.T) {
+		t.Parallel()
+
+		id := testutil.TestID("")
+		require.NotEmpty(t, id)
+		require.Len(t, id, 36) // UUID format: 8-4-4-4-12
+	})
+
+	t.Run("with prefix", func(t *testing.T) {
+		t.Parallel()
+
+		id := testutil.TestID("test")
+		require.NotEmpty(t, id)
+		require.Contains(t, id, "test-")
+	})
+
+	t.Run("unique IDs", func(t *testing.T) {
+		t.Parallel()
+
+		id1 := testutil.TestID("test")
+		id2 := testutil.TestID("test")
+		require.NotEqual(t, id1, id2, "IDs should be unique")
+	})
+}
+
+func TestTestUserFactory(t *testing.T) {
+	t.Parallel()
+
+	factory := testutil.NewTestUserFactory("user-test")
+
+	t.Run("creates user with unique ID", func(t *testing.T) {
+		t.Parallel()
+
+		user := factory.Create("admin")
+		require.NotEmpty(t, user.ID)
+		require.Contains(t, user.Username, "admin")
+		require.Contains(t, user.Email, "@test.example.com")
+		require.NotEmpty(t, user.Password)
+		require.True(t, user.Enabled)
+	})
+
+	t.Run("creates unique users", func(t *testing.T) {
+		t.Parallel()
+
+		user1 := factory.Create("user")
+		user2 := factory.Create("user")
+		require.NotEqual(t, user1.ID, user2.ID, "IDs should be unique")
+		require.NotEqual(t, user1.Username, user2.Username, "Usernames should be unique")
+	})
+}
+
+func TestTestClientFactory(t *testing.T) {
+	t.Parallel()
+
+	factory := testutil.NewTestClientFactory("client-test")
+
+	t.Run("creates confidential client", func(t *testing.T) {
+		t.Parallel()
+
+		client := factory.CreateConfidential("Test App")
+		require.NotEmpty(t, client.ID)
+		require.Contains(t, client.ClientID, "client-")
+		require.NotEmpty(t, client.ClientSecret, "Confidential client should have secret")
+		require.Equal(t, "Test App", client.Name)
+		require.False(t, client.Public)
+		require.NotEmpty(t, client.RedirectURIs)
+		require.NotEmpty(t, client.Scopes)
+	})
+
+	t.Run("creates public client", func(t *testing.T) {
+		t.Parallel()
+
+		client := factory.CreatePublic("Public App")
+		require.NotEmpty(t, client.ID)
+		require.Contains(t, client.ClientID, "public-")
+		require.Empty(t, client.ClientSecret, "Public client should not have secret")
+		require.Equal(t, "Public App", client.Name)
+		require.True(t, client.Public)
+	})
+}
+
+func TestTestTenantFactory(t *testing.T) {
+	t.Parallel()
+
+	factory := testutil.NewTestTenantFactory("tenant-test")
+
+	t.Run("creates tenant with UUIDv4", func(t *testing.T) {
+		t.Parallel()
+
+		tenant := factory.Create("ACME Corp")
+		require.NotEmpty(t, tenant.ID)
+		require.Len(t, tenant.ID, 36) // UUID format
+		require.Contains(t, tenant.Name, "ACME Corp")
+		require.Contains(t, tenant.Description, "Test tenant")
+		require.Equal(t, "default", tenant.RealmID)
+		require.True(t, tenant.Enabled)
+	})
+
+	t.Run("creates unique tenants", func(t *testing.T) {
+		t.Parallel()
+
+		tenant1 := factory.Create("Tenant")
+		tenant2 := factory.Create("Tenant")
+		require.NotEqual(t, tenant1.ID, tenant2.ID, "IDs should be unique")
+	})
+}

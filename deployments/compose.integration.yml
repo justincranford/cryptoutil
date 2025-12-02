@@ -1,0 +1,181 @@
+# Integration Demo Compose Configuration
+#
+# Usage: docker compose -f deployments/compose.integration.yml up -d
+#
+# This configuration runs the full integration demo with both KMS and Identity
+# servers, demonstrating token-based authentication between services.
+#
+# Demo flow:
+# 1. Identity server issues OAuth2 tokens
+# 2. KMS server validates tokens via JWKS
+# 3. Authenticated KMS operations with scope enforcement
+#
+# Demo credentials (WARNING: Never use in production):
+# - demo-client / demo-secret (OAuth client)
+# - demo-user / demo-password (User login)
+# - admin@demo.local / admin-demo-password (KMS admin)
+#
+# Demo endpoints:
+# - Identity AuthZ: https://localhost:8082
+# - Identity IdP: https://localhost:8083
+# - KMS API: https://localhost:8080/api/v1
+# - Swagger UI: https://localhost:8080/ui/swagger
+# - Grafana: http://localhost:3000 (admin/admin)
+
+name: cryptoutil-integration-demo
+
+include:
+  - path: telemetry/compose.yml
+
+services:
+  # Identity AuthZ Demo Server (issues tokens).
+  identity-authz:
+    build:
+      context: ..
+      dockerfile: deployments/identity/Dockerfile.authz
+    image: cryptoutil-identity-authz:integration
+    container_name: identity-authz
+    hostname: identity-authz
+    command:
+      - --config=/etc/identity/authz.yml
+      - --demo
+    ports:
+      - "8082:8082"  # AuthZ API (HTTPS)
+    volumes:
+      - ./identity/config/authz.yml:/etc/identity/authz.yml:ro
+      - ./identity/config/demo-seed.yml:/etc/identity/demo-seed.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=identity-authz
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=integration,deployment.environment=demo
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:8082/healthz
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_healthy
+    networks:
+      - integration-network
+
+  # Identity IdP Demo Server (user authentication).
+  identity-idp:
+    build:
+      context: ..
+      dockerfile: deployments/identity/Dockerfile.idp
+    image: cryptoutil-identity-idp:integration
+    container_name: identity-idp
+    hostname: identity-idp
+    command:
+      - --config=/etc/identity/idp.yml
+      - --demo
+    ports:
+      - "8083:8083"  # IdP API (HTTPS)
+    volumes:
+      - ./identity/config/idp.yml:/etc/identity/idp.yml:ro
+      - ./identity/config/demo-seed.yml:/etc/identity/demo-seed.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=identity-idp
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=integration,deployment.environment=demo
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:8083/healthz
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_healthy
+    networks:
+      - integration-network
+
+  # KMS Demo Server (validates Identity tokens via JWKS).
+  cryptoutil-kms:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: integration
+        VCS_REF: integration
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: cryptoutil:integration
+    container_name: cryptoutil-kms
+    hostname: cryptoutil-kms
+    secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+    command:
+      - server
+      - start
+      - --config=/etc/cryptoutil/common.yml
+      - --config=/etc/cryptoutil/sqlite.yml
+      - --config=/etc/cryptoutil/integration.yml
+      - --demo
+    ports:
+      - "8080:8080"  # Public API (HTTPS)
+      - "9090:9090"  # Admin API (HTTPS)
+    volumes:
+      - ./kms/config/common.yml:/etc/cryptoutil/common.yml:ro
+      - ./kms/config/sqlite.yml:/etc/cryptoutil/sqlite.yml:ro
+      - ./kms/config/integration.yml:/etc/cryptoutil/integration.yml:ro
+      - ./kms/config/demo-seed.yml:/etc/cryptoutil/demo-seed.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=cryptoutil-kms
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=integration,deployment.environment=demo
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:9090/livez
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_healthy
+      identity-authz:
+        condition: service_healthy
+    networks:
+      - integration-network
+
+secrets:
+  unseal_1of5.secret:
+    file: ./kms/secrets/unseal_1of5.secret
+  unseal_2of5.secret:
+    file: ./kms/secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ./kms/secrets/unseal_3of5.secret
+  unseal_4of5.secret:
+    file: ./kms/secrets/unseal_4of5.secret
+  unseal_5of5.secret:
+    file: ./kms/secrets/unseal_5of5.secret
+
+networks:
+  integration-network:
+    driver: bridge

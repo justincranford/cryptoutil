@@ -4,6 +4,8 @@
 
 package magic
 
+import "time"
+
 // Security header policy constants.
 const (
 	// HSTSMaxAge - HSTS max-age for production (1 year with preload).
@@ -26,4 +28,25 @@ const (
 	ContentTypeOptions = "nosniff"
 	// ClearSiteDataLogout - Clear-Site-Data header for logout.
 	ClearSiteDataLogout = "\"cache\", \"cookies\", \"storage\""
+)
+
+// Token introspection constants.
+const (
+	// IntrospectionCacheTTLMinutes is the default cache TTL for introspection results.
+	IntrospectionCacheTTLMinutes = 5
+
+	// IntrospectionMaxBatchSize is the default max batch size for introspection.
+	IntrospectionMaxBatchSize = 10
+
+	// IntrospectionHTTPTimeoutSeconds is the default HTTP timeout for introspection.
+	IntrospectionHTTPTimeoutSeconds = 10
+)
+
+// Token introspection durations.
+var (
+	// IntrospectionCacheTTL is the default cache TTL as a duration.
+	IntrospectionCacheTTL = IntrospectionCacheTTLMinutes * time.Minute
+
+	// IntrospectionHTTPTimeout is the default HTTP timeout as a duration.
+	IntrospectionHTTPTimeout = IntrospectionHTTPTimeoutSeconds * time.Second
 )

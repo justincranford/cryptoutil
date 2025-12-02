@@ -4,7 +4,12 @@
 
 package magic
 
-import "time"
+import (
+	"crypto/sha256"
+	"crypto/sha512"
+	"hash"
+	"time"
+)
 
 // DefaultPoolConfig defines the worker and pool size configuration for key generation pools.
 type DefaultPoolConfig struct {
@@ -108,6 +113,20 @@ const (
 	PBKDF2MinIterations     = 210000          // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
 	PBKDF2DefaultIterations = 600000          // Default iteration count (Session 5 Q12: 600K).
 )
+
+// PBKDF2HashFunction returns the hash function for the given algorithm name.
+func PBKDF2HashFunction(algorithm string) func() hash.Hash {
+	switch algorithm {
+	case "SHA-256", "sha256", "SHA256":
+		return sha256.New
+	case "SHA-512", "sha512", "SHA512":
+		return sha512.New
+	case "SHA-384", "sha384", "SHA384":
+		return sha512.New384
+	default:
+		return sha256.New
+	}
+}
 
 var (
 	DefaultPoolConfigRSA4096     = DefaultPoolConfig{NumWorkers: 9, MaxSize: 9}  //nolint:mnd
