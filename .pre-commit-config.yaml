@@ -349,7 +349,7 @@ repos:
         args: [--no-progress, --cache]
         language: system
         files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
-        exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/|\.github/agents/|\.specify/)'
+        exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/|\.github/agents/|\.github/prompts/|\.specify/)'
         require_serial: false
         stages: [pre-push]
 
