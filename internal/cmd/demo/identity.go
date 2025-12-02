@@ -54,6 +54,10 @@ const (
 	identityStepsAfterConfig = 1
 	identityStepsAfterServer = 2
 	identityStepsAfterHealth = 3
+
+	// Demo client credentials (shared with integration demo).
+	identityDemoClientID     = "demo-client"
+	identityDemoClientSecret = "demo-secret"
 )
 
 // identityDemoServer holds the running Identity server instance.
@@ -421,8 +425,8 @@ func demonstrateClientCredentialsFlow(ctx context.Context, demoServer *identityD
 	tokenURL := demoServer.baseURL + "/oauth2/v1/token"
 
 	// Build token request using demo client credentials.
-	clientID := "demo-client"
-	clientSecret := "demo-secret"
+	clientID := identityDemoClientID
+	clientSecret := identityDemoClientSecret
 
 	form := url.Values{}
 	form.Set("grant_type", "client_credentials")
