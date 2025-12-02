@@ -51,7 +51,6 @@ func TestNewJWTValidator(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -88,7 +87,6 @@ func TestJWTClaims_HasScope(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -118,7 +116,6 @@ func TestJWTClaims_HasAnyScope(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -148,7 +145,6 @@ func TestJWTClaims_HasAllScopes(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -204,7 +200,6 @@ func TestIsAlgorithmAllowed(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -227,4 +222,163 @@ func TestDefaultsApplied(t *testing.T) {
 	require.Equal(t, errorDetailLevelMin, validator.config.ErrorDetailLevel)
 	require.NotNil(t, validator.httpClient)
 	require.NotNil(t, validator.cache)
+}
+
+func TestShouldPerformRevocationCheck(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		config   JWTValidatorConfig
+		claims   *JWTClaims
+		expected bool
+	}{
+		{
+			name: "disabled mode",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:    "https://example.com/introspect",
+				RevocationCheckMode: RevocationCheckDisabled,
+			},
+			claims:   &JWTClaims{Scopes: []string{"read"}},
+			expected: false,
+		},
+		{
+			name: "every-request mode",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:    "https://example.com/introspect",
+				RevocationCheckMode: RevocationCheckEveryRequest,
+			},
+			claims:   &JWTClaims{Scopes: []string{"read"}},
+			expected: true,
+		},
+		{
+			name: "sensitive-only with sensitive scope",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:    "https://example.com/introspect",
+				RevocationCheckMode: RevocationCheckSensitiveOnly,
+			},
+			claims:   &JWTClaims{Scopes: []string{"read", "write"}},
+			expected: true,
+		},
+		{
+			name: "sensitive-only without sensitive scope",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:    "https://example.com/introspect",
+				RevocationCheckMode: RevocationCheckSensitiveOnly,
+			},
+			claims:   &JWTClaims{Scopes: []string{"read", "profile"}},
+			expected: false,
+		},
+		{
+			name: "sensitive-only with custom sensitive scopes",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:    "https://example.com/introspect",
+				RevocationCheckMode: RevocationCheckSensitiveOnly,
+				SensitiveScopes:     []string{"special:admin"},
+			},
+			claims:   &JWTClaims{Scopes: []string{"read", "special:admin"}},
+			expected: true,
+		},
+		{
+			name: "no introspection URL",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				RevocationCheckMode: RevocationCheckEveryRequest,
+			},
+			claims:   &JWTClaims{Scopes: []string{"read"}},
+			expected: false,
+		},
+		{
+			name: "backwards compatibility - old boolean flag",
+			config: JWTValidatorConfig{
+				JWKSURL:                "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:       "https://example.com/introspect",
+				RevocationCheckEnabled: true,
+			},
+			claims:   &JWTClaims{Scopes: []string{"read"}},
+			expected: true,
+		},
+	}
+
+	for _, tc := range tests {
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			validator, err := NewJWTValidator(tc.config)
+			require.NoError(t, err)
+
+			result := validator.shouldPerformRevocationCheck(tc.claims)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestHasSensitiveScope(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		sensitiveScopes []string
+		claims          *JWTClaims
+		expected        bool
+	}{
+		{
+			name:            "default sensitive scopes - has admin",
+			sensitiveScopes: nil,
+			claims:          &JWTClaims{Scopes: []string{"read", "admin"}},
+			expected:        true,
+		},
+		{
+			name:            "default sensitive scopes - has write",
+			sensitiveScopes: nil,
+			claims:          &JWTClaims{Scopes: []string{"read", "write"}},
+			expected:        true,
+		},
+		{
+			name:            "default sensitive scopes - has kms:admin",
+			sensitiveScopes: nil,
+			claims:          &JWTClaims{Scopes: []string{"read", "kms:admin"}},
+			expected:        true,
+		},
+		{
+			name:            "default sensitive scopes - read only",
+			sensitiveScopes: nil,
+			claims:          &JWTClaims{Scopes: []string{"read", "profile"}},
+			expected:        false,
+		},
+		{
+			name:            "custom sensitive scopes - match",
+			sensitiveScopes: []string{"custom:write"},
+			claims:          &JWTClaims{Scopes: []string{"read", "custom:write"}},
+			expected:        true,
+		},
+		{
+			name:            "custom sensitive scopes - no match",
+			sensitiveScopes: []string{"custom:write"},
+			claims:          &JWTClaims{Scopes: []string{"read", "write"}},
+			expected:        false,
+		},
+	}
+
+	for _, tc := range tests {
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			validator, err := NewJWTValidator(JWTValidatorConfig{
+				JWKSURL:         "https://example.com/.well-known/jwks.json",
+				SensitiveScopes: tc.sensitiveScopes,
+			})
+			require.NoError(t, err)
+
+			result := validator.hasSensitiveScope(tc.claims)
+			require.Equal(t, tc.expected, result)
+		})
+	}
 }

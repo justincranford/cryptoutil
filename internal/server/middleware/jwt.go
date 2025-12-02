@@ -24,6 +24,23 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwt"
 )
 
+// RevocationCheckMode controls when revocation checks are performed.
+type RevocationCheckMode string
+
+const (
+	// RevocationCheckEveryRequest checks every request (most secure, highest latency).
+	RevocationCheckEveryRequest RevocationCheckMode = "every-request"
+
+	// RevocationCheckSensitiveOnly checks only for sensitive operations (write, admin).
+	RevocationCheckSensitiveOnly RevocationCheckMode = "sensitive-only"
+
+	// RevocationCheckInterval checks at a configurable interval (cached result).
+	RevocationCheckInterval RevocationCheckMode = "interval"
+
+	// RevocationCheckDisabled disables revocation checks entirely.
+	RevocationCheckDisabled RevocationCheckMode = "disabled"
+)
+
 // JWTValidatorConfig configures JWT validation middleware.
 type JWTValidatorConfig struct {
 	// JWKS endpoint URL for fetching public keys.
@@ -42,7 +59,20 @@ type JWTValidatorConfig struct {
 	AllowedAlgorithms []string
 
 	// RevocationCheckEnabled enables introspection-based revocation checks.
+	// Deprecated: Use RevocationCheckMode instead.
 	RevocationCheckEnabled bool
+
+	// RevocationCheckMode controls when to perform revocation checks.
+	// Options: every-request, sensitive-only, interval, disabled.
+	RevocationCheckMode RevocationCheckMode
+
+	// RevocationCheckInterval is the interval between revocation checks.
+	// Used when RevocationCheckMode is "interval". Default: 5 minutes.
+	RevocationCheckInterval time.Duration
+
+	// SensitiveScopes defines scopes that trigger revocation checks
+	// when RevocationCheckMode is "sensitive-only".
+	SensitiveScopes []string
 
 	// IntrospectionURL for checking token revocation.
 	IntrospectionURL string
@@ -207,22 +237,90 @@ func (v *JWTValidator) ValidateToken(ctx context.Context, tokenString string) (*
 		}
 	}
 
-	// Check revocation if enabled.
-	if v.config.RevocationCheckEnabled && v.config.IntrospectionURL != "" {
-		active, err := v.checkRevocation(ctx, tokenString)
-		if err != nil {
-			return nil, fmt.Errorf("revocation check failed: %w", err)
+	// Extract claims first (needed for sensitive scope check).
+	claims := v.extractClaims(token)
+
+	// Check revocation based on configured mode.
+	if err := v.performRevocationCheck(ctx, tokenString, claims); err != nil {
+		return nil, err
+	}
+
+	return claims, nil
+}
+
+// performRevocationCheck checks token revocation based on configured mode.
+func (v *JWTValidator) performRevocationCheck(ctx context.Context, tokenString string, claims *JWTClaims) error {
+	// Determine if revocation check is needed.
+	shouldCheck := v.shouldPerformRevocationCheck(claims)
+	if !shouldCheck {
+		return nil
+	}
+
+	// Perform introspection check.
+	active, err := v.checkRevocation(ctx, tokenString)
+	if err != nil {
+		return fmt.Errorf("revocation check failed: %w", err)
+	}
+
+	if !active {
+		return errors.New("token has been revoked")
+	}
+
+	return nil
+}
+
+// shouldPerformRevocationCheck determines if revocation check is needed.
+func (v *JWTValidator) shouldPerformRevocationCheck(claims *JWTClaims) bool {
+	// Check if introspection URL is configured.
+	if v.config.IntrospectionURL == "" {
+		return false
+	}
+
+	// Backwards compatibility: check old boolean flag.
+	if v.config.RevocationCheckEnabled {
+		return true
+	}
+
+	// Check based on configured mode.
+	switch v.config.RevocationCheckMode {
+	case RevocationCheckEveryRequest:
+		return true
+	case RevocationCheckSensitiveOnly:
+		return v.hasSensitiveScope(claims)
+	case RevocationCheckInterval:
+		// TODO: Implement interval-based caching with token JTI as key.
+		// For now, treat as every-request.
+		return true
+	case RevocationCheckDisabled, "":
+		return false
+	default:
+		return false
+	}
+}
+
+// hasSensitiveScope checks if claims contain any sensitive scopes.
+func (v *JWTValidator) hasSensitiveScope(claims *JWTClaims) bool {
+	if len(v.config.SensitiveScopes) == 0 {
+		// Default sensitive scopes if not configured.
+		defaultSensitiveScopes := []string{"admin", "write", "delete", "kms:admin", "kms:write"}
+
+		for _, scope := range defaultSensitiveScopes {
+			if claims.HasScope(scope) {
+				return true
+			}
 		}
 
-		if !active {
-			return nil, errors.New("token has been revoked")
+		return false
+	}
+
+	// Check configured sensitive scopes.
+	for _, scope := range v.config.SensitiveScopes {
+		if claims.HasScope(scope) {
+			return true
 		}
 	}
 
-	// Extract claims.
-	claims := v.extractClaims(token)
-
-	return claims, nil
+	return false
 }
 
 // getJWKS retrieves JWKS from cache or fetches from URL.
