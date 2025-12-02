@@ -8,7 +8,9 @@
 
 ### P1: JOSE (JSON Object Signing and Encryption)
 
-Core cryptographic primitives for web security standards.
+Core cryptographic primitives for web security standards. Serves as the embedded foundation for all other products.
+
+**Architecture Note**: JOSE is embedded in all products (P2-P4). Current implementation is in `internal/common/crypto/jose/` and needs refactoring to `internal/product/jose/` as a standalone JOSE Authority service.
 
 #### Capabilities
 
@@ -19,6 +21,7 @@ Core cryptographic primitives for web security standards.
 | JWE | JSON Web Encryption operations | ✅ Implemented |
 | JWS | JSON Web Signature operations | ✅ Implemented |
 | JWT | JSON Web Token creation and validation | ✅ Implemented |
+| JOSE Authority | Standalone JOSE service with full API | ⚠️ Needs Refactoring |
 
 #### Supported Algorithms
 
@@ -34,6 +37,8 @@ Core cryptographic primitives for web security standards.
 ### P2: Identity (OAuth 2.1 Authorization Server + OIDC IdP)
 
 Complete identity and access management solution.
+
+**Priority Focus**: Login/Consent UI (minimal HTML, server-rendered, no JavaScript).
 
 #### Authorization Server (AuthZ)
 
@@ -69,22 +74,23 @@ Complete identity and access management solution.
 |--------|-------------|--------|
 | client_secret_basic | HTTP Basic Auth with client_id:client_secret | ✅ Working |
 | client_secret_post | client_id and client_secret in request body | ✅ Working |
-| client_secret_jwt | JWT signed with client secret | ⚠️ Partial |
-| private_key_jwt | JWT signed with private key | ⚠️ Partial |
+| client_secret_jwt | JWT signed with client secret | ⚠️ Partial (HIGH Priority) |
+| private_key_jwt | JWT signed with private key | ⚠️ Partial (HIGH Priority) |
 | tls_client_auth | Mutual TLS client certificate authentication | ❌ Not Implemented |
 | self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ❌ Not Implemented |
+| session_cookie | Browser session cookie for SPA UI | ❌ Not Implemented (Required) |
 
 #### MFA Factors
 
 | Factor | Description | Status |
 |--------|-------------|--------|
-| TOTP | Time-based One-Time Password | ✅ Working |
-| Passkey | WebAuthn/FIDO2 authentication | ✅ Working |
+| TOTP | Time-based One-Time Password | ✅ Working (HIGH Priority) |
+| Passkey | WebAuthn/FIDO2 authentication | ✅ Working (HIGH Priority) |
+| Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented (HIGH Priority) |
 | Email OTP | One-time password via email | ⚠️ Partial |
 | SMS OTP | One-time password via SMS | ⚠️ Partial |
 | HOTP | HMAC-based One-Time Password (counter-based) | ❌ Not Implemented |
 | Recovery Codes | Backup codes for account recovery | ❌ Not Implemented |
-| Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented |
 | Push Notifications | Push-based authentication via mobile app | ❌ Not Required |
 | Phone Call OTP | One-time password via voice call | ❌ Not Required |
 
@@ -103,6 +109,13 @@ Complete identity and access management solution.
 ### P3: KMS (Key Management Service)
 
 Hierarchical key management with versioning and rotation.
+
+**Authentication Strategy**: Configurable - support multiple methods including OAuth 2.1 federation to Identity (P2), API key, mTLS. Dual API exposure:
+
+- `/browser/api/v1/` - User-to-browser APIs for SPA invocation
+- `/service/api/v1/` - Service-to-service APIs
+
+**Realm Configuration**: MANDATORY configurable realms for users and clients (file-based and database-based), with OPTIONAL federation to external IdPs and AuthZs.
 
 #### ElasticKey Operations
 

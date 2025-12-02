@@ -2,7 +2,7 @@
 
 **Purpose**: Structured questions to refine constitution principles, product definitions, and strategic priorities for cryptoutil Spec Kit.
 **Created**: 2025-12-02
-**Status**: AWAITING ANSWERS
+**Status**: ✅ COMPLETED (2025-12-02)
 
 ---
 
@@ -18,7 +18,7 @@ Select your answer by changing `[ ]` to `[x]` for each question. Add comments in
 
 The constitution mandates FIPS 140-3 compliance. How strict should enforcement be?
 
-- [ ] A. Strict: ONLY FIPS-approved algorithms, no exceptions, compile-time enforcement
+- [x] A. Strict: ONLY FIPS-approved algorithms, no exceptions, compile-time enforcement
 - [ ] B. Default: FIPS-approved by default, allow non-FIPS via explicit opt-in flag for testing
 - [ ] C. Flexible: FIPS-approved recommended, allow non-FIPS algorithms when justified
 - [ ] D. Configurable: Runtime toggle between FIPS-strict and FIPS-relaxed modes
@@ -33,7 +33,7 @@ What is the minimum evidence required to mark a task "complete"?
 
 - [ ] A. Code compiles (`go build ./...` clean)
 - [ ] B. Code compiles + linting passes (`golangci-lint run` clean)
-- [ ] C. Code compiles + linting + tests pass
+- [x] C. Code compiles + linting + tests pass
 - [ ] D. Code compiles + linting + tests pass + coverage maintained + E2E demo works
 
 **Notes**:
@@ -45,7 +45,7 @@ What is the minimum evidence required to mark a task "complete"?
 Current targets are 80% production, 85% infrastructure, 95% utility. Are these appropriate?
 
 - [ ] A. Too high - lower to 70%/75%/85%
-- [ ] B. Just right - keep 80%/85%/95%
+- [x] B. Just right - keep 80%/85%/95%
 - [ ] C. Too low - raise to 85%/90%/98%
 - [ ] D. Eliminate fixed targets - use risk-based coverage decisions
 
@@ -58,7 +58,7 @@ Current targets are 80% production, 85% infrastructure, 95% utility. Are these a
 Current limits: 300 (soft), 400 (medium), 500 (hard). Are these appropriate?
 
 - [ ] A. Too restrictive - raise to 400/500/600
-- [ ] B. Just right - keep 300/400/500
+- [x] B. Just right - keep 300/400/500
 - [ ] C. Too permissive - lower to 200/300/400
 - [ ] D. Replace line counts with cyclomatic complexity metrics
 
@@ -71,11 +71,12 @@ Current limits: 300 (soft), 400 (medium), 500 (hard). Are these appropriate?
 The constitution specifies 4 layers: Unseal → Root → Intermediate → Content. Is this sufficient?
 
 - [ ] A. Too complex - simplify to 3 layers (Unseal → Master → Content)
-- [ ] B. Just right - keep 4 layers
+- [x] B. Just right - keep 4 layers
 - [ ] C. Need more - add Tenant layer (Unseal → Root → Tenant → Intermediate → Content)
 - [ ] D. Configurable - allow 3-5 layers based on deployment complexity
 
 **Notes**:
+These are only applicable to KMS.
 
 ---
 
@@ -86,7 +87,7 @@ Constitution defines P1-P4 products. Should products share code or be independen
 - [ ] A. Monolith: All products in single deployable binary
 - [ ] B. Shared: Products share infrastructure, deployed separately
 - [ ] C. Independent: Products are fully independent, no shared code
-- [ ] D. Hybrid: P1 (JOSE) embedded in all, P2-P4 deploy separately
+- [x] D. Hybrid: P1 (JOSE) embedded in all, P2-P4 deploy separately
 
 **Notes**:
 
@@ -97,11 +98,12 @@ Constitution defines P1-P4 products. Should products share code or be independen
 Constitution mandates Docker/Kubernetes secrets only. Is this too restrictive?
 
 - [ ] A. Too restrictive - allow environment variables for local development
-- [ ] B. Just right - Docker/K8s secrets only, even locally
+- [x] B. Just right - Docker/K8s secrets only, even locally
 - [ ] C. Add vault support - HashiCorp Vault, AWS Secrets Manager, etc.
 - [ ] D. Tiered: Secrets for production, env vars for dev, config files for tests
 
 **Notes**:
+Never use third-party HashiCorp, AWS, etc.
 
 ---
 
@@ -109,7 +111,7 @@ Constitution mandates Docker/Kubernetes secrets only. Is this too restrictive?
 
 Who has authority to change constitution principles?
 
-- [ ] A. Only project owner (you) can modify constitution
+- [x] A. Only project owner (you) can modify constitution
 - [ ] B. Major changes require PR with justification, minor clarifications allowed
 - [ ] C. Constitution is immutable - create new version for breaking changes
 - [ ] D. Living document - update freely as understanding evolves
@@ -130,6 +132,8 @@ P1 (JOSE) is marked as ✅ Implemented. What changes are needed?
 - [ ] D. Add key wrapping APIs - wrap/unwrap operations
 
 **Notes**:
+Code is fully implemented inside internal\common\crypto\jose, high-level service is internal\common\crypto\jose\jwkgen_service.go,
+but this needs to be refactored out of common into a top-level product, and extended to be a full JOSE Authority.
 
 ---
 
@@ -137,7 +141,7 @@ P1 (JOSE) is marked as ✅ Implemented. What changes are needed?
 
 P2 (Identity) has partial implementation. Which area needs most focus?
 
-- [ ] A. Login/Consent UI - user-facing flows
+- [x] A. Login/Consent UI - user-facing flows
 - [ ] B. Token lifecycle - revocation, cleanup, introspection
 - [ ] C. MFA completion - TOTP, Passkey, Recovery codes
 - [ ] D. Security hardening - secret hashing, rate limiting, audit logging
@@ -150,8 +154,8 @@ P2 (Identity) has partial implementation. Which area needs most focus?
 
 Which client authentication methods should be prioritized?
 
-- [ ] A. Basic (client_secret_basic, client_secret_post) - already working
-- [ ] B. JWT-based (client_secret_jwt, private_key_jwt) - partially implemented
+- [x] A. Basic (client_secret_basic, client_secret_post) - already working
+- [x] B. JWT-based (client_secret_jwt, private_key_jwt) - partially implemented
 - [ ] C. mTLS (tls_client_auth, self_signed_tls_client_auth) - not implemented
 - [ ] D. All methods should have equal priority
 
@@ -163,12 +167,12 @@ Which client authentication methods should be prioritized?
 
 Which MFA factors should be completed first? (Select top 2)
 
-- [ ] A. TOTP - Time-based OTP (marked ✅ Working)
-- [ ] B. Passkey - WebAuthn/FIDO2 (marked ✅ Working)
+- [x] A. TOTP - Time-based OTP (marked ✅ Working)
+- [x] B. Passkey - WebAuthn/FIDO2 (marked ✅ Working)
 - [ ] C. Email OTP - (marked ⚠️ Partial)
 - [ ] D. SMS OTP - (marked ⚠️ Partial)
 - [ ] E. Recovery Codes - (marked ❌ Not Implemented)
-- [ ] F. Hardware Security Keys - (marked ❌ Not Implemented)
+- [x] F. Hardware Security Keys - (marked ❌ Not Implemented)
 
 **Notes**:
 
@@ -182,7 +186,7 @@ P3 (KMS) has basic operations. What should be added?
 - [ ] B. Import/Revoke operations for MaterialKey
 - [ ] C. Key rotation automation
 - [ ] D. Multi-tenant isolation
-- [ ] E. All of the above
+- [x] E. All of the above
 
 **Notes**:
 
@@ -196,9 +200,14 @@ How should KMS authenticate requests?
 - [ ] B. API key - simple bearer token
 - [ ] C. OAuth 2.1 - federate to Identity (P2)
 - [ ] D. mTLS - client certificate authentication
-- [ ] E. Configurable - support multiple methods
+- [x] E. Configurable - support multiple methods
 
 **Notes**:
+The same APIs are exposed twice with different security stacks.
+/browser/api/v1/ => User-to-browser APIs for direct invocation from SPAs.
+/service/api/v1/ => Service-to-service for
+
+I don't see session cookie authentication for SPA UI listed, it needs to be added.
 
 ---
 
@@ -207,7 +216,7 @@ How should KMS authenticate requests?
 P4 (Certificates) is PLANNED. What's the implementation priority?
 
 - [ ] A. High - start CA foundation immediately (Phase 4 per plan)
-- [ ] B. Medium - complete P2/P3 first, then CA
+- [x] B. Medium - complete P2/P3 first, then CA
 - [ ] C. Low - CA is nice-to-have, defer indefinitely
 - [ ] D. Reconsider - use existing CA (Let's Encrypt, Vault PKI) instead
 
@@ -220,11 +229,13 @@ P4 (Certificates) is PLANNED. What's the implementation priority?
 If P4 is implemented, what scope is appropriate?
 
 - [ ] A. Internal-only - PKI for internal services, not public TLS
-- [ ] B. Private CA - enterprise PKI for org-internal certificates
+- [x] B. Private CA - enterprise PKI for org-internal certificates
 - [ ] C. Public CA - CA/Browser Forum compliant for public TLS
-- [ ] D. Hybrid - internal CA first, public CA compliance later
+- [x] D. Hybrid - internal CA first, public CA compliance later
 
 **Notes**:
+This is not implemented. The core for a few hard-coded profiles is implemented: Root CA, Intermediate CA, Issuing CA, TLS Server, TLS Client.
+CA needs to be a standalone product, so much more is needed to productize it.
 
 ---
 
@@ -236,7 +247,7 @@ Which database backend should be primary?
 
 - [ ] A. PostgreSQL only - enterprise-grade, remove SQLite
 - [ ] B. SQLite only - simplicity, embed in binary
-- [ ] C. Both equally - PostgreSQL for production, SQLite for dev/test
+- [x] C. Both equally - PostgreSQL for production, SQLite for dev/test
 - [ ] D. Add more - MySQL, CockroachDB, etc.
 
 **Notes**:
@@ -247,7 +258,7 @@ Which database backend should be primary?
 
 Current telemetry uses OTLP → Collector → Grafana. Is this sufficient?
 
-- [ ] A. Sufficient - current stack is adequate
+- [x] A. Sufficient - current stack is adequate
 - [ ] B. Add Prometheus direct - for environments without OTLP
 - [ ] C. Add structured logging - JSON logs for log aggregation
 - [ ] D. Add distributed tracing - full request tracing across services
@@ -267,6 +278,7 @@ Which CI/CD workflows need improvement? (Select all that apply)
 - [ ] E. ci-load - performance/load testing
 
 **Notes**:
+Unknown
 
 ---
 
@@ -276,7 +288,7 @@ Gatling load tests exist in test/load/. How important are they?
 
 - [ ] A. Critical - must pass before any release
 - [ ] B. Important - run regularly, investigate regressions
-- [ ] C. Nice-to-have - run occasionally, not blocking
+- [x] C. Nice-to-have - run occasionally, not blocking
 - [ ] D. Not needed - remove load testing infrastructure
 
 **Notes**:
@@ -287,9 +299,9 @@ Gatling load tests exist in test/load/. How important are they?
 
 Which demo experience improvements are most important?
 
-- [ ] A. One-command demos (`go run ./cmd/demo all`)
-- [ ] B. Swagger UI with pre-filled credentials
-- [ ] C. Docker Compose with health checks
+- [2] A. One-command demos (`go run ./cmd/demo all`)
+- [3] B. Swagger UI with pre-filled credentials
+- [1] C. Docker Compose with health checks
 - [ ] D. Interactive tutorials/walkthroughs
 - [ ] E. All of the above
 
@@ -301,13 +313,14 @@ Which demo experience improvements are most important?
 
 How should documentation be organized?
 
-- [ ] A. Current: README.md + docs/README.md only
+- [x] A. Current: README.md + docs/README.md only
 - [ ] B. Add ADRs: Architecture Decision Records in docs/adr/
 - [ ] C. Add API guides: Per-product API documentation
 - [ ] D. Add runbooks: Operational procedures in docs/runbooks/
 - [ ] E. All of the above
 
 **Notes**:
+I don't know if runbooks are needed.
 
 ---
 
@@ -317,7 +330,7 @@ How should documentation be organized?
 
 What is the single biggest risk to cryptoutil success?
 
-- [ ] A. Complexity - too many products, too ambitious
+- [x] A. Complexity - too many products, too ambitious
 - [ ] B. Security - cryptographic implementation errors
 - [ ] C. Adoption - no users, no contributors
 - [ ] D. Maintenance - solo project, burnout risk
@@ -333,7 +346,7 @@ The plan shows 6 phases over 20+ weeks. Is this realistic?
 
 - [ ] A. Too aggressive - double the estimates
 - [ ] B. About right - achievable with focused effort
-- [ ] C. Too conservative - can move faster
+- [x] C. Too conservative - can move faster
 - [ ] D. Not sure - need to complete Phase 1 first to calibrate
 
 **Notes**:
@@ -346,12 +359,12 @@ If you had 100 hours to invest, how would you allocate them?
 
 | Area | Hours |
 |------|-------|
-| P2 Identity completion | __ |
-| P3 KMS stabilization | __ |
-| P4 CA foundation | __ |
-| Infrastructure improvements | __ |
-| Documentation | __ |
-| Testing/quality | __ |
+| P2 Identity completion | 50 |
+| P3 KMS stabilization | 15 |
+| P4 CA foundation | 10 |
+| Infrastructure improvements | 4 |
+| Documentation | 1 |
+| Testing/quality | 20 |
 
 **Notes**:
 

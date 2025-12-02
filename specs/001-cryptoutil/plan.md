@@ -14,19 +14,18 @@ This plan outlines the implementation phases for cryptoutil, guided by the [cons
 
 ## Phase 1: Identity V2 Production Completion (Current Focus)
 
-**Duration**: 2-4 weeks
+**Duration**: 1-2 weeks (accelerated from 2-4 weeks per grooming feedback)
 **Goal**: Complete Identity product for production deployment
 
 ### 1.1 Login UI Implementation
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 1.1.1 | Create HTML login template | HIGH | 2h |
-| 1.1.2 | Add CSS styling (minimal, accessible) | MEDIUM | 2h |
-| 1.1.3 | Implement form validation | HIGH | 2h |
+| 1.1.1 | Create minimal HTML login template (server-rendered, no JavaScript) | HIGH | 2h |
+| 1.1.2 | Add minimal CSS styling (accessible) | MEDIUM | 1h |
+| 1.1.3 | Implement server-side form validation | HIGH | 2h |
 | 1.1.4 | Add CSRF token handling | CRITICAL | 1h |
 | 1.1.5 | Error message display | HIGH | 1h |
-| 1.1.6 | Remember me functionality | LOW | 2h |
 
 **Success Criteria**: `/oidc/v1/login` returns HTML form, processes credentials, redirects properly
 
@@ -34,11 +33,10 @@ This plan outlines the implementation phases for cryptoutil, guided by the [cons
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 1.2.1 | Create HTML consent template | HIGH | 2h |
-| 1.2.2 | Display requested scopes | HIGH | 1h |
-| 1.2.3 | Show client application info | HIGH | 1h |
+| 1.2.1 | Create HTML consent template (minimal, server-rendered) | HIGH | 2h |
+| 1.2.2 | Display client name, requested scopes, data access summary | HIGH | 1h |
+| 1.2.3 | Show OAuth 2.1 compliant disclosure (configurable verbosity) | HIGH | 1h |
 | 1.2.4 | Implement approve/deny actions | CRITICAL | 2h |
-| 1.2.5 | Remember consent option | LOW | 2h |
 
 **Success Criteria**: `/oidc/v1/consent` displays scopes, processes user decision
 
@@ -49,10 +47,10 @@ This plan outlines the implementation phases for cryptoutil, guided by the [cons
 | 1.3.1 | Clear server-side session | CRITICAL | 1h |
 | 1.3.2 | Revoke associated tokens | HIGH | 2h |
 | 1.3.3 | Redirect to post-logout URI | HIGH | 1h |
-| 1.3.4 | Front-channel logout support | MEDIUM | 4h |
-| 1.3.5 | Back-channel logout support | LOW | 4h |
+| 1.3.4 | Front-channel logout support | HIGH | 4h |
+| 1.3.5 | Back-channel logout support | HIGH | 4h |
 
-**Success Criteria**: `/oidc/v1/logout` terminates session, revokes tokens
+**Success Criteria**: `/oidc/v1/logout` terminates session, revokes tokens, supports all logout flows
 
 ### 1.4 Userinfo Endpoint Completion
 
@@ -60,91 +58,89 @@ This plan outlines the implementation phases for cryptoutil, guided by the [cons
 |------|-------------|----------|-----|
 | 1.4.1 | Extract user from token | CRITICAL | 1h |
 | 1.4.2 | Return claims based on scopes | HIGH | 2h |
-| 1.4.3 | Support JWT response format | MEDIUM | 2h |
+| 1.4.3 | Return JWT-signed response (OAuth 2.1 requirement) | CRITICAL | 2h |
 | 1.4.4 | Add scope-based claim filtering | HIGH | 2h |
 
-**Success Criteria**: `/oidc/v1/userinfo` returns user claims per token scopes
+**Success Criteria**: `/oidc/v1/userinfo` returns JWT-signed user claims per token scopes
 
 ### 1.5 Security Hardening
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 1.5.1 | Implement client secret hashing | CRITICAL | 2h |
-| 1.5.2 | Add token-user association (remove placeholder) | CRITICAL | 2h |
-| 1.5.3 | Token lifecycle cleanup job | HIGH | 4h |
-| 1.5.4 | Rate limiting per endpoint | HIGH | 4h |
-| 1.5.5 | Audit logging for auth events | HIGH | 4h |
+| 1.5.1 | Implement PBKDF2-HMAC-SHA256 client secret hashing | CRITICAL | 2h |
+| 1.5.2 | Token-user association: claims + DB (both for stateless validation and revocation) | CRITICAL | 2h |
+| 1.5.3 | Token lifecycle cleanup: hybrid (on-access + periodic cleanup + DB TTL) | HIGH | 4h |
+| 1.5.4 | Tiered rate limiting (IP + client + endpoint) | HIGH | 4h |
+| 1.5.5 | Audit logging: all auth events + token introspection + revocation | HIGH | 4h |
 
-**Success Criteria**: Secrets hashed, tokens properly associated, cleanup running
+**Success Criteria**: Secrets hashed with PBKDF2, tokens properly associated, cleanup running
 
 ---
 
 ## Phase 2: KMS Stabilization
 
 **Duration**: 1-2 weeks
-**Goal**: Ensure KMS demo reliability and documentation completeness
+**Goal**: Ensure KMS demo reliability (100% reliable, must never fail) and OpenAPI documentation completeness
 
 ### 2.1 Demo Hardening
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 2.1.1 | Verify `go run ./cmd/demo kms` all steps | HIGH | 2h |
+| 2.1.1 | Verify `go run ./cmd/demo kms` all steps (100% success rate) | CRITICAL | 2h |
 | 2.1.2 | Add error recovery scenarios | MEDIUM | 4h |
 | 2.1.3 | Document demo prerequisites | HIGH | 2h |
-| 2.1.4 | Create demo troubleshooting guide | MEDIUM | 2h |
 
 ### 2.2 API Documentation
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 2.2.1 | Complete OpenAPI spec review | HIGH | 4h |
-| 2.2.2 | Add example requests/responses | HIGH | 4h |
-| 2.2.3 | Document error codes | HIGH | 2h |
-| 2.2.4 | Create API usage guide | MEDIUM | 4h |
+| 2.2.1 | Complete OpenAPI spec review (primary focus) | CRITICAL | 4h |
+| 2.2.2 | Minimal executive summary | HIGH | 1h |
 
 ### 2.3 Integration Testing
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 2.3.1 | Add E2E test suite for KMS API | HIGH | 8h |
-| 2.3.2 | Test key rotation scenarios | HIGH | 4h |
-| 2.3.3 | Test multi-tenant isolation | HIGH | 4h |
-| 2.3.4 | Performance baseline tests | MEDIUM | 4h |
+| 2.3.1 | Add E2E test suite for key lifecycle (create, read, list, rotate) | HIGH | 8h |
+| 2.3.2 | Test crypto operations (encrypt, decrypt, sign, verify) | HIGH | 4h |
+| 2.3.3 | Test multi-tenant isolation (tenant A cannot access tenant B keys) | HIGH | 4h |
+| 2.3.4 | Performance baseline (measure and document, no specific targets) | MEDIUM | 4h |
 
 ---
 
 ## Phase 3: Integration Demo
 
 **Duration**: 1-2 weeks
-**Goal**: KMS authenticated by Identity working end-to-end
+**Goal**: Full stack demo working end-to-end: KMS + Identity + Telemetry + PostgreSQL
 
 ### 3.1 OAuth2 Client Configuration
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 3.1.1 | Register KMS as OAuth2 client | HIGH | 1h |
-| 3.1.2 | Configure client credentials grant | HIGH | 2h |
-| 3.1.3 | Implement token validation middleware | HIGH | 4h |
-| 3.1.4 | Add scope-based authorization | HIGH | 4h |
+| 3.1.1 | Pre-seed KMS as OAuth2 client (demo data includes KMS client) | HIGH | 1h |
+| 3.1.2 | Bootstrap script for automated registration | HIGH | 2h |
+| 3.1.3 | Implement token validation middleware (hybrid: local + introspection for revocation) | HIGH | 4h |
+| 3.1.4 | Add resource-based scope authorization (elastickey:read, materialkey:create, etc.) | HIGH | 4h |
 
 ### 3.2 Token Validation in KMS
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
 | 3.2.1 | Fetch JWKS from Identity | HIGH | 2h |
-| 3.2.2 | Validate JWT signatures | CRITICAL | 2h |
+| 3.2.2 | Validate JWT signatures (local first) | CRITICAL | 2h |
 | 3.2.3 | Check token expiration | CRITICAL | 1h |
 | 3.2.4 | Verify required scopes | HIGH | 2h |
+| 3.2.5 | Introspection for revocation check | HIGH | 2h |
 
 ### 3.3 Demo Script
 
 | Task | Description | Priority | LOE |
 |------|-------------|----------|-----|
-| 3.3.1 | Update `go run ./cmd/demo integration` | HIGH | 4h |
-| 3.3.2 | Document integration flow | HIGH | 2h |
-| 3.3.3 | Add troubleshooting section | MEDIUM | 2h |
+| 3.3.1 | Update `go run ./cmd/demo integration` for full stack | HIGH | 4h |
+| 3.3.2 | Docker Compose deployment healthy + demo passes (PRIMARY SUCCESS CRITERIA) | CRITICAL | 4h |
+| 3.3.3 | Verify all UIs accessible (login, logout, consent) | CRITICAL | 2h |
 
-**Success Criteria**: `go run ./cmd/demo all` completes 7/7 steps
+**Success Criteria**: Docker Compose deployment healthy, all UIs accessible and working, `go run ./cmd/demo all` completes 7/7 steps
 
 ---
 
