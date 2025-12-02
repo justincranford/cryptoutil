@@ -354,6 +354,12 @@
       "wget ": true,   // Always prompts (network)
 
       // ─────────────────────────────────────────────────────────────
+      // Project-specific scripts and commands
+      // ─────────────────────────────────────────────────────────────
+      ".specify/scripts/bash/": true,
+      ".specify/scripts/powershell/": true,
+
+      // ─────────────────────────────────────────────────────────────
       // SAFE COMMANDS — autoApprove allowed
       // https://code.visualstudio.com/docs/copilot/chat/copilot-chat#_terminal-commands
       // Prefix matching: "ls " matches "ls -la". Exact matches also work.
@@ -432,6 +438,14 @@
       "Get-Location ": true,
       "Set-Location ": true,
       "Get-Alias ": true
+  },
+
+  "chat.promptFilesRecommendations": {
+    "speckit.constitution": true,
+    "speckit.specify": true,
+    "speckit.plan": true,
+    "speckit.tasks": true,
+    "speckit.implement": true
   },
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
