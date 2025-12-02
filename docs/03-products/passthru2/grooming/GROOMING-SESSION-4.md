@@ -68,9 +68,9 @@ CRITICAL ALWAYS FULL VALIDATION
 
 What minimum TLS version should be required?
 
-- [ ] A. TLS 1.2 (broad compatibility)
+- [ ] A. TLS 1.3 (broad compatibility)
 - [x] B. TLS 1.3 only (best security)
-- [ ] C. TLS 1.2 minimum, prefer 1.3
+- [ ] C. TLS 1.3 minimum
 - [ ] D. Configurable with secure defaults
 
 Notes:

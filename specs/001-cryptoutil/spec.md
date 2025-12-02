@@ -24,7 +24,7 @@ Core cryptographic primitives for web security standards.
 
 | Algorithm Type | Algorithms | FIPS Status |
 |----------------|-----------|-------------|
-| Signing | RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, EdDSA | ✅ Approved |
+| Signing | PS256, PS384, PS512, RS256, RS384, RS512, ES256, ES384, ES512, EdDSA | ✅ Approved |
 | Key Wrapping | RSA-OAEP, RSA-OAEP-256, A128KW, A192KW, A256KW | ✅ Approved |
 | Content Encryption | A128GCM, A192GCM, A256GCM, A128CBC-HS256, A192CBC-HS384, A256CBC-HS512 | ✅ Approved |
 | Key Agreement | ECDH-ES, ECDH-ES+A128KW, ECDH-ES+A192KW, ECDH-ES+A256KW | ✅ Approved |
@@ -43,8 +43,12 @@ Complete identity and access management solution.
 | `/oauth2/v1/token` | POST | Token exchange (code, refresh, client_credentials) | ✅ Working |
 | `/oauth2/v1/introspect` | POST | Token introspection (RFC 7662) | ✅ Working |
 | `/oauth2/v1/revoke` | POST | Token revocation (RFC 7009) | ✅ Working |
+| `/oauth2/v1/clients/{id}/rotate-secret` | POST | Administrative Rotate client secret with grace period | ✅ Implemented |
 | `/.well-known/openid-configuration` | GET | OpenID Connect Discovery | ✅ Working |
 | `/.well-known/jwks.json` | GET | JSON Web Key Set | ✅ Working |
+| `/.well-known/oauth-authorization-server` | GET | OAuth 2.1 Authorization Server Metadata (RFC 8414) | ❌ Not Implemented |
+| `/device_authorization` | POST | Device Authorization Grant (RFC 8628) | ❌ Not Required |
+| `/par` | POST | Pushed Authorization Requests (RFC 9126) | ❌ Not Required |
 
 #### Identity Provider (IdP)
 
@@ -53,7 +57,11 @@ Complete identity and access management solution.
 | `/oidc/v1/login` | GET/POST | User authentication | ⚠️ API Only (No UI) |
 | `/oidc/v1/consent` | GET/POST | User consent for scopes | ⚠️ API Only (No UI) |
 | `/oidc/v1/logout` | GET/POST | Session termination | ⚠️ Partial |
+| `/oidc/v1/endsession` | GET | OpenID Connect End Session (RP-Initiated Logout) | ❌ Not Implemented |
 | `/oidc/v1/userinfo` | GET | User information endpoint | ⚠️ Partial |
+| `/oidc/v1/mfa/enroll` | POST | Administrative Enroll MFA factor | ❌ Not Implemented |
+| `/oidc/v1/mfa/factors` | GET | Administrative List user MFA factors | ❌ Not Implemented |
+| `/oidc/v1/mfa/factors/{id}` | DELETE | Administrative Remove MFA factor | ❌ Not Required |
 
 #### Authentication Methods
 
@@ -61,17 +69,24 @@ Complete identity and access management solution.
 |--------|-------------|--------|
 | client_secret_basic | HTTP Basic Auth with client_id:client_secret | ✅ Working |
 | client_secret_post | client_id and client_secret in request body | ✅ Working |
-| client_secret_jwt | JWT signed with client secret | ⚠️ Not Tested |
-| private_key_jwt | JWT signed with private key | ❌ Not Implemented |
+| client_secret_jwt | JWT signed with client secret | ⚠️ Partial |
+| private_key_jwt | JWT signed with private key | ⚠️ Partial |
+| tls_client_auth | Mutual TLS client certificate authentication | ❌ Not Implemented |
+| self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ❌ Not Implemented |
 
 #### MFA Factors
 
 | Factor | Description | Status |
 |--------|-------------|--------|
 | TOTP | Time-based One-Time Password | ✅ Working |
-| Passkey | WebAuthn/FIDO2 authentication | ⚠️ Partial |
-| Email OTP | One-time password via email | ❌ Not Implemented |
-| SMS OTP | One-time password via SMS | ❌ Not Implemented |
+| Passkey | WebAuthn/FIDO2 authentication | ✅ Working |
+| Email OTP | One-time password via email | ⚠️ Partial |
+| SMS OTP | One-time password via SMS | ⚠️ Partial |
+| HOTP | HMAC-based One-Time Password (counter-based) | ❌ Not Implemented |
+| Recovery Codes | Backup codes for account recovery | ❌ Not Implemented |
+| Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented |
+| Push Notifications | Push-based authentication via mobile app | ❌ Not Required |
+| Phone Call OTP | One-time password via voice call | ❌ Not Required |
 
 #### Secret Rotation System
 
@@ -91,28 +106,39 @@ Hierarchical key management with versioning and rotation.
 
 #### ElasticKey Operations
 
-| Operation | Method | Endpoint | Description |
-|-----------|--------|----------|-------------|
-| Create | POST | `/api/v1/elastic-keys` | Create new elastic key with policy |
-| Read | GET | `/api/v1/elastic-keys/{id}` | Get elastic key by ID |
-| List | GET | `/api/v1/elastic-keys` | List with filtering, sorting, pagination |
-| Update | PUT | `/api/v1/elastic-keys/{id}` | Update elastic key metadata |
-| Delete | DELETE | `/api/v1/elastic-keys/{id}` | Soft delete elastic key |
+| Operation | Method | Endpoint | Status |
+|-----------|--------|----------|--------|
+| Create | POST | `/elastickey` | ✅ Implemented |
+| Read | GET | `/elastickey/{elasticKeyID}` | ✅ Implemented |
+| List | GET | `/elastickeys` | ✅ Implemented |
+| Update | PUT | `/elastickey/{elasticKeyID}` | ❌ Not Implemented |
+| Delete | DELETE | `/elastickey/{elasticKeyID}` | ❌ Not Implemented |
 
 #### MaterialKey Operations
 
-| Operation | Method | Endpoint | Description |
-|-----------|--------|----------|-------------|
-| Create | POST | `/api/v1/elastic-keys/{id}/material-keys` | Create new version |
-| Read | GET | `/api/v1/material-keys/{id}` | Get material key by ID |
-| List | GET | `/api/v1/elastic-keys/{id}/material-keys` | List versions |
-| Revoke | POST | `/api/v1/material-keys/{id}/revoke` | Revoke key version |
-| Import | POST | `/api/v1/elastic-keys/{id}/import` | Import external key |
+| Operation | Method | Endpoint | Status |
+|-----------|--------|----------|--------|
+| Create | POST | `/elastickey/{elasticKeyID}/materialkey` | ✅ Implemented |
+| Read | GET | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}` | ✅ Implemented |
+| List | GET | `/elastickey/{elasticKeyID}/materialkeys` | ✅ Implemented |
+| Global List | GET | `/materialkeys` | ✅ Implemented |
+| Import | POST | `/elastickey/{elasticKeyID}/import` | ❌ Not Implemented |
+| Revoke | POST | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke` | ❌ Not Implemented |
+
+#### Cryptographic Operations
+
+| Operation | Method | Endpoint | Status |
+|-----------|--------|----------|--------|
+| Generate | POST | `/elastickey/{elasticKeyID}/generate` | ✅ Implemented |
+| Encrypt | POST | `/elastickey/{elasticKeyID}/encrypt` | ✅ Implemented |
+| Decrypt | POST | `/elastickey/{elasticKeyID}/decrypt` | ✅ Implemented |
+| Sign | POST | `/elastickey/{elasticKeyID}/sign` | ✅ Implemented |
+| Verify | POST | `/elastickey/{elasticKeyID}/verify` | ✅ Implemented |
 
 #### Key Hierarchy
 
 ```
-Unseal Secrets (file:///run/secrets/*)
+Unseal Secrets (file:///run/secrets/* or Yubikey)
     ↓
 Root Keys (derived from unseal secrets)
     ↓
@@ -127,13 +153,25 @@ MaterialKey (versioned key material)
 
 | Parameter | Description |
 |-----------|-------------|
-| `elastic_key_id` | Filter by UUID |
-| `name` | Filter by key name |
-| `provider` | Filter by key provider |
-| `algorithm` | Filter by algorithm |
-| `status` | Filter by status (active, suspended, deleted) |
+| `elastic_key_ids` | Filter by elastic key UUIDs |
+| `names` | Filter by key names |
+| `providers` | Filter by key providers |
+| `algorithms` | Filter by algorithms |
+| `statuses` | Filter by statuses (active, suspended, deleted) |
 | `versioning_allowed` | Filter by versioning policy |
 | `import_allowed` | Filter by import policy |
+| `sorts` | Sorting criteria (name, created_at, updated_at, status) |
+| `page_number` | Page number for pagination |
+| `page_size` | Page size for pagination |
+
+#### MaterialKey Filtering Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `material_key_ids` | Filter by material key UUIDs |
+| `elastic_key_ids` | Filter by parent elastic key UUIDs (global list) |
+| `minimum_generate_date` | Filter by minimum generation date |
+| `maximum_generate_date` | Filter by maximum generation date |
 
 #### Sorting Parameters
 
@@ -156,21 +194,21 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 |------|-------------|----------|
 | 1. Domain Charter | Scope definition, compliance mapping | HIGH |
 | 2. Config Schema | YAML schema for crypto, subject, certificate profiles | HIGH |
-| 3. Crypto Providers | RSA, ECDSA, EdDSA, HMAC, future PQC | HIGH |
+| 3. Crypto Providers | RSA, ECDSA, EdDSA, ECDH, EdDH, HMAC, future PQC | HIGH |
 | 4. Subject Profile Engine | Template resolution for subject details, SANs | HIGH |
-| 5. Certificate Profile Engine | 20+ profile archetypes | HIGH |
+| 5. Certificate Profile Engine | 25+ profile archetypes | HIGH |
 | 6. Root CA Bootstrap | Offline root CA creation | HIGH |
 | 7. Intermediate CA Provisioning | Subordinate CA hierarchy | HIGH |
 | 8. Issuing CA Lifecycle | Rotation, monitoring, status reporting | MEDIUM |
-| 9. Enrollment API | REST API for CSR submission, issuance | HIGH |
+| 9. Enrollment API | EST API for CSR or CRMF submission, issuance | HIGH |
 | 10. Revocation Services | CRL generation, OCSP responders | HIGH |
 | 11. Time-Stamping | RFC 3161 TSA functionality | MEDIUM |
 | 12. RA Workflows | Registration authority for validation | MEDIUM |
-| 13. Profile Library | 20+ predefined certificate profiles | HIGH |
+| 13. Profile Library | 25+ predefined certificate profiles | HIGH |
 | 14. Storage Layer | PostgreSQL/SQLite with ACID guarantees | HIGH |
 | 15. CLI Tooling | bootstrap, issuance, revocation commands | MEDIUM |
 | 16. Observability | OTLP metrics, Grafana dashboards | MEDIUM |
-| 17. Security Hardening | STRIDE threat modeling, HSM planning | HIGH |
+| 17. Security Hardening | STRIDE threat modeling, HSM planning, Yubikey planning | HIGH |
 | 18. Compliance | CA/Browser Forum audit readiness | HIGH |
 | 19. Deployment | Docker Compose, Kubernetes manifests | MEDIUM |
 | 20. Handover | Runbooks, training, DR drills | LOW |
@@ -197,7 +235,7 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 
 ### I2: Networking
 
-- HTTPS with TLS 1.2+ minimum
+- HTTPS with TLS 1.3+ minimum
 - HTTP/2 support via Fiber framework
 - CORS, CSRF protection
 - Rate limiting per IP
@@ -207,6 +245,25 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 - Table-driven tests with `t.Parallel()`
 - Coverage targets: 80% production, 85% infrastructure, 95% utility
 - Fuzz testing, benchmark testing, integration testing
+
+### CA Networking
+
+- HTTPS with TLS 1.3+ minimum
+- HTTP/2 support via Fiber framework
+- CORS, CSRF protection
+- Rate limiting per IP
+- ACME protocol support for automated certificate issuance
+- OCSP responder endpoints
+- CRL distribution points
+
+### CA Testing
+
+- Table-driven tests with `t.Parallel()`
+- Coverage targets: 80% production, 85% infrastructure, 95% utility
+- Certificate chain validation testing
+- OCSP responder testing
+- CRL generation testing
+- ACME protocol testing
 
 ### I4: Performance
 
@@ -228,7 +285,7 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 
 ### I7: Database
 
-- PostgreSQL (production)
+- PostgreSQL (production/development/testing)
 - SQLite (development/testing)
 - GORM ORM with migrations
 - WAL mode, busy_timeout for SQLite concurrency
@@ -278,25 +335,89 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 
 ### Docker Compose Services
 
+#### P1: JOSE Services
+
 | Service | Public Port | Admin Port | Backend |
 |---------|-------------|------------|---------|
-| cryptoutil-sqlite | 8080 | 9090 | SQLite in-memory |
-| cryptoutil-postgres-1 | 8081 | 9090 | PostgreSQL |
-| cryptoutil-postgres-2 | 8082 | 9090 | PostgreSQL |
+| jose-sqlite | 8080 | 9090 | SQLite in-memory |
+| jose-postgres-1 | 8081 | 9090 | PostgreSQL |
+| jose-postgres-2 | 8082 | 9090 | PostgreSQL |
+
+#### P2: Identity Services
+
+| Service | Public Port | Admin Port | Backend |
+|---------|-------------|------------|---------|
 | identity-authz | 8090 | - | SQLite/PostgreSQL |
 | identity-idp | 8091 | - | SQLite/PostgreSQL |
+
+#### P3: KMS Services
+
+| Service | Public Port | Admin Port | Backend |
+|---------|-------------|------------|---------|
+| kms-sqlite | 8080 | 9090 | SQLite in-memory |
+| kms-postgres-1 | 8081 | 9090 | PostgreSQL |
+| kms-postgres-2 | 8082 | 9090 | PostgreSQL |
+
+#### P4: CA Services (Planned)
+
+| Service | Public Port | Admin Port | Backend |
+|---------|-------------|------------|---------|
+| ca-sqlite | 8080 | 9090 | SQLite in-memory |
+| ca-postgres-1 | 8081 | 9090 | PostgreSQL |
+| ca-postgres-2 | 8082 | 9090 | PostgreSQL |
+
+#### Common Infrastructure Services
+
+| Service | Public Port | Admin Port | Backend |
+|---------|-------------|------------|---------|
 | postgres | 5432 | - | - |
 | otel-collector | 4317/4318 | 13133 | - |
+| otel-collector-health | - | - | Health monitoring |
+| secrets-test | - | - | Secrets validation |
 | grafana-otel-lgtm | 3000 | - | Loki/Tempo/Prometheus |
 
 ### Health Endpoints
 
-| Endpoint | Purpose |
-|----------|---------|
-| `/livez` | Liveness probe (admin API) |
-| `/readyz` | Readiness probe (admin API) |
-| `/health` | Public health check |
-| `/ui/swagger/doc.json` | OpenAPI specification |
+#### Private Admin API (`https://127.0.0.1:9090`)
+
+Used for internal monitoring and health checks.
+
+| Product | Endpoint | Purpose |
+|---------|----------|---------|
+| JOSE | `/livez` | Liveness probe |
+| JOSE | `/readyz` | Readiness probe |
+| Identity | `/livez` | Liveness probe |
+| Identity | `/readyz` | Readiness probe |
+| KMS | `/livez` | Liveness probe |
+| KMS | `/readyz` | Readiness probe |
+| CA | `/livez` | Liveness probe (planned) |
+| CA | `/readyz` | Readiness probe (planned) |
+
+#### Public Browser-to-Service API
+
+Used by browsers and external clients.
+
+| Product | Endpoint | Purpose |
+|---------|----------|---------|
+| JOSE | `/health` | Public health check |
+| JOSE | `/ui/swagger/doc.json` | OpenAPI specification |
+| Identity | `/health` | Public health check |
+| Identity | `/ui/swagger/doc.json` | OpenAPI specification |
+| KMS | `/health` | Public health check |
+| KMS | `/ui/swagger/doc.json` | OpenAPI specification |
+| CA | `/health` | Public health check (planned) |
+| CA | `/ui/swagger/doc.json` | OpenAPI specification (planned) |
+
+#### Public Service-to-Service API
+
+Used by other services for health checks.
+
+| Product | Endpoint | Purpose |
+|---------|----------|---------|
+| JOSE | `/health` | Service health check |
+| Identity | `/health` | Service health check |
+| KMS | `/health` | Service health check |
+| CA | `/health` | Service health check (planned) |
 
 ---
 

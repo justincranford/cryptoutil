@@ -6,9 +6,9 @@
 
 All cryptographic operations MUST use NIST FIPS 140-3 approved algorithms. FIPS mode is ALWAYS enabled by default and MUST NEVER be disabled. Approved algorithms include:
 
-- RSA ≥ 2048 bits, AES ≥ 128 bits, EC NIST curves, EdDSA
-- PBKDF2-HMAC-SHA256 for password hashing (NEVER bcrypt, scrypt, or Argon2)
-- SHA-256 or SHA-512 (NEVER MD5 or SHA-1)
+- RSA ≥ 2048 bits, AES ≥ 128 bits, EC NIST curves, EdDSA, ECDH, EdDH
+- PBKDF2-HMAC-SHA256, PBKDF2-HMAC-SHA384, PBKDF2-HMAC-SHA256 for password hashing (NEVER bcrypt, scrypt, or Argon2)
+- SHA-512, SHA-384, or SHA-256 (NEVER MD5 or SHA-1)
 
 Algorithm agility is required: all crypto operations must support configurable algorithms with FIPS-approved defaults.
 
@@ -23,16 +23,7 @@ No task is complete without objective, verifiable evidence:
 
 Quality gates are MANDATORY - task NOT complete until all checks pass.
 
-### III. Hierarchical Key Security
-
-Multi-layer cryptographic barrier architecture:
-
-- **Unseal secrets** → **Root keys** → **Intermediate keys** → **Content keys**
-- All keys encrypted at rest, proper key versioning and rotation
-- All cryptoutil instances using the same unseal secrets MUST derive identical JWKs (including KIDs) for interoperability
-- NEVER use environment variables for secrets in production; use Docker/Kubernetes secrets
-
-### IV. Code Quality Excellence
+### III. Code Quality Excellence
 
 ALL linting/formatting errors are MANDATORY to fix - NO EXCEPTIONS:
 
@@ -41,6 +32,15 @@ ALL linting/formatting errors are MANDATORY to fix - NO EXCEPTIONS:
 - File size limits: 300 (soft), 400 (medium), 500 (hard → refactor required)
 - UTF-8 without BOM for ALL text files
 - 80%+ production coverage, 85%+ infrastructure (cicd), 95%+ utility code
+
+### IV. KMS Hierarchical Key Security
+
+Multi-layer KMS cryptographic barrier architecture:
+
+- **Unseal secrets** → **Root keys** → **Intermediate keys** → **Content keys**
+- All keys encrypted at rest, proper key versioning and rotation
+- All KMS cryptoutil instances using the same unseal secrets MUST derive identical JWKs (including KIDs) for interoperability
+- NEVER use environment variables for secrets in production; ALWAYS use Docker/Kubernetes secrets
 
 ### V. Product Architecture Clarity
 
@@ -61,37 +61,40 @@ Clear separation between infrastructure and products:
 - RFC 5280 compliance for X.509 certificates
 - Certificate serial numbers: minimum 64 bits CSPRNG, non-sequential, >0, <2^159
 - Maximum 398 days validity for subscriber certificates
-- Full cert chain validation, MinVersion: TLS 1.2+, never InsecureSkipVerify
+- Full cert chain validation, MinVersion: TLS 1.3+, never InsecureSkipVerify
 
 ### Secret Management
 
 - Docker secrets mounted to `/run/secrets/` with file:// URLs
 - Kubernetes secrets mounted as files, not environment variables
 - IP allowlisting (IPs & CIDR), per-IP rate limiting
-- CORS, CSRF, strict HTTP headers, audit logging
+- CORS, CSRF, XSS prevention with CSP
+- Strict HTTP security headers (HSTS, X-Frame-Options, X-Content-Type-Options, etc.)
+- Security header validation and audit logging
 
 ## Quality Gates
 
 ### Pre-Commit Gates
 
-1. UTF-8 without BOM enforcement (`cicd all-enforce-utf8`)
-2. gofumpt formatting (not gofmt)
+1. See pre-commit hooks in ./.pre-commit-config.yaml
+2. All code builds  `go build ./...`
 3. golangci-lint v2.6.2+ with all enabled linters
-4. markdownlint, yamllint for documentation
+4. gofumpt formatting (not gofmt)
+5. Fix all lint errors in Go, Python (Pylance), Java, Configs, Workflows, etc.
 
 ### Pre-Push Gates
 
-1. All code changes pass `golangci-lint run --fix`
-2. All tests pass (`go test ./... -cover`)
-3. Coverage maintained at target thresholds
-4. cspell spelling verification
-5. gitleaks secrets scanning
+1. See pre-push hooks in ./.pre-commit-config.yaml
+2. All code changes pass `golangci-lint run --fix`
+3. All tests pass (`go test ./... -cover`)
+4. Coverage maintained at target thresholds
 
 ### Testing Requirements
 
 - Table-driven tests with `t.Parallel()` mandatory
-- NEVER hardcode test values - use magic package constants OR runtime-generated UUIDv7
-- Dynamic port allocation for server tests (port 0, extract actual assigned port)
+- Test helpers marked with `t.helper()` mandatory
+- NEVER hardcode test values - ALWAYS use runtime-generated UUIDv7, or magic values and constants in package `magic`
+- ALWAYS support dynamic port allocation for all servers to support concurrent unit, integration, and e2e testing (port 0, extract actual assigned port)
 - Test file suffixes: `_test.go` (unit), `_bench_test.go` (bench), `_fuzz_test.go` (fuzz), `_integration_test.go` (integration)
 
 ## Governance
@@ -100,11 +103,11 @@ Clear separation between infrastructure and products:
 
 - **Technical decisions**: Follow copilot instructions in `.github/instructions/`
 - **Architectural decisions**: Document in ADRs, follow Standard Go Project Layout
-- **Compliance decisions**: CA/Browser Forum Baseline Requirements, RFC 5280, NIST SP 800-57
+- **Compliance decisions**: CA/Browser Forum Baseline Requirements, RFC 5280, FIPS 140-3, NIST SP 800-57
 
 ### Work Patterns
 
-- Use built-in tools over terminal commands (create_file, read_file, runTests)
+- ALWAYS Use Copilot Extension's built-in tools over terminal commands (create_file, read_file, runTests)
 - Commit frequently with conventional commit format
 - Work continuously until task complete with evidence
 - Progressive validation after every task (TODO scan, test run, coverage, integration, documentation)

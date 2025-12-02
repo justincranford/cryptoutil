@@ -374,11 +374,11 @@ D) Unlimited
 
 A) TLS 1.0
 B) TLS 1.1
-C) TLS 1.2
+C) TLS 1.3
 D) TLS 1.3
 
 **Answer**: C
-**Explanation**: TLS 1.2 is the minimum version. Full cert chain validation is required, and InsecureSkipVerify must NEVER be used.
+**Explanation**: TLS 1.3 is the minimum version. Full cert chain validation is required, and InsecureSkipVerify must NEVER be used.
 
 ---
 
