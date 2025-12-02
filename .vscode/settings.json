@@ -341,7 +341,7 @@
       //   - privilege escalation (sudo, chmod on Linux)
       // Prefix-based allowList CANNOT override these rules.
       // ─────────────────────────────────────────────────────────────
-      "git push": true,
+      "git push": false,
       "git pull": false,
       "git reset": false,
       "git rebase": false,

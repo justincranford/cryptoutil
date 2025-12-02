@@ -44,7 +44,7 @@
 
 ### HSM Placeholder (Session 5 Q2)
 
-- [ ] **P0.20**: Create `internal/infra/tls/hsm/` placeholder package for future PKCS#11/YubiKey
+- [x] **P0.20**: Create `internal/infra/tls/hsm/` placeholder package for future PKCS#11/YubiKey
 
 ---
 
@@ -61,25 +61,25 @@
 
 ### Auto-seed Demo Mode
 
-- [ ] **P1.4**: Implement `--demo` flag for KMS server
-- [ ] **P1.5**: Auto-seed key pools on demo startup
-- [ ] **P1.6**: Auto-seed encryption keys for demo
-- [ ] **P1.7**: Implement `--reset-demo` flag for data cleanup (Q15)
+- [x] **P1.4**: Implement `--demo` flag for KMS server
+- [x] **P1.5**: Auto-seed key pools on demo startup
+- [x] **P1.6**: Auto-seed encryption keys for demo
+- [x] **P1.7**: Implement `--reset-demo` flag for data cleanup (Q15)
 
 ### CLI Demo Orchestration (Session 3 Q11-15 + Session 4 Q11-15 + Session 5)
 
-- [ ] **P1.8**: Create `cmd/demo/main.go` single binary with subcommands (Session 3 Q11)
-- [ ] **P1.9**: Implement `demo kms` subcommand
-- [ ] **P1.10**: Support all output formats: human/JSON/structured (Session 3 Q12)
-- [ ] **P1.11**: Continue on error, report summary (Session 3 Q13)
-- [ ] **P1.12**: Implement health check waiting, 30s default (Session 3 Q14)
-- [ ] **P1.13**: Verify all demo entities after startup (Session 3 Q15)
-- [ ] **P1.13a**: Implement structured error aggregation with step/phase info (Session 4 Q11)
-- [ ] **P1.13b**: Handle partial success: report + keep running + configurable (Session 4 Q12)
-- [ ] **P1.13c**: Implement configurable retry strategy (Session 4 Q13)
-- [ ] **P1.13d**: Show progress with step counter + spinner (Session 4 Q14)
-- [ ] **P1.13e**: Implement exit codes: 0=success, 1=partial, 2=failure (Session 5 Q1)
-- [ ] **P1.13f**: Add CLI color output with Windows ANSI + --no-color flag (Session 5 Q15)
+- [x] **P1.8**: Create `cmd/demo/main.go` single binary with subcommands (Session 3 Q11)
+- [x] **P1.9**: Implement `demo kms` subcommand
+- [x] **P1.10**: Support all output formats: human/JSON/structured (Session 3 Q12)
+- [x] **P1.11**: Continue on error, report summary (Session 3 Q13)
+- [x] **P1.12**: Implement health check waiting, 30s default (Session 3 Q14)
+- [x] **P1.13**: Verify all demo entities after startup (Session 3 Q15)
+- [x] **P1.13a**: Implement structured error aggregation with step/phase info (Session 4 Q11)
+- [x] **P1.13b**: Handle partial success: report + keep running + configurable (Session 4 Q12)
+- [x] **P1.13c**: Implement configurable retry strategy (Session 4 Q13)
+- [x] **P1.13d**: Show progress with step counter + spinner (Session 4 Q14)
+- [x] **P1.13e**: Implement exit codes: 0=success, 1=partial, 2=failure (Session 5 Q1)
+- [x] **P1.13f**: Add CLI color output with Windows ANSI + --no-color flag (Session 5 Q15)
 
 ### KMS Realm Configuration (from Session 2 Q1-5 + Session 3 Q6-10 + Session 5)
 
