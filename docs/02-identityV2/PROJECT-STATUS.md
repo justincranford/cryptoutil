@@ -1,8 +1,8 @@
 # Identity V2 Project Status (Single Source of Truth)
 
 **Document Purpose**: ONLY authoritative source for Identity V2 project status
-**Last Updated**: 2025-11-30 (Passthru1 OAuth 2.1 Demo)
-**Commit Hash**: 12f17433
+**Last Updated**: 2025-12-02 (Passthru2 Directory Refactoring Sprint)
+**Commit Hash**: TBD
 
 ---
 
@@ -13,6 +13,28 @@
 ---
 
 ## Recent Activity
+
+**December 2, 2025** (Passthru2 - Directory Refactoring Sprint):
+
+### 4-Products Architecture Alignment ✅
+
+Completed 30-task sprint to align directory structure with P1-P4 products strategy:
+
+1. **API Directories**: Created `api/{kms,jose,ca}/` placeholders with migration docs
+2. **Internal Directories**: Created `internal/{kms,jose,ca}/` placeholders with migration plans
+3. **Deployment Directories**: Created `deployments/{jose,ca}/` placeholders
+4. **Speckit Updates**: Updated spec.md and plan.md with grooming session answers
+5. **Grooming Sessions**: Created GROOMING-SESSION-03 (directory) and 04 (infrastructure)
+
+**Sprint Outcome**: 29/30 tasks completed (97%)
+
+- All builds pass (`go build ./...`)
+- All linting passes (`golangci-lint run --fix`)
+- Core tests pass; pre-existing identity integration issues documented
+
+See `docs/sprints/2025-12-02-refactoring-sprint.md` for full details.
+
+---
 
 **November 30, 2025** (Passthru1 - OAuth 2.1 Demo Sprint):
 
