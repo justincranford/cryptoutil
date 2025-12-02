@@ -19,8 +19,18 @@ import (
 
 // Test constants for error messages and test data.
 const (
-	testKeyNotFound = "key not found"
-	testContext     = "test-context"
+	testKeyNotFound     = "key not found"
+	testContext         = "test-context"
+	testInvalidRequest  = "invalid request"
+	testInternalError   = "internal error"
+	testResourceNotFnd  = "resource not found"
+	testInvalidPTText   = "invalid plaintext"
+	testInvalidCTText   = "invalid ciphertext"
+	testDecryptFailed   = "decryption failed"
+	testEncryptFailed   = "encryption failed"
+	testGenFailed       = "generation failed"
+	testInvalidGenParam = "invalid generate params"
+	testEKNotFound      = "elastic key not found"
 )
 
 // TestNewOpenapiStrictServer tests that NewOpenapiStrictServer creates a proper server instance.
@@ -69,7 +79,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_BadRequest(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "invalid request"
+	summary := testInvalidRequest
 	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostKeyResponse(appErr, nil)
@@ -86,7 +96,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_NotFound(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "resource not found"
+	summary := testResourceNotFnd
 	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostKeyResponse(appErr, nil)
@@ -103,7 +113,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_InternalServerError(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "internal error"
+	summary := testInternalError
 	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostKeyResponse(appErr, nil)
@@ -149,7 +159,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_BadRequest(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "invalid ciphertext"
+	summary := testInvalidCTText
 	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostDecryptResponse(appErr, nil)
@@ -183,7 +193,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_InternalServerError(t *testing.T)
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "decryption failed"
+	summary := testDecryptFailed
 	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostDecryptResponse(appErr, nil)
@@ -216,7 +226,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_BadRequest(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "invalid plaintext"
+	summary := testInvalidPTText
 	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostEncryptResponse(appErr, nil)
@@ -250,7 +260,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_InternalServerError(t *testing.T)
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "encryption failed"
+	summary := testEncryptFailed
 	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostEncryptResponse(appErr, nil)
@@ -317,7 +327,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_BadRequest(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "invalid generate params"
+	summary := testInvalidGenParam
 	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostGenerateResponse(appErr, nil, nil)
@@ -334,7 +344,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_NotFound(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "elastic key not found"
+	summary := testEKNotFound
 	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostGenerateResponse(appErr, nil, nil)
@@ -351,7 +361,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_InternalServerError(t *testing.T
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	summary := "generation failed"
+	summary := testGenFailed
 	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostGenerateResponse(appErr, nil, nil)
@@ -375,4 +385,591 @@ func TestStrictServer_HandlerMethodsExist(t *testing.T) {
 	var _ cryptoutilOpenapiServer.StrictServerInterface = server
 
 	require.NotNil(t, server)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_Success tests successful get elastic key response.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	googleUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	uuid := openapiTypes.UUID(googleUUID)
+	elasticKey := &cryptoutilOpenapiModel.ElasticKey{
+		ElasticKeyID: &uuid,
+	}
+
+	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(nil, elasticKey)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_BadRequest tests 400 error for get elastic key.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_BadRequest(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	summary := testInvalidRequest
+	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+
+	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_NotFound tests 404 error for get elastic key.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_NotFound(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	summary := testKeyNotFound
+	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+
+	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_InternalServerError tests 500 error for get elastic key.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_InternalServerError(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	summary := testInternalError
+	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+
+	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_UnknownError tests unknown error for get elastic key.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_UnknownError(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	unknownErr := errors.New("unknown error")
+
+	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(unknownErr, nil)
+	require.Error(t, err)
+	require.Nil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostDecryptResponse_UnknownError tests unknown error for decrypt.
+func TestOamOasMapper_ToOasPostDecryptResponse_UnknownError(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	unknownErr := errors.New("unknown error")
+
+	resp, err := mapper.toOasPostDecryptResponse(unknownErr, nil)
+	require.Error(t, err)
+	require.Nil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostEncryptResponse_UnknownError tests unknown error for encrypt.
+func TestOamOasMapper_ToOasPostEncryptResponse_UnknownError(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	unknownErr := errors.New("unknown error")
+
+	resp, err := mapper.toOasPostEncryptResponse(unknownErr, nil)
+	require.Error(t, err)
+	require.Nil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostGenerateResponse_UnknownError tests unknown error for generate.
+func TestOamOasMapper_ToOasPostGenerateResponse_UnknownError(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	unknownErr := errors.New("unknown error")
+
+	resp, err := mapper.toOasPostGenerateResponse(unknownErr, nil, nil)
+	require.Error(t, err)
+	require.Nil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Success tests successful material key creation.
+func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	googleUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	materialKeyID := cryptoutilOpenapiModel.MaterialKeyID(googleUUID)
+	elasticKeyID := cryptoutilOpenapiModel.ElasticKeyID(googleUUID)
+	materialKey := &cryptoutilOpenapiModel.MaterialKey{
+		MaterialKeyID: materialKeyID,
+		ElasticKeyID:  elasticKeyID,
+	}
+
+	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(nil, materialKey)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_BadRequest tests 400 error.
+func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_BadRequest(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	summary := testInvalidRequest
+	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+
+	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_NotFound tests 404 error.
+func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_NotFound(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	summary := testKeyNotFound
+	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+
+	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_InternalServerError tests 500 error.
+func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_InternalServerError(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	summary := testInternalError
+	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+
+	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_UnknownError tests unknown error.
+func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_UnknownError(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	unknownErr := errors.New("unknown error")
+
+	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(unknownErr, nil)
+	require.Error(t, err)
+	require.Nil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse_Success tests success.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	googleUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	materialKeyID := cryptoutilOpenapiModel.MaterialKeyID(googleUUID)
+	elasticKeyID := cryptoutilOpenapiModel.ElasticKeyID(googleUUID)
+	materialKey := &cryptoutilOpenapiModel.MaterialKey{
+		MaterialKeyID: materialKeyID,
+		ElasticKeyID:  elasticKeyID,
+	}
+
+	resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(nil, materialKey)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse_Errors tests errors.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "bad request",
+			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "not found",
+			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			wantErr: false,
+		},
+		{
+			name:    testInternalError,
+			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(tc.err, nil)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}
+
+// strPtr is a helper to create string pointers.
+func strPtr(s string) *string {
+	return &s
+}
+
+// TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams tests query param mapping.
+func TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	params := &cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysParams{}
+
+	result := mapper.toOamGetElasticKeyMaterialKeysQueryParams(params)
+	require.NotNil(t, result)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Success tests success response.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	keys := []cryptoutilOpenapiModel.MaterialKey{}
+
+	resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(nil, keys)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Errors tests error responses.
+func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "bad request",
+			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "not found",
+			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			wantErr: false,
+		},
+		{
+			name:    testInternalError,
+			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(tc.err, nil)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}
+
+// TestOamOasMapper_ToOasPostSignResponse_Success tests successful sign response.
+func TestOamOasMapper_ToOasPostSignResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	signedData := []byte("signed-data")
+
+	resp, err := mapper.toOasPostSignResponse(nil, signedData)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostSignResponse_Errors tests sign error responses.
+func TestOamOasMapper_ToOasPostSignResponse_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "bad request",
+			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "not found",
+			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			wantErr: false,
+		},
+		{
+			name:    testInternalError,
+			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			resp, err := mapper.toOasPostSignResponse(tc.err, nil)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}
+
+// TestOamOasMapper_ToOasPostVerifyResponse_Success tests successful verify response.
+func TestOamOasMapper_ToOasPostVerifyResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+
+	resp, err := mapper.toOasPostVerifyResponse(nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasPostVerifyResponse_Errors tests verify error responses.
+func TestOamOasMapper_ToOasPostVerifyResponse_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "bad request",
+			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "not found",
+			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			wantErr: false,
+		},
+		{
+			name:    testInternalError,
+			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			resp, err := mapper.toOasPostVerifyResponse(tc.err)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}
+
+// TestOamOasMapper_ToOamGetElasticKeyQueryParams tests elastic key query param mapping.
+func TestOamOasMapper_ToOamGetElasticKeyQueryParams(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	params := &cryptoutilOpenapiServer.GetElastickeysParams{}
+
+	result := mapper.toOamGetElasticKeyQueryParams(params)
+	require.NotNil(t, result)
+}
+
+// TestOamOasMapper_ToOasGetElastickeysResponse_Success tests successful elastic keys response.
+func TestOamOasMapper_ToOasGetElastickeysResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	elasticKeys := []cryptoutilOpenapiModel.ElasticKey{}
+
+	resp, err := mapper.toOasGetElastickeysResponse(nil, elasticKeys)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetElastickeysResponse_Errors tests elastic keys error responses.
+func TestOamOasMapper_ToOasGetElastickeysResponse_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "bad request",
+			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "not found",
+			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			wantErr: false,
+		},
+		{
+			name:    testInternalError,
+			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			resp, err := mapper.toOasGetElastickeysResponse(tc.err, nil)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}
+
+// TestOamOasMapper_ToOamGetMaterialKeysQueryParams tests material keys query param mapping.
+func TestOamOasMapper_ToOamGetMaterialKeysQueryParams(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	params := &cryptoutilOpenapiServer.GetMaterialkeysParams{}
+
+	result := mapper.toOamGetMaterialKeysQueryParams(params)
+	require.NotNil(t, result)
+}
+
+// TestOamOasMapper_ToOasGetMaterialKeysResponse_Success tests successful material keys response.
+func TestOamOasMapper_ToOasGetMaterialKeysResponse_Success(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOasOamMapper()
+	keys := []cryptoutilOpenapiModel.MaterialKey{}
+
+	resp, err := mapper.toOasGetMaterialKeysResponse(nil, keys)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+}
+
+// TestOamOasMapper_ToOasGetMaterialKeysResponse_Errors tests material keys error responses.
+func TestOamOasMapper_ToOasGetMaterialKeysResponse_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "bad request",
+			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "not found",
+			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			wantErr: false,
+		},
+		{
+			name:    testInternalError,
+			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			resp, err := mapper.toOasGetMaterialKeysResponse(tc.err, nil)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
 }

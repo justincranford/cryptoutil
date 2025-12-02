@@ -99,7 +99,7 @@
 
 ### Tenant Isolation (Session 5 Q14)
 
-- [ ] **P1.24**: Implement schema-per-tenant isolation (SQLite + PostgreSQL compatible)
+- [x] **P1.24**: Implement schema-per-tenant isolation (SQLite + PostgreSQL compatible)
 
 ### Coverage Improvements
 
