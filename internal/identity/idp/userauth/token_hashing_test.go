@@ -20,7 +20,7 @@ func TestHashToken_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, hash)
 	require.NotEqual(t, plaintext, hash, "Hash must differ from plaintext")
-	require.True(t, strings.HasPrefix(hash, "pbkdf2$"), "PBKDF2 hash must have pbkdf2$ prefix")
+	require.True(t, strings.HasPrefix(hash, "pbkdf2-sha256$"), "PBKDF2 hash must have pbkdf2-sha256$ prefix")
 }
 
 func TestHashToken_EmptyToken(t *testing.T) {
@@ -51,7 +51,7 @@ func TestHashToken_PBKDF2Format(t *testing.T) {
 	hash, err := HashToken(plaintext)
 
 	require.NoError(t, err)
-	require.True(t, strings.HasPrefix(hash, "pbkdf2$"), "Hash must use PBKDF2 format")
+	require.True(t, strings.HasPrefix(hash, "pbkdf2-sha256$"), "Hash must use PBKDF2-SHA256 format")
 	require.Contains(t, hash, "$", "Hash must contain iteration separator")
 }
 
