@@ -26,17 +26,19 @@ services:
     build:
       context: ../..
       dockerfile: deployments/identity/Dockerfile.authz
+      args:
+        APP_VERSION: demo
+        VCS_REF: demo
+        BUILD_DATE: "2025-01-01T00:00:00Z"
     image: cryptoutil-identity-authz:demo
     container_name: identity-authz-demo
     hostname: identity-authz-demo
     command:
-      - --config=/etc/identity/authz.yml
-      - --demo
+      - --config=/etc/identity/authz-demo.yml
     ports:
-      - "8082:8082"  # AuthZ API (HTTPS)
+      - "8082:8082"  # AuthZ API (HTTP)
     volumes:
-      - ./config/authz.yml:/etc/identity/authz.yml:ro
-      - ./config/demo-seed.yml:/etc/identity/demo-seed.yml:ro
+      - ./config/authz-demo.yml:/etc/identity/authz-demo.yml:ro
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
       - OTEL_SERVICE_NAME=identity-authz-demo
@@ -45,11 +47,10 @@ services:
       test:
         - CMD
         - wget
-        - --no-check-certificate
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:8082/healthz
+        - http://127.0.0.1:8082/health
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,17 +75,19 @@ services:
     build:
       context: ../..
       dockerfile: deployments/identity/Dockerfile.idp
+      args:
+        APP_VERSION: demo
+        VCS_REF: demo
+        BUILD_DATE: "2025-01-01T00:00:00Z"
     image: cryptoutil-identity-idp:demo
     container_name: identity-idp-demo
     hostname: identity-idp-demo
     command:
-      - --config=/etc/identity/idp.yml
-      - --demo
+      - --config=/etc/identity/idp-demo.yml
     ports:
-      - "8083:8083"  # IdP API (HTTPS)
+      - "8083:8083"  # IdP API (HTTP)
     volumes:
-      - ./config/idp.yml:/etc/identity/idp.yml:ro
-      - ./config/demo-seed.yml:/etc/identity/demo-seed.yml:ro
+      - ./config/idp-demo.yml:/etc/identity/idp-demo.yml:ro
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
       - OTEL_SERVICE_NAME=identity-idp-demo
@@ -93,11 +96,10 @@ services:
       test:
         - CMD
         - wget
-        - --no-check-certificate
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:8083/healthz
+        - http://127.0.0.1:8083/health
       interval: 10s
       timeout: 5s
       retries: 5
@@ -122,17 +124,19 @@ services:
     build:
       context: ../..
       dockerfile: deployments/identity/Dockerfile.rs
+      args:
+        APP_VERSION: demo
+        VCS_REF: demo
+        BUILD_DATE: "2025-01-01T00:00:00Z"
     image: cryptoutil-identity-rs:demo
     container_name: identity-rs-demo
     hostname: identity-rs-demo
     command:
-      - --config=/etc/identity/rs.yml
-      - --demo
+      - --config=/etc/identity/rs-demo.yml
     ports:
-      - "8084:8084"  # RS API (HTTPS)
+      - "8084:8084"  # RS API (HTTP)
     volumes:
-      - ./config/rs.yml:/etc/identity/rs.yml:ro
-      - ./config/demo-seed.yml:/etc/identity/demo-seed.yml:ro
+      - ./config/rs-demo.yml:/etc/identity/rs-demo.yml:ro
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
       - OTEL_SERVICE_NAME=identity-rs-demo
@@ -141,11 +145,10 @@ services:
       test:
         - CMD
         - wget
-        - --no-check-certificate
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:8084/healthz
+        - http://127.0.0.1:8084/health
       interval: 10s
       timeout: 5s
       retries: 5
