@@ -13,9 +13,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityHealthcheck "cryptoutil/internal/identity/healthcheck"
 	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 const (
@@ -31,6 +33,7 @@ func newStartCommand() *cobra.Command {
 		background bool
 		wait       bool
 		timeout    string
+		resetDemo  bool
 	)
 
 	cmd := &cobra.Command{
@@ -55,6 +58,8 @@ Examples:
   # Start in background (local processes)
   identity start --background`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := context.Background()
+
 			// services := args  // Not used - would filter servicesToStart if implemented
 			// if len(services) == 0 {
 			//	services = []string{"authz", "idp", "rs"}
@@ -85,6 +90,36 @@ Examples:
 				return fmt.Errorf("invalid profile configuration: %w", err)
 			}
 
+			// Reset demo data if requested
+			if resetDemo {
+				fmt.Println("Resetting demo data...")
+
+				// Create repository factory to reset data
+				dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+					Type: "sqlite",
+					DSN:  ":memory:", // TODO: Use actual database config from profile
+				}
+
+				repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+				if err != nil {
+					return fmt.Errorf("failed to create repository factory for reset: %w", err)
+				}
+
+				defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Cleanup on exit
+
+				// Run migrations
+				if err := repoFactory.AutoMigrate(ctx); err != nil {
+					return fmt.Errorf("failed to auto-migrate for reset: %w", err)
+				}
+
+				// Reset and reseed demo data
+				if err := cryptoutilIdentityBootstrap.ResetAndReseedDemo(ctx, repoFactory); err != nil {
+					return fmt.Errorf("failed to reset demo data: %w", err)
+				}
+
+				fmt.Println("Demo data reset successfully!")
+			}
+
 			// Parse timeout duration
 			timeoutDuration, err := time.ParseDuration(timeout)
 			if err != nil {
@@ -105,7 +140,6 @@ Examples:
 			}
 
 			// Start services based on profile
-			ctx := context.Background()
 			servicesToStart := []struct {
 				name       string
 				enabled    bool
@@ -179,6 +213,7 @@ Examples:
 	cmd.Flags().BoolVarP(&background, "background", "d", false, "Detach services to background")
 	cmd.Flags().BoolVar(&wait, "wait", true, "Wait for health checks before returning")
 	cmd.Flags().StringVar(&timeout, "timeout", "30s", "Health check timeout")
+	cmd.Flags().BoolVar(&resetDemo, "reset-demo", false, "Reset demo data before starting services")
 
 	return cmd
 }
