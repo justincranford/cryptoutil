@@ -60,9 +60,9 @@ linters-settings:
         alias: cryptoutilKmsBarrier
       - pkg: cryptoutil/internal/kms/client
         alias: cryptoutilKmsClientInternal
-      - pkg: cryptoutil/internal/kms/repository/orm
+      - pkg: cryptoutil/internal/kms/server/repository/orm
         alias: cryptoutilKmsOrmRepository
-      - pkg: cryptoutil/internal/kms/repository/sqlrepository
+      - pkg: cryptoutil/internal/kms/server/repository/sqlrepository
         alias: cryptoutilKmsSQLRepository
       - pkg: cryptoutil/internal/kms/crypto/jose
         alias: cryptoutilKmsJose
@@ -210,9 +210,9 @@ linters-settings:
         alias: cryptoutilKmsBarrier
       - pkg: cryptoutil/internal/kms/client
         alias: cryptoutilKmsClientInternal
-      - pkg: cryptoutil/internal/kms/repository/orm
+      - pkg: cryptoutil/internal/kms/server/repository/orm
         alias: cryptoutilKmsOrmRepository
-      - pkg: cryptoutil/internal/kms/repository/sqlrepository
+      - pkg: cryptoutil/internal/kms/server/repository/sqlrepository
         alias: cryptoutilKmsSQLRepository
       - pkg: cryptoutil/internal/kms/crypto/jose
         alias: cryptoutilKmsJose
@@ -590,9 +590,9 @@ See [Import Alias Policy](docs/01-refactor/import-aliases.md) for complete list.
   alias: cryptoutilKmsBarrier
 - pkg: cryptoutil/internal/kms/client
   alias: cryptoutilKmsClientInternal
-- pkg: cryptoutil/internal/kms/repository/orm
+- pkg: cryptoutil/internal/kms/server/repository/orm
   alias: cryptoutilKmsOrmRepository
-- pkg: cryptoutil/internal/kms/repository/sqlrepository
+- pkg: cryptoutil/internal/kms/server/repository/sqlrepository
   alias: cryptoutilKmsSQLRepository
 - pkg: cryptoutil/internal/kms/crypto/jose
   alias: cryptoutilKmsJose

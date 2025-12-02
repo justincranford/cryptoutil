@@ -25,7 +25,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
-	cryptoutilServerApplication "cryptoutil/internal/kms/application"
+	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )
 
 // Integration demo step counts.

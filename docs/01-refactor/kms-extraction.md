@@ -278,29 +278,29 @@ find . -name "*.go" -type f -exec sed -i \
   alias: cryptoutilServerApplication
 
 # NEW (internal/kms)
-- pkg: cryptoutil/internal/kms/application
+- pkg: cryptoutil/internal/kms/server/application
   alias: cryptoutilKmsApplication
 
 # Full replacement list:
-- pkg: cryptoutil/internal/kms/application
+- pkg: cryptoutil/internal/kms/server/application
   alias: cryptoutilKmsApplication
 - pkg: cryptoutil/internal/kms/businesslogic
   alias: cryptoutilKmsBusinessLogic
 - pkg: cryptoutil/internal/kms/handler
   alias: cryptoutilKmsHandler
-- pkg: cryptoutil/internal/kms/barrier
+- pkg: cryptoutil/internal/kms/server/barrier
   alias: cryptoutilKmsBarrier
-- pkg: cryptoutil/internal/kms/barrier/contentkeysservice
+- pkg: cryptoutil/internal/kms/server/barrier/contentkeysservice
   alias: cryptoutilKmsContentKeys
-- pkg: cryptoutil/internal/kms/barrier/intermediatekeysservice
+- pkg: cryptoutil/internal/kms/server/barrier/intermediatekeysservice
   alias: cryptoutilKmsIntermediateKeys
-- pkg: cryptoutil/internal/kms/barrier/rootkeysservice
+- pkg: cryptoutil/internal/kms/server/barrier/rootkeysservice
   alias: cryptoutilKmsRootKeys
-- pkg: cryptoutil/internal/kms/barrier/unsealkeysservice
+- pkg: cryptoutil/internal/kms/server/barrier/unsealkeysservice
   alias: cryptoutilKmsUnsealKeys
-- pkg: cryptoutil/internal/kms/repository/orm
+- pkg: cryptoutil/internal/kms/server/repository/orm
   alias: cryptoutilKmsORM
-- pkg: cryptoutil/internal/kms/repository/sqlrepository
+- pkg: cryptoutil/internal/kms/server/repository/sqlrepository
   alias: cryptoutilKmsSQL
 - pkg: cryptoutil/internal/kms/client
   alias: cryptoutilKmsClient

@@ -371,7 +371,7 @@ go run ./cmd/workflow -workflows=quality,coverage
 
 ```yaml
 # internal/kms/application → cryptoutilKmsApplication
-- pkg: "cryptoutil/internal/kms/application"
+- pkg: "cryptoutil/internal/kms/server/application"
   alias: "cryptoutilKmsApplication"
 
 # internal/kms/businesslogic → cryptoutilKmsBusinessLogic

@@ -287,9 +287,9 @@ linters-settings:
       # KMS Service Group (15 new aliases)
       - pkg: cryptoutil/internal/kms
         alias: cryptoutilKms
-      - pkg: cryptoutil/internal/kms/application
+      - pkg: cryptoutil/internal/kms/server/application
         alias: cryptoutilKmsApplication
-      - pkg: cryptoutil/internal/kms/barrier
+      - pkg: cryptoutil/internal/kms/server/barrier
         alias: cryptoutilKmsBarrier
       - pkg: cryptoutil/internal/kms/businesslogic
         alias: cryptoutilKmsBusinessLogic
@@ -303,11 +303,11 @@ linters-settings:
         alias: cryptoutilKmsHandler
       - pkg: cryptoutil/internal/kms/pool
         alias: cryptoutilKmsPool
-      - pkg: cryptoutil/internal/kms/repository
+      - pkg: cryptoutil/internal/kms/server/repository
         alias: cryptoutilKmsRepository
-      - pkg: cryptoutil/internal/kms/repository/orm
+      - pkg: cryptoutil/internal/kms/server/repository/orm
         alias: cryptoutilKmsOrm
-      - pkg: cryptoutil/internal/kms/repository/sqlrepository
+      - pkg: cryptoutil/internal/kms/server/repository/sqlrepository
         alias: cryptoutilKmsSqlRepository
       - pkg: cryptoutil/internal/kms/server
         alias: cryptoutilKmsServer

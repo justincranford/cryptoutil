@@ -235,25 +235,25 @@ linters:
         - pkg: "cryptoutil/internal/common/crypto/keygen"
           alias: cryptoutilKeyGen
         # Cryptoutil KMS
-        - pkg: "cryptoutil/internal/kms/application"
+        - pkg: "cryptoutil/internal/kms/server/application"
           alias: cryptoutilServerApplication
         - pkg: "cryptoutil/internal/kms/businesslogic"
           alias: cryptoutilBusinessLogic
         - pkg: "cryptoutil/internal/kms/handler"
           alias: cryptoutilOpenapiHandler
-        - pkg: "cryptoutil/internal/kms/barrier"
+        - pkg: "cryptoutil/internal/kms/server/barrier"
           alias: cryptoutilBarrierService
-        - pkg: "cryptoutil/internal/kms/barrier/contentkeysservice"
+        - pkg: "cryptoutil/internal/kms/server/barrier/contentkeysservice"
           alias: cryptoutilContentKeysService
-        - pkg: "cryptoutil/internal/kms/barrier/intermediatekeysservice"
+        - pkg: "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
           alias: cryptoutilIntermediateKeysService
-        - pkg: "cryptoutil/internal/kms/barrier/rootkeysservice"
+        - pkg: "cryptoutil/internal/kms/server/barrier/rootkeysservice"
           alias: cryptoutilRootKeysService
-        - pkg: "cryptoutil/internal/kms/barrier/unsealkeysservice"
+        - pkg: "cryptoutil/internal/kms/server/barrier/unsealkeysservice"
           alias: cryptoutilUnsealKeysService
-        - pkg: "cryptoutil/internal/kms/repository/orm"
+        - pkg: "cryptoutil/internal/kms/server/repository/orm"
           alias: cryptoutilOrmRepository
-        - pkg: "cryptoutil/internal/kms/repository/sqlrepository"
+        - pkg: "cryptoutil/internal/kms/server/repository/sqlrepository"
           alias: cryptoutilSQLRepository
         # Cryptoutil identity
         - pkg: "cryptoutil/internal/identity/apperr"

@@ -8,7 +8,7 @@ import (
 	"log"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilServerApplication "cryptoutil/internal/kms/application"
+	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )
 
 func server(parameters []string) {
