@@ -38,18 +38,18 @@
 - **Priority**: MEDIUM - Documentation follows implementation
 - **Dependencies**: Task O1 completion
 
-### Task O3: Implement Token Scope Validation Middleware
+### Task O3: Implement Token Scope Validation Middleware - ✅ COMPLETED
 
 - **Description**: Add middleware to validate OAuth tokens have appropriate scope for endpoint access
-- **Current State**: No authentication middleware implemented
-- **Action Items**:
-  - Create JWT validation middleware
-  - Implement scope checking (`browser:api` vs `service:api`)
-  - Add token refresh handling
-  - Implement proper 401/403 error responses
-- **Files**: Authentication middleware, error handling
+- **Status**: COMPLETED in passthru2 session
+- **Implementation**:
+  - `internal/server/middleware/jwt.go` - JWT validation with JWKS caching
+  - `internal/server/middleware/scopes.go` - Hybrid scope model (coarse + fine)
+  - `internal/server/middleware/claims.go` - OIDC claims extraction
+  - `internal/server/middleware/service_auth.go` - JWT, mTLS, API key auth
+- **Files**: Authentication middleware in internal/server/middleware/
 - **Expected Outcome**: Runtime enforcement of API access separation
-- **Priority**: MEDIUM - Security enforcement
+- **Priority**: ✅ COMPLETED
 - **Dependencies**: Task O1 completion
 
 ---
