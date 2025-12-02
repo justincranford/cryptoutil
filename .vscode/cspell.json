@@ -102,6 +102,7 @@
     "Bitwarden",
     "bmatcuk",
     "boombuler",
+    "brainpool",
     "breakglass",
     "BUILDKIT",
     "buildkitd",
@@ -211,6 +212,7 @@
     "goccy",
     "gocognit",
     "goconst",
+    "gocritic",
     "gocyclo",
     "godoc",
     "godox",
@@ -564,10 +566,12 @@
     "terraformignore",
     "helmignore",
     "rlib",
+    "ROPC",
     "swiftpm",
     "Rproj",
     "Ruserdata",
     "packrat",
-    "renv"
+    "renv",
+    "SCIM"
   ]
 }
