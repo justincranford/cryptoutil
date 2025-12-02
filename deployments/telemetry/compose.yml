@@ -19,7 +19,7 @@ services:
       - "8889:8889"   # Received-metrics (Prometheus, for re-export)
       - "13133:13133" # Health check
       - "1777:1777"   # pprof
-      - "55679:55679" # zPages
+      - "15679:55679" # zPages (mapped to different host port to avoid Windows reserved range)
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     depends_on:
