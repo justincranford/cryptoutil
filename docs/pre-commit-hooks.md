@@ -335,7 +335,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - Custom settings per linter (gofumpt extra-rules, module-path, exhaustive)
 - Exclusion rules for generated code and intentional patterns
 - Severity levels and output formatting
-- Exclude-dirs for test-output, test-reports, workflow-reports
+- Exclude-dirs for test-output, workflow-reports
 
 **Rationale**: Single tool consolidates all auto-fixes (formatting, imports, style) plus validation, eliminating need for separate gofumpt/goimports hooks. This reduces hook count, simplifies pipeline, and ensures consistency.
 

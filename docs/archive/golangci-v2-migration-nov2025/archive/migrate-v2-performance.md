@@ -89,7 +89,7 @@ run:
     - dast-reports
     - e2e-reports
     - load-reports
-    - test-reports
+    - test-output
     - test-results
     - workflow-reports
     - docs

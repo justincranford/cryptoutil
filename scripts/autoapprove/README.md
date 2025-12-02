@@ -71,10 +71,10 @@ The wrapper validates all arguments that appear to be URLs or network addresses:
 
 ## Output Logging
 
-Each command execution creates a timestamped directory under `./test-reports/autoapprove/`:
+Each command execution creates a timestamped directory under `./test-output/autoapprove/`:
 
 ```
-./test-reports/autoapprove/2025-01-15T10-30-45.123-curl/
+./test-output/autoapprove/2025-01-15T10-30-45.123-curl/
 ├── STDIN.log      # Input sent to command
 ├── STDOUT.log     # Standard output from command
 ├── STDERR.log     # Standard error from command

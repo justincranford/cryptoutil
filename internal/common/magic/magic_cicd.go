@@ -280,7 +280,6 @@ var (
 		"api/authz",
 		"node_modules",
 		"test-output",
-		"test-reports",
 		"vendor",
 		"workflow-reports",
 	}

@@ -57,7 +57,6 @@ linters:
       - api/idp
       - api/authz
       - test-output
-      - test-reports
       - workflow-reports
       - vendor
     rules:

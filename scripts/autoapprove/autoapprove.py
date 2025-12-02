@@ -6,7 +6,7 @@ This script wraps commands like curl, wget, go, docker to:
 1. Validate URLs/network addresses to only allow loopback (127.0.0.1, ::1, localhost)
 2. Pass through args and STDIN to the called command
 3. Pass back STDOUT, STDERR, and exit code to caller
-4. Log detailed execution information to test-reports directory
+4. Log detailed execution information to test-output directory
 
 Reference:
 - VS Code Copilot Terminal Safety Guards: https://code.visualstudio.com/docs/copilot/chat/chat-tools#_terminal
@@ -17,7 +17,6 @@ Reference:
 import argparse
 import ipaddress
 import os
-import platform
 import re
 import subprocess
 import sys
@@ -25,11 +24,18 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+from types import ModuleType
 from urllib.parse import urlparse
 
+from typing import Optional
+from types import ModuleType
+
 # Import resource module only on Unix (not available on Windows).
-if platform.system() != "Windows":
+resource: Optional[ModuleType] = None
+try:
     import resource
+except ImportError:
+    pass
 
 
 # Allowed loopback addresses and hostnames.
@@ -151,20 +157,20 @@ def create_report_directory(command_name: str) -> Path:
     timestamp = get_timestamp()
     safe_command_name = re.sub(r"[^\w\-.]", "_", command_name)
     dir_name = f"{timestamp}-{safe_command_name}"
-    report_dir = Path("./test-reports") / "autoapprove" / dir_name
+    report_dir = Path("./test-output") / "autoapprove" / dir_name
     report_dir.mkdir(parents=True, exist_ok=True)
     return report_dir
 
 
 def get_resource_usage() -> dict[str, float]:
     """Get current resource usage statistics (Unix only, returns zeros on Windows)."""
-    if platform.system() == "Windows":
+    if resource is None:
         return {
             "user_time_seconds": 0.0,
             "system_time_seconds": 0.0,
             "max_memory_kb": 0,
         }
-    rusage = resource.getrusage(resource.RUSAGE_CHILDREN)  # type: ignore[name-defined]
+    rusage = resource.getrusage(resource.RUSAGE_CHILDREN)
     return {
         "user_time_seconds": rusage.ru_utime,
         "system_time_seconds": rusage.ru_stime,

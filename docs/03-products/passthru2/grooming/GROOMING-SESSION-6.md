@@ -315,7 +315,7 @@ For coverage tracking, should we:
 
 - [ ] A. Native Go coverage only (go test -cover)
 - [ ] B. Integrate with Codecov/Coveralls
-- [ ] C. HTML reports in test-reports/
+- [ ] C. HTML reports in test-output/
 - [ ] D. All of the above
 
 Notes:
