@@ -51,7 +51,7 @@
 ## Phase 1: KMS Demo Parity (Day 2-3)
 
 **Priority**: HIGH - Based on Q2 (KMS & Identity equal parity) and Q13 (all KMS features)
-**Status**: 🔄 IN PROGRESS
+**Status**: ✅ COMPLETE
 
 ### Swagger UI (Highest priority per Q13 notes)
 
@@ -129,8 +129,8 @@
 
 - [ ] **P2.7**: Implement `--demo` flag for Identity server
 - [x] **P2.8**: Create `cmd/demo-identity/main.go` Go CLI (Q12) - exists as cmd/demo with identity subcommand
-- [ ] **P2.9**: Seed demo users (admin, user, service)
-- [ ] **P2.10**: Seed demo clients (public, confidential)
+- [x] **P2.9**: Seed demo users (admin, user, service) - exists in internal/identity/bootstrap/demo_user.go
+- [x] **P2.10**: Seed demo clients (public, confidential) - exists in internal/identity/bootstrap/demo_client.go
 - [ ] **P2.11**: Implement `--reset-demo` flag for data cleanup (Q15)
 - [ ] **P2.12**: Profile-based persistence: dev=persist, ci=ephemeral (Q12)
 
