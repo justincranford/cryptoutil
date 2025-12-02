@@ -2,7 +2,13 @@
 
 ## Overview
 
-This plan outlines the implementation phases for cryptoutil, prioritizing production-readiness for existing products while establishing foundations for future capabilities.
+This plan outlines the implementation phases for cryptoutil, guided by the [constitution principles](../.specify/memory/constitution.md) and aligned with the [product specifications](./spec.md). All phases must adhere to FIPS 140-3 compliance, evidence-based completion, hierarchical key security, code quality excellence, and product architecture clarity.
+
+**Key References:**
+
+- **Constitution**: Immutable principles for FIPS compliance, evidence-based completion, security architecture, code quality, and product separation
+- **Specification**: Detailed product capabilities (P1-P4) and current implementation status
+- **Evidence Requirements**: All tasks require verifiable evidence (build clean, tests pass, coverage maintained, E2E demos work)
 
 ---
 
