@@ -9,16 +9,46 @@ import (
 	"context"
 	"fmt"
 
+	googleUuid "github.com/google/uuid"
+
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 )
+
+// DemoTenantConfig holds demo tenant configuration.
+type DemoTenantConfig struct {
+	// ID is regenerated on each startup (Session 4 Q9).
+	ID   string
+	Name string
+}
 
 // DemoKeyConfig defines a demo key to be seeded.
 type DemoKeyConfig struct {
 	Name        string
 	Description string
 	Algorithm   cryptoutilOpenapiModel.ElasticKeyAlgorithm
+}
+
+// GenerateDemoTenantID creates a new UUIDv4 tenant ID.
+// Reference: Session 4 Q9 - regenerate on each startup for security.
+func GenerateDemoTenantID() string {
+	return googleUuid.New().String()
+}
+
+// DefaultDemoTenants returns the default demo tenants with fresh UUIDs.
+// Reference: Session 4 Q9 - regenerate demo tenant IDs on each startup.
+func DefaultDemoTenants() []DemoTenantConfig {
+	return []DemoTenantConfig{
+		{
+			ID:   GenerateDemoTenantID(),
+			Name: "demo-tenant-primary",
+		},
+		{
+			ID:   GenerateDemoTenantID(),
+			Name: "demo-tenant-secondary",
+		},
+	}
 }
 
 // DefaultDemoKeys returns the default set of demo keys to seed.

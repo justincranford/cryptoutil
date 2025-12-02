@@ -10,6 +10,61 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGenerateDemoTenantID(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: "generates valid UUIDv4"},
+		{name: "generates unique IDs"},
+	}
+
+	generatedIDs := make(map[string]bool)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			id := GenerateDemoTenantID()
+			require.NotEmpty(t, id)
+			require.Len(t, id, 36) // UUID format: 8-4-4-4-12.
+			require.Contains(t, id, "-")
+			require.False(t, generatedIDs[id], "expected unique ID")
+
+			generatedIDs[id] = true
+		})
+	}
+}
+
+func TestDefaultDemoTenants(t *testing.T) {
+	t.Parallel()
+
+	tenants := DefaultDemoTenants()
+
+	require.Len(t, tenants, 2, "Should return 2 demo tenants")
+
+	for _, tenant := range tenants {
+		require.NotEmpty(t, tenant.ID, "Tenant ID should not be empty")
+		require.Len(t, tenant.ID, 36, "Tenant ID should be UUID format")
+		require.NotEmpty(t, tenant.Name, "Tenant name should not be empty")
+	}
+
+	// Verify IDs are unique.
+	require.NotEqual(t, tenants[0].ID, tenants[1].ID, "Tenant IDs should be unique")
+}
+
+func TestDefaultDemoTenants_RegeneratesOnEachCall(t *testing.T) {
+	t.Parallel()
+
+	tenants1 := DefaultDemoTenants()
+	tenants2 := DefaultDemoTenants()
+
+	// Each call should generate new UUIDs (Session 4 Q9).
+	require.NotEqual(t, tenants1[0].ID, tenants2[0].ID, "Tenant IDs should regenerate on each call")
+	require.NotEqual(t, tenants1[1].ID, tenants2[1].ID, "Tenant IDs should regenerate on each call")
+}
+
 func TestDefaultDemoKeys(t *testing.T) {
 	t.Parallel()
 

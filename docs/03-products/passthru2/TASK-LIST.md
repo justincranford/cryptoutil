@@ -83,18 +83,18 @@
 
 ### KMS Realm Configuration (from Session 2 Q1-5 + Session 3 Q6-10 + Session 5)
 
-- [ ] **P1.14**: Create `realms.yml` in same directory as config (Session 3 Q6)
-- [ ] **P1.15**: Implement configurable PBKDF2: SHA-256, 600K iterations, 32-byte salt (Session 5 Q12)
-- [ ] **P1.16**: Implement full user schema with JSON metadata + validation schema (Session 5 Q13)
-- [ ] **P1.17**: Implement configurable hierarchical roles (Session 3 Q9)
-- [ ] **P1.18**: Use UUIDv4 for tenant IDs (Session 3 Q10 - max randomness)
+- [x] **P1.14**: Create `realms.yml` in same directory as config (Session 3 Q6)
+- [x] **P1.15**: Implement configurable PBKDF2: SHA-256, 600K iterations, 32-byte salt (Session 5 Q12)
+- [x] **P1.16**: Implement full user schema with JSON metadata + validation schema (Session 5 Q13)
+- [x] **P1.17**: Implement configurable hierarchical roles (Session 3 Q9)
+- [x] **P1.18**: Use UUIDv4 for tenant IDs (Session 3 Q10 - max randomness)
 
 ### UUIDv4 Tenant ID (Session 4 Q6-10)
 
-- [ ] **P1.19**: Implement UUIDv4 generation matching v7 pattern (Session 4 Q6)
-- [ ] **P1.20**: Strict UUID format validation for tenant IDs (Session 4 Q7)
-- [ ] **P1.21**: Full UUID display format with hyphens (Session 4 Q8)
-- [ ] **P1.22**: Regenerate demo tenant IDs on each startup (Session 4 Q9)
+- [x] **P1.19**: Implement UUIDv4 generation matching v7 pattern (Session 4 Q6)
+- [x] **P1.20**: Strict UUID format validation for tenant IDs (Session 4 Q7)
+- [x] **P1.21**: Full UUID display format with hyphens (Session 4 Q8)
+- [x] **P1.22**: Regenerate demo tenant IDs on each startup (Session 4 Q9)
 - [ ] **P1.23**: Tenant ID always via Authorization header, never path/query (Session 4 Q10)
 
 ### Tenant Isolation (Session 5 Q14)
