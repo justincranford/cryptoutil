@@ -136,7 +136,7 @@ docker compose -f deployments/kms/compose.demo.yml --profile demo config > evide
 
 **Not Blockers**:
 - MFA/OTP not implemented (Phase 3 work)
-- WebAuthn passkey not implemented (Phase 3 work)  
+- WebAuthn passkey not implemented (Phase 3 work)
 - Notification webhooks stub (Phase 3 work)
 - Integration test suite timeout (separate from demo)
 

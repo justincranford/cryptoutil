@@ -109,7 +109,7 @@ Step 3/7: Service health checks... ❌ FAIL
 Error: KMS health check failed after 30s timeout
   URL: https://127.0.0.1:18081/health
   Error: connection refused
-  
+
 Suggestion: Check if port 18081 is available
 ```
 

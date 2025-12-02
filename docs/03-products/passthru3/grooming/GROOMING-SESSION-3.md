@@ -30,7 +30,7 @@
 ```go
 func TestWaitForHealth(t *testing.T) {
     t.Parallel()
-    
+
     tests := []struct {
         name       string
         handler    http.HandlerFunc
@@ -54,18 +54,18 @@ func TestWaitForHealth(t *testing.T) {
             wantErr: true,
         },
     }
-    
+
     for _, tc := range tests {
         tc := tc
         t.Run(tc.name, func(t *testing.T) {
             t.Parallel()
-            
+
             srv := httptest.NewServer(tc.handler)
             defer srv.Close()
-            
+
             ctx, cancel := context.WithTimeout(context.Background(), tc.timeout)
             defer cancel()
-            
+
             err := waitForHealth(ctx, http.DefaultClient, srv.URL)
             if tc.wantErr {
                 require.Error(t, err)
@@ -168,33 +168,33 @@ docker compose -f deployments/kms/compose.demo.yml --profile demo down -v
 
 Step 1/7: Start Identity server... ✅ PASS
   • AuthZ server running on https://127.0.0.1:18080
-  
+
 Step 2/7: Start KMS server... ✅ PASS
   • KMS server running on https://127.0.0.1:18081
   • Token validation configured for https://127.0.0.1:18080
-  
+
 Step 3/7: Service health checks... ✅ PASS
   • Identity: https://127.0.0.1:18080/health - OK
   • KMS: https://127.0.0.1:18081/health - OK
-  
+
 Step 4/7: Obtain access token... ✅ PASS
   • Token endpoint: https://127.0.0.1:18080/oauth2/v1/token
   • Client: demo-client
   • Scopes: demo:all
   • Token type: Bearer
   • Expires in: 3600s
-  
+
 Step 5/7: Validate token... ✅ PASS
   • JWKS endpoint: https://127.0.0.1:18080/oauth2/v1/jwks
   • Signature: Valid
   • Claims: Valid
   • Expiration: Valid
-  
+
 Step 6/7: Perform authenticated KMS operation... ✅ PASS
   • Operation: List keys
   • Authorization: Bearer token
   • Response: 200 OK
-  
+
 Step 7/7: Verify audit log... ✅ PASS
   • Audit entry found for authenticated operation
   • User: demo-client
@@ -257,7 +257,7 @@ Error: <brief description>
   Detail: <specific error>
   URL: <if applicable>
   Status: <if HTTP error>
-  
+
 Suggestion: <how to fix>
 ```
 

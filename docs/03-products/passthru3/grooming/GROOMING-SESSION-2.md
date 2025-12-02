@@ -26,16 +26,16 @@ const (
 func RunIntegrationDemo(cfg *config.Config) error {
     ctx, cancel := context.WithTimeout(context.Background(), demoTimeout)
     defer cancel()
-    
+
     // Setup demo runner
     demo := newDemoRunner(integrationDemoName, stepCount)
-    
+
     // Execute steps
     if err := demo.runStep(1, "Start Identity server", func() error { ... }); err != nil {
         return err
     }
     // ... remaining steps
-    
+
     return demo.complete()
 }
 ```
@@ -84,7 +84,7 @@ func startIdentityServer(ctx context.Context, cfg *config.Config) (cleanup func(
     if err != nil {
         return nil, fmt.Errorf("create identity server: %w", err)
     }
-    
+
     // Start in goroutine
     errCh := make(chan error, 1)
     go func() {
@@ -92,7 +92,7 @@ func startIdentityServer(ctx context.Context, cfg *config.Config) (cleanup func(
             errCh <- err
         }
     }()
-    
+
     // Wait for ready or error
     select {
     case err := <-errCh:
@@ -102,7 +102,7 @@ func startIdentityServer(ctx context.Context, cfg *config.Config) (cleanup func(
     case <-time.After(startupTimeout):
         return nil, fmt.Errorf("server startup timeout")
     }
-    
+
     // Return cleanup function
     return func() {
         ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
@@ -126,21 +126,21 @@ func RunIntegrationDemo(cfg *config.Config) error {
             cleanups[i]()
         }
     }()
-    
+
     // Step 1: Start Identity
     identityCleanup, err := startIdentityServer(ctx, cfg)
     if err != nil {
         return err
     }
     cleanups = append(cleanups, identityCleanup)
-    
+
     // Step 2: Start KMS (will be cleaned up even if later steps fail)
     kmsCleanup, err := startKMSServer(ctx, cfg)
     if err != nil {
         return err
     }
     cleanups = append(cleanups, kmsCleanup)
-    
+
     // ... continue with other steps
 }
 ```
@@ -178,7 +178,7 @@ func newDemoHTTPClient() *http.Client {
 func waitForHealth(ctx context.Context, client *http.Client, url string) error {
     backoff := 100 * time.Millisecond
     maxBackoff := 2 * time.Second
-    
+
     for {
         select {
         case <-ctx.Done():
@@ -192,7 +192,7 @@ func waitForHealth(ctx context.Context, client *http.Client, url string) error {
             if resp != nil {
                 resp.Body.Close()
             }
-            
+
             time.Sleep(backoff)
             backoff = min(backoff*2, maxBackoff)
         }
@@ -224,29 +224,29 @@ func getClientCredentialsToken(
         "client_secret": {clientSecret},
         "scope":         {strings.Join(scopes, " ")},
     }
-    
+
     req, err := http.NewRequestWithContext(ctx, "POST", tokenEndpoint, strings.NewReader(data.Encode()))
     if err != nil {
         return nil, fmt.Errorf("create request: %w", err)
     }
     req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-    
+
     resp, err := client.Do(req)
     if err != nil {
         return nil, fmt.Errorf("token request: %w", err)
     }
     defer resp.Body.Close()
-    
+
     if resp.StatusCode != http.StatusOK {
         body, _ := io.ReadAll(resp.Body)
         return nil, fmt.Errorf("token request failed: %d: %s", resp.StatusCode, string(body))
     }
-    
+
     var tokenResp TokenResponse
     if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
         return nil, fmt.Errorf("decode response: %w", err)
     }
-    
+
     return &tokenResp, nil
 }
 
@@ -278,24 +278,24 @@ func validateJWT(
         return fmt.Errorf("fetch JWKS: %w", err)
     }
     defer resp.Body.Close()
-    
+
     var jwks jose.JSONWebKeySet
     if err := json.NewDecoder(resp.Body).Decode(&jwks); err != nil {
         return fmt.Errorf("decode JWKS: %w", err)
     }
-    
+
     // Parse JWT
     parsedJWT, err := jwt.ParseSigned(token)
     if err != nil {
         return fmt.Errorf("parse JWT: %w", err)
     }
-    
+
     // Verify signature and claims
     var claims jwt.Claims
     if err := parsedJWT.Claims(jwks, &claims); err != nil {
         return fmt.Errorf("verify JWT: %w", err)
     }
-    
+
     // Validate standard claims
     if err := claims.Validate(jwt.Expected{
         Issuer:   expectedIssuer,
@@ -304,7 +304,7 @@ func validateJWT(
     }); err != nil {
         return fmt.Errorf("validate claims: %w", err)
     }
-    
+
     return nil
 }
 ```
