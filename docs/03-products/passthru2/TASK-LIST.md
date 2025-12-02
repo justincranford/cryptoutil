@@ -95,7 +95,7 @@
 - [x] **P1.20**: Strict UUID format validation for tenant IDs (Session 4 Q7)
 - [x] **P1.21**: Full UUID display format with hyphens (Session 4 Q8)
 - [x] **P1.22**: Regenerate demo tenant IDs on each startup (Session 4 Q9)
-- [ ] **P1.23**: Tenant ID always via Authorization header, never path/query (Session 4 Q10)
+- [x] **P1.23**: Tenant ID always via X-Tenant-ID header (Session 4 Q10)
 
 ### Tenant Isolation (Session 5 Q14)
 
