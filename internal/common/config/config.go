@@ -1201,16 +1201,17 @@ func analyzeSettings(settings []*Setting) analysisResult {
 func validateConfiguration(s *Settings) error {
 	var errors []string
 
-	// Validate port ranges
-	if s.BindPublicPort < 1 {
-		errors = append(errors, fmt.Sprintf("invalid public port %d: must be between 1 and 65535", s.BindPublicPort))
+	// Validate port ranges (port 0 is valid - OS assigns dynamic port).
+	if s.BindPublicPort > cryptoutilMagic.MaxPortNumber {
+		errors = append(errors, fmt.Sprintf("invalid public port %d: must be between 0 and 65535", s.BindPublicPort))
 	}
 
-	if s.BindPrivatePort < 1 {
-		errors = append(errors, fmt.Sprintf("invalid private port %d: must be between 1 and 65535", s.BindPrivatePort))
+	if s.BindPrivatePort > cryptoutilMagic.MaxPortNumber {
+		errors = append(errors, fmt.Sprintf("invalid private port %d: must be between 0 and 65535", s.BindPrivatePort))
 	}
 
-	if s.BindPublicPort == s.BindPrivatePort {
+	// Ports cannot be the same unless both are 0 (OS assigns different dynamic ports).
+	if s.BindPublicPort == s.BindPrivatePort && s.BindPublicPort != 0 {
 		errors = append(errors, fmt.Sprintf("public port (%d) and private port (%d) cannot be the same", s.BindPublicPort, s.BindPrivatePort))
 	}
 

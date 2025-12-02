@@ -23,6 +23,8 @@ const (
 	PortHTTPS uint16 = 443
 	// PortHTTP - Standard HTTP port.
 	PortHTTP uint16 = 80
+	// MaxPortNumber - Maximum TCP/UDP port number.
+	MaxPortNumber uint16 = 65535
 )
 
 // Loopback addresses.

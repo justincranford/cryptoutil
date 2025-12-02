@@ -81,6 +81,10 @@ func runKMSDemo(ctx context.Context, config *Config) int {
 
 	progress.CompleteStep("Started KMS server")
 
+	// Update settings with actual dynamic ports assigned by OS.
+	settings.BindPublicPort = server.ActualPublicPort
+	settings.BindPrivatePort = server.ActualPrivatePort
+
 	// Step 3: Wait for health checks.
 	progress.StartStep("Waiting for health checks")
 
