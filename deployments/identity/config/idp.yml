@@ -2,7 +2,7 @@
 
 idp:
   name: idp-server
-  bind_address: 0.0.0.0  # Listen on all interfaces for container access
+  bind_address: 0.0.0.0  # Listen on all interfaces for container access.
   port: 8081
   tls_enabled: false
   read_timeout: 30s
@@ -14,8 +14,9 @@ idp:
 
 database:
   type: postgres
-  # Docker Compose will pass DSN via environment variable IDENTITY_DB_DSN
-  dsn: "${IDENTITY_DB_DSN}"
+  # DSN is overridden by -u flag at runtime from Docker secrets.
+  # This default is used for local development only.
+  dsn: "postgres://identity_user:identity_pass@localhost:5433/identity_db?sslmode=disable"
   max_open_conns: 10
   max_idle_conns: 5
   conn_max_lifetime: 60m
@@ -23,9 +24,9 @@ database:
   auto_migrate: true
 
 auth:
-  authz_url: "${AUTHZ_URL}"  # OAuth 2.1 Authorization Server URL
+  authz_url: "http://identity-authz:8080"  # OAuth 2.1 Authorization Server URL.
 
 telemetry:
   enabled: true
-  otlp_endpoint: "${OTLP_ENDPOINT}"
+  otlp_endpoint: "opentelemetry-collector-contrib:4317"
   service_name: idp-server

@@ -71,7 +71,7 @@ services:
   builder-identity:
     image: cryptoutil-identity:dev
     build:
-      context: ../../..
+      context: ../..
       dockerfile: deployments/kms/Dockerfile.kms
       args:
         APP_VERSION: "dev"

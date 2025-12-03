@@ -200,9 +200,9 @@ func (s *Service) HybridAuthMiddleware() fiber.Handler {
 				// Convert session to claims format for consistency.
 				claims := map[string]any{
 					cryptoutilIdentityMagic.ClaimSub: session.UserID.String(),
-					"sid":                           session.SessionID,
-					"auth_time":                     session.AuthenticationTime.Unix(),
-					"amr":                           session.AuthenticationMethods,
+					"sid":                            session.SessionID,
+					"auth_time":                      session.AuthenticationTime.Unix(),
+					"amr":                            session.AuthenticationMethods,
 				}
 
 				c.Locals("claims", claims)

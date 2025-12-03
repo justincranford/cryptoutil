@@ -3,6 +3,6 @@
 -- Reference: OpenID Connect Front-Channel Logout 1.0, OpenID Connect Back-Channel Logout 1.0
 
 ALTER TABLE clients ADD COLUMN frontchannel_logout_uri TEXT DEFAULT '';
-ALTER TABLE clients ADD COLUMN frontchannel_logout_session_required INTEGER DEFAULT 0;
+ALTER TABLE clients ADD COLUMN frontchannel_logout_session_required BOOLEAN DEFAULT false;
 ALTER TABLE clients ADD COLUMN backchannel_logout_uri TEXT DEFAULT '';
-ALTER TABLE clients ADD COLUMN backchannel_logout_session_required INTEGER DEFAULT 0;
+ALTER TABLE clients ADD COLUMN backchannel_logout_session_required BOOLEAN DEFAULT false;

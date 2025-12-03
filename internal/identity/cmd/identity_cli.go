@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -53,25 +54,28 @@ func ExecuteIdentity(parameters []string) {
 const (
 	configFlag      = "--config"
 	configFlagShort = "-c"
+	dsnFlag         = "-u"
+	dsnFlagLong     = "--database-url"
+	fileURLPrefix   = "file://"
 )
 
 // parseConfigFlag extracts config file path from parameters.
 // Supports both "--config /path" and "--config=/path" formats.
 func parseConfigFlag(parameters []string, defaultConfig string) string {
 	for i, param := range parameters {
-		// Support --config /path format
+		// Support --config /path format.
 		if param == configFlag || param == configFlagShort {
 			if i+1 < len(parameters) {
 				return parameters[i+1]
 			}
 		}
 
-		// Support --config=/path format
+		// Support --config=/path format.
 		if len(param) > len(configFlag) && param[:len(configFlag)+1] == configFlag+"=" {
 			return param[len(configFlag)+1:]
 		}
 
-		// Support -c=/path format
+		// Support -c=/path format.
 		if len(param) > len(configFlagShort) && param[:len(configFlagShort)+1] == configFlagShort+"=" {
 			return param[len(configFlagShort)+1:]
 		}
@@ -80,40 +84,92 @@ func parseConfigFlag(parameters []string, defaultConfig string) string {
 	return defaultConfig
 }
 
+// parseDSNFlag extracts database URL from parameters.
+// Supports both "-u value" and "-u=value" formats.
+// If the value starts with "file://", it reads the DSN from that file path.
+func parseDSNFlag(parameters []string) string {
+	for i, param := range parameters {
+		// Support -u /path or --database-url /path format.
+		if param == dsnFlag || param == dsnFlagLong {
+			if i+1 < len(parameters) {
+				return resolveDSNValue(parameters[i+1])
+			}
+		}
+
+		// Support -u=/path format.
+		if len(param) > len(dsnFlag) && param[:len(dsnFlag)+1] == dsnFlag+"=" {
+			return resolveDSNValue(param[len(dsnFlag)+1:])
+		}
+
+		// Support --database-url=/path format.
+		if len(param) > len(dsnFlagLong) && param[:len(dsnFlagLong)+1] == dsnFlagLong+"=" {
+			return resolveDSNValue(param[len(dsnFlagLong)+1:])
+		}
+	}
+
+	return ""
+}
+
+// resolveDSNValue resolves a DSN value, reading from file if it's a file:// URL.
+func resolveDSNValue(value string) string {
+	if strings.HasPrefix(value, fileURLPrefix) {
+		filePath := strings.TrimPrefix(value, fileURLPrefix)
+
+		data, err := os.ReadFile(filePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Failed to read DSN from file %s: %v\n", filePath, err)
+
+			return ""
+		}
+
+		// Trim whitespace (including newlines) from the DSN.
+		return strings.TrimSpace(string(data))
+	}
+
+	return value
+}
+
 func identityAuthz(parameters []string) {
-	// Default config file
+	// Default config file.
 	configFile := parseConfigFlag(parameters, "/app/run/authz-docker.yml")
 
-	// Debug logging
+	// Debug logging.
 	fmt.Fprintf(os.Stderr, "identityAuthz: Loading config from: %s\n", configFile)
 
 	wd, _ := os.Getwd()
 	fmt.Fprintf(os.Stderr, "identityAuthz: Working directory: %s\n", wd)
 
-	// Load configuration from YAML file
+	// Load configuration from YAML file.
 	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", configFile, err)
 		os.Exit(1)
 	}
 
-	// Validate configuration
+	// Override DSN from command line if provided (-u flag for Docker secrets).
+	if dsn := parseDSNFlag(parameters); dsn != "" {
+		fmt.Fprintf(os.Stderr, "identityAuthz: Using DSN from command line flag\n")
+
+		config.Database.DSN = dsn
+	}
+
+	// Validate configuration.
 	if err := config.Validate(); err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid configuration: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Create context
+	// Create context.
 	ctx := context.Background()
 
-	// Initialize repository factory
+	// Initialize repository factory.
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize repository factory: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Run database migrations if auto_migrate enabled
+	// Run database migrations if auto_migrate enabled.
 	if config.Database.AutoMigrate {
 		fmt.Fprintf(os.Stderr, "Running database migrations...\n")
 
@@ -125,7 +181,7 @@ func identityAuthz(parameters []string) {
 		fmt.Fprintf(os.Stderr, "Database migrations completed successfully\n")
 	}
 
-	// Bootstrap demo client for testing
+	// Bootstrap demo client for testing.
 	if err := cryptoutilIdentityBootstrap.BootstrapClients(ctx, config, repoFactory); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to bootstrap clients: %v\n", err)
 		os.Exit(1)
@@ -217,40 +273,47 @@ func identityAuthz(parameters []string) {
 }
 
 func identityIdp(parameters []string) {
-	// Parse config file from parameters
+	// Parse config file from parameters.
 	configFile := parseConfigFlag(parameters, "configs/identity/idp.yml")
 
-	// Load configuration from YAML file
+	// Load configuration from YAML file.
 	config, err := cryptoutilIdentityConfig.LoadFromFile(configFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", configFile, err)
 		os.Exit(1)
 	}
 
-	// Validate configuration
+	// Override DSN from command line if provided (-u flag for Docker secrets).
+	if dsn := parseDSNFlag(parameters); dsn != "" {
+		fmt.Fprintf(os.Stderr, "identityIdp: Using DSN from command line flag\n")
+
+		config.Database.DSN = dsn
+	}
+
+	// Validate configuration.
 	if err := config.Validate(); err != nil {
 		fmt.Fprintf(os.Stderr, "Invalid configuration: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Create context
+	// Create context.
 	ctx := context.Background()
 
-	// Initialize repository factory
+	// Initialize repository factory.
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config.Database)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize repository factory: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Bootstrap demo user for testing
+	// Bootstrap demo user for testing.
 	if err := cryptoutilIdentityBootstrap.BootstrapUsers(ctx, repoFactory); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to bootstrap users: %v\n", err)
 		os.Exit(1)
 	}
 
-	// TODO: Create JWS, JWE, UUID issuers properly
-	// For now, use placeholders
+	// TODO: Create JWS, JWE, UUID issuers properly.
+	// For now, use placeholders.
 	jwsIssuer := &cryptoutilIdentityIssuer.JWSIssuer{}
 	jweIssuer := &cryptoutilIdentityIssuer.JWEIssuer{}
 	uuidIssuer := &cryptoutilIdentityIssuer.UUIDIssuer{}

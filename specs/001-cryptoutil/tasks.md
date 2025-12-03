@@ -81,7 +81,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 |------|-------------|--------|
 | ✅ P1.6.1 HIGH S3 | Implement `/.well-known/oauth-authorization-server` (RFC 8414) | IMPLEMENTED (authz package) |
 | ✅ P1.6.2 HIGH S3 | Implement `/oidc/v1/endsession` (RP-Initiated Logout) | IMPLEMENTED |
-| ❌ P1.6.3 MEDIUM S2 | Add session_cookie authentication method for SPA UI | NOT IMPLEMENTED |
+| ✅ P1.6.3 MEDIUM S2 | Add session_cookie authentication method for SPA UI | IMPLEMENTED (HybridAuthMiddleware) |
 
 **Spec Reference**: spec.md lines 47-60
 

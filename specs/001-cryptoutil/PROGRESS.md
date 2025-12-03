@@ -12,11 +12,11 @@
 
 | Phase | Total Tasks | Completed | Partial | Remaining | Progress |
 |-------|-------------|-----------|---------|-----------|----------|
-| Phase 1: Identity V2 | 23 | 21 | 1 | 1 | 91% |
+| Phase 1: Identity V2 | 23 | 23 | 0 | 0 | 100% ✅ |
 | Phase 2: KMS | 9 | 0 | 2 | 7 | 0% |
 | Phase 3: Integration | 12 | 0 | 0 | 12 | 0% |
 
-**Overall Progress**: 21/44 tasks (48%)
+**Overall Progress**: 23/44 tasks (52%)
 
 ---
 
@@ -86,10 +86,22 @@
     - SQL migration 0006 for logout channel columns
     - Tests: `backchannel_logout_test.go`
 
-#### In Progress
+11. ✅ **P1.6.3**: Hybrid auth middleware for SPA
+    - Commit: `17316e97`
+    - HybridAuthMiddleware supports Bearer token OR session cookie
+    - Bearer token takes precedence if both present
+    - Session cookie provides claims compatible with tokens
+    - Tests: `TestHybridAuthMiddleware`
 
-- **Task 11**: Complete remaining Phase 1 tasks
-  - P1.6.3: Session cookie authentication for SPA
+---
+
+## Phase 1 COMPLETE ✅
+
+All Phase 1 Identity V2 tasks have been completed!
+
+---
+
+## Phase 2 Tasks (Next)
 
 ---
 
@@ -140,19 +152,13 @@ Updated spec.md Identity Provider (IdP) table with correct status markers:
 
 ## Remaining Phase 1 Tasks
 
-### CRITICAL Priority
+### Phase 1 COMPLETE ✅
 
-All CRITICAL priority tasks completed ✅
+All Phase 1 tasks completed:
 
-### HIGH Priority
-
-All HIGH priority tasks completed ✅
-
-### MEDIUM Priority
-
-1. **P1.6.3** - Session cookie authentication for SPA
-   - Required for browser-based applications
-   - LOE: 2 hours
+- 23/23 tasks (100%)
+- All CRITICAL, HIGH, and MEDIUM priority tasks done
+- Comprehensive test coverage added
 
 ### MEDIUM Priority
 

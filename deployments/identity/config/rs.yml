@@ -2,7 +2,7 @@
 
 rs:
   name: rs-server
-  bind_address: 0.0.0.0  # Listen on all interfaces for container access
+  bind_address: 0.0.0.0  # Listen on all interfaces for container access.
   port: 8082
   tls_enabled: false
   read_timeout: 30s
@@ -13,9 +13,9 @@ rs:
   admin_port: 9090
 
 auth:
-  authz_url: "${AUTHZ_URL}"  # OAuth 2.1 Authorization Server URL
+  authz_url: "http://identity-authz:8080"  # OAuth 2.1 Authorization Server URL.
 
 telemetry:
   enabled: true
-  otlp_endpoint: "${OTLP_ENDPOINT}"
+  otlp_endpoint: "opentelemetry-collector-contrib:4317"
   service_name: rs-server
