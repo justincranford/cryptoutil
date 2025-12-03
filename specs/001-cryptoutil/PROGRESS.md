@@ -12,11 +12,11 @@
 
 | Phase | Total Tasks | Completed | Partial | Remaining | Progress |
 |-------|-------------|-----------|---------|-----------|----------|
-| Phase 1: Identity V2 | 23 | 19 | 2 | 2 | 83% |
+| Phase 1: Identity V2 | 23 | 21 | 1 | 1 | 91% |
 | Phase 2: KMS | 9 | 0 | 2 | 7 | 0% |
 | Phase 3: Integration | 12 | 0 | 0 | 12 | 0% |
 
-**Overall Progress**: 19/44 tasks (43%)
+**Overall Progress**: 21/44 tasks (48%)
 
 ---
 
@@ -68,12 +68,28 @@
    - SQL migration 0005 for post_logout_redirect_uris
    - Test coverage: `handlers_endsession_test.go` (8 test cases)
 
+8. ✅ **P1.6.1**: OAuth AS Metadata (already implemented)
+   - Verified: `handlers_discovery.go` handleOAuthMetadata
+   - Endpoint: `/.well-known/oauth-authorization-server`
+   - Tests pass: `TestHandleOAuthMetadata`
+
+9. ✅ **P1.5.3**: Token lifecycle cleanup job (already implemented)
+   - Verified: `jobs/cleanup.go` CleanupJob
+   - DeleteExpiredBefore for tokens and sessions
+   - Tests pass: `TestCleanupJob_*`
+
+10. ✅ **P1.3.4/P1.3.5**: Front/back-channel logout
+    - Commit: `38101b8e`
+    - Add FrontChannelLogoutURI/BackChannelLogoutURI to Client
+    - BackChannelLogoutService sends JWT logout tokens
+    - GenerateFrontChannelLogoutIframes for browser logout
+    - SQL migration 0006 for logout channel columns
+    - Tests: `backchannel_logout_test.go`
+
 #### In Progress
 
-- **Task 8**: Execute remaining Phase 1 critical tasks
-  - P1.3.4/P1.3.5: Front/back-channel logout
-  - P1.5.3: Token lifecycle cleanup job
-  - P1.6.1: OAuth AS Metadata (RFC 8414)
+- **Task 11**: Complete remaining Phase 1 tasks
+  - P1.6.3: Session cookie authentication for SPA
 
 ---
 
@@ -130,22 +146,13 @@ All CRITICAL priority tasks completed ✅
 
 ### HIGH Priority
 
-1. **P1.3.4** - Front-channel logout support
-   - Spec: OpenID Connect Front-Channel Logout 1.0
-   - LOE: 5 hours
+All HIGH priority tasks completed ✅
 
-1. **P1.3.5** - Back-channel logout support
-   - Spec: OpenID Connect Back-Channel Logout 1.0
-   - LOE: 5 hours
+### MEDIUM Priority
 
-1. **P1.5.3** - Token lifecycle cleanup job
-   - Current: On-access cleanup only
-   - Required: Periodic background job
-   - LOE: 5 hours
-
-1. **P1.6.1** - OAuth 2.1 Authorization Server Metadata (RFC 8414)
-   - Endpoint: `/.well-known/oauth-authorization-server`
-   - LOE: 3 hours
+1. **P1.6.3** - Session cookie authentication for SPA
+   - Required for browser-based applications
+   - LOE: 2 hours
 
 ### MEDIUM Priority
 

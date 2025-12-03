@@ -47,10 +47,10 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | ✅ P1.3.1 CRITICAL S1 | Clear server-side session | Session deleted in DB |
 | ⚠️ P1.3.2 HIGH S2 | Revoke associated tokens | Session cleared, tokens need explicit revoke |
 | ⚠️ P1.3.3 HIGH S1 | Redirect to post-logout URI | Returns JSON, not redirect |
-| ❌ P1.3.4 HIGH S5 | Front-channel logout support | NOT IMPLEMENTED |
-| ❌ P1.3.5 HIGH S5 | Back-channel logout support | NOT IMPLEMENTED |
+| ✅ P1.3.4 HIGH S5 | Front-channel logout support | IMPLEMENTED (GenerateFrontChannelLogoutIframes) |
+| ✅ P1.3.5 HIGH S5 | Back-channel logout support | IMPLEMENTED (BackChannelLogoutService) |
 
-**Evidence**: `internal/identity/idp/handlers_logout.go`
+**Evidence**: `internal/identity/idp/handlers_logout.go`, `backchannel_logout.go`
 
 ### 1.4 Userinfo Endpoint Completion
 

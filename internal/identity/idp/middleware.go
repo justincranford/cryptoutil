@@ -160,3 +160,63 @@ func (s *Service) TokenAuthMiddleware() fiber.Handler {
 		return c.Next()
 	}
 }
+
+// HybridAuthMiddleware validates either Bearer token OR session cookie.
+// This supports both traditional API clients (Bearer) and SPA applications (session cookie).
+// Bearer token takes precedence if both are present.
+func (s *Service) HybridAuthMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := c.Context()
+
+		// Try Bearer token first.
+		authHeader := c.Get("Authorization")
+		if authHeader != "" {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 && parts[0] == cryptoutilIdentityMagic.AuthorizationBearer {
+				accessToken := parts[1]
+
+				claims, err := s.tokenSvc.ValidateAccessToken(ctx, accessToken)
+				if err == nil {
+					c.Locals("claims", claims)
+					c.Locals("auth_method", "bearer_token")
+
+					return c.Next()
+				}
+				// If Bearer token is present but invalid, reject immediately.
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+					"error_description": "Invalid or expired access token",
+				})
+			}
+		}
+
+		// Fall back to session cookie.
+		sessionID := c.Cookies(s.config.Sessions.CookieName)
+		if sessionID != "" {
+			sessionRepo := s.repoFactory.SessionRepository()
+
+			session, err := sessionRepo.GetBySessionID(ctx, sessionID)
+			if err == nil && session.Active != nil && *session.Active && !session.IsExpired() {
+				// Convert session to claims format for consistency.
+				claims := map[string]any{
+					cryptoutilIdentityMagic.ClaimSub: session.UserID.String(),
+					"sid":                           session.SessionID,
+					"auth_time":                     session.AuthenticationTime.Unix(),
+					"amr":                           session.AuthenticationMethods,
+				}
+
+				c.Locals("claims", claims)
+				c.Locals("session", session)
+				c.Locals("auth_method", "session_cookie")
+
+				return c.Next()
+			}
+		}
+
+		// Neither Bearer token nor valid session cookie.
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorAccessDenied,
+			"error_description": "Authentication required (Bearer token or session cookie)",
+		})
+	}
+}

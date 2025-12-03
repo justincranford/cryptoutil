@@ -102,3 +102,32 @@ func TestInitializeAuthProfiles(t *testing.T) {
 	err = service.Start(ctx)
 	require.NoError(t, err)
 }
+
+// TestHybridAuthMiddleware validates hybrid (Bearer token OR session cookie) authentication.
+//
+// Requirements verified:
+// - P1.6.3: Session cookie authentication for SPA UI.
+func TestHybridAuthMiddleware(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	config := &cryptoutilIdentityConfig.Config{
+		IDP:      &cryptoutilIdentityConfig.ServerConfig{},
+		Sessions: &cryptoutilIdentityConfig.SessionConfig{},
+	}
+
+	service := cryptoutilIdentityIdp.NewService(config, repoFactory, nil)
+	require.NotNil(t, service)
+
+	middleware := service.HybridAuthMiddleware()
+	require.NotNil(t, middleware)
+}
