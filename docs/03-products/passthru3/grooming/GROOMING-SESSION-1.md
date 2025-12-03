@@ -12,12 +12,14 @@
 **Decision**: Use embedded servers (not Docker) for demo simplicity
 
 **Rationale**:
+
 - KMS and Identity demos already use embedded approach
 - Faster startup for demo purposes
 - No Docker dependency for basic demo
 - Consistent with existing demo pattern in kms.go and identity.go
 
 **Implementation**:
+
 ```go
 // Pattern: Start servers as goroutines with cleanup
 func startIdentityServer(ctx context.Context) (*http.Server, error)
@@ -35,6 +37,7 @@ func startKMSServer(ctx context.Context) (*http.Server, error)
 | Admin/Health | 19090 | 9090 |
 
 **Rationale**:
+
 - Avoids conflict with any running production services
 - Matches existing identity.go pattern (port 18080)
 
@@ -43,6 +46,7 @@ func startKMSServer(ctx context.Context) (*http.Server, error)
 **Decision**: HTTPS with self-signed certs, skip verification for demo
 
 **Rationale**:
+
 - TLS is required for OAuth 2.1
 - Demo self-signed certs already exist
 - Skip verification acceptable for demo only (never production)
@@ -56,11 +60,13 @@ func startKMSServer(ctx context.Context) (*http.Server, error)
 **Decision**: client_credentials grant
 
 **Rationale**:
+
 - Service-to-service authentication
 - No user interaction required
 - Already implemented in Identity demo
 
 **Implementation**:
+
 ```go
 tokenResp, err := getClientCredentialsToken(tokenEndpoint, clientID, clientSecret, scopes)
 ```
@@ -70,12 +76,14 @@ tokenResp, err := getClientCredentialsToken(tokenEndpoint, clientID, clientSecre
 **Decision**: JWKS validation using Identity's public keys
 
 **Steps**:
+
 1. KMS fetches JWKS from Identity's `/oauth2/v1/jwks` endpoint
 2. KMS validates JWT signature against JWKS
 3. KMS validates claims (iss, aud, exp, nbf)
 4. KMS checks required scopes in token
 
 **Implementation**:
+
 ```go
 func validateToken(ctx context.Context, token string, jwksURL string, requiredScopes []string) error
 ```
@@ -101,6 +109,7 @@ func validateToken(ctx context.Context, token string, jwksURL string, requiredSc
 **Decision**: Clear step-by-step output with failure details
 
 **Pattern**:
+
 ```
 Step 1/7: Start Identity server... ✅ PASS
 Step 2/7: Start KMS server... ✅ PASS
@@ -118,6 +127,7 @@ Suggestion: Check if port 18081 is available
 **Decision**: Fail-fast - stop on first failure
 
 **Rationale**:
+
 - Each step depends on previous
 - No point continuing if Identity server fails
 - Clear error message more useful than multiple failures
@@ -131,6 +141,7 @@ Suggestion: Check if port 18081 is available
 **Decision**: Embedded defaults with optional config file override
 
 **Default Config**:
+
 ```yaml
 # Embedded in integration.go
 identity:

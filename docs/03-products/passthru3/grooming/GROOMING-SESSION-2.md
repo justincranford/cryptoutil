@@ -12,6 +12,7 @@
 **Decision**: Mirror existing demo patterns (kms.go, identity.go)
 
 **File Structure**:
+
 ```go
 // Package declaration and imports
 package demo
@@ -45,6 +46,7 @@ func RunIntegrationDemo(cfg *config.Config) error {
 **Decision**: Use demoRunner pattern from existing demos
 
 **Pattern**:
+
 ```go
 type demoRunner struct {
     name       string
@@ -77,6 +79,7 @@ func (d *demoRunner) runStep(num int, name string, fn func() error) error {
 **Decision**: Use goroutines with proper shutdown coordination
 
 **Pattern**:
+
 ```go
 func startIdentityServer(ctx context.Context, cfg *config.Config) (cleanup func(), err error) {
     // Create server
@@ -117,6 +120,7 @@ func startIdentityServer(ctx context.Context, cfg *config.Config) (cleanup func(
 **Decision**: Use defer stack for guaranteed cleanup
 
 **Pattern**:
+
 ```go
 func RunIntegrationDemo(cfg *config.Config) error {
     var cleanups []func()
@@ -154,6 +158,7 @@ func RunIntegrationDemo(cfg *config.Config) error {
 **Decision**: Custom transport with InsecureSkipVerify for demo self-signed certs
 
 **Pattern**:
+
 ```go
 func newDemoHTTPClient() *http.Client {
     return &http.Client{
@@ -174,6 +179,7 @@ func newDemoHTTPClient() *http.Client {
 **Decision**: Poll health endpoint with exponential backoff
 
 **Pattern**:
+
 ```go
 func waitForHealth(ctx context.Context, client *http.Client, url string) error {
     backoff := 100 * time.Millisecond
@@ -209,6 +215,7 @@ func waitForHealth(ctx context.Context, client *http.Client, url string) error {
 **Decision**: Standard OAuth 2.0 token request
 
 **Pattern**:
+
 ```go
 func getClientCredentialsToken(
     ctx context.Context,
@@ -263,6 +270,7 @@ type TokenResponse struct {
 **Decision**: Use jose library for JWKS validation
 
 **Pattern**:
+
 ```go
 func validateJWT(
     ctx context.Context,
@@ -329,6 +337,7 @@ func validateJWT(
 ### Q5.2: Required package documentation
 
 **Pattern**:
+
 ```go
 // Package demo provides demonstration commands for cryptoutil functionality.
 // This file implements the integration demo which demonstrates KMS and Identity

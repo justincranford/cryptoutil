@@ -27,6 +27,7 @@
 **Decision**: Use httptest.Server for HTTP endpoints
 
 **Pattern**:
+
 ```go
 func TestWaitForHealth(t *testing.T) {
     t.Parallel()
@@ -84,6 +85,7 @@ func TestWaitForHealth(t *testing.T) {
 ### Q2.1: Complete manual verification checklist
 
 **Pre-Implementation Verification**:
+
 ```bash
 # Verify existing demos still work
 go run ./cmd/demo kms
@@ -91,6 +93,7 @@ go run ./cmd/demo identity
 ```
 
 **Post-Implementation Verification**:
+
 ```bash
 # 1. Build verification
 go build ./...
@@ -111,6 +114,7 @@ go run ./cmd/demo  # Should show all available demos
 ### Q2.2: Docker Compose verification commands
 
 **Identity Docker Compose**:
+
 ```bash
 # Start
 docker compose -f deployments/identity/compose.demo.yml --profile demo up -d
@@ -124,6 +128,7 @@ docker compose -f deployments/identity/compose.demo.yml --profile demo down -v
 ```
 
 **KMS Docker Compose**:
+
 ```bash
 # Start
 docker compose -f deployments/kms/compose.demo.yml --profile demo up -d
@@ -212,6 +217,7 @@ Step 7/7: Verify audit log... ✅ PASS
 ### Q4.1: What existing tests must continue passing?
 
 **Required Passing Tests**:
+
 ```bash
 # Demo package tests
 go test -v ./internal/cmd/demo/...
@@ -223,11 +229,13 @@ go test -v -timeout 15m ./...
 ### Q4.2: Coverage requirements
 
 **Target Coverage**:
+
 | Package | Minimum Coverage |
 |---------|-----------------|
 | `internal/cmd/demo` | 60% |
 
 **Verification**:
+
 ```bash
 go test -coverprofile=coverage.out ./internal/cmd/demo/...
 go tool cover -func=coverage.out | grep total

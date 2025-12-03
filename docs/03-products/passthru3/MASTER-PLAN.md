@@ -20,6 +20,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 ## Lessons Learned from Previous Passes
 
 ### From passthru0-2 (docs/02-identityV2)
+
 - ❌ Documentation claimed "100% complete" but Identity demo CLI was 100% stub
 - ❌ Docker Compose port conflicts not tested on Windows (port 55679)
 - ❌ Network isolation between compose services not validated
@@ -27,6 +28,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 - ❌ Missing grooming sessions for architectural decisions
 
 ### From passthru1-2 (docs/03-products)
+
 - ✅ KMS demo CLI works fully - use as template
 - ❌ Identity demo CLI had stub implementation
 - ❌ Integration demo (`demo all`) completely unimplemented
@@ -34,6 +36,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 - ❌ FINAL-SUMMARY.md acknowledged caveats but didn't track them as blockers
 
 ### Key Anti-Patterns to Avoid
+
 1. **Never mark task complete without running manual verification command**
 2. **Never defer "small" items - they accumulate**
 3. **Never create new TODOs in implementation code during a "final" pass**
@@ -44,6 +47,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 ## Phases
 
 ### Phase 1: Documentation (This Phase - Day 1)
+
 **Status**: IN PROGRESS
 
 | Task | Description | Status |
@@ -57,6 +61,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 | P1.7 | Create PROGRESS.md | 🔄 |
 
 ### Phase 2: Core Fixes (Day 1-2)
+
 **Status**: NOT STARTED
 
 | Task | Description | Acceptance Criteria |
@@ -69,6 +74,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 | P2.6 | Implement missing email notifications | EmailNotifier.Notify() functional |
 
 ### Phase 3: Integration Demo Implementation (Day 2-3)
+
 **Status**: NOT STARTED
 
 | Task | Description | Acceptance Criteria |
@@ -81,6 +87,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 | P3.6 | Implement audit log verification | Verify operation logged |
 
 ### Phase 4: Docker Compose Validation (Day 3-4)
+
 **Status**: NOT STARTED
 
 | Task | Description | Acceptance Criteria |
@@ -94,6 +101,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 | P4.7 | Validate cross-service auth | KMS accepts Identity tokens |
 
 ### Phase 5: Final Verification (Day 4)
+
 **Status**: NOT STARTED
 
 | Task | Description | Acceptance Criteria |

@@ -71,17 +71,20 @@ docker compose -f deployments/telemetry/compose.yml down -v
 ### Q2.1: Complete verification checklist
 
 **Code Level**:
+
 - [ ] `go build ./...` succeeds
 - [ ] `golangci-lint run ./...` returns 0 errors
 - [ ] `grep -c "TODO" internal/cmd/demo/integration.go` returns 0
 - [ ] `go test ./internal/cmd/demo/...` passes
 
 **Demo Level**:
+
 - [ ] `go run ./cmd/demo kms` shows 4/4 PASSED
 - [ ] `go run ./cmd/demo identity` shows 5/5 PASSED
 - [ ] `go run ./cmd/demo all` shows 7/7 PASSED
 
 **Docker Level**:
+
 - [ ] Identity compose config validates
 - [ ] KMS compose config validates
 - [ ] Identity compose up/down works
@@ -135,6 +138,7 @@ docker compose -f deployments/kms/compose.demo.yml --profile demo config > evide
 ### Q3.2: What issues are NOT blockers?
 
 **Not Blockers**:
+
 - MFA/OTP not implemented (Phase 3 work)
 - WebAuthn passkey not implemented (Phase 3 work)
 - Notification webhooks stub (Phase 3 work)
@@ -196,6 +200,7 @@ For passthru3, "productized" means:
 5. **Can be demonstrated** to stakeholders at any time
 
 It does NOT mean:
+
 - Production-ready (that's future work)
 - Feature-complete (MFA, WebAuthn are future)
 - Fully tested (just demo-level testing)
