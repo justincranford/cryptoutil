@@ -106,7 +106,7 @@ clients:
 ```bash
 # Option 1: Docker Compose (primary - Q12 priority 1)
 docker compose -f deployments/telemetry/compose.yml \
-               -f deployments/identity/compose.demo.yml up -d
+               -f deployments/identity/compose.simple.yml up -d
 
 # Option 2: Go CLI (Q12 priority 2)
 go run ./cmd/demo-identity

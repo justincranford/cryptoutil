@@ -122,7 +122,7 @@ Passthru3 is the **FINAL** implementation pass for the Identity product suite. A
 - [ ] `go run ./cmd/demo identity` - 5/5 steps pass, exit code 0
 - [ ] `go run ./cmd/demo all` - 7/7 steps pass, exit code 0
 - [ ] `docker compose -f deployments/kms/compose.demo.yml --profile demo up -d` - All services healthy
-- [ ] `docker compose -f deployments/identity/compose.demo.yml --profile demo up -d` - All services healthy
+- [ ] `docker compose -f deployments/identity/compose.simple.yml --profile demo up -d` - All services healthy
 - [ ] `golangci-lint run ./...` - Zero errors
 - [ ] All items in REQUIREMENTS-CHECKLIST.md verified
 - [ ] All TODOs in integration.go resolved (currently 7)
@@ -155,10 +155,10 @@ docker compose -f deployments/kms/compose.demo.yml --profile demo logs -f --tail
 docker compose -f deployments/kms/compose.demo.yml --profile demo down -v
 
 # Identity Stack
-docker compose -f deployments/identity/compose.demo.yml --profile demo up -d --build
-docker compose -f deployments/identity/compose.demo.yml --profile demo ps
-docker compose -f deployments/identity/compose.demo.yml --profile demo logs -f --tail 20
-docker compose -f deployments/identity/compose.demo.yml --profile demo down -v
+docker compose -f deployments/identity/compose.simple.yml --profile demo up -d --build
+docker compose -f deployments/identity/compose.simple.yml --profile demo ps
+docker compose -f deployments/identity/compose.simple.yml --profile demo logs -f --tail 20
+docker compose -f deployments/identity/compose.simple.yml --profile demo down -v
 ```
 
 ### Code Quality Verification

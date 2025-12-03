@@ -170,7 +170,7 @@ Steps: 7 total, 7 passed, 0 failed, 0 skipped
 ### E6.1: Identity Compose Config
 
 ```bash
-# Command: docker compose -f deployments/identity/compose.demo.yml --profile demo config
+# Command: docker compose -f deployments/identity/compose.simple.yml --profile demo config
 # Date: 2025-12-01
 # Result: SUCCESS - Valid YAML output, no errors
 ```

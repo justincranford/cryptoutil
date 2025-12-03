@@ -74,7 +74,7 @@ go run ./cmd/demo identity
 
 ```powershell
 # From project root
-docker compose -f deployments/identity/compose.demo.yml --profile demo up -d
+docker compose -f deployments/identity/compose.simple.yml --profile demo up -d
 
 # Wait for health checks (~30s), then access:
 # - AuthZ Server: https://localhost:8082
@@ -87,7 +87,7 @@ docker compose -f deployments/identity/compose.demo.yml --profile demo up -d
 # - User: demo-user / demo-password
 
 # Shutdown
-docker compose -f deployments/identity/compose.demo.yml --profile demo down -v
+docker compose -f deployments/identity/compose.simple.yml --profile demo down -v
 ```
 
 ### Option 5: Local Go Server (Development)
@@ -123,7 +123,7 @@ go test ./internal/common/testutil/...        # testutil: 100% coverage
 
 ```powershell
 docker compose -f deployments/kms/compose.demo.yml config       # Must parse
-docker compose -f deployments/identity/compose.demo.yml config  # Must parse
+docker compose -f deployments/identity/compose.simple.yml config  # Must parse
 ```
 
 ---

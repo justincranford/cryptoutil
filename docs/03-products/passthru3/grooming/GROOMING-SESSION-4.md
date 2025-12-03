@@ -13,7 +13,7 @@
 
 | File | Profile | Purpose |
 |------|---------|---------|
-| `deployments/identity/compose.demo.yml` | demo | Identity server demo |
+| `deployments/identity/compose.simple.yml` | demo | Identity server demo |
 | `deployments/kms/compose.demo.yml` | demo | KMS server demo |
 | `deployments/telemetry/compose.yml` | (default) | Observability stack |
 
@@ -23,12 +23,12 @@
 
 ```bash
 # 1. Ensure clean state
-docker compose -f deployments/identity/compose.demo.yml --profile demo down -v
+docker compose -f deployments/identity/compose.simple.yml --profile demo down -v
 docker compose -f deployments/kms/compose.demo.yml --profile demo down -v
 docker compose -f deployments/telemetry/compose.yml down -v
 
 # 2. Validate configs (no errors in output)
-docker compose -f deployments/identity/compose.demo.yml --profile demo config > /dev/null
+docker compose -f deployments/identity/compose.simple.yml --profile demo config > /dev/null
 docker compose -f deployments/kms/compose.demo.yml --profile demo config > /dev/null
 docker compose -f deployments/telemetry/compose.yml config > /dev/null
 
@@ -40,7 +40,7 @@ sleep 10
 docker compose -f deployments/telemetry/compose.yml ps  # All should be "running"
 
 # 5. Start Identity
-docker compose -f deployments/identity/compose.demo.yml --profile demo up -d
+docker compose -f deployments/identity/compose.simple.yml --profile demo up -d
 
 # 6. Wait for Identity ready
 sleep 10
@@ -54,13 +54,13 @@ sleep 10
 curl -k https://localhost:8080/ui/swagger/doc.json  # Should return JSON
 
 # 9. Verify all services
-docker compose -f deployments/identity/compose.demo.yml --profile demo ps
+docker compose -f deployments/identity/compose.simple.yml --profile demo ps
 docker compose -f deployments/kms/compose.demo.yml --profile demo ps
 docker compose -f deployments/telemetry/compose.yml ps
 
 # 10. Cleanup
 docker compose -f deployments/kms/compose.demo.yml --profile demo down -v
-docker compose -f deployments/identity/compose.demo.yml --profile demo down -v
+docker compose -f deployments/identity/compose.simple.yml --profile demo down -v
 docker compose -f deployments/telemetry/compose.yml down -v
 ```
 
@@ -118,7 +118,7 @@ go run ./cmd/demo all 2>&1 | tee evidence_demo_integration.txt
 echo "TODO count in integration.go: $(grep -c 'TODO' internal/cmd/demo/integration.go 2>/dev/null || echo 0)" | tee evidence_todos.txt
 
 # 8. Docker compose evidence
-docker compose -f deployments/identity/compose.demo.yml --profile demo config > evidence_compose_identity.txt 2>&1
+docker compose -f deployments/identity/compose.simple.yml --profile demo config > evidence_compose_identity.txt 2>&1
 docker compose -f deployments/kms/compose.demo.yml --profile demo config > evidence_compose_kms.txt 2>&1
 ```
 

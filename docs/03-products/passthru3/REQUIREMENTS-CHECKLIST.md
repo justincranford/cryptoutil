@@ -68,12 +68,12 @@
 
 | ID | Requirement | Verification Command | Expected Result | Verified |
 |----|-------------|---------------------|-----------------|----------|
-| R2.2.1 | Identity compose config validates | `docker compose -f deployments/identity/compose.demo.yml --profile demo config` | YAML output, no errors | [ ] |
-| R2.2.2 | Identity compose builds | `docker compose -f deployments/identity/compose.demo.yml --profile demo build` | Build completes | [ ] |
-| R2.2.3 | Identity compose starts | `docker compose -f deployments/identity/compose.demo.yml --profile demo up -d` | All containers start | [ ] |
-| R2.2.4 | Identity services healthy | `docker compose -f deployments/identity/compose.demo.yml --profile demo ps` | All services "healthy" or "running" | [ ] |
+| R2.2.1 | Identity compose config validates | `docker compose -f deployments/identity/compose.simple.yml --profile demo config` | YAML output, no errors | [ ] |
+| R2.2.2 | Identity compose builds | `docker compose -f deployments/identity/compose.simple.yml --profile demo build` | Build completes | [ ] |
+| R2.2.3 | Identity compose starts | `docker compose -f deployments/identity/compose.simple.yml --profile demo up -d` | All containers start | [ ] |
+| R2.2.4 | Identity services healthy | `docker compose -f deployments/identity/compose.simple.yml --profile demo ps` | All services "healthy" or "running" | [ ] |
 | R2.2.5 | Identity OpenID config accessible | Open `https://localhost:8082/.well-known/openid-configuration` | OpenID JSON returned | [ ] |
-| R2.2.6 | Identity compose stops cleanly | `docker compose -f deployments/identity/compose.demo.yml --profile demo down -v` | All containers removed | [ ] |
+| R2.2.6 | Identity compose stops cleanly | `docker compose -f deployments/identity/compose.simple.yml --profile demo down -v` | All containers removed | [ ] |
 
 ### R2.3: Telemetry Docker Compose
 

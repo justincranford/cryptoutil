@@ -183,7 +183,7 @@ networks:
 ```bash
 # Docker Compose (primary - Q12 priority 1)
 docker compose -f deployments/telemetry/compose.yml \
-               -f deployments/identity/compose.demo.yml \
+               -f deployments/identity/compose.simple.yml \
                -f deployments/kms/compose.demo.yml up -d
 
 # Go CLI (Q12 priority 3)

@@ -63,15 +63,15 @@ panic: html/template: pattern matches no files: `internal/identity/idp/templates
 **Impact**: Demo orchestration tests cannot run (not production code)
 **Package**: `internal/identity/demo`
 
-**Root Cause**: Missing or incorrect path to `identity-demo.yml` compose file. Tests try multiple paths:
+**Root Cause**: Missing or incorrect path to `compose.advanced.yml` compose file. Tests try multiple paths:
 
-- `C:\Dev\Projects\cryptoutil\internal\deployments\compose\identity-demo.yml`
-- `C:\Dev\Projects\cryptoutil\internal\identity\demo\deployments\compose\identity-demo.yml`
+- `C:\Dev\Projects\cryptoutil\internal\deployments\compose\compose.advanced.yml`
+- `C:\Dev\Projects\cryptoutil\internal\identity\demo\deployments\compose\compose.advanced.yml`
 
 **Error**:
 
 ```
-open C:\Dev\Projects\cryptoutil\internal\deployments\compose\identity-demo.yml: The system cannot find the path specified.
+open C:\Dev\Projects\cryptoutil\internal\deployments\compose\compose.advanced.yml: The system cannot find the path specified.
 ```
 
 **Failed Tests**:
@@ -83,7 +83,7 @@ open C:\Dev\Projects\cryptoutil\internal\deployments\compose\identity-demo.yml: 
 
 **Solution**:
 
-- Create missing `identity-demo.yml` compose file
+- Create missing `compose.advanced.yml` compose file
 - OR skip demo tests in CI (they're infrastructure demos, not unit/integration tests)
 
 **Priority**: **MEDIUM** - Demo tests are not production critical
@@ -432,7 +432,7 @@ github.com/google/uuid.MustParse({0xc000014340, 0x33})
    - Verify all 4 cleanup job tests pass
 
 2. **Docker Compose Demo Tests** (Category 2)
-   - Create `identity-demo.yml` compose file
+   - Create `compose.advanced.yml` compose file
    - OR skip demo tests in CI (add build tag `//go:build demo`)
    - Verify demo tests pass or are properly skipped
 

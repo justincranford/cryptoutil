@@ -117,14 +117,14 @@ go run ./cmd/demo  # Should show all available demos
 
 ```bash
 # Start
-docker compose -f deployments/identity/compose.demo.yml --profile demo up -d
+docker compose -f deployments/identity/compose.simple.yml --profile demo up -d
 
 # Verify
-docker compose -f deployments/identity/compose.demo.yml --profile demo ps
+docker compose -f deployments/identity/compose.simple.yml --profile demo ps
 curl -k https://localhost:8082/.well-known/openid-configuration
 
 # Stop
-docker compose -f deployments/identity/compose.demo.yml --profile demo down -v
+docker compose -f deployments/identity/compose.simple.yml --profile demo down -v
 ```
 
 **KMS Docker Compose**:

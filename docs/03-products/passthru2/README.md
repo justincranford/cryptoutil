@@ -427,12 +427,12 @@ docker compose -f deployments/telemetry/compose.yml \
 
 # Identity Demo (single command)
 docker compose -f deployments/telemetry/compose.yml \
-               -f deployments/identity/compose.demo.yml up -d
+               -f deployments/identity/compose.simple.yml up -d
 
 # Integration Demo (both products)
 docker compose -f deployments/telemetry/compose.yml \
                -f deployments/kms/compose.demo.yml \
-               -f deployments/identity/compose.demo.yml up -d
+               -f deployments/identity/compose.simple.yml up -d
 
 # Or using Go CLI (single binary with subcommands - from Session 3)
 go run ./cmd/demo kms
