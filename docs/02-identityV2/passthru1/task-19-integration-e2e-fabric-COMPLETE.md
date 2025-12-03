@@ -17,7 +17,7 @@
 - ✅ OAuth 2.1 flow E2E tests created (authorization code, client credentials, introspection, refresh, PKCE)
 - ✅ Failover testing implemented (service instance failures with traffic continuity validation)
 - ✅ Observability integration tests created (OTEL collector, Grafana, Prometheus validation)
-- ✅ Tests leverage identity-demo.yml orchestration (1x1x1x1, 2x2x2x2 scaling)
+- ✅ Tests leverage compose.advanced.yml orchestration (1x1x1x1, 2x2x2x2 scaling)
 - ✅ Build tag separation (`//go:build e2e`) for independent execution
 - ✅ Test helpers for Docker Compose operations (start/stop/health/kill)
 
@@ -92,7 +92,7 @@
   - `fetchGrafanaDataSources()`: Fetch Grafana data sources
   - `queryPrometheusMetrics()`: Query Prometheus for metrics
 - **Constants**:
-  - `composeFile`: Relative path to identity-demo.yml
+  - `composeFile`: Relative path to compose.advanced.yml
   - `defaultProfile`: "demo" profile (1x1x1x1 scaling)
   - `healthCheckTimeout`: 90 seconds
   - `healthCheckRetry`: 5 seconds
@@ -108,7 +108,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │ E2E Test Suite (//go:build e2e)                           │
 │                                                             │
-│ 1. Start Docker Compose (identity-demo.yml)                │
+│ 1. Start Docker Compose (compose.advanced.yml)                │
 │    - Profile: demo (1x1x1x1) or development (2x2x2x2)     │
 │    - Scaling: --scale identity-authz=N                     │
 │                                                             │
@@ -230,7 +230,7 @@
 ### Run All E2E Tests
 
 ```bash
-# Run all E2E tests (requires Docker Desktop + identity-demo.yml)
+# Run all E2E tests (requires Docker Desktop + compose.advanced.yml)
 go test ./internal/identity/test/e2e -tags=e2e -v -timeout 30m
 ```
 
@@ -252,7 +252,7 @@ go test ./internal/identity/test/e2e -tags=e2e -run TestOTELCollectorIntegration
 **Required Infrastructure**:
 
 1. Docker Desktop running
-2. identity-demo.yml Compose file (deployments/compose/identity-demo.yml)
+2. compose.advanced.yml Compose file (deployments/identity/compose.advanced.yml)
 3. Docker secrets created (postgres/*.secret files)
 4. OTEL collector + Grafana stack (for observability tests)
 
@@ -316,7 +316,7 @@ go test ./internal/identity/test/e2e -tags=e2e -run TestOTELCollectorIntegration
 
 **Relative Path Complexity**:
 
-- Issue: Tests in internal/identity/test/e2e/ use relative path ../../../../deployments/compose/identity-demo.yml
+- Issue: Tests in internal/identity/test/e2e/ use relative path ../../../../deployments/identity/compose.advanced.yml
 - Impact: Fragile path references that break if test files move
 - Solution: Use filepath.Join() or embed Compose file path in test config
 

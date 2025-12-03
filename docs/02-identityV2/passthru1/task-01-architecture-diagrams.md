@@ -28,7 +28,7 @@ flowchart TB
     end
 
     subgraph "Docker Orchestration (Task 18)"
-        Compose[identity-demo.yml<br/>✅ 4 profiles: demo/dev/ci/prod<br/>✅ Scaling: 1x, 2x, 3x<br/>✅ Docker secrets integration]
+        Compose[compose.advanced.yml<br/>✅ 4 profiles: demo/dev/ci/prod<br/>✅ Scaling: 1x, 2x, 3x<br/>✅ Docker secrets integration]
     end
 
     subgraph "E2E Testing Fabric (Task 19)"
@@ -296,7 +296,7 @@ flowchart TB
     end
 
     subgraph "Docker Orchestration"
-        Compose[identity-demo.yml<br/>✅ Service lifecycle<br/>✅ Health checks<br/>✅ Secrets management]
+        Compose[compose.advanced.yml<br/>✅ Service lifecycle<br/>✅ Health checks<br/>✅ Secrets management]
     end
 
     OAuth --> AuthCode & ClientCreds & Introspect & Refresh & PKCE

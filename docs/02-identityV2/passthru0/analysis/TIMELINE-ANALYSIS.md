@@ -86,7 +86,7 @@ This timeline documents the chronological implementation of the Identity V2 reme
 
 - ✅ Configuration files exist: `configs/identity/{authz,idp,rs}/*.yml`
 - ⚠️ **Gap**: No dedicated completion documentation (`task-03-*-COMPLETE.md` not found)
-- ⚠️ **Gap**: Docker Compose configs in `deployments/compose/identity-demo.yml` (Task 18 deliverable)
+- ⚠️ **Gap**: Docker Compose configs in `deployments/identity/compose.advanced.yml` (Task 18 deliverable)
 
 **Status**: ⚠️ **PARTIAL** - basic configs exist, but no validation or completion sign-off
 
@@ -546,13 +546,13 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 **Timeline**: 6 commits
 **Commits**:
 
-- `07655ae2` / `61cc14ac` - `feat(task18): identity-demo.yml with scaling, profiles, Docker secrets`
+- `07655ae2` / `61cc14ac` - `feat(task18): compose.advanced.yml with scaling, profiles, Docker secrets`
 - `08ae9622` / `b87e5d50` - `feat(task18): identity-orchestrator CLI for Docker Compose management`
 - `61cc14ac` / `26876565` - `docs(task18): identity Docker Compose quick start guide`
 
 **Deliverables Completed**:
 
-1. ✅ **identity-demo.yml** (265 lines)
+1. ✅ **compose.advanced.yml** (265 lines)
    - 4 profiles: demo, development, ci, production
    - Nx scaling templates (port ranges 8080-8309)
    - Docker secrets (file-based)

@@ -2,7 +2,7 @@
 
 **Audience**: Developers, QA Engineers
 **Purpose**: Practical guide for running, debugging, and scaling identity services locally
-**Prerequisites**: Docker Desktop installed, identity-demo.yml configured with secrets
+**Prerequisites**: Docker Desktop installed, compose.advanced.yml configured with secrets
 
 ---
 
@@ -45,16 +45,16 @@ go run ./cmd/identity-orchestrator -operation stop -profile demo -remove-volumes
 
 ```bash
 # Start demo profile
-docker compose -f deployments/compose/identity-demo.yml --profile demo up -d
+docker compose -f deployments/identity/compose.advanced.yml --profile demo up -d
 
 # Check service status
-docker compose -f deployments/compose/identity-demo.yml --profile demo ps
+docker compose -f deployments/identity/compose.advanced.yml --profile demo ps
 
 # View logs
-docker compose -f deployments/compose/identity-demo.yml --profile demo logs -f --tail 50
+docker compose -f deployments/identity/compose.advanced.yml --profile demo logs -f --tail 50
 
 # Stop services
-docker compose -f deployments/compose/identity-demo.yml --profile demo down -v
+docker compose -f deployments/identity/compose.advanced.yml --profile demo down -v
 ```
 
 ---
@@ -158,10 +158,10 @@ go run ./cmd/identity-orchestrator -operation start -profile demo -scaling "iden
 
 ```bash
 # Scale AuthZ to 2 instances
-docker compose -f deployments/compose/identity-demo.yml --profile demo up -d --scale identity-authz=2
+docker compose -f deployments/identity/compose.advanced.yml --profile demo up -d --scale identity-authz=2
 
 # Scale multiple services
-docker compose -f deployments/compose/identity-demo.yml --profile demo up -d --scale identity-authz=3 --scale identity-idp=2
+docker compose -f deployments/identity/compose.advanced.yml --profile demo up -d --scale identity-authz=3 --scale identity-idp=2
 ```
 
 ---
@@ -174,7 +174,7 @@ docker compose -f deployments/compose/identity-demo.yml --profile demo up -d --s
 
 ```bash
 # Start only PostgreSQL and AuthZ
-docker compose -f deployments/compose/identity-demo.yml --profile demo up -d identity-postgres identity-authz
+docker compose -f deployments/identity/compose.advanced.yml --profile demo up -d identity-postgres identity-authz
 
 # Verify AuthZ health
 curl -k https://localhost:9080/livez
@@ -186,7 +186,7 @@ curl -X POST https://localhost:8080/oauth/token \
   -d "client_secret=test-secret"
 
 # Stop when done
-docker compose -f deployments/compose/identity-demo.yml --profile demo down -v
+docker compose -f deployments/identity/compose.advanced.yml --profile demo down -v
 ```
 
 ---
@@ -200,13 +200,13 @@ docker compose -f deployments/compose/identity-demo.yml --profile demo down -v
 go run ./cmd/identity-orchestrator -operation logs -profile demo -service identity-authz -tail 100
 
 # Check health status
-docker compose -f deployments/compose/identity-demo.yml --profile demo ps
+docker compose -f deployments/identity/compose.advanced.yml --profile demo ps
 
 # Inspect service details
 docker inspect <container_id>
 
 # Check database connectivity
-docker compose -f deployments/compose/identity-demo.yml --profile demo exec identity-authz \
+docker compose -f deployments/identity/compose.advanced.yml --profile demo exec identity-authz \
   wget --spider postgres://identity_user:identity_pass@identity-postgres:5432/identity_db
 ```
 
@@ -227,7 +227,7 @@ docker kill <authz_container_id>
 curl -k https://localhost:8080/oauth/token (should still work)
 
 # Restart failed instance
-docker compose -f deployments/compose/identity-demo.yml --profile development up -d identity-authz
+docker compose -f deployments/identity/compose.advanced.yml --profile development up -d identity-authz
 ```
 
 ---
@@ -272,10 +272,10 @@ go run ./cmd/identity-orchestrator -operation logs -profile production -tail 200
 
 ```bash
 # Check PostgreSQL logs
-docker compose -f deployments/compose/identity-demo.yml --profile demo logs identity-postgres
+docker compose -f deployments/identity/compose.advanced.yml --profile demo logs identity-postgres
 
 # Verify health check command
-docker compose -f deployments/compose/identity-demo.yml --profile demo exec identity-authz \
+docker compose -f deployments/identity/compose.advanced.yml --profile demo exec identity-authz \
   wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/livez
 
 # Check port availability
@@ -283,7 +283,7 @@ netstat -an | findstr "8080"  # Windows
 lsof -i :8080                 # macOS/Linux
 
 # Increase health check retries
-# Edit identity-demo.yml: healthcheck.retries = 10
+# Edit compose.advanced.yml: healthcheck.retries = 10
 ```
 
 ---
@@ -302,18 +302,18 @@ lsof -i :8080                 # macOS/Linux
 
 ```bash
 # Verify secrets are mounted
-docker compose -f deployments/compose/identity-demo.yml --profile demo exec identity-authz ls -la /run/secrets/
+docker compose -f deployments/identity/compose.advanced.yml --profile demo exec identity-authz ls -la /run/secrets/
 
 # Check database initialization
-docker compose -f deployments/compose/identity-demo.yml --profile demo logs identity-postgres | grep "database system is ready"
+docker compose -f deployments/identity/compose.advanced.yml --profile demo logs identity-postgres | grep "database system is ready"
 
 # Test database connectivity
-docker compose -f deployments/compose/identity-demo.yml --profile demo exec identity-authz \
+docker compose -f deployments/identity/compose.advanced.yml --profile demo exec identity-authz \
   wget --spider postgres://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@identity-postgres:5432/$(cat /run/secrets/postgres_db)
 
 # Restart services in correct order
-docker compose -f deployments/compose/identity-demo.yml --profile demo down -v
-docker compose -f deployments/compose/identity-demo.yml --profile demo up -d
+docker compose -f deployments/identity/compose.advanced.yml --profile demo down -v
+docker compose -f deployments/identity/compose.advanced.yml --profile demo up -d
 ```
 
 ---
@@ -362,17 +362,17 @@ go run ./cmd/identity-orchestrator -operation start -profile demo
 
 ```bash
 # Check network connectivity
-docker compose -f deployments/compose/identity-demo.yml --profile demo exec identity-idp ping identity-authz
+docker compose -f deployments/identity/compose.advanced.yml --profile demo exec identity-idp ping identity-authz
 
 # Verify services on same network
 docker network inspect identity-network
 
 # Check DNS resolution
-docker compose -f deployments/compose/identity-demo.yml --profile demo exec identity-idp nslookup identity-authz
+docker compose -f deployments/identity/compose.advanced.yml --profile demo exec identity-idp nslookup identity-authz
 
 # Recreate network
-docker compose -f deployments/compose/identity-demo.yml --profile demo down -v
-docker compose -f deployments/compose/identity-demo.yml --profile demo up -d
+docker compose -f deployments/identity/compose.advanced.yml --profile demo down -v
+docker compose -f deployments/identity/compose.advanced.yml --profile demo up -d
 ```
 
 ---
@@ -384,7 +384,7 @@ docker compose -f deployments/compose/identity-demo.yml --profile demo up -d
 **Identity services send telemetry to OTEL collector:**
 
 ```yaml
-# identity-demo.yml configuration
+# compose.advanced.yml configuration
 environment:
   - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
 ```
@@ -483,7 +483,7 @@ server {
 **For production deployments, integrate with service mesh (Istio, Linkerd):**
 
 ```yaml
-# identity-demo.yml with Istio sidecar injection
+# compose.advanced.yml with Istio sidecar injection
 services:
   identity-authz:
     labels:

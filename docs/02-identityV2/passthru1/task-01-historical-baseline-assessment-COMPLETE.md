@@ -61,7 +61,7 @@ Task 01 successfully establishes the authoritative historical baseline for the I
 | 15 | Hardware credentials | ✅ Complete | cmd/identity/hardware-cred/ |
 | 16 | OpenAPI modernization | ✅ Complete | api/identity/{authz,idp,rs}/ |
 | 17 | Gap analysis | ✅ Complete | gap-analysis.md, gap-remediation-tracker.md |
-| 18 | Orchestration suite | ✅ Complete | deployments/compose/identity-demo.yml |
+| 18 | Orchestration suite | ✅ Complete | deployments/identity/compose.advanced.yml |
 | 19 | E2E testing fabric | ✅ Complete | test/e2e/{oauth,failover,observability}_test.go |
 | 20 | Final verification | ✅ Complete | task-20-final-verification-COMPLETE.md |
 

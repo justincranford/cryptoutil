@@ -65,7 +65,7 @@ Create a **unified `./identity` CLI tool** using Cobra framework that enables on
 
 ### In-Scope
 
-1. **Unified CLI Binary** (`cmd/identity/main.go`):
+1. **Unified CLI Binary** (`internal/identity/cmd/start_service_main.go`):
    - Cobra command structure with subcommands
    - Configuration loading from YAML files
    - Service lifecycle management (start, stop, status)
@@ -122,7 +122,7 @@ Create a **unified `./identity` CLI tool** using Cobra framework that enables on
 
 ### 1. Unified CLI Binary
 
-**File**: `cmd/identity/main.go` (replaces current structure)
+**File**: `internal/identity/cmd/start_service_main.go` (replaces current structure)
 
 **Structure**:
 

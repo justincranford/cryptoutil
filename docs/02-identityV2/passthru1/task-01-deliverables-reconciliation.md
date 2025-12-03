@@ -347,7 +347,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 
 **Evidence**:
 
-- identity-demo.yml with 4 profiles (demo/development/ci/production)
+- compose.advanced.yml with 4 profiles (demo/development/ci/production)
 - identity-orchestrator CLI (start/stop/health/logs)
 - identity-docker-quickstart.md (499 lines)
 - Smoke tests passing (test/e2e/orchestration_test.go)
@@ -498,7 +498,7 @@ This document reconciles the original identity plan deliverables (Tasks 1-15) wi
 | 15 | Hardware creds | ✅ Complete | cmd/identity/hardware-cred/ | None |
 | 16 | OpenAPI specs | ✅ Complete | api/identity/ | None |
 | 17 | Gap analysis | ✅ Complete | docs/02-identityV2/gap-* | None |
-| 18 | Orchestration | ✅ Complete | deployments/compose/identity-demo.yml | None |
+| 18 | Orchestration | ✅ Complete | deployments/identity/compose.advanced.yml | None |
 | 19 | E2E testing | ✅ Complete | test/e2e/*_test.go | Minor observability TODOs |
 | 20 | Final verification | ✅ Complete | task-20-final-verification-COMPLETE.md | None |
 

@@ -41,7 +41,7 @@
 
 - **Deliverables**: 6 commits, ~1,300 lines code+docs
 - **Components**:
-  - identity-demo.yml: 265 lines (4 profiles, scaling templates, Docker secrets)
+  - compose.advanced.yml: 265 lines (4 profiles, scaling templates, Docker secrets)
   - identity-orchestrator CLI: 248 lines (start/stop/health/logs operations)
   - identity-docker-quickstart.md: 499 lines (developer guide)
   - orchestration_test.go: 273 lines (4 smoke tests)
@@ -148,7 +148,7 @@
 **Prerequisites**:
 
 - Docker Desktop running ✅
-- identity-demo.yml Compose file ✅
+- compose.advanced.yml Compose file ✅
 - Docker secrets created (postgres/*.secret) ⚠️ **ACTION REQUIRED**
 - OTEL collector + Grafana stack ⚠️ **Verify deployment**
 
@@ -244,7 +244,7 @@ go test ./internal/identity/test/e2e -tags=e2e -run TestOTELCollectorIntegration
 
 **Rehearsal Status** (⚠️ **NOT YET EXECUTED**):
 
-- Practice blue/green deployment with identity-demo.yml
+- Practice blue/green deployment with compose.advanced.yml
 - Document cutover timing (expected <5 minutes downtime)
 - Validate rollback procedures (verify data consistency)
 
@@ -590,7 +590,7 @@ go test ./internal/identity/test/e2e -tags=e2e -run TestOTELCollectorIntegration
 **Task 20 successfully verified delivery readiness** of the remediation program (Tasks 17-19), including:
 
 - Comprehensive gap analysis (55 gaps identified, remediation roadmap created)
-- Production-ready orchestration suite (identity-demo.yml, orchestrator CLI, quick-start guide)
+- Production-ready orchestration suite (compose.advanced.yml, orchestrator CLI, quick-start guide)
 - Robust E2E testing fabric (12 tests validating OAuth flows, failover, observability)
 
 **Key Achievements**:

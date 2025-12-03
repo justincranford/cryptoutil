@@ -63,7 +63,7 @@ This matrix evaluates **stated goals** from task documentation against **actual 
 | Goal | Documentation Claim | Implementation Status | Evidence |
 |------|---------------------|----------------------|----------|
 | Canonical config templates | ⚠️ Partial claim | ⚠️ **PARTIAL** | Files exist: configs/identity/{authz,idp,rs}/*.yml |
-| Docker Compose normalization | ⚠️ Partial claim | ⚠️ **PARTIAL** | identity-demo.yml in Task 18, not Task 03 |
+| Docker Compose normalization | ⚠️ Partial claim | ⚠️ **PARTIAL** | compose.advanced.yml in Task 18, not Task 03 |
 | Test fixture standardization | ❌ Not documented | ⚠️ **PARTIAL** | test/testutils/database_setup.go exists |
 | Completion documentation | ❌ Missing | ❌ **INCOMPLETE** | No task-03-*-COMPLETE.md |
 
@@ -354,7 +354,7 @@ userIDPlaceholder := googleUuid.Must(googleUuid.NewV7())
 
 | Goal | Documentation Claim | Implementation Status | Evidence |
 |------|---------------------|----------------------|----------|
-| identity-demo.yml (4 profiles) | ✅ Complete | ✅ **COMPLETE** | 265 lines, Nx scaling, Docker secrets |
+| compose.advanced.yml (4 profiles) | ✅ Complete | ✅ **COMPLETE** | 265 lines, Nx scaling, Docker secrets |
 | identity-orchestrator CLI | ✅ Complete | ✅ **COMPLETE** | 248 lines, lifecycle management |
 | Quick start guide | ✅ Complete | ✅ **COMPLETE** | identity-docker-quickstart.md (499 lines) |
 | Orchestration smoke tests | ✅ Complete | ✅ **COMPLETE** | orchestration_test.go (273 lines) |

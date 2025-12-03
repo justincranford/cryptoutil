@@ -14,7 +14,7 @@
 
 **Success Criteria**:
 
-- ✅ identity-demo.yml with Nx/Mx/Xx scaling templates created
+- ✅ compose.advanced.yml with Nx/Mx/Xx scaling templates created
 - ✅ Docker Compose profiles (demo, development, ci, production) implemented
 - ✅ Docker secrets integration for PostgreSQL credentials
 - ✅ Orchestration CLI (identity-orchestrator) delivered with start/stop/health/logs commands
@@ -28,9 +28,9 @@
 
 ### Deliverables Created
 
-**1. Docker Compose Template (identity-demo.yml)**
+**1. Docker Compose Template (compose.advanced.yml)**
 
-- **Location**: `deployments/compose/identity-demo.yml`
+- **Location**: `deployments/identity/compose.advanced.yml`
 - **Size**: 265 lines
 - **Features**:
   - **Profiles**: demo (1x1x1x1), development (2x2x2x2), ci (1x1x1x1), production (3x3x3x3)
@@ -271,7 +271,7 @@ go run ./cmd/identity-orchestrator -operation health -profile demo
 curl -k https://localhost:8080/.well-known/openid-configuration
 
 # 4. Verify secrets mounted
-docker compose -f deployments/compose/identity-demo.yml --profile demo exec identity-authz ls -la /run/secrets/
+docker compose -f deployments/identity/compose.advanced.yml --profile demo exec identity-authz ls -la /run/secrets/
 
 # 5. View logs
 go run ./cmd/identity-orchestrator -operation logs -profile demo -tail 50
@@ -316,8 +316,8 @@ go run ./cmd/identity-orchestrator -operation stop -profile demo -remove-volumes
 
 **Relative Path Complexity**:
 
-- Issue: Tests in `internal/identity/demo/` couldn't find `deployments/compose/identity-demo.yml`
-- Solution: Use relative paths `../../deployments/compose/identity-demo.yml` from test directory
+- Issue: Tests in `internal/identity/demo/` couldn't find `deployments/identity/compose.advanced.yml`
+- Solution: Use relative paths `../../deployments/identity/compose.advanced.yml` from test directory
 - Lesson: Always test relative paths from actual execution context (test directory, not project root)
 
 **Docker Unavailability During Development**:
@@ -346,7 +346,7 @@ go run ./cmd/identity-orchestrator -operation stop -profile demo -remove-volumes
 
 **For Task 19 (Integration E2E Fabric)**:
 
-1. **Use identity-demo.yml as foundation** for E2E test orchestration
+1. **Use compose.advanced.yml as foundation** for E2E test orchestration
 2. **Integrate with identity-orchestrator CLI** for test setup/teardown
 3. **Validate OTEL/Grafana integration** for observability testing
 4. **Test all OAuth/OIDC flows** against scaled services (2x2x2x2, 3x3x3x3)
@@ -386,7 +386,7 @@ go run ./cmd/identity-orchestrator -operation stop -profile demo -remove-volumes
 **Impact**: Tests pass on Windows but fail on Linux (or vice versa)
 **Mitigation**:
 
-- Use Go's filepath package for path construction: `filepath.Join("../..", "deployments", "compose", "identity-demo.yml")`
+- Use Go's filepath package for path construction: `filepath.Join("../..", "deployments", "compose", "compose.advanced.yml")`
 - Test on both Windows and Linux before release
 - Use forward slashes in Compose files (Docker accepts both)
 
@@ -429,7 +429,7 @@ go run ./cmd/identity-orchestrator -operation stop -profile demo -remove-volumes
 
 **Expected Deliverables**:
 
-- E2E test suite using identity-demo.yml
+- E2E test suite using compose.advanced.yml
 - Failover test scenarios (kill instance, verify others handle traffic)
 - OTEL/Grafana dashboard validation
 - Load test scenarios (1x1x1x1 baseline, 3x3x3x3 stress test)
@@ -456,7 +456,7 @@ go run ./cmd/identity-orchestrator -operation stop -profile demo -remove-volumes
 
 **Deliverables Ready**:
 
-- identity-demo.yml (265 lines)
+- compose.advanced.yml (265 lines)
 - identity-orchestrator CLI (206 lines)
 - Quick-start guide (499 lines)
 - Smoke tests (263 lines)

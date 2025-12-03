@@ -68,7 +68,7 @@ This reflection informs the current task's approach and ensures continuous impro
 
 6. **Bootstrap Simplicity Goal**: Maintain focus on delivering one-liner commands:
    - `./identity start --profile demo` (local development)
-   - `docker compose -f identity-demo.yml up` (containerized)
+   - `docker compose -f compose.advanced.yml up` (containerized)
    - `./identity test --suite e2e` (testing)
 
 ## Task Index

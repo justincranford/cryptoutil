@@ -53,7 +53,7 @@ Deliver deterministic Docker Compose orchestration bundles and supporting toolin
 
 ## Deliverables
 
-- `deployments/compose/identity-demo.yml` (and variants) with relative paths and secret reuse per `.github/instructions/02-02.docker.instructions.md`.
+- `deployments/identity/compose.advanced.yml` (and variants) with relative paths and secret reuse per `.github/instructions/02-02.docker.instructions.md`.
 - Updated CLI tooling or scripts under `cmd/workflow` or `scripts/` for orchestration control.
 - Runbooks or quick-start guides for developers and QA.
 
