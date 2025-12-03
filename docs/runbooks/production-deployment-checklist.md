@@ -341,7 +341,7 @@ kubectl get pods -n cryptoutil-prod
 ## References
 
 - [Docker Compose Configuration](../../deployments/compose/compose.yml)
-- [Docker Compose Identity Demo](../../deployments/compose/identity-demo.yml)
+- [Docker Compose Identity Demo](../../deployments/identity/compose.advanced.yml)
 - [Kubernetes Deployment Guide](../../deployments/kubernetes/README.md) (when created)
 - [Operational Runbook](./operational-runbook.md) (when created)
 - [Token Rotation Runbook](../02-identityV2/historical/token-rotation-runbook.md)
