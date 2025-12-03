@@ -186,11 +186,11 @@ See [docs/TOOLS.md](docs/TOOLS.md) for detailed tool documentation.
 The Identity system provides a unified command-line interface for managing OAuth 2.1 services:
 
 ```powershell
-# Build unified CLI and service binaries
-go build -o bin/identity.exe ./cmd/identity
-go build -o bin/authz.exe ./cmd/identity/authz
-go build -o bin/idp.exe ./cmd/identity/idp
-go build -o bin/rs.exe ./cmd/identity/rs
+# Build unified CLI
+go build -o bin/identity.exe ./cmd/identity-unified
+
+# Build multi-product launcher (includes identity services)
+go build -o bin/cryptoutil.exe ./cmd/cryptoutil
 
 # Start all services with one command
 ./bin/identity start --profile demo
@@ -198,12 +198,11 @@ go build -o bin/rs.exe ./cmd/identity/rs
 # Check service health
 ./bin/identity health
 
-# View service status
-./bin/identity status
-
-# Stop all services
-./bin/identity stop
-```
+# Start individual identity services
+./bin/cryptoutil identity authz --config /path/to/config.yml
+./bin/cryptoutil identity idp --config /path/to/config.yml
+./bin/cryptoutil identity rs --config /path/to/config.yml
+````
 
 **Available Profiles:**
 
