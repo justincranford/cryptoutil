@@ -1,3 +1,4 @@
+#!/bin/bash
 # Test Token Endpoint - Client Credentials Grant
 # This script tests the /oauth2/v1/token endpoint with client_credentials grant
 
