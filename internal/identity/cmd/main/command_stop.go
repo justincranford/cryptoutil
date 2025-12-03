@@ -2,7 +2,7 @@
 //
 //
 
-package main
+package cmd
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
-func newStopCommand() *cobra.Command {
+func NewStopCommand() *cobra.Command {
 	var (
 		force      bool
 		timeoutStr string

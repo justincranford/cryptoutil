@@ -2,7 +2,7 @@
 //
 //
 
-package main
+package cmd
 
 import (
 	"context"
@@ -24,7 +24,7 @@ const (
 	healthCheckMaxRetries = 10
 )
 
-func newStartCommand() *cobra.Command {
+func NewStartCommand() *cobra.Command {
 	var (
 		profile    string
 		useDocker  bool

@@ -2,7 +2,7 @@
 //
 //
 
-package main
+package cmd
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newTestCommand() *cobra.Command {
+func NewTestCommand() *cobra.Command {
 	var (
 		suite string
 		pkg   string

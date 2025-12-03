@@ -9,6 +9,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	cryptoutilIdentityCmd "cryptoutil/internal/identity/cmd/main"
 )
 
 func main() {
@@ -18,12 +20,12 @@ func main() {
 		Long:  "Manage OAuth 2.1 Authorization Server, OIDC Identity Provider, and Resource Server",
 	}
 
-	rootCmd.AddCommand(newStartCommand())
-	rootCmd.AddCommand(newStopCommand())
-	rootCmd.AddCommand(newStatusCommand())
-	rootCmd.AddCommand(newHealthCommand())
-	rootCmd.AddCommand(newTestCommand())
-	rootCmd.AddCommand(newLogsCommand())
+	rootCmd.AddCommand(cryptoutilIdentityCmd.NewStartCommand())
+	rootCmd.AddCommand(cryptoutilIdentityCmd.NewStopCommand())
+	rootCmd.AddCommand(cryptoutilIdentityCmd.NewStatusCommand())
+	rootCmd.AddCommand(cryptoutilIdentityCmd.NewHealthCommand())
+	rootCmd.AddCommand(cryptoutilIdentityCmd.NewTestCommand())
+	rootCmd.AddCommand(cryptoutilIdentityCmd.NewLogsCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

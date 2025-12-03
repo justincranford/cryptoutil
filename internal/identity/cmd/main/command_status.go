@@ -2,7 +2,7 @@
 //
 //
 
-package main
+package cmd
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ import (
 	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
-func newStatusCommand() *cobra.Command {
+func NewStatusCommand() *cobra.Command {
 	var jsonOutput bool
 
 	cmd := &cobra.Command{

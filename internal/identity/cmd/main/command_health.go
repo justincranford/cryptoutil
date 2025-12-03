@@ -2,7 +2,7 @@
 //
 //
 
-package main
+package cmd
 
 import (
 	"context"
@@ -18,7 +18,7 @@ const (
 	defaultMaxRetries = 3
 )
 
-func newHealthCommand() *cobra.Command {
+func NewHealthCommand() *cobra.Command {
 	var timeoutStr string
 
 	cmd := &cobra.Command{
