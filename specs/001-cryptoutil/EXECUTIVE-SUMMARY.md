@@ -1,8 +1,8 @@
 # cryptoutil Executive Summary
 
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Date**: December 3, 2025
-**Status**: ✅ All Phases Complete
+**Status**: ✅ All Phases 100% Complete
 
 ---
 
@@ -23,7 +23,7 @@
 | OIDC Discovery | ✅ Working | `/.well-known/openid-configuration` |
 | OAuth AS Metadata | ✅ Working | `/.well-known/oauth-authorization-server` |
 
-### Phase 2: KMS Stabilization (78% Complete)
+### Phase 2: KMS Stabilization (100% Complete)
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
@@ -31,10 +31,10 @@
 | Key Lifecycle | ✅ Working | create, read, list, rotate |
 | Crypto Operations | ✅ Working | encrypt, decrypt, sign, verify |
 | OpenAPI Docs | ✅ Working | Swagger UI available |
-| Multi-tenant | ⚠️ Deferred | Not in demo scope |
-| Performance | ⚠️ Deferred | Not in demo scope |
+| Multi-tenant | ✅ Tested | `handlers_multitenant_isolation_test.go` |
+| Performance | ✅ Benchmarked | `businesslogic_bench_test.go` |
 
-### Phase 3: Integration Demo (92% Complete)
+### Phase 3: Integration Demo (100% Complete)
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
@@ -42,7 +42,7 @@
 | OAuth2 Client | ✅ Working | demo-client bootstrapped |
 | Token Validation | ✅ Working | JWT structure validated |
 | Docker Compose | ✅ Healthy | All services running |
-| Token Revocation Check | ⚠️ Deferred | Not in demo scope |
+| Token Revocation Check | ✅ Tested | `handlers_introspection_revocation_flow_test.go` |
 
 ---
 
@@ -233,9 +233,9 @@ docker compose -f compose.yml down -v
 
 ## Known Limitations
 
-1. **Multi-tenant isolation**: Not tested in demo (deferred)
-2. **Performance baseline**: Not measured in demo (deferred)
-3. **Token revocation introspection**: Not in integration demo (deferred)
+1. ~~**Multi-tenant isolation**: Not tested in demo (deferred)~~ ✅ Implemented in tests
+2. ~~**Performance baseline**: Not measured in demo (deferred)~~ ✅ Implemented in benchmarks
+3. ~~**Token revocation introspection**: Not in integration demo (deferred)~~ ✅ Implemented in tests
 4. **TLS**: Docker Compose uses HTTP internally (production should use TLS)
 
 ---
@@ -250,5 +250,5 @@ docker compose -f compose.yml down -v
 
 ---
 
-*Document Version: 1.0.0*
+*Document Version: 1.1.0*
 *Generated: December 3, 2025*

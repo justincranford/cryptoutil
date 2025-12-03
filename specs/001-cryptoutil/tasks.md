@@ -113,8 +113,8 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 |------|-------------|--------|
 | ✅ P2.3.1 HIGH S8 | Add E2E test suite for key lifecycle | ✅ Demo tests full lifecycle |
 | ✅ P2.3.2 HIGH S5 | Test crypto operations | ✅ Demo demonstrates encrypt/sign |
-| - [ ] P2.3.3 HIGH S5 | Test multi-tenant isolation | ⚠️ DEFERRED (not in demo) |
-| - [ ] P2.3.4 MEDIUM S5 | Performance baseline | ⚠️ DEFERRED (not in demo) |
+| ✅ P2.3.3 HIGH S5 | Test multi-tenant isolation | ✅ handlers_multitenant_isolation_test.go |
+| ✅ P2.3.4 MEDIUM S5 | Performance baseline | ✅ businesslogic_bench_test.go |
 
 ---
 
@@ -140,7 +140,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | ✅ P3.2.2 CRITICAL S2 | Validate JWT signatures | ✅ Demo validates structure |
 | ✅ P3.2.3 CRITICAL S1 | Check token expiration | ✅ Token has exp claim |
 | ✅ P3.2.4 HIGH S2 | Verify required scopes | ✅ Scopes verified in demo |
-| - [ ] P3.2.5 HIGH S2 | Introspection for revocation check | ⚠️ DEFERRED (not in demo) |
+| ✅ P3.2.5 HIGH S2 | Introspection for revocation check | ✅ handlers_introspection_revocation_flow_test.go |
 
 ### 3.3 Demo Script
 
@@ -164,16 +164,16 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 ### Phase 2 (KMS)
 
 - **Total Tasks**: 9
-- **Completed**: 7 (78%)
+- **Completed**: 9 (100%)
 - **Partial**: 0 (0%)
-- **Deferred**: 2 (22%)
+- **Deferred**: 0 (0%)
 
 ### Phase 3 (Integration)
 
 - **Total Tasks**: 12
-- **Completed**: 11 (92%)
+- **Completed**: 12 (100%)
 - **Partial**: 0 (0%)
-- **Deferred**: 1 (8%)
+- **Deferred**: 0 (0%)
 
 ---
 
