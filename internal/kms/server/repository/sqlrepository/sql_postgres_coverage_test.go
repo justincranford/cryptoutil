@@ -17,6 +17,10 @@ import (
 
 // TestNewSQLRepository_PostgreSQL_ContainerModes tests PostgreSQL with different container modes.
 func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL container test in short mode")
+	}
+
 	t.Parallel()
 
 	tests := []struct {

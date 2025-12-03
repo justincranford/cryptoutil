@@ -91,6 +91,10 @@ func TestMapDBTypeAndURL_AllScenarios(t *testing.T) {
 
 // TestMapContainerMode_AllModes tests all container mode mappings.
 func TestMapContainerMode_AllModes(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL container test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

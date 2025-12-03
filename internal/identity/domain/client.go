@@ -64,10 +64,10 @@ type Client struct {
 	TokenEndpointAuthMethod ClientAuthMethod `gorm:"not null" json:"token_endpoint_auth_method"`       // Authentication method.
 
 	// OIDC Logout configuration (OpenID Connect Front-Channel Logout 1.0 / Back-Channel Logout 1.0).
-	FrontChannelLogoutURI             string `gorm:"column:frontchannel_logout_uri" json:"frontchannel_logout_uri,omitempty"`                                      // URL for front-channel logout iframe.
+	FrontChannelLogoutURI             string `gorm:"column:frontchannel_logout_uri" json:"frontchannel_logout_uri,omitempty"`                                            // URL for front-channel logout iframe.
 	FrontChannelLogoutSessionRequired *bool  `gorm:"column:frontchannel_logout_session_required;type:boolean;default:false" json:"frontchannel_logout_session_required"` // Include sid in logout request.
-	BackChannelLogoutURI              string `gorm:"column:backchannel_logout_uri" json:"backchannel_logout_uri,omitempty"`                                       // URL for back-channel logout token delivery.
-	BackChannelLogoutSessionRequired  *bool  `gorm:"column:backchannel_logout_session_required;type:boolean;default:false" json:"backchannel_logout_session_required"`  // Include sid in logout token.
+	BackChannelLogoutURI              string `gorm:"column:backchannel_logout_uri" json:"backchannel_logout_uri,omitempty"`                                              // URL for back-channel logout token delivery.
+	BackChannelLogoutSessionRequired  *bool  `gorm:"column:backchannel_logout_session_required;type:boolean;default:false" json:"backchannel_logout_session_required"`   // Include sid in logout token.
 
 	// PKCE configuration.
 	RequirePKCE         *bool  `gorm:"type:boolean;default:true" json:"require_pkce"` // Require PKCE for authorization code flow.

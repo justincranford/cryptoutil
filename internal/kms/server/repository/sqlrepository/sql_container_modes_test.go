@@ -17,6 +17,10 @@ import (
 
 // TestNewSQLRepository_PostgreSQL_ContainerRequired tests container mode = required (will fail).
 func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping container test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()
@@ -37,6 +41,10 @@ func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 
 // TestNewSQLRepository_PostgreSQL_ContainerPreferred tests container mode = preferred (will fallback).
 func TestNewSQLRepository_PostgreSQL_ContainerPreferred(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping container test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

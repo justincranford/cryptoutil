@@ -251,7 +251,7 @@ Task status was not updated after demos were implemented. The implementation was
 ### Discovery Method
 
 1. Ran `go run ./cmd/demo kms` - 4/4 steps pass
-2. Ran `go run ./cmd/demo identity` - 5/5 steps pass  
+2. Ran `go run ./cmd/demo identity` - 5/5 steps pass
 3. Ran `go run ./cmd/demo all` - 7/7 steps pass (full integration)
 4. Verified Docker Compose `identity` deployment - all healthy
 

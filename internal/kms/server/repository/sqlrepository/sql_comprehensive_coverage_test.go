@@ -29,6 +29,10 @@ const (
 
 // TestNewSQLRepository_PostgreSQL_PingRetry tests database ping retry logic.
 func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL container test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

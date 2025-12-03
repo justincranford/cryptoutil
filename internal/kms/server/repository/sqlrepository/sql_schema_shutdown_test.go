@@ -14,6 +14,10 @@ import (
 
 // TestLogSchema_PostgreSQL tests LogSchema with PostgreSQL backend (logPostgresSchema coverage).
 func TestLogSchema_PostgreSQL(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()
@@ -74,6 +78,10 @@ func TestShutdown_SQLite(t *testing.T) {
 
 // TestShutdown_PostgreSQL tests Shutdown function with PostgreSQL backend.
 func TestShutdown_PostgreSQL(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

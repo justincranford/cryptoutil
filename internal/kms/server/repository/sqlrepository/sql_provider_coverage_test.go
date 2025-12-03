@@ -127,6 +127,10 @@ func TestSQLRepository_Shutdown_ErrorHandling(t *testing.T) {
 
 // TestMapDBTypeAndURL_DevModeVariations tests database type mapping for different dev mode scenarios.
 func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()
@@ -194,6 +198,10 @@ func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
 
 // TestExtractSchemaFromURL_PostgreSQL_VariousFormats tests schema extraction from various URL formats.
 func TestExtractSchemaFromURL_PostgreSQL_VariousFormats(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

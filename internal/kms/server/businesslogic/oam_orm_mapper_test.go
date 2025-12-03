@@ -497,7 +497,7 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 		expectError bool
 		expectNil   bool
 	}{
-		{"nil params", nil, false, true},
+		{"nil params", nil, false, false},
 		{
 			"valid params",
 			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
@@ -543,7 +543,7 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 		expectError bool
 		expectNil   bool
 	}{
-		{"nil params", nil, false, true},
+		{"nil params", nil, false, false},
 		{
 			"valid params",
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
@@ -589,7 +589,7 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 		expectError bool
 		expectNil   bool
 	}{
-		{"nil params", nil, false, true},
+		{"nil params", nil, false, false},
 		{
 			"valid params",
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
