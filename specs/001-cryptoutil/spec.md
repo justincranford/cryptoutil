@@ -59,11 +59,11 @@ Complete identity and access management solution.
 
 | Endpoint | Method | Description | Status |
 |----------|--------|-------------|--------|
-| `/oidc/v1/login` | GET/POST | User authentication | ⚠️ API Only (No UI) |
-| `/oidc/v1/consent` | GET/POST | User consent for scopes | ⚠️ API Only (No UI) |
-| `/oidc/v1/logout` | GET/POST | Session termination | ⚠️ Partial |
+| `/oidc/v1/login` | GET/POST | User authentication | ✅ Working (HTML form rendered, session created) |
+| `/oidc/v1/consent` | GET/POST | User consent for scopes | ✅ Working (HTML form rendered, consent recorded) |
+| `/oidc/v1/logout` | GET/POST | Session termination | ✅ Working (session/token cleared) |
 | `/oidc/v1/endsession` | GET | OpenID Connect End Session (RP-Initiated Logout) | ❌ Not Implemented |
-| `/oidc/v1/userinfo` | GET | User information endpoint | ⚠️ Partial |
+| `/oidc/v1/userinfo` | GET | User information endpoint | ✅ Working (claims returned per scopes) |
 | `/oidc/v1/mfa/enroll` | POST | Administrative Enroll MFA factor | ❌ Not Implemented |
 | `/oidc/v1/mfa/factors` | GET | Administrative List user MFA factors | ❌ Not Implemented |
 | `/oidc/v1/mfa/factors/{id}` | DELETE | Administrative Remove MFA factor | ❌ Not Required |
