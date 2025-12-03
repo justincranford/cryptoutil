@@ -51,7 +51,7 @@ Complete identity and access management solution.
 | `/oauth2/v1/clients/{id}/rotate-secret` | POST | Administrative Rotate client secret with grace period | ✅ Implemented |
 | `/.well-known/openid-configuration` | GET | OpenID Connect Discovery | ✅ Working |
 | `/.well-known/jwks.json` | GET | JSON Web Key Set | ✅ Working |
-| `/.well-known/oauth-authorization-server` | GET | OAuth 2.1 Authorization Server Metadata (RFC 8414) | ❌ Not Implemented |
+| `/.well-known/oauth-authorization-server` | GET | OAuth 2.1 Authorization Server Metadata (RFC 8414) | ✅ Working |
 | `/device_authorization` | POST | Device Authorization Grant (RFC 8628) | ❌ Not Required |
 | `/par` | POST | Pushed Authorization Requests (RFC 9126) | ❌ Not Required |
 
@@ -62,8 +62,8 @@ Complete identity and access management solution.
 | `/oidc/v1/login` | GET/POST | User authentication | ✅ Working (HTML form rendered, session created) |
 | `/oidc/v1/consent` | GET/POST | User consent for scopes | ✅ Working (HTML form rendered, consent recorded) |
 | `/oidc/v1/logout` | GET/POST | Session termination | ✅ Working (session/token cleared) |
-| `/oidc/v1/endsession` | GET | OpenID Connect End Session (RP-Initiated Logout) | ❌ Not Implemented |
-| `/oidc/v1/userinfo` | GET | User information endpoint | ✅ Working (claims returned per scopes) |
+| `/oidc/v1/endsession` | GET | OpenID Connect End Session (RP-Initiated Logout) | ✅ Working |
+| `/oidc/v1/userinfo` | GET | User information endpoint | ✅ Working (claims returned per scopes, JWT-signed optional) |
 | `/oidc/v1/mfa/enroll` | POST | Administrative Enroll MFA factor | ❌ Not Implemented |
 | `/oidc/v1/mfa/factors` | GET | Administrative List user MFA factors | ❌ Not Implemented |
 | `/oidc/v1/mfa/factors/{id}` | DELETE | Administrative Remove MFA factor | ❌ Not Required |

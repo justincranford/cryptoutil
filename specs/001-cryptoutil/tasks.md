@@ -69,7 +69,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 |------|-------------|--------|
 | ✅ P1.5.1 CRITICAL S2 | Implement PBKDF2-HMAC-SHA256 client secret hashing | Implemented |
 | ✅ P1.5.2 CRITICAL S2 | Token-user association: claims + DB | Implemented |
-| ⚠️ P1.5.3 HIGH S5 | Token lifecycle cleanup: hybrid (on-access + periodic cleanup + DB TTL) | Partial (no periodic job) |
+| ✅ P1.5.3 HIGH S5 | Token lifecycle cleanup: hybrid (on-access + periodic cleanup + DB TTL) | Implemented (cleanup.go) |
 | ✅ P1.5.4 HIGH S5 | Tiered rate limiting (IP + client + endpoint) | Rate limiter exists |
 | ✅ P1.5.5 HIGH S5 | Audit logging: all auth events + token introspection + revocation | TelemetryAuditLogger |
 
@@ -79,8 +79,8 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 | Task | Description | Status |
 |------|-------------|--------|
-| ❌ P1.6.1 HIGH S3 | Implement `/.well-known/oauth-authorization-server` (RFC 8414) | NOT IMPLEMENTED |
-| ❌ P1.6.2 HIGH S3 | Implement `/oidc/v1/endsession` (RP-Initiated Logout) | NOT IMPLEMENTED |
+| ✅ P1.6.1 HIGH S3 | Implement `/.well-known/oauth-authorization-server` (RFC 8414) | IMPLEMENTED (authz package) |
+| ✅ P1.6.2 HIGH S3 | Implement `/oidc/v1/endsession` (RP-Initiated Logout) | IMPLEMENTED |
 | ❌ P1.6.3 MEDIUM S2 | Add session_cookie authentication method for SPA UI | NOT IMPLEMENTED |
 
 **Spec Reference**: spec.md lines 47-60

@@ -12,11 +12,11 @@
 
 | Phase | Total Tasks | Completed | Partial | Remaining | Progress |
 |-------|-------------|-----------|---------|-----------|----------|
-| Phase 1: Identity V2 | 23 | 17 | 3 | 3 | 74% |
+| Phase 1: Identity V2 | 23 | 19 | 2 | 2 | 83% |
 | Phase 2: KMS | 9 | 0 | 2 | 7 | 0% |
 | Phase 3: Integration | 12 | 0 | 0 | 12 | 0% |
 
-**Overall Progress**: 17/44 tasks (39%)
+**Overall Progress**: 19/44 tasks (43%)
 
 ---
 
@@ -53,12 +53,27 @@
    - 12 Phase 3 tasks identified
    - Priority queue established
 
+6. ✅ **P1.4.3**: JWT-signed userinfo response
+   - Commit: `ff7aaaa7`
+   - Added Accept header detection for `application/jwt`
+   - Added SignUserInfoResponse method to IssuerService
+   - Test coverage: `handlers_userinfo_jwt_test.go`
+
+7. ✅ **P1.6.2**: RP-Initiated Logout endpoint
+   - Commit: `26da7b69`
+   - Added GET /oidc/v1/endsession handler
+   - Support id_token_hint and client_id parameters
+   - Validate post_logout_redirect_uri against registration
+   - Add PostLogoutRedirectURIs field to Client domain
+   - SQL migration 0005 for post_logout_redirect_uris
+   - Test coverage: `handlers_endsession_test.go` (8 test cases)
+
 #### In Progress
 
-- **Task 6**: Execute Phase 1 remaining tasks
-  - P1.4.3: Userinfo JWT-signed response
-  - P1.6.2: RP-Initiated Logout
+- **Task 8**: Execute remaining Phase 1 critical tasks
   - P1.3.4/P1.3.5: Front/back-channel logout
+  - P1.5.3: Token lifecycle cleanup job
+  - P1.6.1: OAuth AS Metadata (RFC 8414)
 
 ---
 
@@ -111,10 +126,7 @@ Updated spec.md Identity Provider (IdP) table with correct status markers:
 
 ### CRITICAL Priority
 
-1. **P1.4.3** - Userinfo JWT-signed response
-   - Current: Returns JSON
-   - Required: OAuth 2.1 mandates JWT-signed userinfo
-   - LOE: 2 hours
+All CRITICAL priority tasks completed ✅
 
 ### HIGH Priority
 
@@ -133,10 +145,6 @@ Updated spec.md Identity Provider (IdP) table with correct status markers:
 
 1. **P1.6.1** - OAuth 2.1 Authorization Server Metadata (RFC 8414)
    - Endpoint: `/.well-known/oauth-authorization-server`
-   - LOE: 3 hours
-
-1. **P1.6.2** - RP-Initiated Logout
-   - Endpoint: `/oidc/v1/endsession`
    - LOE: 3 hours
 
 ### MEDIUM Priority

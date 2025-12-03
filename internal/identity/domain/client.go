@@ -63,6 +63,12 @@ type Client struct {
 	AllowedScopes           []string         `gorm:"serializer:json" json:"allowed_scopes"`              // Allowed scopes.
 	TokenEndpointAuthMethod ClientAuthMethod `gorm:"not null" json:"token_endpoint_auth_method"`         // Authentication method.
 
+	// OIDC Logout configuration (OpenID Connect Front-Channel Logout 1.0 / Back-Channel Logout 1.0).
+	FrontChannelLogoutURI             string `json:"frontchannel_logout_uri,omitempty"`                            // URL for front-channel logout iframe.
+	FrontChannelLogoutSessionRequired *bool  `gorm:"type:boolean;default:false" json:"frontchannel_logout_session_required"` // Include sid in logout request.
+	BackChannelLogoutURI              string `json:"backchannel_logout_uri,omitempty"`                             // URL for back-channel logout token delivery.
+	BackChannelLogoutSessionRequired  *bool  `gorm:"type:boolean;default:false" json:"backchannel_logout_session_required"`  // Include sid in logout token.
+
 	// PKCE configuration.
 	RequirePKCE         *bool  `gorm:"type:boolean;default:true" json:"require_pkce"` // Require PKCE for authorization code flow.
 	PKCEChallengeMethod string `gorm:"default:'S256'" json:"pkce_challenge_method"`   // PKCE challenge method (S256 or plain).

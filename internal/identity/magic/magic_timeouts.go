@@ -28,6 +28,11 @@ const (
 	DefaultIdleTimeout     = 900 * time.Second  // Default idle timeout (15 minutes).
 )
 
+// Logout timeouts.
+const (
+	BackChannelLogoutTimeout = 30 * time.Second // Timeout for back-channel logout HTTP requests.
+)
+
 // Server timeouts.
 const (
 	DefaultReadTimeout       = 30 * time.Second  // Default HTTP read timeout.
