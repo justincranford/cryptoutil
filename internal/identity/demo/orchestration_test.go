@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	composeFilePath = "../../deployments/compose/identity-demo.yml"
+	composeFilePath = "../../deployments/identity/compose.advanced.yml"
 	demoProfile     = "demo"
 )
 
@@ -125,7 +125,7 @@ func TestDockerComposeScaling(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 			defer cancel()
 
-			composeFile := "deployments/compose/identity-demo.yml"
+			composeFile := "deployments/identity/compose.advanced.yml"
 			profile := demoProfile
 
 			// Build scaling arguments

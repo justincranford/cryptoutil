@@ -10,7 +10,7 @@ import "time"
 // E2E test configuration constants.
 const (
 	// Docker Compose configuration.
-	composeFile    = "../../../../deployments/compose/identity-demo.yml"
+	composeFile    = "../../../../deployments/identity/compose.advanced.yml"
 	defaultProfile = "demo"
 
 	// Health check timeouts - longer timeout for orchestration/failover tests.
