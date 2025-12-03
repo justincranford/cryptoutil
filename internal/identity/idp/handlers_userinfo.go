@@ -11,10 +11,17 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
+// MIMEApplicationJWT is the MIME type for JWT responses.
+const MIMEApplicationJWT = "application/jwt"
+
 // handleUserInfo handles GET /userinfo - Return OIDC UserInfo claims.
+// Per OAuth 2.1, supports both JSON and JWT-signed responses based on Accept header.
+// - Accept: application/json → returns JSON object (default)
+// - Accept: application/jwt → returns signed JWT.
 func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	ctx := c.Context()
 
@@ -52,6 +59,8 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	// JWT tokens have expiration checked during validation above.
 	tokenRepo := s.repoFactory.TokenRepository()
 
+	var clientID string
+
 	dbToken, err := tokenRepo.GetByTokenValue(ctx, accessToken)
 	if err != nil {
 		// Token not found in database (might be JWT - continue with claims from validation).
@@ -61,6 +70,11 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 				"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
 				"error_description": "Token not found",
 			})
+		}
+
+		// Extract client_id from JWT claims for JWT-signed response.
+		if aud, ok := claims[cryptoutilIdentityMagic.ClaimAud].(string); ok {
+			clientID = aud
 		}
 	} else {
 		// Check token expiration for UUID tokens.
@@ -78,6 +92,9 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 				"scope": dbToken.Scopes,
 			}
 		}
+
+		// Get client_id from database token for JWT-signed response.
+		clientID = dbToken.ClientID.String()
 	}
 
 	// Extract sub (subject) claim to identify user.
@@ -101,23 +118,40 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	}
 
 	// Map user to OIDC standard claims.
-	userInfo := fiber.Map{
-		"sub": user.Sub,
-	}
+	userInfo := make(map[string]any)
+	userInfo["sub"] = user.Sub
 
 	// Add optional claims based on scopes (extract from token claims).
 	scopesAny, scopesExist := claims["scope"]
-	if !scopesExist {
-		return c.Status(fiber.StatusOK).JSON(userInfo)
+	if scopesExist {
+		scopes, scopesOk := scopesAny.(string)
+		if scopesOk {
+			scopeList := strings.Split(scopes, " ")
+			addScopeBasedClaims(userInfo, scopeList, user)
+		}
 	}
 
-	scopes, ok := scopesAny.(string)
-	if !ok {
-		return c.Status(fiber.StatusOK).JSON(userInfo)
+	// Check Accept header for JWT-signed response (OAuth 2.1 compliance).
+	acceptHeader := c.Get("Accept")
+	if strings.Contains(acceptHeader, MIMEApplicationJWT) && clientID != "" {
+		// Return JWT-signed userinfo response.
+		jwtResponse, jwtErr := s.tokenSvc.IssueUserInfoJWT(ctx, clientID, userInfo)
+		if jwtErr != nil {
+			// Fallback to JSON on JWT signing error.
+			return c.Status(fiber.StatusOK).JSON(userInfo)
+		}
+
+		c.Set(fiber.HeaderContentType, MIMEApplicationJWT)
+
+		return c.Status(fiber.StatusOK).SendString(jwtResponse)
 	}
 
-	scopeList := strings.Split(scopes, " ")
+	// Default: return JSON response.
+	return c.Status(fiber.StatusOK).JSON(userInfo)
+}
 
+// addScopeBasedClaims adds optional claims to userInfo based on the granted scopes.
+func addScopeBasedClaims(userInfo map[string]any, scopeList []string, user *cryptoutilIdentityDomain.User) {
 	for _, scope := range scopeList {
 		switch scope {
 		case "profile":
@@ -142,7 +176,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 
 		case "address":
 			if user.Address != nil {
-				userInfo["address"] = fiber.Map{
+				userInfo["address"] = map[string]any{
 					"formatted":      user.Address.Formatted,
 					"street_address": user.Address.StreetAddress,
 					"locality":       user.Address.Locality,
@@ -157,6 +191,4 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 			userInfo["phone_number_verified"] = user.PhoneVerified
 		}
 	}
-
-	return c.Status(fiber.StatusOK).JSON(userInfo)
 }

@@ -157,6 +157,25 @@ type TokenMetadata struct {
 	ExpiresAt *time.Time     `json:"expires_at,omitempty"`
 }
 
+// IssueUserInfoJWT issues a signed JWT containing userinfo claims.
+// This fulfills the OAuth 2.1 requirement for JWT-signed userinfo responses.
+// The JWT includes iss, aud, iat, and the userinfo claims (sub, profile, email, etc.).
+func (s *TokenService) IssueUserInfoJWT(ctx context.Context, clientID string, claims map[string]any) (string, error) {
+	// Ensure required claims are present.
+	if _, ok := claims[cryptoutilIdentityMagic.ClaimSub].(string); !ok {
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
+			fmt.Errorf("missing required claim: %s", cryptoutilIdentityMagic.ClaimSub),
+		)
+	}
+
+	// Add audience claim (client_id that requested the userinfo).
+	claims[cryptoutilIdentityMagic.ClaimAud] = clientID
+
+	// Issue as ID token (same signing mechanism).
+	return s.jwsIssuer.IssueIDToken(ctx, claims)
+}
+
 // GetPublicKeys returns the public keys for JWT signature verification.
 func (s *TokenService) GetPublicKeys() []map[string]any {
 	if s.jwsIssuer == nil || s.jwsIssuer.keyRotationMgr == nil {
