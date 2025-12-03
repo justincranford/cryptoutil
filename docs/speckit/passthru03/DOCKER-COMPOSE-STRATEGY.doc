@@ -1,0 +1,109 @@
+# DOCKER-COMPOSE-STRATEGY.doc
+
+## Overview
+
+This document proposes a refactoring strategy for Docker Compose configurations across cryptoutil products (KMS, Identity, and future products). The goal is to create consistent, intuitive, and self-documenting configurations that are optimized for non-production environments while providing a clear path for production adaptation.
+
+## Core Principles
+
+**ALWAYS: Docker Compose is NEVER for production, ALWAYS for non-production**
+- Configurations will be seeded with sensible default users, credentials, data, and configs
+- Production deployments require copying and modifying these configurations
+- Configuration must be intuitive to the point of being self-documenting (no additional documentation required)
+- Users can easily copy/modify sections to extend functionality or remove sections to disable unwanted features
+
+## Proposed Structure
+
+### Root Compose File: ./deployments/compose.yml
+- Runs the entire suite with telemetry for 1-4 products (e.g., KMS and Identity currently)
+- All profiles include ./deployments/telemetry/compose.yml
+- Profile strategy: TBD whether to use separate profiles (telemetry, kms, identity) or combination profiles (kms-identity, kms-only, identity-only)
+
+### Telemetry Compose File: ./deployments/telemetry/compose.yml
+- Contains existing telemetry functionality
+- Includes otel-collector-contrib, custom health check job, and grafana-lgtm container
+
+### CRITICAL: One Compose File Per Product
+
+#### deployments/kms/compose.yml
+- All profiles include postgres and KMS containers: kms-sqlite-1, kms-postgres-1, kms-postgres-2
+- Profiles:
+  - **full**: Federated with Identity; assumes Identity services are also started (e.g., via ../compose.yml)
+  - **standalone** (default): Not federated
+  - **demo**: kms-sqlite-1 only; no postgres, no kms-postgres-1/2; no telemetry
+
+#### deployments/identity/compose.yml
+- All profiles include postgres and Identity containers: identity-authz-1, identity-idp-1, identity-rs-1, identity-spa-rp-1
+- Profiles:
+  - **full**: Federated with KMS; assumes KMS services are also started (e.g., via ../compose.yml)
+  - **standalone** (default): Not federated
+  - **demo**: identity-sqlite-1 only; no postgres, no identity-postgres-1/2; no telemetry
+- **Architecture Notes**:
+  - Identity services use unified binary (cmd/identity-unified) for authz/idp/rs
+  - SPA RP is standalone application (internal/identity/cmd/main/spa-rp) requiring separate Dockerfile.spa
+  - Current builder-identity incorrectly uses KMS Dockerfile; needs unified identity build
+  - Commands in compose may need adjustment to match actual binary interfaces
+
+## Implementation Tasks
+
+### Phase 1: Foundation
+- [ ] Create ./deployments/compose.yml skeleton
+- [ ] Extract telemetry to ./deployments/telemetry/compose.yml
+- [ ] Create deployments/kms/compose.yml with all profiles
+- [ ] Create deployments/identity/compose.yml with corrected builders and images
+- [ ] Create Dockerfile.spa for standalone SPA RP application
+- [ ] Fix identity compose commands to match binary interfaces
+
+### Phase 2: Configuration Consistency
+- [ ] Standardize service naming conventions across all compose files
+- [ ] Implement shared secrets and config patterns
+- [ ] Add default data seeding for all profiles
+- [ ] Validate profile dependencies and startup order
+- [ ] Ensure SPA RP uses separate image from unified identity services
+
+### Phase 3: Documentation and Testing
+- [ ] Update README.md with new compose usage instructions
+- [ ] Create automated tests for compose configurations
+- [ ] Validate that configurations are self-documenting
+- [ ] Test profile combinations and federation scenarios
+
+### Phase 4: Migration and Cleanup
+- [ ] Migrate existing deployments to new structure
+- [ ] Remove old compose files after validation
+- [ ] Update CI/CD workflows to use new compose structure
+- [ ] Train team on new configuration patterns
+
+## Key Learnings from Analysis
+
+### Missing Components Identified
+- **Dockerfile.spa**: Required for standalone SPA Relying Party application
+- **Corrected Builders**: identity compose builder uses wrong Dockerfile (KMS instead of identity)
+- **Binary Mismatches**: Compose commands don't align with actual binary interfaces
+
+### Architectural Clarifications
+- **SPA RP**: Standalone sample application serving embedded static files
+- **Traditional RP**: KMS Swagger UI (backend + embedded UI pattern)
+- **Unified vs Separate**: Identity uses unified binary for core services, separate for SPA
+
+### Risks and Gaps
+- Profile strategy (separate vs combination profiles) needs decision
+- Service naming conventions need standardization
+- Federation dependencies between products need clear handling
+- Default seeding data needs definition for "sensible defaults"
+
+## Open Questions
+- Profile strategy: separate vs. combination profiles?
+- Service naming: exact conventions for multi-service products?
+- Federation: how to handle cross-product dependencies?
+- Defaults: what constitutes "sensible defaults" for seeding?
+- Commands: ensure compose commands match binary entry points?
+- Builders: separate builders for different binaries within same product?
+
+## Success Criteria
+- All configurations pass docker-compose config validation
+- Profiles start successfully in isolation and combination
+- Configurations are intuitive enough that new team members can understand without docs
+- Production teams can easily adapt configurations for their environments
+- No breaking changes to existing functionality during transition
+- All required Dockerfiles exist and build correctly
+- Commands in compose match actual binary interfaces
