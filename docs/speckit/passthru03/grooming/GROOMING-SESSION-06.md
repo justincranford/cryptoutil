@@ -15,12 +15,14 @@ B) Profile-specific service overrides with shared base definitions
 C) Dynamic service generation based on profile requirements
 D) Separate compose fragments combined at runtime
 
-**Answer**:
+**Answer**: Unsure how to answer
 
 **Notes**:
 
 ```text
-
+Definitely not C
+Definitely not D
+A or B don't sound right, so unsure how to answer`
 ```
 
 ### Q72: What is the most efficient way to implement database volume snapshots?
@@ -30,7 +32,7 @@ B) Database-specific backup tools (pg_dump, sqlite dump)
 C) Pre-seeded volume images with copy-on-write
 D) Application-level data export/import
 
-**Answer**:
+**Answer**: B
 
 **Notes**:
 
@@ -45,12 +47,13 @@ B) Separate Dockerfiles inheriting from common base image
 C) Monolithic Dockerfile with conditional builds
 D) BuildKit multi-stage with selective layer copying
 
-**Answer**:
+**Answer**: A or B?
 
 **Notes**:
 
 ```text
-
+Definitely not C
+No idea about D
 ```
 
 ### Q74: What security validations are needed in CI/CD pipelines?
@@ -60,7 +63,7 @@ B) Image vulnerability scanning with Trivy
 C) Network isolation testing between services
 D) All of the above plus runtime security audits
 
-**Answer**:
+**Answer**: D
 
 **Notes**:
 
@@ -75,12 +78,12 @@ B) CI/CD validation scripts checking file paths
 C) Documentation with required structure
 D) All of the above
 
-**Answer**:
+**Answer**: B
 
 **Notes**:
 
 ```text
-
+It must be Go e2e tests, so I can run them locally or invoke them from CI workflow
 ```
 
 ### Q76: What container-only approach eliminates host dependencies?
@@ -90,7 +93,7 @@ B) Environment variables replaced with config files
 C) Host networking replaced with bridge networking
 D) All of the above
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -105,7 +108,7 @@ B) Explicit hostname configuration in service configs
 C) Service registration with internal DNS server
 D) Load balancer configuration for service routing
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -120,12 +123,12 @@ B) Resource usage monitoring and alerts
 C) Service dependency failure notifications
 D) All of the above plus distributed tracing
 
-**Answer**:
+**Answer**: D
 
 **Notes**:
 
 ```text
-
+Production is low priority, way far away in future
 ```
 
 ### Q79: How should the fixed naming convention be validated automatically?
@@ -135,7 +138,7 @@ B) Pre-commit hooks with regex validation
 C) CI/CD scripts validating service and container names
 D) All of the above
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -150,7 +153,7 @@ B) Go e2e tests passing for all profile combinations
 C) Zero documentation needed for basic usage
 D) All of the above plus successful scaling to new products
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 

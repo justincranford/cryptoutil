@@ -217,12 +217,16 @@ B) Configuration conflicts
 C) Easier maintenance
 D) No significant risk
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
 ```text
-
+DO NOT SHARE OR REUSE CREDENTIALS!
+ALL SERVICES MUST HAVE UNIQUE CREDENTIALS!
+EXCEPTION: Unseal secrets for kms-postgres-# services, because unseal JWKs (including kid header)
+are derived from the unseal secrets, and that is how multiple kms-postgres-# services will encrypt/decrypt
+data so that each other can share and use it.
 ```
 
 ### Q35: How can we improve the developer experience with the new structure?
@@ -232,12 +236,12 @@ B) Better error messages and debugging
 C) Comprehensive documentation
 D) All of the above
 
-**Answer**:
+**Answer**: A and B
 
 **Notes**:
 
 ```text
-
+Little or no documentation should be needed, it should be intuitive
 ```
 
 ### Q36: What is the biggest challenge in migrating existing deployments?
@@ -252,7 +256,7 @@ D) Minimal migration effort required
 **Notes**:
 
 ```text
-
+No migration! This is a pre-release project.
 ```
 
 ### Q37: How should we handle optional services in profiles?
@@ -262,12 +266,12 @@ B) Profile-specific compose files
 C) Runtime service enabling/disabling
 D) Always include all services
 
-**Answer**:
+**Answer**: I don't know what to pick
 
 **Notes**:
 
 ```text
-
+DEFINITELY NOT B
 ```
 
 ### Q38: What efficiency can be gained from standardized naming?
@@ -277,7 +281,7 @@ B) Reduced cognitive load for developers
 C) Better grep-ability in logs
 D) All of the above
 
-**Answer**:
+**Answer**: D
 
 **Notes**:
 
@@ -292,7 +296,7 @@ B) Flexible framework with product-specific adaptations
 C) Separate structure per product
 D) Limit to current products only
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -307,7 +311,7 @@ B) Increased complexity for users
 C) Performance regressions
 D) Security vulnerabilities
 
-**Answer**:
+**Answer**: B
 
 **Notes**:
 

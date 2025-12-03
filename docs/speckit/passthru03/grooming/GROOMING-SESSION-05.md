@@ -10,12 +10,12 @@
 
 ### Q61: What should the validation service architecture look like?
 
-A) Standalone container that scans configurations at startup
+A) Standalone job that scans configurations at startup
 B) Integrated validation in each service's entrypoint
 C) External validation service called from CI/CD
 D) Client-side validation in development tools
 
-**Answer**:
+**Answer**: A and B
 
 **Notes**:
 
@@ -30,7 +30,7 @@ B) Testcontainers with docker compose support
 C) Custom Go library wrapping docker compose commands
 D) Shell script execution from Go test framework
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -45,7 +45,7 @@ B) Cross-service connectivity and federation
 C) Configuration file syntax and references
 D) All of the above
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -60,7 +60,7 @@ B) Runtime inspection of environment variables
 C) Database queries for default credential usage
 D) All of the above
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -75,7 +75,7 @@ B) Sequential execution with cleanup between tests
 C) On-demand testing for modified profiles only
 D) Matrix testing across different environments
 
-**Answer**:
+**Answer**: B
 
 **Notes**:
 
@@ -90,7 +90,7 @@ B) Screenshot capture of web interfaces
 C) Network traffic analysis and packet dumps
 D) All of the above
 
-**Answer**:
+**Answer**: A and B
 
 **Notes**:
 
@@ -105,7 +105,7 @@ B) Service discovery latency and API response times
 C) Database connection pool utilization
 D) All of the above
 
-**Answer**:
+**Answer**: D
 
 **Notes**:
 
@@ -120,7 +120,7 @@ B) On-demand service triggered by health checks
 C) CI/CD only service, not in runtime profiles
 D) Optional service enabled via environment variables
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
@@ -135,12 +135,15 @@ B) Pull request validation for profile testing
 C) Release validation for production readiness
 D) All of the above
 
-**Answer**:
+**Answer**: Unsure how to answer
 
 **Notes**:
 
 ```text
-
+NOT C
+NOT D
+Not sure if A or B are valid either
+My goal is e2e go tests that run `docker compose` commands, and they can be run locally or in a CI workflow
 ```
 
 ### Q70: How should validation results be stored and tracked?
@@ -150,7 +153,7 @@ B) Database storage with historical trending
 C) GitHub issues created for failures
 D) Slack notifications with summary reports
 
-**Answer**:
+**Answer**: A
 
 **Notes**:
 
