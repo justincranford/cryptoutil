@@ -56,11 +56,12 @@ type Client struct {
 	TOSURI      string `json:"tos_uri,omitempty"`       // Terms of service URL.
 
 	// OAuth 2.1 configuration.
-	RedirectURIs            []string         `gorm:"serializer:json" json:"redirect_uris"`          // Allowed redirect URIs.
-	AllowedGrantTypes       []string         `gorm:"serializer:json" json:"allowed_grant_types"`    // Allowed grant types.
-	AllowedResponseTypes    []string         `gorm:"serializer:json" json:"allowed_response_types"` // Allowed response types.
-	AllowedScopes           []string         `gorm:"serializer:json" json:"allowed_scopes"`         // Allowed scopes.
-	TokenEndpointAuthMethod ClientAuthMethod `gorm:"not null" json:"token_endpoint_auth_method"`    // Authentication method.
+	RedirectURIs            []string         `gorm:"serializer:json" json:"redirect_uris"`               // Allowed redirect URIs.
+	PostLogoutRedirectURIs  []string         `gorm:"serializer:json" json:"post_logout_redirect_uris"`   // Allowed post-logout redirect URIs (OIDC RP-Initiated Logout).
+	AllowedGrantTypes       []string         `gorm:"serializer:json" json:"allowed_grant_types"`         // Allowed grant types.
+	AllowedResponseTypes    []string         `gorm:"serializer:json" json:"allowed_response_types"`      // Allowed response types.
+	AllowedScopes           []string         `gorm:"serializer:json" json:"allowed_scopes"`              // Allowed scopes.
+	TokenEndpointAuthMethod ClientAuthMethod `gorm:"not null" json:"token_endpoint_auth_method"`         // Authentication method.
 
 	// PKCE configuration.
 	RequirePKCE         *bool  `gorm:"type:boolean;default:true" json:"require_pkce"` // Require PKCE for authorization code flow.

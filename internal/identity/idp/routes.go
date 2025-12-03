@@ -36,4 +36,5 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oidc.Post("/consent", s.AuthMiddleware(), s.handleConsentSubmit)
 	oidc.Get("/userinfo", s.TokenAuthMiddleware(), s.handleUserInfo)
 	oidc.Post("/logout", s.AuthMiddleware(), s.handleLogout)
+	oidc.Get("/endsession", s.handleEndSession) // OIDC RP-Initiated Logout (no auth required).
 }

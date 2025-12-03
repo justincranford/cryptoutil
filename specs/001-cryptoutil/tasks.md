@@ -58,10 +58,10 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 |------|-------------|--------|
 | ✅ P1.4.1 CRITICAL S1 | Extract user from token | Implemented |
 | ✅ P1.4.2 HIGH S2 | Return claims based on scopes | Scope-based filtering |
-| ❌ P1.4.3 CRITICAL S2 | Return JWT-signed response (OAuth 2.1 requirement) | Returns JSON, not JWT |
+| ✅ P1.4.3 CRITICAL S2 | Return JWT-signed response (OAuth 2.1 requirement) | Implemented (Accept: application/jwt) |
 | ✅ P1.4.4 HIGH S2 | Add scope-based claim filtering | Implemented |
 
-**Evidence**: `internal/identity/idp/handlers_userinfo.go`
+**Evidence**: `internal/identity/idp/handlers_userinfo.go`, `internal/identity/issuer/service.go`
 
 ### 1.5 Security Hardening
 
