@@ -105,6 +105,63 @@ All Phase 1 Identity V2 tasks have been completed!
 
 ---
 
+## POST MORTEM: Docker Compose Deployment Failure
+
+### Issue
+
+Docker Compose failed to start identity services. The `identity-authz` container exited immediately with code 1.
+
+### Root Cause Analysis (Multi-Layer)
+
+**Layer 1: Build Context Path**
+- compose.yml had `context: ../../..` which was incorrect
+- Should be `context: ../..` (relative to deployments/identity/)
+
+**Layer 2: Secret File Line Endings**
+- Secret files had CRLF (Windows) line endings
+- PostgreSQL interpreted `identity_user\r\n` as the literal username
+- User authentication failed: "Role 'identity_user' does not exist"
+
+**Layer 3: DSN Flag Parsing Missing**
+- CLI didn't parse `-u` flag for database DSN from Docker secrets
+- Config files still relied on environment variables
+
+**Layer 4: Migration Schema Mismatch**
+- Migration 0006 used `INTEGER DEFAULT 0` for boolean columns
+- PostgreSQL expected `BOOLEAN` type for GORM compatibility
+- GORM column names didn't match migration (`front_channel_logout_uri` vs `frontchannel_logout_uri`)
+
+### Discovery Method
+
+1. `docker logs identity-identity-authz-1` showed DB connection failure
+2. `docker logs identity-identity-postgres-1` showed "Role does not exist"
+3. Checked secret file bytes: `0D 0A` (CRLF) at end
+4. After fixing secrets, new error: "column does not exist"
+5. Compared GORM field names vs migration column names
+
+### Resolution
+
+1. Fixed build context: `context: ../..`
+2. Fixed secret files: removed trailing CRLF
+3. Added DSN flag parsing to identity CLI
+4. Added explicit GORM column tags to match migrations
+5. Updated migration 0006 to use `BOOLEAN` (cross-DB compatible)
+
+### Evidence
+
+- Commit: `14b2ae96`
+- All containers healthy after fix
+- Health endpoint responds: `{"status":"healthy"}`
+
+### Lessons Learned
+
+1. **Windows CRLF breaks Docker secrets** - always use LF in secret files
+2. **GORM column names must match SQL migrations** - use explicit column tags
+3. **Test Docker Compose early** - don't assume local dev config works in containers
+4. **Cross-DB migrations need BOOLEAN, not INTEGER** - SQLite and PostgreSQL both accept BOOLEAN
+
+---
+
 ## POST MORTEM: Spec Status Accuracy
 
 ### Issue
@@ -176,7 +233,7 @@ All Phase 1 tasks completed:
 - [ ] Coverage maintained: `go test ./internal/identity/... -cover`
 - [ ] Lint clean: `golangci-lint run ./internal/identity/...`
 - [ ] E2E demo works: `go run ./cmd/demo identity`
-- [ ] Docker Compose healthy: All services start and pass healthchecks
+- [x] Docker Compose healthy: All services start and pass healthchecks ✅
 - [ ] Spec.md synchronized: All status markers accurate
 
 ---

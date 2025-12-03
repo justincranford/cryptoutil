@@ -172,7 +172,7 @@ func (m *oamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.
 
 func (m *oamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
 	if params == nil {
-		return nil, nil
+		return &cryptoutilOrmRepository.GetElasticKeysFilters{}, nil
 	}
 
 	var errs []error
@@ -225,7 +225,7 @@ func (m *oamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiM
 
 func (m *oamOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
 	if params == nil {
-		return nil, nil
+		return &cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters{}, nil
 	}
 
 	var errs []error
@@ -271,7 +271,7 @@ func (m *oamOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryp
 
 func (m *oamOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilOpenapiModel.MaterialKeysQueryParams) (*cryptoutilOrmRepository.GetMaterialKeysFilters, error) {
 	if params == nil {
-		return nil, nil
+		return &cryptoutilOrmRepository.GetMaterialKeysFilters{}, nil
 	}
 
 	var errs []error
