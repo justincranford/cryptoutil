@@ -25,7 +25,7 @@ services:
   cryptoutil-demo:
     build:
       context: ../..
-      dockerfile: deployments/Dockerfile
+      dockerfile: deployments/kms/Dockerfile.kms
       args:
         APP_VERSION: demo
         VCS_REF: demo

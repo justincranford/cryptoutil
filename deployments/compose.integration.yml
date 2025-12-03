@@ -110,7 +110,7 @@ services:
   cryptoutil-kms:
     build:
       context: ..
-      dockerfile: deployments/Dockerfile
+      dockerfile: deployments/kms/Dockerfile.kms
       args:
         APP_VERSION: integration
         VCS_REF: integration
