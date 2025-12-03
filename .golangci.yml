@@ -288,6 +288,8 @@ linters:
           alias: cryptoutilIdentityRotation
         - pkg: "cryptoutil/internal/identity/server"
           alias: cryptoutilIdentityServer
+        - pkg: "cryptoutil/internal/identity/cmd/main"
+          alias: cryptoutilIdentityCmd
         # Crypto packages
         - { pkg: "crypto/aes", alias: aes }
         - { pkg: "crypto/ecdsa", alias: ecdsa }
