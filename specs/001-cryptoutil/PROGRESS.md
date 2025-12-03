@@ -229,14 +229,54 @@ All Phase 1 tasks completed:
 
 ### Before Marking Phase Complete
 
-- [ ] All tests pass: `go test ./internal/identity/... -v`
-- [ ] Coverage maintained: `go test ./internal/identity/... -cover`
-- [ ] Lint clean: `golangci-lint run ./internal/identity/...`
-- [ ] E2E demo works: `go run ./cmd/demo identity`
+- [x] All tests pass: `go test ./internal/identity/... -v` ✅
+- [x] Coverage maintained: `go test ./internal/identity/... -cover` ✅
+- [x] Lint clean: `golangci-lint run ./internal/identity/...` ✅
+- [x] E2E demo works: `go run ./cmd/demo identity` ✅
 - [x] Docker Compose healthy: All services start and pass healthchecks ✅
-- [ ] Spec.md synchronized: All status markers accurate
+- [x] Spec.md synchronized: All status markers accurate ✅
 
 ---
 
-*Progress Version: 1.0.0*
-*Last Updated: December 2025*
+## POST MORTEM: Phase 2 & 3 Task Status Verification
+
+### Issue
+
+Tasks.md marked Phase 2 (KMS) and Phase 3 (Integration) as "NOT VERIFIED" or "NOT STARTED" when demos actually work.
+
+### Root Cause
+
+Task status was not updated after demos were implemented. The implementation was complete but the tracking documents lagged behind.
+
+### Discovery Method
+
+1. Ran `go run ./cmd/demo kms` - 4/4 steps pass
+2. Ran `go run ./cmd/demo identity` - 5/5 steps pass  
+3. Ran `go run ./cmd/demo all` - 7/7 steps pass (full integration)
+4. Verified Docker Compose `identity` deployment - all healthy
+
+### Resolution
+
+Updated tasks.md:
+- Phase 2: 7/9 tasks completed (78%), 2 deferred
+- Phase 3: 11/12 tasks completed (92%), 1 deferred
+
+### Evidence
+
+```
+$ go run ./cmd/demo all
+✅ Demo completed successfully!
+Duration: 2.936s
+Steps: 7 total, 7 passed, 0 failed, 0 skipped
+```
+
+### Lessons Learned
+
+1. **Run demos to verify status** - don't trust documentation alone
+2. **Update tasks.md immediately after verification** - prevents task drift
+3. **Deferred != Failed** - mark as deferred with reason, not failed
+
+---
+
+*Progress Version: 1.1.0*
+*Last Updated: December 3, 2025*
