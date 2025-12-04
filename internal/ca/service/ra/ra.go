@@ -48,33 +48,33 @@ type ValidationResult struct {
 
 // ApprovalAction represents an approval workflow action.
 type ApprovalAction struct {
-	ActionID    googleUuid.UUID `json:"action_id"`
-	RequestID   googleUuid.UUID `json:"request_id"`
-	ApproverID  string          `json:"approver_id"`
-	Action      string          `json:"action"` // approve, reject, escalate, comment
-	Comment     string          `json:"comment,omitempty"`
-	Timestamp   time.Time       `json:"timestamp"`
-	IPAddress   string          `json:"ip_address,omitempty"`
-	UserAgent   string          `json:"user_agent,omitempty"`
+	ActionID   googleUuid.UUID `json:"action_id"`
+	RequestID  googleUuid.UUID `json:"request_id"`
+	ApproverID string          `json:"approver_id"`
+	Action     string          `json:"action"` // approve, reject, escalate, comment
+	Comment    string          `json:"comment,omitempty"`
+	Timestamp  time.Time       `json:"timestamp"`
+	IPAddress  string          `json:"ip_address,omitempty"`
+	UserAgent  string          `json:"user_agent,omitempty"`
 }
 
 // CertificateRequest represents a certificate signing request in the RA workflow.
 type CertificateRequest struct {
-	RequestID        googleUuid.UUID    `json:"request_id"`
-	CSR              []byte             `json:"csr"`
-	CSRHash          string             `json:"csr_hash"`
-	ProfileID        string             `json:"profile_id"`
-	RequesterID      string             `json:"requester_id"`
-	RequesterEmail   string             `json:"requester_email,omitempty"`
-	OrganizationID   string             `json:"organization_id,omitempty"`
-	Status           RequestStatus      `json:"status"`
+	RequestID         googleUuid.UUID    `json:"request_id"`
+	CSR               []byte             `json:"csr"`
+	CSRHash           string             `json:"csr_hash"`
+	ProfileID         string             `json:"profile_id"`
+	RequesterID       string             `json:"requester_id"`
+	RequesterEmail    string             `json:"requester_email,omitempty"`
+	OrganizationID    string             `json:"organization_id,omitempty"`
+	Status            RequestStatus      `json:"status"`
 	ValidationResults []ValidationResult `json:"validation_results"`
-	ApprovalHistory  []ApprovalAction   `json:"approval_history"`
-	CreatedAt        time.Time          `json:"created_at"`
-	UpdatedAt        time.Time          `json:"updated_at"`
-	ExpiresAt        time.Time          `json:"expires_at"`
-	IssuedCertID     string             `json:"issued_cert_id,omitempty"`
-	Metadata         map[string]string  `json:"metadata,omitempty"`
+	ApprovalHistory   []ApprovalAction   `json:"approval_history"`
+	CreatedAt         time.Time          `json:"created_at"`
+	UpdatedAt         time.Time          `json:"updated_at"`
+	ExpiresAt         time.Time          `json:"expires_at"`
+	IssuedCertID      string             `json:"issued_cert_id,omitempty"`
+	Metadata          map[string]string  `json:"metadata,omitempty"`
 }
 
 // WorkflowConfig defines the approval workflow configuration.
@@ -369,8 +369,8 @@ func (s *RAService) CleanupExpired(_ context.Context) (int, error) {
 	defer s.mu.Unlock()
 
 	now := time.Now().UTC()
-	
-var count int
+
+	var count int
 
 	for id, req := range s.requests {
 		if req.Status == StatusPending && now.After(req.ExpiresAt) {
@@ -436,8 +436,8 @@ func (s *RAService) processAction(_ context.Context, requestID googleUuid.UUID, 
 // validateRequest runs validation checks on a CSR.
 func (s *RAService) validateRequest(_ context.Context, csr *x509.CertificateRequest, _ string) []ValidationResult {
 	var results []ValidationResult
-	
-now := time.Now().UTC()
+
+	now := time.Now().UTC()
 
 	// Validate CSR signature.
 	if err := csr.CheckSignature(); err != nil {

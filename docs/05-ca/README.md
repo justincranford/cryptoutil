@@ -13,6 +13,58 @@
 - Design for multi-backend support (PostgreSQL, SQLite) with identical behavior.
 - Integrate security tooling (gosec, golangci-lint) and observability from day one.
 
+## Implementation Status
+
+| Task | Status | Package/Location |
+|------|--------|------------------|
+| Task 1: Domain Charter | ✅ Complete | `docs/05-ca/charter.md` |
+| Task 2: Config Schema | ✅ Complete | `configs/ca/`, `internal/ca/config/` |
+| Task 3: Crypto Provider | ✅ Complete | `internal/ca/crypto/` |
+| Task 4: Subject Profiles | ✅ Complete | `internal/ca/profile/subject/` |
+| Task 5: Certificate Profiles | ✅ Complete | `internal/ca/profile/certificate/` |
+| Task 6: Root CA Bootstrap | ✅ Complete | `internal/ca/bootstrap/` |
+| Task 7: Intermediate CA | ✅ Complete | `internal/ca/issuance/` |
+| Task 8: Issuing CA Lifecycle | ✅ Complete | `internal/ca/lifecycle/` |
+| Task 9: Enrollment API | ✅ Complete | `internal/ca/enrollment/` |
+| Task 10: Revocation Services | ✅ Complete | `internal/ca/service/revocation/` |
+| Task 11: Time-Stamping | ✅ Complete | `internal/ca/service/timestamp/` |
+| Task 12: RA Workflows | ✅ Complete | `internal/ca/service/ra/` |
+| Task 13: Profile Library | ✅ Complete | `configs/ca/profiles/` (24 profiles) |
+| Task 14: Storage Layer | ✅ Complete | `internal/ca/storage/` |
+| Task 15: CLI Tooling | ✅ Complete | `internal/ca/cli/` |
+| Task 16: Observability | ✅ Complete | `internal/ca/observability/` |
+| Task 17: Security Hardening | ⏳ Pending | - |
+| Task 18: Compliance/Audit | ⏳ Pending | - |
+| Task 19: Deployment Bundles | ⏳ Pending | - |
+| Task 20: Final Handover | ⏳ Pending | - |
+
+## Package Structure
+
+```text
+internal/ca/
+├── bootstrap/        # Root CA bootstrap workflow
+├── cli/              # CLI tooling for CA operations
+├── config/           # Configuration types and loading
+├── crypto/           # Crypto provider abstractions
+├── enrollment/       # Certificate enrollment service
+├── issuance/         # Certificate issuance service
+├── lifecycle/        # CA lifecycle management
+├── observability/    # Metrics, tracing, audit logging
+├── profile/
+│   ├── certificate/  # Certificate profile engine
+│   └── subject/      # Subject profile engine
+├── service/
+│   ├── ra/           # Registration Authority workflows
+│   ├── revocation/   # CRL and OCSP services
+│   └── timestamp/    # Time-stamping service
+└── storage/          # Certificate storage layer
+
+configs/ca/
+├── crypto/           # Crypto configuration YAML files
+├── profiles/         # 24 certificate profile YAML files
+└── subjects/         # Subject template YAML files
+```
+
 ## Task Breakdown
 
 ### Task 1: Domain Charter and Scope Definition
