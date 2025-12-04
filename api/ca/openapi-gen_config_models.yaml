@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+# oapi-codegen configuration for CA enrollment API models.
+package: models
+output: models/models.gen.go
+generate:
+  models: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+  name-normalizer: ToCamelCaseWithInitialisms
+  additional-initialisms:
+    - JWT    # JSON Web Token
+    - JWK    # JSON Web Key
+    - CSR    # Certificate Signing Request
+    - PEM    # Privacy-Enhanced Mail
+    - DER    # Distinguished Encoding Rules
+    - TLS    # Transport Layer Security
+    - CA     # Certificate Authority
+    - CRL    # Certificate Revocation List
+    - OCSP   # Online Certificate Status Protocol
+    - SHA    # Secure Hash Algorithm
+    - RSA    # Rivest-Shamir-Adleman
+    - EC     # Elliptic Curve
+    - IP     # Internet Protocol
+    - URI    # Uniform Resource Identifier
+    - SAN    # Subject Alternative Name
+    - DN     # Distinguished Name
+    - CN     # Common Name
+    - OU     # Organizational Unit

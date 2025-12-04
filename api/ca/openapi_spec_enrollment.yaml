@@ -1,0 +1,724 @@
+# CA Enrollment API OpenAPI Specification.
+# This file defines the REST API for certificate enrollment operations.
+openapi: 3.0.3
+info:
+  title: CA Enrollment API
+  version: "1.0.0"
+  description: >
+    Certificate Authority Enrollment API for certificate request submission,
+    issuance, retrieval, and status checking. Supports multiple certificate
+    profiles including TLS server, TLS client, code signing, and S/MIME.
+  contact:
+    name: API Support
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: /api/v1/ca
+    description: CA API base path
+
+tags:
+  - name: Enrollment
+    description: Certificate enrollment operations
+  - name: Certificates
+    description: Certificate retrieval operations
+  - name: Profiles
+    description: Certificate profile operations
+
+paths:
+  /enroll:
+    post:
+      tags:
+        - Enrollment
+      summary: Submit certificate enrollment request
+      description: >
+        Submit a certificate signing request (CSR) for a new certificate.
+        The request must include a valid CSR in PEM format and specify
+        the desired certificate profile.
+      operationId: submitEnrollment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentRequest'
+      responses:
+        '201':
+          description: Enrollment accepted and certificate issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentResponse'
+        '202':
+          description: Enrollment accepted pending approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentPendingResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: CSR validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /enroll/{requestId}:
+    get:
+      tags:
+        - Enrollment
+      summary: Get enrollment request status
+      description: Retrieve the status of a pending enrollment request.
+      operationId: getEnrollmentStatus
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Enrollment request identifier
+      responses:
+        '200':
+          description: Enrollment status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentStatusResponse'
+        '404':
+          description: Enrollment request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /certificates:
+    get:
+      tags:
+        - Certificates
+      summary: List certificates
+      description: Retrieve a list of issued certificates with optional filtering.
+      operationId: listCertificates
+      parameters:
+        - name: profile
+          in: query
+          schema:
+            type: string
+          description: Filter by certificate profile
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/CertificateStatus'
+          description: Filter by certificate status
+        - name: subject_cn
+          in: query
+          schema:
+            type: string
+          description: Filter by subject common name (partial match)
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of results per page
+      responses:
+        '200':
+          description: List of certificates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateListResponse'
+
+  /certificates/{serialNumber}:
+    get:
+      tags:
+        - Certificates
+      summary: Get certificate by serial number
+      description: Retrieve a specific certificate by its serial number.
+      operationId: getCertificate
+      parameters:
+        - name: serialNumber
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Certificate serial number (hex-encoded)
+      responses:
+        '200':
+          description: Certificate retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateResponse'
+            application/x-pem-file:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Certificate not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /certificates/{serialNumber}/chain:
+    get:
+      tags:
+        - Certificates
+      summary: Get certificate chain
+      description: >
+        Retrieve the full certificate chain for a certificate,
+        including all intermediate CAs up to (but not including) the root.
+      operationId: getCertificateChain
+      parameters:
+        - name: serialNumber
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Certificate serial number (hex-encoded)
+      responses:
+        '200':
+          description: Certificate chain retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateChainResponse'
+            application/x-pem-file:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Certificate not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /profiles:
+    get:
+      tags:
+        - Profiles
+      summary: List available certificate profiles
+      description: Retrieve the list of certificate profiles available for enrollment.
+      operationId: listProfiles
+      responses:
+        '200':
+          description: List of profiles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileListResponse'
+
+  /profiles/{profileId}:
+    get:
+      tags:
+        - Profiles
+      summary: Get certificate profile details
+      description: Retrieve detailed information about a specific certificate profile.
+      operationId: getProfile
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Profile identifier
+      responses:
+        '200':
+          description: Profile details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # Request Schemas
+    EnrollmentRequest:
+      type: object
+      required:
+        - csr
+        - profile
+      properties:
+        csr:
+          type: string
+          description: >
+            Certificate Signing Request in PEM format. Must begin with
+            "-----BEGIN CERTIFICATE REQUEST-----" and end with
+            "-----END CERTIFICATE REQUEST-----".
+          example: |
+            -----BEGIN CERTIFICATE REQUEST-----
+            MIICYTCCAUkCAQAwHDEaMBgGA1UEAwwRZXhhbXBsZS5sb2NhbGhvc3Qw
+            ...
+            -----END CERTIFICATE REQUEST-----
+        profile:
+          type: string
+          description: Certificate profile identifier to use for issuance
+          example: "tls-server"
+        validity_days:
+          type: integer
+          minimum: 1
+          maximum: 825
+          description: Requested validity period in days (may be truncated by profile)
+          example: 365
+        subject_override:
+          $ref: '#/components/schemas/SubjectOverride'
+        san_override:
+          $ref: '#/components/schemas/SANOverride'
+
+    SubjectOverride:
+      type: object
+      description: Optional subject DN field overrides
+      properties:
+        organization:
+          type: array
+          items:
+            type: string
+          description: Organization (O) values
+        organizational_unit:
+          type: array
+          items:
+            type: string
+          description: Organizational Unit (OU) values
+        country:
+          type: array
+          items:
+            type: string
+          description: Country (C) values
+        state:
+          type: array
+          items:
+            type: string
+          description: State or Province (ST) values
+        locality:
+          type: array
+          items:
+            type: string
+          description: Locality (L) values
+
+    SANOverride:
+      type: object
+      description: Optional Subject Alternative Name overrides
+      properties:
+        dns_names:
+          type: array
+          items:
+            type: string
+          description: DNS names to include in the certificate
+          example: ["example.com", "www.example.com"]
+        ip_addresses:
+          type: array
+          items:
+            type: string
+          description: IP addresses to include in the certificate
+          example: ["192.168.1.1", "10.0.0.1"]
+        email_addresses:
+          type: array
+          items:
+            type: string
+          description: Email addresses to include in the certificate
+          example: ["admin@example.com"]
+        uris:
+          type: array
+          items:
+            type: string
+          description: URIs to include in the certificate
+          example: ["https://example.com"]
+
+    # Response Schemas
+    EnrollmentResponse:
+      type: object
+      required:
+        - request_id
+        - status
+        - certificate
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique enrollment request identifier
+        status:
+          type: string
+          enum: [issued]
+          description: Enrollment status
+        certificate:
+          $ref: '#/components/schemas/IssuedCertificate'
+
+    EnrollmentPendingResponse:
+      type: object
+      required:
+        - request_id
+        - status
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique enrollment request identifier
+        status:
+          type: string
+          enum: [pending]
+          description: Enrollment status
+        message:
+          type: string
+          description: Additional status information
+        estimated_completion:
+          type: string
+          format: date-time
+          description: Estimated time for approval
+
+    EnrollmentStatusResponse:
+      type: object
+      required:
+        - request_id
+        - status
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, approved, rejected, issued]
+        certificate:
+          $ref: '#/components/schemas/IssuedCertificate'
+        rejection_reason:
+          type: string
+          description: Reason for rejection (if status is rejected)
+        submitted_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    IssuedCertificate:
+      type: object
+      required:
+        - serial_number
+        - certificate_pem
+        - not_before
+        - not_after
+      properties:
+        serial_number:
+          type: string
+          description: Certificate serial number (hex-encoded)
+          example: "01A2B3C4D5E6F7"
+        certificate_pem:
+          type: string
+          description: Certificate in PEM format
+        chain_pem:
+          type: string
+          description: Full certificate chain in PEM format (excluding root)
+        not_before:
+          type: string
+          format: date-time
+          description: Certificate validity start time
+        not_after:
+          type: string
+          format: date-time
+          description: Certificate validity end time
+        subject:
+          $ref: '#/components/schemas/CertificateSubject'
+        fingerprint_sha256:
+          type: string
+          description: SHA-256 fingerprint of the certificate
+          example: "A1:B2:C3:D4:E5:F6:..."
+
+    CertificateSubject:
+      type: object
+      properties:
+        common_name:
+          type: string
+        organization:
+          type: array
+          items:
+            type: string
+        organizational_unit:
+          type: array
+          items:
+            type: string
+        country:
+          type: array
+          items:
+            type: string
+        state:
+          type: array
+          items:
+            type: string
+        locality:
+          type: array
+          items:
+            type: string
+        dns_names:
+          type: array
+          items:
+            type: string
+        ip_addresses:
+          type: array
+          items:
+            type: string
+        email_addresses:
+          type: array
+          items:
+            type: string
+
+    CertificateStatus:
+      type: string
+      enum: [active, revoked, expired]
+      description: Certificate status
+
+    CertificateResponse:
+      type: object
+      required:
+        - serial_number
+        - status
+        - certificate_pem
+      properties:
+        serial_number:
+          type: string
+        status:
+          $ref: '#/components/schemas/CertificateStatus'
+        certificate_pem:
+          type: string
+        not_before:
+          type: string
+          format: date-time
+        not_after:
+          type: string
+          format: date-time
+        subject:
+          $ref: '#/components/schemas/CertificateSubject'
+        issuer:
+          $ref: '#/components/schemas/CertificateSubject'
+        profile:
+          type: string
+        fingerprint_sha256:
+          type: string
+        revocation_time:
+          type: string
+          format: date-time
+          description: Time of revocation (if revoked)
+        revocation_reason:
+          type: string
+          description: Reason for revocation (if revoked)
+
+    CertificateChainResponse:
+      type: object
+      required:
+        - certificates
+      properties:
+        certificates:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChainCertificate'
+          description: Chain certificates from leaf to root
+
+    ChainCertificate:
+      type: object
+      required:
+        - certificate_pem
+        - subject
+      properties:
+        certificate_pem:
+          type: string
+        subject:
+          $ref: '#/components/schemas/CertificateSubject'
+        issuer:
+          $ref: '#/components/schemas/CertificateSubject'
+        is_ca:
+          type: boolean
+
+    CertificateListResponse:
+      type: object
+      required:
+        - certificates
+        - total
+        - page
+        - page_size
+      properties:
+        certificates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CertificateSummary'
+        total:
+          type: integer
+          description: Total number of matching certificates
+        page:
+          type: integer
+          description: Current page number
+        page_size:
+          type: integer
+          description: Number of results per page
+
+    CertificateSummary:
+      type: object
+      required:
+        - serial_number
+        - status
+        - subject_cn
+      properties:
+        serial_number:
+          type: string
+        status:
+          $ref: '#/components/schemas/CertificateStatus'
+        subject_cn:
+          type: string
+        not_before:
+          type: string
+          format: date-time
+        not_after:
+          type: string
+          format: date-time
+        profile:
+          type: string
+
+    ProfileListResponse:
+      type: object
+      required:
+        - profiles
+      properties:
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileSummary'
+
+    ProfileSummary:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Profile identifier
+        name:
+          type: string
+          description: Human-readable profile name
+        description:
+          type: string
+          description: Profile description
+        category:
+          type: string
+          enum: [tls, email, code_signing, document_signing, ca, other]
+
+    ProfileResponse:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        key_usage:
+          type: array
+          items:
+            type: string
+          description: Allowed key usages
+        extended_key_usage:
+          type: array
+          items:
+            type: string
+          description: Allowed extended key usages
+        max_validity_days:
+          type: integer
+          description: Maximum validity period in days
+        allowed_key_types:
+          type: array
+          items:
+            type: string
+          description: Allowed key algorithms and sizes
+        subject_requirements:
+          $ref: '#/components/schemas/SubjectRequirements'
+        san_requirements:
+          $ref: '#/components/schemas/SANRequirements'
+
+    SubjectRequirements:
+      type: object
+      properties:
+        require_common_name:
+          type: boolean
+        require_organization:
+          type: boolean
+        require_country:
+          type: boolean
+        allowed_countries:
+          type: array
+          items:
+            type: string
+
+    SANRequirements:
+      type: object
+      properties:
+        dns_names_allowed:
+          type: boolean
+        dns_names_required:
+          type: boolean
+        ip_addresses_allowed:
+          type: boolean
+        email_addresses_allowed:
+          type: boolean
+        uris_allowed:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field that caused the error
+        message:
+          type: string
+          description: Error description
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token
+
+security:
+  - bearerAuth: []
