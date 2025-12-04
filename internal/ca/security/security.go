@@ -166,8 +166,8 @@ func NewSecurityValidator(config *SecurityConfig) *SecurityValidator {
 // DefaultSecurityConfig returns a secure default configuration.
 func DefaultSecurityConfig() *SecurityConfig {
 	return &SecurityConfig{
-		MinRSAKeySize:  defaultMinRSAKeySize,
-		MinECKeySize:   defaultMinECKeySize,
+		MinRSAKeySize: defaultMinRSAKeySize,
+		MinECKeySize:  defaultMinECKeySize,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{
 			x509.SHA256WithRSA,
 			x509.SHA384WithRSA,
