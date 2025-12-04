@@ -1,0 +1,635 @@
+# $schema: https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.yaml
+openapi: 3.0.3
+info:
+  title: JOSE Authority Server API
+  version: "1.0.0"
+  description: >
+    REST API for JOSE (JSON Object Signing and Encryption) operations.
+    
+    Provides:
+    - JWK (JSON Web Key) management: generate, store, retrieve, list, delete keys
+    - JWKS (JSON Web Key Set) endpoint for public key distribution
+    - JWS (JSON Web Signature) operations: sign and verify payloads
+    - JWE (JSON Web Encryption) operations: encrypt and decrypt payloads
+    - JWT (JSON Web Token) operations: create and verify tokens
+    
+    All cryptographic operations use FIPS 140-3 approved algorithms.
+  contact:
+    name: Justin Cranford
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: /jose/v1
+    description: JOSE Authority Server API v1
+
+paths:
+  # Health Endpoints
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the JOSE Authority Server.
+      operationId: getHealth
+      tags: [Health]
+      responses:
+        '200':
+          description: Server is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /livez:
+    get:
+      summary: Liveness check
+      description: Returns OK if the server is alive.
+      operationId: getLivez
+      tags: [Health]
+      responses:
+        '200':
+          description: Server is alive.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+
+  /readyz:
+    get:
+      summary: Readiness check
+      description: Returns OK if the server is ready to accept requests.
+      operationId: getReadyz
+      tags: [Health]
+      responses:
+        '200':
+          description: Server is ready.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+
+  # JWK Endpoints
+  /jwk/generate:
+    post:
+      summary: Generate a new JWK
+      description: |
+        Generate a new JSON Web Key with the specified algorithm.
+        Supported algorithms:
+        - RSA: RSA4096, RSA3072, RSA2048
+        - EC: ECP521, ECP384, ECP256
+        - OKP: OKPEd25519
+        - Symmetric: Oct512, Oct384, Oct256, Oct192, Oct128
+      operationId: generateJWK
+      tags: [JWK]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWKGenerateRequest'
+      responses:
+        '201':
+          description: JWK generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWKResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /jwk/{kid}:
+    parameters:
+      - name: kid
+        in: path
+        required: true
+        description: Key ID (UUIDv7 format)
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get a JWK by Key ID
+      description: Retrieve a JSON Web Key by its Key ID. Returns public key information only.
+      operationId: getJWK
+      tags: [JWK]
+      responses:
+        '200':
+          description: JWK retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWKResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a JWK by Key ID
+      description: Delete a JSON Web Key by its Key ID.
+      operationId: deleteJWK
+      tags: [JWK]
+      responses:
+        '204':
+          description: JWK deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /jwk:
+    get:
+      summary: List all JWKs
+      description: List all stored JSON Web Keys with metadata.
+      operationId: listJWKs
+      tags: [JWK]
+      responses:
+        '200':
+          description: JWK list retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWKListResponse'
+
+  /jwks:
+    get:
+      summary: Get JWKS (public keys)
+      description: |
+        Returns a JSON Web Key Set containing all public keys.
+        This endpoint is typically used for token verification by relying parties.
+      operationId: getJWKS
+      tags: [JWK]
+      responses:
+        '200':
+          description: JWKS retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWKS'
+
+  # JWS Endpoints
+  /jws/sign:
+    post:
+      summary: Sign a payload
+      description: |
+        Create a JWS (JSON Web Signature) by signing the provided payload
+        with the specified key.
+      operationId: signJWS
+      tags: [JWS]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWSSignRequest'
+      responses:
+        '200':
+          description: Payload signed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWSSignResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /jws/verify:
+    post:
+      summary: Verify a JWS
+      description: |
+        Verify a JWS (JSON Web Signature) and extract the payload.
+        If no key ID is specified, all keys in the store are tried.
+      operationId: verifyJWS
+      tags: [JWS]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWSVerifyRequest'
+      responses:
+        '200':
+          description: JWS verification result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWSVerifyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # JWE Endpoints
+  /jwe/encrypt:
+    post:
+      summary: Encrypt a payload
+      description: |
+        Create a JWE (JSON Web Encryption) by encrypting the provided plaintext
+        with the specified key.
+      operationId: encryptJWE
+      tags: [JWE]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWEEncryptRequest'
+      responses:
+        '200':
+          description: Payload encrypted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWEEncryptResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /jwe/decrypt:
+    post:
+      summary: Decrypt a JWE
+      description: |
+        Decrypt a JWE (JSON Web Encryption) and return the plaintext.
+      operationId: decryptJWE
+      tags: [JWE]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWEDecryptRequest'
+      responses:
+        '200':
+          description: JWE decryption result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWEDecryptResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # JWT Endpoints
+  /jwt/create:
+    post:
+      summary: Create a JWT
+      description: |
+        Create a JWT (JSON Web Token) with the provided claims,
+        signed with the specified key.
+      operationId: createJWT
+      tags: [JWT]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWTCreateRequest'
+      responses:
+        '200':
+          description: JWT created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWTCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /jwt/verify:
+    post:
+      summary: Verify a JWT
+      description: |
+        Verify a JWT (JSON Web Token) and extract the claims.
+        If no key ID is specified, all keys in the store are tried.
+      operationId: verifyJWT
+      tags: [JWT]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWTVerifyRequest'
+      responses:
+        '200':
+          description: JWT verification result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWTVerifyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    # Health
+    HealthResponse:
+      type: object
+      required: [status, time]
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: healthy
+        time:
+          type: string
+          format: date-time
+          example: "2025-12-04T12:00:00Z"
+
+    # JWK Schemas
+    JWKGenerateRequest:
+      type: object
+      required: [algorithm]
+      properties:
+        algorithm:
+          type: string
+          description: Algorithm for key generation.
+          enum: [RSA4096, RSA3072, RSA2048, ECP521, ECP384, ECP256, OKPEd25519, Oct512, Oct384, Oct256, Oct192, Oct128]
+          example: ECP256
+        use:
+          type: string
+          description: Intended use of the key (sig=signing, enc=encryption).
+          enum: [sig, enc]
+          example: sig
+
+    JWKResponse:
+      type: object
+      required: [kid, algorithm, kty, created_at]
+      properties:
+        kid:
+          type: string
+          format: uuid
+          description: Key ID (UUIDv7).
+          example: "019377a8-4f00-7000-8000-000000000001"
+        algorithm:
+          type: string
+          description: Algorithm used for the key.
+          example: ECP256
+        use:
+          type: string
+          description: Intended use of the key.
+          example: sig
+        kty:
+          type: string
+          description: Key type.
+          enum: [RSA, EC, OKP, oct]
+          example: EC
+        public_jwk:
+          type: object
+          description: Public key in JWK format.
+        created_at:
+          type: integer
+          format: int64
+          description: Unix timestamp when the key was created.
+          example: 1733313600
+
+    JWKListResponse:
+      type: object
+      required: [keys, count]
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/JWKResponse'
+        count:
+          type: integer
+          description: Total number of keys.
+          example: 5
+
+    JWKS:
+      type: object
+      description: JSON Web Key Set (RFC 7517).
+      required: [keys]
+      properties:
+        keys:
+          type: array
+          items:
+            type: object
+            description: JWK public key.
+
+    # JWS Schemas
+    JWSSignRequest:
+      type: object
+      required: [kid, payload]
+      properties:
+        kid:
+          type: string
+          format: uuid
+          description: Key ID to use for signing.
+          example: "019377a8-4f00-7000-8000-000000000001"
+        payload:
+          type: string
+          description: Payload to sign (string or base64url-encoded).
+          example: "Hello, World!"
+
+    JWSSignResponse:
+      type: object
+      required: [jws]
+      properties:
+        jws:
+          type: string
+          description: Compact JWS serialization.
+          example: "eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxOTM3N2E4LTRmMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.SGVsbG8sIFdvcmxkIQ...."
+
+    JWSVerifyRequest:
+      type: object
+      required: [jws]
+      properties:
+        jws:
+          type: string
+          description: Compact JWS to verify.
+          example: "eyJhbGciOiJFUzI1NiJ9...."
+        kid:
+          type: string
+          format: uuid
+          description: Optional key ID to use for verification.
+
+    JWSVerifyResponse:
+      type: object
+      required: [valid]
+      properties:
+        valid:
+          type: boolean
+          description: Whether the signature is valid.
+          example: true
+        payload:
+          type: string
+          description: Decoded payload (if valid).
+          example: "Hello, World!"
+        kid:
+          type: string
+          format: uuid
+          description: Key ID used for verification.
+        error:
+          type: string
+          description: Error message (if invalid).
+
+    # JWE Schemas
+    JWEEncryptRequest:
+      type: object
+      required: [kid, plaintext]
+      properties:
+        kid:
+          type: string
+          format: uuid
+          description: Key ID to use for encryption.
+          example: "019377a8-4f00-7000-8000-000000000001"
+        plaintext:
+          type: string
+          description: Plaintext to encrypt.
+          example: "Secret message"
+
+    JWEEncryptResponse:
+      type: object
+      required: [jwe]
+      properties:
+        jwe:
+          type: string
+          description: Compact JWE serialization.
+          example: "eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0...."
+
+    JWEDecryptRequest:
+      type: object
+      required: [jwe, kid]
+      properties:
+        jwe:
+          type: string
+          description: Compact JWE to decrypt.
+          example: "eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0...."
+        kid:
+          type: string
+          format: uuid
+          description: Key ID to use for decryption.
+          example: "019377a8-4f00-7000-8000-000000000001"
+
+    JWEDecryptResponse:
+      type: object
+      properties:
+        plaintext:
+          type: string
+          description: Decrypted plaintext.
+          example: "Secret message"
+        kid:
+          type: string
+          format: uuid
+          description: Key ID used for decryption.
+        error:
+          type: string
+          description: Error message (if decryption failed).
+
+    # JWT Schemas
+    JWTCreateRequest:
+      type: object
+      required: [kid, claims]
+      properties:
+        kid:
+          type: string
+          format: uuid
+          description: Key ID to use for signing.
+          example: "019377a8-4f00-7000-8000-000000000001"
+        claims:
+          type: object
+          description: JWT claims.
+          additionalProperties: true
+          example:
+            sub: "user123"
+            iss: "jose-authority"
+            aud: "my-app"
+            exp: 1733400000
+            iat: 1733313600
+
+    JWTCreateResponse:
+      type: object
+      required: [jwt]
+      properties:
+        jwt:
+          type: string
+          description: Compact JWT serialization.
+          example: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9...."
+
+    JWTVerifyRequest:
+      type: object
+      required: [jwt]
+      properties:
+        jwt:
+          type: string
+          description: Compact JWT to verify.
+          example: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9...."
+        kid:
+          type: string
+          format: uuid
+          description: Optional key ID to use for verification.
+
+    JWTVerifyResponse:
+      type: object
+      required: [valid]
+      properties:
+        valid:
+          type: boolean
+          description: Whether the JWT signature is valid.
+          example: true
+        claims:
+          type: object
+          description: Decoded claims (if valid).
+          additionalProperties: true
+        kid:
+          type: string
+          format: uuid
+          description: Key ID used for verification.
+        error:
+          type: string
+          description: Error message (if invalid).
+
+    # Error Schemas
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Error message.
+          example: "Key not found"
+
+  responses:
+    BadRequest:
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: JWK
+    description: JSON Web Key management operations
+  - name: JWS
+    description: JSON Web Signature operations
+  - name: JWE
+    description: JSON Web Encryption operations
+  - name: JWT
+    description: JSON Web Token operations
