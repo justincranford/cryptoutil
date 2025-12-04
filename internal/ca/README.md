@@ -14,22 +14,44 @@ The CA subsystem provides cryptographic certificate lifecycle management for cry
 ```
 internal/ca/
 ├── README.md              # This file
-├── domain/                # Domain models and interfaces
+├── domain/                # Domain models and interfaces ✅ Task 1
 │   ├── certificate.go     # Certificate domain model
-│   ├── profile.go         # Certificate profile definitions
 │   └── repository.go      # Repository interfaces
-├── profile/               # Certificate profile engine
-│   ├── subject/           # Subject template resolution
-│   └── certificate/       # Certificate policy rendering
-├── service/               # Business logic services
+├── config/                # CA configuration ✅ Task 2
+│   └── config.go          # YAML config loading/validation
+├── crypto/                # Cryptographic operations ✅ Task 3
+│   └── provider.go        # Provider interface (RSA, ECDSA, EdDSA)
+├── profile/               # Certificate profile engines
+│   ├── subject/           # Subject template resolution ✅ Task 4
+│   └── certificate/       # Certificate policy rendering ✅ Task 5
+├── bootstrap/             # Root CA creation ✅ Task 6
+│   └── bootstrap.go       # Offline root CA bootstrap workflow
+├── intermediate/          # Intermediate CA provisioning ✅ Task 7
+│   └── intermediate.go    # Intermediate CA signing workflow
+├── service/               # Business logic services (TODO)
 │   ├── issuer.go          # Certificate issuance service
 │   ├── revocation.go      # Revocation management
 │   └── lifecycle.go       # CA lifecycle management
-├── repository/            # Persistence layer
-│   └── orm/               # GORM-based repository
-└── config/                # CA configuration
-    └── profiles/          # YAML certificate profiles
+└── repository/            # Persistence layer (TODO)
+    └── orm/               # GORM-based repository
 ```
+
+## Implementation Progress
+
+| Task | Status | Package | Tests |
+|------|--------|---------|-------|
+| 1. Domain Charter | ✅ | `domain/` | - |
+| 2. Configuration Schema | ✅ | `config/` | 10 |
+| 3. Crypto Provider | ✅ | `crypto/` | 8 |
+| 4. Subject Profile Engine | ✅ | `profile/subject/` | 4 |
+| 5. Certificate Profile Engine | ✅ | `profile/certificate/` | 7 |
+| 6. Root CA Bootstrap | ✅ | `bootstrap/` | 7 |
+| 7. Intermediate CA Provisioning | ✅ | `intermediate/` | 8 |
+| 8. Issuing CA Lifecycle | 🔲 | `service/` | - |
+| 9. End-Entity Enrollment API | 🔲 | `api/` | - |
+| 10. Revocation Services | 🔲 | `service/` | - |
+
+**Total Tests: 40+**
 
 ## Existing Infrastructure
 
