@@ -33,10 +33,12 @@
 | Task 14: Storage Layer | ✅ Complete | `internal/ca/storage/` |
 | Task 15: CLI Tooling | ✅ Complete | `internal/ca/cli/` |
 | Task 16: Observability | ✅ Complete | `internal/ca/observability/` |
-| Task 17: Security Hardening | ⏳ Pending | - |
-| Task 18: Compliance/Audit | ⏳ Pending | - |
-| Task 19: Deployment Bundles | ⏳ Pending | - |
-| Task 20: Final Handover | ⏳ Pending | - |
+| Task 17: Security Hardening | ✅ Complete | `internal/ca/security/`, `docs/05-ca/threat-model.md` |
+| Task 18: Compliance/Audit | ✅ Complete | `internal/ca/compliance/` |
+| Task 19: Deployment Bundles | ✅ Complete | `deployments/ca/compose/`, `deployments/ca/kubernetes/` |
+| Task 20: Final Handover | ✅ Complete | Documentation in `docs/05-ca/`, `deployments/ca/README.md` |
+
+**Implementation Progress**: 20/20 tasks complete (100%)
 
 ## Package Structure
 
