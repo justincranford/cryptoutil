@@ -2,6 +2,15 @@
 //
 //
 
+//go:build integration
+
+// Package integration provides integration tests for the identity server.
+// These tests require real network listeners and use hardcoded ports,
+// so they must be run separately from unit tests using:
+//
+//	go test -tags=integration ./internal/identity/integration/...
+//
+// Do NOT run these with `go test ./...` as they will conflict with parallel tests.
 package integration
 
 import (

@@ -189,7 +189,8 @@ func TestServiceStop(t *testing.T) {
 	}
 	authzSvc := cryptoutilIdentityAuthz.NewService(authzCfg, repoFactory, tokenSvc)
 
-	// Test Stop (should clean up expired tokens and close database).
+	// Test Stop (should clean up expired tokens).
+	// Note: Database connection is managed by RepositoryFactory, not by Service.
 	err = authzSvc.Stop(ctx)
-	require.NoError(t, err, "Stop should succeed with token cleanup and database close")
+	require.NoError(t, err, "Stop should succeed with token cleanup")
 }

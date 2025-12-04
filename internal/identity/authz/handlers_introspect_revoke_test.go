@@ -144,6 +144,9 @@ func createIntrospectTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository
 	cfg := createIntrospectTestConfig(t)
 	ctx := context.Background()
 
+	// Each test uses cache=private which creates isolated in-memory database.
+	// The migration logic already skips caching for in-memory databases.
+
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, cfg.Database)
 	require.NoError(t, err, "Failed to create repository factory")
 	require.NotNil(t, repoFactory, "Repository factory should not be nil")

@@ -61,6 +61,9 @@ func (s *Service) Start(ctx context.Context) error {
 }
 
 // Stop stops the authorization server.
+// Note: Database connections are managed by RepositoryFactory, not by this service.
+// Closing the database here would break parallel test execution where multiple
+// services share the same in-memory database connection pool.
 func (s *Service) Stop(ctx context.Context) error {
 	// Clean up expired tokens.
 	tokenRepo := s.repoFactory.TokenRepository()
@@ -69,17 +72,8 @@ func (s *Service) Stop(ctx context.Context) error {
 		return fmt.Errorf("failed to delete expired tokens during shutdown: %w", err)
 	}
 
-	// Close database connections gracefully.
-	db := s.repoFactory.DB()
-
-	sqlDB, err := db.DB()
-	if err != nil {
-		return fmt.Errorf("failed to get database connection for shutdown: %w", err)
-	}
-
-	if err := sqlDB.Close(); err != nil {
-		return fmt.Errorf("failed to close database connection: %w", err)
-	}
-
+	// Database connections are NOT closed here. The RepositoryFactory owns the
+	// connection lifecycle. For production deployments, call RepositoryFactory.Close()
+	// separately after all services have stopped.
 	return nil
 }

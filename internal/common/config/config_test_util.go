@@ -338,3 +338,19 @@ func RequireNewForTest(applicationName string) *Settings {
 
 	return settings
 }
+
+// NewForJOSEServer creates settings suitable for the JOSE Authority Server.
+func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *Settings {
+	settings := RequireNewForTest("jose-server")
+	settings.BindPublicAddress = bindAddr
+	settings.BindPublicPort = bindPort
+	settings.DevMode = devMode
+	settings.OTLPService = "jose-server"
+
+	return settings
+}
+
+// NewFromFile loads settings from a YAML configuration file.
+func NewFromFile(filePath string) (*Settings, error) {
+	return Parse([]string{"--config-file", filePath}, false)
+}

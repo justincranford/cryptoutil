@@ -90,6 +90,9 @@ linters:
       # Exclude nilerr from issuer service (intentional pattern).
       - path: "internal/identity/issuer/service\\.go$"
         linters: [nilerr]
+      # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
+      - path: "internal/jose/server/handlers\\.go$"
+        linters: [wrapcheck]
 
   settings:
     errcheck:

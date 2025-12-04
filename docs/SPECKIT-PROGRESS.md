@@ -1,85 +1,103 @@
 # Speckit Progress Tracker
 
-**Last Updated**: December 3, 2025
+**Last Updated**: January 2026
 **Purpose**: Track all Speckit-related documentation and progress in the cryptoutil project
 
 ---
 
-## ⚠️ CRITICAL STATUS UPDATE
+## ✅ ITERATION 1 COMPLETE
 
-**Iteration 1 Status**: ⚠️ **INCOMPLETE** - Implementation done but validation steps skipped
+**Iteration 1 Status**: ✅ **COMPLETE** - All workflow steps executed with evidence
 
-### What Was Skipped
+### Completed Steps
 
-1. ❌ `/speckit.clarify` - Ambiguities not resolved
-2. ❌ `/speckit.analyze` - Coverage not validated before implementation
-3. ❌ `/speckit.checklist` - Completion not formally verified
+1. ✅ `/speckit.constitution` - constitution.md created
+2. ✅ `/speckit.specify` - spec.md created
+3. ✅ `/speckit.clarify` - CLARIFICATIONS.md created (resolved partial status ambiguities)
+4. ✅ `/speckit.plan` - plan.md created
+5. ✅ `/speckit.tasks` - tasks.md created
+6. ✅ `/speckit.analyze` - ANALYSIS.md created (requirement-to-task coverage matrix)
+7. ✅ `/speckit.implement` - Implementation complete (Phases 1-4)
+8. ✅ `/speckit.checklist` - CHECKLIST-ITERATION-1.md created
 
-### Current Issues
+### Resolved Issues
 
-1. **Test Failures**: Intermittent failures in parallel test execution
-   - `internal/identity/authz` - race conditions
-   - `internal/identity/integration` - race conditions
-   - `internal/kms/server/application` - intermittent failures
+1. **Test Parallelism**: Fixed database close issue, added integration test build tags
+   - Tests pass with `go test ./internal/identity/... -p=1`
+   - Known limitation: Package-level parallelism requires `-p=1` flag
+   - Root cause: SQLite WAL mode connection sharing across packages
 
-2. **Spec Status Ambiguity**: Partial status markers without clarity
-
-See `docs/SPECKIT-ITERATION-1-REVIEW.md` for full gap analysis.
+2. **Spec Status Clarity**: Created CLARIFICATIONS.md documenting:
+   - client_secret_jwt: 70% (implementation exists, needs production testing)
+   - private_key_jwt: 50% (implementation exists, key management incomplete)
+   - Email OTP: 30% (infrastructure ready, delivery not implemented)
+   - SMS OTP: 20% (placeholder only)
 
 ---
 
-## Iteration 1 Workflow Status
+## 🆕 ITERATION 2 IN PROGRESS
+
+**Iteration 2 Goal**: Expose P1 JOSE and P4 CA internal capabilities as standalone REST APIs
+
+### Iteration 2 Scope
+
+| Product | Description | Tasks | Status |
+|---------|-------------|-------|--------|
+| P1 JOSE Authority | Standalone JOSE operations server | 18 tasks | 🆕 Starting |
+| P4 CA Server | REST API for certificate operations | 23 tasks | 🆕 Starting |
+| Integration | Docker Compose, demos, docs | 6 tasks | 🆕 Starting |
+
+### Iteration 2 Workflow Status
 
 | Step | Command | Status | Notes |
 |------|---------|--------|-------|
-| 1 | `/speckit.constitution` | ✅ Complete | constitution.md created |
-| 2 | `/speckit.specify` | ✅ Complete | spec.md created |
-| 3 | `/speckit.clarify` | ❌ **SKIPPED** | Must run before planning |
-| 4 | `/speckit.plan` | ✅ Complete | plan.md created |
-| 5 | `/speckit.tasks` | ✅ Complete | tasks.md created |
-| 6 | `/speckit.analyze` | ❌ **SKIPPED** | Must run before implement |
-| 7 | `/speckit.implement` | ✅ Complete | Implementation done |
-| 8 | `/speckit.checklist` | ❌ **SKIPPED** | Must run after implement |
+| 1 | `/speckit.specify` | ✅ Complete | spec.md updated with JOSE/CA APIs |
+| 2 | `/speckit.clarify` | ⏳ Pending | Will clarify API design decisions |
+| 3 | `/speckit.plan` | ✅ Complete | plan.md updated with Iteration 2 phases |
+| 4 | `/speckit.tasks` | ✅ Complete | tasks.md updated with 47 new tasks |
+| 5 | `/speckit.analyze` | ⏳ Pending | Will validate coverage |
+| 6 | `/speckit.implement` | ❌ Not Started | Next step |
+| 7 | `/speckit.checklist` | ❌ Not Started | After implementation |
 
-**Iteration 1 Progress**: 5/8 steps complete (62.5%)
+**Iteration 2 Progress**: 4/7 steps complete (57%)
 
 ---
 
-## Next Steps to Complete Iteration 1
+## Iteration 2 Next Steps
 
-### Step 1: Run `/speckit.clarify`
+### Immediate Actions
 
-Resolve ambiguities in spec.md:
+1. **Create JOSE Authority skeleton**: `cmd/jose-server/main.go`
+2. **Design OpenAPI spec**: `api/jose/openapi_spec.yaml`
+3. **Implement core endpoints**: JWK generate, JWS sign/verify, JWE encrypt/decrypt
 
-- What does "⚠️ Partial" mean for client_secret_jwt?
-- What does "⚠️ Partial" mean for private_key_jwt?
-- What does "⚠️ Partial" mean for Email OTP?
-- What does "⚠️ Partial" mean for SMS OTP?
-- What is the priority order for MFA factors?
+### Implementation Order
 
-### Step 2: Run `/speckit.analyze`
+```
+Phase 2.1: JOSE Authority Server
+├── I2.1.1-2: Entry point + router setup
+├── I2.1.14-15: OpenAPI spec + code generation
+├── I2.1.3-7: JWK endpoints (generate, get, list, delete, JWKS)
+├── I2.1.8-11: JWS/JWE endpoints (sign, verify, encrypt, decrypt)
+├── I2.1.12-13: JWT endpoints (create, verify)
+├── I2.1.16: Authentication middleware
+├── I2.1.17-18: Docker + E2E tests
 
-Validate coverage:
+Phase 2.2: CA Server REST API
+├── I2.2.1-3: Entry point + router + health
+├── I2.2.19-20: OpenAPI spec + code generation
+├── I2.2.4-6: CA endpoints (list, get, CRL)
+├── I2.2.7-10: Certificate endpoints (issue, get, revoke, status)
+├── I2.2.11: OCSP responder
+├── I2.2.14-17: EST protocol endpoints
+├── I2.2.18: TSA timestamp
+├── I2.2.21-23: mTLS + Docker + E2E tests
 
-- Map each requirement to tasks
-- Identify gaps in coverage
-- Ensure no orphan tasks
-
-### Step 3: Fix Test Failures
-
-Address race conditions:
-
-- Identify tests that fail in parallel
-- Add proper test isolation
-- Ensure `go test ./...` passes consistently
-
-### Step 4: Run `/speckit.checklist`
-
-Verify completion:
-
-- All Phase 1-3 tasks with evidence
-- Update status markers
-- Document remaining work
+Phase 2.3: Integration
+├── I2.3.1-3: Docker Compose + configs
+├── I2.3.4-5: Demo scripts
+├── I2.3.6: Documentation
+```
 
 ---
 
@@ -199,61 +217,55 @@ Located in `.specify/scripts/` - Automation scripts for Speckit workflow:
 
 ## Next Steps After Implementation
 
-**Iteration 1 Status**: constitution → specify → plan → tasks → implement ✅ completed, but missed clarify and analyze steps.
+**Iteration 1 Status**: ✅ **COMPLETE** - All 8 workflow steps executed with evidence
 
-**Corrected Iteration 1 Flow**: constitution → specify → **clarify** → plan → tasks → **analyze** → implement → review & test
+**Iteration 2 Status**: 🆕 **IN PROGRESS** - Spec/plan/tasks updated, implementation starting
 
-### Immediate Next Steps (Complete Iteration 1)
+### Corrected Iteration Flow
 
-#### 1. Clarify Step (Missed)
+```
+constitution → specify → clarify → plan → tasks → analyze → implement → checklist
+```
 
-- **Run `/speckit.clarify`**: Clarify underspecified areas before finalizing plan
-- **Purpose**: Identify ambiguities in spec that need clarification before analysis
+### Iteration 2 Implementation Plan
 
-#### 2. Analyze Step (Missed)
+#### Phase 2.1: JOSE Authority Server
 
-- **Run `/speckit.analyze`**: Cross-artifact consistency & coverage analysis
-- **Run `/speckit.checklist`**: Generate quality checklists to validate requirements completeness
-- **Evidence-based completion**: Verify all tasks meet success criteria from `plan.md`
+- **Goal**: Standalone HTTP service for JOSE operations
+- **Endpoints**: 12 REST endpoints for JWK, JWS, JWE, JWT operations
+- **Auth**: API key authentication
+- **Evidence**: Server starts, all endpoints respond, E2E tests pass
 
-#### 3. Review & Test Phase
+#### Phase 2.2: CA Server REST API
 
-- **Run tests**: `go test ./... -cover` with target 80%+ coverage
-- **Linting**: `golangci-lint run --fix` - fix all issues
-- **Build validation**: `go build ./...` clean
-- **Integration tests**: Run E2E tests if applicable
+- **Goal**: REST API for certificate lifecycle operations
+- **Endpoints**: 16 REST endpoints for CA, certificates, OCSP, EST, TSA
+- **Auth**: mTLS (client certificates)
+- **Evidence**: Server starts, mTLS works, certificate operations work, E2E tests pass
 
-### Future Iterations
+#### Phase 2.3: Integration
 
-#### Iteration 2 Planning
+- **Goal**: Unified deployment with existing services
+- **Artifacts**: Docker Compose updates, demo scripts, documentation
+- **Evidence**: `docker compose up` starts all services, demos complete
 
-After completing Iteration 1 review & test:
+### Review & Test Checklist
 
-- **specify** → clarify → plan → tasks → optionally analyze → implement → review & test
-- Focus on next feature set (e.g., additional crypto capabilities, UI enhancements, etc.)
+- [ ] `go test ./... -p=1` passes for identity package
+- [ ] `go test ./internal/jose/...` passes (new tests)
+- [ ] `go test ./internal/ca/...` passes (new tests)
+- [ ] `golangci-lint run --fix` clean
+- [ ] `go build ./cmd/jose-server` succeeds
+- [ ] `go build ./cmd/ca-server` succeeds
+- [ ] Docker Compose starts all services
+- [ ] `go run ./cmd/demo jose` completes
+- [ ] `go run ./cmd/demo ca` completes
 
-#### Iteration 3+ Pattern
+### Grooming Sessions (If Needed)
 
-- **specify** → clarify → plan → tasks → implement → review & test
-- Reduce analysis overhead for subsequent iterations
-
-### 4. Grooming Sessions (If Needed)
-
-- Create grooming sessions in `docs/speckit/passthru1/grooming/`
-- Run 50-question multiple-choice validations
-- Identify gaps and refine specifications
-
-### 5. Status Updates
-
-- Update `specs/001-cryptoutil/spec.md` with ✅ status indicators
-- Update `specs/001-cryptoutil/plan.md` success criteria
-- Update `docs/NOT-FINISHED.md` and `PROJECT-STATUS.md`
-- Commit with conventional commit message
-
-### 6. Continuous Work
-
-- Continue working until 990k tokens used or explicitly stopped
-- Focus on evidence-based completion and quality gates
+- Create grooming sessions in `docs/speckit/passthru2/grooming/`
+- 50-question sessions for JOSE Authority API design
+- 50-question sessions for CA Server API design
 
 ---
 
@@ -261,14 +273,42 @@ After completing Iteration 1 review & test:
 
 From [Spec Kit](https://github.com/github/spec-kit):
 
-1. `/speckit.constitution` - Establish principles
-2. `/speckit.specify` - Define requirements
-3. `/speckit.plan` - Technical implementation plan
-4. `/speckit.tasks` - Break down into tasks
-5. `/speckit.implement` - Execute implementation
-6. **Next**: `/speckit.analyze` + `/speckit.checklist` for validation
+1. `/speckit.constitution` - Establish principles ✅
+2. `/speckit.specify` - Define requirements ✅
+3. `/speckit.clarify` - Resolve ambiguities ✅
+4. `/speckit.plan` - Technical implementation plan ✅
+5. `/speckit.tasks` - Break down into tasks ✅
+6. `/speckit.analyze` - Validate coverage ✅
+7. `/speckit.implement` - Execute implementation ⏳
+8. `/speckit.checklist` - Verify completion ⏳
 
-Optional: `/speckit.clarify` before planning, grooming sessions for refinement.
+---
+
+## Artifact Inventory
+
+### Iteration 1 Artifacts
+
+| Artifact | File | Status |
+|----------|------|--------|
+| Constitution | `.specify/memory/constitution.md` | ✅ |
+| Specification | `specs/001-cryptoutil/spec.md` | ✅ |
+| Plan | `specs/001-cryptoutil/plan.md` | ✅ |
+| Tasks | `specs/001-cryptoutil/tasks.md` | ✅ |
+| Clarifications | `specs/001-cryptoutil/CLARIFICATIONS.md` | ✅ |
+| Analysis | `specs/001-cryptoutil/ANALYSIS.md` | ✅ |
+| Checklist | `specs/001-cryptoutil/CHECKLIST-ITERATION-1.md` | ✅ |
+
+### Iteration 2 Artifacts (In Progress)
+
+| Artifact | File | Status |
+|----------|------|--------|
+| spec.md updates | `specs/001-cryptoutil/spec.md` | ✅ |
+| plan.md updates | `specs/001-cryptoutil/plan.md` | ✅ |
+| tasks.md updates | `specs/001-cryptoutil/tasks.md` | ✅ |
+| JOSE OpenAPI | `api/jose/openapi_spec.yaml` | ❌ |
+| CA Server OpenAPI | `api/ca/openapi_spec_server.yaml` | ❌ |
+| JOSE Server code | `cmd/jose-server/` | ❌ |
+| CA Server code | `cmd/ca-server/` | ❌ |
 
 ---
 

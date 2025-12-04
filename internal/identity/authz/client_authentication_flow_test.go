@@ -190,8 +190,9 @@ func createClientAuthFlowTestRepoFactory(t *testing.T, cfg *cryptoutilIdentityCo
 
 	ctx := context.Background()
 
-	// Clear migration state to ensure fresh database for this test.
-	cryptoutilIdentityRepository.ResetMigrationStateForTesting()
+	// Each test uses a unique DSN (via googleUuid.NewV7() in createClientAuthFlowTestConfig),
+	// so no migration state reset is needed. The in-memory database check in Migrate()
+	// already skips caching for in-memory databases.
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:        cfg.Database.Type,

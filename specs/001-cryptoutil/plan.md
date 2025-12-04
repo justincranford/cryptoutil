@@ -300,6 +300,85 @@ This plan outlines the implementation phases for cryptoutil, guided by the [cons
 
 ---
 
+## Iteration 2: Standalone Services (Current Focus)
+
+**Duration**: 2-4 weeks
+**Goal**: Expose P1 JOSE and P4 CA internal capabilities as standalone REST APIs
+
+### Iteration 2.1: JOSE Authority Server
+
+Extract internal JOSE package as standalone HTTP service with REST API.
+
+| Task | Description | Priority | LOE |
+|------|-------------|----------|-----|
+| 2.1.1 | Create `cmd/jose-server/main.go` entry point | HIGH | 2h |
+| 2.1.2 | Implement Fiber router with API versioning (`/jose/v1/`) | HIGH | 2h |
+| 2.1.3 | Generate JWK endpoint (POST `/jose/v1/jwk/generate`) | CRITICAL | 4h |
+| 2.1.4 | Retrieve JWK endpoint (GET `/jose/v1/jwk/{kid}`) | HIGH | 2h |
+| 2.1.5 | List JWKs endpoint (GET `/jose/v1/jwk`) | HIGH | 2h |
+| 2.1.6 | Delete JWK endpoint (DELETE `/jose/v1/jwk/{kid}`) | MEDIUM | 2h |
+| 2.1.7 | JWKS endpoint (GET `/jose/v1/jwks`) | HIGH | 2h |
+| 2.1.8 | JWS sign endpoint (POST `/jose/v1/jws/sign`) | CRITICAL | 4h |
+| 2.1.9 | JWS verify endpoint (POST `/jose/v1/jws/verify`) | CRITICAL | 4h |
+| 2.1.10 | JWE encrypt endpoint (POST `/jose/v1/jwe/encrypt`) | CRITICAL | 4h |
+| 2.1.11 | JWE decrypt endpoint (POST `/jose/v1/jwe/decrypt`) | CRITICAL | 4h |
+| 2.1.12 | JWT create endpoint (POST `/jose/v1/jwt/create`) | HIGH | 4h |
+| 2.1.13 | JWT verify endpoint (POST `/jose/v1/jwt/verify`) | HIGH | 4h |
+| 2.1.14 | OpenAPI spec for JOSE Authority (`api/jose/openapi_spec.yaml`) | HIGH | 4h |
+| 2.1.15 | Generate server/client code with oapi-codegen | HIGH | 2h |
+| 2.1.16 | Add API key authentication middleware | HIGH | 4h |
+| 2.1.17 | Docker Compose integration | MEDIUM | 2h |
+| 2.1.18 | JOSE Authority E2E tests | HIGH | 8h |
+
+**Success Criteria**: `go run ./cmd/jose-server` starts, all 12 endpoints respond, E2E tests pass
+
+### Iteration 2.2: CA Server REST API
+
+Expose internal CA capabilities as REST API service.
+
+| Task | Description | Priority | LOE |
+|------|-------------|----------|-----|
+| 2.2.1 | Create `cmd/ca-server/main.go` entry point | HIGH | 2h |
+| 2.2.2 | Implement Fiber router with API versioning (`/ca/v1/`) | HIGH | 2h |
+| 2.2.3 | Health endpoint (GET `/ca/v1/health`) | HIGH | 1h |
+| 2.2.4 | List CAs endpoint (GET `/ca/v1/ca`) | HIGH | 4h |
+| 2.2.5 | Get CA details endpoint (GET `/ca/v1/ca/{ca_id}`) | HIGH | 4h |
+| 2.2.6 | Download CRL endpoint (GET `/ca/v1/ca/{ca_id}/crl`) | HIGH | 4h |
+| 2.2.7 | Issue certificate endpoint (POST `/ca/v1/certificate`) | CRITICAL | 8h |
+| 2.2.8 | Get certificate endpoint (GET `/ca/v1/certificate/{serial}`) | HIGH | 4h |
+| 2.2.9 | Revoke certificate endpoint (POST `/ca/v1/certificate/{serial}/revoke`) | CRITICAL | 4h |
+| 2.2.10 | Certificate status endpoint (GET `/ca/v1/certificate/{serial}/status`) | HIGH | 4h |
+| 2.2.11 | OCSP responder endpoint (POST `/ca/v1/ocsp`) | HIGH | 8h |
+| 2.2.12 | List profiles endpoint (GET `/ca/v1/profiles`) | MEDIUM | 2h |
+| 2.2.13 | Get profile endpoint (GET `/ca/v1/profiles/{profile_id}`) | MEDIUM | 2h |
+| 2.2.14 | EST cacerts endpoint (GET `/ca/v1/est/cacerts`) | HIGH | 4h |
+| 2.2.15 | EST simpleenroll endpoint (POST `/ca/v1/est/simpleenroll`) | HIGH | 8h |
+| 2.2.16 | EST simplereenroll endpoint (POST `/ca/v1/est/simplereenroll`) | HIGH | 4h |
+| 2.2.17 | EST serverkeygen endpoint (POST `/ca/v1/est/serverkeygen`) | MEDIUM | 4h |
+| 2.2.18 | TSA timestamp endpoint (POST `/ca/v1/tsa/timestamp`) | MEDIUM | 4h |
+| 2.2.19 | OpenAPI spec for CA Server (`api/ca/openapi_spec_server.yaml`) | HIGH | 4h |
+| 2.2.20 | Generate server/client code with oapi-codegen | HIGH | 2h |
+| 2.2.21 | Add mTLS authentication middleware | CRITICAL | 8h |
+| 2.2.22 | Docker Compose integration | MEDIUM | 2h |
+| 2.2.23 | CA Server E2E tests | HIGH | 8h |
+
+**Success Criteria**: `go run ./cmd/ca-server` starts, all 16 endpoints respond, mTLS authentication works, E2E tests pass
+
+### Iteration 2.3: Integration
+
+| Task | Description | Priority | LOE |
+|------|-------------|----------|-----|
+| 2.3.1 | Update `deployments/compose/compose.yml` for new services | HIGH | 4h |
+| 2.3.2 | Add JOSE Authority config (`configs/jose/jose-server.yml`) | HIGH | 2h |
+| 2.3.3 | Add CA Server config (`configs/ca/ca-server.yml`) | HIGH | 2h |
+| 2.3.4 | Demo script: `go run ./cmd/demo jose` | HIGH | 4h |
+| 2.3.5 | Demo script: `go run ./cmd/demo ca` | HIGH | 4h |
+| 2.3.6 | Update README with new server documentation | MEDIUM | 2h |
+
+**Success Criteria**: Docker Compose starts all services, demos complete successfully
+
+---
+
 ## Risk Management
 
 ### Technical Risks
@@ -352,6 +431,20 @@ This plan outlines the implementation phases for cryptoutil, guided by the [cons
 - [x] Docker Compose and Kubernetes deployment bundles
 - [x] Documentation complete
 
+### Iteration 2 Success
+
+- [ ] JOSE Authority server starts (`cmd/jose-server`)
+- [ ] All 12 JOSE endpoints respond correctly
+- [ ] JWK generation, JWS signing/verification, JWE encryption/decryption working
+- [ ] CA Server starts (`cmd/ca-server`)
+- [ ] All 16 CA endpoints respond correctly
+- [ ] Certificate issuance and revocation working
+- [ ] mTLS authentication enforced on CA Server
+- [ ] E2E tests pass for both services
+- [ ] Docker Compose deployment includes new services
+- [ ] `go run ./cmd/demo jose` completes successfully
+- [ ] `go run ./cmd/demo ca` completes successfully
+
 ### Overall Success
 
 - [ ] All linting passes (`golangci-lint run`)
@@ -361,6 +454,6 @@ This plan outlines the implementation phases for cryptoutil, guided by the [cons
 
 ---
 
-*Plan Version: 1.1.0*
+*Plan Version: 2.0.0*
 *Last Updated: January 2026*
-*Status: Phase 4 (CA) Complete, Phase 5 (Hardening) In Progress*
+*Status: Iteration 2 (JOSE Authority + CA Server) In Progress*

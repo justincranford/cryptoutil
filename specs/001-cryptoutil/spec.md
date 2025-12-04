@@ -8,9 +8,14 @@
 
 ### P1: JOSE (JSON Object Signing and Encryption)
 
-Core cryptographic primitives for web security standards. Serves as the embedded foundation for all other products.
+Core cryptographic primitives for web security standards. Serves as the embedded foundation for all other products AND as a standalone JOSE Authority service.
 
-**Architecture Note**: JOSE is embedded in all products (P2-P4). Current implementation is in `internal/common/crypto/jose/` and needs refactoring to `internal/product/jose/` as a standalone JOSE Authority service.
+**Architecture**:
+
+- **Embedded Library**: JOSE primitives in `internal/jose/` used by P2/P3/P4
+- **Standalone Service**: JOSE Authority service exposing REST API for external applications
+
+**Current State**: JOSE primitives exist in `internal/common/crypto/jose/`. Iteration 2 refactors to `internal/jose/` as standalone authority.
 
 #### Capabilities
 
@@ -21,7 +26,22 @@ Core cryptographic primitives for web security standards. Serves as the embedded
 | JWE | JSON Web Encryption operations | ✅ Implemented |
 | JWS | JSON Web Signature operations | ✅ Implemented |
 | JWT | JSON Web Token creation and validation | ✅ Implemented |
-| JOSE Authority | Standalone JOSE service with full API | ⚠️ Needs Refactoring |
+| JOSE Authority | Standalone JOSE service with full API | ⚠️ Iteration 2 |
+
+#### JOSE Authority API (Iteration 2)
+
+| Endpoint | Method | Description | Status |
+|----------|--------|-------------|--------|
+| `/jose/v1/keys` | POST | Generate new JWK | ⚠️ Iteration 2 |
+| `/jose/v1/keys/{kid}` | GET | Retrieve specific JWK | ⚠️ Iteration 2 |
+| `/jose/v1/keys` | GET | List JWKs with filters | ⚠️ Iteration 2 |
+| `/jose/v1/jwks` | GET | Public JWKS endpoint | ⚠️ Iteration 2 |
+| `/jose/v1/sign` | POST | Create JWS signature | ⚠️ Iteration 2 |
+| `/jose/v1/verify` | POST | Verify JWS signature | ⚠️ Iteration 2 |
+| `/jose/v1/encrypt` | POST | Create JWE encryption | ⚠️ Iteration 2 |
+| `/jose/v1/decrypt` | POST | Decrypt JWE payload | ⚠️ Iteration 2 |
+| `/jose/v1/jwt/issue` | POST | Issue JWT with claims | ⚠️ Iteration 2 |
+| `/jose/v1/jwt/validate` | POST | Validate JWT signature and claims | ⚠️ Iteration 2 |
 
 #### Supported Algorithms
 
@@ -74,25 +94,25 @@ Complete identity and access management solution.
 |--------|-------------|--------|
 | client_secret_basic | HTTP Basic Auth with client_id:client_secret | ✅ Working |
 | client_secret_post | client_id and client_secret in request body | ✅ Working |
-| client_secret_jwt | JWT signed with client secret | ⚠️ Partial (HIGH Priority) |
-| private_key_jwt | JWT signed with private key | ⚠️ Partial (HIGH Priority) |
+| client_secret_jwt | JWT signed with client secret | ⚠️ 70% (missing: jti replay protection, assertion lifetime validation) |
+| private_key_jwt | JWT signed with private key | ⚠️ 50% (missing: client JWKS registration, jti replay, kid matching) |
 | tls_client_auth | Mutual TLS client certificate authentication | ❌ Not Implemented |
 | self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ❌ Not Implemented |
 | session_cookie | Browser session cookie for SPA UI | ❌ Not Implemented (Required) |
 
 #### MFA Factors
 
-| Factor | Description | Status |
-|--------|-------------|--------|
-| TOTP | Time-based One-Time Password | ✅ Working (HIGH Priority) |
-| Passkey | WebAuthn/FIDO2 authentication | ✅ Working (HIGH Priority) |
-| Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented (HIGH Priority) |
-| Email OTP | One-time password via email | ⚠️ Partial |
-| SMS OTP | One-time password via SMS | ⚠️ Partial |
-| HOTP | HMAC-based One-Time Password (counter-based) | ❌ Not Implemented |
-| Recovery Codes | Backup codes for account recovery | ❌ Not Implemented |
-| Push Notifications | Push-based authentication via mobile app | ❌ Not Required |
-| Phone Call OTP | One-time password via voice call | ❌ Not Required |
+| Factor | Description | Status | Priority |
+|--------|-------------|--------|----------|
+| Passkey | WebAuthn/FIDO2 authentication | ✅ Working | HIGHEST |
+| TOTP | Time-based One-Time Password | ✅ Working | HIGH |
+| Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented | HIGH |
+| Email OTP | One-time password via email | ⚠️ 30% (missing: email delivery service, rate limiting) | MEDIUM |
+| SMS OTP | One-time password via SMS | ⚠️ 20% (missing: SMS provider integration, rate limiting) | LOW (NIST deprecated) |
+| HOTP | HMAC-based One-Time Password (counter-based) | ❌ Not Implemented | LOW |
+| Recovery Codes | Backup codes for account recovery | ❌ Not Implemented | MEDIUM |
+| Push Notifications | Push-based authentication via mobile app | ❌ Not Required | N/A |
+| Phone Call OTP | One-time password via voice call | ❌ Not Required | N/A |
 
 #### Secret Rotation System
 
@@ -226,13 +246,47 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 | 19. Deployment | Docker Compose, Kubernetes manifests | MEDIUM | ✅ Complete |
 | 20. Handover | Documentation, runbooks | LOW | ✅ Complete |
 
-**Implementation Progress**: 20/20 tasks complete (100%)
+**Implementation Progress**: 20/20 internal tasks complete (100%)
+
+#### CA Server REST API (Iteration 2 - NEW)
+
+The CA Server exposes certificate lifecycle operations via REST API with mTLS authentication.
+
+| Endpoint | Method | Description | Status |
+|----------|--------|-------------|--------|
+| `/ca/v1/health` | GET | Health check endpoint | 🆕 Planned |
+| `/ca/v1/ca` | GET | List available CAs | 🆕 Planned |
+| `/ca/v1/ca/{ca_id}` | GET | Get CA details and certificate chain | 🆕 Planned |
+| `/ca/v1/ca/{ca_id}/crl` | GET | Download current CRL | 🆕 Planned |
+| `/ca/v1/certificate` | POST | Issue certificate from CSR | 🆕 Planned |
+| `/ca/v1/certificate/{serial}` | GET | Retrieve certificate by serial | 🆕 Planned |
+| `/ca/v1/certificate/{serial}/revoke` | POST | Revoke certificate | 🆕 Planned |
+| `/ca/v1/certificate/{serial}/status` | GET | Get certificate status | 🆕 Planned |
+| `/ca/v1/ocsp` | POST | OCSP responder endpoint | 🆕 Planned |
+| `/ca/v1/profiles` | GET | List certificate profiles | 🆕 Planned |
+| `/ca/v1/profiles/{profile_id}` | GET | Get profile details | 🆕 Planned |
+| `/ca/v1/est/cacerts` | GET | EST: Get CA certificates | 🆕 Planned |
+| `/ca/v1/est/simpleenroll` | POST | EST: Simple enrollment | 🆕 Planned |
+| `/ca/v1/est/simplereenroll` | POST | EST: Re-enrollment | 🆕 Planned |
+| `/ca/v1/est/serverkeygen` | POST | EST: Server-side key generation | 🆕 Planned |
+| `/ca/v1/tsa/timestamp` | POST | RFC 3161 timestamp request | 🆕 Planned |
+
+**API Authentication Methods:**
+
+- **mTLS**: Client certificate authentication (primary)
+- **JWT Bearer**: For delegated access from Identity Server
+- **API Key**: For automated systems (with IP allowlist)
+
+**API Progress**: 0/16 endpoints implemented
 
 #### Compliance Requirements
 
 | Standard | Requirement |
 |----------|-------------|
 | RFC 5280 | X.509 certificate format and validation |
+| RFC 6960 | OCSP protocol for certificate status |
+| RFC 7030 | EST (Enrollment over Secure Transport) |
+| RFC 3161 | Time-Stamp Protocol (TSP) |
 | CA/Browser Forum | Baseline Requirements for TLS Server Certificates |
 | Serial Numbers | ≥64 bits CSPRNG, non-sequential, >0, <2^159 |
 | Validity Period | Maximum 398 days for subscriber certificates |
