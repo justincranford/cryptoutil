@@ -119,4 +119,104 @@ Clear separation between infrastructure and products:
 - NEVER create separate documentation files for scripts or tools
 - Keep docs in 2 main files: README.md (main), docs/README.md (deep dive)
 
-**Version**: 1.0.0 | **Ratified**: 2025-12-01 | **Last Amended**: 2025-12-01
+---
+
+## VI. Spec Kit Iteration Lifecycle
+
+### Iteration Workflow (MANDATORY)
+
+Every iteration MUST follow this sequence:
+
+```
+1. /speckit.constitution  → Review/update principles (first iteration only)
+2. /speckit.specify       → Define/update requirements (spec.md)
+3. /speckit.clarify       → Resolve ALL ambiguities
+4. /speckit.plan          → Technical implementation plan
+5. /speckit.tasks         → Generate task breakdown
+6. /speckit.analyze       → Coverage check (before implement)
+7. /speckit.implement     → Execute implementation
+8. /speckit.checklist     → Validate completion (after implement)
+```
+
+**CRITICAL**: Steps 3 and 6-8 are MANDATORY, not optional.
+
+### Pre-Implementation Gates
+
+Before running `/speckit.implement`:
+
+- [ ] All `[NEEDS CLARIFICATION]` markers resolved in spec.md
+- [ ] `/speckit.clarify` executed if spec was created/modified
+- [ ] `/speckit.analyze` executed after `/speckit.tasks`
+- [ ] All requirements have corresponding tasks
+- [ ] No orphan tasks without requirement traceability
+
+### Post-Implementation Gates
+
+Before marking iteration complete:
+
+- [ ] `go test ./...` passes with 0 failures (not just "pass individually")
+- [ ] `go build ./...` produces no errors
+- [ ] `golangci-lint run` passes with no new violations
+- [ ] `/speckit.checklist` executed and all items verified
+- [ ] Coverage targets maintained (80% production, 85% infrastructure)
+- [ ] All spec.md status markers accurate and up-to-date
+- [ ] No deferred items without documented justification
+
+### Iteration Completion Criteria
+
+An iteration is NOT COMPLETE until:
+
+1. **All workflow steps executed** (1-8 above)
+2. **All gates passed** (pre and post implementation)
+3. **Evidence documented** in PROGRESS.md
+4. **Status markers updated** in spec.md
+5. **No test failures** in `go test ./...`
+6. **No lint errors** in `golangci-lint run`
+
+### Gate Failure Protocol
+
+When a gate fails:
+
+1. **STOP** - Do not proceed to next step
+2. **Document** - Record failure in PROGRESS.md
+3. **Fix** - Address the root cause
+4. **Retest** - Re-run the gate
+5. **Evidence** - Document passing evidence
+
+**NEVER** mark an iteration complete with failing gates.
+
+---
+
+## VII. Product Delivery Requirements
+
+### Four Working Products Goal
+
+cryptoutil MUST deliver four independently deployable products:
+
+| Product | Description | Standalone | United |
+|---------|-------------|------------|--------|
+| P1: JOSE | JSON Object Signing and Encryption | ✅ | ✅ |
+| P2: Identity | OAuth 2.1 + OIDC IdP | ✅ | ✅ |
+| P3: KMS | Key Management Service | ✅ | ✅ |
+| P4: CA | Certificate Authority | ✅ | ✅ |
+
+### Standalone Mode Requirements
+
+Each product MUST:
+
+- Start independently without other products
+- Use embedded JOSE (not external)
+- Support SQLite (dev) and PostgreSQL (prod)
+- Pass all tests in isolation
+- Have working Docker Compose deployment
+
+### United Mode Requirements
+
+All four products MUST:
+
+- Deploy together in single Docker Compose
+- Share telemetry infrastructure
+- Support optional inter-product federation
+- Pass full E2E test suite
+
+**Version**: 1.1.0 | **Ratified**: 2025-12-01 | **Last Amended**: 2025-12-03

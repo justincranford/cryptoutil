@@ -21,11 +21,11 @@ func TestMapDBTypeAndURL(t *testing.T) {
 		errorContains string
 	}{
 		{
-			name:        "dev mode uses SQLite in-memory",
+			name:        "dev mode uses SQLite in-memory with shared cache",
 			devMode:     true,
 			databaseURL: "ignored-url",
 			wantDBType:  DBTypeSQLite,
-			wantURL:     ":memory:",
+			wantURL:     "file::memory:?cache=shared",
 			wantError:   false,
 		},
 		{

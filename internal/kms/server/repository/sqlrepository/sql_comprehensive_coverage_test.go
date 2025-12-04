@@ -71,9 +71,10 @@ func TestHealthCheck_AllConnectionPoolStats(t *testing.T) {
 
 	defer repo.Shutdown()
 
-	// Perform multiple operations to generate pool statistics
+	// Perform multiple operations to generate pool statistics.
+	// Use readOnly=false because SQLite doesn't support read-only transactions.
 	for i := 0; i < 10; i++ {
-		err := repo.WithTransaction(ctx, true, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
+		err := repo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
 			return nil
 		})
 		testify.NoError(t, err)
