@@ -1,0 +1,61 @@
+# Kubernetes Workload Identity Certificate Profile
+# For service mesh and pod identity (SPIFFE/SPIRE compatible).
+
+profile:
+  name: "kubernetes-workload"
+  description: "Kubernetes Workload Identity Certificate"
+
+  validity:
+    max_days: 1  # Short-lived by design
+    min_days: 0  # Minutes allowed
+    default_days: 1
+
+  key:
+    allowed_algorithms:
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-256"
+          - "P-384"
+    default_algorithm: "ECDSA"
+    default_curve_or_size: "P-256"
+
+  key_usage:
+    - "digitalSignature"
+    - "keyEncipherment"
+
+  extended_key_usage:
+    required:
+      - "clientAuth"
+      - "serverAuth"
+    optional: []
+
+  subject:
+    require_common_name: false  # SPIFFE uses URI SANs
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: false
+    allow_state: false
+    allow_locality: false
+    max_cn_length: 256
+
+  san:
+    allow_dns_names: true
+    allow_ip_addresses: true
+    allow_email_addresses: false
+    allow_uris: true  # Required for SPIFFE
+    require_at_least_one: true
+    max_entries: 50
+    # SPIFFE ID format
+    uri_patterns:
+      - "spiffe://*"
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "authorityKeyIdentifier"
+      - "keyUsage"
+      - "extendedKeyUsage"
+      - "basicConstraints"
+    optional:
+      - "crlDistributionPoints"
+      - "authorityInfoAccess"

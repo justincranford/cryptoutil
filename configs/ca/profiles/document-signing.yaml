@@ -1,0 +1,61 @@
+# Document Signing Certificate Profile
+# For signing PDF, Office, and other documents.
+
+profile:
+  name: "document-signing"
+  description: "Document Signing Certificate"
+
+  validity:
+    max_days: 1095
+    min_days: 1
+    default_days: 365
+
+  key:
+    allowed_algorithms:
+      - algorithm: "RSA"
+        min_size: 2048
+        max_size: 4096
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-256"
+          - "P-384"
+    default_algorithm: "RSA"
+    default_curve_or_size: 2048
+
+  key_usage:
+    - "digitalSignature"
+    - "nonRepudiation"
+
+  extended_key_usage:
+    required:
+      - "codeSigning"  # Also used for document signing
+    optional:
+      - "timeStamping"
+
+  subject:
+    require_common_name: true
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: true
+    allow_state: true
+    allow_locality: true
+    max_cn_length: 64
+
+  san:
+    allow_dns_names: false
+    allow_ip_addresses: false
+    allow_email_addresses: true
+    allow_uris: false
+    require_at_least_one: false
+    max_entries: 5
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "authorityKeyIdentifier"
+      - "keyUsage"
+      - "extendedKeyUsage"
+      - "basicConstraints"
+    optional:
+      - "crlDistributionPoints"
+      - "authorityInfoAccess"

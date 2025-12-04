@@ -1,0 +1,61 @@
+# SSH Host Certificate Profile
+# For SSH host authentication certificates.
+
+profile:
+  name: "ssh-host"
+  description: "SSH Host Authentication Certificate"
+
+  validity:
+    max_days: 365
+    min_days: 1
+    default_days: 90
+
+  key:
+    allowed_algorithms:
+      - algorithm: "RSA"
+        min_size: 2048
+        max_size: 4096
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-256"
+          - "P-384"
+      - algorithm: "Ed25519"
+    default_algorithm: "Ed25519"
+    default_curve_or_size: null
+
+  key_usage:
+    - "digitalSignature"
+
+  extended_key_usage:
+    required:
+      - "serverAuth"
+    optional: []
+
+  subject:
+    require_common_name: true
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: false
+    allow_state: false
+    allow_locality: false
+    max_cn_length: 128
+
+  san:
+    allow_dns_names: true
+    allow_ip_addresses: true
+    allow_email_addresses: false
+    allow_uris: false
+    require_at_least_one: true
+    max_entries: 50
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "authorityKeyIdentifier"
+      - "keyUsage"
+      - "basicConstraints"
+    optional: []
+
+  ssh:
+    allow_principals: true
+    max_principals: 50

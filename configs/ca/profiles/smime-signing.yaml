@@ -1,0 +1,61 @@
+# S/MIME Email Signing Certificate Profile
+# For email signing and encryption.
+# Compliant with S/MIME standards.
+
+profile:
+  name: "smime-signing"
+  description: "S/MIME Email Signing Certificate"
+
+  validity:
+    max_days: 1095  # 3 years
+    min_days: 1
+    default_days: 365
+
+  key:
+    allowed_algorithms:
+      - algorithm: "RSA"
+        min_size: 2048
+        max_size: 4096
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-256"
+          - "P-384"
+    default_algorithm: "RSA"
+    default_curve_or_size: 2048
+
+  key_usage:
+    - "digitalSignature"
+    - "nonRepudiation"
+
+  extended_key_usage:
+    required:
+      - "emailProtection"
+    optional: []
+
+  subject:
+    require_common_name: true
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: true
+    allow_state: true
+    allow_locality: true
+    max_cn_length: 64
+
+  san:
+    allow_dns_names: false
+    allow_ip_addresses: false
+    allow_email_addresses: true
+    allow_uris: false
+    require_at_least_one: true
+    max_entries: 5
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "authorityKeyIdentifier"
+      - "keyUsage"
+      - "extendedKeyUsage"
+      - "basicConstraints"
+    optional:
+      - "crlDistributionPoints"
+      - "authorityInfoAccess"

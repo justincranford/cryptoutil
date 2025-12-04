@@ -1,0 +1,61 @@
+# Database Server Certificate Profile
+# For PostgreSQL, MySQL, MongoDB, and other databases.
+
+profile:
+  name: "database-server"
+  description: "Database Server TLS Certificate"
+
+  validity:
+    max_days: 730
+    min_days: 1
+    default_days: 365
+
+  key:
+    allowed_algorithms:
+      - algorithm: "RSA"
+        min_size: 2048
+        max_size: 4096
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-256"
+          - "P-384"
+    default_algorithm: "RSA"
+    default_curve_or_size: 2048
+
+  key_usage:
+    - "digitalSignature"
+    - "keyEncipherment"
+
+  extended_key_usage:
+    required:
+      - "serverAuth"
+    optional:
+      - "clientAuth"  # For replication
+
+  subject:
+    require_common_name: true
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: true
+    allow_state: true
+    allow_locality: true
+    max_cn_length: 128
+
+  san:
+    allow_dns_names: true
+    allow_ip_addresses: true
+    allow_email_addresses: false
+    allow_uris: false
+    require_at_least_one: true
+    max_entries: 50
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "authorityKeyIdentifier"
+      - "keyUsage"
+      - "extendedKeyUsage"
+      - "basicConstraints"
+    optional:
+      - "crlDistributionPoints"
+      - "authorityInfoAccess"

@@ -1,0 +1,57 @@
+# Kernel Mode Code Signing Certificate Profile
+# For Windows kernel-mode driver signing.
+
+profile:
+  name: "kernel-code-signing"
+  description: "Windows Kernel Mode Code Signing Certificate"
+
+  validity:
+    max_days: 730
+    min_days: 1
+    default_days: 365
+
+  key:
+    allowed_algorithms:
+      - algorithm: "RSA"
+        min_size: 4096  # Microsoft requires 4096 for kernel signing
+        max_size: 4096
+    default_algorithm: "RSA"
+    default_curve_or_size: 4096
+
+  key_usage:
+    - "digitalSignature"
+
+  extended_key_usage:
+    required:
+      - "codeSigning"
+    optional: []
+
+  subject:
+    require_common_name: true
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: true
+    allow_state: true
+    allow_locality: true
+    max_cn_length: 64
+    require_organization: true
+    require_country: true
+
+  san:
+    allow_dns_names: false
+    allow_ip_addresses: false
+    allow_email_addresses: false
+    allow_uris: false
+    require_at_least_one: false
+    max_entries: 0
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "authorityKeyIdentifier"
+      - "keyUsage"
+      - "extendedKeyUsage"
+      - "basicConstraints"
+    optional:
+      - "crlDistributionPoints"
+      - "authorityInfoAccess"

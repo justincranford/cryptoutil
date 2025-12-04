@@ -1,0 +1,60 @@
+# mTLS Client Certificate Profile
+# For mutual TLS authentication in service-to-service communication.
+
+profile:
+  name: "mtls-client"
+  description: "Mutual TLS Client Authentication Certificate"
+
+  validity:
+    max_days: 365
+    min_days: 1
+    default_days: 90
+
+  key:
+    allowed_algorithms:
+      - algorithm: "RSA"
+        min_size: 2048
+        max_size: 4096
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-256"
+          - "P-384"
+    default_algorithm: "ECDSA"
+    default_curve_or_size: "P-256"
+
+  key_usage:
+    - "digitalSignature"
+    - "keyEncipherment"
+
+  extended_key_usage:
+    required:
+      - "clientAuth"
+    optional: []
+
+  subject:
+    require_common_name: true
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: true
+    allow_state: false
+    allow_locality: false
+    max_cn_length: 64
+
+  san:
+    allow_dns_names: true
+    allow_ip_addresses: false
+    allow_email_addresses: true
+    allow_uris: false
+    require_at_least_one: false
+    max_entries: 10
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "authorityKeyIdentifier"
+      - "keyUsage"
+      - "extendedKeyUsage"
+      - "basicConstraints"
+    optional:
+      - "crlDistributionPoints"
+      - "authorityInfoAccess"

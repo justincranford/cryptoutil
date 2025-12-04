@@ -1,0 +1,73 @@
+# Root CA Certificate Profile
+# For self-signed root CA certificates.
+
+profile:
+  name: "root-ca"
+  description: "Root Certificate Authority"
+
+  validity:
+    max_days: 7300  # 20 years
+    min_days: 3650
+    default_days: 7300
+
+  key:
+    allowed_algorithms:
+      - algorithm: "RSA"
+        min_size: 4096
+        max_size: 8192
+      - algorithm: "ECDSA"
+        allowed_curves:
+          - "P-384"
+          - "P-521"
+    default_algorithm: "RSA"
+    default_curve_or_size: 4096
+
+  key_usage:
+    - "keyCertSign"
+    - "cRLSign"
+    - "digitalSignature"
+
+  extended_key_usage:
+    required: []
+    optional: []
+
+  subject:
+    require_common_name: true
+    allow_organization: true
+    allow_organizational_unit: true
+    allow_country: true
+    allow_state: true
+    allow_locality: true
+    max_cn_length: 64
+    require_organization: true
+    require_country: true
+
+  san:
+    allow_dns_names: false
+    allow_ip_addresses: false
+    allow_email_addresses: false
+    allow_uris: false
+    require_at_least_one: false
+    max_entries: 0
+
+  extensions:
+    required:
+      - "subjectKeyIdentifier"
+      - "keyUsage"
+      - "basicConstraints"
+    optional:
+      - "certificatePolicies"
+      - "nameConstraints"
+
+  basic_constraints:
+    ca: true
+    path_len_constraint: null  # Unlimited
+
+  # Optional name constraints for enterprise roots
+  name_constraints:
+    permitted:
+      dns_domains: []
+      ip_ranges: []
+    excluded:
+      dns_domains: []
+      ip_ranges: []
