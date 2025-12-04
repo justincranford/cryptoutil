@@ -28,10 +28,11 @@ internal/ca/
 │   └── bootstrap.go       # Offline root CA bootstrap workflow
 ├── intermediate/          # Intermediate CA provisioning ✅ Task 7
 │   └── intermediate.go    # Intermediate CA signing workflow
-├── service/               # Business logic services (TODO)
-│   ├── issuer.go          # Certificate issuance service
-│   ├── revocation.go      # Revocation management
-│   └── lifecycle.go       # CA lifecycle management
+├── api/                   # API handlers ✅ Task 9
+│   └── handler/           # Enrollment API implementation
+├── service/               # Business logic services
+│   ├── issuer/            # Certificate issuance service ✅ Task 8
+│   └── revocation/        # CRL and OCSP services ✅ Task 10
 └── repository/            # Persistence layer (TODO)
     └── orm/               # GORM-based repository
 ```
@@ -47,11 +48,26 @@ internal/ca/
 | 5. Certificate Profile Engine | ✅ | `profile/certificate/` | 7 |
 | 6. Root CA Bootstrap | ✅ | `bootstrap/` | 7 |
 | 7. Intermediate CA Provisioning | ✅ | `intermediate/` | 8 |
-| 8. Issuing CA Lifecycle | 🔲 | `service/` | - |
-| 9. End-Entity Enrollment API | 🔲 | `api/` | - |
-| 10. Revocation Services | 🔲 | `service/` | - |
+| 8. Issuing CA Lifecycle | ✅ | `service/issuer/` | 9 |
+| 9. End-Entity Enrollment API | ✅ | `api/handler/` | 1 |
+| 10. Revocation Services | ✅ | `service/revocation/` | 11 |
+| 11. Time-Stamping Support | 🔲 | - | - |
+| 12. RA Workflows | 🔲 | - | - |
+| 13. Profile Library | 🔲 | - | - |
+| 14. Storage Layer | 🔲 | - | - |
 
-**Total Tests: 40+**
+**Total Tests: 65+**
+
+## OpenAPI Specification
+
+The CA enrollment API is defined in `api/ca/openapi_spec_enrollment.yaml` with:
+
+- Certificate enrollment endpoints
+- Profile listing and details
+- Certificate retrieval and chain
+- Error responses
+
+Generated code in `api/ca/models/` and `api/ca/server/`.
 
 ## Existing Infrastructure
 
@@ -80,34 +96,11 @@ The CA subsystem leverages these existing packages:
 - Certificate path validation
 - Name constraints and policy constraints
 
-## Migration Path
-
-### Phase 1: Foundation (Current)
-
-- Use existing `internal/common/crypto/certificate/` for core operations
-- Add YAML-based profile configuration
-- Implement domain models
-
-### Phase 2: Services
-
-- Certificate issuance service with profile enforcement
-- Repository layer with PostgreSQL/SQLite support
-- API endpoints for enrollment
-
-### Phase 3: Revocation & Compliance
-
-- CRL generation and distribution
-- OCSP responder
-- Audit logging and compliance evidence
-
 ## Status
 
 | Task | Description | Status |
 |------|-------------|--------|
-| Task 1 | Domain Charter | ✅ Complete |
-| Task 2 | Configuration Schema | 🔄 Planned |
-| Task 3 | Crypto Provider Abstractions | 🔄 Planned |
-| Task 4 | Subject Profile Engine | 🔄 Planned |
-| Task 5 | Certificate Profile Engine | 🔄 Planned |
+| Task 1-10 | Foundation & Core Services | ✅ Complete |
+| Task 11-20 | Advanced Features | 🔲 Planned |
 
 See `docs/05-ca/README.md` for complete 20-task roadmap.
