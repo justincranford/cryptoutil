@@ -26,15 +26,15 @@ type CAConfig struct {
 
 // CADefinition defines a Certificate Authority's properties.
 type CADefinition struct {
-	Name         string            `yaml:"name"`
-	Description  string            `yaml:"description"`
-	Type         string            `yaml:"type"`  // root, intermediate, issuing
-	Parent       string            `yaml:"parent"` // Parent CA name (empty for root)
-	Subject      SubjectConfig     `yaml:"subject"`
-	Key          KeyConfig         `yaml:"key"`
-	Validity     ValidityConfig    `yaml:"validity"`
-	MaxPathLength int              `yaml:"max_path_length"`
-	Distribution DistributionConfig `yaml:"distribution"`
+	Name          string             `yaml:"name"`
+	Description   string             `yaml:"description"`
+	Type          string             `yaml:"type"`   // root, intermediate, issuing
+	Parent        string             `yaml:"parent"` // Parent CA name (empty for root)
+	Subject       SubjectConfig      `yaml:"subject"`
+	Key           KeyConfig          `yaml:"key"`
+	Validity      ValidityConfig     `yaml:"validity"`
+	MaxPathLength int                `yaml:"max_path_length"`
+	Distribution  DistributionConfig `yaml:"distribution"`
 }
 
 // SubjectConfig defines the subject distinguished name components.
@@ -55,7 +55,7 @@ type KeyConfig struct {
 
 // ValidityConfig defines certificate validity period.
 type ValidityConfig struct {
-	Days                    int `yaml:"days"`
+	Days                   int `yaml:"days"`
 	NotBeforeOffsetMinutes int `yaml:"not_before_offset_minutes"`
 }
 
@@ -73,17 +73,17 @@ type ProfileConfig struct {
 
 // ProfileDefinition defines certificate issuance policy.
 type ProfileDefinition struct {
-	Name             string                  `yaml:"name"`
-	Description      string                  `yaml:"description"`
-	Validity         ProfileValidityConfig   `yaml:"validity"`
-	Key              ProfileKeyConfig        `yaml:"key"`
-	KeyUsage         []string                `yaml:"key_usage"`
-	ExtendedKeyUsage ExtendedKeyUsageConfig  `yaml:"extended_key_usage"`
-	Subject          SubjectConstraints      `yaml:"subject"`
-	SAN              SANConstraints          `yaml:"san"`
-	Extensions       ExtensionConstraints    `yaml:"extensions"`
-	BasicConstraints BasicConstraintsConfig  `yaml:"basic_constraints"`
-	Signature        SignatureConfig         `yaml:"signature"`
+	Name             string                 `yaml:"name"`
+	Description      string                 `yaml:"description"`
+	Validity         ProfileValidityConfig  `yaml:"validity"`
+	Key              ProfileKeyConfig       `yaml:"key"`
+	KeyUsage         []string               `yaml:"key_usage"`
+	ExtendedKeyUsage ExtendedKeyUsageConfig `yaml:"extended_key_usage"`
+	Subject          SubjectConstraints     `yaml:"subject"`
+	SAN              SANConstraints         `yaml:"san"`
+	Extensions       ExtensionConstraints   `yaml:"extensions"`
+	BasicConstraints BasicConstraintsConfig `yaml:"basic_constraints"`
+	Signature        SignatureConfig        `yaml:"signature"`
 }
 
 // ProfileValidityConfig defines validity constraints for a profile.

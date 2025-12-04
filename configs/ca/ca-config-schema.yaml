@@ -7,13 +7,13 @@ ca:
   # Unique name for this CA
   name: "cryptoutil-root-ca"
   description: "Cryptoutil Root Certificate Authority"
-  
+
   # CA type: root, intermediate, issuing
   type: "root"
-  
+
   # Parent CA name (required for intermediate and issuing CAs, empty for root)
   parent: ""
-  
+
   # Subject distinguished name components
   subject:
     common_name: "Cryptoutil Root CA"
@@ -22,7 +22,7 @@ ca:
     country: "US"
     state: "California"
     locality: "San Francisco"
-  
+
   # Key configuration
   key:
     # Algorithm: RSA, ECDSA, EdDSA
@@ -31,18 +31,18 @@ ca:
     # For ECDSA: P-256, P-384, P-521
     # For EdDSA: Ed25519, Ed448
     curve_or_size: "P-384"
-  
+
   # Validity period
   validity:
     # Duration in days
     days: 3650  # 10 years for root
     # Not before offset (optional, randomized by default)
     not_before_offset_minutes: 0
-  
+
   # Path length constraint (only for CA certificates)
   # -1 = unlimited, 0 = can only issue end-entity, N = can issue N levels of sub-CAs
   max_path_length: 2
-  
+
   # Distribution points
   distribution:
     crl_url: "http://crl.example.com/root.crl"

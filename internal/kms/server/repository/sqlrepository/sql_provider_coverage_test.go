@@ -41,6 +41,10 @@ func TestNewSQLRepository_SQLite_PragmaSettings(t *testing.T) {
 
 // TestNewSQLRepository_PostgreSQL_SchemaCreation tests PostgreSQL schema creation from search_path.
 func TestNewSQLRepository_PostgreSQL_SchemaCreation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

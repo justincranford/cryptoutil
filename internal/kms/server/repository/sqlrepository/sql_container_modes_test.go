@@ -156,6 +156,10 @@ func TestHealthCheck_ContextTimeout(t *testing.T) {
 
 // TestNewSQLRepository_InvalidDatabaseURL_Formats tests various invalid URL formats.
 func TestNewSQLRepository_InvalidDatabaseURL_Formats(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

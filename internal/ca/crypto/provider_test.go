@@ -123,7 +123,6 @@ func TestSoftwareProvider_GenerateKeyPair(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -172,7 +171,6 @@ func TestSoftwareProvider_SignAndVerify(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -234,7 +232,6 @@ func TestSoftwareProvider_VerifyInvalidSignature(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -305,7 +302,6 @@ func TestSoftwareProvider_GetSignatureAlgorithm(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -390,7 +386,6 @@ func TestParseKeySpecFromConfig(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

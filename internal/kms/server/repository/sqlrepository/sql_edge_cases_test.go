@@ -159,6 +159,10 @@ func TestMapDBTypeAndURL_EdgeCases(t *testing.T) {
 
 // TestExtractSchemaFromURL_EdgeCases tests schema extraction edge cases.
 func TestExtractSchemaFromURL_EdgeCases(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

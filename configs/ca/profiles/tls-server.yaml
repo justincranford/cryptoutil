@@ -5,13 +5,13 @@
 profile:
   name: "tls-server"
   description: "TLS Server Authentication Certificate"
-  
+
   # Validity constraints
   validity:
     max_days: 398  # CA/Browser Forum max for public TLS
     min_days: 1
     default_days: 365
-  
+
   # Key constraints
   key:
     allowed_algorithms:
@@ -25,19 +25,19 @@ profile:
           - "P-521"
     default_algorithm: "ECDSA"
     default_curve_or_size: "P-256"
-  
+
   # Key usage (RFC 5280)
   key_usage:
     - "digitalSignature"
     - "keyEncipherment"
-  
+
   # Extended key usage (RFC 5280)
   extended_key_usage:
     required:
       - "serverAuth"  # 1.3.6.1.5.5.7.3.1
     optional:
       - "clientAuth"  # 1.3.6.1.5.5.7.3.2 (for mTLS)
-  
+
   # Subject constraints
   subject:
     require_common_name: true
@@ -47,7 +47,7 @@ profile:
     allow_state: true
     allow_locality: true
     max_cn_length: 64
-  
+
   # Subject Alternative Name constraints
   san:
     allow_dns_names: true
@@ -66,7 +66,7 @@ profile:
       - "172.16.0.0/12"
       - "192.168.0.0/16"
       - "127.0.0.0/8"
-  
+
   # Required extensions
   extensions:
     required:
@@ -79,12 +79,12 @@ profile:
       - "crlDistributionPoints"
       - "authorityInfoAccess"
       - "certificatePolicies"
-  
+
   # Basic constraints (end-entity certificate)
   basic_constraints:
     is_ca: false
     path_length: -1  # Not applicable for end-entity
-  
+
   # Signature algorithm preferences
   signature:
     preferred:

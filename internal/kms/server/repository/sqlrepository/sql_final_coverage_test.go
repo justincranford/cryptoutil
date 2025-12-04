@@ -18,6 +18,10 @@ import (
 
 // TestMapDBTypeAndURL_AllScenarios tests all database type and URL mapping scenarios.
 func TestMapDBTypeAndURL_AllScenarios(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()
@@ -201,6 +205,10 @@ func TestLogSchema_BothDatabaseTypes(t *testing.T) {
 
 // TestSQLRepository_ErrorWrapping_AllTypes tests all custom error types.
 func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL error test in short mode")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()

@@ -81,6 +81,10 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 
 // TestNewSQLRepository_PostgreSQL_InvalidURL tests PostgreSQL with invalid database URLs.
 func TestNewSQLRepository_PostgreSQL_InvalidURL(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	tests := []struct {
@@ -130,6 +134,10 @@ func TestNewSQLRepository_PostgreSQL_InvalidURL(t *testing.T) {
 
 // TestExtractSchemaFromURL_PostgreSQL tests schema extraction from PostgreSQL URLs.
 func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping PostgreSQL test in short mode")
+	}
+
 	t.Parallel()
 
 	// This tests the extractSchemaFromURL function indirectly through NewSQLRepository.

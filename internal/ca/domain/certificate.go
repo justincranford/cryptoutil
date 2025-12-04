@@ -100,7 +100,7 @@ type Certificate struct {
 	ExtKeyUsages string    `gorm:"type:text"` // JSON array of OIDs
 
 	// Revocation status.
-	RevokedAt     *time.Time `gorm:"index"`
+	RevokedAt        *time.Time `gorm:"index"`
 	RevocationReason int        `gorm:"default:0"` // RFC 5280 CRLReason
 
 	// Timestamps.
@@ -120,15 +120,15 @@ type CertificateProfile struct {
 	MinKeySize      int `gorm:"not null;default:2048"`
 
 	// Key usage settings.
-	KeyUsage           int    `gorm:"not null"`               // x509.KeyUsage flags
-	ExtKeyUsages       string `gorm:"type:text"`              // JSON array of x509.ExtKeyUsage
-	AllowedKeyTypes    string `gorm:"type:text;not null"`     // JSON array: ["RSA", "ECDSA", "EdDSA"]
-	AllowedKeyAlgs     string `gorm:"type:text"`              // JSON array of specific algorithms
+	KeyUsage        int    `gorm:"not null"`           // x509.KeyUsage flags
+	ExtKeyUsages    string `gorm:"type:text"`          // JSON array of x509.ExtKeyUsage
+	AllowedKeyTypes string `gorm:"type:text;not null"` // JSON array: ["RSA", "ECDSA", "EdDSA"]
+	AllowedKeyAlgs  string `gorm:"type:text"`          // JSON array of specific algorithms
 
 	// Subject constraints.
 	RequireCN          bool   `gorm:"not null;default:true"`
-	AllowedSubjectOIDs string `gorm:"type:text"`              // JSON array of allowed subject OIDs
-	RequiredExtensions string `gorm:"type:text"`              // JSON array of required extension OIDs
+	AllowedSubjectOIDs string `gorm:"type:text"` // JSON array of allowed subject OIDs
+	RequiredExtensions string `gorm:"type:text"` // JSON array of required extension OIDs
 
 	// SAN constraints.
 	AllowDNSNames    bool `gorm:"not null;default:true"`
@@ -147,14 +147,14 @@ type CertificateProfile struct {
 
 // RevocationEntry represents a revoked certificate entry for CRL generation.
 type RevocationEntry struct {
-	ID              googleUuid.UUID `gorm:"type:text;primaryKey"`
-	CertificateID   googleUuid.UUID `gorm:"type:text;not null;uniqueIndex"`
-	IssuerID        googleUuid.UUID `gorm:"type:text;not null;index"` // CA that issued the certificate
-	SerialHex       string          `gorm:"type:text;not null;index"`
-	RevokedAt       time.Time       `gorm:"not null;index"`
-	RevocationReason int            `gorm:"not null;default:0"` // RFC 5280 CRLReason
-	InvalidityDate  *time.Time      `gorm:""`                   // Optional invalidity date
-	CreatedAt       time.Time       `gorm:"not null;autoCreateTime"`
+	ID               googleUuid.UUID `gorm:"type:text;primaryKey"`
+	CertificateID    googleUuid.UUID `gorm:"type:text;not null;uniqueIndex"`
+	IssuerID         googleUuid.UUID `gorm:"type:text;not null;index"` // CA that issued the certificate
+	SerialHex        string          `gorm:"type:text;not null;index"`
+	RevokedAt        time.Time       `gorm:"not null;index"`
+	RevocationReason int             `gorm:"not null;default:0"` // RFC 5280 CRLReason
+	InvalidityDate   *time.Time      `gorm:""`                   // Optional invalidity date
+	CreatedAt        time.Time       `gorm:"not null;autoCreateTime"`
 }
 
 // CertificateRequest represents a pending certificate signing request.
@@ -164,19 +164,19 @@ type CertificateRequest struct {
 	IssuerID  googleUuid.UUID `gorm:"type:text;not null;index"` // Target issuing CA
 
 	// Request content.
-	CSRPEM    []byte `gorm:"type:blob;not null"`
-	SubjectCN string `gorm:"type:text;not null"`
-	DNSNames  string `gorm:"type:text"` // JSON array
+	CSRPEM      []byte `gorm:"type:blob;not null"`
+	SubjectCN   string `gorm:"type:text;not null"`
+	DNSNames    string `gorm:"type:text"` // JSON array
 	IPAddresses string `gorm:"type:text"` // JSON array
-	EmailAddrs string `gorm:"type:text"` // JSON array
+	EmailAddrs  string `gorm:"type:text"` // JSON array
 
 	// Request status.
-	Status    string     `gorm:"type:text;not null;default:pending"` // pending, approved, rejected, issued
-	ApprovedAt *time.Time `gorm:""`
-	ApprovedBy string     `gorm:"type:text"`
-	RejectedAt *time.Time `gorm:""`
-	RejectedBy string     `gorm:"type:text"`
-	RejectReason string   `gorm:"type:text"`
+	Status       string     `gorm:"type:text;not null;default:pending"` // pending, approved, rejected, issued
+	ApprovedAt   *time.Time `gorm:""`
+	ApprovedBy   string     `gorm:"type:text"`
+	RejectedAt   *time.Time `gorm:""`
+	RejectedBy   string     `gorm:"type:text"`
+	RejectReason string     `gorm:"type:text"`
 
 	// Issued certificate (if approved and issued).
 	CertificateID *googleUuid.UUID `gorm:"type:text;index"`

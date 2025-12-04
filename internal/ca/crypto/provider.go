@@ -35,10 +35,10 @@ const (
 
 // KeySpec specifies the parameters for key generation.
 type KeySpec struct {
-	Type        KeyType
-	RSABits     int    // For RSA keys: 2048, 3072, 4096
-	ECDSACurve  string // For ECDSA keys: P-256, P-384, P-521
-	EdDSACurve  string // For EdDSA keys: Ed25519, Ed448
+	Type       KeyType
+	RSABits    int    // For RSA keys: 2048, 3072, 4096
+	ECDSACurve string // For ECDSA keys: P-256, P-384, P-521
+	EdDSACurve string // For EdDSA keys: Ed25519, Ed448
 }
 
 // KeyPair holds a generated key pair.

@@ -19,6 +19,7 @@ import (
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 )
+
 // Handler implements the CA enrollment ServerInterface.
 type Handler struct {
 	issuer   *cryptoutilCAServiceIssuer.Issuer
