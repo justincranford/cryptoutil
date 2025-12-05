@@ -381,6 +381,44 @@ All tests pass with `go test -v ./internal/identity/authz/... -run="TestIntrospe
 
 ---
 
-*Progress Version: 2.0.0*
-*Last Updated: December 3, 2025*
-*Status: All Phases 100% Complete*
+## Session 2025-12-05 (Documentation & Threshold Updates)
+
+**Objective**: Add SQLite lessons learned and update coverage thresholds
+
+### Completed Tasks
+
+1. ✅ **SQLite Read-Only Transaction Documentation**
+   - Added documentation to `.github/instructions/01-04.database.instructions.md`
+   - Added troubleshooting note to `.github/instructions/04-01.sqlite-gorm.instructions.md`
+   - Key lesson: SQLite does NOT support `sql.TxOptions{ReadOnly: true}`
+   - Solution: Use standard transactions or direct queries for read operations
+
+2. ✅ **Coverage Threshold Updates (5% Increment)**
+   - Production code: 80% → 85%
+   - Infrastructure (cicd): 85% → 90%
+   - Utility code: 95% → 100%
+   - Updated 18+ files across:
+     - Copilot instructions (01-02, 05-01)
+     - Constitution (`.specify/memory/constitution.md`)
+     - Feature templates (`docs/feature-template/*.md`)
+     - Workflows (`ci-coverage.yml`, `ci-identity-validation.yml`)
+     - Spec files (`specs/001-cryptoutil/spec.md`)
+     - Template commands (`.specify/templates/commands/*.md`)
+
+### Evidence
+
+- All coverage percentage references consistently updated
+- No remaining references to old thresholds (80%/85%/95%)
+- Commit: `feat(docs): add SQLite read-only transaction lesson and update coverage thresholds`
+
+### Lessons Learned
+
+1. **SQLite read-only transactions are not supported** - Always test cross-database compatibility
+2. **Coverage thresholds must be updated consistently** - Search all file types for references
+3. **Documentation should prevent future errors** - Add lessons learned proactively
+
+---
+
+*Progress Version: 2.1.0*
+*Last Updated: December 5, 2025*
+*Status: All Phases 100% Complete + Documentation Updates

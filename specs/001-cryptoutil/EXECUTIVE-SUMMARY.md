@@ -250,5 +250,115 @@ docker compose -f compose.yml down -v
 
 ---
 
-*Document Version: 1.1.0*
-*Generated: December 3, 2025*
+## Second Pass Review: Unresolved Items
+
+### Issues Identified
+
+1. **Test Runtime Optimization Deferred**
+   - Packages with long test runtimes (jose: ~27s, clientauth: ~21s, kms/client: ~22s) were analyzed
+   - Root cause: Comprehensive cryptographic test coverage with 80+ algorithm combinations
+   - Recommendation: These runtimes are acceptable given thorough coverage requirements
+   - Future: Consider test caching or selective test execution in CI for faster feedback
+
+2. **Code Coverage Improvement Scope**
+   - Coverage thresholds increased by 5% across all categories
+   - Actual coverage improvement deferred to future iterations
+   - Some packages may need additional test cases to meet new thresholds
+
+3. **Cross-Database Compatibility Documentation**
+   - SQLite read-only transaction limitation now documented
+   - Additional SQLite limitations may exist but not yet discovered
+   - Recommendation: Create comprehensive cross-database compatibility test suite
+
+### Ambiguities Remaining
+
+1. **JOSE Authority Server (Iteration 2)**
+   - 47 tasks identified but not started
+   - API design decisions pending for JWT/JWS/JWE endpoints
+   - Authentication middleware approach not finalized
+
+2. **CA Server REST API (Iteration 2)**
+   - mTLS authentication middleware design pending
+   - OCSP responder implementation complexity unclear
+   - EST/SCEP protocol priority not determined
+
+### Missing or Incomplete
+
+1. **Performance Baseline Documentation**
+   - Benchmarks exist but no documented baseline metrics
+   - No performance regression detection in CI
+
+2. **Database Migration Strategy**
+   - Migrations exist but rollback procedures not documented
+   - Schema version tracking not implemented
+
+3. **Error Code Standardization**
+   - OAuth2/OIDC errors follow RFC but internal errors inconsistent
+   - No error code registry or documentation
+
+---
+
+## Lessons Learned for Future Iterations
+
+### 1. Copilot Instructions Updates
+
+| File | Recommended Update |
+|------|-------------------|
+| `01-04.database.instructions.md` | ✅ Added SQLite read-only transaction warning |
+| `04-01.sqlite-gorm.instructions.md` | ✅ Added troubleshooting note |
+| `01-02.testing.instructions.md` | Consider adding: "For comprehensive cryptographic tests, accept longer runtimes (20-30s) over reduced coverage" |
+| `02-01.github.instructions.md` | Add guidance on test caching strategies for slow packages |
+
+### 2. Speckit Constitution Updates
+
+| Section | Recommended Update |
+|---------|-------------------|
+| IV. Go Testing Requirements | Add: "Cryptographic test suites may exceed typical runtime thresholds due to algorithm coverage requirements" |
+| V. Code Quality Excellence | Coverage thresholds updated: 85% production, 90% infrastructure, 100% utility |
+| VI. Development Workflow | Add: "Cross-database compatibility must be validated before marking database-related tasks complete" |
+
+### 3. Feature Template Updates
+
+| File | Recommended Update |
+|------|-------------------|
+| `feature-template.md` | Add cross-database compatibility checklist item |
+| `agent-quick-reference.md` | Update coverage thresholds (completed) |
+
+### 4. Next Iteration (specs/002-cryptoutil) Focus
+
+1. **JOSE Authority Server**
+   - Prioritize JWK, JWS, JWE endpoints (core functionality)
+   - Defer JWT endpoints to Phase 2
+   - Design API key authentication before implementation
+
+2. **CA Server**
+   - Focus on certificate issuance/revocation first
+   - OCSP/CRL can follow in Phase 2
+   - EST/SCEP lower priority than core PKI operations
+
+3. **Integration**
+   - Docker Compose templates for new services
+   - Demo scripts following existing pattern
+   - E2E test coverage for new endpoints
+
+### 5. Process Improvements
+
+1. **Before Implementation**
+   - Create cross-database compatibility test first
+   - Document expected test runtimes for comprehensive packages
+   - Define API contracts with OpenAPI spec before coding
+
+2. **During Implementation**
+   - Run cross-database tests after each database-related change
+   - Track coverage metrics incrementally
+   - Create post-mortems for every bug found
+
+3. **After Implementation**
+   - Update all documentation (spec.md status markers)
+   - Verify coverage meets new thresholds
+   - Create lessons learned section in PROGRESS.md
+
+---
+
+*Document Version: 1.2.0*
+*Generated: December 5, 2025*
