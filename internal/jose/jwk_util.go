@@ -74,6 +74,21 @@ var (
 	AlgEdDSA      = joseJwa.EdDSA()                          // SignatureAlgorithm
 	AlgSigInvalid = joseJwa.NewSignatureAlgorithm("invalid") // SignatureAlgorithm
 
+	// String constants for algorithm names to avoid goconst warnings.
+	algStrHS256 = "HS256"
+	algStrHS384 = "HS384"
+	algStrHS512 = "HS512"
+	algStrRS256 = "RS256"
+	algStrRS384 = "RS384"
+	algStrRS512 = "RS512"
+	algStrPS256 = "PS256"
+	algStrPS384 = "PS384"
+	algStrPS512 = "PS512"
+	algStrES256 = "ES256"
+	algStrES384 = "ES384"
+	algStrES512 = "ES512"
+	algStrEdDSA = "EdDSA"
+
 	OpsEncDec = joseJwk.KeyOperationList{joseJwk.KeyOpEncrypt, joseJwk.KeyOpDecrypt} // []KeyOperation
 	OpsSigVer = joseJwk.KeyOperationList{joseJwk.KeyOpSign, joseJwk.KeyOpVerify}     // []KeyOperation
 	OpsEnc    = joseJwk.KeyOperationList{joseJwk.KeyOpEncrypt}                       // []KeyOperation
@@ -666,31 +681,31 @@ func EnsureSignatureAlgorithmType(jwk joseJwk.Key) error {
 	var alg joseJwa.SignatureAlgorithm
 
 	switch algString {
-	case "HS256":
+	case algStrHS256:
 		alg = AlgHS256
-	case "HS384":
+	case algStrHS384:
 		alg = AlgHS384
-	case "HS512":
+	case algStrHS512:
 		alg = AlgHS512
-	case "RS256":
+	case algStrRS256:
 		alg = AlgRS256
-	case "RS384":
+	case algStrRS384:
 		alg = AlgRS384
-	case "RS512":
+	case algStrRS512:
 		alg = AlgRS512
-	case "PS256":
+	case algStrPS256:
 		alg = AlgPS256
-	case "PS384":
+	case algStrPS384:
 		alg = AlgPS384
-	case "PS512":
+	case algStrPS512:
 		alg = AlgPS512
-	case "ES256":
+	case algStrES256:
 		alg = AlgES256
-	case "ES384":
+	case algStrES384:
 		alg = AlgES384
-	case "ES512":
+	case algStrES512:
 		alg = AlgES512
-	case "EdDSA":
+	case algStrEdDSA:
 		alg = AlgEdDSA
 	default:
 		return fmt.Errorf("unsupported signature algorithm: %s", algString)

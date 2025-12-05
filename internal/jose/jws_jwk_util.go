@@ -26,6 +26,22 @@ import (
 
 var ErrInvalidJWSJWKKidUUID = "invalid JWS JWK kid UUID"
 
+const (
+	algRS512 = "RS512"
+	algPS512 = "PS512"
+	algRS384 = "RS384"
+	algPS384 = "PS384"
+	algRS256 = "RS256"
+	algPS256 = "PS256"
+	algES512 = "ES512"
+	algES384 = "ES384"
+	algES256 = "ES256"
+	algEdDSA = "EdDSA"
+	algHS512 = "HS512"
+	algHS384 = "HS384"
+	algHS256 = "HS256"
+)
+
 func GenerateJWSJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
@@ -140,25 +156,25 @@ func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	}
 
 	switch (*alg).String() {
-	case "RS512", "PS512":
+	case algRS512, algPS512:
 		return validateOrGenerateJWSRSAJWK(key, *alg, cryptoutilMagic.RSAKeySize4096)
-	case "RS384", "PS384":
+	case algRS384, algPS384:
 		return validateOrGenerateJWSRSAJWK(key, *alg, cryptoutilMagic.RSAKeySize3072)
-	case "RS256", "PS256":
+	case algRS256, algPS256:
 		return validateOrGenerateJWSRSAJWK(key, *alg, cryptoutilMagic.RSAKeySize2048)
-	case "ES512":
+	case algES512:
 		return validateOrGenerateJWSEcdsaJWK(key, *alg, elliptic.P521())
-	case "ES384":
+	case algES384:
 		return validateOrGenerateJWSEcdsaJWK(key, *alg, elliptic.P384())
-	case "ES256":
+	case algES256:
 		return validateOrGenerateJWSEcdsaJWK(key, *alg, elliptic.P256())
-	case "EdDSA":
+	case algEdDSA:
 		return validateOrGenerateJWSEddsaJWK(key, *alg, "Ed25519")
-	case "HS512":
+	case algHS512:
 		return validateOrGenerateJWSHMACJWK(key, *alg, cryptoutilMagic.HMACKeySize512)
-	case "HS384":
+	case algHS384:
 		return validateOrGenerateJWSHMACJWK(key, *alg, cryptoutilMagic.HMACKeySize384)
-	case "HS256":
+	case algHS256:
 		return validateOrGenerateJWSHMACJWK(key, *alg, cryptoutilMagic.HMACKeySize256)
 	default:
 		return nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
