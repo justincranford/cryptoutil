@@ -5,6 +5,7 @@ package handler
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -15,14 +16,17 @@ import (
 	"github.com/google/uuid"
 
 	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilCAMagic "cryptoutil/internal/ca/magic"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
+	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
 // Handler implements the CA enrollment ServerInterface.
 type Handler struct {
 	issuer   *cryptoutilCAServiceIssuer.Issuer
+	storage  cryptoutilCAStorage.Store
 	profiles map[string]*ProfileConfig
 	mu       sync.RWMutex
 }
@@ -38,9 +42,13 @@ type ProfileConfig struct {
 }
 
 // NewHandler creates a new enrollment handler.
-func NewHandler(issuer *cryptoutilCAServiceIssuer.Issuer, profiles map[string]*ProfileConfig) (*Handler, error) {
+func NewHandler(issuer *cryptoutilCAServiceIssuer.Issuer, storage cryptoutilCAStorage.Store, profiles map[string]*ProfileConfig) (*Handler, error) {
 	if issuer == nil {
 		return nil, fmt.Errorf("issuer is required")
+	}
+
+	if storage == nil {
+		return nil, fmt.Errorf("storage is required")
 	}
 
 	if profiles == nil {
@@ -49,26 +57,150 @@ func NewHandler(issuer *cryptoutilCAServiceIssuer.Issuer, profiles map[string]*P
 
 	return &Handler{
 		issuer:   issuer,
+		storage:  storage,
 		profiles: profiles,
 	}, nil
 }
 
 // ListCertificates handles GET /certificates.
-func (h *Handler) ListCertificates(_ *fiber.Ctx, _ cryptoutilCAServer.ListCertificatesParams) error {
-	// TODO: Implement certificate listing with storage backend.
-	return fiber.NewError(fiber.StatusNotImplemented, "certificate listing not yet implemented")
+func (h *Handler) ListCertificates(c *fiber.Ctx, params cryptoutilCAServer.ListCertificatesParams) error {
+	// Build filter from params.
+	filter := &cryptoutilCAStorage.ListFilter{
+		Limit:  cryptoutilCAMagic.DefaultPageLimit,
+		Offset: 0,
+	}
+
+	if params.PageSize != nil {
+		filter.Limit = *params.PageSize
+	}
+
+	if params.Page != nil && *params.Page > 1 {
+		filter.Offset = (*params.Page - 1) * filter.Limit
+	}
+
+	if params.Profile != nil {
+		filter.ProfileID = params.Profile
+	}
+
+	if params.Status != nil {
+		status := cryptoutilCAStorage.CertificateStatus(*params.Status)
+		filter.Status = &status
+	}
+
+	// List certificates from storage.
+	certs, total, err := h.storage.List(c.Context(), filter)
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+	}
+
+	// Build response.
+	certResponses := make([]cryptoutilCAServer.CertificateSummary, 0, len(certs))
+
+	for _, cert := range certs {
+		status := cryptoutilCAServer.CertificateStatus(cert.Status)
+		notBefore := cert.NotBefore
+		notAfter := cert.NotAfter
+		profileID := cert.ProfileID
+
+		certResponses = append(certResponses, cryptoutilCAServer.CertificateSummary{
+			SerialNumber: cert.SerialNumber,
+			SubjectCN:    extractCommonName(cert.SubjectDN),
+			NotBefore:    &notBefore,
+			NotAfter:     &notAfter,
+			Profile:      &profileID,
+			Status:       status,
+		})
+	}
+
+	page := 1
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	pageSize := filter.Limit
+
+	if err := c.JSON(cryptoutilCAServer.CertificateListResponse{
+		Certificates: certResponses,
+		Total:        total,
+		Page:         page,
+		PageSize:     pageSize,
+	}); err != nil {
+		return fmt.Errorf("failed to send certificate list response: %w", err)
+	}
+
+	return nil
 }
 
 // GetCertificate handles GET /certificates/{serialNumber}.
-func (h *Handler) GetCertificate(_ *fiber.Ctx, _ string) error {
-	// TODO: Implement certificate retrieval with storage backend.
-	return fiber.NewError(fiber.StatusNotImplemented, "certificate retrieval not yet implemented")
+func (h *Handler) GetCertificate(c *fiber.Ctx, serialNumber string) error {
+	if serialNumber == "" {
+		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_serial", "serial number is required")
+	}
+
+	cert, err := h.storage.GetBySerialNumber(c.Context(), serialNumber)
+	if err != nil {
+		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
+			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "certificate not found")
+		}
+
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+	}
+
+	status := cryptoutilCAServer.CertificateStatus(cert.Status)
+	notBefore := cert.NotBefore
+	notAfter := cert.NotAfter
+	profileID := cert.ProfileID
+
+	response := cryptoutilCAServer.CertificateResponse{
+		SerialNumber:   cert.SerialNumber,
+		Subject:        buildCertificateSubject(cert.SubjectDN),
+		Issuer:         buildCertificateSubject(cert.IssuerDN),
+		NotBefore:      &notBefore,
+		NotAfter:       &notAfter,
+		Profile:        &profileID,
+		Status:         status,
+		CertificatePEM: cert.CertificatePEM,
+	}
+
+	if err := c.JSON(response); err != nil {
+		return fmt.Errorf("failed to send certificate response: %w", err)
+	}
+
+	return nil
 }
 
 // GetCertificateChain handles GET /certificates/{serialNumber}/chain.
-func (h *Handler) GetCertificateChain(_ *fiber.Ctx, _ string) error {
-	// TODO: Implement chain retrieval with storage backend.
-	return fiber.NewError(fiber.StatusNotImplemented, "chain retrieval not yet implemented")
+func (h *Handler) GetCertificateChain(c *fiber.Ctx, serialNumber string) error {
+	if serialNumber == "" {
+		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_serial", "serial number is required")
+	}
+
+	cert, err := h.storage.GetBySerialNumber(c.Context(), serialNumber)
+	if err != nil {
+		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
+			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "certificate not found")
+		}
+
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+	}
+
+	// Parse the certificate to build chain response.
+	chainCerts := make([]cryptoutilCAServer.ChainCertificate, 0, 1)
+
+	// Add the certificate itself.
+	chainCerts = append(chainCerts, cryptoutilCAServer.ChainCertificate{
+		CertificatePEM: cert.CertificatePEM,
+		Subject:        buildCertificateSubjectValue(cert.SubjectDN),
+		Issuer:         buildCertificateSubject(cert.IssuerDN),
+	})
+
+	if err := c.JSON(cryptoutilCAServer.CertificateChainResponse{
+		Certificates: chainCerts,
+	}); err != nil {
+		return fmt.Errorf("failed to send certificate chain response: %w", err)
+	}
+
+	return nil
 }
 
 // SubmitEnrollment handles POST /enroll.
@@ -500,6 +632,56 @@ func (h *Handler) mapSANRequirements(profile *cryptoutilCAProfileSubject.Profile
 		IPAddressesAllowed:    &profile.SubjectAltNames.IPAddresses.Allowed,
 		EmailAddressesAllowed: &profile.SubjectAltNames.EmailAddresses.Allowed,
 		UrisAllowed:           &profile.SubjectAltNames.URIs.Allowed,
+	}
+}
+
+// extractCommonName extracts the common name from a distinguished name string.
+func extractCommonName(dn string) string {
+	// Simple extraction - look for CN= prefix.
+	const cnPrefix = "CN="
+
+	start := 0
+
+	for i := 0; i < len(dn); i++ {
+		if i+len(cnPrefix) <= len(dn) && dn[i:i+len(cnPrefix)] == cnPrefix {
+			start = i + len(cnPrefix)
+
+			break
+		}
+	}
+
+	if start == 0 {
+		return dn
+	}
+
+	end := len(dn)
+
+	for i := start; i < len(dn); i++ {
+		if dn[i] == ',' {
+			end = i
+
+			break
+		}
+	}
+
+	return dn[start:end]
+}
+
+// buildCertificateSubject builds a CertificateSubject pointer from a DN string.
+func buildCertificateSubject(dn string) *cryptoutilCAServer.CertificateSubject {
+	cn := extractCommonName(dn)
+
+	return &cryptoutilCAServer.CertificateSubject{
+		CommonName: &cn,
+	}
+}
+
+// buildCertificateSubjectValue builds a CertificateSubject value from a DN string.
+func buildCertificateSubjectValue(dn string) cryptoutilCAServer.CertificateSubject {
+	cn := extractCommonName(dn)
+
+	return cryptoutilCAServer.CertificateSubject{
+		CommonName: &cn,
 	}
 }
 

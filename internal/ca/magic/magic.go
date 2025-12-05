@@ -14,6 +14,9 @@ const HexBase = 16
 // serialNumberLength is 20 bytes (160 bits) per CA/Browser Forum requirements.
 const SerialNumberLength = 20
 
+// DefaultPageLimit is the default number of items per page for pagination.
+const DefaultPageLimit = 20
+
 // File permission constants.
 const (
 	DirPermissions     = 0o755
