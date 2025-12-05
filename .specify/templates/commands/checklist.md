@@ -63,7 +63,7 @@ You MUST consider the user input before proceeding (if not empty).
 
 - [ ] `go build ./...` succeeds
 - [ ] `golangci-lint run` passes with no errors
-- [ ] Test coverage ≥80% for new code
+- [ ] Test coverage ≥85% for new code
 - [ ] No `//nolint:` directives added
 - [ ] File size ≤300 lines (or justified)
 - [ ] Table-driven tests with `t.Parallel()`

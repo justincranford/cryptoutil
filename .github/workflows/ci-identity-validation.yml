@@ -49,8 +49,8 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=test-output/identity-coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 85" | bc -l) )); then
-            echo "::error::Coverage ${COVERAGE}% is below 85% threshold"
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "::error::Coverage ${COVERAGE}% is below 90% threshold"
             exit 1
           fi
 
