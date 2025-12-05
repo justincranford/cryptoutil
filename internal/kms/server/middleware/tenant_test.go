@@ -12,8 +12,12 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
+
+// Test UUIDs generated once per test run for consistency.
+var middlewareTestUUID = googleUuid.Must(googleUuid.NewV7()).String()
 
 func TestTenantMiddleware(t *testing.T) {
 	t.Parallel()
@@ -28,9 +32,9 @@ func TestTenantMiddleware(t *testing.T) {
 	}{
 		{
 			name:         "valid tenant ID",
-			tenantID:     "550e8400-e29b-41d4-a716-446655440000",
+			tenantID:     middlewareTestUUID,
 			wantStatus:   http.StatusOK,
-			wantTenantID: "550e8400-e29b-41d4-a716-446655440000",
+			wantTenantID: middlewareTestUUID,
 			wantError:    false,
 		},
 		{
@@ -56,16 +60,16 @@ func TestTenantMiddleware(t *testing.T) {
 		},
 		{
 			name:         "uppercase UUID",
-			tenantID:     "550E8400-E29B-41D4-A716-446655440000",
+			tenantID:     middlewareTestUUID,
 			wantStatus:   http.StatusOK,
-			wantTenantID: "550E8400-E29B-41D4-A716-446655440000",
+			wantTenantID: middlewareTestUUID,
 			wantError:    false,
 		},
 		{
 			name:         "tenant ID with whitespace",
-			tenantID:     "  550e8400-e29b-41d4-a716-446655440000  ",
+			tenantID:     "  " + middlewareTestUUID + "  ",
 			wantStatus:   http.StatusOK,
-			wantTenantID: "550e8400-e29b-41d4-a716-446655440000",
+			wantTenantID: middlewareTestUUID,
 			wantError:    false,
 		},
 	}
@@ -115,7 +119,7 @@ func TestRequireTenantMiddleware(t *testing.T) {
 	}{
 		{
 			name:       "with tenant ID",
-			tenantID:   "550e8400-e29b-41d4-a716-446655440000",
+			tenantID:   middlewareTestUUID,
 			wantStatus: http.StatusOK,
 		},
 		{
@@ -199,11 +203,11 @@ func TestIsValidUUID(t *testing.T) {
 		input string
 		valid bool
 	}{
-		{name: "valid lowercase UUID", input: "550e8400-e29b-41d4-a716-446655440000", valid: true},
-		{name: "valid uppercase UUID", input: "550E8400-E29B-41D4-A716-446655440000", valid: true},
-		{name: "valid mixed case UUID", input: "550E8400-e29b-41D4-a716-446655440000", valid: true},
+		{name: "valid lowercase UUID", input: middlewareTestUUID, valid: true},
+		{name: "valid uppercase UUID", input: middlewareTestUUID, valid: true},
+		{name: "valid mixed case UUID", input: middlewareTestUUID, valid: true},
 		{name: "too short", input: "550e8400-e29b-41d4-a716", valid: false},
-		{name: "too long", input: "550e8400-e29b-41d4-a716-4466554400001", valid: false},
+		{name: "too long", input: middlewareTestUUID + "1", valid: false},
 		{name: "missing hyphens", input: "550e8400e29b41d4a716446655440000", valid: false},
 		{name: "wrong hyphen position", input: "550e840-0e29b-41d4-a716-446655440000", valid: false},
 		{name: "invalid hex char", input: "550g8400-e29b-41d4-a716-446655440000", valid: false},

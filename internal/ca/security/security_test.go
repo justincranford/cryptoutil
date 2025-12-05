@@ -635,7 +635,7 @@ func createTestCertWithKey(t *testing.T, key any, isCA bool, notBefore, notAfter
 		pub = k.Public()
 		sigAlg = x509.PureEd25519
 	default:
-		t.Fatalf("unsupported key type: %T", key)
+		require.FailNow(t, "unsupported key type", "%T", key)
 	}
 
 	template := &x509.Certificate{

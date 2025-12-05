@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -20,6 +21,9 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
+
+// Test UUID generated once per test run for consistency.
+var tenantTestUUID = googleUuid.Must(googleUuid.NewV7()).String()
 
 func setupTenantTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
@@ -364,7 +368,7 @@ func TestValidateTenantID(t *testing.T) {
 		},
 		{
 			name:     "valid UUID",
-			tenantID: "550e8400-e29b-41d4-a716-446655440000",
+			tenantID: tenantTestUUID,
 			wantErr:  false,
 		},
 	}

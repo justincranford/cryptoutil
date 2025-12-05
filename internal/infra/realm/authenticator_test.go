@@ -10,10 +10,20 @@ import (
 	"encoding/base64"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/pbkdf2"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+)
+
+// Test UUIDs generated once per test run for consistency.
+var (
+	testRealmID1  = googleUuid.Must(googleUuid.NewV7()).String()
+	testRealmID2  = googleUuid.Must(googleUuid.NewV7()).String()
+	testUserID1   = googleUuid.Must(googleUuid.NewV7()).String()
+	testUserID2   = googleUuid.Must(googleUuid.NewV7()).String()
+	nonExistentID = googleUuid.Must(googleUuid.NewV7()).String()
 )
 
 func TestNewAuthenticator(t *testing.T) {
@@ -39,13 +49,13 @@ func TestNewAuthenticator(t *testing.T) {
 			config: &Config{
 				Realms: []RealmConfig{
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      testRealmID1,
 						Name:    "test-realm",
 						Type:    RealmTypeFile,
 						Enabled: true,
 						Users: []UserConfig{
 							{
-								ID:           "660e8400-e29b-41d4-a716-446655440001",
+								ID:           testUserID1,
 								Username:     "testuser",
 								PasswordHash: createTestPasswordHash(t, "testpass"),
 								Roles:        []string{"user"},
@@ -84,20 +94,20 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 	config := &Config{
 		Realms: []RealmConfig{
 			{
-				ID:      "550e8400-e29b-41d4-a716-446655440000",
+				ID:      testRealmID1,
 				Name:    "test-realm",
 				Type:    RealmTypeFile,
 				Enabled: true,
 				Users: []UserConfig{
 					{
-						ID:           "660e8400-e29b-41d4-a716-446655440001",
+						ID:           testUserID1,
 						Username:     "admin",
 						PasswordHash: createTestPasswordHash(t, "adminpass"),
 						Roles:        []string{"admin"},
 						Enabled:      true,
 					},
 					{
-						ID:           "770e8400-e29b-41d4-a716-446655440002",
+						ID:           testUserID2,
 						Username:     "disabled_user",
 						PasswordHash: createTestPasswordHash(t, "password"),
 						Roles:        []string{"user"},
@@ -116,7 +126,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 				},
 			},
 			{
-				ID:      "880e8400-e29b-41d4-a716-446655440003",
+				ID:      testRealmID2,
 				Name:    "disabled-realm",
 				Type:    RealmTypeFile,
 				Enabled: false,
@@ -142,7 +152,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 	}{
 		{
 			name:        "successful authentication",
-			realmID:     "550e8400-e29b-41d4-a716-446655440000",
+			realmID:     testRealmID1,
 			username:    "admin",
 			password:    "adminpass",
 			wantAuth:    true,
@@ -150,7 +160,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		},
 		{
 			name:        "wrong password",
-			realmID:     "550e8400-e29b-41d4-a716-446655440000",
+			realmID:     testRealmID1,
 			username:    "admin",
 			password:    "wrongpass",
 			wantAuth:    false,
@@ -158,7 +168,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		},
 		{
 			name:        "user not found",
-			realmID:     "550e8400-e29b-41d4-a716-446655440000",
+			realmID:     testRealmID1,
 			username:    "nonexistent",
 			password:    "password",
 			wantAuth:    false,
@@ -166,7 +176,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		},
 		{
 			name:        "disabled user",
-			realmID:     "550e8400-e29b-41d4-a716-446655440000",
+			realmID:     testRealmID1,
 			username:    "disabled_user",
 			password:    "password",
 			wantAuth:    false,
@@ -174,7 +184,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		},
 		{
 			name:        "realm not found",
-			realmID:     "990e8400-e29b-41d4-a716-446655440099",
+			realmID:     nonExistentID,
 			username:    "admin",
 			password:    "adminpass",
 			wantAuth:    false,
@@ -182,7 +192,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 		},
 		{
 			name:        "disabled realm",
-			realmID:     "880e8400-e29b-41d4-a716-446655440003",
+			realmID:     testRealmID2,
 			username:    "admin",
 			password:    "password",
 			wantAuth:    false,
@@ -222,13 +232,13 @@ func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 	config := &Config{
 		Realms: []RealmConfig{
 			{
-				ID:      "550e8400-e29b-41d4-a716-446655440000",
+				ID:      testRealmID1,
 				Name:    "demo-realm",
 				Type:    RealmTypeFile,
 				Enabled: true,
 				Users: []UserConfig{
 					{
-						ID:           "660e8400-e29b-41d4-a716-446655440001",
+						ID:           testUserID1,
 						Username:     "testuser",
 						PasswordHash: createTestPasswordHash(t, "testpass"),
 						Roles:        []string{"user"},
@@ -264,13 +274,13 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 	config := &Config{
 		Realms: []RealmConfig{
 			{
-				ID:      "550e8400-e29b-41d4-a716-446655440000",
+				ID:      testRealmID1,
 				Name:    "test-realm",
 				Type:    RealmTypeFile,
 				Enabled: true,
 				Users: []UserConfig{
 					{
-						ID:           "660e8400-e29b-41d4-a716-446655440001",
+						ID:           testUserID1,
 						Username:     "superadmin",
 						PasswordHash: createTestPasswordHash(t, "password"),
 						Roles:        []string{"superadmin"},
@@ -310,7 +320,7 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 
 	ctx := context.Background()
 
-	result := auth.Authenticate(ctx, "550e8400-e29b-41d4-a716-446655440000", "superadmin", "password")
+	result := auth.Authenticate(ctx, testRealmID1, "superadmin", "password")
 	require.True(t, result.Authenticated)
 
 	// Should have all inherited permissions.
@@ -326,7 +336,7 @@ func TestAuthenticator_GetRealm(t *testing.T) {
 	config := &Config{
 		Realms: []RealmConfig{
 			{
-				ID:      "550e8400-e29b-41d4-a716-446655440000",
+				ID:      testRealmID1,
 				Name:    "test-realm",
 				Type:    RealmTypeFile,
 				Enabled: true,
@@ -338,7 +348,7 @@ func TestAuthenticator_GetRealm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Found.
-	realm, ok := auth.GetRealm("550e8400-e29b-41d4-a716-446655440000")
+	realm, ok := auth.GetRealm(testRealmID1)
 	require.True(t, ok)
 	require.Equal(t, "test-realm", realm.Name)
 
@@ -354,13 +364,13 @@ func TestAuthenticator_ListRealms(t *testing.T) {
 	config := &Config{
 		Realms: []RealmConfig{
 			{
-				ID:      "550e8400-e29b-41d4-a716-446655440000",
+				ID:      testRealmID1,
 				Name:    "realm1",
 				Type:    RealmTypeFile,
 				Enabled: true,
 			},
 			{
-				ID:      "660e8400-e29b-41d4-a716-446655440001",
+				ID:      testUserID1,
 				Name:    "realm2",
 				Type:    RealmTypeFile,
 				Enabled: true,
@@ -396,7 +406,7 @@ func TestAuthenticator_UnsupportedRealmTypes(t *testing.T) {
 			config := &Config{
 				Realms: []RealmConfig{
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      testRealmID1,
 						Name:    "test-realm",
 						Type:    tc.realmType,
 						Enabled: true,
@@ -407,7 +417,7 @@ func TestAuthenticator_UnsupportedRealmTypes(t *testing.T) {
 			auth, err := NewAuthenticator(config)
 			require.NoError(t, err)
 
-			result := auth.Authenticate(ctx, "550e8400-e29b-41d4-a716-446655440000", "user", "pass")
+			result := auth.Authenticate(ctx, testRealmID1, "user", "pass")
 			require.False(t, result.Authenticated)
 			require.Equal(t, AuthErrorRealmNotFound, result.ErrorCode)
 		})

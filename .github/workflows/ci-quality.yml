@@ -302,7 +302,7 @@ jobs:
             --build-arg APP_VERSION=${{ github.sha }} \
             --build-arg VCS_REF=${{ github.sha }} \
             --build-arg BUILD_DATE=1970-01-01T00:00:00Z \
-            -f ./deployments/Dockerfile \
+            -f ./deployments/kms/Dockerfile.kms \
             .
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
@@ -520,61 +520,63 @@ jobs:
         uses: ./.github/actions/workflow-job-end
 
   # Identity Requirements Coverage Check
-  identity-requirements:
-    name: Identity Requirements Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
-        uses: actions/checkout@v6.0.0
-        with:
-          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+  # TEMPORARILY DISABLED: The requirements.yml file and docs/02-identityV2 directory
+  # do not exist yet. Re-enable when identity requirements traceability infrastructure is created.
+  # identity-requirements:
+  #   name: Identity Requirements Coverage
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+  #       uses: actions/checkout@v6.0.0
+  #       with:
+  #         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
-      - name: Begin Workflow Job
-        id: begin-workflow-job
-        uses: ./.github/actions/workflow-job-begin
+  #     - name: Begin Workflow Job
+  #       id: begin-workflow-job
+  #       uses: ./.github/actions/workflow-job-begin
 
-      - name: Set up Go and validate dependencies
-        uses: ./.github/actions/go-setup
-        with:
-          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
-          go-mod-download: true
-          go-mod-verify: false
-          go-mod-tidy: false
+  #     - name: Set up Go and validate dependencies
+  #       uses: ./.github/actions/go-setup
+  #       with:
+  #         go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+  #         go-mod-download: true
+  #         go-mod-verify: false
+  #         go-mod-tidy: false
 
-      - name: Copy requirements coverage file to expected location
-        run: |
-          echo "📋 Preparing requirements coverage file..."
-          mkdir -p docs/02-identityV2
-          cp docs/02-identityV2/passthru4/REQUIREMENTS-COVERAGE.md docs/02-identityV2/REQUIREMENTS-COVERAGE.md
+  #     - name: Copy requirements coverage file to expected location
+  #       run: |
+  #         echo "📋 Preparing requirements coverage file..."
+  #         mkdir -p docs/02-identityV2
+  #         cp docs/02-identityV2/passthru4/REQUIREMENTS-COVERAGE.md docs/02-identityV2/REQUIREMENTS-COVERAGE.md
 
-      - name: Run identity requirements coverage check (strict mode)
-        run: |
-          echo "📋 Checking requirements coverage with strict thresholds..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+  #     - name: Run identity requirements coverage check (strict mode)
+  #       run: |
+  #         echo "📋 Checking requirements coverage with strict thresholds..."
+  #         START_TIME=$(date +%s)
+  #         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-          # Run with --skip-slow-checks to avoid task-specific parsing (not implemented in coverage file)
-          go run ./cmd/cicd go-identity-requirements-check --strict \
-            --task-threshold=90 \
-            --overall-threshold=85 \
-            --skip-slow-checks
+  #         # Run with --skip-slow-checks to avoid task-specific parsing (not implemented in coverage file)
+  #         go run ./cmd/cicd go-identity-requirements-check --strict \
+  #           --task-threshold=90 \
+  #           --overall-threshold=85 \
+  #           --skip-slow-checks
 
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Requirements check completed in: ${DURATION}s"
+  #         END_TIME=$(date +%s)
+  #         DURATION=$((END_TIME - START_TIME))
+  #         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+  #         echo "⏱️ Requirements check completed in: ${DURATION}s"
 
-      - name: Upload requirements coverage report
-        if: always()
-        # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
-        uses: actions/upload-artifact@v5.0.0
-        with:
-          name: identity-requirements-coverage
-          path: |
-            docs/02-identityV2/REQUIREMENTS-COVERAGE.md
-          retention-days: 30
+  #     - name: Upload requirements coverage report
+  #       if: always()
+  #       # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
+  #       uses: actions/upload-artifact@v5.0.0
+  #       with:
+  #         name: identity-requirements-coverage
+  #         path: |
+  #           docs/02-identityV2/REQUIREMENTS-COVERAGE.md
+  #         retention-days: 30
 
-      - name: Identity requirements summary
-        if: always()
-        uses: ./.github/actions/workflow-job-end
+  #     - name: Identity requirements summary
+  #       if: always()
+  #       uses: ./.github/actions/workflow-job-end

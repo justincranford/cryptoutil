@@ -7,8 +7,10 @@ package tenant
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -17,7 +19,13 @@ import (
 )
 
 // testTenantUUID is the UUID used for tenant tests.
-const testTenantUUID = "550e8400-e29b-41d4-a716-446655440000"
+var testTenantUUID = googleUuid.Must(googleUuid.NewV7()).String()
+
+// testTenantUUIDs are additional UUIDs for multi-tenant tests.
+var (
+	testTenantUUID2 = googleUuid.Must(googleUuid.NewV7()).String()
+	testTenantUUID3 = googleUuid.Must(googleUuid.NewV7()).String()
+)
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
@@ -53,6 +61,9 @@ func setupTestDB(t *testing.T) *gorm.DB {
 func TestSchemaName(t *testing.T) {
 	t.Parallel()
 
+	// Compute expected schema name from dynamic UUID.
+	expectedSchemaName := "tenant_" + strings.ReplaceAll(testTenantUUID, "-", "_")
+
 	tests := []struct {
 		name     string
 		tenantID string
@@ -61,12 +72,12 @@ func TestSchemaName(t *testing.T) {
 		{
 			name:     "valid UUID",
 			tenantID: testTenantUUID,
-			want:     "tenant_550e8400_e29b_41d4_a716_446655440000",
+			want:     expectedSchemaName,
 		},
 		{
 			name:     "uppercase UUID",
-			tenantID: "550E8400-E29B-41D4-A716-446655440000",
-			want:     "tenant_550E8400_E29B_41D4_A716_446655440000",
+			tenantID: strings.ToUpper(testTenantUUID),
+			want:     "tenant_" + strings.ReplaceAll(strings.ToUpper(testTenantUUID), "-", "_"),
 		},
 		{
 			name:     "simple alphanumeric",
@@ -225,8 +236,8 @@ func TestSchemaManager_SQLite_ListSchemas(t *testing.T) {
 
 	// Create multiple schemas.
 	tenantIDs := []string{
-		"550e8400-e29b-41d4-a716-446655440001",
-		"550e8400-e29b-41d4-a716-446655440002",
+		testTenantUUID2,
+		testTenantUUID3,
 	}
 
 	for _, tid := range tenantIDs {
@@ -348,7 +359,7 @@ func TestIsValidTenantID(t *testing.T) {
 		},
 		{
 			name:     "too long",
-			tenantID: "550e8400-e29b-41d4-a716-446655440000-extra",
+			tenantID: testTenantUUID + "-extra",
 			want:     false,
 		},
 		{

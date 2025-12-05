@@ -9,9 +9,16 @@ import (
 	"path/filepath"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+)
+
+// Test UUIDs generated once per test run for consistency.
+var (
+	realmTestID1 = googleUuid.Must(googleUuid.NewV7()).String()
+	userTestID1  = googleUuid.Must(googleUuid.NewV7()).String()
 )
 
 func TestDefaultConfig(t *testing.T) {
@@ -88,7 +95,7 @@ func TestRealmConfig_Validate(t *testing.T) {
 			config: Config{
 				Realms: []RealmConfig{
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      realmTestID1,
 						Name:    "test-realm",
 						Type:    RealmTypeFile,
 						Enabled: true,
@@ -131,7 +138,7 @@ func TestRealmConfig_Validate(t *testing.T) {
 			config: Config{
 				Realms: []RealmConfig{
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      realmTestID1,
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
@@ -145,13 +152,13 @@ func TestRealmConfig_Validate(t *testing.T) {
 			config: Config{
 				Realms: []RealmConfig{
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      realmTestID1,
 						Name:    "realm1",
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      realmTestID1,
 						Name:    "realm2",
 						Type:    RealmTypeFile,
 						Enabled: true,
@@ -166,13 +173,13 @@ func TestRealmConfig_Validate(t *testing.T) {
 			config: Config{
 				Realms: []RealmConfig{
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      realmTestID1,
 						Name:    "same-name",
 						Type:    RealmTypeFile,
 						Enabled: true,
 					},
 					{
-						ID:      "660e8400-e29b-41d4-a716-446655440001",
+						ID:      userTestID1,
 						Name:    "same-name",
 						Type:    RealmTypeFile,
 						Enabled: true,
@@ -187,7 +194,7 @@ func TestRealmConfig_Validate(t *testing.T) {
 			config: Config{
 				Realms: []RealmConfig{
 					{
-						ID:      "550e8400-e29b-41d4-a716-446655440000",
+						ID:      realmTestID1,
 						Name:    "test-realm",
 						Type:    RealmType("invalid"),
 						Enabled: true,
@@ -234,13 +241,13 @@ func TestLoadConfig_ValidFile(t *testing.T) {
 	yamlContent := `
 version: "1.0"
 realms:
-  - id: "550e8400-e29b-41d4-a716-446655440000"
+  - id: "` + realmTestID1 + `"
     name: "demo-realm"
     description: "Demo realm for testing"
     type: "file"
     enabled: true
     users:
-      - id: "660e8400-e29b-41d4-a716-446655440001"
+      - id: "` + userTestID1 + `"
         username: "admin"
         password_hash: "$pbkdf2-sha256$600000$salt$hash"
         email: "admin@example.com"
