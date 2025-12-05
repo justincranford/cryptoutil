@@ -23,6 +23,32 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// Defines values for CAResponseStatus.
+const (
+	CAResponseStatusActive   CAResponseStatus = "active"
+	CAResponseStatusInactive CAResponseStatus = "inactive"
+	CAResponseStatusPending  CAResponseStatus = "pending"
+)
+
+// Defines values for CAResponseType.
+const (
+	CAResponseTypeIntermediate CAResponseType = "intermediate"
+	CAResponseTypeRoot         CAResponseType = "root"
+)
+
+// Defines values for CASummaryStatus.
+const (
+	CASummaryStatusActive   CASummaryStatus = "active"
+	CASummaryStatusInactive CASummaryStatus = "inactive"
+	CASummaryStatusPending  CASummaryStatus = "pending"
+)
+
+// Defines values for CASummaryType.
+const (
+	CASummaryTypeIntermediate CASummaryType = "intermediate"
+	CASummaryTypeRoot         CASummaryType = "root"
+)
+
 // Defines values for CertificateStatus.
 const (
 	CertificateStatusActive  CertificateStatus = "active"
@@ -76,6 +102,104 @@ const (
 const (
 	RevocationResponseStatusRevoked RevocationResponseStatus = "revoked"
 )
+
+// Defines values for GetCRLParamsFormat.
+const (
+	DER GetCRLParamsFormat = "der"
+	PEM GetCRLParamsFormat = "pem"
+)
+
+// CAListResponse defines model for CAListResponse.
+type CAListResponse struct {
+	// Authorities List of available Certificate Authorities
+	Authorities []CASummary `json:"authorities"`
+}
+
+// CAResponse defines model for CAResponse.
+type CAResponse struct {
+	// CertificatePEM CA certificate in PEM format
+	CertificatePEM string `json:"certificate_pem"`
+
+	// ChainPEM Certificate chain in PEM format (excludes root)
+	ChainPEM *[]string `json:"chain_pem,omitempty"`
+
+	// CRLDistributionPoints CRL distribution point URLs
+	CRLDistributionPoints *[]string `json:"crl_distribution_points,omitempty"`
+
+	// ID Unique identifier for the CA
+	ID     string              `json:"id"`
+	Issuer *CertificateSubject `json:"issuer,omitempty"`
+
+	// IssuingUrls CA issuers URLs (AIA)
+	IssuingUrls *[]string `json:"issuing_urls,omitempty"`
+
+	// KeyAlgorithm Key algorithm (RSA, ECDSA, EdDSA)
+	KeyAlgorithm *string `json:"key_algorithm,omitempty"`
+
+	// KeySize Key size in bits
+	KeySize *int `json:"key_size,omitempty"`
+
+	// Name Human-readable name of the CA
+	Name string `json:"name"`
+
+	// NotAfter End of validity period
+	NotAfter *time.Time `json:"not_after,omitempty"`
+
+	// NotBefore Start of validity period
+	NotBefore *time.Time `json:"not_before,omitempty"`
+
+	// OCSPUrls OCSP responder URLs
+	OCSPUrls *[]string `json:"ocsp_urls,omitempty"`
+
+	// PathLength Maximum path length for certificate chain
+	PathLength *int `json:"path_length,omitempty"`
+
+	// SerialNumber Serial number of the CA certificate (hex-encoded)
+	SerialNumber *string `json:"serial_number,omitempty"`
+
+	// SignatureAlgorithm Signature algorithm used
+	SignatureAlgorithm *string `json:"signature_algorithm,omitempty"`
+
+	// Status Current operational status
+	Status  CAResponseStatus    `json:"status"`
+	Subject *CertificateSubject `json:"subject,omitempty"`
+
+	// Type Type of CA
+	Type CAResponseType `json:"type"`
+}
+
+// CAResponseStatus Current operational status
+type CAResponseStatus string
+
+// CAResponseType Type of CA
+type CAResponseType string
+
+// CASummary defines model for CASummary.
+type CASummary struct {
+	// ID Unique identifier for the CA
+	ID string `json:"id"`
+
+	// Name Human-readable name of the CA
+	Name string `json:"name"`
+
+	// Status Current operational status
+	Status CASummaryStatus `json:"status"`
+
+	// SubjectCN Subject Common Name from the CA certificate
+	SubjectCN *string `json:"subject_cn,omitempty"`
+
+	// Type Type of CA
+	Type CASummaryType `json:"type"`
+
+	// ValidUntil Expiration time of the CA certificate
+	ValidUntil *time.Time `json:"valid_until,omitempty"`
+}
+
+// CASummaryStatus Current operational status
+type CASummaryStatus string
+
+// CASummaryType Type of CA
+type CASummaryType string
 
 // CertificateChainResponse defines model for CertificateChainResponse.
 type CertificateChainResponse struct {
@@ -387,6 +511,15 @@ type SubjectRequirements struct {
 	RequireOrganization *bool     `json:"require_organization,omitempty"`
 }
 
+// GetCRLParams defines parameters for GetCRL.
+type GetCRLParams struct {
+	// Format Output format for CRL
+	Format *GetCRLParamsFormat `form:"format,omitempty" json:"format,omitempty"`
+}
+
+// GetCRLParamsFormat defines parameters for GetCRL.
+type GetCRLParamsFormat string
+
 // ListCertificatesParams defines parameters for ListCertificates.
 type ListCertificatesParams struct {
 	// Profile Filter by certificate profile
@@ -413,6 +546,15 @@ type SubmitEnrollmentJSONRequestBody = EnrollmentRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// List available Certificate Authorities
+	// (GET /ca)
+	ListCAs(c *fiber.Ctx) error
+	// Get Certificate Authority details
+	// (GET /ca/{caId})
+	GetCA(c *fiber.Ctx, caid string) error
+	// Download Certificate Revocation List
+	// (GET /ca/{caId}/crl)
+	GetCRL(c *fiber.Ctx, caid string, params GetCRLParams) error
 	// List certificates
 	// (GET /certificates)
 	ListCertificates(c *fiber.Ctx, params ListCertificatesParams) error
@@ -445,6 +587,66 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc fiber.Handler
+
+// ListCAs operation middleware
+func (siw *ServerInterfaceWrapper) ListCAs(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.ListCAs(c)
+}
+
+// GetCA operation middleware
+func (siw *ServerInterfaceWrapper) GetCA(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "caId" -------------
+	var caid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "caId", c.Params("caId"), &caid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter caId: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetCA(c, caid)
+}
+
+// GetCRL operation middleware
+func (siw *ServerInterfaceWrapper) GetCRL(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "caId" -------------
+	var caid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "caId", c.Params("caId"), &caid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter caId: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetCRLParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "format" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "format", query, &params.Format)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter format: %w", err).Error())
+	}
+
+	return siw.Handler.GetCRL(c, caid, params)
+}
 
 // ListCertificates operation middleware
 func (siw *ServerInterfaceWrapper) ListCertificates(c *fiber.Ctx) error {
@@ -627,6 +829,12 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
+	router.Get(options.BaseURL+"/ca", wrapper.ListCAs)
+
+	router.Get(options.BaseURL+"/ca/:caId", wrapper.GetCA)
+
+	router.Get(options.BaseURL+"/ca/:caId/crl", wrapper.GetCRL)
+
 	router.Get(options.BaseURL+"/certificates", wrapper.ListCertificates)
 
 	router.Get(options.BaseURL+"/certificates/:serialNumber", wrapper.GetCertificate)
@@ -648,63 +856,73 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

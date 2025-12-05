@@ -36,7 +36,7 @@
 | CA-6 | CRL Handler | GET `/ca/{ca_id}/crl` - Download CRL | HIGH | ❌ Not Started | 3h |
 | CA-7 | Certificate Issue Handler | POST `/enroll` - Issue from CSR | HIGH | ✅ Complete | 6h |
 | CA-8 | Certificate Get Handler | GET `/certificates/{serial}` + list + chain | MEDIUM | ✅ Complete | 2h |
-| CA-9 | Certificate Revoke Handler | POST `/certificate/{serial}/revoke` | HIGH | ❌ Not Started | 4h |
+| CA-9 | Certificate Revoke Handler | POST `/certificates/{serial}/revoke` | HIGH | ✅ Complete | 4h |
 | CA-10 | Certificate Status Handler | GET `/enroll/{requestId}` - Enrollment status | MEDIUM | ⚠️ Partial (returns NotImplemented) | 2h |
 | CA-11 | OCSP Handler | POST `/ocsp` - RFC 6960 responder | HIGH | ❌ Not Started | 6h |
 | CA-12 | Profile List Handler | GET `/profiles` | MEDIUM | ✅ Complete | 2h |
@@ -49,7 +49,7 @@
 | CA-19 | Integration Tests | E2E tests for CA endpoints | HIGH | ⚠️ Partial (handler_test.go exists but low coverage) | 8h |
 | CA-20 | Docker Integration | Add ca-server to Docker Compose | MEDIUM | ❌ Not Started | 2h |
 
-**Phase 2 Total**: 20 tasks, 6 complete, 2 partial, ~68 hours
+**Phase 2 Total**: 20 tasks, 7 complete, 2 partial, ~68 hours
 
 ---
 
@@ -84,11 +84,11 @@
 | Phase | Tasks | Complete | Partial | Remaining |
 |-------|-------|----------|---------|-----------|
 | Phase 1: JOSE Authority | 13 | 12 | 0 | 1 |
-| Phase 2: CA Server | 20 | 6 | 2 | 12 |
+| Phase 2: CA Server | 20 | 7 | 2 | 11 |
 | Phase 3: Unified Suite | 6 | 0 | 0 | 6 |
-| **Total** | **39** | **18** | **2** | **19** |
+| **Total** | **39** | **19** | **2** | **18** |
 
-**Progress**: 46% complete, 5% partial
+**Progress**: 49% complete, 5% partial
 
 ---
 

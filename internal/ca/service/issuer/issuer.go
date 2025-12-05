@@ -124,6 +124,11 @@ func NewIssuer(provider cryptoutilCACrypto.Provider, caConfig *IssuingCAConfig) 
 	}, nil
 }
 
+// GetCAConfig returns the issuer's CA configuration.
+func (i *Issuer) GetCAConfig() *IssuingCAConfig {
+	return i.caConfig
+}
+
 // Issue creates a new certificate based on the request.
 func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry, error) {
 	if err := i.validateRequest(req); err != nil {

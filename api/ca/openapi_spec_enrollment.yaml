@@ -19,6 +19,8 @@ servers:
     description: CA API base path
 
 tags:
+  - name: CA
+    description: Certificate Authority management
   - name: Enrollment
     description: Certificate enrollment operations
   - name: Certificates
@@ -27,6 +29,93 @@ tags:
     description: Certificate profile operations
 
 paths:
+  /ca:
+    get:
+      tags:
+        - CA
+      summary: List available Certificate Authorities
+      description: >
+        Retrieve a list of all Certificate Authorities available for certificate
+        issuance, including both root and intermediate CAs.
+      operationId: listCAs
+      responses:
+        '200':
+          description: List of available CAs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CAListResponse'
+
+  /ca/{caId}:
+    get:
+      tags:
+        - CA
+      summary: Get Certificate Authority details
+      description: >
+        Retrieve detailed information about a specific Certificate Authority,
+        including its certificate chain and configuration.
+      operationId: getCA
+      parameters:
+        - name: caId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Certificate Authority identifier
+      responses:
+        '200':
+          description: CA details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CAResponse'
+        '404':
+          description: CA not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /ca/{caId}/crl:
+    get:
+      tags:
+        - CA
+      summary: Download Certificate Revocation List
+      description: >
+        Download the current CRL for a specific Certificate Authority in DER or PEM format.
+      operationId: getCRL
+      parameters:
+        - name: caId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Certificate Authority identifier
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [der, pem]
+            default: der
+          description: Output format for CRL
+      responses:
+        '200':
+          description: CRL retrieved
+          content:
+            application/pkix-crl:
+              schema:
+                type: string
+                format: binary
+            application/x-pem-file:
+              schema:
+                type: string
+        '404':
+          description: CA not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /enroll:
     post:
       tags:
@@ -303,6 +392,122 @@ paths:
 
 components:
   schemas:
+    # CA Schemas
+    CAListResponse:
+      type: object
+      required:
+        - authorities
+      properties:
+        authorities:
+          type: array
+          items:
+            $ref: '#/components/schemas/CASummary'
+          description: List of available Certificate Authorities
+
+    CASummary:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the CA
+        name:
+          type: string
+          description: Human-readable name of the CA
+        type:
+          type: string
+          enum: [root, intermediate]
+          description: Type of CA
+        status:
+          type: string
+          enum: [active, inactive, pending]
+          description: Current operational status
+        subject_cn:
+          type: string
+          description: Subject Common Name from the CA certificate
+        valid_until:
+          type: string
+          format: date-time
+          description: Expiration time of the CA certificate
+
+    CAResponse:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - status
+        - certificate_pem
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the CA
+        name:
+          type: string
+          description: Human-readable name of the CA
+        type:
+          type: string
+          enum: [root, intermediate]
+          description: Type of CA
+        status:
+          type: string
+          enum: [active, inactive, pending]
+          description: Current operational status
+        subject:
+          $ref: '#/components/schemas/CertificateSubject'
+        issuer:
+          $ref: '#/components/schemas/CertificateSubject'
+        serial_number:
+          type: string
+          description: Serial number of the CA certificate (hex-encoded)
+        not_before:
+          type: string
+          format: date-time
+          description: Start of validity period
+        not_after:
+          type: string
+          format: date-time
+          description: End of validity period
+        certificate_pem:
+          type: string
+          description: CA certificate in PEM format
+        chain_pem:
+          type: array
+          items:
+            type: string
+          description: Certificate chain in PEM format (excludes root)
+        key_algorithm:
+          type: string
+          description: Key algorithm (RSA, ECDSA, EdDSA)
+        key_size:
+          type: integer
+          description: Key size in bits
+        signature_algorithm:
+          type: string
+          description: Signature algorithm used
+        crl_distribution_points:
+          type: array
+          items:
+            type: string
+          description: CRL distribution point URLs
+        ocsp_urls:
+          type: array
+          items:
+            type: string
+          description: OCSP responder URLs
+        issuing_urls:
+          type: array
+          items:
+            type: string
+          description: CA issuers URLs (AIA)
+        path_length:
+          type: integer
+          description: Maximum path length for certificate chain
+
     # Request Schemas
     EnrollmentRequest:
       type: object

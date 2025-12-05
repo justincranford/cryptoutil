@@ -3,6 +3,9 @@
 package handler
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -340,6 +343,148 @@ func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 func (h *Handler) GetEnrollmentStatus(_ *fiber.Ctx, _ uuid.UUID) error {
 	// TODO: Implement enrollment status tracking with storage backend.
 	return fiber.NewError(fiber.StatusNotImplemented, "enrollment status not yet implemented")
+}
+
+// ListCAs handles GET /ca.
+func (h *Handler) ListCAs(c *fiber.Ctx) error {
+	// Get CA info from issuer.
+	caConfig := h.issuer.GetCAConfig()
+	if caConfig == nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "ca_config_error", "CA configuration not available")
+	}
+
+	// Build summary from the issuer's CA certificate.
+	caCert := caConfig.Certificate
+	caType := cryptoutilCAServer.CASummaryTypeIntermediate
+
+	// Check if this is a self-signed (root) CA.
+	if caCert.Issuer.String() == caCert.Subject.String() {
+		caType = cryptoutilCAServer.CASummaryTypeRoot
+	}
+
+	validUntil := caCert.NotAfter
+	summary := cryptoutilCAServer.CASummary{
+		ID:         caConfig.Name,
+		Name:       caConfig.Name,
+		Type:       caType,
+		Status:     cryptoutilCAServer.CASummaryStatusActive,
+		SubjectCN:  &caCert.Subject.CommonName,
+		ValidUntil: &validUntil,
+	}
+
+	response := cryptoutilCAServer.CAListResponse{
+		Authorities: []cryptoutilCAServer.CASummary{summary},
+	}
+
+	if err := c.JSON(response); err != nil {
+		return fmt.Errorf("failed to send CA list response: %w", err)
+	}
+
+	return nil
+}
+
+// GetCA handles GET /ca/{caId}.
+func (h *Handler) GetCA(c *fiber.Ctx, caID string) error {
+	// Get CA info from issuer.
+	caConfig := h.issuer.GetCAConfig()
+	if caConfig == nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "ca_config_error", "CA configuration not available")
+	}
+
+	// Check if requested CA matches.
+	if caID != caConfig.Name {
+		return h.errorResponse(c, fiber.StatusNotFound, "not_found", "CA not found")
+	}
+
+	caCert := caConfig.Certificate
+	caType := cryptoutilCAServer.CAResponseTypeIntermediate
+
+	// Check if this is a self-signed (root) CA.
+	if caCert.Issuer.String() == caCert.Subject.String() {
+		caType = cryptoutilCAServer.CAResponseTypeRoot
+	}
+
+	// Encode certificate to PEM.
+	certPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: caCert.Raw,
+	})
+
+	notBefore := caCert.NotBefore
+	notAfter := caCert.NotAfter
+	serialNumber := fmt.Sprintf("%X", caCert.SerialNumber)
+
+	// Determine key algorithm and size.
+	keyAlgo, keySize := getKeyInfo(caCert)
+
+	response := cryptoutilCAServer.CAResponse{
+		ID:                    caConfig.Name,
+		Name:                  caConfig.Name,
+		Type:                  caType,
+		Status:                cryptoutilCAServer.CAResponseStatusActive,
+		Subject:               buildCertificateSubject(caCert.Subject.String()),
+		Issuer:                buildCertificateSubject(caCert.Issuer.String()),
+		SerialNumber:          &serialNumber,
+		NotBefore:             &notBefore,
+		NotAfter:              &notAfter,
+		CertificatePEM:        string(certPEM),
+		KeyAlgorithm:          &keyAlgo,
+		KeySize:               &keySize,
+		SignatureAlgorithm:    ptrString(caCert.SignatureAlgorithm.String()),
+		CRLDistributionPoints: ptrStringSlice(caCert.CRLDistributionPoints),
+		OCSPUrls:              ptrStringSlice(caCert.OCSPServer),
+		IssuingUrls:           ptrStringSlice(caCert.IssuingCertificateURL),
+	}
+
+	// Add path length if basic constraints apply.
+	if caCert.BasicConstraintsValid && caCert.IsCA {
+		pathLen := caCert.MaxPathLen
+		response.PathLength = &pathLen
+	}
+
+	if err := c.JSON(response); err != nil {
+		return fmt.Errorf("failed to send CA response: %w", err)
+	}
+
+	return nil
+}
+
+// GetCRL handles GET /ca/{caId}/crl.
+func (h *Handler) GetCRL(_ *fiber.Ctx, _ string, _ cryptoutilCAServer.GetCRLParams) error {
+	// TODO: Implement CRL generation with revocation service integration.
+	return fiber.NewError(fiber.StatusNotImplemented, "CRL generation not yet implemented")
+}
+
+// getKeyInfo extracts key algorithm and size from a certificate.
+func getKeyInfo(cert *x509.Certificate) (string, int) {
+	switch pub := cert.PublicKey.(type) {
+	case *ecdsa.PublicKey:
+		return "ECDSA", pub.Curve.Params().BitSize
+	case *rsa.PublicKey:
+		return "RSA", pub.N.BitLen()
+	case ed25519.PublicKey:
+		return "EdDSA", ed25519.PublicKeySize * cryptoutilCAMagic.BitsPerByte
+	default:
+		return "unknown", 0
+	}
+}
+
+// ptrString returns a pointer to a string, or nil if empty.
+func ptrString(s string) *string {
+	if s == "" {
+		return nil
+	}
+
+	return &s
+}
+
+// ptrStringSlice returns a pointer to a string slice, or nil if empty.
+func ptrStringSlice(s []string) *[]string {
+	if len(s) == 0 {
+		return nil
+	}
+
+	return &s
 }
 
 // ListProfiles handles GET /profiles.

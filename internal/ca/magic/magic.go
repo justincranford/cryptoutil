@@ -17,6 +17,9 @@ const SerialNumberLength = 20
 // DefaultPageLimit is the default number of items per page for pagination.
 const DefaultPageLimit = 20
 
+// BitsPerByte is the number of bits per byte (for key size calculations).
+const BitsPerByte = 8
+
 // File permission constants.
 const (
 	DirPermissions     = 0o755
