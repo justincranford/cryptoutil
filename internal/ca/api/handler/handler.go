@@ -3,6 +3,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
@@ -10,6 +11,8 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
+	"math/big"
 	"net"
 	"net/url"
 	"sync"
@@ -23,15 +26,17 @@ import (
 	cryptoutilCAProfileCertificate "cryptoutil/internal/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
+	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
 // Handler implements the CA enrollment ServerInterface.
 type Handler struct {
-	issuer   *cryptoutilCAServiceIssuer.Issuer
-	storage  cryptoutilCAStorage.Store
-	profiles map[string]*ProfileConfig
-	mu       sync.RWMutex
+	issuer      *cryptoutilCAServiceIssuer.Issuer
+	storage     cryptoutilCAStorage.Store
+	ocspService *cryptoutilCAServiceRevocation.OCSPService
+	profiles    map[string]*ProfileConfig
+	mu          sync.RWMutex
 }
 
 // ProfileConfig holds combined profile configuration.
@@ -523,6 +528,101 @@ func (h *Handler) GetProfile(c *fiber.Ctx, profileID string) error {
 
 	if err := c.JSON(h.buildProfileResponse(profile)); err != nil {
 		return fmt.Errorf("failed to send profile response: %w", err)
+	}
+
+	return nil
+}
+
+// SetOCSPService configures the OCSP service for the handler.
+// This is optional - if not set, OCSP requests will return service unavailable.
+func (h *Handler) SetOCSPService(ocspService *cryptoutilCAServiceRevocation.OCSPService) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h.ocspService = ocspService
+}
+
+// HandleOCSP handles POST /ocsp - RFC 6960 OCSP responder.
+func (h *Handler) HandleOCSP(c *fiber.Ctx) error {
+	// Check if OCSP service is configured.
+	h.mu.RLock()
+	ocspService := h.ocspService
+	h.mu.RUnlock()
+
+	if ocspService == nil {
+		return h.ocspErrorResponse(c, fiber.StatusServiceUnavailable)
+	}
+
+	// Read the OCSP request body.
+	requestBody, err := io.ReadAll(c.Request().BodyStream())
+	if err != nil {
+		return h.ocspErrorResponse(c, fiber.StatusBadRequest)
+	}
+
+	if len(requestBody) == 0 {
+		requestBody = c.Body()
+	}
+
+	if len(requestBody) == 0 {
+		return h.ocspErrorResponse(c, fiber.StatusBadRequest)
+	}
+
+	// Create a certificate lookup function that captures the context.
+	ctx := c.Context()
+	lookupFunc := func(serialNumber *big.Int) *x509.Certificate {
+		return h.lookupCertificateBySerial(ctx, serialNumber)
+	}
+
+	// Process the OCSP request using a certificate lookup function.
+	responseBytes, err := ocspService.RespondToRequest(requestBody, lookupFunc)
+	if err != nil {
+		return h.ocspErrorResponse(c, fiber.StatusInternalServerError)
+	}
+
+	// Set content type for OCSP response.
+	c.Set("Content-Type", "application/ocsp-response")
+
+	if err := c.Send(responseBytes); err != nil {
+		return fmt.Errorf("failed to send OCSP response: %w", err)
+	}
+
+	return nil
+}
+
+// lookupCertificateBySerial finds a certificate by serial number for OCSP processing.
+func (h *Handler) lookupCertificateBySerial(ctx context.Context, serialNumber *big.Int) *x509.Certificate {
+	if serialNumber == nil {
+		return nil
+	}
+
+	// Look up in storage using hex-encoded serial.
+	serialHex := serialNumber.Text(cryptoutilCAMagic.HexBase)
+
+	storedCert, err := h.storage.GetBySerialNumber(ctx, serialHex)
+	if err != nil {
+		return nil
+	}
+
+	// Parse the stored certificate.
+	block, _ := pem.Decode([]byte(storedCert.CertificatePEM))
+	if block == nil {
+		return nil
+	}
+
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil
+	}
+
+	return cert
+}
+
+// ocspErrorResponse sends an OCSP error response with appropriate content type.
+func (h *Handler) ocspErrorResponse(c *fiber.Ctx, statusCode int) error {
+	c.Set("Content-Type", "application/ocsp-response")
+
+	if err := c.SendStatus(statusCode); err != nil {
+		return fmt.Errorf("failed to send OCSP error response: %w", err)
 	}
 
 	return nil

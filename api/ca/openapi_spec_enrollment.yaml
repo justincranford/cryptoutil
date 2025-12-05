@@ -27,6 +27,8 @@ tags:
     description: Certificate retrieval operations
   - name: Profiles
     description: Certificate profile operations
+  - name: OCSP
+    description: Online Certificate Status Protocol (RFC 6960)
 
 paths:
   /ca:
@@ -389,6 +391,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /ocsp:
+    post:
+      tags:
+        - OCSP
+      summary: OCSP responder endpoint
+      description: >
+        Online Certificate Status Protocol (OCSP) responder endpoint per RFC 6960.
+        Accepts OCSP requests and returns signed OCSP responses indicating the
+        revocation status of certificates.
+      operationId: handleOCSP
+      requestBody:
+        required: true
+        content:
+          application/ocsp-request:
+            schema:
+              type: string
+              format: binary
+              description: DER-encoded OCSP request
+      responses:
+        '200':
+          description: OCSP response
+          content:
+            application/ocsp-response:
+              schema:
+                type: string
+                format: binary
+                description: DER-encoded OCSP response
+        '400':
+          description: Invalid OCSP request
+          content:
+            application/ocsp-response:
+              schema:
+                type: string
+                format: binary
+        '500':
+          description: Internal server error
+          content:
+            application/ocsp-response:
+              schema:
+                type: string
+                format: binary
 
 components:
   schemas:
