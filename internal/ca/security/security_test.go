@@ -136,13 +136,13 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		keyFunc   func() interface{}
+		keyFunc   func() any
 		config    *SecurityConfig
 		wantValid bool
 	}{
 		{
 			name: "RSA 2048 with 2048 minimum",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				key, _ := rsa.GenerateKey(rand.Reader, 2048)
 
 				return key
@@ -152,7 +152,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		},
 		{
 			name: "RSA 2048 with 4096 minimum",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				key, _ := rsa.GenerateKey(rand.Reader, 2048)
 
 				return key
@@ -162,7 +162,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		},
 		{
 			name: "EC P-256 with 256 minimum",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 				return key
@@ -172,7 +172,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		},
 		{
 			name: "EC P-256 with 384 minimum",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 				return key
@@ -182,7 +182,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		},
 		{
 			name: "Ed25519 key",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				_, key, _ := ed25519.GenerateKey(rand.Reader)
 
 				return key
@@ -216,13 +216,13 @@ func TestSecurityValidator_ValidatePrivateKey(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		keyFunc   func() interface{}
+		keyFunc   func() any
 		wantValid bool
 		wantErr   bool
 	}{
 		{
 			name: "valid RSA 2048 key",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				key, _ := rsa.GenerateKey(rand.Reader, 2048)
 
 				return key
@@ -232,7 +232,7 @@ func TestSecurityValidator_ValidatePrivateKey(t *testing.T) {
 		},
 		{
 			name: "valid EC P-256 key",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 				return key
@@ -242,7 +242,7 @@ func TestSecurityValidator_ValidatePrivateKey(t *testing.T) {
 		},
 		{
 			name: "valid Ed25519 key",
-			keyFunc: func() interface{} {
+			keyFunc: func() any {
 				_, key, _ := ed25519.GenerateKey(rand.Reader)
 
 				return key
@@ -252,13 +252,13 @@ func TestSecurityValidator_ValidatePrivateKey(t *testing.T) {
 		},
 		{
 			name:      "nil key",
-			keyFunc:   func() interface{} { return nil },
+			keyFunc:   func() any { return nil },
 			wantValid: false,
 			wantErr:   true,
 		},
 		{
 			name:      "unknown key type",
-			keyFunc:   func() interface{} { return "invalid key" },
+			keyFunc:   func() any { return "invalid key" },
 			wantValid: true, // Unknown types generate warning but are valid.
 			wantErr:   false,
 		},
@@ -616,11 +616,11 @@ func createTestCert(t *testing.T, key *ecdsa.PrivateKey, isCA bool, notBefore, n
 	return cert
 }
 
-func createTestCertWithKey(t *testing.T, key interface{}, isCA bool, notBefore, notAfter time.Time) *x509.Certificate {
+func createTestCertWithKey(t *testing.T, key any, isCA bool, notBefore, notAfter time.Time) *x509.Certificate {
 	t.Helper()
 
 	var (
-		pub    interface{}
+		pub    any
 		sigAlg x509.SignatureAlgorithm
 	)
 

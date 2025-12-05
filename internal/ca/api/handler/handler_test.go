@@ -13,7 +13,7 @@ func TestNewHandler(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		issuer  interface{}
+		issuer  any
 		wantErr bool
 	}{
 		{

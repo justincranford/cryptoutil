@@ -358,7 +358,7 @@ func (v *SecurityValidator) validatePathLength(cert *x509.Certificate, result *S
 }
 
 // ValidatePrivateKey validates a private key against security policies.
-func (v *SecurityValidator) ValidatePrivateKey(_ context.Context, key interface{}) (*SecurityValidationResult, error) {
+func (v *SecurityValidator) ValidatePrivateKey(_ context.Context, key any) (*SecurityValidationResult, error) {
 	if key == nil {
 		return nil, errors.New("private key cannot be nil")
 	}

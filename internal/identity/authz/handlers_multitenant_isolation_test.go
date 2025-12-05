@@ -179,7 +179,7 @@ func TestMultiTenantScopeIsolation(t *testing.T) {
 	// Verify limited client token has only limited scopes.
 	introspectResult := introspectToken(t, app, limitedToken.TokenValue)
 
-	// Scope can be either []interface{} (from JSON) or string.
+	// Scope can be either []any (from JSON) or string.
 	limitedScopes := extractScopes(introspectResult)
 	require.NotContains(t, limitedScopes, "api:admin", "Limited client token should not have admin scope")
 
@@ -257,14 +257,14 @@ func introspectToken(t *testing.T, app *fiber.App, tokenValue string) map[string
 	return result
 }
 
-// extractScopes extracts scopes from introspection response (handles both []interface{} and string).
+// extractScopes extracts scopes from introspection response (handles both []any and string).
 func extractScopes(result map[string]any) []string {
 	scope, exists := result["scope"]
 	if !exists {
 		return nil
 	}
 
-	// Handle []interface{} (JSON array).
+	// Handle []any (JSON array).
 	if scopeArray, ok := scope.([]any); ok {
 		scopes := make([]string, 0, len(scopeArray))
 		for _, s := range scopeArray {

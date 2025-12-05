@@ -164,7 +164,7 @@ func TestHealthJSON(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 
 	err := json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
@@ -271,7 +271,7 @@ func TestJWKList(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 
 	err := json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
@@ -367,7 +367,7 @@ func TestJWTCreateAndVerify(t *testing.T) {
 	// Create a JWT.
 	createReqBody, err := json.Marshal(JWTCreateRequest{
 		KID: key.KID,
-		Claims: map[string]interface{}{
+		Claims: map[string]any{
 			"sub":  "user123",
 			"name": "Test User",
 			"iat":  time.Now().Unix(),
@@ -416,7 +416,7 @@ func TestWellKnownJWKS(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 
-	var result map[string]interface{}
+	var result map[string]any
 
 	err := json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)

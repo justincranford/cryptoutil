@@ -485,7 +485,7 @@ func (s *Server) handleJWEDecrypt(c *fiber.Ctx) error {
 // JWTCreateRequest represents the request body for JWT creation.
 type JWTCreateRequest struct {
 	KID    string                 `json:"kid"`    // Key ID to use for signing.
-	Claims map[string]interface{} `json:"claims"` // JWT claims.
+	Claims map[string]any `json:"claims"` // JWT claims.
 }
 
 // JWTCreateResponse represents the response for JWT creation.
@@ -552,7 +552,7 @@ type JWTVerifyRequest struct {
 // JWTVerifyResponse represents the response for JWT verification.
 type JWTVerifyResponse struct {
 	Valid  bool                   `json:"valid"`
-	Claims map[string]interface{} `json:"claims,omitempty"` // Decoded claims if valid.
+	Claims map[string]any `json:"claims,omitempty"` // Decoded claims if valid.
 	KID    string                 `json:"kid,omitempty"`    // Key ID used for verification.
 	Error  string                 `json:"error,omitempty"`  // Error message if invalid.
 }
@@ -608,7 +608,7 @@ func (s *Server) handleJWTVerify(c *fiber.Ctx) error {
 
 			payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{tryKey}, []byte(req.JWT))
 			if err == nil {
-				var claims map[string]interface{}
+				var claims map[string]any
 				if jsonErr := json.Unmarshal(payload, &claims); jsonErr != nil {
 					return c.JSON(JWTVerifyResponse{
 						Valid: false,
@@ -639,7 +639,7 @@ func (s *Server) handleJWTVerify(c *fiber.Ctx) error {
 		})
 	}
 
-	var claims map[string]interface{}
+	var claims map[string]any
 	if err := json.Unmarshal(payload, &claims); err != nil {
 		return c.JSON(JWTVerifyResponse{
 			Valid: false,
