@@ -70,11 +70,6 @@ func (s *Server) handleJWKGenerate(c *fiber.Ctx) error {
 
 	// Map GenerateAlgorithm to JWS signature algorithm for signing keys.
 	sigAlg := mapToSignatureAlgorithm(alg)
-	if sigAlg == nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Algorithm not supported for signing",
-		})
-	}
 
 	// Generate the JWK using the JWS-specific method for proper headers.
 	kid, privateJWK, publicJWK, _, _, err := s.jwkGenService.GenerateJWSJWK(sigAlg)
@@ -699,25 +694,27 @@ func getKeyType(jwk joseJwk.Key) string {
 // mapToSignatureAlgorithm maps GenerateAlgorithm to the corresponding JWA signature algorithm.
 func mapToSignatureAlgorithm(alg cryptoutilOpenapiModel.GenerateAlgorithm) joseJwa.SignatureAlgorithm {
 	switch alg {
-	case cryptoutilOpenapiModel.RSA4096, cryptoutilOpenapiModel.RSA3072:
-		return joseJwa.PS384
+	case cryptoutilOpenapiModel.RSA4096:
+		return joseJwa.PS512()
+	case cryptoutilOpenapiModel.RSA3072:
+		return joseJwa.PS384()
 	case cryptoutilOpenapiModel.RSA2048:
-		return joseJwa.PS256
+		return joseJwa.PS256()
 	case cryptoutilOpenapiModel.ECP521:
-		return joseJwa.ES512
+		return joseJwa.ES512()
 	case cryptoutilOpenapiModel.ECP384:
-		return joseJwa.ES384
+		return joseJwa.ES384()
 	case cryptoutilOpenapiModel.ECP256:
-		return joseJwa.ES256
+		return joseJwa.ES256()
 	case cryptoutilOpenapiModel.OKPEd25519:
-		return joseJwa.EdDSA
+		return joseJwa.EdDSA()
 	case cryptoutilOpenapiModel.Oct512:
-		return joseJwa.HS512
+		return joseJwa.HS512()
 	case cryptoutilOpenapiModel.Oct384:
-		return joseJwa.HS384
+		return joseJwa.HS384()
 	case cryptoutilOpenapiModel.Oct256, cryptoutilOpenapiModel.Oct192, cryptoutilOpenapiModel.Oct128:
-		return joseJwa.HS256
+		return joseJwa.HS256()
 	default:
-		return joseJwa.ES256
+		return joseJwa.ES256()
 	}
 }

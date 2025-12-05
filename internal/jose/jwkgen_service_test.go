@@ -71,7 +71,7 @@ func Test_HappyPath_JWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			jwsJWKKid, nonPublicJWSJWK, publicJWSJWK, clearNonPublicJWSJWKBytes, _, err := testJWKGenService.GenerateJWSJWK(testCase.alg)
+			jwsJWKKid, nonPublicJWSJWK, publicJWSJWK, clearNonPublicJWSJWKBytes, _, err := testJWKGenService.GenerateJWSJWK(*testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJWKKid)
 			require.NotNil(t, nonPublicJWSJWK)
