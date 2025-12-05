@@ -3,11 +3,18 @@
 package handler
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilCAMagic "cryptoutil/internal/ca/magic"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
@@ -89,4 +96,145 @@ func TestMapAPIRevocationReasonToStorage(t *testing.T) {
 			require.Equal(t, tc.expected, result)
 		})
 	}
+}
+
+func TestGetKeyInfo(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		generateCert    func() *x509.Certificate
+		expectedAlgo    string
+		expectedMinSize int
+		expectedMaxSize int
+	}{
+		{
+			name: "rsa_2048",
+			generateCert: func() *x509.Certificate {
+				key, _ := rsa.GenerateKey(rand.Reader, 2048)
+
+				return &x509.Certificate{PublicKey: &key.PublicKey}
+			},
+			expectedAlgo:    "RSA",
+			expectedMinSize: 2048,
+			expectedMaxSize: 2048,
+		},
+		{
+			name: "ecdsa_p256",
+			generateCert: func() *x509.Certificate {
+				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+
+				return &x509.Certificate{PublicKey: &key.PublicKey}
+			},
+			expectedAlgo:    "ECDSA",
+			expectedMinSize: 256,
+			expectedMaxSize: 256,
+		},
+		{
+			name: "ecdsa_p384",
+			generateCert: func() *x509.Certificate {
+				key, _ := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+
+				return &x509.Certificate{PublicKey: &key.PublicKey}
+			},
+			expectedAlgo:    "ECDSA",
+			expectedMinSize: 384,
+			expectedMaxSize: 384,
+		},
+		{
+			name: "ed25519",
+			generateCert: func() *x509.Certificate {
+				pub, _, _ := ed25519.GenerateKey(rand.Reader)
+
+				return &x509.Certificate{PublicKey: pub}
+			},
+			expectedAlgo:    "EdDSA",
+			expectedMinSize: ed25519.PublicKeySize * cryptoutilCAMagic.BitsPerByte,
+			expectedMaxSize: ed25519.PublicKeySize * cryptoutilCAMagic.BitsPerByte,
+		},
+		{
+			name: "unknown_public_key",
+			generateCert: func() *x509.Certificate {
+				return &x509.Certificate{PublicKey: "unknown_key_type"}
+			},
+			expectedAlgo:    "unknown",
+			expectedMinSize: 0,
+			expectedMaxSize: 0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cert := tc.generateCert()
+			algo, size := getKeyInfo(cert)
+
+			require.Equal(t, tc.expectedAlgo, algo)
+			require.GreaterOrEqual(t, size, tc.expectedMinSize)
+			require.LessOrEqual(t, size, tc.expectedMaxSize)
+		})
+	}
+}
+
+func TestPtrString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected *string
+	}{
+		{"empty_returns_nil", "", nil},
+		{"non_empty_returns_pointer", "test", ptrTo("test")},
+		{"whitespace_returns_pointer", "  ", ptrTo("  ")},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := ptrString(tc.input)
+			if tc.expected == nil {
+				require.Nil(t, result)
+			} else {
+				require.NotNil(t, result)
+				require.Equal(t, *tc.expected, *result)
+			}
+		})
+	}
+}
+
+func TestPtrStringSlice(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    []string
+		expected *[]string
+	}{
+		{"nil_returns_nil", nil, nil},
+		{"empty_returns_nil", []string{}, nil},
+		{"single_element", []string{"a"}, &[]string{"a"}},
+		{"multiple_elements", []string{"a", "b", "c"}, &[]string{"a", "b", "c"}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := ptrStringSlice(tc.input)
+			if tc.expected == nil {
+				require.Nil(t, result)
+			} else {
+				require.NotNil(t, result)
+				require.Equal(t, *tc.expected, *result)
+			}
+		})
+	}
+}
+
+// ptrTo is a helper function to create a pointer to a value.
+func ptrTo[T any](v T) *T {
+	return &v
 }
