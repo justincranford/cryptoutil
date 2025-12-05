@@ -21,6 +21,7 @@ import (
 	"time"
 
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
+	cryptoutilCAMagic "cryptoutil/internal/ca/magic"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 )
 
@@ -146,7 +147,7 @@ func (p *Provisioner) Provision(config *IntermediateCAConfig) (*IntermediateCA, 
 
 	// Calculate validity period.
 	now := time.Now().UTC()
-	notBefore := now.Add(-backdateBuffer)
+	notBefore := now.Add(-cryptoutilCAMagic.BackdateBuffer)
 	notAfter := now.Add(config.ValidityDuration)
 
 	// Ensure intermediate doesn't outlive issuer.
@@ -216,7 +217,7 @@ func (p *Provisioner) Provision(config *IntermediateCAConfig) (*IntermediateCA, 
 		Operation:    "intermediate_ca_provision",
 		CAName:       config.Name,
 		IssuerName:   config.IssuerCertificate.Subject.CommonName,
-		SerialNumber: cert.SerialNumber.Text(hexBase),
+		SerialNumber: cert.SerialNumber.Text(cryptoutilCAMagic.HexBase),
 		SubjectDN:    cert.Subject.String(),
 		NotBefore:    cert.NotBefore,
 		NotAfter:     cert.NotAfter,
@@ -233,12 +234,6 @@ func (p *Provisioner) Provision(config *IntermediateCAConfig) (*IntermediateCA, 
 
 	return intermediateCA, audit, nil
 }
-
-// backdateBuffer allows slight backdating to handle clock skew.
-const backdateBuffer = 1 * time.Minute
-
-// hexBase is the base for hex encoding serial numbers.
-const hexBase = 16
 
 func validateConfig(config *IntermediateCAConfig) error {
 	if config == nil {
@@ -304,7 +299,7 @@ func resolveSubjectDN(config *IntermediateCAConfig) (pkix.Name, error) {
 
 func generateSerialNumber() (*big.Int, error) {
 	// Generate 20 bytes (160 bits) of randomness per CA/Browser Forum requirements.
-	serialBytes := make([]byte, serialNumberLength)
+	serialBytes := make([]byte, cryptoutilCAMagic.SerialNumberLength)
 	if _, err := rand.Read(serialBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}
@@ -322,24 +317,21 @@ func generateSerialNumber() (*big.Int, error) {
 	return serial, nil
 }
 
-// serialNumberLength is 20 bytes (160 bits) per CA/Browser Forum requirements.
-const serialNumberLength = 20
-
 func (p *Provisioner) persistMaterials(config *IntermediateCAConfig, intermediateCA *IntermediateCA) error {
 	// Create output directory.
-	if err := os.MkdirAll(config.OutputDir, dirPermissions); err != nil {
+	if err := os.MkdirAll(config.OutputDir, cryptoutilCAMagic.DirPermissions); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
 	// Write certificate.
 	certPath := filepath.Join(config.OutputDir, config.Name+".crt")
-	if err := os.WriteFile(certPath, intermediateCA.CertificatePEM, filePermissions); err != nil {
+	if err := os.WriteFile(certPath, intermediateCA.CertificatePEM, cryptoutilCAMagic.FilePermissions); err != nil {
 		return fmt.Errorf("failed to write certificate: %w", err)
 	}
 
 	// Write certificate chain.
 	chainPath := filepath.Join(config.OutputDir, config.Name+"-chain.crt")
-	if err := os.WriteFile(chainPath, intermediateCA.CertificateChainPEM, filePermissions); err != nil {
+	if err := os.WriteFile(chainPath, intermediateCA.CertificateChainPEM, cryptoutilCAMagic.FilePermissions); err != nil {
 		return fmt.Errorf("failed to write certificate chain: %w", err)
 	}
 
@@ -355,19 +347,12 @@ func (p *Provisioner) persistMaterials(config *IntermediateCAConfig, intermediat
 	})
 
 	keyPath := filepath.Join(config.OutputDir, config.Name+".key")
-	if err := os.WriteFile(keyPath, keyPEM, keyFilePermissions); err != nil {
+	if err := os.WriteFile(keyPath, keyPEM, cryptoutilCAMagic.KeyFilePermissions); err != nil {
 		return fmt.Errorf("failed to write private key: %w", err)
 	}
 
 	return nil
 }
-
-// File permission constants.
-const (
-	dirPermissions     = 0o755
-	filePermissions    = 0o644
-	keyFilePermissions = 0o600
-)
 
 func keyAlgorithmName(pub crypto.PublicKey) string {
 	switch pub.(type) {

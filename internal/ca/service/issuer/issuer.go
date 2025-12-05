@@ -20,6 +20,7 @@ import (
 	"time"
 
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
+	cryptoutilCAMagic "cryptoutil/internal/ca/magic"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 )
@@ -143,7 +144,7 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 
 	// Calculate validity period.
 	now := time.Now().UTC()
-	notBefore := now.Add(-backdateBuffer)
+	notBefore := now.Add(-cryptoutilCAMagic.BackdateBuffer)
 	notAfter := now.Add(req.ValidityDuration)
 
 	// Ensure certificate doesn't outlive issuer.
@@ -206,7 +207,7 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 		Certificate:    cert,
 		CertificatePEM: certPEM,
 		ChainPEM:       chainPEM,
-		SerialNumber:   cert.SerialNumber.Text(hexBase),
+		SerialNumber:   cert.SerialNumber.Text(cryptoutilCAMagic.HexBase),
 		Fingerprint:    certificateFingerprint(cert),
 		IssuedAt:       now,
 	}
@@ -235,12 +236,6 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 
 	return issued, audit, nil
 }
-
-// backdateBuffer allows slight backdating to handle clock skew.
-const backdateBuffer = 1 * time.Minute
-
-// hexBase is the base for hex encoding serial numbers.
-const hexBase = 16
 
 func validateCAConfig(config *IssuingCAConfig) error {
 	if config == nil {
@@ -364,7 +359,7 @@ func (i *Issuer) getExtKeyUsage() []x509.ExtKeyUsage {
 
 func generateSerialNumber() (*big.Int, error) {
 	// Generate 20 bytes (160 bits) of randomness per CA/Browser Forum requirements.
-	serialBytes := make([]byte, serialNumberLength)
+	serialBytes := make([]byte, cryptoutilCAMagic.SerialNumberLength)
 	if _, err := rand.Read(serialBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}
@@ -381,9 +376,6 @@ func generateSerialNumber() (*big.Int, error) {
 
 	return serial, nil
 }
-
-// serialNumberLength is 20 bytes (160 bits) per CA/Browser Forum requirements.
-const serialNumberLength = 20
 
 func keyAlgorithmName(pub crypto.PublicKey) string {
 	switch pub.(type) {
