@@ -203,6 +203,86 @@ func (h *Handler) GetCertificateChain(c *fiber.Ctx, serialNumber string) error {
 	return nil
 }
 
+// RevokeCertificate handles POST /certificates/{serialNumber}/revoke.
+func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
+	if serialNumber == "" {
+		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_serial", "serial number is required")
+	}
+
+	// Parse request body.
+	var req cryptoutilCAServer.RevocationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_request", "failed to parse request body")
+	}
+
+	// Look up certificate by serial number.
+	cert, err := h.storage.GetBySerialNumber(c.Context(), serialNumber)
+	if err != nil {
+		if errors.Is(err, cryptoutilCAStorage.ErrCertificateNotFound) {
+			return h.errorResponse(c, fiber.StatusNotFound, "not_found", "certificate not found")
+		}
+
+		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
+	}
+
+	// Check if already revoked.
+	if cert.Status == cryptoutilCAStorage.StatusRevoked {
+		return h.errorResponse(c, fiber.StatusConflict, "already_revoked", "certificate is already revoked")
+	}
+
+	// Convert API reason to storage reason.
+	storageReason := mapAPIRevocationReasonToStorage(req.Reason)
+
+	// Revoke the certificate.
+	if err := h.storage.Revoke(c.Context(), cert.ID, storageReason); err != nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "revocation_failed", err.Error())
+	}
+
+	// Build response.
+	now := time.Now().UTC()
+	message := fmt.Sprintf("Certificate %s has been revoked", serialNumber)
+
+	response := cryptoutilCAServer.RevocationResponse{
+		SerialNumber: serialNumber,
+		Status:       cryptoutilCAServer.RevocationResponseStatusRevoked,
+		RevokedAt:    now,
+		Reason:       req.Reason,
+		Message:      &message,
+	}
+
+	if err := c.JSON(response); err != nil {
+		return fmt.Errorf("failed to send revocation response: %w", err)
+	}
+
+	return nil
+}
+
+// mapAPIRevocationReasonToStorage converts an API RevocationReason to storage RevocationReason.
+func mapAPIRevocationReasonToStorage(reason cryptoutilCAServer.RevocationReason) cryptoutilCAStorage.RevocationReason {
+	switch reason {
+	case cryptoutilCAServer.KeyCompromise:
+		return cryptoutilCAStorage.ReasonKeyCompromise
+	case cryptoutilCAServer.CACompromise:
+		return cryptoutilCAStorage.ReasonCACompromise
+	case cryptoutilCAServer.AffiliationChanged:
+		return cryptoutilCAStorage.ReasonAffiliationChanged
+	case cryptoutilCAServer.Superseded:
+		return cryptoutilCAStorage.ReasonSuperseded
+	case cryptoutilCAServer.CessationOfOperation:
+		return cryptoutilCAStorage.ReasonCessationOfOperation
+	case cryptoutilCAServer.CertificateHold:
+		return cryptoutilCAStorage.ReasonCertificateHold
+	case cryptoutilCAServer.RemoveFromCRL:
+		return cryptoutilCAStorage.ReasonRemoveFromCRL
+	case cryptoutilCAServer.PrivilegeWithdrawn:
+		return cryptoutilCAStorage.ReasonPrivilegeWithdrawn
+	case cryptoutilCAServer.AaCompromise:
+		return cryptoutilCAStorage.ReasonAACompromise
+	default:
+		return cryptoutilCAStorage.ReasonUnspecified
+	}
+}
+
 // SubmitEnrollment handles POST /enroll.
 func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 	var req cryptoutilCAServer.EnrollmentRequest

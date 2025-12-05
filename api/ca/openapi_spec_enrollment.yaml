@@ -210,6 +210,54 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /certificates/{serialNumber}/revoke:
+    post:
+      tags:
+        - Certificates
+      summary: Revoke a certificate
+      description: >
+        Revoke a certificate by its serial number. The certificate will be
+        marked as revoked and added to the next CRL.
+      operationId: revokeCertificate
+      parameters:
+        - name: serialNumber
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Certificate serial number (hex-encoded)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevocationRequest'
+      responses:
+        '200':
+          description: Certificate revoked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevocationResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Certificate not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Certificate already revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /profiles:
     get:
       tags:
@@ -287,6 +335,58 @@ components:
           $ref: '#/components/schemas/SubjectOverride'
         san_override:
           $ref: '#/components/schemas/SANOverride'
+
+    RevocationRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          $ref: '#/components/schemas/RevocationReason'
+        comment:
+          type: string
+          maxLength: 500
+          description: Optional comment explaining the reason for revocation
+
+    RevocationReason:
+      type: string
+      description: RFC 5280 CRLReason enumeration
+      enum:
+        - unspecified
+        - key_compromise
+        - ca_compromise
+        - affiliation_changed
+        - superseded
+        - cessation_of_operation
+        - certificate_hold
+        - remove_from_crl
+        - privilege_withdrawn
+        - aa_compromise
+
+    RevocationResponse:
+      type: object
+      required:
+        - serial_number
+        - status
+        - revoked_at
+        - reason
+      properties:
+        serial_number:
+          type: string
+          description: Serial number of the revoked certificate
+        status:
+          type: string
+          enum: [revoked]
+          description: Certificate status (always 'revoked')
+        revoked_at:
+          type: string
+          format: date-time
+          description: Time when the certificate was revoked
+        reason:
+          $ref: '#/components/schemas/RevocationReason'
+        message:
+          type: string
+          description: Human-readable confirmation message
 
     SubjectOverride:
       type: object

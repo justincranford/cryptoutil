@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilCAServer "cryptoutil/api/ca/server"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
@@ -55,6 +56,37 @@ func TestNewHandler(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestMapAPIRevocationReasonToStorage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    cryptoutilCAServer.RevocationReason
+		expected cryptoutilCAStorage.RevocationReason
+	}{
+		{"key_compromise", cryptoutilCAServer.KeyCompromise, cryptoutilCAStorage.ReasonKeyCompromise},
+		{"ca_compromise", cryptoutilCAServer.CACompromise, cryptoutilCAStorage.ReasonCACompromise},
+		{"affiliation_changed", cryptoutilCAServer.AffiliationChanged, cryptoutilCAStorage.ReasonAffiliationChanged},
+		{"superseded", cryptoutilCAServer.Superseded, cryptoutilCAStorage.ReasonSuperseded},
+		{"cessation_of_operation", cryptoutilCAServer.CessationOfOperation, cryptoutilCAStorage.ReasonCessationOfOperation},
+		{"certificate_hold", cryptoutilCAServer.CertificateHold, cryptoutilCAStorage.ReasonCertificateHold},
+		{"remove_from_crl", cryptoutilCAServer.RemoveFromCRL, cryptoutilCAStorage.ReasonRemoveFromCRL},
+		{"privilege_withdrawn", cryptoutilCAServer.PrivilegeWithdrawn, cryptoutilCAStorage.ReasonPrivilegeWithdrawn},
+		{"aa_compromise", cryptoutilCAServer.AaCompromise, cryptoutilCAStorage.ReasonAACompromise},
+		{"unspecified", cryptoutilCAServer.Unspecified, cryptoutilCAStorage.ReasonUnspecified},
+		{"unknown_defaults_to_unspecified", "unknown_reason", cryptoutilCAStorage.ReasonUnspecified},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := mapAPIRevocationReasonToStorage(tc.input)
+			require.Equal(t, tc.expected, result)
 		})
 	}
 }
