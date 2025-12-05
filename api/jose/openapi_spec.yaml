@@ -441,6 +441,7 @@ components:
         jws:
           type: string
           description: Compact JWS serialization.
+          # cspell:disable-next-line
           example: "eyJhbGciOiJFUzI1NiIsImtpZCI6IjAxOTM3N2E4LTRmMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.SGVsbG8sIFdvcmxkIQ...."
 
     JWSVerifyRequest:
