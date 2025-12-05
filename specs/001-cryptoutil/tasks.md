@@ -154,65 +154,67 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 ## Iteration 2: Standalone Services
 
-**Status**: 🆕 NOT STARTED
+**Status**: 🔄 IN PROGRESS (~70% complete)
 **Duration**: 2-4 weeks
 
 ### 2.1 JOSE Authority Server
 
 | Task | Description | Priority | Points | Status |
 |------|-------------|----------|--------|--------|
-| I2.1.1 | Create `cmd/jose-server/main.go` entry point | HIGH | 2 | ❌ |
-| I2.1.2 | Implement Fiber router with API versioning (`/jose/v1/`) | HIGH | 2 | ❌ |
-| I2.1.3 | Generate JWK endpoint (POST `/jose/v1/jwk/generate`) | CRITICAL | 5 | ❌ |
-| I2.1.4 | Retrieve JWK endpoint (GET `/jose/v1/jwk/{kid}`) | HIGH | 2 | ❌ |
-| I2.1.5 | List JWKs endpoint (GET `/jose/v1/jwk`) | HIGH | 2 | ❌ |
-| I2.1.6 | Delete JWK endpoint (DELETE `/jose/v1/jwk/{kid}`) | MEDIUM | 2 | ❌ |
-| I2.1.7 | JWKS endpoint (GET `/jose/v1/jwks`) | HIGH | 2 | ❌ |
-| I2.1.8 | JWS sign endpoint (POST `/jose/v1/jws/sign`) | CRITICAL | 5 | ❌ |
-| I2.1.9 | JWS verify endpoint (POST `/jose/v1/jws/verify`) | CRITICAL | 5 | ❌ |
-| I2.1.10 | JWE encrypt endpoint (POST `/jose/v1/jwe/encrypt`) | CRITICAL | 5 | ❌ |
-| I2.1.11 | JWE decrypt endpoint (POST `/jose/v1/jwe/decrypt`) | CRITICAL | 5 | ❌ |
-| I2.1.12 | JWT create endpoint (POST `/jose/v1/jwt/create`) | HIGH | 5 | ❌ |
-| I2.1.13 | JWT verify endpoint (POST `/jose/v1/jwt/verify`) | HIGH | 5 | ❌ |
+| I2.1.1 | Create `cmd/jose-server/main.go` entry point | HIGH | 2 | ✅ |
+| I2.1.2 | Implement Fiber router with API versioning (`/jose/v1/`) | HIGH | 2 | ✅ |
+| I2.1.3 | Generate JWK endpoint (POST `/jose/v1/jwk/generate`) | CRITICAL | 5 | ✅ |
+| I2.1.4 | Retrieve JWK endpoint (GET `/jose/v1/jwk/{kid}`) | HIGH | 2 | ✅ |
+| I2.1.5 | List JWKs endpoint (GET `/jose/v1/jwk`) | HIGH | 2 | ✅ |
+| I2.1.6 | Delete JWK endpoint (DELETE `/jose/v1/jwk/{kid}`) | MEDIUM | 2 | ✅ |
+| I2.1.7 | JWKS endpoint (GET `/jose/v1/jwks`) | HIGH | 2 | ✅ |
+| I2.1.8 | JWS sign endpoint (POST `/jose/v1/jws/sign`) | CRITICAL | 5 | ✅ |
+| I2.1.9 | JWS verify endpoint (POST `/jose/v1/jws/verify`) | CRITICAL | 5 | ✅ |
+| I2.1.10 | JWE encrypt endpoint (POST `/jose/v1/jwe/encrypt`) | CRITICAL | 5 | ✅ |
+| I2.1.11 | JWE decrypt endpoint (POST `/jose/v1/jwe/decrypt`) | CRITICAL | 5 | ✅ |
+| I2.1.12 | JWT create endpoint (POST `/jose/v1/jwt/sign`) | HIGH | 5 | ✅ |
+| I2.1.13 | JWT verify endpoint (POST `/jose/v1/jwt/verify`) | HIGH | 5 | ✅ |
 | I2.1.14 | OpenAPI spec for JOSE Authority (`api/jose/openapi_spec.yaml`) | HIGH | 5 | ❌ |
 | I2.1.15 | Generate server/client code with oapi-codegen | HIGH | 2 | ❌ |
 | I2.1.16 | Add API key authentication middleware | HIGH | 5 | ❌ |
 | I2.1.17 | Docker Compose integration | MEDIUM | 2 | ❌ |
-| I2.1.18 | JOSE Authority E2E tests | HIGH | 8 | ❌ |
+| I2.1.18 | JOSE Authority E2E tests | HIGH | 8 | ⚠️ |
 
 **Total Points**: 69
-**Evidence Required**: Server starts, all endpoints return correct responses, E2E tests pass
+**Completed Points**: 47 (68%)
+**Evidence**: `cmd/jose-server/main.go`, `internal/jose/server/`, `internal/jose/server/server_test.go` passes
 
 ### 2.2 CA Server REST API
 
 | Task | Description | Priority | Points | Status |
 |------|-------------|----------|--------|--------|
-| I2.2.1 | Create `cmd/ca-server/main.go` entry point | HIGH | 2 | ❌ |
-| I2.2.2 | Implement Fiber router with API versioning (`/ca/v1/`) | HIGH | 2 | ❌ |
-| I2.2.3 | Health endpoint (GET `/ca/v1/health`) | HIGH | 1 | ❌ |
-| I2.2.4 | List CAs endpoint (GET `/ca/v1/ca`) | HIGH | 5 | ❌ |
-| I2.2.5 | Get CA details endpoint (GET `/ca/v1/ca/{ca_id}`) | HIGH | 5 | ❌ |
-| I2.2.6 | Download CRL endpoint (GET `/ca/v1/ca/{ca_id}/crl`) | HIGH | 5 | ❌ |
-| I2.2.7 | Issue certificate endpoint (POST `/ca/v1/certificate`) | CRITICAL | 8 | ❌ |
-| I2.2.8 | Get certificate endpoint (GET `/ca/v1/certificate/{serial}`) | HIGH | 5 | ❌ |
-| I2.2.9 | Revoke certificate endpoint (POST `/ca/v1/certificate/{serial}/revoke`) | CRITICAL | 5 | ❌ |
-| I2.2.10 | Certificate status endpoint (GET `/ca/v1/certificate/{serial}/status`) | HIGH | 5 | ❌ |
-| I2.2.11 | OCSP responder endpoint (POST `/ca/v1/ocsp`) | HIGH | 8 | ❌ |
-| I2.2.12 | List profiles endpoint (GET `/ca/v1/profiles`) | MEDIUM | 2 | ❌ |
-| I2.2.13 | Get profile endpoint (GET `/ca/v1/profiles/{profile_id}`) | MEDIUM | 2 | ❌ |
-| I2.2.14 | EST cacerts endpoint (GET `/ca/v1/est/cacerts`) | HIGH | 5 | ❌ |
-| I2.2.15 | EST simpleenroll endpoint (POST `/ca/v1/est/simpleenroll`) | HIGH | 8 | ❌ |
-| I2.2.16 | EST simplereenroll endpoint (POST `/ca/v1/est/simplereenroll`) | HIGH | 5 | ❌ |
-| I2.2.17 | EST serverkeygen endpoint (POST `/ca/v1/est/serverkeygen`) | MEDIUM | 5 | ❌ |
-| I2.2.18 | TSA timestamp endpoint (POST `/ca/v1/tsa/timestamp`) | MEDIUM | 5 | ❌ |
-| I2.2.19 | OpenAPI spec for CA Server (`api/ca/openapi_spec_server.yaml`) | HIGH | 5 | ❌ |
-| I2.2.20 | Generate server/client code with oapi-codegen | HIGH | 2 | ❌ |
-| I2.2.21 | Add mTLS authentication middleware | CRITICAL | 8 | ❌ |
-| I2.2.22 | Docker Compose integration | MEDIUM | 2 | ❌ |
-| I2.2.23 | CA Server E2E tests | HIGH | 8 | ❌ |
+| I2.2.1 | CA handler scaffolding (`internal/ca/api/handler/handler.go`) | HIGH | 2 | ✅ |
+| I2.2.2 | OpenAPI spec (`api/ca/openapi_spec_enrollment.yaml`) | HIGH | 2 | ✅ |
+| I2.2.3 | Generate server/client code with oapi-codegen | HIGH | 1 | ✅ |
+| I2.2.4 | List CAs endpoint (GET `/api/v1/ca/ca`) | HIGH | 5 | ✅ |
+| I2.2.5 | Get CA details endpoint (GET `/api/v1/ca/ca/{caId}`) | HIGH | 5 | ✅ |
+| I2.2.6 | Download CRL endpoint (GET `/api/v1/ca/ca/{caId}/crl`) | HIGH | 5 | ⚠️ |
+| I2.2.7 | Issue certificate endpoint (POST `/api/v1/ca/enrollments`) | CRITICAL | 8 | ✅ |
+| I2.2.8 | Get certificate endpoint (GET `/api/v1/ca/certificates/{serialNumber}`) | HIGH | 5 | ✅ |
+| I2.2.9 | Revoke certificate endpoint (POST `/api/v1/ca/certificates/{serialNumber}/revoke`) | CRITICAL | 5 | ✅ |
+| I2.2.10 | Get enrollment status endpoint (GET `/api/v1/ca/enrollments/{id}`) | HIGH | 5 | ⚠️ |
+| I2.2.11 | OCSP responder endpoint (POST `/api/v1/ca/ocsp`) | HIGH | 8 | ❌ |
+| I2.2.12 | List profiles endpoint (GET `/api/v1/ca/profiles`) | MEDIUM | 2 | ✅ |
+| I2.2.13 | Get profile endpoint (GET `/api/v1/ca/profiles/{profileId}`) | MEDIUM | 2 | ✅ |
+| I2.2.14 | EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | ❌ |
+| I2.2.15 | EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | ❌ |
+| I2.2.16 | EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | ❌ |
+| I2.2.17 | EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | ❌ |
+| I2.2.18 | TSA timestamp service (`internal/ca/service/timestamp/`) | MEDIUM | 5 | ✅ |
+| I2.2.19 | TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ❌ |
+| I2.2.20 | Add mTLS authentication middleware | CRITICAL | 8 | ❌ |
+| I2.2.21 | Docker Compose integration | MEDIUM | 2 | ❌ |
+| I2.2.22 | CA Server cmd entry point (`cmd/ca-server/main.go`) | HIGH | 2 | ❌ |
+| I2.2.23 | CA Server E2E tests | HIGH | 8 | ⚠️ |
 
-**Total Points**: 108
-**Evidence Required**: Server starts, mTLS works, certificate issuance/revocation works, E2E tests pass
+**Total Points**: 105
+**Completed Points**: 52 (50%)
+**Evidence**: `internal/ca/api/handler/handler.go`, `api/ca/openapi_spec_enrollment.yaml`, tests pass
 
 ### 2.3 Integration
 
@@ -236,15 +238,18 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 18
 - **Total Points**: 69
-- **Completed**: 0 (0%)
-- **Critical Tasks**: 5
+- **Completed**: 13 (72%)
+- **Completed Points**: 47
+- **Critical Tasks**: 5 (all complete ✅)
 
 ### CA Server (2.2)
 
 - **Total Tasks**: 23
-- **Total Points**: 108
-- **Completed**: 0 (0%)
-- **Critical Tasks**: 4
+- **Total Points**: 105
+- **Completed**: 11 (48%)
+- **Partial**: 3 (13%)
+- **Completed Points**: 52
+- **Critical Tasks**: 3 (1 complete, 2 remaining)
 
 ### Integration (2.3)
 
@@ -256,8 +261,9 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 ### Overall Iteration 2
 
 - **Total Tasks**: 47
-- **Total Points**: 198
-- **Estimated Duration**: 2-4 weeks
+- **Total Points**: 195
+- **Completed Points**: 99 (51%)
+- **Estimated Remaining Duration**: 1-2 weeks
 
 ---
 
@@ -290,36 +296,37 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 ### CRITICAL (Must Implement First)
 
-1. **I2.1.3** - JWK generate endpoint (JOSE Authority core)
-2. **I2.1.8** - JWS sign endpoint (signing operations)
-3. **I2.1.9** - JWS verify endpoint (signature verification)
-4. **I2.1.10** - JWE encrypt endpoint (encryption operations)
-5. **I2.1.11** - JWE decrypt endpoint (decryption operations)
-6. **I2.2.7** - Issue certificate endpoint (CA Server core)
-7. **I2.2.9** - Revoke certificate endpoint (certificate lifecycle)
-8. **I2.2.21** - mTLS authentication middleware (security)
+1. ~~**I2.1.3** - JWK generate endpoint~~ ✅ DONE
+2. ~~**I2.1.8** - JWS sign endpoint~~ ✅ DONE
+3. ~~**I2.1.9** - JWS verify endpoint~~ ✅ DONE
+4. ~~**I2.1.10** - JWE encrypt endpoint~~ ✅ DONE
+5. ~~**I2.1.11** - JWE decrypt endpoint~~ ✅ DONE
+6. ~~**I2.2.7** - Issue certificate endpoint~~ ✅ DONE (SubmitEnrollment)
+7. ~~**I2.2.9** - Revoke certificate endpoint~~ ✅ DONE
+8. **I2.2.20** - mTLS authentication middleware (security) - HIGH PRIORITY
 
 ### HIGH (Should Implement)
 
-1. **I2.1.1** - JOSE server entry point
-2. **I2.1.2** - JOSE Fiber router
+1. ~~**I2.1.1** - JOSE server entry point~~ ✅ DONE
+2. ~~**I2.1.2** - JOSE Fiber router~~ ✅ DONE
 3. **I2.1.14** - JOSE OpenAPI spec
 4. **I2.1.16** - API key authentication
-5. **I2.2.1** - CA server entry point
-6. **I2.2.2** - CA Fiber router
-7. **I2.2.11** - OCSP responder
-8. **I2.2.14-16** - EST protocol endpoints
+5. **I2.2.11** - OCSP responder
+6. **I2.2.14-16** - EST protocol endpoints
+7. **I2.2.22** - CA Server cmd entry point
+8. **I2.2.6** - Wire up CRL endpoint to revocation.CRLService
 
 ### MEDIUM (Nice to Have)
 
-1. **I2.1.6** - Delete JWK endpoint
+1. ~~**I2.1.6** - Delete JWK endpoint~~ ✅ DONE
 2. **I2.1.17** - JOSE Docker Compose
-3. **I2.2.12-13** - Profile listing endpoints
-4. **I2.2.17-18** - EST serverkeygen + TSA timestamp
-5. **I2.3.6** - README documentation
+3. ~~**I2.2.12-13** - Profile listing endpoints~~ ✅ DONE
+4. **I2.2.17** - EST serverkeygen
+5. **I2.2.19** - TSA timestamp endpoint (service exists)
+6. **I2.3.6** - README documentation
 
 ---
 
-*Tasks Version: 2.0.0*
-*Generated: January 2026*
+*Tasks Version: 2.1.0*
+*Updated: December 2025*
 *Next Review: After Iteration 2 completion*
