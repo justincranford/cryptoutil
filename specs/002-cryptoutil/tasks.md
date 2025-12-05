@@ -31,9 +31,9 @@
 | CA-1 | OpenAPI Specification | `api/ca/openapi_spec_enrollment.yaml` | HIGH | ✅ Complete | 4h |
 | CA-2 | Server Scaffolding | Handler struct in `internal/ca/api/handler/` | HIGH | ✅ Complete | 4h |
 | CA-3 | Health Handler | Health check endpoints | HIGH | ❌ Not Started | 1h |
-| CA-4 | CA List Handler | GET `/ca` - List available CAs | HIGH | ❌ Not Started | 3h |
-| CA-5 | CA Details Handler | GET `/ca/{ca_id}` - CA details + chain | HIGH | ❌ Not Started | 3h |
-| CA-6 | CRL Handler | GET `/ca/{ca_id}/crl` - Download CRL | HIGH | ❌ Not Started | 3h |
+| CA-4 | CA List Handler | GET `/ca` - List available CAs | HIGH | ✅ Complete | 3h |
+| CA-5 | CA Details Handler | GET `/ca/{ca_id}` - CA details + chain | HIGH | ✅ Complete | 3h |
+| CA-6 | CRL Handler | GET `/ca/{ca_id}/crl` - Download CRL | HIGH | ⚠️ Partial (returns NotImplemented) | 3h |
 | CA-7 | Certificate Issue Handler | POST `/enroll` - Issue from CSR | HIGH | ✅ Complete | 6h |
 | CA-8 | Certificate Get Handler | GET `/certificates/{serial}` + list + chain | MEDIUM | ✅ Complete | 2h |
 | CA-9 | Certificate Revoke Handler | POST `/certificates/{serial}/revoke` | HIGH | ✅ Complete | 4h |
@@ -49,7 +49,7 @@
 | CA-19 | Integration Tests | E2E tests for CA endpoints | HIGH | ⚠️ Partial (handler_test.go exists but low coverage) | 8h |
 | CA-20 | Docker Integration | Add ca-server to Docker Compose | MEDIUM | ❌ Not Started | 2h |
 
-**Phase 2 Total**: 20 tasks, 7 complete, 2 partial, ~68 hours
+**Phase 2 Total**: 20 tasks, 9 complete, 4 partial, ~68 hours
 
 ---
 
@@ -84,11 +84,11 @@
 | Phase | Tasks | Complete | Partial | Remaining |
 |-------|-------|----------|---------|-----------|
 | Phase 1: JOSE Authority | 13 | 12 | 0 | 1 |
-| Phase 2: CA Server | 20 | 7 | 2 | 11 |
+| Phase 2: CA Server | 20 | 9 | 4 | 7 |
 | Phase 3: Unified Suite | 6 | 0 | 0 | 6 |
-| **Total** | **39** | **19** | **2** | **18** |
+| **Total** | **39** | **21** | **4** | **14** |
 
-**Progress**: 49% complete, 5% partial
+**Progress**: 54% complete, 10% partial
 
 ---
 
