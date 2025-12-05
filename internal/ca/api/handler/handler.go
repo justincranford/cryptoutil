@@ -35,6 +35,7 @@ type Handler struct {
 	issuer      *cryptoutilCAServiceIssuer.Issuer
 	storage     cryptoutilCAStorage.Store
 	ocspService *cryptoutilCAServiceRevocation.OCSPService
+	crlService  *cryptoutilCAServiceRevocation.CRLService
 	profiles    map[string]*ProfileConfig
 	mu          sync.RWMutex
 }
@@ -455,9 +456,60 @@ func (h *Handler) GetCA(c *fiber.Ctx, caID string) error {
 }
 
 // GetCRL handles GET /ca/{caId}/crl.
-func (h *Handler) GetCRL(_ *fiber.Ctx, _ string, _ cryptoutilCAServer.GetCRLParams) error {
-	// TODO: Implement CRL generation with revocation service integration.
-	return fiber.NewError(fiber.StatusNotImplemented, "CRL generation not yet implemented")
+func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilCAServer.GetCRLParams) error {
+	// Check if CRL service is configured.
+	h.mu.RLock()
+	crlService := h.crlService
+	h.mu.RUnlock()
+
+	if crlService == nil {
+		return h.errorResponse(c, fiber.StatusServiceUnavailable, "service_unavailable", "CRL service not configured")
+	}
+
+	// Verify the CA ID matches the configured issuer.
+	caConfig := h.issuer.GetCAConfig()
+	if caConfig == nil || caConfig.Name != caID {
+		return h.errorResponse(c, fiber.StatusNotFound, "not_found", "CA not found")
+	}
+
+	// Determine output format (default to DER).
+	format := "der"
+	if params.Format != nil {
+		format = string(*params.Format)
+	}
+
+	// Generate the CRL based on format.
+	switch format {
+	case "pem":
+		crlPEM, err := crlService.GenerateCRLPEM()
+		if err != nil {
+			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
+		}
+
+		c.Set("Content-Type", "application/x-pem-file")
+		c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.crl.pem\"", caID))
+
+		if err := c.Send(crlPEM); err != nil {
+			return fmt.Errorf("failed to send CRL PEM: %w", err)
+		}
+
+		return nil
+	default:
+		// DER format.
+		crlDER, err := crlService.GenerateCRL()
+		if err != nil {
+			return h.errorResponse(c, fiber.StatusInternalServerError, "crl_error", err.Error())
+		}
+
+		c.Set("Content-Type", "application/pkix-crl")
+		c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.crl\"", caID))
+
+		if err := c.Send(crlDER); err != nil {
+			return fmt.Errorf("failed to send CRL DER: %w", err)
+		}
+
+		return nil
+	}
 }
 
 // getKeyInfo extracts key algorithm and size from a certificate.
@@ -540,6 +592,15 @@ func (h *Handler) SetOCSPService(ocspService *cryptoutilCAServiceRevocation.OCSP
 	defer h.mu.Unlock()
 
 	h.ocspService = ocspService
+}
+
+// SetCRLService configures the CRL service for the handler.
+// This is optional - if not set, CRL requests will return service unavailable.
+func (h *Handler) SetCRLService(crlService *cryptoutilCAServiceRevocation.CRLService) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h.crlService = crlService
 }
 
 // HandleOCSP handles POST /ocsp - RFC 6960 OCSP responder.
