@@ -1578,7 +1578,7 @@ Automated by deployment pipeline:
 
 **Test Coverage**:
 
-- Target: ≥85% for infrastructure, ≥80% for features
+- Target: ≥90% for infrastructure, ≥85% for features
 - Current: X% overall, Y% infrastructure, Z% features
 - Trend: Increasing/stable/decreasing
 

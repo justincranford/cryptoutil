@@ -1323,7 +1323,7 @@ runTests files=["path/to/integration_test.go"]
 #### Requirements Validation
 
 ```bash
-# Requirements coverage check (must meet ≥90% per-task, ≥85% overall)
+# Requirements coverage check (must meet ≥90% per-task, ≥90% overall)
 go run ./cmd/cicd go-identity-requirements-check --strict
 ```
 
@@ -1596,7 +1596,7 @@ Automated by deployment pipeline:
 
 **Test Coverage**:
 
-- Target: ≥85% for infrastructure, ≥80% for features
+- Target: ≥90% for infrastructure, ≥85% for features
 - Current: X% overall, Y% infrastructure, Z% features
 - Trend: Increasing/stable/decreasing
 
