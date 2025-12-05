@@ -5,14 +5,14 @@ info:
   version: "1.0.0"
   description: >
     REST API for JOSE (JSON Object Signing and Encryption) operations.
-    
+
     Provides:
     - JWK (JSON Web Key) management: generate, store, retrieve, list, delete keys
     - JWKS (JSON Web Key Set) endpoint for public key distribution
     - JWS (JSON Web Signature) operations: sign and verify payloads
     - JWE (JSON Web Encryption) operations: encrypt and decrypt payloads
     - JWT (JSON Web Token) operations: create and verify tokens
-    
+
     All cryptographic operations use FIPS 140-3 approved algorithms.
   contact:
     name: Justin Cranford

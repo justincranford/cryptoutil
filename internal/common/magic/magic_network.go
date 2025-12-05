@@ -251,4 +251,6 @@ var (
 const (
 	// DefaultHTTPRequestBodyLimit - Default request body limit in bytes (2MB).
 	DefaultHTTPRequestBodyLimit = 2 << 20
+	// ServerStartupWait - Time to wait for server startup in tests.
+	ServerStartupWait = 200 * time.Millisecond
 )

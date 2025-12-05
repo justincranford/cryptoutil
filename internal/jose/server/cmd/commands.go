@@ -77,7 +77,11 @@ Examples:
 				return fmt.Errorf("failed to create JOSE server: %w", err)
 			}
 
-			defer server.Shutdown()
+			defer func() {
+				if shutdownErr := server.Shutdown(); shutdownErr != nil {
+					fmt.Printf("Server shutdown error: %v\n", shutdownErr)
+				}
+			}()
 
 			fmt.Printf("JOSE Authority Server starting on %s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
 
