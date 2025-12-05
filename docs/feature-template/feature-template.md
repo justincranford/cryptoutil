@@ -561,7 +561,7 @@ pre-commit run --all-files  # Before git push
 **ALWAYS enforce before marking task complete:**
 
 - ✅ All tests passing: `runTests` tool shows 0 failures
-- ✅ Coverage threshold: ≥85% for infrastructure, ≥80% for features, ≥95% for utilities
+- ✅ Coverage threshold: ≥90% for infrastructure, ≥85% for features, ≥100% for utilities
 - ✅ No linting errors: `golangci-lint run ./...` shows 0 issues
 - ✅ No TODO comments: Grep search shows 0 TODOs in modified files
 - ✅ Documentation updated: README, inline docs, API specs
@@ -642,7 +642,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Test happy paths (expected inputs/outputs)
 - [ ] Test sad paths (error conditions, edge cases)
 - [ ] Use `t.Parallel()` for all tests (validates concurrent safety)
-- [ ] Achieve target coverage (≥85% infrastructure, ≥80% features, ≥95% utilities)
+- [ ] Achieve target coverage (≥90% infrastructure, ≥85% features, ≥100% utilities)
 - [ ] Run tests: `runTests` tool (NEVER `go test` in terminal)
 
 #### Quality Assurance
@@ -683,8 +683,8 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Run 6-step validation: `go run ./cmd/cicd identity-progressive-validation`
 - [ ] Step 1 PASS: TODO scan (0 CRITICAL/HIGH TODOs)
 - [ ] Step 2 PASS: Tests (100% pass rate)
-- [ ] Step 3 PASS: Coverage (≥85% infrastructure, ≥80% features, ≥95% utilities)
-- [ ] Step 4 PASS: Requirements (≥85% overall coverage)
+- [ ] Step 3 PASS: Coverage (≥90% infrastructure, ≥85% features, ≥100% utilities)
+- [ ] Step 4 PASS: Requirements (≥90% overall coverage)
 - [ ] Step 5 PASS: Integration (E2E smoke test)
 - [ ] Step 6 PASS: Documentation (PROJECT-STATUS.md <7 days old)
 - [ ] All 6 steps passed before marking task complete
@@ -1129,7 +1129,7 @@ Based on industry best practices, here are additional corrective action strategi
 - [ ] Happy path coverage (expected inputs/outputs)
 - [ ] Sad path coverage (error conditions, edge cases)
 - [ ] All tests pass: `runTests` tool shows 0 failures
-- [ ] Coverage meets threshold (≥85% infra, ≥80% features, ≥95% utils)
+- [ ] Coverage meets threshold (≥90% infra, ≥85% features, ≥100% utils)
 - [ ] Tests use `t.Parallel()` (validates concurrent safety)
 - [ ] Integration tests verify component interactions
 
@@ -1157,7 +1157,7 @@ Based on industry best practices, here are additional corrective action strategi
 - **Original Plan**: X% complete (Y/Z tasks)
 - **Remediation Plan**: X% complete (Y/Z tasks)
 - **Requirements Coverage**: X% (Y/Z requirements validated)
-- **Test Coverage**: X% (≥85% target)
+- **Test Coverage**: X% (≥90% target)
 - **TODO Count**: X total (Y CRITICAL, Z HIGH, A MEDIUM, B LOW)
 
 ## Production Blockers
@@ -1248,7 +1248,7 @@ fi
     - [ ] Test result: `runTests ./path/to/package` shows TestRequirement1 passes (exit code 0)
     - [ ] TODO scan: `grep -r "TODO\|FIXME" <modified_files>` shows empty output (zero TODOs)
     - [ ] Requirements validation: `identity-requirements-check --strict` shows R01-01 through R01-05 verified
-    - [ ] Code coverage: `go test -cover ./path/to/package` shows ≥85% coverage
+    - [ ] Code coverage: `go test -cover ./path/to/package` shows ≥90% coverage
 - [ ] Requirement 2: Specific, measurable, testable outcome
   - **Evidence Required**:
     - [ ] Integration test: `runTests ./path/to/integration` shows TestRequirement2Integration passes
@@ -1312,7 +1312,7 @@ go run ./cmd/cicd go-check-circular-package-dependencies
 # Unit tests (must show 100% pass rate)
 runTests
 
-# Coverage verification (must meet thresholds: ≥85% infra, ≥80% features)
+# Coverage verification (must meet thresholds: ≥90% infra, ≥85% features)
 go test ./internal/identity/... -coverprofile=test-output/coverage_identity.out
 go tool cover -func=test-output/coverage_identity.out | grep total
 
@@ -1544,7 +1544,7 @@ Automated by deployment pipeline:
 - Zero CRITICAL bugs in production
 - < 5% MEDIUM/LOW bugs per release
 - 100% test pass rate
-- ≥85% code coverage (infrastructure)
+- ≥90% code coverage (infrastructure)
 
 ### Performance Metrics
 

@@ -361,7 +361,7 @@ Each task must pass quality gates before marking complete.
 
 - Specific: "Authorization code flow matches RFC 6749 Section 4.1"
 - Measurable: "P95 latency < 100ms"
-- Testable: "All tests pass with ≥85% coverage"
+- Testable: "All tests pass with ≥90% coverage"
 
 **Granular tasks**:
 

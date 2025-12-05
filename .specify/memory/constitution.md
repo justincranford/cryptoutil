@@ -94,7 +94,7 @@ Multi-layer KMS cryptographic barrier architecture:
 - NEVER use `//nolint:` directives except for documented linter bugs
 - ALWAYS use UTF-8 without BOM for ALL text file encoding; never use UTF-16, UTF-32, CP-1252, ASCII
 - File size limits: 300 (soft), 400 (medium), 500 (hard → refactor required); ideal for user development and reviews, and LLM agent development and reviews
-- 80%+ production coverage, 85%+ infrastructure (cicd), 95%+ utility code
+- 85%+ production coverage, 90%+ infrastructure (cicd), 100% utility code
 - ALWAYS fix all pre-commit hook errors; see ./.pre-commit-config.yaml
 - ALWAYS fix all pre-push hook errors; see ./.pre-commit-config.yaml
 - All code builds  `go build ./...`, `mvn compile`
@@ -108,7 +108,7 @@ Multi-layer KMS cryptographic barrier architecture:
 
 No task is complete without objective, verifiable evidence:
 
-- Code evidence: `go build ./...` clean, `golangci-lint run` clean, coverage ≥80%
+- Code evidence: `go build ./...` clean, `golangci-lint run` clean, coverage ≥85%
 - Test evidence: All tests passing, no skips without tracking
 - Integration evidence: Core E2E demos work (`go run ./cmd/demo all` 7/7 steps)
 - Documentation evidence: PROJECT-STATUS.md updated
@@ -159,7 +159,7 @@ Before marking iteration complete:
 - [ ] `go test ./...` passes with 0 failures (not just "pass individually")
 - [ ] `golangci-lint run` passes with no violations
 - [ ] `/speckit.checklist` executed and all items verified
-- [ ] Coverage targets maintained (80% production, 85% infrastructure)
+- [ ] Coverage targets maintained (85% production, 90% infrastructure)
 - [ ] All spec.md status markers accurate and up-to-date
 - [ ] No deferred items without documented justification
 
