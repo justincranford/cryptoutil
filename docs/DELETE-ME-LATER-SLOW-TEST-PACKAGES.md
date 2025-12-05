@@ -1,4 +1,5 @@
-PS C:\Dev\Projects\cryptoutil> golangci-lint run --fix
+## RAW OUTPUT
+
 PS C:\Dev\Projects\cryptoutil> go test ./... -cover
 ?       cryptoutil/api  [no test files]
         cryptoutil/api/authz            coverage: 0.0% of statements
