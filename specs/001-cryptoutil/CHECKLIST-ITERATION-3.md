@@ -131,7 +131,7 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error
 | Task | Description | Current | Target | Status |
 |------|-------------|---------|--------|--------|
 | I3.2.1 | CA handler coverage | 85.8% | 90%+ | 🔄 In Progress |
-| I3.2.2 | userauth coverage | 51.6% | 90%+ | 🔄 In Progress |
+| I3.2.2 | userauth coverage | 54.9% | 90%+ | 🔄 In Progress |
 | I3.2.3 | jose server coverage | ~68.9% | 90%+ | 🆕 |
 | I3.2.4 | network package | 88.7% | 90%+ | 🆕 |
 | I3.2.5 | Overall audit | - | - | 🆕 |
@@ -139,7 +139,7 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error
 ### Coverage Improvements Made
 
 - CA handler: 39.3% → 85.8% (+46.5%)
-- userauth: 42.6% → 51.6% (+9.0%)
+- userauth: 42.6% → 54.9% (+12.3%)
 - SubmitEnrollment: 0% → 85.2%
 - EstSimpleEnroll: 12.0% → 88.0%
 - buildIssueRequest: 0% → 78.6%
@@ -152,6 +152,10 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error
 - InMemoryRateLimiter: 0% → 100%
 - TOTPAuthenticator: 0% → ~70%
 - DefaultOTPGenerator: 0% → 100%
+- MagicLinkAuthenticator: 0% → tested New + Method
+- RiskBasedAuthenticator: 0% → tested New + Method + DefaultThresholds
+- MockDeliveryService: 0% → tested all methods
+- StepUpAuthenticator: DefaultPolicies tested
 
 ---
 
@@ -222,13 +226,16 @@ for TSA, CRL, OCSP endpoints, handler validation, and certificate serial lookup.
 3. **Enrollment Tracking**: In-memory status tracking with certificate lookup
 4. **Code Quality**: All CA tests pass, linting clean
 5. **Coverage Progress**: CA handler 39.3% → 85.8% (+46.5%)
-6. **Coverage Progress**: userauth 42.6% → 51.6% (+9.0%)
+6. **Coverage Progress**: userauth 42.6% → 54.9% (+12.3%)
 7. **Bug Fix**: Fixed nil pointer in HandleOCSP BodyStream handling
 8. **Test Stability**: Fixed flaky parallel tests with FiberTestTimeoutMs constant (30s)
+9. **Total Test Coverage Improvement**: ~59% increase combined across key packages
 
 ### Recent Git Commits
 
 ```text
+cdd2cea1 test(userauth): add magic link, risk-based, mock delivery, and step-up tests
+f5140e50 docs: update I3 checklist with userauth coverage progress (51.6%)
 9712821f test(userauth): add comprehensive storage, rate limiter, TOTP, and OTP generator tests
 111d9a2d docs: update I3 checklist with flaky test fix and git commit history
 df762070 fix(authz): resolve flaky parallel test timeouts in client authentication flow tests
