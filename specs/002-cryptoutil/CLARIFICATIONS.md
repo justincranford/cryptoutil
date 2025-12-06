@@ -379,16 +379,71 @@ This document identifies ambiguities, incomplete items, and clarifications neede
 **Question 9**: Iteration 3 scope decision
 **Question 10**: Iteration 2 completion threshold
 
-### After User Input
+---
 
-7. Create specs/003-cryptoutil/ based on scope decision
-8. Integrate DELETE-ME file content
-9. Increment coverage targets
-10. Begin gremlins baseline (if in scope)
-11. Begin workflow analysis (if in scope)
+## 11. Gremlins Mutation Testing Tool - BLOCKED
+
+### Clarification Needed
+
+**Question**: How should mutation testing be handled given gremlins v0.6.0 is currently broken?
+
+**Current State**:
+
+- ✅ Gremlins v0.6.0 installed successfully
+- ✅ Configuration file `.gremlins.yaml` exists with reasonable defaults
+- ❌ Tool crashes on execution with panic "error, this is temporary"
+- Constitution v2.0.0 requires ≥80% gremlins score (mandatory)
+
+**Error Details**:
+
+```
+panic: error, this is temporary
+goroutine 21 [running]:
+github.com/go-gremlins/gremlins/internal/engine.(*mutantExecutor).Start
+```
+
+**Resolution Options**:
+
+1. **Wait for upstream fix**: Monitor <https://github.com/go-gremlins/gremlins/issues>
+2. **Try alternative tool**: Consider <https://github.com/zimmski/go-mutesting>
+3. **Manual mutation testing**: Test critical paths manually (wrong keys, corrupted data)
+4. **Amendment to Constitution**: Make mutation testing "recommended" until tooling stabilizes
+
+**User Input Needed**:
+
+- [ ] Should we amend Constitution v2.0.0 → v2.0.1 to make mutation testing recommended instead of mandatory?
+- [ ] Should we research and adopt alternative mutation testing tools?
+- [ ] Should we defer mutation testing to iteration 4 when tooling may be stable?
+- [ ] Should we implement manual mutation testing for critical crypto operations only?
+
+**Recommended Approach**:
+
+- Amend Constitution v2.0.1: Mutation testing RECOMMENDED (not mandatory) until tooling stable
+- Manual mutation testing for critical crypto operations (wrong keys, corrupted ciphertext, etc.)
+- Document in EXECUTIVE-SUMMARY.md known limitations
+- Revisit in iteration 3 or 4 when upstream tooling improves
+
+**Priority**: HIGH (Blocks quality gates)
+**Impact**: Cannot achieve ≥80% mutation score requirement
+**Assigned To**: Pending user decision
+
+**Reference**: `docs/todos-gremlins.md` for detailed analysis
 
 ---
 
-*Clarifications Version: 2.0.0*
+**Question 10**: Iteration 2 completion threshold
+
+### After User Input
+
+1. Create specs/003-cryptoutil/ based on scope decision
+2. Integrate DELETE-ME file content
+3. Increment coverage targets
+4. Begin gremlins baseline (if in scope OR after tooling fix)
+5. Begin workflow analysis (if in scope)
+
+---
+
+*Clarifications Version: 2.1.0*
 *Created: December 6, 2025*
-*Status: Awaiting User Input on Critical Items (9, 10)*
+*Updated: December 6, 2025 - Added gremlins blocker clarification*
+*Status: Awaiting User Input on Critical Items (9, 10, 11 - gremlins)*
