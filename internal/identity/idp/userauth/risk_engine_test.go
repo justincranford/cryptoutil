@@ -285,3 +285,171 @@ func (m *mockDeviceFingerprintDB) GetFingerprint(ctx context.Context, userAgent 
 func (m *mockDeviceFingerprintDB) StoreFingerprint(ctx context.Context, fingerprint *DeviceFingerprint) error {
 	return nil
 }
+
+// TestBehavioralRiskEngine_assessBehaviorRisk tests the assessBehaviorRisk method.
+func TestBehavioralRiskEngine_assessBehaviorRisk(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		behavior  *UserBehavior
+		baseline  *UserBaseline
+		wantScore float64
+	}{
+		{
+			name:     "nil behavior profile returns moderate risk",
+			behavior: &UserBehavior{},
+			baseline: &UserBaseline{
+				BehaviorProfile: nil,
+			},
+			wantScore: 0.40 + 0.10, // RiskScoreMedium + RiskScoreLow.
+		},
+		{
+			name:     "with behavior profile returns low risk",
+			behavior: &UserBehavior{},
+			baseline: &UserBaseline{
+				BehaviorProfile: &BehaviorProfile{
+					AverageSessionLength: 3600,
+				},
+			},
+			wantScore: 0.10, // RiskScoreLow.
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			engine := &BehavioralRiskEngine{}
+
+			score := engine.assessBehaviorRisk(tc.behavior, tc.baseline)
+			require.InDelta(t, tc.wantScore, score, 0.001)
+		})
+	}
+}
+
+// TestRiskBasedAuthenticator_Authenticate tests the Authenticate method.
+func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name               string
+		riskLevel          RiskLevel
+		wantRequiresAuth   bool
+		wantRequirements   int
+	}{
+		{
+			name:             "low risk does not require additional auth",
+			riskLevel:        RiskLevelLow,
+			wantRequiresAuth: false,
+			wantRequirements: 1,
+		},
+		{
+			name:             "medium risk requires MFA",
+			riskLevel:        RiskLevelMedium,
+			wantRequiresAuth: true,
+			wantRequirements: 2,
+		},
+		{
+			name:             "high risk requires strong auth",
+			riskLevel:        RiskLevelHigh,
+			wantRequiresAuth: true,
+			wantRequirements: 2,
+		},
+		{
+			name:             "critical risk requires strong auth",
+			riskLevel:        RiskLevelCritical,
+			wantRequiresAuth: true,
+			wantRequirements: 3,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Create mock risk engine that returns configured risk level.
+			riskEngine := &mockRiskEngine{
+				riskScore: &RiskScore{
+					Level:      tc.riskLevel,
+					Score:      0.5,
+					Confidence: 0.8,
+					Factors: []RiskFactor{
+						{Type: "test", Score: 0.5, Weight: 1.0, Reason: "Test factor"},
+					},
+				},
+			}
+
+			// Create mock context analyzer.
+			contextAnalyzer := &mockContextAnalyzer{
+				authContext: &AuthContext{
+					Location: &GeoLocation{Country: "US"},
+					Device:   &DeviceFingerprint{ID: "test-device"},
+					Network:  &NetworkInfo{IPAddress: "192.168.1.1"},
+					Time:     time.Now(),
+				},
+			}
+
+			// Create mock user behavior store.
+			userBehaviorStore := &mockUserBehaviorStore{}
+
+			// Create authenticator.
+			thresholds := DefaultRiskThresholds()
+			auth := NewRiskBasedAuthenticator(riskEngine, contextAnalyzer, nil, thresholds, userBehaviorStore)
+
+			// Create auth request.
+			authRequest := &AuthRequest{
+				IPAddress: "192.168.1.1",
+				UserAgent: "Test Browser",
+			}
+
+			// Call Authenticate.
+			decision, err := auth.Authenticate(ctx, "test-user", authRequest)
+			require.NoError(t, err, "Authenticate should succeed")
+			require.NotNil(t, decision, "Decision should not be nil")
+			require.Equal(t, tc.wantRequiresAuth, decision.RequiresAuth, "RequiresAuth should match")
+			require.NotNil(t, decision.Requirements, "Requirements should not be nil")
+			require.Equal(t, tc.wantRequirements, decision.Requirements.MinFactors, "MinFactors should match")
+			require.NotNil(t, decision.RiskScore, "RiskScore should not be nil")
+			require.Equal(t, tc.riskLevel, decision.RiskScore.Level, "RiskLevel should match")
+		})
+	}
+}
+
+// mockRiskEngine implements RiskEngine for testing.
+type mockRiskEngine struct {
+	riskScore *RiskScore
+	err       error
+}
+
+func (m *mockRiskEngine) AssessRisk(_ context.Context, _ string, _ *AuthContext) (*RiskScore, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	return m.riskScore, nil
+}
+
+func (m *mockRiskEngine) CalculateRiskFactors(_ *AuthContext, _ *UserBaseline) []RiskFactor {
+	return m.riskScore.Factors
+}
+
+// mockContextAnalyzer implements ContextAnalyzer for testing.
+type mockContextAnalyzer struct {
+	authContext *AuthContext
+	err         error
+}
+
+func (m *mockContextAnalyzer) AnalyzeContext(_ context.Context, _ *AuthRequest) (*AuthContext, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+
+	return m.authContext, nil
+}
+
+func (m *mockContextAnalyzer) DetectAnomalies(_ context.Context, _ *AuthContext, _ *UserBaseline) ([]Anomaly, error) {
+	return nil, nil
+}
