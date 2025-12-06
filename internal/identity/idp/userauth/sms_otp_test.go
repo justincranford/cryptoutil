@@ -285,3 +285,64 @@ func TestSMSOTPAuthenticator_InitiateAuthNoPhoneNumber(t *testing.T) {
 	require.Nil(t, challenge, "Challenge should be nil on error")
 	require.Contains(t, err.Error(), "no phone number", "Error should indicate missing phone number")
 }
+
+// TestSMSOTPAuthenticator_VerifyAuth tests VerifyAuth.
+func TestSMSOTPAuthenticator_VerifyAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockSMSUserRepo()
+	delivery := newMockSMSDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	// Add user with phone number.
+	user := &cryptoutilIdentityDomain.User{
+		ID:          userID,
+		Sub:         userID.String(),
+		PhoneNumber: "+1234567890",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+
+	// Initiate auth first.
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+
+	// VerifyAuth with invalid challenge ID.
+	_, err = auth.VerifyAuth(ctx, "invalid-uuid", "123456")
+	require.Error(t, err, "VerifyAuth should fail with invalid challenge ID")
+	require.Contains(t, err.Error(), "invalid challenge ID", "Error should indicate invalid challenge ID")
+
+	// VerifyAuth with wrong OTP (challenge exists but OTP is wrong).
+	_, err = auth.VerifyAuth(ctx, challenge.ID.String(), "wrong-otp")
+	require.Error(t, err, "VerifyAuth should fail with wrong OTP")
+}
+
+// TestSMSOTPAuthenticator_VerifyAuthChallengeNotFound tests VerifyAuth with non-existent challenge.
+func TestSMSOTPAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockSMSUserRepo()
+	delivery := newMockSMSDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+
+	// Generate a valid UUID that doesn't exist as a challenge.
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	_, err = auth.VerifyAuth(ctx, nonExistentID.String(), "123456")
+	require.Error(t, err, "VerifyAuth should fail with non-existent challenge")
+	require.Contains(t, err.Error(), "challenge not found", "Error should indicate challenge not found")
+}

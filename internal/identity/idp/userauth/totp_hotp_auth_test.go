@@ -8,6 +8,7 @@ import (
 	"context"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/identity/idp/userauth"
@@ -365,4 +366,86 @@ func TestTOTPAuthenticator_InitiateAuth(t *testing.T) {
 	require.NotNil(t, challenge, "Challenge should not be nil")
 	require.Equal(t, userID, challenge.UserID, "Challenge UserID should match")
 	require.Equal(t, "totp", challenge.Method, "Challenge Method should be 'totp'")
+}
+
+// TestTOTPAuthenticator_VerifyAuth tests VerifyAuth.
+func TestTOTPAuthenticator_VerifyAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+
+	userID := "test-user-totp-verify"
+
+	// Initiate auth first.
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+
+	// VerifyAuth with invalid challenge ID.
+	_, err = auth.VerifyAuth(ctx, "invalid-uuid", "123456")
+	require.Error(t, err, "VerifyAuth should fail with invalid challenge ID")
+	require.Contains(t, err.Error(), "invalid challenge ID", "Error should indicate invalid challenge ID")
+
+	// VerifyAuth with wrong TOTP code (challenge exists but code is wrong).
+	_, err = auth.VerifyAuth(ctx, challenge.ID.String(), "000000")
+	require.Error(t, err, "VerifyAuth should fail with wrong TOTP code")
+}
+
+// TestTOTPAuthenticator_VerifyAuthChallengeNotFound tests VerifyAuth with non-existent challenge.
+func TestTOTPAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+
+	// Generate a valid UUID that doesn't exist as a challenge.
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	_, err = auth.VerifyAuth(ctx, nonExistentID.String(), "123456")
+	require.Error(t, err, "VerifyAuth should fail with non-existent challenge")
+	require.Contains(t, err.Error(), "challenge not found", "Error should indicate challenge not found")
+}
+
+// TestHOTPAuthenticator_VerifyAuth tests HOTP VerifyAuth.
+func TestHOTPAuthenticator_VerifyAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	userID := "test-user-hotp-verify"
+
+	// Initiate auth first.
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+
+	// VerifyAuth with invalid challenge ID.
+	_, err = auth.VerifyAuth(ctx, "invalid-uuid", "123456")
+	require.Error(t, err, "VerifyAuth should fail with invalid challenge ID")
+	require.Contains(t, err.Error(), "invalid challenge ID", "Error should indicate invalid challenge ID")
+}
+
+// TestHOTPAuthenticator_VerifyAuthChallengeNotFound tests VerifyAuth with non-existent challenge.
+func TestHOTPAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	// Generate a valid UUID that doesn't exist as a challenge.
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	_, err = auth.VerifyAuth(ctx, nonExistentID.String(), "123456")
+	require.Error(t, err, "VerifyAuth should fail with non-existent challenge")
+	require.Contains(t, err.Error(), "challenge not found", "Error should indicate challenge not found")
 }

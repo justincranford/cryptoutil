@@ -32,6 +32,7 @@ func (m *mockMagicLinkUserRepo) GetBySub(_ context.Context, sub string) (*crypto
 	if !ok {
 		return nil, fmt.Errorf("user not found: %s", sub)
 	}
+
 	return user, nil
 }
 
@@ -287,4 +288,65 @@ func TestMagicLinkAuthenticator_InitiateAuthNoEmail(t *testing.T) {
 	require.Error(t, err, "InitiateAuth should fail without email")
 	require.Nil(t, challenge, "Challenge should be nil on error")
 	require.Contains(t, err.Error(), "no email", "Error should indicate missing email")
+}
+
+// TestMagicLinkAuthenticator_VerifyAuth tests VerifyAuth.
+func TestMagicLinkAuthenticator_VerifyAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	// Add user with email.
+	user := &cryptoutilIdentityDomain.User{
+		ID:    userID,
+		Sub:   userID.String(),
+		Email: "test@example.com",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	// Initiate auth first.
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+
+	// VerifyAuth with invalid challenge ID.
+	_, err = auth.VerifyAuth(ctx, "invalid-uuid", "some-token")
+	require.Error(t, err, "VerifyAuth should fail with invalid challenge ID")
+	require.Contains(t, err.Error(), "invalid challenge ID", "Error should indicate invalid challenge ID")
+
+	// VerifyAuth with wrong token (challenge exists but token is wrong).
+	_, err = auth.VerifyAuth(ctx, challenge.ID.String(), "wrong-token")
+	require.Error(t, err, "VerifyAuth should fail with wrong token")
+}
+
+// TestMagicLinkAuthenticator_VerifyAuthChallengeNotFound tests VerifyAuth with non-existent challenge.
+func TestMagicLinkAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	// Generate a valid UUID that doesn't exist as a challenge.
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	_, err = auth.VerifyAuth(ctx, nonExistentID.String(), "some-token")
+	require.Error(t, err, "VerifyAuth should fail with non-existent challenge")
+	require.Contains(t, err.Error(), "challenge not found", "Error should indicate challenge not found")
 }
