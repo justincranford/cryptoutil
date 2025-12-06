@@ -5,10 +5,14 @@
 package userauth_test
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	"cryptoutil/internal/identity/idp/userauth"
 )
 
@@ -112,4 +116,172 @@ func TestSMSOTPAuthenticator_Method(t *testing.T) {
 
 	auth := userauth.NewSMSOTPAuthenticator(nil, nil, nil, nil, nil)
 	require.Equal(t, "sms_otp", auth.Method(), "Method should return 'sms_otp'")
+}
+
+// mockSMSUserRepo implements UserRepository for SMS OTP testing.
+type mockSMSUserRepo struct {
+	users map[string]*cryptoutilIdentityDomain.User
+}
+
+func newMockSMSUserRepo() *mockSMSUserRepo {
+	return &mockSMSUserRepo{
+		users: make(map[string]*cryptoutilIdentityDomain.User),
+	}
+}
+
+func (m *mockSMSUserRepo) GetBySub(_ context.Context, sub string) (*cryptoutilIdentityDomain.User, error) {
+	user, ok := m.users[sub]
+	if !ok {
+		return nil, fmt.Errorf("user not found: %s", sub)
+	}
+
+	return user, nil
+}
+
+func (m *mockSMSUserRepo) Create(_ context.Context, _ *cryptoutilIdentityDomain.User) error {
+	return nil
+}
+
+func (m *mockSMSUserRepo) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockSMSUserRepo) GetByUsername(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockSMSUserRepo) GetByEmail(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockSMSUserRepo) Update(_ context.Context, _ *cryptoutilIdentityDomain.User) error {
+	return nil
+}
+
+func (m *mockSMSUserRepo) Delete(_ context.Context, _ googleUuid.UUID) error {
+	return nil
+}
+
+func (m *mockSMSUserRepo) List(_ context.Context, _, _ int) ([]*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockSMSUserRepo) Count(_ context.Context) (int64, error) {
+	return 0, nil
+}
+
+func (m *mockSMSUserRepo) AddUser(user *cryptoutilIdentityDomain.User) {
+	m.users[user.Sub] = user
+}
+
+// mockSMSDeliveryService implements DeliveryService for testing.
+type mockSMSDeliveryService struct {
+	sentMessages []string
+	shouldFail   bool
+}
+
+func newMockSMSDeliveryService() *mockSMSDeliveryService {
+	return &mockSMSDeliveryService{
+		sentMessages: make([]string, 0),
+	}
+}
+
+func (m *mockSMSDeliveryService) SendSMS(_ context.Context, _, message string) error {
+	if m.shouldFail {
+		return fmt.Errorf("failed to send SMS")
+	}
+
+	m.sentMessages = append(m.sentMessages, message)
+
+	return nil
+}
+
+func (m *mockSMSDeliveryService) SendEmail(_ context.Context, _, _, _ string) error {
+	return nil
+}
+
+// TestSMSOTPAuthenticator_InitiateAuth tests InitiateAuth.
+func TestSMSOTPAuthenticator_InitiateAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockSMSUserRepo()
+	delivery := newMockSMSDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	// Add user with phone number.
+	user := &cryptoutilIdentityDomain.User{
+		ID:          userID,
+		Sub:         userID.String(),
+		PhoneNumber: "+1234567890",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+	require.Equal(t, userID.String(), challenge.UserID, "Challenge UserID should match")
+	require.Equal(t, "sms_otp", challenge.Method, "Challenge Method should match")
+
+	// Verify SMS was sent.
+	require.Len(t, delivery.sentMessages, 1, "One SMS should have been sent")
+}
+
+// TestSMSOTPAuthenticator_InitiateAuthUserNotFound tests InitiateAuth with non-existent user.
+func TestSMSOTPAuthenticator_InitiateAuthUserNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockSMSUserRepo()
+	delivery := newMockSMSDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	challenge, err := auth.InitiateAuth(ctx, nonExistentID.String())
+	require.Error(t, err, "InitiateAuth should fail for non-existent user")
+	require.Nil(t, challenge, "Challenge should be nil on error")
+	require.Contains(t, err.Error(), "user not found", "Error should indicate user not found")
+}
+
+// TestSMSOTPAuthenticator_InitiateAuthNoPhoneNumber tests InitiateAuth without phone number.
+func TestSMSOTPAuthenticator_InitiateAuthNoPhoneNumber(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockSMSUserRepo()
+	delivery := newMockSMSDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	// Add user without phone number.
+	user := &cryptoutilIdentityDomain.User{
+		ID:          userID,
+		Sub:         userID.String(),
+		PhoneNumber: "",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.Error(t, err, "InitiateAuth should fail without phone number")
+	require.Nil(t, challenge, "Challenge should be nil on error")
+	require.Contains(t, err.Error(), "no phone number", "Error should indicate missing phone number")
 }
