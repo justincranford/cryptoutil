@@ -87,6 +87,10 @@ Multi-layer KMS cryptographic barrier architecture:
 - NEVER use magic values in test code - ALWAYS use random, runtime-generated UUIDv7, or magic values and constants in package `magic` for self-documenting code and code-navigation in IDEs
 - All port listeners MUST support dynamic port allocation for tests (port 0, extract actual assigned port); maximum use of test concurrency in unit, integration, and e2e tests serves to validate robustness of main code against mult-thread and multi-process bugs
 - Test file suffixes: `_test.go` (unit), `_bench_test.go` (bench), `_fuzz_test.go` (fuzz), `_integration_test.go` (integration)
+- Benchmark tests MANDATORY for all cryptographic operations and hot path handlers
+- Fuzz tests MANDATORY for all input parsers and validators (minimum 15s fuzz time)
+- Property-based tests RECOMMENDED using gopter for invariant validation, round-trip encoding/decoding, cryptographic properties
+- Mutation tests MANDATORY for quality assurance: gremlins with ≥80% mutation score per package
 
 ## V. Code Quality Excellence
 
@@ -94,9 +98,10 @@ Multi-layer KMS cryptographic barrier architecture:
 - NEVER use `//nolint:` directives except for documented linter bugs
 - ALWAYS use UTF-8 without BOM for ALL text file encoding; never use UTF-16, UTF-32, CP-1252, ASCII
 - File size limits: 300 (soft), 400 (medium), 500 (hard → refactor required); ideal for user development and reviews, and LLM agent development and reviews
-- 90%+ production coverage, 95%+ infrastructure (cicd), 100% utility code
+- 95%+ production coverage, 100% infrastructure (cicd), 100% utility code
+- Mutation testing score ≥80% per package (gremlins or equivalent)
 - ALWAYS fix all pre-commit hook errors; see ./.pre-commit-config.yaml
-- ALWAYS fix all pre-push hook errors; see ./.pre-commit-config.yaml
+- ALWAYS fix all pre-commit hook errors; see ./.pre-commit-config.yaml
 - All code builds  `go build ./...`, `mvn compile`
 - All code changes pass `golangci-lint run --fix`
 - All tests pass (`go test ./... -cover`)
@@ -108,10 +113,10 @@ Multi-layer KMS cryptographic barrier architecture:
 
 No task is complete without objective, verifiable evidence:
 
-- Code evidence: `go build ./...` clean, `golangci-lint run` clean, coverage ≥90%
-- Test evidence: All tests passing, no skips without tracking
+- Code evidence: `go build ./...` clean, `golangci-lint run` clean, coverage ≥95% (production), ≥100% (infrastructure/utility)
+- Test evidence: All tests passing, no skips without tracking, mutation score ≥80%
 - Integration evidence: Core E2E demos work (`go run ./cmd/demo all` 7/7 steps)
-- Documentation evidence: PROJECT-STATUS.md updated
+- Documentation evidence: PROGRESS.md updated (for spec kit iterations)
 
 Quality gates are MANDATORY - task NOT complete until all checks pass.
 
@@ -146,8 +151,8 @@ Every iteration MUST follow this sequence:
 Before running `/speckit.implement`:
 
 - [ ] All `[NEEDS CLARIFICATION]` markers resolved in spec.md
-- [ ] `/speckit.clarify` executed if spec was created/modified
-- [ ] `/speckit.analyze` executed after `/speckit.tasks`
+- [ ] `/speckit.clarify` executed if spec was created/modified (creates CLARIFICATIONS.md documenting all ambiguity resolutions)
+- [ ] `/speckit.analyze` executed after `/speckit.tasks` (creates ANALYSIS.md with requirement-to-task coverage matrix)
 - [ ] All requirements have corresponding tasks
 - [ ] No orphan tasks without requirement traceability
 
@@ -158,8 +163,9 @@ Before marking iteration complete:
 - [ ] `go build ./...` produces no errors
 - [ ] `go test ./...` passes with 0 failures (not just "pass individually")
 - [ ] `golangci-lint run` passes with no violations
-- [ ] `/speckit.checklist` executed and all items verified
-- [ ] Coverage targets maintained (90% production, 95% infrastructure)
+- [ ] `/speckit.checklist` executed and all items verified (creates CHECKLIST-ITERATION-NNN.md)
+- [ ] Coverage targets maintained (95% production, 100% infrastructure/utility)
+- [ ] Mutation score ≥80% per package (gremlins baseline documented)
 - [ ] All spec.md status markers accurate and up-to-date
 - [ ] No deferred items without documented justification
 
@@ -197,8 +203,71 @@ When a gate fails:
 
 ### Documentation Standards
 
-- PROJECT-STATUS.md is the ONLY authoritative status source for speckit
+- PROGRESS.md (in specs/NNN-cryptoutil/) is the authoritative status source for spec kit iterations
 - Keep docs in 2 main files: README.md (main), docs/README.md (deep dive)
 - NEVER create separate documentation files for scripts or tools
 
-**Version**: 1.1.0 | **Ratified**: 2025-12-01 | **Last Amended**: 2025-12-04
+### Status Files Ownership
+
+| File | Purpose | Owner | Update Frequency |
+|------|---------|-------|------------------|
+| `specs/NNN-cryptoutil/PROGRESS.md` | Spec Kit iteration tracking | /speckit.* commands | Every workflow step |
+| `specs/NNN-cryptoutil/spec.md` | Product requirements | /speckit.specify | When requirements change |
+| `specs/NNN-cryptoutil/tasks.md` | Task breakdown | /speckit.tasks | When plan changes |
+| `specs/NNN-cryptoutil/CHECKLIST-ITERATION-NNN.md` | Gate validation | /speckit.checklist | End of iteration |
+| `specs/NNN-cryptoutil/CLARIFICATIONS.md` | Ambiguity resolution | /speckit.clarify | During clarification phase |
+| `specs/NNN-cryptoutil/ANALYSIS.md` | Coverage analysis | /speckit.analyze | After task generation |
+| `specs/NNN-cryptoutil/EXECUTIVE-SUMMARY.md` | Stakeholder overview | Manual | End of iteration |
+
+---
+
+## XI. CLI Interface Requirement
+
+All products (P1 JOSE, P2 Identity, P3 KMS, P4 CA) MUST expose command-line interface (CLI) in addition to REST API:
+
+**Rationale**: CLI enables:
+
+- Automation and scripting
+- CI/CD integration without HTTP overhead
+- Local testing and debugging
+- Administrative operations
+
+**Implementation**:
+
+- CLI in `cmd/product-server/main.go` using cobra or similar
+- Subcommands for common operations
+- Support `--help` for all commands
+- Configuration via flags, env vars, or YAML (consistent with REST API)
+
+**Priority**: MEDIUM (not required for MVP, but recommended for production)
+
+---
+
+## XII. Amendment Process
+
+### Amendment Authority
+
+This constitution may be amended only by:
+
+1. **Unanimous consent** of all maintainers for Section I-V (core principles)
+2. **Majority consent** for Section VI-XII (process and governance)
+3. **Automatic updates** for version references (Go, dependencies) following documented update process
+
+### Amendment Procedure
+
+1. **Proposal**: Submit amendment as PR with rationale
+2. **Review**: Minimum 48-hour review period
+3. **Discussion**: Address concerns in PR comments
+4. **Approval**: Required consent threshold met
+5. **Documentation**: Update version and last amended date
+6. **Communication**: Announce to all stakeholders
+
+### Amendment History
+
+| Version | Date | Sections Changed | Rationale |
+|---------|------|------------------|-----------|
+| 1.0.0 | 2025-12-01 | Initial | Constitution creation |
+| 1.1.0 | 2025-12-04 | VI | Added Spec Kit workflow gates |
+| 2.0.0 | 2025-12-06 | IV, V, VI, X, XI, XII | Coverage targets 95/100/100, mutation testing ≥80%, property-based tests, CLI requirement, amendment process, status file clarification |
+
+**Version**: 2.0.0 | **Ratified**: 2025-12-01 | **Last Amended**: 2025-12-06
