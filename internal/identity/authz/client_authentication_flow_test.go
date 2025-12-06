@@ -72,12 +72,13 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+basicAuth)
 
-	resp, err := app.Test(req)
+	// Use 30 second timeout for parallel test execution under load.
+	resp, err := app.Test(req, cryptoutilIdentityMagic.FiberTestTimeoutMs)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
-	// Log response details if not 200
+	// Log response details if not 200.
 	if resp.StatusCode != fiber.StatusOK {
 		bodyBytes := make([]byte, 1024)
 		n, _ := resp.Body.Read(bodyBytes) //nolint:errcheck // Test logging
@@ -122,7 +123,8 @@ func TestAuthenticateClient_PostAuthSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	// Use 30 second timeout for parallel test execution under load.
+	resp, err := app.Test(req, cryptoutilIdentityMagic.FiberTestTimeoutMs)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -158,7 +160,8 @@ func TestAuthenticateClient_NoCredentialsFailure(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	// Use 30 second timeout for parallel test execution under load.
+	resp, err := app.Test(req, cryptoutilIdentityMagic.FiberTestTimeoutMs)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

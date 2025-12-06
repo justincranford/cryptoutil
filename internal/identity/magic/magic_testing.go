@@ -22,6 +22,13 @@ const (
 	DatabasePropagationDelay = 50 * time.Millisecond
 )
 
+// Fiber test timeout constants.
+const (
+	// FiberTestTimeoutMs is the timeout in milliseconds for Fiber app.Test() calls in parallel tests.
+	// Increased from default 1000ms (1s) to handle concurrent test execution under load.
+	FiberTestTimeoutMs = 30000 // 30 seconds in milliseconds
+)
+
 // Base64 encoding constants.
 const (
 	// Base64ExpansionNumerator is the numerator for base64 expansion ratio (3 bytes → 4 chars).
