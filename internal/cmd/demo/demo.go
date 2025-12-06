@@ -130,6 +130,10 @@ func Execute() {
 		exitCode = runKMSDemo(ctx, config)
 	case "identity":
 		exitCode = runIdentityDemo(ctx, config)
+	case "jose":
+		exitCode = runJOSEDemo(ctx, config)
+	case "ca":
+		exitCode = runCADemo(ctx, config)
 	case "all":
 		exitCode = runIntegrationDemo(ctx, config)
 	case "help", "-h", "--help":
@@ -205,6 +209,8 @@ func printUsage() {
 	fmt.Println("Commands:")
 	fmt.Println("  kms        Run KMS demo (key pools, encryption, signing)")
 	fmt.Println("  identity   Run Identity demo (OAuth 2.1, tokens)")
+	fmt.Println("  jose       Run JOSE Authority demo (JWK, JWS, JWE, JWT)")
+	fmt.Println("  ca         Run CA demo (certificates, revocation)")
 	fmt.Println("  all        Run full integration demo (KMS + Identity)")
 	fmt.Println("  help       Show this help message")
 	fmt.Println("  version    Show version information")
@@ -222,6 +228,8 @@ func printUsage() {
 	fmt.Println("Examples:")
 	fmt.Println("  demo kms                          # Run KMS demo with default settings")
 	fmt.Println("  demo identity --output json       # Run Identity demo with JSON output")
+	fmt.Println("  demo jose --verbose               # Run JOSE Authority demo with verbose logging")
+	fmt.Println("  demo ca --fail-fast               # Run CA demo, stop on first error")
 	fmt.Println("  demo all --verbose --no-color     # Run full demo with verbose logging")
 	fmt.Println()
 }
