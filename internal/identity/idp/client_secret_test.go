@@ -57,6 +57,7 @@ func TestGenerateClientSecretUniqueness(t *testing.T) {
 
 	// Generate multiple secrets and verify they're all unique.
 	secrets := make(map[string]bool)
+
 	for i := 0; i < 10; i++ {
 		plaintext, hashed, err := GenerateClientSecret()
 		testify.NoError(t, err)

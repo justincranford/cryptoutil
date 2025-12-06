@@ -58,6 +58,7 @@ func TestHTTPResponse_NoFollowRedirects(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			redirects++
+
 			http.Redirect(w, r, "/redirected", http.StatusFound)
 
 			return
