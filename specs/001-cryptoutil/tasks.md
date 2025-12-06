@@ -174,15 +174,15 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.1.11 | JWE decrypt endpoint (POST `/jose/v1/jwe/decrypt`) | CRITICAL | 5 | ✅ |
 | I2.1.12 | JWT create endpoint (POST `/jose/v1/jwt/sign`) | HIGH | 5 | ✅ |
 | I2.1.13 | JWT verify endpoint (POST `/jose/v1/jwt/verify`) | HIGH | 5 | ✅ |
-| I2.1.14 | OpenAPI spec for JOSE Authority (`api/jose/openapi_spec.yaml`) | HIGH | 5 | ❌ |
+| I2.1.14 | OpenAPI spec for JOSE Authority (`api/jose/openapi_spec.yaml`) | HIGH | 5 | ✅ |
 | I2.1.15 | Generate server/client code with oapi-codegen | HIGH | 2 | ❌ |
 | I2.1.16 | Add API key authentication middleware | HIGH | 5 | ❌ |
 | I2.1.17 | Docker Compose integration | MEDIUM | 2 | ❌ |
 | I2.1.18 | JOSE Authority E2E tests | HIGH | 8 | ⚠️ |
 
 **Total Points**: 69
-**Completed Points**: 47 (68%)
-**Evidence**: `cmd/jose-server/main.go`, `internal/jose/server/`, `internal/jose/server/server_test.go` passes
+**Completed Points**: 52 (75%)
+**Evidence**: `cmd/jose-server/main.go`, `internal/jose/server/`, `api/jose/openapi_spec.yaml`, `internal/jose/server/server_test.go` passes
 
 ### 2.2 CA Server REST API
 
@@ -221,13 +221,14 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | Task | Description | Priority | Points | Status |
 |------|-------------|----------|--------|--------|
 | I2.3.1 | Update `deployments/compose/compose.yml` for new services | HIGH | 5 | ❌ |
-| I2.3.2 | Add JOSE Authority config (`configs/jose/jose-server.yml`) | HIGH | 2 | ❌ |
-| I2.3.3 | Add CA Server config (`configs/ca/ca-server.yml`) | HIGH | 2 | ❌ |
+| I2.3.2 | Add JOSE Authority config (`configs/jose/jose-server.yml`) | HIGH | 2 | ✅ |
+| I2.3.3 | Add CA Server config (`configs/ca/ca-server.yml`) | HIGH | 2 | ✅ |
 | I2.3.4 | Demo script: `go run ./cmd/demo jose` | HIGH | 5 | ❌ |
 | I2.3.5 | Demo script: `go run ./cmd/demo ca` | HIGH | 5 | ❌ |
 | I2.3.6 | Update README with new server documentation | MEDIUM | 2 | ❌ |
 
 **Total Points**: 21
+**Completed Points**: 4 (19%)
 **Evidence Required**: Docker Compose starts all services, demos complete successfully
 
 ---
@@ -238,8 +239,8 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 18
 - **Total Points**: 69
-- **Completed**: 13 (72%)
-- **Completed Points**: 47
+- **Completed**: 14 (78%)
+- **Completed Points**: 52
 - **Critical Tasks**: 5 (all complete ✅)
 
 ### CA Server (2.2)
@@ -247,7 +248,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 - **Total Tasks**: 23
 - **Total Points**: 105
 - **Completed**: 14 (61%)
-- **Partial**: 2 (9%)
+- **Partial**: 7 (30%) - EST/TSA handlers scaffolded, pending mTLS
 - **Completed Points**: 70
 - **Critical Tasks**: 3 (2 complete, 1 remaining)
 
@@ -255,14 +256,15 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 6
 - **Total Points**: 21
-- **Completed**: 0 (0%)
+- **Completed**: 2 (33%)
+- **Completed Points**: 4
 - **Critical Tasks**: 0
 
 ### Overall Iteration 2
 
 - **Total Tasks**: 47
 - **Total Points**: 195
-- **Completed Points**: 117 (60%)
+- **Completed Points**: 126 (65%)
 - **Estimated Remaining Duration**: 1-2 weeks
 
 ---
