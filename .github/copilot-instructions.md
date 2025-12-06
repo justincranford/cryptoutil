@@ -22,7 +22,8 @@
 - NEVER use `//nolint:` directives except for documented linter bugs
 - NEVER downplay linting errors in tests/demos - fix them all
 - wsl, errcheck, godot, etc apply equally to ALL code
-- Coverage targets: 90%+ production, 95%+ infrastructure (cicd), 100% utility code
+- Coverage targets: 95%+ production, 100%+ infrastructure (cicd), 100% utility code
+- Mutation testing: ≥80% gremlins score per package (mandatory)
 
 ## Continuous Work Directive
 
@@ -77,3 +78,4 @@ File Size Limits
 | 03-04.dast | DAST scanning |
 | 04-01.sqlite-gorm | SQLite GORM config |
 | 05-01.evidence-based | Evidence-based task completion |
+| 06-01.speckit | Spec Kit workflow and spec-driven development |
