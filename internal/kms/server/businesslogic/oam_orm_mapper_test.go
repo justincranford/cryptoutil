@@ -490,14 +490,19 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 	algorithm := cryptoutilOpenapiModel.A128CBCHS256Dir
 	name := "test-key"
 	versioningAllowed := true
+	negativePage := cryptoutilOpenapiModel.PageNumber(-1)
+	zeroPageSize := cryptoutilOpenapiModel.PageSize(0)
+	emptyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm("")
+	emptyString := ""
 
 	tests := []struct {
-		name        string
-		params      *cryptoutilOpenapiModel.ElasticKeysQueryParams
-		expectError bool
-		expectNil   bool
+		name          string
+		params        *cryptoutilOpenapiModel.ElasticKeysQueryParams
+		expectError   bool
+		expectNil     bool
+		errorContains string
 	}{
-		{"nil params", nil, false, false},
+		{"nil params", nil, false, false, ""},
 		{
 			"valid params",
 			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
@@ -508,6 +513,43 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 			},
 			false,
 			false,
+			"",
+		},
+		{
+			"invalid page number",
+			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
+				Page: &negativePage,
+			},
+			true,
+			false,
+			"Page Number",
+		},
+		{
+			"invalid page size",
+			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
+				Size: &zeroPageSize,
+			},
+			true,
+			false,
+			"Page Size",
+		},
+		{
+			"invalid algorithm",
+			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
+				Algorithm: &[]cryptoutilOpenapiModel.ElasticKeyAlgorithm{emptyAlgorithm},
+			},
+			true,
+			false,
+			"Elastic Key Algorithm",
+		},
+		{
+			"invalid name",
+			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
+				Name: &[]string{emptyString},
+			},
+			true,
+			false,
+			"Elastic Key Name",
 		},
 	}
 
@@ -517,6 +559,7 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 
 			if tc.expectError {
 				testify.Error(t, err)
+				testify.Contains(t, err.Error(), tc.errorContains)
 			} else {
 				testify.NoError(t, err)
 
@@ -536,14 +579,19 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 	materialKeyID := googleUuid.New()
 	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	maxDate := time.Now().UTC()
+	futureDate := time.Now().UTC().Add(24 * time.Hour)
+	negativePage := cryptoutilOpenapiModel.PageNumber(-1)
+	zeroPageSize := cryptoutilOpenapiModel.PageSize(0)
+	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")
 
 	tests := []struct {
-		name        string
-		params      *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams
-		expectError bool
-		expectNil   bool
+		name          string
+		params        *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams
+		expectError   bool
+		expectNil     bool
+		errorContains string
 	}{
-		{"nil params", nil, false, false},
+		{"nil params", nil, false, false, ""},
 		{
 			"valid params",
 			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
@@ -553,6 +601,43 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 			},
 			false,
 			false,
+			"",
+		},
+		{
+			"invalid page number",
+			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
+				Page: &negativePage,
+			},
+			true,
+			false,
+			"Page Number",
+		},
+		{
+			"invalid page size",
+			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
+				Size: &zeroPageSize,
+			},
+			true,
+			false,
+			"Page Size",
+		},
+		{
+			"invalid date range",
+			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
+				MinGenerateDate: &futureDate,
+			},
+			true,
+			false,
+			"Generate Date range",
+		},
+		{
+			"invalid sort",
+			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
+				Sort: &[]cryptoutilOpenapiModel.MaterialKeySort{invalidSort},
+			},
+			true,
+			false,
+			"Key Sort",
 		},
 	}
 
@@ -562,6 +647,7 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 
 			if tc.expectError {
 				testify.Error(t, err)
+				testify.Contains(t, err.Error(), tc.errorContains)
 			} else {
 				testify.NoError(t, err)
 
@@ -582,14 +668,19 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 	materialKeyID := googleUuid.New()
 	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	maxDate := time.Now().UTC()
+	futureDate := time.Now().UTC().Add(24 * time.Hour)
+	negativePage := cryptoutilOpenapiModel.PageNumber(-1)
+	zeroPageSize := cryptoutilOpenapiModel.PageSize(0)
+	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")
 
 	tests := []struct {
-		name        string
-		params      *cryptoutilOpenapiModel.MaterialKeysQueryParams
-		expectError bool
-		expectNil   bool
+		name          string
+		params        *cryptoutilOpenapiModel.MaterialKeysQueryParams
+		expectError   bool
+		expectNil     bool
+		errorContains string
 	}{
-		{"nil params", nil, false, false},
+		{"nil params", nil, false, false, ""},
 		{
 			"valid params",
 			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
@@ -600,6 +691,43 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 			},
 			false,
 			false,
+			"",
+		},
+		{
+			"invalid page number",
+			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
+				Page: &negativePage,
+			},
+			true,
+			false,
+			"Page Number",
+		},
+		{
+			"invalid page size",
+			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
+				Size: &zeroPageSize,
+			},
+			true,
+			false,
+			"Page Size",
+		},
+		{
+			"invalid date range",
+			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
+				MinGenerateDate: &futureDate,
+			},
+			true,
+			false,
+			"Generate Date range",
+		},
+		{
+			"invalid sort",
+			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
+				Sort: &[]cryptoutilOpenapiModel.MaterialKeySort{invalidSort},
+			},
+			true,
+			false,
+			"Key Sort",
 		},
 	}
 
@@ -609,6 +737,7 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 
 			if tc.expectError {
 				testify.Error(t, err)
+				testify.Contains(t, err.Error(), tc.errorContains)
 			} else {
 				testify.NoError(t, err)
 
@@ -617,6 +746,262 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 				} else {
 					testify.NotNil(t, result)
 				}
+			}
+		})
+	}
+}
+
+func TestToOrmAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOamOrmMapper()
+
+	validAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+		cryptoutilOpenapiModel.A128CBCHS256Dir,
+		cryptoutilOpenapiModel.A256GCMDir,
+	}
+	emptyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm("")
+	algorithmsWithEmpty := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+		cryptoutilOpenapiModel.A128CBCHS256Dir,
+		emptyAlgorithm,
+	}
+
+	tests := []struct {
+		name          string
+		input         *[]cryptoutilOpenapiModel.ElasticKeyAlgorithm
+		expectError   bool
+		expectNil     bool
+		errorContains string
+	}{
+		{"nil input", nil, false, true, ""},
+		{"valid algorithms", &validAlgorithms, false, false, ""},
+		{"algorithms with empty", &algorithmsWithEmpty, true, false, "algorithm cannot be empty"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := mapper.toOrmAlgorithms(tc.input)
+
+			if tc.expectError {
+				testify.Error(t, err)
+				testify.Contains(t, err.Error(), tc.errorContains)
+			} else {
+				testify.NoError(t, err)
+
+				if tc.expectNil {
+					testify.Nil(t, result)
+				} else {
+					testify.NotNil(t, result)
+					testify.Len(t, result, len(*tc.input))
+				}
+			}
+		})
+	}
+}
+
+func TestToOrmElasticKeySorts(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOamOrmMapper()
+
+	validSorts := []cryptoutilOpenapiModel.ElasticKeySort{
+		cryptoutilOpenapiModel.ElasticKeySortElasticKeyIDASC,
+		cryptoutilOpenapiModel.ElasticKeySortNameASC,
+	}
+	emptySort := cryptoutilOpenapiModel.ElasticKeySort("")
+	sortsWithEmpty := []cryptoutilOpenapiModel.ElasticKeySort{
+		cryptoutilOpenapiModel.ElasticKeySortNameASC,
+		emptySort,
+	}
+
+	tests := []struct {
+		name          string
+		input         *[]cryptoutilOpenapiModel.ElasticKeySort
+		expectError   bool
+		expectNil     bool
+		errorContains string
+	}{
+		{"nil input", nil, false, true, ""},
+		{"valid sorts", &validSorts, false, false, ""},
+		{"sorts with empty", &sortsWithEmpty, true, false, "elastic key sort cannot be empty"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := mapper.toOrmElasticKeySorts(tc.input)
+
+			if tc.expectError {
+				testify.Error(t, err)
+				testify.Contains(t, err.Error(), tc.errorContains)
+			} else {
+				testify.NoError(t, err)
+
+				if tc.expectNil {
+					testify.Nil(t, result)
+				} else {
+					testify.NotNil(t, result)
+					testify.Len(t, result, len(*tc.input))
+				}
+			}
+		})
+	}
+}
+
+func TestToOrmMaterialKeySorts(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOamOrmMapper()
+
+	validSorts := []cryptoutilOpenapiModel.MaterialKeySort{
+		cryptoutilOpenapiModel.MaterialKeySort("elastic_key_id"),
+		cryptoutilOpenapiModel.MaterialKeySort("elastic_key_id:ASC"),
+		cryptoutilOpenapiModel.MaterialKeySort("elastic_key_id:DESC"),
+		cryptoutilOpenapiModel.MaterialKeySort("material_key_id"),
+		cryptoutilOpenapiModel.MaterialKeySort("generate_date"),
+		cryptoutilOpenapiModel.MaterialKeySort("import_date"),
+		cryptoutilOpenapiModel.MaterialKeySort("expiration_date"),
+		cryptoutilOpenapiModel.MaterialKeySort("revocation_date"),
+	}
+	emptySort := cryptoutilOpenapiModel.MaterialKeySort("")
+	sortsWithEmpty := []cryptoutilOpenapiModel.MaterialKeySort{
+		cryptoutilOpenapiModel.MaterialKeySort("elastic_key_id"),
+		emptySort,
+	}
+	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid_field")
+	sortsWithInvalid := []cryptoutilOpenapiModel.MaterialKeySort{
+		invalidSort,
+	}
+
+	tests := []struct {
+		name          string
+		input         *[]cryptoutilOpenapiModel.MaterialKeySort
+		expectError   bool
+		expectNil     bool
+		errorContains string
+	}{
+		{"nil input", nil, false, true, ""},
+		{"valid sorts", &validSorts, false, false, ""},
+		{"sorts with empty", &sortsWithEmpty, true, false, "material key sort cannot be empty"},
+		{"sorts with invalid", &sortsWithInvalid, true, false, "invalid material key sort value"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := mapper.toOrmMaterialKeySorts(tc.input)
+
+			if tc.expectError {
+				testify.Error(t, err)
+				testify.Contains(t, err.Error(), tc.errorContains)
+			} else {
+				testify.NoError(t, err)
+
+				if tc.expectNil {
+					testify.Nil(t, result)
+				} else {
+					testify.NotNil(t, result)
+					testify.Len(t, result, len(*tc.input))
+				}
+			}
+		})
+	}
+}
+
+func TestToElasticKeyStatusFromImportAllowed(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		importAllowed  bool
+		expectedStatus cryptoutilOpenapiModel.ElasticKeyStatus
+	}{
+		{"import allowed returns pending import", true, cryptoutilOpenapiModel.PendingImport},
+		{"import not allowed returns pending generate", false, cryptoutilOpenapiModel.PendingGenerate},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := toElasticKeyStatusFromImportAllowed(tc.importAllowed)
+			testify.Equal(t, tc.expectedStatus, result)
+		})
+	}
+}
+
+func TestToOrmAddElasticKeyDefaults(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOamOrmMapper()
+	elasticKeyID := googleUuid.New()
+
+	// Test with minimal input - all optional fields nil.
+	create := &cryptoutilOpenapiModel.ElasticKeyCreate{
+		Name:        "test-key",
+		Description: "test description",
+	}
+
+	result := mapper.toOrmAddElasticKey(&elasticKeyID, create)
+
+	// Verify defaults are applied.
+	testify.Equal(t, elasticKeyID, result.ElasticKeyID)
+	testify.Equal(t, "test-key", result.ElasticKeyName)
+	testify.Equal(t, cryptoutilOpenapiModel.Internal, result.ElasticKeyProvider)
+	testify.Equal(t, cryptoutilOpenapiModel.A256GCMA256KW, result.ElasticKeyAlgorithm)
+	testify.True(t, result.ElasticKeyVersioningAllowed)
+	testify.False(t, result.ElasticKeyImportAllowed)
+	testify.Equal(t, cryptoutilOpenapiModel.PendingGenerate, result.ElasticKeyStatus)
+}
+
+func TestToOrmAddElasticKeyImportAllowed(t *testing.T) {
+	t.Parallel()
+
+	mapper := NewOamOrmMapper()
+	elasticKeyID := googleUuid.New()
+
+	// Test with import allowed = true.
+	importAllowed := true
+	create := &cryptoutilOpenapiModel.ElasticKeyCreate{
+		Name:          "test-key",
+		Description:   "test description",
+		ImportAllowed: &importAllowed,
+	}
+
+	result := mapper.toOrmAddElasticKey(&elasticKeyID, create)
+
+	testify.True(t, result.ElasticKeyImportAllowed)
+	testify.Equal(t, cryptoutilOpenapiModel.PendingImport, result.ElasticKeyStatus)
+}
+
+func TestToStrings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		items     *[]string
+		expectNil bool
+	}{
+		{"nil input", nil, true},
+		{"empty slice", &[]string{}, true},
+		{"valid strings", &[]string{"a", "b", "c"}, false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := toStrings(tc.items, func(s string) string { return s })
+
+			if tc.expectNil {
+				testify.Nil(t, result)
+			} else {
+				testify.NotNil(t, result)
+				testify.Len(t, result, len(*tc.items))
 			}
 		})
 	}

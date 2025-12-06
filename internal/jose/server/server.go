@@ -20,14 +20,14 @@ import (
 
 // Server represents the JOSE Authority Server.
 type Server struct {
-	settings          *cryptoutilConfig.Settings
-	telemetryService  *cryptoutilTelemetry.TelemetryService
-	jwkGenService     *cryptoutilJose.JWKGenService
-	keyStore          *KeyStore
-	fiberApp          *fiber.App
-	listener          net.Listener
-	actualPort        int // Actual port after dynamic allocation.
-	apiKeyMiddleware  *cryptoutilJoseMiddleware.APIKeyMiddleware
+	settings         *cryptoutilConfig.Settings
+	telemetryService *cryptoutilTelemetry.TelemetryService
+	jwkGenService    *cryptoutilJose.JWKGenService
+	keyStore         *KeyStore
+	fiberApp         *fiber.App
+	listener         net.Listener
+	actualPort       int // Actual port after dynamic allocation.
+	apiKeyMiddleware *cryptoutilJoseMiddleware.APIKeyMiddleware
 }
 
 // New creates a new JOSE Authority Server instance using context.Background().
