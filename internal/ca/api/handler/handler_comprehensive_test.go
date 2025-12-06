@@ -11,6 +11,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/pem"
 	"io"
 	"math/big"
@@ -1965,4 +1966,158 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		err = resp.Body.Close()
 		require.NoError(t, err)
 	})
+}
+
+func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	profiles := map[string]*ProfileConfig{
+		"tls-server": {
+			ID:          "tls-server",
+			Name:        "TLS Server",
+			Description: "TLS Server Certificate Profile",
+			Category:    "tls",
+		},
+	}
+
+	handler := &Handler{
+		storage:           mockStorage,
+		issuer:            testSetup.Issuer,
+		profiles:          profiles,
+		enrollmentTracker: newEnrollmentTracker(100),
+	}
+
+	app.Post("/est/simpleenroll", func(c *fiber.Ctx) error {
+		return handler.EstSimpleEnroll(c)
+	})
+
+	// Generate a test CSR.
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	csrTemplate := &x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Test Org"},
+		},
+		DNSNames: []string{"test.example.com"},
+	}
+	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	require.NoError(t, err)
+
+	t.Run("SuccessfulEnrollmentWithDER", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrDER))
+		req.Header.Set("Content-Type", "application/pkcs10")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.Contains(t, string(body), "-----BEGIN CERTIFICATE-----")
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("SuccessfulEnrollmentWithBase64", func(t *testing.T) {
+		t.Parallel()
+
+		csrBase64 := base64.StdEncoding.EncodeToString(csrDER)
+		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewBufferString(csrBase64))
+		req.Header.Set("Content-Type", "application/pkcs10")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.Contains(t, string(body), "-----BEGIN CERTIFICATE-----")
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("SuccessfulEnrollmentWithPEM", func(t *testing.T) {
+		t.Parallel()
+
+		csrPEM := pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE REQUEST",
+			Bytes: csrDER,
+		})
+		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrPEM))
+		req.Header.Set("Content-Type", "application/pkcs10")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.Contains(t, string(body), "-----BEGIN CERTIFICATE-----")
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("InvalidCSR", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewBufferString("invalid-csr-data"))
+		req.Header.Set("Content-Type", "application/pkcs10")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestEstSimpleEnrollNoProfile(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	// No profiles configured.
+	handler := &Handler{
+		storage:           mockStorage,
+		issuer:            testSetup.Issuer,
+		profiles:          map[string]*ProfileConfig{},
+		enrollmentTracker: newEnrollmentTracker(100),
+	}
+
+	app.Post("/est/simpleenroll", func(c *fiber.Ctx) error {
+		return handler.EstSimpleEnroll(c)
+	})
+
+	// Generate a test CSR.
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	csrTemplate := &x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName: "test.example.com",
+		},
+	}
+	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrDER))
+	req.Header.Set("Content-Type", "application/pkcs10")
+	resp, testErr := app.Test(req)
+	require.NoError(t, testErr)
+	require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
+
+	err = resp.Body.Close()
+	require.NoError(t, err)
 }
