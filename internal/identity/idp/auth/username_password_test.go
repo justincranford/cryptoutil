@@ -108,6 +108,77 @@ func TestUsernamePasswordProfile_RequiresMFA(t *testing.T) {
 	require.False(t, profile.RequiresMFA(), "RequiresMFA should return false")
 }
 
+// TestUsernamePasswordProfile_ValidateCredentials tests ValidateCredentials.
+func TestUsernamePasswordProfile_ValidateCredentials(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		credentials map[string]string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid credentials",
+			credentials: map[string]string{
+				"username": "testuser",
+				"password": "SecurePassword123!",
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing username",
+			credentials: map[string]string{
+				"password": "SecurePassword123!",
+			},
+			wantErr:     true,
+			errContains: "missing username",
+		},
+		{
+			name: "empty username",
+			credentials: map[string]string{
+				"username": "",
+				"password": "SecurePassword123!",
+			},
+			wantErr:     true,
+			errContains: "missing username",
+		},
+		{
+			name: "missing password",
+			credentials: map[string]string{
+				"username": "testuser",
+			},
+			wantErr:     true,
+			errContains: "missing password",
+		},
+		{
+			name: "empty password",
+			credentials: map[string]string{
+				"username": "testuser",
+				"password": "",
+			},
+			wantErr:     true,
+			errContains: "missing password",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			profile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(nil)
+
+			err := profile.ValidateCredentials(tc.credentials)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 // TestUsernamePasswordProfile_AuthenticateSuccess tests successful authentication.
 func TestUsernamePasswordProfile_AuthenticateSuccess(t *testing.T) {
 	t.Parallel()
@@ -420,7 +491,6 @@ func TestEmailPasswordProfile_ValidateCredentials(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -459,6 +529,110 @@ func TestTOTPProfile_RequiresMFA(t *testing.T) {
 	require.False(t, profile.RequiresMFA(), "RequiresMFA should return false (TOTP is the MFA)")
 }
 
+// TestTOTPProfile_Authenticate tests Authenticate.
+func TestTOTPProfile_Authenticate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		credentials map[string]string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "missing user_id",
+			credentials: map[string]string{
+				"otp_code": "123456",
+			},
+			wantErr:     true,
+			errContains: "missing user_id",
+		},
+		{
+			name: "missing otp_code",
+			credentials: map[string]string{
+				"user_id": "test-user-id",
+			},
+			wantErr:     true,
+			errContains: "missing otp_code",
+		},
+		{
+			name: "not implemented",
+			credentials: map[string]string{
+				"user_id":  "test-user-id",
+				"otp_code": "123456",
+			},
+			wantErr:     true,
+			errContains: "TOTP validation not implemented",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			profile := cryptoutilIdentityAuth.NewTOTPProfile(nil)
+
+			user, err := profile.Authenticate(context.Background(), tc.credentials)
+			require.Error(t, err)
+			require.Nil(t, user)
+			require.Contains(t, err.Error(), tc.errContains)
+		})
+	}
+}
+
+// TestTOTPProfile_ValidateCredentials tests ValidateCredentials.
+func TestTOTPProfile_ValidateCredentials(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		credentials map[string]string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid credentials",
+			credentials: map[string]string{
+				"user_id":  "test-user-id",
+				"otp_code": "123456",
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing user_id",
+			credentials: map[string]string{
+				"otp_code": "123456",
+			},
+			wantErr:     true,
+			errContains: "missing user_id",
+		},
+		{
+			name: "missing otp_code",
+			credentials: map[string]string{
+				"user_id": "test-user-id",
+			},
+			wantErr:     true,
+			errContains: "missing otp_code",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			profile := cryptoutilIdentityAuth.NewTOTPProfile(nil)
+
+			err := profile.ValidateCredentials(tc.credentials)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 // TestPasskeyProfile_NewProfile tests NewPasskeyProfile.
 func TestPasskeyProfile_NewProfile(t *testing.T) {
 	t.Parallel()
@@ -484,6 +658,110 @@ func TestPasskeyProfile_RequiresMFA(t *testing.T) {
 	userRepo := newMockUserRepo()
 	profile := cryptoutilIdentityAuth.NewPasskeyProfile(userRepo, nil)
 	require.False(t, profile.RequiresMFA(), "RequiresMFA should return false (Passkey replaces MFA)")
+}
+
+// TestPasskeyProfile_Authenticate tests Authenticate.
+func TestPasskeyProfile_Authenticate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		credentials map[string]string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "missing credential_id",
+			credentials: map[string]string{
+				"assertion": "test-assertion",
+			},
+			wantErr:     true,
+			errContains: "missing credential_id",
+		},
+		{
+			name: "missing assertion",
+			credentials: map[string]string{
+				"credential_id": "test-credential-id",
+			},
+			wantErr:     true,
+			errContains: "missing assertion",
+		},
+		{
+			name: "not implemented",
+			credentials: map[string]string{
+				"credential_id": "test-credential-id",
+				"assertion":     "test-assertion",
+			},
+			wantErr:     true,
+			errContains: "passkey validation not implemented",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			profile := cryptoutilIdentityAuth.NewPasskeyProfile(nil, nil)
+
+			user, err := profile.Authenticate(context.Background(), tc.credentials)
+			require.Error(t, err)
+			require.Nil(t, user)
+			require.Contains(t, err.Error(), tc.errContains)
+		})
+	}
+}
+
+// TestPasskeyProfile_ValidateCredentials tests ValidateCredentials.
+func TestPasskeyProfile_ValidateCredentials(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		credentials map[string]string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid credentials",
+			credentials: map[string]string{
+				"credential_id": "test-credential-id",
+				"assertion":     "test-assertion",
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing credential_id",
+			credentials: map[string]string{
+				"assertion": "test-assertion",
+			},
+			wantErr:     true,
+			errContains: "missing credential_id",
+		},
+		{
+			name: "missing assertion",
+			credentials: map[string]string{
+				"credential_id": "test-credential-id",
+			},
+			wantErr:     true,
+			errContains: "missing assertion",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			profile := cryptoutilIdentityAuth.NewPasskeyProfile(nil, nil)
+
+			err := profile.ValidateCredentials(tc.credentials)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 // TestProfileRegistry_NewRegistry tests NewProfileRegistry.
@@ -824,4 +1102,12 @@ func TestTOTPValidator_ValidateSMSOTP(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestMFAOrchestrator_NewMFAOrchestrator tests NewMFAOrchestrator.
+func TestMFAOrchestrator_NewMFAOrchestrator(t *testing.T) {
+	t.Parallel()
+
+	orchestrator := cryptoutilIdentityAuth.NewMFAOrchestrator(nil, nil, nil, nil, nil)
+	require.NotNil(t, orchestrator, "NewMFAOrchestrator should return non-nil orchestrator")
 }
