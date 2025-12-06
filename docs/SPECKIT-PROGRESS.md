@@ -101,10 +101,25 @@ Expose P1 JOSE and P4 CA internal capabilities as standalone REST APIs
 | 3 | `/speckit.plan` | ✅ Complete | plan.md has I3 phases |
 | 4 | `/speckit.tasks` | ✅ Complete | tasks.md updated with 31 I3 tasks |
 | 5 | `/speckit.analyze` | ✅ Complete | Coverage analysis done |
-| 6 | `/speckit.implement` | ⏳ In Progress | Implementing tasks |
+| 6 | `/speckit.implement` | ⏳ In Progress | **5/8 I3.1 tasks complete (63%)** |
 | 7 | `/speckit.checklist` | ❌ Not Started | After implementation |
 
 **Iteration 3 Progress**: 5/7 steps complete (71%)
+
+### I3.1 Implementation Status (Phase 3.1)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| I3.1.1 | EST cacerts endpoint | ✅ Returns PEM certificate |
+| I3.1.2 | EST simpleenroll endpoint | ✅ Accepts DER/Base64/PEM CSR |
+| I3.1.3 | EST simplereenroll endpoint | ✅ Delegates to simpleenroll |
+| I3.1.4 | EST serverkeygen endpoint | ⚠️ Needs CMS library |
+| I3.1.5 | TSA timestamp endpoint | ✅ Full ASN.1 parsing |
+| I3.1.6 | Enrollment status endpoint | ✅ In-memory tracking |
+| I3.1.7 | JOSE E2E tests | 🆕 Not started |
+| I3.1.8 | CA E2E tests | 🆕 Not started |
+
+**Evidence**: `internal/ca/api/handler/handler.go`, `internal/ca/service/timestamp/timestamp.go`
 
 ---
 

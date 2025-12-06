@@ -197,16 +197,16 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.2.7 | Issue certificate endpoint (POST `/api/v1/ca/enrollments`) | CRITICAL | 8 | ✅ |
 | I2.2.8 | Get certificate endpoint (GET `/api/v1/ca/certificates/{serialNumber}`) | HIGH | 5 | ✅ |
 | I2.2.9 | Revoke certificate endpoint (POST `/api/v1/ca/certificates/{serialNumber}/revoke`) | CRITICAL | 5 | ✅ |
-| I2.2.10 | Get enrollment status endpoint (GET `/api/v1/ca/enrollments/{id}`) | HIGH | 5 | ⚠️ |
+| I2.2.10 | Get enrollment status endpoint (GET `/api/v1/ca/enrollments/{id}`) | HIGH | 5 | ✅ |
 | I2.2.11 | OCSP responder endpoint (POST `/api/v1/ca/ocsp`) | HIGH | 8 | ✅ |
 | I2.2.12 | List profiles endpoint (GET `/api/v1/ca/profiles`) | MEDIUM | 2 | ✅ |
 | I2.2.13 | Get profile endpoint (GET `/api/v1/ca/profiles/{profileId}`) | MEDIUM | 2 | ✅ |
-| I2.2.14 | EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | ⚠️ |
-| I2.2.15 | EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | ⚠️ |
-| I2.2.16 | EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | ⚠️ |
+| I2.2.14 | EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | ✅ |
+| I2.2.15 | EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | ✅ |
+| I2.2.16 | EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | ✅ |
 | I2.2.17 | EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | ⚠️ |
 | I2.2.18 | TSA timestamp service (`internal/ca/service/timestamp/`) | MEDIUM | 5 | ✅ |
-| I2.2.19 | TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ⚠️ |
+| I2.2.19 | TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ✅ |
 | I2.2.20 | Add mTLS authentication middleware | CRITICAL | 8 | ✅ |
 | I2.2.21 | Docker Compose integration | MEDIUM | 2 | ✅ |
 | I2.2.22 | CA Server cmd entry point (`cmd/ca-server/main.go`) | HIGH | 2 | ✅ |
@@ -345,17 +345,17 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 | Task | Description | Priority | Points | Status |
 |------|-------------|----------|--------|--------|
-| I3.1.1 | Wire EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | 🆕 |
-| I3.1.2 | Wire EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | 🆕 |
-| I3.1.3 | Wire EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | 🆕 |
-| I3.1.4 | Wire EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | 🆕 |
-| I3.1.5 | Wire TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | 🆕 |
-| I3.1.6 | Implement enrollment status endpoint (GET `/api/v1/ca/enrollments/{id}`) | HIGH | 5 | 🆕 |
+| I3.1.1 | Wire EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | ✅ |
+| I3.1.2 | Wire EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | ✅ |
+| I3.1.3 | Wire EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | ✅ |
+| I3.1.4 | Wire EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | ⚠️ |
+| I3.1.5 | Wire TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ✅ |
+| I3.1.6 | Implement enrollment status endpoint (GET `/api/v1/ca/enrollments/{id}`) | HIGH | 5 | ✅ |
 | I3.1.7 | JOSE Authority E2E test suite | HIGH | 8 | 🆕 |
 | I3.1.8 | CA Server E2E test suite | HIGH | 8 | 🆕 |
 
 **Total Points**: 46
-**Completed Points**: 0 (0%)
+**Completed Points**: 25 (54%)
 
 ### 3.2 Coverage Improvement
 
@@ -412,7 +412,8 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 8
 - **Total Points**: 46
-- **Completed**: 0 (0%)
+- **Completed**: 5 (63%)
+- **Partial**: 1 (EST serverkeygen needs CMS library)
 
 ### Coverage Improvement (3.2)
 
@@ -436,7 +437,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 31
 - **Total Points**: 111
-- **Completed Points**: 0 (0%)
+- **Completed Points**: 25 (23%)
 - **Estimated Duration**: 1-2 weeks
 
 ---
