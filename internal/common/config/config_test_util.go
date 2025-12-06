@@ -350,6 +350,17 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *Settings 
 	return settings
 }
 
+// NewForCAServer creates settings suitable for the CA Server.
+func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *Settings {
+	settings := RequireNewForTest("ca-server")
+	settings.BindPublicAddress = bindAddr
+	settings.BindPublicPort = bindPort
+	settings.DevMode = devMode
+	settings.OTLPService = "ca-server"
+
+	return settings
+}
+
 // NewFromFile loads settings from a YAML configuration file.
 func NewFromFile(filePath string) (*Settings, error) {
 	return Parse([]string{"--config-file", filePath}, false)

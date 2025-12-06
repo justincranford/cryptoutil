@@ -111,6 +111,9 @@ const (
 	// DefaultPublicPortJOSEServer - Port for JOSE Authority Server.
 	DefaultPublicPortJOSEServer uint16 = 8090
 
+	// DefaultPublicPortCAServer - Port for CA Server.
+	DefaultPublicPortCAServer uint16 = 8091
+
 	// DefaultPublicPortPostgres - Default PostgreSQL port.
 	DefaultPublicPortPostgres uint16 = 5432
 )
