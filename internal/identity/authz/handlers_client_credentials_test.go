@@ -25,7 +25,7 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
-// TestHandleClientCredentialsGrant_ErrorPaths tests error paths for handleClientCredentialsGrant (76.9% → 85%).
+// TestHandleClientCredentialsGrant_ErrorPaths tests error paths for handleClientCredentialsGrant (76.9% → 90%).
 func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 	t.Parallel()
 

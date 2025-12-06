@@ -442,7 +442,7 @@ project-root/
 - Focus: Core infrastructure, domain models, data access
 - Tasks: 01, 02
 - Deliverables: Working database, domain models, repositories
-- Exit Criteria: All tests passing, 85%+ coverage
+- Exit Criteria: All tests passing, 90%+ coverage
 
 **Phase 2: Core Features** (Days X-Y)
 
@@ -463,7 +463,7 @@ project-root/
 - Focus: System integration, comprehensive testing
 - Tasks: Testing tasks
 - Deliverables: E2E test suites, integration verified
-- Exit Criteria: 90%+ coverage, load tests passing
+- Exit Criteria: 95%+ coverage, load tests passing
 
 **Phase 5: Documentation & Handoff** (Days W-V)
 
@@ -561,7 +561,7 @@ pre-commit run --all-files  # Before git push
 **ALWAYS enforce before marking task complete:**
 
 - ✅ All tests passing: `runTests` tool shows 0 failures
-- ✅ Coverage threshold: ≥90% for infrastructure, ≥85% for features, ≥100% for utilities
+- ✅ Coverage threshold: ≥95% for infrastructure, ≥90% for features, ≥100% for utilities
 - ✅ No linting errors: `golangci-lint run ./...` shows 0 issues
 - ✅ No TODO comments: Grep search shows 0 TODOs in modified files
 - ✅ Documentation updated: README, inline docs, API specs
@@ -642,7 +642,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Test happy paths (expected inputs/outputs)
 - [ ] Test sad paths (error conditions, edge cases)
 - [ ] Use `t.Parallel()` for all tests (validates concurrent safety)
-- [ ] Achieve target coverage (≥90% infrastructure, ≥85% features, ≥100% utilities)
+- [ ] Achieve target coverage (≥95% infrastructure, ≥90% features, ≥100% utilities)
 - [ ] Run tests: `runTests` tool (NEVER `go test` in terminal)
 
 #### Quality Assurance
@@ -683,7 +683,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Run 6-step validation: `go run ./cmd/cicd identity-progressive-validation`
 - [ ] Step 1 PASS: TODO scan (0 CRITICAL/HIGH TODOs)
 - [ ] Step 2 PASS: Tests (100% pass rate)
-- [ ] Step 3 PASS: Coverage (≥90% infrastructure, ≥85% features, ≥100% utilities)
+- [ ] Step 3 PASS: Coverage (≥95% infrastructure, ≥90% features, ≥100% utilities)
 - [ ] Step 4 PASS: Requirements (≥90% overall coverage)
 - [ ] Step 5 PASS: Integration (E2E smoke test)
 - [ ] Step 6 PASS: Documentation (PROJECT-STATUS.md <7 days old)
@@ -1129,7 +1129,7 @@ Based on industry best practices, here are additional corrective action strategi
 - [ ] Happy path coverage (expected inputs/outputs)
 - [ ] Sad path coverage (error conditions, edge cases)
 - [ ] All tests pass: `runTests` tool shows 0 failures
-- [ ] Coverage meets threshold (≥90% infra, ≥85% features, ≥100% utils)
+- [ ] Coverage meets threshold (≥95% infra, ≥90% features, ≥100% utils)
 - [ ] Tests use `t.Parallel()` (validates concurrent safety)
 - [ ] Integration tests verify component interactions
 
@@ -1157,7 +1157,7 @@ Based on industry best practices, here are additional corrective action strategi
 - **Original Plan**: X% complete (Y/Z tasks)
 - **Remediation Plan**: X% complete (Y/Z tasks)
 - **Requirements Coverage**: X% (Y/Z requirements validated)
-- **Test Coverage**: X% (≥90% target)
+- **Test Coverage**: X% (≥95% target)
 - **TODO Count**: X total (Y CRITICAL, Z HIGH, A MEDIUM, B LOW)
 
 ## Production Blockers
@@ -1312,7 +1312,7 @@ go run ./cmd/cicd go-check-circular-package-dependencies
 # Unit tests (must show 100% pass rate)
 runTests
 
-# Coverage verification (must meet thresholds: ≥90% infra, ≥85% features)
+# Coverage verification (must meet thresholds: ≥95% infra, ≥90% features)
 go test ./internal/identity/... -coverprofile=test-output/coverage_identity.out
 go tool cover -func=test-output/coverage_identity.out | grep total
 
@@ -1400,14 +1400,14 @@ Automated by deployment pipeline:
 
 **Per-Task Threshold**:
 
-- **Minimum**: ≥90% of requirements validated per task before marking complete
+- **Minimum**: ≥95% of requirements validated per task before marking complete
 - **Enforcement**: `go run ./cmd/cicd go-identity-requirements-check --strict --task-threshold=90`
 - **Rationale**: Prevents claiming completion while leaving gaps
 - **Acceptance**: Task NOT complete until threshold met
 
 **Overall Coverage Threshold**:
 
-- **Minimum**: ≥85% of total requirements validated across all tasks
+- **Minimum**: ≥90% of total requirements validated across all tasks
 - **Enforcement**: `go run ./cmd/cicd go-identity-requirements-check --strict --overall-threshold=85`
 - **Rationale**: Ensures comprehensive feature implementation
 - **Acceptance**: Feature NOT production-ready until threshold met
@@ -1425,8 +1425,8 @@ Automated by deployment pipeline:
 
 **Acceptance Criteria Addition**:
 
-- [ ] Per-task coverage ≥90% (run `go-identity-requirements-check --strict`)
-- [ ] Overall coverage ≥85% (verified in PROJECT-STATUS.md)
+- [ ] Per-task coverage ≥95% (run `go-identity-requirements-check --strict`)
+- [ ] Overall coverage ≥90% (verified in PROJECT-STATUS.md)
 - [ ] CI/CD enforces thresholds (workflow passes)
 
 ---
@@ -1544,7 +1544,7 @@ Automated by deployment pipeline:
 - Zero CRITICAL bugs in production
 - < 5% MEDIUM/LOW bugs per release
 - 100% test pass rate
-- ≥90% code coverage (infrastructure)
+- ≥95% code coverage (infrastructure)
 
 ### Performance Metrics
 
@@ -1596,7 +1596,7 @@ Automated by deployment pipeline:
 
 **Test Coverage**:
 
-- Target: ≥90% for infrastructure, ≥85% for features
+- Target: ≥95% for infrastructure, ≥90% for features
 - Current: X% overall, Y% infrastructure, Z% features
 - Trend: Increasing/stable/decreasing
 

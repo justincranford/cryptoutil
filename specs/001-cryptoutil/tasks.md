@@ -332,3 +332,115 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 *Tasks Version: 2.1.0*
 *Updated: December 2025*
 *Next Review: After Iteration 2 completion*
+
+---
+
+## Iteration 3: Completion and Polish
+
+**Status**: 🆕 STARTING
+**Duration**: 1-2 weeks
+**Goal**: Complete remaining I2 tasks, achieve 90%+ coverage, create demo videos
+
+### 3.1 Complete Remaining I2 Tasks
+
+| Task | Description | Priority | Points | Status |
+|------|-------------|----------|--------|--------|
+| I3.1.1 | Wire EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | 🆕 |
+| I3.1.2 | Wire EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | 🆕 |
+| I3.1.3 | Wire EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | 🆕 |
+| I3.1.4 | Wire EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | 🆕 |
+| I3.1.5 | Wire TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | 🆕 |
+| I3.1.6 | Implement enrollment status endpoint (GET `/api/v1/ca/enrollments/{id}`) | HIGH | 5 | 🆕 |
+| I3.1.7 | JOSE Authority E2E test suite | HIGH | 8 | 🆕 |
+| I3.1.8 | CA Server E2E test suite | HIGH | 8 | 🆕 |
+
+**Total Points**: 46
+**Completed Points**: 0 (0%)
+
+### 3.2 Coverage Improvement
+
+| Task | Description | Priority | Points | Status |
+|------|-------------|----------|--------|--------|
+| I3.2.1 | Increase CA handler coverage to 90%+ | HIGH | 8 | 🆕 |
+| I3.2.2 | Increase userauth coverage to 90%+ | HIGH | 8 | 🆕 |
+| I3.2.3 | Increase jose server coverage to 90%+ | HIGH | 8 | 🆕 |
+| I3.2.4 | Increase network package coverage to 90%+ | MEDIUM | 5 | 🆕 |
+| I3.2.5 | Overall coverage audit and gap analysis | MEDIUM | 3 | 🆕 |
+
+**Total Points**: 32
+**Completed Points**: 0 (0%)
+
+### 3.3 Demo Videos and Documentation
+
+| Task | Description | Priority | Points | Status |
+|------|-------------|----------|--------|--------|
+| I3.3.1 | Individual product demo: P1 JOSE Authority | MEDIUM | 2 | 🆕 |
+| I3.3.2 | Individual product demo: P2 Identity Server | MEDIUM | 2 | 🆕 |
+| I3.3.3 | Individual product demo: P3 KMS Server | MEDIUM | 2 | 🆕 |
+| I3.3.4 | Individual product demo: P4 CA Server | MEDIUM | 2 | 🆕 |
+| I3.3.5 | Federated product suite demo | HIGH | 5 | 🆕 |
+| I3.3.6 | Update API documentation | MEDIUM | 3 | 🆕 |
+
+**Total Points**: 16
+**Completed Points**: 0 (0%)
+
+### 3.4 Workflow Verification
+
+| Task | Description | Priority | Points | Status |
+|------|-------------|----------|--------|--------|
+| I3.4.1 | Verify ci-quality workflow | HIGH | 2 | 🆕 |
+| I3.4.2 | Verify ci-coverage workflow | HIGH | 2 | 🆕 |
+| I3.4.3 | Verify ci-benchmark workflow | MEDIUM | 1 | 🆕 |
+| I3.4.4 | Verify ci-fuzz workflow | MEDIUM | 1 | 🆕 |
+| I3.4.5 | Verify ci-race workflow | MEDIUM | 1 | 🆕 |
+| I3.4.6 | Verify ci-sast workflow | MEDIUM | 1 | 🆕 |
+| I3.4.7 | Verify ci-gitleaks workflow | MEDIUM | 1 | 🆕 |
+| I3.4.8 | Verify ci-dast workflow | HIGH | 2 | 🆕 |
+| I3.4.9 | Verify ci-e2e workflow | HIGH | 2 | 🆕 |
+| I3.4.10 | Verify ci-load workflow | MEDIUM | 1 | 🆕 |
+| I3.4.11 | Verify ci-identity-validation workflow | HIGH | 2 | 🆕 |
+| I3.4.12 | Verify release workflow | MEDIUM | 1 | 🆕 |
+
+**Total Points**: 17
+**Completed Points**: 0 (0%)
+
+---
+
+## Iteration 3 Summary Statistics
+
+### Complete Remaining I2 Tasks (3.1)
+
+- **Total Tasks**: 8
+- **Total Points**: 46
+- **Completed**: 0 (0%)
+
+### Coverage Improvement (3.2)
+
+- **Total Tasks**: 5
+- **Total Points**: 32
+- **Completed**: 0 (0%)
+
+### Demo Videos (3.3)
+
+- **Total Tasks**: 6
+- **Total Points**: 16
+- **Completed**: 0 (0%)
+
+### Workflow Verification (3.4)
+
+- **Total Tasks**: 12
+- **Total Points**: 17
+- **Completed**: 0 (0%)
+
+### Overall Iteration 3
+
+- **Total Tasks**: 31
+- **Total Points**: 111
+- **Completed Points**: 0 (0%)
+- **Estimated Duration**: 1-2 weeks
+
+---
+
+*Tasks Version: 3.0.0*
+*Updated: January 2026*
+*Next Review: After Iteration 3 completion*

@@ -314,7 +314,7 @@ docker compose -f compose.yml down -v
 | Section | Recommended Update |
 |---------|-------------------|
 | IV. Go Testing Requirements | Add: "Cryptographic test suites may exceed typical runtime thresholds due to algorithm coverage requirements" |
-| V. Code Quality Excellence | Coverage thresholds updated: 85% production, 90% infrastructure, 100% utility |
+| V. Code Quality Excellence | Coverage thresholds updated: 90% production, 95% infrastructure, 100% utility |
 | VI. Development Workflow | Add: "Cross-database compatibility must be validated before marking database-related tasks complete" |
 
 ### 3. Feature Template Updates

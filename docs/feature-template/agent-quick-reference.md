@@ -73,7 +73,7 @@ Before starting feature:
 - [ ] Test happy + sad paths
 - [ ] Use `t.Parallel()` always
 - [ ] Run: `runTests` tool (NEVER `go test`)
-- [ ] Achieve coverage target (≥90% infra, ≥85% features)
+- [ ] Achieve coverage target (≥95% infra, ≥90% features)
 
 ### 4. Quality (5 min)
 
@@ -291,7 +291,7 @@ git commit -m "docs(authz): update OAuth 2.1 compliance checklist"
 **Universal criteria** (ALL tasks):
 
 - ✅ Code compiles
-- ✅ Tests pass (≥90% coverage infra, ≥85% features)
+- ✅ Tests pass (≥95% coverage infra, ≥90% features)
 - ✅ Linting clean
 - ✅ No TODOs
 - ✅ Documentation updated

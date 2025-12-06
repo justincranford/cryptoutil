@@ -188,7 +188,7 @@ The identity module lacks a fully compliant OAuth 2.1 authorization server, prev
 
 - Total files: 15 files (5 domain models, 5 repositories, 5 handlers)
 - Total lines: 2,400 lines (1,200 production, 800 test, 400 docs)
-- Test coverage: 72% overall (85% domain, 65% repositories, 55% handlers)
+- Test coverage: 72% overall (90% domain, 65% repositories, 55% handlers)
 - TODO count: 16 critical (authorization flow), 4 high (token lifecycle), 8 medium (client auth)
 
 **Dependency Analysis**:
@@ -497,7 +497,7 @@ internal/identity/authz/
 - Focus: Automated E2E test suite
 - Tasks: 08
 - Deliverables: Comprehensive test coverage
-- Exit Criteria: 90%+ coverage, all tests passing
+- Exit Criteria: 95%+ coverage, all tests passing
 
 ---
 
@@ -641,7 +641,7 @@ internal/identity/authz/
 
 ### Quality Metrics
 
-- Code coverage: Target ≥85%, Current 92% (Tasks 01-02)
+- Code coverage: Target ≥90%, Current 92% (Tasks 01-02)
 - Linting issues: Target 0, Current 0
 - TODO comments: Target 0, Current 16 (in Task 03)
 

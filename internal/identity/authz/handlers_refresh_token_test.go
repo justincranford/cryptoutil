@@ -25,7 +25,7 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
-// TestHandleRefreshTokenGrant_ErrorPaths tests error paths for handleRefreshTokenGrant (80.0% → 85%).
+// TestHandleRefreshTokenGrant_ErrorPaths tests error paths for handleRefreshTokenGrant (80.0% → 90%).
 func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 	t.Parallel()
 

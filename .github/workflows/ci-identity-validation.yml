@@ -28,14 +28,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
       - name: Begin Workflow Job
         id: begin-workflow-job
         uses: ./.github/actions/workflow-job-begin
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        # https://github.com/actions/setup-go/releases (v6.0.0, 2025-11-11)
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -56,7 +60,8 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-11-11)
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: identity-test-results
           path: test-output/identity-test-results.json
@@ -64,7 +69,8 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-11-11)
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: identity-coverage-report
           path: test-output/identity-coverage.out
@@ -75,14 +81,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
       - name: Begin Workflow Job
         id: begin-workflow-job
         uses: ./.github/actions/workflow-job-begin
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        # https://github.com/actions/setup-go/releases (v6.0.0, 2025-11-11)
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -103,7 +113,8 @@ jobs:
 
       - name: Upload TODO scan
         if: always()
-        uses: actions/upload-artifact@v4
+        # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-11-11)
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: todo-scan-results
           path: test-output/todo-scan.txt

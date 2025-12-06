@@ -102,7 +102,7 @@ var testMutex sync.Mutex //nolint:gochecknoglobals // Required for test synchron
 //
 // Validates requirements:
 // - R11-01: All integration tests passing
-// - R11-02: Code coverage meets target (≥85%).
+// - R11-02: Code coverage meets target (≥90%).
 type testServers struct {
 	authzServer *cryptoutilIdentityServer.AuthZServer
 	idpServer   *cryptoutilIdentityServer.IDPServer

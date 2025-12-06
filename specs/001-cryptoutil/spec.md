@@ -312,7 +312,7 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 ### I3: Testing
 
 - Table-driven tests with `t.Parallel()`
-- Coverage targets: 85% production, 90% infrastructure, 100% utility
+- Coverage targets: 90% production, 95% infrastructure, 100% utility
 - Fuzz testing, benchmark testing, integration testing
 
 ### CA Networking
@@ -328,7 +328,7 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 ### CA Testing
 
 - Table-driven tests with `t.Parallel()`
-- Coverage targets: 85% production, 90% infrastructure, 100% utility
+- Coverage targets: 90% production, 95% infrastructure, 100% utility
 - Certificate chain validation testing
 - OCSP responder testing
 - CRL generation testing
@@ -379,8 +379,8 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 
 | Category | Target | Current |
 |----------|--------|---------|
-| Production Code | ≥85% | Varies |
-| Infrastructure (cicd) | ≥90% | ~90% |
+| Production Code | ≥90% | Varies |
+| Infrastructure (cicd) | ≥95% | ~90% |
 | Utility Code | ≥100% | ~100% |
 
 ### Linting Requirements

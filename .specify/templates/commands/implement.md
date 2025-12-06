@@ -76,7 +76,7 @@ You MUST consider the user input before proceeding (if not empty).
 9. **Completion validation**:
    - Verify all required tasks are completed
    - Check that implemented features match the original specification
-   - Validate that tests pass and coverage meets requirements (85%+ production code)
+   - Validate that tests pass and coverage meets requirements (90%+ production code)
    - Confirm the implementation follows the technical plan
    - Run `golangci-lint run --fix` to ensure code quality
    - Report final status with summary of completed work
@@ -109,7 +109,7 @@ Before marking any phase complete:
 1. All code builds without errors
 2. All existing tests pass
 3. golangci-lint passes with no errors
-4. Coverage targets maintained (85%+ production, 90%+ infrastructure)
+4. Coverage targets maintained (90%+ production, 95%+ infrastructure)
 
 ### Commit Strategy
 

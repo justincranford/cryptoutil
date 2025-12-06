@@ -119,8 +119,8 @@ jobs:
         echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
         echo "📊 Current coverage: ${CURRENT_COVERAGE}%"
 
-        # Coverage threshold enforcement (85% minimum per Phase 5 P5.1)
-        MINIMUM_COVERAGE=85.0
+        # Coverage threshold enforcement (90% minimum per Phase 5 P5.1)
+        MINIMUM_COVERAGE=90.0
         if (( $(echo "$CURRENT_COVERAGE < $MINIMUM_COVERAGE" | bc -l) )); then
           echo "❌ Coverage ${CURRENT_COVERAGE}% is below minimum threshold ${MINIMUM_COVERAGE}%"
           echo "coverage_passed=false" >> $GITHUB_OUTPUT
@@ -201,7 +201,7 @@ jobs:
     - name: Enforce coverage threshold
       if: steps.coverage-trend.outputs.coverage_passed == 'false'
       run: |
-        echo "❌ Coverage below minimum threshold of 85%"
+        echo "❌ Coverage below minimum threshold of 90%"
         echo "Current coverage: ${{ steps.coverage-trend.outputs.current_coverage }}%"
         exit 1
 

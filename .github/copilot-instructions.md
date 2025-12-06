@@ -22,6 +22,7 @@
 - NEVER use `//nolint:` directives except for documented linter bugs
 - NEVER downplay linting errors in tests/demos - fix them all
 - wsl, errcheck, godot, etc apply equally to ALL code
+- Coverage targets: 90%+ production, 95%+ infrastructure (cicd), 100% utility code
 
 ## Continuous Work Directive
 

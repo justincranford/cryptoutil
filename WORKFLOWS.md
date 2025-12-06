@@ -16,8 +16,8 @@ This document describes the GitHub Actions workflows configured for the cryptout
 
 **Jobs**:
 
-- **validate-requirements**: Requirements coverage check (≥85% threshold)
-- **validate-tests**: Test execution + coverage validation (≥85% threshold)
+- **validate-requirements**: Requirements coverage check (≥90% threshold)
+- **validate-tests**: Test execution + coverage validation (≥90% threshold)
 - **validate-todos**: TODO severity check (CRITICAL/HIGH blockers)
 - **update-project-status**: Auto-update PROJECT-STATUS.md (push to main only)
 
