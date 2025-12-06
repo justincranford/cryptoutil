@@ -29,6 +29,10 @@ tags:
     description: Certificate profile operations
   - name: OCSP
     description: Online Certificate Status Protocol (RFC 6960)
+  - name: EST
+    description: Enrollment over Secure Transport (RFC 7030)
+  - name: TSA
+    description: Time Stamp Authority (RFC 3161)
 
 paths:
   /ca:
@@ -433,6 +437,259 @@ paths:
               schema:
                 type: string
                 format: binary
+
+  # EST Protocol Endpoints (RFC 7030)
+  /est/cacerts:
+    get:
+      tags:
+        - EST
+      summary: Get CA certificates
+      description: >
+        Retrieve the current CA certificates for the EST server.
+        Returns the complete certificate chain in PKCS#7 format.
+        Per RFC 7030 Section 4.1.
+      operationId: estCACerts
+      responses:
+        '200':
+          description: CA certificates retrieved
+          content:
+            application/pkcs7-mime:
+              schema:
+                type: string
+                format: binary
+                description: PKCS#7 encoded CA certificate chain
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /est/simpleenroll:
+    post:
+      tags:
+        - EST
+      summary: Simple enrollment
+      description: >
+        Submit a PKCS#10 CSR for certificate enrollment.
+        Per RFC 7030 Section 4.2. Client authentication via mTLS.
+      operationId: estSimpleEnroll
+      requestBody:
+        required: true
+        content:
+          application/pkcs10:
+            schema:
+              type: string
+              format: binary
+              description: PKCS#10 (CSR) in DER or Base64-encoded format
+      responses:
+        '200':
+          description: Certificate issued
+          content:
+            application/pkcs7-mime:
+              schema:
+                type: string
+                format: binary
+                description: PKCS#7 encoded issued certificate
+        '202':
+          description: Request pending manual approval
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentPendingResponse'
+        '400':
+          description: Invalid CSR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Client authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Client not authorized for enrollment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /est/simplereenroll:
+    post:
+      tags:
+        - EST
+      summary: Simple re-enrollment
+      description: >
+        Submit a PKCS#10 CSR to renew an existing certificate.
+        Per RFC 7030 Section 4.2.2. Client must authenticate with
+        the certificate being renewed.
+      operationId: estSimpleReenroll
+      requestBody:
+        required: true
+        content:
+          application/pkcs10:
+            schema:
+              type: string
+              format: binary
+              description: PKCS#10 (CSR) in DER or Base64-encoded format
+      responses:
+        '200':
+          description: Certificate renewed
+          content:
+            application/pkcs7-mime:
+              schema:
+                type: string
+                format: binary
+                description: PKCS#7 encoded renewed certificate
+        '202':
+          description: Request pending manual approval
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentPendingResponse'
+        '400':
+          description: Invalid CSR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Client certificate required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Client not authorized for re-enrollment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /est/serverkeygen:
+    post:
+      tags:
+        - EST
+      summary: Server-side key generation
+      description: >
+        Request the server to generate a key pair and issue a certificate.
+        Per RFC 7030 Section 4.4. The private key is returned encrypted.
+      operationId: estServerKeyGen
+      requestBody:
+        required: true
+        content:
+          application/pkcs10:
+            schema:
+              type: string
+              format: binary
+              description: PKCS#10 (CSR) with subject info (key ignored)
+      responses:
+        '200':
+          description: Certificate and private key generated
+          content:
+            multipart/mixed:
+              schema:
+                type: object
+                description: >
+                  Multipart response containing PKCS#7 certificate and
+                  PKCS#8 encrypted private key
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Client authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Server key generation not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /est/csrattrs:
+    get:
+      tags:
+        - EST
+      summary: Get CSR attributes
+      description: >
+        Retrieve the CSR attributes required or recommended by the CA.
+        Per RFC 7030 Section 4.5.
+      operationId: estCSRAttrs
+      responses:
+        '200':
+          description: CSR attributes retrieved
+          content:
+            application/csrattrs:
+              schema:
+                type: string
+                format: binary
+                description: DER-encoded CSR attributes
+        '204':
+          description: No CSR attributes required
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Time Stamp Authority Endpoint (RFC 3161)
+  /tsa/timestamp:
+    post:
+      tags:
+        - TSA
+      summary: Request timestamp
+      description: >
+        Submit a timestamp request per RFC 3161.
+        Returns a signed timestamp token for the provided message digest.
+      operationId: tsaTimestamp
+      requestBody:
+        required: true
+        content:
+          application/timestamp-query:
+            schema:
+              type: string
+              format: binary
+              description: DER-encoded TimeStampReq
+      responses:
+        '200':
+          description: Timestamp response
+          content:
+            application/timestamp-reply:
+              schema:
+                type: string
+                format: binary
+                description: DER-encoded TimeStampResp
+        '400':
+          description: Invalid timestamp request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:

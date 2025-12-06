@@ -27,6 +27,7 @@ import (
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
+	cryptoutilCAServiceTimestamp "cryptoutil/internal/ca/service/timestamp"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
@@ -36,6 +37,7 @@ type Handler struct {
 	storage     cryptoutilCAStorage.Store
 	ocspService *cryptoutilCAServiceRevocation.OCSPService
 	crlService  *cryptoutilCAServiceRevocation.CRLService
+	tsaService  *cryptoutilCAServiceTimestamp.TSAService
 	profiles    map[string]*ProfileConfig
 	mu          sync.RWMutex
 }
@@ -583,6 +585,97 @@ func (h *Handler) GetProfile(c *fiber.Ctx, profileID string) error {
 	}
 
 	return nil
+}
+
+// EstCACerts handles GET /est/cacerts - RFC 7030 Section 4.1.
+// Returns the CA certificates in PKCS#7 format for EST clients.
+func (h *Handler) EstCACerts(c *fiber.Ctx) error {
+	// Get CA configuration.
+	caConfig := h.issuer.GetCAConfig()
+	if caConfig == nil {
+		return h.errorResponse(c, fiber.StatusServiceUnavailable, "service_unavailable", "CA not configured")
+	}
+
+	// For EST, we need to return the CA certificates in a PKCS#7 degenerate format.
+	// This is a simplified implementation - full PKCS#7 encoding would be needed for production.
+	// Return the CA certificate chain in PEM format for now (simpler for testing).
+	c.Set("Content-Type", "application/pkcs7-mime")
+	c.Set("Content-Transfer-Encoding", "base64")
+
+	// TODO: Implement proper PKCS#7 degenerate certificates-only format.
+	// For now, return a not implemented error.
+	return h.errorResponse(c, fiber.StatusNotImplemented, "not_implemented", "EST cacerts endpoint pending PKCS#7 implementation")
+}
+
+// EstCSRAttrs handles GET /est/csrattrs - RFC 7030 Section 4.5.
+// Returns the CSR attributes required or recommended by the CA.
+func (h *Handler) EstCSRAttrs(c *fiber.Ctx) error {
+	// Most CAs don't require specific CSR attributes.
+	// Return 204 No Content to indicate no attributes required.
+	if err := c.SendStatus(fiber.StatusNoContent); err != nil {
+		return fmt.Errorf("failed to send no content status: %w", err)
+	}
+
+	return nil
+}
+
+// EstSimpleEnroll handles POST /est/simpleenroll - RFC 7030 Section 4.2.
+// Processes a PKCS#10 CSR and returns the issued certificate in PKCS#7 format.
+func (h *Handler) EstSimpleEnroll(c *fiber.Ctx) error {
+	// EST requires mTLS client authentication.
+	// For now, return not implemented until mTLS middleware is added.
+	return h.errorResponse(c, fiber.StatusNotImplemented, "not_implemented", "EST simpleenroll requires mTLS authentication")
+}
+
+// EstSimpleReenroll handles POST /est/simplereenroll - RFC 7030 Section 4.2.2.
+// Processes a PKCS#10 CSR to renew an existing certificate.
+func (h *Handler) EstSimpleReenroll(c *fiber.Ctx) error {
+	// EST requires mTLS client authentication with the certificate being renewed.
+	// For now, return not implemented until mTLS middleware is added.
+	return h.errorResponse(c, fiber.StatusNotImplemented, "not_implemented", "EST simplereenroll requires mTLS authentication")
+}
+
+// EstServerKeyGen handles POST /est/serverkeygen - RFC 7030 Section 4.4.
+// Generates a key pair on the server and returns the certificate and encrypted private key.
+func (h *Handler) EstServerKeyGen(c *fiber.Ctx) error {
+	// Server key generation requires mTLS and secure key transport.
+	// For now, return not implemented.
+	return h.errorResponse(c, fiber.StatusNotImplemented, "not_implemented", "EST serverkeygen requires mTLS authentication")
+}
+
+// TsaTimestamp handles POST /tsa/timestamp - RFC 3161 timestamp request.
+func (h *Handler) TsaTimestamp(c *fiber.Ctx) error {
+	// Check if TSA service is configured.
+	h.mu.RLock()
+	tsaService := h.tsaService
+	h.mu.RUnlock()
+
+	if tsaService == nil {
+		return h.errorResponse(c, fiber.StatusServiceUnavailable, "service_unavailable", "TSA service not configured")
+	}
+
+	// Read the timestamp request body.
+	requestBody, err := io.ReadAll(c.Request().BodyStream())
+	if err != nil {
+		return h.errorResponse(c, fiber.StatusBadRequest, "bad_request", "failed to read request body")
+	}
+
+	if len(requestBody) == 0 {
+		return h.errorResponse(c, fiber.StatusBadRequest, "bad_request", "empty timestamp request")
+	}
+
+	// TODO: Parse the DER-encoded TimeStampReq and call tsaService.CreateTimestamp().
+	// For now, return not implemented as full ASN.1 parsing is needed.
+	return h.errorResponse(c, fiber.StatusNotImplemented, "not_implemented", "TSA timestamp endpoint pending ASN.1 request parsing")
+}
+
+// SetTSAService configures the TSA service for the handler.
+// This is optional - if not set, TSA requests will return service unavailable.
+func (h *Handler) SetTSAService(tsaService *cryptoutilCAServiceTimestamp.TSAService) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h.tsaService = tsaService
 }
 
 // SetOCSPService configures the OCSP service for the handler.
