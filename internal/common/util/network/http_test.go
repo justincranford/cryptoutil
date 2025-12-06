@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testRootPath = "/"
+
 func TestHTTPResponse_GET(t *testing.T) {
 	t.Parallel()
 
@@ -56,7 +58,7 @@ func TestHTTPResponse_NoFollowRedirects(t *testing.T) {
 	redirects := 0
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
+		if r.URL.Path == testRootPath {
 			redirects++
 
 			http.Redirect(w, r, "/redirected", http.StatusFound)
@@ -82,7 +84,7 @@ func TestHTTPResponse_FollowRedirects(t *testing.T) {
 	t.Parallel()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
+		if r.URL.Path == testRootPath {
 			http.Redirect(w, r, "/final", http.StatusFound)
 
 			return
@@ -230,7 +232,10 @@ func TestHTTPResponse_HTTPS_WithRootCA(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a cert pool with the server's certificate.
-	rootCAs := server.Client().Transport.(*http.Transport).TLSClientConfig.RootCAs
+	transport, ok := server.Client().Transport.(*http.Transport)
+	require.True(t, ok, "expected *http.Transport")
+
+	rootCAs := transport.TLSClientConfig.RootCAs
 
 	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, true, rootCAs, false)
 	require.NoError(t, err)

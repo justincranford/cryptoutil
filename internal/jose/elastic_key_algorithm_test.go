@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testInvalidAlgorithm = "INVALID"
+
 type SplitTestCase struct {
 	actualElasticKeyAlgorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm
 	expectedSplitString       string
@@ -410,7 +412,7 @@ func Test_ToElasticKeyAlgorithm_ValidAlgorithms(t *testing.T) {
 func Test_ToElasticKeyAlgorithm_InvalidAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	alg := "INVALID"
+	alg := testInvalidAlgorithm
 
 	result, err := ToElasticKeyAlgorithm(&alg)
 	require.Error(t, err)
@@ -444,7 +446,7 @@ func Test_ToGenerateAlgorithm_ValidAlgorithms(t *testing.T) {
 func Test_ToGenerateAlgorithm_InvalidAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	alg := "INVALID"
+	alg := testInvalidAlgorithm
 
 	result, err := ToGenerateAlgorithm(&alg)
 	require.Error(t, err)

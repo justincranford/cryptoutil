@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testUnsealModeSysinfo = "sysinfo"
+
 // createTestContext creates context and telemetry service for testing.
 func createTestContext(t *testing.T) (context.Context, *cryptoutilTelemetry.TelemetryService) {
 	t.Helper()
@@ -45,7 +47,7 @@ func TestNewUnsealKeysServiceFromSettings_SysInfoMode(t *testing.T) {
 	ctx, telemetryService := createTestContext(t)
 	settings := cryptoutilConfig.RequireNewForTest("test-sysinfo-mode")
 	settings.DevMode = false
-	settings.UnsealMode = "sysinfo"
+	settings.UnsealMode = testUnsealModeSysinfo
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
 	require.NoError(t, err)

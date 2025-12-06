@@ -12,10 +12,12 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 )
 
+const testSummaryText = "test summary"
+
 func TestAllHTTP4xxErrorConstructors(t *testing.T) {
 	t.Parallel()
 
-	summary := "test summary"
+	summary := testSummaryText
 	baseErr := errors.New("test error")
 
 	tests := []struct {
@@ -116,7 +118,7 @@ func TestHTTPErrorConstructorsWithNilSummary(t *testing.T) {
 func TestHTTPErrorConstructorsWithNilError(t *testing.T) {
 	t.Parallel()
 
-	summary := "test summary"
+	summary := testSummaryText
 
 	// Test with nil error - should handle gracefully.
 	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
