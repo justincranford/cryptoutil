@@ -148,6 +148,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **5432**: PostgreSQL database
 - **8080**: cryptoutil public API (HTTPS)
 - **8081-8082**: Additional cryptoutil instances in Docker Compose (HTTPS)
+- **8092**: JOSE Authority Server (HTTPS)
+- **8093**: Certificate Authority Server (HTTPS)
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
 - **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
@@ -159,6 +161,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
+- **JOSE Authority Server**: <https://localhost:8092> (cryptographic operations)
+- **Certificate Authority**: <https://localhost:8093> (X.509 certificate management)
 
 ### 🏗️ Production Ready
 
@@ -284,6 +288,34 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
   - **API Endpoints**: `/api/v1/public/health`, `/api/v1/protected/resource`, `/api/v1/admin/*`
   - **Health**: `/api/v1/public/health`
   - **Documentation**: See [OpenAPI Guide](docs/02-identityV2/historical/openapi-guide.md) for detailed API documentation
+
+#### JOSE Authority Server APIs
+
+- **JOSE Authority Service** (JOSE Cryptographic Operations):
+  - **Base URL**: <https://localhost:8092>
+  - **Swagger UI**: <https://localhost:8092/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8092/ui/swagger/doc.json>
+  - **API Endpoints**:
+    - `/jose/v1/sign` - Sign data with JWS
+    - `/jose/v1/verify` - Verify JWS signatures
+    - `/jose/v1/encrypt` - Encrypt data with JWE
+    - `/jose/v1/decrypt` - Decrypt JWE data
+    - `/jose/v1/keys` - JWKS key management
+  - **Health**: `/health`
+
+#### Certificate Authority APIs
+
+- **CA Service** (X.509 Certificate Authority):
+  - **Base URL**: <https://localhost:8093>
+  - **Swagger UI**: <https://localhost:8093/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8093/ui/swagger/doc.json>
+  - **API Endpoints**:
+    - `/ca/v1/certificates` - Certificate lifecycle management
+    - `/ca/v1/csr` - Certificate signing request operations
+    - `/ca/v1/revoke` - Certificate revocation
+    - `/ca/v1/crl` - Certificate revocation list
+    - `/ca/v1/ocsp` - Online Certificate Status Protocol
+  - **Health**: `/health`
 
 #### Observability
 
