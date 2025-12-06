@@ -361,14 +361,14 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 | Task | Description | Priority | Points | Status |
 |------|-------------|----------|--------|--------|
-| I3.2.1 | Increase CA handler coverage to 90%+ | HIGH | 8 | 🆕 |
+| I3.2.1 | Increase CA handler coverage to 90%+ | HIGH | 8 | ⏳ (66% → 90% target) |
 | I3.2.2 | Increase userauth coverage to 90%+ | HIGH | 8 | 🆕 |
 | I3.2.3 | Increase jose server coverage to 90%+ | HIGH | 8 | 🆕 |
 | I3.2.4 | Increase network package coverage to 90%+ | MEDIUM | 5 | 🆕 |
 | I3.2.5 | Overall coverage audit and gap analysis | MEDIUM | 3 | 🆕 |
 
 **Total Points**: 32
-**Completed Points**: 0 (0%)
+**Completed Points**: 2 (6%)
 
 ### 3.3 Demo Videos and Documentation
 
