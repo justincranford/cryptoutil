@@ -207,7 +207,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.2.17 | EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | ⚠️ |
 | I2.2.18 | TSA timestamp service (`internal/ca/service/timestamp/`) | MEDIUM | 5 | ✅ |
 | I2.2.19 | TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ⚠️ |
-| I2.2.20 | Add mTLS authentication middleware | CRITICAL | 8 | ❌ |
+| I2.2.20 | Add mTLS authentication middleware | CRITICAL | 8 | ✅ |
 | I2.2.21 | Docker Compose integration | MEDIUM | 2 | ❌ |
 | I2.2.22 | CA Server cmd entry point (`cmd/ca-server/main.go`) | HIGH | 2 | ✅ |
 | I2.2.23 | CA Server E2E tests | HIGH | 8 | ⚠️ |
@@ -247,10 +247,10 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 23
 - **Total Points**: 105
-- **Completed**: 14 (61%)
-- **Partial**: 7 (30%) - EST/TSA handlers scaffolded, pending mTLS
-- **Completed Points**: 70
-- **Critical Tasks**: 3 (2 complete, 1 remaining)
+- **Completed**: 15 (65%)
+- **Partial**: 7 (30%) - EST/TSA handlers scaffolded
+- **Completed Points**: 78
+- **Critical Tasks**: 3 (all complete ✅)
 
 ### Integration (2.3)
 
@@ -264,7 +264,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 47
 - **Total Points**: 195
-- **Completed Points**: 136 (70%)
+- **Completed Points**: 144 (74%)
 - **Estimated Remaining Duration**: 1-2 weeks
 
 ---

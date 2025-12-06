@@ -13,19 +13,21 @@ import (
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 // Server represents the JOSE Authority Server.
 type Server struct {
-	settings         *cryptoutilConfig.Settings
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JWKGenService
-	keyStore         *KeyStore
-	fiberApp         *fiber.App
-	listener         net.Listener
-	actualPort       int // Actual port after dynamic allocation.
+	settings          *cryptoutilConfig.Settings
+	telemetryService  *cryptoutilTelemetry.TelemetryService
+	jwkGenService     *cryptoutilJose.JWKGenService
+	keyStore          *KeyStore
+	fiberApp          *fiber.App
+	listener          net.Listener
+	actualPort        int // Actual port after dynamic allocation.
+	apiKeyMiddleware  *cryptoutilJoseMiddleware.APIKeyMiddleware
 }
 
 // New creates a new JOSE Authority Server instance using context.Background().
@@ -187,14 +189,34 @@ func (s *Server) Shutdown() error {
 	return shutdownErr
 }
 
+// ConfigureAPIKeyAuth configures API key authentication middleware.
+// This should be called before Start() to enable authentication.
+func (s *Server) ConfigureAPIKeyAuth(config *cryptoutilJoseMiddleware.APIKeyConfig) {
+	if config == nil {
+		config = cryptoutilJoseMiddleware.DefaultAPIKeyConfig()
+	}
+
+	s.apiKeyMiddleware = cryptoutilJoseMiddleware.NewAPIKeyMiddleware(config)
+}
+
+// GetAPIKeyMiddleware returns the configured API key middleware handler.
+// This can be used to apply authentication to specific routes.
+func (s *Server) GetAPIKeyMiddleware() fiber.Handler {
+	if s.apiKeyMiddleware == nil {
+		return nil
+	}
+
+	return s.apiKeyMiddleware.Handler()
+}
+
 // setupRoutes configures all API routes.
 func (s *Server) setupRoutes() {
-	// Health endpoints.
+	// Health endpoints (no auth required).
 	s.fiberApp.Get("/health", s.handleHealth)
 	s.fiberApp.Get("/livez", s.handleLivez)
 	s.fiberApp.Get("/readyz", s.handleReadyz)
 
-	// Well-known endpoints.
+	// Well-known endpoints (no auth required for public key discovery).
 	s.fiberApp.Get("/.well-known/jwks.json", s.handleJWKS)
 
 	// API v1 group.
