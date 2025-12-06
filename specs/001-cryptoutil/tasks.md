@@ -223,12 +223,12 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.3.1 | Update `deployments/compose/compose.yml` for new services | HIGH | 5 | ❌ |
 | I2.3.2 | Add JOSE Authority config (`configs/jose/jose-server.yml`) | HIGH | 2 | ✅ |
 | I2.3.3 | Add CA Server config (`configs/ca/ca-server.yml`) | HIGH | 2 | ✅ |
-| I2.3.4 | Demo script: `go run ./cmd/demo jose` | HIGH | 5 | ❌ |
-| I2.3.5 | Demo script: `go run ./cmd/demo ca` | HIGH | 5 | ❌ |
+| I2.3.4 | Demo script: `go run ./cmd/demo jose` | HIGH | 5 | ✅ |
+| I2.3.5 | Demo script: `go run ./cmd/demo ca` | HIGH | 5 | ✅ |
 | I2.3.6 | Update README with new server documentation | MEDIUM | 2 | ❌ |
 
 **Total Points**: 21
-**Completed Points**: 4 (19%)
+**Completed Points**: 14 (67%)
 **Evidence Required**: Docker Compose starts all services, demos complete successfully
 
 ---
@@ -256,15 +256,15 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 6
 - **Total Points**: 21
-- **Completed**: 2 (33%)
-- **Completed Points**: 4
+- **Completed**: 4 (67%)
+- **Completed Points**: 14
 - **Critical Tasks**: 0
 
 ### Overall Iteration 2
 
 - **Total Tasks**: 47
 - **Total Points**: 195
-- **Completed Points**: 126 (65%)
+- **Completed Points**: 136 (70%)
 - **Estimated Remaining Duration**: 1-2 weeks
 
 ---
