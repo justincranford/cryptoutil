@@ -1843,3 +1843,126 @@ func TestEstCACertsWithRealIssuer(t *testing.T) {
 	err = resp.Body.Close()
 	require.NoError(t, err)
 }
+
+func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	profiles := map[string]*ProfileConfig{
+		"tls-server": {
+			ID:          "tls-server",
+			Name:        "TLS Server",
+			Description: "TLS Server Certificate Profile",
+			Category:    "tls",
+		},
+	}
+
+	handler := &Handler{
+		storage:           mockStorage,
+		issuer:            testSetup.Issuer,
+		profiles:          profiles,
+		enrollmentTracker: newEnrollmentTracker(100),
+	}
+
+	app.Post("/enrollments", func(c *fiber.Ctx) error {
+		return handler.SubmitEnrollment(c)
+	})
+
+	// Generate a test CSR.
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	csrTemplate := &x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Test Org"},
+		},
+		DNSNames: []string{"test.example.com"},
+	}
+	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	require.NoError(t, err)
+
+	csrPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE REQUEST",
+		Bytes: csrDER,
+	})
+
+	t.Run("SuccessfulEnrollment", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody := `{"csr": "` + string(csrPEM) + `", "profile": "tls-server"}`
+		// Escape newlines for JSON.
+		reqBodyEscaped := bytes.ReplaceAll([]byte(reqBody), []byte("\n"), []byte("\\n"))
+
+		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewReader(reqBodyEscaped))
+		req.Header.Set("Content-Type", "application/json")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusCreated, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("MissingCSR", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody := `{"profile": "tls-server"}`
+		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("MissingProfile", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody := `{"csr": "test-csr"}`
+		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("UnknownProfile", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody := `{"csr": "` + string(csrPEM) + `", "profile": "unknown-profile"}`
+		reqBody = string(bytes.ReplaceAll([]byte(reqBody), []byte("\n"), []byte("\\n")))
+
+		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("InvalidCSR", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody := `{"csr": "invalid-csr-data", "profile": "tls-server"}`
+		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusUnprocessableEntity, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
