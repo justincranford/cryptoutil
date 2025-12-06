@@ -283,3 +283,193 @@ func Test_ElasticKeyAlgorithmAsymmetric(t *testing.T) {
 		})
 	}
 }
+
+func Test_ToJWEEncAndAlg_ValidAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	tests := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+		cryptoutilOpenapiModel.A256GCMA256KW,
+		cryptoutilOpenapiModel.A192GCMA256KW,
+		cryptoutilOpenapiModel.A128GCMA256KW,
+		cryptoutilOpenapiModel.A256GCMRSAOAEP512,
+		cryptoutilOpenapiModel.A256GCMECDHESA256KW,
+	}
+
+	for _, alg := range tests {
+		t.Run(string(alg), func(t *testing.T) {
+			t.Parallel()
+
+			enc, keyAlg, err := ToJWEEncAndAlg(&alg)
+			require.NoError(t, err)
+			require.NotNil(t, enc)
+			require.NotNil(t, keyAlg)
+		})
+	}
+}
+
+func Test_ToJWEEncAndAlg_InvalidAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	// JWS algorithms should fail when used with ToJWEEncAndAlg.
+	alg := cryptoutilOpenapiModel.RS256
+
+	enc, keyAlg, err := ToJWEEncAndAlg(&alg)
+	require.Error(t, err)
+	require.Nil(t, enc)
+	require.Nil(t, keyAlg)
+	require.Contains(t, err.Error(), "unsupported JWE ElasticKeyAlgorithm")
+}
+
+func Test_ToJWSAlg_ValidAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	tests := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
+		cryptoutilOpenapiModel.RS256,
+		cryptoutilOpenapiModel.RS384,
+		cryptoutilOpenapiModel.RS512,
+		cryptoutilOpenapiModel.PS256,
+		cryptoutilOpenapiModel.PS384,
+		cryptoutilOpenapiModel.PS512,
+		cryptoutilOpenapiModel.ES256,
+		cryptoutilOpenapiModel.ES384,
+		cryptoutilOpenapiModel.ES512,
+		cryptoutilOpenapiModel.HS256,
+		cryptoutilOpenapiModel.HS384,
+		cryptoutilOpenapiModel.HS512,
+		cryptoutilOpenapiModel.EdDSA,
+	}
+
+	for _, alg := range tests {
+		t.Run(string(alg), func(t *testing.T) {
+			t.Parallel()
+
+			sigAlg, err := ToJWSAlg(&alg)
+			require.NoError(t, err)
+			require.NotNil(t, sigAlg)
+		})
+	}
+}
+
+func Test_ToJWSAlg_InvalidAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	// JWE algorithms should fail when used with ToJWSAlg.
+	alg := cryptoutilOpenapiModel.A256GCMA256KW
+
+	sigAlg, err := ToJWSAlg(&alg)
+	require.Error(t, err)
+	require.Nil(t, sigAlg)
+	require.Contains(t, err.Error(), "unsupported JWS ElasticKeyAlgorithm")
+}
+
+func Test_IsJWE(t *testing.T) {
+	t.Parallel()
+
+	// JWE algorithms should return true.
+	jweAlg := cryptoutilOpenapiModel.A256GCMA256KW
+	require.True(t, IsJWE(&jweAlg))
+
+	// JWS algorithms should return false.
+	jwsAlg := cryptoutilOpenapiModel.RS256
+	require.False(t, IsJWE(&jwsAlg))
+}
+
+func Test_IsJWS(t *testing.T) {
+	t.Parallel()
+
+	// JWS algorithms should return true.
+	jwsAlg := cryptoutilOpenapiModel.RS256
+	require.True(t, IsJWS(&jwsAlg))
+
+	// JWE algorithms should return false.
+	jweAlg := cryptoutilOpenapiModel.A256GCMA256KW
+	require.False(t, IsJWS(&jweAlg))
+}
+
+func Test_ToElasticKeyAlgorithm_ValidAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	tests := []string{
+		string(cryptoutilOpenapiModel.A256GCMA256KW),
+		string(cryptoutilOpenapiModel.RS256),
+		string(cryptoutilOpenapiModel.EdDSA),
+	}
+
+	for _, alg := range tests {
+		t.Run(alg, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := ToElasticKeyAlgorithm(&alg)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.Equal(t, alg, string(*result))
+		})
+	}
+}
+
+func Test_ToElasticKeyAlgorithm_InvalidAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	alg := "INVALID"
+
+	result, err := ToElasticKeyAlgorithm(&alg)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid elastic Key algorithm")
+}
+
+func Test_ToGenerateAlgorithm_ValidAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	tests := []string{
+		string(cryptoutilOpenapiModel.RSA2048),
+		string(cryptoutilOpenapiModel.ECP256),
+		string(cryptoutilOpenapiModel.OKPEd25519),
+		string(cryptoutilOpenapiModel.Oct128),
+		string(cryptoutilOpenapiModel.Oct256),
+	}
+
+	for _, alg := range tests {
+		t.Run(alg, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := ToGenerateAlgorithm(&alg)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.Equal(t, alg, string(*result))
+		})
+	}
+}
+
+func Test_ToGenerateAlgorithm_InvalidAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	alg := "INVALID"
+
+	result, err := ToGenerateAlgorithm(&alg)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid generate algorithm")
+}
+
+func Test_IsSymmetric_InvalidAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	alg := cryptoutilOpenapiModel.ElasticKeyAlgorithm("INVALID")
+
+	result, err := IsSymmetric(&alg)
+	require.Error(t, err)
+	require.False(t, result)
+	require.Contains(t, err.Error(), "unsupported ElasticKeyAlgorithm")
+}
+
+func Test_IsAsymmetric_InvalidAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	alg := cryptoutilOpenapiModel.ElasticKeyAlgorithm("INVALID")
+
+	result, err := IsAsymmetric(&alg)
+	require.Error(t, err)
+	require.False(t, result)
+	require.Contains(t, err.Error(), "unsupported ElasticKeyAlgorithm")
+}
