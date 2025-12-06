@@ -919,25 +919,27 @@ func TestEstEndpoints(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("EST_SimpleEnroll_not_implemented", func(t *testing.T) {
+	t.Run("EST_SimpleEnroll_empty_body", func(t *testing.T) {
 		t.Parallel()
 
+		// With empty body, should return bad request (endpoint is implemented).
 		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
-		require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		err = resp.Body.Close()
 		require.NoError(t, err)
 	})
 
-	t.Run("EST_SimpleReenroll_not_implemented", func(t *testing.T) {
+	t.Run("EST_SimpleReenroll_empty_body", func(t *testing.T) {
 		t.Parallel()
 
+		// With empty body, should return bad request (endpoint is implemented).
 		req := httptest.NewRequest(http.MethodPost, "/est/simplereenroll", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
-		require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		err = resp.Body.Close()
 		require.NoError(t, err)
