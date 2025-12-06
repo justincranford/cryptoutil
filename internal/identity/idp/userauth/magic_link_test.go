@@ -5,12 +5,71 @@
 package userauth_test
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	"cryptoutil/internal/identity/idp/userauth"
 )
+
+// mockMagicLinkUserRepo implements UserRepository for magic link testing.
+type mockMagicLinkUserRepo struct {
+	users map[string]*cryptoutilIdentityDomain.User
+}
+
+func newMockMagicLinkUserRepo() *mockMagicLinkUserRepo {
+	return &mockMagicLinkUserRepo{
+		users: make(map[string]*cryptoutilIdentityDomain.User),
+	}
+}
+
+func (m *mockMagicLinkUserRepo) GetBySub(_ context.Context, sub string) (*cryptoutilIdentityDomain.User, error) {
+	user, ok := m.users[sub]
+	if !ok {
+		return nil, fmt.Errorf("user not found: %s", sub)
+	}
+	return user, nil
+}
+
+func (m *mockMagicLinkUserRepo) Create(_ context.Context, _ *cryptoutilIdentityDomain.User) error {
+	return nil
+}
+
+func (m *mockMagicLinkUserRepo) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockMagicLinkUserRepo) GetByUsername(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockMagicLinkUserRepo) GetByEmail(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockMagicLinkUserRepo) Update(_ context.Context, _ *cryptoutilIdentityDomain.User) error {
+	return nil
+}
+
+func (m *mockMagicLinkUserRepo) Delete(_ context.Context, _ googleUuid.UUID) error {
+	return nil
+}
+
+func (m *mockMagicLinkUserRepo) List(_ context.Context, _, _ int) ([]*cryptoutilIdentityDomain.User, error) {
+	return nil, nil
+}
+
+func (m *mockMagicLinkUserRepo) Count(_ context.Context) (int64, error) {
+	return 0, nil
+}
+
+func (m *mockMagicLinkUserRepo) AddUser(user *cryptoutilIdentityDomain.User) {
+	m.users[user.Sub] = user
+}
 
 func TestMagicLinkAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
@@ -140,4 +199,92 @@ func TestStepUpAuthenticator_DefaultPolicies(t *testing.T) {
 	policies := userauth.DefaultStepUpPolicies()
 	require.NotNil(t, policies, "DefaultStepUpPolicies should return non-nil policies")
 	require.NotEmpty(t, policies, "Should have at least one default policy")
+}
+
+// TestMagicLinkAuthenticator_InitiateAuth tests InitiateAuth.
+func TestMagicLinkAuthenticator_InitiateAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	// Add user with email.
+	user := &cryptoutilIdentityDomain.User{
+		ID:    userID,
+		Sub:   userID.String(),
+		Email: "test@example.com",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+	require.Equal(t, userID.String(), challenge.UserID, "Challenge UserID should match")
+	require.Equal(t, "magic_link", challenge.Method, "Challenge Method should match")
+
+	// Verify email was sent.
+	sent := delivery.GetSentEmails()
+	require.Len(t, sent, 1, "One email should have been sent")
+	require.Equal(t, "test@example.com", sent[0].To, "Email recipient should match")
+}
+
+// TestMagicLinkAuthenticator_InitiateAuthUserNotFound tests InitiateAuth with non-existent user.
+func TestMagicLinkAuthenticator_InitiateAuthUserNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	challenge, err := auth.InitiateAuth(ctx, nonExistentID.String())
+	require.Error(t, err, "InitiateAuth should fail for non-existent user")
+	require.Nil(t, challenge, "Challenge should be nil on error")
+	require.Contains(t, err.Error(), "user not found", "Error should indicate user not found")
+}
+
+// TestMagicLinkAuthenticator_InitiateAuthNoEmail tests InitiateAuth without email.
+func TestMagicLinkAuthenticator_InitiateAuthNoEmail(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	// Add user without email.
+	user := &cryptoutilIdentityDomain.User{
+		ID:    userID,
+		Sub:   userID.String(),
+		Email: "",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.Error(t, err, "InitiateAuth should fail without email")
+	require.Nil(t, challenge, "Challenge should be nil on error")
+	require.Contains(t, err.Error(), "no email", "Error should indicate missing email")
 }
