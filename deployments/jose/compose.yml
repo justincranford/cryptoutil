@@ -1,0 +1,84 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# JOSE Authority Server Docker Compose Configuration
+#
+# This compose file provides the JOSE (JSON Object Signing and Encryption) server.
+# It provides a REST API for JWK management, JWS signing/verification,
+# JWE encryption/decryption, and JWT creation/verification.
+#
+# Usage:
+#   docker compose -f compose.yml up -d                # Start JOSE server
+#   docker compose -f compose.yml logs -f jose-server  # Follow logs
+#   docker compose -f compose.yml down -v              # Stop and clean up
+#
+# API Endpoints (HTTPS on port 8092):
+#   /jose/v1/jwk/generate - Generate new JWK
+#   /jose/v1/jwk/{kid}    - Get/Delete JWK by Key ID
+#   /jose/v1/jwk          - List all JWKs
+#   /jose/v1/jwks         - Get JWKS (public keys)
+#   /jose/v1/jws/sign     - Sign payload
+#   /jose/v1/jws/verify   - Verify JWS
+#   /jose/v1/jwe/encrypt  - Encrypt payload
+#   /jose/v1/jwe/decrypt  - Decrypt JWE
+#   /jose/v1/jwt/create   - Create JWT
+#   /jose/v1/jwt/verify   - Verify JWT
+#
+# Demo credentials:
+#   API Key: demo-api-key-insecure (X-API-Key header)
+#
+include:
+  - path: ../telemetry/compose.yml
+
+services:
+  # Build JOSE server image from source.
+  builder-jose:
+    image: jose-server:dev
+    build:
+      context: ../..
+      dockerfile: deployments/jose/Dockerfile.jose
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-12-01T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
+
+  # JOSE Authority Server.
+  jose-server:
+    image: jose-server:dev
+    container_name: jose-server
+    hostname: jose-server
+    command:
+      - start
+      - --config=/etc/jose/jose.yml
+    ports:
+      - "8092:8092"  # Public API (HTTPS)
+      - "9092:9092"  # Admin API (HTTPS)
+    volumes:
+      - ./config/jose.yml:/etc/jose/jose.yml:ro
+    depends_on:
+      builder-jose:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9092/livez"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jose-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+networks:
+  jose-network:
+    driver: bridge

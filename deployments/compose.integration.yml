@@ -2,23 +2,28 @@
 #
 # Usage: docker compose -f deployments/compose.integration.yml up -d
 #
-# This configuration runs the full integration demo with both KMS and Identity
-# servers, demonstrating token-based authentication between services.
+# This configuration runs the full integration demo with KMS, Identity,
+# JOSE, and CA servers, demonstrating token-based authentication between services.
 #
 # Demo flow:
 # 1. Identity server issues OAuth2 tokens
 # 2. KMS server validates tokens via JWKS
-# 3. Authenticated KMS operations with scope enforcement
+# 3. JOSE Authority provides JWK/JWS/JWE/JWT operations
+# 4. CA server provides certificate issuance
+# 5. Authenticated operations with scope enforcement
 #
 # Demo credentials (WARNING: Never use in production):
 # - demo-client / demo-secret (OAuth client)
 # - demo-user / demo-password (User login)
 # - admin@demo.local / admin-demo-password (KMS admin)
+# - demo-api-key-insecure (JOSE API key)
 #
 # Demo endpoints:
 # - Identity AuthZ: https://localhost:8082
 # - Identity IdP: https://localhost:8083
 # - KMS API: https://localhost:8080/api/v1
+# - JOSE API: https://localhost:8092/jose/v1
+# - CA API: https://localhost:8093/api/v1/ca
 # - Swagger UI: https://localhost:8080/ui/swagger
 # - Grafana: http://localhost:3000 (admin/admin)
 
@@ -160,6 +165,92 @@ services:
       opentelemetry-collector-contrib:
         condition: service_healthy
       identity-authz:
+        condition: service_healthy
+    networks:
+      - integration-network
+
+  # JOSE Authority Server (JWK/JWS/JWE/JWT operations).
+  jose-server:
+    build:
+      context: ..
+      dockerfile: deployments/jose/Dockerfile.jose
+      args:
+        APP_VERSION: integration
+        VCS_REF: integration
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: jose-server:integration
+    container_name: jose-server
+    hostname: jose-server
+    command:
+      - start
+      - --config=/etc/jose/jose.yml
+    ports:
+      - "8092:8092"  # Public API (HTTPS)
+      - "9092:9092"  # Admin API (HTTPS)
+    volumes:
+      - ./jose/config/jose.yml:/etc/jose/jose.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=jose-server
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=integration,deployment.environment=demo
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:9092/livez
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_healthy
+    networks:
+      - integration-network
+
+  # CA Server (Certificate Authority operations).
+  ca-server:
+    build:
+      context: ..
+      dockerfile: deployments/ca/Dockerfile.ca-server
+      args:
+        APP_VERSION: integration
+        VCS_REF: integration
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: ca-server:integration
+    container_name: ca-server
+    hostname: ca-server
+    command:
+      - start
+      - --config=/etc/ca/ca.yml
+    ports:
+      - "8093:8093"  # Public API (HTTPS)
+      - "9093:9093"  # Admin API (HTTPS)
+    volumes:
+      - ./ca/config/ca.yml:/etc/ca/ca.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=ca-server
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=integration,deployment.environment=demo
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:9093/livez
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      opentelemetry-collector-contrib:
         condition: service_healthy
     networks:
       - integration-network

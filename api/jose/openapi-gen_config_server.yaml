@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+# oapi-codegen configuration for JOSE Authority API server.
+package: server
+output: server/server.gen.go
+generate:
+  fiber-server: true
+  models: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+  name-normalizer: ToCamelCaseWithInitialisms
+  additional-initialisms:
+    - JWT    # JSON Web Token
+    - JWK    # JSON Web Key
+    - JWE    # JSON Web Encryption
+    - JWS    # JSON Web Signature
+    - JWKS   # JSON Web Key Set
+    - TLS    # Transport Layer Security
+    - SHA    # Secure Hash Algorithm
+    - RSA    # Rivest-Shamir-Adleman
+    - EC     # Elliptic Curve
+    - OKP    # Octet Key Pair
+    - HMAC   # Hash-based Message Authentication Code
+    - AES    # Advanced Encryption Standard
+    - GCM    # Galois/Counter Mode
+    - CBC    # Cipher Block Chaining
+    - IP     # Internet Protocol
+    - URI    # Uniform Resource Identifier

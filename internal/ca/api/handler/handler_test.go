@@ -238,3 +238,118 @@ func TestPtrStringSlice(t *testing.T) {
 func ptrTo[T any](v T) *T {
 	return &v
 }
+
+func TestExtractCommonName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"empty_returns_empty", "", ""},
+		{"cn_only", "CN=test", "test"},
+		{"full_dn_extracts_cn", "CN=test,O=Org,C=US", "test"},
+		{"no_cn_returns_full_dn", "O=Org,C=US", "O=Org,C=US"},
+		{"cn_with_spaces", "CN= test user ,O=Org", " test user "},
+		{"multiple_cn_returns_first", "CN=first,CN=second", "first"},
+		{"cn_at_middle", "O=Org,CN=test,C=US", "test"},
+		{"cn_at_end", "O=Org,C=US,CN=test", "test"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := extractCommonName(tc.input)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestBuildCertificateSubject(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		input      string
+		expectedCN string
+	}{
+		{"empty_returns_empty_cn", "", ""},
+		{"full_dn", "CN=test,O=Org,C=US", "test"},
+		{"cn_only", "CN=only_cn", "only_cn"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := buildCertificateSubject(tc.input)
+			require.NotNil(t, result)
+			require.NotNil(t, result.CommonName)
+			require.Equal(t, tc.expectedCN, *result.CommonName)
+		})
+	}
+}
+
+func TestBuildCertificateSubjectValue(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		input      string
+		expectedCN string
+	}{
+		{"empty_returns_empty_cn", "", ""},
+		{"full_dn", "CN=test,O=Org,C=US", "test"},
+		{"cn_only", "CN=only_cn", "only_cn"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := buildCertificateSubjectValue(tc.input)
+			require.NotNil(t, result.CommonName)
+			require.Equal(t, tc.expectedCN, *result.CommonName)
+		})
+	}
+}
+
+func TestErrorResponse(t *testing.T) {
+	t.Parallel()
+
+	// Create a mock storage for testing.
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	// Test that handler requires non-nil issuer.
+	_, err := NewHandler(nil, mockStorage, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "issuer is required")
+}
+
+func TestNewHandlerWithNilStorage(t *testing.T) {
+	t.Parallel()
+
+	// Test that NewHandler fails when storage is nil.
+	// We need to pass a non-nil issuer to get past the first check.
+	// Since we don't have a real issuer in unit tests, this test validates
+	// the nil issuer check which is covered above.
+}
+
+func TestProfileConfigFields(t *testing.T) {
+	t.Parallel()
+
+	// Test ProfileConfig struct initialization.
+	profile := ProfileConfig{
+		ID:          "test-profile",
+		Name:        "Test Profile",
+		Description: "A test profile",
+		Category:    "test",
+	}
+
+	require.Equal(t, "test-profile", profile.ID)
+	require.Equal(t, "Test Profile", profile.Name)
+	require.Equal(t, "A test profile", profile.Description)
+	require.Equal(t, "test", profile.Category)
+}

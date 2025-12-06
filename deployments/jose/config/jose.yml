@@ -1,0 +1,41 @@
+# JOSE Authority Server - Docker Configuration
+# Override settings for containerized deployment.
+
+# Server binding - 0.0.0.0 to accept connections from other containers.
+bind-public-address: "0.0.0.0"
+bind-public-port: 8092
+bind-admin-address: "0.0.0.0"
+bind-admin-port: 9092
+
+# TLS configuration.
+tls-enabled: true
+# Self-signed certificate will be generated on startup if not provided.
+tls-cert-file: ""
+tls-key-file: ""
+
+# CORS configuration - allow container and localhost access.
+cors-origins:
+  - "https://localhost:8092"
+  - "https://127.0.0.1:8092"
+  - "https://jose-server:8092"
+
+# OTLP telemetry - connects to collector sidecar.
+otlp-enabled: true
+otlp-endpoint: "opentelemetry-collector-contrib:4317"
+otlp-service: "jose-server"
+otlp-hostname: "jose-server"
+
+# Logging.
+log-level: "DEBUG"
+
+# Key storage - in-memory for simplicity.
+key-storage:
+  type: "memory"
+
+# API key authentication.
+api-key-auth:
+  enabled: true
+  keys:
+    - name: "demo"
+      key: "demo-api-key-insecure"
+      scopes: ["read", "write", "delete"]

@@ -176,12 +176,12 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.1.13 | JWT verify endpoint (POST `/jose/v1/jwt/verify`) | HIGH | 5 | ✅ |
 | I2.1.14 | OpenAPI spec for JOSE Authority (`api/jose/openapi_spec.yaml`) | HIGH | 5 | ✅ |
 | I2.1.15 | Generate server/client code with oapi-codegen | HIGH | 2 | ❌ |
-| I2.1.16 | Add API key authentication middleware | HIGH | 5 | ❌ |
+| I2.1.16 | Add API key authentication middleware | HIGH | 5 | ✅ |
 | I2.1.17 | Docker Compose integration | MEDIUM | 2 | ❌ |
 | I2.1.18 | JOSE Authority E2E tests | HIGH | 8 | ⚠️ |
 
 **Total Points**: 69
-**Completed Points**: 52 (75%)
+**Completed Points**: 57 (83%)
 **Evidence**: `cmd/jose-server/main.go`, `internal/jose/server/`, `api/jose/openapi_spec.yaml`, `internal/jose/server/server_test.go` passes
 
 ### 2.2 CA Server REST API
@@ -239,8 +239,8 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 18
 - **Total Points**: 69
-- **Completed**: 14 (78%)
-- **Completed Points**: 52
+- **Completed**: 15 (83%)
+- **Completed Points**: 57
 - **Critical Tasks**: 5 (all complete ✅)
 
 ### CA Server (2.2)
@@ -264,7 +264,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 47
 - **Total Points**: 195
-- **Completed Points**: 144 (74%)
+- **Completed Points**: 149 (76%)
 - **Estimated Remaining Duration**: 1-2 weeks
 
 ---

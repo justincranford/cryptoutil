@@ -338,10 +338,10 @@ func TestJWSSignAndVerify(t *testing.T) {
 }
 
 func TestJWEEncryptAndDecrypt(t *testing.T) {
-	// Skip for now - JWE requires keys with enc header set.
-	// The GenerateJWK function creates signing keys, not encryption keys.
-	// TODO: Add GenerateJWEJWK endpoint or modify GenerateJWK to support use parameter.
-	t.Skip("JWE requires encryption-specific key generation")
+	// Skip - JWE requires encryption-specific key generation (GenerateJWEJWK).
+	// The current server implementation only generates signing keys (GenerateJWSJWK).
+	// TODO: Add support for GenerateJWEJWK in handleJWKGenerate when use="enc".
+	t.Skip("JWE requires encryption-specific key generation - server currently only supports signing keys")
 }
 
 func TestJWTCreateAndVerify(t *testing.T) {
@@ -421,4 +421,320 @@ func TestWellKnownJWKS(t *testing.T) {
 	err := json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Contains(t, result, "keys")
+}
+
+// Additional edge case tests for better coverage.
+
+func TestJWSSignMissingKID(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWSSignRequest{
+		KID:     "",
+		Payload: "test",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jws/sign", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWSSignMissingPayload(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWSSignRequest{
+		KID:     "some-kid",
+		Payload: "",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jws/sign", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWSSignKeyNotFound(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWSSignRequest{
+		KID:     "nonexistent-kid",
+		Payload: "test",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jws/sign", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJWSVerifyMissingJWS(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWSVerifyRequest{
+		JWS: "",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jws/verify", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWSVerifyKeyNotFound(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWSVerifyRequest{
+		JWS: "eyJhbGciOiJFUzI1NiJ9.dGVzdA.signature",
+		KID: "nonexistent-kid",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jws/verify", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJWEEncryptMissingKID(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWEEncryptRequest{
+		KID:       "",
+		Plaintext: "test",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwe/encrypt", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWEEncryptMissingPlaintext(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWEEncryptRequest{
+		KID:       "some-kid",
+		Plaintext: "",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwe/encrypt", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWEEncryptKeyNotFound(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWEEncryptRequest{
+		KID:       "nonexistent-kid",
+		Plaintext: "test",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwe/encrypt", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJWEDecryptMissingJWE(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWEDecryptRequest{
+		JWE: "",
+		KID: "some-kid",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwe/decrypt", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWEDecryptMissingKID(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWEDecryptRequest{
+		JWE: "some-jwe",
+		KID: "",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwe/decrypt", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWEDecryptKeyNotFound(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWEDecryptRequest{
+		JWE: "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0...",
+		KID: "nonexistent-kid",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwe/decrypt", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJWTCreateMissingKID(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWTCreateRequest{
+		KID: "",
+		Claims: map[string]any{
+			"sub": "user",
+		},
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwt/sign", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWTCreateMissingClaims(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWTCreateRequest{
+		KID:    "some-kid",
+		Claims: nil,
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwt/sign", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWTCreateKeyNotFound(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWTCreateRequest{
+		KID: "nonexistent-kid",
+		Claims: map[string]any{
+			"sub": "user",
+		},
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwt/sign", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJWTVerifyMissingJWT(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWTVerifyRequest{
+		JWT: "",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwt/verify", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestJWTVerifyKeyNotFound(t *testing.T) {
+	t.Parallel()
+
+	reqBody, err := json.Marshal(JWTVerifyRequest{
+		JWT: "eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.sig",
+		KID: "nonexistent-kid",
+	})
+	require.NoError(t, err)
+
+	resp := doPost(t, testBaseURL+"/jose/v1/jwt/verify", reqBody)
+	defer closeBody(t, resp)
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJWKGetMissingKID(t *testing.T) {
+	t.Parallel()
+
+	// The path /jose/v1/jwk without a KID returns the list endpoint.
+	resp := doGet(t, testBaseURL+"/jose/v1/jwk")
+	defer closeBody(t, resp)
+
+	// Should return 200 and list keys (as this matches list endpoint).
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestJWKDeleteSuccess(t *testing.T) {
+	t.Parallel()
+
+	// Generate a key first.
+	genReqBody, err := json.Marshal(JWKGenerateRequest{
+		Algorithm: "EC/P256",
+		Use:       "sig",
+	})
+	require.NoError(t, err)
+
+	genResp := doPost(t, testBaseURL+"/jose/v1/jwk/generate", genReqBody)
+	defer closeBody(t, genResp)
+
+	require.Equal(t, http.StatusCreated, genResp.StatusCode)
+
+	var key JWKGenerateResponse
+
+	err = json.NewDecoder(genResp.Body).Decode(&key)
+	require.NoError(t, err)
+
+	// Delete the key.
+	deleteResp := doDelete(t, testBaseURL+"/jose/v1/jwk/"+key.KID+"/delete")
+	defer closeBody(t, deleteResp)
+
+	require.Equal(t, http.StatusNoContent, deleteResp.StatusCode)
+
+	// Verify key is deleted.
+	getResp := doGet(t, testBaseURL+"/jose/v1/jwk/"+key.KID)
+	defer closeBody(t, getResp)
+
+	require.Equal(t, http.StatusNotFound, getResp.StatusCode)
+}
+
+func TestInvalidJSONBody(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		endpoint string
+	}{
+		{"generate", "/jose/v1/jwk/generate"},
+		{"sign", "/jose/v1/jws/sign"},
+		{"verify", "/jose/v1/jws/verify"},
+		{"encrypt", "/jose/v1/jwe/encrypt"},
+		{"decrypt", "/jose/v1/jwe/decrypt"},
+		{"jwtCreate", "/jose/v1/jwt/sign"},
+		{"jwtVerify", "/jose/v1/jwt/verify"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			resp := doPost(t, testBaseURL+tc.endpoint, []byte("invalid json"))
+			defer closeBody(t, resp)
+
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+	}
 }
