@@ -201,12 +201,12 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.2.11 | OCSP responder endpoint (POST `/api/v1/ca/ocsp`) | HIGH | 8 | ✅ |
 | I2.2.12 | List profiles endpoint (GET `/api/v1/ca/profiles`) | MEDIUM | 2 | ✅ |
 | I2.2.13 | Get profile endpoint (GET `/api/v1/ca/profiles/{profileId}`) | MEDIUM | 2 | ✅ |
-| I2.2.14 | EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | ❌ |
-| I2.2.15 | EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | ❌ |
-| I2.2.16 | EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | ❌ |
-| I2.2.17 | EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | ❌ |
+| I2.2.14 | EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | ⚠️ |
+| I2.2.15 | EST simpleenroll endpoint (POST `/api/v1/ca/est/simpleenroll`) | HIGH | 8 | ⚠️ |
+| I2.2.16 | EST simplereenroll endpoint (POST `/api/v1/ca/est/simplereenroll`) | HIGH | 5 | ⚠️ |
+| I2.2.17 | EST serverkeygen endpoint (POST `/api/v1/ca/est/serverkeygen`) | MEDIUM | 5 | ⚠️ |
 | I2.2.18 | TSA timestamp service (`internal/ca/service/timestamp/`) | MEDIUM | 5 | ✅ |
-| I2.2.19 | TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ❌ |
+| I2.2.19 | TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ⚠️ |
 | I2.2.20 | Add mTLS authentication middleware | CRITICAL | 8 | ❌ |
 | I2.2.21 | Docker Compose integration | MEDIUM | 2 | ❌ |
 | I2.2.22 | CA Server cmd entry point (`cmd/ca-server/main.go`) | HIGH | 2 | ✅ |
