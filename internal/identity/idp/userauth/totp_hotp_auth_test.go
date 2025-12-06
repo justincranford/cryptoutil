@@ -349,3 +349,20 @@ func TestHOTPAuthenticator_InitiateAuth(t *testing.T) {
 	require.Equal(t, userID, challenge.UserID, "Challenge UserID should match")
 	require.Equal(t, "hotp", challenge.Method, "Challenge Method should be 'hotp'")
 }
+
+// TestTOTPAuthenticator_InitiateAuth tests TOTP InitiateAuth.
+func TestTOTPAuthenticator_InitiateAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+
+	userID := "test-user-totp-initiate"
+
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+	require.Equal(t, userID, challenge.UserID, "Challenge UserID should match")
+	require.Equal(t, "totp", challenge.Method, "Challenge Method should be 'totp'")
+}
