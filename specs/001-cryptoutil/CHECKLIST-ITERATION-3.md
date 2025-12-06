@@ -218,6 +218,18 @@ for TSA, CRL, OCSP endpoints, handler validation, and certificate serial lookup.
 4. **Code Quality**: All CA tests pass, linting clean
 5. **Coverage Progress**: CA handler 39.3% → 85.8% (+46.5%)
 6. **Bug Fix**: Fixed nil pointer in HandleOCSP BodyStream handling
+7. **Test Stability**: Fixed flaky parallel tests with FiberTestTimeoutMs constant (30s)
+
+### Recent Git Commits
+
+```text
+df762070 fix(authz): resolve flaky parallel test timeouts in client authentication flow tests
+13b1fe7f fix: resolve goconst and errcheck lint issues across test files
+5f786cd6 docs: update I3 checklist with 85.8% CA handler coverage
+e9f4e816 test(ca): add comprehensive handler tests for TSA/CRL/OCSP/NewHandler
+a450ebd7 test(ca): add EstSimpleEnroll tests with real issuer
+eddfc555 test(ca): add SubmitEnrollment tests with real issuer
+```
 
 ### Next Actions
 
@@ -228,5 +240,5 @@ for TSA, CRL, OCSP endpoints, handler validation, and certificate serial lookup.
 
 ---
 
-*Checklist Version: 3.0.0*
-*Created: January 2026*
+*Checklist Version: 3.0.1*
+*Updated: 2025-12-06*
