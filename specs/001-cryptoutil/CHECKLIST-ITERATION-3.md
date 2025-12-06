@@ -131,7 +131,7 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error
 | Task | Description | Current | Target | Status |
 |------|-------------|---------|--------|--------|
 | I3.2.1 | CA handler coverage | 85.8% | 90%+ | 🔄 In Progress |
-| I3.2.2 | userauth coverage | 42.6% | 90%+ | 🆕 |
+| I3.2.2 | userauth coverage | 51.6% | 90%+ | 🔄 In Progress |
 | I3.2.3 | jose server coverage | ~68.9% | 90%+ | 🆕 |
 | I3.2.4 | network package | 88.7% | 90%+ | 🆕 |
 | I3.2.5 | Overall audit | - | - | 🆕 |
@@ -139,6 +139,7 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error
 ### Coverage Improvements Made
 
 - CA handler: 39.3% → 85.8% (+46.5%)
+- userauth: 42.6% → 51.6% (+9.0%)
 - SubmitEnrollment: 0% → 85.2%
 - EstSimpleEnroll: 12.0% → 88.0%
 - buildIssueRequest: 0% → 78.6%
@@ -147,6 +148,10 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error
 - HandleOCSP: 22.7% → 64.0%
 - GetCRL: 17.9% → tested with DER/PEM formats
 - lookupCertificateBySerial: 46.2% → tested with valid/invalid PEM
+- InMemoryChallengeStore: 0% → 100%
+- InMemoryRateLimiter: 0% → 100%
+- TOTPAuthenticator: 0% → ~70%
+- DefaultOTPGenerator: 0% → 100%
 
 ---
 
@@ -205,10 +210,10 @@ for TSA, CRL, OCSP endpoints, handler validation, and certificate serial lookup.
 | Phase | Tasks | Complete | Partial | Progress |
 |-------|-------|----------|---------|----------|
 | 3.1 Complete I2 | 8 | 5 | 1 | 63% |
-| 3.2 Coverage | 5 | 1 | 1 | 40% |
+| 3.2 Coverage | 5 | 0 | 3 | 45% |
 | 3.3 Demo Videos | 6 | 0 | 0 | 0% |
 | 3.4 Workflows | 12 | 0 | 0 | 0% |
-| **Total** | 31 | 6 | 2 | **26%** |
+| **Total** | 31 | 5 | 4 | **30%** |
 
 ### Key Achievements
 
@@ -217,12 +222,15 @@ for TSA, CRL, OCSP endpoints, handler validation, and certificate serial lookup.
 3. **Enrollment Tracking**: In-memory status tracking with certificate lookup
 4. **Code Quality**: All CA tests pass, linting clean
 5. **Coverage Progress**: CA handler 39.3% → 85.8% (+46.5%)
-6. **Bug Fix**: Fixed nil pointer in HandleOCSP BodyStream handling
-7. **Test Stability**: Fixed flaky parallel tests with FiberTestTimeoutMs constant (30s)
+6. **Coverage Progress**: userauth 42.6% → 51.6% (+9.0%)
+7. **Bug Fix**: Fixed nil pointer in HandleOCSP BodyStream handling
+8. **Test Stability**: Fixed flaky parallel tests with FiberTestTimeoutMs constant (30s)
 
 ### Recent Git Commits
 
 ```text
+9712821f test(userauth): add comprehensive storage, rate limiter, TOTP, and OTP generator tests
+111d9a2d docs: update I3 checklist with flaky test fix and git commit history
 df762070 fix(authz): resolve flaky parallel test timeouts in client authentication flow tests
 13b1fe7f fix: resolve goconst and errcheck lint issues across test files
 5f786cd6 docs: update I3 checklist with 85.8% CA handler coverage
@@ -234,7 +242,7 @@ eddfc555 test(ca): add SubmitEnrollment tests with real issuer
 ### Next Actions
 
 1. Add E2E tests for JOSE and CA servers (I3.1.7, I3.1.8)
-2. Increase userauth coverage to 90%+ (I3.2.2)
+2. Continue increasing userauth coverage towards 90%+ (I3.2.2)
 3. Verify all CI/CD workflows (I3.4.x)
 4. Update documentation (I3.3.6)
 
