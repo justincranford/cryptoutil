@@ -120,6 +120,68 @@ func TestRiskBasedAuthenticator_DefaultThresholds(t *testing.T) {
 		"Low risk should require fewer factors than medium")
 }
 
+// TestRiskBasedAuthenticator_InitiateAuth tests InitiateAuth.
+func TestRiskBasedAuthenticator_InitiateAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	thresholds := userauth.DefaultRiskThresholds()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
+
+	userID := "test-user-risk"
+
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+	require.Equal(t, userID, challenge.UserID, "Challenge UserID should match")
+	require.Equal(t, "risk_based", challenge.Method, "Challenge Method should match")
+}
+
+// TestRiskBasedAuthenticator_VerifyAuth tests VerifyAuth.
+func TestRiskBasedAuthenticator_VerifyAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	thresholds := userauth.DefaultRiskThresholds()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
+
+	userID := "test-user-risk-verify"
+
+	// Initiate auth first.
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+
+	// VerifyAuth with invalid challenge ID.
+	_, err = auth.VerifyAuth(ctx, "invalid-uuid", "response")
+	require.Error(t, err, "VerifyAuth should fail with invalid challenge ID")
+	require.Contains(t, err.Error(), "invalid challenge ID", "Error should indicate invalid challenge ID")
+
+	// VerifyAuth with valid challenge - should return error requiring context-specific verification.
+	_, err = auth.VerifyAuth(ctx, challenge.ID.String(), "response")
+	require.Error(t, err, "VerifyAuth should fail with context-specific verification required")
+}
+
+// TestRiskBasedAuthenticator_VerifyAuthChallengeNotFound tests VerifyAuth with non-existent challenge.
+func TestRiskBasedAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	thresholds := userauth.DefaultRiskThresholds()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
+
+	// Generate a valid UUID that doesn't exist as a challenge.
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	_, err = auth.VerifyAuth(ctx, nonExistentID.String(), "response")
+	require.Error(t, err, "VerifyAuth should fail with non-existent challenge")
+	require.Contains(t, err.Error(), "challenge not found", "Error should indicate challenge not found")
+}
+
 func TestMockDeliveryService_NewService(t *testing.T) {
 	t.Parallel()
 
@@ -200,6 +262,69 @@ func TestStepUpAuthenticator_DefaultPolicies(t *testing.T) {
 	policies := userauth.DefaultStepUpPolicies()
 	require.NotNil(t, policies, "DefaultStepUpPolicies should return non-nil policies")
 	require.NotEmpty(t, policies, "Should have at least one default policy")
+}
+
+// TestStepUpAuthenticator_Method tests Method.
+func TestStepUpAuthenticator_Method(t *testing.T) {
+	t.Parallel()
+
+	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, nil, nil)
+	require.Equal(t, "step_up", auth.Method(), "Method should return 'step_up'")
+}
+
+// TestStepUpAuthenticator_InitiateAuth tests InitiateAuth.
+func TestStepUpAuthenticator_InitiateAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
+
+	userID := "test-user-stepup"
+
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+	require.Equal(t, userID, challenge.UserID, "Challenge UserID should match")
+	require.Equal(t, "step_up", challenge.Method, "Challenge Method should match")
+}
+
+// TestStepUpAuthenticator_VerifyAuth tests VerifyAuth.
+func TestStepUpAuthenticator_VerifyAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
+
+	userID := "test-user-stepup-verify"
+
+	// Initiate auth first.
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+
+	// VerifyAuth with invalid challenge ID.
+	_, err = auth.VerifyAuth(ctx, "invalid-uuid", "response")
+	require.Error(t, err, "VerifyAuth should fail with invalid challenge ID")
+	require.Contains(t, err.Error(), "invalid challenge ID", "Error should indicate invalid challenge ID")
+}
+
+// TestStepUpAuthenticator_VerifyAuthChallengeNotFound tests VerifyAuth with non-existent challenge.
+func TestStepUpAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
+
+	// Generate a valid UUID that doesn't exist as a challenge.
+	nonExistentID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	_, err = auth.VerifyAuth(ctx, nonExistentID.String(), "response")
+	require.Error(t, err, "VerifyAuth should fail with non-existent challenge")
+	require.Contains(t, err.Error(), "challenge not found", "Error should indicate challenge not found")
 }
 
 // TestMagicLinkAuthenticator_InitiateAuth tests InitiateAuth.
