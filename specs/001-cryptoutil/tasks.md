@@ -193,12 +193,12 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.2.3 | Generate server/client code with oapi-codegen | HIGH | 1 | ✅ |
 | I2.2.4 | List CAs endpoint (GET `/api/v1/ca/ca`) | HIGH | 5 | ✅ |
 | I2.2.5 | Get CA details endpoint (GET `/api/v1/ca/ca/{caId}`) | HIGH | 5 | ✅ |
-| I2.2.6 | Download CRL endpoint (GET `/api/v1/ca/ca/{caId}/crl`) | HIGH | 5 | ⚠️ |
+| I2.2.6 | Download CRL endpoint (GET `/api/v1/ca/ca/{caId}/crl`) | HIGH | 5 | ✅ |
 | I2.2.7 | Issue certificate endpoint (POST `/api/v1/ca/enrollments`) | CRITICAL | 8 | ✅ |
 | I2.2.8 | Get certificate endpoint (GET `/api/v1/ca/certificates/{serialNumber}`) | HIGH | 5 | ✅ |
 | I2.2.9 | Revoke certificate endpoint (POST `/api/v1/ca/certificates/{serialNumber}/revoke`) | CRITICAL | 5 | ✅ |
 | I2.2.10 | Get enrollment status endpoint (GET `/api/v1/ca/enrollments/{id}`) | HIGH | 5 | ⚠️ |
-| I2.2.11 | OCSP responder endpoint (POST `/api/v1/ca/ocsp`) | HIGH | 8 | ❌ |
+| I2.2.11 | OCSP responder endpoint (POST `/api/v1/ca/ocsp`) | HIGH | 8 | ✅ |
 | I2.2.12 | List profiles endpoint (GET `/api/v1/ca/profiles`) | MEDIUM | 2 | ✅ |
 | I2.2.13 | Get profile endpoint (GET `/api/v1/ca/profiles/{profileId}`) | MEDIUM | 2 | ✅ |
 | I2.2.14 | EST cacerts endpoint (GET `/api/v1/ca/est/cacerts`) | HIGH | 5 | ❌ |
@@ -209,12 +209,12 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 | I2.2.19 | TSA timestamp endpoint (POST `/api/v1/ca/tsa/timestamp`) | MEDIUM | 2 | ❌ |
 | I2.2.20 | Add mTLS authentication middleware | CRITICAL | 8 | ❌ |
 | I2.2.21 | Docker Compose integration | MEDIUM | 2 | ❌ |
-| I2.2.22 | CA Server cmd entry point (`cmd/ca-server/main.go`) | HIGH | 2 | ❌ |
+| I2.2.22 | CA Server cmd entry point (`cmd/ca-server/main.go`) | HIGH | 2 | ✅ |
 | I2.2.23 | CA Server E2E tests | HIGH | 8 | ⚠️ |
 
 **Total Points**: 105
-**Completed Points**: 52 (50%)
-**Evidence**: `internal/ca/api/handler/handler.go`, `api/ca/openapi_spec_enrollment.yaml`, tests pass
+**Completed Points**: 70 (67%)
+**Evidence**: `internal/ca/api/handler/handler.go`, `api/ca/openapi_spec_enrollment.yaml`, `cmd/ca-server/main.go`, tests pass
 
 ### 2.3 Integration
 
@@ -246,10 +246,10 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 23
 - **Total Points**: 105
-- **Completed**: 11 (48%)
-- **Partial**: 3 (13%)
-- **Completed Points**: 52
-- **Critical Tasks**: 3 (1 complete, 2 remaining)
+- **Completed**: 14 (61%)
+- **Partial**: 2 (9%)
+- **Completed Points**: 70
+- **Critical Tasks**: 3 (2 complete, 1 remaining)
 
 ### Integration (2.3)
 
@@ -262,7 +262,7 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 
 - **Total Tasks**: 47
 - **Total Points**: 195
-- **Completed Points**: 99 (51%)
+- **Completed Points**: 117 (60%)
 - **Estimated Remaining Duration**: 1-2 weeks
 
 ---
@@ -311,10 +311,10 @@ This file tracks implementation tasks derived from [plan.md](./plan.md). Tasks f
 2. ~~**I2.1.2** - JOSE Fiber router~~ ✅ DONE
 3. **I2.1.14** - JOSE OpenAPI spec
 4. **I2.1.16** - API key authentication
-5. **I2.2.11** - OCSP responder
+5. ~~**I2.2.11** - OCSP responder~~ ✅ DONE
 6. **I2.2.14-16** - EST protocol endpoints
-7. **I2.2.22** - CA Server cmd entry point
-8. **I2.2.6** - Wire up CRL endpoint to revocation.CRLService
+7. ~~**I2.2.22** - CA Server cmd entry point~~ ✅ DONE
+8. ~~**I2.2.6** - Wire up CRL endpoint to revocation.CRLService~~ ✅ DONE
 
 ### MEDIUM (Nice to Have)
 
