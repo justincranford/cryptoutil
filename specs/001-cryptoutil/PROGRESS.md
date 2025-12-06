@@ -432,7 +432,7 @@ All tests pass with `go test -v ./internal/identity/authz/... -run="TestIntrospe
    - Solution: Use standard transactions or direct queries for read operations
 
 2. ✅ **Coverage Threshold Updates (5% Increment)**
-   - Production code: 85% → 90%
+   - Production code: 85% → 95%
    - Infrastructure (cicd): 90% → 95%
    - Utility code: 100% (unchanged)
    - Updated 18+ files across:

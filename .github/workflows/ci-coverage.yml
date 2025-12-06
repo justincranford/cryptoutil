@@ -117,10 +117,10 @@ jobs:
         # Extract current coverage percentage from coverage-func.txt
         CURRENT_COVERAGE=$(grep -oP 'total:\s+\(statements\)\s+\K[\d.]+' workflow-reports/coverage/coverage-func.txt || echo "0.0")
         echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
-        echo "📊 Current coverage: ${CURRENT_COVERAGE}%"
+        echo "📋 Current coverage: ${CURRENT_COVERAGE}%"
 
-        # Coverage threshold enforcement (90% minimum per Phase 5 P5.1)
-        MINIMUM_COVERAGE=90.0
+        # Coverage threshold enforcement (95% minimum per Constitution v2.0.0)
+        MINIMUM_COVERAGE=95.0
         if (( $(echo "$CURRENT_COVERAGE < $MINIMUM_COVERAGE" | bc -l) )); then
           echo "❌ Coverage ${CURRENT_COVERAGE}% is below minimum threshold ${MINIMUM_COVERAGE}%"
           echo "coverage_passed=false" >> $GITHUB_OUTPUT
@@ -201,7 +201,7 @@ jobs:
     - name: Enforce coverage threshold
       if: steps.coverage-trend.outputs.coverage_passed == 'false'
       run: |
-        echo "❌ Coverage below minimum threshold of 90%"
+        echo "❌ Coverage below minimum threshold of 95%"
         echo "Current coverage: ${{ steps.coverage-trend.outputs.current_coverage }}%"
         exit 1
 

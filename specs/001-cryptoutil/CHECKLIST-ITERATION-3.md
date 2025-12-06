@@ -72,7 +72,7 @@ ok      cryptoutil/internal/ca/service/timestamp  0.293s
 | I3.1.1 | EST cacerts endpoint | ✅ | Returns PEM certificate |
 | I3.1.2 | EST simpleenroll endpoint | ✅ | Accepts DER/Base64/PEM CSR |
 | I3.1.3 | EST simplereenroll endpoint | ✅ | Delegates to simpleenroll |
-| I3.1.4 | EST serverkeygen endpoint | ⚠️ BLOCKED | Needs PKCS#7/CMS library |
+| I3.1.4 | EST serverkeygen endpoint | ⚠️ BLOCKED | Needs to use go.mozilla.org/pkcs7 for PKCS#7/CMS library |
 | I3.1.5 | TSA timestamp endpoint | ✅ | Full ASN.1 parsing |
 | I3.1.6 | Enrollment status endpoint | ✅ | In-memory tracker |
 | I3.1.7 | JOSE E2E tests | 🆕 | Not started |

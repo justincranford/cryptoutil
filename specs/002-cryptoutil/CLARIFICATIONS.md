@@ -201,7 +201,7 @@ This document identifies ambiguities, incomplete items, and clarifications neede
 **Question**: After incrementing coverage targets from 90/95/100 to 95/100/100, how aggressive should coverage improvement be?
 
 **Current Targets** (from constitution):
-- 90%+ production coverage
+- 95%+ production coverage
 - 95%+ infrastructure (cicd)
 - 100% utility code
 

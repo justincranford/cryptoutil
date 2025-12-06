@@ -47,7 +47,7 @@ This checklist covers production deployment procedures for cryptoutil services, 
   - [ ] All unit tests passing (`go test ./...`)
   - [ ] Integration tests passing (`go test ./internal/identity/integration/...`)
   - [ ] E2E tests validated in staging environment
-  - [ ] Test coverage ≥90% for production code
+  - [ ] Test coverage ≥95% for production code
 
 - [ ] **Backup Strategy**
   - [ ] Database backup created and verified

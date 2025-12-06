@@ -37,7 +37,7 @@ This document verifies Iteration 1 completion as part of `/speckit.checklist`.
 - [x] `go test ./... -p=1` passes with 0 failures
 - [x] Identity tests pass: `go test ./internal/identity/... -p=1` ✅
 - [x] KMS tests pass: `go test ./internal/kms/... -p=1` ✅
-- [x] Coverage maintained at targets (90%+ production)
+- [x] Coverage maintained at targets (95%+ production)
 - [x] Race conditions identified and documented (require `-p=1` for full parallel safety)
 
 **Evidence**:

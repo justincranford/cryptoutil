@@ -45,7 +45,7 @@ This document verifies Iteration 2 completion as part of `/speckit.checklist`.
 
 - [x] `go test ./internal/jose/...` passes
 - [x] `go test ./internal/ca/...` passes
-- [x] Coverage maintained at targets (90%+ production)
+- [x] Coverage maintained at targets (95%+ production)
 - [x] Server tests pass: `internal/jose/server/server_test.go`
 
 **Evidence**:
