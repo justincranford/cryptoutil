@@ -417,3 +417,38 @@ func TestExtractIPFromContext(t *testing.T) {
 		})
 	}
 }
+
+// TestPerIPRateLimiterCleanup tests the Cleanup function.
+func TestPerIPRateLimiterCleanup(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	meterProvider := otel.GetMeterProvider()
+
+	store, err := NewDatabaseRateLimitStore(meterProvider)
+	require.NoError(t, err, "NewDatabaseRateLimitStore should succeed")
+
+	limiter, err := NewPerIPRateLimiter(store, time.Hour, 100, meterProvider)
+	require.NoError(t, err, "NewPerIPRateLimiter should succeed")
+
+	// Record some test data.
+	testIP := "192.168.1.1"
+	now := time.Now()
+
+	// Record an old attempt (older than window).
+	err = store.RecordAttempt(ctx, testIP, now.Add(-3*time.Hour))
+	require.NoError(t, err, "RecordAttempt should succeed")
+
+	// Record a recent attempt (within window).
+	err = store.RecordAttempt(ctx, testIP, now.Add(-30*time.Minute))
+	require.NoError(t, err, "RecordAttempt should succeed")
+
+	// Cleanup expired records.
+	err = limiter.Cleanup(ctx)
+	require.NoError(t, err, "Cleanup should succeed")
+
+	// After cleanup, only recent attempt should remain.
+	count, err := store.CountAttempts(ctx, testIP, 24*time.Hour)
+	require.NoError(t, err, "CountAttempts should succeed")
+	require.Equal(t, 1, count, "Only recent attempt should remain after cleanup")
+}

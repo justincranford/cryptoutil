@@ -185,3 +185,26 @@ func TestDeliveryServiceInterfaceCompliance(t *testing.T) {
 		require.Contains(t, err.Error(), "not supported by email provider")
 	})
 }
+
+// TestMockEmailProviderReset tests email provider reset functionality.
+func TestMockEmailProviderReset(t *testing.T) {
+	t.Parallel()
+
+	provider := NewMockEmailProvider()
+	provider.SetShouldFail(true, nil)
+	provider.InjectNetworkError(1, fmt.Errorf("test error"))
+
+	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
+
+	_ = provider.SendEmail(ctx, "user@example.com", "Test", "Body") //nolint:errcheck // Test setup - error intentionally ignored to test reset functionality
+
+	provider.Reset()
+
+	// After reset, provider should work normally.
+	err := provider.SendEmail(ctx, "user@example.com", "After reset", "Body")
+	require.NoError(t, err)
+
+	emails := provider.GetSentEmails()
+	require.Len(t, emails, 1, "Reset should clear previous emails")
+	require.Equal(t, 1, provider.GetCallCount(), "Reset should clear call count")
+}
