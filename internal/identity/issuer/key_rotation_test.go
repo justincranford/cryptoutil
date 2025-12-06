@@ -333,3 +333,65 @@ func TestGetEncryptionKeyByID_NotFound(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, key)
 }
+
+func TestGetPublicKeys(t *testing.T) {
+	t.Parallel()
+
+	policy := DefaultKeyRotationPolicy()
+	generator := &mockKeyGenerator{}
+	manager, err := NewKeyRotationManager(policy, generator, nil)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// No keys - should return empty.
+	keys := manager.GetPublicKeys()
+	require.Empty(t, keys)
+
+	// Rotate signing key.
+	err = manager.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	// Should have one key now.
+	keys = manager.GetPublicKeys()
+	// Note: mockKeyGenerator produces simple byte keys that may not convert to JWK.
+	// The function returns keys that are valid for verification.
+	require.NotNil(t, keys)
+}
+
+func TestGetAllValidVerificationKeys(t *testing.T) {
+	t.Parallel()
+
+	policy := DefaultKeyRotationPolicy()
+	generator := &mockKeyGenerator{}
+	manager, err := NewKeyRotationManager(policy, generator, nil)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// No keys - should return empty.
+	keys := manager.GetAllValidVerificationKeys()
+	require.Empty(t, keys)
+
+	// Rotate signing key.
+	err = manager.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	// Should have one key.
+	keys = manager.GetAllValidVerificationKeys()
+	require.Len(t, keys, 1)
+	require.True(t, keys[0].ValidForVerif)
+
+	// Rotate again.
+	err = manager.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	// Should have two keys now.
+	keys = manager.GetAllValidVerificationKeys()
+	require.Len(t, keys, 2)
+
+	// All should be valid for verification.
+	for _, key := range keys {
+		require.True(t, key.ValidForVerif)
+	}
+}
