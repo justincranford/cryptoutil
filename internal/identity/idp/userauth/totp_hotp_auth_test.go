@@ -113,3 +113,239 @@ func TestTOTPAuthenticator_ValidateTOTPInvalidSecret(t *testing.T) {
 	valid := auth.ValidateTOTP(ctx, "invalid-base32!", "123456")
 	require.False(t, valid, "ValidateTOTP should fail with invalid secret")
 }
+
+// mockCounterStore implements CounterStore for testing HOTP.
+type mockCounterStore struct {
+	counters map[string]uint64
+}
+
+func newMockCounterStore() *mockCounterStore {
+	return &mockCounterStore{
+		counters: make(map[string]uint64),
+	}
+}
+
+func (m *mockCounterStore) GetCounter(_ context.Context, userID string) (uint64, error) {
+	counter, ok := m.counters[userID]
+	if !ok {
+		return 0, nil // Default to 0 for new users.
+	}
+
+	return counter, nil
+}
+
+func (m *mockCounterStore) IncrementCounter(_ context.Context, userID string) (uint64, error) {
+	m.counters[userID]++
+
+	return m.counters[userID], nil
+}
+
+func (m *mockCounterStore) SetCounter(_ context.Context, userID string, counter uint64) error {
+	m.counters[userID] = counter
+
+	return nil
+}
+
+// TestHOTPAuthenticator_NewAuthenticator tests NewHOTPAuthenticator.
+func TestHOTPAuthenticator_NewAuthenticator(t *testing.T) {
+	t.Parallel()
+
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	require.NotNil(t, auth, "NewHOTPAuthenticator should return non-nil authenticator")
+}
+
+// TestHOTPAuthenticator_Method tests Method.
+func TestHOTPAuthenticator_Method(t *testing.T) {
+	t.Parallel()
+
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	require.Equal(t, "hotp", auth.Method(), "Method should return 'hotp'")
+}
+
+// TestHOTPAuthenticator_GenerateSecret tests GenerateSecret.
+func TestHOTPAuthenticator_GenerateSecret(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	secret, err := auth.GenerateSecret(ctx)
+	require.NoError(t, err, "GenerateSecret should succeed")
+	require.NotEmpty(t, secret, "Secret should not be empty")
+
+	// Secret should be base32 encoded.
+	for _, c := range secret {
+		isValidBase32 := (c >= 'A' && c <= 'Z') || (c >= '2' && c <= '7')
+		require.True(t, isValidBase32, "Secret should be valid base32: %s", secret)
+	}
+}
+
+// TestHOTPAuthenticator_GenerateSecretUniqueness tests that secrets are unique.
+func TestHOTPAuthenticator_GenerateSecretUniqueness(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	secrets := make(map[string]bool)
+
+	for range 10 {
+		secret, err := auth.GenerateSecret(ctx)
+		require.NoError(t, err, "GenerateSecret should succeed")
+		require.False(t, secrets[secret], "Secret should be unique")
+		secrets[secret] = true
+	}
+}
+
+// TestHOTPAuthenticator_GenerateHOTP tests GenerateHOTP.
+func TestHOTPAuthenticator_GenerateHOTP(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	// Generate a secret.
+	secret, err := auth.GenerateSecret(ctx)
+	require.NoError(t, err, "GenerateSecret should succeed")
+
+	// Generate HOTP codes at different counters.
+	code0, err := auth.GenerateHOTP(ctx, secret, 0)
+	require.NoError(t, err, "GenerateHOTP should succeed for counter 0")
+	require.Len(t, code0, 6, "HOTP code should be 6 digits")
+
+	code1, err := auth.GenerateHOTP(ctx, secret, 1)
+	require.NoError(t, err, "GenerateHOTP should succeed for counter 1")
+	require.Len(t, code1, 6, "HOTP code should be 6 digits")
+
+	// Codes at different counters should be different (with high probability).
+	// Note: There's a tiny chance they could be the same, but it's astronomically unlikely.
+	require.NotEqual(t, code0, code1, "HOTP codes at different counters should differ")
+}
+
+// TestHOTPAuthenticator_GenerateHOTPDeterministic tests that same secret+counter produces same code.
+func TestHOTPAuthenticator_GenerateHOTPDeterministic(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	// Use a fixed secret for deterministic testing.
+	secret := "JBSWY3DPEHPK3PXP"
+
+	code1, err := auth.GenerateHOTP(ctx, secret, 0)
+	require.NoError(t, err, "GenerateHOTP should succeed")
+
+	code2, err := auth.GenerateHOTP(ctx, secret, 0)
+	require.NoError(t, err, "GenerateHOTP should succeed")
+
+	require.Equal(t, code1, code2, "Same secret+counter should produce same HOTP code")
+}
+
+// TestHOTPAuthenticator_ValidateHOTP tests ValidateHOTP.
+func TestHOTPAuthenticator_ValidateHOTP(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	// Generate a secret.
+	secret, err := auth.GenerateSecret(ctx)
+	require.NoError(t, err, "GenerateSecret should succeed")
+
+	userID := "test-user-hotp"
+
+	// Generate HOTP code at counter 0.
+	code, err := auth.GenerateHOTP(ctx, secret, 0)
+	require.NoError(t, err, "GenerateHOTP should succeed")
+
+	// Validate the code.
+	valid, err := auth.ValidateHOTP(ctx, userID, secret, code)
+	require.NoError(t, err, "ValidateHOTP should succeed")
+	require.True(t, valid, "ValidateHOTP should return true for valid code")
+
+	// Counter should have been incremented.
+	counter, err := counterStore.GetCounter(ctx, userID)
+	require.NoError(t, err, "GetCounter should succeed")
+	require.Equal(t, uint64(1), counter, "Counter should be incremented after validation")
+}
+
+// TestHOTPAuthenticator_ValidateHOTPInvalid tests ValidateHOTP with invalid code.
+func TestHOTPAuthenticator_ValidateHOTPInvalid(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	secret, err := auth.GenerateSecret(ctx)
+	require.NoError(t, err, "GenerateSecret should succeed")
+
+	userID := "test-user-hotp-invalid"
+
+	// Validate with invalid code.
+	valid, err := auth.ValidateHOTP(ctx, userID, secret, "000000")
+	require.NoError(t, err, "ValidateHOTP should not error for invalid code")
+	require.False(t, valid, "ValidateHOTP should return false for invalid code")
+}
+
+// TestHOTPAuthenticator_ValidateHOTPLookahead tests lookahead window.
+func TestHOTPAuthenticator_ValidateHOTPLookahead(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	secret, err := auth.GenerateSecret(ctx)
+	require.NoError(t, err, "GenerateSecret should succeed")
+
+	userID := "test-user-hotp-lookahead"
+
+	// Generate HOTP code at counter 5 (within lookahead window of 10).
+	code, err := auth.GenerateHOTP(ctx, secret, 5)
+	require.NoError(t, err, "GenerateHOTP should succeed")
+
+	// Validate - should succeed due to lookahead.
+	valid, err := auth.ValidateHOTP(ctx, userID, secret, code)
+	require.NoError(t, err, "ValidateHOTP should succeed")
+	require.True(t, valid, "ValidateHOTP should succeed within lookahead window")
+
+	// Counter should be set to 6 after validation.
+	counter, err := counterStore.GetCounter(ctx, userID)
+	require.NoError(t, err, "GetCounter should succeed")
+	require.Equal(t, uint64(6), counter, "Counter should be set to next value after validation")
+}
+
+// TestHOTPAuthenticator_InitiateAuth tests InitiateAuth.
+func TestHOTPAuthenticator_InitiateAuth(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := userauth.NewInMemoryChallengeStore()
+	counterStore := newMockCounterStore()
+	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+
+	userID := "test-user-initiate"
+
+	challenge, err := auth.InitiateAuth(ctx, userID)
+	require.NoError(t, err, "InitiateAuth should succeed")
+	require.NotNil(t, challenge, "Challenge should not be nil")
+	require.Equal(t, userID, challenge.UserID, "Challenge UserID should match")
+	require.Equal(t, "hotp", challenge.Method, "Challenge Method should be 'hotp'")
+}
