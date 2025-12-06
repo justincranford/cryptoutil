@@ -441,7 +441,7 @@ project-root/
 - Focus: Core infrastructure, domain models, data access
 - Tasks: 01, 02
 - Deliverables: Working database, domain models, repositories
-- Exit Criteria: All tests passing, 90%+ coverage
+- Exit Criteria: All tests passing, 95%+ coverage, ≥80% mutation score
 
 **Phase 2: Core Features** (Days X-Y)
 
@@ -462,7 +462,7 @@ project-root/
 - Focus: System integration, comprehensive testing
 - Tasks: Testing tasks
 - Deliverables: E2E test suites, integration verified
-- Exit Criteria: 95%+ coverage, load tests passing
+- Exit Criteria: 95%+ coverage, load tests passing, ≥80% mutation score
 
 **Phase 5: Documentation & Handoff** (Days W-V)
 
@@ -560,7 +560,8 @@ pre-commit run --all-files  # Before git push
 **ALWAYS enforce before marking task complete:**
 
 - ✅ All tests passing: `runTests` tool shows 0 failures
-- ✅ Coverage threshold: ≥95% for infrastructure, ≥90% for features, ≥100% for utilities
+- ✅ Coverage threshold: ≥100% for infrastructure, ≥95% for features, ≥100% for utilities
+- ✅ Mutation testing: ≥80% gremlins score per package
 - ✅ No linting errors: `golangci-lint run ./...` shows 0 issues
 - ✅ No TODO comments: Grep search shows 0 TODOs in modified files
 - ✅ Documentation updated: README, inline docs, API specs
@@ -641,7 +642,10 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Test happy paths (expected inputs/outputs)
 - [ ] Test sad paths (error conditions, edge cases)
 - [ ] Use `t.Parallel()` for all tests (validates concurrent safety)
-- [ ] Achieve target coverage (≥95% infrastructure, ≥90% features, ≥100% utilities)
+- [ ] Achieve target coverage (≥100% infrastructure, ≥95% features, ≥100% utilities)
+- [ ] Achieve mutation score ≥80% per package (gremlins)
+- [ ] Add benchmarks for cryptographic operations (if applicable)
+- [ ] Add fuzz tests for parsers/validators (minimum 15s)
 - [ ] Run tests: `runTests` tool (NEVER `go test` in terminal)
 
 #### Quality Assurance
@@ -1111,7 +1115,8 @@ Based on industry best practices, here are additional corrective action strategi
 - [ ] Happy path coverage (expected inputs/outputs)
 - [ ] Sad path coverage (error conditions, edge cases)
 - [ ] All tests pass: `runTests` tool shows 0 failures
-- [ ] Coverage meets threshold (≥95% infra, ≥90% features, ≥100% utils)
+- [ ] Coverage meets threshold (≥100% infra, ≥95% features, ≥100% utils)
+- [ ] Mutation score meets threshold (≥80% per package)
 - [ ] Tests use `t.Parallel()` (validates concurrent safety)
 - [ ] Integration tests verify component interactions
 
@@ -1139,7 +1144,7 @@ Based on industry best practices, here are additional corrective action strategi
 - **Original Plan**: X% complete (Y/Z tasks)
 - **Remediation Plan**: X% complete (Y/Z tasks)
 - **Requirements Coverage**: X% (Y/Z requirements validated)
-- **Test Coverage**: X% (≥90% target)
+- **Test Coverage**: X% (≥95% target)
 - **TODO Count**: X total (Y CRITICAL, Z HIGH, A MEDIUM, B LOW)
 
 ## Production Blockers
