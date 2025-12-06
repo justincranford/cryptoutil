@@ -22,14 +22,78 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilCABootstrap "cryptoutil/internal/ca/bootstrap"
+	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
+	cryptoutilCAIntermediate "cryptoutil/internal/ca/intermediate"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
+
+// testIssuerSetup contains a test issuer and related configuration.
+type testIssuerSetup struct {
+	Issuer   *cryptoutilCAServiceIssuer.Issuer
+	Provider cryptoutilCACrypto.Provider
+}
+
+// createTestIssuer creates a real issuer for testing.
+func createTestIssuer(t *testing.T) *testIssuerSetup {
+	t.Helper()
+
+	provider := cryptoutilCACrypto.NewSoftwareProvider()
+
+	// Create root CA.
+	bootstrapper := cryptoutilCABootstrap.NewBootstrapper(provider)
+	rootConfig := &cryptoutilCABootstrap.RootCAConfig{
+		Name: "Test Root CA",
+		KeySpec: cryptoutilCACrypto.KeySpec{
+			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			ECDSACurve: "P-256",
+		},
+		ValidityDuration:  20 * 365 * 24 * time.Hour,
+		PathLenConstraint: 2,
+	}
+
+	rootCA, _, err := bootstrapper.Bootstrap(rootConfig)
+	require.NoError(t, err)
+
+	// Create intermediate/issuing CA.
+	provisioner := cryptoutilCAIntermediate.NewProvisioner(provider)
+	intermediateConfig := &cryptoutilCAIntermediate.IntermediateCAConfig{
+		Name: "Test Issuing CA",
+		KeySpec: cryptoutilCACrypto.KeySpec{
+			Type:       cryptoutilCACrypto.KeyTypeECDSA,
+			ECDSACurve: "P-256",
+		},
+		ValidityDuration:  10 * 365 * 24 * time.Hour,
+		PathLenConstraint: 0,
+		IssuerCertificate: rootCA.Certificate,
+		IssuerPrivateKey:  rootCA.PrivateKey,
+	}
+
+	issuingCA, _, err := provisioner.Provision(intermediateConfig)
+	require.NoError(t, err)
+
+	// Create issuer.
+	caConfig := &cryptoutilCAServiceIssuer.IssuingCAConfig{
+		Name:        "test-ca",
+		Certificate: issuingCA.Certificate,
+		PrivateKey:  issuingCA.PrivateKey,
+	}
+
+	issuer, err := cryptoutilCAServiceIssuer.NewIssuer(provider, caConfig)
+	require.NoError(t, err)
+
+	return &testIssuerSetup{
+		Issuer:   issuer,
+		Provider: provider,
+	}
+}
 
 func TestMapCategory(t *testing.T) {
 	t.Parallel()
@@ -1042,16 +1106,6 @@ func TestGetCRL(t *testing.T) {
 	})
 }
 
-func TestEstCACerts(t *testing.T) {
-	t.Parallel()
-
-	// EstCACerts requires an issuer to be configured.
-	// Since creating an issuer requires crypto key generation, we test the error path.
-	// Note: When issuer is nil, EstCACerts will panic due to nil pointer dereference
-	// when calling h.issuer.GetCAConfig(). This is a known limitation.
-	// A production implementation should check for nil issuer.
-}
-
 func TestListProfiles(t *testing.T) {
 	t.Parallel()
 
@@ -1161,4 +1215,631 @@ func TestGetKeyInfoWithRSA4096(t *testing.T) {
 
 	require.Equal(t, "RSA", algo)
 	require.Equal(t, 4096, size)
+}
+
+func TestEnrollmentTracker(t *testing.T) {
+	t.Parallel()
+
+	t.Run("NewEnrollmentTracker", func(t *testing.T) {
+		t.Parallel()
+
+		tracker := newEnrollmentTracker(100)
+		require.NotNil(t, tracker)
+		require.NotNil(t, tracker.requests)
+		require.Equal(t, 100, tracker.maxEntries)
+	})
+
+	t.Run("TrackAndGet", func(t *testing.T) {
+		t.Parallel()
+
+		tracker := newEnrollmentTracker(100)
+
+		requestID := googleUuid.New()
+		status := cryptoutilCAServer.EnrollmentStatusResponseStatusIssued
+		serialNumber := "ABC123"
+
+		tracker.track(requestID, status, serialNumber)
+
+		entry, found := tracker.get(requestID)
+		require.True(t, found)
+		require.Equal(t, requestID, entry.RequestID)
+		require.Equal(t, status, entry.Status)
+		require.Equal(t, serialNumber, entry.SerialNumber)
+	})
+
+	t.Run("GetNotFound", func(t *testing.T) {
+		t.Parallel()
+
+		tracker := newEnrollmentTracker(100)
+
+		requestID := googleUuid.New()
+		entry, found := tracker.get(requestID)
+		require.False(t, found)
+		require.Nil(t, entry)
+	})
+
+	t.Run("MaxEntriesEnforced", func(t *testing.T) {
+		t.Parallel()
+
+		maxEntries := 3
+		tracker := newEnrollmentTracker(maxEntries)
+
+		// Add maxEntries items.
+		ids := make([]googleUuid.UUID, maxEntries+1)
+		for i := 0; i < maxEntries; i++ {
+			ids[i] = googleUuid.New()
+			tracker.track(ids[i], cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, "serial")
+			time.Sleep(time.Millisecond) // Ensure different timestamps.
+		}
+
+		// Add one more (should evict oldest).
+		ids[maxEntries] = googleUuid.New()
+		tracker.track(ids[maxEntries], cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, "serial")
+
+		// First entry should be evicted.
+		_, found := tracker.get(ids[0])
+		require.False(t, found, "oldest entry should be evicted")
+
+		// Last entry should exist.
+		_, found = tracker.get(ids[maxEntries])
+		require.True(t, found, "newest entry should exist")
+	})
+}
+
+func TestParseESTCSR(t *testing.T) {
+	t.Parallel()
+
+	handler := &Handler{}
+
+	t.Run("ValidPEMCSR", func(t *testing.T) {
+		t.Parallel()
+
+		// Generate a test CSR.
+		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+
+		template := &x509.CertificateRequest{
+			Subject: pkix.Name{
+				CommonName: "test.example.com",
+			},
+		}
+		csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+		require.NoError(t, err)
+
+		csrPEM := pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE REQUEST",
+			Bytes: csrDER,
+		})
+
+		csr, err := handler.parseESTCSR(csrPEM)
+		require.NoError(t, err)
+		require.NotNil(t, csr)
+		require.Equal(t, "test.example.com", csr.Subject.CommonName)
+	})
+
+	t.Run("ValidDERCSR", func(t *testing.T) {
+		t.Parallel()
+
+		// Generate a test CSR.
+		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+
+		template := &x509.CertificateRequest{
+			Subject: pkix.Name{
+				CommonName: "test.example.com",
+			},
+		}
+		csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+		require.NoError(t, err)
+
+		csr, err := handler.parseESTCSR(csrDER)
+		require.NoError(t, err)
+		require.NotNil(t, csr)
+	})
+
+	t.Run("InvalidCSR", func(t *testing.T) {
+		t.Parallel()
+
+		csr, err := handler.parseESTCSR([]byte("invalid data"))
+		require.Error(t, err)
+		require.Nil(t, csr)
+		require.Contains(t, err.Error(), "invalid format")
+	})
+}
+
+func TestBuildESTIssueRequest(t *testing.T) {
+	t.Parallel()
+
+	handler := &Handler{}
+
+	// Generate a test CSR.
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Test Org"},
+		},
+		DNSNames: []string{"test.example.com", "www.test.example.com"},
+	}
+	csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+	require.NoError(t, err)
+
+	csr, err := x509.ParseCertificateRequest(csrDER)
+	require.NoError(t, err)
+
+	profile := &ProfileConfig{
+		ID:   "test-profile",
+		Name: "Test Profile",
+	}
+
+	issueReq := handler.buildESTIssueRequest(csr, profile)
+	require.NotNil(t, issueReq)
+	require.NotNil(t, issueReq.SubjectRequest)
+	require.Equal(t, "test.example.com", issueReq.SubjectRequest.CommonName)
+	require.Equal(t, []string{"Test Org"}, issueReq.SubjectRequest.Organization)
+	require.Equal(t, []string{"test.example.com", "www.test.example.com"}, issueReq.SubjectRequest.DNSNames)
+}
+
+func TestListCertificates(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	// Add test certificates to storage.
+	cert1 := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.New(),
+		SerialNumber:   "ABC123",
+		SubjectDN:      "CN=test1.example.com,O=Test Org",
+		IssuerDN:       "CN=Test CA,O=Test Org",
+		NotBefore:      time.Now().Add(-time.Hour),
+		NotAfter:       time.Now().Add(time.Hour * 24 * 365),
+		Status:         cryptoutilCAStorage.StatusActive,
+		ProfileID:      "tls-server",
+		CertificatePEM: "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----",
+	}
+	err := mockStorage.Store(context.Background(), cert1)
+	require.NoError(t, err)
+
+	cert2 := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.New(),
+		SerialNumber:   "DEF456",
+		SubjectDN:      "CN=test2.example.com,O=Test Org",
+		IssuerDN:       "CN=Test CA,O=Test Org",
+		NotBefore:      time.Now().Add(-time.Hour),
+		NotAfter:       time.Now().Add(time.Hour * 24 * 365),
+		Status:         cryptoutilCAStorage.StatusRevoked,
+		ProfileID:      "tls-server",
+		CertificatePEM: "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----",
+	}
+	err = mockStorage.Store(context.Background(), cert2)
+	require.NoError(t, err)
+
+	handler := &Handler{storage: mockStorage}
+
+	app.Get("/certificates", func(c *fiber.Ctx) error {
+		params := cryptoutilCAServer.ListCertificatesParams{}
+
+		return handler.ListCertificates(c, params)
+	})
+
+	t.Run("ListAll", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/certificates", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestGetCertificate(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	testCert := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.New(),
+		SerialNumber:   "SERIAL123",
+		SubjectDN:      "CN=test.example.com,O=Test Org",
+		IssuerDN:       "CN=Test CA,O=Test Org",
+		NotBefore:      time.Now().Add(-time.Hour),
+		NotAfter:       time.Now().Add(time.Hour * 24 * 365),
+		Status:         cryptoutilCAStorage.StatusActive,
+		ProfileID:      "tls-server",
+		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+	}
+	err := mockStorage.Store(context.Background(), testCert)
+	require.NoError(t, err)
+
+	handler := &Handler{storage: mockStorage}
+
+	app.Get("/certificates/:serialNumber", func(c *fiber.Ctx) error {
+		return handler.GetCertificate(c, c.Params("serialNumber"))
+	})
+
+	t.Run("Found", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/certificates/SERIAL123", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/certificates/NONEXISTENT", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("EmptySerial", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/certificates/", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestGetCertificateChain(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	testCert := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.New(),
+		SerialNumber:   "CHAIN123",
+		SubjectDN:      "CN=test.example.com",
+		IssuerDN:       "CN=Test CA",
+		NotBefore:      time.Now().Add(-time.Hour),
+		NotAfter:       time.Now().Add(time.Hour * 24 * 365),
+		Status:         cryptoutilCAStorage.StatusActive,
+		ProfileID:      "tls-server",
+		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+	}
+	err := mockStorage.Store(context.Background(), testCert)
+	require.NoError(t, err)
+
+	handler := &Handler{storage: mockStorage}
+
+	app.Get("/certificates/:serialNumber/chain", func(c *fiber.Ctx) error {
+		return handler.GetCertificateChain(c, c.Params("serialNumber"))
+	})
+
+	t.Run("Found", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/certificates/CHAIN123/chain", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/certificates/NONEXISTENT/chain", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestRevokeCertificate(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	testCert := &cryptoutilCAStorage.StoredCertificate{
+		ID:             googleUuid.New(),
+		SerialNumber:   "REVOKE123",
+		SubjectDN:      "CN=test.example.com",
+		IssuerDN:       "CN=Test CA",
+		NotBefore:      time.Now().Add(-time.Hour),
+		NotAfter:       time.Now().Add(time.Hour * 24 * 365),
+		Status:         cryptoutilCAStorage.StatusActive,
+		ProfileID:      "tls-server",
+		CertificatePEM: "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+	}
+	err := mockStorage.Store(context.Background(), testCert)
+	require.NoError(t, err)
+
+	handler := &Handler{storage: mockStorage}
+
+	app.Post("/certificates/:serialNumber/revoke", func(c *fiber.Ctx) error {
+		return handler.RevokeCertificate(c, c.Params("serialNumber"))
+	})
+
+	revokeBody := `{"reason": "key_compromise"}`
+
+	t.Run("RevokeSuccess", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/certificates/REVOKE123/revoke", bytes.NewBufferString(revokeBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/certificates/NONEXISTENT/revoke", bytes.NewBufferString(revokeBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestGetEnrollmentStatusHandler(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	tracker := newEnrollmentTracker(100)
+	requestID := googleUuid.New()
+	tracker.track(requestID, cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, "ISSUED123")
+
+	handler := &Handler{
+		storage:           mockStorage,
+		enrollmentTracker: tracker,
+	}
+
+	app.Get("/enroll/:requestId", func(c *fiber.Ctx) error {
+		idStr := c.Params("requestId")
+
+		id, parseErr := googleUuid.Parse(idStr)
+		if parseErr != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request ID"})
+		}
+
+		return handler.GetEnrollmentStatus(c, id)
+	})
+
+	t.Run("Found", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		err := resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
+
+		unknownID := googleUuid.New()
+		req := httptest.NewRequest(http.MethodGet, "/enroll/"+unknownID.String(), nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+
+		err := resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestListCAsNilIssuer(t *testing.T) {
+	t.Parallel()
+
+	// Tests the error path when issuer is nil.
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  nil,
+	}
+
+	app.Get("/ca", func(c *fiber.Ctx) error {
+		return handler.ListCAs(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/ca", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	// When issuer is nil, GetCAConfig returns nil, causing an internal server error.
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+
+	err = resp.Body.Close()
+	require.NoError(t, err)
+}
+
+func TestGetCANilIssuer(t *testing.T) {
+	t.Parallel()
+
+	// Tests the error path when issuer is nil.
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  nil,
+	}
+
+	app.Get("/ca/:caId", func(c *fiber.Ctx) error {
+		return handler.GetCA(c, c.Params("caId"))
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/ca/test-ca", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	// When issuer is nil, GetCAConfig returns nil, causing an internal server error.
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+
+	err = resp.Body.Close()
+	require.NoError(t, err)
+}
+
+func TestEstCACertsNilIssuer(t *testing.T) {
+	t.Parallel()
+
+	// Tests the error path when issuer is nil.
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  nil,
+	}
+
+	app.Get("/est/cacerts", func(c *fiber.Ctx) error {
+		return handler.EstCACerts(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/est/cacerts", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	// When issuer is nil, GetCAConfig returns nil, causing an internal server error.
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+
+	err = resp.Body.Close()
+	require.NoError(t, err)
+}
+
+// Tests with real issuer follow.
+
+func TestListCAsWithRealIssuer(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  testSetup.Issuer,
+	}
+
+	app.Get("/ca", func(c *fiber.Ctx) error {
+		return handler.ListCAs(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/ca", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(body), "test-ca")
+
+	err = resp.Body.Close()
+	require.NoError(t, err)
+}
+
+func TestGetCAWithRealIssuer(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  testSetup.Issuer,
+	}
+
+	app.Get("/ca/:caId", func(c *fiber.Ctx) error {
+		return handler.GetCA(c, c.Params("caId"))
+	})
+
+	t.Run("Found", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/ca/test-ca", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Contains(t, string(body), "test-ca")
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/ca/unknown-ca", nil)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+func TestEstCACertsWithRealIssuer(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  testSetup.Issuer,
+	}
+
+	app.Get("/est/cacerts", func(c *fiber.Ctx) error {
+		return handler.EstCACerts(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/est/cacerts", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(body), "-----BEGIN CERTIFICATE-----")
+
+	err = resp.Body.Close()
+	require.NoError(t, err)
 }

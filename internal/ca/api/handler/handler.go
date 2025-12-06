@@ -464,6 +464,11 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error {
 
 // ListCAs handles GET /ca.
 func (h *Handler) ListCAs(c *fiber.Ctx) error {
+	// Check if issuer is configured.
+	if h.issuer == nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "issuer_not_configured", "CA issuer not configured")
+	}
+
 	// Get CA info from issuer.
 	caConfig := h.issuer.GetCAConfig()
 	if caConfig == nil {
@@ -502,6 +507,11 @@ func (h *Handler) ListCAs(c *fiber.Ctx) error {
 
 // GetCA handles GET /ca/{caId}.
 func (h *Handler) GetCA(c *fiber.Ctx, caID string) error {
+	// Check if issuer is configured.
+	if h.issuer == nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "issuer_not_configured", "CA issuer not configured")
+	}
+
 	// Get CA info from issuer.
 	caConfig := h.issuer.GetCAConfig()
 	if caConfig == nil {
@@ -701,6 +711,11 @@ func (h *Handler) GetProfile(c *fiber.Ctx, profileID string) error {
 // Note: Full PKCS#7 degenerate format requires a CMS library.
 // This implementation returns Base64-encoded PEM for compatibility.
 func (h *Handler) EstCACerts(c *fiber.Ctx) error {
+	// Check if issuer is configured.
+	if h.issuer == nil {
+		return h.errorResponse(c, fiber.StatusInternalServerError, "issuer_not_configured", "CA issuer not configured")
+	}
+
 	// Get CA configuration.
 	caConfig := h.issuer.GetCAConfig()
 	if caConfig == nil {
