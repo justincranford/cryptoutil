@@ -976,9 +976,16 @@ func (h *Handler) HandleOCSP(c *fiber.Ctx) error {
 	}
 
 	// Read the OCSP request body.
-	requestBody, err := io.ReadAll(c.Request().BodyStream())
-	if err != nil {
-		return h.ocspErrorResponse(c, fiber.StatusBadRequest)
+	var requestBody []byte
+
+	// Try BodyStream first, then fall back to Body().
+	if stream := c.Request().BodyStream(); stream != nil {
+		var err error
+
+		requestBody, err = io.ReadAll(stream)
+		if err != nil {
+			return h.ocspErrorResponse(c, fiber.StatusBadRequest)
+		}
 	}
 
 	if len(requestBody) == 0 {

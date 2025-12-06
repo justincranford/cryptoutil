@@ -5,6 +5,7 @@ package handler
 import (
 	"bytes"
 	"context"
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -33,6 +34,8 @@ import (
 	cryptoutilCAProfileCertificate "cryptoutil/internal/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
+	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
+	cryptoutilCAServiceTimestamp "cryptoutil/internal/ca/service/timestamp"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
@@ -2120,4 +2123,421 @@ func TestEstSimpleEnrollNoProfile(t *testing.T) {
 
 	err = resp.Body.Close()
 	require.NoError(t, err)
+}
+
+// TestTsaTimestampWithService tests the TSA endpoint with a real TSA service.
+func TestTsaTimestampWithService(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	// Type assert private key to crypto.Signer.
+	signer, ok := testSetup.Issuer.GetCAConfig().PrivateKey.(crypto.Signer)
+	require.True(t, ok, "private key must implement crypto.Signer")
+
+	// Create TSA service.
+	tsaConfig := &cryptoutilCAServiceTimestamp.TSAConfig{
+		Certificate:        testSetup.Issuer.GetCAConfig().Certificate,
+		PrivateKey:         signer,
+		Provider:           testSetup.Provider,
+		Policy:             []int{1, 3, 6, 1, 4, 1, 99999, 1},
+		AcceptedAlgorithms: []cryptoutilCAServiceTimestamp.HashAlgorithm{cryptoutilCAServiceTimestamp.HashAlgorithmSHA256},
+	}
+	tsaService, err := cryptoutilCAServiceTimestamp.NewTSAService(tsaConfig)
+	require.NoError(t, err)
+
+	handler := &Handler{
+		storage:    cryptoutilCAStorage.NewMemoryStore(),
+		issuer:     testSetup.Issuer,
+		tsaService: tsaService,
+	}
+
+	app := fiber.New()
+	app.Post("/tsa/timestamp", func(c *fiber.Ctx) error {
+		return handler.TsaTimestamp(c)
+	})
+
+	t.Run("EmptyRequest", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/tsa/timestamp", bytes.NewReader([]byte{}))
+		req.Header.Set("Content-Type", "application/timestamp-query")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("InvalidDERRequest", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/tsa/timestamp", bytes.NewReader([]byte("not-valid-der")))
+		req.Header.Set("Content-Type", "application/timestamp-query")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+// TestGetCRLWithService tests CRL generation with a real CRL service.
+func TestGetCRLWithService(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	// Type assert private key to crypto.Signer.
+	signer, ok := testSetup.Issuer.GetCAConfig().PrivateKey.(crypto.Signer)
+	require.True(t, ok, "private key must implement crypto.Signer")
+
+	// Create CRL service.
+	crlConfig := &cryptoutilCAServiceRevocation.CRLConfig{
+		Issuer:           testSetup.Issuer.GetCAConfig().Certificate,
+		PrivateKey:       signer,
+		Provider:         testSetup.Provider,
+		Validity:         24 * time.Hour,
+		NextUpdateBuffer: time.Hour,
+	}
+	crlService, err := cryptoutilCAServiceRevocation.NewCRLService(crlConfig)
+	require.NoError(t, err)
+
+	handler := &Handler{
+		storage:    cryptoutilCAStorage.NewMemoryStore(),
+		issuer:     testSetup.Issuer,
+		crlService: crlService,
+	}
+
+	app := fiber.New()
+	app.Get("/ca/:caId/crl", func(c *fiber.Ctx) error {
+		caID := c.Params("caId")
+		formatParam := c.Query("format", "der")
+		format := cryptoutilCAServer.GetCRLParamsFormat(formatParam)
+
+		return handler.GetCRL(c, caID, cryptoutilCAServer.GetCRLParams{Format: &format})
+	})
+
+	t.Run("CANotFound", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/ca/wrong-ca/crl", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("DERFormat", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/ca/test-ca/crl?format=der", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+		require.Equal(t, "application/pkix-crl", resp.Header.Get("Content-Type"))
+		require.Contains(t, resp.Header.Get("Content-Disposition"), ".crl")
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.NotEmpty(t, body)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("PEMFormat", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/ca/test-ca/crl?format=pem", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+		require.Equal(t, "application/x-pem-file", resp.Header.Get("Content-Type"))
+		require.Contains(t, resp.Header.Get("Content-Disposition"), ".crl.pem")
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.Contains(t, string(body), "-----BEGIN X509 CRL-----")
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+// TestHandleOCSPWithService tests OCSP handling with a real OCSP service.
+func TestHandleOCSPWithService(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	// Type assert private key to crypto.Signer.
+	signer, ok := testSetup.Issuer.GetCAConfig().PrivateKey.(crypto.Signer)
+	require.True(t, ok, "private key must implement crypto.Signer")
+
+	// Create CRL service.
+	crlConfig := &cryptoutilCAServiceRevocation.CRLConfig{
+		Issuer:           testSetup.Issuer.GetCAConfig().Certificate,
+		PrivateKey:       signer,
+		Provider:         testSetup.Provider,
+		Validity:         24 * time.Hour,
+		NextUpdateBuffer: time.Hour,
+	}
+	crlService, err := cryptoutilCAServiceRevocation.NewCRLService(crlConfig)
+	require.NoError(t, err)
+
+	// Use the issuing CA cert as OCSP responder (self-signed responder).
+	ocspConfig := &cryptoutilCAServiceRevocation.OCSPConfig{
+		Issuer:       testSetup.Issuer.GetCAConfig().Certificate,
+		Responder:    testSetup.Issuer.GetCAConfig().Certificate,
+		ResponderKey: signer,
+		Provider:     testSetup.Provider,
+		Validity:     time.Hour,
+	}
+	ocspService, err := cryptoutilCAServiceRevocation.NewOCSPService(ocspConfig, crlService)
+	require.NoError(t, err)
+
+	handler := &Handler{
+		storage:     mockStorage,
+		issuer:      testSetup.Issuer,
+		ocspService: ocspService,
+	}
+
+	app := fiber.New()
+	app.Post("/ocsp", func(c *fiber.Ctx) error {
+		return handler.HandleOCSP(c)
+	})
+
+	t.Run("EmptyRequest", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader([]byte{}))
+		req.Header.Set("Content-Type", "application/ocsp-request")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("InvalidOCSPRequest", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader([]byte("not-valid-ocsp")))
+		req.Header.Set("Content-Type", "application/ocsp-request")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		// Invalid request returns error status with OCSP content type.
+		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+}
+
+// TestNewHandlerValidation tests NewHandler validation paths.
+func TestNewHandlerValidation(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	tests := []struct {
+		name      string
+		issuer    *cryptoutilCAServiceIssuer.Issuer
+		storage   cryptoutilCAStorage.Store
+		profiles  map[string]*ProfileConfig
+		wantErr   bool
+		errSubstr string
+	}{
+		{
+			name:      "NilStorage",
+			issuer:    testSetup.Issuer,
+			storage:   nil,
+			profiles:  map[string]*ProfileConfig{},
+			wantErr:   true,
+			errSubstr: "storage",
+		},
+		{
+			name:      "NilIssuer",
+			issuer:    nil,
+			storage:   mockStorage,
+			profiles:  map[string]*ProfileConfig{},
+			wantErr:   true,
+			errSubstr: "issuer",
+		},
+		{
+			name:     "ValidWithNoProfiles",
+			issuer:   testSetup.Issuer,
+			storage:  mockStorage,
+			profiles: map[string]*ProfileConfig{},
+			wantErr:  false,
+		},
+		{
+			name:    "ValidWithProfiles",
+			issuer:  testSetup.Issuer,
+			storage: mockStorage,
+			profiles: map[string]*ProfileConfig{
+				"test-profile": {
+					ID:          "test-profile",
+					Name:        "Test Profile",
+					Description: "A test profile",
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range tests {
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler, err := NewHandler(tc.issuer, tc.storage, tc.profiles)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errSubstr)
+				require.Nil(t, handler)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, handler)
+			}
+		})
+	}
+}
+
+// TestLookupCertificateBySerialWithCert tests serial lookup with stored certificate.
+func TestLookupCertificateBySerialWithCert(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  testSetup.Issuer,
+	}
+
+	// Generate a test certificate.
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	serialNumber := big.NewInt(12345)
+
+	template := &x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			CommonName: "test.example.com",
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().Add(24 * time.Hour),
+	}
+
+	// Self-sign for testing.
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+
+	certPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: certDER,
+	})
+
+	// Store the certificate.
+	storedCert := &cryptoutilCAStorage.StoredCertificate{
+		SerialNumber:   serialNumber.Text(16),
+		CertificatePEM: string(certPEM),
+	}
+	ctx := context.Background()
+	err = mockStorage.Store(ctx, storedCert)
+	require.NoError(t, err)
+
+	// Look up by serial.
+	foundCert := handler.lookupCertificateBySerial(ctx, serialNumber)
+	require.NotNil(t, foundCert)
+	require.Equal(t, serialNumber.Int64(), foundCert.SerialNumber.Int64())
+}
+
+// TestLookupCertificateBySerialInvalidPEM tests serial lookup with invalid PEM.
+func TestLookupCertificateBySerialInvalidPEM(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	handler := &Handler{
+		storage: mockStorage,
+		issuer:  testSetup.Issuer,
+	}
+
+	serialNumber := big.NewInt(99999)
+
+	// Store certificate with invalid PEM.
+	storedCert := &cryptoutilCAStorage.StoredCertificate{
+		SerialNumber:   serialNumber.Text(16),
+		CertificatePEM: "not-valid-pem-data",
+	}
+	ctx := context.Background()
+	err := mockStorage.Store(ctx, storedCert)
+	require.NoError(t, err)
+
+	// Should return nil for invalid PEM.
+	foundCert := handler.lookupCertificateBySerial(ctx, serialNumber)
+	require.Nil(t, foundCert)
+}
+
+// TestEstCSRAttrsHandler tests the EST CSR attributes endpoint.
+func TestEstCSRAttrsHandler(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	handler := &Handler{
+		storage: cryptoutilCAStorage.NewMemoryStore(),
+		issuer:  testSetup.Issuer,
+		profiles: map[string]*ProfileConfig{
+			"server": {
+				ID:          "server",
+				Name:        "Server Profile",
+				Description: "Server certificate profile",
+			},
+		},
+	}
+
+	app := fiber.New()
+	app.Get("/est/csrattrs", func(c *fiber.Ctx) error {
+		return handler.EstCSRAttrs(c)
+	})
+
+	t.Run("WithProfile", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/est/csrattrs?profile=server", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		// CSR attrs returns 200 or 204 based on implementation.
+		require.True(t, resp.StatusCode == fiber.StatusOK || resp.StatusCode == fiber.StatusNoContent)
+
+		err := resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("WithoutProfile", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodGet, "/est/csrattrs", nil)
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		// CSR attrs returns 200 or 204 based on implementation.
+		require.True(t, resp.StatusCode == fiber.StatusOK || resp.StatusCode == fiber.StatusNoContent)
+
+		err := resp.Body.Close()
+		require.NoError(t, err)
+	})
 }

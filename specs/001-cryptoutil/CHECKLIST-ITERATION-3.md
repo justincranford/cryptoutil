@@ -45,11 +45,13 @@ This document verifies Iteration 3 completion as part of `/speckit.checklist`.
 - [x] `go test ./internal/ca/...` passes (22 packages)
 - [x] New EST/TSA endpoint tests pass
 - [x] Enrollment status tracking tests pass
+- [x] TestSubmitEnrollmentWithRealIssuer passes
+- [x] TestEstSimpleEnrollWithRealIssuer passes
 
 **Evidence**:
 
 ```text
-ok      cryptoutil/internal/ca/api/handler  1.948s   coverage: 39.3%
+ok      cryptoutil/internal/ca/api/handler  0.632s   coverage: 77.3%
 ok      cryptoutil/internal/ca/service/timestamp  0.293s
 ```
 
@@ -128,11 +130,18 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error
 
 | Task | Description | Current | Target | Status |
 |------|-------------|---------|--------|--------|
-| I3.2.1 | CA handler coverage | 39.3% | 90%+ | 🆕 |
+| I3.2.1 | CA handler coverage | 77.3% | 90%+ | 🔄 In Progress |
 | I3.2.2 | userauth coverage | ~85% | 90%+ | 🆕 |
 | I3.2.3 | jose server coverage | ~80% | 90%+ | 🆕 |
 | I3.2.4 | network package | 88.7% | 90%+ | 🆕 |
 | I3.2.5 | Overall audit | - | - | 🆕 |
+
+### Coverage Improvements Made
+
+- CA handler: 39.3% → 77.3% (+38%)
+- SubmitEnrollment: 0% → 85.2%
+- EstSimpleEnroll: 12.0% → 88.0%
+- buildIssueRequest: 0% → 78.6%
 
 ---
 
@@ -191,10 +200,10 @@ that require a full test server setup with CA issuer service.
 | Phase | Tasks | Complete | Partial | Progress |
 |-------|-------|----------|---------|----------|
 | 3.1 Complete I2 | 8 | 5 | 1 | 63% |
-| 3.2 Coverage | 5 | 0 | 0 | 0% |
+| 3.2 Coverage | 5 | 0 | 1 | 20% |
 | 3.3 Demo Videos | 6 | 0 | 0 | 0% |
 | 3.4 Workflows | 12 | 0 | 0 | 0% |
-| **Total** | 31 | 5 | 1 | **16%** |
+| **Total** | 31 | 5 | 2 | **23%** |
 
 ### Key Achievements
 
@@ -202,6 +211,7 @@ that require a full test server setup with CA issuer service.
 2. **TSA Protocol**: Full RFC 3161 request/response parsing
 3. **Enrollment Tracking**: In-memory status tracking with certificate lookup
 4. **Code Quality**: All CA tests pass, linting clean
+5. **Coverage Progress**: CA handler 39.3% → 77.3%
 
 ### Next Actions
 
