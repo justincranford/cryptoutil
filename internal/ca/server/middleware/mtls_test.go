@@ -72,7 +72,6 @@ func TestMTLSMiddleware_NoCertificate_NoTLSState(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -175,7 +174,6 @@ func TestMTLSMiddleware_ValidateCertificate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -227,7 +225,6 @@ func TestMTLSMiddleware_ExtKeyUsageValidation(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -334,7 +331,6 @@ func TestCaseInsensitiveMatching(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -411,7 +407,6 @@ func TestMTLSMiddleware_IsAllowedValue(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -454,7 +449,6 @@ func TestMTLSMiddleware_ValidateExtKeyUsage(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

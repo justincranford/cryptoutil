@@ -19,6 +19,7 @@ import (
 	cryptoutilCAServer "cryptoutil/api/ca/server"
 	cryptoutilCAHandler "cryptoutil/internal/ca/api/handler"
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
+	cryptoutilCAMiddleware "cryptoutil/internal/ca/server/middleware"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
@@ -48,6 +49,7 @@ type Server struct {
 	fiberApp         *fiber.App
 	listener         net.Listener
 	actualPort       int
+	mtlsMiddleware   *cryptoutilCAMiddleware.MTLSMiddleware
 }
 
 // New creates a new CA Server instance using context.Background().
@@ -189,15 +191,36 @@ func NewServer(ctx context.Context, settings *cryptoutilConfig.Settings) (*Serve
 
 // setupRoutes configures the API routes.
 func (s *Server) setupRoutes() {
-	// Health endpoints.
+	// Health endpoints (no auth required).
 	s.fiberApp.Get("/health", s.handleHealth)
 	s.fiberApp.Get("/livez", s.handleLivez)
 	s.fiberApp.Get("/readyz", s.handleReadyz)
 
 	// Register CA API handlers with base URL.
+	// Note: EST endpoints require mTLS authentication. Use ConfigureMTLS() to enable.
 	cryptoutilCAServer.RegisterHandlersWithOptions(s.fiberApp, s.handler, cryptoutilCAServer.FiberServerOptions{
 		BaseURL: "/api/v1/ca",
 	})
+}
+
+// ConfigureMTLS configures mTLS middleware for client certificate authentication.
+// This should be called before Start() to enable mTLS for EST endpoints.
+func (s *Server) ConfigureMTLS(config *cryptoutilCAMiddleware.MTLSConfig) {
+	if config == nil {
+		config = cryptoutilCAMiddleware.DefaultMTLSConfig()
+	}
+
+	s.mtlsMiddleware = cryptoutilCAMiddleware.NewMTLSMiddleware(config)
+}
+
+// GetMTLSMiddleware returns the configured mTLS middleware handler.
+// This can be used to apply mTLS to specific routes.
+func (s *Server) GetMTLSMiddleware() fiber.Handler {
+	if s.mtlsMiddleware == nil {
+		return nil
+	}
+
+	return s.mtlsMiddleware.Handler()
 }
 
 // handleHealth returns server health status.
