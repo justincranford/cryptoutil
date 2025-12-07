@@ -411,6 +411,7 @@ After P4.2 complete, verify ci-fuzz workflow runs these tests (P1.6).
 
 ```bash
 # Step 1: Add gopter dependency
+# cspell:ignore leanovate
 go get github.com/leanovate/gopter
 
 # Step 2: Create property test files
