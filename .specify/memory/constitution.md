@@ -84,9 +84,9 @@ Multi-layer KMS cryptographic barrier architecture:
 
 ### CRITICAL: Test Concurrency - NEVER VIOLATE
 
-**!!! CRITICAL: NEVER use `-p=1` for testing !!!**  
-**!!! CRITICAL: ALWAYS use concurrent test execution !!!**  
-**!!! CRITICAL: ALWAYS use `-shuffle` option for go test !!!**  
+**!!! CRITICAL: NEVER use `-p=1` for testing !!!**
+**!!! CRITICAL: ALWAYS use concurrent test execution !!!**
+**!!! CRITICAL: ALWAYS use `-shuffle` option for go test !!!**
 **!!! CRITICAL: Justification for test concurrency is fastest test execution, and reveal concurrency bugs in production code !!!**
 
 **Test Execution Requirements**:

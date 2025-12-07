@@ -7,7 +7,7 @@ Analysis of last 50 GitHub Actions workflow runs reveals **5 workflows consisten
 **Critical Issues**:
 
 1. **Race Condition Detection (100% failure)**: DATA RACE in CA handler tests
-2. **Coverage Collection (80% failure)**: Test failures + coverage below 95% threshold  
+2. **Coverage Collection (80% failure)**: Test failures + coverage below 95% threshold
 3. **Quality/Identity Validation (75% failure)**: Lint errors + test failures
 4. **E2E/Load/DAST (100% failure)**: Service connectivity/Docker issues
 
@@ -77,7 +77,7 @@ Error: Received unexpected error: consent_not_found: Consent decision not found
 Current coverage: 67.5%
 ```
 
-**Root Cause**: 
+**Root Cause**:
 
 1. Test expects consent to exist but it's deleted/expired
 2. Identity ORM repository at 67.5% coverage (below 95% threshold from Constitution v2.0.0)

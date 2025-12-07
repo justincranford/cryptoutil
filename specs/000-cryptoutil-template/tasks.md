@@ -12,7 +12,7 @@ This document provides granular task tracking for Iteration NNN implementation.
 
 ## CRITICAL: Test Concurrency Requirements
 
-**!!! NEVER use `-p=1` or `-parallel=1` in test commands !!!**  
+**!!! NEVER use `-p=1` or `-parallel=1` in test commands !!!**
 **!!! ALWAYS use concurrent test execution with `-shuffle=on` !!!**
 
 **Test Execution Commands**:

@@ -14,7 +14,7 @@ This plan outlines the technical implementation approach for Iteration NNN deliv
 
 ## CRITICAL: Test Concurrency Requirements
 
-**!!! NEVER use `-p=1` or `-parallel=1` in test commands !!!**  
+**!!! NEVER use `-p=1` or `-parallel=1` in test commands !!!**
 **!!! ALWAYS use concurrent test execution with `-shuffle=on` !!!**
 
 **Mandatory Test Execution**:
