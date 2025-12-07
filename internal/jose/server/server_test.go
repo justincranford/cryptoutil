@@ -183,12 +183,17 @@ func TestJWKGenerateAndRetrieve(t *testing.T) {
 		wantKty   string
 	}{
 		{"RSA4096", "RSA/4096", "sig", "RSA"},
+		{"RSA3072", "RSA/3072", "sig", "RSA"},
 		{"RSA2048", "RSA/2048", "sig", "RSA"},
 		{"ECP256", "EC/P256", "sig", "EC"},
 		{"ECP384", "EC/P384", "sig", "EC"},
 		{"ECP521", "EC/P521", "sig", "EC"},
 		{"OKPEd25519", "OKP/Ed25519", "sig", "OKP"},
+		{"Oct512", "oct/512", "sig", "oct"},
+		{"Oct384", "oct/384", "sig", "oct"},
 		{"Oct256", "oct/256", "enc", "oct"},
+		{"Oct192", "oct/192", "enc", "oct"},
+		{"Oct128", "oct/128", "enc", "oct"},
 	}
 
 	for _, tc := range tests {
