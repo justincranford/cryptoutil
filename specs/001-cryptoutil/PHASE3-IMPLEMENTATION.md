@@ -1,7 +1,7 @@
 # Phase 3: Achieve Coverage Targets Implementation Guide
 
-**Duration**: Days 7-9 (2-3 hours)  
-**Prerequisites**: Phase 2 complete (all deferred features implemented)  
+**Duration**: Days 7-9 (2-3 hours)
+**Prerequisites**: Phase 2 complete (all deferred features implemented)
 **Status**: ❌ Not Started
 
 ## Overview
@@ -28,8 +28,8 @@ Phase 3 closes coverage gaps in 5 packages to achieve the mandatory 95%+ coverag
 
 ### P3.1: ca/handler Coverage (47.2% → 95%) ⭐ CRITICAL
 
-**Priority**: CRITICAL  
-**Effort**: 1 hour  
+**Priority**: CRITICAL
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Objective**: Increase CA handler test coverage from 47.2% to ≥95% by adding comprehensive tests for all endpoints.
@@ -217,8 +217,8 @@ go tool cover -html=test-output/coverage_ca_handler.out
 
 ### P3.2: auth/userauth Coverage (42.6% → 95%) ⭐ CRITICAL
 
-**Priority**: CRITICAL  
-**Effort**: 1 hour  
+**Priority**: CRITICAL
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Objective**: Increase user authentication test coverage from 42.6% to ≥95% by adding comprehensive authentication flow tests.
@@ -463,8 +463,8 @@ go tool cover -html=test-output/coverage_userauth.out
 
 ### P3.3: unsealkeysservice Coverage (78.2% → 95%)
 
-**Priority**: MEDIUM  
-**Effort**: 30 minutes  
+**Priority**: MEDIUM
+**Effort**: 30 minutes
 **Status**: ❌ Not Started
 
 **Objective**: Increase unseal key service coverage from 78.2% to ≥95% by adding edge case and error handling tests.
@@ -517,8 +517,8 @@ go tool cover -func=test-output/coverage_unseal.out | grep total
 
 ### P3.4: network Coverage (88.7% → 95%)
 
-**Priority**: MEDIUM  
-**Effort**: 30 minutes  
+**Priority**: MEDIUM
+**Effort**: 30 minutes
 **Status**: ❌ Not Started
 
 **Objective**: Increase network package coverage from 88.7% to ≥95% by adding error path and failure scenario tests.
@@ -571,8 +571,8 @@ go tool cover -func=test-output/coverage_network.out | grep total
 
 ### P3.5: apperr Coverage (96.6%) ✅
 
-**Priority**: LOW  
-**Effort**: 5 minutes  
+**Priority**: LOW
+**Effort**: 5 minutes
 **Status**: ✅ Already Complete
 
 **Current State**: Coverage already at 96.6%, exceeding 95% target.

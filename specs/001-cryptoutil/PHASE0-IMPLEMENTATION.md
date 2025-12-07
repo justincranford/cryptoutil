@@ -1,7 +1,7 @@
 # Phase 0 Implementation Guide - Slow Test Optimization
 
-**Objective**: Optimize all 11 slow test packages from ~600s total to <200s total  
-**Strategy**: Shared test infrastructure via TestMain + aggressive parallelization  
+**Objective**: Optimize all 11 slow test packages from ~600s total to <200s total
+**Strategy**: Shared test infrastructure via TestMain + aggressive parallelization
 **Evidence**: Test execution time measurements before/after
 
 ---
@@ -17,7 +17,7 @@ import (
 	"context"
 	"os"
 	"testing"
-	
+
 	googleUuid "github.com/google/uuid"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -30,10 +30,10 @@ var (
 
 func TestMain(m *testing.M) {
 	testCtx = context.Background()
-	
+
 	// Create shared in-memory SQLite database ONCE for entire package
 	dsn := "file::memory:?cache=shared"
-	
+
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:            "sqlite",
 		DSN:             dsn,
@@ -43,24 +43,24 @@ func TestMain(m *testing.M) {
 		ConnMaxIdleTime: 0,
 		AutoMigrate:     true,
 	}
-	
+
 	var err error
 	testRepoFactory, err = cryptoutilIdentityRepository.NewRepositoryFactory(testCtx, dbConfig)
 	if err != nil {
 		panic(err)
 	}
-	
+
 	err = testRepoFactory.AutoMigrate(testCtx)
 	if err != nil {
 		panic(err)
 	}
-	
+
 	// Run all tests
 	exitCode := m.Run()
-	
+
 	// Cleanup
 	_ = testRepoFactory.Close()
-	
+
 	os.Exit(exitCode)
 }
 ```
@@ -71,10 +71,10 @@ func TestMain(m *testing.M) {
 ```go
 func TestSomething(t *testing.T) {
 	t.Parallel()
-	
+
 	repoFactory, ctx := setupTestRepository(t)  // ❌ Creates new DB + migrations
 	defer repoFactory.Close()
-	
+
 	// Test code using repoFactory
 }
 ```
@@ -83,7 +83,7 @@ func TestSomething(t *testing.T) {
 ```go
 func TestSomething(t *testing.T) {
 	t.Parallel()
-	
+
 	// Use global testRepoFactory from TestMain
 	// Create unique test data with UUIDv7
 	clientID := googleUuid.NewV7()
@@ -92,13 +92,13 @@ func TestSomething(t *testing.T) {
 		Name: "test-client-" + clientID.String(),
 		// ... other fields
 	}
-	
+
 	repo := testRepoFactory.ClientRepository()
 	err := repo.Create(testCtx, client)
 	require.NoError(t, err)
-	
+
 	// Test code - data is orthogonal (unique UUIDs = no conflicts)
-	
+
 	// Optional: cleanup if needed (usually not necessary for in-memory DB)
 	// _ = repo.Delete(testCtx, clientID)
 }
@@ -126,8 +126,8 @@ grep -r "func Test" internal/identity/authz/clientauth/*_test.go | \
 
 ### P0.1: clientauth (168s → <30s)
 
-**Current Bottleneck**: `integration_test.go` creates new DB + migrations per test  
-**Solution**: TestMain with shared repository factory  
+**Current Bottleneck**: `integration_test.go` creates new DB + migrations per test
+**Solution**: TestMain with shared repository factory
 **Files**:
 - `internal/identity/authz/clientauth/integration_test.go` - Add TestMain, update all tests
 - All `*_test.go` files - Verify t.Parallel() present
@@ -139,8 +139,8 @@ go test ./internal/identity/authz/clientauth -v  # Should show <30s
 
 ### P0.2: jose/server (94s → <20s)
 
-**Current Bottleneck**: Fiber app startup/shutdown per test  
-**Solution**: TestMain with single shared Fiber app on dynamic port  
+**Current Bottleneck**: Fiber app startup/shutdown per test
+**Solution**: TestMain with single shared Fiber app on dynamic port
 **Files**:
 - `internal/jose/server/*_test.go` - Add TestMain with shared server
 - Use same port allocation pattern as `internal/server/application/application_test.go`
@@ -152,9 +152,9 @@ go test ./internal/jose/server -v  # Should show <20s
 
 ### P0.3: kms/client (74s → <20s)
 
-**Current Bottleneck**: KMS server startup per test  
-**Solution**: TestMain with single shared KMS server instance  
-**CRITICAL**: MUST use real KMS server (NOT MOCKS)  
+**Current Bottleneck**: KMS server startup per test
+**Solution**: TestMain with single shared KMS server instance
+**CRITICAL**: MUST use real KMS server (NOT MOCKS)
 **Files**:
 - `internal/kms/client/*_test.go` - Add TestMain with real KMS server
 
@@ -175,20 +175,20 @@ func TestMain(m *testing.M) {
 			DSN:  "file::memory:?cache=shared",
 		},
 	}
-	
+
 	var err error
 	testKMSServer, err = kmsApp.NewServer(config)
 	if err != nil {
 		panic(err)
 	}
-	
+
 	go testKMSServer.Start()
-	
+
 	// Get actual port
 	testServerURL = fmt.Sprintf("https://127.0.0.1:%d", testKMSServer.ActualPort())
-	
+
 	exitCode := m.Run()
-	
+
 	_ = testKMSServer.Shutdown()
 	os.Exit(exitCode)
 }
@@ -201,10 +201,10 @@ go test ./internal/kms/client -v  # Should show <20s
 
 ### P0.4: jose (67s → <15s)
 
-**Current Bottleneck**: Crypto operations + low coverage (48.8%)  
-**Solution**: 
+**Current Bottleneck**: Crypto operations + low coverage (48.8%)
+**Solution**:
 1. Increase coverage to 95% FIRST (add missing tests)
-2. Then apply parallelization optimizations  
+2. Then apply parallelization optimizations
 **Files**:
 - `internal/jose/*_test.go` - Add tests for uncovered code
 - Focus on JWK generation, JWS/JWE edge cases
@@ -217,8 +217,8 @@ go test ./internal/jose -v      # Should show <15s
 
 ### P0.5: kms/server/application (28s → <10s)
 
-**Current Bottleneck**: Server startup/shutdown per test  
-**Solution**: TestMain with shared server instance  
+**Current Bottleneck**: Server startup/shutdown per test
+**Solution**: TestMain with shared server instance
 **Files**:
 - `internal/kms/server/application/*_test.go`
 
@@ -229,15 +229,15 @@ go test ./internal/kms/server/application -v  # Should show <10s
 
 ### P0.6: identity/authz (19s → <10s)
 
-**Current Bottleneck**: Database operations (already has t.Parallel())  
-**Solution**: Review test data isolation, optimize transaction patterns  
+**Current Bottleneck**: Database operations (already has t.Parallel())
+**Solution**: Review test data isolation, optimize transaction patterns
 **Files**:
 - `internal/identity/authz/*_test.go`
 
 ### P0.7: identity/idp (15s → <10s)
 
-**Current Bottleneck**: Low coverage (54.9%) + database setup  
-**Solution**: 
+**Current Bottleneck**: Low coverage (54.9%) + database setup
+**Solution**:
 1. Increase coverage to 80%+ FIRST
 2. Use TestMain for shared DB
 **Files**:
@@ -245,29 +245,29 @@ go test ./internal/kms/server/application -v  # Should show <10s
 
 ### P0.8: identity/test/unit (18s → <10s)
 
-**Current Bottleneck**: Infrastructure test setup  
-**Solution**: Review and optimize test patterns  
+**Current Bottleneck**: Infrastructure test setup
+**Solution**: Review and optimize test patterns
 **Files**:
 - `internal/identity/test/unit/*_test.go`
 
 ### P0.9: identity/test/integration (16s → <10s)
 
-**Current Bottleneck**: Docker container startup  
-**Solution**: Optimize container lifecycle management  
+**Current Bottleneck**: Docker container startup
+**Solution**: Optimize container lifecycle management
 **Files**:
 - `internal/identity/test/integration/*_test.go`
 
 ### P0.10: infra/realm (14s → <10s)
 
-**Current Bottleneck**: Configuration loading  
-**Solution**: Apply t.Parallel(), reduce redundant config loading  
+**Current Bottleneck**: Configuration loading
+**Solution**: Apply t.Parallel(), reduce redundant config loading
 **Files**:
 - `internal/infra/realm/*_test.go`
 
 ### P0.11: kms/server/barrier (13s → <10s)
 
-**Current Bottleneck**: Crypto operations  
-**Solution**: Parallelize crypto tests, reduce key generation redundancy  
+**Current Bottleneck**: Crypto operations
+**Solution**: Parallelize crypto tests, reduce key generation redundancy
 **Files**:
 - `internal/kms/server/barrier/*_test.go`
 

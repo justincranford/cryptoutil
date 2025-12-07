@@ -36,7 +36,7 @@
 - Implement selective execution pattern for local dev
 - Execution time <30s
 - No test failures
-- Coverage maintained at 78.4% or higher
+- Coverage increased to 85% or higher
 
 **Files to Modify**:
 - `internal/identity/authz/clientauth/*_test.go`
@@ -52,8 +52,8 @@
 **Acceptance Criteria**:
 - Implement parallel subtests
 - Reduce Fiber app setup/teardown overhead (shared test server instance)
-- Execution time <20s
-- Coverage improved from 56.1% → 70%+
+- Execution time <30s
+- Coverage improved from 56.1% → 85% or higher
 
 **Files to Modify**:
 - `internal/jose/server/*_test.go`
@@ -71,8 +71,8 @@
 - Start KMS server ONCE per package in TestMain using in-memory SQLite
 - Implement parallel test execution with unique UUIDv7 data isolation
 - Reduce redundant key generation/unsealing operations
-- Execution time <20s
-- Coverage maintained at 76.2% or higher
+- Execution time <30s
+- Coverage increased at 85% or higher
 - Mocks ONLY acceptable for hard-to-reproduce corner cases
 
 **Files to Modify**:
@@ -88,7 +88,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
-- Increase coverage 48.8% → 70%+ FIRST
+- Increase coverage 48.8% → 85% or higher FIRST
 - Then apply parallel execution
 - Reduce cryptographic operation redundancy
 - Execution time <15s
@@ -109,7 +109,7 @@
 - Use dynamic port allocation pattern
 - Reduce test server setup/teardown overhead
 - Execution time <10s
-- Coverage improved from 64.7% → 80%+
+- Coverage improved from 64.7% → 85%
 
 **Files to Modify**:
 - `internal/kms/server/application/*_test.go`
@@ -126,7 +126,7 @@
 - Review and improve test data isolation (already uses t.Parallel())
 - Reduce database transaction overhead
 - Execution time <10s
-- Coverage maintained at 77.2% or higher
+- Coverage increased to 85% or higher
 
 **Files to Modify**:
 - `internal/identity/authz/*_test.go`
@@ -140,7 +140,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
-- Improve coverage from 54.9% → 80%+ FIRST
+- Improve coverage from 54.9% → 85%+ FIRST
 - Reduce database setup time (use in-memory SQLite)
 - Implement parallel test execution
 - Execution time <10s
@@ -231,13 +231,13 @@
 | Task | Workflow | Root Cause | Effort | Status | Priority |
 |------|----------|------------|--------|--------|----------|
 | P1.1 | ci-coverage | Coverage aggregation | 1h | ❌ | 1-CRITICAL |
-| P1.2 | ci-benchmark | Benchmark baselines | 1h | ❌ | 2-HIGH |
-| P1.3 | ci-fuzz | Fuzz test execution | 1h | ❌ | 3-HIGH |
-| P1.4 | ci-e2e | Docker Compose setup | 1h | ❌ | 4-HIGH |
-| P1.5 | ci-dast | Service connectivity | 1h | ❌ | 5-MEDIUM |
-| P1.6 | ci-race | Race conditions | 1h | ❌ | 6-MEDIUM |
-| P1.7 | ci-load | Gatling configuration | 30min | ❌ | 7-MEDIUM |
-| P1.8 | ci-sast | Static analysis | 30min | ❌ | 8-LOW |
+| P1.2 | ci-sast | Static analysis | 30min | ❌ | 8-LOW |
+| P1.3 | ci-e2e | Docker Compose setup | 1h | ❌ | 4-HIGH |
+| P1.4 | ci-benchmark | Benchmark baselines | 1h | ❌ | 2-HIGH |
+| P1.5 | ci-race | Race conditions | 1h | ❌ | 6-MEDIUM |
+| P1.6 | ci-fuzz | Fuzz test execution | 1h | ❌ | 3-HIGH |
+| P1.7 | ci-dast | Service connectivity | 1h | ❌ | 5-MEDIUM |
+| P1.8 | ci-load | Gatling configuration | 30min | ❌ | 7-MEDIUM |
 
 ---
 
@@ -322,7 +322,7 @@
 - Integrate `go.mozilla.org/pkcs7` library
 - Implement server-side key generation
 - Return PKCS#7/CMS envelope
-- Full RFC 7030 compliance
+- Full RFC 7030 compliance, including all required and optional
 
 **Files to Modify**:
 - `internal/ca/handler/est_serverkeygen.go`
@@ -448,6 +448,8 @@
 ---
 
 ## Phase 5: Documentation & Demo (6 tasks, 8-12h, OPTIONAL)
+
+Minimal documentation. Products must be intuitive and work without users and developers reading large amounts of docs.
 
 ### P5.1-P5.6: Demo Videos
 
