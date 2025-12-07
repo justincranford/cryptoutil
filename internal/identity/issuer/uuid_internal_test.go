@@ -20,6 +20,10 @@ func TestUUIDIssuer_ValidateToken(t *testing.T) {
 	issuer := NewUUIDIssuer()
 	ctx := context.Background()
 
+	// Generate test UUIDs dynamically to avoid hardcoded values.
+	validLowercaseUUID := googleUuid.Must(googleUuid.NewV7()).String()
+	validUppercaseUUID := googleUuid.Must(googleUuid.NewV7()).String()
+
 	tests := []struct {
 		name        string
 		token       string
@@ -38,12 +42,12 @@ func TestUUIDIssuer_ValidateToken(t *testing.T) {
 		},
 		{
 			name:        "valid lowercase UUID",
-			token:       "550e8400-e29b-41d4-a716-446655440000",
+			token:       validLowercaseUUID,
 			expectError: false,
 		},
 		{
 			name:        "valid uppercase UUID",
-			token:       "550E8400-E29B-41D4-A716-446655440000",
+			token:       validUppercaseUUID,
 			expectError: false,
 		},
 		{
