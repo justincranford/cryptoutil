@@ -1007,6 +1007,57 @@ func TestJWTVerifyErrorPaths(t *testing.T) {
 		require.False(t, verifyResp.Valid)
 		require.NotEmpty(t, verifyResp.Error)
 	})
+
+	t.Run("VerifyWithoutKID", func(t *testing.T) {
+		t.Parallel()
+
+		// Generate a key and create JWT.
+		genReqBody, err := json.Marshal(JWKGenerateRequest{
+			Algorithm: "EC/P384",
+			Use:       "sig",
+		})
+		require.NoError(t, err)
+
+		genResp := doPost(t, testBaseURL+"/jose/v1/jwk/generate", genReqBody)
+		defer closeBody(t, genResp)
+
+		var genResult JWKGenerateResponse
+
+		require.NoError(t, json.NewDecoder(genResp.Body).Decode(&genResult))
+
+		// Create JWT.
+		createReqBody, err := json.Marshal(JWTCreateRequest{
+			KID:    genResult.KID,
+			Claims: map[string]any{"sub": "test-subject", "test": "claim"},
+		})
+		require.NoError(t, err)
+
+		createResp := doPost(t, testBaseURL+"/jose/v1/jwt/sign", createReqBody)
+		defer closeBody(t, createResp)
+
+		require.Equal(t, http.StatusOK, createResp.StatusCode)
+
+		var createResult JWTCreateResponse
+
+		require.NoError(t, json.NewDecoder(createResp.Body).Decode(&createResult))
+
+		// Verify WITHOUT providing KID (should try all keys).
+		verifyReqBody, err := json.Marshal(JWTVerifyRequest{
+			JWT: createResult.JWT,
+		})
+		require.NoError(t, err)
+
+		verifyResp := doPost(t, testBaseURL+"/jose/v1/jwt/verify", verifyReqBody)
+		defer closeBody(t, verifyResp)
+
+		require.Equal(t, http.StatusOK, verifyResp.StatusCode)
+
+		var verifyResult JWTVerifyResponse
+
+		require.NoError(t, json.NewDecoder(verifyResp.Body).Decode(&verifyResult))
+		require.True(t, verifyResult.Valid)
+		require.NotEmpty(t, verifyResult.Claims)
+	})
 }
 
 // TestServerLifecycle tests server Start and Shutdown.
