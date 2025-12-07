@@ -6,9 +6,38 @@
 
 ---
 
-## 🎯 Current Priority: Complete These 29 Tasks
+## 🎯 Current Priority: Complete These 32 Tasks
 
 This is the **single source of truth** for what needs to be done. Ignore all other progress tracking files.
+
+### Phase 0: Optimize Slow Test Packages (FOUNDATION) 🚀
+
+*Priority: CRITICAL - Blocking efficient development workflow*
+
+**Critical Packages (>1 minute execution):**
+
+| Package | Current Time | Target | Coverage | Optimization Strategy |
+|---------|--------------|--------|----------|----------------------|
+| `internal/identity/authz/clientauth` | **168.383s** | <30s | 78.4% | Table-driven parallelism, selective test execution |
+| `internal/jose/server` | **94.342s** | <20s | 56.1% | Parallel subtests, reduce setup/teardown overhead |
+| `internal/kms/client` | **73.859s** | <20s | 76.2% | Mock heavy dependencies, parallel execution |
+
+**High Priority Packages (30-70s execution):**
+
+| Package | Current Time | Target | Coverage | Optimization Strategy |
+|---------|--------------|--------|----------|----------------------|
+| `internal/jose` | **67.003s** | <15s | 48.8% | Improve coverage first (48.8% → 95%), then optimize |
+| `internal/kms/server/application` | **27.596s** | <10s | 64.7% | Parallel server tests, dynamic port allocation |
+
+**Implementation Notes:**
+- Apply aggressive `t.Parallel()` to all test cases
+- Use UUIDv7 for test data isolation (already implemented)
+- Split large test files by functional area
+- Implement selective execution pattern for local development
+- Add benchmark tests to identify bottlenecks
+
+**Current State**: 5 packages taking >27s each (blocking fast feedback)  
+**Target**: All critical packages <30s execution (enable rapid iteration)
 
 ### Phase 1: Fix Critical CI/CD Failures (URGENT) ⚠️
 *Priority: CRITICAL - Blocking development workflow*
@@ -107,21 +136,28 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 ## 🚀 Recommended Implementation Order
 
 ### Week 1: Critical Path (16-24 hours)
-1. **Day 1-2**: Fix the 8 failing CI/CD workflows
+1. **Day 1**: Optimize slow test packages (foundation)
+   - clientauth: 168s → <30s using aggressive `t.Parallel()`
+   - jose/server: 94s → <20s with parallel subtests
+   - kms/client: 74s → <20s by mocking dependencies
+   - Target: Enable fast development feedback loop
+
+2. **Day 2**: Complete JOSE E2E tests
+   - Full API coverage with integration tests
+   - Target: JOSE service fully validated end-to-end
+
+3. **Day 3**: Fix the 8 failing CI/CD workflows
    - Focus on ci-dast, ci-e2e, ci-load first (highest impact)
    - Target: 11/11 workflows passing
 
-2. **Day 3-4**: Complete deferred I2 features
-   - JOSE E2E tests (highest priority)
-   - CA OCSP responder
+4. **Day 4**: Complete deferred I2 features  
+   - CA OCSP responder  
    - JOSE Docker integration
    - Skip EST serverkeygen if PKCS#7 remains blocked
 
-3. **Day 5**: Coverage improvements
+5. **Day 5**: Coverage improvements
    - Focus on ca/handler and auth/userauth packages
-   - Target: Get both packages to ≥95%
-
-### Week 2: Polish (8-16 hours, OPTIONAL)
+   - Target: Get both packages to ≥95%### Week 2: Polish (8-16 hours, OPTIONAL)
 4. **Days 6-7**: Advanced testing (if desired)
 5. **Days 8-10**: Demo videos (if desired)
 
@@ -132,13 +168,12 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 To consider the project "complete", you need:
 
 **CRITICAL (Must Have)**:
-- ✅ All 11 CI/CD workflows passing
+- ✅ Slow test packages optimized (<30s each)
+- ✅ All 11 CI/CD workflows passing  
 - ✅ JOSE E2E tests working
-- ✅ CA OCSP responder working
+- ✅ CA OCSP responder working  
 - ✅ JOSE Docker integration working
-- ✅ Coverage ≥95% on ca/handler and auth/userauth
-
-**OPTIONAL (Nice to Have)**:
+- ✅ Coverage ≥95% on ca/handler and auth/userauth**OPTIONAL (Nice to Have)**:
 - EST serverkeygen (if PKCS#7 library resolved)
 - Advanced testing methodologies
 - Demo videos

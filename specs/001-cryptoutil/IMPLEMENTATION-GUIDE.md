@@ -4,24 +4,20 @@
 
 ## 🎯 Start Here: Critical Path (3-5 days)
 
-### Day 1: Fix Failing Workflows (URGENT)
+### Day 1: Address Slow Test Packages (CRITICAL FOUNDATION)
+
 ```bash
-# Check current workflow status
-go run ./cmd/workflow
+# Critical: Fix test performance blocking efficient development
+# Target: clientauth (168s), jose/server (94s), kms/client (74s)
 
-# Target these failing workflows first:
-# - ci-dast, ci-e2e, ci-load (highest impact)
-# - ci-coverage, ci-race, ci-sast
-# - ci-benchmark, ci-fuzz
-
-# Work through failures systematically:
-# 1. Run locally with Act: go run ./cmd/workflow -workflows=dast
-# 2. Fix the specific failure
-# 3. Verify fix with local run
-# 4. Commit and push to verify in GitHub Actions
+# 1. Apply aggressive t.Parallel() to clientauth package
+# 2. Split jose/server tests into parallel subtests
+# 3. Mock KMS dependencies to reduce network roundtrips
+# 4. Verify improvements with: go test ./internal/identity/authz/clientauth -v
 ```
 
 ### Day 2: Complete JOSE E2E Tests
+
 ```bash
 # Priority: Get JOSE fully working end-to-end
 cd internal/jose/server/
@@ -29,14 +25,34 @@ cd internal/jose/server/
 # Target: Full API coverage with integration tests
 ```
 
-### Day 3: CA OCSP + Docker Integration
+### Day 3: Fix CI/CD Workflows (HIGH IMPACT)
+
+```bash
+# Check current workflow status
+go run ./cmd/workflow
+
+# Target these failing workflows:
+# - ci-dast, ci-e2e, ci-load (highest impact)
+# - ci-coverage, ci-race, ci-sast 
+# - ci-benchmark, ci-fuzz
+
+# Work through failures systematically:
+# 1. Run locally with Act: go run ./cmd/workflow -workflows=dast
+# 2. Fix the specific failure  
+# 3. Verify fix with local run
+# 4. Commit and push to verify in GitHub Actions
+```
+
+### Day 4: CA OCSP + Docker Integration
+
 ```bash
 # OCSP responder for CA server
-# JOSE Docker Compose integration
+# JOSE Docker Compose integration  
 # Verify: docker compose up -d && curl -k https://localhost:8080/health
 ```
 
-### Day 4-5: Coverage Improvements
+### Day 5: Coverage Improvements
+
 ```bash
 # Focus on these packages to reach 95%:
 go test ./internal/ca/handler/... -cover
