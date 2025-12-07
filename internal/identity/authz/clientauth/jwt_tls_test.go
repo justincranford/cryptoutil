@@ -18,7 +18,7 @@ import (
 func TestClientSecretJWTAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, _ := setupTestRepository(t)
+	repoFactory, _ := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
@@ -30,7 +30,7 @@ func TestClientSecretJWTAuthenticator_Method(t *testing.T) {
 func TestClientSecretJWTAuthenticator_Authenticate_MissingAssertion(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, ctx := setupTestRepository(t)
+	repoFactory, ctx := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
@@ -44,7 +44,7 @@ func TestClientSecretJWTAuthenticator_Authenticate_MissingAssertion(t *testing.T
 func TestPrivateKeyJWTAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, _ := setupTestRepository(t)
+	repoFactory, _ := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
@@ -56,7 +56,7 @@ func TestPrivateKeyJWTAuthenticator_Method(t *testing.T) {
 func TestPrivateKeyJWTAuthenticator_Authenticate_MissingAssertion(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, ctx := setupTestRepository(t)
+	repoFactory, ctx := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
@@ -70,7 +70,7 @@ func TestPrivateKeyJWTAuthenticator_Authenticate_MissingAssertion(t *testing.T) 
 func TestTLSClientAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, _ := setupTestRepository(t)
+	repoFactory, _ := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
@@ -83,7 +83,7 @@ func TestTLSClientAuthenticator_Method(t *testing.T) {
 func TestTLSClientAuthenticator_Authenticate_MissingCredential(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, ctx := setupTestRepository(t)
+	repoFactory, ctx := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
@@ -99,7 +99,7 @@ func TestTLSClientAuthenticator_Authenticate_MissingCredential(t *testing.T) {
 func TestSelfSignedAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, _ := setupTestRepository(t)
+	repoFactory, _ := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
@@ -112,7 +112,7 @@ func TestSelfSignedAuthenticator_Method(t *testing.T) {
 func TestSelfSignedAuthenticator_Authenticate_MissingCredential(t *testing.T) {
 	t.Parallel()
 
-	repoFactory, ctx := setupTestRepository(t)
+	repoFactory, ctx := getTestRepository(t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 

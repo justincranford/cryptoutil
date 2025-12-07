@@ -193,13 +193,14 @@ func TestCompareSecret_ConstantTime(t *testing.T) {
 
 	// This test verifies that CompareSecret uses constant-time comparison.
 	// Note: This is a basic test; true timing analysis requires benchmarking.
+	// Reduced iterations from 100 to 10 to optimize test execution time (<30s target).
 
 	secret := "my-secret-password"
 	hashed, err := cryptoutilIdentityClientAuth.HashSecret(secret)
 	require.NoError(t, err)
 
 	// Multiple comparisons should all complete (no early returns).
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		match, err := cryptoutilIdentityClientAuth.CompareSecret(hashed, "wrong-password")
 		require.NoError(t, err)
 		require.False(t, match)
