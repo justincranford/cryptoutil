@@ -1,0 +1,219 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# E2E Testing Compose Configuration
+#
+# This compose file provides services for E2E testing with service names matching test expectations.
+# It reuses service definitions from KMS and telemetry compose files but with E2E-specific names.
+#
+# Usage:
+#   docker compose -f compose.yml up -d           # Start all E2E services
+#   docker compose -f compose.yml down -v         # Stop and clean up
+#   docker compose -f compose.yml --profile postgres up -d  # Include PostgreSQL instances
+#
+# Services:
+#   - cryptoutil-sqlite:     https://localhost:8080 (public), https://localhost:9090 (admin)
+#   - cryptoutil-postgres-1: https://localhost:8081 (public), https://localhost:9091 (admin)
+#   - cryptoutil-postgres-2: https://localhost:8082 (public), https://localhost:9092 (admin)
+#   - postgres:              localhost:5432
+#   - grafana-otel-lgtm:     http://localhost:3000
+#   - opentelemetry-collector-contrib: localhost:4317 (gRPC), localhost:4318 (HTTP)
+
+include:
+  - path: ../telemetry/compose.yml
+
+services:
+  # Healthcheck for Docker secrets availability.
+  healthcheck-secrets:
+    image: alpine:latest
+    secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      - postgres_url.secret
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    networks:
+      - e2e-network
+
+  # Build cryptoutil image from source.
+  builder-cryptoutil:
+    image: cryptoutil:dev
+    build:
+      context: ../..
+      dockerfile: deployments/kms/Dockerfile.kms
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-11-30T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+
+  # PostgreSQL database for KMS persistence.
+  postgres:
+    profiles: ["postgres"]
+    image: postgres:18
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    secrets:
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - e2e-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # KMS server with SQLite backend (default for E2E).
+  cryptoutil-sqlite:
+    image: cryptoutil:dev
+    command: ["server", "start", "--config=/app/config/sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "8080:8080"  # Public API
+      - "9090:9090"  # Admin API
+    secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+    environment:
+      - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_healthy
+    networks:
+      - e2e-network
+
+  # KMS server with PostgreSQL backend (instance 1).
+  cryptoutil-postgres-1:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["server", "start", "--config=/app/config/postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "8081:8080"  # Public API (host:container)
+      - "9091:9090"  # Admin API (host:container)
+    secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      - postgres_url.secret
+    environment:
+      - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_healthy
+    networks:
+      - e2e-network
+
+  # KMS server with PostgreSQL backend (instance 2).
+  cryptoutil-postgres-2:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["server", "start", "--config=/app/config/postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "8082:8080"  # Public API (host:container)
+      - "9092:9090"  # Admin API (host:container)
+    secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      - postgres_url.secret
+    environment:
+      - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_healthy
+    networks:
+      - e2e-network
+
+networks:
+  e2e-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+secrets:
+  postgres_username.secret:
+    file: ../kms/secrets/postgres/postgres_username.secret
+  postgres_password.secret:
+    file: ../kms/secrets/postgres/postgres_password.secret
+  postgres_database.secret:
+    file: ../kms/secrets/postgres/postgres_database.secret
+  postgres_url.secret:
+    file: ../kms/secrets/postgres/postgres_url.secret
+
+  # Unseal secrets (CRITICAL: shared across ALL cryptoutil instances for key hierarchy interoperability).
+  unseal_1of5.secret:
+    file: ../kms/secrets/unseal_1of5.secret
+  unseal_2of5.secret:
+    file: ../kms/secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ../kms/secrets/unseal_3of5.secret
+  unseal_4of5.secret:
+    file: ../kms/secrets/unseal_4of5.secret
+  unseal_5of5.secret:
+    file: ../kms/secrets/unseal_5of5.secret
+
