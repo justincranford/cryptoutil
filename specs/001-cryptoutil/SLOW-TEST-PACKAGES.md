@@ -6,15 +6,25 @@
 
 ---
 
-## Packages Requiring Optimization (>10s execution)
+## Packages Requiring Optimization (≥20s execution)
+
+**Sorted by execution time (descending)**:
 
 | Package | Execution Time | Coverage | Priority | Optimization Strategy |
 |---------|----------------|----------|----------|----------------------|
 | `internal/identity/authz/clientauth` | **168.383s** | 78.4% | CRITICAL | Table-driven parallelism, selective test execution pattern |
-| `internal/jose/server` | **94.342s** | 56.1% | HIGH | Parallel subtests, reduce setup/teardown overhead |
-| `internal/kms/client` | **73.859s** | 76.2% | HIGH | Mock heavy dependencies, parallel execution |
+| `internal/jose/server` | **94.342s** | 56.1% | CRITICAL | Parallel subtests, reduce setup/teardown overhead |
+| `internal/kms/client` | **73.859s** | 76.2% | CRITICAL | Mock heavy dependencies, parallel execution |
 | `internal/jose` | **67.003s** | 48.8% | HIGH | Improve coverage first (48.8% → 95%), then optimize |
-| `internal/kms/server/application` | **27.596s** | 64.7% | MEDIUM | Parallel server tests, dynamic port allocation |
+| `internal/kms/server/application` | **27.596s** | 64.7% | HIGH | Parallel server tests, dynamic port allocation |
+
+**Total packages ≥20s**: 5 packages  
+**Combined execution time**: 430.9 seconds (~7.2 minutes)
+
+## Packages With Moderate Performance Impact (10-20s execution)
+
+| Package | Execution Time | Coverage | Priority | Optimization Strategy |
+|---------|----------------|----------|----------|----------------------|
 | `internal/identity/authz` | **19.248s** | 77.2% | MEDIUM | Already parallelized, needs test data isolation review |
 | `internal/identity/test/unit` | **17.896s** | [no statements] | LOW | Infrastructure tests, acceptable duration |
 | `internal/identity/test/integration` | **16.370s** | [no statements] | LOW | Integration tests, acceptable duration |
@@ -30,9 +40,9 @@
 | `internal/identity/jobs` | 7.448s | 89.0% | Background job tests, acceptable |
 | `internal/common/crypto/keygen` | 6.394s | 85.2% | Crypto key generation, acceptable |
 
-## Optimization Targets for Phase 4
+## Optimization Targets (Packages ≥20s)
 
-### Critical (>1 minute execution)
+### Critical Priority (>60s execution)
 
 1. **clientauth (168s → target <30s)**
    - Strategy: Use `t.Parallel()` aggressively
@@ -49,17 +59,19 @@
    - Parallel test execution
    - Reduce network roundtrip simulation
 
-### High (30-70s execution)
+### High Priority (30-70s execution)
 
 4. **jose (67s → target <15s)**
    - Strategy: Increase coverage 48.8% → 95% FIRST
    - Then apply parallel execution
    - Reduce cryptographic operation redundancy
 
-### Medium (15-30s execution)
+### Medium Priority (20-30s execution)
 
 5. **kms/server/application (28s → target <10s)**
-6. **authz (19s → target <10s)**
+   - Strategy: Parallel server tests
+   - Dynamic port allocation pattern
+   - Reduce test server setup/teardown overhead
 
 ## Constitution v2.0.0 Impact
 
