@@ -814,3 +814,124 @@ func TestInvalidJSONBody(t *testing.T) {
 		})
 	}
 }
+
+// TestJWSVerifyErrorPaths tests JWS verification error scenarios.
+func TestJWSVerifyErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	t.Run("MissingJWS", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody, err := json.Marshal(JWSVerifyRequest{})
+		require.NoError(t, err)
+
+		resp := doPost(t, testBaseURL+"/jose/v1/jws/verify", reqBody)
+		defer closeBody(t, resp)
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("KeyNotFound", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody, err := json.Marshal(JWSVerifyRequest{
+			JWS: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+			KID: "nonexistent-kid",
+		})
+		require.NoError(t, err)
+
+		resp := doPost(t, testBaseURL+"/jose/v1/jws/verify", reqBody)
+		defer closeBody(t, resp)
+
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("InvalidSignature", func(t *testing.T) {
+		t.Parallel()
+
+		// Generate a key.
+		genReqBody, err := json.Marshal(JWKGenerateRequest{
+			Algorithm: "RSA/2048",
+			Use:       "sig",
+		})
+		require.NoError(t, err)
+
+		genResp := doPost(t, testBaseURL+"/jose/v1/jwk/generate", genReqBody)
+		defer closeBody(t, genResp)
+
+		var genResult JWKGenerateResponse
+
+		require.NoError(t, json.NewDecoder(genResp.Body).Decode(&genResult))
+
+		// Try to verify invalid JWS with specific key.
+		reqBody, err := json.Marshal(JWSVerifyRequest{
+			JWS: "invalid.jws.signature",
+			KID: genResult.KID,
+		})
+		require.NoError(t, err)
+
+		resp := doPost(t, testBaseURL+"/jose/v1/jws/verify", reqBody)
+		defer closeBody(t, resp)
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var verifyResp JWSVerifyResponse
+
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&verifyResp))
+		require.False(t, verifyResp.Valid)
+	})
+}
+
+// TestJWTVerifyErrorPaths tests JWT verification error scenarios.
+func TestJWTVerifyErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	t.Run("MissingJWT", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody, err := json.Marshal(JWTVerifyRequest{})
+		require.NoError(t, err)
+
+		resp := doPost(t, testBaseURL+"/jose/v1/jwt/verify", reqBody)
+		defer closeBody(t, resp)
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("KeyNotFound", func(t *testing.T) {
+		t.Parallel()
+
+		reqBody, err := json.Marshal(JWTVerifyRequest{
+			JWT: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+			KID: "nonexistent-kid",
+		})
+		require.NoError(t, err)
+
+		resp := doPost(t, testBaseURL+"/jose/v1/jwt/verify", reqBody)
+		defer closeBody(t, resp)
+
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+// TestServerLifecycle tests server Start and Shutdown.
+func TestServerLifecycle(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilConfig.NewForJOSEServer(
+		cryptoutilMagic.IPv4Loopback,
+		0, // Dynamic port.
+		true,
+	)
+
+	server, err := NewServer(context.Background(), settings)
+	require.NoError(t, err)
+
+	// Test StartNonBlocking.
+	require.NoError(t, server.StartNonBlocking())
+	require.NotZero(t, server.ActualPort())
+
+	// Test Shutdown.
+	require.NoError(t, server.Shutdown())
+}
+
