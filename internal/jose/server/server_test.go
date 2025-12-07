@@ -1016,4 +1016,45 @@ func TestStartBlocking(t *testing.T) {
 	require.NoError(t, err) // Context cancellation is normal shutdown.
 }
 
+// TestShutdownCoverage tests explicit Shutdown calls for coverage.
+func TestShutdownCoverage(t *testing.T) {
+	t.Parallel()
+
+	t.Run("NormalShutdown", func(t *testing.T) {
+		t.Parallel()
+
+		settings := cryptoutilConfig.NewForJOSEServer(
+			cryptoutilMagic.IPv4Loopback,
+			0,
+			true,
+		)
+
+		server, err := NewServer(context.Background(), settings)
+		require.NoError(t, err)
+
+		require.NoError(t, server.StartNonBlocking())
+
+		// Wait for server to be ready.
+		time.Sleep(100 * time.Millisecond)
+
+		// Shutdown should succeed.
+		require.NoError(t, server.Shutdown())
+	})
+
+	t.Run("ShutdownWithoutStart", func(t *testing.T) {
+		t.Parallel()
+
+		settings := cryptoutilConfig.NewForJOSEServer(
+			cryptoutilMagic.IPv4Loopback,
+			0,
+			true,
+		)
+
+		server, err := NewServer(context.Background(), settings)
+		require.NoError(t, err)
+
+		// Shutdown without starting should work.
+		require.NoError(t, server.Shutdown())
+	})
+}
 
