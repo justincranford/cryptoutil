@@ -162,7 +162,7 @@ go test ./internal/jose/server -v  # Should show <20s
 ```go
 var (
 	testKMSServer *kmsApp.Server
-	testKMSURL    string
+	testServerURL string
 )
 
 func TestMain(m *testing.M) {
@@ -185,7 +185,7 @@ func TestMain(m *testing.M) {
 	go testKMSServer.Start()
 	
 	// Get actual port
-	testKMSURL = fmt.Sprintf("https://127.0.0.1:%d", testKMSServer.ActualPort())
+	testServerURL = fmt.Sprintf("https://127.0.0.1:%d", testKMSServer.ActualPort())
 	
 	exitCode := m.Run()
 	
