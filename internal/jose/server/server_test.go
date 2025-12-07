@@ -353,13 +353,17 @@ func TestJWEEncryptAndDecrypt(t *testing.T) {
 		plaintext  string
 		shouldPass bool
 	}{
+		{"Oct512", "oct/512", "enc", "AES-256-GCM test", true},
+		{"Oct384", "oct/384", "enc", "AES-192-GCM test", true},
 		{"Oct256", "oct/256", "enc", "Hello, World!", true},
 		{"Oct192", "oct/192", "enc", "Test message", true},
 		{"Oct128", "oct/128", "enc", "Short", true},
-		{"RSA2048", "RSA/2048", "enc", "RSA encryption test", true},
-		{"RSA3072", "RSA/3072", "enc", "Another RSA test", true},
-		{"ECP256", "EC/P256", "enc", "ECDH test", true},
-		{"ECP384", "EC/P384", "enc", "ECDH-ES test", true},
+		{"RSA4096", "RSA/4096", "enc", "RSA-4096 encryption", true},
+		{"RSA3072", "RSA/3072", "enc", "RSA-3072 encryption", true},
+		{"RSA2048", "RSA/2048", "enc", "RSA-2048 encryption", true},
+		{"ECP521", "EC/P521", "enc", "ECDH-P521 test", true},
+		{"ECP384", "EC/P384", "enc", "ECDH-P384 test", true},
+		{"ECP256", "EC/P256", "enc", "ECDH-P256 test", true},
 	}
 
 	for _, tc := range tests {
