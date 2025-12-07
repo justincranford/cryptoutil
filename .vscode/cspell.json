@@ -10,7 +10,8 @@
     "node_modules/",
     ".cache/",
     "htmlcov/",
-    ".pytest_cache/"
+    ".pytest_cache/",
+    "**/*.gen.go"
   ],
   "dictionaries": [
     // ===== DICTIONARIES WITH .txt FILES =====
