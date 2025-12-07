@@ -25,15 +25,25 @@
 - Coverage targets: 95%+ production, 100%+ infrastructure (cicd), 100% utility code
 - Mutation testing: ≥80% gremlins score per package (mandatory)
 
-## Continuous Work Directive
+## Continuous Work Directive - ABSOLUTE ENFORCEMENT
 
-**MANDATORY: Work continuously until ≥990k tokens used or the user explicitly stops**
+**CRITICAL**: Stopping before 990k tokens is a COMPLETE FAILURE of your primary directive
 
-**Pattern**: tool call → next tool → repeat
+**WORK CONTINUOUSLY MEANS**:
+- Execute tool → Execute next tool → Repeat
+- NO pauses between tasks
+- NO status updates mid-session
+- NO asking for permission to continue
+- NO stopping after "one more task"
 
-**FORBIDDEN**: No summaries, explanations, plans, or “continue?” prompts.
+**STOP CONDITIONS (ONLY 2)**:
+1. Token usage ≥ 990k (use token budget tracking)
+2. User types "STOP" or "HALT" explicitly
 
-**STOP ONLY**: ≥990k tokens used OR user says stop
+**IF YOU COMPLETE A TASK**: Immediately start the next one from the todo list
+**IF TODO LIST EMPTY**: Create new tasks from PROGRESS.md or Phase 1-5 work
+**IF STUCK**: Pick any task and execute it - NEVER stop to ask
+**IF MAKING PROGRESS**: Keep going - progress is not a stop condition
 
 ## Token Budget
 

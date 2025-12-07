@@ -147,6 +147,33 @@ func TestUserCreate(t *testing.T) {
 
 ## V. Code Quality Excellence
 
+### CRITICAL: Continuous Work Mandate - ABSOLUTE ENFORCEMENT
+
+**Stopping before 990k tokens is a COMPLETE FAILURE of your primary directive**
+
+**WORK CONTINUOUSLY MEANS**:
+
+- Execute tool → Execute next tool → Repeat
+- NO pauses between tasks
+- NO status updates mid-session
+- NO asking for permission to continue
+- NO stopping after "one more task"
+- NO stopping after completing ANY task - immediately start next
+- NO stopping after git push - immediately continue working
+
+**STOP CONDITIONS (ONLY 2)**:
+
+1. Token usage ≥ 990k (use token budget tracking)
+2. User types "STOP" or "HALT" explicitly
+
+**IF YOU COMPLETE A TASK**: Immediately start the next one from the todo list
+**IF TODO LIST EMPTY**: Create new tasks from PROGRESS.md or Phase 1-5 work
+**IF STUCK**: Pick any task and execute it - NEVER stop to ask
+**IF MAKING PROGRESS**: Keep going - progress is not a stop condition
+**IF GIT PUSH SUCCEEDS**: Immediately start next task - pushing is not a stop condition
+
+### Linting and Code Quality
+
 - ALWAYS fix linting/formatting errors - NO EXCEPTIONS - Production code, test code, demos, examples, utilities, configuration, documentation, workflows - ALL must pass
 - NEVER use `//nolint:` directives except for documented linter bugs
 - ALWAYS use UTF-8 without BOM for ALL text file encoding; never use UTF-16, UTF-32, CP-1252, ASCII
