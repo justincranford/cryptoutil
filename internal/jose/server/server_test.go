@@ -922,6 +922,42 @@ func TestJWTVerifyErrorPaths(t *testing.T) {
 
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
+
+	t.Run("InvalidJWTFormat", func(t *testing.T) {
+		t.Parallel()
+
+		// First create a valid key.
+		genReqBody, err := json.Marshal(JWKGenerateRequest{
+			Algorithm: "oct/256",
+			Use:       "sig",
+		})
+		require.NoError(t, err)
+
+		genResp := doPost(t, testBaseURL+"/jose/v1/jwk/generate", genReqBody)
+		defer closeBody(t, genResp)
+
+		var genRespData JWKGenerateResponse
+
+		err = json.NewDecoder(genResp.Body).Decode(&genRespData)
+		require.NoError(t, err)
+
+		// Try to verify an invalid JWT.
+		reqBody, err := json.Marshal(JWTVerifyRequest{
+			JWT: "invalid.jwt.format",
+			KID: genRespData.KID,
+		})
+		require.NoError(t, err)
+
+		resp := doPost(t, testBaseURL+"/jose/v1/jwt/verify", reqBody)
+		defer closeBody(t, resp)
+
+		var verifyResp JWTVerifyResponse
+
+		err = json.NewDecoder(resp.Body).Decode(&verifyResp)
+		require.NoError(t, err)
+		require.False(t, verifyResp.Valid)
+		require.NotEmpty(t, verifyResp.Error)
+	})
 }
 
 // TestServerLifecycle tests server Start and Shutdown.
