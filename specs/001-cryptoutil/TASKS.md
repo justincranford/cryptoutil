@@ -1,7 +1,7 @@
 # Task Breakdown - Post-Consolidation
 
-**Date**: December 7, 2025  
-**Context**: Detailed task breakdown after consolidating iteration files  
+**Date**: December 7, 2025
+**Context**: Detailed task breakdown after consolidating iteration files
 **Status**: ✅ 36 tasks identified (27 required, 9 optional)
 
 ---
@@ -24,8 +24,8 @@
 
 ### P0.1: Optimize clientauth Package (168s → <30s)
 
-**Priority**: CRITICAL  
-**Effort**: 2 hours  
+**Priority**: CRITICAL
+**Effort**: 2 hours
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -43,8 +43,8 @@
 
 ### P0.2: Optimize jose/server Package (94s → <20s)
 
-**Priority**: CRITICAL  
-**Effort**: 1 hour  
+**Priority**: CRITICAL
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -60,8 +60,8 @@
 
 ### P0.3: Optimize kms/client Package (74s → <20s)
 
-**Priority**: CRITICAL  
-**Effort**: 1 hour  
+**Priority**: CRITICAL
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -78,8 +78,8 @@
 
 ### P0.4: Optimize jose Package (67s → <15s)
 
-**Priority**: HIGH  
-**Effort**: 30 minutes  
+**Priority**: HIGH
+**Effort**: 30 minutes
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -95,8 +95,8 @@
 
 ### P0.5: Optimize kms/server/application Package (28s → <10s)
 
-**Priority**: MEDIUM  
-**Effort**: 30 minutes  
+**Priority**: MEDIUM
+**Effort**: 30 minutes
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -139,8 +139,8 @@
 
 ### P2.1: JOSE E2E Test Suite
 
-**Priority**: HIGH  
-**Effort**: 3-4 hours  
+**Priority**: HIGH
+**Effort**: 3-4 hours
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -160,8 +160,8 @@
 
 ### P2.2: CA OCSP Responder
 
-**Priority**: HIGH  
-**Effort**: 2 hours  
+**Priority**: HIGH
+**Effort**: 2 hours
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -178,8 +178,8 @@
 
 ### P2.3: JOSE Docker Integration
 
-**Priority**: HIGH  
-**Effort**: 1-2 hours  
+**Priority**: HIGH
+**Effort**: 1-2 hours
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -208,8 +208,8 @@
 
 ### P2.8: EST serverkeygen (OPTIONAL)
 
-**Priority**: LOW  
-**Effort**: 3-4 hours (if PKCS#7 library resolved)  
+**Priority**: LOW
+**Effort**: 3-4 hours (if PKCS#7 library resolved)
 **Status**: ⚠️ BLOCKED on PKCS#7 library
 
 **Acceptance Criteria**:
@@ -228,8 +228,8 @@
 
 ### P3.1: ca/handler Coverage (47.2% → 95%)
 
-**Priority**: CRITICAL  
-**Effort**: 1 hour  
+**Priority**: CRITICAL
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -245,8 +245,8 @@
 
 ### P3.2: auth/userauth Coverage (42.6% → 95%)
 
-**Priority**: CRITICAL  
-**Effort**: 1 hour  
+**Priority**: CRITICAL
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -261,8 +261,8 @@
 
 ### P3.3: unsealkeysservice Coverage (78.2% → 95%)
 
-**Priority**: MEDIUM  
-**Effort**: 30 minutes  
+**Priority**: MEDIUM
+**Effort**: 30 minutes
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -274,8 +274,8 @@
 
 ### P3.4: network Coverage (88.7% → 95%)
 
-**Priority**: MEDIUM  
-**Effort**: 30 minutes  
+**Priority**: MEDIUM
+**Effort**: 30 minutes
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -287,8 +287,8 @@
 
 ### P3.5: Verify apperr Coverage (96.6%)
 
-**Priority**: LOW  
-**Effort**: 5 minutes  
+**Priority**: LOW
+**Effort**: 5 minutes
 **Status**: ✅ Already Complete
 
 **Acceptance Criteria**:
@@ -301,7 +301,7 @@
 
 ### P4.1: Add Benchmark Tests
 
-**Effort**: 2 hours  
+**Effort**: 2 hours
 **Status**: ❌ Not Started
 
 **Files to Create**:
@@ -313,7 +313,7 @@
 
 ### P4.2: Add Fuzz Tests
 
-**Effort**: 2 hours  
+**Effort**: 2 hours
 **Status**: ❌ Not Started
 
 **Files to Create**:
@@ -324,7 +324,7 @@
 
 ### P4.3: Add Property-Based Tests
 
-**Effort**: 2 hours  
+**Effort**: 2 hours
 **Status**: ❌ Not Started
 
 **Files to Create**:
@@ -334,7 +334,7 @@
 
 ### P4.4: Mutation Testing Baseline
 
-**Effort**: 1 hour  
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Command**: `gremlins unleash --tags=!integration`
@@ -366,6 +366,6 @@
 
 ---
 
-*Task Breakdown Version: 1.0.0*  
-*Author: GitHub Copilot (Agent)*  
+*Task Breakdown Version: 1.0.0*
+*Author: GitHub Copilot (Agent)*
 *Approved: Pending user validation*
