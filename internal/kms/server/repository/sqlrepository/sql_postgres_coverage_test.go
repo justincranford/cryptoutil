@@ -33,14 +33,14 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 		{
 			name:          "PostgreSQL with disabled container mode and valid URL",
 			containerMode: "disabled",
-			databaseURL:   testPostgresURL,
+			databaseURL:   getTestPostgresURL(),
 			expectError:   true, // Will fail to connect but tests the code path
 			errorContains: "failed to ping database",
 		},
 		{
 			name:          "PostgreSQL with preferred container mode (will fallback)",
 			containerMode: "preferred",
-			databaseURL:   testPostgresURL,
+			databaseURL:   getTestPostgresURL(),
 			expectError:   true,
 			errorContains: "failed to ping database",
 		},
@@ -158,7 +158,7 @@ func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
 		},
 		{
 			name:        "PostgreSQL URL without search_path",
-			databaseURL: testPostgresURL,
+			databaseURL: getTestPostgresURL(),
 			expectError: true,
 		},
 	}

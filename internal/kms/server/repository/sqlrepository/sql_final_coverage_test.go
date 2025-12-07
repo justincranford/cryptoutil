@@ -136,7 +136,7 @@ func TestMapContainerMode_AllModes(t *testing.T) {
 
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
-			settings.DatabaseURL = testPostgresURL
+			settings.DatabaseURL = getTestPostgresURL()
 			settings.DatabaseContainer = tc.containerMode
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -244,7 +244,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 
 				settings := cryptoutilConfig.RequireNewForTest("error_container_required")
 				settings.DevMode = false
-				settings.DatabaseURL = testPostgresURL
+				settings.DatabaseURL = getTestPostgresURL()
 				settings.DatabaseContainer = containerModeRequired
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -264,7 +264,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 
 				settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
 				settings.DevMode = false
-				settings.DatabaseURL = testPostgresURL
+				settings.DatabaseURL = getTestPostgresURL()
 				settings.DatabaseContainer = containerModeDisabled
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)

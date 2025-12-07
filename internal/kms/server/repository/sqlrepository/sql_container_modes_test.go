@@ -27,7 +27,7 @@ func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("postgres_container_required")
 	settings.DevMode = false
-	settings.DatabaseURL = testPostgresURL
+	settings.DatabaseURL = getTestPostgresURL()
 	settings.DatabaseContainer = containerModeRequired // Will fail without Docker
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -51,7 +51,7 @@ func TestNewSQLRepository_PostgreSQL_ContainerPreferred(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("postgres_container_preferred")
 	settings.DevMode = false
-	settings.DatabaseURL = testPostgresURL
+	settings.DatabaseURL = getTestPostgresURL()
 	settings.DatabaseContainer = containerModePreferred // Will fallback to URL
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)

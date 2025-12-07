@@ -6,6 +6,8 @@ package sqlrepository_test
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -22,10 +24,38 @@ const (
 	containerModePreferred = "preferred"
 	containerModeRequired  = "required"
 	containerModeInvalid   = "invalid-mode"
-
-	// Test database URL for PostgreSQL connection tests.
-	testPostgresURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 )
+
+// getTestPostgresURL returns the PostgreSQL URL from environment variables or a default.
+func getTestPostgresURL() string {
+	host := os.Getenv("POSTGRES_HOST")
+	port := os.Getenv("POSTGRES_PORT")
+	user := os.Getenv("POSTGRES_USER")
+	pass := os.Getenv("POSTGRES_PASS")
+	name := os.Getenv("POSTGRES_NAME")
+
+	if host == "" {
+		host = "localhost"
+	}
+
+	if port == "" {
+		port = "5432"
+	}
+
+	if user == "" {
+		user = "cryptoutil"
+	}
+
+	if pass == "" {
+		pass = "cryptoutil_test_password"
+	}
+
+	if name == "" {
+		name = "cryptoutil_test"
+	}
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, name)
+}
 
 // TestNewSQLRepository_PostgreSQL_PingRetry tests database ping retry logic.
 func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
@@ -39,7 +69,7 @@ func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("ping_retry_test")
 	settings.DevMode = false
-	settings.DatabaseURL = testPostgresURL
+	settings.DatabaseURL = getTestPostgresURL()
 	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)

@@ -48,10 +48,33 @@ on:
       - '**/*.sarif'
   workflow_dispatch:
 
+env:
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
+  POSTGRES_NAME: cryptoutil_test
+  POSTGRES_USER: cryptoutil
+  POSTGRES_PASS: cryptoutil_test_password
+
 jobs:
   coverage:
     name: Coverage Collection
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_NAME }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASS }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     permissions:
       security-events: write
       contents: read
@@ -83,7 +106,7 @@ jobs:
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         mkdir -p workflow-reports/coverage
-        go test -short -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic ./internal/...
+        go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic ./internal/...
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -119,9 +142,8 @@ jobs:
         echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
         echo "📋 Current coverage: ${CURRENT_COVERAGE}%"
 
-        # Coverage threshold enforcement (60% minimum with -short flag, 95% for full suite)
-        # TODO: Restore 95% threshold after fixing container-based tests to run in GitHub Actions
-        MINIMUM_COVERAGE=60.0
+        # Coverage threshold enforcement (95% minimum for full test suite)
+        MINIMUM_COVERAGE=95.0
         if (( $(echo "$CURRENT_COVERAGE < $MINIMUM_COVERAGE" | bc -l) )); then
           echo "❌ Coverage ${CURRENT_COVERAGE}% is below minimum threshold ${MINIMUM_COVERAGE}%"
           echo "coverage_passed=false" >> $GITHUB_OUTPUT
