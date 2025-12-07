@@ -8,29 +8,30 @@
 
 ## EXECUTIVE SUMMARY
 
-**Overall Progress**: 29.5/42 tasks complete (70.2%)
-**Current Phase**: Phase 1 - CI/CD Workflow Fixes (P1.5 ci-e2e complete, 5/9 workflows passing)
+**Overall Progress**: 30.5/42 tasks complete (72.6%)
+**Current Phase**: Phase 1 - CI/CD Workflow Fixes (P1.6 ci-dast complete, 6/9 workflows passing)
 **Blockers**: None
-**Next Action**: P1.6 ci-dast workflow fix
+**Next Action**: P1.7 ci-race workflow fix
 
 ### Quick Stats
 
 | Metric | Current | Target | Status |
 |--------|---------|--------|--------|
 | Test Suite Speed | ~60s (all 11 pkgs) | <200s | ✅ COMPLETE |
-| CI/CD Pass Rate | 56% (5/9 workflows) | 100% (9/9) | ⏳ Phase 1 (5/9 workflows fixed) |
+| CI/CD Pass Rate | 67% (6/9 workflows) | 100% (9/9) | ⏳ Phase 1 (6/9 workflows fixed) |
 | Package Coverage | 11 below 95% | ALL ≥95% | ⏳ Phase 3 (jose/server 68.9%→71%) |
-| Tasks Complete | 29.5/42 | 42/42 | 70.2% |
+| Tasks Complete | 30.5/42 | 42/42 | 72.6% |
 | Implementation Guides | 6/6 | 6/6 | ✅ COMPLETE |
 
 ### Recent Milestones
 
+- ✅ **P1.6 COMPLETE**: ci-dast workflow fixed (corrected binary name ./kms→./cryptoutil)
 - ✅ **P1.5 COMPLETE**: ci-e2e workflow fixed (created deployments/compose/compose.yml, added --profile postgres)
 - ✅ **P2.1 PARTIAL**: JOSE JWE encryption support added (68.9%→88.7% coverage, +19.8%)
 - ✅ **P1.1-P1.4 COMPLETE**: ci-coverage, ci-benchmark, ci-fuzz, ci-quality workflows passing
 - ✅ **Phase 0 COMPLETE**: All test packages under performance targets (P0.1 optimized to 11s)
 - ✅ **URGENT FIXES COMPLETE**: Removed -short flag, added PostgreSQL service, fixed ci-quality regression
-- ⏳ **Phase 1 In Progress**: 5/9 workflows fixed (ci-dast, ci-load, ci-sast, ci-race remaining)
+- ⏳ **Phase 1 In Progress**: 6/9 workflows fixed (ci-load, ci-sast, ci-race remaining)
 - ⏳ **Phase 2 In Progress**: P2.1 JWE encryption working (88.7% coverage, need +6.3% for 95% target)
 
 ---
@@ -98,12 +99,16 @@
     - PostgreSQL instances are profile-gated in compose.yml
   - ✅ **VALIDATION**: docker compose -f deployments/compose/compose.yml config --quiet (passed)
   - Commits: 86d0598f (compose file), 1ad05a0b (profile flag)
-- [ ] **P1.6**: ci-dast (MEDIUM) - Requires full service stack
+- [x] **P1.6**: ci-dast (MEDIUM) ✅ COMPLETE
+  - ❌ **ISSUE**: Application never became ready - health checks failing for 30 attempts
+  - ❌ **ROOT CAUSE**: Binary name mismatch - workflow builds './cryptoutil' but runs './kms'
+  - ✅ **FIX**: Changed command from './kms cryptoutil server start' to './cryptoutil server start'
+  - Commit: 11a9caa2
 - [ ] **P1.7**: ci-race (MEDIUM) - Race detector configuration
 - [ ] **P1.8**: ci-load (MEDIUM) - Load testing infrastructure
 - [ ] **P1.9**: ci-sast (LOW) - Static analysis tooling
 
-**Phase Progress**: 5/9 tasks (55.6%), 4 remaining
+**Phase Progress**: 6/9 tasks (66.7%), 3 remaining
 
 **CI/CD Test Strategy (MANDATORY)**:
 
