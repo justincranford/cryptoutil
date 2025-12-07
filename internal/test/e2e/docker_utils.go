@@ -27,7 +27,7 @@ type DockerContainer struct {
 // Docker compose command arguments constants.
 var (
 	dockerComposeArgsStopServices  = []string{"down", "-v", "--remove-orphans"}
-	dockerComposeArgsStartServices = []string{"up", "-d", "--force-recreate"}
+	dockerComposeArgsStartServices = []string{"up", "-d", "--force-recreate", "--profile", "postgres"}
 	dockerComposeArgsPsServices    = []string{"ps", "-a", "--format", "json"}
 )
 
