@@ -105,14 +105,14 @@
 
 ## Phase 2: Deferred Features (4 tasks, 8-10h)
 
-- [x] **P2.1**: JOSE E2E Test Suite - 4h (PARTIAL - 87.2% coverage, JWE encryption working)
+- [x] **P2.1**: JOSE E2E Test Suite - 4h (PARTIAL - 88.7% coverage, JWE encryption working)
   - ✅ JWE encryption key generation implemented (7 algorithm variants)
   - ✅ TestJWEEncryptAndDecrypt comprehensive test suite (all algorithms: Oct512/384/256/192/128, RSA4096/3072/2048, ECP521/384/256)
-  - ✅ TestJWSVerifyErrorPaths and TestJWTVerifyErrorPaths added (MissingJWS, KeyNotFound, InvalidSignature, VerifyWithoutKID)
+  - ✅ TestJWSVerifyErrorPaths and TestJWTVerifyErrorPaths (MissingJWS, KeyNotFound, InvalidSignature, VerifyWithoutKID)
   - ✅ TestServerLifecycle, TestAPIKeyMiddleware, TestNewServerErrorPaths, TestStartBlocking, TestShutdownCoverage
-  - ✅ Coverage improved from 68.9% → 71.0% → 73.9% → 80.3% → 81.2% → 82.3% → 83.2% → 86.1% → 87.2% (+18.3% total)
-  - ⏳ **Need 7.8% more coverage to reach 95% target**
-  - ⏳ Remaining gaps: handleJWTVerify (58.3%), getKeyType (75%), handleJWKGenerate (78.6%), handleJWTCreate (83.3%), handleJWKS (83.3%)
+  - ✅ Coverage improved from 68.9% → 71.0% → 73.9% → 80.3% → 81.2% → 82.3% → 83.2% → 86.1% → 87.2% → 88.7% (+19.8% total)
+  - ⏳ **Need 6.3% more coverage to reach 95% target**
+  - ⏳ Remaining gaps: handleJWKGenerate (78.6%), handleJWTCreate (83.3%), handleJWKS (83.3%), error path coverage
 
 - [x] **P2.2**: CA OCSP support - 0h ✅ VERIFIED COMPLETE
   - ✅ HandleOCSP endpoint already implemented in internal/ca/api/handler/handler.go
