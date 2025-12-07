@@ -107,12 +107,10 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 			setupConsent: true,
 			revoked:      false,
 			expired:      true,
-			// TODO: Fix flaky test - expires_at > NOW() filtering behaves differently on Windows vs Linux
-			// On Linux/Act: Correctly filters out expired consents (wantErr:true, wantNotFound:true)
-			// On Windows: Does NOT filter (wantErr:false, wantNotFound:false)
-			// Root cause: SQLite datetime comparison platform differences
-			wantErr:      false,  // Windows behavior (test passes locally and in Act with this)
-			wantNotFound: false,
+			// Platform-specific behavior: Linux/GitHub Actions filters expired consents correctly
+			// Windows local testing does NOT filter (SQLite datetime comparison differences)
+			wantErr:      true,   // Linux/production behavior (correct)
+			wantNotFound: true,   // Should return ErrConsentNotFound
 		},
 	}
 
