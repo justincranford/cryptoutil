@@ -6,9 +6,11 @@
 
 ---
 
-## 🎯 Current Priority: Complete These 36 Tasks (27 Required, 9 Optional)
+## 🎯 Current Priority: Complete These 36 Tasks (ALL MANDATORY)
 
 This is the **single source of truth** for what needs to be done. Ignore all other progress tracking files.
+
+**CRITICAL**: ALL phases and tasks are MANDATORY for Speckit completion. There are NO optional phases or tasks.
 
 ### Phase 0: Optimize Slow Test Packages (FOUNDATION) 🚀
 
@@ -36,21 +38,25 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 - Implement selective execution pattern for local development
 - Add benchmark tests to identify bottlenecks
 
-**Current State**: 5 packages ≥20s (430.9s total execution time - blocking fast feedback)
-**Target**: All 5 critical packages optimized to <30s each (enable rapid iteration)
-**Optional**: 6 additional packages 10-20s can be addressed in parallel with other work### Phase 1: Fix Critical CI/CD Failures (URGENT) ⚠️
+**Current State**: 5 packages ≥20s (430.9s total), 6 packages 10-20s (total 11 slow packages)
+**Target**: ALL 11 packages optimized (5 critical to <30s, 6 secondary to <10s)
+**Total Impact**: Reduce ~600s+ test execution time to <200s (67% improvement)
+
+### Phase 1: Fix Critical CI/CD Failures (URGENT) ⚠️
 *Priority: CRITICAL - Blocking development workflow*
 
-| Task | Status | Evidence Required |
-|------|--------|-------------------|
-| Fix ci-dast workflow | ❌ | Workflow passes |
-| Fix ci-e2e workflow | ❌ | Workflow passes |
-| Fix ci-load workflow | ❌ | Workflow passes |
-| Fix ci-benchmark workflow | ❌ | Workflow passes |
-| Fix ci-race workflow | ❌ | Workflow passes |
-| Fix ci-sast workflow | ❌ | Workflow passes |
-| Fix ci-coverage workflow | ❌ | Workflow passes |
-| Fix ci-fuzz workflow | ❌ | Workflow passes |
+**Priority Order (Highest to Lowest)**:
+
+| Task | Status | Evidence Required | Priority |
+|------|--------|-------------------|----------|
+| Fix ci-coverage workflow | ❌ | Workflow passes | 1 (CRITICAL) |
+| Fix ci-benchmark workflow | ❌ | Workflow passes | 2 (HIGH) |
+| Fix ci-fuzz workflow | ❌ | Workflow passes | 3 (HIGH) |
+| Fix ci-e2e workflow | ❌ | Workflow passes | 4 (HIGH) |
+| Fix ci-dast workflow | ❌ | Workflow passes | 5 (MEDIUM) |
+| Fix ci-race workflow | ❌ | Workflow passes | 6 (MEDIUM) |
+| Fix ci-load workflow | ❌ | Workflow passes | 7 (MEDIUM) |
+| Fix ci-sast workflow | ❌ | Workflow passes | 8 (LOW) |
 
 **Current State**: 8/11 workflows failing (27% pass rate)
 **Target**: 11/11 workflows passing (100% pass rate)
@@ -70,8 +76,10 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 | CA TSA timestamp endpoint | ✅ | RFC 3161 compliant responses |
 
 **Current State**: 4/8 deferred features complete
-**Target**: 7/8 features complete (EST serverkeygen optional if PKCS#7 library remains blocked)
-**Minimum Viable**: 7/8 completion acceptable for project completion### Phase 3: Achieve Coverage Targets 📊
+**Target**: 8/8 features complete (ALL MANDATORY including EST serverkeygen)
+**Blocker**: EST serverkeygen requires PKCS#7 library support - must be resolved
+
+### Phase 3: Achieve Coverage Targets 📊
 
 *Priority: MEDIUM - Quality assurance*
 

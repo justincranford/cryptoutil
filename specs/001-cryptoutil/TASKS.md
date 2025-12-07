@@ -2,21 +2,23 @@
 
 **Date**: December 7, 2025
 **Context**: Detailed task breakdown after consolidating iteration files
-**Status**: ✅ 36 tasks identified (27 required, 9 optional)
+**Status**: ✅ 36 tasks identified (ALL MANDATORY)
 
 ---
 
 ## Task Summary
 
-| Phase | Required Tasks | Optional Tasks | Total | Effort |
-|-------|----------------|----------------|-------|--------|
-| Phase 0: Slow Test Optimization | 5 | 0 | 5 | 4-5h |
-| Phase 1: CI/CD Workflows | 8 | 0 | 8 | 4-5h |
-| Phase 2: Deferred I2 Features | 7 | 1 | 8 | 6-8h |
-| Phase 3: Coverage Targets | 4 | 1 | 5 | 2-3h |
-| Phase 4: Advanced Testing | 0 | 4 | 4 | 4-6h |
-| Phase 5: Documentation | 0 | 6 | 6 | 8-12h |
-| **Total** | **27** | **9** | **36** | **28-39h** |
+**CRITICAL**: ALL phases and tasks are MANDATORY for Speckit completion.
+
+| Phase | Tasks | Effort |
+|-------|-------|--------|
+| Phase 0: Slow Test Optimization | 11 | 8-10h |
+| Phase 1: CI/CD Workflows | 8 | 6-8h |
+| Phase 2: Deferred Features | 8 | 8-10h |
+| Phase 3: Coverage Targets | 5 | 12-18h |
+| Phase 4: Advanced Testing | 4 | 8-12h |
+| Phase 5: Demo Videos | 6 | 16-24h |
+| **Total** | **42** | **58-82h** |
 
 ---
 
@@ -61,18 +63,21 @@
 ### P0.3: Optimize kms/client Package (74s → <20s)
 
 **Priority**: CRITICAL
-**Effort**: 1 hour
+**Effort**: 2 hours
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
-- Mock KMS server dependency
-- Implement parallel test execution
-- Reduce network roundtrip simulation
+- **MANDATORY**: Use real KMS server started by TestMain (NO MOCKS for happy path)
+- Start KMS server ONCE per package in TestMain using in-memory SQLite
+- Implement parallel test execution with unique UUIDv7 data isolation
+- Reduce redundant key generation/unsealing operations
 - Execution time <20s
 - Coverage maintained at 76.2% or higher
+- Mocks ONLY acceptable for hard-to-reproduce corner cases
 
 **Files to Modify**:
-- `internal/kms/client/*_test.go`
+- `internal/kms/client/*_test.go` (add TestMain with KMS server startup)
+- `internal/kms/client/*_test.go` (refactor tests to use shared server)
 
 ---
 
@@ -95,8 +100,8 @@
 
 ### P0.5: Optimize kms/server/application Package (28s → <10s)
 
-**Priority**: MEDIUM
-**Effort**: 30 minutes
+**Priority**: HIGH
+**Effort**: 1 hour
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
@@ -104,16 +109,117 @@
 - Use dynamic port allocation pattern
 - Reduce test server setup/teardown overhead
 - Execution time <10s
-- Coverage maintained at 64.7% or higher
+- Coverage improved from 64.7% → 80%+
 
 **Files to Modify**:
 - `internal/kms/server/application/*_test.go`
 
 ---
 
-## Phase 1: Fix CI/CD Workflows (8 tasks, 4-5h)
+### P0.6: Optimize identity/authz Package (19s → <10s)
+
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+- Review and improve test data isolation (already uses t.Parallel())
+- Reduce database transaction overhead
+- Execution time <10s
+- Coverage maintained at 77.2% or higher
+
+**Files to Modify**:
+- `internal/identity/authz/*_test.go`
+
+---
+
+### P0.7: Optimize identity/idp Package (15s → <10s)
+
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+- Improve coverage from 54.9% → 80%+ FIRST
+- Reduce database setup time (use in-memory SQLite)
+- Implement parallel test execution
+- Execution time <10s
+
+**Files to Modify**:
+- `internal/identity/idp/*_test.go`
+
+---
+
+### P0.8: Optimize identity/test/unit Package (18s → <10s)
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+- Review infrastructure test patterns
+- Apply parallelization where safe
+- Execution time <10s
+
+**Files to Modify**:
+- `internal/identity/test/unit/*_test.go`
+
+---
+
+### P0.9: Optimize identity/test/integration Package (16s → <10s)
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+- Review integration test Docker setup
+- Optimize container startup/teardown
+- Execution time <10s
+
+**Files to Modify**:
+- `internal/identity/test/integration/*_test.go`
+
+---
+
+### P0.10: Optimize infra/realm Package (14s → <10s)
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+- Apply parallel execution (already at 85.6% coverage)
+- Reduce configuration loading overhead
+- Execution time <10s
+
+**Files to Modify**:
+- `internal/infra/realm/*_test.go`
+
+---
+
+### P0.11: Optimize kms/server/barrier Package (13s → <10s)
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+- Parallelize crypto operations tests
+- Reduce key generation redundancy
+- Execution time <10s
+- Coverage improved from 75.5% → 85%+
+
+**Files to Modify**:
+- `internal/kms/server/barrier/*_test.go`
+
+---
+
+## Phase 1: Fix CI/CD Workflows (8 tasks, 6-8h)
 
 ### P1.1-P1.8: Fix Individual Workflows
+
+**Priority Order (Highest to Lowest)**:
 
 **Common Pattern**:
 1. Run workflow locally with Act: `go run ./cmd/workflow -workflows=<name>`
@@ -122,16 +228,16 @@
 4. Verify fix locally
 5. Commit and verify in GitHub Actions
 
-| Task | Workflow | Root Cause | Effort | Status |
-|------|----------|------------|--------|--------|
-| P1.1 | ci-dast | Service connectivity | 1h | ❌ |
-| P1.2 | ci-e2e | Docker Compose setup | 1h | ❌ |
-| P1.3 | ci-load | Gatling configuration | 30min | ❌ |
-| P1.4 | ci-coverage | Coverage aggregation | 30min | ❌ |
-| P1.5 | ci-race | Race conditions | 1h | ❌ |
-| P1.6 | ci-benchmark | Benchmark baselines | 30min | ❌ |
-| P1.7 | ci-fuzz | Fuzz test execution | 30min | ❌ |
-| P1.8 | (TBD) | TBD | 30min | ❌ |
+| Task | Workflow | Root Cause | Effort | Status | Priority |
+|------|----------|------------|--------|--------|----------|
+| P1.1 | ci-coverage | Coverage aggregation | 1h | ❌ | 1-CRITICAL |
+| P1.2 | ci-benchmark | Benchmark baselines | 1h | ❌ | 2-HIGH |
+| P1.3 | ci-fuzz | Fuzz test execution | 1h | ❌ | 3-HIGH |
+| P1.4 | ci-e2e | Docker Compose setup | 1h | ❌ | 4-HIGH |
+| P1.5 | ci-dast | Service connectivity | 1h | ❌ | 5-MEDIUM |
+| P1.6 | ci-race | Race conditions | 1h | ❌ | 6-MEDIUM |
+| P1.7 | ci-load | Gatling configuration | 30min | ❌ | 7-MEDIUM |
+| P1.8 | ci-sast | Static analysis | 30min | ❌ | 8-LOW |
 
 ---
 
