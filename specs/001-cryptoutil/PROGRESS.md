@@ -76,14 +76,14 @@
   - Restored 95% coverage threshold (from incorrect 60% temporary value)
   - Added getTestPostgresURL() helper to read GitHub Actions env vars (POSTGRES_HOST, POSTGRES_PORT, etc)
   - Tests use PostgreSQL service at localhost:5432 in CI environment
-  
+
 - [x] **P1.2**: ci-benchmark (HIGH) ✅ Already passing
 - [x] **P1.3**: ci-fuzz (HIGH) ✅ Already passing
 - [x] **P1.4**: ci-quality (CRITICAL) ✅ COMPLETE
   - ❌ **REGRESSION**: Workflow was passing, broke due to hardcoded UUIDs
   - Fixed: internal/identity/issuer/uuid_internal_test.go (replaced hardcoded UUIDs with dynamic generation)
   - lint-go-test now passing (no hardcoded test values)
-  
+
 - [ ] **P1.5**: ci-e2e (HIGH) - Docker build issues in GH Actions
 - [ ] **P1.6**: ci-dast (MEDIUM) - Requires full service stack
 - [ ] **P1.7**: ci-race (MEDIUM) - Race detector configuration

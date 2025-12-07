@@ -338,10 +338,86 @@ func TestJWSSignAndVerify(t *testing.T) {
 }
 
 func TestJWEEncryptAndDecrypt(t *testing.T) {
-	// Skip - JWE requires encryption-specific key generation (GenerateJWEJWK).
-	// The current server implementation only generates signing keys (GenerateJWSJWK).
-	// TODO: Add support for GenerateJWEJWK in handleJWKGenerate when use="enc".
-	t.Skip("JWE requires encryption-specific key generation - server currently only supports signing keys")
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		algorithm  string
+		use        string
+		plaintext  string
+		shouldPass bool
+	}{
+		{"Oct256", "oct/256", "enc", "Hello, World!", true},
+		{"Oct192", "oct/192", "enc", "Test message", true},
+		{"Oct128", "oct/128", "enc", "Short", true},
+		{"RSA2048", "RSA/2048", "enc", "RSA encryption test", true},
+		{"RSA3072", "RSA/3072", "enc", "Another RSA test", true},
+		{"ECP256", "EC/P256", "enc", "ECDH test", true},
+		{"ECP384", "EC/P384", "enc", "ECDH-ES test", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Generate encryption key.
+			genReqBody, err := json.Marshal(JWKGenerateRequest{
+				Algorithm: tc.algorithm,
+				Use:       tc.use,
+			})
+			require.NoError(t, err)
+
+			genResp := doPost(t, testBaseURL+"/jose/v1/jwk/generate", genReqBody)
+			defer closeBody(t, genResp)
+
+			require.Equal(t, http.StatusCreated, genResp.StatusCode)
+
+			var key JWKGenerateResponse
+
+			err = json.NewDecoder(genResp.Body).Decode(&key)
+			require.NoError(t, err)
+			require.NotEmpty(t, key.KID)
+			require.Equal(t, tc.algorithm, key.Algorithm)
+			require.Equal(t, tc.use, key.Use)
+
+			// Encrypt plaintext.
+			encryptReqBody, err := json.Marshal(JWEEncryptRequest{
+				KID:       key.KID,
+				Plaintext: tc.plaintext,
+			})
+			require.NoError(t, err)
+
+			encryptResp := doPost(t, testBaseURL+"/jose/v1/jwe/encrypt", encryptReqBody)
+			defer closeBody(t, encryptResp)
+
+			require.Equal(t, http.StatusOK, encryptResp.StatusCode)
+
+			var encryptResult JWEEncryptResponse
+
+			err = json.NewDecoder(encryptResp.Body).Decode(&encryptResult)
+			require.NoError(t, err)
+			require.NotEmpty(t, encryptResult.JWE)
+
+			// Decrypt the JWE.
+			decryptReqBody, err := json.Marshal(JWEDecryptRequest{
+				JWE: encryptResult.JWE,
+				KID: key.KID,
+			})
+			require.NoError(t, err)
+
+			decryptResp := doPost(t, testBaseURL+"/jose/v1/jwe/decrypt", decryptReqBody)
+			defer closeBody(t, decryptResp)
+
+			require.Equal(t, http.StatusOK, decryptResp.StatusCode)
+
+			var decryptResult JWEDecryptResponse
+
+			err = json.NewDecoder(decryptResp.Body).Decode(&decryptResult)
+			require.NoError(t, err)
+			require.Equal(t, tc.plaintext, decryptResult.Plaintext)
+			require.Equal(t, key.KID, decryptResult.KID)
+		})
+	}
 }
 
 func TestJWTCreateAndVerify(t *testing.T) {

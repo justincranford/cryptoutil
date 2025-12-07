@@ -12,6 +12,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/jose"
 
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
@@ -68,17 +69,40 @@ func (s *Server) handleJWKGenerate(c *fiber.Ctx) error {
 		})
 	}
 
-	// Map GenerateAlgorithm to JWS signature algorithm for signing keys.
-	sigAlg := mapToSignatureAlgorithm(alg)
+	var (
+		kid        *googleUuid.UUID
+		privateJWK joseJwk.Key
+		publicJWK  joseJwk.Key
+		err        error
+	)
 
-	// Generate the JWK using the JWS-specific method for proper headers.
-	kid, privateJWK, publicJWK, _, _, err := s.jwkGenService.GenerateJWSJWK(sigAlg)
-	if err != nil {
-		s.telemetryService.Slogger.Error("Failed to generate JWK", "error", err)
+	// Generate JWK based on use (signing vs encryption).
+	if req.Use == "enc" {
+		// Map GenerateAlgorithm to JWE encryption parameters.
+		enc, keyAlg := mapToEncryptionAlgorithms(alg)
 
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to generate key",
-		})
+		// Generate the JWK using the JWE-specific method for proper headers.
+		kid, privateJWK, publicJWK, _, _, err = s.jwkGenService.GenerateJWEJWK(&enc, &keyAlg)
+		if err != nil {
+			s.telemetryService.Slogger.Error("Failed to generate JWE JWK", "error", err)
+
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to generate encryption key",
+			})
+		}
+	} else {
+		// Map GenerateAlgorithm to JWS signature algorithm for signing keys.
+		sigAlg := mapToSignatureAlgorithm(alg)
+
+		// Generate the JWK using the JWS-specific method for proper headers.
+		kid, privateJWK, publicJWK, _, _, err = s.jwkGenService.GenerateJWSJWK(sigAlg)
+		if err != nil {
+			s.telemetryService.Slogger.Error("Failed to generate JWS JWK", "error", err)
+
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to generate signing key",
+			})
+		}
 	}
 
 	// Determine key type from the generated key.
@@ -484,7 +508,7 @@ func (s *Server) handleJWEDecrypt(c *fiber.Ctx) error {
 
 // JWTCreateRequest represents the request body for JWT creation.
 type JWTCreateRequest struct {
-	KID    string                 `json:"kid"`    // Key ID to use for signing.
+	KID    string         `json:"kid"`    // Key ID to use for signing.
 	Claims map[string]any `json:"claims"` // JWT claims.
 }
 
@@ -551,10 +575,10 @@ type JWTVerifyRequest struct {
 
 // JWTVerifyResponse represents the response for JWT verification.
 type JWTVerifyResponse struct {
-	Valid  bool                   `json:"valid"`
+	Valid  bool           `json:"valid"`
 	Claims map[string]any `json:"claims,omitempty"` // Decoded claims if valid.
-	KID    string                 `json:"kid,omitempty"`    // Key ID used for verification.
-	Error  string                 `json:"error,omitempty"`  // Error message if invalid.
+	KID    string         `json:"kid,omitempty"`    // Key ID used for verification.
+	Error  string         `json:"error,omitempty"`  // Error message if invalid.
 }
 
 func (s *Server) handleJWTVerify(c *fiber.Ctx) error {
@@ -716,5 +740,36 @@ func mapToSignatureAlgorithm(alg cryptoutilOpenapiModel.GenerateAlgorithm) joseJ
 		return joseJwa.HS256()
 	default:
 		return joseJwa.ES256()
+	}
+}
+
+// mapToEncryptionAlgorithms maps GenerateAlgorithm to the corresponding JWE enc and alg parameters.
+func mapToEncryptionAlgorithms(alg cryptoutilOpenapiModel.GenerateAlgorithm) (joseJwa.ContentEncryptionAlgorithm, joseJwa.KeyEncryptionAlgorithm) {
+	switch alg {
+	case cryptoutilOpenapiModel.RSA4096:
+		return joseJwa.A256GCM(), joseJwa.RSA_OAEP_512()
+	case cryptoutilOpenapiModel.RSA3072:
+		return joseJwa.A256GCM(), joseJwa.RSA_OAEP_384()
+	case cryptoutilOpenapiModel.RSA2048:
+		return joseJwa.A256GCM(), joseJwa.RSA_OAEP_256()
+	case cryptoutilOpenapiModel.ECP521:
+		return joseJwa.A256GCM(), joseJwa.ECDH_ES_A256KW()
+	case cryptoutilOpenapiModel.ECP384:
+		return joseJwa.A256GCM(), joseJwa.ECDH_ES_A192KW()
+	case cryptoutilOpenapiModel.ECP256:
+		return joseJwa.A256GCM(), joseJwa.ECDH_ES_A128KW()
+	case cryptoutilOpenapiModel.Oct512:
+		return joseJwa.A256GCM(), joseJwa.A256GCMKW()
+	case cryptoutilOpenapiModel.Oct384:
+		return joseJwa.A192GCM(), joseJwa.A192GCMKW()
+	case cryptoutilOpenapiModel.Oct256:
+		return joseJwa.A256GCM(), joseJwa.DIRECT()
+	case cryptoutilOpenapiModel.Oct192:
+		return joseJwa.A192GCM(), joseJwa.DIRECT()
+	case cryptoutilOpenapiModel.Oct128:
+		return joseJwa.A128GCM(), joseJwa.DIRECT()
+	default:
+		// Default to A256GCM with ECDH-ES+A256KW for unknown algorithms.
+		return joseJwa.A256GCM(), joseJwa.ECDH_ES_A256KW()
 	}
 }
