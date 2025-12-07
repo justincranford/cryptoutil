@@ -6,7 +6,6 @@ package clientauth
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -20,30 +19,30 @@ import (
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )
 
-// setupTestRepository creates an in-memory SQLite database for testing.
+// setupTestRepository creates a new repository factory for each test with unique in-memory database.
+// Uses cache=private with unique _id to ensure complete isolation between parallel tests.
+// This pattern prevents "sql: database is closed" errors when GORM transactions fail/rollback.
 func setupTestRepository(t *testing.T) (*cryptoutilIdentityRepository.RepositoryFactory, context.Context) {
 	t.Helper()
 
 	ctx := context.Background()
 
-	// Use unique DSN to avoid migration cache conflicts across concurrent tests.
+	// Each test gets its own in-memory database with unique ID (required for GORM transaction safety).
+	// cache=private prevents transaction failures from affecting other tests.
 	dsn := "file::memory:?cache=private&_id=" + googleUuid.NewString()
 
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:            "sqlite",
-		DSN:             dsn,
-		MaxOpenConns:    1,
-		MaxIdleConns:    1,
-		ConnMaxLifetime: 0,
-		ConnMaxIdleTime: 0,
-		AutoMigrate:     true,
+		Type:        "sqlite",
+		DSN:         dsn,
+		AutoMigrate: true,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
-	require.NoError(t, err)
+	require.NoError(t, err, "Failed to create repository factory")
 
+	// Run migrations for this test's database.
 	err = repoFactory.AutoMigrate(ctx)
-	require.NoError(t, err)
+	require.NoError(t, err, "Failed to run migrations")
 
 	return repoFactory, ctx
 }
@@ -54,8 +53,6 @@ func TestRegistry_AllAuthMethods(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
-
-	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	config := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
@@ -88,9 +85,6 @@ func TestRegistry_UnknownMethod(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
-
-	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
-
 	config := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer: "https://authz.example.com",
@@ -107,9 +101,6 @@ func TestRegistry_RegisterCustomAuthenticator(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
-
-	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
-
 	config := &cryptoutilIdentityConfig.Config{
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer: "https://authz.example.com",
@@ -132,9 +123,6 @@ func TestBasicAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
-
-	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
-
 	authenticator := NewBasicAuthenticator(repoFactory.ClientRepository())
 	require.Equal(t, "client_secret_basic", authenticator.Method())
 }
@@ -143,9 +131,6 @@ func TestPostAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
-
-	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
-
 	authenticator := NewPostAuthenticator(repoFactory.ClientRepository())
 	require.Equal(t, "client_secret_post", authenticator.Method())
 }
@@ -155,12 +140,6 @@ func TestClientAuthentication_MultiSecretValidation(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, ctx := setupTestRepository(t)
-
-	defer func() {
-		if err := repoFactory.Close(); err != nil {
-			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
-		}
-	}()
 
 	// Create test client (version 1 secret generated automatically).
 	clientRepo := repoFactory.ClientRepository()
@@ -210,12 +189,6 @@ func TestClientAuthentication_OldSecretExpired(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, ctx := setupTestRepository(t)
-
-	defer func() {
-		if err := repoFactory.Close(); err != nil {
-			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
-		}
-	}()
 
 	// Create test client (version 1 secret generated automatically).
 	clientRepo := repoFactory.ClientRepository()
@@ -276,12 +249,6 @@ func TestClientAuthentication_NewSecretImmediate(t *testing.T) {
 
 	repoFactory, ctx := setupTestRepository(t)
 
-	defer func() {
-		if err := repoFactory.Close(); err != nil {
-			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
-		}
-	}()
-
 	// Create test client (version 1 secret generated automatically).
 	clientRepo := repoFactory.ClientRepository()
 	client := &cryptoutilIdentityDomain.Client{
@@ -321,12 +288,6 @@ func TestClientAuthentication_RevokedSecretRejected(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, ctx := setupTestRepository(t)
-
-	defer func() {
-		if err := repoFactory.Close(); err != nil {
-			require.Fail(t, fmt.Sprintf("failed to close repository factory: %v", err))
-		}
-	}()
 
 	// Create test client (version 1 secret generated automatically).
 	clientRepo := repoFactory.ClientRepository()
