@@ -89,12 +89,12 @@ func TestESTSimpleEnroll(t *testing.T) {
     }{
         {
             name:    "valid RSA CSR",
-            csrPEM:  generateValidRSACSR(t),
+            csrPEM:  generateValidRSACertificateSigningRequest(t),
             wantErr: false,
         },
         {
             name:    "valid EC CSR",
-            csrPEM:  generateValidECCSR(t),
+            csrPEM:  generateValidEllipticCurveCertificateSigningRequest(t),
             wantErr: false,
         },
         {
@@ -156,11 +156,11 @@ func TestESTSimpleEnroll(t *testing.T) {
 func setupTestCAHandler(t *testing.T) *handler.CAHandler {
     // Create test CA with in-memory database
     db := setupTestDB(t)
-    ca := caservice.New(db)
+    ca := certificateAuthorityService.New(db)
     return handler.New(ca)
 }
 
-func generateValidRSACSR(t *testing.T) string {
+func generateValidRSACertificateSigningRequest(t *testing.T) string {
     // Generate RSA private key
     key, err := rsa.GenerateKey(rand.Reader, 2048)
     require.NoError(t, err)
