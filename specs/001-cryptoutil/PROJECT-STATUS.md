@@ -36,7 +36,7 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 - Implement selective execution pattern for local development
 - Add benchmark tests to identify bottlenecks
 
-**Current State**: 5 packages taking >27s each (blocking fast feedback)  
+**Current State**: 5 packages taking >27s each (blocking fast feedback)
 **Target**: All critical packages <30s execution (enable rapid iteration)
 
 ### Phase 1: Fix Critical CI/CD Failures (URGENT) ⚠️
@@ -150,8 +150,8 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
    - Focus on ci-dast, ci-e2e, ci-load first (highest impact)
    - Target: 11/11 workflows passing
 
-4. **Day 4**: Complete deferred I2 features  
-   - CA OCSP responder  
+4. **Day 4**: Complete deferred I2 features
+   - CA OCSP responder
    - JOSE Docker integration
    - Skip EST serverkeygen if PKCS#7 remains blocked
 
@@ -169,9 +169,9 @@ To consider the project "complete", you need:
 
 **CRITICAL (Must Have)**:
 - ✅ Slow test packages optimized (<30s each)
-- ✅ All 11 CI/CD workflows passing  
+- ✅ All 11 CI/CD workflows passing
 - ✅ JOSE E2E tests working
-- ✅ CA OCSP responder working  
+- ✅ CA OCSP responder working
 - ✅ JOSE Docker integration working
 - ✅ Coverage ≥95% on ca/handler and auth/userauth**OPTIONAL (Nice to Have)**:
 - EST serverkeygen (if PKCS#7 library resolved)

@@ -33,12 +33,12 @@ go run ./cmd/workflow
 
 # Target these failing workflows:
 # - ci-dast, ci-e2e, ci-load (highest impact)
-# - ci-coverage, ci-race, ci-sast 
+# - ci-coverage, ci-race, ci-sast
 # - ci-benchmark, ci-fuzz
 
 # Work through failures systematically:
 # 1. Run locally with Act: go run ./cmd/workflow -workflows=dast
-# 2. Fix the specific failure  
+# 2. Fix the specific failure
 # 3. Verify fix with local run
 # 4. Commit and push to verify in GitHub Actions
 ```
@@ -47,7 +47,7 @@ go run ./cmd/workflow
 
 ```bash
 # OCSP responder for CA server
-# JOSE Docker Compose integration  
+# JOSE Docker Compose integration
 # Verify: docker compose up -d && curl -k https://localhost:8080/health
 ```
 
