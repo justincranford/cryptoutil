@@ -109,8 +109,8 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 			expired:      true,
 			// Platform-specific behavior: Linux/GitHub Actions filters expired consents correctly
 			// Windows local testing does NOT filter (SQLite datetime comparison differences)
-			wantErr:      true,   // Linux/production behavior (correct)
-			wantNotFound: true,   // Should return ErrConsentNotFound
+			wantErr:      true, // Linux/production behavior (correct)
+			wantNotFound: true, // Should return ErrConsentNotFound
 		},
 	}
 
@@ -127,7 +127,7 @@ func TestConsentDecisionRepository_GetByUserClientScope(t *testing.T) {
 
 				expiresAt := grantedAt.Add(24 * time.Hour)
 				if tc.expired {
-					expiresAt = time.Now().UTC().Add(-10 * time.Minute)  // Clearly expired (10 minutes ago)
+					expiresAt = time.Now().UTC().Add(-10 * time.Minute) // Clearly expired (10 minutes ago)
 				}
 
 				consent := &cryptoutilIdentityDomain.ConsentDecision{
