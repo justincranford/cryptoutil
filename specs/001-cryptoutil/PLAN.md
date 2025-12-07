@@ -14,6 +14,18 @@
 
 **Timeline**: 16-24 hours work effort, 3-5 calendar days
 
+### CRITICAL: Execution Mandate
+
+**WORK CONTINUOUSLY until ≥990k tokens OR user says "STOP"**:
+
+- Complete task → immediately start next task
+- Push changes → immediately continue working
+- Update docs → immediately start next task
+- NO stopping to provide summaries
+- NO asking for permission between tasks
+- NO pausing after git operations
+- Token budget: 1M tokens, stop at 990k minimum
+
 ---
 
 ## Phase 0: Optimize Slow Test Packages (Day 1, 4-5 hours) 🚀

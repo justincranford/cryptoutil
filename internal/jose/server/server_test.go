@@ -17,6 +17,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 
 	"github.com/stretchr/testify/require"
 )
@@ -934,4 +935,85 @@ func TestServerLifecycle(t *testing.T) {
 	// Test Shutdown.
 	require.NoError(t, server.Shutdown())
 }
+
+// TestAPIKeyMiddleware tests API key configuration.
+func TestAPIKeyMiddleware(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilConfig.NewForJOSEServer(
+		cryptoutilMagic.IPv4Loopback,
+		0,
+		true,
+	)
+
+	server, err := NewServer(context.Background(), settings)
+	require.NoError(t, err)
+
+	// Initially nil middleware.
+	require.Nil(t, server.GetAPIKeyMiddleware())
+
+	// Configure API key auth.
+	server.ConfigureAPIKeyAuth(&cryptoutilJoseMiddleware.APIKeyConfig{
+		HeaderName: "X-API-Key",
+		ValidKeys: map[string]string{
+			"test-key-123": "test-client",
+		},
+	})
+
+	middleware := server.GetAPIKeyMiddleware()
+	require.NotNil(t, middleware)
+
+	// Configure with nil config (should use defaults).
+	server.ConfigureAPIKeyAuth(nil)
+	require.NotNil(t, server.GetAPIKeyMiddleware())
+}
+
+// TestNewServerErrorPaths tests NewServer error scenarios.
+func TestNewServerErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	validSettings := cryptoutilConfig.NewForJOSEServer(
+		cryptoutilMagic.IPv4Loopback,
+		0,
+		true,
+	)
+
+	t.Run("NilContext", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := NewServer(nil, validSettings) //nolint:staticcheck // Testing nil context error path.
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "context cannot be nil")
+	})
+
+	t.Run("NilSettings", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := NewServer(context.Background(), nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "settings cannot be nil")
+	})
+}
+
+// TestStartBlocking tests the blocking Start method.
+func TestStartBlocking(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilConfig.NewForJOSEServer(
+		cryptoutilMagic.IPv4Loopback,
+		0,
+		true,
+	)
+
+	server, err := NewServer(context.Background(), settings)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	// Start should return nil when context is cancelled.
+	err = server.Start(ctx)
+	require.NoError(t, err) // Context cancellation is normal shutdown.
+}
+
 
