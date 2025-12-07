@@ -161,7 +161,7 @@ go test ./internal/jose/server -v  # Should show <20s
 **Implementation**:
 ```go
 var (
-	testKMSServer *kmsserver.Server
+	testKMSServer *kmsApp.Server
 	testKMSURL    string
 )
 
@@ -177,7 +177,7 @@ func TestMain(m *testing.M) {
 	}
 	
 	var err error
-	testKMSServer, err = kmsserver.NewServer(config)
+	testKMSServer, err = kmsApp.NewServer(config)
 	if err != nil {
 		panic(err)
 	}
