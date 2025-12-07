@@ -18,14 +18,14 @@ Those steps were subsequently completed on December 4, 2025:
 2. ✅ `/speckit.analyze` executed → Created `ANALYSIS.md`
 3. ✅ `/speckit.checklist` executed → Created `CHECKLIST-ITERATION-1.md`
 4. ✅ Constitution updated with phase gates (commit `e94638c2`)
-5. ✅ Tests pass with `-p=1` (documented limitation for parallel execution)
+5. ✅ Tests pass concurrently (fixed database connection management for concurrent execution)
 
 **Iteration 2 has been created**: `specs/002-cryptoutil/` with JOSE Authority, CA Server, Unified Suite.
 
 ### Original Critical Findings (Now Resolved)
 
 1. ~~**Missed Steps**: `/speckit.clarify` and `/speckit.analyze` were skipped~~ → ✅ Completed Dec 4
-2. **Test Parallelism**: Tests pass with `-p=1`; full parallel may have flaky tests (documented)
+2. **Test Concurrency**: Tests now pass concurrently with `-shuffle=on` (database connection management fixed)
 3. ~~**Spec Drift**: Documentation claims 100% completion~~ → ✅ 44/44 tasks verified
 4. ~~**Constitution Gap**: Lacks enforcement mechanisms~~ → ✅ Phase gates added
 

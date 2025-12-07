@@ -13,6 +13,33 @@ This plan outlines the technical implementation approach for Iteration 3 deliver
 
 ---
 
+## CRITICAL: Test Concurrency Requirements
+
+**!!! NEVER use `-p=1` or `-parallel=1` in test commands !!!**  
+**!!! ALWAYS use concurrent test execution with `-shuffle=on` !!!**
+
+**Mandatory Test Execution**:
+
+```bash
+# CORRECT
+go test ./... -cover -shuffle=on
+
+# WRONG - NEVER DO THIS
+go test ./... -p=1  # ❌ Hides concurrency bugs
+```
+
+**Test Data Isolation**:
+
+- ✅ ALWAYS use UUIDv7 for test data uniqueness
+- ✅ ALWAYS use dynamic ports (port 0 pattern)
+- ✅ ALWAYS use TestMain for shared dependencies
+- ✅ Real dependencies preferred (test containers, in-memory services)
+- ✅ Mocks ONLY for hard-to-reach corner cases
+
+**Rationale**: Concurrent tests provide fastest execution and reveal production concurrency bugs.
+
+---
+
 ## Phase 1: Critical CI/CD Fixes (Days 1-2, ~16 hours)
 
 ### 1.1 Critical Workflow Failures
@@ -371,7 +398,7 @@ gremlins unleash --tags=!integration
 
 ### Test Coverage
 
-- [ ] `go test ./...` passes with `-p=1` and without
+- [ ] `go test ./... -shuffle=on` passes (concurrent execution)
 - [ ] Coverage ≥95% production: `go test -cover ./internal/product/...`
 - [ ] Coverage ≥100% infrastructure: `go test -cover ./internal/cmd/cicd/...`
 - [ ] Coverage 100% utility: `go test -cover ./internal/common/util/...`

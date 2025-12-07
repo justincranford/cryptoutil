@@ -10,6 +10,36 @@ This document provides granular task tracking for Iteration NNN implementation.
 
 ---
 
+## CRITICAL: Test Concurrency Requirements
+
+**!!! NEVER use `-p=1` or `-parallel=1` in test commands !!!**  
+**!!! ALWAYS use concurrent test execution with `-shuffle=on` !!!**
+
+**Test Execution Commands**:
+```bash
+# CORRECT - Concurrent with shuffle
+go test ./... -cover -shuffle=on
+
+# WRONG - Sequential execution (hides bugs!)
+go test ./... -p=1  # ❌ NEVER DO THIS
+go test ./... -parallel=1  # ❌ NEVER DO THIS
+```
+
+**Test Data Isolation Requirements**:
+- ✅ ALWAYS use UUIDv7 for all test data (thread-safe, process-safe)
+- ✅ ALWAYS use dynamic ports (port 0 pattern for test servers)
+- ✅ ALWAYS use TestMain for dependencies (start once per package)
+- ✅ Real dependencies preferred (PostgreSQL containers, in-memory services)
+- ✅ Mocks only for hard-to-reach corner cases or truly external dependencies
+
+**Why Concurrent Testing is Mandatory**:
+1. Fastest test execution (parallel tests = faster feedback)
+2. Reveals production bugs (race conditions, deadlocks, data conflicts)
+3. Production validation (if tests can't run concurrently, production code can't either)
+4. Quality assurance (concurrent tests = higher confidence)
+
+---
+
 ## Phase 1: [Phase Name]
 
 ### Overview
@@ -395,7 +425,7 @@ For EACH task, verify:
 - [ ] All tasks status = ✅ Complete
 - [ ] `go build ./...` passes clean
 - [ ] `golangci-lint run` passes with 0 errors
-- [ ] `go test ./...` passes (with and without `-p=1`)
+- [ ] `go test ./... -shuffle=on` passes (concurrent execution)
 - [ ] Coverage ≥95% production, ≥100% infrastructure/utility
 - [ ] All benchmarks run successfully
 - [ ] All fuzz tests run for ≥15s

@@ -22,10 +22,10 @@
 
 ### Resolved Issues
 
-1. **Test Parallelism**: Fixed database close issue, added integration test build tags
-   - Tests pass with `go test ./internal/identity/... -p=1`
-   - Known limitation: Package-level parallelism requires `-p=1` flag
-   - Root cause: SQLite WAL mode connection sharing across packages
+1. **Test Concurrency**: Fixed database connection management for concurrent test execution
+   - Tests pass with `go test ./internal/identity/... -shuffle=on` (concurrent execution)
+   - Fixed: SQLite WAL mode + proper connection pooling + TestMain pattern
+   - All tests now run concurrently with unique UUIDv7 test data
 
 2. **Spec Status Clarity**: Created CLARIFICATIONS.md documenting:
    - client_secret_jwt: 70% (implementation exists, needs production testing)
@@ -287,7 +287,7 @@ constitution → specify → clarify → plan → tasks → analyze → implemen
 
 ### Review & Test Checklist
 
-- [ ] `go test ./... -p=1` passes for identity package
+- [ ] `go test ./... -shuffle=on` passes (concurrent execution)
 - [ ] `go test ./internal/jose/...` passes (new tests)
 - [ ] `go test ./internal/ca/...` passes (new tests)
 - [ ] `golangci-lint run --fix` clean

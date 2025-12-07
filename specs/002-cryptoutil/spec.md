@@ -261,7 +261,7 @@ CA internal components exist in `internal/ca/`. Iteration 2 exposes REST API for
 | CA Server | All 16 endpoints functional |
 | Unified Suite | `docker compose up` healthy |
 | Coverage | ≥80% for new code |
-| Tests | All pass with `-p=1` |
+| Tests | All pass concurrently (`-shuffle=on`) |
 
 ---
 
