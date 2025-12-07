@@ -890,6 +890,55 @@ func TestJWSVerifyErrorPaths(t *testing.T) {
 		require.NoError(t, json.NewDecoder(resp.Body).Decode(&verifyResp))
 		require.False(t, verifyResp.Valid)
 	})
+
+	t.Run("VerifyWithoutKID", func(t *testing.T) {
+		t.Parallel()
+
+		// Generate a key and sign.
+		genReqBody, err := json.Marshal(JWKGenerateRequest{
+			Algorithm: "EC/P256",
+			Use:       "sig",
+		})
+		require.NoError(t, err)
+
+		genResp := doPost(t, testBaseURL+"/jose/v1/jwk/generate", genReqBody)
+		defer closeBody(t, genResp)
+
+		var genResult JWKGenerateResponse
+
+		require.NoError(t, json.NewDecoder(genResp.Body).Decode(&genResult))
+
+		// Sign a payload.
+		signReqBody, err := json.Marshal(JWSSignRequest{
+			KID:     genResult.KID,
+			Payload: "Test payload for KID-less verify",
+		})
+		require.NoError(t, err)
+
+		signResp := doPost(t, testBaseURL+"/jose/v1/jws/sign", signReqBody)
+		defer closeBody(t, signResp)
+
+		var signResult JWSSignResponse
+
+		require.NoError(t, json.NewDecoder(signResp.Body).Decode(&signResult))
+
+		// Verify WITHOUT providing KID (should try all keys).
+		verifyReqBody, err := json.Marshal(JWSVerifyRequest{
+			JWS: signResult.JWS,
+		})
+		require.NoError(t, err)
+
+		verifyResp := doPost(t, testBaseURL+"/jose/v1/jws/verify", verifyReqBody)
+		defer closeBody(t, verifyResp)
+
+		require.Equal(t, http.StatusOK, verifyResp.StatusCode)
+
+		var verifyResult JWSVerifyResponse
+
+		require.NoError(t, json.NewDecoder(verifyResp.Body).Decode(&verifyResult))
+		require.True(t, verifyResult.Valid)
+		require.Equal(t, "Test payload for KID-less verify", verifyResult.Payload)
+	})
 }
 
 // TestJWTVerifyErrorPaths tests JWT verification error scenarios.
