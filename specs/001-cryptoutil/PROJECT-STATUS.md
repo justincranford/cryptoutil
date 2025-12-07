@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 Current Priority: Complete These 32 Tasks
+## 🎯 Current Priority: Complete These 36 Tasks (27 Required, 9 Optional)
 
 This is the **single source of truth** for what needs to be done. Ignore all other progress tracking files.
 
@@ -36,10 +36,9 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 - Implement selective execution pattern for local development
 - Add benchmark tests to identify bottlenecks
 
-**Current State**: 5 packages taking >27s each (blocking fast feedback)
-**Target**: All critical packages <30s execution (enable rapid iteration)
-
-### Phase 1: Fix Critical CI/CD Failures (URGENT) ⚠️
+**Current State**: 5 packages ≥20s (430.9s total execution time - blocking fast feedback)
+**Target**: All 5 critical packages optimized to <30s each (enable rapid iteration)
+**Optional**: 6 additional packages 10-20s can be addressed in parallel with other work### Phase 1: Fix Critical CI/CD Failures (URGENT) ⚠️
 *Priority: CRITICAL - Blocking development workflow*
 
 | Task | Status | Evidence Required |
@@ -71,23 +70,33 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 | CA TSA timestamp endpoint | ✅ | RFC 3161 compliant responses |
 
 **Current State**: 4/8 deferred features complete
-**Target**: 8/8 features complete (7/8 if PKCS#7 library remains blocked)
+**Target**: 7/8 features complete (EST serverkeygen optional if PKCS#7 library remains blocked)
+**Minimum Viable**: 7/8 completion acceptable for project completion### Phase 3: Achieve Coverage Targets 📊
 
-### Phase 3: Achieve Coverage Targets 📊
 *Priority: MEDIUM - Quality assurance*
+
+**Critical Gaps (Below 95%)**:
+
+| Package | Current | Target | Priority | Status |
+|---------|---------|---------|----------|--------|
+| ca/handler | 47.2% | 95% | CRITICAL | ❌ Major gap |
+| auth/userauth | 42.6% | 95% | CRITICAL | ❌ Major gap |
+
+**Secondary Targets (Close to 95%)**:
+
+| Package | Current | Target | Priority | Status |
+|---------|---------|---------|----------|--------|
+| unsealkeysservice | 78.2% | 95% | MEDIUM | ⚠️ Final push needed |
+| network | 88.7% | 95% | MEDIUM | ⚠️ Nearly there |
+
+**Already Complete**:
 
 | Package | Current | Target | Status |
 |---------|---------|---------|--------|
-| ca/handler | 47.2% | 95% | ❌ Needs improvement |
-| auth/userauth | 42.6% | 95% | ❌ Needs improvement |
-| unsealkeysservice | 78.2% | 95% | ⚠️ Close to target |
-| apperr | 96.6% | 95% | ✅ Target met |
-| network | 88.7% | 95% | ⚠️ Close to target |
+| apperr | 96.6% | 95% | ✅ Exceeds target |
 
-**Current State**: 2/5 packages at target
-**Target**: 5/5 packages ≥95% coverage
-
-### Phase 4: Advanced Testing (OPTIONAL) 🧪
+**Current State**: 1/5 packages at target (20%)
+**Target**: 5/5 packages ≥95% coverage (100%)### Phase 4: Advanced Testing (OPTIONAL) 🧪
 *Priority: LOW - Enhancement*
 
 | Task | Status | Evidence Required |

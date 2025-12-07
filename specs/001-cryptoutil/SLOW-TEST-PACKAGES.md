@@ -18,7 +18,7 @@
 | `internal/jose` | **67.003s** | 48.8% | HIGH | Improve coverage first (48.8% → 95%), then optimize |
 | `internal/kms/server/application` | **27.596s** | 64.7% | HIGH | Parallel server tests, dynamic port allocation |
 
-**Total packages ≥20s**: 5 packages  
+**Total packages ≥20s**: 5 packages
 **Combined execution time**: 430.9 seconds (~7.2 minutes)
 
 ## Packages With Moderate Performance Impact (10-20s execution)
