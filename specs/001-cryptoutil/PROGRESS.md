@@ -105,14 +105,16 @@
 
 ## Phase 2: Deferred Features (4 tasks, 8-10h)
 
-- [x] **P2.1**: JOSE E2E Test Suite - 4h (PARTIAL - 73.9% coverage, JWE encryption working)
+- [x] **P2.1**: JOSE E2E Test Suite - 4h (PARTIAL - 80.3% coverage, JWE encryption working)
   - ✅ JWE encryption key generation implemented (7 algorithm variants)
   - ✅ TestJWEEncryptAndDecrypt comprehensive test suite (oct/256, oct/192, oct/128, RSA/2048, RSA/3072, EC/P256, EC/P384)
   - ✅ TestJWSVerifyErrorPaths and TestJWTVerifyErrorPaths added (MissingJWS, KeyNotFound, InvalidSignature paths)
   - ✅ TestServerLifecycle added (Start, StartNonBlocking, Shutdown, ActualPort)
-  - ✅ Coverage improved from 68.9% → 71.0% → 73.9% (+5.0% total)
-  - ⏳ **Need 21.1% more coverage to reach 95% target**
-  - ⏳ Remaining uncovered: Start() blocking mode, ConfigureAPIKeyAuth(), GetAPIKeyMiddleware(), NewServer() error paths
+  - ✅ TestAPIKeyMiddleware, TestNewServerErrorPaths, TestStartBlocking, TestShutdownCoverage added
+  - ✅ Coverage improved from 68.9% → 71.0% → 73.9% → 80.3% (+11.4% total)
+  - ⏳ **Need 14.7% more coverage to reach 95% target**
+  - ⏳ Remaining gaps: handler error paths (invalid algorithms), algorithm mappers, server function coverage detection
+
 - [x] **P2.2**: CA OCSP support - 0h ✅ VERIFIED COMPLETE
   - ✅ HandleOCSP endpoint already implemented in internal/ca/api/handler/handler.go
   - ✅ RFC 6960 OCSP protocol support complete
