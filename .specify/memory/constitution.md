@@ -145,7 +145,50 @@ func TestUserCreate(t *testing.T) {
 - Property-based tests RECOMMENDED using gopter for invariant validation, round-trip encoding/decoding, cryptographic properties
 - Mutation tests MANDATORY for quality assurance: gremlins with ≥80% mutation score per package
 
-## V. Code Quality Excellence
+## V. Service Architecture - Dual HTTPS Endpoint Pattern
+
+**MANDATORY: ALL services MUST use dual HTTPS endpoints - NO HTTP PORTS ALLOWED**
+
+### Architecture Requirements
+
+Every service MUST implement two HTTPS endpoints:
+
+1. **Public HTTPS Endpoint** (configurable port, default 8080+)
+   - Serves business APIs and browser UI
+   - Exposed to external clients (services, browsers, mobile apps)
+   - Implements TWO security middleware stacks on SAME OpenAPI spec:
+     - **Service-to-service APIs**: Require OAuth 2.1 client credentials flow tokens
+     - **Browser-to-service APIs/UI**: Require OAuth 2.1 authorization code + PKCE flow tokens
+   - Middleware enforces authorization: service clients can't access browser APIs, browser clients can't access service APIs
+   - TLS required (never plain HTTP)
+
+2. **Private HTTPS Endpoint** (always 127.0.0.1:9090)
+   - Serves admin/operations endpoints: `/livez`, `/readyz`, `/healthz`, `/shutdown`
+   - Bound to localhost only (not externally accessible)
+   - Used by Docker health checks, Kubernetes probes, monitoring systems, graceful shutdown
+   - TLS required (never plain HTTP)
+
+### Service Examples
+
+| Service | Public HTTPS | Private HTTPS | Public APIs |
+|---------|--------------|---------------|-------------|
+| KMS | :8080 | 127.0.0.1:9090 | Key operations, UI |
+| Identity AuthZ | :8080 | 127.0.0.1:9090 | OAuth endpoints, UI |
+| Identity IdP | :8081 | 127.0.0.1:9090 | OIDC endpoints, UI |
+| JOSE | :8080 | 127.0.0.1:9090 | JWK/JWT ops, UI |
+| CA | :8443 | 127.0.0.1:9443 | Cert operations, UI |
+
+### Critical Rules
+
+- ❌ **NEVER** create HTTP endpoints on ANY port
+- ❌ **NEVER** use plain HTTP for health checks (always HTTPS with --no-check-certificate)
+- ❌ **NEVER** expose admin endpoints on public port
+- ✅ **ALWAYS** use HTTPS for both public and private endpoints
+- ✅ **ALWAYS** bind private endpoints to 127.0.0.1 (not 0.0.0.0)
+- ✅ **ALWAYS** implement proper TLS with self-signed certs minimum
+- ✅ **ALWAYS** use `wget --no-check-certificate` for Docker health checks
+
+## VI. Code Quality Excellence
 
 ### CRITICAL: Continuous Work Mandate - ABSOLUTE ENFORCEMENT
 
@@ -202,7 +245,7 @@ func TestUserCreate(t *testing.T) {
 - All tests pass (`go test ./... -cover`)
 - Coverage maintained at target thresholds, and gradually increased
 
-## VI. Development Workflow and Evidence-Based Completion
+## VII. Development Workflow and Evidence-Based Completion
 
 ### Evidence-Based Task Completion
 
@@ -288,7 +331,7 @@ When a gate fails:
 
 **NEVER** mark an iteration complete with failing gates.
 
-## X. Governance and Documentation Standards
+## VIII. Governance and Documentation Standards
 
 ### Decision Authority
 
@@ -316,7 +359,7 @@ When a gate fails:
 
 ---
 
-## XI. CLI Interface Requirement
+## IX. CLI Interface Requirement
 
 All products (P1 JOSE, P2 Identity, P3 KMS, P4 CA) MUST expose command-line interface (CLI) in addition to REST API:
 
@@ -338,7 +381,7 @@ All products (P1 JOSE, P2 Identity, P3 KMS, P4 CA) MUST expose command-line inte
 
 ---
 
-## XII. Amendment Process
+## X. Amendment Process
 
 ### Amendment Authority
 

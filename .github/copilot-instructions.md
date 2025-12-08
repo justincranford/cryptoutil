@@ -7,6 +7,25 @@
 - Reference external & project resources; avoid duplication of content
 - NEVER use PowerShell scripts or complex command chaining (see 03-02.cross-platform.instructions.md)
 
+## Service Architecture - CRITICAL
+
+**MANDATORY: Dual HTTPS Endpoint Pattern for ALL Services**
+
+- **NO HTTP PORTS** - All services MUST be secure by default
+- **Public HTTPS Endpoint**: Configurable port (8080+) for APIs and browser UI
+  - Service-to-service APIs: Require client credentials OAuth tokens
+  - Browser-to-service APIs/UI: Require authorization code + PKCE tokens
+  - Same OpenAPI spec exposed twice with different middleware security stacks
+- **Private HTTPS Endpoint**: Always 127.0.0.1:9090 for admin tasks
+  - `/livez`, `/readyz`, `/healthz`, `/shutdown` endpoints
+  - Not externally accessible (localhost only)
+  - Used by Docker health checks, Kubernetes probes, monitoring
+- **Examples**:
+  - KMS: Public HTTPS :8080 (APIs/UI), Private HTTPS 127.0.0.1:9090 (admin)
+  - Identity AuthZ: Public HTTPS :8080 (OAuth), Private HTTPS 127.0.0.1:9090 (admin)
+  - JOSE: Public HTTPS :8080 (JWK/JWT), Private HTTPS 127.0.0.1:9090 (admin)
+  - CA: Public HTTPS :8443 (cert ops), Private HTTPS 127.0.0.1:9443 (admin)
+
 ## Version Requirements
 
 - Go: 1.25.5+, Python: 3.14+, golangci-lint: v2.6.2+, Node: v24.11.1+
