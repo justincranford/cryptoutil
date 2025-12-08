@@ -500,10 +500,13 @@
 ### P4.4: Mutation Testing Baseline
 
 **Effort**: 1 hour
-**Status**: ❌ Not Started
+**Status**: ⚠️ BLOCKED (gremlins v0.6.0 crashes with "error, this is temporary" panic)
 
 **Command**: `gremlins unleash --tags=!integration`
 **Target**: ≥80% mutation score per package
+
+**Issue**: Tool crashes during mutant execution on Windows
+**Workaround**: Consider alternative mutation testing tools or wait for gremlins fix
 
 ---
 
