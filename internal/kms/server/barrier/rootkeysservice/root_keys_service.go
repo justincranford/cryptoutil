@@ -54,7 +54,8 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepo
 
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		encryptedRootKeyLatest, err = sqlTransaction.GetRootKeyLatest() // encrypted root JWK from DB
-		if err != nil {
+		// NOTE: "record not found" is EXPECTED on first run - don't treat as fatal error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("failed to get root key latest: %w", err)
 		}
 
