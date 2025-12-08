@@ -270,7 +270,7 @@
 
 **Priority**: HIGH
 **Effort**: 3-4 hours
-**Status**: ❌ Not Started
+**Status**: ✅ COMPLETE (88.4% coverage, comprehensive tests exist)
 
 **Acceptance Criteria**:
 
@@ -293,7 +293,7 @@
 
 **Priority**: HIGH
 **Effort**: 2 hours
-**Status**: ❌ Not Started
+**Status**: ✅ COMPLETE (RFC 6960 handler + OpenAPI spec exist)
 
 **Acceptance Criteria**:
 
@@ -313,7 +313,7 @@
 
 **Priority**: HIGH
 **Effort**: 1-2 hours
-**Status**: ❌ Not Started
+**Status**: ✅ COMPLETE (deployments/jose/compose.yml exists)
 
 **Acceptance Criteria**:
 
@@ -341,11 +341,11 @@
 
 ---
 
-### P2.8: EST serverkeygen (MANDATORY)
+### P2.8: EST serverkeygen (MANDATORY REQUIRED)
 
-**Priority**: HIGH
+**Priority**: CRITICAL
 **Effort**: 2 hours
-**Status**: ⚠️ Needs CMS/PKCS#7 library integration
+**Status**: ✅ COMPLETE (RFC 7030 Section 4.4 with PKCS#7, commit c521e698)
 
 **Acceptance Criteria**:
 
