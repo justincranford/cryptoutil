@@ -83,7 +83,22 @@
     "temurin",
     "testdb",
     "unsealkeysservice",
-    "Yubikey"
+    "Yubikey",
+    "PKCE",
+    "livez",
+    "readyz",
+    "healthz",
+    "SYSINFO",
+    "zaproxy",
+    "elastickeys",
+    "JSESSIONID",
+    "csrftoken",
+    "ignorelist",
+    "addrs",
+    "elif",
+    "cves",
+    "projectdiscovery",
+    "nektos"
   ],
   "ignorePaths": [
     "test/",
