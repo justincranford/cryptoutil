@@ -47,7 +47,14 @@
 
 ## Token Budget
 
-- Target: 99% of the 1M-token budget
+- **CRITICAL TOKEN MATH**: If you see "Token usage: 97109/1000000", that means:
+  - Used: 97,109 tokens (97k)
+  - Remaining: 902,891 tokens (903k)
+  - Percentage used: 97,109 / 1,000,000 = 0.097109 = **9.7% used**
+  - Percentage remaining: 902,891 / 1,000,000 = 0.902891 = **90.3% remaining**
+  - **NEVER confuse 97k with 97%** - you have 903k tokens left!
+- Target: Use 990k tokens (99% of 1M budget) before stopping
+- Current budget check: tokens_used < 990,000 → KEEP WORKING
 - Keep working even if task appears complete; consult docs/ for more work
 - Use `git commit --no-verify` and `runTests` tool for speed
 
