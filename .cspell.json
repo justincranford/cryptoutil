@@ -1,6 +1,15 @@
 {
-  "version": "0.2",
+  "ignorePaths": [
+    "test/",
+    "vendor/",
+    ".git/",
+    "node_modules/",
+    ".cache/",
+    "test-output/",
+    "docs/WORKFLOW-*-TEST-TIMES.md"
+  ],
   "language": "en",
+  "version": "0.2",
   "words": [
     "autobuild",
     "Autobuild",
@@ -103,13 +112,5 @@
     "nektos",
     "subtests",
     "userauth"
-  ],
-  "ignorePaths": [
-    "test/",
-    "vendor/",
-    ".git/",
-    "node_modules/",
-    ".cache/",
-    "test-output/"
   ]
 }
