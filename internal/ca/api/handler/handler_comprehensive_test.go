@@ -1013,13 +1013,13 @@ func TestEstEndpoints(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("EST_ServerKeyGen_not_implemented", func(t *testing.T) {
+	t.Run("EST_ServerKeyGen_empty_body", func(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
-		require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		err = resp.Body.Close()
 		require.NoError(t, err)
@@ -2123,6 +2123,100 @@ func TestEstSimpleEnrollNoProfile(t *testing.T) {
 
 	err = resp.Body.Close()
 	require.NoError(t, err)
+}
+
+// TestEstServerKeyGenWithRealIssuer tests the EST serverkeygen endpoint with a real issuer.
+func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
+	t.Parallel()
+
+	testSetup := createTestIssuer(t)
+
+	app := fiber.New()
+	mockStorage := cryptoutilCAStorage.NewMemoryStore()
+
+	profiles := map[string]*ProfileConfig{
+		"tls-server": {
+			ID:          "tls-server",
+			Name:        "TLS Server",
+			Description: "TLS Server Certificate Profile",
+			Category:    "tls",
+		},
+	}
+
+	handler := &Handler{
+		storage:           mockStorage,
+		issuer:            testSetup.Issuer,
+		profiles:          profiles,
+		enrollmentTracker: newEnrollmentTracker(100),
+	}
+
+	app.Post("/est/serverkeygen", func(c *fiber.Ctx) error {
+		return handler.EstServerKeyGen(c)
+	})
+
+	// Generate a test CSR template (server will replace the key).
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	csrTemplate := &x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "serverkeygen.example.com",
+			Organization: []string{"Test Org"},
+		},
+		DNSNames: []string{"serverkeygen.example.com"},
+	}
+	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	require.NoError(t, err)
+
+	t.Run("SuccessfulServerKeyGenWithDER", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", bytes.NewReader(csrDER))
+		req.Header.Set("Content-Type", "application/pkcs10")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.NotEmpty(t, body)
+
+		// Response should be PKCS#7 format containing certificate and key.
+		require.Equal(t, "application/pkcs7-mime; smime-type=server-generated-key", resp.Header.Get("Content-Type"))
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("SuccessfulServerKeyGenWithBase64", func(t *testing.T) {
+		t.Parallel()
+
+		csrBase64 := base64.StdEncoding.EncodeToString(csrDER)
+		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", bytes.NewBufferString(csrBase64))
+		req.Header.Set("Content-Type", "application/pkcs10")
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.NotEmpty(t, body)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("InvalidCSRFormat", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", bytes.NewBufferString("invalid-csr-data"))
+		resp, testErr := app.Test(req)
+		require.NoError(t, testErr)
+		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+		err = resp.Body.Close()
+		require.NoError(t, err)
+	})
 }
 
 // TestTsaTimestampWithService tests the TSA endpoint with a real TSA service.
