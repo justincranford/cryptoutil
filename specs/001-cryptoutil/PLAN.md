@@ -43,7 +43,7 @@ Every service implements two HTTPS endpoints:
      - **Service-to-service APIs**: Require OAuth 2.1 client credentials tokens
      - **Browser-to-service APIs/UI**: Require OAuth 2.1 authorization code + PKCE tokens
    - Middleware enforces authorization boundaries
-   
+
 2. **Private HTTPS Endpoint** (always 127.0.0.1:9090 or similar)
    - Admin/operations endpoints: `/livez`, `/readyz`, `/healthz`, `/shutdown`
    - Localhost-only binding (not externally accessible)
@@ -88,6 +88,7 @@ Every service implements two HTTPS endpoints:
 | `kms/server/app` | 28s | <10s | Parallel server tests, dynamic port allocation | 0.5h |
 
 **Success Criteria**:
+
 - All 5 packages execute in <30s each
 - Total execution time <100s (down from 430.9s)
 - No test failures introduced
@@ -115,27 +116,30 @@ Every service implements two HTTPS endpoints:
 | (1 more) | Failing | TBD from analysis | TBD | 0.5h |
 
 **Success Criteria**:
+
 - All 11 workflows passing (100% pass rate)
 - CI feedback loop <10 minutes
 - No flaky tests
 
 ---
 
-## Phase 2: Complete Deferred I2 Features (Day 2 + 4, 6-8 hours) 🔧
+## Phase 2: Complete Deferred I2 Features (Day 2 + 4, 8-10 hours) 🔧
 
-**Objective**: Finish 7/8 deferred Iteration 2 features (EST serverkeygen optional)
+**Objective**: Finish ALL 8 deferred Iteration 2 features (EST serverkeygen MANDATORY)
 
 ### Day 2: JOSE E2E Tests (3-4 hours)
 
 **Scope**: Comprehensive E2E test suite for JOSE Authority service
 
 **Implementation**:
+
 - Create `internal/jose/server/*_integration_test.go` files
 - Test all 10 JOSE API endpoints end-to-end
 - Validate JWK generation, JWKS endpoints, JWS sign/verify, JWE encrypt/decrypt, JWT issue/validate
 - Integration with Docker Compose deployment
 
 **Success Criteria**:
+
 - All 10 JOSE endpoints tested end-to-end
 - Tests run in <2 minutes total
 - Coverage >95% for JOSE server package
@@ -143,19 +147,32 @@ Every service implements two HTTPS endpoints:
 ### Day 4: CA OCSP + Docker Integration (3-4 hours)
 
 **CA OCSP Responder** (2 hours):
+
 - Implement OCSP responder endpoint `/ca/v1/ocsp`
 - Support RFC 6960 OCSP protocol
 - Return certificate status (good, revoked, unknown)
 - Integration with CRL generation
 
+**EST Serverkeygen** (2 hours) - MANDATORY:
+
+- Research and integrate CMS/PKCS#7 library (github.com/github/smimesign or similar)
+- Implement `/ca/v1/est/serverkeygen` endpoint per RFC 7030
+- Generate key pair server-side, wrap private key in PKCS#7/CMS
+- Return encrypted private key and certificate to client
+- E2E tests for serverkeygen flow
+- Update SPECKIT-PROGRESS.md I3.1.4 status ⚠️ → ✅
+
 **JOSE Docker Integration** (1-2 hours):
+
 - Add `jose-sqlite`, `jose-postgres-1`, `jose-postgres-2` services to Docker Compose
 - Configure ports (8080-8082 public, 9090 admin)
 - Health checks via wget
 - Integration with common infrastructure (postgres, otel-collector)
 
 **Success Criteria**:
+
 - OCSP responder returns valid responses
+- EST serverkeygen endpoint operational with CMS encryption
 - JOSE services start and pass health checks
 - Docker Compose deployment working end-to-end
 
@@ -180,6 +197,7 @@ Every service implements two HTTPS endpoints:
 | `network` | 88.7% | -6.3% | Add error path tests | 0.5h |
 
 **Success Criteria**:
+
 - All 5 packages ≥95% coverage
 - No coverage regressions in other packages
 - Tests use `t.Parallel()` and UUIDv7 patterns
@@ -209,6 +227,7 @@ Every service implements two HTTPS endpoints:
 - Validate cryptographic invariants
 
 **Success Criteria**:
+
 - Benchmarks established for all crypto operations
 - Fuzz tests run without failures
 - Property tests validate core invariants
@@ -231,6 +250,7 @@ Every service implements two HTTPS endpoints:
 | Unified Suite | 20-30 min | Complete deployment walkthrough | 3-4h |
 
 **Success Criteria**:
+
 - All 6 demo videos recorded and published
 - Demos show working functionality
 - Narration explains architecture and features
@@ -267,17 +287,19 @@ Every service implements two HTTPS endpoints:
 | Test optimization breaks tests | HIGH | Incremental changes, verify after each package |
 | CI/CD fixes introduce flakiness | MEDIUM | Use health checks, exponential backoff patterns |
 | Coverage improvements reduce quality | LOW | Require meaningful tests, not just coverage numbers |
-| EST serverkeygen remains blocked | LOW | Already optional, 7/8 completion acceptable |
+| EST serverkeygen needs CMS library | MEDIUM | Research github.com/github/smimesign or similar, MANDATORY |
 
 ---
 
 ## Dependencies
 
 **External**:
-- PKCS#7 library (optional, for EST serverkeygen)
+
+- CMS/PKCS#7 library (MANDATORY for EST serverkeygen)
 - None other - all work is internal implementation
 
 **Internal**:
+
 - Phase 0 must complete before Phases 1-3 (foundation)
 - Phase 2 (JOSE E2E) before Phase 1 (some CI workflows depend on it)
 - Phase 3 can run in parallel with Phases 1-2
@@ -290,6 +312,7 @@ Every service implements two HTTPS endpoints:
 **Plan Status**: ✅ **COMPLETE AND EXECUTABLE**
 
 This plan provides:
+
 - Clear 5-phase sequential approach
 - Effort estimates per task
 - Success criteria per phase

@@ -31,6 +31,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Apply aggressive `t.Parallel()` to all test cases
 - Split into multiple test files by auth method (basic, post, jwt, private_key_jwt)
 - Implement selective execution pattern for local dev
@@ -39,6 +40,7 @@
 - Coverage increased to 85% or higher
 
 **Files to Modify**:
+
 - `internal/identity/authz/clientauth/*_test.go`
 
 ---
@@ -50,12 +52,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Implement parallel subtests
 - Reduce Fiber app setup/teardown overhead (shared test server instance)
 - Execution time <30s
 - Coverage improved from 56.1% → 85% or higher
 
 **Files to Modify**:
+
 - `internal/jose/server/*_test.go`
 
 ---
@@ -67,6 +71,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - **MANDATORY**: Use real KMS server started by TestMain (NO MOCKS for happy path)
 - Start KMS server ONCE per package in TestMain using in-memory SQLite
 - Implement parallel test execution with unique UUIDv7 data isolation
@@ -76,6 +81,7 @@
 - Mocks ONLY acceptable for hard-to-reproduce corner cases
 
 **Files to Modify**:
+
 - `internal/kms/client/*_test.go` (add TestMain with KMS server startup)
 - `internal/kms/client/*_test.go` (refactor tests to use shared server)
 
@@ -88,12 +94,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Increase coverage 48.8% → 85% or higher FIRST
 - Then apply parallel execution
 - Reduce cryptographic operation redundancy
 - Execution time <15s
 
 **Files to Modify**:
+
 - `internal/jose/*_test.go`
 
 ---
@@ -105,6 +113,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Implement parallel server tests
 - Use dynamic port allocation pattern
 - Reduce test server setup/teardown overhead
@@ -112,6 +121,7 @@
 - Coverage improved from 64.7% → 85%
 
 **Files to Modify**:
+
 - `internal/kms/server/application/*_test.go`
 
 ---
@@ -123,12 +133,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Review and improve test data isolation (already uses t.Parallel())
 - Reduce database transaction overhead
 - Execution time <10s
 - Coverage increased to 85% or higher
 
 **Files to Modify**:
+
 - `internal/identity/authz/*_test.go`
 
 ---
@@ -140,12 +152,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Improve coverage from 54.9% → 85%+ FIRST
 - Reduce database setup time (use in-memory SQLite)
 - Implement parallel test execution
 - Execution time <10s
 
 **Files to Modify**:
+
 - `internal/identity/idp/*_test.go`
 
 ---
@@ -157,11 +171,13 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Review infrastructure test patterns
 - Apply parallelization where safe
 - Execution time <10s
 
 **Files to Modify**:
+
 - `internal/identity/test/unit/*_test.go`
 
 ---
@@ -173,11 +189,13 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Review integration test Docker setup
 - Optimize container startup/teardown
 - Execution time <10s
 
 **Files to Modify**:
+
 - `internal/identity/test/integration/*_test.go`
 
 ---
@@ -189,11 +207,13 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Apply parallel execution (already at 85.6% coverage)
 - Reduce configuration loading overhead
 - Execution time <10s
 
 **Files to Modify**:
+
 - `internal/infra/realm/*_test.go`
 
 ---
@@ -205,12 +225,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Parallelize crypto operations tests
 - Reduce key generation redundancy
 - Execution time <10s
 - Coverage improved from 75.5% → 85%+
 
 **Files to Modify**:
+
 - `internal/kms/server/barrier/*_test.go`
 
 ---
@@ -222,6 +244,7 @@
 **Priority Order (Highest to Lowest)**:
 
 **Common Pattern**:
+
 1. Run workflow locally with Act: `go run ./cmd/workflow -workflows=<name>`
 2. Identify failure root cause
 3. Implement fix
@@ -250,6 +273,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Create `internal/jose/server/*_integration_test.go`
 - Test all 10 JOSE API endpoints end-to-end
 - Integration with Docker Compose
@@ -257,6 +281,7 @@
 - Coverage >95% for JOSE server package
 
 **Files to Create**:
+
 - `internal/jose/server/jwk_integration_test.go`
 - `internal/jose/server/jws_integration_test.go`
 - `internal/jose/server/jwe_integration_test.go`
@@ -271,12 +296,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Implement `/ca/v1/ocsp` endpoint
 - RFC 6960 OCSP protocol support
 - Return certificate status (good, revoked, unknown)
 - Integration with CRL generation
 
 **Files to Modify**:
+
 - `internal/ca/handler/ocsp.go` (create)
 - `internal/ca/server/routes.go`
 
@@ -289,12 +316,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Add jose-sqlite, jose-postgres-1, jose-postgres-2 services
 - Configure ports 8080-8082 (public), 9090 (admin)
 - Health checks via wget
 - Services start and pass health checks
 
 **Files to Modify**:
+
 - `deployments/compose/compose.yml`
 - `deployments/jose/docker-compose.yml` (create)
 - `configs/jose/*.yml`
@@ -312,21 +341,27 @@
 
 ---
 
-### P2.8: EST serverkeygen (OPTIONAL)
+### P2.8: EST serverkeygen (MANDATORY)
 
-**Priority**: LOW
-**Effort**: 3-4 hours (if PKCS#7 library resolved)
-**Status**: ⚠️ BLOCKED on PKCS#7 library
+**Priority**: HIGH
+**Effort**: 2 hours
+**Status**: ⚠️ Needs CMS/PKCS#7 library integration
 
 **Acceptance Criteria**:
-- Integrate `go.mozilla.org/pkcs7` library
-- Implement server-side key generation
-- Return PKCS#7/CMS envelope
-- Full RFC 7030 compliance, including all required and optional
+
+- Research and integrate CMS/PKCS#7 library (github.com/github/smimesign or go.mozilla.org/pkcs7)
+- Implement `/ca/v1/est/serverkeygen` endpoint per RFC 7030
+- Generate key pair server-side, wrap private key in PKCS#7/CMS
+- Return encrypted private key and certificate to client
+- E2E tests for serverkeygen flow
+- Update SPECKIT-PROGRESS.md I3.1.4 status ⚠️ → ✅
+- Full RFC 7030 compliance
 
 **Files to Modify**:
-- `internal/ca/handler/est_serverkeygen.go`
-- `go.mod` (add pkcs7 dependency)
+
+- `internal/ca/handler/est_serverkeygen.go` (create)
+- `internal/ca/server/routes.go`
+- `go.mod` (add CMS/PKCS#7 dependency)
 
 ---
 
@@ -339,12 +374,14 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Add tests for all CA handler endpoints
 - Test happy paths and error paths
 - Use table-driven tests with `t.Parallel()`
 - Coverage ≥95%
 
 **Files to Create/Modify**:
+
 - `internal/ca/handler/*_test.go`
 
 ---
@@ -356,11 +393,13 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Add authentication flow tests
 - Test MFA flows, password validation, session management
 - Coverage ≥95%
 
 **Files to Create/Modify**:
+
 - `internal/identity/auth/userauth/*_test.go`
 
 ---
@@ -372,6 +411,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Add edge case tests
 - Test error handling
 - Coverage ≥95%
@@ -385,6 +425,7 @@
 **Status**: ❌ Not Started
 
 **Acceptance Criteria**:
+
 - Add error path tests
 - Test network failure scenarios
 - Coverage ≥95%
@@ -398,6 +439,7 @@
 **Status**: ✅ Already Complete
 
 **Acceptance Criteria**:
+
 - Verify current coverage ≥95% (already at 96.6%)
 - No action required
 
@@ -411,6 +453,7 @@
 **Status**: ❌ Not Started
 
 **Files to Create**:
+
 - `internal/common/crypto/keygen/*_bench_test.go`
 - `internal/jose/*_bench_test.go`
 - `internal/ca/crypto/*_bench_test.go`
@@ -423,6 +466,7 @@
 **Status**: ❌ Not Started
 
 **Files to Create**:
+
 - `internal/jose/jwt_parser_fuzz_test.go`
 - `internal/ca/parser/*_fuzz_test.go`
 
@@ -434,6 +478,7 @@
 **Status**: ❌ Not Started
 
 **Files to Create**:
+
 - `internal/common/crypto/*_property_test.go`
 
 ---

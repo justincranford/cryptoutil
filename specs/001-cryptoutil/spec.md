@@ -72,8 +72,8 @@ Complete identity and access management solution.
 | `/.well-known/openid-configuration` | GET | OpenID Connect Discovery | ✅ Working |
 | `/.well-known/jwks.json` | GET | JSON Web Key Set | ✅ Working |
 | `/.well-known/oauth-authorization-server` | GET | OAuth 2.1 Authorization Server Metadata (RFC 8414) | ✅ Working |
-| `/device_authorization` | POST | Device Authorization Grant (RFC 8628) | ❌ Not Required |
-| `/par` | POST | Pushed Authorization Requests (RFC 9126) | ❌ Not Required |
+| `/device_authorization` | POST | Device Authorization Grant (RFC 8628) | ❌ Not Implemented (MANDATORY) |
+| `/par` | POST | Pushed Authorization Requests (RFC 9126) | ❌ Not Implemented (MANDATORY) |
 
 #### Identity Provider (IdP)
 
@@ -84,9 +84,9 @@ Complete identity and access management solution.
 | `/oidc/v1/logout` | GET/POST | Session termination | ✅ Working (session/token cleared) |
 | `/oidc/v1/endsession` | GET | OpenID Connect End Session (RP-Initiated Logout) | ✅ Working |
 | `/oidc/v1/userinfo` | GET | User information endpoint | ✅ Working (claims returned per scopes, JWT-signed optional) |
-| `/oidc/v1/mfa/enroll` | POST | Administrative Enroll MFA factor | ❌ Not Implemented |
-| `/oidc/v1/mfa/factors` | GET | Administrative List user MFA factors | ❌ Not Implemented |
-| `/oidc/v1/mfa/factors/{id}` | DELETE | Administrative Remove MFA factor | ❌ Not Required |
+| `/oidc/v1/mfa/enroll` | POST | Administrative Enroll MFA factor | ❌ Not Implemented (MANDATORY) |
+| `/oidc/v1/mfa/factors` | GET | Administrative List user MFA factors | ❌ Not Implemented (MANDATORY) |
+| `/oidc/v1/mfa/factors/{id}` | DELETE | Administrative Remove MFA factor | ❌ Not Implemented (MANDATORY) |
 
 #### Authentication Methods
 
@@ -96,9 +96,9 @@ Complete identity and access management solution.
 | client_secret_post | client_id and client_secret in request body | ✅ Working |
 | client_secret_jwt | JWT signed with client secret | ⚠️ 70% (missing: jti replay protection, assertion lifetime validation) |
 | private_key_jwt | JWT signed with private key | ⚠️ 50% (missing: client JWKS registration, jti replay, kid matching) |
-| tls_client_auth | Mutual TLS client certificate authentication | ❌ Not Implemented |
-| self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ❌ Not Implemented |
-| session_cookie | Browser session cookie for SPA UI | ❌ Not Implemented (Required) |
+| tls_client_auth | Mutual TLS client certificate authentication | ❌ Not Implemented (MANDATORY) |
+| self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ❌ Not Implemented (MANDATORY) |
+| session_cookie | Browser session cookie for SPA UI | ❌ Not Implemented (MANDATORY) |
 
 #### MFA Factors
 
@@ -106,13 +106,13 @@ Complete identity and access management solution.
 |--------|-------------|--------|----------|
 | Passkey | WebAuthn/FIDO2 authentication | ✅ Working | HIGHEST |
 | TOTP | Time-based One-Time Password | ✅ Working | HIGH |
-| Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented | HIGH |
-| Email OTP | One-time password via email | ⚠️ 30% (missing: email delivery service, rate limiting) | MEDIUM |
-| SMS OTP | One-time password via SMS | ⚠️ 20% (missing: SMS provider integration, rate limiting) | LOW (NIST deprecated) |
-| HOTP | HMAC-based One-Time Password (counter-based) | ❌ Not Implemented | LOW |
-| Recovery Codes | Backup codes for account recovery | ❌ Not Implemented | MEDIUM |
-| Push Notifications | Push-based authentication via mobile app | ❌ Not Required | N/A |
-| Phone Call OTP | One-time password via voice call | ❌ Not Required | N/A |
+| Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented (MANDATORY) | HIGH |
+| Email OTP | One-time password via email | ⚠️ 30% (missing: email delivery service, rate limiting - MANDATORY) | MEDIUM |
+| SMS OTP | One-time password via SMS | ⚠️ 20% (missing: SMS provider integration, rate limiting - MANDATORY) | LOW (NIST deprecated but MANDATORY) |
+| HOTP | HMAC-based One-Time Password (counter-based) | ❌ Not Implemented (MANDATORY) | LOW |
+| Recovery Codes | Backup codes for account recovery | ❌ Not Implemented (MANDATORY) | MEDIUM |
+| Push Notifications | Push-based authentication via mobile app | ❌ Not Implemented (MANDATORY) | LOW |
+| Phone Call OTP | One-time password via voice call | ❌ Not Implemented (MANDATORY) | LOW |
 
 #### Secret Rotation System
 
@@ -144,8 +144,8 @@ Hierarchical key management with versioning and rotation.
 | Create | POST | `/elastickey` | ✅ Implemented |
 | Read | GET | `/elastickey/{elasticKeyID}` | ✅ Implemented |
 | List | GET | `/elastickeys` | ✅ Implemented |
-| Update | PUT | `/elastickey/{elasticKeyID}` | ❌ Not Implemented |
-| Delete | DELETE | `/elastickey/{elasticKeyID}` | ❌ Not Implemented |
+| Update | PUT | `/elastickey/{elasticKeyID}` | ❌ Not Implemented (MANDATORY) |
+| Delete | DELETE | `/elastickey/{elasticKeyID}` | ❌ Not Implemented (MANDATORY) |
 
 #### MaterialKey Operations
 
@@ -155,8 +155,8 @@ Hierarchical key management with versioning and rotation.
 | Read | GET | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}` | ✅ Implemented |
 | List | GET | `/elastickey/{elasticKeyID}/materialkeys` | ✅ Implemented |
 | Global List | GET | `/materialkeys` | ✅ Implemented |
-| Import | POST | `/elastickey/{elasticKeyID}/import` | ❌ Not Implemented |
-| Revoke | POST | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke` | ❌ Not Implemented |
+| Import | POST | `/elastickey/{elasticKeyID}/import` | ❌ Not Implemented (MANDATORY) |
+| Revoke | POST | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke` | ❌ Not Implemented (MANDATORY) |
 
 #### Cryptographic Operations
 
