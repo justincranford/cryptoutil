@@ -450,36 +450,53 @@
 ### P4.1: Add Benchmark Tests
 
 **Effort**: 2 hours
-**Status**: ❌ Not Started
+**Status**: ⚠️ IN PROGRESS (Partial - crypto benchmarks exist, need JOSE/CA/Identity benchmarks)
 
-**Files to Create**:
+**Files Created**:
 
-- `internal/common/crypto/keygen/*_bench_test.go`
-- `internal/jose/*_bench_test.go`
-- `internal/ca/crypto/*_bench_test.go`
+- ✅ `internal/common/crypto/keygen/keygen_bench_test.go` (exists)
+- ✅ `internal/common/crypto/digests/hkdf_digests_bench_test.go` (exists)
+- ✅ `internal/common/crypto/digests/sha2_digests_bench_test.go` (exists)
+- ✅ `internal/kms/server/businesslogic/businesslogic_bench_test.go` (exists)
+- ✅ `internal/identity/authz/performance_bench_test.go` (exists)
+
+**Files to Create** (gaps):
+
+- ❌ `internal/identity/issuer/jws_bench_test.go` (JWS sign/verify)
+- ❌ `internal/identity/issuer/jwe_bench_test.go` (JWE encrypt/decrypt)
+- ❌ `internal/ca/api/handler/handler_bench_test.go` (CA operations)
 
 ---
 
 ### P4.2: Add Fuzz Tests
 
 **Effort**: 2 hours
-**Status**: ❌ Not Started
+**Status**: ⚠️ IN PROGRESS (Partial - crypto fuzz tests exist, need parser fuzz tests)
 
-**Files to Create**:
+**Files Created**:
 
-- `internal/jose/jwt_parser_fuzz_test.go`
-- `internal/ca/parser/*_fuzz_test.go`
+- ✅ `internal/identity/issuer/jws_fuzz_test.go` (exists)
+- ✅ `internal/identity/issuer/jwe_fuzz_test.go` (exists)
+- ✅ `internal/common/crypto/keygen/keygen_fuzz_test.go` (exists)
+- ✅ `internal/common/crypto/digests/hkdf_digests_fuzz_test.go` (exists)
+- ✅ `internal/common/crypto/digests/sha2_digests_fuzz_test.go` (exists)
+
+**Files to Create** (gaps):
+
+- ❌ `internal/jose/jwt_parser_fuzz_test.go` (JWT parsing)
+- ❌ `internal/ca/parser/*_fuzz_test.go` (certificate/CSR parsing)
 
 ---
 
 ### P4.3: Add Property-Based Tests
 
 **Effort**: 2 hours
-**Status**: ❌ Not Started
+**Status**: ✅ COMPLETE (commits 5a3c66dc, 351fca4c)
 
-**Files to Create**:
+**Files Created**:
 
-- `internal/common/crypto/*_property_test.go`
+- ✅ `internal/common/crypto/digests/digests_property_test.go` (HKDF + SHA-256 invariants, 6 properties)
+- ✅ `internal/common/crypto/keygen/keygen_property_test.go` (RSA/ECDSA/ECDH/EdDSA/AES/HMAC, 12 properties)
 
 ---
 
@@ -489,6 +506,7 @@
 **Status**: ❌ Not Started
 
 **Command**: `gremlins unleash --tags=!integration`
+**Target**: ≥80% mutation score per package
 
 ---
 
