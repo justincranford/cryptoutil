@@ -19,6 +19,8 @@ import (
 
 // TestNewSQLRepository_InvalidDatabaseURL tests error handling for malformed database URLs.
 func TestNewSQLRepository_InvalidDatabaseURL(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_InvalidDatabaseURL_" + uuidVal.String()
@@ -40,6 +42,8 @@ func TestNewSQLRepository_InvalidDatabaseURL(t *testing.T) {
 
 // TestNewSQLRepository_EmptyDatabaseURL tests error handling for empty database URL.
 func TestNewSQLRepository_EmptyDatabaseURL(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_EmptyDatabaseURL_" + uuidVal.String()
@@ -61,6 +65,8 @@ func TestNewSQLRepository_EmptyDatabaseURL(t *testing.T) {
 
 // TestNewSQLRepository_ContainerModePreferred tests container mode "preferred" behavior.
 func TestNewSQLRepository_ContainerModePreferred(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_ContainerModePreferred_" + uuidVal.String()
@@ -82,6 +88,8 @@ func TestNewSQLRepository_ContainerModePreferred(t *testing.T) {
 
 // TestNewSQLRepository_ContainerModeRequired tests container mode "required" behavior.
 func TestNewSQLRepository_ContainerModeRequired(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_ContainerModeRequired_" + uuidVal.String()
@@ -103,6 +111,8 @@ func TestNewSQLRepository_ContainerModeRequired(t *testing.T) {
 
 // TestNewSQLRepository_VerboseMode tests verbose mode logging.
 func TestNewSQLRepository_VerboseMode(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_VerboseMode_" + uuidVal.String()

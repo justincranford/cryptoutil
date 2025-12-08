@@ -19,6 +19,8 @@ import (
 
 // TestNewSQLRepository_NilTelemetryService tests nil telemetry service error.
 func TestNewSQLRepository_NilTelemetryService(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_NilTelemetryService_" + uuidVal.String()
@@ -33,6 +35,8 @@ func TestNewSQLRepository_NilTelemetryService(t *testing.T) {
 
 // TestNewSQLRepository_NilSettings tests nil settings error.
 func TestNewSQLRepository_NilSettings(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_NilSettings_" + uuidVal.String()
@@ -50,6 +54,8 @@ func TestNewSQLRepository_NilSettings(t *testing.T) {
 
 // TestNewSQLRepository_ContainerModeInvalid tests invalid container mode.
 func TestNewSQLRepository_ContainerModeInvalid(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_ContainerModeInvalid_" + uuidVal.String()
@@ -70,6 +76,8 @@ func TestNewSQLRepository_ContainerModeInvalid(t *testing.T) {
 
 // TestHealthCheck tests database health check.
 func TestHealthCheck(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestHealthCheck_" + uuidVal.String()
@@ -91,6 +99,8 @@ func TestHealthCheck(t *testing.T) {
 
 // TestHealthCheck_AfterShutdown tests health check after shutdown.
 func TestHealthCheck_AfterShutdown(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestHealthCheck_AfterShutdown_" + uuidVal.String()
