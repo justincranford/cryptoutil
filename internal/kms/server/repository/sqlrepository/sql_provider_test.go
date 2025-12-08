@@ -44,6 +44,7 @@ func TestMain(m *testing.M) {
 
 func TestSQLTransaction_PanicRecovery(t *testing.T) {
 	t.Parallel()
+
 	defer func() {
 		if recover := recover(); recover != nil {
 			require.NotNil(t, recover)
@@ -59,6 +60,7 @@ func TestSQLTransaction_PanicRecovery(t *testing.T) {
 
 func TestSQLTransaction_Success(t *testing.T) {
 	t.Parallel()
+
 	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SQLTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
@@ -70,6 +72,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 
 func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 	t.Parallel()
+
 	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SQLTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
@@ -84,6 +87,7 @@ func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 
 func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 	t.Parallel()
+
 	sqlTransaction := &SQLTransaction{sqlRepository: testSQLRepository}
 
 	commitErr := sqlTransaction.commit()
@@ -93,6 +97,7 @@ func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 
 func TestSQLTransaction_RollbackNotStartedFailure(t *testing.T) {
 	t.Parallel()
+
 	sqlTransaction := &SQLTransaction{sqlRepository: testSQLRepository}
 
 	rollbackErr := sqlTransaction.rollback()
@@ -102,6 +107,7 @@ func TestSQLTransaction_RollbackNotStartedFailure(t *testing.T) {
 
 func TestSQLTransaction_BeginWithReadOnly(t *testing.T) {
 	t.Parallel()
+
 	newVar := func(sqlTransaction *SQLTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.True(t, sqlTransaction.IsReadOnly())
@@ -115,6 +121,7 @@ func TestSQLTransaction_BeginWithReadOnly(t *testing.T) {
 
 func TestSQLTransaction_RollbackOnError(t *testing.T) {
 	t.Parallel()
+
 	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SQLTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
