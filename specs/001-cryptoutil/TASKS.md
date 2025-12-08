@@ -13,10 +13,10 @@
 | Phase | Tasks | Effort |
 |-------|-------|--------|
 | Phase 0: Slow Test Optimization | 11 | 8-10h |
-| Phase 1: CI/CD Workflows | 8 | 6-8h |
 | Phase 2: Deferred Features | 8 | 8-10h |
 | Phase 3: Coverage Targets | 5 | 12-18h |
 | Phase 4: Advanced Testing | 4 | 8-12h |
+| Phase 1: CI/CD Workflows | 8 | 6-8h |
 | Phase 5: Demo Videos | 6 | 16-24h |
 | **Total** | **42** | **58-82h** |
 
