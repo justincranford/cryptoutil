@@ -94,7 +94,7 @@ services:
   cryptoutil-sqlite:
     image: cryptoutil:dev
     command:
-      - "server"
+      - "kms"
       - "start"
       - "--config=/app/config/sqlite.yml"
       - "--config=/app/config/common.yml"
@@ -134,7 +134,7 @@ services:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command:
-      - "server"
+      - "kms"
       - "start"
       - "--config=/app/config/postgresql-1.yml"
       - "--config=/app/config/common.yml"
@@ -179,7 +179,7 @@ services:
     profiles: ["postgres"]
     image: cryptoutil:dev
     command:
-      - "server"
+      - "kms"
       - "start"
       - "--config=/app/config/postgresql-2.yml"
       - "--config=/app/config/common.yml"
