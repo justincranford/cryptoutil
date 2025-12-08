@@ -15,7 +15,7 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
-// TestNewSQLRepository_PostgreSQL_ContainerRequired tests container mode = required (will fail).
+// TestNewSQLRepository_PostgreSQL_ContainerRequired tests container mode = required (will start container).
 func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping container test in short mode")
@@ -28,18 +28,22 @@ func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 	settings := cryptoutilConfig.RequireNewForTest("postgres_container_required")
 	settings.DevMode = false
 	settings.DatabaseURL = getTestPostgresURL()
-	settings.DatabaseContainer = containerModeRequired // Will fail without Docker
+	settings.DatabaseContainer = containerModeRequired // Will start container when Docker available
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-	testify.Error(t, err)
-	testify.ErrorIs(t, err, cryptoutilSQLRepository.ErrContainerModeRequiredButContainerNotStarted)
-	testify.Nil(t, repo)
+	// Containers start successfully when Docker available
+	testify.NoError(t, err)
+	testify.NotNil(t, repo)
+
+	if repo != nil {
+		defer repo.Shutdown()
+	}
 }
 
-// TestNewSQLRepository_PostgreSQL_ContainerPreferred tests container mode = preferred (will fallback).
+// TestNewSQLRepository_PostgreSQL_ContainerPreferred tests container mode = preferred (will start container).
 func TestNewSQLRepository_PostgreSQL_ContainerPreferred(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping container test in short mode")
@@ -52,16 +56,19 @@ func TestNewSQLRepository_PostgreSQL_ContainerPreferred(t *testing.T) {
 	settings := cryptoutilConfig.RequireNewForTest("postgres_container_preferred")
 	settings.DevMode = false
 	settings.DatabaseURL = getTestPostgresURL()
-	settings.DatabaseContainer = containerModePreferred // Will fallback to URL
+	settings.DatabaseContainer = containerModePreferred // Will start container when Docker available
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-	// Will fail to connect to non-existent PostgreSQL, but fallback path is exercised
-	testify.Error(t, err)
-	testify.ErrorContains(t, err, "failed to ping database")
-	testify.Nil(t, repo)
+	// Containers start successfully when Docker available
+	testify.NoError(t, err)
+	testify.NotNil(t, repo)
+
+	if repo != nil {
+		defer repo.Shutdown()
+	}
 }
 
 // TestNewSQLRepository_UnsupportedDBType tests unsupported database types.

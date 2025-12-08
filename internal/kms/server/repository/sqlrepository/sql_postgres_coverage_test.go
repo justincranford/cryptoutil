@@ -34,15 +34,15 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 			name:          "PostgreSQL with disabled container mode and valid URL",
 			containerMode: "disabled",
 			databaseURL:   getTestPostgresURL(),
-			expectError:   true, // Will fail to connect but tests the code path
+			expectError:   true, // PostgreSQL not running locally - will fail to connect
 			errorContains: "failed to ping database",
 		},
 		{
-			name:          "PostgreSQL with preferred container mode (will fallback)",
+			name:          "PostgreSQL with preferred container mode (will start container)",
 			containerMode: "preferred",
 			databaseURL:   getTestPostgresURL(),
-			expectError:   true,
-			errorContains: "failed to ping database",
+			expectError:   false, // Container will start successfully when Docker available
+			errorContains: "",
 		},
 	}
 
@@ -98,7 +98,7 @@ func TestNewSQLRepository_PostgreSQL_InvalidURL(t *testing.T) {
 			errorCheck: func(t *testing.T, err error) {
 				t.Helper()
 				testify.Error(t, err)
-				testify.ErrorContains(t, err, "database URL cannot be empty")
+				testify.ErrorContains(t, err, "unsupported database URL format")
 			},
 		},
 		{

@@ -19,6 +19,8 @@ import (
 
 // TestCreateGormDB_SQLite tests CreateGormDB with SQLite.
 func TestCreateGormDB_SQLite(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create test configuration and telemetry (creates SQLite by default).
@@ -40,11 +42,15 @@ func TestCreateGormDB_SQLite(t *testing.T) {
 
 // TestCreateGormDB_Postgres tests CreateGormDB with PostgreSQL.
 func TestCreateGormDB_Postgres(t *testing.T) {
+	t.Parallel()
+
 	t.Skip("Requires PostgreSQL instance - tested in integration tests")
 }
 
 // TestCreateGormDB_UnsupportedType tests CreateGormDB with unsupported database type.
 func TestCreateGormDB_UnsupportedType(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create test configuration and telemetry.
@@ -72,6 +78,8 @@ func TestCreateGormDB_UnsupportedType(t *testing.T) {
 
 // TestSQLRepository_Shutdown_Isolated tests shutdown in isolation.
 func TestSQLRepository_Shutdown_Isolated(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create test configuration and telemetry.
@@ -95,10 +103,14 @@ func TestSQLRepository_Shutdown_Isolated(t *testing.T) {
 
 // TestLogPostgresSchema tests PostgreSQL schema logging.
 func TestLogPostgresSchema(t *testing.T) {
+	t.Parallel()
+
 	t.Skip("Requires PostgreSQL instance - tested in integration tests")
 }
 
 // TestLogSchema_Postgres tests LogSchema with PostgreSQL (verbose mode).
 func TestLogSchema_Postgres(t *testing.T) {
+	t.Parallel()
+
 	t.Skip("Requires PostgreSQL instance - tested in integration tests")
 }
