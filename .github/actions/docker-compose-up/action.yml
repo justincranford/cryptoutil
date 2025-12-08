@@ -20,7 +20,7 @@ runs:
         docker compose -f ${{ inputs.compose-file }} up -d
 
         echo "⏳ Waiting for services to be healthy..."
-        timeout 60s bash -c 'until docker compose -f ${{ inputs.compose-file }} ps | grep -q "healthy"; do echo "Waiting..."; sleep 5; done' || echo "⚠️ Health check timeout - continuing anyway"
+        timeout 120s bash -c 'until docker compose -f ${{ inputs.compose-file }} ps | grep -q "healthy"; do echo "Waiting for healthy services..."; sleep 5; done'
 
         echo "📋 Service status:"
         docker compose -f ${{ inputs.compose-file }} ps
