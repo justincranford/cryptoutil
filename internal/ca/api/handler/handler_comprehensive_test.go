@@ -2228,8 +2228,8 @@ func TestGetCRLWithService(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		closeErr := resp.Body.Close()
+		require.NoError(t, closeErr)
 	})
 
 	t.Run("DERFormat", func(t *testing.T) {
@@ -2246,8 +2246,8 @@ func TestGetCRLWithService(t *testing.T) {
 		require.NoError(t, readErr)
 		require.NotEmpty(t, body)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		closeErr := resp.Body.Close()
+		require.NoError(t, closeErr)
 	})
 
 	t.Run("PEMFormat", func(t *testing.T) {
@@ -2264,8 +2264,8 @@ func TestGetCRLWithService(t *testing.T) {
 		require.NoError(t, readErr)
 		require.Contains(t, string(body), "-----BEGIN X509 CRL-----")
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		closeErr := resp.Body.Close()
+		require.NoError(t, closeErr)
 	})
 }
 

@@ -133,8 +133,7 @@ func TestLogger_Duration(t *testing.T) {
 }
 
 func TestLogger_Operation(t *testing.T) {
-	t.Parallel()
-
+	// Note: Not using t.Parallel() because test modifies global os.Stderr
 	tests := []struct {
 		name      string
 		operation string
@@ -147,7 +146,7 @@ func TestLogger_Operation(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			// Not using t.Parallel() - see parent comment
 
 			// Capture stderr to prevent test output pollution
 			oldStderr := os.Stderr

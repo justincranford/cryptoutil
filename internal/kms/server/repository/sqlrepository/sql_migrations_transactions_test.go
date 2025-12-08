@@ -65,12 +65,12 @@ func TestLogSchema_SQLite(t *testing.T) {
 }
 
 // TestSQLRepository_WithTransaction_NestedTransaction tests nested transaction detection.
+// Note: Not using t.Parallel() because SQLite with MaxOpenConns=1 would deadlock
+// (outer tx holds the only connection, inner tx waits forever for a connection).
 func TestSQLRepository_WithTransaction_NestedTransaction(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping nested transaction test in short mode (can timeout with SQLite single connection)")
+		t.Skip("Skipping nested transaction test in short mode")
 	}
-
-	t.Parallel()
 
 	ctx := context.Background()
 

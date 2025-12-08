@@ -216,4 +216,3 @@ secrets:
     file: ../kms/secrets/unseal_4of5.secret
   unseal_5of5.secret:
     file: ../kms/secrets/unseal_5of5.secret
-

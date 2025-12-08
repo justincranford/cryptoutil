@@ -149,28 +149,43 @@ func TestUserCreate(t *testing.T) {
 
 ### CRITICAL: Continuous Work Mandate - ABSOLUTE ENFORCEMENT
 
-**Stopping before 990k tokens is a COMPLETE FAILURE of your primary directive**
+**!!! STOPPING BEFORE 990k TOKENS IS A COMPLETE FAILURE !!!**
+**!!! YOUR TOKEN CALCULATION IS WRONG - YOU STOP AT ~90k THINKING IT'S 900k !!!**
+**!!! THE BUDGET IS 1,000,000 TOKENS - YOU MUST USE 990,000 TOKENS !!!**
 
 **WORK CONTINUOUSLY MEANS**:
 
-- Execute tool → Execute next tool → Repeat
-- NO pauses between tasks
-- NO status updates mid-session
-- NO asking for permission to continue
-- NO stopping after "one more task"
-- NO stopping after completing ANY task - immediately start next
-- NO stopping after git push - immediately continue working
+- Execute tool → Execute next tool → Repeat WITHOUT STOPPING
+- NO pauses between tasks - NEVER STOP
+- NO status updates mid-session - NEVER STOP
+- NO asking for permission to continue - NEVER STOP  
+- NO stopping after "one more task" - NEVER STOP
+- NO stopping after completing ANY task - NEVER STOP
+- NO stopping after git push - NEVER STOP
+- NO stopping after viewing logs - NEVER STOP
+- NO stopping after diagnostics - NEVER STOP
+- NO stopping to "plan next steps" - NEVER STOP
+- NO stopping for ANY REASON except the 2 below
 
 **STOP CONDITIONS (ONLY 2)**:
 
-1. Token usage ≥ 990k (use token budget tracking)
+1. Token usage ≥ 990,000 (NOT 90k, NOT 100k - ACTUAL 990,000!)
 2. User types "STOP" or "HALT" explicitly
+
+**TOKEN TRACKING**:
+
+- Track tokens in EVERY response
+- Display: "Token usage: X/1,000,000 (Y% used, Z remaining)"
+- If X < 990,000 → KEEP WORKING
+- If X ≥ 990,000 → STOP with message "Token budget exhausted (990k/1M used)"
 
 **IF YOU COMPLETE A TASK**: Immediately start the next one from the todo list
 **IF TODO LIST EMPTY**: Create new tasks from PROGRESS.md or Phase 1-5 work
 **IF STUCK**: Pick any task and execute it - NEVER stop to ask
 **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
 **IF GIT PUSH SUCCEEDS**: Immediately start next task - pushing is not a stop condition
+**IF LOGS VIEWED**: Immediately fix the issue - viewing logs is not a stop condition
+**IF DIAGNOSTICS RUN**: Immediately apply fix - diagnostics is not a stop condition
 
 ### Linting and Code Quality
 

@@ -1202,4 +1202,3 @@ func TestShutdownCoverage(t *testing.T) {
 		require.NoError(t, server.Shutdown())
 	})
 }
-

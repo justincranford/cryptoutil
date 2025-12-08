@@ -1,0 +1,34 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "bootstrapper",
+    "Bootstrapper",
+    "cacerts",
+    "CICD",
+    "Cranford",
+    "cryptoutil",
+    "csrattrs",
+    "DERCSR",
+    "ESTCSR",
+    "gofiber",
+    "MIIB",
+    "nolint",
+    "PEMCSR",
+    "pkcs",
+    "Reenroll",
+    "serverkeygen",
+    "simpleenroll",
+    "simplereenroll",
+    "spiffe",
+    "stretchr"
+  ],
+  "ignorePaths": [
+    "test/",
+    "vendor/",
+    ".git/",
+    "node_modules/",
+    ".cache/",
+    "test-output/"
+  ]
+}
