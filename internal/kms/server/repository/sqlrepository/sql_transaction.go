@@ -151,7 +151,9 @@ func (sqlTransaction *SQLTransaction) begin(ctx context.Context, readOnly bool) 
 		return fmt.Errorf("failed to generate transaction ID: %w", err)
 	}
 
-	sqlTx, err := sqlTransaction.sqlRepository.sqlDB.BeginTx(ctx, &sql.TxOptions{ReadOnly: readOnly})
+	// NOTE: PostgreSQL does not support ReadOnly transactions, so always use default (ReadWrite)
+	// See: 01-04.database.instructions.md - "SQLite does NOT support read-only transactions - NEVER use them"
+	sqlTx, err := sqlTransaction.sqlRepository.sqlDB.BeginTx(ctx, nil)
 	if err != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to begin transaction", "transactionID", transactionID, "readOnly", readOnly, "error", err)
 
