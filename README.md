@@ -1,14 +1,35 @@
-# Notice
-
-Development is going to slow for approximately 3 weeks while waiting for ASUS RMA to replace my failed motherboard.
-
-This marks the second ASUS motherboard failure this calendar year. The board was only 7 months old and failed on November 10, 2025—right in the middle of developing this project.
-
-I will be evaluating options for a more reliable backup development system to avoid future hardware-related interruptions.
-
 # cryptoutil
 
-cryptoutil is a production-ready embedded Key Management System (KMS) and cryptographic service with enterprise-grade security features. It implements a hierarchical cryptographic architecture following NIST FIPS 140-3 standards.
+## Introduction
+
+**cryptoutil** is a production-ready suite of four cryptographic services, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:
+
+1. **Key Management Service (KMS)**
+2. **Identity Service** (OAuth 2.1, OIDC 1.0, WebAuthn, Passkeys)
+3. **Certificate Authority (CA)**
+4. **JSON Object Signing and Encryption (JOSE)**
+
+### Project Background
+
+The project began as a standalone **Key Management Service (KMS)**. As part of that design, I implemented **CA** and **JOSE** components, and the next logical step was to add an **Identity** component.
+
+- **CA** => Issue TLS certificates to protect **data-in-transit**.  
+- **JOSE** => Issue JSON (JWEs) to protect **data-at-rest**.
+- **Identity** => Provide multi-tenant **authentication** (AuthN) and flexible **authorization** (AuthZ).
+
+### Evolution of the Architecture
+
+Instead of keeping Identity internal, I chose to build it as an **independent external service**. It wanted to run on its own, not just as a dependency of the KMS.
+
+I also decided to refactor the **CA** and **JOSE** components into external services. Both the KMS and Identity depend on them, but those components are widely useful on their own.
+
+### Why This Exists
+
+This project is **for fun**. I’ve worked on all four types of systems professionally, and I genuinely enjoy the challenge of building my own versions.
+
+This opportunity is also a great learning experiance, especially with respect to using **LLM agents** for Spec-Driven Development (SDD).
+
+Finally, this project has given me a much greater appreciation for the breadth of work that goes into delivering modern, enterprise-ready security products.
 
 ## Key Features
 
