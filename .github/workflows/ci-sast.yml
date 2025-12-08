@@ -294,28 +294,26 @@ jobs:
 
             # Fix SARIF format: Add artifactLocation to all physicalLocation entries
             echo "🔧 Adding artifact locations to SARIF..."
-            jq '
-              .runs[].results[].locations[]? |= (
-                if .physicalLocation.artifactLocation? == null then
-                  .physicalLocation.artifactLocation = {
-                    "uri": .physicalLocation.region.uri? // "unknown",
-                    "uriBaseId": "%SRCROOT%"
-                  }
-                else
-                  .
-                end |
-                if .physicalLocation.region.startLine? == 0 then
-                  .physicalLocation.region.startLine = 1
-                else
-                  .
-                end |
-                if .physicalLocation.region.startColumn? == 0 then
-                  .physicalLocation.region.startColumn = 1
-                else
-                  .
-                end
-              )
-            ' staticcheck.sarif > staticcheck-sanitized.sarif
+            jq '.runs[].results[].locations[]? |= (
+              if .physicalLocation.artifactLocation? == null then
+                .physicalLocation.artifactLocation = {
+                  "uri": (if .physicalLocation.region.uri? then .physicalLocation.region.uri else "unknown" end),
+                  "uriBaseId": "%SRCROOT%"
+                }
+              else
+                .
+              end |
+              if .physicalLocation.region.startLine? == 0 then
+                .physicalLocation.region.startLine = 1
+              else
+                .
+              end |
+              if .physicalLocation.region.startColumn? == 0 then
+                .physicalLocation.region.startColumn = 1
+              else
+                .
+              end
+            )' staticcheck.sarif > staticcheck-sanitized.sarif
             mv staticcheck-sanitized.sarif staticcheck.sarif
             echo "✅ SARIF format fixed"
           else

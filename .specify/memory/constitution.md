@@ -158,7 +158,7 @@ func TestUserCreate(t *testing.T) {
 - Execute tool → Execute next tool → Repeat WITHOUT STOPPING
 - NO pauses between tasks - NEVER STOP
 - NO status updates mid-session - NEVER STOP
-- NO asking for permission to continue - NEVER STOP  
+- NO asking for permission to continue - NEVER STOP
 - NO stopping after "one more task" - NEVER STOP
 - NO stopping after completing ANY task - NEVER STOP
 - NO stopping after git push - NEVER STOP
