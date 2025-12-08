@@ -111,6 +111,20 @@
     "projectdiscovery",
     "nektos",
     "subtests",
-    "userauth"
+    "userauth",
+    "smimesign",
+    "apperr",
+    "OAEP",
+    "endsession",
+    "userinfo",
+    "TOTP",
+    "HOTP",
+    "elastickey",
+    "materialkey",
+    "materialkeys",
+    "CRMF",
+    "runbooks",
+    "gofumpt",
+    "gofmt"
   ]
 }
