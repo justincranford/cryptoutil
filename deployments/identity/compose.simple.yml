@@ -47,10 +47,11 @@ services:
       test:
         - CMD
         - wget
+        - --no-check-certificate
         - -q
         - -O
         - /dev/null
-        - http://127.0.0.1:8082/health
+        - https://127.0.0.1:8082/health
       interval: 10s
       timeout: 5s
       retries: 5
@@ -96,10 +97,11 @@ services:
       test:
         - CMD
         - wget
+        - --no-check-certificate
         - -q
         - -O
         - /dev/null
-        - http://127.0.0.1:8083/health
+        - https://127.0.0.1:8083/health
       interval: 10s
       timeout: 5s
       retries: 5
@@ -145,10 +147,11 @@ services:
       test:
         - CMD
         - wget
+        - --no-check-certificate
         - -q
         - -O
         - /dev/null
-        - http://127.0.0.1:8084/health
+        - https://127.0.0.1:8084/health
       interval: 10s
       timeout: 5s
       retries: 5

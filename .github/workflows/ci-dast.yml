@@ -83,9 +83,9 @@ on:
 env:
   SCAN_PROFILE: ${{ github.event.inputs.scan_profile || 'full' }}
 
-  # HTTP endpoints use 127.0.0.1 (not localhost) for predictable IPv4 behavior and TLS certificate compatibility
+  # HTTPS endpoints use 127.0.0.1 (not localhost) for predictable IPv4 behavior and TLS certificate compatibility
   APP_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://127.0.0.1:8080' }}
-  APP_PRIVATE_TARGET_URL: ${{ github.event.inputs.target_url || 'http://127.0.0.1:9090' }}
+  APP_PRIVATE_TARGET_URL: ${{ github.event.inputs.target_url || 'https://127.0.0.1:9090' }}
 
   # Nuclei runs inside GitHub Actions runner/act container - can use 127.0.0.1 directly
   NUCLEI_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://127.0.0.1:8080' }}
