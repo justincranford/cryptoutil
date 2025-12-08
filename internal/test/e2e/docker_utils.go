@@ -27,7 +27,7 @@ type DockerContainer struct {
 // Docker compose command arguments constants.
 var (
 	dockerComposeArgsStopServices  = []string{"down", "-v", "--remove-orphans"}
-	dockerComposeArgsStartServices = []string{"up", "-d", "--force-recreate", "--profile", "postgres"}
+	dockerComposeArgsStartServices = []string{"up", "-d", "--force-recreate"}
 	dockerComposeArgsPsServices    = []string{"ps", "-a", "--format", "json"}
 )
 
@@ -64,6 +64,8 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 	composeFile := getComposeFilePath()
 	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
 	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
+	// Enable postgres profile via environment variable (more compatible than --profile flag).
+	cmd.Env = append(os.Environ(), "COMPOSE_PROFILES=postgres")
 	output, err := cmd.CombinedOutput()
 	LogCommand(logger, description, cmd.String(), string(output))
 
