@@ -50,11 +50,14 @@
     "speckit",
     "spiffe",
     "spotbugs",
+    "sqlrepository",
+    "sslmode",
     "SRCROOT",
     "Staticcheck",
     "staticcheck",
     "stretchr",
     "temurin",
+    "testdb",
     "Yubikey"
   ],
   "ignorePaths": [

@@ -16,6 +16,13 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+const (
+	// invalidDatabaseURL is used for negative test cases to ensure failures even when PostgreSQL service exists.
+	invalidDatabaseURL = "postgres://invalid_user:invalid_pass@localhost:9999/nonexistent_db?sslmode=disable"
+	// invalidDatabaseURLWithAuth is used for tests expecting authentication failures.
+	invalidDatabaseURLWithAuth = "postgres://invalid_user:invalid_pass@localhost:5432/cryptoutil_test?sslmode=disable"
+)
+
 // TestMapDBTypeAndURL_AllScenarios tests all database type and URL mapping scenarios.
 func TestMapDBTypeAndURL_AllScenarios(t *testing.T) {
 	if testing.Short() {
@@ -136,7 +143,13 @@ func TestMapContainerMode_AllModes(t *testing.T) {
 
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
-			settings.DatabaseURL = getTestPostgresURL()
+			// Use invalid database URL for container mode tests to ensure they fail even if PostgreSQL service exists.
+			if tc.containerMode == "preferred" || tc.containerMode == "required" {
+				settings.DatabaseURL = invalidDatabaseURL
+			} else {
+				settings.DatabaseURL = getTestPostgresURL()
+			}
+
 			settings.DatabaseContainer = tc.containerMode
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -242,12 +255,13 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
 				t.Helper()
 
-				settings := cryptoutilConfig.RequireNewForTest("error_container_required")
-				settings.DevMode = false
-				settings.DatabaseURL = getTestPostgresURL()
-				settings.DatabaseContainer = containerModeRequired
+			settings := cryptoutilConfig.RequireNewForTest("error_container_required")
+			settings.DevMode = false
+			// Use invalid database URL to force container startup failure even if PostgreSQL service exists.
+			settings.DatabaseURL = invalidDatabaseURL
+			settings.DatabaseContainer = containerModeRequired
 
-				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
 
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -262,12 +276,13 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
 				t.Helper()
 
-				settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
-				settings.DevMode = false
-				settings.DatabaseURL = getTestPostgresURL()
-				settings.DatabaseContainer = containerModeDisabled
+			settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
+			settings.DevMode = false
+			// Use invalid credentials to force ping failure even if PostgreSQL service exists.
+			settings.DatabaseURL = invalidDatabaseURLWithAuth
+			settings.DatabaseContainer = containerModeDisabled
 
-				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
 
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)

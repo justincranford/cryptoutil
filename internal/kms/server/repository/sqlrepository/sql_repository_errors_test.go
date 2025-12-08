@@ -70,7 +70,7 @@ func TestNewSQLRepository_ContainerModePreferred(t *testing.T) {
 	defer telemetryService.Shutdown()
 
 	// Set container mode to preferred (will fail since container not available for SQLite).
-	testSettings.DatabaseContainer = "preferred"
+	testSettings.DatabaseContainer = containerModePreferred
 
 	sqlRepo, err := sqlrepository.NewSQLRepository(ctx, telemetryService, testSettings)
 
@@ -91,7 +91,7 @@ func TestNewSQLRepository_ContainerModeRequired(t *testing.T) {
 	defer telemetryService.Shutdown()
 
 	// Set container mode to required (will fail since container not available for SQLite).
-	testSettings.DatabaseContainer = "required"
+	testSettings.DatabaseContainer = containerModeRequired
 
 	sqlRepo, err := sqlrepository.NewSQLRepository(ctx, telemetryService, testSettings)
 
