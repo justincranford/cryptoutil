@@ -93,7 +93,12 @@ services:
   # KMS server with SQLite backend (default for E2E).
   cryptoutil-sqlite:
     image: cryptoutil:dev
-    command: ["server", "start", "--config=/app/config/sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command:
+      - "server"
+      - "start"
+      - "--config=/app/config/sqlite.yml"
+      - "--config=/app/config/common.yml"
+      - "--config=/app/otel/otel.yml"
     working_dir: /tmp
     ports:
       - "8080:8080"  # Public API
@@ -128,7 +133,14 @@ services:
   cryptoutil-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "start", "--config=/app/config/postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command:
+      - "server"
+      - "start"
+      - "--config=/app/config/postgresql-1.yml"
+      - "--config=/app/config/common.yml"
+      - "--config=/app/otel/otel.yml"
+      - "-u"
+      - "file:///run/secrets/postgres_url.secret"
     working_dir: /tmp
     ports:
       - "8081:8080"  # Public API (host:container)
@@ -166,7 +178,14 @@ services:
   cryptoutil-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "start", "--config=/app/config/postgresql-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command:
+      - "server"
+      - "start"
+      - "--config=/app/config/postgresql-2.yml"
+      - "--config=/app/config/common.yml"
+      - "--config=/app/otel/otel.yml"
+      - "-u"
+      - "file:///run/secrets/postgres_url.secret"
     working_dir: /tmp
     ports:
       - "8082:8080"  # Public API (host:container)
