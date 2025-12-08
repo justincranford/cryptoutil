@@ -28,6 +28,49 @@
 
 ---
 
+## Service Architecture - Dual HTTPS Endpoint Pattern
+
+**CRITICAL: ALL services MUST implement dual HTTPS endpoints - NO HTTP PORTS**
+
+### Architecture Requirements
+
+Every service implements two HTTPS endpoints:
+
+1. **Public HTTPS Endpoint** (configurable port, default 8080+)
+   - Serves business APIs and browser UI
+   - TLS required (never HTTP)
+   - TWO security middleware stacks on SAME OpenAPI spec:
+     - **Service-to-service APIs**: Require OAuth 2.1 client credentials tokens
+     - **Browser-to-service APIs/UI**: Require OAuth 2.1 authorization code + PKCE tokens
+   - Middleware enforces authorization boundaries
+   
+2. **Private HTTPS Endpoint** (always 127.0.0.1:9090 or similar)
+   - Admin/operations endpoints: `/livez`, `/readyz`, `/healthz`, `/shutdown`
+   - Localhost-only binding (not externally accessible)
+   - TLS required (never HTTP)
+   - Used by Docker health checks, Kubernetes probes, monitoring
+
+### Service Port Assignments
+
+| Service | Public HTTPS | Private HTTPS | Notes |
+|---------|--------------|---------------|-------|
+| KMS | :8080 | 127.0.0.1:9090 | Key management APIs |
+| Identity AuthZ | :8080 | 127.0.0.1:9090 | OAuth 2.1 endpoints |
+| Identity IdP | :8081 | 127.0.0.1:9090 | OIDC endpoints |
+| Identity RS | :8082 | 127.0.0.1:9090 | Resource server |
+| JOSE | :8080 | 127.0.0.1:9092 | JWK/JWT operations |
+| CA | :8443 | 127.0.0.1:9443 | Certificate operations |
+
+### Implementation Checklist
+
+- ✅ NO HTTP endpoints on ANY port
+- ✅ Health checks use HTTPS with `--no-check-certificate`
+- ✅ Admin endpoints bound to 127.0.0.1 only
+- ✅ Public endpoints support both service and browser clients
+- ✅ Different OAuth token flows per client type
+
+---
+
 ## Phase 0: Optimize Slow Test Packages (Day 1, 4-5 hours) 🚀
 
 **Objective**: Enable fast development feedback loop by optimizing 5 slowest test packages
