@@ -111,7 +111,7 @@ jobs:
         images: |
           postgres:18
           alpine:3.19
-          golang:1.25.4
+            golang:1.25.5
           otel/opentelemetry-collector-contrib:latest
           grafana/otel-lgtm:latest
 

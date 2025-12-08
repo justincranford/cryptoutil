@@ -9,7 +9,7 @@
 
 ## Version Requirements
 
-- Go: 1.25.4+, Python: 3.14+, golangci-lint: v2.6.2+, Node: v24.11.1+
+- Go: 1.25.5+, Python: 3.14+, golangci-lint: v2.6.2+, Node: v24.11.1+
 - Java: 21 LTS (required for Gatling load tests in test/load/)
 - Maven: 3.9+, pre-commit: 2.20.0+, Docker: 24+, Docker Compose: v2+
 - Always use latest stable versions; verify before suggesting updates

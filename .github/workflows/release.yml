@@ -25,8 +25,8 @@ on:
           - production
         default: 'dev'
 
-env:
-  GO_VERSION: '1.25.4'
+  env:
+    GO_VERSION: '1.25.5'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 

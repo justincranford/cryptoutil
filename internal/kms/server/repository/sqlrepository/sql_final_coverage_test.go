@@ -255,13 +255,13 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
 				t.Helper()
 
-			settings := cryptoutilConfig.RequireNewForTest("error_container_required")
-			settings.DevMode = false
-			// Use invalid database URL to force container startup failure even if PostgreSQL service exists.
-			settings.DatabaseURL = invalidDatabaseURL
-			settings.DatabaseContainer = containerModeRequired
+				settings := cryptoutilConfig.RequireNewForTest("error_container_required")
+				settings.DevMode = false
+				// Use invalid database URL to force container startup failure even if PostgreSQL service exists.
+				settings.DatabaseURL = invalidDatabaseURL
+				settings.DatabaseContainer = containerModeRequired
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
 
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -276,13 +276,13 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
 				t.Helper()
 
-			settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
-			settings.DevMode = false
-			// Use invalid credentials to force ping failure even if PostgreSQL service exists.
-			settings.DatabaseURL = invalidDatabaseURLWithAuth
-			settings.DatabaseContainer = containerModeDisabled
+				settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
+				settings.DevMode = false
+				// Use invalid credentials to force ping failure even if PostgreSQL service exists.
+				settings.DatabaseURL = invalidDatabaseURLWithAuth
+				settings.DatabaseContainer = containerModeDisabled
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
 
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
