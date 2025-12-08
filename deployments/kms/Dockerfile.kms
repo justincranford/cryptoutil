@@ -111,7 +111,7 @@ FROM alpine:${ALPINE_VERSION} AS runtime-deps
 WORKDIR /root/ssl
 # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk --no-cache add ca-certificates tzdata tini && \
+    apk --no-cache add ca-certificates tzdata tini wget && \
     update-ca-certificates
 
 #############################################################################################
@@ -155,7 +155,7 @@ EXPOSE 8080
 
 # Healthcheck available with Alpine base image
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD /app/kms cryptoutil server ready --dev || exit 1
+  CMD /app/cryptoutil kms server ready --dev || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:
