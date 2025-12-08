@@ -1,7 +1,7 @@
 # OCSP Responder Dockerfile
 # Multi-stage build for OCSP responder service
 
-ARG GO_VERSION=1.25.4
+ARG GO_VERSION=1.25.5
 
 # Build stage
 FROM golang:${GO_VERSION}-alpine AS builder
