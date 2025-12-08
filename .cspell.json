@@ -30,8 +30,12 @@
     "HKDF",
     "HMAC",
     "honnef",
+    "intermediatekeysservice",
     "isready",
     "jdbc",
+    "JWEJWK",
+    "KEKUUID",
+    "lestrrat",
     "MIIB",
     "mvnw",
     "nohup",
@@ -41,6 +45,7 @@
     "PKIX",
     "pkcs",
     "Reenroll",
+    "rootkeysservice",
     "sarif",
     "SARIF",
     "SCEP",
@@ -77,6 +82,7 @@
     "stretchr",
     "temurin",
     "testdb",
+    "unsealkeysservice",
     "Yubikey"
   ],
   "ignorePaths": [
