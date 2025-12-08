@@ -115,8 +115,8 @@ services:
     depends_on:
       builder-cryptoutil:
         condition: service_completed_successfully
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     networks:
       - e2e-network
 
@@ -149,8 +149,8 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     networks:
       - e2e-network
 
@@ -183,8 +183,8 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     networks:
       - e2e-network
 

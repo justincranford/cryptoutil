@@ -67,8 +67,8 @@ services:
       retries: 5
       start_period: 30s
     depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     networks:
       - integration-network
 
@@ -106,8 +106,8 @@ services:
       retries: 5
       start_period: 30s
     depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     networks:
       - integration-network
 
@@ -162,8 +162,8 @@ services:
       retries: 5
       start_period: 30s
     depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
       identity-authz:
         condition: service_healthy
     networks:
@@ -207,8 +207,8 @@ services:
       retries: 5
       start_period: 30s
     depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     networks:
       - integration-network
 
@@ -250,8 +250,8 @@ services:
       retries: 5
       start_period: 30s
     depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_healthy
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     networks:
       - integration-network
 
