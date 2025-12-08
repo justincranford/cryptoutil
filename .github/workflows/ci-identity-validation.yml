@@ -15,8 +15,8 @@ on:
       - '.github/workflows/ci-identity-validation.yml'
   workflow_dispatch:
 
-  env:
-    GO_VERSION: '1.25.5'
+env:
+  GO_VERSION: '1.25.5'
 
 permissions:
   contents: write

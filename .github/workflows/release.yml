@@ -25,8 +25,8 @@ on:
           - production
         default: 'dev'
 
-  env:
-    GO_VERSION: '1.25.5'
+env:
+  GO_VERSION: '1.25.5'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -34,6 +34,9 @@ jobs:
   validate-version:
     name: Validate Version
     runs-on: ubuntu-latest
+    # DISABLED: This workflow is not yet ready for production use
+    # Re-enable and fix iteratively when release planning begins
+    if: false
     outputs:
       version: ${{ steps.extract-version.outputs.version }}
       is_prerelease: ${{ steps.extract-version.outputs.is_prerelease }}

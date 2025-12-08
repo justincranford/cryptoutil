@@ -92,7 +92,7 @@ func TestGetDirectDependencies(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.4
+go 1.25.5
 
 require (
 	github.com/pkg/errors v0.9.1
@@ -114,7 +114,7 @@ func TestGetDirectDependencies_SingleLineRequire(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.4
+go 1.25.5
 
 require github.com/pkg/errors v0.9.1
 `)
@@ -130,7 +130,7 @@ func TestGetDirectDependencies_Empty(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.4
+go 1.25.5
 `)
 
 	directDeps, err := getDirectDependencies(goModContent)

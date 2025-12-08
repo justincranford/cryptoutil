@@ -264,7 +264,7 @@ Client → /token (with code + PKCE verifier) → AuthZ validates PKCE → Issue
 
 **Technology Stack**:
 
-- Language: Go 1.25.4+
+- Language: Go 1.25.5+
 - HTTP Framework: Fiber v2
 - Database: GORM with PostgreSQL/SQLite
 - JWT: lestrrat-go/jwx/v3

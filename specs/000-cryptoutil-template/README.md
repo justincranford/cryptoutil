@@ -232,7 +232,7 @@ These templates implement patterns from `.github/instructions/*.md`:
 - Coverage targets: 95/100/100
 
 ### 01-03.golang.instructions.md
-- Go version consistency (1.25.4+)
+- Go version consistency (1.25.5+)
 - Static linking with debug symbols
 - Standard Go Project Layout
 - Import alias conventions (cryptoutilPackage)

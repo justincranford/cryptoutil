@@ -391,7 +391,7 @@ gremlins unleash
 
 ### Version Requirements
 
-- Go: 1.25.4+
+- Go: 1.25.5+
 - PostgreSQL: 14+
 - Docker: 24+
 - Docker Compose: v2+

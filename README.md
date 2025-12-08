@@ -13,7 +13,7 @@
 
 The project began as a standalone **Key Management Service (KMS)**. As part of that design, I implemented **CA** and **JOSE** components, and the next logical step was to add an **Identity** component.
 
-- **CA** => Issue TLS certificates to protect **data-in-transit**.  
+- **CA** => Issue TLS certificates to protect **data-in-transit**.
 - **JOSE** => Issue JSON (JWEs) to protect **data-at-rest**.
 - **Identity** => Provide multi-tenant **authentication** (AuthN) and flexible **authorization** (AuthZ).
 
@@ -196,7 +196,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 ### Prerequisites
 
-- Go 1.25.4+
+- Go 1.25.5+
 - Docker and Docker Compose (for PostgreSQL)
 
 ### Automation Tools

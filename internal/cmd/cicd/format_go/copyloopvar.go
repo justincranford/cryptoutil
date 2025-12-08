@@ -167,7 +167,7 @@ func isLoopVarCopy(rangeStmt *ast.RangeStmt, assign *ast.AssignStmt) bool {
 
 // isGoVersionSupported checks if the Go version supports automatic loop variable scoping.
 func isGoVersionSupported(version string) bool {
-	// Extract version number from string like "go1.25.4".
+	// Extract version number from string like "go1.25.5".
 	version = strings.TrimPrefix(version, "go")
 
 	parts := strings.Split(version, ".")

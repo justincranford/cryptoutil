@@ -59,7 +59,7 @@ Before completing:
 
 For cryptoutil plans, default context:
 
-- **Language/Version**: Go 1.25.4+
+- **Language/Version**: Go 1.25.5+
 - **Primary Dependencies**: Fiber v2, GORM, lestrrat-go/jwx, google/uuid
 - **Storage**: PostgreSQL (production), SQLite (development/testing)
 - **Testing**: go test with testify, table-driven tests, t.Parallel()

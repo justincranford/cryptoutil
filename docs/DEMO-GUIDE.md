@@ -5,7 +5,7 @@ This guide documents how to demonstrate each cryptoutil product individually and
 ## Prerequisites
 
 - Docker Desktop installed and running
-- Go 1.25.4+ installed
+- Go 1.25.5+ installed
 - Git repository cloned
 
 ## Quick Commands Reference
