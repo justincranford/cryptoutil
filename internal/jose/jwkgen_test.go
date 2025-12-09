@@ -30,7 +30,7 @@ func TestGenerateRSAJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -63,7 +63,7 @@ func TestGenerateECDSAJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -96,7 +96,7 @@ func TestGenerateECDHJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -146,7 +146,7 @@ func TestGenerateAESJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -170,7 +170,7 @@ func TestGenerateAESHSJWK(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
+		name      string
 		aesHsBits int
 	}{
 		{"AES128HS256", cryptoutilMagic.HMACKeySize256},
@@ -179,7 +179,7 @@ func TestGenerateAESHSJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -212,7 +212,7 @@ func TestGenerateHMACJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

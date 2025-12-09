@@ -178,3 +178,83 @@ func Test_SadPath_ConcurrentGenerateJWSJWK_UnsupportedAlg(t *testing.T) {
 	require.Nil(t, nonPublicJWEJWKs)
 	require.Nil(t, publicJWEJWKs)
 }
+
+func Test_ExtractKidAlgFromJWSMessage_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK for signing.
+	jwsJWKs, _, err := GenerateJWSJWKsForTest(t, 1, &AlgRS256)
+	require.NoError(t, err)
+
+	// Sign test data.
+	plaintext := []byte("test data")
+	jwsMessage, _, err := SignBytes(jwsJWKs, plaintext)
+	require.NoError(t, err)
+
+	// Test extraction.
+	kid, alg, err := ExtractKidAlgFromJWSMessage(jwsMessage)
+	require.NoError(t, err)
+	require.NotNil(t, kid)
+	require.NotNil(t, alg)
+
+	// Verify values.
+	expectedKid, err := ExtractKidUUID(jwsJWKs[0])
+	require.NoError(t, err)
+	require.Equal(t, expectedKid, kid)
+	require.Equal(t, AlgRS256, *alg)
+}
+
+func Test_ExtractKidAlgFromJWSMessage_NoSignatures(t *testing.T) {
+	t.Parallel()
+
+	// Create JWS message without signatures.
+	jwsMessage := joseJws.NewMessage()
+
+	// Test extraction should fail.
+	kid, alg, err := ExtractKidAlgFromJWSMessage(jwsMessage)
+	require.Error(t, err)
+	require.Nil(t, kid)
+	require.Nil(t, alg)
+	require.Contains(t, err.Error(), "JWS message has no signatures")
+}
+
+func Test_JWSHeadersString_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK for signing.
+	jwsJWKs, _, err := GenerateJWSJWKsForTest(t, 1, &AlgRS256)
+	require.NoError(t, err)
+
+	// Sign test data.
+	plaintext := []byte("test data")
+	jwsMessage, _, err := SignBytes(jwsJWKs, plaintext)
+	require.NoError(t, err)
+
+	// Test string conversion.
+	headersStr, err := JWSHeadersString(jwsMessage)
+	require.NoError(t, err)
+	require.NotEmpty(t, headersStr)
+	require.Contains(t, headersStr, "alg")
+	require.Contains(t, headersStr, "kid")
+}
+
+func Test_LogJWSInfo_NilMessage(t *testing.T) {
+	t.Parallel()
+
+	// Test with nil message.
+	err := LogJWSInfo(nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "jwsMessage is nil")
+}
+
+func Test_LogJWSInfo_NoSignatures(t *testing.T) {
+	t.Parallel()
+
+	// Create JWS message without signatures.
+	jwsMessage := joseJws.NewMessage()
+
+	// Test logging should fail.
+	err := LogJWSInfo(jwsMessage)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "jwsMessage has no signatures")
+}

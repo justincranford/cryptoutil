@@ -321,3 +321,72 @@ func Test_SadPath_ConcurrentGenerateJWEJWK_UnsupportedAlg(t *testing.T) {
 	require.Nil(t, nonPublicJWEJWKs)
 	require.Nil(t, publicJWEJWKs)
 }
+
+func Test_ExtractKidFromJWEMessage_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK for encryption.
+	jweJWKs, _, err := GenerateJWEJWKsForTest(t, 1, &EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	// Encrypt test data.
+	plaintext := []byte("test data")
+	jweMessage, _, err := EncryptBytes(jweJWKs, plaintext)
+	require.NoError(t, err)
+
+	// Test extraction.
+	kid, err := ExtractKidFromJWEMessage(jweMessage)
+	require.NoError(t, err)
+	require.NotNil(t, kid)
+
+	// Verify KID matches JWK.
+	expectedKid, err := ExtractKidUUID(jweJWKs[0])
+	require.NoError(t, err)
+	require.Equal(t, expectedKid, kid)
+}
+
+func Test_ExtractKidEncAlgFromJWEMessage_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK for encryption.
+	jweJWKs, _, err := GenerateJWEJWKsForTest(t, 1, &EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	// Encrypt test data.
+	plaintext := []byte("test data")
+	jweMessage, _, err := EncryptBytes(jweJWKs, plaintext)
+	require.NoError(t, err)
+
+	// Test extraction.
+	kid, enc, alg, err := ExtractKidEncAlgFromJWEMessage(jweMessage)
+	require.NoError(t, err)
+	require.NotNil(t, kid)
+	require.NotNil(t, enc)
+	require.NotNil(t, alg)
+
+	// Verify values.
+	expectedKid, err := ExtractKidUUID(jweJWKs[0])
+	require.NoError(t, err)
+	require.Equal(t, expectedKid, kid)
+	require.Equal(t, EncA256GCM, *enc)
+	require.Equal(t, AlgA256KW, *alg)
+}
+
+func Test_ExtractKidFromJWEMessage_InvalidMessage(t *testing.T) {
+	t.Parallel()
+
+	// Create JWE message without proper headers will fail during extraction.
+	// Parse a minimal JWE message (this will be invalid but not nil).
+	jweCompact := "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4R0NNIn0..invalid.invalid.invalid"
+	jweMessage, err := joseJwe.Parse([]byte(jweCompact))
+	if err == nil {
+		// If parse succeeds, extraction should still fail due to missing KID.
+		kid, extractErr := ExtractKidFromJWEMessage(jweMessage)
+		require.Error(t, extractErr)
+		require.Nil(t, kid)
+		require.Contains(t, extractErr.Error(), "failed to get kid UUID")
+	} else {
+		// If parse fails, that's also acceptable for this invalid message test.
+		require.Error(t, err)
+	}
+}

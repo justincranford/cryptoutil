@@ -14,6 +14,7 @@ import (
 	"sync"
 	"testing"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 
@@ -413,3 +414,92 @@ func getTestCases(t *testing.T) []testCase {
 
 	return testCases
 }
+
+func TestGenerateJWKForAlg_AllAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		alg  cryptoutilOpenapiModel.GenerateAlgorithm
+	}{
+		{"RSA2048", cryptoutilOpenapiModel.RSA2048},
+		{"RSA3072", cryptoutilOpenapiModel.RSA3072},
+		{"RSA4096", cryptoutilOpenapiModel.RSA4096},
+		{"ECP256", cryptoutilOpenapiModel.ECP256},
+		{"ECP384", cryptoutilOpenapiModel.ECP384},
+		{"ECP521", cryptoutilOpenapiModel.ECP521},
+		{"OKPEd25519", cryptoutilOpenapiModel.OKPEd25519},
+		{"Oct128", cryptoutilOpenapiModel.Oct128},
+		{"Oct192", cryptoutilOpenapiModel.Oct192},
+		{"Oct256", cryptoutilOpenapiModel.Oct256},
+		{"Oct384", cryptoutilOpenapiModel.Oct384},
+		{"Oct512", cryptoutilOpenapiModel.Oct512},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			kid, privateJWK, publicJWK, privateJWKBytes, publicJWKBytes, err := GenerateJWKForAlg(&tc.alg)
+			require.NoError(t, err)
+			require.NotNil(t, kid)
+			require.NotNil(t, privateJWK)
+			require.NotNil(t, publicJWK)
+			require.NotEmpty(t, privateJWKBytes)
+			require.NotEmpty(t, publicJWKBytes)
+
+			// Test ExtractKty (works for all key types).
+			kty, err := ExtractKty(privateJWK)
+			require.NoError(t, err)
+			require.NotNil(t, kty)
+
+			// Test ExtractAlg only for Oct keys (they have "alg" header set in CreateJWKFromKey)
+			// RSA/EC/OKP keys do NOT have "alg" header set by GenerateJWKForAlg
+			if tc.alg == cryptoutilOpenapiModel.Oct128 ||
+				tc.alg == cryptoutilOpenapiModel.Oct192 ||
+				tc.alg == cryptoutilOpenapiModel.Oct256 ||
+				tc.alg == cryptoutilOpenapiModel.Oct384 ||
+				tc.alg == cryptoutilOpenapiModel.Oct512 {
+				extractedAlg, err := ExtractAlg(privateJWK)
+				require.NoError(t, err)
+				require.NotNil(t, extractedAlg)
+				require.Equal(t, tc.alg, *extractedAlg)
+			}
+		})
+	}
+}
+
+func TestGenerateJWKForAlg_UnsupportedAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	// Invalid algorithm value.
+	invalidAlg := cryptoutilOpenapiModel.GenerateAlgorithm("INVALID")
+
+	kid, privateJWK, publicJWK, privateJWKBytes, publicJWKBytes, err := GenerateJWKForAlg(&invalidAlg)
+	require.Error(t, err)
+	require.Nil(t, kid)
+	require.Nil(t, privateJWK)
+	require.Nil(t, publicJWK)
+	require.Nil(t, privateJWKBytes)
+	require.Nil(t, publicJWKBytes)
+	require.Contains(t, err.Error(), "unsupported JWK alg")
+}
+
+func TestEnsureSignatureAlgorithmType_InvalidAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK for encryption (not signing).
+	enc := EncA256GCM
+	algEnc := AlgA256KW
+	_, privateJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &algEnc)
+	require.NoError(t, err)
+
+	// Test validation should fail because this is an encryption key, not a signing key.
+	err = EnsureSignatureAlgorithmType(privateJWK)
+	require.Error(t, err)
+	// The actual error is about getting algorithm from JWK.
+	require.Contains(t, err.Error(), "failed to get algorithm from JWK")
+}
+
+
