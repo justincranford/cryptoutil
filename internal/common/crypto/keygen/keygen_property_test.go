@@ -1,5 +1,8 @@
 // Copyright (c) 2025 Justin Cranford
 
+//go:build !fuzz
+// +build !fuzz
+
 package keygen
 
 import (

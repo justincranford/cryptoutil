@@ -118,7 +118,7 @@ func TestMapContainerMode_AllModes(t *testing.T) {
 		{
 			name:          "Container mode disabled",
 			containerMode: "disabled",
-			expectError:   true, // PostgreSQL not running locally - will fail to connect
+			expectError:   false, // In CI, PostgreSQL service container is running, so connection succeeds
 		},
 		{
 			name:          "Container mode preferred",

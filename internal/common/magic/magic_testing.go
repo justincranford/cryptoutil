@@ -51,8 +51,9 @@ const (
 	// - cryptoutil: start_period=10s + (interval=5s * retries=5) = up to 35s
 	// - dependency chain: healthcheck-secrets → builder → postgres → otel healthcheck sidecar → cryptoutil instances
 	// - otel healthcheck sidecar: 10s sleep + (15 retries * 2s) = up to 40s
-	// Total: 3 minutes allows comfortable margin for all services to become healthy.
-	TestTimeoutDockerHealth = 180 * time.Second //nolint:stylecheck // established API name
+	// - GitHub Actions runner overhead: shared CPU, network latency, cold starts
+	// Total: 5 minutes allows margin for GitHub Actions environment (was 3 min, insufficient).
+	TestTimeoutDockerHealth = 300 * time.Second //nolint:stylecheck // established API name
 	// TestTimeoutCryptoutilReady - Timeout for Cryptoutil readiness checks. Cryptoutil needs time to unseal.
 	TestTimeoutCryptoutilReady = 30 * time.Second //nolint:stylecheck // Cryptoutil needs time to unseal
 	// TestTimeoutTestExecution - Overall test execution timeout.

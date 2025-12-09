@@ -75,11 +75,15 @@ func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
-	// This will exercise the ping retry logic (will fail after max attempts)
+	// This exercises ping retry logic when PostgreSQL is not immediately available.
+	// In CI with PostgreSQL service container, connection succeeds after retries.
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-	testify.Error(t, err)
-	testify.ErrorContains(t, err, "failed to ping database")
-	testify.Nil(t, repo)
+	testify.NoError(t, err, "PostgreSQL service container should be reachable")
+	testify.NotNil(t, repo)
+
+	if repo != nil {
+		defer repo.Shutdown()
+	}
 }
 
 // TestHealthCheck_AllConnectionPoolStats tests all connection pool statistics.

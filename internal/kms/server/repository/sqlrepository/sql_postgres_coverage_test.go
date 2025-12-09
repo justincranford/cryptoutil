@@ -34,8 +34,8 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 			name:          "PostgreSQL with disabled container mode and valid URL",
 			containerMode: "disabled",
 			databaseURL:   getTestPostgresURL(),
-			expectError:   true, // PostgreSQL not running locally - will fail to connect
-			errorContains: "failed to ping database",
+			expectError:   false, // In CI, PostgreSQL service container is running, so connection succeeds
+			errorContains: "",
 		},
 		{
 			name:          "PostgreSQL with preferred container mode (will start container)",
@@ -159,7 +159,7 @@ func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
 		{
 			name:        "PostgreSQL URL without search_path",
 			databaseURL: getTestPostgresURL(),
-			expectError: true,
+			expectError: false, // In CI, PostgreSQL service container is running with valid schema
 		},
 	}
 

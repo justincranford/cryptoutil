@@ -205,13 +205,15 @@ func TestUserInfoClaims(t *testing.T) {
 					require.Equal(t, tc.user.Zoneinfo, claims["zoneinfo"], "zoneinfo claim should match")
 				}
 
-				// Verify updated_at is recent (within 5 seconds of now).
+				// Verify updated_at matches user record timestamp (NOT time.Now() - causes race failures).
+				// CRITICAL: Comparing against time.Now() fails when test execution takes >5s (OAuth flow, HTTP requests).
+				// The DB timestamp is set at user creation, which may be 30-60+ seconds before this assertion.
 				if !tc.user.UpdatedAt.IsZero() {
 					updatedAtFloat, ok := claims["updated_at"].(float64)
 					require.True(t, ok, "updated_at should be a number")
 
 					updatedAtTime := time.Unix(int64(updatedAtFloat), 0)
-					require.WithinDuration(t, time.Now().UTC(), updatedAtTime, 5*time.Second, "updated_at should be recent")
+					require.WithinDuration(t, tc.user.UpdatedAt, updatedAtTime, 5*time.Second, "updated_at should match user record")
 				}
 			}
 		})
