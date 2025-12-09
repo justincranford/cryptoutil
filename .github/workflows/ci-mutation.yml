@@ -1,0 +1,110 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
+name: CI - Mutation Testing
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+# Example: Use './deployments/compose/compose.yml'
+
+on:
+  push:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  workflow_dispatch:
+
+jobs:
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
+
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+          go-mod-download: true
+          go-mod-verify: true
+          go-mod-tidy: true
+
+      - name: Install gremlins
+        run: |
+          echo "🔄 Installing gremlins mutation testing tool..."
+          go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+
+      - name: Run mutation tests
+        working-directory: .
+        run: |
+          echo "🔄 Running mutation tests..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          gremlins unleash --tags=!integration,!bench,!fuzz,!e2e,!pbt,!properties || true
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Mutation tests completed in: ${DURATION}s"
+
+      - name: Upload mutation test results
+        if: always()
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: mutation-test-results
+          path: |
+            .gremlins/**
+            mutation-report.json
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Mutation testing summary
+        run: |
+          echo "## 🔄 Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Mutation tests completed." >> $GITHUB_STEP_SUMMARY
+          echo "- Tool: gremlins" >> $GITHUB_STEP_SUMMARY
+          echo "- Excluded tags: integration, bench, fuzz, e2e, pbt, properties" >> $GITHUB_STEP_SUMMARY
+          echo "- Target score: ≥80%" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
