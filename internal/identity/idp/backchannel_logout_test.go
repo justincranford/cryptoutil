@@ -195,3 +195,12 @@ func TestBackChannelLogoutService_DeliverLogoutToken(t *testing.T) {
 		})
 	}
 }
+
+// TestNewBackChannelLogoutService validates service creation.
+func TestNewBackChannelLogoutService(t *testing.T) {
+	t.Parallel()
+
+	// This test just validates the constructor works - simple coverage boost.
+	svc := cryptoutilIdentityIdp.NewBackChannelLogoutService(nil, "https://issuer.example.com", nil)
+	require.NotNil(t, svc, "Service should not be nil")
+}
