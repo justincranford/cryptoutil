@@ -26,6 +26,7 @@ func TestRSAKeyGenerationProperties(t *testing.T) {
 		func(bits uint) bool {
 			// Only test supported RSA bit sizes
 			supportedBits := []int{2048, 3072, 4096}
+			//nolint:gosec // G115: Intentional modulo for property test array selection
 			rsaBits := supportedBits[int(bits)%len(supportedBits)]
 
 			keyPair, err := GenerateRSAKeyPair(rsaBits)
@@ -96,6 +97,7 @@ func TestECDSAKeyGenerationProperties(t *testing.T) {
 				elliptic.P384(),
 				elliptic.P521(),
 			}
+			//nolint:gosec // G115: Intentional modulo for property test array selection
 			curve := curves[int(curveIdx)%len(curves)]
 
 			keyPair, err := GenerateECDSAKeyPair(curve)
@@ -164,6 +166,7 @@ func TestECDHKeyGenerationProperties(t *testing.T) {
 				ecdh.P384(),
 				ecdh.P521(),
 			}
+			//nolint:gosec // G115: Intentional modulo for property test array selection
 			curve := curves[int(curveIdx)%len(curves)]
 
 			keyPair, err := GenerateECDHKeyPair(curve)
@@ -251,6 +254,7 @@ func TestAESKeyGenerationProperties(t *testing.T) {
 	properties.Property("AES keys have correct size for supported bit lengths", prop.ForAll(
 		func(bits uint) bool {
 			supportedBits := []int{128, 192, 256}
+			//nolint:gosec // G115: Intentional modulo for property test array selection
 			aesBits := supportedBits[int(bits)%len(supportedBits)]
 
 			key, err := GenerateAESKey(aesBits)
@@ -299,6 +303,7 @@ func TestHMACKeyGenerationProperties(t *testing.T) {
 	properties.Property("HMAC keys have correct size for supported bit lengths", prop.ForAll(
 		func(bits uint) bool {
 			supportedBits := []int{256, 384, 512}
+			//nolint:gosec // G115: Intentional modulo for property test array selection
 			hmacBits := supportedBits[int(bits)%len(supportedBits)]
 
 			key, err := GenerateHMACKey(hmacBits)
