@@ -9,3 +9,6 @@ cors-origins:
 
 otlp-service: kms-postgresql-2
 otlp-hostname: kms-postgresql-2
+
+# Development mode - disables mTLS for admin endpoint
+dev: true
