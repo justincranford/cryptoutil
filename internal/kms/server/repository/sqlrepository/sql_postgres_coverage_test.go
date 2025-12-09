@@ -180,9 +180,15 @@ func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			if tc.expectError {
 				testify.Error(t, err)
-			}
+				testify.Nil(t, repo)
+			} else {
+				testify.NoError(t, err)
+				testify.NotNil(t, repo)
 
-			testify.Nil(t, repo)
+				if repo != nil {
+					defer repo.Shutdown()
+				}
+			}
 		})
 	}
 }
