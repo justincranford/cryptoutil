@@ -37,6 +37,64 @@ func (m *mockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptout
 	return m.productionGen.GenerateEncryptionKey(ctx) //nolint:wrapcheck // Test wrapper
 }
 
+// setupTestService creates a token service with initialized keys for testing.
+func setupTestService(t *testing.T, tokenFormat string) *cryptoutilIdentityIssuer.TokenService {
+	t.Helper()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	db := repoFactory.DB()
+	err = db.AutoMigrate(&cryptoutilIdentityDomain.Key{})
+	require.NoError(t, err)
+
+	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
+		Issuer:            "https://localhost:8080",
+		SigningAlgorithm:  "RS256",
+		AccessTokenFormat: tokenFormat,
+	}
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		newMockKeyGenerator(),
+		nil,
+	)
+	require.NoError(t, err)
+
+	// Initialize signing key for token generation.
+	err = keyRotationMgr.RotateSigningKey(ctx, "RS256")
+	require.NoError(t, err)
+
+	// Initialize encryption key if using JWE format.
+	if tokenFormat == "jwe" {
+		err = keyRotationMgr.RotateEncryptionKey(ctx)
+		require.NoError(t, err)
+	}
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		tokenConfig.Issuer,
+		keyRotationMgr,
+		tokenConfig.SigningAlgorithm,
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	require.NoError(t, err)
+
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
+
+	return cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
+}
+
 // TestNewTokenService validates service initialization.
 func TestNewTokenService(t *testing.T) {
 	t.Parallel()
@@ -521,4 +579,424 @@ func TestBuildTokenDomain(t *testing.T) {
 	require.Equal(t, "test-token-value", token.TokenValue)
 	require.Equal(t, clientID, token.ClientID)
 	require.Equal(t, scopes, token.Scopes)
+}
+
+// TestValidateAccessToken validates access token validation for all formats (JWS, JWE, UUID).
+func TestValidateAccessToken(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		tokenFormat string
+		setupToken  func(*testing.T, *cryptoutilIdentityIssuer.TokenService) string
+		wantErr     bool
+	}{
+		{
+			name:        "valid_jws_token",
+			tokenFormat: "jws",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				ctx := context.Background()
+				claims := map[string]any{
+					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"scope": "openid profile",
+					"iat":   time.Now().Unix(),
+					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+				}
+				token, err := service.IssueAccessToken(ctx, claims)
+				require.NoError(t, err)
+
+				return token
+			},
+			wantErr: false,
+		},
+		{
+			name:        "valid_jwe_token",
+			tokenFormat: "jwe",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				ctx := context.Background()
+				claims := map[string]any{
+					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"scope": "openid profile",
+					"iat":   time.Now().Unix(),
+					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+				}
+				token, err := service.IssueAccessToken(ctx, claims)
+				require.NoError(t, err)
+
+				return token
+			},
+			wantErr: false,
+		},
+		{
+			name:        "valid_uuid_token",
+			tokenFormat: "uuid",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				ctx := context.Background()
+				claims := map[string]any{}
+				token, err := service.IssueAccessToken(ctx, claims)
+				require.NoError(t, err)
+
+				return token
+			},
+			wantErr: false,
+		},
+		{
+			name:        "invalid_jws_token",
+			tokenFormat: "jws",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				return "invalid.jws.token"
+			},
+			wantErr: true,
+		},
+		{
+			name:        "invalid_jwe_token",
+			tokenFormat: "jwe",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				return "invalid_jwe_token"
+			},
+			wantErr: true,
+		},
+		{
+			name:        "unsupported_format",
+			tokenFormat: "jwt",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				return "any-token"
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+
+			service := setupTestService(t, tc.tokenFormat)
+
+			token := tc.setupToken(t, service)
+
+			claims, err := service.ValidateAccessToken(ctx, token)
+
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, claims)
+			}
+		})
+	}
+}
+
+// TestValidateIDToken validates ID token validation.
+func TestValidateIDToken(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		setupToken func(*testing.T, *cryptoutilIdentityIssuer.TokenService) string
+		wantErr    bool
+	}{
+		{
+			name: "valid_id_token",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				ctx := context.Background()
+				claims := map[string]any{
+					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"aud":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"nonce": "test-nonce",
+					"iat":   time.Now().Unix(),
+					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+				}
+				token, err := service.IssueIDToken(ctx, claims)
+				require.NoError(t, err)
+
+				return token
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid_id_token",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				return "invalid.id.token"
+			},
+			wantErr: true,
+		},
+		{
+			name: "expired_id_token",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				ctx := context.Background()
+				claims := map[string]any{
+					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"aud":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"nonce": "test-nonce",
+					"iat":   time.Now().Add(-2 * time.Hour).Unix(),
+					"exp":   time.Now().Add(-1 * time.Hour).Unix(),
+				}
+				token, err := service.IssueIDToken(ctx, claims)
+				require.NoError(t, err)
+
+				return token
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+
+			service := setupTestService(t, "jws")
+
+			token := tc.setupToken(t, service)
+
+			claims, err := service.ValidateIDToken(ctx, token)
+
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, claims)
+				require.Contains(t, claims, "sub")
+			}
+		})
+	}
+}
+
+// TestIsTokenActive validates token expiration and not-before checks.
+func TestIsTokenActive(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		claims     map[string]any
+		wantActive bool
+	}{
+		{
+			name: "valid_active_token",
+			claims: map[string]any{
+				"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
+				"nbf": float64(time.Now().Add(-1 * time.Minute).Unix()),
+			},
+			wantActive: true,
+		},
+		{
+			name: "expired_token",
+			claims: map[string]any{
+				"exp": float64(time.Now().Add(-1 * time.Hour).Unix()),
+				"nbf": float64(time.Now().Add(-2 * time.Hour).Unix()),
+			},
+			wantActive: false,
+		},
+		{
+			name: "not_yet_valid_token",
+			claims: map[string]any{
+				"exp": float64(time.Now().Add(2 * time.Hour).Unix()),
+				"nbf": float64(time.Now().Add(1 * time.Hour).Unix()),
+			},
+			wantActive: false,
+		},
+		{
+			name:       "no_expiration_or_nbf",
+			claims:     map[string]any{},
+			wantActive: true,
+		},
+		{
+			name: "only_expiration_valid",
+			claims: map[string]any{
+				"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
+			},
+			wantActive: true,
+		},
+		{
+			name: "only_nbf_valid",
+			claims: map[string]any{
+				"nbf": float64(time.Now().Add(-1 * time.Minute).Unix()),
+			},
+			wantActive: true,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			service := setupTestService(t, "jws")
+
+			active := service.IsTokenActive(tc.claims)
+
+			require.Equal(t, tc.wantActive, active)
+		})
+	}
+}
+
+// TestIntrospectToken validates token introspection.
+func TestIntrospectToken(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		setupToken  func(*testing.T, *cryptoutilIdentityIssuer.TokenService) string
+		wantActive  bool
+		checkExpiry bool
+	}{
+		{
+			name: "valid_active_token",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				ctx := context.Background()
+				claims := map[string]any{
+					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"scope": "openid profile",
+					"iat":   time.Now().Unix(),
+					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+				}
+				token, err := service.IssueAccessToken(ctx, claims)
+				require.NoError(t, err)
+
+				return token
+			},
+			wantActive:  true,
+			checkExpiry: true,
+		},
+		{
+			name: "expired_token",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				ctx := context.Background()
+				claims := map[string]any{
+					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+					"scope": "openid profile",
+					"iat":   time.Now().Add(-2 * time.Hour).Unix(),
+					"exp":   time.Now().Add(-1 * time.Hour).Unix(),
+				}
+				token, err := service.IssueAccessToken(ctx, claims)
+				require.NoError(t, err)
+
+				return token
+			},
+			wantActive:  true,
+			checkExpiry: true,
+		},
+		{
+			name: "invalid_token",
+			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+				t.Helper()
+
+				return "invalid.token.here"
+			},
+			wantActive:  false,
+			checkExpiry: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+
+			service := setupTestService(t, "jws")
+
+			token := tc.setupToken(t, service)
+
+			metadata, err := service.IntrospectToken(ctx, token)
+
+			require.NoError(t, err)
+			require.NotNil(t, metadata)
+			require.Equal(t, tc.wantActive, metadata.Active)
+
+			if tc.checkExpiry {
+				require.NotNil(t, metadata.ExpiresAt)
+				require.NotNil(t, metadata.Claims)
+			}
+		})
+	}
+}
+
+// TestIssueUserInfoJWT validates UserInfo JWT issuance.
+func TestIssueUserInfoJWT(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		clientID string
+		claims   map[string]any
+		wantErr  bool
+	}{
+		{
+			name:     "valid_userinfo_jwt",
+			clientID: googleUuid.Must(googleUuid.NewV7()).String(),
+			claims: map[string]any{
+				"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+				"email": "user@example.com",
+				"name":  "Test User",
+			},
+			wantErr: false,
+		},
+		{
+			name:     "missing_sub_claim",
+			clientID: googleUuid.Must(googleUuid.NewV7()).String(),
+			claims: map[string]any{
+				"email": "user@example.com",
+				"name":  "Test User",
+			},
+			wantErr: true,
+		},
+		{
+			name:     "empty_client_id",
+			clientID: "",
+			claims: map[string]any{
+				"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+				"email": "user@example.com",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := context.Background()
+
+			service := setupTestService(t, "jws")
+
+			jwt, err := service.IssueUserInfoJWT(ctx, tc.clientID, tc.claims)
+
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotEmpty(t, jwt)
+			}
+		})
+	}
 }
