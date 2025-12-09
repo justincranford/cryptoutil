@@ -2,15 +2,17 @@
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
 name: CI - Mutation Testing
-# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
-# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow
+# MUST use relative paths to support both GitHub Actions Ubuntu runners
+# and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
 # Example: Use './deployments/compose/compose.yml'
 
 on:
   push:
     branches: [ main, develop ]
-    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    # SHARED PATHS-IGNORE CONFIGURATION
+    # Keep synchronized with pull_request below
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -29,7 +31,8 @@ on:
       - '**/*.sarif'
   pull_request:
     branches: [ main, develop ]
-    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    # SHARED PATHS-IGNORE CONFIGURATION
+    # Keep synchronized with push above
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -48,10 +51,32 @@ on:
       - '**/*.sarif'
   workflow_dispatch:
 
+env:
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
+  POSTGRES_NAME: cryptoutil_test
+  POSTGRES_USER: cryptoutil
+  POSTGRES_PASS: cryptoutil_test_password
+
 jobs:
   mutation-testing:
     name: Mutation Testing
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_NAME }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASS }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -83,7 +108,8 @@ jobs:
           echo "🔄 Running mutation tests..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          gremlins unleash --tags=!integration,!bench,!fuzz,!e2e,!pbt,!properties || true
+          gremlins unleash \
+            --tags=!integration,!bench,!fuzz,!e2e,!pbt,!properties || true
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -105,6 +131,7 @@ jobs:
           echo "## 🔄 Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Mutation tests completed." >> $GITHUB_STEP_SUMMARY
           echo "- Tool: gremlins" >> $GITHUB_STEP_SUMMARY
-          echo "- Excluded tags: integration, bench, fuzz, e2e, pbt, properties" >> $GITHUB_STEP_SUMMARY
+          echo "- Excluded tags: integration, bench, fuzz, e2e, pbt, \
+            properties" >> $GITHUB_STEP_SUMMARY
           echo "- Target score: ≥80%" >> $GITHUB_STEP_SUMMARY
           echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
