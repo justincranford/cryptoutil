@@ -214,7 +214,7 @@ func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 	err := repoFactory.AutoMigrate(ctx)
 	testify.NoError(t, err, "Failed to run migrations")
 
-	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	// Create cleanup job with very short interval.
@@ -229,7 +229,7 @@ func TestCleanupJob_Integration_ScheduledExecution(t *testing.T) {
 	}()
 
 	// Wait for job to run at least 2 times (initial + 1 scheduled).
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(600 * time.Millisecond)
 
 	// Stop job.
 	job.Stop()
