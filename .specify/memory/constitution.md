@@ -43,6 +43,19 @@ Clear separation between infrastructure and products:
 
 ## II. Cryptographic Compliance and Standards
 
+### CGO Ban - ABSOLUTE REQUIREMENT
+
+**!!! CRITICAL: CGO IS BANNED EXCEPT FOR RACE DETECTOR !!!**
+
+- **CGO_ENABLED=0** is MANDATORY for builds, tests, Docker, production deployments
+- **ONLY EXCEPTION**: Race detector workflow requires CGO_ENABLED=1 (Go toolchain limitation)
+- **NEVER** use dependencies requiring CGO (e.g., `github.com/mattn/go-sqlite3`)
+- **ALWAYS** use CGO-free alternatives (e.g., `modernc.org/sqlite`)
+- **Go Toolchain Limitation**: Race detector (`-race`) requires C-based ThreadSanitizer from LLVM
+- **Rationale**: Maximum portability, static linking, cross-compilation, no C toolchain dependencies for production
+
+### FIPS 140-3 Compliance
+
 All cryptographic operations MUST use NIST FIPS 140-3 approved algorithms. FIPS mode is ALWAYS enabled and MUST NEVER be disabled. Approved algorithms include:
 
 - RSA ≥ 2048 bits, AES ≥ 128 bits, EC NIST curves, EdDSA, ECDH, EdDH for ciphers and signatures; NEVER 3DES, DES

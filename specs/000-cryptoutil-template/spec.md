@@ -214,10 +214,12 @@ deployments/product/
 ### External Dependencies
 
 | Package | Version | Purpose | License |
-|---------|---------|---------|---------|
+|---------|---------|---------|------|
 | github.com/gofiber/fiber/v2 | v2.x | HTTP framework | MIT |
 | gorm.io/gorm | v1.x | ORM | MIT |
-| modernc.org/sqlite | Latest | CGO-free SQLite | BSD |
+| modernc.org/sqlite | Latest | **CGO-free SQLite (MANDATORY)** | BSD |
+
+**CRITICAL**: CGO is BANNED in this project (CGO_ENABLED=0 everywhere). Use only CGO-free dependencies.
 
 ---
 
@@ -359,6 +361,7 @@ deployments/product/
 ## Template Usage Notes
 
 **For LLM Agents**: This template includes:
+
 - ✅ Mandatory functional requirements section
 - ✅ Mandatory non-functional requirements section (security, performance, quality, testability, observability, deployment)
 - ✅ Coverage targets: 95% production, 100% infrastructure/utility
@@ -370,12 +373,14 @@ deployments/product/
 - ✅ Table-driven test requirements with `t.Parallel()`
 
 **Customization**:
+
 - Replace [PLACEHOLDERS] with actual values
 - Remove unused sections for simpler iterations
 - Add iteration-specific sections as needed
 - Keep scope focused and achievable
 
 **References**:
+
 - Constitution: `.specify/memory/constitution.md`
 - Copilot Instructions: `.github/instructions/*.md`
 - Feature Template: `docs/feature-template/`

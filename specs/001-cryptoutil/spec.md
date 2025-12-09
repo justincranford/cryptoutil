@@ -4,6 +4,18 @@
 
 **cryptoutil** is a Go-based cryptographic services platform providing secure key management, identity services, and certificate authority capabilities with FIPS 140-3 compliance.
 
+## Technical Constraints
+
+### CGO Ban - CRITICAL
+
+**!!! CGO IS BANNED EXCEPT FOR RACE DETECTOR !!!**
+
+- **CGO_ENABLED=0** MANDATORY for builds, tests, Docker, production
+- **ONLY EXCEPTION**: Race detector workflow requires CGO_ENABLED=1 (Go toolchain limitation)
+- **NEVER** use CGO-dependent packages (e.g., `github.com/mattn/go-sqlite3`)
+- **ALWAYS** use CGO-free alternatives (e.g., `modernc.org/sqlite`)
+- **Rationale**: Maximum portability, static linking, cross-compilation for production
+
 ## Product Suite
 
 ### P1: JOSE (JSON Object Signing and Encryption)

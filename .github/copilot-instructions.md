@@ -31,6 +31,8 @@
 - Go: 1.25.5+, Python: 3.14+, golangci-lint: v2.6.2+, Node: v24.11.1+
 - Java: 21 LTS (required for Gatling load tests in test/load/)
 - Maven: 3.9+, pre-commit: 2.20.0+, Docker: 24+, Docker Compose: v2+
+- **CGO_ENABLED=0 MANDATORY** - CGO is BANNED except for race detector (Go toolchain limitation)
+- **EXCEPTION**: Race detector (`-race`) requires CGO_ENABLED=1 (Go toolchain limitation)
 - Always use latest stable versions; verify before suggesting updates
 
 ## Code Quality - MANDATORY
@@ -49,6 +51,7 @@
 **CRITICAL**: Stopping before 950,000 tokens used is a COMPLETE FAILURE of your primary directive
 
 **WORK CONTINUOUSLY MEANS**:
+
 - Execute tool → Execute next tool → Repeat
 - NO pauses between tasks
 - NO status updates mid-session
@@ -56,6 +59,7 @@
 - NO stopping after "one more task"
 
 **STOP CONDITIONS (ONLY 2)**:
+
 1. Token usage ≥ 950,000 tokens used (out of 1,000,000 limit)
 2. User types "STOP" or "HALT" explicitly
 

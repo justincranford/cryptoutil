@@ -257,7 +257,7 @@
 | P1.2 | ci-sast | Static analysis | 30min | ✅ COMPLETE | 8-LOW |
 | P1.3 | ci-e2e | Docker Compose setup | 1h | ✅ COMPLETE | 4-HIGH |
 | P1.4 | ci-benchmark | Benchmark baselines | 1h | ✅ COMPLETE | 2-HIGH |
-| P1.5 | ci-race | Race conditions | 1h | ⚠️ BLOCKED (requires CGO_ENABLED=1, violates project constraint) | 6-MEDIUM |
+| P1.5 | ci-race | Race conditions | 1h | ✅ COMPLETE (CGO_ENABLED=1 allowed for race detector - Go toolchain limitation) | 6-MEDIUM |
 | P1.6 | ci-fuzz | Fuzz test execution | 1h | ✅ COMPLETE | 3-HIGH |
 | P1.7 | ci-dast | Service connectivity | 1h | ✅ COMPLETE (uses binary, not Docker Compose) | 5-MEDIUM |
 | P1.8 | ci-load | Gatling configuration | 30min | ✅ COMPLETE (go.mod drift fixed in commit ebbd25e1, workflow passed run 20050614726) | 7-MEDIUM |

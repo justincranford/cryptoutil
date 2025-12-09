@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilJose "cryptoutil/internal/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilJose "cryptoutil/internal/jose"
 
 	"github.com/stretchr/testify/require"
 )

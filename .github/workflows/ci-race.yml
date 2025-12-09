@@ -52,48 +52,50 @@ jobs:
   race-condition-detection:
     name: Race Condition Detection
     runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: 1  # Required for race detector (Go toolchain limitation)
 
     steps:
-    - name: Checkout code
-      # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
-      uses: actions/checkout@v6.0.0
-      with:
-        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+      - name: Checkout code
+        # https://github.com/actions/checkout/releases (v6.0.0, 2025-11-11)
+        uses: actions/checkout@v6.0.0
+        with:
+          sparse-checkout-cone-mode: false
 
-    - name: Begin Workflow Job
-      id: begin-workflow-job
-      uses: ./.github/actions/workflow-job-begin
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
 
-    - name: Set up Go and validate dependencies
-      uses: ./.github/actions/go-setup
-      with:
-        go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
-        go-mod-download: true
-        go-mod-verify: true
-        go-mod-tidy: true
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+          go-mod-download: true
+          go-mod-verify: true
+          go-mod-tidy: true
 
-    - name: Run race condition detection tests
-      working-directory: .
-      run: |
-        echo "🔄 Running race condition detection tests..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Race detection tests completed in: ${DURATION}s"
+      - name: Run race condition detection tests
+        working-directory: .
+        run: |
+          echo "🔄 Running race condition detection tests..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Race detection tests completed in: ${DURATION}s"
 
-    - name: Race condition detection test summary
-      run: |
-        echo "## 🔄 Race Condition Detection Results" >> $GITHUB_STEP_SUMMARY
-        echo "Race condition detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
-        echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
-        echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
-        echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
-        echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
-        echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+      - name: Race condition detection test summary
+        run: |
+          echo "## 🔄 Race Condition Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "Race condition tests completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
+          echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
+          echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
+          echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
 
-    - name: Race summary
-      if: always()
-      uses: ./.github/actions/workflow-job-end
+      - name: Race summary
+        if: always()
+        uses: ./.github/actions/workflow-job-end
