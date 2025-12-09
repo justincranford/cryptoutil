@@ -5,6 +5,7 @@
 package demo
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,6 +23,8 @@ func TestGenerateDemoTenantID(t *testing.T) {
 
 	generatedIDs := make(map[string]bool)
 
+	var mu sync.Mutex
+
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -30,8 +33,11 @@ func TestGenerateDemoTenantID(t *testing.T) {
 			require.NotEmpty(t, id)
 			require.Len(t, id, 36) // UUID format: 8-4-4-4-12.
 			require.Contains(t, id, "-")
-			require.False(t, generatedIDs[id], "expected unique ID")
 
+			mu.Lock()
+			defer mu.Unlock()
+
+			require.False(t, generatedIDs[id], "expected unique ID")
 			generatedIDs[id] = true
 		})
 	}
