@@ -112,6 +112,8 @@ WORKDIR /root/ssl
 # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
 RUN --mount=type=cache,target=/var/cache/apk \
     apk --no-cache add ca-certificates tzdata tini wget && \
+    apk --no-cache del wget && \
+    apk --no-cache add wget-ssl && \
     update-ca-certificates
 
 #############################################################################################
