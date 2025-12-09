@@ -866,8 +866,7 @@ func TestOcspErrorResponse(t *testing.T) {
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 	require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
 
-	err = resp.Body.Close()
-	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestLookupCertificateBySerialNilSerial(t *testing.T) {
@@ -941,8 +940,7 @@ func TestErrorResponseHandler(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	err = resp.Body.Close()
-	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
 
 	require.Contains(t, string(body), "test_error")
 	require.Contains(t, string(body), "This is a test error message")
@@ -983,8 +981,7 @@ func TestEstEndpoints(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusNoContent, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("EST_SimpleEnroll_empty_body", func(t *testing.T) {
@@ -996,8 +993,7 @@ func TestEstEndpoints(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("EST_SimpleReenroll_empty_body", func(t *testing.T) {
@@ -1009,8 +1005,7 @@ func TestEstEndpoints(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("EST_ServerKeyGen_empty_body", func(t *testing.T) {
@@ -1021,8 +1016,7 @@ func TestEstEndpoints(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1049,8 +1043,7 @@ func TestTsaTimestamp(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1077,8 +1070,7 @@ func TestHandleOCSP(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1105,8 +1097,7 @@ func TestGetCRL(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1147,8 +1138,7 @@ func TestListProfiles(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	err = resp.Body.Close()
-	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
 
 	require.Contains(t, string(body), "tls-server")
 	require.Contains(t, string(body), "code-signing")
@@ -1188,8 +1178,7 @@ func TestGetProfile(t *testing.T) {
 		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 
 		require.Contains(t, string(body), "tls-server")
 	})
@@ -1202,8 +1191,7 @@ func TestGetProfile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1437,8 +1425,7 @@ func TestListCertificates(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1476,8 +1463,7 @@ func TestGetCertificate(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
@@ -1488,8 +1474,7 @@ func TestGetCertificate(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("EmptySerial", func(t *testing.T) {
@@ -1499,8 +1484,7 @@ func TestGetCertificate(t *testing.T) {
 		resp, testErr := app.Test(req)
 		require.NoError(t, testErr)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1538,8 +1522,7 @@ func TestGetCertificateChain(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
@@ -1550,8 +1533,7 @@ func TestGetCertificateChain(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1592,8 +1574,7 @@ func TestRevokeCertificate(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
@@ -1605,8 +1586,7 @@ func TestRevokeCertificate(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1644,8 +1624,7 @@ func TestGetEnrollmentStatusHandler(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
-		err := resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
