@@ -844,10 +844,21 @@ func TestRoundTrip_PEMFileOperations(t *testing.T) {
 	readKey, err := PEMRead(filename)
 	require.NoError(t, err)
 
-	// Verify key type and equality.
+	// Verify key type.
 	require.IsType(t, &rsa.PrivateKey{}, readKey)
 	readKeyTyped := readKey.(*rsa.PrivateKey)
-	require.Equal(t, originalKey, readKeyTyped)
+
+	// Compare key material (not struct pointers).
+	// Note: Cannot use require.Equal() because fips field is a pointer
+	// that differs between instances even with identical key material.
+	require.Equal(t, originalKey.N, readKeyTyped.N, "modulus mismatch")
+	require.Equal(t, originalKey.E, readKeyTyped.E, "public exponent mismatch")
+	require.Equal(t, originalKey.D, readKeyTyped.D, "private exponent mismatch")
+	require.Equal(t, len(originalKey.Primes), len(readKeyTyped.Primes), "prime count mismatch")
+
+	for i := range originalKey.Primes {
+		require.Equal(t, originalKey.Primes[i], readKeyTyped.Primes[i], "prime[%d] mismatch", i)
+	}
 }
 
 // TestRoundTrip_DERFileOperations tests complete DER file write/read cycle.
