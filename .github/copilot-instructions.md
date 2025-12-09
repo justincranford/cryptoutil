@@ -46,6 +46,39 @@
 - Coverage targets: 95%+ production, 100%+ infrastructure (cicd), 100% utility code
 - Mutation testing: ≥80% gremlins score per package (mandatory)
 
+## Race Condition Prevention - CRITICAL
+
+**NEVER write to parent scope variables in parallel sub-tests:**
+
+```go
+// ❌ WRONG - Race condition (shared variable writes)
+func TestExample(t *testing.T) {
+    t.Parallel()
+    var err error  // Parent scope variable
+    t.Run("SubTest1", func(t *testing.T) {
+        t.Parallel()
+        err = resp.Body.Close()  // RACE: Writes to parent scope
+        require.NoError(t, err)
+    })
+}
+
+// ✅ CORRECT - No shared variables
+func TestExample(t *testing.T) {
+    t.Parallel()
+    t.Run("SubTest1", func(t *testing.T) {
+        t.Parallel()
+        require.NoError(t, resp.Body.Close())  // Inline assertion
+    })
+}
+```
+
+**Rules for Parallel Tests:**
+
+- Tests manipulating global state (os.Stdout, env vars) CANNOT use t.Parallel()
+- Shared mutable state (maps, slices) requires sync.Mutex or sync.Map
+- Create fresh test data (sessions, users) for EACH parallel test case
+- Use `go test -race -count=2` to detect races (requires CGO_ENABLED=1)
+
 ## Continuous Work Directive - ABSOLUTE ENFORCEMENT
 
 **CRITICAL**: Stopping before 950,000 tokens used is a COMPLETE FAILURE of your primary directive

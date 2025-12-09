@@ -372,6 +372,37 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 - SQLite (development/testing)
 - GORM ORM with migrations
 - WAL mode, busy_timeout for SQLite concurrency
+- **GitHub Actions Dependency**: ALL workflows running `go test` MUST include PostgreSQL service container
+
+#### PostgreSQL Service Requirements for CI/CD
+
+**MANDATORY**: Any GitHub Actions workflow executing `go test` on packages using database repositories MUST configure PostgreSQL service container:
+
+```yaml
+services:
+  postgres:
+    image: postgres:18
+    env:
+      POSTGRES_DB: cryptoutil_test
+      POSTGRES_PASSWORD: cryptoutil_test_password
+      POSTGRES_USER: cryptoutil
+    options: >-
+      --health-cmd pg_isready
+      --health-interval 10s
+      --health-timeout 5s
+      --health-retries 5
+    ports:
+      - 5432:5432
+```
+
+**Why Required**:
+
+- Tests in `internal/kms/server/repository/sqlrepository` require PostgreSQL
+- Tests in `internal/identity/domain/repository` require PostgreSQL
+- Without service: Tests fail with "connection refused" after 2.5s timeout
+- With service: PostgreSQL ready before tests start (50s startup window)
+
+**Affected Workflows**: ci-race, ci-mutation, ci-coverage, any workflow running database tests
 
 ### I8: Containers
 

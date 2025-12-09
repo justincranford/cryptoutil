@@ -643,6 +643,14 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Test happy paths (expected inputs/outputs)
 - [ ] Test sad paths (error conditions, edge cases)
 - [ ] Use `t.Parallel()` for all tests (validates concurrent safety)
+- [ ] **Race Condition Prevention**:
+  - [ ] NEVER write to parent scope variables in parallel sub-tests
+  - [ ] NEVER use `t.Parallel()` when manipulating global state (os.Stdout, env vars)
+  - [ ] NEVER share sessions/resources across parallel test iterations
+  - [ ] ALWAYS create fresh test data per test case (new sessions, new UUIDs)
+  - [ ] ALWAYS protect shared mutable state with sync.Mutex or sync.Map
+  - [ ] ALWAYS use inline assertions: `require.NoError(t, resp.Body.Close())`
+  - [ ] Run `go test -race -count=2` locally before committing (requires CGO_ENABLED=1)
 - [ ] Achieve target coverage (≥100% infrastructure, ≥95% features, ≥100% utilities)
 - [ ] Achieve mutation score ≥80% per package (gremlins)
 - [ ] Add benchmarks for cryptographic operations (if applicable)

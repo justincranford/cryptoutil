@@ -158,6 +158,17 @@ func TestUserCreate(t *testing.T) {
 - Property-based tests RECOMMENDED using gopter for invariant validation, round-trip encoding/decoding, cryptographic properties
 - Mutation tests MANDATORY for quality assurance: gremlins with ≥80% mutation score per package
 
+**Race Condition Prevention - CRITICAL**:
+
+- ❌ **NEVER** write to parent scope variables in parallel sub-tests (causes race conditions)
+- ❌ **NEVER** use `t.Parallel()` when manipulating global state (os.Stdout, environment variables)
+- ❌ **NEVER** share sessions/resources across parallel test iterations (causes flaky tests with `-count=2`)
+- ✅ **ALWAYS** create fresh test data per test case (new sessions, new database records)
+- ✅ **ALWAYS** protect shared mutable state with sync.Mutex or sync.Map
+- ✅ **ALWAYS** use inline assertions: `require.NoError(t, resp.Body.Close())` not `err = resp.Body.Close(); require.NoError(t, err)`
+- ✅ **ALWAYS** run `go test -race -count=2` locally before pushing (requires CGO_ENABLED=1)
+- Detection: Use ci-race workflow (runs automatically on PRs) and local `go test -race -count=2`
+
 ## V. Service Architecture - Dual HTTPS Endpoint Pattern
 
 **MANDATORY: ALL services MUST use dual HTTPS endpoints - NO HTTP PORTS ALLOWED**
@@ -201,7 +212,96 @@ Every service MUST implement two HTTPS endpoints:
 - ✅ **ALWAYS** implement proper TLS with self-signed certs minimum
 - ✅ **ALWAYS** use `wget --no-check-certificate` for Docker health checks
 
-## VI. Code Quality Excellence
+## VI. CI/CD Workflow Requirements
+
+### GitHub Actions Service Dependencies
+
+**MANDATORY: All workflows running `go test` MUST include PostgreSQL service container**
+
+Any workflow executing `go test` on packages that use database repositories (KMS sqlrepository, Identity domain) MUST configure PostgreSQL service:
+
+```yaml
+env:
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
+  POSTGRES_NAME: cryptoutil_test
+  POSTGRES_USER: cryptoutil
+  POSTGRES_PASS: cryptoutil_test_password
+
+services:
+  postgres:
+    image: postgres:18
+    env:
+      POSTGRES_DB: ${{ env.POSTGRES_NAME }}
+      POSTGRES_PASSWORD: ${{ env.POSTGRES_PASS }}
+      POSTGRES_USER: ${{ env.POSTGRES_USER }}
+    options: >-
+      --health-cmd pg_isready
+      --health-interval 10s
+      --health-timeout 5s
+      --health-retries 5
+    ports:
+      - 5432:5432
+```
+
+**Why Required**:
+
+- Tests in `internal/kms/server/repository/sqlrepository` require PostgreSQL connection
+- Tests in `internal/identity/domain/repository` require PostgreSQL connection
+- Without service: Tests fail with "connection refused" after 2.5s (5 retries × 500ms)
+- With service: PostgreSQL ready before tests start (health check: up to 50s startup window)
+
+**Affected Workflows**:
+
+- ci-race (race condition detection)
+- ci-mutation (mutation testing)
+- ci-coverage (coverage reporting)
+- Any workflow running `go test ./...` or package-specific tests
+
+**Health Check Configuration**:
+
+- `pg_isready` command checks PostgreSQL server status
+- 10s interval between health checks
+- 5s timeout per health check attempt
+- 5 retries before marking unhealthy
+- Total startup window: 50 seconds (sufficient for slow GitHub Actions runners)
+
+### Service Health Check Requirements
+
+**Docker Compose Health Check Configuration**:
+
+All cryptoutil services in Docker Compose MUST use generous health check timeouts:
+
+```yaml
+healthcheck:
+  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+  start_period: 30s   # Grace period before first check
+  interval: 5s        # Time between checks
+  timeout: 3s         # Max time per check
+  retries: 10         # Max failed checks before unhealthy
+  # Total window: 30s + (5s × 10) = 80 seconds
+```
+
+**Why Generous Timeouts Required**:
+
+- TLS certificate generation: ~1-2s
+- Database migrations: ~5-10s (PostgreSQL), ~2-5s (SQLite)
+- Key unsealing: ~1-2s
+- OTLP telemetry connection: ~2-3s (background, non-blocking)
+- Total initialization: ~10-20s typical, up to 40s on slow systems
+
+**Service Startup Sequence** (recommended order):
+
+1. Parse configuration files (<1s)
+2. Generate/load TLS certificates (<1s)
+3. Initialize database connection pool (<2s)
+4. Run database migrations (<10s)
+5. Unseal cryptographic keys (<2s)
+6. Start HTTPS listeners (<1s)
+7. Connect to OTLP telemetry (background, non-blocking)
+8. Mark service as ready (/readyz returns HTTP 200)
+
+## VII. Code Quality Excellence
 
 ### CRITICAL: Continuous Work Mandate - ABSOLUTE ENFORCEMENT
 
@@ -258,7 +358,7 @@ Every service MUST implement two HTTPS endpoints:
 - All tests pass (`go test ./... -cover`)
 - Coverage maintained at target thresholds, and gradually increased
 
-## VII. Development Workflow and Evidence-Based Completion
+## VIII. Development Workflow and Evidence-Based Completion
 
 ### Evidence-Based Task Completion
 
