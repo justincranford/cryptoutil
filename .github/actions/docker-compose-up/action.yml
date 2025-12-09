@@ -21,7 +21,7 @@ runs:
         echo "🚀 Starting Docker Compose services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        
+
         # Build docker compose command with optional profiles
         COMPOSE_CMD="docker compose -f ${{ inputs.compose-file }}"
         if [ -n "${{ inputs.profiles }}" ]; then
@@ -32,7 +32,7 @@ runs:
             COMPOSE_CMD="$COMPOSE_CMD --profile $(echo $profile | xargs)"
           done
         fi
-        
+
         # Start services
         $COMPOSE_CMD up -d
 
