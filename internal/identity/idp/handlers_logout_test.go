@@ -72,41 +72,31 @@ func TestHandleLogout_POST(t *testing.T) {
 	userRepo := repoFactory.UserRepository()
 	require.NoError(t, userRepo.Create(ctx, testUser))
 
-	// Create test session.
-	testSession := &cryptoutilIdentityDomain.Session{
-		UserID:                testUser.ID,
-		SessionID:             googleUuid.Must(googleUuid.NewV7()).String(),
-		IPAddress:             "127.0.0.1",
-		UserAgent:             "test-agent",
-		IssuedAt:              time.Now(),
-		ExpiresAt:             time.Now().Add(1 * time.Hour),
-		LastSeenAt:            time.Now(),
-		Active:                boolPtr(true),
-		AuthenticationMethods: []string{"username_password"},
-		AuthenticationTime:    time.Now(),
-	}
 	sessionRepo := repoFactory.SessionRepository()
-	require.NoError(t, sessionRepo.Create(ctx, testSession))
 
 	tests := []struct {
 		name           string
 		sessionCookie  string
 		expectedStatus int
+		createSession  bool
 	}{
 		{
 			name:           "Valid session cookie",
-			sessionCookie:  testSession.SessionID,
+			sessionCookie:  "", // Will be set by createSession
 			expectedStatus: http.StatusOK,
+			createSession:  true,
 		},
 		{
 			name:           "Missing session cookie",
 			sessionCookie:  "",
 			expectedStatus: http.StatusUnauthorized,
+			createSession:  false,
 		},
 		{
 			name:           "Invalid session cookie",
 			sessionCookie:  googleUuid.Must(googleUuid.NewV7()).String(),
 			expectedStatus: http.StatusUnauthorized,
+			createSession:  false,
 		},
 	}
 
@@ -114,12 +104,32 @@ func TestHandleLogout_POST(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			sessionCookie := tc.sessionCookie
+
+			// Create fresh session for each test that needs one.
+			if tc.createSession {
+				testSession := &cryptoutilIdentityDomain.Session{
+					UserID:                testUser.ID,
+					SessionID:             googleUuid.Must(googleUuid.NewV7()).String(),
+					IPAddress:             "127.0.0.1",
+					UserAgent:             "test-agent",
+					IssuedAt:              time.Now(),
+					ExpiresAt:             time.Now().Add(1 * time.Hour),
+					LastSeenAt:            time.Now(),
+					Active:                boolPtr(true),
+					AuthenticationMethods: []string{"username_password"},
+					AuthenticationTime:    time.Now(),
+				}
+				require.NoError(t, sessionRepo.Create(ctx, testSession))
+				sessionCookie = testSession.SessionID
+			}
+
 			req := httptest.NewRequest(http.MethodPost, "/oidc/v1/logout", nil)
 
-			if tc.sessionCookie != "" {
+			if sessionCookie != "" {
 				req.AddCookie(&http.Cookie{
 					Name:  "session_id",
-					Value: tc.sessionCookie,
+					Value: sessionCookie,
 				})
 			}
 
