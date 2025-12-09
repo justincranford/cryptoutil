@@ -436,13 +436,24 @@
 
 **Priority**: MEDIUM
 **Effort**: 30 minutes
-**Status**: ❌ Not Started
+**Status**: ✅ COMPLETE (95.2% achieved, commit c07b2303)
 
-**Acceptance Criteria**:
+**Completion Details**:
 
-- Add error path tests
-- Test network failure scenarios
-- Coverage ≥95%
+- Added error path tests for HTTPGetLivez, HTTPGetReadyz, HTTPPostShutdown
+- Added HTTPResponse_ReadBodyError test (context timeout during read)
+- Added HTTPResponse_HTTPS_SystemDefaults test (system CA verification)
+- Coverage improved 88.7% → 95.2% (+6.5%)
+
+**Files Modified**:
+
+- `internal/common/util/network/http_test.go` (added 4 new test functions)
+
+**Acceptance Criteria**: ✅ All Met
+
+- ✅ Add error path tests
+- ✅ Test network failure scenarios
+- ✅ Coverage ≥95% (achieved 95.2%)
 
 ---
 
