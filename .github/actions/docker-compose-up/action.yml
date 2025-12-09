@@ -8,6 +8,10 @@ inputs:
     description: 'Path to the docker-compose file'
     required: false
     default: './deployments/compose/compose.yml'
+  profiles:
+    description: 'Comma-separated list of Docker Compose profiles to activate (e.g., "postgres")'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
@@ -17,13 +21,26 @@ runs:
         echo "🚀 Starting Docker Compose services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ${{ inputs.compose-file }} up -d
+        
+        # Build docker compose command with optional profiles
+        COMPOSE_CMD="docker compose -f ${{ inputs.compose-file }}"
+        if [ -n "${{ inputs.profiles }}" ]; then
+          echo "🎯 Activating profiles: ${{ inputs.profiles }}"
+          # Split comma-separated profiles and add --profile flag for each
+          IFS=',' read -ra PROFILE_ARRAY <<< "${{ inputs.profiles }}"
+          for profile in "${PROFILE_ARRAY[@]}"; do
+            COMPOSE_CMD="$COMPOSE_CMD --profile $(echo $profile | xargs)"
+          done
+        fi
+        
+        # Start services
+        $COMPOSE_CMD up -d
 
         echo "⏳ Waiting for services to be healthy..."
-        timeout 120s bash -c 'until docker compose -f ${{ inputs.compose-file }} ps | grep -q "healthy"; do echo "Waiting for healthy services..."; sleep 5; done'
+        timeout 120s bash -c "until $COMPOSE_CMD ps | grep -q 'healthy'; do echo 'Waiting for healthy services...'; sleep 5; done"
 
         echo "📋 Service status:"
-        docker compose -f ${{ inputs.compose-file }} ps
+        $COMPOSE_CMD ps
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

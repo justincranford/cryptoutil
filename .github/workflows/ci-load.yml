@@ -120,6 +120,8 @@ jobs:
 
     - name: Start Docker Compose services
       uses: ./.github/actions/docker-compose-up
+      with:
+        profiles: 'postgres'
 
     - name: Verify services are ready
       uses: ./.github/actions/docker-compose-verify
