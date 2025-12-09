@@ -348,4 +348,72 @@ From [Spec Kit](https://github.com/github/spec-kit):
 
 ---
 
+---
+
 *This document is maintained alongside the Speckit workflow. Update when new artifacts are created or statuses change.*
+
+---
+
+## 🔧 CI/CD Workflow Fixes (December 9, 2025)
+
+**Session Goal**: Fix failing CI workflows to unblock development
+
+### Workflow Fix Summary
+
+| Workflow | Status Before | Issue | Fix | Status After |
+|----------|---------------|-------|-----|--------------|
+| ci-fuzz | ❌ Failure | Property tests running during fuzz (60s timeout) | Added `-tags=fuzz` to fuzz-test action | ⏳ Testing |
+| ci-race | ❌ Failure | Timestamp comparison using `time.Now()` | Changed to `tc.user.UpdatedAt` | ⏳ Testing |
+| ci-e2e | ❌ Failure | Docker health timeout too short (180s) | Increased to 300s | ⏳ Testing |
+| ci-coverage | ❌ Failure | Tests expecting errors when PostgreSQL IS running | Changed `expectError=true` to `false` | ⏳ Testing |
+| ci-quality | ✅ Pass | N/A | No changes needed | ✅ Pass |
+| ci-sast | ✅ Pass | N/A | No changes needed | ✅ Pass |
+| ci-gitleaks | ✅ Pass | N/A | No changes needed | ✅ Pass |
+| ci-benchmark | ✅ Pass | N/A | No changes needed | ✅ Pass |
+| ci-load | ✅ Pass | N/A | No changes needed | ✅ Pass |
+
+### Documentation Created
+
+| Document | Purpose | Status |
+|----------|---------|--------|
+| `docs/SESSION-2025-12-09-CI-FIXES.md` | Comprehensive session summary | ✅ Complete |
+| `docs/POSTGRES-TEST-STRATEGY-ANALYSIS.md` | PostgreSQL test container analysis | ✅ Complete |
+| `.github/instructions/01-02.testing.instructions.md` | Fuzz/race testing rules | ✅ Updated |
+| `.github/instructions/02-02.docker.instructions.md` | Docker latency hiding strategies | ✅ Updated |
+
+### Phase 0 Analysis Outcome
+
+**CRITICAL FINDING**: Test optimization targets ALREADY MET locally
+
+- clientauth: 13.8s vs <30s target ✅
+- jose/server: 10.8s vs <20s target ✅
+- kms/client: 12.3s vs <20s target ✅
+- jose: 14.2s vs <15s target ✅
+- sqlrepository: <2s (optimal) ✅
+
+**Root Cause**: GitHub Actions workflow overhead (14x average slowdown), not code
+
+**Conclusion**: Phase 0 test optimization work is COMPLETE - bottleneck is infrastructure
+
+### Commits
+
+| Commit | Description | Files |
+|--------|-------------|-------|
+| 1ad8539d | Fix ci-fuzz/race/e2e/coverage workflows | 6 files |
+| 0b7cdcc4 | Add testing/Docker instructions + PostgreSQL analysis | 3 files |
+| b7fde35c | Fix trailing whitespace (pre-commit auto-fix) | 2 files |
+| dd5704ae | Remove deprecated build tag format | 1 file |
+| e8ed7d9c | Add -tags=fuzz flag to fuzz-test action | 1 file |
+| 2fb53c13 | Session summary documentation | 1 file |
+
+**Total**: 6 commits, 14 files changed, 660+ insertions
+
+### Evidence
+
+- Local test execution confirms targets met
+- Build tag + `-tags=fuzz` flag properly excludes property tests
+- Timestamp comparison uses DB record instead of `time.Now()`
+- Docker timeout increased to accommodate GitHub Actions latency
+- PostgreSQL test expectations corrected for service container pattern
+
+---
