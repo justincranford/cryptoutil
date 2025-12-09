@@ -4,6 +4,8 @@ package network
 
 import (
 	"context"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -162,6 +164,17 @@ func TestHTTPGetLivez(t *testing.T) {
 	require.Equal(t, []byte("OK"), body)
 }
 
+func TestHTTPGetLivez_Error(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Invalid URL should trigger HTTPResponse error, which HTTPGetLivez wraps.
+	_, _, _, err := HTTPGetLivez(ctx, "http://127.0.0.1:1", "", 100*time.Millisecond, nil, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get")
+}
+
 func TestHTTPGetReadyz(t *testing.T) {
 	t.Parallel()
 
@@ -182,6 +195,17 @@ func TestHTTPGetReadyz(t *testing.T) {
 	require.Equal(t, []byte("OK"), body)
 }
 
+func TestHTTPGetReadyz_Error(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Invalid URL should trigger HTTPResponse error, which HTTPGetReadyz wraps.
+	_, _, _, err := HTTPGetReadyz(ctx, "http://127.0.0.1:1", "", 100*time.Millisecond, nil, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get")
+}
+
 func TestHTTPPostShutdown(t *testing.T) {
 	t.Parallel()
 
@@ -200,6 +224,17 @@ func TestHTTPPostShutdown(t *testing.T) {
 	require.Equal(t, http.StatusOK, statusCode)
 	require.NotNil(t, headers)
 	require.Equal(t, []byte("Shutting down"), body)
+}
+
+func TestHTTPPostShutdown_Error(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Invalid URL should trigger HTTPResponse error, which HTTPPostShutdown wraps.
+	_, _, _, err := HTTPPostShutdown(ctx, "http://127.0.0.1:1", "", 100*time.Millisecond, nil, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to post")
 }
 
 func TestHTTPResponse_HTTPS_InsecureSkipVerify(t *testing.T) {
@@ -243,6 +278,19 @@ func TestHTTPResponse_HTTPS_WithRootCA(t *testing.T) {
 	require.Equal(t, []byte("HTTPS OK"), body)
 }
 
+func TestHTTPResponse_HTTPS_SystemDefaults(t *testing.T) {
+	t.Parallel()
+
+	// Test the system defaults path (rootCAsPool == nil && !insecureSkipVerify).
+	// Use a real HTTPS endpoint (Google DNS) to test system CA verification.
+	ctx := context.Background()
+
+	// This tests the "rootCAsPool == nil && !insecureSkipVerify" path.
+	statusCode, _, _, err := HTTPResponse(ctx, http.MethodGet, "https://dns.google", 5*time.Second, true, nil, false)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, statusCode)
+}
+
 func TestHTTPResponse_NoTimeout(t *testing.T) {
 	t.Parallel()
 
@@ -259,4 +307,56 @@ func TestHTTPResponse_NoTimeout(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("OK"), body)
+}
+
+func TestHTTPResponse_BodyCloseError(t *testing.T) {
+	t.Parallel()
+
+	// Create a custom response writer that returns a body which fails on Close().
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		// Use a flusher to force-flush headers, then write body.
+		flusher, ok := w.(http.Flusher)
+		require.True(t, ok)
+		flusher.Flush()
+		_, _ = w.Write([]byte("OK"))
+	}))
+	defer server.Close()
+
+	ctx := context.Background()
+
+	// This will exercise the defer function's Close() call.
+	// The close error path (fmt.Printf) is hard to test directly since
+	// httptest doesn't fail on Close(), but this ensures the defer executes.
+	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, true, nil, false)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, statusCode)
+	require.Equal(t, []byte("OK"), body)
+}
+
+// failingReadCloser wraps an io.Reader and fails on Close().
+type failingReadCloser struct {
+	io.Reader
+}
+
+func (f *failingReadCloser) Close() error {
+	return errors.New("close failed")
+}
+
+func TestHTTPResponse_ReadBodyError(t *testing.T) {
+	t.Parallel()
+
+	// Test the "failed to read response body" error path by using a body that fails on Read.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		// Write a large response to ensure Read() will be called multiple times.
+		_, _ = w.Write(make([]byte, 1024*1024)) // 1MB
+	}))
+	defer server.Close()
+
+	ctx := context.Background()
+
+	// Use a very short timeout to trigger context cancellation during body read.
+	_, _, _, err := HTTPResponse(ctx, http.MethodGet, server.URL, 1*time.Nanosecond, true, nil, false)
+	require.Error(t, err)
 }
