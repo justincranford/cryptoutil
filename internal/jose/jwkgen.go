@@ -63,7 +63,7 @@ func GenerateAESJWKFunction(aesBits int) func() (joseJwk.Key, error) {
 func GenerateAESJWK(aesBits int) (joseJwk.Key, error) {
 	aesSecretKeyBytes, err := cryptoutilKeyGen.GenerateAESKey(aesBits)
 
-	return BuildJWK(KtyOCT, aesSecretKeyBytes, err)
+	return BuildJWK(KtyOCT, []byte(aesSecretKeyBytes), err)
 }
 
 func GenerateAESHSJWKFunction(aesHsBits int) func() (joseJwk.Key, error) {
@@ -73,7 +73,7 @@ func GenerateAESHSJWKFunction(aesHsBits int) func() (joseJwk.Key, error) {
 func GenerateAESHSJWK(aesHsBits int) (joseJwk.Key, error) {
 	aesHsSecretKeyBytes, err := cryptoutilKeyGen.GenerateAESHSKey(aesHsBits)
 
-	return BuildJWK(KtyOCT, aesHsSecretKeyBytes, err)
+	return BuildJWK(KtyOCT, []byte(aesHsSecretKeyBytes), err)
 }
 
 func GenerateHMACJWKFunction(hmacBits int) func() (joseJwk.Key, error) {
@@ -83,7 +83,7 @@ func GenerateHMACJWKFunction(hmacBits int) func() (joseJwk.Key, error) {
 func GenerateHMACJWK(hmacBits int) (joseJwk.Key, error) {
 	hmacSecretKeyBytes, err := cryptoutilKeyGen.GenerateHMACKey(hmacBits)
 
-	return BuildJWK(KtyOCT, hmacSecretKeyBytes, err)
+	return BuildJWK(KtyOCT, []byte(hmacSecretKeyBytes), err)
 }
 
 func BuildJWK(kty joseJwa.KeyType, raw any, err error) (joseJwk.Key, error) {
