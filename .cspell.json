@@ -168,6 +168,7 @@
     "gosec",
     "benchmem",
     "fuzztime",
-    "Suboption"
+    "Suboption",
+    "goconst"
   ]
 }
