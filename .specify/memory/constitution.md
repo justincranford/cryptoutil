@@ -160,14 +160,10 @@ func TestUserCreate(t *testing.T) {
 
 **Race Condition Prevention - CRITICAL**:
 
-- ❌ **NEVER** write to parent scope variables in parallel sub-tests (causes race conditions)
-- ❌ **NEVER** use `t.Parallel()` when manipulating global state (os.Stdout, environment variables)
-- ❌ **NEVER** share sessions/resources across parallel test iterations (causes flaky tests with `-count=2`)
-- ✅ **ALWAYS** create fresh test data per test case (new sessions, new database records)
-- ✅ **ALWAYS** protect shared mutable state with sync.Mutex or sync.Map
-- ✅ **ALWAYS** use inline assertions: `require.NoError(t, resp.Body.Close())` not `err = resp.Body.Close(); require.NoError(t, err)`
-- ✅ **ALWAYS** run `go test -race -count=2` locally before pushing (requires CGO_ENABLED=1)
-- Detection: Use ci-race workflow (runs automatically on PRs) and local `go test -race -count=2`
+- NEVER write to parent scope in parallel sub-tests, manipulate globals with t.Parallel(), or share sessions
+- ALWAYS inline assertions, fresh test data, protect maps/slices with sync.Mutex
+- Detection: `go test -race -count=2` (local + ci-race workflow)
+- Details: .github/instructions/01-02.testing.instructions.md
 
 ## V. Service Architecture - Dual HTTPS Endpoint Pattern
 
@@ -244,27 +240,13 @@ services:
       - 5432:5432
 ```
 
-**Why Required**:
+**Why Required**: Tests in sqlrepository/domain packages need PostgreSQL; without service = connection refused
 
-- Tests in `internal/kms/server/repository/sqlrepository` require PostgreSQL connection
-- Tests in `internal/identity/domain/repository` require PostgreSQL connection
-- Without service: Tests fail with "connection refused" after 2.5s (5 retries × 500ms)
-- With service: PostgreSQL ready before tests start (health check: up to 50s startup window)
+**Affected Workflows**: ci-race, ci-mutation, ci-coverage, any workflow running `go test`
 
-**Affected Workflows**:
+**Health Check**: pg_isready (10s interval, 5s timeout, 5 retries = 50s window)
 
-- ci-race (race condition detection)
-- ci-mutation (mutation testing)
-- ci-coverage (coverage reporting)
-- Any workflow running `go test ./...` or package-specific tests
-
-**Health Check Configuration**:
-
-- `pg_isready` command checks PostgreSQL server status
-- 10s interval between health checks
-- 5s timeout per health check attempt
-- 5 retries before marking unhealthy
-- Total startup window: 50 seconds (sufficient for slow GitHub Actions runners)
+**Details**: .github/instructions/02-01.github.instructions.md
 
 ### Service Health Check Requirements
 
@@ -282,22 +264,11 @@ healthcheck:
   # Total window: 30s + (5s × 10) = 80 seconds
 ```
 
-**Why Generous Timeouts Required**:
+**Why Generous**: TLS (1-2s) + DB migrations (5-10s) + unseal (1-2s) + OTLP (2-3s) = 10-20s typical, 40s worst-case
 
-- TLS certificate generation: ~1-2s
-- Database migrations: ~5-10s (PostgreSQL), ~2-5s (SQLite)
-- Key unsealing: ~1-2s
-- OTLP telemetry connection: ~2-3s (background, non-blocking)
-- Total initialization: ~10-20s typical, up to 40s on slow systems
+**Startup Order**: Config → TLS → DB pool → migrations → unseal → listeners → telemetry (background)
 
-**Service Startup Sequence** (recommended order):
-
-1. Parse configuration files (<1s)
-2. Generate/load TLS certificates (<1s)
-3. Initialize database connection pool (<2s)
-4. Run database migrations (<10s)
-5. Unseal cryptographic keys (<2s)
-6. Start HTTPS listeners (<1s)
+**Details**: docs/TIMEOUT-FIXES-ANALYSIS.md
 7. Connect to OTLP telemetry (background, non-blocking)
 8. Mark service as ready (/readyz returns HTTP 200)
 
