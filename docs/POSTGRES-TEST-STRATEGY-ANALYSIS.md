@@ -12,8 +12,8 @@ The KMS repository test suite uses an **optimized single PostgreSQL instance str
 
 ### Current Implementation: ✅ OPTIMAL
 
-**PostgreSQL Startup**: 
-- **Location**: `.github/workflows/ci-coverage.yml` 
+**PostgreSQL Startup**:
+- **Location**: `.github/workflows/ci-coverage.yml`
 - **Method**: GitHub Actions service container
 - **Count**: **1 PostgreSQL instance** for entire test run
 - **Duration**: Started once at workflow start, torn down at workflow end
