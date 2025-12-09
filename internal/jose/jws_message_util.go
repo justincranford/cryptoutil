@@ -242,30 +242,32 @@ func LogJWSInfo(jwsMessage *joseJws.Message) error {
 
 		if x5tS256, ok := protectedHeaders.X509CertThumbprintS256(); ok {
 			logMessageSigHeader += fmt.Sprintf(" x5t#S256=%s\n", x5tS256)
-		}
+	}
 
-		if crit, ok := protectedHeaders.Critical(); ok {
-			logMessageSigHeader += fmt.Sprintf(" crit=%v\n", crit)
-		}
+	if crit, ok := protectedHeaders.Critical(); ok {
+		logMessageSigHeader += fmt.Sprintf(" crit=%v\n", crit)
+	}
 
-		publicHeaders := jwsSignature.PublicHeaders()
+	publicHeaders := jwsSignature.PublicHeaders()
+	if publicHeaders != nil {
 		for _, key := range publicHeaders.Keys() {
 			var value any
 
-			err := publicHeaders.Get(key, &value)
-			if err != nil {
-				logMessageSigHeader += fmt.Sprintf(" %s=%v\n", key, value)
-			}
+		err := publicHeaders.Get(key, &value)
+		if err != nil {
+			logMessageSigHeader += fmt.Sprintf(" %s=%v\n", key, value)
 		}
-
-		fmt.Print(logMessageSigHeader)
 	}
+}
 
-	fmt.Printf("JWS Payload: %s\n", string(jwsMessage.Payload()))
+fmt.Print(logMessageSigHeader)
+}
 
-	for i, jwsSignature := range jwsMessage.Signatures() {
-		fmt.Printf("JWS Signature[%d]: %s\n", i, jwsSignature.Signature())
-	}
+fmt.Printf("JWS Payload: %s\n", string(jwsMessage.Payload()))
 
-	return nil
+for i, jwsSignature := range jwsMessage.Signatures() {
+	fmt.Printf("JWS Signature[%d]: %s\n", i, jwsSignature.Signature())
+}
+
+return nil
 }

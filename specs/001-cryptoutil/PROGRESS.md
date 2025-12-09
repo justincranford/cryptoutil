@@ -8,24 +8,24 @@
 
 ## EXECUTIVE SUMMARY
 
-**Overall Progress**: 38.5/42 tasks complete (91.7%)
-**Current Phase**: Phase 3 - Coverage Targets (P3.1 stuck at 85%) + Phase 4 - Advanced Testing (3/4 complete, P4.4 BLOCKED)
+**Overall Progress**: 38.5 of 42 tasks complete
+**Current Phase**: Phase 3 - Coverage Targets (P3.1 stuck at 85.0 of 95.0 target) + Phase 4 - Advanced Testing (3 of 4 complete, P4.4 BLOCKED)
 **Blockers**:
 
 - P4.4 mutation testing BLOCKED (gremlins v0.6.0 crashes on Windows)
 - P1.5 ci-race BLOCKED (requires CGO_ENABLED=1, violates project constraint CGO_ENABLED=0)
 - Phase 3 coverage targets require complex service setups (TSA, OCSP, CRL services)
 
-**Next Action**: ci-dast, ci-load workflow testing OR accept 91.7% completion as realistic limit
+**Next Action**: ci-dast, ci-load workflow testing OR accept 38.5/42 completion as realistic limit
 
 ### Quick Stats
 
 | Metric | Current | Target | Status |
 |--------|---------|--------|--------|
 | Test Suite Speed | ~60s (all 11 pkgs) | <200s | ✅ COMPLETE |
-| CI/CD Pass Rate | 67% (6/9 workflows) | 100% (9/9) | ⏳ Phase 1 DEFERRED (6/9 workflows fixed) |
-| Package Coverage | ca/handler 85.0%, userauth 76.2% | ALL ≥95% | ⏳ Phase 3.1 IN PROGRESS (+2.7% CA handler) |
-| Tasks Complete | 38.5/42 | 42/42 | 91.7% |
+| CI/CD Pass Rate | 6 of 9 workflows | 9 of 9 workflows | ⏳ Phase 1 DEFERRED (6 of 9 workflows fixed) |
+| Package Coverage | ca/handler 85.0 of 95.0, userauth 76.2 of 95.0 | ALL ≥95.0 | ⏳ Phase 3.1 IN PROGRESS (CA handler baseline 82.3, current 85.0) |
+| Tasks Complete | 38.5 of 42 | 42 of 42 | 38.5 of 42 tasks |
 | Implementation Guides | 6/6 | 6/6 | ✅ COMPLETE |
 | Benchmark Tests | 7 files | 7+ | ✅ P4.1 MOSTLY COMPLETE (crypto + identity) |
 | Fuzz Tests | 5 files | 5 | ✅ P4.2 COMPLETE |
@@ -34,40 +34,40 @@
 ### Recent Milestones
 
 - 📊 **SESSION 2025-12-08 (Continuation)**: 5 commits, 0.5 tasks completed (18 commits total today)
-  - Phase 3: CA handler coverage 85.0% (stuck at +2.7%, commit 2ac836d1)
+  - Phase 3: CA handler coverage 85.0 of 95.0 target (baseline 82.3, increased by 2.7, commit 2ac836d1)
     - Added handler_error_paths_test.go (error response tests)
     - Added handler_tsa_test.go (TSA timestamp tests, no service configured)
     - Added handler_ocsp_test.go (OCSP tests, no service configured)
     - Added handler_est_csrattrs_test.go (EST CSR attrs test)
-  - Coverage stuck at 85.0% - uncovered paths require complex service setup (TSA, OCSP, CRL services)
-  - Investigated userauth (76.2%), unsealkeysservice (78.2%) - both complex to improve
+  - Coverage stuck at 85.0 of 95.0 target - uncovered paths require complex service setup (TSA, OCSP, CRL services)
+  - Investigated userauth (76.2 of 95.0 target), unsealkeysservice (78.2 of 95.0 target) - both complex to improve
   - Decision: Move to simpler wins (Phase 1 workflows) vs grinding on coverage
-  - Token usage: 77k/1M (7.7% used, 923k remaining)
-- 📊 **SESSION 2025-12-08 (Afternoon)**: 13 commits, 3.5 tasks completed, +7.2% overall progress
+  - Token usage: 77,000 tokens used out of 1,000,000 limit (923,000 remaining)
+- 📊 **SESSION 2025-12-08 (Afternoon)**: 13 commits, 3.5 tasks completed, 3.5 more tasks done (35.0 to 38.5 out of 42 total)
   - Phase 4: P4.1 benchmarks (JWS/JWE), P4.2 fuzz (verified 5 files), P4.3 property tests (18 properties) = 3/4 tasks
-  - Phase 3: CA handler coverage 82.3% → 85.0% (+2.7%) = 0.5/5 tasks
+  - Phase 3: CA handler coverage improved from 82.3 to 85.0 (increased by 2.7, target 95.0) = 0.5 of 5 tasks
   - Phase 1: Updated workflow status (6/9 passing)
   - P4.4 mutation testing BLOCKED (gremlins v0.6.0 crashes on Windows)
-  - Token usage: 88k/1M (8.8% used, 912k remaining)
+  - Token usage: 88,000 tokens used out of 1,000,000 limit (912,000 remaining)
 - ✅ **P4.2 COMPLETE**: Fuzz testing - 5 existing fuzz files verified (crypto + identity)
 - ✅ **P4.1 MOSTLY COMPLETE**: Benchmark tests (commit 43c616c1) - JWS/JWE issuer benchmarks added
   - jws_bench_test.go: IssueAccessToken, IssueIDToken, ValidateToken
   - jwe_bench_test.go: EncryptToken, DecryptToken, RoundTrip
-- ⚠️ **P3.1 IN PROGRESS**: CA handler coverage (commit d6cfb7ac) - 82.3% → 85.0% (+2.7%)
+- ⚠️ **P3.1 IN PROGRESS**: CA handler coverage (commit d6cfb7ac) - baseline 82.3, current 85.0 (increased by 2.7, target 95.0 needs 10.0 more)
   - handler_coverage_test.go: GenerateKeyPair, EncodePrivateKeyPEM, CreateCSRWithKey tests
-  - Target: 95% (+10% more needed)
+  - Target: 95.0 (need 10.0 more from current 85.0)
 - ✅ **P4.3 COMPLETE**: Property-based testing (commits 5a3c66dc, 351fca4c) - 18 properties, 100 tests each
   - digests_property_test.go: HKDF + SHA-256 invariants (6 properties)
   - keygen_property_test.go: RSA/ECDSA/ECDH/EdDSA/AES/HMAC (12 properties)
-- ✅ **Phase 2 COMPLETE**: 8/8 tasks (100%, commit da212bc9) - EST serverkeygen MANDATORY REQUIRED
+- ✅ **Phase 2 COMPLETE**: 8 of 8 tasks (commit da212bc9) - EST serverkeygen MANDATORY REQUIRED
 - ✅ **P2.8 COMPLETE**: EST serverkeygen (RFC 7030 Section 4.4 with PKCS#7, commit c521e698)
-- ✅ **P2.1-P2.3 COMPLETE**: JOSE E2E (88.4% coverage), OCSP handler, Docker Compose
+- ✅ **P2.1-P2.3 COMPLETE**: JOSE E2E (88.4 of 95.0 target coverage), OCSP handler, Docker Compose
 - ✅ **Phase 0 COMPLETE**: All test packages under performance targets
 - ✅ **P1.1-P1.4 COMPLETE**: ci-coverage, ci-benchmark, ci-fuzz, ci-quality workflows passing
 - ✅ **Phase 0 COMPLETE**: All test packages under performance targets (P0.1 optimized to 11s)
 - ✅ **URGENT FIXES COMPLETE**: Removed -short flag, added PostgreSQL service, fixed ci-quality regression
 - ⏳ **Phase 1 In Progress**: 6/9 workflows fixed (ci-load, ci-sast, ci-race remaining)
-- ⏳ **Phase 2 In Progress**: P2.1 JWE encryption working (88.7% coverage, need +6.3% for 95% target)
+- ⏳ **Phase 2 In Progress**: P2.1 JWE encryption working (88.7 of 95.0 target coverage, need 6.3 more for 95.0 target)
 
 ---
 
@@ -75,7 +75,7 @@
 
 ### Critical Packages (≥20s)
 
-- [x] **P0.1**: clientauth (70s → 11s, 84% improvement) ✅
+- [x] **P0.1**: clientauth (70s → 11s, improved by 59 seconds) ✅
   - Reduced TestCompareSecret_ConstantTime iterations from 100 to 10
   - Still validates constant-time comparison, salt randomness, FIPS compliance
   - **MEETS <30s target for critical packages**
@@ -93,14 +93,14 @@
 - [x] **P0.10**: infra/realm (3.0s, already under <10s target) ✅
 - [x] **P0.11**: kms/server/barrier (1.0s, already under <10s target) ✅
 
-**Phase Progress**: 11/11 tasks (100%) ✅ **COMPLETE**
+**Phase Progress**: 11 of 11 tasks ✅ **COMPLETE**
 
 **Phase 0 Summary**:
 
-- P0.1 (clientauth) optimized from 70s → 11s (84% improvement, <30s target achieved)
+- P0.1 (clientauth) optimized from 70s → 11s (improved by 59 seconds, target was <30s achieved)
 - P0.2-P0.11 were already optimized in prior work (all under targets)
-- Total test suite time: ~60 seconds across all 11 packages (67% faster than original)
-- Target was <200 seconds - achieved 70% better than target
+- Total test suite time: ~60 seconds across all 11 packages (improved from ~180s original, saved 120 seconds)
+- Target was <200 seconds - achieved 60 seconds (140 seconds better than target)
 
 ---
 
@@ -111,8 +111,8 @@
 - [x] **P1.1**: ci-coverage (CRITICAL) ✅ COMPLETE
   - ❌ **WRONG APPROACH (previous)**: Used -short flag to skip PostgreSQL tests (VIOLATES CI mandate)
   - ✅ **CORRECT APPROACH (current)**: Added PostgreSQL service to ci-coverage.yml
-  - Removed -short flag - CI now runs 100% of tests (ALL tests, NO skipping)
-  - Restored 95% coverage threshold (from incorrect 60% temporary value)
+  - Removed -short flag - CI now runs all tests (ALL tests, NO skipping)
+  - Restored 95.0 coverage threshold (from incorrect 60.0 temporary value)
   - Added getTestPostgresURL() helper to read GitHub Actions env vars (POSTGRES_HOST, POSTGRES_PORT, etc)
   - Tests use PostgreSQL service at localhost:5432 in CI environment
 
@@ -143,20 +143,20 @@
 - [ ] **P1.8**: ci-load (MEDIUM) - Load testing infrastructure
 - [ ] **P1.9**: ci-sast (LOW) - Static analysis tooling
 
-**Phase Progress**: 6/9 tasks (66.7%), 3 remaining
+**Phase Progress**: 6 of 9 tasks, 3 remaining
 
 **CI/CD Test Strategy (MANDATORY)**:
 
-- ✅ CI tests MUST run 100% of ALL tests (NO -short flag, NO skipping)
+- ✅ CI tests MUST run all tests (NO -short flag, NO skipping)
 - ✅ Use GitHub Actions services (PostgreSQL, Redis, etc) for test dependencies
 - ✅ Tests read environment variables for CI-specific configuration
-- ✅ Coverage threshold: 95% minimum (restored from incorrect 60% temporary value)
+- ✅ Coverage threshold: 95.0 minimum (restored from incorrect 60.0 temporary value)
 
 ---
 
 ## Phase 2: Deferred Features (8 tasks, COMPLETE ✅)
 
-- [x] **P2.1**: JOSE E2E Test Suite ✅ COMPLETE (88.4% coverage, comprehensive tests exist)
+- [x] **P2.1**: JOSE E2E Test Suite ✅ COMPLETE (88.4 of 95.0 target coverage, comprehensive tests exist)
 - [x] **P2.2**: CA OCSP support ✅ COMPLETE (RFC 6960 handler + OpenAPI spec exist)
 - [x] **P2.3**: JOSE Docker image ✅ COMPLETE (deployments/jose/compose.yml exists)
 - [x] **P2.4**: EST cacerts ✅ COMPLETE (already implemented)
@@ -165,21 +165,21 @@
 - [x] **P2.7**: TSA timestamp ✅ COMPLETE (already implemented)
 - [x] **P2.8**: EST serverkeygen (MANDATORY REQUIRED) ✅ COMPLETE (RFC 7030 Section 4.4 with PKCS#7, commit c521e698)
 
-**Phase Progress**: 8/8 tasks (100%) ✅ **COMPLETE**
+**Phase Progress**: 8 of 8 tasks ✅ **COMPLETE**
 
 ---
 
 ## Phase 3: Coverage Targets (5 tasks, 12-18h)
 
-### Critical Gaps (Below 90%)
+### Critical Gaps (Below 90.0 of 95.0 target)
 
-- [ ] **P3.1**: ca/handler (82.3% → 95%) - 2h ⚠️ IN PROGRESS (85.0% achieved, commit d6cfb7ac)
-- [ ] **P3.2**: auth/userauth (76.2% → 95%) - 2h
-- [ ] **P3.3**: unsealkeysservice (~78% → 95%) - 30min
-- [ ] **P3.4**: network (~89% → 95%) - 30min
-- [ ] **P3.5**: jose (88.4% → 95%) - 1h
+- [ ] **P3.1**: ca/handler (baseline 82.3, target 95.0) - 2h ⚠️ IN PROGRESS (85.0 achieved, commit d6cfb7ac)
+- [ ] **P3.2**: auth/userauth (baseline 76.2, target 95.0) - 2h
+- [ ] **P3.3**: unsealkeysservice (baseline ~78.0, target 95.0) - 30min
+- [ ] **P3.4**: network (baseline ~89.0, target 95.0) - 30min
+- [ ] **P3.5**: jose (baseline 88.4, target 95.0) - 1h
 
-**Phase Progress**: 0.5/5 tasks (10%) - P3.1 partial (+2.7% improvement)
+**Phase Progress**: 0.5 of 5 tasks - P3.1 partial (improved by 2.7 from baseline)
 
 ---
 
@@ -198,10 +198,10 @@
   - ✅ Existing: JWS/JWE issuer, keygen, digests (HKDF/SHA2)
   - ✅ Note: JWT/CA parser fuzz tests not needed (stdlib x509/pem handles parsing)
 - [ ] **P4.4**: Mutation testing baseline - 2-4h ❌ Not Started
-  - Target: ≥80% gremlins score per package
+  - Target: ≥80.0 gremlins score per package
   - Command: `gremlins unleash --tags=!integration`
 
-**Phase Progress**: 3/4 tasks (75%) - P4.1/P4.2/P4.3 complete, P4.4 pending
+**Phase Progress**: 3 of 4 tasks - P4.1/P4.2/P4.3 complete, P4.4 pending
 
 ---
 
@@ -214,7 +214,7 @@
 - [ ] **P5.5**: Multi-service integration - 3-5h
 - [ ] **P5.6**: Observability walkthrough - 3-5h
 
-**Phase Progress**: 0/6 tasks (0%)
+**Phase Progress**: 0 of 6 tasks
 
 ---
 

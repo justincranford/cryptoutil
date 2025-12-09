@@ -258,3 +258,93 @@ func Test_LogJWSInfo_NoSignatures(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "jwsMessage has no signatures")
 }
+
+func Test_LogJWSInfo_AllHeaders(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		headers map[string]any
+		alg     *joseJwa.SignatureAlgorithm
+	}{
+		{
+			name: "RS256 with all headers",
+			alg:  &AlgRS256,
+			headers: map[string]any{
+				joseJws.KeyIDKey:         "test-kid-" + googleUuid.NewString(),
+				joseJws.TypeKey:          "JWT",
+				joseJws.ContentTypeKey:   "application/json",
+				joseJws.JWKSetURLKey:     "https://example.com/jwks",
+				joseJws.X509URLKey:       "https://example.com/x509",
+				joseJws.CriticalKey:      []string{"exp", "nbf"},
+				"custom-header":          "custom-value",
+			},
+		},
+		{
+			name: "ES256 with minimal headers",
+			alg:  &AlgES256,
+			headers: map[string]any{
+				joseJws.KeyIDKey: "test-kid-" + googleUuid.NewString(),
+			},
+		},
+		{
+			name: "HS256 with type only",
+			alg:  &AlgHS256,
+			headers: map[string]any{
+				joseJws.TypeKey: "JWT",
+			},
+		},
+		{
+			name: "EdDSA with content type",
+			alg:  &AlgEdDSA,
+			headers: map[string]any{
+				joseJws.ContentTypeKey: "application/jose+json",
+			},
+		},
+		{
+			name:    "PS256 algorithm only",
+			alg:     &AlgPS256,
+			headers: map[string]any{},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Create test payload.
+			payload := []byte(`{"sub":"test-user","iat":1234567890}`)
+
+			// Generate signing key for algorithm.
+			_, signingJWK, _, _, _, err := GenerateJWSJWKForAlg(tc.alg)
+			require.NoError(t, err)
+			require.NotNil(t, signingJWK)
+
+			// Create JWS message with headers.
+			jwsHeaders := joseJws.NewHeaders()
+			for key, value := range tc.headers {
+				err = jwsHeaders.Set(key, value)
+				require.NoError(t, err)
+			}
+
+			signedMessage, err := joseJws.Sign(
+				payload,
+				joseJws.WithKey(*tc.alg, signingJWK, joseJws.WithProtectedHeaders(jwsHeaders)),
+			)
+			require.NoError(t, err)
+
+			// Parse signed message.
+			jwsMessage, err := joseJws.Parse(signedMessage)
+			require.NoError(t, err)
+
+			// Test LogJWSInfo.
+			err = LogJWSInfo(jwsMessage)
+			require.NoError(t, err)
+
+			// Verify message structure.
+			require.Len(t, jwsMessage.Signatures(), 1, "should have exactly one signature")
+			require.Equal(t, payload, jwsMessage.Payload(), "payload should match")
+		})
+	}
+}

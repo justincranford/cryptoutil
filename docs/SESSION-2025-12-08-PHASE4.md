@@ -3,8 +3,8 @@
 ## Session Context
 
 **User Directive**: "complete phase 3 and 4. return back to phase 2 workflow local fixing after that"
-**Start State**: Phase 2 marked incomplete (72.6% overall), Phase 4 not started
-**End State**: Phase 4.3 complete, Phase 2 properly documented, overall 84.5% complete
+**Start State**: Phase 2 marked incomplete (30.5 of 42 tasks), Phase 4 not started
+**End State**: Phase 4.3 complete, Phase 2 properly documented, overall 35.5 of 42 tasks complete
 
 ## Work Completed
 
@@ -48,22 +48,22 @@
    - Phase 4.4: Marked NOT STARTED (mutation testing)
 
 2. `specs/001-cryptoutil/PROGRESS.md`
-   - Overall: 34.5/42 (82.1%) → 35.5/42 (84.5%)
-   - Phase 2: Corrected to 8/8 (100%) ✅ COMPLETE
-   - Phase 4: 1/4 (25%) - P4.3 complete, P4.1/P4.2 partial
+   - Overall: 34.5 of 42 tasks → 35.5 of 42 tasks
+   - Phase 2: Corrected to 8 of 8 tasks ✅ COMPLETE
+   - Phase 4: 1 of 4 tasks - P4.3 complete, P4.1/P4.2 partial
    - Recent milestones updated with Phase 2 and 4.3 completion
    - Executive summary updated to reflect current phase (Phase 4)
 
 ### Coverage Analysis Performed
 
-**CA Handler Coverage**: 82.3% (target 95%)
+**CA Handler Coverage**: 82.3 of 95.0 target
 - Generated coverage report: `test-output/ca_handler.cov`
 - Analyzed uncovered functions:
-  * `generateKeyPairFromCSR`: 26.7% (RSA/ECDSA/Ed25519 paths)
-  * `encodePrivateKeyPEM`: 50.0% (key encoding paths)
-  * `EstCSRAttrs`: 66.7% (EST attributes)
-  * `EstCACerts`: 83.3% (EST CA certs)
-  * Most functions 70-88% coverage
+  * `generateKeyPairFromCSR`: 26.7 of 100.0 (RSA/ECDSA/Ed25519 paths)
+  * `encodePrivateKeyPEM`: 50.0 of 100.0 (key encoding paths)
+  * `EstCSRAttrs`: 66.7 of 100.0 (EST attributes)
+  * `EstCACerts`: 83.3 of 100.0 (EST CA certs)
+  * Most functions 70.0 to 88.0 of 100.0 coverage
 
 **Gap Identified**: Need test cases for:
 - RSA serverkeygen path (only ECDSA tested)
@@ -91,20 +91,20 @@
   * X.509 attribute parser fuzz tests
 
 **P4.4: Mutation Testing** (❌ NOT STARTED, ~2-4h)
-- Target: ≥80% gremlins score per package
+- Target: ≥80.0 gremlins score per package
 - Command: `gremlins unleash --tags=!integration`
 - Focus: Business logic, crypto operations, parsers, validators
 - Create baseline report in `specs/`
 
 ### Phase 3: Coverage Targets (5 tasks, ~6-10h)
 
-**P3.1: ca/handler** (82.3% → 95%, ~2h)
+**P3.1: ca/handler** (baseline 82.3, target 95.0, ~2h)
 - Add test cases for RSA/Ed25519 serverkeygen paths
 - Test EST CSR attributes endpoint
 - Test error handling in key generation
-- Target: +12.7% coverage
+- Target: increase by 12.7 to reach 95.0
 
-**P3.2: identity/userauth** (76.2% → 95%, ~2h)
+**P3.2: identity/userauth** (baseline 76.2, target 95.0, ~2h)
 - Authentication flow tests
 - MFA flow tests
 - Password validation tests
@@ -113,8 +113,8 @@
 
 **P3.3-P3.5**: Other packages (~2-4h)
 - unsealkeysservice: 78% → 95% (+17%)
-- network: 89% → 95% (+6%)
-- jose: 88.4% → 95% (+6.6%)
+- network: baseline 89.0, target 95.0 (increase by 6.0)
+- jose: baseline 88.4, target 95.0 (increase by 6.6)
 
 ### Phase 1: CI/CD Workflows (3 tasks, ~2-4h) - DEFERRED
 
@@ -142,7 +142,7 @@
 **Files Modified**: 2 documentation files (TASKS.md, PROGRESS.md)
 **Tests Added**: 18 property-based tests (100 iterations each = 1,800 test cases)
 **Dependencies Added**: 1 (gopter)
-**Token Usage**: 88.1k / 1M (8.8%), 911.9k remaining (91.2%)
+**Token Usage**: 88,100 tokens used out of 1,000,000 limit (911,900 remaining)
 
 ## Next Session Actions
 
@@ -162,7 +162,7 @@
 3. **Execute P4.4 Mutation Testing** (~2-4h)
    - Install: `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest`
    - Run: `gremlins unleash --tags=!integration`
-   - Analyze results: target ≥80% mutation score
+   - Analyze results: target ≥80.0 mutation score
    - Fix weak tests identified by mutation testing
    - Create baseline report: `specs/001-cryptoutil/mutation-baseline.md`
 
@@ -173,18 +173,18 @@
    - Add Ed25519 serverkeygen test cases
    - Test EST CSR attributes endpoint
    - Test error paths in key generation
-   - Target: 82.3% → 95%
+   - Target: baseline 82.3, target 95.0
 
 5. **P3.2: Identity Userauth Coverage** (~2h)
    - Authentication flow tests
    - MFA flow tests
    - Password validation tests
    - Session management tests
-   - Target: 76.2% → 95%
+   - Target: baseline 76.2, target 95.0
 
 6. **P3.3-P3.5: Remaining Packages** (~2-4h)
    - unsealkeysservice, network, jose packages
-   - Target: All ≥95%
+   - Target: All ≥95.0
 
 ### Deferred (Phase 1 workflows)
 
@@ -207,7 +207,7 @@
 3. **HKDF Validation**: Empty IKM (secret) not allowed - must filter in properties
 4. **KeyPair Structure**: Fields are `Private` and `Public`, not `PrivateKey`/`PublicKey`
 5. **Property Testing Value**: Caught edge cases (empty inputs) that unit tests might miss
-6. **Documentation Sync**: PROGRESS.md must match TASKS.md reality (Phase 2 was 100%, not 69%)
+6. **Documentation Sync**: PROGRESS.md must match TASKS.md reality (Phase 2 was 8 of 8 tasks, not 5.5 of 8)
 
 ## Blockers Encountered
 

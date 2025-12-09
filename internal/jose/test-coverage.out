@@ -512,7 +512,7 @@ cryptoutil/internal/jose/jwk_util.go:656.28,657.19 1 1
 cryptoutil/internal/jose/jwk_util.go:658.28,659.19 1 1
 cryptoutil/internal/jose/jwk_util.go:660.10,661.59 1 0
 cryptoutil/internal/jose/jwk_util.go:667.58,668.16 1 1
-cryptoutil/internal/jose/jwk_util.go:668.16,670.3 1 0
+cryptoutil/internal/jose/jwk_util.go:668.16,670.3 1 1
 cryptoutil/internal/jose/jwk_util.go:673.2,676.16 3 1
 cryptoutil/internal/jose/jwk_util.go:676.16,678.3 1 1
 cryptoutil/internal/jose/jwk_util.go:681.2,683.19 2 0
