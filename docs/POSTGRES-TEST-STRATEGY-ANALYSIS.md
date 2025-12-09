@@ -1,7 +1,7 @@
 # PostgreSQL Test Strategy Analysis
 
-**Date**: December 9, 2025  
-**Component**: KMS Server Repository Tests  
+**Date**: December 9, 2025
+**Component**: KMS Server Repository Tests
 **Workflow**: ci-coverage
 
 ## Executive Summary
@@ -13,6 +13,7 @@ The KMS repository test suite uses an **optimized single PostgreSQL instance str
 ### Current Implementation: ✅ OPTIMAL
 
 **PostgreSQL Startup**:
+
 - **Location**: `.github/workflows/ci-coverage.yml`
 - **Method**: GitHub Actions service container
 - **Count**: **1 PostgreSQL instance** for entire test run
@@ -96,6 +97,7 @@ go test -count=1 -p=2 -coverprofile=... ./internal/...
 ```
 
 **Breakdown**:
+
 - PostgreSQL service startup: ~15s (once, at workflow start)
 - Test execution: Variable (depends on test count)
 - PostgreSQL teardown: ~5s (once, at workflow end)
@@ -103,6 +105,7 @@ go test -count=1 -p=2 -coverprofile=... ./internal/...
 ### No Anti-Patterns Detected ✅
 
 **What we AVOID**:
+
 - ❌ Starting PostgreSQL container per test
 - ❌ Starting PostgreSQL container per test file
 - ❌ Starting PostgreSQL container per test package
@@ -152,23 +155,27 @@ Total PostgreSQL overhead: 60 seconds (3× slower)
 ### Tests Using PostgreSQL Service
 
 **Container Mode Tests**:
+
 - `sql_postgres_coverage_test.go`: Tests disabled/preferred modes with service container
 - `sql_final_coverage_test.go`: Tests all container modes (disabled/preferred/required/invalid)
 - `sql_comprehensive_coverage_test.go`: Tests ping retry logic with service container
 - `sql_container_modes_test.go`: Tests container mode selection logic
 
 **Connection Tests**:
+
 - `sql_provider_coverage_test.go`: Tests connection pool configuration
 - `sql_provider_edge_cases_test.go`: Tests connection edge cases
 - `sql_migrations_transactions_test.go`: Tests schema migrations with PostgreSQL
 
 **Error Path Tests**:
+
 - `sql_error_paths_test.go`: Tests error handling with PostgreSQL
 - `sql_repository_errors_test.go`: Tests repository error mapping
 
 ### Tests Using SQLite In-Memory
 
 **Core Tests**:
+
 - `sql_provider_test.go`: TestMain creates shared SQLite instance
 - `sql_comprehensive_test.go`: Tests against SQLite for speed
 - `sql_transaction_edge_test.go`: Transaction tests on SQLite
@@ -189,23 +196,26 @@ The current PostgreSQL test strategy is **optimal** and should be maintained:
 ### Documentation Updates: COMPLETED ✅
 
 Updated instruction files with PostgreSQL strategy:
+
 - ✅ `01-02.testing.instructions.md`: TestMain pattern, parallel testing
 - ✅ `02-02.docker.instructions.md`: Latency hiding strategies, health check dependencies
 
 ### No Changes Required to Test Code
 
 The PostgreSQL test strategy is already optimal. Recent CI failures were due to:
+
 - Tests expecting errors when PostgreSQL was actually running (fixed)
 - Not understanding that `containerMode=disabled` uses the service container
 
 ## Conclusion
 
-**PostgreSQL Container Starts**: 1  
-**PostgreSQL Container Stops**: 1  
-**Strategy**: Optimal (GitHub Actions service container)  
-**Changes Needed**: None (documentation updated)  
+**PostgreSQL Container Starts**: 1
+**PostgreSQL Container Stops**: 1
+**Strategy**: Optimal (GitHub Actions service container)
+**Changes Needed**: None (documentation updated)
 
 The KMS repository test suite demonstrates best practices for PostgreSQL testing:
+
 - Single shared instance via service container
 - No container churn
 - Fast test execution
