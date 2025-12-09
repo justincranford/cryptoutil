@@ -63,7 +63,6 @@ func TestErrorResponsePaths(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -98,6 +97,7 @@ func TestGetEnrollmentStatus_NotFound(t *testing.T) {
 
 	// Test non-existent enrollment.
 	randomID := googleUuid.New()
+
 	app.Get("/enrollment/:id", func(c *fiber.Ctx) error {
 		return handler.GetEnrollmentStatus(c, randomID)
 	})

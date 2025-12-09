@@ -1,7 +1,10 @@
+// Copyright (c) 2025 Justin Cranford
+
 package digests
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	"github.com/leanovate/gopter"
@@ -27,7 +30,7 @@ func TestHKDFInvariants(t *testing.T) {
 
 			// Both should succeed or fail consistently
 			if err1 != nil || err2 != nil {
-				return err1 == err2 || (err1 != nil && err2 != nil)
+				return errors.Is(err1, err2) || (err1 != nil && err2 != nil)
 			}
 
 			// Outputs must be identical

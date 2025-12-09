@@ -378,6 +378,7 @@ func Test_ExtractKidFromJWEMessage_InvalidMessage(t *testing.T) {
 	// Create JWE message without proper headers will fail during extraction.
 	// Parse a minimal JWE message (this will be invalid but not nil).
 	jweCompact := "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4R0NNIn0..invalid.invalid.invalid"
+
 	jweMessage, err := joseJwe.Parse([]byte(jweCompact))
 	if err == nil {
 		// If parse succeeds, extraction should still fail due to missing KID.

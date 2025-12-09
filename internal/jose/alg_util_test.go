@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package jose
 
 import (
@@ -20,6 +22,7 @@ func TestIsJWEAlg(t *testing.T) {
 			name: "valid JWE key encryption algorithm - RSA-OAEP",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.RSA_OAEP()
+
 				return &alg
 			}(),
 			want:    true,
@@ -29,6 +32,7 @@ func TestIsJWEAlg(t *testing.T) {
 			name: "valid JWE key encryption algorithm - A128KW",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.A128KW()
+
 				return &alg
 			}(),
 			want:    true,
@@ -38,6 +42,7 @@ func TestIsJWEAlg(t *testing.T) {
 			name: "not a JWE algorithm - signature algorithm RS256",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.RS256()
+
 				return &alg
 			}(),
 			want:    false,
@@ -47,6 +52,7 @@ func TestIsJWEAlg(t *testing.T) {
 			name: "not a JWE algorithm - signature algorithm EdDSA",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.EdDSA()
+
 				return &alg
 			}(),
 			want:    false,
@@ -61,7 +67,7 @@ func TestIsJWEAlg(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -91,6 +97,7 @@ func TestIsJWSAlg(t *testing.T) {
 			name: "valid JWS signature algorithm - RS256",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.RS256()
+
 				return &alg
 			}(),
 			want:    true,
@@ -100,6 +107,7 @@ func TestIsJWSAlg(t *testing.T) {
 			name: "valid JWS signature algorithm - EdDSA",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.EdDSA()
+
 				return &alg
 			}(),
 			want:    true,
@@ -109,6 +117,7 @@ func TestIsJWSAlg(t *testing.T) {
 			name: "valid JWS signature algorithm - HS256",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.HS256()
+
 				return &alg
 			}(),
 			want:    true,
@@ -118,6 +127,7 @@ func TestIsJWSAlg(t *testing.T) {
 			name: "not a JWS algorithm - key encryption algorithm RSA-OAEP",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.RSA_OAEP()
+
 				return &alg
 			}(),
 			want:    false,
@@ -127,6 +137,7 @@ func TestIsJWSAlg(t *testing.T) {
 			name: "not a JWS algorithm - key encryption algorithm A128KW",
 			alg: func() *joseJwa.KeyAlgorithm {
 				var alg joseJwa.KeyAlgorithm = joseJwa.A128KW()
+
 				return &alg
 			}(),
 			want:    false,
@@ -141,7 +152,7 @@ func TestIsJWSAlg(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

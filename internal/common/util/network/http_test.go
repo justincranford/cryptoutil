@@ -4,8 +4,6 @@ package network
 
 import (
 	"context"
-	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -319,6 +317,7 @@ func TestHTTPResponse_BodyCloseError(t *testing.T) {
 		flusher, ok := w.(http.Flusher)
 		require.True(t, ok)
 		flusher.Flush()
+
 		_, _ = w.Write([]byte("OK"))
 	}))
 	defer server.Close()
@@ -332,15 +331,6 @@ func TestHTTPResponse_BodyCloseError(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("OK"), body)
-}
-
-// failingReadCloser wraps an io.Reader and fails on Close().
-type failingReadCloser struct {
-	io.Reader
-}
-
-func (f *failingReadCloser) Close() error {
-	return errors.New("close failed")
 }
 
 func TestHTTPResponse_ReadBodyError(t *testing.T) {

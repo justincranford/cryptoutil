@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package keygen
 
 import (
@@ -64,8 +66,12 @@ func TestRSAKeyGenerationProperties(t *testing.T) {
 				return false
 			}
 
-			rsaPriv1 := keyPair1.Private.(*rsa.PrivateKey)
-			rsaPriv2 := keyPair2.Private.(*rsa.PrivateKey)
+			rsaPriv1, ok1 := keyPair1.Private.(*rsa.PrivateKey)
+
+			rsaPriv2, ok2 := keyPair2.Private.(*rsa.PrivateKey)
+			if !ok1 || !ok2 {
+				return false
+			}
 
 			// Different keys should have different moduli
 			return rsaPriv1.N.Cmp(rsaPriv2.N) != 0
@@ -129,8 +135,12 @@ func TestECDSAKeyGenerationProperties(t *testing.T) {
 				return false
 			}
 
-			ecdsaPriv1 := keyPair1.Private.(*ecdsa.PrivateKey)
-			ecdsaPriv2 := keyPair2.Private.(*ecdsa.PrivateKey)
+			ecdsaPriv1, ok1 := keyPair1.Private.(*ecdsa.PrivateKey)
+
+			ecdsaPriv2, ok2 := keyPair2.Private.(*ecdsa.PrivateKey)
+			if !ok1 || !ok2 {
+				return false
+			}
 
 			// Different keys should have different private values
 			return ecdsaPriv1.D.Cmp(ecdsaPriv2.D) != 0
@@ -210,8 +220,12 @@ func TestEdDSAKeyGenerationProperties(t *testing.T) {
 				return false
 			}
 
-			edPriv1 := keyPair1.Private.(ed25519.PrivateKey)
-			edPriv2 := keyPair2.Private.(ed25519.PrivateKey)
+			edPriv1, ok1 := keyPair1.Private.(ed25519.PrivateKey)
+
+			edPriv2, ok2 := keyPair2.Private.(ed25519.PrivateKey)
+			if !ok1 || !ok2 {
+				return false
+			}
 
 			// Different keys should have different private key bytes
 			for i := 0; i < ed25519.PrivateKeySize; i++ {

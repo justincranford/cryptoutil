@@ -30,7 +30,6 @@ func TestGenerateRSAJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -63,7 +62,6 @@ func TestGenerateECDSAJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -96,7 +94,6 @@ func TestGenerateECDHJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -146,7 +143,6 @@ func TestGenerateAESJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -179,7 +175,6 @@ func TestGenerateAESHSJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -212,7 +207,6 @@ func TestGenerateHMACJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

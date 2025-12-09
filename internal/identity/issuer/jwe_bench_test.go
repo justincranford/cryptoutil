@@ -1,9 +1,13 @@
+// Copyright (c) 2025 Justin Cranford
+
 package issuer
 
 import (
 	"context"
 	"testing"
 )
+
+const benchmarkPlaintext = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiYXVkIjoidGVzdC1hdWRpZW5jZSJ9.signature"
 
 // BenchmarkJWEEncryptToken benchmarks JWE token encryption.
 func BenchmarkJWEEncryptToken(b *testing.B) {
@@ -23,11 +27,10 @@ func BenchmarkJWEEncryptToken(b *testing.B) {
 		b.Fatalf("failed to create JWE issuer: %v", err)
 	}
 
-	plaintext := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiYXVkIjoidGVzdC1hdWRpZW5jZSJ9.signature"
-
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
-		_, err := jweIssuer.EncryptToken(ctx, plaintext)
+		_, err := jweIssuer.EncryptToken(ctx, benchmarkPlaintext)
 		if err != nil {
 			b.Fatalf("failed to encrypt token: %v", err)
 		}
@@ -52,13 +55,13 @@ func BenchmarkJWEDecryptToken(b *testing.B) {
 		b.Fatalf("failed to create JWE issuer: %v", err)
 	}
 
-	plaintext := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiYXVkIjoidGVzdC1hdWRpZW5jZSJ9.signature"
-	encrypted, err := jweIssuer.EncryptToken(ctx, plaintext)
+	encrypted, err := jweIssuer.EncryptToken(ctx, benchmarkPlaintext)
 	if err != nil {
 		b.Fatalf("failed to encrypt token: %v", err)
 	}
 
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		_, err := jweIssuer.DecryptToken(ctx, encrypted)
 		if err != nil {
@@ -85,11 +88,10 @@ func BenchmarkJWERoundTrip(b *testing.B) {
 		b.Fatalf("failed to create JWE issuer: %v", err)
 	}
 
-	plaintext := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiYXVkIjoidGVzdC1hdWRpZW5jZSJ9.signature"
-
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
-		encrypted, encErr := jweIssuer.EncryptToken(ctx, plaintext)
+		encrypted, encErr := jweIssuer.EncryptToken(ctx, benchmarkPlaintext)
 		if encErr != nil {
 			b.Fatalf("failed to encrypt token: %v", encErr)
 		}

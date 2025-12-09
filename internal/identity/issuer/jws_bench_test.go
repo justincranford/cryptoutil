@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package issuer
 
 import (
@@ -39,6 +41,7 @@ func BenchmarkJWSIssueAccessToken(b *testing.B) {
 	}
 
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		_, err := jwsIssuer.IssueAccessToken(ctx, claims)
 		if err != nil {
@@ -80,6 +83,7 @@ func BenchmarkJWSIssueIDToken(b *testing.B) {
 	}
 
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		_, err := jwsIssuer.IssueIDToken(ctx, claims)
 		if err != nil {
@@ -125,6 +129,7 @@ func BenchmarkJWSValidateToken(b *testing.B) {
 	}
 
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		_, err := jwsIssuer.ValidateToken(ctx, token)
 		if err != nil {

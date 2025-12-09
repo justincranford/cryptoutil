@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/asn1"
-	"io"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -142,11 +141,4 @@ func createValidTimestampRequest(t *testing.T) []byte {
 	require.NoError(t, err)
 
 	return der
-}
-
-// failingReader always returns an error when reading.
-type failingReader struct{}
-
-func (f *failingReader) Read(_ []byte) (n int, err error) {
-	return 0, io.ErrUnexpectedEOF
 }

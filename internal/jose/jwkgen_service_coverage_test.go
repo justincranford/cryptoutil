@@ -38,7 +38,6 @@ func TestJWKGenService_GenerateJWK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -88,7 +87,6 @@ func TestJWKGenService_GenerateJWEJWK_AllAlgorithms(t *testing.T) {
 	}
 
 	for _, tc := range dirTests {
-
 		t.Run(tc.enc.String()+"_"+tc.alg.String(), func(t *testing.T) {
 			t.Parallel()
 
@@ -110,7 +108,6 @@ func TestJWKGenService_GenerateJWEJWK_AllAlgorithms(t *testing.T) {
 	}
 
 	for _, tc := range aesTests {
-
 		t.Run(tc.alg.String(), func(t *testing.T) {
 			t.Parallel()
 
@@ -131,7 +128,6 @@ func TestJWKGenService_GenerateJWEJWK_AllAlgorithms(t *testing.T) {
 	}
 
 	for _, tc := range rsaTests {
-
 		t.Run(tc.alg.String(), func(t *testing.T) {
 			t.Parallel()
 
@@ -152,7 +148,6 @@ func TestJWKGenService_GenerateJWEJWK_AllAlgorithms(t *testing.T) {
 	}
 
 	for _, tc := range ecdhTests {
-
 		t.Run(tc.alg.String(), func(t *testing.T) {
 			t.Parallel()
 
@@ -195,7 +190,6 @@ func TestJWKGenService_GenerateJWSJWK_AllAlgorithms(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.alg.String(), func(t *testing.T) {
 			t.Parallel()
 
@@ -266,7 +260,6 @@ func TestJWKGenService_NewJWKGenService_ErrorPaths(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
