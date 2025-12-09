@@ -371,7 +371,17 @@
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
-**Status**: ⚠️ IN PROGRESS (85.0% achieved, +2.7% from baseline)
+**Status**: ⚠️ IN PROGRESS (85.0% achieved, +2.7% from baseline, commit 2ac836d1)
+
+**Current Progress**:
+
+- ✅ Created handler_coverage_test.go (algorithm coverage tests)
+- ✅ Created handler_error_paths_test.go (error response tests)
+- ✅ Created handler_tsa_test.go (TSA timestamp tests, no service)
+- ✅ Created handler_ocsp_test.go (OCSP tests, no service)
+- ✅ Created handler_est_csrattrs_test.go (EST CSR attrs test)
+- ⚠️ Coverage stuck at 85.0% - uncovered paths require complex service setup (TSA, OCSP, CRL services)
+- ⏳ Need +10% more coverage to reach 95% target
 
 **Acceptance Criteria**:
 
@@ -380,9 +390,13 @@
 - Use table-driven tests with `t.Parallel()`
 - Coverage ≥95%
 
-**Files to Create/Modify**:
+**Files Created**:
 
-- `internal/ca/handler/*_test.go`
+- `internal/ca/api/handler/handler_coverage_test.go` (commit d6cfb7ac)
+- `internal/ca/api/handler/handler_error_paths_test.go` (commit 2ac836d1)
+- `internal/ca/api/handler/handler_tsa_test.go` (commit 2ac836d1)
+- `internal/ca/api/handler/handler_ocsp_test.go` (commit 2ac836d1)
+- `internal/ca/api/handler/handler_est_csrattrs_test.go` (commit 2ac836d1)
 
 ---
 
