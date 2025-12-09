@@ -137,16 +137,80 @@ func requireJWSMessageHeaders(t *testing.T, jwsMessage *joseJws.Message, jwsJWKK
 }
 
 func Test_SadPath_SignBytes_NilKey(t *testing.T) {
+	t.Parallel()
+
 	_, _, err := SignBytes(nil, []byte("test"))
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+}
+
+func Test_SadPath_SignBytes_EmptyKeys(t *testing.T) {
+	t.Parallel()
+
+	_, _, err := SignBytes([]joseJwk.Key{}, []byte("test"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+}
+
+func Test_SadPath_SignBytes_NilClearBytes(t *testing.T) {
+	t.Parallel()
+
+	_, jwk, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+
+	_, _, err = SignBytes([]joseJwk.Key{jwk}, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid clearBytes")
+}
+
+func Test_SadPath_SignBytes_EmptyClearBytes(t *testing.T) {
+	t.Parallel()
+
+	_, jwk, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+
+	_, _, err = SignBytes([]joseJwk.Key{jwk}, []byte{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid clearBytes")
+}
+
+func Test_SadPath_SignBytes_InvalidJWK_NotSignKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate encrypt key (not sign key) - use AES key which has enc operation.
+	_, encryptJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA128GCM, &AlgA128KW)
+	require.NoError(t, err)
+
+	_, _, err = SignBytes([]joseJwk.Key{encryptJWK}, []byte("test"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK")
+}
+
+func Test_SadPath_SignBytes_MultipleAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	// Generate two JWKs with different algorithms.
+	_, jwk1, _, _, _, err := GenerateJWSJWKForAlg(&AlgRS256)
+	require.NoError(t, err)
+
+	_, jwk2, _, _, _, err := GenerateJWSJWKForAlg(&AlgES256)
+	require.NoError(t, err)
+
+	_, _, err = SignBytes([]joseJwk.Key{jwk1, jwk2}, []byte("test"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "only one unique 'alg' attribute is allowed")
 }
 
 func Test_SadPath_VerifyBytes_NilKey(t *testing.T) {
+	t.Parallel()
+
 	_, err := VerifyBytes(nil, []byte("ciphertext"))
 	require.Error(t, err)
 }
 
 func Test_SadPath_VerifyBytes_InvalidJWSMessage(t *testing.T) {
+	t.Parallel()
+
 	kid, nonPublicJWSJWK, _, clearNonPublicJWSJWKBytes, _, err := GenerateJWSJWKForAlg(&AlgHS256)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
@@ -271,13 +335,13 @@ func Test_LogJWSInfo_AllHeaders(t *testing.T) {
 			name: "RS256 with all headers",
 			alg:  &AlgRS256,
 			headers: map[string]any{
-				joseJws.KeyIDKey:         "test-kid-" + googleUuid.NewString(),
-				joseJws.TypeKey:          "JWT",
-				joseJws.ContentTypeKey:   "application/json",
-				joseJws.JWKSetURLKey:     "https://example.com/jwks",
-				joseJws.X509URLKey:       "https://example.com/x509",
-				joseJws.CriticalKey:      []string{"exp", "nbf"},
-				"custom-header":          "custom-value",
+				joseJws.KeyIDKey:       "test-kid-" + googleUuid.NewString(),
+				joseJws.TypeKey:        "JWT",
+				joseJws.ContentTypeKey: "application/json",
+				joseJws.JWKSetURLKey:   "https://example.com/jwks",
+				joseJws.X509URLKey:     "https://example.com/x509",
+				joseJws.CriticalKey:    []string{"exp", "nbf"},
+				"custom-header":        "custom-value",
 			},
 		},
 		{
