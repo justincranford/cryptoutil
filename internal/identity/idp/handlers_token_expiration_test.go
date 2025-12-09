@@ -239,7 +239,7 @@ func TestTokenExpiration(t *testing.T) {
 			req.Header.Set("Authorization", "Bearer "+tokenValue)
 
 			// Execute request.
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() {

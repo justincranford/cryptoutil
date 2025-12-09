@@ -53,7 +53,7 @@ func TestHandleHealth_Success(t *testing.T) {
 	req := httptest.NewRequest("GET", "/health", nil)
 
 	// Execute request.
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request failed")
 
 	defer func() { //nolint:errcheck // Test cleanup - error intentionally ignored
@@ -106,7 +106,7 @@ func TestHandleHealth_DatabaseUnavailable(t *testing.T) {
 	req := httptest.NewRequest("GET", "/health", nil)
 
 	// Execute request.
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request failed")
 
 	defer func() { //nolint:errcheck // Test cleanup - error intentionally ignored
