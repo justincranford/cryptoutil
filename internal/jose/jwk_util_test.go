@@ -501,3 +501,12 @@ func TestEnsureSignatureAlgorithmType_InvalidAlgorithm(t *testing.T) {
 	// The actual error is about getting algorithm from JWK.
 	require.Contains(t, err.Error(), "failed to get algorithm from JWK")
 }
+
+func Test_EnsureSignatureAlgorithmType_NilJWK(t *testing.T) {
+	t.Parallel()
+
+	err := EnsureSignatureAlgorithmType(nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "JWK invalid")
+}
+
