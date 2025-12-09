@@ -36,7 +36,7 @@ runs:
         TIMEOUT="${{ inputs.timeout_seconds }}s"
         GOMAXPROCS="${{ inputs.gomaxprocs }}"
         echo "⏱️ Configured: fuzztime=${FUZZTIME}, timeout=${TIMEOUT}, gomaxprocs=${GOMAXPROCS}"
-        GOMAXPROCS=${GOMAXPROCS} go test -fuzz=${{ inputs.fuzz_function_name }} -fuzztime=${FUZZTIME} -timeout=${TIMEOUT} ${{ inputs.package_path }}
+        GOMAXPROCS=${GOMAXPROCS} go test -tags=fuzz -fuzz=${{ inputs.fuzz_function_name }} -fuzztime=${FUZZTIME} -timeout=${TIMEOUT} ${{ inputs.package_path }}
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
