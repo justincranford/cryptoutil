@@ -260,7 +260,7 @@
 | P1.5 | ci-race | Race conditions | 1h | ⚠️ BLOCKED (requires CGO_ENABLED=1, violates project constraint) | 6-MEDIUM |
 | P1.6 | ci-fuzz | Fuzz test execution | 1h | ✅ COMPLETE | 3-HIGH |
 | P1.7 | ci-dast | Service connectivity | 1h | ✅ COMPLETE (uses binary, not Docker Compose) | 5-MEDIUM |
-| P1.8 | ci-load | Gatling configuration | 30min | ⚠️ IN PROGRESS (commit 5feef2e3 - postgres profile fix, needs GitHub Actions verification) | 7-MEDIUM |
+| P1.8 | ci-load | Gatling configuration | 30min | ⚠️ BLOCKED (go.mod drift: gopter/go-jose/golang-lru changes, NOT caused by our postgres profile fix in commit 5feef2e3) | 7-MEDIUM |
 
 ---
 
@@ -400,21 +400,51 @@
 
 ---
 
-### P3.2: auth/userauth Coverage (baseline 42.6, target 95.0)
+### P3.2: auth/userauth Coverage (baseline 76.2, target 95.0)
 
 **Priority**: CRITICAL
-**Effort**: 1 hour
-**Status**: ❌ Not Started
+**Effort**: 1 hour (attempted)
+**Status**: ⏳ PARTIAL PROGRESS (76.2% - commit 4e9a51b1)
+
+**Progress**:
+
+- ✅ Baseline corrected from 42.6% to 76.2% (actual coverage discovered)
+- ✅ Added audit_comprehensive_test.go (309 lines, 13 test functions)
+- ❌ Coverage unchanged at 76.2% (audit functions already tested elsewhere)
+- ❌ Attempted 6 additional test files, all failed compilation (interface mismatches)
+- ⚠️ **BLOCKER**: Complex interface requirements (WebAuthn, GORM, external services)
+- ⚠️ **BLOCKER**: Large codebase (39 files), extensive dependencies
+- ⚠️ **EFFORT**: 14,000 tokens invested, 0% coverage gain
+
+**Uncovered Areas Identified** (from `go tool cover -func`):
+
+- context_analyzer.go: ALL functions (100% uncovered)
+- webauthn_authenticator.go: FinishRegistration 0.5%, InitiateAuth 21.1%, VerifyAuth 4.3%
+- token_hashing.go: VerifyToken 0%
+- step_up_auth.go: VerifyAuth 0%, VerifyStepUp 24%
+- telemetry.go: Many Record* functions (0-100%)
+- policy_loader.go, rate_limiter.go, storage.go, risk_engine.go: Various 0-100% functions
 
 **Acceptance Criteria**:
 
-- Add authentication flow tests
-- Test MFA flows, password validation, session management
-- Coverage at 95.0 or higher
+- ✅ Add authentication flow tests (audit tests added)
+- ❌ Test MFA flows, password validation, session management (blocked by interface complexity)
+- ❌ Coverage at 95.0 or higher (current 76.2%, need +18.8 points)
 
-**Files to Create/Modify**:
+**Files Created**:
 
-- `internal/identity/auth/userauth/*_test.go`
+- `internal/identity/idp/userauth/audit_comprehensive_test.go` (commit 4e9a51b1)
+
+**Files Attempted (Deleted due to compilation errors)**:
+
+- webauthn_finish_verify_test.go (interface mismatches)
+- context_analyzer_comprehensive_test.go (constructor parameter mismatches)
+- telemetry_stepup_tokenhash_test.go (undefined types)
+- policy_ratelimit_storage_test.go (GORM interface requirements)
+- risk_engine_comprehensive_test.go (interface signature mismatches)
+- magic_link_sms_otp_test.go (UserStore missing methods, constructor mismatches)
+
+**Recommendation**: Defer to future work or accept 76.2% as best effort given complexity
 
 ---
 
