@@ -1780,8 +1780,7 @@ func TestGetCAWithRealIssuer(t *testing.T) {
 		require.NoError(t, err)
 		require.Contains(t, string(body), "test-ca")
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
@@ -1792,8 +1791,7 @@ func TestGetCAWithRealIssuer(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -1887,8 +1885,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("MissingCSR", func(t *testing.T) {
@@ -1901,8 +1898,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("MissingProfile", func(t *testing.T) {
@@ -1915,8 +1911,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("UnknownProfile", func(t *testing.T) {
@@ -1931,8 +1926,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("InvalidCSR", func(t *testing.T) {
@@ -1945,8 +1939,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusUnprocessableEntity, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -2005,8 +1998,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		require.NoError(t, readErr)
 		require.Contains(t, string(body), "-----BEGIN CERTIFICATE-----")
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("SuccessfulEnrollmentWithBase64", func(t *testing.T) {
@@ -2023,8 +2015,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		require.NoError(t, readErr)
 		require.Contains(t, string(body), "-----BEGIN CERTIFICATE-----")
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("SuccessfulEnrollmentWithPEM", func(t *testing.T) {
@@ -2044,8 +2035,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		require.NoError(t, readErr)
 		require.Contains(t, string(body), "-----BEGIN CERTIFICATE-----")
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("InvalidCSR", func(t *testing.T) {
@@ -2057,8 +2047,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -2163,8 +2152,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 		// Response should be PKCS#7 format containing certificate and key.
 		require.Equal(t, "application/pkcs7-mime; smime-type=server-generated-key", resp.Header.Get("Content-Type"))
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("SuccessfulServerKeyGenWithBase64", func(t *testing.T) {
@@ -2181,8 +2169,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 		require.NoError(t, readErr)
 		require.NotEmpty(t, body)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("InvalidCSRFormat", func(t *testing.T) {
@@ -2193,8 +2180,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -2239,8 +2225,7 @@ func TestTsaTimestampWithService(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("InvalidDERRequest", func(t *testing.T) {
@@ -2252,8 +2237,7 @@ func TestTsaTimestampWithService(t *testing.T) {
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
@@ -2396,8 +2380,7 @@ func TestHandleOCSPWithService(t *testing.T) {
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 
 	t.Run("InvalidOCSPRequest", func(t *testing.T) {
@@ -2410,8 +2393,7 @@ func TestHandleOCSPWithService(t *testing.T) {
 		// Invalid request returns error status with OCSP content type.
 		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
 
-		err = resp.Body.Close()
-		require.NoError(t, err)
+		require.NoError(t, resp.Body.Close())
 	})
 }
 
