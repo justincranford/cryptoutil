@@ -510,3 +510,34 @@ func Test_EnsureSignatureAlgorithmType_NilJWK(t *testing.T) {
 	require.Contains(t, err.Error(), "JWK invalid")
 }
 
+func TestExtractAlg_NilJWK(t *testing.T) {
+	t.Parallel()
+
+	// Test nil JWK.
+	extractedAlg, err := ExtractAlg(nil)
+	require.Error(t, err)
+	require.Nil(t, extractedAlg)
+	require.Contains(t, err.Error(), "invalid jwk")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestExtractAlg_JWKMissingAlgHeader(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK without algorithm header.
+	keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	require.NoError(t, err)
+
+	rsaPrivateKey, ok := keyPair.Private.(*rsa.PrivateKey)
+	require.True(t, ok)
+
+	// Create JWK from RSA private key WITHOUT setting algorithm.
+	privateJWK, err := joseJwk.Import(rsaPrivateKey)
+	require.NoError(t, err)
+
+	// Extract algorithm should fail because alg header missing.
+	extractedAlg, err := ExtractAlg(privateJWK)
+	require.Error(t, err)
+	require.Nil(t, extractedAlg)
+	require.Contains(t, err.Error(), "failed to get alg header")
+}
