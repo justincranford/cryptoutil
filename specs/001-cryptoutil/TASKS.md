@@ -259,8 +259,8 @@
 | P1.4 | ci-benchmark | Benchmark baselines | 1h | ✅ COMPLETE | 2-HIGH |
 | P1.5 | ci-race | Race conditions | 1h | ⚠️ BLOCKED (requires CGO_ENABLED=1, violates project constraint) | 6-MEDIUM |
 | P1.6 | ci-fuzz | Fuzz test execution | 1h | ✅ COMPLETE | 3-HIGH |
-| P1.7 | ci-dast | Service connectivity | 1h | ❌ NOT STARTED | 5-MEDIUM |
-| P1.8 | ci-load | Gatling configuration | 30min | ❌ NOT STARTED | 7-MEDIUM |
+| P1.7 | ci-dast | Service connectivity | 1h | ✅ COMPLETE (uses binary, not Docker Compose) | 5-MEDIUM |
+| P1.8 | ci-load | Gatling configuration | 30min | ⚠️ IN PROGRESS (commit 5feef2e3 - postgres profile fix, needs GitHub Actions verification) | 7-MEDIUM |
 
 ---
 
