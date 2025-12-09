@@ -109,17 +109,18 @@ RUN git rev-parse HEAD > /app/.vcs-ref && \
 #############################################################################################
 FROM alpine:${ALPINE_VERSION} AS runtime-deps
 WORKDIR /root/ssl
-# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
+    # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk --no-cache add ca-certificates tzdata tini wget && \
-    apk --no-cache del wget && \
-    apk --no-cache add wget-ssl && \
+    apk --no-cache add ca-certificates tzdata tini curl && \
     update-ca-certificates
 
-#############################################################################################
 # If shell needed for debugging final image, use alpine instead of scratch
 FROM alpine:${ALPINE_VERSION} AS final
 # FROM scratch
+
+# Install curl for health checks
+# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
+RUN apk --no-cache add curl
 
 # Copy apk installed dependencies from runtime-deps
 COPY --from=runtime-deps /sbin/tini /sbin/tini
