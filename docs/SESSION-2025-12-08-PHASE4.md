@@ -13,6 +13,7 @@
 **Commits**: 5a3c66dc, 351fca4c
 
 **Files Created**:
+
 1. `internal/common/crypto/digests/digests_property_test.go` (153 lines)
    - 6 properties for HKDF and SHA-256
    - HKDF determinism, output length correctness, avalanche effect
@@ -29,9 +30,11 @@
    - HMAC (256/384/512 bits): correct sizes, uniqueness
 
 **Dependencies Added**:
+
 - `github.com/leanovate/gopter@v0.2.11` (property-based testing framework)
 
 **Test Results**:
+
 - All 18 properties pass 100 tests each
 - Total test time: ~73s (RSA key generation dominates)
 - Validates cryptographic correctness through property testing
@@ -41,6 +44,7 @@
 **Commit**: bded619c
 
 **Files Updated**:
+
 1. `specs/001-cryptoutil/TASKS.md`
    - Phase 4.1: Marked PARTIAL (5 benchmark files exist, 3 needed)
    - Phase 4.2: Marked PARTIAL (5 fuzz files exist, 2 needed)
@@ -57,15 +61,17 @@
 ### Coverage Analysis Performed
 
 **CA Handler Coverage**: 82.3 of 95.0 target
+
 - Generated coverage report: `test-output/ca_handler.cov`
 - Analyzed uncovered functions:
-  * `generateKeyPairFromCSR`: 26.7 of 100.0 (RSA/ECDSA/Ed25519 paths)
-  * `encodePrivateKeyPEM`: 50.0 of 100.0 (key encoding paths)
-  * `EstCSRAttrs`: 66.7 of 100.0 (EST attributes)
-  * `EstCACerts`: 83.3 of 100.0 (EST CA certs)
-  * Most functions 70.0 to 88.0 of 100.0 coverage
+  - `generateKeyPairFromCSR`: 26.7 of 100.0 (RSA/ECDSA/Ed25519 paths)
+  - `encodePrivateKeyPEM`: 50.0 of 100.0 (key encoding paths)
+  - `EstCSRAttrs`: 66.7 of 100.0 (EST attributes)
+  - `EstCACerts`: 83.3 of 100.0 (EST CA certs)
+  - Most functions 70.0 to 88.0 of 100.0 coverage
 
 **Gap Identified**: Need test cases for:
+
 - RSA serverkeygen path (only ECDSA tested)
 - Ed25519 serverkeygen path (only ECDSA tested)
 - Error paths in key generation functions
@@ -77,20 +83,23 @@
 ### Phase 4: Advanced Testing (3.5 tasks remaining)
 
 **P4.1: Benchmark Tests** (⚠️ PARTIAL, ~1h remaining)
+
 - ✅ Existing: keygen, digests (HKDF/SHA2), businesslogic, authz
 - ❌ Missing:
-  * JWS/JWE issuer benchmarks (sign/verify, encrypt/decrypt)
-  * CA handler benchmarks (certificate issuance, revocation)
-  * Identity token benchmarks (OAuth token generation)
+  - JWS/JWE issuer benchmarks (sign/verify, encrypt/decrypt)
+  - CA handler benchmarks (certificate issuance, revocation)
+  - Identity token benchmarks (OAuth token generation)
 
 **P4.2: Fuzz Tests** (⚠️ PARTIAL, ~1h remaining)
+
 - ✅ Existing: JWS/JWE issuer, keygen, digests (HKDF/SHA2)
 - ❌ Missing:
-  * JWT parser fuzz tests
-  * CA certificate/CSR parser fuzz tests
-  * X.509 attribute parser fuzz tests
+  - JWT parser fuzz tests
+  - CA certificate/CSR parser fuzz tests
+  - X.509 attribute parser fuzz tests
 
 **P4.4: Mutation Testing** (❌ NOT STARTED, ~2-4h)
+
 - Target: ≥80.0 gremlins score per package
 - Command: `gremlins unleash --tags=!integration`
 - Focus: Business logic, crypto operations, parsers, validators
@@ -99,20 +108,23 @@
 ### Phase 3: Coverage Targets (5 tasks, ~6-10h)
 
 **P3.1: ca/handler** (baseline 82.3, target 95.0, ~2h)
+
 - Add test cases for RSA/Ed25519 serverkeygen paths
 - Test EST CSR attributes endpoint
 - Test error handling in key generation
 - Target: increase by 12.7 to reach 95.0
 
 **P3.2: identity/userauth** (baseline 76.2, target 95.0, ~2h)
+
 - Authentication flow tests
 - MFA flow tests
 - Password validation tests
 - Session management tests
-- Target: +18.8% coverage
+- Target: increase by 18.8 to reach 95.0
 
 **P3.3-P3.5**: Other packages (~2-4h)
-- unsealkeysservice: 78% → 95% (+17%)
+
+- unsealkeysservice: baseline 78.0, target 95.0 (increase by 17.0)
 - network: baseline 89.0, target 95.0 (increase by 6.0)
 - jose: baseline 88.4, target 95.0 (increase by 6.6)
 
@@ -121,16 +133,19 @@
 **Return here after Phase 3-4 complete** (per user directive)
 
 **P1.7**: ci-race workflow (~1h)
+
 - Configure race detector: `go test -race ./...`
 - Fix any race conditions detected
 - Update workflow file
 
 **P1.8**: ci-load workflow (~1h)
+
 - Load testing infrastructure setup
 - Performance baseline establishment
 - Gatling integration
 
 **P1.9**: ci-sast workflow (~1h)
+
 - Static analysis tooling (gosec, staticcheck)
 - Security scanning configuration
 - SARIF report upload
@@ -168,29 +183,29 @@
 
 ### Secondary Priority (Phase 3 coverage)
 
-4. **P3.1: CA Handler Coverage** (~2h)
+1. **P3.1: CA Handler Coverage** (~2h)
    - Add RSA serverkeygen test cases
    - Add Ed25519 serverkeygen test cases
    - Test EST CSR attributes endpoint
    - Test error paths in key generation
    - Target: baseline 82.3, target 95.0
 
-5. **P3.2: Identity Userauth Coverage** (~2h)
+2. **P3.2: Identity Userauth Coverage** (~2h)
    - Authentication flow tests
    - MFA flow tests
    - Password validation tests
    - Session management tests
    - Target: baseline 76.2, target 95.0
 
-6. **P3.3-P3.5: Remaining Packages** (~2-4h)
+3. **P3.3-P3.5: Remaining Packages** (~2-4h)
    - unsealkeysservice, network, jose packages
-   - Target: All ≥95.0
+   - Target: All at 95.0 or higher
 
 ### Deferred (Phase 1 workflows)
 
-7. **Return to Phase 1** (after Phase 3-4 complete)
+1. **Return to Phase 1** (after Phase 3-4 complete)
    - ci-race, ci-load, ci-sast workflows
-   - ~2-4h total
+   - Estimate: 2-4 hours total
 
 ## Key Decisions
 

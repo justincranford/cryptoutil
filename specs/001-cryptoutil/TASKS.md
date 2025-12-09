@@ -37,7 +37,7 @@
 - Implement selective execution pattern for local dev
 - Execution time <30s
 - No test failures
-- Coverage increased to 85% or higher
+- Coverage increased to 85.0 or higher
 
 **Files to Modify**:
 
@@ -56,7 +56,7 @@
 - Implement parallel subtests
 - Reduce Fiber app setup/teardown overhead (shared test server instance)
 - Execution time <30s
-- Coverage improved from 56.1% → 85% or higher
+- Coverage from 56.1 to 85.0 or higher
 
 **Files to Modify**:
 
@@ -77,7 +77,7 @@
 - Implement parallel test execution with unique UUIDv7 data isolation
 - Reduce redundant key generation/unsealing operations
 - Execution time <30s
-- Coverage increased at 85% or higher
+- Coverage increased to 85.0 or higher
 - Mocks ONLY acceptable for hard-to-reproduce corner cases
 
 **Files to Modify**:
@@ -95,7 +95,7 @@
 
 **Acceptance Criteria**:
 
-- Increase coverage 48.8% → 85% or higher FIRST
+- Increase coverage from 48.8 to 85.0 or higher FIRST
 - Then apply parallel execution
 - Reduce cryptographic operation redundancy
 - Execution time <15s
@@ -118,7 +118,7 @@
 - Use dynamic port allocation pattern
 - Reduce test server setup/teardown overhead
 - Execution time <10s
-- Coverage improved from 64.7% → 85%
+- Coverage from 64.7 to 85.0
 
 **Files to Modify**:
 
@@ -137,7 +137,7 @@
 - Review and improve test data isolation (already uses t.Parallel())
 - Reduce database transaction overhead
 - Execution time <10s
-- Coverage increased to 85% or higher
+- Coverage increased to 85.0 or higher
 
 **Files to Modify**:
 
@@ -153,7 +153,7 @@
 
 **Acceptance Criteria**:
 
-- Improve coverage from 54.9% → 85%+ FIRST
+- Improve coverage from 54.9 to 85.0 or higher FIRST
 - Reduce database setup time (use in-memory SQLite)
 - Implement parallel test execution
 - Execution time <10s
@@ -172,8 +172,8 @@
 
 **Acceptance Criteria**:
 
+- Apply parallelization where safe (coverage already at 85.6)
 - Review infrastructure test patterns
-- Apply parallelization where safe
 - Execution time <10s
 
 **Files to Modify**:
@@ -229,7 +229,7 @@
 - Parallelize crypto operations tests
 - Reduce key generation redundancy
 - Execution time <10s
-- Coverage improved from 75.5% → 85%+
+- Coverage from 75.5 to 85.0 or higher
 
 **Files to Modify**:
 
@@ -278,7 +278,7 @@
 - Test all 10 JOSE API endpoints end-to-end
 - Integration with Docker Compose
 - Tests execute in <2 minutes
-- Coverage >95% for JOSE server package
+- Coverage greater than 95.0 for JOSE server package
 
 **Files to Create**:
 
@@ -367,11 +367,11 @@
 
 ## Phase 3: Achieve Coverage Targets (5 tasks, 2-3h)
 
-### P3.1: ca/handler Coverage (82.3% → 95%)
+### P3.1: ca/handler Coverage (baseline 82.3, target 95.0)
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
-**Status**: ⚠️ IN PROGRESS (85.0% achieved, +2.7% from baseline, commit 2ac836d1)
+**Status**: ⚠️ IN PROGRESS (current 85.0, increased by 2.7 from baseline, commit 2ac836d1)
 
 **Current Progress**:
 
@@ -388,7 +388,7 @@
 - Add tests for all CA handler endpoints
 - Test happy paths and error paths
 - Use table-driven tests with `t.Parallel()`
-- Coverage ≥95%
+- Coverage at 95.0 or higher
 
 **Files Created**:
 
@@ -400,7 +400,7 @@
 
 ---
 
-### P3.2: auth/userauth Coverage (42.6% → 95%)
+### P3.2: auth/userauth Coverage (baseline 42.6, target 95.0)
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
@@ -410,7 +410,7 @@
 
 - Add authentication flow tests
 - Test MFA flows, password validation, session management
-- Coverage ≥95%
+- Coverage at 95.0 or higher
 
 **Files to Create/Modify**:
 
@@ -418,7 +418,7 @@
 
 ---
 
-### P3.3: unsealkeysservice Coverage (78.2% → 95%)
+### P3.3: unsealkeysservice Coverage (baseline 78.2, target 95.0)
 
 **Priority**: MEDIUM
 **Effort**: 30 minutes
@@ -428,22 +428,22 @@
 
 - Add edge case tests
 - Test error handling
-- Coverage ≥95%
+- Coverage at 95.0 or higher
 
 ---
 
-### P3.4: network Coverage (88.7% → 95%)
+### P3.4: network Coverage (baseline 88.7, target 95.0)
 
 **Priority**: MEDIUM
 **Effort**: 30 minutes
-**Status**: ✅ COMPLETE (95.2% achieved, commit c07b2303)
+**Status**: ✅ COMPLETE (current 95.2, commit c07b2303)
 
 **Completion Details**:
 
 - Added error path tests for HTTPGetLivez, HTTPGetReadyz, HTTPPostShutdown
 - Added HTTPResponse_ReadBodyError test (context timeout during read)
 - Added HTTPResponse_HTTPS_SystemDefaults test (system CA verification)
-- Coverage improved 88.7% → 95.2% (+6.5%)
+- Coverage from 88.7 to 95.2 (increased by 6.5)
 
 **Files Modified**:
 
@@ -453,11 +453,11 @@
 
 - ✅ Add error path tests
 - ✅ Test network failure scenarios
-- ✅ Coverage ≥95% (achieved 95.2%)
+- ✅ Coverage at 95.0 or higher (achieved 95.2)
 
 ---
 
-### P3.5: Verify apperr Coverage (96.6%)
+### P3.5: Verify apperr Coverage (current 96.6)
 
 **Priority**: LOW
 **Effort**: 5 minutes
@@ -465,7 +465,7 @@
 
 **Acceptance Criteria**:
 
-- Verify current coverage ≥95% (already at 96.6%)
+- Verify current coverage at 95.0 or higher (currently at 96.6)
 - No action required
 
 ---
