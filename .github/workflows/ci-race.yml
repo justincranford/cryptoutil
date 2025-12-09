@@ -2,15 +2,17 @@
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
 name: CI - Race Condition Detection
-# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
-# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow
+# MUST use relative paths to support both GitHub Actions Ubuntu runners
+# and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
 # Example: Use './deployments/compose/compose.yml'
 
 on:
   push:
     branches: [ main, develop ]
-    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    # SHARED PATHS-IGNORE CONFIGURATION
+    # Keep synchronized with pull_request below
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -29,7 +31,8 @@ on:
       - '**/*.sarif'
   pull_request:
     branches: [ main, develop ]
-    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    # SHARED PATHS-IGNORE CONFIGURATION
+    # Keep synchronized with push above
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -48,10 +51,33 @@ on:
       - '**/*.sarif'
   workflow_dispatch:
 
+env:
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
+  POSTGRES_NAME: cryptoutil_test
+  POSTGRES_USER: cryptoutil
+  POSTGRES_PASS: cryptoutil_test_password
+
 jobs:
   race-condition-detection:
     name: Race Condition Detection
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_NAME }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASS }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     env:
       CGO_ENABLED: 1  # Required for race detector (Go toolchain limitation)
 
@@ -88,8 +114,10 @@ jobs:
 
       - name: Race condition detection test summary
         run: |
-          echo "## 🔄 Race Condition Detection Results" >> $GITHUB_STEP_SUMMARY
-          echo "Race condition tests completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "## 🔄 Race Condition Detection Results" \
+            >> $GITHUB_STEP_SUMMARY
+          echo "Race condition tests completed successfully." \
+            >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
           echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
           echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
