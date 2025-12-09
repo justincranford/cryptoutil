@@ -16,7 +16,7 @@
 
 ### CRITICAL: Execution Mandate
 
-**WORK CONTINUOUSLY until ≥990k tokens OR user says "STOP"**:
+**WORK CONTINUOUSLY until ≥950,000 tokens used OR user says "STOP"**:
 
 - Complete task → immediately start next task
 - Push changes → immediately continue working
@@ -24,7 +24,7 @@
 - NO stopping to provide summaries
 - NO asking for permission between tasks
 - NO pausing after git operations
-- Token budget: 1M tokens, stop at 990k minimum
+- Token budget: 1,000,000 tokens limit, stop at 950,000 tokens used minimum
 
 ---
 

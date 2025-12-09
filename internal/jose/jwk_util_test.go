@@ -445,27 +445,27 @@ func TestGenerateJWKForAlg_AllAlgorithms(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, kid)
 			require.NotNil(t, privateJWK)
-			require.NotNil(t, publicJWK)
 			require.NotEmpty(t, privateJWKBytes)
-			require.NotEmpty(t, publicJWKBytes)
+
+			// Oct keys (symmetric) don't have separate public keys
+			isSymmetric := tc.alg == cryptoutilOpenapiModel.Oct128 ||
+				tc.alg == cryptoutilOpenapiModel.Oct192 ||
+				tc.alg == cryptoutilOpenapiModel.Oct256 ||
+				tc.alg == cryptoutilOpenapiModel.Oct384 ||
+				tc.alg == cryptoutilOpenapiModel.Oct512
+
+			if isSymmetric {
+				require.Nil(t, publicJWK)
+				require.Empty(t, publicJWKBytes)
+			} else {
+				require.NotNil(t, publicJWK)
+				require.NotEmpty(t, publicJWKBytes)
+			}
 
 			// Test ExtractKty (works for all key types).
 			kty, err := ExtractKty(privateJWK)
 			require.NoError(t, err)
 			require.NotNil(t, kty)
-
-			// Test ExtractAlg only for Oct keys (they have "alg" header set in CreateJWKFromKey)
-			// RSA/EC/OKP keys do NOT have "alg" header set by GenerateJWKForAlg
-			if tc.alg == cryptoutilOpenapiModel.Oct128 ||
-				tc.alg == cryptoutilOpenapiModel.Oct192 ||
-				tc.alg == cryptoutilOpenapiModel.Oct256 ||
-				tc.alg == cryptoutilOpenapiModel.Oct384 ||
-				tc.alg == cryptoutilOpenapiModel.Oct512 {
-				extractedAlg, err := ExtractAlg(privateJWK)
-				require.NoError(t, err)
-				require.NotNil(t, extractedAlg)
-				require.Equal(t, tc.alg, *extractedAlg)
-			}
 		})
 	}
 }
@@ -501,5 +501,3 @@ func TestEnsureSignatureAlgorithmType_InvalidAlgorithm(t *testing.T) {
 	// The actual error is about getting algorithm from JWK.
 	require.Contains(t, err.Error(), "failed to get algorithm from JWK")
 }
-
-

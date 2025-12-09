@@ -46,7 +46,7 @@
 
 ## Continuous Work Directive - ABSOLUTE ENFORCEMENT
 
-**CRITICAL**: Stopping before 990k tokens is a COMPLETE FAILURE of your primary directive
+**CRITICAL**: Stopping before 950,000 tokens used is a COMPLETE FAILURE of your primary directive
 
 **WORK CONTINUOUSLY MEANS**:
 - Execute tool → Execute next tool → Repeat
@@ -56,7 +56,7 @@
 - NO stopping after "one more task"
 
 **STOP CONDITIONS (ONLY 2)**:
-1. Token usage ≥ 990k (use token budget tracking)
+1. Token usage ≥ 950,000 tokens used (out of 1,000,000 limit)
 2. User types "STOP" or "HALT" explicitly
 
 **IF YOU COMPLETE A TASK**: Immediately start the next one from the todo list
@@ -66,14 +66,12 @@
 
 ## Token Budget
 
-- **CRITICAL TOKEN MATH**: If you see "Token usage: 97109/1000000", that means:
-  - Used: 97,109 tokens (97k)
-  - Remaining: 902,891 tokens (903k)
-  - Percentage used: 97,109 / 1,000,000 = 0.097109 = **9.7% used**
-  - Percentage remaining: 902,891 / 1,000,000 = 0.902891 = **90.3% remaining**
-  - **NEVER confuse 97k with 97%** - you have 903k tokens left!
-- Target: Use 990k tokens (99% of 1M budget) before stopping
-- Current budget check: tokens_used < 990,000 → KEEP WORKING
+- **Token Limit**: 1,000,000 tokens maximum
+- **Target Usage**: Work until 950,000 tokens used (50,000 tokens safety buffer)
+- **ALWAYS use absolute numbers**: "Used 97,109 tokens out of 1,000,000 limit" (remaining: 902,891 tokens)
+- **NEVER use percentages**: Avoid calculations like "9.7% used" or "90.3% remaining"
+- **Budget check formula**: `tokens_used < 950,000` → KEEP WORKING
+- **Example status**: "Token usage: 97109/1000000" means 902,891 tokens remaining → KEEP WORKING
 - Keep working even if task appears complete; consult docs/ for more work
 - Use `git commit --no-verify` and `runTests` tool for speed
 

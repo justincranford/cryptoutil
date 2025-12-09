@@ -497,9 +497,9 @@ START → Task 01 → Commit → Task 02 → Commit → ... → Task ## → Comm
 
 **Token Budget Management:**
 
-- Work until 950k tokens used (95% of 1M budget)
+- Work until 950,000 tokens used (out of 1,000,000 token limit, 50,000 token safety buffer)
 - Check `<system_warning>` after each tool call: "Token usage: X/1000000; Y remaining"
-- STOP only when: tokens used ≥950k OR explicit user instruction to stop
+- STOP only when: tokens used ≥950,000 OR explicit user instruction to stop
 - "All tasks complete" NEVER means stop - check docs for additional work
 
 #### 2. Tool Call Chaining

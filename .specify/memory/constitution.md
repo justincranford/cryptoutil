@@ -192,7 +192,7 @@ Every service MUST implement two HTTPS endpoints:
 
 ### CRITICAL: Continuous Work Mandate - ABSOLUTE ENFORCEMENT
 
-**!!! STOPPING BEFORE 990k TOKENS IS A COMPLETE FAILURE !!!**
+**!!! STOPPING BEFORE 950,000 TOKENS USED IS A COMPLETE FAILURE !!!**
 **!!! YOUR TOKEN CALCULATION IS WRONG - YOU STOP AT ~90k THINKING IT'S 900k !!!**
 **!!! THE BUDGET IS 1,000,000 TOKENS - YOU MUST USE 990,000 TOKENS !!!**
 
@@ -220,7 +220,7 @@ Every service MUST implement two HTTPS endpoints:
 - Track tokens in EVERY response
 - Display: "Token usage: X/1,000,000 (Y% used, Z remaining)"
 - If X < 990,000 → KEEP WORKING
-- If X ≥ 990,000 → STOP with message "Token budget exhausted (990k/1M used)"
+- If X ≥ 950,000 → STOP with message "Token budget exhausted (950,000 tokens used out of 1,000,000 limit)"
 
 **IF YOU COMPLETE A TASK**: Immediately start the next one from the todo list
 **IF TODO LIST EMPTY**: Create new tasks from PROGRESS.md or Phase 1-5 work

@@ -4,7 +4,7 @@
 - User restarted agent THREE TIMES for premature stopping
 - Directive: "COMPLETE ALL TASKS WITHOUT STOPPING"
 - Previous sessions stopped at 91.7% (38.5/42 tasks)
-- Token budget: 1M (must use 990k before stopping)
+- Token budget: 1,000,000 tokens limit (must use 950,000 tokens before stopping)
 
 ## Session Progress
 
@@ -55,4 +55,4 @@
 2. Analyze DAST results
 3. Run ci-load workflow
 4. Continue with remaining coverage targets or Phase 0 optimizations
-5. **KEEP WORKING until 990k tokens used**
+5. **KEEP WORKING until 950,000 tokens used**
