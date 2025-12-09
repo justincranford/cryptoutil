@@ -6,6 +6,7 @@ package sqlrepository_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
@@ -21,6 +22,11 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 		t.Skip("Skipping PostgreSQL container test in short mode")
 	}
 
+	// Skip if PostgreSQL not available (ci-race has no services)
+	if os.Getenv("POSTGRES_HOST") == "" {
+		t.Skip("Skipping PostgreSQL test: POSTGRES_HOST not set (PostgreSQL service not available)")
+	}
+
 	t.Parallel()
 
 	tests := []struct {
@@ -34,15 +40,15 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 			name:          "PostgreSQL with disabled container mode and valid URL",
 			containerMode: "disabled",
 			databaseURL:   getTestPostgresURL(),
-			expectError:   true, // ci-race has no PostgreSQL service - expect connection error
-			errorContains: "failed to ping database",
+			expectError:   false, // In CI, PostgreSQL service container is running, so connection succeeds
+			errorContains: "",
 		},
 		{
 			name:          "PostgreSQL with preferred container mode (will start container)",
 			containerMode: "preferred",
 			databaseURL:   getTestPostgresURL(),
-			expectError:   true, // ci-race has no Docker - expect container error
-			errorContains: "failed",
+			expectError:   false, // Container will start successfully when Docker available
+			errorContains: "",
 		},
 	}
 
@@ -132,10 +138,15 @@ func TestNewSQLRepository_PostgreSQL_InvalidURL(t *testing.T) {
 	}
 }
 
-// TestExtractSchemaFromURL_PostgreSQL tests schema extraction from PostgreSQL URLs.
+// TestExtractSchemaFromURL_PostgreSQL tests PostgreSQL URL schema extraction.
 func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping PostgreSQL test in short mode")
+		t.Skip("Skipping PostgreSQL URL parsing test in short mode")
+	}
+
+	// Skip if PostgreSQL not available (ci-race has no services)
+	if os.Getenv("POSTGRES_HOST") == "" {
+		t.Skip("Skipping PostgreSQL test: POSTGRES_HOST not set (PostgreSQL service not available)")
 	}
 
 	t.Parallel()
@@ -159,7 +170,7 @@ func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
 		{
 			name:        "PostgreSQL URL without search_path",
 			databaseURL: getTestPostgresURL(),
-			expectError: true, // ci-race has no PostgreSQL service - expect connection error
+			expectError: false, // In CI, PostgreSQL service container is running with valid schema
 		},
 	}
 

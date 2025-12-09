@@ -280,7 +280,7 @@
   - ✅ Note: JWT/CA parser fuzz tests not needed (stdlib x509/pem handles parsing)
 - [ ] **P4.4**: Mutation testing baseline - 2-4h ❌ Not Started
   - Target: ≥80.0 gremlins score per package
-  - Command: `gremlins unleash --tags=!integration`
+  - Command: `gremlins unleash --tags=!integration,!bench,!fuzz,!e2e,!pbt,!properties`
 
 **Phase Progress**: 3 of 4 tasks - P4.1/P4.2/P4.3 complete, P4.4 pending
 
