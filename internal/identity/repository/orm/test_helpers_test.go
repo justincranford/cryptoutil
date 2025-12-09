@@ -86,6 +86,7 @@ func setupTestDB(t *testing.T) *testDB {
 		&cryptoutilIdentityDomain.ConsentDecision{},
 		&cryptoutilIdentityDomain.MFAFactor{},
 		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.ClientSecretHistory{},
 		&cryptoutilIdentityDomain.KeyRotationEvent{},
 	)
 	require.NoError(t, err)
