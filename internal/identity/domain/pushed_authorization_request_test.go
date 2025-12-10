@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 func TestPushedAuthorizationRequest_IsExpired(t *testing.T) {
@@ -24,7 +24,7 @@ func TestPushedAuthorizationRequest_IsExpired(t *testing.T) {
 	}{
 		{
 			name:        "not expired",
-			expiresAt:   time.Now().UTC().Add(cryptoutilMagic.DefaultPARLifetime),
+			expiresAt:   time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultPARLifetime),
 			wantExpired: false,
 		},
 		{
@@ -35,7 +35,6 @@ func TestPushedAuthorizationRequest_IsExpired(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -74,7 +73,6 @@ func TestPushedAuthorizationRequest_IsUsed(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -83,7 +81,7 @@ func TestPushedAuthorizationRequest_IsUsed(t *testing.T) {
 				RequestURI: "urn:ietf:params:oauth:request_uri:test",
 				ClientID:   googleUuid.New(),
 				Used:       tc.used,
-				ExpiresAt:  time.Now().UTC().Add(cryptoutilMagic.DefaultPARLifetime),
+				ExpiresAt:  time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultPARLifetime),
 				CreatedAt:  time.Now().UTC(),
 			}
 
@@ -102,7 +100,7 @@ func TestPushedAuthorizationRequest_MarkAsUsed(t *testing.T) {
 		ClientID:   googleUuid.New(),
 		Used:       false,
 		UsedAt:     nil,
-		ExpiresAt:  time.Now().UTC().Add(cryptoutilMagic.DefaultPARLifetime),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultPARLifetime),
 		CreatedAt:  time.Now().UTC(),
 	}
 

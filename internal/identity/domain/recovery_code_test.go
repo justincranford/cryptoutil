@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package domain_test
 
@@ -34,7 +33,6 @@ func TestRecoveryCode_IsExpired(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -73,7 +71,6 @@ func TestRecoveryCode_IsUsed(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

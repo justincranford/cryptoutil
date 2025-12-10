@@ -1,10 +1,10 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package orm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -62,7 +62,7 @@ func (r *recoveryCodeRepository) GetByID(ctx context.Context, id googleUuid.UUID
 	if err := getDB(ctx, r.db).WithContext(ctx).
 		Where("id = ?", id.String()).
 		First(&code).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrRecoveryCodeNotFound
 		}
 

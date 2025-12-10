@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 func TestGenerateRequestURI_Format(t *testing.T) {
@@ -18,14 +18,15 @@ func TestGenerateRequestURI_Format(t *testing.T) {
 
 	requestURI, err := GenerateRequestURI()
 	require.NoError(t, err, "should generate request_uri without error")
-	require.True(t, strings.HasPrefix(requestURI, cryptoutilMagic.RequestURIPrefix), "request_uri should start with URN prefix")
-	require.GreaterOrEqual(t, len(requestURI), len(cryptoutilMagic.RequestURIPrefix)+43, "request_uri should be at least 43 chars long (32 bytes base64url)")
+	require.True(t, strings.HasPrefix(requestURI, cryptoutilIdentityMagic.RequestURIPrefix), "request_uri should start with URN prefix")
+	require.GreaterOrEqual(t, len(requestURI), len(cryptoutilIdentityMagic.RequestURIPrefix)+43, "request_uri should be at least 43 chars long (32 bytes base64url)")
 }
 
 func TestGenerateRequestURI_Uniqueness(t *testing.T) {
 	t.Parallel()
 
 	const sampleCount = 1000
+
 	seen := make(map[string]bool, sampleCount)
 
 	for range sampleCount {
@@ -43,7 +44,7 @@ func TestGenerateRequestURI_Length(t *testing.T) {
 	require.NoError(t, err, "should generate request_uri without error")
 
 	// 32 bytes base64url encoded = 43 chars + URN prefix
-	expectedMinLength := len(cryptoutilMagic.RequestURIPrefix) + 43
+	expectedMinLength := len(cryptoutilIdentityMagic.RequestURIPrefix) + 43
 	require.GreaterOrEqual(t, len(requestURI), expectedMinLength, "request_uri should be at least 43 chars (32 bytes base64url)")
 }
 

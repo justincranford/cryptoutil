@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 // Package domain defines core domain models for the identity service.
 package domain

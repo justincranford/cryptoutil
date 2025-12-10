@@ -1,10 +1,10 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package orm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
@@ -42,7 +42,7 @@ func (r *emailOTPRepositoryGORM) GetByUserID(ctx context.Context, userID googleU
 		Order("created_at DESC").
 		First(&otp).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrEmailOTPNotFound
 		}
 
@@ -58,7 +58,7 @@ func (r *emailOTPRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID
 
 	err := getDB(ctx, r.db).WithContext(ctx).First(&otp, "id = ?", id).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrEmailOTPNotFound
 		}
 

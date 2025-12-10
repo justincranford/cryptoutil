@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 //nolint:wrapcheck // Fiber HTTP handlers return framework errors directly
 package authz
@@ -53,6 +52,7 @@ func (s *Service) handleSendEmailOTP(c *fiber.Ctx) error {
 
 	// Verify user exists.
 	ctx := c.Context()
+
 	user, err := s.repoFactory.UserRepository().GetByID(ctx, userID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -102,6 +102,7 @@ func (s *Service) handleVerifyEmailOTP(c *fiber.Ctx) error {
 
 	// Verify OTP using email OTP service.
 	ctx := c.Context()
+
 	emailOTPService := s.emailOTPService
 	if err := emailOTPService.VerifyOTP(ctx, userID, req.Code); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

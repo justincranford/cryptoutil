@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package mfa
 
@@ -13,7 +12,7 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // RecoveryCodeRepository defines minimal repository interface.
@@ -47,7 +46,7 @@ func (s *RecoveryCodeService) GenerateForUser(ctx context.Context, userID google
 
 	// Hash codes and create domain models.
 	codes := make([]*cryptoutilIdentityDomain.RecoveryCode, count)
-	expiresAt := time.Now().UTC().Add(cryptoutilMagic.DefaultRecoveryCodeLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRecoveryCodeLifetime)
 
 	for i, plaintext := range plaintextCodes {
 		// Hash code with bcrypt (cost 10 = default).

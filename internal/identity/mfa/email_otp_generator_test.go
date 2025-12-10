@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package mfa_test
 
@@ -25,11 +24,13 @@ func TestGenerateEmailOTP_Uniqueness(t *testing.T) {
 	t.Parallel()
 
 	const samples = 1000
+
 	seen := make(map[string]bool)
 
 	for i := 0; i < samples; i++ {
 		otp, err := cryptoutilIdentityMFA.GenerateEmailOTP()
 		require.NoError(t, err)
+
 		seen[otp] = true
 	}
 

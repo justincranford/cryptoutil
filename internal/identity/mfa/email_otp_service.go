@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 // Package mfa provides multi-factor authentication services.
 package mfa
@@ -52,7 +51,7 @@ func NewEmailOTPService(
 func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, email string) error {
 	// Check rate limit.
 	if err := s.rateLimiter.Allow(userID.String()); err != nil {
-		return fmt.Errorf("%w: %v", cryptoutilIdentityAppErr.ErrRateLimitExceeded, err)
+		return fmt.Errorf("%w: %w", cryptoutilIdentityAppErr.ErrRateLimitExceeded, err)
 	}
 
 	// Generate OTP.
@@ -97,7 +96,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 	// Fetch most recent OTP for user.
 	otp, err := s.emailOTPRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return fmt.Errorf("%w: %v", cryptoutilIdentityAppErr.ErrInvalidOTP, err)
+		return fmt.Errorf("%w: %w", cryptoutilIdentityAppErr.ErrInvalidOTP, err)
 	}
 
 	// Check if OTP is expired.
@@ -117,6 +116,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 
 	// Mark OTP as used.
 	otp.MarkAsUsed()
+
 	if err := s.emailOTPRepo.Update(ctx, otp); err != nil {
 		return fmt.Errorf("failed to mark OTP as used: %w", err)
 	}

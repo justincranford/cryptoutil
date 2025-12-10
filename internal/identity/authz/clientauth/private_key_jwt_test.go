@@ -23,9 +23,9 @@ import (
 	"gorm.io/gorm/logger"
 	_ "modernc.org/sqlite"
 
+	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 )
 
 // setupPrivateKeyTestDB creates an in-memory SQLite database for testing (using modernc.org/sqlite).
@@ -183,8 +183,6 @@ func TestPrivateKeyJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

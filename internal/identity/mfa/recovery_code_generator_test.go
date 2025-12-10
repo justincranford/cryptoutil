@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package mfa_test
 
@@ -12,6 +11,8 @@ import (
 	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 )
 
+const recoveryCodePattern = `^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$`
+
 func TestGenerateRecoveryCode_Format(t *testing.T) {
 	t.Parallel()
 
@@ -19,8 +20,7 @@ func TestGenerateRecoveryCode_Format(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify format: XXXX-XXXX-XXXX-XXXX (4 groups of 4 chars, separated by hyphens).
-	pattern := `^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$`
-	matched, err := regexp.MatchString(pattern, code)
+	matched, err := regexp.MatchString(recoveryCodePattern, code)
 	require.NoError(t, err)
 	require.True(t, matched, "code %q does not match expected format", code)
 }
@@ -39,6 +39,7 @@ func TestGenerateRecoveryCode_Uniqueness(t *testing.T) {
 	t.Parallel()
 
 	const sampleSize = 1000
+
 	seen := make(map[string]bool, sampleSize)
 
 	for range sampleSize {
@@ -55,20 +56,21 @@ func TestGenerateRecoveryCodes_Batch(t *testing.T) {
 	t.Parallel()
 
 	const count = 10
+
 	codes, err := cryptoutilIdentityMFA.GenerateRecoveryCodes(count)
 	require.NoError(t, err)
 	require.Len(t, codes, count, "should generate %d codes", count)
 
 	// Verify all codes are unique.
 	seen := make(map[string]bool, count)
+	// Compile regex once for better performance (avoids SA6000 staticcheck warning).
+	re := regexp.MustCompile(recoveryCodePattern)
+
 	for _, code := range codes {
 		require.False(t, seen[code], "duplicate code detected in batch: %q", code)
 		seen[code] = true
 
 		// Verify each code matches format.
-		pattern := `^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$`
-		matched, err := regexp.MatchString(pattern, code)
-		require.NoError(t, err)
-		require.True(t, matched, "code %q does not match expected format", code)
+		require.True(t, re.MatchString(code), "code %q does not match expected format", code)
 	}
 }

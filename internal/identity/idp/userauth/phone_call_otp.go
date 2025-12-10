@@ -188,13 +188,15 @@ func (a *PhoneCallOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID,
 }
 
 // formatOTPForSpeech formats OTP digits with pauses for voice clarity.
-// Example: "123456" becomes "1... 2... 3... 4... 5... 6"
+// Example: "123456" becomes "1... 2... 3... 4... 5... 6".
 func formatOTPForSpeech(otp string) string {
 	result := ""
+
 	for i, digit := range otp {
 		if i > 0 {
 			result += "... "
 		}
+
 		result += string(digit)
 	}
 

@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package mfa_test
 
@@ -17,6 +16,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
+
+const testUserEmail = "user@example.com"
 
 // mockEmailOTPRepository is a simple in-memory implementation for testing.
 type mockEmailOTPRepository struct {
@@ -59,7 +60,7 @@ func TestEmailOTPService_SendOTP(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.New()
-	email := "user@example.com"
+	email := testUserEmail
 
 	// Send OTP.
 	err := service.SendOTP(ctx, userID, email)
@@ -94,7 +95,7 @@ func TestEmailOTPService_VerifyOTP_Success(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.New()
-	email := "user@example.com"
+	email := testUserEmail
 
 	// Send OTP.
 	err := service.SendOTP(ctx, userID, email)
@@ -125,7 +126,7 @@ func TestEmailOTPService_VerifyOTP_InvalidCode(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.New()
-	email := "user@example.com"
+	email := testUserEmail
 
 	// Send OTP.
 	err := service.SendOTP(ctx, userID, email)
@@ -146,7 +147,7 @@ func TestEmailOTPService_VerifyOTP_AlreadyUsed(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.New()
-	email := "user@example.com"
+	email := testUserEmail
 
 	// Send OTP.
 	err := service.SendOTP(ctx, userID, email)
@@ -176,7 +177,7 @@ func TestEmailOTPService_VerifyOTP_Expired(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.New()
-	email := "user@example.com"
+	email := testUserEmail
 
 	// Send OTP.
 	err := service.SendOTP(ctx, userID, email)
@@ -190,6 +191,7 @@ func TestEmailOTPService_VerifyOTP_Expired(t *testing.T) {
 	// Manually expire the OTP.
 	otp, err := repo.GetByUserID(ctx, userID)
 	require.NoError(t, err)
+
 	otp.ExpiresAt = time.Now().Add(-1 * time.Minute)
 	err = repo.Update(ctx, otp)
 	require.NoError(t, err)
@@ -209,7 +211,7 @@ func TestEmailOTPService_RateLimit(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.New()
-	email := "user@example.com"
+	email := testUserEmail
 
 	// Send OTP 5 times (rate limit).
 	for i := 0; i < cryptoutilIdentityMagic.DefaultEmailOTPRateLimit; i++ {

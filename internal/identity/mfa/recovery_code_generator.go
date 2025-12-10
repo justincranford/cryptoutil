@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 // Package mfa provides multi-factor authentication functionality.
 package mfa
@@ -8,23 +7,25 @@ import (
 	"crypto/rand"
 	"fmt"
 
-	cryptoutilMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // GenerateRecoveryCode generates a cryptographically random recovery code.
 // Format: XXXX-XXXX-XXXX-XXXX (4 groups of 4 chars).
 // Uses charset that excludes ambiguous characters (0/O, 1/I/L).
 func GenerateRecoveryCode() (string, error) {
-	const groupSize = 4
-	const groupCount = 4
-	const totalChars = groupSize * groupCount
+	const (
+		groupSize  = 4
+		groupCount = 4
+		totalChars = groupSize * groupCount
+	)
 
 	randomBytes := make([]byte, totalChars)
 	if _, err := rand.Read(randomBytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 
-	charset := cryptoutilMagic.RecoveryCodeCharset
+	charset := cryptoutilIdentityMagic.RecoveryCodeCharset
 	code := make([]byte, totalChars)
 
 	for i := range totalChars {

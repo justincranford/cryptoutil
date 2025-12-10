@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package domain_test
 
@@ -96,7 +95,9 @@ func TestEmailOTP_MarkAsUsed(t *testing.T) {
 	}
 
 	beforeMark := time.Now()
+
 	otp.MarkAsUsed()
+
 	afterMark := time.Now()
 
 	require.True(t, otp.Used, "OTP should be marked as used")

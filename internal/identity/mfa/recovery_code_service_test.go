@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package mfa_test
 
@@ -18,7 +17,7 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
 )
@@ -101,12 +100,15 @@ func TestRecoveryCodeService_Verify_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	usedCount := 0
+
 	for _, storedCode := range storedCodes {
 		if storedCode.IsUsed() {
 			usedCount++
+
 			require.NotNil(t, storedCode.UsedAt)
 		}
 	}
+
 	require.Equal(t, 1, usedCount, "exactly 1 code should be marked as used")
 }
 
@@ -170,7 +172,7 @@ func TestRecoveryCodeService_Verify_Expired(t *testing.T) {
 		CodeHash:  string(hash),
 		Used:      false,
 		UsedAt:    nil,
-		CreatedAt: time.Now().UTC().Add(-cryptoutilMagic.DefaultRecoveryCodeLifetime - 1*time.Hour),
+		CreatedAt: time.Now().UTC().Add(-cryptoutilIdentityMagic.DefaultRecoveryCodeLifetime - 1*time.Hour),
 		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 	}
 

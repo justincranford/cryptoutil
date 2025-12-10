@@ -128,6 +128,7 @@ func (s *Service) handlePAR(c *fiber.Ctx) error {
 
 	// Validate redirect_uri against client configuration.
 	validRedirectURI := false
+
 	for _, registeredURI := range client.RedirectURIs {
 		if registeredURI == redirectURI {
 			validRedirectURI = true

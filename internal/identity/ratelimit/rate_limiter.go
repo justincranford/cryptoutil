@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 // Package ratelimit provides rate limiting functionality for identity services.
 package ratelimit
@@ -38,11 +37,13 @@ func (rl *RateLimiter) Allow(key string) error {
 	// Clean up old requests outside the window.
 	if timestamps, exists := rl.requests[key]; exists {
 		validTimestamps := []time.Time{}
+
 		for _, ts := range timestamps {
 			if ts.After(windowStart) {
 				validTimestamps = append(validTimestamps, ts)
 			}
 		}
+
 		rl.requests[key] = validTimestamps
 	}
 
@@ -74,6 +75,7 @@ func (rl *RateLimiter) GetCount(key string) int {
 	windowStart := now.Add(-rl.windowSize)
 
 	count := 0
+
 	if timestamps, exists := rl.requests[key]; exists {
 		for _, ts := range timestamps {
 			if ts.After(windowStart) {

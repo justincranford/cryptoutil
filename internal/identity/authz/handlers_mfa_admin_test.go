@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Iwan van der Kleijn
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Justin Cranford
 
 package authz_test
 
@@ -93,6 +92,7 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -133,6 +133,7 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -169,6 +170,7 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -214,6 +216,7 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -286,6 +289,7 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -340,6 +344,7 @@ func TestHandleListMFAFactors_NoFactors(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -368,6 +373,7 @@ func TestHandleListMFAFactors_InvalidUserID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -429,6 +435,7 @@ func TestHandleDeleteMFAFactor_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -467,6 +474,7 @@ func TestHandleDeleteMFAFactor_FactorNotFound(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -539,6 +547,7 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
