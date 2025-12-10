@@ -53,5 +53,3 @@ func TestCRLService_GetRevokedCertificates(t *testing.T) {
 	revoked = svc.GetRevokedCertificates()
 	require.Len(t, revoked, 2)
 }
-
-

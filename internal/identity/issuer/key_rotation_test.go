@@ -6,6 +6,7 @@ package issuer
 
 import (
 	"context"
+	"crypto/elliptic"
 	"testing"
 	"time"
 
@@ -393,5 +394,96 @@ func TestGetAllValidVerificationKeys(t *testing.T) {
 	// All should be valid for verification.
 	for _, key := range keys {
 		require.True(t, key.ValidForVerif)
+	}
+}
+
+func TestStartAutoRotation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                string
+		autoRotationEnabled bool
+		expectRotation      bool
+	}{
+		{
+			name:                "auto_rotation_disabled",
+			autoRotationEnabled: false,
+			expectRotation:      false,
+		},
+		{
+			name:                "auto_rotation_enabled",
+			autoRotationEnabled: true,
+			expectRotation:      true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			policy := &KeyRotationPolicy{
+				RotationInterval:    100 * time.Millisecond,
+				MaxActiveKeys:       3,
+				AutoRotationEnabled: tc.autoRotationEnabled,
+			}
+
+			mockGen := &mockKeyGenerator{}
+			manager, err := NewKeyRotationManager(policy, mockGen, nil)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
+			defer cancel()
+
+			if tc.expectRotation {
+				go manager.StartAutoRotation(ctx, "RS256")
+
+				time.Sleep(350 * time.Millisecond)
+				cancel()
+
+				require.Greater(t, len(manager.signingKeys), 0, "Auto-rotation should generate keys")
+			} else {
+				go manager.StartAutoRotation(ctx, "RS256")
+
+				time.Sleep(150 * time.Millisecond)
+				cancel()
+
+				require.Equal(t, 0, len(manager.signingKeys), "Auto-rotation disabled should not generate keys")
+			}
+		})
+	}
+}
+
+func TestEcdsaCurveName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		curve    elliptic.Curve
+		expected string
+	}{
+		{
+			name:     "P256",
+			curve:    elliptic.P256(),
+			expected: "P-256",
+		},
+		{
+			name:     "P384",
+			curve:    elliptic.P384(),
+			expected: "P-384",
+		},
+		{
+			name:     "P521",
+			curve:    elliptic.P521(),
+			expected: "P-521",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := ecdsaCurveName(tc.curve)
+			require.Equal(t, tc.expected, result)
+		})
 	}
 }
