@@ -38,22 +38,22 @@ Core cryptographic primitives for web security standards. Serves as the embedded
 | JWE | JSON Web Encryption operations | ✅ Implemented |
 | JWS | JSON Web Signature operations | ✅ Implemented |
 | JWT | JSON Web Token creation and validation | ✅ Implemented |
-| JOSE Authority | Standalone JOSE service with full API | ⚠️ Iteration 2 |
+| JOSE Authority | Standalone JOSE service with full API | ✅ Implemented |
 
-#### JOSE Authority API (Iteration 2)
+#### JOSE Authority API (Iteration 2 - COMPLETE)
 
 | Endpoint | Method | Description | Status |
 |----------|--------|-------------|--------|
-| `/jose/v1/keys` | POST | Generate new JWK | ⚠️ Iteration 2 |
-| `/jose/v1/keys/{kid}` | GET | Retrieve specific JWK | ⚠️ Iteration 2 |
-| `/jose/v1/keys` | GET | List JWKs with filters | ⚠️ Iteration 2 |
-| `/jose/v1/jwks` | GET | Public JWKS endpoint | ⚠️ Iteration 2 |
-| `/jose/v1/sign` | POST | Create JWS signature | ⚠️ Iteration 2 |
-| `/jose/v1/verify` | POST | Verify JWS signature | ⚠️ Iteration 2 |
-| `/jose/v1/encrypt` | POST | Create JWE encryption | ⚠️ Iteration 2 |
-| `/jose/v1/decrypt` | POST | Decrypt JWE payload | ⚠️ Iteration 2 |
-| `/jose/v1/jwt/issue` | POST | Issue JWT with claims | ⚠️ Iteration 2 |
-| `/jose/v1/jwt/validate` | POST | Validate JWT signature and claims | ⚠️ Iteration 2 |
+| `/jose/v1/keys` | POST | Generate new JWK | ✅ Implemented |
+| `/jose/v1/keys/{kid}` | GET | Retrieve specific JWK | ✅ Implemented |
+| `/jose/v1/keys` | GET | List JWKs with filters | ✅ Implemented |
+| `/jose/v1/jwks` | GET | Public JWKS endpoint | ✅ Implemented |
+| `/jose/v1/sign` | POST | Create JWS signature | ✅ Implemented |
+| `/jose/v1/verify` | POST | Verify JWS signature | ✅ Implemented |
+| `/jose/v1/encrypt` | POST | Create JWE encryption | ✅ Implemented |
+| `/jose/v1/decrypt` | POST | Decrypt JWE payload | ✅ Implemented |
+| `/jose/v1/jwt/issue` | POST | Issue JWT with claims | ✅ Implemented |
+| `/jose/v1/jwt/validate` | POST | Validate JWT signature and claims | ✅ Implemented |
 
 #### Supported Algorithms
 
@@ -260,28 +260,28 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 
 **Implementation Progress**: 20/20 internal tasks complete (100%)
 
-#### CA Server REST API (Iteration 2 - NEW)
+#### CA Server REST API (Iteration 2 - COMPLETE)
 
 The CA Server exposes certificate lifecycle operations via REST API with mTLS authentication.
 
 | Endpoint | Method | Description | Status |
 |----------|--------|-------------|--------|
-| `/ca/v1/health` | GET | Health check endpoint | 🆕 Planned |
-| `/ca/v1/ca` | GET | List available CAs | 🆕 Planned |
-| `/ca/v1/ca/{ca_id}` | GET | Get CA details and certificate chain | 🆕 Planned |
-| `/ca/v1/ca/{ca_id}/crl` | GET | Download current CRL | 🆕 Planned |
-| `/ca/v1/certificate` | POST | Issue certificate from CSR | 🆕 Planned |
-| `/ca/v1/certificate/{serial}` | GET | Retrieve certificate by serial | 🆕 Planned |
-| `/ca/v1/certificate/{serial}/revoke` | POST | Revoke certificate | 🆕 Planned |
-| `/ca/v1/certificate/{serial}/status` | GET | Get certificate status | 🆕 Planned |
-| `/ca/v1/ocsp` | POST | OCSP responder endpoint | 🆕 Planned |
-| `/ca/v1/profiles` | GET | List certificate profiles | 🆕 Planned |
-| `/ca/v1/profiles/{profile_id}` | GET | Get profile details | 🆕 Planned |
-| `/ca/v1/est/cacerts` | GET | EST: Get CA certificates | 🆕 Planned |
-| `/ca/v1/est/simpleenroll` | POST | EST: Simple enrollment | 🆕 Planned |
-| `/ca/v1/est/simplereenroll` | POST | EST: Re-enrollment | 🆕 Planned |
-| `/ca/v1/est/serverkeygen` | POST | EST: Server-side key generation | 🆕 Planned |
-| `/ca/v1/tsa/timestamp` | POST | RFC 3161 timestamp request | 🆕 Planned |
+| `/ca/v1/health` | GET | Health check endpoint | ✅ Implemented |
+| `/ca/v1/ca` | GET | List available CAs | ✅ Implemented |
+| `/ca/v1/ca/{ca_id}` | GET | Get CA details and certificate chain | ✅ Implemented |
+| `/ca/v1/ca/{ca_id}/crl` | GET | Download current CRL | ✅ Implemented |
+| `/ca/v1/certificate` | POST | Issue certificate from CSR | ✅ Implemented |
+| `/ca/v1/certificate/{serial}` | GET | Retrieve certificate by serial | ✅ Implemented |
+| `/ca/v1/certificate/{serial}/revoke` | POST | Revoke certificate | ✅ Implemented |
+| `/ca/v1/certificate/{serial}/status` | GET | Get certificate status | ✅ Implemented |
+| `/ca/v1/ocsp` | POST | OCSP responder endpoint | ✅ Implemented |
+| `/ca/v1/profiles` | GET | List certificate profiles | ✅ Implemented |
+| `/ca/v1/profiles/{profile_id}` | GET | Get profile details | ✅ Implemented |
+| `/ca/v1/est/cacerts` | GET | EST: Get CA certificates | ✅ Implemented |
+| `/ca/v1/est/simpleenroll` | POST | EST: Simple enrollment | ✅ Implemented |
+| `/ca/v1/est/simplereenroll` | POST | EST: Re-enrollment | ✅ Implemented |
+| `/ca/v1/est/serverkeygen` | POST | EST: Server-side key generation | ✅ Implemented |
+| `/ca/v1/tsa/timestamp` | POST | RFC 3161 timestamp request | ✅ Implemented |
 
 **API Authentication Methods:**
 
@@ -289,7 +289,7 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 - **JWT Bearer**: For delegated access from Identity Server
 - **API Key**: For automated systems (with IP allowlist)
 
-**API Progress**: 0/16 endpoints implemented
+**API Progress**: 16/16 endpoints implemented (100% complete)
 
 #### Compliance Requirements
 
