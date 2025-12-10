@@ -390,20 +390,20 @@ func TestEmailNotifier_Send(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		recipients  []string
+		name         string
+		recipients   []string
 		notification *cryptoutilIdentityNotifications.ExpirationNotification
-		wantErr     bool
-		errContains string
+		wantErr      bool
+		errContains  string
 	}{
 		{
 			name:       "single_recipient",
 			recipients: []string{"admin@example.com"},
 			notification: &cryptoutilIdentityNotifications.ExpirationNotification{
-				ClientID:       googleUuid.New(),
-				ClientName:     "Test Client",
-				DaysRemaining:  7,
-				ExpiresAt:      time.Now().Add(7 * 24 * time.Hour),
+				ClientID:      googleUuid.New(),
+				ClientName:    "Test Client",
+				DaysRemaining: 7,
+				ExpiresAt:     time.Now().Add(7 * 24 * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",
@@ -412,10 +412,10 @@ func TestEmailNotifier_Send(t *testing.T) {
 			name:       "multiple_recipients",
 			recipients: []string{"admin@example.com", "security@example.com"},
 			notification: &cryptoutilIdentityNotifications.ExpirationNotification{
-				ClientID:       googleUuid.New(),
-				ClientName:     "Critical Service",
-				DaysRemaining:  1,
-				ExpiresAt:      time.Now().Add(24 * time.Hour),
+				ClientID:      googleUuid.New(),
+				ClientName:    "Critical Service",
+				DaysRemaining: 1,
+				ExpiresAt:     time.Now().Add(24 * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",
@@ -424,10 +424,10 @@ func TestEmailNotifier_Send(t *testing.T) {
 			name:       "no_recipients",
 			recipients: []string{},
 			notification: &cryptoutilIdentityNotifications.ExpirationNotification{
-				ClientID:       googleUuid.New(),
-				ClientName:     "Orphan Client",
-				DaysRemaining:  3,
-				ExpiresAt:      time.Now().Add(3 * 24 * time.Hour),
+				ClientID:      googleUuid.New(),
+				ClientName:    "Orphan Client",
+				DaysRemaining: 3,
+				ExpiresAt:     time.Now().Add(3 * 24 * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",

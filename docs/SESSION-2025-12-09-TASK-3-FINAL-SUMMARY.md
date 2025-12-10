@@ -19,7 +19,7 @@
 ### Test Fixes
 
 1. ✅ **Fixed TestHandleHealth_Success** - Added `-1` timeout to `app.Test()` call
-2. ✅ **Fixed TestTokenExpiration** - Added `-1` timeout to `app.Test()` call  
+2. ✅ **Fixed TestTokenExpiration** - Added `-1` timeout to `app.Test()` call
 3. ✅ **Fixed TestCleanupJob_Integration** - Increased timeout from 1s to 2s, sleep from 500ms to 600ms
 
 ### New Tests Added

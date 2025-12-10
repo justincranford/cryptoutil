@@ -151,3 +151,31 @@ func TestPollerPollEventuallyHealthy(t *testing.T) {
 	require.Equal(t, "healthy", resp.Status)
 	require.Equal(t, 3, attempts)
 }
+
+// TestNewPoller_WithTLSVerification tests NewPoller with TLS verification enabled.
+func TestNewPoller_WithTLSVerification(t *testing.T) {
+	t.Parallel()
+
+	// Test skipTLSVerify=false (production setting).
+	poller := NewPoller(5*time.Second, 3, false)
+	require.NotNil(t, poller)
+	require.NotNil(t, poller.client)
+	require.Equal(t, 3, poller.maxRetries)
+	require.Equal(t, 5*time.Second, poller.client.Timeout)
+	require.Equal(t, defaultInitialInterval, poller.initialInterval)
+	require.Equal(t, defaultMaxInterval, poller.maxInterval)
+}
+
+// TestNewPoller_WithSkipTLSVerify tests NewPoller with TLS verification disabled.
+func TestNewPoller_WithSkipTLSVerify(t *testing.T) {
+	t.Parallel()
+
+	// Test skipTLSVerify=true (development/testing setting).
+	poller := NewPoller(10*time.Second, 5, true)
+	require.NotNil(t, poller)
+	require.NotNil(t, poller.client)
+	require.Equal(t, 5, poller.maxRetries)
+	require.Equal(t, 10*time.Second, poller.client.Timeout)
+	require.Equal(t, defaultInitialInterval, poller.initialInterval)
+	require.Equal(t, defaultMaxInterval, poller.maxInterval)
+}
