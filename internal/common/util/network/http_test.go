@@ -131,6 +131,20 @@ func TestHTTPResponse_InvalidURL(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestHTTPResponse_InvalidMethod(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use an invalid HTTP method with null byte to trigger NewRequestWithContext error.
+	// Per RFC 7230, method names are tokens and cannot contain control characters.
+	invalidMethod := "GET\x00INVALID"
+
+	_, _, _, err := HTTPResponse(ctx, invalidMethod, "http://example.com", time.Second, true, nil, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to create")
+}
+
 func TestHTTPResponse_ConnectionRefused(t *testing.T) {
 	t.Parallel()
 
