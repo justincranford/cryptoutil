@@ -385,3 +385,126 @@ func TestExpiredToken(t *testing.T) {
 
 	testify.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
+
+// TestService_Start tests service startup.
+func TestService_Start(t *testing.T) {
+	t.Parallel()
+
+	config := &cryptoutilIdentityConfig.Config{
+		RS: &cryptoutilIdentityConfig.ServerConfig{
+			BindAddress: "127.0.0.1",
+			Port:        9100,
+		},
+	}
+
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	tokenSvc := &mockTokenService{}
+
+	service := cryptoutilIdentityRS.NewService(config, logger, tokenSvc)
+
+	ctx := context.Background()
+
+	err := service.Start(ctx)
+	testify.NoError(t, err, "Start should complete without error")
+}
+
+// TestService_Stop tests service shutdown.
+func TestService_Stop(t *testing.T) {
+	t.Parallel()
+
+	config := &cryptoutilIdentityConfig.Config{
+		RS: &cryptoutilIdentityConfig.ServerConfig{
+			BindAddress: "127.0.0.1",
+			Port:        9100,
+		},
+	}
+
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	tokenSvc := &mockTokenService{}
+
+	service := cryptoutilIdentityRS.NewService(config, logger, tokenSvc)
+
+	ctx := context.Background()
+
+	err := service.Stop(ctx)
+	testify.NoError(t, err, "Stop should complete without error")
+}
+
+// TestAdminMetrics_RequiresAdminScope tests admin metrics endpoint.
+func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
+	// NOTE: No t.Parallel() - subtests share app/tokenSvc, parallel causes race on validateFunc.
+	app, tokenSvc := setupTestService(t)
+
+	testCases := []struct {
+		name           string
+		scope          string
+		expectedStatus int
+		checkMetrics   bool
+	}{
+		{
+			name:           "missing_admin_scope",
+			scope:          "read:resource write:resource",
+			expectedStatus: http.StatusForbidden,
+			checkMetrics:   false,
+		},
+		{
+			name:           "with_admin_scope",
+			scope:          "admin",
+			expectedStatus: http.StatusOK,
+			checkMetrics:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// NOTE: No t.Parallel() - subtests share mockTokenService, parallel execution causes race.
+			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
+				return map[string]any{
+					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(1 * time.Hour).Unix()),
+					cryptoutilIdentityMagic.ClaimClientID: "test-client",
+					cryptoutilIdentityMagic.ClaimScope:    tc.scope,
+				}, nil
+			}
+			tokenSvc.isActiveFunc = func(_ map[string]any) bool {
+				return true
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/metrics", nil)
+			req.Header.Set("Authorization", createBearerToken("valid-token"))
+
+			resp, err := app.Test(req)
+			testify.NoError(t, err)
+
+			defer func() {
+				testify.NoError(t, resp.Body.Close())
+			}()
+
+			testify.Equal(t, tc.expectedStatus, resp.StatusCode)
+
+			if tc.checkMetrics {
+				// Parse metrics response.
+				var result map[string]any
+
+				body, err := io.ReadAll(resp.Body)
+				testify.NoError(t, err)
+
+				err = json.Unmarshal(body, &result)
+				testify.NoError(t, err)
+
+				testify.Equal(t, "System metrics", result["message"])
+
+				// Verify metrics data exists.
+				metrics, ok := result["metrics"].(map[string]any)
+				testify.True(t, ok, "metrics field should be a map")
+				testify.Contains(t, metrics, "requests_total")
+				testify.Contains(t, metrics, "requests_success")
+				testify.Contains(t, metrics, "requests_failed")
+
+				// Verify metric values are correct integers.
+				testify.Equal(t, float64(cryptoutilIdentityMagic.ExampleMetricRequestsTotal), metrics["requests_total"])
+				testify.Equal(t, float64(cryptoutilIdentityMagic.ExampleMetricRequestsSuccess), metrics["requests_success"])
+				testify.Equal(t, float64(cryptoutilIdentityMagic.ExampleMetricRequestsFailed), metrics["requests_failed"])
+			}
+		})
+	}
+}
