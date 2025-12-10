@@ -40,7 +40,7 @@ func GenerateDeviceCode() (string, error) {
 func GenerateUserCode() (string, error) {
 	// Exclude ambiguous characters: 0, O, I, 1, L.
 	const (
-		charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+		charset = "ABCDEFGHJKMNPQRSTUVWXYZ23456789" // Removed L from charset
 		length  = 8
 	)
 
