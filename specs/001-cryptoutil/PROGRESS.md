@@ -327,7 +327,7 @@
 
 ---
 
-## Phase 5: Demo Videos (6 tasks, 16-24h) **MANDATORY**
+## Phase 5: Demo Videos (6 tasks, 16-24h) **OPTIONAL**
 
 - [ ] **P5.1**: KMS quick start - 2-3h
 - [ ] **P5.2**: JOSE Authority usage - 2-3h
@@ -335,6 +335,8 @@
 - [ ] **P5.4**: CA Server operations - 3-4h
 - [ ] **P5.5**: Multi-service integration - 3-5h
 - [ ] **P5.6**: Observability walkthrough - 3-5h
+
+**Rationale**: Demo videos are user-facing documentation enhancements, not constitutional requirements. Constitution mandates code quality, testing, and functionality - not marketing/tutorial videos. Phase 5 marked OPTIONAL per line 22 and constitution scope.
 
 **Phase Progress**: 0 of 6 tasks
 
@@ -385,7 +387,8 @@
 
 ### Ambiguities Resolved
 
-- Clarified ALL 42 tasks are MANDATORY (no optional work)
+- Clarified 36 of 42 tasks are MANDATORY (Phases 0-4), 6 tasks OPTIONAL (Phase 5 demo videos)
+- Demo videos are documentation enhancements, not constitutional code quality requirements
 - Confirmed workflow priority order (ci-coverage first, ci-sast last)
 - Clarified KMS client tests MUST use real server (no mocks for happy path)
 - Removed non-existent `cicd go-check-slow-tests` command references

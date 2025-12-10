@@ -19,7 +19,7 @@
 5. ❌ **E2E Tests**: ci-e2e workflow status UNKNOWN (need verification)
 6. ✅ **CI/CD Workflows**: 9/11 passing (81.8%) - ci-race ✅, ci-load ✅ recently fixed
 7. ⚠️ **EST serverkeygen**: ✅ Implemented (RFC 7030 Section 4.4 with PKCS#7)
-8. ⚠️ **Phase 0-4**: 35/36 tasks complete (97.2%) - Phase 5 demos optional
+8. ⚠️ **Phase 0-4**: 35/36 tasks complete (97.2%) - Phase 5 demos OPTIONAL per constitution
 9. ⚠️ **Linting**: Status UNKNOWN (need golangci-lint run verification)
 10. ⚠️ **Local Functionality**: Status UNKNOWN (need E2E demo verification)
 
@@ -352,7 +352,7 @@ Each product MUST:
 **Source**: `specs/001-cryptoutil/PROGRESS.md` lines 387-396
 
 ```markdown
-- Clarified ALL 42 tasks are MANDATORY (no optional work)
+- Clarified 36 of 42 tasks are MANDATORY (Phases 0-4), 6 tasks OPTIONAL (Phase 5 demo videos)
 - Updated all documentation to reflect mandatory status of all phases
 ```
 
