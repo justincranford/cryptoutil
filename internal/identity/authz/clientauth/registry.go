@@ -54,7 +54,7 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 			"client_secret_post":          secretAuth,
 			"tls_client_auth":             NewTLSClientAuthenticator(clientRepo, caValidator),
 			"self_signed_tls_client_auth": NewSelfSignedAuthenticator(clientRepo, selfSignedValidator),
-			"private_key_jwt":             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo),
+			"private_key_jwt":             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
 			"client_secret_jwt":           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
 		},
 		hasher: secretAuth,

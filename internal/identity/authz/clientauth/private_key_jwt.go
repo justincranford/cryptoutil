@@ -19,9 +19,9 @@ type PrivateKeyJWTAuthenticator struct {
 }
 
 // NewPrivateKeyJWTAuthenticator creates a new private key JWT authenticator.
-func NewPrivateKeyJWTAuthenticator(tokenEndpointURL string, repo cryptoutilIdentityRepository.ClientRepository) *PrivateKeyJWTAuthenticator {
+func NewPrivateKeyJWTAuthenticator(tokenEndpointURL string, repo cryptoutilIdentityRepository.ClientRepository, jtiRepo cryptoutilIdentityRepository.JTIReplayCacheRepository) *PrivateKeyJWTAuthenticator {
 	return &PrivateKeyJWTAuthenticator{
-		validator: NewPrivateKeyJWTValidator(tokenEndpointURL),
+		validator: NewPrivateKeyJWTValidator(tokenEndpointURL, jtiRepo),
 		repo:      repo,
 	}
 }

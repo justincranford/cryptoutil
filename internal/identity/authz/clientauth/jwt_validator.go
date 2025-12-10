@@ -40,12 +40,14 @@ type JWTValidator interface {
 // PrivateKeyJWTValidator validates JWTs signed with a client's private key.
 type PrivateKeyJWTValidator struct {
 	expectedAudience string
+	jtiRepo          cryptoutilIdentityRepository.JTIReplayCacheRepository
 }
 
 // NewPrivateKeyJWTValidator creates a new private key JWT validator.
-func NewPrivateKeyJWTValidator(tokenEndpointURL string) *PrivateKeyJWTValidator {
+func NewPrivateKeyJWTValidator(tokenEndpointURL string, jtiRepo cryptoutilIdentityRepository.JTIReplayCacheRepository) *PrivateKeyJWTValidator {
 	return &PrivateKeyJWTValidator{
 		expectedAudience: tokenEndpointURL,
+		jtiRepo:          jtiRepo,
 	}
 }
 
@@ -132,6 +134,25 @@ func (v *PrivateKeyJWTValidator) validateClaims(ctx context.Context, token joseJ
 
 	if time.Now().Before(iat) {
 		return fmt.Errorf("JWT issued in the future at %v", iat)
+	}
+
+	// Validate assertion lifetime (RFC 7523 Section 3).
+	assertionLifetime := exp.Sub(iat)
+	if assertionLifetime > cryptoutilIdentityMagic.JWTAssertionMaxLifetime {
+		return fmt.Errorf("JWT assertion lifetime %v exceeds maximum %v", assertionLifetime, cryptoutilIdentityMagic.JWTAssertionMaxLifetime)
+	}
+
+	// Validate JTI (JWT ID) claim for replay protection.
+	jti, hasJTI := token.JwtID()
+	if !hasJTI || jti == "" {
+		return fmt.Errorf("missing jti (JWT ID) claim")
+	}
+
+	// Store JTI in cache to prevent replay attacks.
+	if v.jtiRepo != nil {
+		if err := v.jtiRepo.Store(ctx, jti, client.ID, exp); err != nil {
+			return fmt.Errorf("JTI replay detected: %w", err)
+		}
 	}
 
 	return nil

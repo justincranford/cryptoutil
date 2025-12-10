@@ -32,7 +32,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	// Generate RSA key pair for testing.
 	keyID := googleUuid.NewString()
@@ -95,7 +95,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_NoJWKSet(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID: testClientID,
@@ -111,7 +111,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidJWKSet(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID: testClientID,
@@ -127,7 +127,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	// Generate RSA key pair for signing.
 	keyID := googleUuid.NewString()
@@ -190,7 +190,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
@@ -242,7 +242,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
@@ -294,7 +294,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
@@ -570,7 +570,7 @@ func TestPrivateKeyJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL)
+	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	// Create token with all claims.
 	now := time.Now()

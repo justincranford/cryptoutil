@@ -54,7 +54,7 @@ func TestPrivateKeyJWTAuthenticator_Method(t *testing.T) {
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
-	auth := NewPrivateKeyJWTAuthenticator("https://example.com/token", repoFactory.ClientRepository())
+	auth := NewPrivateKeyJWTAuthenticator("https://example.com/token", repoFactory.ClientRepository(), nil)
 
 	require.Equal(t, string(cryptoutilIdentityDomain.ClientAuthMethodPrivateKeyJWT), auth.Method())
 }
@@ -66,7 +66,7 @@ func TestPrivateKeyJWTAuthenticator_Authenticate_MissingAssertion(t *testing.T) 
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
-	auth := NewPrivateKeyJWTAuthenticator("https://example.com/token", repoFactory.ClientRepository())
+	auth := NewPrivateKeyJWTAuthenticator("https://example.com/token", repoFactory.ClientRepository(), nil)
 
 	_, err := auth.Authenticate(ctx, "", "")
 	require.Error(t, err)
