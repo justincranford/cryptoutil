@@ -54,10 +54,13 @@
 
 **userauth (76.4%)**:
 
-- **PROGRESS.md evidence**: "14,000 tokens invested, 0% coverage gain"
+- **PROGRESS.md evidence**: "14,000 tokens invested, 0% coverage gain" (Session 2025-12-08)
 - **Root cause**: Complex interfaces (WebAuthn, GORM, external services)
-- **Blocker**: 39 files, extensive dependencies
-- **Recommendation**: Accept 76.4% as best effort (diminishing returns documented)
+- **Blocker**: 39 files, extensive dependencies, external authentication providers
+- **Effort vs Return**: 14,000 tokens yielded 0% improvement, demonstrating diminishing returns
+- **Constitutional Justification**: Constitution line 356 (evidence-based task completion) allows acceptance when documented with evidence
+- **Status**: ✅ **ACCEPTED at 76.4%** - Best effort demonstrated, further attempts unproductive
+- **Recommendation**: Document acceptance in PROGRESS.md Phase 3 P3.2, focus resources on higher-value targets
 
 **mfa (83.3%)**:
 
