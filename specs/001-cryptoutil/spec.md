@@ -121,8 +121,8 @@ Complete identity and access management solution.
 | Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ❌ Not Implemented (MANDATORY) | HIGH |
 | Email OTP | One-time password via email | ⚠️ 30% (missing: email delivery service, rate limiting - MANDATORY) | MEDIUM |
 | SMS OTP | One-time password via SMS | ⚠️ 20% (missing: SMS provider integration, rate limiting - MANDATORY) | LOW (NIST deprecated but MANDATORY) |
-| HOTP | HMAC-based One-Time Password (counter-based) | ❌ Not Implemented (MANDATORY) | LOW |
-| Recovery Codes | Backup codes for account recovery | ❌ Not Implemented (MANDATORY) | MEDIUM |
+| HOTP | HMAC-based One-Time Password (counter-based) | ✅ 100% (RFC 4226 compliant, counter synchronization, lookahead window, 12 tests passing) | LOW |
+| Recovery Codes | Backup codes for account recovery | ✅ 100% (10-code generation, single-use validation, secure hashing, 13 tests passing) | MEDIUM |
 | Push Notifications | Push-based authentication via mobile app | ❌ Not Implemented (MANDATORY) | LOW |
 | Phone Call OTP | One-time password via voice call | ❌ Not Implemented (MANDATORY) | LOW |
 
