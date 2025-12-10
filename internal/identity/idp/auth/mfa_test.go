@@ -218,6 +218,27 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			wantErr:     true,
 			errContains: "failed to fetch MFA factors",
 		},
+		{
+			name:       "unsupported_factor_type",
+			factorType: "unknown_mfa_type",
+			setupRepo: func() *mockMFAFactorRepo {
+				now := time.Now()
+				expiry := now.Add(5 * time.Minute)
+				factor := &cryptoutilIdentityDomain.MFAFactor{
+					ID:             googleUuid.New(),
+					Name:           "test-unknown",
+					AuthProfileID:  authProfileID,
+					FactorType:     "unknown_mfa_type",
+					Nonce:          googleUuid.NewString(),
+					NonceExpiresAt: &expiry,
+				}
+
+				return &mockMFAFactorRepo{factors: []*cryptoutilIdentityDomain.MFAFactor{factor}}
+			},
+			credentials: map[string]string{"code": "123456"},
+			wantErr:     true,
+			errContains: "unsupported MFA factor type",
+		},
 	}
 
 	for _, tc := range tests {
