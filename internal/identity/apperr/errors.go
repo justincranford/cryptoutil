@@ -109,6 +109,7 @@ var (
 	ErrConsentNotFound                     = NewIdentityError("consent_not_found", "Consent decision not found", http.StatusNotFound, nil)
 	ErrDeviceAuthorizationNotFound         = NewIdentityError("device_authorization_not_found", "Device authorization not found", http.StatusNotFound, nil)
 	ErrPushedAuthorizationRequestNotFound  = NewIdentityError("pushed_authorization_request_not_found", "Pushed authorization request not found", http.StatusNotFound, nil)
+	ErrRecoveryCodeNotFound                = NewIdentityError("recovery_code_not_found", "Recovery code not found", http.StatusNotFound, nil)
 
 	// PKCE errors.
 	ErrPKCERequired         = NewIdentityError("pkce_required", "PKCE is required for this flow", http.StatusBadRequest, nil)

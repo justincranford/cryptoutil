@@ -38,6 +38,7 @@ type RepositoryFactory struct {
 	keyRepo           KeyRepository
 	deviceAuthRepo    DeviceAuthorizationRepository
 	parRepo           PushedAuthorizationRequestRepository
+	recoveryCodeRepo  RecoveryCodeRepository
 }
 
 // NewRepositoryFactory creates a new repository factory with database initialization.
@@ -63,6 +64,7 @@ func NewRepositoryFactory(ctx context.Context, cfg *cryptoutilIdentityConfig.Dat
 		keyRepo:           cryptoutilIdentityORM.NewKeyRepository(db),
 		deviceAuthRepo:    cryptoutilIdentityORM.NewDeviceAuthorizationRepository(db),
 		parRepo:           cryptoutilIdentityORM.NewPushedAuthorizationRequestRepository(db),
+		recoveryCodeRepo:  cryptoutilIdentityORM.NewRecoveryCodeRepository(db),
 	}, nil
 }
 
@@ -139,6 +141,11 @@ func (f *RepositoryFactory) DeviceAuthorizationRepository() DeviceAuthorizationR
 // PushedAuthorizationRequestRepository returns the pushed authorization request repository.
 func (f *RepositoryFactory) PushedAuthorizationRequestRepository() PushedAuthorizationRequestRepository {
 	return f.parRepo
+}
+
+// RecoveryCodeRepository returns the recovery code repository.
+func (f *RepositoryFactory) RecoveryCodeRepository() RecoveryCodeRepository {
+	return f.recoveryCodeRepo
 }
 
 // DB returns the underlying database connection for transaction management.
