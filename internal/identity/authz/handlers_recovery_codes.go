@@ -12,8 +12,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 	cryptoutilMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 )
 
 // GenerateRecoveryCodesRequest represents request to generate recovery codes.
@@ -91,7 +91,6 @@ func (s *Service) handleGenerateRecoveryCodes(c *fiber.Ctx) error {
 	// Generate recovery codes.
 	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 	codes, err := service.GenerateForUser(c.Context(), userID, cryptoutilMagic.DefaultRecoveryCodeCount)
-
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             "server_error",
@@ -130,7 +129,6 @@ func (s *Service) handleGetRecoveryCodeCount(c *fiber.Ctx) error {
 	// Get remaining count.
 	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 	remaining, err := service.GetRemainingCount(c.Context(), userID)
-
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             "server_error",
@@ -191,7 +189,6 @@ func (s *Service) handleRegenerateRecoveryCodes(c *fiber.Ctx) error {
 	// Regenerate recovery codes.
 	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 	codes, err := service.RegenerateForUser(c.Context(), userID, cryptoutilMagic.DefaultRecoveryCodeCount)
-
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             "server_error",
@@ -249,7 +246,6 @@ func (s *Service) handleVerifyRecoveryCode(c *fiber.Ctx) error {
 	// Verify recovery code.
 	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 	err = service.Verify(c.Context(), userID, req.Code)
-
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrRecoveryCodeNotFound) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

@@ -14,7 +14,7 @@ import (
 type EmailOTP struct {
 	ID        googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 	UserID    googleUuid.UUID `gorm:"type:text;index;not null" json:"user_id"`
-	CodeHash  string          `gorm:"type:text;not null" json:"-"`           // bcrypt hash of OTP code.
+	CodeHash  string          `gorm:"type:text;not null" json:"-"` // bcrypt hash of OTP code.
 	Used      bool            `gorm:"default:false;not null" json:"used"`
 	UsedAt    *time.Time      `gorm:"type:timestamp" json:"used_at,omitempty"`
 	CreatedAt time.Time       `gorm:"type:timestamp;not null" json:"created_at"`

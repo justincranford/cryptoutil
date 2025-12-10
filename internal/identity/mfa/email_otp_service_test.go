@@ -11,8 +11,8 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/identity/email"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

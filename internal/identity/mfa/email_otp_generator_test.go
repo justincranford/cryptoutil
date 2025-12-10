@@ -6,8 +6,8 @@ package mfa_test
 import (
 	"testing"
 
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 
 	"github.com/stretchr/testify/require"
 )

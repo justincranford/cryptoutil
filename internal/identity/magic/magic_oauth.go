@@ -6,9 +6,9 @@ package magic
 
 // OAuth 2.1 grant types.
 const (
-	GrantTypeAuthorizationCode = "authorization_code"                          // Authorization code grant type.
-	GrantTypeClientCredentials = "client_credentials"                          // Client credentials grant type.
-	GrantTypeRefreshToken      = "refresh_token"                               // Refresh token grant type.
+	GrantTypeAuthorizationCode = "authorization_code"                           // Authorization code grant type.
+	GrantTypeClientCredentials = "client_credentials"                           // Client credentials grant type.
+	GrantTypeRefreshToken      = "refresh_token"                                // Refresh token grant type.
 	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code" // Device code grant type (RFC 8628).
 )
 

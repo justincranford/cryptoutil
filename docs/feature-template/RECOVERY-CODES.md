@@ -42,10 +42,10 @@ const (
     DefaultRecoveryCodeLength = 16           // 16 characters per code
     DefaultRecoveryCodeCount  = 10           // 10 codes per batch
     RecoveryCodeCharset       = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // Exclude ambiguous chars
-    
+
     // Recovery code lifecycle
     DefaultRecoveryCodeLifetime = 90 * 24 * time.Hour // 90 days
-    
+
     // MFA factor type
     MFATypeRecoveryCode = "recovery_code"
 )
@@ -122,26 +122,26 @@ func GenerateRecoveryCode() (string, error) {
     const groupSize = 4
     const groupCount = 4
     const totalChars = groupSize * groupCount
-    
+
     randomBytes := make([]byte, totalChars)
     if _, err := rand.Read(randomBytes); err != nil {
         return "", fmt.Errorf("failed to generate random bytes: %w", err)
     }
-    
+
     charset := cryptoutilMagic.RecoveryCodeCharset
     code := make([]byte, totalChars)
-    
+
     for i := range totalChars {
         code[i] = charset[int(randomBytes[i])%len(charset)]
     }
-    
+
     // Format with hyphens: XXXX-XXXX-XXXX-XXXX
     formatted := fmt.Sprintf("%s-%s-%s-%s",
         code[0:4],
         code[4:8],
         code[8:12],
         code[12:16])
-    
+
     return formatted, nil
 }
 
@@ -149,14 +149,14 @@ func GenerateRecoveryCode() (string, error) {
 func GenerateRecoveryCodes(count int) ([]string, error) {
     codes := make([]string, count)
     seen := make(map[string]bool, count)
-    
+
     for i := range count {
         for {
             code, err := GenerateRecoveryCode()
             if err != nil {
                 return nil, err
             }
-            
+
             if !seen[code] {
                 codes[i] = code
                 seen[code] = true
@@ -164,7 +164,7 @@ func GenerateRecoveryCodes(count int) ([]string, error) {
             }
         }
     }
-    
+
     return codes, nil
 }
 ```
@@ -193,25 +193,25 @@ import (
 type RecoveryCodeRepository interface {
     // Create stores a new recovery code
     Create(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error
-    
+
     // CreateBatch stores multiple recovery codes in a transaction
     CreateBatch(ctx context.Context, codes []*cryptoutilIdentityDomain.RecoveryCode) error
-    
+
     // GetByUserID retrieves all recovery codes for a user
     GetByUserID(ctx context.Context, userID googleUuid.UUID) ([]*cryptoutilIdentityDomain.RecoveryCode, error)
-    
+
     // GetByID retrieves a recovery code by ID
     GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.RecoveryCode, error)
-    
+
     // Update modifies an existing recovery code (typically to mark as used)
     Update(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error
-    
+
     // DeleteByUserID removes all recovery codes for a user (regeneration scenario)
     DeleteByUserID(ctx context.Context, userID googleUuid.UUID) error
-    
+
     // DeleteExpired removes all expired recovery codes
     DeleteExpired(ctx context.Context) (int64, error)
-    
+
     // CountUnused returns count of unused, unexpired codes for a user
     CountUnused(ctx context.Context, userID googleUuid.UUID) (int64, error)
 }

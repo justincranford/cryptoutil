@@ -9,24 +9,23 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-// emailOTPRepository implements EmailOTPRepository using GORM.
-type emailOTPRepository struct {
+// emailOTPRepositoryGORM implements EmailOTPRepository using GORM.
+type emailOTPRepositoryGORM struct {
 	db *gorm.DB
 }
 
 // NewEmailOTPRepository creates a new GORM-based email OTP repository.
-func NewEmailOTPRepository(db *gorm.DB) cryptoutilIdentityRepository.EmailOTPRepository {
-	return &emailOTPRepository{db: db}
+func NewEmailOTPRepository(db *gorm.DB) *emailOTPRepositoryGORM {
+	return &emailOTPRepositoryGORM{db: db}
 }
 
 // Create creates a new email OTP.
-func (r *emailOTPRepository) Create(ctx context.Context, otp *cryptoutilIdentityDomain.EmailOTP) error {
+func (r *emailOTPRepositoryGORM) Create(ctx context.Context, otp *cryptoutilIdentityDomain.EmailOTP) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Create(otp).Error; err != nil {
 		return fmt.Errorf("failed to create email OTP: %w", err)
 	}
@@ -35,14 +34,13 @@ func (r *emailOTPRepository) Create(ctx context.Context, otp *cryptoutilIdentity
 }
 
 // GetByUserID retrieves the most recent email OTP for a user.
-func (r *emailOTPRepository) GetByUserID(ctx context.Context, userID googleUuid.UUID) (*cryptoutilIdentityDomain.EmailOTP, error) {
+func (r *emailOTPRepositoryGORM) GetByUserID(ctx context.Context, userID googleUuid.UUID) (*cryptoutilIdentityDomain.EmailOTP, error) {
 	var otp cryptoutilIdentityDomain.EmailOTP
 
 	err := getDB(ctx, r.db).WithContext(ctx).
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
 		First(&otp).Error
-
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, cryptoutilIdentityAppErr.ErrEmailOTPNotFound
@@ -55,7 +53,7 @@ func (r *emailOTPRepository) GetByUserID(ctx context.Context, userID googleUuid.
 }
 
 // GetByID retrieves an email OTP by ID.
-func (r *emailOTPRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.EmailOTP, error) {
+func (r *emailOTPRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.EmailOTP, error) {
 	var otp cryptoutilIdentityDomain.EmailOTP
 
 	err := getDB(ctx, r.db).WithContext(ctx).First(&otp, "id = ?", id).Error
@@ -71,7 +69,7 @@ func (r *emailOTPRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*
 }
 
 // Update updates an existing email OTP.
-func (r *emailOTPRepository) Update(ctx context.Context, otp *cryptoutilIdentityDomain.EmailOTP) error {
+func (r *emailOTPRepositoryGORM) Update(ctx context.Context, otp *cryptoutilIdentityDomain.EmailOTP) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(otp).Error; err != nil {
 		return fmt.Errorf("failed to update email OTP: %w", err)
 	}
@@ -80,7 +78,7 @@ func (r *emailOTPRepository) Update(ctx context.Context, otp *cryptoutilIdentity
 }
 
 // DeleteByUserID deletes all email OTPs for a user.
-func (r *emailOTPRepository) DeleteByUserID(ctx context.Context, userID googleUuid.UUID) error {
+func (r *emailOTPRepositoryGORM) DeleteByUserID(ctx context.Context, userID googleUuid.UUID) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Where("user_id = ?", userID).Delete(&cryptoutilIdentityDomain.EmailOTP{}).Error; err != nil {
 		return fmt.Errorf("failed to delete email OTPs by user ID: %w", err)
 	}
@@ -89,7 +87,7 @@ func (r *emailOTPRepository) DeleteByUserID(ctx context.Context, userID googleUu
 }
 
 // DeleteExpired deletes all expired email OTPs.
-func (r *emailOTPRepository) DeleteExpired(ctx context.Context) (int64, error) {
+func (r *emailOTPRepositoryGORM) DeleteExpired(ctx context.Context) (int64, error) {
 	result := getDB(ctx, r.db).WithContext(ctx).
 		Where("expires_at < ?", "CURRENT_TIMESTAMP").
 		Delete(&cryptoutilIdentityDomain.EmailOTP{})

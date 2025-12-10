@@ -18,18 +18,18 @@ func TestPushedAuthorizationRequest_IsExpired(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		expiresAt time.Time
+		name        string
+		expiresAt   time.Time
 		wantExpired bool
 	}{
 		{
-			name:      "not expired",
-			expiresAt: time.Now().UTC().Add(cryptoutilMagic.DefaultPARLifetime),
+			name:        "not expired",
+			expiresAt:   time.Now().UTC().Add(cryptoutilMagic.DefaultPARLifetime),
 			wantExpired: false,
 		},
 		{
-			name:      "expired",
-			expiresAt: time.Now().UTC().Add(-1 * time.Second),
+			name:        "expired",
+			expiresAt:   time.Now().UTC().Add(-1 * time.Second),
 			wantExpired: true,
 		},
 	}

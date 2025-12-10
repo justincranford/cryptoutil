@@ -105,12 +105,12 @@ var (
 	ErrServerError          = NewIdentityError("server_error", "Internal server error", http.StatusInternalServerError, nil)
 
 	// Authorization request errors.
-	ErrAuthorizationRequestNotFound        = NewIdentityError("authorization_request_not_found", "Authorization request not found", http.StatusNotFound, nil)
-	ErrConsentNotFound                     = NewIdentityError("consent_not_found", "Consent decision not found", http.StatusNotFound, nil)
-	ErrDeviceAuthorizationNotFound         = NewIdentityError("device_authorization_not_found", "Device authorization not found", http.StatusNotFound, nil)
-	ErrPushedAuthorizationRequestNotFound  = NewIdentityError("pushed_authorization_request_not_found", "Pushed authorization request not found", http.StatusNotFound, nil)
-	ErrRecoveryCodeNotFound                = NewIdentityError("recovery_code_not_found", "Recovery code not found", http.StatusNotFound, nil)
-	ErrEmailOTPNotFound                    = NewIdentityError("email_otp_not_found", "Email OTP not found", http.StatusNotFound, nil)
+	ErrAuthorizationRequestNotFound       = NewIdentityError("authorization_request_not_found", "Authorization request not found", http.StatusNotFound, nil)
+	ErrConsentNotFound                    = NewIdentityError("consent_not_found", "Consent decision not found", http.StatusNotFound, nil)
+	ErrDeviceAuthorizationNotFound        = NewIdentityError("device_authorization_not_found", "Device authorization not found", http.StatusNotFound, nil)
+	ErrPushedAuthorizationRequestNotFound = NewIdentityError("pushed_authorization_request_not_found", "Pushed authorization request not found", http.StatusNotFound, nil)
+	ErrRecoveryCodeNotFound               = NewIdentityError("recovery_code_not_found", "Recovery code not found", http.StatusNotFound, nil)
+	ErrEmailOTPNotFound                   = NewIdentityError("email_otp_not_found", "Email OTP not found", http.StatusNotFound, nil)
 
 	// MFA errors.
 	ErrInvalidOTP        = NewIdentityError("invalid_otp", "Invalid OTP code", http.StatusUnauthorized, nil)

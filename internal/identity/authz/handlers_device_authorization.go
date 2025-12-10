@@ -127,11 +127,11 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 
 	// Return RFC 8628 Section 3.2 response.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"device_code":                deviceCode,
-		"user_code":                  userCode,
-		"verification_uri":           verificationURI,
-		"verification_uri_complete":  verificationURIComplete,
-		"expires_in":                 int(cryptoutilIdentityMagic.DefaultDeviceCodeLifetime.Seconds()),
-		"interval":                   int(cryptoutilIdentityMagic.DefaultPollingInterval.Seconds()),
+		"device_code":               deviceCode,
+		"user_code":                 userCode,
+		"verification_uri":          verificationURI,
+		"verification_uri_complete": verificationURIComplete,
+		"expires_in":                int(cryptoutilIdentityMagic.DefaultDeviceCodeLifetime.Seconds()),
+		"interval":                  int(cryptoutilIdentityMagic.DefaultPollingInterval.Seconds()),
 	})
 }

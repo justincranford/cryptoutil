@@ -48,4 +48,8 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oidc.Get("/mfa/recovery-codes/count", s.handleGetRecoveryCodeCount)
 	oidc.Post("/mfa/recovery-codes/regenerate", s.handleRegenerateRecoveryCodes)
 	oidc.Post("/mfa/verify-recovery-code", s.handleVerifyRecoveryCode)
+
+	// MFA email OTP endpoints.
+	oidc.Post("/mfa/email-otp/send", s.handleSendEmailOTP)
+	oidc.Post("/mfa/email-otp/verify", s.handleVerifyEmailOTP)
 }

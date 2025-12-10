@@ -133,11 +133,11 @@ func (s *SMTPEmailService) SendOTP(ctx context.Context, to, code string) error {
     // Generate email body from template
     subject := "Your One-Time Password"
     body := fmt.Sprintf(emailOTPTemplate, code)
-    
+
     // Connect to SMTP server
     auth := smtp.PlainAuth("", s.username, s.password, s.host)
     addr := fmt.Sprintf("%s:%d", s.host, s.port)
-    
+
     // Send email
     msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", s.from, to, subject, body)
     return smtp.SendMail(addr, auth, s.from, []string{to}, []byte(msg))
@@ -174,17 +174,17 @@ Generate 6-digit numeric OTP:
 func GenerateEmailOTP() (string, error) {
     const otpLength = 6
     charset := "0123456789"
-    
+
     randomBytes := make([]byte, otpLength)
     if _, err := rand.Read(randomBytes); err != nil {
         return "", err
     }
-    
+
     code := make([]byte, otpLength)
     for i := range otpLength {
         code[i] = charset[int(randomBytes[i])%len(charset)]
     }
-    
+
     return string(code), nil
 }
 ```
@@ -211,11 +211,11 @@ type InMemoryRateLimiter struct {
 func (r *InMemoryRateLimiter) Allow(ctx context.Context, userID googleUuid.UUID) (bool, error) {
     r.mu.Lock()
     defer r.mu.Unlock()
-    
+
     key := userID.String()
     now := time.Now().UTC()
     cutoff := now.Add(-r.window)
-    
+
     // Remove old requests
     var recent []time.Time
     for _, t := range r.requests[key] {
@@ -223,16 +223,16 @@ func (r *InMemoryRateLimiter) Allow(ctx context.Context, userID googleUuid.UUID)
             recent = append(recent, t)
         }
     }
-    
+
     // Check limit
     if len(recent) >= r.limit {
         return false, nil
     }
-    
+
     // Add new request
     recent = append(recent, now)
     r.requests[key] = recent
-    
+
     return true, nil
 }
 ```
@@ -260,19 +260,19 @@ func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, e
     if !allowed {
         return ErrRateLimitExceeded
     }
-    
+
     // Generate OTP
     code, err := GenerateEmailOTP()
     if err != nil {
         return err
     }
-    
+
     // Hash code
     hash, err := bcrypt.GenerateFromPassword([]byte(code), bcrypt.DefaultCost)
     if err != nil {
         return err
     }
-    
+
     // Store in database
     otp := &EmailOTP{
         ID:        googleUuid.New(),
@@ -286,7 +286,7 @@ func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, e
     if err := s.repo.Create(ctx, otp); err != nil {
         return err
     }
-    
+
     // Send email
     return s.emailService.SendOTP(ctx, email, code)
 }
@@ -297,20 +297,20 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
     if err != nil {
         return err
     }
-    
+
     // Find matching OTP
     for _, otp := range otps {
         if otp.IsUsed() || otp.IsExpired() {
             continue
         }
-        
+
         if err := bcrypt.CompareHashAndPassword([]byte(otp.CodeHash), []byte(code)); err == nil {
             // Match found - mark as used
             otp.MarkAsUsed()
             return s.repo.Update(ctx, otp)
         }
     }
-    
+
     return ErrInvalidOTP
 }
 ```

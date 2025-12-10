@@ -108,11 +108,11 @@ Add PAR-specific constants:
 const (
     // PAR endpoint
     EndpointPAR = "/oauth2/v1/par"
-    
+
     // PAR parameters
     ParamRequestURI    = "request_uri"
     ParamExpiresIn     = "expires_in"
-    
+
     // PAR errors
     ErrorInvalidRequestURI    = "invalid_request_uri"
     ErrorInvalidRequestObject = "invalid_request_object"
@@ -126,7 +126,7 @@ Add PAR timeout constants:
 const (
     // DefaultPARLifetime is the default lifetime for pushed authorization requests (90 seconds)
     DefaultPARLifetime = 90 * time.Second
-    
+
     // DefaultRequestURILength is the default length for request_uri identifiers (32 bytes = ~43 chars base64url)
     DefaultRequestURILength = 32
 )
@@ -162,7 +162,7 @@ type PushedAuthorizationRequest struct {
     ID                 googleUuid.UUID `gorm:"type:text;primaryKey"`
     RequestURI         string          `gorm:"type:text;uniqueIndex;not null"` // urn:ietf:params:oauth:request_uri:xxx
     ClientID           googleUuid.UUID `gorm:"type:text;index;not null"`
-    
+
     // Stored authorization parameters (JSON serialized)
     ResponseType       string   `gorm:"type:text;not null"`
     RedirectURI        string   `gorm:"type:text;not null"`
@@ -171,10 +171,10 @@ type PushedAuthorizationRequest struct {
     CodeChallenge      string   `gorm:"type:text;not null"`
     CodeChallengeMethod string  `gorm:"type:text;not null"`
     Nonce              string   `gorm:"type:text"`
-    
+
     // Additional parameters as JSON blob
     AdditionalParams   string   `gorm:"type:text;serializer:json"`
-    
+
     // Lifecycle tracking
     Used               bool     `gorm:"not null;default:false;index"`
     ExpiresAt          time.Time `gorm:"not null;index"`
@@ -248,10 +248,10 @@ import (
     "errors"
     "fmt"
     "time"
-    
+
     googleUuid "github.com/google/uuid"
     "gorm.io/gorm"
-    
+
     cryptoutilIdentityApperr "github.com/soyrochus/cryptoutil/internal/identity/apperr"
     cryptoutilIdentityDomain "github.com/soyrochus/cryptoutil/internal/identity/domain"
 )
@@ -333,7 +333,7 @@ CREATE TABLE IF NOT EXISTS pushed_authorization_requests (
     id TEXT PRIMARY KEY,
     request_uri TEXT NOT NULL UNIQUE,
     client_id TEXT NOT NULL,
-    
+
     -- Authorization parameters
     response_type TEXT NOT NULL,
     redirect_uri TEXT NOT NULL,
@@ -342,10 +342,10 @@ CREATE TABLE IF NOT EXISTS pushed_authorization_requests (
     code_challenge TEXT NOT NULL,
     code_challenge_method TEXT NOT NULL,
     nonce TEXT,
-    
+
     -- Additional parameters (JSON)
     additional_params TEXT,
-    
+
     -- Lifecycle tracking
     used BOOLEAN NOT NULL DEFAULT FALSE,
     expires_at TIMESTAMP NOT NULL,
@@ -379,7 +379,7 @@ import (
     "crypto/rand"
     "encoding/base64"
     "fmt"
-    
+
     cryptoutilMagic "github.com/soyrochus/cryptoutil/internal/common/magic"
 )
 
@@ -390,10 +390,10 @@ func GenerateRequestURI() (string, error) {
     if _, err := rand.Read(randomBytes); err != nil {
         return "", fmt.Errorf("failed to generate random bytes for request_uri: %w", err)
     }
-    
+
     // Base64url encode without padding
     encoded := base64.RawURLEncoding.EncodeToString(randomBytes)
-    
+
     return cryptoutilMagic.RequestURIPrefix + encoded, nil
 }
 ```
@@ -419,10 +419,10 @@ package authz
 import (
     "fmt"
     "time"
-    
+
     "github.com/gofiber/fiber/v2"
     googleUuid "github.com/google/uuid"
-    
+
     cryptoutilIdentityDomain "github.com/soyrochus/cryptoutil/internal/identity/domain"
     cryptoutilMagic "github.com/soyrochus/cryptoutil/internal/common/magic"
 )
@@ -436,13 +436,13 @@ type PARResponse struct {
 // handlePAR handles POST /oauth2/v1/par - Pushed Authorization Request endpoint (RFC 9126)
 func (s *Server) handlePAR(c *fiber.Ctx) error {
     ctx := c.Context()
-    
+
     // 1. Extract and validate client authentication
     clientID, err := s.extractAndValidateClient(c)
     if err != nil {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidClient, "Client authentication failed")
     }
-    
+
     // 2. Parse authorization request parameters
     responseType := c.FormValue("response_type")
     redirectURI := c.FormValue("redirect_uri")
@@ -451,7 +451,7 @@ func (s *Server) handlePAR(c *fiber.Ctx) error {
     codeChallenge := c.FormValue("code_challenge")
     codeChallengeMethod := c.FormValue("code_challenge_method")
     nonce := c.FormValue("nonce")
-    
+
     // 3. Validate required parameters
     if responseType == "" {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequest, "Missing required parameter: response_type")
@@ -465,38 +465,38 @@ func (s *Server) handlePAR(c *fiber.Ctx) error {
     if codeChallengeMethod == "" {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequest, "Missing required parameter: code_challenge_method")
     }
-    
+
     // 4. Validate response_type (only "code" supported)
     if responseType != "code" {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorUnsupportedResponseType, "Only response_type=code is supported")
     }
-    
+
     // 5. Validate code_challenge_method (only S256 supported per PKCE)
     if codeChallengeMethod != "S256" {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequest, "Only code_challenge_method=S256 is supported")
     }
-    
+
     // 6. Validate redirect_uri against client configuration
     client, err := s.clientRepo.GetByID(ctx, clientID)
     if err != nil {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidClient, "Client not found")
     }
-    
+
     if !contains(client.RedirectURIs, redirectURI) {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequest, "redirect_uri not registered for client")
     }
-    
+
     // 7. Generate request_uri
     requestURI, err := GenerateRequestURI()
     if err != nil {
         s.logger.Error("Failed to generate request_uri", "error", err)
         return s.sendOAuthError(c, fiber.StatusInternalServerError, cryptoutilMagic.ErrorServerError, "Internal server error")
     }
-    
+
     // 8. Create and store PushedAuthorizationRequest
     now := time.Now().UTC()
     expiresAt := now.Add(cryptoutilMagic.DefaultPARLifetime)
-    
+
     par := &cryptoutilIdentityDomain.PushedAuthorizationRequest{
         ID:                  googleUuid.New(),
         RequestURI:          requestURI,
@@ -512,18 +512,18 @@ func (s *Server) handlePAR(c *fiber.Ctx) error {
         ExpiresAt:           expiresAt,
         CreatedAt:           now,
     }
-    
+
     if err := s.parRepo.Create(ctx, par); err != nil {
         s.logger.Error("Failed to create pushed authorization request", "error", err)
         return s.sendOAuthError(c, fiber.StatusInternalServerError, cryptoutilMagic.ErrorServerError, "Internal server error")
     }
-    
+
     // 9. Return response (201 Created)
     response := PARResponse{
         RequestURI: requestURI,
         ExpiresIn:  int(cryptoutilMagic.DefaultPARLifetime.Seconds()),
     }
-    
+
     return c.Status(fiber.StatusCreated).JSON(response)
 }
 
@@ -536,7 +536,7 @@ func (s *Server) extractAndValidateClient(c *fiber.Ctx) (googleUuid.UUID, error)
         // Authenticate with client secret
         // ... (implementation similar to existing client auth)
     }
-    
+
     // Try client_secret_post (form body)
     clientIDStr := c.FormValue("client_id")
     if clientIDStr != "" {
@@ -546,7 +546,7 @@ func (s *Server) extractAndValidateClient(c *fiber.Ctx) (googleUuid.UUID, error)
         }
         return clientID, nil
     }
-    
+
     return googleUuid.Nil, fmt.Errorf("missing client credentials")
 }
 ```
@@ -574,13 +574,13 @@ Modify existing handleAuthorize to support request_uri parameter:
 ```go
 func (s *Server) handleAuthorize(c *fiber.Ctx) error {
     ctx := c.Context()
-    
+
     // Check for request_uri parameter (PAR flow)
     requestURI := c.Query("request_uri")
     if requestURI != "" {
         return s.handleAuthorizeWithPAR(c, requestURI)
     }
-    
+
     // Existing authorization code flow logic
     // ...
 }
@@ -588,46 +588,46 @@ func (s *Server) handleAuthorize(c *fiber.Ctx) error {
 // handleAuthorizeWithPAR processes authorization request using PAR request_uri
 func (s *Server) handleAuthorizeWithPAR(c *fiber.Ctx, requestURI string) error {
     ctx := c.Context()
-    
+
     // 1. Validate request_uri format
     if !strings.HasPrefix(requestURI, cryptoutilMagic.RequestURIPrefix) {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequestURI, "Invalid request_uri format")
     }
-    
+
     // 2. Retrieve stored PAR
     par, err := s.parRepo.GetByRequestURI(ctx, requestURI)
     if err != nil {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequestURI, "request_uri not found or expired")
     }
-    
+
     // 3. Validate expiration
     if par.IsExpired() {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequestURI, "request_uri has expired")
     }
-    
+
     // 4. Validate single-use
     if par.IsUsed() {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequestURI, "request_uri already used")
     }
-    
+
     // 5. Validate client_id matches (required in query string)
     clientIDStr := c.Query("client_id")
     if clientIDStr == "" {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequest, "Missing required parameter: client_id")
     }
-    
+
     clientID, err := googleUuid.Parse(clientIDStr)
     if err != nil || clientID != par.ClientID {
         return s.sendOAuthError(c, fiber.StatusBadRequest, cryptoutilMagic.ErrorInvalidRequest, "client_id mismatch")
     }
-    
+
     // 6. Mark PAR as used
     par.MarkAsUsed()
     if err := s.parRepo.Update(ctx, par); err != nil {
         s.logger.Error("Failed to mark PAR as used", "error", err)
         return s.sendOAuthError(c, fiber.StatusInternalServerError, cryptoutilMagic.ErrorServerError, "Internal server error")
     }
-    
+
     // 7. Proceed with normal authorization flow using PAR parameters
     // (inject PAR parameters into request context for downstream handlers)
     c.Locals("par_response_type", par.ResponseType)
@@ -637,7 +637,7 @@ func (s *Server) handleAuthorizeWithPAR(c *fiber.Ctx, requestURI string) error {
     c.Locals("par_code_challenge", par.CodeChallenge)
     c.Locals("par_code_challenge_method", par.CodeChallengeMethod)
     c.Locals("par_nonce", par.Nonce)
-    
+
     // Continue with existing authorize flow logic
     // ...
 }
@@ -658,7 +658,7 @@ Add PAR endpoint:
 ```go
 func (s *Server) RegisterRoutes(app *fiber.App) {
     oauth := app.Group("/oauth2/v1")
-    
+
     // Existing routes
     oauth.Post("/token", s.handleToken)
     oauth.Post("/introspect", s.handleIntrospect)
@@ -666,10 +666,10 @@ func (s *Server) RegisterRoutes(app *fiber.App) {
     oauth.Get("/authorize", s.handleAuthorize)
     oauth.Post("/authorize", s.handleAuthorize)
     oauth.Post("/device_authorization", s.handleDeviceAuthorization)
-    
+
     // NEW: PAR endpoint
     oauth.Post("/par", s.handlePAR)
-    
+
     // ... rest of routes
 }
 ```
@@ -752,17 +752,17 @@ Test PAR E2E flow:
   3. POST /login → redirect to consent
   4. POST /consent → redirect to callback with code
   5. POST /token with code → get tokens
-  
+
 - TestPARFlow_ExpiredRequestURI:
   1. POST /par → get request_uri
   2. Manually expire PAR in database
   3. GET /authorize with request_uri → 400 invalid_request_uri
-  
+
 - TestPARFlow_UsedRequestURI:
   1. POST /par → get request_uri
   2. GET /authorize with request_uri → success
   3. GET /authorize with same request_uri → 400 invalid_request_uri (used)
-  
+
 - TestPARFlow_ClientMismatch:
   1. Create client A, POST /par → get request_uri
   2. GET /authorize with client B's client_id → 400 client_id mismatch
@@ -786,7 +786,7 @@ import (
 func (s *Server) StartPARCleanupJob(ctx context.Context, interval time.Duration) {
     ticker := time.NewTicker(interval)
     defer ticker.Stop()
-    
+
     for {
         select {
         case <-ticker.C:

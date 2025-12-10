@@ -18,8 +18,8 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 	cryptoutilMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
 )
 

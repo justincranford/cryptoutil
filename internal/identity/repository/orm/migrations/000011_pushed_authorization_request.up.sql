@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS pushed_authorization_requests (
     id TEXT PRIMARY KEY,
     request_uri TEXT NOT NULL UNIQUE,
     client_id TEXT NOT NULL,
-    
+
     -- Authorization parameters.
     response_type TEXT NOT NULL,
     redirect_uri TEXT NOT NULL,
@@ -12,10 +12,10 @@ CREATE TABLE IF NOT EXISTS pushed_authorization_requests (
     code_challenge TEXT NOT NULL,
     code_challenge_method TEXT NOT NULL,
     nonce TEXT,
-    
+
     -- Additional parameters (JSON).
     additional_params TEXT,
-    
+
     -- Lifecycle tracking.
     used BOOLEAN NOT NULL DEFAULT FALSE,
     expires_at TIMESTAMP NOT NULL,

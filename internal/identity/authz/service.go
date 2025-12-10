@@ -11,18 +11,21 @@ import (
 	"cryptoutil/internal/identity/authz/clientauth"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityEmail "cryptoutil/internal/identity/email"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
+	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )
 
 // Service provides OAuth 2.1 authorization server functionality.
 type Service struct {
-	config       *cryptoutilIdentityConfig.Config
-	repoFactory  *cryptoutilIdentityRepository.RepositoryFactory
-	tokenSvc     *cryptoutilIdentityIssuer.TokenService
-	clientAuth   *clientauth.Registry
-	authReqStore AuthorizationRequestStore
+	config          *cryptoutilIdentityConfig.Config
+	repoFactory     *cryptoutilIdentityRepository.RepositoryFactory
+	tokenSvc        *cryptoutilIdentityIssuer.TokenService
+	clientAuth      *clientauth.Registry
+	authReqStore    AuthorizationRequestStore
+	emailOTPService *cryptoutilIdentityMFA.EmailOTPService
 }
 
 // NewService creates a new authorization server service.
@@ -34,12 +37,22 @@ func NewService(
 	// Create rotation service for multi-secret authentication
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(repoFactory.DB())
 
+	// Create email service (mock for now, will be configured via SMTP later).
+	emailService := cryptoutilIdentityEmail.NewMockEmailService()
+
+	// Create email OTP service.
+	emailOTPService := cryptoutilIdentityMFA.NewEmailOTPService(
+		repoFactory.EmailOTPRepository(),
+		emailService,
+	)
+
 	return &Service{
-		config:       config,
-		repoFactory:  repoFactory,
-		tokenSvc:     tokenSvc,
-		clientAuth:   clientauth.NewRegistry(repoFactory, config, rotationService),
-		authReqStore: NewInMemoryAuthorizationRequestStore(),
+		config:          config,
+		repoFactory:     repoFactory,
+		tokenSvc:        tokenSvc,
+		clientAuth:      clientauth.NewRegistry(repoFactory, config, rotationService),
+		authReqStore:    NewInMemoryAuthorizationRequestStore(),
+		emailOTPService: emailOTPService,
 	}
 }
 

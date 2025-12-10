@@ -46,7 +46,7 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 		cryptoutilIdentityMagic.ParamState:               []string{"random-state-value"},
 		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-code-challenge-value-xxxxxxxxxxxxxxxxx"},
 		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
-		"nonce":                                          []string{"random-nonce-value"},
+		"nonce": []string{"random-nonce-value"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
