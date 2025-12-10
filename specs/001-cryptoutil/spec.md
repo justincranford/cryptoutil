@@ -108,8 +108,8 @@ Complete identity and access management solution.
 | client_secret_post | client_id and client_secret in request body | ✅ Working |
 | client_secret_jwt | JWT signed with client secret (RFC 7523 Section 3) | ✅ 100% (jti replay protection via jti_replay_cache table, 10-minute assertion lifetime validation, 10 tests passing) |
 | private_key_jwt | JWT signed with private key (RFC 7523 Section 3) | ✅ 100% (jti replay protection, 10-minute assertion lifetime validation, JWKS support, 7 tests passing) |
-| tls_client_auth | Mutual TLS client certificate authentication | ❌ Not Implemented (MANDATORY) |
-| self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ❌ Not Implemented (MANDATORY) |
+| tls_client_auth | Mutual TLS client certificate authentication | ✅ 100% (CA certificate validation, subject DN matching, SHA-256 fingerprint verification, revocation checking, 6 tests passing) |
+| self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ✅ 100% (self-signed cert validation, subject DN matching, SHA-256 fingerprint verification, 6 tests passing) |
 | session_cookie | Browser session cookie for SPA UI | ❌ Not Implemented (MANDATORY) |
 
 #### MFA Factors
