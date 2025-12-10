@@ -166,6 +166,70 @@ func TestHandler_ServeHTTP(t *testing.T) {
 				require.Equal(t, 0, len(jwksResponse.Keys), "JWKS should be empty when no keys exist")
 			},
 		},
+		{
+			name:   "invalid public key in repository",
+			method: http.MethodGet,
+			setupMock: func(repo *MockKeyRepository) {
+				// Create key with invalid PublicKey (malformed JSON).
+				kid := googleUuid.Must(googleUuid.NewV7())
+				key := &cryptoutilIdentityDomain.Key{
+					ID:         kid,
+					Usage:      cryptoutilIdentityMagic.KeyUsageSigning,
+					Algorithm:  joseJwa.RS256().String(),
+					PrivateKey: `{"kty":"RSA"}`, // Valid private key.
+					PublicKey:  `invalid-json-not-a-jwk`,
+					Active:     true,
+				}
+
+				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+					Return([]*cryptoutilIdentityDomain.Key{key}, nil)
+			},
+			expectedStatus: http.StatusOK,
+			validateBody: func(t *testing.T, body []byte) {
+				t.Helper()
+
+				var jwksResponse struct {
+					Keys []json.RawMessage `json:"keys"`
+				}
+
+				err := json.Unmarshal(body, &jwksResponse)
+				require.NoError(t, err)
+				// Invalid key should be skipped, resulting in empty JWKS.
+				require.Equal(t, 0, len(jwksResponse.Keys), "JWKS should skip invalid public keys")
+			},
+		},
+		{
+			name:   "symmetric key without public key",
+			method: http.MethodGet,
+			setupMock: func(repo *MockKeyRepository) {
+				// Create symmetric key (no PublicKey field).
+				kid := googleUuid.Must(googleUuid.NewV7())
+				key := &cryptoutilIdentityDomain.Key{
+					ID:         kid,
+					Usage:      cryptoutilIdentityMagic.KeyUsageSigning,
+					Algorithm:  joseJwa.HS256().String(),
+					PrivateKey: `{"kty":"oct","k":"secret"}`,
+					PublicKey:  "", // No public key for symmetric algorithm.
+					Active:     true,
+				}
+
+				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+					Return([]*cryptoutilIdentityDomain.Key{key}, nil)
+			},
+			expectedStatus: http.StatusOK,
+			validateBody: func(t *testing.T, body []byte) {
+				t.Helper()
+
+				var jwksResponse struct {
+					Keys []json.RawMessage `json:"keys"`
+				}
+
+				err := json.Unmarshal(body, &jwksResponse)
+				require.NoError(t, err)
+				// Symmetric key should be skipped (no public key), resulting in empty JWKS.
+				require.Equal(t, 0, len(jwksResponse.Keys), "JWKS should skip symmetric keys without public keys")
+			},
+		},
 	}
 
 	for _, tc := range tests {
