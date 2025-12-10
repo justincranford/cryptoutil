@@ -428,6 +428,7 @@ func TestClientRepository_RotateSecret(t *testing.T) {
 
 			// Capture old secret before rotation.
 			oldClient, err := repo.GetByID(ctx, client.ID)
+
 			var oldSecretHash string
 			if err == nil {
 				oldSecretHash = oldClient.ClientSecret
@@ -504,7 +505,7 @@ func TestClientRepository_GetSecretHistory(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture loop variable for parallel execution.
+		// Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a fresh client for this test case.
 			client := &cryptoutilIdentityDomain.Client{

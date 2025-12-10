@@ -18,6 +18,8 @@ import (
 	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"
 )
 
+const testPassword = "CorrectPassword123!"
+
 // mockUserRepo implements UserRepository for testing.
 type mockUserRepo struct {
 	users    map[string]*cryptoutilIdentityDomain.User
@@ -366,7 +368,7 @@ func TestUsernamePasswordProfile_AuthenticateWrongPassword(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilCrypto.HashSecretPBKDF2("CorrectPassword123!")
+	hash, err := cryptoutilCrypto.HashSecretPBKDF2(testPassword)
 	require.NoError(t, err, "HashSecret should succeed")
 
 	user := &cryptoutilIdentityDomain.User{
@@ -483,7 +485,7 @@ func TestEmailPasswordProfile_AuthenticateInvalidPassword(t *testing.T) {
 
 	// Create user with hashed password.
 	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
-	correctPassword := "CorrectPassword123!"
+	correctPassword := testPassword
 	passwordHash, err := hasher.HashSecret(correctPassword)
 	require.NoError(t, err, "Failed to hash password")
 
@@ -517,7 +519,7 @@ func TestEmailPasswordProfile_AuthenticateSuccess(t *testing.T) {
 
 	// Create user with hashed password.
 	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
-	correctPassword := "CorrectPassword123!"
+	correctPassword := testPassword
 	passwordHash, err := hasher.HashSecret(correctPassword)
 	require.NoError(t, err, "Failed to hash password")
 

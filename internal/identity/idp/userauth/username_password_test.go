@@ -22,6 +22,7 @@ import (
 const (
 	testOldPassword = "OldPassword123!"
 	testNewPassword = "NewPassword456!"
+	testCorrectPassword = "CorrectPassword123!"
 )
 
 // mockPasswordCredentialStore implements PasswordCredentialStore for testing.
@@ -401,7 +402,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuthWrongPassword(t *testing.T) {
 	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash password with bcrypt directly.
-	hash, err := bcrypt.GenerateFromPassword([]byte("CorrectPassword123!"), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(testCorrectPassword), bcrypt.DefaultCost)
 	require.NoError(t, err, "bcrypt.GenerateFromPassword should succeed")
 
 	err = credStore.StoreCredential(ctx, userID.String(), hash)

@@ -54,7 +54,7 @@ func TestKeyRepository_Create(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture loop variable for parallel execution.
+		// Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			err := repo.Create(ctx, tc.key)
 			if tc.wantErr {
@@ -103,7 +103,7 @@ func TestKeyRepository_FindByID(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture loop variable for parallel execution.
+		// Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := repo.FindByID(ctx, tc.id)
 			if tc.wantErr {
@@ -165,7 +165,7 @@ func TestKeyRepository_Update(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture loop variable for parallel execution.
+		// Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			err := repo.Update(ctx, tc.key)
 			if tc.wantErr {
@@ -221,7 +221,7 @@ func TestKeyRepository_Delete(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture loop variable for parallel execution.
+		// Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			id := tc.setup()
 
@@ -291,7 +291,7 @@ func TestKeyRepository_List(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture loop variable for parallel execution.
+		// Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			keys, err := repo.List(ctx, tc.limit, tc.offset)
 			require.NoError(t, err)
@@ -335,7 +335,7 @@ func TestKeyRepository_Count(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture loop variable for parallel execution.
+		// Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			// Create test keys for this subtest.
 			for i := 0; i < tc.setupCount; i++ {

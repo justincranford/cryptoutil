@@ -459,8 +459,10 @@ func TestGenerateRandomSecret(t *testing.T) {
 	t.Run("uniqueness", func(t *testing.T) {
 		t.Parallel()
 
-		const numSecrets = 10
-		const secretLength = 32
+		const (
+			numSecrets   = 10
+			secretLength = 32
+		)
 
 		secrets := make(map[string]bool)
 

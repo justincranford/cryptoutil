@@ -463,10 +463,10 @@ func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name               string
-		riskLevel          RiskLevel
-		wantRequiresAuth   bool
-		wantRequirements   int
+		name             string
+		riskLevel        RiskLevel
+		wantRequiresAuth bool
+		wantRequirements int
 	}{
 		{
 			name:             "low risk does not require additional auth",

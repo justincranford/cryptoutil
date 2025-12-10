@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	"cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // mockMagicLinkUserRepo implements UserRepository for magic link testing.
@@ -467,6 +467,7 @@ func TestMagicLinkAuthenticator_InitiateAuthEmailDeliveryFailure(t *testing.T) {
 	userRepo := newMockMagicLinkUserRepo()
 	delivery := userauth.NewMockDeliveryService()
 	delivery.SetShouldFail(true) // Make delivery fail.
+
 	challengeStore := userauth.NewInMemoryChallengeStore()
 	rateLimiter := userauth.NewInMemoryRateLimiter()
 	generator := &userauth.DefaultOTPGenerator{}
@@ -623,7 +624,7 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 	// Generate token before initiating auth so we can capture it.
 	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
 	require.NoError(t, err)
-	
+
 	hashedToken, err := userauth.HashToken(token)
 	require.NoError(t, err)
 

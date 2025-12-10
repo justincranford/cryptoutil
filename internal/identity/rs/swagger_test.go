@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package rs_test
 
 import (
@@ -44,6 +46,7 @@ func TestServeOpenAPISpec(t *testing.T) {
 			// Execute request.
 			resp, err := app.Test(req)
 			require.NoError(t, err, "Request should execute without error")
+
 			defer func() {
 				closeErr := resp.Body.Close()
 				require.NoError(t, closeErr)
