@@ -41,4 +41,11 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 
 	// Client management endpoints.
 	oauth.Post("/clients/:id/rotate-secret", s.handleClientSecretRotation)
+
+	// MFA recovery code endpoints (OIDC /oidc/v1 prefix).
+	oidc := app.Group("/oidc/v1")
+	oidc.Post("/mfa/recovery-codes/generate", s.handleGenerateRecoveryCodes)
+	oidc.Get("/mfa/recovery-codes/count", s.handleGetRecoveryCodeCount)
+	oidc.Post("/mfa/recovery-codes/regenerate", s.handleRegenerateRecoveryCodes)
+	oidc.Post("/mfa/verify-recovery-code", s.handleVerifyRecoveryCode)
 }
