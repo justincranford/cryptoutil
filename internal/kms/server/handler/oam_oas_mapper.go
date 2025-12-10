@@ -325,6 +325,48 @@ func (m *oamOasMapper) toOasGetMaterialKeysResponse(err error, keys []cryptoutil
 	return cryptoutilOpenapiServer.GetMaterialkeys200JSONResponse(keys), err
 }
 
+func (m *oamOasMapper) toOasPutElastickeyElasticKeyIDResponse(err error, updatedElasticKey *cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.PutElastickeyElasticKeyIDResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PutElastickeyElasticKeyID400JSONResponse{HTTP400BadRequest: m.toOasHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PutElastickeyElasticKeyID404JSONResponse{HTTP404NotFound: m.toOasHTTP404Response(appErr)}, nil
+			case http.StatusConflict:
+				return cryptoutilOpenapiServer.PutElastickeyElasticKeyID409JSONResponse{HTTP409Conflict: m.toOasHTTP409Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PutElastickeyElasticKeyID500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
+			}
+		}
+
+		return nil, fmt.Errorf("failed to update ElasticKey: %w", err)
+	}
+
+	return cryptoutilOpenapiServer.PutElastickeyElasticKeyID200JSONResponse(*updatedElasticKey), nil
+}
+
+func (m *oamOasMapper) toOasDeleteElastickeyElasticKeyIDResponse(err error) (cryptoutilOpenapiServer.DeleteElastickeyElasticKeyIDResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.DeleteElastickeyElasticKeyID400JSONResponse{HTTP400BadRequest: m.toOasHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.DeleteElastickeyElasticKeyID404JSONResponse{HTTP404NotFound: m.toOasHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.DeleteElastickeyElasticKeyID500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
+			}
+		}
+
+		return nil, fmt.Errorf("failed to delete ElasticKey: %w", err)
+	}
+
+	return cryptoutilOpenapiServer.DeleteElastickeyElasticKeyID204Response{}, nil
+}
+
 // Helper methods
 
 func (m *oamOasMapper) toOasHTTP400Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP400BadRequest {
@@ -333,6 +375,10 @@ func (m *oamOasMapper) toOasHTTP400Response(appErr *cryptoutilAppErr.Error) cryp
 
 func (m *oamOasMapper) toOasHTTP404Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP404NotFound {
 	return cryptoutilOpenapiModel.HTTP404NotFound(m.toOasHTTPErrorResponse(appErr))
+}
+
+func (m *oamOasMapper) toOasHTTP409Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP409Conflict {
+	return cryptoutilOpenapiModel.HTTP409Conflict(m.toOasHTTPErrorResponse(appErr))
 }
 
 func (m *oamOasMapper) toOasHTTP500Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP500InternalServerError {

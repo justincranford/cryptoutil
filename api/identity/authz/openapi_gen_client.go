@@ -60,14 +60,24 @@ const (
 	UnsupportedGrantType   OAuth2ErrorError = "unsupported_grant_type"
 )
 
+// Defines values for AuthorizeGETParamsResponseType.
+const (
+	AuthorizeGETParamsResponseTypeCode AuthorizeGETParamsResponseType = "code"
+)
+
+// Defines values for AuthorizeGETParamsCodeChallengeMethod.
+const (
+	AuthorizeGETParamsCodeChallengeMethodS256 AuthorizeGETParamsCodeChallengeMethod = "S256"
+)
+
 // Defines values for AuthorizeFormdataBodyCodeChallengeMethod.
 const (
-	S256 AuthorizeFormdataBodyCodeChallengeMethod = "S256"
+	AuthorizeFormdataBodyCodeChallengeMethodS256 AuthorizeFormdataBodyCodeChallengeMethod = "S256"
 )
 
 // Defines values for AuthorizeFormdataBodyResponseType.
 const (
-	Code AuthorizeFormdataBodyResponseType = "code"
+	AuthorizeFormdataBodyResponseTypeCode AuthorizeFormdataBodyResponseType = "code"
 )
 
 // Defines values for IntrospectFormdataBodyTokenTypeHint.
@@ -181,6 +191,36 @@ type OAuth2Error struct {
 
 // OAuth2ErrorError OAuth 2.0 error code
 type OAuth2ErrorError string
+
+// AuthorizeGETParams defines parameters for AuthorizeGET.
+type AuthorizeGETParams struct {
+	// ResponseType Must be "code" for authorization code flow
+	ResponseType AuthorizeGETParamsResponseType `form:"response_type" json:"response_type"`
+
+	// ClientID Registered OAuth 2.0 client identifier
+	ClientID openapi_types.UUID `form:"client_id" json:"client_id"`
+
+	// RedirectURI Client redirect URI (must match registered value)
+	RedirectURI string `form:"redirect_uri" json:"redirect_uri"`
+
+	// Scope Space-delimited scope values (e.g., "openid profile email")
+	Scope *string `form:"scope,omitempty" json:"scope,omitempty"`
+
+	// State Opaque value for CSRF protection
+	State *string `form:"state,omitempty" json:"state,omitempty"`
+
+	// CodeChallenge PKCE code challenge (base64url-encoded SHA256 hash of code_verifier)
+	CodeChallenge string `form:"code_challenge" json:"code_challenge"`
+
+	// CodeChallengeMethod Must be "S256" (SHA256 hash)
+	CodeChallengeMethod AuthorizeGETParamsCodeChallengeMethod `form:"code_challenge_method" json:"code_challenge_method"`
+}
+
+// AuthorizeGETParamsResponseType defines parameters for AuthorizeGET.
+type AuthorizeGETParamsResponseType string
+
+// AuthorizeGETParamsCodeChallengeMethod defines parameters for AuthorizeGET.
+type AuthorizeGETParamsCodeChallengeMethod string
 
 // AuthorizeFormdataBody defines parameters for Authorize.
 type AuthorizeFormdataBody struct {
@@ -348,6 +388,9 @@ type ClientInterface interface {
 	// HealthCheck request
 	HealthCheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AuthorizeGET request
+	AuthorizeGET(ctx context.Context, params *AuthorizeGETParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AuthorizeWithBody request with any body
 	AuthorizeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -371,6 +414,18 @@ type ClientInterface interface {
 
 func (c *Client) HealthCheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewHealthCheckRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AuthorizeGET(ctx context.Context, params *AuthorizeGETParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAuthorizeGETRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -494,6 +549,131 @@ func NewHealthCheckRequest(server string) (*http.Request, error) {
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAuthorizeGETRequest generates requests for AuthorizeGET
+func NewAuthorizeGETRequest(server string, params *AuthorizeGETParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth2/v1/authorize")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "response_type", runtime.ParamLocationQuery, params.ResponseType); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "client_id", runtime.ParamLocationQuery, params.ClientID); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "redirect_uri", runtime.ParamLocationQuery, params.RedirectURI); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.Scope != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "scope", runtime.ParamLocationQuery, *params.Scope); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.State != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "state", runtime.ParamLocationQuery, *params.State); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "code_challenge", runtime.ParamLocationQuery, params.CodeChallenge); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "code_challenge_method", runtime.ParamLocationQuery, params.CodeChallengeMethod); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -710,6 +890,9 @@ type ClientWithResponsesInterface interface {
 	// HealthCheckWithResponse request
 	HealthCheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthCheckResponse, error)
 
+	// AuthorizeGETWithResponse request
+	AuthorizeGETWithResponse(ctx context.Context, params *AuthorizeGETParams, reqEditors ...RequestEditorFn) (*AuthorizeGETResponse, error)
+
 	// AuthorizeWithBodyWithResponse request with any body
 	AuthorizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AuthorizeResponse, error)
 
@@ -748,6 +931,29 @@ func (r HealthCheckResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r HealthCheckResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AuthorizeGETResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *OAuth2Error
+	JSON401      *OAuth2Error
+}
+
+// Status returns HTTPResponse.Status
+func (r AuthorizeGETResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AuthorizeGETResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -858,6 +1064,15 @@ func (c *ClientWithResponses) HealthCheckWithResponse(ctx context.Context, reqEd
 	return ParseHealthCheckResponse(rsp)
 }
 
+// AuthorizeGETWithResponse request returning *AuthorizeGETResponse
+func (c *ClientWithResponses) AuthorizeGETWithResponse(ctx context.Context, params *AuthorizeGETParams, reqEditors ...RequestEditorFn) (*AuthorizeGETResponse, error) {
+	rsp, err := c.AuthorizeGET(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAuthorizeGETResponse(rsp)
+}
+
 // AuthorizeWithBodyWithResponse request with arbitrary body returning *AuthorizeResponse
 func (c *ClientWithResponses) AuthorizeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AuthorizeResponse, error) {
 	rsp, err := c.AuthorizeWithBody(ctx, contentType, body, reqEditors...)
@@ -953,6 +1168,39 @@ func ParseHealthCheckResponse(rsp *http.Response) (*HealthCheckResponse, error) 
 			return nil, err
 		}
 		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAuthorizeGETResponse parses an HTTP response from a AuthorizeGETWithResponse call
+func ParseAuthorizeGETResponse(rsp *http.Response) (*AuthorizeGETResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AuthorizeGETResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest OAuth2Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuth2Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	}
 
@@ -1103,54 +1351,59 @@ func ParseTokenResponse(rsp *http.Response) (*TokenResponse, error) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"17czAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

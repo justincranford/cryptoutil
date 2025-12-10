@@ -563,3 +563,74 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 
 	return ormElasticKey, ormMaterialKey, decryptedMaterialKeyNonPublicJWK, clearMaterialKeyPublicJWK, nil
 }
+
+func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, updateRequest *cryptoutilOpenapiModel.ElasticKeyUpdate) (*cryptoutilOpenapiModel.ElasticKey, error) {
+	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
+
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+
+		ormElasticKey, err = sqlTransaction.GetElasticKey(elasticKeyID)
+		if err != nil {
+			return fmt.Errorf("failed to get ElasticKey: %w", err)
+		}
+
+		ormElasticKey.ElasticKeyName = updateRequest.Name
+		ormElasticKey.ElasticKeyDescription = updateRequest.Description
+
+		err = sqlTransaction.UpdateElasticKey(ormElasticKey)
+		if err != nil {
+			return fmt.Errorf("failed to update ElasticKey: %w", err)
+		}
+
+		ormElasticKey, err = sqlTransaction.GetElasticKey(elasticKeyID)
+		if err != nil {
+			return fmt.Errorf("failed to get updated ElasticKey: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update ElasticKey: %w", err)
+	}
+
+	return s.oamOrmMapper.toOamElasticKey(ormElasticKey), nil
+}
+
+func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID) error {
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		ormElasticKey, err := sqlTransaction.GetElasticKey(elasticKeyID)
+		if err != nil {
+			return fmt.Errorf("failed to get ElasticKey: %w", err)
+		}
+
+		var deleteStatus cryptoutilOpenapiModel.ElasticKeyStatus
+
+		switch ormElasticKey.ElasticKeyStatus {
+		case cryptoutilOpenapiModel.Active:
+			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasActive
+		case cryptoutilOpenapiModel.Disabled:
+			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasDisabled
+		case cryptoutilOpenapiModel.ImportFailed:
+			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasImportFailed
+		case cryptoutilOpenapiModel.PendingImport:
+			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasPendingImport
+		case cryptoutilOpenapiModel.GenerateFailed:
+			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasGenerateFailed
+		default:
+			return fmt.Errorf("cannot delete ElasticKey in status %s", ormElasticKey.ElasticKeyStatus)
+		}
+
+		err = sqlTransaction.UpdateElasticKeyStatus(ormElasticKey.ElasticKeyID, deleteStatus)
+		if err != nil {
+			return fmt.Errorf("failed to update ElasticKey status to %s: %w", deleteStatus, err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete ElasticKey: %w", err)
+	}
+
+	return nil
+}

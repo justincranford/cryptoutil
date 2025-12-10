@@ -80,6 +80,66 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+    put:
+      summary: Update an Elastic Key.
+      description: Update an Elastic Key (name and description only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyUpdate'
+      responses:
+        '200':
+          description: Elastic Key updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKey'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '409':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP409Conflict'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+    delete:
+      summary: Delete an Elastic Key.
+      description: Delete an Elastic Key (soft delete by updating status).
+      responses:
+        '204':
+          description: Elastic Key deleted successfully.
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
   /elastickeys:
     get:
       summary: Find Elastic Keys. Supports optional filtering, sorting, and paging.

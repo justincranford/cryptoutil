@@ -846,6 +846,27 @@ components:
                     type: string
                     example: "The requested resource could not be found."
 
+    HTTP409Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 409
+                    minimum: 409
+                    maximum: 409
+                  error:
+                    type: string
+                    example: "Conflict"
+                  message:
+                    type: string
+                    example: "The request could not be completed due to a conflict with the current state of the resource."
+
     HTTP429TooManyRequests:
       description: Too Many Requests
       content:

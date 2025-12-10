@@ -125,3 +125,19 @@ func (s *StrictServer) GetMaterialkeys(ctx context.Context, request cryptoutilOp
 
 	return s.oasOamMapper.toOasGetMaterialKeysResponse(err, keys)
 }
+
+// PutElastickeyElasticKeyID updates an Elastic Key.
+// (PUT /elastickey/{elasticKeyID}).
+func (s *StrictServer) PutElastickeyElasticKeyID(ctx context.Context, request cryptoutilOpenapiServer.PutElastickeyElasticKeyIDRequestObject) (cryptoutilOpenapiServer.PutElastickeyElasticKeyIDResponseObject, error) {
+	updatedElasticKey, err := s.businessLogicService.UpdateElasticKey(ctx, &request.ElasticKeyID, request.Body)
+
+	return s.oasOamMapper.toOasPutElastickeyElasticKeyIDResponse(err, updatedElasticKey)
+}
+
+// DeleteElastickeyElasticKeyID deletes an Elastic Key (soft delete).
+// (DELETE /elastickey/{elasticKeyID}).
+func (s *StrictServer) DeleteElastickeyElasticKeyID(ctx context.Context, request cryptoutilOpenapiServer.DeleteElastickeyElasticKeyIDRequestObject) (cryptoutilOpenapiServer.DeleteElastickeyElasticKeyIDResponseObject, error) {
+	err := s.businessLogicService.DeleteElasticKey(ctx, &request.ElasticKeyID)
+
+	return s.oasOamMapper.toOasDeleteElastickeyElasticKeyIDResponse(err)
+}

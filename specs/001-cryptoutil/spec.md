@@ -156,8 +156,8 @@ Hierarchical key management with versioning and rotation.
 | Create | POST | `/elastickey` | ✅ Implemented |
 | Read | GET | `/elastickey/{elasticKeyID}` | ✅ Implemented |
 | List | GET | `/elastickeys` | ✅ Implemented |
-| Update | PUT | `/elastickey/{elasticKeyID}` | ❌ Not Implemented (MANDATORY) |
-| Delete | DELETE | `/elastickey/{elasticKeyID}` | ❌ Not Implemented (MANDATORY) |
+| Update | PUT | `/elastickey/{elasticKeyID}` | ✅ Implemented (11 tests passing - mapper unit tests) |
+| Delete | DELETE | `/elastickey/{elasticKeyID}` | ✅ Implemented (11 tests passing - mapper unit tests, soft delete) |
 
 #### MaterialKey Operations
 

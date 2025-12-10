@@ -489,20 +489,20 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 	userRepo := repoFactory.UserRepository()
 
 	ownerUser := &cryptoutilIdentityDomain.User{
-		ID:               googleUuid.Must(googleUuid.NewV7()),
-		Sub:              googleUuid.Must(googleUuid.NewV7()).String(),
-		Email:            fmt.Sprintf("owner-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
+		ID:                googleUuid.Must(googleUuid.NewV7()),
+		Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
+		Email:             fmt.Sprintf("owner-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
 		PreferredUsername: fmt.Sprintf("owner-%s", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash:     "hash",
+		PasswordHash:      "hash",
 	}
 	require.NoError(t, userRepo.Create(ctx, ownerUser))
 
 	otherUser := &cryptoutilIdentityDomain.User{
-		ID:               googleUuid.Must(googleUuid.NewV7()),
-		Sub:              googleUuid.Must(googleUuid.NewV7()).String(),
-		Email:            fmt.Sprintf("other-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
+		ID:                googleUuid.Must(googleUuid.NewV7()),
+		Sub:               googleUuid.Must(googleUuid.NewV7()).String(),
+		Email:             fmt.Sprintf("other-%s@example.com", googleUuid.Must(googleUuid.NewV7()).String()),
 		PreferredUsername: fmt.Sprintf("other-%s", googleUuid.Must(googleUuid.NewV7()).String()),
-		PasswordHash:     "hash",
+		PasswordHash:      "hash",
 	}
 	require.NoError(t, userRepo.Create(ctx, otherUser))
 

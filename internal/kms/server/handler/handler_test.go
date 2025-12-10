@@ -973,3 +973,152 @@ func TestOamOasMapper_ToOasGetMaterialKeysResponse_Errors(t *testing.T) {
 		})
 	}
 }
+
+// TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse tests PUT ElasticKey responses.
+func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "success",
+			err:     nil,
+			wantErr: false,
+		},
+		{
+			name: "bad request",
+			err: func() error {
+				summary := testInvalidRequest
+
+				return cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "not found",
+			err: func() error {
+				summary := testEKNotFound
+
+				return cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "conflict",
+			err: func() error {
+				summary := "name already exists"
+
+				return cryptoutilAppErr.NewHTTP409Conflict(&summary, nil)
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "internal error",
+			err: func() error {
+				summary := testInternalError
+
+				return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+			}(),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			googleUUID, uuidErr := googleUuid.NewV7()
+			require.NoError(t, uuidErr)
+
+			uuid := openapiTypes.UUID(googleUUID)
+			elasticKey := &cryptoutilOpenapiModel.ElasticKey{
+				ElasticKeyID: &uuid,
+			}
+
+			resp, err := mapper.toOasPutElastickeyElasticKeyIDResponse(tc.err, elasticKey)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}
+
+// TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDResponse tests DELETE ElasticKey responses.
+func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDResponse(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr bool
+	}{
+		{
+			name:    "success",
+			err:     nil,
+			wantErr: false,
+		},
+		{
+			name: "bad request",
+			err: func() error {
+				summary := testInvalidRequest
+
+				return cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "not found",
+			err: func() error {
+				summary := testEKNotFound
+
+				return cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "internal error",
+			err: func() error {
+				summary := testInternalError
+
+				return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+			}(),
+			wantErr: false,
+		},
+		{
+			name:    "unknown error",
+			err:     errors.New("unknown"),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapper := NewOasOamMapper()
+
+			resp, err := mapper.toOasDeleteElastickeyElasticKeyIDResponse(tc.err)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}

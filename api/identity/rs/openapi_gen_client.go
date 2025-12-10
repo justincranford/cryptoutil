@@ -38,7 +38,7 @@ const (
 
 // Error defines model for Error.
 type Error struct {
-	Details *map[string]any `json:"details,omitempty"`
+	Details *map[string]interface{} `json:"details,omitempty"`
 	Error   string                  `json:"error"`
 	Message string                  `json:"message"`
 }
