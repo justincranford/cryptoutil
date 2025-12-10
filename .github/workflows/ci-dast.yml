@@ -770,6 +770,9 @@ jobs:
           workflow-reports/dast/nuclei.log
           workflow-reports/dast/nuclei.sarif
           workflow-reports/dast/response-headers.txt
+          workflow-reports/dast/cryptoutil.stdout
+          workflow-reports/dast/cryptoutil.stderr
+          workflow-reports/dast/system-info.txt
         retention-days: 1
 
     - name: GitHub Security Dashboard Alerts update
