@@ -248,6 +248,134 @@ behavior_risks: {}
 	}
 }
 
+// TestBehavioralRiskEngine_AssessRisk_VelocityThresholds tests velocity risk scoring.
+func TestBehavioralRiskEngine_AssessRisk_VelocityThresholds(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create temporary policy file.
+	tempDir := t.TempDir()
+	policyFile := filepath.Join(tempDir, "risk_scoring.yml")
+
+	policyContent := `version: "1.0"
+risk_factors:
+  velocity:
+    weight: 1.0
+    description: "Velocity risk testing"
+risk_thresholds:
+  low:
+    min: 0.0
+    max: 0.25
+  medium:
+    min: 0.25
+    max: 0.50
+  high:
+    min: 0.50
+    max: 0.75
+  extreme:
+    min: 0.75
+    max: 1.0
+confidence_weights:
+  factor_count: 1.0
+network_risks: {}
+geographic_risks:
+  high_risk_countries:
+    countries: []
+  embargoed_countries:
+    countries: []
+velocity_limits: {}
+time_risks: {}
+behavior_risks: {}
+`
+
+	err := os.WriteFile(policyFile, []byte(policyContent), 0o600)
+	require.NoError(t, err)
+
+	loader := NewYAMLPolicyLoader(policyFile, "", "")
+	geoIP := &mockGeoIPService{}
+	deviceDB := &mockDeviceFingerprintDB{}
+
+	tests := []struct {
+		name              string
+		lastAuthTime      time.Time
+		currentAuthTime   time.Time
+		wantRiskLevel     RiskLevel
+		wantMinScore      float64
+		wantMaxScore      float64
+		velocityRiskScore float64
+	}{
+		{
+			name:              "no previous auth (first login)",
+			lastAuthTime:      time.Time{}, // Zero time.
+			currentAuthTime:   time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+			wantRiskLevel:     RiskLevelLow,
+			wantMinScore:      0.0,
+			wantMaxScore:      0.25,
+			velocityRiskScore: 0.1, // Low risk.
+		},
+		{
+			name:              "very fast auth (<5s) - critical risk",
+			lastAuthTime:      time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+			currentAuthTime:   time.Date(2025, 1, 15, 10, 0, 3, 0, time.UTC), // 3 seconds later.
+			wantRiskLevel:     RiskLevelCritical,
+			wantMinScore:      0.85,
+			wantMaxScore:      1.0,
+			velocityRiskScore: 1.0, // Extreme risk.
+		},
+		{
+			name:              "fast auth (<1min) - high risk",
+			lastAuthTime:      time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+			currentAuthTime:   time.Date(2025, 1, 15, 10, 0, 30, 0, time.UTC), // 30 seconds later.
+			wantRiskLevel:     RiskLevelHigh,
+			wantMinScore:      0.5,
+			wantMaxScore:      0.9,
+			velocityRiskScore: 0.8, // High risk.
+		},
+		{
+			name:              "normal auth (>1min) - low risk",
+			lastAuthTime:      time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
+			currentAuthTime:   time.Date(2025, 1, 15, 10, 5, 0, 0, time.UTC), // 5 minutes later.
+			wantRiskLevel:     RiskLevelLow,
+			wantMinScore:      0.0,
+			wantMaxScore:      0.25,
+			velocityRiskScore: 0.2, // Normal/low risk.
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Create baseline with specific last auth time.
+			baseline := &UserBaseline{
+				KnownLocations: []GeoLocation{{Country: "US"}},
+				KnownDevices:   []string{"device-1"},
+				KnownNetworks:  []string{"192.168.1.1"},
+				TypicalHours:   []int{9, 10, 11},
+				LastAuthTime:   tc.lastAuthTime,
+			}
+
+			userHistory := &mockUserBehaviorStore{baseline: baseline}
+			engine := NewBehavioralRiskEngine(loader, userHistory, geoIP, deviceDB)
+
+			authContext := &AuthContext{
+				Location: &GeoLocation{Country: "US"},
+				Device:   &DeviceFingerprint{ID: "device-1"},
+				Network:  &NetworkInfo{IPAddress: "192.168.1.1"},
+				Time:     tc.currentAuthTime,
+			}
+
+			score, err := engine.AssessRisk(ctx, "user-velocity-test", authContext)
+			require.NoError(t, err)
+			require.NotNil(t, score)
+			require.Equal(t, tc.wantRiskLevel, score.Level, "Risk level should match expected")
+			require.GreaterOrEqual(t, score.Score, tc.wantMinScore, "Score should be >= min")
+			require.LessOrEqual(t, score.Score, tc.wantMaxScore, "Score should be <= max")
+		})
+	}
+}
+
 // Mock implementations for testing.
 
 type mockUserBehaviorStore struct {
