@@ -4,6 +4,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"testing"
@@ -29,6 +30,7 @@ func TestMFAOrchestrator_GetRequiredFactors(t *testing.T) {
 		setupRepo     func() *mockMFAFactorRepo
 		expectedCount int
 		wantErr       bool
+		errContains   string
 	}{
 		{
 			name: "multiple_factors",
@@ -67,6 +69,16 @@ func TestMFAOrchestrator_GetRequiredFactors(t *testing.T) {
 			expectedCount: 0,
 			wantErr:       false,
 		},
+		{
+			name: "repository_error",
+			setupRepo: func() *mockMFAFactorRepo {
+				return &mockMFAFactorRepo{
+					getByAuthProfileErr: fmt.Errorf("database connection failed"),
+				}
+			},
+			wantErr:     true,
+			errContains: "failed to fetch MFA factors",
+		},
 	}
 
 	for _, tc := range tests {
@@ -81,6 +93,10 @@ func TestMFAOrchestrator_GetRequiredFactors(t *testing.T) {
 
 			if tc.wantErr {
 				require.Error(t, err)
+
+				if tc.errContains != "" {
+					require.ErrorContains(t, err, tc.errContains)
+				}
 			} else {
 				require.NoError(t, err)
 				require.Len(t, factors, tc.expectedCount)
@@ -157,6 +173,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 		setupRepo   func() *mockMFAFactorRepo
 		credentials map[string]string
 		wantErr     bool
+		errContains string
 	}{
 		{
 			name:       "factor_not_found",
@@ -166,6 +183,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			},
 			credentials: map[string]string{"code": "123456"},
 			wantErr:     true,
+			errContains: "MFA factor not found",
 		},
 		{
 			name:       "nonce_expired",
@@ -186,6 +204,19 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			},
 			credentials: map[string]string{"code": "123456"},
 			wantErr:     true,
+			errContains: "nonce already used or expired",
+		},
+		{
+			name:       "repository_fetch_error",
+			factorType: string(cryptoutilIdentityDomain.MFAFactorTypeTOTP),
+			setupRepo: func() *mockMFAFactorRepo {
+				return &mockMFAFactorRepo{
+					getByAuthProfileErr: fmt.Errorf("database unavailable"),
+				}
+			},
+			credentials: map[string]string{"code": "123456"},
+			wantErr:     true,
+			errContains: "failed to fetch MFA factors",
 		},
 	}
 
@@ -201,6 +232,10 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 
 			if tc.wantErr {
 				require.Error(t, err)
+
+				if tc.errContains != "" {
+					require.ErrorContains(t, err, tc.errContains)
+				}
 			} else {
 				require.NoError(t, err)
 			}
@@ -211,8 +246,9 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 // Mock implementations.
 
 type mockMFAFactorRepo struct {
-	factors    []*cryptoutilIdentityDomain.MFAFactor
-	updateFunc func(context.Context, *cryptoutilIdentityDomain.MFAFactor) error
+	factors             []*cryptoutilIdentityDomain.MFAFactor
+	updateFunc          func(context.Context, *cryptoutilIdentityDomain.MFAFactor) error
+	getByAuthProfileErr error
 }
 
 func (m *mockMFAFactorRepo) Create(ctx context.Context, factor *cryptoutilIdentityDomain.MFAFactor) error {
@@ -232,6 +268,10 @@ func (m *mockMFAFactorRepo) GetByID(ctx context.Context, id googleUuid.UUID) (*c
 }
 
 func (m *mockMFAFactorRepo) GetByAuthProfileID(ctx context.Context, authProfileID googleUuid.UUID) ([]*cryptoutilIdentityDomain.MFAFactor, error) {
+	if m.getByAuthProfileErr != nil {
+		return nil, m.getByAuthProfileErr
+	}
+
 	return m.factors, nil
 }
 
