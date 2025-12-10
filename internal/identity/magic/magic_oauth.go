@@ -77,6 +77,7 @@ const (
 	ParamTokenTypeHint       = "token_type_hint"       // Token type hint parameter.
 	ParamDeviceCode          = "device_code"           // Device code parameter (RFC 8628).
 	ParamUserCode            = "user_code"             // User code parameter (RFC 8628).
+	ParamRequestURI          = "request_uri"           // Request URI parameter (RFC 9126).
 )
 
 // OAuth 2.1 error codes.
@@ -96,6 +97,8 @@ const (
 	ErrorAuthorizationPending    = "authorization_pending"     // User has not yet authorized (RFC 8628).
 	ErrorSlowDown                = "slow_down"                 // Polling too fast (RFC 8628).
 	ErrorExpiredToken            = "expired_token"             // Device code expired (RFC 8628).
+	ErrorInvalidRequestURI       = "invalid_request_uri"       // Invalid request_uri (RFC 9126).
+	ErrorInvalidRequestObject    = "invalid_request_object"    // Invalid request object (RFC 9126).
 )
 
 // OAuth 2.1 client authentication methods.

@@ -37,6 +37,7 @@ type RepositoryFactory struct {
 	consentRepo       ConsentDecisionRepository
 	keyRepo           KeyRepository
 	deviceAuthRepo    DeviceAuthorizationRepository
+	parRepo           PushedAuthorizationRequestRepository
 }
 
 // NewRepositoryFactory creates a new repository factory with database initialization.
@@ -61,6 +62,7 @@ func NewRepositoryFactory(ctx context.Context, cfg *cryptoutilIdentityConfig.Dat
 		consentRepo:       cryptoutilIdentityORM.NewConsentDecisionRepository(db),
 		keyRepo:           cryptoutilIdentityORM.NewKeyRepository(db),
 		deviceAuthRepo:    cryptoutilIdentityORM.NewDeviceAuthorizationRepository(db),
+		parRepo:           cryptoutilIdentityORM.NewPushedAuthorizationRequestRepository(db),
 	}, nil
 }
 
@@ -132,6 +134,11 @@ func (f *RepositoryFactory) KeyRepository() KeyRepository {
 // DeviceAuthorizationRepository returns the device authorization repository.
 func (f *RepositoryFactory) DeviceAuthorizationRepository() DeviceAuthorizationRepository {
 	return f.deviceAuthRepo
+}
+
+// PushedAuthorizationRequestRepository returns the pushed authorization request repository.
+func (f *RepositoryFactory) PushedAuthorizationRequestRepository() PushedAuthorizationRequestRepository {
+	return f.parRepo
 }
 
 // DB returns the underlying database connection for transaction management.

@@ -13,6 +13,7 @@ const (
 	DefaultIDTokenLifetime      = 3600 * time.Second  // Default ID token lifetime (1 hour).
 	DefaultCodeLifetime         = 300 * time.Second   // Default authorization code lifetime (5 minutes).
 	DefaultDeviceCodeLifetime   = 1800 * time.Second  // Default device code lifetime (30 minutes) (RFC 8628).
+	DefaultPARLifetime          = 90 * time.Second    // Default pushed authorization request lifetime (90 seconds) (RFC 9126).
 
 	// Token expiry in seconds for OAuth 2.1 responses.
 	AccessTokenExpirySeconds  = 3600  // Access token expiry in seconds (1 hour).
@@ -85,6 +86,7 @@ const (
 	DefaultRefreshTokenLength = 64 // Default refresh token length.
 	DefaultDeviceCodeLength   = 32 // Default device code length (RFC 8628).
 	DefaultUserCodeLength     = 8  // Default user code length (RFC 8628).
+	DefaultRequestURILength   = 32 // Default request_uri identifier length (RFC 9126).
 	AES256KeySize             = 32 // AES-256 key size in bytes.
 	JWSPartCount              = 3  // JWT JWS part count (header.payload.signature).
 	ByteShift                 = 8  // Bit shift for byte operations.
