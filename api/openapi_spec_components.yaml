@@ -263,6 +263,15 @@ components:
       type: object
       additionalProperties: false
 
+    MaterialKeyImport:
+      type: object
+      required: [ jwk ]
+      properties:
+        jwk:
+          type: string
+          description: JSON Web Key in compact JSON format to import
+          example: '{"kty":"RSA","kid":"imported-key-1",...}'
+
     MaterialKeyUpdate:
       type: object
       required: [ elastic_key_id, material_key_id ]

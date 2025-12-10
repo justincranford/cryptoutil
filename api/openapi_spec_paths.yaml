@@ -224,6 +224,47 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /elastickey/{elasticKeyID}/import:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyID'
+    post:
+      summary: Import a Material Key into an Elastic Key.
+      description: Import external key material as a new Material Key in an Elastic Key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKeyImport'
+      responses:
+        '200':
+          description: Material Key imported successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKey'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
   /elastickey/{elasticKeyID}/materialkey/{materialKeyID}:
     parameters:
       - name: elasticKeyID
@@ -246,6 +287,42 @@ paths:
             application/json:
               schema:
                 $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKey'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke:
+    parameters:
+      - name: elasticKeyID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyID'
+      - name: materialKeyID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKeyID'
+    post:
+      summary: Revoke a Material Key.
+      description: Revoke a Material Key to prevent future use in cryptographic operations.
+      responses:
+        '204':
+          description: Material Key revoked successfully.
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':

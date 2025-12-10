@@ -45,6 +45,7 @@ var (
 	ErrFailedToGetMaterialKeys                              = "failed to get Material Keys"
 	ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID = "failed to get Material Key by Elastic Key ID and Material Key ID"
 	ErrFailedToGetLatestMaterialKeyByElasticKeyID           = "failed to get latest Material Key by Elastic Key ID"
+	ErrFailedToUpdateMaterialKey                            = "failed to update Material Key"
 )
 
 func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
@@ -189,6 +190,23 @@ func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid
 	}
 
 	return &key, nil
+}
+
+func (tx *OrmTransaction) UpdateElasticKeyMaterialKeyRevoke(materialKey *MaterialKey) error {
+	if err := cryptoutilUtil.ValidateUUID(&materialKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
+	} else if err := cryptoutilUtil.ValidateUUID(&materialKey.MaterialKeyID, &ErrInvalidMaterialKeyID); err != nil {
+		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
+	}
+
+	err := tx.state.gormTx.Model(&MaterialKey{}).
+		Where("elastic_key_id=? AND material_key_id=?", materialKey.ElasticKeyID, materialKey.MaterialKeyID).
+		Update("material_key_revocation_date", materialKey.MaterialKeyRevocationDate).Error
+	if err != nil {
+		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
+	}
+
+	return nil
 }
 
 func (tx *OrmTransaction) toAppErr(msg *string, err error) error {

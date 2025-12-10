@@ -167,8 +167,8 @@ Hierarchical key management with versioning and rotation.
 | Read | GET | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}` | ✅ Implemented |
 | List | GET | `/elastickey/{elasticKeyID}/materialkeys` | ✅ Implemented |
 | Global List | GET | `/materialkeys` | ✅ Implemented |
-| Import | POST | `/elastickey/{elasticKeyID}/import` | ❌ Not Implemented (MANDATORY) |
-| Revoke | POST | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke` | ❌ Not Implemented (MANDATORY) |
+| Import | POST | `/elastickey/{elasticKeyID}/import` | ✅ Implemented (10 tests passing - mapper unit tests) |
+| Revoke | POST | `/elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke` | ✅ Implemented (10 tests passing - mapper unit tests) |
 
 #### Cryptographic Operations
 

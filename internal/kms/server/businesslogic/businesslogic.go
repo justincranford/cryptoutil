@@ -634,3 +634,90 @@ func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyI
 
 	return nil
 }
+
+func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKeyID *googleUuid.UUID, importRequest *cryptoutilOpenapiModel.MaterialKeyImport) (*cryptoutilOpenapiModel.MaterialKey, error) {
+	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
+
+	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
+
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+
+		ormElasticKey, err = sqlTransaction.GetElasticKey(elasticKeyID)
+		if err != nil {
+			return fmt.Errorf("failed to get ElasticKey: %w", err)
+		}
+
+		if !ormElasticKey.ElasticKeyImportAllowed {
+			return fmt.Errorf("import not allowed for ElasticKey")
+		}
+
+		if ormElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.PendingImport && ormElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.Active {
+			return fmt.Errorf("invalid ElasticKey status for import: %s", ormElasticKey.ElasticKeyStatus)
+		}
+
+		importedJWKBytes := []byte(importRequest.JWK)
+
+		materialKeyID := googleUuid.New()
+
+		materialKeyImportDate := time.Now().UTC()
+
+		encryptedMaterialKeyBytes, err := s.barrierService.EncryptContent(sqlTransaction, importedJWKBytes)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt imported MaterialKey: %w", err)
+		}
+
+		ormMaterialKey = &cryptoutilOrmRepository.MaterialKey{
+			ElasticKeyID:                  *elasticKeyID,
+			MaterialKeyID:                 materialKeyID,
+			MaterialKeyClearPublic:        nil,
+			MaterialKeyEncryptedNonPublic: encryptedMaterialKeyBytes,
+			MaterialKeyImportDate:         &materialKeyImportDate,
+		}
+
+		err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey)
+		if err != nil {
+			return fmt.Errorf("failed to insert imported MaterialKey: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to import MaterialKey: %w", err)
+	}
+
+	oamMaterialKey, err := s.oamOrmMapper.toOamMaterialKey(ormMaterialKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map imported MaterialKey: %w", err)
+	}
+
+	return oamMaterialKey, nil
+}
+
+func (s *BusinessLogicService) RevokeMaterialKey(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) error {
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		ormMaterialKey, err := sqlTransaction.GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyID)
+		if err != nil {
+			return fmt.Errorf("failed to get MaterialKey: %w", err)
+		}
+
+		if ormMaterialKey.MaterialKeyRevocationDate != nil {
+			return fmt.Errorf("MaterialKey already revoked")
+		}
+
+		revocationDate := time.Now().UTC()
+		ormMaterialKey.MaterialKeyRevocationDate = &revocationDate
+
+		err = sqlTransaction.UpdateElasticKeyMaterialKeyRevoke(ormMaterialKey)
+		if err != nil {
+			return fmt.Errorf("failed to revoke MaterialKey: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to revoke MaterialKey: %w", err)
+	}
+
+	return nil
+}

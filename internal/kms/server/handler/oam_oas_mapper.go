@@ -367,6 +367,46 @@ func (m *oamOasMapper) toOasDeleteElastickeyElasticKeyIDResponse(err error) (cry
 	return cryptoutilOpenapiServer.DeleteElastickeyElasticKeyID204Response{}, nil
 }
 
+func (m *oamOasMapper) toOasPostElastickeyElasticKeyIDImportResponse(err error, importedMaterialKey *cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImportResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImport400JSONResponse{HTTP400BadRequest: m.toOasHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImport404JSONResponse{HTTP404NotFound: m.toOasHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImport500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
+			}
+		}
+
+		return nil, fmt.Errorf("failed to import MaterialKey: %w", err)
+	}
+
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImport200JSONResponse(*importedMaterialKey), nil
+}
+
+func (m *oamOasMapper) toOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(err error) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke400JSONResponse{HTTP400BadRequest: m.toOasHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke404JSONResponse{HTTP404NotFound: m.toOasHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
+			}
+		}
+
+		return nil, fmt.Errorf("failed to revoke MaterialKey: %w", err)
+	}
+
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke204Response{}, nil
+}
+
 // Helper methods
 
 func (m *oamOasMapper) toOasHTTP400Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP400BadRequest {

@@ -141,3 +141,19 @@ func (s *StrictServer) DeleteElastickeyElasticKeyID(ctx context.Context, request
 
 	return s.oasOamMapper.toOasDeleteElastickeyElasticKeyIDResponse(err)
 }
+
+// PostElastickeyElasticKeyIDImport imports a Material Key into an Elastic Key.
+// (POST /elastickey/{elasticKeyID}/import).
+func (s *StrictServer) PostElastickeyElasticKeyIDImport(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImportRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImportResponseObject, error) {
+	importedMaterialKey, err := s.businessLogicService.ImportMaterialKey(ctx, &request.ElasticKeyID, request.Body)
+
+	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDImportResponse(err, importedMaterialKey)
+}
+
+// PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke revokes a Material Key in an Elastic Key.
+// (POST /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke).
+func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponseObject, error) {
+	err := s.businessLogicService.RevokeMaterialKey(ctx, &request.ElasticKeyID, &request.MaterialKeyID)
+
+	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(err)
+}
