@@ -8,11 +8,13 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	"cryptoutil/internal/identity/idp/userauth"
 )
 
@@ -474,4 +476,100 @@ func TestMagicLinkAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 	_, err = auth.VerifyAuth(ctx, nonExistentID.String(), "some-token")
 	require.Error(t, err, "VerifyAuth should fail with non-existent challenge")
 	require.Contains(t, err.Error(), "challenge not found", "Error should indicate challenge not found")
+}
+
+// TestMagicLinkAuthenticator_VerifyAuthExpired tests VerifyAuth with expired challenge.
+func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	user := &cryptoutilIdentityDomain.User{
+		ID:    userID,
+		Sub:   userID.String(),
+		Email: "test@example.com",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	// Create expired challenge manually.
+	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
+	require.NoError(t, err)
+
+	hashedToken, err := userauth.HashToken(token)
+	require.NoError(t, err)
+
+	expiredChallenge := &userauth.AuthChallenge{
+		ID:        googleUuid.Must(googleUuid.NewV7()),
+		UserID:    userID.String(),
+		Method:    "magic_link",
+		ExpiresAt: time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
+		Metadata:  map[string]any{"email": user.Email},
+	}
+
+	err = challengeStore.Store(ctx, expiredChallenge, hashedToken)
+	require.NoError(t, err)
+
+	// Verify with expired challenge.
+	_, err = auth.VerifyAuth(ctx, expiredChallenge.ID.String(), token)
+	require.Error(t, err, "VerifyAuth should fail with expired challenge")
+	require.Contains(t, err.Error(), "expired", "Error should indicate expiration")
+}
+
+// TestMagicLinkAuthenticator_VerifyAuthSuccess tests successful magic link verification.
+func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	user := &cryptoutilIdentityDomain.User{
+		ID:    userID,
+		Sub:   userID.String(),
+		Email: "test@example.com",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	// Generate token before initiating auth so we can capture it.
+	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
+	require.NoError(t, err)
+	
+	hashedToken, err := userauth.HashToken(token)
+	require.NoError(t, err)
+
+	// Create challenge manually with known token.
+	challenge := &userauth.AuthChallenge{
+		ID:        googleUuid.Must(googleUuid.NewV7()),
+		UserID:    userID.String(),
+		Method:    "magic_link",
+		ExpiresAt: time.Now().Add(15 * time.Minute),
+		Metadata:  map[string]any{"email": user.Email},
+	}
+
+	err = challengeStore.Store(ctx, challenge, hashedToken)
+	require.NoError(t, err)
+
+	// Verify with correct token.
+	verifiedUser, err := auth.VerifyAuth(ctx, challenge.ID.String(), token)
+	require.NoError(t, err, "VerifyAuth should succeed with correct token")
+	require.NotNil(t, verifiedUser, "User should be returned")
+	require.Equal(t, userID, verifiedUser.ID, "User ID should match")
 }
