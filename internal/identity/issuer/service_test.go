@@ -217,6 +217,51 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 	require.NotEmpty(t, token)
 }
 
+// TestIssueAccessTokenInvalidFormat validates error handling for unsupported token format.
+func TestIssueAccessTokenInvalidFormat(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
+		Issuer:            "https://localhost:8080",
+		SigningAlgorithm:  "RS256",
+		AccessTokenFormat: "invalid-format",
+	}
+
+	keyRotationMgr, err := cryptoutilIdentityIssuer.NewKeyRotationManager(
+		cryptoutilIdentityIssuer.DefaultKeyRotationPolicy(),
+		newMockKeyGenerator(),
+		nil,
+	)
+	require.NoError(t, err)
+
+	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuer(
+		tokenConfig.Issuer,
+		keyRotationMgr,
+		tokenConfig.SigningAlgorithm,
+		1*time.Hour,
+		1*time.Hour,
+	)
+	require.NoError(t, err)
+
+	jweIssuer, err := cryptoutilIdentityIssuer.NewJWEIssuer(keyRotationMgr)
+	require.NoError(t, err)
+
+	uuidIssuer := cryptoutilIdentityIssuer.NewUUIDIssuer()
+
+	service := cryptoutilIdentityIssuer.NewTokenService(jwsIssuer, jweIssuer, uuidIssuer, tokenConfig)
+
+	claims := map[string]any{
+		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
+		"email": "test@example.com",
+	}
+
+	_, err = service.IssueAccessToken(ctx, claims)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported access token format")
+}
+
 // TestIssueAccessTokenJWE validates JWE access token generation.
 func TestIssueAccessTokenJWE(t *testing.T) {
 	t.Parallel()
