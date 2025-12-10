@@ -96,9 +96,9 @@ Complete identity and access management solution.
 | `/oidc/v1/logout` | GET/POST | Session termination | ✅ Working (session/token cleared) |
 | `/oidc/v1/endsession` | GET | OpenID Connect End Session (RP-Initiated Logout) | ✅ Working |
 | `/oidc/v1/userinfo` | GET | User information endpoint | ✅ Working (claims returned per scopes, JWT-signed optional) |
-| `/oidc/v1/mfa/enroll` | POST | Administrative Enroll MFA factor | ❌ Not Implemented (MANDATORY) |
-| `/oidc/v1/mfa/factors` | GET | Administrative List user MFA factors | ❌ Not Implemented (MANDATORY) |
-| `/oidc/v1/mfa/factors/{id}` | DELETE | Administrative Remove MFA factor | ❌ Not Implemented (MANDATORY) |
+| `/oidc/v1/mfa/enroll` | POST | Administrative Enroll MFA factor | ✅ Implemented (10 tests passing - backend complete) |
+| `/oidc/v1/mfa/factors` | GET | Administrative List user MFA factors | ✅ Implemented (10 tests passing - backend complete) |
+| `/oidc/v1/mfa/factors/{id}` | DELETE | Administrative Remove MFA factor | ✅ Implemented (10 tests passing - backend complete) |
 
 #### Authentication Methods
 
