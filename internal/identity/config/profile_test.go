@@ -166,6 +166,60 @@ func TestProfileConfigValidate(t *testing.T) {
 			wantErr: true,
 			errMsg:  "invalid log_level",
 		},
+		{
+			name: "valid idp service",
+			cfg: ProfileConfig{
+				Services: ServiceConfigs{
+					IdP: ServiceConfig{
+						Enabled:     true,
+						BindAddress: "127.0.0.1:8081",
+						DatabaseURL: ":memory:",
+						LogLevel:    "info",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "idp missing database_url",
+			cfg: ProfileConfig{
+				Services: ServiceConfigs{
+					IdP: ServiceConfig{
+						Enabled:     true,
+						BindAddress: "127.0.0.1:8081",
+						LogLevel:    "info",
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "database_url is required",
+		},
+		{
+			name: "valid rs service",
+			cfg: ProfileConfig{
+				Services: ServiceConfigs{
+					RS: ServiceConfig{
+						Enabled:     true,
+						BindAddress: "127.0.0.1:8082",
+						LogLevel:    "warn",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "rs missing bind_address",
+			cfg: ProfileConfig{
+				Services: ServiceConfigs{
+					RS: ServiceConfig{
+						Enabled:  true,
+						LogLevel: "error",
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "bind_address is required",
+		},
 	}
 
 	for _, tc := range tests {

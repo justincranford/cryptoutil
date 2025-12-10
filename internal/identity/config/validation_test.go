@@ -193,9 +193,10 @@ func TestServerConfig_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tc.config.Validate()
 			if tc.expectError {
 				require.Error(t, err)
@@ -327,9 +328,10 @@ func TestDatabaseConfig_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tc.config.Validate()
 			if tc.expectError {
 				require.Error(t, err)
@@ -530,9 +532,10 @@ func TestTokenConfig_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tc.config.Validate()
 			if tc.expectError {
 				require.Error(t, err)
@@ -658,9 +661,10 @@ func TestSessionConfig_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tc.config.Validate()
 			if tc.expectError {
 				require.Error(t, err)
@@ -771,9 +775,10 @@ func TestSecurityConfig_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tc.config.Validate()
 			if tc.expectError {
 				require.Error(t, err)
@@ -898,9 +903,10 @@ func TestObservabilityConfig_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tc.config.Validate()
 			if tc.expectError {
 				require.Error(t, err)
@@ -1070,9 +1076,10 @@ func TestConfig_Validate(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tc.config.Validate()
 			if tc.expectError {
 				require.Error(t, err)
