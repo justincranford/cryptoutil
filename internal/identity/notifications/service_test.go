@@ -384,3 +384,112 @@ func TestNewNotificationService_WithEmail(t *testing.T) {
 	service := cryptoutilIdentityNotifications.NewNotificationService(db, config)
 	require.NotNil(t, service)
 }
+
+// TestEmailNotifier_Send tests EmailNotifier stub implementation.
+func TestEmailNotifier_Send(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		recipients  []string
+		notification *cryptoutilIdentityNotifications.ExpirationNotification
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:       "single_recipient",
+			recipients: []string{"admin@example.com"},
+			notification: &cryptoutilIdentityNotifications.ExpirationNotification{
+				ClientID:       googleUuid.New(),
+				ClientName:     "Test Client",
+				DaysRemaining:  7,
+				ExpiresAt:      time.Now().Add(7 * 24 * time.Hour),
+			},
+			wantErr:     true,
+			errContains: "email notifications not yet implemented",
+		},
+		{
+			name:       "multiple_recipients",
+			recipients: []string{"admin@example.com", "security@example.com"},
+			notification: &cryptoutilIdentityNotifications.ExpirationNotification{
+				ClientID:       googleUuid.New(),
+				ClientName:     "Critical Service",
+				DaysRemaining:  1,
+				ExpiresAt:      time.Now().Add(24 * time.Hour),
+			},
+			wantErr:     true,
+			errContains: "email notifications not yet implemented",
+		},
+		{
+			name:       "no_recipients",
+			recipients: []string{},
+			notification: &cryptoutilIdentityNotifications.ExpirationNotification{
+				ClientID:       googleUuid.New(),
+				ClientName:     "Orphan Client",
+				DaysRemaining:  3,
+				ExpiresAt:      time.Now().Add(3 * 24 * time.Hour),
+			},
+			wantErr:     true,
+			errContains: "email notifications not yet implemented",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			notifier := cryptoutilIdentityNotifications.NewEmailNotifier(tc.recipients)
+			require.NotNil(t, notifier)
+
+			ctx := context.Background()
+
+			err := notifier.Send(ctx, tc.notification)
+
+			if tc.wantErr {
+				require.Error(t, err)
+
+				if tc.errContains != "" {
+					require.ErrorContains(t, err, tc.errContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestNewEmailNotifier tests EmailNotifier constructor.
+func TestNewEmailNotifier(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		recipients []string
+	}{
+		{
+			name:       "single_recipient",
+			recipients: []string{"admin@example.com"},
+		},
+		{
+			name:       "multiple_recipients",
+			recipients: []string{"admin@example.com", "security@example.com", "ops@example.com"},
+		},
+		{
+			name:       "no_recipients",
+			recipients: []string{},
+		},
+		{
+			name:       "nil_recipients",
+			recipients: nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			notifier := cryptoutilIdentityNotifications.NewEmailNotifier(tc.recipients)
+			require.NotNil(t, notifier, "NewEmailNotifier should never return nil")
+		})
+	}
+}
