@@ -398,7 +398,7 @@ openssl ocsp -issuer ca-cert.pem -cert test-cert.pem -url http://127.0.0.1:8080/
       otel-collector:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -430,7 +430,7 @@ openssl ocsp -issuer ca-cert.pem -cert test-cert.pem -url http://127.0.0.1:8080/
       otel-collector:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -462,7 +462,7 @@ openssl ocsp -issuer ca-cert.pem -cert test-cert.pem -url http://127.0.0.1:8080/
       otel-collector:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
       interval: 10s
       timeout: 5s
       retries: 3
