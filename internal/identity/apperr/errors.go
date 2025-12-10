@@ -107,6 +107,7 @@ var (
 	// Authorization request errors.
 	ErrAuthorizationRequestNotFound = NewIdentityError("authorization_request_not_found", "Authorization request not found", http.StatusNotFound, nil)
 	ErrConsentNotFound              = NewIdentityError("consent_not_found", "Consent decision not found", http.StatusNotFound, nil)
+	ErrDeviceAuthorizationNotFound  = NewIdentityError("device_authorization_not_found", "Device authorization not found", http.StatusNotFound, nil)
 
 	// PKCE errors.
 	ErrPKCERequired         = NewIdentityError("pkce_required", "PKCE is required for this flow", http.StatusBadRequest, nil)

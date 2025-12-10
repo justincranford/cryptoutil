@@ -6,9 +6,10 @@ package magic
 
 // OAuth 2.1 grant types.
 const (
-	GrantTypeAuthorizationCode = "authorization_code" // Authorization code grant type.
-	GrantTypeClientCredentials = "client_credentials" // Client credentials grant type.
-	GrantTypeRefreshToken      = "refresh_token"      // Refresh token grant type.
+	GrantTypeAuthorizationCode = "authorization_code"                          // Authorization code grant type.
+	GrantTypeClientCredentials = "client_credentials"                          // Client credentials grant type.
+	GrantTypeRefreshToken      = "refresh_token"                               // Refresh token grant type.
+	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code" // Device code grant type (RFC 8628).
 )
 
 // OAuth 2.1 response types.
@@ -74,6 +75,8 @@ const (
 	ParamIDToken             = "id_token"              // ID token parameter.
 	ParamToken               = "token"                 // Token parameter (introspection/revocation).
 	ParamTokenTypeHint       = "token_type_hint"       // Token type hint parameter.
+	ParamDeviceCode          = "device_code"           // Device code parameter (RFC 8628).
+	ParamUserCode            = "user_code"             // User code parameter (RFC 8628).
 )
 
 // OAuth 2.1 error codes.
@@ -90,6 +93,9 @@ const (
 	ErrorTemporarilyUnavailable  = "temporarily_unavailable"   // Temporarily unavailable error.
 	ErrorInvalidToken            = "invalid_token"             // Invalid token error (RFC 6750).
 	ErrorInsufficientScope       = "insufficient_scope"        // Insufficient scope error (RFC 6750).
+	ErrorAuthorizationPending    = "authorization_pending"     // User has not yet authorized (RFC 8628).
+	ErrorSlowDown                = "slow_down"                 // Polling too fast (RFC 8628).
+	ErrorExpiredToken            = "expired_token"             // Device code expired (RFC 8628).
 )
 
 // OAuth 2.1 client authentication methods.
