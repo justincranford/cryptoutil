@@ -417,6 +417,78 @@ func TestMagicLinkAuthenticator_InitiateAuthNoEmail(t *testing.T) {
 	require.Contains(t, err.Error(), "no email", "Error should indicate missing email")
 }
 
+// TestMagicLinkAuthenticator_InitiateAuthTokenGenerationFailure tests token generation failure.
+func TestMagicLinkAuthenticator_InitiateAuthTokenGenerationFailure(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+
+	// Mock OTPGenerator that fails.
+	generator := &mockFailingOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	user := &cryptoutilIdentityDomain.User{
+		ID:    userID,
+		Sub:   userID.String(),
+		Email: "test@example.com",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.Error(t, err, "InitiateAuth should fail when token generation fails")
+	require.Nil(t, challenge, "Challenge should be nil on error")
+	require.Contains(t, err.Error(), "failed to generate token", "Error should indicate token generation failure")
+}
+
+// mockFailingOTPGenerator always fails to generate tokens.
+type mockFailingOTPGenerator struct{}
+
+func (m *mockFailingOTPGenerator) GenerateOTP(length int) (string, error) {
+	return "", fmt.Errorf("random number generator failed")
+}
+
+func (m *mockFailingOTPGenerator) GenerateSecureToken(length int) (string, error) {
+	return "", fmt.Errorf("random number generator failed")
+}
+
+// TestMagicLinkAuthenticator_InitiateAuthEmailDeliveryFailure tests email delivery failure.
+func TestMagicLinkAuthenticator_InitiateAuthEmailDeliveryFailure(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockMagicLinkUserRepo()
+	delivery := userauth.NewMockDeliveryService()
+	delivery.SetShouldFail(true) // Make delivery fail.
+	challengeStore := userauth.NewInMemoryChallengeStore()
+	rateLimiter := userauth.NewInMemoryRateLimiter()
+	generator := &userauth.DefaultOTPGenerator{}
+
+	userID, err := googleUuid.NewV7()
+	require.NoError(t, err, "NewV7 should succeed")
+
+	user := &cryptoutilIdentityDomain.User{
+		ID:    userID,
+		Sub:   userID.String(),
+		Email: "test@example.com",
+	}
+	userRepo.AddUser(user)
+
+	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+
+	challenge, err := auth.InitiateAuth(ctx, userID.String())
+	require.Error(t, err, "InitiateAuth should fail when email delivery fails")
+	require.Nil(t, challenge, "Challenge should be nil on error")
+	require.Contains(t, err.Error(), "failed to send email", "Error should indicate email delivery failure")
+}
+
 // TestMagicLinkAuthenticator_VerifyAuth tests VerifyAuth.
 func TestMagicLinkAuthenticator_VerifyAuth(t *testing.T) {
 	t.Parallel()
