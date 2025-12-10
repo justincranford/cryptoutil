@@ -84,8 +84,8 @@ Complete identity and access management solution.
 | `/.well-known/openid-configuration` | GET | OpenID Connect Discovery | ✅ Working |
 | `/.well-known/jwks.json` | GET | JSON Web Key Set | ✅ Working |
 | `/.well-known/oauth-authorization-server` | GET | OAuth 2.1 Authorization Server Metadata (RFC 8414) | ✅ Working |
-| `/device_authorization` | POST | Device Authorization Grant (RFC 8628) | ❌ Not Implemented (MANDATORY) |
-| `/par` | POST | Pushed Authorization Requests (RFC 9126) | ❌ Not Implemented (MANDATORY) |
+| `/device_authorization` | POST | Device Authorization Grant (RFC 8628) | ✅ Implemented (backend complete - 18 tests passing) |
+| `/par` | POST | Pushed Authorization Requests (RFC 9126) | ✅ Implemented (backend complete - 16 tests passing) |
 
 #### Identity Provider (IdP)
 
