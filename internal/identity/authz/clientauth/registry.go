@@ -21,6 +21,7 @@ type Registry struct {
 // NewRegistry creates a new client authentication registry.
 func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, config *cryptoutilIdentityConfig.Config, rotationService RotationService) *Registry {
 	clientRepo := repoFactory.ClientRepository()
+	jtiRepoCache := repoFactory.JTIReplayCacheRepository()
 
 	// Create certificate validators
 	systemCertPool, err := x509.SystemCertPool()
@@ -54,7 +55,7 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 			"tls_client_auth":             NewTLSClientAuthenticator(clientRepo, caValidator),
 			"self_signed_tls_client_auth": NewSelfSignedAuthenticator(clientRepo, selfSignedValidator),
 			"private_key_jwt":             NewPrivateKeyJWTAuthenticator(tokenEndpointURL, clientRepo),
-			"client_secret_jwt":           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo),
+			"client_secret_jwt":           NewClientSecretJWTAuthenticator(tokenEndpointURL, clientRepo, jtiRepoCache),
 		},
 		hasher: secretAuth,
 	}

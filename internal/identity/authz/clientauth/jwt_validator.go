@@ -14,6 +14,8 @@ import (
 	joseJwt "github.com/lestrrat-go/jwx/v3/jwt"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 // ClientClaims represents the JWT claims for client authentication.
@@ -157,12 +159,14 @@ func (v *PrivateKeyJWTValidator) ExtractClaims(ctx context.Context, token joseJw
 // ClientSecretJWTValidator validates JWTs signed with a client's secret.
 type ClientSecretJWTValidator struct {
 	expectedAudience string
+	jtiRepo          cryptoutilIdentityRepository.JTIReplayCacheRepository
 }
 
 // NewClientSecretJWTValidator creates a new client secret JWT validator.
-func NewClientSecretJWTValidator(tokenEndpointURL string) *ClientSecretJWTValidator {
+func NewClientSecretJWTValidator(tokenEndpointURL string, jtiRepo cryptoutilIdentityRepository.JTIReplayCacheRepository) *ClientSecretJWTValidator {
 	return &ClientSecretJWTValidator{
 		expectedAudience: tokenEndpointURL,
+		jtiRepo:          jtiRepo,
 	}
 }
 
@@ -265,6 +269,26 @@ func (v *ClientSecretJWTValidator) validateClaims(ctx context.Context, token jos
 
 	if time.Now().Before(iat) {
 		return fmt.Errorf("JWT issued in the future at %v", iat)
+	}
+
+	// Validate assertion lifetime (RFC 7523 Section 3): exp - iat should not exceed maximum.
+	assertionLifetime := exp.Sub(iat)
+	if assertionLifetime > cryptoutilIdentityMagic.JWTAssertionMaxLifetime {
+		return fmt.Errorf("JWT assertion lifetime %v exceeds maximum %v", assertionLifetime, cryptoutilIdentityMagic.JWTAssertionMaxLifetime)
+	}
+
+	// Extract and validate jti (JWT ID) for replay protection.
+	jti, hasJTI := token.JwtID()
+	if !hasJTI || jti == "" {
+		return fmt.Errorf("missing jti (JWT ID) claim")
+	}
+
+	// Check JTI replay cache.
+	if v.jtiRepo != nil {
+		// Store JTI with expiration time from token. If already exists, this is a replay attack.
+		if err := v.jtiRepo.Store(ctx, jti, client.ID, exp); err != nil {
+			return fmt.Errorf("JTI replay detected: %w", err)
+		}
 	}
 
 	return nil

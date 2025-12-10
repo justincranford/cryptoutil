@@ -23,23 +23,24 @@ const txKey contextKey = "gorm_tx"
 
 // RepositoryFactory creates and manages repository instances.
 type RepositoryFactory struct {
-	db                *gorm.DB
-	dbType            string
-	userRepo          UserRepository
-	clientRepo        ClientRepository
-	tokenRepo         TokenRepository
-	sessionRepo       SessionRepository
-	clientProfileRepo ClientProfileRepository
-	authFlowRepo      AuthFlowRepository
-	authProfileRepo   AuthProfileRepository
-	mfaFactorRepo     MFAFactorRepository
-	authzReqRepo      AuthorizationRequestRepository
-	consentRepo       ConsentDecisionRepository
-	keyRepo           KeyRepository
-	deviceAuthRepo    DeviceAuthorizationRepository
-	parRepo           PushedAuthorizationRequestRepository
-	recoveryCodeRepo  RecoveryCodeRepository
-	emailOTPRepo      EmailOTPRepository
+	db                 *gorm.DB
+	dbType             string
+	userRepo           UserRepository
+	clientRepo         ClientRepository
+	tokenRepo          TokenRepository
+	sessionRepo        SessionRepository
+	clientProfileRepo  ClientProfileRepository
+	authFlowRepo       AuthFlowRepository
+	authProfileRepo    AuthProfileRepository
+	mfaFactorRepo      MFAFactorRepository
+	authzReqRepo       AuthorizationRequestRepository
+	consentRepo        ConsentDecisionRepository
+	keyRepo            KeyRepository
+	deviceAuthRepo     DeviceAuthorizationRepository
+	parRepo            PushedAuthorizationRequestRepository
+	recoveryCodeRepo   RecoveryCodeRepository
+	emailOTPRepo       EmailOTPRepository
+	jtiReplayCacheRepo JTIReplayCacheRepository
 }
 
 // NewRepositoryFactory creates a new repository factory with database initialization.
@@ -50,23 +51,24 @@ func NewRepositoryFactory(ctx context.Context, cfg *cryptoutilIdentityConfig.Dat
 	}
 
 	return &RepositoryFactory{
-		db:                db,
-		dbType:            cfg.Type,
-		userRepo:          cryptoutilIdentityORM.NewUserRepository(db),
-		clientRepo:        cryptoutilIdentityORM.NewClientRepository(db),
-		tokenRepo:         cryptoutilIdentityORM.NewTokenRepository(db),
-		sessionRepo:       cryptoutilIdentityORM.NewSessionRepository(db),
-		clientProfileRepo: cryptoutilIdentityORM.NewClientProfileRepository(db),
-		authFlowRepo:      cryptoutilIdentityORM.NewAuthFlowRepository(db),
-		authProfileRepo:   cryptoutilIdentityORM.NewAuthProfileRepository(db),
-		mfaFactorRepo:     cryptoutilIdentityORM.NewMFAFactorRepository(db),
-		authzReqRepo:      cryptoutilIdentityORM.NewAuthorizationRequestRepository(db),
-		consentRepo:       cryptoutilIdentityORM.NewConsentDecisionRepository(db),
-		keyRepo:           cryptoutilIdentityORM.NewKeyRepository(db),
-		deviceAuthRepo:    cryptoutilIdentityORM.NewDeviceAuthorizationRepository(db),
-		parRepo:           cryptoutilIdentityORM.NewPushedAuthorizationRequestRepository(db),
-		recoveryCodeRepo:  cryptoutilIdentityORM.NewRecoveryCodeRepository(db),
-		emailOTPRepo:      cryptoutilIdentityORM.NewEmailOTPRepository(db),
+		db:                 db,
+		dbType:             cfg.Type,
+		userRepo:           cryptoutilIdentityORM.NewUserRepository(db),
+		clientRepo:         cryptoutilIdentityORM.NewClientRepository(db),
+		tokenRepo:          cryptoutilIdentityORM.NewTokenRepository(db),
+		sessionRepo:        cryptoutilIdentityORM.NewSessionRepository(db),
+		clientProfileRepo:  cryptoutilIdentityORM.NewClientProfileRepository(db),
+		authFlowRepo:       cryptoutilIdentityORM.NewAuthFlowRepository(db),
+		authProfileRepo:    cryptoutilIdentityORM.NewAuthProfileRepository(db),
+		mfaFactorRepo:      cryptoutilIdentityORM.NewMFAFactorRepository(db),
+		authzReqRepo:       cryptoutilIdentityORM.NewAuthorizationRequestRepository(db),
+		consentRepo:        cryptoutilIdentityORM.NewConsentDecisionRepository(db),
+		keyRepo:            cryptoutilIdentityORM.NewKeyRepository(db),
+		deviceAuthRepo:     cryptoutilIdentityORM.NewDeviceAuthorizationRepository(db),
+		parRepo:            cryptoutilIdentityORM.NewPushedAuthorizationRequestRepository(db),
+		recoveryCodeRepo:   cryptoutilIdentityORM.NewRecoveryCodeRepository(db),
+		emailOTPRepo:       cryptoutilIdentityORM.NewEmailOTPRepository(db),
+		jtiReplayCacheRepo: NewJTIReplayCacheRepository(db),
 	}, nil
 }
 
@@ -153,6 +155,11 @@ func (f *RepositoryFactory) RecoveryCodeRepository() RecoveryCodeRepository {
 // EmailOTPRepository returns the email OTP repository.
 func (f *RepositoryFactory) EmailOTPRepository() EmailOTPRepository {
 	return f.emailOTPRepo
+}
+
+// JTIReplayCacheRepository returns the JTI replay cache repository.
+func (f *RepositoryFactory) JTIReplayCacheRepository() JTIReplayCacheRepository {
+	return f.jtiReplayCacheRepo
 }
 
 // DB returns the underlying database connection for transaction management.

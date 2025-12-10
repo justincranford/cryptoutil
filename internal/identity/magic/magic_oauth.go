@@ -4,6 +4,8 @@
 
 package magic
 
+import "time"
+
 // OAuth 2.1 grant types.
 const (
 	GrantTypeAuthorizationCode = "authorization_code"                           // Authorization code grant type.
@@ -111,6 +113,11 @@ const (
 	ClientAuthMethodSelfSignedTLSAuth = "self_signed_tls_client_auth" // mTLS with self-signed certificate.
 	ClientAuthMethodBearerToken       = "bearer_token"                // Bearer token authentication.
 	ClientAuthMethodNone              = "none"                        // No authentication (public clients).
+)
+
+// JWT assertion validation constants.
+const (
+	JWTAssertionMaxLifetime = 10 * time.Minute // Maximum allowed lifetime for client authentication JWT assertions (RFC 7523 Section 3).
 )
 
 // Rate limiting constants.

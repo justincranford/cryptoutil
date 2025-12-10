@@ -70,7 +70,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -172,7 +172,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -277,7 +277,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, "wrong-client-id")) // Wrong issuer.
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -329,7 +329,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{"https://wrong.example.com/token"})) // Wrong audience.
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -346,7 +346,7 @@ func TestClientSecretJWTValidator_ValidateJWT_Success(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID:     testClientID,
@@ -359,7 +359,7 @@ func TestClientSecretJWTValidator_ValidateJWT_Success(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -391,7 +391,7 @@ func TestClientSecretJWTValidator_ValidateJWT_NoClientSecret(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID:     testClientID,
@@ -407,7 +407,7 @@ func TestClientSecretJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID:     testClientID,
@@ -420,7 +420,7 @@ func TestClientSecretJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -443,7 +443,7 @@ func TestClientSecretJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID:     testClientID,
@@ -479,7 +479,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingExpirationClaim(t *testing.
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID:     testClientID,
@@ -515,7 +515,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingIssuedAtClaim(t *testing.T)
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID:     testClientID,
@@ -528,7 +528,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingIssuedAtClaim(t *testing.T)
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	// No issued at set.
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, googleUuid.NewString()))
 
@@ -551,7 +551,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MalformedJWT(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	client := &cryptoutilIdentityDomain.Client{
 		ClientID:     testClientID,
@@ -579,7 +579,7 @@ func TestPrivateKeyJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, jti))
 
@@ -595,7 +595,7 @@ func TestClientSecretJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewClientSecretJWTValidator(testTokenEndpointURL)
+	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	// Create token with all claims.
 	now := time.Now()
@@ -604,7 +604,7 @@ func TestClientSecretJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.AudienceKey, []string{testTokenEndpointURL}))
-	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(time.Hour)))
+	require.NoError(t, token.Set(joseJwt.ExpirationKey, now.Add(5*time.Minute)))
 	require.NoError(t, token.Set(joseJwt.IssuedAtKey, now))
 	require.NoError(t, token.Set(joseJwt.JwtIDKey, jti))
 

@@ -290,6 +290,19 @@ type ConsentDecisionRepository interface {
 	DeleteExpired(ctx context.Context) (int64, error)
 }
 
+// JTIReplayCacheRepository defines operations for JWT ID replay attack prevention.
+type JTIReplayCacheRepository interface {
+	// Store stores a JTI (JWT ID) to prevent replay attacks.
+	// Returns error if JTI already exists (replay attempt detected).
+	Store(ctx context.Context, jti string, clientID googleUuid.UUID, expiresAt time.Time) error
+
+	// Exists checks if a JTI already exists in the cache.
+	Exists(ctx context.Context, jti string) (bool, error)
+
+	// DeleteExpired removes expired JTI entries from the cache.
+	DeleteExpired(ctx context.Context) (int64, error)
+}
+
 // KeyRepository defines operations for cryptographic key persistence.
 type KeyRepository interface {
 	// Create creates a new key.

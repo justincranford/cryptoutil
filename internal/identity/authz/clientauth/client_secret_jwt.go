@@ -19,9 +19,9 @@ type ClientSecretJWTAuthenticator struct {
 }
 
 // NewClientSecretJWTAuthenticator creates a new client secret JWT authenticator.
-func NewClientSecretJWTAuthenticator(tokenEndpointURL string, repo cryptoutilIdentityRepository.ClientRepository) *ClientSecretJWTAuthenticator {
+func NewClientSecretJWTAuthenticator(tokenEndpointURL string, repo cryptoutilIdentityRepository.ClientRepository, jtiRepo cryptoutilIdentityRepository.JTIReplayCacheRepository) *ClientSecretJWTAuthenticator {
 	return &ClientSecretJWTAuthenticator{
-		validator: NewClientSecretJWTValidator(tokenEndpointURL),
+		validator: NewClientSecretJWTValidator(tokenEndpointURL, jtiRepo),
 		repo:      repo,
 	}
 }

@@ -106,7 +106,7 @@ Complete identity and access management solution.
 |--------|-------------|--------|
 | client_secret_basic | HTTP Basic Auth with client_id:client_secret | ✅ Working |
 | client_secret_post | client_id and client_secret in request body | ✅ Working |
-| client_secret_jwt | JWT signed with client secret | ⚠️ 70% (missing: jti replay protection, assertion lifetime validation) |
+| client_secret_jwt | JWT signed with client secret (RFC 7523 Section 3) | ✅ 100% (jti replay protection via jti_replay_cache table, 10-minute assertion lifetime validation, 10 tests passing) |
 | private_key_jwt | JWT signed with private key | ⚠️ 50% (missing: client JWKS registration, jti replay, kid matching) |
 | tls_client_auth | Mutual TLS client certificate authentication | ❌ Not Implemented (MANDATORY) |
 | self_signed_tls_client_auth | Self-signed TLS client certificate authentication | ❌ Not Implemented (MANDATORY) |
