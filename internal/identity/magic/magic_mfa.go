@@ -21,4 +21,13 @@ const (
 
 	// Recovery Code Lifecycle.
 	DefaultRecoveryCodeLifetime = 90 * 24 * time.Hour // 90 days.
+
+	// Email OTP Generation.
+	DefaultEmailOTPLength   = 6               // 6-digit numeric OTP.
+	DefaultEmailOTPLifetime = 10 * time.Minute // 10 minutes.
+	EmailOTPCharset         = "0123456789"    // Numeric digits only.
+
+	// Email OTP Rate Limiting.
+	DefaultEmailOTPRateLimit       = 5                // 5 OTP requests per window.
+	DefaultEmailOTPRateLimitWindow = 1 * time.Hour   // 1-hour rate limit window.
 )

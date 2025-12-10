@@ -14,16 +14,25 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
+
+// RecoveryCodeRepository defines minimal repository interface.
+type RecoveryCodeRepository interface {
+	Create(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error
+	CreateBatch(ctx context.Context, codes []*cryptoutilIdentityDomain.RecoveryCode) error
+	GetByUserID(ctx context.Context, userID googleUuid.UUID) ([]*cryptoutilIdentityDomain.RecoveryCode, error)
+	Update(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error
+	DeleteByUserID(ctx context.Context, userID googleUuid.UUID) error
+	CountUnused(ctx context.Context, userID googleUuid.UUID) (int64, error)
+}
 
 // RecoveryCodeService manages recovery code operations.
 type RecoveryCodeService struct {
-	repo cryptoutilIdentityRepository.RecoveryCodeRepository
+	repo RecoveryCodeRepository
 }
 
 // NewRecoveryCodeService creates a new recovery code service.
-func NewRecoveryCodeService(repo cryptoutilIdentityRepository.RecoveryCodeRepository) *RecoveryCodeService {
+func NewRecoveryCodeService(repo RecoveryCodeRepository) *RecoveryCodeService {
 	return &RecoveryCodeService{repo: repo}
 }
 

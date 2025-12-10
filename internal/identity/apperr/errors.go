@@ -110,6 +110,13 @@ var (
 	ErrDeviceAuthorizationNotFound         = NewIdentityError("device_authorization_not_found", "Device authorization not found", http.StatusNotFound, nil)
 	ErrPushedAuthorizationRequestNotFound  = NewIdentityError("pushed_authorization_request_not_found", "Pushed authorization request not found", http.StatusNotFound, nil)
 	ErrRecoveryCodeNotFound                = NewIdentityError("recovery_code_not_found", "Recovery code not found", http.StatusNotFound, nil)
+	ErrEmailOTPNotFound                    = NewIdentityError("email_otp_not_found", "Email OTP not found", http.StatusNotFound, nil)
+
+	// MFA errors.
+	ErrInvalidOTP        = NewIdentityError("invalid_otp", "Invalid OTP code", http.StatusUnauthorized, nil)
+	ErrExpiredOTP        = NewIdentityError("expired_otp", "OTP has expired", http.StatusUnauthorized, nil)
+	ErrOTPAlreadyUsed    = NewIdentityError("otp_already_used", "OTP has already been used", http.StatusUnauthorized, nil)
+	ErrRateLimitExceeded = NewIdentityError("rate_limit_exceeded", "Rate limit exceeded", http.StatusTooManyRequests, nil)
 
 	// PKCE errors.
 	ErrPKCERequired         = NewIdentityError("pkce_required", "PKCE is required for this flow", http.StatusBadRequest, nil)
