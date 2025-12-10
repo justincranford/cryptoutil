@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCrypto "cryptoutil/internal/crypto"
+	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"
 )
@@ -21,12 +22,14 @@ import (
 type mockUserRepo struct {
 	users    map[string]*cryptoutilIdentityDomain.User
 	bySubMap map[string]*cryptoutilIdentityDomain.User
+	byEmail  map[string]*cryptoutilIdentityDomain.User
 }
 
 func newMockUserRepo() *mockUserRepo {
 	return &mockUserRepo{
 		users:    make(map[string]*cryptoutilIdentityDomain.User),
 		bySubMap: make(map[string]*cryptoutilIdentityDomain.User),
+		byEmail:  make(map[string]*cryptoutilIdentityDomain.User),
 	}
 }
 
@@ -56,8 +59,13 @@ func (m *mockUserRepo) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptouti
 	return nil, nil
 }
 
-func (m *mockUserRepo) GetByEmail(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
-	return nil, nil
+func (m *mockUserRepo) GetByEmail(_ context.Context, email string) (*cryptoutilIdentityDomain.User, error) {
+	user, ok := m.byEmail[email]
+	if !ok {
+		return nil, fmt.Errorf("user not found: %s", email)
+	}
+
+	return user, nil
 }
 
 func (m *mockUserRepo) Update(_ context.Context, _ *cryptoutilIdentityDomain.User) error {
@@ -79,6 +87,7 @@ func (m *mockUserRepo) Count(_ context.Context) (int64, error) {
 func (m *mockUserRepo) AddUser(user *cryptoutilIdentityDomain.User) {
 	m.users[user.PreferredUsername] = user
 	m.bySubMap[user.Sub] = user
+	m.byEmail[user.Email] = user
 }
 
 // TestUsernamePasswordProfile_NewProfile tests NewUsernamePasswordProfile.
@@ -189,9 +198,9 @@ func TestUsernamePasswordProfile_AuthenticateSuccess(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	// Create password hash using crypto.HashSecret (PBKDF2).
+	// Create password hash using PBKDF2 (old format for username_password).
 	password := "SecurePassword123!"
-	hash, err := cryptoutilCrypto.HashSecret(password)
+	hash, err := cryptoutilCrypto.HashSecretPBKDF2(password)
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add user with hashed password.
@@ -283,7 +292,7 @@ func TestUsernamePasswordProfile_AuthenticateDisabledUser(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilCrypto.HashSecret("SecurePassword123!")
+	hash, err := cryptoutilCrypto.HashSecretPBKDF2("SecurePassword123!")
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add disabled user.
@@ -320,7 +329,7 @@ func TestUsernamePasswordProfile_AuthenticateLockedUser(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilCrypto.HashSecret("SecurePassword123!")
+	hash, err := cryptoutilCrypto.HashSecretPBKDF2("SecurePassword123!")
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add locked user.
@@ -357,7 +366,7 @@ func TestUsernamePasswordProfile_AuthenticateWrongPassword(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilCrypto.HashSecret("CorrectPassword123!")
+	hash, err := cryptoutilCrypto.HashSecretPBKDF2("CorrectPassword123!")
 	require.NoError(t, err, "HashSecret should succeed")
 
 	user := &cryptoutilIdentityDomain.User{
@@ -444,6 +453,94 @@ func TestEmailPasswordProfile_AuthenticateMissingPassword(t *testing.T) {
 	require.Error(t, err, "Authenticate should fail with missing password")
 	require.Nil(t, user, "User should be nil on error")
 	require.Contains(t, err.Error(), "missing password", "Error should indicate missing password")
+}
+
+// TestEmailPasswordProfile_AuthenticateUserNotFound tests user lookup failure.
+func TestEmailPasswordProfile_AuthenticateUserNotFound(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockUserRepo()
+	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
+
+	credentials := map[string]string{
+		"email":    "nonexistent@example.com",
+		"password": "SecurePassword123!",
+	}
+
+	user, err := profile.Authenticate(ctx, credentials)
+	require.Error(t, err, "Authenticate should fail with non-existent user")
+	require.Nil(t, user, "User should be nil on error")
+	require.Contains(t, err.Error(), "user lookup failed", "Error should indicate user lookup failed")
+}
+
+// TestEmailPasswordProfile_AuthenticateInvalidPassword tests password hash compare failure.
+func TestEmailPasswordProfile_AuthenticateInvalidPassword(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockUserRepo()
+
+	// Create user with hashed password.
+	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
+	correctPassword := "CorrectPassword123!"
+	passwordHash, err := hasher.HashSecret(correctPassword)
+	require.NoError(t, err, "Failed to hash password")
+
+	testUser := &cryptoutilIdentityDomain.User{
+		Sub:               googleUuid.NewString(),
+		Email:             "testuser@example.com",
+		PreferredUsername: "testuser",
+		PasswordHash:      passwordHash,
+	}
+	userRepo.AddUser(testUser)
+
+	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
+
+	credentials := map[string]string{
+		"email":    "testuser@example.com",
+		"password": "WrongPassword456!",
+	}
+
+	user, err := profile.Authenticate(ctx, credentials)
+	require.Error(t, err, "Authenticate should fail with wrong password")
+	require.Nil(t, user, "User should be nil on error")
+	require.Contains(t, err.Error(), "invalid credentials", "Error should indicate invalid credentials")
+}
+
+// TestEmailPasswordProfile_AuthenticateSuccess tests successful authentication.
+func TestEmailPasswordProfile_AuthenticateSuccess(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userRepo := newMockUserRepo()
+
+	// Create user with hashed password.
+	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
+	correctPassword := "CorrectPassword123!"
+	passwordHash, err := hasher.HashSecret(correctPassword)
+	require.NoError(t, err, "Failed to hash password")
+
+	testUser := &cryptoutilIdentityDomain.User{
+		Sub:               googleUuid.NewString(),
+		Email:             "testuser@example.com",
+		PreferredUsername: "testuser",
+		PasswordHash:      passwordHash,
+	}
+	userRepo.AddUser(testUser)
+
+	profile := cryptoutilIdentityAuth.NewEmailPasswordProfile(userRepo)
+
+	credentials := map[string]string{
+		"email":    "testuser@example.com",
+		"password": correctPassword,
+	}
+
+	user, err := profile.Authenticate(ctx, credentials)
+	require.NoError(t, err, "Authenticate should succeed with correct credentials")
+	require.NotNil(t, user, "User should not be nil on success")
+	require.Equal(t, testUser.Email, user.Email, "Returned user should match test user")
+	require.Equal(t, testUser.Sub, user.Sub, "Returned user sub should match")
 }
 
 // TestEmailPasswordProfile_ValidateCredentials tests ValidateCredentials.
