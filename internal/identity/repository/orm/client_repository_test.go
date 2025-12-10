@@ -504,6 +504,7 @@ func TestClientRepository_GetSecretHistory(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc // Capture loop variable for parallel execution.
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a fresh client for this test case.
 			client := &cryptoutilIdentityDomain.Client{

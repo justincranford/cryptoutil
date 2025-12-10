@@ -242,7 +242,7 @@ func (r *ClientRepositoryGORM) GetSecretHistory(ctx context.Context, clientID go
 	var history []cryptoutilIdentityDomain.ClientSecretHistory
 	if err := getDB(ctx, r.db).WithContext(ctx).
 		Where("client_id = ?", clientID).
-		Order("rotated_at DESC").
+		Order("rotated_at DESC, id DESC").
 		Find(&history).Error; err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get secret history: %w", err))
 	}
