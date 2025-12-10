@@ -237,7 +237,6 @@ jobs:
         # Create unseal secret and config files
         echo "dast-simple-unseal-secret-value-1" > ./configs/test/dast-simple-unseal-secret-value-1.secret
         cat > ./configs/test/config.yml <<EOF
-dev-mode: true
 log-level: "DEBUG"
 verbose: true
 rate-limit: 1000

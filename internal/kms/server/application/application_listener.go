@@ -375,15 +375,17 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 		ready.Store(true)
 
 		go func() {
-			telemetryService.Slogger.Debug("starting private fiber listener", "addr", privateListener.Addr().String(), "protocol", privateProtocol)
+			telemetryService.Slogger.Info("starting private fiber listener", "addr", privateListener.Addr().String(), "protocol", privateProtocol)
 
 			var err error
 
 			if privateProtocol == cryptoutilMagic.ProtocolHTTPS && privateTLSConfig != nil {
 				// Wrap the listener with TLS
 				tlsListener := tls.NewListener(privateListener, privateTLSConfig)
+				telemetryService.Slogger.Info("private server listening with TLS", "addr", privateListener.Addr().String())
 				err = privateFiberApp.Listener(tlsListener)
 			} else {
+				telemetryService.Slogger.Info("private server listening without TLS", "addr", privateListener.Addr().String())
 				err = privateFiberApp.Listener(privateListener)
 			}
 
@@ -394,15 +396,17 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 			telemetryService.Slogger.Debug("private fiber listener stopped")
 		}()
 
-		telemetryService.Slogger.Debug("starting public fiber listener", "addr", publicListener.Addr().String(), "protocol", publicProtocol)
+		telemetryService.Slogger.Info("starting public fiber listener", "addr", publicListener.Addr().String(), "protocol", publicProtocol)
 
 		var err error
 
 		if publicProtocol == cryptoutilMagic.ProtocolHTTPS && publicTLSConfig != nil {
 			// Wrap the listener with TLS
 			tlsListener := tls.NewListener(publicListener, publicTLSConfig)
+			telemetryService.Slogger.Info("public server listening with TLS", "addr", publicListener.Addr().String())
 			err = publicFiberApp.Listener(tlsListener)
 		} else {
+			telemetryService.Slogger.Info("public server listening without TLS", "addr", publicListener.Addr().String())
 			err = publicFiberApp.Listener(publicListener)
 		}
 
