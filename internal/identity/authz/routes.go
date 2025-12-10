@@ -52,4 +52,9 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	// MFA email OTP endpoints.
 	oidc.Post("/mfa/email-otp/send", s.handleSendEmailOTP)
 	oidc.Post("/mfa/email-otp/verify", s.handleVerifyEmailOTP)
+
+	// MFA admin endpoints.
+	oidc.Post("/mfa/enroll", s.handleEnrollMFA)
+	oidc.Get("/mfa/factors", s.handleListMFAFactors)
+	oidc.Delete("/mfa/factors/:id", s.handleDeleteMFAFactor)
 }

@@ -90,7 +90,7 @@ func createTestUserForRecoveryCodes(t *testing.T, userRepo cryptoutilIdentityRep
 func TestHandleGenerateRecoveryCodes_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 	user := createTestUserForRecoveryCodes(t, repos)
 
 	// Create service.
@@ -136,7 +136,7 @@ func TestHandleGenerateRecoveryCodes_HappyPath(t *testing.T) {
 func TestHandleGenerateRecoveryCodes_MissingUserID(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 
 	// Create service.
 	service := cryptoutilIdentityAuthz.NewService(repos, nil, nil)
@@ -173,7 +173,7 @@ func TestHandleGenerateRecoveryCodes_MissingUserID(t *testing.T) {
 func TestHandleGenerateRecoveryCodes_InvalidUserID(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 
 	// Create service.
 	service := cryptoutilIdentityAuthz.NewService(repos, nil, nil)
@@ -210,7 +210,7 @@ func TestHandleGenerateRecoveryCodes_InvalidUserID(t *testing.T) {
 func TestHandleGenerateRecoveryCodes_UserNotFound(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 
 	// Create service.
 	service := cryptoutilIdentityAuthz.NewService(repos, nil, nil)
@@ -246,7 +246,7 @@ func TestHandleGenerateRecoveryCodes_UserNotFound(t *testing.T) {
 func TestHandleGetRecoveryCodeCount_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 	user := createTestUserForRecoveryCodes(t, repos)
 
 	// Create service.
@@ -294,7 +294,7 @@ func TestHandleGetRecoveryCodeCount_HappyPath(t *testing.T) {
 func TestHandleRegenerateRecoveryCodes_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 	user := createTestUserForRecoveryCodes(t, repos)
 
 	// Create service.
@@ -353,7 +353,7 @@ func TestHandleRegenerateRecoveryCodes_HappyPath(t *testing.T) {
 func TestHandleVerifyRecoveryCode_MissingUserID(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 
 	// Create service.
 	service := cryptoutilIdentityAuthz.NewService(repos, nil, nil)
@@ -389,7 +389,7 @@ func TestHandleVerifyRecoveryCode_MissingUserID(t *testing.T) {
 func TestHandleVerifyRecoveryCode_InvalidCode(t *testing.T) {
 	t.Parallel()
 
-	_, repos := createRecoveryCodeTestDependencies(t)
+	repos := createRecoveryCodeTestDependencies(t)
 	user := createTestUserForRecoveryCodes(t, repos)
 
 	// Create service.
