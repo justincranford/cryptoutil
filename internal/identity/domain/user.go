@@ -37,6 +37,9 @@ type User struct {
 	PhoneVerified     IntBool  `gorm:"column:phone_number_verified;type:integer;default:0" json:"phone_number_verified,omitempty"` // Phone verification status (INTEGER for cross-DB compatibility).
 	Address           *Address `gorm:"embedded;embeddedPrefix:address_" json:"address,omitempty"`                                // Physical address.
 
+	// MFA device tokens.
+	PushDeviceToken string `json:"push_device_token,omitempty"` // Push notification device token (FCM, APNs).
+
 	// Authentication credentials.
 	PasswordHash string `gorm:"not null" json:"-"` // Bcrypt password hash.
 

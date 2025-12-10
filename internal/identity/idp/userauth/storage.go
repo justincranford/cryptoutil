@@ -70,6 +70,21 @@ func (s *InMemoryChallengeStore) Retrieve(ctx context.Context, challengeID googl
 	return stored.challenge, stored.secret, nil
 }
 
+// Update updates an existing authentication challenge (e.g., retry count).
+func (s *InMemoryChallengeStore) Update(ctx context.Context, challenge *AuthChallenge) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	stored, ok := s.challenges[challenge.ID]
+	if !ok {
+		return fmt.Errorf("challenge not found")
+	}
+
+	stored.challenge = challenge
+
+	return nil
+}
+
 // Delete deletes an authentication challenge.
 func (s *InMemoryChallengeStore) Delete(ctx context.Context, challengeID googleUuid.UUID) error {
 	s.mu.Lock()

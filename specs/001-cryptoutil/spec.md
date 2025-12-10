@@ -123,8 +123,8 @@ Complete identity and access management solution.
 | SMS OTP | One-time password via SMS | ✅ 100% (SMSOTPAuthenticator with MockSMSProvider for testing, RateLimiter integration, phone number validation, 12 tests passing: NewAuthenticator, Method, InitiateAuth with user/phone validation, VerifyAuth, ChallengeNotFound, unit/E2E flows) | LOW (NIST deprecated but MANDATORY) |
 | HOTP | HMAC-based One-Time Password (counter-based) | ✅ 100% (RFC 4226 compliant, counter synchronization, lookahead window, 12 tests passing) | LOW |
 | Recovery Codes | Backup codes for account recovery | ✅ 100% (10-code generation, single-use validation, secure hashing, 13 tests passing) | MEDIUM |
-| Push Notifications | Push-based authentication via mobile app | ❌ Not Implemented (MANDATORY) | LOW |
-| Phone Call OTP | One-time password via voice call | ❌ Not Implemented (MANDATORY) | LOW |
+| Push Notifications | Push-based authentication via mobile app | ✅ 100% (PushNotificationAuthenticator with device token management, approval token generation, push notification delivery, 6 tests passing) | LOW |
+| Phone Call OTP | One-time password via voice call | ✅ 100% (PhoneCallOTPAuthenticator with voice call delivery, OTP speech formatting, retry limit enforcement, 6 tests passing) | LOW |
 
 #### Secret Rotation System
 

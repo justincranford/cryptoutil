@@ -390,6 +390,21 @@ func (s *mockChallengeStore) Retrieve(ctx context.Context, id googleUuid.UUID) (
 	return entry.challenge, entry.token, nil
 }
 
+func (s *mockChallengeStore) Update(ctx context.Context, challenge *cryptoutilIdentityUserAuth.AuthChallenge) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	entry, exists := s.challenges[challenge.ID]
+	if !exists {
+		return fmt.Errorf("challenge not found")
+	}
+
+	entry.challenge = challenge
+	s.challenges[challenge.ID] = entry
+
+	return nil
+}
+
 func (s *mockChallengeStore) Delete(ctx context.Context, id googleUuid.UUID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

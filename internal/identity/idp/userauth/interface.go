@@ -60,6 +60,9 @@ type ChallengeStore interface {
 	// Retrieve retrieves an authentication challenge and its secret.
 	Retrieve(ctx context.Context, challengeID googleUuid.UUID) (*AuthChallenge, string, error)
 
+	// Update updates an existing authentication challenge (e.g., retry count).
+	Update(ctx context.Context, challenge *AuthChallenge) error
+
 	// Delete deletes an authentication challenge.
 	Delete(ctx context.Context, challengeID googleUuid.UUID) error
 }

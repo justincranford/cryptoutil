@@ -132,6 +132,18 @@ const (
 	DefaultMagicLinkLength   = 64                // Default magic link token length.
 )
 
+// Push notification configuration.
+const (
+	DefaultPushNotificationTimeout    = 120 * time.Second // Default push notification timeout (2 minutes).
+	DefaultPushNotificationTokenLength = 32                // Default push notification approval token length.
+)
+
+// Phone call OTP configuration.
+const (
+	DefaultPhoneCallOTPTimeout = 120 * time.Second // Default phone call OTP timeout (2 minutes).
+	DefaultPhoneCallOTPRetries = 2                 // Default phone call OTP retry attempts.
+)
+
 // Retry configuration.
 const (
 	DefaultMaxRetries    = 3                // Default maximum retries.
