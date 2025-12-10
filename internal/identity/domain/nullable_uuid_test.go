@@ -207,6 +207,12 @@ func TestNullableUUID_Scan(t *testing.T) {
 			wantErr:   true,
 		},
 		{
+			name:      "scan invalid UUID bytes",
+			value:     []byte("not-a-uuid-in-bytes"),
+			wantValid: false,
+			wantErr:   true,
+		},
+		{
 			name:      "scan invalid type",
 			value:     123,
 			wantValid: false,
