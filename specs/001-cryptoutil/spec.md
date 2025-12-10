@@ -119,8 +119,8 @@ Complete identity and access management solution.
 | Passkey | WebAuthn/FIDO2 authentication | ✅ Working | HIGHEST |
 | TOTP | Time-based One-Time Password | ✅ Working | HIGH |
 | Hardware Security Keys | Dedicated hardware tokens (U2F/FIDO) | ✅ 100% (WebAuthn/FIDO2 cross-platform authenticators, AAGUID identification, sign counter for replay prevention, 15+ tests passing) | HIGH |
-| Email OTP | One-time password via email | ⚠️ 30% (missing: email delivery service, rate limiting - MANDATORY) | MEDIUM |
-| SMS OTP | One-time password via SMS | ⚠️ 20% (missing: SMS provider integration, rate limiting - MANDATORY) | LOW (NIST deprecated but MANDATORY) |
+| Email OTP | One-time password via email | ✅ 100% (EmailOTPService with MockEmailService for testing, RateLimiter (5 OTPs per 10 min), bcrypt hashing, 10 tests passing: SendOTP, VerifyOTP_Success/InvalidCode/AlreadyUsed/Expired, RateLimit, domain model tests) | MEDIUM |
+| SMS OTP | One-time password via SMS | ✅ 100% (SMSOTPAuthenticator with MockSMSProvider for testing, RateLimiter integration, phone number validation, 12 tests passing: NewAuthenticator, Method, InitiateAuth with user/phone validation, VerifyAuth, ChallengeNotFound, unit/E2E flows) | LOW (NIST deprecated but MANDATORY) |
 | HOTP | HMAC-based One-Time Password (counter-based) | ✅ 100% (RFC 4226 compliant, counter synchronization, lookahead window, 12 tests passing) | LOW |
 | Recovery Codes | Backup codes for account recovery | ✅ 100% (10-code generation, single-use validation, secure hashing, 13 tests passing) | MEDIUM |
 | Push Notifications | Push-based authentication via mobile app | ❌ Not Implemented (MANDATORY) | LOW |
