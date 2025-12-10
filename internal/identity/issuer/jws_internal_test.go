@@ -27,10 +27,10 @@ func TestSignJWT(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		algorithm  string
-		keyGen     func() any
-		wantErr    bool
+		name        string
+		algorithm   string
+		keyGen      func() any
+		wantErr     bool
 		errContains string
 	}{
 		{
@@ -312,8 +312,8 @@ func TestConvertToJWK(t *testing.T) {
 			expected: nil,
 		},
 		{
-			name: "nil_key",
-			key:  nil,
+			name:     "nil_key",
+			key:      nil,
 			expected: nil,
 		},
 		{

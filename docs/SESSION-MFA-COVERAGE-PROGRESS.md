@@ -42,8 +42,8 @@
 
 ### Identity Phase 3 Target: 95% Overall Coverage
 
-**Current**: 62.5%  
-**Target**: 95.0%  
+**Current**: 62.5%
+**Target**: 95.0%
 **Gap**: +32.5%
 
 ### High Priority Packages (Below 80%)

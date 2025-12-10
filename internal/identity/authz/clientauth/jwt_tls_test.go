@@ -41,6 +41,12 @@ func TestClientSecretJWTAuthenticator_Authenticate_MissingAssertion(t *testing.T
 	require.Contains(t, err.Error(), "missing client_assertion parameter")
 }
 
+// NOTE: Additional testing of Authenticate method is currently limited due to a design issue.
+// The method calls validator.ValidateJWT with an empty client secret on first validation attempt (line 47),
+// which always fails because the validator requires a configured client secret (jwt_validator.go line 173).
+// This prevents testing of the normal flow (parse JWT → extract claims → fetch client → validate signature).
+// The method needs refactoring to support insecure JWT parsing before client lookup.
+
 func TestPrivateKeyJWTAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
