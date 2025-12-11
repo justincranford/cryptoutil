@@ -18,7 +18,7 @@
   - Same OpenAPI spec exposed twice with different middleware security stacks
 - **Private HTTPS Endpoint**: Always 127.0.0.1:9090 for admin tasks
   - `/livez`, `/readyz`, `/healthz`, `/shutdown` endpoints
-  - Not externally accessible (localhost only)
+  - Not externally accessible (127.0.0.1 only)
   - Used by Docker health checks, Kubernetes probes, monitoring
 - **Examples**:
   - KMS: Public HTTPS :8080 (APIs/UI), Private HTTPS 127.0.0.1:9090 (admin)
@@ -74,7 +74,7 @@
 2. User types "STOP" or "HALT" explicitly
 
 **IF YOU COMPLETE A TASK**: Immediately start the next one from the todo list
-**IF TODO LIST EMPTY**: Create new tasks from PROGRESS.md or Phase 1-5 work
+**IF TODO LIST EMPTY**: Create new tasks from implement/DETAILED.md timeline or TASKS.md
 **IF STUCK**: Pick any task and execute it - NEVER stop to ask
 **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
 

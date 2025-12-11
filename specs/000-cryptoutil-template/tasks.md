@@ -356,7 +356,7 @@ For EACH task, verify:
 - [ ] **Documentation**
   - [ ] GoDoc comments on public APIs
   - [ ] README updated if needed
-  - [ ] PROGRESS.md updated
+  - [ ] implement/DETAILED.md Section 2 (timeline) updated
 
 ---
 
@@ -463,8 +463,8 @@ For EACH task, verify:
 - [ ] Docker Compose deployment healthy
 - [ ] Integration tests passing
 - [ ] E2E demo script working
-- [ ] PROGRESS.md up-to-date
-- [ ] EXECUTIVE-SUMMARY.md created
+- [ ] implement/DETAILED.md Section 2 (timeline) up-to-date
+- [ ] implement/EXECUTIVE.md created/updated
 - [ ] CHECKLIST-ITERATION-NNN.md complete
 - [ ] No new TODOs without tracking
 

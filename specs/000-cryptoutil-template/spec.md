@@ -341,8 +341,8 @@ deployments/product/
 - [ ] Integration tests passing
 - [ ] E2E demo script working
 - [ ] Documentation updated (README, runbooks)
-- [ ] PROGRESS.md up-to-date
-- [ ] EXECUTIVE-SUMMARY.md created
+- [ ] implement/DETAILED.md Section 2 (timeline) updated
+- [ ] implement/EXECUTIVE.md created/updated
 - [ ] CHECKLIST-ITERATION-NNN.md complete
 
 ---

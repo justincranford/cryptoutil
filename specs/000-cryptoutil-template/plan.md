@@ -394,8 +394,8 @@ gremlins unleash
 - [ ] README.md updated with new features
 - [ ] API documentation generated (OpenAPI)
 - [ ] Runbooks created for operations
-- [ ] PROGRESS.md up-to-date
-- [ ] EXECUTIVE-SUMMARY.md created
+- [ ] implement/DETAILED.md Section 2 (timeline) updated
+- [ ] implement/EXECUTIVE.md created/updated
 - [ ] CHECKLIST-ITERATION-NNN.md complete
 
 ---

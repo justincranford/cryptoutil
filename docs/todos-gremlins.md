@@ -1,6 +1,15 @@
-# Gremlins Mutation Testing - Blocked
+# Gremlins Mutation Testing - ARCHIVED
 
-## Status: BLOCKED - Tool Bug
+## Status: RESOLVED - Gremlins working in CI/CD
+
+**Archived Date**: 2025-12-11
+**Resolution**: Gremlins v0.6.0 works successfully in ci-mutation workflow
+**Evidence**: Run 20121960342 completed mutation testing (742s runtime)
+**Action**: Refer to specs/001-cryptoutil/MUTATION-TESTING-BASELINE.md for current results
+
+---
+
+## Historical Issue (Now Resolved)
 
 ### Issue
 
