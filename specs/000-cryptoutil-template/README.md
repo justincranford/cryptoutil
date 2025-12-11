@@ -21,6 +21,110 @@ This directory contains templates for planning and executing cryptoutil iteratio
 
 ---
 
+## Spec Kit Workflow Checklist
+
+This section documents the full Spec Kit workflow based on [GitHub Spec Kit](https://github.com/github/spec-kit).
+
+### Iteration Setup
+
+- [ ] Copy `specs/000-cryptoutil-template/` to `specs/NNN-cryptoutil/`
+- [ ] Rename NNN to iteration number (e.g., `003-cryptoutil`)
+- [ ] Run `specify init . --ai copilot` if needed
+
+### Core Spec Kit Commands (Mandatory)
+
+#### Round 1: Initial Specification
+
+1. [ ] **Constitution** (`/speckit.constitution`)
+   - Create/update project governing principles
+   - Define development guidelines
+   - Document: `.specify/memory/constitution.md`
+
+2. [ ] **Specify** (`/speckit.specify`)
+   - Define WHAT to build (requirements, user stories)
+   - Focus on intent, not implementation
+   - Document: `specs/NNN-cryptoutil/spec.md`
+
+3. [ ] **Plan** (`/speckit.plan`)
+   - Define HOW to build (tech stack, architecture)
+   - Technical implementation approach
+   - Document: `specs/NNN-cryptoutil/plan.md`
+
+4. [ ] **Tasks** (`/speckit.tasks`)
+   - Generate actionable task list from plan
+   - Include dependencies and LOE estimates
+   - Document: `specs/NNN-cryptoutil/tasks.md`
+
+5. [ ] **Implement** (`/speckit.implement`)
+   - Execute all tasks according to plan
+   - Track progress in `PROGRESS.md`
+   - Commit incrementally
+
+### Optional Spec Kit Commands (Recommended)
+
+#### Before Plan
+
+- [ ] **Clarify** (`/speckit.clarify` - formerly `/quizme`)
+  - Clarify underspecified areas in spec
+  - Ask questions about ambiguous requirements
+  - Document: `specs/NNN-cryptoutil/CLARIFICATIONS.md`
+
+#### After Tasks, Before Implement
+
+- [ ] **Analyze** (`/speckit.analyze`)
+  - Cross-artifact consistency check
+  - Requirement-to-task coverage analysis
+  - Document: `specs/NNN-cryptoutil/ANALYSIS.md`
+
+#### After Implement
+
+- [ ] **Checklist** (`/speckit.checklist`)
+  - Generate custom quality checklists
+  - Validate requirements completeness
+  - Document: `specs/NNN-cryptoutil/CHECKLIST-ITERATION-NNN.md`
+
+### Round 2+: Iteration Refinement
+
+If additional rounds are needed (e.g., missing requirements, new features):
+
+1. [ ] **Update Specification** (`/speckit.specify`)
+   - Add new requirements or refine existing
+   - Update `spec.md` with changes
+
+2. [ ] **Update Plan** (`/speckit.plan`)
+   - Adjust technical approach for new requirements
+   - Update `plan.md` with revised approach
+
+3. [ ] **Update Tasks** (`/speckit.tasks`)
+   - Generate tasks for new requirements
+   - Append to `tasks.md` or create `tasks-round2.md`
+
+4. [ ] **Implement** (`/speckit.implement`)
+   - Execute new tasks
+   - Continue tracking in `PROGRESS.md`
+
+5. [ ] **Re-validate** (`/speckit.checklist`)
+   - Run checklist again for new changes
+   - Update `CHECKLIST-ITERATION-NNN.md`
+
+### Additional Iteration Documents
+
+Create these files during the iteration:
+
+- [ ] `PROGRESS.md` - Session log, status tracking, evidence
+- [ ] `EXECUTIVE-SUMMARY.md` - Stakeholder overview, known issues
+- [ ] `PROJECT-STATUS.md` - Current status, completion metrics
+- [ ] `COMPLETION-ROADMAP.md` - Remaining work, priorities
+- [ ] `SESSION-SUMMARY.md` - Session-specific notes (if needed)
+
+### Environment Variables (If Needed)
+
+- [ ] Set `SPECIFY_FEATURE` if not using Git branches
+  - Example: `SPECIFY_FEATURE=003-cryptoutil`
+  - Required for feature detection in non-Git repos
+
+---
+
 ## When to Use These Templates
 
 ### Start of New Iteration
