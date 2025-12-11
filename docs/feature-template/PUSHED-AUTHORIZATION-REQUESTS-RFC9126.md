@@ -35,6 +35,7 @@ Client                             Authorization Server
 ```
 
 **Key Concepts**:
+
 - **request_uri**: Opaque reference to pushed authorization request (`urn:ietf:params:oauth:request_uri:xxx`)
 - **Lifetime**: Short-lived (60-600 seconds), single-use
 - **Storage**: Ephemeral storage in database with automatic expiration
@@ -49,6 +50,7 @@ Client                             Authorization Server
 **Endpoint**: POST `/oauth2/v1/par`
 
 **Request Parameters** (all from OAuth 2.1 /authorize):
+
 - `client_id` (REQUIRED for public clients)
 - `response_type` (REQUIRED) - "code" for authorization code flow
 - `redirect_uri` (REQUIRED)
@@ -59,10 +61,12 @@ Client                             Authorization Server
 - All other standard OAuth parameters supported
 
 **Client Authentication**:
+
 - Confidential clients: MUST authenticate (client_secret_basic, client_secret_post, etc.)
 - Public clients: MAY authenticate, MUST include client_id in body
 
 **Response** (201 Created):
+
 ```json
 {
   "request_uri": "urn:ietf:params:oauth:request_uri:6esc_11ACC5bwc014ltc14eY22c",
@@ -71,6 +75,7 @@ Client                             Authorization Server
 ```
 
 **Error Response** (400 Bad Request):
+
 ```json
 {
   "error": "invalid_request",
@@ -83,6 +88,7 @@ Client                             Authorization Server
 **Authorization Request**: GET `/oauth2/v1/authorize?client_id=xxx&request_uri=urn:ietf:params:oauth:request_uri:xxx`
 
 **Server Behavior**:
+
 1. Validate request_uri format (`urn:ietf:params:oauth:request_uri:` prefix)
 2. Retrieve stored authorization request parameters
 3. Check expiration (single-use, time-bounded)
@@ -90,6 +96,7 @@ Client                             Authorization Server
 5. Proceed with normal authorization code flow using stored parameters
 
 **Error Handling**:
+
 - Expired request_uri → `invalid_request_uri`
 - Used request_uri → `invalid_request_uri`
 - Unknown request_uri → `invalid_request_uri`
@@ -104,6 +111,7 @@ Client                             Authorization Server
 **File**: `internal/identity/magic/magic_oauth.go`
 
 Add PAR-specific constants:
+
 ```go
 const (
     // PAR endpoint
@@ -122,6 +130,7 @@ const (
 **File**: `internal/identity/magic/magic_timeouts.go`
 
 Add PAR timeout constants:
+
 ```go
 const (
     // DefaultPARLifetime is the default lifetime for pushed authorization requests (90 seconds)
@@ -135,6 +144,7 @@ const (
 **File**: `internal/identity/magic/magic_uris.go`
 
 Add PAR URI prefix:
+
 ```go
 const (
     // RequestURIPrefix is the URN prefix for PAR request_uri values
@@ -149,6 +159,7 @@ const (
 **File**: `internal/identity/domain/pushed_authorization_request.go`
 
 Create domain model for PAR:
+
 ```go
 package domain
 
@@ -203,6 +214,7 @@ func (p *PushedAuthorizationRequest) MarkAsUsed() {
 **Tests**: `internal/identity/domain/pushed_authorization_request_test.go`
 
 Test coverage:
+
 - IsExpired() - expired vs not expired
 - IsUsed() - used vs not used
 - MarkAsUsed() - sets flag and timestamp
@@ -214,6 +226,7 @@ Test coverage:
 **File**: `internal/identity/repository/pushed_authorization_request_repository.go`
 
 Create repository interface:
+
 ```go
 package repository
 
@@ -240,6 +253,7 @@ type PushedAuthorizationRequestRepository interface {
 **File**: `internal/identity/repository/orm/pushed_authorization_request_repository.go`
 
 Implement GORM repository:
+
 ```go
 package orm
 
@@ -312,6 +326,7 @@ func (r *pushedAuthorizationRequestRepository) DeleteExpired(ctx context.Context
 **Error Definition**: `internal/identity/apperr/errors.go`
 
 Add error constant:
+
 ```go
 var ErrPushedAuthorizationRequestNotFound = &AppError{
     Code:    "pushed_authorization_request_not_found",
@@ -327,6 +342,7 @@ var ErrPushedAuthorizationRequestNotFound = &AppError{
 **File**: `internal/identity/repository/orm/migrations/000011_pushed_authorization_request.up.sql`
 
 Create migration:
+
 ```sql
 -- Pushed Authorization Requests table (RFC 9126)
 CREATE TABLE IF NOT EXISTS pushed_authorization_requests (
@@ -372,6 +388,7 @@ DROP TABLE IF EXISTS pushed_authorization_requests;
 **File**: `internal/identity/authz/request_uri_generator.go`
 
 Create request_uri generator:
+
 ```go
 package authz
 
@@ -401,6 +418,7 @@ func GenerateRequestURI() (string, error) {
 **Tests**: `internal/identity/authz/request_uri_generator_test.go`
 
 Test coverage:
+
 - Uniqueness (1000 samples)
 - Format (starts with `urn:ietf:params:oauth:request_uri:`)
 - Length (≥43 characters)
@@ -413,6 +431,7 @@ Test coverage:
 **File**: `internal/identity/authz/handlers_par.go`
 
 Implement POST /par endpoint:
+
 ```go
 package authz
 
@@ -554,6 +573,7 @@ func (s *Server) extractAndValidateClient(c *fiber.Ctx) (googleUuid.UUID, error)
 **Tests**: `internal/identity/authz/handlers_par_test.go`
 
 Test coverage:
+
 - Happy path (valid PAR request returns 201 with request_uri)
 - Missing response_type (400 error)
 - Missing redirect_uri (400 error)
@@ -644,6 +664,7 @@ func (s *Server) handleAuthorizeWithPAR(c *fiber.Ctx, requestURI string) error {
 ```
 
 **Integration Points**:
+
 - Modify session creation to use PAR parameters from c.Locals()
 - Update PKCE validation to use stored code_challenge from PAR
 - Ensure redirect_uri from PAR is used for callback
@@ -655,6 +676,7 @@ func (s *Server) handleAuthorizeWithPAR(c *fiber.Ctx, requestURI string) error {
 **File**: `internal/identity/authz/routes.go`
 
 Add PAR endpoint:
+
 ```go
 func (s *Server) RegisterRoutes(app *fiber.App) {
     oauth := app.Group("/oauth2/v1")
@@ -681,6 +703,7 @@ func (s *Server) RegisterRoutes(app *fiber.App) {
 **File**: `internal/identity/repository/factory.go`
 
 Add PAR repository to factory:
+
 ```go
 type RepositoryFactory struct {
     db                     *gorm.DB
@@ -718,6 +741,7 @@ func (f *RepositoryFactory) PushedAuthorizationRequestRepository() PushedAuthori
 **File**: `internal/identity/domain/pushed_authorization_request_test.go`
 
 Test domain model methods:
+
 - TestPushedAuthorizationRequest_IsExpired
 - TestPushedAuthorizationRequest_IsUsed
 - TestPushedAuthorizationRequest_MarkAsUsed
@@ -725,6 +749,7 @@ Test domain model methods:
 **File**: `internal/identity/authz/request_uri_generator_test.go`
 
 Test request_uri generation:
+
 - TestGenerateRequestURI_Uniqueness (1000 samples)
 - TestGenerateRequestURI_Format (URN prefix)
 - TestGenerateRequestURI_Length (≥43 chars)
@@ -732,6 +757,7 @@ Test request_uri generation:
 **File**: `internal/identity/authz/handlers_par_test.go`
 
 Test PAR handler:
+
 - TestHandlePAR_HappyPath (201 with request_uri)
 - TestHandlePAR_MissingResponseType (400 error)
 - TestHandlePAR_MissingRedirectURI (400 error)
@@ -746,6 +772,7 @@ Test PAR handler:
 **File**: `internal/identity/authz/handlers_par_flow_integration_test.go`
 
 Test PAR E2E flow:
+
 - TestPARFlow_HappyPath:
   1. POST /par → get request_uri
   2. GET /authorize with request_uri → redirect to login
@@ -774,6 +801,7 @@ Test PAR E2E flow:
 **File**: `internal/identity/authz/cleanup_expired_par.go`
 
 Background job to delete expired PAR entries:
+
 ```go
 package authz
 
@@ -804,6 +832,7 @@ func (s *Server) StartPARCleanupJob(ctx context.Context, interval time.Duration)
 ```
 
 Call from server startup:
+
 ```go
 // Start PAR cleanup job (runs every 5 minutes)
 go s.StartPARCleanupJob(ctx, 5*time.Minute)
@@ -816,6 +845,7 @@ go s.StartPARCleanupJob(ctx, 5*time.Minute)
 ### Request Integrity
 
 PAR protects authorization parameters from:
+
 - **URL tampering**: Parameters stored server-side, only opaque request_uri exposed
 - **Phishing attacks**: Attackers cannot intercept/modify authorization parameters
 - **Parameter injection**: All parameters validated before storage
@@ -823,6 +853,7 @@ PAR protects authorization parameters from:
 ### Confidentiality
 
 PAR prevents exposure of sensitive data:
+
 - **PKCE code_challenge**: Not visible in browser URL bar or HTTP logs
 - **State parameter**: Protected from interception
 - **Custom parameters**: Kept confidential on server
@@ -830,6 +861,7 @@ PAR prevents exposure of sensitive data:
 ### Replay Protection
 
 Single-use request_uri enforcement:
+
 - Mark as used after first /authorize request
 - Return error on subsequent attempts
 - Automatic cleanup of expired entries
@@ -837,6 +869,7 @@ Single-use request_uri enforcement:
 ### Client Authentication
 
 Confidential clients MUST authenticate at /par:
+
 - Prevents unauthorized clients from pushing requests
 - Links request_uri to authenticated client
 - Client_id validated again at /authorize
@@ -844,6 +877,7 @@ Confidential clients MUST authenticate at /par:
 ### Lifetime Management
 
 Short-lived request_uri (90 seconds):
+
 - Reduces window for attacks
 - Prevents stale authorization requests
 - Automatic expiration cleanup
@@ -855,17 +889,21 @@ Short-lived request_uri (90 seconds):
 ### Unit Tests (6 tests)
 
 **Domain Model**:
+
 - IsExpired(), IsUsed(), MarkAsUsed() methods
 
 **Request URI Generator**:
+
 - Uniqueness, format, length validation
 
 **PAR Handler**:
+
 - Happy path, missing parameters, invalid client
 
 ### Integration Tests (4 tests)
 
 **E2E Flow**:
+
 - PAR → Authorize → Login → Consent → Token
 - Expired request_uri handling
 - Used request_uri handling
@@ -874,6 +912,7 @@ Short-lived request_uri (90 seconds):
 ### Manual Testing
 
 **Postman/curl**:
+
 ```bash
 # 1. Push authorization request
 curl -X POST https://localhost:8080/oauth2/v1/par \
@@ -911,6 +950,7 @@ curl -X GET "https://localhost:8080/oauth2/v1/authorize?client_id=xxx&request_ur
 ## Files Changed Summary
 
 **New Files** (~1,200 lines):
+
 - `internal/identity/domain/pushed_authorization_request.go` (90 lines)
 - `internal/identity/domain/pushed_authorization_request_test.go` (80 lines)
 - `internal/identity/repository/pushed_authorization_request_repository.go` (30 lines)
@@ -925,6 +965,7 @@ curl -X GET "https://localhost:8080/oauth2/v1/authorize?client_id=xxx&request_ur
 - `internal/identity/authz/cleanup_expired_par.go` (40 lines)
 
 **Modified Files**:
+
 - `internal/identity/magic/magic_oauth.go` (+10 lines)
 - `internal/identity/magic/magic_timeouts.go` (+10 lines)
 - `internal/identity/magic/magic_uris.go` (+5 lines)

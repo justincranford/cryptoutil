@@ -11,12 +11,14 @@
 ## Completed Tasks (8/10)
 
 ### ✅ Task 1: Discovery (15 minutes)
+
 - Analyzed existing OTP stub code in `internal/identity/idp/auth/otp.go`
 - Found no domain model, repository, migration, or handlers
 - Identified 30% completion status from spec.md
 - Created implementation plan (EMAIL-OTP.md)
 
 ### ✅ Task 2: Magic Constants (15 minutes)
+
 - Added to `internal/identity/magic/magic_mfa.go`:
   - `DefaultEmailOTPLength = 6` (6-digit numeric)
   - `DefaultEmailOTPLifetime = 10 * time.Minute` (10-minute expiration)
@@ -25,6 +27,7 @@
   - `DefaultEmailOTPRateLimitWindow = 1 * time.Hour` (1-hour rate limit window)
 
 ### ✅ Task 3: Domain Model (45 minutes)
+
 - Created `internal/identity/domain/email_otp.go` (45 lines):
   - EmailOTP struct: ID, UserID, CodeHash (bcrypt), Used, UsedAt, CreatedAt, ExpiresAt
   - Methods: IsExpired(), IsUsed(), MarkAsUsed()
@@ -33,6 +36,7 @@
   - 3/3 tests passing (0.9s): IsExpired, IsUsed, MarkAsUsed
 
 ### ✅ Task 4: Email Delivery Service (1.5 hours)
+
 - Created `internal/identity/email/email_service.go` (125 lines):
   - EmailService interface
   - SMTPEmailService (production SMTP delivery)
@@ -42,12 +46,14 @@
   - 3/3 tests passing (0.4s): SendEmail, GetLastEmail, ContainsOTP
 
 ### ✅ Task 5: OTP Generator (30 minutes)
+
 - Created `internal/identity/mfa/email_otp_generator.go` (29 lines):
   - GenerateEmailOTP() (6-digit numeric, crypto/rand)
 - Created `internal/identity/mfa/email_otp_generator_test.go` (48 lines):
   - 3/3 tests passing (0.6s): Format, Uniqueness (>900/1000), AllNumeric
 
 ### ✅ Task 6: Rate Limiter (1 hour)
+
 - Created `internal/identity/ratelimit/rate_limiter.go` (85 lines):
   - RateLimiter struct (in-memory map with sliding window)
   - Methods: Allow, Reset, GetCount
@@ -56,6 +62,7 @@
   - 5/5 tests passing (0.6s): Allow, DifferentKeys, WindowExpiration, Reset, GetCount
 
 ### ✅ Task 7: Repository + Service (2 hours)
+
 - Created `internal/identity/repository/email_otp_repository.go` (32 lines):
   - EmailOTPRepository interface: Create, GetByUserID, GetByID, Update, DeleteByUserID, DeleteExpired
 - Created `internal/identity/repository/orm/email_otp_repository.go` (103 lines):
@@ -80,6 +87,7 @@
   - Removed repository import, defined local RecoveryCodeRepository interface
 
 ### ✅ Task 8: API Handlers (1 hour)
+
 - Created `internal/identity/authz/handlers_email_otp.go` (104 lines):
   - POST /oidc/v1/mfa/email-otp/send (user_id + email → sends OTP)
   - POST /oidc/v1/mfa/email-otp/verify (X-User-ID header + code → verifies)
@@ -93,11 +101,13 @@
 ## Deferred Tasks (2/10)
 
 ### ⏸️ Task 9: Handler Tests (1 hour estimated)
+
 - Reason: Requires PAR test pattern alignment (createPARTestDependencies helper)
 - Complexity: Full Service setup with config + repoFactory + tokenSvc
 - Scope: 6 test cases (send happy path, send errors, verify happy path, verify errors, rate limit)
 
 ### ⏸️ Task 10: Login Flow Integration (30 minutes estimated)
+
 - Reason: Out of scope for backend completion
 - Scope: Integrate Email OTP into OAuth 2.1 authorization flow
 - Dependencies: Handler tests complete first
@@ -145,6 +155,7 @@ CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps(used);
 ## Files Changed (20 created, 6 modified)
 
 ### Created Files (20)
+
 1. `docs/feature-template/EMAIL-OTP.md` (277 lines - implementation plan)
 2. `internal/identity/domain/email_otp.go` (45 lines)
 3. `internal/identity/domain/email_otp_test.go` (109 lines)
@@ -164,6 +175,7 @@ CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps(used);
 17-20. (Test utility files, migration tracking)
 
 ### Modified Files (6)
+
 1. `internal/identity/magic/magic_mfa.go` (added 9 lines - Email OTP constants)
 2. `internal/identity/repository/factory.go` (added 8 lines - EmailOTPRepository integration)
 3. `internal/identity/apperr/errors.go` (added 5 lines - MFA error constants)
@@ -185,21 +197,25 @@ CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps(used);
 ## Lessons Learned
 
 ### Import Cycle Prevention
+
 - **Issue**: ORM repositories importing repository interface package creates cycles
 - **Solution**: ORM files return concrete types (e.g., *emailOTPRepositoryGORM), factory does interface assignment
 - **Pattern**: Services define local interfaces (EmailOTPRepository) to avoid importing repository package
 
 ### Test Isolation
+
 - **Issue**: GORM tests importing orm package creates test cycles
 - **Solution**: Use in-memory mock repositories for service tests
 - **Pattern**: mockEmailOTPRepository struct implements interface without GORM dependencies
 
 ### Error Handling in Fiber
+
 - **Issue**: No handleError helper method in Service struct
 - **Solution**: Use direct fiber.Map responses: `c.Status(...).JSON(fiber.Map{...})`
 - **Pattern**: Follow PAR handler pattern with explicit error codes and descriptions
 
 ### Repository Pattern Consistency
+
 - **Discovery**: UserRepository returns *UserRepositoryGORM (concrete type), not interface
 - **Applied**: EmailOTPRepository ORM follows same pattern
 - **Benefit**: Avoids import cycles between orm and repository packages
@@ -207,16 +223,19 @@ CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps(used);
 ## Business Impact
 
 ### Account Security
+
 - **MFA Layer**: Email OTP adds second factor authentication option
 - **Account Recovery**: Alternative to SMS OTP for account access
 - **Compliance**: Supports regulatory requirements for multi-factor authentication
 
 ### User Experience
+
 - **Simplicity**: 6-digit numeric code easy to read/type
 - **Speed**: 10-minute expiration balances security and usability
 - **Reliability**: Email delivery more reliable than SMS in many regions
 
 ### System Design
+
 - **Rate Limiting**: Prevents abuse (5 requests/hour per user)
 - **Single-Use Codes**: Mitigates replay attacks
 - **Bcrypt Hashing**: Industry-standard password hashing (cost 10)
@@ -225,23 +244,27 @@ CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps(used);
 ## Next Steps (Outside Current Scope)
 
 ### SMTP Configuration
+
 - Add SMTPConfig to identity service config
 - Environment-specific SMTP servers (dev/staging/prod)
 - TLS/SSL support for secure email delivery
 - Email templates with branding
 
 ### Handler Tests
+
 - Implement createEmailOTPTestDependencies helper (similar to PAR pattern)
 - Test all 6 handler scenarios (send happy path, errors, verify happy path, errors, rate limit, expiration)
 - Integration with full Service initialization (config + repoFactory + tokenSvc)
 
 ### Login Flow Integration
+
 - Add Email OTP step to OAuth 2.1 authorization flow
 - POST /oauth2/v1/authorize → check MFA requirements → send OTP → verify OTP → issue tokens
 - Session state management for multi-step flows
 - UI/UX for OTP entry
 
 ### Monitoring
+
 - Emit metrics: OTP sent count, verification attempts, success/failure rates
 - Alert on rate limit violations (potential abuse)
 - Track email delivery failures (SMTP errors)

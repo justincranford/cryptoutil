@@ -28,12 +28,14 @@
 ### Commits 16-17: MFA Orchestrator Tests
 
 **Commit 16**: `test(identity): add MFA orchestrator tests (idp/auth 46.6% → 71.4%)`
+
 - Created `internal/identity/idp/auth/mfa_test.go`
 - Tests for GetRequiredFactors, RequiresMFA, ValidateFactor
 - Mock implementations for MFAFactorRepository, MFATelemetry, TOTPValidator
 - Coverage improvement: +24.8%
 
 **Commit 17**: `test(identity): expand MFA tests with error cases (idp/auth 71.4% → 72.2%)`
+
 - Added repository error handling tests
 - Added error message validation with ErrorContains
 - Coverage improvement: +0.8%
@@ -125,9 +127,9 @@
 
 ### Medium Term
 
-4. **authz package** (77.2% → 95%)
-5. **issuer package** (77.3% → 95%)
-6. **idp package** (65.4% → 95%)
+1. **authz package** (77.2% → 95%)
+2. **issuer package** (77.3% → 95%)
+3. **idp package** (65.4% → 95%)
 
 ### Strategy
 

@@ -14,6 +14,7 @@ After consolidating 22 overlapping iteration files into 4 essential documents an
 **CRITICAL**: ALL phases and tasks are MANDATORY for Speckit completion. There are NO optional phases or tasks.
 
 **✅ Speckit Compliance Restored**:
+
 - Step 1: Constitution Review → No violations detected
 - Step 2: Specification Verification → spec.md accurate
 - Step 3: Clarifications → 6 ambiguities resolved
@@ -426,6 +427,7 @@ git log --oneline -10  # Review commit history
 ### Q: Are Phases 4 and 5 really mandatory?
 
 **A**: **YES**. Speckit requires:
+
 - Phase 4 (Advanced Testing): Mutation testing, fuzz testing, property-based testing, chaos engineering
 - Phase 5 (Demo Videos): Comprehensive user onboarding and documentation
 Without these, Speckit workflow is incomplete.

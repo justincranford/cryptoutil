@@ -138,6 +138,7 @@ The constitution states:
 > "No task is complete without objective, verifiable evidence"
 
 But the constitution doesn't specify:
+
 - **When** validation must occur (before marking complete)
 - **How** to track failed gates
 - **What** to do when gates fail mid-iteration

@@ -16,10 +16,13 @@ Recovery codes provide emergency backup authentication when users lose access to
 ## Completed Tasks (9/11)
 
 ### ✅ Task 1: Magic Constants (30min)
+
 **Files**:
+
 - `internal/identity/magic/magic_mfa.go` (NEW - 27 lines)
 
 **Constants**:
+
 - `MFATypeRecoveryCode = "recovery_code"`
 - `DefaultRecoveryCodeLength = 16` (characters per code)
 - `DefaultRecoveryCodeCount = 10` (codes per batch)
@@ -29,11 +32,14 @@ Recovery codes provide emergency backup authentication when users lose access to
 ---
 
 ### ✅ Task 2: Domain Model (1h)
+
 **Files**:
+
 - `internal/identity/domain/recovery_code.go` (NEW - 40 lines)
 - `internal/identity/domain/recovery_code_test.go` (NEW - 119 lines)
 
 **Domain Model**:
+
 ```go
 type RecoveryCode struct {
     ID        googleUuid.UUID
@@ -52,6 +58,7 @@ func MarkAsUsed()
 ```
 
 **Tests**: 3/3 passing
+
 - TestRecoveryCode_IsExpired (not expired, expired)
 - TestRecoveryCode_IsUsed (used, not used)
 - TestRecoveryCode_MarkAsUsed (sets flag and timestamp)
@@ -59,21 +66,26 @@ func MarkAsUsed()
 ---
 
 ### ✅ Task 3: Recovery Code Generator (1h)
+
 **Files**:
+
 - `internal/identity/mfa/recovery_code_generator.go` (NEW - 67 lines)
 - `internal/identity/mfa/recovery_code_generator_test.go` (NEW - 70 lines)
 
 **Functions**:
+
 - `GenerateRecoveryCode()` - Single code (XXXX-XXXX-XXXX-XXXX format)
 - `GenerateRecoveryCodes(count)` - Batch generation with uniqueness check
 
 **Security**:
+
 - Cryptographic randomness: `crypto/rand.Read(32 bytes)`
 - Base64url encoding: `base64.RawURLEncoding`
 - Collision detection: Map-based uniqueness validation
 - Format: 16 chars + 3 hyphens = 19 total characters
 
 **Tests**: 4/4 passing
+
 - TestGenerateRecoveryCode_Format (regex pattern match)
 - TestGenerateRecoveryCode_Length (19 characters)
 - TestGenerateRecoveryCode_Uniqueness (1000 samples, no collisions)
@@ -82,10 +94,13 @@ func MarkAsUsed()
 ---
 
 ### ✅ Task 4: Repository Interface (30min)
+
 **Files**:
+
 - `internal/identity/repository/recovery_code_repository.go` (NEW - 40 lines)
 
 **Interface Methods**:
+
 - `Create(ctx, code)` - Single code
 - `CreateBatch(ctx, codes)` - Batch insert (transaction)
 - `GetByUserID(ctx, userID)` - All codes for user
@@ -98,10 +113,13 @@ func MarkAsUsed()
 ---
 
 ### ✅ Task 5: Repository Implementation (1h)
+
 **Files**:
+
 - `internal/identity/repository/orm/recovery_code_repository.go` (NEW - 122 lines)
 
 **Implementation**:
+
 - GORM-based with context support
 - Transaction-aware: `getDB(ctx, r.db)` pattern
 - Error mapping: `gorm.ErrRecordNotFound` → `ErrRecoveryCodeNotFound`
@@ -110,11 +128,14 @@ func MarkAsUsed()
 ---
 
 ### ✅ Task 6: Database Migration (30min)
+
 **Files**:
+
 - `internal/identity/repository/orm/migrations/000012_recovery_codes.up.sql` (NEW - 14 lines)
 - `internal/identity/repository/orm/migrations/000012_recovery_codes.down.sql` (NEW - 5 lines)
 
 **Schema**:
+
 ```sql
 CREATE TABLE recovery_codes (
     id TEXT PRIMARY KEY,
@@ -137,11 +158,14 @@ CREATE INDEX idx_recovery_codes_used_at ON recovery_codes(used_at);
 ---
 
 ### ✅ Task 7: Factory Integration (15min)
+
 **Files**:
+
 - `internal/identity/repository/factory.go` (modified - added `recoveryCodeRepo` field and getter)
 - `internal/identity/apperr/errors.go` (modified - added `ErrRecoveryCodeNotFound`)
 
 **Changes**:
+
 - Added `recoveryCodeRepo RecoveryCodeRepository` field to `RepositoryFactory`
 - Factory initialization: `cryptoutilIdentityORM.NewRecoveryCodeRepository(db)`
 - Public getter: `RecoveryCodeRepository() RecoveryCodeRepository`
@@ -149,11 +173,14 @@ CREATE INDEX idx_recovery_codes_used_at ON recovery_codes(used_at);
 ---
 
 ### ✅ Task 8: Recovery Code Service (1.5h)
+
 **Files**:
+
 - `internal/identity/mfa/recovery_code_service.go` (NEW - 119 lines)
 - `internal/identity/mfa/recovery_code_service_test.go` (NEW - 278 lines)
 
 **Service Methods**:
+
 ```go
 type RecoveryCodeService struct {
     repo RecoveryCodeRepository
@@ -167,12 +194,14 @@ func GetRemainingCount(ctx, userID) (int64, error)           // Count unused cod
 ```
 
 **Security Implementation**:
+
 - **Password hashing**: bcrypt (cost 10 = default)
 - **Single-use enforcement**: Checks `IsUsed()` before verification
 - **Expiration validation**: Checks `IsExpired()` before verification
 - **Brute-force prevention**: Iterates all codes (constant-time comparison pattern)
 
 **Tests**: 6/6 passing (all use CGO-free SQLite)
+
 - TestRecoveryCodeService_GenerateForUser (generates 10 codes, stores hashed)
 - TestRecoveryCodeService_Verify_Success (verifies valid code, marks as used)
 - TestRecoveryCodeService_Verify_InvalidCode (rejects invalid code)
@@ -186,7 +215,9 @@ func GetRemainingCount(ctx, userID) (int64, error)           // Count unused cod
 ---
 
 ### ✅ Task 9: API Handlers (1h)
+
 **Files**:
+
 - `internal/identity/authz/handlers_recovery_codes.go` (NEW - 271 lines)
 - `internal/identity/authz/handlers_recovery_codes_test.go` (NEW - 444 lines - INCOMPLETE)
 - `internal/identity/authz/routes.go` (modified - added 4 recovery code routes)
@@ -217,6 +248,7 @@ func GetRemainingCount(ctx, userID) (int64, error)           // Count unused cod
    - Errors: 400 invalid_request, 401 unauthorized/invalid_code, 500 server_error
 
 **Handler Tests**: ⚠️ INCOMPLETE (scaffolded but need rework to match PAR test pattern)
+
 - Test compilation errors due to private RepositoryFactory fields
 - Needs refactoring to use `createPARTestDependencies` pattern with full Service setup
 - 8 test cases written but not yet passing
@@ -226,9 +258,11 @@ func GetRemainingCount(ctx, userID) (int64, error)           // Count unused cod
 ## Deferred Tasks (2/11)
 
 ### ⏸️ Task 10: Handler Test Fixes (1h)
+
 **Status**: Deferred - tests scaffolded but need rework
 **Reason**: Handler tests require full Service initialization with config/tokenSvc, similar to PAR tests
 **Next Steps**:
+
 1. Use `createPARTestDependencies` helper pattern
 2. Create `createTestUserForRecovery` with proper User model fields (Sub, PreferredUsername)
 3. Fix NewService call signature (config, repoFactory, tokenSvc)
@@ -237,9 +271,11 @@ func GetRemainingCount(ctx, userID) (int64, error)           // Count unused cod
 ---
 
 ### ⏸️ Task 11: Login Flow Integration (30min)
+
 **Status**: Deferred - out of scope for backend completion
 **Description**: Modify `/oidc/v1/login` handler to accept recovery codes as alternative MFA method
 **Implementation**:
+
 ```go
 // In handleLogin, after username/password validation
 if user.MFAEnabled && req.RecoveryCode != "" {
@@ -252,6 +288,7 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 ```
 
 **Integration Points**:
+
 - Login request: Add optional `recovery_code` parameter
 - MFA challenge: Show "Use recovery code instead" option
 - User notification: Email when recovery code used
@@ -274,26 +311,31 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 ## Security Validation ✅
 
 ### Password Hashing ✅
+
 - bcrypt (cost 10) for code storage
 - Plaintext codes NEVER stored
 - Codes shown only once at generation
 
 ### Single-Use Enforcement ✅
+
 - `IsUsed()` checked before verification
 - `MarkAsUsed()` sets flag + timestamp atomically
 - Database query filters `used = false`
 
 ### Expiration Validation ✅
+
 - 90-day default lifetime
 - `IsExpired()` checked before verification
 - Database query filters `expires_at > NOW()`
 
 ### Cryptographic Security ✅
+
 - 256-bit entropy (32 bytes crypto/rand)
 - Base64url encoding (URL-safe)
 - No ambiguous characters (0/O, 1/I/L excluded)
 
 ### Brute-Force Prevention ⚠️
+
 - **Current**: Iterates all codes (O(n) complexity)
 - **Recommended**: Add per-user rate limiting (5 attempts/hour)
 - **Implementation**: Track failed verification attempts in audit log
@@ -303,6 +345,7 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 ## Database Schema Validation ✅
 
 **Recovery Codes Table**:
+
 - Primary Key: `id` (UUID as TEXT)
 - Foreign Key: `user_id` (TEXT, indexed)
 - Hash Storage: `code_hash` (TEXT, bcrypt)
@@ -311,6 +354,7 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 - Timestamps: `created_at` (TIMESTAMP, NOT NULL)
 
 **Indexes**:
+
 1. `idx_recovery_codes_user_id` - User lookup
 2. `idx_recovery_codes_used` - Filter unused codes
 3. `idx_recovery_codes_expires_at` - Cleanup job queries
@@ -321,6 +365,7 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 ## Files Changed
 
 ### Created (13 files)
+
 1. `docs/feature-template/RECOVERY-CODES.md` (implementation plan)
 2. `internal/identity/magic/magic_mfa.go`
 3. `internal/identity/domain/recovery_code.go`
@@ -337,6 +382,7 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 14. `internal/identity/authz/handlers_recovery_codes_test.go` (INCOMPLETE)
 
 ### Modified (3 files)
+
 1. `internal/identity/repository/factory.go` (added recoveryCodeRepo)
 2. `internal/identity/apperr/errors.go` (added ErrRecoveryCodeNotFound)
 3. `internal/identity/authz/routes.go` (added 4 recovery code routes)
@@ -355,16 +401,19 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 ## Lessons Learned
 
 ### CGO-Free SQLite Pattern ✅
+
 - **Issue**: Tests failed with "CGO_ENABLED=0, go-sqlite3 requires cgo"
 - **Solution**: Use `modernc.org/sqlite` driver with `sql.Open("sqlite", ...)` + `sqlite.Dialector{Conn: sqlDB}`
 - **Pattern**: Applies to ALL tests using in-memory SQLite
 
 ### Service Architecture (No Logger Field) ✅
+
 - **Issue**: Handlers referenced `s.logger` but Service struct has no logger field
 - **Solution**: Removed all logger calls from handlers (Service doesn't provide logging)
 - **Pattern**: OAuth handlers use minimal logging, rely on middleware/infrastructure logging
 
 ### Handler Test Complexity ⚠️
+
 - **Issue**: Recovery code handler tests need full Service setup (config, repos, tokenSvc)
 - **Solution**: Defer to follow PAR handler test pattern with proper factory initialization
 - **Recommendation**: Use `createPARTestDependencies` as template for future handler tests
@@ -404,17 +453,20 @@ if user.MFAEnabled && req.RecoveryCode != "" {
 ## Business Impact
 
 **Account Recovery**:
+
 - ✅ Users can recover accounts after losing MFA device
 - ✅ Prevents permanent account lockout scenarios
 - ✅ 90-day expiration balances security and usability
 
 **Security Posture**:
+
 - ✅ Single-use codes prevent replay attacks
 - ✅ Bcrypt hashing protects against database breaches
 - ✅ 256-bit entropy ensures unpredictability
 - ⚠️ Rate limiting recommended to prevent brute-force
 
 **User Experience**:
+
 - ✅ Simple format: XXXX-XXXX-XXXX-XXXX (easy to type)
 - ✅ 10 codes per batch (NIST recommendation)
 - ✅ Clear expiration date (90 days)

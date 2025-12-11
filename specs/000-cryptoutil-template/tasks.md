@@ -16,6 +16,7 @@ This document provides granular task tracking for Iteration NNN implementation.
 **!!! ALWAYS use concurrent test execution with `-shuffle=on` !!!**
 
 **Test Execution Commands**:
+
 ```bash
 # CORRECT - Concurrent with shuffle
 go test ./... -cover -shuffle=on
@@ -26,6 +27,7 @@ go test ./... -parallel=1  # ❌ NEVER DO THIS
 ```
 
 **Test Data Isolation Requirements**:
+
 - ✅ ALWAYS use UUIDv7 for all test data (thread-safe, process-safe)
 - ✅ ALWAYS use dynamic ports (port 0 pattern for test servers)
 - ✅ ALWAYS use TestMain for dependencies (start once per package)
@@ -33,6 +35,7 @@ go test ./... -parallel=1  # ❌ NEVER DO THIS
 - ✅ Mocks only for hard-to-reach corner cases or truly external dependencies
 
 **Why Concurrent Testing is Mandatory**:
+
 1. Fastest test execution (parallel tests = faster feedback)
 2. Reveals production bugs (race conditions, deadlocks, data conflicts)
 3. Production validation (if tests can't run concurrently, production code can't either)
@@ -64,27 +67,32 @@ go test ./... -parallel=1  # ❌ NEVER DO THIS
 **Description**: [Detailed description of what needs to be done]
 
 **Acceptance Criteria**:
+
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 - [ ] [Criterion 3]
 
 **Implementation Steps**:
+
 1. [Step 1]
 2. [Step 2]
 3. [Step 3]
 
 **Files to Create/Modify**:
+
 - `path/to/file1.go`
 - `path/to/file1_test.go`
 - `path/to/file1_bench_test.go`
 
 **Testing Requirements**:
+
 - Unit tests with `t.Parallel()`
 - Table-driven tests covering happy/sad paths
 - Benchmark tests for performance
 - Coverage ≥95%
 
 **Evidence of Completion**:
+
 - [ ] `go build ./...` passes
 - [ ] `go test ./path/to/package` passes
 - [ ] `golangci-lint run ./path/to/package` passes
@@ -100,23 +108,28 @@ go test ./... -parallel=1  # ❌ NEVER DO THIS
 **Description**: [Detailed description]
 
 **Acceptance Criteria**:
+
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 
 **Implementation Steps**:
+
 1. [Step 1]
 2. [Step 2]
 
 **Files to Create/Modify**:
+
 - `path/to/file2.go`
 - `path/to/file2_test.go`
 
 **Testing Requirements**:
+
 - Unit tests
 - Integration tests (if applicable)
 - Fuzz tests (if applicable)
 
 **Evidence of Completion**:
+
 - [ ] Tests passing
 - [ ] Linting clean
 - [ ] Coverage target met
@@ -160,20 +173,25 @@ go test ./... -parallel=1  # ❌ NEVER DO THIS
 **Description**: [Detailed description]
 
 **Acceptance Criteria**:
+
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 
 **Implementation Steps**:
+
 1. [Step 1]
 2. [Step 2]
 
 **Files to Create/Modify**:
+
 - [List files]
 
 **Testing Requirements**:
+
 - [Testing approach]
 
 **Evidence of Completion**:
+
 - [Verification steps]
 
 **Estimated LOE**: 6 hours
@@ -215,20 +233,25 @@ go test ./... -parallel=1  # ❌ NEVER DO THIS
 **Description**: [Detailed description]
 
 **Acceptance Criteria**:
+
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 
 **Implementation Steps**:
+
 1. [Step 1]
 2. [Step 2]
 
 **Files to Create/Modify**:
+
 - [List files]
 
 **Testing Requirements**:
+
 - [Testing approach]
 
 **Evidence of Completion**:
+
 - [Verification steps]
 
 **Estimated LOE**: 4 hours
@@ -360,11 +383,13 @@ For EACH task, verify:
 ### Unit Tests
 
 **Target Coverage**:
+
 - Production code: ≥95%
 - Infrastructure (cicd): ≥100%
 - Utility code: 100%
 
 **Requirements**:
+
 - Table-driven tests
 - `t.Parallel()` for all tests
 - No magic values (use UUIDv7 or magic constants)
@@ -375,6 +400,7 @@ For EACH task, verify:
 **Tag**: `//go:build integration`
 
 **Requirements**:
+
 - Docker Compose environment
 - PostgreSQL and SQLite tests
 - Full API workflows
@@ -385,6 +411,7 @@ For EACH task, verify:
 **Files**: `*_bench_test.go`
 
 **Requirements**:
+
 - All cryptographic operations
 - All hot path handlers
 - Database operations
@@ -395,6 +422,7 @@ For EACH task, verify:
 **Files**: `*_fuzz_test.go`
 
 **Requirements**:
+
 - All input parsers
 - All validators
 - Minimum 15s fuzz time
@@ -405,6 +433,7 @@ For EACH task, verify:
 **Tool**: gremlins
 
 **Requirements**:
+
 - Baseline per package
 - Target ≥80% mutation score
 - Regular execution
@@ -412,6 +441,7 @@ For EACH task, verify:
 ### E2E Tests
 
 **Requirements**:
+
 - Full service stack
 - Real telemetry infrastructure
 - Demo script automation
@@ -420,7 +450,7 @@ For EACH task, verify:
 
 ## Completion Evidence
 
-### Iteration NNN Complete When:
+### Iteration NNN Complete When
 
 - [ ] All tasks status = ✅ Complete
 - [ ] `go build ./...` passes clean
@@ -443,6 +473,7 @@ For EACH task, verify:
 ## Template Usage Notes
 
 **For LLM Agents**: This tasks template includes:
+
 - ✅ Granular task breakdown with LOE estimates
 - ✅ Detailed task specifications with acceptance criteria
 - ✅ Implementation steps and file lists
@@ -456,17 +487,20 @@ For EACH task, verify:
 - ✅ Coverage targets: 95% production, 100% infrastructure/utility
 
 **Customization**:
+
 - Adjust task granularity based on complexity
 - Update LOE estimates from actual experience
 - Add task-specific notes for complex items
 - Update status as tasks progress (❌ → ⚠️ → ✅)
 
 **Status Icons**:
+
 - ❌ Not Started
 - ⚠️ In Progress / Partial
 - ✅ Complete
 
 **References**:
+
 - spec.md: Functional requirements
 - plan.md: Implementation approach
 - Constitution: Quality requirements

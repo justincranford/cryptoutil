@@ -67,24 +67,28 @@ go test ./internal/identity/auth/userauth/... -cover
 ## 🛠️ Key Commands
 
 **Run Tests**:
+
 ```bash
 # Use the runTests tool in VS Code Copilot
 # OR manually: go test ./... -cover -shuffle=on
 ```
 
 **Check Workflows**:
+
 ```bash
 go run ./cmd/workflow
 go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
 ```
 
 **Coverage Check**:
+
 ```bash
 go test ./... -coverprofile=coverage.out
 go tool cover -html=coverage.out
 ```
 
 **Linting**:
+
 ```bash
 golangci-lint run --fix
 ```
@@ -94,11 +98,13 @@ golangci-lint run --fix
 ## 📋 Track Progress
 
 **Update `PROJECT-STATUS.md` as you complete tasks:**
+
 - Change ❌ to ✅ when tasks complete
 - Add evidence (commit hashes, test results)
 - Keep this as the single source of truth
 
 **Ignore These Files** (historical clutter):
+
 - All `PROGRESS-ITERATION-*.md`
 - All `CHECKLIST-ITERATION-*.md`
 - All `plan-ITERATION-*.md`
@@ -109,10 +115,12 @@ golangci-lint run --fix
 ## 🚨 Blockers & Workarounds
 
 **EST serverkeygen**: Blocked on PKCS#7 library
+
 - **Workaround**: Skip for now, project can complete without it
 - **Resolution**: Use `go.mozilla.org/pkcs7` if/when needed
 
 **Slow tests**: Some packages take 5-10 minutes
+
 - **Workaround**: Use targeted runs: `go test ./specific/package -run=TestSpecific`
 - **Reference**: `SLOW-TEST-PACKAGES.md` for timing info
 
@@ -121,6 +129,7 @@ golangci-lint run --fix
 ## ✅ Success = Green CI/CD + Working Demos
 
 **You're done when**:
+
 1. `go run ./cmd/workflow` shows 11/11 passing ✅
 2. `go run ./cmd/demo all` works without errors ✅
 3. Coverage reports show ≥95% on target packages ✅

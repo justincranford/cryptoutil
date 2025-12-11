@@ -14,93 +14,95 @@
 package packagename
 
 import (
-	"context"
-	"os"
-	"testing"
+ "context"
+ "os"
+ "testing"
 
-	googleUuid "github.com/google/uuid"
-	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+ googleUuid "github.com/google/uuid"
+ cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+ cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 var (
-	testRepoFactory *cryptoutilIdentityRepository.RepositoryFactory
-	testCtx         context.Context
+ testRepoFactory *cryptoutilIdentityRepository.RepositoryFactory
+ testCtx         context.Context
 )
 
 func TestMain(m *testing.M) {
-	testCtx = context.Background()
+ testCtx = context.Background()
 
-	// Create shared in-memory SQLite database ONCE for entire package
-	dsn := "file::memory:?cache=shared"
+ // Create shared in-memory SQLite database ONCE for entire package
+ dsn := "file::memory:?cache=shared"
 
-	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:            "sqlite",
-		DSN:             dsn,
-		MaxOpenConns:    5,  // Allow concurrent test access
-		MaxIdleConns:    5,
-		ConnMaxLifetime: 0,
-		ConnMaxIdleTime: 0,
-		AutoMigrate:     true,
-	}
+ dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+  Type:            "sqlite",
+  DSN:             dsn,
+  MaxOpenConns:    5,  // Allow concurrent test access
+  MaxIdleConns:    5,
+  ConnMaxLifetime: 0,
+  ConnMaxIdleTime: 0,
+  AutoMigrate:     true,
+ }
 
-	var err error
-	testRepoFactory, err = cryptoutilIdentityRepository.NewRepositoryFactory(testCtx, dbConfig)
-	if err != nil {
-		panic(err)
-	}
+ var err error
+ testRepoFactory, err = cryptoutilIdentityRepository.NewRepositoryFactory(testCtx, dbConfig)
+ if err != nil {
+  panic(err)
+ }
 
-	err = testRepoFactory.AutoMigrate(testCtx)
-	if err != nil {
-		panic(err)
-	}
+ err = testRepoFactory.AutoMigrate(testCtx)
+ if err != nil {
+  panic(err)
+ }
 
-	// Run all tests
-	exitCode := m.Run()
+ // Run all tests
+ exitCode := m.Run()
 
-	// Cleanup
-	_ = testRepoFactory.Close()
+ // Cleanup
+ _ = testRepoFactory.Close()
 
-	os.Exit(exitCode)
+ os.Exit(exitCode)
 }
 ```
 
 ### Step 2: Update Test Functions to Use Shared Infrastructure
 
 **BEFORE (Slow - creates DB per test)**:
+
 ```go
 func TestSomething(t *testing.T) {
-	t.Parallel()
+ t.Parallel()
 
-	repoFactory, ctx := setupTestRepository(t)  // ❌ Creates new DB + migrations
-	defer repoFactory.Close()
+ repoFactory, ctx := setupTestRepository(t)  // ❌ Creates new DB + migrations
+ defer repoFactory.Close()
 
-	// Test code using repoFactory
+ // Test code using repoFactory
 }
 ```
 
 **AFTER (Fast - uses shared DB with unique data)**:
+
 ```go
 func TestSomething(t *testing.T) {
-	t.Parallel()
+ t.Parallel()
 
-	// Use global testRepoFactory from TestMain
-	// Create unique test data with UUIDv7
-	clientID := googleUuid.NewV7()
-	client := &cryptoutilIdentityDomain.Client{
-		ID:   clientID,
-		Name: "test-client-" + clientID.String(),
-		// ... other fields
-	}
+ // Use global testRepoFactory from TestMain
+ // Create unique test data with UUIDv7
+ clientID := googleUuid.NewV7()
+ client := &cryptoutilIdentityDomain.Client{
+  ID:   clientID,
+  Name: "test-client-" + clientID.String(),
+  // ... other fields
+ }
 
-	repo := testRepoFactory.ClientRepository()
-	err := repo.Create(testCtx, client)
-	require.NoError(t, err)
+ repo := testRepoFactory.ClientRepository()
+ err := repo.Create(testCtx, client)
+ require.NoError(t, err)
 
-	// Test code - data is orthogonal (unique UUIDs = no conflicts)
+ // Test code - data is orthogonal (unique UUIDs = no conflicts)
 
-	// Optional: cleanup if needed (usually not necessary for in-memory DB)
-	// _ = repo.Delete(testCtx, clientID)
+ // Optional: cleanup if needed (usually not necessary for in-memory DB)
+ // _ = repo.Delete(testCtx, clientID)
 }
 ```
 
@@ -129,10 +131,12 @@ grep -r "func Test" internal/identity/authz/clientauth/*_test.go | \
 **Current Bottleneck**: `integration_test.go` creates new DB + migrations per test
 **Solution**: TestMain with shared repository factory
 **Files**:
+
 - `internal/identity/authz/clientauth/integration_test.go` - Add TestMain, update all tests
 - All `*_test.go` files - Verify t.Parallel() present
 
 **Validation**:
+
 ```bash
 go test ./internal/identity/authz/clientauth -v  # Should show <30s
 ```
@@ -142,10 +146,12 @@ go test ./internal/identity/authz/clientauth -v  # Should show <30s
 **Current Bottleneck**: Fiber app startup/shutdown per test
 **Solution**: TestMain with single shared Fiber app on dynamic port
 **Files**:
+
 - `internal/jose/server/*_test.go` - Add TestMain with shared server
 - Use same port allocation pattern as `internal/server/application/application_test.go`
 
 **Validation**:
+
 ```bash
 go test ./internal/jose/server -v  # Should show <20s
 ```
@@ -156,45 +162,48 @@ go test ./internal/jose/server -v  # Should show <20s
 **Solution**: TestMain with single shared KMS server instance
 **CRITICAL**: MUST use real KMS server (NOT MOCKS)
 **Files**:
+
 - `internal/kms/client/*_test.go` - Add TestMain with real KMS server
 
 **Implementation**:
+
 ```go
 var (
-	testKMSServer *kmsApp.Server
-	testServerURL string
+ testKMSServer *kmsApp.Server
+ testServerURL string
 )
 
 func TestMain(m *testing.M) {
-	// Start KMS server ONCE with in-memory SQLite
-	config := &kmsConfig.Config{
-		BindAddress: "127.0.0.1",
-		Port:        0,  // Dynamic port allocation
-		Database: &kmsConfig.DatabaseConfig{
-			Type: "sqlite",
-			DSN:  "file::memory:?cache=shared",
-		},
-	}
+ // Start KMS server ONCE with in-memory SQLite
+ config := &kmsConfig.Config{
+  BindAddress: "127.0.0.1",
+  Port:        0,  // Dynamic port allocation
+  Database: &kmsConfig.DatabaseConfig{
+   Type: "sqlite",
+   DSN:  "file::memory:?cache=shared",
+  },
+ }
 
-	var err error
-	testKMSServer, err = kmsApp.NewServer(config)
-	if err != nil {
-		panic(err)
-	}
+ var err error
+ testKMSServer, err = kmsApp.NewServer(config)
+ if err != nil {
+  panic(err)
+ }
 
-	go testKMSServer.Start()
+ go testKMSServer.Start()
 
-	// Get actual port
-	testServerURL = fmt.Sprintf("https://127.0.0.1:%d", testKMSServer.ActualPort())
+ // Get actual port
+ testServerURL = fmt.Sprintf("https://127.0.0.1:%d", testKMSServer.ActualPort())
 
-	exitCode := m.Run()
+ exitCode := m.Run()
 
-	_ = testKMSServer.Shutdown()
-	os.Exit(exitCode)
+ _ = testKMSServer.Shutdown()
+ os.Exit(exitCode)
 }
 ```
 
 **Validation**:
+
 ```bash
 go test ./internal/kms/client -v  # Should show <20s
 ```
@@ -203,13 +212,16 @@ go test ./internal/kms/client -v  # Should show <20s
 
 **Current Bottleneck**: Crypto operations + low coverage (48.8%)
 **Solution**:
+
 1. Increase coverage to 95% FIRST (add missing tests)
 2. Then apply parallelization optimizations
 **Files**:
+
 - `internal/jose/*_test.go` - Add tests for uncovered code
 - Focus on JWK generation, JWS/JWE edge cases
 
 **Validation**:
+
 ```bash
 go test ./internal/jose -cover  # Should show ≥95%
 go test ./internal/jose -v      # Should show <15s
@@ -220,9 +232,11 @@ go test ./internal/jose -v      # Should show <15s
 **Current Bottleneck**: Server startup/shutdown per test
 **Solution**: TestMain with shared server instance
 **Files**:
+
 - `internal/kms/server/application/*_test.go`
 
 **Validation**:
+
 ```bash
 go test ./internal/kms/server/application -v  # Should show <10s
 ```
@@ -232,15 +246,18 @@ go test ./internal/kms/server/application -v  # Should show <10s
 **Current Bottleneck**: Database operations (already has t.Parallel())
 **Solution**: Review test data isolation, optimize transaction patterns
 **Files**:
+
 - `internal/identity/authz/*_test.go`
 
 ### P0.7: identity/idp (15s → <10s)
 
 **Current Bottleneck**: Low coverage (54.9%) + database setup
 **Solution**:
+
 1. Increase coverage to 80%+ FIRST
 2. Use TestMain for shared DB
 **Files**:
+
 - `internal/identity/idp/*_test.go`
 
 ### P0.8: identity/test/unit (18s → <10s)
@@ -248,6 +265,7 @@ go test ./internal/kms/server/application -v  # Should show <10s
 **Current Bottleneck**: Infrastructure test setup
 **Solution**: Review and optimize test patterns
 **Files**:
+
 - `internal/identity/test/unit/*_test.go`
 
 ### P0.9: identity/test/integration (16s → <10s)
@@ -255,6 +273,7 @@ go test ./internal/kms/server/application -v  # Should show <10s
 **Current Bottleneck**: Docker container startup
 **Solution**: Optimize container lifecycle management
 **Files**:
+
 - `internal/identity/test/integration/*_test.go`
 
 ### P0.10: infra/realm (14s → <10s)
@@ -262,6 +281,7 @@ go test ./internal/kms/server/application -v  # Should show <10s
 **Current Bottleneck**: Configuration loading
 **Solution**: Apply t.Parallel(), reduce redundant config loading
 **Files**:
+
 - `internal/infra/realm/*_test.go`
 
 ### P0.11: kms/server/barrier (13s → <10s)
@@ -269,6 +289,7 @@ go test ./internal/kms/server/application -v  # Should show <10s
 **Current Bottleneck**: Crypto operations
 **Solution**: Parallelize crypto tests, reduce key generation redundancy
 **Files**:
+
 - `internal/kms/server/barrier/*_test.go`
 
 ---
@@ -313,6 +334,7 @@ diff baseline_times.txt optimized_times.txt
 ## Success Criteria
 
 ✅ **DONE** when:
+
 - All 11 packages optimized to targets
 - Total test suite time <200s (currently ~600s)
 - All tests pass with `-shuffle=on`
@@ -325,12 +347,14 @@ diff baseline_times.txt optimized_times.txt
 ## Common Pitfalls
 
 ❌ **DON'T**:
+
 - Use mocks for happy path tests (use real dependencies via TestMain)
 - Create new database per test (use shared DB with unique UUIDs)
 - Skip t.Parallel() (required for concurrent execution)
 - Batch commits (commit after each package optimization)
 
 ✅ **DO**:
+
 - Use TestMain for shared infrastructure
 - Use UUIDv7 for data isolation
 - Verify tests pass AND are faster

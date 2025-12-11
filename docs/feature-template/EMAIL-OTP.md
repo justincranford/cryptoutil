@@ -25,11 +25,13 @@ Email OTP (One-Time Password) enables users to authenticate using codes sent to 
 Based on spec.md status "⚠️ 30% (missing: email delivery service, rate limiting - MANDATORY)":
 
 ### What Exists (30%)
+
 - Domain model: `internal/identity/domain/email_otp.go` (likely partial)
 - Repository interface: `internal/identity/repository/email_otp_repository.go` (likely exists)
 - Basic OTP generation: Probably uses similar pattern to recovery codes
 
 ### What's Missing (70%)
+
 1. **Email Delivery Service** - SMTP integration, template engine
 2. **Rate Limiting** - Prevent abuse (5 OTP requests per hour)
 3. **Repository Implementation** - GORM implementation if not complete
@@ -45,6 +47,7 @@ Based on spec.md status "⚠️ 30% (missing: email delivery service, rate limit
 ### Task 1: Discovery - Assess Existing Code (30min)
 
 **Files to Check**:
+
 - `internal/identity/domain/email_otp.go`
 - `internal/identity/repository/email_otp_repository.go`
 - `internal/identity/repository/orm/email_otp_repository.go`
@@ -52,6 +55,7 @@ Based on spec.md status "⚠️ 30% (missing: email delivery service, rate limit
 - `internal/identity/magic/magic_mfa.go` (OTP-related constants)
 
 **Actions**:
+
 1. Read existing domain model
 2. Check repository interface methods
 3. Verify database migration status
@@ -64,6 +68,7 @@ Based on spec.md status "⚠️ 30% (missing: email delivery service, rate limit
 **File**: `internal/identity/magic/magic_mfa.go`
 
 Add email OTP constants:
+
 ```go
 const (
     // Email OTP Configuration
@@ -82,6 +87,7 @@ const (
 **File**: `internal/identity/domain/email_otp.go`
 
 Complete domain model:
+
 ```go
 type EmailOTP struct {
     ID        googleUuid.UUID `gorm:"type:text;primaryKey"`
@@ -106,6 +112,7 @@ func MarkAsUsed()
 **File**: `internal/identity/email/email_service.go` (NEW)
 
 Create email service abstraction:
+
 ```go
 package email
 
@@ -155,6 +162,7 @@ func (m *MockEmailService) SendOTP(ctx context.Context, to, code string) error {
 ```
 
 **Email Template**:
+
 ```
 Your One-Time Password: {{CODE}}
 
@@ -170,6 +178,7 @@ If you did not request this code, please ignore this email.
 **File**: `internal/identity/mfa/email_otp_generator.go`
 
 Generate 6-digit numeric OTP:
+
 ```go
 func GenerateEmailOTP() (string, error) {
     const otpLength = 6
@@ -196,6 +205,7 @@ func GenerateEmailOTP() (string, error) {
 **File**: `internal/identity/mfa/rate_limiter.go`
 
 Implement per-user rate limiting:
+
 ```go
 type RateLimiter interface {
     Allow(ctx context.Context, userID googleUuid.UUID) (bool, error)
@@ -244,6 +254,7 @@ func (r *InMemoryRateLimiter) Allow(ctx context.Context, userID googleUuid.UUID)
 **File**: `internal/identity/mfa/email_otp_service.go`
 
 Service methods:
+
 ```go
 type EmailOTPService struct {
     repo         EmailOTPRepository
@@ -336,6 +347,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 ### Task 9: Unit Tests (1.5h)
 
 **Test Files**:
+
 - `email_otp_generator_test.go` (4 tests: format, length, uniqueness, numeric-only)
 - `email_service_test.go` (3 tests: send success, SMTP error, mock service)
 - `rate_limiter_test.go` (5 tests: allow, exceed, window expiry, concurrent, reset)
@@ -346,6 +358,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 ### Task 10: Handler Tests (1h)
 
 **Test Cases**:
+
 - TestHandleSendEmailOTP_HappyPath
 - TestHandleSendEmailOTP_RateLimitExceeded
 - TestHandleSendEmailOTP_InvalidEmail
@@ -360,6 +373,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 **Config File**: `configs/identity/identity-common.yml`
 
 Add email service config:
+
 ```yaml
 email:
   smtp:
@@ -379,20 +393,24 @@ email:
 ## Security Considerations
 
 ### Code Storage ✅
+
 - Hashed with bcrypt (like recovery codes)
 - Plaintext code NEVER stored
 - Code shown only in email (transport security via TLS)
 
 ### Rate Limiting ✅
+
 - 5 OTP requests per hour per user
 - Prevents email bombing attacks
 - Returns 429 Too Many Requests
 
 ### Expiration ✅
+
 - 10-minute default lifetime
 - Shorter than recovery codes (more convenient, less secure)
 
 ### Single-Use ✅
+
 - Mark as used after successful verification
 - Prevents replay attacks
 

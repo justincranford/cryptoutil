@@ -18,6 +18,7 @@ This plan outlines the technical implementation approach for Iteration NNN deliv
 **!!! ALWAYS use concurrent test execution with `-shuffle=on` !!!**
 
 **Mandatory Test Execution**:
+
 ```bash
 # CORRECT
 go test ./... -cover -shuffle=on
@@ -27,6 +28,7 @@ go test ./... -p=1  # ❌ Hides concurrency bugs
 ```
 
 **Test Data Isolation**:
+
 - ✅ ALWAYS use UUIDv7 for test data uniqueness
 - ✅ ALWAYS use dynamic ports (port 0 pattern)
 - ✅ ALWAYS use TestMain for shared dependencies
@@ -204,12 +206,14 @@ services:
 **File Naming**: `*_test.go`
 
 **Requirements**:
+
 - Table-driven tests with `t.Parallel()`
 - Test helpers marked with `t.Helper()`
 - No magic values (use runtime UUIDv7 or magic constants)
 - Dynamic port allocation (port 0 pattern)
 
 **Coverage Targets by Package Type**:
+
 - Production code: ≥95%
 - Infrastructure (cicd): ≥100%
 - Utility code: 100%
@@ -221,6 +225,7 @@ services:
 **Build Tag**: `//go:build integration`
 
 **Requirements**:
+
 - Docker Compose environment
 - Real database (PostgreSQL + SQLite tests)
 - Full API workflows
@@ -231,12 +236,14 @@ services:
 **File Naming**: `*_bench_test.go`
 
 **Requirements**:
+
 - All cryptographic operations
 - All API endpoints
 - Database operations
 - Baseline metrics documented
 
 **Execution**:
+
 ```bash
 go test -bench=. -benchmem ./internal/product/...
 ```
@@ -246,12 +253,14 @@ go test -bench=. -benchmem ./internal/product/...
 **File Naming**: `*_fuzz_test.go`
 
 **Requirements**:
+
 - Unique fuzz function names (not substrings)
 - All input parsers
 - All validators
 - Minimum 15s fuzz time
 
 **Execution**:
+
 ```bash
 go test -fuzz=FuzzFunctionName -fuzztime=15s ./internal/product/...
 ```
@@ -261,6 +270,7 @@ go test -fuzz=FuzzFunctionName -fuzztime=15s ./internal/product/...
 **Library**: gopter
 
 **Requirements**:
+
 - Round-trip encoding/decoding
 - Cryptographic properties
 - Invariant validation
@@ -270,11 +280,13 @@ go test -fuzz=FuzzFunctionName -fuzztime=15s ./internal/product/...
 **Tool**: gremlins
 
 **Requirements**:
+
 - Baseline per package
 - Target ≥80% mutation score
 - Regular execution (weekly/monthly)
 
 **Execution**:
+
 ```bash
 gremlins unleash
 ```
@@ -284,6 +296,7 @@ gremlins unleash
 **File Naming**: `*_e2e_test.go` or in `test/e2e/`
 
 **Requirements**:
+
 - Full service stack
 - Real telemetry infrastructure
 - Demo script automation
@@ -460,6 +473,7 @@ golangci-lint run
 ## Template Usage Notes
 
 **For LLM Agents**: This plan template includes:
+
 - ✅ Phase breakdown with LOE estimates
 - ✅ Project structure showing file organization
 - ✅ Implementation order with dependencies
@@ -472,12 +486,14 @@ golangci-lint run
 - ✅ CI/CD workflow integration
 
 **Customization**:
+
 - Adjust phase count based on iteration complexity
 - Update LOE estimates based on actual experience
 - Add/remove technical decisions as needed
 - Tailor risk mitigation to specific iteration
 
 **References**:
+
 - spec.md: Requirements and functional specifications
 - tasks.md: Detailed task breakdown
 - Constitution: Quality and testing requirements

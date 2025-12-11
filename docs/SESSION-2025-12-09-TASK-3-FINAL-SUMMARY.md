@@ -54,11 +54,13 @@
 ## Test Execution Summary
 
 ### Before Session
+
 - ❌ 2 idp tests failing (timeout errors)
 - ❌ 1 jobs test failing (timing issue)
 - Total identity coverage: 58.7%
 
 ### After Session
+
 - ✅ ALL tests passing
 - ✅ 0 test failures
 - Total identity coverage: ~59%
@@ -97,6 +99,7 @@
 ### Current Status: ~59% → Target: 95% (Need +36%)
 
 **High-Impact Targets** (large packages, low coverage):
+
 1. **idp** (65.4%) - Need +29.6% to reach 95%
    - handleConsent: 0% (middleware blocks access)
    - handleJWKS: 56.5%
@@ -121,6 +124,7 @@
    - Lowest coverage in testable code
 
 **Strategy for Next Session**:
+
 1. Fix handleConsent (0%) - bypass middleware in tests
 2. Add integration tests for SendBackChannelLogout/generateLogoutToken
 3. Add config validation tests (simple, high coverage potential)

@@ -30,6 +30,7 @@
 
 ## Service Architecture - Dual HTTPS Endpoint Pattern
 
+@
 **CRITICAL: ALL services MUST implement dual HTTPS endpoints - NO HTTP PORTS**
 
 ### Architecture Requirements

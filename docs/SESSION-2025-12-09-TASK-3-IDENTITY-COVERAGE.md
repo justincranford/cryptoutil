@@ -23,11 +23,13 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 ### Package-Level Coverage Analysis
 
 **High Coverage (✅ 95%+)**:
+
 - security: 100.0%
 - apperr: 100.0%
 - pkce: 95.5%
 
 **Medium Coverage (⚠️ 75-85%)**:
+
 - jobs: 89.0%
 - domain: 87.4%
 - notifications: 87.8%
@@ -40,6 +42,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 - userauth: 76.2%
 
 **Low Coverage (❌ <75%)**:
+
 - config: 70.1%
 - repository/orm: 67.5%
 - issuer: 66.2%
@@ -47,6 +50,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 - idp/auth: 46.6%
 
 **Excluded (0% - not counted)**:
+
 - cmd/, server/, process/, storage/fixtures/
 
 ## Attempts Made
@@ -56,6 +60,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 **File**: `internal/identity/apperr/errors_test.go` (NEW, 266 lines)
 
 **Tests Added**:
+
 - TestIdentityError_Error (with/without internal error)
 - TestIdentityError_Unwrap
 - TestIdentityError_Is (error comparison)
@@ -76,6 +81,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 **File**: `internal/identity/authz/clientauth/jwt_authenticate_test.go` (296 lines, DELETED)
 
 **Tests Attempted**:
+
 - TestClientSecretJWTAuthenticator_Authenticate_Success
 - TestClientSecretJWTAuthenticator_Authenticate_InvalidSignature
 - TestPrivateKeyJWTAuthenticator_Authenticate_Success
@@ -85,6 +91,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 **Blocker**: Repository Create/GetByClientID not properly persisting/loading ClientSecret and JWKs fields.
 
 **Error Messages**:
+
 - "failed to parse JWT assertion: client has no secret configured"
 - "failed to parse JWT assertion: client has no JWK set configured"
 
@@ -99,6 +106,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 **Why**: Largest low-coverage package, likely has most statements
 
 **Low Coverage Functions**:
+
 - handleIntrospect: 42.6%
 - TestHandleHealth_Success: FAILING (timeout)
 - TestTokenExpiration: FAILING (timeout)
@@ -134,16 +142,19 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 ## Recommended Next Steps
 
 ### Phase 1: Fix Existing Failures (Stability)
+
 1. Fix TestHandleHealth_Success timeout (idp package)
 2. Fix TestTokenExpiration timeout (idp package)
 3. Fix TestCleanupJob_Integration timeout (jobs package)
 
 ### Phase 2: Target Large Packages (Impact)
+
 1. **idp Package**: Add tests for handleIntrospect, missing handler paths
 2. **repository/orm**: Add error scenario tests (database failures, not found cases)
 3. **issuer Package**: Add token generation edge cases
 
 ### Phase 3: Medium Packages (Polish)
+
 1. **config**: Add validation tests (70.1% → 95%)
 2. **idp/auth**: Add authentication flow tests (46.6% → 95%)
 
@@ -159,11 +170,13 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 ## Coverage Math
 
 **Current State**:
+
 - identity total: 58.7%
 - Need: 95.0%
 - Gap: +36.3 percentage points
 
 **Estimated Package Contributions** (rough approximation):
+
 - idp (63.4% → 95%): ~+5-8% overall impact (large package)
 - repository/orm (67.5% → 95%): ~+3-5% overall impact
 - issuer (66.2% → 95%): ~+3-5% overall impact
@@ -183,6 +196,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 ## Conclusion
 
 Task 3 requires a different approach:
+
 1. ✅ Small wins (apperr) completed but minimal impact
 2. ❌ Complex tests (JWT auth) blocked on repository issues
 3. ⏭️ **Next: Target large low-coverage packages** (idp, repository/orm, issuer)

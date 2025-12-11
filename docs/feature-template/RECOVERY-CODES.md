@@ -36,6 +36,7 @@ Recovery codes provide backup authentication when users lose access to their pri
 **File**: `internal/identity/magic/magic_mfa.go`
 
 Add recovery code constants:
+
 ```go
 const (
     // Recovery code generation
@@ -58,6 +59,7 @@ const (
 **File**: `internal/identity/domain/recovery_code.go`
 
 Create recovery code model:
+
 ```go
 package domain
 
@@ -96,6 +98,7 @@ func (r *RecoveryCode) MarkAsUsed() {
 ```
 
 **Tests**: `internal/identity/domain/recovery_code_test.go`
+
 - TestRecoveryCode_IsExpired
 - TestRecoveryCode_IsUsed
 - TestRecoveryCode_MarkAsUsed
@@ -107,6 +110,7 @@ func (r *RecoveryCode) MarkAsUsed() {
 **File**: `internal/identity/mfa/recovery_code_generator.go`
 
 Generate recovery codes:
+
 ```go
 package mfa
 
@@ -170,6 +174,7 @@ func GenerateRecoveryCodes(count int) ([]string, error) {
 ```
 
 **Tests**: `internal/identity/mfa/recovery_code_generator_test.go`
+
 - TestGenerateRecoveryCode_Format (XXXX-XXXX-XXXX-XXXX pattern)
 - TestGenerateRecoveryCode_Length (19 chars with hyphens)
 - TestGenerateRecoveryCode_Uniqueness (1000 samples, no collisions)
@@ -255,6 +260,7 @@ CREATE INDEX IF NOT EXISTS idx_recovery_codes_used_at ON recovery_codes(used_at)
 **File**: `internal/identity/mfa/recovery_code_service.go`
 
 Service methods:
+
 ```go
 type RecoveryCodeService struct {
     repo cryptoutilIdentityRepository.RecoveryCodeRepository
@@ -296,7 +302,7 @@ func (s *RecoveryCodeService) GetRemainingCount(ctx context.Context, userID goog
 
 **User Verification Endpoint**:
 
-4. `POST /oidc/v1/mfa/verify-recovery-code`
+1. `POST /oidc/v1/mfa/verify-recovery-code`
    - Request: `{"code": "XXXX-XXXX-XXXX-XXXX"}`
    - Response: `{"verified": true}` or `{"error": "invalid_code"}`
    - **Side Effect**: Marks code as used on success
@@ -306,6 +312,7 @@ func (s *RecoveryCodeService) GetRemainingCount(ctx context.Context, userID goog
 ### Task 9: Integration with Login Flow (30 minutes)
 
 Modify `/oidc/v1/login` to support recovery code verification:
+
 - After username/password validation
 - If user has MFA enabled
 - Allow recovery code as alternative to TOTP/passkey
@@ -325,6 +332,7 @@ Modify `/oidc/v1/login` to support recovery code verification:
 ### Task 11: Integration Tests (1 hour)
 
 **E2E Flow Tests**:
+
 1. Generate codes → verify one → count remaining (9 left)
 2. Generate codes → use all → verify fails
 3. Generate codes → wait for expiration → verify fails
@@ -335,26 +343,31 @@ Modify `/oidc/v1/login` to support recovery code verification:
 ## Security Considerations
 
 ### Code Storage ✅
+
 - **Hashed with bcrypt**: Like passwords, never store plaintext
 - **Work factor**: bcrypt cost 10 (default)
 - **Salt**: Automatically handled by bcrypt
 
 ### Single-use Enforcement ✅
+
 - Mark as Used on successful verification
 - Check IsUsed() before verification
 - Audit trail with UsedAt timestamp
 
 ### Expiration ✅
+
 - 90-day default lifetime
 - Check IsExpired() before verification
 - Automatic cleanup via DeleteExpired()
 
 ### Rate Limiting ⚠️
+
 - Implement per-user rate limiting (5 attempts/hour)
 - Prevents brute-force attacks on recovery codes
 - Track failed attempts in audit log
 
 ### User Notification 📧
+
 - Email notification when codes generated
 - Email notification when code used
 - Warning when only 1-2 codes remaining
@@ -364,14 +377,17 @@ Modify `/oidc/v1/login` to support recovery code verification:
 ## Testing Strategy
 
 ### Unit Tests (13 tests)
+
 - Domain model methods (3)
 - Generator functions (4)
 - Service methods (6)
 
 ### Handler Tests (8 tests)
+
 - Happy paths + error cases
 
 ### Integration Tests (4 E2E flows)
+
 - Full recovery code lifecycle
 
 ---

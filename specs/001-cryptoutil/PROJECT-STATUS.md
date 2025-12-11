@@ -32,6 +32,7 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 | `internal/kms/server/application` | **27.596s** | <10s | 64.7% | Parallel server tests, dynamic port allocation |
 
 **Implementation Notes:**
+
 - Apply aggressive `t.Parallel()` to all test cases
 - Use UUIDv7 for test data isolation (already implemented)
 - Split large test files by functional area
@@ -43,6 +44,7 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 **Total Impact**: Reduce ~600s+ test execution time to <200s (67% improvement)
 
 ### Phase 1: Fix Critical CI/CD Failures (URGENT) ⚠️
+
 *Priority: CRITICAL - Blocking development workflow*
 
 **Priority Order (Highest to Lowest)**:
@@ -62,6 +64,7 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 **Target**: 11/11 workflows passing (100% pass rate)
 
 ### Phase 2: Complete Deferred Iteration 2 Features 🔧
+
 *Priority: HIGH - Core functionality gaps*
 
 | Task | Status | Evidence Required |
@@ -118,6 +121,7 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 **Target**: 4/4 features (optional for completion)
 
 ### Phase 5: Documentation & Demo (OPTIONAL) 📹
+
 *Priority: LOW - Nice to have*
 
 | Task | Status | Evidence Required |
@@ -137,12 +141,14 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 ## 📋 What's Actually Complete
 
 ### ✅ Iteration 1: Foundation (100% Complete)
+
 - **Identity Server V2**: OAuth 2.1 + OIDC IdP fully working
 - **KMS**: Key management with hierarchical structure working
 - **Integration**: Docker Compose deployment working
 - **Evidence**: All demos pass (`go run ./cmd/demo all`)
 
 ### ✅ Core Iteration 2 Features (75% Complete)
+
 - **JOSE Authority**: Standalone JOSE service with REST API
 - **CA Server**: Certificate issuance, revocation, CRL generation
 - **OpenAPI Specs**: Generated client/server code
@@ -153,6 +159,7 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 ## 🚀 Recommended Implementation Order
 
 ### Week 1: Critical Path (16-24 hours)
+
 1. **Day 1**: Optimize slow test packages (foundation)
    - clientauth: 168s → <30s using aggressive `t.Parallel()`
    - jose/server: 94s → <20s with parallel subtests
@@ -174,9 +181,12 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 
 5. **Day 5**: Coverage improvements
    - Focus on ca/handler and auth/userauth packages
-   - Target: Get both packages to ≥95%### Week 2: Polish (8-16 hours, OPTIONAL)
-4. **Days 6-7**: Advanced testing (if desired)
-5. **Days 8-10**: Demo videos (if desired)
+   - Target: Get both packages to ≥95%
+
+### Week 2: Polish (8-16 hours, OPTIONAL)
+
+1. **Days 6-7**: Advanced testing (if desired)
+2. **Days 8-10**: Demo videos (if desired)
 
 ---
 
@@ -185,6 +195,7 @@ This is the **single source of truth** for what needs to be done. Ignore all oth
 To consider the project "complete", you need:
 
 **CRITICAL (Must Have)**:
+
 - ✅ Slow test packages optimized (<30s each)
 - ✅ All 11 CI/CD workflows passing
 - ✅ JOSE E2E tests working
@@ -200,10 +211,12 @@ To consider the project "complete", you need:
 ## 📂 File Cleanup Recommendations
 
 **Keep These Files** (authoritative):
+
 - `spec.md` - Product requirements
 - `PROJECT-STATUS.md` (this file) - Current status
 
 **Archive These Files** (historical/redundant):
+
 - All `PROGRESS-ITERATION-*.md` files
 - All `plan-ITERATION-*.md` files
 - All `tasks-ITERATION-*.md` files
@@ -212,6 +225,7 @@ To consider the project "complete", you need:
 - All `ANALYSIS-ITERATION-*.md` files
 
 **Keep for Reference** (but don't track status here):
+
 - `SLOW-TEST-PACKAGES.md` - Performance notes
 - `README-ITERATION-3.md` - Template usage guide
 
@@ -220,6 +234,7 @@ To consider the project "complete", you need:
 ## 🎁 Success Criteria
 
 **Project Complete When**:
+
 1. All CI/CD workflows pass (11/11) ✅
 2. Core deferred features work (7/8, EST optional) ✅
 3. Coverage targets met (5/5 packages ≥95%) ✅

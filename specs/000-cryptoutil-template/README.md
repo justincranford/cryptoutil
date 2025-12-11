@@ -44,12 +44,14 @@ This directory contains templates for planning and executing cryptoutil iteratio
 ### Mandatory Requirements Included
 
 #### Functional Requirements
+
 - ✅ API endpoints with priorities
 - ✅ Supported features and algorithms
 - ✅ FIPS 140-3 compliance tracking
 - ✅ Dependencies and prerequisites
 
 #### Non-Functional Requirements (NFR)
+
 - ✅ NFR1: Security (FIPS, secrets, TLS, audit logging)
 - ✅ NFR2: Performance (response time, throughput, database queries)
 - ✅ NFR3: Reliability (uptime, error rates, graceful shutdown)
@@ -59,6 +61,7 @@ This directory contains templates for planning and executing cryptoutil iteratio
 - ✅ NFR7: Deployment (Docker, container size, startup time, YAML config)
 
 #### Testing Requirements
+
 - ✅ Unit tests: Table-driven with `t.Parallel()`, ≥95% production, ≥100% infra/util
 - ✅ Integration tests: Docker Compose, real database, `//go:build integration` tag
 - ✅ Benchmark tests: All hot paths, `*_bench_test.go` files
@@ -68,6 +71,7 @@ This directory contains templates for planning and executing cryptoutil iteratio
 - ✅ E2E tests: Full stack, demo scripts, real telemetry
 
 #### Quality Gates
+
 - ✅ Pre-commit: build, lint, file size, encoding
 - ✅ Pre-push: tests, coverage, benchmarks, dependencies
 - ✅ Pre-merge: CI passing, code review, integration tests, Docker deploy
@@ -120,6 +124,7 @@ FIPS mode is ALWAYS enabled and MUST NEVER be disabled.
 **CRITICAL**: NEVER use environment variables for secrets in ANY deployment.
 
 **Required Approaches**:
+
 - Docker: Mount secrets to `/run/secrets/`, reference with `file://` URLs
 - Kubernetes: Mount secrets as files, reference directly
 - Local Dev: Use YAML config files or Docker secrets (same as prod)
@@ -147,12 +152,12 @@ FIPS mode is ALWAYS enabled and MUST NEVER be disabled.
 
 ### Implementation Phase
 
-4. **Execute Tasks**
+1. **Execute Tasks**
    - Follow tasks.md order respecting dependencies
    - Update PROGRESS.md after each session
    - Commit incrementally (not just at end)
 
-5. **Continuous Validation**
+2. **Continuous Validation**
    - Run tests after each task
    - Check coverage after each task
    - Run `golangci-lint` frequently
@@ -160,18 +165,18 @@ FIPS mode is ALWAYS enabled and MUST NEVER be disabled.
 
 ### Post-Implementation Phase
 
-6. **Checklist** (`/speckit.checklist` or manual)
+1. **Checklist** (`/speckit.checklist` or manual)
    - Create `CHECKLIST-ITERATION-NNN.md`
    - Verify all completion criteria
    - Document evidence for each gate
 
-7. **Executive Summary**
+2. **Executive Summary**
    - Create/update `EXECUTIVE-SUMMARY.md`
    - Stakeholder overview of deliverables
    - Manual testing guide
    - Known issues and limitations
 
-8. **Retrospective**
+3. **Retrospective**
    - What went well
    - What needs improvement
    - Lessons learned for next iteration
@@ -184,21 +189,25 @@ FIPS mode is ALWAYS enabled and MUST NEVER be disabled.
 These templates implement requirements from `.specify/memory/constitution.md`:
 
 ### Section I: Product Delivery
+
 - Four products (JOSE, Identity, KMS, CA)
 - Standalone and united deployment modes
 - SQLite (dev) + PostgreSQL (prod)
 - YAML configuration (no env vars for secrets)
 
 ### Section II: Cryptographic Compliance
+
 - FIPS 140-3 approved algorithms only
 - Secret management via Docker/K8s secrets
 - Data at rest encryption requirements
 
 ### Section III: KMS Hierarchical Security
+
 - Multi-layer key barrier architecture
 - Shared unseal secrets for interoperability
 
 ### Section IV: Go Testing Requirements
+
 - Table-driven tests with `t.Parallel()`
 - Test helpers with `t.Helper()`
 - No magic values (UUIDv7 or magic constants)
@@ -206,6 +215,7 @@ These templates implement requirements from `.specify/memory/constitution.md`:
 - File naming: `*_test.go`, `*_bench_test.go`, `*_fuzz_test.go`, `*_integration_test.go`
 
 ### Section V: Code Quality Excellence
+
 - Fix ALL linting errors (no exceptions)
 - NEVER use `//nolint:` except for documented bugs
 - UTF-8 without BOM encoding
@@ -220,11 +230,13 @@ These templates implement requirements from `.specify/memory/constitution.md`:
 These templates implement patterns from `.github/instructions/*.md`:
 
 ### 01-01.coding.instructions.md
+
 - Named default variables (not inline literals)
 - Consistent parameter/return order
 - Prefer switch over if/else chains
 
 ### 01-02.testing.instructions.md
+
 - Table-driven tests mandatory
 - `t.Parallel()` for concurrency testing
 - Dynamic port allocation pattern
@@ -232,6 +244,7 @@ These templates implement patterns from `.github/instructions/*.md`:
 - Coverage targets: 95/100/100
 
 ### 01-03.golang.instructions.md
+
 - Go version consistency (1.25.5+)
 - Static linking with debug symbols
 - Standard Go Project Layout
@@ -240,6 +253,7 @@ These templates implement patterns from `.github/instructions/*.md`:
 - NEVER os.Exit() in library/test code
 
 ### 01-04.database.instructions.md
+
 - GORM ORM (not sql.DB directly)
 - Cross-database compatibility (PostgreSQL + SQLite)
 - UUID type: TEXT (not UUID - breaks SQLite)
@@ -248,12 +262,14 @@ These templates implement patterns from `.github/instructions/*.md`:
 - SQLite: WAL mode, busy_timeout, MaxOpenConns configuration
 
 ### 01-05.security.instructions.md
+
 - FIPS 140-3 compliance mandatory
 - Docker/K8s secrets (never env vars)
 - TLS 1.3+, never InsecureSkipVerify
 - 127.0.0.1 for localhost (not "localhost")
 
 ### 01-06.linting.instructions.md
+
 - ALL linting errors MANDATORY to fix
 - NEVER `//nolint:` except documented bugs
 - golangci-lint v2.6.2+

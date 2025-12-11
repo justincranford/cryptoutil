@@ -61,14 +61,14 @@
 
 ### High Priority (30-70s execution)
 
-4. **jose (67s → target <15s)**
+1. **jose (67s → target <15s)**
    - Strategy: Increase coverage 48.8% → 95% FIRST
    - Then apply parallel execution
    - Reduce cryptographic operation redundancy
 
 ### Medium Priority (20-30s execution)
 
-5. **kms/server/application (28s → target <10s)**
+1. **kms/server/application (28s → target <10s)**
    - Strategy: Parallel server tests
    - Dynamic port allocation pattern
    - Reduce test server setup/teardown overhead

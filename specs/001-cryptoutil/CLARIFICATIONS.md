@@ -35,6 +35,7 @@ PROJECT-STATUS.md header states "Complete These 29 Tasks" but Phase 0 adds 3 mor
 ### Ambiguity
 
 SLOW-TEST-PACKAGES.md uses three categorizations:
+
 1. "Packages Requiring Optimization (≥20s)" - 5 packages
 2. "Packages With Moderate Performance Impact (10-20s)" - 6 packages
 3. "Optimization Targets" with Critical/High/Medium priority tiers
@@ -46,9 +47,11 @@ PROJECT-STATUS.md Phase 0 only lists 5 packages but references "All critical pac
 **Clarified Scope**:
 
 **Phase 0 (Day 1) - CRITICAL**: Focus on 5 packages ≥20s (430.9s total)
+
 - `clientauth` (168s), `jose/server` (94s), `kms/client` (74s), `jose` (67s), `kms/server/application` (28s)
 
 **Phase 0 Extended (Optional)**: 6 additional packages 10-20s can be deferred or handled in parallel with other work
+
 - These are "acceptable duration" and don't block fast feedback loop
 
 **Action Required**: Update PROJECT-STATUS.md Phase 0 to clarify "5 packages ≥20s" as primary target
@@ -70,6 +73,7 @@ Multiple documents reference EST serverkeygen as "BLOCKED" but don't clarify imp
 **Clarified Completion Criteria**:
 
 **Minimum Viable Completion**: 7/8 deferred features (EST serverkeygen optional)
+
 - **Required**: JOSE E2E, CA OCSP, JOSE Docker, EST cacerts, EST simpleenroll, EST simplereenroll, TSA timestamp
 - **Optional**: EST serverkeygen (blocked on PKCS#7 library integration)
 
@@ -84,6 +88,7 @@ Multiple documents reference EST serverkeygen as "BLOCKED" but don't clarify imp
 ### Ambiguity
 
 PROJECT-STATUS.md Phase 3 lists 5 packages for coverage improvement:
+
 - ca/handler (47.2%), auth/userauth (42.6%), unsealkeysservice (78.2%), apperr (96.6%), network (88.7%)
 
 But only ca/handler and auth/userauth are below 95% target. The other 3 are close to or above target.
@@ -93,6 +98,7 @@ But only ca/handler and auth/userauth are below 95% target. The other 3 are clos
 **Clarified Coverage Targets**:
 
 **Primary Focus (Below 95%)**:
+
 1. `ca/handler`: 47.2% → 95% (critical gap)
 2. `auth/userauth`: 42.6% → 95% (critical gap)
 
@@ -120,11 +126,13 @@ PROJECT-STATUS.md Phase 1 lists 8 workflows but doesn't show which 3 are current
 **Clarified Workflow Status** (from archived ANALYSIS-ITERATION-3.md):
 
 **Currently Passing (3/11)**:
+
 - ci-quality ✅
 - ci-gitleaks ✅
 - ci-sast ✅
 
 **Currently Failing (8/11) with  Priority order of fixing**:
+
 - ci-coverage ❌
 - ci-benchmark ❌
 - ci-fuzz ❌
@@ -156,6 +164,7 @@ But also says "Week 1: Critical Path (16-24 hours)"
 **Calendar Duration**: 3-5 days (assuming ~5-6 hours focused work per day)
 
 **Breakdown**:
+
 - Day 1: 4-5 hours (slow test optimization)
 - Day 2: 3-4 hours (JOSE E2E tests)
 - Day 3: 4-5 hours (CI/CD workflow fixes)

@@ -25,6 +25,7 @@
 **Root Cause**: Missing tests for CA REST API handlers
 
 **Uncovered Areas**:
+
 1. Certificate issuance handlers (`POST /ca/v1/certificate`)
 2. Certificate revocation handlers (`POST /ca/v1/certificate/{serial}/revoke`)
 3. CRL download handlers (`GET /ca/v1/ca/{ca_id}/crl`)
@@ -33,6 +34,7 @@
 6. Profile management handlers (`GET /ca/v1/profiles`)
 
 **Strategy**:
+
 - Create `internal/ca/handler/*_test.go` files for each handler
 - Use table-driven tests with `t.Parallel()`
 - Test happy paths AND error paths
@@ -50,6 +52,7 @@
 **Root Cause**: Missing tests for authentication flows
 
 **Uncovered Areas**:
+
 1. Password validation logic
 2. MFA enrollment flows
 3. MFA verification flows (TOTP, Passkey, Email OTP)
@@ -58,6 +61,7 @@
 6. Account lockout mechanisms
 
 **Strategy**:
+
 - Create comprehensive `userauth/*_test.go` files
 - Test all MFA factor types (TOTP, Passkey, Email)
 - Test password policies and validation
@@ -76,6 +80,7 @@
 **Root Cause**: JOSE primitives lack comprehensive tests
 
 **Uncovered Areas**:
+
 1. JWK generation for all algorithm types
 2. JWS signing/verification edge cases
 3. JWE encryption/decryption error paths
@@ -84,6 +89,7 @@
 6. Key rotation scenarios
 
 **Strategy**:
+
 - **FIRST**: Increase coverage to 95%+ (prerequisite for performance optimization)
 - Add tests for all supported algorithms (RSA, ECDSA, EdDSA, AES)
 - Test error handling (invalid keys, malformed tokens)
@@ -102,6 +108,7 @@
 **Root Cause**: Missing tests for IdP handlers
 
 **Uncovered Areas**:
+
 1. Login handler UI rendering
 2. Consent handler UI rendering
 3. Logout flow
@@ -110,6 +117,7 @@
 6. Error page rendering
 
 **Strategy**:
+
 - Add handler tests for login, consent, logout
 - Test HTML form rendering (use Fiber test utilities)
 - Test session management
@@ -128,6 +136,7 @@
 **Root Cause**: Missing E2E tests for JOSE Authority API
 
 **Uncovered Areas**:
+
 1. JWK generation endpoint (`POST /jose/v1/jwk/generate`)
 2. JWK retrieval endpoints (`GET /jose/v1/jwk/{kid}`, `GET /jose/v1/jwk`)
 3. JWKS endpoints (`GET /jose/v1/jwks`, `GET /.well-known/jwks.json`)
@@ -136,6 +145,7 @@
 6. JWT issue/validate endpoints
 
 **Strategy**:
+
 - Create comprehensive E2E test suite (Task P2.1)
 - Test all 10 JOSE API endpoints
 - Use Docker Compose for integration testing
@@ -264,11 +274,13 @@
 **Priority**: MEDIUM
 
 **Uncovered Areas**:
+
 1. CICD command error handling
 2. Edge case scenarios for automation commands
 3. Cross-platform compatibility tests
 
 **Strategy**:
+
 - Add tests for all cicd commands in `internal/cmd/cicd/`
 - Test error paths and edge cases
 - Test cross-platform behavior (Windows, Linux, macOS)
@@ -349,6 +361,7 @@
 **Recommended**: Run `gremlins unleash --tags=!integration` to establish baseline
 
 **Packages Expected to Need Work**:
+
 - Packages with low coverage (ca/handler, auth/userauth, jose) likely have low mutation scores
 - Packages with high coverage but simple tests may have deceptively low mutation scores
 
@@ -361,6 +374,7 @@
 **Coverage Analysis Status**: ✅ **COMPLETE**
 
 **Key Findings**:
+
 1. **11 packages below 95% target** (critical: 3, high: 2, medium: 6)
 2. **Total gap**: ~400 percentage points across all packages
 3. **Estimated effort**: 12-18 hours to reach 95%+ on all packages

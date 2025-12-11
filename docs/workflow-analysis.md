@@ -206,12 +206,12 @@ Current coverage: 67.5%
 
 **Goal**: Fix 75% failure rate workflows
 
-5. **Fix Quality Testing lint errors**
+1. **Fix Quality Testing lint errors**
    - Estimate: 2 hours
    - Owner: Run golangci-lint --fix, manual cleanup
    - Success: Quality workflow passes
 
-6. **Fix Identity Validation failures**
+2. **Fix Identity Validation failures**
    - Estimate: 1 hour
    - Owner: Review identity-specific lint/test errors
    - Success: Identity validation passes
@@ -220,12 +220,12 @@ Current coverage: 67.5%
 
 **Goal**: Reduce CI feedback loop time by 30%
 
-7. **Add path filters to workflows**
+1. **Add path filters to workflows**
    - Estimate: 1 hour
    - Owner: Configure path triggers in workflow files
    - Success: Workflows skip on docs-only changes
 
-8. **Parallelize lint and test jobs**
+2. **Parallelize lint and test jobs**
    - Estimate: 2 hours
    - Owner: Refactor workflow dependencies
    - Success: 3min reduction in feedback loop
