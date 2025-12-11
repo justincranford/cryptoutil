@@ -69,6 +69,8 @@ repos:
       # Check YAML syntax
       - id: check-yaml
         name: Check YAML syntax
+        args: ['--allow-multiple-documents']
+        exclude: '\.github/workflows/.*\.yml$'  # Workflows checked by actionlint
         require_serial: false
         stages: [pre-commit]
 
