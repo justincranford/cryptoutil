@@ -383,9 +383,11 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 				// Wrap the listener with TLS
 				tlsListener := tls.NewListener(privateListener, privateTLSConfig)
 				telemetryService.Slogger.Info("private server listening with TLS", "addr", privateListener.Addr().String())
+
 				err = privateFiberApp.Listener(tlsListener)
 			} else {
 				telemetryService.Slogger.Info("private server listening without TLS", "addr", privateListener.Addr().String())
+
 				err = privateFiberApp.Listener(privateListener)
 			}
 
@@ -404,9 +406,11 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 			// Wrap the listener with TLS
 			tlsListener := tls.NewListener(publicListener, publicTLSConfig)
 			telemetryService.Slogger.Info("public server listening with TLS", "addr", publicListener.Addr().String())
+
 			err = publicFiberApp.Listener(tlsListener)
 		} else {
 			telemetryService.Slogger.Info("public server listening without TLS", "addr", publicListener.Addr().String())
+
 			err = publicFiberApp.Listener(publicListener)
 		}
 
