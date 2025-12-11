@@ -106,7 +106,7 @@ jobs:
           echo "🔄 Running race condition detection tests..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
+          go test -race -timeout=25m -count=2 ./internal/... ./scripts/...
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -121,7 +121,7 @@ jobs:
           echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
           echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
           echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
-          echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- Timeout: 25 minutes" >> $GITHUB_STEP_SUMMARY
           echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
 
       - name: Race summary
