@@ -14,26 +14,19 @@ This directory contains templates for planning and executing cryptoutil iteratio
 
 | File | Purpose | Primary User |
 |------|---------|--------------|
-| `spec.md` | Product specification, requirements, architecture | Human + LLM |
-| `plan.md` | Implementation plan, technical approach, timeline | Human + LLM |
-| `tasks.md` | Granular task breakdown with dependencies | LLM Agent |
 | `README.md` | This file - usage guide | Human |
+| `spec.md` | Product specification, requirements, architecture | Human + LLM |
+| `clarify.md` | Clarify underspecified areas in spec | Human + Agent |
+| `plan.md` | Implementation plan, technical approach, timeline | Human + LLM |
+| `tasks.md` | Granular task breakdown with dependencies | Human + Agent |
+| `analyze.md` | Cross-artifact consistency check | Human + Agent |
+| `implement.md` | Track progress of tasks  | Human + Agent |
 
 ---
 
-## Spec Kit Workflow Checklist
+## Spec Kit Workflow
 
-This section documents the full Spec Kit workflow based on [GitHub Spec Kit](https://github.com/github/spec-kit).
-
-### Iteration Setup
-
-- [ ] Copy `specs/000-cryptoutil-template/` to `specs/NNN-cryptoutil/`
-- [ ] Rename NNN to iteration number (e.g., `003-cryptoutil`)
-- [ ] Run `specify init . --ai copilot` if needed
-
-### Core Spec Kit Commands (Mandatory)
-
-#### Round 1: Initial Specification
+See [GitHub Spec Kit](https://github.com/github/spec-kit).
 
 1. [ ] **Constitution** (`/speckit.constitution`)
    - Create/update project governing principles
@@ -41,105 +34,43 @@ This section documents the full Spec Kit workflow based on [GitHub Spec Kit](htt
    - Document: `.specify/memory/constitution.md`
 
 2. [ ] **Specify** (`/speckit.specify`)
-   - Define WHAT to build (requirements, user stories)
+   - Define WHAT to build (requirements, user stories); after Constitution
    - Focus on intent, not implementation
    - Document: `specs/NNN-cryptoutil/spec.md`
 
-3. [ ] **Plan** (`/speckit.plan`)
-   - Define HOW to build (tech stack, architecture)
+3. [ ] **Clarify** (`/speckit.clarify` - formerly `/quizme`)
+   - Clarify underspecified areas in spec; after Specify, before Plan
+   - Ask questions about ambiguous requirements
+   - Document: `specs/NNN-cryptoutil/clarify.md`
+
+4. [ ] **Plan** (`/speckit.plan`)
+   - Define HOW to build (tech stack, architecture); after Clarify, before Tasks
    - Technical implementation approach
    - Document: `specs/NNN-cryptoutil/plan.md`
 
-4. [ ] **Tasks** (`/speckit.tasks`)
-   - Generate actionable task list from plan
-   - Include dependencies and LOE estimates
+5. [ ] **Tasks** (`/speckit.tasks`)
+   - Generate actionable task list from plan; after Plan, before Analyze
+   - Include dependencies and LOE (Level of Effort) estimates
    - Document: `specs/NNN-cryptoutil/tasks.md`
 
-5. [ ] **Implement** (`/speckit.implement`)
-   - Execute all tasks according to plan
-   - Track progress in `PROGRESS.md`
-   - Commit incrementally
+6. [ ] **Analyze** (`/speckit.analyze`)
+   - Cross-artifact consistency check; after Tasks, Before Implement
+   - Requirement-to-task coverage analysis
+   - Document: `specs/NNN-cryptoutil/analyze.md`
 
-### Optional Spec Kit Commands (Recommended)
+7. [ ] **Implement** (`/speckit.implement`)
+   - Execute all tasks according to plan; after Analyze, iteratively updated and committed
+   - Run tests+coverage before finishing tasks; test failures and coverage regression block task completion
+   - Track progress in `specs/NNN-cryptoutil/implement/DETAILED.md` with TWO sections:
+     1. Checklist of all tasks from tasks.md (maintains same order for cross-reference)
+     2. Append-only timeline of task implementation (time-ordered, may be out of order from section 1)
 
-#### Before Plan
-
-- [ ] **Clarify** (`/speckit.clarify` - formerly `/quizme`)
-  - Clarify underspecified areas in spec
-  - Ask questions about ambiguous requirements
-  - Document: `specs/NNN-cryptoutil/CLARIFICATIONS.md`
-
-#### After Tasks, Before Implement
-
-- [ ] **Analyze** (`/speckit.analyze`)
-  - Cross-artifact consistency check
-  - Requirement-to-task coverage analysis
-  - Document: `specs/NNN-cryptoutil/ANALYSIS.md`
-
-#### After Implement
-
-- [ ] **Checklist** (`/speckit.checklist`)
-  - Generate custom quality checklists
-  - Validate requirements completeness
-  - Document: `specs/NNN-cryptoutil/CHECKLIST-ITERATION-NNN.md`
-
-### Round 2+: Iteration Refinement
-
-If additional rounds are needed (e.g., missing requirements, new features):
-
-1. [ ] **Update Specification** (`/speckit.specify`)
-   - Add new requirements or refine existing
-   - Update `spec.md` with changes
-
-2. [ ] **Update Plan** (`/speckit.plan`)
-   - Adjust technical approach for new requirements
-   - Update `plan.md` with revised approach
-
-3. [ ] **Update Tasks** (`/speckit.tasks`)
-   - Generate tasks for new requirements
-   - Append to `tasks.md` or create `tasks-round2.md`
-
-4. [ ] **Implement** (`/speckit.implement`)
-   - Execute new tasks
-   - Continue tracking in `PROGRESS.md`
-
-5. [ ] **Re-validate** (`/speckit.checklist`)
-   - Run checklist again for new changes
-   - Update `CHECKLIST-ITERATION-NNN.md`
-
-### Additional Iteration Documents
-
-Create these files during the iteration:
-
-- [ ] `PROGRESS.md` - Session log, status tracking, evidence
-- [ ] `EXECUTIVE-SUMMARY.md` - Stakeholder overview, known issues
-- [ ] `PROJECT-STATUS.md` - Current status, completion metrics
-- [ ] `COMPLETION-ROADMAP.md` - Remaining work, priorities
-- [ ] `SESSION-SUMMARY.md` - Session-specific notes (if needed)
-
-### Environment Variables (If Needed)
-
-- [ ] Set `SPECIFY_FEATURE` if not using Git branches
-  - Example: `SPECIFY_FEATURE=003-cryptoutil`
-  - Required for feature detection in non-Git repos
-
----
-
-## When to Use These Templates
-
-### Start of New Iteration
-
-1. Copy `specs/000-cryptoutil-template/` to `specs/NNN-cryptoutil/`
-2. Rename NNN to actual iteration number (e.g., `003-cryptoutil`)
-3. Fill in spec.md with requirements and goals
-4. Fill in plan.md with implementation approach
-5. Fill in tasks.md with detailed task breakdown
-6. Create additional files:
-   - `PROGRESS.md` - Session log and status tracking
-   - `EXECUTIVE-SUMMARY.md` - Stakeholder overview
-   - `CLARIFICATIONS.md` - Ambiguity resolution
-   - `ANALYSIS.md` - Coverage analysis (after /speckit.analyze)
-   - `CHECKLIST-ITERATION-NNN.md` - Completion validation (after /speckit.checklist)
+8. [ ] **Executive Summary**
+   - Stakeholder overview; timeline of high-level notes can be iteratively appended and committed during Implement
+   - Customer Demonstrability; docker compose up+down standalone per product, docker compose up+down suite of all four products, e2e demo commands, demo videos
+   - Risk Tracking: Known issues, limitations, missing features+tasks, incomplete features+tasks, areas of improvement
+   - Post Mortem: What went well, What needs improvement, lessons learned, checklist of suggestions to add/update/delete in copilot instructions/constitution/next speckit iteration/speckit template
+   - Track in `specs/NNN-cryptoutil/implement/EXECUTIVE.md`
 
 ---
 
@@ -159,26 +90,27 @@ Create these files during the iteration:
 - ✅ NFR1: Security (FIPS, secrets, TLS, audit logging)
 - ✅ NFR2: Performance (response time, throughput, database queries)
 - ✅ NFR3: Reliability (uptime, error rates, graceful shutdown)
-- ✅ NFR4: Quality (coverage 95%/100%/100%, linting, file sizes, mutation score ≥80%)
-- ✅ NFR5: Testability (table-driven, parallel, benchmarks, fuzz, property, integration)
+- ✅ NFR4: Quality (linting, formatting, file sizes, ≥coverage 95%, mutation score ≥80%)
+- ✅ NFR5: Testability (table-driven, happy+sad use case coverage, parallel, benchmarks, fuzz, property, integration, e2e, docker compose up+down)
 - ✅ NFR6: Observability (structured logging, OTLP, Prometheus, health endpoints)
 - ✅ NFR7: Deployment (Docker, container size, startup time, YAML config)
 
 #### Testing Requirements
 
-- ✅ Unit tests: Table-driven with `t.Parallel()`, ≥95% production, ≥100% infra/util
+- ✅ Unit tests: Table-driven with `t.Parallel()`, ≥95% production/infra/util
 - ✅ Integration tests: Docker Compose, real database, `//go:build integration` tag
 - ✅ Benchmark tests: All hot paths, `*_bench_test.go` files
 - ✅ Fuzz tests: All parsers/validators, ≥15s fuzz time, `*_fuzz_test.go` files
 - ✅ Property-based tests: gopter, invariants, round-trip validation
 - ✅ Mutation tests: gremlins, ≥80% mutation score, baseline per package
+- ✅ Docker Compose: Full stack, real database, test database, real telemetry, standlone+suite, docker secrets, no environment variables
 - ✅ E2E tests: Full stack, demo scripts, real telemetry
 
 #### Quality Gates
 
-- ✅ Pre-commit: build, lint, file size, encoding
+- ✅ Pre-commit: build, lint, format, file size, encoding
 - ✅ Pre-push: tests, coverage, benchmarks, dependencies
-- ✅ Pre-merge: CI passing, code review, integration tests, Docker deploy
+- ✅ Pre-merge: CI workflows passing, code review, integration tests, Docker deploy, dast, sast, quality
 
 ---
 
@@ -187,11 +119,11 @@ Create these files during the iteration:
 | Code Type | Target | Tool |
 |-----------|--------|------|
 | Production | ≥95% | `go test -cover ./internal/product/...` |
-| Infrastructure (cicd) | ≥100% | `go test -cover ./internal/cmd/cicd/...` |
-| Utility | 100% | `go test -cover ./internal/common/util/...` |
+| Infrastructure (cicd) | ≥95% | `go test -cover ./internal/cmd/cicd/...` |
+| Utility | ≥95% | `go test -cover ./internal/common/util/...` |
 | Mutation Score | ≥80% | `gremlins unleash` |
 
-**Note**: Coverage targets incremented from 90/95/100 to 95/100/100 as of Constitution v2.0.
+**Note**: Coverage targets ≥95% as of Constitution v2.0.
 
 ---
 
@@ -201,7 +133,7 @@ All cryptographic operations MUST use NIST FIPS 140-3 approved algorithms:
 
 | Algorithm Type | Approved | BANNED |
 |----------------|----------|--------|
-| Symmetric | AES ≥128 bits | 3DES, DES |
+| Symmetric | AES ≥128 bits, AES-HS ≥256 bits | 3DES, DES |
 | Asymmetric | RSA ≥2048 bits, EC NIST curves, EdDSA | RSA <2048 |
 | Hash | SHA-256, SHA-384, SHA-512 | MD5, SHA-1 |
 | Password Hash | PBKDF2-HMAC-SHA256/384/512 | bcrypt, scrypt, Argon2 |
@@ -235,59 +167,6 @@ FIPS mode is ALWAYS enabled and MUST NEVER be disabled.
 
 ---
 
-## Iteration Workflow
-
-### Pre-Implementation Phase
-
-1. **Clarify** (`/speckit.clarify` or manual)
-   - Resolve all `[NEEDS CLARIFICATION]` markers in spec.md
-   - Document resolutions in `CLARIFICATIONS.md`
-   - Get user input on ambiguous requirements
-
-2. **Analyze** (`/speckit.analyze` or manual)
-   - Create `ANALYSIS.md` with requirement-to-task coverage matrix
-   - Identify gaps and missing tasks
-   - Validate all requirements have corresponding tasks
-
-3. **Plan Review**
-   - Review spec.md, plan.md, tasks.md for completeness
-   - Validate dependencies and timelines
-   - Confirm LOE estimates are realistic
-
-### Implementation Phase
-
-1. **Execute Tasks**
-   - Follow tasks.md order respecting dependencies
-   - Update PROGRESS.md after each session
-   - Commit incrementally (not just at end)
-
-2. **Continuous Validation**
-   - Run tests after each task
-   - Check coverage after each task
-   - Run `golangci-lint` frequently
-   - Update PROGRESS.md with evidence
-
-### Post-Implementation Phase
-
-1. **Checklist** (`/speckit.checklist` or manual)
-   - Create `CHECKLIST-ITERATION-NNN.md`
-   - Verify all completion criteria
-   - Document evidence for each gate
-
-2. **Executive Summary**
-   - Create/update `EXECUTIVE-SUMMARY.md`
-   - Stakeholder overview of deliverables
-   - Manual testing guide
-   - Known issues and limitations
-
-3. **Retrospective**
-   - What went well
-   - What needs improvement
-   - Lessons learned for next iteration
-   - Update constitution/instructions if needed
-
----
-
 ## Integration with Constitution
 
 These templates implement requirements from `.specify/memory/constitution.md`:
@@ -303,107 +182,49 @@ These templates implement requirements from `.specify/memory/constitution.md`:
 
 - FIPS 140-3 approved algorithms only
 - Secret management via Docker/K8s secrets
-- Data at rest encryption requirements
+- Data at rest encryption requirements; confidentiality and integrity
+- Data in transit encryption requirements; confidentiality and integrity
 
 ### Section III: KMS Hierarchical Security
 
 - Multi-layer key barrier architecture
-- Shared unseal secrets for interoperability
+- Shared unseal secrets in application microservices that share a database, for interoperability
 
-### Section IV: Go Testing Requirements
+### Section IV: Go Production Requirements
+
+- Go version consistency (1.25.5+)
+- Static linking with debug symbols; no CGO dependency
+- GORM ORM (not sql.DB directly)
+- Cross-database compatibility (PostgreSQL + SQLite)
+- UUID type: TEXT type in databases (not UUID - breaks SQLite)
+- Nullable UUIDs: NullableUUID type (not pointers)
+- SQLite: WAL mode, busy_timeout, MaxOpenConns configuration
+- JSON fields: `serializer:json` (not `type:json`)
+- 127.0.0.1 for localhost (not "localhost") inside Docker Compose to avoid IPv6 vs IPv4 stack split issues
+
+### Section V: Go Testing Requirements
 
 - Table-driven tests with `t.Parallel()`
 - Test helpers with `t.Helper()`
-- No magic values (UUIDv7 or magic constants)
-- Dynamic port allocation (port 0 pattern)
-- File naming: `*_test.go`, `*_bench_test.go`, `*_fuzz_test.go`, `*_integration_test.go`
+- Coverage: 95%/ (production/infra/utility)
+- Cover happy and sad path use cases
+- No magic values (must use random UUIDv7 or magic constants in `magic` package)
+- Dynamic port allocation for concurrent testing (port 0 pattern)
+- File naming: `*_test.go`, `*_bench_test.go`, `*_fuzz_test.go`, `*_property_test.go`, `*_integration_test.go`
+- NEVER os.Exit() in library/test code
 
-### Section V: Code Quality Excellence
+### Section VI: Code Quality Excellence
 
-- Fix ALL linting errors (no exceptions)
+- Test artifacts MUST be held to the same HIGHEST QUALITY as production artifacts; code, config, workflows, automation, security, concurrency, performance, scalability, robustness, etc
+- Fix ALL linting and formatting errors (no exceptions); including tests
 - NEVER use `//nolint:` except for documented bugs
 - UTF-8 without BOM encoding
 - File size limits: 300/400/500 lines
-- Coverage: 95%/100%/100% (production/infra/utility)
 - Pre-commit/pre-push hooks enforcement
-
----
-
-## Integration with Copilot Instructions
-
-These templates implement patterns from `.github/instructions/*.md`:
-
-### 01-01.coding.instructions.md
-
-- Named default variables (not inline literals)
 - Consistent parameter/return order
 - Prefer switch over if/else chains
-
-### 01-02.testing.instructions.md
-
-- Table-driven tests mandatory
-- `t.Parallel()` for concurrency testing
-- Dynamic port allocation pattern
-- Test file organization (unit, bench, fuzz, integration)
-- Coverage targets: 95/100/100
-
-### 01-03.golang.instructions.md
-
-- Go version consistency (1.25.5+)
-- Static linking with debug symbols
 - Standard Go Project Layout
 - Import alias conventions (cryptoutilPackage)
-- Crypto acronyms ALL CAPS
-- NEVER os.Exit() in library/test code
-
-### 01-04.database.instructions.md
-
-- GORM ORM (not sql.DB directly)
-- Cross-database compatibility (PostgreSQL + SQLite)
-- UUID type: TEXT (not UUID - breaks SQLite)
-- Nullable UUIDs: NullableUUID type (not pointers)
-- JSON fields: `serializer:json` (not `type:json`)
-- SQLite: WAL mode, busy_timeout, MaxOpenConns configuration
-
-### 01-05.security.instructions.md
-
-- FIPS 140-3 compliance mandatory
-- Docker/K8s secrets (never env vars)
-- TLS 1.3+, never InsecureSkipVerify
-- 127.0.0.1 for localhost (not "localhost")
-
-### 01-06.linting.instructions.md
-
-- ALL linting errors MANDATORY to fix
-- NEVER `//nolint:` except documented bugs
-- golangci-lint v2.6.2+
-- wsl, godot, mnd, errcheck rules
-- UTF-8 without BOM enforcement
-
----
-
-## References
-
-| Document | Path | Purpose |
-|----------|------|---------|
-| Constitution | `.specify/memory/constitution.md` | Immutable principles |
-| Copilot Instructions | `.github/instructions/*.md` | Coding patterns |
-| Feature Template | `docs/feature-template/` | Multi-day feature planning |
-| Spec Kit (External) | github/spec-kit | Spec-driven methodology |
-| Iteration 1 | `specs/001-cryptoutil/` | Identity V2 + KMS reference |
-| Iteration 2 | `specs/002-cryptoutil/` | JOSE + CA Server reference |
-
----
-
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-01-06 | Initial template creation |
-|  |  | Coverage targets: 95/100/100 |
-|  |  | Mutation testing: ≥80% |
-|  |  | Comprehensive NFR sections |
-|  |  | All test types included |
 
 ---
 
