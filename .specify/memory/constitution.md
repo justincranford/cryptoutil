@@ -54,6 +54,21 @@ Clear separation between infrastructure and products:
 - **Go Toolchain Limitation**: Race detector (`-race`) requires C-based ThreadSanitizer from LLVM
 - **Rationale**: Maximum portability, static linking, cross-compilation, no C toolchain dependencies for production
 
+**Enforcement in Test Files**:
+
+- ❌ **NEVER** add `isCGOAvailable()` checks or skip tests for CGO availability
+- ✅ SQLite tests using `modernc.org/sqlite` MUST ALWAYS run (CGO-free implementation)
+- ✅ All database tests MUST pass with `CGO_ENABLED=0`
+
+**Approved Dependencies** (CGO-free only):
+
+| Package | CGO Required? | Status |
+|---------|---------------|--------|
+| modernc.org/sqlite | ❌ No (pure Go) | ✅ APPROVED |
+| github.com/mattn/go-sqlite3 | ✅ Yes (C bindings) | ❌ BANNED |
+| gorm.io/gorm | ❌ No | ✅ APPROVED |
+| gorm.io/driver/sqlite (with modernc) | ❌ No | ✅ APPROVED |
+
 ### FIPS 140-3 Compliance
 
 All cryptographic operations MUST use NIST FIPS 140-3 approved algorithms. FIPS mode is ALWAYS enabled and MUST NEVER be disabled. Approved algorithms include:
