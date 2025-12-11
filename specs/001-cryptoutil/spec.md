@@ -16,6 +16,119 @@
 - **ALWAYS** use CGO-free alternatives (e.g., `modernc.org/sqlite`)
 - **Rationale**: Maximum portability, static linking, cross-compilation for production
 
+---
+
+## Service Architecture
+
+### Overview
+
+**cryptoutil** consists of 4 independent products that can be deployed standalone or as an integrated suite:
+
+1. **P1: JOSE Authority** - Cryptographic primitives (JWK, JWS, JWE, JWT)
+2. **P2: Identity Services** - 3 microservices (AuthZ, IdP, Resource Server)
+3. **P3: KMS** - Hierarchical key management (library + optional server)
+4. **P4: CA** - Certificate authority with EST/OCSP/CRL support
+
+### Dual-Server Architecture Pattern
+
+**CRITICAL**: All services implement a dual HTTPS endpoint pattern for security and operational separation.
+
+#### Public HTTPS Server
+
+**Purpose**: User-facing APIs and browser UIs
+**Bind**: `0.0.0.0:<configurable_port>` (e.g., 8080, 8081, 8082)
+**Security**:
+
+- OAuth 2.1 token authentication (Authorization Code + PKCE for browsers, Client Credentials for services)
+- CORS/CSRF/CSP middleware enabled
+- Rate limiting per IP
+- TLS 1.3+ with server certificate only (no client cert required)
+
+**API Contexts**:
+
+- `/browser/api/v1/*` - Browser-to-service APIs for SPA invocation
+- `/service/api/v1/*` - Service-to-service APIs for backend integration
+
+#### Private HTTPS Server
+
+**Purpose**: Internal admin tasks, health checks, metrics
+**Bind**: `127.0.0.1:9090` (not externally accessible)
+**Security**:
+
+- IP restriction to localhost only
+- Minimal middleware (no CORS/CSRF)
+- Optional mTLS for production environments
+- Not exposed in Docker port mappings
+
+**Admin API Context**:
+
+- `/admin/v1/livez` - Liveness probe (process alive)
+- `/admin/v1/readyz` - Readiness probe (dependencies healthy)
+- `/admin/v1/healthz` - Combined health check
+- `/admin/v1/metrics` - Prometheus metrics endpoint
+- `/admin/v1/shutdown` - Graceful shutdown trigger
+
+**Why Dual Servers?**:
+
+1. **Security**: Admin endpoints not exposed to public network
+2. **Performance**: Health probes don't compete with user traffic
+3. **Reliability**: Kubernetes/Docker health checks work even if public API is overloaded
+4. **Compliance**: Separation of concerns for audit requirements
+
+### Service Mesh Topology
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     External Clients                             │
+│              (Browsers, Mobile Apps, Services)                   │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │ HTTPS (TLS 1.3+)
+                            │ OAuth 2.1 Tokens
+                            │
+┌───────────────────────────▼─────────────────────────────────────┐
+│                     Reverse Proxy / API Gateway                  │
+│                  (Traefik, nginx, Kong - optional)               │
+└───────────┬───────────────┬───────────────┬─────────────────────┘
+            │               │               │
+    ┌───────▼────┐  ┌───────▼────┐  ┌──────▼──────┐  ┌──────────┐
+    │   JOSE     │  │  Identity  │  │    KMS      │  │    CA    │
+    │ Authority  │  │  Services  │  │   Server    │  │  Server  │
+    │            │  │            │  │             │  │          │
+    │ Port: 8090 │  │AuthZ: 8080 │  │ Port: 8080  │  │Port: 8443│
+    │            │  │ IdP: 8081  │  │             │  │          │
+    │            │  │  RS: 8082  │  │             │  │          │
+    └─────┬──────┘  └─────┬──────┘  └──────┬──────┘  └────┬─────┘
+          │               │                │              │
+          │ Admin:9092    │ Admin:9090     │ Admin:9090   │Admin:9443
+          │ (127.0.0.1)   │ (127.0.0.1)    │ (127.0.0.1)  │(127.0.0.1)
+          │               │                │              │
+    ┌─────▼───────────────▼────────────────▼──────────────▼─────┐
+    │              Kubernetes / Docker Health Checks            │
+    │         (Liveness, Readiness via Private Endpoints)       │
+    └───────────────────────────────────────────────────────────┘
+          │               │                │              │
+    ┌─────▼───────────────▼────────────────▼──────────────▼─────┐
+    │                    PostgreSQL Database                     │
+    │         (Shared for dev, isolated per service in prod)    │
+    └───────────────────────────────────────────────────────────┘
+          │               │                │              │
+    ┌─────▼───────────────▼────────────────▼──────────────▼─────┐
+    │              OpenTelemetry Collector                       │
+    │         (Traces, Metrics, Logs → Grafana LGTM)            │
+    └───────────────────────────────────────────────────────────┘
+```
+
+### Network Segmentation
+
+| Network Zone | Services | Access Control |
+|--------------|----------|----------------|
+| **Public** | All services (ports 8080-8443) | OAuth 2.1 tokens, rate limiting, TLS 1.3+ |
+| **Admin** | All services (port 9090) | Localhost only (127.0.0.1), optional mTLS |
+| **Database** | PostgreSQL (port 5432) | Password auth, network isolation |
+| **Telemetry** | OTLP Collector (ports 4317/4318) | Service mesh only, no external |
+
+---
+
 ## Product Suite
 
 ### P1: JOSE (JSON Object Signing and Encryption)
@@ -68,7 +181,13 @@ Core cryptographic primitives for web security standards. Serves as the embedded
 
 ### P2: Identity (OAuth 2.1 Authorization Server + OIDC IdP)
 
-Complete identity and access management solution.
+**Architecture**: 3 independent microservices that can be deployed standalone or together:
+
+1. **AuthZ Server**: OAuth 2.1 Authorization Server (port 8080, admin 9090)
+2. **IdP Server**: OIDC Identity Provider (port 8081, admin 9090)
+3. **Resource Server**: Protected API with token validation (port 8082, admin 9090)
+
+Each service has its own Docker image (`Dockerfile.authz`, `Dockerfile.idp`, `Dockerfile.rs`) and can scale independently.
 
 **Priority Focus**: Login/Consent UI (minimal HTML, server-rendered, no JavaScript).
 
@@ -142,12 +261,26 @@ Complete identity and access management solution.
 
 Hierarchical key management with versioning and rotation.
 
+**Deployment Modes**:
+
+- **Embedded Library**: KMS operations via `internal/kms/` package (used by Identity, CA, JOSE)
+- **Standalone Server** (Planned): REST API server via `cmd/kms-server/` (not yet implemented)
+- **Current Access**: Demo integration code in `internal/cmd/demo/integration.go`
+
 **Authentication Strategy**: Configurable - support multiple methods including OAuth 2.1 federation to Identity (P2), API key, mTLS. Dual API exposure:
 
 - `/browser/api/v1/` - User-to-browser APIs for SPA invocation
 - `/service/api/v1/` - Service-to-service APIs
 
 **Realm Configuration**: MANDATORY configurable realms for users and clients (file-based and database-based), with OPTIONAL federation to external IdPs and AuthZs.
+
+**Docker Compose Deployment**: 3 instances in production config:
+
+- `kms-sqlite` (port 8080): In-memory SQLite backend for development
+- `kms-postgres-1` (port 8081): PostgreSQL backend instance 1
+- `kms-postgres-2` (port 8082): PostgreSQL backend instance 2
+
+**Rationale**: Fixed instances vs replicas to demonstrate multi-backend support and database-specific configurations.
 
 #### ElasticKey Operations
 
@@ -328,6 +461,47 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 - Mutation testing: ≥80% gremlins score per package
 - Fuzz testing, benchmark testing, integration testing
 
+#### Test Execution Performance
+
+**Requirements**:
+
+- Individual package test time: <30 seconds per package
+- Total test suite execution time: <100 seconds
+- Race detector run: <200 seconds (slower due to CGO_ENABLED=1 overhead)
+
+**Current Status**: Performance varies by package - optimization needed for slower packages.
+
+#### Load Testing Coverage
+
+**Implemented**:
+
+- ✅ Service API (`/service/api/v1/*`): Gatling simulation exists (`test/load/src/test/java/cryptoutil/ServiceApiSimulation.java`)
+
+**Missing**:
+
+- ❌ Browser API (`/browser/api/v1/*`): No Gatling simulation
+- ❌ Admin API (`/admin/v1/*`): No Gatling simulation
+- ❌ Multi-product integration: No cross-service workflow tests
+
+**Required**: Create `BrowserApiSimulation.java` and `AdminApiSimulation.java` to complete load test coverage.
+
+#### E2E Test Scope
+
+**Current**: Basic Docker Compose lifecycle tests (`internal/test/e2e/e2e_test.go`)
+
+- Service startup/shutdown
+- Health check connectivity
+- Container log collection
+
+**Missing Critical Workflows**:
+
+- OAuth 2.1 authorization code flow (browser → AuthZ → IdP → consent → token)
+- Certificate issuance and revocation (CSR → CA → certificate → CRL/OCSP)
+- KMS key generation, encryption/decryption, and rotation
+- JOSE token signing and verification workflows
+
+**Required**: Expand E2E tests to cover end-to-end product workflows, not just infrastructure.
+
 ### CA Networking
 
 - HTTPS with TLS 1.3+ minimum
@@ -416,6 +590,34 @@ services:
 - Act for local workflow testing
 - Multi-stage Docker builds with static linking
 
+#### CI/CD Workflow Inventory
+
+| Workflow | Trigger | Duration Target | PostgreSQL Required | Purpose |
+|----------|---------|-----------------|---------------------|---------|
+| `ci-quality` | Push, PR | <5 min | ❌ | Linting, formatting, build validation |
+| `ci-coverage` | Push, PR | <10 min | ✅ | Test coverage analysis (≥95% target) |
+| `ci-race` | Push, PR | <15 min | ✅ | Race condition detection (CGO_ENABLED=1) |
+| `ci-mutation` | Push, PR | <45 min | ✅ | Mutation testing (≥80% efficacy) |
+| `ci-benchmark` | Push, PR | <10 min | ❌ | Performance benchmarks |
+| `ci-fuzz` | Push, PR | <10 min | ❌ | Fuzz testing (keygen, digests, parsers) |
+| `ci-sast` | Push, PR | <5 min | ❌ | Static security analysis (gosec) |
+| `ci-gitleaks` | Push, PR | <2 min | ❌ | Secrets scanning |
+| `ci-dast` | Push, PR | <15 min | ❌ | Dynamic security testing (Nuclei, ZAP) |
+| `ci-e2e` | Push, PR | <20 min | ❌ | End-to-end Docker Compose tests |
+| `ci-load` | Push, PR | <30 min | ❌ | Load testing (Gatling - Service API only) |
+| `ci-identity-validation` | Push, PR | <5 min | ✅ | Identity-specific validation tests |
+| `release` | Tag | <15 min | ❌ | Build and publish release artifacts |
+
+**Total CI Feedback Loop Target**: <10 minutes for critical path (quality + coverage + race)
+**Full Suite Target**: <60 minutes for all workflows to complete
+
+**Health Check Pattern Standardization**:
+
+- **Alpine containers**: Use `wget --no-check-certificate -q -O /dev/null <url>`
+- **Non-Alpine containers**: Use `curl -k -f -s <url>`
+- **Retry logic**: `start_period: 10s`, `interval: 5s`, `retries: 5`, `timeout: 5s`
+- **Admin endpoints**: All services use `https://127.0.0.1:9090/admin/v1/livez` for Docker health checks
+
 ---
 
 ## Quality Requirements
@@ -465,10 +667,15 @@ services:
 
 #### P2: Identity Services
 
-| Service | Public Port | Admin Port | Backend |
-|---------|-------------|------------|---------|
-| identity-authz | 8090 | - | SQLite/PostgreSQL |
-| identity-idp | 8091 | - | SQLite/PostgreSQL |
+**Note**: Identity consists of 3 independent microservices, each with its own admin endpoint.
+
+| Service | Public Port | Admin Port | Backend | Status |
+|---------|-------------|------------|---------|--------|
+| identity-authz | 8080 | 9090 (planned) | SQLite/PostgreSQL | ⚠️ Admin API not yet implemented |
+| identity-idp | 8081 | 9090 (planned) | SQLite/PostgreSQL | ⚠️ Admin API not yet implemented |
+| identity-rs | 8082 | 9090 (planned) | SQLite/PostgreSQL | ⚠️ Admin API not yet implemented |
+
+**Current Status**: Identity services use `/health` on public port. Migration to dual-server pattern (like KMS) is planned.
 
 #### P3: KMS Services
 
@@ -478,13 +685,17 @@ services:
 | kms-postgres-1 | 8081 | 9090 | PostgreSQL |
 | kms-postgres-2 | 8082 | 9090 | PostgreSQL |
 
-#### P4: CA Services (Planned)
+#### P4: CA Services
 
-| Service | Public Port | Admin Port | Backend |
-|---------|-------------|------------|---------|
-| ca-sqlite | 8080 | 9090 | SQLite in-memory |
-| ca-postgres-1 | 8081 | 9090 | PostgreSQL |
-| ca-postgres-2 | 8082 | 9090 | PostgreSQL |
+**Note**: CA deployment incomplete - only development config exists.
+
+| Service | Public Port | Admin Port | Backend | Status |
+|---------|-------------|------------|---------|--------|
+| ca-simple | 8443 | 9443 | SQLite | ✅ Development only (`compose.simple.yml`) |
+| ca-postgres-1 | 8443 (planned) | 9443 (planned) | PostgreSQL | ⚠️ Production config missing |
+| ca-postgres-2 | 8443 (planned) | 9443 (planned) | PostgreSQL | ⚠️ Production config missing |
+
+**Required**: Create `deployments/ca/compose.yml` with multi-instance PostgreSQL deployment matching JOSE/KMS patterns.
 
 #### Common Infrastructure Services
 
@@ -547,5 +758,40 @@ Used by other services for health checks.
 
 ---
 
-*Specification Version: 1.1.0*
-*Last Updated: January 2026*
+## Known Gaps and Future Work
+
+### High Priority
+
+1. **Identity Admin API Migration**: Implement dual-server pattern (Public HTTPS + Private HTTPS) matching KMS architecture
+   - Add `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz` endpoints
+   - Update Docker Compose health checks
+   - Update all test files and workflows
+
+2. **CA Production Deployment**: Create `deployments/ca/compose.yml` with multi-instance PostgreSQL deployment
+
+3. **Load Test Coverage**: Implement missing Gatling simulations for Browser API and Admin API
+
+4. **E2E Workflow Tests**: Expand beyond health checks to test complete product workflows (OAuth flows, certificate lifecycle, KMS operations)
+
+### Medium Priority
+
+1. **KMS Standalone Server**: Create `cmd/kms-server/main.go` for standalone deployment (currently library-only)
+
+2. **JOSE Admin API**: Verify and document private server implementation for admin endpoints
+
+3. **Runbook Library**: Create incident response, backup/restore, and key rotation runbooks
+
+4. **Health Check Standardization**: Audit all Docker Compose files for consistent retry logic and patterns
+
+### Low Priority
+
+1. **Fuzz Testing Expansion**: Add fuzzing for JWT validation, certificate parsing, OAuth token introspection
+
+2. **CA Operational Documentation**: Create enrollment workflow guides and profile selection matrix
+
+3. **Workflow Execution Metrics**: Implement timing instrumentation and alerting for slow workflows
+
+---
+
+*Specification Version: 1.2.0*
+*Last Updated: December 11, 2025*
