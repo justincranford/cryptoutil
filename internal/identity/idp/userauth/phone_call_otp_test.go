@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	userauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // mockPhoneCallService implements PhoneCallService for testing.
