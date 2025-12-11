@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS users (
     address_postal_code TEXT,
     address_country TEXT,
 
+    -- MFA device tokens
+    push_device_token TEXT,
+
     -- Authentication credentials
     password_hash TEXT NOT NULL,
 
