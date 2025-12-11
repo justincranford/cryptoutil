@@ -502,16 +502,22 @@ services:
 
 Used for internal monitoring and health checks.
 
+**CRITICAL**: All services MUST use `https://127.0.0.1:9090` for private admin APIs (not exposed externally).
+
 | Product | Endpoint | Purpose |
 |---------|----------|---------|
-| JOSE | `/livez` | Liveness probe |
-| JOSE | `/readyz` | Readiness probe |
-| Identity | `/livez` | Liveness probe |
-| Identity | `/readyz` | Readiness probe |
-| KMS | `/livez` | Liveness probe |
-| KMS | `/readyz` | Readiness probe |
-| CA | `/livez` | Liveness probe (planned) |
-| CA | `/readyz` | Readiness probe (planned) |
+| JOSE | `/admin/v1/livez` | Liveness probe |
+| JOSE | `/admin/v1/readyz` | Readiness probe |
+| JOSE | `/admin/v1/healthz` | Combined health check |
+| Identity | `/admin/v1/livez` | Liveness probe |
+| Identity | `/admin/v1/readyz` | Readiness probe |
+| Identity | `/admin/v1/healthz` | Combined health check |
+| KMS | `/admin/v1/livez` | Liveness probe |
+| KMS | `/admin/v1/readyz` | Readiness probe |
+| KMS | `/admin/v1/healthz` | Combined health check |
+| CA | `/admin/v1/livez` | Liveness probe (planned) |
+| CA | `/admin/v1/readyz` | Readiness probe (planned) |
+| CA | `/admin/v1/healthz` | Combined health check (planned) |
 
 #### Public Browser-to-Service API
 
