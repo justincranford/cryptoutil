@@ -121,8 +121,8 @@ kubectl get pods -n cryptoutil-prod
 
 ```bash
 # KMS Server (if deployed)
-curl -k https://127.0.0.1:9090/livez    # Liveness
-curl -k https://127.0.0.1:9090/readyz   # Readiness
+curl -k https://127.0.0.1:9090/admin/v1/livez    # Liveness
+curl -k https://127.0.0.1:9090/admin/v1/readyz   # Readiness
 
 # Identity AuthZ (if deployed)
 curl -k https://127.0.0.1:8080/health

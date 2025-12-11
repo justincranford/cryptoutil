@@ -237,20 +237,20 @@ jobs:
         # Create unseal secret and config files
         echo "dast-simple-unseal-secret-value-1" > ./configs/test/dast-simple-unseal-secret-value-1.secret
         cat > ./configs/test/config.yml <<EOF
-        log-level: "DEBUG"
-        verbose: true
-        rate-limit: 1000
-        bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
-        bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
-        bind-public-port: ${APP_BIND_PUBLIC_PORT}
-        bind-private-protocol: "${APP_BIND_PRIVATE_PROTOCOL}"
-        bind-private-address: "${APP_BIND_PRIVATE_ADDRESS}"
-        bind-private-port: ${APP_BIND_PRIVATE_PORT}
-        database-url: "postgres://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}?sslmode=disable"
-        unseal-mode: "1-of-1"
-        unseal-files:
-          - ./configs/test/dast-simple-unseal-secret-value-1.secret
-        EOF
+log-level: "DEBUG"
+verbose: true
+rate-limit: 1000
+bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
+bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
+bind-public-port: ${APP_BIND_PUBLIC_PORT}
+bind-private-protocol: "${APP_BIND_PRIVATE_PROTOCOL}"
+bind-private-address: "${APP_BIND_PRIVATE_ADDRESS}"
+bind-private-port: ${APP_BIND_PRIVATE_PORT}
+database-url: "postgres://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}?sslmode=disable"
+unseal-mode: "1-of-1"
+unseal-files:
+  - ./configs/test/dast-simple-unseal-secret-value-1.secret
+EOF
 
         # Start application in background, capture PID for cleanup; use nohup to avoid termination on shell exit
         mkdir -p workflow-reports/dast
@@ -269,8 +269,8 @@ jobs:
 
         # Progressive health check: private health endpoints first, then public Swagger
         HEALTH_ENDPOINTS=(
-          "${{ env.APP_PRIVATE_TARGET_URL }}/readyz"
-          # "${{ env.APP_PRIVATE_TARGET_URL }}/livez"
+          "${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/readyz"
+          # "${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/livez"
           # "${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json"
         )
 
@@ -326,8 +326,8 @@ jobs:
         echo "🔍 Testing connectivity from runner..."
         echo ""
 
-        echo "1. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/readyz (readiness probe)"
-        curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D workflow-reports/dast/connectivity_private_readyz.headers -o workflow-reports/dast/connectivity_private_readyz.body ${{ env.APP_PRIVATE_TARGET_URL }}/readyz || true
+        echo "1. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/readyz (readiness probe)"
+        curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D workflow-reports/dast/connectivity_private_readyz.headers -o workflow-reports/dast/connectivity_private_readyz.body ${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/readyz || true
         echo "Runner->private_readyz: $(wc -c < workflow-reports/dast/connectivity_private_readyz.body 2>/dev/null || echo 0) bytes"
         if [ -s workflow-reports/dast/connectivity_private_readyz.body ]; then
           echo "  ✅ ${{ env.APP_PRIVATE_TARGET_URL }} reachable from runner"
@@ -420,13 +420,13 @@ jobs:
           echo "# Header Baseline ($(date -u))"
 
           echo "## Private - readyz"
-          HTTP_CODE=$(curl -sk -o /dev/null -D /dev/stderr -w "%{http_code}" ${{ env.APP_PRIVATE_TARGET_URL }}/readyz 2>&1 | tee /dev/stderr | tail -1)
-          echo "  Console: ${{ env.APP_PRIVATE_TARGET_URL }}/readyz - HTTP $HTTP_CODE" >&2
+          HTTP_CODE=$(curl -sk -o /dev/null -D /dev/stderr -w "%{http_code}" ${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/readyz 2>&1 | tee /dev/stderr | tail -1)
+          echo "  Console: ${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/readyz - HTTP $HTTP_CODE" >&2
           [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ] && echo "  ✅ Success" >&2 || echo "  ❌ Failed" >&2
 
           echo -e "\n## Private - livez"
-          HTTP_CODE=$(curl -sk -o /dev/null -D /dev/stderr -w "%{http_code}" ${{ env.APP_PRIVATE_TARGET_URL }}/livez 2>&1 | tee /dev/stderr | tail -1)
-          echo "  Console: ${{ env.APP_PRIVATE_TARGET_URL }}/livez - HTTP $HTTP_CODE" >&2
+          HTTP_CODE=$(curl -sk -o /dev/null -D /dev/stderr -w "%{http_code}" ${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/livez 2>&1 | tee /dev/stderr | tail -1)
+          echo "  Console: ${{ env.APP_PRIVATE_TARGET_URL }}/admin/v1/livez - HTTP $HTTP_CODE" >&2
           [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ] && echo "  ✅ Success" >&2 || echo "  ❌ Failed" >&2
 
           echo "## Swagger UI (main page)"
@@ -770,6 +770,9 @@ jobs:
           workflow-reports/dast/nuclei.log
           workflow-reports/dast/nuclei.sarif
           workflow-reports/dast/response-headers.txt
+          workflow-reports/dast/cryptoutil.stdout
+          workflow-reports/dast/cryptoutil.stderr
+          workflow-reports/dast/system-info.txt
         retention-days: 1
 
     - name: GitHub Security Dashboard Alerts update

@@ -396,7 +396,7 @@ ls ~/nuclei-templates                     # Linux/macOS
 ```sh
 # Check service health
 curl -k https://localhost:8080/ui/swagger/doc.json
-curl -k https://localhost:9090/livez  # Admin health endpoint
+curl -k https://localhost:9090/admin/v1/livez  # Admin health endpoint
 
 # Check Docker containers
 docker compose -f ./deployments/compose/compose.yml ps
@@ -653,7 +653,7 @@ cryptoutil services → OTEL Collector (4317/4318) → Grafana LGTM (14317/14318
 OTEL Collector self-metrics → Prometheus scraping (8888)
 
 **Health Checks:**
-- cryptoutil services: wget https://127.0.0.1:9090/livez
+- cryptoutil services: wget https://127.0.0.1:9090/admin/v1/livez
 - postgres: pg_isready -U USR -d DB
 - grafana: curl http://127.0.0.1:3000/api/health
 - otel-collector: External via healthcheck sidecar (ping + wget http://otel:13133/)

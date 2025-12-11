@@ -256,7 +256,7 @@ All cryptoutil services in Docker Compose MUST use generous health check timeout
 
 ```yaml
 healthcheck:
-  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
   start_period: 30s   # Grace period before first check
   interval: 5s        # Time between checks
   timeout: 3s         # Max time per check

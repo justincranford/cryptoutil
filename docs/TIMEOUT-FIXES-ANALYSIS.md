@@ -136,7 +136,7 @@ services:
 ### Symptom (Historical User Report)
 
 ```
-timeout retrying health check for cryptoutil https://127.0.0.1:9090/readyz
+timeout retrying health check for cryptoutil https://127.0.0.1:9090/admin/v1/readyz
 ```
 
 ### Root Cause Analysis (From Previous Session)
@@ -348,7 +348,7 @@ services:
   cryptoutil-service:
     image: cryptoutil:local
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
       start_period: 30s   # Grace period before first check (allows slow startup)
       interval: 5s        # Time between checks
       timeout: 3s         # Max time for single check

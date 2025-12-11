@@ -525,7 +525,7 @@ go run main.go --dev --config=configs/dev/config.yml
 ### 3. Access the Application
 
 - **API Documentation**: <http://localhost:8080/ui/swagger>
-- **Health Checks**: <http://localhost:9090/livez>, <http://localhost:9090/readyz>
+- **Health Checks**: <http://localhost:9090/admin/v1/livez>, <http://localhost:9090/admin/v1/readyz>
 - **Grafana**: <http://localhost:3000> (admin/admin)
 
 ### 4. Documentation Maintenance
@@ -723,8 +723,8 @@ nuclei -tl | findstr http       # Windows PowerShell
 curl http://localhost:8080/service/api/v1/elastickeys
 
 # Test health endpoints
-curl http://localhost:9090/livez
-curl http://localhost:9090/readyz
+curl http://localhost:9090/admin/v1/livez
+curl http://localhost:9090/admin/v1/readyz
 
 # Test with Swagger UI
 open http://localhost:8080/ui/swagger

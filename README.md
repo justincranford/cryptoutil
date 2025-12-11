@@ -282,7 +282,7 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 - **OpenAPI Spec JSON**: <https://localhost:8081/ui/swagger/doc.json>, <https://localhost:8082/ui/swagger/doc.json>, or <https://localhost:8080/ui/swagger/doc.json>
 - **Browser API**: <https://localhost:8081/browser/api/v1/*>, <https://localhost:8082/browser/api/v1/*>, or <https://localhost:8080/browser/api/v1/*>
 - **Service API**: <https://localhost:8081/service/api/v1/*>, <https://localhost:8082/service/api/v1/*>, or <https://localhost:8080/service/api/v1/*>
-- **Health Checks**: <https://localhost:9090/livez>, <https://localhost:9090/readyz>
+- **Health Checks**: <https://localhost:9090/admin/v1/livez>, <https://localhost:9090/admin/v1/readyz>
 
 #### Identity System APIs
 
@@ -455,8 +455,8 @@ xdg-open https://localhost:8080/ui/swagger   # Linux
 curl -k -X GET https://localhost:8080/service/api/v1/elastickeys
 
 # Test health endpoints
-curl -k https://localhost:9090/livez
-curl -k https://localhost:9090/readyz
+curl -k https://localhost:9090/admin/v1/livez
+curl -k https://localhost:9090/admin/v1/readyz
 ```
 
 ### Integration Testing
@@ -836,7 +836,7 @@ nuclei -update-templates
 ```sh
 # Check service health
 curl -k https://localhost:8080/ui/swagger/doc.json
-curl -k https://localhost:9090/livez  # Admin health endpoint
+curl -k https://localhost:9090/admin/v1/livez  # Admin health endpoint
 ```
 
 **Clean restart:**
