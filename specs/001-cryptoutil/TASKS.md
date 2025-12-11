@@ -1,8 +1,8 @@
 # Task Breakdown - Post-Consolidation
 
-**Date**: December 7, 2025
-**Context**: Detailed task breakdown after consolidating iteration files
-**Status**: ✅ 36 tasks identified (ALL MANDATORY)
+**Date**: December 7, 2025 (Updated: December 11, 2025)
+**Context**: Detailed task breakdown after consolidating iteration files and gap analysis
+**Status**: ✅ 66 tasks identified (ALL MANDATORY)
 
 ---
 
@@ -13,12 +13,14 @@
 | Phase | Tasks | Effort |
 |-------|-------|--------|
 | Phase 0: Slow Test Optimization | 11 | 8-10h |
-| Phase 2: Deferred Features | 8 | 8-10h |
-| Phase 3: Coverage Targets | 5 | 12-18h |
-| Phase 4: Advanced Testing | 4 | 8-12h |
 | Phase 1: CI/CD Workflows | 8 | 6-8h |
+| Phase 1.5: Identity Admin API | 12 | 8-10h |
+| Phase 2: Deferred Features | 8 | 8-10h |
+| Phase 2.5: CA Production Deployment | 8 | 4-6h |
+| Phase 3: Coverage Targets | 5 | 12-18h |
+| Phase 4: Advanced Testing & E2E | 12 | 8-12h |
 | Phase 5: Demo Videos | 6 | 16-24h |
-| **Total** | **42** | **58-82h** |
+| **Total** | **70** | **70-98h** |
 
 ---
 
@@ -264,6 +266,273 @@
 
 ---
 
+## Phase 1.5: Identity Admin API Implementation (12 tasks, 8-10h) 🏗️
+
+**Objective**: Implement dual-server architecture for Identity services (AuthZ, IdP, RS) matching KMS pattern
+
+**Rationale**: Identity currently uses single public server with `/health`. Spec requires private admin server on 127.0.0.1:9090 for health probes, matching KMS/JOSE/CA pattern.
+
+### P1.5.1: Create AuthZ Private Server Infrastructure
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Add `PrivateTLSServer` struct to `internal/identity/authz`
+- Implement admin endpoint handlers: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
+- Configure TLS for private server (self-signed cert for localhost)
+- Bind to `127.0.0.1:9090` (not externally accessible)
+- Return 200 OK with JSON body for health endpoints
+
+**Files to Modify**:
+
+- `internal/identity/authz/server/` (create admin server module)
+- `internal/identity/authz/handler/admin.go` (create)
+
+---
+
+### P1.5.2: Create IdP Private Server Infrastructure
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Add `PrivateTLSServer` struct to `internal/identity/idp`
+- Implement admin endpoint handlers: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
+- Configure TLS for private server (self-signed cert for localhost)
+- Bind to `127.0.0.1:9090` (not externally accessible)
+- Return 200 OK with JSON body for health endpoints
+
+**Files to Modify**:
+
+- `internal/identity/idp/server/` (create admin server module)
+- `internal/identity/idp/handler/admin.go` (create)
+
+---
+
+### P1.5.3: Create RS Private Server Infrastructure
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Add `PrivateTLSServer` struct to `internal/identity/rs`
+- Implement admin endpoint handlers: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
+- Configure TLS for private server (self-signed cert for localhost)
+- Bind to `127.0.0.1:9090` (not externally accessible)
+- Return 200 OK with JSON body for health endpoints
+
+**Files to Modify**:
+
+- `internal/identity/rs/server/` (create admin server module)
+- `internal/identity/rs/handler/admin.go` (create)
+
+---
+
+### P1.5.4: Update AuthZ Server Startup Logic
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Modify `StartAuthZServer()` to launch both public and private servers
+- Public server: 0.0.0.0:8080 (business APIs)
+- Private server: 127.0.0.1:9090 (admin endpoints)
+- Add graceful shutdown coordination for both servers
+- Ensure startup order: private server first, then public server
+
+**Files to Modify**:
+
+- `cmd/identity-unified/authz.go`
+- `internal/identity/authz/server/application.go`
+
+---
+
+### P1.5.5: Update IdP Server Startup Logic
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Modify `StartIDPServer()` to launch both public and private servers
+- Public server: 0.0.0.0:8081 (OIDC endpoints)
+- Private server: 127.0.0.1:9090 (admin endpoints)
+- Add graceful shutdown coordination for both servers
+- Ensure startup order: private server first, then public server
+
+**Files to Modify**:
+
+- `cmd/identity-unified/idp.go`
+- `internal/identity/idp/server/application.go`
+
+---
+
+### P1.5.6: Update RS Server Startup Logic
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Modify `StartRSServer()` to launch both public and private servers
+- Public server: 0.0.0.0:8082 (resource endpoints)
+- Private server: 127.0.0.1:9090 (admin endpoints)
+- Add graceful shutdown coordination for both servers
+- Ensure startup order: private server first, then public server
+
+**Files to Modify**:
+
+- `cmd/identity-unified/rs.go`
+- `internal/identity/rs/server/application.go`
+
+---
+
+### P1.5.7: Update Identity Integration Tests
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Migrate integration tests from `/health` to `/admin/v1/healthz`
+- Update `internal/identity/**/integration_test.go` files
+- Add admin endpoint test coverage (livez, readyz, healthz)
+- Verify health check responses (200 OK, JSON body)
+- All integration tests pass with new admin endpoints
+
+**Files to Modify**:
+
+- `internal/identity/test/integration/*_test.go`
+- `internal/identity/authz/*_integration_test.go`
+- `internal/identity/idp/*_integration_test.go`
+- `internal/identity/rs/*_integration_test.go`
+
+---
+
+### P1.5.8: Update Docker Compose Configurations
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update Docker Compose health checks: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez`
+- Update `deployments/identity/compose.yml`, `compose.advanced.yml`, `compose.simple.yml`
+- All 3 Identity services (AuthZ, IdP, RS) use admin endpoints
+- Health checks pass locally with `docker compose up -d`
+
+**Files to Modify**:
+
+- `deployments/identity/compose.yml`
+- `deployments/identity/compose.advanced.yml`
+- `deployments/identity/compose.simple.yml`
+
+---
+
+### P1.5.9: Update GitHub Workflows
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `ci-dast.yml` workflow to use admin endpoints
+- Update `ci-e2e.yml` workflow to use admin endpoints
+- Update health check commands: `curl -k https://127.0.0.1:9090/admin/v1/livez`
+- All workflows pass with new admin endpoints
+
+**Files to Modify**:
+
+- `.github/workflows/ci-dast.yml`
+- `.github/workflows/ci-e2e.yml`
+- `.github/workflows/identity-validation.yml`
+
+---
+
+### P1.5.10: Add Admin Endpoint Unit Tests
+
+**Priority**: MEDIUM
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create unit tests for admin endpoint handlers
+- Test all 4 endpoints: livez, readyz, healthz, shutdown
+- Test error cases (server not ready, shutdown failure)
+- Coverage ≥95% for admin handler code
+
+**Files to Create**:
+
+- `internal/identity/authz/handler/admin_test.go`
+- `internal/identity/idp/handler/admin_test.go`
+- `internal/identity/rs/handler/admin_test.go`
+
+---
+
+### P1.5.11: Backward Compatibility (Optional)
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Keep public `/health` endpoint for backward compatibility (deprecated)
+- Add deprecation warning in response headers: `X-Deprecated: Use /admin/v1/healthz instead`
+- Update documentation to recommend admin endpoints
+- Add migration notes to README
+
+**Files to Modify**:
+
+- `internal/identity/authz/handler/health.go`
+- `internal/identity/idp/handler/health.go`
+- `internal/identity/rs/handler/health.go`
+- `docs/README.md` (migration guide)
+
+---
+
+### P1.5.12: Verify End-to-End Integration
+
+**Priority**: CRITICAL
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Run `docker compose -f deployments/identity/compose.yml up -d`
+- Verify all 3 services (AuthZ, IdP, RS) start successfully
+- Test admin endpoints return 200 OK: `curl -k https://127.0.0.1:9090/admin/v1/livez`
+- Test health checks pass in Docker Compose logs
+- Run full integration test suite: `go test ./internal/identity/... -tags=integration`
+- All tests pass
+
+**Commands to Run**:
+
+```bash
+docker compose -f deployments/identity/compose.yml up -d
+curl -k https://127.0.0.1:9090/admin/v1/livez  # AuthZ
+curl -k https://127.0.0.1:9090/admin/v1/readyz
+curl -k https://127.0.0.1:9090/admin/v1/healthz
+go test ./internal/identity/... -tags=integration
+```
+
+---
+
 ## Phase 2: Complete Deferred I2 Features (8 tasks, 6-8h)
 
 ### P2.1: JOSE E2E Test Suite
@@ -365,7 +634,188 @@
 
 ---
 
-## Phase 3: Achieve Coverage Targets (5 tasks, 2-3h)
+## Phase 2.5: CA Production Deployment (8 tasks, 4-6h) 🚀
+
+**Objective**: Create production-ready Docker Compose configuration for CA services matching JOSE/KMS patterns
+
+**Rationale**: CA only has `compose.simple.yml` (dev-only). Need multi-instance PostgreSQL deployment for production readiness.
+
+### P2.5.1: Create Production Compose File
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `deployments/ca/compose.yml` based on `deployments/kms/compose.yml` template
+- Define 3 CA instances:
+  - `ca-sqlite`: Development instance (SQLite in-memory, port 8443)
+  - `ca-postgres-1`: Production instance 1 (PostgreSQL, port 8444)
+  - `ca-postgres-2`: Production instance 2 (PostgreSQL, port 8445)
+- Each instance binds admin port 9443 internally (127.0.0.1 only)
+- Add builder service for single image build
+- Configure health checks with admin endpoints
+
+**Files to Create**:
+
+- `deployments/ca/compose.yml`
+
+---
+
+### P2.5.2: Configure PostgreSQL Backend
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Add PostgreSQL service definition to `deployments/ca/compose.yml`
+- Configure database initialization scripts (if needed)
+- Add secrets for database credentials (file-based in `deployments/ca/postgres/`)
+- Add health checks for PostgreSQL service
+- Test PostgreSQL starts and accepts connections
+
+**Files to Create**:
+
+- `deployments/ca/postgres/postgres_password.secret`
+- `deployments/ca/postgres/postgres_username.secret`
+- `deployments/ca/postgres/postgres_database.secret`
+
+---
+
+### P2.5.3: Integrate Telemetry Services
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Include OpenTelemetry collector configuration reference
+- Add grafana-otel-lgtm service reference (external_links)
+- Configure OTLP exporters in CA service configs
+- Add collector health checks
+- Test telemetry data flows to Grafana
+
+**Files to Modify**:
+
+- `deployments/ca/compose.yml` (add otel-collector reference)
+- `configs/ca/ca-otel.yml` (if needed)
+
+---
+
+### P2.5.4: Configure CA-Specific Requirements
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Add CRL distribution volume mounts (e.g., `./ca-crls:/app/crls`)
+- Configure OCSP responder endpoints in compose.yml
+- Add EST endpoint configurations
+- Configure certificate profile directories (volume mounts)
+- Add unseal secrets for CA instances
+
+**Files to Modify**:
+
+- `deployments/ca/compose.yml`
+- `deployments/ca/unseal/` (create secret files)
+
+---
+
+### P2.5.5: Configure CA Instance-Specific Configs
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `configs/ca/ca-sqlite.yml` (SQLite backend, dev mode)
+- Create `configs/ca/ca-postgresql-1.yml` (PostgreSQL backend, port 8444)
+- Create `configs/ca/ca-postgresql-2.yml` (PostgreSQL backend, port 8445)
+- Configure unique service names, OTLP hostnames, CORS origins per instance
+- Configure database connection strings (use Docker secrets)
+
+**Files to Create**:
+
+- `configs/ca/ca-sqlite.yml`
+- `configs/ca/ca-postgresql-1.yml`
+- `configs/ca/ca-postgresql-2.yml`
+
+---
+
+### P2.5.6: Update CA Docker Health Checks
+
+**Priority**: MEDIUM
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update health checks to use admin endpoints: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9443/admin/v1/livez`
+- Configure start_period, interval, retries for CA services
+- Test health checks pass locally
+
+**Files to Modify**:
+
+- `deployments/ca/compose.yml`
+
+---
+
+### P2.5.7: Test Production Deployment
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Test `docker compose -f deployments/ca/compose.yml up -d` startup
+- Verify all 3 CA instances start successfully
+- Test health checks pass: `docker compose ps` shows all healthy
+- Verify certificate issuance works on all 3 instances
+- Test CRL generation and OCSP responses
+- Test PostgreSQL backend works for ca-postgres-1 and ca-postgres-2
+
+**Commands to Run**:
+
+```bash
+docker compose -f deployments/ca/compose.yml down -v
+docker compose -f deployments/ca/compose.yml up -d
+docker compose -f deployments/ca/compose.yml ps  # All healthy
+curl -k https://localhost:8443/ui/swagger/doc.json  # ca-sqlite
+curl -k https://localhost:8444/ui/swagger/doc.json  # ca-postgres-1
+curl -k https://localhost:8445/ui/swagger/doc.json  # ca-postgres-2
+```
+
+---
+
+### P2.5.8: Integration with CI/CD Workflows
+
+**Priority**: MEDIUM
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `ci-e2e.yml` to test CA production deployment
+- Update `ci-dast.yml` to scan CA production endpoints
+- All CA instances pass CI/CD validation
+- Workflows use admin endpoints for health checks
+
+**Files to Modify**:
+
+- `.github/workflows/ci-e2e.yml`
+- `.github/workflows/ci-dast.yml`
+
+---
+
+## Phase 3: Achieve Coverage Targets (5 tasks, 2-3h) 📊
 
 ### P3.1: ca/handler Coverage (baseline 82.3, target 95.0)
 
@@ -501,9 +951,146 @@
 
 ---
 
-## Phase 4: Advanced Testing (4 tasks, 4-6h, OPTIONAL)
+## Phase 4: Advanced Testing & E2E Workflows (12 tasks, 8-12h, HIGH PRIORITY) 🧪
 
-### P4.1: Add Benchmark Tests
+**Objective**: Add comprehensive E2E workflow tests and advanced testing methodologies
+
+**Rationale**: Current E2E tests only validate Docker health checks. Need end-to-end product workflow validation and load test coverage for Browser API.
+
+### P4.1: OAuth 2.1 Authorization Code E2E Test
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/test/e2e/oauth_workflow_test.go`
+- Test full OAuth authorization code flow:
+  - Browser → AuthZ `/oauth2/v1/authorize` → redirect to IdP `/oidc/v1/login`
+  - User login → `/oidc/v1/consent` → consent granted
+  - Redirect back to AuthZ with code → `/oauth2/v1/token` with PKCE verifier
+  - Validate access token, ID token, refresh token returned
+- Test token introspection and revocation
+- Uses real Docker stack (PostgreSQL, all 3 Identity services)
+- Execution time <3 minutes
+
+**Files to Create**:
+
+- `internal/test/e2e/oauth_workflow_test.go`
+
+---
+
+### P4.2: KMS Encrypt/Decrypt E2E Test
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/test/e2e/kms_workflow_test.go`
+- Test full KMS encryption lifecycle:
+  - Create ElasticKey → generate MaterialKey
+  - Encrypt plaintext → decrypt ciphertext
+  - Verify plaintext matches original
+  - Test key rotation (generate new MaterialKey, decrypt with old key fails)
+- Uses real KMS Docker instance (PostgreSQL backend)
+- Execution time <2 minutes
+
+**Files to Create**:
+
+- `internal/test/e2e/kms_workflow_test.go`
+
+---
+
+### P4.3: CA Certificate Lifecycle E2E Test
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/test/e2e/ca_workflow_test.go`
+- Test full certificate lifecycle:
+  - Generate CSR → submit to `/ca/v1/certificate`
+  - Receive issued certificate → validate chain
+  - Revoke certificate → verify OCSP revoked status
+  - Check CRL contains revoked certificate
+- Uses real CA Docker instance (PostgreSQL backend)
+- Execution time <3 minutes
+
+**Files to Create**:
+
+- `internal/test/e2e/ca_workflow_test.go`
+
+---
+
+### P4.4: JOSE JWT Sign/Verify E2E Test
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/test/e2e/jose_workflow_test.go`
+- Test full JOSE JWT lifecycle:
+  - Generate JWK → sign JWT with claims
+  - Verify JWT signature → validate claims
+  - Test token expiration and invalid signature rejection
+- Uses real JOSE Docker instance
+- Execution time <1 minute
+
+**Files to Create**:
+
+- `internal/test/e2e/jose_workflow_test.go`
+
+---
+
+### P4.5: Browser API Load Testing (Gatling)
+
+**Priority**: HIGH
+**Effort**: 3 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `test/load/src/test/java/cryptoutil/BrowserApiSimulation.java`
+- Test OAuth authorization code flow under load (50-100 concurrent users)
+- Test certificate request workflows under load
+- Test UI endpoints (`/ui/swagger/doc.json`, health checks)
+- Measure response times (p95 <500ms target, p99 <1000ms)
+- Establish performance baselines
+- Load test runs in <10 minutes
+
+**Files to Create**:
+
+- `test/load/src/test/java/cryptoutil/BrowserApiSimulation.java`
+
+---
+
+### P4.6: Update E2E CI/CD Workflow
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `ci-e2e.yml` to run new E2E workflow tests
+- Ensure all 4 E2E workflows pass (OAuth, KMS, CA, JOSE)
+- Configure Docker Compose stack for E2E tests
+- Execution time <10 minutes total in CI/CD
+
+**Files to Modify**:
+
+- `.github/workflows/ci-e2e.yml`
+
+---
+
+### P4.7: Add Benchmark Tests
 
 **Effort**: 2 hours
 **Status**: ⚠️ IN PROGRESS (commit 43c616c1 - JWS/JWE benchmarks added)
@@ -524,7 +1111,7 @@
 
 ---
 
-### P4.2: Add Fuzz Tests
+### P4.8: Add Fuzz Tests
 
 **Effort**: 2 hours
 **Status**: ✅ COMPLETE (5 fuzz files verified - crypto + identity coverage)
@@ -541,7 +1128,7 @@
 
 ---
 
-### P4.3: Add Property-Based Tests
+### P4.9: Add Property-Based Tests
 
 **Effort**: 2 hours
 **Status**: ✅ COMPLETE (commits 5a3c66dc, 351fca4c)
@@ -553,7 +1140,7 @@
 
 ---
 
-### P4.4: Mutation Testing Baseline
+### P4.10: Mutation Testing Baseline
 
 **Effort**: 1 hour
 **Status**: ⚠️ BLOCKED (gremlins v0.6.0 crashes with "error, this is temporary" panic)
@@ -563,6 +1150,55 @@
 
 **Issue**: Tool crashes during mutant execution on Windows
 **Workaround**: Consider alternative mutation testing tools or wait for gremlins fix
+
+---
+
+### P4.11: Verify E2E Integration
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Run all E2E workflow tests locally: `go test ./internal/test/e2e/... -v`
+- All 4 E2E workflows pass (OAuth, KMS, CA, JOSE)
+- Execution time <10 minutes total
+- Run in CI/CD: `ci-e2e` workflow passes
+- Load test execution successful
+
+**Commands to Run**:
+
+```bash
+# Start Docker stack
+docker compose -f deployments/compose/compose.yml up -d
+
+# Run E2E tests
+go test ./internal/test/e2e/... -v
+
+# Run load tests
+cd test/load
+mvn gatling:test -Dgatling.simulationClass=cryptoutil.BrowserApiSimulation
+```
+
+---
+
+### P4.12: Document E2E Testing
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `docs/README.md` with E2E testing section
+- Document how to run E2E tests locally
+- Document E2E test coverage (OAuth, KMS, CA, JOSE workflows)
+- Add load testing documentation
+
+**Files to Modify**:
+
+- `docs/README.md`
 
 ---
 
@@ -587,12 +1223,31 @@ Minimal documentation. Products must be intuitive and work without users and dev
 
 **Task Breakdown Status**: ✅ **COMPLETE**
 
-36 tasks identified with clear acceptance criteria, effort estimates, and priorities.
+70 tasks identified with clear acceptance criteria, effort estimates, and priorities.
 
-**Next Step**: Execute /speckit.analyze to perform coverage check.
+**Updates (December 11, 2025)**:
+
+- Added Phase 1.5: Identity Admin API Implementation (12 tasks, 8-10 hours)
+- Added Phase 2.5: CA Production Deployment (8 tasks, 4-6 hours)
+- Upgraded Phase 4 to HIGH priority with E2E workflows and Browser API load tests (12 tasks, 8-12 hours)
+- Total tasks increased from 42 to 70 (28 new tasks)
+- Total effort increased from 58-82h to 70-98h
+
+**Next Step**: Execute /speckit.analyze to perform coverage check and update implement/DETAILED.md.
 
 ---
 
-*Task Breakdown Version: 1.0.0*
-*Author: GitHub Copilot (Agent)*
-*Approved: Pending user validation*
+*Task Breakdown Version: 2.0.0*
+*Author: GitHub Copilot (Claude Sonnet 4.5)*
+*Created: December 7, 2025*
+*Updated: December 11, 2025*
+
+**Update Summary (v2.0.0)**:
+
+- Phase 1.5 added: 12 new tasks for Identity admin API implementation (dual-server pattern)
+- Phase 2.5 added: 8 new tasks for CA production deployment configuration
+- Phase 4 upgraded: 8 new E2E workflow tasks (OAuth, KMS, CA, JOSE) + Browser API load testing
+- Phase sequencing updated: 0 → 1 → 1.5 → 2 → 2.5 → 3 → 4 → 5
+- Total task count: 70 (from 42)
+- Total effort estimate: 70-98 hours (from 58-82 hours)
+
