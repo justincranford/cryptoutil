@@ -6,6 +6,102 @@
 
 ---
 
+## SPEC KIT WORKFLOW CHECKLIST
+
+Quick reference for Spec Kit methodology (from `specs/000-cryptoutil-template/README.md`).
+
+### Iteration Setup
+
+- [x] Copy `specs/000-cryptoutil-template/` to `specs/001-cryptoutil/`
+- [x] Rename NNN to iteration number (`001-cryptoutil`)
+- [x] Run `specify init . --ai copilot` if needed
+
+### Core Spec Kit Commands (Mandatory)
+
+#### Round 1: Initial Specification
+
+1. [x] **Constitution** (`/speckit.constitution`)
+   - Create/update project governing principles
+   - Define development guidelines
+   - Document: `.specify/memory/constitution.md`
+
+2. [x] **Specify** (`/speckit.specify`)
+   - Define WHAT to build (requirements, user stories)
+   - Focus on intent, not implementation
+   - Document: `specs/001-cryptoutil/spec.md`
+
+3. [x] **Plan** (`/speckit.plan`)
+   - Define HOW to build (tech stack, architecture)
+   - Technical implementation approach
+   - Document: `specs/001-cryptoutil/plan.md`
+
+4. [x] **Tasks** (`/speckit.tasks`)
+   - Generate actionable task list from plan
+   - Include dependencies and LOE estimates
+   - Document: `specs/001-cryptoutil/TASKS.md`
+
+5. [x] **Implement** (`/speckit.implement`)
+   - Execute all tasks according to plan
+   - Track progress in `PROGRESS.md`
+   - Commit incrementally
+
+### Optional Spec Kit Commands (Recommended)
+
+#### Before Plan
+
+- [x] **Clarify** (`/speckit.clarify` - formerly `/quizme`)
+  - Clarify underspecified areas in spec
+  - Ask questions about ambiguous requirements
+  - Document: `specs/001-cryptoutil/CLARIFICATIONS.md`
+
+#### After Tasks, Before Implement
+
+- [x] **Analyze** (`/speckit.analyze`)
+  - Cross-artifact consistency check
+  - Requirement-to-task coverage analysis
+  - Document: `specs/001-cryptoutil/ANALYSIS.md`
+
+#### After Implement
+
+- [ ] **Checklist** (`/speckit.checklist`)
+  - Generate custom quality checklists
+  - Validate requirements completeness
+  - Document: `specs/001-cryptoutil/CHECKLIST-ITERATION-001.md`
+
+### Round 2+: Iteration Refinement
+
+If additional rounds are needed (e.g., missing requirements, new features):
+
+1. [ ] **Update Specification** (`/speckit.specify`)
+   - Add new requirements or refine existing
+   - Update `spec.md` with changes
+
+2. [ ] **Update Plan** (`/speckit.plan`)
+   - Adjust technical approach for new requirements
+   - Update `plan.md` with revised approach
+
+3. [ ] **Update Tasks** (`/speckit.tasks`)
+   - Generate tasks for new requirements
+   - Append to `TASKS.md` or create `tasks-round2.md`
+
+4. [ ] **Implement** (`/speckit.implement`)
+   - Execute new tasks
+   - Continue tracking in `PROGRESS.md`
+
+5. [ ] **Re-validate** (`/speckit.checklist`)
+   - Run checklist again for new changes
+   - Update `CHECKLIST-ITERATION-001.md`
+
+### Additional Iteration Documents
+
+- [x] `PROGRESS.md` - Session log, status tracking, evidence
+- [ ] `EXECUTIVE-SUMMARY.md` - Stakeholder overview, known issues (PARTIAL - in PROGRESS.md)
+- [x] `PROJECT-STATUS.md` - Current status, completion metrics
+- [x] `COMPLETION-ROADMAP.md` - Remaining work, priorities
+- [x] `SESSION-SUMMARY.md` - Session-specific notes
+
+---
+
 ## EXECUTIVE SUMMARY
 
 **Overall Progress**: 42.0 of 42 tasks complete (100.0% complete) ✅
