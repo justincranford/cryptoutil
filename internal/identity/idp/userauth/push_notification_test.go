@@ -146,12 +146,13 @@ func TestPushNotificationAuthenticator_InitiateAuth(t *testing.T) {
 	auth := userauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
 
 	// Initiate push notification authentication.
+	beforeInitiate := time.Now()
 	challenge, err := auth.InitiateAuth(ctx, userID)
 	require.NoError(t, err)
 	require.NotNil(t, challenge)
 	require.Equal(t, userID, challenge.UserID)
 	require.Equal(t, "push_notification", challenge.Method)
-	require.WithinDuration(t, time.Now().Add(cryptoutilIdentityMagic.DefaultPushNotificationTimeout), challenge.ExpiresAt, 5*time.Second)
+	require.WithinDuration(t, beforeInitiate.Add(cryptoutilIdentityMagic.DefaultPushNotificationTimeout), challenge.ExpiresAt, 5*time.Second)
 
 	// Verify push notification was sent.
 	require.Len(t, mockPush.sentNotifications, 1)

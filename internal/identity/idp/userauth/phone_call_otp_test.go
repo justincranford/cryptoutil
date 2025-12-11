@@ -142,12 +142,13 @@ func TestPhoneCallOTPAuthenticator_InitiateAuth(t *testing.T) {
 	auth := userauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
 
 	// Initiate phone call OTP authentication.
+	beforeInitiate := time.Now()
 	challenge, err := auth.InitiateAuth(ctx, userID)
 	require.NoError(t, err)
 	require.NotNil(t, challenge)
 	require.Equal(t, userID, challenge.UserID)
 	require.Equal(t, "phone_call_otp", challenge.Method)
-	require.WithinDuration(t, time.Now().Add(cryptoutilIdentityMagic.DefaultPhoneCallOTPTimeout), challenge.ExpiresAt, 5*time.Second)
+	require.WithinDuration(t, beforeInitiate.Add(cryptoutilIdentityMagic.DefaultPhoneCallOTPTimeout), challenge.ExpiresAt, 5*time.Second)
 
 	// Verify voice call was made.
 	require.Len(t, mockPhone.madeCalls, 1)
