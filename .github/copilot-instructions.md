@@ -126,4 +126,3 @@ File Size Limits
 | 03-04.dast | DAST scanning |
 | 04-01.sqlite-gorm | SQLite GORM config |
 | 05-01.evidence-based | Evidence-based task completion |
-| 06-01.speckit | Spec Kit workflow and spec-driven development |
