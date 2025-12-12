@@ -6,7 +6,6 @@ package sqlrepository_test
 
 import (
 	"context"
-	"runtime"
 	"testing"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
@@ -16,16 +15,10 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
-const osWindows = "windows"
-
 // TestNewSQLRepository_PostgreSQL_ContainerRequired tests container mode = required (will start container).
 func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping container test in short mode")
-	}
-
-	if runtime.GOOS == osWindows {
-		t.Skip("Skipping testcontainers test on Windows (rootless Docker not supported)")
 	}
 
 	t.Parallel()
@@ -54,10 +47,6 @@ func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 func TestNewSQLRepository_PostgreSQL_ContainerPreferred(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping container test in short mode")
-	}
-
-	if runtime.GOOS == osWindows {
-		t.Skip("Skipping testcontainers test on Windows (rootless Docker not supported)")
 	}
 
 	t.Parallel()
