@@ -260,10 +260,13 @@ func TestAdminEndpointReadyz(t *testing.T) {
 		require.NoError(t, json.Unmarshal(body, &response))
 
 		// Expect either "not ready" (503) or "ready" (200) depending on timing.
-		if statusCode == http.StatusServiceUnavailable {
-			require.Equal(t, "not ready", response["status"])
-		} else if statusCode == http.StatusOK {
-			require.Equal(t, "ready", response["status"])
+		switch statusCode {
+		case http.StatusServiceUnavailable:
+			require.Equal(t, "not ready", response["status"]) 
+		case http.StatusOK:
+			require.Equal(t, "ready", response["status"]) 
+		default:
+			require.Fail(t, fmt.Sprintf("unexpected status code: %d", statusCode))
 		}
 	})
 

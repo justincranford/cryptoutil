@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
 // RequireNewForTest creates a new identity config for testing.
@@ -62,7 +63,7 @@ func RequireNewForTest(testName string) *Config {
 		},
 		Tokens: &TokenConfig{
 			AccessTokenLifetime:  cryptoutilMagic.TestTimeoutCryptoutilReady,
-			RefreshTokenLifetime: 24 * time.Hour, // No constant for 24h, keep as is
+			RefreshTokenLifetime: cryptoutilIdentityMagic.TestRefreshTokenLifetime,
 			Issuer:               "test-issuer",
 		},
 		Sessions: &SessionConfig{
