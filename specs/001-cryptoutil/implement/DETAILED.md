@@ -28,20 +28,22 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 **Results**: 176.89s → 134.53s (42.36s / 24% reduction). Target <100s not achieved due to 3-8x concurrent slowdown pattern. Optimizations: P0.1 property tests (28s), P0.4 RSA matrix (28s), P0.5 duration (25s). Many packages already fast isolated - skipped. See docs/P0-*.md for analysis.
 
-### Phase 1: Identity Admin API Implementation (12 tasks)
+### Phase 1: Identity Admin API Implementation (12 tasks) ✅ COMPLETE
 
-- [ ] **P1.1**: Create AuthZ private server infrastructure - `internal/identity/authz/server/admin.go`
-- [ ] **P1.2**: Create IdP private server infrastructure - `internal/identity/idp/server/admin.go`
-- [ ] **P1.3**: Create RS private server infrastructure - `internal/identity/rs/server/admin.go`
-- [ ] **P1.4**: Update AuthZ server startup logic - `cmd/identity-unified/authz.go`
-- [ ] **P1.5**: Update IdP server startup logic - `cmd/identity-unified/idp.go`
-- [ ] **P1.6**: Update RS server startup logic - `cmd/identity-unified/rs.go`
-- [ ] **P1.7**: Update Identity integration tests - `internal/identity/test/integration/*_test.go`
-- [ ] **P1.8**: Update Docker Compose configurations - `deployments/identity/compose*.yml`
-- [ ] **P1.9**: Update GitHub workflows - `.github/workflows/ci-*.yml`
-- [ ] **P1.10**: Add admin endpoint unit tests - `internal/identity/*/handler/admin_test.go`
-- [ ] **P1.11**: Backward compatibility (optional) - Keep `/health` with deprecation
-- [ ] **P1.12**: Verify end-to-end integration - Full Docker + test suite validation
+- [x] **P1.1**: AuthZ admin server infrastructure ✅ COMPLETE (internal/identity/authz/server/admin.go)
+- [x] **P1.2**: IdP admin server infrastructure ✅ COMPLETE (internal/identity/idp/server/admin.go)
+- [x] **P1.3**: RS admin server infrastructure ✅ COMPLETE (internal/identity/rs/server/admin.go)
+- [x] **P1.4**: AuthZ server startup logic ✅ COMPLETE (internal/identity/authz/server/application.go)
+- [x] **P1.5**: IdP server startup logic ✅ COMPLETE (internal/identity/idp/server/application.go)
+- [x] **P1.6**: RS server startup logic ✅ COMPLETE (internal/identity/rs/server/application.go)
+- [x] **P1.7**: Integration tests (N/A - no /health usage found)
+- [x] **P1.8**: Docker Compose health checks ✅ COMPLETE (deployments/identity/compose*.yml)
+- [x] **P1.9**: GitHub workflows ✅ COMPLETE (.github/workflows/ci-{dast,e2e}.yml)
+- [x] **P1.10**: Admin endpoint unit tests ✅ COMPLETE (admin_test.go files)
+- [x] **P1.11**: Backward compatibility ⏭️ SKIPPED (not needed)
+- [x] **P1.12**: E2E verification ✅ VERIFIED (docker compose + admin endpoints working)
+
+**Results**: All Identity services (AuthZ, IdP, RS) now have dual-server architecture matching KMS pattern. Admin servers on 127.0.0.1:9090 with /admin/v1/{livez,readyz,shutdown} endpoints. Docker Compose and workflows updated.
 
 ### Phase 2: Deferred I2 Features (8 tasks)
 
