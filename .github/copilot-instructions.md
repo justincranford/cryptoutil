@@ -10,20 +10,31 @@
 
 **MANDATORY: Dual HTTPS Endpoint Pattern for ALL Services**
 
-- **NO HTTP PORTS** - All services MUST be secure by default
-- **Public HTTPS Endpoint**: Configurable port (8080+) for APIs and browser UI
-  - Service-to-service APIs: Require client credentials OAuth tokens
-  - Browser-to-service APIs/UI: Require authorization code + PKCE tokens
-  - Same OpenAPI spec exposed twice with different middleware security stacks
-- **Private HTTPS Endpoint**: Always 127.0.0.1:9090 for admin tasks
-  - `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown` endpoints
-  - Not externally accessible (127.0.0.1 only)
-  - Used by Docker health checks, Kubernetes probes, monitoring
+- **HTTPS ONLY** - All first-party products and services MUST use TLS 1.3 by default; never use HTTP
+- **HTTPS Certificates** - All first-party services MUST support configuration to pick TLS cert chain and private key source:
+  - Auto-generated TLS server cert chain all the way through to a private root CA,
+  - Docker Secrets for Private Keys, and File Paths or PEM data for all of TLS Server cert and Trusted CA certs
+- **Private HTTPS Endpoint**: Configurable HTTPS port for private APIs
+  - Default ports: 0 for dynamic, 9090+ for static
+  - /admin/v1/** prefix for all endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
+  - Not externally accessible; IPv4 127.0.0.1 only, never IPv6, never localhost
+  - Used by Docker health checks, Kubernetes probes, monitoring, testing
+- **Public HTTPS Endpoint**: Configurable HTTPS port for public APIs/UI
+  - Default ports: 0 for dynamic, 8080+ for static
+  - /service/** prefix for non-browser clients: Enforce with Authentication token (access token in HTTP Authorization header, TLS client cert, or both), and Authorization (/service/ path prefix), and non-browser client middleware (e.g. IP Allowlist, Rate Limiting)
+  - /browser/** prefix for browser-based clients: Enforce with Authentication token (session token in HTTP Cookie header, TLS client cert, or both), and Authorization (/browser/ path prefix), and browser-based client middleware (e.g. IP Allowlist, Rate Limiting, CSRF, CORS, CSP, etc)
+  - /service access tokens must be obtained via OAuth 2.0 Client Authorization Flow; these are bearer tokens in HTTP Authorization header, and are only authorized to access /service/ request path prefix
+  - /browser access tokens must be obtained via OAuth 2.0 Authorization Code + PKCE flow; these are session tokens in HTTP Cookie header, and are only authorized to access /browser/ request path prefix
+  - /browser and /service support using the same reusable OpenAPI spec, but under different prefixes, for API consistency
+  - /browser also supports UI-only request paths for browser-based clients only
 - **Examples**:
-  - KMS: Public HTTPS :8080 (APIs/UI), Private HTTPS 127.0.0.1:9090 (admin)
-  - Identity AuthZ: Public HTTPS :8080 (OAuth), Private HTTPS 127.0.0.1:9090 (admin)
-  - JOSE: Public HTTPS :8080 (JWK/JWT), Private HTTPS 127.0.0.1:9090 (admin)
-  - CA: Public HTTPS :8443 (cert ops), Private HTTPS 127.0.0.1:9443 (admin)
+  - KMS:            Public HTTPS APIs/UI :8080 (0.0.0.0:8080 in container), Private HTTPS APIs (127.0.0.1:9090 in container)
+  - Identity AuthZ: Public HTTPS APIs/UI :8180 (0.0.0.0:8080 in container), Private HTTPS APIs (127.0.0.1:9090 in container)
+  - Identity IdP:   Public HTTPS APIs/UI :8181 (0.0.0.0:8080 in container), Private HTTPS APIs (127.0.0.1:9090 in container)
+  - Identity RS:    Public HTTPS APIs/UI :8182 (0.0.0.0:8080 in container), Private HTTPS APIs (127.0.0.1:9090 in container)
+  - Identity RP:    Public HTTPS APIs/UI :8183 (0.0.0.0:8080 in container), Private HTTPS APIs (127.0.0.1:9090 in container)
+  - JOSE:           Public HTTPS APIs/UI :8280 (0.0.0.0:8080 in container), Private HTTPS APIs (127.0.0.1:9090 in container)
+  - CA:             Public HTTPS APIs/UI :8380 (0.0.0.0:8080 in container), Private HTTPS APIs (127.0.0.1:9090 in container)
 
 ## Version Requirements
 
