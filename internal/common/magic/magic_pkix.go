@@ -12,6 +12,9 @@ const (
 	MinSerialNumberBits = 64
 	MaxSerialNumberBits = 159
 
+	// HoursPerDay - Number of hours in a day.
+	HoursPerDay = 24
+
 	// CertificateRandomizationNotBeforeMinutes - Certificate validity randomization range in minutes.
 	CertificateRandomizationNotBeforeMinutes = 120
 
@@ -41,6 +44,10 @@ const (
 	TLSTestEndEntityCertValidity396Days = 396
 	TLSTestEndEntityCertValidity30Days  = 30
 	TLSTestEndEntityCertValidity1Year   = 365
+	TLSTestEndEntityCertValidity1Day    = 1
+
+	// TLS test self-signed certificate serial number bits (128 bits for testing).
+	TLSSelfSignedCertSerialNumberBits = 128
 
 	// StringPEMTypePKCS8PrivateKey - PKCS8 private key PEM type.
 	StringPEMTypePKCS8PrivateKey = "PRIVATE KEY" // pragma: allowlist secret

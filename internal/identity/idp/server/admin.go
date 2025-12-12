@@ -22,6 +22,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // AdminServer represents the private admin API server for OpenID Connect identity provider.
@@ -205,7 +206,7 @@ func generateSelfSignedTLSConfig() (*tls.Config, error) {
 	}
 
 	// Create certificate template.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilMagic.TLSSelfSignedCertSerialNumberBits))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -216,7 +217,7 @@ func generateSelfSignedTLSConfig() (*tls.Config, error) {
 			Organization: []string{"CryptoUtil Test"},
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(24 * time.Hour),
+		NotAfter:              time.Now().Add(time.Duration(cryptoutilMagic.TLSTestEndEntityCertValidity1Day*cryptoutilMagic.HoursPerDay) * time.Hour),
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
@@ -232,6 +233,7 @@ func generateSelfSignedTLSConfig() (*tls.Config, error) {
 
 	// Encode certificate and key to PEM.
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+
 	keyBytes, err := x509.MarshalECPrivateKey(privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal private key: %w", err)

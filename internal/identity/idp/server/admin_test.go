@@ -232,7 +232,11 @@ func TestAdminEndpointLivez(t *testing.T) {
 		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/admin/v1/livez", nil)
 		require.NoError(t, err)
 
-		_, err = client.Do(req)
+		resp, err := client.Do(req)
+		if resp != nil {
+			_ = resp.Body.Close()
+		}
+
 		require.Error(t, err, "expected connection error after shutdown")
 	})
 }
@@ -297,7 +301,11 @@ func TestAdminEndpointReadyz(t *testing.T) {
 		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/admin/v1/readyz", nil)
 		require.NoError(t, err)
 
-		_, err = client.Do(req)
+		resp, err := client.Do(req)
+		if resp != nil {
+			_ = resp.Body.Close()
+		}
+
 		require.Error(t, err, "expected connection error after shutdown")
 	})
 }
