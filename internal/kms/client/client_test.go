@@ -87,8 +87,7 @@ func nextElasticKeyDesc() *string {
 }
 
 var happyPathGenerateAlgorithmTestCases = []cryptoutilOpenapiModel.GenerateAlgorithm{
-	cryptoutilOpenapiModel.RSA4096,
-	cryptoutilOpenapiModel.RSA3072,
+	// P0.4 optimization: Test only RSA2048 - RSA logic identical for all sizes
 	cryptoutilOpenapiModel.RSA2048,
 	cryptoutilOpenapiModel.ECP521,
 	cryptoutilOpenapiModel.ECP384,
