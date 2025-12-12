@@ -21,8 +21,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 )
 
 // AdminServer represents the private admin API server for OpenID Connect identity provider.
