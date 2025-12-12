@@ -5,7 +5,6 @@
 - Instruction files auto-discovered from .github/instructions/*.instructions.md
 - Keep rules short, one directive per line
 - Reference external & project resources; avoid duplication of content
-- NEVER use PowerShell scripts or complex command chaining (see 03-02.cross-platform.instructions.md)
 
 ## Service Architecture - CRITICAL
 

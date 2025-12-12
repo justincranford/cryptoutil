@@ -44,7 +44,7 @@ func TestNewAdminServer(t *testing.T) {
 
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_nil_ctx")
 
-		server, err := NewAdminServer(nil, cfg)
+			   server, err := NewAdminServer(context.TODO(), cfg)
 		require.Error(t, err)
 		require.Nil(t, server)
 		require.Contains(t, err.Error(), "context cannot be nil")
@@ -129,7 +129,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		require.NoError(t, err)
 
 		// Shutdown with nil context should default to Background.
-		require.NoError(t, server.Shutdown(nil))
+			   require.NoError(t, server.Shutdown(context.TODO()))
 	})
 }
 
