@@ -2,7 +2,7 @@
 
 **Date**: December 7, 2025 (Updated: December 11, 2025)
 **Context**: Detailed task breakdown after consolidating iteration files and gap analysis
-**Status**: ✅ 66 tasks identified (ALL MANDATORY)
+**Status**: ✅ 62 tasks identified (ALL MANDATORY)
 
 ---
 
@@ -13,18 +13,39 @@
 | Phase | Tasks | Effort |
 |-------|-------|--------|
 | Phase 0: Slow Test Optimization | 11 | 8-10h |
-| Phase 1: CI/CD Workflows | 8 | 6-8h |
-| Phase 1.5: Identity Admin API | 12 | 8-10h |
-| Phase 2: Deferred Features | 8 | 8-10h |
+| Phase 1: Identity Admin API | 12 | 8-10h |
+| Phase 2: Deferred I2 Features | 8 | 6-8h |
 | Phase 2.5: CA Production Deployment | 8 | 4-6h |
-| Phase 3: Coverage Targets | 5 | 12-18h |
+| Phase 3: Coverage Targets | 6 | 2-3h |
 | Phase 4: Advanced Testing & E2E | 12 | 8-12h |
-| Phase 5: Demo Videos | 6 | 16-24h |
-| **Total** | **70** | **70-98h** |
+| Phase 5: CI/CD Workflow Fixes | 8 | 6-8h |
+| Phase 6: Demo Videos | 6 | 16-24h |
+| **Total** | **71** | **58-81h** |
 
 ---
 
-## Phase 0: Optimize Slow Test Packages (5 tasks, 4-5h)
+## Phase 0: Optimize Slow Test Packages (11 tasks, 8-10h)
+
+### P0.0: Gather Test Timings with Code Coverage
+
+**Priority**: CRITICAL
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Run `go test ./... -cover -coverprofile=test-output/coverage_baseline.out`
+- Capture timing data for all test packages
+- Identify slowest 11 packages (>10s each)
+- Document baseline timings in test-output/
+- Calculate total test execution time
+
+**Files to Create**:
+
+- `test-output/coverage_baseline.out`
+- `test-output/coverage_baseline_summary.txt`
+
+---
 
 ### P0.1: Optimize clientauth Package (168s → <30s)
 
@@ -239,40 +260,13 @@
 
 ---
 
-## Phase 1: Fix CI/CD Workflows (8 tasks, 6-8h)
-
-### P1.1-P1.8: Fix Individual Workflows
-
-**Priority Order (Highest to Lowest)**:
-
-**Common Pattern**:
-
-1. Run workflow locally with Act: `go run ./cmd/workflow -workflows=<name>`
-2. Identify failure root cause
-3. Implement fix
-4. Verify fix locally
-5. Commit and verify in GitHub Actions
-
-| Task | Workflow | Root Cause | Effort | Status | Priority |
-|------|----------|------------|--------|--------|----------|
-| P1.1 | ci-coverage | Coverage aggregation | 1h | ✅ COMPLETE | 1-CRITICAL |
-| P1.2 | ci-sast | Static analysis | 30min | ✅ COMPLETE | 8-LOW |
-| P1.3 | ci-e2e | Docker Compose setup | 1h | ✅ COMPLETE | 4-HIGH |
-| P1.4 | ci-benchmark | Benchmark baselines | 1h | ✅ COMPLETE | 2-HIGH |
-| P1.5 | ci-race | Race conditions | 1h | ✅ COMPLETE (CGO_ENABLED=1 allowed for race detector - Go toolchain limitation) | 6-MEDIUM |
-| P1.6 | ci-fuzz | Fuzz test execution | 1h | ✅ COMPLETE | 3-HIGH |
-| P1.7 | ci-dast | Service connectivity | 1h | ✅ COMPLETE (uses binary, not Docker Compose) | 5-MEDIUM |
-| P1.8 | ci-load | Gatling configuration | 30min | ✅ COMPLETE (go.mod drift fixed in commit ebbd25e1, workflow passed run 20050614726) | 7-MEDIUM |
-
----
-
-## Phase 1.5: Identity Admin API Implementation (12 tasks, 8-10h) 🏗️
+## Phase 1: Identity Admin API Implementation (12 tasks, 8-10h)
 
 **Objective**: Implement dual-server architecture for Identity services (AuthZ, IdP, RS) matching KMS pattern
 
 **Rationale**: Identity currently uses single public server with `/health`. Spec requires private admin server on 127.0.0.1:9090 for health probes, matching KMS/JOSE/CA pattern.
 
-### P1.5.1: Create AuthZ Private Server Infrastructure
+### P1.1: Create AuthZ Private Server Infrastructure
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
@@ -293,7 +287,7 @@
 
 ---
 
-### P1.5.2: Create IdP Private Server Infrastructure
+### P1.2: Create IdP Private Server Infrastructure
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
@@ -314,7 +308,7 @@
 
 ---
 
-### P1.5.3: Create RS Private Server Infrastructure
+### P1.3: Create RS Private Server Infrastructure
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
@@ -335,7 +329,7 @@
 
 ---
 
-### P1.5.4: Update AuthZ Server Startup Logic
+### P1.4: Update AuthZ Server Startup Logic
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
@@ -356,7 +350,7 @@
 
 ---
 
-### P1.5.5: Update IdP Server Startup Logic
+### P1.5: Update IdP Server Startup Logic
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
@@ -377,7 +371,7 @@
 
 ---
 
-### P1.5.6: Update RS Server Startup Logic
+### P1.6: Update RS Server Startup Logic
 
 **Priority**: CRITICAL
 **Effort**: 1 hour
@@ -398,7 +392,7 @@
 
 ---
 
-### P1.5.7: Update Identity Integration Tests
+### P1.7: Update Identity Integration Tests
 
 **Priority**: HIGH
 **Effort**: 1 hour
@@ -421,7 +415,7 @@
 
 ---
 
-### P1.5.8: Update Docker Compose Configurations
+### P1.8: Update Docker Compose Configurations
 
 **Priority**: HIGH
 **Effort**: 1 hour
@@ -442,7 +436,7 @@
 
 ---
 
-### P1.5.9: Update GitHub Workflows
+### P1.9: Update GitHub Workflows
 
 **Priority**: HIGH
 **Effort**: 1 hour
@@ -463,7 +457,7 @@
 
 ---
 
-### P1.5.10: Add Admin Endpoint Unit Tests
+### P1.10: Add Admin Endpoint Unit Tests
 
 **Priority**: MEDIUM
 **Effort**: 30 minutes
@@ -484,7 +478,7 @@
 
 ---
 
-### P1.5.11: Backward Compatibility (Optional)
+### P1.11: Backward Compatibility (Optional)
 
 **Priority**: LOW
 **Effort**: 30 minutes
@@ -506,7 +500,7 @@
 
 ---
 
-### P1.5.12: Verify End-to-End Integration
+### P1.12: Verify End-to-End Integration
 
 **Priority**: CRITICAL
 **Effort**: 30 minutes
@@ -529,108 +523,166 @@ curl -k https://127.0.0.1:9090/admin/v1/livez  # AuthZ
 curl -k https://127.0.0.1:9090/admin/v1/readyz
 curl -k https://127.0.0.1:9090/admin/v1/healthz
 go test ./internal/identity/... -tags=integration
-```
-
 ---
 
-## Phase 2: Complete Deferred I2 Features (8 tasks, 6-8h)
+## Phase 2: Deferred I2 Features (8 tasks, 6-8h)
 
-### P2.1: JOSE E2E Test Suite
+### P2.1: Device Authorization Grant (RFC 8628)
 
-**Priority**: HIGH
-**Effort**: 3-4 hours
-**Status**: ✅ COMPLETE (88.4% coverage, comprehensive tests exist)
+**Priority**: MEDIUM
+**Effort**: 2 hours
+**Status**: ❌ Not Started
 
 **Acceptance Criteria**:
 
-- Create `internal/jose/server/*_integration_test.go`
-- Test all 10 JOSE API endpoints end-to-end
-- Integration with Docker Compose
-- Tests execute in <2 minutes
-- Coverage greater than 95.0 for JOSE server package
+- Implement `/oauth2/v1/device/authorize` endpoint
+- Implement `/oauth2/v1/device/token` endpoint
+- RFC 8628 compliance
+- User code display and verification flow
+- Integration tests
 
 **Files to Create**:
 
-- `internal/jose/server/jwk_integration_test.go`
-- `internal/jose/server/jws_integration_test.go`
-- `internal/jose/server/jwe_integration_test.go`
-- `internal/jose/server/jwt_integration_test.go`
+- `internal/identity/authz/handler/device.go`
+- `internal/identity/authz/handler/device_test.go`
 
 ---
 
-### P2.2: CA OCSP Responder
+### P2.2: MFA - TOTP (RFC 6238)
 
-**Priority**: HIGH
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- TOTP registration endpoint
+- TOTP verification during authentication
+- QR code generation for setup
+- Recovery codes
+- Integration with step-up authentication
+
+**Files to Modify**:
+
+- `internal/identity/idp/userauth/mfa_totp.go`
+- `internal/identity/idp/handler/mfa.go`
+
+---
+
+### P2.3: MFA - WebAuthn
+
+**Priority**: MEDIUM
 **Effort**: 2 hours
-**Status**: ✅ COMPLETE (RFC 6960 handler + OpenAPI spec exist)
+**Status**: ❌ Not Started
 
 **Acceptance Criteria**:
 
-- Implement `/ca/v1/ocsp` endpoint
-- RFC 6960 OCSP protocol support
-- Return certificate status (good, revoked, unknown)
-- Integration with CRL generation
+- WebAuthn registration flow
+- WebAuthn authentication flow
+- Support for platform and roaming authenticators
+- Integration with step-up authentication
 
 **Files to Modify**:
 
-- `internal/ca/handler/ocsp.go` (create)
-- `internal/ca/server/routes.go`
+- `internal/identity/idp/userauth/webauthn_authenticator.go`
+- `internal/identity/idp/handler/webauthn.go`
 
 ---
 
-### P2.3: JOSE Docker Integration
+### P2.4: Client Authentication - private_key_jwt
 
-**Priority**: HIGH
-**Effort**: 1-2 hours
-**Status**: ✅ COMPLETE (deployments/jose/compose.yml exists)
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
 
 **Acceptance Criteria**:
 
-- Add jose-sqlite, jose-postgres-1, jose-postgres-2 services
-- Configure ports 8080-8082 (public), 9090 (admin)
-- Health checks via wget
-- Services start and pass health checks
+- Implement private_key_jwt client authentication
+- JWT signature verification with client's registered public key
+- Integration with OAuth 2.1 token endpoint
 
 **Files to Modify**:
 
-- `deployments/compose/compose.yml`
-- `deployments/jose/docker-compose.yml` (create)
-- `configs/jose/*.yml`
+- `internal/identity/authz/clientauth/private_key_jwt.go`
+- `internal/identity/authz/clientauth/private_key_jwt_test.go`
 
 ---
 
-### P2.4-P2.7: Already Complete ✅
+### P2.5: Client Authentication - client_secret_jwt
 
-| Task | Feature | Status |
-|------|---------|--------|
-| P2.4 | EST cacerts | ✅ Complete |
-| P2.5 | EST simpleenroll | ✅ Complete |
-| P2.6 | EST simplereenroll | ✅ Complete |
-| P2.7 | TSA timestamp | ✅ Complete |
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Implement client_secret_jwt client authentication
+- HMAC signature verification with client secret
+- Integration with OAuth 2.1 token endpoint
+
+**Files to Modify**:
+
+- `internal/identity/authz/clientauth/client_secret_jwt.go`
+- `internal/identity/authz/clientauth/client_secret_jwt_test.go`
 
 ---
 
-### P2.8: EST serverkeygen (MANDATORY REQUIRED)
+### P2.6: Client Authentication - tls_client_auth
 
-**Priority**: CRITICAL
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Implement mTLS client authentication
+- Client certificate verification
+- Integration with OAuth 2.1 token endpoint
+
+**Files to Modify**:
+
+- `internal/identity/authz/clientauth/tls_client_auth.go`
+- `internal/identity/authz/clientauth/tls_client_auth_test.go`
+
+---
+
+### P2.7: DPoP (Demonstrating Proof-of-Possession)
+
+**Priority**: MEDIUM
 **Effort**: 2 hours
-**Status**: ✅ COMPLETE (RFC 7030 Section 4.4 with PKCS#7, commit c521e698)
+**Status**: ❌ Not Started
 
 **Acceptance Criteria**:
 
-- Research and integrate CMS/PKCS#7 library (github.com/github/smimesign or go.mozilla.org/pkcs7)
-- Implement `/ca/v1/est/serverkeygen` endpoint per RFC 7030
-- Generate key pair server-side, wrap private key in PKCS#7/CMS
-- Return encrypted private key and certificate to client
-- E2E tests for serverkeygen flow
-- Update SPECKIT-PROGRESS.md I3.1.4 status ⚠️ → ✅
-- Full RFC 7030 compliance
+- Implement DPoP token binding
+- DPoP proof generation and verification
+- Integration with OAuth 2.1 token endpoint
+- DPoP-bound access tokens
 
-**Files to Modify**:
+**Files to Create**:
 
-- `internal/ca/handler/est_serverkeygen.go` (create)
-- `internal/ca/server/routes.go`
-- `go.mod` (add CMS/PKCS#7 dependency)
+- `internal/identity/authz/dpop/dpop.go`
+- `internal/identity/authz/dpop/dpop_test.go`
+
+---
+
+### P2.8: PAR (Pushed Authorization Requests)
+
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Implement `/oauth2/v1/par` endpoint
+- Authorization request parameter storage
+- request_uri generation and validation
+- Integration with authorization code flow
+
+**Files to Create**:
+
+- `internal/identity/authz/handler/par.go`
+- `internal/identity/authz/handler/par_test.go`
 
 ---
 
@@ -815,7 +867,7 @@ curl -k https://localhost:8445/ui/swagger/doc.json  # ca-postgres-2
 
 ---
 
-## Phase 3: Achieve Coverage Targets (5 tasks, 2-3h) 📊
+## Phase 3: Coverage Targets (6 tasks, 2-3h)
 
 ### P3.1: ca/handler Coverage (baseline 82.3, target 95.0)
 
@@ -951,7 +1003,26 @@ curl -k https://localhost:8445/ui/swagger/doc.json  # ca-postgres-2
 
 ---
 
-## Phase 4: Advanced Testing & E2E Workflows (12 tasks, 8-12h, HIGH PRIORITY) 🧪
+### P3.6: Achieve 95% coverage for cicd utilities
+
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Add tests for cicd utility commands
+- Test command-line argument parsing
+- Test file processing logic
+- Coverage ≥95% for all cicd packages
+
+**Files to Modify**:
+
+- `internal/cmd/cicd/*_test.go`
+
+---
+
+## Phase 4: Advanced Testing & E2E Workflows (12 tasks, 8-12h)
 
 **Objective**: Add comprehensive E2E workflow tests and advanced testing methodologies
 
@@ -1202,20 +1273,166 @@ mvn gatling:test -Dgatling.simulationClass=cryptoutil.BrowserApiSimulation
 
 ---
 
-## Phase 5: Documentation & Demo (6 tasks, 8-12h, OPTIONAL)
+## Phase 5: CI/CD Workflow Fixes (8 tasks, 6-8h)
+
+### P5.1: Fix ci-coverage workflow
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ✅ COMPLETE
+
+**Acceptance Criteria**:
+
+- Fix coverage aggregation across all packages
+- Upload coverage reports to GitHub
+- All coverage checks pass
+
+**Files to Modify**:
+
+- `.github/workflows/ci-coverage.yml`
+
+---
+
+### P5.2: Fix ci-benchmark workflow
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ✅ COMPLETE
+
+**Acceptance Criteria**:
+
+- Fix benchmark execution
+- Establish performance baselines
+- Upload benchmark results
+
+**Files to Modify**:
+
+- `.github/workflows/ci-benchmark.yml`
+
+---
+
+### P5.3: Fix ci-fuzz workflow
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ✅ COMPLETE
+
+**Acceptance Criteria**:
+
+- Fix fuzz test execution
+- Configure fuzz time limits
+- All fuzz tests pass
+
+**Files to Modify**:
+
+- `.github/workflows/ci-fuzz.yml`
+
+---
+
+### P5.4: Fix ci-e2e workflow
+
+**Priority**: HIGH
+**Effort**: 1 hour
+**Status**: ✅ COMPLETE
+
+**Acceptance Criteria**:
+
+- Fix Docker Compose setup
+- Fix service health checks
+- All E2E tests pass
+
+**Files to Modify**:
+
+- `.github/workflows/ci-e2e.yml`
+
+---
+
+### P5.5: Fix ci-dast workflow
+
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ✅ COMPLETE
+
+**Acceptance Criteria**:
+
+- Fix service connectivity
+- Configure Nuclei scanning
+- Security scan completes successfully
+
+**Files to Modify**:
+
+- `.github/workflows/ci-dast.yml`
+
+---
+
+### P5.6: Fix ci-load workflow
+
+**Priority**: MEDIUM
+**Effort**: 30 minutes
+**Status**: ✅ COMPLETE
+
+**Acceptance Criteria**:
+
+- Fix Gatling configuration
+- Load tests execute successfully
+- Performance metrics collected
+
+**Files to Modify**:
+
+- `.github/workflows/ci-load.yml`
+
+---
+
+### P5.7: Fix ci-mutation workflow
+
+**Priority**: MEDIUM
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Configure gremlins mutation testing
+- Set mutation score thresholds (≥80%)
+- Workflow completes successfully
+
+**Files to Modify**:
+
+- `.github/workflows/ci-mutation.yml`
+
+---
+
+### P5.8: Fix ci-identity-validation workflow
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Fix identity-specific validation
+- All validation checks pass
+- Workflow completes successfully
+
+**Files to Modify**:
+
+- `.github/workflows/identity-validation.yml`
+
+---
+
+## Phase 6: Demo Videos (6 tasks, 16-24h)
 
 Minimal documentation. Products must be intuitive and work without users and developers reading large amounts of docs.
 
-### P5.1-P5.6: Demo Videos
+### P6.1-P6.6: Demo Videos
 
 | Task | Demo | Duration | Effort | Status |
 |------|------|----------|--------|--------|
-| P5.1 | JOSE Authority | 5-10min | 2h | ❌ |
-| P5.2 | Identity Server | 10-15min | 2-3h | ❌ |
-| P5.3 | KMS | 10-15min | 2-3h | ❌ |
-| P5.4 | CA Server | 10-15min | 2-3h | ❌ |
-| P5.5 | Integration | 15-20min | 3-4h | ❌ |
-| P5.6 | Unified Suite | 20-30min | 3-4h | ❌ |
+| P6.1 | KMS standalone demo | 5-10min | 2h | ❌ |
+| P6.2 | Identity standalone demo | 10-15min | 2-3h | ❌ |
+| P6.3 | JOSE standalone demo | 10-15min | 2-3h | ❌ |
+| P6.4 | CA standalone demo | 10-15min | 2-3h | ❌ |
+| P6.5 | Full suite integration demo | 15-20min | 3-4h | ❌ |
+| P6.6 | Security features demo | 20-30min | 3-4h | ❌ |
 
 ---
 
@@ -1223,17 +1440,19 @@ Minimal documentation. Products must be intuitive and work without users and dev
 
 **Task Breakdown Status**: ✅ **COMPLETE**
 
-70 tasks identified with clear acceptance criteria, effort estimates, and priorities.
+71 tasks identified with clear acceptance criteria, effort estimates, and priorities.
 
 **Updates (December 11, 2025)**:
 
-- Added Phase 1.5: Identity Admin API Implementation (12 tasks, 8-10 hours)
-- Added Phase 2.5: CA Production Deployment (8 tasks, 4-6 hours)
-- Upgraded Phase 4 to HIGH priority with E2E workflows and Browser API load tests (12 tasks, 8-12 hours)
-- Total tasks increased from 42 to 70 (28 new tasks)
-- Total effort increased from 58-82h to 70-98h
+- Phase renumbering: Phase 1.5 → Phase 1 (Identity Admin API)
+- Added Phase 2.5: CA Production Deployment (8 tasks)
+- Added Phase 3.6: cicd utilities coverage
+- Added Phase 5: CI/CD Workflow Fixes (8 tasks, 6-8h)
+- Phase 6: Demo Videos (renumbered from Phase 5)
+- Total tasks: 71 (11 Phase 0 + 12 Phase 1 + 8 Phase 2 + 8 Phase 2.5 + 6 Phase 3 + 12 Phase 4 + 8 Phase 5 + 6 Phase 6)
+- Total effort: 58-81h
 
-**Next Step**: Execute /speckit.analyze to perform coverage check and update implement/DETAILED.md.
+**Next Step**: Implement all tasks systematically.
 
 ---
 
@@ -1244,10 +1463,10 @@ Minimal documentation. Products must be intuitive and work without users and dev
 
 **Update Summary (v2.0.0)**:
 
-- Phase 1.5 added: 12 new tasks for Identity admin API implementation (dual-server pattern)
-- Phase 2.5 added: 8 new tasks for CA production deployment configuration
-- Phase 4 upgraded: 8 new E2E workflow tasks (OAuth, KMS, CA, JOSE) + Browser API load testing
-- Phase sequencing updated: 0 → 1 → 1.5 → 2 → 2.5 → 3 → 4 → 5
-- Total task count: 70 (from 42)
-- Total effort estimate: 70-98 hours (from 58-82 hours)
-
+- Phase restructure: Identity Admin API moved from 1.5 to 1
+- CA Production Deployment remains as Phase 2.5
+- Added cicd coverage target (P3.6)
+- CI/CD Workflow Fixes inserted as Phase 5
+- Demo Videos renumbered from Phase 5 to Phase 6
+- Total task count: 71 (from 70)
+- Total effort estimate: 58-81 hours (optimized from 70-98h)
