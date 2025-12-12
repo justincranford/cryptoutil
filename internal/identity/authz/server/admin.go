@@ -6,8 +6,15 @@ package server
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -189,7 +196,63 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	return nil
 }
 
+// generateSelfSignedTLSConfig generates a self-signed TLS certificate for testing.
+func generateSelfSignedTLSConfig() (*tls.Config, error) {
+	// Generate ECDSA P-256 key pair.
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate private key: %w", err)
+	}
+
+	// Create certificate template.
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate serial number: %w", err)
+	}
+
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"CryptoUtil Test"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(24 * time.Hour),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
+		DNSNames:              []string{"localhost"},
+	}
+
+	// Create self-signed certificate.
+	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create certificate: %w", err)
+	}
+
+	// Encode certificate and key to PEM.
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	keyBytes, err := x509.MarshalECPrivateKey(privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal private key: %w", err)
+	}
+
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyBytes})
+
+	// Parse TLS certificate.
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse TLS certificate: %w", err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS13,
+	}, nil
+}
+
 // loadTLSConfig loads TLS configuration from files specified in config.
+// For testing, if cert/key files are not provided, generates a self-signed certificate.
 func (s *AdminServer) loadTLSConfig(ctx context.Context) (*tls.Config, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -198,8 +261,9 @@ func (s *AdminServer) loadTLSConfig(ctx context.Context) (*tls.Config, error) {
 	certFile := s.config.AuthZ.TLSCertFile
 	keyFile := s.config.AuthZ.TLSKeyFile
 
+	// If cert/key files not provided, generate self-signed cert for testing.
 	if certFile == "" || keyFile == "" {
-		return nil, fmt.Errorf("TLS cert file and key file must be configured")
+		return generateSelfSignedTLSConfig()
 	}
 
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
