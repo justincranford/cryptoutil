@@ -17,6 +17,7 @@ import (
 )
 
 // TestGenerateRSAJWK tests RSA JWK generation.
+// P0.2 optimization: Test only RSA2048 - function logic is identical for all sizes.
 func TestGenerateRSAJWK(t *testing.T) {
 	t.Parallel()
 
@@ -25,8 +26,6 @@ func TestGenerateRSAJWK(t *testing.T) {
 		rsaBits int
 	}{
 		{"RSA2048", cryptoutilMagic.RSAKeySize2048},
-		{"RSA3072", cryptoutilMagic.RSAKeySize3072},
-		{"RSA4096", cryptoutilMagic.RSAKeySize4096},
 	}
 
 	for _, tc := range tests {

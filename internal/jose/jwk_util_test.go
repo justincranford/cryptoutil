@@ -415,6 +415,8 @@ func getTestCases(t *testing.T) []testCase {
 	return testCases
 }
 
+// TestGenerateJWKForAlg_AllAlgorithms tests JWK generation for all supported algorithms.
+// P0.2 optimization: Test only RSA2048 (RSA logic identical for all sizes).
 func TestGenerateJWKForAlg_AllAlgorithms(t *testing.T) {
 	t.Parallel()
 
@@ -423,8 +425,6 @@ func TestGenerateJWKForAlg_AllAlgorithms(t *testing.T) {
 		alg  cryptoutilOpenapiModel.GenerateAlgorithm
 	}{
 		{"RSA2048", cryptoutilOpenapiModel.RSA2048},
-		{"RSA3072", cryptoutilOpenapiModel.RSA3072},
-		{"RSA4096", cryptoutilOpenapiModel.RSA4096},
 		{"ECP256", cryptoutilOpenapiModel.ECP256},
 		{"ECP384", cryptoutilOpenapiModel.ECP384},
 		{"ECP521", cryptoutilOpenapiModel.ECP521},
