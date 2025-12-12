@@ -10,9 +10,6 @@
 # Binding address - 0.0.0.0 allows connections from any NIC within the container
 bind-public-address: "0.0.0.0"
 
-# Admin port (private admin API on 127.0.0.1 only)
-bind-admin-port: 9443
-
 # TLS configuration for HTTPS
 tls-cert-file: /app/tls_public_server_certificate_0.pem
 tls-key-file: /app/tls_public_server_private_key.pem

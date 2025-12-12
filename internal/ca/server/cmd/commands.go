@@ -20,10 +20,10 @@ import (
 // NewStartCommand creates the start command for the CA server.
 func NewStartCommand() *cobra.Command {
 	var (
-		configFile string
-		bindAddr   string
-		bindPort   uint16
-		devMode    bool
+		configFiles []string
+		bindAddr    string
+		bindPort    uint16
+		devMode     bool
 	)
 
 	cmd := &cobra.Command{
@@ -37,6 +37,9 @@ Examples:
 
   # Start with custom config file
   ca-server start --config ca-server.yml
+
+  # Start with multiple config files (merged in order)
+  ca-server start --config ca-common.yml --config ca-instance.yml --config ca-otel.yml
 
   # Start with custom bind address and port
   ca-server start --bind 0.0.0.0 --port 8091`,
@@ -59,10 +62,16 @@ Examples:
 
 			var err error
 
-			if configFile != "" {
-				settings, err = cryptoutilConfig.NewFromFile(configFile)
+			if len(configFiles) > 0 {
+				// Build args with multiple --config flags for Parse()
+				parseArgs := []string{"start"} // Subcommand required by Parse()
+				for _, cf := range configFiles {
+					parseArgs = append(parseArgs, "--config", cf)
+				}
+
+				settings, err = cryptoutilConfig.Parse(parseArgs, false)
 				if err != nil {
-					return fmt.Errorf("failed to load config file %s: %w", configFile, err)
+					return fmt.Errorf("failed to load config files: %w", err)
 				}
 			} else {
 				// Use default settings for CA server.
@@ -92,7 +101,7 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVarP(&configFile, "config", "c", "", "Path to configuration file")
+	cmd.Flags().StringSliceVarP(&configFiles, "config", "c", nil, "Path to configuration file (can be specified multiple times)")
 	cmd.Flags().StringVarP(&bindAddr, "bind", "b", cryptoutilMagic.IPv4Loopback, "Bind address")
 	cmd.Flags().Uint16VarP(&bindPort, "port", "p", cryptoutilMagic.DefaultPublicPortCAServer, "Bind port")
 	cmd.Flags().BoolVar(&devMode, "dev", false, "Enable development mode (relaxed security)")

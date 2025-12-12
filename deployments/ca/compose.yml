@@ -43,8 +43,8 @@ services:
   builder-cryptoutil:
     image: cryptoutil:dev
     build:
-      context: ../../..
-      dockerfile: deployments/ca/Dockerfile.ca
+      context: ../..
+      dockerfile: deployments/ca/Dockerfile.ca-server
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
@@ -95,7 +95,7 @@ services:
   ca-sqlite:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["ca-server", "start", "--config=/app/config/ca-sqlite.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["start", "--config=/app/config/ca-sqlite.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8443:8443"  # HTTPS public
@@ -124,7 +124,9 @@ services:
     healthcheck:
       # Use wget (available in Alpine), not curl.
       # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers.
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9443/admin/v1/livez"]
+      # CA server routes: /health, /livez, /readyz (no /admin/v1/ prefix).
+      # TODO: Change to HTTPS once CA server implements TLS (currently HTTP only).
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8443/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -143,7 +145,7 @@ services:
   ca-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["ca-server", "start", "--config=/app/config/ca-postgresql-1.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["start", "--config=/app/config/ca-postgresql-1.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp
     ports:
       - "8444:8443"  # HTTPS public
@@ -173,7 +175,9 @@ services:
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9443/admin/v1/livez"]
+      # CA server routes: /health, /livez, /readyz (no /admin/v1/ prefix).
+      # TODO: Change to HTTPS once CA server implements TLS (currently HTTP only).
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8443/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
@@ -192,7 +196,7 @@ services:
   ca-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["ca-server", "start", "--config=/app/config/ca-postgresql-2.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["start", "--config=/app/config/ca-postgresql-2.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp
     ports:
       - "8445:8443"  # HTTPS public
@@ -225,7 +229,9 @@ services:
       ca-postgres-1:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9443/admin/v1/livez"]
+      # CA server routes: /health, /livez, /readyz (no /admin/v1/ prefix).
+      # TODO: Change to HTTPS once CA server implements TLS (currently HTTP only).
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8443/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
