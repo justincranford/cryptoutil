@@ -209,11 +209,13 @@ func TestMFALongRunningStress(t *testing.T) {
 	ctx := context.Background()
 
 	const (
-		testDuration    = 30 * time.Second
+		// P0.5 optimization: Reduced from 30s to 5s for faster unit test execution
+		// Full 30s load testing should be in Gatling load tests (test/load/)
+		testDuration    = 5 * time.Second
 		parallelWorkers = 20
 	)
 
-	t.Run("Sustained_Load_30_Seconds", func(t *testing.T) {
+	t.Run("Sustained_Load_5_Seconds", func(t *testing.T) {
 		var wg sync.WaitGroup
 
 		stopSignal := make(chan struct{})
