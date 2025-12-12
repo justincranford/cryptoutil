@@ -44,7 +44,7 @@ func TestNewAdminServer(t *testing.T) {
 
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_rs_admin_nil_ctx")
 
-		server, err := NewAdminServer(context.TODO(), cfg)
+		server, err := NewAdminServer(nil, cfg) //nolint:staticcheck // Testing nil context validation requires passing nil.
 		require.Error(t, err)
 		require.Nil(t, server)
 		require.Contains(t, err.Error(), "context cannot be nil")
