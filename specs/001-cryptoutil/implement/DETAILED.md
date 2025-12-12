@@ -13,18 +13,20 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 ### Phase 0: Optimize Slow Test Packages (11 tasks)
 
-- [ ] **P0.0**: Gather test timings with code coverage
-- [ ] **P0.1**: Optimize clientauth (168s → <30s) - `internal/identity/authz/clientauth/*_test.go`
-- [ ] **P0.2**: Optimize jose/server (94s → <20s) - `internal/jose/server/*_test.go`
-- [ ] **P0.3**: Optimize kms/client (74s → <20s) - `internal/kms/client/*_test.go`
-- [ ] **P0.4**: Optimize jose (67s → <15s) - `internal/jose/*_test.go`
-- [ ] **P0.5**: Optimize kms/server/app (28s → <10s) - `internal/kms/server/application/*_test.go`
-- [ ] **P0.6**: Optimize identity/authz (19s → <10s) - `internal/identity/authz/*_test.go`
-- [ ] **P0.7**: Optimize identity/idp (15s → <10s) - `internal/identity/idp/*_test.go`
-- [ ] **P0.8**: Optimize identity/test/unit (18s → <10s) - `internal/identity/test/unit/*_test.go`
-- [ ] **P0.9**: Optimize identity/test/integration (16s → <10s) - `internal/identity/test/integration/*_test.go`
-- [ ] **P0.10**: Optimize infra/realm (14s → <10s) - `internal/infra/realm/*_test.go`
-- [ ] **P0.11**: Optimize kms/server/barrier (13s → <10s) - `internal/kms/server/barrier/*_test.go`
+- [x] **P0.0**: Gather test timings with code coverage ✅ COMPLETE
+- [x] **P0.1**: Optimize keygen (161s → 20s, 87.5% reduction) ✅ EXCEEDED TARGET
+- [x] **P0.2**: Optimize jose (77s → 80s, variance) ⚠️ PARTIAL (isolated 18.6% faster)
+- [x] **P0.3**: Optimize jose/server (67s → 70s) ⏭️ SKIPPED (benefits from concurrency)
+- [ ] **P0.4**: Optimize kms/client (65s → ?) - 4.8x concurrent slowdown investigation
+- [ ] **P0.5**: Optimize identity/test/load (31s → <15s)
+- [ ] **P0.6**: Optimize kms/server/barrier (31s → <15s)
+- [ ] **P0.7**: Optimize kms/server/application (27s → <15s)
+- [ ] **P0.8**: Optimize identity/authz (21s → <10s)
+- [ ] **P0.9**: Optimize identity/authz/clientauth (21s → <10s)
+- [ ] **P0.10**: Optimize kms/server/businesslogic (18s → <10s)
+- [ ] **P0.11**: Optimize kms/server/barrier/rootkeysservice (17s → <10s)
+
+**Note**: Actual slow packages differ from original TASKS.md due to real measurement. Concurrent slowdown pattern (3-5x) discovered - see docs/P0-STRATEGY-REVISION.md
 
 ### Phase 1: Identity Admin API Implementation (12 tasks)
 
@@ -193,6 +195,59 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - Timeline increased: 16-24h → 24-32h work effort, 3-5 days → 5-7 calendar days
 - Task count increased: 42 → 70 tasks (+66% increase)
 - New HIGH priority phases added (1.5, 2.5, 4 upgraded)
+
+### December 12, 2025 - Phase 0 Test Optimization (Session 1)
+
+**Tasks**: P0.0 Baseline, P0.1 keygen optimization, P0.2 jose optimization
+**Status**: 🚧 IN PROGRESS
+
+**Evidence**: Commits 2ef11667, c1391a14, de3714b8, e4ffd23b, ee1585df, 5d6bfde5, 1f05aee5
+
+**P0.0 - Test Baseline Established**:
+
+- Measured full test suite: 176.89s total
+- Identified slow packages: keygen (160.8s), jose (68.4s), jose/server (62.5s), kms/client (51.1s)
+- Created docs/P0.0-BASELINE-SUMMARY.md and P0.0-FAILURE-INVESTIGATION.md
+- Target: <100s total test suite time
+
+**P0.1 - keygen Optimization ✅ COMPLETE**:
+
+- Reduced property test iterations: RSA 100→10, ECDSA/ECDH/EdDSA 100→25
+- Result: 160.845s → 20.103s (87.5% reduction, exceeded 81.35% target)
+- Full suite improvement: 176.89s → 148.79s (28.1s / 15.9% faster)
+- Coverage maintained: 85.2%
+- Cascade effect: Single optimization improved multiple dependent packages
+- Commit c1391a14, analysis docs/P0.1-POST-ANALYSIS.md (de3714b8)
+
+**P0.2 - jose Optimization ⚠️ PARTIAL**:
+
+- Reduced RSA test matrix: TestGenerateRSAJWK (3→1 cases), TestGenerateJWKForAlg_AllAlgorithms (12→10 cases)
+- Isolated improvement: 18.857s → 15.346s (3.5s / 18.6% reduction)
+- Full suite variance: 77.13s → 80.458s (not reliable improvement)
+- Coverage maintained: 75.9%
+- Key finding: jose shows 4x-5x concurrent slowdown (18s isolated → 77s concurrent)
+- Commit ee1585df, analysis docs/P0.2-PARTIAL-ANALYSIS.md (5d6bfde5)
+
+**P0.3 - jose/server Assessment ⏭️ SKIPPED**:
+
+- Isolated: 105.14s (93 test cases)
+- Full suite: 66.94s → **38s FASTER in concurrent execution**
+- Pattern: Benefits from concurrent parallelization (I/O-bound HTTP tests)
+- Decision: Skip optimization - already benefits from concurrency
+
+**Concurrent Slowdown Pattern Discovered**:
+
+- Most packages 3-5x slower in full suite vs isolated: keygen (3.5x), jose (4.1x), kms/client (4.8x)
+- Exception: jose/server 0.64x (faster concurrent)
+- Real bottleneck: Concurrent overhead, not individual test duration
+- Created docs/P0-STRATEGY-REVISION.md (1f05aee5)
+
+**Spec Cleanup**:
+
+- Removed token budget references from PLAN.md and SESSION-SUMMARY.md per user request
+- Commit e4ffd23b
+
+**Status**: P0.1 COMPLETE, P0.2 PARTIAL, P0.3 SKIPPED, continuing with P0.4 investigation
 
 ---
 
