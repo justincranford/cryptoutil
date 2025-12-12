@@ -6,6 +6,7 @@ package sqlrepository_test
 
 import (
 	"context"
+	"runtime"
 	"testing"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
@@ -19,6 +20,10 @@ import (
 func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping container test in short mode")
+	}
+
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping testcontainers test on Windows (rootless Docker not supported)")
 	}
 
 	t.Parallel()
