@@ -56,16 +56,18 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [ ] **P2.7**: DPoP (Demonstrating Proof-of-Possession)
 - [ ] **P2.8**: PAR (Pushed Authorization Requests)
 
-### Phase 2.5: CA Production Deployment (8 tasks)
+### Phase 2.5: CA Production Deployment (8 tasks) 🚧 IN PROGRESS
 
-- [ ] **P2.5.1**: Create production compose file - `deployments/ca/compose.yml`
-- [ ] **P2.5.2**: Configure PostgreSQL backend - Database secrets and initialization
-- [ ] **P2.5.3**: Integrate telemetry services - OpenTelemetry collector and Grafana
-- [ ] **P2.5.4**: Configure CA-specific requirements - CRL, OCSP, EST, cert profiles
-- [ ] **P2.5.5**: Configure CA instance configs - `configs/ca/ca-*.yml` for sqlite/postgres
-- [ ] **P2.5.6**: Update CA Docker health checks - Admin endpoints on 127.0.0.1:9443
+- [x] **P2.5.1**: Production compose file ✅ COMPLETE (deployments/ca/compose.yml)
+- [x] **P2.5.2**: PostgreSQL backend ✅ COMPLETE (secrets created)
+- [x] **P2.5.3**: Telemetry integration ✅ COMPLETE (via include path)
+- [x] **P2.5.4**: CA-specific requirements ✅ COMPLETE (CRL volumes, OCSP endpoints)
+- [x] **P2.5.5**: CA instance configs ✅ COMPLETE (ca-sqlite.yml, ca-postgresql-{1,2}.yml)
+- [x] **P2.5.6**: Docker health checks ✅ COMPLETE (/admin/v1/livez on 9443)
 - [ ] **P2.5.7**: Test production deployment - All 3 instances (sqlite, 2× postgres)
 - [ ] **P2.5.8**: Integration with CI/CD workflows - Update ci-e2e and ci-dast
+
+**Results**: Created deployments/ca/compose.yml matching KMS pattern. PostgreSQL secrets, unseal secrets (copied from KMS for interoperability), instance-specific configs, CRL volumes, telemetry integration via include. 3 instances: ca-sqlite (8443), ca-postgres-1 (8444), ca-postgres-2 (8445). Admin endpoints on 127.0.0.1:9443. Ready for testing.
 
 ### Phase 3: Coverage Targets (5 tasks)
 
