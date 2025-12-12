@@ -10,6 +10,7 @@ import (
 
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -189,7 +190,7 @@ func TestBootstrapper_Bootstrap_WithPersistence(t *testing.T) {
 	keyData, err := os.ReadFile(keyPath)
 	require.NoError(t, err)
 	require.NotEmpty(t, keyData)
-	require.Contains(t, string(keyData), "BEGIN PRIVATE KEY")
+	require.Contains(t, string(keyData), "BEGIN "+cryptoutilMagic.StringPEMTypePKCS8PrivateKey) // pragma: allowlist secret
 
 	// Verify key file permissions (should be restrictive).
 	keyInfo, err := os.Stat(keyPath)

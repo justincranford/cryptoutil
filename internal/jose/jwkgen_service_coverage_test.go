@@ -102,9 +102,12 @@ func TestJWKGenService_GenerateJWEJWK_AllAlgorithms(t *testing.T) {
 	aesTests := []struct {
 		alg joseJwa.KeyEncryptionAlgorithm
 	}{
-		{AlgA256KW}, {AlgA256GCMKW},
-		{AlgA192KW}, {AlgA192GCMKW},
-		{AlgA128KW}, {AlgA128GCMKW},
+		{AlgA256KW},
+		{AlgA256GCMKW},
+		{AlgA192KW},
+		{AlgA192GCMKW},
+		{AlgA128KW},
+		{AlgA128GCMKW},
 	}
 
 	for _, tc := range aesTests {
@@ -123,8 +126,11 @@ func TestJWKGenService_GenerateJWEJWK_AllAlgorithms(t *testing.T) {
 	rsaTests := []struct {
 		alg joseJwa.KeyEncryptionAlgorithm
 	}{
-		{AlgRSAOAEP512}, {AlgRSAOAEP384}, {AlgRSAOAEP256},
-		{AlgRSAOAEP}, {AlgRSA15},
+		{AlgRSAOAEP512},
+		{AlgRSAOAEP384},
+		{AlgRSAOAEP256},
+		{AlgRSAOAEP},
+		{AlgRSA15},
 	}
 
 	for _, tc := range rsaTests {
@@ -143,8 +149,10 @@ func TestJWKGenService_GenerateJWEJWK_AllAlgorithms(t *testing.T) {
 	ecdhTests := []struct {
 		alg joseJwa.KeyEncryptionAlgorithm
 	}{
-		{AlgECDHES}, {AlgECDHESA256KW},
-		{AlgECDHESA192KW}, {AlgECDHESA128KW},
+		{AlgECDHES},
+		{AlgECDHESA256KW},
+		{AlgECDHESA192KW},
+		{AlgECDHESA128KW},
 	}
 
 	for _, tc := range ecdhTests {
@@ -182,11 +190,19 @@ func TestJWKGenService_GenerateJWSJWK_AllAlgorithms(t *testing.T) {
 	tests := []struct {
 		alg joseJwa.SignatureAlgorithm
 	}{
-		{joseJwa.PS512()}, {joseJwa.PS384()}, {joseJwa.PS256()},
-		{joseJwa.RS512()}, {joseJwa.RS384()}, {joseJwa.RS256()},
-		{joseJwa.ES512()}, {joseJwa.ES384()}, {joseJwa.ES256()},
+		{joseJwa.PS512()},
+		{joseJwa.PS384()},
+		{joseJwa.PS256()},
+		{joseJwa.RS512()},
+		{joseJwa.RS384()},
+		{joseJwa.RS256()},
+		{joseJwa.ES512()},
+		{joseJwa.ES384()},
+		{joseJwa.ES256()},
 		{joseJwa.EdDSA()},
-		{joseJwa.HS512()}, {joseJwa.HS384()}, {joseJwa.HS256()},
+		{joseJwa.HS512()},
+		{joseJwa.HS384()},
+		{joseJwa.HS256()},
 	}
 
 	for _, tc := range tests {

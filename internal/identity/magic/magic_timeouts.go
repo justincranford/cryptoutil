@@ -134,7 +134,7 @@ const (
 
 // Push notification configuration.
 const (
-	DefaultPushNotificationTimeout    = 120 * time.Second // Default push notification timeout (2 minutes).
+	DefaultPushNotificationTimeout     = 120 * time.Second // Default push notification timeout (2 minutes).
 	DefaultPushNotificationTokenLength = 32                // Default push notification approval token length.
 )
 

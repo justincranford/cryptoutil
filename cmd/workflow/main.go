@@ -5,8 +5,9 @@
 package main
 
 import (
-	"cryptoutil/internal/cmd/workflow"
 	"os"
+
+	"cryptoutil/internal/cmd/workflow"
 )
 
 func main() {

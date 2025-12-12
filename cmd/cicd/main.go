@@ -5,9 +5,10 @@
 package main
 
 import (
-	"cryptoutil/internal/cmd/cicd"
 	"fmt"
 	"os"
+
+	"cryptoutil/internal/cmd/cicd"
 )
 
 // getUsage returns the usage information for the cicd command.

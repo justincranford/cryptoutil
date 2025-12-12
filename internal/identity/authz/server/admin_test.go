@@ -44,7 +44,7 @@ func TestNewAdminServer(t *testing.T) {
 
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_nil_ctx")
 
-			   server, err := NewAdminServer(context.TODO(), cfg)
+		server, err := NewAdminServer(context.TODO(), cfg)
 		require.Error(t, err)
 		require.Nil(t, server)
 		require.Contains(t, err.Error(), "context cannot be nil")
@@ -129,7 +129,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		require.NoError(t, err)
 
 		// Shutdown with nil context should default to Background.
-			   require.NoError(t, server.Shutdown(context.TODO()))
+		require.NoError(t, server.Shutdown(context.TODO()))
 	})
 }
 
@@ -262,9 +262,9 @@ func TestAdminEndpointReadyz(t *testing.T) {
 		// Expect either "not ready" (503) or "ready" (200) depending on timing.
 		switch statusCode {
 		case http.StatusServiceUnavailable:
-			require.Equal(t, "not ready", response["status"]) 
+			require.Equal(t, "not ready", response["status"])
 		case http.StatusOK:
-			require.Equal(t, "ready", response["status"]) 
+			require.Equal(t, "ready", response["status"])
 		default:
 			require.Fail(t, fmt.Sprintf("unexpected status code: %d", statusCode))
 		}

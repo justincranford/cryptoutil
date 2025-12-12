@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // TestGenerateKeyPairFromCSR_AllAlgorithms tests key pair generation for all supported algorithms.
@@ -166,8 +167,8 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		require.NotEmpty(t, pemBytes)
 
 		// Verify PEM format (PKCS#1 for RSA).
-		require.Contains(t, string(pemBytes), "-----BEGIN RSA PRIVATE KEY-----")
-		require.Contains(t, string(pemBytes), "-----END RSA PRIVATE KEY-----")
+		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilMagic.StringPEMTypeRSAPrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----END "+cryptoutilMagic.StringPEMTypeRSAPrivateKey+"-----") // pragma: allowlist secret
 	})
 
 	t.Run("ECDSA_PrivateKey", func(t *testing.T) {
@@ -183,8 +184,8 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		require.NotEmpty(t, pemBytes)
 
 		// Verify PEM format (EC format for ECDSA).
-		require.Contains(t, string(pemBytes), "-----BEGIN EC PRIVATE KEY-----")
-		require.Contains(t, string(pemBytes), "-----END EC PRIVATE KEY-----")
+		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilMagic.StringPEMTypeECPrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----END "+cryptoutilMagic.StringPEMTypeECPrivateKey+"-----") // pragma: allowlist secret
 	})
 
 	t.Run("Ed25519_PrivateKey", func(t *testing.T) {
@@ -200,8 +201,8 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		require.NotEmpty(t, pemBytes)
 
 		// Verify PEM format.
-		require.Contains(t, string(pemBytes), "-----BEGIN PRIVATE KEY-----")
-		require.Contains(t, string(pemBytes), "-----END PRIVATE KEY-----")
+		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilMagic.StringPEMTypePKCS8PrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----END "+cryptoutilMagic.StringPEMTypePKCS8PrivateKey+"-----") // pragma: allowlist secret
 	})
 
 	t.Run("UnsupportedKeyType_String", func(t *testing.T) {

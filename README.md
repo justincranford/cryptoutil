@@ -16,6 +16,7 @@ The project began as a standalone **Key Management Service (KMS)**. As part of t
 - **CA** => Issue TLS certificates to protect **data-in-transit**.
 - **JOSE** => Issue JSON (JWEs) to protect **data-at-rest**.
 - **Identity** => Provide multi-tenant **authentication** (AuthN) and flexible **authorization** (AuthZ).
+**
 
 ### Evolution of the Architecture
 

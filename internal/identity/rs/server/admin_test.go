@@ -262,9 +262,9 @@ func TestAdminEndpointReadyz(t *testing.T) {
 		// Expect either "not ready" (503) or "ready" (200) depending on timing.
 		switch statusCode {
 		case http.StatusServiceUnavailable:
-			require.Equal(t, "not ready", response["status"]) 
+			require.Equal(t, "not ready", response["status"])
 		case http.StatusOK:
-			require.Equal(t, "ready", response["status"]) 
+			require.Equal(t, "ready", response["status"])
 		default:
 			require.Fail(t, fmt.Sprintf("unexpected status code: %d", statusCode))
 		}

@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	testOldPassword = "OldPassword123!"
-	testNewPassword = "NewPassword456!"
+	testOldPassword     = "OldPassword123!"
+	testNewPassword     = "NewPassword456!"
 	testCorrectPassword = "CorrectPassword123!"
 )
 
