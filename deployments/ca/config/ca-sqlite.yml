@@ -1,0 +1,25 @@
+# CA SQLite Instance Configuration
+# Used by: ca-sqlite service in compose.yml
+#
+# This file contains instance-specific settings.
+# Common settings are in ca-common.yml.
+
+# Service name for telemetry
+service-name: "ca-sqlite"
+
+# Public API port
+bind-public-port: 8443
+
+# Database backend (SQLite in-memory for dev/demo/ci)
+database:
+  type: "sqlite"
+  dsn: "file::memory:?cache=shared"
+
+# CORS origins (specific to this instance)
+cors-origins:
+  - "https://localhost:8443"
+  - "https://127.0.0.1:8443"
+
+# OTLP telemetry service name (unique per instance)
+otlp-service-name: "ca-sqlite"
+otlp-hostname: "ca-sqlite"

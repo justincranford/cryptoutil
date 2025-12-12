@@ -1,0 +1,25 @@
+# CA PostgreSQL Instance 2 Configuration
+# Used by: ca-postgres-2 service in compose.yml
+#
+# This file contains instance-specific settings.
+# Common settings are in ca-common.yml.
+
+# Service name for telemetry
+service-name: "ca-postgres-2"
+
+# Public API port (mapped externally as 8445)
+bind-public-port: 8443
+
+# Database backend (PostgreSQL - URL passed via --database-url flag)
+database:
+  type: "postgres"
+  # DSN loaded from Docker secret via -u flag in compose.yml
+
+# CORS origins (specific to this instance)
+cors-origins:
+  - "https://localhost:8445"
+  - "https://127.0.0.1:8445"
+
+# OTLP telemetry service name (unique per instance)
+otlp-service-name: "ca-postgres-2"
+otlp-hostname: "ca-postgres-2"

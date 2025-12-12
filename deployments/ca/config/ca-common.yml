@@ -1,0 +1,51 @@
+# CRITICAL: This file contains COMMON settings used by ALL CA services in compose.yml
+# ALL CA instances (ca-sqlite, ca-postgres-1, ca-postgres-2)
+# MUST use this file for shared configuration. Instance-specific settings belong in
+# their respective config files (ca-sqlite.yml, ca-postgresql-1.yml, ca-postgresql-2.yml)
+# Changing settings here affects ALL CA services.
+
+# Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
+# log-level: "INFO"
+
+# Binding address - 0.0.0.0 allows connections from any NIC within the container
+bind-public-address: "0.0.0.0"
+
+# Admin port (private admin API on 127.0.0.1 only)
+bind-admin-port: 9443
+
+# TLS configuration for HTTPS
+tls-cert-file: /app/tls_public_server_certificate_0.pem
+tls-key-file: /app/tls_public_server_private_key.pem
+
+unseal-mode: "3-of-5"
+
+unseal-files:
+  - /run/secrets/unseal_1of5.secret
+  - /run/secrets/unseal_2of5.secret
+  - /run/secrets/unseal_3of5.secret
+  - /run/secrets/unseal_4of5.secret
+  - /run/secrets/unseal_5of5.secret
+
+# Swagger UI demo credentials
+# WARNING: These credentials are for demonstration only. NEVER use in production.
+swagger-ui-username: "demo"  # pragma: allowlist secret
+swagger-ui-password: "demo-password"  # pragma: allowlist secret
+
+# Allow all IPs for development/testing
+allowed-ips:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+allowed-cidrs:
+  - "0.0.0.0/0"
+  - "::/0"
+
+# Disable CSRF for API testing
+csrf-token-single-use-token: false
+
+# Security settings
+security:
+  csrf_enabled: false
+
+# CRL distribution point directory
+crl-directory: /app/crls
