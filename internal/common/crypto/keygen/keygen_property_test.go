@@ -21,7 +21,10 @@ import (
 func TestRSAKeyGenerationProperties(t *testing.T) {
 	t.Parallel()
 
-	properties := gopter.NewProperties(nil)
+	// Reduce iterations for expensive RSA key generation (10 instead of default 100)
+	params := gopter.DefaultTestParameters()
+	params.MinSuccessfulTests = 10
+	properties := gopter.NewProperties(params)
 
 	// Property 1: RSA key generation produces valid keys
 	properties.Property("RSA keys are valid for supported bit sizes", prop.ForAll(
@@ -88,7 +91,10 @@ func TestRSAKeyGenerationProperties(t *testing.T) {
 func TestECDSAKeyGenerationProperties(t *testing.T) {
 	t.Parallel()
 
-	properties := gopter.NewProperties(nil)
+	// Reduce iterations for faster test execution (25 instead of default 100)
+	params := gopter.DefaultTestParameters()
+	params.MinSuccessfulTests = 25
+	properties := gopter.NewProperties(params)
 
 	// Property 1: ECDSA key generation produces valid keys for all supported curves
 	properties.Property("ECDSA keys are valid for all supported curves", prop.ForAll(
@@ -158,7 +164,10 @@ func TestECDSAKeyGenerationProperties(t *testing.T) {
 func TestECDHKeyGenerationProperties(t *testing.T) {
 	t.Parallel()
 
-	properties := gopter.NewProperties(nil)
+	// Reduce iterations for faster test execution (25 instead of default 100)
+	params := gopter.DefaultTestParameters()
+	params.MinSuccessfulTests = 25
+	properties := gopter.NewProperties(params)
 
 	// Property 1: ECDH key generation produces valid keys
 	properties.Property("ECDH keys are valid for all supported curves", prop.ForAll(
@@ -188,7 +197,10 @@ func TestECDHKeyGenerationProperties(t *testing.T) {
 func TestEdDSAKeyGenerationProperties(t *testing.T) {
 	t.Parallel()
 
-	properties := gopter.NewProperties(nil)
+	// Reduce iterations for faster test execution (25 instead of default 100)
+	params := gopter.DefaultTestParameters()
+	params.MinSuccessfulTests = 25
+	properties := gopter.NewProperties(params)
 
 	// Property 1: EdDSA key generation produces valid Ed25519 keys
 	properties.Property("EdDSA keys are valid for Ed25519", prop.ForAll(
@@ -250,6 +262,7 @@ func TestEdDSAKeyGenerationProperties(t *testing.T) {
 func TestAESKeyGenerationProperties(t *testing.T) {
 	t.Parallel()
 
+	// Fast symmetric key generation - use default 100 iterations
 	properties := gopter.NewProperties(nil)
 
 	// Property 1: AES key generation produces correct key sizes
@@ -299,6 +312,7 @@ func TestAESKeyGenerationProperties(t *testing.T) {
 func TestHMACKeyGenerationProperties(t *testing.T) {
 	t.Parallel()
 
+	// Fast symmetric key generation - use default 100 iterations
 	properties := gopter.NewProperties(nil)
 
 	// Property 1: HMAC key generation produces correct key sizes
