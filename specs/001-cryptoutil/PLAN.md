@@ -32,7 +32,6 @@
 - NO stopping to provide summaries
 - NO asking for permission between tasks
 - NO pausing after git operations
-- Token budget: 1,000,000 tokens limit, stop at 950,000 tokens used minimum
 
 ---
 
