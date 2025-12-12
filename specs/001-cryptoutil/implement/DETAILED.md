@@ -13,6 +13,7 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 ### Phase 0: Optimize Slow Test Packages (11 tasks)
 
+- [ ] **P0.0**: Gather test timings with code coverage
 - [ ] **P0.1**: Optimize clientauth (168s → <30s) - `internal/identity/authz/clientauth/*_test.go`
 - [ ] **P0.2**: Optimize jose/server (94s → <20s) - `internal/jose/server/*_test.go`
 - [ ] **P0.3**: Optimize kms/client (74s → <20s) - `internal/kms/client/*_test.go`
@@ -25,31 +26,20 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [ ] **P0.10**: Optimize infra/realm (14s → <10s) - `internal/infra/realm/*_test.go`
 - [ ] **P0.11**: Optimize kms/server/barrier (13s → <10s) - `internal/kms/server/barrier/*_test.go`
 
-### Phase 1: CI/CD Workflow Fixes (8 tasks)
+### Phase 1: Identity Admin API Implementation (12 tasks)
 
-- [ ] **P1.1**: Fix ci-coverage workflow
-- [ ] **P1.2**: Fix ci-benchmark workflow
-- [ ] **P1.3**: Fix ci-fuzz workflow
-- [ ] **P1.4**: Fix ci-e2e workflow
-- [ ] **P1.5**: Fix ci-dast workflow
-- [ ] **P1.6**: Fix ci-load workflow
-- [ ] **P1.7**: Fix ci-mutation workflow
-- [ ] **P1.8**: Fix ci-identity-validation workflow
-
-### Phase 1.5: Identity Admin API Implementation (12 tasks)
-
-- [ ] **P1.5.1**: Create AuthZ private server infrastructure - `internal/identity/authz/server/admin.go`
-- [ ] **P1.5.2**: Create IdP private server infrastructure - `internal/identity/idp/server/admin.go`
-- [ ] **P1.5.3**: Create RS private server infrastructure - `internal/identity/rs/server/admin.go`
-- [ ] **P1.5.4**: Update AuthZ server startup logic - `cmd/identity-unified/authz.go`
-- [ ] **P1.5.5**: Update IdP server startup logic - `cmd/identity-unified/idp.go`
-- [ ] **P1.5.6**: Update RS server startup logic - `cmd/identity-unified/rs.go`
-- [ ] **P1.5.7**: Update Identity integration tests - `internal/identity/test/integration/*_test.go`
-- [ ] **P1.5.8**: Update Docker Compose configurations - `deployments/identity/compose*.yml`
-- [ ] **P1.5.9**: Update GitHub workflows - `.github/workflows/ci-*.yml`
-- [ ] **P1.5.10**: Add admin endpoint unit tests - `internal/identity/*/handler/admin_test.go`
-- [ ] **P1.5.11**: Backward compatibility (optional) - Keep `/health` with deprecation
-- [ ] **P1.5.12**: Verify end-to-end integration - Full Docker + test suite validation
+- [ ] **P1.1**: Create AuthZ private server infrastructure - `internal/identity/authz/server/admin.go`
+- [ ] **P1.2**: Create IdP private server infrastructure - `internal/identity/idp/server/admin.go`
+- [ ] **P1.3**: Create RS private server infrastructure - `internal/identity/rs/server/admin.go`
+- [ ] **P1.4**: Update AuthZ server startup logic - `cmd/identity-unified/authz.go`
+- [ ] **P1.5**: Update IdP server startup logic - `cmd/identity-unified/idp.go`
+- [ ] **P1.6**: Update RS server startup logic - `cmd/identity-unified/rs.go`
+- [ ] **P1.7**: Update Identity integration tests - `internal/identity/test/integration/*_test.go`
+- [ ] **P1.8**: Update Docker Compose configurations - `deployments/identity/compose*.yml`
+- [ ] **P1.9**: Update GitHub workflows - `.github/workflows/ci-*.yml`
+- [ ] **P1.10**: Add admin endpoint unit tests - `internal/identity/*/handler/admin_test.go`
+- [ ] **P1.11**: Backward compatibility (optional) - Keep `/health` with deprecation
+- [ ] **P1.12**: Verify end-to-end integration - Full Docker + test suite validation
 
 ### Phase 2: Deferred I2 Features (8 tasks)
 
@@ -76,10 +66,11 @@ This section maintains the same order as TASKS.md for cross-reference.
 ### Phase 3: Coverage Targets (5 tasks)
 
 - [ ] **P3.1**: Achieve 95% coverage for jose package (current: 88.4%)
-- [ ] **P3.2**: Achieve 95% coverage for identity packages
-- [ ] **P3.3**: Achieve 95% coverage for kms packages
-- [ ] **P3.4**: Achieve 95% coverage for infra packages
-- [ ] **P3.5**: Achieve 95% coverage for cicd utilities
+- [ ] **P3.2**: Achieve 95% coverage for ca packages
+- [ ] **P3.3**: Achieve 95% coverage for identity packages
+- [ ] **P3.4**: Achieve 95% coverage for kms packages
+- [ ] **P3.5**: Achieve 95% coverage for infra packages
+- [ ] **P3.6**: Achieve 95% coverage for cicd utilities
 
 ### Phase 4: Advanced Testing & E2E Workflows (12 tasks - HIGH PRIORITY)
 
@@ -90,20 +81,31 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [ ] **P4.5**: Browser API load testing (Gatling) - `test/load/.../BrowserApiSimulation.java`
 - [ ] **P4.6**: Update E2E CI/CD workflow - Run all 4 E2E workflows in ci-e2e
 - [ ] **P4.7**: Add benchmark tests (IN PROGRESS) - Crypto operation benchmarks
-- [ ] **P4.8**: Add fuzz tests (COMPLETE) - 5 fuzz files for crypto + identity
-- [ ] **P4.9**: Add property-based tests (COMPLETE) - gopter tests for invariants
-- [ ] **P4.10**: Mutation testing baseline (BLOCKED) - gremlins crashes on Windows
+- [ ] **P4.8**: Add fuzz tests - 5 fuzz files for crypto + jose + ca + identity + kms
+- [ ] **P4.9**: Add property-based tests - gopter tests for invariants
+- [ ] **P4.10**: Mutation testing baseline - If gremlins crashes on Windows, use results of last passed Gremlins in Github workflows
 - [ ] **P4.11**: Verify E2E integration - All workflows passing locally and in CI
 - [ ] **P4.12**: Document E2E testing - Update docs/README.md
 
-### Phase 5: Demo Videos (6 tasks)
+### Phase 5: CI/CD Workflow Fixes (8 tasks)
 
-- [ ] **P5.1**: KMS standalone demo
-- [ ] **P5.2**: Identity standalone demo
-- [ ] **P5.3**: JOSE standalone demo
-- [ ] **P5.4**: CA standalone demo
-- [ ] **P5.5**: Full suite integration demo
-- [ ] **P5.6**: Security features demo
+- [ ] **P5.1**: Fix ci-coverage workflow
+- [ ] **P5.2**: Fix ci-benchmark workflow
+- [ ] **P5.3**: Fix ci-fuzz workflow
+- [ ] **P5.4**: Fix ci-e2e workflow
+- [ ] **P5.5**: Fix ci-dast workflow
+- [ ] **P5.6**: Fix ci-load workflow
+- [ ] **P5.7**: Fix ci-mutation workflow
+- [ ] **P5.8**: Fix ci-identity-validation workflow
+
+### Phase 6: Demo Videos (6 tasks)
+
+- [ ] **P6.1**: KMS standalone demo
+- [ ] **P6.2**: Identity standalone demo
+- [ ] **P6.3**: JOSE standalone demo
+- [ ] **P6.4**: CA standalone demo
+- [ ] **P6.5**: Full suite integration demo
+- [ ] **P6.6**: Security features demo
 
 ---
 

@@ -20,7 +20,8 @@ This directory contains templates for planning and executing cryptoutil iteratio
 | `plan.md` | Implementation plan, technical approach, timeline | Human + LLM |
 | `tasks.md` | Granular task breakdown with dependencies | Human + Agent |
 | `analyze.md` | Cross-artifact consistency check | Human + Agent |
-| `implement.md` | Track progress of tasks  | Human + Agent |
+| `implement/DETAILED.md` | Track progress of tasks  | Human + Agent |
+| `implement/EXECUTIVE.md` | Track high-level notes for draft after tasks, polished summary after last task is done | Human + Agent |
 
 ---
 

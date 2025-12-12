@@ -17,7 +17,7 @@
   - Browser-to-service APIs/UI: Require authorization code + PKCE tokens
   - Same OpenAPI spec exposed twice with different middleware security stacks
 - **Private HTTPS Endpoint**: Always 127.0.0.1:9090 for admin tasks
-  - `/livez`, `/readyz`, `/healthz`, `/shutdown` endpoints
+  - `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown` endpoints
   - Not externally accessible (127.0.0.1 only)
   - Used by Docker health checks, Kubernetes probes, monitoring
 - **Examples**:

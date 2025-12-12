@@ -1,8 +1,8 @@
 # Technical Implementation Plan - Post-Consolidation
 
-**Date**: December 7, 2025
-**Context**: Updated implementation plan after consolidating iteration files
-**Status**: ✅ PLAN COMPLETE - 5-phase approach with clear priorities
+**Date**: December 7, 2025 (Updated: December 11, 2025)
+**Context**: Updated implementation plan after consolidating iteration files and gap analysis
+**Status**: ✅ PLAN COMPLETE - 6-phase approach with clear priorities (Phase 0-3 required, 4-5 optional)
 
 ---
 
@@ -10,9 +10,17 @@
 
 **Goal**: Complete cryptoutil project to 100% functional state with all 4 products working
 
-**Approach**: 5-phase sequential execution (Phase 0-4 required, Phase 5 optional)
+**Approach**: 6-phase sequential execution (Phases 0-3 required, 4-5 optional, 6 ongoing)
 
-**Timeline**: 16-24 hours work effort, 3-5 calendar days
+**Timeline**: 24-32 hours work effort, 5-7 calendar days
+
+**Updates (December 11, 2025)**:
+
+- Added Phase 1.5: Identity Admin API Implementation (HIGH priority from gap analysis)
+- Added Phase 2.5: CA Production Deployment (HIGH priority from gap analysis)
+- Updated test performance targets based on clarifications
+- Added workflow execution time SLAs
+- Clarified E2E test scope (product workflows, not just health checks)
 
 ### CRITICAL: Execution Mandate
 
@@ -45,8 +53,8 @@ Every service implements two HTTPS endpoints:
      - **Browser-to-service APIs/UI**: Require OAuth 2.1 authorization code + PKCE tokens
    - Middleware enforces authorization boundaries
 
-2. **Private HTTPS Endpoint** (always 127.0.0.1:9090 or similar)
-   - Admin/operations endpoints: `/livez`, `/readyz`, `/healthz`, `/shutdown`
+2. **Private HTTPS Endpoint** (always 127.0.0.1:9090 or similar port)
+   - Admin/operations endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
    - Localhost-only binding (not externally accessible)
    - TLS required (never HTTP)
    - Used by Docker health checks, Kubernetes probes, monitoring
@@ -119,8 +127,87 @@ Every service implements two HTTPS endpoints:
 **Success Criteria**:
 
 - All 11 workflows passing (100% pass rate)
-- CI feedback loop <10 minutes
+- CI feedback loop <10 minutes for critical path (quality + coverage + race)
+- Full suite <60 minutes total execution
 - No flaky tests
+
+### Test Performance SLAs
+
+**Unit/Integration Tests** (`go test ./...`):
+
+- Per package: <30 seconds
+- Total suite: <100 seconds
+- Measurement: Wall clock time
+
+**Race Detector** (`go test -race ./...`):
+
+- Per package: <60 seconds (2x overhead typical from CGO)
+- Total suite: <200 seconds
+- Justification: CGO_ENABLED=1 adds 50-100% overhead
+
+**Mutation Testing** (`gremlins unleash`):
+
+- Per package: Varies by complexity
+- Total suite: <45 minutes
+- Strategy: Separate workflow, not critical path
+
+**Load Testing** (Gatling):
+
+- Per simulation: 5-10 minutes
+- Total suite: <30 minutes
+- Strategy: Separate workflow, PR approval trigger
+
+---
+
+## Phase 1.5: Identity Admin API Implementation (NEW - HIGH) 🏗️
+
+**Objective**: Implement dual-server architecture for Identity services (AuthZ, IdP, RS) matching KMS pattern
+
+**Rationale**: Identity currently uses single public server with `/health`. Spec requires private admin server on 127.0.0.1:9090 for health probes, matching KMS/JOSE/CA pattern.
+
+### Implementation Strategy (8-10 hours)
+
+**Step 1: Create Private Server Infrastructure** (3 hours)
+
+- Add `PrivateTLSServer` struct to each service (AuthZ, IdP, RS)
+- Implement admin endpoint handlers: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
+- Configure TLS for private server (self-signed cert for localhost)
+- Bind to `127.0.0.1:9090` (not externally accessible)
+
+**Step 2: Update Server Startup Logic** (2 hours)
+
+- Modify `StartAuthZServer()`, `StartIDPServer()`, `StartRSServer()` to launch both servers
+- Public server: 0.0.0.0:8080 (AuthZ), :8081 (IdP), :8082 (RS)
+- Private server: 127.0.0.1:9090 for all 3 services
+- Add graceful shutdown coordination
+
+**Step 3: Update Tests** (2 hours)
+
+- Migrate integration tests from `/health` to `/admin/v1/healthz`
+- Update `internal/identity/**/integration_test.go` files
+- Add admin endpoint test coverage
+- Verify health check responses (200 OK, JSON body)
+
+**Step 4: Update Deployments** (2 hours)
+
+- Update Docker Compose health checks: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez`
+- Update `deployments/identity/compose.yml`, `compose.advanced.yml`, `compose.simple.yml`
+- Update GitHub workflows `ci-dast.yml`, `ci-e2e.yml` to use admin endpoints
+- Verify Docker health checks pass locally
+
+**Step 5: Backward Compatibility (1 hour)**
+
+- Keep public `/health` endpoint for backward compatibility (optional deprecation later)
+- Update documentation to recommend admin endpoints
+- Add migration notes to README
+
+**Success Criteria**:
+
+- ✅ Each Identity service (AuthZ, IdP, RS) has private admin server on 127.0.0.1:9090
+- ✅ Admin endpoints return 200 OK: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`
+- ✅ Docker Compose health checks use admin endpoints and pass
+- ✅ All integration tests pass using new admin endpoints
+- ✅ GitHub workflows updated and passing
 
 ---
 
@@ -179,6 +266,63 @@ Every service implements two HTTPS endpoints:
 
 ---
 
+## Phase 2.5: CA Production Deployment (NEW - HIGH) 🚀
+
+**Objective**: Create production-ready Docker Compose configuration for CA services matching JOSE/KMS patterns
+
+**Rationale**: CA only has `compose.simple.yml` (dev-only). Need multi-instance PostgreSQL deployment for production readiness.
+
+### Implementation Strategy (4-6 hours)
+
+**Step 1: Create Production Compose File** (2 hours)
+
+- Create `deployments/ca/compose.yml` based on `deployments/kms/compose.yml` template
+- Define 3 CA instances:
+  - `ca-sqlite`: Development instance (SQLite in-memory, port 8443)
+  - `ca-postgres-1`: Production instance 1 (PostgreSQL, port 8444)
+  - `ca-postgres-2`: Production instance 2 (PostgreSQL, port 8445)
+- Each instance binds admin port 9443 internally (127.0.0.1 only)
+
+**Step 2: Configure PostgreSQL Backend** (1 hour)
+
+- Add PostgreSQL service definition
+- Configure database initialization scripts
+- Add secrets for database credentials (file-based, not environment variables)
+- Add health checks for PostgreSQL service
+
+**Step 3: Integrate Telemetry Services** (1 hour)
+
+- Include OpenTelemetry collector configuration
+- Add grafana-otel-lgtm for observability
+- Configure OTLP exporters in CA service configs
+- Add collector health checks
+
+**Step 4: Configure CA-Specific Requirements** (1 hour)
+
+- Add CRL distribution volume mounts
+- Configure OCSP responder endpoints
+- Add EST endpoint configurations
+- Configure certificate profile directories
+
+**Step 5: Testing and Validation** (1 hour)
+
+- Test `docker compose up -d` startup
+- Verify all 3 CA instances start successfully
+- Test health checks pass (admin endpoints)
+- Verify certificate issuance works on all 3 instances
+- Test CRL generation and OCSP responses
+
+**Success Criteria**:
+
+- ✅ `deployments/ca/compose.yml` exists and is production-ready
+- ✅ 3 CA instances (sqlite, postgres-1, postgres-2) start successfully
+- ✅ Health checks pass: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9443/admin/v1/livez`
+- ✅ PostgreSQL backend works for CA instances
+- ✅ Telemetry integration functional (OTLP, Grafana)
+- ✅ CRL distribution and OCSP responder operational
+
+---
+
 ## Phase 3: Achieve Coverage Targets (Day 5, 2-3 hours) 📊
 
 **Objective**: Get 5/5 packages to ≥95% coverage
@@ -205,23 +349,86 @@ Every service implements two HTTPS endpoints:
 
 ---
 
-## Phase 4: Advanced Testing (Optional, 4-6 hours) 🧪
+## Phase 4: Advanced Testing & E2E Workflows (Upgraded Priority - HIGH) 🧪
 
-**Objective**: Add advanced testing methodologies for quality assurance
+**Objective**: Add comprehensive E2E workflow tests and advanced testing methodologies
 
-### Benchmark Tests (2 hours)
+**Rationale**: Current E2E tests only validate Docker health checks. Need end-to-end product workflow validation and load test coverage for Browser API.
+
+### E2E Workflow Tests (4-6 hours, HIGH PRIORITY)
+
+**Location**: Extend `internal/test/e2e/e2e_test.go`
+
+**Minimum Viable E2E Workflows**:
+
+1. **OAuth 2.1 Authorization Code Flow** (2 hours)
+   - Browser → AuthZ `/oauth2/v1/authorize` → redirect to IdP `/oidc/v1/login`
+   - User login → `/oidc/v1/consent` → consent granted
+   - Redirect back to AuthZ with code → `/oauth2/v1/token` with PKCE verifier
+   - Validate access token, ID token, refresh token returned
+   - Test token introspection and revocation
+
+2. **KMS Encrypt/Decrypt Workflow** (1 hour)
+   - Create ElasticKey → generate MaterialKey
+   - Encrypt plaintext → decrypt ciphertext
+   - Verify plaintext matches original
+   - Test key rotation (generate new MaterialKey, decrypt with old key fails)
+
+3. **CA Certificate Lifecycle** (2 hours)
+   - Generate CSR → submit to `/ca/v1/certificate`
+   - Receive issued certificate → validate chain
+   - Revoke certificate → verify OCSP revoked status
+   - Check CRL contains revoked certificate
+
+4. **JOSE JWT Sign/Verify** (1 hour)
+   - Generate JWK → sign JWT with claims
+   - Verify JWT signature → validate claims
+   - Test token expiration and invalid signature rejection
+
+**Success Criteria**:
+
+- All 4 E2E workflows pass in CI/CD
+- Tests use real Docker stack (PostgreSQL, all services)
+- Execution time: <10 minutes total
+- Coverage of critical user journeys
+
+### Load Testing Expansion (3-4 hours, HIGH PRIORITY)
+
+**Browser API Gatling Simulation** (3 hours):
+
+- Create `test/load/src/test/java/cryptoutil/BrowserApiSimulation.java`
+- Test OAuth authorization code flow under load
+- Test certificate request workflows
+- Test UI endpoints (`/ui/swagger/doc.json`, health checks)
+- Simulate 50-100 concurrent users
+- Measure response times (p95 <500ms target)
+
+**Admin API Load Test** (DEFER - LOW PRIORITY):
+
+- Admin endpoints are operational, not high-throughput
+- Defer unless specific monitoring concerns arise
+
+**Success Criteria**:
+
+- Browser API load test exists and passes
+- Performance baselines established (p95, p99 latency)
+- Load test runs in <10 minutes
+
+### Advanced Testing Methodologies (4-6 hours, OPTIONAL)
+
+**Benchmark Tests** (2 hours):
 
 - Add `_bench_test.go` files to cryptographic packages
 - Benchmark key generation, encryption, signing operations
 - Establish performance baselines
 
-### Fuzz Tests (2 hours)
+**Fuzz Tests Expansion** (2 hours):
 
 - Add `_fuzz_test.go` files to parsers and validators
-- Fuzz JWT parsing, certificate parsing, input validation
+- Fuzz JWT parsing, certificate parsing, OAuth token introspection
 - Run for 15s minimum per test
 
-### Property-Based Tests (2 hours)
+**Property-Based Tests** (2 hours):
 
 - Add `_property_test.go` files using gopter
 - Test round-trip properties (encrypt→decrypt, sign→verify)
@@ -260,35 +467,47 @@ Every service implements two HTTPS endpoints:
 
 ## Success Metrics
 
-### Required for Completion
+### Required for Completion (Phases 0-3 + NEW)
 
-- ✅ Phase 0: All 5 slow packages <30s execution
-- ✅ Phase 1: 11/11 CI/CD workflows passing
-- ✅ Phase 2: 7/8 deferred features complete (EST serverkeygen optional)
+- ✅ Phase 0: All 5 slow packages <30s execution, total <100s
+- ✅ Phase 1: 11/11 CI/CD workflows passing, feedback loop <10 min
+- ✅ **Phase 1.5: Identity admin API implemented (dual-server pattern)**
+- ✅ Phase 2: 7/8 deferred features complete (EST serverkeygen optional if PKCS#7 blocked)
+- ✅ **Phase 2.5: CA production deployment (multi-instance PostgreSQL)**
 - ✅ Phase 3: 5/5 packages ≥95% coverage
 
-### Optional Enhancements
+### High Priority Enhancements (Phase 4)
 
-- ⚠️ Phase 4: Advanced testing methodologies added
-- ⚠️ Phase 5: Demo videos created
+- ✅ **E2E workflow tests (OAuth, KMS, CA, JOSE) - 4 workflows minimum**
+- ✅ **Browser API load testing (Gatling simulation)**
+- ⚠️ Advanced testing methodologies (benchmarks, fuzz expansion, property tests)
+
+### Optional Enhancements (Phase 5)
+
+- ⚠️ Phase 5: Demo videos created (6 videos)
 
 ### Quality Gates
 
 - All linting passes (`golangci-lint run`)
 - All tests pass (`go test ./... -cover -shuffle=on`)
+- Race detector passes (`go test -race ./...` <200s total)
 - No CRITICAL/HIGH security vulnerabilities
 - Integration demos work (`go run ./cmd/demo all`)
+- Docker Compose deployments work for all 4 products
 
 ---
 
 ## Risk Management
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Test optimization breaks tests | HIGH | Incremental changes, verify after each package |
-| CI/CD fixes introduce flakiness | MEDIUM | Use health checks, exponential backoff patterns |
-| Coverage improvements reduce quality | LOW | Require meaningful tests, not just coverage numbers |
-| EST serverkeygen needs CMS library | MEDIUM | Research github.com/github/smimesign or similar, MANDATORY |
+| Risk | Impact | Mitigation | Status |
+|------|--------|------------|--------|
+| Test optimization breaks tests | HIGH | Incremental changes, verify after each package | Ongoing |
+| CI/CD fixes introduce flakiness | MEDIUM | Use health checks, exponential backoff patterns | Ongoing |
+| Coverage improvements reduce quality | LOW | Require meaningful tests, not just coverage numbers | Ongoing |
+| EST serverkeygen needs CMS library | MEDIUM | Research github.com/github/smimesign or similar, MANDATORY | Planned |
+| **Identity admin API breaks deployments** | HIGH | Keep `/health` for backward compat, staged migration | NEW |
+| **CA deployment complexity** | MEDIUM | Copy KMS pattern, test incrementally | NEW |
+| **E2E tests require full stack** | MEDIUM | Use Docker Compose, ensure PostgreSQL available | NEW |
 
 ---
 
@@ -297,14 +516,25 @@ Every service implements two HTTPS endpoints:
 **External**:
 
 - CMS/PKCS#7 library (MANDATORY for EST serverkeygen)
-- None other - all work is internal implementation
+- Java 21 LTS (for Gatling load tests)
+- Docker Compose v2+ (for deployments)
+- PostgreSQL 18+ (for production backends)
 
 **Internal**:
 
 - Phase 0 must complete before Phases 1-3 (foundation)
+- Phase 1.5 depends on Phase 1 (CI/CD stable first)
 - Phase 2 (JOSE E2E) before Phase 1 (some CI workflows depend on it)
+- Phase 2.5 depends on Phase 2 (CA features complete first)
 - Phase 3 can run in parallel with Phases 1-2
-- Phases 4-5 only after Phases 0-3 complete
+- Phase 4 only after Phases 0-3 complete
+- Phase 5 only after all other phases complete
+
+**Critical Path** (for minimum viable completion):
+
+Phase 0 → Phase 1 → Phase 1.5 → Phase 2 → Phase 2.5 → Phase 3 → Phase 4 (E2E only)
+
+**Estimated Total**: 24-32 hours work effort, 5-7 calendar days
 
 ---
 
@@ -324,6 +554,17 @@ This plan provides:
 
 ---
 
-*Technical Implementation Plan Version: 1.0.0*
-*Author: GitHub Copilot (Agent)*
-*Approved: Pending user validation*
+*Technical Implementation Plan Version: 2.0.0*
+*Author: GitHub Copilot (Claude Sonnet 4.5)*
+*Created: December 7, 2025*
+*Updated: December 11, 2025*
+
+**Update Summary (v2.0.0)**:
+
+- Added Phase 1.5: Identity Admin API Implementation (8-10 hours)
+- Added Phase 2.5: CA Production Deployment (4-6 hours)
+- Upgraded Phase 4 to HIGH priority with E2E workflows and Browser API load tests
+- Added test performance SLAs (unit <100s, race <200s, mutation <45min)
+- Updated success metrics and risk management
+- Increased total effort estimate: 24-32 hours (from 16-24 hours)
+- Increased timeline: 5-7 calendar days (from 3-5 days)

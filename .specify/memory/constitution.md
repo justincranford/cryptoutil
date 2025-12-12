@@ -198,7 +198,7 @@ Every service MUST implement two HTTPS endpoints:
    - TLS required (never plain HTTP)
 
 2. **Private HTTPS Endpoint** (always 127.0.0.1:9090)
-   - Serves admin/operations endpoints: `/livez`, `/readyz`, `/healthz`, `/shutdown`
+   - Serves admin/operations endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
    - Bound to localhost only (not externally accessible)
    - Used by Docker health checks, Kubernetes probes, monitoring systems, graceful shutdown
    - TLS required (never plain HTTP)
