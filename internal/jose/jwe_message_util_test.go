@@ -565,6 +565,54 @@ func Test_ExtractKidEncAlgFromJWEMessage_NilMessage(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to get kid UUID")
 }
 
+func Test_ExtractKidEncAlgFromJWEMessage_MissingEnc(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK and encrypt data to create valid JWE message.
+	jweJWKs, _, err := GenerateJWEJWKsForTest(t, 1, &EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	plaintext := []byte("test data")
+	jweMessage, _, err := EncryptBytes(jweJWKs, plaintext)
+	require.NoError(t, err)
+
+	// Remove enc header.
+	err = jweMessage.ProtectedHeaders().Remove("enc")
+	require.NoError(t, err)
+
+	// Test extraction should fail with missing enc error.
+	kid, enc, alg, err := ExtractKidEncAlgFromJWEMessage(jweMessage)
+	require.Error(t, err)
+	require.Nil(t, kid)
+	require.Nil(t, enc)
+	require.Nil(t, alg)
+	require.Contains(t, err.Error(), "failed to get enc")
+}
+
+func Test_ExtractKidEncAlgFromJWEMessage_MissingAlg(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK and encrypt data to create valid JWE message.
+	jweJWKs, _, err := GenerateJWEJWKsForTest(t, 1, &EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	plaintext := []byte("test data")
+	jweMessage, _, err := EncryptBytes(jweJWKs, plaintext)
+	require.NoError(t, err)
+
+	// Remove alg header.
+	err = jweMessage.ProtectedHeaders().Remove(joseJwk.AlgorithmKey)
+	require.NoError(t, err)
+
+	// Test extraction should fail with missing alg error.
+	kid, enc, alg, err := ExtractKidEncAlgFromJWEMessage(jweMessage)
+	require.Error(t, err)
+	require.Nil(t, kid)
+	require.Nil(t, enc)
+	require.Nil(t, alg)
+	require.Contains(t, err.Error(), "failed to get alg")
+}
+
 func Test_EncryptKey_HappyPath(t *testing.T) {
 	t.Parallel()
 
