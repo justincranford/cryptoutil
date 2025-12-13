@@ -342,3 +342,21 @@ func TestCreateJWEJWKFromKey_AESSecretKey(t *testing.T) {
 	require.Empty(t, publicBytes)
 	require.NotEmpty(t, nonPublicBytes)
 }
+
+func TestCreateJWEJWKFromKey_ECDHKeyPair(t *testing.T) {
+	t.Parallel()
+
+	// ECDH key pair has public key component.
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.ECDH_ES_A256KW()
+	keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+	require.NoError(t, err)
+
+	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
+	require.NoError(t, err)
+	require.NotNil(t, nonPublicJWK)
+	require.NotNil(t, publicJWK) // ECDH should have public key
+	require.NotEmpty(t, publicBytes)
+	require.NotEmpty(t, nonPublicBytes)
+}
