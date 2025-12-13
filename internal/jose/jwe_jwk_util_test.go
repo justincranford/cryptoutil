@@ -283,34 +283,37 @@ func TestValidateOrGenerateJWERSAJWK_WrongKeyType(t *testing.T) {
 func TestValidateOrGenerateJWERSAJWK_NilPrivateKey(t *testing.T) {
 	t.Parallel()
 
-	// KeyPair with nil private key.
+	// Generate RSA key then set private to nil.
+	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
 	keyPair := &cryptoutilKeyGen.KeyPair{
-		Private: nil,
-		Public:  &rsa.PublicKey{},
+		Private: (*rsa.PrivateKey)(nil), // Typed nil to pass type check
+		Public:  &rsaKey.PublicKey,
 	}
 
 	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
-	require.Contains(t, err.Error(), "unsupported key type")
+	require.Contains(t, err.Error(), "invalid nil RSA private key")
 }
 
 func TestValidateOrGenerateJWERSAJWK_NilPublicKey(t *testing.T) {
 	t.Parallel()
 
-	// Generate RSA private key, create KeyPair with nil public.
+	// Generate RSA private key, create KeyPair with typed nil public.
 	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	keyPair := &cryptoutilKeyGen.KeyPair{
 		Private: rsaKey,
-		Public:  nil,
+		Public:  (*rsa.PublicKey)(nil), // Typed nil to pass type check
 	}
 
 	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)
-	require.Contains(t, err.Error(), "unsupported key type")
+	require.Contains(t, err.Error(), "invalid nil RSA public key")
 }
 
 func TestValidateOrGenerateJWEEcdhJWK_NilPrivateKey(t *testing.T) {
