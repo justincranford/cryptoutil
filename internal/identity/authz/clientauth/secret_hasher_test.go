@@ -220,6 +220,39 @@ func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
 	require.Error(t, err)
 }
 
+// TestSecretBasedAuthenticator_Authenticate tests the Authenticate method wrapper.
+func TestSecretBasedAuthenticator_Authenticate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	hasher := NewPBKDF2Hasher()
+	hashedSecret, err := hasher.HashSecret("correct-secret")
+	require.NoError(t, err)
+
+	clientID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	client := &cryptoutilIdentityDomain.Client{
+		ID:           clientID,
+		ClientID:     "test-client",
+		ClientSecret: hashedSecret,
+		Enabled:      boolPtr(true),
+	}
+
+	mockRepo := &mockClientRepository{clients: []*cryptoutilIdentityDomain.Client{client}}
+	auth := NewSecretBasedAuthenticator(mockRepo, nil)
+
+	// Test successful authentication via generic Authenticate method.
+	authenticatedClient, err := auth.Authenticate(ctx, "test-client", "correct-secret")
+	require.NoError(t, err)
+	require.NotNil(t, authenticatedClient)
+	require.Equal(t, "test-client", authenticatedClient.ClientID)
+
+	// Test failed authentication with wrong secret.
+	_, err = auth.Authenticate(ctx, "test-client", "wrong-secret")
+	require.Error(t, err)
+}
+
 // TestSecretBasedAuthenticator_MigrateSecrets tests the MigrateSecrets method wrapper.
 func TestSecretBasedAuthenticator_MigrateSecrets(t *testing.T) {
 	t.Parallel()
