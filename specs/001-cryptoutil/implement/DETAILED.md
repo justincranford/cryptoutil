@@ -142,7 +142,7 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [ ] **P4.1**: OAuth 2.1 authorization code E2E test - `internal/test/e2e/oauth_workflow_test.go` � DOCUMENTED
 - [x] **P4.2**: KMS encrypt/decrypt E2E test - `internal/test/e2e/kms_workflow_test.go` ✅ COMPLETE
 - [ ] **P4.3**: CA certificate lifecycle E2E test - `internal/test/e2e/ca_workflow_test.go` 📋 DOCUMENTED
-- [ ] **P4.4**: JOSE JWT sign/verify E2E test - `internal/test/e2e/jose_workflow_test.go` 📋 DOCUMENTED
+- [ ] **P4.4**: JOSE JWT sign/verify E2E test - `internal/test/e2e/jose_workflow_test.go` ⚠️ BLOCKED (OpenAPI client missing)
 - [x] **P4.5**: Browser API load testing (Gatling) - `test/load/.../BrowserApiSimulation.java` ✅ COMPLETE
 - [x] **P4.6**: Update E2E CI/CD workflow ✅ COMPLETE - ci-e2e.yml runs all e2e-tagged tests, KMS workflow complete
 - [x] **P4.7**: Add benchmark tests ✅ COMPLETE - CA issuer (ECDSA/RSA/parallel), JOSE (JWS/JWE all algorithms)

@@ -5,17 +5,25 @@
 package test
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
+	"time"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 )
 
-// TestJOSEWorkflow runs JOSE JWT/JWK operations E2E test.
+// TestJOSEWorkflow runs JOSE E2E test.
 func TestJOSEWorkflow(t *testing.T) {
 	suite.Run(t, new(JOSEWorkflowSuite))
 }
 
-// JOSEWorkflowSuite tests JOSE JWT signing, verification, and JWK management.
+// JOSEWorkflowSuite tests JOSE Authority JWT sign/verify operations.
 type JOSEWorkflowSuite struct {
 	suite.Suite
 	fixture    *TestFixture
@@ -33,20 +41,159 @@ func (suite *JOSEWorkflowSuite) TearDownSuite() {
 	// Cleanup if needed.
 }
 
-// TestJWTSignVerifyWorkflow tests JWT signing and verification.
-func (suite *JOSEWorkflowSuite) TestJWTSignVerifyWorkflow() {
-	suite.T().Skip("TODO P4.4: Full implementation requires JOSE OpenAPI client generation and JWT sign/verify APIs")
+// TestSignVerifyWorkflow tests complete JWT sign/verify cycle.
+func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
+	ctx := context.Background()
 
-	// TODO: Full implementation requires:
-	// 1. Generate JOSE OpenAPI client (like KMS client)
-	// 2. Implement JWK generation endpoint in JOSE service
-	// 3. Implement JWT sign endpoint
-	// 4. Implement JWT verify endpoint
-	// 5. Implement JWKS discovery endpoint
-	//
-	// Current status: JOSE service deployed but APIs not yet exposed via OpenAPI
-	// Reference: deployments/jose/compose.yml has jose-server service
-	// Next: Generate OpenAPI spec for JOSE service similar to api/openapi_spec_*.yaml pattern
+	// Step 1: Deploy JOSE services
+	suite.fixture.Setup()
+	defer suite.fixture.Teardown()
+
+	// Wait for JOSE health
+	suite.T().Log("Waiting for JOSE service health checks...")
+	err := suite.fixture.infraMgr.WaitForDockerServicesHealthy(ctx)
+	suite.NoError(err, "JOSE services should become healthy")
+
+	suite.T().Log("=== JOSE Sign/Verify Workflow E2E Test ===")
+
+	// Step 2: Generate JWK (ES384 for signing)
+	suite.T().Log("Step 1: Generating ES384 JWK for signing...")
+	jwkID := suite.generateJWK(ctx, "ES384")
+
+	// Step 3: Create JWT claims
+	suite.T().Log("Step 2: Creating JWT with claims...")
+	claims := map[string]interface{}{
+		"sub":   "user-" + googleUuid.NewString(),
+		"name":  "Test User",
+		"email": "test@example.com",
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().Add(1 * time.Hour).Unix(),
+		"aud":   "jose-e2e-test",
+		"iss":   "jose-authority",
+	}
+
+	// Step 4: Sign JWT
+	suite.T().Log("Step 3: Signing JWT...")
+	jws := suite.signJWT(ctx, jwkID, claims)
+	suite.NotEmpty(jws, "JWS should not be empty")
+	suite.True(strings.HasPrefix(jws, "eyJ"), "JWS should start with Base64URL header")
+
+	// Step 5: Verify JWT signature
+	suite.T().Log("Step 4: Verifying JWT signature...")
+	verifiedClaims := suite.verifyJWT(ctx, jws)
+	suite.NotNil(verifiedClaims, "Verified claims should not be nil")
+	suite.Equal(claims["sub"], verifiedClaims["sub"], "Subject claim should match")
+	suite.Equal(claims["email"], verifiedClaims["email"], "Email claim should match")
+
+	// Step 6: Test invalid signature rejection
+	suite.T().Log("Step 5: Testing invalid signature rejection...")
+	tamperedJWS := jws[:len(jws)-10] + "TAMPERED00"
+	suite.expectVerificationFailure(ctx, tamperedJWS)
+
+	// Step 7: Test expired token rejection
+	suite.T().Log("Step 6: Testing expired token rejection...")
+	expiredClaims := map[string]interface{}{
+		"sub": "expired-user",
+		"exp": time.Now().Add(-1 * time.Hour).Unix(), // Expired 1 hour ago
+		"iat": time.Now().Add(-2 * time.Hour).Unix(),
+	}
+	expiredJWS := suite.signJWT(ctx, jwkID, expiredClaims)
+	suite.expectVerificationFailure(ctx, expiredJWS)
+
+	// Step 8: Cleanup - Delete JWK
+	suite.T().Log("Step 7: Cleaning up JWK...")
+	suite.deleteJWK(ctx, jwkID)
+
+	suite.T().Log("=== JOSE Sign/Verify Workflow E2E Test Complete ===")
+}
+
+// generateJWK creates an ES384 JWK for signing.
+func (suite *JOSEWorkflowSuite) generateJWK(ctx context.Context, algorithm string) string {
+	createReq := cryptoutilOpenapiModel.JoseJwkCreateRequest{
+		Algorithm: &algorithm,
+	}
+
+	resp, err := suite.fixture.joseClient.PostJoseJwkWithResponse(ctx, createReq)
+	suite.NoError(err, "JWK creation should succeed")
+	suite.Equal(200, resp.StatusCode(), "JWK creation should return 200")
+	suite.NotNil(resp.JSON200, "Response should contain JWK")
+
+	kid := *resp.JSON200.Kid
+	suite.T().Logf("Generated JWK: kid=%s, algorithm=%s", kid, algorithm)
+
+	return kid
+}
+
+// signJWT signs claims into a JWS token.
+func (suite *JOSEWorkflowSuite) signJWT(ctx context.Context, kid string, claims map[string]interface{}) string {
+	claimsJSON, err := json.Marshal(claims)
+	suite.NoError(err, "Claims serialization should succeed")
+
+	signReq := cryptoutilOpenapiModel.JoseJwsSignRequest{
+		Kid:     &kid,
+		Payload: string(claimsJSON),
+	}
+
+	resp, err := suite.fixture.joseClient.PostJoseJwsSignWithResponse(ctx, signReq)
+	suite.NoError(err, "JWS sign should succeed")
+	suite.Equal(200, resp.StatusCode(), "JWS sign should return 200")
+	suite.NotNil(resp.JSON200, "Response should contain JWS")
+
+	jws := *resp.JSON200.Jws
+	suite.T().Logf("Signed JWT: %d bytes", len(jws))
+
+	return jws
+}
+
+// verifyJWT verifies a JWS token and returns claims.
+func (suite *JOSEWorkflowSuite) verifyJWT(ctx context.Context, jws string) map[string]interface{} {
+	verifyReq := cryptoutilOpenapiModel.JoseJwsVerifyRequest{
+		Jws: &jws,
+	}
+
+	resp, err := suite.fixture.joseClient.PostJoseJwsVerifyWithResponse(ctx, verifyReq)
+	suite.NoError(err, "JWS verify should succeed")
+	suite.Equal(200, resp.StatusCode(), "JWS verify should return 200")
+	suite.NotNil(resp.JSON200, "Response should contain verification result")
+	suite.True(*resp.JSON200.Valid, "JWS signature should be valid")
+
+	var claims map[string]interface{}
+	err = json.Unmarshal([]byte(*resp.JSON200.Payload), &claims)
+	suite.NoError(err, "Claims deserialization should succeed")
+
+	suite.T().Log("JWT verified successfully")
+
+	return claims
+}
+
+// expectVerificationFailure verifies that invalid/expired JWS is rejected.
+func (suite *JOSEWorkflowSuite) expectVerificationFailure(ctx context.Context, jws string) {
+	verifyReq := cryptoutilOpenapiModel.JoseJwsVerifyRequest{
+		Jws: &jws,
+	}
+
+	resp, err := suite.fixture.joseClient.PostJoseJwsVerifyWithResponse(ctx, verifyReq)
+	suite.NoError(err, "Verify request should complete (even if signature invalid)")
+
+	// Expect either 400 (bad request) or 200 with valid=false
+	if resp.StatusCode() == 200 {
+		suite.NotNil(resp.JSON200, "Response should contain verification result")
+		suite.False(*resp.JSON200.Valid, "Invalid JWS should fail verification")
+		suite.T().Log("Invalid JWS correctly rejected (valid=false)")
+	} else if resp.StatusCode() == 400 {
+		suite.T().Log("Invalid JWS correctly rejected (400 Bad Request)")
+	} else {
+		suite.Fail(fmt.Sprintf("Unexpected status code for invalid JWS: %d", resp.StatusCode()))
+	}
+}
+
+// deleteJWK removes a JWK.
+func (suite *JOSEWorkflowSuite) deleteJWK(ctx context.Context, kid string) {
+	resp, err := suite.fixture.joseClient.DeleteJoseJwkKidWithResponse(ctx, kid)
+	suite.NoError(err, "JWK deletion should succeed")
+	suite.Equal(204, resp.StatusCode(), "JWK deletion should return 204")
+
+	suite.T().Logf("Deleted JWK: kid=%s", kid)
 }
 
 // TestJWKSEndpointWorkflow tests JWKS discovery endpoint.
