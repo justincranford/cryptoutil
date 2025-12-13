@@ -390,6 +390,25 @@ func TestValidateOrGenerateJWERSAJWK_WrongPublicKeyType(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PublicKey")
 }
 
+func TestValidateOrGenerateJWERSAJWK_DisallowedEnc(t *testing.T) {
+	t.Parallel()
+
+	// Test enc not in allowedEncs list.
+	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: rsaKey,
+		Public:  &rsaKey.PublicKey,
+	}
+
+	// Use A128GCM but only allow A256GCM.
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA128GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "enc A128GCM not allowed")
+}
+
 func TestValidateOrGenerateJWEEcdhJWK_WrongPrivateKeyType(t *testing.T) {
 	t.Parallel()
 
