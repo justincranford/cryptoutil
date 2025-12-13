@@ -427,6 +427,7 @@ func TestCreateJWEJWKFromKey_ECDHKeyPair(t *testing.T) {
 	require.NotEmpty(t, publicBytes)
 	require.NotEmpty(t, nonPublicBytes)
 }
+
 func TestCreateJWEJWKFromKey_NilKid(t *testing.T) {
 	t.Parallel()
 
@@ -474,6 +475,37 @@ func TestCreateJWEJWKFromKey_NilKey(t *testing.T) {
 	alg := joseJwa.DIRECT()
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &alg, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+// TestCreateJWEJWKFromKey_EmptySecretKey tests validation error for empty AES key.
+func TestCreateJWEJWKFromKey_EmptySecretKey(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.DIRECT()
+	emptyKey := cryptoutilKeyGen.SecretKey("")
+
+	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &alg, emptyKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+// TestCreateJWEJWKFromKey_NilPrivateKeyPair tests validation error for nil KeyPair.
+func TestCreateJWEJWKFromKey_NilPrivateKeyPair(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.ECDH_ES()
+	invalidKeyPair := &cryptoutilKeyGen.KeyPair{
+		Private: nil,
+		Public:  nil,
+	}
+
+	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &alg, invalidKeyPair)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWE JWK headers")
 }
