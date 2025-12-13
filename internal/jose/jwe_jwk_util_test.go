@@ -448,6 +448,25 @@ func TestValidateOrGenerateJWEEcdhJWK_WrongPublicKeyType(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PublicKey")
 }
 
+func TestValidateOrGenerateJWEEcdhJWK_DisallowedEnc(t *testing.T) {
+	t.Parallel()
+
+	// Test enc not in allowedEncs list.
+	ecdhKey, err := ecdh.P256().GenerateKey(crand.Reader)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: ecdhKey,
+		Public:  ecdhKey.PublicKey(),
+	}
+
+	// Use A128GCM but only allow A256GCM.
+	result, err := validateOrGenerateJWEEcdhJWK(keyPair, &EncA128GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "enc A128GCM not allowed")
+}
+
 func TestValidateOrGenerateJWEEcdhJWK_NilPrivateKey(t *testing.T) {
 	t.Parallel()
 
