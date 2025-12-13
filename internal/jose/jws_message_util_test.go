@@ -119,6 +119,80 @@ func TestSignBytes_MultipleAlgs(t *testing.T) {
 	require.Contains(t, err.Error(), "only one unique 'alg' attribute is allowed")
 }
 
+func TestVerifyBytes_NilJWKs(t *testing.T) {
+	t.Parallel()
+
+	jwsMessageBytes := []byte("dummy")
+	_, err := VerifyBytes(nil, jwsMessageBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestVerifyBytes_EmptyJWKs(t *testing.T) {
+	t.Parallel()
+
+	jwks := []joseJwk.Key{}
+	jwsMessageBytes := []byte("dummy")
+	_, err := VerifyBytes(jwks, jwsMessageBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func TestVerifyBytes_NilMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	_, err = VerifyBytes(jwks, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jwsMessageBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestVerifyBytes_EmptyMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	jwsMessageBytes := []byte{}
+	_, err = VerifyBytes(jwks, jwsMessageBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jwsMessageBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func TestVerifyBytes_NonVerifyJWK(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	jwsMessageBytes := []byte("dummy")
+	_, err = VerifyBytes(jwks, jwsMessageBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK")
+}
+
+func TestVerifyBytes_InvalidMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	jwsMessageBytes := []byte("invalid-jws-message")
+	_, err = VerifyBytes(jwks, jwsMessageBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse JWS message bytes")
+}
+
 func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 	t.Parallel()
 
