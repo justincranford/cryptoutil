@@ -602,6 +602,67 @@ func Test_ExtractKidFromJWEMessage_InvalidMessage(t *testing.T) {
 	}
 }
 
+func TestDecryptBytesWithContext_NilJWKs(t *testing.T) {
+	t.Parallel()
+
+	jweMessageBytes := []byte("dummy")
+	_, err := DecryptBytesWithContext(nil, jweMessageBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestDecryptBytesWithContext_EmptyJWKs(t *testing.T) {
+	t.Parallel()
+
+	jwks := []joseJwk.Key{}
+	jweMessageBytes := []byte("dummy")
+	_, err := DecryptBytesWithContext(jwks, jweMessageBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func TestDecryptBytesWithContext_NilMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	_, err = DecryptBytesWithContext(jwks, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jweMessageBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestDecryptBytesWithContext_EmptyMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	jweMessageBytes := []byte{}
+	_, err = DecryptBytesWithContext(jwks, jweMessageBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jweMessageBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func TestDecryptBytesWithContext_NonDecryptJWK(t *testing.T) {
+	t.Parallel()
+
+	_, signingJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgRS256)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{signingJWK}
+
+	jweMessageBytes := []byte("dummy")
+	_, err = DecryptBytesWithContext(jwks, jweMessageBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK")
+}
+
 func Test_JWEHeadersString_NilMessage(t *testing.T) {
 	t.Parallel()
 
