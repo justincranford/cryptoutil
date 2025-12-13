@@ -13,6 +13,8 @@ import (
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
+	googleUuid "github.com/google/uuid"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/require"
 )
 
@@ -228,19 +230,91 @@ func TestGenerateHMACJWK(t *testing.T) {
 func TestBuildJWK(t *testing.T) {
 	t.Parallel()
 
-	// Test successful build.
-	rsaKey, err := cryptoutilKeyGen.GenerateRSAKeyPair(cryptoutilMagic.RSAKeySize2048)
-	require.NoError(t, err)
+	tests := []struct {
+		name      string
+		kty       joseJwa.KeyType
+		generateKey func() (any, error)
+	}{
+		{
+			name: "RSA",
+			kty:  KtyRSA,
+			generateKey: func() (any, error) {
+				keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(cryptoutilMagic.RSAKeySize2048)
+				if err != nil {
+					return nil, err
+				}
 
-	jwk, err := BuildJWK(KtyRSA, rsaKey.Private, nil)
-	require.NoError(t, err)
-	require.NotNil(t, jwk)
-	require.Equal(t, KtyRSA, jwk.KeyType())
+				return keyPair.Private, nil
+			},
+		},
+		{
+			name: "EC",
+			kty:  KtyEC,
+			generateKey: func() (any, error) {
+				keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+				if err != nil {
+					return nil, err
+				}
+
+				return keyPair.Private, nil
+			},
+		},
+		{
+			name: "OKP",
+			kty:  KtyOKP,
+			generateKey: func() (any, error) {
+				keyPair, err := cryptoutilKeyGen.GenerateEDDSAKeyPair(cryptoutilKeyGen.EdCurveEd25519)
+				if err != nil {
+					return nil, err
+				}
+
+				return keyPair.Private, nil
+			},
+		},
+		{
+			name: "OCT",
+			kty:  KtyOCT,
+			generateKey: func() (any, error) {
+				key, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+				if err != nil {
+					return nil, err
+				}
+
+				return []byte(key), nil
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Test successful build.
+			raw, err := tt.generateKey()
+			require.NoError(t, err)
+
+			jwk, err := BuildJWK(tt.kty, raw, nil)
+			require.NoError(t, err)
+			require.NotNil(t, jwk)
+			require.Equal(t, tt.kty, jwk.KeyType())
+
+			// Verify KID was set (UUID v7).
+			kidVal, ok := jwk.KeyID()
+			require.True(t, ok)
+			require.NotEmpty(t, kidVal)
+			_, err = googleUuid.Parse(kidVal)
+			require.NoError(t, err)
+		})
+	}
 
 	// Test error propagation from keygen.
-	keyGenErr := errors.New("key generation failed")
-	jwk, err = BuildJWK(KtyRSA, nil, keyGenErr)
-	require.Error(t, err)
-	require.Nil(t, jwk)
-	require.Contains(t, err.Error(), "failed to generate RSA")
+	t.Run("ErrorPropagation", func(t *testing.T) {
+		t.Parallel()
+
+		keyGenErr := errors.New("key generation failed")
+		jwk, err := BuildJWK(KtyRSA, nil, keyGenErr)
+		require.Error(t, err)
+		require.Nil(t, jwk)
+		require.Contains(t, err.Error(), "failed to generate")
+	})
 }
