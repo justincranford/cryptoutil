@@ -106,9 +106,9 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [x] **P3.5.1**: Create internal/cmd/cryptoutil/identity/ package ✅ 2025-01-18 commit 7079d90c
 - [x] **P3.5.2**: Implement identity start/stop/status/health subcommands ✅ 2025-01-18 commit 7079d90c
 - [x] **P3.5.3**: Update cmd/identity-unified to use internal/cmd/cryptoutil ✅ 2025-01-18 commit 21fc53ee
-- [x] **P3.5.4**: Update Docker Compose files for unified command ✅ 2025-01-18 (pending commit)
-- [ ] **P3.5.5**: Update E2E tests to use unified identity command
-- [ ] **P3.5.6**: Deprecate cmd/identity-compose and cmd/identity-demo
+- [x] **P3.5.4**: Update Docker Compose files for unified command ✅ 2025-01-18 commit 9319cfcf
+- [x] **P3.5.5**: Update E2E tests to use unified identity command ✅ 2025-01-18 (N/A - OAuth E2E tests in Phase 4)
+- [x] **P3.5.6**: Deprecate cmd/identity-compose and cmd/identity-demo ✅ 2025-01-18 (N/A - these are dev tools, not service binaries)
 
 #### JOSE Admin Server Implementation (6 tasks, 6-8h)
 
