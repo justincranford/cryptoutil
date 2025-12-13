@@ -35,17 +35,18 @@ func (suite *CAWorkflowSuite) TearDownSuite() {
 
 // TestCertificateLifecycleWorkflow tests complete certificate lifecycle.
 func (suite *CAWorkflowSuite) TestCertificateLifecycleWorkflow() {
-	suite.T().Skip("TODO P4.3: Implement CA certificate lifecycle E2E test")
+	suite.T().Skip("TODO P4.3: Full implementation requires CA OpenAPI client generation and CSR submission APIs")
 
-	// TODO: Implement E2E test covering:
-	// 1. Generate private key and CSR (crypto/x509)
-	// 2. Submit CSR to CA API
-	// 3. Receive issued TLS server certificate
-	// 4. Parse certificate (verify subject, validity, extensions)
-	// 5. Verify certificate signature chain
-	// 6. Revoke certificate via CA API
-	// 7. Fetch CRL from distribution point
-	// 8. Verify revoked certificate appears in CRL
+	// TODO: Full implementation requires:
+	// 1. Generate CA OpenAPI client (like KMS client)
+	// 2. Implement CSR submission endpoint in CA service
+	// 3. Implement certificate issuance workflow
+	// 4. Implement revocation endpoint
+	// 5. Implement CRL distribution endpoint
+	//
+	// Current status: CA service deployed but APIs not yet exposed via OpenAPI
+	// Reference: deployments/ca/compose.yml has ca-sqlite service
+	// Next: Generate OpenAPI spec for CA service similar to api/openapi_spec_*.yaml pattern
 }
 
 // TestOCSPWorkflow tests OCSP responder functionality.

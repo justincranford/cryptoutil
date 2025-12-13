@@ -35,17 +35,18 @@ func (suite *JOSEWorkflowSuite) TearDownSuite() {
 
 // TestJWTSignVerifyWorkflow tests JWT signing and verification.
 func (suite *JOSEWorkflowSuite) TestJWTSignVerifyWorkflow() {
-	suite.T().Skip("TODO P4.4: Implement JOSE JWT sign/verify E2E test")
+	suite.T().Skip("TODO P4.4: Full implementation requires JOSE OpenAPI client generation and JWT sign/verify APIs")
 
-	// TODO: Implement E2E test covering:
-	// 1. Generate JWK (ES384) via JOSE API
-	// 2. Create JWT with standard claims (sub, iss, exp, iat)
-	// 3. Add custom claims (roles, permissions)
-	// 4. Sign JWT using JWK
-	// 5. Verify JWT signature
-	// 6. Validate standard claims (expiration, issuer)
-	// 7. Validate custom claims
-	// 8. Test expired token rejection
+	// TODO: Full implementation requires:
+	// 1. Generate JOSE OpenAPI client (like KMS client)
+	// 2. Implement JWK generation endpoint in JOSE service
+	// 3. Implement JWT sign endpoint
+	// 4. Implement JWT verify endpoint
+	// 5. Implement JWKS discovery endpoint
+	//
+	// Current status: JOSE service deployed but APIs not yet exposed via OpenAPI
+	// Reference: deployments/jose/compose.yml has jose-server service
+	// Next: Generate OpenAPI spec for JOSE service similar to api/openapi_spec_*.yaml pattern
 }
 
 // TestJWKSEndpointWorkflow tests JWKS discovery endpoint.
