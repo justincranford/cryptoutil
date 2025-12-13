@@ -362,3 +362,26 @@ func TestValidateOrGenerateJWSHMACJWK_WrongKeyType(t *testing.T) {
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
 }
+
+func TestValidateOrGenerateJWSRSAJWK_ValidExistingKey(t *testing.T) {
+	t.Parallel()
+
+	validKey, err := cryptoutilKeygen.GenerateRSAKeyPair(2048)
+	require.NoError(t, err)
+
+	validated, err := validateOrGenerateJWSRSAJWK(validKey, joseJwa.RS256(), 2048)
+	require.NoError(t, err)
+	require.Equal(t, validKey, validated)
+}
+
+func TestValidateOrGenerateJWSRSAJWK_WrongKeyType(t *testing.T) {
+	t.Parallel()
+
+	wrongKey, err := cryptoutilKeygen.GenerateHMACKey(256)
+	require.NoError(t, err)
+
+	validated, err := validateOrGenerateJWSRSAJWK(wrongKey, joseJwa.RS256(), 2048)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
