@@ -7,6 +7,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -57,10 +58,16 @@ func TestMain(m *testing.M) {
 	time.Sleep(cryptoutilMagic.ServerStartupWait)
 
 	// Get the actual port from the listener.
-	testBaseURL = fmt.Sprintf("http://%s:%d", cryptoutilMagic.IPv4Loopback, testServer.ActualPort())
+	testBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, testServer.ActualPort())
 
-	// Create HTTP client for tests.
-	testHTTPClient = &http.Client{}
+	// Create HTTP client with TLS config for self-signed certificates.
+	testHTTPClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec // Test environment only
+			},
+		},
+	}
 
 	// Run tests.
 	exitCode := m.Run()
