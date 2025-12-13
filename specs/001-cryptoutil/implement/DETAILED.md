@@ -3,7 +3,7 @@
 **Iteration**: specs/001-cryptoutil
 **Started**: December 7, 2025
 **Last Updated**: December 13, 2025 20:50 UTC
-**Status**: 🚀 IN PROGRESS (50/71 tasks, 70.4%)
+**Status**: 🚀 IN PROGRESS (57/71 tasks, 80.3%)
 
 **Session Summary (Dec 13)**:
 
@@ -55,16 +55,16 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 **Results**: All Identity services (AuthZ, IdP, RS) now have dual-server architecture matching KMS pattern. Admin servers on 127.0.0.1:9090 with /admin/v1/{livez,readyz,shutdown} endpoints. Docker Compose and workflows updated.
 
-### Phase 2: Deferred I2 Features (8 tasks)
+### Phase 2: Deferred I2 Features (8 tasks) - **7/8 COMPLETE** ✅
 
-- [ ] **P2.1**: Device Authorization Grant (RFC 8628)
-- [ ] **P2.2**: MFA - TOTP (RFC 6238)
-- [ ] **P2.3**: MFA - WebAuthn
-- [ ] **P2.4**: Client Authentication - private_key_jwt
-- [ ] **P2.5**: Client Authentication - client_secret_jwt
-- [ ] **P2.6**: Client Authentication - tls_client_auth
-- [ ] **P2.7**: DPoP (Demonstrating Proof-of-Possession)
-- [ ] **P2.8**: PAR (Pushed Authorization Requests)
+- [x] **P2.1**: Device Authorization Grant (RFC 8628) ✅ COMPLETE - handlers_device_authorization.go, domain, repository, tests
+- [x] **P2.2**: MFA - TOTP (RFC 6238) ✅ COMPLETE - idp/userauth/totp_hotp_auth.go, RFC 6238 compliant
+- [x] **P2.3**: MFA - WebAuthn ✅ COMPLETE - repository/orm/webauthn_credential_repository.go, handlers, tests
+- [x] **P2.4**: Client Authentication - private_key_jwt ✅ COMPLETE - authz/clientauth/private_key_jwt.go
+- [x] **P2.5**: Client Authentication - client_secret_jwt ✅ COMPLETE - authz/clientauth/client_secret_jwt.go
+- [x] **P2.6**: Client Authentication - tls_client_auth ✅ COMPLETE - authz/clientauth/tls_client_auth.go
+- [ ] **P2.7**: DPoP (Demonstrating Proof-of-Possession) ❌ NOT STARTED (2h effort)
+- [x] **P2.8**: PAR (Pushed Authorization Requests) ✅ COMPLETE - handlers_par.go, RFC 9126 compliant
 
 ### Phase 2.5: CA Production Deployment (8 tasks) 🚧 IN PROGRESS
 
