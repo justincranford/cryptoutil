@@ -275,6 +275,18 @@ func TestCreateJWSJWKFromKey_NilAlg(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid JWS JWK headers")
 }
 
+func TestCreateJWSJWKFromKey_SetKidError(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	alg := joseJwa.HS256()
+	validKey, err := cryptoutilKeygen.GenerateHMACKey(256)
+	require.NoError(t, err)
+
+	_, _, _, _, _, err = CreateJWSJWKFromKey(&kid, &alg, validKey)
+	require.NoError(t, err)
+}
+
 // TestCreateJWSJWKFromKey_NilKey tests error for nil key.
 func TestCreateJWSJWKFromKey_NilKey(t *testing.T) {
 	t.Parallel()
