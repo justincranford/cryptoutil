@@ -322,6 +322,39 @@ func TestTenantManager_WithTenant_Disabled(t *testing.T) {
 	require.Contains(t, err.Error(), "disabled")
 }
 
+func TestTenantManager_WithTenant_Schema(t *testing.T) {
+	t.Parallel()
+
+	// Schema isolation requires PostgreSQL (CREATE SCHEMA not supported in SQLite).
+	t.Skip("Schema isolation requires PostgreSQL - not supported in SQLite test DB")
+}
+
+func TestTenantManager_WithTenant_DatabaseIsolation(t *testing.T) {
+	t.Parallel()
+
+	db := setupTenantTestDB(t)
+	manager, err := NewTenantManager(db, &TenantManagerConfig{
+		IsolationMode: TenantIsolationDatabase,
+	})
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Register tenant.
+	tenant := &TenantConfig{
+		ID:      "db-tenant",
+		Name:    "Database Tenant",
+		Enabled: true,
+	}
+	err = manager.RegisterTenant(ctx, tenant)
+	require.NoError(t, err)
+
+	// Database isolation not implemented - should return error.
+	_, err = manager.WithTenant(ctx, "db-tenant")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not implemented")
+}
+
 func TestTenantContext(t *testing.T) {
 	t.Parallel()
 
