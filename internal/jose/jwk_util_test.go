@@ -625,6 +625,20 @@ func TestExtractKidUUID_InvalidUUIDFormat(t *testing.T) {
 	extractedKid, err := ExtractKidUUID(jwk)
 	require.Error(t, err)
 	require.Nil(t, extractedKid)
+	require.Contains(t, err.Error(), "failed to parse kid as UUID")
+}
+
+func TestExtractKidUUID_InvalidNilUUID(t *testing.T) {
+	t.Parallel()
+
+	jwk, err := joseJwk.Import([]byte("test-key-nil-uuid-exactly-32-by"))
+	require.NoError(t, err)
+	require.NoError(t, jwk.Set(joseJwk.KeyIDKey, googleUuid.Nil.String()))
+
+	extractedKid, err := ExtractKidUUID(jwk)
+	require.Error(t, err)
+	require.Nil(t, extractedKid)
+	require.Contains(t, err.Error(), "failed to validate kid UUID")
 }
 
 func TestCreateJWKFromKey_RSAKeyPair(t *testing.T) {
