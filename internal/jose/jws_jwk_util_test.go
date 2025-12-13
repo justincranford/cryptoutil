@@ -311,3 +311,28 @@ func TestValidateOrGenerateJWSEcdsaJWK_WrongKeyType(t *testing.T) {
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "unsupported key type")
 }
+
+func TestValidateOrGenerateJWSEddsaJWK_ValidExistingKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate valid Ed25519 key pair.
+	validKey, err := cryptoutilKeygen.GenerateEDDSAKeyPair("Ed25519")
+	require.NoError(t, err)
+
+	// Validate existing key.
+	validated, err := validateOrGenerateJWSEddsaJWK(validKey, joseJwa.EdDSA(), "Ed25519")
+	require.NoError(t, err)
+	require.Equal(t, validKey, validated)
+}
+
+func TestValidateOrGenerateJWSEddsaJWK_WrongKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Use symmetric key (wrong type).
+	wrongKey := cryptoutilKeygen.SecretKey(make([]byte, 32))
+
+	validated, err := validateOrGenerateJWSEddsaJWK(wrongKey, joseJwa.EdDSA(), "Ed25519")
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
