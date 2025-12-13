@@ -18,6 +18,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -615,6 +616,30 @@ func TestCreateJWKFromKey_RSAKeyPair(t *testing.T) {
 	require.NotNil(t, publicJWK) // RSA should have public key
 	require.NotEmpty(t, publicBytes)
 	require.NotEmpty(t, nonPublicBytes)
+}
+
+func TestValidateOrGenerateHMACJWK_NilSecretKey(t *testing.T) {
+	t.Parallel()
+
+	// SecretKey with nil value.
+	var nilKey cryptoutilKeyGen.SecretKey
+
+	result, err := validateOrGenerateHMACJWK(nilKey, cryptoutilMagic.HMACKeySize256)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid nil key bytes")
+}
+
+func TestValidateOrGenerateAESJWK_NilSecretKey(t *testing.T) {
+	t.Parallel()
+
+	// SecretKey with nil value.
+	var nilKey cryptoutilKeyGen.SecretKey
+
+	result, err := validateOrGenerateAESJWK(nilKey, cryptoutilMagic.AESKeySize256)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid nil key bytes")
 }
 
 func TestExtractKty_ValidKeyTypes(t *testing.T) {
