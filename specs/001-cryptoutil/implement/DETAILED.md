@@ -8,10 +8,11 @@
 **Session Summary (Dec 12)**:
 
 - ✅ Phase 5 Complete (8/8) - CI/CD workflows verified
-- ✅ Phase 3 Unblocked - NewTestConfig() helper created
-- 🔄 P3.1 In Progress - Created jws_jwk_util_test.go (needs JWX v3 API fixes)
-- 📊 Progress: 7 commits, 60 min continuous work
-- 🎯 Next: Fix JWX v3 API, complete P3.1-P3.6 coverage
+- ✅ Phase 3 Unblocked - NewTestConfig() helper created, 6 jose/server tests fixed
+- ✅ JWX v3 Migration Complete - jws_jwk_util_test.go fully functional (algorithms→functions, tuples, constants)
+- 📊 Progress: 10 commits (44th), 90 min continuous work, jose coverage 75.9% → 76.3% (+0.4%)
+- 🔄 P3.1 In Progress - CreateJWSJWKFromKey tests complete, targeting validateOrGenerate* and BuildJWK next
+- 🎯 Next: Complete P3.1 (jose 95%), continue P3.2-P3.6
 
 ---
 
@@ -477,6 +478,39 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 **Long-term TODO**: Consider refactoring config.Parse() to use isolated FlagSet for production code (NewTestConfig is test-only workaround)
 
 **Next Steps**: Start Phase 3 coverage work (P3.1: jose 75.9% → 95%, P3.2-P3.6: ca/identity/kms/infra/cicd packages)
+
+### December 12, 2025 - P3.1 Jose Coverage (JWX v3 Migration) 🔄
+
+**Tasks**: P3.1 jose package coverage 75.9% → 95%
+**Status**: 🔄 IN PROGRESS (76.3%, +0.4%)
+
+**Evidence**: Commits 0a49696d, 8b95cce5 (43rd, 44th)
+
+**JWX v3 API Migration (8b95cce5)**:
+
+- Created internal/jose/jws_jwk_util_test.go (289 lines, 8 test functions)
+- Comprehensive CreateJWSJWKFromKey tests: HMAC (HS256/384/512), RSA (RS*/PS*), ECDSA (ES*), EdDSA, error paths
+- Fixed JWX v3 breaking changes:
+  * Algorithms changed from constants to functions: `joseJwa.HS256()` not `joseJwa.HS256`
+  * JWK getter methods return tuples: `(value, bool)` pattern - `if val, ok := jwk.KeyID(); ok { ... }`
+  * KeyType constants use functions: `KtyOCT/RSA/EC/OKP` (defined as `joseJwa.OctetSeq()` etc)
+- Fixed nil alg panic: Added validation to validateJWSJWKHeaders (line 153)
+- Fixed unsupported key test: Use invalid KeyPair.Private type instead of string
+- All 8 test functions PASS: TestCreateJWSJWKFromKey_{HMAC,RSA,ECDSA,EdDSA,UnsupportedKeyType,NilKid,NilAlg,NilKey}
+
+**Coverage Analysis**:
+
+- Overall: 75.9% → 76.3% (+0.4%)
+- CreateJWSJWKFromKey: Still 60.9% (indirect coverage from other tests)
+- Low-coverage targets identified:
+  * validateOrGenerateJWS*JWK: 66.7% (4 functions - RSA/ECDSA/EdDSA/HMAC)
+  * BuildJWK: 69.2% (needs EC/OKP/OCT test cases)
+  * VerifyBytes: 74.3%
+  * JWSHeadersString: 77.8%
+
+**Verification**: `go test -count=1 ./internal/jose/` - ✅ ALL PASS (23.5s)
+
+**Next Steps**: Add tests for validateOrGenerateJWS*JWK edge cases, BuildJWK all key types, VerifyBytes error paths
 
 ---
 
