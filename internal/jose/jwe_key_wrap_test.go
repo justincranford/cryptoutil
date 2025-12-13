@@ -177,6 +177,30 @@ func TestDecryptKey_CorruptedEncryptedBytes(t *testing.T) {
 	_, err = DecryptKey([]joseJwk.Key{kekJWK}, encryptedBytes)
 	require.Error(t, err)
 }
+
+func TestDecryptKey_InvalidJWKFormat(t *testing.T) {
+	t.Parallel()
+
+	// Generate KEK.
+	kekKid := googleUuid.New()
+	kekBytes := make([]byte, 32)
+	_, err := crand.Read(kekBytes)
+	require.NoError(t, err)
+
+	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &EncA256GCM, &AlgA256KW, cryptoutilKeyGen.SecretKey(kekBytes))
+	require.NoError(t, err)
+
+	// Encrypt plaintext that's NOT a valid JWK (just random bytes).
+	plaintext := []byte("not a valid jwk format")
+	_, encryptedBytes, err := EncryptBytes([]joseJwk.Key{kekJWK}, plaintext)
+	require.NoError(t, err)
+
+	// DecryptKey will decrypt successfully but fail to parse as JWK.
+	_, err = DecryptKey([]joseJwk.Key{kekJWK}, encryptedBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to derypt CDK")
+}
+
 func TestEncryptKey_NilKEKs(t *testing.T) {
 	t.Parallel()
 
