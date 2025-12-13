@@ -372,6 +372,45 @@ func TestValidateOrGenerateJWERSAJWK_WrongPublicKeyType(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PublicKey")
 }
 
+func TestValidateOrGenerateJWEEcdhJWK_WrongPrivateKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Generate RSA key instead of ECDH.
+	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: rsaKey,
+		Public:  &rsaKey.PublicKey,
+	}
+
+	result, err := validateOrGenerateJWEEcdhJWK(keyPair, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type *rsa.PrivateKey")
+}
+
+func TestValidateOrGenerateJWEEcdhJWK_WrongPublicKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Generate ECDH private + ECDSA public (mismatched types).
+	ecdhKey, err := ecdh.P256().GenerateKey(crand.Reader)
+	require.NoError(t, err)
+
+	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: ecdhKey,
+		Public:  &ecdsaKey.PublicKey,
+	}
+
+	result, err := validateOrGenerateJWEEcdhJWK(keyPair, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PublicKey")
+}
+
 func TestValidateOrGenerateJWEEcdhJWK_NilPrivateKey(t *testing.T) {
 	t.Parallel()
 
