@@ -720,6 +720,52 @@ func TestCreateJWKFromKey_InvalidHeaders(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid JWK headers")
 }
 
+// TestCreateJWKFromKey_ECDSAKeyPair tests CreateJWKFromKey with ECDSA key pair.
+func TestCreateJWKFromKey_ECDSAKeyPair(t *testing.T) {
+	t.Parallel()
+
+	// Generate ECDSA P256 key pair.
+	kid := googleUuid.New()
+	alg := cryptoutilOpenapiModel.ECP256
+	keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+	require.NoError(t, err)
+
+	resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, &kid, resultKid)
+	require.NotNil(t, nonPublicJWK)
+	require.NotNil(t, publicJWK) // Asymmetric key has public key
+	require.NotEmpty(t, nonPublicBytes)
+	require.NotEmpty(t, publicBytes)
+
+	// Verify key type.
+	kty := nonPublicJWK.KeyType()
+	require.Equal(t, KtyEC, kty)
+}
+
+// TestCreateJWKFromKey_EdDSAKeyPair tests CreateJWKFromKey with EdDSA key pair.
+func TestCreateJWKFromKey_EdDSAKeyPair(t *testing.T) {
+	t.Parallel()
+
+	// Generate Ed25519 key pair.
+	kid := googleUuid.New()
+	alg := cryptoutilOpenapiModel.OKPEd25519
+	keyPair, err := cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
+	require.NoError(t, err)
+
+	resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, &kid, resultKid)
+	require.NotNil(t, nonPublicJWK)
+	require.NotNil(t, publicJWK) // Asymmetric key has public key
+	require.NotEmpty(t, nonPublicBytes)
+	require.NotEmpty(t, publicBytes)
+
+	// Verify key type.
+	kty := nonPublicJWK.KeyType()
+	require.Equal(t, KtyOKP, kty)
+}
+
 func TestValidateOrGenerateHMACJWK_NilSecretKey(t *testing.T) {
 	t.Parallel()
 
