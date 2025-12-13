@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/rand"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	cryptoutilCAServer "cryptoutil/api/ca/server"
 	cryptoutilCAHandler "cryptoutil/internal/ca/api/handler"
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
+	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
 	cryptoutilCAMiddleware "cryptoutil/internal/ca/server/middleware"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
@@ -253,7 +255,7 @@ func (s *Server) handleReadyz(c *fiber.Ctx) error {
 	return nil
 }
 
-// Start begins listening for HTTP requests.
+// Start begins listening for HTTPS requests.
 func (s *Server) Start(ctx context.Context) error {
 	addr := fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort)
 
@@ -276,8 +278,19 @@ func (s *Server) Start(ctx context.Context) error {
 		"address", s.settings.BindPublicAddress,
 		"port", s.actualPort)
 
-	// Start server.
-	if err := s.fiberApp.Listener(listener); err != nil {
+	// Generate TLS config using CA's own issuer.
+	tlsConfig, err := s.generateTLSConfig()
+	if err != nil {
+		return fmt.Errorf("failed to generate TLS config: %w", err)
+	}
+
+	// Wrap listener with TLS.
+	tlsListener := tls.NewListener(listener, tlsConfig)
+
+	s.telemetryService.Slogger.Info("CA Server listening with TLS", "addr", listener.Addr().String())
+
+	// Start server with TLS listener.
+	if err := s.fiberApp.Listener(tlsListener); err != nil {
 		return fmt.Errorf("server error: %w", err)
 	}
 
@@ -302,6 +315,62 @@ func (s *Server) Shutdown() error {
 // ActualPort returns the actual port the server is listening on.
 func (s *Server) ActualPort() int {
 	return s.actualPort
+}
+
+// generateTLSConfig creates a TLS configuration using the CA's own issuer to generate a TLS server certificate.
+func (s *Server) generateTLSConfig() (*tls.Config, error) {
+	// Generate key for TLS certificate.
+	keySpec := cryptoutilCACrypto.KeySpec{
+		Type:       cryptoutilCACrypto.KeyTypeECDSA,
+		ECDSACurve: "P-384",
+	}
+
+	cryptoProvider := cryptoutilCACrypto.NewSoftwareProvider()
+
+	keyPair, err := cryptoProvider.GenerateKeyPair(keySpec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate TLS key: %w", err)
+	}
+
+	signer, ok := keyPair.PrivateKey.(crypto.Signer)
+	if !ok {
+		return nil, fmt.Errorf("private key is not a signer")
+	}
+
+	// Create certificate request for TLS server certificate.
+	certReq := &cryptoutilCAServiceIssuer.CertificateRequest{
+		SubjectRequest: &cryptoutilCAProfileSubject.Request{
+			CommonName:   "ca-server",
+			Organization: []string{"cryptoutil"},
+			Country:      []string{"US"},
+			DNSNames:     []string{"localhost", "ca-server"},
+			IPAddresses:  []string{"127.0.0.1", "::1"},
+		},
+		PublicKey:        signer.Public(),
+		ValidityDuration: 365 * 24 * time.Hour, // 1 year.
+	}
+
+	// Issue TLS certificate using CA's issuer.
+	issued, _, err := s.issuer.Issue(certReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to issue TLS certificate: %w", err)
+	}
+
+	// Create TLS certificate with chain.
+	tlsCert := tls.Certificate{
+		Certificate: [][]byte{issued.Certificate.Raw, s.issuer.GetCAConfig().Certificate.Raw},
+		PrivateKey:  signer,
+		Leaf:        issued.Certificate,
+	}
+
+	// Create TLS config.
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+		MinVersion:   tls.VersionTLS13,
+		ClientAuth:   tls.NoClientCert,
+	}
+
+	return tlsConfig, nil
 }
 
 // createSelfSignedCA generates a self-signed CA certificate for development.
