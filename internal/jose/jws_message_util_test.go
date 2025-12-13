@@ -479,3 +479,37 @@ func Test_LogJWSInfo_AllHeaders(t *testing.T) {
 		})
 	}
 }
+
+// Test_JWSHeadersString_MultipleSignatures tests JWSHeadersString with multiple signatures.
+func Test_JWSHeadersString_MultipleSignatures(t *testing.T) {
+	t.Parallel()
+
+	payload := []byte("test payload")
+
+	// Generate two signing keys.
+	_, jwk1, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+
+	_, jwk2, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS512)
+	require.NoError(t, err)
+
+	// Sign with two keys using JSON serialization (required for multiple signatures).
+	signedMessage, err := joseJws.Sign(
+		payload,
+		joseJws.WithKey(AlgHS256, jwk1),
+		joseJws.WithKey(AlgHS512, jwk2),
+		joseJws.WithJSON(), // Required for multiple signatures
+	)
+	require.NoError(t, err)
+
+	// Parse signed message.
+	jwsMessage, err := joseJws.Parse(signedMessage)
+	require.NoError(t, err)
+	require.Len(t, jwsMessage.Signatures(), 2, "should have two signatures")
+
+	// Test JWSHeadersString with multiple signatures.
+	headersStr, err := JWSHeadersString(jwsMessage)
+	require.NoError(t, err)
+	require.NotEmpty(t, headersStr)
+	require.Contains(t, headersStr, "\n", "should contain newline separator for multiple signatures")
+}
