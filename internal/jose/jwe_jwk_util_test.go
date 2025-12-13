@@ -172,6 +172,21 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 	}
 }
 
+func TestValidateOrGenerateJWEAESJWK_InvalidEncWithDir(t *testing.T) {
+	t.Parallel()
+
+	// AlgDir with invalid enc (not GCM or CBC-HS) should trigger default case.
+	invalidEnc := joseJwa.NewContentEncryptionAlgorithm("A256XYZ")
+	alg := joseJwa.DIRECT()
+	allowedEncs := []*joseJwa.ContentEncryptionAlgorithm{&invalidEnc}
+
+	keyBytes, err := validateOrGenerateJWEAESJWK(nil, &invalidEnc, &alg, 256, allowedEncs...)
+	require.Error(t, err)
+	require.Nil(t, keyBytes)
+	require.Contains(t, err.Error(), "valid JWE JWK alg")
+	require.Contains(t, err.Error(), "but invalid enc")
+}
+
 func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 	t.Parallel()
 
