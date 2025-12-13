@@ -286,3 +286,28 @@ func TestCreateJWSJWKFromKey_NilKey(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWS JWK headers")
 }
+
+func TestValidateOrGenerateJWSEcdsaJWK_ValidExistingKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate valid ECDSA P256 key pair.
+	validKey, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P256())
+	require.NoError(t, err)
+
+	// Validate existing key.
+	validated, err := validateOrGenerateJWSEcdsaJWK(validKey, joseJwa.ES256(), elliptic.P256())
+	require.NoError(t, err)
+	require.Equal(t, validKey, validated)
+}
+
+func TestValidateOrGenerateJWSEcdsaJWK_WrongKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Use symmetric key (wrong type).
+	wrongKey := cryptoutilKeygen.SecretKey(make([]byte, 32))
+
+	validated, err := validateOrGenerateJWSEcdsaJWK(wrongKey, joseJwa.ES256(), elliptic.P256())
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
