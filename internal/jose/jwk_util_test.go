@@ -817,6 +817,38 @@ func TestValidateOrGenerateEddsaJWK_WrongKeyType(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported key type")
 }
 
+func TestValidateOrGenerateEddsaJWK_NilPrivateKey(t *testing.T) {
+	t.Parallel()
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: nil,
+		Public:  ed25519.PublicKey{},
+	}
+
+	validated, err := validateOrGenerateEddsaJWK(keyPair, "Ed25519")
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "invalid key type")
+}
+
+func TestValidateOrGenerateEddsaJWK_NilPublicKey(t *testing.T) {
+	t.Parallel()
+
+	publicKey, privateKey, err := ed25519.GenerateKey(crand.Reader)
+	require.NoError(t, err)
+	_ = publicKey
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: privateKey,
+		Public:  nil,
+	}
+
+	validated, err := validateOrGenerateEddsaJWK(keyPair, "Ed25519")
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "invalid key type")
+}
+
 func TestValidateOrGenerateHMACJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
