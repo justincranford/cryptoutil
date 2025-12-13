@@ -207,6 +207,44 @@ func TestValidateOrGenerateJWEAESJWK_WrongKeyType(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported key type *keygen.KeyPair")
 }
 
+func TestValidateOrGenerateJWEAESJWK_DisallowedEnc(t *testing.T) {
+	t.Parallel()
+
+	// Test enc not in allowedEncs list.
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(256)
+	require.NoError(t, err)
+
+	// Use A128GCM but only allow A256GCM.
+	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA128GCM, &AlgA256KW, 256, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "enc A128GCM not allowed")
+}
+
+func TestValidateOrGenerateJWEAESJWK_NilKey(t *testing.T) {
+	t.Parallel()
+
+	// Test nil key bytes.
+	var secretKey cryptoutilKeyGen.SecretKey = nil
+	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid nil key bytes")
+}
+
+func TestValidateOrGenerateJWEAESJWK_WrongLength(t *testing.T) {
+	t.Parallel()
+
+	// Test wrong length key (128 bits instead of 256 bits).
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(128)
+	require.NoError(t, err)
+
+	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid key length")
+}
+
 func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 	t.Parallel()
 
