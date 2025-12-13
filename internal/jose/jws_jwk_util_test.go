@@ -299,6 +299,29 @@ func TestCreateJWSJWKFromKey_NilKey(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid JWS JWK headers")
 }
 
+func TestCreateJWSJWKFromKey_PublicKeyExtraction(t *testing.T) {
+	t.Parallel()
+
+	// Generate RSA key pair.
+	keyPair, err := cryptoutilKeygen.GenerateRSAKeyPair(2048)
+	require.NoError(t, err)
+
+	kid := googleUuid.New()
+	alg := joseJwa.RS256()
+
+	// Create JWK from key pair.
+	_, nonPublicJWK, publicJWK, _, clearPublicBytes, err := CreateJWSJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.NotNil(t, nonPublicJWK)
+	require.NotNil(t, publicJWK)
+	require.NotEmpty(t, clearPublicBytes)
+
+	// Verify public key extracted successfully.
+	var kidFromPublic string
+	require.NoError(t, publicJWK.Get(joseJwk.KeyIDKey, &kidFromPublic))
+	require.Equal(t, kid.String(), kidFromPublic)
+}
+
 func TestValidateOrGenerateJWSEcdsaJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
@@ -406,6 +429,7 @@ func TestValidateOrGenerateJWSHMACJWK_WrongKeyType(t *testing.T) {
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
 }
+
 func TestValidateOrGenerateJWSEcdsaJWK_NilPrivateKey(t *testing.T) {
 	t.Parallel()
 
@@ -436,6 +460,7 @@ func TestValidateOrGenerateJWSEcdsaJWK_NilPublicKey(t *testing.T) {
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "invalid key type")
 }
+
 func TestValidateOrGenerateJWSRSAJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
