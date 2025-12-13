@@ -562,3 +562,18 @@ func TestCreateJWEJWKFromKey_NilPrivateKeyPair(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWE JWK headers")
 }
+
+func TestCreateJWEJWKFromKey_InvalidEnc(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	// Create ContentEncryptionAlgorithm not in EncToBitsLength switch.
+	invalidEnc := joseJwa.NewContentEncryptionAlgorithm("INVALID_ENC")
+	alg := joseJwa.A256KW()
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(256)
+	require.NoError(t, err)
+
+	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, &invalidEnc, &alg, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "JWE JWK length error")
+}
