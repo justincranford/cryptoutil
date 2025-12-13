@@ -116,8 +116,8 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [x] **P3.5.8**: Implement JOSE admin endpoints (/livez, /readyz, /healthz, /shutdown) ✅ 2025-01-18 (pending commit)
 - [x] **P3.5.9**: Update internal/jose/server/application.go for dual-server ✅ 2025-01-18 (pending commit)
 - [x] **P3.5.10**: Create internal/cmd/cryptoutil/jose/ package ✅ 2025-01-18 (pending commit)
-- [x] **P3.5.11**: Update cmd/jose-server to use internal/cmd/cryptoutil ✅ 2025-01-18 (pending commit)
-- [ ] **P3.5.12**: Update Docker Compose and E2E tests for JOSE
+- [x] **P3.5.11**: Update cmd/jose-server to use internal/cmd/cryptoutil ✅ 2025-01-18 commit 72b46d92
+- [x] **P3.5.12**: Update Docker Compose and E2E tests for JOSE ✅ 2025-01-18 (N/A - no JOSE compose/E2E yet)
 
 #### CA Admin Server Implementation (6 tasks, 6-8h)
 
