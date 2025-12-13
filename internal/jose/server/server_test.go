@@ -1062,7 +1062,8 @@ func TestJWTVerifyErrorPaths(t *testing.T) {
 
 // TestServerLifecycle tests server Start and Shutdown.
 func TestServerLifecycle(t *testing.T) {
-	t.Parallel()
+	// NOTE: Cannot use t.Parallel() because NewForJOSEServer calls config.Parse()
+	// which redefines global flags and causes "flag redefined" panic in parallel tests.
 
 	settings := cryptoutilConfig.NewForJOSEServer(
 		cryptoutilMagic.IPv4Loopback,
@@ -1083,7 +1084,8 @@ func TestServerLifecycle(t *testing.T) {
 
 // TestAPIKeyMiddleware tests API key configuration.
 func TestAPIKeyMiddleware(t *testing.T) {
-	t.Parallel()
+	// NOTE: Cannot use t.Parallel() because NewForJOSEServer calls config.Parse()
+	// which redefines global flags and causes "flag redefined" panic in parallel tests.
 
 	settings := cryptoutilConfig.NewForJOSEServer(
 		cryptoutilMagic.IPv4Loopback,
@@ -1142,7 +1144,8 @@ func TestNewServerErrorPaths(t *testing.T) {
 
 // TestStartBlocking tests the blocking Start method.
 func TestStartBlocking(t *testing.T) {
-	t.Parallel()
+	// NOTE: Cannot use t.Parallel() because NewForJOSEServer calls config.Parse()
+	// which redefines global flags and causes "flag redefined" panic in parallel tests.
 
 	settings := cryptoutilConfig.NewForJOSEServer(
 		cryptoutilMagic.IPv4Loopback,
@@ -1163,10 +1166,11 @@ func TestStartBlocking(t *testing.T) {
 
 // TestShutdownCoverage tests explicit Shutdown calls for coverage.
 func TestShutdownCoverage(t *testing.T) {
-	t.Parallel()
+	// NOTE: Cannot use t.Parallel() here because NewForJOSEServer calls config.Parse()
+	// which redefines global flags and causes "flag redefined" panic in parallel tests.
 
 	t.Run("NormalShutdown", func(t *testing.T) {
-		t.Parallel()
+		// NOTE: Cannot use t.Parallel() - see parent test comment.
 
 		settings := cryptoutilConfig.NewForJOSEServer(
 			cryptoutilMagic.IPv4Loopback,
