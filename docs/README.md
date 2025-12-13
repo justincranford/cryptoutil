@@ -700,6 +700,45 @@ OTEL Collector self-metrics → Prometheus scraping (8888)
 - `grafana_data`: Persistent Grafana configuration and dashboards
 - Named volumes for data persistence across restarts
 
+## Testing Documentation
+
+### End-to-End (E2E) Testing
+
+Comprehensive E2E testing validates complete workflows across all services (KMS, CA, JOSE, Identity). Tests use real service deployments with Docker Compose, real databases (PostgreSQL, SQLite), and real telemetry infrastructure.
+
+**E2E Test Suites**:
+
+- **OAuth Workflows** (`oauth_workflow_test.go`) - OAuth 2.1 authorization code + PKCE, client credentials
+- **KMS Workflows** (`kms_workflow_test.go`) - Encrypt/decrypt, sign/verify, key rotation
+- **CA Workflows** (`ca_workflow_test.go`) - Certificate lifecycle, OCSP, CRL distribution
+- **JOSE Workflows** (`jose_workflow_test.go`) - JWT signing/verification, JWKS endpoint, JWK rotation
+
+**Running E2E Tests**:
+
+```powershell
+# Deploy all services
+docker compose -f ./deployments/compose/compose.yml up -d
+docker compose -f ./deployments/ca/compose.yml up -d
+docker compose -f ./deployments/jose/compose.yml up -d
+
+# Run E2E tests
+go test -tags=e2e -v -timeout=30m ./internal/test/e2e/
+
+# Cleanup
+docker compose -f ./deployments/compose/compose.yml down -v
+docker compose -f ./deployments/ca/compose.yml down -v
+docker compose -f ./deployments/jose/compose.yml down -v
+```
+
+**Detailed Documentation**: See [E2E-TESTING.md](./E2E-TESTING.md) for:
+
+- Test architecture and infrastructure
+- Complete test descriptions with step-by-step workflows
+- Local execution instructions
+- CI/CD integration
+- Troubleshooting guide
+- Development guidelines
+
 ## Conclusion
 
 Cryptoutil represents a mature, well-architected cryptographic service that successfully balances security, performance, and usability. The codebase demonstrates strong software engineering practices, comprehensive security measures, and production readiness. It's particularly notable for its adherence to cryptographic standards and its sophisticated key management hierarchy.
