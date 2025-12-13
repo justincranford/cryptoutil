@@ -6,6 +6,8 @@ package jose
 
 import (
 	"crypto/ecdh"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	crand "crypto/rand"
 	"crypto/rsa"
 	"testing"
@@ -329,6 +331,45 @@ func TestValidateOrGenerateJWERSAJWK_NilPublicKey(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, result)
 	require.Contains(t, err.Error(), "invalid nil RSA public key")
+}
+
+func TestValidateOrGenerateJWERSAJWK_WrongPrivateKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Create KeyPair with ECDSA private key instead of RSA.
+	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: ecdsaKey,
+		Public:  &ecdsaKey.PublicKey,
+	}
+
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PrivateKey")
+}
+
+func TestValidateOrGenerateJWERSAJWK_WrongPublicKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Generate RSA private key, pair with ECDSA public key (invalid).
+	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
+	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: rsaKey,
+		Public:  &ecdsaKey.PublicKey,
+	}
+
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type *ecdsa.PublicKey")
 }
 
 func TestValidateOrGenerateJWEEcdhJWK_NilPrivateKey(t *testing.T) {
