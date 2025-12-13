@@ -398,6 +398,28 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 **Next Steps**: Complete remaining Phase 4 tasks (P4.5, P4.7-P4.11) or move to Phase 3 (Coverage Targets) or Phase 5 (CI/CD Workflow Fixes).
 
+### December 12, 2025 - Test Infrastructure Issue Discovered 🔧
+
+**Tasks**: Phase 3 (Coverage Targets) - blocked by test infrastructure issue
+**Status**: 🔧 BLOCKED
+
+**Evidence**: Commit 69cf5735
+
+**Issue**: config.Parse() flag redefinition prevents multiple config initializations in tests
+
+- config.Parse() uses pflag.BoolP() which registers flags in global pflag.CommandLine FlagSet
+- Multiple calls to NewForJOSEServer() or NewForCAServer() in same test binary cause panic: "flag redefined: help"
+- Even sequential (non-parallel) tests fail due to global flag reuse
+- Affects: internal/jose/server/server_test.go (TestServerLifecycle, TestAPIKeyMiddleware, TestContextCancellation, TestStartBlocking, TestShutdownCoverage)
+
+**Temporary Workaround**: Removed t.Parallel() from affected tests to reduce panic frequency (still fails sequentially)
+
+**Long-term Solution Required**: Refactor config.Parse() to use isolated FlagSet per invocation instead of global FlagSet
+
+**Impact**: Blocks Phase 3 coverage improvements for packages using config.Parse() in tests
+
+**Next Steps**: Continue with Phase 4/5 tasks that don't require config initialization in tests, OR fix config.Parse() architecture first.
+
 ---
 
 ## Implementation Notes
