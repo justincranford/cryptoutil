@@ -84,6 +84,7 @@ func startServices(parameters []string) {
 	// Override DSN from command line if provided (-u flag for Docker secrets)
 	if dsn := parseDSNFlag(parameters); dsn != "" {
 		fmt.Fprintf(os.Stderr, "Using DSN from command line flag\n")
+
 		config.Database.DSN = dsn
 	}
 
@@ -150,10 +151,14 @@ func startRsServer(ctx context.Context, config *cryptoutilIdentityConfig.Config)
 	}
 }
 
+const (
+	defaultAdminPort = 9090 // Default admin port for Identity services
+)
+
 // stopServices stops Identity services via admin endpoint.
 func stopServices(parameters []string) {
 	service := parseServiceFlag(parameters, "authz")
-	adminPort := parseAdminPort(parameters, 9090) // Default admin port
+	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Printf("Stopping Identity service: %s (admin port %d)\n", service, adminPort)
 
@@ -164,7 +169,7 @@ func stopServices(parameters []string) {
 // statusServices checks Identity service status via admin endpoint.
 func statusServices(parameters []string) {
 	service := parseServiceFlag(parameters, "authz")
-	adminPort := parseAdminPort(parameters, 9090) // Default admin port
+	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Printf("Checking status for Identity service: %s (admin port %d)\n", service, adminPort)
 
@@ -175,7 +180,7 @@ func statusServices(parameters []string) {
 // healthServices checks Identity service health via admin endpoint.
 func healthServices(parameters []string) {
 	service := parseServiceFlag(parameters, "authz")
-	adminPort := parseAdminPort(parameters, 9090) // Default admin port
+	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Printf("Checking health for Identity service: %s (admin port %d)\n", service, adminPort)
 
