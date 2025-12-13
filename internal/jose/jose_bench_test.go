@@ -35,20 +35,21 @@ func BenchmarkJWSSign_ES256(b *testing.B) {
 // BenchmarkJWSVerify_ES256 measures JWT verification with ECDSA P-256.
 func BenchmarkJWSVerify_ES256(b *testing.B) {
 	alg := joseJwa.ES256()
-	_, jwk, _, _, _, err := GenerateJWSJWKForAlg(&alg)
+	_, signJWK, verifyJWK, _, _, err := GenerateJWSJWKForAlg(&alg)
 	require.NoError(b, err)
 
-	jwks := []joseJwk.Key{jwk}
+	signJWKs := []joseJwk.Key{signJWK}
+	verifyJWKs := []joseJwk.Key{verifyJWK}
 	clearBytes := []byte(benchmarkPayload)
 
-	_, jwsMessageBytes, err := SignBytes(jwks, clearBytes)
+	_, jwsMessageBytes, err := SignBytes(signJWKs, clearBytes)
 	require.NoError(b, err)
 
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := VerifyBytes(jwks, jwsMessageBytes)
+		_, err := VerifyBytes(verifyJWKs, jwsMessageBytes)
 		if err != nil {
 			b.Fatalf("failed to verify bytes: %v", err)
 		}
@@ -78,20 +79,21 @@ func BenchmarkJWSSign_RS256(b *testing.B) {
 // BenchmarkJWSVerify_RS256 measures JWT verification with RSA 2048.
 func BenchmarkJWSVerify_RS256(b *testing.B) {
 	alg := joseJwa.RS256()
-	_, jwk, _, _, _, err := GenerateJWSJWKForAlg(&alg)
+	_, signJWK, verifyJWK, _, _, err := GenerateJWSJWKForAlg(&alg)
 	require.NoError(b, err)
 
-	jwks := []joseJwk.Key{jwk}
+	signJWKs := []joseJwk.Key{signJWK}
+	verifyJWKs := []joseJwk.Key{verifyJWK}
 	clearBytes := []byte(benchmarkPayload)
 
-	_, jwsMessageBytes, err := SignBytes(jwks, clearBytes)
+	_, jwsMessageBytes, err := SignBytes(signJWKs, clearBytes)
 	require.NoError(b, err)
 
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := VerifyBytes(jwks, jwsMessageBytes)
+		_, err := VerifyBytes(verifyJWKs, jwsMessageBytes)
 		if err != nil {
 			b.Fatalf("failed to verify bytes: %v", err)
 		}
@@ -147,10 +149,11 @@ func BenchmarkJWEDecrypt_A256GCM(b *testing.B) {
 func BenchmarkJWEEncrypt_RSA_OAEP(b *testing.B) {
 	alg := joseJwa.RSA_OAEP()
 	enc := joseJwa.A256GCM()
-	_, jwk, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	_, privateJWK, publicJWK, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
 	require.NoError(b, err)
 
-	jwks := []joseJwk.Key{jwk}
+	_ = privateJWK // Not used in encrypt-only benchmark
+	jwks := []joseJwk.Key{publicJWK}
 	clearBytes := []byte(benchmarkPayload)
 
 	b.ResetTimer()
@@ -168,20 +171,21 @@ func BenchmarkJWEEncrypt_RSA_OAEP(b *testing.B) {
 func BenchmarkJWEDecrypt_RSA_OAEP(b *testing.B) {
 	alg := joseJwa.RSA_OAEP()
 	enc := joseJwa.A256GCM()
-	_, jwk, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	_, privateJWK, publicJWK, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
 	require.NoError(b, err)
 
-	jwks := []joseJwk.Key{jwk}
+	encryptJWKs := []joseJwk.Key{publicJWK}
+	decryptJWKs := []joseJwk.Key{privateJWK}
 	clearBytes := []byte(benchmarkPayload)
 
-	_, jweMessageBytes, err := EncryptBytes(jwks, clearBytes)
+	_, jweMessageBytes, err := EncryptBytes(encryptJWKs, clearBytes)
 	require.NoError(b, err)
 
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := DecryptBytes(jwks, jweMessageBytes)
+		_, err := DecryptBytes(decryptJWKs, jweMessageBytes)
 		if err != nil {
 			b.Fatalf("failed to decrypt bytes: %v", err)
 		}
@@ -192,10 +196,11 @@ func BenchmarkJWEDecrypt_RSA_OAEP(b *testing.B) {
 func BenchmarkJWEEncrypt_ECDH_ES(b *testing.B) {
 	alg := joseJwa.ECDH_ES_A256KW()
 	enc := joseJwa.A256GCM()
-	_, jwk, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	_, privateJWK, publicJWK, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
 	require.NoError(b, err)
 
-	jwks := []joseJwk.Key{jwk}
+	_ = privateJWK // Not used in encrypt-only benchmark
+	jwks := []joseJwk.Key{publicJWK}
 	clearBytes := []byte(benchmarkPayload)
 
 	b.ResetTimer()
@@ -213,20 +218,21 @@ func BenchmarkJWEEncrypt_ECDH_ES(b *testing.B) {
 func BenchmarkJWEDecrypt_ECDH_ES(b *testing.B) {
 	alg := joseJwa.ECDH_ES_A256KW()
 	enc := joseJwa.A256GCM()
-	_, jwk, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	_, privateJWK, publicJWK, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
 	require.NoError(b, err)
 
-	jwks := []joseJwk.Key{jwk}
+	encryptJWKs := []joseJwk.Key{publicJWK}
+	decryptJWKs := []joseJwk.Key{privateJWK}
 	clearBytes := []byte(benchmarkPayload)
 
-	_, jweMessageBytes, err := EncryptBytes(jwks, clearBytes)
+	_, jweMessageBytes, err := EncryptBytes(encryptJWKs, clearBytes)
 	require.NoError(b, err)
 
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := DecryptBytes(jwks, jweMessageBytes)
+		_, err := DecryptBytes(decryptJWKs, jweMessageBytes)
 		if err != nil {
 			b.Fatalf("failed to decrypt bytes: %v", err)
 		}
@@ -236,22 +242,23 @@ func BenchmarkJWEDecrypt_ECDH_ES(b *testing.B) {
 // BenchmarkJWSRoundTrip_ES256 measures full sign+verify cycle with ECDSA P-256.
 func BenchmarkJWSRoundTrip_ES256(b *testing.B) {
 	alg := joseJwa.ES256()
-	_, jwk, _, _, _, err := GenerateJWSJWKForAlg(&alg)
+	_, signJWK, verifyJWK, _, _, err := GenerateJWSJWKForAlg(&alg)
 	require.NoError(b, err)
 
-	jwks := []joseJwk.Key{jwk}
+	signJWKs := []joseJwk.Key{signJWK}
+	verifyJWKs := []joseJwk.Key{verifyJWK}
 	clearBytes := []byte(benchmarkPayload)
 
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, jwsMessageBytes, err := SignBytes(jwks, clearBytes)
+		_, jwsMessageBytes, err := SignBytes(signJWKs, clearBytes)
 		if err != nil {
 			b.Fatalf("failed to sign bytes: %v", err)
 		}
 
-		_, err = VerifyBytes(jwks, jwsMessageBytes)
+		_, err = VerifyBytes(verifyJWKs, jwsMessageBytes)
 		if err != nil {
 			b.Fatalf("failed to verify bytes: %v", err)
 		}
