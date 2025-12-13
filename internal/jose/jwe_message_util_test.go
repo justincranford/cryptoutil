@@ -80,6 +80,38 @@ func TestEncryptBytesWithContext_NonEncryptJWK(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid JWK")
 }
 
+func TestEncryptBytesWithContext_MultipleEncs(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK1, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	_, nonPublicJWK2, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA192GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	jwks := []joseJwk.Key{nonPublicJWK1, nonPublicJWK2}
+	clearBytes := []byte("test message")
+	_, _, err = EncryptBytesWithContext(jwks, clearBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "only one unique 'enc' attribute is allowed")
+}
+
+func TestEncryptBytesWithContext_MultipleAlgs(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK1, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	_, nonPublicJWK2, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA192KW)
+	require.NoError(t, err)
+
+	jwks := []joseJwk.Key{nonPublicJWK1, nonPublicJWK2}
+	clearBytes := []byte("test message")
+	_, _, err = EncryptBytesWithContext(jwks, clearBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "only one unique 'alg' attribute is allowed")
+}
+
 type happyPathJWETestCase struct {
 	enc          *joseJwa.ContentEncryptionAlgorithm
 	alg          *joseJwa.KeyEncryptionAlgorithm
