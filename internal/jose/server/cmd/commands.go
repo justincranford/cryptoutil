@@ -59,25 +59,25 @@ Examples:
 				cancel()
 			}()
 
-			// Load configuration.
-			var settings *cryptoutilConfig.Settings
+			// Load configuration - avoid config.Parse() to prevent CLI flag conflicts.
+			// JOSE uses simple settings without full config parsing.
+			settings := cryptoutilConfig.NewForJOSEServer(bindAddr, bindPort, devMode)
 
-			var err error
-
+			// Override with config files if provided.
 			if len(configFiles) > 0 {
-				// Build args with multiple --config flags for Parse()
-				parseArgs := []string{"start"} // Subcommand required by Parse()
+				// Build args with multiple --config flags for LoadConfig().
+				parseArgs := []string{"start"} // Subcommand required.
 				for _, cf := range configFiles {
 					parseArgs = append(parseArgs, "--config", cf)
 				}
 
-				settings, err = cryptoutilConfig.Parse(parseArgs, false)
+				loadedSettings, err := cryptoutilConfig.Parse(parseArgs, false)
 				if err != nil {
 					return fmt.Errorf("failed to load config files: %w", err)
 				}
-			} else {
-				// Use default settings for JOSE server.
-				settings = cryptoutilConfig.NewForJOSEServer(bindAddr, bindPort, devMode)
+
+				// Merge loaded settings into defaults.
+				settings = loadedSettings
 			}
 
 			// Create and start the server.
