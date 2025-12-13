@@ -65,9 +65,9 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [x] **P2.5.5**: CA instance configs ✅ COMPLETE (ca-sqlite.yml, ca-postgresql-{1,2}.yml)
 - [x] **P2.5.6**: Docker health checks ✅ COMPLETE (HTTPS with TLS 1.3)
 - [x] **P2.5.7**: Test production deployment ✅ COMPLETE (CA+JOSE SQLite verified healthy with HTTPS)
-- [ ] **P2.5.8**: Integration with CI/CD workflows
+- [x] **P2.5.8**: Integration with CI/CD workflows ✅ COMPLETE
 
-**Results**: Created deployments/ca/compose.yml and deployments/jose/compose.yml matching KMS pattern. PostgreSQL secrets, unseal secrets (copied from KMS for interoperability), instance-specific configs, CRL volumes, telemetry integration via include. CA instances: ca-sqlite (8443), ca-postgres-1 (8444), ca-postgres-2 (8445). JOSE instance: jose-server (8092). Fixed multi-config support for CA/JOSE servers. **TLS Implementation Complete**: CA server uses issuer-signed certificate (ECDSA P-384), JOSE server uses self-signed certificate (ECDSA P-384). Both running HTTPS with TLS 1.3. Health checks verified. PostgreSQL instances ready for testing.
+**Results**: Created deployments/ca/compose.yml and deployments/jose/compose.yml matching KMS pattern. PostgreSQL secrets, unseal secrets (copied from KMS for interoperability), instance-specific configs, CRL volumes, telemetry integration via include. CA instances: ca-sqlite (8443), ca-postgres-1 (8444), ca-postgres-2 (8445). JOSE instance: jose-server (8092). Fixed multi-config support for CA/JOSE servers. **TLS Implementation Complete**: CA server uses issuer-signed certificate (ECDSA P-384), JOSE server uses self-signed certificate (ECDSA P-384). Both running HTTPS with TLS 1.3. Health checks verified. **CI/CD Integration Complete**: E2E workflow deploys and verifies CA and JOSE services. PostgreSQL instances ready for testing.
 
 ### Phase 3: Coverage Targets (5 tasks)
 
@@ -305,6 +305,28 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - Container status: healthy
 
 **Results**: Both CA and JOSE servers now run HTTPS with TLS 1.3. CA uses issuer-signed cert, JOSE uses self-signed cert. Health checks passing. Ready for PostgreSQL testing and CI/CD integration.
+
+### December 12, 2025 - Phase 2.5 Complete ✅
+
+**Tasks**: P2.5.8 CI/CD integration, Phase 2.5 completion
+**Status**: ✅ COMPLETE
+
+**Evidence**: Commit 93a30023
+
+**E2E Workflow Updates**:
+- Added CA service deployment: `docker compose -f ./deployments/ca/compose.yml up -d`
+- Added JOSE service deployment: `docker compose -f ./deployments/jose/compose.yml up -d`
+- Added health verification: `curl -k https://localhost:8443/health` (CA), `curl -k https://localhost:8092/health` (JOSE)
+- Updated log collection: CA and JOSE service logs added to E2E artifacts
+- Updated cleanup: Stop all compose stacks (KMS, CA, JOSE)
+
+**Services in E2E Workflow**:
+- KMS: cryptoutil-sqlite (8080), cryptoutil-postgres-1 (8081), cryptoutil-postgres-2 (8082)
+- CA: ca-sqlite (8443)
+- JOSE: jose-server (8092)
+- Infrastructure: PostgreSQL, OpenTelemetry Collector, Grafana LGTM
+
+**Phase 2.5 Summary**: All 8 tasks complete. Production-ready CA and JOSE deployments with Docker Compose, PostgreSQL backends, telemetry integration, TLS 1.3, and CI/CD workflow integration. Ready for Phase 3 (Coverage Targets) and Phase 4 (E2E Testing - HIGH PRIORITY).
 
 ---
 
