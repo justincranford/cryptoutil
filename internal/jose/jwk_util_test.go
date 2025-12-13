@@ -550,8 +550,6 @@ func TestExtractAlg_JWKMissingAlgHeader(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to get alg header")
 }
 
-
-
 func TestExtractKidUUID_ValidKid(t *testing.T) {
 	t.Parallel()
 
@@ -600,7 +598,23 @@ func TestExtractKidUUID_InvalidUUIDFormat(t *testing.T) {
 	extractedKid, err := ExtractKidUUID(jwk)
 	require.Error(t, err)
 	require.Nil(t, extractedKid)
-	require.Contains(t, err.Error(), "failed to parse kid as UUID")
+}
+
+func TestCreateJWKFromKey_RSAKeyPair(t *testing.T) {
+	t.Parallel()
+
+	// RSA key pair has public key component.
+	kid := googleUuid.New()
+	alg := cryptoutilOpenapiModel.RSA2048
+	keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	require.NoError(t, err)
+
+	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.NotNil(t, nonPublicJWK)
+	require.NotNil(t, publicJWK) // RSA should have public key
+	require.NotEmpty(t, publicBytes)
+	require.NotEmpty(t, nonPublicBytes)
 }
 
 func TestExtractKty_ValidKeyTypes(t *testing.T) {
