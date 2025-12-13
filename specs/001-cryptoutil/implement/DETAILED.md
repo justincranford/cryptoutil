@@ -81,14 +81,63 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 ### Phase 3: Coverage Targets (6 tasks) - **UNBLOCKED** ✅
 
-- [ ] **P3.1**: Achieve 95% coverage for jose package (current: 75.9%)
+- [ ] **P3.1**: Achieve 95% coverage for jose package (current: 84.0%)
 - [ ] **P3.2**: Achieve 95% coverage for ca packages
 - [ ] **P3.3**: Achieve 95% coverage for identity packages
 - [ ] **P3.4**: Achieve 95% coverage for kms packages
 - [ ] **P3.5**: Achieve 95% coverage for infra packages
 - [ ] **P3.6**: Achieve 95% coverage for cicd utilities
 
+### Phase 3.5: Server Architecture Unification (18 tasks) - 🔴 **CRITICAL BLOCKER**
+
+**Rationale**: Phase 4 (E2E Tests) and Phase 6 (Demo Videos) are BLOCKED by inconsistent server architectures.
+
+**Current State**:
+
+- ✅ KMS: Full dual-server + internal/cmd/cryptoutil integration (REFERENCE IMPLEMENTATION)
+- ⚠️ Identity: Admin servers exist (127.0.0.1:9090) but NOT integrated into internal/cmd/cryptoutil
+- ❌ JOSE: NO admin server, NO cmd integration, standalone cmd/jose-server
+- ❌ CA: NO admin server, NO cmd integration, standalone cmd/ca-server
+
+**Target Architecture**: All services follow KMS dual-server pattern with unified command interface
+
+#### Identity Command Integration (6 tasks, 4-6h)
+
+- [ ] **P3.5.1**: Create internal/cmd/cryptoutil/identity/ package
+- [ ] **P3.5.2**: Implement identity start/stop/status/health subcommands
+- [ ] **P3.5.3**: Update cmd/identity-unified to use internal/cmd/cryptoutil
+- [ ] **P3.5.4**: Update Docker Compose files for unified command
+- [ ] **P3.5.5**: Update E2E tests to use unified identity command
+- [ ] **P3.5.6**: Deprecate cmd/identity-compose and cmd/identity-demo
+
+#### JOSE Admin Server Implementation (6 tasks, 6-8h)
+
+- [ ] **P3.5.7**: Create internal/jose/server/admin.go (127.0.0.1:9090)
+- [ ] **P3.5.8**: Implement admin endpoints (/livez, /readyz, /healthz, /shutdown)
+- [ ] **P3.5.9**: Update internal/jose/server/application.go for dual-server
+- [ ] **P3.5.10**: Create internal/cmd/cryptoutil/jose/ package
+- [ ] **P3.5.11**: Update cmd/jose-server to use internal/cmd/cryptoutil
+- [ ] **P3.5.12**: Update Docker Compose and E2E tests for JOSE
+
+#### CA Admin Server Implementation (6 tasks, 6-8h)
+
+- [ ] **P3.5.13**: Create internal/ca/server/admin.go (127.0.0.1:9090)
+- [ ] **P3.5.14**: Implement admin endpoints (/livez, /readyz, /healthz, /shutdown)
+- [ ] **P3.5.15**: Update internal/ca/server/application.go for dual-server
+- [ ] **P3.5.16**: Create internal/cmd/cryptoutil/ca/ package
+- [ ] **P3.5.17**: Update cmd/ca-server to use internal/cmd/cryptoutil
+- [ ] **P3.5.18**: Update Docker Compose and E2E tests for CA
+
+**Success Criteria**:
+
+- All services accessible via `cryptoutil <product> <subcommand>`
+- All services have admin servers on 127.0.0.1:9090
+- All Docker health checks use admin endpoints
+- 100% test coverage for new cmd packages
+
 ### Phase 4: Advanced Testing & E2E Workflows (12 tasks - HIGH PRIORITY)
+
+**Dependencies**: Requires Phase 3.5 completion for consistent service interfaces
 
 - [ ] **P4.1**: OAuth 2.1 authorization code E2E test - `internal/test/e2e/oauth_workflow_test.go` � DOCUMENTED
 - [x] **P4.2**: KMS encrypt/decrypt E2E test - `internal/test/e2e/kms_workflow_test.go` ✅ COMPLETE

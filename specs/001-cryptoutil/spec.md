@@ -127,6 +127,41 @@
 | **Database** | PostgreSQL (port 5432) | Password auth, network isolation |
 | **Telemetry** | OTLP Collector (ports 4317/4318) | Service mesh only, no external |
 
+### Unified Command Interface - CRITICAL
+
+**MANDATORY**: All services MUST be accessible via unified `cryptoutil` command:
+
+```bash
+# KMS (✅ COMPLETE - reference implementation)
+cryptoutil kms start --config=kms.yml
+cryptoutil kms status
+
+# Identity (⚠️ PARTIAL - admin servers exist, needs cmd integration)
+cryptoutil identity start --config=identity.yml
+cryptoutil identity status
+
+# JOSE (❌ BLOCKED - no admin server, no cmd integration)
+cryptoutil jose start --config=jose.yml
+cryptoutil jose status
+
+# CA (❌ BLOCKED - no admin server, no cmd integration)
+cryptoutil ca start --config=ca.yml
+cryptoutil ca status
+```
+
+**Current Implementation Status**:
+
+| Service | Admin Server | Port 9090 | Cmd Integration | Status |
+|---------|--------------|-----------|-----------------|--------|
+| KMS | ✅ Complete | ✅ Yes | ✅ internal/cmd/cryptoutil/kms | ✅ REFERENCE |
+| Identity AuthZ | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| Identity IdP | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| Identity RS | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| JOSE | ❌ Missing | ❌ NO | ❌ NO | ❌ BLOCKED |
+| CA | ❌ Missing | ❌ NO | ❌ NO | ❌ BLOCKED |
+
+**Phase 3.5 Deliverable**: All services follow KMS pattern with dual-server architecture and unified command interface.
+
 ---
 
 ## Product Suite

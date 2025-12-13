@@ -17,10 +17,11 @@
 | Phase 2: Deferred I2 Features | 8 | 6-8h |
 | Phase 2.5: CA Production Deployment | 8 | 4-6h |
 | Phase 3: Coverage Targets | 6 | 2-3h |
+| Phase 3.5: Server Architecture Unification | 18 | 16-24h |
 | Phase 4: Advanced Testing & E2E | 12 | 8-12h |
 | Phase 5: CI/CD Workflow Fixes | 8 | 6-8h |
 | Phase 6: Demo Videos | 6 | 16-24h |
-| **Total** | **71** | **58-81h** |
+| **Total** | **89** | **74-105h** |
 
 ---
 
@@ -1022,11 +1023,397 @@ curl -k https://localhost:8445/ui/swagger/doc.json  # ca-postgres-2
 
 ---
 
+## Phase 3.5: Server Architecture Unification (18 tasks, 16-24h) 🔴 CRITICAL BLOCKER
+
+**Objective**: Systematically refactor Identity, JOSE, and CA servers to match KMS dual-server architecture
+
+**Rationale**: Phase 4 (E2E Tests) and Phase 6 (Demo Videos) are BLOCKED by inconsistent server architectures. Identity has partial implementation (admin servers exist but not integrated into cryptoutil command), JOSE and CA lack admin servers entirely.
+
+**Current State**:
+
+| Service | Admin Server | Port 9090 | Cmd Integration | Status |
+|---------|--------------|-----------|-----------------|--------|
+| KMS | ✅ Complete | ✅ Yes | ✅ internal/cmd/cryptoutil/kms | ✅ REFERENCE |
+| Identity AuthZ | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| Identity IdP | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| Identity RS | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| JOSE | ❌ Missing | ❌ NO | ❌ NO | ❌ BLOCKED |
+| CA | ❌ Missing | ❌ NO | ❌ NO | ❌ BLOCKED |
+
+### P3.5.1: Create internal/cmd/cryptoutil/identity Package
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/cmd/cryptoutil/identity/` directory
+- Implement package structure matching KMS pattern
+- Define command interfaces: start, stop, status, health
+- Create factory functions for Identity services
+- 100% test coverage for cmd package
+
+**Files to Create**:
+
+- `internal/cmd/cryptoutil/identity/identity.go`
+- `internal/cmd/cryptoutil/identity/identity_test.go`
+
+---
+
+### P3.5.2: Implement Identity Start/Stop/Status/Health Subcommands
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Implement `start` subcommand: start AuthZ, IdP, RS services
+- Implement `stop` subcommand: graceful shutdown via admin endpoint
+- Implement `status` subcommand: check service health via admin endpoints
+- Implement `health` subcommand: liveness/readiness checks
+- Support --config flag for custom configuration
+- Support --service flag to start individual services (authz, idp, rs)
+- 100% test coverage
+
+**Files to Modify**:
+
+- `internal/cmd/cryptoutil/identity/identity.go`
+
+---
+
+### P3.5.3: Update cmd/identity-unified to Use internal/cmd/cryptoutil
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `cmd/identity-unified/main.go` to call `internal/cmd/cryptoutil/identity`
+- Remove duplicate command logic from internal/identity/cmd/main/
+- Verify existing Identity services continue working
+- Update integration tests
+
+**Files to Modify**:
+
+- `cmd/identity-unified/main.go`
+
+---
+
+### P3.5.4: Update Docker Compose Files for Unified Identity Command
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `deployments/identity/compose.yml` to use unified command
+- Update health checks to use admin endpoints (127.0.0.1:9090)
+- Verify all 3 Identity services start correctly
+- Test Docker Compose startup/shutdown
+
+**Files to Modify**:
+
+- `deployments/identity/compose.yml`
+
+---
+
+### P3.5.5: Update E2E Tests for Unified Identity Command
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `internal/test/e2e/` helpers to use unified command
+- Replace standalone binary calls with `cryptoutil identity`
+- Verify all E2E tests pass
+- Update ci-e2e.yml workflow
+
+**Files to Modify**:
+
+- `internal/test/e2e/*_test.go`
+- `.github/workflows/ci-e2e.yml`
+
+---
+
+### P3.5.6: Deprecate cmd/identity-compose and cmd/identity-demo
+
+**Priority**: LOW
+**Effort**: 30 minutes
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Add deprecation notices to cmd/identity-compose and cmd/identity-demo
+- Update documentation to use unified command
+- Optional: Remove deprecated binaries (low priority)
+
+**Files to Modify**:
+
+- `cmd/identity-compose/main.go`
+- `cmd/identity-demo/main.go`
+- `docs/README.md`
+
+---
+
+### P3.5.7: Create internal/jose/server/admin.go Admin Server
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/jose/server/admin.go` admin server
+- Bind to 127.0.0.1:9090 (configurable port)
+- Implement endpoints: /admin/v1/livez, /admin/v1/readyz, /admin/v1/healthz, /admin/v1/shutdown
+- Use HTTPS with TLS 1.3 (self-signed cert for admin)
+- 100% test coverage
+
+**Files to Create**:
+
+- `internal/jose/server/admin.go`
+- `internal/jose/server/admin_test.go`
+
+---
+
+### P3.5.8: Implement JOSE Admin Endpoints
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Implement /admin/v1/livez: Return 200 if process alive
+- Implement /admin/v1/readyz: Check dependencies (keystore, telemetry)
+- Implement /admin/v1/healthz: Combined liveness + readiness
+- Implement /admin/v1/shutdown: Graceful shutdown trigger
+- Use Fiber for admin endpoints
+- 100% test coverage
+
+**Files to Modify**:
+
+- `internal/jose/server/admin.go`
+
+---
+
+### P3.5.9: Update internal/jose/server/application.go for Dual-Server
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create Application struct managing both public and admin servers
+- Implement NewApplication() factory function
+- Implement Start() method: start both servers
+- Implement Stop() method: graceful shutdown both servers
+- Follow KMS pattern for lifecycle management
+- 100% test coverage
+
+**Files to Modify**:
+
+- `internal/jose/server/server.go` (rename to application.go)
+- `internal/jose/server/application_test.go`
+
+---
+
+### P3.5.10: Create internal/cmd/cryptoutil/jose Package
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/cmd/cryptoutil/jose/` directory
+- Implement start/stop/status/health subcommands
+- Support --config flag for configuration
+- 100% test coverage
+
+**Files to Create**:
+
+- `internal/cmd/cryptoutil/jose/jose.go`
+- `internal/cmd/cryptoutil/jose/jose_test.go`
+
+---
+
+### P3.5.11: Update cmd/jose-server to Use internal/cmd/cryptoutil
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `cmd/jose-server/main.go` to call `internal/cmd/cryptoutil/jose`
+- Remove duplicate command logic
+- Verify JOSE service continues working
+- Update integration tests
+
+**Files to Modify**:
+
+- `cmd/jose-server/main.go`
+
+---
+
+### P3.5.12: Update Docker Compose and E2E Tests for JOSE
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `deployments/jose/compose.yml` to use unified command
+- Update health checks to use admin endpoints (127.0.0.1:9090)
+- Update E2E tests to use unified command
+- Verify JOSE services start correctly
+
+**Files to Modify**:
+
+- `deployments/jose/compose.yml`
+- `internal/test/e2e/*_test.go`
+
+---
+
+### P3.5.13: Create internal/ca/server/admin.go Admin Server
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/ca/server/admin.go` admin server
+- Bind to 127.0.0.1:9090 (configurable port)
+- Implement endpoints: /admin/v1/livez, /admin/v1/readyz, /admin/v1/healthz, /admin/v1/shutdown
+- Use HTTPS with TLS 1.3 (issuer-signed cert for admin)
+- 100% test coverage
+
+**Files to Create**:
+
+- `internal/ca/server/admin.go`
+- `internal/ca/server/admin_test.go`
+
+---
+
+### P3.5.14: Implement CA Admin Endpoints
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Implement /admin/v1/livez: Return 200 if process alive
+- Implement /admin/v1/readyz: Check dependencies (issuer, storage, CRL service)
+- Implement /admin/v1/healthz: Combined liveness + readiness
+- Implement /admin/v1/shutdown: Graceful shutdown trigger
+- Use Fiber for admin endpoints
+- 100% test coverage
+
+**Files to Modify**:
+
+- `internal/ca/server/admin.go`
+
+---
+
+### P3.5.15: Update internal/ca/server/application.go for Dual-Server
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create Application struct managing both public and admin servers
+- Implement NewApplication() factory function
+- Implement Start() method: start both servers
+- Implement Stop() method: graceful shutdown both servers
+- Follow KMS pattern for lifecycle management
+- 100% test coverage
+
+**Files to Modify**:
+
+- `internal/ca/server/server.go` (rename to application.go)
+- `internal/ca/server/application_test.go`
+
+---
+
+### P3.5.16: Create internal/cmd/cryptoutil/ca Package
+
+**Priority**: CRITICAL
+**Effort**: 2 hours
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Create `internal/cmd/cryptoutil/ca/` directory
+- Implement start/stop/status/health subcommands
+- Support --config flag for configuration
+- 100% test coverage
+
+**Files to Create**:
+
+- `internal/cmd/cryptoutil/ca/ca.go`
+- `internal/cmd/cryptoutil/ca/ca_test.go`
+
+---
+
+### P3.5.17: Update cmd/ca-server to Use internal/cmd/cryptoutil
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `cmd/ca-server/main.go` to call `internal/cmd/cryptoutil/ca`
+- Remove duplicate command logic
+- Verify CA service continues working
+- Update integration tests
+
+**Files to Modify**:
+
+- `cmd/ca-server/main.go`
+
+---
+
+### P3.5.18: Update Docker Compose and E2E Tests for CA
+
+**Priority**: CRITICAL
+**Effort**: 1 hour
+**Status**: ❌ Not Started
+
+**Acceptance Criteria**:
+
+- Update `deployments/ca/compose.yml` to use unified command
+- Update health checks to use admin endpoints (127.0.0.1:9090)
+- Update E2E tests to use unified command
+- Verify CA services start correctly
+
+**Files to Modify**:
+
+- `deployments/ca/compose.yml`
+- `internal/test/e2e/*_test.go`
+
+---
+
 ## Phase 4: Advanced Testing & E2E Workflows (12 tasks, 8-12h)
 
 **Objective**: Add comprehensive E2E workflow tests and advanced testing methodologies
 
 **Rationale**: Current E2E tests only validate Docker health checks. Need end-to-end product workflow validation and load test coverage for Browser API.
+
+**Dependencies**: Requires Phase 3.5 (Server Architecture Unification) completion for consistent service interfaces.
 
 ### P4.1: OAuth 2.1 Authorization Code E2E Test
 

@@ -104,7 +104,122 @@ Every service implements two HTTPS endpoints:
 
 ---
 
-## Phase 1: Fix CI/CD Workflows (Day 3, 4-5 hours) ⚠️
+## Phase 3.5: Server Architecture Unification (Day 4-5, 16-24 hours) 🔴 CRITICAL BLOCKER
+
+**Objective**: Unify Identity, JOSE, and CA servers to match KMS dual-server architecture pattern
+
+**Rationale**: Phase 4 (E2E Tests) and Phase 6 (Demo Videos) are BLOCKED by inconsistent server architectures. Identity has partial implementation (admin servers exist but not integrated), JOSE and CA lack admin servers entirely. This prevents systematic E2E testing and production-quality demos.
+
+### Current State
+
+| Service | Admin Server | Port 9090 | Cmd Integration | Status |
+|---------|--------------|-----------|-----------------|--------|
+| KMS | ✅ Complete | ✅ Yes | ✅ internal/cmd/cryptoutil | ✅ REFERENCE |
+| Identity AuthZ | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| Identity IdP | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| Identity RS | ✅ Exists | ✅ Yes | ❌ NO | ⚠️ PARTIAL |
+| JOSE | ❌ Missing | ❌ NO | ❌ NO | ❌ BLOCKED |
+| CA | ❌ Missing | ❌ NO | ❌ NO | ❌ BLOCKED |
+
+### Target Architecture
+
+All services follow KMS pattern:
+
+1. **Dual HTTPS Servers**:
+   - Public server: 0.0.0.0:<configurable> (APIs + UI)
+   - Admin server: 127.0.0.1:9090 (health checks, shutdown)
+
+2. **Unified Command Interface**:
+   - `cryptoutil kms|identity|jose|ca <subcommand> [flags]`
+   - Implemented in internal/cmd/cryptoutil/<product>/
+   - Old standalone binaries (cmd/jose-server, cmd/ca-server) deprecated
+
+3. **Consistent Application Layer**:
+   - internal/<product>/server/application.go
+   - NewApplication() factory
+   - Start()/Stop()/Status()/Health() methods
+   - Admin server lifecycle management
+
+### Implementation Tasks
+
+#### P3.5.1: Identity Command Integration (4-6h)
+
+**Current**: Identity has admin servers but NOT in internal/cmd/cryptoutil
+**Goal**: `cryptoutil identity start|stop|status|health`
+
+- Create internal/cmd/cryptoutil/identity/ package
+- Implement start/stop/status/health subcommands
+- Update internal/identity/cmd/main/ to use new structure
+- Update cmd/identity-unified/main.go to call internal/cmd/cryptoutil
+- Deprecate standalone cmd/identity-compose, cmd/identity-demo
+- Update Docker Compose files to use unified command
+- Update E2E tests to use unified command
+
+#### P3.5.2: JOSE Admin Server Implementation (6-8h)
+
+**Current**: JOSE has ONLY public server, NO admin endpoints
+**Goal**: Dual-server pattern matching KMS
+
+- Create internal/jose/server/admin.go (127.0.0.1:9090)
+- Implement /admin/v1/livez, /admin/v1/readyz, /admin/v1/healthz, /admin/v1/shutdown
+- Update internal/jose/server/application.go for dual-server lifecycle
+- Create internal/cmd/cryptoutil/jose/ package
+- Implement start/stop/status/health subcommands
+- Update cmd/jose-server/main.go to call internal/cmd/cryptoutil
+- Update Docker Compose health checks to use admin endpoints
+- Update E2E tests
+
+#### P3.5.3: CA Admin Server Implementation (6-8h)
+
+**Current**: CA has ONLY public server, NO admin endpoints
+**Goal**: Dual-server pattern matching KMS
+
+- Create internal/ca/server/admin.go (127.0.0.1:9090)
+- Implement /admin/v1/livez, /admin/v1/readyz, /admin/v1/healthz, /admin/v1/shutdown
+- Update internal/ca/server/application.go for dual-server lifecycle
+- Create internal/cmd/cryptoutil/ca/ package
+- Implement start/stop/status/health subcommands
+- Update cmd/ca-server/main.go to call internal/cmd/cryptoutil
+- Update Docker Compose health checks to use admin endpoints
+- Update E2E tests
+
+#### P3.5.4: E2E Test Updates (2-3h)
+
+**Goal**: Update all E2E tests to use unified command interface
+
+- Update internal/test/e2e/ helper functions
+- Replace standalone binary calls with cryptoutil commands
+- Update service startup patterns
+- Verify health check patterns
+- Update ci-e2e.yml workflow
+
+#### P3.5.5: Documentation Updates (1-2h)
+
+**Goal**: Document unified architecture
+
+- Update docs/README.md with command examples
+- Update runbooks for new command structure
+- Document migration from standalone binaries
+- Update Docker Compose examples
+- Create architecture diagram showing dual-server pattern
+
+### Success Criteria
+
+- ✅ All services accessible via `cryptoutil <product> <subcommand>`
+- ✅ All services have admin servers on 127.0.0.1:9090
+- ✅ All Docker Compose files use admin health checks
+- ✅ All E2E tests use unified command interface
+- ✅ 100% test coverage for new cmd packages
+- ✅ All CI/CD workflows passing with new architecture
+
+### Dependencies
+
+**Blocked By**: Phase 3 (Coverage Targets) - need baseline quality
+**Blocks**: Phase 4 (E2E Tests), Phase 6 (Demo Videos)
+
+---
+
+## Phase 1: Fix CI/CD Workflows (Day 6-7, 4-5 hours) ⚠️
 
 **Objective**: Achieve 11/11 workflow pass rate (currently 3/11 passing, 27%)
 
