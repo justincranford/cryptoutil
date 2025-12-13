@@ -143,6 +143,15 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 			allowedEncs: []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
 			expectError: true,
 		},
+		{
+			name:        "wrong key type",
+			key:         &cryptoutilKeyGen.KeyPair{},
+			enc:         &EncA256GCM,
+			alg:         &AlgA256KW,
+			keyBitsLen:  256,
+			allowedEncs: []*joseJwa.ContentEncryptionAlgorithm{&EncA256GCM},
+			expectError: true,
+		},
 	}
 
 	for _, tc := range tests {
