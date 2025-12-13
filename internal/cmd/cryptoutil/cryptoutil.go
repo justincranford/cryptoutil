@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilIdentityCmd "cryptoutil/internal/identity/cmd"
+	cryptoutilIdentityCmd "cryptoutil/internal/cmd/cryptoutil/identity"
 	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
 
@@ -26,7 +26,7 @@ func Execute() {
 	case "kms":
 		cryptoutilKmsCmd.Server(parameters)
 	case "identity":
-		cryptoutilIdentityCmd.ExecuteIdentity(parameters)
+		cryptoutilIdentityCmd.Execute(parameters)
 	case "help":
 		printUsage(executable)
 	default:
@@ -38,6 +38,8 @@ func Execute() {
 
 func printUsage(executable string) {
 	fmt.Printf("Usage: %s <product> [options]\n", executable)
-	fmt.Println("  kms")
-	fmt.Println("  identity")
+	fmt.Println("  kms      - Key Management Service")
+	fmt.Println("  identity - Identity Services (authz, idp, rs)")
+	fmt.Println("  jose     - JOSE Authority (planned)")
+	fmt.Println("  ca       - Certificate Authority (planned)")
 }
