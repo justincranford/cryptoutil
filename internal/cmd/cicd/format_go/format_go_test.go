@@ -37,7 +37,6 @@ func TestFormat_WithFiles(t *testing.T) {
 	}
 
 	err = Format(logger, filesByExtension)
-
 	// Format returns error if modifications were made.
 	// But GetGoFiles may filter out test files.
 	if err != nil {
@@ -117,8 +116,10 @@ func main() {
 	require.Equal(t, 0, replacements, "Should have no replacements")
 }
 
-const testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{} = 42\n\tprintln(x)\n}\n"
-const testGoContentInvalid = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
+const (
+	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{} = 42\n\tprintln(x)\n}\n"
+	testGoContentInvalid            = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
+)
 
 func TestProcessGoFile_WithChanges(t *testing.T) {
 	t.Parallel()
@@ -351,7 +352,6 @@ func TestEnforceAny_WithModifications(t *testing.T) {
 	}
 
 	err = enforceAny(logger, filesByExtension)
-
 	// enforceAny returns error only if modifications are made.
 	// But GetGoFiles may filter out this file due to exclusions.
 	// So err may be nil if no files were processed.

@@ -472,7 +472,7 @@ func TestValidateOrGenerateJWSEddsaJWK_NilPublicKey(t *testing.T) {
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
 
-_ = publicKey
+	_ = publicKey
 
 	keyPair := &cryptoutilKeyGen.KeyPair{
 		Private: privateKey,
