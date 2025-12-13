@@ -29,9 +29,9 @@ func TestCreateJWSJWKFromKey_HMAC(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		keySize int
 	}{
-		{"HS256", joseJwa.HS256, 32},
-		{"HS384", joseJwa.HS384, 48},
-		{"HS512", joseJwa.HS512, 64},
+		{"HS256", joseJwa.HS256(), 32},
+		{"HS384", joseJwa.HS384(), 48},
+		{"HS512", joseJwa.HS512(), 64},
 	}
 
 	for _, tt := range tests {
@@ -52,10 +52,19 @@ func TestCreateJWSJWKFromKey_HMAC(t *testing.T) {
 			require.Empty(t, publicBytes)
 
 			// Verify headers
-			require.Equal(t, kid.String(), nonPublicJWK.KeyID())
-			require.Equal(t, tt.alg, nonPublicJWK.Algorithm())
-			require.Equal(t, joseJwk.OctetSeq, nonPublicJWK.KeyType())
-			require.Equal(t, joseJwk.ForSignature.String(), nonPublicJWK.KeyUsage())
+			keyID, ok := nonPublicJWK.KeyID()
+			require.True(t, ok)
+			require.Equal(t, kid.String(), keyID)
+
+			alg, ok := nonPublicJWK.Algorithm()
+			require.True(t, ok)
+			require.Equal(t, tt.alg, alg)
+
+			require.Equal(t, KtyOCT, nonPublicJWK.KeyType())
+
+			usage, ok := nonPublicJWK.KeyUsage()
+			require.True(t, ok)
+			require.Equal(t, joseJwk.ForSignature.String(), usage)
 		})
 	}
 }
@@ -69,12 +78,12 @@ func TestCreateJWSJWKFromKey_RSA(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		keySize int
 	}{
-		{"RS256", joseJwa.RS256, 2048},
-		{"RS384", joseJwa.RS384, 2048},
-		{"RS512", joseJwa.RS512, 2048},
-		{"PS256", joseJwa.PS256, 2048},
-		{"PS384", joseJwa.PS384, 2048},
-		{"PS512", joseJwa.PS512, 2048},
+		{"RS256", joseJwa.RS256(), 2048},
+		{"RS384", joseJwa.RS384(), 2048},
+		{"RS512", joseJwa.RS512(), 2048},
+		{"PS256", joseJwa.PS256(), 2048},
+		{"PS384", joseJwa.PS384(), 2048},
+		{"PS512", joseJwa.PS512(), 2048},
 	}
 
 	for _, tt := range tests {
@@ -99,10 +108,19 @@ func TestCreateJWSJWKFromKey_RSA(t *testing.T) {
 			require.NotEmpty(t, publicBytes)
 
 			// Verify headers
-			require.Equal(t, kid.String(), nonPublicJWK.KeyID())
-			require.Equal(t, tt.alg, nonPublicJWK.Algorithm())
-			require.Equal(t, joseJwk.RSA, nonPublicJWK.KeyType())
-			require.Equal(t, joseJwk.ForSignature.String(), nonPublicJWK.KeyUsage())
+			keyID, ok := nonPublicJWK.KeyID()
+			require.True(t, ok)
+			require.Equal(t, kid.String(), keyID)
+
+			alg, ok := nonPublicJWK.Algorithm()
+			require.True(t, ok)
+			require.Equal(t, tt.alg, alg)
+
+			require.Equal(t, KtyRSA, nonPublicJWK.KeyType())
+
+			usage, ok := nonPublicJWK.KeyUsage()
+			require.True(t, ok)
+			require.Equal(t, joseJwk.ForSignature.String(), usage)
 		})
 	}
 }
@@ -116,9 +134,9 @@ func TestCreateJWSJWKFromKey_ECDSA(t *testing.T) {
 		alg   joseJwa.SignatureAlgorithm
 		curve elliptic.Curve
 	}{
-		{"ES256", joseJwa.ES256, elliptic.P256()},
-		{"ES384", joseJwa.ES384, elliptic.P384()},
-		{"ES512", joseJwa.ES512, elliptic.P521()},
+		{"ES256", joseJwa.ES256(), elliptic.P256()},
+		{"ES384", joseJwa.ES384(), elliptic.P384()},
+		{"ES512", joseJwa.ES512(), elliptic.P521()},
 	}
 
 	for _, tt := range tests {
@@ -143,10 +161,19 @@ func TestCreateJWSJWKFromKey_ECDSA(t *testing.T) {
 			require.NotEmpty(t, publicBytes)
 
 			// Verify headers
-			require.Equal(t, kid.String(), nonPublicJWK.KeyID())
-			require.Equal(t, tt.alg, nonPublicJWK.Algorithm())
-			require.Equal(t, joseJwk.EC, nonPublicJWK.KeyType())
-			require.Equal(t, joseJwk.ForSignature.String(), nonPublicJWK.KeyUsage())
+			keyID, ok := nonPublicJWK.KeyID()
+			require.True(t, ok)
+			require.Equal(t, kid.String(), keyID)
+
+			alg, ok := nonPublicJWK.Algorithm()
+			require.True(t, ok)
+			require.Equal(t, tt.alg, alg)
+
+			require.Equal(t, KtyEC, nonPublicJWK.KeyType())
+
+			usage, ok := nonPublicJWK.KeyUsage()
+			require.True(t, ok)
+			require.Equal(t, joseJwk.ForSignature.String(), usage)
 		})
 	}
 }
@@ -164,7 +191,7 @@ func TestCreateJWSJWKFromKey_EdDSA(t *testing.T) {
 		Public:  privateKey.Public(),
 	}
 
-	alg := joseJwa.EdDSA
+	alg := joseJwa.EdDSA()
 
 	resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWSJWKFromKey(&kid, &alg, keyPair)
 	require.NoError(t, err)
@@ -175,30 +202,45 @@ func TestCreateJWSJWKFromKey_EdDSA(t *testing.T) {
 	require.NotEmpty(t, publicBytes)
 
 	// Verify headers
-	require.Equal(t, kid.String(), nonPublicJWK.KeyID())
-	require.Equal(t, alg, nonPublicJWK.Algorithm())
-	require.Equal(t, joseJwk.OKP, nonPublicJWK.KeyType())
-	require.Equal(t, joseJwk.ForSignature.String(), nonPublicJWK.KeyUsage())
+	keyID, ok := nonPublicJWK.KeyID()
+	require.True(t, ok)
+	require.Equal(t, kid.String(), keyID)
+
+	algVal, ok := nonPublicJWK.Algorithm()
+	require.True(t, ok)
+	require.Equal(t, alg, algVal)
+
+	require.Equal(t, KtyOKP, nonPublicJWK.KeyType())
+
+	usage, ok := nonPublicJWK.KeyUsage()
+	require.True(t, ok)
+	require.Equal(t, joseJwk.ForSignature.String(), usage)
 }
 
 // TestCreateJWSJWKFromKey_UnsupportedKeyType tests error for unsupported key types.
 func TestCreateJWSJWKFromKey_UnsupportedKeyType(t *testing.T) {
 	t.Parallel()
 
+	// Test with KeyPair containing unsupported key type (int instead of crypto key)
 	kid := googleUuid.New()
-	alg := joseJwa.RS256
-	invalidKey := "not-a-valid-key"
+	alg := joseJwa.RS256()
 
-	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, invalidKey)
+	// KeyPair with invalid Private field type will hit default case in switch
+	invalidKeyPair := &cryptoutilKeygen.KeyPair{
+		Private: 12345, // Invalid type - not *rsa.PrivateKey, *ecdsa.PrivateKey, or ed25519.PrivateKey
+		Public:  nil,
+	}
+
+	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, invalidKeyPair)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "unsupported key type")
+	require.Contains(t, err.Error(), "invalid key type")
 }
 
 // TestCreateJWSJWKFromKey_NilKid tests error for nil KID.
 func TestCreateJWSJWKFromKey_NilKid(t *testing.T) {
 	t.Parallel()
 
-	alg := joseJwa.RS256
+	alg := joseJwa.RS256()
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
@@ -217,6 +259,8 @@ func TestCreateJWSJWKFromKey_NilAlg(t *testing.T) {
 	t.Parallel()
 
 	kid := googleUuid.New()
+
+	// Use simple KeyPair with valid key type to test nil alg validation
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
@@ -225,6 +269,7 @@ func TestCreateJWSJWKFromKey_NilAlg(t *testing.T) {
 		Public:  &privateKey.PublicKey,
 	}
 
+	// Should error on nil alg validation before key type checks
 	_, _, _, _, _, err = CreateJWSJWKFromKey(&kid, nil, keyPair)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWS JWK headers")
@@ -235,7 +280,7 @@ func TestCreateJWSJWKFromKey_NilKey(t *testing.T) {
 	t.Parallel()
 
 	kid := googleUuid.New()
-	alg := joseJwa.RS256
+	alg := joseJwa.RS256()
 
 	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, nil)
 	require.Error(t, err)
