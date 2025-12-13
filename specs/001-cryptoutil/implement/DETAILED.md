@@ -95,12 +95,12 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 ### Phase 5: CI/CD Workflow Fixes (8 tasks)
 
-- [ ] **P5.1**: Fix ci-coverage workflow
-- [ ] **P5.2**: Fix ci-benchmark workflow
-- [ ] **P5.3**: Fix ci-fuzz workflow
-- [ ] **P5.4**: Fix ci-e2e workflow
-- [ ] **P5.5**: Fix ci-dast workflow
-- [ ] **P5.6**: Fix ci-load workflow
+- [x] **P5.1**: Fix ci-coverage workflow ✅ COMPLETE (per TASKS.md)
+- [x] **P5.2**: Fix ci-benchmark workflow ✅ COMPLETE (per TASKS.md)
+- [x] **P5.3**: Fix ci-fuzz workflow ✅ COMPLETE (per TASKS.md)
+- [x] **P5.4**: Fix ci-e2e workflow ✅ COMPLETE (per TASKS.md + P2.5.8 updates)
+- [x] **P5.5**: Fix ci-dast workflow ✅ COMPLETE (per TASKS.md)
+- [x] **P5.6**: Fix ci-load workflow ✅ COMPLETE (per TASKS.md)
 - [ ] **P5.7**: Fix ci-mutation workflow
 - [ ] **P5.8**: Fix ci-identity-validation workflow
 
