@@ -22,9 +22,6 @@ services:
       - "15679:55679" # zPages (mapped to different host port to avoid Windows reserved range)
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    depends_on:
-      grafana-otel-lgtm:
-        condition: service_started
     networks:
       - telemetry-network
     deploy:
@@ -38,6 +35,7 @@ services:
 
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest
+    profiles: ["with-grafana"]  # Optional: enable with --profile with-grafana
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
       GF_USERS_ALLOW_SIGN_UP: "false"
