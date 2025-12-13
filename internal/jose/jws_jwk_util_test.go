@@ -322,6 +322,23 @@ func TestCreateJWSJWKFromKey_PublicKeyExtraction(t *testing.T) {
 	require.Equal(t, kid.String(), kidFromPublic)
 }
 
+func TestCreateJWSJWKFromKey_HMACNoPublicKey(t *testing.T) {
+	t.Parallel()
+
+	// HMAC has no public key, so publicJWK should be nil and clearPublicBytes empty.
+	kid := googleUuid.New()
+	alg := joseJwa.HS256()
+	key := make(cryptoutilKeygen.SecretKey, 32)
+	_, _ = rand.Read(key)
+
+	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWSJWKFromKey(&kid, &alg, key)
+	require.NoError(t, err)
+	require.NotNil(t, nonPublicJWK)
+	require.Nil(t, publicJWK) // HMAC should have no public key
+	require.Empty(t, publicBytes)
+	require.NotEmpty(t, nonPublicBytes)
+}
+
 func TestValidateOrGenerateJWSEcdsaJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
