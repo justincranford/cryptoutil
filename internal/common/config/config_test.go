@@ -345,3 +345,210 @@ func TestParse_DryRun_Default(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, s.DryRun)
 }
+
+func TestValidateConfiguration_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	s := &Settings{
+		BindPublicPort:      8080,
+		BindPrivatePort:     9090,
+		BindPublicProtocol:  "https",
+		BindPrivateProtocol: "https",
+		TLSPublicDNSNames:   []string{"public.example.com"},
+		TLSPrivateDNSNames:  []string{"private.example.com"},
+		DatabaseURL:         "postgres://user:pass@localhost:5432/db",
+		CORSAllowedOrigins:  []string{"https://example.com"},
+		LogLevel:            "INFO",
+		BrowserIPRateLimit:  100,
+		ServiceIPRateLimit:  200,
+		OTLPEnabled:         true,
+		OTLPEndpoint:        "grpc://otel:4317",
+	}
+
+	err := validateConfiguration(s)
+	require.NoError(t, err)
+}
+
+func TestValidateConfiguration_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		settings *Settings
+		errMsg   string
+	}{
+		{
+			name: "same non-zero ports",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     8080,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "cannot be the same",
+		},
+		{
+			name: "invalid public protocol",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "ftp",
+				BindPrivateProtocol: "https",
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "invalid public protocol 'ftp'",
+		},
+		{
+			name: "invalid private protocol",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "ftp",
+				TLSPublicDNSNames:   []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "invalid private protocol 'ftp'",
+		},
+		{
+			name: "https public missing TLS config",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "http",
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "HTTPS public protocol requires TLS DNS names or IP addresses",
+		},
+		{
+			name: "https private missing TLS config",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "http",
+				BindPrivateProtocol: "https",
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "HTTPS private protocol requires TLS DNS names or IP addresses",
+		},
+		{
+			name: "invalid database URL format",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				DatabaseURL:         "invalid-no-scheme",
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "invalid database URL format",
+		},
+		{
+			name: "invalid CORS origin format",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				CORSAllowedOrigins:  []string{"invalid-no-scheme"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "invalid CORS origin format",
+		},
+		{
+			name: "invalid log level",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INVALID",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "invalid log level 'INVALID'",
+		},
+		{
+			name: "browser rate limit zero",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  0,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "browser rate limit cannot be 0",
+		},
+		{
+			name: "service rate limit zero",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  0,
+			},
+			errMsg: "service rate limit cannot be 0",
+		},
+		{
+			name: "invalid OTLP endpoint format",
+			settings: &Settings{
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+				OTLPEnabled:         true,
+				OTLPEndpoint:        "invalid-no-scheme:4317",
+			},
+			errMsg: "invalid OTLP endpoint format",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := validateConfiguration(tc.settings)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.errMsg)
+		})
+	}
+}
