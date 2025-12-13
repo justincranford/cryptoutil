@@ -427,3 +427,53 @@ func TestCreateJWEJWKFromKey_ECDHKeyPair(t *testing.T) {
 	require.NotEmpty(t, publicBytes)
 	require.NotEmpty(t, nonPublicBytes)
 }
+func TestCreateJWEJWKFromKey_NilKid(t *testing.T) {
+	t.Parallel()
+
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.DIRECT()
+	key := make(cryptoutilKeyGen.SecretKey, 32)
+	_, _ = crand.Read(key)
+
+	_, _, _, _, _, err := CreateJWEJWKFromKey(nil, &enc, &alg, key)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+func TestCreateJWEJWKFromKey_NilAlg(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	key := make(cryptoutilKeyGen.SecretKey, 32)
+	_, _ = crand.Read(key)
+
+	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, nil, key)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+func TestCreateJWEJWKFromKey_NilEnc(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	alg := joseJwa.DIRECT()
+	key := make(cryptoutilKeyGen.SecretKey, 32)
+	_, _ = crand.Read(key)
+
+	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, nil, &alg, key)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+func TestCreateJWEJWKFromKey_NilKey(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.DIRECT()
+
+	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &alg, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
