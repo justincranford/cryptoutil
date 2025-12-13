@@ -479,3 +479,59 @@ func TestGenerateRandomSecret(t *testing.T) {
 		require.Len(t, secrets, numSecrets, "Should generate exactly %d unique secrets", numSecrets)
 	})
 }
+
+func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := setupTestDB(t)
+	service := NewSecretRotationService(db)
+
+	// Create test client.
+	clientID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	// Create multiple secret versions with different statuses.
+	activeVersion1 := &domain.ClientSecretVersion{
+		ID:        googleUuid.New(),
+		ClientID:  clientID,
+		Version:   1,
+		Status:    domain.SecretStatusActive,
+		CreatedAt: time.Now().Add(-48 * time.Hour),
+	}
+
+	activeVersion2 := &domain.ClientSecretVersion{
+		ID:        googleUuid.New(),
+		ClientID:  clientID,
+		Version:   2,
+		Status:    domain.SecretStatusActive,
+		CreatedAt: time.Now().Add(-24 * time.Hour),
+	}
+
+	revokedAt := time.Now().Add(-6 * time.Hour)
+
+	revokedVersion := &domain.ClientSecretVersion{
+		ID:        googleUuid.New(),
+		ClientID:  clientID,
+		Version:   3,
+		Status:    domain.SecretStatusRevoked,
+		CreatedAt: time.Now().Add(-12 * time.Hour),
+		RevokedAt: &revokedAt,
+	}
+
+	// Insert versions.
+	require.NoError(t, db.WithContext(ctx).Create(activeVersion1).Error)
+	require.NoError(t, db.WithContext(ctx).Create(activeVersion2).Error)
+	require.NoError(t, db.WithContext(ctx).Create(revokedVersion).Error)
+
+	// Get active versions - should only return active ones, ordered by version DESC.
+	activeVersions, err := service.GetActiveSecretVersions(ctx, clientID)
+	require.NoError(t, err)
+	require.Len(t, activeVersions, 2, "Should return only active versions")
+
+	// Verify order (DESC by version).
+	require.Equal(t, 2, activeVersions[0].Version, "First version should be 2")
+	require.Equal(t, 1, activeVersions[1].Version, "Second version should be 1")
+	require.Equal(t, domain.SecretStatusActive, activeVersions[0].Status)
+	require.Equal(t, domain.SecretStatusActive, activeVersions[1].Status)
+}
