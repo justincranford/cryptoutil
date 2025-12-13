@@ -577,3 +577,24 @@ func Test_DecryptKey_InvalidEncryptedBytes(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decrypt CDK bytes")
 }
+
+// Test_DecryptKey_InvalidKeyBytes tests error for malformed decrypted key bytes.
+func Test_DecryptKey_InvalidKeyBytes(t *testing.T) {
+	t.Parallel()
+
+	// Generate KEK and encrypt invalid CEK bytes.
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.A256KW()
+	_, keks, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	require.NoError(t, err)
+
+	// Encrypt malformed key bytes (not valid JWK).
+	invalidCEKBytes := []byte(`{"invalid":"jwk"}`)
+	_, encryptedBytes, err := EncryptBytes([]joseJwk.Key{keks}, invalidCEKBytes)
+	require.NoError(t, err)
+
+	// Try to decrypt - should fail on ParseKey.
+	_, err = DecryptKey([]joseJwk.Key{keks}, encryptedBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to derypt CDK")
+}
