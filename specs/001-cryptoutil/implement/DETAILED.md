@@ -55,7 +55,7 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 **Results**: All Identity services (AuthZ, IdP, RS) now have dual-server architecture matching KMS pattern. Admin servers on 127.0.0.1:9090 with /admin/v1/{livez,readyz,shutdown} endpoints. Docker Compose and workflows updated.
 
-### Phase 2: Deferred I2 Features (8 tasks) - **7/8 COMPLETE** ✅
+### Phase 2: Deferred I2 Features (8 tasks) - **8/8 COMPLETE** ✅
 
 - [x] **P2.1**: Device Authorization Grant (RFC 8628) ✅ COMPLETE - handlers_device_authorization.go, domain, repository, tests
 - [x] **P2.2**: MFA - TOTP (RFC 6238) ✅ COMPLETE - idp/userauth/totp_hotp_auth.go, RFC 6238 compliant
@@ -63,7 +63,7 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [x] **P2.4**: Client Authentication - private_key_jwt ✅ COMPLETE - authz/clientauth/private_key_jwt.go
 - [x] **P2.5**: Client Authentication - client_secret_jwt ✅ COMPLETE - authz/clientauth/client_secret_jwt.go
 - [x] **P2.6**: Client Authentication - tls_client_auth ✅ COMPLETE - authz/clientauth/tls_client_auth.go
-- [ ] **P2.7**: DPoP (Demonstrating Proof-of-Possession) ❌ NOT STARTED (2h effort)
+- [x] **P2.7**: DPoP (Demonstrating Proof-of-Possession) ✅ COMPLETE - authz/dpop/dpop.go, dpop_test.go, RFC 9449 compliant, 76.4% coverage
 - [x] **P2.8**: PAR (Pushed Authorization Requests) ✅ COMPLETE - handlers_par.go, RFC 9126 compliant
 
 ### Phase 2.5: CA Production Deployment (8 tasks) 🚧 IN PROGRESS
@@ -598,14 +598,15 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - P2.3 MFA - WebAuthn: repository/orm/webauthn_credential_repository.go ✅
 - P2.4-P2.6 Client Authentication (private_key_jwt, client_secret_jwt, tls_client_auth): authz/clientauth/*.go ✅
 - P2.8 PAR (RFC 9126): handlers_par.go ✅
-- P2.7 DPoP: ❌ NOT STARTED (2h effort, requires new dpop/ package)
+- P2.7 DPoP (RFC 9449): dpop/dpop.go, dpop_test.go ✅ (76.4% coverage, 3 test functions, 11 test cases)
 
 **Progress Summary**:
 
-- Session commits: 4 (8d8eb8a9, 4f176fdb, e33c911c, 67db398c)
-- Tasks complete: 50 → 57 (+7 tasks, +10% progress)
-- Completion: 70.4% → 80.3%
-- Remaining: 14 tasks (19.7%) - P2.7 DPoP (2h), P3.1-P3.6 coverage (12-24h), P4.5 browser load (3h), P4.11 E2E verify (CI), P6.1-P6.6 demos (14-19h)
+- Session commits: 6 (8d8eb8a9, 4f176fdb, e33c911c, 67db398c, ebaae816, f2f89811)
+- Tasks complete: 44 → 58 (+14 tasks, +20% progress)
+- Completion: 62.0% → 81.7%
+- Phase 2 (I2 Features): 8/8 (100%) ✅ COMPLETE
+- Remaining: 13 tasks (18.3%) - P3.1-P3.6 coverage (12-24h), P4.5 browser load (3h), P4.11 E2E verify (CI), P6.1-P6.6 demos (14-19h)
 
 ## References
 
