@@ -165,6 +165,7 @@ func TestApplication_AdminPort(t *testing.T) {
 
 	// Cleanup.
 	cancel()
+
 	_ = app.Shutdown(ctx)
 }
 

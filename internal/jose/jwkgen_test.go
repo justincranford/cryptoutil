@@ -241,7 +241,7 @@ func TestBuildJWK(t *testing.T) {
 			generateKey: func() (any, error) {
 				keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(cryptoutilMagic.RSAKeySize2048)
 				if err != nil {
-					return nil, err
+					return nil, err //nolint:wrapcheck // Test helper
 				}
 
 				return keyPair.Private, nil
@@ -253,7 +253,7 @@ func TestBuildJWK(t *testing.T) {
 			generateKey: func() (any, error) {
 				keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
 				if err != nil {
-					return nil, err
+					return nil, err //nolint:wrapcheck // Test helper //nolint:wrapcheck // Test helper
 				}
 
 				return keyPair.Private, nil
@@ -265,7 +265,7 @@ func TestBuildJWK(t *testing.T) {
 			generateKey: func() (any, error) {
 				keyPair, err := cryptoutilKeyGen.GenerateEDDSAKeyPair(cryptoutilKeyGen.EdCurveEd25519)
 				if err != nil {
-					return nil, err
+					return nil, err //nolint:wrapcheck // Test helper
 				}
 
 				return keyPair.Private, nil
@@ -277,7 +277,7 @@ func TestBuildJWK(t *testing.T) {
 			generateKey: func() (any, error) {
 				key, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
 				if err != nil {
-					return nil, err
+					return nil, err //nolint:wrapcheck // Test helper
 				}
 
 				return []byte(key), nil

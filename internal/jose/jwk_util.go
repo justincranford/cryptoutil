@@ -131,6 +131,7 @@ func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, err
 	}
 
 	algString := alg.String()
+
 	generateAlg, err := ToGenerateAlgorithm(&algString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map to generate alg: %w", err)

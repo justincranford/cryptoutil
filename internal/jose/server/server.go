@@ -204,7 +204,7 @@ func (s *Server) generateTLSConfig() (*tls.Config, error) {
 	}
 
 	// Generate serial number.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128)) //nolint:mnd // X.509 serial number bit length
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}

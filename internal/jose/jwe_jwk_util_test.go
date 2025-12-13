@@ -226,6 +226,7 @@ func TestValidateOrGenerateJWEAESJWK_NilKey(t *testing.T) {
 
 	// Test nil key bytes.
 	var secretKey cryptoutilKeyGen.SecretKey = nil
+
 	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, result)

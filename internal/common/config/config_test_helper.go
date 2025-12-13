@@ -1,6 +1,4 @@
 // Copyright (c) 2025 Justin Cranford
-//
-// SPDX-License-Identifier: MIT
 
 // Package config provides configuration management for cryptoutil services.
 package config

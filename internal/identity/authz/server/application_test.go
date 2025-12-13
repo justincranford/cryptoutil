@@ -19,7 +19,7 @@ func TestNewApplication_NilContext(t *testing.T) {
 
 	config := &cryptoutilIdentityConfig.Config{}
 
-	app, err := NewApplication(nil, config)
+	app, err := NewApplication(nil, config) //nolint:staticcheck // Testing nil context validation requires passing nil.
 	require.Error(t, err)
 	require.Nil(t, app)
 	require.Contains(t, err.Error(), "context cannot be nil")
@@ -67,7 +67,7 @@ func TestApplication_Start_NilContext(t *testing.T) {
 	app, err := NewApplication(ctx, config)
 	require.NoError(t, err)
 
-	err = app.Start(nil)
+	err = app.Start(nil) //nolint:staticcheck // Testing nil context validation requires passing nil.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -108,7 +108,7 @@ func TestApplication_Shutdown_NilContext(t *testing.T) {
 	require.NoError(t, err)
 
 	// Shutdown with nil context should use Background().
-	err = app.Shutdown(nil)
+	err = app.Shutdown(nil) //nolint:staticcheck // Testing nil fallback to Background() requires passing nil.
 	require.NoError(t, err)
 	require.True(t, app.shutdown)
 }
@@ -165,6 +165,7 @@ func TestApplication_AdminPort(t *testing.T) {
 
 	// Cleanup.
 	cancel()
+
 	_ = app.Shutdown(ctx)
 }
 

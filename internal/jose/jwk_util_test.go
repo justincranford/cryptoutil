@@ -830,6 +830,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 				require.NoError(t, err)
 				jwk, err := joseJwk.Import(keyPair.Private)
 				require.NoError(t, err)
+
 				return jwk
 			},
 			expectedKty: joseJwa.RSA(),
@@ -841,6 +842,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 				require.NoError(t, err)
 				jwk, err := joseJwk.Import(keyPair.Private)
 				require.NoError(t, err)
+
 				return jwk
 			},
 			expectedKty: joseJwa.EC(),
@@ -852,6 +854,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 				require.NoError(t, err)
 				jwk, err := joseJwk.Import(keyPair.Private)
 				require.NoError(t, err)
+
 				return jwk
 			},
 			expectedKty: joseJwa.OKP(),
@@ -861,6 +864,7 @@ func TestExtractKty_ValidKeyTypes(t *testing.T) {
 			genKey: func(t *testing.T) joseJwk.Key {
 				jwk, err := joseJwk.Import([]byte("test-key-for-oct-requires-32-byte"))
 				require.NoError(t, err)
+
 				return jwk
 			},
 			expectedKty: joseJwa.OctetSeq(),
@@ -1050,6 +1054,7 @@ func TestValidateOrGenerateEddsaJWK_NilPublicKey(t *testing.T) {
 
 	publicKey, privateKey, err := ed25519.GenerateKey(crand.Reader)
 	require.NoError(t, err)
+
 	_ = publicKey
 
 	keyPair := &cryptoutilKeyGen.KeyPair{

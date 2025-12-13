@@ -68,6 +68,7 @@ func TestSignBytes_NilClearBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	_, _, err = SignBytes(jwks, nil)
@@ -81,6 +82,7 @@ func TestSignBytes_EmptyClearBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	clearBytes := []byte{}
@@ -95,6 +97,7 @@ func TestSignBytes_NonSignJWK(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	clearBytes := []byte("test message")
@@ -145,6 +148,7 @@ func TestVerifyBytes_NilMessageBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	_, err = VerifyBytes(jwks, nil)
@@ -158,6 +162,7 @@ func TestVerifyBytes_EmptyMessageBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	jwsMessageBytes := []byte{}
@@ -172,6 +177,7 @@ func TestVerifyBytes_NonVerifyJWK(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	jwsMessageBytes := []byte("dummy")
@@ -185,6 +191,7 @@ func TestVerifyBytes_InvalidMessageBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	jwsMessageBytes := []byte("invalid-jws-message")

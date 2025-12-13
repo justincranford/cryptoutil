@@ -45,6 +45,7 @@ func TestEncryptBytesWithContext_NilClearBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	_, _, err = EncryptBytesWithContext(jwks, nil, nil)
@@ -58,6 +59,7 @@ func TestEncryptBytesWithContext_EmptyClearBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	clearBytes := []byte{}
@@ -72,6 +74,7 @@ func TestEncryptBytesWithContext_NonEncryptJWK(t *testing.T) {
 
 	_, signingJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgRS256)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{signingJWK}
 
 	clearBytes := []byte("test message")
@@ -628,6 +631,7 @@ func TestDecryptBytesWithContext_NilMessageBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	_, err = DecryptBytesWithContext(jwks, nil, nil)
@@ -641,6 +645,7 @@ func TestDecryptBytesWithContext_EmptyMessageBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	jweMessageBytes := []byte{}
@@ -655,6 +660,7 @@ func TestDecryptBytesWithContext_NonDecryptJWK(t *testing.T) {
 
 	_, signingJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgRS256)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{signingJWK}
 
 	jweMessageBytes := []byte("dummy")
@@ -668,6 +674,7 @@ func TestDecryptBytesWithContext_InvalidMessageBytes(t *testing.T) {
 
 	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
+
 	jwks := []joseJwk.Key{nonPublicJWK}
 
 	jweMessageBytes := []byte("invalid-jwe-message")
@@ -675,8 +682,6 @@ func TestDecryptBytesWithContext_InvalidMessageBytes(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse JWE message bytes")
 }
-
-
 
 func Test_JWEHeadersString_NilMessage(t *testing.T) {
 	t.Parallel()
