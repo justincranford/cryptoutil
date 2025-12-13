@@ -644,6 +644,82 @@ func TestCreateJWKFromKey_RSAKeyPair(t *testing.T) {
 	require.NotEmpty(t, nonPublicBytes)
 }
 
+// TestCreateJWKFromKey_Oct256HMAC tests CreateJWKFromKey with Oct256 HMAC key.
+func TestCreateJWKFromKey_Oct256HMAC(t *testing.T) {
+	t.Parallel()
+
+	// Generate Oct256 secret key for HMAC.
+	kid := googleUuid.New()
+	alg := cryptoutilOpenapiModel.Oct256
+	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+	require.NoError(t, err)
+
+	resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, secretKey)
+	require.NoError(t, err)
+	require.Equal(t, &kid, resultKid)
+	require.NotNil(t, nonPublicJWK)
+	require.Nil(t, publicJWK) // Symmetric key has no public key
+	require.Nil(t, publicBytes)
+	require.NotEmpty(t, nonPublicBytes)
+
+	// Verify headers.
+	algVal, ok := nonPublicJWK.Algorithm()
+	require.True(t, ok)
+	require.Equal(t, AlgHS256, algVal)
+
+	kty := nonPublicJWK.KeyType()
+	require.Equal(t, KtyOCT, kty)
+
+	usage, ok := nonPublicJWK.KeyUsage()
+	require.True(t, ok)
+	require.Equal(t, joseJwk.ForSignature.String(), usage)
+}
+
+// TestCreateJWKFromKey_Oct128AES tests CreateJWKFromKey with Oct128 AES key.
+func TestCreateJWKFromKey_Oct128AES(t *testing.T) {
+	t.Parallel()
+
+	// Generate Oct128 secret key for AES.
+	kid := googleUuid.New()
+	alg := cryptoutilOpenapiModel.Oct128
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize128)
+	require.NoError(t, err)
+
+	resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, secretKey)
+	require.NoError(t, err)
+	require.Equal(t, &kid, resultKid)
+	require.NotNil(t, nonPublicJWK)
+	require.Nil(t, publicJWK) // Symmetric key has no public key
+	require.Nil(t, publicBytes)
+	require.NotEmpty(t, nonPublicBytes)
+
+	// Verify headers.
+	algVal, ok := nonPublicJWK.Algorithm()
+	require.True(t, ok)
+	require.Equal(t, "A128GCM", algVal.String())
+
+	kty := nonPublicJWK.KeyType()
+	require.Equal(t, KtyOCT, kty)
+
+	usage, ok := nonPublicJWK.KeyUsage()
+	require.True(t, ok)
+	require.Equal(t, "enc", usage)
+}
+
+// TestCreateJWKFromKey_InvalidHeaders tests CreateJWKFromKey with invalid headers.
+func TestCreateJWKFromKey_InvalidHeaders(t *testing.T) {
+	t.Parallel()
+
+	// Nil kid should fail validation.
+	alg := cryptoutilOpenapiModel.Oct256
+	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+	require.NoError(t, err)
+
+	_, _, _, _, _, err = CreateJWKFromKey(nil, &alg, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK headers")
+}
+
 func TestValidateOrGenerateHMACJWK_NilSecretKey(t *testing.T) {
 	t.Parallel()
 
