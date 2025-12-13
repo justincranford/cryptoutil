@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 func TestCheckDependencies_NoCycles(t *testing.T) {
@@ -88,6 +90,35 @@ func TestGetModulePath(t *testing.T) {
 
 			result := getModulePath(tc.packages)
 			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestLint(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name:    "success",
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			err := Lint(logger)
+
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
