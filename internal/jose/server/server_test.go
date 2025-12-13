@@ -30,8 +30,9 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	// Create test settings with dynamic port allocation.
-	testSettings = cryptoutilConfig.NewForJOSEServer(
+	// Create test settings with dynamic port allocation using test helper.
+	// NewTestConfig bypasses pflag global FlagSet to allow multiple test instances.
+	testSettings = cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0, // Dynamic port allocation.
 		true,
@@ -1062,10 +1063,9 @@ func TestJWTVerifyErrorPaths(t *testing.T) {
 
 // TestServerLifecycle tests server Start and Shutdown.
 func TestServerLifecycle(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() because NewForJOSEServer calls config.Parse()
-	// which redefines global flags and causes "flag redefined" panic in parallel tests.
+	t.Parallel()
 
-	settings := cryptoutilConfig.NewForJOSEServer(
+	settings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0, // Dynamic port.
 		true,
@@ -1084,10 +1084,9 @@ func TestServerLifecycle(t *testing.T) {
 
 // TestAPIKeyMiddleware tests API key configuration.
 func TestAPIKeyMiddleware(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() because NewForJOSEServer calls config.Parse()
-	// which redefines global flags and causes "flag redefined" panic in parallel tests.
+	t.Parallel()
 
-	settings := cryptoutilConfig.NewForJOSEServer(
+	settings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0,
 		true,
@@ -1119,7 +1118,7 @@ func TestAPIKeyMiddleware(t *testing.T) {
 func TestNewServerErrorPaths(t *testing.T) {
 	t.Parallel()
 
-	validSettings := cryptoutilConfig.NewForJOSEServer(
+	validSettings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0,
 		true,
@@ -1144,10 +1143,9 @@ func TestNewServerErrorPaths(t *testing.T) {
 
 // TestStartBlocking tests the blocking Start method.
 func TestStartBlocking(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() because NewForJOSEServer calls config.Parse()
-	// which redefines global flags and causes "flag redefined" panic in parallel tests.
+	t.Parallel()
 
-	settings := cryptoutilConfig.NewForJOSEServer(
+	settings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0,
 		true,
@@ -1166,13 +1164,12 @@ func TestStartBlocking(t *testing.T) {
 
 // TestShutdownCoverage tests explicit Shutdown calls for coverage.
 func TestShutdownCoverage(t *testing.T) {
-	// NOTE: Cannot use t.Parallel() here because NewForJOSEServer calls config.Parse()
-	// which redefines global flags and causes "flag redefined" panic in parallel tests.
+	t.Parallel()
 
 	t.Run("NormalShutdown", func(t *testing.T) {
-		// NOTE: Cannot use t.Parallel() - see parent test comment.
+		t.Parallel()
 
-		settings := cryptoutilConfig.NewForJOSEServer(
+		settings := cryptoutilConfig.NewTestConfig(
 			cryptoutilMagic.IPv4Loopback,
 			0,
 			true,
@@ -1193,7 +1190,7 @@ func TestShutdownCoverage(t *testing.T) {
 	t.Run("ShutdownWithoutStart", func(t *testing.T) {
 		t.Parallel()
 
-		settings := cryptoutilConfig.NewForJOSEServer(
+		settings := cryptoutilConfig.NewTestConfig(
 			cryptoutilMagic.IPv4Loopback,
 			0,
 			true,
