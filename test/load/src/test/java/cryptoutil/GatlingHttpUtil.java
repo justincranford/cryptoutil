@@ -24,4 +24,19 @@ public class GatlingHttpUtil {
             .userAgentHeader("Gatling-Cryptoutil-Service-API-Test/1.0")
             .disableFollowRedirect();
     }
+
+    /**
+     * Create HTTP protocol for browser-based API testing.
+     * Uses HTTPS, follows redirects (for OAuth flows), accepts HTML/JSON.
+     */
+    public static HttpProtocolBuilder createBrowserApiProtocol(String port) {
+        return http
+            .baseUrl("https://localhost:" + port)
+            .acceptHeader("text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8")
+            .acceptEncodingHeader("gzip, deflate")
+            .acceptLanguageHeader("en-US,en;q=0.5")
+            .userAgentHeader("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Gatling-Cryptoutil-Browser-API-Test/1.0")
+            .inferHtmlResources() // Automatically fetch HTML resources
+            .shareConnections(); // Reuse connections (browser-like behavior)
+    }
 }
