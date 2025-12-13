@@ -618,3 +618,36 @@ func TestIntermediateCAsPool(t *testing.T) {
 	require.NotNil(t, pool)
 	// The pool should contain intermediate CAs (excluding root).
 }
+
+func TestCreateCAChain_AllCurves(t *testing.T) {
+	t.Parallel()
+
+	curves := []struct {
+		name  string
+		curve ECCurve
+	}{
+		{"P256 default", CurveP256},
+		{"P384", CurveP384},
+		{"P521", CurveP521},
+	}
+
+	for _, tc := range curves {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			chain, err := CreateCAChain(&CAChainOptions{
+				ChainLength:      1,
+				CommonNamePrefix: "test.curve",
+				Duration:         time.Hour,
+				Curve:            tc.curve,
+			})
+			require.NoError(t, err)
+			require.NotNil(t, chain)
+			require.Len(t, chain.CAs, 1)
+
+			// Verify chain created successfully with specified curve.
+			require.NotNil(t, chain.IssuingCA)
+			require.NotNil(t, chain.RootCA)
+		})
+	}
+}
