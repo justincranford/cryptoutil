@@ -2,8 +2,8 @@
 
 **Iteration**: specs/001-cryptoutil
 **Started**: December 7, 2025
-**Last Updated**: December 13, 2025 21:50 UTC
-**Status**: 🚀 IN PROGRESS (59/71 tasks, 83.1%)
+**Last Updated**: January 18, 2025
+**Status**: 🚀 IN PROGRESS (61/89 tasks, 68.5%)
 
 **Session Summary (Dec 13)**:
 
@@ -103,8 +103,8 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 #### Identity Command Integration (6 tasks, 4-6h)
 
-- [ ] **P3.5.1**: Create internal/cmd/cryptoutil/identity/ package
-- [ ] **P3.5.2**: Implement identity start/stop/status/health subcommands
+- [x] **P3.5.1**: Create internal/cmd/cryptoutil/identity/ package ✅ 2025-01-18 commit 7079d90c
+- [x] **P3.5.2**: Implement identity start/stop/status/health subcommands ✅ 2025-01-18 commit 7079d90c
 - [ ] **P3.5.3**: Update cmd/identity-unified to use internal/cmd/cryptoutil
 - [ ] **P3.5.4**: Update Docker Compose files for unified command
 - [ ] **P3.5.5**: Update E2E tests to use unified identity command

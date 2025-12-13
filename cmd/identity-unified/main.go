@@ -8,27 +8,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
-	cryptoutilIdentityCmd "cryptoutil/internal/identity/cmd/main"
+	cryptoutilIdentityCmd "cryptoutil/internal/cmd/cryptoutil/identity"
 )
 
 func main() {
-	rootCmd := &cobra.Command{
-		Use:   "identity",
-		Short: "Unified identity services CLI",
-		Long:  "Manage OAuth 2.1 Authorization Server, OIDC Identity Provider, and Resource Server",
-	}
-
-	rootCmd.AddCommand(cryptoutilIdentityCmd.NewStartCommand())
-	rootCmd.AddCommand(cryptoutilIdentityCmd.NewStopCommand())
-	rootCmd.AddCommand(cryptoutilIdentityCmd.NewStatusCommand())
-	rootCmd.AddCommand(cryptoutilIdentityCmd.NewHealthCommand())
-	rootCmd.AddCommand(cryptoutilIdentityCmd.NewTestCommand())
-	rootCmd.AddCommand(cryptoutilIdentityCmd.NewLogsCommand())
-
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	args := os.Args[1:] // Skip program name
+	if len(args) == 0 {
+		fmt.Println("Usage: identity <subcommand> [flags]")
+		fmt.Println("Subcommands: start, stop, status, health")
 		os.Exit(1)
 	}
+
+	cryptoutilIdentityCmd.Execute(args)
 }
