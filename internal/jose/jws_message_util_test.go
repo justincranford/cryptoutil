@@ -17,6 +17,8 @@ import (
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 )
 
 type happyPathJWSTestCase struct {
@@ -38,6 +40,83 @@ var happyPathJWSTestCases = []happyPathJWSTestCase{
 	{alg: &AlgHS384, expectedType: KtyOCT}, // HMAC with SHA-384 & SHA-512
 	{alg: &AlgHS512, expectedType: KtyOCT}, // HMAC with SHA-512 & SHA-512
 	{alg: &AlgEdDSA, expectedType: KtyOKP}, // ED25519 & SHA-256
+}
+
+func TestSignBytes_NilJWKs(t *testing.T) {
+	t.Parallel()
+
+	clearBytes := []byte("test message")
+	_, _, err := SignBytes(nil, clearBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestSignBytes_EmptyJWKs(t *testing.T) {
+	t.Parallel()
+
+	jwks := []joseJwk.Key{}
+	clearBytes := []byte("test message")
+	_, _, err := SignBytes(jwks, clearBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func TestSignBytes_NilClearBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	_, _, err = SignBytes(jwks, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid clearBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestSignBytes_EmptyClearBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	clearBytes := []byte{}
+	_, _, err = SignBytes(jwks, clearBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid clearBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func TestSignBytes_NonSignJWK(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	clearBytes := []byte("test message")
+	_, _, err = SignBytes(jwks, clearBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK")
+}
+
+func TestSignBytes_MultipleAlgs(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK1, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+
+	_, nonPublicJWK2, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS512)
+	require.NoError(t, err)
+
+	jwks := []joseJwk.Key{nonPublicJWK1, nonPublicJWK2}
+	clearBytes := []byte("test message")
+	_, _, err = SignBytes(jwks, clearBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "only one unique 'alg' attribute is allowed")
 }
 
 func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
