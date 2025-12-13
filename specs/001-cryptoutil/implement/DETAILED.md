@@ -544,6 +544,22 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 ## References
 
+### [20:08 UTC] P4.2 KMS E2E Tests - Blocked by Environment
+
+- **Implementation Complete**: 3 test methods (226 lines total, commit 47th/469cb500)
+  - TestEncryptDecryptWorkflow (68 lines): A256GCM/A256KW encrypt/decrypt with JWE validation
+  - TestSignVerifyWorkflow (80 lines): ES384 sign/verify with JWS validation + invalid signature test  
+  - TestKeyRotationWorkflow (78 lines): Multi-version key rotation (v1/v2 encrypt/decrypt)
+- **Compilation**: ✅ PASSES (fixed imports, API types, method names)
+- **Tests**: ❌ BLOCKED - Grafana port 3000 conflict prevents Docker Compose from starting
+- **Root Cause**: Another process (PID 7380, then restarted) keeps binding port 3000
+- **Workaround Needed**: Disable grafana temporarily in compose.yml OR find/kill persistent process
+- **Status**: Ready for testing once environment clean
+
+---
+
+## References
+
 - **Tasks**: See TASKS.md for detailed acceptance criteria
 - **Plan**: See PLAN.md for technical approach
 - **Analysis**: See ANALYSIS.md for coverage analysis
