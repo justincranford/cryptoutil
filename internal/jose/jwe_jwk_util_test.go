@@ -481,8 +481,6 @@ func TestCreateJWEJWKFromKey_UnexpectedKeyPairPrivateType(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported key type *keygen.KeyPair")
 }
 
-
-
 func TestCreateJWEJWKFromKey_NilKid(t *testing.T) {
 	t.Parallel()
 

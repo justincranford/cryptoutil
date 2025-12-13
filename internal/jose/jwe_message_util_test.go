@@ -530,6 +530,7 @@ func Test_ExtractKidFromJWEMessage_NilMessage(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid jweMessage")
 	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
 }
+
 func Test_ExtractKidEncAlgFromJWEMessage_NilMessage(t *testing.T) {
 	t.Parallel()
 
@@ -560,8 +561,6 @@ func Test_EncryptKey_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, encryptedCEKBytes)
 }
-
-
 
 func Test_DecryptKey_InvalidEncryptedBytes(t *testing.T) {
 	t.Parallel()

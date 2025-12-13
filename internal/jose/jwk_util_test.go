@@ -724,14 +724,25 @@ func TestCreateJWKFromKey_Oct128AES(t *testing.T) {
 func TestCreateJWKFromKey_InvalidHeaders(t *testing.T) {
 	t.Parallel()
 
-	// Nil kid should fail validation.
+	kid := googleUuid.New()
 	alg := cryptoutilOpenapiModel.Oct256
 	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
 	require.NoError(t, err)
 
+	// Nil kid should fail validation.
 	_, _, _, _, _, err = CreateJWKFromKey(nil, &alg, secretKey)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWK headers")
+
+	// Nil alg should fail validation.
+	_, _, _, _, _, err = CreateJWKFromKey(&kid, nil, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "JWK alg must be non-nil")
+
+	// Nil key should fail validation.
+	_, _, _, _, _, err = CreateJWKFromKey(&kid, &alg, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "JWK key material must be non-nil")
 }
 
 // TestCreateJWKFromKey_ECDSAKeyPair tests CreateJWKFromKey with ECDSA key pair.

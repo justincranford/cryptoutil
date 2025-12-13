@@ -231,8 +231,8 @@ func TestBuildJWK(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		kty       joseJwa.KeyType
+		name        string
+		kty         joseJwa.KeyType
 		generateKey func() (any, error)
 	}{
 		{
