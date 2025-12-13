@@ -224,6 +224,19 @@ func Test_SadPath_VerifyBytes_InvalidJWSMessage(t *testing.T) {
 	require.Error(t, err)
 }
 
+func Test_VerifyBytes_NonVerifyJWK(t *testing.T) {
+	t.Parallel()
+
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.DIRECT()
+	_, nonPublicJWEJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	require.NoError(t, err)
+
+	_, err = VerifyBytes([]joseJwk.Key{nonPublicJWEJWK}, []byte("any-message"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK")
+}
+
 func Test_SadPath_GenerateJWSJWK_UnsupportedAlg(t *testing.T) {
 	kid, nonPublicJWSJWK, publicJWSJWK, clearNonPublicJWSJWKBytes, clearPublicJWSJWKBytes, err := GenerateJWSJWKForAlg(&AlgSigInvalid)
 	require.Error(t, err)
