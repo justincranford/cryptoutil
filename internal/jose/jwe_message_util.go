@@ -220,6 +220,10 @@ func JWEHeadersString(jweMessage *joseJwe.Message) (string, error) {
 }
 
 func ExtractKidFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, error) {
+	if jweMessage == nil {
+		return nil, fmt.Errorf("invalid jweMessage: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+
 	var kidUUIDString string
 
 	err := jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &kidUUIDString)

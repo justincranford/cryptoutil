@@ -404,3 +404,14 @@ func Test_JWEHeadersString_NilMessage(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid jweMessage")
 	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
 }
+
+func Test_ExtractKidFromJWEMessage_NilMessage(t *testing.T) {
+	t.Parallel()
+
+	// Test nil JWE message should return error.
+	kid, err := ExtractKidFromJWEMessage(nil)
+	require.Error(t, err)
+	require.Nil(t, kid)
+	require.Contains(t, err.Error(), "invalid jweMessage")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
