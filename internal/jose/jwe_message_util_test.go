@@ -309,6 +309,20 @@ func Test_EncryptBytesWithContext_EmptyClearBytes(t *testing.T) {
 	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
 }
 
+func Test_EncryptBytesWithContext_NonEncryptJWK(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWS signing JWK (not encrypt JWK).
+	_, signingJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgRS256)
+	require.NoError(t, err)
+
+	// Should error on non-encrypt JWK validation.
+	_, _, err = EncryptBytesWithContext([]joseJwk.Key{signingJWK}, []byte("cleartext"), []byte("context"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrJWKMustBeEncryptJWK)
+}
+
 func Test_SadPath_DecryptBytes_NilKey(t *testing.T) {
 	_, err := DecryptBytes(nil, []byte("cleartext"))
 	require.Error(t, err)
