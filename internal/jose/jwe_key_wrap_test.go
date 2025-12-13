@@ -177,3 +177,29 @@ func TestDecryptKey_CorruptedEncryptedBytes(t *testing.T) {
 	_, err = DecryptKey([]joseJwk.Key{kekJWK}, encryptedBytes)
 	require.Error(t, err)
 }
+func TestEncryptKey_NilKEKs(t *testing.T) {
+	t.Parallel()
+
+	// Generate CEK.
+	cekKid := googleUuid.New()
+	cekBytes := make([]byte, 32)
+	_, err := crand.Read(cekBytes)
+	require.NoError(t, err)
+
+	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &EncA256GCM, &AlgDir, cryptoutilKeyGen.SecretKey(cekBytes))
+	require.NoError(t, err)
+
+	// Try to encrypt with nil KEKs.
+	_, _, err = EncryptKey(nil, cekJWK)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+}
+
+func TestDecryptKey_NilKDKs(t *testing.T) {
+	t.Parallel()
+
+	// Try to decrypt with nil KDKs.
+	_, err := DecryptKey(nil, []byte("encrypted"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+}
