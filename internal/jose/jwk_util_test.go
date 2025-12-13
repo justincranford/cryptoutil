@@ -679,3 +679,27 @@ func TestExtractKty_NilJWK(t *testing.T) {
 // TestExtractKty_MissingKeyType removed - JWX v3 always sets kty header on Import.
 // Error path "failed to get kty header" is unreachable in normal usage.
 // ExtractKty nil check tested in TestExtractKty_NilJWK.
+func TestValidateOrGenerateRSAJWK_ValidExistingKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate valid RSA key pair.
+	validKey, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	require.NoError(t, err)
+
+	// Validate existing key.
+	validated, err := validateOrGenerateRSAJWK(validKey, 2048)
+	require.NoError(t, err)
+	require.Equal(t, validKey, validated)
+}
+
+func TestValidateOrGenerateRSAJWK_WrongKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Use symmetric key (wrong type).
+	wrongKey := cryptoutilKeyGen.SecretKey(make([]byte, 32))
+
+	validated, err := validateOrGenerateRSAJWK(wrongKey, 2048)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
