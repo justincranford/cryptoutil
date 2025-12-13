@@ -464,6 +464,23 @@ func TestCreateJWEJWKFromKey_RSAKeyPair(t *testing.T) {
 	require.Equal(t, joseJwa.RSA().String(), nonPublicJWK.KeyType().String())
 }
 
+func TestCreateJWEJWKFromKey_UnexpectedKeyPairPrivateType(t *testing.T) {
+	t.Parallel()
+
+	// Use KeyPair with unexpected private key type (string).
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.A256GCMKW()
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: "not-a-private-key",
+		Public:  "not-a-public-key",
+	}
+
+	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported key type *keygen.KeyPair")
+}
+
 
 
 func TestCreateJWEJWKFromKey_NilKid(t *testing.T) {
