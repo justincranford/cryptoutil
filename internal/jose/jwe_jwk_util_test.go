@@ -189,6 +189,24 @@ func TestValidateOrGenerateJWEAESJWK_InvalidEncWithDir(t *testing.T) {
 	require.Contains(t, err.Error(), "but invalid enc")
 }
 
+func TestValidateOrGenerateJWEAESJWK_WrongKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Pass KeyPair (RSA) instead of SecretKey ([]byte).
+	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: rsaKey,
+		Public:  &rsaKey.PublicKey,
+	}
+
+	result, err := validateOrGenerateJWEAESJWK(keyPair, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type *keygen.KeyPair")
+}
+
 func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 	t.Parallel()
 
