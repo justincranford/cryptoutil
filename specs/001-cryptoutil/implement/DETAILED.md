@@ -80,10 +80,10 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 ### Phase 4: Advanced Testing & E2E Workflows (12 tasks - HIGH PRIORITY)
 
-- [ ] **P4.1**: OAuth 2.1 authorization code E2E test - `internal/test/e2e/oauth_workflow_test.go`
-- [ ] **P4.2**: KMS encrypt/decrypt E2E test - `internal/test/e2e/kms_workflow_test.go`
-- [ ] **P4.3**: CA certificate lifecycle E2E test - `internal/test/e2e/ca_workflow_test.go`
-- [ ] **P4.4**: JOSE JWT sign/verify E2E test - `internal/test/e2e/jose_workflow_test.go`
+- [ ] **P4.1**: OAuth 2.1 authorization code E2E test - `internal/test/e2e/oauth_workflow_test.go` 🔄 SKELETON
+- [ ] **P4.2**: KMS encrypt/decrypt E2E test - `internal/test/e2e/kms_workflow_test.go` 🔄 SKELETON
+- [ ] **P4.3**: CA certificate lifecycle E2E test - `internal/test/e2e/ca_workflow_test.go` 🔄 SKELETON
+- [ ] **P4.4**: JOSE JWT sign/verify E2E test - `internal/test/e2e/jose_workflow_test.go` 🔄 SKELETON
 - [ ] **P4.5**: Browser API load testing (Gatling) - `test/load/.../BrowserApiSimulation.java`
 - [ ] **P4.6**: Update E2E CI/CD workflow - Run all 4 E2E workflows in ci-e2e
 - [ ] **P4.7**: Add benchmark tests (IN PROGRESS) - Crypto operation benchmarks
@@ -327,6 +327,42 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - Infrastructure: PostgreSQL, OpenTelemetry Collector, Grafana LGTM
 
 **Phase 2.5 Summary**: All 8 tasks complete. Production-ready CA and JOSE deployments with Docker Compose, PostgreSQL backends, telemetry integration, TLS 1.3, and CI/CD workflow integration. Ready for Phase 3 (Coverage Targets) and Phase 4 (E2E Testing - HIGH PRIORITY).
+
+### December 12, 2025 - Phase 4 E2E Test Skeletons Created 🔄
+
+**Tasks**: P4.1-P4.4 skeleton structure
+**Status**: 🔄 IN PROGRESS
+
+**Evidence**: Commit 184ad7b0
+
+**E2E Test Files Created**:
+
+- `internal/test/e2e/oauth_workflow_test.go` - OAuthWorkflowSuite
+  - TestAuthorizationCodeFlowWithPKCE - OAuth 2.1 auth code + PKCE (8 steps documented)
+  - TestClientCredentialsFlow - Client credentials grant (4 steps documented)
+- `internal/test/e2e/kms_workflow_test.go` - KMSWorkflowSuite
+  - TestEncryptDecryptWorkflow - Encrypt/decrypt cycle (7 steps)
+  - TestSignVerifyWorkflow - Sign/verify cycle (6 steps)
+  - TestKeyRotationWorkflow - Key rotation and versioning (7 steps)
+- `internal/test/e2e/ca_workflow_test.go` - CAWorkflowSuite
+  - TestCertificateLifecycleWorkflow - CSR → issue → revoke → CRL (8 steps)
+  - TestOCSPWorkflow - OCSP responder queries (8 steps)
+  - TestCRLDistributionWorkflow - CRL generation and distribution (8 steps)
+  - TestCertificateProfilesWorkflow - Different cert profiles (6 steps)
+- `internal/test/e2e/jose_workflow_test.go` - JOSEWorkflowSuite
+  - TestJWTSignVerifyWorkflow - JWT signing and verification (8 steps)
+  - TestJWKSEndpointWorkflow - JWKS discovery endpoint (6 steps)
+  - TestJWKRotationWorkflow - JWK rotation with backward compat (8 steps)
+  - TestJWEEncryptionWorkflow - JWE encryption/decryption (7 steps)
+
+**Test Structure**:
+
+- All tests follow testify/suite pattern with fixtures and assertions
+- All tests marked with Skip() and TODO comments documenting implementation steps
+- Reference implementations cited: internal/identity/test/e2e/* for OAuth patterns
+- Tests require respective services deployed (Identity, KMS, CA, JOSE)
+
+**Next Steps**: Implement test logic for all 4 workflow files, then P4.5-P4.12 (load testing, benchmarks, fuzz, property-based, mutation, CI integration, documentation).
 
 ---
 
