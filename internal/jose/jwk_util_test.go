@@ -18,6 +18,8 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 
+	googleUuid "github.com/google/uuid"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -540,3 +542,134 @@ func TestExtractAlg_JWKMissingAlgHeader(t *testing.T) {
 	require.Nil(t, extractedAlg)
 	require.Contains(t, err.Error(), "failed to get alg header")
 }
+
+func TestExtractKidUUID_ValidKid(t *testing.T) {
+	t.Parallel()
+
+	jwk, err := joseJwk.Import([]byte("test-key-for-kid-extraction-32b"))
+	require.NoError(t, err)
+
+	// Create valid UUID and set as kid.
+	validKid := googleUuid.New()
+	require.NoError(t, jwk.Set(joseJwk.KeyIDKey, validKid.String()))
+
+	extractedKid, err := ExtractKidUUID(jwk)
+	require.NoError(t, err)
+	require.NotNil(t, extractedKid)
+	require.Equal(t, validKid, *extractedKid)
+}
+
+func TestExtractKidUUID_NilJWK(t *testing.T) {
+	t.Parallel()
+
+	extractedKid, err := ExtractKidUUID(nil)
+	require.Error(t, err)
+	require.Nil(t, extractedKid)
+	require.Contains(t, err.Error(), "invalid jwk")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestExtractKidUUID_MissingKid(t *testing.T) {
+	t.Parallel()
+
+	jwk, err := joseJwk.Import([]byte("test-key-no-kid-requires-32-byt"))
+	require.NoError(t, err)
+
+	extractedKid, err := ExtractKidUUID(jwk)
+	require.Error(t, err)
+	require.Nil(t, extractedKid)
+	require.Contains(t, err.Error(), "failed to get kid header")
+}
+
+func TestExtractKidUUID_InvalidUUIDFormat(t *testing.T) {
+	t.Parallel()
+
+	jwk, err := joseJwk.Import([]byte("test-key-invalid-uuid-32-bytes!"))
+	require.NoError(t, err)
+	require.NoError(t, jwk.Set(joseJwk.KeyIDKey, "not-a-valid-uuid-format"))
+
+	extractedKid, err := ExtractKidUUID(jwk)
+	require.Error(t, err)
+	require.Nil(t, extractedKid)
+	require.Contains(t, err.Error(), "failed to parse kid as UUID")
+}
+
+func TestExtractKty_ValidKeyTypes(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name        string
+		genKey      func(t *testing.T) joseJwk.Key
+		expectedKty joseJwa.KeyType
+	}{
+		{
+			name: "RSA",
+			genKey: func(t *testing.T) joseJwk.Key {
+				keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+				require.NoError(t, err)
+				jwk, err := joseJwk.Import(keyPair.Private)
+				require.NoError(t, err)
+				return jwk
+			},
+			expectedKty: joseJwa.RSA(),
+		},
+		{
+			name: "EC",
+			genKey: func(t *testing.T) joseJwk.Key {
+				keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+				require.NoError(t, err)
+				jwk, err := joseJwk.Import(keyPair.Private)
+				require.NoError(t, err)
+				return jwk
+			},
+			expectedKty: joseJwa.EC(),
+		},
+		{
+			name: "OKP",
+			genKey: func(t *testing.T) joseJwk.Key {
+				keyPair, err := cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
+				require.NoError(t, err)
+				jwk, err := joseJwk.Import(keyPair.Private)
+				require.NoError(t, err)
+				return jwk
+			},
+			expectedKty: joseJwa.OKP(),
+		},
+		{
+			name: "oct",
+			genKey: func(t *testing.T) joseJwk.Key {
+				jwk, err := joseJwk.Import([]byte("test-key-for-oct-requires-32-byte"))
+				require.NoError(t, err)
+				return jwk
+			},
+			expectedKty: joseJwa.OctetSeq(),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			jwk := tc.genKey(t)
+
+			kty, err := ExtractKty(jwk)
+			require.NoError(t, err)
+			require.NotNil(t, kty)
+			require.Equal(t, tc.expectedKty, *kty)
+		})
+	}
+}
+
+func TestExtractKty_NilJWK(t *testing.T) {
+	t.Parallel()
+
+	kty, err := ExtractKty(nil)
+	require.Error(t, err)
+	require.Nil(t, kty)
+	require.Contains(t, err.Error(), "invalid jwk")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+// TestExtractKty_MissingKeyType removed - JWX v3 always sets kty header on Import.
+// Error path "failed to get kty header" is unreachable in normal usage.
+// ExtractKty nil check tested in TestExtractKty_NilJWK.
