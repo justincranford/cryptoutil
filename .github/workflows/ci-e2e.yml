@@ -86,6 +86,46 @@ jobs:
     - name: Build Docker images
       uses: ./.github/actions/docker-compose-build
 
+    - name: Deploy CA services
+      run: |
+        echo "🚀 Deploying CA services..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        docker compose -f ./deployments/ca/compose.yml up -d
+        echo "⏱️ Waiting for CA services to be healthy..."
+        sleep 45
+        echo "✅ CA services deployed"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ CA deployment completed in: ${DURATION}s"
+
+    - name: Deploy JOSE services
+      run: |
+        echo "🚀 Deploying JOSE services..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        docker compose -f ./deployments/jose/compose.yml up -d
+        echo "⏱️ Waiting for JOSE services to be healthy..."
+        sleep 35
+        echo "✅ JOSE services deployed"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ JOSE deployment completed in: ${DURATION}s"
+
+    - name: Verify CA services
+      run: |
+        echo "🔍 Verifying CA services..."
+        curl -k https://localhost:8443/health || echo "CA SQLite not ready"
+        docker compose -f ./deployments/ca/compose.yml ps
+
+    - name: Verify JOSE services
+      run: |
+        echo "🔍 Verifying JOSE services..."
+        curl -k https://localhost:8092/health || echo "JOSE server not ready"
+        docker compose -f ./deployments/jose/compose.yml ps
+
     - name: Run E2E tests
       run: |
         echo "🧪 Running end-to-end tests..."
@@ -121,6 +161,12 @@ jobs:
         docker compose -f ./deployments/compose/compose.yml logs postgres > ./workflow-reports/e2e/postgres.log 2>&1 || true
         docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
 
+        # Collect CA service logs
+        docker compose -f ./deployments/ca/compose.yml logs ca-sqlite > ./workflow-reports/e2e/ca-sqlite.log 2>&1 || true
+
+        # Collect JOSE service logs
+        docker compose -f ./deployments/jose/compose.yml logs jose-server > ./workflow-reports/e2e/jose-server.log 2>&1 || true
+
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
@@ -149,4 +195,9 @@ jobs:
 
     - name: Stop services
       if: always()
-      uses: ./.github/actions/docker-compose-down
+      run: |
+        echo "🛑 Stopping all services..."
+        docker compose -f ./deployments/compose/compose.yml down -v --remove-orphans || true
+        docker compose -f ./deployments/ca/compose.yml down -v --remove-orphans || true
+        docker compose -f ./deployments/jose/compose.yml down -v --remove-orphans || true
+        echo "✅ All services stopped"
