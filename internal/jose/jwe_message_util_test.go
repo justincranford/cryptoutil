@@ -663,6 +663,21 @@ func TestDecryptBytesWithContext_NonDecryptJWK(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid JWK")
 }
 
+func TestDecryptBytesWithContext_InvalidMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	jweMessageBytes := []byte("invalid-jwe-message")
+	_, err = DecryptBytesWithContext(jwks, jweMessageBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse JWE message bytes")
+}
+
+
+
 func Test_JWEHeadersString_NilMessage(t *testing.T) {
 	t.Parallel()
 
