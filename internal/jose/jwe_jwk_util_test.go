@@ -6,10 +6,12 @@ package jose
 
 import (
 	"crypto/ecdh"
+	crand "crypto/rand"
 	"testing"
 
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 
+	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/require"
 )
@@ -18,12 +20,12 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		enc            *joseJwa.ContentEncryptionAlgorithm
-		alg            *joseJwa.KeyEncryptionAlgorithm
-		keyBitsLength  int
-		allowedEncs    []*joseJwa.ContentEncryptionAlgorithm
-		expectError    bool
+		name          string
+		enc           *joseJwa.ContentEncryptionAlgorithm
+		alg           *joseJwa.KeyEncryptionAlgorithm
+		keyBitsLength int
+		allowedEncs   []*joseJwa.ContentEncryptionAlgorithm
+		expectError   bool
 	}{
 		{
 			name:          "A256KW with A256GCM",
@@ -321,4 +323,22 @@ func TestValidateOrGenerateJWEEcdhJWK_Generate(t *testing.T) {
 			require.NotNil(t, keyPair.Public)
 		})
 	}
+}
+
+func TestCreateJWEJWKFromKey_AESSecretKey(t *testing.T) {
+	t.Parallel()
+
+	// AES secret key has no public key component.
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.A256GCMKW()
+	key := make(cryptoutilKeyGen.SecretKey, 32)
+	_, _ = crand.Read(key)
+
+	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, key)
+	require.NoError(t, err)
+	require.NotNil(t, nonPublicJWK)
+	require.Nil(t, publicJWK) // AES should have no public key
+	require.Empty(t, publicBytes)
+	require.NotEmpty(t, nonPublicBytes)
 }
