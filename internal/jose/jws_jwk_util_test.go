@@ -458,3 +458,34 @@ func TestValidateOrGenerateJWSRSAJWK_WrongKeyType(t *testing.T) {
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "unsupported key type")
 }
+
+func TestValidateOrGenerateJWSRSAJWK_NilPrivateKey(t *testing.T) {
+	t.Parallel()
+
+	keyPair := &cryptoutilKeygen.KeyPair{
+		Private: nil,
+		Public:  &rsa.PublicKey{},
+	}
+
+	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), 2048)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "invalid key type")
+}
+
+func TestValidateOrGenerateJWSRSAJWK_NilPublicKey(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeygen.KeyPair{
+		Private: privateKey,
+		Public:  nil,
+	}
+
+	validated, err := validateOrGenerateJWSRSAJWK(keyPair, joseJwa.RS256(), 2048)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "invalid key type")
+}
