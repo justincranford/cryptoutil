@@ -9,6 +9,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
+	crand "crypto/rand"
 	"crypto/rsa"
 	"errors"
 	"sync"
@@ -702,6 +703,37 @@ func TestValidateOrGenerateRSAJWK_WrongKeyType(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, validated)
 	require.Contains(t, err.Error(), "unsupported key type")
+}
+
+func TestValidateOrGenerateRSAJWK_NilPrivateKey(t *testing.T) {
+	t.Parallel()
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: nil,
+		Public:  &rsa.PublicKey{},
+	}
+
+	validated, err := validateOrGenerateRSAJWK(keyPair, 2048)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "invalid key type")
+}
+
+func TestValidateOrGenerateRSAJWK_NilPublicKey(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: privateKey,
+		Public:  nil,
+	}
+
+	validated, err := validateOrGenerateRSAJWK(keyPair, 2048)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "invalid key type")
 }
 
 func TestValidateOrGenerateEcdsaJWK_ValidExistingKey(t *testing.T) {
