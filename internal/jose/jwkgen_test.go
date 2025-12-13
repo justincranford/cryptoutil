@@ -317,4 +317,15 @@ func TestBuildJWK(t *testing.T) {
 		require.Nil(t, jwk)
 		require.Contains(t, err.Error(), "failed to generate")
 	})
+
+	// Test import failure with invalid raw data.
+	t.Run("ImportFailure", func(t *testing.T) {
+		t.Parallel()
+
+		invalidRaw := "not a valid key"
+		jwk, err := BuildJWK(KtyRSA, invalidRaw, nil)
+		require.Error(t, err)
+		require.Nil(t, jwk)
+		require.Contains(t, err.Error(), "failed to import")
+	})
 }
