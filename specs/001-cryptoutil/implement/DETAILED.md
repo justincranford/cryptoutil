@@ -9,9 +9,9 @@
 
 - ✅ Phase 5 Complete (8/8) - CI/CD workflows verified
 - ✅ Phase 3 Unblocked - NewTestConfig() helper created
-- 🔄 Ready: P3.1-P3.6 coverage improvements (75.9% → 95% jose first)
-- 📊 Progress: 5 commits, 40 min continuous work
-- 🎯 Next: P3.1 jose coverage (add tests for 60-70% coverage functions)
+- 🔄 P3.1 In Progress - Created jws_jwk_util_test.go (needs JWX v3 API fixes)
+- 📊 Progress: 7 commits, 60 min continuous work
+- 🎯 Next: Fix JWX v3 API, complete P3.1-P3.6 coverage
 
 ---
 
