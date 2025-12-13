@@ -19,6 +19,54 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 )
 
+func TestEncryptBytesWithContext_NilJWKs(t *testing.T) {
+	t.Parallel()
+
+	clearBytes := []byte("test message")
+	_, _, err := EncryptBytesWithContext(nil, clearBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestEncryptBytesWithContext_EmptyJWKs(t *testing.T) {
+	t.Parallel()
+
+	jwks := []joseJwk.Key{}
+	clearBytes := []byte("test message")
+	_, _, err := EncryptBytesWithContext(jwks, clearBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func TestEncryptBytesWithContext_NilClearBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	_, _, err = EncryptBytesWithContext(jwks, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid clearBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func TestEncryptBytesWithContext_EmptyClearBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+	jwks := []joseJwk.Key{nonPublicJWK}
+
+	clearBytes := []byte{}
+	_, _, err = EncryptBytesWithContext(jwks, clearBytes, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid clearBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
 type happyPathJWETestCase struct {
 	enc          *joseJwa.ContentEncryptionAlgorithm
 	alg          *joseJwa.KeyEncryptionAlgorithm
