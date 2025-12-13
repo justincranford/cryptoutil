@@ -91,7 +91,7 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [ ] **P4.9**: Add property-based tests - gopter tests for invariants
 - [ ] **P4.10**: Mutation testing baseline - If gremlins crashes on Windows, use results of last passed Gremlins in Github workflows
 - [ ] **P4.11**: Verify E2E integration - All workflows passing locally and in CI
-- [ ] **P4.12**: Document E2E testing - Update docs/README.md
+- [x] **P4.12**: Document E2E testing - Update docs/README.md ✅ COMPLETE
 
 ### Phase 5: CI/CD Workflow Fixes (8 tasks)
 
@@ -362,7 +362,41 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - Reference implementations cited: internal/identity/test/e2e/* for OAuth patterns
 - Tests require respective services deployed (Identity, KMS, CA, JOSE)
 
-**Next Steps**: Implement test logic for all 4 workflow files, then P4.5-P4.12 (load testing, benchmarks, fuzz, property-based, mutation, CI integration, documentation).
+**Next Steps**: Implement test logic for all 4 workflow files, then P4.5-P4.11 (load testing, benchmarks, fuzz, property-based, mutation, CI integration).
+
+### December 12, 2025 - E2E Testing Documentation Complete (P4.12) ✅
+
+**Tasks**: P4.12 documentation
+**Status**: ✅ COMPLETE
+
+**Evidence**: Commit 4bb742f6
+
+**Documentation Created**:
+
+- `docs/E2E-TESTING.md` (433 lines) - Comprehensive E2E testing guide
+  - Test architecture and infrastructure overview
+  - All 4 workflow test files with detailed step-by-step test descriptions
+  - Local execution instructions (deploy, test, cleanup)
+  - CI/CD integration (ci-e2e.yml workflow)
+  - Test output and artifacts (logs, reports)
+  - Troubleshooting guide (service readiness, certificates, timeouts, ports)
+  - Development guidelines (adding tests, data management)
+  - Future enhancements section
+
+- `docs/README.md` - Added E2E testing section
+  - Listed 4 test suites (OAuth, KMS, CA, JOSE)
+  - Quick-start commands for running E2E tests
+  - Link to detailed E2E-TESTING.md
+
+**Phase 4 Progress**:
+
+- P4.1-P4.4: Skeleton structure with detailed TODO comments ✅
+- P4.5: Browser API load testing - PENDING (requires Identity browser endpoints)
+- P4.6: E2E CI/CD workflow - ALREADY COMPLETE (auto-runs all e2e tests)
+- P4.7-P4.11: Benchmarks, fuzz, property-based, mutation, integration verification - PENDING
+- P4.12: E2E documentation - ✅ COMPLETE
+
+**Next Steps**: Complete remaining Phase 4 tasks (P4.5, P4.7-P4.11) or move to Phase 3 (Coverage Targets) or Phase 5 (CI/CD Workflow Fixes).
 
 ---
 
