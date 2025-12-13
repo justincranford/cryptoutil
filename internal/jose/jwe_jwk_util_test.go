@@ -218,6 +218,31 @@ func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 	}
 }
 
+func TestValidateOrGenerateJWEEcdhJWK_ValidateExistingKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate valid ECDH P-256 key pair.
+	validKeyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+	require.NoError(t, err)
+
+	// Test validation with valid key.
+	validated, err := validateOrGenerateJWEEcdhJWK(validKeyPair, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
+	require.NoError(t, err)
+	require.Equal(t, validKeyPair, validated)
+}
+
+func TestValidateOrGenerateJWEEcdhJWK_WrongKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Use symmetric key (wrong type for ECDH).
+	symmetricKey := cryptoutilKeyGen.SecretKey(make([]byte, 32))
+
+	validated, err := validateOrGenerateJWEEcdhJWK(symmetricKey, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
+
 func TestValidateOrGenerateJWERSAJWK_ValidateExistingKey(t *testing.T) {
 	t.Parallel()
 
