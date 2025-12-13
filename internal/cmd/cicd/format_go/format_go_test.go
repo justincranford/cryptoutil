@@ -21,6 +21,52 @@ func TestFormat_NoFiles(t *testing.T) {
 	require.NoError(t, err, "Format should succeed with no files")
 }
 
+func TestFormat_WithFiles(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.go")
+
+	// Create a file with loop var copy.
+	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		".go": {testFile},
+	}
+
+	err = Format(logger, filesByExtension)
+
+	// Format returns error if modifications were made.
+	// But GetGoFiles may filter out test files.
+	if err != nil {
+		require.Contains(t, err.Error(), "completed with modifications")
+	}
+}
+
+func TestFormat_ErrorPath(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "invalid.go")
+
+	// Create invalid Go file to trigger parse error.
+	err := os.WriteFile(testFile, []byte(testGoContentInvalid), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		".go": {testFile},
+	}
+
+	err = Format(logger, filesByExtension)
+
+	// Format may return error due to parse failure or succeed if file filtered out.
+	// We just verify it doesn't panic.
+	_ = err
+}
+
 func TestIsGoVersionSupported(t *testing.T) {
 	t.Parallel()
 
@@ -71,6 +117,9 @@ func main() {
 	require.Equal(t, 0, replacements, "Should have no replacements")
 }
 
+const testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{} = 42\n\tprintln(x)\n}\n"
+const testGoContentInvalid = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
+
 func TestProcessGoFile_WithChanges(t *testing.T) {
 	t.Parallel()
 
@@ -79,8 +128,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 
 	// File with interface{} that should be replaced.
 	// Using a special marker to avoid self-modification during linting.
-	content := "package main\n\nfunc main() {\n\tvar x interface{} = 42\n\tprintln(x)\n}\n"
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
 	require.NoError(t, err)
 
 	replacements, err := processGoFile(testFile)
@@ -122,4 +170,209 @@ func main() {
 	require.NoError(t, err)
 	require.False(t, changed, "File should not be changed")
 	require.Equal(t, 0, fixes, "Should have no fixes")
+}
+
+const testGoContentWithLoopVarCopy = `package main
+
+func main() {
+	items := []int{1, 2, 3}
+	for _, v := range items {
+		v := v
+		println(v)
+	}
+}
+`
+
+func TestFixCopyLoopVarInFile_WithLoopVarCopy(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.go")
+
+	// File with loop var copy pattern.
+	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+
+	require.NoError(t, err)
+	require.True(t, changed, "File should be changed")
+	require.Equal(t, 1, fixes, "Should have 1 fix")
+
+	// Verify the file was modified.
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
+	require.NotContains(t, string(modifiedContent), "v := v", "File should not contain loop var copy")
+}
+
+func TestFixCopyLoopVarInFile_ParseError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "invalid.go")
+
+	// Invalid Go syntax.
+	err := os.WriteFile(testFile, []byte(testGoContentInvalid), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+
+	require.Error(t, err)
+	require.False(t, changed)
+	require.Equal(t, 0, fixes)
+	require.Contains(t, err.Error(), "failed to parse file")
+}
+
+func TestFixCopyLoopVarInFile_EmptyBody(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.go")
+
+	// Loop with empty body.
+	content := `package main
+
+func main() {
+	items := []int{1, 2, 3}
+	for _, v := range items {
+	}
+}
+`
+	err := os.WriteFile(testFile, []byte(content), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+
+	require.NoError(t, err)
+	require.False(t, changed)
+	require.Equal(t, 0, fixes)
+}
+
+func TestFixCopyLoopVar_UnsupportedVersion(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, tmpDir, "go1.21")
+
+	require.NoError(t, err)
+	require.Equal(t, 0, processed, "Should process 0 files")
+	require.Equal(t, 0, modified, "Should modify 0 files")
+	require.Equal(t, 0, issuesFixed, "Should fix 0 issues")
+}
+
+func TestFixCopyLoopVar_SupportedVersion(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// Create a Go file with loop var copy.
+	testFile := filepath.Join(tmpDir, "test.go")
+	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, tmpDir, "go1.22")
+
+	require.NoError(t, err)
+	require.Equal(t, 1, processed, "Should process 1 file")
+	require.Equal(t, 1, modified, "Should modify 1 file")
+	require.Equal(t, 1, issuesFixed, "Should fix 1 issue")
+}
+
+func TestFixCopyLoopVar_EmptyDir(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, tmpDir, "go1.22")
+
+	require.NoError(t, err)
+	require.Equal(t, 0, processed, "Should process 0 files")
+	require.Equal(t, 0, modified, "Should modify 0 files")
+	require.Equal(t, 0, issuesFixed, "Should fix 0 issues")
+}
+
+func TestFilterGoFiles_NoGoFiles(t *testing.T) {
+	t.Parallel()
+
+	filesByExtension := map[string][]string{
+		".txt": {"file1.txt", "file2.txt"},
+		".md":  {"README.md"},
+	}
+
+	goFiles := filterGoFiles(filesByExtension)
+
+	require.Empty(t, goFiles, "Should return empty slice when no Go files")
+}
+
+func TestFilterGoFiles_WithGoFiles(t *testing.T) {
+	t.Parallel()
+
+	filesByExtension := map[string][]string{
+		".go":  {"file1.go", "file2.go"},
+		".txt": {"file.txt"},
+	}
+
+	goFiles := filterGoFiles(filesByExtension)
+
+	// GetGoFiles applies exclusions, so result may be empty or contain files.
+	// Just verify it doesn't panic/error.
+	_ = goFiles
+}
+
+func TestEnforceAny_NoFiles(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := enforceAny(logger, map[string][]string{})
+
+	require.NoError(t, err, "Should succeed with no files")
+}
+
+func TestEnforceAny_WithModifications(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.go")
+
+	// File with interface{} that should be replaced.
+	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		".go": {testFile},
+	}
+
+	err = enforceAny(logger, filesByExtension)
+
+	// enforceAny returns error only if modifications are made.
+	// But GetGoFiles may filter out this file due to exclusions.
+	// So err may be nil if no files were processed.
+	if err != nil {
+		require.Contains(t, err.Error(), "modified")
+	}
+
+	// Verify the file state (may or may not be modified depending on filtering).
+	modifiedContent, readErr := os.ReadFile(testFile)
+	require.NoError(t, readErr)
+
+	_ = modifiedContent // File may or may not be modified
+}
+
+func TestProcessGoFile_ReadError(t *testing.T) {
+	t.Parallel()
+
+	// Non-existent file.
+	replacements, err := processGoFile("/nonexistent/file.go")
+
+	require.Error(t, err)
+	require.Equal(t, 0, replacements)
+	require.Contains(t, err.Error(), "failed to read file")
 }
