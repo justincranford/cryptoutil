@@ -531,6 +531,28 @@ func Test_ExtractKidFromJWEMessage_NilMessage(t *testing.T) {
 	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
 }
 
+func Test_ExtractKidFromJWEMessage_InvalidUUID(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK and encrypt data to create valid JWE message.
+	jweJWKs, _, err := GenerateJWEJWKsForTest(t, 1, &EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	plaintext := []byte("test data")
+	jweMessage, _, err := EncryptBytes(jweJWKs, plaintext)
+	require.NoError(t, err)
+
+	// Manually set kid to invalid UUID format.
+	err = jweMessage.ProtectedHeaders().Set(joseJwk.KeyIDKey, "not-a-valid-uuid")
+	require.NoError(t, err)
+
+	// Test extraction should fail with UUID parse error.
+	kid, err := ExtractKidFromJWEMessage(jweMessage)
+	require.Error(t, err)
+	require.Nil(t, kid)
+	require.Contains(t, err.Error(), "failed to parse kid UUID")
+}
+
 func Test_ExtractKidEncAlgFromJWEMessage_NilMessage(t *testing.T) {
 	t.Parallel()
 
