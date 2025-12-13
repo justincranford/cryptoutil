@@ -69,9 +69,9 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 **Results**: Created deployments/ca/compose.yml and deployments/jose/compose.yml matching KMS pattern. PostgreSQL secrets, unseal secrets (copied from KMS for interoperability), instance-specific configs, CRL volumes, telemetry integration via include. CA instances: ca-sqlite (8443), ca-postgres-1 (8444), ca-postgres-2 (8445). JOSE instance: jose-server (8092). Fixed multi-config support for CA/JOSE servers. **TLS Implementation Complete**: CA server uses issuer-signed certificate (ECDSA P-384), JOSE server uses self-signed certificate (ECDSA P-384). Both running HTTPS with TLS 1.3. Health checks verified. **CI/CD Integration Complete**: E2E workflow deploys and verifies CA and JOSE services. PostgreSQL instances ready for testing.
 
-### Phase 3: Coverage Targets (5 tasks)
+### Phase 3: Coverage Targets (6 tasks) - **UNBLOCKED** ✅
 
-- [ ] **P3.1**: Achieve 95% coverage for jose package (current: 88.4%)
+- [ ] **P3.1**: Achieve 95% coverage for jose package (current: 75.9%)
 - [ ] **P3.2**: Achieve 95% coverage for ca packages
 - [ ] **P3.3**: Achieve 95% coverage for identity packages
 - [ ] **P3.4**: Achieve 95% coverage for kms packages
@@ -435,27 +435,40 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 **Phase 5 Summary**: All 8 CI/CD workflow tasks complete (P5.1-P5.8). Mutation testing and identity validation workflows functional and ready for CI execution. Phase 5: 100% complete.
 
-### December 12, 2025 - Test Infrastructure Issue Discovered 🔧
+### December 12, 2025 - Test Infrastructure Issue Resolved ✅
 
-**Tasks**: Phase 3 (Coverage Targets) - blocked by test infrastructure issue
-**Status**: 🔧 BLOCKED
+**Tasks**: Phase 3 (Coverage Targets) - UNBLOCKED
+**Status**: ✅ RESOLVED
 
-**Evidence**: Commit 69cf5735
+**Evidence**: Commits 69cf5735, 5d26dbd9, 95cc6fd9
 
-**Issue**: config.Parse() flag redefinition prevents multiple config initializations in tests
+**Issue**: config.Parse() flag redefinition prevented multiple config initializations in tests
 
 - config.Parse() uses pflag.BoolP() which registers flags in global pflag.CommandLine FlagSet
 - Multiple calls to NewForJOSEServer() or NewForCAServer() in same test binary cause panic: "flag redefined: help"
-- Even sequential (non-parallel) tests fail due to global flag reuse
-- Affects: internal/jose/server/server_test.go (TestServerLifecycle, TestAPIKeyMiddleware, TestContextCancellation, TestStartBlocking, TestShutdownCoverage)
+- Even sequential (non-parallel) tests failed due to global flag reuse
+- Affected: internal/jose/server/server_test.go (5 tests blocked)
 
-**Temporary Workaround**: Removed t.Parallel() from affected tests to reduce panic frequency (still fails sequentially)
+**Solution**: Created NewTestConfig() test helper (Commit 95cc6fd9)
 
-**Long-term Solution Required**: Refactor config.Parse() to use isolated FlagSet per invocation instead of global FlagSet
+- New file: internal/common/config/config_test_helper.go
+- Function: NewTestConfig(bindAddr, bindPort, devMode) *Settings
+- Directly populates Settings struct without calling Parse()
+- Bypasses pflag global FlagSet for test isolation
+- Allows unlimited config creations in tests
+- Updated internal/jose/server/server_test.go:
+  - Replaced 6 NewForJOSEServer calls with NewTestConfig (TestMain + 5 tests)
+  - Re-enabled t.Parallel() in TestServerLifecycle, TestAPIKeyMiddleware, TestStartBlocking, TestShutdownCoverage
+  - All 4 previously failing tests now PASS
+  - No flag redefinition panics
 
-**Impact**: Blocks Phase 3 coverage improvements for packages using config.Parse() in tests
+**Verification**: go test -count=1 -v -run="TestServerLifecycle|TestAPIKeyMiddleware|TestStartBlocking|TestShutdownCoverage" ./internal/jose/server/ - ✅ ALL PASS
 
-**Next Steps**: Continue with Phase 4/5 tasks that don't require config initialization in tests, OR fix config.Parse() architecture first.
+**Impact**: Phase 3 UNBLOCKED - Ready for coverage improvements (P3.1-P3.6)
+
+**Long-term TODO**: Consider refactoring config.Parse() to use isolated FlagSet for production code (NewTestConfig is test-only workaround)
+
+**Next Steps**: Start Phase 3 coverage work (P3.1: jose 75.9% → 95%, P3.2-P3.6: ca/identity/kms/infra/cicd packages)
 
 ---
 
