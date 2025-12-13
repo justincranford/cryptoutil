@@ -7,6 +7,7 @@ package jose
 import (
 	"crypto/ecdh"
 	crand "crypto/rand"
+	"crypto/rsa"
 	"testing"
 
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
@@ -267,6 +268,39 @@ func TestValidateOrGenerateJWERSAJWK_WrongKeyType(t *testing.T) {
 	validated, err := validateOrGenerateJWERSAJWK(symmetricKey, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
 	require.Error(t, err)
 	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
+
+func TestValidateOrGenerateJWERSAJWK_NilPrivateKey(t *testing.T) {
+	t.Parallel()
+
+	// KeyPair with nil private key.
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: nil,
+		Public:  &rsa.PublicKey{},
+	}
+
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
+
+func TestValidateOrGenerateJWERSAJWK_NilPublicKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate RSA private key, create KeyPair with nil public.
+	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: rsaKey,
+		Public:  nil,
+	}
+
+	result, err := validateOrGenerateJWERSAJWK(keyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
 	require.Contains(t, err.Error(), "unsupported key type")
 }
 
