@@ -95,7 +95,14 @@ services:
   ca-sqlite:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["start", "--config=/app/config/ca-sqlite.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml"]
+    command:
+      [
+        "ca",
+        "start",
+        "--config=/app/config/ca-sqlite.yml",
+        "--config=/app/config/ca-common.yml",
+        "--config=/app/otel/otel.yml",
+      ]
     working_dir: /tmp
     ports:
       - "8443:8443"  # HTTPS public
@@ -144,7 +151,16 @@ services:
   ca-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["start", "--config=/app/config/ca-postgresql-1.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command:
+      [
+        "ca",
+        "start",
+        "--config=/app/config/ca-postgresql-1.yml",
+        "--config=/app/config/ca-common.yml",
+        "--config=/app/otel/otel.yml",
+        "-u",
+        "file:///run/secrets/postgres_url.secret",
+      ]
     working_dir: /tmp
     ports:
       - "8444:8443"  # HTTPS public
@@ -194,7 +210,16 @@ services:
   ca-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["start", "--config=/app/config/ca-postgresql-2.yml", "--config=/app/config/ca-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command:
+      [
+        "ca",
+        "start",
+        "--config=/app/config/ca-postgresql-2.yml",
+        "--config=/app/config/ca-common.yml",
+        "--config=/app/otel/otel.yml",
+        "-u",
+        "file:///run/secrets/postgres_url.secret",
+      ]
     working_dir: /tmp
     ports:
       - "8445:8443"  # HTTPS public
