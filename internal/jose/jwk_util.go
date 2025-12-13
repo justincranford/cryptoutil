@@ -125,13 +125,12 @@ func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, err
 		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
 
-	var err error
-
-	var algString string
-	if err = jwk.Get(joseJwk.AlgorithmKey, &algString); err != nil {
-		return nil, fmt.Errorf("failed to get alg header: %w", err)
+	alg, ok := jwk.Algorithm()
+	if !ok {
+		return nil, fmt.Errorf("failed to get alg header: missing algorithm")
 	}
 
+	algString := alg.String()
 	generateAlg, err := ToGenerateAlgorithm(&algString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map to generate alg: %w", err)

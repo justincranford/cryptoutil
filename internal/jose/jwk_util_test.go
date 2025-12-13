@@ -551,6 +551,32 @@ func TestExtractAlg_JWKMissingAlgHeader(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to get alg header")
 }
 
+// TestExtractAlg_JWSAlgorithmNotGenerateAlgorithm tests ExtractAlg with JWS algorithm.
+func TestExtractAlg_JWSAlgorithmNotGenerateAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	// Generate JWK with HS256 algorithm (JWS algorithm, not GenerateAlgorithm).
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := joseJwa.HS256()
+	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+	require.NoError(t, err)
+
+	_, nonPublicJWK, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, secretKey)
+	require.NoError(t, err)
+	require.NotNil(t, nonPublicJWK)
+
+	// ExtractAlg should fail because HS256 is not in generateAlgorithms map.
+	extractedAlg, err := ExtractAlg(nonPublicJWK)
+	require.Error(t, err)
+	require.Nil(t, extractedAlg)
+	require.Contains(t, err.Error(), "failed to map to generate alg")
+
+	// Verify algorithm is correctly set on JWK using Algorithm() method.
+	algVal, ok := nonPublicJWK.Algorithm()
+	require.True(t, ok)
+	require.Equal(t, joseJwa.HS256(), algVal)
+}
+
 func TestExtractKidUUID_ValidKid(t *testing.T) {
 	t.Parallel()
 
