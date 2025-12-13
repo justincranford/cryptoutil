@@ -272,6 +272,48 @@ func Test_SadPath_DecryptBytes_NilKey(t *testing.T) {
 	require.Error(t, err)
 }
 
+func Test_DecryptBytesWithContext_NilJWKS(t *testing.T) {
+	t.Parallel()
+
+	_, err := DecryptBytesWithContext(nil, []byte("cipher"), []byte("context"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func Test_DecryptBytesWithContext_EmptyJWKS(t *testing.T) {
+	t.Parallel()
+
+	_, err := DecryptBytesWithContext([]joseJwk.Key{}, []byte("cipher"), []byte("context"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
+func Test_DecryptBytesWithContext_NilJWEMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	_, err = DecryptBytesWithContext([]joseJwk.Key{nonPublicJWK}, nil, []byte("context"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jweMessageBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+}
+
+func Test_DecryptBytesWithContext_EmptyJWEMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	_, nonPublicJWK, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	require.NoError(t, err)
+
+	_, err = DecryptBytesWithContext([]joseJwk.Key{nonPublicJWK}, []byte{}, []byte("context"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jweMessageBytes")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+}
+
 func Test_SadPath_DecryptBytes_InvalidJWEMessage(t *testing.T) {
 	kid, nonPublicJWEJWK, _, clearNonPublicJWEJWKBytes, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
