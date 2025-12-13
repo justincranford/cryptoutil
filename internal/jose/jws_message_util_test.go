@@ -208,6 +208,61 @@ func Test_SadPath_VerifyBytes_NilKey(t *testing.T) {
 	require.Error(t, err)
 }
 
+func Test_SadPath_VerifyBytes_EmptyJWKs(t *testing.T) {
+	t.Parallel()
+
+	_, err := VerifyBytes([]joseJwk.Key{}, []byte("ciphertext"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWKs")
+}
+
+func Test_SadPath_VerifyBytes_NilMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	kid, nonPublicJWSJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	require.NotNil(t, kid)
+	require.NotNil(t, nonPublicJWSJWK)
+
+	_, err = VerifyBytes([]joseJwk.Key{nonPublicJWSJWK}, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jwsMessageBytes")
+}
+
+func Test_SadPath_VerifyBytes_EmptyMessageBytes(t *testing.T) {
+	t.Parallel()
+
+	kid, nonPublicJWSJWK, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	require.NotNil(t, kid)
+	require.NotNil(t, nonPublicJWSJWK)
+
+	_, err = VerifyBytes([]joseJwk.Key{nonPublicJWSJWK}, []byte{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid jwsMessageBytes")
+}
+
+func Test_SadPath_VerifyBytes_MultipleAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	kid1, nonPublicJWSJWK1, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS256)
+	require.NoError(t, err)
+	require.NotNil(t, kid1)
+	require.NotNil(t, nonPublicJWSJWK1)
+
+	kid2, nonPublicJWSJWK2, _, _, _, err := GenerateJWSJWKForAlg(&AlgHS512)
+	require.NoError(t, err)
+	require.NotNil(t, kid2)
+	require.NotNil(t, nonPublicJWSJWK2)
+
+	_, jwsBytes, err := SignBytes([]joseJwk.Key{nonPublicJWSJWK1}, []byte("message"))
+	require.NoError(t, err)
+
+	_, err = VerifyBytes([]joseJwk.Key{nonPublicJWSJWK1, nonPublicJWSJWK2}, jwsBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "only one unique 'alg' attribute is allowed")
+}
+
 func Test_SadPath_VerifyBytes_InvalidJWSMessage(t *testing.T) {
 	t.Parallel()
 
