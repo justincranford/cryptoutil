@@ -87,7 +87,7 @@ services:
   identity-authz:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil-identity:dev
-    command: ["identity", "authz", "--config=/app/config/authz.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["identity", "start", "--service=authz", "--config=/app/config/authz.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     ports:
       - "8090:8080"  # OAuth 2.1 authorization endpoints
       - "9080:9090"  # Admin API (health, metrics)
@@ -127,7 +127,7 @@ services:
   identity-idp:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil-identity:dev
-    command: ["identity", "idp", "--config=/app/config/idp.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["identity", "start", "--service=idp", "--config=/app/config/idp.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     ports:
       - "8091:8081"  # OIDC identity provider endpoints
       - "9091:9090"  # Admin API (health, metrics)
@@ -169,7 +169,7 @@ services:
   identity-rs:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil-identity:dev
-    command: ["identity", "rs", "--config=/app/config/rs.yml"]
+    command: ["identity", "start", "--service=rs", "--config=/app/config/rs.yml"]
     ports:
       - "8092:8082"  # Resource server API endpoints
       - "9092:9090"  # Admin API (health, metrics)

@@ -82,8 +82,8 @@ services:
       - postgres_db
     command:
       - identity
-      - authz
       - start
+      - --service=authz
       - --port=8080
       - --bind=0.0.0.0
       - --db-url=postgres://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@identity-postgres:5432/$(cat /run/secrets/postgres_db)?sslmode=disable
@@ -126,8 +126,8 @@ services:
       - postgres_db
     command:
       - identity
-      - idp
       - start
+      - --service=idp
       - --port=8081
       - --bind=0.0.0.0
       - --db-url=postgres://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@identity-postgres:5432/$(cat /run/secrets/postgres_db)?sslmode=disable
@@ -169,8 +169,8 @@ services:
     image: cryptoutil-identity:dev
     command:
       - identity
-      - rs
       - start
+      - --service=rs
       - --port=8082
       - --bind=0.0.0.0
       - --authz-url=https://identity-authz:8080
@@ -209,8 +209,8 @@ services:
     image: cryptoutil-identity:dev
     command:
       - identity
-      - spa-rp
       - start
+      - --service=spa-rp
       - --port=8083
       - --bind=0.0.0.0
       - --authz-url=https://identity-authz:8080

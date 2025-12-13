@@ -105,8 +105,8 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 - [x] **P3.5.1**: Create internal/cmd/cryptoutil/identity/ package ✅ 2025-01-18 commit 7079d90c
 - [x] **P3.5.2**: Implement identity start/stop/status/health subcommands ✅ 2025-01-18 commit 7079d90c
-- [ ] **P3.5.3**: Update cmd/identity-unified to use internal/cmd/cryptoutil
-- [ ] **P3.5.4**: Update Docker Compose files for unified command
+- [x] **P3.5.3**: Update cmd/identity-unified to use internal/cmd/cryptoutil ✅ 2025-01-18 commit 21fc53ee
+- [x] **P3.5.4**: Update Docker Compose files for unified command ✅ 2025-01-18 (pending commit)
 - [ ] **P3.5.5**: Update E2E tests to use unified identity command
 - [ ] **P3.5.6**: Deprecate cmd/identity-compose and cmd/identity-demo
 
