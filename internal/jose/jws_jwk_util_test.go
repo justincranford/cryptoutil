@@ -339,6 +339,37 @@ func TestCreateJWSJWKFromKey_HMACNoPublicKey(t *testing.T) {
 	require.NotEmpty(t, nonPublicBytes)
 }
 
+// TestCreateJWSJWKFromKey_ImportSecretKeyError tests validation error for empty HMAC key.
+func TestCreateJWSJWKFromKey_ImportSecretKeyError(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := joseJwa.HS256()
+	// Empty SecretKey fails validation before import
+	emptyKey := cryptoutilKeygen.SecretKey("")
+
+	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, emptyKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWS JWK headers")
+}
+
+// TestCreateJWSJWKFromKey_ImportKeyPairError tests validation error for nil KeyPair.
+func TestCreateJWSJWKFromKey_ImportKeyPairError(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := joseJwa.ES256()
+	// KeyPair with nil Private fails validation before import
+	invalidKeyPair := &cryptoutilKeygen.KeyPair{
+		Private: nil,
+		Public:  nil,
+	}
+
+	_, _, _, _, _, err := CreateJWSJWKFromKey(&kid, &alg, invalidKeyPair)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWS JWK headers")
+}
+
 func TestValidateOrGenerateJWSEcdsaJWK_ValidExistingKey(t *testing.T) {
 	t.Parallel()
 
