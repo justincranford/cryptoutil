@@ -447,6 +447,31 @@ func TestValidateOrGenerateJWSHMACJWK_WrongKeyType(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid key type")
 }
 
+func TestValidateOrGenerateJWSHMACJWK_NilSecretKey(t *testing.T) {
+	t.Parallel()
+
+	// SecretKey with nil value.
+	var nilKey cryptoutilKeygen.SecretKey
+
+	result, err := validateOrGenerateJWSHMACJWK(nilKey, joseJwa.HS256(), 256)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid nil key bytes")
+}
+
+func TestValidateOrGenerateJWSHMACJWK_WrongKeyLength(t *testing.T) {
+	t.Parallel()
+
+	// Generate 512-bit key but expect 256-bit.
+	wrongLengthKey, err := cryptoutilKeygen.GenerateHMACKey(512)
+	require.NoError(t, err)
+
+	result, err := validateOrGenerateJWSHMACJWK(wrongLengthKey, joseJwa.HS256(), 256)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "invalid key length")
+}
+
 func TestValidateOrGenerateJWSEcdsaJWK_NilPrivateKey(t *testing.T) {
 	t.Parallel()
 
