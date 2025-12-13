@@ -218,6 +218,31 @@ func TestValidateOrGenerateJWERSAJWK_Generate(t *testing.T) {
 	}
 }
 
+func TestValidateOrGenerateJWERSAJWK_ValidateExistingKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate valid RSA key pair.
+	validKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	require.NoError(t, err)
+
+	// Test validation with valid key.
+	validated, err := validateOrGenerateJWERSAJWK(validKeyPair, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	require.NoError(t, err)
+	require.Equal(t, validKeyPair, validated)
+}
+
+func TestValidateOrGenerateJWERSAJWK_WrongKeyType(t *testing.T) {
+	t.Parallel()
+
+	// Use symmetric key (wrong type for RSA).
+	symmetricKey := cryptoutilKeyGen.SecretKey(make([]byte, 32))
+
+	validated, err := validateOrGenerateJWERSAJWK(symmetricKey, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, validated)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
+
 func TestValidateOrGenerateJWEEcdhJWK_Generate(t *testing.T) {
 	t.Parallel()
 
