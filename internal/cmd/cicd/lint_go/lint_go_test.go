@@ -95,30 +95,81 @@ func TestGetModulePath(t *testing.T) {
 }
 
 func TestLint(t *testing.T) {
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := Lint(logger)
+
+	require.Error(t, err, "Lint fails when go.mod not in current directory")
+	require.Contains(t, err.Error(), "lint-go failed")
+}
+
+func TestCheckDependencies_MalformedJSON(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		{
-			name:    "success",
-			wantErr: false,
-		},
+	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/b"]}
+invalid json line
+{"ImportPath": "example.com/pkg/b", "Imports": []}`
+
+	err := CheckDependencies(goListOutput)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to decode package info")
+}
+
+func TestCheckDependencies_ComplexCycle(t *testing.T) {
+	t.Parallel()
+
+	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/b", "example.com/pkg/c"]}
+{"ImportPath": "example.com/pkg/b", "Imports": ["example.com/pkg/d"]}
+{"ImportPath": "example.com/pkg/c", "Imports": ["example.com/pkg/d"]}
+{"ImportPath": "example.com/pkg/d", "Imports": ["example.com/pkg/a"]}`
+
+	err := CheckDependencies(goListOutput)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "circular dependency")
+}
+
+func TestCheckDependencies_SelfReference(t *testing.T) {
+	t.Parallel()
+
+	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/a"]}`
+
+	err := CheckDependencies(goListOutput)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "circular dependency")
+}
+
+func TestCheckDependencies_MultipleDisconnectedGraphs(t *testing.T) {
+	t.Parallel()
+
+	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/b"]}
+{"ImportPath": "example.com/pkg/b", "Imports": []}
+{"ImportPath": "example.com/pkg/c", "Imports": ["example.com/pkg/d"]}
+{"ImportPath": "example.com/pkg/d", "Imports": []}`
+
+	err := CheckDependencies(goListOutput)
+	require.NoError(t, err)
+}
+
+func TestGetModulePath_MultiplePackages(t *testing.T) {
+	t.Parallel()
+
+	packages := map[string][]string{
+		"example.com/pkg/a": {},
+		"example.com/pkg/b": {},
+		"example.com/pkg/c": {},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+	result := getModulePath(packages)
+	require.Equal(t, "example.com", result)
+}
 
-			logger := cryptoutilCmdCicdCommon.NewLogger("test")
-			err := Lint(logger)
+func TestGetModulePath_DifferentPrefixes(t *testing.T) {
+	t.Parallel()
 
-			if tc.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
-		})
+	packages := map[string][]string{
+		"github.com/user/repo/pkg/a": {},
+		"github.com/user/repo/pkg/b": {},
 	}
+
+	result := getModulePath(packages)
+	require.Equal(t, "github.com", result)
 }
