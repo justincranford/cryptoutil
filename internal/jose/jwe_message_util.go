@@ -207,6 +207,10 @@ func DecryptKey(kdks []joseJwk.Key, encryptedCdkBytes []byte) (joseJwk.Key, erro
 }
 
 func JWEHeadersString(jweMessage *joseJwe.Message) (string, error) {
+	if jweMessage == nil {
+		return "", fmt.Errorf("invalid jweMessage: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+
 	jweHeadersString, err := json.Marshal(jweMessage.ProtectedHeaders())
 	if err != nil {
 		return "", fmt.Errorf("failed to marshall JWE headers: %w", err)

@@ -15,6 +15,8 @@ import (
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 )
 
 type happyPathJWETestCase struct {
@@ -390,4 +392,15 @@ func Test_ExtractKidFromJWEMessage_InvalidMessage(t *testing.T) {
 		// If parse fails, that's also acceptable for this invalid message test.
 		require.Error(t, err)
 	}
+}
+
+func Test_JWEHeadersString_NilMessage(t *testing.T) {
+	t.Parallel()
+
+	// Test nil JWE message should return error.
+	headers, err := JWEHeadersString(nil)
+	require.Error(t, err)
+	require.Empty(t, headers)
+	require.Contains(t, err.Error(), "invalid jweMessage")
+	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
 }
