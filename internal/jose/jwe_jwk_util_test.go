@@ -304,6 +304,39 @@ func TestValidateOrGenerateJWERSAJWK_NilPublicKey(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported key type")
 }
 
+func TestValidateOrGenerateJWEEcdhJWK_NilPrivateKey(t *testing.T) {
+	t.Parallel()
+
+	// KeyPair with nil private key.
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: nil,
+		Public:  &ecdh.PublicKey{},
+	}
+
+	result, err := validateOrGenerateJWEEcdhJWK(keyPair, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
+
+func TestValidateOrGenerateJWEEcdhJWK_NilPublicKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate ECDH private key, create KeyPair with nil public.
+	ecdhPriv, err := ecdh.P256().GenerateKey(crand.Reader)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{
+		Private: ecdhPriv,
+		Public:  nil,
+	}
+
+	result, err := validateOrGenerateJWEEcdhJWK(keyPair, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "unsupported key type")
+}
+
 func TestValidateOrGenerateJWEEcdhJWK_Generate(t *testing.T) {
 	t.Parallel()
 
