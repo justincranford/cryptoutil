@@ -690,3 +690,18 @@ func TestCreateJWEJWKFromKey_InvalidEnc(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "JWE JWK length error")
 }
+
+func TestCreateJWEJWKFromKey_UnsupportedAlg(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	// Create unsupported KeyEncryptionAlgorithm.
+	invalidAlg := joseJwa.NewKeyEncryptionAlgorithm("UNSUPPORTED_ALG")
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(256)
+	require.NoError(t, err)
+
+	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, &enc, &invalidAlg, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported JWE JWK alg")
+}
