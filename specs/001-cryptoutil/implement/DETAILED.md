@@ -3,7 +3,7 @@
 **Iteration**: specs/001-cryptoutil
 **Started**: December 7, 2025
 **Last Updated**: December 13, 2025 20:50 UTC
-**Status**: 🚀 IN PROGRESS (49/71 tasks, 69.0%)
+**Status**: 🚀 IN PROGRESS (50/71 tasks, 70.4%)
 
 **Session Summary (Dec 13)**:
 
@@ -94,8 +94,8 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [x] **P4.2**: KMS encrypt/decrypt E2E test - `internal/test/e2e/kms_workflow_test.go` ✅ COMPLETE
 - [ ] **P4.3**: CA certificate lifecycle E2E test - `internal/test/e2e/ca_workflow_test.go` 📋 DOCUMENTED
 - [ ] **P4.4**: JOSE JWT sign/verify E2E test - `internal/test/e2e/jose_workflow_test.go` 📋 DOCUMENTED
-- [ ] **P4.5**: Browser API load testing (Gatling) - `test/load/.../BrowserApiSimulation.java`
-- [ ] **P4.6**: Update E2E CI/CD workflow - Run all 4 E2E workflows in ci-e2e
+- [ ] **P4.5**: Browser API load testing (Gatling) - `test/load/.../BrowserApiSimulation.java` (3h, NOT STARTED)
+- [x] **P4.6**: Update E2E CI/CD workflow ✅ COMPLETE - ci-e2e.yml runs all e2e-tagged tests, KMS workflow complete
 - [x] **P4.7**: Add benchmark tests ✅ COMPLETE - CA issuer (ECDSA/RSA/parallel), JOSE (JWS/JWE all algorithms)
 - [x] **P4.8**: Add fuzz tests ✅ COMPLETE - 6 files: digests (HKDF, SHA2), keygen (RSA/ECDSA/ECDH/EdDSA/AES/HMAC), identity/issuer (JWS/JWE), ca/handler (EST CSR)
 - [x] **P4.9**: Add property-based tests ✅ COMPLETE - keygen (RSA/ECDSA/ECDH/EdDSA/AES/HMAC properties), digests (HKDF/SHA256 invariants)
