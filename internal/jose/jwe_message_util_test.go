@@ -513,3 +513,50 @@ func Test_ExtractKidFromJWEMessage_NilMessage(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid jweMessage")
 	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
 }
+func Test_ExtractKidEncAlgFromJWEMessage_NilMessage(t *testing.T) {
+	t.Parallel()
+
+	// Test nil JWE message should return error.
+	kid, enc, alg, err := ExtractKidEncAlgFromJWEMessage(nil)
+	require.Error(t, err)
+	require.Nil(t, kid)
+	require.Nil(t, enc)
+	require.Nil(t, alg)
+	require.Contains(t, err.Error(), "failed to get kid UUID")
+}
+
+func Test_EncryptKey_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	// Generate KEK for key encryption and CEK to encrypt.
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.A256KW()
+	_, keks, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	require.NoError(t, err)
+
+	dirAlg := joseJwa.DIRECT()
+	_, cek, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &dirAlg)
+	require.NoError(t, err)
+
+	// Encrypt CEK.
+	_, encryptedCEKBytes, err := EncryptKey([]joseJwk.Key{keks}, cek)
+	require.NoError(t, err)
+	require.NotEmpty(t, encryptedCEKBytes)
+}
+
+func Test_DecryptKey_InvalidEncryptedBytes(t *testing.T) {
+	t.Parallel()
+
+	// Generate KDK for key decryption.
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.A256KW()
+	_, kdks, _, _, _, err := GenerateJWEJWKForEncAndAlg(&enc, &alg)
+	require.NoError(t, err)
+
+	// Try to decrypt invalid bytes.
+	invalidBytes := []byte("not-valid-jwe-message")
+
+	_, err = DecryptKey([]joseJwk.Key{kdks}, invalidBytes)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to decrypt CDK bytes")
+}
