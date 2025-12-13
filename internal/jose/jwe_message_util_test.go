@@ -323,6 +323,23 @@ func Test_EncryptBytesWithContext_NonEncryptJWK(t *testing.T) {
 	require.ErrorIs(t, err, cryptoutilAppErr.ErrJWKMustBeEncryptJWK)
 }
 
+// Test_EncryptBytesWithContext_MultipleEnc tests error for multiple encryption algorithms.
+func Test_EncryptBytesWithContext_MultipleEnc(t *testing.T) {
+	t.Parallel()
+
+	// Generate two JWKs with different enc values: A128GCM and A256GCM.
+	_, jwkA128, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA128GCM, &AlgDir)
+	require.NoError(t, err)
+
+	_, jwkA256, _, _, _, err := GenerateJWEJWKForEncAndAlg(&EncA256GCM, &AlgDir)
+	require.NoError(t, err)
+
+	// Encrypt with multiple enc algorithms should error.
+	_, _, err = EncryptBytesWithContext([]joseJwk.Key{jwkA128, jwkA256}, []byte("cleartext"), []byte("context"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "only one unique 'enc' attribute is allowed")
+}
+
 func Test_SadPath_DecryptBytes_NilKey(t *testing.T) {
 	_, err := DecryptBytes(nil, []byte("cleartext"))
 	require.Error(t, err)
