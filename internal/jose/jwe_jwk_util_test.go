@@ -428,6 +428,29 @@ func TestCreateJWEJWKFromKey_ECDHKeyPair(t *testing.T) {
 	require.NotEmpty(t, nonPublicBytes)
 }
 
+func TestCreateJWEJWKFromKey_RSAKeyPair(t *testing.T) {
+	t.Parallel()
+
+	// RSA key pair has public key component.
+	kid := googleUuid.New()
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.RSA_OAEP_256()
+	keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	require.NoError(t, err)
+
+	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
+	require.NoError(t, err)
+	require.NotNil(t, nonPublicJWK)
+	require.NotNil(t, publicJWK) // RSA should have public key
+	require.NotEmpty(t, publicBytes)
+	require.NotEmpty(t, nonPublicBytes)
+
+	// Verify KeyType is RSA
+	require.Equal(t, joseJwa.RSA().String(), nonPublicJWK.KeyType().String())
+}
+
+
+
 func TestCreateJWEJWKFromKey_NilKid(t *testing.T) {
 	t.Parallel()
 
