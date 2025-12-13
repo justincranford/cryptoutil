@@ -112,11 +112,11 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 #### JOSE Admin Server Implementation (6 tasks, 6-8h)
 
-- [ ] **P3.5.7**: Create internal/jose/server/admin.go (127.0.0.1:9090)
-- [ ] **P3.5.8**: Implement admin endpoints (/livez, /readyz, /healthz, /shutdown)
-- [ ] **P3.5.9**: Update internal/jose/server/application.go for dual-server
-- [ ] **P3.5.10**: Create internal/cmd/cryptoutil/jose/ package
-- [ ] **P3.5.11**: Update cmd/jose-server to use internal/cmd/cryptoutil
+- [x] **P3.5.7**: Create internal/jose/server/admin.go (127.0.0.1:9090) ✅ 2025-01-18 (pending commit)
+- [x] **P3.5.8**: Implement JOSE admin endpoints (/livez, /readyz, /healthz, /shutdown) ✅ 2025-01-18 (pending commit)
+- [x] **P3.5.9**: Update internal/jose/server/application.go for dual-server ✅ 2025-01-18 (pending commit)
+- [x] **P3.5.10**: Create internal/cmd/cryptoutil/jose/ package ✅ 2025-01-18 (pending commit)
+- [x] **P3.5.11**: Update cmd/jose-server to use internal/cmd/cryptoutil ✅ 2025-01-18 (pending commit)
 - [ ] **P3.5.12**: Update Docker Compose and E2E tests for JOSE
 
 #### CA Admin Server Implementation (6 tasks, 6-8h)
