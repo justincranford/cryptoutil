@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -89,7 +90,7 @@ func (r *emailOTPRepositoryGORM) DeleteByUserID(ctx context.Context, userID goog
 // DeleteExpired deletes all expired email OTPs.
 func (r *emailOTPRepositoryGORM) DeleteExpired(ctx context.Context) (int64, error) {
 	result := getDB(ctx, r.db).WithContext(ctx).
-		Where("expires_at < ?", "CURRENT_TIMESTAMP").
+		Where("expires_at < ?", time.Now()).
 		Delete(&cryptoutilIdentityDomain.EmailOTP{})
 
 	if result.Error != nil {
