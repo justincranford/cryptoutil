@@ -114,7 +114,7 @@ func TestLoadCircularDepCache_InvalidJSON(t *testing.T) {
 
 	// Create temp file with invalid JSON.
 	tmpFile := filepath.Join(t.TempDir(), "invalid-cache.json")
-	err := os.WriteFile(tmpFile, []byte("{invalid json}"), 0600)
+	err := os.WriteFile(tmpFile, []byte("{invalid json}"), 0o600)
 	require.NoError(t, err)
 
 	cache, err := loadCircularDepCache(tmpFile)
