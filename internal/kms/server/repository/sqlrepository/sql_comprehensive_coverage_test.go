@@ -63,6 +63,11 @@ func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
 		t.Skip("Skipping PostgreSQL container test in short mode")
 	}
 
+	// Skip if PostgreSQL not available (ci-race has no services)
+	if os.Getenv("POSTGRES_HOST") == "" {
+		t.Skip("Skipping PostgreSQL test: POSTGRES_HOST not set (PostgreSQL service not available)")
+	}
+
 	t.Parallel()
 
 	ctx := context.Background()
