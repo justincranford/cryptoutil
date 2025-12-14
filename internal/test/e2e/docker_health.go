@@ -41,7 +41,7 @@ var (
 		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres1},
 		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
 		{Service: cryptoutilMagic.DockerServicePostgres},
-		{Service: cryptoutilMagic.DockerServiceGrafanaOtelLgtm},
+		// grafana-otel-lgtm excluded - requires --profile with-grafana (optional for E2E tests)
 	}
 )
 

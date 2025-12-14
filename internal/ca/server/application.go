@@ -115,7 +115,7 @@ func (a *Application) Shutdown(ctx context.Context) error {
 	if a.adminServer != nil {
 		if err := a.adminServer.Shutdown(ctx); err != nil {
 			if shutdownErr != nil {
-				return fmt.Errorf("multiple shutdown errors: public=%v, admin=%w", shutdownErr, err)
+				return fmt.Errorf("multiple shutdown errors: public=%w, admin=%w", shutdownErr, err)
 			}
 
 			return fmt.Errorf("failed to shutdown admin server: %w", err)

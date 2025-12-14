@@ -93,17 +93,18 @@ func (f *TestFixture) Setup() {
 	// Setup infrastructure
 	f.setupInfrastructure()
 
+	// Initialize API clients
+	f.InitializeAPIClients()
+
 	Log(f.logger, "✅ Test fixture setup complete")
 }
 
 // Teardown cleans up the test infrastructure.
 func (f *TestFixture) Teardown() {
 	f.cancel()
-	Log(f.logger, "Teardown: Closing log file")
-
-	if f.logger.logFile != nil {
-		f.logger.logFile.Close()
-	}
+	// Note: Log file is NOT closed here to support multiple subtests.
+	// The log file will be closed when the test process exits.
+	Log(f.logger, "Teardown: Context canceled (log file remains open for subsequent subtests)")
 }
 
 // initializeServiceURLs sets up all service URLs.

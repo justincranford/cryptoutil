@@ -227,12 +227,7 @@ func (im *InfrastructureManager) WaitForServicesReachable(ctx context.Context) e
 		return err
 	}
 
-	// Wait for Grafana
-	if err := im.waitForHTTPReady(ctx, cryptoutilMagic.URLPrefixLocalhostHTTP+
-		fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)+"/api/health",
-		cryptoutilMagic.TestTimeoutCryptoutilReady); err != nil {
-		return fmt.Errorf("grafana not ready: %w", err)
-	}
+	// Grafana excluded - requires --profile with-grafana (optional for E2E tests)
 
 	// Wait for OTEL collector
 	if err := im.waitForHTTPReady(ctx, cryptoutilMagic.URLPrefixLocalhostHTTP+

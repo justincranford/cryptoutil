@@ -12,15 +12,15 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilCAServer "cryptoutil/internal/ca/server"
+	cryptoutilConfig "cryptoutil/internal/common/config"
 )
 
 const (
-	configFlag      = "--config"
-	configFlagShort = "-c"
+	configFlag       = "--config"
+	configFlagShort  = "-c"
 	defaultAdminPort = 9090
-	fileURLPrefix   = "file://"
+	fileURLPrefix    = "file://"
 )
 
 // Execute handles CA service commands matching KMS/Identity/JOSE pattern.
@@ -70,6 +70,7 @@ func startService(parameters []string) {
 
 	// Load configuration from YAML file
 	parseArgs := []string{"start", "--config", configFile}
+
 	settings, err := cryptoutilConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)

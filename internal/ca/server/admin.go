@@ -158,6 +158,7 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 
 		// Shutdown server gracefully.
 		const shutdownTimeout = 5 * time.Second
+
 		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 
@@ -175,6 +176,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 
 	// Bind to localhost only (127.0.0.1 explicit, not localhost due to IPv6 issues).
 	const defaultAdminPort = 9090
+
 	addr := fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, defaultAdminPort)
 
 	// Create listener.
