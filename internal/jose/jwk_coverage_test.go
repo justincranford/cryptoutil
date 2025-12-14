@@ -308,3 +308,360 @@ func TestCreateJWSJWKFromKey_ECDSA_P521(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isVerify)
 }
+
+// TestCreateJWKFromKey_RSA3072 tests CreateJWKFromKey with RSA-3072.
+func TestCreateJWKFromKey_RSA3072(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize3072)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := cryptoutilOpenapiModel.RSA3072
+	keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+
+	resultKid, privateJWK, publicJWK, privateBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, privateJWK)
+	require.NotNil(t, publicJWK)
+	require.NotEmpty(t, privateBytes)
+	require.NotEmpty(t, publicBytes)
+}
+
+// TestCreateJWKFromKey_RSA4096 tests CreateJWKFromKey with RSA-4096.
+func TestCreateJWKFromKey_RSA4096(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize4096)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := cryptoutilOpenapiModel.RSA4096
+	keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+
+	resultKid, privateJWK, publicJWK, privateBytes, publicBytes, err := CreateJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, privateJWK)
+	require.NotNil(t, publicJWK)
+	require.NotEmpty(t, privateBytes)
+	require.NotEmpty(t, publicBytes)
+}
+
+// TestCreateJWKFromKey_Ed448 removed - Ed448 not supported (only Ed25519 in api/model)
+
+// TestCreateJWEJWKFromKey_ECDH_P384 tests CreateJWEJWKFromKey with ECDH P-384.
+func TestCreateJWEJWKFromKey_ECDH_P384(t *testing.T) {
+	t.Parallel()
+
+	keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P384())
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.ECDH_ES()
+
+	resultKid, encryptJWK, decryptJWK, encryptBytes, decryptBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, encryptJWK)
+	require.NotNil(t, decryptJWK)
+	require.NotEmpty(t, encryptBytes)
+	require.NotEmpty(t, decryptBytes)
+}
+
+// TestCreateJWEJWKFromKey_ECDH_P521 tests CreateJWEJWKFromKey with ECDH P-521.
+func TestCreateJWEJWKFromKey_ECDH_P521(t *testing.T) {
+	t.Parallel()
+
+	keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P521())
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	enc := joseJwa.A128GCM()
+	alg := joseJwa.ECDH_ES_A256KW()
+
+	resultKid, encryptJWK, decryptJWK, encryptBytes, decryptBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, encryptJWK)
+	require.NotNil(t, decryptJWK)
+	require.NotEmpty(t, encryptBytes)
+	require.NotEmpty(t, decryptBytes)
+}
+
+// TestCreateJWEJWKFromKey_RSA3072 tests CreateJWEJWKFromKey with RSA-3072.
+func TestCreateJWEJWKFromKey_RSA3072(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize3072)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+	kid := googleUuid.Must(googleUuid.NewV7())
+	enc := joseJwa.A192GCM()
+	alg := joseJwa.RSA_OAEP_384()
+
+	resultKid, encryptJWK, decryptJWK, encryptBytes, decryptBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, encryptJWK)
+	require.NotNil(t, decryptJWK)
+	require.NotEmpty(t, encryptBytes)
+	require.NotEmpty(t, decryptBytes)
+}
+
+// TestCreateJWEJWKFromKey_RSA4096 tests CreateJWEJWKFromKey with RSA-4096.
+func TestCreateJWEJWKFromKey_RSA4096(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize4096)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+	kid := googleUuid.Must(googleUuid.NewV7())
+	enc := joseJwa.A256GCM()
+	alg := joseJwa.RSA_OAEP_512()
+
+	resultKid, encryptJWK, decryptJWK, encryptBytes, decryptBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, encryptJWK)
+	require.NotNil(t, decryptJWK)
+	require.NotEmpty(t, encryptBytes)
+	require.NotEmpty(t, decryptBytes)
+}
+
+// TestCreateJWEJWKFromKey_AES128 tests CreateJWEJWKFromKey with AES-128.
+func TestCreateJWEJWKFromKey_AES128(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize128)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	enc := joseJwa.A128GCM()
+	alg := AlgDir
+
+	resultKid, encryptJWK, decryptJWK, encryptBytes, decryptBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, secretKey)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, encryptJWK)
+	require.Nil(t, decryptJWK) // Symmetric key - no separate decrypt JWK
+	require.NotEmpty(t, encryptBytes)
+	require.Empty(t, decryptBytes) // Symmetric key - no separate decrypt bytes
+}
+
+// TestCreateJWEJWKFromKey_AES256 tests CreateJWEJWKFromKey with AES-256.
+func TestCreateJWEJWKFromKey_AES256(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	enc := joseJwa.A256GCM()
+	alg := AlgDir
+
+	resultKid, encryptJWK, decryptJWK, encryptBytes, decryptBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, secretKey)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, encryptJWK)
+	require.Nil(t, decryptJWK)
+	require.NotEmpty(t, encryptBytes)
+	require.Empty(t, decryptBytes)
+}
+
+// TestCreateJWSJWKFromKey_RSA3072 tests CreateJWSJWKFromKey with RSA-3072.
+func TestCreateJWSJWKFromKey_RSA3072(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize3072)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := joseJwa.PS384()
+
+	resultKid, signJWK, verifyJWK, signBytes, verifyBytes, err := CreateJWSJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, signJWK)
+	require.NotNil(t, verifyJWK)
+	require.NotEmpty(t, signBytes)
+	require.NotEmpty(t, verifyBytes)
+}
+
+// TestCreateJWSJWKFromKey_RSA4096 tests CreateJWSJWKFromKey with RSA-4096.
+func TestCreateJWSJWKFromKey_RSA4096(t *testing.T) {
+	t.Parallel()
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize4096)
+	require.NoError(t, err)
+
+	keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := joseJwa.PS512()
+
+	resultKid, signJWK, verifyJWK, signBytes, verifyBytes, err := CreateJWSJWKFromKey(&kid, &alg, keyPair)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, signJWK)
+	require.NotNil(t, verifyJWK)
+	require.NotEmpty(t, signBytes)
+	require.NotEmpty(t, verifyBytes)
+}
+
+// TestCreateJWSJWKFromKey_Ed448 removed - Ed448 not supported (only Ed25519 in api/model)
+
+// TestCreateJWSJWKFromKey_HMAC256 tests CreateJWSJWKFromKey with HMAC-256.
+func TestCreateJWSJWKFromKey_HMAC256(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := joseJwa.HS256()
+
+	resultKid, signJWK, verifyJWK, signBytes, verifyBytes, err := CreateJWSJWKFromKey(&kid, &alg, secretKey)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, signJWK)
+	require.Nil(t, verifyJWK) // Symmetric key - no separate verify JWK
+	require.NotEmpty(t, signBytes)
+	require.Empty(t, verifyBytes) // Symmetric key - no separate verify bytes
+}
+
+// TestCreateJWSJWKFromKey_HMAC512 tests CreateJWSJWKFromKey with HMAC-512.
+func TestCreateJWSJWKFromKey_HMAC512(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize512)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := joseJwa.HS512()
+
+	resultKid, signJWK, verifyJWK, signBytes, verifyBytes, err := CreateJWSJWKFromKey(&kid, &alg, secretKey)
+	require.NoError(t, err)
+	require.Equal(t, kid, *resultKid)
+	require.NotNil(t, signJWK)
+	require.Nil(t, verifyJWK)
+	require.NotEmpty(t, signBytes)
+	require.Empty(t, verifyBytes)
+}
+
+// TestCreateJWKFromKey_ErrorNilKid tests CreateJWKFromKey with nil KID.
+func TestCreateJWKFromKey_ErrorNilKid(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+	require.NoError(t, err)
+
+	alg := cryptoutilOpenapiModel.Oct256
+
+	_, _, _, _, _, err = CreateJWKFromKey(nil, &alg, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK headers")
+}
+
+// TestCreateJWKFromKey_ErrorNilAlg tests CreateJWKFromKey with nil algorithm.
+func TestCreateJWKFromKey_ErrorNilAlg(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+
+	_, _, _, _, _, err = CreateJWKFromKey(&kid, nil, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK headers")
+}
+
+// TestCreateJWKFromKey_ErrorNilKey tests CreateJWKFromKey with nil key.
+func TestCreateJWKFromKey_ErrorNilKey(t *testing.T) {
+	t.Parallel()
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := cryptoutilOpenapiModel.Oct256
+
+	_, _, _, _, _, err := CreateJWKFromKey(&kid, &alg, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWK headers")
+}
+
+// TestCreateJWEJWKFromKey_ErrorNilKid tests CreateJWEJWKFromKey with nil KID.
+func TestCreateJWEJWKFromKey_ErrorNilKid(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+	require.NoError(t, err)
+
+	enc := joseJwa.A256GCM()
+	alg := AlgDir
+
+	_, _, _, _, _, err = CreateJWEJWKFromKey(nil, &enc, &alg, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+// TestCreateJWEJWKFromKey_ErrorNilEnc tests CreateJWEJWKFromKey with nil enc.
+func TestCreateJWEJWKFromKey_ErrorNilEnc(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	alg := AlgDir
+
+	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, nil, &alg, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+// TestCreateJWEJWKFromKey_ErrorNilAlg tests CreateJWEJWKFromKey with nil alg.
+func TestCreateJWEJWKFromKey_ErrorNilAlg(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+	enc := joseJwa.A256GCM()
+
+	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, &enc, nil, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWE JWK headers")
+}
+
+// TestCreateJWSJWKFromKey_ErrorNilKid tests CreateJWSJWKFromKey with nil KID.
+func TestCreateJWSJWKFromKey_ErrorNilKid(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+	require.NoError(t, err)
+
+	alg := joseJwa.HS256()
+
+	_, _, _, _, _, err = CreateJWSJWKFromKey(nil, &alg, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWS JWK headers")
+}
+
+// TestCreateJWSJWKFromKey_ErrorNilAlg tests CreateJWSJWKFromKey with nil alg.
+func TestCreateJWSJWKFromKey_ErrorNilAlg(t *testing.T) {
+	t.Parallel()
+
+	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+	require.NoError(t, err)
+
+	kid := googleUuid.Must(googleUuid.NewV7())
+
+	_, _, _, _, _, err = CreateJWSJWKFromKey(&kid, nil, secretKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid JWS JWK headers")
+}
