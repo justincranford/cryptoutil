@@ -55,8 +55,8 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 		Log(a.logger, "🔍 Cryptoutil readiness check #%d for %s", checkCount, baseURL)
 
 		client := cryptoutilClient.RequireClientWithResponses(a.t, &baseURL, rootCAsPool)
-		_, err := client.GetElastickeysWithResponse(ctx, nil)
 
+		_, err := client.GetElastickeysWithResponse(ctx, nil)
 		if err == nil {
 			Log(a.logger, "✅ Cryptoutil service ready at %s after %d checks", baseURL, checkCount)
 
@@ -115,6 +115,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 	require.NoError(a.t, err, "Failed to connect to Grafana")
 
 	defer grafanaResp.Body.Close()
+
 	require.Equal(a.t, http.StatusOK, grafanaResp.StatusCode, "Grafana health check failed")
 
 	Log(a.logger, "✅ Grafana health check passed")
@@ -127,6 +128,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 	require.NoError(a.t, err, "Failed to connect to OTEL collector health")
 
 	defer otelResp.Body.Close()
+
 	require.Equal(a.t, http.StatusOK, otelResp.StatusCode, "OTEL collector health check failed")
 
 	Log(a.logger, "✅ OTEL collector health check passed")

@@ -203,6 +203,7 @@ func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir s
 func getDockerContainers(ctx context.Context, logger *Logger) ([]DockerContainer, error) {
 	// Get the compose project name from the compose file
 	composeFile := getComposeFilePath()
+
 	projectName, err := getComposeProjectName(ctx, logger, composeFile)
 	if err != nil {
 		Log(logger, "⚠️ Failed to get compose project name, falling back to listing all containers: %v", err)
@@ -212,6 +213,7 @@ func getDockerContainers(ctx context.Context, logger *Logger) ([]DockerContainer
 
 	// Use docker ps -a with label filter to find containers from our compose project
 	cmd := exec.CommandContext(ctx, "docker", "ps", "-a", "--filter", fmt.Sprintf("label=com.docker.compose.project=%s", projectName), "--format", "{{.Names}}")
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		LogCommand(logger, "List containers by project", cmd.String(), string(output))
@@ -232,15 +234,18 @@ func getDockerContainers(ctx context.Context, logger *Logger) ([]DockerContainer
 	}
 
 	Log(logger, "📋 Found %d containers for project %s", len(containers), projectName)
+
 	return containers, nil
 }
 
 // getAllDockerContainers returns all Docker containers (fallback method).
 func getAllDockerContainers(ctx context.Context, logger *Logger) ([]DockerContainer, error) {
 	cmd := exec.CommandContext(ctx, "docker", "ps", "-a", "--format", "{{.Names}}")
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		LogCommand(logger, "List all containers", cmd.String(), string(output))
+
 		return nil, fmt.Errorf("failed to list all containers: %w", err)
 	}
 
@@ -256,15 +261,18 @@ func getAllDockerContainers(ctx context.Context, logger *Logger) ([]DockerContai
 	}
 
 	Log(logger, "📋 Found %d containers total (fallback method)", len(containers))
+
 	return containers, nil
 }
 
 // getComposeProjectName extracts the project name from docker-compose config.
 func getComposeProjectName(ctx context.Context, logger *Logger, composeFile string) (string, error) {
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "config", "--format", "json")
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		LogCommand(logger, "Get compose config", cmd.String(), string(output))
+
 		return "", fmt.Errorf("failed to get compose config: %w", err)
 	}
 
@@ -274,6 +282,7 @@ func getComposeProjectName(ctx context.Context, logger *Logger, composeFile stri
 	projectName := filepath.Base(composeDir)
 
 	Log(logger, "📋 Determined compose project name: %s", projectName)
+
 	return projectName, nil
 }
 

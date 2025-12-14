@@ -65,9 +65,11 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 		if time.Now().UTC().After(giveUpTime) {
 			// Before giving up, show container logs for failed services
 			Log(im.logger, "❌ Docker services not healthy after %v, showing recent container logs...", cryptoutilMagic.TestTimeoutDockerHealth)
+
 			if err := im.showFailedContainerLogs(ctx); err != nil {
 				Log(im.logger, "⚠️ Failed to show container logs: %v", err)
 			}
+
 			return fmt.Errorf("docker services not healthy after %v", cryptoutilMagic.TestTimeoutDockerHealth)
 		}
 
@@ -341,6 +343,7 @@ func (im *InfrastructureManager) showFailedContainerLogs(ctx context.Context) er
 
 	if len(containers) == 0 {
 		Log(im.logger, "⚠️ No containers found to show logs for")
+
 		return nil
 	}
 
@@ -351,9 +354,11 @@ func (im *InfrastructureManager) showFailedContainerLogs(ctx context.Context) er
 
 		// Get last 50 lines of logs with timestamps
 		cmd := exec.CommandContext(ctx, "docker", "logs", "--tail", "50", "--timestamps", container.Name)
+
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			Log(im.logger, "⚠️ Failed to get logs for container %s: %v", container.Name, err)
+
 			continue
 		}
 

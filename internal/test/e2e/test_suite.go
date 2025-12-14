@@ -299,6 +299,7 @@ func (suite *E2ETestSuite) withTestStepRecovery(failMessageFormat string, succes
 
 		CompleteStep(suite.summary, suite.fixture.logger, "PASS", successMessageFunc())
 	}()
+
 	testFunc()
 }
 

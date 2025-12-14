@@ -149,6 +149,10 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 }
 
 func JWSHeadersString(jwsMessage *joseJws.Message) (string, error) {
+	if jwsMessage == nil {
+		return "", fmt.Errorf("jwsMessage is nil")
+	}
+
 	var jwsSignaturesHeadersString string
 
 	for i, jwsMessageSignature := range jwsMessage.Signatures() {

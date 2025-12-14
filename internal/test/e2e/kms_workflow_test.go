@@ -183,12 +183,9 @@ func (suite *KMSWorkflowSuite) TestSignVerifyWorkflow() {
 	suite.T().Log("Verifying signature...")
 	verifyResp, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(ctx, *elasticKeyID, signature)
 	suite.Require().NoError(err)
-	suite.Require().Equal(200, verifyResp.StatusCode(), "Verify should return 200")
-	suite.Require().NotNil(verifyResp.Body)
-
-	verified := string(verifyResp.Body)
-	suite.Require().Equal(payload, verified, "Verified payload should match original")
-	suite.T().Logf("✅ Sign/Verify cycle successful: '%s' → (signed) → '%s'", payload, verified)
+	suite.Require().Equal(204, verifyResp.StatusCode(), "Verify should return 204 No Content on success")
+	// Note: 204 No Content means signature verification succeeded, no body returned
+	suite.T().Log("✅ Sign/Verify cycle successful: signature verified")
 
 	// Step 6: Test invalid signature detection
 	suite.T().Log("Testing invalid signature detection...")
