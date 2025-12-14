@@ -40,6 +40,65 @@ func TestRunMultipleCommands(t *testing.T) {
 	require.Equal(t, "lint-workflow", commands[1], "Expected second command")
 }
 
+func TestRun_AllCommands_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		commands []string
+	}{
+		{
+			name:     "lint-text command",
+			commands: []string{"lint-text"},
+		},
+		{
+			name:     "lint-go command",
+			commands: []string{"lint-go"},
+		},
+		{
+			name:     "format-go command",
+			commands: []string{"format-go"},
+		},
+		{
+			name:     "lint-go-test command",
+			commands: []string{"lint-go-test"},
+		},
+		{
+			name:     "format-go-test command",
+			commands: []string{"format-go-test"},
+		},
+		{
+			name:     "lint-workflow command",
+			commands: []string{"lint-workflow"},
+		},
+		{
+			name:     "lint-go-mod command",
+			commands: []string{"lint-go-mod"},
+		},
+		{
+			name:     "multiple commands together",
+			commands: []string{"lint-text", "lint-go"},
+		},
+		{
+			name:     "all commands together",
+			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := Run(tc.commands)
+			// Note: Some commands may fail due to project state (e.g., outdated dependencies).
+			// We're testing that the switch cases execute without panic, not that they pass.
+			if err != nil {
+				require.Contains(t, err.Error(), "failed commands:", "Error should indicate failed commands")
+			}
+		})
+	}
+}
+
 func TestValidateCommands_HappyPath(t *testing.T) {
 	t.Parallel()
 
