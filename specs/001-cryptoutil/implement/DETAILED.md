@@ -141,7 +141,7 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 - [ ] **P4.1**: OAuth 2.1 authorization code E2E test - `internal/test/e2e/oauth_workflow_test.go` � DOCUMENTED
 - [x] **P4.2**: KMS encrypt/decrypt E2E test - `internal/test/e2e/kms_workflow_test.go` ✅ COMPLETE
-- [ ] **P4.3**: CA certificate lifecycle E2E test - `internal/test/e2e/ca_workflow_test.go` 📋 DOCUMENTED
+- [ ] **P4.3**: CA certificate lifecycle E2E test - `internal/test/e2e/ca_workflow_test.go` � READY FOR IMPLEMENTATION (CA OpenAPI client generated, commit 6f48adb8)
 - [ ] **P4.4**: JOSE JWT sign/verify E2E test - `internal/test/e2e/jose_workflow_test.go` ⚠️ BLOCKED (OpenAPI client missing)
 - [x] **P4.5**: Browser API load testing (Gatling) - `test/load/.../BrowserApiSimulation.java` ✅ COMPLETE
 - [x] **P4.6**: Update E2E CI/CD workflow ✅ COMPLETE - ci-e2e.yml runs all e2e-tagged tests, KMS workflow complete
@@ -948,6 +948,34 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - 51bb5edb - "fix(e2e): P4.11 - correct verify endpoint status code expectation (200→204)"
 
 **P4.11 Complete**: 100% E2E test success rate (3/3 workflows passing)
+
+**Next Steps**: Continue with remaining Phase 3/4/6 tasks per ABSOLUTE MANDATE
+
+### December 14, 2025 - CA OpenAPI Client Generation ✅
+
+**Tasks**: P4.3 preparation - Generate CA OpenAPI client for E2E testing
+**Status**: ✅ COMPLETE
+
+**Evidence**: Commit 6f48adb8 - "feat(ca): add OpenAPI client generation for E2E testing"
+
+**Implementation**:
+
+- Created `api/ca/openapi-gen_config_client.yaml` with CA-specific initialisms (CSR, CRL, OCSP, EST, SCEP, CMP, CA, RA)
+- Updated `api/ca/generate.go` to include client generation directive
+- Generated `api/ca/client/openapi_gen_client.go` (3113 lines) with enrollment endpoints
+- Fixed YAML linting (line-length disable, LF line endings)
+
+**API Endpoints Available**:
+
+- POST /enroll - Submit CSR for certificate issuance
+- GET /enroll/{requestId} - Check enrollment request status
+- GET /certificates/{serialNumber} - Retrieve issued certificate
+- POST /certificates/{serialNumber}/revoke - Revoke certificate
+- GET /profiles - List available certificate profiles
+- GET /ocsp - OCSP responder endpoint
+- GET /est - EST enrollment endpoints
+
+**P4.3 Status**: 🚧 READY FOR IMPLEMENTATION - Client code generated, test skeleton exists in `internal/test/e2e/ca_workflow_test.go`, needs CSR generation and workflow implementation
 
 **Next Steps**: Continue with remaining Phase 3/4/6 tasks per ABSOLUTE MANDATE
 
