@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	"github.com/stretchr/testify/suite"
@@ -52,6 +51,7 @@ func (suite *KMSWorkflowSuite) TestEncryptDecryptWorkflow() {
 
 	// Step 2: Create elastic key
 	suite.T().Log("Creating elastic key...")
+
 	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName("e2e-test-encrypt-key")
 	elasticKeyAlg := cryptoutilOpenapiModel.ElasticKeyAlgorithm("A256GCM/A256KW")
 	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider("Internal")
@@ -73,18 +73,18 @@ func (suite *KMSWorkflowSuite) TestEncryptDecryptWorkflow() {
 	suite.Require().NotNil(elasticKeyID)
 	suite.T().Logf("Created elastic key: %s", *elasticKeyID)
 
-	// Step 3: Generate material key
-	suite.T().Log("Generating material key...")
-	genAlg := cryptoutilOpenapiModel.GenerateAlgorithm("oct/256")
-	genParams := &cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams{Alg: &genAlg}
-	genResp, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDGenerateWithTextBodyWithResponse(ctx, *elasticKeyID, genParams, "")
+	// Step 3: Generate material key (oct/256 via A256GCM/A256KW elastic key)
+	suite.T().Log("Generating material key (oct/256 via A256GCM/A256KW elastic key)...")
+	materialKeyReq := cryptoutilOpenapiModel.MaterialKeyGenerate{}
+	genResp, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx, *elasticKeyID, materialKeyReq)
 	suite.Require().NoError(err)
 	suite.Require().Equal(200, genResp.StatusCode(), "Generate material key should return 200")
-	suite.Require().NotNil(genResp.Body)
-	suite.T().Log("Generated material key")
+	suite.Require().NotNil(genResp.JSON200)
+	suite.T().Log("Generated material key (oct/256 via A256GCM/A256KW elastic key)")
 
 	// Step 4: Encrypt plaintext
 	suite.T().Log("Encrypting plaintext...")
+
 	plaintext := "Hello World from E2E test!"
 	plaintextBody := plaintext
 
@@ -128,6 +128,7 @@ func (suite *KMSWorkflowSuite) TestSignVerifyWorkflow() {
 
 	// Step 2: Create elastic key for signing
 	suite.T().Log("Creating elastic key for signing...")
+
 	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName("e2e-test-sign-key")
 	elasticKeyAlg := cryptoutilOpenapiModel.ElasticKeyAlgorithm("ES384")
 	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider("Internal")
@@ -149,18 +150,19 @@ func (suite *KMSWorkflowSuite) TestSignVerifyWorkflow() {
 	suite.Require().NotNil(elasticKeyID)
 	suite.T().Logf("Created elastic key: %s", *elasticKeyID)
 
-	// Step 3: Generate material key (ECDSA P-384)
-	suite.T().Log("Generating material key (ECDSA P-384)...")
-	genAlg := cryptoutilOpenapiModel.GenerateAlgorithm("EC/P384")
-	genParams := &cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams{Alg: &genAlg}
-	genResp, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDGenerateWithTextBodyWithResponse(ctx, *elasticKeyID, genParams, "")
+	// Step 3: Generate material key (ECDSA P-384 via ES384 elastic key)
+	suite.T().Log("Generating material key (ECDSA P-384 via ES384 elastic key)...")
+
+	materialKeyReq := cryptoutilOpenapiModel.MaterialKeyGenerate{}
+	genResp, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx, *elasticKeyID, materialKeyReq)
 	suite.Require().NoError(err)
 	suite.Require().Equal(200, genResp.StatusCode(), "Generate material key should return 200")
-	suite.Require().NotNil(genResp.Body)
-	suite.T().Log("Generated material key (ECDSA P-384)")
+	suite.Require().NotNil(genResp.JSON200)
+	suite.T().Log("Generated material key (ECDSA P-384 via ES384 elastic key)")
 
 	// Step 4: Sign payload
 	suite.T().Log("Signing payload...")
+
 	payload := "E2E test message to sign"
 	payloadBody := payload
 
@@ -190,6 +192,7 @@ func (suite *KMSWorkflowSuite) TestSignVerifyWorkflow() {
 
 	// Step 6: Test invalid signature detection
 	suite.T().Log("Testing invalid signature detection...")
+
 	invalidSignature := strings.Replace(signature, jwsParts[2], "invalid_signature_part", 1)
 
 	invalidVerifyResp, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(ctx, *elasticKeyID, invalidSignature)
@@ -209,6 +212,7 @@ func (suite *KMSWorkflowSuite) TestKeyRotationWorkflow() {
 
 	// Step 2: Create elastic key
 	suite.T().Log("Creating elastic key for rotation test...")
+
 	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName("e2e-test-rotation-key")
 	elasticKeyAlg := cryptoutilOpenapiModel.ElasticKeyAlgorithm("A256GCM/A256KW")
 	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider("Internal")
@@ -230,14 +234,15 @@ func (suite *KMSWorkflowSuite) TestKeyRotationWorkflow() {
 
 	// Step 3: Generate material key version 1
 	suite.T().Log("Generating material key version 1...")
-	genAlg1 := cryptoutilOpenapiModel.GenerateAlgorithm("oct/256")
-	genParams1 := &cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams{Alg: &genAlg1}
-	genResp1, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDGenerateWithTextBodyWithResponse(ctx, *elasticKeyID, genParams1, "")
+
+	materialKeyReq1 := cryptoutilOpenapiModel.MaterialKeyGenerate{}
+	genResp1, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx, *elasticKeyID, materialKeyReq1)
 	suite.Require().NoError(err)
 	suite.Require().Equal(200, genResp1.StatusCode())
 
 	// Step 4: Encrypt data with version 1
 	suite.T().Log("Encrypting data with version 1...")
+
 	plaintext1 := "Data encrypted with version 1"
 	encryptResp1, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(ctx, *elasticKeyID, nil, plaintext1)
 	suite.Require().NoError(err)
@@ -247,15 +252,16 @@ func (suite *KMSWorkflowSuite) TestKeyRotationWorkflow() {
 
 	// Step 5: Rotate key (create version 2)
 	suite.T().Log("Rotating key (generating version 2)...")
-	genAlg2 := cryptoutilOpenapiModel.GenerateAlgorithm("oct/256")
-	genParams2 := &cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams{Alg: &genAlg2}
-	genResp2, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDGenerateWithTextBodyWithResponse(ctx, *elasticKeyID, genParams2, "")
+
+	materialKeyReq2 := cryptoutilOpenapiModel.MaterialKeyGenerate{}
+	genResp2, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx, *elasticKeyID, materialKeyReq2)
 	suite.Require().NoError(err)
 	suite.Require().Equal(200, genResp2.StatusCode())
 	suite.T().Log("✅ Key rotated - version 2 created")
 
 	// Step 6: Encrypt new data with version 2
 	suite.T().Log("Encrypting data with version 2...")
+
 	plaintext2 := "Data encrypted with version 2"
 	encryptResp2, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(ctx, *elasticKeyID, nil, plaintext2)
 	suite.Require().NoError(err)
