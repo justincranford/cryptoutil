@@ -1019,6 +1019,64 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 - P6.x: Demo videos - CANNOT be completed in chat sessions (requires screen recording software)
 
+### December 14, 2025 - Jose Coverage Improvement Attempt
+
+**Tasks**: P3.1 - JOSE package coverage 84.2% → 95%
+**Status**: ⚠️ NO COVERAGE IMPROVEMENT (84.2% unchanged)
+
+**Evidence**: Commits 81e3260d, 07d8eda6 (deleted), 974ca425
+
+**Work Completed**:
+
+- Added 60+ comprehensive algorithm tests (commit 81e3260d, 639 insertions) - all passing
+- Test coverage: HMAC (HS256/384/512), AES (A128/192/256 GCM/KW), RSA (2048/3072/4096), ECDSA (P-256/384/521), EdDSA, RSA-OAEP, ECDH-ES, AES-KW, DIRECT
+- Fixed JWX v3 API compatibility issues (KeyID, Get, Has methods)
+- Created standalone session documentation (SESSION-2025-12-14-JOSE-COVERAGE.md) - deleted per copilot instructions
+
+**Root Cause - Why Coverage Didn't Improve**:
+
+- **No baseline coverage HTML analysis performed** - didn't identify actual gaps before writing tests
+- Added 60+ tests exercising already-covered code paths (existing tests had error branches covered)
+- Real gaps identified AFTER work: unused functions (EnsureSignatureAlgorithmType 23%), Is*/Extract* default error branches (83-86%)
+- **Trial-and-error approach wasted effort** - many tests duplicated existing coverage
+
+**Coverage Analysis** (post-work):
+
+- Overall: 84.2% (unchanged from baseline)
+- Functions below 90% coverage:
+  - EnsureSignatureAlgorithmType: 23.1% (unused test-only function)
+  - CreateJWKFromKey: 59.1%
+  - CreateJWEJWKFromKey: 60.4%
+  - CreateJWSJWKFromKey: 63.0%
+  - EncryptKey: 75.0%
+  - BuildJWK: 76.9%
+  - ExtractKidAlgFromJWSMessage: 81.2%
+  - Is* functions: 83-86% (default error branches)
+
+**Violations Found**:
+
+1. **No baseline coverage analysis**: Didn't run `go tool cover -html` to identify RED lines before writing tests
+2. **Individual test functions**: Created TestCreateJWK_HMAC_HS256/384/512, TestCreateJWK_AES_A128GCM/A192GCM, etc. instead of table-driven tests
+3. **File size violation**: jwk_util_test.go grew to 1371 lines (2.7x over 500-line hard limit)
+4. **Documentation bloat**: Created standalone SESSION-2025-12-14-JOSE-COVERAGE.md instead of appending to DETAILED.md
+5. **Test outputs in source directories**: Historical pattern of placing coverage files in internal/jose/
+
+**Lessons Learned** (Updated Copilot Instructions - Commit 974ca425):
+
+- MANDATORY: Generate baseline coverage, analyze HTML for RED lines, target specific gaps, verify improvement
+- MANDATORY: Place test outputs in ./test-output/ directory, never in source directories
+- MANDATORY: Use table-driven tests for both happy paths (multiple valid inputs) and sad paths (multiple error conditions)
+- MANDATORY: Enforce 300/400/500 line file size limits, split larger files
+- MANDATORY: Append session work to DETAILED.md Section 2 timeline, never create standalone session documentation
+
+**Path Forward**:
+
+- Accept 84.2% as solid baseline for jose package (8-hour estimate to reach 95% not justified)
+- Prioritize higher-value tasks: P3.2 CA coverage (quick wins), P4.1/P4.3/P4.4 E2E tests (blocked by infra), Phase 6 demos
+- **Coverage ≠ test count**: Many tests can add 0% if exercising already-covered paths
+
+**Next Steps**: Move to P3.2 CA coverage (92.1% → 95%, needs +2.9%) or address blocked E2E tests infrastructure
+
 **Strategic Recommendations**:
 
 1. **Immediate**: P3.2 CA coverage (2-3 hours, easiest path to completion)
