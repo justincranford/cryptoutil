@@ -3,11 +3,15 @@
 package lint_go
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/require"
+	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheckDependencies_NoCycles(t *testing.T) {
@@ -92,6 +96,87 @@ func TestGetModulePath(t *testing.T) {
 			require.Equal(t, tc.expected, result)
 		})
 	}
+}
+
+// TestLoadCircularDepCache_FileNotFound tests loading cache when file doesn't exist.
+func TestLoadCircularDepCache_FileNotFound(t *testing.T) {
+	t.Parallel()
+
+	cache, err := loadCircularDepCache("nonexistent-file-12345.json")
+	require.Error(t, err)
+	require.Nil(t, cache)
+	require.Contains(t, err.Error(), "failed to read cache file")
+}
+
+// TestLoadCircularDepCache_InvalidJSON tests loading cache with malformed JSON.
+func TestLoadCircularDepCache_InvalidJSON(t *testing.T) {
+	t.Parallel()
+
+	// Create temp file with invalid JSON.
+	tmpFile := filepath.Join(t.TempDir(), "invalid-cache.json")
+	err := os.WriteFile(tmpFile, []byte("{invalid json}"), 0600)
+	require.NoError(t, err)
+
+	cache, err := loadCircularDepCache(tmpFile)
+	require.Error(t, err)
+	require.Nil(t, cache)
+	require.Contains(t, err.Error(), "failed to unmarshal cache JSON")
+}
+
+// TestSaveLoadCircularDepCache_RoundTrip tests save/load cycle.
+func TestSaveLoadCircularDepCache_RoundTrip(t *testing.T) {
+	t.Parallel()
+
+	tmpFile := filepath.Join(t.TempDir(), "cache.json")
+
+	// Create cache data.
+	original := cryptoutilMagic.CircularDepCache{
+		LastCheck:       time.Now().UTC().Truncate(time.Second), // Truncate to avoid precision loss.
+		GoModModTime:    time.Now().UTC().Add(-1 * time.Hour).Truncate(time.Second),
+		HasCircularDeps: true,
+		CircularDeps:    []string{"pkg/a -> pkg/b -> pkg/a"},
+	}
+
+	// Save cache.
+	err := saveCircularDepCache(tmpFile, original)
+	require.NoError(t, err)
+
+	// Verify file exists.
+	_, err = os.Stat(tmpFile)
+	require.NoError(t, err)
+
+	// Load cache.
+	loaded, err := loadCircularDepCache(tmpFile)
+	require.NoError(t, err)
+	require.NotNil(t, loaded)
+
+	// Verify data matches.
+	require.Equal(t, original.HasCircularDeps, loaded.HasCircularDeps)
+	require.Equal(t, original.CircularDeps, loaded.CircularDeps)
+	require.True(t, original.LastCheck.Equal(loaded.LastCheck))
+	require.True(t, original.GoModModTime.Equal(loaded.GoModModTime))
+}
+
+// TestSaveCircularDepCache_CreateDirectory tests directory creation.
+func TestSaveCircularDepCache_CreateDirectory(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	cacheFile := filepath.Join(tmpDir, "subdir", "cache.json")
+
+	cache := cryptoutilMagic.CircularDepCache{
+		LastCheck:       time.Now().UTC(),
+		GoModModTime:    time.Now().UTC(),
+		HasCircularDeps: false,
+		CircularDeps:    []string{},
+	}
+
+	err := saveCircularDepCache(cacheFile, cache)
+	require.NoError(t, err)
+
+	// Verify file and directory exist.
+	_, err = os.Stat(cacheFile)
+	require.NoError(t, err)
 }
 
 func TestLint(t *testing.T) {
