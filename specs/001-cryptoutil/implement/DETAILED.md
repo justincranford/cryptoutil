@@ -1118,11 +1118,21 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - All tests pass with parallel execution
 - Two commits pushed with full pre-commit validation
 
+**P3.5 infra Windows Firewall Analysis**:
+
+- **Root Cause**: `go test` creates `*.test.exe` binaries that trigger Windows Firewall prompts
+- **Not a code issue**: Tests use in-memory SQLite (`:memory:`), no network operations
+- **Windows behavior**: Any new `.exe` creation triggers firewall prompt request
+- **Strategy Decision**: DEFER P3.5 - infrastructure tests are low-risk utility code
+- **Alternative validation**: infra packages tested via integration tests in identity/kms
+- **Similar pattern**: Like KMS businesslogic (39% acceptable, E2E tested)
+
 **Next Actions**:
 
 - P3.3 Identity coverage: Target rs/server (56.9%), repository/orm (62.3%), email (64.0%)
-- P3.5 infra: Resolve Windows Defender blocking (tenant.test.exe flagged)
+- P3.6 cicd: Continue with lint_go (60.3%), identity_requirements_check (59.0%)
 - P4 E2E tests: Add CA/Identity/JOSE to compose for P4.1/P4.3/P4.4
+- P3.5 infra: DEFERRED (Windows exe creation issue, tested via integration)
 
 ### December 14, 2025 AM - Phase 3 Coverage Analysis Session ✅
 
