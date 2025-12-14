@@ -405,8 +405,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	ctx := context.Background()
 
-	// Use :memory: for isolated per-test database (no shared cache for parallel test safety).
-	dsn := ":memory:"
+	// Use testDSNInMemory for isolated per-test database (no shared cache for parallel test safety).
+	dsn := testDSNInMemory
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
