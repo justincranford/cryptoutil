@@ -1077,7 +1077,54 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 **Next Steps**: Move to P3.2 CA coverage (92.1% → 95%, needs +2.9%) or address blocked E2E tests infrastructure
 
-### December 14, 2025 - Phase 3 Coverage Analysis Session ✅
+### December 14, 2025 PM - P3.6 CICD Coverage Improvements ✅
+
+**Tasks**: P3.6 CICD main package coverage improvement (51.5% → 95.5%)
+**Status**: ✅ COMPLETE (44% coverage improvement achieved)
+
+**Evidence**: Commits a32282d1 (cicd main), d364e96e (format_go tests)
+
+**Coverage Improvements**:
+
+- **cicd main package**: 51.5% → 95.5% (+44%)
+  - Run() function: 14.3% → 97.1% (+82.8%)
+  - validateCommands: 93.5% (already excellent)
+  - Added comprehensive table-driven tests for all 7 switch branches
+  - Tests all command combinations: single, multiple, all together
+
+- **format_go subpackage**: 69.3% (unchanged, documented limitation)
+  - Added TestEnforceAny_NoFiles, TestEnforceAny_NoModifications, TestEnforceAny_WithModifications, TestEnforceAny_ErrorProcessingFile
+  - Limitation: enforceAny 17.9% untested paths due to GetGoFiles() filtering temp dirs
+  - Untested lines are low-risk: summary printing, logging (lines 60-68)
+  - Validated replacement logic via processGoFile direct testing
+
+**Identity Coverage Analysis (P3.3)**:
+
+- **Overall**: 63.8% of statements
+- **Lowest packages** (excluding 0% infrastructure):
+  - repository: 13.5% (expected - factory/interfaces, tested via integration)
+  - rs/server: 56.9%
+  - repository/orm: 62.3%
+  - email: 64.0%
+  - idp: 65.4%
+  - authz: 67.0%
+- **100% coverage packages**: apperr, ratelimit, security
+
+**Session Outcomes**:
+
+- Methodically improved cicd main package from 51.5% → 95.5%
+- Documented format_go testing limitations (GetGoFiles filtering)
+- Established identity coverage baseline (P3.3 ready for targeted improvements)
+- All tests pass with parallel execution
+- Two commits pushed with full pre-commit validation
+
+**Next Actions**:
+
+- P3.3 Identity coverage: Target rs/server (56.9%), repository/orm (62.3%), email (64.0%)
+- P3.5 infra: Resolve Windows Defender blocking (tenant.test.exe flagged)
+- P4 E2E tests: Add CA/Identity/JOSE to compose for P4.1/P4.3/P4.4
+
+### December 14, 2025 AM - Phase 3 Coverage Analysis Session ✅
 
 **Tasks**: P3.2 (CA), P3.4 (KMS), P3.6 (CICD) coverage baseline analysis
 **Status**: ✅ ANALYSIS COMPLETE (all baselines established)
