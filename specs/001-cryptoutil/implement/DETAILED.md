@@ -2,8 +2,8 @@
 
 **Iteration**: specs/001-cryptoutil
 **Started**: December 7, 2025
-**Last Updated**: January 21, 2025
-**Status**: 🚀 IN PROGRESS (77/89 tasks, 86.5%)
+**Last Updated**: December 14, 2025
+**Status**: 🚀 IN PROGRESS (78/89 tasks, 87.6%)
 
 **Session Summary (Dec 13)**:
 
@@ -149,7 +149,7 @@ This section maintains the same order as TASKS.md for cross-reference.
 - [x] **P4.8**: Add fuzz tests ✅ COMPLETE - 6 files: digests (HKDF, SHA2), keygen (RSA/ECDSA/ECDH/EdDSA/AES/HMAC), identity/issuer (JWS/JWE), ca/handler (EST CSR)
 - [x] **P4.9**: Add property-based tests ✅ COMPLETE - keygen (RSA/ECDSA/ECDH/EdDSA/AES/HMAC properties), digests (HKDF/SHA256 invariants)
 - [x] **P4.10**: Mutation testing baseline ✅ COMPLETE - gremlins config verified, crashes on Windows (use CI results per instructions)
-- [x] **P4.11**: Verify E2E integration ⚠️ **PARTIAL COMPLETE** (KMS: 2/3 workflows passing, TestSignVerifyWorkflow blocked)
+- [x] **P4.11**: Verify E2E integration ✅ **COMPLETE** (KMS: All 3 workflows passing - Encrypt/Decrypt, Sign/Verify, Key Rotation)
 - [x] **P4.12**: Document E2E testing - Update docs/README.md ✅ COMPLETE
 
 ### Phase 5: CI/CD Workflow Fixes (8 tasks)
@@ -928,6 +928,26 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 **Linting**: ✅ CLEAN (golangci-lint with e2e build tag)
 
 **Test Results**: All 3 KMS E2E workflows expected to pass on next test run
+
+**Update (December 14, 2025 - 09:28 EST)**: ✅ **VERIFIED COMPLETE**
+
+**Fix #2 Applied**: HTTP Status Code Expectation Correction
+
+- **Issue**: TestSignVerifyWorkflow expected HTTP 200, server returns HTTP 204 No Content
+- **Root Cause**: Verify endpoint returns 204 (success without response body) not 200 (success with body)
+- **Fix**: Changed line 186 expectation from 200 to 204, removed payload comparison (verify endpoint doesn't return original payload)
+- **Test Results** (70.49s total):
+  - TestEncryptDecryptWorkflow: ✅ PASS (0.60s)
+  - TestKeyRotationWorkflow: ✅ PASS (0.54s)
+  - TestSignVerifyWorkflow: ✅ PASS (35.42s) - Fixed!
+- **Docker Services**: All 7 containers healthy (cryptoutil-sqlite, cryptoutil-postgres-{1,2}, postgres, opentelemetry-collector-contrib, healthcheck jobs)
+
+**Commits**:
+
+- c0fd861e - "fix(e2e): P4.11 - correct material key generation endpoint"
+- 51bb5edb - "fix(e2e): P4.11 - correct verify endpoint status code expectation (200→204)"
+
+**P4.11 Complete**: 100% E2E test success rate (3/3 workflows passing)
 
 **Next Steps**: Continue with remaining Phase 3/4/6 tasks per ABSOLUTE MANDATE
 
