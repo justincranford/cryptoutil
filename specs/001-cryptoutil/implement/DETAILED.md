@@ -1207,15 +1207,16 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - Linting: 100% clean (all pre-commit hooks passing)
 - Commits: All properly formatted with conventional commit messages
 
-### 2025-12-14 PM: P3.3 Identity orm email_otp_repository Coverage
+### 2025-12-14 PM: P3.3 Identity orm Coverage Improvements
 
-- Added comprehensive email_otp_repository tests (commit 113378bc)
-- Coverage: 6 functions 0%→66-100% (Create 66.7%, GetByUserID 85.7%, GetByID 85.7%, Update 66.7%, DeleteByUserID 66.7%, DeleteExpired 75.0%)
-- orm package overall: 62.3%→65.9% (+3.6%)
-- Bug fix: DeleteExpired used "CURRENT_TIMESTAMP" string literal, changed to time.Now() for proper SQL comparison
+- **email_otp_repository** (commit 113378bc): 6 functions 0%→66-100% (Create 66.7%, GetByUserID 85.7%, GetByID 85.7%, Update 66.7%, DeleteByUserID 66.7%, DeleteExpired 75.0%)
+- **pushed_authorization_request_repository** (commit d971b293): 5 functions 0%→66-100% (New 100%, Create 66.7%, GetByRequestURI 83.3%, GetByID 83.3%, Update 66.7%, DeleteExpired 75.0%)
+- orm package overall: 62.3%→65.9% (+3.6%) → 68.8% (+2.9%, cumulative +6.5%)
+- Bug fixes: email_otp DeleteExpired "CURRENT_TIMESTAMP" string→time.Now(); PAR tests use UTC timestamps
 - Test patterns: Table-driven with t.Parallel(), CGO-free SQLite (:memory:), isolated databases per test
-- All 6 tests passing (Create/GetByUserID/GetByID/Update/DeleteByUserID/DeleteExpired)
-- Next: Continue P3.3 Identity orm with pushed_authorization_request, device_authorization, recovery_code repositories (many 0% CRUD functions)
+- Extracted testDSNInMemory constant (goconst compliance)
+- All 11 tests passing (6 email_otp + 5 PAR)
+- Next: Continue P3.3 Identity orm with device_authorization, recovery_code repositories (many 0% CRUD functions)
 
 ---
 
