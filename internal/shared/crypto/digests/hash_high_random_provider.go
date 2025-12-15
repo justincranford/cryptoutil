@@ -1,0 +1,99 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package digests
+
+import (
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"strings"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+)
+
+// HashHighEntropyNonDeterministic hashes a high-entropy secret (e.g., API key, token) using a random salt.
+// Each invocation produces a different hash for the same input (non-deterministic).
+//
+// This function uses HKDF-SHA256 with cryptographically random salt generation.
+// Suitable for high-entropy secrets where unpredictability is guaranteed (>= 128 bits).
+//
+// For low-entropy secrets (passwords, PINs), use HashLowEntropyNonDeterministic.
+// For deterministic hashing, use HashHighEntropyDeterministic or HashLowEntropyDeterministic.
+//
+// FIPS mode is ALWAYS enabled - no configurable algorithm selection.
+func HashHighEntropyNonDeterministic(secret string) (string, error) {
+	return HashSecretHKDFRandom(secret)
+}
+
+// HashSecretHKDFRandom hashes a high-entropy secret using HKDF-SHA256 with random salt.
+// Format: hkdf-sha256$base64(salt)$base64(dk).
+func HashSecretHKDFRandom(secret string) (string, error) {
+	if secret == "" {
+		return "", errors.New("secret is empty")
+	}
+
+	// Generate random salt.
+	salt := make([]byte, cryptoutilMagic.PBKDF2DefaultSaltBytes)
+	if _, err := rand.Read(salt); err != nil {
+		return "", fmt.Errorf("failed to generate salt: %w", err)
+	}
+
+	// Derive key using HKDF-SHA256.
+	dk, err := HKDF(cryptoutilMagic.SHA256, []byte(secret), salt, nil, cryptoutilMagic.PBKDF2DerivedKeyLength)
+	if err != nil {
+		return "", fmt.Errorf("HKDF failed: %w", err)
+	}
+
+	return fmt.Sprintf("hkdf-sha256$%s$%s",
+		base64.RawStdEncoding.EncodeToString(salt),
+		base64.RawStdEncoding.EncodeToString(dk)), nil
+}
+
+// VerifySecretHKDFRandom verifies a stored HKDF hash against a provided secret.
+// Format: hkdf-sha256$base64(salt)$base64(dk).
+func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
+	if stored == "" {
+		return false, errors.New("stored hash is empty")
+	}
+
+	if provided == "" {
+		return false, errors.New("provided secret is empty")
+	}
+
+	// Parse stored hash format: hkdf-sha256$salt$dk.
+	const expectedParts = 3
+	parts := strings.Split(stored, "$")
+
+	if len(parts) != expectedParts {
+		return false, fmt.Errorf("invalid HKDF hash format (expected %d parts, got %d)", expectedParts, len(parts))
+	}
+
+	hashName := parts[0]
+	if hashName != "hkdf-sha256" {
+		return false, fmt.Errorf("unsupported hash algorithm: %s", hashName)
+	}
+
+	salt, err := base64.RawStdEncoding.DecodeString(parts[1])
+	if err != nil {
+		return false, fmt.Errorf("failed to decode salt: %w", err)
+	}
+
+	storedDK, err := base64.RawStdEncoding.DecodeString(parts[2])
+	if err != nil {
+		return false, fmt.Errorf("failed to decode derived key: %w", err)
+	}
+
+	// Derive key from provided secret using HKDF-SHA256.
+	providedDK, err := HKDF(cryptoutilMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
+	if err != nil {
+		return false, fmt.Errorf("HKDF failed: %w", err)
+	}
+
+	// Constant-time comparison using crypto/subtle.
+	const equal = 1
+	return subtle.ConstantTimeCompare(storedDK, providedDK) == equal, nil
+}

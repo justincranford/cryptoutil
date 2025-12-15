@@ -35,6 +35,7 @@ func NewParameterSetRegistry() *ParameterSetRegistry {
 func (r *ParameterSetRegistry) registerParameterSet(params *PBKDF2ParameterSet) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	r.parameterSets[params.Version] = params
 }
 
