@@ -11,6 +11,26 @@
 
 **CRITICAL: NEVER STOP WORKING UNTIL USER EXPLICITLY SAYS "STOP"**
 
+**CRITICAL: NEVER FEEL TIME OR TOKEN PRESSURE WHEN WORKING ON SPECKIT**
+
+### Time and Token Management for Speckit Work
+
+- **NO TIME PRESSURE**: Speckit work can span hours or days - this is expected and acceptable
+- **NO TOKEN PRESSURE**: Large tasks requiring many tool calls are normal - use as many tokens as needed
+- **DECOMPOSE COMPLEX TASKS**: Break hard/long/complete issues into smaller, manageable subtasks
+- **UPDATE DETAILED.md/TASKS.md**: Document decomposed tasks and progress continuously
+- **CORRECTNESS > SPEED**: Always prioritize doing things correctly and completely over rushing
+- **NO RUSHED DECISIONS**: Take time to analyze, plan, and implement properly
+- **NO SKIPPING GOALS**: All goals and tasks must be completed - no shortcuts
+
+**When facing complex work**:
+
+1. Decompose into smaller tasks (add to DETAILED.md Section 1)
+2. Update DETAILED.md Section 2 timeline with decomposition rationale
+3. Execute each subtask completely and correctly
+4. Mark subtasks complete with evidence in timeline
+5. Continue to next subtask without stopping
+
 ### Prohibited Stop Behaviors (ALL FORBIDDEN)
 
 - ❌ **NO status summaries at end of response** - summaries = stopping

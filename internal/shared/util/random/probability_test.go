@@ -1,3 +1,5 @@
+// Copyright (c) 2025 Justin Cranford
+
 package random
 
 import (
@@ -32,12 +34,12 @@ func TestSkipByProbability_HappyPaths(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run("Case/"+tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			// inject deterministic rand and restore after test
 			orig := randFloat32
+
 			t.Cleanup(func() { randFloat32 = orig })
 			randFloat32 = func(t *testing.T) float32 { return tc.randValue }
 
@@ -45,6 +47,7 @@ func TestSkipByProbability_HappyPaths(t *testing.T) {
 			didSkip := false
 			ok := t.Run("inner", func(t *testing.T) {
 				defer func() { didSkip = t.Skipped() }()
+
 				SkipByProbability(t, tc.prob)
 			})
 
@@ -68,7 +71,6 @@ func TestSkipByProbability_SadPaths(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run("Case/"+tc.name, func(t *testing.T) {
 			t.Parallel()
 
