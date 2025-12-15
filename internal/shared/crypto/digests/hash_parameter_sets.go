@@ -37,8 +37,8 @@ type PBKDF2ParameterSet struct {
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
-func DefaultPBKDF2ParameterSet() PBKDF2ParameterSet {
-	return PBKDF2ParameterSet{
+func DefaultPBKDF2ParameterSet() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
 		Version:    "1",
 		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
 		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
@@ -49,7 +49,7 @@ func DefaultPBKDF2ParameterSet() PBKDF2ParameterSet {
 }
 
 // PBKDF2ParameterSetV1 returns version "1" parameter set (same as default).
-func PBKDF2ParameterSetV1() PBKDF2ParameterSet {
+func PBKDF2ParameterSetV1() *PBKDF2ParameterSet {
 	return DefaultPBKDF2ParameterSet()
 }
 
@@ -60,8 +60,8 @@ func PBKDF2ParameterSetV1() PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
-func PBKDF2ParameterSetV2() PBKDF2ParameterSet {
-	return PBKDF2ParameterSet{
+func PBKDF2ParameterSetV2() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
 		Version:    "2",
 		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
 		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
@@ -78,8 +78,8 @@ func PBKDF2ParameterSetV2() PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
-func PBKDF2ParameterSetV3() PBKDF2ParameterSet {
-	return PBKDF2ParameterSet{
+func PBKDF2ParameterSetV3() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
 		Version:    "3",
 		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
 		Iterations: cryptoutilMagic.PBKDF2V3Iterations,

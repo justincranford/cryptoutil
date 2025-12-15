@@ -25,9 +25,13 @@ func HashSecretPBKDF2(secret string) (string, error) {
 
 // HashSecretPBKDF2WithParams returns a formatted PBKDF2 hash string using specified parameter set.
 // Format: {version}$hashname$iter$base64(salt)$base64(dk).
-func HashSecretPBKDF2WithParams(secret string, params PBKDF2ParameterSet) (string, error) {
+func HashSecretPBKDF2WithParams(secret string, params *PBKDF2ParameterSet) (string, error) {
 	if secret == "" {
 		return "", errors.New("secret is empty")
+	}
+
+	if params == nil {
+		return "", errors.New("parameter set is nil")
 	}
 
 	salt := make([]byte, params.SaltLength)
