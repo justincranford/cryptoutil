@@ -21,9 +21,11 @@ func ISO8601Time2String(value *time.Time) *string {
 	return &converted
 }
 
+// ISO8601String2Time converts ISO8601 UTC string to Time pointer.
+// Returns nil if input is nil (valid sentinel value).
 func ISO8601String2Time(value *string) (*time.Time, error) {
 	if value == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil // nil is valid sentinel value
 	}
 
 	converted, err := time.Parse(utcFormat, *value)

@@ -45,7 +45,7 @@ func VerifySecret(stored, provided string) (bool, error) {
 	// Legacy bcrypt support: hashes start with $2a$, $2b$, $2y$
 	if strings.HasPrefix(stored, "$2a$") || strings.HasPrefix(stored, "$2b$") || strings.HasPrefix(stored, "$2y$") {
 		if err := bcrypt.CompareHashAndPassword([]byte(stored), []byte(provided)); err != nil {
-			return false, nil
+			return false, fmt.Errorf("bcrypt hash verification failed: %w", err)
 		}
 
 		return true, nil
