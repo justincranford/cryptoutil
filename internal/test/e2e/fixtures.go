@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilCAClient "cryptoutil/api/ca/client"
+	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilJOSEClient "cryptoutil/api/jose/client"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilClient "cryptoutil/internal/kms/client"
@@ -43,6 +43,8 @@ type TestFixture struct {
 	postgres2URL string
 	caURL        string
 	joseURL      string
+	authzURL     string
+	idpURL       string
 	grafanaURL   string
 	otelURL      string
 
@@ -52,6 +54,8 @@ type TestFixture struct {
 	postgres2Client *cryptoutilOpenapiClient.ClientWithResponses
 	caClient        *cryptoutilCAClient.ClientWithResponses
 	joseClient      *cryptoutilJOSEClient.ClientWithResponses
+	authzClient     *http.Client
+	idpClient       *http.Client
 
 	// Test configuration
 	rootCAsPool *x509.CertPool
@@ -120,8 +124,10 @@ func (f *TestFixture) initializeServiceURLs() {
 	f.sqliteURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose0) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose2) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
-	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8443"  // CA E2E service uses port 8443 (from compose)
-	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8092" // JOSE E2E service uses port 8092 (from compose)
+	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8443"     // CA E2E service uses port 8443 (from compose)
+	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8092"   // JOSE E2E service uses port 8092 (from compose)
+	f.authzURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8090"  // Identity AuthZ uses port 8090 (from compose)
+	f.idpURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8091"    // Identity IdP uses port 8091 (from compose)
 	f.grafanaURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)
 	f.otelURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortOtelCollectorHealth)
 }
@@ -188,6 +194,10 @@ func (f *TestFixture) InitializeAPIClients() {
 	// Initialize JOSE client
 	f.joseClient = f.requireJOSEClientWithResponses(&f.joseURL, f.rootCAsPool)
 
+	// Initialize Identity HTTP clients
+	f.authzClient = f.requireHTTPClient(f.rootCAsPool)
+	f.idpClient = f.requireHTTPClient(f.rootCAsPool)
+
 	Log(f.logger, "✅ API clients initialized")
 }
 
@@ -247,6 +257,28 @@ func (f *TestFixture) requireJOSEClientWithResponses(baseURL *string, rootCAsPoo
 	return joseClient
 }
 
+// requireHTTPClient creates an HTTP client with TLS configuration.
+func (f *TestFixture) requireHTTPClient(rootCAsPool *x509.CertPool) *http.Client {
+	f.t.Helper()
+
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+
+	if rootCAsPool != nil {
+		tlsConfig.RootCAs = rootCAsPool
+	} else {
+		// Skip verification for self-signed certificates
+		tlsConfig.InsecureSkipVerify = true //nolint:gosec // G402: TLS InsecureSkipVerify set true for E2E testing with self-signed certs
+	}
+
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+}
+
 // GetCAClient returns the CA API client.
 func (f *TestFixture) GetCAClient() *cryptoutilCAClient.ClientWithResponses {
 	return f.caClient
@@ -255,6 +287,16 @@ func (f *TestFixture) GetCAClient() *cryptoutilCAClient.ClientWithResponses {
 // GetJOSEClient returns the JOSE API client.
 func (f *TestFixture) GetJOSEClient() *cryptoutilJOSEClient.ClientWithResponses {
 	return f.joseClient
+}
+
+// GetAuthZClient returns the Identity AuthZ HTTP client.
+func (f *TestFixture) GetAuthZClient() *http.Client {
+	return f.authzClient
+}
+
+// GetIdPClient returns the Identity IdP HTTP client.
+func (f *TestFixture) GetIdPClient() *http.Client {
+	return f.idpClient
 }
 
 // GetClient returns the API client for the specified instance.
@@ -286,6 +328,10 @@ func (f *TestFixture) GetServiceURL(instanceName string) string {
 		return f.caURL
 	case "jose":
 		return f.joseURL
+	case "authz":
+		return f.authzURL
+	case "idp":
+		return f.idpURL
 	case "grafana":
 		return f.grafanaURL
 	case "otel":

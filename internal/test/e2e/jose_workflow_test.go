@@ -72,8 +72,6 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	//   assert(verifyResp.JSON200.Valid == true)
 }
 
-
-
 // TestJWKSEndpointWorkflow tests JWKS discovery endpoint.
 func (suite *JOSEWorkflowSuite) TestJWKSEndpointWorkflow() {
 	suite.T().Skip("TODO P4.4: Implement JOSE JWKS endpoint E2E test")
