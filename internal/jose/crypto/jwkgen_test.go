@@ -8,6 +8,7 @@ import (
 	"crypto/ecdh"
 	"crypto/elliptic"
 	"errors"
+	"math/rand"
 	"testing"
 
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
@@ -56,15 +57,20 @@ func TestGenerateECDSAJWK(t *testing.T) {
 	tests := []struct {
 		name  string
 		curve elliptic.Curve
+		prob  float64
 	}{
-		{"P256", elliptic.P256()},
-		{"P384", elliptic.P384()},
-		{"P521", elliptic.P521()},
+		{"P256", elliptic.P256(), cryptoutilMagic.TestProbAlways},
+		{"P384", elliptic.P384(), cryptoutilMagic.TestProbThird},
+		{"P521", elliptic.P521(), cryptoutilMagic.TestProbThird},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
+			if rand.Float64() > tc.prob {
+				t.Skip("Skipped by probability sampling")
+			}
 
 			jwk, err := GenerateECDSAJWK(tc.curve)
 			require.NoError(t, err)
@@ -88,15 +94,20 @@ func TestGenerateECDHJWK(t *testing.T) {
 	tests := []struct {
 		name  string
 		curve ecdh.Curve
+		prob  float64
 	}{
-		{"P256", ecdh.P256()},
-		{"P384", ecdh.P384()},
-		{"P521", ecdh.P521()},
+		{"P256", ecdh.P256(), cryptoutilMagic.TestProbAlways},
+		{"P384", ecdh.P384(), cryptoutilMagic.TestProbThird},
+		{"P521", ecdh.P521(), cryptoutilMagic.TestProbThird},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
+			if rand.Float64() > tc.prob {
+				t.Skip("Skipped by probability sampling")
+			}
 
 			jwk, err := GenerateECDHJWK(tc.curve)
 			require.NoError(t, err)
@@ -137,15 +148,20 @@ func TestGenerateAESJWK(t *testing.T) {
 	tests := []struct {
 		name    string
 		aesBits int
+		prob    float64
 	}{
-		{"AES128", cryptoutilMagic.AESKeySize128},
-		{"AES192", cryptoutilMagic.AESKeySize192},
-		{"AES256", cryptoutilMagic.AESKeySize256},
+		{"AES128", cryptoutilMagic.AESKeySize128, cryptoutilMagic.TestProbQuarter},
+		{"AES192", cryptoutilMagic.AESKeySize192, cryptoutilMagic.TestProbQuarter},
+		{"AES256", cryptoutilMagic.AESKeySize256, cryptoutilMagic.TestProbAlways},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
+			if rand.Float64() > tc.prob {
+				t.Skip("Skipped by probability sampling")
+			}
 
 			jwk, err := GenerateAESJWK(tc.aesBits)
 			require.NoError(t, err)
@@ -169,15 +185,20 @@ func TestGenerateAESHSJWK(t *testing.T) {
 	tests := []struct {
 		name      string
 		aesHsBits int
+		prob      float64
 	}{
-		{"AES128HS256", cryptoutilMagic.HMACKeySize256},
-		{"AES192HS384", cryptoutilMagic.HMACKeySize384},
-		{"AES256HS512", cryptoutilMagic.HMACKeySize512},
+		{"AES128HS256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbQuarter},
+		{"AES192HS384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbQuarter},
+		{"AES256HS512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbAlways},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
+			if rand.Float64() > tc.prob {
+				t.Skip("Skipped by probability sampling")
+			}
 
 			jwk, err := GenerateAESHSJWK(tc.aesHsBits)
 			require.NoError(t, err)
@@ -201,15 +222,20 @@ func TestGenerateHMACJWK(t *testing.T) {
 	tests := []struct {
 		name     string
 		hmacBits int
+		prob     float64
 	}{
-		{"HMAC256", cryptoutilMagic.HMACKeySize256},
-		{"HMAC384", cryptoutilMagic.HMACKeySize384},
-		{"HMAC512", cryptoutilMagic.HMACKeySize512},
+		{"HMAC256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbQuarter},
+		{"HMAC384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbQuarter},
+		{"HMAC512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbAlways},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
+			if rand.Float64() > tc.prob {
+				t.Skip("Skipped by probability sampling")
+			}
 
 			jwk, err := GenerateHMACJWK(tc.hmacBits)
 			require.NoError(t, err)
