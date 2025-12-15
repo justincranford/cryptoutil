@@ -11,12 +11,12 @@ import (
 	"net"
 	"os"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"
-	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
-	cryptoutilNetwork "cryptoutil/internal/common/util/network"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilAsn1 "cryptoutil/internal/shared/crypto/asn1"
+	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilDateTime "cryptoutil/internal/shared/util/datetime"
+	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
 )
 
 const (

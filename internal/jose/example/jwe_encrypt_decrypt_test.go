@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v3/jwa"

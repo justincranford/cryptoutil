@@ -16,7 +16,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 )
 

@@ -9,8 +9,8 @@ import (
 	"database/sql"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 
 	testify "github.com/stretchr/testify/require"

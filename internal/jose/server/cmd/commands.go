@@ -14,8 +14,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 )
 

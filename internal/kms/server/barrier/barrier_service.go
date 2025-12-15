@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilContentKeysService "cryptoutil/internal/kms/server/barrier/contentkeysservice"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/kms/server/barrier/rootkeysservice"

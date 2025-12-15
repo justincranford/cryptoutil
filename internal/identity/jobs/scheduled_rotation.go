@@ -11,7 +11,7 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )

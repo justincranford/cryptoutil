@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 

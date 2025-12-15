@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilCrypto "cryptoutil/internal/crypto"
+	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 

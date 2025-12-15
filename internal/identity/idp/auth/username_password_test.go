@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/crypto"
+	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"

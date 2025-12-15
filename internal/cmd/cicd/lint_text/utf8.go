@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // enforceUTF8 enforces UTF-8 encoding without BOM for all text files.

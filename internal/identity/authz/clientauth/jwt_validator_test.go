@@ -17,7 +17,7 @@ import (
 	joseJwt "github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 

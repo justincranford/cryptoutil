@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // CreateHTTPClient creates an HTTP client with standard test configuration.

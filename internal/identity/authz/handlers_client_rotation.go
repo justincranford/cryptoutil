@@ -13,7 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilCrypto "cryptoutil/internal/crypto"
+	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )

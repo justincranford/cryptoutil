@@ -10,8 +10,8 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilBarrierService "cryptoutil/internal/kms/server/barrier"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 

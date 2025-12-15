@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // ProgressDisplay manages progress output during demo execution.

@@ -12,11 +12,11 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilUtil "cryptoutil/internal/shared/util"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 
 	_ "github.com/jackc/pgx/v5/stdlib"

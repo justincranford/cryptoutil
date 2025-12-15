@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilUtil "cryptoutil/internal/shared/util"
+	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )

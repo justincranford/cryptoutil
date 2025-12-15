@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 
 	"github.com/stretchr/testify/require"
 )

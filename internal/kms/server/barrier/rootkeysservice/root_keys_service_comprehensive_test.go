@@ -6,7 +6,7 @@ package rootkeysservice
 import (
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilUnsealKeysService "cryptoutil/internal/kms/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"

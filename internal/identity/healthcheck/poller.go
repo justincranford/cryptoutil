@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	cryptoutilTLS "cryptoutil/internal/infra/tls"
+	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 )
 
 // Response represents a health check JSON response.

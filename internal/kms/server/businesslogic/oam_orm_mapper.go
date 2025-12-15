@@ -10,8 +10,8 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilUtil "cryptoutil/internal/common/util"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilUtil "cryptoutil/internal/shared/util"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"

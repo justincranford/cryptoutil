@@ -19,7 +19,7 @@ import (
 
 	_ "modernc.org/sqlite" // Use modernc CGO-free SQLite.
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Test UUID generated once per test run for consistency.

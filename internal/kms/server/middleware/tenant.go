@@ -11,7 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TenantContextKey is the context key for tenant ID.

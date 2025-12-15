@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 func mapDBTypeAndURL(telemetryService *cryptoutilTelemetry.TelemetryService, devMode bool, databaseURL string) (SupportedDBType, string, error) {

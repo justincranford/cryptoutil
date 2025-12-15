@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	cryptoutilCAServer "cryptoutil/internal/ca/server"
-	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"

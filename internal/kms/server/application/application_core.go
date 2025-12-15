@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilBarrierService "cryptoutil/internal/kms/server/barrier"
 	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
 	cryptoutilDemo "cryptoutil/internal/kms/server/demo"

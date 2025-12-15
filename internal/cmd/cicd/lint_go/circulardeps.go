@@ -13,8 +13,8 @@ import (
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilFiles "cryptoutil/internal/common/util/files"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilFiles "cryptoutil/internal/shared/util/files"
 )
 
 // PackageInfo represents Go package metadata from 'go list -json'.

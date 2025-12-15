@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"

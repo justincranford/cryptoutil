@@ -7,11 +7,11 @@ package unsealkeysservice
 import (
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
-	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilCombinations "cryptoutil/internal/common/util/combinations"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilCombinations "cryptoutil/internal/shared/util/combinations"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"

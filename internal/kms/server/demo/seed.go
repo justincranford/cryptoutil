@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
 )
 

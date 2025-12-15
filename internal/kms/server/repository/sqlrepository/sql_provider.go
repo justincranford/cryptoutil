@@ -16,10 +16,10 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilContainer "cryptoutil/internal/common/container"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilContainer "cryptoutil/internal/shared/container"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )

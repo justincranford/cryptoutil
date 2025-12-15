@@ -7,7 +7,7 @@ package config
 import (
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 

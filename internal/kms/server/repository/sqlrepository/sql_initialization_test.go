@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestNewSQLRepository_NilContext tests NewSQLRepository with nil context.

@@ -16,7 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Config holds the complete realm configuration.

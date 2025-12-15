@@ -16,7 +16,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"gorm.io/gorm"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // ErrUserNotFound is returned when a user is not found in the database.

@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 )
 

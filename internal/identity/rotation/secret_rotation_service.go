@@ -15,8 +15,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilCrypto "cryptoutil/internal/crypto"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
 	"cryptoutil/internal/identity/domain"
 )
 

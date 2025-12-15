@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"log"
 
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilRootKeysService "cryptoutil/internal/kms/server/barrier/rootkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 

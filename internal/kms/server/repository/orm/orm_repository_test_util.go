@@ -8,10 +8,10 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 )
 

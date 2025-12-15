@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"

@@ -21,11 +21,11 @@ import (
 	"time"
 
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilNetwork "cryptoutil/internal/common/util/network"
-	cryptoutilTLS "cryptoutil/internal/infra/tls"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
+	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilOpenapiHandler "cryptoutil/internal/kms/server/handler"
 
 	"go.opentelemetry.io/otel/metric"

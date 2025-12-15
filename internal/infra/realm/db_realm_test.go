@@ -18,7 +18,7 @@ import (
 
 	_ "modernc.org/sqlite" // Use modernc CGO-free SQLite.
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {

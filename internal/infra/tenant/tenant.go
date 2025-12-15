@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"gorm.io/gorm"
 )

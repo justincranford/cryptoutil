@@ -10,7 +10,7 @@ import (
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilJose "cryptoutil/internal/jose"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
 
 	googleUuid "github.com/google/uuid"
 )

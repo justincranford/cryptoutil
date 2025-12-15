@@ -10,7 +10,7 @@ import (
 
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )

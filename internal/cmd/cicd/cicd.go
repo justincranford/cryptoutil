@@ -18,8 +18,8 @@ import (
 	cryptoutilCmdCicdLintGotest "cryptoutil/internal/cmd/cicd/lint_gotest"
 	cryptoutilCmdCicdLintText "cryptoutil/internal/cmd/cicd/lint_text"
 	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/cmd/cicd/lint_workflow"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilFiles "cryptoutil/internal/common/util/files"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilFiles "cryptoutil/internal/shared/util/files"
 )
 
 const (

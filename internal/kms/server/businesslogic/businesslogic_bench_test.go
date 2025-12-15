@@ -15,7 +15,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 
-	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 )
 
 // P2.3.4: KMS Performance Baseline Benchmarks.

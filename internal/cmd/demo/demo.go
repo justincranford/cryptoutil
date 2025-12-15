@@ -22,7 +22,7 @@ import (
 	"os"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Exit codes following Session 5 Q1 decision: simple 0/1/2 pattern.

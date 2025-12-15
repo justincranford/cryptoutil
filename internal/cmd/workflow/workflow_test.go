@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

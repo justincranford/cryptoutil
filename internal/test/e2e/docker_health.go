@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // ServiceAndJob represents a service and its optional healthcheck job.

@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 
 	cryptoutilCAServer "cryptoutil/internal/ca/server"
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // NewStartCommand creates the start command for the CA server.

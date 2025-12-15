@@ -7,7 +7,7 @@ package unsealkeysservice
 import (
 	"fmt"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )

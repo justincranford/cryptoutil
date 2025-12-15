@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestLogSchema_PostgreSQL tests LogSchema with PostgreSQL backend (logPostgresSchema coverage).

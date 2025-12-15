@@ -7,9 +7,9 @@ package sqlrepository
 import (
 	"context"
 
-	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) *SQLRepository {

@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
-	cryptoutilTLS "cryptoutil/internal/infra/tls"
+	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 )
 
 // DemoCA holds a pre-generated CA chain for demo purposes.

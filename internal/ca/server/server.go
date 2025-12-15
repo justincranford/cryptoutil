@@ -25,8 +25,8 @@ import (
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Default validity durations for development CA.

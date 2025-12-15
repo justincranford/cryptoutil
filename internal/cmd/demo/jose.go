@@ -12,8 +12,8 @@ import (
 	"os"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 )
 

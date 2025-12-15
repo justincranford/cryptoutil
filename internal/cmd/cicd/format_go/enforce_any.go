@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilFiles "cryptoutil/internal/common/util/files"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilFiles "cryptoutil/internal/shared/util/files"
 )
 
 // enforceAny enforces custom Go source code fixes across all Go files.

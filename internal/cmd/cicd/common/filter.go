@@ -5,7 +5,7 @@ package common
 import (
 	"regexp"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // FilterFilesForCommand filters files by applying the self-exclusion pattern

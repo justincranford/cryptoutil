@@ -17,7 +17,7 @@ import (
 
 	"golang.org/x/crypto/pbkdf2"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Authenticator provides authentication for realm users.

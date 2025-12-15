@@ -21,8 +21,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for CA service.

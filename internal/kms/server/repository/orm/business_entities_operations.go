@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilUtil "cryptoutil/internal/common/util"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilUtil "cryptoutil/internal/shared/util"
 
 	"gorm.io/gorm"
 

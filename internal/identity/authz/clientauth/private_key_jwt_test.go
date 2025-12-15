@@ -23,7 +23,7 @@ import (
 	"gorm.io/gorm/logger"
 	_ "modernc.org/sqlite"
 
-	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )

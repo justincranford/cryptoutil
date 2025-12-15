@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
-	cryptoutilNetwork "cryptoutil/internal/common/util/network"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
 	cryptoutilClient "cryptoutil/internal/kms/client"
 
 	"github.com/stretchr/testify/require"

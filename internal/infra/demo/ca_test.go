@@ -7,7 +7,7 @@ package demo
 import (
 	"testing"
 
-	cryptoutilTLS "cryptoutil/internal/infra/tls"
+	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 
 	"github.com/stretchr/testify/require"
 )

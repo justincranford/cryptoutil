@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"

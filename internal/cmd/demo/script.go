@@ -17,7 +17,7 @@ import (
 	"net/url"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // DemoEndpoints contains the endpoints for the integration demo.

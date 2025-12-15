@@ -14,7 +14,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 )
 
 // KeyType represents the type of cryptographic key.

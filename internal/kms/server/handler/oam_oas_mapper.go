@@ -11,7 +11,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 )
 
 type oamOasMapper struct{}

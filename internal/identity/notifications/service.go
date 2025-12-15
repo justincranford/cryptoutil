@@ -11,7 +11,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 

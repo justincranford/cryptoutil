@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 )
 
 // Application represents the unified JOSE server application (public + admin).

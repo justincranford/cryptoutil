@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Logger provides structured logging for CICD commands with timing information.

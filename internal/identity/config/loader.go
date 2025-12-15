@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"gopkg.in/yaml.v3"
 )
