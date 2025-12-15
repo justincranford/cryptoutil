@@ -8,6 +8,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -98,30 +99,42 @@ type PriorityStats struct {
 }
 
 func main() {
+	os.Exit(internalMain(os.Args, os.Stdin, os.Stdout, os.Stderr))
+}
+
+// internalMain is the testable main function with injected dependencies.
+func internalMain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	ctx := context.Background()
 
-	requirementsFile := flag.String("requirements", defaultRequirementsFile, "Path to requirements YAML file")
-	rootPath := flag.String("root", defaultRootPath, "Root path for test file scanning")
-	reportFile := flag.String("report", defaultReportFile, "Path to output coverage report")
-	failOnUncovered := flag.Bool("fail", true, "Exit with error if critical requirements uncovered")
+	fs := flag.NewFlagSet(args[0], flag.ContinueOnError)
+	fs.SetOutput(stderr)
 
-	flag.Parse()
+	requirementsFile := fs.String("requirements", defaultRequirementsFile, "Path to requirements YAML file")
+	rootPath := fs.String("root", defaultRootPath, "Root path for test file scanning")
+	reportFile := fs.String("report", defaultReportFile, "Path to output coverage report")
+	failOnUncovered := fs.Bool("fail", true, "Exit with error if critical requirements uncovered")
+
+	if err := fs.Parse(args[1:]); err != nil {
+		return 1
+	}
 
 	reqDoc, err := loadRequirements(*requirementsFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Failed to load requirements: %v\n", err)
-		os.Exit(1)
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to load requirements: %v\n", err)
+
+		return 1
 	}
 
-	fmt.Printf("📋 Loaded %d requirements from %s\n", len(reqDoc.Requirements), *requirementsFile)
+	_, _ = fmt.Fprintf(stdout, "📋 Loaded %d requirements from %s\n", len(reqDoc.Requirements), *requirementsFile)
 
 	testMappings, err := scanTestFiles(ctx, *rootPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Failed to scan test files: %v\n", err)
-		os.Exit(1)
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to scan test files: %v\n", err)
+
+		return 1
 	}
 
-	fmt.Printf("🔍 Found %d test mappings in %s\n", len(testMappings), *rootPath)
+	_, _ = fmt.Fprintf(stdout, "🔍 Found %d test mappings in %s\n", len(testMappings), *rootPath)
 
 	coverage := mapRequirementsToTests(reqDoc, testMappings)
 
@@ -130,18 +143,22 @@ func main() {
 	report := generateCoverageReport(reqDoc, stats)
 
 	if err := os.WriteFile(*reportFile, []byte(report), reportFilePermissions); err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Failed to write report: %v\n", err)
-		os.Exit(1)
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to write report: %v\n", err)
+
+		return 1
 	}
 
-	fmt.Printf("✅ Coverage report written to %s\n", *reportFile)
+	_, _ = fmt.Fprintf(stdout, "✅ Coverage report written to %s\n", *reportFile)
 
-	printSummary(stats)
+	printSummary(stats, stdout)
 
 	if *failOnUncovered && stats.UncoveredCritical > 0 {
-		fmt.Fprintf(os.Stderr, "\n❌ FAILED: %d critical requirements not validated by tests\n", stats.UncoveredCritical)
-		os.Exit(1)
+		_, _ = fmt.Fprintf(stderr, "\n❌ FAILED: %d critical requirements not validated by tests\n", stats.UncoveredCritical)
+
+		return 1
 	}
+
+	return 0
 }
 
 func loadRequirements(filePath string) (*RequirementsDoc, error) {
@@ -448,13 +465,13 @@ func generateCoverageReport(doc *RequirementsDoc, stats *CoverageStats) string {
 	return sb.String()
 }
 
-func printSummary(stats *CoverageStats) {
-	fmt.Println()
-	fmt.Println("📊 Coverage Summary:")
-	fmt.Printf("   Total Requirements: %d\n", stats.TotalRequirements)
-	fmt.Printf("   Validated: %d (%.1f%%)\n", stats.ValidatedRequirements, float64(stats.ValidatedRequirements)/float64(stats.TotalRequirements)*percentMultiplier)
-	fmt.Printf("   Uncovered CRITICAL: %d\n", stats.UncoveredCritical)
-	fmt.Printf("   Uncovered HIGH: %d\n", stats.UncoveredHigh)
-	fmt.Printf("   Uncovered MEDIUM: %d\n", stats.UncoveredMedium)
-	fmt.Printf("   Uncovered LOW: %d\n", stats.UncoveredLow)
+func printSummary(stats *CoverageStats, stdout io.Writer) {
+	_, _ = fmt.Fprintln(stdout)
+	_, _ = fmt.Fprintln(stdout, "📊 Coverage Summary:")
+	_, _ = fmt.Fprintf(stdout, "   Total Requirements: %d\n", stats.TotalRequirements)
+	_, _ = fmt.Fprintf(stdout, "   Validated: %d (%.1f%%)\n", stats.ValidatedRequirements, float64(stats.ValidatedRequirements)/float64(stats.TotalRequirements)*percentMultiplier)
+	_, _ = fmt.Fprintf(stdout, "   Uncovered CRITICAL: %d\n", stats.UncoveredCritical)
+	_, _ = fmt.Fprintf(stdout, "   Uncovered HIGH: %d\n", stats.UncoveredHigh)
+	_, _ = fmt.Fprintf(stdout, "   Uncovered MEDIUM: %d\n", stats.UncoveredMedium)
+	_, _ = fmt.Fprintf(stdout, "   Uncovered LOW: %d\n", stats.UncoveredLow)
 }

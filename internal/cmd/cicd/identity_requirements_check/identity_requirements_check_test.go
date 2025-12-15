@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"path/filepath"
@@ -239,7 +240,9 @@ func TestPrintSummary_AllValidated(t *testing.T) {
 	}
 
 	// This just tests that it doesn't panic.
-	printSummary(stats)
+	stdout := &bytes.Buffer{}
+
+	printSummary(stats, stdout)
 }
 
 func TestPrintSummary_WithUncovered(t *testing.T) {
@@ -255,5 +258,43 @@ func TestPrintSummary_WithUncovered(t *testing.T) {
 	}
 
 	// This just tests that it doesn't panic.
-	printSummary(stats)
+	stdout := &bytes.Buffer{}
+
+	printSummary(stats, stdout)
+}
+
+// TestInternalMain tests for main() testability pattern.
+
+func TestInternalMain_InvalidRequirementsFile(t *testing.T) {
+	t.Parallel()
+
+	args := []string{"identity-requirements-check", "--requirements=nonexistent.yml"}
+	stdin := bytes.NewReader(nil)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	exitCode := internalMain(args, stdin, stdout, stderr)
+
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stderr.String(), "Failed to load requirements")
+}
+
+func TestInternalMain_InvalidRootPath(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	reqFile := filepath.Join(tempDir, "requirements.yml")
+
+	err := os.WriteFile(reqFile, []byte("requirements:\n  - id: R1\n    priority: high\n    description: test\n"), 0o600)
+	require.NoError(t, err)
+
+	args := []string{"identity-requirements-check", "--requirements=" + reqFile, "--root=nonexistent_path"}
+	stdin := bytes.NewReader(nil)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	exitCode := internalMain(args, stdin, stdout, stderr)
+
+	require.Equal(t, 1, exitCode)
+	require.Contains(t, stderr.String(), "Failed to scan test files")
 }
