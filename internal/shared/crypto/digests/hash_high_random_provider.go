@@ -66,6 +66,7 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 
 	// Parse stored hash format: hkdf-sha256$salt$dk.
 	const expectedParts = 3
+
 	parts := strings.Split(stored, "$")
 
 	if len(parts) != expectedParts {
@@ -95,5 +96,6 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 
 	// Constant-time comparison using crypto/subtle.
 	const equal = 1
+
 	return subtle.ConstantTimeCompare(storedDK, providedDK) == equal, nil
 }

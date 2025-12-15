@@ -120,6 +120,12 @@ const (
 	PBKDF2LegacyFormatParts    = 4 // Number of parts in legacy hash format: hashname$iter$salt$dk.
 )
 
+// HKDF deterministic hashing constants (fixed info parameters for determinism).
+var (
+	HKDFFixedInfoLowEntropy  = []byte("cryptoutil-hkdf-low-entropy-v1")  // Fixed info for low-entropy deterministic hashing.
+	HKDFFixedInfoHighEntropy = []byte("cryptoutil-hkdf-high-entropy-v1") // Fixed info for high-entropy deterministic hashing.
+)
+
 // PBKDF2HashFunction returns the hash function for the given algorithm name.
 func PBKDF2HashFunction(algorithm string) func() hash.Hash {
 	switch algorithm {

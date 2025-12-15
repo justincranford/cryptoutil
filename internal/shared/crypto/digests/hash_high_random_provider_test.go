@@ -80,6 +80,7 @@ func TestHashSecretHKDFRandom(t *testing.T) {
 
 				// Parse format: hkdf-sha256$salt$dk.
 				const expectedParts = 3
+
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, expectedParts, "hash should have exactly %d parts", expectedParts)
 				require.Equal(t, "hkdf-sha256", parts[0], "hash algorithm should be hkdf-sha256")
@@ -96,6 +97,7 @@ func TestHashSecretHKDFRandom_Uniqueness(t *testing.T) {
 	iterations := 10
 
 	hashes := make(map[string]bool)
+
 	for range iterations {
 		hash, err := HashSecretHKDFRandom(secret)
 		require.NoError(t, err, "should hash successfully")
