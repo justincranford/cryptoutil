@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )
@@ -317,7 +317,7 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 		// Generate and hash initial secret (version 1).
 		initialSecret := "test-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
 
-		secretHash, err := cryptoutilCrypto.HashSecret(initialSecret)
+		secretHash, err := cryptoutilDigests.HashSecret(initialSecret)
 		if err != nil {
 			return fmt.Errorf("failed to hash initial secret: %w", err)
 		} // Create ClientSecretVersion.

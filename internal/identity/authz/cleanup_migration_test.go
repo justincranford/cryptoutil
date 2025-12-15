@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	"cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -49,7 +49,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 
 	// Create test client with legacy bcrypt hash (simulated with PBKDF2 for testing)
 	clientUUID := googleUuid.Must(googleUuid.NewV7())
-	legacyHash, err := cryptoutilCrypto.HashSecretPBKDF2("legacy-secret")
+	legacyHash, err := cryptoutilDigests.HashSecretPBKDF2("legacy-secret")
 	require.NoError(t, err, "Failed to hash legacy secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{

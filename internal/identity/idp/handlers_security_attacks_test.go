@@ -18,7 +18,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -148,7 +148,7 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 
 	// 11. Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPasswordHash, err := cryptoutilCrypto.HashSecret(cryptoutilIdentityIdp.TestPassword)
+	testPasswordHash, err := cryptoutilDigests.HashSecret(cryptoutilIdentityIdp.TestPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{

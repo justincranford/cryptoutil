@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 
@@ -199,7 +199,7 @@ func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, e
 		return nil, fmt.Errorf("password too long (maximum %d characters)", cryptoutilIdentityMagic.MaxPasswordLength)
 	}
 
-	hash, err := cryptoutilCrypto.HashSecret(password)
+	hash, err := cryptoutilDigests.HashSecret(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}

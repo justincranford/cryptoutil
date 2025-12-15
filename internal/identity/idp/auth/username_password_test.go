@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"
@@ -202,7 +202,7 @@ func TestUsernamePasswordProfile_AuthenticateSuccess(t *testing.T) {
 
 	// Create password hash using PBKDF2 (old format for username_password).
 	password := "SecurePassword123!"
-	hash, err := cryptoutilCrypto.HashSecretPBKDF2(password)
+	hash, err := cryptoutilDigests.HashSecretPBKDF2(password)
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add user with hashed password.
@@ -294,7 +294,7 @@ func TestUsernamePasswordProfile_AuthenticateDisabledUser(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilCrypto.HashSecretPBKDF2("SecurePassword123!")
+	hash, err := cryptoutilDigests.HashSecretPBKDF2("SecurePassword123!")
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add disabled user.
@@ -331,7 +331,7 @@ func TestUsernamePasswordProfile_AuthenticateLockedUser(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilCrypto.HashSecretPBKDF2("SecurePassword123!")
+	hash, err := cryptoutilDigests.HashSecretPBKDF2("SecurePassword123!")
 	require.NoError(t, err, "HashSecret should succeed")
 
 	// Add locked user.
@@ -368,7 +368,7 @@ func TestUsernamePasswordProfile_AuthenticateWrongPassword(t *testing.T) {
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	hash, err := cryptoutilCrypto.HashSecretPBKDF2(testPassword)
+	hash, err := cryptoutilDigests.HashSecretPBKDF2(testPassword)
 	require.NoError(t, err, "HashSecret should succeed")
 
 	user := &cryptoutilIdentityDomain.User{

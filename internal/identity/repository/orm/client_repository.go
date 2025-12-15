@@ -15,10 +15,10 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // ClientRepositoryGORM implements the ClientRepository interface using GORM.
@@ -49,7 +49,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrKeyGenerationFailed, fmt.Errorf("failed to generate initial secret: %w", err))
 			}
 
-			secretHash, err = cryptoutilCrypto.HashSecret(initialSecret)
+			secretHash, err = cryptoutilDigests.HashSecret(initialSecret)
 			if err != nil {
 				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrPasswordHashFailed, fmt.Errorf("failed to hash initial secret: %w", err))
 			}

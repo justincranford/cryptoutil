@@ -16,7 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	"cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -228,7 +228,7 @@ func createClientAuthFlowTestClient(
 
 	// Generate proper PBKDF2 hash for "test-secret" using cryptoutilCrypto.HashSecretPBKDF2
 	// Format: $pbkdf2-sha256$iterations$base64(salt)$base64(hash)
-	hashedSecret, err := cryptoutilCrypto.HashSecretPBKDF2("test-secret")
+	hashedSecret, err := cryptoutilDigests.HashSecretPBKDF2("test-secret")
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{

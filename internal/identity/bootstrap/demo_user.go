@@ -11,7 +11,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -41,7 +41,7 @@ func CreateDemoUser(
 	// Generate demo user password hash.
 	plainPassword = "demo-password"
 
-	passwordHash, err := cryptoutilCrypto.HashSecret(plainPassword)
+	passwordHash, err := cryptoutilDigests.HashSecret(plainPassword)
 	if err != nil {
 		return "", "", false, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrPasswordHashFailed,

@@ -45,6 +45,24 @@ const (
 	TestStatusEmojiSkip = "⏭️"
 )
 
+// Test execution probability constants - Control the probability of running specific test cases.
+// Used for table-driven tests with multiple algorithm variants to reduce test execution time.
+// Example: TestProbAlways = 1.0 (100%), TestProbHalf = 0.5 (50%), TestProbThird = 0.333 (33.3%).
+const (
+	// TestProbAlways - Execute test always (100% probability).
+	TestProbAlways = 1.0
+	// TestProbHalf - Execute test 50% of the time.
+	TestProbHalf = 0.5
+	// TestProbThird - Execute test 33.3% of the time.
+	TestProbThird = 0.333
+	// TestProbQuarter - Execute test 25% of the time.
+	TestProbQuarter = 0.25
+	// TestProbTenth - Execute test 10% of the time.
+	TestProbTenth = 0.1
+	// TestProbNever - Never execute test (0% probability), effectively skip.
+	TestProbNever = 0.0
+)
+
 const (
 	// TestTimeoutDockerHealth - Timeout for Docker health checks. Allows for:
 	// - postgres: start_period=5s + (interval=5s * retries=5) = up to 30s

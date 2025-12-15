@@ -19,7 +19,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -151,7 +151,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 	// Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
 	testPassword := "TestPassword123!" // pragma: allowlist secret
-	testPasswordHash, err := cryptoutilCrypto.HashSecret(testPassword)
+	testPasswordHash, err := cryptoutilDigests.HashSecret(testPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -445,7 +445,7 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 	// Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
 	testPassword := "TestPassword123!" // pragma: allowlist secret
-	testPasswordHash, err := cryptoutilCrypto.HashSecret(testPassword)
+	testPasswordHash, err := cryptoutilDigests.HashSecret(testPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{

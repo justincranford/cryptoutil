@@ -2,7 +2,7 @@
 //
 //
 
-package jose
+package crypto
 
 import (
 	"testing"

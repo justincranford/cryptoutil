@@ -13,7 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
@@ -74,7 +74,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	newSecretPlaintext := base64.URLEncoding.EncodeToString(secretBytes)
 
 	// Hash the new secret using PBKDF2-HMAC-SHA256 (FIPS-approved).
-	hashedSecret, err := cryptoutilCrypto.HashSecret(newSecretPlaintext)
+	hashedSecret, err := cryptoutilDigests.HashSecret(newSecretPlaintext)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,
