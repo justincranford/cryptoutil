@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilFiles "cryptoutil/internal/shared/util/files"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilUtil "cryptoutil/internal/shared/util"
@@ -74,7 +75,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid M-of-N values in unseal mode %s: M must be > 0, N must be >= M", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
+		filesContents, err := cryptoutilFiles.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {
@@ -92,7 +93,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid unseal mode %s: N must be > 0", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
+		filesContents, err := cryptoutilFiles.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {
