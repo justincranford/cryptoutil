@@ -551,7 +551,8 @@ func IsEncryptJWK(jwk joseJwk.Key) (bool, error) {
 
 	_, _, err := ExtractAlgEncFromJWEJWK(jwk, 0)
 	if err != nil {
-		return false, fmt.Errorf("failed to extract alg and enc from JWK: %w", err)
+		// Missing enc/alg headers means not an encryption key
+		return false, nil //nolint:nilerr // Missing headers = incompatible key type, not an error
 	}
 
 	// At this point, JWK is confirmed to have an enc header
@@ -580,7 +581,8 @@ func IsDecryptJWK(jwk joseJwk.Key) (bool, error) {
 
 	_, _, err := ExtractAlgEncFromJWEJWK(jwk, 0)
 	if err != nil {
-		return false, fmt.Errorf("failed to extract alg and enc from JWK: %w", err)
+		// Missing enc/alg headers means not a decryption key
+		return false, nil //nolint:nilerr // Missing headers = incompatible key type, not an error
 	}
 
 	// At this point, JWK is confirmed to have an enc header
@@ -609,7 +611,8 @@ func IsSignJWK(jwk joseJwk.Key) (bool, error) {
 
 	_, err := ExtractAlgFromJWSJWK(jwk, 0)
 	if err != nil {
-		return false, fmt.Errorf("failed to extract signature alg from JWK: %w", err)
+		// Missing alg header means not a signing key
+		return false, nil //nolint:nilerr // Missing headers = incompatible key type, not an error
 	}
 
 	switch jwk.(type) {
@@ -639,7 +642,8 @@ func IsVerifyJWK(jwk joseJwk.Key) (bool, error) {
 
 	_, err := ExtractAlgFromJWSJWK(jwk, 0)
 	if err != nil {
-		return false, fmt.Errorf("failed to extract signature alg from JWK: %w", err)
+		// Missing alg header means not a verification key
+		return false, nil //nolint:nilerr // Missing headers = incompatible key type, not an error
 	}
 
 	switch jwk.(type) {

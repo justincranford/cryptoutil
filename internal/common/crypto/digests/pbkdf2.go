@@ -44,11 +44,18 @@ func VerifySecret(stored, provided string) (bool, error) {
 
 	// Legacy bcrypt support: hashes start with $2a$, $2b$, $2y$
 	if strings.HasPrefix(stored, "$2a$") || strings.HasPrefix(stored, "$2b$") || strings.HasPrefix(stored, "$2y$") {
-		if err := bcrypt.CompareHashAndPassword([]byte(stored), []byte(provided)); err != nil {
-			return false, fmt.Errorf("bcrypt hash verification failed: %w", err)
+		err := bcrypt.CompareHashAndPassword([]byte(stored), []byte(provided))
+		if err == nil {
+			return true, nil
 		}
 
-		return true, nil
+		// bcrypt.ErrMismatchedHashAndPassword means wrong password = not an error, just false
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return false, nil //nolint:nilerr // Wrong password is not an error condition
+		}
+
+		// Any other bcrypt error (invalid hash format, etc) is a real error
+		return false, fmt.Errorf("bcrypt hash verification failed: %w", err)
 	}
 
 	parts := strings.Split(stored, "$")
