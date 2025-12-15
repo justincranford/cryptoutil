@@ -1,0 +1,32 @@
+package: client
+output: client/openapi_gen_client.go
+generate:
+  client: true
+  models: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+  name-normalizer: uppercase
+  user-templates:
+  additional-properties:
+  additional-imports: []
+  import-mapping: {}
+  exclude-schemas: []
+  response-type-suffix: ""
+  additional-initialisms:
+    - JWT
+    - JWK
+    - JWE
+    - JWS
+    - JWKS
+    - TLS
+    - SHA
+    - RSA
+    - EC
+    - OKP
+    - HMAC
+    - AES
+    - GCM
+    - CBC
+    - IP
+    - URI
