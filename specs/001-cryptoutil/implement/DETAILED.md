@@ -15,7 +15,7 @@
 
 **Strategy**: Use probabilistic approach to always execute lowest key size, but probabilistically skip larger key sizes
 
-- [ ] **P1.0**: Establish baseline (gather test timings with code coverage)
+- [x] **P1.0**: Establish baseline (gather test timings with code coverage)
 - [ ] **P1.1**: Optimize keygen package
 - [ ] **P1.2**: Optimize jose package
 - [ ] **P1.3**: Optimize jose/server package
@@ -121,6 +121,73 @@
 ## Section 2: Append-Only Timeline (Time-ordered)
 
 Tasks may be implemented out of order from Section 1. Each entry references back to Section 1.
+
+### 2025-12-15: Spec Refactoring and Phase 1 Baseline
+
+**Context**: Archived previous implementation specs, created fresh DETAILED.md with cleaned task numbering (67 tasks across 6 phases). Session involved spec cleanup, copilot instruction updates, linting fixes that broke tests, and semantic error handling fixes.
+
+**P1.0 Baseline Test Coverage Analysis** (Task P1.0):
+
+**Test Execution Summary**:
+
+- Total packages tested: ~120
+- Test duration captured: test-output/coverage_baseline_timing_20251212_024550.txt
+- Initial failures: 26 (21 fixed via semantic corrections, 5 remaining)
+
+**Slow Packages Identified (>25s execution)**:
+
+1. internal/common/crypto/keygen - 248.055s (highest priority for P1.1)
+2. internal/jose - 80.229s (75.9% coverage)
+3. internal/kms/client - 59.152s (74.9% coverage)
+4. internal/jose/server - 58.408s (89.0% coverage)
+5. internal/identity/authz/clientauth - 37.686s (79.2% coverage)
+6. internal/identity/authz - 37.053s (67.0% coverage)
+7. internal/kms/server/application - 32.782s (64.6% coverage)
+8. internal/identity/test/load - 30.460s (no statements)
+
+**Test Failures Resolved (21 total)**:
+
+- jwk_util.go: Fixed 20 Is*JWK tests by restoring (false, nil) semantics for missing headers (commit 7bd4b382)
+- pbkdf2.go: Fixed 1 bcrypt test by distinguishing password mismatch from hash errors (commit 7bd4b382)
+- Root cause: Over-aggressive linting fixes converted valid (false, nil) patterns to errors
+- Solution: Added nolint:nilerr directives with explanatory comments explaining semantic reasoning
+
+**Test Failures Remaining (5 total)**:
+
+1. internal/identity/authz/server: TestNewAdminServer/NilContext expects error but got nil (needs investigation)
+2. internal/identity/idp/server: Same TestNewAdminServer failure
+3. internal/identity/rs/server: Same TestNewAdminServer failure
+4. internal/infra/tenant: Virus scan false positive on test binary (environmental)
+5. internal/kms/server/repository/sqlrepository: TestNewSQLRepository_PostgreSQL_ContainerRequired (needs container)
+
+**Coverage Gaps Identified**:
+
+- cmd/ packages: All at 0% coverage (need internalMain pattern per instruction updates)
+- api/ packages: All at 0% coverage (generated code or no business logic)
+- internal/common/magic: 0% coverage (constants file, no logic to test)
+- internal/ca/server/cmd: 0% coverage (needs investigation)
+
+**Key Lessons Learned**:
+
+- Error semantics matter: (false, nil) is valid when false is semantic result, not error
+- Linting rules enforce syntax; semantic exceptions require nolint directives with comments
+- Test failures are early warning system for semantic issues introduced by mechanical fixes
+- Always run full test suite after linting changes before pushing
+
+**Commits This Session**:
+
+- 4cd44e2f: refactor(specs): clean task numbering and reset implementation docs
+- f68381bc: fix(linting): address 7 nilerr/nilnil linting errors
+- 7bd4b382: fix(linting): restore correct semantics for Is*JWK and bcrypt verification
+
+**Next Steps (P1.1-P1.11)**:
+
+- Implement probabilistic test execution for slow packages
+- Start with keygen (248s, highest impact)
+- Strategy: Always execute lowest key size, probabilistically skip larger key sizes
+- Use environment variable for probability control (100% in CI, configurable locally)
+
+**Status**: P1.0 ✅ COMPLETE (baseline data captured, analyzed, documented)
 
 ---
 
