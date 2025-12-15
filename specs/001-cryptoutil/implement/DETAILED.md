@@ -84,12 +84,21 @@ This section maintains the same order as TASKS.md for cross-reference.
 
 ### Phase 3: Coverage Targets (6 tasks) - **UNBLOCKED** ✅
 
+**CRITICAL STRATEGY UPDATE (Dec 14)**: Apply main() testability pattern to ALL commands for maximum coverage
+
+**Pattern**: Refactor ALL main() functions → thin wrapper calling testable internalMain(args, stdin, stdout, stderr)
+
 - [ ] **P3.1**: Achieve 95% coverage for jose package (current: 84.2%, +0.2%, needs +10.8%)
-- [ ] **P3.2**: Achieve 95% coverage for ca packages
-- [ ] **P3.3**: Achieve 95% coverage for identity packages
-- [ ] **P3.4**: Achieve 95% coverage for kms packages
-- [ ] **P3.5**: Achieve 95% coverage for infra packages
-- [ ] **P3.6**: Achieve 95% coverage for cicd utilities
+- [ ] **P3.2**: Achieve 95% coverage for ca packages (current: 94.7%, needs +0.3%)
+- [ ] **P3.3**: Achieve 95% coverage for identity packages (current: 63.8%, orm 62.3%→68.8%, +6.5%)
+- [ ] **P3.4**: Achieve 95% coverage for kms packages (businesslogic 39% acceptable via E2E)
+- [ ] **P3.5**: Achieve 95% coverage for infra packages (Windows Firewall issue, tested via integration)
+- [ ] **P3.6**: Achieve 95% coverage for cicd utilities (current: 51-100%, apply main() pattern)
+  - adaptive_sim: 63% (large main() blocks testing - APPLY PATTERN)
+  - cicd: 95.5% (improved Dec 14)
+  - format_go: 69.3% (GetGoFiles filtering limitation)
+  - lint_go: 60.3% (checkCircularDeps 13.3% - APPLY PATTERN)
+  - identity_requirements_check: 59.0% (specialized utility - APPLY PATTERN)
 
 ### Phase 3.5: Server Architecture Unification (18 tasks) - 🔴 **CRITICAL BLOCKER**
 

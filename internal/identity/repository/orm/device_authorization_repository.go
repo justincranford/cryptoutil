@@ -123,7 +123,7 @@ func (r *DeviceAuthorizationRepository) Update(ctx context.Context, auth *crypto
 // DeleteExpired deletes all expired device authorizations.
 func (r *DeviceAuthorizationRepository) DeleteExpired(ctx context.Context) error {
 	result := getDB(ctx, r.db).WithContext(ctx).
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", time.Now().UTC()).
 		Delete(&cryptoutilIdentityDomain.DeviceAuthorization{})
 
 	if result.Error != nil {
