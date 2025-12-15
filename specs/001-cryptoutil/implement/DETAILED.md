@@ -1446,6 +1446,46 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - **Commits**: d4bdccc9 (copilot fix), 3efd3bef (Identity E2E infrastructure)
 - **Next**: Check Phase 3.5 status, continue with highest priority unblocked task
 
+### 2025-12-15: P4.1 OAuth Workflow Test Updated with API Blockers
+
+- **Phase 3.5 Status Verified**: ✅ COMPLETE (all 18 tasks marked complete as of 2025-01-18)
+  - Identity, JOSE, CA: All services now follow KMS dual-server pattern
+  - All services accessible via `cryptoutil <product> <subcommand>`
+  - All services have admin servers on 127.0.0.1:9090
+  - All Docker health checks use admin endpoints
+  - Success criteria: 100% test coverage for new cmd packages
+
+- **P4.1 OAuth E2E Test Analysis** (commit d65f18de):
+  - Analyzed existing test skeleton: [internal/test/e2e/oauth_workflow_test.go](internal/test/e2e/oauth_workflow_test.go)
+  - Verified Identity services already in E2E compose (commit 3efd3bef): identity-postgres-e2e, identity-authz-e2e, identity-idp-e2e
+  - Verified AuthZ OpenAPI client exists: [api/authz/openapi_gen_client.go](api/authz/openapi_gen_client.go) with methods:
+    - AuthorizeGET(), AuthorizeWithFormdataBody() (GET/POST /authorize)
+    - TokenWithFormdataBody() (POST /token)
+    - IntrospectWithFormdataBody() (POST /introspect)
+    - RevokeWithFormdataBody() (POST /revoke)
+    - HealthCheck() (GET /health)
+
+- **Root Cause**: Client registration endpoint missing from AuthZ OpenAPI spec
+  - Current spec has: /authorize, /token, /introspect, /revoke, /health
+  - **BLOCKED: Need POST /clients or /register endpoint** for client_id/client_secret registration
+  - Without client registration, cannot obtain OAuth client credentials
+  - Without client credentials, cannot test authorization code flow or client credentials flow
+
+- **Updated Test Files**:
+  - TestAuthorizationCodeFlowWithPKCE: Updated with specific blockers and next steps
+  - TestClientCredentialsFlow: Updated with workflow steps after API unblocked
+  - Compilation verified with `-tags=e2e`
+
+- **Remaining E2E Tests Status**:
+  - P4.1 OAuth: ⚠️ **BLOCKED** - requires client registration endpoint (commit d65f18de documents blockers)
+  - P4.2 KMS: ✅ **COMPLETE** - all 3 workflows passing (Encrypt/Decrypt, Sign/Verify, Key Rotation)
+  - P4.3 CA: ✅ **INFRASTRUCTURE READY** - service deployed, test skeleton exists, full workflow deferred
+  - P4.4 JOSE: ✅ **INFRASTRUCTURE READY** - service deployed, test skeleton exists, full workflow deferred
+
+- **Status**: P4.1 OAuth workflow test documented with API gaps, compilation verified
+- **Commits**: d65f18de (OAuth test blockers), a5ab9e26 (DETAILED.md P4.1 infrastructure entry)
+- **Next**: P4.3 CA or P4.4 JOSE workflow implementations (infrastructure ready), OR add client registration endpoint to authz OpenAPI spec
+
 ---
 
 ## References
