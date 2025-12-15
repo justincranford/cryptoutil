@@ -18,6 +18,7 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilUtil "cryptoutil/internal/shared/util"
 
 	googleUuid "github.com/google/uuid"
@@ -138,7 +139,7 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 }
 
 func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJWEJWKKidUUID); err != nil {
+	if err := cryptoutilRandom.ValidateUUID(kid, &ErrInvalidJWEJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWE JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWE JWK alg must be non-nil")

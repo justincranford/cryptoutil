@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package util
+package random
 
 import (
 	"encoding/binary"

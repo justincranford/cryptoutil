@@ -14,8 +14,8 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilUtil "cryptoutil/internal/shared/util"
 	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 
@@ -156,7 +156,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 
 			addedElasticKeys = append(addedElasticKeys, elasticKey)
 
-			multipleByteSlices, err := cryptoutilUtil.GenerateMultipleBytes(numMaterialKeys, 32)
+			multipleByteSlices, err := cryptoutilRandom.GenerateMultipleBytes(numMaterialKeys, 32)
 			cryptoutilAppErr.RequireNoError(err, "failed to generate AES 256 key materials")
 
 			for nextKeyID := 1; nextKeyID <= numMaterialKeys; nextKeyID++ {

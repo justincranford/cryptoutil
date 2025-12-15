@@ -2,7 +2,7 @@
 //
 //
 
-package util
+package random
 
 import (
 	"crypto/rand"
@@ -20,16 +20,18 @@ const (
 // SkipByProbability skips the test based on the given probability.
 // prob should be between 0.0 and 1.0, where 1.0 means always run, 0.0 means never run.
 func SkipByProbability(t *testing.T, prob float32) {
+	t.Helper()
+
 	require.GreaterOrEqual(t, prob, 0.0)
 	require.LessOrEqual(t, prob, 1.0)
 
-	if normalizedRandomFloat32(t) > prob {
+	if normalizedRandomFloat64(t) > prob {
 		t.Skip("Skipped by probability sampling")
 	}
 }
 
-// normalizedRandomFloat32 generates a cryptographically secure random float64 in [0,1).
-func normalizedRandomFloat32(t *testing.T) float32 {
+// normalizedRandomFloat64 generates a cryptographically secure random float64 in [0,1).
+func normalizedRandomFloat64(t *testing.T) float32 {
 	var b [bytesPerUint64]byte
 
 	_, err := rand.Read(b[:])

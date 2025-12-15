@@ -11,7 +11,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilUtil "cryptoutil/internal/shared/util"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
@@ -326,7 +326,7 @@ func (*oamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.
 		return nil, nil
 	}
 
-	if err := cryptoutilUtil.ValidateUUIDs(*uuids, &ErrInvalidUUID); err != nil {
+	if err := cryptoutilRandom.ValidateUUIDs(*uuids, &ErrInvalidUUID); err != nil {
 		return nil, fmt.Errorf("failed to validate UUIDs: %w", err)
 	}
 

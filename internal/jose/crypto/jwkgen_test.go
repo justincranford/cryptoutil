@@ -12,7 +12,7 @@ import (
 
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilUtil "cryptoutil/internal/shared/util"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -38,7 +38,7 @@ func TestGenerateRSAJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilUtil.SkipByProbability(t, tc.prob)
+			cryptoutilRandom.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateRSAJWK(tc.rsaBits)
 			require.NoError(t, err)
@@ -73,7 +73,7 @@ func TestGenerateECDSAJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilUtil.SkipByProbability(t, tc.prob)
+			cryptoutilRandom.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateECDSAJWK(tc.curve)
 			require.NoError(t, err)
@@ -108,7 +108,7 @@ func TestGenerateECDHJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilUtil.SkipByProbability(t, tc.prob)
+			cryptoutilRandom.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateECDHJWK(tc.curve)
 			require.NoError(t, err)
@@ -160,7 +160,7 @@ func TestGenerateAESJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilUtil.SkipByProbability(t, tc.prob)
+			cryptoutilRandom.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateAESJWK(tc.aesBits)
 			require.NoError(t, err)
@@ -195,7 +195,7 @@ func TestGenerateAESHSJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilUtil.SkipByProbability(t, tc.prob)
+			cryptoutilRandom.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateAESHSJWK(tc.aesHsBits)
 			require.NoError(t, err)
@@ -230,7 +230,7 @@ func TestGenerateHMACJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilUtil.SkipByProbability(t, tc.prob)
+			cryptoutilRandom.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateHMACJWK(tc.hmacBits)
 			require.NoError(t, err)

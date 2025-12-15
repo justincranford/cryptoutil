@@ -2,7 +2,7 @@
 //
 //
 
-package util
+package random
 
 import (
 	"fmt"

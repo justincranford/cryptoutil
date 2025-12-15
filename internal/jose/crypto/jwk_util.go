@@ -17,7 +17,7 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilUtil "cryptoutil/internal/shared/util"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
@@ -113,7 +113,7 @@ func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 		return nil, fmt.Errorf("failed to parse kid as UUID: %w", err)
 	}
 
-	if err = cryptoutilUtil.ValidateUUID(&kidUUID, &ErrInvalidJWKKidUUID); err != nil {
+	if err = cryptoutilRandom.ValidateUUID(&kidUUID, &ErrInvalidJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("failed to validate kid UUID: %w", err)
 	}
 
@@ -306,7 +306,7 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 }
 
 func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJWKKidUUID); err != nil {
+	if err := cryptoutilRandom.ValidateUUID(kid, &ErrInvalidJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWK alg must be non-nil")

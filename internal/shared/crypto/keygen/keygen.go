@@ -16,7 +16,7 @@ import (
 	"fmt"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilUtil "cryptoutil/internal/shared/util"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
 )
@@ -131,7 +131,7 @@ func GenerateAESKey(aesBits int) (SecretKey, error) {
 		return nil, fmt.Errorf("invalid AES key size: %d (must be %d, %d, or %d bits)", aesBits, aesKeySize128, aesKeySize192, aesKeySize256)
 	}
 
-	aesSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(aesBits / bitsToBytes)
+	aesSecretKeyBytes, err := cryptoutilRandom.GenerateBytes(aesBits / bitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES %d key failed: %w", aesBits, err)
 	}
@@ -148,7 +148,7 @@ func GenerateAESHSKey(aesHsBits int) (SecretKey, error) {
 		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be %d, %d, or %d bits)", aesHsBits, aesHsKeySize256, aesHsKeySize384, aesHsKeySize512)
 	}
 
-	aesHsSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(aesHsBits / bitsToBytes)
+	aesHsSecretKeyBytes, err := cryptoutilRandom.GenerateBytes(aesHsBits / bitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES HAMC-SHA2 %d key failed: %w", aesHsBits, err)
 	}
@@ -165,7 +165,7 @@ func GenerateHMACKey(hmacBits int) (SecretKey, error) {
 		return nil, fmt.Errorf("invalid HMAC key size: %d (must be %d bits or higher)", hmacBits, minHMACKeySize)
 	}
 
-	hmacSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(hmacBits / bitsToBytes)
+	hmacSecretKeyBytes, err := cryptoutilRandom.GenerateBytes(hmacBits / bitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}

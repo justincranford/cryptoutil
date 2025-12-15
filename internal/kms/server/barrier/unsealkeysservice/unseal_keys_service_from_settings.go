@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilFiles "cryptoutil/internal/shared/util/files"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilUtil "cryptoutil/internal/shared/util"
+	cryptoutilFiles "cryptoutil/internal/shared/util/files"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -36,7 +36,7 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
-		randomBytes, err := cryptoutilUtil.GenerateBytes(cryptoutilMagic.RandomKeySizeBytes)
+		randomBytes, err := cryptoutilRandom.GenerateBytes(cryptoutilMagic.RandomKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
 		}
