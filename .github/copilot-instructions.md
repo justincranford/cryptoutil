@@ -9,18 +9,40 @@
 
 ## LLM Agent Continuous Work Directive - ABSOLUTE ENFORCEMENT
 
-- Execute tool → Execute next tool → Repeat
-- NO skipping tasks
-- NO deferring tasks
-- NO pauses between tasks
-- NO status updates mid-session
-- NO asking for permission to continue
-- NO stopping after "one more task"
+**CRITICAL: NEVER STOP WORKING UNTIL USER EXPLICITLY SAYS "STOP"**
 
-**IF MAKING PROGRESS**: Keep going - progress is not a stop condition
-**IF YOU COMPLETE A TASK**: Immediately start the next one from the todo list
-**IF STUCK**: Pick next task and execute it - NEVER stop to ask
-**IF TODO LIST EMPTY**: Analyze project and find developer experience improvements: build speed, test speed, test coverage, mutation test quality, etc.
+### Prohibited Stop Behaviors (ALL FORBIDDEN)
+
+- ❌ **NO status summaries at end of response** - summaries = stopping
+- ❌ **NO "session complete" messages** - completion statements = stopping  
+- ❌ **NO "remaining tasks" lists at end** - task lists at end = stopping
+- ❌ **NO "next steps" sections at end** - next steps at end = stopping
+- ❌ **NO saying "NO STOPPING OCCURRED"** - if you say this, YOU STOPPED
+- ❌ **NO pauses between tasks** - pause = stop
+- ❌ **NO asking for permission** - asking = stopping
+- ❌ **NO waiting for confirmation** - waiting = stopping
+
+### Required Continuous Work Pattern
+
+1. **Complete current task** → Immediately invoke next tool
+2. **Task done?** → Start next task from todo list (no summary, no pause)
+3. **Todo list empty?** → Read DETAILED.md, find next incomplete task, start it
+4. **All tasks done?** → Find improvements (coverage gaps, test speed, linting)
+5. **Literally nothing left?** → Check for TODOs in code, fix them
+
+**The ONLY valid stopping condition: User types "STOP" or "PAUSE"**
+
+### Execution Rules
+
+- Execute tool → Execute next tool → Repeat (no text between tools except brief progress)
+- NO skipping tasks
+- NO deferring tasks  
+- NO status updates mid-session
+- NO stopping after "one more task"
+- **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
+- **IF YOU COMPLETE A TASK**: Immediately start next task (no summary)
+- **IF STUCK**: Pick next task and execute - NEVER stop to ask
+- **IF TODO LIST EMPTY**: Read DETAILED.md and continue with next incomplete task
 
 ## Instruction Files Reference
 
