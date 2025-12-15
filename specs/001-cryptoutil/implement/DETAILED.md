@@ -189,9 +189,9 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 **Status**: P1.0 ✅ COMPLETE (baseline data captured, analyzed, documented)
 
-### 2025-12-15: Phase 1 Optimization Re-Baseline
+### 2025-12-15: Phase 1 Optimization Re-Baseline and Firewall Issue Resolution
 
-**Context**: Re-tested packages identified as slow in baseline to verify current state and identify optimization targets.
+**Context**: Re-tested packages identified as slow in baseline to verify current state and identify optimization targets. Discovered and fixed Windows Firewall popup issue affecting JOSE server tests.
 
 **P1.1-P1.11 Optimization Analysis** (Tasks P1.1-P1.11):
 
@@ -201,35 +201,58 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - internal/kms/server/application: 3.3s (was 32s in baseline) - ✅ NO OPTIMIZATION NEEDED
 - internal/identity/authz: 5.4s (was 37s in baseline) - ✅ NO OPTIMIZATION NEEDED
 - internal/identity/authz/clientauth: 7.9s (was 37s in baseline) - ✅ NO OPTIMIZATION NEEDED
-- internal/jose/server: 11.5s with `-v`, 360s timeout without `-v` - ⚠️ SPECIAL CASE
+- internal/jose/server: 9.5s (was 11.5s with -v) - ✅ FIREWALL ISSUE FIXED
 
 **Root Cause Analysis**:
 
 1. **Baseline data stale**: Timing from Dec 12 reflects old package locations (internal/common/crypto/keygen moved to internal/shared/crypto/keygen)
 2. **Package refactoring improved performance**: Code reorganization eliminated slow paths
-3. **TestMain + t.Parallel() issue**: jose/server uses TestMain for server lifecycle + parallel subtests. Without `-v` flag, Go test runner deadlocks waiting for output (known Go toolchain issue)
+3. **Windows Firewall popup issue** (P1.3): JOSE server tests binding to 0.0.0.0 (all interfaces) triggered Windows Firewall permission popup, causing tests to hang waiting for user interaction
 
-**Solution for jose/server**:
+**P1.3 Windows Firewall Issue Resolution**:
 
-- NOT a code optimization issue - it's a test runner configuration issue
-- Tests pass in 11.5s with `-v` flag (verbose output prevents deadlock)
-- CI/CD workflows already use `-v` flag for all tests
-- Local development: Always use `go test -v` for packages with TestMain + t.Parallel()
+**Root Cause**:
+
+- configs/test/config.yml set `bind-public-address: "0.0.0.0"` (all network interfaces)
+- Binding to 0.0.0.0 triggers Windows Firewall permission dialog
+- KMS tests used `NewTestConfig()` which hardcodes `127.0.0.1` (no firewall prompt)
+- JOSE tests used `RequireNewForTest()` which reads config.yml (inherited 0.0.0.0)
+
+**Solution**:
+
+- Changed configs/test/config.yml: `bind-public-address: "0.0.0.0"` → `"127.0.0.1"`
+- Eliminates firewall popup entirely
+- Tests now run cleanly without any flags
+
+**Verification**:
+
+- JOSE server tests: 9.5s execution time (well under 15s threshold)
+- No -v flag needed
+- No firewall popup
+- All tests passing
 
 **Findings**:
 
-- **All packages now run in <25s** (P1.1-P1.11 goal already achieved!)
+- **All packages now run in <15s** (new threshold, was 25s)
 - No probabilistic execution needed - current performance is excellent
-- Only action needed: Document jose/server requires `-v` flag
+- Firewall issue completely resolved by using 127.0.0.1 bind address
+
+**Instruction Updates**:
+
+- Updated copilot-instructions.md with stronger continuous work directives
+- Added CRITICAL: ALWAYS COMMIT CHANGES IMMEDIATELY WHEN WORK IS COMPLETE
+- Added prohibition: NO leaving uncommitted changes
+- Lowered Phase 1 goal from 25s to 15s execution time threshold
 
 **Commits This Session**:
 
 - cc3281b5: docs(p1.0): complete baseline test coverage analysis
+- 938cc3d4: fix(p1.3): resolve Windows Firewall popup by using 127.0.0.1 bind address
 
 **Status**:
 
 - P1.0 ✅ COMPLETE
-- P1.1-P1.11 ✅ COMPLETE (no optimization needed - all packages under 25s target)
+- P1.1-P1.11 ✅ COMPLETE (all packages under 15s target, firewall issue resolved)
 
 ### 2025-12-15: Phase 2 Hash Provider Refactoring Started
 
