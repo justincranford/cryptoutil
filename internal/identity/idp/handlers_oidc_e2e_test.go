@@ -122,7 +122,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Create test client with hashed secret.
 	testClientSecret := "test-client-secret-" + googleUuid.Must(googleUuid.NewV7()).String() // pragma: allowlist secret
-	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashSecret(testClientSecret)
+	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(testClientSecret)
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -150,7 +150,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Create test user with hashed password.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPasswordHash, err := cryptoutilDigests.HashSecret(testPassword)
+	testPasswordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(testPassword)
 	require.NoError(t, err, "Failed to hash password")
 
 	testUser := &cryptoutilIdentityDomain.User{

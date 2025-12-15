@@ -61,7 +61,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	// Client.Create() will use the provided hash to create ClientSecretVersion.
 	// Create test client with known secret.
 	originalSecret := "original-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
-	hashedSecret, err := cryptoutilDigests.HashSecret(originalSecret)
+	hashedSecret, err := cryptoutilDigests.HashLowEntropyNonDeterministic(originalSecret)
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
@@ -219,7 +219,7 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 
 	// Create auth client for authentication.
 	authSecret := "auth-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
-	authHashed, err := cryptoutilDigests.HashSecret(authSecret)
+	authHashed, err := cryptoutilDigests.HashLowEntropyNonDeterministic(authSecret)
 	require.NoError(t, err)
 
 	authClient := &cryptoutilIdentityDomain.Client{

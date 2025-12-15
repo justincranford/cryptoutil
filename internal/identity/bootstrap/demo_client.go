@@ -43,7 +43,7 @@ func CreateDemoClient(
 	// Generate demo client secret.
 	plainSecret = "demo-secret"
 
-	secretHash, err := cryptoutilDigests.HashSecret(plainSecret)
+	secretHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(plainSecret)
 	if err != nil {
 		return "", "", false, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrPasswordHashFailed,

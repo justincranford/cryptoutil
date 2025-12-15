@@ -317,7 +317,7 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 		// Generate and hash initial secret (version 1).
 		initialSecret := "test-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
 
-		secretHash, err := cryptoutilDigests.HashSecret(initialSecret)
+		secretHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(initialSecret)
 		if err != nil {
 			return fmt.Errorf("failed to hash initial secret: %w", err)
 		} // Create ClientSecretVersion.

@@ -32,7 +32,7 @@ func GenerateClientSecret() (string, string, error) {
 	plaintextSecret := base64.StdEncoding.EncodeToString(secretBytes)
 
 	// Hash the secret using PBKDF2-HMAC-SHA256 (FIPS 140-3 approved).
-	hashedSecret, err := cryptoutilIdentityClientAuth.HashSecret(plaintextSecret)
+	hashedSecret, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(plaintextSecret)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to hash client secret: %w", err)
 	}

@@ -199,7 +199,7 @@ func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, e
 		return nil, fmt.Errorf("password too long (maximum %d characters)", cryptoutilIdentityMagic.MaxPasswordLength)
 	}
 
-	hash, err := cryptoutilDigests.HashSecret(password)
+	hash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}

@@ -49,7 +49,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrKeyGenerationFailed, fmt.Errorf("failed to generate initial secret: %w", err))
 			}
 
-			secretHash, err = cryptoutilDigests.HashSecret(initialSecret)
+			secretHash, err = cryptoutilDigests.HashLowEntropyNonDeterministic(initialSecret)
 			if err != nil {
 				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrPasswordHashFailed, fmt.Errorf("failed to hash initial secret: %w", err))
 			}

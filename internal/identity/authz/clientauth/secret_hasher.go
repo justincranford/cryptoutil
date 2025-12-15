@@ -16,7 +16,7 @@ import (
 
 // SecretHasher provides FIPS 140-3 approved hashing for client secrets.
 type SecretHasher interface {
-	HashSecret(plaintext string) (string, error)
+	HashLowEntropyNonDeterministic(plaintext string) (string, error)
 	CompareSecret(hashed, plaintext string) error
 }
 
@@ -49,7 +49,7 @@ func MigrateClientSecrets(ctx context.Context, clientRepo cryptoutilIdentityRepo
 		}
 
 		// Hash plaintext secret.
-		hashedSecret, err := hasher.HashSecret(client.ClientSecret)
+		hashedSecret, err := hasher.HashLowEntropyNonDeterministic(client.ClientSecret)
 		if err != nil {
 			return migrated, fmt.Errorf("failed to hash secret for client %s: %w", client.ClientID, err)
 		}

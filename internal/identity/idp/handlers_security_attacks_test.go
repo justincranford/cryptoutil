@@ -120,7 +120,7 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 
 	// 10. Create test client.
 	testClientSecret := "test-client-secret-" + googleUuid.Must(googleUuid.NewV7()).String() // pragma: allowlist secret
-	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashSecret(testClientSecret)
+	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(testClientSecret)
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -148,7 +148,7 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 
 	// 11. Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPasswordHash, err := cryptoutilDigests.HashSecret(cryptoutilIdentityIdp.TestPassword)
+	testPasswordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(cryptoutilIdentityIdp.TestPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{

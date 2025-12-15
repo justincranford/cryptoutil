@@ -95,7 +95,7 @@ func TestHashSecret(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			hash, err := HashSecret(tc.secret)
+			hash, err := HashLowEntropyNonDeterministic(tc.secret)
 
 			if tc.wantErr {
 				require.Error(t, err)

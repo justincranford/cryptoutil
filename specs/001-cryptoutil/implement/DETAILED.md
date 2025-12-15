@@ -231,6 +231,60 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - P1.0 ✅ COMPLETE
 - P1.1-P1.11 ✅ COMPLETE (no optimization needed - all packages under 25s target)
 
+### 2025-12-15: Phase 2 Hash Provider Refactoring Started
+
+**Context**: Refactoring PBKDF2 hash provider for parameter versioning and adding HKDF-based providers for different entropy/determinism combinations.
+
+**P2.1 and P2.2 File Relocation** (Tasks P2.1-P2.2):
+
+**File Moves**:
+
+- Moved internal/common/crypto/digests/pbkdf2.go → internal/shared/crypto/digests/
+- Moved internal/common/crypto/digests/pbkdf2_test.go → internal/shared/crypto/digests/
+- Moved and renamed registry.go → hash_low_random_provider.go
+- Updated package declaration from 'crypto' to 'digests'
+- Removed empty internal/common/crypto/digests directory
+
+**Import Updates**:
+
+- Updated 21 import statements across identity codebase:
+  - identity/rotation/secret_rotation_service.go
+  - identity/repository/orm/client_repository.go
+  - identity/jobs/scheduled_rotation_test.go
+  - identity/idp/auth/username_password.go and username_password_test.go
+  - identity/idp/handlers_*.go (5 files)
+  - identity/integration/integration_test.go (also updated alias cryptoutilCrypto → cryptoutilDigests)
+  - identity/idp/userauth/*.go (2 files)
+  - identity/authz/handlers_client_rotation.go and handlers_client_rotation_test.go
+  - identity/authz/clientauth/*.go (4 files)
+  - identity/authz/client_authentication_flow_test.go
+  - identity/authz/cleanup_migration_test.go
+  - identity/bootstrap/demo_user.go and demo_client.go
+
+**Verification**:
+
+- All pbkdf2 tests passing in new location: `go test ./internal/shared/crypto/digests -run TestHashSecret -v`
+- Identity package tests passing with updated imports: `go test ./internal/identity/idp/auth -run TestUsernamePassword -v`
+- No build errors, all imports resolved correctly
+
+**Commits This Session**:
+
+- b6e0f3d5: docs(p1.1-p1.11): complete phase 1 optimization analysis
+- 7e72f8cc: refactor(p2.1-p2.2): move pbkdf2 and registry to shared/crypto/digests
+
+**Next Steps (P2.3-P2.9)**:
+
+- P2.3: Rename HashSecret → HashLowEntropyNonDeterministic
+- P2.4: Refactor HashSecretPBKDF2 for parameter injection
+- P2.5: Add versioned parameter sets
+- P2.6: Add hash_registry_test.go with multi-version tests
+- P2.7-P2.9: Add HKDF-based providers (high random, low fixed, high fixed)
+
+**Status**:
+
+- P2.1 ✅ COMPLETE (files moved to shared/crypto/digests)
+- P2.2 ✅ COMPLETE (registry.go renamed to hash_low_random_provider.go)
+
 ---
 
 ## References

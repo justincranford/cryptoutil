@@ -486,7 +486,7 @@ func TestEmailPasswordProfile_AuthenticateInvalidPassword(t *testing.T) {
 	// Create user with hashed password.
 	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
 	correctPassword := testPassword
-	passwordHash, err := hasher.HashSecret(correctPassword)
+	passwordHash, err := hasher.HashLowEntropyNonDeterministic(correctPassword)
 	require.NoError(t, err, "Failed to hash password")
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -520,7 +520,7 @@ func TestEmailPasswordProfile_AuthenticateSuccess(t *testing.T) {
 	// Create user with hashed password.
 	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
 	correctPassword := testPassword
-	passwordHash, err := hasher.HashSecret(correctPassword)
+	passwordHash, err := hasher.HashLowEntropyNonDeterministic(correctPassword)
 	require.NoError(t, err, "Failed to hash password")
 
 	testUser := &cryptoutilIdentityDomain.User{

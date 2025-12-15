@@ -33,7 +33,7 @@ func HashToken(plaintext string) (string, error) {
 		return "", ErrInvalidToken
 	}
 
-	hash, err := cryptoutilDigests.HashSecret(plaintext)
+	hash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(plaintext)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrHashGenerationFailed, err)
 	}

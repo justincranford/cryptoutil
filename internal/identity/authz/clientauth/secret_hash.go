@@ -21,9 +21,9 @@ const (
 	keyLength        = 32     // 256 bits
 )
 
-// HashSecret hashes a client secret using PBKDF2-HMAC-SHA256 (FIPS 140-3 approved).
+// HashLowEntropyNonDeterministic hashes a client secret using PBKDF2-HMAC-SHA256 (FIPS 140-3 approved).
 // Returns a base64-encoded string: "salt:hash".
-func HashSecret(secret string) (string, error) {
+func HashLowEntropyNonDeterministic(secret string) (string, error) {
 	// Generate random salt.
 	salt := make([]byte, saltLength)
 	if _, err := rand.Read(salt); err != nil {

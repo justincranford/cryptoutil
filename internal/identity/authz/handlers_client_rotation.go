@@ -74,7 +74,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	newSecretPlaintext := base64.URLEncoding.EncodeToString(secretBytes)
 
 	// Hash the new secret using PBKDF2-HMAC-SHA256 (FIPS-approved).
-	hashedSecret, err := cryptoutilDigests.HashSecret(newSecretPlaintext)
+	hashedSecret, err := cryptoutilDigests.HashLowEntropyNonDeterministic(newSecretPlaintext)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,

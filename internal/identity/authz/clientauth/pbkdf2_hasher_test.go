@@ -33,7 +33,7 @@ func TestNewPBKDF2Hasher(t *testing.T) {
 //
 // Validates requirements:
 // - R01-03: PBKDF2-HMAC-SHA256 password hashing (FIPS 140-3 approved).
-func TestPBKDF2Hasher_HashSecret(t *testing.T) {
+func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 	t.Parallel()
 
 	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
@@ -74,7 +74,7 @@ func TestPBKDF2Hasher_HashSecret(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			hash, err := hasher.HashSecret(tc.secret)
+			hash, err := hasher.HashLowEntropyNonDeterministic(tc.secret)
 
 			if tc.wantError {
 				testify.Error(t, err, "Expected error for test case")
@@ -115,10 +115,10 @@ func TestPBKDF2Hasher_HashUniqueness(t *testing.T) {
 	password := "SamePassword123"
 
 	// Generate two hashes for the same password.
-	hash1, err1 := hasher.HashSecret(password)
+	hash1, err1 := hasher.HashLowEntropyNonDeterministic(password)
 	testify.NoError(t, err1, "First hash should succeed")
 
-	hash2, err2 := hasher.HashSecret(password)
+	hash2, err2 := hasher.HashLowEntropyNonDeterministic(password)
 	testify.NoError(t, err2, "Second hash should succeed")
 
 	// Hashes should be different due to random salts.
@@ -142,7 +142,7 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 
 	// Generate hash for test password.
 	password := "CorrectPassword123"
-	hash, err := hasher.HashSecret(password)
+	hash, err := hasher.HashLowEntropyNonDeterministic(password)
 	testify.NoError(t, err, "Should hash test password")
 
 	tests := []struct {
@@ -250,7 +250,7 @@ func TestPBKDF2Hasher_CompareSecret_ConstantTime(t *testing.T) {
 
 	// Generate hash for test password.
 	password := "SecretPassword123"
-	hash, err := hasher.HashSecret(password)
+	hash, err := hasher.HashLowEntropyNonDeterministic(password)
 	testify.NoError(t, err, "Should hash test password")
 
 	// Test multiple incorrect passwords (timing should be constant).
@@ -277,7 +277,7 @@ func TestPBKDF2Hasher_FIPS140_3Compliance(t *testing.T) {
 
 	hasher := cryptoutilIdentityClientAuth.NewPBKDF2Hasher()
 
-	hash, err := hasher.HashSecret(testPassword)
+	hash, err := hasher.HashLowEntropyNonDeterministic(testPassword)
 	testify.NoError(t, err, "Should hash without error")
 
 	// Parse hash format.
@@ -315,7 +315,7 @@ func TestPBKDF2Hasher_SaltRandomness(t *testing.T) {
 	iterations := 100
 
 	for range iterations {
-		hash, err := hasher.HashSecret(testPassword)
+		hash, err := hasher.HashLowEntropyNonDeterministic(testPassword)
 		testify.NoError(t, err, "Should hash without error")
 
 		// Extract salt from hash.
@@ -368,7 +368,7 @@ func TestPBKDF2Hasher_EdgeCases(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			hash, err := hasher.HashSecret(tc.secret)
+			hash, err := hasher.HashLowEntropyNonDeterministic(tc.secret)
 
 			if tc.wantError {
 				testify.Error(t, err, "Expected error for edge case")
@@ -400,7 +400,7 @@ func TestPBKDF2Hasher_CompareSecret_VectorTests(t *testing.T) {
 	testify.NoError(t, err, "Should generate random salt")
 
 	// Hash password using PBKDF2Hasher (uses random salt).
-	hash, err := hasher.HashSecret(password)
+	hash, err := hasher.HashLowEntropyNonDeterministic(password)
 	testify.NoError(t, err, "Should hash without error")
 
 	// Verify correct password matches.

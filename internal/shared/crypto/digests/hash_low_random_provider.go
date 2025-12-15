@@ -2,8 +2,16 @@
 
 package digests
 
-// HashSecret hashes a secret using PBKDF2-HMAC-SHA256 (FIPS-approved).
+// HashLowEntropyNonDeterministic hashes a low-entropy secret (e.g., password, PIN) using a random salt.
+// Each invocation produces a different hash for the same input (non-deterministic).
+//
+// This function uses PBKDF2-HMAC-SHA256 with cryptographically random salt generation.
+// Suitable for authentication credentials where entropy cannot be guaranteed high.
+//
+// For high-entropy secrets (API keys, tokens), use HashHighEntropyNonDeterministic.
+// For deterministic hashing, use HashLowEntropyDeterministic or HashHighEntropyDeterministic.
+//
 // FIPS mode is ALWAYS enabled - no configurable algorithm selection.
-func HashSecret(secret string) (string, error) {
+func HashLowEntropyNonDeterministic(secret string) (string, error) {
 	return HashSecretPBKDF2(secret)
 }

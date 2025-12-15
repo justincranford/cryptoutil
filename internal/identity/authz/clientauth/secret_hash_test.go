@@ -13,7 +13,7 @@ import (
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 )
 
-func TestHashSecret(t *testing.T) {
+func TestHashLowEntropyNonDeterministic(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -42,7 +42,7 @@ func TestHashSecret(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			hashed, err := cryptoutilIdentityClientAuth.HashSecret(tc.secret)
+			hashed, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(tc.secret)
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -67,10 +67,10 @@ func TestHashSecret_Uniqueness(t *testing.T) {
 
 	secret := "same-secret"
 
-	hash1, err := cryptoutilIdentityClientAuth.HashSecret(secret)
+	hash1, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(secret)
 	require.NoError(t, err)
 
-	hash2, err := cryptoutilIdentityClientAuth.HashSecret(secret)
+	hash2, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(secret)
 	require.NoError(t, err)
 
 	// Hashes should be different due to random salt.
@@ -122,7 +122,7 @@ func TestCompareSecret(t *testing.T) {
 			t.Parallel()
 
 			// Hash the secret.
-			hashed, err := cryptoutilIdentityClientAuth.HashSecret(tc.secret)
+			hashed, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(tc.secret)
 			require.NoError(t, err)
 
 			// Compare with plain input.
@@ -196,7 +196,7 @@ func TestCompareSecret_ConstantTime(t *testing.T) {
 	// Reduced iterations from 100 to 10 to optimize test execution time (<30s target).
 
 	secret := "my-secret-password"
-	hashed, err := cryptoutilIdentityClientAuth.HashSecret(secret)
+	hashed, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(secret)
 	require.NoError(t, err)
 
 	// Multiple comparisons should all complete (no early returns).

@@ -41,7 +41,7 @@ func CreateDemoUser(
 	// Generate demo user password hash.
 	plainPassword = "demo-password"
 
-	passwordHash, err := cryptoutilDigests.HashSecret(plainPassword)
+	passwordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(plainPassword)
 	if err != nil {
 		return "", "", false, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrPasswordHashFailed,

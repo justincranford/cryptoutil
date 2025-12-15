@@ -122,7 +122,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 
 	// Create test client.
 	testClientSecret := "test-client-secret-" + googleUuid.Must(googleUuid.NewV7()).String() // pragma: allowlist secret
-	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashSecret(testClientSecret)
+	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(testClientSecret)
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -151,7 +151,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 	// Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
 	testPassword := "TestPassword123!" // pragma: allowlist secret
-	testPasswordHash, err := cryptoutilDigests.HashSecret(testPassword)
+	testPasswordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(testPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -416,7 +416,7 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 
 	// Create test client.
 	testClientSecret := "test-client-secret-" + googleUuid.Must(googleUuid.NewV7()).String() // pragma: allowlist secret
-	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashSecret(testClientSecret)
+	testClientSecretHash, err := cryptoutilIdentityClientAuth.HashLowEntropyNonDeterministic(testClientSecret)
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -445,7 +445,7 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 	// Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
 	testPassword := "TestPassword123!" // pragma: allowlist secret
-	testPasswordHash, err := cryptoutilDigests.HashSecret(testPassword)
+	testPasswordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(testPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{

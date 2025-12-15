@@ -22,7 +22,7 @@ func mustNewUUID() googleUuid.UUID {
 	return id
 }
 
-func TestPBKDF2Hasher_HashSecret(t *testing.T) {
+func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -52,7 +52,7 @@ func TestPBKDF2Hasher_HashSecret(t *testing.T) {
 			t.Parallel()
 
 			hasher := NewPBKDF2Hasher()
-			hashed, err := hasher.HashSecret(tc.plaintext)
+			hashed, err := hasher.HashLowEntropyNonDeterministic(tc.plaintext)
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -73,7 +73,7 @@ func TestPBKDF2Hasher_CompareSecret(t *testing.T) {
 
 	hasher := NewPBKDF2Hasher()
 	plaintext := "mySecretPassword123"
-	hashed, err := hasher.HashSecret(plaintext)
+	hashed, err := hasher.HashLowEntropyNonDeterministic(plaintext)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -193,7 +193,7 @@ func TestSecretBasedAuthenticator_AuthenticatePost(t *testing.T) {
 
 	ctx := context.Background()
 	hasher := NewPBKDF2Hasher()
-	hashedSecret, err := hasher.HashSecret("correct-secret")
+	hashedSecret, err := hasher.HashLowEntropyNonDeterministic("correct-secret")
 	require.NoError(t, err)
 
 	clientID, err := googleUuid.NewV7()
@@ -226,7 +226,7 @@ func TestSecretBasedAuthenticator_Authenticate(t *testing.T) {
 
 	ctx := context.Background()
 	hasher := NewPBKDF2Hasher()
-	hashedSecret, err := hasher.HashSecret("correct-secret")
+	hashedSecret, err := hasher.HashLowEntropyNonDeterministic("correct-secret")
 	require.NoError(t, err)
 
 	clientID, err := googleUuid.NewV7()
@@ -302,7 +302,7 @@ func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {
 
 	ctx := context.Background()
 	hasher := NewPBKDF2Hasher()
-	hashedSecret, err := hasher.HashSecret("correct-secret")
+	hashedSecret, err := hasher.HashLowEntropyNonDeterministic("correct-secret")
 	require.NoError(t, err)
 
 	clientID, err := googleUuid.NewV7()

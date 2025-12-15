@@ -58,7 +58,7 @@ func (s *SecretRotationService) RotateClientSecret(
 	}
 
 	// Hash new secret.
-	newSecretHash, err := cryptoutilDigests.HashSecret(newSecretPlaintext)
+	newSecretHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(newSecretPlaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash new secret: %w", err)
 	} // Execute rotation in transaction.
