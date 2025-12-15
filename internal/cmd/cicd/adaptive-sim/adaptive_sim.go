@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -94,29 +95,41 @@ type HistoricalAuthLog struct {
 }
 
 func main() {
+	os.Exit(internalMain(os.Args, os.Stdin, os.Stdout, os.Stderr))
+}
+
+// internalMain is the testable main function with injected dependencies.
+func internalMain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet(args[0], flag.ContinueOnError)
+	fs.SetOutput(stderr)
+
 	var (
-		riskScoringPath = flag.String("risk-scoring", "configs/identity/policies/risk_scoring.yml", "Path to risk scoring policy")
-		stepUpPath      = flag.String("step-up", "configs/identity/policies/step_up.yml", "Path to step-up policy")
-		adaptivePath    = flag.String("adaptive", "configs/identity/policies/adaptive_auth.yml", "Path to adaptive auth policy")
-		historicalLogs  = flag.String("logs", "", "Path to historical authentication logs (JSON)")
-		outputDir       = flag.String("output", "test-output/adaptive-sim", "Output directory for simulation results")
-		policyVersion   = flag.String("version", "v1.0", "Policy version identifier")
+		riskScoringPath = fs.String("risk-scoring", "configs/identity/policies/risk_scoring.yml", "Path to risk scoring policy")
+		stepUpPath      = fs.String("step-up", "configs/identity/policies/step_up.yml", "Path to step-up policy")
+		adaptivePath    = fs.String("adaptive", "configs/identity/policies/adaptive_auth.yml", "Path to adaptive auth policy")
+		historicalLogs  = fs.String("logs", "", "Path to historical authentication logs (JSON)")
+		outputDir       = fs.String("output", "test-output/adaptive-sim", "Output directory for simulation results")
+		policyVersion   = fs.String("version", "v1.0", "Policy version identifier")
 	)
 
-	flag.Parse()
+	if err := fs.Parse(args[1:]); err != nil {
+		return exitError
+	}
 
 	if *historicalLogs == "" {
-		fmt.Fprintln(os.Stderr, "Error: --logs flag is required")
-		fmt.Fprintln(os.Stderr, "\nUsage: adaptive-sim --logs=auth_logs.json [options]")
-		fmt.Fprintln(os.Stderr, "\nExample historical log format:")
-		fmt.Fprintln(os.Stderr, exampleLogFormat)
-		os.Exit(exitError)
+		_, _ = fmt.Fprintln(stderr, "Error: --logs flag is required")
+		_, _ = fmt.Fprintln(stderr, "\nUsage: adaptive-sim --logs=auth_logs.json [options]")
+		_, _ = fmt.Fprintln(stderr, "\nExample historical log format:")
+		_, _ = fmt.Fprintln(stderr, exampleLogFormat)
+
+		return exitError
 	}
 
 	// Create output directory.
 	if err := os.MkdirAll(*outputDir, dirPerms755); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create output directory: %v\n", err)
-		os.Exit(exitError)
+		_, _ = fmt.Fprintf(stderr, "Failed to create output directory: %v\n", err)
+
+		return exitError
 	}
 
 	// Create policy loader.
@@ -132,20 +145,22 @@ func main() {
 
 	result, err := simulator.Simulate(ctx, *historicalLogs, *policyVersion)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Simulation failed: %v\n", err)
-		os.Exit(exitError)
+		_, _ = fmt.Fprintf(stderr, "Simulation failed: %v\n", err)
+
+		return exitError
 	}
 
 	// Save results.
-	if err := simulator.SaveResults(result); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to save results: %v\n", err)
-		os.Exit(exitError)
+	if err := simulator.SaveResults(result, stdout); err != nil {
+		_, _ = fmt.Fprintf(stderr, "Failed to save results: %v\n", err)
+
+		return exitError
 	}
 
 	// Print summary.
-	simulator.PrintSummary(result)
+	simulator.PrintSummary(result, stdout)
 
-	os.Exit(exitSuccess)
+	return exitSuccess
 }
 
 // Simulate runs policy simulation against historical logs.
@@ -410,7 +425,7 @@ func (s *AdaptiveSimulator) LoadHistoricalLogs(path string) ([]HistoricalAuthLog
 }
 
 // SaveResults saves simulation results to JSON file.
-func (s *AdaptiveSimulator) SaveResults(result *SimulationResult) error {
+func (s *AdaptiveSimulator) SaveResults(result *SimulationResult, stdout io.Writer) error {
 	timestamp := time.Now().Format("20060102-150405")
 	filename := fmt.Sprintf("simulation-%s.json", timestamp)
 	outputPath := filepath.Join(s.outputDir, filename)
@@ -424,40 +439,40 @@ func (s *AdaptiveSimulator) SaveResults(result *SimulationResult) error {
 		return fmt.Errorf("failed to write results: %w", err)
 	}
 
-	fmt.Printf("\nSimulation results saved to: %s\n", outputPath)
+	_, _ = fmt.Fprintf(stdout, "\nSimulation results saved to: %s\n", outputPath)
 
 	return nil
 }
 
-// PrintSummary prints simulation summary to console.
-func (s *AdaptiveSimulator) PrintSummary(result *SimulationResult) {
-	fmt.Println("\n=== Adaptive Authentication Policy Simulation ===")
-	fmt.Printf("Policy Version: %s\n", result.PolicyVersion)
-	fmt.Printf("Simulation Time: %s\n", result.SimulationTime.Format(time.RFC3339))
-	fmt.Printf("Total Attempts: %d\n", result.TotalAttempts)
-	fmt.Println()
+// PrintSummary prints simulation summary to stdout.
+func (s *AdaptiveSimulator) PrintSummary(result *SimulationResult, stdout io.Writer) {
+	_, _ = fmt.Fprintln(stdout, "\n=== Adaptive Authentication Policy Simulation ===")
+	_, _ = fmt.Fprintf(stdout, "Policy Version: %s\n", result.PolicyVersion)
+	_, _ = fmt.Fprintf(stdout, "Simulation Time: %s\n", result.SimulationTime.Format(time.RFC3339))
+	_, _ = fmt.Fprintf(stdout, "Total Attempts: %d\n", result.TotalAttempts)
+	_, _ = fmt.Fprintln(stdout)
 
-	fmt.Println("=== Decisions ===")
-	fmt.Printf("Allowed: %d (%.1f%%)\n", result.AllowedOperations, float64(result.AllowedOperations)/float64(result.TotalAttempts)*100) //nolint:mnd
-	fmt.Printf("Step-Up Required: %d (%.1f%%)\n", result.StepUpRequired, result.StepUpRate*100)                                         //nolint:mnd
-	fmt.Printf("Blocked: %d (%.1f%%)\n", result.BlockedOperations, result.BlockedRate*100)                                              //nolint:mnd
-	fmt.Println()
+	_, _ = fmt.Fprintln(stdout, "=== Decisions ===")
+	_, _ = fmt.Fprintf(stdout, "Allowed: %d (%.1f%%)\n", result.AllowedOperations, float64(result.AllowedOperations)/float64(result.TotalAttempts)*100) //nolint:mnd
+	_, _ = fmt.Fprintf(stdout, "Step-Up Required: %d (%.1f%%)\n", result.StepUpRequired, result.StepUpRate*100)                                         //nolint:mnd
+	_, _ = fmt.Fprintf(stdout, "Blocked: %d (%.1f%%)\n", result.BlockedOperations, result.BlockedRate*100)                                              //nolint:mnd
+	_, _ = fmt.Fprintln(stdout)
 
-	fmt.Println("=== Risk Distribution ===")
+	_, _ = fmt.Fprintln(stdout, "=== Risk Distribution ===")
 
 	for level, count := range result.RiskDistribution {
-		fmt.Printf("%s: %d (%.1f%%)\n", level, count, float64(count)/float64(result.TotalAttempts)*100) //nolint:mnd
+		_, _ = fmt.Fprintf(stdout, "%s: %d (%.1f%%)\n", level, count, float64(count)/float64(result.TotalAttempts)*100) //nolint:mnd
 	}
 
-	fmt.Println()
+	_, _ = fmt.Fprintln(stdout)
 
-	fmt.Println("=== Recommendations ===")
+	_, _ = fmt.Fprintln(stdout, "=== Recommendations ===")
 
 	for i, rec := range result.Recommendations {
-		fmt.Printf("%d. %s\n", i+1, rec)
+		_, _ = fmt.Fprintf(stdout, "%d. %s\n", i+1, rec)
 	}
 
-	fmt.Println()
+	_, _ = fmt.Fprintln(stdout)
 }
 
 const exampleLogFormat = `[

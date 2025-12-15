@@ -3,8 +3,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -435,7 +439,9 @@ func TestSimulation_EndToEnd(t *testing.T) {
 	require.NotEmpty(t, result.Recommendations)
 
 	// Save results.
-	err = simulator.SaveResults(result)
+	stdout := &bytes.Buffer{}
+
+	err = simulator.SaveResults(result, stdout)
 
 	require.NoError(t, err)
 }
@@ -742,3 +748,70 @@ const mockHistoricalLogs = `[
     "metadata": {}
   }
 ]`
+
+// TestInternalMain tests for main() testability pattern.
+
+func TestInternalMain_MissingLogsFlag(t *testing.T) {
+	t.Parallel()
+
+	args := []string{"adaptive-sim"}
+	stdin := strings.NewReader("")
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	exitCode := internalMain(args, stdin, stdout, stderr)
+
+	require.Equal(t, exitError, exitCode)
+	require.Contains(t, stderr.String(), "Error: --logs flag is required")
+	require.Contains(t, stderr.String(), "Usage: adaptive-sim")
+}
+
+func TestInternalMain_InvalidLogsFile(t *testing.T) {
+	t.Parallel()
+
+	args := []string{"adaptive-sim", "--logs=nonexistent.json"}
+	stdin := strings.NewReader("")
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	exitCode := internalMain(args, stdin, stdout, stderr)
+
+	require.Equal(t, exitError, exitCode)
+	require.Contains(t, stderr.String(), "Simulation failed")
+}
+
+func TestInternalMain_HappyPath(t *testing.T) {
+	// NOTE: This test requires policy YAML files which depend on working directory.
+	// Skip if not in project root.
+	if _, err := os.Stat("configs/identity/policies/risk_scoring.yml"); os.IsNotExist(err) {
+		t.Skip("Skipping test - policy files not accessible from current working directory")
+	}
+
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	logsPath := filepath.Join(tempDir, "logs.json")
+	outputDir := filepath.Join(tempDir, "output")
+
+	testLogs := []HistoricalAuthLog{
+		{
+			UserID: "u1", Operation: "login", IPAddress: "192.168.1.1", DeviceID: "d1",
+			Country: "US", City: "NYC", IsVPN: false, IsProxy: false,
+			CurrentAuthLevel: "basic", Success: true, Metadata: map[string]any{},
+		},
+	}
+
+	data, _ := json.MarshalIndent(testLogs, "", "  ")
+	_ = os.WriteFile(logsPath, data, filePerms600)
+
+	args := []string{"adaptive-sim", "--logs=" + logsPath, "--output=" + outputDir}
+	stdin := strings.NewReader("")
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	exitCode := internalMain(args, stdin, stdout, stderr)
+
+	require.Equal(t, exitSuccess, exitCode, "stderr: %s", stderr.String())
+	require.Contains(t, stdout.String(), "Adaptive Authentication Policy Simulation")
+	require.Contains(t, stdout.String(), "Total Attempts: 1")
+}
