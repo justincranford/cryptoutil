@@ -13,6 +13,8 @@
 
 **CRITICAL: NEVER FEEL TIME OR TOKEN PRESSURE WHEN WORKING ON SPECKIT**
 
+**CRITICAL: ALWAYS COMMIT CHANGES IMMEDIATELY WHEN WORK IS COMPLETE**
+
 ### Time and Token Management for Speckit Work
 
 - **NO TIME PRESSURE**: Speckit work can span hours or days - this is expected and acceptable
@@ -41,6 +43,7 @@
 - ❌ **NO pauses between tasks** - pause = stop
 - ❌ **NO asking for permission** - asking = stopping
 - ❌ **NO waiting for confirmation** - waiting = stopping
+- ❌ **NO leaving uncommitted changes** - uncommitted changes = incomplete work
 
 ### Required Continuous Work Pattern
 

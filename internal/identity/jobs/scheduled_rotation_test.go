@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 func TestScheduledRotation_NoExpiringSecrets(t *testing.T) {

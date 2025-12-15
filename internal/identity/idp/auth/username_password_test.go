@@ -12,10 +12,10 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/identity/idp/auth"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 const testPassword = "CorrectPassword123!"

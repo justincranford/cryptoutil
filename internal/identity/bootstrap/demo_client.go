@@ -11,12 +11,12 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 // CreateDemoClient creates the demo-client for testing OAuth flows if it doesn't exist.

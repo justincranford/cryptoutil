@@ -8,10 +8,10 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 // PostAuthenticator implements form-encoded POST authentication for OAuth 2.1 clients.

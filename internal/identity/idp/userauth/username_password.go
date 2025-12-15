@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 
 	googleUuid "github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"

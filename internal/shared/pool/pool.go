@@ -283,7 +283,7 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 			pool.generateDurationHistogram.Record(pool.cfg.ctx, float64(time.Since(startPermissionTime).Milliseconds()))
 
 			err := pool.generatePublishRelease(workerNum, startTime) // attempt to generate inside a function, where permission is always released, even if there is an error or panic
-			if err != nil { // if there was an error, log it and stop the worker
+			if err != nil {                                          // if there was an error, log it and stop the worker
 				pool.cfg.telemetryService.Slogger.Error("worker error", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
 
 				return

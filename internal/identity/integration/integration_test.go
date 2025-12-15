@@ -29,13 +29,13 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityPKCE "cryptoutil/internal/identity/authz/pkce"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"

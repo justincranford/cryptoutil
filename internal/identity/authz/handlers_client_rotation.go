@@ -13,9 +13,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 // handleClientSecretRotation handles POST /oauth2/v1/clients/{id}/rotate-secret.

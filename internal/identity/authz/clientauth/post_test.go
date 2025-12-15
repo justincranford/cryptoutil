@@ -11,10 +11,10 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 func TestPostAuthenticator_MethodName(t *testing.T) {

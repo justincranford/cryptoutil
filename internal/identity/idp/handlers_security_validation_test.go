@@ -19,13 +19,13 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIdp "cryptoutil/internal/identity/idp"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 // TestSecurityValidation_InputSanitization validates that malicious input is properly sanitized.

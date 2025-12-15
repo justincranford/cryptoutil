@@ -11,7 +11,7 @@
 
 ### Phase 1: Optimize Slow Test Packages (12 tasks)
 
-**Goal**: Ensure all packages are <= 25sec execution time
+**Goal**: Ensure all packages are <= 15sec execution time
 
 **Strategy**: Use probabilistic approach to always execute lowest key size, but probabilistically skip larger key sizes
 
@@ -30,12 +30,12 @@
 
 ### Phase 2: Refactor Low Entropy Random Hashing (PBKDF2), and add High Entropy Random, Low Entropy Deterministic, and High Entropy Deterministic (9 tasks)
 
-- [ ] **P2.1**: Move internal/common/crypto/digests/pbkdf2.go and internal/common/crypto/digests/pbkdf2_test.go to internal/shared/crypto/digests/
-- [ ] **P2.2**: Move internal/common/crypto/digests/registry.go to internal/shared/crypto/digests/hash_low_random_provider.go
-- [ ] **P2.3**: Rename HashSecret in internal/shared/crypto/digests/hash_registry.go to HashLowEntropyNonDeterministic
-- [ ] **P2.4**: Refactor HashSecretPBKDF2 so parameters are injected as a set from hash_registry.go: salt, iterations, hash length, digest algorithm
-- [ ] **P2.5**: Refactor hash_registry.go parameter set to be versioned: default version is "{1}", and is used to prefix encoded outputs
-- [ ] **P2.6**: Add internal/shared/crypto/digests/hash_registry_test.go with table-driven happy path tests with 1|2|3 parameter sets in the registry, hashing can be done with all registered parameter sets, and verify func can validate all hashes starting with "{1}", "{2}", or "{3}"
+- [x] **P2.1**: Move internal/common/crypto/digests/pbkdf2.go and internal/common/crypto/digests/pbkdf2_test.go to internal/shared/crypto/digests/
+- [x] **P2.2**: Move internal/common/crypto/digests/registry.go to internal/shared/crypto/digests/hash_low_random_provider.go
+- [x] **P2.3**: Rename HashSecret in internal/shared/crypto/digests/hash_registry.go to HashLowEntropyNonDeterministic
+- [x] **P2.4**: Refactor HashSecretPBKDF2 so parameters are injected as a set from hash_registry.go: salt, iterations, hash length, digest algorithm
+- [ ] **P2.5**: Add hash_registry.go with version-to-parameter-set mapping and lookup functions
+- [ ] **P2.6**: Add hash_registry_test.go with table-driven happy path tests with 1|2|3 parameter sets in the registry, hashing can be done with all registered parameter sets, and verify func can validate all hashes starting with "{1}", "{2}", or "{3}"
 - [ ] **P2.7**: Add internal/shared/crypto/digests/hash_high_random_provider.go with test class; based on HKDF
 - [ ] **P2.8**: Add internal/shared/crypto/digests/hash_low_fixed_provider.go with test class; based on HKDF
 - [ ] **P2.9**: Add internal/shared/crypto/digests/hash_high_fixed_provider.go with test class; based on HKDF
@@ -327,6 +327,65 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 **Status**:
 
 - P2.3 ✅ COMPLETE (HashSecret renamed to HashLowEntropyNonDeterministic)
+
+### 2025-12-15: Phase 2 PBKDF2 Parameter Injection and Versioning (P2.4)
+
+**Context**: Refactored PBKDF2 hashing to support parameter injection and versioned hash formats for future security upgrades.
+
+**New Files**:
+
+- `internal/shared/crypto/digests/hash_parameter_sets.go`: Parameter set definitions
+  - PBKDF2ParameterSet struct (version, hashname, iterations, saltlength, keylength, hashfunc)
+  - DefaultPBKDF2ParameterSet() (version "1", 600K iterations)
+  - PBKDF2ParameterSetV1(), V2(1M), V3(2M) parameter sets
+
+**Function Changes**:
+
+- `HashSecretPBKDF2()`: Now uses `HashSecretPBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())`
+- `HashSecretPBKDF2WithParams()`: New function accepting parameter set (iterations, salt, key, hash)
+- `VerifySecret()`: Updated to handle three formats:
+  1. Versioned PBKDF2: `{version}$hashname$iter$salt$dk`
+  2. Legacy PBKDF2: `hashname$iter$salt$dk`
+  3. Legacy bcrypt: `$2a$...`, `$2b$...`, `$2y$...`
+
+**Hash Format Changes**:
+
+- Old format: `pbkdf2-sha256$600000$<salt>$<dk>`
+- New format: `{1}$pbkdf2-sha256$600000$<salt>$<dk>`
+- Version prefix allows future parameter upgrades without breaking existing hashes
+
+**Magic Constants Added** (internal/shared/magic/magic_crypto.go):
+
+- `PBKDF2V2Iterations = 1_000_000` (version 2 iteration count)
+- `PBKDF2V3Iterations = 2_000_000` (version 3 iteration count)
+- `PBKDF2VersionedFormatParts = 5` (versioned hash format parts)
+- `PBKDF2LegacyFormatParts = 4` (legacy hash format parts)
+
+**Test Updates**:
+
+- Updated all test expectations to expect `{1}$` prefix
+- Fixed error message expectations (`unsupported hash format` → `invalid legacy hash format`)
+- All tests passing: TestHashSecretPBKDF2, TestHashSecret, TestVerifySecret, TestVerifySecret_LegacyBcrypt
+
+**Backward Compatibility**:
+
+- VerifySecret validates all three formats correctly
+- Existing hashes (bcrypt, legacy PBKDF2) continue to work
+- New hashes use versioned format by default
+
+**Commits This Session**:
+
+- 38b50a01: refactor(p2.4): add PBKDF2 parameter injection and versioning support
+
+**Rationale**:
+
+- **Parameter Injection**: Allows future algorithm/iteration upgrades without code changes
+- **Versioning**: Enables gradual migration to stronger parameters (V1→V2→V3)
+- **Backward Compatibility**: Existing hashes continue working; no forced re-hashing
+
+**Status**:
+
+- P2.4 ✅ COMPLETE (parameter injection and versioning implemented)
 
 ---
 
