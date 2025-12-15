@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	// bytesPerUint64 is the number of bytes in a uint64.
-	bytesPerUint64 = 8
+	bytesPerUint32 = 4
+	SkipMessage    = "Skipped by probability sampling"
 )
 
 // SkipByProbability skips the test based on the given probability.
@@ -25,22 +25,23 @@ func SkipByProbability(t *testing.T, prob float32) {
 	require.GreaterOrEqual(t, prob, 0.0)
 	require.LessOrEqual(t, prob, 1.0)
 
-	if normalizedRandomFloat64(t) > prob {
-		t.Skip("Skipped by probability sampling")
+	skip := normalizedRandomFloat32(t) > prob
+	if skip {
+		t.Skip(SkipMessage)
 	}
 }
 
-// normalizedRandomFloat64 generates a cryptographically secure random float64 in [0,1).
-func normalizedRandomFloat64(t *testing.T) float32 {
-	var b [bytesPerUint64]byte
+// normalizedRandomFloat32 generates a cryptographically secure random float32 in [0,1).
+func normalizedRandomFloat32(t *testing.T) float32 {
+	var b [bytesPerUint32]byte
 
 	_, err := rand.Read(b[:])
 	require.NoError(t, err)
 
-	randomUint64 := uint64(0)
+	randomUint32 := uint32(0)
 	for i, v := range b {
-		randomUint64 |= uint64(v) << (i * bytesPerUint64)
+		randomUint32 |= uint32(v) << (i * bytesPerUint32)
 	}
 
-	return float32(randomUint64) / float32(math.MaxUint64)
+	return float32(randomUint32) / float32(math.MaxUint32)
 }
