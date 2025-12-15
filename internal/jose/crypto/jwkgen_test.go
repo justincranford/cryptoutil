@@ -27,7 +27,7 @@ func TestGenerateRSAJWK(t *testing.T) {
 	tests := []struct {
 		name    string
 		rsaBits int
-		prob    float64
+		prob    float32
 	}{
 		{"RSA2048", cryptoutilMagic.RSAKeySize2048, cryptoutilMagic.TestProbAlways},
 		{"RSA3072", cryptoutilMagic.RSAKeySize3072, cryptoutilMagic.TestProbTenth},
@@ -62,7 +62,7 @@ func TestGenerateECDSAJWK(t *testing.T) {
 	tests := []struct {
 		name  string
 		curve elliptic.Curve
-		prob  float64
+		prob  float32
 	}{
 		{"P256", elliptic.P256(), cryptoutilMagic.TestProbAlways},
 		{"P384", elliptic.P384(), cryptoutilMagic.TestProbTenth},
@@ -97,7 +97,7 @@ func TestGenerateECDHJWK(t *testing.T) {
 	tests := []struct {
 		name  string
 		curve ecdh.Curve
-		prob  float64
+		prob  float32
 	}{
 		{"P256", ecdh.P256(), cryptoutilMagic.TestProbAlways},
 		{"P384", ecdh.P384(), cryptoutilMagic.TestProbTenth},
@@ -149,7 +149,7 @@ func TestGenerateAESJWK(t *testing.T) {
 	tests := []struct {
 		name    string
 		aesBits int
-		prob    float64
+		prob    float32
 	}{
 		{"AES128", cryptoutilMagic.AESKeySize128, cryptoutilMagic.TestProbAlways},
 		{"AES192", cryptoutilMagic.AESKeySize192, cryptoutilMagic.TestProbTenth},
@@ -184,7 +184,7 @@ func TestGenerateAESHSJWK(t *testing.T) {
 	tests := []struct {
 		name      string
 		aesHsBits int
-		prob      float64
+		prob      float32
 	}{
 		{"AES128HS256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbAlways},
 		{"AES192HS384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbTenth},
@@ -219,7 +219,7 @@ func TestGenerateHMACJWK(t *testing.T) {
 	tests := []struct {
 		name     string
 		hmacBits int
-		prob     float64
+		prob     float32
 	}{
 		{"HMAC256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbAlways},
 		{"HMAC384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbTenth},

@@ -25,7 +25,7 @@ func TestGenerateRSAKeyPair(t *testing.T) {
 	testCases := []struct {
 		name    string
 		rsaBits int
-		prob    float64
+		prob    float32
 	}{
 		{"RSA 2048", 2048, cryptoutilMagic.TestProbAlways},
 		{"RSA 3072", 3072, cryptoutilMagic.TestProbTenth},
@@ -79,7 +79,7 @@ func TestGenerateECDSAKeyPair(t *testing.T) {
 	testCases := []struct {
 		name  string
 		curve elliptic.Curve
-		prob  float64
+		prob  float32
 	}{
 		{"P-256", elliptic.P256(), cryptoutilMagic.TestProbAlways},
 		{"P-384", elliptic.P384(), cryptoutilMagic.TestProbTenth},
@@ -132,7 +132,7 @@ func TestGenerateECDHKeyPair(t *testing.T) {
 	testCases := []struct {
 		name  string
 		curve ecdh.Curve
-		prob  float64
+		prob  float32
 	}{
 		{"P-256", ecdh.P256(), cryptoutilMagic.TestProbAlways},
 		{"P-384", ecdh.P384(), cryptoutilMagic.TestProbTenth},
@@ -186,7 +186,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 	testCases := []struct {
 		name   string
 		curve  string
-		prob   float64
+		prob   float32
 		verify func(*testing.T, *KeyPair)
 	}{
 		{
@@ -267,7 +267,7 @@ func TestGenerateAESKey(t *testing.T) {
 		name         string
 		aesBits      int
 		expectedSize int
-		prob         float64
+		prob         float32
 	}{
 		{"AES-128", aesKeySize128, aesKeySize128 / bitsToBytes, cryptoutilMagic.TestProbAlways},
 		{"AES-192", aesKeySize192, aesKeySize192 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
@@ -331,7 +331,7 @@ func TestGenerateAESHSKey(t *testing.T) {
 		name         string
 		aesHsBits    int
 		expectedSize int
-		prob         float64
+		prob         float32
 	}{
 		{"AES-HS-256", aesHsKeySize256, aesHsKeySize256 / bitsToBytes, cryptoutilMagic.TestProbAlways},
 		{"AES-HS-384", aesHsKeySize384, aesHsKeySize384 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
@@ -395,7 +395,7 @@ func TestGenerateHMACKey(t *testing.T) {
 		name         string
 		hmacBits     int
 		expectedSize int
-		prob         float64
+		prob         float32
 	}{
 		{"HMAC 256", 256, 256 / bitsToBytes, cryptoutilMagic.TestProbAlways},
 		{"HMAC 512", 512, 512 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
