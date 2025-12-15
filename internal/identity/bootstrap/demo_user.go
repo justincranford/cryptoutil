@@ -11,7 +11,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"

@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package crypto
+package digests
 
 import (
 	"strings"

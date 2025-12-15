@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 var (

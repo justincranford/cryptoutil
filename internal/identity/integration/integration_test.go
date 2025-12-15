@@ -29,7 +29,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilCrypto "cryptoutil/internal/common/crypto/digests"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilIdentityPKCE "cryptoutil/internal/identity/authz/pkce"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -353,7 +353,7 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 	now := time.Now()
 
 	// Generate password hash using the same crypto package used by authentication
-	passwordHash, err := cryptoutilCrypto.HashSecret(testPassword)
+	passwordHash, err := cryptoutilDigests.HashSecret(testPassword)
 	testify.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -376,7 +376,7 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 
 	// Hash the client secret using PBKDF2-HMAC-SHA256 (same as production).
 	// Integration test uses same hashing as production to validate authentication flow.
-	hashedClientSecret, err := cryptoutilCrypto.HashSecret(testClientSecret)
+	hashedClientSecret, err := cryptoutilDigests.HashSecret(testClientSecret)
 	testify.NoError(t, err, "Failed to hash client secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{

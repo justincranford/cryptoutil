@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package crypto
+package digests
 
 // HashSecret hashes a secret using PBKDF2-HMAC-SHA256 (FIPS-approved).
 // FIPS mode is ALWAYS enabled - no configurable algorithm selection.
