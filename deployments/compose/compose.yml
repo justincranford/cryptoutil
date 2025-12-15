@@ -222,6 +222,54 @@ services:
       - e2e-network
       - telemetry-network
 
+  # CA server with SQLite backend for E2E testing.
+  ca-e2e:
+    image: cryptoutil:dev
+    command:
+      - "ca"
+      - "start"
+      - "--config=/app/config/ca-sqlite.yml"
+      - "--config=/app/config/ca-common.yml"
+      - "--config=/app/otel/otel.yml"
+    working_dir: /tmp
+    ports:
+      - "8443:8443"  # HTTPS public (CA uses 8443, not 8080)
+      - "9443:9090"  # Admin API (host:container mapping)
+    volumes:
+      - ../ca/config/ca-sqlite.yml:/app/config/ca-sqlite.yml:ro
+      - ../ca/config/ca-common.yml:/app/config/ca-common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../ca/ca-crls:/app/crls  # CRL distribution point
+    secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+    environment:
+      - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+    healthcheck:
+      # CA uses curl (not wget like KMS), and /livez (not /admin/v1/livez).
+      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:8443/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    networks:
+      - e2e-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
 networks:
   e2e-network:
     driver: bridge

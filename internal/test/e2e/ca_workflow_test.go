@@ -35,18 +35,28 @@ func (suite *CAWorkflowSuite) TearDownSuite() {
 
 // TestCertificateLifecycleWorkflow tests complete certificate lifecycle.
 func (suite *CAWorkflowSuite) TestCertificateLifecycleWorkflow() {
-	suite.T().Skip("TODO P4.3: Full implementation requires CA OpenAPI client generation and CSR submission APIs")
+	suite.T().Skip("TODO P4.3: Implement full CA enrollment workflow with CSR generation and certificate retrieval")
 
-	// TODO: Full implementation requires:
-	// 1. Generate CA OpenAPI client (like KMS client)
-	// 2. Implement CSR submission endpoint in CA service
-	// 3. Implement certificate issuance workflow
-	// 4. Implement revocation endpoint
-	// 5. Implement CRL distribution endpoint
-	//
-	// Current status: CA service deployed but APIs not yet exposed via OpenAPI
-	// Reference: deployments/ca/compose.yml has ca-sqlite service
-	// Next: Generate OpenAPI spec for CA service similar to api/openapi_spec_*.yaml pattern
+	// Workflow steps:
+	// 1. Generate ECDSA P-256 private key
+	// 2. Create CSR with subject CN=test.example.com
+	// 3. Submit CSR to /api/v1/ca/enroll with profile=tls-server
+	// 4. Verify enrollment response contains request_id and status
+	// 5. If status=pending, poll /api/v1/ca/enroll/{requestId} until status=issued
+	// 6. Parse returned certificate PEM
+	// 7. Verify certificate properties (subject, validity, key usage)
+	// 8. Verify certificate signature against CA certificate chain
+
+	// Example using CA client:
+	// caClient := suite.fixture.GetCAClient()
+	// enrollReq := &caclient.PostApiV1CaEnrollJSONRequestBody{
+	//     Csr: csrPEM,
+	//     Profile: "tls-server",
+	//     ValidityDays: ptr(365),
+	// }
+	// enrollResp, err := caClient.PostApiV1CaEnrollWithResponse(suite.fixture.ctx, enrollReq)
+	// require.NoError(suite.T(), err)
+	// require.Equal(suite.T(), 201, enrollResp.StatusCode())
 }
 
 // TestOCSPWorkflow tests OCSP responder functionality.
