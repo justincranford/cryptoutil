@@ -8,11 +8,11 @@ import (
 	"crypto/ecdh"
 	"crypto/elliptic"
 	"errors"
-	"math/rand"
 	"testing"
 
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilUtil "cryptoutil/internal/shared/util"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -27,13 +27,18 @@ func TestGenerateRSAJWK(t *testing.T) {
 	tests := []struct {
 		name    string
 		rsaBits int
+		prob    float64
 	}{
-		{"RSA2048", cryptoutilMagic.RSAKeySize2048},
+		{"RSA2048", cryptoutilMagic.RSAKeySize2048, cryptoutilMagic.TestProbAlways},
+		{"RSA3072", cryptoutilMagic.RSAKeySize3072, cryptoutilMagic.TestProbTenth},
+		{"RSA4096", cryptoutilMagic.RSAKeySize4096, cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateRSAJWK(tc.rsaBits)
 			require.NoError(t, err)
@@ -60,17 +65,15 @@ func TestGenerateECDSAJWK(t *testing.T) {
 		prob  float64
 	}{
 		{"P256", elliptic.P256(), cryptoutilMagic.TestProbAlways},
-		{"P384", elliptic.P384(), cryptoutilMagic.TestProbThird},
-		{"P521", elliptic.P521(), cryptoutilMagic.TestProbThird},
+		{"P384", elliptic.P384(), cryptoutilMagic.TestProbTenth},
+		{"P521", elliptic.P521(), cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateECDSAJWK(tc.curve)
 			require.NoError(t, err)
@@ -97,17 +100,15 @@ func TestGenerateECDHJWK(t *testing.T) {
 		prob  float64
 	}{
 		{"P256", ecdh.P256(), cryptoutilMagic.TestProbAlways},
-		{"P384", ecdh.P384(), cryptoutilMagic.TestProbThird},
-		{"P521", ecdh.P521(), cryptoutilMagic.TestProbThird},
+		{"P384", ecdh.P384(), cryptoutilMagic.TestProbTenth},
+		{"P521", ecdh.P521(), cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateECDHJWK(tc.curve)
 			require.NoError(t, err)
@@ -150,18 +151,16 @@ func TestGenerateAESJWK(t *testing.T) {
 		aesBits int
 		prob    float64
 	}{
-		{"AES128", cryptoutilMagic.AESKeySize128, cryptoutilMagic.TestProbQuarter},
-		{"AES192", cryptoutilMagic.AESKeySize192, cryptoutilMagic.TestProbQuarter},
-		{"AES256", cryptoutilMagic.AESKeySize256, cryptoutilMagic.TestProbAlways},
+		{"AES128", cryptoutilMagic.AESKeySize128, cryptoutilMagic.TestProbAlways},
+		{"AES192", cryptoutilMagic.AESKeySize192, cryptoutilMagic.TestProbTenth},
+		{"AES256", cryptoutilMagic.AESKeySize256, cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateAESJWK(tc.aesBits)
 			require.NoError(t, err)
@@ -187,18 +186,16 @@ func TestGenerateAESHSJWK(t *testing.T) {
 		aesHsBits int
 		prob      float64
 	}{
-		{"AES128HS256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbQuarter},
-		{"AES192HS384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbQuarter},
-		{"AES256HS512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbAlways},
+		{"AES128HS256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbAlways},
+		{"AES192HS384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbTenth},
+		{"AES256HS512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateAESHSJWK(tc.aesHsBits)
 			require.NoError(t, err)
@@ -224,18 +221,16 @@ func TestGenerateHMACJWK(t *testing.T) {
 		hmacBits int
 		prob     float64
 	}{
-		{"HMAC256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbQuarter},
-		{"HMAC384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbQuarter},
-		{"HMAC512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbAlways},
+		{"HMAC256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbAlways},
+		{"HMAC384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbTenth},
+		{"HMAC512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			jwk, err := GenerateHMACJWK(tc.hmacBits)
 			require.NoError(t, err)

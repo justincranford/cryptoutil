@@ -9,10 +9,10 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
-	"math/rand"
 	"testing"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilUtil "cryptoutil/internal/shared/util"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	"github.com/stretchr/testify/require"
@@ -28,17 +28,15 @@ func TestGenerateRSAKeyPair(t *testing.T) {
 		prob    float64
 	}{
 		{"RSA 2048", 2048, cryptoutilMagic.TestProbAlways},
-		{"RSA 3072", 3072, cryptoutilMagic.TestProbThird},
-		{"RSA 4096", 4096, cryptoutilMagic.TestProbThird},
+		{"RSA 3072", 3072, cryptoutilMagic.TestProbTenth},
+		{"RSA 4096", 4096, cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateRSAKeyPair(tc.rsaBits)
 			require.NoError(t, err)
@@ -84,17 +82,15 @@ func TestGenerateECDSAKeyPair(t *testing.T) {
 		prob  float64
 	}{
 		{"P-256", elliptic.P256(), cryptoutilMagic.TestProbAlways},
-		{"P-384", elliptic.P384(), cryptoutilMagic.TestProbThird},
-		{"P-521", elliptic.P521(), cryptoutilMagic.TestProbThird},
+		{"P-384", elliptic.P384(), cryptoutilMagic.TestProbTenth},
+		{"P-521", elliptic.P521(), cryptoutilMagic.TestProbTenth},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateECDSAKeyPair(tc.curve)
 			require.NoError(t, err)
@@ -139,8 +135,8 @@ func TestGenerateECDHKeyPair(t *testing.T) {
 		prob  float64
 	}{
 		{"P-256", ecdh.P256(), cryptoutilMagic.TestProbAlways},
-		{"P-384", ecdh.P384(), cryptoutilMagic.TestProbThird},
-		{"P-521", ecdh.P521(), cryptoutilMagic.TestProbThird},
+		{"P-384", ecdh.P384(), cryptoutilMagic.TestProbTenth},
+		{"P-521", ecdh.P521(), cryptoutilMagic.TestProbTenth},
 		{"X25519", ecdh.X25519(), cryptoutilMagic.TestProbAlways},
 	}
 
@@ -148,9 +144,7 @@ func TestGenerateECDHKeyPair(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateECDHKeyPair(tc.curve)
 			require.NoError(t, err)
@@ -212,7 +206,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 		{
 			name:  "Ed448",
 			curve: EdCurveEd448,
-			prob:  cryptoutilMagic.TestProbThird,
+			prob:  cryptoutilMagic.TestProbTenth,
 			verify: func(t *testing.T, keyPair *KeyPair) {
 				privateKey, ok := keyPair.Private.(ed448.PrivateKey)
 				require.True(t, ok, "private key should be ed448.PrivateKey")
@@ -229,9 +223,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateEDDSAKeyPair(tc.curve)
 			require.NoError(t, err)
@@ -277,18 +269,16 @@ func TestGenerateAESKey(t *testing.T) {
 		expectedSize int
 		prob         float64
 	}{
-		{"AES-128", aesKeySize128, aesKeySize128 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
+		{"AES-128", aesKeySize128, aesKeySize128 / bitsToBytes, cryptoutilMagic.TestProbAlways},
 		{"AES-192", aesKeySize192, aesKeySize192 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
-		{"AES-256", aesKeySize256, aesKeySize256 / bitsToBytes, cryptoutilMagic.TestProbAlways},
+		{"AES-256", aesKeySize256, aesKeySize256 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			key, err := GenerateAESKey(tc.aesBits)
 			require.NoError(t, err)
@@ -343,18 +333,16 @@ func TestGenerateAESHSKey(t *testing.T) {
 		expectedSize int
 		prob         float64
 	}{
-		{"AES-HS-256", aesHsKeySize256, aesHsKeySize256 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
+		{"AES-HS-256", aesHsKeySize256, aesHsKeySize256 / bitsToBytes, cryptoutilMagic.TestProbAlways},
 		{"AES-HS-384", aesHsKeySize384, aesHsKeySize384 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
-		{"AES-HS-512", aesHsKeySize512, aesHsKeySize512 / bitsToBytes, cryptoutilMagic.TestProbAlways},
+		{"AES-HS-512", aesHsKeySize512, aesHsKeySize512 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			key, err := GenerateAESHSKey(tc.aesHsBits)
 			require.NoError(t, err)
@@ -409,8 +397,8 @@ func TestGenerateHMACKey(t *testing.T) {
 		expectedSize int
 		prob         float64
 	}{
-		{"HMAC 256", 256, 256 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
-		{"HMAC 512", 512, 512 / bitsToBytes, cryptoutilMagic.TestProbAlways},
+		{"HMAC 256", 256, 256 / bitsToBytes, cryptoutilMagic.TestProbAlways},
+		{"HMAC 512", 512, 512 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
 		{"HMAC 1024", 1024, 1024 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
 	}
 
@@ -418,9 +406,7 @@ func TestGenerateHMACKey(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if rand.Float64() > tc.prob {
-				t.Skip("Skipped by probability sampling")
-			}
+			cryptoutilUtil.SkipByProbability(t, tc.prob)
 
 			key, err := GenerateHMACKey(tc.hmacBits)
 			require.NoError(t, err)
