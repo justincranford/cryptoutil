@@ -17,6 +17,7 @@ import (
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilCAClient "cryptoutil/api/ca/client"
+	cryptoutilJOSEClient "cryptoutil/api/jose/client"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilClient "cryptoutil/internal/kms/client"
 
@@ -41,6 +42,7 @@ type TestFixture struct {
 	postgres1URL string
 	postgres2URL string
 	caURL        string
+	joseURL      string
 	grafanaURL   string
 	otelURL      string
 
@@ -49,6 +51,7 @@ type TestFixture struct {
 	postgres1Client *cryptoutilOpenapiClient.ClientWithResponses
 	postgres2Client *cryptoutilOpenapiClient.ClientWithResponses
 	caClient        *cryptoutilCAClient.ClientWithResponses
+	joseClient      *cryptoutilJOSEClient.ClientWithResponses
 
 	// Test configuration
 	rootCAsPool *x509.CertPool
@@ -117,7 +120,8 @@ func (f *TestFixture) initializeServiceURLs() {
 	f.sqliteURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose0) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose2) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
-	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8443" // CA E2E service uses port 8443 (from compose)
+	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8443"  // CA E2E service uses port 8443 (from compose)
+	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8092" // JOSE E2E service uses port 8092 (from compose)
 	f.grafanaURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)
 	f.otelURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortOtelCollectorHealth)
 }
@@ -181,6 +185,9 @@ func (f *TestFixture) InitializeAPIClients() {
 	// Initialize CA client
 	f.caClient = f.requireCAClientWithResponses(&f.caURL, f.rootCAsPool)
 
+	// Initialize JOSE client
+	f.joseClient = f.requireJOSEClientWithResponses(&f.joseURL, f.rootCAsPool)
+
 	Log(f.logger, "✅ API clients initialized")
 }
 
@@ -212,9 +219,42 @@ func (f *TestFixture) requireCAClientWithResponses(baseURL *string, rootCAsPool 
 	return caClient
 }
 
+// requireJOSEClientWithResponses creates a JOSE API client with TLS configuration.
+func (f *TestFixture) requireJOSEClientWithResponses(baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilJOSEClient.ClientWithResponses {
+	f.t.Helper()
+
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+
+	if rootCAsPool != nil {
+		tlsConfig.RootCAs = rootCAsPool
+	} else {
+		// Skip verification for self-signed certificates
+		tlsConfig.InsecureSkipVerify = true //nolint:gosec // G402: TLS InsecureSkipVerify set true for E2E testing with self-signed certs
+	}
+
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	joseClient, err := cryptoutilJOSEClient.NewClientWithResponses(*baseURL, cryptoutilJOSEClient.WithHTTPClient(httpClient))
+	require.NoError(f.t, err)
+	require.NotNil(f.t, joseClient)
+
+	return joseClient
+}
+
 // GetCAClient returns the CA API client.
 func (f *TestFixture) GetCAClient() *cryptoutilCAClient.ClientWithResponses {
 	return f.caClient
+}
+
+// GetJOSEClient returns the JOSE API client.
+func (f *TestFixture) GetJOSEClient() *cryptoutilJOSEClient.ClientWithResponses {
+	return f.joseClient
 }
 
 // GetClient returns the API client for the specified instance.
@@ -244,6 +284,8 @@ func (f *TestFixture) GetServiceURL(instanceName string) string {
 		return f.postgres2URL
 	case "ca":
 		return f.caURL
+	case "jose":
+		return f.joseURL
 	case "grafana":
 		return f.grafanaURL
 	case "otel":

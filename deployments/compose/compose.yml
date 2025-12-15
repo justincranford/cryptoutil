@@ -270,6 +270,45 @@ services:
         reservations:
           memory: 128M
 
+  jose-e2e:
+    image: cryptoutil:dev
+    command:
+      - "jose"
+      - "start"
+      - "--config=/app/config/jose-sqlite.yml"
+      - "--config=/app/config/jose-common.yml"
+      - "--config=/app/otel/otel.yml"
+    working_dir: /tmp
+    ports:
+      - "8092:8092"  # HTTPS public
+      - "9092:9090"  # Admin API (host:container mapping)
+    volumes:
+      - ../jose/config/jose-sqlite.yml:/app/config/jose-sqlite.yml:ro
+      - ../jose/config/jose-common.yml:/app/config/jose-common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    environment:
+      - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:8092/admin/v1/livez"]
+      start_period: 30s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      builder-cryptoutil:
+        condition: service_completed_successfully
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    networks:
+      - e2e-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
 networks:
   e2e-network:
     driver: bridge
