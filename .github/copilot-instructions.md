@@ -14,7 +14,7 @@
 ### Prohibited Stop Behaviors (ALL FORBIDDEN)
 
 - ❌ **NO status summaries at end of response** - summaries = stopping
-- ❌ **NO "session complete" messages** - completion statements = stopping  
+- ❌ **NO "session complete" messages** - completion statements = stopping
 - ❌ **NO "remaining tasks" lists at end** - task lists at end = stopping
 - ❌ **NO "next steps" sections at end** - next steps at end = stopping
 - ❌ **NO saying "NO STOPPING OCCURRED"** - if you say this, YOU STOPPED
@@ -36,7 +36,7 @@
 
 - Execute tool → Execute next tool → Repeat (no text between tools except brief progress)
 - NO skipping tasks
-- NO deferring tasks  
+- NO deferring tasks
 - NO status updates mid-session
 - NO stopping after "one more task"
 - **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
