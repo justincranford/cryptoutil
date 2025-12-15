@@ -1,0 +1,157 @@
+// Package digests provides password hashing using PBKDF2 and HKDF with FIPS 140-3 compliance.
+package digests
+
+import (
+	"encoding/base64"
+	"errors"
+	"fmt"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+)
+
+// HashHighEntropyDeterministic hashes a high-entropy secret (e.g., API key, token) using HKDF-SHA256 with a fixed info parameter.
+// This produces deterministic output (same secret → same hash every time).
+// Use this when you need consistent hashing for high-entropy secrets (e.g., API key lookups, token caching).
+//
+// Use cases:
+//   - API key lookup tables where determinism is required
+//   - Token caching for performance optimization
+//   - Migration scenarios where deterministic output is needed
+//
+// Security considerations:
+//   - No random salt means identical secrets produce identical hashes
+//   - High-entropy inputs (e.g., API keys) mitigate rainbow table attacks
+//   - Use only when determinism is absolutely required
+//   - For better security, prefer HashHighEntropyNonDeterministic (HKDF with random salt)
+//
+// Format: "hkdf-sha256-fixed-high$base64(dk)"
+// Returns: HKDF-based hash string in the format above, or error if secret is empty.
+func HashHighEntropyDeterministic(secret string) (string, error) {
+	return HashSecretHKDFFixedHigh(secret, cryptoutilMagic.HKDFFixedInfoHighEntropy)
+}
+
+// HashSecretHKDFFixedHigh performs HKDF-SHA256 key derivation with a fixed info parameter (deterministic, high-entropy variant).
+// This function is the underlying implementation for deterministic high-entropy HKDF-based hashing.
+//
+// Parameters:
+//   - secret: The secret to hash (must not be empty, should be high-entropy)
+//   - fixedInfo: Fixed info parameter for HKDF (used instead of random salt for determinism)
+//
+// Format: "hkdf-sha256-fixed-high$base64(dk)"
+//   - hkdf-sha256-fixed-high: Algorithm identifier for high-entropy variant
+//   - base64(dk): Base64-encoded derived key (32 bytes)
+//
+// Returns: Hash string in the format above, or error if secret is empty or HKDF fails.
+func HashSecretHKDFFixedHigh(secret string, fixedInfo []byte) (string, error) {
+	if secret == "" {
+		return "", errors.New("secret cannot be empty")
+	}
+
+	const algorithm = "hkdf-sha256-fixed-high"
+	const dkLength = cryptoutilMagic.PBKDF2DerivedKeyLength // 32 bytes
+
+	// Use HKDF with no salt (nil), fixed info parameter for deterministic output.
+	secretBytes := []byte(secret)
+	dk, err := HKDF(cryptoutilMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
+	if err != nil {
+		return "", fmt.Errorf("HKDF key derivation failed: %w", err)
+	}
+
+	// Format: hkdf-sha256-fixed-high$base64(dk)
+	dkBase64 := base64.StdEncoding.EncodeToString(dk)
+
+	return fmt.Sprintf("%s$%s", algorithm, dkBase64), nil
+}
+
+// VerifySecretHKDFFixedHigh verifies a secret against a stored HKDF-fixed-high hash.
+// Uses constant-time comparison to prevent timing attacks.
+//
+// Parameters:
+//   - storedHash: The stored hash string (format: "hkdf-sha256-fixed-high$base64(dk)")
+//   - providedSecret: The secret to verify
+//
+// Returns: true if the secret matches the stored hash, false otherwise, or error if inputs are invalid.
+func VerifySecretHKDFFixedHigh(storedHash, providedSecret string) (bool, error) {
+	if storedHash == "" {
+		return false, errors.New("stored hash cannot be empty")
+	}
+	if providedSecret == "" {
+		return false, errors.New("provided secret cannot be empty")
+	}
+
+	// Parse stored hash: hkdf-sha256-fixed-high$base64(dk)
+	parts := splitHKDFFixedHighParts(storedHash)
+	const expectedParts = 2
+	if len(parts) != expectedParts {
+		return false, fmt.Errorf("invalid hash format: expected %d parts, got %d", expectedParts, len(parts))
+	}
+
+	algorithm := parts[0]
+	if algorithm != "hkdf-sha256-fixed-high" {
+		return false, fmt.Errorf("unsupported algorithm: %s", algorithm)
+	}
+
+	storedDKBase64 := parts[1]
+	storedDK, err := base64.StdEncoding.DecodeString(storedDKBase64)
+	if err != nil {
+		return false, fmt.Errorf("failed to decode stored derived key: %w", err)
+	}
+
+	// Re-derive the key using the same fixed info parameter.
+	providedHash, err := HashSecretHKDFFixedHigh(providedSecret, cryptoutilMagic.HKDFFixedInfoHighEntropy)
+	if err != nil {
+		return false, fmt.Errorf("failed to hash provided secret: %w", err)
+	}
+
+	providedParts := splitHKDFFixedHighParts(providedHash)
+	if len(providedParts) != expectedParts {
+		return false, errors.New("invalid provided hash format")
+	}
+
+	providedDKBase64 := providedParts[1]
+	providedDK, err := base64.StdEncoding.DecodeString(providedDKBase64)
+	if err != nil {
+		return false, fmt.Errorf("failed to decode provided derived key: %w", err)
+	}
+
+	// Constant-time comparison to prevent timing attacks.
+	return constantTimeCompareBytesHigh(storedDK, providedDK), nil
+}
+
+// splitHKDFFixedHighParts splits an HKDF-fixed-high hash string into its components.
+// Expected format: "hkdf-sha256-fixed-high$base64(dk)" → ["hkdf-sha256-fixed-high", "base64(dk)"]
+func splitHKDFFixedHighParts(hash string) []string {
+	parts := make([]string, 0, 2)
+	const delimiter = '$'
+
+	start := 0
+	for i := 0; i < len(hash); i++ {
+		if hash[i] == delimiter {
+			parts = append(parts, hash[start:i])
+			start = i + 1
+		}
+	}
+	// Add the last part.
+	if start < len(hash) {
+		parts = append(parts, hash[start:])
+	}
+
+	return parts
+}
+
+// constantTimeCompareBytesHigh performs a constant-time comparison of two byte slices (high-entropy variant).
+// This prevents timing attacks by ensuring comparison time is independent of where the mismatch occurs.
+//
+// Returns: true if slices are equal, false otherwise.
+func constantTimeCompareBytesHigh(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	result := byte(0)
+	for i := 0; i < len(a); i++ {
+		result |= a[i] ^ b[i]
+	}
+
+	return result == 0
+}
