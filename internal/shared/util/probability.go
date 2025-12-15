@@ -23,6 +23,12 @@ func SkipByProbability(t *testing.T, prob float64) {
 	require.GreaterOrEqual(t, prob, 0.0)
 	require.LessOrEqual(t, prob, 1.0)
 
+	if randomFloat64(t) > prob {
+		t.Skip("Skipped by probability sampling")
+	}
+}
+
+func randomFloat64(t *testing.T) float64 {
 	var b [bytesPerUint64]byte
 
 	_, err := rand.Read(b[:])
@@ -33,9 +39,5 @@ func SkipByProbability(t *testing.T, prob float64) {
 		randomUint64 |= uint64(v) << (i * bytesPerUint64)
 	}
 
-	normalized := float64(randomUint64) / float64(math.MaxUint64)
-
-	if normalized > prob {
-		t.Skip("Skipped by probability sampling")
-	}
+	return float64(randomUint64) / float64(math.MaxUint64)
 }
