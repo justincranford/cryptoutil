@@ -112,6 +112,12 @@ const (
 	PBKDF2DefaultHashBytes  = 32              // Derived key length in bytes (32 = 256 bits).
 	PBKDF2MinIterations     = 210000          // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
 	PBKDF2DefaultIterations = 600000          // Default iteration count (Session 5 Q12: 600K).
+	PBKDF2V2Iterations      = 1000000         // Version 2 iteration count (future-proof against hardware improvements).
+	PBKDF2V3Iterations      = 2000000         // Version 3 iteration count (max security, defense against GPU/ASIC).
+
+	// PBKDF2 hash format constants.
+	PBKDF2VersionedFormatParts = 5 // Number of parts in versioned hash format: {version}$hashname$iter$salt$dk.
+	PBKDF2LegacyFormatParts    = 4 // Number of parts in legacy hash format: hashname$iter$salt$dk.
 )
 
 // PBKDF2HashFunction returns the hash function for the given algorithm name.

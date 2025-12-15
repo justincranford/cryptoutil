@@ -61,11 +61,12 @@ func TestHashSecretPBKDF2(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
-				require.True(t, strings.HasPrefix(hash, "pbkdf2-sha256$"))
+				require.True(t, strings.HasPrefix(hash, "{1}$pbkdf2-sha256$"))
 
 				parts := strings.Split(hash, "$")
-				require.Len(t, parts, 4)
-				require.Equal(t, "pbkdf2-sha256", parts[0])
+				require.Len(t, parts, 5)
+				require.Equal(t, "{1}", parts[0])
+				require.Equal(t, "pbkdf2-sha256", parts[1])
 			}
 		})
 	}
@@ -102,7 +103,7 @@ func TestHashSecret(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
-				require.True(t, strings.HasPrefix(hash, "pbkdf2-sha256$"))
+				require.True(t, strings.HasPrefix(hash, "{1}$pbkdf2-sha256$"))
 			}
 		})
 	}
@@ -155,7 +156,7 @@ func TestVerifySecret(t *testing.T) {
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "unsupported hash format",
+			errMatch: "invalid legacy hash format",
 		},
 		{
 			name: "invalid iterations in hash",

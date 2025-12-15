@@ -285,6 +285,49 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - P2.1 ✅ COMPLETE (files moved to shared/crypto/digests)
 - P2.2 ✅ COMPLETE (registry.go renamed to hash_low_random_provider.go)
 
+### 2025-12-15: Phase 2 Hash Provider Renaming (P2.3)
+
+**Context**: Renamed HashSecret to HashLowEntropyNonDeterministic for clarity on entropy level and determinism.
+
+**Function Renames**:
+
+- `digests.HashSecret` → `digests.HashLowEntropyNonDeterministic`
+- `clientauth.HashSecret` → `clientauth.HashLowEntropyNonDeterministic`
+- `SecretHasher.HashSecret` interface → `SecretHasher.HashLowEntropyNonDeterministic`
+- `PBKDF2Hasher.HashSecret` → `PBKDF2Hasher.HashLowEntropyNonDeterministic`
+
+**Call Site Updates**:
+
+- Updated 14 call sites in digests package (direct calls)
+- Updated 10 call sites in clientauth package (interface calls)
+- Updated 6 test functions to match new naming
+- All files updated via PowerShell regex bulk replace
+- Total: 30+ function renames across identity codebase
+
+**Verification**:
+
+- All digests tests passing: `go test ./internal/shared/crypto/digests`
+- All clientauth tests passing: `go test ./internal/identity/authz/clientauth`
+- All idp/auth tests passing: `go test ./internal/identity/idp/auth`
+- Clean build: `go build ./...`
+
+**Commits This Session**:
+
+- 97135c04: refactor(p2.3): rename HashSecret to HashLowEntropyNonDeterministic
+
+**Rationale for New Name**:
+
+- **Low Entropy**: Suitable for passwords/PINs (not high-entropy API keys/tokens)
+- **Non-Deterministic**: Uses random salt per invocation (different hash every time)
+- **Future Clarity**: Distinguishes from upcoming providers:
+  - HashHighEntropyNonDeterministic (P2.7)
+  - HashLowEntropyDeterministic (P2.8)
+  - HashHighEntropyDeterministic (P2.9)
+
+**Status**:
+
+- P2.3 ✅ COMPLETE (HashSecret renamed to HashLowEntropyNonDeterministic)
+
 ---
 
 ## References
