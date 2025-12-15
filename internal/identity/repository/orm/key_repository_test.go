@@ -310,6 +310,131 @@ func TestKeyRepository_List(t *testing.T) {
 	}
 }
 
+func TestKeyRepository_FindByUsage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		setupKeys     []*cryptoutilIdentityDomain.Key
+		usage         string
+		active        bool
+		expectedCount int
+	}{
+		{
+			name: "find_active_signing_keys_filter",
+			setupKeys: []*cryptoutilIdentityDomain.Key{
+				{
+					ID:         googleUuid.Must(googleUuid.NewV7()),
+					Usage:      "signing",
+					Algorithm:  "RS256",
+					PrivateKey: "signing-key-1",
+					Active:     true,
+				},
+				{
+					ID:         googleUuid.Must(googleUuid.NewV7()),
+					Usage:      "encryption",
+					Algorithm:  "RSA-OAEP-256",
+					PrivateKey: "encryption-key-1",
+					Active:     true,
+				},
+			},
+			usage:         "signing",
+			active:        true,
+			expectedCount: 1,
+		},
+		{
+			name: "find_all_signing_keys_no_active_filter",
+			setupKeys: []*cryptoutilIdentityDomain.Key{
+				{
+					ID:         googleUuid.Must(googleUuid.NewV7()),
+					Usage:      "signing",
+					Algorithm:  "RS256",
+					PrivateKey: "signing-key-3",
+					Active:     true,
+				},
+				{
+					ID:         googleUuid.Must(googleUuid.NewV7()),
+					Usage:      "signing",
+					Algorithm:  "ES256",
+					PrivateKey: "signing-key-4",
+					Active:     true,
+				},
+			},
+			usage:         "signing",
+			active:        false,
+			expectedCount: 2,
+		},
+		{
+			name: "find_all_encryption_keys",
+			setupKeys: []*cryptoutilIdentityDomain.Key{
+				{
+					ID:         googleUuid.Must(googleUuid.NewV7()),
+					Usage:      "encryption",
+					Algorithm:  "RSA-OAEP-256",
+					PrivateKey: "encryption-key-1",
+					Active:     true,
+				},
+				{
+					ID:         googleUuid.Must(googleUuid.NewV7()),
+					Usage:      "encryption",
+					Algorithm:  "RSA-OAEP-256",
+					PrivateKey: "encryption-key-2",
+					Active:     false,
+				},
+			},
+			usage:         "encryption",
+			active:        false,
+			expectedCount: 2,
+		},
+		{
+			name:          "no_matching_keys",
+			setupKeys:     []*cryptoutilIdentityDomain.Key{},
+			usage:         "nonexistent",
+			active:        true,
+			expectedCount: 0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			testDB := setupTestDB(t)
+			repo := NewKeyRepository(testDB.db)
+			ctx := context.Background()
+
+			for _, key := range tc.setupKeys {
+				require.NoError(t, repo.Create(ctx, key))
+
+				// Verify key was created with correct Active value.
+				created, err := repo.FindByID(ctx, key.ID)
+				require.NoError(t, err)
+				require.Equal(t, key.Active, created.Active, "Active field mismatch after Create")
+			}
+
+			keys, err := repo.FindByUsage(ctx, tc.usage, tc.active)
+			require.NoError(t, err)
+
+			if len(keys) != tc.expectedCount {
+				t.Logf("Expected %d keys, got %d. Keys returned:", tc.expectedCount, len(keys))
+
+				for i, k := range keys {
+					t.Logf("  Key[%d]: usage=%s, active=%v, algorithm=%s", i, k.Usage, k.Active, k.Algorithm)
+				}
+			}
+
+			require.Len(t, keys, tc.expectedCount)
+
+			// Verify ordering (most recent first).
+			if len(keys) > 1 {
+				for i := 0; i < len(keys)-1; i++ {
+					require.True(t, keys[i].CreatedAt.After(keys[i+1].CreatedAt) ||
+						keys[i].CreatedAt.Equal(keys[i+1].CreatedAt),
+						"Expected keys ordered by created_at DESC")
+				}
+			}
+		})
+	}
+}
+
 func TestKeyRepository_Count(t *testing.T) {
 	t.Parallel()
 
