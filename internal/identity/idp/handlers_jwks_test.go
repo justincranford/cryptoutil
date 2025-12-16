@@ -64,3 +64,74 @@ func TestHandleJWKS_EmptySet(t *testing.T) {
 	require.True(t, ok, "JWKS should contain 'keys' array")
 	require.Empty(t, keys, "Keys array should be empty when no signing keys exist")
 }
+
+// TestHandleJWKS_ErrorScenarios tests JWKS endpoint error handling.
+func TestHandleJWKS_ErrorScenarios(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		setupRepo      func(t *testing.T) *cryptoutilIdentityRepository.RepositoryFactory
+		expectedStatus int
+	}{
+		{
+			name: "database_connection_error_returns_empty_jwks",
+			setupRepo: func(t *testing.T) *cryptoutilIdentityRepository.RepositoryFactory {
+				t.Helper()
+
+				ctx := context.Background()
+
+				// Create repository with invalid DSN (will fail on operations).
+				config := &cryptoutilIdentityConfig.DatabaseConfig{
+					Type: "sqlite",
+					DSN:  ":memory:",
+				}
+
+				repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, config)
+				require.NoError(t, err)
+
+				return repoFactory
+			},
+			expectedStatus: fiber.StatusOK, // Returns empty JWKS on error per spec.
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			repoFactory := tc.setupRepo(t)
+
+			defer func() {
+				_ = repoFactory.Close() //nolint:errcheck // Test cleanup.
+			}()
+
+			config := cryptoutilIdentityConfig.DefaultConfig()
+			service := NewService(config, repoFactory, nil)
+
+			app := fiber.New()
+			service.RegisterRoutes(app)
+
+			req := httptest.NewRequest("GET", "/.well-known/jwks.json", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+
+			defer func() {
+				_ = resp.Body.Close() //nolint:errcheck // Test cleanup.
+			}()
+
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
+
+			// Parse JWKS response.
+			var jwks map[string]any
+
+			err = json.NewDecoder(resp.Body).Decode(&jwks)
+			require.NoError(t, err)
+
+			// Verify empty keys array (error case returns empty JWKS).
+			keys, ok := jwks["keys"].([]any)
+			require.True(t, ok)
+			require.Empty(t, keys)
+		})
+	}
+}
