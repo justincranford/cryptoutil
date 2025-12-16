@@ -35,13 +35,20 @@ func TestSkipByProbability_HappyPaths(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run("Case/"+tc.name, func(t *testing.T) {
-			t.Parallel()
+			// CANNOT use t.Parallel() - parallel tests cause race condition with global randFloat32
+			// even with mutex protection, because t.Cleanup runs after subtests complete
 
-			// inject deterministic rand and restore after test
+			// inject deterministic rand and restore after test (thread-safe with mutex)
+			randFloat32Mutex.Lock()
 			orig := randFloat32
-
-			t.Cleanup(func() { randFloat32 = orig })
 			randFloat32 = func(t *testing.T) float32 { return tc.randValue }
+			randFloat32Mutex.Unlock()
+
+			defer func() {
+				randFloat32Mutex.Lock()
+				randFloat32 = orig
+				randFloat32Mutex.Unlock()
+			}()
 
 			// Run inner subtest to observe whether SkipByProbability calls t.Skip
 			didSkip := false

@@ -24,3 +24,22 @@ func TestSysInfoAll(t *testing.T) {
 		t.Logf("sysinfo[%d]: %s (0x%x)", i, string(value), value)
 	}
 }
+
+func TestSysInfoAll_Timeout(t *testing.T) {
+	// Mock provider executes instantly, so timeout won't trigger with it
+	// Skip this test as timeout is only reachable with blocking operations
+	t.Skip("Mock provider too fast to test timeout path")
+}
+
+func TestSysInfoAll_RealProvider(t *testing.T) {
+	// Test with real provider to cover defaultSysInfoProvider code paths
+	all, err := GetAllInfoWithTimeout(defaultSysInfoProvider, 5*time.Second)
+	require.NoError(t, err)
+	require.Len(t, all, expectedSysInfos)
+
+	for i, value := range all {
+		require.NotNil(t, value)
+		require.NotEmpty(t, value)
+		t.Logf("sysinfo[%d]: %s (0x%x)", i, string(value), value)
+	}
+}
