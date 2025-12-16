@@ -55,6 +55,11 @@
 - [ ] **P3.6**: Achieve 95% coverage for every package under internal/ca
 - [ ] **P3.7**: Achieve 95% coverage for every package under internal/identity
 - [ ] **P3.8**: Achieve 95% coverage for every package under internal/kms
+- [ ] **P3.9**: Achieve 95% coverage for internal/infra packages (baseline 85.6%, 33 functions <95%: demo 81.8%, realm 85.8%, tenant blocked)
+- [ ] **P3.10**: Achieve 95% coverage for internal/cmd/cicd packages (baseline 77.1%, 40 functions <95%: adaptive-sim 74.6%, format_go, lint packages)
+- [ ] **P3.11**: Achieve 95% coverage for internal/jose packages (baseline 75.0%, 78 functions <95%: server 62.3%, crypto 82.7%)
+- [ ] **P3.12**: Achieve 95% coverage for internal/ca packages (baseline 76.6%, 150 functions <95%: many packages at 80-90%)
+- [ ] **P3.13**: Achieve 95% coverage for internal/identity packages (baseline 65.1%, LOWEST: authz 67.0%, idp 65.4%, email 64.0%, userauth PBKDF2 format mismatch)
 
 ### Phase 3.5: Server Architecture Unification (18 tasks) ✅ COMPLETE (2025-01-18)
 
@@ -556,6 +561,79 @@ var (
 
 - Discovery: Phase 3.5 (Server Architecture Unification) was completed on 2025-01-18 per archived/DETAILED-archived.md
 - Identity: Admin servers integrated into internal/cmd/cryptoutil (commits 7079d90c, 21fc53ee, 9319cfcf)
+
+### 2025-12-15: PBKDF2 Fixes - bcrypt Removal, Versioned Format, OWASP/NIST Standards
+
+**Context**: User identified CRITICAL issue - bcrypt code reappeared in PBKDF2 implementation despite being BANNED (NOT FIPS 140-3 approved). Five specific mistakes requiring immediate fixes.
+
+**Work Completed**:
+
+1. **bcrypt Removal (BANNED Algorithm)**:
+   - Removed bcrypt import from internal/shared/crypto/digests/pbkdf2.go
+   - Deleted all bcrypt verification code (lines 59-73)
+   - Updated documentation to clarify no bcrypt support
+   - Rationale: bcrypt is NOT FIPS 140-3 approved, legacy support must use PBKDF2 with lower parameter sets
+
+2. **Versioned Format Requirement**:
+   - Removed legacy format support (pbkdf2-sha256$iter$salt$dk without version prefix)
+   - NOW ONLY accepts versioned format: {version}$hashname$iter$salt$dk
+   - Returns clear error message for non-versioned hashes
+   - Tests updated to expect "unsupported hash format" for old formats
+   - Removed TestVerifySecret_LegacyBcrypt test (BANNED algorithm)
+
+3. **SHA-384/512 Support Added**:
+   - Added switch statement in VerifySecret for hash function selection
+   - Supports pbkdf2-sha256, pbkdf2-sha384, pbkdf2-sha512
+   - Added 9 new parameter set functions (3 versions × 3 algorithms)
+   - Magic constants added: PBKDF2SHA384HashName, PBKDF2SHA512HashName, hash byte lengths (32/48/64)
+
+4. **Parameter Sets Fixed to OWASP/NIST Standards**:
+   - V1 (2023): 600,000 iterations ✅ CORRECT (kept)
+   - V2 (2021): Changed from 1,000,000 to 310,000 iterations (NIST SP 800-63B Rev. 3)
+   - V3 (2017): Changed from 2,000,000 to 1,000 iterations (NIST 2017 minimum for legacy migration)
+   - Documentation updated with year references and historical context
+   - V3 documented as legacy migration support ONLY (e.g., old databases with weak hashing)
+
+5. **Duplicate Code Deletion**:
+   - Deleted internal/common/crypto/digests/pbkdf2.go (leftover from move to internal/shared)
+   - Deleted internal/common/crypto/digests/pbkdf2_test.go (leftover)
+   - Build verified clean after deletion
+
+6. **Hash Provider Package Move - BLOCKED**:
+   - Attempted to move hash_*.go files from digests to new hash package
+   - IMPORT CYCLE detected: hash → digests (for HKDF/PBKDF2) → hash (for parameter sets)
+   - Reverted change (git reset --hard HEAD)
+   - Conclusion: Current organization correct per architecture constraints (digests=primitives+providers)
+
+7. **P3.9-P3.13 Coverage Tasks Added**:
+   - Added 5 new Phase 3 subsections to Section 1 task checklist
+   - P3.9 infra: 85.6% baseline, 33 functions <95% (demo 81.8%, realm 85.8%, tenant blocked)
+   - P3.10 cicd: 77.1% baseline, 40 functions <95% (adaptive-sim 74.6%, format_go, lint packages)
+   - P3.11 jose: 75.0% baseline, 78 functions <95% (server 62.3%, crypto 82.7%)
+   - P3.12 ca: 76.6% baseline, 150 functions <95% (many packages at 80-90%)
+   - P3.13 identity: 65.1% baseline, LOWEST (authz 67.0%, idp 65.4%, email 64.0%, userauth PBKDF2 format mismatch)
+
+**Key Violations Found and Fixed**:
+
+- Issue 1: bcrypt import and verification code present (BANNED per FIPS 140-3)
+- Issue 2: Legacy format without version prefix supported (format confusion)
+- Issue 3: Only SHA-256 supported, missing SHA-384/512 variants
+- Issue 4: Parameter sets wrong (V2=1M, V3=2M instead of 310k, 1000)
+- Issue 5: Duplicate PBKDF2 code in internal/common (leftovers from move)
+
+**Lessons Learned**:
+
+- "Legacy support" must be clarified: means older PBKDF2 parameters (V2=2021, V3=2017), NOT banned algorithms like bcrypt
+- Versioned format is mandatory for forward compatibility and algorithm migration
+- Multi-algorithm support requires parameter set variants with appropriate key lengths
+- OWASP/NIST standards evolve over time (2017→2021→2023 recommendations)
+- Package organization must respect import cycle constraints (cannot separate providers from primitives without circular dependencies)
+- Import cycle prevention requires keeping related code co-located (digests package contains both primitives and providers)
+
+**Commit**: b203e717 - fix(pbkdf2): remove bcrypt (BANNED), require versioned format, fix parameter sets, add SHA-384/512
+
+**Next Steps**: Implement P3.9-P3.13 coverage improvements (starting with P3.13 identity - lowest baseline at 65.1%, includes PBKDF2 test fixes)
+
 - JOSE: Admin server created, dual-server lifecycle (commit 72b46d92)
 - CA: Admin server created, dual-server lifecycle (commits pending per archive)
 - All 18 tasks marked complete in Section 1
