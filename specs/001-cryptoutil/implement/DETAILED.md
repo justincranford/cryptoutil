@@ -40,7 +40,7 @@
 - [x] **P2.7**: Add internal/shared/crypto/digests/hash_high_random_provider.go with test class; based on HKDF
 - [x] **P2.8**: Add internal/shared/crypto/digests/hash_low_fixed_provider.go with test class; based on HKDF
 - [x] **P2.9**: Add internal/shared/crypto/digests/hash_high_fixed_provider.go with test class; based on HKDF
-- [x] **P2.10**: Move hash providers to separate internal/shared/crypto/hash package ❌ BLOCKED (import cycle: hash→digests→hash, architecture constraint requires co-location)
+- [ ] **P2.10**: Move hash providers to separate internal/shared/crypto/hash package
 
 ### Phase 3: Coverage Targets (8 tasks)
 
