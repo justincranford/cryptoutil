@@ -16,6 +16,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/identity/domain"
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -277,7 +278,7 @@ func generateRandomSecret(length int) (string, error) {
 
 // compareSecret compares a plaintext secret against a stored hash using PBKDF2.
 func compareSecret(plaintext, hash string) bool {
-	match, err := cryptoutilHash.VerifySecretHKDFFixed(hash, plaintext)
+	match, err := cryptoutilDigests.VerifySecret(hash, plaintext)
 
 	return err == nil && match
 }

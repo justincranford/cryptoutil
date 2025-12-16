@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
@@ -81,7 +82,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify original secret works before rotation.
-	match, err := cryptoutilHash.VerifySecretHKDFFixed(createdClient.ClientSecret, originalSecret)
+	match, err := cryptoutilIdentityClientAuth.CompareSecret(createdClient.ClientSecret, originalSecret)
 	require.NoError(t, err)
 	require.True(t, match)
 
@@ -120,12 +121,12 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify old secret NO LONGER works.
-	match, err = cryptoutilHash.VerifySecretHKDFFixed(updatedClient.ClientSecret, originalSecret)
+	match, err = cryptoutilIdentityClientAuth.CompareSecret(updatedClient.ClientSecret, originalSecret)
 	require.NoError(t, err)
 	assert.False(t, match, "Old secret should not work after rotation")
 
 	// Verify new secret DOES work.
-	match, err = cryptoutilHash.VerifySecretHKDFFixed(updatedClient.ClientSecret, newSecret)
+	match, err = cryptoutilIdentityClientAuth.CompareSecret(updatedClient.ClientSecret, newSecret)
 	require.NoError(t, err)
 	assert.True(t, match, "New secret should work after rotation")
 }

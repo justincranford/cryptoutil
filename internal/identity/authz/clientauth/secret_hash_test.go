@@ -29,7 +29,7 @@ func TestHashLowEntropyNonDeterministic(t *testing.T) {
 		{
 			name:    "empty secret",
 			secret:  "",
-			wantErr: false, // Empty secrets are allowed (will hash to unique value)
+			wantErr: true, // Empty secrets are not allowed
 		},
 		{
 			name:    "long secret",
@@ -50,13 +50,10 @@ func TestHashLowEntropyNonDeterministic(t *testing.T) {
 				require.NoError(t, err)
 				require.NotEmpty(t, hashed)
 
-				// Verify format: "salt:hash" (base64).
-				parts := strings.Split(hashed, ":")
-				require.Len(t, parts, 2, "hashed secret should be 'salt:hash'")
-
-				// Verify both parts are base64-encoded.
-				require.NotEmpty(t, parts[0], "salt should not be empty")
-				require.NotEmpty(t, parts[1], "hash should not be empty")
+				// Verify the hash can be used for comparison.
+				match, err := cryptoutilIdentityClientAuth.CompareSecret(hashed, tc.secret)
+				require.NoError(t, err)
+				require.True(t, match, "hash should match the original secret")
 			}
 		})
 	}
@@ -98,20 +95,6 @@ func TestCompareSecret(t *testing.T) {
 			name:       "non-matching secret",
 			secret:     "my-secret-password",
 			plainInput: "wrong-password",
-			wantMatch:  false,
-			wantErr:    false,
-		},
-		{
-			name:       "empty secret matches empty",
-			secret:     "",
-			plainInput: "",
-			wantMatch:  true,
-			wantErr:    false,
-		},
-		{
-			name:       "empty secret does not match non-empty",
-			secret:     "",
-			plainInput: "password",
 			wantMatch:  false,
 			wantErr:    false,
 		},

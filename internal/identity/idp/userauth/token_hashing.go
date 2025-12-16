@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
@@ -58,7 +59,7 @@ func VerifyToken(plaintext, hash string) error {
 		return ErrTokenMismatch // Empty hash never matches
 	}
 
-	match, err := cryptoutilHash.VerifySecretHKDFFixed(hash, plaintext)
+	match, err := cryptoutilDigests.VerifySecret(hash, plaintext)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrTokenMismatch, err)
 	}

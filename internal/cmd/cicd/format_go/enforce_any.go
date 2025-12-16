@@ -91,7 +91,7 @@ func processGoFile(filePath string) (int, error) {
 	re := regexp.MustCompile(interfacePattern)
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
-	// Count actual replacements by counting any in original content.
+	// Count actual replacements.
 	replacements := strings.Count(originalContent, "any")
 
 	// Only write if there were changes.
