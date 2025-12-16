@@ -70,45 +70,9 @@ func PBKDF2WithParams(secret string, params *PBKDF2Params) (string, error) {
 //
 // Legacy format (no version prefix) is NOT supported - all hashes must be versioned.
 func VerifySecret(stored, provided string) (bool, error) {
-	if stored == "" {
-		return false, errors.New("stored hash empty")
-	}
-
-	// ONLY support versioned format: {version}$hashname$iter$salt$dk
-	if !strings.HasPrefix(stored, "{") {
-		return false, errors.New("unsupported hash format: must use versioned format {version}$hashname$iter$salt$dk")
-	}
-
-	parts := strings.Split(stored, "$")
-	if len(parts) != cryptoutilMagic.PBKDF2VersionedFormatParts {
-		return false, fmt.Errorf("invalid versioned hash format (expected %d parts, got %d)", cryptoutilMagic.PBKDF2VersionedFormatParts, len(parts))
-	}
-
-	// Extract version from {1} format
-	versionPart := parts[0]
-	if !strings.HasPrefix(versionPart, "{") || !strings.HasSuffix(versionPart, "}") {
-		return false, fmt.Errorf("invalid version format: must be {version}")
-	}
-
-	version := versionPart[1 : len(versionPart)-1]
-	hashname := parts[1]
-
-	var iter int
-	if _, err := fmt.Sscanf(parts[2], "%d", &iter); err != nil || iter <= 0 {
-		return false, fmt.Errorf("invalid iterations: %w", err)
-	}
-
-	saltB64 := parts[3]
-	dkB64 := parts[4]
-
-	salt, err := base64.RawStdEncoding.DecodeString(saltB64)
+	version, hashname, iter, salt, expectedDK, err := parsePbkdf2Params(stored)
 	if err != nil {
-		return false, fmt.Errorf("invalid salt encoding: %w", err)
-	}
-
-	expectedDK, err := base64.RawStdEncoding.DecodeString(dkB64)
-	if err != nil {
-		return false, fmt.Errorf("invalid dk encoding: %w", err)
+		return false, err
 	}
 
 	// Determine hash function based on hashname
@@ -143,4 +107,49 @@ func VerifySecret(stored, provided string) (bool, error) {
 	_ = version // Version extracted but not yet used for parameter set lookup
 
 	return equal, nil
+}
+
+func parsePbkdf2Params(stored string) (string, string, int, []byte, []byte, error) {
+	if stored == "" {
+		return "", "", 0, nil, nil, errors.New("stored hash empty")
+	}
+
+	// ONLY support versioned format: {version}$hashname$iter$salt$dk
+	if !strings.HasPrefix(stored, "{") {
+		return "", "", 0, nil, nil, errors.New("unsupported hash format: must use versioned format {version}$hashname$iter$salt$dk")
+	}
+
+	parts := strings.Split(stored, "$")
+	if len(parts) != cryptoutilMagic.PBKDF2VersionedFormatParts {
+		return "", "", 0, nil, nil, fmt.Errorf("invalid versioned hash format (expected %d parts, got %d)", cryptoutilMagic.PBKDF2VersionedFormatParts, len(parts))
+	}
+
+	// Extract version from {1} format
+	versionPart := parts[0]
+	if !strings.HasPrefix(versionPart, "{") || !strings.HasSuffix(versionPart, "}") {
+		return "", "", 0, nil, nil, fmt.Errorf("invalid version format: must be {version}")
+	}
+
+	version := versionPart[1 : len(versionPart)-1]
+	hashname := parts[1]
+
+	var iter int
+	if _, err := fmt.Sscanf(parts[2], "%d", &iter); err != nil || iter <= 0 {
+		return "", "", 0, nil, nil, fmt.Errorf("invalid iterations: %w", err)
+	}
+
+	saltB64 := parts[3]
+	dkB64 := parts[4]
+
+	salt, err := base64.RawStdEncoding.DecodeString(saltB64)
+	if err != nil {
+		return "", "", 0, nil, nil, fmt.Errorf("invalid salt encoding: %w", err)
+	}
+
+	expectedDK, err := base64.RawStdEncoding.DecodeString(dkB64)
+	if err != nil {
+		return "", "", 0, nil, nil, fmt.Errorf("invalid dk encoding: %w", err)
+	}
+
+	return version, hashname, iter, salt, expectedDK, nil
 }
