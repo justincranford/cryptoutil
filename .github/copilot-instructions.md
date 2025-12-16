@@ -39,11 +39,14 @@
 - ❌ **NO "session complete" messages** - completion statements = stopping
 - ❌ **NO "remaining tasks" lists at end** - task lists at end = stopping
 - ❌ **NO "next steps" sections at end** - next steps at end = stopping
+- ❌ **NO "strategic pivot" or "strategic decision" statements** - these are stopping excuses
+- ❌ **NO "given time constraints" or "token budget" justifications** - these are stopping excuses
 - ❌ **NO saying "NO STOPPING OCCURRED"** - if you say this, YOU STOPPED
 - ❌ **NO pauses between tasks** - pause = stop
 - ❌ **NO asking for permission** - asking = stopping
 - ❌ **NO waiting for confirmation** - waiting = stopping
 - ❌ **NO leaving uncommitted changes** - uncommitted changes = incomplete work
+- ❌ **NO ending response with analysis or documentation** - if not executing tools, YOU STOPPED
 
 ### Required Continuous Work Pattern
 
@@ -62,10 +65,13 @@
 - NO deferring tasks
 - NO status updates mid-session
 - NO stopping after "one more task"
+- NO ending response without active tool execution
 - **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
 - **IF YOU COMPLETE A TASK**: Immediately start next task (no summary)
 - **IF STUCK**: Pick next task and execute - NEVER stop to ask
 - **IF TODO LIST EMPTY**: Read DETAILED.md and continue with next incomplete task
+- **IF YOU TYPE TEXT WITHOUT INVOKING A TOOL**: You are about to stop - invoke a tool instead
+- **LAST RESPONSE MUST BE A TOOL INVOCATION**: Never end with text, always end with tool call
 
 ## Instruction Files Reference
 
