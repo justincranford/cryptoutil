@@ -1,4 +1,5 @@
-// Package digests provides password hashing using PBKDF2 and HKDF with FIPS 140-3 compliance.
+// Copyright (c) 2025 Justin Cranford
+
 package hash
 
 import (
@@ -48,6 +49,7 @@ func HashSecretHKDFFixed(secret string, fixedInfo []byte) (string, error) {
 	}
 
 	const algorithm = "hkdf-sha256-fixed"
+
 	const dkLength = cryptoutilMagic.PBKDF2DerivedKeyLength // 32 bytes
 
 	// Use HKDF with no salt (nil), fixed info parameter for deterministic output.
@@ -76,12 +78,14 @@ func VerifySecretHKDFFixed(storedHash, providedSecret string) (bool, error) {
 	if storedHash == "" {
 		return false, errors.New("stored hash cannot be empty")
 	}
+
 	if providedSecret == "" {
 		return false, errors.New("provided secret cannot be empty")
 	}
 
 	// Parse stored hash: hkdf-sha256-fixed$base64(dk)
 	parts := splitHKDFFixedParts(storedHash)
+
 	const expectedParts = 2
 	if len(parts) != expectedParts {
 		return false, fmt.Errorf("invalid hash format: expected %d parts, got %d", expectedParts, len(parts))
@@ -93,6 +97,7 @@ func VerifySecretHKDFFixed(storedHash, providedSecret string) (bool, error) {
 	}
 
 	storedDKBase64 := parts[1]
+
 	storedDK, err := base64.StdEncoding.DecodeString(storedDKBase64)
 	if err != nil {
 		return false, fmt.Errorf("failed to decode stored derived key: %w", err)
@@ -110,6 +115,7 @@ func VerifySecretHKDFFixed(storedHash, providedSecret string) (bool, error) {
 	}
 
 	providedDKBase64 := providedParts[1]
+
 	providedDK, err := base64.StdEncoding.DecodeString(providedDKBase64)
 	if err != nil {
 		return false, fmt.Errorf("failed to decode provided derived key: %w", err)
@@ -120,12 +126,14 @@ func VerifySecretHKDFFixed(storedHash, providedSecret string) (bool, error) {
 }
 
 // splitHKDFFixedParts splits an HKDF-fixed hash string into its components.
-// Expected format: "hkdf-sha256-fixed$base64(dk)" → ["hkdf-sha256-fixed", "base64(dk)"]
+// Expected format: "hkdf-sha256-fixed$base64(dk)" → ["hkdf-sha256-fixed", "base64(dk)"].
 func splitHKDFFixedParts(hash string) []string {
 	parts := make([]string, 0, 2)
+
 	const delimiter = '$'
 
 	start := 0
+
 	for i := 0; i < len(hash); i++ {
 		if hash[i] == delimiter {
 			parts = append(parts, hash[start:i])

@@ -40,13 +40,17 @@ func TestSkipByProbability_HappyPaths(t *testing.T) {
 
 			// inject deterministic rand and restore after test (thread-safe with mutex)
 			randFloat32Mutex.Lock()
+
 			orig := randFloat32
 			randFloat32 = func(t *testing.T) float32 { return tc.randValue }
+
 			randFloat32Mutex.Unlock()
 
 			defer func() {
 				randFloat32Mutex.Lock()
+
 				randFloat32 = orig
+
 				randFloat32Mutex.Unlock()
 			}()
 

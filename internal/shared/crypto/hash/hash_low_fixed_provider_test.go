@@ -127,12 +127,14 @@ func TestHashSecretHKDFFixed_Determinism(t *testing.T) {
 	fixedInfo := []byte("deterministic-info")
 
 	const iterations = 10
+
 	hashes := make([]string, iterations)
 
 	// Generate multiple hashes with same secret and fixed info.
 	for i := 0; i < iterations; i++ {
 		hash, err := HashSecretHKDFFixed(secret, fixedInfo)
 		require.NoError(t, err)
+
 		hashes[i] = hash
 	}
 

@@ -39,7 +39,9 @@ func SkipByProbability(t *testing.T, prob float32) {
 
 	// Use injectable random float generator to allow deterministic testing.
 	randFloat32Mutex.RLock()
+
 	randFn := randFloat32
+
 	randFloat32Mutex.RUnlock()
 
 	skip := randFn(t) > prob

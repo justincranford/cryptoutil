@@ -127,12 +127,14 @@ func TestHashSecretHKDFFixedHigh_Determinism(t *testing.T) {
 	fixedInfo := []byte("deterministic-info-high")
 
 	const iterations = 10
+
 	hashes := make([]string, iterations)
 
 	// Generate multiple hashes with same secret and fixed info.
 	for i := 0; i < iterations; i++ {
 		hash, err := HashSecretHKDFFixedHigh(secret, fixedInfo)
 		require.NoError(t, err)
+
 		hashes[i] = hash
 	}
 
@@ -158,7 +160,7 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 			name:           "valid_hash_matches",
 			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
 			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
-			expectMatch:    false, // Won't match unless we use the exact secret that generated this hash.
+			expectMatch:    false,                                      // Won't match unless we use the exact secret that generated this hash.
 			expectError:    false,
 		},
 		{
@@ -192,7 +194,7 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		{
 			name:           "wrong_algorithm",
 			storedHash:     "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2", // pragma: allowlist secret
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
+			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",                            // pragma: allowlist secret
 			expectMatch:    false,
 			expectError:    true,
 		},
