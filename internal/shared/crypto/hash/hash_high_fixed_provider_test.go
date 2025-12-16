@@ -6,49 +6,63 @@ import (
 	"strings"
 	"testing"
 
+	"cryptoutil/internal/shared/util/random"
+
 	"github.com/stretchr/testify/require"
 )
+
+type highEntropyTest struct {
+	name        string
+	input       string
+	expectError bool
+}
+
+// randomHighEntropyValue generates a random high-entropy value for testing (simulates API keys, tokens).
+func randomHighEntropyValue(t *testing.T, length int) string {
+	t.Helper()
+
+	value, err := random.GenerateString(length)
+	require.NoError(t, err)
+
+	return value
+}
+
+func highEntropyTests(t *testing.T) []highEntropyTest {
+	t.Helper()
+
+	randomValue1, err := random.GenerateString(16)
+	require.NoError(t, err)
+
+	randomValue2, err := random.GenerateString(256)
+	require.NoError(t, err)
+
+	return []highEntropyTest{
+		{
+			name:        "empty",
+			input:       "",
+			expectError: true,
+		},
+		{
+			name:        "short",
+			input:       randomValue1,
+			expectError: false,
+		},
+		{
+			name:        "long",
+			input:       randomValue2,
+			expectError: false,
+		},
+	}
+}
 
 func TestHashHighEntropyDeterministic(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name        string
-		secret      string
-		expectError bool
-	}{
-		{
-			name:        "valid_high_entropy_secret",
-			secret:      "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
-			expectError: false,
-		},
-		{
-			name:        "empty_secret",
-			secret:      "",
-			expectError: true,
-		},
-		{
-			name:        "long_secret",
-			secret:      strings.Repeat("a", 2048),
-			expectError: false,
-		},
-		{
-			name:        "unicode_secret",
-			secret:      "令牌🔑密钥",
-			expectError: false,
-		},
-		{
-			name:        "special_characters",
-			secret:      "!@#$%^&*()_+-=[]{}|;:',.<>?/~`",
-			expectError: false,
-		},
-	}
-
-	for _, tt := range tests {
+	for _, tt := range highEntropyTests(t) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			hash, err := HashHighEntropyDeterministic(tt.secret)
+			hash, err := HashHighEntropyDeterministic(tt.input)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -70,39 +84,12 @@ func TestHashHighEntropyDeterministic(t *testing.T) {
 func TestHashSecretHKDFFixedHigh(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name        string
-		secret      string
-		expectError bool
-	}{
-		{
-			name:        "valid_secret",
-			secret:      "sk_test_4eC39HqLyjWDarjtT1zdp7dc", // pragma: allowlist secret
-			expectError: false,
-		},
-		{
-			name:        "empty_secret",
-			secret:      "",
-			expectError: true,
-		},
-		{
-			name:        "long_secret",
-			secret:      strings.Repeat("x", 4096),
-			expectError: false,
-		},
-		{
-			name:        "unicode_secret",
-			secret:      "令牌🔑密钥",
-			expectError: false,
-		},
-	}
-
-	for _, tt := range tests {
+	for _, tt := range highEntropyTests(t) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			fixedInfo := []byte("test-fixed-info-high")
-			hash, err := HashSecretHKDFFixedHigh(tt.secret, fixedInfo)
+			hash, err := HashSecretHKDFFixedHigh(tt.input, fixedInfo)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -123,16 +110,19 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 func TestHashSecretHKDFFixedHigh_Determinism(t *testing.T) {
 	t.Parallel()
 
-	secret := "sk_live_deterministicTokenABCDEF123456" // pragma: allowlist secret
+	// Generate high-entropy test value (simulates API key/token)
+	value, err := random.GenerateString(36)
+	require.NoError(t, err)
+
 	fixedInfo := []byte("deterministic-info-high")
 
 	const iterations = 10
 
 	hashes := make([]string, iterations)
 
-	// Generate multiple hashes with same secret and fixed info.
+	// Generate multiple hashes with same value and fixed info.
 	for i := 0; i < iterations; i++ {
-		hash, err := HashSecretHKDFFixedHigh(secret, fixedInfo)
+		hash, err := HashSecretHKDFFixedHigh(value, fixedInfo)
 		require.NoError(t, err)
 
 		hashes[i] = hash
@@ -151,50 +141,50 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		storedHash     string
-		providedSecret string
+		input          string
+		expectedOutput string
 		expectMatch    bool
 		expectError    bool
 	}{
 		{
 			name:           "valid_hash_matches",
-			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
-			expectMatch:    false,                                      // Won't match unless we use the exact secret that generated this hash.
+			expectedOutput: "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			input:          randomHighEntropyValue(t, 36),
+			expectMatch:    false, // Won't match unless we use the exact secret that generated this hash.
 			expectError:    false,
 		},
 		{
 			name:           "empty_stored_hash",
-			storedHash:     "",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
+			expectedOutput: "",
+			input:          randomHighEntropyValue(t, 36),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "empty_provided_secret",
-			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2", // pragma: allowlist secret
-			providedSecret: "",
+			expectedOutput: "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2", // pragma: allowlist secret
+			input:          "",
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "invalid_hash_format",
-			storedHash:     "invalid-format",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
+			expectedOutput: "invalid-format",
+			input:          randomHighEntropyValue(t, 36),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "invalid_dk_encoding",
-			storedHash:     "hkdf-sha256-fixed-high$!!!invalid-base64!!!",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
+			expectedOutput: "hkdf-sha256-fixed-high$!!!invalid-base64!!!",
+			input:          randomHighEntropyValue(t, 36),
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "wrong_algorithm",
-			storedHash:     "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2", // pragma: allowlist secret
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",                            // pragma: allowlist secret
+			expectedOutput: "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			input:          randomHighEntropyValue(t, 36),
 			expectMatch:    false,
 			expectError:    true,
 		},
@@ -204,7 +194,7 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			match, err := VerifySecretHKDFFixedHigh(tt.storedHash, tt.providedSecret)
+			match, err := VerifySecretHKDFFixedHigh(tt.expectedOutput, tt.input)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -220,7 +210,9 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	t.Parallel()
 
-	secret := "sk_live_crossVerifyToken123456789ABCDEF" // pragma: allowlist secret
+	// Generate high-entropy test value (simulates API key/token)
+	secret, err := random.GenerateString(36)
+	require.NoError(t, err)
 
 	// Generate hash.
 	hash1, err := HashHighEntropyDeterministic(secret)
@@ -243,7 +235,9 @@ func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	require.True(t, match2, "hash2 should verify with correct secret")
 
 	// Verify hashes fail with wrong secret.
-	wrongSecret := "sk_live_wrongToken999999999XYZABC" // pragma: allowlist secret
+	wrongSecret, err := random.GenerateString(36)
+	require.NoError(t, err)
+
 	matchWrong1, err := VerifySecretHKDFFixedHigh(hash1, wrongSecret)
 	require.NoError(t, err)
 	require.False(t, matchWrong1, "hash1 should not verify with wrong secret")
