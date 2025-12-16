@@ -788,3 +788,44 @@ var (
 - Document middleware interception issues where handler code is correct but unreachable in tests
 
 **Commits**: 637fe307 (P2.10 task), 90fa5ad5 (recovery code verify + consent error tests)
+
+### 2025-12-15: P3.13 Identity Coverage - Fourth Session (idp 66.0%)
+
+**Context**: Continued P3.13 identity coverage work. Added swagger and handleEndSession tests to improve IDP coverage.
+
+**Work Completed**:
+
+1. **IDP Swagger Handler Test (commit 3a6585e0)**:
+   - Created swagger_test.go with ServeOpenAPISpec success test
+   - Tests OpenAPI spec retrieval via GET /swagger/doc.json endpoint
+   - Coverage: ServeOpenAPISpec 55.6% → improved (error handling path already covered)
+
+2. **IDP EndSession Handler Tests (commit 3a6585e0)**:
+   - Added 2 tests to handlers_logout_test.go for handleEndSession
+   - Tests: MissingParams (neither id_token_hint nor client_id), WithClientID (success path)
+   - Coverage: handleEndSession improved (error validation + basic success path)
+
+**Coverage Impact**:
+
+- **idp package**: 65.6% → 66.0% (+0.4%)
+- **authz package**: 72.9% (no change)
+- Overall identity: ~66% (incremental improvement)
+- Added 3 tests total (1 swagger, 2 endsession)
+- ServeOpenAPISpec: 55.6% → improved
+- handleEndSession: Improved (previously untested)
+
+**Progress Summary** (All P3.13 sessions):
+
+- **Session 1**: userauth fix, email OTP, recovery codes (authz 67.0% → 71.7%, +14 tests)
+- **Session 2**: email SMTP, idp middleware, JWKS, introspect/revoke (email 64% → 96%, idp 65.4% → 65.6%, +18 tests)
+- **Session 3**: recovery code verify, consent (authz 71.7% → 72.9%, +7 tests)
+- **Session 4**: swagger, endsession (idp 65.6% → 66.0%, +3 tests)
+- **Total**: +42 tests across 4 sessions, authz 67.0% → 72.9% (+5.9%), idp 65.4% → 66.0% (+0.6%), email 64% → 96% (+32%)
+
+**Remaining Work** (65.8% → 95% target, need 29.2% more):
+
+- 228 functions still below 75% coverage
+- High-impact targets: clientauth (18-50%), authz handlers (42-65%), cmd packages (0%)
+- Strategy: Continue error path tests, avoid complex token service mocks
+
+**Commits**: 3a6585e0 (swagger + endsession tests)
