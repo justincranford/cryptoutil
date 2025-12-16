@@ -214,8 +214,115 @@ func TestHandleRegenerateRecoveryCodes_InvalidUserIDFormat(t *testing.T) {
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 }
 
-// Note: handleVerifyRecoveryCode tests removed - endpoint not registered in routes.go.
-// handleVerifyRecoveryCode handler exists but incomplete (missing route registration).
-// Success tests removed - require complex MFA service mock setup.
+// handleVerifyRecoveryCode tests.
+
+func TestHandleVerifyRecoveryCode_InvalidBody(t *testing.T) {
+	t.Parallel()
+
+	config := createTokenTestConfig(t)
+	repoFactory := createTokenTestRepoFactory(t)
+
+	svc := authz.NewService(config, repoFactory, nil)
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader([]byte("{invalid json")))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+}
+
+func TestHandleVerifyRecoveryCode_MissingCode(t *testing.T) {
+	t.Parallel()
+
+	config := createTokenTestConfig(t)
+	repoFactory := createTokenTestRepoFactory(t)
+
+	svc := authz.NewService(config, repoFactory, nil)
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	reqBody := authz.VerifyRecoveryCodeRequest{
+		Code: "", // Missing code
+	}
+
+	body, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+}
+
+func TestHandleVerifyRecoveryCode_MissingUserID(t *testing.T) {
+	t.Parallel()
+
+	config := createTokenTestConfig(t)
+	repoFactory := createTokenTestRepoFactory(t)
+
+	svc := authz.NewService(config, repoFactory, nil)
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	reqBody := authz.VerifyRecoveryCodeRequest{
+		Code: "TEST-CODE-1234",
+	}
+
+	body, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	// X-User-ID header intentionally not set
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestHandleVerifyRecoveryCode_InvalidUserIDFormat(t *testing.T) {
+	t.Parallel()
+
+	config := createTokenTestConfig(t)
+	repoFactory := createTokenTestRepoFactory(t)
+
+	svc := authz.NewService(config, repoFactory, nil)
+	app := fiber.New()
+	svc.RegisterRoutes(app)
+
+	reqBody := authz.VerifyRecoveryCodeRequest{
+		Code: "TEST-CODE-1234",
+	}
+
+	body, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", "not-a-uuid")
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+}
+
+// Note: Success tests removed - require complex MFA service mock setup with recovery code repository.
 // Handlers are covered by error path tests (invalid body, missing/invalid params).
 // Success paths exercised in E2E tests with full service stack.
