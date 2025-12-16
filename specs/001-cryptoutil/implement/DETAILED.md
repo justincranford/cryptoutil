@@ -521,3 +521,28 @@ var (
 - **Plan**: See PLAN.md for technical approach
 - **Analysis**: See ANALYSIS.md for coverage analysis
 - **Executive Summary**: See implement/EXECUTIVE.md for stakeholder overview
+
+### 2025-12-15: Phase 3 Coverage Baselines Established
+
+- P3.3 infra: 85.6% (demo 81.8%, realm 85.8%, tenant blocked)
+- P3.4 cicd: 77.1% (40 functions <95%, adaptive-sim 74.6%)
+- P3.5 jose: 75.0% (78 functions <95%, server 62.3%, crypto 82.7%)
+- P3.6 ca: 76.6% (150 functions <95%, many packages 80-90%)
+- P3.7 identity: 65.1% (FAIL - userauth test expects pbkdf2-sha256$ but gets {1}$pbkdf2-sha256$)
+- Insight: PBKDF2 format mismatch between shared/crypto/digests (versioned {1}$) and identity expectations (legacy)
+- Decision: Skip P3.3-P3.8 coverage improvement (infrastructure/incomplete code), focus on Phase 3.5 server architecture unification
+- Rationale: Server unification provides working E2E tests that reveal real coverage gaps vs current incomplete state
+- Related commits: [format_go tests fixed] interface{} vs any expectations
+- Next: Phase 3.5 server architecture unification (18 tasks)
+
+### 2025-12-15: Phase 3 Coverage Baselines Established
+
+- P3.3 infra: 85.6% (demo 81.8%, realm 85.8%, tenant blocked)
+- P3.4 cicd: 77.1% (40 functions below 95%, adaptive-sim 74.6%)
+- P3.5 jose: 75.0% (78 functions below 95%, server 62.3%, crypto 82.7%)
+- P3.6 ca: 76.6% (150 functions below 95%, many packages 80-90%)
+- P3.7 identity: 65.1% (FAIL - userauth test expects pbkdf2-sha256 but hash format is versioned)
+- Insight: PBKDF2 format mismatch between shared/crypto/digests (versioned format) and identity expectations (legacy)
+- Decision: Skip P3.3-P3.8 coverage improvement (infrastructure/incomplete code), focus on Phase 3.5 server architecture unification
+- Rationale: Server unification provides working E2E tests that reveal real coverage gaps vs current incomplete state
+- Next: Phase 3.5 server architecture unification (18 tasks)
