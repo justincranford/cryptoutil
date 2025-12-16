@@ -22,6 +22,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleAuthorizationCodeGrant_MissingCodeVerifier validates PKCE requirement.
@@ -85,7 +86,7 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:           googleUuid.New(),
 		ClientID:     "test-client-credentials",
-		ClientSecret: "$pbkdf2-sha256$i=100000,l=32$test-salt$test-hash", // Pre-hashed.
+		ClientSecret: "$" + cryptoutilMagic.PBKDF2DefaultHashName + "$i=100000,l=32$test-salt$test-hash", // Pre-hashed.
 		Name:         "Test Client",
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),

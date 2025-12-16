@@ -138,7 +138,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid iterations in hash - old format rejected",
 			setup: func() (string, string) {
-				return "pbkdf2-sha256$invalid$salt$dk", testPassword
+				return cryptoutilMagic.PBKDF2DefaultHashName + "$invalid$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -147,7 +147,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "zero iterations in hash - old format rejected",
 			setup: func() (string, string) {
-				return "pbkdf2-sha256$0$salt$dk", testPassword
+				return cryptoutilMagic.PBKDF2DefaultHashName + "$0$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -156,7 +156,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid salt encoding - old format rejected",
 			setup: func() (string, string) {
-				return "pbkdf2-sha256$1000$!!!invalid!!!$dk", testPassword
+				return cryptoutilMagic.PBKDF2DefaultHashName + "$1000$!!!invalid!!!$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -165,7 +165,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid dk encoding - old format rejected",
 			setup: func() (string, string) {
-				return "pbkdf2-sha256$1000$dGVzdA$!!!invalid!!!", testPassword
+				return cryptoutilMagic.PBKDF2DefaultHashName + "$1000$dGVzdA$!!!invalid!!!", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,

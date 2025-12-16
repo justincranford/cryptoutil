@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -83,11 +84,11 @@ func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 				testify.NoError(t, err, "Should hash without error")
 				testify.NotEmpty(t, hash, "Hash should not be empty")
 
-				// Verify hash format: pbkdf2-sha256$iterations$base64(salt)$base64(hash).
+				// Verify hash format: cryptoutilMagic.PBKDF2DefaultHashName$iterations$base64(salt)$base64(hash).
 				parts := strings.Split(hash, "$")
-				testify.Len(t, parts, 5, "Hash should have 5 parts: empty$$pbkdf2-sha256$iterations$salt$hash")
+				testify.Len(t, parts, 5, "Hash should have 5 parts: empty$$"+cryptoutilMagic.PBKDF2DefaultHashName+"$iterations$salt$hash")
 				testify.Equal(t, "", parts[0], "First part should be empty (leading $)")
-				testify.Equal(t, "pbkdf2-sha256", parts[1], "Second part should be 'pbkdf2-sha256'")
+				testify.Equal(t, cryptoutilMagic.PBKDF2DefaultHashName, parts[1], "Second part should be 'pbkdf2-sha256'")
 				testify.Equal(t, "100000", parts[2], "Iterations should be 100000")
 
 				// Verify salt is base64-encoded 16 bytes (128 bits).
@@ -285,7 +286,7 @@ func TestPBKDF2Hasher_FIPS140_3Compliance(t *testing.T) {
 	testify.Len(t, parts, 5, "Hash should have 5 parts")
 
 	// Verify PBKDF2 algorithm identifier.
-	testify.Equal(t, "pbkdf2-sha256", parts[1], "Algorithm should be PBKDF2-SHA256")
+	testify.Equal(t, cryptoutilMagic.PBKDF2DefaultHashName, parts[1], "Algorithm should be PBKDF2-SHA256")
 
 	// Verify iteration count (FIPS 140-3 recommends ≥100,000 for PBKDF2).
 	testify.Equal(t, "100000", parts[2], "Iteration count should be 100,000")
