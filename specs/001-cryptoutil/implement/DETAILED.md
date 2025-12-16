@@ -909,3 +909,61 @@ var (
 
 - P2.10: 637fe307
 - Sessions 1-4: 7f3fcb6d, 1ca9c298, 9855d978, 51d692f5, 31ee14cb, 933bda6c, 865cdc86, 369841d5, 1f8c925b, 90fa5ad5, bdcd0f89, 3a6585e0, edbd693a
+
+### 2025-12-15: PBKDF2 Hash Name Magic Constants Extraction
+
+**Context**: User requested extraction of hardcoded PBKDF2 hash algorithm names ("pbkdf2-sha256", "pbkdf2-sha384", "pbkdf2-sha512") into centralized magic constants and replacement of all references throughout main and test code.
+
+**Work Completed**:
+
+1. **Comprehensive Search and Analysis**:
+   - Used `grep_search` to identify all hardcoded strings across codebase
+   - Found 20+ matches including comments, magic constants, test data, and main code
+   - Identified 10 files requiring updates: pbkdf2.go, pbkdf2_hasher.go, secret_hasher.go, authenticator.go, authenticator_test.go, realm_test.go, db_realm.go, token_hashing_test.go, cleanup_migration_test.go, service_test.go
+
+2. **Magic Constants Already Present**:
+   - Verified existing constants in `internal/shared/magic/magic_crypto.go`:
+     - `PBKDF2DefaultHashName = "pbkdf2-sha256"`
+     - `PBKDF2SHA384HashName = "pbkdf2-sha384"`
+     - `PBKDF2SHA512HashName = "pbkdf2-sha512"`
+
+3. **Systematic File Updates**:
+   - **pbkdf2.go**: Updated VerifySecret switch statement to use constants
+   - **pbkdf2_hasher.go**: Updated HashSecretPBKDF2 function calls
+   - **secret_hasher.go**: Updated isPBKDF2Hash function to use constants
+   - **authenticator.go**: Updated password verification algorithm check
+   - **authenticator_test.go**: Updated hash creation return value assertions
+   - **realm_test.go**: Updated YAML test data hash expectations
+   - **db_realm.go**: Updated hashPassword fmt.Sprintf to use constant
+   - **token_hashing_test.go**: Added import and updated HasPrefix assertions
+   - **cleanup_migration_test.go**: Added import and updated hash assertions
+   - **service_test.go**: Added import and updated hash format checks
+
+4. **Import Management**:
+   - Added `cryptoutilMagic` import to files that didn't have it
+   - Verified all imports resolved correctly
+   - No circular import issues introduced
+
+5. **Testing and Validation**:
+   - Ran `go test ./internal/identity/idp/userauth -v` - all tests passing
+   - Ran `go test ./internal/shared/crypto/digests -v` - all tests passing
+   - Final grep search confirmed no remaining hardcoded strings in main/test code
+   - Only remaining matches are comments, existing magic constants, and test data (all appropriate)
+
+**Coverage Impact**:
+
+- No coverage changes (refactoring only)
+- All functionality preserved
+- Improved maintainability and consistency
+
+**Key Benefits**:
+
+- ✅ **Centralized Configuration**: All PBKDF2 hash names now in one location
+- ✅ **Consistency**: No more hardcoded strings scattered across codebase
+- ✅ **Maintainability**: Future algorithm changes require only magic constant updates
+- ✅ **Type Safety**: Constants prevent typos in algorithm names
+- ✅ **Documentation**: Clear naming indicates purpose (Default, SHA384, SHA512 variants)
+
+**Commits**: a956d2de - refactor: extract PBKDF2 hash names to magic constants
+
+**Status**: ✅ COMPLETE - All hardcoded PBKDF2 hash names replaced with magic constants
