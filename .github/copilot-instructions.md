@@ -68,10 +68,21 @@
 - NO ending response without active tool execution
 - **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
 - **IF YOU COMPLETE A TASK**: Immediately start next task (no summary)
-- **IF STUCK**: Pick next task and execute - NEVER stop to ask
+- **IF STUCK OR BLOCKED**: Pick next unblocked task and execute - NEVER stop to ask
+- **IF ONE TASK BLOCKED**: Continue with all other remaining tasks - blockers don't stop work
 - **IF TODO LIST EMPTY**: Read DETAILED.md and continue with next incomplete task
 - **IF YOU TYPE TEXT WITHOUT INVOKING A TOOL**: You are about to stop - invoke a tool instead
 - **LAST RESPONSE MUST BE A TOOL INVOCATION**: Never end with text, always end with tool call
+
+### Handling Blockers and Issues
+
+**CRITICAL: Blockers on one task NEVER justify stopping all work**
+
+- **When blocked on Task A**: Immediately switch to Task B, C, D... (continue all other work)
+- **Document blocker**: Add brief note to DETAILED.md Section 2 timeline about what's blocked
+- **Keep working**: Return to blocked task only when blocker is resolved
+- **NO stopping to ask**: If user input needed, document requirement and continue other work
+- **NO waiting**: Never wait for external dependencies - work on everything else meanwhile
 
 ## Instruction Files Reference
 
