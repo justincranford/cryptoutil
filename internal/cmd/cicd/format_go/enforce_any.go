@@ -83,16 +83,16 @@ func processGoFile(filePath string) (int, error) {
 
 	originalContent := string(content)
 
-	// IMPORTANT: Replace any with any
-	// This regex matches the literal string "any" in Go source code.
+	// IMPORTANT: Replace interface{} with any
+	// This regex matches the literal string "interface{}" in Go source code.
 	// The exclusion patterns prevent this file from being processed
 	// to avoid self-modification of the enforce-any hook implementation.
 	interfacePattern := `interface\{\}`
 	re := regexp.MustCompile(interfacePattern)
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
-	// Count actual replacements.
-	replacements := strings.Count(originalContent, "any")
+	// Count actual replacements (occurrences of interface{} in original).
+	replacements := strings.Count(originalContent, "interface{}")
 
 	// Only write if there were changes.
 	if replacements > 0 {
