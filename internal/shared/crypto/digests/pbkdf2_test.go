@@ -75,12 +75,12 @@ func TestHashSecretPBKDF2(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
-				require.True(t, strings.HasPrefix(hash, "{1}$pbkdf2-sha256$"))
+				require.True(t, strings.HasPrefix(hash, "{1}$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"))
 
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 5)
 				require.Equal(t, "{1}", parts[0])
-				require.Equal(t, "pbkdf2-sha256", parts[1])
+				require.Equal(t, cryptoutilMagic.PBKDF2DefaultHashName, parts[1])
 			}
 		})
 	}

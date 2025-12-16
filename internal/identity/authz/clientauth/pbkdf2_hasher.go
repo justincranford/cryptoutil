@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // PBKDF2Hasher implements SecretHasher using FIPS 140-3 approved PBKDF2-HMAC-SHA256.
@@ -46,7 +47,8 @@ func (h *PBKDF2Hasher) HashLowEntropyNonDeterministic(plaintext string) (string,
 	hash := pbkdf2.Key([]byte(plaintext), salt, h.iterations, h.keyLength, sha256.New)
 
 	// Encode as: $pbkdf2-sha256$iterations$salt$hash.
-	encoded := fmt.Sprintf("$pbkdf2-sha256$%d$%s$%s",
+	encoded := fmt.Sprintf("$%s$%d$%s$%s",
+		cryptoutilMagic.PBKDF2DefaultHashName,
 		h.iterations,
 		base64.RawStdEncoding.EncodeToString(salt),
 		base64.RawStdEncoding.EncodeToString(hash),
@@ -59,7 +61,7 @@ func (h *PBKDF2Hasher) HashLowEntropyNonDeterministic(plaintext string) (string,
 func (h *PBKDF2Hasher) CompareSecret(hashed, plaintext string) error {
 	// Parse stored hash format: $pbkdf2-sha256$iterations$salt$hash.
 	parts := strings.Split(hashed, "$")
-	if len(parts) != 5 || parts[0] != "" || parts[1] != "pbkdf2-sha256" {
+	if len(parts) != 5 || parts[0] != "" || parts[1] != cryptoutilMagic.PBKDF2DefaultHashName {
 		return fmt.Errorf("invalid hash format")
 	}
 

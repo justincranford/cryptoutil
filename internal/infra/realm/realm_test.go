@@ -249,7 +249,7 @@ realms:
     users:
       - id: "` + userTestID1 + `"
         username: "admin"
-        password_hash: "$pbkdf2-sha256$600000$salt$hash"
+        password_hash: "$` + cryptoutilMagic.PBKDF2DefaultHashName + `$600000$salt$hash"
         email: "admin@example.com"
         roles: ["admin"]
         enabled: true

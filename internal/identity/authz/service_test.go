@@ -16,6 +16,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestService_Creation(t *testing.T) {
@@ -219,7 +220,7 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 
 						// Verify secret is now hashed (PBKDF2 format: $pbkdf2-sha256$...).
 						require.NotEqual(t, testSecret, updatedClient.ClientSecret, "Secret should be hashed")
-						require.Contains(t, updatedClient.ClientSecret, "$pbkdf2-sha256$", "Secret should use PBKDF2 format")
+						require.Contains(t, updatedClient.ClientSecret, "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$", "Secret should use PBKDF2 format")
 					}
 				}
 			}

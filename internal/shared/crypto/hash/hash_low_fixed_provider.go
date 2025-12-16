@@ -52,6 +52,7 @@ func HashSecretHKDFFixed(secret string, fixedInfo []byte) (string, error) {
 
 	// Use HKDF with no salt (nil), fixed info parameter for deterministic output.
 	secretBytes := []byte(secret)
+
 	dk, err := cryptoutilDigests.HKDF(cryptoutilMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF key derivation failed: %w", err)

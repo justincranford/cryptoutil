@@ -262,7 +262,7 @@ func (a *Authenticator) verifyPassword(password, hashStr string, policy *Passwor
 	}
 
 	// Verify algorithm matches.
-	if parts[1] != "pbkdf2-sha256" {
+	if parts[1] != cryptoutilMagic.PBKDF2DefaultHashName {
 		return fmt.Errorf("unsupported hash algorithm: %s", parts[1])
 	}
 

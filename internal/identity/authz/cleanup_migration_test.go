@@ -16,6 +16,7 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestMigrateClientSecrets_Success validates client secret migration from legacy to PBKDF2.
@@ -90,7 +91,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 	migratedClient, err := clientRepo.GetByClientID(ctx, testClient.ClientID)
 	require.NoError(t, err, "Failed to retrieve migrated client")
 	require.NotEmpty(t, migratedClient.ClientSecret, "Client secret should not be empty")
-	require.Contains(t, migratedClient.ClientSecret, "$pbkdf2-sha256$", "Client secret should use PBKDF2 format")
+	require.Contains(t, migratedClient.ClientSecret, "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$", "Client secret should use PBKDF2 format")
 }
 
 // TestMigrateClientSecrets_NoClients validates migration with empty database.

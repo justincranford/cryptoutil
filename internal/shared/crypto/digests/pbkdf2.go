@@ -115,14 +115,14 @@ func VerifySecret(stored, provided string) (bool, error) {
 	var hashFunc func() hash.Hash
 
 	switch hashname {
-	case "pbkdf2-sha256":
+	case cryptoutilMagic.PBKDF2DefaultHashName:
 		hashFunc = sha256.New
-	case "pbkdf2-sha384":
+	case cryptoutilMagic.PBKDF2SHA384HashName:
 		hashFunc = sha512.New384
-	case "pbkdf2-sha512":
+	case cryptoutilMagic.PBKDF2SHA512HashName:
 		hashFunc = sha512.New
 	default:
-		return false, fmt.Errorf("unsupported hash algorithm: %s (supported: pbkdf2-sha256, pbkdf2-sha384, pbkdf2-sha512)", hashname)
+		return false, fmt.Errorf("unsupported hash algorithm: %s (supported: %s, %s, %s)", hashname, cryptoutilMagic.PBKDF2DefaultHashName, cryptoutilMagic.PBKDF2SHA384HashName, cryptoutilMagic.PBKDF2SHA512HashName)
 	}
 
 	derived := pbkdf2.Key([]byte(provided), salt, iter, len(expectedDK), hashFunc)

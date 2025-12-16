@@ -441,7 +441,7 @@ func createTestPasswordHash(t *testing.T, password string) string {
 		hashFunc,
 	)
 
-	return "$pbkdf2-sha256$" +
+	return "$" + cryptoutilMagic.PBKDF2DefaultHashName + "$" +
 		"600000$" +
 		base64.StdEncoding.EncodeToString(salt) + "$" +
 		base64.StdEncoding.EncodeToString(derivedKey)

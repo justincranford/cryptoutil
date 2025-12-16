@@ -5,6 +5,7 @@ package hash
 import (
 	"crypto/sha256"
 	"crypto/sha512"
+	"fmt"
 
 	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -13,7 +14,12 @@ import (
 // HashSecretPBKDF2 returns a formatted PBKDF2 hash string using default parameter set (version "1").
 // Format: {1}$pbkdf2-sha256$iter$base64(salt)$base64(dk).
 func HashSecretPBKDF2(secret string) (string, error) {
-	return cryptoutilDigests.PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
+	hash, err := cryptoutilDigests.PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
+	if err != nil {
+		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
+	}
+
+	return hash, nil
 }
 
 // DefaultPBKDF2ParameterSet returns the default PBKDF2-HMAC-SHA256 parameter set (version "1").

@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Validates requirements:
@@ -20,7 +22,7 @@ func TestHashToken_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, hash)
 	require.NotEqual(t, plaintext, hash, "Hash must differ from plaintext")
-	require.True(t, strings.HasPrefix(hash, "{1}$pbkdf2-sha256$"), "PBKDF2 hash must have {1}$pbkdf2-sha256$ prefix (versioned format)")
+	require.True(t, strings.HasPrefix(hash, "{1}$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"), "PBKDF2 hash must have {1}$"+cryptoutilMagic.PBKDF2DefaultHashName+"$ prefix (versioned format)")
 }
 
 func TestHashToken_EmptyToken(t *testing.T) {
@@ -51,7 +53,7 @@ func TestHashToken_PBKDF2Format(t *testing.T) {
 	hash, err := HashToken(plaintext)
 
 	require.NoError(t, err)
-	require.True(t, strings.HasPrefix(hash, "{1}$pbkdf2-sha256$"), "Hash must use versioned PBKDF2-SHA256 format ({1}$pbkdf2-sha256$)")
+	require.True(t, strings.HasPrefix(hash, "{1}$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"), "Hash must use versioned PBKDF2-SHA256 format ({1}$"+cryptoutilMagic.PBKDF2DefaultHashName+"$)")
 	require.Contains(t, hash, "$", "Hash must contain version/algorithm/iteration separators")
 }
 

@@ -290,7 +290,8 @@ func (r *DBRealmRepository) hashPassword(password string) (string, error) {
 		hashFunc,
 	)
 
-	return fmt.Sprintf("$pbkdf2-sha256$%d$%s$%s",
+	return fmt.Sprintf("$%s$%d$%s$%s",
+		cryptoutilMagic.PBKDF2DefaultHashName,
 		r.policy.Iterations,
 		base64.StdEncoding.EncodeToString(salt),
 		base64.StdEncoding.EncodeToString(derivedKey),
