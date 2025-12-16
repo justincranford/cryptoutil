@@ -19,7 +19,7 @@ func TestHashHighEntropyDeterministic(t *testing.T) {
 	}{
 		{
 			name:        "valid_high_entropy_secret",
-			secret:      "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			secret:      "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
 			expectError: false,
 		},
 		{
@@ -77,7 +77,7 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 	}{
 		{
 			name:        "valid_secret",
-			secret:      "sk_test_4eC39HqLyjWDarjtT1zdp7dc",
+			secret:      "sk_test_4eC39HqLyjWDarjtT1zdp7dc", // pragma: allowlist secret
 			expectError: false,
 		},
 		{
@@ -123,7 +123,7 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 func TestHashSecretHKDFFixedHigh_Determinism(t *testing.T) {
 	t.Parallel()
 
-	secret := "sk_live_deterministicTokenABCDEF123456"
+	secret := "sk_live_deterministicTokenABCDEF123456" // pragma: allowlist secret
 	fixedInfo := []byte("deterministic-info-high")
 
 	const iterations = 10
@@ -157,20 +157,20 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		{
 			name:           "valid_hash_matches",
 			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
 			expectMatch:    false, // Won't match unless we use the exact secret that generated this hash.
 			expectError:    false,
 		},
 		{
 			name:           "empty_stored_hash",
 			storedHash:     "",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "empty_provided_secret",
-			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2", // pragma: allowlist secret
 			providedSecret: "",
 			expectMatch:    false,
 			expectError:    true,
@@ -178,21 +178,21 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		{
 			name:           "invalid_hash_format",
 			storedHash:     "invalid-format",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "invalid_dk_encoding",
 			storedHash:     "hkdf-sha256-fixed-high$!!!invalid-base64!!!",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "wrong_algorithm",
-			storedHash:     "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			storedHash:     "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2", // pragma: allowlist secret
+			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6", // pragma: allowlist secret
 			expectMatch:    false,
 			expectError:    true,
 		},
@@ -218,7 +218,7 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	t.Parallel()
 
-	secret := "sk_live_crossVerifyToken123456789ABCDEF"
+	secret := "sk_live_crossVerifyToken123456789ABCDEF" // pragma: allowlist secret
 
 	// Generate hash.
 	hash1, err := HashHighEntropyDeterministic(secret)
@@ -241,7 +241,7 @@ func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	require.True(t, match2, "hash2 should verify with correct secret")
 
 	// Verify hashes fail with wrong secret.
-	wrongSecret := "sk_live_wrongToken999999999XYZABC"
+	wrongSecret := "sk_live_wrongToken999999999XYZABC" // pragma: allowlist secret
 	matchWrong1, err := VerifySecretHKDFFixedHigh(hash1, wrongSecret)
 	require.NoError(t, err)
 	require.False(t, matchWrong1, "hash1 should not verify with wrong secret")
