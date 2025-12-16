@@ -5,6 +5,7 @@ package digests
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -28,9 +28,7 @@ func HashSecretPBKDF2(secret string) (string, error) {
 func HashSecretPBKDF2WithParams(secret string, params *PBKDF2ParameterSet) (string, error) {
 	if secret == "" {
 		return "", errors.New("secret is empty")
-	}
-
-	if params == nil {
+	} else if params == nil {
 		return "", errors.New("parameter set is nil")
 	}
 
@@ -52,78 +50,41 @@ func HashSecretPBKDF2WithParams(secret string, params *PBKDF2ParameterSet) (stri
 // VerifySecret verifies a stored hash against a provided secret.
 // Supports:
 //  1. Versioned PBKDF2 format: {version}$pbkdf2-sha256$iter$base64(salt)$base64(dk)
-//  2. Legacy PBKDF2 format: pbkdf2-sha256$iter$base64(salt)$base64(dk)
-//  3. Legacy bcrypt format: $2a$..., $2b$..., $2y$...
+//  2. Versioned PBKDF2 format: {version}$pbkdf2-sha384$iter$base64(salt)$base64(dk)
+//  3. Versioned PBKDF2 format: {version}$pbkdf2-sha512$iter$base64(salt)$base64(dk)
+//
+// Legacy format (no version prefix) is NOT supported - all hashes must be versioned.
 func VerifySecret(stored, provided string) (bool, error) {
 	if stored == "" {
 		return false, errors.New("stored hash empty")
 	}
 
-	// Legacy bcrypt support: hashes start with $2a$, $2b$, $2y$
-	if strings.HasPrefix(stored, "$2a$") || strings.HasPrefix(stored, "$2b$") || strings.HasPrefix(stored, "$2y$") {
-		err := bcrypt.CompareHashAndPassword([]byte(stored), []byte(provided))
-		if err == nil {
-			return true, nil
-		}
-
-		// bcrypt.ErrMismatchedHashAndPassword means wrong password = not an error, just false
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return false, nil //nolint:nilerr // Wrong password is not an error condition
-		}
-
-		// Any other bcrypt error (invalid hash format, etc) is a real error
-		return false, fmt.Errorf("bcrypt hash verification failed: %w", err)
+	// ONLY support versioned format: {version}$hashname$iter$salt$dk
+	if !strings.HasPrefix(stored, "{") {
+		return false, errors.New("unsupported hash format: must use versioned format {version}$hashname$iter$salt$dk")
 	}
 
-	// Handle versioned format: {version}$hashname$iter$salt$dk
-	var (
-		version, hashname string
-		iter              int
-		saltB64, dkB64    string
-	)
-
-	if strings.HasPrefix(stored, "{") {
-		// Versioned format: {1}$pbkdf2-sha256$600000$salt$dk
-		parts := strings.Split(stored, "$")
-		if len(parts) != cryptoutilMagic.PBKDF2VersionedFormatParts {
-			return false, fmt.Errorf("invalid versioned hash format (expected %d parts)", cryptoutilMagic.PBKDF2VersionedFormatParts)
-		}
-
-		// Extract version from {1} format
-		versionPart := parts[0]
-		if !strings.HasPrefix(versionPart, "{") || !strings.HasSuffix(versionPart, "}") {
-			return false, fmt.Errorf("invalid version format")
-		}
-
-		version = versionPart[1 : len(versionPart)-1]
-
-		hashname = parts[1]
-		if _, err := fmt.Sscanf(parts[2], "%d", &iter); err != nil || iter <= 0 {
-			return false, fmt.Errorf("invalid iterations")
-		}
-
-		saltB64 = parts[3]
-		dkB64 = parts[4]
-	} else {
-		// Legacy format: pbkdf2-sha256$600000$salt$dk (no version prefix)
-		parts := strings.Split(stored, "$")
-		if len(parts) != cryptoutilMagic.PBKDF2LegacyFormatParts {
-			return false, fmt.Errorf("invalid legacy hash format (expected %d parts)", cryptoutilMagic.PBKDF2LegacyFormatParts)
-		}
-
-		hashname = parts[0]
-		if hashname != cryptoutilMagic.PBKDF2DefaultHashName {
-			return false, fmt.Errorf("unsupported hash format")
-		}
-
-		if _, err := fmt.Sscanf(parts[1], "%d", &iter); err != nil || iter <= 0 {
-			return false, fmt.Errorf("invalid iterations")
-		}
-
-		saltB64 = parts[2]
-		dkB64 = parts[3]
-		version = "legacy"
+	parts := strings.Split(stored, "$")
+	if len(parts) != cryptoutilMagic.PBKDF2VersionedFormatParts {
+		return false, fmt.Errorf("invalid versioned hash format (expected %d parts, got %d)", cryptoutilMagic.PBKDF2VersionedFormatParts, len(parts))
 	}
+
+	// Extract version from {1} format
+	versionPart := parts[0]
+	if !strings.HasPrefix(versionPart, "{") || !strings.HasSuffix(versionPart, "}") {
+		return false, fmt.Errorf("invalid version format: must be {version}")
+	}
+
+	version := versionPart[1 : len(versionPart)-1]
+	hashname := parts[1]
+
+	var iter int
+	if _, err := fmt.Sscanf(parts[2], "%d", &iter); err != nil || iter <= 0 {
+		return false, fmt.Errorf("invalid iterations: %w", err)
+	}
+
+	saltB64 := parts[3]
+	dkB64 := parts[4]
 
 	salt, err := base64.RawStdEncoding.DecodeString(saltB64)
 	if err != nil {
@@ -135,12 +96,18 @@ func VerifySecret(stored, provided string) (bool, error) {
 		return false, fmt.Errorf("invalid dk encoding: %w", err)
 	}
 
-	// Determine hash function based on hashname (currently only SHA-256 supported)
+	// Determine hash function based on hashname
 	var hashFunc func() hash.Hash
-	if hashname == cryptoutilMagic.PBKDF2DefaultHashName {
+
+	switch hashname {
+	case "pbkdf2-sha256":
 		hashFunc = sha256.New
-	} else {
-		return false, fmt.Errorf("unsupported hash algorithm: %s", hashname)
+	case "pbkdf2-sha384":
+		hashFunc = sha512.New384
+	case "pbkdf2-sha512":
+		hashFunc = sha512.New
+	default:
+		return false, fmt.Errorf("unsupported hash algorithm: %s (supported: pbkdf2-sha256, pbkdf2-sha384, pbkdf2-sha512)", hashname)
 	}
 
 	derived := pbkdf2.Key([]byte(provided), salt, iter, len(expectedDK), hashFunc)

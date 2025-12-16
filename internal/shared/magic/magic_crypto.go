@@ -103,21 +103,26 @@ const (
 	// TestPoolMaxSize - Maximum pool size for test configurations.
 	TestPoolMaxSize = 3
 
-	// PBKDF2 configuration (Session 5 Q12: SHA-256, 600K iterations, 32-byte salt).
+	// PBKDF2 configuration - FIPS 140-3 approved password hashing.
 	PBKDF2Prefix            = "pbkdf2-sha256" // Hash format prefix for PBKDF2-HMAC-SHA256 hashes.
 	PBKDF2DerivedKeyLength  = 32              // Derived key length in bytes (32 = 256 bits).
-	PBKDF2DefaultHashName   = "pbkdf2-sha256" // Algorithm name for PBKDF2 (must match PBKDF2Prefix).
+	PBKDF2DefaultHashName   = "pbkdf2-sha256" // Algorithm name for PBKDF2 SHA-256 (default).
+	PBKDF2SHA384HashName    = "pbkdf2-sha384" // Algorithm name for PBKDF2 SHA-384.
+	PBKDF2SHA512HashName    = "pbkdf2-sha512" // Algorithm name for PBKDF2 SHA-512.
 	PBKDF2DefaultAlgorithm  = "SHA-256"       // Default PRF algorithm for PBKDF2.
-	PBKDF2DefaultSaltBytes  = 32              // Salt length in bytes (32 = 256 bits, Session 5 Q12).
-	PBKDF2DefaultHashBytes  = 32              // Derived key length in bytes (32 = 256 bits).
+	PBKDF2DefaultSaltBytes  = 32              // Salt length in bytes (32 = 256 bits).
+	PBKDF2DefaultHashBytes  = 32              // Derived key length in bytes (32 = 256 bits for SHA-256).
+	PBKDF2SHA384HashBytes   = 48              // Derived key length in bytes (48 = 384 bits for SHA-384).
+	PBKDF2SHA512HashBytes   = 64              // Derived key length in bytes (64 = 512 bits for SHA-512).
 	PBKDF2MinIterations     = 210000          // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
-	PBKDF2DefaultIterations = 600000          // Default iteration count (Session 5 Q12: 600K).
-	PBKDF2V2Iterations      = 1000000         // Version 2 iteration count (future-proof against hardware improvements).
-	PBKDF2V3Iterations      = 2000000         // Version 3 iteration count (max security, defense against GPU/ASIC).
+
+	// PBKDF2 iteration counts - OWASP/NIST historical standards.
+	PBKDF2DefaultIterations = 600000 // Version 1 (2023): OWASP current recommendation.
+	PBKDF2V2Iterations      = 310000 // Version 2 (2021): NIST SP 800-63B Rev. 3 recommendation.
+	PBKDF2V3Iterations      = 1000   // Version 3 (2017): Legacy/migration support (NIST 2017 minimum).
 
 	// PBKDF2 hash format constants.
 	PBKDF2VersionedFormatParts = 5 // Number of parts in versioned hash format: {version}$hashname$iter$salt$dk.
-	PBKDF2LegacyFormatParts    = 4 // Number of parts in legacy hash format: hashname$iter$salt$dk.
 )
 
 // HKDF deterministic hashing constants (fixed info parameters for determinism).

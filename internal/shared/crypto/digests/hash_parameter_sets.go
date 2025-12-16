@@ -4,6 +4,7 @@ package digests
 
 import (
 	"crypto/sha256"
+	"crypto/sha512"
 	"hash"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -53,10 +54,10 @@ func PBKDF2ParameterSetV1() *PBKDF2ParameterSet {
 	return DefaultPBKDF2ParameterSet()
 }
 
-// PBKDF2ParameterSetV2 returns version "2" parameter set with increased iterations.
+// PBKDF2ParameterSetV2 returns version "2" parameter set (OWASP 2021 standard).
 //
 // Parameters:
-// - 1,000,000 iterations (future-proof against hardware improvements)
+// - 310,000 iterations (NIST SP 800-63B Rev. 3 recommendation, 2021)
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
@@ -71,13 +72,16 @@ func PBKDF2ParameterSetV2() *PBKDF2ParameterSet {
 	}
 }
 
-// PBKDF2ParameterSetV3 returns version "3" parameter set with maximum security.
+// PBKDF2ParameterSetV3 returns version "3" parameter set (OWASP 2017 legacy).
 //
 // Parameters:
-// - 2,000,000 iterations (defense against future GPU/ASIC attacks)
+// - 1,000 iterations (NIST 2017 minimum, for legacy password migration support)
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
+//
+// Note: This low iteration count is ONLY for migrating legacy passwords from systems
+// that used weak hashing (e.g., old databases). New passwords MUST use V1 (600k) or V2 (310k).
 func PBKDF2ParameterSetV3() *PBKDF2ParameterSet {
 	return &PBKDF2ParameterSet{
 		Version:    "3",
@@ -86,5 +90,113 @@ func PBKDF2ParameterSetV3() *PBKDF2ParameterSet {
 		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
 		KeyLength:  cryptoutilMagic.PBKDF2DerivedKeyLength,
 		HashFunc:   sha256.New,
+	}
+}
+
+// PBKDF2SHA384ParameterSetV1 returns SHA-384 version "1" parameter set (OWASP 2023).
+//
+// Parameters:
+// - 600,000 iterations (OWASP 2023 recommendation)
+// - 32-byte salt (256 bits)
+// - 48-byte key (384 bits for SHA-384 output)
+// - SHA-384 hash function.
+func PBKDF2SHA384ParameterSetV1() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
+		Version:    "1",
+		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
+		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
+		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilMagic.PBKDF2SHA384HashBytes,
+		HashFunc:   sha512.New384,
+	}
+}
+
+// PBKDF2SHA384ParameterSetV2 returns SHA-384 version "2" parameter set (OWASP 2021).
+//
+// Parameters:
+// - 310,000 iterations (NIST SP 800-63B Rev. 3 recommendation, 2021)
+// - 32-byte salt (256 bits)
+// - 48-byte key (384 bits for SHA-384 output)
+// - SHA-384 hash function.
+func PBKDF2SHA384ParameterSetV2() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
+		Version:    "2",
+		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
+		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
+		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilMagic.PBKDF2SHA384HashBytes,
+		HashFunc:   sha512.New384,
+	}
+}
+
+// PBKDF2SHA384ParameterSetV3 returns SHA-384 version "3" parameter set (OWASP 2017 legacy).
+//
+// Parameters:
+// - 1,000 iterations (NIST 2017 minimum, for legacy password migration)
+// - 32-byte salt (256 bits)
+// - 48-byte key (384 bits for SHA-384 output)
+// - SHA-384 hash function.
+func PBKDF2SHA384ParameterSetV3() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
+		Version:    "3",
+		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
+		Iterations: cryptoutilMagic.PBKDF2V3Iterations,
+		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilMagic.PBKDF2SHA384HashBytes,
+		HashFunc:   sha512.New384,
+	}
+}
+
+// PBKDF2SHA512ParameterSetV1 returns SHA-512 version "1" parameter set (OWASP 2023).
+//
+// Parameters:
+// - 600,000 iterations (OWASP 2023 recommendation)
+// - 32-byte salt (256 bits)
+// - 64-byte key (512 bits for SHA-512 output)
+// - SHA-512 hash function.
+func PBKDF2SHA512ParameterSetV1() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
+		Version:    "1",
+		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
+		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
+		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilMagic.PBKDF2SHA512HashBytes,
+		HashFunc:   sha512.New,
+	}
+}
+
+// PBKDF2SHA512ParameterSetV2 returns SHA-512 version "2" parameter set (OWASP 2021).
+//
+// Parameters:
+// - 310,000 iterations (NIST SP 800-63B Rev. 3 recommendation, 2021)
+// - 32-byte salt (256 bits)
+// - 64-byte key (512 bits for SHA-512 output)
+// - SHA-512 hash function.
+func PBKDF2SHA512ParameterSetV2() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
+		Version:    "2",
+		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
+		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
+		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilMagic.PBKDF2SHA512HashBytes,
+		HashFunc:   sha512.New,
+	}
+}
+
+// PBKDF2SHA512ParameterSetV3 returns SHA-512 version "3" parameter set (OWASP 2017 legacy).
+//
+// Parameters:
+// - 1,000 iterations (NIST 2017 minimum, for legacy password migration)
+// - 32-byte salt (256 bits)
+// - 64-byte key (512 bits for SHA-512 output)
+// - SHA-512 hash function.
+func PBKDF2SHA512ParameterSetV3() *PBKDF2ParameterSet {
+	return &PBKDF2ParameterSet{
+		Version:    "3",
+		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
+		Iterations: cryptoutilMagic.PBKDF2V3Iterations,
+		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilMagic.PBKDF2SHA512HashBytes,
+		HashFunc:   sha512.New,
 	}
 }

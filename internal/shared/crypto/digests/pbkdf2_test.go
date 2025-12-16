@@ -150,49 +150,49 @@ func TestVerifySecret(t *testing.T) {
 			errMatch: "stored hash empty",
 		},
 		{
-			name: "invalid hash format",
+			name: "invalid hash format - non-versioned",
 			setup: func() (string, string) {
 				return "invalid$format", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "invalid legacy hash format",
+			errMatch: "unsupported hash format",
 		},
 		{
-			name: "invalid iterations in hash",
+			name: "invalid iterations in hash - old format rejected",
 			setup: func() (string, string) {
 				return "pbkdf2-sha256$invalid$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "invalid iterations",
+			errMatch: "unsupported hash format",
 		},
 		{
-			name: "zero iterations in hash",
+			name: "zero iterations in hash - old format rejected",
 			setup: func() (string, string) {
 				return "pbkdf2-sha256$0$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "invalid iterations",
+			errMatch: "unsupported hash format",
 		},
 		{
-			name: "invalid salt encoding",
+			name: "invalid salt encoding - old format rejected",
 			setup: func() (string, string) {
 				return "pbkdf2-sha256$1000$!!!invalid!!!$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "invalid salt encoding",
+			errMatch: "unsupported hash format",
 		},
 		{
-			name: "invalid dk encoding",
+			name: "invalid dk encoding - old format rejected",
 			setup: func() (string, string) {
 				return "pbkdf2-sha256$1000$dGVzdA$!!!invalid!!!", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
-			errMatch: "invalid dk encoding",
+			errMatch: "unsupported hash format",
 		},
 	}
 
@@ -218,45 +218,9 @@ func TestVerifySecret(t *testing.T) {
 	}
 }
 
-func TestVerifySecret_LegacyBcrypt(t *testing.T) {
-	t.Parallel()
-
-	// Test legacy bcrypt hash verification (migration support).
-	// Using pre-computed bcrypt hash for known passwords.
-	bcryptHashes := []struct {
-		name     string
-		hash     string
-		prefix   string
-		password string
-	}{
-		{
-			name: "bcrypt 2a prefix",
-			// Pre-computed bcrypt hash for "test" with cost 10.
-			hash:     "$2a$10$2u64ymwxrqdCLciYcWvnhu/yVIMZJvEGqY6.K4Nor56xHIAXib22q",
-			prefix:   "$2a$",
-			password: "test",
-		},
-	}
-
-	for _, tc := range bcryptHashes {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			// Verify the hash has the expected prefix.
-			require.True(t, strings.HasPrefix(tc.hash, tc.prefix))
-
-			// Verify correct password matches.
-			ok, err := VerifySecret(tc.hash, tc.password)
-			require.NoError(t, err)
-			require.True(t, ok, "password should match hash")
-
-			// Wrong password should not match.
-			ok, err = VerifySecret(tc.hash, "wrong-password")
-			require.NoError(t, err)
-			require.False(t, ok, "wrong password should not match")
-		})
-	}
-}
+// TestVerifySecret_LegacyBcrypt removed - bcrypt is BANNED (NOT FIPS 140-3 approved).
+// Legacy password migration should use PBKDF2 with lower parameter sets (V3=2017 with 1000 iterations),
+// not banned cryptographic algorithms like bcrypt.
 
 func TestHashSecretPBKDF2_Uniqueness(t *testing.T) {
 	t.Parallel()

@@ -27,6 +27,7 @@
 - [x] **P1.9**: Optimize identity/authz/clientauth package (no optimization needed - 7.9s current)
 - [x] **P1.10**: Optimize kms/server/businesslogic package (no optimization needed)
 - [x] **P1.11**: Optimize kms/server/barrier/rootkeysservice package (no optimization needed)
+- [ ] **P1.12**: Fix jose/server package to not require use of `-v` flag to avoid TestMain deadlock
 
 ### Phase 2: Refactor Low Entropy Random Hashing (PBKDF2), and add High Entropy Random, Low Entropy Deterministic, and High Entropy Deterministic (9 tasks)
 
@@ -69,7 +70,7 @@
 
 **Target Architecture**: All services follow KMS dual-server pattern with unified command interface
 
-#### Identity Command Integration (6 tasks, 4-6h) ✅ COMPLETE
+#### Identity Command Integration (6 tasks, 4-6h)
 
 - [x] **P3.5.1**: Create internal/cmd/cryptoutil/identity/ package ✅ 2025-01-18 (commit 7079d90c)
 - [ ] **P3.5.2**: Implement identity start/stop/status/health subcommands
