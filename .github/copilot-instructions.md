@@ -6,6 +6,7 @@
 - Keep rules short, one directive per line
 - Reference external & project resources; avoid duplication of content
 - ALWAYS use built-in tools over terminal commands
+- **NEVER invoke git push without explicit user permission** - only commit locally unless instructed
 
 ## LLM Agent Continuous Work Directive - ABSOLUTE ENFORCEMENT
 
@@ -71,6 +72,7 @@
 - **IF STUCK OR BLOCKED**: Pick next unblocked task and execute - NEVER stop to ask
 - **IF ONE TASK BLOCKED**: Continue with all other remaining tasks - blockers don't stop work
 - **IF TODO LIST EMPTY**: Read DETAILED.md and continue with next incomplete task
+- **IF DETAILED.md HAS INCOMPLETE TASKS**: Continue executing those tasks - NEVER stop while work remains
 - **IF YOU TYPE TEXT WITHOUT INVOKING A TOOL**: You are about to stop - invoke a tool instead
 - **LAST RESPONSE MUST BE A TOOL INVOCATION**: Never end with text, always end with tool call
 
