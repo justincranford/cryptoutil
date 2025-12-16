@@ -104,17 +104,17 @@ const (
 	TestPoolMaxSize = 3
 
 	// PBKDF2 configuration - FIPS 140-3 approved password hashing.
-	PBKDF2Prefix            = "pbkdf2-sha256" // Hash format prefix for PBKDF2-HMAC-SHA256 hashes.
-	PBKDF2DerivedKeyLength  = 32              // Derived key length in bytes (32 = 256 bits).
-	PBKDF2DefaultHashName   = "pbkdf2-sha256" // Algorithm name for PBKDF2 SHA-256 (default).
-	PBKDF2SHA384HashName    = "pbkdf2-sha384" // Algorithm name for PBKDF2 SHA-384.
-	PBKDF2SHA512HashName    = "pbkdf2-sha512" // Algorithm name for PBKDF2 SHA-512.
-	PBKDF2DefaultAlgorithm  = "SHA-256"       // Default PRF algorithm for PBKDF2.
-	PBKDF2DefaultSaltBytes  = 32              // Salt length in bytes (32 = 256 bits).
-	PBKDF2DefaultHashBytes  = 32              // Derived key length in bytes (32 = 256 bits for SHA-256).
-	PBKDF2SHA384HashBytes   = 48              // Derived key length in bytes (48 = 384 bits for SHA-384).
-	PBKDF2SHA512HashBytes   = 64              // Derived key length in bytes (64 = 512 bits for SHA-512).
-	PBKDF2MinIterations     = 210000          // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
+	PBKDF2Prefix           = "pbkdf2-sha256" // Hash format prefix for PBKDF2-HMAC-SHA256 hashes.
+	PBKDF2DerivedKeyLength = 32              // Derived key length in bytes (32 = 256 bits).
+	PBKDF2DefaultHashName  = "pbkdf2-sha256" // Algorithm name for PBKDF2 SHA-256 (default).
+	PBKDF2SHA384HashName   = "pbkdf2-sha384" // Algorithm name for PBKDF2 SHA-384.
+	PBKDF2SHA512HashName   = "pbkdf2-sha512" // Algorithm name for PBKDF2 SHA-512.
+	PBKDF2DefaultAlgorithm = "SHA-256"       // Default PRF algorithm for PBKDF2.
+	PBKDF2DefaultSaltBytes = 32              // Salt length in bytes (32 = 256 bits).
+	PBKDF2DefaultHashBytes = 32              // Derived key length in bytes (32 = 256 bits for SHA-256).
+	PBKDF2SHA384HashBytes  = 48              // Derived key length in bytes (48 = 384 bits for SHA-384).
+	PBKDF2SHA512HashBytes  = 64              // Derived key length in bytes (64 = 512 bits for SHA-512).
+	PBKDF2MinIterations    = 210000          // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
 
 	// PBKDF2 iteration counts - OWASP/NIST historical standards.
 	PBKDF2DefaultIterations = 600000 // Version 1 (2023): OWASP current recommendation.
@@ -125,8 +125,8 @@ const (
 	PBKDF2VersionedFormatParts = 5 // Number of parts in versioned hash format: {version}$hashname$iter$salt$dk.
 
 	// HKDF hash name constants - for hash format strings.
-	HKDFHashName          = "hkdf-sha256"           // HKDF-SHA256 with random salt (non-deterministic).
-	HKDFFixedLowHashName  = "hkdf-sha256-fixed"     // HKDF-SHA256 with fixed info (deterministic, low-entropy).
+	HKDFHashName          = "hkdf-sha256"            // HKDF-SHA256 with random salt (non-deterministic).
+	HKDFFixedLowHashName  = "hkdf-sha256-fixed"      // HKDF-SHA256 with fixed info (deterministic, low-entropy).
 	HKDFFixedHighHashName = "hkdf-sha256-fixed-high" // HKDF-SHA256 with fixed info (deterministic, high-entropy).
 
 	// HKDF hash format constants.
