@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package digests
+package hash
 
 // HashLowEntropyNonDeterministic hashes a low-entropy secret (e.g., password, PIN) using a random salt.
 // Each invocation produces a different hash for the same input (non-deterministic).

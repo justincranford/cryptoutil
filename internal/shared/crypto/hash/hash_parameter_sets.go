@@ -1,34 +1,19 @@
 // Copyright (c) 2025 Justin Cranford
 
-package digests
+package hash
 
 import (
 	"crypto/sha256"
 	"crypto/sha512"
-	"hash"
 
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
-// PBKDF2ParameterSet defines parameters for PBKDF2-HMAC hashing.
-type PBKDF2ParameterSet struct {
-	// Version identifier (e.g., "1", "2", "3") for versioned hash format.
-	Version string
-
-	// HashName is the algorithm identifier (e.g., "pbkdf2-sha256").
-	HashName string
-
-	// Iterations is the number of PBKDF2 iterations (OWASP: 600,000+ for SHA-256).
-	Iterations int
-
-	// SaltLength is the salt size in bytes (OWASP: 32+ bytes = 256 bits).
-	SaltLength int
-
-	// KeyLength is the derived key length in bytes (32 bytes = 256 bits).
-	KeyLength int
-
-	// HashFunc returns the hash function for PBKDF2 (e.g., sha256.New).
-	HashFunc func() hash.Hash
+// HashSecretPBKDF2 returns a formatted PBKDF2 hash string using default parameter set (version "1").
+// Format: {1}$pbkdf2-sha256$iter$base64(salt)$base64(dk).
+func HashSecretPBKDF2(secret string) (string, error) {
+	return cryptoutilDigests.PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
 }
 
 // DefaultPBKDF2ParameterSet returns the default PBKDF2-HMAC-SHA256 parameter set (version "1").
@@ -38,8 +23,8 @@ type PBKDF2ParameterSet struct {
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
-func DefaultPBKDF2ParameterSet() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func DefaultPBKDF2ParameterSet() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "1",
 		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
 		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
@@ -50,7 +35,7 @@ func DefaultPBKDF2ParameterSet() *PBKDF2ParameterSet {
 }
 
 // PBKDF2ParameterSetV1 returns version "1" parameter set (same as default).
-func PBKDF2ParameterSetV1() *PBKDF2ParameterSet {
+func PBKDF2ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
 	return DefaultPBKDF2ParameterSet()
 }
 
@@ -61,8 +46,8 @@ func PBKDF2ParameterSetV1() *PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
-func PBKDF2ParameterSetV2() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "2",
 		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
 		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
@@ -82,8 +67,8 @@ func PBKDF2ParameterSetV2() *PBKDF2ParameterSet {
 //
 // Note: This low iteration count is ONLY for migrating legacy passwords from systems
 // that used weak hashing (e.g., old databases). New passwords MUST use V1 (600k) or V2 (310k).
-func PBKDF2ParameterSetV3() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "3",
 		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
 		Iterations: cryptoutilMagic.PBKDF2V3Iterations,
@@ -100,8 +85,8 @@ func PBKDF2ParameterSetV3() *PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 48-byte key (384 bits for SHA-384 output)
 // - SHA-384 hash function.
-func PBKDF2SHA384ParameterSetV1() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2SHA384ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "1",
 		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
 		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
@@ -118,8 +103,8 @@ func PBKDF2SHA384ParameterSetV1() *PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 48-byte key (384 bits for SHA-384 output)
 // - SHA-384 hash function.
-func PBKDF2SHA384ParameterSetV2() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2SHA384ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "2",
 		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
 		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
@@ -136,8 +121,8 @@ func PBKDF2SHA384ParameterSetV2() *PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 48-byte key (384 bits for SHA-384 output)
 // - SHA-384 hash function.
-func PBKDF2SHA384ParameterSetV3() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2SHA384ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "3",
 		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
 		Iterations: cryptoutilMagic.PBKDF2V3Iterations,
@@ -154,8 +139,8 @@ func PBKDF2SHA384ParameterSetV3() *PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 64-byte key (512 bits for SHA-512 output)
 // - SHA-512 hash function.
-func PBKDF2SHA512ParameterSetV1() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2SHA512ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "1",
 		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
 		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
@@ -172,8 +157,8 @@ func PBKDF2SHA512ParameterSetV1() *PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 64-byte key (512 bits for SHA-512 output)
 // - SHA-512 hash function.
-func PBKDF2SHA512ParameterSetV2() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2SHA512ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "2",
 		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
 		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
@@ -190,8 +175,8 @@ func PBKDF2SHA512ParameterSetV2() *PBKDF2ParameterSet {
 // - 32-byte salt (256 bits)
 // - 64-byte key (512 bits for SHA-512 output)
 // - SHA-512 hash function.
-func PBKDF2SHA512ParameterSetV3() *PBKDF2ParameterSet {
-	return &PBKDF2ParameterSet{
+func PBKDF2SHA512ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
+	return &cryptoutilDigests.PBKDF2Params{
 		Version:    "3",
 		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
 		Iterations: cryptoutilMagic.PBKDF2V3Iterations,

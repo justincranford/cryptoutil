@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 var (
@@ -33,7 +33,7 @@ func HashToken(plaintext string) (string, error) {
 		return "", ErrInvalidToken
 	}
 
-	hash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(plaintext)
+	hash, err := cryptoutilHash.HashLowEntropyNonDeterministic(plaintext)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrHashGenerationFailed, err)
 	}
@@ -58,7 +58,7 @@ func VerifyToken(plaintext, hash string) error {
 		return ErrTokenMismatch // Empty hash never matches
 	}
 
-	match, err := cryptoutilDigests.VerifySecret(hash, plaintext)
+	match, err := cryptoutilHash.VerifySecretHKDFFixed(hash, plaintext)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrTokenMismatch, err)
 	}

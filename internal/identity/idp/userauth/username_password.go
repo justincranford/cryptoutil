@@ -12,7 +12,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 
 	googleUuid "github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -199,7 +199,7 @@ func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, e
 		return nil, fmt.Errorf("password too long (maximum %d characters)", cryptoutilIdentityMagic.MaxPasswordLength)
 	}
 
-	hash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(password)
+	hash, err := cryptoutilHash.HashLowEntropyNonDeterministic(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}

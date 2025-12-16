@@ -2,7 +2,7 @@
 //
 //
 
-package digests
+package hash
 
 import (
 	"crypto/rand"
@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strings"
 
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -43,7 +44,7 @@ func HashSecretHKDFRandom(secret string) (string, error) {
 	}
 
 	// Derive key using HKDF-SHA256.
-	dk, err := HKDF(cryptoutilMagic.SHA256, []byte(secret), salt, nil, cryptoutilMagic.PBKDF2DerivedKeyLength)
+	dk, err := cryptoutilDigests.HKDF(cryptoutilMagic.SHA256, []byte(secret), salt, nil, cryptoutilMagic.PBKDF2DerivedKeyLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF failed: %w", err)
 	}
@@ -89,7 +90,7 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 	}
 
 	// Derive key from provided secret using HKDF-SHA256.
-	providedDK, err := HKDF(cryptoutilMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
+	providedDK, err := cryptoutilDigests.HKDF(cryptoutilMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
 	if err != nil {
 		return false, fmt.Errorf("HKDF failed: %w", err)
 	}

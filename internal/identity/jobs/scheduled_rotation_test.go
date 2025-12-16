@@ -16,7 +16,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 func TestScheduledRotation_NoExpiringSecrets(t *testing.T) {
@@ -317,7 +317,7 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 		// Generate and hash initial secret (version 1).
 		initialSecret := "test-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
 
-		secretHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(initialSecret)
+		secretHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(initialSecret)
 		if err != nil {
 			return fmt.Errorf("failed to hash initial secret: %w", err)
 		} // Create ClientSecretVersion.

@@ -15,7 +15,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // TestMigrateClientSecrets_Success validates client secret migration from legacy to PBKDF2.
@@ -49,7 +49,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 
 	// Create test client with legacy bcrypt hash (simulated with PBKDF2 for testing)
 	clientUUID := googleUuid.Must(googleUuid.NewV7())
-	legacyHash, err := cryptoutilDigests.HashSecretPBKDF2("legacy-secret")
+	legacyHash, err := cryptoutilHash.HashSecretPBKDF2("legacy-secret")
 	require.NoError(t, err, "Failed to hash legacy secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{

@@ -2,7 +2,7 @@
 //
 //
 
-package digests
+package hash
 
 import (
 	"strings"

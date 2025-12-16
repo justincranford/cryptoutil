@@ -3,8 +3,11 @@
 package digests
 
 import (
+	"crypto/sha256"
 	"strings"
 	"testing"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -13,6 +16,17 @@ import (
 const (
 	testPassword = "password"
 )
+
+func FastPBKDF2ParameterSet() *PBKDF2Params {
+	return &PBKDF2Params{
+		Version:    "1",
+		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
+		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
+		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilMagic.PBKDF2DerivedKeyLength,
+		HashFunc:   sha256.New,
+	}
+}
 
 func TestHashSecretPBKDF2(t *testing.T) {
 	t.Parallel()
@@ -53,7 +67,7 @@ func TestHashSecretPBKDF2(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			hash, err := HashSecretPBKDF2(tc.secret)
+			hash, err := PBKDF2WithParams(tc.secret, FastPBKDF2ParameterSet())
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -67,43 +81,6 @@ func TestHashSecretPBKDF2(t *testing.T) {
 				require.Len(t, parts, 5)
 				require.Equal(t, "{1}", parts[0])
 				require.Equal(t, "pbkdf2-sha256", parts[1])
-			}
-		})
-	}
-}
-
-func TestHashSecret(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name    string
-		secret  string
-		wantErr bool
-	}{
-		{
-			name:    "valid secret",
-			secret:  "test-password",
-			wantErr: false,
-		},
-		{
-			name:    "empty secret",
-			secret:  "",
-			wantErr: true,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			hash, err := HashLowEntropyNonDeterministic(tc.secret)
-
-			if tc.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.NotEmpty(t, hash)
-				require.True(t, strings.HasPrefix(hash, "{1}$pbkdf2-sha256$"))
 			}
 		})
 	}
@@ -123,7 +100,7 @@ func TestVerifySecret(t *testing.T) {
 			name: "valid PBKDF2 hash matches",
 			setup: func() (string, string) {
 				secret := "correct-password"
-				hash, _ := HashSecretPBKDF2(secret)
+				hash, _ := PBKDF2WithParams(secret, FastPBKDF2ParameterSet())
 
 				return hash, secret
 			},
@@ -133,7 +110,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "valid PBKDF2 hash does not match wrong password",
 			setup: func() (string, string) {
-				hash, _ := HashSecretPBKDF2("correct-password")
+				hash, _ := PBKDF2WithParams("correct-password", FastPBKDF2ParameterSet())
 
 				return hash, "wrong-password"
 			},
@@ -227,8 +204,8 @@ func TestHashSecretPBKDF2_Uniqueness(t *testing.T) {
 
 	// Same secret should produce different hashes (due to random salt).
 	secret := "same-password"
-	hash1, err1 := HashSecretPBKDF2(secret)
-	hash2, err2 := HashSecretPBKDF2(secret)
+	hash1, err1 := PBKDF2WithParams(secret, FastPBKDF2ParameterSet())
+	hash2, err2 := PBKDF2WithParams(secret, FastPBKDF2ParameterSet())
 
 	require.NoError(t, err1)
 	require.NoError(t, err2)

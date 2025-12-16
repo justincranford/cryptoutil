@@ -17,15 +17,30 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// HashSecretPBKDF2 returns a formatted PBKDF2 hash string using default parameter set (version "1").
-// Format: {1}$pbkdf2-sha256$iter$base64(salt)$base64(dk).
-func HashSecretPBKDF2(secret string) (string, error) {
-	return HashSecretPBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
+// PBKDF2Params defines parameters for PBKDF2-HMAC hashing.
+type PBKDF2Params struct {
+	// Version identifier (e.g., "1", "2", "3") for versioned hash format.
+	Version string
+
+	// HashName is the algorithm identifier (e.g., "pbkdf2-sha256").
+	HashName string
+
+	// Iterations is the number of PBKDF2 iterations (OWASP: 600,000+ for SHA-256).
+	Iterations int
+
+	// SaltLength is the salt size in bytes (OWASP: 32+ bytes = 256 bits).
+	SaltLength int
+
+	// KeyLength is the derived key length in bytes (32 bytes = 256 bits).
+	KeyLength int
+
+	// HashFunc returns the hash function for PBKDF2 (e.g., sha256.New).
+	HashFunc func() hash.Hash
 }
 
-// HashSecretPBKDF2WithParams returns a formatted PBKDF2 hash string using specified parameter set.
+// PBKDF2WithParams returns a formatted PBKDF2 hash string using specified parameter set.
 // Format: {version}$hashname$iter$base64(salt)$base64(dk).
-func HashSecretPBKDF2WithParams(secret string, params *PBKDF2ParameterSet) (string, error) {
+func PBKDF2WithParams(secret string, params *PBKDF2Params) (string, error) {
 	if secret == "" {
 		return "", errors.New("secret is empty")
 	} else if params == nil {

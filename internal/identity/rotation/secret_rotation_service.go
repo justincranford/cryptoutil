@@ -16,7 +16,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/identity/domain"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -58,7 +58,7 @@ func (s *SecretRotationService) RotateClientSecret(
 	}
 
 	// Hash new secret.
-	newSecretHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(newSecretPlaintext)
+	newSecretHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash new secret: %w", err)
 	} // Execute rotation in transaction.
@@ -277,7 +277,7 @@ func generateRandomSecret(length int) (string, error) {
 
 // compareSecret compares a plaintext secret against a stored hash using PBKDF2.
 func compareSecret(plaintext, hash string) bool {
-	match, err := cryptoutilDigests.VerifySecret(hash, plaintext)
+	match, err := cryptoutilHash.VerifySecretHKDFFixed(hash, plaintext)
 
 	return err == nil && match
 }

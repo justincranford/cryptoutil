@@ -24,7 +24,7 @@ import (
 	cryptoutilIdentityIdp "cryptoutil/internal/identity/idp"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 const (
@@ -150,7 +150,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Create test user with hashed password.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPasswordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(testPassword)
+	testPasswordHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(testPassword)
 	require.NoError(t, err, "Failed to hash password")
 
 	testUser := &cryptoutilIdentityDomain.User{

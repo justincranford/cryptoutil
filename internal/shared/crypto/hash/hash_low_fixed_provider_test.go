@@ -1,4 +1,4 @@
-package digests
+package hash
 
 import (
 	"strings"
@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHashHighEntropyDeterministic(t *testing.T) {
+func TestHashLowEntropyDeterministic(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -16,8 +16,8 @@ func TestHashHighEntropyDeterministic(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "valid_high_entropy_secret",
-			secret:      "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			name:        "valid_low_entropy_secret",
+			secret:      "password123",
 			expectError: false,
 		},
 		{
@@ -27,12 +27,12 @@ func TestHashHighEntropyDeterministic(t *testing.T) {
 		},
 		{
 			name:        "long_secret",
-			secret:      strings.Repeat("a", 2048),
+			secret:      strings.Repeat("a", 1024),
 			expectError: false,
 		},
 		{
 			name:        "unicode_secret",
-			secret:      "令牌🔑密钥",
+			secret:      "密码🔐密钥",
 			expectError: false,
 		},
 		{
@@ -46,7 +46,7 @@ func TestHashHighEntropyDeterministic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			hash, err := HashHighEntropyDeterministic(tt.secret)
+			hash, err := HashLowEntropyDeterministic(tt.secret)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -55,17 +55,17 @@ func TestHashHighEntropyDeterministic(t *testing.T) {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
 
-				// Verify format: hkdf-sha256-fixed-high$base64(dk)
+				// Verify format: hkdf-sha256-fixed$base64(dk)
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 2, "hash should have 2 parts")
-				require.Equal(t, "hkdf-sha256-fixed-high", parts[0])
+				require.Equal(t, "hkdf-sha256-fixed", parts[0])
 				require.NotEmpty(t, parts[1], "derived key should not be empty")
 			}
 		})
 	}
 }
 
-func TestHashSecretHKDFFixedHigh(t *testing.T) {
+func TestHashSecretHKDFFixed(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -75,7 +75,7 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 	}{
 		{
 			name:        "valid_secret",
-			secret:      "sk_test_4eC39HqLyjWDarjtT1zdp7dc",
+			secret:      "testPassword123",
 			expectError: false,
 		},
 		{
@@ -85,12 +85,12 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 		},
 		{
 			name:        "long_secret",
-			secret:      strings.Repeat("x", 4096),
+			secret:      strings.Repeat("x", 2048),
 			expectError: false,
 		},
 		{
 			name:        "unicode_secret",
-			secret:      "令牌🔑密钥",
+			secret:      "秘密🔐密钥",
 			expectError: false,
 		},
 	}
@@ -99,8 +99,8 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			fixedInfo := []byte("test-fixed-info-high")
-			hash, err := HashSecretHKDFFixedHigh(tt.secret, fixedInfo)
+			fixedInfo := []byte("test-fixed-info")
+			hash, err := HashSecretHKDFFixed(tt.secret, fixedInfo)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -112,24 +112,24 @@ func TestHashSecretHKDFFixedHigh(t *testing.T) {
 				// Verify format.
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 2)
-				require.Equal(t, "hkdf-sha256-fixed-high", parts[0])
+				require.Equal(t, "hkdf-sha256-fixed", parts[0])
 			}
 		})
 	}
 }
 
-func TestHashSecretHKDFFixedHigh_Determinism(t *testing.T) {
+func TestHashSecretHKDFFixed_Determinism(t *testing.T) {
 	t.Parallel()
 
-	secret := "sk_live_deterministicTokenABCDEF123456"
-	fixedInfo := []byte("deterministic-info-high")
+	secret := "deterministicTestSecret123"
+	fixedInfo := []byte("deterministic-info")
 
 	const iterations = 10
 	hashes := make([]string, iterations)
 
 	// Generate multiple hashes with same secret and fixed info.
 	for i := 0; i < iterations; i++ {
-		hash, err := HashSecretHKDFFixedHigh(secret, fixedInfo)
+		hash, err := HashSecretHKDFFixed(secret, fixedInfo)
 		require.NoError(t, err)
 		hashes[i] = hash
 	}
@@ -142,7 +142,7 @@ func TestHashSecretHKDFFixedHigh_Determinism(t *testing.T) {
 	}
 }
 
-func TestVerifySecretHKDFFixedHigh(t *testing.T) {
+func TestVerifySecretHKDFFixed(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -154,21 +154,21 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 	}{
 		{
 			name:           "valid_hash_matches",
-			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			storedHash:     "hkdf-sha256-fixed$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			providedSecret: "password123",
 			expectMatch:    false, // Won't match unless we use the exact secret that generated this hash.
 			expectError:    false,
 		},
 		{
 			name:           "empty_stored_hash",
 			storedHash:     "",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			providedSecret: "password123",
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "empty_provided_secret",
-			storedHash:     "hkdf-sha256-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			storedHash:     "hkdf-sha256-fixed$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
 			providedSecret: "",
 			expectMatch:    false,
 			expectError:    true,
@@ -176,21 +176,21 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		{
 			name:           "invalid_hash_format",
 			storedHash:     "invalid-format",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			providedSecret: "password123",
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "invalid_dk_encoding",
-			storedHash:     "hkdf-sha256-fixed-high$!!!invalid-base64!!!",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			storedHash:     "hkdf-sha256-fixed$!!!invalid-base64!!!",
+			providedSecret: "password123",
 			expectMatch:    false,
 			expectError:    true,
 		},
 		{
 			name:           "wrong_algorithm",
-			storedHash:     "hkdf-sha512-fixed-high$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
-			providedSecret: "sk_live_51A2b3C4d5E6f7G8h9I0J1K2L3M4N5O6",
+			storedHash:     "hkdf-sha512-fixed$ZGVyaXZlZGtleTE2Ynl0ZXNsb25nZGVyaXZlZGtleTE2",
+			providedSecret: "password123",
 			expectMatch:    false,
 			expectError:    true,
 		},
@@ -200,7 +200,7 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			match, err := VerifySecretHKDFFixedHigh(tt.storedHash, tt.providedSecret)
+			match, err := VerifySecretHKDFFixed(tt.storedHash, tt.providedSecret)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -213,43 +213,43 @@ func TestVerifySecretHKDFFixedHigh(t *testing.T) {
 	}
 }
 
-func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
+func TestHashLowEntropyDeterministic_CrossVerification(t *testing.T) {
 	t.Parallel()
 
-	secret := "sk_live_crossVerifyToken123456789ABCDEF"
+	secret := "crossVerifySecret456"
 
 	// Generate hash.
-	hash1, err := HashHighEntropyDeterministic(secret)
+	hash1, err := HashLowEntropyDeterministic(secret)
 	require.NoError(t, err)
 	require.NotEmpty(t, hash1)
 
 	// Generate second hash with same secret - should be identical.
-	hash2, err := HashHighEntropyDeterministic(secret)
+	hash2, err := HashLowEntropyDeterministic(secret)
 	require.NoError(t, err)
 	require.NotEmpty(t, hash2)
 	require.Equal(t, hash1, hash2, "deterministic hashing should produce identical results")
 
 	// Verify both hashes with correct secret.
-	match1, err := VerifySecretHKDFFixedHigh(hash1, secret)
+	match1, err := VerifySecretHKDFFixed(hash1, secret)
 	require.NoError(t, err)
 	require.True(t, match1, "hash1 should verify with correct secret")
 
-	match2, err := VerifySecretHKDFFixedHigh(hash2, secret)
+	match2, err := VerifySecretHKDFFixed(hash2, secret)
 	require.NoError(t, err)
 	require.True(t, match2, "hash2 should verify with correct secret")
 
 	// Verify hashes fail with wrong secret.
-	wrongSecret := "sk_live_wrongToken999999999XYZABC"
-	matchWrong1, err := VerifySecretHKDFFixedHigh(hash1, wrongSecret)
+	wrongSecret := "wrongSecret789"
+	matchWrong1, err := VerifySecretHKDFFixed(hash1, wrongSecret)
 	require.NoError(t, err)
 	require.False(t, matchWrong1, "hash1 should not verify with wrong secret")
 
-	matchWrong2, err := VerifySecretHKDFFixedHigh(hash2, wrongSecret)
+	matchWrong2, err := VerifySecretHKDFFixed(hash2, wrongSecret)
 	require.NoError(t, err)
 	require.False(t, matchWrong2, "hash2 should not verify with wrong secret")
 }
 
-func TestConstantTimeCompareBytesHigh(t *testing.T) {
+func TestConstantTimeCompareBytes(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -294,13 +294,13 @@ func TestConstantTimeCompareBytesHigh(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := constantTimeCompareBytesHigh(tt.a, tt.b)
+			result := constantTimeCompareBytes(tt.a, tt.b)
 			require.Equal(t, tt.expect, result)
 		})
 	}
 }
 
-func TestSplitHKDFFixedHighParts(t *testing.T) {
+func TestSplitHKDFFixedParts(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -310,13 +310,13 @@ func TestSplitHKDFFixedHighParts(t *testing.T) {
 	}{
 		{
 			name:   "valid_two_parts",
-			hash:   "hkdf-sha256-fixed-high$ZGVyaXZlZGtleQ==",
-			expect: []string{"hkdf-sha256-fixed-high", "ZGVyaXZlZGtleQ=="},
+			hash:   "hkdf-sha256-fixed$ZGVyaXZlZGtleQ==",
+			expect: []string{"hkdf-sha256-fixed", "ZGVyaXZlZGtleQ=="},
 		},
 		{
 			name:   "single_part",
-			hash:   "hkdf-sha256-fixed-high",
-			expect: []string{"hkdf-sha256-fixed-high"},
+			hash:   "hkdf-sha256-fixed",
+			expect: []string{"hkdf-sha256-fixed"},
 		},
 		{
 			name:   "empty_string",
@@ -334,29 +334,8 @@ func TestSplitHKDFFixedHighParts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			parts := splitHKDFFixedHighParts(tt.hash)
+			parts := splitHKDFFixedParts(tt.hash)
 			require.Equal(t, tt.expect, parts)
 		})
 	}
-}
-
-func TestHashHighEntropyDeterministic_VsLowEntropy(t *testing.T) {
-	t.Parallel()
-
-	// Same secret should produce different hashes with low-entropy vs high-entropy fixed info.
-	secret := "testSecret123"
-
-	lowEntropyHash, err := HashLowEntropyDeterministic(secret)
-	require.NoError(t, err)
-	require.NotEmpty(t, lowEntropyHash)
-	require.Contains(t, lowEntropyHash, "hkdf-sha256-fixed$")
-
-	highEntropyHash, err := HashHighEntropyDeterministic(secret)
-	require.NoError(t, err)
-	require.NotEmpty(t, highEntropyHash)
-	require.Contains(t, highEntropyHash, "hkdf-sha256-fixed-high$")
-
-	// Hashes should be different due to different fixed info parameters.
-	require.NotEqual(t, lowEntropyHash, highEntropyHash,
-		"low-entropy and high-entropy hashes should differ due to different fixed info")
 }

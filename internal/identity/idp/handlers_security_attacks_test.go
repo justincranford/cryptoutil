@@ -24,7 +24,7 @@ import (
 	cryptoutilIdentityIdp "cryptoutil/internal/identity/idp"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // TestSecurityAttacks_CSRFProtection validates that CSRF attacks are prevented.
@@ -148,7 +148,7 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 
 	// 11. Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPasswordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(cryptoutilIdentityIdp.TestPassword)
+	testPasswordHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(cryptoutilIdentityIdp.TestPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{

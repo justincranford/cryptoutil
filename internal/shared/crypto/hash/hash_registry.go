@@ -2,24 +2,26 @@
 //
 //
 
-package digests
+package hash
 
 import (
 	"fmt"
 	"sync"
+
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 // ParameterSetRegistry manages versioned PBKDF2 parameter sets.
 type ParameterSetRegistry struct {
 	mu             sync.RWMutex
-	parameterSets  map[string]*PBKDF2ParameterSet
+	parameterSets  map[string]*cryptoutilDigests.PBKDF2Params
 	defaultVersion string
 }
 
 // NewParameterSetRegistry creates a new registry with pre-registered parameter sets.
 func NewParameterSetRegistry() *ParameterSetRegistry {
 	registry := &ParameterSetRegistry{
-		parameterSets:  make(map[string]*PBKDF2ParameterSet),
+		parameterSets:  make(map[string]*cryptoutilDigests.PBKDF2Params),
 		defaultVersion: "1",
 	}
 
@@ -32,7 +34,7 @@ func NewParameterSetRegistry() *ParameterSetRegistry {
 }
 
 // registerParameterSet registers a parameter set (internal use).
-func (r *ParameterSetRegistry) registerParameterSet(params *PBKDF2ParameterSet) {
+func (r *ParameterSetRegistry) registerParameterSet(params *cryptoutilDigests.PBKDF2Params) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -40,7 +42,7 @@ func (r *ParameterSetRegistry) registerParameterSet(params *PBKDF2ParameterSet) 
 }
 
 // GetParameterSet retrieves a parameter set by version string.
-func (r *ParameterSetRegistry) GetParameterSet(version string) (*PBKDF2ParameterSet, error) {
+func (r *ParameterSetRegistry) GetParameterSet(version string) (*cryptoutilDigests.PBKDF2Params, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -53,7 +55,7 @@ func (r *ParameterSetRegistry) GetParameterSet(version string) (*PBKDF2Parameter
 }
 
 // GetDefaultParameterSet returns the default parameter set.
-func (r *ParameterSetRegistry) GetDefaultParameterSet() *PBKDF2ParameterSet {
+func (r *ParameterSetRegistry) GetDefaultParameterSet() *cryptoutilDigests.PBKDF2Params {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

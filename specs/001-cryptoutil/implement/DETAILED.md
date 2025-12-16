@@ -426,14 +426,14 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 **New Files**:
 
 - `internal/shared/crypto/digests/hash_parameter_sets.go`: Parameter set definitions
-  - PBKDF2ParameterSet struct (version, hashname, iterations, saltlength, keylength, hashfunc)
+  - PBKDF2Params struct (version, hashname, iterations, saltlength, keylength, hashfunc)
   - DefaultPBKDF2ParameterSet() (version "1", 600K iterations)
   - PBKDF2ParameterSetV1(), V2(1M), V3(2M) parameter sets
 
 **Function Changes**:
 
-- `HashSecretPBKDF2()`: Now uses `HashSecretPBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())`
-- `HashSecretPBKDF2WithParams()`: New function accepting parameter set (iterations, salt, key, hash)
+- `HashSecretPBKDF2()`: Now uses `PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())`
+- `PBKDF2WithParams()`: New function accepting parameter set (iterations, salt, key, hash)
 - `VerifySecret()`: Updated to handle three formats:
   1. Versioned PBKDF2: `{version}$hashname$iter$salt$dk`
   2. Legacy PBKDF2: `hashname$iter$salt$dk`
@@ -542,8 +542,8 @@ var (
 
 **Type System Updates**:
 
-- Changed all parameter set functions to return `*PBKDF2ParameterSet` (was `PBKDF2ParameterSet`)
-- Updated `HashSecretPBKDF2WithParams` to accept `*PBKDF2ParameterSet` (pointer)
+- Changed all parameter set functions to return `*PBKDF2Params` (was `PBKDF2Params`)
+- Updated `PBKDF2WithParams` to accept `*PBKDF2Params` (pointer)
 - Rationale: Registry requires pointers for efficient storage/lookup
 
 **Test Coverage**:

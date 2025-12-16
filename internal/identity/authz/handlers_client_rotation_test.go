@@ -22,7 +22,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // TestClientSecretRotation_EndToEnd validates complete rotation flow.
@@ -61,7 +61,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	// Client.Create() will use the provided hash to create ClientSecretVersion.
 	// Create test client with known secret.
 	originalSecret := "original-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
-	hashedSecret, err := cryptoutilDigests.HashLowEntropyNonDeterministic(originalSecret)
+	hashedSecret, err := cryptoutilHash.HashLowEntropyNonDeterministic(originalSecret)
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
@@ -81,7 +81,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify original secret works before rotation.
-	match, err := cryptoutilDigests.VerifySecret(createdClient.ClientSecret, originalSecret)
+	match, err := cryptoutilHash.VerifySecretHKDFFixed(createdClient.ClientSecret, originalSecret)
 	require.NoError(t, err)
 	require.True(t, match)
 
@@ -120,12 +120,12 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify old secret NO LONGER works.
-	match, err = cryptoutilDigests.VerifySecret(updatedClient.ClientSecret, originalSecret)
+	match, err = cryptoutilHash.VerifySecretHKDFFixed(updatedClient.ClientSecret, originalSecret)
 	require.NoError(t, err)
 	assert.False(t, match, "Old secret should not work after rotation")
 
 	// Verify new secret DOES work.
-	match, err = cryptoutilDigests.VerifySecret(updatedClient.ClientSecret, newSecret)
+	match, err = cryptoutilHash.VerifySecretHKDFFixed(updatedClient.ClientSecret, newSecret)
 	require.NoError(t, err)
 	assert.True(t, match, "New secret should work after rotation")
 }
@@ -219,7 +219,7 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 
 	// Create auth client for authentication.
 	authSecret := "auth-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
-	authHashed, err := cryptoutilDigests.HashLowEntropyNonDeterministic(authSecret)
+	authHashed, err := cryptoutilHash.HashLowEntropyNonDeterministic(authSecret)
 	require.NoError(t, err)
 
 	authClient := &cryptoutilIdentityDomain.Client{

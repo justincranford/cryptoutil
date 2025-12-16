@@ -22,7 +22,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // TestAuthenticateClient_BasicAuthSuccess validates HTTP Basic authentication success.
@@ -228,7 +228,7 @@ func createClientAuthFlowTestClient(
 
 	// Generate proper PBKDF2 hash for "test-secret" using cryptoutilCrypto.HashSecretPBKDF2
 	// Format: $pbkdf2-sha256$iterations$base64(salt)$base64(hash)
-	hashedSecret, err := cryptoutilDigests.HashSecretPBKDF2("test-secret")
+	hashedSecret, err := cryptoutilHash.HashSecretPBKDF2("test-secret")
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{

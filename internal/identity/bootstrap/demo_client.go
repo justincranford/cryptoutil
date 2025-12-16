@@ -16,7 +16,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // CreateDemoClient creates the demo-client for testing OAuth flows if it doesn't exist.
@@ -43,7 +43,7 @@ func CreateDemoClient(
 	// Generate demo client secret.
 	plainSecret = "demo-secret"
 
-	secretHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(plainSecret)
+	secretHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(plainSecret)
 	if err != nil {
 		return "", "", false, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrPasswordHashFailed,
