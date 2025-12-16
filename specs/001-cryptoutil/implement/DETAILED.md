@@ -34,11 +34,11 @@
 - [x] **P2.2**: Move internal/common/crypto/digests/registry.go to internal/shared/crypto/digests/hash_low_random_provider.go
 - [x] **P2.3**: Rename HashSecret in internal/shared/crypto/digests/hash_registry.go to HashLowEntropyNonDeterministic
 - [x] **P2.4**: Refactor HashSecretPBKDF2 so parameters are injected as a set from hash_registry.go: salt, iterations, hash length, digest algorithm
-- [ ] **P2.5**: Add hash_registry.go with version-to-parameter-set mapping and lookup functions
-- [ ] **P2.6**: Add hash_registry_test.go with table-driven happy path tests with 1|2|3 parameter sets in the registry, hashing can be done with all registered parameter sets, and verify func can validate all hashes starting with "{1}", "{2}", or "{3}"
-- [ ] **P2.7**: Add internal/shared/crypto/digests/hash_high_random_provider.go with test class; based on HKDF
-- [ ] **P2.8**: Add internal/shared/crypto/digests/hash_low_fixed_provider.go with test class; based on HKDF
-- [ ] **P2.9**: Add internal/shared/crypto/digests/hash_high_fixed_provider.go with test class; based on HKDF
+- [x] **P2.5**: Add hash_registry.go with version-to-parameter-set mapping and lookup functions
+- [x] **P2.6**: Add hash_registry_test.go with table-driven happy path tests with 1|2|3 parameter sets in the registry, hashing can be done with all registered parameter sets, and verify func can validate all hashes starting with "{1}", "{2}", or "{3}"
+- [x] **P2.7**: Add internal/shared/crypto/digests/hash_high_random_provider.go with test class; based on HKDF
+- [x] **P2.8**: Add internal/shared/crypto/digests/hash_low_fixed_provider.go with test class; based on HKDF
+- [x] **P2.9**: Add internal/shared/crypto/digests/hash_high_fixed_provider.go with test class; based on HKDF
 
 ### Phase 3: Coverage Targets (8 tasks)
 
@@ -409,6 +409,109 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 **Status**:
 
 - P2.4 ✅ COMPLETE (parameter injection and versioning implemented)
+
+---
+
+### 2025-12-15: Phase 2 Completion (P2.5-P2.9) - Hash Provider 2×2 Matrix
+
+**Summary**: Completed all 9 Phase 2 tasks (100%). Implemented comprehensive hash provider architecture with 2×2 matrix: low/high entropy × random/deterministic. All providers using FIPS 140-3 approved HKDF-SHA256 and PBKDF2-HMAC-SHA256.
+
+**Hash Provider Matrix**:
+
+|                          | **Low Entropy** (passwords, PINs)     | **High Entropy** (API keys, tokens)     |
+|--------------------------|----------------------------------------|-----------------------------------------|
+| **Non-Deterministic**    | PBKDF2 + random salt (P2.3-P2.4)      | HKDF + random salt (P2.7)               |
+| **Deterministic**        | HKDF + fixed info (P2.8)              | HKDF + fixed info (P2.9)                |
+
+**Implementation Details**:
+
+**P2.5: Hash Registry** (hash_registry.go - 95 lines):
+
+- Thread-safe parameter set registry using sync.RWMutex
+- Pre-registered V1 (600K iter), V2 (1M iter), V3 (2M iter)
+- Functions: GetParameterSet(version), GetDefaultParameterSet(), ListVersions(), GetDefaultVersion()
+- Global singleton: GetGlobalRegistry()
+
+**P2.6: Registry Tests** (hash_registry_test.go - 200 lines):
+
+- 7 comprehensive test functions, all passing in 5.4s
+- Tests: GetDefaultParameterSet, GetParameterSet (5 cases), ListVersions, GetDefaultVersion
+- Tests: HashWithAllVersions (V1: 0.88s, V2: 1.49s, V3: 2.63s)
+- Tests: CrossVersionVerification, ConcurrentAccess (100 goroutines), GlobalRegistry
+
+**P2.7: High Entropy Random Provider** (hash_high_random_provider.go - 98 lines, tests - 180 lines):
+
+- HKDF-SHA256 with random salt (32 bytes)
+- Format: `hkdf-sha256$base64(salt)$base64(dk)` (3 parts)
+- Functions: HashHighEntropyNonDeterministic, HashSecretHKDFRandom, VerifySecretHKDFRandom
+- Tests: 6 test functions, all passing in 1.05s
+- Verification: Constant-time comparison using crypto/subtle.ConstantTimeCompare
+
+**P2.8: Low Entropy Deterministic Provider** (hash_low_fixed_provider.go - 178 lines, tests - 319 lines):
+
+- HKDF-SHA256 with fixed info parameter (deterministic)
+- Format: `hkdf-sha256-fixed$base64(dk)` (2 parts, no salt)
+- Functions: HashLowEntropyDeterministic, HashSecretHKDFFixed, VerifySecretHKDFFixed
+- Tests: 8 test functions, all passing in 0.308s
+- Determinism verified: 10 iterations produce identical hashes
+
+**P2.9: High Entropy Deterministic Provider** (hash_high_fixed_provider.go - 179 lines, tests - 356 lines):
+
+- HKDF-SHA256 with fixed info parameter (high-entropy variant)
+- Format: `hkdf-sha256-fixed-high$base64(dk)` (2 parts, no salt)
+- Functions: HashHighEntropyDeterministic, HashSecretHKDFFixedHigh, VerifySecretHKDFFixedHigh
+- Tests: 9 test functions, all passing in 0.980s
+- Cross-verification with low-entropy variant confirmed (different fixed info → different hashes)
+
+**Magic Constants Added** (internal/shared/magic/magic_crypto.go):
+
+```go
+var (
+    HKDFFixedInfoLowEntropy  = []byte("cryptoutil-hkdf-low-entropy-v1")
+    HKDFFixedInfoHighEntropy = []byte("cryptoutil-hkdf-high-entropy-v1")
+)
+```
+
+**Type System Updates**:
+
+- Changed all parameter set functions to return `*PBKDF2ParameterSet` (was `PBKDF2ParameterSet`)
+- Updated `HashSecretPBKDF2WithParams` to accept `*PBKDF2ParameterSet` (pointer)
+- Rationale: Registry requires pointers for efficient storage/lookup
+
+**Test Coverage**:
+
+- All providers: Comprehensive table-driven tests with t.Parallel()
+- Edge cases: Empty secrets, long secrets (1024-4096 bytes), unicode, special characters
+- Format validation: Hash parsing, base64 encoding/decoding errors
+- Security: Constant-time comparison for all verification functions
+- Determinism: Verified for fixed-info variants (10+ iterations)
+- Non-determinism: Verified for random-salt variants (uniqueness tests)
+
+**Commits This Session**:
+
+- 6d56a644: feat(p2.5-p2.6): add hash registry with version lookup and comprehensive tests
+- f56b053a: feat(p2.7): add high entropy random provider using HKDF
+- baa33fd1: feat(p2.8): add low entropy deterministic provider using HKDF-fixed
+- bfef4eda: feat(p2.9): add high entropy deterministic provider using HKDF-fixed-high
+
+**Use Cases by Provider**:
+
+- **Low Entropy Random** (PBKDF2): User passwords, PINs - best security with random salt
+- **High Entropy Random** (HKDF random): API secrets requiring unique hashes per instance
+- **Low Entropy Deterministic** (HKDF fixed): Password lookup tables, caching (determinism required)
+- **High Entropy Deterministic** (HKDF fixed): API key lookups, token caching (consistent hashing)
+
+**Security Considerations**:
+
+- All algorithms FIPS 140-3 approved (PBKDF2-HMAC-SHA256, HKDF-SHA256)
+- Deterministic variants vulnerable to rainbow tables (use only when absolutely required)
+- Random salt variants provide best security against precomputed attacks
+- Constant-time comparison prevents timing attacks in all verification functions
+
+**Status**:
+
+- Phase 2 ✅ COMPLETE (9 of 9 tasks, 100% completion)
+- Next: Phase 3 (Coverage Targets - 8 tasks, 4-6h estimated)
 
 ---
 
