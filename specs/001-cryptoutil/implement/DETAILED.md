@@ -29,7 +29,7 @@
 - [x] **P1.11**: Optimize kms/server/barrier/rootkeysservice package (no optimization needed)
 - [ ] **P1.12**: Fix jose/server package to not require use of `-v` flag to avoid TestMain deadlock
 
-### Phase 2: Refactor Low Entropy Random Hashing (PBKDF2), and add High Entropy Random, Low Entropy Deterministic, and High Entropy Deterministic (9 tasks)
+### Phase 2: Refactor Low Entropy Random Hashing (PBKDF2), and add High Entropy Random, Low Entropy Deterministic, and High Entropy Deterministic (10 tasks)
 
 - [x] **P2.1**: Move internal/common/crypto/digests/pbkdf2.go and internal/common/crypto/digests/pbkdf2_test.go to internal/shared/crypto/digests/
 - [x] **P2.2**: Move internal/common/crypto/digests/registry.go to internal/shared/crypto/digests/hash_low_random_provider.go
@@ -40,6 +40,7 @@
 - [x] **P2.7**: Add internal/shared/crypto/digests/hash_high_random_provider.go with test class; based on HKDF
 - [x] **P2.8**: Add internal/shared/crypto/digests/hash_low_fixed_provider.go with test class; based on HKDF
 - [x] **P2.9**: Add internal/shared/crypto/digests/hash_high_fixed_provider.go with test class; based on HKDF
+- [x] **P2.10**: Move hash providers to separate internal/shared/crypto/hash package ❌ BLOCKED (import cycle: hash→digests→hash, architecture constraint requires co-location)
 
 ### Phase 3: Coverage Targets (8 tasks)
 
