@@ -142,3 +142,90 @@ func TestHandleLogout_POST(t *testing.T) {
 		})
 	}
 }
+
+// TestHandleEndSession_MissingParams validates error when neither id_token_hint nor client_id provided.
+func TestHandleEndSession_MissingParams(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	config := &cryptoutilIdentityConfig.Config{
+		IDP: &cryptoutilIdentityConfig.ServerConfig{
+			Name:        "idp",
+			BindAddress: "127.0.0.1",
+			Port:        8080,
+			TLSEnabled:  true,
+		},
+		Sessions: &cryptoutilIdentityConfig.SessionConfig{
+			CookieName:      "session_id",
+			CookieHTTPOnly:  true,
+			CookieSameSite:  "Lax",
+			SessionLifetime: 1 * time.Hour,
+		},
+	}
+
+	service := cryptoutilIdentityIdp.NewService(config, repoFactory, nil)
+	app := fiber.New()
+	service.RegisterRoutes(app)
+
+	req := httptest.NewRequest(http.MethodGet, "/oidc/v1/endsession", nil) // No params
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+}
+
+// TestHandleEndSession_WithClientID validates success with client_id parameter.
+func TestHandleEndSession_WithClientID(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
+		Type: "sqlite",
+		DSN:  ":memory:",
+	}
+
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+	require.NoError(t, err)
+
+	config := &cryptoutilIdentityConfig.Config{
+		IDP: &cryptoutilIdentityConfig.ServerConfig{
+			Name:        "idp",
+			BindAddress: "127.0.0.1",
+			Port:        8080,
+			TLSEnabled:  true,
+		},
+		Sessions: &cryptoutilIdentityConfig.SessionConfig{
+			CookieName:      "session_id",
+			CookieHTTPOnly:  true,
+			CookieSameSite:  "Lax",
+			SessionLifetime: 1 * time.Hour,
+		},
+	}
+
+	service := cryptoutilIdentityIdp.NewService(config, repoFactory, nil)
+	app := fiber.New()
+	service.RegisterRoutes(app)
+
+	req := httptest.NewRequest(http.MethodGet, "/oidc/v1/endsession?client_id=test-client", nil)
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// Should return 200 (session cleared, no redirect URI)
+	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+}
