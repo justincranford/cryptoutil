@@ -363,12 +363,77 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 **Remaining Work** (from recommendations):
 
-- ❌ Issue 2: Add package documentation (doc.go files for hash and digests)
-- ❌ Issue 3: Generate coverage baselines (coverage_hash.out, coverage_digests.out)
-- ❌ Issue 4: Document format string specifications in godoc
-- ❌ Issue 5: Resolve GitHub push block (web UI allowlist or interactive rebase)
+- ✅ Issue 2: Add package documentation (doc.go files for hash and digests) - COMPLETE (commits 94e358c6, bfcbfad9)
+- ✅ Issue 3: Generate coverage baselines (coverage_hash.out, coverage_digests.out) - COMPLETE (analysis below)
+- ✅ Issue 4: Document format string specifications in godoc - COMPLETE (included in doc.go files)
+- ❌ Issue 5: Resolve GitHub push block (web UI allowlist or interactive rebase) - BLOCKED (requires manual intervention)
 
-**Status**: Recommendation #1 ✅ COMPLETE (magic constants extracted and applied)
+**Status**: Recommendations #1, #2, #3, #4 ✅ COMPLETE
+
+**2025-12-16 Update - Package Documentation** (Recommendation #2 Implementation):
+
+**Work Completed**:
+
+- Created internal/shared/crypto/hash/doc.go (261 lines):
+  - Architecture overview (business logic layer on top of digests)
+  - Provider selection guide (LowEntropy vs HighEntropy, Deterministic vs NonDeterministic)
+  - Hash format specifications for all providers (PBKDF2, HKDF, HKDF-Fixed-Low, HKDF-Fixed-High)
+  - Parameter versioning explanation (V1/V2/V3 iteration counts)
+  - Usage examples for password hashing, API key hashing, deterministic key derivation
+  - Security considerations and best practices
+
+- Created internal/shared/crypto/digests/doc.go (261 lines):
+  - Overview of low-level cryptographic primitives
+  - PBKDF2 functions and format specification
+  - HKDF functions with digest algorithm variants (SHA-512/384/256/224)
+  - SHA-2 direct hashing utilities
+  - PBKDF2Params structure documentation
+  - Security considerations per algorithm
+  - FIPS 140-3 compliance statement
+
+**Commits**:
+
+- bfcbfad9: docs(crypto): add comprehensive package documentation for hash and digests
+
+**2025-12-16 Update - Coverage Baseline Analysis** (Recommendation #3 Implementation):
+
+**Coverage Summary**:
+
+- hash package: 85.2% overall (target: 95%+)
+- digests package: 87.2% overall (target: 95%+)
+
+**hash Package Low-Coverage Functions** (<90%):
+
+- HashLowEntropyNonDeterministic: 0.0% (wrapper function, not yet tested)
+- HashSecretPBKDF2: 0.0% (called by wrapper, not yet tested)
+- PBKDF2SHA384ParameterSetV1/V2/V3: 0.0% (SHA-384 variants, not yet tested)
+- PBKDF2SHA512ParameterSetV1/V2/V3: 0.0% (SHA-512 variants, not yet tested)
+- HashSecretHKDFRandom: 77.8% (partial coverage, needs error path testing)
+- VerifySecretHKDFRandom: 77.3% (partial coverage, needs error path testing)
+- GetDefaultParameterSet: 83.3% (partial coverage, needs edge case testing)
+- VerifySecretHKDFFixedHigh: 88.5% (almost complete, needs final error paths)
+- VerifySecretHKDFFixed: 88.5% (almost complete, needs final error paths)
+
+**digests Package Low-Coverage Functions** (<90%):
+
+- PBKDF2WithParams: 77.8% (partial coverage, needs error path testing)
+- VerifySecret: 77.8% (partial coverage, needs error path testing)
+- parsePbkdf2Params: 79.2% (partial coverage, needs format validation testing)
+
+**Coverage Improvement Strategy**:
+
+1. Add tests for 0% coverage wrapper functions (HashLowEntropyNonDeterministic, HashSecretPBKDF2)
+2. Add tests for SHA-384/512 parameter set variants (PBKDF2SHA384*, PBKDF2SHA512*)
+3. Add error path tests for HKDF random provider functions (77-78% → 95%+)
+4. Add error path tests for PBKDF2 primitive functions (77-79% → 95%+)
+5. Complete edge case coverage for Verify functions (88% → 95%+)
+
+**Baseline Reports Generated**:
+
+- test-output/coverage_hash_baseline.out (coverage data)
+- test-output/coverage_hash_baseline.html (visual analysis)
+- test-output/coverage_digests_baseline.out (coverage data)
+- test-output/coverage_digests_baseline.html (visual analysis)
 
 ### 2025-12-15: Phase 1 Optimization Re-Baseline and Firewall Issue Resolution
 
