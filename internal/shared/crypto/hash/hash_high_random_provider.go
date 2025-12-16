@@ -49,8 +49,11 @@ func HashSecretHKDFRandom(secret string) (string, error) {
 		return "", fmt.Errorf("HKDF failed: %w", err)
 	}
 
-	return fmt.Sprintf("hkdf-sha256$%s$%s",
+	return fmt.Sprintf("%s%s%s%s%s",
+		cryptoutilMagic.HKDFHashName,
+		cryptoutilMagic.HKDFDelimiter,
 		base64.RawStdEncoding.EncodeToString(salt),
+		cryptoutilMagic.HKDFDelimiter,
 		base64.RawStdEncoding.EncodeToString(dk)), nil
 }
 
@@ -75,8 +78,8 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 	}
 
 	hashName := parts[0]
-	if hashName != "hkdf-sha256" {
-		return false, fmt.Errorf("unsupported hash algorithm: %s", hashName)
+	if hashName != cryptoutilMagic.HKDFHashName {
+		return false, fmt.Errorf("unsupported hash algorithm: %s (expected: %s)", hashName, cryptoutilMagic.HKDFHashName)
 	}
 
 	salt, err := base64.RawStdEncoding.DecodeString(parts[1])

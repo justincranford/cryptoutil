@@ -123,6 +123,14 @@ const (
 
 	// PBKDF2 hash format constants.
 	PBKDF2VersionedFormatParts = 5 // Number of parts in versioned hash format: {version}$hashname$iter$salt$dk.
+
+	// HKDF hash name constants - for hash format strings.
+	HKDFHashName          = "hkdf-sha256"           // HKDF-SHA256 with random salt (non-deterministic).
+	HKDFFixedLowHashName  = "hkdf-sha256-fixed"     // HKDF-SHA256 with fixed info (deterministic, low-entropy).
+	HKDFFixedHighHashName = "hkdf-sha256-fixed-high" // HKDF-SHA256 with fixed info (deterministic, high-entropy).
+
+	// HKDF hash format constants.
+	HKDFDelimiter = "$" // Delimiter for HKDF hash format parts.
 )
 
 // HKDF deterministic hashing constants (fixed info parameters for determinism).

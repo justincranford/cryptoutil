@@ -48,7 +48,7 @@ func HashSecretHKDFFixed(secret string, fixedInfo []byte) (string, error) {
 		return "", errors.New("secret cannot be empty")
 	}
 
-	const algorithm = "hkdf-sha256-fixed"
+	algorithm := cryptoutilMagic.HKDFFixedLowHashName
 
 	const dkLength = cryptoutilMagic.PBKDF2DerivedKeyLength // 32 bytes
 
@@ -63,7 +63,7 @@ func HashSecretHKDFFixed(secret string, fixedInfo []byte) (string, error) {
 	// Format: hkdf-sha256-fixed$base64(dk)
 	dkBase64 := base64.StdEncoding.EncodeToString(dk)
 
-	return fmt.Sprintf("%s$%s", algorithm, dkBase64), nil
+	return fmt.Sprintf("%s%s%s", algorithm, cryptoutilMagic.HKDFDelimiter, dkBase64), nil
 }
 
 // VerifySecretHKDFFixed verifies a secret against a stored HKDF-fixed hash.
@@ -130,7 +130,7 @@ func VerifySecretHKDFFixed(storedHash, providedSecret string) (bool, error) {
 func splitHKDFFixedParts(hash string) []string {
 	parts := make([]string, 0, 2)
 
-	const delimiter = '$'
+	delimiter := cryptoutilMagic.HKDFDelimiter[0] // Use magic constant delimiter.
 
 	start := 0
 
