@@ -118,8 +118,10 @@ git commit -m "fix(format_go): verify self_modification_test catches regressions
 
 ### Timeline of Failures
 
-- **Dec 16, 2025**: TestHealthChecks timeout (context deadline exceeded)
-- **Dec 16, 2025**: TestMutualTLS timeout (i/o timeout)
+- **Dec 16, 2025 (ec9a071c)**: TestHealthChecks timeout (context deadline exceeded) - FIXED
+- **Dec 16, 2025 (ec9a071c)**: TestMutualTLS timeout (i/o timeout) - FIXED
+- **Dec 16, 2025 (full test run)**: TestMutualTLS failed with EOF (read timeout on TLS connection)
+- **Dec 16, 2025 (manual re-test)**: TestMutualTLS passed 6 consecutive times (1 isolated + 5 count runs)
 
 ### Root Cause Analysis
 
@@ -136,6 +138,13 @@ Reality (GitHub Actions, local under load):
 - Shared CPU (steal time, context switches)
 - Network latency (loopback still has overhead)
 - Parallel test execution (resource contention)
+
+**TestMutualTLS Specific Issue**:
+
+- **Full test suite run**: Server-side read timeout occurs before client completes (EOF error)
+- **Isolated runs**: No timeout, test passes consistently
+- **Hypothesis**: Parallel test execution causes TLS handshake delays under load
+- **Status**: Intermittent, race condition likely, but passes when run in isolation or with -count
 
 ### Prevention Strategies (MANDATORY)
 
