@@ -27,11 +27,11 @@
 - [x] **P1.9**: Optimize identity/authz/clientauth package (no optimization needed - 7.9s current)
 - [x] **P1.10**: Optimize kms/server/businesslogic package (no optimization needed)
 - [x] **P1.11**: Optimize kms/server/barrier/rootkeysservice package (no optimization needed)
-- [ ] **P1.12**: Fix jose/server package to not require use of `-v` flag to avoid TestMain deadlock
-  - [ ] **P1.12.1**: Analyze TestMain deadlock root cause (os.Exit() before t.Parallel() tests complete)
-  - [ ] **P1.12.2**: Identify workarounds (remove TestMain, per-test setup, sync.Once pattern)
-  - [ ] **P1.12.3**: Refactor tests to eliminate TestMain dependency (20+ test functions)
-  - [ ] **P1.12.4**: Verify tests pass without `-v` flag and with t.Parallel()
+- [x] **P1.12**: Fix jose/server package to not require use of `-v` flag to avoid TestMain deadlock - COMPLETE (2025-12-16)
+  - [x] **P1.12.1**: Analyze TestMain deadlock root cause (os.Exit() before t.Parallel() tests complete) - COMPLETE
+  - [x] **P1.12.2**: Identify workarounds (remove TestMain, per-test setup, sync.Once pattern) - COMPLETE
+  - [x] **P1.12.3**: Refactor tests to eliminate TestMain dependency (37 test functions) - COMPLETE (commit 10e1debf)
+  - [x] **P1.12.4**: Verify tests pass without `-v` flag and with t.Parallel() - COMPLETE (7.764s, no deadlock)
 - [ ] **P1.13**: Analyze test execution time baseline for kms/client package
 - [ ] **P1.14**: Implement probabilistic test execution for kms/client algorithm variants
   - [ ] **P1.14.1**: Identify algorithm variant test cases (RSA 2048/3072/4096, AES 128/192/256)
@@ -71,10 +71,10 @@
   - [ ] **P3.4.4**: Add targeted tests for uncovered functions and branches
   - [ ] **P3.4.5**: Verify 95%+ coverage achieved for all infra packages
 - [ ] **P3.5**: Achieve 95% coverage for every package under internal/cmd/cicd
-  - [ ] **P3.5.1**: Analyze format_go test failures (interface{}/any test data mismatch)
-  - [ ] **P3.5.2**: Identify root cause (test expects interface{} → any replacement)
-  - [ ] **P3.5.3**: Fix test data to use interface{} as input (not any)
-  - [ ] **P3.5.4**: Verify format_go tests pass after fix
+  - [x] **P3.5.1**: Analyze format_go test failures (interface{}/any test data mismatch) - COMPLETE
+  - [x] **P3.5.2**: Identify root cause (test expects interface{} → any replacement) - COMPLETE
+  - [x] **P3.5.3**: Fix test data to use interface{} as input (not any) - COMPLETE (commit 8c855a6e)
+  - [x] **P3.5.4**: Verify format_go tests pass after fix - COMPLETE (all tests passing)
   - [ ] **P3.5.5**: Run coverage baseline report for internal/cmd/cicd packages
   - [ ] **P3.5.6**: Analyze missing coverage for cicd packages
   - [ ] **P3.5.7**: Add targeted tests for uncovered cicd functions
@@ -1906,3 +1906,72 @@ golangci-lint run ./internal/shared/crypto/hash/...
 - Whether to address P1.12 TestMain blocker (2-4h refactor)
 - Whether to address P3.5 cicd blocker (test data fix)
 - Whether to continue with other work or end session
+
+### 2025-12-16: Extended Session - Blocker Resolution and Task Expansion
+
+**Session Continuation Objective**: Expand DETAILED.md with comprehensive subtasks per user requirements, then resolve all blockers
+
+**User Requirements Implemented**:
+
+1. ✅ Added blocker analysis subtasks (P1.12.1-P1.12.4, P3.5.1-P3.5.8)
+2. ✅ Added 95% coverage enforcement subtasks (P3.4.1-P3.4.5, P3.6.1-P3.6.5, P3.7.1-P3.7.5, P3.8.1-P3.8.5, P3.9.1-P3.9.5)
+3. ✅ Added format_go self-modification prevention subtasks (P3.10.1-P3.10.7)
+4. ✅ Added test execution speed optimization subtasks (P1.13-P1.15.3)
+5. ✅ Added gremlins mutation testing subtasks (Phase 6: P6.1-P6.7.5)
+6. ✅ Total new subtasks added: 80+
+
+**Tasks Completed This Extended Session** (3 additional commits, 0 pushes):
+
+1. ✅ Expanded DETAILED.md with comprehensive subtasks (commit c8ed30ab)
+2. ✅ P1.12.1-P1.12.4: Resolved TestMain deadlock blocker (commit 10e1debf)
+   - Root cause: os.Exit() before t.Parallel() tests complete
+   - Solution: Replaced TestMain with sync.Once setupTestServer() pattern
+   - Result: Tests pass without `-v` flag in 7.764s (no deadlock)
+   - Refactored 37 test functions to call setupTestServer()
+3. ✅ P3.5.1-P3.5.4: Resolved format_go test failures blocker (commit 8c855a6e)
+   - Root cause: Test data used `any` instead of `interface{}` for replacement verification
+   - Solution: Fixed test constants and assertions to use `interface{}` as input
+   - Added comprehensive inline comments explaining self-modification prevention
+   - Result: All format_go tests passing
+
+**Blockers Resolved**:
+
+- ✅ P1.12 TestMain deadlock: UNBLOCKED (refactored to sync.Once pattern)
+- ✅ P3.5 format_go test failures: UNBLOCKED (fixed test data)
+
+**Coverage Analysis Started**:
+
+- Generated baseline coverage reports for internal/infra/demo and internal/infra/realm
+- Identified functions <95% coverage in demo package (5 functions: 71.4%-85.7%)
+- Identified functions <95% coverage in realm package (27 functions: 0.0%-92.9%)
+- Ready for targeted test implementation to reach 95%+ coverage
+
+**Self-Modification Prevention Enhanced**:
+
+- Added CRITICAL comments in enforce_any.go explaining exclusion logic
+- Documented LLM agent narrow-focus risk (lose broader context during refactoring)
+- Test data now uses interface{} (not any) to verify replacement works
+- Comments emphasize: NEVER modify these comments, they prevent self-modification regressions
+
+**Git Status**:
+
+- Total local commits this session: 14 (11 verification + 3 blocker resolution)
+- Pushes: 0 (NO PUSH constraint maintained)
+- Working tree: Clean
+- All tests passing
+
+**Remaining High-Priority Work**:
+
+- P3.4-P3.9: Achieve 95% coverage per package (coverage baselines generated, ready for test implementation)
+- P1.13-P1.15: Test execution speed optimization (probabilistic execution for algorithm variants)
+- P3.10: Format_go regression prevention (pre-commit validation, runbook documentation)
+- Phase 6: Gremlins mutation testing (baseline reports, gap analysis, test refactoring)
+
+**Session Metrics (Total)**:
+
+- Session commits: 14
+- Tasks completed: 30+ (20 verification + 10 blocker resolution/expansion)
+- Blockers resolved: 2 (P1.12, P3.5)
+- New subtasks added: 80+
+- Coverage baselines: 8 packages analyzed
+- Total session time: ~90 minutes
