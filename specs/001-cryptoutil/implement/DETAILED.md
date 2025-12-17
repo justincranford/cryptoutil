@@ -28,6 +28,19 @@
 - [x] **P1.10**: Optimize kms/server/businesslogic package (no optimization needed)
 - [x] **P1.11**: Optimize kms/server/barrier/rootkeysservice package (no optimization needed)
 - [ ] **P1.12**: Fix jose/server package to not require use of `-v` flag to avoid TestMain deadlock
+  - [ ] **P1.12.1**: Analyze TestMain deadlock root cause (os.Exit() before t.Parallel() tests complete)
+  - [ ] **P1.12.2**: Identify workarounds (remove TestMain, per-test setup, sync.Once pattern)
+  - [ ] **P1.12.3**: Refactor tests to eliminate TestMain dependency (20+ test functions)
+  - [ ] **P1.12.4**: Verify tests pass without `-v` flag and with t.Parallel()
+- [ ] **P1.13**: Analyze test execution time baseline for kms/client package
+- [ ] **P1.14**: Implement probabilistic test execution for kms/client algorithm variants
+  - [ ] **P1.14.1**: Identify algorithm variant test cases (RSA 2048/3072/4096, AES 128/192/256)
+  - [ ] **P1.14.2**: Apply TestProbAlways to base algorithms, TestProbTenth to variants
+  - [ ] **P1.14.3**: Verify coverage maintained while reducing execution time
+- [ ] **P1.15**: Analyze slow packages (>15s) for additional optimization opportunities
+  - [ ] **P1.15.1**: Re-run test timing baseline after probabilistic changes
+  - [ ] **P1.15.2**: Identify remaining packages >15s execution time
+  - [ ] **P1.15.3**: Apply targeted optimizations per package
 
 ### Phase 2: Refactor Low Entropy Random Hashing (PBKDF2), and add High Entropy Random, Low Entropy Deterministic, and High Entropy Deterministic (10 tasks)
 
@@ -51,17 +64,53 @@
 - [x] **P3.1**: Achieve 95% coverage for crypto/hash and crypto/digests packages ✅ 2025-12-15 (hash 90.7%, digests 96.8%)
 - [x] **P3.2**: Achieve 95% coverage for every package under internal/shared/util (94.1% achieved - sysinfo limited to 84.4% due to OS API wrappers)
 - [x] **P3.3**: Achieve 95% coverage for every package under internal/common (78.9% achieved - limited by deprecated bcrypt legacy support)
-- [x] **P3.4**: Achieve 95% coverage for every package under internal/infra ✅ SKIPPED (demo 81.8%, realm 85.8%, all functions ≥90%, tenant blocked by virus scanner)
-- [ ] **P3.5**: Achieve 95% coverage for every package under internal/cmd/cicd - BLOCKED by test failures in format_go (interface{}/any test data mismatch)
-- [x] **P3.6**: Achieve 95% coverage for every package under internal/jose ✅ SKIPPED (crypto 82.7%, server 62.3%, all functions ≥90%)
-- [x] **P3.7**: Achieve 95% coverage for every package under internal/ca ✅ SKIPPED (all functions ≥90%, package averages 79.6-96.9%)
-- [x] **P3.8**: Achieve 95% coverage for every package under internal/kms ✅ SKIPPED (all functions ≥90%, 1 test failure: sysinfo timeout)
-- [x] **P3.9**: Achieve 95% coverage for every package under internal/identity ✅ SKIPPED (all functions ≥90%, package averages 66.0-100.0%)
-- [x] **P3.10**: DUPLICATE OF P3.4 - infra already complete (all functions ≥90%)
-- [x] **P3.11**: DUPLICATE OF P3.5 - cicd blocked by test failures (format_go)
-- [x] **P3.12**: DUPLICATE OF P3.6 - jose already complete (all functions ≥90%)
-- [x] **P3.13**: DUPLICATE OF P3.7 - CA already complete (all functions ≥90%)
-- [x] **P3.14**: DUPLICATE OF P3.9 - identity already complete (all functions ≥90%)
+- [ ] **P3.4**: Achieve 95% coverage for every package under internal/infra
+  - [ ] **P3.4.1**: Run coverage baseline report for internal/infra packages
+  - [ ] **P3.4.2**: Analyze missing coverage (demo 81.8%, realm 85.8%, target 95%)
+  - [ ] **P3.4.3**: Research best practices for testing demo/realm server initialization
+  - [ ] **P3.4.4**: Add targeted tests for uncovered functions and branches
+  - [ ] **P3.4.5**: Verify 95%+ coverage achieved for all infra packages
+- [ ] **P3.5**: Achieve 95% coverage for every package under internal/cmd/cicd
+  - [ ] **P3.5.1**: Analyze format_go test failures (interface{}/any test data mismatch)
+  - [ ] **P3.5.2**: Identify root cause (test expects interface{} → any replacement)
+  - [ ] **P3.5.3**: Fix test data to use interface{} as input (not any)
+  - [ ] **P3.5.4**: Verify format_go tests pass after fix
+  - [ ] **P3.5.5**: Run coverage baseline report for internal/cmd/cicd packages
+  - [ ] **P3.5.6**: Analyze missing coverage for cicd packages
+  - [ ] **P3.5.7**: Add targeted tests for uncovered cicd functions
+  - [ ] **P3.5.8**: Verify 95%+ coverage achieved for all cicd packages
+- [ ] **P3.6**: Achieve 95% coverage for every package under internal/jose
+  - [ ] **P3.6.1**: Run coverage baseline report for internal/jose packages
+  - [ ] **P3.6.2**: Analyze missing coverage (crypto 82.7%, server 62.3%, target 95%)
+  - [ ] **P3.6.3**: Research best practices for testing jose crypto and server logic
+  - [ ] **P3.6.4**: Add targeted tests for uncovered jose functions and branches
+  - [ ] **P3.6.5**: Verify 95%+ coverage achieved for all jose packages
+- [ ] **P3.7**: Achieve 95% coverage for every package under internal/ca
+  - [ ] **P3.7.1**: Run coverage baseline report for internal/ca packages
+  - [ ] **P3.7.2**: Analyze missing coverage (packages 79.6-96.9%, target 95% all)
+  - [ ] **P3.7.3**: Research best practices for testing CA certificate operations
+  - [ ] **P3.7.4**: Add targeted tests for uncovered CA functions and branches
+  - [ ] **P3.7.5**: Verify 95%+ coverage achieved for all CA packages
+- [ ] **P3.8**: Achieve 95% coverage for every package under internal/kms
+  - [ ] **P3.8.1**: Run coverage baseline report for internal/kms packages
+  - [ ] **P3.8.2**: Analyze missing coverage (identify packages <95%)
+  - [ ] **P3.8.3**: Research best practices for testing KMS encryption/signing
+  - [ ] **P3.8.4**: Add targeted tests for uncovered KMS functions and branches
+  - [ ] **P3.8.5**: Verify 95%+ coverage achieved for all KMS packages
+- [ ] **P3.9**: Achieve 95% coverage for every package under internal/identity
+  - [ ] **P3.9.1**: Run coverage baseline report for internal/identity packages
+  - [ ] **P3.9.2**: Analyze missing coverage (packages 66.0-100.0%, target 95% all)
+  - [ ] **P3.9.3**: Research best practices for testing identity OAuth/OIDC flows
+  - [ ] **P3.9.4**: Add targeted tests for uncovered identity functions and branches
+  - [ ] **P3.9.5**: Verify 95%+ coverage achieved for all identity packages
+- [ ] **P3.10**: Fix format_go self-modification regression (permanent solution)
+  - [ ] **P3.10.1**: Analyze format_go self-modification history (multiple regressions)
+  - [ ] **P3.10.2**: Review current exclusion patterns in enforce_any.go
+  - [ ] **P3.10.3**: Add comprehensive inline comments explaining exclusion logic
+  - [ ] **P3.10.4**: Update copilot instructions with format_go self-modification warnings
+  - [ ] **P3.10.5**: Add pre-commit hook validation to detect format_go self-modifications
+  - [ ] **P3.10.6**: Create test to verify enforce_any.go never modifies itself
+  - [ ] **P3.10.7**: Document preventative measures in docs/runbooks/format-go-maintenance.md
 
 ### Phase 3.15: Server Architecture Unification (18 tasks) ✅ COMPLETE (verified 2025-12-16)
 
@@ -142,14 +191,61 @@ Additional workflows found:
 
 All Phase 5 tasks verified complete via file existence checks.
 
-- [✅] **P5.1**: Fix ci-coverage workflow ✅ COMPLETE (verified 2025-12-16)
-- [✅] **P5.2**: Fix ci-benchmark workflow ✅ COMPLETE (verified 2025-12-16)
-- [✅] **P5.3**: Fix ci-fuzz workflow ✅ COMPLETE (verified 2025-12-16)
-- [✅] **P5.4**: Fix ci-e2e workflow ✅ COMPLETE (verified 2025-12-16)
-- [✅] **P5.5**: Fix ci-dast workflow ✅ COMPLETE (verified 2025-12-16)
-- [✅] **P5.6**: Fix ci-load workflow ✅ COMPLETE (verified 2025-12-16)
-- [✅] **P5.7**: Fix ci-mutation workflow ✅ COMPLETE (verified 2025-12-16)
-- [✅] **P5.8**: Fix ci-identity-validation workflow ✅ COMPLETE (verified 2025-12-16)
+- [x] **P5.1**: Fix ci-coverage workflow - COMPLETE (verified 2025-12-16)
+- [x] **P5.2**: Fix ci-benchmark workflow - COMPLETE (verified 2025-12-16)
+- [x] **P5.3**: Fix ci-fuzz workflow - COMPLETE (verified 2025-12-16)
+- [x] **P5.4**: Fix ci-e2e workflow - COMPLETE (verified 2025-12-16)
+- [x] **P5.5**: Fix ci-dast workflow - COMPLETE (verified 2025-12-16)
+- [x] **P5.6**: Fix ci-load workflow - COMPLETE (verified 2025-12-16)
+- [x] **P5.7**: Fix ci-mutation workflow - COMPLETE (verified 2025-12-16)
+- [x] **P5.8**: Fix ci-identity-validation workflow - COMPLETE (verified 2025-12-16)
+
+### Phase 6: Mutation Testing Quality Assurance (20+ tasks)
+
+**Goal**: Measure and improve test quality using gremlins mutation testing
+
+**Strategy**: Target high-value packages, establish baselines, analyze gaps, refactor to improve mutation scores
+
+- [ ] **P6.1**: Identify high-value packages for mutation testing
+  - [ ] **P6.1.1**: Prioritize crypto packages (hash, digests, keygen, jwk)
+  - [ ] **P6.1.2**: Prioritize business logic (KMS, Identity authz, CA handlers)
+  - [ ] **P6.1.3**: Prioritize security-critical code (unseal, encryption, signing)
+- [ ] **P6.2**: Run baseline gremlins report for internal/shared/crypto/hash
+  - [ ] **P6.2.1**: Execute gremlins unleash on hash package
+  - [ ] **P6.2.2**: Analyze mutation score and surviving mutants
+  - [ ] **P6.2.3**: Identify test gaps (uncaught mutations)
+  - [ ] **P6.2.4**: Refactor tests to kill surviving mutants
+  - [ ] **P6.2.5**: Verify mutation score reaches 80%+ threshold
+- [ ] **P6.3**: Run baseline gremlins report for internal/shared/crypto/digests
+  - [ ] **P6.3.1**: Execute gremlins unleash on digests package
+  - [ ] **P6.3.2**: Analyze mutation score and surviving mutants
+  - [ ] **P6.3.3**: Identify test gaps (uncaught mutations)
+  - [ ] **P6.3.4**: Refactor tests to kill surviving mutants
+  - [ ] **P6.3.5**: Verify mutation score reaches 80%+ threshold
+- [ ] **P6.4**: Run baseline gremlins report for internal/jose/crypto
+  - [ ] **P6.4.1**: Execute gremlins unleash on jose/crypto package
+  - [ ] **P6.4.2**: Analyze mutation score and surviving mutants
+  - [ ] **P6.4.3**: Identify test gaps (uncaught mutations)
+  - [ ] **P6.4.4**: Refactor tests to kill surviving mutants
+  - [ ] **P6.4.5**: Verify mutation score reaches 80%+ threshold
+- [ ] **P6.5**: Run baseline gremlins report for internal/kms/server/businesslogic
+  - [ ] **P6.5.1**: Execute gremlins unleash on KMS business logic
+  - [ ] **P6.5.2**: Analyze mutation score and surviving mutants
+  - [ ] **P6.5.3**: Identify test gaps (uncaught mutations)
+  - [ ] **P6.5.4**: Refactor tests to kill surviving mutants
+  - [ ] **P6.5.5**: Verify mutation score reaches 80%+ threshold
+- [ ] **P6.6**: Run baseline gremlins report for internal/identity/authz
+  - [ ] **P6.6.1**: Execute gremlins unleash on identity authz package
+  - [ ] **P6.6.2**: Analyze mutation score and surviving mutants
+  - [ ] **P6.6.3**: Identify test gaps (uncaught mutations)
+  - [ ] **P6.6.4**: Refactor tests to kill surviving mutants
+  - [ ] **P6.6.5**: Verify mutation score reaches 80%+ threshold
+- [ ] **P6.7**: Run baseline gremlins report for internal/ca/handlers
+  - [ ] **P6.7.1**: Execute gremlins unleash on CA handlers package
+  - [ ] **P6.7.2**: Analyze mutation score and surviving mutants
+  - [ ] **P6.7.3**: Identify test gaps (uncaught mutations)
+  - [ ] **P6.7.4**: Refactor tests to kill surviving mutants
+  - [ ] **P6.7.5**: Verify mutation score reaches 80%+ threshold
 
 ---
 
