@@ -14,7 +14,13 @@ import (
 )
 
 // enforceAny enforces custom Go source code fixes across all Go files.
-// It applies automated fixes like replacing any with any.
+// It applies automated fixes like replacing interface{} with any.
+//
+// CRITICAL SELF-MODIFICATION PREVENTION:
+// This file and its tests MUST use exclusion patterns to avoid self-modification.
+// The exclusion pattern "format_go" in GetGoFiles() prevents this file from being processed.
+// Test files MUST use interface{} in test data, NOT any, to avoid test failures.
+//
 // Files matching exclusion patterns are skipped to prevent self-modification.
 // Returns an error if any files were modified (to indicate changes were made).
 func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
@@ -83,7 +89,14 @@ func processGoFile(filePath string) (int, error) {
 
 	originalContent := string(content)
 
-	// IMPORTANT: Replace interface{} with any
+	// CRITICAL: Replace interface{} with any
+	//
+	// SELF-MODIFICATION PROTECTION:
+	// 1. This file is EXCLUDED by GetGoFiles("format-go") exclusion pattern
+	// 2. LLM agents (Copilot, Grok) MUST NOT modify comments in this function
+	// 3. Test data MUST use interface{} (NOT any) to verify replacement works
+	// 4. Narrow-focus LLM refactoring loses exclusion context → ALWAYS preserve these comments
+	//
 	// This regex matches the literal string "interface{}" in Go source code.
 	// The exclusion patterns prevent this file from being processed
 	// to avoid self-modification of the enforce-any hook implementation.
