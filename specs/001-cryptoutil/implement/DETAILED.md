@@ -65,11 +65,11 @@
 - [x] **P3.2**: Achieve 95% coverage for every package under internal/shared/util (94.1% achieved - sysinfo limited to 84.4% due to OS API wrappers)
 - [x] **P3.3**: Achieve 95% coverage for every package under internal/common (78.9% achieved - limited by deprecated bcrypt legacy support)
 - [ ] **P3.4**: Achieve 95% coverage for every package under internal/infra
-  - [ ] **P3.4.1**: Run coverage baseline report for internal/infra packages
-  - [ ] **P3.4.2**: Analyze missing coverage (demo 81.8%, realm 85.8%, target 95%)
-  - [ ] **P3.4.3**: Research best practices for testing demo/realm server initialization
-  - [ ] **P3.4.4**: Add targeted tests for uncovered functions and branches
-  - [ ] **P3.4.5**: Verify 95%+ coverage achieved for all infra packages
+  - [x] **P3.4.1**: Run coverage baseline report for internal/infra packages - COMPLETE (2025-12-16)
+  - [x] **P3.4.2**: Analyze missing coverage (demo 81.8%, realm 85.8%, target 95%) - COMPLETE (2025-12-16)
+  - [x] **P3.4.3**: Research best practices for testing demo/realm server initialization - COMPLETE (2025-12-16)
+  - [x] **P3.4.4**: Add targeted tests for uncovered functions and branches - COMPLETE (2025-12-16)
+  - [x] **P3.4.5**: Verify 95%+ coverage achieved for all infra packages - PARTIAL (demo 81.8%, realm 86.6%)
 - [ ] **P3.5**: Achieve 95% coverage for every package under internal/cmd/cicd
   - [x] **P3.5.1**: Analyze format_go test failures (interface{}/any test data mismatch) - COMPLETE
   - [x] **P3.5.2**: Identify root cause (test expects interface{} → any replacement) - COMPLETE
@@ -2016,3 +2016,68 @@ golangci-lint run ./internal/shared/crypto/hash/...
 
 - Total local commits: 15 (0 pushes, NO PUSH constraint maintained)
 - Working tree: Clean
+
+### 2025-12-16: P3.4 Infra Coverage Improvement
+
+**Objective**: Implement P3.4.3-P3.4.5 - Add targeted tests for infra/demo and infra/realm packages
+
+**Baseline Analysis**:
+
+- demo package: 81.8% coverage, 5 functions <95% (71.4%-85.7%)
+- realm package: 85.8% coverage, 27 functions <95% (0.0%-92.9%)
+- Target: 95%+ coverage for all infra packages
+
+**Implementation Approach**: Add specific test cases for uncovered branches in existing functions
+
+**Work Completed** (3 commits):
+
+1. **demo package improvements** (commit b3e57467):
+   - Added TestGetDemoCAMultipleCalls: Verify singleton pattern and sync.Once behavior
+   - Added TestCreateDemoCAChainValidation: Full CA chain structure validation
+   - Added TestCreateDemoCAWithOptionsDefaultsWhenNil: Nil options handling
+   - Added TestCreateServerCertificateFullPath: Full server cert creation validation
+   - Added TestCreateClientCertificateFullPath: Full client cert creation validation
+   - Result: Coverage remained at 81.8% (test structure issues, not missing tests)
+
+2. **realm authenticator improvements** (commit fe31d5f5):
+   - Added TestAuthenticator_VerifyPasswordErrors: Error handling for invalid hash formats
+   - Test cases: invalid format, wrong algorithm, bad iterations, bad salt encoding, empty hash
+   - Result: Coverage improved from 85.8% to 86.6% (+0.8%)
+   - verifyPassword function: Improved from 75.0% to 95.0% (+20%)
+
+3. **realm db_realm improvements** (commit 232d15ba):
+   - Added TestDBRealmRepository_UpdateUser: Test user update with email and roles changes
+   - Result: Coverage maintained at 86.6%
+   - UpdateUser function: Still at 66.7% (GORM error paths remain untested)
+
+**Coverage Analysis Results**:
+
+- demo package: 81.8% maintained (no improvement)
+- realm package: 86.6% achieved (improved from 85.8%)
+- Target 95%: NOT ACHIEVED - further work required
+
+**Blockers Identified**:
+
+- GetDemoCA: 71.4% - error path in sync.Once cannot be easily tested
+- CreateDemoCA/WithOptions: 75.0%-83.3% - cryptoutilTLS.CreateCAChain error paths external
+- Create*Certificate: 85.7% - Chain.CreateEndEntity error paths external
+- Reload: 0.0% - requires filesystem operations for config loading
+- DB functions: 66.7%-84.6% - GORM error simulation difficult without mocking
+
+**Lessons Learned**:
+
+- Functions wrapping external libraries (cryptoutilTLS, GORM) hard to reach 95% without error injection
+- sync.Once error paths cannot be tested due to pattern design
+- Filesystem operations (Reload) require integration test approach
+- Database error paths require mock/stub strategies not currently used
+
+**Next Steps**:
+
+- P3.4.5 NOT COMPLETE: Infra packages at 81.8%-86.6%, below 95% target
+- Decision required: Accept 80-90% for wrapper/integration code OR implement error injection framework
+- Recommend moving to P3.5 (CICD coverage) and returning to P3.4 after coverage strategy decision
+
+**Git Status**:
+
+- Total local commits: 19 (0 pushes, NO PUSH constraint maintained)
+- Working tree: Modified DETAILED.md pending commit
