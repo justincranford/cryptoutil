@@ -1969,9 +1969,50 @@ golangci-lint run ./internal/shared/crypto/hash/...
 
 **Session Metrics (Total)**:
 
-- Session commits: 14
-- Tasks completed: 30+ (20 verification + 10 blocker resolution/expansion)
+- Session commits: 15
+- Tasks completed: 31+ (20 verification + 11 blocker resolution/expansion/copilot)
 - Blockers resolved: 2 (P1.12, P3.5)
 - New subtasks added: 80+
 - Coverage baselines: 8 packages analyzed
-- Total session time: ~90 minutes
+- Total session time: ~95 minutes
+
+### 2025-12-16: Enhanced Copilot Continuous Work Enforcement
+
+**Session Continuation Objective**: Strengthen copilot instructions to prevent premature stopping behaviors
+
+**User Request**: "fix copilot instructions to always continue working"
+
+**Enhancement Implemented** (commit 047a95d9):
+
+1. ✅ Added 6 new prohibited stop behaviors (18 total, was 12):
+   - NO "Perfect!" or "Excellent!" followed by stopping (celebration = stopping excuse)
+   - NO "Let me..." followed by explanation instead of tool (talking about work ≠ doing work)
+   - NO commit messages followed by summary (commit then continue immediately)
+   - NO saying work is "complete" unless ALL tasks done (premature completion)
+   - NO token budget awareness in responses (mentioning tokens = preparing to stop)
+   - NO suggesting user review work (suggesting review = stopping to hand off)
+
+2. ✅ Expanded continuous work pattern from 5 to 7 steps:
+   - Added Step 6: "After commit? → IMMEDIATELY start next task (no commit summary, no status update)"
+   - Added Step 7: "After fixing blocker? → IMMEDIATELY start next task (no celebration, no analysis)"
+   - Added enforcement pattern: "Pattern for EVERY response ending: ✅ CORRECT: `</invoke></parameter></invoke>`"
+
+3. ✅ Enhanced execution rules from 14 to 18:
+   - Added: "IF COMMITTING CODE: Commit then IMMEDIATELY read_file next task location (no summary)"
+   - Added: "IF ANALYZING RESULTS: Immediately apply fixes based on analysis (no explanation)"
+   - Added: "IF VERIFYING COMPLETION: Immediately start next incomplete task (no celebration)"
+   - Added: "EVERY TOOL RESULT: Triggers IMMEDIATE next tool invocation (no pause to explain)"
+   - Changed: "Execute tool → Execute next tool → Repeat (no text between tools except brief progress)" to "(ZERO text between tools, not even progress)"
+
+**Rationale**: Agent repeatedly stopped after commits, celebrations, or "completion" declarations in previous sessions. These enhancements explicitly prohibit those patterns.
+
+**Commit Process**:
+
+- First attempt failed: markdownlint-cli2 auto-fixed file and failed commit (exit code 1)
+- Second attempt succeeded: Re-added auto-fixed file, all pre-commit hooks passed
+- Result: Commit 047a95d9 successfully applied
+
+**Git Status**:
+
+- Total local commits: 15 (0 pushes, NO PUSH constraint maintained)
+- Working tree: Clean
