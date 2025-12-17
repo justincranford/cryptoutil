@@ -424,6 +424,56 @@ func TestAuthenticator_UnsupportedRealmTypes(t *testing.T) {
 	}
 }
 
+func TestAuthenticator_VerifyPasswordErrors(t *testing.T) {
+	t.Parallel()
+
+	initialConfig := &Config{
+		Realms: []RealmConfig{
+			{
+				ID:      testRealmID1,
+				Name:    "test-realm",
+				Type:    RealmTypeFile,
+				Enabled: true,
+			},
+		},
+		Defaults: RealmDefaults{
+			PasswordPolicy: DefaultPasswordPolicy(),
+		},
+	}
+
+	auth, err := NewAuthenticator(initialConfig)
+	require.NoError(t, err)
+
+	policy := &PasswordPolicyConfig{
+		Algorithm:  "SHA-256",
+		Iterations: 600000,
+		SaltBytes:  32,
+		HashBytes:  32,
+	}
+
+	tests := []struct {
+		name     string
+		hash     string
+		password string
+	}{
+		{name: "invalid hash format", hash: "invalid", password: "password"},
+		{name: "wrong algorithm", hash: "$bcrypt$10$salt$hash", password: "password"},
+		{name: "invalid iterations", hash: "$pbkdf2-sha256$abc$salt$hash", password: "password"},
+		{name: "invalid salt encoding", hash: "$pbkdf2-sha256$10000$!!!invalid!!!$hash", password: "password"},
+		{name: "too few hash parts", hash: "$pbkdf2-sha256$10000", password: "password"},
+		{name: "empty hash", hash: "", password: "password"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := auth.verifyPassword(tc.password, tc.hash, policy)
+			require.Error(t, err)
+		})
+	}
+}
+
 // createTestPasswordHash creates a PBKDF2-SHA256 password hash for testing.
 func createTestPasswordHash(t *testing.T, password string) string {
 	t.Helper()
