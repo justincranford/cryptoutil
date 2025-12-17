@@ -24,7 +24,7 @@ import (
 // Files matching exclusion patterns are skipped to prevent self-modification.
 // Returns an error if any files were modified (to indicate changes were made).
 func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
-	logger.Log("Enforcing 'any' instead of 'interface{}' in Go files...")
+	logger.Log("Enforcing 'any' instead of 'any' in Go files...")
 
 	// Get only Go files from the map.
 	goFiles := filterGoFiles(filesByExtension)
@@ -81,6 +81,13 @@ func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[str
 // This function is protected from self-modification by exclusion patterns.
 // Returns the number of replacements made and any error encountered.
 func processGoFile(filePath string) (int, error) {
+	// DEFENSIVE CHECK: Never process format_go package files
+	// This protects against direct function calls that bypass filtering
+	if strings.Contains(filePath, "internal/cmd/cicd/format_go") ||
+		strings.Contains(filePath, "internal\\cmd\\cicd\\format_go") {
+		return 0, nil // Skip self-modification silently
+	}
+
 	// Read the file.
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -89,23 +96,23 @@ func processGoFile(filePath string) (int, error) {
 
 	originalContent := string(content)
 
-	// CRITICAL: Replace `interface{}` with any
+	// CRITICAL: Replace `any` with any
 	//
 	// SELF-MODIFICATION PROTECTION:
 	// 1. This file is EXCLUDED by GetGoFiles("format-go") exclusion pattern
 	// 2. LLM agents (Copilot, Grok) MUST NOT modify comments in this function
-	// 3. Test data MUST use `interface{}` (NOT any) to verify replacement works
+	// 3. Test data MUST use `any` (NOT any) to verify replacement works
 	// 4. Narrow-focus LLM refactoring loses exclusion context → ALWAYS preserve these comments
 	//
-	// This regex matches the literal string `interface{}` in Go source code.
+	// This regex matches the literal string `any` in Go source code.
 	// The exclusion patterns prevent this file from being processed
 	// to avoid self-modification of the enforce-any hook implementation.
 	interfacePattern := `interface\{\}`
 	re := regexp.MustCompile(interfacePattern)
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
-	// Count actual replacements (occurrences of `interface{}` in original).
-	replacements := strings.Count(originalContent, "interface{}")
+	// Count actual replacements (occurrences of `any` in original).
+	replacements := strings.Count(originalContent, "any")
 
 	// Only write if there were changes.
 	if replacements > 0 {
