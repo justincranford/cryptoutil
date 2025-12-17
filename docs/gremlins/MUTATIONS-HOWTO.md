@@ -19,18 +19,14 @@ go clean -cache -testcache
 
 ## Quick Start Commands
 
-### Use C: Drive (Avoid R: Drive Permission Issues)
+### Basic Execution Pattern
 
 ```powershell
-# Set temp directories to C: drive
-$env:TMPDIR = "C:\Temp"
-$env:TEMP = "C:\Temp"
-$env:TMP = "C:\Temp"
-$env:GOCACHE = "C:\Temp\go-cache"
-
 # Run gremlins with output capture
 gremlins unleash --workers 2 --tags '!integration' ./path/to/package 2>&1 | Tee-Object -FilePath ./test-output/gremlins/package_name.txt
 ```
+
+**Note**: Gremlins uses system TEMP/TMP environment variables by default. Ensure adequate disk space (>8GB free).
 
 ### Target Efficacy
 
@@ -46,7 +42,6 @@ gremlins unleash --workers 2 --tags '!integration' ./path/to/package 2>&1 | Tee-
 
 ```powershell
 # internal/kms/server/businesslogic - Encrypt/Decrypt/Sign/Verify operations
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/businesslogic 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_businesslogic.txt
 ```
 
@@ -73,7 +68,6 @@ gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/busines
 
 ```powershell
 # internal/kms/server/barrier - Key hierarchy operations
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/contentkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_barrier_content.txt
 
 gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/intermediatekeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_barrier_intermediate.txt
@@ -91,7 +85,6 @@ gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier
 
 ```powershell
 # internal/identity/authz - OAuth token handling
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz 2>&1 | Tee-Object -FilePath ./test-output/gremlins/identity_authz.txt
 ```
 
@@ -107,7 +100,6 @@ gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz 2>&
 
 ```powershell
 # internal/identity/idp - Multi-factor authentication
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/identity_idp.txt
 ```
 
@@ -123,7 +115,6 @@ gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp 2>&1 
 
 ```powershell
 # internal/jose/crypto - JWE/JWS operations
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto 2>&1 | Tee-Object -FilePath ./test-output/gremlins/jose_crypto.txt
 ```
 
@@ -139,7 +130,6 @@ gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto 2>&1 |
 
 ```powershell
 # internal/jose/server - JOSE service operations
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server 2>&1 | Tee-Object -FilePath ./test-output/gremlins/jose_server.txt
 ```
 
@@ -149,7 +139,6 @@ gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server 2>&1 |
 
 ```powershell
 # internal/ca/issuer - Certificate generation logic
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 2 --tags '!integration' ./internal/ca/issuer 2>&1 | Tee-Object -FilePath ./test-output/gremlins/ca_issuer.txt
 ```
 
@@ -163,7 +152,6 @@ gremlins unleash --workers 2 --tags '!integration' ./internal/ca/issuer 2>&1 | T
 
 ```powershell
 # internal/ca/handlers - CMP/CMPv2/SCEP/EST endpoints
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
 gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers 2>&1 | Tee-Object -FilePath ./test-output/gremlins/ca_handlers.txt
 ```
 
@@ -199,7 +187,7 @@ Write-Host "Test Efficacy: $([math]::Round($killed / ($killed + $lived) * 100, 2
 
 ### Issue: "Access is denied" on R: drive
 
-**Solution**: Use C: drive temp directories (see commands above)
+**Solution**: Ensure adequate disk space on system temp drive. Clear caches: `go clean -cache -testcache -modcache`
 
 ### Issue: Fails during "Gathering coverage"
 
@@ -243,24 +231,21 @@ After running gremlins:
 ## Example Workflow
 
 ```powershell
-# 1. Set environment
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"
-
-# 2. Run gremlins
+# 1. Run gremlins
 gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/businesslogic 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_businesslogic.txt
 
-# 3. Analyze results
+# 2. Analyze results
 $content = Get-Content ./test-output/gremlins/kms_businesslogic.txt
 $killed = ($content | Select-String "^\s+KILLED").Count
 $lived = ($content | Select-String "^\s+LIVED").Count
 Write-Host "Efficacy: $([math]::Round($killed / ($killed + $lived) * 100, 2))%"
 
-# 4. Review lived mutants
+# 3. Review lived mutants
 Get-Content ./test-output/gremlins/kms_businesslogic.txt | Select-String "LIVED"
 
-# 5. Add missing tests for lived mutants
+# 4. Add missing tests for lived mutants
 
-# 6. Re-run to verify improvement
+# 5. Re-run to verify improvement
 ```
 
 ## Reference: Successful Baselines
@@ -268,6 +253,7 @@ Get-Content ./test-output/gremlins/kms_businesslogic.txt | Select-String "LIVED"
 - **format_go**: 91.67% efficacy (28s, 33 killed, 3 lived)
 - **internal/identity/authz**: 91% efficacy (69s, 91 killed, 9 lived)
 - **Target for all packages**: ≥80% efficacy
+
 ## Known Limitations
 
 ### Gremlins Tool Issues
@@ -305,7 +291,7 @@ Get-Content ./test-output/gremlins/kms_businesslogic.txt | Select-String "LIVED"
 
 **Recommendation**: If gremlins consistently hangs, focus on improving test coverage (95%+ target) instead:
 
-\\\powershell
+```powershell
 # Generate coverage report
 go test ./internal/package -coverprofile=./test-output/coverage.out
 
@@ -313,6 +299,6 @@ go test ./internal/package -coverprofile=./test-output/coverage.out
 go tool cover -html=./test-output/coverage.out -o ./test-output/coverage.html
 
 # Add tests for uncovered branches, validate with runTests tool
-\\\
+```
 
 High test coverage (95%+) is more reliable indicator of test quality than mutation testing when gremlins tool has limitations.

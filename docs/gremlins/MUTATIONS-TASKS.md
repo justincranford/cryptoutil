@@ -6,6 +6,8 @@
 
 **Execution Pattern**: Run commands sequentially, analyze results, document findings
 
+**Note**: Gremlins uses system TEMP/TMP environment variables by default. Ensure adequate disk space (>8GB free) on system temp drive.
+
 ---
 
 ## KMS (Key Management Service) - 10 Tasks
@@ -14,56 +16,56 @@
 
 ```powershell
 # Task 1: KMS Business Logic (Core Operations)
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/businesslogic 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task01_kms_businesslogic.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/businesslogic 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task01_kms_businesslogic.txt
 ```
 
 ```powershell
 # Task 2: KMS Barrier - Content Keys Service
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/contentkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task02_kms_barrier_content.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/contentkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task02_kms_barrier_content.txt
 ```
 
 ```powershell
 # Task 3: KMS Barrier - Intermediate Keys Service
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/intermediatekeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task03_kms_barrier_intermediate.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/intermediatekeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task03_kms_barrier_intermediate.txt
 ```
 
 ```powershell
 # Task 4: KMS Barrier - Root Keys Service
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/rootkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task04_kms_barrier_root.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/rootkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task04_kms_barrier_root.txt
 ```
 
 ```powershell
 # Task 5: KMS Barrier - Unseal Service
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/unsealservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task05_kms_barrier_unseal.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/unsealservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task05_kms_barrier_unseal.txt
 ```
 
 ### Repository Layers
 
 ```powershell
 # Task 6: KMS ORM Repository
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/repository/orm 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task06_kms_orm_repository.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/repository/orm 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task06_kms_orm_repository.txt
 ```
 
 ```powershell
 # Task 7: KMS SQL Repository
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/repository/sqlrepository 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task07_kms_sql_repository.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/repository/sqlrepository 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task07_kms_sql_repository.txt
 ```
 
 ### Handler and Middleware
 
 ```powershell
 # Task 8: KMS Handlers (OpenAPI Strict Server)
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/handler 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task08_kms_handlers.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/handler 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task08_kms_handlers.txt
 ```
 
 ```powershell
 # Task 9: KMS Middleware
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/middleware 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task09_kms_middleware.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/middleware 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task09_kms_middleware.txt
 ```
 
 ```powershell
 # Task 10: KMS Client
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/kms/client 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task10_kms_client.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/kms/client 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task10_kms_client.txt
 ```
 
 ---
@@ -80,61 +82,61 @@ $env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --w
 
 ```powershell
 # Task 12: Identity Authorization - Client Authentication
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/clientauth 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task12_identity_authz_clientauth.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/clientauth 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task12_identity_authz_clientauth.txt
 ```
 
 ```powershell
 # Task 13: Identity Authorization - DPoP
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/dpop 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task13_identity_authz_dpop.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/dpop 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task13_identity_authz_dpop.txt
 ```
 
 ```powershell
 # Task 14: Identity Authorization - PAR (Pushed Authorization Requests)
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/par 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task14_identity_authz_par.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/par 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task14_identity_authz_par.txt
 ```
 
 ```powershell
 # Task 15: Identity Authorization - Storage
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/storage 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task15_identity_authz_storage.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/authz/storage 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task15_identity_authz_storage.txt
 ```
 
 ### Identity Provider (idp)
 
 ```powershell
 # Task 16: Identity Provider - Core
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task16_identity_idp.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task16_identity_idp.txt
 ```
 
 ```powershell
 # Task 17: Identity Provider - MFA
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp/mfa 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task17_identity_idp_mfa.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp/mfa 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task17_identity_idp_mfa.txt
 ```
 
 ```powershell
 # Task 18: Identity Provider - Authentication Methods
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp/authmethods 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task18_identity_idp_authmethods.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp/authmethods 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task18_identity_idp_authmethods.txt
 ```
 
 ```powershell
 # Task 19: Identity Provider - Session Management
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp/session 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task19_identity_idp_session.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/identity/idp/session 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task19_identity_idp_session.txt
 ```
 
 ### Domain Models and Mappers
 
 ```powershell
 # Task 20: Identity Domain Models
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/identity/domain 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task20_identity_domain.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/identity/domain 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task20_identity_domain.txt
 ```
 
 ```powershell
 # Task 21: Identity Repository - ORM
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/identity/repository/orm 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task21_identity_orm_repository.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/identity/repository/orm 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task21_identity_orm_repository.txt
 ```
 
 ```powershell
 # Task 22: Identity Repository - SQL
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/identity/repository/sqlrepository 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task22_identity_sql_repository.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/identity/repository/sqlrepository 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task22_identity_sql_repository.txt
 ```
 
 ### Additional Identity Packages
@@ -151,39 +153,39 @@ $env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --w
 
 ```powershell
 # Task 41: JOSE Crypto - Core (LARGE PACKAGE - may fail during coverage gathering)
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task41_jose_crypto.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task41_jose_crypto.txt
 ```
 
 ```powershell
 # Task 42: JOSE Crypto - JWK Utilities
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto/jwk 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task42_jose_jwk.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto/jwk 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task42_jose_jwk.txt
 ```
 
 ```powershell
 # Task 43: JOSE Crypto - JWKGen Service
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto/jwkgen 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task43_jose_jwkgen.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto/jwkgen 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task43_jose_jwkgen.txt
 ```
 
 ```powershell
 # Task 44: JOSE Crypto - Keygen
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto/keygen 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task44_jose_keygen.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/jose/crypto/keygen 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task44_jose_keygen.txt
 ```
 
 ### JOSE Server
 
 ```powershell
 # Task 45: JOSE Server - Core
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task45_jose_server.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task45_jose_server.txt
 ```
 
 ```powershell
 # Task 46: JOSE Server - Keystore
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server/keystore 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task46_jose_keystore.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server/keystore 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task46_jose_keystore.txt
 ```
 
 ```powershell
 # Task 47: JOSE Server - Middleware
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server/middleware 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task47_jose_middleware.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/jose/server/middleware 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task47_jose_middleware.txt
 ```
 
 ```powershell
@@ -198,49 +200,49 @@ $env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --w
 
 ```powershell
 # Task 61: CA Issuer
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/issuer 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task61_ca_issuer.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/issuer 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task61_ca_issuer.txt
 ```
 
 ```powershell
 # Task 62: CA Certificate Profiles
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/profiles 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task62_ca_profiles.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/profiles 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task62_ca_profiles.txt
 ```
 
 ```powershell
 # Task 63: CA Serial Number Generation
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/serial 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task63_ca_serial.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/serial 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task63_ca_serial.txt
 ```
 
 ### CA Protocol Handlers
 
 ```powershell
 # Task 64: CA CMP Handler
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/cmp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task64_ca_cmp.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/cmp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task64_ca_cmp.txt
 ```
 
 ```powershell
 # Task 65: CA CMPv2 Handler
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/cmpv2 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task65_ca_cmpv2.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/cmpv2 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task65_ca_cmpv2.txt
 ```
 
 ```powershell
 # Task 66: CA SCEP Handler
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/scep 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task66_ca_scep.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/scep 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task66_ca_scep.txt
 ```
 
 ```powershell
 # Task 67: CA EST Handler
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/est 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task67_ca_est.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/est 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task67_ca_est.txt
 ```
 
 ```powershell
 # Task 68: CA OCSP Handler
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/ocsp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task68_ca_ocsp.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/ocsp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task68_ca_ocsp.txt
 ```
 
 ```powershell
 # Task 69: CA CRL Distribution Point
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/crldp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task69_ca_crldp.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/ca/handlers/crldp 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task69_ca_crldp.txt
 ```
 
 ```powershell
@@ -255,34 +257,34 @@ $env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --w
 
 ```powershell
 # Task 81: Shared Crypto - Certificate
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/shared/crypto/certificate 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task81_shared_crypto_certificate.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/shared/crypto/certificate 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task81_shared_crypto_certificate.txt
 ```
 
 ```powershell
 # Task 82: Shared Crypto - TLS
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/shared/crypto/tls 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task82_shared_crypto_tls.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/shared/crypto/tls 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task82_shared_crypto_tls.txt
 ```
 
 ```powershell
 # Task 83: Shared Crypto - Hashing
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/shared/crypto/hash 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task83_shared_crypto_hash.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/shared/crypto/hash 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task83_shared_crypto_hash.txt
 ```
 
 ### Validation Utilities
 
 ```powershell
 # Task 84: Shared Util - Random (UUID validation)
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/shared/util/random 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task84_shared_util_random.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/shared/util/random 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task84_shared_util_random.txt
 ```
 
 ```powershell
 # Task 85: Shared Util - Validation
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/shared/util/validation 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task85_shared_util_validation.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/shared/util/validation 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task85_shared_util_validation.txt
 ```
 
 ```powershell
 # Task 86: Shared Util - Strings
-$env:TMPDIR = "C:\Temp"; $env:GOCACHE = "C:\Temp\go-cache"; gremlins unleash --workers 2 --tags '!integration' ./internal/shared/util/strings 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task86_shared_util_strings.txt
+gremlins unleash --workers 2 --tags '!integration' ./internal/shared/util/strings 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task86_shared_util_strings.txt
 ```
 
 ```powershell
