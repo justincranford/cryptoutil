@@ -157,7 +157,10 @@ func TestMutualTLS(t *testing.T) {
 		time.Sleep(testHTTPServerStartupDelay)
 
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
-		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
+		httpsClient := &http.Client{
+			Transport: &http.Transport{TLSClientConfig: clientTLSConfig},
+			Timeout:   5 * time.Second, // Increase client timeout to prevent flaky failures
+		}
 
 		for i := 1; i <= clientConnections; i++ {
 			req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, serverURL, bytes.NewReader(httpsClientRequestBody))

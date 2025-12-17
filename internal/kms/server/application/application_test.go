@@ -6,9 +6,11 @@ package application
 
 import (
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -17,10 +19,10 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilClient "cryptoutil/internal/kms/client"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
-	cryptoutilClient "cryptoutil/internal/kms/client"
 
 	"github.com/stretchr/testify/require"
 )
@@ -294,10 +296,40 @@ func TestHealthChecks(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			statusCode, _, body, err := tc.getResponse(&testServerPrivateURL, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+			// Increase timeout for health check requests to prevent flakiness
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			// Create HTTP client with timeout context
+			client := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						RootCAs: startServerListenerApplication.PrivateTLSServer.RootCAsPool,
+					},
+				},
+				Timeout: 5 * time.Second,
+			}
+
+			req, err := http.NewRequestWithContext(ctx, "GET", testServerPrivateURL+tc.endpoint, nil)
+			require.NoError(t, err)
+
+			resp, err := client.Do(req)
 			require.NoError(t, err, "should successfully get response from %s", tc.endpoint)
-			require.Equal(t, tc.expectedStatus, statusCode, "should return expected status code")
-			require.NotNil(t, body, "response body should not be nil")
+
+			defer func() {
+				require.NoError(t, resp.Body.Close())
+			}()
+
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+
+			var response map[string]any
+
+			err = json.Unmarshal(body, &response)
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expectedStatus, resp.StatusCode, "should return expected status code")
+			require.NotNil(t, response, "response body should not be nil")
 
 			tc.validateBody(t, body)
 
