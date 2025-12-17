@@ -12,13 +12,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
+	"sync"
 	"testing"
 	"time"
 
+	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 
 	"github.com/stretchr/testify/require"
 )
@@ -28,56 +28,55 @@ var (
 	testServer     *Server
 	testBaseURL    string
 	testHTTPClient *http.Client
+	setupOnce      sync.Once
+	setupErr       error
 )
 
-func TestMain(m *testing.M) {
-	// Create test settings with dynamic port allocation using test helper.
-	// NewTestConfig bypasses pflag global FlagSet to allow multiple test instances.
-	testSettings = cryptoutilConfig.NewTestConfig(
-		cryptoutilMagic.IPv4Loopback,
-		0, // Dynamic port allocation.
-		true,
-	)
+// setupTestServer initializes the test server once for all tests.
+// Uses sync.Once to ensure safe concurrent access from parallel tests.
+// CRITICAL: This pattern replaces TestMain to avoid os.Exit() deadlock with t.Parallel().
+func setupTestServer() error {
+	setupOnce.Do(func() {
+		// Create test settings with dynamic port allocation using test helper.
+		// NewTestConfig bypasses pflag global FlagSet to allow multiple test instances.
+		testSettings = cryptoutilConfig.NewTestConfig(
+			cryptoutilMagic.IPv4Loopback,
+			0, // Dynamic port allocation.
+			true,
+		)
 
-	// Create server.
-	var err error
+		// Create server.
+		testServer, setupErr = New(testSettings)
+		if setupErr != nil {
+			setupErr = fmt.Errorf("failed to create server: %w", setupErr)
 
-	testServer, err = New(testSettings)
-	if err != nil {
-		fmt.Printf("Failed to create server: %v\n", err)
-		os.Exit(1)
-	}
+			return
+		}
 
-	// Start server without blocking.
-	if err := testServer.StartNonBlocking(); err != nil {
-		fmt.Printf("Failed to start server: %v\n", err)
-		os.Exit(1)
-	}
+		// Start server without blocking.
+		if setupErr = testServer.StartNonBlocking(); setupErr != nil {
+			setupErr = fmt.Errorf("failed to start server: %w", setupErr)
 
-	// Wait for server to be ready.
-	time.Sleep(cryptoutilMagic.ServerStartupWait)
+			return
+		}
 
-	// Get the actual port from the listener.
-	testBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, testServer.ActualPort())
+		// Wait for server to be ready.
+		time.Sleep(cryptoutilMagic.ServerStartupWait)
 
-	// Create HTTP client with TLS config for self-signed certificates.
-	testHTTPClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only
+		// Get the actual port from the listener.
+		testBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, testServer.ActualPort())
+
+		// Create HTTP client with TLS config for self-signed certificates.
+		testHTTPClient = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true, //nolint:gosec // Test environment only
+				},
 			},
-		},
-	}
+		}
+	})
 
-	// Run tests.
-	exitCode := m.Run()
-
-	// Shutdown server.
-	if shutdownErr := testServer.Shutdown(); shutdownErr != nil {
-		fmt.Printf("Server shutdown error: %v\n", shutdownErr)
-	}
-
-	os.Exit(exitCode)
+	return setupErr
 }
 
 // doGet performs a GET request with context.
@@ -141,6 +140,8 @@ func closeBody(t *testing.T, resp *http.Response) {
 func TestHealthEndpoints(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	tests := []struct {
 		name     string
 		endpoint string
@@ -168,6 +169,8 @@ func TestHealthEndpoints(t *testing.T) {
 func TestHealthJSON(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	resp := doGet(t, testBaseURL+"/health")
 	defer closeBody(t, resp)
 
@@ -183,6 +186,8 @@ func TestHealthJSON(t *testing.T) {
 
 func TestJWKGenerateAndRetrieve(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	tests := []struct {
 		name      string
@@ -247,6 +252,8 @@ func TestJWKGenerateAndRetrieve(t *testing.T) {
 func TestJWKGenerateInvalidAlgorithm(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWKGenerateRequest{
 		Algorithm: "InvalidAlg",
 		Use:       "sig",
@@ -262,6 +269,8 @@ func TestJWKGenerateInvalidAlgorithm(t *testing.T) {
 func TestJWKGetNotFound(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	resp := doGet(t, testBaseURL+"/jose/v1/jwk/nonexistent-kid")
 	defer closeBody(t, resp)
 
@@ -271,6 +280,8 @@ func TestJWKGetNotFound(t *testing.T) {
 func TestJWKDeleteNotFound(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	resp := doDelete(t, testBaseURL+"/jose/v1/jwk/nonexistent-kid/delete")
 	defer closeBody(t, resp)
 
@@ -279,6 +290,8 @@ func TestJWKDeleteNotFound(t *testing.T) {
 
 func TestJWKList(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	resp := doGet(t, testBaseURL+"/jose/v1/jwk")
 	defer closeBody(t, resp)
@@ -295,6 +308,8 @@ func TestJWKList(t *testing.T) {
 
 func TestJWSSignAndVerify(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	// First generate a key.
 	genReqBody, err := json.Marshal(JWKGenerateRequest{
@@ -353,6 +368,8 @@ func TestJWSSignAndVerify(t *testing.T) {
 
 func TestJWEEncryptAndDecrypt(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	tests := []struct {
 		name       string
@@ -441,6 +458,8 @@ func TestJWEEncryptAndDecrypt(t *testing.T) {
 func TestJWTCreateAndVerify(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	// First generate a key.
 	genReqBody, err := json.Marshal(JWKGenerateRequest{
 		Algorithm: "EC/P384",
@@ -504,6 +523,8 @@ func TestJWTCreateAndVerify(t *testing.T) {
 func TestWellKnownJWKS(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	resp := doGet(t, testBaseURL+"/.well-known/jwks.json")
 	defer closeBody(t, resp)
 
@@ -522,6 +543,8 @@ func TestWellKnownJWKS(t *testing.T) {
 func TestJWSSignMissingKID(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWSSignRequest{
 		KID:     "",
 		Payload: "test",
@@ -536,6 +559,8 @@ func TestJWSSignMissingKID(t *testing.T) {
 
 func TestJWSSignMissingPayload(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	reqBody, err := json.Marshal(JWSSignRequest{
 		KID:     "some-kid",
@@ -552,6 +577,8 @@ func TestJWSSignMissingPayload(t *testing.T) {
 func TestJWSSignKeyNotFound(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWSSignRequest{
 		KID:     "nonexistent-kid",
 		Payload: "test",
@@ -567,6 +594,8 @@ func TestJWSSignKeyNotFound(t *testing.T) {
 func TestJWSVerifyMissingJWS(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWSVerifyRequest{
 		JWS: "",
 	})
@@ -580,6 +609,8 @@ func TestJWSVerifyMissingJWS(t *testing.T) {
 
 func TestJWSVerifyKeyNotFound(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	reqBody, err := json.Marshal(JWSVerifyRequest{
 		JWS: "eyJhbGciOiJFUzI1NiJ9.dGVzdA.signature",
@@ -596,6 +627,8 @@ func TestJWSVerifyKeyNotFound(t *testing.T) {
 func TestJWEEncryptMissingKID(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWEEncryptRequest{
 		KID:       "",
 		Plaintext: "test",
@@ -610,6 +643,8 @@ func TestJWEEncryptMissingKID(t *testing.T) {
 
 func TestJWEEncryptMissingPlaintext(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	reqBody, err := json.Marshal(JWEEncryptRequest{
 		KID:       "some-kid",
@@ -626,6 +661,8 @@ func TestJWEEncryptMissingPlaintext(t *testing.T) {
 func TestJWEEncryptKeyNotFound(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWEEncryptRequest{
 		KID:       "nonexistent-kid",
 		Plaintext: "test",
@@ -640,6 +677,8 @@ func TestJWEEncryptKeyNotFound(t *testing.T) {
 
 func TestJWEDecryptMissingJWE(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	reqBody, err := json.Marshal(JWEDecryptRequest{
 		JWE: "",
@@ -656,6 +695,8 @@ func TestJWEDecryptMissingJWE(t *testing.T) {
 func TestJWEDecryptMissingKID(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWEDecryptRequest{
 		JWE: "some-jwe",
 		KID: "",
@@ -671,6 +712,8 @@ func TestJWEDecryptMissingKID(t *testing.T) {
 func TestJWEDecryptKeyNotFound(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWEDecryptRequest{
 		JWE: "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0...",
 		KID: "nonexistent-kid",
@@ -685,6 +728,8 @@ func TestJWEDecryptKeyNotFound(t *testing.T) {
 
 func TestJWTCreateMissingKID(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	reqBody, err := json.Marshal(JWTCreateRequest{
 		KID: "",
@@ -703,6 +748,8 @@ func TestJWTCreateMissingKID(t *testing.T) {
 func TestJWTCreateMissingClaims(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWTCreateRequest{
 		KID:    "some-kid",
 		Claims: nil,
@@ -717,6 +764,8 @@ func TestJWTCreateMissingClaims(t *testing.T) {
 
 func TestJWTCreateKeyNotFound(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	reqBody, err := json.Marshal(JWTCreateRequest{
 		KID: "nonexistent-kid",
@@ -735,6 +784,8 @@ func TestJWTCreateKeyNotFound(t *testing.T) {
 func TestJWTVerifyMissingJWT(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	reqBody, err := json.Marshal(JWTVerifyRequest{
 		JWT: "",
 	})
@@ -748,6 +799,8 @@ func TestJWTVerifyMissingJWT(t *testing.T) {
 
 func TestJWTVerifyKeyNotFound(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	reqBody, err := json.Marshal(JWTVerifyRequest{
 		JWT: "eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.sig",
@@ -764,6 +817,8 @@ func TestJWTVerifyKeyNotFound(t *testing.T) {
 func TestJWKGetMissingKID(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	// The path /jose/v1/jwk without a KID returns the list endpoint.
 	resp := doGet(t, testBaseURL+"/jose/v1/jwk")
 	defer closeBody(t, resp)
@@ -774,6 +829,8 @@ func TestJWKGetMissingKID(t *testing.T) {
 
 func TestJWKDeleteSuccess(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	// Generate a key first.
 	genReqBody, err := json.Marshal(JWKGenerateRequest{
@@ -808,6 +865,8 @@ func TestJWKDeleteSuccess(t *testing.T) {
 func TestInvalidJSONBody(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	tests := []struct {
 		name     string
 		endpoint string
@@ -836,6 +895,8 @@ func TestInvalidJSONBody(t *testing.T) {
 // TestJWSVerifyErrorPaths tests JWS verification error scenarios.
 func TestJWSVerifyErrorPaths(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	t.Run("MissingJWS", func(t *testing.T) {
 		t.Parallel()
@@ -952,6 +1013,8 @@ func TestJWSVerifyErrorPaths(t *testing.T) {
 // TestJWTVerifyErrorPaths tests JWT verification error scenarios.
 func TestJWTVerifyErrorPaths(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	t.Run("MissingJWT", func(t *testing.T) {
 		t.Parallel()
@@ -1072,6 +1135,8 @@ func TestJWTVerifyErrorPaths(t *testing.T) {
 func TestServerLifecycle(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	settings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0, // Dynamic port.
@@ -1092,6 +1157,8 @@ func TestServerLifecycle(t *testing.T) {
 // TestAPIKeyMiddleware tests API key configuration.
 func TestAPIKeyMiddleware(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	settings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
@@ -1125,6 +1192,8 @@ func TestAPIKeyMiddleware(t *testing.T) {
 func TestNewServerErrorPaths(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	validSettings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0,
@@ -1152,6 +1221,8 @@ func TestNewServerErrorPaths(t *testing.T) {
 func TestStartBlocking(t *testing.T) {
 	t.Parallel()
 
+	require.NoError(t, setupTestServer())
+
 	settings := cryptoutilConfig.NewTestConfig(
 		cryptoutilMagic.IPv4Loopback,
 		0,
@@ -1172,6 +1243,8 @@ func TestStartBlocking(t *testing.T) {
 // TestShutdownCoverage tests explicit Shutdown calls for coverage.
 func TestShutdownCoverage(t *testing.T) {
 	t.Parallel()
+
+	require.NoError(t, setupTestServer())
 
 	t.Run("NormalShutdown", func(t *testing.T) {
 		t.Parallel()
