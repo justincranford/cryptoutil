@@ -16,11 +16,11 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
