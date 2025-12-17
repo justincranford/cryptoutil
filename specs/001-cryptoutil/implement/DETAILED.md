@@ -32,7 +32,7 @@
   - [x] **P1.12.2**: Identify workarounds (remove TestMain, per-test setup, sync.Once pattern) - COMPLETE
   - [x] **P1.12.3**: Refactor tests to eliminate TestMain dependency (37 test functions) - COMPLETE (commit 10e1debf)
   - [x] **P1.12.4**: Verify tests pass without `-v` flag and with t.Parallel() - COMPLETE (7.764s, no deadlock)
-- [ ] **P1.13**: Analyze test execution time baseline for kms/client package
+- [x] **P1.13**: Analyze test execution time baseline for kms/client package - COMPLETE (2025-12-16)
 - [ ] **P1.14**: Implement probabilistic test execution for kms/client algorithm variants
   - [ ] **P1.14.1**: Identify algorithm variant test cases (RSA 2048/3072/4096, AES 128/192/256)
   - [ ] **P1.14.2**: Apply TestProbAlways to base algorithms, TestProbTenth to variants
@@ -2841,3 +2841,61 @@ High Coverage Gaps (75-95%):
 
 **Total Local Commits**: 31 (0 pushes, NO PUSH constraint maintained)
 **Working Tree**: Clean after commit ba7daabf
+
+### 2025-12-16: P1.13 Analyze kms/client Test Execution Time Baseline
+
+**Objective**: Establish baseline timing for internal/kms/client test package to identify slow tests for probabilistic execution optimization.
+
+**Context**: P1.13 is the first of three test optimization tasks (P1.13-P1.15). Goal is to reduce slow package execution time while maintaining coverage through probabilistic test execution patterns.
+
+**Execution**:
+
+- Ran test suite with verbose timing: go test -v -count=1 ./internal/kms/client
+- Captured output to timestamped file:  est-output/timing_kms_client_20251216_141706.txt
+- Parsed timing data for all tests (parent and subtests)
+- Analyzed patterns: RSA operations (4.21s), Direct encryption (3.72s), AES key wrap (3.58s), ECDH (3.53s)
+
+**Findings**:
+
+- **Total execution time**: 7.84s (go test reported), 11.80s (wall clock including server startup)
+- **Test count**: 2 top-level, 16 cipher algorithm variants, 5 signature algorithm variants
+- **Slowest tests**: 17 tests >1.0s (range: 1.39s to 4.21s)
+- **RSA cipher variants slowest**: A128CBC-HS256_RSA1_5 (4.21s), A128CBC-HS256_RSA-OAEP (4.06s), A128CBC-HS256_RSA-OAEP-256 (3.40s)
+- **Pattern**: Each cipher variant runs ~28 subtests (Create + Generate + Encrypt + Generate + Decrypt + 8×3 data key operations)
+- **Signature variants faster**: RS256 (1.44s), ES256 (0.34s), EdDSA (0.16s), HS256 (0.26s), PS256 (0.28s)
+
+**Probabilistic Execution Strategy**:
+
+1. **High priority** (>3.0s, 7 tests): Apply TestProbTenth (10% execution)
+   - A128CBC-HS256_RSA1_5, A128CBC-HS256_RSA-OAEP, A128CBC-HS256_dir, A128GCM_A128KW, A128CBC-HS256_ECDH-ES, A128CBC-HS256_ECDH-ES+A128KW, A128CBC-HS256_RSA-OAEP-256
+
+2. **Medium priority** (1.5-3.0s, 7 tests): Apply TestProbQuarter (25% execution)
+   - A128CBC-HS256_A128GCMKW, A128GCM_ECDH-ES, A128CBC-HS256_A128KW, A128GCM_ECDH-ES+A128KW, A128GCM_RSA-OAEP, A128GCM_RSA1_5, A128GCM_A128GCMKW
+
+3. **Base algorithms** (<1.5s, 3 tests): Keep TestProbAlways (100% execution)
+   - A128GCM_dir, all signature variants (RS256, ES256, EdDSA, HS256, PS256)
+
+**Expected Impact**:
+
+- **Current**: 7.84s (all tests run every time)
+- **After optimization**: 3-5s typical runs (38-64% improvement), 7.8s full runs (no change)
+- **Developer experience**: Faster local test feedback (50-60% time reduction)
+- **Coverage**: Preserved through probabilistic execution (all variants tested periodically)
+
+**Files Created**:
+
+- est-output/kms_client_timing_analysis.md: Comprehensive baseline analysis with recommendations
+- est-output/timing_kms_client_20251216_141706.txt: Raw test output with timing data
+
+**Next Steps** (P1.14):
+
+1. Identify exact test function names in client_test.go for wrapper application
+2. Apply TestProbTenth() wrapper to 7 high-priority cipher variants
+3. Apply TestProbQuarter() wrapper to 7 medium-priority cipher variants
+4. Verify coverage maintained (should stay at current level)
+5. Measure new execution time (target: 3-5s typical, 7.8s full)
+6. Document probabilistic execution pattern in test file comments
+
+**Commits**: None (test-output/ directory is .gitignored, analysis doc not committed to avoid test output pollution)
+
+**Status**: ✅ P1.13 COMPLETE (baseline timing analysis done, findings documented, strategy defined for P1.14)
