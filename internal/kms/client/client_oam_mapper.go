@@ -84,8 +84,8 @@ func (m *oamOacMapper) toOamMaterialKeyGenerate(openapiMaterialKeyGenerateRespon
 			return nil, fmt.Errorf("failed to generate key, elasticKey.ElasticKeyID is zero")
 		} else if key.MaterialKeyID == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.MaterialKeyID is zero")
-		} else if key.GenerateDate == nil {
-			return nil, fmt.Errorf("failed to generate key, elasticKey.GenerateDate is nil") // TODO nil allowed if import not nil
+		} else if key.GenerateDate == nil && key.ImportDate == nil {
+			return nil, fmt.Errorf("failed to generate key, both GenerateDate and ImportDate are nil")
 		}
 
 		return key, nil

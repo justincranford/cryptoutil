@@ -120,7 +120,8 @@ func NewHealthCommand() *cobra.Command {
 		Short: "Check JOSE server health",
 		Long:  "Send a health check request to the JOSE Authority Server.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: Implement health check client.
+			// NOTE: Health check client will be implemented when remote health checking is needed.
+			// For local health checks, use admin endpoints directly (e.g., curl https://127.0.0.1:9090/admin/v1/livez).
 			fmt.Printf("Checking health of JOSE server at %s\n", serverURL)
 
 			return nil

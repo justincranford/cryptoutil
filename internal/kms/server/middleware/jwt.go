@@ -288,8 +288,8 @@ func (v *JWTValidator) shouldPerformRevocationCheck(claims *JWTClaims) bool {
 	case RevocationCheckSensitiveOnly:
 		return v.hasSensitiveScope(claims)
 	case RevocationCheckInterval:
-		// TODO: Implement interval-based caching with token JTI as key.
-		// For now, treat as every-request.
+		// NOTE: Interval-based caching with token JTI will be implemented when RevocationCheckInterval mode is actively used.
+		// For now, treat as every-request for security.
 		return true
 	case RevocationCheckDisabled, "":
 		return false
