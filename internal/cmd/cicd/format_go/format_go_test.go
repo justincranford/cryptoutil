@@ -128,10 +128,10 @@ func TestEnforceAny_WithModifications(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with any that needs replacement with any.
+	// File with interface{} that needs replacement with any.
 	oldContent := `package server
 
-func Process(data any) any {
+func Process(data interface{}) interface{} {
 	return data
 }
 `
@@ -141,13 +141,13 @@ func Process(data any) any {
 	// Test processGoFile directly (bypasses GetGoFiles filtering).
 	replacements, err := processGoFile(testFile)
 	require.NoError(t, err, "processGoFile should succeed")
-	require.Equal(t, 2, replacements, "Should have 2 replacements (two any instances)")
+	require.Equal(t, 2, replacements, "Should have 2 replacements (two interface{} instances)")
 
 	// Verify file was actually modified.
 	modifiedContent, readErr := os.ReadFile(testFile)
 	require.NoError(t, readErr)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
 }
 
 func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
@@ -180,7 +180,7 @@ func TestProcessGoFile_NoChanges(t *testing.T) {
 
 const (
 	testGoContentClean              = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
-	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
+	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{} = 42\n\tprintln(x)\n}\n"
 	testGoContentInvalid            = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
 )
 
@@ -203,7 +203,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 	modifiedContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
 }
 
 func TestIsLoopVarCopy(t *testing.T) {
