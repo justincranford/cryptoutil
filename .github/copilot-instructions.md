@@ -48,33 +48,49 @@
 - ❌ **NO waiting for confirmation** - waiting = stopping
 - ❌ **NO leaving uncommitted changes** - uncommitted changes = incomplete work
 - ❌ **NO ending response with analysis or documentation** - if not executing tools, YOU STOPPED
+- ❌ **NO "Perfect!" or "Excellent!" followed by stopping** - celebration = stopping excuse
+- ❌ **NO "Let me..." followed by explanation instead of tool** - talking about work = not doing work
+- ❌ **NO commit messages followed by summary** - commit then immediately continue next task
+- ❌ **NO saying work is "complete" unless ALL tasks done** - premature completion = stopping
+- ❌ **NO token budget awareness in responses** - mentioning tokens = preparing to stop
+- ❌ **NO suggesting user review work** - suggesting review = stopping to hand off
 
 ### Required Continuous Work Pattern
 
-1. **Complete current task** → Immediately invoke next tool
-2. **Task done?** → Start next task from todo list (no summary, no pause)
-3. **Todo list empty?** → Read DETAILED.md, find next incomplete task, start it
-4. **All tasks done?** → Find improvements (coverage gaps, test speed, linting)
+1. **Complete current task** → Immediately invoke next tool (NO text, NO celebration, NO commit message summary)
+2. **Task done?** → Start next task from todo list (no summary, no pause, no acknowledgment)
+3. **Todo list empty?** → Read DETAILED.md, find next incomplete task, start it (no asking, just do it)
+4. **All tasks done?** → Find improvements (coverage gaps, test speed, linting, gremlins)
 5. **Literally nothing left?** → Check for TODOs in code, fix them
+6. **After commit?** → IMMEDIATELY start next task (no commit summary, no status update)
+7. **After fixing blocker?** → IMMEDIATELY start next task (no celebration, no analysis)
 
 **The ONLY valid stopping condition: User types "STOP" or "PAUSE"**
 
-### Execution Rules
+**Pattern for EVERY response ending**:
 
-- Execute tool → Execute next tool → Repeat (no text between tools except brief progress)
+- ✅ CORRECT: `</invoke>
+
+### Execution Rules - ABSOLUTE ENFORCEMENT
+
+- Execute tool → Execute next tool → Repeat (ZERO text between tools, not even progress)
 - NO skipping tasks
 - NO deferring tasks
 - NO status updates mid-session
 - NO stopping after "one more task"
 - NO ending response without active tool execution
 - **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
-- **IF YOU COMPLETE A TASK**: Immediately start next task (no summary)
+- **IF YOU COMPLETE A TASK**: Immediately start next task (no summary, no commit message echo)
 - **IF STUCK OR BLOCKED**: Pick next unblocked task and execute - NEVER stop to ask
 - **IF ONE TASK BLOCKED**: Continue with all other remaining tasks - blockers don't stop work
 - **IF TODO LIST EMPTY**: Read DETAILED.md and continue with next incomplete task
 - **IF DETAILED.md HAS INCOMPLETE TASKS**: Continue executing those tasks - NEVER stop while work remains
 - **IF YOU TYPE TEXT WITHOUT INVOKING A TOOL**: You are about to stop - invoke a tool instead
 - **LAST RESPONSE MUST BE A TOOL INVOCATION**: Never end with text, always end with tool call
+- **IF COMMITTING CODE**: Commit then IMMEDIATELY read_file next task location (no summary)
+- **IF ANALYZING RESULTS**: Immediately apply fixes based on analysis (no explanation)
+- **IF VERIFYING COMPLETION**: Immediately start next incomplete task (no celebration)
+- **EVERY TOOL RESULT**: Triggers IMMEDIATE next tool invocation (no pause to explain)
 
 ### Handling Blockers and Issues
 
