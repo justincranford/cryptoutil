@@ -205,3 +205,73 @@ func TestDemoCAPoolMethods(t *testing.T) {
 		require.NotNil(t, pool)
 	})
 }
+
+func TestGetDemoCAMultipleCalls(t *testing.T) {
+	t.Parallel()
+
+	ca1, err1 := GetDemoCA()
+	require.NoError(t, err1)
+	require.NotNil(t, ca1)
+
+	ca2, err2 := GetDemoCA()
+	require.NoError(t, err2)
+	require.NotNil(t, ca2)
+	require.Same(t, ca1, ca2)
+	require.Same(t, ca1.Chain, ca2.Chain)
+}
+
+func TestCreateDemoCAChainValidation(t *testing.T) {
+	t.Parallel()
+
+	ca, err := CreateDemoCA()
+	require.NoError(t, err)
+	require.NotNil(t, ca)
+	require.NotNil(t, ca.Chain)
+	require.NotNil(t, ca.Chain.RootCA)
+	require.NotNil(t, ca.Chain.IssuingCA)
+	require.Len(t, ca.Chain.CAs, cryptoutilTLS.DefaultCAChainLength)
+	require.NotEmpty(t, ca.Chain.RootCA.KeyMaterial.CertificateChain)
+	require.NotEmpty(t, ca.Chain.IssuingCA.KeyMaterial.CertificateChain)
+}
+
+func TestCreateDemoCAWithOptionsDefaultsWhenNil(t *testing.T) {
+	t.Parallel()
+
+	ca, err := CreateDemoCAWithOptions(nil)
+	require.NoError(t, err)
+	require.NotNil(t, ca)
+	require.NotNil(t, ca.Chain)
+	require.Len(t, ca.Chain.CAs, cryptoutilTLS.DefaultCAChainLength)
+}
+
+func TestCreateServerCertificateFullPath(t *testing.T) {
+	t.Parallel()
+
+	ca, err := CreateDemoCA()
+	require.NoError(t, err)
+
+	subject, err := ca.CreateServerCertificate("testserver.local")
+	require.NoError(t, err)
+	require.NotNil(t, subject)
+	require.NotNil(t, subject.KeyMaterial)
+	require.NotNil(t, subject.KeyMaterial.CertificateChain)
+	require.NotEmpty(t, subject.KeyMaterial.CertificateChain)
+	require.NotNil(t, subject.KeyMaterial.PrivateKey)
+	require.Equal(t, "testserver.local", subject.SubjectName)
+}
+
+func TestCreateClientCertificateFullPath(t *testing.T) {
+	t.Parallel()
+
+	ca, err := CreateDemoCA()
+	require.NoError(t, err)
+
+	subject, err := ca.CreateClientCertificate("testclient.local")
+	require.NoError(t, err)
+	require.NotNil(t, subject)
+	require.NotNil(t, subject.KeyMaterial)
+	require.NotNil(t, subject.KeyMaterial.CertificateChain)
+	require.NotEmpty(t, subject.KeyMaterial.CertificateChain)
+	require.NotNil(t, subject.KeyMaterial.PrivateKey)
+	require.Equal(t, "testclient.local", subject.SubjectName)
+}
