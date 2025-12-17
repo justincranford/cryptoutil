@@ -2646,5 +2646,92 @@ High Coverage Gaps (75-95%):
 
 **Git Status**:
 
-- Total local commits: 23 (0 pushes, NO PUSH constraint maintained)
-- Working tree: Modified DETAILED.md pending commit
+- Total local commits: 24 (0 pushes, NO PUSH constraint maintained)
+- Working tree: Clean after commit 74501938
+
+---
+
+## Summary: Phase 3 Coverage Baseline Completion (P3.4-P3.9)
+
+**Status**: ALL Phase 3 coverage baselines COMPLETE (2025-12-16)
+
+**Baselines Generated** (6 package groups):
+
+1. **P3.4 Infra** (2 packages): demo 81.8%, realm 86.6% | 32 functions <95%
+2. **P3.5 CICD** (11 packages): 60.3-100% range | 31 functions <95%
+3. **P3.6 JOSE** (2 packages): crypto 82.7%, server 62.1% | 74 functions <95%
+4. **P3.7 CA** (19 packages): 79.6-96.9% range | 158 functions <95%
+5. **P3.8 KMS** (13 packages): 7.3-90.4% range | 147 functions <95%
+6. **P3.9 Identity** (36 packages): 0-100% range | 488 functions <95%
+
+**Total Functions Below 95%**: 930 functions across 83 packages
+
+**Coverage Targets Met**: 8 packages achieved 95%+ coverage:
+
+- identity/apperr (100.0%)
+- identity/ratelimit (100.0%)
+- identity/security (100.0%)
+- identity/config (95.2%)
+- identity/pkce (95.5%)
+- identity/email (96.0%)
+- identity/domain (98.6%)
+- ca/observability (96.9%)
+
+**Critical Coverage Gaps**:
+
+- **Main wrappers**: cmd packages 0% across all products (KMS, Identity, CA, JOSE)
+- **Server lifecycle**: Admin/application servers 0% across all products
+- **Business logic**: KMS businesslogic 39.0%, Identity idp 66.0%, JOSE server 62.1%
+- **Repository factories**: Identity repository 13.5% (factory pattern)
+- **Demo packages**: KMS demo 7.3%, CA demo not measured, Identity fixtures 0%
+- **Process managers**: Identity process 0% (Windows-specific OS APIs)
+- **Complex protocols**: Identity WebAuthn 4-21%, step-up auth 24%, hybrid middleware 4.2%
+
+**Architectural Patterns Requiring Integration Tests**:
+
+- Admin/application server lifecycle (testcontainers pattern)
+- Repository factories with database (PostgreSQL/SQLite containers)
+- mTLS middleware (test certificates, TLS handshake simulation)
+- OAuth/OIDC flows (session state, consent, backchannel logout)
+- WebAuthn/FIDO2 (authenticator simulation, attestation/assertion mocking)
+
+**Slow Test Packages** (>15s execution):
+
+- identity/clientauth: 21.534s (SLOWEST)
+- kms/client: 19.602s
+- kms/application: 15.833s
+- identity/authz: 14.612s
+- identity/idp: 14.905s
+- identity/email: 11.495s
+
+**Acceptable Exceptions Identified**:
+
+- Main() wrappers: 0% acceptable (refactor to internalMain() pattern)
+- Demo packages: <10% acceptable for seed/reset functions
+- Test fixtures: 0% acceptable (test utilities don't need coverage)
+- OS-specific APIs: 0% acceptable (Windows process manager)
+- Docker containerization tests: Failures acceptable on Windows without Docker Desktop
+
+**Next Steps** (Post-Baseline):
+
+1. Define coverage policy with acceptable exceptions
+2. Create integration test infrastructure (testcontainers, mock servers)
+3. Implement probabilistic execution for slow tests (>15s)
+4. Refactor main() wrappers to internalMain() pattern
+5. Build crypto/WebAuthn/OAuth mocking frameworks
+6. Target realistic coverage milestones (not 95% absolute):
+   - Business logic packages: 39-66% → 70-80%
+   - Middleware packages: 53-76% → 80-85%
+   - Handler packages: 62-80% → 80-90%
+   - Repository packages: 13-78% → 85-90%
+
+**Timeline**:
+
+- P3.4 Infra: 2025-12-16 (commit 91b16d39)
+- P3.5 CICD: 2025-12-16 (commit b8d14044)
+- P3.6 JOSE: 2025-12-16 (commit a63445bd)
+- P3.7 CA: 2025-12-16 (commit cb2e7aa2)
+- P3.8 KMS: 2025-12-16 (commit 1be1503d)
+- P3.9 Identity: 2025-12-16 (commit 74501938)
+
+**Commits**: 24 total (0 pushes, NO PUSH constraint maintained)
