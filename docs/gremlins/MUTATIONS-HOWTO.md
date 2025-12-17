@@ -268,3 +268,51 @@ Get-Content ./test-output/gremlins/kms_businesslogic.txt | Select-String "LIVED"
 - **format_go**: 91.67% efficacy (28s, 33 killed, 3 lived)
 - **internal/identity/authz**: 91% efficacy (69s, 91 killed, 9 lived)
 - **Target for all packages**: ≥80% efficacy
+## Known Limitations
+
+### Gremlins Tool Issues
+
+1. **Coverage Gathering Hangs**:
+   - Medium/large packages (>10 files, >500 lines) consistently hang during "Gathering coverage..." phase
+   - Complex test suites with many dependencies cannot complete coverage analysis
+   - Affects: KMS businesslogic, barrier services (root, unseal), JOSE server, Identity domain
+   - **Success Rate**: Only 2 of 6 packages completed (33%)
+
+2. **Gremlins Panic Errors**:
+   - Internal error: "error, this is temporary" in executor.go:165
+   - Affects: KMS barrier intermediate service
+   - Root cause: Internal gremlins bug (not test quality issue)
+
+3. **Test Timeouts**:
+   - Tests taking >30s cause mutants to TIMED OUT
+   - Especially affects crypto operations with real key sizes
+   - Solution: Use --timeout=60s or --timeout=120s flag
+
+4. **Disk Space Requirements**:
+   - R: drive (Go cache) fills up quickly during parallel mutation testing
+   - Requires >8GB free space for medium packages
+   - Solution: Clear caches regularly: go clean -cache -modcache -testcache
+
+### When NOT to Use Gremlins
+
+- ❌ Packages with >10 test files
+- ❌ Packages with complex dependency graphs
+- ❌ Packages with integration tests (even with --tags '!integration')
+- ❌ Packages where tests take >20 seconds to run
+- ❌ When disk space is limited (<10GB free)
+
+### Alternative: Focus on Test Coverage
+
+**Recommendation**: If gremlins consistently hangs, focus on improving test coverage (95%+ target) instead:
+
+\\\powershell
+# Generate coverage report
+go test ./internal/package -coverprofile=./test-output/coverage.out
+
+# View HTML report (identify RED uncovered lines)
+go tool cover -html=./test-output/coverage.out -o ./test-output/coverage.html
+
+# Add tests for uncovered branches, validate with runTests tool
+\\\
+
+High test coverage (95%+) is more reliable indicator of test quality than mutation testing when gremlins tool has limitations.
