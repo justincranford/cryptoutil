@@ -122,6 +122,51 @@
 - ❌ WRONG: "Phase 3 complete! Here's what we did..." (STOPPING)
 - ✅ CORRECT: `read_file DETAILED.md` → find Phase 4/5/6 tasks → immediately start first task (NO SUMMARY)
 
+## Format_go Self-Modification Prevention - CRITICAL
+
+**CRITICAL WARNING: enforce_any.go self-modification regression has occurred MULTIPLE times**
+
+**Historical Incidents:**
+
+1. **b934879b (Nov 17)**: Added backticks to comments to prevent pattern replacement
+2. **b0e4b6ef (Dec 16)**: Fixed infinite loop (counted "any" instead of "interface{}")
+3. **8c855a6e (Dec 16)**: Fixed test data (used "any" instead of "interface{}")
+4. **71b0e90d (Nov 20)**: Added comprehensive self-exclusion patterns
+
+**Root Cause**: LLM agents (Copilot, Grok) lose exclusion context during narrow-focus refactoring
+
+**Protection Mechanisms:**
+
+1. **File-level exclusion**: `internal/cmd/cicd/format_go/` excluded via `CICDSelfExclusionPatterns["format-go"]`
+2. **Comment warnings**: CRITICAL comments in enforce_any.go explaining self-modification risk
+3. **Test data pattern**: Tests MUST use `interface{}` in input, verify replacement to `any`
+4. **Counting logic**: Count `interface{}` occurrences, NOT `any`, to detect actual replacements
+
+**MANDATORY Rules:**
+
+- ❌ **NEVER modify comments** in enforce_any.go processGoFile() function
+- ❌ **NEVER change test data** from `interface{}` to `any` in format_go_test.go
+- ❌ **NEVER modify counting logic** from `strings.Count(originalContent, "interface{}")` to anything else
+- ✅ **ALWAYS preserve** CRITICAL and SELF-MODIFICATION PROTECTION comment blocks
+- ✅ **ALWAYS verify** test data uses `interface{}` as input (not `any`)
+- ✅ **IF REFACTORING**: Read entire enforce_any.go file AND filter.go FIRST to understand exclusion context
+
+**Warning Signs of Impending Self-Modification:**
+
+- Changing comments to use "any" instead of "`interface{}`" with backticks
+- Simplifying or removing "verbose" comments about self-modification
+- Updating test expectations from `interface{}` to `any`
+- "Fixing" the counting logic to count "any" instead of "interface{}"
+- Any modification to enforce_any.go without reading full file context
+
+**If Self-Modification Detected:**
+
+1. Immediately revert changes to enforce_any.go and format_go_test.go
+2. Re-read entire file with exclusion context (filter.go, magic_cicd.go)
+3. Verify CICDSelfExclusionPatterns["format-go"] still exists
+4. Add more explicit comments if regression persists
+5. Update this section with new incident date and commit
+
 ## Instruction Files Reference
 
 | File | Description |
