@@ -24,7 +24,7 @@ import (
 // Files matching exclusion patterns are skipped to prevent self-modification.
 // Returns an error if any files were modified (to indicate changes were made).
 func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
-	logger.Log("Enforcing 'any' instead of 'any' in Go files...")
+	logger.Log("Enforcing 'any' instead of 'interface{}' in Go files...")
 
 	// Get only Go files from the map.
 	goFiles := filterGoFiles(filesByExtension)
@@ -77,7 +77,7 @@ func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[str
 }
 
 // processGoFile applies custom Go source code fixes to a single file.
-// Currently replaces any with any.
+// Currently replaces `interface{}` with any.
 // This function is protected from self-modification by exclusion patterns.
 // Returns the number of replacements made and any error encountered.
 func processGoFile(filePath string) (int, error) {

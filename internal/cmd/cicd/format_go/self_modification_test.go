@@ -14,13 +14,13 @@ import (
 //
 // This test addresses historical self-modification regressions:
 // - b934879b (Nov 17): Comments modified by pattern replacement
-// - b0e4b6ef (Dec 16): Counting logic incorrectly used "any" instead of "interface{}"
-// - 8c855a6e (Dec 16): Test data incorrectly used "any" instead of "interface{}"
+// - b0e4b6ef (Dec 16): Counting logic incorrectly used "any" instead of "any"
+// - 8c855a6e (Dec 16): Test data incorrectly used "any" instead of "any"
 //
 // Protection relies on:
 // 1. CICDSelfExclusionPatterns["format-go"] excluding internal/cmd/cicd/format_go/**
 // 2. CRITICAL comments in processGoFile() documenting self-modification risk
-// 3. Test data using interface{} as input to verify replacement works.
+// 3. Test data using any as input to verify replacement works.
 func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	t.Parallel()
 
@@ -31,7 +31,7 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	// Verify the file contains critical self-modification protection markers.
 	require.Contains(t, string(originalContent), "SELF-MODIFICATION PROTECTION:",
 		"enforce_any.go MUST contain SELF-MODIFICATION PROTECTION comment block")
-	require.Contains(t, string(originalContent), "CRITICAL: Replace interface{} with any",
+	require.Contains(t, string(originalContent), "CRITICAL: Replace `interface{}` with any",
 		"enforce_any.go MUST contain CRITICAL comment explaining pattern replacement")
 	require.Contains(t, string(originalContent), `strings.Count(originalContent, "interface{}")`,
 		"enforce_any.go MUST count interface{} occurrences, NOT any")
@@ -44,7 +44,7 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	require.Contains(t, string(testContent), `testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{}`,
 		"Test constants MUST use interface{} as input data, NOT any")
 
-	// Verify test expectations check for 'any' after replacement.
+	// Verify test expectations check for correct replacement results.
 	require.Contains(t, string(testContent), `"File should contain 'any' after replacement"`,
 		"Tests MUST verify 'any' appears after replacement")
 	require.Contains(t, string(testContent), `"File should not contain 'interface{}' after replacement"`,

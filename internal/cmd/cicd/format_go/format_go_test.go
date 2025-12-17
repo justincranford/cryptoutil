@@ -128,7 +128,7 @@ func TestEnforceAny_WithModifications(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with interface{} that needs replacement with any.
+	// File with any that needs replacement with any.
 	oldContent := `package server
 
 func Process(data interface{}) interface{} {
@@ -191,7 +191,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 
 	// File with any that should be replaced.
-	// Using a special marker to avoid self-modification during linting.
+	// Using testGoContentWithInterfaceEmpty constant to avoid self-modification during linting.
 	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
 	require.NoError(t, err)
 
