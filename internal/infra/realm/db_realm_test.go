@@ -523,3 +523,43 @@ func TestDBRealmRepository_CountUsers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(3), count)
 }
+
+func TestDBRealmRepository_UpdateUser(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	policy := DefaultPasswordPolicy()
+
+	repo, err := NewDBRealmRepository(db, &policy)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	err = repo.Migrate(ctx)
+	require.NoError(t, err)
+
+	realmID := fmt.Sprintf("realm-%d", time.Now().UnixNano())
+	userID := fmt.Sprintf("user-%d", time.Now().UnixNano())
+
+	user := &DBRealmUser{
+		ID:       userID,
+		RealmID:  realmID,
+		Username: "updateuser",
+		Email:    "old@example.com",
+		Roles:    "[]",
+		Enabled:  true,
+	}
+
+	err = repo.CreateUser(ctx, user, "password")
+	require.NoError(t, err)
+
+	user.Email = "new@example.com"
+	user.Roles = `["admin","user"]`
+
+	err = repo.UpdateUser(ctx, user)
+	require.NoError(t, err)
+
+	updated, err := repo.GetUser(ctx, user.ID)
+	require.NoError(t, err)
+	require.Equal(t, "new@example.com", updated.Email)
+	require.Equal(t, `["admin","user"]`, updated.Roles)
+}
