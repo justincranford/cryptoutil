@@ -102,6 +102,26 @@
 - **NO stopping to ask**: If user input needed, document requirement and continue other work
 - **NO waiting**: Never wait for external dependencies - work on everything else meanwhile
 
+### When All Current Tasks Are Complete or Blocked
+
+**CRITICAL: "No immediate work" does NOT mean stop - find more work**
+
+1. **Check DETAILED.md for incomplete phases**: Read entire Phase list, find ANY uncomplete task
+2. **Look for quality improvements**: Coverage gaps, test speed, linting issues, TODOs in code
+3. **Scan for technical debt**: Grep for TODO/FIXME/HACK comments, address them
+4. **Review recent commits**: Check for incomplete work, missing tests, documentation gaps
+5. **Verify CI/CD health**: Check workflow files, fix any disabled/failing checks
+6. **Improve documentation**: README updates, missing runbooks, unclear instructions
+7. **Code quality sweep**: Run golangci-lint, fix warnings, improve test coverage
+8. **Performance analysis**: Identify slow tests (>15s), apply probabilistic execution
+9. **Mutation testing**: Run gremlins on packages below 80% mutation score
+10. **ONLY if literally nothing exists**: Ask user for next work direction
+
+**Pattern when phase complete**:
+
+- ❌ WRONG: "Phase 3 complete! Here's what we did..." (STOPPING)
+- ✅ CORRECT: `read_file DETAILED.md` → find Phase 4/5/6 tasks → immediately start first task (NO SUMMARY)
+
 ## Instruction Files Reference
 
 | File | Description |
