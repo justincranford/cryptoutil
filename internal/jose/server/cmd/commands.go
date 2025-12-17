@@ -14,9 +14,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 )
 
 // NewStartCommand creates the start command for the JOSE server.

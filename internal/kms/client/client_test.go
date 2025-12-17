@@ -19,6 +19,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
@@ -236,6 +237,19 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
 		t.Run(testCaseNamePrefix, func(t *testing.T) {
 			t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
+
+			// P1.14: Probabilistic execution based on P1.13 timing baseline analysis
+			// High priority (>3.0s): TestProbTenth (10% execution)
+			// Medium priority (1.5-3.0s): TestProbQuarter (25% execution)
+			// Base algorithms (<1.5s): TestProbAlways (100% execution)
+			switch testCase.algorithm {
+			case "A128CBC-HS256/RSA1_5", "A128CBC-HS256/RSA-OAEP", "A128CBC-HS256/dir", "A128GCM/A128KW", "A128CBC-HS256/ECDH-ES", "A128CBC-HS256/ECDH-ES+A128KW", "A128CBC-HS256/RSA-OAEP-256":
+				cryptoutilRandom.SkipByProbability(t, cryptoutilMagic.TestProbTenth) // 10% execution for >3.0s tests
+			case "A128CBC-HS256/A128GCMKW", "A128GCM/ECDH-ES", "A128CBC-HS256/A128KW", "A128GCM/ECDH-ES+A128KW", "A128GCM/RSA-OAEP", "A128GCM/RSA1_5", "A128GCM/A128GCMKW", "A128GCM/RSA-OAEP-256":
+				cryptoutilRandom.SkipByProbability(t, cryptoutilMagic.TestProbQuarter) // 25% execution for 1.5-3.0s tests
+			default:
+				cryptoutilRandom.SkipByProbability(t, cryptoutilMagic.TestProbAlways) // 100% execution for <1.5s tests (base algorithms)
+			}
 
 			// Generate unique names per subtest to avoid UNIQUE constraint violations in concurrent tests
 			uniqueName := nextElasticKeyName()
