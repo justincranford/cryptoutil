@@ -80,11 +80,11 @@
   - [ ] **P3.5.7**: Add targeted tests for uncovered cicd functions - BLOCKED
   - [ ] **P3.5.8**: Verify 95%+ coverage achieved for all cicd packages - BLOCKED
 - [ ] **P3.6**: Achieve 95% coverage for every package under internal/jose
-  - [ ] **P3.6.1**: Run coverage baseline report for internal/jose packages
-  - [ ] **P3.6.2**: Analyze missing coverage (crypto 82.7%, server 62.3%, target 95%)
-  - [ ] **P3.6.3**: Research best practices for testing jose crypto and server logic
-  - [ ] **P3.6.4**: Add targeted tests for uncovered jose functions and branches
-  - [ ] **P3.6.5**: Verify 95%+ coverage achieved for all jose packages
+  - [x] **P3.6.1**: Run coverage baseline report for internal/jose packages - COMPLETE (2025-12-16)
+  - [x] **P3.6.2**: Analyze missing coverage (crypto 82.7%, server 62.1%, target 95%) - COMPLETE (2025-12-16)
+  - [ ] **P3.6.3**: Research best practices for testing jose crypto and server logic - BLOCKED
+  - [ ] **P3.6.4**: Add targeted tests for uncovered jose functions and branches - BLOCKED
+  - [ ] **P3.6.5**: Verify 95%+ coverage achieved for all jose packages - BLOCKED
 - [ ] **P3.7**: Achieve 95% coverage for every package under internal/ca
   - [ ] **P3.7.1**: Run coverage baseline report for internal/ca packages
   - [ ] **P3.7.2**: Analyze missing coverage (packages 79.6-96.9%, target 95% all)
