@@ -31,10 +31,10 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	// Verify the file contains critical self-modification protection markers.
 	require.Contains(t, string(originalContent), "SELF-MODIFICATION PROTECTION:",
 		"enforce_any.go MUST contain SELF-MODIFICATION PROTECTION comment block")
-	require.Contains(t, string(originalContent), "CRITICAL: Replace `any` with any",
+	require.Contains(t, string(originalContent), "CRITICAL: Replace `interface{}` with any",
 		"enforce_any.go MUST contain CRITICAL comment explaining pattern replacement")
-	require.Contains(t, string(originalContent), `strings.Count(originalContent, "any")`,
-		"enforce_any.go MUST count any occurrences, NOT any")
+	require.Contains(t, string(originalContent), `strings.Count(originalContent, "interface{}")`,
+		"enforce_any.go MUST count interface{} occurrences, NOT any")
 
 	// Verify test data uses any (not any) to properly test replacement.
 	testContent, err := os.ReadFile("format_go_test.go")
