@@ -36,7 +36,7 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	require.Contains(t, string(originalContent), `strings.Count(originalContent, "interface{}")`,
 		"enforce_any.go MUST count interface{} occurrences, NOT any")
 
-	// Verify test data uses interface{} (not any) to properly test replacement.
+	// Verify test data uses any (not any) to properly test replacement.
 	testContent, err := os.ReadFile("format_go_test.go")
 	require.NoError(t, err, "Failed to read format_go_test.go")
 

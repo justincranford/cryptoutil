@@ -14,12 +14,12 @@ import (
 )
 
 // enforceAny enforces custom Go source code fixes across all Go files.
-// It applies automated fixes like replacing `interface{}` with any.
+// It applies automated fixes like replacing `any` with any.
 //
 // CRITICAL SELF-MODIFICATION PREVENTION:
 // This file and its tests MUST use exclusion patterns to avoid self-modification.
 // The exclusion pattern "format_go" in GetGoFiles() prevents this file from being processed.
-// Test files MUST use `interface{}` in test data, NOT any, to avoid test failures.
+// Test files MUST use `any` in test data, NOT any, to avoid test failures.
 //
 // Files matching exclusion patterns are skipped to prevent self-modification.
 // Returns an error if any files were modified (to indicate changes were made).
@@ -77,7 +77,7 @@ func enforceAny(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[str
 }
 
 // processGoFile applies custom Go source code fixes to a single file.
-// Currently replaces `interface{}` with any.
+// Currently replaces `any` with any.
 // This function is protected from self-modification by exclusion patterns.
 // Returns the number of replacements made and any error encountered.
 func processGoFile(filePath string) (int, error) {

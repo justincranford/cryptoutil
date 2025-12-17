@@ -128,7 +128,7 @@ func TestEnforceAny_WithModifications(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with any that needs replacement with any.
+	// File with interface{} that needs replacement with any.
 	oldContent := `package server
 
 func Process(data interface{}) interface{} {
