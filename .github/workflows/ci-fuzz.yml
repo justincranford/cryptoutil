@@ -130,7 +130,7 @@ jobs:
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateRSAKeyPair
-        package_path: ./internal/common/crypto/keygen
+        package_path: ./internal/shared/crypto/keygen
         gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.RSA_FUZZTIME }}
         timeout_seconds: ${{ env.RSA_TIMEOUT }}
@@ -139,7 +139,7 @@ jobs:
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateECDSAKeyPair
-        package_path: ./internal/common/crypto/keygen
+        package_path: ./internal/shared/crypto/keygen
         gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
         timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
@@ -148,7 +148,7 @@ jobs:
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateECDHKeyPair
-        package_path: ./internal/common/crypto/keygen
+        package_path: ./internal/shared/crypto/keygen
         gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
         timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
@@ -157,7 +157,7 @@ jobs:
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateEDDSAKeyPair
-        package_path: ./internal/common/crypto/keygen
+        package_path: ./internal/shared/crypto/keygen
         gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
         timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
@@ -166,7 +166,7 @@ jobs:
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateAESKey
-        package_path: ./internal/common/crypto/keygen
+        package_path: ./internal/shared/crypto/keygen
         gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
         timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
@@ -175,7 +175,7 @@ jobs:
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateAESHSKey
-        package_path: ./internal/common/crypto/keygen
+        package_path: ./internal/shared/crypto/keygen
         gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
         timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
@@ -184,7 +184,7 @@ jobs:
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateHMACKey
-        package_path: ./internal/common/crypto/keygen
+        package_path: ./internal/shared/crypto/keygen
         gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
         timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
@@ -235,7 +235,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFAllVariants
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -244,7 +244,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA256
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -253,7 +253,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA384
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -262,7 +262,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA512
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -271,7 +271,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA224
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -280,7 +280,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA512
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -289,7 +289,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA384
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -298,7 +298,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA256
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
@@ -307,7 +307,7 @@ jobs:
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA224
-          package_path: ./internal/common/crypto/digests
+          package_path: ./internal/shared/crypto/digests
           gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
           timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
