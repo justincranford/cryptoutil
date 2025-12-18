@@ -793,6 +793,258 @@ Used by other services for health checks.
 
 ---
 
+## Future Architecture Enhancements
+
+### Hash Service Refactoring (Phase 5)
+
+**Goal**: Create unified hash service architecture supporting 4 hash registry types with version management.
+
+**Architecture**:
+
+```
+HashService
+├── LowEntropyRandomHashRegistry (PBKDF2-based)
+│   ├── v1: 0-31 bytes → PBKDF2-HMAC-SHA256 (OWASP rounds)
+│   ├── v2: 32-47 bytes → PBKDF2-HMAC-SHA384
+│   └── v3: 48+ bytes → PBKDF2-HMAC-SHA512
+├── LowEntropyDeterministicHashRegistry (PBKDF2-based, no salt)
+│   ├── v1: 0-31 bytes → PBKDF2-HMAC-SHA256
+│   ├── v2: 32-47 bytes → PBKDF2-HMAC-SHA384
+│   └── v3: 48+ bytes → PBKDF2-HMAC-SHA512
+├── HighEntropyRandomHashRegistry (HKDF-based)
+│   ├── v1: 0-31 bytes → HKDF-HMAC-SHA256
+│   ├── v2: 32-47 bytes → HKDF-HMAC-SHA384
+│   └── v3: 48+ bytes → HKDF-HMAC-SHA512
+└── HighEntropyDeterministicHashRegistry (HKDF-based, no salt)
+    ├── v1: 0-31 bytes → HKDF-HMAC-SHA256
+    ├── v2: 32-47 bytes → HKDF-HMAC-SHA384
+    └── v3: 48+ bytes → HKDF-HMAC-SHA512
+```
+
+**Registry API** (consistent across all 4 types):
+
+- `HashWithLatest(input []byte) (string, error)` - Uses current version
+- `HashWithVersion(input []byte, version int) (string, error)` - Uses specific version
+- `Verify(input []byte, hashed string) (bool, error)` - Verifies against any version
+
+**Hash Output Format**: Includes version metadata for version-aware verification
+
+**Version Selection**: Automatic based on input size ranges (0-31, 32-47, 48+ bytes)
+
+**Use Cases**:
+
+- **Low Entropy Random**: Password hashing (PBKDF2, salted)
+- **Low Entropy Deterministic**: Replay-resistant tokens (PBKDF2, no salt)
+- **High Entropy Random**: Key derivation from high-entropy inputs (HKDF, salted)
+- **High Entropy Deterministic**: Deterministic key derivation (HKDF, no salt)
+
+**Benefits**:
+
+- Version management supports algorithm upgrades without breaking existing hashes
+- Consistent API across all hash types reduces implementation complexity
+- Input size-based version selection automates algorithm selection
+- FIPS 140-3 compliant (PBKDF2, HKDF, HMAC-SHA256/384/512)
+
+---
+
+### Service Template Extraction (Phase 6)
+
+**Goal**: Extract reusable service template from KMS server, augment for all 8 PRODUCT-SERVICE instances.
+
+**8 PRODUCT-SERVICE Target Instances**:
+
+1. **sm-kms** - Secrets Manager - Key Management System
+2. **pki-ca** - Public Key Infrastructure - Certificate Authority
+3. **jose-ja** - JOSE - JWK Authority
+4. **identity-authz** - Identity - Authorization Server
+5. **identity-idp** - Identity - Identity Provider
+6. **identity-rs** - Identity - Resource Server
+7. **identity-rp** - Identity - Relying Party (BFF pattern)
+8. **identity-spa** - Identity - Single Page Application (static hosting)
+
+**Common Patterns** (extracted from KMS):
+
+- **Dual HTTPS Servers**: Public API (0.0.0.0:configurable) + Admin API (127.0.0.1:9090)
+- **Dual API Paths**: `/browser/api/v1/*` (session-based) vs `/service/api/v1/*` (token-based)
+- **Middleware Pipeline**: CORS/CSRF/CSP (browser-only), rate limiting, IP allowlist, authentication
+- **Database Abstraction**: PostgreSQL + SQLite dual support with GORM
+- **OpenTelemetry Integration**: OTLP traces, metrics, logs
+- **Health Check Endpoints**: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`
+- **Graceful Shutdown**: `/admin/v1/shutdown` endpoint
+
+**Service-Specific Customization Points**:
+
+- **API Endpoints**: Custom OpenAPI specs per service
+- **Business Logic Handlers**: Service-specific request processing
+- **Database Schemas**: Custom GORM models per service
+- **Client SDK Generation**: Service-specific client interfaces
+- **Barrier Services**: Optional (KMS-specific, not needed for other services)
+
+**Template Packages**:
+
+```
+internal/template/
+├── server/          # ServerTemplate base class
+│   ├── dual_https.go       # Public + Admin server management
+│   ├── router.go           # Route registration framework
+│   ├── middleware.go       # Pipeline builder (CORS/CSRF/CSP/rate limit)
+│   └── lifecycle.go        # Start/stop/reload lifecycle
+├── client/          # ClientSDK base class
+│   ├── http_client.go      # HTTP client with mTLS/retry
+│   ├── auth.go             # OAuth 2.1/mTLS/API key strategies
+│   └── codegen.go          # OpenAPI-based client generation
+└── repository/      # Database abstraction
+    ├── dual_db.go          # PostgreSQL + SQLite support
+    ├── gorm_patterns.go    # Model registration, migrations
+    └── transaction.go      # Transaction handling patterns
+```
+
+**Parameterization Strategy**:
+
+- **Constructor Injection**: Pass handlers, middleware, config at initialization
+- **Interface-Based Customization**: Services implement `ServerInterface`
+- **Configuration-Driven**: YAML config specifies behavior (CORS origins, rate limits, etc.)
+- **Runtime Discovery**: Service registers capabilities dynamically
+
+**Benefits**:
+
+- **Faster Service Development**: Copy-paste-modify instead of build from scratch
+- **Consistency**: All services use same infrastructure patterns
+- **Maintainability**: Single source of truth for common patterns
+- **Quality**: Reuse well-tested, production-hardened components
+
+---
+
+### Learn-PS Demonstration Service (Phase 7)
+
+**Goal**: Create working Pet Store service using service template, validate reusability and completeness.
+
+**Learn-PS Overview**:
+
+- **Product**: Learn (educational/demonstration product)
+- **Service**: PS (Pet Store service)
+- **Purpose**: Copy-paste-modify starting point for customers creating new services
+- **Scope**: Complete CRUD API for pet store (pets, orders, customers)
+
+**API Endpoints** (via `/browser/api/v1/*` and `/service/api/v1/*`):
+
+| Endpoint | Method | Description | Authentication |
+|----------|--------|-------------|----------------|
+| `/pets` | POST | Create new pet | OAuth 2.1 (write:pets scope) |
+| `/pets` | GET | List pets (paginated) | OAuth 2.1 (read:pets scope) |
+| `/pets/{id}` | GET | Get pet details | OAuth 2.1 (read:pets scope) |
+| `/pets/{id}` | PUT | Update pet | OAuth 2.1 (write:pets scope) |
+| `/pets/{id}` | DELETE | Delete pet | OAuth 2.1 (admin:pets scope) |
+| `/orders` | POST | Create order | OAuth 2.1 (write:orders scope) |
+| `/orders` | GET | List orders | OAuth 2.1 (read:orders scope) |
+| `/orders/{id}` | GET | Get order details | OAuth 2.1 (read:orders scope) |
+| `/customers` | POST | Create customer | OAuth 2.1 (write:customers scope) |
+| `/customers` | GET | List customers | OAuth 2.1 (read:customers scope) |
+| `/customers/{id}` | GET | Get customer details | OAuth 2.1 (read:customers scope) |
+
+**Database Schema**:
+
+```sql
+-- Pets table
+CREATE TABLE pets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    species TEXT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Customers table
+CREATE TABLE customers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Orders table
+CREATE TABLE orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID NOT NULL REFERENCES customers(id),
+    total DECIMAL(10,2) NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'cancelled')),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Order items table
+CREATE TABLE order_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    pet_id UUID NOT NULL REFERENCES pets(id),
+    quantity INTEGER NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+```
+
+**Service Template Usage Example**:
+
+```go
+// main.go
+func main() {
+    // 1. Instantiate ServerTemplate
+    template := server.NewServerTemplate(server.Config{
+        PublicPort: 8080,
+        AdminPort: 9090,
+        EnableBarrier: false, // No barrier services needed
+    })
+
+    // 2. Register API routes
+    template.RegisterPublicRoutes(func(r fiber.Router) {
+        r.Post("/pets", handlers.CreatePet)
+        r.Get("/pets", handlers.ListPets)
+        r.Get("/pets/:id", handlers.GetPet)
+        r.Put("/pets/:id", handlers.UpdatePet)
+        r.Delete("/pets/:id", handlers.DeletePet)
+        // ... orders, customers
+    })
+
+    // 3. Apply middleware
+    template.ApplyMiddleware(middleware.Config{
+        CORS: middleware.CORSConfig{
+            Origins: []string{"https://learn-ps.example.com"},
+        },
+        RateLimit: middleware.RateLimitConfig{
+            RequestsPerMinute: 100,
+        },
+    })
+
+    // 4. Start servers
+    template.Start(context.Background())
+}
+```
+
+**Documentation Deliverables**:
+
+1. **README.md**: Quick start, API docs, development guide
+2. **Tutorial Series**: 4-part series (using, understanding, customizing, deploying)
+3. **Video Demonstration**: Service startup, API usage, code walkthrough
+
+**Quality Targets**:
+
+- 95%+ test coverage (production code)
+- 98%+ mutation efficacy
+- ≤12s test execution time
+- Passes all CI/CD workflows
+
+**Customer Value**:
+
+- **Working Example**: See service template in action
+- **Starting Point**: Copy entire Learn-PS directory, modify for use case
+- **Best Practices**: Learn production-ready patterns (error handling, testing, deployment)
+- **API Design**: Reference implementation for REST API design
+
+---
+
 ## Known Gaps and Future Work
 
 ### High Priority
