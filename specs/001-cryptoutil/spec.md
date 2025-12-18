@@ -493,7 +493,7 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 
 - Table-driven tests with `t.Parallel()`
 - Coverage targets: 95% production, 100% infrastructure, 100% utility
-- Mutation testing: ≥80% gremlins score per package
+- Mutation testing: ≥98% gremlins score per package
 - Fuzz testing, benchmark testing, integration testing
 
 #### Test Execution Performance
@@ -551,7 +551,7 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 
 - Table-driven tests with `t.Parallel()`
 - Coverage targets: 95% production, 100% infrastructure, 100% utility
-- Mutation testing: ≥80% gremlins score per package
+- Mutation testing: ≥98% gremlins score per package
 - Certificate chain validation testing
 - OCSP responder testing
 - CRL generation testing
@@ -632,7 +632,7 @@ services:
 | `ci-quality` | Push, PR | <5 min | ❌ | Linting, formatting, build validation |
 | `ci-coverage` | Push, PR | <10 min | ✅ | Test coverage analysis (≥95% target) |
 | `ci-race` | Push, PR | <15 min | ✅ | Race condition detection (CGO_ENABLED=1) |
-| `ci-mutation` | Push, PR | <45 min | ✅ | Mutation testing (≥80% efficacy) |
+| `ci-mutation` | Push, PR | <45 min | ✅ | Mutation testing (≥98% efficacy) |
 | `ci-benchmark` | Push, PR | <10 min | ❌ | Performance benchmarks |
 | `ci-fuzz` | Push, PR | <10 min | ❌ | Fuzz testing (keygen, digests, parsers) |
 | `ci-sast` | Push, PR | <5 min | ❌ | Static security analysis (gosec) |

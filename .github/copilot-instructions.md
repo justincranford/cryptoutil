@@ -122,39 +122,13 @@
 - ❌ WRONG: "Phase 3 complete! Here's what we did..." (STOPPING)
 - ✅ CORRECT: `read_file DETAILED.md` → find Phase 4/5/6 tasks → immediately start first task (NO SUMMARY)
 
-## CRITICAL Regression Prevention - Examples
+## CRITICAL Regression Prevention
 
-### Format_go Self-Modification Prevention
+**See detailed patterns in instruction files:**
 
-**CRITICAL WARNING: enforce_any.go self-modification regression has occurred MULTIPLE times**
-
-**Historical Incidents**:
-
-1. **b934879b (Nov 17)**: Added backticks to comments to prevent pattern replacement
-2. **b0e4b6ef (Dec 16)**: Fixed infinite loop (counted "any" instead of "interface{}")
-3. **8c855a6e (Dec 16)**: Fixed test data (used "any" instead of "interface{}")
-4. **71b0e90d (Nov 20)**: Added comprehensive self-exclusion patterns
-
-**Root Cause**: LLM agents lose exclusion context during narrow-focus refactoring
-
-**Prevention**: See 01-03.coding.instructions.md "Context Reading Before Refactoring" and 03-03.git.instructions.md "Restore from Clean Baseline Pattern"
-
-### Windows Firewall Exception Prevention
-
-**CRITICAL WARNING: Test code binding to 0.0.0.0 triggers firewall prompts**
-
-**User Impact**: "There were still 3 prompts for windows firewall exceptions"
-
-**Root Cause**: Test servers binding to all network interfaces (0.0.0.0) instead of loopback (127.0.0.1)
-
-**Prevention**: See 01-07.security.instructions.md "Windows Firewall Exception Prevention"
-
-**MANDATORY Rules** (detailed patterns in instruction files above):
-
-- ❌ **format_go**: NEVER modify comments/test data in enforce_any.go or format_go_test.go
-- ❌ **firewall**: NEVER bind to 0.0.0.0 in tests - ALWAYS use 127.0.0.1
-- ✅ **ALWAYS read complete context** before refactoring any self-modifying code
-- ✅ **ALWAYS use loopback binding** in all test servers and local development
+- Format_go self-modification: See 01-03.coding.instructions.md "Context Reading Before Refactoring"
+- Windows Firewall exceptions: See 01-07.security.instructions.md "Windows Firewall Exception Prevention"
+- Git workflow patterns: See 03-03.git.instructions.md "Restore from Clean Baseline Pattern"
 
 ## Instruction Files Reference
 

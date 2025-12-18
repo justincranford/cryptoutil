@@ -275,7 +275,7 @@ go test -fuzz=FuzzFunctionName -fuzztime=15s ./internal/product/...
 - Cryptographic properties
 - Invariant validation
 
-### Mutation Tests (≥80% mutation score)
+### Mutation Tests (≥98% mutation score)
 
 **Tool**: gremlins
 
@@ -379,7 +379,7 @@ gremlins unleash
 ### Mutation Tests
 
 - [ ] Gremlins baseline report created
-- [ ] Mutation score ≥80% per package
+- [ ] Mutation score ≥98% per package
 - [ ] Weak tests identified and improved
 
 ### Integration

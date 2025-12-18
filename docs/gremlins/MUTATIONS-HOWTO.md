@@ -214,7 +214,7 @@ Write-Host "Test Efficacy: $([math]::Round($killed / ($killed + $lived) * 100, 2
 1. **Run after test optimizations**: Ensure tests run fast (<20s) before gremlins
 2. **Focus on business logic**: Prioritize validation, mappers, error handling
 3. **Ignore infrastructure**: Skip cicd packages, test utilities, main functions
-4. **Target 80%+ efficacy**: Below 80% indicates significant test quality gaps
+4. **Target 98%+ efficacy**: Below 98% indicates significant test quality gaps
 5. **Document baselines**: Save results to track improvements over time
 6. **Investigate lived mutants**: Each survivor reveals a test gap or design issue
 
@@ -252,7 +252,7 @@ Get-Content ./test-output/gremlins/kms_businesslogic.txt | Select-String "LIVED"
 
 - **format_go**: 91.67% efficacy (28s, 33 killed, 3 lived)
 - **internal/identity/authz**: 91% efficacy (69s, 91 killed, 9 lived)
-- **Target for all packages**: ≥80% efficacy
+- **Target for all packages**: ≥98% efficacy
 
 ## Known Limitations
 

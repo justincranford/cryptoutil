@@ -91,7 +91,7 @@ See [GitHub Spec Kit](https://github.com/github/spec-kit).
 - ✅ NFR1: Security (FIPS, secrets, TLS, audit logging)
 - ✅ NFR2: Performance (response time, throughput, database queries)
 - ✅ NFR3: Reliability (uptime, error rates, graceful shutdown)
-- ✅ NFR4: Quality (linting, formatting, file sizes, ≥coverage 95%, mutation score ≥80%)
+- ✅ NFR4: Quality (linting, formatting, file sizes, ≥coverage 95%, mutation score ≥98%)
 - ✅ NFR5: Testability (table-driven, happy+sad use case coverage, parallel, benchmarks, fuzz, property, integration, e2e, docker compose up+down)
 - ✅ NFR6: Observability (structured logging, OTLP, Prometheus, health endpoints)
 - ✅ NFR7: Deployment (Docker, container size, startup time, YAML config)
@@ -103,7 +103,7 @@ See [GitHub Spec Kit](https://github.com/github/spec-kit).
 - ✅ Benchmark tests: All hot paths, `*_bench_test.go` files
 - ✅ Fuzz tests: All parsers/validators, ≥15s fuzz time, `*_fuzz_test.go` files
 - ✅ Property-based tests: gopter, invariants, round-trip validation
-- ✅ Mutation tests: gremlins, ≥80% mutation score, baseline per package
+- ✅ Mutation tests: gremlins, ≥98% mutation score, baseline per package
 - ✅ Docker Compose: Full stack, real database, test database, real telemetry, standlone+suite, docker secrets, no environment variables
 - ✅ E2E tests: Full stack, demo scripts, real telemetry
 
@@ -122,7 +122,7 @@ See [GitHub Spec Kit](https://github.com/github/spec-kit).
 | Production | ≥95% | `go test -cover ./internal/product/...` |
 | Infrastructure (cicd) | ≥95% | `go test -cover ./internal/cmd/cicd/...` |
 | Utility | ≥95% | `go test -cover ./internal/common/util/...` |
-| Mutation Score | ≥80% | `gremlins unleash` |
+| Mutation Score | ≥98% | `gremlins unleash` |
 
 **Note**: Coverage targets ≥95% as of Constitution v2.0.
 

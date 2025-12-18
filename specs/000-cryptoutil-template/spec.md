@@ -61,7 +61,7 @@
 | Test Coverage | ≥95% | `go test -cover ./internal/product/...` |
 | Benchmark Performance | [Metric] | `go test -bench ./internal/product/...` |
 | Fuzz Testing | 100% handlers | `go test -fuzz=. -fuzztime=15s` |
-| Mutation Score | ≥80% | `gremlins unleash` |
+| Mutation Score | ≥98% | `gremlins unleash` |
 
 ---
 
@@ -167,7 +167,7 @@ deployments/product/
 | NFR4.3 | Utility coverage | 100% | `go test -cover ./internal/common/util/...` |
 | NFR4.4 | Linting | 0 errors | `golangci-lint run` |
 | NFR4.5 | File size limits | <500 lines | Manual review |
-| NFR4.6 | Mutation score | ≥80% | `gremlins unleash` |
+| NFR4.6 | Mutation score | ≥98% | `gremlins unleash` |
 
 ### NFR5: Testability
 
@@ -336,7 +336,7 @@ deployments/product/
 - [ ] `go test ./...` passes with ≥95% coverage (production), ≥100% (infra/util)
 - [ ] All benchmarks run successfully
 - [ ] All fuzz tests run for ≥15s
-- [ ] Gremlins mutation score ≥80%
+- [ ] Gremlins mutation score ≥98%
 - [ ] Docker Compose deployment healthy
 - [ ] Integration tests passing
 - [ ] E2E demo script working
