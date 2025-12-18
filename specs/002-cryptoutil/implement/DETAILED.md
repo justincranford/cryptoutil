@@ -702,6 +702,44 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 
 - 39da7bb7: Created DETAILED.md, EXECUTIVE.md, TASKS.md
 - ef045338: Created PLAN.md (737 lines, comprehensive 7-phase strategy)
+
+### 2025-12-17: P1.1 - Test Timing Baseline Established
+
+**Work Completed**:
+
+- Executed full test suite: `go test -json -v ./...` (~10 minutes)
+- Created timing parser: scripts/parse-timing.ps1 (PowerShell JSON parser)
+- Analyzed baseline timing data: 107 packages, 12 slow packages identified
+- Generated comprehensive summary: test-output/baseline-timing-002-summary.md
+
+**Key Findings**:
+
+- Total test time: 595.06s (~9.9 minutes)
+- Packages exceeding 12s: 12 (11.2% of total)
+- Worst offenders:
+  1. kms/server/application: 88.12s (734% of threshold, save ~76s)
+  2. jose/crypto: 77.13s (643% of threshold, save ~65s)
+  3. jose/server: 62.47s (521% of threshold, save ~50s)
+- Potential savings: ~282.90s (47.5% reduction if all reach 12s target)
+
+**Optimization Strategy**:
+
+- P1.2-P1.4: Focus on top 3 (combined 227.72s → target 36s, save ~191s)
+- jose/crypto & jose/server: Apply probabilistic execution (TestProbQuarter/Tenth)
+- kms/server/application: Reduce server/container test count
+- Coverage maintenance: BLOCKING if coverage drops during optimization
+
+**Evidence Files**:
+
+- baseline-timing-002.txt: Raw JSON output (107 packages tested)
+- baseline-timing-002-summary.md: Comprehensive analysis report
+- scripts/parse-timing.ps1: Timing parser for future runs
+
+**Next Steps**:
+
+- P1.2: Optimize kms/server/application (88.12s → ≤12s, save ~76s)
+- P1.3: Optimize jose/crypto (77.13s → ≤12s, save ~65s)
+- P1.4: Optimize jose/server (62.47s → ≤12s, save ~50s)
 - b438cfff: Created analyze.md (491 lines, 8 major gaps)
 - 3aaf0448: Regenerated clarify.md (441 lines, 9 sections)
 - 9ac0bdf5: Created CLARIFY-QA.md (1002 lines, 100 validation questions)
