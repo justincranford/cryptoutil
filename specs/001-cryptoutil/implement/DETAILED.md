@@ -3622,3 +3622,89 @@ Testing KMS businesslogic requires:
 - internal/cmd/cicd/format_go/enforce_any.go: Added backticks to 6 comments
 
 **Next Actions**: None - Speckit 001-cryptoutil implementation complete per user directive
+---
+
+### 2025-12-17: GitHub Workflows Iterative Fixing, Gremlins Threshold Update, Product Refactoring Plan
+
+**Context**: User authorized GitHub push with directive to monitor workflows, fix issues iteratively, update gremlins threshold to 98%, create comprehensive product refactoring plan based on DIR-STRUCTURE-NOTES.txt.
+
+**Work Completed**:
+
+1. **Gremlins Threshold Update to 98%** (ALL files project-wide):
+   - Updated .github/instructions/01-04.testing.instructions.md (3 replacements: 80%→98%, 70%→90%)
+   - Updated docs/gremlins/MUTATIONS-HOWTO.md (2 replacements: Best Practices, Reference section)
+   - Updated docs/gremlins/MUTATIONS-TASKS.md (4 replacements: header, efficacy check, status logic, analysis)
+   - Updated specs/001-cryptoutil/spec.md (2 occurrences)
+   - Updated specs/000-cryptoutil-template/spec.md (2 occurrences)
+   - Updated specs/000-cryptoutil-template/README.md (2 occurrences)
+   - Updated specs/000-cryptoutil-template/plan.md (1 occurrence)
+   - Commit: 7a4b65c9 "docs(gremlins): update mutation testing threshold from 80% to 98% project-wide"
+
+2. **Copilot Instructions Simplification**:
+   - Simplified .github/copilot-instructions.md by removing 60+ lines of verbose regression examples
+   - Added concise "CRITICAL Regression Prevention" section referencing detailed instruction files
+   - Added Format_go Self-Modification Prevention to 01-03.coding.instructions.md
+   - Documented 4 historical regression incidents (b934879b, b0e4b6ef, 8c855a6e, 71b0e90d)
+
+3. **Product Refactoring Plan Created** (docs/PRODUCT-REFACTOR-TASKS.md):
+   - Comprehensive 100-step refactoring plan with 9 phases
+   - Analyzed divergence from 4-product architecture (Identity, SM, PKI, JOSE)
+   - Documented current misalignment: internal/kms→internal/sm/kms, internal/ca→internal/pki/ca
+   - Suite→Product→Service CA hierarchy design (without SPIFFE/SPIRE initially)
+   - Timeline: 15-25 days estimated
+
+4. **Workflow Failures Fixed**:
+   - CI - Quality Testing: Fixed hardcoded UUID in handlers_consent_errors_test.go
+     - Changed nonexistentID from static string to googleUuid.Must(googleUuid.NewV7()).String()
+     - Commit: cf1c9d6e "fix(identity): replace hardcoded UUID with NewV7() in consent error test"
+   - CI - Fuzz Testing: Fixed package paths from internal/common to internal/shared
+     - Updated 16 fuzz test package_path entries in .github/workflows/ci-fuzz.yml
+     - Commit: 0ed73a03 "fix(ci): correct fuzz test package paths from internal/common to internal/shared"
+
+5. **GitHub Workflow Status** (after fixes):
+   - 3 commits pushed successfully (7a4b65c9, cf1c9d6e, 0ed73a03)
+   - All pre-commit and pre-push hooks passed
+   - 12 workflows triggered per push (GitLeaks, SAST, Quality, Coverage, Race, Mutation, E2E, DAST, Fuzz, Load, Benchmark, Identity Validation)
+   - Most workflows passing after fixes
+   - Remaining failure: CI - Identity Validation (coverage 66.8% < 95% threshold)
+
+**Metrics**:
+
+- Gremlins threshold: 80% → 98% (14 files updated)
+- Copilot instructions: Simplified by 60+ lines
+- Product refactoring: 100 steps defined, 9 phases
+- Workflow fixes: 2 issues resolved (quality test, fuzz paths)
+- Commits pushed: 3 (gremlins threshold, UUID fix, fuzz paths)
+
+**Outstanding Work**:
+
+- CI - Identity Validation: Coverage improvement needed (66.8% → 95%)
+- CI - DAST Security Testing: Previous failures to investigate
+- CI - E2E Testing: Previous failures to investigate
+- CI - Load Testing: Previous failures to investigate
+- Windows Firewall Exception Fix: Bind all test servers to 127.0.0.1 (not yet started)
+- Gremlins Coverage Tasks: Create extensive task list for high-value packages (not yet started)
+- Product Refactoring Execution: Begin Phase 1 (Steps 1-20) directory structure (not yet started)
+
+**Files Modified This Session**:
+
+- .github/copilot-instructions.md: Simplified regression examples
+- .github/instructions/01-03.coding.instructions.md: Added Format_go section
+- .github/instructions/01-04.testing.instructions.md: Updated gremlins 80%→98%
+- docs/gremlins/MUTATIONS-HOWTO.md: Updated threshold references
+- docs/gremlins/MUTATIONS-TASKS.md: Updated threshold and logic
+- specs/001-cryptoutil/spec.md: Updated 2 gremlins references
+- specs/000-cryptoutil-template/spec.md: Updated 2 gremlins references
+- specs/000-cryptoutil-template/README.md: Updated 2 gremlins references
+- specs/000-cryptoutil-template/plan.md: Updated 1 gremlins reference
+- docs/PRODUCT-REFACTOR-TASKS.md: Created 745-line comprehensive plan
+- internal/identity/idp/handlers_consent_errors_test.go: Fixed hardcoded UUID
+- .github/workflows/ci-fuzz.yml: Fixed 16 package paths
+
+**Commits**:
+
+- 7a4b65c9: docs(gremlins): update mutation testing threshold from 80% to 98% project-wide
+- cf1c9d6e: fix(identity): replace hardcoded UUID with NewV7() in consent error test
+- 0ed73a03: fix(ci): correct fuzz test package paths from internal/common to internal/shared
+
+**Next Actions**: Continue monitoring workflows, fix remaining failures (Identity Validation coverage, DAST, E2E, Load), implement Windows Firewall fix (bind to 127.0.0.1), create gremlins coverage tasks, begin Product Refactoring Phase 1
