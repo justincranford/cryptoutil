@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
@@ -139,7 +140,7 @@ func TestHandleConsent_RequestNotFound(t *testing.T) {
 	service.RegisterRoutes(app)
 
 	// Use a valid UUID that doesn't exist in database
-	nonexistentID := "019404e4-c3d1-7000-8000-000000000000"
+	nonexistentID := googleUuid.Must(googleUuid.NewV7()).String()
 	req := httptest.NewRequest(http.MethodGet, "/oidc/v1/consent?request_id="+nonexistentID, nil)
 
 	resp, err := app.Test(req, -1)
