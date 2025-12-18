@@ -698,6 +698,50 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - specs/002-cryptoutil/implement/DETAILED.md: Created with clean structure
 - specs/001-cryptoutil → specs/001-cryptoutil-archived-2025-12-17: Archived
 
-**Next Actions**: Update TASKS.md, PLAN.md, regenerate analyze.md and clarify.md, create CLARIFY-QA.md with 100 questions
+**Commits Made**:
+
+- 39da7bb7: Created DETAILED.md, EXECUTIVE.md, TASKS.md
+- ef045338: Created PLAN.md (737 lines, comprehensive 7-phase strategy)
+- b438cfff: Created analyze.md (491 lines, 8 major gaps)
+- 3aaf0448: Regenerated clarify.md (441 lines, 9 sections)
+- 9ac0bdf5: Created CLARIFY-QA.md (1002 lines, 100 validation questions)
+
+**Status**: ✅ Spec refactoring COMPLETE - all core documents regenerated and committed
+
+---
+
+### 2025-12-17: Spec Refactoring Complete - Ready for P1 Implementation
+
+**Work Completed**:
+
+- ✅ Archived 001-cryptoutil (3710 lines DETAILED.md → specs/001-cryptoutil-archived-2025-12-17)
+- ✅ Created 002-cryptoutil from copy
+- ✅ Refactored all 7 core spec files with 7-phase structure
+- ✅ All pre-commit hooks passing (markdownlint, utf8, trailing whitespace)
+- ✅ 5 commits made (39da7bb7, ef045338, b438cfff, 3aaf0448, 9ac0bdf5)
+
+**Key Deliverables**:
+
+1. **DETAILED.md** (704 lines): 7 phases, 210+ tasks, empty timeline (ready for implementation)
+2. **EXECUTIVE.md** (fresh start): Risk tracking, 5 CI/CD failures, lessons learned
+3. **TASKS.md** (210+ tasks): Priority levels, success criteria per phase
+4. **PLAN.md** (737 lines): Comprehensive implementation strategy
+5. **analyze.md** (491 lines): 8 major gaps identified with strategies
+6. **clarify.md** (441 lines): 9 sections covering P1-P7 + cross-cutting concerns
+7. **CLARIFY-QA.md** (1002 lines): 100 validation questions with answer key
+
+**Spec Quality**:
+
+- All files pass markdownlint-cli2
+- All files UTF-8 without BOM
+- Conventional commit messages
+- Cross-reference integrity (PLAN.md ↔ TASKS.md ↔ DETAILED.md)
+
+**Next Steps**: Begin P1.1 - Test Timing Baseline
+
+- [ ] Run: `go test -json -v ./... 2>&1 | tee test-output/baseline-timing-002.txt`
+- [ ] Parse JSON output for per-package timing
+- [ ] Identify packages >12s
+- [ ] Document in test-output/baseline-timing-002-summary.md
 
 ---
