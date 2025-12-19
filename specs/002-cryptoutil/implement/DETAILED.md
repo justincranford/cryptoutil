@@ -1137,30 +1137,34 @@ Phase 1 targets apply to **package-level** times, not individual test times.
   - [18948683] fix(race): add thread-safe key count method and increase test timeout
   - [3c00d2fa] docs(detailed): add race detector fixes session timeline entry (markdown lint fix)
 
-**E2E Workflow Healthcheck Optimization** (2 iterations):
+**E2E Workflow OTEL Collector Port Conflict** (3 iterations):
 
-- Problem: OTEL collector healthcheck took 2 minutes (expected 40s), causing E2E failures
-- Root cause analysis:
-  - Original design: 10s initial + 15×2s retries = 40s expected, but taking 116s actual
-  - Hypothesis 1: Redundant ping check adds overhead
-  - Hypothesis 2: OTEL collector slow to start, needs more tolerance
+- Problem: OTEL collector healthcheck consistently failing after 70-116s in JOSE deployment
+- Root cause investigation:
+  - Iteration 1 hypothesis: Healthcheck timeout too short
+  - Iteration 2 hypothesis: OTEL collector slow to start
+  - **ACTUAL ROOT CAUSE** (iteration 3): Port conflict between CA and JOSE OTEL collectors
+    - E2E workflow deploys CA first (creates `ca-opentelemetry-collector-contrib-1`)
+    - CA OTEL collector binds host ports: 4317, 4318, 8888, 8889, 13133, 1777, 15679
+    - E2E workflow deploys JOSE second (tries to create `jose-opentelemetry-collector-contrib-1`)
+    - JOSE OTEL collector FAILS to bind same host ports (already in use by CA)
+    - Healthcheck fails because JOSE OTEL collector never starts successfully
 - Iteration 1 (commit 3ba82c06):
-  - Reduced initial sleep: 10s → 5s
-  - Removed redundant ping check (wget alone sufficient)
-  - Reduced retry attempts: 15 → 10
-  - Target time: 5s + 10×2s = 25s
-  - Result: Workflow 20372688515 FAILED (still took 116s, exit code 1)
+  - Reduced healthcheck timeout: 10s + 15×2s → 5s + 10×2s = 25s
+  - Removed redundant ping check
+  - Result: FAILED (workflow 20372688515, took 116s)
 - Iteration 2 (commit 70288122):
-  - Increased initial sleep: 5s → 10s (give OTEL more startup time)
-  - Increased retry attempts: 10 → 20
-  - Increased retry interval: 2s → 3s
-  - Increased wget timeout: 2s → 3s
-  - Target time: 10s + 20×3s = 70s (more tolerance for slow CI/CD environments)
-  - Improved logging: "Attempt N/20" with full URL
-  - Result: Workflow 20372812749 running (testing now)
+  - Increased healthcheck tolerance: 5s + 10×2s → 10s + 20×3s = 70s
+  - Result: FAILED (workflow 20372812749, took exactly 71s - script timeout)
+- Iteration 3 (commit 99067d88):
+  - **Fixed root cause**: Removed ALL host port mappings from OTEL collector
+  - Services communicate via Docker network (`opentelemetry-collector-contrib:4317`) only
+  - No port conflicts possible - each deployment creates isolated OTEL collector
+  - Result: Testing workflow 20372999226 (should succeed)
 - Related commits:
   - [3ba82c06] fix(e2e): optimize OTEL collector healthcheck (5s initial + 10 attempts)
   - [70288122] fix(e2e): increase OTEL healthcheck tolerance (10s + 20 attempts × 3s)
+  - [99067d88] fix(e2e): remove OTEL collector host port mappings to prevent conflicts
 
 **Workflow Status**:
 
