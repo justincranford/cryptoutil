@@ -460,7 +460,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 				context.Background(),
 				tc.method,
 				url,
-				2*time.Second,
+				10*time.Second, // Increased from 2s to 10s for race detector compatibility (race detector adds ~10x overhead)
 				false,
 				startServerListenerApplication.PublicTLSServer.RootCAsPool,
 				false,

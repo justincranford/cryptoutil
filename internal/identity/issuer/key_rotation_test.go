@@ -440,14 +440,14 @@ func TestStartAutoRotation(t *testing.T) {
 				time.Sleep(350 * time.Millisecond)
 				cancel()
 
-				require.Greater(t, len(manager.signingKeys), 0, "Auto-rotation should generate keys")
+				require.Greater(t, manager.GetSigningKeyCount(), 0, "Auto-rotation should generate keys")
 			} else {
 				go manager.StartAutoRotation(ctx, "RS256")
 
 				time.Sleep(150 * time.Millisecond)
 				cancel()
 
-				require.Equal(t, 0, len(manager.signingKeys), "Auto-rotation disabled should not generate keys")
+				require.Equal(t, 0, manager.GetSigningKeyCount(), "Auto-rotation disabled should not generate keys")
 			}
 		})
 	}

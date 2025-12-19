@@ -140,6 +140,14 @@ func (m *KeyRotationManager) GetActiveSigningKey() (*SigningKey, error) {
 	)
 }
 
+// GetSigningKeyCount returns the number of signing keys (thread-safe).
+func (m *KeyRotationManager) GetSigningKeyCount() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return len(m.signingKeys)
+}
+
 // GetPublicKeys returns all valid signing keys in JWK format for JWKS endpoint.
 func (m *KeyRotationManager) GetPublicKeys() []map[string]any {
 	m.mu.RLock()
