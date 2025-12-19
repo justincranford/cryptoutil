@@ -1088,14 +1088,29 @@ Phase 1 targets apply to **package-level** times, not individual test times.
 - Pre-commit hooks: Markdown lint auto-fixed, UTF-8/trailing whitespace validated
 - Push: 5 objects (14.35 KiB) to GitHub successfully
 - Workflow status checked: E2E failed (jose-server image pull denied), mutation/race still running (>10 minutes)
+- Plan comparison completed:
+  - Created plan-comparison-analysis.md (comprehensive old vs new comparison)
+  - Verified PLAN.md fully supersedes plan-probably-out-of-date.md (NO missing content)
+  - Added post-implementation checklist (6 activities) to PLAN.md
+  - Added mutation testing priority order (API validation → business logic → repository → infrastructure)
+  - Deleted plan-probably-out-of-date.md (fully superseded)
+- Workflow status checked:
+  - ❌ E2E failed: jose-server image pull denied (repository does not exist or requires docker login)
+  - ❌ Race detector failed: TestStartAutoRotation, TestValidateAccessToken, TestRequestLoggerMiddleware (race detected, context deadline exceeded)
+  - ⏳ Mutation testing: still running >17 minutes (may timeout at 45 minutes)
+  - ✅ SAST: passed (3m26s)
+  - ✅ Coverage: passed (5m15s)
 - Next steps:
-  1. Compare PLAN.md vs plan-probably-out-of-date.md (verify completeness)
-  2. Create plan-missing.md if gaps found OR delete old plan if fully superseded
-  3. Fix E2E workflow failure (jose-server Docker image issue)
-  4. Monitor mutation/race workflows for completion/failures
-  5. Apply remaining COPILOT-SUGGESTIONS answers (G1 federation, A1 anti-patterns, U3 Windows Firewall, U4 file size limits)
-- Related commits: [e1d21585] PLAN.md comprehensive 7-phase plan generation
+  1. Fix race detector failures (3 tests failing in identity/issuer and kms/server/application)
+  2. Fix E2E workflow failure (jose-server Docker image issue - build locally instead of pull)
+  3. Wait for mutation testing completion (monitor timeout, optimize if needed)
+  4. Apply remaining COPILOT-SUGGESTIONS answers (G1 federation, A1 anti-patterns, U3 Windows Firewall, U4 file size limits)
+- Related commits:
+  - [e1d21585] PLAN.md comprehensive 7-phase plan generation
+  - [b8440b07] DETAILED.md timeline entry for PLAN.md generation session
+  - [f05e12c9] PLAN.md enhancements (post-implementation checklist, mutation priority)
+  - [66ac6db1] Delete plan-probably-out-of-date.md (fully superseded)
 
-**Status**: ✅ PLAN GENERATED - Verifying completeness against old plan, fixing workflows
+**Status**: ✅ PLAN COMPLETE - Fix race detector and E2E failures, monitor mutation testing
 
 ---
