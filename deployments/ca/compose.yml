@@ -126,8 +126,6 @@ services:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
-      healthcheck-opentelemetry-collector-contrib:
-        condition: service_completed_successfully
     healthcheck:
       # Use wget (available in Alpine), not curl.
       # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers.
@@ -187,8 +185,6 @@ services:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
-      healthcheck-opentelemetry-collector-contrib:
-        condition: service_completed_successfully
     healthcheck:
       # CA server routes: /health, /livez, /readyz (no /admin/v1/ prefix).
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:8443/livez"]
@@ -246,8 +242,6 @@ services:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
-      healthcheck-opentelemetry-collector-contrib:
-        condition: service_completed_successfully
       # Wait for instance 1 to initialize shared database.
       ca-postgres-1:
         condition: service_healthy

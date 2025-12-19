@@ -163,11 +163,9 @@ jobs:
 
         # Collect CA service logs
         docker compose -f ./deployments/ca/compose.yml logs ca-sqlite > ./workflow-reports/e2e/ca-sqlite.log 2>&1 || true
-        docker compose -f ./deployments/ca/compose.yml logs healthcheck-opentelemetry-collector-contrib > ./workflow-reports/e2e/ca-healthcheck-otel.log 2>&1 || true
 
         # Collect JOSE service logs
         docker compose -f ./deployments/jose/compose.yml logs jose-server > ./workflow-reports/e2e/jose-server.log 2>&1 || true
-        docker compose -f ./deployments/jose/compose.yml logs healthcheck-opentelemetry-collector-contrib > ./workflow-reports/e2e/jose-healthcheck-otel.log 2>&1 || true
 
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)

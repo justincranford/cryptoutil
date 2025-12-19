@@ -61,8 +61,6 @@ services:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
-      healthcheck-opentelemetry-collector-contrib:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:8092/health"]
       start_period: 30s
