@@ -1137,18 +1137,30 @@ Phase 1 targets apply to **package-level** times, not individual test times.
   - [18948683] fix(race): add thread-safe key count method and increase test timeout
   - [3c00d2fa] docs(detailed): add race detector fixes session timeline entry (markdown lint fix)
 
-**E2E Workflow Healthcheck Optimization**:
+**E2E Workflow Healthcheck Optimization** (2 iterations):
 
 - Problem: OTEL collector healthcheck took 2 minutes (expected 40s), causing E2E failures
-- Root cause: Redundant ping check + excessive retries (10s initial + 15×2s = 40s design)
-- Solution: Optimized healthcheck script in deployments/telemetry/compose.yml
+- Root cause analysis:
+  - Original design: 10s initial + 15×2s retries = 40s expected, but taking 116s actual
+  - Hypothesis 1: Redundant ping check adds overhead
+  - Hypothesis 2: OTEL collector slow to start, needs more tolerance
+- Iteration 1 (commit 3ba82c06):
   - Reduced initial sleep: 10s → 5s
-  - Removed redundant ping check (wget alone is sufficient for health verification)
+  - Removed redundant ping check (wget alone sufficient)
   - Reduced retry attempts: 15 → 10
-  - Total time: 5s initial + 10×2s = 25s (38% faster than previous design)
-  - Improved logging: "Attempt N/10" with countdown for better observability
-- Related commit:
+  - Target time: 5s + 10×2s = 25s
+  - Result: Workflow 20372688515 FAILED (still took 116s, exit code 1)
+- Iteration 2 (commit 70288122):
+  - Increased initial sleep: 5s → 10s (give OTEL more startup time)
+  - Increased retry attempts: 10 → 20
+  - Increased retry interval: 2s → 3s
+  - Increased wget timeout: 2s → 3s
+  - Target time: 10s + 20×3s = 70s (more tolerance for slow CI/CD environments)
+  - Improved logging: "Attempt N/20" with full URL
+  - Result: Workflow 20372812749 running (testing now)
+- Related commits:
   - [3ba82c06] fix(e2e): optimize OTEL collector healthcheck (5s initial + 10 attempts)
+  - [70288122] fix(e2e): increase OTEL healthcheck tolerance (10s + 20 attempts × 3s)
 
 **Workflow Status**:
 
