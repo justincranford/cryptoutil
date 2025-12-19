@@ -105,7 +105,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 
 func (c *ServerApplicationCore) Shutdown() func() {
 	return func() {
-		if c.ServerApplicationBasic.TelemetryService != nil {
+		if c.ServerApplicationBasic != nil && c.ServerApplicationBasic.TelemetryService != nil {
 			c.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping server core")
 		}
 
