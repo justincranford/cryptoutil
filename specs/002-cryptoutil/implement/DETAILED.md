@@ -744,7 +744,7 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 - P1.4: Optimize jose/server (62.47s → ≤12s, save ~50s)
 - b438cfff: Created analyze.md (491 lines, 8 major gaps)
 - 3aaf0448: Regenerated clarify.md (441 lines, 9 sections)
-- 9ac0bdf5: Created CLARIFY-QA.md (1002 lines, 100 validation questions)
+- 9ac0bdf5: Created CLARIFY-QUIZME.md (1002 lines, 100 validation questions)
 
 **Status**: ✅ Spec refactoring COMPLETE - all core documents regenerated and committed
 
@@ -768,7 +768,7 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 4. **PLAN.md** (737 lines): Comprehensive implementation strategy
 5. **analyze.md** (491 lines): 8 major gaps identified with strategies
 6. **clarify.md** (441 lines): 9 sections covering P1-P7 + cross-cutting concerns
-7. **CLARIFY-QA.md** (1002 lines): 100 validation questions with answer key
+7. **CLARIFY-QUIZME.md** (1002 lines): 100 validation questions with answer key
 
 **Spec Quality**:
 
@@ -961,5 +961,105 @@ Phase 1 targets apply to **package-level** times, not individual test times.
 - test-output/baseline-timing-002-summary.md (comprehensive analysis)
 
 **Phase 1 Status**: ✅ COMPLETE - Proceed to Phase 2 (Coverage Improvement)
+
+---
+
+### 2025-12-19: Applied All 26 SPECKIT-CONFLICTS-ANALYSIS Clarifications
+
+**Context**: User answered all 26 multiple-choice clarification questions from SPECKIT-CONFLICTS-ANALYSIS.md. Systematically applied answers to constitution, spec, plan, copilot instructions, and clarify.md.
+
+**Work Completed**:
+
+1. **Documentation Created**:
+   - clarify-decisions-2025-12-19.md: Comprehensive mapping of all 26 answers to persistence locations (1255 lines)
+   - COPILOT-SUGGESTIONS.md: 18 optimization questions for copilot instruction analysis
+   - CLARIFY-QUIZME2.md: 28 new clarification questions for Round 2 (architecture, testing, cryptography, observability, deployment)
+
+2. **Constitution Updated** (v3.0.0):
+   - Section IV Testing: Phased mutation targets (85%→98%), test timing (<15s/<180s), probability-based execution, main() pattern, real dependencies preference
+   - Section V Architecture: Admin port assignments (9090/9091/9092/9093), Windows Firewall prevention
+   - Section VIII Terminology: MUST=REQUIRED=MANDATORY=CRITICAL (intentional synonyms)
+   - Section IX File Size/Templates: 300/400/500 line limits, service template requirement, Learn-PS requirement
+   - Section X Hash Versioning: Date-based policy revisions (v1=2020, v2=2023, v3=2025)
+
+3. **Testing Instructions Updated**:
+   - Package classification: Production (95%), Infrastructure (100%), Utility (100%)
+   - Test timing: <15s per unit test package, <180s total suite
+   - Phased mutation: ≥85% Phase 4, ≥98% Phase 5+
+   - Real dependencies: Test containers, real crypto, real servers (NOT mocks)
+
+4. **Plan.md Updated**:
+   - Phase 1: <15s/<180s timing targets
+   - Quality gates: Phased mutation thresholds
+   - MVP criteria: Hash architecture clarification
+
+5. **Architecture Instructions Updated**:
+   - Admin port assignments: KMS 9090, Identity 9091, CA 9092, JOSE 9093
+   - Port collision prevention: 127.0.0.1 binding rationale
+   - Example dual ports: Updated with unique admin ports per product
+
+6. **Spec.md Updated**:
+   - Overview: Spec Kit workflow reference subsection
+   - Admin ports: Unique per product (9090/9091/9092/9093)
+   - CA deployment: 3-instance pattern (ca-sqlite, ca-postgres-1, ca-postgres-2)
+   - Service mesh: Updated ports diagram
+   - Phase 5 Hash: Version architecture (date-based policy, prefix format)
+
+7. **Clarify.md Updated**:
+   - Round 1 Clarification section: All 26 Q&A entries added
+   - Architecture: A2 (package classification), A4 (federation config), A6 (gremlins Windows), C4 (admin ports), C7 (CA deployment)
+   - Testing: C2 (mutation thresholds), C3 (test timing), O1 (real dependencies), O2 (main() pattern), Q1.1/Q1.2/Q2.1 (test patterns)
+   - Operational: O3 (Windows Firewall), O4 (hash versioning), O5 (service template), O6 (file size limits), O8 (Spec Kit reference)
+   - Questions: Q3.2 (DAST diagnostics), Q3.3 (otel sidecar), Q5.1/Q5.2 (hash architecture), Q6.1/Q6.3 (SDK generation), Q8.2 (coverage baselines), Q9.3 (CLI vs TUI)
+
+**Key Decisions Documented**:
+
+- **Mutation Targets**: Phased approach (85% Phase 4, 98% Phase 5+) prevents "boiling the ocean"
+- **Test Timing**: <15s per package, <180s total unit tests (integration/e2e excluded)
+- **Admin Ports**: Unique per product (9090/9091/9092/9093), shared across instances
+- **Real Dependencies**: ALWAYS prefer test containers/real servers over mocks
+- **Main Pattern**: Thin main() + testable internalMain(args, stdin, stdout, stderr)
+- **Windows Firewall**: MANDATORY 127.0.0.1 binding in tests (NEVER 0.0.0.0)
+- **Hash Versioning**: Date-based policy revisions with prefix format {v}:base64_hash
+- **Service Template**: MANDATORY extractable from KMS for all 8 services
+- **File Size Limits**: Soft 300, Medium 400, Hard 500 lines (refactor required)
+- **CA Deployment**: 3 instances (matches KMS/JOSE/Identity pattern)
+
+**Commits Made** (4 commits, 2600+ lines):
+
+1. 658a1ed2: docs(constitution): apply CRITICAL clarifications from SPECKIT-CONFLICTS-ANALYSIS
+   - constitution.md: v3.0.0 with 13 section updates
+   - testing.instructions.md: phased targets, timing, real dependencies
+   - clarify-decisions-2025-12-19.md: 1255-line comprehensive reference
+   - SPECKIT-CONFLICTS-ANALYSIS.md: fixed markdown lint error
+
+2. 40d52cfb: docs(plan): apply timing and mutation threshold clarifications
+   - plan.md: Phase 1 objectives, quality gates, MVP criteria
+   - 3 replacements applied
+
+3. b6f958b1: docs(arch+spec): apply admin ports, CA deployment, Spec Kit reference, hash versioning clarifications
+   - architecture.instructions.md: admin port assignments
+   - spec.md: Overview Spec Kit reference, admin ports, CA deployment, Phase 5 hash architecture
+   - CLARIFY-QUIZME2.md: 28 new Round 2 questions
+
+4. 2388629f: docs(clarify): add comprehensive Q&A for all 26 Round 1 clarifications
+   - clarify.md: Round 1 section with all 26 Q&A entries (538 lines)
+
+**Impact**:
+
+- Constitution v3.0.0: 13 sections updated with CRITICAL clarifications
+- Testing standards: Clear package-level requirements (95%/100%), timing targets, mutation thresholds
+- Architecture: Unified admin port strategy, CA deployment pattern
+- Spec Kit workflow: Documented methodology for iterative clarification
+- Clarify.md: Authoritative Q&A for all 26 decisions
+
+**Next Steps**:
+
+1. User answers COPILOT-SUGGESTIONS.md (18 questions) → optimize copilot instructions
+2. User answers CLARIFY-QUIZME2.md (28 questions) → apply Round 2 clarifications
+3. Continue P2.1.1 Phase 1 test implementation (5.5 pts coverage remaining)
+4. Proceed through Phase 2-7 with clarified requirements
+
+**Status**: ✅ CLARIFICATIONS COMPLETE - Ready for next implementation work
 
 ---
