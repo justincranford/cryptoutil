@@ -12,14 +12,17 @@ services:
   opentelemetry-collector-contrib:
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
-    ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8888:8888"   # Self-metrics (Prometheus)
-      - "8889:8889"   # Received-metrics (Prometheus, for re-export)
-      - "13133:13133" # Health check
-      - "1777:1777"   # pprof
-      - "15679:55679" # zPages (mapped to different host port to avoid Windows reserved range)
+    # CRITICAL: Ports NOT exposed to host to allow multiple deployments (CA, JOSE, etc.)
+    # Services communicate via Docker network (telemetry-network) using container names
+    # Example: cryptoutil services use "opentelemetry-collector-contrib:4317" internally
+    # ports:
+    #   - "4317:4317"   # OTLP gRPC (container-only, no host exposure)
+    #   - "4318:4318"   # OTLP HTTP (container-only, no host exposure)
+    #   - "8888:8888"   # Self-metrics (Prometheus, container-only)
+    #   - "8889:8889"   # Received-metrics (Prometheus, container-only)
+    #   - "13133:13133" # Health check (container-only)
+    #   - "1777:1777"   # pprof (container-only)
+    #   - "15679:55679" # zPages (container-only)
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     networks:
