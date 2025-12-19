@@ -25,12 +25,6 @@ services:
     #   - "15679:55679" # zPages (container-only)
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
-      start_period: 15s
-      interval: 5s
-      timeout: 5s
-      retries: 5
     networks:
       - telemetry-network
     deploy:
@@ -78,12 +72,13 @@ services:
 
   # Healthcheck sidecar for opentelemetry-collector-contrib.
   # Required because otel-collector-contrib image doesn't include shell/wget.
+  # This sidecar polls the OTEL collector health endpoint and exits when healthy.
   healthcheck-opentelemetry-collector-contrib:
     image: alpine:latest
     command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 15; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 24); do echo \"Attempt $$i/24: Checking OTEL collector health at http://opentelemetry-collector-contrib:13133/...\"; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying in 5s...'; sleep 5; fi; done; echo 'Health check failed after 24 attempts (135s total)'; exit 1"]
     depends_on:
       opentelemetry-collector-contrib:
-        condition: service_healthy
+        condition: service_started
     networks:
       - telemetry-network
 
