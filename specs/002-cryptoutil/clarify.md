@@ -1431,4 +1431,542 @@ func main() {
 
 ---
 
+## Round 1 Clarification Questions (SPECKIT-CONFLICTS-ANALYSIS)
+
+**Source**: SPECKIT-CONFLICTS-ANALYSIS.md answered 2025-12-19  
+**Status**: All 26 questions answered, applied to constitution/spec/plan/copilot instructions
+
+### Architecture Group
+
+#### A2: Package Classification for Coverage Targets
+
+**Question**: Which specific packages require 95% vs 100% coverage?
+
+**Answer**: Write-in answer (E)
+
+- **Production (95%)**: internal/{jose,identity,kms,ca}
+- **Infrastructure (100%)**: internal/cmd/cicd/*
+- **Utility (100%)**: internal/shared/*, pkg/*
+
+**Rationale**: Production code has complex business logic with error paths requiring >95% coverage. Infrastructure/utility code is simpler but critical - must be 100% tested.
+
+**Impact**: Testing requirements clearly documented per package type.
+
+---
+
+#### A4: Service Federation Configuration
+
+**Question**: How should services discover and configure federated services (Identity, JOSE)?
+
+**Answer**: A - Static YAML configuration (federation.identity_authz_url, federation.jose_ja_url)
+
+**Rationale**:
+
+- Simplest to implement and debug
+- No external dependencies (Consul, etcd)
+- Configuration changes require restart (acceptable for MVP)
+- Matches existing YAML-based config pattern
+
+**Impact**:
+
+- Add federation section to all service YAML configs
+- Services fail fast at startup if federated services unreachable
+- Phase 7 may add dynamic service discovery
+
+---
+
+#### A6: Gremlins Windows Compatibility
+
+**Question**: Should we investigate gremlins Windows compatibility or use CI/CD workaround?
+
+**Answer**: E - "Investigate in Phase 4, but use CI/CD workaround for now"
+
+**Rationale**:
+
+- Windows development experience matters long-term
+- CI/CD workaround unblocks immediate progress
+- Phase 4 is mutation testing phase (natural investigation point)
+- Document findings for upstream bug report if needed
+
+**Impact**:
+
+- CI/CD runs gremlins on Linux (current workaround)
+- Phase 4 includes Windows compatibility investigation task
+- Results documented in GREMLINS-TRACKING.md
+
+---
+
+### Clarification Group
+
+#### C2: Mutation Testing Threshold Strategy
+
+**Question**: Single high threshold (98%) or phased approach (85%→98%)?
+
+**Answer**: E - "85% for Phase 4, then 98% for Phase 5+"
+
+**Rationale**:
+
+- Phased approach prevents "boiling the ocean" problem
+- 85% Phase 4 baseline validates mutation testing infrastructure
+- 98% Phase 5+ target represents mature codebase quality
+- Incremental improvement more achievable than immediate perfection
+
+**Impact**:
+
+- Constitution updated with phased mutation targets
+- Phase 4 goal: ≥85% efficacy per package
+- Phase 5+ goal: ≥98% efficacy per package
+- Plan.md quality gates updated
+
+---
+
+#### C3: Test Execution Timing Targets
+
+**Question**: Should we set strict timing targets for test execution?
+
+**Answer**: E - "<15 seconds per unit test package, <180 seconds for full unit test suite (integration/e2e excluded from strict timing)"
+
+**Rationale**:
+
+- 15s per package prevents single slow package
+- 180s (3 minutes) total suite keeps feedback loop fast
+- Integration/e2e excluded (Docker startup overhead acceptable)
+- Probabilistic execution helps packages approaching limits
+
+**Impact**:
+
+- Constitution Section IV updated with timing targets
+- Testing instructions updated with enforcement guidance
+- Slow packages use probability-based execution (TestProbTenth, TestProbQuarter)
+- CI/CD can add timing enforcement checks
+
+---
+
+#### C4: Admin Port Assignment Strategy
+
+**Question**: Should admin ports be per-instance (9090, 9091, 9092) or per-product (9090/9091/9092/9093)?
+
+**Answer**: D - "Unique admin port per product (KMS: 9090, Identity: 9091, CA: 9092, JOSE: 9093)"
+
+**Rationale**:
+
+- Admin ports bound to 127.0.0.1 only (not externally accessible)
+- Docker Compose: Each service instance = separate container with isolated network namespace
+- Same admin port can be reused across instances of same product without collision
+- Simpler configuration (one admin port per product)
+
+**Impact**:
+
+- Architecture instructions updated with port assignments
+- spec.md service mesh diagram updated
+- All services share same admin port per product
+- Prevents port conflicts in unified deployment
+
+---
+
+#### C7: CA Deployment Instance Count
+
+**Question**: How many CA instances should we deploy (1, 3, or other)?
+
+**Answer**: A - "3 instances (matches KMS/JOSE/Identity pattern for consistency)"
+
+**Rationale**:
+
+- Consistency across all products (KMS, Identity, JOSE, CA all use 3-instance pattern)
+- Demonstrates production patterns (load balancing, high availability)
+- 1 SQLite instance + 2 PostgreSQL instances
+- Unified deployment strategy
+
+**Impact**:
+
+- spec.md updated with CA 3-instance deployment
+- Docker Compose will have ca-sqlite, ca-postgres-1, ca-postgres-2
+- Ports: 8380/8381/8382 (public), 9092 (admin shared)
+
+---
+
+### Operational Group
+
+#### O1: Test Dependency Strategy (Real vs Mock)
+
+**Question**: Should we prefer real dependencies (PostgreSQL containers, crypto) or mocks?
+
+**Answer**: C - "ALWAYS prefer real dependencies (test containers, real crypto, real HTTP servers) over mocks"
+
+**Rationale**:
+
+- Real dependencies reveal production bugs (integration issues, race conditions, deadlocks)
+- Mocks hide integration issues until production
+- Modern test containers make real dependencies fast and reliable
+- Mocks reserved for hard-to-reach corner cases or external services
+
+**Impact**:
+
+- Testing instructions emphasize real dependencies
+- TestMain pattern starts PostgreSQL containers once per package
+- Mocks used ONLY for: hard-to-reach errors, external APIs (email, SMS, cloud-only)
+
+---
+
+#### O2: main() Function Testability Pattern
+
+**Question**: How should we structure main() functions for testability?
+
+**Answer**: E - "Thin main() delegates to co-located internalMain(args, stdin, stdout, stderr) - fully testable"
+
+**Rationale**:
+
+- main() is untestable (os.Args, os.Stdout, os.Exit hardcoded)
+- internalMain() accepts injected dependencies (testable with mocks)
+- 95%+ coverage achievable (main() 0% is acceptable when internalMain() 95%+)
+- Enables testing all branches (happy path, error cases, exit codes)
+
+**Impact**:
+
+- Constitution Section IV updated with main() pattern
+- Testing instructions updated with examples
+- ALL `cmd/*` and `internal/cmd/*` main functions follow pattern
+- Unblocks coverage improvement for command-line tools
+
+---
+
+#### O3: Windows Firewall Prevention
+
+**Question**: How should we prevent Windows Firewall exception prompts during testing?
+
+**Answer**: E - "MANDATORY: ALWAYS bind to 127.0.0.1 (NEVER 0.0.0.0) in tests/local dev"
+
+**Rationale**:
+
+- Binding to 0.0.0.0 (all interfaces) triggers Windows Firewall prompts
+- Binding to 127.0.0.1 (loopback only) does NOT trigger prompts
+- Tests MUST run without user interaction
+- Docker containers use 0.0.0.0 (isolated network), local tests use 127.0.0.1
+
+**Impact**:
+
+- Constitution Section V updated with Windows Firewall prevention
+- Security instructions updated with MANDATORY pattern
+- Test configs use 127.0.0.1 binding
+- Docker configs use 0.0.0.0 binding
+
+---
+
+#### O4: Hash Service Version Architecture
+
+**Question**: What does "version" mean in hash service architecture?
+
+**Answer**: E - "Version = date-based policy revision (v1=2020 NIST, v2=2023 NIST, v3=2025 OWASP)"
+
+**Rationale**:
+
+- Version tracks compliance policy changes over time
+- Algorithm selection within version is input-size-based (automatic)
+- 4 registries × 3 versions = 12 configurations
+- Supports gradual migration (old hashes use v1, new hashes use v2)
+
+**Impact**:
+
+- Constitution Section X updated with hash versioning
+- spec.md Phase 5 updated with detailed architecture
+- Output format: {v}:base64_hash (e.g., {1}:abcd1234...)
+
+---
+
+#### O5: Service Template Requirements
+
+**Question**: Must service template be extractable and reusable for all 8 services?
+
+**Answer**: E - "MANDATORY: Template must be extractable from KMS and augmented for all 8 services"
+
+**Rationale**:
+
+- Reduces code duplication across 8 PRODUCT-SERVICE instances
+- Centralizes common patterns (dual servers, health checks, telemetry, graceful shutdown)
+- Service-specific logic pluggable via interfaces/handlers
+- Phase 6 deliverable (after KMS/Identity/CA/JOSE mature)
+
+**Impact**:
+
+- Constitution Section IX updated with service template requirement
+- spec.md Phase 6 updated with 8 target services
+- Template extraction task added to Phase 6
+
+---
+
+#### O6: File Size Limits Enforcement
+
+**Question**: Should we enforce file size limits (300/400/500 lines)?
+
+**Answer**: E - "MANDATORY: Soft 300, Medium 400, Hard 500 lines (refactor required)"
+
+**Rationale**:
+
+- Faster LLM processing and token usage
+- Easier human review and maintenance
+- Forces logical code organization
+- 500-line hard limit prevents monolithic files
+
+**Impact**:
+
+- Constitution Section IX updated with file size limits
+- Coding instructions updated with enforcement
+- Files exceeding 500 lines must be refactored before merging
+
+---
+
+#### O8: Spec Kit Workflow Documentation Location
+
+**Question**: Where should we document Spec Kit workflow methodology?
+
+**Answer**: C - "Add subsection to spec.md Overview (concise), full detail in docs/SPECKIT-QUICK-GUIDE.md"
+
+**Rationale**:
+
+- spec.md readers need context about iterative clarification workflow
+- Concise overview in spec.md, comprehensive guide in docs/
+- Cross-references between documents maintain consistency
+- Spec Kit workflow is project-level concern (not product-specific)
+
+**Impact**:
+
+- spec.md Overview updated with Spec Kit reference
+- docs/SPECKIT-QUICK-GUIDE.md is authoritative guide
+- Cross-references added for discoverability
+
+---
+
+### Questions Group
+
+#### Q1.1: Test Case Consolidation for Speed
+
+**Question**: Should we consolidate redundant test cases to improve timing?
+
+**Answer**: C - "Yes, consolidate table-driven test cases where truly redundant (same code path, different data)"
+
+**Rationale**:
+
+- Redundant tests waste time without coverage improvement
+- Table-driven tests can merge similar variants (e.g., AES-128/192/256)
+- Must validate coverage unchanged before/after consolidation
+- Mutation testing validates consolidation didn't weaken quality
+
+**Impact**:
+
+- Testing instructions updated with consolidation guidance
+- Packages approaching 15s timing limit consolidate first
+- Coverage and mutation score must remain unchanged
+
+---
+
+#### Q1.2: TestMain Pattern for Server Sharing
+
+**Question**: Should we use TestMain to start servers once per package?
+
+**Answer**: A - "Yes, TestMain for heavyweight dependencies (PostgreSQL, servers) - start once per package"
+
+**Rationale**:
+
+- Starting PostgreSQL container per test is slow (5-10s each)
+- TestMain starts container once, all tests share connection
+- Requires test data isolation (unique UUIDs, dynamic ports)
+- Pattern already used successfully in KMS tests
+
+**Impact**:
+
+- Testing instructions updated with TestMain pattern
+- All packages with PostgreSQL/server dependencies use TestMain
+- Test isolation via UUIDv7 and dynamic port allocation
+
+---
+
+#### Q2.1: Real Server Dependency Preference
+
+**Question**: Should we prefer real servers over httptest mocks?
+
+**Answer**: "ALWAYS C (prefer real servers)"
+
+**Rationale**:
+
+- Real servers reveal production bugs (TLS handshake, network issues, timeouts)
+- httptest hides integration issues
+- Modern test infrastructure makes real servers fast
+- Mocks reserved for hard-to-reach corner cases
+
+**Impact**:
+
+- Testing instructions emphasize real dependencies
+- httptest used ONLY for unreachable error injection
+- All integration tests use real HTTPS servers
+
+---
+
+#### Q3.2: DAST Test /readyz Timeout Diagnostic Logging
+
+**Question**: Should we add diagnostic logging for /readyz timeout issues?
+
+**Answer**: D - "Yes, add diagnostic logging (timestamps, phase names like TLS/DB/unseal)"
+
+**Rationale**:
+
+- 150s Docker Compose timeout suggests slow startup phase
+- Diagnostic logging identifies bottleneck (TLS? migrations? unseal?)
+- Enables optimization of slowest phase
+- Helps differentiate genuine issues from slow startup
+
+**Impact**:
+
+- All services add startup phase timing logs
+- DAST workflow includes diagnostic log collection
+- Bottleneck analysis documented in DETAILED.md
+
+---
+
+#### Q3.3: Otel Collector Health Check Sidecar Pattern
+
+**Question**: Should we use sidecar health check for otel-collector-contrib?
+
+**Answer**: "D IS ONLY SOLUTION that works"
+
+**Rationale**:
+
+- otel-collector-contrib has no shell/utilities for healthcheck script
+- Minimal Alpine container with wget works reliably
+- No alternative solution found after investigation
+- Pattern documented for future container health checks
+
+**Impact**:
+
+- Docker Compose uses otel-collector-health-check sidecar
+- Pattern documented as reference for similar containers
+- No further investigation needed (working solution)
+
+---
+
+#### Q5.1: Hash Version Selection
+
+**Question**: How should hash version selection work?
+
+**Answer**: E - "Config-driven with date-based versions (v1=2020 NIST, v2=2023 NIST, v3=2025 OWASP)"
+
+**Rationale**:
+
+- Compliance policies change over time (NIST, OWASP recommendations)
+- Version tracks policy revision date
+- Algorithm selection within version is automatic (input-size-based)
+- Supports gradual migration (old hashes stay on v1, new use v2)
+
+**Impact**:
+
+- spec.md Phase 5 updated with version architecture
+- 4 registries × 3 versions = 12 configurations
+- Verification tries all versions (backward compatibility)
+
+---
+
+#### Q5.2: Hash Output Format
+
+**Question**: What format should hash outputs use?
+
+**Answer**: A - "Prefix format: {v}:base64_hash"
+
+**Rationale**:
+
+- Version metadata in output enables version-aware verification
+- Simple parsing (split on first ':')
+- Human-readable (shows which version was used)
+- Example: {1}:abcd1234... (v1), {2}:efgh5678... (v2)
+
+**Impact**:
+
+- spec.md Phase 5 updated with output format
+- Verification automatically tries all versions until match found
+- Backward compatibility with unprefixed hashes (assume v1)
+
+---
+
+#### Q6.1: Service Template Initialization
+
+**Question**: How should services initialize with template?
+
+**Answer**: A - "Constructor injection (NewService(handlers, middleware, config))"
+
+**Rationale**:
+
+- Clear initialization semantics (all dependencies explicit)
+- Type-safe (compile-time validation)
+- Familiar Go pattern (no builder/functional options complexity)
+- Matches existing KMS service initialization
+
+**Impact**:
+
+- Phase 6 service template uses constructor injection
+- All 8 services follow same initialization pattern
+- Clear dependency graph for testing/mocking
+
+---
+
+#### Q6.3: SDK Generation Timing
+
+**Question**: When should go:generate run for SDK generation?
+
+**Answer**: "B (go:generate), but user/LLM agent can do A (oapi-codegen directly) during development"
+
+**Rationale**:
+
+- go:generate standardizes generation command (consistent CI/CD)
+- Developers can run oapi-codegen directly for faster iteration
+- Both approaches acceptable (developer preference)
+- Pre-commit hook can validate SDK up-to-date
+
+**Impact**:
+
+- //go:generate directives in api/ packages
+- Developers choose: `go generate ./...` or `oapi-codegen -config ...`
+- CI/CD uses go generate for consistency
+
+---
+
+#### Q8.2: Coverage Baseline Tracking
+
+**Question**: Where should we store coverage baseline artifacts?
+
+**Answer**: B - "CI/CD workflow artifacts (download before/after for comparison)"
+
+**Rationale**:
+
+- CI/CD artifacts auto-expire (no git repo bloat)
+- Download before/after artifacts for trend analysis
+- HTML reports enable visual gap analysis
+- Per-release baselines can be saved separately if needed
+
+**Impact**:
+
+- CI/CD uploads coverage artifacts with 30-day retention
+- Developers download artifacts for baseline comparison
+- docs/COVERAGE-TRACKING.md documents artifact usage
+
+---
+
+#### Q9.3: CLI vs TUI for cryptoutil Commands
+
+**Question**: Should cryptoutil commands use CLI or TUI?
+
+**Answer**: B - "CLI only for MVP (Phase 1-7), TUI deferred to future iteration"
+
+**Rationale**:
+
+- CLI sufficient for MVP (start, stop, status commands)
+- TUI adds complexity (terminal detection, rendering, key handling)
+- TUI value unclear for server management (most ops via API/UI)
+- Defer until user feedback indicates need
+
+**Impact**:
+
+- All cmd/cryptoutil commands use CLI (Cobra)
+- TUI investigation deferred beyond Phase 7
+- Focus on API/Web UI for rich interaction
+
+---
+
 *This clarify.md document is authoritative for implementation decisions. When ambiguities arise, refer to this document first before making assumptions.*
