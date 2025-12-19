@@ -4,6 +4,26 @@
 
 **cryptoutil** is a Go-based cryptographic services platform providing secure key management, identity services, and certificate authority capabilities with FIPS 140-3 compliance.
 
+### Spec Kit Workflow Reference
+
+**Source**: SPECKIT-CONFLICTS-ANALYSIS O8 answer C, 2025-12-19
+
+This specification follows the Spec Kit methodology (see `docs/SPECKIT-QUICK-GUIDE.md` for complete workflow). Key principles:
+
+- **Iterative Clarification**: Ambiguities resolved via `clarify.md` → `CLARIFY-QUIZME.md` cycle
+- **Constitution Authority**: `.specify/memory/constitution.md` defines immutable principles and quality gates
+- **Evidence-Based Completion**: Tasks require objective evidence (coverage ≥95%, mutation ≥85%, all tests passing)
+- **Feedback Loops**: Implementation insights update earlier documents (spec → constitution → clarify)
+- **Phase Dependencies**: Strict sequencing (Phase 1 foundation before Phase 2 core features)
+
+**Key Document Relationships**:
+
+- `constitution.md`: Core principles, absolute requirements, quality gates
+- `spec.md` (this file): Product requirements, technical specification
+- `plan.md`: 7-phase implementation approach, task breakdown
+- `clarify.md`: Authoritative Q&A for all resolved ambiguities
+- `implement/DETAILED.md`: Task status tracking, append-only timeline
+
 ## Technical Constraints
 
 ### CGO Ban - CRITICAL
@@ -65,10 +85,10 @@
 - Initial Request Without Session Token
   - Unauthenticated browser-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
     - SFA in Standalone product mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token)
-    - MFA in Federated Identity mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token), WebAuthn (without Passkeys), WebAuthn (with Passkeys), random OTP via email||SMS, HOTP/TOTP via registering an Authenticator app, magic link via email||SMS, HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QA.md)
+    - MFA in Federated Identity mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token), WebAuthn (without Passkeys), WebAuthn (with Passkeys), random OTP via email||SMS, HOTP/TOTP via registering an Authenticator app, magic link via email||SMS, HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QUIZME.md)
   - Unauthenticated browser-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
     - SFA in Standalone product mode: Basic (Clientid,clientsecret), Bearer (API Token)
-    - MFA in Federated Identity mode: Basic (Clientid,clientsecret), Bearer (API Token), HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QA.md)
+    - MFA in Federated Identity mode: Basic (Clientid,clientsecret), Bearer (API Token), HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QUIZME.md)
 - Issuance of Session Token
   - Browser-based clients that successfully prove authentication will be given a session cookie (opaque||JWE|JWS non-OAuth 2.1)
   - Headless-based clients that successfully prove authentication will be given a session cookie (opaque||JWE|JWS non-OAuth 2.1)
@@ -217,6 +237,13 @@
 - Optional mTLS for production environments
 - Not exposed in Docker port mappings
 
+**Admin Port Assignments** (Source: SPECKIT-CONFLICTS-ANALYSIS C4 answer D, 2025-12-19):
+
+- **KMS**: Admin port 9090 (all KMS instances share, bound to 127.0.0.1)
+- **Identity**: Admin port 9091 (all 5 Identity services share)
+- **CA**: Admin port 9092 (all CA instances share)
+- **JOSE**: Admin port 9093 (all JOSE instances share)
+
 **Admin API Context**:
 
 - `/admin/v1/livez` - Liveness probe (process alive)
@@ -251,12 +278,14 @@
     │   JOSE     │  │  Identity  │  │    KMS      │  │    CA    │
     │ Authority  │  │  Services  │  │   Server    │  │  Server  │
     │            │  │            │  │             │  │          │
-    │ Port: 8090 │  │AuthZ: 8080 │  │ Port: 8080  │  │Port: 8443│
-    │            │  │ IdP: 8081  │  │             │  │          │
-    │            │  │  RS: 8082  │  │             │  │          │
+    │ Port: 8280 │  │AuthZ: 8180 │  │ Port: 8080  │  │Port: 8380│
+    │            │  │ IdP: 8181  │  │             │  │          │
+    │            │  │  RS: 8182  │  │             │  │          │
+    │            │  │  RP: 8183  │  │             │  │          │
+    │            │  │ SPA: 8184  │  │             │  │          │
     └─────┬──────┘  └─────┬──────┘  └──────┬──────┘  └────┬─────┘
           │               │                │              │
-          │ Admin:9092    │ Admin:9090     │ Admin:9090   │Admin:9443
+          │ Admin:9093    │ Admin:9091     │ Admin:9090   │Admin:9092
           │ (127.0.0.1)   │ (127.0.0.1)    │ (127.0.0.1)  │(127.0.0.1)
           │               │                │              │
     ┌─────▼───────────────▼────────────────▼──────────────▼─────┐
@@ -556,7 +585,17 @@ MaterialKey (versioned key material)
 
 ### P4: Certificates (Certificate Authority)
 
+**Source**: SPECKIT-CONFLICTS-ANALYSIS C7 answer A, 2025-12-19
+
 X.509 certificate lifecycle management with CA/Browser Forum compliance.
+
+**Deployment Architecture**:
+
+- **3-instance deployment pattern** (matches KMS/JOSE/Identity pattern for consistency)
+- **ca-sqlite**: Port 8380 (public API), Port 9092 (admin), SQLite backend
+- **ca-postgres-1**: Port 8381 (public API), Port 9092 (admin), PostgreSQL backend
+- **ca-postgres-2**: Port 8382 (public API), Port 9092 (admin), PostgreSQL backend
+- **Admin ports bound to 127.0.0.1** (not externally accessible, health checks only)
 
 #### Implementation Status
 
@@ -954,7 +993,17 @@ Used by other services for health checks.
 
 ### Hash Service Refactoring (Phase 5)
 
+**Source**: SPECKIT-CONFLICTS-ANALYSIS Q5.1 answer E, Q5.2 answer A, 2025-12-19
+
 **Goal**: Create unified hash service architecture supporting 4 hash registry types with version management.
+
+**Version Architecture**:
+
+- **Version = Date-Based Policy Revision**: v1 (2020 NIST), v2 (2023 NIST), v3 (2025 OWASP)
+- **Algorithm Selection Within Version**: Input size-based (0-31→SHA-256, 32-47→SHA-384, 48+→SHA-512)
+- **4 Registries × 3 Versions = 12 Configurations**: Each registry supports v1/v2/v3
+- **Output Format**: Prefix `{v}:base64_hash` (e.g., `{1}:abcd1234...`, `{2}:efgh5678...`)
+- **Verification**: Automatically tries all versions until match found (backward compatibility)
 
 **Architecture**:
 
