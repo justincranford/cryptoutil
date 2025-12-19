@@ -27,6 +27,7 @@ func TestSwaggerUIBasicAuthMiddleware_NoAuthConfigured(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
@@ -48,6 +49,7 @@ func TestSwaggerUIBasicAuthMiddleware_MissingAuthHeader(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
@@ -71,6 +73,7 @@ func TestSwaggerUIBasicAuthMiddleware_InvalidAuthMethod(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer invalid-token")
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
@@ -93,6 +96,7 @@ func TestSwaggerUIBasicAuthMiddleware_InvalidBase64Encoding(t *testing.T) {
 	req.Header.Set("Authorization", "Basic not-valid-base64!!!")
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
@@ -117,6 +121,7 @@ func TestSwaggerUIBasicAuthMiddleware_InvalidCredentialFormat(t *testing.T) {
 	req.Header.Set("Authorization", "Basic "+encodedCreds)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
@@ -141,6 +146,7 @@ func TestSwaggerUIBasicAuthMiddleware_InvalidCredentials(t *testing.T) {
 	req.Header.Set("Authorization", "Basic "+encodedCreds)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
@@ -165,6 +171,7 @@ func TestSwaggerUIBasicAuthMiddleware_ValidCredentials(t *testing.T) {
 	req.Header.Set("Authorization", "Basic "+encodedCreds)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
