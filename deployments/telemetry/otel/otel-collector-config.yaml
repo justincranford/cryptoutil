@@ -59,7 +59,9 @@ extensions:
     endpoint: 0.0.0.0:13133
     path: "/"
     check_collector_pipeline:
-      enabled: true  # Verify collector pipelines are running before reporting healthy
+      enabled: true
+      interval: 5s
+      exporter_failure_threshold: 3
 
   ###################################################################
   # pprof provides CPU/memory profiling (useful for debugging)
