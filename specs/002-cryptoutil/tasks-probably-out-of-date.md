@@ -14,12 +14,12 @@
 |-------|-------|----------|--------|
 | Phase 1: Optimize Slow Test Packages | 20 | 🔥 CRITICAL | ⏳ Not Started |
 | Phase 2: Coverage Targets (95%+ strict) | 60+ | 🔥 CRITICAL | ⏳ Not Started |
-| Phase 3: CI/CD Workflow Fixes (5 failures) | 15 | 🔥 CRITICAL | ⏳ Not Started |
+| Phase 3: CI/CD Workflow Fixes | 15 | 🔥 CRITICAL | ⏳ Not Started |
 | Phase 4: Mutation Testing QA (98%+) | 40+ | 🔴 HIGH | ⏳ Not Started |
-| Phase 5: Refactor Hashes (4 types) | 20 | 🟡 MEDIUM | ⏳ Not Started |
-| Phase 6: Server Architecture Unification | 30+ | 🟡 MEDIUM | ⏳ Not Started |
-| Phase 7: Learn-PS Demonstration Service | 25 | 🟢 LOW | ⏳ Not Started |
-| **Total** | **210+** | **~160-240h** | **0% Complete** |
+| Phase 5: Hash Service Refactoring (4 registries) | 20 | 🟡 MEDIUM | ⏳ Not Started |
+| Phase 6: Service Template Extraction (8 instances) | 30+ | 🟡 MEDIUM | ⏳ Not Started |
+| Phase 7: Learn-PS Demonstration | 25 | 🟢 LOW | ⏳ Not Started |
+| **Total** | **210+** | **~180-280h** | **0% Complete** |
 
 ---
 
@@ -27,11 +27,11 @@
 
 ### 🔥 CRITICAL (Blocking MVP)
 
-**P1: Optimize Slow Test Packages (≤12s target)**
+**P1: Optimize Slow Test Packages (≤30s target)**
 
 - Fast feedback loops essential for development velocity
 - Probabilistic execution for algorithm variants
-- Target: ALL packages ≤12 seconds
+- Target: ALL packages ≤30 seconds (hard limit 60s)
 
 **P2: Coverage Targets (95%+ strict, NO EXCEPTIONS)**
 
@@ -42,10 +42,10 @@
 **P3: CI/CD Workflow Fixes (0 failures target)**
 
 - ci-quality: outdated dependencies
-- ci-mutation: 45min timeout
-- ci-fuzz: otel collector healthcheck
-- ci-dast: readyz endpoint timeout
-- ci-load: otel collector healthcheck
+- ci-mutation: timeout (parallelize by package)
+- PostgreSQL service containers missing in 4 workflows
+- Health check standardization (Alpine wget vs non-Alpine curl)
+- Service startup latency optimization
 
 ### 🔴 HIGH (Quality Assurance)
 
@@ -108,7 +108,7 @@
 - **Plan**: See PLAN.md for technical approach and architecture
 - **Analysis**: See analyze.md for gap analysis and improvement opportunities
 - **Clarifications**: See clarify.md for requirement clarifications
-- **QA Questions**: See CLARIFY-QA.md for 100 multiple choice validation questions
+- **QA Questions**: See CLARIFY-QUIZME.md for 100 multiple choice validation questions
 - **Implementation**: See implement/DETAILED.md for timeline and detailed task descriptions
 - **Executive Summary**: See implement/EXECUTIVE.md for stakeholder overview and risk tracking
 

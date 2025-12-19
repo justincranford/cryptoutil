@@ -389,7 +389,7 @@
 
 **A)** Prefix format: {v}:base64_hash (e.g., {1}:abcd1234...)
 **B)** JSON format: {"v":1,"hash":"abcd1234..."}
-**C)** Binary format: (1 byte version)(N bytes hash data)  
+**C)** Binary format: (1 byte version)(N bytes hash data)
 **D)** PHC string format: $pbkdf2-sha256$v=1$rounds=...
 **E)** Other: _______________
 

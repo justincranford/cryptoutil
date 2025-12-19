@@ -7,6 +7,7 @@
 - Reference external & project resources; avoid duplication of content
 - ALWAYS use built-in tools over terminal commands
 - **NEVER invoke git push without explicit user permission** - only commit locally unless instructed
+- **MUST: ALL LLMs MUST ALWAYS BIAS PRIORITIZING ACCURACY OVER COMPLETION || TIME!!!** - ALWAYS TAKE THE TIME TO DO THINGS THAT ARE REQUESTED!!!
 
 ## LLM Agent Continuous Work Directive - ABSOLUTE ENFORCEMENT
 

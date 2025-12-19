@@ -46,6 +46,10 @@
   "files.associations": { "*.py": "python" },
   "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
   "files.exclude": {
+    // Git internal files
+    "**/.git/logs/**": true,
+    "**/.git/lost-found/**": true,
+
     // System/OS files
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
@@ -135,6 +139,8 @@
     // Git internal files
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
+    "**/.git/logs/**": true,
+    "**/.git/lost-found/**": true,
 
     // Dependencies
     "**/node_modules": true,
@@ -208,6 +214,8 @@
     // Git internal files
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
+    "**/.git/logs/**": true,
+    "**/.git/lost-found/**": true,
 
     // Dependencies
     "**/node_modules/**": true,
