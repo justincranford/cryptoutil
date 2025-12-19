@@ -37,17 +37,140 @@
 
 **Purpose**: User-facing APIs and browser UIs
 **Bind**: `0.0.0.0:<configurable_port>` (e.g., 8080, 8081, 8082)
-**Security**:
-
-- OAuth 2.1 token authentication (Authorization Code + PKCE for browsers, Client Credentials for services)
-- CORS/CSRF/CSP middleware enabled
-- Rate limiting per IP
-- TLS 1.3+ with server certificate only (no client cert required)
+**Security**: TLS 1.3+ with server certificate only (no client cert required)
 
 **API Contexts**:
 
-- `/browser/api/v1/*` - Browser-to-service APIs for SPA invocation
-- `/service/api/v1/*` - Service-to-service APIs for backend integration
+The public server exposes two distinct API paths with mutually exclusive authentication, authorization, and middleware:
+
+##### `/browser/api/v1/*` - Browser-Based Client APIs
+
+**Authentication**:
+
+- **Session Tokens**: HTTP Cookie-based session tokens (HttpOnly, Secure, SameSite=Strict)
+- **OAuth 2.1 Flow**: Authorization Code + PKCE (Proof Key for Code Exchange)
+- **Token Acquisition**: User redirected to IdP `/authorize` endpoint, exchanges code for session token
+- **Token Storage**: Server-side session storage, client receives opaque cookie
+- **Token Validation**: Server validates cookie against session store on each request
+
+**Authorization**:
+
+- **Scope Enforcement**: Session token contains user's granted scopes
+- **Resource-Level Access Control**: Middleware checks scopes against endpoint requirements
+- **User Context**: Full user profile available in request context (user ID, email, roles)
+- **Consent Tracking**: Session tracks which scopes user explicitly consented to
+
+**Middleware Pipeline** (Applied in order):
+
+1. **CORS (Cross-Origin Resource Sharing)**: Validates Origin header against allowlist
+2. **CSRF (Cross-Site Request Forgery) Protection**: Validates CSRF token in request header/body
+3. **CSP (Content Security Policy)**: Sets strict Content-Security-Policy headers
+4. **Session Cookie Validation**: Extracts and validates session token from Cookie header
+5. **Session Store Lookup**: Retrieves session data from Redis/database
+6. **Scope Authorization**: Checks user's scopes match endpoint requirements
+7. **Rate Limiting**: Per-user rate limiting (100 req/min default)
+8. **IP Allowlist**: Optional IP/CIDR allowlist enforcement
+9. **Request Logging**: OTLP trace logging with user context
+
+**Request Headers Required**:
+
+- `Cookie: session_token=<opaque_session_id>`
+- `X-CSRF-Token: <csrf_token>` (for non-GET requests)
+- `Origin: https://allowed-origin.com` (for CORS preflight)
+
+**Response Headers Set**:
+
+- `Set-Cookie: session_token=...; HttpOnly; Secure; SameSite=Strict`
+- `Access-Control-Allow-Origin: https://allowed-origin.com`
+- `Access-Control-Allow-Credentials: true`
+- `Content-Security-Policy: default-src 'self'; script-src 'self'`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+
+**Use Cases**:
+
+- Single Page Applications (SPAs) - React, Vue, Angular
+- Progressive Web Apps (PWAs)
+- Mobile web browsers
+- Any user-facing browser-based client
+
+---
+
+##### `/service/api/v1/*` - Service-to-Service APIs
+
+**Authentication**:
+
+- **Access Tokens**: HTTP Authorization Bearer tokens (JWT format)
+- **OAuth 2.1 Flow**: Client Credentials flow (client_id + client_secret)
+- **Token Acquisition**: Service POSTs to `/oauth/token` with credentials, receives JWT
+- **Token Storage**: Service stores token in memory, refreshes on expiry
+- **Token Validation**: Server validates JWT signature, expiry, issuer, audience
+
+**Authorization**:
+
+- **Scope Enforcement**: JWT contains client's granted scopes in `scope` claim
+- **Client Context**: JWT contains client_id, no user context
+- **Service-Level Access Control**: Middleware checks scopes against endpoint requirements
+- **mTLS Optional**: Can require mutual TLS for additional authentication layer
+
+**Middleware Pipeline** (Applied in order):
+
+1. **Authorization Header Extraction**: Extracts Bearer token from Authorization header
+2. **JWT Signature Validation**: Validates token signature against JWKs from `/oauth/jwks`
+3. **JWT Claims Validation**: Checks exp, iss, aud, nbf claims
+4. **Scope Authorization**: Checks token's scope claim matches endpoint requirements
+5. **Rate Limiting**: Per-client rate limiting (1000 req/min default)
+6. **IP Allowlist**: Optional IP/CIDR allowlist enforcement
+7. **Request Logging**: OTLP trace logging with client_id context
+
+**Request Headers Required**:
+
+- `Authorization: Bearer <jwt_access_token>`
+- `Content-Type: application/json` (for POST/PUT/PATCH)
+
+**Response Headers Set**:
+
+- `Cache-Control: no-store` (prevent token caching)
+- `X-Content-Type-Options: nosniff`
+
+**CORS/CSRF/CSP**: **NOT APPLIED** (service-to-service APIs don't need browser protections)
+
+**Use Cases**:
+
+- Backend microservices calling each other
+- Serverless functions (AWS Lambda, Azure Functions)
+- Scheduled jobs/cron tasks
+- Internal automation scripts
+- Third-party API integrations
+
+---
+
+##### Why Separate `/browser/*` vs `/service/*` Paths?
+
+**Security Isolation**:
+
+- Browser middleware (CORS/CSRF/CSP) would break service-to-service calls
+- Service tokens (JWTs) are too long-lived for browser security model
+- Session cookies require server-side state, impractical for high-volume service APIs
+- Prevents accidental exposure of service tokens to browser clients
+
+**Performance**:
+
+- Service APIs skip unnecessary browser middleware (CORS preflight, CSRF validation)
+- Browser APIs use lightweight session cookies instead of large JWTs
+- Rate limits tuned differently (browsers: 100 req/min, services: 1000 req/min)
+
+**Compliance**:
+
+- Browser APIs track user consent for audit trails
+- Service APIs track client_id for non-repudiation
+- Separate logs for user actions vs automated service actions
+
+**API Consistency**:
+
+- Both paths serve **identical OpenAPI spec** (same endpoints, request/response schemas)
+- Only authentication and middleware differ, not the API contract
+- Clients choose path based on their runtime environment (browser vs backend)
 
 #### Private HTTPS Server
 
