@@ -74,7 +74,7 @@ services:
   # Required because otel-collector-contrib image doesn't include shell/wget.
   healthcheck-opentelemetry-collector-contrib:
     image: alpine:latest
-    command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; wget_success() { wget --quiet --spider --timeout=3 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 20); do echo \"Attempt $$i/20: Checking OTEL collector health at http://opentelemetry-collector-contrib:13133/...\"; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying in 3s...'; sleep 3; fi; done; echo 'Health check failed after 20 attempts (70s total)'; exit 1"]
+    command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 15; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 24); do echo \"Attempt $$i/24: Checking OTEL collector health at http://opentelemetry-collector-contrib:13133/...\"; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying in 5s...'; sleep 5; fi; done; echo 'Health check failed after 24 attempts (135s total)'; exit 1"]
     depends_on:
       opentelemetry-collector-contrib:
         condition: service_started
