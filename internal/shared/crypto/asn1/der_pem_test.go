@@ -42,6 +42,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestPEMEncodeDecodeRSA(t *testing.T) {
+	t.Parallel()
+
 	keyPairOriginal, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
@@ -77,6 +79,8 @@ func TestPEMEncodeDecodeRSA(t *testing.T) {
 }
 
 func TestPEMEncodeDecodeECDSA(t *testing.T) {
+	t.Parallel()
+
 	keyPairOriginal, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
 
@@ -149,6 +153,8 @@ func TestPEMEncodeDecodeECDH(t *testing.T) {
 }
 
 func TestPEMEncodeDecodeEdDSA(t *testing.T) {
+	t.Parallel()
+
 	publicKeyOriginal, privateKeyOriginal, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
 	require.IsType(t, ed25519.PrivateKey{}, privateKeyOriginal)
