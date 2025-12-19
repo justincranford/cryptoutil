@@ -9,6 +9,23 @@
 - **NEVER invoke git push without explicit user permission** - only commit locally unless instructed
 - **MUST: ALL LLMs MUST ALWAYS BIAS PRIORITIZING ACCURACY OVER COMPLETION || TIME!!!** - ALWAYS TAKE THE TIME TO DO THINGS THAT ARE REQUESTED!!!
 
+## Terminology - RFC 2119 Keywords
+
+**Requirement Keywords** (source: .specify/memory/constitution.md Section VIII):
+
+- **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
+- **MUST NOT** = **SHALL NOT** - Absolute prohibition
+- **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
+- **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
+- **MAY** = **OPTIONAL** - Truly optional (implementer decides)
+
+**Emphasis Keywords** (instruction files only):
+
+- **CRITICAL** - Historically regression-prone areas requiring extra attention (format_go self-modification, Windows Firewall, SQLite deadlocks)
+- **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
+
+**All keywords are semantically equivalent to their RFC 2119 base** - use context to determine if CRITICAL/ALWAYS adds historical emphasis or is synonym for MUST.
+
 ## LLM Agent Continuous Work Directive - ABSOLUTE ENFORCEMENT
 
 **CRITICAL: NEVER STOP WORKING UNTIL USER EXPLICITLY SAYS "STOP"**
@@ -143,6 +160,7 @@
 | 01-06.database | Database & ORM patterns |
 | 01-07.security | Security patterns |
 | 01-08.linting | Code quality & linting standards |
+| 01-09.cryptography | FIPS compliance, hash versioning, algorithm agility |
 | 02-01.github | CI/CD workflow |
 | 02-02.docker | Docker & Compose |
 | 02-03.observability | Observability & monitoring |
@@ -152,3 +170,4 @@
 | 03-04.dast | DAST scanning |
 | 04-01.sqlite-gorm | SQLite GORM config |
 | 05-01.evidence-based | Evidence-based task completion |
+| 06-01.speckit | Speckit workflow integration & feedback loops |

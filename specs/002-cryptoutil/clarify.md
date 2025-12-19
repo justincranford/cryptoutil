@@ -1,7 +1,7 @@
 # cryptoutil Iteration 2 - Clarifications and Answers
 
-**Last Updated**: December 19, 2025  
-**Purpose**: Authoritative Q&A for implementation decisions, architectural patterns, and technical trade-offs  
+**Last Updated**: December 19, 2025
+**Purpose**: Authoritative Q&A for implementation decisions, architectural patterns, and technical trade-offs
 **Organization**: Topical (merged Round 1 + Round 2 clarifications)
 
 ---
