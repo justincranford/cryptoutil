@@ -1117,6 +1117,8 @@ Phase 1 targets apply to **package-level** times, not individual test times.
 
 ### 2025-12-19: Race Detector and Workflow Fixes (Session 2)
 
+**Race Detector Fixes (2 of 3)**:
+
 - Work completed: Fixed 2 of 3 race detector failures (commit 18948683)
 - TestStartAutoRotation fix:
   - Added GetSigningKeyCount() method with RLock protection to KeyRotationManager
@@ -1130,19 +1132,38 @@ Phase 1 targets apply to **package-level** times, not individual test times.
   - Race detected in invalid_jwe_token subtest (internal/identity/issuer/service_test.go:629)
   - Pattern: Concurrent access to shared state in token service or JWE validation
   - Status: Deferred to separate investigation task (requires CGO_ENABLED=1 for local repro)
-- Workflow monitoring:
-  - Pushed commit 18948683, triggered new ci-race workflow
-  - Mutation testing still running (>20 minutes, may timeout at 45 minutes)
-  - E2E failure still unresolved (jose-server image pull denied)
-- Next steps:
-  1. Wait for ci-race workflow results (validate 2/3 fixes work)
-  2. Investigate TestValidateAccessToken race condition (JWE validation path)
-  3. Fix E2E workflow failure (jose-server Docker image issue)
-  4. Monitor mutation testing completion/timeout
-  5. Apply remaining COPILOT-SUGGESTIONS answers (G1, A1, U3, U4)
 - Related commits:
+  - [8a5605fc] docs(detailed): add race detector fixes session timeline entry
   - [18948683] fix(race): add thread-safe key count method and increase test timeout
+  - [3c00d2fa] docs(detailed): add race detector fixes session timeline entry (markdown lint fix)
 
-**Status**: ⏳ IN PROGRESS - Waiting for ci-race validation, E2E and mutation fixes pending
+**E2E Workflow Healthcheck Optimization**:
+
+- Problem: OTEL collector healthcheck took 2 minutes (expected 40s), causing E2E failures
+- Root cause: Redundant ping check + excessive retries (10s initial + 15×2s = 40s design)
+- Solution: Optimized healthcheck script in deployments/telemetry/compose.yml
+  - Reduced initial sleep: 10s → 5s
+  - Removed redundant ping check (wget alone is sufficient for health verification)
+  - Reduced retry attempts: 15 → 10
+  - Total time: 5s initial + 10×2s = 25s (38% faster than previous design)
+  - Improved logging: "Attempt N/10" with countdown for better observability
+- Related commit:
+  - [3ba82c06] fix(e2e): optimize OTEL collector healthcheck (5s initial + 10 attempts)
+
+**Workflow Status**:
+
+- ci-race (20372688485): In progress (validating 2 fixes)
+- ci-mutation (20372688496): In progress (>20 minutes, previous run timed out at 45min)
+- ci-e2e (20372688515): In progress (testing optimized healthcheck)
+
+**Next Steps**:
+
+1. Wait for ci-race workflow results (validate 2/3 fixes work)
+2. Monitor ci-e2e workflow (validate healthcheck optimization)
+3. Investigate TestValidateAccessToken race condition (JWE validation path)
+4. Monitor mutation testing completion/timeout (parallelize if times out again)
+5. Apply remaining COPILOT-SUGGESTIONS answers (G1, A1, U3, U4)
+
+**Status**: ⏳ IN PROGRESS - Monitoring ci-race, ci-e2e, ci-mutation workflows
 
 ---
