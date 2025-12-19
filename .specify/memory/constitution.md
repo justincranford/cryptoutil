@@ -171,14 +171,49 @@ func TestUserCreate(t *testing.T) {
 - Benchmark tests MANDATORY for all cryptographic operations and hot path handlers
 - Fuzz tests MANDATORY for all input parsers and validators (minimum 15s fuzz time)
 - Property-based tests RECOMMENDED using gopter for invariant validation, round-trip encoding/decoding, cryptographic properties
-- Mutation tests MANDATORY for quality assurance: gremlins with ≥80% mutation score per package
+- Mutation tests MANDATORY for quality assurance: gremlins with ≥85% mutation score per package (Phase 4), ≥98% per package (Phase 5+)
+
+**Test Execution Time Targets**:
+
+- Unit test packages: MANDATORY <15 seconds per package (excludes integration/e2e tests)
+- Full unit test suite: MANDATORY <180 seconds (3 minutes) total
+- Integration/E2E tests: Excluded from strict timing (Docker startup overhead acceptable)
+- Probabilistic execution MANDATORY for packages approaching 15s limit
+
+**Probability-Based Test Execution**:
+
+- `TestProbAlways` (100%): Base algorithms (RSA2048, AES256, ES256) - always test
+- `TestProbQuarter` (25%): Key size variants (RSA3072, AES192) - statistical sampling
+- `TestProbTenth` (10%): Less common variants (RSA4096, AES128) - minimal sampling
+- `TestProbNever` (0%): Deprecated or extreme edge cases - skip
+- Purpose: Maintain <15s per package timing while preserving comprehensive algorithm coverage
+- Rationale: Faster test execution without sacrificing bug detection effectiveness
+
+**main() Function Testability Pattern**:
+
+- ALL main() functions MUST be thin wrappers delegating to co-located testable functions
+- Pattern: `main()` calls `internalMain(args, stdin, stdout, stderr) int`
+- `internalMain()` accepts injected dependencies for testing
+- `main()` 0% coverage acceptable if `internalMain()` ≥95% coverage
+- Rationale: Enables testing of exit codes, argument parsing, error handling without terminating test process
+
+**Real Dependencies Preferred Over Mocks**:
+
+- ALWAYS use real dependencies: PostgreSQL test containers, real crypto, real HTTP servers
+- ONLY use mocks for: External services that can't run locally (email, SMS, cloud-only APIs)
+- Rationale: Real dependencies reveal production bugs; mocks hide integration issues
+- Examples:
+  - ✅ PostgreSQL: Use test containers (NOT database/sql mocks)
+  - ✅ Crypto operations: Use real crypto libraries (NOT mock implementations)
+  - ✅ HTTP servers: Use real servers with test clients (NOT httptest mocks unless corner cases)
+  - ❌ Email/SMS: Mock (external services)
 
 **Race Condition Prevention - CRITICAL**:
 
 - NEVER write to parent scope in parallel sub-tests, manipulate globals with t.Parallel(), or share sessions
 - ALWAYS inline assertions, fresh test data, protect maps/slices with sync.Mutex
 - Detection: `go test -race -count=2` (local + ci-race workflow)
-- Details: .github/instructions/01-02.testing.instructions.md
+- Details: .github/instructions/01-04.testing.instructions.md
 
 ## V. Service Architecture - Dual HTTPS Endpoint Pattern
 
@@ -208,10 +243,14 @@ Every service MUST implement two HTTPS endpoints:
 | Service | Public HTTPS | Private HTTPS | Public APIs |
 |---------|--------------|---------------|-------------|
 | KMS | :8080 | 127.0.0.1:9090 | Key operations, UI |
-| Identity AuthZ | :8080 | 127.0.0.1:9090 | OAuth endpoints, UI |
-| Identity IdP | :8081 | 127.0.0.1:9090 | OIDC endpoints, UI |
-| JOSE | :8080 | 127.0.0.1:9090 | JWK/JWT ops, UI |
-| CA | :8443 | 127.0.0.1:9443 | Cert operations, UI |
+| Identity AuthZ | :8180 | 127.0.0.1:9091 | OAuth endpoints, UI |
+| Identity IdP | :8181 | 127.0.0.1:9091 | OIDC endpoints, UI |
+| JOSE | :8280 | 127.0.0.1:9093 | JWK/JWT ops, UI |
+| CA | :8380 | 127.0.0.1:9092 | Cert operations, UI |
+
+**Admin Port Assignment Strategy**: Each product family gets unique admin port to prevent conflicts in unified deployments.
+
+**Windows Firewall Prevention - Tests Only**: Unit/integration tests MUST bind to 127.0.0.1 (NOT 0.0.0.0) to prevent Windows Firewall exception prompts during test automation. Docker containers MUST bind to 0.0.0.0 for container networking compatibility.
 
 ### Critical Rules
 
@@ -336,7 +375,7 @@ healthcheck:
 - ALWAYS use UTF-8 without BOM for ALL text file encoding; never use UTF-16, UTF-32, CP-1252, ASCII
 - File size limits: 300 (soft), 400 (medium), 500 (hard → refactor required); ideal for user development and reviews, and LLM agent development and reviews
 - 95%+ production coverage, 100% infrastructure (cicd), 100% utility code
-- Mutation testing score ≥80% per package (gremlins or equivalent)
+- Mutation testing score ≥85% per package Phase 4, ≥98% per package Phase 5+ (gremlins or equivalent)
 - ALWAYS fix all pre-commit hook errors; see ./.pre-commit-config.yaml
 - ALWAYS fix all pre-commit hook errors; see ./.pre-commit-config.yaml
 - All code builds  `go build ./...`, `mvn compile`
@@ -430,7 +469,81 @@ When a gate fails:
 
 **NEVER** mark an iteration complete with failing gates.
 
-## VIII. Governance and Documentation Standards
+## VIII. Terminology Standards
+
+**RFC 2119 Keywords** are used throughout this constitution and all specification documents:
+
+- **MUST** / **REQUIRED** / **MANDATORY** / **CRITICAL**: Absolute requirement (all 4 terms are synonymous)
+- **MUST NOT** / **SHALL NOT**: Absolute prohibition
+- **SHOULD** / **RECOMMENDED**: Strong recommendation (exceptions require documented justification)
+- **SHOULD NOT** / **NOT RECOMMENDED**: Strong discouragement (usage requires documented justification)
+- **MAY** / **OPTIONAL**: Truly optional (implementer's choice)
+
+**User Intent Clarification**: The terms MUST, REQUIRED, MANDATORY, and CRITICAL are intentionally treated as complete synonyms in this project. All four indicate an absolute, non-negotiable requirement with no exceptions.
+
+**Source**: RFC 2119 "Key words for use in RFCs to Indicate Requirement Levels" + user clarification 2025-12-19
+
+---
+
+## IX. File Size Limits and Code Organization
+
+**File Size Targets** (applies to ALL files: production code, tests, docs, configs):
+
+- **Soft limit**: 300 lines (ideal target for optimal readability)
+- **Medium limit**: 400 lines (acceptable with justification in PR)
+- **Hard limit**: 500 lines (NEVER EXCEED - refactor required before merge)
+
+**Rationale**:
+
+- Faster LLM agent processing and token usage
+- Easier human code review and maintenance
+- Better code organization and discoverability
+- Forces logical separation of concerns
+
+**Refactoring Strategies When Approaching Limits**:
+
+1. Split by functionality (create_test.go, validate_test.go, extract_test.go)
+2. Split by algorithm type (rsa_test.go, ecdsa_test.go, eddsa_test.go)
+3. Extract test helpers to *_test_util.go files
+4. Move integration tests to *_integration_test.go files
+
+**Service Template Requirement**:
+
+- Phase 6 MUST extract reusable service template from proven implementations (KMS, JOSE, Identity)
+- Template includes: Dual HTTPS servers, health checks, graceful shutdown, telemetry, middleware, config management
+- Template parameterization: Constructor injection for handlers, middleware, configuration
+- All new services MUST use extracted template (consistency, reduced code duplication)
+
+**Learn-PS Demonstration Requirement**:
+
+- Phase 7 MUST implement Learn-PS pet store demonstration service using extracted template
+- Purpose: Validate template is truly reusable and production-ready
+- Validates: Service stands up, passes health checks, handles requests, integrates with telemetry
+- Success criteria: Learn-PS implementation <500 lines (proves template handles infrastructure)
+
+---
+
+## X. Hash Service Architecture and Versioning
+
+**Hash Version Management** (Phase 5 deliverable):
+
+- **Version = Date-Based Policy Revision**: v1 (2020 NIST), v2 (2023 NIST), v3 (2025 OWASP+)
+- **Each version contains**: SHA-256/384/512 algorithm selection, PBKDF2 iterations, salt sizes, HKDF info strings
+- **Algorithm Selection Within Version**: Based on input size (0-31 bytes→SHA-256, 32-47 bytes→SHA-384, 48+ bytes→SHA-512)
+- **Configuration-Driven**: Versions stored in YAML config, not hardcoded in code
+- **Hash Output Format**: Prefix format `{v}:base64_hash` (e.g., `{1}:abcd1234...`) for version-aware verification
+- **Migration Strategy**: Support multiple versions concurrently during policy transitions
+
+**Hash Registry Types** (4 types × 3 versions each = 12 configurations):
+
+1. **Password Hashing**: PBKDF2-HMAC-SHA (non-deterministic, high entropy)
+2. **PII Hashing**: HKDF-SHA (deterministic, searchable)
+3. **OTP Hashing**: PBKDF2-HMAC-SHA (non-deterministic, high entropy, short-lived)
+4. **Magic Link Hashing**: HKDF-SHA (deterministic, searchable, time-limited)
+
+---
+
+## XI. Governance and Documentation Standards
 
 ### Decision Authority
 
@@ -506,5 +619,6 @@ This constitution may be amended only by:
 | 1.0.0 | 2025-12-01 | Initial | Constitution creation |
 | 1.1.0 | 2025-12-04 | VI | Added Spec Kit workflow gates |
 | 2.0.0 | 2025-12-06 | IV, V, VI, X, XI, XII | Coverage targets 95/100/100, mutation testing ≥80%, property-based tests, CLI requirement, amendment process, status file clarification |
+| 3.0.0 | 2025-12-19 | IV, V, VIII, IX, X | Phased mutation targets (85%→98%), test timing (<15s/<180s), probability-based execution, main() pattern, Windows Firewall prevention, admin port assignments, file size limits, service template, Learn-PS, hash versioning, terminology standards (MUST=REQUIRED=MANDATORY=CRITICAL) |
 
-**Version**: 2.0.0 | **Ratified**: 2025-12-01 | **Last Amended**: 2025-12-06
+**Version**: 3.0.0 | **Ratified**: 2025-12-01 | **Last Amended**: 2025-12-19
