@@ -35,13 +35,47 @@
 
 #### Public HTTPS Server
 
-**Purpose**: User-facing APIs and browser UIs
-**Bind**: `0.0.0.0:<configurable_port>` (e.g., 8080, 8081, 8082)
-**Security**: TLS 1.3+ with server certificate only (no client cert required)
+**Purpose**: Browser-facing UI/APIs vs headless-client APIs, with different authentication options, authorization options, and middleware security
+**Bind**: `<configurable_address>:<configurable_port>` (e.g., ports: 8080, 8081, 8082)
+**Security**:
 
-**API Contexts**:
-
-The public server exposes two distinct API paths with mutually exclusive authentication, authorization, and middleware:
+- MUST use HTTPS TLS 1.3+ with server certificate; TLS client-certificate authentication can also be enforced, but it is a configuration option
+- Address binding constraints
+  - Unit/integration tests: MUST use IPv4 127.0.0.1 by default; if not, it triggers Windows Firewall Exception prompts, which defeats the purpose of test automation
+  - Docker Containers: MUST use IPv4 0.0.0.0 binding by default inside containers; no IPv6 due to dual stack issues inside Docker, and no 127.0.0.1 because Docker networking can't map external port to internal 127.0.0.1 network interface
+- API Contexts are based on request paths
+  - `/browser/swagger/*` - Browser-to-service Swagger UI; UI is secured using middleware security and injected JavaScript customization
+  - `/browser/api/v1/*` - Browser-to-service APIs for Swagger UI or SPA UI invocation
+  - `/service/api/v1/*` - Service-to-service APIs for headless clients
+- Access to request paths MUST be mutually exclusive for different clients based on /browser vs /service prefix
+  - Headless-based clients MUST use /service/* paths
+  - Browser-based clients MUST use /browser/* paths
+- Mutually exclusive configuration for /browser vs /service prefixes
+  - Headless-based clients: Unique configuration of authentication, authorization, and middleware to be applied to all /service/* paths
+  - Browser-based clients: Unique configuration of authentication, authorization, and middleware to be applied to all /browser/* paths
+  - Shared middleware: CIDR and IP whitelisting, rate limiting, telemetry collection, request logging
+- Mutually exclusive middleware, plus some shared middleware, will be used to enforce different security for /browser vs /service prefixes
+  - Common middleware:
+  - Headless-based only middleware: Authentication must identify client as non-browser client
+  - Browser-based only middleware: Authentication must identify client as browser client, CORS/CSRF/CSP/XSS
+- ALL Authentication methods must support two configurations
+  - Two Realm types per Authentication method: File Realm Type (YAML), Database Realm Type (GORM/SQL)
+  - Priority: File Realm Type (YAML) is higher priority than Database Realm Type (GORM/SQL); if DB access is down, File Realm Type supports Availability (from CIA Extended Triad) and Continuity of Business
+  - Minimum one File Realm required per service, for Admin access in case of DB disaster; that minimum one File Realm can be any type that doesn't depend on DB availability (e.g. Basic Authorization header OK, WebAuthn/Passkeys/RandomOTP not OK because it requires persisting a challenge)
+- Initial Request Without Session Token
+  - Unauthenticated browser-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
+    - SFA in Standalone product mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token)
+    - MFA in Federated Identity mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token), WebAuthn (without Passkeys), WebAuthn (with Passkeys), random OTP via email||SMS, HOTP/TOTP via registering an Authenticator app, magic link via email||SMS, HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QA.md)
+  - Unauthenticated browser-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
+    - SFA in Standalone product mode: Basic (Clientid,clientsecret), Bearer (API Token)
+    - MFA in Federated Identity mode: Basic (Clientid,clientsecret), Bearer (API Token), HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QA.md)
+- Issuance of Session Token
+  - Browser-based clients that successfully prove authentication will be given a session cookie (opaque||JWE|JWS non-OAuth 2.1)
+  - Headless-based clients that successfully prove authentication will be given a session cookie (opaque||JWE|JWS non-OAuth 2.1)
+  - A session cookie can always be used to identify the client type as either browser-based vs headless-based; client type is mutually exclusive, and must be one of the two values
+- Subsequent Request With Session Token
+  - middleware for /service/* paths MUST use the session cookie to validate the client is a non-browser client; browser type client will be rejected, no||expired session token triggers authentication redirection
+  - middleware for /browser/* paths MUST use the session cookie to validate the client is a browser client; browser type client will be rejected, no||expired session token triggers authentication redirection
 
 ##### `/browser/api/v1/*` - Browser-Based Client APIs
 
