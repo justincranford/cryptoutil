@@ -646,7 +646,7 @@ hash_service:
 - [ ] Generate baseline mutation reports (≥85% efficacy target for Phase 4)
 - [ ] Document efficacy scores in docs/GREMLINS-TRACKING.md
 - [ ] Identify low-efficacy packages (<85%)
-- [ ] Create mutation gap remediation plan
+- [ ] Create mutation gap remediation plan (priority order: API validation → business logic → repository → infrastructure)
 - [ ] Add tests to kill surviving mutants
 - [ ] Achieve ≥85% efficacy per package
 
@@ -1362,6 +1362,19 @@ cryptoutil is ready for production when:
 - 7.2 Documentation: 7 tasks (❌ not started)
 
 **Total Tasks**: 117 tasks across 7 phases
+
+---
+
+## Post-Implementation Activities
+
+After all 7 phases complete:
+
+1. **Documentation Updates**: Update docs/README.md with 002-cryptoutil outcomes
+2. **Lessons Learned**: Document in specs/002-cryptoutil/implement/EXECUTIVE.md
+3. **Post-Mortem**: Create post-mortem for any P0 incidents encountered
+4. **Archive Decision**: If starting 003-cryptoutil iteration, archive 002-cryptoutil
+5. **Release Tagging**: `git tag -a v0.2.0 -m "MVP quality release with service template"`
+6. **Final Push**: Ensure all commits pushed to GitHub
 
 ---
 
