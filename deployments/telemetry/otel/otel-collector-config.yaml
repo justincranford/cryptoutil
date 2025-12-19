@@ -58,10 +58,6 @@ extensions:
   health_check:
     endpoint: 0.0.0.0:13133
     path: "/"
-    check_collector_pipeline:
-      enabled: true
-      interval: 5s
-      exporter_failure_threshold: 3
 
   ###################################################################
   # pprof provides CPU/memory profiling (useful for debugging)
