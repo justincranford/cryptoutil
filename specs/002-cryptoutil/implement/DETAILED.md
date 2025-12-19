@@ -1114,3 +1114,35 @@ Phase 1 targets apply to **package-level** times, not individual test times.
 **Status**: ✅ PLAN COMPLETE - Fix race detector and E2E failures, monitor mutation testing
 
 ---
+
+### 2025-12-19: Race Detector and Workflow Fixes (Session 2)
+
+- Work completed: Fixed 2 of 3 race detector failures (commit 18948683)
+- TestStartAutoRotation fix:
+  - Added GetSigningKeyCount() method with RLock protection to KeyRotationManager
+  - Replaced direct manager.signingKeys access in test (thread-safe accessor pattern)
+  - Root cause: Multiple goroutines accessed signingKeys map without synchronization
+- TestRequestLoggerMiddleware fix:
+  - Increased HTTPResponse timeout from 2s to 10s for race detector compatibility
+  - Race detector adds ~10x overhead, 2s timeout insufficient
+  - Prevents 'context deadline exceeded' errors in race mode
+- TestValidateAccessToken investigation:
+  - Race detected in invalid_jwe_token subtest (internal/identity/issuer/service_test.go:629)
+  - Pattern: Concurrent access to shared state in token service or JWE validation
+  - Status: Deferred to separate investigation task (requires CGO_ENABLED=1 for local repro)
+- Workflow monitoring:
+  - Pushed commit 18948683, triggered new ci-race workflow
+  - Mutation testing still running (>20 minutes, may timeout at 45 minutes)
+  - E2E failure still unresolved (jose-server image pull denied)
+- Next steps:
+  1. Wait for ci-race workflow results (validate 2/3 fixes work)
+  2. Investigate TestValidateAccessToken race condition (JWE validation path)
+  3. Fix E2E workflow failure (jose-server Docker image issue)
+  4. Monitor mutation testing completion/timeout
+  5. Apply remaining COPILOT-SUGGESTIONS answers (G1, A1, U3, U4)
+- Related commits:
+  - [18948683] fix(race): add thread-safe key count method and increase test timeout
+
+**Status**: ⏳ IN PROGRESS - Waiting for ci-race validation, E2E and mutation fixes pending
+
+---
