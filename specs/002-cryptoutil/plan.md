@@ -80,9 +80,11 @@ Every service implements two HTTPS endpoints:
 
 ## Phase 1: Optimize Slow Test Packages (Day 1-2, 8-12h)
 
-**Objective**: ALL !integration packages execute in ≤30 seconds (relaxed from 12s after realistic analysis)
+**Objective**: ALL unit test packages execute in ≤15 seconds per package, ≤180 seconds (3 minutes) total
 
-**Rationale**: Fast feedback loops essential for development velocity. Target relaxed to ≤30s per package after analyzing crypto-heavy test suites.
+**Rationale**: Fast feedback loops essential for development velocity. Integration/E2E tests excluded from strict timing due to Docker startup overhead.
+
+**Phase Execution**: Can run in parallel with Phase 3 (CI/CD Fixes) - independent phases.
 
 ### Implementation Strategy
 
@@ -485,6 +487,8 @@ HashService
 
 **Rationale**: 8 services duplicate infrastructure code. Reusable template eliminates duplication, ensures consistency.
 
+**Template Parameterization**: Constructor injection pattern - pass handlers, middleware, configuration at service initialization.
+
 ### 8 PRODUCT-SERVICE Instances
 
 1. **sm-kms**: Secrets Manager - Key Management System
@@ -674,9 +678,9 @@ HashService
 
 **Test Performance**:
 
-- ✅ ALL !integration packages ≤30 seconds execution time (target)
-- ✅ Hard limit: 60 seconds (blocking failure)
-- ✅ Total !integration suite <100s
+- ✅ ALL unit test packages ≤15 seconds execution time (MANDATORY)
+- ✅ Total unit test suite <180 seconds / 3 minutes (MANDATORY)
+- ✅ Integration/E2E tests excluded from strict timing (Docker startup acceptable)
 - ✅ Probabilistic testing patterns applied where appropriate
 - ✅ Coverage maintained (no losses from optimization)
 
@@ -689,10 +693,12 @@ HashService
 
 **Mutation Testing**:
 
-- ✅ API validation packages: ≥98% efficacy
-- ✅ Business logic packages: ≥98% efficacy
-- ✅ Repository layer: ≥98% efficacy
-- ✅ Infrastructure: ≥98% efficacy
+- ✅ Phase 4: ≥85% efficacy per package (achievable baseline)
+- ✅ Phase 5+: ≥98% efficacy per package (aspirational target)
+- ✅ API validation packages: Phase-appropriate target
+- ✅ Business logic packages: Phase-appropriate target
+- ✅ Repository layer: Phase-appropriate target
+- ✅ Infrastructure: Phase-appropriate target
 
 **CI/CD Health**:
 
@@ -712,11 +718,11 @@ HashService
 
 **MVP Quality Achieved**:
 
-- ✅ Fast tests (≤30s per package, <100s total !integration suite)
+- ✅ Fast tests (<15s per unit test package, <180s total unit test suite)
 - ✅ High coverage (95%+ production, 100% infra/util, NO EXCEPTIONS)
 - ✅ Stable CI/CD (0 failures, time targets met)
-- ✅ High mutation kill (98%+ per package)
-- ✅ Clean hash architecture (4 registries × 3 versions, FIPS 140-3)
+- ✅ High mutation kill (85% Phase 4, 98% Phase 5+ per package)
+- ✅ Clean hash architecture (4 registries × 3 versions, FIPS 140-3, date-based policy revisions)
 
 **Service Template Ready**:
 
