@@ -1,8 +1,8 @@
 # cryptoutil Implementation Plan
 
-**Version**: 2.0.0  
-**Date**: December 19, 2025  
-**Status**: Active  
+**Version**: 2.0.0
+**Date**: December 19, 2025
+**Status**: Active
 
 ---
 
@@ -98,8 +98,8 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 ## Phase 0: Foundation (Complete)
 
-**Status**: ✅ Complete  
-**Duration**: Completed  
+**Status**: ✅ Complete
+**Duration**: Completed
 **Goal**: Establish project infrastructure, build system, and core utilities
 
 ### Completed Deliverables
@@ -147,9 +147,9 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 ## Phase 1: Core Infrastructure
 
-**Status**: ⚠️ In Progress  
-**Priority**: HIGHEST  
-**Dependencies**: Phase 0 complete  
+**Status**: ⚠️ In Progress
+**Priority**: HIGHEST
+**Dependencies**: Phase 0 complete
 **Goal**: Complete shared infrastructure used by all 4 products
 
 ### 1.1 Shared Crypto Library (internal/shared/crypto)
@@ -282,15 +282,15 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 ## Phase 2: Service Completion
 
-**Status**: ⚠️ In Progress  
-**Priority**: HIGH  
-**Dependencies**: Phase 1 complete  
+**Status**: ⚠️ In Progress
+**Priority**: HIGH
+**Dependencies**: Phase 1 complete
 **Goal**: Complete all 4 products with dual-server architecture and unified command interface
 
 ### 2.1 JOSE Admin Server Implementation
 
-**Status**: ❌ Blocked  
-**Estimate**: 2-3 days  
+**Status**: ❌ Blocked
+**Estimate**: 2-3 days
 **Dependencies**: Phase 1.5 complete
 
 **Tasks**:
@@ -315,8 +315,8 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 ### 2.2 Identity Admin Server Migration
 
-**Status**: ⚠️ Partial  
-**Estimate**: 3-4 days  
+**Status**: ⚠️ Partial
+**Estimate**: 3-4 days
 **Dependencies**: Phase 1.5 complete
 
 **Tasks**:
@@ -342,8 +342,8 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 ### 2.3 CA Admin Server Migration
 
-**Status**: ❌ Blocked  
-**Estimate**: 2-3 days  
+**Status**: ❌ Blocked
+**Estimate**: 2-3 days
 **Dependencies**: Phase 1.5 complete
 
 **Tasks**:
@@ -367,8 +367,8 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 ### 2.4 Service Federation Configuration
 
-**Status**: ❌ Not Started  
-**Estimate**: 3-4 days  
+**Status**: ❌ Not Started
+**Estimate**: 3-4 days
 **Dependencies**: Phase 2.1, 2.2, 2.3 complete
 
 **Tasks**:
@@ -412,8 +412,8 @@ federation:
 
 ### 2.5 Unified Command Interface
 
-**Status**: ⚠️ Partial (KMS complete)  
-**Estimate**: 2-3 days  
+**Status**: ⚠️ Partial (KMS complete)
+**Estimate**: 2-3 days
 **Dependencies**: Phase 2.1, 2.2, 2.3 complete
 
 **Tasks**:
@@ -456,9 +456,9 @@ cryptoutil version
 
 ## Phase 3: Advanced Features
 
-**Status**: ⚠️ In Progress  
-**Priority**: MEDIUM  
-**Dependencies**: Phase 2 complete  
+**Status**: ⚠️ In Progress
+**Priority**: MEDIUM
+**Dependencies**: Phase 2 complete
 **Goal**: Implement advanced authentication, authorization, and cryptographic features
 
 ### 3.1 Advanced MFA Factors (Identity)
@@ -534,9 +534,9 @@ cryptoutil version
 
 ### 3.4 Hash Service Architecture (Phase 5 - Deferred)
 
-**Status**: ❌ Not Started  
-**Estimate**: 1-2 weeks  
-**Dependencies**: Phase 4 complete  
+**Status**: ❌ Not Started
+**Estimate**: 1-2 weeks
+**Dependencies**: Phase 4 complete
 **Priority**: DEFERRED to Phase 5
 
 **Deliverables**:
@@ -593,14 +593,14 @@ hash_service:
 
 ## Phase 4: Quality Gates
 
-**Status**: ⚠️ In Progress  
-**Priority**: HIGHEST  
-**Dependencies**: Phase 3 complete  
+**Status**: ⚠️ In Progress
+**Priority**: HIGHEST
+**Dependencies**: Phase 3 complete
 **Goal**: Achieve 95%+ coverage, 85%+ mutation efficacy, pass all quality gates
 
 ### 4.1 Coverage Analysis and Gap Remediation
 
-**Status**: ⚠️ In Progress  
+**Status**: ⚠️ In Progress
 **Estimate**: 2-3 weeks
 
 **Tasks**:
@@ -637,7 +637,7 @@ hash_service:
 
 ### 4.2 Mutation Testing Baseline
 
-**Status**: ⚠️ In Progress  
+**Status**: ⚠️ In Progress
 **Estimate**: 1-2 weeks
 
 **Tasks**:
@@ -683,7 +683,7 @@ exclude:
 
 ### 4.3 Test Timing Optimization
 
-**Status**: ⚠️ In Progress  
+**Status**: ⚠️ In Progress
 **Estimate**: 1-2 weeks
 
 **Tasks**:
@@ -715,7 +715,7 @@ exclude:
 
 ### 4.4 Linting and Formatting Compliance
 
-**Status**: ✅ Complete  
+**Status**: ✅ Complete
 **Estimate**: Ongoing maintenance
 
 **Tasks**:
@@ -739,15 +739,15 @@ exclude:
 
 ## Phase 5: Production Hardening
 
-**Status**: ❌ Not Started  
-**Priority**: HIGH  
-**Dependencies**: Phase 4 complete  
+**Status**: ❌ Not Started
+**Priority**: HIGH
+**Dependencies**: Phase 4 complete
 **Goal**: Achieve 98%+ mutation efficacy, implement hash service, strengthen security
 
 ### 5.1 Mutation Testing Excellence
 
-**Status**: ❌ Not Started  
-**Estimate**: 2-3 weeks  
+**Status**: ❌ Not Started
+**Estimate**: 2-3 weeks
 **Dependencies**: Phase 4.2 complete (≥85% baseline established)
 
 **Tasks**:
@@ -773,8 +773,8 @@ exclude:
 
 ### 5.2 Hash Service Implementation
 
-**Status**: ❌ Not Started  
-**Estimate**: 1-2 weeks  
+**Status**: ❌ Not Started
+**Estimate**: 1-2 weeks
 **Dependencies**: Phase 4 complete
 
 **See detailed spec in Phase 3.4 - Deferred to Phase 5 for proper sequencing**
@@ -789,8 +789,8 @@ exclude:
 
 ### 5.3 Security Hardening
 
-**Status**: ❌ Not Started  
-**Estimate**: 1-2 weeks  
+**Status**: ❌ Not Started
+**Estimate**: 1-2 weeks
 **Dependencies**: Phase 4 complete
 
 **Tasks**:
@@ -817,8 +817,8 @@ exclude:
 
 ### 5.4 Load Testing and Performance Tuning
 
-**Status**: ⚠️ Partial (Service API only)  
-**Estimate**: 1-2 weeks  
+**Status**: ⚠️ Partial (Service API only)
+**Estimate**: 1-2 weeks
 **Dependencies**: Phase 4 complete
 
 **Tasks**:
@@ -854,8 +854,8 @@ exclude:
 
 ### 5.5 E2E Workflow Testing
 
-**Status**: ⚠️ Partial (infrastructure only)  
-**Estimate**: 1-2 weeks  
+**Status**: ⚠️ Partial (infrastructure only)
+**Estimate**: 1-2 weeks
 **Dependencies**: Phase 4 complete
 
 **Current Coverage**:
@@ -895,14 +895,14 @@ federation_test.go    # Multi-product integration
 
 ## Phase 6: Service Template
 
-**Status**: ❌ Not Started  
-**Priority**: MEDIUM  
-**Dependencies**: Phase 5 complete  
+**Status**: ❌ Not Started
+**Priority**: MEDIUM
+**Dependencies**: Phase 5 complete
 **Goal**: Extract reusable service template from proven implementations
 
 ### 6.1 Template Design and Extraction
 
-**Status**: ❌ Not Started  
+**Status**: ❌ Not Started
 **Estimate**: 2-3 weeks
 
 **Tasks**:
@@ -957,8 +957,8 @@ internal/template/
 
 ### 6.2 Product Refactoring to Use Template
 
-**Status**: ❌ Not Started  
-**Estimate**: 2-3 weeks  
+**Status**: ❌ Not Started
+**Estimate**: 2-3 weeks
 **Dependencies**: Phase 6.1 complete
 
 **Tasks**:
@@ -984,14 +984,14 @@ internal/template/
 
 ## Phase 7: Learn-PS Demonstration
 
-**Status**: ❌ Not Started  
-**Priority**: LOW  
-**Dependencies**: Phase 6 complete  
+**Status**: ❌ Not Started
+**Priority**: LOW
+**Dependencies**: Phase 6 complete
 **Goal**: Create working Pet Store service using template to validate reusability
 
 ### 7.1 Learn-PS Service Implementation
 
-**Status**: ❌ Not Started  
+**Status**: ❌ Not Started
 **Estimate**: 1-2 weeks
 
 **Tasks**:
@@ -1034,8 +1034,8 @@ internal/template/
 
 ### 7.2 Learn-PS Documentation and Tutorials
 
-**Status**: ❌ Not Started  
-**Estimate**: 1 week  
+**Status**: ❌ Not Started
+**Estimate**: 1 week
 **Dependencies**: Phase 7.1 complete
 
 **Tasks**:
