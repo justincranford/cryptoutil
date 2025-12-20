@@ -675,6 +675,6 @@ E. Other (please specify):
 
 ---
 
-**Quiz Version**: 1.0.0  
-**Created**: 2025-12-19  
+**Quiz Version**: 1.0.0
+**Created**: 2025-12-19
 **Covers**: constitution.md v3.0.0, spec-incomplete.md v1.2.0, copilot-instructions.md, 01-01.architecture.instructions.md
