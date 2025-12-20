@@ -294,15 +294,26 @@ Every service MUST implement two HTTPS endpoints:
    - Used by Docker health checks, Kubernetes probes, monitoring systems, graceful shutdown
    - TLS required (never plain HTTP)
 
-### Service Examples
+### Service Examples (All 9 Services)
 
-| Service | Public HTTPS | Private HTTPS | Public APIs |
-|---------|--------------|---------------|-------------|
-| KMS | :8080 | 127.0.0.1:9090 | Key operations, UI |
-| Identity AuthZ | :8180 | 127.0.0.1:9091 | OAuth endpoints, UI |
-| Identity IdP | :8181 | 127.0.0.1:9091 | OIDC endpoints, UI |
-| JOSE | :8280 | 127.0.0.1:9093 | JWK/JWT ops, UI |
-| CA | :8380 | 127.0.0.1:9092 | Cert operations, UI |
+#### Product Services (8 Core Services)
+
+| Service | Full Name | Public HTTPS | Private HTTPS | Public APIs |
+|---------|-----------|--------------|---------------|-------------|
+| **sm-kms** | Secrets Manager - KMS | :8080 | 127.0.0.1:9090 | Key operations (encrypt/decrypt, sign/verify), UI |
+| **pki-ca** | PKI - Certificate Authority | :8380 | 127.0.0.1:9092 | X.509 cert operations, EST, OCSP, CRL, UI |
+| **jose-ja** | JOSE - JWK Authority | :8280 | 127.0.0.1:9093 | JWK/JWKS/JWE/JWS/JWT operations, UI |
+| **identity-authz** | Identity - Authorization Server | :8180 | 127.0.0.1:9091 | OAuth 2.1 endpoints, OIDC Discovery, UI |
+| **identity-idp** | Identity - Identity Provider | :8181 | 127.0.0.1:9091 | OIDC authentication, login/consent, MFA, UI |
+| **identity-rs** | Identity - Resource Server | :8182 | 127.0.0.1:9091 | Protected API with token validation (reference implementation) |
+| **identity-rp** | Identity - Relying Party | :8183 | 127.0.0.1:9091 | Backend-for-Frontend pattern (reference implementation) |
+| **identity-spa** | Identity - Single Page App | :8184 | 127.0.0.1:9091 | Static hosting for SPA clients (reference implementation) |
+
+#### Demonstration Service (1 Service)
+
+| Service | Full Name | Public HTTPS | Private HTTPS | Public APIs |
+|---------|-----------|--------------|---------------|-------------|
+| **learn-ps** | Learn - Pet Store | :8580 | 127.0.0.1:9095 | Educational service (Phase 7, validates service template) |
 
 **Admin Port Assignment Strategy**: Each product family gets unique admin port to prevent conflicts in unified deployments.
 
