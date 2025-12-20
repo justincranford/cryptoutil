@@ -2,7 +2,7 @@
 
 **Iteration**: specs/002-cryptoutil
 **Started**: December 17, 2025
-**Last Updated**: December 17, 2025
+**Last Updated**: December 20, 2025 (E2E Validation Session Complete)
 **Status**: 🎯 FRESH START - MVP Quality Focus
 
 ---
@@ -96,6 +96,7 @@ Status: Pending
 #### Active Workflow Failures (3 total) - 8/11 PASSING ✅
 
 **RESOLVED** (Round 1-2):
+
 - ✅ **ci-quality**: Dependency updates complete (go-yaml v1.19.1, sqlite v1.41.0)
 - ✅ **ci-coverage, ci-benchmark, ci-fuzz, ci-sast, ci-race, ci-gitleaks**: All passing (Round 2+)
 
@@ -104,7 +105,7 @@ Status: Pending
 1. **ci-e2e**: identity-authz-e2e container unhealthy
    - **Root Cause (Round 7)**: Identity services **MISSING public HTTP servers**
    - **Architecture Bug**: Only admin server implemented, no OAuth 2.1/OIDC endpoints
-   - **Files Missing**: 
+   - **Files Missing**:
      - `internal/identity/authz/server/server.go` (public OAuth endpoints)
      - `internal/identity/idp/server/server.go` (public OIDC endpoints)
      - `internal/identity/rs/server/server.go` (public resource endpoints)
@@ -117,12 +118,13 @@ Status: Pending
    - **Impact**: No public endpoints to load test
    - **Requires**: Same fix as E2E
 
-3. **ci-dast**: identity-authz-e2e container unhealthy  
+3. **ci-dast**: identity-authz-e2e container unhealthy
    - **Root Cause**: Same as E2E - missing public HTTP servers
    - **Impact**: No public endpoints to scan
    - **Requires**: Same fix as E2E
 
 **Investigation History** (7 rounds, 2025-12-20):
+
 - Round 1-2: Quality Testing dependency updates ✅
 - Round 3-4: TLS validation error → Fixed by disabling TLS for E2E ✅
 - Round 4-5: DSN validation error → Fixed by embedding DSN in config ✅
@@ -130,6 +132,7 @@ Status: Pending
 - Round 6-7: **ZERO symptom change** → Discovered **missing public HTTP servers** ❌
 
 **Configuration Fixes Applied** (Correct but Insufficient):
+
 - TLS disabled for E2E (ac651452) ✅
 - DSN embedded in config (eb16af21) ✅
 - Secret credentials updated (2f1b3d28) ✅
@@ -196,6 +199,7 @@ Status: Pending
 #### What We Discovered
 
 **7-Round Investigation Pattern** (docs/WORKFLOW-FIXES-ROUND*.md):
+
 1. **Round 1-2**: Configuration errors (dependencies) → Fixed ✅
 2. **Round 3-4**: TLS validation error → Configuration fix ✅
 3. **Round 4-5**: DSN validation error → Configuration fix ✅
@@ -203,18 +207,21 @@ Status: Pending
 5. **Round 6-7**: **Zero symptom change** → **Architecture investigation** → **Missing implementation discovered** ❌
 
 **Critical Discovery Method**:
+
 - **Compare with working service**: CA has `publicServer + adminServer`, Identity only has `adminServer`
 - **File existence check**: `ls internal/ca/server/server.go` ✅ exists, `ls internal/identity/authz/server/server.go` ❌ missing
 - **Code archaeology**: NewApplication() in CA creates both servers, Identity creates only admin
 - **Pattern recognition**: Config fixes change symptoms, no symptom change = not config issue
 
 **Why Symptoms Didn't Change**:
+
 - **Round 4**: TLS fix → Error changed from "TLS cert required" to "DSN required" (symptom changed ✅)
 - **Round 5**: DSN fix → Error changed from "DSN required" to authentication failure (symptom changed ✅)
 - **Round 6**: Secret fix → Error **IDENTICAL** to Round 5 (196 bytes, same crash point, same timing) (symptom unchanged ❌)
 - **Conclusion**: Configuration correct, but code missing
 
 **Investigation Efficiency**:
+
 - **Total time**: 7 rounds, ~6 hours (2025-12-20 00:00-06:00 UTC)
 - **Rounds 1-6**: Configuration hunting (80% of time)
 - **Round 7**: Architecture comparison (20% of time, found root cause)
@@ -250,12 +257,19 @@ Status: Pending
 
 **Recent Work**:
 
+- ✅ **E2E Validation Session** (2025-12-20 ~06:30 UTC):
+  - Examined 5 recent E2E fix attempts (workflows 20388807383-20388120287)
+  - All failed identically: 196-byte logs, 5-6 minute crashes, immediate exit after "Starting AuthZ server..."
+  - Configuration validated correct: TLS ✅, DSN ✅, secrets ✅, OTEL healthcheck ✅
+  - Database healthy: identity-postgres-e2e-1 passes health checks ✅
+  - **Pattern match**: Identical to Round 7 investigation (configuration correct, code missing)
+  - **Conclusion**: No configuration fix can start non-existent public HTTP server code
+  - **Updated**: DETAILED.md Section 2 timeline with validation evidence
+  - **Updated**: constitution.md with comprehensive 9-service architecture table
 - ✅ **Workflow Investigation** (Rounds 1-7, 2025-12-20 00:00-06:00 UTC):
   - Fixed Quality Testing workflow (dependency updates)
   - Fixed TLS, DSN, and secret credentials for E2E
   - **Discovered identity services incomplete implementation** (missing public HTTP servers)
   - 8/11 workflows passing (73% success rate)
 - ✅ **Documentation**: WORKFLOW-FIXES-ROUND*.md (commits b4b903a3-1cbf3d34)
-- ⏳ **Blocker**: Identity E2E/Load/DAST require public server implementation
-
-
+- ⏳ **Blocker**: Identity E2E/Load/DAST require public server implementation (3-5 days development)
