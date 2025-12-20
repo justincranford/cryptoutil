@@ -35,6 +35,40 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 |---------------|-----------|-------------|------------|-----------|
 | **learn-ps** | Learn - Pet Store | 8580 | 9095 | Educational service demonstrating service template usage (Phase 7) |
 
+### Service Status and Implementation Priority
+
+**Implementation Status by Service**:
+
+| Service | Status | Priority | Deliverables | Notes |
+|---------|--------|----------|--------------|-------|
+| sm-kms | ✅ COMPLETE | Phase 0 | Dual servers, admin port 9090, public port 8080, DB migrations, telemetry | Reference implementation for dual-server pattern |
+| pki-ca | ⚠️ PARTIAL | Phase 2.3 | Missing admin server, public port 8380 only | Needs dual-server migration |
+| jose-ja | ⚠️ PARTIAL | Phase 2.1 | Missing admin server, public port 8280 only | Needs dual-server migration |
+| identity-authz | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8180) | **CRITICAL BLOCKER**: Missing public HTTP server implementation |
+| identity-idp | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8181) | **CRITICAL BLOCKER**: Missing public HTTP server implementation |
+| identity-rs | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8182) | **CRITICAL BLOCKER**: Missing public HTTP server implementation |
+| identity-rp | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
+| identity-spa | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
+| learn-ps | ❌ NOT STARTED | Phase 7 | No servers | Validates service template reusability |
+
+**Architecture Blocker** (2025-12-20 validation):
+
+Three Identity services (authz, idp, rs) cannot start because they lack public HTTP server implementation:
+
+- `internal/identity/authz/server/server.go` ❌ MISSING (public OAuth 2.1 endpoints)
+- `internal/identity/idp/server/server.go` ❌ MISSING (public OIDC endpoints)
+- `internal/identity/rs/server/server.go` ❌ MISSING (public resource API)
+
+**Evidence**: 5 E2E workflow failures (workflows 20388807383-20388120287), all fail at "Starting AuthZ server..." with 196-byte logs, immediate container exit. Configuration validated correct (TLS, DSN, secrets, OTEL), but binary has no public server code to start.
+
+**Impact**: Blocks 3/11 workflows (E2E, Load, DAST) until public servers implemented (estimated 3-5 days development).
+
+**Related Documentation**:
+
+- `docs/WORKFLOW-FIXES-ROUND7.md` (commit 1cbf3d34, 228 lines): Round 7 investigation
+- `specs/002-cryptoutil/implement/EXECUTIVE.md` (commit 57236a52): Workflow status, limitations
+- `specs/002-cryptoutil/implement/DETAILED.md` (2025-12-20): E2E validation session
+
 ### Standalone Mode Requirements
 
 Each product MUST:
