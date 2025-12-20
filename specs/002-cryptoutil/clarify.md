@@ -91,30 +91,80 @@
 
 **Q**: How should services discover and configure federated services (Identity, JOSE)?
 
-**A** (Source: SPECKIT-CONFLICTS-ANALYSIS A4, 2025-12-19):
+**A** (Source: SPECKIT-CONFLICTS-ANALYSIS A4, constitution.md VA, spec.md, 2025-12-20):
 
-- **Round 1 Decision**: A - Static YAML configuration (federation.identity_authz_url, federation.jose_ja_url)
+**Service Discovery Mechanisms**:
+
+1. **Configuration File** (Preferred): Static YAML with explicit URLs
+2. **Docker Compose**: Service names resolve via Docker network DNS
+3. **Kubernetes**: Service discovery via cluster DNS
+4. **Environment Variables**: Override config file settings
+
+**Configuration Pattern**:
+
+```yaml
+# Example: KMS federation configuration
+federation:
+  identity_url: "https://identity-authz:8180"
+  identity_enabled: true
+  identity_timeout: 10s
+
+  jose_url: "https://jose-server:8280"
+  jose_enabled: true
+  jose_timeout: 10s
+
+  ca_url: "https://ca-server:8380"
+  ca_enabled: false  # Optional
+  ca_timeout: 10s
+```
 
 **Q**: Where should federation configuration be stored?
 
-**A** (Source: CLARIFY-QUIZME2 A4.1, 2025-12-19):
+**A** (Source: CLARIFY-QUIZME2 A4.1, constitution.md VA, 2025-12-20):
 
-- **Round 2 Decision**: A - Each service has own federation section (kms.yml has federation.identity_url, federation.jose_url)
+- **Decision**: Each service has own federation section in service-specific YAML
+- Example: `kms.yml` has `federation.identity_url`, `federation.jose_url`
+- Rationale: Decouples services, allows independent configuration
 
 **Q**: How should services handle federated service unavailability?
 
-**A** (Source: CLARIFY-QUIZME2 A4.2, 2025-12-19):
+**A** (Source: CLARIFY-QUIZME2 A4.2, constitution.md VA, spec.md, 2025-12-20):
 
-- **Round 2 Decision**: B - Graceful degradation (start but disable federated features)
-- **Rationale**: "I assume this is best practice for microservices, if not them requires elaboration and reconsideration"
+- **Decision**: Graceful degradation with circuit breaker patterns
+
+**Fallback Modes**:
+
+- **Identity Unavailable**: `local_validation` (cached keys), `reject_all` (strict), `allow_all` (dev only)
+- **JOSE Unavailable**: `internal_crypto` (use service's own JWE/JWS)
+- **CA Unavailable**: `self_signed` (dev), `cached_certs` (production)
+
+**Circuit Breaker**:
+
+- Open circuit after N consecutive failures (default: 5)
+- Reset circuit after timeout (default: 60s)
+- Test N requests before closing (default: 3)
+
+**Retry Strategies**:
+
+- Exponential backoff: 1s, 2s, 4s, 8s, 16s (max 5 retries)
+- Timeout escalation: 1.5x per retry (10s → 15s → 22.5s)
+- Health check before retry: Poll `/admin/v1/healthz`
 
 **Combined Implementation**:
 
-- Each service YAML has `federation:` section
-- Service starts even if federated services unreachable
+- Each service YAML has `federation:` section with service URLs and timeouts
+- Each service YAML has `federation_fallback:` section with fallback modes
+- Services start even if federated services unreachable
 - Federated features disabled until dependencies available
 - Log warnings for unavailable federated services
 - Periodic retry with exponential backoff
+- Circuit breaker prevents cascade failures
+- Health monitoring tracks federated service availability
+
+**Testing Requirements** (Source: constitution.md VA, spec.md):
+
+- Integration tests: Mock federated services, test graceful degradation, test circuit breaker
+- E2E tests: Deploy full stack, test cross-service communication, verify health checks
 
 ---
 
