@@ -8,12 +8,12 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilBarrierService "cryptoutil/internal/kms/server/barrier"
 	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
 	cryptoutilDemo "cryptoutil/internal/kms/server/demo"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 )
 
 type ServerApplicationCore struct {

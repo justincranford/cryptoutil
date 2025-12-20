@@ -4,14 +4,36 @@
 
 ### Four Working Products Goal
 
-cryptoutil MUST deliver four Products that are independently or jointly deployable
+cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 demo service) that are independently or jointly deployable
 
-| Product | Description | Standalone | United |
-|---------|-------------|------------|--------|
-| P1: JOSE | JSON Object Signing and Encryption (JWK, JWKS, JWE, JWS, JWT, OAuth2.1, OIDC1.0) | ✅ | ✅ |
-| P2: Identity | Identity (OAuth 2.1 AuthZ, OIDC 1.0 IdP AuthN, Multi-factor authentication, FIDO2/WebAuthn) | ✅ | ✅ |
-| P3: KMS | Key Management Service (ElasticKeys contain MaterialKey(s), ElasticKeys support encrypt/decrypt/sign/verify, rotation, policies) | ✅ | ✅ |
-| P4: CA | Certificate Authority (X.509 v3, PKIX RFC 5280, CSR, OCSP, CRL, PKI, EST, SCEP, CMPv2, CMC, ACME) | ✅ | ✅ |
+| Product | Services | Description | Standalone | United |
+|---------|----------|-------------|------------|--------|
+| P1: JOSE | 1 service | JSON Object Signing and Encryption (JWK, JWKS, JWE, JWS, JWT) | ✅ | ✅ |
+| P2: Identity | 5 services | OAuth 2.1 AuthZ, OIDC 1.0 IdP, Resource Server, Relying Party, Single Page Application | ✅ | ✅ |
+| P3: KMS | 1 service | Key Management Service (ElasticKeys, MaterialKeys, encrypt/decrypt, sign/verify, rotation, policies) | ✅ | ✅ |
+| P4: CA | 1 service | Certificate Authority (X.509 v3, PKIX RFC 5280, CSR, OCSP, CRL, PKI, EST, SCEP, CMPv2, CMC, ACME) | ✅ | ✅ |
+| Demo: Learn-PS | 1 service | Pet Store demonstration service (validates service template reusability) | ✅ | ✅ |
+
+### Complete Service Architecture (9 Services)
+
+#### Product Services (8 Core Services)
+
+| Service Alias | Full Name | Public Port | Admin Port | Description |
+|---------------|-----------|-------------|------------|-----------|
+| **sm-kms** | Secrets Manager - Key Management Service | 8080 | 9090 | Hierarchical key management with ElasticKeys and MaterialKeys |
+| **pki-ca** | Public Key Infrastructure - Certificate Authority | 8380 | 9092 | X.509 certificate lifecycle, EST, OCSP, CRL, time-stamping |
+| **jose-ja** | JOSE - JWK Authority | 8280 | 9093 | JWK, JWKS, JWE, JWS, JWT operations |
+| **identity-authz** | Identity - Authorization Server | 8180 | 9091 | OAuth 2.1 authorization server, OIDC Discovery |
+| **identity-idp** | Identity - Identity Provider | 8181 | 9091 | OIDC authentication, login/consent UI, MFA enrollment |
+| **identity-rs** | Identity - Resource Server | 8182 | 9091 | Protected API with token validation (reference implementation) |
+| **identity-rp** | Identity - Relying Party | 8183 | 9091 | Backend-for-Frontend pattern (reference implementation) |
+| **identity-spa** | Identity - Single Page Application | 8184 | 9091 | Static hosting for SPA clients (reference implementation) |
+
+#### Demonstration Service (1 Service)
+
+| Service Alias | Full Name | Public Port | Admin Port | Description |
+|---------------|-----------|-------------|------------|-----------|
+| **learn-ps** | Learn - Pet Store | 8580 | 9095 | Educational service demonstrating service template usage (Phase 7) |
 
 ### Standalone Mode Requirements
 

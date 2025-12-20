@@ -42,12 +42,36 @@ This specification follows the Spec Kit methodology (see `docs/SPECKIT-QUICK-GUI
 
 ### Overview
 
-**cryptoutil** consists of 4 independent products that can be deployed standalone or as an integrated suite:
+**cryptoutil** consists of 4 independent products (9 total services: 8 product services + 1 demo service) that can be deployed standalone or as an integrated suite:
 
-1. **P1: JOSE Authority** - Cryptographic primitives (JWK, JWS, JWE, JWT)
-2. **P2: Identity Services** - 3 microservices (AuthZ, IdP, Resource Server)
-3. **P3: KMS** - Hierarchical key management (library + optional server)
-4. **P4: CA** - Certificate authority with EST/OCSP/CRL support
+1. **P1: JOSE Authority** - 1 service: Cryptographic primitives (JWK, JWKS, JWE, JWS, JWT)
+2. **P2: Identity Services** - 5 services: OAuth 2.1 AuthZ, OIDC 1.0 IdP, Resource Server, Relying Party, Single Page Application
+3. **P3: KMS** - 1 service: Hierarchical key management (library + optional server)
+4. **P4: CA** - 1 service: Certificate authority with EST/OCSP/CRL support
+5. **Demo: Learn-PS** - 1 service: Pet Store demonstration (validates service template)
+
+### Complete Service Architecture (9 Services)
+
+#### Product Services (8 Core Services)
+
+| Service Alias | Full Name | Public Port | Admin Port | Description |
+|---------------|-----------|-------------|------------|-------------|
+| **sm-kms** | Secrets Manager - Key Management Service | 8080 | 9090 | Hierarchical key management with ElasticKeys and MaterialKeys |
+| **pki-ca** | Public Key Infrastructure - Certificate Authority | 8380 | 9092 | X.509 certificate lifecycle, EST, OCSP, CRL, time-stamping |
+| **jose-ja** | JOSE - JWK Authority | 8280 | 9093 | JWK, JWKS, JWE, JWS, JWT operations |
+| **identity-authz** | Identity - Authorization Server | 8180 | 9091 | OAuth 2.1 authorization server, OIDC Discovery |
+| **identity-idp** | Identity - Identity Provider | 8181 | 9091 | OIDC authentication, login/consent UI, MFA enrollment |
+| **identity-rs** | Identity - Resource Server | 8182 | 9091 | Protected API with token validation (reference implementation) |
+| **identity-rp** | Identity - Relying Party | 8183 | 9091 | Backend-for-Frontend pattern (reference implementation) |
+| **identity-spa** | Identity - Single Page Application | 8184 | 9091 | Static hosting for SPA clients (reference implementation) |
+
+#### Demonstration Service (1 Service)
+
+| Service Alias | Full Name | Public Port | Admin Port | Description |
+|---------------|-----------|-------------|------------|-------------|
+| **learn-ps** | Learn - Pet Store | 8580 | 9095 | Educational service demonstrating service template usage (Phase 7) |
+
+**Source**: Architecture instructions (01-01.architecture.instructions.md), constitution.md Section I
 
 ### Dual-Server Architecture Pattern
 
@@ -402,13 +426,15 @@ Core cryptographic primitives for web security standards. Serves as the embedded
 
 ### P2: Identity (OAuth 2.1 Authorization Server + OIDC IdP)
 
-**Architecture**: 3 independent microservices that can be deployed standalone or together:
+**Architecture**: 5 independent microservices that can be deployed standalone or together:
 
-1. **AuthZ Server**: OAuth 2.1 Authorization Server (port 8080, admin 9090)
-2. **IdP Server**: OIDC Identity Provider (port 8081, admin 9090)
-3. **Resource Server**: Protected API with token validation (port 8082, admin 9090)
+1. **AuthZ Server**: OAuth 2.1 Authorization Server (identity-authz, port 8180, admin 9091)
+2. **IdP Server**: OIDC Identity Provider (identity-idp, port 8181, admin 9091)
+3. **Resource Server**: Protected API with token validation (identity-rs, port 8182, admin 9091) - reference implementation
+4. **Relying Party**: Backend-for-Frontend pattern (identity-rp, port 8183, admin 9091) - reference implementation
+5. **Single Page Application**: Static hosting for SPA clients (identity-spa, port 8184, admin 9091) - reference implementation
 
-Each service has its own Docker image (`Dockerfile.authz`, `Dockerfile.idp`, `Dockerfile.rs`) and can scale independently.
+Each service has its own Docker image and can scale independently.
 
 **Priority Focus**: Login/Consent UI (minimal HTML, server-rendered, no JavaScript).
 
