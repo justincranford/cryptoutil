@@ -10,10 +10,6 @@
 - **MUST: ALWAYS bias towards accuracy, completeness, and correctness** - NEVER bias towards completing fast
 - **MUST: Take the time required to do things correctly** - Time and token budgets are not constraints for Speckit work
 - **MUST: Prioritize doing things right over doing things quickly** - Quality over speed is mandatory
-- **MUST: Do regular commits and pushes to enable workflow monitoring and validation**
-- **MUST: ALWAYS bias towards accuracy, completeness, and correctness** - NEVER bias towards completing fast
-- **MUST: Take the time required to do things correctly** - Time and token budgets are not constraints for Speckit work
-- **MUST: Prioritize doing things right over doing things quickly** - Quality over speed is mandatory
 
 ## Terminology - RFC 2119 Keywords
 
