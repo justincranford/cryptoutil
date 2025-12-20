@@ -14,10 +14,11 @@ import (
 
 // Application represents the unified AuthZ server application (public + admin).
 type Application struct {
-	config      *cryptoutilIdentityConfig.Config
-	adminServer *AdminServer
-	mu          sync.RWMutex
-	shutdown    bool
+	config       *cryptoutilIdentityConfig.Config
+	publicServer *PublicServer
+	adminServer  *AdminServer
+	mu           sync.RWMutex
+	shutdown     bool
 }
 
 // NewApplication creates a new AuthZ application with public and admin servers.
@@ -36,6 +37,14 @@ func NewApplication(
 		shutdown: false,
 	}
 
+	// Create public server.
+	publicServer, err := NewPublicServer(ctx, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create public server: %w", err)
+	}
+
+	app.publicServer = publicServer
+
 	// Create admin server.
 	adminServer, err := NewAdminServer(ctx, config)
 	if err != nil {
@@ -53,8 +62,14 @@ func (a *Application) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Start admin server in background.
-	errChan := make(chan error, 1)
+	// Start servers in background.
+	errChan := make(chan error, 2)
+
+	go func() {
+		if err := a.publicServer.Start(ctx); err != nil {
+			errChan <- fmt.Errorf("public server failed: %w", err)
+		}
+	}()
 
 	go func() {
 		if err := a.adminServer.Start(ctx); err != nil {
@@ -62,11 +77,15 @@ func (a *Application) Start(ctx context.Context) error {
 		}
 	}()
 
-	// Wait for startup errors (admin server blocks on Listen).
+	// Wait for startup errors (both servers block on Listen).
 	select {
 	case err := <-errChan:
+		_ = a.Shutdown(context.Background())
+
 		return err
 	case <-ctx.Done():
+		_ = a.Shutdown(context.Background())
+
 		return fmt.Errorf("application startup cancelled: %w", ctx.Err())
 	}
 }
@@ -81,14 +100,36 @@ func (a *Application) Shutdown(ctx context.Context) error {
 	a.shutdown = true
 	a.mu.Unlock()
 
+	var shutdownErr error
+
+	// Shutdown public server.
+	if a.publicServer != nil {
+		if err := a.publicServer.Shutdown(); err != nil {
+			shutdownErr = fmt.Errorf("failed to shutdown public server: %w", err)
+		}
+	}
+
 	// Shutdown admin server.
 	if a.adminServer != nil {
 		if err := a.adminServer.Shutdown(ctx); err != nil {
+			if shutdownErr != nil {
+				return fmt.Errorf("multiple shutdown errors: public=%w, admin=%w", shutdownErr, err)
+			}
+
 			return fmt.Errorf("failed to shutdown admin server: %w", err)
 		}
 	}
 
-	return nil
+	return shutdownErr
+}
+
+// PublicPort returns the actual port the public server is listening on.
+func (a *Application) PublicPort() int {
+	if a.publicServer == nil {
+		return 0
+	}
+
+	return a.publicServer.ActualPort()
 }
 
 // AdminPort returns the actual port the admin server is listening on.
