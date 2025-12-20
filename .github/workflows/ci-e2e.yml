@@ -131,6 +131,13 @@ jobs:
         echo "🧪 Running end-to-end tests..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Stop CA and JOSE services to free ports for E2E tests
+        echo "🛑 Stopping CA and JOSE services to free ports..."
+        docker compose -f ./deployments/ca/compose.yml down -v || true
+        docker compose -f ./deployments/jose/compose.yml down -v || true
+        sleep 5
+
         # Set environment variable to help with debugging
         export E2E_DEBUG=1
 
