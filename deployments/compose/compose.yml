@@ -790,7 +790,7 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9090/admin/v1/livez"]
 
       start_period: 10s
 
