@@ -14,8 +14,8 @@ authz:
 
 database:
   type: postgres
-  # DSN overridden by -u flag from Docker secrets at runtime.
-  dsn: ""
+  # DSN for E2E testing - points to identity-postgres-e2e service
+  dsn: "postgres://cryptoutil:cryptoutil_test_password@identity-postgres-e2e:5432/cryptoutil_test?sslmode=disable"
   max_open_conns: 10
   max_idle_conns: 5
   conn_max_lifetime: 60m

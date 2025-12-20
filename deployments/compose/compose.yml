@@ -680,10 +680,6 @@ services:
 
       - "--config=/app/config/authz-e2e.yml"
 
-      - "-u"
-
-      - "file:///run/secrets/postgres_url.secret"
-
     working_dir: /tmp
 
     ports:
@@ -698,17 +694,13 @@ services:
 
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
 
-    secrets:
-
-      - postgres_url.secret
-
     environment:
 
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
 
     healthcheck:
 
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9090/admin/v1/livez"]
 
       start_period: 10s
 
