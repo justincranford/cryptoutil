@@ -548,7 +548,7 @@ services:
 
       - "8092:8092"  # HTTPS public
 
-      - "9092:9090"  # Admin API (host:container mapping)
+      - "9093:9090"  # Admin API (JOSE product uses 9093)
 
     volumes:
 
@@ -891,4 +891,3 @@ secrets:
   unseal_5of5.secret:
 
     file: ../kms/secrets/unseal_5of5.secret
-
