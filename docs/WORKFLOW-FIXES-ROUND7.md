@@ -7,6 +7,7 @@
 **Status**: BLOCKER (2025-12-20 05:30 UTC)
 
 **Investigation**:
+
 - Round 6 updated secret files but workflows still failing identically
 - Secret files confirmed updated (verified 3 ways: local files, git show, git log)
 - Byte counts match (within 1 byte for CRLF/LF): username 11/12, password 25/26, database 16/17, URL 106/107
@@ -43,6 +44,7 @@ internal/identity/rs/server/
 ```
 
 **Why Services Crash**:
+
 1. `NewApplication()` only creates admin server (no public server, no database connection)
 2. `app.Start()` only starts admin server (no OAuth/OIDC endpoints)
 3. Admin server starts successfully on port 9090
@@ -56,6 +58,7 @@ internal/identity/rs/server/
 **Evidence**:
 
 1. **Application.Start() Code** (`internal/identity/authz/server/application.go:51-71`):
+
    ```go
    func (a *Application) Start(ctx context.Context) error {
        // Start admin server in background
@@ -64,11 +67,11 @@ internal/identity/rs/server/
                errChan <- fmt.Errorf("admin server failed: %w", err)
            }
        }()
-       
+
        // MISSING: Public server startup
        // MISSING: Service layer initialization
        // MISSING: Database connection
-       
+
        select {
        case err := <-errChan:
            return err  // Admin server error
@@ -79,51 +82,53 @@ internal/identity/rs/server/
    ```
 
 2. **NewApplication() Code** (`internal/identity/authz/server/application.go:24-48`):
+
    ```go
    func NewApplication(ctx context.Context, config *cryptoutilIdentityConfig.Config) (*Application, error) {
        app := &Application{
            config:   config,
            shutdown: false,
        }
-       
+
        // Create admin server
        adminServer, err := NewAdminServer(ctx, config)
        if err != nil {
            return nil, fmt.Errorf("failed to create admin server: %w", err)
        }
        app.adminServer = adminServer
-       
+
        // MISSING: Public server creation
        // MISSING: Service layer creation
        // MISSING: Repository factory initialization
        // MISSING: Database connection establishment
-       
+
        return app, nil
    }
    ```
 
 3. **Compare with CA Service** (`internal/ca/server/application.go:24-56`):
+
    ```go
    func NewApplication(ctx context.Context, settings *cryptoutilConfig.Settings) (*Application, error) {
        app := &Application{
            settings: settings,
            shutdown: false,
        }
-       
+
        // Create public CA server ✅
        publicServer, err := NewServer(ctx, settings)
        if err != nil {
            return nil, fmt.Errorf("failed to create public server: %w", err)
        }
        app.publicServer = publicServer
-       
+
        // Create admin server ✅
        adminServer, err := NewAdminServer(ctx, settings)
        if err != nil {
            return nil, fmt.Errorf("failed to create admin server: %w", err)
        }
        app.adminServer = adminServer
-       
+
        return app, nil
    }
    ```
@@ -148,12 +153,12 @@ internal/identity/rs/server/
      - Routes: `/authorize`, `/token`, `/introspect`, `/revoke`, `/jwks`, `/.well-known/oauth-authorization-server`
      - Handlers from `internal/identity/authz/handlers.go`
      - Middleware: CORS, CSRF, rate limiting, IP allowlist
-   
+
    - `internal/identity/idp/server/server.go` - OIDC identity provider
      - Routes: `/authorize`, `/token`, `/userinfo`, `/jwks`, `/.well-known/openid-configuration`, `/login`, `/consent`
      - Authentication methods: Username/Password, WebAuthn, Passkeys, TOTP, HOTP, Magic Link
      - Session management, MFA flows
-   
+
    - `internal/identity/rs/server/server.go` - Resource server
      - Routes: `/api/v1/resources`, `/api/v1/protected/*`
      - Token introspection, access control
@@ -208,9 +213,11 @@ internal/identity/rs/server/
 6. **Focus on KMS/CA/JOSE** workflows which ARE working (8/11 passing)
 
 **Files Changed** (Investigation Only):
+
 - `docs/WORKFLOW-FIXES-ROUND7.md` (this file) - Documented critical discovery
 
 **Expected Outcome AFTER Implementation**:
+
 - Identity services have full architecture (public + admin servers)
 - Database connections established and validated on startup
 - OAuth 2.1/OIDC endpoints accessible
@@ -225,4 +232,3 @@ internal/identity/rs/server/
 3. **Symptom analysis**: Zero symptom change after fix = wrong problem diagnosed
 4. **Architecture validation**: Missing public server is not a config issue, it's incomplete implementation
 5. **Scope awareness**: Configuration fixes cannot solve missing code problems
-

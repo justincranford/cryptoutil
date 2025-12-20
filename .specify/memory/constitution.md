@@ -329,6 +329,140 @@ Every service MUST implement two HTTPS endpoints:
 - ✅ **ALWAYS** implement proper TLS with self-signed certs minimum
 - ✅ **ALWAYS** use `wget --no-check-certificate` for Docker health checks
 
+## VA. Service Federation and Discovery - CRITICAL
+
+**MANDATORY: Services MUST support configurable federation for cross-service communication**
+
+### Federation Architecture
+
+Services discover and communicate with other cryptoutil services via **configuration** (NEVER hardcoded URLs):
+
+```yaml
+# Example KMS federation configuration
+federation:
+  # Identity service for OAuth 2.1 authentication
+  identity_url: "https://identity-authz:8180"
+  identity_enabled: true
+  identity_timeout: 10s
+
+  # JOSE service for external JWE/JWS operations
+  jose_url: "https://jose-server:8280"
+  jose_enabled: true
+  jose_timeout: 10s
+
+  # CA service for TLS certificate operations
+  ca_url: "https://ca-server:8380"
+  ca_enabled: false  # Optional - KMS can use internal TLS certs
+  ca_timeout: 10s
+
+# Graceful degradation settings
+federation_fallback:
+  # When identity service unavailable
+  identity_fallback_mode: "local_validation"  # or "reject_all", "allow_all" (dev only)
+
+  # When JOSE service unavailable
+  jose_fallback_mode: "internal_crypto"  # Use internal JWE/JWS implementation
+
+  # When CA service unavailable
+  ca_fallback_mode: "self_signed"  # Generate self-signed TLS certs
+```
+
+### Service Discovery Mechanisms
+
+**Configuration File** (Preferred for static deployments):
+
+- Explicit URLs in YAML configuration files
+- Example: `federation.identity_url: "https://identity.example.com:8180"`
+
+**Docker Compose Service Names**:
+
+- Docker networks provide automatic DNS resolution
+- Example: `federation.identity_url: "https://identity-authz:8180"` (service name from compose.yml)
+
+**Kubernetes Service Discovery**:
+
+- Kubernetes DNS provides automatic service resolution
+- Example: `federation.identity_url: "https://identity-authz.cryptoutil-ns.svc.cluster.local:8180"`
+
+**Environment Variables** (Overrides config file):
+
+- `CRYPTOUTIL_FEDERATION_IDENTITY_URL="https://identity:8180"`
+- `CRYPTOUTIL_FEDERATION_JOSE_URL="https://jose:8280"`
+
+### Graceful Degradation Patterns
+
+**Circuit Breaker**: Automatically disable federated service after N consecutive failures
+
+- Failure threshold: Open circuit after N failures
+- Timeout: Reset circuit after timeout period
+- Half-open requests: Test N requests before closing circuit
+
+**Fallback Modes**:
+
+- **Identity Unavailable**: Local token validation (cached public keys), reject all (strict), allow all (development only)
+- **JOSE Unavailable**: Internal crypto implementation (use service's own JWE/JWS)
+- **CA Unavailable**: Self-signed TLS certificates (development), cached certificates (production)
+
+**Retry Strategies**:
+
+- **Exponential Backoff**: 1s, 2s, 4s, 8s, 16s (max 5 retries)
+- **Timeout Escalation**: Increase timeout 1.5x per retry (10s → 15s → 22.5s)
+- **Health Check Before Retry**: Poll `/admin/v1/healthz` endpoint before resuming traffic
+
+### Federation Health Monitoring
+
+**Regular Health Checks**:
+
+- Check federated service health every 30 seconds
+- Log warnings when federated services become unhealthy
+- Activate fallback mode when health checks fail
+
+**Metrics and Alerts**:
+
+- `federation_request_duration_seconds{service="identity"}` - Latency tracking
+- `federation_request_failures_total{service="identity"}` - Error rate
+- `federation_circuit_breaker_state{service="identity"}` - Circuit state (closed/open/half-open)
+
+### Cross-Service Authentication
+
+**Service-to-Service mTLS** (Preferred):
+
+```yaml
+federation:
+  identity_url: "https://identity-authz:8180"
+  identity_client_cert: "file:///run/secrets/kms_client_cert"
+  identity_client_key: "file:///run/secrets/kms_client_key"
+  identity_ca_cert: "file:///run/secrets/identity_ca_cert"
+```
+
+**OAuth 2.1 Client Credentials** (Alternative):
+
+```yaml
+federation:
+  identity_url: "https://identity-authz:8180"
+  identity_client_id: "kms-service"
+  identity_client_secret: "file:///run/secrets/kms_client_secret"
+  identity_token_endpoint: "https://identity-authz:8180/service/token"
+```
+
+### Federation Testing Requirements
+
+**Integration Tests MUST**:
+
+- Test each federated service independently (mock others)
+- Test graceful degradation when federated service unavailable
+- Test circuit breaker behavior (failure thresholds, timeouts, recovery)
+- Test retry logic (exponential backoff, max retries)
+- Verify timeout configurations prevent cascade failures
+
+**E2E Tests MUST**:
+
+- Deploy full stack (all federated services)
+- Test cross-service communication paths
+- Test federation with Docker Compose service discovery
+- Verify health checks detect service failures
+- Test failover and recovery scenarios
+
 ## VI. CI/CD Workflow Requirements
 
 ### GitHub Actions Service Dependencies
