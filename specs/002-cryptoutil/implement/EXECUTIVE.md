@@ -93,27 +93,50 @@ Status: Pending
 
 ### Known Issues
 
-#### Active Workflow Failures (5 total)
+#### Active Workflow Failures (3 total) - 8/11 PASSING ✅
 
-1. **ci-quality**: Outdated dependency (github.com/goccy/go-yaml v1.19.0 → v1.19.1)
-   - Impact: Quality gate failing on dependency check
-   - Fix: Run `go get -u github.com/goccy/go-yaml@v1.19.1` (tracked in P3.1)
+**RESOLVED** (Round 1-2):
+- ✅ **ci-quality**: Dependency updates complete (go-yaml v1.19.1, sqlite v1.41.0)
+- ✅ **ci-coverage, ci-benchmark, ci-fuzz, ci-sast, ci-race, ci-gitleaks**: All passing (Round 2+)
 
-2. **ci-mutation**: Timeout after 45 minutes
-   - Impact: Mutation testing incomplete
-   - Fix: Parallelize by package, reduce timeout to 15min/job (tracked in P3.2)
+**BLOCKED BY INCOMPLETE IMPLEMENTATION**:
 
-3. **ci-fuzz**: opentelemetry-collector-contrib healthcheck exit 1
-   - Impact: Fuzz testing environment not starting
-   - Fix: Update compose.integration.yml healthcheck (tracked in P3.3)
+1. **ci-e2e**: identity-authz-e2e container unhealthy
+   - **Root Cause (Round 7)**: Identity services **MISSING public HTTP servers**
+   - **Architecture Bug**: Only admin server implemented, no OAuth 2.1/OIDC endpoints
+   - **Files Missing**: 
+     - `internal/identity/authz/server/server.go` (public OAuth endpoints)
+     - `internal/identity/idp/server/server.go` (public OIDC endpoints)
+     - `internal/identity/rs/server/server.go` (public resource endpoints)
+   - **Impact**: Cannot test OAuth flows, E2E tests impossible
+   - **Requires**: 3-5 days development to implement public servers
+   - **Evidence**: docs/WORKFLOW-FIXES-ROUND7.md (commit 1cbf3d34)
 
-4. **ci-dast**: /admin/v1/readyz endpoint not ready within timeout
-   - Impact: DAST scanning cannot proceed
-   - Fix: Optimize service startup, increase readyz timeout (tracked in P3.4)
+2. **ci-load**: identity-authz-e2e container unhealthy
+   - **Root Cause**: Same as E2E - missing public HTTP servers
+   - **Impact**: No public endpoints to load test
+   - **Requires**: Same fix as E2E
 
-5. **ci-load**: opentelemetry-collector-contrib healthcheck exit 1
-   - Impact: Load testing environment not starting
-   - Fix: Same as P3.3, apply to compose.yml (tracked in P3.5)
+3. **ci-dast**: identity-authz-e2e container unhealthy  
+   - **Root Cause**: Same as E2E - missing public HTTP servers
+   - **Impact**: No public endpoints to scan
+   - **Requires**: Same fix as E2E
+
+**Investigation History** (7 rounds, 2025-12-20):
+- Round 1-2: Quality Testing dependency updates ✅
+- Round 3-4: TLS validation error → Fixed by disabling TLS for E2E ✅
+- Round 4-5: DSN validation error → Fixed by embedding DSN in config ✅
+- Round 5-6: Database authentication error → Fixed secret credentials ✅
+- Round 6-7: **ZERO symptom change** → Discovered **missing public HTTP servers** ❌
+
+**Configuration Fixes Applied** (Correct but Insufficient):
+- TLS disabled for E2E (ac651452) ✅
+- DSN embedded in config (eb16af21) ✅
+- Secret credentials updated (2f1b3d28) ✅
+- Database healthy and ready ✅
+- **BUT**: Services never connect because public servers don't exist ❌
+
+**Workaround**: Focus on KMS/CA/JOSE workflows (8/11 passing, 73% success rate)
 
 #### Coverage Gaps (28.2+ points gap in key packages)
 
@@ -129,6 +152,14 @@ Status: Pending
 - **Strategy**: Run baseline per package, identify lived mutants, write targeted tests (P4)
 
 ### Limitations
+
+- **Identity Services Incomplete**: Public HTTP servers not implemented (authz, idp, rs)
+  - **Impact**: E2E/Load/DAST workflows BLOCKED (3/11 failing)
+  - **Missing**: OAuth 2.1/OIDC endpoints, database connectivity, service layer
+  - **Architecture**: Only admin servers exist, no public servers (compare with CA which has both)
+  - **Requires**: 3-5 days development to implement server.go files for each service
+  - **Evidence**: docs/WORKFLOW-FIXES-ROUND7.md (commit 1cbf3d34)
+  - **Workaround**: Focus on KMS/CA/JOSE (8/11 workflows passing)
 
 - **Hash Implementation**: Current architecture lacks version management and 4-type support (addressing in P5)
 - **Service Template**: No reusable pattern, 8 services have duplicated code (addressing in P6)
@@ -148,15 +179,55 @@ Status: Pending
 4. **5 Workflows Failing**: Quality gates not enforced, accumulated technical debt
 5. **No Service Template**: Duplicated infrastructure code across 8 services
 6. **Hash Architecture Unclear**: 4 types scattered, no version management
+7. **Incomplete Implementation**: Identity public servers never implemented, E2E tests impossible
 
 #### What We'll Do Differently
 
 1. **Strict Task Structure**: Per-package granularity, no hiding progress gaps
 2. **No Coverage Exceptions**: 95% production, 100% infra/util, BLOCKING until met
-3. **CI/CD First**: Fix all 5 workflow failures before proceeding (P3)
+3. **CI/CD First**: Fix all 5 workflow failures before proceeding (P3) → **UPDATE**: 2 completed (Quality), 3 blocked by incomplete identity implementation
 4. **98% Mutation Target**: Per-package enforcement, no rationalization
 5. **Extract Template**: Reusable pattern from KMS, validate with Learn-PS
 6. **Clean Hash Architecture**: 4 types, 3 versions, parameterized registry
+7. **Architecture Validation**: Check for complete implementation (public + admin servers) before claiming "working"
+
+### Lessons from 002-cryptoutil Workflow Investigation (2025-12-20)
+
+#### What We Discovered
+
+**7-Round Investigation Pattern** (docs/WORKFLOW-FIXES-ROUND*.md):
+1. **Round 1-2**: Configuration errors (dependencies) → Fixed ✅
+2. **Round 3-4**: TLS validation error → Configuration fix ✅
+3. **Round 4-5**: DSN validation error → Configuration fix ✅
+4. **Round 5-6**: Database authentication → Configuration fix ✅
+5. **Round 6-7**: **Zero symptom change** → **Architecture investigation** → **Missing implementation discovered** ❌
+
+**Critical Discovery Method**:
+- **Compare with working service**: CA has `publicServer + adminServer`, Identity only has `adminServer`
+- **File existence check**: `ls internal/ca/server/server.go` ✅ exists, `ls internal/identity/authz/server/server.go` ❌ missing
+- **Code archaeology**: NewApplication() in CA creates both servers, Identity creates only admin
+- **Pattern recognition**: Config fixes change symptoms, no symptom change = not config issue
+
+**Why Symptoms Didn't Change**:
+- **Round 4**: TLS fix → Error changed from "TLS cert required" to "DSN required" (symptom changed ✅)
+- **Round 5**: DSN fix → Error changed from "DSN required" to authentication failure (symptom changed ✅)
+- **Round 6**: Secret fix → Error **IDENTICAL** to Round 5 (196 bytes, same crash point, same timing) (symptom unchanged ❌)
+- **Conclusion**: Configuration correct, but code missing
+
+**Investigation Efficiency**:
+- **Total time**: 7 rounds, ~6 hours (2025-12-20 00:00-06:00 UTC)
+- **Rounds 1-6**: Configuration hunting (80% of time)
+- **Round 7**: Architecture comparison (20% of time, found root cause)
+- **Lesson**: Check architecture FIRST (file existence, code comparison), THEN configuration
+
+#### Suggestions for Future Workflow Debugging
+
+1. **Architecture Validation First**: Before configuration debugging, verify all required files exist
+2. **Compare with Working Services**: Use CA/KMS/JOSE as reference architecture
+3. **Symptom Change Detection**: No symptom change after fix = wrong problem diagnosed
+4. **File Existence Checks**: Use `file_search` to verify `server.go`, `service.go`, `repository.go` exist
+5. **Code Comparison**: `read_file` on both working (CA) and failing (Identity) services to spot differences
+6. **Incremental Verification**: Each round MUST change error symptoms or investigation misdirected
 
 ### Suggestions for Next Iteration
 
@@ -164,11 +235,27 @@ Status: Pending
 - **Template-First Development**: All new services MUST use template pattern
 - **Continuous Workflow Health**: Never allow failures to accumulate
 - **Per-Package Quality Gates**: Coverage, mutations, test speed enforced per package
+- **Architecture Validation**: Check file existence and code patterns before claiming "complete"
+- **Investigation Protocol**: Architecture → File Existence → Code Comparison → Configuration (in that order)
 
 ---
 
 ## Last Updated
 
-**Date**: 2025-12-17
+**Date**: 2025-12-20 (Round 7 Investigation Complete)
+
 **By**: GitHub Copilot
-**Next Major Milestone**: Complete P1 (test performance optimization) and P3 (CI/CD fixes)
+
+**Next Major Milestone**: Implement identity public HTTP servers (3-5 days development)
+
+**Recent Work**:
+
+- ✅ **Workflow Investigation** (Rounds 1-7, 2025-12-20 00:00-06:00 UTC):
+  - Fixed Quality Testing workflow (dependency updates)
+  - Fixed TLS, DSN, and secret credentials for E2E
+  - **Discovered identity services incomplete implementation** (missing public HTTP servers)
+  - 8/11 workflows passing (73% success rate)
+- ✅ **Documentation**: WORKFLOW-FIXES-ROUND*.md (commits b4b903a3-1cbf3d34)
+- ⏳ **Blocker**: Identity E2E/Load/DAST require public server implementation
+
+
