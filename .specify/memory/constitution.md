@@ -46,42 +46,54 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 | jose-ja | ⚠️ PARTIAL | Phase 2.1 | Missing admin server, public port 8280 only | Needs dual-server migration |
 | identity-authz | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8180 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/authz/server/public_server.go, 165 lines) |
 | identity-idp | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8181 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/idp/server/public_server.go, 165 lines) |
-| identity-rs | ⚠️ PARTIAL | Phase 2.2 | Admin server exists (9091), missing public server (8182) | **PENDING VERIFICATION**: Public server file existence unknown, needs validation |
+| identity-rs | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8182) | **CONFIRMED**: Only admin.go exists, NO public_server.go file (2025-12-21 validation) |
 | identity-rp | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
 | identity-spa | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
 | learn-ps | ❌ NOT STARTED | Phase 7 | No servers | Validates service template reusability |
 
 **Architecture Status Update** (2025-12-21 validation):
 
-Identity services authz and idp NOW have public HTTP server implementations:
+Identity services authz and idp NOW have public HTTP server implementations, but RS still incomplete:
 
-- `internal/identity/authz/server/public_server.go` ✅ EXISTS (165 lines, NewPublicServer(), OAuth 2.1 endpoints)
-- `internal/identity/idp/server/public_server.go` ✅ EXISTS (165 lines, NewPublicServer(), OIDC endpoints)
-- `internal/identity/rs/server/public_server.go` ⚠️ STATUS UNKNOWN (needs verification)
+- `internal/identity/authz/server/public_server.go` ✅ COMPLETE (165 lines, NewPublicServer(), OAuth 2.1 endpoints)
+- `internal/identity/idp/server/public_server.go` ✅ COMPLETE (165 lines, NewPublicServer(), OIDC endpoints)
+- `internal/identity/rs/server/public_server.go` ❌ MISSING (only admin.go + application.go exist)
 
 **Evidence (2025-12-21)**: Direct file verification via `Get-ChildItem internal\identity\ -Recurse -Filter "*.go"` shows:
 
-- authz/server/public_server.go: 165 lines, complete implementation
-- idp/server/public_server.go: 165 lines, complete implementation
-- RS public_server.go not found in directory listing (may be missing or named differently)
+- authz/server/public_server.go: ✅ 165 lines, complete implementation with NewPublicServer()
+- idp/server/public_server.go: ✅ 165 lines, complete implementation with NewPublicServer()
+- rs/server/: ❌ Only admin.go (102 lines) and application.go (102 lines) exist, NO public_server.go
+- rs/server/application.go: Only creates adminServer, missing publicServer initialization
 
-**Previous Evidence (2025-12-20)**: 5 E2E workflow failures (workflows 20388807383-20388120287), all failed at "Starting AuthZ server..." with 196-byte logs. This was attributed to missing public servers, but file verification shows files exist.
+**Previous Evidence (2025-12-20)**: 5 E2E workflow failures (workflows 20388807383-20388120287), all failed at "Starting AuthZ server..." with 196-byte logs. This was attributed to missing public servers for all three services.
 
-**Discrepancy Resolution Needed**:
+**Discrepancy Resolution** (2025-12-21):
 
-- Constitution.md claimed missing public servers (2025-12-20)
-- WORKFLOW-FIXES-CONSOLIDATED.md Round 7 concluded missing public servers (2025-12-20)
-- File verification shows public_server.go EXISTS for authz and idp (2025-12-21)
-- **Questions**: Were files created after workflow debugging? Was actual failure cause different? Is RS the only incomplete service?
+- WORKFLOW-FIXES-CONSOLIDATED.md Round 7 claimed ALL THREE services (authz, idp, rs) missing public_server.go (2025-12-20)
+- File verification shows authz and idp HAVE public_server.go (likely created after debugging session)
+- Only RS remains incomplete (missing public_server.go)
+
+**Questions Answered**:
+
+- Were authz/idp files created after workflow debugging? **YES** - Files exist now but were missing during Round 7 (2025-12-20)
+- Was actual failure cause different? **NO** - Missing public servers was correct diagnosis for authz/idp
+- Is RS the only incomplete service? **YES** - RS is last service needing public_server.go implementation
 
 **Action Required**: Monitor current workflows (20393846848-20393846852, started 2025-12-21 7:23:58 AM) to determine:
 
-- Do authz and idp services start successfully now?
-- Do E2E/Load/DAST workflows pass?
-- What is actual failure cause if workflows still fail?
-- Is RS missing public_server.go or just not found via search?
+- Do authz and idp services start successfully now? **EXPECTED: YES** (public servers exist)
+- Do E2E/Load/DAST workflows pass for authz/idp flows? **EXPECTED: YES** (complete dual-server architecture)
+- Do E2E/Load/DAST workflows fail for RS flows? **EXPECTED: YES** (missing public server)
+- What errors appear for RS service startup? **EXPECTED**: Similar 196-byte log pattern, "Starting RS server..." but no public server to start
 
-**Impact**: If authz/idp public servers are complete, only RS remains incomplete (1 service vs 3). E2E workflows may pass for authz/idp flows, fail only for RS flows.
+**Impact Reduction** (2025-12-21):
+
+- **Previous Impact** (2025-12-20): 3/3 identity services blocked E2E workflows (authz, idp, rs)
+- **Current Impact** (2025-12-21): 1/3 identity services blocks E2E workflows (rs only)
+- **Workflows Expected to Pass**: E2E tests for OAuth 2.1 (authz) and OIDC (idp) flows
+- **Workflows Expected to Fail**: E2E tests requiring RS (protected resource access, token validation)
+- **Estimated Fix Time**: 1-2 days (implement rs/server/public_server.go, copy pattern from authz/idp)
 
 ### Standalone Mode Requirements
 
