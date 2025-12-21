@@ -413,7 +413,7 @@ CRYPTOUTIL_FEDERATION_JOSE_URL="https://jose:8280"
 
 - **Exponential Backoff**: 1s, 2s, 4s, 8s, 16s (max 5 retries)
 - **Timeout Escalation**: Increase timeout 1.5x per retry (10s → 15s → 22.5s)
-- **Health Check Before Retry**: Poll `/admin/v1/healthz` endpoint before resuming traffic
+- **Health Check Before Retry**: Poll `/admin/v1/livez` endpoint (fast liveness check) before resuming traffic
 
 #### Federation Health Monitoring
 
@@ -491,11 +491,17 @@ federation:
 
 **Admin API Context**:
 
-- `/admin/v1/livez` - Liveness probe (process alive)
-- `/admin/v1/readyz` - Readiness probe (dependencies healthy)
-- `/admin/v1/healthz` - Combined health check
+- `/admin/v1/livez` - Liveness probe (lightweight check: service running, process alive)
+- `/admin/v1/readyz` - Readiness probe (heavyweight check: dependencies healthy, ready for traffic)
 - `/admin/v1/metrics` - Prometheus metrics endpoint
 - `/admin/v1/shutdown` - Graceful shutdown trigger
+
+**Health Check Semantics**:
+
+- **livez**: Fast, lightweight check (~1ms) - verifies process is alive, TLS server responding
+- **readyz**: Slow, comprehensive check (~100ms+) - verifies database connectivity, downstream services, resource availability
+- **Use livez for**: Docker healthchecks (fast, frequent), liveness probes (restart on failure)
+- **Use readyz for**: Kubernetes readiness probes (remove from load balancer), deployment validation
 
 **Why Dual Servers?**:
 
@@ -1195,18 +1201,14 @@ Used for internal monitoring and health checks.
 
 | Product | Endpoint | Purpose |
 |---------|----------|---------|
-| JOSE | `/admin/v1/livez` | Liveness probe |
-| JOSE | `/admin/v1/readyz` | Readiness probe |
-| JOSE | `/admin/v1/healthz` | Combined health check |
-| Identity | `/admin/v1/livez` | Liveness probe |
-| Identity | `/admin/v1/readyz` | Readiness probe |
-| Identity | `/admin/v1/healthz` | Combined health check |
-| KMS | `/admin/v1/livez` | Liveness probe |
-| KMS | `/admin/v1/readyz` | Readiness probe |
-| KMS | `/admin/v1/healthz` | Combined health check |
-| CA | `/admin/v1/livez` | Liveness probe (planned) |
-| CA | `/admin/v1/readyz` | Readiness probe (planned) |
-| CA | `/admin/v1/healthz` | Combined health check (planned) |
+| JOSE | `/admin/v1/livez` | Liveness probe (lightweight) |
+| JOSE | `/admin/v1/readyz` | Readiness probe (heavyweight) |
+| Identity | `/admin/v1/livez` | Liveness probe (lightweight) |
+| Identity | `/admin/v1/readyz` | Readiness probe (heavyweight) |
+| KMS | `/admin/v1/livez` | Liveness probe (lightweight) |
+| KMS | `/admin/v1/readyz` | Readiness probe (heavyweight) |
+| CA | `/admin/v1/livez` | Liveness probe (lightweight, planned) |
+| CA | `/admin/v1/readyz` | Readiness probe (heavyweight, planned) |
 
 #### Public Browser-to-Service API
 
@@ -1322,7 +1324,7 @@ HashService
 - **Middleware Pipeline**: CORS/CSRF/CSP (browser-only), rate limiting, IP allowlist, authentication
 - **Database Abstraction**: PostgreSQL + SQLite dual support with GORM
 - **OpenTelemetry Integration**: OTLP traces, metrics, logs
-- **Health Check Endpoints**: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`
+- **Health Check Endpoints**: `/admin/v1/livez` (liveness), `/admin/v1/readyz` (readiness)
 - **Graceful Shutdown**: `/admin/v1/shutdown` endpoint
 
 **Service-Specific Customization Points**:
@@ -1644,7 +1646,7 @@ multi_tenancy:
 ### High Priority
 
 1. **Identity Admin API Migration**: Implement dual-server pattern (Public HTTPS + Private HTTPS) matching KMS architecture
-   - Add `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz` endpoints
+   - Add `/admin/v1/livez`, `/admin/v1/readyz` endpoints
    - Update Docker Compose health checks
    - Update all test files and workflows
 

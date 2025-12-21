@@ -402,10 +402,16 @@ HTTPS Issuing CA for TLS Client Certs MUST BE shared per per-service instance ty
 
 **Endpoints**:
 
-- `/admin/v1/livez` - Liveness probe (service running)
-- `/admin/v1/readyz` - Readiness probe (service ready to accept traffic)
-- `/admin/v1/healthz` - Health check (service healthy)
+- `/admin/v1/livez` - Liveness probe (lightweight check: service running, process alive)
+- `/admin/v1/readyz` - Readiness probe (heavyweight check: dependencies healthy, ready for traffic)
 - `/admin/v1/shutdown` - Graceful shutdown trigger
+
+**Health Check Semantics**:
+
+- **livez**: Fast, lightweight check (~1ms) - verifies process is alive, TLS server responding
+- **readyz**: Slow, comprehensive check (~100ms+) - verifies database connectivity, downstream services, resource availability
+- **Use livez for**: Docker healthchecks (fast, frequent), liveness probes (restart on failure)
+- **Use readyz for**: Kubernetes readiness probes (remove from load balancer), deployment validation
 
 **Consumers**: Docker health checks, Kubernetes probes, monitoring systems, orchestration tools
 
