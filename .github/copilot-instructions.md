@@ -223,6 +223,43 @@ adminAddr := "127.0.0.1:9090" // Admin NEVER configurable
 
 **Enforcement**: When writing documentation about public HTTPS endpoints, ALWAYS use `<configurable_address>:<configurable_port>` pattern. When implementing, ALWAYS read bind address from configuration.
 
+## CRITICAL: Service Template Requirements - MANDATORY
+
+**Service Template Implementation Details**:
+
+- **Admin Endpoints** (127.0.0.1:9090):
+  - `/livez`, `/readyz`, `/shutdown` endpoints MANDATORY
+  - Admin prefix MUST be configurable (default: `/admin/v1`)
+  - Implementation: gofiber middleware (reference: sm-kms `internal/kms/server/application/application_listener.go`)
+- **Health Check Requirements**:
+  - OpenTelemetry Collector Contrib MUST use separate health check job (does NOT expose external health endpoint)
+  - Reference: KMS Docker Compose `deployments/compose/compose.yml` (working pattern)
+- **Docker Secrets Validation**:
+  - Docker Compose MUST include dedicated job to validate Docker Secrets presence and mounting
+  - Fast-fail check before starting all other jobs and services
+
+**Service Template Migration Priority** (HIGH PRIORITY):
+
+1. **learn-ps FIRST** (Phase 7): CRITICAL - implement and validate ALL template requirements before production services
+2. **One service at a time** (Phase 8+, excludes sm-kms): Sequentially refactor jose-ja, pki-ca, identity services
+3. **sm-kms LAST** (Phase 10): Only after ALL other services running excellently on template
+
+## CRITICAL: Hash Registry Salt Encoding - MANDATORY
+
+**LowEntropyRandomHashRegistry / HighEntropyRandomHashRegistry** (Random):
+
+- MUST encode version AND all parameters (iterations, salt, algorithm) WITH hash
+- Format: `{version}:{algorithm}:{params}:base64(salt):base64(hash)`
+- Rationale: Random salt must be stored to verify later
+
+**LowEntropyDeterministicHashRegistry / HighEntropyDeterministicHashRegistry** (Deterministic):
+
+- MUST encode version ONLY (NEVER encode salt or parameters)
+- Format: `{version}:base64(hash)`
+- MUST use different fixed configurable salt per version (v1/v2/v3)
+- MUST derive ACTUAL SALT from: configured fixed salt (pepper) + input cleartext
+- Rationale: Revealing salt in DB would be crypto bug; similar to AES-GCM-SIV IV derivation
+
 ---
 
 ## Instruction Files Reference
