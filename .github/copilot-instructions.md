@@ -46,59 +46,32 @@
 - **NO RUSHED DECISIONS**: Take time to analyze, plan, and implement properly
 - **NO SKIPPING GOALS**: All goals and tasks must be completed - no shortcuts
 
-**When facing complex work**:
-
-1. Decompose into smaller tasks (add to DETAILED.md Section 1)
-2. Update DETAILED.md Section 2 timeline with decomposition rationale
-3. Execute each subtask completely and correctly
-4. Mark subtasks complete with evidence in timeline
-5. Continue to next subtask without stopping
-
 ### Prohibited Stop Behaviors (ALL FORBIDDEN)
 
-- ❌ **NO status summaries at end of response** - summaries = stopping
-- ❌ **NO "session complete" messages** - completion statements = stopping
-- ❌ **NO "remaining tasks" lists at end** - task lists at end = stopping
-- ❌ **NO "next steps" sections at end** - next steps at end = stopping
-- ❌ **NO "strategic pivot" or "strategic decision" statements** - these are stopping excuses
-- ❌ **NO "given time constraints" or "token budget" justifications** - these are stopping excuses
-- ❌ **NO saying "NO STOPPING OCCURRED"** - if you say this, YOU STOPPED
-- ❌ **NO pauses between tasks** - pause = stop
-- ❌ **NO asking for permission** - asking = stopping
-- ❌ **NO waiting for confirmation** - waiting = stopping
-- ❌ **NO leaving uncommitted changes** - uncommitted changes = incomplete work
-- ❌ **NO ending response with analysis or documentation** - if not executing tools, YOU STOPPED
-- ❌ **NO "Perfect!" or "Excellent!" followed by stopping** - celebration = stopping excuse
-- ❌ **NO "Let me..." followed by explanation instead of tool** - talking about work = not doing work
-- ❌ **NO commit messages followed by summary** - commit then immediately continue next task
-- ❌ **NO saying work is "complete" unless ALL tasks done** - premature completion = stopping
-- ❌ **NO token budget awareness in responses** - mentioning tokens = preparing to stop
-- ❌ **NO suggesting user review work** - suggesting review = stopping to hand off
+- ❌ Status summaries, "session complete" messages, task lists at end
+- ❌ "Next steps" sections, strategic pivots, time/token justifications
+- ❌ Pauses between tasks, asking permission, waiting for confirmation
+- ❌ Leaving uncommitted changes, ending with analysis/documentation
+- ❌ Celebrations followed by stopping, premature completion claims
+- ❌ Token budget awareness, suggesting user review
 
 ### Required Continuous Work Pattern
 
-1. **Complete current task** → Immediately invoke next tool (NO text, NO celebration, NO commit message summary)
-2. **Task done?** → Start next task from todo list (no summary, no pause, no acknowledgment)
-3. **Todo list empty?** → Read DETAILED.md, find next incomplete task, start it (no asking, just do it)
-4. **All tasks done?** → Find improvements (coverage gaps, test speed, linting, gremlins)
-5. **Literally nothing left?** → Check for TODOs in code, fix them
-6. **After commit?** → IMMEDIATELY start next task (no commit summary, no status update)
-7. **After fixing blocker?** → IMMEDIATELY start next task (no celebration, no analysis)
+1. Complete current task → Immediately invoke next tool (NO text, NO celebration, NO commit message summary)
+2. Task done? → Start next task from todo list (no summary, no pause, no acknowledgment)
+3. Todo list empty? → Read DETAILED.md, find next incomplete task, start it (no asking, just do it)
+4. All tasks done? → Find improvements (coverage gaps, test speed, linting, gremlins)
+5. Literally nothing left? → Check for TODOs in code, fix them
+6. After commit? → IMMEDIATELY start next task (no commit summary, no status update)
+7. After fixing blocker? → IMMEDIATELY start next task (no celebration, no analysis)
 
 **The ONLY valid stopping condition: User types "STOP" or "PAUSE"**
-
-**Pattern for EVERY response ending**:
-
-- ✅ CORRECT: `</invoke>
 
 ### Execution Rules - ABSOLUTE ENFORCEMENT
 
 - Execute tool → Execute next tool → Repeat (ZERO text between tools, not even progress)
-- NO skipping tasks
-- NO deferring tasks
-- NO status updates mid-session
-- NO stopping after "one more task"
-- NO ending response without active tool execution
+- NO skipping tasks, NO deferring tasks, NO status updates mid-session
+- NO stopping after "one more task", NO ending response without active tool execution
 - **IF MAKING PROGRESS**: Keep going - progress is not a stop condition
 - **IF YOU COMPLETE A TASK**: Immediately start next task (no summary, no commit message echo)
 - **IF STUCK OR BLOCKED**: Pick next unblocked task and execute - NEVER stop to ask
