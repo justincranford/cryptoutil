@@ -16,7 +16,7 @@ Do the assigned port ranges for all 9 services create any conflicts or overlaps?
 - D) Learn-PS range (8888-8889) conflicts with other services
 - E) Write-in: [specific conflict description]
 
-**Correct Answer**: A, all port ranges for public HTPS ports are unique and properly spaces; because private HTTPS ports are never exposed from containers, and private HTTPS ports in unit/integration tests are port 0 (dynamic)
+**Correct Answer**: A, all port ranges for public HTTPS ports are unique and properly spaces; because private HTTPS ports are never exposed from containers, and private HTTPS ports in unit/integration tests are port 0 (dynamic)
 
 ### Question 2: Admin Port Standardization
 
