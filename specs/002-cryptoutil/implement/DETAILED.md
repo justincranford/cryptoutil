@@ -1420,3 +1420,33 @@ Missing public HTTP server implementation in:
 **Purpose**: Improve documentation maintainability and developer understanding of dual-endpoint architecture pattern used across all 9 services.
 
 ---
+
+### 2025-12-20: Sync Architecture Documentation Across All Sources
+
+**Work Completed**:
+
+- User made additional refinements to `.github/instructions/01-01.architecture.instructions.md`
+- Key changes identified and propagated to `.specify/memory/constitution.md` and `specs/002-cryptoutil/spec.md`:
+  - Updated deployment environments to clarify port mapping (same port inside/outside containers)
+  - Revised TLS certificate configuration (Docker Secrets for production AND development)
+  - Refined private endpoint configuration (production vs test port settings more explicit)
+  - Clarified public endpoint bind address (127.0.0.1 default, configurable to 0.0.0.0)
+  - Simplified request path prefixes section (removed OAuth flow details from architecture section)
+  - Fixed typo: "There are two options to pro:" → "There are two options:"
+
+**Synchronization Quality**:
+
+- All three documentation sources now aligned (instructions, constitution, spec)
+- Consistent terminology and structure across documents
+- Improved clarity on production vs test configurations
+- Better separation of concerns (architecture vs authentication details)
+
+**Related Commits**:
+
+- [28e9586c] docs(architecture): refactor Microservices Architecture section for clarity
+- [8a246823] docs(implement): add timeline entry for architecture documentation improvements
+- [33c9ef71] docs(constitution,spec): sync microservices architecture with instruction updates
+
+**Purpose**: Maintain documentation consistency and ensure all specification documents reflect latest architectural decisions.
+
+---
