@@ -30,9 +30,9 @@
 
 ## LLM Agent Continuous Work Directive - ABSOLUTE ENFORCEMENT
 
-**CRITICAL: NEVER STOP WORKING UNTIL USER EXPLICITLY SAYS "STOP"**
+**CRITICAL: NEVER STOP WORKING UNTIL USER EXPLICITLY CLICKS "STOP" button in Copilot Chat**
 
-**CRITICAL: NEVER FEEL TIME OR TOKEN PRESSURE WHEN WORKING ON SPECKIT**
+**CRITICAL: NEVER FEEL TIME PRESSURE OR TOKEN PRESSURE WHEN WORKING ON SPECKIT**
 
 **CRITICAL: ALWAYS COMMIT CHANGES IMMEDIATELY WHEN WORK IS COMPLETE**
 
@@ -103,12 +103,9 @@
 - **IF YOU COMPLETE A TASK**: Immediately start next task (no summary, no commit message echo)
 - **IF STUCK OR BLOCKED**: Pick next unblocked task and execute - NEVER stop to ask
 - **IF ONE TASK BLOCKED**: Continue with all other remaining tasks - blockers don't stop work
-- **IF TODO LIST EMPTY**: Read DETAILED.md and continue with next incomplete task
-- **IF DETAILED.md HAS INCOMPLETE TASKS**: Continue executing those tasks - NEVER stop while work remains
-- **IF YOU TYPE TEXT WITHOUT INVOKING A TOOL**: You are about to stop - invoke a tool instead
-- **LAST RESPONSE MUST BE A TOOL INVOCATION**: Never end with text, always end with tool call
+- **IF tasks.md HAS INCOMPLETE TASKS**: Continue executing those tasks - NEVER stop while work remains
 - **IF COMMITTING CODE**: Commit then IMMEDIATELY read_file next task location (no summary)
-- **IF ANALYZING RESULTS**: Immediately apply fixes based on analysis (no explanation)
+- **IF ANALYZING RESULTS**: Document analysis, apply fixes based on analysis, continue to next task
 - **IF VERIFYING COMPLETION**: Immediately start next incomplete task (no celebration)
 - **EVERY TOOL RESULT**: Triggers IMMEDIATE next tool invocation (no pause to explain)
 
@@ -117,24 +114,23 @@
 **CRITICAL: Blockers on one task NEVER justify stopping all work**
 
 - **When blocked on Task A**: Immediately switch to Task B, C, D... (continue all other work)
-- **Document blocker**: Add brief note to DETAILED.md Section 2 timeline about what's blocked
 - **Keep working**: Return to blocked task only when blocker is resolved
 - **NO stopping to ask**: If user input needed, document requirement and continue other work
-- **NO waiting**: Never wait for external dependencies - work on everything else meanwhile
+- **NO waiting**: Never do idle waiting for external dependencies - work on everything else meanwhile
 
 ### When All Current Tasks Are Complete or Blocked
 
 **CRITICAL: "No immediate work" does NOT mean stop - find more work**
 
-1. **Check DETAILED.md for incomplete phases**: Read entire Phase list, find ANY uncomplete task
-2. **Look for quality improvements**: Coverage gaps, test speed, linting issues, TODOs in code
-3. **Scan for technical debt**: Grep for TODO/FIXME/HACK comments, address them
-4. **Review recent commits**: Check for incomplete work, missing tests, documentation gaps
-5. **Verify CI/CD health**: Check workflow files, fix any disabled/failing checks
-6. **Improve documentation**: README updates, missing runbooks, unclear instructions
-7. **Code quality sweep**: Run golangci-lint, fix warnings, improve test coverage
+1. **Check latest plan.md for incomplete phases**: Read entire plan.md, find ANY incomplete phases
+2. **Check latest tasks.md for incomplete tasks**: Read entire tasks.md, find ANY incomplete tasks
+3. **Look for quality improvements**: Coverage gaps, test speed, linting issues, TODOs in code
+4. **Scan for technical debt**: Grep for TODO/FIXME/HACK comments, address them
+5. **Review recent commits**: Check for incomplete work, missing tests, documentation gaps
+6. **Verify CI/CD health**: Check workflow files, fix any disabled/failing checks
+7. **Code quality sweep**: Run golangci-lint, fix warnings, improve test coverage & quality, improve gremlins coverage & quality
 8. **Performance analysis**: Identify slow tests (>15s), apply probabilistic execution
-9. **Mutation testing**: Run gremlins on packages below 80% mutation score
+9. **Mutation testing**: Run gremlins on packages below 98% mutation score
 10. **ONLY if literally nothing exists**: Ask user for next work direction
 
 **Pattern when phase complete**:

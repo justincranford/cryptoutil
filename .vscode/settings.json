@@ -1,7 +1,12 @@
 {
   "$schema": "vscode://schemas/settings/user",
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
-  "github.copilot.enable": { "*": true }, // Enable Copilot for all languages by default (workspace-level). Caution: confirm policy.
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": true,
+    "scminput": false
+  }, // Enable Copilot for all languages by default (workspace-level). Caution: confirm policy.
   "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
   "github.copilot.chat.generateTests.codeLens": true, // Enable test generation code lens - Default: false, Recommended: true (experimental)
   "github.copilot.chat.editor.temporalContext.enabled": true, // Enable temporal context in editor - Default: false, Recommended: true (experimental)

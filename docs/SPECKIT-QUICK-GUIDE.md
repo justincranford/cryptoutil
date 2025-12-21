@@ -18,13 +18,20 @@
 
 ## How It's Going
 
-While working through speckit, I spend the vast majority of my time in step 7, /speckit.implement.
+While working through speckit, I see LLM Agents spending the vast majority of time in step 7, /speckit.implement.
 
-During /speckit.implement, I have to frequently make adjustments because LLM Agents diverge from my desired outcomes:
+I have to make frequent adjustments during step 7, because LLM Agents diverge from my desired outcomes:
 
 - small adjustments: frequent
 - medium adjustments: occasionally
 - large adjustments: sometimes but rare
+
+I also track progress in two add-on documents:
+
+- implement/DETAILED.md: section 1) task checklist from tasks.md, and section 2) append-only timeline
+- implement/EXECUTIVE.md: up-to-date summary, as well as issues, lessons learned, workarounds, mitigations, risks, and clarifications.
+
+**The Problem:** Speckit is forward biased towards the /speckit.implement step. This is unlike human SDLC which has checkpoints for feedback loops.  I want to apply feedback based on progress in EXECUTIVE.md and DETAILED.md to earlier steps, and tell the LLM Agent to start at the next step. For example, I ask it to update constitution and spec, and restart at clarify. Important context is rarely preserved or applied correctly, so by the time the LLM Agent gets to implementation step 7 again, it quickly goes off in unwanted directions again.
 
 ## Assumptions
 
@@ -53,30 +60,12 @@ Retrospectives and post mortems are very useful steps for capturing:
 - what to keep doing
 - what to stop doing
 
-Retrospectives capture that important after implement increments (e.g. Agile/SCRUM sprint). Post Mortems capture additional important content at milestone increments (e.g. product release, SDLC program increment).
+Retrospectives capture that important feedback after implement increments (e.g. Agile/SCRUM sprint). Post Mortems capture additional important content at milestone increments (e.g. product release, SDLC program increment).
 
 Both sources of feedback allow continuous improvement of earlier, higher-level steps in SDLC process.
 Improvements and hard lessens learned are applied, with the goal to avoid or mitigate problems in subsequent SDLC increments.
 
 ## Speckit Methodology Challenges
-
-I'm working with the Speckit methodology for AI-assisted software development (available at <https://github.com/github/spec-kit>). Speckit involves sequential steps as shown in the table below:
-
-| Step | Output | Notes |
-|------|--------|-------|
-| 1. /speckit.constitution | .specify\memory\constitution.md | |
-| 2. /speckit.specify | specs\002-cryptoutil\spec.md | |
-| 3. /speckit.clarify | specs\002-cryptoutil\clarify.md and specs\002-cryptoutil\CLARIFY-QUIZME.md | (optional: after specify, before plan) |
-| 4. /speckit.plan | specs\002-cryptoutil\plan.md | |
-| 5. /speckit.tasks | specs\002-cryptoutil\tasks.md | |
-| 6. /speckit.analyze | specs\002-cryptoutil\analyze.md | (optional: after tasks, before implement) |
-| 7. /speckit.implement | (e.g., implement/DETAILED.md and implement/EXECUTIVE.md) | |
-
-During implementation (step 7), I frequently adjust for LLM agent divergences (e.g., small tweaks often, medium occasionally, large rarely). I track progress in DETAILED.md (Section 1: task checklist from tasks.md; Section 2: append-only timeline of completions) and EXECUTIVE.md (summaries of progress, issues, lessons learned, workarounds, mitigations, risks, and clarifications).
-
-**The Problem:** I want to implement feedback loops by "bubbling" insights from EXECUTIVE.md and DETAILED.md back to earlier steps (e.g., updating constitution.md, spec.md, clarify.md, or plan.md). My goal is to copy the current Speckit directory, truncate it after step 2 or 4, and restart from that point while preserving critical content like issues, lessons learned, workarounds, mitigations, risks, and clarifications.
-
-However, every attempt fails—important context is lost, and the restarted process lacks the depth from implementation. I expected reused files (e.g., constitution.md and spec.md) to retain this feedback, but they don't. This breaks continuity and forces rework.
 
 **Questions:**
 
