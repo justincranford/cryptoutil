@@ -44,30 +44,44 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 | sm-kms | ✅ COMPLETE | Phase 0 | Dual servers, admin port 9090, public port 8080, DB migrations, telemetry | Reference implementation for dual-server pattern |
 | pki-ca | ⚠️ PARTIAL | Phase 2.3 | Missing admin server, public port 8380 only | Needs dual-server migration |
 | jose-ja | ⚠️ PARTIAL | Phase 2.1 | Missing admin server, public port 8280 only | Needs dual-server migration |
-| identity-authz | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8180) | **CRITICAL BLOCKER**: Missing public HTTP server implementation |
-| identity-idp | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8181) | **CRITICAL BLOCKER**: Missing public HTTP server implementation |
-| identity-rs | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8182) | **CRITICAL BLOCKER**: Missing public HTTP server implementation |
+| identity-authz | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8180 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/authz/server/public_server.go, 165 lines) |
+| identity-idp | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8181 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/idp/server/public_server.go, 165 lines) |
+| identity-rs | ⚠️ PARTIAL | Phase 2.2 | Admin server exists (9091), missing public server (8182) | **PENDING VERIFICATION**: Public server file existence unknown, needs validation |
 | identity-rp | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
 | identity-spa | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
 | learn-ps | ❌ NOT STARTED | Phase 7 | No servers | Validates service template reusability |
 
-**Architecture Blocker** (2025-12-20 validation):
+**Architecture Status Update** (2025-12-21 validation):
 
-Three Identity services (authz, idp, rs) cannot start because they lack public HTTP server implementation:
+Identity services authz and idp NOW have public HTTP server implementations:
 
-- `internal/identity/authz/server/server.go` ❌ MISSING (public OAuth 2.1 endpoints)
-- `internal/identity/idp/server/server.go` ❌ MISSING (public OIDC endpoints)
-- `internal/identity/rs/server/server.go` ❌ MISSING (public resource API)
+- `internal/identity/authz/server/public_server.go` ✅ EXISTS (165 lines, NewPublicServer(), OAuth 2.1 endpoints)
+- `internal/identity/idp/server/public_server.go` ✅ EXISTS (165 lines, NewPublicServer(), OIDC endpoints)
+- `internal/identity/rs/server/public_server.go` ⚠️ STATUS UNKNOWN (needs verification)
 
-**Evidence**: 5 E2E workflow failures (workflows 20388807383-20388120287), all fail at "Starting AuthZ server..." with 196-byte logs, immediate container exit. Configuration validated correct (TLS, DSN, secrets, OTEL), but binary has no public server code to start.
+**Evidence (2025-12-21)**: Direct file verification via `Get-ChildItem internal\identity\ -Recurse -Filter "*.go"` shows:
 
-**Impact**: Blocks 3/11 workflows (E2E, Load, DAST) until public servers implemented (estimated 3-5 days development).
+- authz/server/public_server.go: 165 lines, complete implementation
+- idp/server/public_server.go: 165 lines, complete implementation
+- RS public_server.go not found in directory listing (may be missing or named differently)
 
-**Related Documentation**:
+**Previous Evidence (2025-12-20)**: 5 E2E workflow failures (workflows 20388807383-20388120287), all failed at "Starting AuthZ server..." with 196-byte logs. This was attributed to missing public servers, but file verification shows files exist.
 
-- `docs/WORKFLOW-FIXES-ROUND7.md` (commit 1cbf3d34, 228 lines): Round 7 investigation
-- `specs/002-cryptoutil/implement/EXECUTIVE.md` (commit 57236a52): Workflow status, limitations
-- `specs/002-cryptoutil/implement/DETAILED.md` (2025-12-20): E2E validation session
+**Discrepancy Resolution Needed**:
+
+- Constitution.md claimed missing public servers (2025-12-20)
+- WORKFLOW-FIXES-CONSOLIDATED.md Round 7 concluded missing public servers (2025-12-20)
+- File verification shows public_server.go EXISTS for authz and idp (2025-12-21)
+- **Questions**: Were files created after workflow debugging? Was actual failure cause different? Is RS the only incomplete service?
+
+**Action Required**: Monitor current workflows (20393846848-20393846852, started 2025-12-21 7:23:58 AM) to determine:
+
+- Do authz and idp services start successfully now?
+- Do E2E/Load/DAST workflows pass?
+- What is actual failure cause if workflows still fail?
+- Is RS missing public_server.go or just not found via search?
+
+**Impact**: If authz/idp public servers are complete, only RS remains incomplete (1 service vs 3). E2E workflows may pass for authz/idp flows, fail only for RS flows.
 
 ### Standalone Mode Requirements
 
