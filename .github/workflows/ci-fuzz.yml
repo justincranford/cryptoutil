@@ -1,6 +1,13 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
+# WORKFLOW: CI - Fuzz Testing
+# PURPOSE: Fuzz test parsers, validators, and input handlers for unexpected inputs
+# DEPENDENCIES: None (runs independently without external services)
+# EXPECTED DURATION: 3-4 minutes (15 seconds per fuzz test target)
+# TIMEOUT: 15 minutes (allows for fuzz corpus generation and execution)
+# CRITICAL PATH: Fuzz test execution across multiple targets
+
 name: CI - Fuzz Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.

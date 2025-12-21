@@ -1,3 +1,10 @@
+# WORKFLOW: Identity Service Validation
+# PURPOSE: Validate Identity service implementation (authz, idp, rs, rp, spa) E2E integration
+# DEPENDENCIES: None (no Docker Compose stack, direct Go test execution only)
+# EXPECTED DURATION: 2-5min (Go test execution for Identity domain tests)
+# TIMEOUT: 15min (allows test execution + shared CPU latency)
+# CRITICAL PATH: Go test execution for all Identity packages
+
 name: CI - Identity Validation
 
 on:

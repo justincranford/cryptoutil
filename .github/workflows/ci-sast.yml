@@ -1,6 +1,11 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
-
+# WORKFLOW: CI - SAST Security Analysis
+# PURPOSE: Static application security testing with gosec, upload SARIF to GitHub Security tab
+# DEPENDENCIES: None (runs independently without external services)
+# EXPECTED DURATION: 3-4 minutes (gosec analysis + SARIF upload)
+# TIMEOUT: 15 minutes (generous for GitHub Actions shared CPU + SARIF processing)
+# CRITICAL PATH: gosec security scanning
 name: CI - SAST Security Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.

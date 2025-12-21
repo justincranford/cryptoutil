@@ -1,6 +1,14 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
+# WORKFLOW: CI - Coverage Collection
+# PURPOSE: Measure test coverage across all packages, enforce 95%+ production / 100%+ infrastructure targets
+# DEPENDENCIES: None (runs independently without external services)
+# EXPECTED DURATION: 5-6 minutes (matrix parallel execution across 4-6 package groups)
+# TIMEOUT: 20 minutes (allows for parallel test execution with retry overhead)
+# CRITICAL PATH: Test execution for largest packages (kms, identity, jose)
+# OPTIMIZATION: Uses matrix strategy for package-level parallelization
+
 name: CI - Coverage Collection
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.

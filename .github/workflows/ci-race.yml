@@ -1,6 +1,13 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
+# WORKFLOW: Race Condition Detection
+# PURPOSE: Detect race conditions using Go's ThreadSanitizer via -race flag
+# DEPENDENCIES: None (standalone workflow, no external services required)
+# EXPECTED DURATION: 15-17min (race detector adds ~10x overhead to test execution)
+# TIMEOUT: 30min (allows 2x expected duration for shared CPU latency + race detector overhead)
+# CRITICAL PATH: go test -race (slowest step due to ThreadSanitizer instrumentation)
+
 name: CI - Race Condition Detection
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow
 # MUST use relative paths to support both GitHub Actions Ubuntu runners

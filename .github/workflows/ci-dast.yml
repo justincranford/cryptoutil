@@ -1,6 +1,14 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
+# WORKFLOW: Dynamic Application Security Testing (DAST)
+# PURPOSE: Security vulnerability scanning using Nuclei + ZAP against running services
+# DEPENDENCIES: Docker Compose stack (cryptoutil services + PostgreSQL)
+# EXPECTED DURATION: Quick=3-5min, Full=10-15min, Deep=20-25min (depends on scan_profile input)
+# TIMEOUT: 90min (allows deep scans + ZAP full crawl + shared CPU latency)
+# CRITICAL PATH: Docker Compose stack startup (30-60s) + ZAP full scan (10-20min for deep profile)
+# OPTIMIZATION OPPORTUNITY: Consider splitting Nuclei (fast) vs ZAP (slow) into separate workflows
+
 name: CI - DAST Security Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.

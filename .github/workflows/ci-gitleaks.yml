@@ -1,6 +1,13 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
+# WORKFLOW: CI - GitLeaks Secrets Scan
+# PURPOSE: Scan repository for leaked secrets, credentials, API keys
+# DEPENDENCIES: None (runs independently without external services)
+# EXPECTED DURATION: 10-30 seconds (fast secrets scanning)
+# TIMEOUT: 10 minutes (gitleaks is fast, short timeout prevents hanging)
+# CRITICAL PATH: gitleaks secret detection
+
 name: CI - GitLeaks Secrets Scan
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.

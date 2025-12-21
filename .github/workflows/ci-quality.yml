@@ -1,6 +1,13 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
+# WORKFLOW: CI - Quality Testing
+# PURPOSE: Enforce code quality, linting, formatting, and build validation
+# DEPENDENCIES: None (runs independently without external services)
+# EXPECTED DURATION: 3-5 minutes (linting + builds)
+# TIMEOUT: 15 minutes (generous for GitHub Actions shared CPU latency)
+# CRITICAL PATH: golangci-lint (slowest step, ~2-3 minutes)
+
 name: CI - Quality Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.

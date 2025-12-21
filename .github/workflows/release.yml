@@ -1,3 +1,10 @@
+# WORKFLOW: Automated Release Pipeline
+# PURPOSE: Semantic versioning, changelog generation, container publishing, multi-environment deployment
+# DEPENDENCIES: Docker registry access, deployment environments (dev/staging/production)
+# EXPECTED DURATION: 15-30min (build + test + publish + deploy across environments)
+# TIMEOUT: 60min (allows multi-architecture Docker builds + integration tests + phased deployment)
+# CRITICAL PATH: Docker multi-architecture builds (15-20min) + production deployment validation
+
 # Automated Release Pipeline
 # Handles semantic versioning, changelog generation, container publishing,
 # and multi-environment deployment (dev → staging → production)

@@ -1,6 +1,14 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
+# WORKFLOW: CI - Mutation Testing
+# PURPOSE: Validate test quality via mutation testing (gremlins) to ensure tests catch bugs
+# DEPENDENCIES: None (runs independently without external services)
+# EXPECTED DURATION: 4-5 minutes (sequential gremlins execution)
+# TIMEOUT: 60 minutes (per WORKFLOW-ANALYSIS.md - targets <20min with future matrix parallelization)
+# CRITICAL PATH: gremlins mutation testing on all packages sequentially
+# OPTIMIZATION OPPORTUNITY: Add matrix strategy to parallelize by package (reduce to <20min total)
+
 name: CI - Mutation Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow
 # MUST use relative paths to support both GitHub Actions Ubuntu runners
