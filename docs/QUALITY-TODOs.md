@@ -8,6 +8,73 @@ This document tracks quality improvement tasks discovered through code analysis,
 
 ---
 
+## Quality Tracking Pattern
+
+### Purpose
+
+Document coverage and gremlins (mutation testing) challenges encountered during implementation, including:
+
+- What worked (successful testing strategies)
+- What didn't work (failed approaches)
+- Recommendations for similar packages
+
+### Documentation Pattern
+
+When implementing quality improvements (coverage, mutation testing), use this pattern:
+
+```markdown
+## Phase N: [Package Name]
+
+### Priority 1: Critical Coverage Gaps (Target: 95%+)
+
+**Package**: internal/[package]/[subpackage]
+**Current Coverage**: X.X%
+**Target Coverage**: 95.0%
+**Gap**: Functions with <90% coverage
+
+**Challenges**:
+- Uncovered line ranges (file:lineStart-lineEnd)
+- Reason for difficulty (e.g., error paths, edge cases, concurrency)
+
+**Lessons Learned**:
+- What worked (e.g., table-driven tests, property-based tests)
+- What didn't work (e.g., mocking external dependencies)
+- Recommendations for similar packages
+
+### Priority 2: Mutation Testing Improvements (Target: 85%/98%)
+
+**Package**: internal/[package]/[subpackage]
+**Current Mutation Score**: X.X%
+**Target Mutation Score**: 85.0% (Phase 4) / 98.0% (Phase 5+)
+**Gap**: Mutants not killed
+
+**Challenges**:
+- Surviving mutants (specific mutation operators)
+- Reason for difficulty (e.g., complex business logic, crypto operations)
+
+**Lessons Learned**:
+- Mutation-killing strategies (e.g., boundary value tests, error injection)
+```
+
+### When to Document
+
+- **Coverage gaps**: When package falls below target (95% production, 100% infrastructure/utility)
+- **Mutation testing**: When package falls below phase target (85% Phase 4, 98% Phase 5+)
+- **Test timing**: When package exceeds timing limits (<15s unit, <180s total)
+- **Probabilistic execution**: When applying TestProbTenth/TestProbQuarter patterns
+
+### How to Document
+
+1. Identify the gap (coverage, mutation, timing)
+2. Document challenges encountered
+3. Document what worked and what didn't
+4. Provide recommendations for similar packages
+5. Update continuously as lessons learned
+
+**Documented in**: .specify/memory/constitution.md Section VB "Quality Tracking Documentation"
+
+---
+
 ## Phase 4: Quality Gates (Current Phase)
 
 ### Priority 1: Critical Blockers
