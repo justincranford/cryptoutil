@@ -159,6 +159,7 @@
 | 01-07.security | Security patterns |
 | 01-08.linting | Code quality & linting standards |
 | 01-09.cryptography | FIPS compliance, hash versioning, algorithm agility |
+| 01-10.pki | PKI, CA, certificate management, CA/Browser Forum compliance |
 | 02-01.github | CI/CD workflow |
 | 02-02.docker | Docker & Compose |
 | 02-03.observability | Observability & monitoring |
@@ -169,3 +170,4 @@
 | 04-01.sqlite-gorm | SQLite GORM config |
 | 05-01.evidence-based | Evidence-based task completion |
 | 06-01.speckit | Speckit workflow integration & feedback loops |
+| 07-01.anti-patterns | Common anti-patterns and mistakes |
