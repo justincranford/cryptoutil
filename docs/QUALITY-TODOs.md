@@ -16,36 +16,42 @@ This document tracks quality improvement tasks discovered through code analysis,
 
 **Package**: `internal/identity/rs/server/`
 
+**Status**: ⏳ IN PROGRESS (implementation complete 2025-12-21, testing pending)
+
 **Issue**: Resource Server (RS) missing public HTTP server implementation
 
-**Evidence**:
+**Implementation** (commit 04317efd 2025-12-21):
 
-- File verification (2025-12-21): Only `admin.go` and `application.go` exist
-- `application.go` only creates `adminServer`, missing `publicServer` initialization
-- Authz and IdP public servers implemented (165 lines each), RS incomplete
+- ✅ Created `internal/identity/rs/server/public_server.go` (200 lines, copied from authz pattern)
+- ✅ Updated `application.go` for dual-server architecture (publicServer + adminServer)
+- ✅ NewApplication() creates both public and admin servers
+- ✅ Start() launches both servers concurrently
+- ✅ Shutdown() stops both servers with error aggregation
+- ✅ PublicPort() accessor method
+- ✅ Unit tests pass (`go test ./internal/identity/rs/server/...` 0.349s)
+- ✅ Build succeeds (`go build ./cmd/cryptoutil`)
 
-**Impact**:
+**Testing Status**:
 
-- E2E workflows expected to fail for RS-dependent flows
-- Load/DAST workflows cannot test RS protected resource access
-- Token validation E2E tests blocked
+- ⏳ E2E workflows triggered (20406671780, running ~2m40s)
+- ⏳ Load workflow triggered (20406671811, running ~2m40s)
+- ⏳ DAST workflow triggered (20406671791, running ~2m40s)
+- ⏳ Docker Compose verification pending (rs container health check)
 
-**Tasks**:
+**Remaining Tasks**:
 
-- [ ] Create `internal/identity/rs/server/public_server.go` (copy pattern from authz/idp)
-- [ ] Update `application.go` to create both `publicServer` and `adminServer`
-- [ ] Implement RS public endpoints (protected resource API, token validation)
-- [ ] Add unit tests for RS public server (target 95%+ coverage)
-- [ ] Add integration tests for RS public endpoints
-- [ ] Verify E2E workflows pass after RS implementation
+- [ ] Monitor E2E/Load/DAST workflows for success (expect green after RS public server added)
+- [ ] Add integration tests for RS protected resource endpoints
+- [ ] Implement TODO middleware (CORS, token validation)
+- [ ] Verify Docker Compose RS container health check passes
 
-**Estimated Effort**: 1-2 days
+**Estimated Effort Remaining**: 0.5-1 day (middleware + integration tests)
 
 **Related**:
 
-- Constitution.md service status table (RS marked INCOMPLETE)
-- DETAILED.md 2025-12-21 service status verification
-- WORKFLOW-FIXES-CONSOLIDATED.md Round 7 investigation
+- Constitution.md RS status: ❌ INCOMPLETE → ⏳ IN PROGRESS (commit a05d1e82)
+- DETAILED.md 2025-12-21 RS implementation timeline
+- docs/RS-PUBLIC-SERVER-IMPLEMENTATION.md (implementation plan)
 
 ---
 
