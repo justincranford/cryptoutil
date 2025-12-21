@@ -2,7 +2,7 @@
 
 **Iteration**: specs/002-cryptoutil
 **Started**: December 17, 2025
-**Last Updated**: December 20, 2025 (E2E Validation Session Complete)
+**Last Updated**: December 21, 2025 (Comprehensive Documentation Update)
 **Status**: 🎯 FRESH START - MVP Quality Focus
 
 ---
@@ -249,16 +249,27 @@ Status: Pending
 
 ## Last Updated
 
-**Date**: 2025-12-20 (Round 7 Investigation Complete)
+**Date**: 2025-12-21 (Comprehensive Documentation Update)
 
 **By**: GitHub Copilot
 
-**Next Major Milestone**: Implement identity public HTTP servers (3-5 days development)
+**Next Major Milestone**: Implement identity public HTTP servers (3-5 days development), implement workflow optimizations from WORKFLOW-ANALYSIS.md
 
 **Recent Work**:
 
-- ✅ **E2E Validation Session** (2025-12-20 ~06:30 UTC):
-  - Examined 5 recent E2E fix attempts (workflows 20388807383-20388120287)
+- ✅ **Comprehensive Documentation Update** (2025-12-21):
+  - **CLARIFY-QUIZME.md Anti-Pattern Fix**: Cleared 879 lines of answered questions (Q1-20, Q1.3-10.3) after user frustration with repeated violations
+  - **Speckit Instructions**: Added enforcement rules to 06-01.speckit.instructions.md (NEVER include known answers, ALWAYS move to clarify.md)
+  - **clarify.md MASSIVE EXPANSION**: +518 lines integrating ALL answered questions topically (Service Architecture, Identity, Auth, Database, Crypto, Testing, CI/CD, Docs, Observability, Security, Multi-Tenancy)
+  - **constitution.md Section VB**: +169 lines "Performance, Scaling, and Resource Management" (vertical/horizontal scaling, backup/recovery, quality tracking)
+  - **spec.md Non-Functional Requirements**: +141 lines (performance/scaling, backup/recovery, observability, security, multi-tenancy, certificate profiles)
+  - **docker instructions**: Added secrets 440 permissions requirement + dockerfile validation job pattern (KMS reference)
+  - **QUALITY-TODOs.md**: +67 lines quality tracking pattern documentation (coverage, mutation, timing challenges)
+  - **WORKFLOW-ANALYSIS.md**: Created 297-line comprehensive analysis of 13 GitHub Actions workflows (consistency, optimization, recommendations)
+  - **Architecture Instructions**: Added service template requirements (MANDATORY extraction from KMS, <500 lines success criteria)
+  - **Deleted abandoned docs**: CLARIFY-QUIZME-NEW.md, WORKFLOW-FIXES-TASK-LIST.md
+  - **11 commits**: All passed pre-commit hooks after auto-fixes
+  - **Updated**: DETAILED.md Section 2 timeline with session summary
   - All failed identically: 196-byte logs, 5-6 minute crashes, immediate exit after "Starting AuthZ server..."
   - Configuration validated correct: TLS ✅, DSN ✅, secrets ✅, OTEL healthcheck ✅
   - Database healthy: identity-postgres-e2e-1 passes health checks ✅
