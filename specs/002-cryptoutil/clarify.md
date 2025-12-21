@@ -637,6 +637,58 @@ func internalMain(args []string, stdin io.Reader, stdout, stderr io.Writer) int 
 
 ---
 
+### Service Template Extraction and Reuse
+
+**Q**: Why must service template be extracted and reused instead of copying code?
+
+**A** (Source: constitution.md Section IX, spec.md Phase 6, architecture instructions, 2025-12-21):
+
+**Requirements**:
+
+- **Phase 6 MUST extract reusable template** from KMS reference implementation
+- **ALL new services MUST use template** (consistency, reduced code duplication)
+- **Learn-PS MUST demonstrate template reusability** (Phase 7 validation)
+- **Template success criteria**: Service implementation <500 lines
+
+**Template Components**:
+
+- Dual HTTPS servers (public + admin)
+- Health check endpoints (/livez, /readyz, /healthz)
+- Graceful shutdown with context cancellation
+- Middleware pipeline (CORS, CSRF, CSP, rate limiting, auth)
+- Database abstraction (PostgreSQL + SQLite)
+- OpenTelemetry integration (traces, metrics, logs)
+- TLS configuration (separate public/admin)
+- Config management (YAML + CLI flags + Docker secrets)
+
+**NEVER DO**:
+
+- ❌ Copy-paste service infrastructure code between services
+- ❌ Duplicate dual-server pattern, health checks, shutdown logic
+- ❌ Reimplement middleware pipeline or telemetry integration
+
+**ALWAYS DO**:
+
+- ✅ Extract template from proven KMS implementation
+- ✅ Parameterize template for service-specific customization
+- ✅ Use constructor injection for handlers, middleware, config
+- ✅ Separate business logic from infrastructure concerns
+
+**Rationale**:
+
+- **Consistency**: All services follow same architectural patterns
+- **Maintainability**: Infrastructure fixes propagate to all services
+- **Quality**: Proven patterns reduce bugs in new services
+- **Velocity**: Template reduces implementation from ~1500 lines to <500 lines
+
+**Reference**:
+
+- See constitution.md Section IX "Service Template Requirement"
+- See spec.md Section "Phase 6: Service Template Extraction"
+- See architecture instructions "Service Template Requirement - MANDATORY"
+
+---
+
 ### Service Template Initialization
 
 **Q**: How should services initialize with template?
