@@ -143,6 +143,16 @@ HTTPS Issuing CA for TLS Client Certs MUST BE shared per per-service instance ty
 #### Public HTTPS Endpoint
 
 **Purpose**: Offers two public facing sets of APIs: browser-facing UI/APIs for browser-clients, and headless APIs for non-browser clients. Each set of APIs has different authentication options, authorization options, and middleware security
+
+**Terminology Clarification** (Two HTTPS Endpoint Strategy):
+
+- **Admin Port**: Non-exposed, ALWAYS 127.0.0.1:9090 (never configurable)
+- **Exported Port**:
+  - **Inside Container**: 0.0.0.0:8080 (container default, enables external access)
+  - **Outside Container**:
+    - **Tests**: Mapped to 127.0.0.1 with unique static port range per service (prevents Windows Firewall prompts, avoids port collisions)
+    - **Production**: Mapped to `<configurable_address>:<configurable_port>` with unique static port range per service
+
 **Bind**: `<configurable_address>:<configurable_port>` (e.g., ports: 8080, 8081, 8082 for sm-kms service instances)
 **Security**:
 
@@ -1258,23 +1268,55 @@ Used by other services for health checks.
 
 ```
 HashService
-├── LowEntropyRandomHashRegistry (PBKDF2-based)
+├── LowEntropyRandomHashRegistry (PBKDF2-based, salted)
 │   ├── v1: 0-31 bytes → PBKDF2-HMAC-SHA256 (OWASP rounds)
 │   ├── v2: 32-47 bytes → PBKDF2-HMAC-SHA384
 │   └── v3: 48+ bytes → PBKDF2-HMAC-SHA512
-├── LowEntropyDeterministicHashRegistry (PBKDF2-based, no salt)
-│   ├── v1: 0-31 bytes → PBKDF2-HMAC-SHA256
-│   ├── v2: 32-47 bytes → PBKDF2-HMAC-SHA384
-│   └── v3: 48+ bytes → PBKDF2-HMAC-SHA512
-├── HighEntropyRandomHashRegistry (HKDF-based)
+├── LowEntropyDeterministicHashRegistry (PBKDF2-based, fixed + derived salt)
+│   ├── v1: 0-31 bytes → PBKDF2-HMAC-SHA256 (fixed salt per version, derive actual salt from fixed + cleartext)
+│   ├── v2: 32-47 bytes → PBKDF2-HMAC-SHA384 (different fixed salt than v1)
+│   └── v3: 48+ bytes → PBKDF2-HMAC-SHA512 (different fixed salt than v1/v2)
+├── HighEntropyRandomHashRegistry (HKDF-based, salted)
 │   ├── v1: 0-31 bytes → HKDF-HMAC-SHA256
 │   ├── v2: 32-47 bytes → HKDF-HMAC-SHA384
 │   └── v3: 48+ bytes → HKDF-HMAC-SHA512
-└── HighEntropyDeterministicHashRegistry (HKDF-based, no salt)
-    ├── v1: 0-31 bytes → HKDF-HMAC-SHA256
-    ├── v2: 32-47 bytes → HKDF-HMAC-SHA384
-    └── v3: 48+ bytes → HKDF-HMAC-SHA512
+└── HighEntropyDeterministicHashRegistry (HKDF-based, fixed + derived salt)
+    ├── v1: 0-31 bytes → HKDF-HMAC-SHA256 (fixed salt per version, derive actual salt from fixed + cleartext)
+    ├── v2: 32-47 bytes → HKDF-HMAC-SHA384 (different fixed salt than v1)
+    └── v3: 48+ bytes → HKDF-HMAC-SHA512 (different fixed salt than v1/v2)
 ```
+
+**Salt Encoding Requirements** (CRITICAL for Security):
+
+- **LowEntropyRandomHashRegistry / HighEntropyRandomHashRegistry**:
+  - MUST encode version AND all parameters (iterations, salt, algorithm) WITH the hash
+  - Format: `{version}:{algorithm}:{params}:base64(salt):base64(hash)`
+  - Example: `{1}:PBKDF2-HMAC-SHA256:rounds=600000:abcd1234...:efgh5678...`
+  - Rationale: Random salt must be stored to verify later
+- **LowEntropyDeterministicHashRegistry / HighEntropyDeterministicHashRegistry**:
+  - MUST encode version ONLY (NEVER encode salt or parameters in output)
+  - Format: `{version}:base64(hash)`
+  - Example: `{1}:abcd1234...`
+  - Rationale: Revealing salt in DB would be crypto bug
+  - MUST use different fixed configurable salt per version (v1/v2/v3 each have unique salt)
+  - MUST derive ACTUAL SALT from combination of:
+    - Configured fixed salt (acts as pepper, secret key)
+    - Input cleartext (adds input-specific entropy)
+  - Derivation similar to AES-GCM-SIV (derive IV from nonce + cleartext) but for different purpose
+  - Purpose: Obfuscate actual salt used (pepper-like concept per OWASP Password Storage Cheat Sheet)
+  - Security: Fixed salt never revealed, derived salt unique per input
+- **LowEntropyDeterministicHashRegistry / HighEntropyDeterministicHashRegistry**:
+  - MUST encode version ONLY (NEVER encode salt or parameters in output)
+  - Format: `{version}:base64(hash)`
+  - Example: `{1}:abcd1234...`
+  - Rationale: Revealing salt in DB would be crypto bug
+  - MUST use different fixed configurable salt per version (v1/v2/v3 each have unique salt)
+  - MUST derive ACTUAL SALT from combination of:
+    - Configured fixed salt (acts as pepper, secret key)
+    - Input cleartext (adds input-specific entropy)
+  - Derivation similar to AES-GCM-SIV (derive IV from nonce + cleartext) but for different purpose
+  - Purpose: Obfuscate actual salt used (pepper-like concept per OWASP Password Storage Cheat Sheet)
+  - Security: Fixed salt never revealed, derived salt unique per input
 
 **Registry API** (consistent across all 4 types):
 
@@ -1320,12 +1362,19 @@ HashService
 **Common Patterns** (extracted from KMS):
 
 - **Dual HTTPS Servers**: Public API (<configurable_address>:<configurable_port>) + Admin API (127.0.0.1:9090)
+- **Admin Endpoints**: `/livez`, `/readyz`, `/shutdown` on 127.0.0.1:9090
+  - Admin prefix configurable (default: `/admin/v1`)
+  - Implementation: gofiber middleware (reference: sm-kms `internal/kms/server/application/application_listener.go`)
 - **Dual API Paths**: `/browser/api/v1/*` (session-based) vs `/service/api/v1/*` (token-based)
 - **Middleware Pipeline**: CORS/CSRF/CSP (browser-only), rate limiting, IP allowlist, authentication
 - **Database Abstraction**: PostgreSQL + SQLite dual support with GORM
 - **OpenTelemetry Integration**: OTLP traces, metrics, logs
 - **Health Check Endpoints**: `/admin/v1/livez` (liveness), `/admin/v1/readyz` (readiness)
 - **Graceful Shutdown**: `/admin/v1/shutdown` endpoint
+- **Docker Compose Requirements**:
+  - OpenTelemetry Collector Contrib MUST use separate health check job (does NOT expose external health endpoint)
+  - Reference: KMS Docker Compose `deployments/compose/compose.yml` (working pattern)
+  - MUST include Docker Secrets validation job (fast-fail check before starting services)
 
 **Service-Specific Customization Points**:
 
@@ -1373,6 +1422,25 @@ internal/template/
 ### Learn-PS Demonstration Service (Phase 7)
 
 **Goal**: Create working Pet Store service using service template, validate reusability and completeness.
+
+**Implementation Priority**: HIGH - CRITICAL to implement learn-ps FIRST before migrating production services
+
+**Service Template Migration Priority Order**:
+
+1. **learn-ps FIRST** (Phase 7):
+   - CRITICAL: Implement learn-ps using extracted service template
+   - Through iterative implementation, testing, validation, analysis
+   - GUARANTEE ALL requirements of service template are met
+   - Proves template is production-ready before migrating product services
+2. **One service at a time** (Phase 8+, excludes sm-kms):
+   - MUST refactor each production service to use service template sequentially
+   - Identify and fix issues in service template to unblock current service
+   - Avoid creating technical debt affecting remaining migrations
+   - Order: jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
+3. **sm-kms LAST** (Phase 10):
+   - ALL other services MUST be refactored and running excellently on service template
+   - Only migrate KMS reference implementation after template proven stable across 8 services
+   - Reference implementation stays stable until template is battle-tested
 
 **Learn-PS Overview**:
 

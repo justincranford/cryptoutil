@@ -419,6 +419,15 @@ HTTPS Issuing CA for TLS Client Certs MUST BE shared per per-service instance ty
 
 **Purpose**: Business APIs, browser UIs, external client access
 
+**Terminology Clarification** (Two HTTPS Endpoint Strategy):
+
+- **Admin Port**: Non-exposed, ALWAYS 127.0.0.1:9090 (never configurable)
+- **Exported Port**:
+  - **Inside Container**: 0.0.0.0:8080 (container default, enables external access)
+  - **Outside Container**:
+    - **Tests**: Mapped to 127.0.0.1 with unique static port range per service (prevents Windows Firewall prompts, avoids port collisions)
+    - **Production**: Mapped to `<configurable_address>:<configurable_port>` with unique static port range per service
+
 **Configuration**:
 
 - Production ports: Service-specific ranges (8080-8089 for KMS, 8180-8189 for Identity, etc.)
@@ -988,6 +997,36 @@ When a gate fails:
 - Template parameterization: Constructor injection for handlers, middleware, configuration
 - All new services MUST use extracted template (consistency, reduced code duplication)
 
+**Service Template Implementation Details**:
+
+- **Admin Endpoints** (127.0.0.1:9090):
+  - `/livez`, `/readyz`, `/shutdown` endpoints MANDATORY
+  - Admin prefix MUST be configurable (default: `/admin/v1`)
+  - Implementation: gofiber middleware (reference: sm-kms `internal/kms/server/application/application_listener.go`)
+- **Health Check Requirements**:
+  - OpenTelemetry Collector Contrib MUST use separate health check job (does NOT expose external health endpoint)
+  - Reference implementation: KMS Docker Compose `deployments/compose/compose.yml` (working pattern)
+- **Docker Secrets Validation**:
+  - Docker Compose MUST include dedicated job to validate Docker Secrets presence and mounting
+  - Fast-fail check before starting all other jobs and services (prevents cryptic runtime errors)
+
+**Service Template Migration Priority** (HIGH PRIORITY):
+
+1. **learn-ps FIRST** (Phase 7):
+   - CRITICAL: Implement learn-ps using service template
+   - Iterative implementation, testing, validation, analysis
+   - GUARANTEE ALL service template requirements met before migrating production services
+   - Validates template is production-ready and truly reusable
+2. **One service at a time** (Phase 8+, excludes sm-kms):
+   - MUST refactor each service to use service template sequentially
+   - Identify and fix issues in service template to unblock current service migration
+   - Avoid creating technical debt affecting remaining service migrations
+   - Order: jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
+3. **sm-kms LAST** (Phase 10):
+   - ALL other services MUST be refactored and running excellently on service template
+   - Only migrate KMS reference implementation after template proven stable across 8 services
+   - Prevents disrupting reference implementation until template is battle-tested
+
 **Learn-PS Demonstration Requirement**:
 
 - Phase 7 MUST implement Learn-PS pet store demonstration service using extracted template
@@ -1010,10 +1049,26 @@ When a gate fails:
 
 **Hash Registry Types** (4 types × 3 versions each = 12 configurations):
 
-1. **Password Hashing**: PBKDF2-HMAC-SHA (non-deterministic, high entropy)
-2. **PII Hashing**: HKDF-SHA (deterministic, searchable)
-3. **OTP Hashing**: PBKDF2-HMAC-SHA (non-deterministic, high entropy, short-lived)
-4. **Magic Link Hashing**: HKDF-SHA (deterministic, searchable, time-limited)
+1. **LowEntropyRandomHashRegistry**: PBKDF2-HMAC-SHA (non-deterministic, salted, password hashing)
+2. **LowEntropyDeterministicHashRegistry**: PBKDF2-HMAC-SHA (deterministic, fixed + derived salt, replay-resistant tokens)
+3. **HighEntropyRandomHashRegistry**: HKDF-SHA (non-deterministic, salted, key derivation)
+4. **HighEntropyDeterministicHashRegistry**: HKDF-SHA (deterministic, fixed + derived salt, deterministic key derivation)
+
+**Salt Encoding Requirements** (CRITICAL for Security):
+
+- **LowEntropyRandomHashRegistry / HighEntropyRandomHashRegistry**:
+  - MUST encode version AND all parameters (iterations, salt, algorithm) WITH the hash
+  - Format: `{version}:{algorithm}:{params}:base64(salt):base64(hash)`
+  - Rationale: Random salt must be stored to verify later
+- **LowEntropyDeterministicHashRegistry / HighEntropyDeterministicHashRegistry**:
+  - MUST encode version ONLY (NEVER encode parameters or salt)
+  - Format: `{version}:base64(hash)`
+  - Rationale: Revealing salt in DB would be crypto bug; deterministic hash must derive same salt from input
+  - MUST use different fixed configurable salt per version (v1/v2/v3)
+  - MUST derive ACTUAL SALT from combination of configured fixed salt AND input cleartext
+  - Derivation approach similar to AES-GCM-SIV (derive IV from nonce + cleartext) but for different purpose
+  - Purpose: Obfuscate actual salt used (pepper-like concept per OWASP Password Storage Cheat Sheet)
+  - Security Note: Fixed salt acts as pepper (secret key), derived salt adds input-specific entropy
 
 ---
 
