@@ -12,10 +12,10 @@
 
 **When adding questions**:
 
-1. Search codebase, constitution.md, spec.md, copilot instructions FIRST
+1. Search copilot instructions, constitution.md, spec.md, codebase,  FIRST
 2. If answer is KNOWN: Add Q&A to clarify.md and update constitution/spec as needed
 3. If answer is UNKNOWN: Add question HERE with NO pre-filled answers
-4. After user answers: Move Q&A to clarify.md, update constitution/spec, remove from here
+4. After user answers: Refactor clarify.md to cover answered questions, update constitution.md with architecture decisions, and update spec.md with finalized requirements
 
 ---
 
