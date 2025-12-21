@@ -791,4 +791,522 @@ func NewServiceTemplate(config *ServiceConfig) (*Service, error) {
 
 ---
 
+## Service Architecture Continued
+
+### Q6: Are the testing coverage targets (95% production, 100% infrastructure/utility) consistently specified?
+
+**Answer**: A - Yes, consistently specified
+
+- Production packages: ≥95% (internal/{jose,identity,kms,ca})
+- Infrastructure packages: ≥100% (internal/cmd/cicd/*)
+- Utility packages: ≥100% (internal/shared/*, pkg/*)
+- Main functions: 0% acceptable if internalMain() ≥95%
+- **Documented in**: .github/instructions/01-04.testing.instructions.md
+
+### Q7: Are the test timing requirements (<15s unit, <180s total) realistic?
+
+**Answer**: A - Yes, realistic
+
+- Per-package timeout: <15 seconds for unit tests
+- Full suite timeout: <180 seconds (3 minutes) for all unit tests
+- Integration/E2E excluded from strict timing (Docker startup overhead acceptable)
+- Probabilistic execution MANDATORY for packages approaching 15s limit
+- **Documented in**: .github/instructions/01-04.testing.instructions.md
+
+### Q8: Are FIPS 140-3 restrictions and approved algorithms clearly documented?
+
+**Answer**: A - Yes, clearly documented
+
+- FIPS 140-3 mode ALWAYS enabled (MANDATORY, NEVER disabled)
+- Approved algorithms: RSA ≥2048, AES ≥128, EC NIST curves, EdDSA, PBKDF2-HMAC-SHA256
+- BANNED algorithms: bcrypt, scrypt, Argon2, MD5, SHA-1
+- Password hashing: PBKDF2-HMAC-SHA256 ONLY
+- Algorithm agility: All operations support configurable algorithms with FIPS defaults
+- **Documented in**: .github/instructions/01-09.cryptography.instructions.md
+
+### Q9: Are TLS configuration patterns (TLS 1.3+, no InsecureSkipVerify) adequately specified?
+
+**Answer**: A - Yes, adequately specified
+
+- MinVersion: TLS 1.3+ (MANDATORY)
+- Full cert chain validation (MANDATORY)
+- NEVER InsecureSkipVerify (ABSOLUTE PROHIBITION)
+- Separate TLS config for public/admin endpoints
+- Client cert authentication configurable per endpoint
+- **Documented in**: .github/instructions/01-07.security.instructions.md, .github/instructions/01-10.pki.instructions.md
+
+### Q10: Are phase dependencies (Phase 1 → Phase 2 → Phase 3) logically ordered?
+
+**Answer**: A - Yes, logically ordered
+
+- Phase 1 Foundation: Domain models, schema, CRUD (≥95% coverage, ≥80% mutation)
+- Phase 2 Core: Business logic, APIs, auth (E2E works, zero CRITICAL TODOs)
+- Phase 3 Advanced: MFA, WebAuthn (ONLY after Phase 1+2 complete)
+- Strict sequence enforcement: NEVER start Phase 3 before Phase 2 complete
+- **Documented in**: .github/instructions/05-01.evidence-based-completion.instructions.md
+
+### Q11: Is cross-database compatibility (PostgreSQL + SQLite) adequately specified?
+
+**Answer**: A - Yes, adequately specified
+
+- UUID type: TEXT (not native UUID) for cross-DB compatibility
+- JSON fields: GORM `serializer:json` (not `type:json`)
+- Nullable UUIDs: NullableUUID type (not pointer `*googleUuid.UUID`)
+- SQLite connection pool: MaxOpenConns=5 for GORM transactions
+- WAL mode + busy_timeout for concurrent writes
+- **Documented in**: .github/instructions/01-06.database.instructions.md
+
+### Q12: Is naming consistency (camelCase cryptoutil prefix for imports) enforced?
+
+**Answer**: A - Yes, enforced
+
+- Pattern: `cryptoutil<PackageName>` (e.g., cryptoutilMagic, cryptoutilCmdCicdCommon)
+- Defined in .golangci.yml importas section (source of truth)
+- Common third-party: googleUuid, joseJwa/Jwe/Jwk/Jws, `crand "crypto/rand"`
+- Crypto acronyms: ALL CAPS (RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER)
+- **Documented in**: .github/instructions/01-05.golang.instructions.md
+
+### Q13: Are success criteria for service template extraction (<500 lines) clear?
+
+**Answer**: A - Yes, clear
+
+- Service implementation <500 lines after template extraction
+- Template components: Dual servers, middleware, DB abstraction, telemetry, health checks, shutdown, config, TLS
+- Phase 6: Extract from KMS reference
+- Phase 7: Validate with Learn-PS
+- ALL new services MUST use template
+- **Documented in**: .github/instructions/01-01.architecture.instructions.md
+
+### Q14: Are health check patterns (/livez, /readyz, /healthz) adequately specified?
+
+**Answer**: A - Yes, adequately specified
+
+- /admin/v1/livez: Liveness probe (service running)
+- /admin/v1/readyz: Readiness probe (service ready to accept traffic)
+- /admin/v1/healthz: Health check (service healthy)
+- /admin/v1/shutdown: Graceful shutdown trigger
+- All on admin endpoint (127.0.0.1:9090)
+- Consumed by Docker health checks, Kubernetes probes, monitoring systems
+- **Documented in**: .github/instructions/01-01.architecture.instructions.md
+
+### Q15: Is log aggregation (OTLP → otel-collector → Grafana) clearly specified?
+
+**Answer**: A - Yes, clearly specified
+
+- All telemetry forwarded through otel-contrib sidecar (MANDATORY)
+- Application: OTLP gRPC:4317 or HTTP:4318 → otel-collector → Grafana OTLP:14317/14318
+- Collector self-monitoring: Internal → Grafana OTLP HTTP:14318
+- Grafana receives telemetry only (no Prometheus scraping of collector metrics)
+- **Documented in**: .github/instructions/02-03.observability.instructions.md
+
+### Q16: Are SPOFs (Single Points of Failure) in architecture adequately mitigated?
+
+**Answer**: A - Yes, adequately mitigated
+
+- PostgreSQL: Multiple instances (cryptoutil-postgres-1, cryptoutil-postgres-2) share database
+- SQLite: In-memory, acceptable for dev/test (not production)
+- Otel-collector: Sidecar pattern (one per deployment, not globally shared)
+- Graceful degradation: Circuit breaker, fallback modes for federated services
+- Health monitoring: Regular checks, metrics/alerts
+- **Documented in**: .github/instructions/01-01.architecture.instructions.md, .github/instructions/02-03.observability.instructions.md
+
+### Q17: Are performance scaling considerations (horizontal scaling) adequately addressed?
+
+**Answer**: B - Partially addressed, needs horizontal scaling guidance
+
+- **Current Coverage**: Vertical scaling (resource limits, connection pools, concurrent requests)
+- **Missing**: Horizontal scaling patterns (load balancing, session affinity, distributed caching, database sharding)
+- **Required Updates**:
+  - Add load balancing patterns to constitution.md
+  - Add session state management for horizontal scaling to spec.md
+  - Add distributed caching strategy to spec.md
+  - Add database scaling patterns (read replicas, sharding) to spec.md
+- **Action Required**: Update constitution.md Section X (Performance & Scaling) with horizontal scaling guidance
+
+### Q18: Are backup and recovery procedures adequately specified?
+
+**Answer**: A - Yes, covered by database migrations, key versioning, and rotation
+
+- Database migrations: Embedded SQL with golang-migrate (versioned schema changes)
+- Key rotation: Version-based key management (KeyRing pattern with activeKeyID)
+- Disaster recovery: Restore from migrations + key backups
+- PostgreSQL: Standard pg_dump/pg_restore patterns
+- SQLite: File-based backups
+- **Documented in**: .github/instructions/01-06.database.instructions.md (migrations), .github/instructions/01-09.cryptography.instructions.md (key rotation)
+
+### Q19: Is integration testing (Docker Compose E2E) comprehensive?
+
+**Answer**: A - Yes, comprehensive
+
+- Full stack deployment: All services + dependencies (PostgreSQL, otel-collector, Grafana)
+- Health check validation: Service startup, readiness checks
+- Cross-service communication: Federation patterns, service discovery
+- Failure scenarios: Graceful degradation, circuit breaker, retry logic
+- **Documented in**: .github/instructions/01-01.architecture.instructions.md (federation testing), .github/instructions/02-01.github.instructions.md (ci-e2e workflow)
+
+### Q20: Is documentation maintenance strategy (continuous updates, DETAILED.md timeline) clear?
+
+**Answer**: A - Yes, clear
+
+- Constitution/spec/clarify: Continuous updates during implementation (MANDATORY)
+- DETAILED.md Section 2: Append-only timeline (authoritative implementation log)
+- Mini-cycle feedback: Update specs every 2-3 tasks (not end of phase)
+- Session documentation: Append to DETAILED.md (NEVER create standalone session docs)
+- **Documented in**: .github/instructions/06-01.speckit.instructions.md
+
+---
+
+## Identity Service Architecture
+
+### Q1.3: Are identity-rp and identity-spa services optional or mandatory?
+
+**Answer**: B+C - Optional services (not all deployments need them), Docker Compose includes all services
+
+- **identity-rp** (Relying Party): Backend-for-Frontend pattern, optional reference implementation
+- **identity-spa** (SPA): Static hosting for single-page apps, optional reference implementation
+- **Core services**: identity-authz (OAuth 2.1 server), identity-idp (OIDC authentication) are MANDATORY
+- **Docker Compose**: Includes all 5 Identity services for complete reference architecture
+- **Production**: Deployments may include only authz+idp, omitting rp+spa if using alternative client patterns
+- **Update Required**: Constitution.md Section III.4 clarify optional vs mandatory services
+
+### Q1.4: Is learn-ps (Pet Store) intended for production use or dev/test only?
+
+**Answer**: B+B - Dev/test environment only, isolated stack deployment
+
+- **Purpose**: Educational service demonstrating service template usage (Phase 7)
+- **NOT for production**: Reference implementation only, demonstrates patterns
+- **Deployment**: Isolated stack (not included in production compose files)
+- **Docker Compose**: Separate compose file for learn-ps demonstration
+- **Update Required**: Constitution.md Section III.5 clarify learn-ps as dev/test reference only
+
+---
+
+## Authentication and Authorization
+
+### Q2.1: Are all authentication methods (password, MFA, WebAuthn, SSO) required?
+
+**Answer**: D+C - All authentication methods mandatory, MFA enrollment tiered by user risk
+
+- **All authentication methods MANDATORY**: Password (PBKDF2), MFA (TOTP/SMS), WebAuthn (FIDO2), SSO (OIDC federation)
+- **MFA enrollment**: Tiered based on user risk level (high-risk mandatory, medium-risk recommended, low-risk optional)
+- **Rationale**: Comprehensive auth suite supports diverse deployment scenarios
+- **Update Required**: Spec.md Section 4.2 clarify MFA enrollment tiers
+
+### Q2.2: Is there a default authentication method fallback?
+
+**Answer**: D+A - No default authentication method, first-match priority ordering
+
+- **No default fallback**: Configuration MUST specify authentication methods explicitly
+- **Priority ordering**: First matching method in configuration is used
+- **Configuration example**:
+
+```yaml
+authentication:
+  methods:
+    - webauthn  # Highest priority
+    - mfa       # Second priority
+    - password  # Lowest priority
+  require_mfa: true  # Force MFA after password auth
+```
+
+- **Rationale**: Explicit configuration prevents security misconfigurations
+- **Update Required**: Spec.md Section 4.2 clarify authentication method ordering
+
+### Q2.3: How is session state managed (database, Redis, in-memory)?
+
+**Answer**: D+C - Session storage configurable (database/Redis/in-memory), database storage is default
+
+- **Session format**: Configurable (JWT, opaque tokens, hybrid)
+- **Storage backend**: Database (default), Redis (high-performance), in-memory (dev/test only)
+- **Configuration example**:
+
+```yaml
+session:
+  format: jwt  # or opaque, hybrid
+  storage: database  # or redis, memory
+  duration: 3600  # seconds
+```
+
+- **Rationale**: Different deployment scenarios require different session strategies
+- **Update Required**: Spec.md Section 4.3 clarify session storage options
+
+---
+
+## Database Architecture
+
+### Q3.1: Does the architecture support active-active database clustering?
+
+**Answer**: E+E - Active-active PostgreSQL cluster pattern supported, no automatic database failover (manual intervention required)
+
+- **PostgreSQL**: Multiple instances (cryptoutil-postgres-1, cryptoutil-postgres-2) share same database
+- **NOT active-active cluster**: Instances connect to same PostgreSQL server, not distributed cluster
+- **Schema initialization**: First instance initializes schema, others wait via health checks
+- **Failover**: Manual intervention required (update database DSN in configuration)
+- **Rationale**: Simplifies deployment, avoids distributed consensus complexity
+- **Update Required**: Constitution.md Section V.3 clarify active-active vs shared database pattern
+
+### Q3.2: Is feature parity required between SQLite and PostgreSQL?
+
+**Answer**: A+A - Strict feature parity required, except SQLite connection pool differences
+
+- **Feature parity**: ALL business logic, migrations, queries MUST work on both
+- **Exceptions**: SQLite MaxOpenConns=5 (vs PostgreSQL defaults), SQLite WAL mode specific
+- **Cross-DB compatibility**: TEXT type for UUID, GORM serializer:json, no read-only transactions
+- **Testing**: MANDATORY tests on both SQLite (unit) and PostgreSQL (integration)
+- **Update Required**: Constitution.md Section V.3 clarify strict parity requirement
+
+### Q3.3: Do all services share a single database or have independent databases?
+
+**Answer**: B+D - Independent databases per service, sequential startup with health check dependencies
+
+- **Database isolation**: Each service has independent database (kms_db, identity_db, jose_db, ca_db)
+- **Schema ownership**: Service owns schema, migrations, data
+- **Sequential startup**: First instance initializes schema, others wait via `depends_on: service_healthy`
+- **Rationale**: Microservices isolation, independent scaling, schema evolution
+- **Update Required**: Constitution.md Section V.3 clarify per-service database isolation
+
+---
+
+## Cryptography and FIPS Compliance
+
+### Q4.1: Is FIPS 140-3 compliance strictly enforced or aspirational?
+
+**Answer**: C+C - Aspirational goal pending Go standard library FIPS-validated crypto, document current status
+
+- **Current Status**: Algorithm-level compliance (use FIPS-approved algorithms only)
+- **NOT FIPS-validated**: Go crypto libraries not FIPS 140-3 validated (no official CMVP certificate)
+- **Compliance Strategy**: Use FIPS-approved algorithms (RSA, AES, ECDSA, PBKDF2) while waiting for Go FIPS validation
+- **Future**: Adopt FIPS-validated Go crypto when available (e.g., google/go-fips, microsoft/go-crypto-openssl)
+- **Documentation**: Clearly state \"algorithm-level FIPS compliance, not FIPS-validated\"
+- **Update Required**: Constitution.md Section VI clarify aspirational vs strict FIPS compliance
+
+### Q4.2: Can different unseal key versions coexist or must they be synchronized?
+
+**Answer**: B+A - Same product instances only (KMS-to-KMS share keys), fail fast on version mismatch across products
+
+- **Intra-product**: All KMS instances MUST use same unseal secrets (deterministic key derivation)
+- **Inter-product**: KMS unseal keys ≠ Identity unseal keys (independent key hierarchies)
+- **Version mismatch**: Fail fast with clear error message (prevents data corruption)
+- **Rationale**: Cryptographic interoperability requires shared keys within product
+- **Update Required**: Constitution.md Section VI clarify unseal key synchronization requirements
+
+### Q4.3: Are hash version updates (v1 → v2) automatic or manual?
+
+**Answer**: A+D - Manual version updates only (operator decision), force re-authentication for migration
+
+- **Version updates**: Manual configuration change (update `current_version: 2` in config.yaml)
+- **Migration strategy**: Gradual (new hashes use v2, old hashes verify on v1)
+- **NO automatic migration**: Old hashes stay on original version until user re-authenticates
+- **Force migration**: Invalidate sessions + force re-authentication to trigger re-hash with new version
+- **Rationale**: Controlled migration prevents surprise password hash updates
+- **Update Required**: Constitution.md Section VI clarify manual hash version management
+
+---
+
+## Testing and Quality Assurance
+
+### Q5.1: Are coverage/mutation/timing requirements CI/CD-blocking or warnings?
+
+**Answer**: A+C - CI/CD failure on violations (blocking), PR merge gating enforced
+
+- **Coverage**: <95% production, <100% infrastructure/utility = CI/CD failure
+- **Mutation**: <85% Phase 4, <98% Phase 5+ = CI/CD failure
+- **Timing**: >15s unit tests per-package, >180s total suite = CI/CD failure
+- **PR merge**: MUST pass all quality gates before merge to main
+- **Rationale**: Enforce quality standards early, prevent technical debt accumulation
+- **Update Required**: Constitution.md Section VIII clarify CI/CD blocking enforcement
+
+### Q5.2: Is there a grace period for test timing violations?
+
+**Answer**: A+A - No grace period (immediate CI/CD failure), immediate enforcement on all PRs
+
+- **Timing violations**: Immediate CI/CD failure (no warnings, no grace period)
+- **Enforcement**: ALL PRs MUST meet timing requirements
+- **Mitigation**: Use probabilistic execution (TestProbTenth, TestProbQuarter) for slow packages
+- **Rationale**: Prevent slow test accumulation, maintain fast feedback loop
+- **Update Required**: Constitution.md Section VIII clarify zero-tolerance timing enforcement
+
+### Q5.3: Do generated code files have lower coverage requirements?
+
+**Answer**: C+A - Generated code has lower coverage target (80%), integration tests excluded from timing requirements
+
+- **Generated code**: Target 80% coverage (vs 95% production)
+- **Rationale**: Generated code (OpenAPI client/server) is less error-prone, testing focuses on integration
+- **Integration tests**: Excluded from <15s per-package timing (Docker startup overhead acceptable)
+- **E2E tests**: Excluded from <180s total timing (full stack startup overhead acceptable)
+- **Update Required**: Constitution.md Section VIII clarify generated code coverage targets
+
+---
+
+## CI/CD and Workflows
+
+### Q6.1: Are dependency update PRs (Dependabot/Renovate) auto-merged or require manual review?
+
+**Answer**: D+A - PR created with test results notification only (no auto-merge), strict gating (must pass all checks)
+
+- **Auto-merge**: DISABLED (too risky for security-critical project)
+- **Workflow**: Dependabot/Renovate creates PR → CI/CD runs all checks → human reviews → manual merge
+- **Notification**: Test results posted to PR (pass/fail visibility)
+- **Gating**: MUST pass coverage, mutation, timing, security scans before merge consideration
+- **Rationale**: Manual review required for dependency changes (security, compatibility)
+- **Update Required**: Constitution.md Section IX.5 clarify dependency update workflow
+
+### Q6.2: Are health checks tiered (livez → readyz → healthz) or flat?
+
+**Answer**: B+A - Tiered health checks (livez → readyz → healthz), max 60 seconds from cold start to healthy
+
+- **Livez**: Process running (immediate response)
+- **Readyz**: Dependencies ready (DB connected, migrations applied)
+- **Healthz**: Service fully healthy (can accept traffic)
+- **Timing**: Max 60 seconds from container start to healthz=true
+- **Configuration**:
+
+```yaml
+healthcheck:
+  test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+  start_period: 10s
+  interval: 5s
+  retries: 5  # Max 10+25=35s to healthy
+```
+
+- **Update Required**: Constitution.md Section IX.3 clarify tiered health check pattern
+
+---
+
+## Documentation and Workflow
+
+### Q7.1: Is amendment of constitution.md allowed or is it immutable?
+
+**Answer**: A - Amendment allowed with justification (living document), version tracking not required (DON'T CARE)
+
+- **Constitution is LIVING DOCUMENT**: Continuous updates during implementation (MANDATORY)
+- **Amendment process**: Discover constraint → document in DETAILED.md timeline → update constitution.md → commit with reference
+- **Version tracking**: Not required (git history provides versioning)
+- **Rationale**: Implementation reality requires constitution evolution (not static prerequisite)
+- **Update Required**: Constitution.md header clarify \"LIVING DOCUMENT\" status
+
+### Q7.2: Is clarify.md regenerated from scratch or updated continuously?
+
+**Answer**: B+C - Continuous updates (topical organization maintained), hybrid regeneration (merge new Q&A into existing topics)
+
+- **Update pattern**: Append new Q&A to existing topical sections (not chronological)
+- **Regeneration**: Periodic reorganization to maintain topical structure
+- **NEVER**: Create new clarify-ROUND-N.md files (single clarify.md is source of truth)
+- **Hybrid approach**: Add new questions to existing topics, reorganize when topics become unwieldy
+- **Update Required**: Speckit instructions clarify continuous clarify.md update pattern
+
+### Q7.3: Is CLARIFY-QUIZME.md continuously updated or one-shot?
+
+**Answer**: C+C - Continuous updates (add questions as unknowns arise), user provides answers for batch update to clarify.md
+
+- **Workflow**: Discover unknown → add to CLARIFY-QUIZME.md → user answers → move to clarify.md → update constitution/spec
+- **Continuous**: Questions added throughout implementation (not one-shot at beginning)
+- **Batch processing**: User answers multiple questions → agent integrates all into clarify.md in one update
+- **NEVER**: Pre-fill answers in CLARIFY-QUIZME.md (violates core principle)
+- **Update Required**: Speckit instructions clarify continuous CLARIFY-QUIZME.md workflow
+
+---
+
+## Observability and Telemetry
+
+### Q8.1: What are resource limits for OTLP collector?
+
+**Answer**: B+D - 512Mi memory limit, adaptive sampling based on load
+
+- **Memory limit**: 512Mi (prevents OOM in constrained environments)
+- **CPU limit**: 500m (0.5 CPU cores)
+- **Sampling strategy**: Adaptive based on throughput (100% at low load, 10% at high load)
+- **Configuration example**:
+
+```yaml
+processors:
+  probabilistic_sampler:
+    sampling_percentage: 10  # High load
+    hash_seed: 42
+```
+
+- **Rationale**: Balance telemetry completeness with resource constraints
+- **Update Required**: Observability instructions clarify OTLP resource limits and sampling
+
+---
+
+## Security and Secrets Management
+
+### Q9.1: What are the required permissions for Docker secrets files?
+
+**Answer**: A+E - 400 permissions (r--------), Dockerfile MUST include validation job
+
+- **File permissions**: 400 (read-only for owner) or 440 (read-only for owner+group)
+- **Rationale**: Prevent unauthorized access to secrets
+- **Dockerfile validation pattern** (from KMS):
+
+```dockerfile
+# Validation stage - verify secrets exist with correct permissions
+FROM alpine:3.19 AS validator
+COPY --from=builder /run/secrets/ /run/secrets/
+RUN ls -la /run/secrets/ && \
+    test -r /run/secrets/database_url_secret && \
+    chmod 440 /run/secrets/*
+```
+
+- **Enforcement**: CI/CD workflow validates Dockerfile includes secrets validation job
+- **Update Required**: Docker instructions add 440 permissions requirement, Dockerfile validation job pattern
+
+---
+
+## Identity and Multi-Tenancy
+
+### Q10.1: Does federated authentication share sessions across services?
+
+**Answer**: D - No session sharing (each service validates tokens independently), UX implications unknown
+
+- **Session isolation**: Each service (authz, idp, rs, rp, spa) manages own sessions
+- **Token validation**: Services validate OAuth 2.1 tokens independently (no session sharing)
+- **UX impact**: Unknown (may require multiple logins if sessions not federated)
+- **Future consideration**: Implement SSO token exchange for seamless UX
+- **Update Required**: Identity architecture spec clarify session isolation pattern
+
+### Q10.2: How is multi-tenant data isolation implemented?
+
+**Answer**: B - Schema-level tenant isolation preferred, table-level isolation acceptable
+
+- **Preferred**: Separate PostgreSQL schemas per tenant (tenant_a.users, tenant_b.users)
+- **Acceptable**: Tenant ID column in shared tables with row-level security (RLS)
+- **NOT SUPPORTED**: Separate databases per tenant (too many connections)
+- **Configuration**:
+
+```yaml
+multi_tenancy:
+  isolation: schema  # or table
+  tenant_id_header: X-Tenant-ID
+```
+
+- **Update Required**: Identity architecture spec clarify tenant isolation patterns
+
+### Q10.3: Are custom certificate profiles for different client types supported?
+
+**Answer**: B - Custom certificate profiles allowed (DV, OV, EV)
+
+- **Certificate profiles**: DV (Domain Validation), OV (Organization Validation), EV (Extended Validation)
+- **Per-client configuration**: Client can request specific profile based on trust requirements
+- **Policy enforcement**: CA policy engine enforces profile constraints
+- **Configuration example**:
+
+```yaml
+certificate_profiles:
+  - name: dv
+    validation: domain_only
+    validity: 90_days
+  - name: ov
+    validation: organization
+    validity: 397_days
+  - name: ev
+    validation: extended
+    validity: 397_days
+```
+
+- **Update Required**: CA architecture spec clarify certificate profile customization
+
+---
+
 *This clarify.md document is authoritative for implementation decisions. When ambiguities arise, refer to this document first before making assumptions.*
