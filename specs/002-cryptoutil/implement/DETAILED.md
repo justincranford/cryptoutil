@@ -1868,3 +1868,83 @@ Missing public HTTP server implementation in:
 - [db4de058] docs(quality): update RS task from blocker to in-progress
 
 **Status**: ✅ RS public server implementation COMPLETE (code + tests), ⚠️ authz/idp runtime issues blocking workflows (NOT architectural), ⏳ 8 workflows still running
+---
+
+### 2025-12-21: Comprehensive Documentation Update - CLARIFY-QUIZME.md Anti-Pattern Fix
+
+**Context**: User EXTREMELY frustrated with agent repeatedly violating CLARIFY-QUIZME.md core principle (unknowns ONLY) by populating with questions having known answers. Session evolved from routine cleanup to massive documentation overhaul incorporating all user answers across 4+ files plus new requirements for production readiness.
+
+**Work Completed**:
+
+1. ✅ **CLARIFY-QUIZME.md Cleared** (895→16 lines): Removed all 879 lines of answered questions (Q1-20, Q1.3-10.3) via PowerShell regex replace
+2. ✅ **Speckit Instructions Updated** (06-01.speckit.instructions.md +53 lines): Added "CLARIFY-QUIZME.md Rules - CRITICAL" section with enforcement: NEVER include known answers, NEVER pre-fill Write-in, ALWAYS move to clarify.md, Example Violation vs Correct Pattern, Workflow (search codebase before adding question)
+3. ✅ **Architecture Instructions Updated** (01-01.architecture.instructions.md +46 lines): Added "Service Template Requirement - MANDATORY" section (extract from KMS, NEVER duplicate, <500 lines success criteria, Phase 6 extraction + Phase 7 validation)
+4. ✅ **clarify.md MASSIVELY EXPANDED** (+518 lines, 795→1313 lines): Integrated ALL answered questions organized topically:
+   - Service Architecture Continued (Q6-20): Coverage targets, timing requirements, FIPS restrictions, TLS patterns, phase dependencies, database compatibility, naming consistency, service template success criteria, health checks, log aggregation, SPOFs, performance scaling (horizontal), backup/recovery, integration testing, documentation maintenance
+   - Identity Service Architecture (Q1.3-1.4): rp/spa optional, learn-ps dev/test only
+   - Authentication and Authorization (Q2.1-2.3): All auth methods mandatory, MFA tiered, no default fallback, session storage configurable
+   - Database Architecture (Q3.1-3.3): Active-active cluster pattern, strict feature parity, independent databases per service
+   - Cryptography and FIPS Compliance (Q4.1-4.3): Aspirational FIPS pending Go validation, same-product unseal key sharing, manual hash version updates
+   - Testing and Quality Assurance (Q5.1-5.3): CI/CD blocking enforcement, no grace period for timing, generated code 80% target
+   - CI/CD and Workflows (Q6.1-6.2): Dependency PRs manual review, tiered health checks 60s max
+   - Documentation and Workflow (Q7.1-7.3): Constitution amendments allowed, continuous clarify.md updates, continuous CLARIFY-QUIZME.md workflow
+   - Observability and Telemetry (Q8.1): OTLP 512Mi limit, adaptive sampling
+   - Security and Secrets Management (Q9.1): Docker secrets 440 permissions, dockerfile validation job
+   - Identity and Multi-Tenancy (Q10.1-10.3): No session sharing, schema-level isolation preferred, custom certificate profiles allowed
+5. ✅ **constitution.md Expanded** (+169 lines): Added Section VB "Performance, Scaling, and Resource Management" after Section VA covering:
+   - Vertical Scaling (resource limits CPU 500m-2000m/memory 256Mi-1Gi, monitoring thresholds)
+   - Horizontal Scaling (load balancers L4/L7, session state JWT/sticky/Redis/DB, database read replicas/pooling/sharding, distributed caching L1/L2/L3, deployment patterns blue-green/canary/rolling)
+   - Backup and Recovery (PostgreSQL pg_dump/pg_basebackup, SQLite file copy, daily 30-day retention, disaster recovery via migrations+key rotation)
+   - Quality Tracking Documentation (MANDATORY QUALITY-TODOs.md pattern for coverage/mutation challenges with lessons learned)
+6. ✅ **docker instructions Updated** (02-02.docker.instructions.md): Expanded "Docker Secrets - CRITICAL" section with MANDATORY 440 permissions (r--r-----) for all secrets files, Dockerfile Secrets Validation Job MANDATORY (pattern from KMS: alpine:3.19 AS validator stage with ls -la verification and chmod 440 enforcement), CI/CD SHOULD validate Dockerfile includes secrets validation job
+7. ✅ **QUALITY-TODOs.md Expanded** (+67 lines): Added "Quality Tracking Pattern" section after Overview with Purpose, Documentation Pattern (markdown template for Priority 1 coverage gaps + Priority 2 mutation improvements), When to Document (coverage <target, mutation <target, timing >limits, probabilistic execution), How to Document (identify gap, challenges, what worked/didn't, recommendations), Documented in constitution Section VB
+8. ✅ **WORKFLOW-ANALYSIS.md Created** (297 lines): Comprehensive analysis of 13 GitHub Actions workflows including Workflow Inventory (quality 5, security 3, integration 4, release 1 with line counts 72-771), Consistency Analysis (common patterns: env vars/setup actions/pre-commit; inconsistencies: PostgreSQL service handling/timeout values 15m-90m/matrix usage), Organization Recommendations (current by-type vs by-phase), Optimization Opportunities (docker image pre-pull parallelization, ci-mutation matrix to reduce 60m→20m, coverage efficiency), Consistency Checklist (✅ GO_VERSION/actions versions, ⚠️ PostgreSQL/timeouts/matrix, ❌ header comments/error handling/dependency graph), Recommended Next Steps (short: header comments/PostgreSQL standardization/timeout docs, medium: ci-mutation matrix/ci-dast split/coverage review, long: dependency graph/workflow templates/monitoring)
+9. ✅ **spec.md Expanded** (+141 lines): Added "Non-Functional Requirements" section before "Known Gaps and Future Work" covering Performance and Scaling (vertical: CPU/memory limits, horizontal: load balancers, session state, database scaling, caching, deployment patterns), Backup and Recovery (PostgreSQL pg_dump, SQLite file copy, daily 30-day retention, disaster recovery), Observability (OTLP 512Mi limit, adaptive sampling), Security (docker secrets 440 permissions, dockerfile validation job), Multi-Tenancy (schema-level isolation preferred), Certificate Profiles (DV/OV/EV)
+10. ✅ **Deleted Abandoned Docs**: CLARIFY-QUIZME-NEW.md, WORKFLOW-FIXES-TASK-LIST.md
+
+**User Answers Summary** (moved from CLARIFY-QUIZME.md to clarify.md):
+
+- Q1-20 General Architecture: Port ranges unique (A), admin 127.0.0.1:9090 OK (A), RS status inaccurate (B), federation adequate (A), discovery complete (A), coverage targets consistent (A), timing realistic (A), FIPS clear (A), TLS adequate (A), dependencies logical (A), database compatibility specified (A), naming consistent (A), success criteria clear (A), health checks adequate (A), log aggregation clear (A), SPOFs mitigated (A), performance scaling MISSING horizontal (B), backup/recovery covered (A), integration testing comprehensive (A), documentation maintenance clear (A)
+- Q1.3-1.4 Identity: rp/spa optional (B+C), learn-ps dev/test only (B+B)
+- Q2.1-2.3 Auth: All auth mandatory (D+C), no default (D+A), session configurable (D+C)
+- Q3.1-3.3 Database: Active-active cluster (E+E), strict parity (A+A), independent databases (B+D)
+- Q4.1-4.3 Crypto: Aspirational FIPS (C+C), same product only (B+A), manual version updates (A+D)
+- Q5.1-5.3 Testing: CI blocking (A+C), no grace period (A+A), generated code 80% (C+A)
+- Q6.1-6.2 CI/CD: PR notify only (D+A), tiered health checks (B+A)
+- Q7.1-7.3 Docs: Amendment allowed (A), continuous updates (B+C), continuous QUIZME (C+C)
+- Q8.1 Observability: OTLP 512Mi limit (B+D)
+- Q9.1 Security: Secrets 440 perms (A+E)
+- Q10.1-10.3 Multi-Tenancy: No session sharing (D), schema-level isolation (B), custom profiles (B)
+
+**Commits Made** (11 total):
+
+1. [e9c66c5e] docs(clarify): commit user CLARIFY-QUIZME.md answer edits
+2. [dc56297f] docs(speckit): add CLARIFY-QUIZME.md rules - NEVER include known answers, ALWAYS move to clarify.md
+3. [4e8b90c3] docs(architecture): add service template requirement - MANDATORY extraction from KMS, NEVER duplicate
+4. [3ae4c5f0] docs(cleanup): delete abandoned CLARIFY-QUIZME-NEW.md and WORKFLOW-FIXES-TASK-LIST.md
+5. [b1fc8a1f] docs(clarify): add service template Q&A - extraction requirement, business logic vs infrastructure
+6. [0a3df4f9] docs(speckit): clear CLARIFY-QUIZME.md - all questions answered and moved to clarify.md
+7. [75abba59] docs(clarify): integrate all answered questions from CLARIFY-QUIZME.md - comprehensive Q&A update
+8. [b8f705ff] docs(constitution,docker): add performance scaling, backup/recovery, quality tracking, docker secrets validation
+9. [4740ee15] docs(quality): add quality tracking pattern documentation - coverage, mutation, timing challenges
+10. [8c9b1e9d] docs(workflows): add comprehensive workflow analysis - consistency, optimization, recommendations
+11. [5b3c688c] docs(spec): add non-functional requirements - performance, scaling, backup, security, multi-tenancy
+
+**Key Documentation Cross-References**:
+
+- Database patterns (TEXT type UUID, GORM serializer:json) already documented in 01-06.database.instructions.md (verified 20 matches)
+- Service template requirements now documented in 3 locations: 01-01.architecture.instructions.md, constitution Section IX, clarify.md Section 0
+- CLARIFY-QUIZME.md anti-pattern prevention enforced in 06-01.speckit.instructions.md
+
+**Lessons Learned**:
+
+1. **CLARIFY-QUIZME.md violations cause SEVERE user frustration** - Need explicit enforcement rules in copilot instructions
+2. **Service template documentation must exist in MULTIPLE places** for discoverability (architecture instructions, constitution, spec, clarify)
+3. **Performance/scaling requirements belong in both constitution** (authoritative) and spec (technical details)
+4. **Quality tracking patterns need explicit documentation templates** to ensure consistency
+5. **Docker security (secrets permissions, validation jobs)** must be explicitly documented in instructions
+6. **Workflow analysis benefits from structured format** (inventory, consistency, optimization, recommendations)
+
+**Pre-Commit Results**: All 11 commits passed markdown linting (auto-fixed end-of-file, trailing whitespace removed)
+
+**Status**: ✅ Comprehensive documentation update COMPLETE - All user-requested tasks done (CLARIFY-QUIZME.md cleared, all answers integrated, performance/scaling/backup/recovery requirements added, docker security enforcement added, workflow analysis completed)
