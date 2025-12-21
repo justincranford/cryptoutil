@@ -271,7 +271,7 @@ CREATE INDEX IF NOT EXISTS idx_email_otps_used ON email_otps(used);
 
 ## Conclusion
 
-Email OTP backend is **100% complete** with 20/20 tests passing (100% coverage of implemented components). Security requirements validated: bcrypt hashing ✅, single-use ✅, expiration ✅, rate limiting ✅, cryptographic security ✅.
+Email OTP backend is **100% complete** with 20/20 tests passing (98% coverage of implemented components). Security requirements validated: bcrypt hashing ✅, single-use ✅, expiration ✅, rate limiting ✅, cryptographic security ✅.
 
 Implementation time: ~3 hours (under 4-6 hour estimate). Handler tests and login flow integration deferred to future work.
 

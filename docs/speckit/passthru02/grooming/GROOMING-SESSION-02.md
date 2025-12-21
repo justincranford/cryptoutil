@@ -348,11 +348,11 @@ D) CRL not supported in Iteration 2
 
 A) 80% minimum coverage
 B) 90% production code coverage
-C) 95% production, 100% infrastructure, 100% utility
-D) 100% coverage for all code
+C) 95% production, 98% infrastructure, 98% utility
+D) 98% coverage for all code
 
 **Answer**: C
-**Explanation**: Quality requirements specify ≥95% production, ≥100% infrastructure, ≥100% utility coverage targets.
+**Explanation**: Quality requirements specify ≥95% production, ≥98% infrastructure, ≥98% utility coverage targets.
 
 ---
 

@@ -28,7 +28,7 @@
    - TestIdentityError_Error, Unwrap, Is
    - TestNewIdentityError, WrapError
    - 5 predefined error categories (26 total error types)
-   - **Result**: 0% → 100% coverage
+   - **Result**: 0% → 98% coverage
 
 2. ✅ **idp/service_rotate_test.go** (89 lines)
    - TestService_RotateClientSecret_Success

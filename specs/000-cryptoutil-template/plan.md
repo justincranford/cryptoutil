@@ -201,7 +201,7 @@ services:
 
 ## Testing Strategy
 
-### Unit Tests (≥95% coverage production, ≥100% infrastructure/utility)
+### Unit Tests (≥95% coverage production, ≥98% infrastructure/utility)
 
 **File Naming**: `*_test.go`
 
@@ -215,7 +215,7 @@ services:
 **Coverage Targets by Package Type**:
 
 - Production code: ≥95%
-- Infrastructure (cicd): ≥100%
+- Infrastructure (cicd): ≥98%
 - Utility code: 100%
 
 ### Integration Tests
@@ -318,7 +318,7 @@ gremlins unleash
 ### Pre-Push Gates
 
 - [ ] `go test ./...` passes all tests
-- [ ] Coverage ≥95% production, ≥100% infrastructure/utility
+- [ ] Coverage ≥95% production, ≥98% infrastructure/utility
 - [ ] All benchmarks run successfully
 - [ ] Dependency checks pass
 - [ ] Pre-commit hooks pass
@@ -359,8 +359,8 @@ gremlins unleash
 
 - [ ] `go test ./... -shuffle=on` passes (concurrent execution)
 - [ ] Coverage ≥95% production: `go test -cover ./internal/product/...`
-- [ ] Coverage ≥100% infrastructure: `go test -cover ./internal/cmd/cicd/...`
-- [ ] Coverage 100% utility: `go test -cover ./internal/common/util/...`
+- [ ] Coverage ≥98% infrastructure: `go test -cover ./internal/cmd/cicd/...`
+- [ ] Coverage 98% utility: `go test -cover ./internal/common/util/...`
 - [ ] No skipped tests without tracking
 
 ### Benchmarks

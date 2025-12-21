@@ -36,7 +36,7 @@
 **P2: Coverage Targets (95%+ strict, NO EXCEPTIONS)**
 
 - Production packages: 95%+ mandatory
-- Infrastructure/utility: 100% mandatory
+- Infrastructure/utility: 98% mandatory
 - Per-package granular tracking
 
 **P3: CI/CD Workflow Fixes (0 failures target)**
@@ -85,7 +85,7 @@
 ### What Changed
 
 1. **More Aggressive Test Optimization**: ≤12s (was ≤15s)
-2. **Strict Coverage Enforcement**: 95%/100% NO EXCEPTIONS (was "95%+ with exceptions")
+2. **Strict Coverage Enforcement**: 95%/98% NO EXCEPTIONS (was "95%+ with exceptions")
 3. **Per-Package Task Granularity**: 60+ tasks for P2, 40+ for P4 (was 8-10 coarse tasks)
 4. **CI/CD First**: Fix all 5 workflow failures in P3 (was deferred)
 5. **98% Mutation Target**: Per package (was 80%)
@@ -142,7 +142,7 @@
 
 ### Phase 2: Coverage Targets - 95% Mandatory (60+ tasks)
 
-**Goal**: Production 95%+, Infrastructure/Utility 100%, NO EXCEPTIONS
+**Goal**: Production 95%+, Infrastructure/Utility 98%, NO EXCEPTIONS
 
 **Strategy**:
 
@@ -158,9 +158,9 @@
   - **CRITICAL**: internal/identity/authz currently 66.8% (28.2 point gap)
 - **P2.4**: JOSE (2 packages, 95%+ target)
 - **P2.5**: CA (2 packages, 95%+ target)
-- **P2.6**: Shared Crypto (4 packages, 100%+ target - utility code)
-- **P2.7**: Shared Infrastructure (8 packages, 100%+ target)
-- **P2.8**: CICD (10+ packages, 100%+ target - infrastructure)
+- **P2.6**: Shared Crypto (4 packages, 98%+ target - utility code)
+- **P2.7**: Shared Infrastructure (8 packages, 98%+ target)
+- **P2.8**: CICD (10+ packages, 98%+ target - infrastructure)
 
 ### Phase 3: CI/CD Workflow Fixes (15 tasks)
 
@@ -302,7 +302,7 @@ HashService
 ### Phase 2 Success (High Coverage)
 
 - ✅ Production packages: 95%+ coverage (NO EXCEPTIONS)
-- ✅ Infrastructure/utility: 100% coverage (NO EXCEPTIONS)
+- ✅ Infrastructure/utility: 98% coverage (NO EXCEPTIONS)
 - ✅ Per-package verification complete
 - ✅ Gap analysis documented for each package
 

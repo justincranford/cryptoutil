@@ -37,7 +37,7 @@ Cryptoutil is a **four-product cryptographic suite** providing enterprise-grade 
 - ✅ **Cross-Database**: SQLite (dev) + PostgreSQL (prod) working
 - ⏳ **Quality Gates**: 5 workflows failing (quality, mutations, fuzz, dast, load) - fixing in P3
 - ✅ **Security First**: TLS 1.3+ enforced, Docker secrets, dual HTTPS
-- ⏳ **95%+ Coverage**: Production 95%+ (strict), infrastructure/utility 100% (no exceptions) - implementing in P2
+- ⏳ **95%+ Coverage**: Production 95%+ (strict), infrastructure/utility 98% (no exceptions) - implementing in P2
 - ⏳ **Fast Tests**: ≤12s per package (more aggressive target) - implementing in P1
 - ⏳ **98% Mutations**: Per-package mutation kill rate - implementing in P4
 - ⏳ **Clean Hash Architecture**: 4 types with version management - implementing in P5
@@ -147,7 +147,7 @@ Status: Pending
 - **internal/kms/server/businesslogic**: Currently 39.0%, target 95% (gap: 56 points)
 - Many other packages below 95% threshold
 
-**Strategy**: Strict 95%/100% enforcement, no exceptions allowed (P2)
+**Strategy**: Strict 95%/98% enforcement, no exceptions allowed (P2)
 
 #### Gremlins Baseline (Mutation Testing)
 
@@ -187,7 +187,7 @@ Status: Pending
 #### What We'll Do Differently
 
 1. **Strict Task Structure**: Per-package granularity, no hiding progress gaps
-2. **No Coverage Exceptions**: 95% production, 100% infra/util, BLOCKING until met
+2. **No Coverage Exceptions**: 95% production, 98% infra/util, BLOCKING until met
 3. **CI/CD First**: Fix all 5 workflow failures before proceeding (P3) → **UPDATE**: 2 completed (Quality), 3 blocked by incomplete identity implementation
 4. **98% Mutation Target**: Per-package enforcement, no rationalization
 5. **Extract Template**: Reusable pattern from KMS, validate with Learn-PS

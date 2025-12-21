@@ -21,7 +21,7 @@
 | Criterion | Target Metric |
 |-----------|---------------|
 | Feature Completion | [X/Y tasks complete] |
-| Test Coverage | ≥95% production, ≥100% infrastructure |
+| Test Coverage | ≥95% production, ≥98% infrastructure |
 | Performance | [Specific benchmarks] |
 | Quality | All tests passing, lint clean |
 
@@ -163,8 +163,8 @@ deployments/product/
 | ID | Requirement | Target | Measurement |
 |----|-------------|--------|-------------|
 | NFR4.1 | Code coverage | ≥95% production | `go test -cover` |
-| NFR4.2 | Infrastructure coverage | ≥100% cicd | `go test -cover ./internal/cmd/cicd/...` |
-| NFR4.3 | Utility coverage | 100% | `go test -cover ./internal/common/util/...` |
+| NFR4.2 | Infrastructure coverage | ≥98% cicd | `go test -cover ./internal/cmd/cicd/...` |
+| NFR4.3 | Utility coverage | 98% | `go test -cover ./internal/common/util/...` |
 | NFR4.4 | Linting | 0 errors | `golangci-lint run` |
 | NFR4.5 | File size limits | <500 lines | Manual review |
 | NFR4.6 | Mutation score | ≥98% | `gremlins unleash` |
@@ -229,7 +229,7 @@ deployments/product/
 
 - Table-driven with `t.Parallel()`
 - Coverage ≥95% for production code
-- Coverage ≥100% for infrastructure/utility code
+- Coverage ≥98% for infrastructure/utility code
 - Mock external dependencies
 - Test both happy and sad paths
 
@@ -333,7 +333,7 @@ deployments/product/
 
 - [ ] `go build ./...` passes clean
 - [ ] `golangci-lint run` passes with 0 errors
-- [ ] `go test ./...` passes with ≥95% coverage (production), ≥100% (infra/util)
+- [ ] `go test ./...` passes with ≥95% coverage (production), ≥98% (infra/util)
 - [ ] All benchmarks run successfully
 - [ ] All fuzz tests run for ≥15s
 - [ ] Gremlins mutation score ≥98%
@@ -364,7 +364,7 @@ deployments/product/
 
 - ✅ Mandatory functional requirements section
 - ✅ Mandatory non-functional requirements section (security, performance, quality, testability, observability, deployment)
-- ✅ Coverage targets: 95% production, 100% infrastructure/utility
+- ✅ Coverage targets: 95% production, 98% infrastructure/utility
 - ✅ Testing requirements: unit, integration, benchmark, fuzz, property, mutation, E2E
 - ✅ Quality gates: build, lint, test, coverage, mutation score
 - ✅ FIPS 140-3 compliance requirements

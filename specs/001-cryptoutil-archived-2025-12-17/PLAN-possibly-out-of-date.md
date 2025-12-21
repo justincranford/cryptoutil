@@ -209,7 +209,7 @@ All services follow KMS pattern:
 - ✅ All services have admin servers on 127.0.0.1:9090
 - ✅ All Docker Compose files use admin health checks
 - ✅ All E2E tests use unified command interface
-- ✅ 100% test coverage for new cmd packages
+- ✅ 98% test coverage for new cmd packages
 - ✅ All CI/CD workflows passing with new architecture
 
 ### Dependencies

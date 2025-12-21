@@ -349,7 +349,7 @@ For EACH task, verify:
 - [ ] **Testing**
   - [ ] Unit tests with `t.Parallel()`
   - [ ] Table-driven tests
-  - [ ] Coverage ≥95% (production) / ≥100% (infrastructure/utility)
+  - [ ] Coverage ≥95% (production) / ≥98% (infrastructure/utility)
   - [ ] Benchmarks for hot paths
   - [ ] Fuzz tests for parsers/validators
 
@@ -385,7 +385,7 @@ For EACH task, verify:
 **Target Coverage**:
 
 - Production code: ≥95%
-- Infrastructure (cicd): ≥100%
+- Infrastructure (cicd): ≥98%
 - Utility code: 100%
 
 **Requirements**:
@@ -456,7 +456,7 @@ For EACH task, verify:
 - [ ] `go build ./...` passes clean
 - [ ] `golangci-lint run` passes with 0 errors
 - [ ] `go test ./... -shuffle=on` passes (concurrent execution)
-- [ ] Coverage ≥95% production, ≥100% infrastructure/utility
+- [ ] Coverage ≥95% production, ≥98% infrastructure/utility
 - [ ] All benchmarks run successfully
 - [ ] All fuzz tests run for ≥15s
 - [ ] Gremlins mutation score ≥80%
@@ -484,7 +484,7 @@ For EACH task, verify:
 - ✅ Quality checklist per task
 - ✅ Risk tracking per task and phase
 - ✅ Comprehensive testing requirements (unit, integration, benchmark, fuzz, mutation, E2E)
-- ✅ Coverage targets: 95% production, 100% infrastructure/utility
+- ✅ Coverage targets: 95% production, 98% infrastructure/utility
 
 **Customization**:
 

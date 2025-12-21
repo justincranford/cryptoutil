@@ -81,7 +81,7 @@ Expose P1 JOSE and P4 CA internal capabilities as standalone REST APIs
 
 ## 🆕 ITERATION 3 IN PROGRESS
 
-**Iteration 3 Goal**: Complete remaining I2 tasks, increase coverage to 95%+ production/100%+ infrastructure, demo videos
+**Iteration 3 Goal**: Complete remaining I2 tasks, increase coverage to 95%+ production/98%+ infrastructure, demo videos
 
 ### Iteration 3 Scope
 

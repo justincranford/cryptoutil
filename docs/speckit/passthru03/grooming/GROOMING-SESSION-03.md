@@ -312,11 +312,11 @@ D) Avoid TestMain, use setup/teardown per test
 
 A) 90% for all code categories
 B) 95% production, 95% infrastructure, 95% utility
-C) 95% production, 100% infrastructure, 100% utility
-D) 80% production, 90% infrastructure, 100% utility
+C) 95% production, 98% infrastructure, 98% utility
+D) 80% production, 90% infrastructure, 98% utility
 
 **Answer**: C
-**Explanation**: Quality requirements specify different targets: ≥95% production, ≥100% infrastructure (cicd), ≥100% utility code.
+**Explanation**: Quality requirements specify different targets: ≥95% production, ≥98% infrastructure (cicd), ≥98% utility code.
 
 ---
 

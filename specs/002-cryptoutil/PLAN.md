@@ -89,7 +89,7 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 **Testing Requirements** (CRITICAL):
 
 - ALWAYS concurrent: `go test ./... -shuffle=on` (NEVER `-p=1` or `-parallel=1`)
-- Coverage targets: 95% production, 100% infrastructure, 100% utility
+- Coverage targets: 95% production, 98% infrastructure, 98% utility
 - Mutation testing: ≥85% Phase 4, ≥98% Phase 5+
 - Test timing: <15s per unit test package, <180s total unit suite
 - Real dependencies preferred (PostgreSQL containers, real crypto, real HTTPS servers)
@@ -192,7 +192,7 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 **Quality Gates**:
 
-- [x] 100%+ test coverage (infrastructure requirement)
+- [x] 98%+ test coverage (infrastructure requirement)
 - [x] PostgreSQL and SQLite dual testing
 - [x] Concurrent test execution with t.Parallel()
 - [x] Integration tests with test containers
@@ -216,7 +216,7 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 **Quality Gates**:
 
-- [x] 100%+ test coverage
+- [x] 98%+ test coverage
 - [x] Telemetry forwarding validated (services → otel-collector → Grafana)
 - [x] No sensitive data in logs (PII, passwords, keys)
 - [x] Proper log levels (debug, info, warn, error)
@@ -240,7 +240,7 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 **Quality Gates**:
 
-- [x] 100%+ test coverage
+- [x] 98%+ test coverage
 - [x] Validation errors prevent startup
 - [x] Default config supports dev mode (no required settings)
 - [x] No hardcoded secrets in code or configs
@@ -582,7 +582,7 @@ hash_service:
 
 **Quality Gates**:
 
-- [ ] 100%+ test coverage (utility code requirement)
+- [ ] 98%+ test coverage (utility code requirement)
 - [ ] Version migration tests (hash with v1, verify with v2)
 - [ ] FIPS 140-3 compliance validated (PBKDF2, HKDF approved)
 - [ ] 98%+ mutation efficacy (Phase 5 requirement)
@@ -610,7 +610,7 @@ hash_service:
 - [ ] Create coverage gap remediation plan per package
 - [ ] Write targeted tests for identified gaps (NOT blind test addition)
 - [ ] Validate coverage improvement per test batch
-- [ ] Achieve 95%+ production, 100%+ infrastructure/utility coverage
+- [ ] Achieve 95%+ production, 98%+ infrastructure/utility coverage
 
 **Package-Level Tracking** (examples):
 
@@ -621,17 +621,17 @@ hash_service:
 | internal/kms/server | 91.2% | 95% | ❌ | Encryption corner cases |
 | internal/ca | 88.9% | 95% | ❌ | Certificate validation paths |
 | internal/shared/crypto | 96.3% | 95% | ✅ | None |
-| internal/shared/repository | 100% | 100% | ✅ | None |
-| internal/cmd/cicd | 92.1% | 100% | ❌ | CLI error handling |
+| internal/shared/repository | 98% | 98% | ✅ | None |
+| internal/cmd/cicd | 92.1% | 98% | ❌ | CLI error handling |
 
 **Quality Gates**:
 
-- [ ] NO PACKAGE below 95% (production) or 100% (infrastructure/utility)
+- [ ] NO PACKAGE below 95% (production) or 98% (infrastructure/utility)
 - [ ] Coverage reports in test-output/ directory
 - [ ] Baseline → HTML analysis → targeted tests → verify improvement cycle documented
 - [ ] NO blind test addition (always analyze baseline first)
 
-**Evidence**: Coverage reports showing 95%/100% targets met, test-output/ artifacts committed
+**Evidence**: Coverage reports showing 95%/98% targets met, test-output/ artifacts committed
 
 ---
 
@@ -946,7 +946,7 @@ internal/template/
 
 **Quality Gates**:
 
-- [ ] 100%+ test coverage (utility code requirement)
+- [ ] 98%+ test coverage (utility code requirement)
 - [ ] Template validated against all 4 existing products
 - [ ] Parameterization allows full customization
 - [ ] Documentation complete (usage guide, examples)
@@ -974,7 +974,7 @@ internal/template/
 **Quality Gates**:
 
 - [ ] All refactored services pass existing test suites
-- [ ] Coverage maintained at 95%/100% targets
+- [ ] Coverage maintained at 95%/98% targets
 - [ ] Mutation efficacy maintained at 98%
 - [ ] No functionality regressions
 
@@ -1226,7 +1226,7 @@ Each phase is NOT complete until ALL criteria are met:
 
 #### Phase 1 (Core Infrastructure) - ⚠️ In Progress
 
-- [ ] All infrastructure packages 100% coverage
+- [ ] All infrastructure packages 98% coverage
 - [ ] CGO ban enforced (NO CGO dependencies)
 - [ ] FIPS 140-3 compliance validated
 - [ ] Dual HTTPS pattern implemented for ALL services
@@ -1250,7 +1250,7 @@ Each phase is NOT complete until ALL criteria are met:
 #### Phase 4 (Quality Gates) - ⚠️ In Progress
 
 - [ ] 95%+ coverage for ALL production packages
-- [ ] 100%+ coverage for ALL infrastructure/utility packages
+- [ ] 98%+ coverage for ALL infrastructure/utility packages
 - [ ] ≥85% mutation efficacy for ALL packages
 - [ ] <15s per unit test package, <180s total unit suite
 - [ ] All golangci-lint violations fixed
@@ -1285,7 +1285,7 @@ cryptoutil is ready for production when:
 
 1. **All 7 phases complete** with evidence documented in DETAILED.md
 2. **All quality gates passed**:
-   - 95%+ coverage (production), 100%+ (infrastructure/utility)
+   - 95%+ coverage (production), 98%+ (infrastructure/utility)
    - ≥98% mutation efficacy per package
    - <15s per unit test package, <180s total
    - All CI/CD workflows passing

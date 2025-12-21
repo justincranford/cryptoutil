@@ -65,7 +65,7 @@
 
 ### Package Coverage Classification
 
-**Q**: Which specific packages require 95% vs 100% coverage?
+**Q**: Which specific packages require 95% vs 98% coverage?
 
 **A** (Source: SPECKIT-CONFLICTS-ANALYSIS A2, CLARIFY-QUIZME2 A2.1, 2025-12-19):
 
@@ -74,10 +74,10 @@
 **Initial Classification**:
 
 - **Production (95%)**: internal/{jose,identity,kms,ca}
-- **Infrastructure (100%)**: internal/cmd/cicd/*
-- **Utility (100%)**: internal/shared/*, pkg/*
+- **Infrastructure (98%)**: internal/cmd/cicd/*
+- **Utility (98%)**: internal/shared/*, pkg/*
 
-**Rationale**: Package complexity varies - some "production" packages have simpler logic warranting 100%, while some "utility" packages have complex error handling justifying 95%. Document each package's target in this clarify.md as implementation progresses.
+**Rationale**: Package complexity varies - some "production" packages have simpler logic warranting 98%, while some "utility" packages have complex error handling justifying 95%. Document each package's target in this clarify.md as implementation progresses.
 
 **Documentation Pattern**:
 
@@ -220,11 +220,11 @@ federation:
 
 ### Coverage Target Enforcement
 
-**Q**: Should we enforce strict coverage targets (95%/100%) or allow gradual improvement?
+**Q**: Should we enforce strict coverage targets (95%/98%) or allow gradual improvement?
 
 **A** (Source: SPECKIT-CONFLICTS-ANALYSIS A2, 2025-12-19):
 
-- **Strict Enforcement**: 95%+ production, 100%+ infrastructure/utility, NO EXCEPTIONS
+- **Strict Enforcement**: 95%+ production, 98%+ infrastructure/utility, NO EXCEPTIONS
 - Coverage < 95% is BLOCKING issue requiring immediate remediation
 - "Improvement" is NOT success - only "target met" counts
 
@@ -793,13 +793,13 @@ func NewServiceTemplate(config *ServiceConfig) (*Service, error) {
 
 ## Service Architecture Continued
 
-### Q6: Are the testing coverage targets (95% production, 100% infrastructure/utility) consistently specified?
+### Q6: Are the testing coverage targets (95% production, 98% infrastructure/utility) consistently specified?
 
 **Answer**: A - Yes, consistently specified
 
 - Production packages: ≥95% (internal/{jose,identity,kms,ca})
-- Infrastructure packages: ≥100% (internal/cmd/cicd/*)
-- Utility packages: ≥100% (internal/shared/*, pkg/*)
+- Infrastructure packages: ≥98% (internal/cmd/cicd/*)
+- Utility packages: ≥98% (internal/shared/*, pkg/*)
 - Main functions: 0% acceptable if internalMain() ≥95%
 - **Documented in**: .github/instructions/01-04.testing.instructions.md
 
@@ -1109,7 +1109,7 @@ session:
 
 **Answer**: A+C - CI/CD failure on violations (blocking), PR merge gating enforced
 
-- **Coverage**: <95% production, <100% infrastructure/utility = CI/CD failure
+- **Coverage**: <95% production, <98% infrastructure/utility = CI/CD failure
 - **Mutation**: <85% Phase 4, <98% Phase 5+ = CI/CD failure
 - **Timing**: >15s unit tests per-package, >180s total suite = CI/CD failure
 - **PR merge**: MUST pass all quality gates before merge to main

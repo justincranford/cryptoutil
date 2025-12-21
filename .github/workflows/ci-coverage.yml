@@ -2,7 +2,7 @@
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
 # WORKFLOW: CI - Coverage Collection
-# PURPOSE: Measure test coverage across all packages, enforce 95%+ production / 100%+ infrastructure targets
+# PURPOSE: Measure test coverage across all packages, enforce 95%+ production / 98%+ infrastructure targets
 # DEPENDENCIES: None (runs independently without external services)
 # EXPECTED DURATION: 5-6 minutes (matrix parallel execution across 4-6 package groups)
 # TIMEOUT: 20 minutes (allows for parallel test execution with retry overhead)

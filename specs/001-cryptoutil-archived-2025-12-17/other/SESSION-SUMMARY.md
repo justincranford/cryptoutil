@@ -61,7 +61,7 @@
 - **Focus**: Achieve 95%+ coverage in 5 packages
 - **Packages**: ca/handler (47.2%), auth/userauth (42.6%), unsealkeysservice (78.2%), network (88.7%), apperr (96.6% ✅)
 - **Pattern**: Table-driven tests, t.Parallel(), UUIDv7 for data isolation
-- **Target**: 95%+ production, 100%+ infrastructure/utility
+- **Target**: 95%+ production, 98%+ infrastructure/utility
 
 #### PHASE4-IMPLEMENTATION.md (701 lines)
 

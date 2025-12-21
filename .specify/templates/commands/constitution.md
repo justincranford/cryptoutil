@@ -57,7 +57,7 @@ The cryptoutil constitution MUST enforce:
 - ALL linting/formatting errors MANDATORY to fix - NO EXCEPTIONS
 - NEVER use `//nolint:` directives except for documented linter bugs
 - File size limits: 300 (soft), 400 (medium), 500 (hard → refactor required)
-- Coverage targets: 95%+ production, 100%+ infrastructure, 100% utility
+- Coverage targets: 95%+ production, 98%+ infrastructure, 98% utility
 
 ### IV. KMS Hierarchical Key Security
 

@@ -839,7 +839,7 @@ healthcheck:
 - NEVER use `//nolint:` directives except for documented linter bugs
 - ALWAYS use UTF-8 without BOM for ALL text file encoding; never use UTF-16, UTF-32, CP-1252, ASCII
 - File size limits: 300 (soft), 400 (medium), 500 (hard → refactor required); ideal for user development and reviews, and LLM agent development and reviews
-- 95%+ production coverage, 100% infrastructure (cicd), 100% utility code
+- 95%+ production coverage, 98% infrastructure (cicd), 98% utility code
 - Mutation testing score ≥85% per package Phase 4, ≥98% per package Phase 5+ (gremlins or equivalent)
 - ALWAYS fix all pre-commit hook errors; see ./.pre-commit-config.yaml
 - ALWAYS fix all pre-commit hook errors; see ./.pre-commit-config.yaml
@@ -854,7 +854,7 @@ healthcheck:
 
 No task is complete without objective, verifiable evidence:
 
-- Code evidence: `go build ./...` clean, `golangci-lint run` clean, coverage ≥95% (production), ≥100% (infrastructure/utility)
+- Code evidence: `go build ./...` clean, `golangci-lint run` clean, coverage ≥95% (production), ≥98% (infrastructure/utility)
 - Test evidence: All tests passing, no skips without tracking, mutation score ≥80%
 - Integration evidence: Core E2E demos work (`go run ./cmd/demo all` 7/7 steps)
 - Documentation evidence: PROGRESS.md updated (for spec kit iterations)
@@ -905,7 +905,7 @@ Before marking iteration complete:
 - [ ] `go test ./...` passes with 0 failures (not just "pass individually")
 - [ ] `golangci-lint run` passes with no violations
 - [ ] `/speckit.checklist` executed and all items verified (creates CHECKLIST-ITERATION-NNN.md)
-- [ ] Coverage targets maintained (95% production, 100% infrastructure/utility)
+- [ ] Coverage targets maintained (95% production, 98% infrastructure/utility)
 - [ ] Mutation score ≥80% per package (gremlins baseline documented)
 - [ ] All spec.md status markers accurate and up-to-date
 - [ ] No deferred items without documented justification

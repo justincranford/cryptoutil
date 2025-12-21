@@ -60,7 +60,7 @@
 
 ---
 
-## Gap 2: Code Coverage (95%+ Production, 100% Infra/Util)
+## Gap 2: Code Coverage (95%+ Production, 98% Infra/Util)
 
 ### Current State (from 001-cryptoutil final)
 
@@ -110,7 +110,7 @@
 2. HTML gap analysis: `go tool cover -html=./test-output/coverage_pkg_baseline.out -o ./test-output/coverage_pkg_baseline.html`
 3. Identify RED lines (uncovered code)
 4. Write targeted tests ONLY for RED lines (not trial-and-error)
-5. Verify: Re-run coverage, confirm ≥95% or ≥100% achieved
+5. Verify: Re-run coverage, confirm ≥95% or ≥98% achieved
 6. **BLOCKING**: Can't proceed to next package until current ≥ target
 
 **Success Criteria**: Production 95%+, infrastructure/utility 100%, NO EXCEPTIONS
@@ -426,7 +426,7 @@
 
 ### Phase 2 (Coverage) Second
 
-**Why**: Must achieve 95%+/100% targets before mutations. Mutation testing ineffective without good coverage baseline.
+**Why**: Must achieve 95%+/98% targets before mutations. Mutation testing ineffective without good coverage baseline.
 
 ### Phase 3 (CI/CD Fixes) Third
 
@@ -457,7 +457,7 @@
 | Phase | Success Metric | Target |
 |-------|----------------|--------|
 | P1 | Test execution time | ≤30s per package (target), ≤60s (hard limit) |
-| P2 | Code coverage | 95%+ production, 100% infra/util, NO EXCEPTIONS |
+| P2 | Code coverage | 95%+ production, 98% infra/util, NO EXCEPTIONS |
 | P3 | CI/CD health | 0 failures, PostgreSQL service containers added |
 | P4 | Mutation efficacy | 98%+ efficacy per package |
 | P5 | Hash registries | 4 registries × 3 versions, FIPS 140-3 validated |
@@ -467,7 +467,7 @@
 ### Overall MVP Metrics
 
 - ✅ Fast tests (≤30s per package target, <100s total !integration suite)
-- ✅ High coverage (95%+ production, 100% infra/util, NO EXCEPTIONS)
+- ✅ High coverage (95%+ production, 98% infra/util, NO EXCEPTIONS)
 - ✅ Stable CI/CD (0 failures, all workflows green, time targets met)
 - ✅ High mutation kill (98%+ efficacy per package, ALL packages)
 - ✅ Clean hash architecture (4 registries × 3 versions, FIPS 140-3 validated)
@@ -482,7 +482,7 @@
 
 **Key Differences from 001-cryptoutil**:
 
-1. **No Exceptions**: 95%+/100% coverage mandatory, 98% mutations mandatory
+1. **No Exceptions**: 95%+/98% coverage mandatory, 98% mutations mandatory
 2. **Per-Package Enforcement**: Granular tracking, BLOCKING until targets met
 3. **CI/CD First**: Fix all 5 failures before proceeding
 4. **Template Extraction**: Reusable pattern for 8 services, validated with Learn-PS

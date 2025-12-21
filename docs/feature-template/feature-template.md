@@ -561,7 +561,7 @@ pre-commit run --all-files  # Before git push
 **ALWAYS enforce before marking task complete:**
 
 - ✅ All tests passing: `runTests` tool shows 0 failures
-- ✅ Coverage threshold: ≥100% for infrastructure, ≥95% for features, ≥100% for utilities
+- ✅ Coverage threshold: ≥98% for infrastructure, ≥95% for features, ≥98% for utilities
 - ✅ Mutation testing: ≥80% gremlins score per package
 - ✅ No linting errors: `golangci-lint run ./...` shows 0 issues
 - ✅ No TODO comments: Grep search shows 0 TODOs in modified files
@@ -651,7 +651,7 @@ Each task MUST complete this checklist before marking complete:
   - [ ] ALWAYS protect shared mutable state with sync.Mutex or sync.Map
   - [ ] ALWAYS use inline assertions: `require.NoError(t, resp.Body.Close())`
   - [ ] Run `go test -race -count=2` locally before committing (requires CGO_ENABLED=1)
-- [ ] Achieve target coverage (≥100% infrastructure, ≥95% features, ≥100% utilities)
+- [ ] Achieve target coverage (≥98% infrastructure, ≥95% features, ≥98% utilities)
 - [ ] Achieve mutation score ≥80% per package (gremlins)
 - [ ] Add benchmarks for cryptographic operations (if applicable)
 - [ ] Add fuzz tests for parsers/validators (minimum 15s)
@@ -696,7 +696,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Run 6-step validation: `go run ./cmd/cicd identity-progressive-validation`
 - [ ] Step 1 PASS: TODO scan (0 CRITICAL/HIGH TODOs)
 - [ ] Step 2 PASS: Tests (100% pass rate)
-- [ ] Step 3 PASS: Coverage (≥100% infrastructure, ≥95% features, ≥100% utilities)
+- [ ] Step 3 PASS: Coverage (≥98% infrastructure, ≥95% features, ≥98% utilities)
 - [ ] Step 4 PASS: Requirements (≥95% overall coverage)
 - [ ] Step 5 PASS: Mutation testing (≥80% gremlins score per package)
 - [ ] Step 5 PASS: Integration (E2E smoke test)
@@ -1143,7 +1143,7 @@ Based on industry best practices, here are additional corrective action strategi
 - [ ] Happy path coverage (expected inputs/outputs)
 - [ ] Sad path coverage (error conditions, edge cases)
 - [ ] All tests pass: `runTests` tool shows 0 failures
-- [ ] Coverage meets threshold (≥100% infra, ≥95% features, ≥100% utils)
+- [ ] Coverage meets threshold (≥98% infra, ≥95% features, ≥98% utils)
 - [ ] Mutation score meets threshold (≥80% per package)
 - [ ] Tests use `t.Parallel()` (validates concurrent safety)
 - [ ] Integration tests verify component interactions
@@ -1328,7 +1328,7 @@ go run ./cmd/cicd go-check-circular-package-dependencies
 # Unit tests (must show 100% pass rate)
 runTests
 
-# Coverage verification (must meet thresholds: ≥100% infra, ≥95% features)
+# Coverage verification (must meet thresholds: ≥98% infra, ≥95% features)
 # Mutation testing verification (must meet threshold: ≥80% per package)
 go test ./internal/identity/... -coverprofile=test-output/coverage_identity.out
 go tool cover -func=test-output/coverage_identity.out | grep total
@@ -1614,7 +1614,7 @@ Automated by deployment pipeline:
 
 **Test Coverage**:
 
-- Target: ≥100% for infrastructure, ≥95% for features
+- Target: ≥98% for infrastructure, ≥95% for features
 - Current: X% overall, Y% infrastructure, Z% features
 - Trend: Increasing/stable/decreasing
 

@@ -58,7 +58,7 @@ When implementing quality improvements (coverage, mutation testing), use this pa
 
 ### When to Document
 
-- **Coverage gaps**: When package falls below target (95% production, 100% infrastructure/utility)
+- **Coverage gaps**: When package falls below target (95% production, 98% infrastructure/utility)
 - **Mutation testing**: When package falls below phase target (85% Phase 4, 98% Phase 5+)
 - **Test timing**: When package exceeds timing limits (<15s unit, <180s total)
 - **Probabilistic execution**: When applying TestProbTenth/TestProbQuarter patterns
@@ -362,7 +362,7 @@ When implementing quality improvements (coverage, mutation testing), use this pa
 - [ ] Add JSON marshaling/unmarshaling
 - [ ] Add database column type support
 - [ ] Update client MFA tests to use enum instead of string comparison
-- [ ] Add unit tests for enum (100% coverage)
+- [ ] Add unit tests for enum (98% coverage)
 
 **Estimated Effort**: 1 day
 

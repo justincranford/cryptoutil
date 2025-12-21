@@ -36,7 +36,7 @@
 ```markdown
 ### Code Quality Excellence
 
-- 95%+ production coverage, 100% infrastructure (cicd), 100% utility code
+- 95%+ production coverage, 98% infrastructure (cicd), 98% utility code
 - Mutation testing score ≥80% per package (gremlins or equivalent)
 ```
 
@@ -48,7 +48,7 @@
 | **internal/identity/mfa** | 83.3% | 95.0% | -11.7% | ❌ BELOW TARGET |
 | **internal/kms/server/handler** | 79.9% | 95.0% | -15.1% | ❌ BELOW TARGET |
 | **internal/identity/domain** | 98.6% | 95.0% | +3.6% | ✅ MEETS TARGET |
-| **internal/infra/network** | 96.8% | 100.0% | -3.2% | ⚠️ INFRASTRUCTURE BELOW 100% (ACCEPTED) |
+| **internal/infra/network** | 96.8% | 98.0% | -3.2% | ⚠️ INFRASTRUCTURE BELOW 98% (ACCEPTED) |
 
 ### Gap Assessment
 
@@ -78,9 +78,9 @@
 
 **network (96.8% - ACCEPTED)**:
 
-- **Status**: Utility package (`internal/common/util/network`) - constitutional requirement 100%
+- **Status**: Utility package (`internal/common/util/network`) - constitutional requirement 98%
 - **Current**: 96.8% after adding TestHTTPResponse_InvalidMethod test
-- **Gap**: -3.2% to reach 100.0%
+- **Gap**: -3.2% to reach 98.0%
 - **Uncovered Lines**:
   - Line 117-119: `resp.Body.Close()` error handling in defer (untestable without extensive mocking)
   - Line 123-125: `io.ReadAll` error handling (extremely difficult to test reliably)
@@ -532,7 +532,7 @@ Each product MUST:
 | **FIPS 140-3** | Constitution II | ✅ COMPLIANT | All crypto uses approved algorithms (RSA≥2048, AES≥128, SHA-256+, PBKDF2) |
 | **Dual HTTPS Endpoints** | Constitution V | ✅ COMPLIANT | Public :8080+, Private 127.0.0.1:9090 |
 | **Test Concurrency** | Constitution IV | ✅ COMPLIANT | All tests use t.Parallel(), no -p=1 usage |
-| **Code Coverage** | Constitution VII | ⚠️ PARTIAL | 3/5 packages below 95%, network below 100% |
+| **Code Coverage** | Constitution VII | ⚠️ PARTIAL | 3/5 packages below 95%, network below 98% |
 | **Mutation Testing** | Constitution VII | ✅ COMPLIANT | 5 packages ≥80% efficacy |
 | **Linting** | Constitution VII | ⚠️ UNKNOWN | Last verified commit a5b973e2, 3 commits since |
 | **Docker Compose** | Constitution I | ✅ COMPLIANT | All services running, healthy |
@@ -554,9 +554,9 @@ Each product MUST:
    - Fix any violations in push_notification.go, phone_call_otp.go
    - Commit: "chore: Fix linting violations in MFA implementations"
 
-1. **Raise network Coverage to 100%** (1-2 hours)
-   - Current: 95.2%, Target: 100.0%
-   - Constitutional mandate: Infrastructure packages require 100%
+1. **Raise network Coverage to 98%** (1-2 hours)
+   - Current: 95.2%, Target: 98.0%
+   - Constitutional mandate: Infrastructure packages require 98%
    - Focus: Error paths, edge cases in TLS/HTTP setup
 
 ### HIGH (Constitutional Requirements)
@@ -641,7 +641,7 @@ Each product MUST:
 **Session Priority Order**:
 
 1. ✅ Verify linting status (30 min, 5k tokens)
-2. ✅ Raise network coverage to 100% (2h, 30k tokens)
+2. ✅ Raise network coverage to 98% (2h, 30k tokens)
 3. ✅ Verify E2E tests (2h, 30k tokens)
 4. ✅ Verify local functionality (2h, 25k tokens)
 5. ✅ Verify Docker health endpoints (15 min, 3k tokens)

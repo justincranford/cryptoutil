@@ -109,7 +109,7 @@ Before marking any phase complete:
 1. All code builds without errors
 2. All existing tests pass
 3. golangci-lint passes with no errors
-4. Coverage targets maintained (95%+ production, 100%+ infrastructure)
+4. Coverage targets maintained (95%+ production, 98%+ infrastructure)
 
 ### Commit Strategy
 

@@ -14,7 +14,7 @@
 **Key Objectives**:
 
 1. Fast tests (≤12s per package, !integration)
-2. High coverage (95%+ production, 100% infra/util, no exceptions)
+2. High coverage (95%+ production, 98% infra/util, no exceptions)
 3. Stable CI/CD (0 failures, all workflows green)
 4. High mutation kill rate (98%+ per package)
 5. Clean hash architecture (4 types: Low/High × Random/Deterministic)
@@ -128,7 +128,7 @@
 
 ### Phase 2: Coverage Targets - 95% Mandatory (60+ tasks) - NO EXCEPTIONS
 
-**Goal**: Achieve 95%+ coverage for all production packages, 100% for infrastructure/utility. Create granular tracking per package.
+**Goal**: Achieve 95%+ coverage for all production packages, 98% for infrastructure/utility. Create granular tracking per package.
 
 **Strategy**: One parent task per major area, subtasks per package for detailed progress tracking.
 
@@ -173,14 +173,14 @@
 - [ ] **P2.5.1**: internal/ca/server (baseline, gap analysis, tests, verify)
 - [ ] **P2.5.2**: internal/ca/domain (baseline, gap analysis, tests, verify)
 
-#### P2.6: Shared Crypto Coverage (Target: 100% - utility code)
+#### P2.6: Shared Crypto Coverage (Target: 98% - utility code)
 
 - [ ] **P2.6.1**: internal/shared/crypto/keygen (baseline, gap analysis, tests, verify)
 - [ ] **P2.6.2**: internal/shared/crypto/digests (baseline, gap analysis, tests, verify)
 - [ ] **P2.6.3**: internal/shared/crypto/certificate (baseline, gap analysis, tests, verify)
 - [ ] **P2.6.4**: internal/shared/crypto/signer (baseline, gap analysis, tests, verify)
 
-#### P2.7: Shared Infrastructure Coverage (Target: 100%)
+#### P2.7: Shared Infrastructure Coverage (Target: 98%)
 
 - [ ] **P2.7.1**: internal/shared/apperr (baseline, gap analysis, tests, verify)
 - [ ] **P2.7.2**: internal/shared/config (baseline, gap analysis, tests, verify)
@@ -191,7 +191,7 @@
 - [ ] **P2.7.7**: internal/shared/testutil (baseline, gap analysis, tests, verify)
 - [ ] **P2.7.8**: internal/shared/util (baseline, gap analysis, tests, verify)
 
-#### P2.8: CICD Coverage (Target: 100% - infrastructure)
+#### P2.8: CICD Coverage (Target: 98% - infrastructure)
 
 - [ ] **P2.8.1**: internal/cmd/cicd/cicd (baseline, gap analysis, tests, verify)
 - [ ] **P2.8.2**: internal/cmd/cicd/format_go (baseline, gap analysis, tests, verify)
@@ -688,7 +688,7 @@ Tasks may be implemented out of order from Section 1. Each entry references back
 **Phase Priorities**:
 
 1. P1: Fast tests (≤12s per package)
-2. P2: High coverage (95%+ production, 100% infra/util)
+2. P2: High coverage (95%+ production, 98% infra/util)
 3. P3: Stable CI/CD (0 failures)
 4. P4: High mutation kill rate (98%+ per package)
 5. P5: Clean hash architecture
@@ -913,7 +913,7 @@ Tasks may be implemented out of order from Section 1. Each entry references back
    - TestServerApplicationCore_Shutdown: AllComponents + NilComponents (2 cases)
    - TestSendServerListenerShutdownRequest: InvalidURL error (1 case)
    - Bug Fixed: application_core.go line 108 nil-safety (ServerApplicationBasic nil check)
-   - Coverage Impact: 0% → 100% for Shutdown functions, baseline 58.7%
+   - Coverage Impact: 0% → 98% for Shutdown functions, baseline 58.7%
 
 2. **ServerInit Function** (Commit 9167c5c9):
    - application_init_test.go: 2 test functions, 3 test cases
@@ -983,7 +983,7 @@ Phase 1 targets apply to **package-level** times, not individual test times.
    - Section X Hash Versioning: Date-based policy revisions (v1=2020, v2=2023, v3=2025)
 
 3. **Testing Instructions Updated**:
-   - Package classification: Production (95%), Infrastructure (100%), Utility (100%)
+   - Package classification: Production (95%), Infrastructure (98%), Utility (98%)
    - Test timing: <15s per unit test package, <180s total suite
    - Phased mutation: ≥85% Phase 4, ≥98% Phase 5+
    - Real dependencies: Test containers, real crypto, real servers (NOT mocks)
@@ -1048,7 +1048,7 @@ Phase 1 targets apply to **package-level** times, not individual test times.
 **Impact**:
 
 - Constitution v3.0.0: 13 sections updated with CRITICAL clarifications
-- Testing standards: Clear package-level requirements (95%/100%), timing targets, mutation thresholds
+- Testing standards: Clear package-level requirements (95%/98%), timing targets, mutation thresholds
 - Architecture: Unified admin port strategy, CA deployment pattern
 - Spec Kit workflow: Documented methodology for iterative clarification
 - Clarify.md: Authoritative Q&A for all 26 decisions

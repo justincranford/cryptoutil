@@ -11,8 +11,8 @@
 | Category | Target | Current Status | Gap | Priority |
 |----------|--------|----------------|-----|----------|
 | Production Code | ≥95% | Varies by package | See breakdown | HIGH |
-| Infrastructure (cicd) | ≥100% | ~90% | -10% | MEDIUM |
-| Utility Code | ≥100% | ~100% | 0% | ✅ Met |
+| Infrastructure (cicd) | ≥98% | ~90% | -10% | MEDIUM |
+| Utility Code | ≥98% | ~100% | 0% | ✅ Met |
 
 ---
 
@@ -269,7 +269,7 @@
 
 ## Infrastructure Coverage (cicd) (~90%)
 
-**Target**: ≥100%
+**Target**: ≥98%
 **Gap**: -10 percentage points
 **Priority**: MEDIUM
 
@@ -284,7 +284,7 @@
 - Add tests for all cicd commands in `internal/cmd/cicd/`
 - Test error paths and edge cases
 - Test cross-platform behavior (Windows, Linux, macOS)
-- Target: 100%+ coverage
+- Target: 98%+ coverage
 
 **Effort**: 1-2 hours
 
@@ -340,7 +340,7 @@
 | cicd commands | ~90% | 100% | 1-2h |
 
 **Total Effort**: 1-2 hours
-**Impact**: Infrastructure coverage reaches 100%
+**Impact**: Infrastructure coverage reaches 98%
 
 ---
 

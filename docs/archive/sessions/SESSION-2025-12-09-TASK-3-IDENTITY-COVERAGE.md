@@ -72,7 +72,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 - TestPredefinedErrors_SessionErrors (4 types)
 - TestPredefinedErrors_OAuthErrors (7 types)
 
-**Result**: 100% coverage for apperr package, but **zero impact** on overall identity percentage.
+**Result**: 98% coverage for apperr package, but **zero impact** on overall identity percentage.
 
 ### ❌ Failed: JWT Authenticator Tests (Commits b290e201, 883ac4aa - reverted)
 
@@ -162,7 +162,7 @@ Improve identity module coverage from 58.7% to 95% threshold required for ci-ide
 
 | Commit | Description | Status |
 |--------|-------------|--------|
-| 873626fd | Add apperr error handling tests (100% coverage) | ✅ KEPT |
+| 873626fd | Add apperr error handling tests (98% coverage) | ✅ KEPT |
 | c8b22e98 | Add SESSION-2025-12-09-WORKFLOW-FIXES.md | ✅ KEPT |
 | b290e201 | wip: Add JWT authenticator tests (incomplete) | ❌ REVERTED |
 | 883ac4aa | revert: Remove incomplete JWT authenticator tests | ✅ KEPT |

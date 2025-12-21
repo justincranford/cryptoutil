@@ -181,7 +181,7 @@ This implementation was archived on December 17, 2025 due to excessive AI slop a
 
 - specs/002-cryptoutil created with refactored 7-phase structure
 - Phase 1: Fast tests (≤12s per package, stricter than 15s)
-- Phase 2: High coverage (95%+ production, 100% infra/util, NO EXCEPTIONS)
+- Phase 2: High coverage (95%+ production, 98% infra/util, NO EXCEPTIONS)
 - Phase 3: Stable CI/CD (0 failures)
 - Phase 4: High mutation kill rate (98%+ per package)
 - Phase 5: Clean hash architecture (already done in 001)

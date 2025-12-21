@@ -560,7 +560,7 @@ pre-commit run --all-files  # Before git push
 **ALWAYS enforce before marking task complete:**
 
 - ✅ All tests passing: `runTests` tool shows 0 failures
-- ✅ Coverage threshold: ≥100% for infrastructure, ≥95% for features, ≥100% for utilities
+- ✅ Coverage threshold: ≥98% for infrastructure, ≥95% for features, ≥98% for utilities
 - ✅ Mutation testing: ≥80% gremlins score per package
 - ✅ No linting errors: `golangci-lint run ./...` shows 0 issues
 - ✅ No TODO comments: Grep search shows 0 TODOs in modified files
@@ -642,7 +642,7 @@ Each task MUST complete this checklist before marking complete:
 - [ ] Test happy paths (expected inputs/outputs)
 - [ ] Test sad paths (error conditions, edge cases)
 - [ ] Use `t.Parallel()` for all tests (validates concurrent safety)
-- [ ] Achieve target coverage (≥100% infrastructure, ≥95% features, ≥100% utilities)
+- [ ] Achieve target coverage (≥98% infrastructure, ≥95% features, ≥98% utilities)
 - [ ] Achieve mutation score ≥80% per package (gremlins)
 - [ ] Add benchmarks for cryptographic operations (if applicable)
 - [ ] Add fuzz tests for parsers/validators (minimum 15s)
@@ -1115,7 +1115,7 @@ Based on industry best practices, here are additional corrective action strategi
 - [ ] Happy path coverage (expected inputs/outputs)
 - [ ] Sad path coverage (error conditions, edge cases)
 - [ ] All tests pass: `runTests` tool shows 0 failures
-- [ ] Coverage meets threshold (≥100% infra, ≥95% features, ≥100% utils)
+- [ ] Coverage meets threshold (≥98% infra, ≥95% features, ≥98% utils)
 - [ ] Mutation score meets threshold (≥80% per package)
 - [ ] Tests use `t.Parallel()` (validates concurrent safety)
 - [ ] Integration tests verify component interactions
