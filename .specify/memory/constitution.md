@@ -608,6 +608,125 @@ federation:
 - Verify health checks detect service failures
 - Test failover and recovery scenarios
 
+---
+
+## VB. Performance, Scaling, and Resource Management
+
+### Vertical Scaling
+
+**Resource Limits** (Per-service configuration):
+
+- CPU limits: 500m-2000m (0.5-2 CPU cores)
+- Memory limits: 256Mi-1Gi (configurable per service)
+- Connection pool sizing: Based on workload (PostgreSQL 10-50, SQLite 5)
+- Concurrent request handling: Configurable (default: 100 concurrent requests)
+
+**Resource Monitoring**:
+
+- OTLP metrics: CPU usage, memory usage, goroutine count
+- Health checks: Resource exhaustion detection
+- Graceful degradation: Circuit breaker when resources depleted
+
+### Horizontal Scaling
+
+**Load Balancing Patterns**:
+
+- **Layer 7 (HTTP/HTTPS)**: Use reverse proxy (nginx, Traefik, Envoy) for path-based routing
+- **Layer 4 (TCP)**: Use TCP load balancer for raw connection distribution
+- **DNS-based**: Round-robin DNS for simple load distribution
+- **Service mesh**: Istio/Linkerd for advanced traffic management
+
+**Session State Management for Horizontal Scaling**:
+
+- **Stateless sessions** (Preferred): JWT tokens, no server-side storage
+- **Sticky sessions**: Load balancer affinity based on session cookie
+- **Distributed session store**: Redis cluster for shared session state
+- **Database-backed sessions**: PostgreSQL with connection pooling
+
+**Database Scaling Patterns**:
+
+- **Read replicas**: Route read-only queries to PostgreSQL replicas
+- **Connection pooling**: PgBouncer/pgpool-II for connection multiplexing
+- **Database sharding**: Partition data by tenant ID or key range (future consideration)
+- **Caching**: Redis/Memcached for frequently accessed data
+
+**Distributed Caching Strategy**:
+
+- **Cache invalidation**: TTL-based expiration, event-driven invalidation
+- **Cache consistency**: Write-through, write-behind, or cache-aside patterns
+- **Cache tiers**: L1 (in-memory), L2 (Redis), L3 (database)
+
+**Deployment Patterns**:
+
+- **Blue-Green**: Zero-downtime deployments with instant rollback
+- **Canary**: Gradual rollout to subset of users
+- **Rolling updates**: Kubernetes-style progressive replacement
+
+### Backup and Recovery
+
+**Database Backup**:
+
+- **PostgreSQL**: `pg_dump` for logical backups, `pg_basebackup` for physical backups
+- **SQLite**: File-based backups (copy .db file)
+- **Backup frequency**: Daily automated backups, retain 30 days
+- **Backup validation**: Test restore procedure monthly
+
+**Disaster Recovery**:
+
+- **Database migrations**: Embedded SQL with golang-migrate provides schema versioning
+- **Key rotation**: Version-based key management (KeyRing pattern) enables key recovery
+- **Configuration backups**: YAML configs stored in version control
+- **Recovery procedure**: Restore database from backup + apply migrations + restore keys from backup
+
+**Documented in**:
+
+- .github/instructions/01-06.database.instructions.md (database migrations)
+- .github/instructions/01-09.cryptography.instructions.md (key versioning and rotation)
+
+### Quality Tracking Documentation
+
+**MANDATORY: Use docs/QUALITY-TODOs.md for coverage/gremlins challenges**
+
+**Pattern for documenting quality improvements**:
+
+```markdown
+## Phase N: [Package Name]
+
+### Priority 1: Critical Coverage Gaps (Target: 95%+)
+
+**Package**: internal/[package]/[subpackage]
+**Current Coverage**: X.X%
+**Target Coverage**: 95.0%
+**Gap**: Functions with <90% coverage
+
+**Challenges**:
+- Uncovered line ranges (file:lineStart-lineEnd)
+- Reason for difficulty (e.g., error paths, edge cases, concurrency)
+
+**Lessons Learned**:
+- What worked (e.g., table-driven tests, property-based tests)
+- What didn't work (e.g., mocking external dependencies)
+- Recommendations for similar packages
+
+### Priority 2: Mutation Testing Improvements (Target: 85%/98%)
+
+**Package**: internal/[package]/[subpackage]
+**Current Mutation Score**: X.X%
+**Target Mutation Score**: 85.0% (Phase 4) / 98.0% (Phase 5+)
+**Gap**: Mutants not killed
+
+**Challenges**:
+- Surviving mutants (specific mutation operators)
+- Reason for difficulty (e.g., complex business logic, crypto operations)
+
+**Lessons Learned**:
+- Mutation-killing strategies (e.g., boundary value tests, error injection)
+```
+
+**Update docs/QUALITY-TODOs.md continuously** as challenges are discovered during implementation.
+
+---
+
 ## VI. CI/CD Workflow Requirements
 
 ### GitHub Actions Service Dependencies
