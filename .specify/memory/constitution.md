@@ -46,20 +46,39 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 | jose-ja | ⚠️ PARTIAL | Phase 2.1 | Missing admin server, public port 8280 only | Needs dual-server migration |
 | identity-authz | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8180 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/authz/server/public_server.go, 165 lines) |
 | identity-idp | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8181 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/idp/server/public_server.go, 165 lines) |
-| identity-rs | ❌ INCOMPLETE | Phase 2.2 | Admin server exists (9091), missing public server (8182) | **CONFIRMED**: Only admin.go exists, NO public_server.go file (2025-12-21 validation) |
+| identity-rs | ⏳ IN PROGRESS | Phase 2.2 | Public server implemented (2025-12-21), testing pending | Public server created (internal/identity/rs/server/public_server.go, 200 lines, commit 04317efd), E2E validation in progress |
 | identity-rp | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
 | identity-spa | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
 | learn-ps | ❌ NOT STARTED | Phase 7 | No servers | Validates service template reusability |
 
-**Architecture Status Update** (2025-12-21 validation):
+**Architecture Status Update** (2025-12-21 RS public server implementation):
 
-Identity services authz and idp NOW have public HTTP server implementations, but RS still incomplete:
+All three core identity services NOW have public HTTP server implementations:
 
 - `internal/identity/authz/server/public_server.go` ✅ COMPLETE (165 lines, NewPublicServer(), OAuth 2.1 endpoints)
 - `internal/identity/idp/server/public_server.go` ✅ COMPLETE (165 lines, NewPublicServer(), OIDC endpoints)
-- `internal/identity/rs/server/public_server.go` ❌ MISSING (only admin.go + application.go exist)
+- `internal/identity/rs/server/public_server.go` ✅ IMPLEMENTED (200 lines, NewPublicServer(), protected resource endpoints, commit 04317efd 2025-12-21)
 
-**Evidence (2025-12-21)**: Direct file verification via `Get-ChildItem internal\identity\ -Recurse -Filter "*.go"` shows:
+**RS Implementation Details** (2025-12-21 commit 04317efd):
+
+- Created public_server.go (200 lines, copied pattern from authz)
+- Updated application.go for dual-server architecture (publicServer + adminServer fields)
+- NewApplication() creates both public and admin servers
+- Start() launches both servers concurrently (errChan size 2)
+- Shutdown() stops both servers with error aggregation
+- PublicPort() accessor method returns actual bound port
+- TLS: Self-signed ECDSA P-256 certificate (production: use CA-signed via Docker secrets)
+- Health endpoints: /browser/api/v1/health, /service/api/v1/health
+- TODO: Register middleware (CORS, token validation) and protected resource routes
+
+**Validation Status**:
+
+- ✅ Code: Compiles cleanly (`go build ./cmd/cryptoutil`)
+- ✅ Tests: Unit tests pass (`go test ./internal/identity/rs/server/...` 0.349s)
+- ⏳ E2E: Workflows triggered (run IDs 20406671780-20406671797), status pending
+- ⏳ Docker: Docker Compose verification pending (rs container health check)
+
+**Evidence (2025-12-21 Implementation)**: Direct file verification via `Get-ChildItem internal\identity\ -Recurse -Filter "*.go"` shows:
 
 - authz/server/public_server.go: ✅ 165 lines, complete implementation with NewPublicServer()
 - idp/server/public_server.go: ✅ 165 lines, complete implementation with NewPublicServer()
