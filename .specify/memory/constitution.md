@@ -328,9 +328,11 @@ Separate HTTPS endpoints for public operations vs private administration MUST be
 
 **Production Deployments**:
 
-- Public endpoints MUST use 0.0.0.0 IPv4 bind address inside containers (enables external access)
-- Public endpoints MAY use configurable IPv4 or IPv6 bind address outside containers (defaults to 127.0.0.1)
-- Private endpoints MUST use 127.0.0.1:9090 inside containers (not mapped outside)
+- Public endpoints MUST support configurable bind address (container default: 0.0.0.0, test/dev default: 127.0.0.1)
+- Public endpoints bind address configuration pattern: `<configurable_address>:<configurable_port>`
+- Container deployments typically use 0.0.0.0 IPv4 bind address (enables external access)
+- Test/dev deployments typically use 127.0.0.1 IPv4 bind address (prevents Windows Firewall prompts)
+- Private endpoints MUST ALWAYS use 127.0.0.1:9090 (never configurable, not mapped outside containers)
 - No IPv6 inside containers: All endpoints must use IPv4 inside containers, due to dual-stack limitations in container runtimes (e.g. Docker Desktop for Windows)
 
 **Development/Test Environments**:
@@ -414,7 +416,8 @@ HTTPS Issuing CA for TLS Client Certs MUST BE shared per per-service instance ty
 **Configuration**:
 
 - Production ports: Service-specific ranges (8080-8089 for KMS, 8180-8189 for Identity, etc.)
-- Bind address: 127.0.0.1 (production containers can set 0.0.0.0 via configuration), 127.0.0.1 (tests/development)
+- Bind address: Configurable (container default: 0.0.0.0, test/dev default: 127.0.0.1)
+- Pattern: `<configurable_address>:<configurable_port>` (NEVER hardcode 0.0.0.0 in documentation)
 - TLS: HTTPS MANDATORY (never HTTP)
 - External access: YES (exposed to clients)
 

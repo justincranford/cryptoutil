@@ -26,7 +26,7 @@
 
 **A**: ALL services MUST implement dual HTTPS endpoints:
 
-**Public HTTPS Server** (`0.0.0.0:<configurable_port>`):
+**Public HTTPS Server** (`<configurable_address>:<configurable_port>`):
 
 - Purpose: User-facing APIs and browser UIs
 - Ports: 8080 (KMS), 8180-8184 (Identity services), 8280 (JOSE), 8380 (CA)

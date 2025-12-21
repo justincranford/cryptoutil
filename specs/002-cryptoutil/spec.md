@@ -1317,7 +1317,7 @@ HashService
 
 **Common Patterns** (extracted from KMS):
 
-- **Dual HTTPS Servers**: Public API (0.0.0.0:configurable) + Admin API (127.0.0.1:9090)
+- **Dual HTTPS Servers**: Public API (<configurable_address>:<configurable_port>) + Admin API (127.0.0.1:9090)
 - **Dual API Paths**: `/browser/api/v1/*` (session-based) vs `/service/api/v1/*` (token-based)
 - **Middleware Pipeline**: CORS/CSRF/CSP (browser-only), rate limiting, IP allowlist, authentication
 - **Database Abstraction**: PostgreSQL + SQLite dual support with GORM

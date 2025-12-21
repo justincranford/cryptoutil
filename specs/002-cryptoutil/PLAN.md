@@ -82,7 +82,7 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 **Dual HTTPS Endpoint Pattern** (MANDATORY):
 
-- **Public HTTPS** (0.0.0.0:configurable): Browser APIs (/browser/*) + Service APIs (/service/*)
+- **Public HTTPS** (<configurable_address>:<configurable_port>): Browser APIs (/browser/*) + Service APIs (/service/*)
 - **Private HTTPS** (127.0.0.1:909X): Admin APIs (/admin/v1/livez, readyz, healthz, shutdown)
 - Admin port assignments: KMS=9090, Identity=9091, CA=9092, JOSE=9093
 
