@@ -61,10 +61,10 @@ cryptoutil delivers 4 independent products deployable standalone or unified:
 
 | Product | Status | Public Port | Admin Port | Description |
 |---------|--------|-------------|------------|-------------|
-| **P1: JOSE** | ✅ Complete | 8280 | 9093 | JSON Object Signing/Encryption Authority |
-| **P2: Identity** | ⚠️ Partial | 8180-8184 | 9091 | OAuth 2.1 AuthZ + OIDC IdP (5 services) |
-| **P3: KMS** | ✅ Complete | 8080 | 9090 | Hierarchical Key Management Service |
-| **P4: CA** | ✅ Complete | 8380 | 9092 | X.509 Certificate Authority |
+| **P1: JOSE** | ✅ Complete | 9443-9449 | 127.0.0.1:9090 | JSON Object Signing/Encryption Authority |
+| **P2: Identity** | ⚠️ Partial | 18000-18409 | 127.0.0.1:9090 | OAuth 2.1 AuthZ + OIDC IdP (5 services) |
+| **P3: KMS** | ✅ Complete | 8080-8089 | 127.0.0.1:9090 | Hierarchical Key Management Service |
+| **P4: CA** | ✅ Complete | 8443-8449 | 127.0.0.1:9090 | X.509 Certificate Authority |
 
 ### Core Requirements
 

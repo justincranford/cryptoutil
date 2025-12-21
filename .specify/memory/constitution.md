@@ -20,20 +20,20 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 
 | Service Alias | Full Name | Public Port | Admin Port | Description |
 |---------------|-----------|-------------|------------|-----------|
-| **sm-kms** | Secrets Manager - Key Management Service | 8080 | 9090 | REST APIs for per-tenant Elastic Keys |
-| **pki-ca** | Public Key Infrastructure - Certificate Authority | 8380 | 9092 | X.509 certificate lifecycle, EST, OCSP, CRL, time-stamping |
-| **jose-ja** | JOSE - JWK Authority | 8280 | 9093 | JWK, JWKS, JWE, JWS, JWT operations |
-| **identity-authz** | Identity - Authorization Server | 8180 | 9091 | OAuth 2.1 authorization server, OIDC Discovery |
-| **identity-idp** | Identity - Identity Provider | 8181 | 9091 | OIDC authentication, login/consent UI, MFA enrollment |
-| **identity-rs** | Identity - Resource Server | 8182 | 9091 | Protected API with token validation (reference implementation) |
-| **identity-rp** | Identity - Relying Party | 8183 | 9091 | Backend-for-Frontend pattern (reference implementation) |
-| **identity-spa** | Identity - Single Page Application | 8184 | 9091 | Static hosting for SPA clients (reference implementation) |
+| **sm-kms** | Secrets Manager - Key Management Service | 8080-8089 | 127.0.0.1:9090 | REST APIs for per-tenant Elastic Keys |
+| **pki-ca** | Public Key Infrastructure - Certificate Authority | 8443-8449 | 127.0.0.1:9090 | X.509 certificate lifecycle, EST, OCSP, CRL, time-stamping |
+| **jose-ja** | JOSE - JWK Authority | 9443-9449 | 127.0.0.1:9090 | JWK, JWKS, JWE, JWS, JWT operations |
+| **identity-authz** | Identity - Authorization Server | 18000-18009 | 127.0.0.1:9090 | OAuth 2.1 authorization server, OIDC Discovery |
+| **identity-idp** | Identity - Identity Provider | 18100-18109 | 127.0.0.1:9090 | OIDC authentication, login/consent UI, MFA enrollment |
+| **identity-rs** | Identity - Resource Server | 18200-18209 | 127.0.0.1:9090 | Protected API with token validation (reference implementation) |
+| **identity-rp** | Identity - Relying Party | 18300-18309 | 127.0.0.1:9090 | Backend-for-Frontend pattern (reference implementation) |
+| **identity-spa** | Identity - Single Page Application | 18400-18409 | 127.0.0.1:9090 | Static hosting for SPA clients (reference implementation) |
 
 #### Demonstration Service (1 Service)
 
 | Service Alias | Full Name | Public Port | Admin Port | Description |
 |---------------|-----------|-------------|------------|-----------|
-| **learn-ps** | Learn - Pet Store | 8580 | 9095 | Educational service demonstrating service template usage (Phase 7) |
+| **learn-ps** | Learn - Pet Store | 8888-8889 | 127.0.0.1:9090 | Educational service demonstrating service template usage (Phase 7) |
 
 ### Service Status and Implementation Priority
 
