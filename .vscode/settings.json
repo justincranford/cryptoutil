@@ -490,7 +490,7 @@
     "serve",
     "--debug=localhost:6060"
   ], // Additional flags for language server - Default: [], Recommended: ["-rpc.trace", "serve", "--debug=localhost:6060"]
-  "go.formatTool": "gofumpt", // Tool to use for formatting - Default: "gofmt", Recommended: "gofumpt"
+  // "go.formatTool": "gofumpt", // DISABLED: Let gopls handle formatting to avoid double formatting warning
   "go.lintTool": "golangci-lint", // Tool to use for linting - Default: "golint", Recommended: "golangci-lint"
   "go.vetOnSave": "off", // Run go vet on save - Default: "package", Recommended: "off"
   "go.lintOnSave": "file", // Run linter on save - Default: "package", Recommended: "file"
