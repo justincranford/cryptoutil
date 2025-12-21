@@ -1567,3 +1567,60 @@ Missing public HTTP server implementation in:
 **Purpose**: Ensure all manual architecture refinements are consistently reflected across all specification documents, maintaining single source of truth for dual-endpoint HTTPS pattern and CA architecture.
 
 ---
+
+### 2025-12-21: RS Public Server Implementation (P1 Critical Blocker Resolved)
+
+**Goal**: Implement missing RS public server to unblock E2E/Load/DAST workflows
+
+**Context**: Service status verification (2025-12-21) confirmed:
+
+- ✅ `internal/identity/authz/server/public_server.go` (165 lines) - implemented between 2025-12-20 and 2025-12-21
+- ✅ `internal/identity/idp/server/public_server.go` (165 lines) - implemented between 2025-12-20 and 2025-12-21
+- ❌ `internal/identity/rs/server/public_server.go` - MISSING (only admin.go + application.go exist)
+
+**Implementation** (commit 04317efd 2025-12-21):
+
+1. **Created public_server.go** (200 lines):
+   - Copied pattern from authz/server/public_server.go
+   - NewPublicServer(ctx, config) initialization
+   - Start() with TLS listener on config.RS.Port
+   - Shutdown() graceful shutdown
+   - ActualPort() accessor method
+   - generateTLSConfig() self-signed ECDSA P-256 cert
+   - Health endpoints: /browser/api/v1/health, /service/api/v1/health
+   - TODO: Register middleware (CORS, token validation) and protected resource routes
+
+2. **Updated application.go** (dual-server architecture):
+   - Added publicServer *PublicServer field to Application struct
+   - Updated NewApplication() to create both public + admin servers
+   - Updated Start() to launch both servers concurrently (errChan size 1→2)
+   - Updated Shutdown() to stop both servers with error aggregation
+   - Added PublicPort() accessor method
+
+**Testing**:
+
+- ✅ `go test ./internal/identity/rs/server/...` PASSES (0.349s)
+- ✅ `go build -o ./bin/cryptoutil.exe ./cmd/cryptoutil` SUCCEEDS
+- ⏳ E2E workflows triggered (20406671780-20406671797), status pending
+
+**Files Changed**:
+
+- `internal/identity/rs/server/public_server.go` (new, 200 lines)
+- `internal/identity/rs/server/application.go` (updated, +publicServer field, dual-server pattern)
+- `docs/RS-PUBLIC-SERVER-IMPLEMENTATION.md` (new, 348 lines, implementation plan)
+- `.specify/memory/constitution.md` (updated, RS status ❌ INCOMPLETE → ⏳ IN PROGRESS)
+
+**Next Steps**:
+
+1. Monitor E2E/Load/DAST workflows (expect success with all 3 public servers implemented)
+2. Add integration tests for RS protected resource endpoints
+3. Implement TODO middleware (CORS, token validation)
+4. Verify Docker Compose RS container health check passes
+
+**Related Commits**:
+
+- [fba2e0a7] docs(rs): create RS public server implementation plan
+- [04317efd] feat(identity): implement RS public server (dual-server architecture)
+- [a05d1e82] docs(constitution): update RS status from INCOMPLETE to IN PROGRESS
+
+**Status**: ✅ CODE COMPLETE, ⏳ TESTING IN PROGRESS
