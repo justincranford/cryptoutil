@@ -142,7 +142,7 @@ Get-Content compose-identity-authz-e2e-1.log  # 331 bytes
    # identity-authz-e2e healthcheck
    test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9090/admin/v1/livez"]
 
-   # identity-idp-e2e healthcheck  
+   # identity-idp-e2e healthcheck
    test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9090/admin/v1/livez"]
    ```
 
@@ -302,7 +302,7 @@ ALL THREE identity services (authz, idp, rs) are **MISSING their public HTTP ser
 1. `NewApplication()` only creates admin server
 2. No public server creation (missing `server.go` files)
 3. No service layer initialization
-4. No repository factory creation  
+4. No repository factory creation
 5. No database connection establishment
 6. `app.Start()` only launches admin server
 7. No OAuth 2.1/OIDC endpoints exist
@@ -397,7 +397,7 @@ func (a *Application) Start(ctx context.Context) error {
 - **Implementation issues**: Fixes have ZERO impact on symptoms (same crash, same log size)
 - **Detection method**: Compare container log bytes across rounds
   - Round 4: 313 bytes (TLS error)
-  - Round 5: Different error (DSN error)  
+  - Round 5: Different error (DSN error)
   - Round 6-7: **IDENTICAL 196 bytes** (missing code)
 
 ### File Existence Verification
