@@ -1,50 +1,266 @@
-# CLARIFY-QUIZME: Comprehensive Clarification Questions
+# cryptoutil CLARIFY-QUIZME.md
 
-**Purpose**: Identify ambiguities and gaps requiring user clarification across constitution, spec, clarify, and copilot instructions.
+**Generated**: 2025-12-21
+**Purpose**: Multiple choice questions identifying problems, omissions, ambiguities, conflicts, risks, and validation gaps in constitution.md, spec.md, and PLAN.md
+**Format**: A-D options + E write-in for each question
 
-**Instructions**: For each question, select the most appropriate answer (A-D) or provide a custom answer using option E.
+## Service Architecture Questions
 
----
+### Question 1: Port Range Conflicts
 
-## Section 1: Service Architecture and Deployment
+Do the assigned port ranges for all 9 services create any conflicts or overlaps?
 
-### Q1.1: Identity Service Docker Image Naming Convention
+- A) No conflicts - all ranges are unique and properly spaced
+- B) Minor overlap between JOSE (9443-9449) and CA (8443-8449) ranges
+- C) Identity services have overlapping ranges within the 18000-18409 block
+- D) Learn-PS range (8888-8889) conflicts with other services
+- E) Write-in: [specific conflict description]
 
-The spec states "Each service has its own Docker image" for Identity services, but doesn't specify image names.
+**Correct Answer**: A
 
-**Which naming convention should be used for Identity service Docker images?**
+### Question 2: Admin Port Standardization
 
-A. Single image with tags: `cryptoutil/identity:authz`, `cryptoutil/identity:idp`, `cryptoutil/identity:rs`, `cryptoutil/identity:rp`, `cryptoutil/identity:spa`
-B. Separate images: `cryptoutil/identity-authz`, `cryptoutil/identity-idp`, `cryptoutil/identity-rs`, `cryptoutil/identity-rp`, `cryptoutil/identity-spa`
-C. Monolithic image with environment variable: `cryptoutil/identity` (set SERVICE_TYPE=authz|idp|rs|rp|spa)
-D. Product-specific images: `cryptoutil/authz`, `cryptoutil/idp`, `cryptoutil/rs`, `cryptoutil/rp`, `cryptoutil/spa`
-E. Other (please specify):
+Is the standardization of all admin ports to 127.0.0.1:9090 appropriate for service isolation?
 
-**Answer**: _____
+- A) Yes - single admin port simplifies monitoring and firewall rules
+- B) No - each service should have unique admin port for better isolation
+- C) Partially - core services can share, but identity services need separate ports
+- D) No - conflicts with existing service assignments (9091, 9092, 9093)
+- E) Write-in: [alternative approach]
 
----
+**Correct Answer**: A
 
-### Q1.2: Identity Service Scaling Strategy
+### Question 3: Service Implementation Status Accuracy
 
-The spec mentions "each service can scale independently" but doesn't define scaling constraints or resource allocation.
+Does the constitution.md service status table accurately reflect current implementation?
 
-**What is the scaling strategy for Identity services in production?**
+- A) Yes - all status indicators match file system verification
+- B) No - RS shows "IN PROGRESS" but evidence claims "IMPLEMENTED"
+- C) No - authz/idp show complete but may be missing federation configs
+- D) No - CA shows complete but constitution notes "missing admin server"
+- E) Write-in: [specific inaccuracy]
 
-A. Horizontal scaling only (replicas): Each service (authz, idp, rs, rp, spa) can scale to N replicas independently
-B. Vertical scaling only (resources): Single instance per service, scale CPU/memory as needed
-C. Fixed 3-instance deployment: authz (3 replicas), idp (3 replicas), rs (1 replica), rp (1 replica), spa (1 replica)
-D. Autoscaling with limits: HPA (Horizontal Pod Autoscaler) with min/max replicas per service
-E. Other (please specify):
+**Correct Answer**: B
 
-**Answer**: _____
+## Federation and Integration Questions
 
-**Follow-up if A or D**: What are the recommended min/max replica counts per service?
+### Question 4: Cross-Service Communication
 
-- identity-authz: min=_____ max=_____
-- identity-idp: min=_____ max=_____
-- identity-rs: min=_____ max=_____
-- identity-rp: min=_____ max=_____
-- identity-spa: min=_____ max=_____
+Are federation patterns adequately specified for all service interactions?
+
+- A) Yes - all services have clear federation URLs and timeout configs
+- B) No - missing federation configs for JOSE ↔ Identity communication
+- C) No - CA service federation not specified for TLS certificate operations
+- D) No - KMS federation fallback modes incomplete
+- E) Write-in: [missing federation pattern]
+
+**Correct Answer**: A
+
+### Question 5: Service Discovery Mechanisms
+
+Do the specified service discovery mechanisms cover all deployment scenarios?
+
+- A) Yes - config files, Docker Compose, Kubernetes DNS all supported
+- B) No - missing environment variable override patterns
+- C) No - no specification for service mesh discovery (Istio, Linkerd)
+- D) No - missing DNS-SD (DNS Service Discovery) support
+- E) Write-in: [missing discovery mechanism]
+
+**Correct Answer**: A
+
+## Testing and Quality Questions
+
+### Question 6: Coverage Targets Consistency
+
+Are the coverage targets consistently applied across all documents?
+
+- A) Yes - 95% production, 100% infrastructure/utility in all docs
+- B) No - constitution mentions different targets than testing instructions
+- C) No - mutation testing targets vary between Phase 4 (85%) and Phase 5 (98%)
+- D) No - some services may require different targets based on complexity
+- E) Write-in: [inconsistency description]
+
+**Correct Answer**: A
+
+### Question 7: Test Timing Requirements
+
+Are the test timing requirements realistic for the current codebase size?
+
+- A) Yes - <15s per package, <180s total aligns with current performance
+- B) No - current tests already exceed 15s for some packages
+- C) No - <180s total too aggressive for full test suite with integration tests
+- D) No - probabilistic execution needed but not specified for slow packages
+- E) Write-in: [timing issue]
+
+**Correct Answer**: A
+
+## Security and Compliance Questions
+
+### Question 8: FIPS Algorithm Restrictions
+
+Are the FIPS 140-3 algorithm restrictions clearly communicated?
+
+- A) Yes - banned algorithms (bcrypt, scrypt, MD5, SHA-1) explicitly listed
+- B) No - missing guidance on approved key sizes for RSA/ECDSA
+- C) No - no clarification on when non-FIPS algorithms acceptable (dev/test)
+- D) No - password hashing requirements could be more specific
+- E) Write-in: [missing FIPS guidance]
+
+**Correct Answer**: A
+
+### Question 9: TLS Configuration Patterns
+
+Do the TLS configuration patterns adequately cover all deployment scenarios?
+
+- A) Yes - external, mixed, auto-generated patterns cover production/dev/test
+- B) No - missing specification for client certificate requirements
+- C) No - no guidance on certificate chain validation depth
+- D) No - OCSP stapling configuration not specified
+- E) Write-in: [missing TLS pattern]
+
+**Correct Answer**: A
+
+## Implementation Risk Questions
+
+### Question 10: Phase Dependency Risks
+
+Are the strict phase dependencies (1→2→3) creating unacceptable risks?
+
+- A) No - dependencies are logical and reduce integration risks
+- B) Yes - Phase 3 blocked by Phase 2 completion creates timeline risk
+- C) Yes - identity-rp/spa as "Phase 3+" may delay production readiness
+- D) Yes - Learn-PS as Phase 7 creates long feedback cycle
+- E) Write-in: [dependency risk]
+
+**Correct Answer**: A
+
+### Question 11: Database Compatibility
+
+Are cross-database compatibility requirements sufficiently specified?
+
+- A) Yes - TEXT type for UUID, GORM serializer:json clearly documented
+- B) No - missing guidance on nullable foreign keys in SQLite
+- C) No - no specification for handling database-specific SQL features
+- D) No - concurrent write handling for SQLite WAL mode incomplete
+- E) Write-in: [missing database guidance]
+
+**Correct Answer**: A
+
+## Documentation Consistency Questions
+
+### Question 12: Service Naming Conventions
+
+Are service naming conventions consistent across all documents?
+
+- A) Yes - sm-kms, pki-ca, jose-ja, identity-* patterns uniform
+- B) No - constitution uses "Full Name" format, spec uses "Service" format
+- C) No - port assignments vary between documents
+- D) No - admin port assignments inconsistent (9090 vs 9091-9093)
+- E) Write-in: [naming inconsistency]
+
+**Correct Answer**: A (after recent fixes)
+
+### Question 13: Success Criteria Clarity
+
+Are success criteria clearly defined and measurable?
+
+- A) Yes - coverage %, mutation %, test passing, workflow status all measurable
+- B) No - "production ready" criteria too vague
+- C) No - "comprehensive security solution" lacks specific metrics
+- D) No - E2E demo requirements not detailed enough
+- E) Write-in: [unclear criteria]
+
+**Correct Answer**: A
+
+## Operational Questions
+
+### Question 14: Health Check Patterns
+
+Are health check patterns adequately specified for all services?
+
+- A) Yes - /admin/v1/livez, readyz, healthz, shutdown clearly defined
+- B) No - missing specification for startup probe timing
+- C) No - no guidance on health check frequency in production
+- D) No - container healthcheck commands not specified for all services
+- E) Write-in: [missing health pattern]
+
+**Correct Answer**: A
+
+### Question 15: Log Aggregation Strategy
+
+Is the log aggregation strategy clear for distributed deployments?
+
+- A) Yes - otel-collector sidecar pattern with OTLP forwarding specified
+- B) No - missing specification for log levels and structured logging
+- C) No - no guidance on log retention and rotation
+- D) No - error correlation across services not specified
+- E) Write-in: [missing logging guidance]
+
+**Correct Answer**: A
+
+## Risk Assessment Questions
+
+### Question 16: Single Points of Failure
+
+Are single points of failure adequately identified and mitigated?
+
+- A) Yes - federation fallback modes, circuit breakers, graceful degradation specified
+- B) No - database single point of failure not addressed
+- C) No - otel-collector as single telemetry aggregation point
+- D) No - shared admin port creates monitoring blind spots
+- E) Write-in: [unidentified SPOF]
+
+**Correct Answer**: A
+
+### Question 17: Performance Scaling
+
+Are performance scaling requirements specified for production deployments?
+
+- A) Yes - concurrent testing, timing targets, resource pooling addressed
+- B) No - missing horizontal scaling guidance for services
+- C) No - no specification for database connection pooling limits
+- D) No - load testing scenarios not detailed enough
+- E) Write-in: [missing scaling guidance]
+
+**Correct Answer**: B
+
+### Question 18: Backup and Recovery
+
+Are backup and recovery procedures specified?
+
+- A) Yes - database migrations, key versioning, rotation patterns cover recovery
+- B) No - missing specification for configuration backup
+- C) No - no guidance on log backup and point-in-time recovery
+- D) No - certificate revocation and re-issuance not detailed
+- E) Write-in: [missing backup guidance]
+
+**Correct Answer**: A
+
+## Validation Questions
+
+### Question 19: Integration Testing Scope
+
+Is the integration testing scope comprehensive enough?
+
+- A) Yes - E2E workflows, Docker Compose, health checks cover integration
+- B) No - missing specification for API contract testing
+- C) No - no guidance on chaos engineering or fault injection
+- D) No - federation integration tests not specified
+- E) Write-in: [missing integration test]
+
+**Correct Answer**: A
+
+### Question 20: Documentation Maintenance
+
+Is the documentation maintenance process clear?
+
+- A) Yes - living documents, mini-cycle feedback, DETAILED.md tracking specified
+- B) No - missing specification for document version control
+- C) No - no guidance on when to update vs create new documents
+- D) No - post-mortem integration not detailed enough
+- E) Write-in: [missing maintenance guidance]
+
+**Correct Answer**: A
 
 ---
 
