@@ -275,29 +275,31 @@ func TestUserCreate(t *testing.T) {
 
 **MANDATORY: ALL services MUST use dual HTTPS endpoints - NO HTTP PORTS ALLOWED**
 
+All services MUST implement separate HTTPS endpoints for public operations and private administration operations. TLS server certificate authentication MUST be enforced; TLS client certificate authentication may also be enforced via a configuration option; HTTP is NEVER allowed.
+
 ### Deployment Environments
 
 **Production Deployments**:
 
 - All services MUST run in containers
 - Public endpoints MUST use 0.0.0.0 IPv4 bind address inside containers (enables external access)
-- Public endpoints MAY use configurable bind address outside containers (defaults to 0.0.0.0)
+- Public endpoints MUST use same port numbers inside and outside containers
+- Public endpoints MAY use configurable bind address outside containers (defaults to 127.0.0.1)
 - Private endpoints MUST use 127.0.0.1:9090 inside containers (not mapped outside)
-- Port mappings: Public ports map host→container on same port number
-- IPv6: MUST NOT use due to dual-stack issues in Docker
+- No IPv6: All endpoints must use IPv4 inside containers due to dual-stack issues in Docker
 
 **Development/Test Environments**:
 
-- Public endpoints MUST use 127.0.0.1 IPv4 bind address (prevents Windows Firewall prompts)
-- Public endpoints MUST use port 0 (dynamic allocation) to avoid port collisions
-- Private endpoints MUST use 127.0.0.1:9090 (static port)
+- Public and private endpoints MUST use 127.0.0.1 IPv4 bind address (prevents Windows Firewall prompts)
 - Rationale: 0.0.0.0 binding triggers Windows Firewall exception prompts, blocking test automation
+- Public and private endpoints MUST use port 0 (dynamic allocation) to avoid port collisions
+- Rationale: static ports causes port collisions during parallel test automation
 
 ### Dual-Endpoint Architecture Pattern
 
 #### 1. TLS Certificate Configuration
 
-All services MUST support configurable TLS server certificate chains and private keys:
+All endpoints in all services MUST support configurable TLS server certificate chains and private keys. There are two options to pro:
 
 **Dynamic TLS Certificates** (Auto-Generated):
 
@@ -307,22 +309,22 @@ All services MUST support configurable TLS server certificate chains and private
 
 **Static TLS Certificates** (Externally Provided):
 
-- Private keys stored in Docker Secrets (production) or file paths (development)
-- Certificate chains provided via file paths or PEM-encoded data
+- Private keys stored in Docker Secrets (production and development)
+- Certificate chains provided via file paths or PEM-encoded data in configuration files
 - Trusted CA certificates configurable for client verification
 - Required for production deployments with organizational PKI
 
-#### 2. Private HTTPS Endpoint (Admin Server)
+#### 2. Private HTTPS Endpoint
 
 **Purpose**: Administration, health checks, graceful shutdown
 
 **Configuration**:
 
-- Default port: 0 (dynamic allocation)
 - Production port: 127.0.0.1:9090 (static binding)
+- Test port: 0 (dynamic allocation)
 - Bind address: ALWAYS 127.0.0.1 (IPv4 loopback only)
 - TLS: MANDATORY (never HTTP)
-- External access: NEVER (localhost-only)
+- External access: NEVER (127.0.0.1-only)
 
 **Endpoints**:
 
@@ -339,29 +341,24 @@ All services MUST support configurable TLS server certificate chains and private
 
 **Configuration**:
 
-- Default port: 0 (dynamic allocation for tests)
 - Production ports: Service-specific ranges (8080-8089 for KMS, 8180-8189 for Identity, etc.)
-- Bind address: 0.0.0.0 (production containers), 127.0.0.1 (tests/development)
+- Bind address: 127.0.0.1 (production containers can set 0.0.0.0 via configuration), 127.0.0.1 (tests/development)
 - TLS: MANDATORY (never HTTP)
 - External access: YES (exposed to clients)
 
 **Request Path Prefixes and Middlewares**:
 
-All services implement TWO security middleware stacks on the SAME OpenAPI specification:
+For public HTTPS endpoint, all services implement TWO security middleware stacks, which reuse an OpenAPI specification per service but enforce different authentication, authorization, and access control policies based on request path prefixes:
 
 **Service-to-Service APIs** (`/service/**` prefix):
 
-- Authentication: OAuth 2.1 Client Credentials Flow (HTTP Authorization header)
-- Token type: Bearer tokens (machine-to-machine)
-- Middleware: IP allowlist, rate limiting, request logging
 - Access: Service clients ONLY (browsers blocked by middleware)
+- Middleware: IP allowlist, rate limiting, request logging
 
 **Browser-to-Service APIs/UI** (`/browser/**` prefix):
 
-- Authentication: OAuth 2.1 Authorization Code + PKCE Flow (HTTP Cookie header)
-- Token type: Session cookies (user-to-service)
-- Middleware: CSRF protection, CORS policies, CSP headers, IP allowlist, rate limiting
 - Access: Browser clients ONLY (service clients blocked by middleware)
+- Middleware: CSRF protection, CORS policies, CSP headers, IP allowlist, rate limiting
 - Additional content: HTML pages, JavaScript, CSS, images, fonts, etc.
 
 **API Consistency**:

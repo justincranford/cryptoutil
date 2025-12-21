@@ -4,25 +4,30 @@
 
 **cryptoutil** is a Go-based cryptographic services platform providing secure key management, identity services, and certificate authority capabilities with FIPS 140-3 compliance.
 
-### Spec Kit Workflow Reference
+## Spec Kit Methodology
 
-**Source**: SPECKIT-CONFLICTS-ANALYSIS O8 answer C, 2025-12-19
+<https://github.com/github/spec-kit>
 
-This specification follows the Spec Kit methodology (see `docs/SPECKIT-QUICK-GUIDE.md` for complete workflow). Key principles:
+The Spec Kit Methodology, driven by GitHub's open-source toolkit, is a Spec-Driven Development (SDD) process that uses AI to transform detailed specifications into code, emphasizing structure, clarity, and controlled scope for better quality AI-assisted development. It moves beyond "vibe coding" by breaking features into manageable tasks.
 
-- **Iterative Clarification**: Ambiguities resolved via `clarify.md` → `CLARIFY-QUIZME.md` cycle
-- **Constitution Authority**: `.specify/memory/constitution.md` defines immutable principles and quality gates
-- **Evidence-Based Completion**: Tasks require objective evidence (coverage ≥95%, mutation ≥85%, all tests passing)
-- **Feedback Loops**: Implementation insights update earlier documents (spec → constitution → clarify)
-- **Phase Dependencies**: Strict sequencing (Phase 1 foundation before Phase 2 core features)
+### Spec Kit Steps
 
-**Key Document Relationships**:
+| Step | Output | Notes |
+|------|--------|-------|
+| 1. /speckit.constitution | .specify\memory\constitution.md | |
+| 2. /speckit.specify | specs\002-cryptoutil\spec.md | |
+| 3. /speckit.clarify | specs\002-cryptoutil\clarify.md and specs\002-cryptoutil\CLARIFY-QUIZME.md | (optional: after specify, before plan) |
+| 4. /speckit.plan | specs\002-cryptoutil\plan.md | |
+| 5. /speckit.tasks | specs\002-cryptoutil\tasks.md | |
+| 6. /speckit.analyze | specs\002-cryptoutil\analyze.md | (optional: after tasks, before implement) |
+| 7. /speckit.implement | (e.g., implement/DETAILED.md and implement/EXECUTIVE.md) | |
 
-- `constitution.md`: Core principles, absolute requirements, quality gates
-- `spec.md` (this file): Product requirements, technical specification
-- `plan.md`: 7-phase implementation approach, task breakdown
-- `clarify.md`: Authoritative Q&A for all resolved ambiguities
-- `implement/DETAILED.md`: Task status tracking, append-only timeline
+### Spec Kit Customizations
+
+- **Phase Dependencies**: Strict sequencing (Phase 1 → Phase 2 → Phase 3, etc.)
+- **Progress Tracking**: implement/DETAILED.md and implement/EXECUTIVE.md
+- **Feedback Loops**: insights from implement/DETAILED.md and implement/EXECUTIVE.md are applied to earlier documents (implement → constitution+spec → clarify)
+- **Evidence-Based Completion**: Implementation requires objective evidence (coverage ≥95%, mutation ≥85%, all tests passing)
 
 ## Technical Constraints
 
@@ -42,50 +47,76 @@ This specification follows the Spec Kit methodology (see `docs/SPECKIT-QUICK-GUI
 
 ### Overview
 
-**cryptoutil** consists of 4 independent products (9 total services: 8 product services + 1 demo service) that can be deployed standalone or as an integrated suite:
+**cryptoutil** consists of 4 products with 8 services. Products can be deployed standalone or as an integrated suite:
 
-1. **P1: JOSE Authority** - 1 service: Cryptographic primitives (JWK, JWKS, JWE, JWS, JWT)
-2. **P2: Identity Services** - 5 services: OAuth 2.1 AuthZ, OIDC 1.0 IdP, Resource Server, Relying Party, Single Page Application
-3. **P3: KMS** - 1 service: Hierarchical key management (library + optional server)
-4. **P4: CA** - 1 service: Certificate authority with EST/OCSP/CRL support
-5. **Demo: Learn-PS** - 1 service: Pet Store demonstration (validates service template)
+### Products and Services
 
-### Complete Service Architecture (9 Services)
-
-#### Product Services (8 Core Services)
-
-| Service Alias | Full Name | Public Port | Admin Port | Description |
+| Service Alias | Product | Service | Public Ports | Admin Port | Description |
 |---------------|-----------|-------------|------------|-------------|
-| **sm-kms** | Secrets Manager - Key Management Service | 8080 | 9090 | Hierarchical key management with ElasticKeys and MaterialKeys |
-| **pki-ca** | Public Key Infrastructure - Certificate Authority | 8380 | 9092 | X.509 certificate lifecycle, EST, OCSP, CRL, time-stamping |
-| **jose-ja** | JOSE - JWK Authority | 8280 | 9093 | JWK, JWKS, JWE, JWS, JWT operations |
-| **identity-authz** | Identity - Authorization Server | 8180 | 9091 | OAuth 2.1 authorization server, OIDC Discovery |
-| **identity-idp** | Identity - Identity Provider | 8181 | 9091 | OIDC authentication, login/consent UI, MFA enrollment |
-| **identity-rs** | Identity - Resource Server | 8182 | 9091 | Protected API with token validation (reference implementation) |
-| **identity-rp** | Identity - Relying Party | 8183 | 9091 | Backend-for-Frontend pattern (reference implementation) |
-| **identity-spa** | Identity - Single Page Application | 8184 | 9091 | Static hosting for SPA clients (reference implementation) |
+| **sm-kms** | Secrets Manager | Key Management Service (KMS) | 8080-8089 | 127.0.0.1:9090 | REST APIs for per-tenant ElasticKeys, each composed of MaterialKeys |
+| **pki-ca** | Public Key Infrastructure | Certificate Authority (CA) | 8443-8449 | 127.0.0.1:9090 | X.509 certificate lifecycle, EST, SCEP, OCSP, CRLDP, CMPv2, CMC, time-stamping |
+| **jose-ja** | JOSE | JWK Authority (JA) | 9443-9449 | 127.0.0.1:9090 | JWK, JWKS, JWE, JWS, JWT operations |
+| **identity-authz** | Identity | Authorization Server (authz) | 18000-18009 | 127.0.0.1:9090 | OAuth 2.1 authorization server, OIDC Discovery |
+| **identity-idp** | Identity | Identity Provider (IdP) | 18100-18109 | 127.0.0.1:9090 | OIDC 1.0 authentication, login/consent UI, MFA enrollment |
+| **identity-rs** | Identity | Resource Server (RS) | 18200-18209 | 127.0.0.1:9090 | Protected API with token validation (reference implementation) |
+| **identity-rp** | Identity | Relying Party (RP) | 18300-18309 | 127.0.0.1:9090 | Backend-for-Frontend pattern (reference implementation) |
+| **identity-spa** | Identity  Single Page Application (SPA) | 18400-18409 | 127.0.0.1:9090 | Static hosting for SPA clients (reference implementation) |
 
-#### Demonstration Service (1 Service)
-
-| Service Alias | Full Name | Public Port | Admin Port | Description |
+| Service Alias | Product | Service | Public Port | Admin Port | Description |
 |---------------|-----------|-------------|------------|-------------|
-| **learn-ps** | Learn - Pet Store | 8580 | 9095 | Educational service demonstrating service template usage (Phase 7) |
+| **learn-ps** | Learn | Pet Store | 8888-8889 | 127.0.0.1:9090 | Educational service demonstrating service template usage |
 
 **Source**: Architecture instructions (01-01.architecture.instructions.md), constitution.md Section I
 
-### Dual-Server Architecture Pattern
+## Product Suite Architecture - CRITICAL
 
-**CRITICAL**: All services implement a dual HTTPS endpoint pattern for security and operational separation.
+### Dual-Endpoint Architecture Pattern
 
-#### Public HTTPS Server
+All services MUST implement separate HTTPS endpoints for public operations and private administration operations. TLS server certificate authentication MUST be enforced; TLS client certificate authentication may also be enforced via a configuration option; HTTP is NEVER allowed.
 
-**Purpose**: Browser-facing UI/APIs vs headless-client APIs, with different authentication options, authorization options, and middleware security
-**Bind**: `<configurable_address>:<configurable_port>` (e.g., ports: 8080, 8081, 8082)
+#### Deployment Environments
+
+**Production Deployments**:
+
+- All services MUST run in containers
+- Public endpoints MUST use 0.0.0.0 IPv4 bind address inside containers (enables external access)
+- Public endpoints MUST use same port numbers inside and outside containers
+- Public endpoints MAY use configurable bind address outside containers (defaults to 127.0.0.1)
+- Private endpoints MUST use 127.0.0.1:9090 inside containers (not mapped outside)
+- No IPv6: All endpoints must use IPv4 inside containers due to dual-stack issues in Docker
+
+**Development/Test Environments**:
+
+- Public and private endpoints MUST use 127.0.0.1 IPv4 bind address (prevents Windows Firewall prompts)
+- Rationale: 0.0.0.0 binding triggers Windows Firewall exception prompts, blocking test automation
+- Public and private endpoints MUST use port 0 (dynamic allocation) to avoid port collisions
+- Rationale: static ports causes port collisions during parallel test automation
+
+#### TLS Certificate Configuration
+
+All endpoints in all services MUST support configurable TLS server certificate chains and private keys. There are two options:
+
+**Dynamic TLS Certificates** (Auto-Generated):
+
+- Leaf certificate, intermediate CA certificates, and root CA certificate auto-generated by private CA
+- CA scoped per-product or per-suite
+- Useful for development, testing, ephemeral environments
+
+**Static TLS Certificates** (Externally Provided):
+
+- Private keys stored in Docker Secrets (production and development)
+- Certificate chains provided via file paths or PEM-encoded data in configuration files
+- Trusted CA certificates configurable for client verification
+- Required for production deployments with organizational PKI
+
+#### Public HTTPS Endpoint
+
+**Purpose**: Offers two public facing sets of APIs: browser-facing UI/APIs for browser-clients, and headless APIs for non-browser clients. Each set of APIs has different authentication options, authorization options, and middleware security
+**Bind**: `<configurable_address>:<configurable_port>` (e.g., ports: 8080, 8081, 8082 for sm-kms service instances)
 **Security**:
 
-- MUST use HTTPS TLS 1.3+ with server certificate; TLS client-certificate authentication can also be enforced, but it is a configuration option
 - Address binding constraints
-  - Unit/integration tests: MUST use IPv4 127.0.0.1 by default; if not, it triggers Windows Firewall Exception prompts, which defeats the purpose of test automation
+  - Unit/integration tests: MUST use IPv4 127.0.0.1; if not, Windows Firewall Exception prompts are triggered, which defeats the purpose of test automation
   - Docker Containers: MUST use IPv4 0.0.0.0 binding by default inside containers; no IPv6 due to dual stack issues inside Docker, and no 127.0.0.1 because Docker networking can't map external port to internal 127.0.0.1 network interface
 - API Contexts are based on request paths
   - `/browser/swagger/*` - Browser-to-service Swagger UI; UI is secured using middleware security and injected JavaScript customization
