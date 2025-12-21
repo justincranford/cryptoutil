@@ -1394,3 +1394,29 @@ Missing public HTTP server implementation in:
 - Zero symptom improvement despite multiple configuration changes
 
 ---
+
+### 2025-12-20: Architecture Documentation Improvements
+
+**Work Completed**:
+
+- Refactored "Microservices Architecture" section in `.github/instructions/01-01.architecture.instructions.md`
+- Reorganized into clear Deployment Environments section (Production vs Dev/Test)
+- Restructured Dual-Endpoint Architecture Pattern with numbered subsections (1. TLS Certificate Configuration, 2. Private HTTPS Endpoint, 3. Public HTTPS Endpoint)
+- Improved clarity around bind addresses: 0.0.0.0 for production containers, 127.0.0.1 for tests/dev
+- Added detailed Request Path Prefixes and Middlewares explanation (`/service/**` vs `/browser/**`)
+- Propagated same improvements to `.specify/memory/constitution.md` Section V
+
+**Quality Improvements**:
+
+- Better document structure with hierarchical sections
+- Clearer purpose statements for each endpoint type
+- Explicit configuration requirements (default vs production settings)
+- Improved formatting consistency and readability
+
+**Related Commits**:
+
+- [28e9586c] docs(architecture): refactor Microservices Architecture section for clarity
+
+**Purpose**: Improve documentation maintainability and developer understanding of dual-endpoint architecture pattern used across all 9 services.
+
+---
