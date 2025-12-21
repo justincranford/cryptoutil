@@ -1498,6 +1498,147 @@ func main() {
 
 ---
 
+---
+
+## Non-Functional Requirements
+
+### Performance and Scaling
+
+#### Vertical Scaling
+
+**Resource Limits** (Per-service configuration):
+
+- CPU limits: 500m-2000m (0.5-2 CPU cores)
+- Memory limits: 256Mi-1Gi (configurable per service)
+- Connection pool sizing: Based on workload (PostgreSQL 10-50, SQLite 5)
+- Concurrent request handling: Configurable (default: 100 concurrent requests)
+
+**Resource Monitoring**:
+
+- OTLP metrics: CPU usage, memory usage, goroutine count
+- Health checks: Resource exhaustion detection
+- Graceful degradation: Circuit breaker when resources depleted
+
+#### Horizontal Scaling
+
+**Load Balancing Patterns**:
+
+- **Layer 7 (HTTP/HTTPS)**: Use reverse proxy (nginx, Traefik, Envoy) for path-based routing
+- **Layer 4 (TCP)**: Use TCP load balancer for raw connection distribution
+- **DNS-based**: Round-robin DNS for simple load distribution
+- **Service mesh**: Istio/Linkerd for advanced traffic management
+
+**Session State Management for Horizontal Scaling**:
+
+- **Stateless sessions** (Preferred): JWT tokens, no server-side storage
+- **Sticky sessions**: Load balancer affinity based on session cookie
+- **Distributed session store**: Redis cluster for shared session state
+- **Database-backed sessions**: PostgreSQL with connection pooling
+
+**Database Scaling Patterns**:
+
+- **Read replicas**: Route read-only queries to PostgreSQL replicas
+- **Connection pooling**: PgBouncer/pgpool-II for connection multiplexing
+- **Database sharding**: Partition data by tenant ID or key range (future consideration)
+- **Caching**: Redis/Memcached for frequently accessed data
+
+**Distributed Caching Strategy**:
+
+- **Cache invalidation**: TTL-based expiration, event-driven invalidation
+- **Cache consistency**: Write-through, write-behind, or cache-aside patterns
+- **Cache tiers**: L1 (in-memory), L2 (Redis), L3 (database)
+
+**Deployment Patterns**:
+
+- **Blue-Green**: Zero-downtime deployments with instant rollback
+- **Canary**: Gradual rollout to subset of users
+- **Rolling updates**: Kubernetes-style progressive replacement
+
+**Source**: constitution.md Section VB, clarify.md Q17
+
+### Backup and Recovery
+
+**Database Backup**:
+
+- **PostgreSQL**: `pg_dump` for logical backups, `pg_basebackup` for physical backups
+- **SQLite**: File-based backups (copy .db file)
+- **Backup frequency**: Daily automated backups, retain 30 days
+- **Backup validation**: Test restore procedure monthly
+
+**Disaster Recovery**:
+
+- **Database migrations**: Embedded SQL with golang-migrate provides schema versioning
+- **Key rotation**: Version-based key management (KeyRing pattern) enables key recovery
+- **Configuration backups**: YAML configs stored in version control
+- **Recovery procedure**: Restore database from backup + apply migrations + restore keys from backup
+
+**Documented in**:
+
+- .github/instructions/01-06.database.instructions.md (database migrations)
+- .github/instructions/01-09.cryptography.instructions.md (key versioning and rotation)
+
+**Source**: constitution.md Section VB, clarify.md Q18
+
+### Observability
+
+**Telemetry Forwarding**:
+
+- All telemetry forwarded through otel-contrib sidecar (MANDATORY)
+- Application: OTLP gRPC:4317 or HTTP:4318 → otel-collector → Grafana OTLP:14317/14318
+- Collector self-monitoring: Internal → Grafana OTLP HTTP:14318
+
+**Resource Limits for OTLP Collector**:
+
+- Memory limit: 512Mi
+- CPU limit: 500m (0.5 CPU cores)
+- Sampling strategy: Adaptive based on throughput (100% at low load, 10% at high load)
+
+**Source**: clarify.md Q15, Q8.1
+
+### Security
+
+**Docker Secrets**:
+
+- **File permissions**: 400 (r--------) or 440 (r--r-----) (read-only for owner or owner+group)
+- **Dockerfile validation**: ALL Dockerfiles MUST include validation stage to verify secrets exist with correct permissions
+- **Pattern**: See KMS Dockerfile validator stage (alpine:3.19 AS validator)
+
+**Source**: .github/instructions/02-02.docker.instructions.md, clarify.md Q9.1
+
+### Multi-Tenancy
+
+**Tenant Isolation**:
+
+- **Preferred**: Schema-level tenant isolation (tenant_a.users, tenant_b.users)
+- **Acceptable**: Tenant ID column in shared tables with row-level security (RLS)
+- **NOT SUPPORTED**: Separate databases per tenant (too many connections)
+
+**Configuration**:
+
+```yaml
+multi_tenancy:
+  isolation: schema  # or table
+  tenant_id_header: X-Tenant-ID
+```
+
+**Source**: clarify.md Q10.2
+
+### Certificate Profiles
+
+**Custom Certificate Profiles**:
+
+- **DV (Domain Validation)**: domain_only validation, 90 days validity
+- **OV (Organization Validation)**: organization validation, 397 days validity
+- **EV (Extended Validation)**: extended validation, 397 days validity
+
+**Per-client configuration**: Client can request specific profile based on trust requirements
+
+**Policy enforcement**: CA policy engine enforces profile constraints
+
+**Source**: clarify.md Q10.3
+
+---
+
 ## Known Gaps and Future Work
 
 ### High Priority
