@@ -166,6 +166,11 @@ After all updates:
 - [x] Fetch speckit documentation from GitHub
 - [x] Update copilot-instructions.md to remove duplicate accuracy/commit directives
 - [x] Create this task list
+- [x] Optimize .github/copilot-instructions.md and .github/instructions/* for token limits without sacrificing quality
+- [x] Review constitution.md, specs/002-cryptoutil/spec.md, and specs/002-cryptoutil/PLAN.md for completeness/correctness/clarity/alignment with copilot instructions
+- [x] Analyze files again and create consolidated CLARIFY-QUIZME.md with multiple-choice questions on problems/omissions/ambiguities/conflicts/risks
+- [x] Create docs/WORKFLOW-TEST-GUIDELINE.md documenting local workflow testing methods and identifying gaps
+- [x] Delete unnecessary session files (docs\RS-PUBLIC-SERVER-IMPLEMENTATION.md, docs\SESSION-2025-12-21-SUMMARY.md)
 
 ### In Progress Tasks
 

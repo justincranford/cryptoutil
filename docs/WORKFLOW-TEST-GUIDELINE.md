@@ -1,103 +1,529 @@
-# Workflow Testing Guidelines
+# Workflow Test Guideline
 
-## Overview
+**Purpose**: Comprehensive guide for testing individual workflows locally, identifying gaps in local test strategy, and methodologies for analyzing testing effectiveness, quality, and results.
 
-This document provides guidelines for testing GitHub Actions workflows locally before pushing to GitHub, reducing iteration cycles and preventing CI/CD failures.
+## Local Workflow Testing Methods
 
-## Local Testing Tools
+### 1. Manual Workflow Execution (`go run ./cmd/workflow`)
 
-### 1. Act (Recommended for Simple Workflows)
-
-**Installation**:
-
-```powershell
-winget install nektos.act
-```
-
-**Basic Usage**:
+**Primary Method**: Use the workflow command to execute individual workflows locally.
 
 ```bash
-# Test specific workflow
-act -W .github/workflows/ci-quality.yml
+# Execute single workflow
+go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
 
-# Test workflow with specific event
-act push -W .github/workflows/ci-quality.yml
-
-# Test all workflows for push event
-act push
+# Execute multiple workflows
+go run ./cmd/workflow -workflows=dast,e2e -inputs="scan_profile=full"
 
 # List available workflows
-act -l
+go run ./cmd/workflow -list
+
+# Get workflow help
+go run ./cmd/workflow -help
 ```
 
-**Limitations**:
+**Supported Workflows**:
 
-- Docker container overhead (slow startup)
-- Limited service support (PostgreSQL, OTEL require Docker Compose)
-- Windows-specific issues (path mappings, permissions)
+- `ci-quality`: Linting, formatting, builds
+- `ci-coverage`: Test coverage analysis
+- `ci-benchmark`: Performance benchmarks
+- `ci-fuzz`: Fuzz testing
+- `ci-race`: Race condition detection
+- `ci-sast`: Static security analysis
+- `ci-gitleaks`: Secrets scanning
+- `ci-dast`: Dynamic security testing (requires services)
+- `ci-e2e`: End-to-end integration testing (requires services)
+- `ci-load`: Load testing (requires services)
 
-### 2. cmd/workflow (Project-Specific Tool)
+### 2. Direct Tool Execution
 
-**Recommended Tool**: Custom Go-based workflow runner with Docker Compose integration
-
-**Usage**:
+**For workflows without service dependencies**:
 
 ```bash
-# Test single workflow
-go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"  # 3-5 min
+# Quality checks (equivalent to ci-quality)
+golangci-lint run
+go build ./...
+go mod tidy
 
-# Test full scan
-go run ./cmd/workflow -workflows=dast -inputs="scan_profile=full"   # 10-15 min
+# Coverage (equivalent to ci-coverage)
+go test ./... -coverprofile=./test-output/coverage.out
+go tool cover -html=./test-output/coverage.out -o ./test-output/coverage.html
 
-# Test multiple workflows
-go run ./cmd/workflow -workflows=e2e,dast
+# Race detection (equivalent to ci-race)
+go test -race -count=3 ./...
 
-# Test all workflows
-go run ./cmd/workflow -workflows=all
+# Fuzz testing (equivalent to ci-fuzz)
+go test -fuzz=FuzzTestName -fuzztime=15s ./pkg/path
+
+# Benchmarking (equivalent to ci-benchmark)
+go test -bench=. -benchmem ./pkg/path
 ```
 
-**Advantages**:
+### 3. Service-Dependent Workflow Testing
 
-- Native Docker Compose support
-- Service health checks built-in
-- OTEL collector integration
-- Workflow-specific configurations
-- Faster than Act (no container-in-container overhead)
-
-**NEVER use `-t` timeout flag** - ALWAYS let cmd/workflow complete naturally
-
-## Workflow Testing Strategy
-
-### Phase 1: Unit Tests (No Services)
-
-Test workflows that don't require Docker services:
+**Requires Docker Compose infrastructure**:
 
 ```bash
-# Quality checks (linting, formatting, builds)
-go run ./cmd/workflow -workflows=quality
+# Start services for DAST/E2E/Load testing
+docker compose -f ./deployments/compose/compose.yml up -d
 
-# Coverage collection
-go run ./cmd/workflow -workflows=coverage
+# Wait for services to be healthy
+# Check health endpoints manually or use scripts
 
-# Benchmark tests
-go run ./cmd/workflow -workflows=benchmark
+# Run workflow
+go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
 
-# Fuzz tests (15s per test)
-go run ./cmd/workflow -workflows=fuzz
-
-# Race detection
-go run ./cmd/workflow -workflows=race
-
-# SAST (static security analysis)
-go run ./cmd/workflow -workflows=sast
-
-# GitLeaks (secrets scanning)
-go run ./cmd/workflow -workflows=gitleaks
+# Stop services
+docker compose -f ./deployments/compose/compose.yml down -v
 ```
 
-**Expected Duration**: 2-5 minutes total
+**Service Health Verification**:
 
-### Phase 2: Integration Tests (Require Services)
+```bash
+# KMS (SQLite)
+curl -k https://localhost:8080/admin/v1/healthz
+
+# KMS (PostgreSQL 1)
+curl -k https://localhost:8081/admin/v1/healthz
+
+# KMS (PostgreSQL 2)
+curl -k https://localhost:8082/admin/v1/healthz
+
+# Identity services
+curl -k https://localhost:8180/admin/v1/healthz  # authz
+curl -k https://localhost:8181/admin/v1/healthz  # idp
+curl -k https://localhost:8182/admin/v1/healthz  # rs
+```
+
+### 4. Selective Package Testing
+
+**Test individual packages before full workflow**:
+
+```bash
+# Test specific package
+go test ./internal/identity/authz/...
+
+# With coverage
+go test -cover ./internal/identity/authz/...
+
+# With race detection
+go test -race ./internal/identity/authz/...
+
+# With verbose output
+go test -v ./internal/identity/authz/...
+```
+
+### 5. Pre-commit Hook Testing
+
+**Test pre-commit hooks locally**:
+
+```bash
+# Run all hooks on staged files
+pre-commit run
+
+# Run specific hook
+pre-commit run markdownlint-cli2
+
+# Run on specific files
+pre-commit run --files .github/copilot-instructions.md
+
+# Test in CI environment
+pre-commit run --all-files
+```
+
+## Gaps in Local Test Strategy
+
+### 1. Service Startup Automation
+
+**Gap**: Manual service startup for integration tests
+
+**Current**: `docker compose up -d` + manual health checks
+**Missing**: Automated service readiness verification
+**Impact**: Unreliable test execution, false failures
+
+**Recommended Solution**:
+
+```bash
+#!/bin/bash
+# automated-service-start.sh
+docker compose -f ./deployments/compose/compose.yml up -d
+
+# Wait for services with timeout
+timeout=300
+elapsed=0
+while [ $elapsed -lt $timeout ]; do
+    if curl -k -f https://localhost:8080/admin/v1/healthz > /dev/null 2>&1; then
+        echo "Services ready"
+        exit 0
+    fi
+    sleep 5
+    elapsed=$((elapsed + 5))
+done
+
+echo "Services failed to start within $timeout seconds"
+exit 1
+```
+
+### 2. Test Result Correlation
+
+**Gap**: No correlation between local test results and CI workflow results
+
+**Current**: Local tests run in isolation
+**Missing**: Result comparison and delta analysis
+**Impact**: Hard to predict CI failures from local testing
+
+**Recommended Solution**: Create result comparison script
+
+```bash
+#!/bin/bash
+# compare-results.sh
+# Compare local test results with CI artifacts
+
+# Download CI artifacts
+gh run download <run-id> --dir ci-results
+
+# Compare coverage
+diff <(sort local-coverage.out) <(sort ci-results/coverage.out)
+
+# Compare test outputs
+diff local-test.log ci-results/test.log
+```
+
+### 3. Environment Parity
+
+**Gap**: Local environment differs from CI environment
+
+**Current**: Local uses host Go/PostgreSQL, CI uses containers
+**Missing**: Containerized local testing
+**Impact**: Environment-specific failures not caught locally
+
+**Recommended Solution**: Add containerized test option
+
+```bash
+# Test in containers like CI
+docker run --rm -v $(pwd):/src -w /src golang:1.25.5 \
+    go test ./... -coverprofile=coverage.out
+```
+
+### 4. Performance Regression Detection
+
+**Gap**: No local performance baseline comparison
+
+**Current**: Benchmarks run but not tracked
+**Missing**: Historical performance comparison
+**Impact**: Performance regressions not detected until CI
+
+**Recommended Solution**: Performance tracking script
+
+```bash
+#!/bin/bash
+# benchmark-track.sh
+
+# Run benchmarks
+go test -bench=. -benchmem ./... > benchmark.txt
+
+# Compare with baseline
+if [ -f benchmark-baseline.txt ]; then
+    benchstat benchmark-baseline.txt benchmark.txt
+fi
+
+# Update baseline if improved
+cp benchmark.txt benchmark-baseline.txt
+```
+
+### 5. Security Testing Depth
+
+**Gap**: Limited local security testing scope
+
+**Current**: Basic linting and gosec
+**Missing**: Comprehensive security scanning
+**Impact**: Security issues not caught locally
+
+**Recommended Solution**: Enhanced local security testing
+
+```bash
+# Run comprehensive security checks
+gosec ./...
+trivy fs --security-checks vuln,config,secret .
+semgrep --config auto .
+```
+
+### 6. Integration Test Isolation
+
+**Gap**: Integration tests affect each other
+
+**Current**: All services start together
+**Missing**: Per-service integration testing
+**Impact**: Hard to isolate integration failures
+
+**Recommended Solution**: Service-specific test scripts
+
+```bash
+#!/bin/bash
+# test-identity-only.sh
+
+# Start only identity services
+docker compose -f ./deployments/compose/compose.yml up -d identity-authz identity-idp identity-rs
+
+# Test identity workflows
+go run ./cmd/workflow -workflows=e2e -inputs="services=identity"
+
+# Cleanup
+docker compose -f ./deployments/compose/compose.yml down -v
+```
+
+## Testing Effectiveness Methodologies
+
+### 1. Coverage Analysis
+
+**Mutation Score Tracking**:
+
+```bash
+# Run mutation testing
+gremlins unleash --tags=!integration
+
+# Track scores over time
+echo "$(date): $(grep 'Mutation score' gremlins-report.txt)" >> mutation-history.txt
+```
+
+**Coverage Gap Analysis**:
+
+```bash
+# Find uncovered functions
+go test -coverprofile=coverage.out ./...
+go tool cover -func=coverage.out | grep -v "100.0%" | sort -k3 -n
+```
+
+### 2. Test Quality Metrics
+
+**Test Execution Time Analysis**:
+
+```bash
+# Measure test execution time
+time go test ./...
+
+# Identify slow tests
+go test -v ./... 2>&1 | grep -E "^=== RUN|^--- PASS" | \
+    awk '/=== RUN/{test=$2} /--- PASS/{print test, $3}' | \
+    sort -k2 -n
+```
+
+**Flaky Test Detection**:
+
+```bash
+# Run tests multiple times to detect flakes
+for i in {1..5}; do
+    echo "Run $i:"
+    go test -run TestFlaky ./... || echo "FAILED"
+done
+```
+
+### 3. Result Quality Assessment
+
+**Test Result Consistency**:
+
+```bash
+# Compare test results across runs
+go test -json ./... > test-run-1.json
+go test -json ./... > test-run-2.json
+
+# Compare outputs
+diff test-run-1.json test-run-2.json
+```
+
+**Error Pattern Analysis**:
+
+```bash
+# Analyze common failure patterns
+go test -v ./... 2>&1 | grep -i "fail\|error" | \
+    sed 's/.*\(FAIL\|ERROR\).*/\1/' | sort | uniq -c | sort -nr
+```
+
+### 4. Integration Test Effectiveness
+
+**Service Interaction Coverage**:
+
+```bash
+# Check which service combinations are tested
+grep -r "federation\|service.*url" test/ | \
+    grep -o "https://[a-z0-9-]*:[0-9]*" | sort | uniq
+```
+
+**API Contract Verification**:
+
+```bash
+# Verify API contracts match between services
+find . -name "*.yaml" -exec grep -l "openapi\|swagger" {} \; | \
+    xargs -I {} sh -c 'echo "=== {} ==="; head -20 {}'
+```
+
+## Quality Assurance Methodologies
+
+### 1. Test Suite Health Metrics
+
+**Test Suite Statistics**:
+
+```bash
+# Overall test statistics
+go test -v ./... 2>&1 | grep -E "^=== RUN|^--- (PASS|FAIL|SKIP)" | \
+    awk '
+        /=== RUN/ {tests++}
+        /--- PASS/ {passes++}
+        /--- FAIL/ {fails++}
+        /--- SKIP/ {skips++}
+        END {
+            print "Total tests:", tests
+            print "Passed:", passes
+            print "Failed:", fails
+            print "Skipped:", skips
+            print "Pass rate:", (passes/tests)*100 "%"
+        }
+    '
+```
+
+### 2. Code Quality Correlation
+
+**Linting vs Test Quality**:
+
+```bash
+# Compare linting issues with test failures
+golangci-lint run --out-format=json > lint-results.json
+go test -json ./... > test-results.json
+
+# Correlate issues
+jq -s '.[0] as $lint | .[1] as $test |
+    $lint[] | select(.Pos.Filename | contains("test")) |
+    . + {test_failures: ($test | map(select(.Package == (.Pos.Filename | sub("_test.go"; ""))) | select(.Action == "fail") | length))} |
+    select(.test_failures > 0)' lint-results.json test-results.json
+```
+
+### 3. Performance Benchmarking
+
+**Benchmark Result Analysis**:
+
+```bash
+# Analyze benchmark results for regressions
+go test -bench=. -benchmem ./... | \
+    awk '/^Benchmark/ {print $1, $3, $5}' | \
+    sort -k2 -n | tail -10  # Slowest benchmarks
+```
+
+**Memory Leak Detection**:
+
+```bash
+# Check for memory leaks in benchmarks
+go test -bench=. -benchmem -memprofile=mem.prof ./...
+go tool pprof -top mem.prof
+```
+
+## Result Analysis Frameworks
+
+### 1. Automated Test Reporting
+
+**Generate Comprehensive Reports**:
+
+```bash
+#!/bin/bash
+# generate-test-report.sh
+
+echo "# Test Report - $(date)" > test-report.md
+echo "" >> test-report.md
+
+# Coverage summary
+echo "## Coverage" >> test-report.md
+go test -cover ./... | grep -E "coverage|ok|FAIL" >> test-report.md
+echo "" >> test-report.md
+
+# Test timing
+echo "## Test Timing" >> test-report.md
+go test -v ./... 2>&1 | grep -E "^=== RUN|^--- PASS" | \
+    awk '/=== RUN/{test=$2; start=$0} /--- PASS/{print test, $3}' | \
+    sort -k2 -nr | head -10 >> test-report.md
+echo "" >> test-report.md
+
+# Mutation score
+echo "## Mutation Testing" >> test-report.md
+if command -v gremlins &> /dev/null; then
+    gremlins unleash --tags=!integration | grep "Mutation score" >> test-report.md
+fi
+```
+
+### 2. CI/CD Result Comparison
+
+**Compare Local vs CI Results**:
+
+```bash
+#!/bin/bash
+# compare-ci-local.sh
+
+# Get latest CI run ID
+CI_RUN_ID=$(gh run list --workflow=ci-quality --limit=1 --json databaseId --jq '.[0].databaseId')
+
+# Download CI artifacts
+gh run download $CI_RUN_ID --dir ci-artifacts
+
+# Compare results
+echo "Coverage comparison:"
+diff <(sort coverage.out) <(sort ci-artifacts/coverage.out) || echo "Coverage differs"
+
+echo "Test result comparison:"
+diff test-results.json ci-artifacts/test-results.json || echo "Test results differ"
+```
+
+### 3. Trend Analysis
+
+**Track Metrics Over Time**:
+
+```bash
+#!/bin/bash
+# track-metrics.sh
+
+DATE=$(date +%Y-%m-%d)
+
+# Coverage trend
+COVERAGE=$(go test -cover ./... 2>&1 | grep "coverage" | awk '{print $5}')
+echo "$DATE,coverage,$COVERAGE" >> metrics.csv
+
+# Test count
+TEST_COUNT=$(go test -v ./... 2>&1 | grep -c "^=== RUN")
+echo "$DATE,test_count,$TEST_COUNT" >> metrics.csv
+
+# Execution time
+EXEC_TIME=$(time go test ./... 2>&1 | grep real | awk '{print $2}')
+echo "$DATE,exec_time,$EXEC_TIME" >> metrics.csv
+```
+
+## Recommendations for Improvement
+
+### 1. Automated Testing Infrastructure
+
+- Implement automated service startup/shutdown scripts
+- Add containerized testing options for environment parity
+- Create per-service integration test suites
+
+### 2. Result Analysis Tools
+
+- Develop scripts for comparing local vs CI results
+- Implement performance regression detection
+- Add automated test quality metrics collection
+
+### 3. Security Testing Enhancement
+
+- Integrate comprehensive security scanning tools locally
+- Add security test result correlation with CI
+- Implement security testing in pre-commit hooks
+
+### 4. Quality Assurance Framework
+
+- Establish test suite health dashboards
+- Implement automated flaky test detection
+- Add code quality correlation analysis
+
+### 5. Documentation and Training
+
+- Document all local testing workflows
+- Create troubleshooting guides for common issues
+- Train team on effective local testing practices
 
 Test workflows that require Docker Compose services:
 
