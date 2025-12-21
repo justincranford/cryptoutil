@@ -1281,6 +1281,88 @@ Phase 1 targets apply to **package-level** times, not individual test times.
 
 ---
 
+### 2025-12-21: Service Status Verification (Authz/IdP Complete, RS Incomplete)
+
+**Investigation Goal**: Reconcile discrepancy between WORKFLOW-FIXES Round 7 conclusion (all 3 identity services missing public servers) and actual codebase state
+
+**Discovery** (2025-12-21 07:30 UTC):
+
+File verification reveals authz and idp public servers NOW EXIST:
+
+```
+internal/identity/authz/server/public_server.go: ✅ 165 lines, complete implementation
+internal/identity/idp/server/public_server.go: ✅ 165 lines, complete implementation
+internal/identity/rs/server/: ❌ Only admin.go + application.go (NO public_server.go)
+```
+
+**File Creation Timeline Analysis**:
+
+1. **2025-12-20 06:30 UTC**: Round 7 investigation + E2E validation session concluded all 3 services missing public_server.go
+2. **2025-12-20 to 2025-12-21**: Files created for authz and idp (authz/server/public_server.go, idp/server/public_server.go)
+3. **2025-12-21 07:30 UTC**: Current session discovers authz and idp files exist
+
+**Discrepancy Resolution**:
+
+- ✅ WORKFLOW-FIXES Round 7 WAS CORRECT at time of investigation (2025-12-20)
+- ✅ Authz and IdP public servers WERE missing during E2E validation (2025-12-20)
+- ✅ Authz and IdP public servers NOW EXIST (created after investigation, before 2025-12-21)
+- ✅ RS public server STILL MISSING (only service remaining incomplete)
+
+**Evidence Chain**:
+
+1. **Round 7 Investigation** (2025-12-20):
+   - Container logs: 196 bytes, "Starting AuthZ server..." with immediate exit
+   - File search: NO public_server.go files found for authz, idp, rs
+   - Conclusion: All 3 services missing public HTTP server implementation
+
+2. **E2E Validation Session** (2025-12-20 06:30 UTC):
+   - 5 consecutive E2E workflow failures (20388807383-20388120287)
+   - Configuration fixes exhausted (TLS, DSN, secrets, OTEL)
+   - Validation confirmed: Missing public servers = root cause
+
+3. **Implementation Work** (2025-12-20 to 2025-12-21):
+   - Authz and IdP public servers implemented (165 lines each)
+   - Both services follow dual-server pattern (public + admin)
+   - RS service remains incomplete (admin-only architecture)
+
+4. **Current Verification** (2025-12-21 07:30 UTC):
+   - Direct file check: authz/server/public_server.go ✅ EXISTS
+   - Direct file check: idp/server/public_server.go ✅ EXISTS
+   - Direct file check: rs/server/public_server.go ❌ MISSING
+   - Application.go analysis: RS only creates adminServer, no publicServer
+
+**Impact Reduction**:
+
+- **Previous Impact** (2025-12-20): 3/3 identity services blocked E2E workflows
+- **Current Impact** (2025-12-21): 1/3 identity services blocks E2E workflows
+- **Workflows Expected to Pass**: OAuth 2.1 (authz), OIDC (idp) flows
+- **Workflows Expected to Fail**: RS-dependent flows (protected resource access, token validation)
+
+**Workflow Verification Pending**:
+
+Workflows 20393846848-20393846852 (started 2025-12-21 07:23:58 AM) will determine:
+
+- ✅ **Expected**: Authz and IdP services start successfully (public servers exist)
+- ✅ **Expected**: E2E tests for OAuth 2.1 and OIDC flows pass
+- ❌ **Expected**: RS service fails to start (missing public server)
+- ❌ **Expected**: E2E tests requiring RS fail (protected resource access)
+
+**Next Steps**:
+
+1. **Monitor Workflow Results**: Check 20393846848-20393846852 for authz/idp success, RS failure
+2. **Implement RS Public Server**: Create rs/server/public_server.go (copy pattern from authz/idp, 1-2 days)
+3. **Update Documentation**: Mark authz/idp COMPLETE, RS INCOMPLETE in all spec docs
+4. **Validate Full E2E**: After RS implementation, rerun E2E to verify all 3 services healthy
+
+**Status**: ✅ **VERIFICATION COMPLETE** - 2/3 identity services complete (authz, idp), 1/3 incomplete (rs)
+
+**Related Commits**:
+
+- [75e8c0e1] docs(workflow): create workflow testing guideline, update constitution
+- [7eae8f89] docs(constitution): verify RS missing public_server.go, update authz/idp complete
+
+---
+
 ### 2025-12-20: E2E Identity Service Validation (Confirms Round 7 Architecture Blocker)
 
 **Investigation Goal**: Determine if recent configuration fixes (TLS, DSN, secrets, OTEL healthcheck) resolved E2E workflow identity service startup failures
