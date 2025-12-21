@@ -1450,3 +1450,38 @@ Missing public HTTP server implementation in:
 **Purpose**: Maintain documentation consistency and ensure all specification documents reflect latest architectural decisions.
 
 ---
+
+### 2025-12-21: Sync Manual Architecture Updates from Highlighted Instructions
+
+**Work Completed**:
+
+- User highlighted lines 1-150 of `.github/instructions/01-01.architecture.instructions.md` containing manual updates
+- Identified and propagated all changes to `.specify/memory/constitution.md` and `specs/002-cryptoutil/spec.md`:
+  - **Service table update**: KMS description simplified to "REST APIs for per-tenant Elastic Keys"
+  - **Container requirement**: Added explicit "MUST support run as containers" to section headers
+  - **Deployment environments**: Enhanced with detailed IPv4/IPv6 constraints and dual-stack limitations explanation
+  - **CA Architecture Pattern**: Added new section with TLS Issuing CA configurations (5 preferred cert chain examples)
+  - **Two Endpoint HTTPS Architecture Pattern**: Added comprehensive section with POV-based certificate options
+  - **TLS certificate configuration**: Added 3 main options (All Externally, Mixed External and Auto-Generated, All Auto-Generated)
+  - **HTTPS Issuing CA scope**: Added guidance for TLS Server (MAY BE per-suite/product/service) and TLS Client (MUST BE per-service type)
+  - **TLS terminology**: Updated to "HTTPS MANDATORY" for consistency with instructions
+
+**Synchronization Details**:
+
+- All three documentation sources now include complete CA architecture guidance
+- Improved clarity on production vs development TLS certificate provisioning
+- Added detailed scope and sharing rules for HTTPS Issuing CA certificates
+- Better separation of TLS Server vs TLS Client certificate configuration
+- Consistent formatting and structure across instructions, constitution, and spec
+
+**Related Commits**:
+
+- [28e9586c] docs(architecture): refactor Microservices Architecture section for clarity
+- [8a246823] docs(implement): add timeline entry for architecture documentation improvements
+- [33c9ef71] docs(constitution,spec): sync microservices architecture with instruction updates
+- [02ce6b57] docs(implement): add timeline entry for architecture doc synchronization
+- [60acff07] docs(constitution,spec): sync manual architecture updates from instructions
+
+**Purpose**: Ensure all manual architecture refinements are consistently reflected across all specification documents, maintaining single source of truth for dual-endpoint HTTPS pattern and CA architecture.
+
+---
