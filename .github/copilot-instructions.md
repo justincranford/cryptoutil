@@ -14,18 +14,13 @@
 
 ## Instruction Files Reference
 
-### 01-## Copilot Core
+**Note**: Maintain as a single concise table. DO NOT split into category subsections.
 
 | File | Description |
 |------|-------------|
 | 01-01.terminology | RFC 2119 keywords (MUST, SHOULD, MAY, CRITICAL) |
 | 01-02.continuous-work | LLM Agent NEVER STOP directive |
-| 01-03.speckit | Speckit workflow reference |
-
-### 02-## Architecture & Design
-
-| File | Description |
-|------|-------------|
+| 01-03.speckit | Speckit workflow integration, evidence requirements, feedback loops |
 | 02-01.architecture | Products & Services Architecture, microservices patterns, service federation |
 | 02-02.service-template | Service template requirements (dual HTTPS, health checks) |
 | 02-03.bind-address | HTTPS address and port bindings, mutually exclusive request paths /browser vs /service |
@@ -33,14 +28,9 @@
 | 02-05.versions | Minimum versions & consistency requirements |
 | 02-06.observability | Observability & monitoring (OpenTelemetry, OTLP) |
 | 02-07.openapi | OpenAPI rules and patterns |
-| 02-08.cryptography | FIPS compliance, hash versioning, algorithm agility |
-| 02-09.hash-registry | Hash registry pepper and salt requirements (N version, each version is tuple of 4 registries) |
-| 02-10.pki | PKI, CA, certificate management, CA/Browser Forum compliance |
-
-### 03-## Implementation
-
-| File | Description |
-|------|-------------|
+| 02-08.cryptography | FIPS compliance, algorithm agility, key management |
+| 02-09.hashes | Hash registry pepper/salt requirements, password hashing, hash service architecture |
+| 02-10.pki | PKI, CA, certificate management, CA/Browser Forum compliance, certificate validation |
 | 03-01.coding | Coding patterns & standards (format_go, error handling) |
 | 03-02.testing | Testing patterns & best practices (unit, integration, E2E) |
 | 03-03.golang | Go project structure & conventions |
@@ -48,26 +38,10 @@
 | 03-05.sqlite-gorm | SQLite configuration with GORM (WAL mode, busy timeout) |
 | 03-06.security | Security patterns (Windows Firewall prevention, TLS) |
 | 03-07.linting | Code quality & linting standards (golangci-lint, gremlins) |
-
-### 04-## CI/CD
-
-| File | Description |
-|------|-------------|
-| 04-01.github | CI/CD workflow (PostgreSQL service, cost efficiency) |
+| 04-01.github | CI/CD workflows (test-containers, Docker Compose E2E, workflow matrix) |
 | 04-02.docker | Docker & Compose (multi-stage builds, secrets) |
-
-### 05-## Tooling
-
-| File | Description |
-|------|-------------|
 | 05-01.cross-platform | Cross-platform tooling (PowerShell, scripts, Docker pre-pull) |
-| 05-02.git | Git workflow rules (commits, PRs, documentation) |
+| 05-02.git | Local git commands and commit conventions |
 | 05-03.dast | DAST scanning (Nuclei, ZAP), CI-DAST lessons learned |
-
-### 06-## Methodology
-
-| File | Description |
-|------|-------------|
 | 06-01.evidence-based | Evidence-based task completion and validation |
-| 06-02.speckit-detailed | Speckit methodology workflow integration & feedback loops |
 | 06-03.anti-patterns | Common anti-patterns and mistakes to avoid |
