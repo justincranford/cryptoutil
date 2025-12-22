@@ -248,13 +248,13 @@ jobs:
         log-level: "DEBUG"
         verbose: true
         rate-limit: 1000
-        bind-public-protocol: "$APP_BIND_PUBLIC_PROTOCOL"
-        bind-public-address: "$APP_BIND_PUBLIC_ADDRESS"
-        bind-public-port: $APP_BIND_PUBLIC_PORT
-        bind-private-protocol: "$APP_BIND_PRIVATE_PROTOCOL"
-        bind-private-address: "$APP_BIND_PRIVATE_ADDRESS"
-        bind-private-port: $APP_BIND_PRIVATE_PORT
-        database-url: "postgres://$POSTGRES_USER:$POSTGRES_PASS@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_NAME?sslmode=disable"
+        bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
+        bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
+        bind-public-port: ${APP_BIND_PUBLIC_PORT}
+        bind-private-protocol: "${APP_BIND_PRIVATE_PROTOCOL}"
+        bind-private-address: "${APP_BIND_PRIVATE_ADDRESS}"
+        bind-private-port: ${APP_BIND_PRIVATE_PORT}
+        database-url: "postgres://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}?sslmode=disable"
         unseal-mode: "1-of-1"
         unseal-files:
           - ./configs/test/dast-simple-unseal-secret-value-1.secret
