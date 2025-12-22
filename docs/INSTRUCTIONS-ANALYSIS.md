@@ -2,16 +2,19 @@
 
 **Analysis Date**: 2025-12-21
 **Purpose**: Comprehensive review of `.github/instructions/*.instructions.md` files for quality, accuracy, and completeness
-**References**: 
-- https://code.visualstudio.com/docs/copilot/customization/custom-instructions
-- https://github.com/github/spec-kit
+**References**:
+
+- <https://code.visualstudio.com/docs/copilot/customization/custom-instructions>
+- <https://github.com/github/spec-kit>
 
 ---
 
 ## Category 1: File Organization and Naming
 
 ### Q1.1: File numbering consistency
+
 **Issue**: Are all instruction files numbered correctly and sequentially?
+
 - A) All files correctly numbered 01-01 through 06-03 (no gaps)
 - B) Missing file numbers in sequence (gaps exist)
 - C) Duplicate file numbers
@@ -21,7 +24,9 @@
 **Current State**: A (verified: 01-01 through 06-03, sequential within groups)
 
 ### Q1.2: Renamed file references
+
 **Issue**: After renaming 02-03.bind-address to 02-03.https-ports, are all references updated?
+
 - A) All references updated in copilot-instructions.md and other files
 - B) Broken references remain in copilot-instructions.md
 - C) Broken references remain in other instruction files
@@ -35,7 +40,9 @@
 ## Category 2: Content Duplication
 
 ### Q2.1: HTTPS endpoint configuration duplication
+
 **Issue**: Is HTTPS endpoint configuration duplicated across files?
+
 - A) No duplication - architecture references https-ports file only
 - B) Duplication between architecture and https-ports files
 - C) Duplication between architecture and security files
@@ -45,7 +52,9 @@
 **Current State**: A (architecture now references https-ports, content moved in commit 50cd7e62)
 
 ### Q2.2: PKI/TLS content duplication
+
 **Issue**: Is PKI/TLS content duplicated across files?
+
 - A) No duplication - cryptography, https-ports, and pki properly separated
 - B) Duplication between cryptography and pki files
 - C) Duplication between https-ports and pki files
@@ -55,7 +64,9 @@
 **Current State**: A (PKI in 02-10.pki, TLS config in 02-03.https-ports, FIPS crypto in 02-08.cryptography)
 
 ### Q2.3: Testing patterns duplication
+
 **Issue**: Are testing patterns duplicated across testing.instructions.md and other files?
+
 - A) No duplication - testing patterns centralized in 03-02.testing
 - B) Duplication in golang.instructions.md
 - C) Duplication in coding.instructions.md
@@ -69,7 +80,9 @@
 ## Category 3: Content in Wrong File
 
 ### Q3.1: Security content in architecture file
+
 **Issue**: Does architecture file contain security implementation details?
+
 - A) No - architecture focuses on service structure, references security file
 - B) Contains Windows Firewall prevention details (belongs in security)
 - C) Contains TLS configuration details (belongs in https-ports or pki)
@@ -79,7 +92,9 @@
 **Current State**: A (Windows Firewall in 03-06.security, TLS in 02-03.https-ports)
 
 ### Q3.2: Database patterns in wrong file
+
 **Issue**: Are database patterns correctly organized?
+
 - A) database.instructions.md has ORM/SQL, sqlite-gorm.instructions.md has SQLite-specific patterns
 - B) SQLite patterns duplicated in database and sqlite-gorm files
 - C) GORM patterns in golang.instructions.md (should be in database)
@@ -93,7 +108,9 @@
 ## Category 4: Verbosity
 
 ### Q4.1: Example code verbosity in federation patterns
+
 **Issue**: Are federation configuration examples too verbose?
+
 - A) Concise - one representative example per pattern
 - B) Verbose - multiple redundant YAML examples for same concept
 - C) Verbose - includes unnecessary Go implementation code
@@ -103,7 +120,9 @@
 **Current State**: A (simplified in commit 0d3530af)
 
 ### Q4.2: Testing instructions verbosity
+
 **Issue**: Are testing instructions excessively verbose?
+
 - A) Concise - patterns without excessive examples
 - B) Verbose - too many code examples for same pattern
 - C) Verbose - redundant explanations of same concept
@@ -113,7 +132,9 @@
 **Current State**: Unknown (needs review - 03-02.testing.instructions.md is 800+ lines)
 
 ### Q4.3: Speckit instructions verbosity
+
 **Issue**: Is speckit.instructions.md appropriately concise?
+
 - A) Concise - 105 lines, essential patterns only
 - B) Verbose - excessive examples and explanations
 - C) Too concise - missing critical workflow details
@@ -127,7 +148,9 @@
 ## Category 5: Broken Reference Links
 
 ### Q5.1: Internal file references
+
 **Issue**: Are internal references to other instruction files correct?
+
 - A) All references valid (e.g., `02-03.https-ports.instructions.md`)
 - B) References to renamed bind-address file exist
 - C) References to deleted speckit-detailed file exist
@@ -137,7 +160,9 @@
 **Current State**: Needs verification (grep for bind-address and speckit-detailed)
 
 ### Q5.2: Project file references
+
 **Issue**: Are references to project files (constitution.md, spec.md, etc.) correct?
+
 - A) All references valid and paths correct
 - B) References to moved/renamed files
 - C) References to deleted files
@@ -147,7 +172,9 @@
 **Current State**: Needs verification (grep for constitution.md, spec.md, plan.md, clarify.md)
 
 ### Q5.3: External URL references
+
 **Issue**: Are external URLs (NIST, CA/Browser Forum, RFC, etc.) valid?
+
 - A) All external URLs valid and accessible
 - B) Broken URLs (404 errors)
 - C) Outdated URLs (content moved, redirects)
@@ -161,7 +188,9 @@
 ## Category 6: Missing Content
 
 ### Q6.1: Service template instructions completeness
+
 **Issue**: Does service-template.instructions.md cover all template requirements?
+
 - A) Complete - dual HTTPS, health checks, middleware, telemetry
 - B) Missing middleware pipeline patterns
 - C) Missing OpenTelemetry integration details
@@ -171,7 +200,9 @@
 **Current State**: Needs review (02-02.service-template.instructions.md)
 
 ### Q6.2: Security instructions completeness
+
 **Issue**: Does security.instructions.md cover all security patterns?
+
 - A) Complete - Windows Firewall, localhost binding, TLS validation
 - B) Missing input validation patterns
 - C) Missing authentication/authorization patterns (covered elsewhere?)
@@ -181,7 +212,9 @@
 **Current State**: Needs review (03-06.security.instructions.md)
 
 ### Q6.3: CI/CD workflow completeness
+
 **Issue**: Does github.instructions.md cover all workflow patterns?
+
 - A) Complete - all 11 workflows documented with triggers
 - B) Missing workflow dependency patterns
 - C) Missing artifact upload/download patterns
@@ -195,7 +228,9 @@
 ## Category 7: Ambiguous Content
 
 ### Q7.1: Deployment environment clarity
+
 **Issue**: Are deployment environment patterns clearly distinguished?
+
 - A) Clear - production vs test/dev patterns explicitly separated
 - B) Ambiguous - mixed guidance for container vs local
 - C) Ambiguous - unclear when to use 0.0.0.0 vs 127.0.0.1
@@ -205,7 +240,9 @@
 **Current State**: A (https-ports file clearly separates production vs test/dev)
 
 ### Q7.2: Testing requirement clarity
+
 **Issue**: Are testing requirements (coverage, mutation, timing) clearly specified?
+
 - A) Clear - explicit thresholds (95%/98% coverage, 85%/98% mutation, <15s/<120s timing)
 - B) Ambiguous - conflicting thresholds across files
 - C) Ambiguous - unclear when to use which threshold
@@ -219,7 +256,9 @@
 ## Category 8: Content That Should Not Be in Instructions
 
 ### Q8.1: Project-specific implementation details
+
 **Issue**: Do instruction files contain project-specific details that belong in specs/constitution?
+
 - A) No - instructions are generic patterns, specs contain project details
 - B) Contains specific port numbers that belong in constitution
 - C) Contains specific service names that belong in spec
@@ -229,7 +268,9 @@
 **Current State**: Borderline (architecture.instructions.md has service port ranges table - may belong in constitution?)
 
 ### Q8.2: Historical/session-specific content
+
 **Issue**: Do instruction files contain historical or session-specific content?
+
 - A) No - instructions are timeless patterns
 - B) Contains dated examples ("2025-12-14")
 - C) Contains session-specific troubleshooting (belongs in DETAILED.md)
@@ -243,7 +284,9 @@
 ## Category 9: Consistency Issues
 
 ### Q9.1: Terminology consistency
+
 **Issue**: Is terminology consistent across all instruction files?
+
 - A) Consistent - same terms used for same concepts across files
 - B) Inconsistent - "public endpoint" vs "public server" vs "public API"
 - C) Inconsistent - "admin endpoint" vs "private endpoint" vs "admin server"
@@ -253,10 +296,12 @@
 **Current State**: Needs review (grep for terminology variations)
 
 ### Q9.2: Format consistency
+
 **Issue**: Is formatting consistent across instruction files?
+
 - A) Consistent - same markdown structure, heading levels, code block formatting
 - B) Inconsistent - varying heading depths (some use ###, others ####)
-- C) Inconsistent - code block language tags (some use ```yaml, others ```yml)
+- C) Inconsistent - code block language tags (some use ```yaml, others```yml)
 - D) Inconsistent - bullet point styles (some use -, others use *)
 - E) Write-in: _______
 

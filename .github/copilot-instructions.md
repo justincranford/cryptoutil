@@ -23,14 +23,13 @@
 | 01-03.speckit | Speckit workflow integration, evidence requirements, feedback loops |
 | 02-01.architecture | Products & Services Architecture, microservices patterns, service federation |
 | 02-02.service-template | Service template requirements (dual HTTPS, health checks) |
-| 02-03.https-ports | HTTPS ports, bind addresses, TLS configuration, request paths (/service vs /browser) |
-| 02-04.health-checks | Health check endpoint patterns (livez, readyz) |
-| 02-05.versions | Minimum versions & consistency requirements |
-| 02-06.observability | Observability & monitoring (OpenTelemetry, OTLP) |
-| 02-07.openapi | OpenAPI rules and patterns |
-| 02-08.cryptography | FIPS compliance, algorithm agility, key management |
-| 02-09.hashes | Hash registry pepper/salt requirements, password hashing, hash service architecture |
-| 02-10.pki | PKI, CA, certificate management, CA/Browser Forum compliance, certificate validation |
+| 02-03.https-ports | HTTPS ports, bind addresses, TLS configuration, private health checks, public request paths (/service vs /browser) |
+| 02-04.versions | Minimum versions & consistency requirements |
+| 02-05.observability | Observability & monitoring (OpenTelemetry, OTLP) |
+| 02-06.openapi | OpenAPI rules and patterns |
+| 02-07.cryptography | FIPS compliance, algorithm agility, key management |
+| 02-08.hashes | Hash registry pepper/salt requirements, password hashing, hash service architecture |
+| 02-09.pki | PKI, CA, certificate management, CA/Browser Forum compliance, certificate validation |
 | 03-01.coding | Coding patterns & standards (format_go, error handling) |
 | 03-02.testing | Testing patterns & best practices (unit, integration, E2E) |
 | 03-03.golang | Go project structure & conventions |
