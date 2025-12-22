@@ -23,7 +23,7 @@
 | 01-03.speckit | Speckit workflow integration, evidence requirements, feedback loops |
 | 02-01.architecture | Products & Services Architecture, microservices patterns, service federation |
 | 02-02.service-template | Service template requirements (dual HTTPS, health checks) |
-| 02-03.bind-address | HTTPS address and port bindings, mutually exclusive request paths /browser vs /service |
+| 02-03.https-ports | HTTPS ports, bind addresses, TLS configuration, request paths (/service vs /browser) |
 | 02-04.health-checks | Health check endpoint patterns (livez, readyz) |
 | 02-05.versions | Minimum versions & consistency requirements |
 | 02-06.observability | Observability & monitoring (OpenTelemetry, OTLP) |
