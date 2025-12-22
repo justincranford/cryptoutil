@@ -211,7 +211,7 @@ Each product MUST:
 
 ### Current Status
 
-**workflow-analysis.md evidence**:
+**Workflow analysis evidence**:
 
 - CI - End-to-End Testing: 5 workflows, 5 failures (100% failure rate)
 - Root Cause: Service connectivity/Docker issues

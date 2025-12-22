@@ -1898,9 +1898,8 @@ Missing public HTTP server implementation in:
    - Quality Tracking Documentation (MANDATORY QUALITY-TODOs.md pattern for coverage/mutation challenges with lessons learned)
 6. ✅ **docker instructions Updated** (02-02.docker.instructions.md): Expanded "Docker Secrets - CRITICAL" section with MANDATORY 440 permissions (r--r-----) for all secrets files, Dockerfile Secrets Validation Job MANDATORY (pattern from KMS: alpine:3.19 AS validator stage with ls -la verification and chmod 440 enforcement), CI/CD SHOULD validate Dockerfile includes secrets validation job
 7. ✅ **QUALITY-TODOs.md Expanded** (+67 lines): Added "Quality Tracking Pattern" section after Overview with Purpose, Documentation Pattern (markdown template for Priority 1 coverage gaps + Priority 2 mutation improvements), When to Document (coverage <target, mutation <target, timing >limits, probabilistic execution), How to Document (identify gap, challenges, what worked/didn't, recommendations), Documented in constitution Section VB
-8. ✅ **WORKFLOW-ANALYSIS.md Created** (297 lines): Comprehensive analysis of 13 GitHub Actions workflows including Workflow Inventory (quality 5, security 3, integration 4, release 1 with line counts 72-771), Consistency Analysis (common patterns: env vars/setup actions/pre-commit; inconsistencies: PostgreSQL service handling/timeout values 15m-90m/matrix usage), Organization Recommendations (current by-type vs by-phase), Optimization Opportunities (docker image pre-pull parallelization, ci-mutation matrix to reduce 60m→20m, coverage efficiency), Consistency Checklist (✅ GO_VERSION/actions versions, ⚠️ PostgreSQL/timeouts/matrix, ❌ header comments/error handling/dependency graph), Recommended Next Steps (short: header comments/PostgreSQL standardization/timeout docs, medium: ci-mutation matrix/ci-dast split/coverage review, long: dependency graph/workflow templates/monitoring)
-9. ✅ **spec.md Expanded** (+141 lines): Added "Non-Functional Requirements" section before "Known Gaps and Future Work" covering Performance and Scaling (vertical: CPU/memory limits, horizontal: load balancers, session state, database scaling, caching, deployment patterns), Backup and Recovery (PostgreSQL pg_dump, SQLite file copy, daily 30-day retention, disaster recovery), Observability (OTLP 512Mi limit, adaptive sampling), Security (docker secrets 440 permissions, dockerfile validation job), Multi-Tenancy (schema-level isolation preferred), Certificate Profiles (DV/OV/EV)
-10. ✅ **Deleted Abandoned Docs**: CLARIFY-QUIZME-NEW.md, WORKFLOW-FIXES-TASK-LIST.md
+8. ✅ **spec.md Expanded** (+141 lines): Added "Non-Functional Requirements" section before "Known Gaps and Future Work" covering Performance and Scaling (vertical: CPU/memory limits, horizontal: load balancers, session state, database scaling, caching, deployment patterns), Backup and Recovery (PostgreSQL pg_dump, SQLite file copy, daily 30-day retention, disaster recovery), Observability (OTLP 512Mi limit, adaptive sampling), Security (docker secrets 440 permissions, dockerfile validation job), Multi-Tenancy (schema-level isolation preferred), Certificate Profiles (DV/OV/EV)
+9. ✅ **Deleted Abandoned Docs**: CLARIFY-QUIZME-NEW.md, WORKFLOW-FIXES-TASK-LIST.md
 
 **User Answers Summary** (moved from CLARIFY-QUIZME.md to clarify.md):
 
@@ -1954,7 +1953,7 @@ Missing public HTTP server implementation in:
 
 **Work Completed**:
 
-- Added comprehensive header documentation to all 13 GitHub Actions workflows per WORKFLOW-ANALYSIS.md short-term recommendation #1
+- Added comprehensive header documentation to all 13 GitHub Actions workflows per short-term recommendation #1
 - Documented purpose, dependencies, expected duration, timeout rationale, critical path, optimization opportunities for each workflow
 - Applied consistent 7-8 line header format across all workflows
 
@@ -1973,8 +1972,8 @@ Missing public HTTP server implementation in:
 
 **Next Steps**:
 
-- WORKFLOW-ANALYSIS.md short-term recommendation #2: Standardize PostgreSQL service inclusion (already verified: ci-coverage, ci-mutation, ci-race have service; ci-dast has inline service; ci-quality/benchmark/fuzz/sast/gitleaks correctly have "None")
-- WORKFLOW-ANALYSIS.md short-term recommendation #3: Document timeout rationale (already done in header TIMEOUT lines for all 13 workflows)
+- Short-term recommendation #2: Standardize PostgreSQL service inclusion (already verified: ci-coverage, ci-mutation, ci-race have service; ci-dast has inline service; ci-quality/benchmark/fuzz/sast/gitleaks correctly have "None")
+- Short-term recommendation #3: Document timeout rationale (already done in header TIMEOUT lines for all 13 workflows)
 - Medium-term recommendations: ci-mutation matrix parallelization (noted in header), ci-dast split (noted in header)
 
 **Related Commits**:
