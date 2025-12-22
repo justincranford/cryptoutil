@@ -113,9 +113,9 @@ env:
   # Database uses localhost (not 127.0.0.1) for PostgreSQL client library optimization
   POSTGRES_HOST: localhost
   POSTGRES_PORT: 5432
-  POSTGRES_NAME: DB
-  POSTGRES_USER: USR
-  POSTGRES_PASS: PWD
+  POSTGRES_NAME: cryptoutil_test
+  POSTGRES_USER: cryptoutil
+  POSTGRES_PASS: cryptoutil_test_password
 
 jobs:
   dast-security-scan:
