@@ -2012,3 +2012,69 @@ Missing public HTTP server implementation in:
 **Related Commits**:
 
 - [51af5cb4] docs(spec): fix bind address pattern across all spec documents
+
+---
+
+### 2025-12-21: Hash Registry Pepper Requirements - MANDATORY
+
+**Work Completed**:
+
+- User requested MANDATORY pepper requirements for all 4 hash registries (not just deterministic ones)
+- Updated 3 authoritative documentation sources with comprehensive pepper requirements:
+  - `.github/copilot-instructions.md` (agent instructions)
+  - `specs/002-cryptoutil/spec.md` (product specification)
+  - `.specify/memory/constitution.md` (constitutional principles)
+
+**Pepper Requirements** (ALL 4 Registries):
+
+- **Storage**: Docker Secret (preferred) > Configuration file > Environment variable (NEVER database or source code)
+- **Mutually Exclusive**: Pepper stored separately from hashed values (pepper in secrets/config, hashes in DB)
+- **Version Association**: Different pepper per version (v1, v2, v3)
+- **Rotation Constraints**: Cannot rotate silently, requires version bump + re-hash all records
+- **Example**: v1 pepper compromised → bump to v2 with new pepper, re-hash all v1 records
+
+**Cryptographic Implementations**:
+
+- **LowEntropyDeterministicHashRegistry** (PII Lookup): `PBKDF2(input || pepper, fixedSalt, HIGH iterations)` - ⚠️ Allowed with pepper + high cost + additional protections
+- **HighEntropyDeterministicHashRegistry** (Config Blob Hash): `HKDF-Extract/Expand(input || pepper, fixedSalt, "config-blob-hash")` - Good security
+- **LowEntropyRandomHashRegistry** (Password Hashing): `PBKDF2(password || pepper, randomSalt, OWASP_MINIMUM iterations)` - Best practice
+- **HighEntropyRandomHashRegistry** (API Key Hashing): `HKDF-Extract/Expand(apiKey || pepper, randomSalt, "api-key-hash")` - Best practice
+
+**Additional Protections for LowEntropyDeterministicHashRegistry** (prevents deterministic PII hashing oracle attacks):
+
+- MANDATORY: Query rate limits, abuse detection, audit logs, strict access control
+- RECOMMENDED: Apply same protections to all 4 registries for consistency
+
+**Related Commits**:
+
+- [df03f1b7] docs(constitution): add MANDATORY pepper requirements for all 4 hash registries
+
+---
+
+### 2025-12-22: PostgreSQL Credentials Fix for CI-DAST Workflow
+
+**Issue Identified**:
+
+- ci-dast workflow failing with "role 'root' does not exist" errors (27+ occurrences in PostgreSQL logs)
+- Root cause: Mismatch between PostgreSQL service environment variables and database DSN credentials
+- Service configured with: `POSTGRES_DB=DB`, `POSTGRES_USER=USR`, `POSTGRES_PASS=PWD`
+- Application attempting connection with wrong user (defaulting to 'root')
+
+**Fix Applied**:
+
+- Updated ci-dast workflow PostgreSQL credentials to match standard across all workflows:
+  - `POSTGRES_NAME: DB` → `cryptoutil_test`
+  - `POSTGRES_USER: USR` → `cryptoutil`
+  - `POSTGRES_PASS: PWD` → `cryptoutil_test_password`
+- Aligns with ci-coverage, ci-mutation, ci-race workflows (all use same credentials)
+- Database DSN line 257 now uses correct `$POSTGRES_USER` value
+
+**Evidence**:
+
+- Workflow 20418485906 logs showed repeated PostgreSQL fatal errors: "role 'root' does not exist"
+- PostgreSQL container initialized successfully but rejected all connection attempts
+- Application health checks failed (30 attempts, all connection refused)
+
+**Related Commits**:
+
+- [ad3cbc26] fix(ci-dast): correct PostgreSQL credentials to match service configuration
