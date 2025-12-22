@@ -1054,21 +1054,88 @@ When a gate fails:
 3. **HighEntropyRandomHashRegistry**: HKDF-SHA (non-deterministic, salted, key derivation)
 4. **HighEntropyDeterministicHashRegistry**: HKDF-SHA (deterministic, fixed + derived salt, deterministic key derivation)
 
-**Salt Encoding Requirements** (CRITICAL for Security):
+**Pepper Requirements** (CRITICAL - ALL 4 Registries):
 
-- **LowEntropyRandomHashRegistry / HighEntropyRandomHashRegistry**:
-  - MUST encode version AND all parameters (iterations, salt, algorithm) WITH the hash
-  - Format: `{version}:{algorithm}:{params}:base64(salt):base64(hash)`
-  - Rationale: Random salt must be stored to verify later
-- **LowEntropyDeterministicHashRegistry / HighEntropyDeterministicHashRegistry**:
-  - MUST encode version ONLY (NEVER encode parameters or salt)
+- **MANDATORY: All 4 hash registries MUST use pepper for additional security layer**
+- **Pepper Storage** (NEVER store pepper in DB or source code):
+  - VALID OPTIONS IN ORDER OF PREFERENCE: 1. Docker Secret, 2. Configuration file, 3. Environment variable
+  - MUST be mutually exclusive from hashed values storage (pepper in secrets/config, hashes in DB)
+  - MUST be associated with hash version (different pepper per version)
+- **Pepper Rotation**:
+  - Pepper CANNOT be rotated silently (requires re-hash all records)
+  - Changing pepper REQUIRES version bump, even if no other hash parameters changed
+  - Example: v1 pepper compromised → bump to v2 with new pepper, re-hash all v1 records
+- **Additional Protections for LowEntropyDeterministicHashRegistry** (deterministic PII hashing):
+  - MANDATORY (prevents deterministic hashing oracle attacks):
+    - Query rate limits (prevent brute-force enumeration)
+    - Abuse detection (detect suspicious query patterns)
+    - Audit logs (track all hash queries for forensics)
+    - Strict access control (limit who can query hashes)
+  - RECOMMENDED: Apply same protections to all 4 registries for consistency
+
+**Hash Registry Implementations**:
+
+- **LowEntropyDeterministicHashRegistry** (PII Lookup) - ⚠️ Allowed with pepper + high cost:
+
+  ```go
+  hash = PBKDF2(
+      input || pepper,
+      fixedSalt,
+      iterations = HIGH,  // Much higher than random registry
+      outputLength = 256 bits
+  )
+  ```
+
   - Format: `{version}:base64(hash)`
-  - Rationale: Revealing salt in DB would be crypto bug; deterministic hash must derive same salt from input
-  - MUST use different fixed configurable salt per version (v1/v2/v3)
-  - MUST derive ACTUAL SALT from combination of configured fixed salt AND input cleartext
-  - Derivation approach similar to AES-GCM-SIV (derive IV from nonce + cleartext) but for different purpose
-  - Purpose: Obfuscate actual salt used (pepper-like concept per OWASP Password Storage Cheat Sheet)
-  - Security Note: Fixed salt acts as pepper (secret key), derived salt adds input-specific entropy
+  - Rationale: Deterministic for PII lookup, pepper prevents rainbow tables, high iteration cost mitigates brute force
+
+- **HighEntropyDeterministicHashRegistry** (Config Blob Hash) - Good security:
+
+  ```go
+  PRK = HKDF-Extract(
+      salt = fixedSalt,
+      IKM = input || pepper
+  )
+  hash = HKDF-Expand(
+      PRK,
+      info = "config-blob-hash",
+      L = 256 bits
+  )
+  ```
+
+  - Format: `{version}:base64(hash)`
+  - Rationale: High-entropy inputs, HKDF faster than PBKDF2, pepper provides domain separation
+
+- **LowEntropyRandomHashRegistry** (Password Hashing) - Best practice:
+
+  ```go
+  hash = PBKDF2(
+      password || pepper,
+      randomSalt,
+      iterations = OWASP_MINIMUM,
+      outputLength = 256 bits
+  )
+  ```
+
+  - Format: `{version}:{algorithm}:{iterations}:base64(randomSalt):base64(hash)`
+  - Rationale: Random salt prevents rainbow tables, pepper adds secret key layer, OWASP iterations
+
+- **HighEntropyRandomHashRegistry** (API Key Hashing) - Best practice:
+
+  ```go
+  PRK = HKDF-Extract(
+      salt = randomSalt,
+      IKM = apiKey || pepper
+  )
+  hash = HKDF-Expand(
+      PRK,
+      info = "api-key-hash",
+      L = 256 bits
+  )
+  ```
+
+  - Format: `{version}:{algorithm}:base64(randomSalt):base64(hash)`
+  - Rationale: High-entropy inputs, HKDF faster than PBKDF2, random salt + pepper for defense in depth
 
 ---
 
