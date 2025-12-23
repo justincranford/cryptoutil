@@ -671,3 +671,55 @@ HashService
 Tasks may be implemented out of order from Section 1. Each entry references back to Section 1.
 
 ---
+
+### 2025-12-22: Authentication Documentation Completion and Constitution Refactoring
+
+**Work Completed**:
+
+- Created .github/instructions/02-10.authentication.instructions.md (382 lines) - comprehensive authentication/authorization reference for all 38 methods
+- Documented ALL 10 headless authentication methods (3 non-federated + 7 federated) with per-factor storage realm specifications
+- Documented ALL 28 browser authentication methods (6 non-federated + 22 federated) with per-factor storage realm specifications
+- Established storage realm pattern: YAML + SQL (Config > DB priority) for static credentials vs SQL ONLY for user-specific enrollment data
+- Refactored constitution.md Section VA (lines 499-578) to include per-factor storage realms for all 38 methods
+- Refactored constitution.md Section X (lines ~1260-1285) to remove amendment history table (versions 1.0.0-3.0.0), simplified to "Latest amendments: 2025-12-22"
+- Updated spec.md Authentication section (lines 730-800) with per-factor storage realm specifications for all 38 methods
+- Removed outdated "MORE TO BE CLARIFIED" markers from spec.md (lines 184, 187) after QUIZME-02 answered all authentication unknowns
+- Verified clarify.md and clarify.md.old byte-for-byte identical, deleted duplicate backup file
+- Renamed plan-probably-out-of-date.md to plan.md to indicate current status
+
+**Coverage/Quality Metrics**:
+
+- Authentication documentation: COMPLETE (10+28 factors documented in copilot instructions, constitution, spec)
+- Storage realm specifications: COMPLETE (YAML + SQL vs SQL ONLY distinctions preserved across all documents)
+- Unknown markers: 0 in constitution (only workflow reference), 0 in spec, 0 in clarify
+- All QUIZME-02 questions answered (15 Q&A integrated into clarify.md Section 8)
+
+**Violations Found**:
+
+- CRITICAL user feedback #1: 10+28 authentication factor lists missing from copilot instructions → FIXED via 02-10.authentication.instructions.md creation
+- CRITICAL user feedback #2: Constitution contains revision tracking noise → FIXED via amendment history table removal
+- Outdated "MORE TO BE CLARIFIED" markers in spec after QUIZME-02 completion → FIXED via reference updates
+
+**Next Steps**:
+
+- All unknowns resolved → No QUIZME-03 generation needed
+- Plan file updated and current → Ready for implementation phase
+- Storage realm pattern established → Implementation can reference authoritative documentation
+
+**Related Commits**:
+
+- [352a9bbc] docs(auth): add comprehensive 02-10.authentication instructions with 38 methods
+- [0c2be04e] docs(constitution): add storage realms, remove amendment tracking
+- [2b065a92] docs(spec): add per-factor storage realm specifications
+- [4f074550] chore(clarify): remove duplicate clarify.md.old backup file
+- [9efe49e9] docs(spec): remove outdated MORE TO BE CLARIFIED markers for auth
+- [3fa2fad5] chore(plan): rename plan file to indicate current status
+
+**Lessons Learned**:
+
+- Storage realm pattern (YAML + SQL vs SQL ONLY) critical for disaster recovery - service must start even if database unavailable
+- Per-factor documentation prevents configuration mistakes during implementation
+- Constitution refactoring to remove version tracking makes document clearer and more focused on current requirements
+- All MFA and step-up authentication questions answered via QUIZME-02 - no additional clarification needed
+
+---
