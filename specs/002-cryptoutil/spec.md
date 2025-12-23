@@ -181,10 +181,10 @@ HTTPS Issuing CA for TLS Client Certs MUST BE shared per per-service instance ty
 - Initial Request Without Session Token
   - Unauthenticated browser-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
     - SFA in Standalone product mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token)
-    - MFA in Federated Identity mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token), WebAuthn (without Passkeys), WebAuthn (with Passkeys), random OTP via email||SMS, HOTP/TOTP via registering an Authenticator app, magic link via email||SMS, HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QUIZME.md)
-  - Unauthenticated browser-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
+    - MFA in Federated Identity mode: 28 total authentication methods (see Authentication and Authorization Requirements section for complete list including WebAuthn, TOTP, HOTP, Magic Link, Random OTP, Social Login, SAML 2.0)
+  - Unauthenticated headless-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
     - SFA in Standalone product mode: Basic (Clientid,clientsecret), Bearer (API Token)
-    - MFA in Federated Identity mode: Basic (Clientid,clientsecret), Bearer (API Token), HTTPS client certificate, opaque||JWE||JWS OAuth 2.1 Access Token, opaque OAuth 2.1 Refresh Token, and MORE TO BE CLARIFIED (CRITICAL: Must be clarified via /speckit.clarify and CLARIFY-QUIZME.md)
+    - MFA in Federated Identity mode: 10 total authentication methods (see Authentication and Authorization Requirements section for complete list including mTLS, OAuth 2.1 Access/Refresh Tokens)
 - Issuance of Session Token
   - Browser-based clients that successfully prove authentication will be given a session cookie (opaque||JWE|JWS non-OAuth 2.1)
   - Headless-based clients that successfully prove authentication will be given a session cookie (opaque||JWE|JWS non-OAuth 2.1)
