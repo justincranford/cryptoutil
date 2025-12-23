@@ -30,6 +30,7 @@
 | 02-07.cryptography | FIPS compliance, algorithm agility, key management |
 | 02-08.hashes | Hash registry pepper/salt requirements, password hashing, hash service architecture |
 | 02-09.pki | PKI, CA, certificate management, CA/Browser Forum compliance, certificate validation |
+| 02-10.authentication | Authentication & authorization (10+28 auth factors, storage realms, MFA, session patterns) |
 | 03-01.coding | Coding patterns & standards (format_go, error handling) |
 | 03-02.testing | Testing patterns & best practices (unit, integration, E2E) |
 | 03-03.golang | Go project structure & conventions |
