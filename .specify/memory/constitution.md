@@ -504,16 +504,60 @@ For public HTTPS endpoint, all services implement TWO security middleware stacks
 
 **Headless-Based Clients** (`/service/*` paths): 10 methods
 
-- Non-Federated: Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate
-- Federated: Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate, JWE/JWS/Opaque OAuth 2.1 Access Token, Opaque OAuth 2.1 Refresh Token
-- Storage Realms: Config (YAML) > SQL (GORM) for disaster recovery
+**Non-Federated** (3 methods):
+
+- Basic (Client ID/Secret) - Storage: YAML + SQL (Config > DB priority)
+- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
+- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
+
+**Federated** (7 methods):
+
+- Basic (Client ID/Secret) - Storage: YAML + SQL (Config > DB priority)
+- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
+- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
+- JWE OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
+- JWS OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
+- Opaque OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
+- Opaque OAuth 2.1 Refresh Token - Storage: YAML + SQL (Config > DB priority)
 
 **Browser-Based Clients** (`/browser/*` paths): 28 methods
 
-- Non-Federated: JWE/JWS/Opaque OAuth 2.1 Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate
-- Federated: All non-federated methods PLUS TOTP, HOTP, Recovery Codes, WebAuthn (with/without passkeys), Push Notification, Email/Password, Magic Link (Email/SMS), Random OTP (Email/SMS/Phone)
-- Storage Realms: Config (YAML) > SQL (GORM) for disaster recovery
-- MFA combinations: Combine 2+ single factors for Multi-Factor Authentication
+**Non-Federated** (6 methods):
+
+- JWE OAuth 2.1 Session Cookie - Storage: YAML + SQL (Config > DB priority)
+- JWS OAuth 2.1 Session Cookie - Storage: YAML + SQL (Config > DB priority)
+- Opaque OAuth 2.1 Session Cookie - Storage: YAML + SQL (Config > DB priority)
+- Basic (Username/Password) - Storage: YAML + SQL (Config > DB priority)
+- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
+- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
+
+**Federated** (22 methods, all non-federated PLUS):
+
+- TOTP (Authenticator App) - Storage: SQL ONLY (user-specific enrollment data)
+- HOTP (Hardware Token) - Storage: SQL ONLY (user-specific enrollment data)
+- Recovery Codes - Storage: SQL ONLY (user-specific enrollment data)
+- WebAuthn with Passkeys - Storage: SQL ONLY (user-specific enrollment data)
+- WebAuthn without Passkeys - Storage: SQL ONLY (user-specific enrollment data)
+- Push Notification - Storage: SQL ONLY (user-specific enrollment data)
+- Email/Password - Storage: YAML + SQL (Config > DB priority)
+- Magic Link (Email) - Storage: SQL ONLY (user-specific one-time tokens)
+- Magic Link (SMS) - Storage: SQL ONLY (user-specific one-time tokens)
+- Random OTP (Email) - Storage: SQL ONLY (user-specific one-time codes)
+- Random OTP (SMS) - Storage: SQL ONLY (user-specific one-time codes)
+- Random OTP (Phone) - Storage: SQL ONLY (user-specific one-time codes)
+- Social Login (Google) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (Microsoft) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (GitHub) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (Facebook) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (Apple) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (LinkedIn) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (Twitter/X) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (Amazon) - Storage: YAML + SQL (Config > DB priority for provider config)
+- Social Login (Okta) - Storage: YAML + SQL (Config > DB priority for provider config)
+- SAML 2.0 - Storage: YAML + SQL (Config > DB priority for provider config)
+
+**Storage Realm Priority**: Config (YAML) > SQL (GORM) for disaster recovery
+**MFA**: Combine 2+ single factors for Multi-Factor Authentication
 
 **Authorization Methods**:
 
@@ -1311,16 +1355,7 @@ This constitution may be amended only by:
 2. **Review**: Minimum 48-hour review period
 3. **Discussion**: Address concerns in PR comments
 4. **Approval**: Required consent threshold met
-5. **Documentation**: Update version and last amended date
+5. **Documentation**: Update document with changes
 6. **Communication**: Announce to all stakeholders
 
-### Amendment History
-
-| Version | Date | Sections Changed | Rationale |
-|---------|------|------------------|-----------|
-| 1.0.0 | 2025-12-01 | Initial | Constitution creation |
-| 1.1.0 | 2025-12-04 | VI | Added Spec Kit workflow gates |
-| 2.0.0 | 2025-12-06 | IV, V, VI, X, XI, XII | Coverage targets 95/100/100, mutation testing ≥80%, property-based tests, CLI requirement, amendment process, status file clarification |
-| 3.0.0 | 2025-12-19 | IV, V, VIII, IX, X | Phased mutation targets (85%→98%), test timing (<15s/<180s), probability-based execution, main() pattern, Windows Firewall prevention, admin port assignments, file size limits, service template, Learn-PS, hash versioning, terminology standards (MUST=REQUIRED=MANDATORY=CRITICAL) |
-
-**Version**: 3.0.0 | **Ratified**: 2025-12-01 | **Last Amended**: 2025-12-19
+**Ratified**: 2025-12-01 | **Latest amendments**: 2025-12-22
