@@ -560,11 +560,15 @@ federation_fallback:
 - Timeout: Reset circuit after timeout period
 - Half-open requests: Test N requests before closing circuit
 
-**Fallback Modes**:
+**Fallback Modes** (MANDATORY Production Requirements per CLARIFY-QUIZME-01 Q7, 2025-12-22):
 
-- **Identity Unavailable**: Local token validation (cached public keys), reject all (strict), allow all (development only)
+- **Identity Unavailable Production**: `reject_all` (strict mode) - MANDATORY for production deployments (security over availability)
+- **Identity Unavailable Development**: `allow_all` - Acceptable for development only (convenience)
+- **Identity Unavailable BANNED**: `local_validation` (cached public keys) - NOT allowed in production (risk of stale cached keys)
 - **JOSE Unavailable**: Internal crypto implementation (use service's own JWE/JWS)
 - **CA Unavailable**: Self-signed TLS certificates (development), cached certificates (production)
+
+**Rationale**: If Identity service is down, it's better to reject traffic than risk unauthorized access with stale cached credentials.
 
 **Retry Strategies**:
 
@@ -607,6 +611,32 @@ federation:
   identity_client_secret: "file:///run/secrets/kms_client_secret"
   identity_token_endpoint: "https://identity-authz:8180/service/token"
 ```
+
+### MFA Factor Priority and Implementation (MANDATORY)
+
+**Decision Source**: CLARIFY-QUIZME-01 Q4, 2025-12-22
+
+**ALL factors including deprecated ones MUST be implemented for backward compatibility**.
+
+**MFA Factors** (in priority order, ALL MANDATORY for Phase 2+ Identity product):
+
+1. **Passkey** (WebAuthn with discoverable credentials) - HIGHEST priority, FIDO2 standard, phishing-resistant
+2. **TOTP** (Time-based One-Time Password) - HIGH priority, RFC 6238, authenticator apps (Google Authenticator, Authy)
+3. **Hardware Security Keys** (WebAuthn without passkeys) - HIGH priority, FIDO U2F/FIDO2, phishing-resistant
+4. **Email OTP** (One-Time Password via email) - MEDIUM priority, email delivery required, backup factor
+5. **Recovery Codes** (Pre-generated backup codes) - MEDIUM priority, account recovery when primary factor unavailable
+6. **SMS OTP** (NIST deprecated but MANDATORY) - MEDIUM priority, backward compatibility, accessibility for non-technical users
+7. **Phone Call OTP** (NIST deprecated but MANDATORY) - LOW priority, backward compatibility, accessibility alternative
+8. **Magic Link** (Time-limited authentication link via email/SMS) - LOW priority, passwordless alternative
+9. **Push Notification** (Mobile app push-based approval) - LOW priority, requires mobile app integration
+
+**Rationale**: Even though SMS OTP and Phone Call OTP are NIST deprecated (NIST SP 800-63B Revision 3), many organizations still rely on them for legacy compatibility and user accessibility (e.g., users without smartphones, users in low-tech environments).
+
+**Implementation Notes**:
+
+- Phase 2.1: Passkey, TOTP, Hardware Security Keys (core factors)
+- Phase 2.2: Email OTP, Recovery Codes, SMS OTP (backward compatibility)
+- Phase 2.3: Phone Call OTP, Magic Link, Push Notification (optional factors)
 
 ### Federation Testing Requirements
 
@@ -1012,20 +1042,26 @@ When a gate fails:
 
 **Service Template Migration Priority** (HIGH PRIORITY):
 
+**Decision Source**: CLARIFY-QUIZME-01 Q1, 2025-12-22
+
 1. **learn-ps FIRST** (Phase 7):
    - CRITICAL: Implement learn-ps using service template
    - Iterative implementation, testing, validation, analysis
    - GUARANTEE ALL service template requirements met before migrating production services
    - Validates template is production-ready and truly reusable
-2. **One service at a time** (Phase 8+, excludes sm-kms):
-   - MUST refactor each service to use service template sequentially
-   - Identify and fix issues in service template to unblock current service migration
-   - Avoid creating technical debt affecting remaining service migrations
-   - Order: jose-ja, pki-ca, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
-3. **sm-kms LAST** (Phase 10):
-   - ALL other services MUST be refactored and running excellently on service template
-   - Only migrate KMS reference implementation after template proven stable across 8 services
-   - Prevents disrupting reference implementation until template is battle-tested
+2. **JOSE and CA NEXT** (one at a time, Phases 8-9):
+   - MUST refactor JOSE (jose-ja) and CA (pki-ca) sequentially after learn-ps validation
+   - Purpose: Drive template refinements to accommodate different service patterns
+   - Identify and fix issues in service template to unblock remaining service migrations
+   - Order: jose-ja → pki-ca (allow adjustments between migrations)
+3. **Identity services LAST** (Phases 10-14):
+   - MUST refactor identity services AFTER JOSE and CA migrations complete
+   - Benefit from mature, battle-tested template refined by JOSE/CA migrations
+   - Order: identity-authz → identity-idp → identity-rs → identity-rp → identity-spa
+4. **sm-kms NEVER**:
+   - KMS remains on current implementation indefinitely (reference implementation)
+   - Only migrate KMS if ALL other 8 services running excellently on template
+   - Prevents disrupting reference implementation
 
 **Learn-PS Demonstration Requirement**:
 

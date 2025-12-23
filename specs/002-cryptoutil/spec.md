@@ -979,6 +979,13 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 
 **Required**: Create `BrowserApiSimulation.java` and `AdminApiSimulation.java` to complete load test coverage.
 
+**Performance Metrics Approach** (Source: CLARIFY-QUIZME-01 Q9, 2025-12-22):
+
+- **No Hard Targets**: Load tests validate scalability trends and identify bottlenecks only
+- **Baseline Establishment**: Initial load testing establishes baseline performance metrics
+- **Iterative Improvement**: Track trends (requests/second, latency percentiles, error rates) and improve over time
+- **Rationale**: Performance requirements vary by deployment scale and hardware; focus on bottleneck identification
+
 #### E2E Test Scope
 
 **Current**: Basic Docker Compose lifecycle tests (`internal/test/e2e/e2e_test.go`)
@@ -987,12 +994,21 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 - Health check connectivity
 - Container log collection
 
-**Missing Critical Workflows**:
+**Phase 2 Priority** (Source: CLARIFY-QUIZME-01 Q10, 2025-12-22):
 
-- OAuth 2.1 authorization code flow (browser → AuthZ → IdP → consent → token)
-- Certificate issuance and revocation (CSR → CA → certificate → CRL/OCSP)
-- KMS key generation, encryption/decryption, and rotation
-- JOSE token signing and verification workflows
+**JOSE + CA + KMS** (implement first):
+
+- ❌ JOSE signing and verification workflows (JWS, JWT, JWE)
+- ❌ CA certificate issuance and revocation (CSR → certificate → CRL/OCSP)
+- ❌ KMS key generation, encryption/decryption, rotation
+
+**Identity Product** (Phase 3+):
+
+- ❌ OAuth 2.1 authorization code flow (browser → AuthZ → IdP → consent → token)
+- ❌ OIDC authentication flow
+- ❌ Token validation workflows
+
+**Rationale**: JOSE, CA, and KMS are standalone products with clear E2E scenarios. Identity product has complex multi-service interactions that benefit from later implementation after other products stabilize.
 
 **Required**: Expand E2E tests to cover end-to-end product workflows, not just infrastructure.
 
@@ -1037,10 +1053,17 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 ### I7: Database
 
 - PostgreSQL (production/development/testing)
-- SQLite (development/testing)
+- SQLite (development/testing/small-scale production)
 - GORM ORM with migrations
 - WAL mode, busy_timeout for SQLite concurrency
 - **GitHub Actions Dependency**: ALL workflows running `go test` MUST include PostgreSQL service container
+
+**SQLite Production Support** (Source: CLARIFY-QUIZME-01 Q3, 2025-12-22):
+
+- **Acceptable**: SQLite for production single-instance deployments with <1000 requests/day
+- **Recommended**: PostgreSQL for all other production deployments
+- **Rationale**: Small-scale deployments benefit from SQLite's simplicity (no separate database server, zero-configuration)
+- **Limitation**: Traffic threshold ensures SQLite's single-writer limitation isn't violated
 
 #### PostgreSQL Service Requirements for CI/CD
 
@@ -1657,6 +1680,13 @@ func main() {
 - Application: OTLP gRPC:4317 or HTTP:4318 → otel-collector → Grafana OTLP:14317/14318
 - Collector self-monitoring: Internal → Grafana OTLP HTTP:14318
 
+**Telemetry Data Retention and Privacy** (Source: CLARIFY-QUIZME-01 Q6, 2025-12-22):
+
+- **Default Retention**: 90 days
+- **Default Redaction**: None (full observability preferred)
+- **Configurable Redaction**: Operators MAY configure custom redaction patterns per deployment for compliance (GDPR, CCPA)
+- **Rationale**: Full observability aids troubleshooting and forensics; compliance requirements vary by deployment
+
 **Resource Limits for OTLP Collector**:
 
 - Memory limit: 512Mi
@@ -1695,7 +1725,14 @@ multi_tenancy:
 
 ### Certificate Profiles
 
-**Custom Certificate Profiles**:
+**Custom Certificate Profiles** (Source: CLARIFY-QUIZME-01 Q5, 2025-12-22):
+
+- **24 Predefined Profiles**: Cover most use cases (DV, OV, EV, code signing, etc.)
+- **YAML-Based Extensibility**: Organizations can define custom profiles via YAML configuration files
+- **Runtime Loading**: Profiles loaded at startup from configuration directory
+- **No Database/Plugin Support**: File-based configuration strikes balance between flexibility and simplicity
+
+**Standard Profiles**:
 
 - **DV (Domain Validation)**: domain_only validation, 90 days validity
 - **OV (Organization Validation)**: organization validation, 397 days validity

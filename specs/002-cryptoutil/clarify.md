@@ -858,21 +858,257 @@ git commit -m "fix(package): add defensive check for X"
 
 ---
 
+---
+
+## Service Template and Migration Strategy
+
+### Service Template Migration Priority
+
+**Q**: Should identity services (authz, idp, rs) be refactored to use the extracted service template immediately after Learn-PS validation, or later?
+
+**A** (Source: CLARIFY-QUIZME-01 Q1, 2025-12-22):
+
+Identity services will be migrated **LAST** in the following sequence:
+
+1. **learn-ps** (Phase 7): Validate service template first
+2. **JOSE and CA** (Phases after learn-ps): Migrate next, one at a time, to allow adjustments to the service template to accommodate JOSE and CA service patterns
+3. **Identity services** (Final phase): Migrate last, ordered by Authz → IdP → RS → RP → SPA
+
+**Rationale**: Learn-PS will validate the service template first, then JOSE and CA migrations will drive template refinements to support different service patterns. Identity services migrate last to benefit from a mature, battle-tested template.
+
+---
+
+### Monitoring and Metrics Architecture
+
+**Q**: Should admin ports expose `/admin/v1/metrics` endpoint for external monitoring tools (Prometheus, Grafana)?
+
+**A** (Source: CLARIFY-QUIZME-01 Q2, 2025-12-22):
+
+**CRITICAL**: `/admin/v1/metrics` endpoint is a **MISTAKE** and MUST be removed from the project entirely.
+
+**Correct Architecture**:
+
+- ALL services MUST use OTLP protocol to **push** metrics, tracing, and logging to OpenTelemetry Collector Contrib
+- **NEVER** use pull or scrape patterns (no Prometheus scraping of service endpoints)
+- OpenTelemetry Collector Contrib uses OTLP to forward metrics, tracing, and logging to Grafana LGTM
+
+**Action Required**:
+
+- Remove all references to `/admin/v1/metrics` from codebase
+- Remove Prometheus scraping configurations
+- Update documentation to clarify push-only telemetry architecture
+
+---
+
+### SQLite Production Readiness
+
+**Q**: Should SQLite be supported for production single-instance deployments, or remain strictly development-only?
+
+**A** (Source: CLARIFY-QUIZME-01 Q3, 2025-12-22):
+
+SQLite is **acceptable** for production single-instance deployments with **<1000 requests/day**.
+
+**Requirements**:
+
+- MUST NOT forbid SQLite in constitution.md, spec.md, or copilot instructions for low-traffic production deployments
+- Recommended: Use PostgreSQL for production deployments
+- Acceptable: Use SQLite for small-scale production deployments with <1000 requests/day
+
+**Rationale**: Small-scale deployments benefit from SQLite's simplicity (no separate database server, zero-configuration). Traffic threshold ensures SQLite's single-writer limitation isn't violated.
+
+---
+
+### MFA Factor Implementation Priority
+
+**Q**: What is the mandatory implementation sequence for MFA factors? Should deprecated factors (SMS OTP) be implemented?
+
+**A** (Source: CLARIFY-QUIZME-01 Q4, 2025-12-22):
+
+**All factors including deprecated ones MUST be implemented for backward compatibility**.
+
+**MFA Factors** (in priority order, ALL MANDATORY):
+
+1. **Passkey** (WebAuthn with discoverable credentials) - HIGHEST priority, FIDO2 standard
+2. **TOTP** (Time-based One-Time Password) - HIGH priority, RFC 6238, authenticator apps
+3. **Hardware Security Keys** (WebAuthn without passkeys) - HIGH priority, FIDO U2F/FIDO2
+4. **Email OTP** (One-Time Password via email) - MEDIUM priority, email delivery required
+5. **Recovery Codes** (Pre-generated backup codes) - MEDIUM priority, account recovery
+6. **SMS OTP** (NIST deprecated but MANDATORY) - MEDIUM priority, backward compatibility
+7. **Phone Call OTP** (NIST deprecated but MANDATORY) - LOW priority, backward compatibility
+8. **Magic Link** (Time-limited authentication link via email/SMS) - LOW priority
+9. **Push Notification** (Mobile app push-based approval) - LOW priority
+
+**Action Required**: Constitution.md MUST be updated to reflect this requirement, including listing all authentication methods in priority order.
+
+**Rationale**: Even though SMS OTP and Phone Call OTP are NIST deprecated, many organizations still rely on them for legacy compatibility and user accessibility.
+
+---
+
+### Certificate Profile Extensibility
+
+**Q**: Should the CA support custom certificate profiles beyond the 24 predefined profiles?
+
+**A** (Source: CLARIFY-QUIZME-01 Q5, 2025-12-22):
+
+**Support custom profiles via YAML configuration files** (file-based extensibility).
+
+**Implementation**:
+
+- 24 predefined profiles cover most use cases
+- Organizations with specific needs can define custom profiles in YAML configuration
+- Profiles loaded at runtime from configuration directory
+- No database-driven or plugin-based extensibility needed at this time
+
+**Rationale**: File-based configuration strikes balance between flexibility and simplicity. Most organizations won't need custom profiles; those that do can manage YAML files via version control.
+
+---
+
+### Telemetry Data Retention and Privacy
+
+**Q**: What data retention policy should be enforced for telemetry data? Should sensitive fields be redacted?
+
+**A** (Source: CLARIFY-QUIZME-01 Q6, 2025-12-22):
+
+**Retain telemetry data for 90 days with NO redaction of any fields by default**.
+
+**Configuration**:
+
+- Default retention: 90 days
+- Redaction: None by default (full observability)
+- Operators MAY configure custom redaction patterns per deployment if needed for compliance
+
+**Rationale**: Full observability is preferred for troubleshooting and forensics. Compliance requirements (GDPR, CCPA) vary by deployment; operators can enable redaction via configuration when needed.
+
+---
+
+### Federation Fallback Mode for Production
+
+**Q**: What is the MANDATORY fallback mode for production deployments when the Identity service is unavailable?
+
+**A** (Source: CLARIFY-QUIZME-01 Q7, 2025-12-22):
+
+**reject_all** (strict mode) is **MANDATORY** for production deployments.
+
+**Fallback Behavior**:
+
+- **Production**: `reject_all` - Deny all requests until Identity service recovers (maximum security)
+- **Development**: `allow_all` - Allow all requests during development (convenience)
+- **Local validation**: NOT allowed in production (risk of stale cached keys)
+
+**Rationale**: Security over availability. If the Identity service is down, it's better to reject traffic than risk unauthorized access with stale cached credentials.
+
+---
+
+### Docker Secrets vs Kubernetes Secrets Priority
+
+**Q**: Should the codebase prioritize Docker secrets or Kubernetes secrets integration?
+
+**A** (Source: CLARIFY-QUIZME-01 Q8, 2025-12-22):
+
+**Docker secrets ONLY** - Kubernetes deployments must use Docker-compatible secret mounting.
+
+**Implementation Pattern**:
+
+- All services read secrets from `file:///run/secrets/*` paths
+- Kubernetes deployments mount secrets as files using same paths
+- No special Kubernetes secret handling (env vars, volume mounts with different paths)
+
+**Rationale**: Single secret handling implementation reduces complexity. Kubernetes supports Docker-compatible secret mounting via volumeMounts, so no separate code path needed.
+
+---
+
+### Load Testing Target Performance Metrics
+
+**Q**: What are the target performance metrics for load testing across all API types?
+
+**A** (Source: CLARIFY-QUIZME-01 Q9, 2025-12-22):
+
+**No hard targets** - Load tests validate scalability trends and identify bottlenecks only.
+
+**Approach**:
+
+- Establish baseline performance metrics through initial load testing
+- Iteratively improve performance over time
+- Track trends (requests/second, latency percentiles, error rates)
+- No specific numeric targets (e.g., "1000 req/s") at this time
+
+**Rationale**: Performance requirements vary by deployment scale and hardware. Focus on identifying bottlenecks and improving trends rather than arbitrary numeric targets.
+
+---
+
+### E2E Test Workflow Coverage Priority
+
+**Q**: What is the minimum viable E2E test coverage for Phase 2 completion?
+
+**A** (Source: CLARIFY-QUIZME-01 Q10, 2025-12-22):
+
+**JOSE + CA + KMS** (Identity later).
+
+**E2E Coverage Sequence**:
+
+1. **Phase 2**: JOSE signing/verification, CA certificate issuance, KMS encryption/decryption
+2. **Phase 3+**: OAuth 2.1 authorization code flow, OIDC authentication flow, token validation
+
+**Rationale**: JOSE, CA, and KMS are standalone products with clear E2E scenarios. Identity product has complex multi-service interactions that benefit from later implementation after other products stabilize.
+
+---
+
+### Mutation Testing Enforcement Strategy
+
+**Q**: Should mutation testing targets be enforced strictly per package, or allow exemptions?
+
+**A** (Source: CLARIFY-QUIZME-01 Q11, 2025-12-22):
+
+**Allow exemptions for generated code** (e.g., OpenAPI-generated models) with ramp-up plan.
+
+**Enforcement Strategy**:
+
+- Generated code (OpenAPI models, protobuf) may start below 85% mutation coverage
+- MUST be ramped up to ≥85% over time through additional tests
+- Document exemptions in clarify.md with justification and timeline
+- Business logic and infrastructure packages: Strict ≥85%/≥98% enforcement
+
+**Rationale**: Generated code often has boilerplate that's hard to mutate meaningfully. Allow initial exemption but require improvement over time.
+
+---
+
+### Probabilistic Testing Seed Management
+
+**Q**: Should probabilistic test execution use fixed seeds or random seeds?
+
+**A** (Source: CLARIFY-QUIZME-01 Q12, 2025-12-22):
+
+**Always random seed** - Probabilistic test execution is a performance-only optimization, not a reproducibility feature.
+
+**Implementation**:
+
+- Use random seed per test run (time-based or Go's default random seed)
+- Do NOT use fixed seeds (SEED=12345)
+- Do NOT use date-based seeds (YYYYMMDD)
+
+**Rationale**: Probabilistic testing is purely for reducing test execution time (<15s per package target). It's not intended for reproducibility. Tests that need reproducibility should NOT use probabilistic execution.
+
+---
+
 ## Status Summary
 
 **Last Review**: December 22, 2025
 **Next Actions**:
 
-1. Review constitution.md and spec.md for any conflicts with clarifications
-2. Generate SPECKIT-CLARIFY-QUIZME-01.md for remaining unknowns
-3. Update plan.md and tasks.md based on clarifications
-4. Begin implementation with evidence-based validation
+1. Update constitution.md with architectural decisions (service template migration, MFA factors, federation fallback)
+2. Update spec.md with finalized requirements (SQLite production, cert profiles, load testing, E2E coverage, telemetry retention)
+3. Update copilot instructions to remove `/admin/v1/metrics` references
+4. Generate plan.md and tasks.md based on all clarifications
+5. Begin implementation with evidence-based validation
 
 **Key Insights**:
 
 - Dual-server architecture is critical for all services
-- Coverage targets are strict (95%/98%) with no exceptions
-- Probabilistic testing reduces execution time while maintaining quality
-- Federation requires graceful degradation and retry strategies
+- Coverage targets are strict (95%/98%) with no exceptions (except generated code with ramp-up plan)
+- Probabilistic testing uses random seeds for broader coverage over time
+- Federation uses reject_all in production (security over availability)
 - Docker Compose optimizations can reduce startup time by 50%+
 - Session documentation belongs in DETAILED.md, not standalone files
+- MFA: All factors (including NIST deprecated) are MANDATORY for backward compatibility
+- Telemetry: Push-only via OTLP (NEVER scrape/pull patterns)
+- SQLite acceptable for production <1000 req/day deployments
