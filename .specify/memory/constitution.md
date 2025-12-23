@@ -496,6 +496,76 @@ For public HTTPS endpoint, all services implement TWO security middleware stacks
 
 **MANDATORY: Services MUST support configurable federation for cross-service communication**
 
+### Authentication and Authorization Architecture - CRITICAL
+
+**Source**: QUIZME-02 answers (Q1-Q2, Q3-Q4, Q6-Q7, Q10-Q12, Q15) and AUTH-AUTHZ-SINGLE-FACTORS.md
+
+**Single Factor Authentication Methods** (SFA):
+
+**Headless-Based Clients** (`/service/*` paths): 10 methods
+
+- Non-Federated: Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate
+- Federated: Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate, JWE/JWS/Opaque OAuth 2.1 Access Token, Opaque OAuth 2.1 Refresh Token
+- Storage Realms: Config (YAML) > SQL (GORM) for disaster recovery
+
+**Browser-Based Clients** (`/browser/*` paths): 28 methods
+
+- Non-Federated: JWE/JWS/Opaque OAuth 2.1 Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate
+- Federated: All non-federated methods PLUS TOTP, HOTP, Recovery Codes, WebAuthn (with/without passkeys), Push Notification, Email/Password, Magic Link (Email/SMS), Random OTP (Email/SMS/Phone)
+- Storage Realms: Config (YAML) > SQL (GORM) for disaster recovery
+- MFA combinations: Combine 2+ single factors for Multi-Factor Authentication
+
+**Authorization Methods**:
+
+- Headless-Based: Scope-Based Authorization, Role-Based Access Control (RBAC)
+- Browser-Based: Scope-Based Authorization, RBAC, Resource-Level Access Control, Consent Tracking (scope+resource tuples)
+
+**Session Token Format** (Q3 - Configuration-Driven):
+
+- Non-Federated mode: Product-specific config determines format (opaque, JWE, JWS)
+- Federated mode: Identity Provider config determines format
+- Admin configures via YAML/environment variable
+
+**Session Storage Backend** (Q4 - PostgreSQL/SQLite Only):
+
+- SQLite: Single-node deployments
+- PostgreSQL: Distributed/high-availability deployments with shared session data
+
+**MFA Step-Up Authentication** (Q6 - Time-Based):
+
+- Re-authentication MANDATORY every 30 minutes for sensitive resources
+- Applies regardless of operation type
+- Session remains valid for low-sensitivity operations
+
+**MFA Enrollment Workflow** (Q7 - Optional with Limited Access):
+
+- OPTIONAL enrollment during initial setup
+- Access LIMITED until additional factors enrolled
+- Only one identifying factor required for initial login
+
+**Realm Failover Behavior** (Q10 - Priority List):
+
+- Admin configures priority list of Realm+Type tuples
+- System tries each in priority order until success or all fail
+- Example: `[(File, YAML), (Database, PostgreSQL), (Database, SQLite)]`
+
+**Zero Trust Authorization** (Q11 - No Caching):
+
+- Authorization MUST be evaluated on EVERY request
+- NO caching of authorization decisions (prevents stale permissions)
+- Performance via efficient policy evaluation, not caching
+
+**Cross-Service Authorization** (Q12 - Direct Token Validation):
+
+- Session Token passed between federated services
+- Each service independently validates token and enforces authorization
+- NO token transformation or delegation
+
+**Consent Tracking Granularity** (Q15 - Scope+Resource Tuples):
+
+- Tracked as (scope, resource) tuples
+- Example: ("read:keys", "key-123") separate from ("read:keys", "key-456")
+
 ### Federation Architecture
 
 Services discover and communicate with other cryptoutil services via **configuration** (NEVER hardcoded URLs):

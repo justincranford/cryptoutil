@@ -15,6 +15,8 @@
 5. [Deployment and Docker](#deployment-and-docker)
 6. [CI/CD and Automation](#cicd-and-automation)
 7. [Documentation and Workflow](#documentation-and-workflow)
+8. [Authentication and Authorization](#authentication-and-authorization)
+9. [Service Template and Migration Strategy](#service-template-and-migration-strategy)
 
 ---
 
@@ -857,6 +859,291 @@ git commit -m "fix(package): add defensive check for X"
 - Using amend instead of new commits (loses restoration evidence)
 
 ---
+
+---
+
+## Authentication and Authorization
+
+**Source**: QUIZME-02 (December 22, 2025) and AUTH-AUTHZ-SINGLE-FACTORS.md
+
+### Single Factor Authentication Methods
+
+**Q**: What single factor authentication (SFA) methods are supported for headless-based and browser-based clients?
+
+**A** (Source: QUIZME-02 Q1-Q2, AUTH-AUTHZ-SINGLE-FACTORS.md):
+
+**Headless-Based Clients** (`/service/*` paths): 10 methods
+
+- Non-Federated (3): Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate
+- Federated (7): Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate, JWE OAuth 2.1 Access Token, JWS OAuth 2.1 Access Token, Opaque OAuth 2.1 Access Token, Opaque OAuth 2.1 Refresh Token
+
+**Browser-Based Clients** (`/browser/*` paths): 28 methods
+
+- Non-Federated (6): JWE Session Cookie, JWS Session Cookie, Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate
+- Federated (22): All non-federated (6) + TOTP + HOTP + Recovery Codes + WebAuthn with Passkeys + WebAuthn without Passkeys + Push Notification + Basic (Email/Password) + Magic Link via Email + Magic Link via SMS + Random OTP via Email + Random OTP via SMS + Random OTP via Phone
+
+**Multi-Factor Authentication (MFA)**:
+
+- MFA = Combination of 2+ single factor authentication methods
+- Factor priority order: Passkey > TOTP > Hardware Keys > Email OTP > SMS OTP > HOTP > Recovery Codes > Push Notifications > Phone Call OTP
+
+**Storage Realms**: Config (YAML) > SQL (GORM) for disaster recovery priority
+
+**Note**: Rate limiting and IP allowlist removed from AUTH-AUTHZ-SINGLE-FACTORS - see KMS reference implementation for pattern.
+
+---
+
+### Authorization Methods
+
+**Q**: What authorization methods are supported?
+
+**A** (Source: AUTH-AUTHZ-SINGLE-FACTORS.md):
+
+**Headless-Based Clients** (2 methods):
+
+- Scope-Based Authorization
+- Role-Based Access Control (RBAC)
+
+**Browser-Based Clients** (4 methods):
+
+- Scope-Based Authorization
+- Role-Based Access Control (RBAC)
+- Resource-Level Access Control
+- Consent Tracking (scope+resource tuples)
+
+---
+
+### Session Token Format Configuration
+
+**Q**: How is session token format determined - is it fixed per product or configurable?
+
+**A** (Source: QUIZME-02 Q3):
+
+Session token format is **configuration-driven**:
+
+**Non-Federated Mode**: Product-specific configuration determines format
+
+```yaml
+session:
+  token_format: opaque  # or jwe, jws
+```
+
+**Federated Mode**: Identity Provider configuration determines format
+
+```yaml
+federation:
+  identity:
+    session_token_format: jwe  # or jws, opaque
+```
+
+**Admin configures** via YAML or environment variables per deployment.
+
+---
+
+### Session Storage Backend
+
+**Q**: What database backends are supported for session storage? Should Redis be used?
+
+**A** (Source: QUIZME-02 Q4):
+
+**Supported Backends**:
+
+- **SQLite**: Single-node deployments
+- **PostgreSQL**: Distributed/high-availability deployments with shared session data
+- **NO Redis**: NOT supported (adds operational complexity)
+
+**Configuration Examples**:
+
+```yaml
+# Single-node
+database:
+  driver: sqlite
+  dsn: "file:sessions.db?cache=shared"
+
+# Distributed/HA
+database:
+  driver: postgres
+  dsn: "postgres://user:pass@host:5432/sessions?sslmode=require"
+```
+
+---
+
+### Session Cookie Security Attributes
+
+**Q**: What HttpOnly, Secure, SameSite settings should be used for session cookies?
+
+**A** (Source: QUIZME-02 Q5):
+
+**Deferred to KMS reference implementation** - See `application_listener.go` for Swagger UI cookie settings pattern.
+
+**Rationale**: Cookie security attributes depend on deployment context (HTTPS availability, cross-origin requirements, browser compatibility). KMS implementation provides validated production patterns.
+
+---
+
+### MFA Step-Up Authentication Triggers
+
+**Q**: What triggers re-authentication (step-up) in an active session?
+
+**A** (Source: QUIZME-02 Q6):
+
+**Time-Based Re-Authentication** (30-minute intervals):
+
+- Re-authentication MANDATORY every 30 minutes for sensitive resources
+- Applies to operations: key rotation, client secret rotation, admin actions
+- Session remains valid for low-sensitivity operations
+
+**Rationale**: Time-based provides consistent security posture regardless of operation type, preventing session hijacking exploitation window.
+
+---
+
+### MFA Enrollment Workflow for New Users
+
+**Q**: Is MFA enrollment mandatory during initial user setup?
+
+**A** (Source: QUIZME-02 Q7):
+
+**Optional Enrollment with Limited Access**:
+
+- Enrollment **OPTIONAL** during initial setup
+- Access **LIMITED** until additional factors enrolled (read-only access)
+- User MUST enroll at least one factor for write operations
+- Only one identifying factor required for initial login
+
+**Rationale**: Balances security with user onboarding friction. Users can explore product with read-only access before committing to full MFA enrollment.
+
+---
+
+### MFA Factor Fallback Strategy
+
+**Q**: What happens when user's primary MFA factor is unavailable (e.g., lost phone for TOTP)?
+
+**A** (Source: QUIZME-02 Q8):
+
+**Any Identifying Factor Sufficient**:
+
+- Any factor that uniquely identifies the user is sufficient for first MFA factor
+- User can select any enrolled factor from login UI
+- No automatic fallback hierarchy (user chooses explicitly)
+
+**Rationale**: Provides flexibility while maintaining security. User controls which enrolled factor to use per authentication attempt.
+
+---
+
+### OAuth 2.1 Access Token vs Session Token Distinction
+
+**Q**: What is the relationship between OAuth 2.1 Access Tokens and session cookies in Federated Identity mode?
+
+**A** (Source: QUIZME-02 Q9):
+
+**SEPARATE TOKENS** (Exactly B!!!):
+
+- OAuth 2.1 Access Token exchanged for internal session cookie
+- Backend-for-Frontend (BFF) pattern
+- OAuth token used for IdP federation, session cookie used for application state
+- NO token nesting or reuse
+
+**Rationale**: Decouples external OAuth flow from internal session management. Session cookie can have different format/lifetime than OAuth token.
+
+---
+
+### Realm Type Failover Behavior
+
+**Q**: How should authentication realm failover work when database is unavailable?
+
+**A** (Source: QUIZME-02 Q10):
+
+**Admin-Configured Priority List**:
+
+```yaml
+realms:
+  priority_list:
+    - type: file
+      realm: config.yaml
+    - type: database
+      realm: postgresql_production
+    - type: database
+      realm: sqlite_fallback
+```
+
+**Behavior**:
+
+- System tries each Realm+Type in priority order
+- Continue until one succeeds or all fail
+- Supports flexible failover and multi-realm setups
+
+**Rationale**: Configuration-driven failover allows operators to define deployment-specific priorities without code changes.
+
+---
+
+### Authorization Decision Caching Strategy
+
+**Q**: Should authorization decisions be cached or evaluated on every request?
+
+**A** (Source: QUIZME-02 Q11):
+
+**Zero Trust - No Caching**:
+
+- Authorization decisions MUST be evaluated on EVERY request
+- NO caching of authorization decisions (prevents stale permissions)
+- Performance via efficient policy evaluation, not caching
+
+**Rationale**: Eliminates risk of stale permissions after role/policy changes. Real-time policy evaluation ensures security, even if slightly slower.
+
+---
+
+### Cross-Service Authorization Propagation
+
+**Q**: How should authorization be handled when Identity passes requests to KMS/JOSE/CA?
+
+**A** (Source: QUIZME-02 Q12):
+
+**Direct Token Validation**:
+
+- Session token passed between federated services via HTTP headers
+- Each service independently validates token and enforces authorization
+- NO token transformation or delegation
+
+**Rationale**: Each service maintains autonomy for authorization decisions. Prevents cascading authorization failures and simplifies debugging.
+
+---
+
+### Rate Limiting Configuration
+
+**Q**: What are the rate limiting requirements for authentication endpoints?
+
+**A** (Source: QUIZME-02 Q13):
+
+**Removed from AUTH-AUTHZ-SINGLE-FACTORS** - See KMS reference implementation.
+
+Refer to `application_listener.go` and `config.go` for production-validated rate limiting patterns.
+
+---
+
+### IP Allowlist Configuration
+
+**Q**: What are the IP allowlist requirements for admin endpoints?
+
+**A** (Source: QUIZME-02 Q14):
+
+**Removed from AUTH-AUTHZ-SINGLE-FACTORS** - See KMS reference implementation.
+
+Refer to `application_listener.go` and `config.go` for production-validated IP allowlist patterns.
+
+---
+
+### Consent Tracking Granularity
+
+**Q**: At what granularity should consent be tracked (per-scope or per-resource)?
+
+**A** (Source: QUIZME-02 Q15):
+
+**Scope+Resource Tuples**:
+
+- Tracked as `(scope, resource)` tuples
+- Example: `("read:keys", "key-123")` separate from `("read:keys", "key-456")`
+- Enables fine-grained consent revocation per resource
+
+**Rationale**: Provides maximum user control over data access. User can revoke access to specific resources without affecting entire scope.
 
 ---
 

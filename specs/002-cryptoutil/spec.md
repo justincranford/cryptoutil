@@ -729,6 +729,114 @@ Each service has its own Docker image and can scale independently.
 | Push Notifications | Push-based authentication via mobile app | ✅ 100% (PushNotificationAuthenticator with device token management, approval token generation, push notification delivery, 6 tests passing) | LOW |
 | Phone Call OTP | One-time password via voice call | ✅ 100% (PhoneCallOTPAuthenticator with voice call delivery, OTP speech formatting, retry limit enforcement, 6 tests passing) | LOW |
 
+#### Authentication and Authorization Requirements
+
+**Source**: QUIZME-02 answers (Q1-Q15) and AUTH-AUTHZ-SINGLE-FACTORS.md
+
+**Single Factor Authentication Methods (SFA)**:
+
+**Headless-Based Clients** (`/service/*` paths): 10 methods
+
+- Non-Federated (3): Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate
+- Federated (7): Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate, JWE OAuth 2.1 Access Token, JWS OAuth 2.1 Access Token, Opaque OAuth 2.1 Access Token, Opaque OAuth 2.1 Refresh Token
+
+**Browser-Based Clients** (`/browser/*` paths): 28 methods
+
+- Non-Federated (6): JWE Session Cookie, JWS Session Cookie, Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate
+- Federated (22): All non-federated (6) + TOTP + HOTP + Recovery Codes + WebAuthn with Passkeys + WebAuthn without Passkeys + Push Notification + Basic (Email/Password) + Magic Link via Email + Magic Link via SMS + Random OTP via Email + Random OTP via SMS + Random OTP via Phone
+
+**Multi-Factor Authentication (MFA)**:
+
+- MFA = Combination of 2+ single factor authentication methods
+- Factor priority order: Passkey > TOTP > Hardware Keys > Email OTP > SMS OTP > HOTP > Recovery Codes > Push Notifications > Phone Call OTP
+
+**Authorization Methods**:
+
+**Headless-Based Clients** (2 methods):
+
+- Scope-Based Authorization
+- Role-Based Access Control (RBAC)
+
+**Browser-Based Clients** (4 methods):
+
+- Scope-Based Authorization
+- Role-Based Access Control (RBAC)
+- Resource-Level Access Control
+- Consent Tracking (scope+resource tuples)
+
+**Session Token Format** (Q3 - Configuration-Driven):
+
+```yaml
+# Non-Federated Mode - Product decides format
+session:
+  token_format: opaque  # or jwe, jws
+
+# Federated Mode - Identity Provider decides format
+federation:
+  identity:
+    session_token_format: jwe  # or jws, opaque
+```
+
+**Session Storage Backend** (Q4 - PostgreSQL/SQLite Only):
+
+```yaml
+# Single-node deployments
+database:
+  driver: sqlite
+  dsn: "file:sessions.db?cache=shared"
+
+# Distributed/HA deployments
+database:
+  driver: postgres
+  dsn: "postgres://user:pass@host:5432/sessions?sslmode=require"
+```
+
+**MFA Step-Up Authentication** (Q6 - Time-Based):
+
+- Re-authentication MANDATORY every 30 minutes for sensitive resources
+- Applies to operations: key rotation, client secret rotation, admin actions
+- Session remains valid for low-sensitivity operations
+
+**MFA Enrollment Workflow** (Q7 - Optional with Limited Access):
+
+- Enrollment OPTIONAL during initial setup
+- Access LIMITED until additional factors enrolled (read-only access)
+- User MUST enroll at least one factor for write operations
+- Only one identifying factor required for initial login
+
+**Realm Failover Behavior** (Q10 - Priority List):
+
+```yaml
+realms:
+  priority_list:
+    - type: file
+      realm: config.yaml
+    - type: database
+      realm: postgresql_production
+    - type: database
+      realm: sqlite_fallback
+```
+
+System tries each Realm+Type in priority order until one succeeds or all fail.
+
+**Zero Trust Authorization** (Q11 - No Caching):
+
+- Authorization decisions MUST be evaluated on EVERY request
+- NO caching of authorization decisions (prevents stale permissions)
+- Performance via efficient policy evaluation, not caching
+
+**Cross-Service Authorization** (Q12 - Direct Token Validation):
+
+- Session token passed between federated services via HTTP headers
+- Each service independently validates token and enforces authorization
+- NO token transformation or delegation
+
+**Consent Tracking Granularity** (Q15 - Scope+Resource Tuples):
+
+- Tracked as `(scope, resource)` tuples
+- Example: `("read:keys", "key-123")` separate from `("read:keys", "key-456")`
+- Enables fine-grained consent revocation per resource
+
 #### Secret Rotation System
 
 | Feature | Description | Status |
