@@ -1,25 +1,10 @@
-# Security Implementation Patterns - Complete Specifications
+# Security Implementation Patterns
 
-**Version**: 1.0
-**Last Updated**: 2025-12-24
 **Referenced by**: `.github/instructions/03-06.security.instructions.md`
 
-## Security Monitoring and Updates
+## Vulnerability Monitoring
 
-### Vulnerability Monitoring
-
-**MANDATORY: Monitor Go security vulnerabilities and update promptly**
-
-**Sources**:
-- <https://pkg.go.dev/vuln/list> - Official Go vulnerability database
-- <https://github.com/advisories> - GitHub security advisories
-- <https://www.cvedetails.com/> - CVE details database
-
-**Update Workflow**:
-1. Check vulnerabilities weekly: `go run golang.org/x/vuln/cmd/govulncheck@latest ./...`
-2. Review affected dependencies: `go list -m -u all | grep '\['`
-3. Update incrementally with testing between updates
-4. Document breaking changes in commit messages
+Check weekly: `govulncheck ./...`. Sources: <https://pkg.go.dev/vuln/list>, <https://github.com/advisories>, <https://www.cvedetails.com/>. Update incrementally with testing.
 
 ---
 
@@ -51,6 +36,7 @@
 ```
 
 **Key Characteristics**:
+
 - **Unseal Key**: Never stored in application, injected via Docker secrets at runtime
 - **Root Key**: Encrypted at rest with unseal key, rotated annually
 - **Intermediate Keys**: Encrypted with root key, rotated quarterly
@@ -133,6 +119,7 @@ func (rl *IPRateLimiter) Allow(ip string) bool {
 ```
 
 **Recommended Limits**:
+
 - Public APIs: 100 requests/min per IP (burst: 20)
 - Admin APIs: 10 requests/min per IP (burst: 5)
 - Login endpoints: 5 requests/min per IP (burst: 2)
@@ -326,6 +313,7 @@ kubectl create secret generic cryptoutil-secrets \
 **Problem**: Binding to `0.0.0.0` triggers Windows Firewall prompts, blocking automation
 
 **Violation Impact**:
+
 - ❌ Each `0.0.0.0` binding = 1 Windows Firewall popup
 - ❌ Blocks CI/CD automation (requires manual approval)
 - ❌ Security risk (accidentally exposing test services to network)
@@ -467,6 +455,7 @@ logger.Warn("authorization_denied",
 ```
 
 **Security Events to Log**:
+
 - Authentication attempts (success + failures)
 - Authorization denials
 - Key generation/rotation events
@@ -521,6 +510,7 @@ func (kr *KeyRing) Decrypt(ciphertext []byte) ([]byte, error) {
 ```
 
 **Rotation Strategy**:
+
 1. Generate new key → set as active
 2. Keep old active key in historical keys (don't delete immediately)
 3. Decrypt uses key ID from ciphertext to find correct historical key
@@ -531,6 +521,7 @@ func (kr *KeyRing) Decrypt(ciphertext []byte) ([]byte, error) {
 ### Multiple Unseal Modes
 
 **Supported Modes**:
+
 - **Auto-unseal**: Unseal keys stored in Docker secrets, automatic unsealing on startup
 - **Manual-unseal**: Operator provides unseal key via admin API
 - **Multi-party-unseal**: Shamir secret sharing (3 of 5 key shares required)

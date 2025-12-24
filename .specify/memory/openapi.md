@@ -1,17 +1,17 @@
-# OpenAPI Specifications and Code Generation - Complete Specifications
+# OpenAPI Specifications and Code Generation
 
-**Version**: 1.0
-**Last Updated**: 2025-12-24
 **Referenced by**: `.github/instructions/02-06.openapi.instructions.md`
 
 ## OpenAPI Version - MANDATORY
 
 **ALWAYS use OpenAPI 3.0.3**:
-- Specification: https://spec.openapis.org/oas/v3.0.3
+
+- Specification: <https://spec.openapis.org/oas/v3.0.3>
 - NOT OpenAPI 2.0 (Swagger)
 - NOT OpenAPI 3.1.x (adds JSON Schema compatibility but less tooling support)
 
 **Why 3.0.3**:
+
 - Mature ecosystem with wide tool support
 - oapi-codegen excellent Go support
 - Stable spec (released 2020)
@@ -24,11 +24,13 @@
 ### File Organization Pattern
 
 **Split specifications into separate files**:
+
 - `openapi_spec_components.yaml` - Reusable components (schemas, responses, parameters, examples, requestBodies, headers, securitySchemes, links, callbacks)
 - `openapi_spec_paths.yaml` - API endpoints and operations
 - Main spec file references these via `$ref`
 
 **Benefits**:
+
 - Easier to review and merge changes (smaller diffs)
 - Reduces git conflicts (separate files for components vs paths)
 - Enables component reuse across multiple APIs
@@ -36,6 +38,7 @@
 - Clear separation of concerns
 
 **Example Main Spec**:
+
 ```yaml
 openapi: 3.0.3
 info:
@@ -56,7 +59,8 @@ paths:
 ### Generator Tool
 
 **Use oapi-codegen for Go code generation**:
-- Repository: https://github.com/deepmap/oapi-codegen
+
+- Repository: <https://github.com/deepmap/oapi-codegen>
 - Generates Go code from OpenAPI 3.0 specs
 - Supports strict server/client patterns
 - Built-in validation and marshaling
@@ -66,6 +70,7 @@ paths:
 **Three separate config files for different outputs**:
 
 **1. Server Configuration** (`openapi-gen_config_server.yaml`):
+
 ```yaml
 package: server
 generate:
@@ -75,6 +80,7 @@ output: api/server/server.gen.go
 ```
 
 **2. Model Configuration** (`openapi-gen_config_model.yaml`):
+
 ```yaml
 package: model
 generate:
@@ -85,6 +91,7 @@ output: api/model/models.gen.go
 ```
 
 **3. Client Configuration** (`openapi-gen_config_client.yaml`):
+
 ```yaml
 package: client
 generate:
@@ -94,6 +101,7 @@ output: api/client/client.gen.go
 ```
 
 **Benefits**:
+
 - Single source of truth for models (prevents drift)
 - Server and client use same model types
 - Clear separation of concerns
@@ -104,18 +112,21 @@ output: api/client/client.gen.go
 ## Strict Server Pattern - MANDATORY
 
 **ALWAYS use strict-server mode**:
+
 ```yaml
 generate:
   strict-server: true
 ```
 
 **Strict Server Benefits**:
+
 - **Type Safety**: All request/response types are strongly typed
 - **Validation**: Request validation happens before handler execution
 - **Separation**: Business logic in handlers, validation in generated code
 - **Error Handling**: Consistent error responses for validation failures
 
 **Pattern**:
+
 ```go
 // Generated strict server interface
 type StrictServerInterface interface {
@@ -145,6 +156,7 @@ func (h *Handler) CreateKey(ctx context.Context, request CreateKeyRequest) (Crea
 **ALWAYS include validation rules in OpenAPI spec**:
 
 **String Validation**:
+
 ```yaml
 properties:
   keyId:
@@ -162,6 +174,7 @@ properties:
 ```
 
 **Number Validation**:
+
 ```yaml
 properties:
   keySize:
@@ -176,6 +189,7 @@ properties:
 ```
 
 **Array Validation**:
+
 ```yaml
 properties:
   scopes:
@@ -189,6 +203,7 @@ properties:
 ```
 
 **Object Validation**:
+
 ```yaml
 properties:
   metadata:
@@ -210,11 +225,13 @@ properties:
 **Use appropriate status codes for all responses**:
 
 **Success Codes**:
+
 - `200 OK` - GET, PUT, PATCH successful
 - `201 Created` - POST successful (resource created)
 - `204 No Content` - DELETE successful, PATCH successful (no content)
 
 **Client Error Codes**:
+
 - `400 Bad Request` - Validation error, malformed request
 - `401 Unauthorized` - Missing/invalid authentication
 - `403 Forbidden` - Valid auth but insufficient permissions
@@ -223,10 +240,12 @@ properties:
 - `422 Unprocessable Entity` - Semantic validation error
 
 **Server Error Codes**:
+
 - `500 Internal Server Error` - Unhandled server error
 - `503 Service Unavailable` - Temporary unavailability (maintenance, overload)
 
 **Example**:
+
 ```yaml
 paths:
   /keys/{keyId}:
@@ -253,11 +272,13 @@ paths:
 ## REST Conventions - MANDATORY
 
 **Resource Naming**:
+
 - Use plural nouns for collections: `/keys`, `/certificates`, `/users`
 - Use singular for singletons: `/config`, `/health`
 - Use kebab-case for multi-word resources: `/api-keys`, `/access-tokens`
 
 **HTTP Method Semantics**:
+
 - `GET /keys` - List all keys (with pagination)
 - `POST /keys` - Create new key
 - `GET /keys/{keyId}` - Get specific key
@@ -266,6 +287,7 @@ paths:
 - `DELETE /keys/{keyId}` - Delete key
 
 **Idempotency**:
+
 - GET, PUT, DELETE are idempotent (repeated calls have same effect)
 - POST is NOT idempotent (creates new resource each time)
 - PATCH may or may not be idempotent (depends on operation)
@@ -275,6 +297,7 @@ paths:
 ## JSON Content Types - MANDATORY
 
 **ALWAYS use application/json**:
+
 ```yaml
 requestBody:
   required: true
@@ -293,6 +316,7 @@ responses:
 ```
 
 **NEVER use**:
+
 - `text/plain` for structured data
 - `application/x-www-form-urlencoded` for complex objects
 - `application/xml` (unless legacy requirement)
@@ -336,6 +360,7 @@ components:
 ```
 
 **Usage**:
+
 ```yaml
 responses:
   '400':
@@ -353,6 +378,7 @@ responses:
 **All list endpoints MUST support pagination**:
 
 **Query Parameters**:
+
 ```yaml
 parameters:
   - name: page
@@ -373,6 +399,7 @@ parameters:
 ```
 
 **Response Schema**:
+
 ```yaml
 components:
   schemas:
@@ -410,11 +437,13 @@ components:
 ## Cross-References
 
 **Related Documentation**:
+
 - Service template: `.specify/memory/service-template.md`
 - HTTPS ports: `.specify/memory/https-ports.md`
 - Testing: `.specify/memory/testing.md`
 
 **Tools**:
-- oapi-codegen: https://github.com/deepmap/oapi-codegen
-- OpenAPI 3.0.3: https://spec.openapis.org/oas/v3.0.3
-- Swagger Editor: https://editor.swagger.io/
+
+- oapi-codegen: <https://github.com/deepmap/oapi-codegen>
+- OpenAPI 3.0.3: <https://spec.openapis.org/oas/v3.0.3>
+- Swagger Editor: <https://editor.swagger.io/>

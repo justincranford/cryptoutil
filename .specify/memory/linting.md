@@ -1,7 +1,5 @@
-# Linting and Code Quality Standards - Complete Specifications
+# Linting and Code Quality Standards
 
-**Version**: 1.0
-**Last Updated**: 2025-12-24
 **Referenced by**: `.github/instructions/03-07.linting.instructions.md`
 
 ## MANDATORY: Zero Linting Errors Policy

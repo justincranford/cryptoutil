@@ -1,7 +1,5 @@
 # Service Template Specifications
 
-**Version**: 1.0.0
-**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/02-02.service-template.instructions.md`
 
 ## Overview

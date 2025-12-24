@@ -1,7 +1,5 @@
-# Observability and Monitoring - Complete Specifications
+# Observability and Monitoring
 
-**Version**: 1.0
-**Last Updated**: 2025-12-24
 **Referenced by**: `.github/instructions/02-05.observability.instructions.md`
 
 ## Core Observability Stack
