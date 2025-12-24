@@ -15,6 +15,7 @@
 **The ONLY valid stopping condition**: User types "STOP" or "PAUSE" or clicks stop button
 
 **ALL other conditions are NOT stopping conditions**:
+
 - Task complete → Start next task (don't stop)
 - Phase complete → Start next phase (don't stop)
 - Blocker encountered → Switch to unblocked task (don't stop)
@@ -29,12 +30,14 @@
 ### No Pressure Constraints
 
 **NO TIME PRESSURE**:
+
 - SpecKit work can span hours or days
 - This is expected and acceptable
 - Quality and correctness are paramount
 - Speed is secondary to correctness
 
 **NO TOKEN PRESSURE**:
+
 - Large tasks requiring many tool calls are normal
 - Use as many tokens as needed for completion
 - Token count is NOT a stopping condition
@@ -43,22 +46,26 @@
 ### Quality Over Speed
 
 **DECOMPOSE COMPLEX TASKS**:
+
 - Break hard/long/complete issues into smaller, manageable subtasks
 - Each subtask should be independently verifiable
 - Track subtasks in todo list or DETAILED.md
 
 **UPDATE DETAILED.md/TASKS.md**:
+
 - Document decomposed tasks continuously
 - Update progress after each subtask completion
 - Append timeline entries to DETAILED.md Section 2
 
 **CORRECTNESS > SPEED**:
+
 - ALWAYS prioritize doing things correctly and completely
 - NEVER rush to completion at expense of quality
 - Take time to read context, verify changes, run tests
 - Incomplete/incorrect work is worse than slower correct work
 
 **ALWAYS COMMIT CHANGES IMMEDIATELY WHEN WORK IS COMPLETE**:
+
 - Commit after each logical unit of work
 - Don't accumulate uncommitted changes
 - Enables rollback, bisect, incremental review
@@ -73,6 +80,7 @@
 ### ❌ Status Summaries at End
 
 **FORBIDDEN**:
+
 ```
 "Here's what we accomplished today:
 - Task 1: Complete ✅
@@ -91,6 +99,7 @@ Next steps:
 ### ❌ "Session Complete" Messages
 
 **FORBIDDEN**:
+
 ```
 "Session complete! All planned work finished.
 Waiting for next directive from user."
@@ -103,6 +112,7 @@ Waiting for next directive from user."
 ### ❌ "Next Steps" Sections
 
 **FORBIDDEN**:
+
 ```
 "Completed X, Y, Z.
 
@@ -119,6 +129,7 @@ Next steps:
 ### ❌ Strategic Pivots with Handoff
 
 **FORBIDDEN**:
+
 ```
 "Current approach not working due to X.
 Should we pivot to approach Y?
@@ -132,6 +143,7 @@ Waiting for your decision."
 ### ❌ Time/Token Justifications
 
 **FORBIDDEN**:
+
 ```
 "This session has been running for 2 hours with 500K tokens used.
 Should we continue or take a break?"
@@ -144,6 +156,7 @@ Should we continue or take a break?"
 ### ❌ Pauses Between Tasks
 
 **FORBIDDEN**:
+
 ```
 "Task 1 complete. Waiting to proceed with Task 2."
 ```
@@ -155,6 +168,7 @@ Should we continue or take a break?"
 ### ❌ Asking Permission
 
 **FORBIDDEN**:
+
 ```
 "Ready to start mutation testing. Should I proceed?"
 ```
@@ -166,6 +180,7 @@ Should we continue or take a break?"
 ### ❌ Leaving Uncommitted Changes
 
 **FORBIDDEN**:
+
 ```
 "Made changes to X, Y, Z.
 Here's a summary of the changes.
@@ -179,6 +194,7 @@ Let me know if you want me to commit."
 ### ❌ Ending with Analysis/Documentation
 
 **FORBIDDEN**:
+
 ```
 "Analysis complete. Here are the findings:
 - Coverage gaps in X
@@ -195,6 +211,7 @@ Waiting for next steps."
 ### ❌ Celebrations Followed by Stopping
 
 **FORBIDDEN**:
+
 ```
 "🎉 All tests passing! Coverage at 98%!
 Great progress today. Ready for next directive."
@@ -207,6 +224,7 @@ Great progress today. Ready for next directive."
 ### ❌ Premature Completion Claims
 
 **FORBIDDEN**:
+
 ```
 "Phase 1 foundation complete!
 All domain models, schema, and CRUD operations implemented.
@@ -255,6 +273,7 @@ What would you like to focus on next?"
 ### Task Completion Pattern
 
 **Task Done?**
+
 - ✅ Commit changes immediately
 - ✅ Start next task from todo list (IMMEDIATELY)
 - ❌ No status update
@@ -262,6 +281,7 @@ What would you like to focus on next?"
 - ❌ No pause
 
 **Todo List Empty?**
+
 - ✅ Read DETAILED.md
 - ✅ Find next incomplete task
 - ✅ Start task immediately
@@ -269,23 +289,27 @@ What would you like to focus on next?"
 - ❌ No summary of completed tasks
 
 **All Tasks Done?**
+
 - ✅ Find improvements (coverage gaps, test speed, linting issues, gremlins)
 - ✅ Start fixing improvements immediately
 - ❌ No celebration
 - ❌ No "session complete" message
 
 **Literally Nothing Left?**
+
 - ✅ Check for TODOs in code: `grep -r "TODO\|FIXME\|HACK" .`
 - ✅ Fix TODOs immediately
 - ❌ No stopping if any TODOs found
 
 **After Commit?**
+
 - ✅ IMMEDIATELY `read_file` next task location
 - ✅ Start next task execution
 - ❌ No pause after commit
 - ❌ No summary of commit
 
 **After Fixing Blocker?**
+
 - ✅ IMMEDIATELY start next task
 - ❌ No status update about blocker resolution
 
@@ -296,6 +320,7 @@ What would you like to focus on next?"
 ### Zero Text Between Tools
 
 **CORRECT Pattern**:
+
 ```
 <invoke name="read_file">...</invoke>
 [result received]
@@ -307,6 +332,7 @@ What would you like to focus on next?"
 ```
 
 **WRONG Pattern** (text between tool calls):
+
 ```
 <invoke name="read_file">...</invoke>
 [result received]
@@ -321,30 +347,36 @@ What would you like to focus on next?"
 ### Progress is NOT a Stop Condition
 
 **IF MAKING PROGRESS**:
+
 - Keep going
 - Progress is expected, not a milestone
 - Continue until user clicks STOP
 
 **IF YOU COMPLETE A TASK**:
+
 - Immediately start next task
 - No pause, no summary, no asking
 
 **IF STUCK OR BLOCKED**:
+
 - Pick next unblocked task and execute
 - NEVER stop to ask for help
 - Document blocker in DETAILED.md, continue other work
 
 **IF ONE TASK BLOCKED**:
+
 - Continue with ALL other remaining tasks
 - Blockers don't stop work on unblocked tasks
 - Return to blocked task when blocker resolved
 
 **IF COMMITTING CODE**:
+
 - Commit
 - Then IMMEDIATELY `read_file` next task location
 - Start next task execution (no pause)
 
 **EVERY TOOL RESULT**:
+
 - Triggers IMMEDIATE next tool invocation
 - No text explanations between tools
 - Continuous execution until STOP
@@ -358,21 +390,25 @@ What would you like to focus on next?"
 ### Blocker Response Pattern
 
 **When Blocked on Task A**:
+
 1. Document blocker in DETAILED.md timeline entry
 2. Immediately switch to Task B, C, D... (continue all other work)
 3. Return to Task A only when blocker is resolved
 
 **Keep Working**:
+
 - Don't idle waiting for blocker resolution
 - Continue with ALL unblocked tasks
 - Maximize progress on available work
 
 **NO Stopping to Ask**:
+
 - If user input needed: Document requirement in DETAILED.md
 - Continue other work meanwhile
 - User will provide input when available
 
 **NO Waiting**:
+
 - Never do idle waiting for external dependencies
 - Work on everything else meanwhile
 - Dependencies may resolve while you work
@@ -380,6 +416,7 @@ What would you like to focus on next?"
 ### Example Blocker Scenario
 
 **WRONG Approach** (stops all work):
+
 ```
 Task 1: Implement feature X → BLOCKED (needs external API key)
 
@@ -389,6 +426,7 @@ Waiting for you to provide the key before proceeding."
 ```
 
 **CORRECT Approach** (continues other work):
+
 ```
 Task 1: Implement feature X → BLOCKED (needs external API key)
 
@@ -415,6 +453,7 @@ Complete Task 3 → Commit → Start Task 4
 Execute this sequence when no active tasks remain:
 
 #### 1. Check Latest plan.md for Incomplete Phases
+
 ```bash
 read_file specs/*/implement/plan.md
 # Look for phases marked ❌ or ⏸️
@@ -422,6 +461,7 @@ read_file specs/*/implement/plan.md
 ```
 
 #### 2. Check Latest tasks.md for Incomplete Tasks
+
 ```bash
 read_file specs/*/implement/tasks.md
 # Look for tasks marked ❌ or ⏸️
@@ -429,6 +469,7 @@ read_file specs/*/implement/tasks.md
 ```
 
 #### 3. Look for Quality Improvements
+
 ```bash
 # Coverage gaps
 go test ./... -coverprofile=coverage.out
@@ -445,6 +486,7 @@ gremlins unleash --tags="~integration,~e2e"
 ```
 
 #### 4. Scan for Technical Debt
+
 ```bash
 # TODOs in code
 grep -r "TODO\|FIXME\|HACK" . --include="*.go" --exclude-dir="vendor"
@@ -455,6 +497,7 @@ grep -r "TODO\|FIXME\|HACK" . --include="*.go" --exclude-dir="vendor"
 ```
 
 #### 5. Review Recent Commits
+
 ```bash
 git log --oneline -20
 
@@ -465,6 +508,7 @@ git log --oneline -20
 ```
 
 #### 6. Verify CI/CD Health
+
 ```bash
 # Check workflow files
 ls -la .github/workflows/
@@ -476,6 +520,7 @@ ls -la .github/workflows/
 ```
 
 #### 7. Code Quality Sweep
+
 ```bash
 # Run full linting
 golangci-lint run --fix
@@ -494,6 +539,7 @@ gremlins unleash --tags="~integration,~e2e"
 ```
 
 #### 8. Performance Analysis
+
 ```bash
 # Identify slow tests (>15s per package)
 go test ./... -v 2>&1 | grep "PASS" | awk '$3+0 > 15 {print $2, $3}'
@@ -503,6 +549,7 @@ go test ./... -v 2>&1 | grep "PASS" | awk '$3+0 > 15 {print $2, $3}'
 ```
 
 #### 9. Mutation Testing (Packages Below Target)
+
 ```bash
 # Run gremlins on packages below 98% mutation score
 gremlins unleash --tags="~integration,~e2e" ./internal/shared/magic
@@ -513,6 +560,7 @@ gremlins unleash --tags="~integration,~e2e" ./internal/kms
 ```
 
 #### 10. ONLY If Literally Nothing Exists
+
 ```
 "I've completed all tasks, improvements, and quality work.
 What would you like me to focus on next?"
@@ -523,6 +571,7 @@ What would you like me to focus on next?"
 ### Pattern When Phase Complete
 
 **❌ WRONG** (stopping behavior):
+
 ```
 "Phase 3 complete! Here's what we did:
 - Task 3.1: Domain models ✅
@@ -533,6 +582,7 @@ Great progress! What's next?"
 ```
 
 **✅ CORRECT** (continuous execution):
+
 ```
 [No message to user]
 
@@ -554,7 +604,7 @@ Great progress! What's next?"
 ## Cross-References
 
 **Related Documentation**:
-- SpecKit workflow: `.specify/memory/speckit.md`
+
 - Evidence-based completion: `.specify/memory/evidence-based.md`
 - Testing standards: `.specify/memory/testing.md`
 - Quality gates: `.specify/memory/evidence-based.md`
