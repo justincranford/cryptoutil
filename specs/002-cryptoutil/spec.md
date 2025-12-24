@@ -41,6 +41,34 @@ The Spec Kit Methodology, driven by GitHub's open-source toolkit, is a Spec-Driv
 - **ALWAYS** use CGO-free alternatives (e.g., `modernc.org/sqlite`)
 - **Rationale**: Maximum portability, static linking, cross-compilation for production
 
+**Race Detector Limitations** (Source: SPECKIT-CLARIFY-QUIZME-05 Q11, 2025-12-24):
+
+**CRITICAL**: Go race detector is PROBABILISTIC - not all race conditions are guaranteed to be detected.
+
+- **Execution-dependent**: Race detection depends on timing and scheduling during test execution
+- **False negatives possible**: Passing race detector does NOT guarantee absence of race conditions
+- **Best effort**: Run race detector on EVERY test execution to maximize detection probability
+- **Complement with**: Code review, static analysis (e.g., `go vet`), and stress testing
+
+**CI Race Detector Workflow**:
+
+```yaml
+# .github/workflows/ci-race.yml
+- name: Run race detector
+  run: |
+    # Run MULTIPLE times to increase detection probability
+    for i in {1..3}; do
+      echo "Race detector run $i/3"
+      go test -race -count=1 ./...
+    done
+  env:
+    CGO_ENABLED: 1  # Required for race detector
+```
+
+**Rationale**: Accept probabilistic nature, run frequently to maximize coverage over time.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q11
+
 ---
 
 ## Service Architecture
@@ -349,17 +377,17 @@ federation:
   # Identity service for OAuth 2.1 authentication
   identity_url: "https://identity-authz:8180"
   identity_enabled: true
-  identity_timeout: 10s
+  identity_timeout: 10s  # Per-service timeout (MANDATORY)
 
   # JOSE service for external JWE/JWS operations
   jose_url: "https://jose-server:8280"
   jose_enabled: true
-  jose_timeout: 10s
+  jose_timeout: 15s      # Different timeout per service (MANDATORY)
 
   # CA service for TLS certificate operations
   ca_url: "https://ca-server:8380"
   ca_enabled: false  # Optional - KMS can use internal TLS certs
-  ca_timeout: 10s
+  ca_timeout: 30s        # Longer timeout for CA operations (MANDATORY)
 
 # Graceful degradation settings
 federation_fallback:
@@ -421,6 +449,36 @@ federation:
   jose_url: "https://jose-server.cryptoutil-ns.svc.cluster.local:8280"
 ```
 
+**DNS Caching** (Source: SPECKIT-CLARIFY-QUIZME-05 Q18, 2025-12-24):
+
+**MANDATORY**: DNS lookups for federated services MUST NOT be cached - perform lookup on EVERY request.
+
+**Rationale**: Kubernetes service endpoints change dynamically (pod restarts, scaling), stale DNS cache causes request failures.
+
+**Implementation**:
+
+```go
+// Disable DNS caching for HTTP client
+dialer := &net.Dialer{
+    Timeout:   30 * time.Second,
+    KeepAlive: 30 * time.Second,
+}
+
+transport := &http.Transport{
+    DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+        // Perform DNS lookup on EVERY dial (no caching)
+        return dialer.DialContext(ctx, network, addr)
+    },
+    DisableKeepAlives:   false,  // Keep connections alive
+    MaxIdleConns:        100,    // Pool idle connections
+    MaxIdleConnsPerHost: 10,
+}
+```
+
+**Trade-off**: Slight latency increase (DNS lookup per request) for guaranteed fresh endpoints.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q18
+
 **4. Environment Variables** (Overrides config file):
 
 ```bash
@@ -468,6 +526,66 @@ CRYPTOUTIL_FEDERATION_JOSE_URL="https://jose:8280"
 - **Exponential Backoff**: 1s, 2s, 4s, 8s, 16s (max 5 retries)
 - **Timeout Escalation**: Increase timeout 1.5x per retry (10s → 15s → 22.5s)
 - **Health Check Before Retry**: Poll `/admin/v1/livez` endpoint (fast liveness check) before resuming traffic
+
+**Federation Timeout Configuration** (Source: SPECKIT-CLARIFY-QUIZME-05 Q16, 2025-12-24):
+
+**MANDATORY**: Federation timeouts MUST be configurable per service (NOT global timeout).
+
+**Rationale**: Different services have different latency characteristics:
+
+- **Identity**: Fast token validation (5-10s timeout)
+- **JOSE**: Fast signing/encryption (10-15s timeout)
+- **CA**: Slow certificate issuance (30-60s timeout)
+
+**Global Timeout Forbidden**:
+
+```yaml
+# ❌ FORBIDDEN - DO NOT USE
+federation:
+  global_timeout: 10s  # Breaks CA operations
+```
+
+**Per-Service Timeout Required**:
+
+```yaml
+# ✅ REQUIRED
+federation:
+  identity_timeout: 10s
+  jose_timeout: 15s
+  ca_timeout: 30s
+```
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q16
+
+**API Versioning** (Source: SPECKIT-CLARIFY-QUIZME-05 Q17, 2025-12-24):
+
+**MANDATORY**: Federation APIs MUST maintain N-1 backward compatibility.
+
+**Version Support Policy**:
+
+- **Current version**: v2 (latest)
+- **Supported versions**: v2, v1 (N-1)
+- **Deprecated versions**: v0 (removed)
+
+**Example**:
+
+```yaml
+# Service supports both v2 and v1 simultaneously
+federation:
+  identity_url_v2: "https://identity-authz:8180/api/v2"  # Preferred
+  identity_url_v1: "https://identity-authz:8180/api/v1"  # Fallback for old clients
+```
+
+**Upgrade Strategy**:
+
+1. **Deploy v2**: Add new endpoints alongside v1
+2. **Migrate clients**: Gradually update clients to v2
+3. **Deprecate v1**: After 6 months, announce v1 deprecation
+4. **Remove v1**: After 12 months, remove v1 endpoints
+
+**Rationale**: N-1 compatibility enables zero-downtime rolling upgrades across federated services.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q17
 
 #### Federation Health Monitoring
 
@@ -556,6 +674,55 @@ federation:
 - **readyz**: Slow, comprehensive check (~100ms+) - verifies database connectivity, downstream services, resource availability
 - **Use livez for**: Docker healthchecks (fast, frequent), liveness probes (restart on failure)
 - **Use readyz for**: Kubernetes readiness probes (remove from load balancer), deployment validation
+
+**Health Check Failure Behavior** (Source: SPECKIT-CLARIFY-QUIZME-05 Q15, 2025-12-24):
+
+**Kubernetes** (Production):
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /admin/v1/livez
+    port: 9090
+    scheme: HTTPS
+  failureThreshold: 3  # After 3 failures, pod restarted
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /admin/v1/readyz
+    port: 9090
+    scheme: HTTPS
+  failureThreshold: 1  # After 1 failure, pod removed from LB
+  periodSeconds: 5
+```
+
+**Behavior**:
+
+- **Liveness failure**: Kubernetes KILLS pod and starts replacement
+- **Readiness failure**: Kubernetes REMOVES pod from service load balancer endpoints (pod continues running)
+- **Recovery**: Pod re-added to LB when readyz passes again
+
+**Docker Compose** (Development/Testing):
+
+```yaml
+healthcheck:
+  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+  interval: 5s
+  timeout: 5s
+  retries: 3
+  start_period: 10s
+```
+
+**Behavior**:
+
+- **Liveness failure**: Docker marks container as `unhealthy` but DOES NOT restart
+- **Manual intervention**: Operator must manually restart unhealthy containers
+- **Monitoring**: `docker ps` shows health status, alerts on unhealthy state
+
+**Rationale**: Kubernetes prioritizes availability (auto-restart), Docker Compose prioritizes debugging (preserve unhealthy state for inspection).
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q15
 
 **Why Dual Servers?**:
 
@@ -1175,6 +1342,58 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 
 **Required**: Expand E2E tests to cover end-to-end product workflows, not just infrastructure.
 
+**E2E Test Coverage Requirements** (Source: SPECKIT-CLARIFY-QUIZME-05 Q13, 2025-12-24):
+
+**MANDATORY**: E2E tests MUST cover BOTH `/service/*` and `/browser/*` API paths.
+
+**Priority**: Implement `/service/*` path tests FIRST, then `/browser/*` path tests.
+
+**`/service/*` Path Tests** (Service-to-Service APIs):
+
+```go
+// Test OAuth 2.1 Client Credentials flow
+func TestServiceAPIAuthentication(t *testing.T) {
+    // 1. Obtain access token via client_credentials
+    token := oauth.GetClientToken(clientID, clientSecret)
+
+    // 2. Call /service/api/v1/keys with Bearer token
+    resp := http.Get("/service/api/v1/keys",
+        http.Header{"Authorization": "Bearer " + token})
+
+    // 3. Verify response
+    assert.Equal(t, 200, resp.StatusCode)
+}
+```
+
+**`/browser/*` Path Tests** (Browser-Based APIs):
+
+```go
+// Test Authorization Code + PKCE flow
+func TestBrowserAPIAuthentication(t *testing.T) {
+    // 1. Initiate authorization code flow
+    authURL := oauth.StartAuthCodeFlow(redirectURI, pkce)
+
+    // 2. Simulate user login and consent
+    code := browser.Login(authURL, username, password)
+
+    // 3. Exchange code for session cookie
+    cookie := oauth.ExchangeCodeForSession(code, pkce)
+
+    // 4. Call /browser/api/v1/keys with session cookie
+    resp := http.Get("/browser/api/v1/keys",
+        http.Header{"Cookie": cookie})
+
+    // 5. Verify response
+    assert.Equal(t, 200, resp.StatusCode)
+}
+```
+
+**Test Environment**: Docker Compose with full service stack (authz, idp, kms, jose, ca)
+
+**Rationale**: `/service/*` path simpler to implement (no browser simulation), validates core OAuth 2.1 flows. `/browser/*` path requires browser automation (Playwright/Selenium) for login flows.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q13
+
 ### CA Networking
 
 - HTTPS with TLS 1.3+ minimum
@@ -1230,33 +1449,62 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 
 #### PostgreSQL Service Requirements for CI/CD
 
-**MANDATORY**: Any GitHub Actions workflow executing `go test` on packages using database repositories MUST configure PostgreSQL service container:
+**CRITICAL**: PostgreSQL integration testing MUST use `test-containers` library, NOT GitHub Actions service containers.
+
+**MANDATORY**: Any GitHub Actions workflow executing `go test` on packages using database repositories MUST use test-containers:
 
 ```yaml
+steps:
+  - name: Run tests with PostgreSQL
+    run: |
+      # test-containers library automatically:
+      # 1. Pulls postgres:18 image
+      # 2. Starts container with random port
+      # 3. Waits for pg_isready health check
+      # 4. Injects connection string via environment
+      # 5. Cleans up container after tests
+      go test -v ./internal/kms/server/repository/...
+```
+
+**Why test-containers Over Service Containers**:
+
+- **Parallelism**: Each test package gets isolated PostgreSQL instance (no port conflicts)
+- **Cleanup**: Containers automatically removed after test completion
+- **Portability**: Works locally, in CI, and in Docker-in-Docker environments
+- **Flexibility**: Tests control PostgreSQL version, extensions, and configuration per package
+
+**Service Containers Forbidden**:
+
+```yaml
+# ❌ FORBIDDEN - DO NOT USE
 services:
   postgres:
     image: postgres:18
-    env:
-      POSTGRES_DB: cryptoutil_test
-      POSTGRES_PASSWORD: cryptoutil_test_password
-      POSTGRES_USER: cryptoutil
-    options: >-
-      --health-cmd pg_isready
-      --health-interval 10s
-      --health-timeout 5s
-      --health-retries 5
-    ports:
-      - 5432:5432
+    # Problems: shared instance, port conflicts, manual cleanup
 ```
 
-**Why Required**:
+**Test-containers Implementation**:
 
-- Tests in `internal/kms/server/repository/sqlrepository` require PostgreSQL
-- Tests in `internal/identity/domain/repository` require PostgreSQL
-- Without service: Tests fail with "connection refused" after 2.5s timeout
-- With service: PostgreSQL ready before tests start (50s startup window)
+```go
+// internal/test/testdb/postgres.go
+func StartPostgres(ctx context.Context) (*PostgresContainer, error) {
+    req := testcontainers.ContainerRequest{
+        Image:        "postgres:18",
+        ExposedPorts: []string{"5432/tcp"},
+        Env: map[string]string{
+            "POSTGRES_DB":       "cryptoutil_test",
+            "POSTGRES_PASSWORD": "test",
+            "POSTGRES_USER":     "cryptoutil",
+        },
+        WaitingFor: wait.ForLog("database system is ready to accept connections"),
+    }
+    return testcontainers.GenericContainer(ctx, req)
+}
+```
 
 **Affected Workflows**: ci-race, ci-mutation, ci-coverage, any workflow running database tests
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q10
 
 ### I8: Containers
 
@@ -1283,13 +1531,52 @@ services:
 | `ci-sast` | Push, PR | <5 min | ❌ | Static security analysis (gosec) |
 | `ci-gitleaks` | Push, PR | <2 min | ❌ | Secrets scanning |
 | `ci-dast` | Push, PR | <15 min | ❌ | Dynamic security testing (Nuclei, ZAP) |
-| `ci-e2e` | Push, PR | <20 min | ❌ | End-to-end Docker Compose tests |
+| `ci-e2e` | Push, PR | <20 min | ❌ | End-to-end Docker Compose tests (BOTH `/service/*` and `/browser/*` paths) |
 | `ci-load` | Push, PR | <30 min | ❌ | Load testing (Gatling - Service API only) |
 | `ci-identity-validation` | Push, PR | <5 min | ✅ | Identity-specific validation tests |
 | `release` | Tag | <15 min | ❌ | Build and publish release artifacts |
 
 **Total CI Feedback Loop Target**: <10 minutes for critical path (quality + coverage + race)
 **Full Suite Target**: <60 minutes for all workflows to complete
+
+**Docker Pre-pull Optimization** (Source: SPECKIT-CLARIFY-QUIZME-05 Q9, 2025-12-24):
+
+**CRITICAL**: Docker image pre-pull MUST ONLY be used in workflows that actually use Docker.
+
+**Pre-pull Required**:
+
+- `ci-e2e`: Uses Docker Compose for end-to-end testing
+- `ci-dast`: Uses Nuclei/ZAP Docker containers for security scanning
+
+**Pre-pull NOT Required**:
+
+- `ci-quality`: Linting/formatting (no Docker)
+- `ci-coverage`: Go test coverage (uses test-containers, auto-pulls)
+- `ci-race`: Race detector (uses test-containers, auto-pulls)
+- `ci-mutation`: Mutation testing (no Docker)
+- `ci-benchmark`: Benchmarks (no Docker)
+- `ci-fuzz`: Fuzz testing (no Docker)
+- `ci-sast`: Static analysis (no Docker)
+- `ci-gitleaks`: Secrets scanning (no Docker)
+
+**Example Pre-pull Configuration**:
+
+```yaml
+# .github/workflows/ci-e2e.yml
+steps:
+  - name: Pre-pull Docker images
+    run: |
+      docker pull postgres:18
+      docker pull grafana/otel-lgtm:latest
+      docker pull otel/opentelemetry-collector-contrib:latest
+
+  - name: Run E2E tests
+    run: docker compose -f deployments/compose.integration.yml up --abort-on-container-exit
+```
+
+**Rationale**: Pre-pull reduces E2E test flakiness from registry rate limits, but adds unnecessary overhead to workflows that don't use Docker.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q9
 
 **Health Check Pattern Standardization**:
 
@@ -1315,6 +1602,39 @@ services:
 - Minimum ≥80% gremlins score per package
 - Focus on business logic, parsers, validators, crypto operations
 - Track improvements in baseline reports
+
+**Mutation Exemptions** (Source: SPECKIT-CLARIFY-QUIZME-05 Q12, 2025-12-24):
+
+**MANDATORY**: The following code categories are EXEMPT from mutation testing:
+
+1. **OpenAPI-generated code**: `api/client/`, `api/server/`, `api/model/`
+   - **Rationale**: Generated code quality depends on OpenAPI spec, not mutation testing
+   - **Alternative**: Validate OpenAPI spec correctness, test API contracts
+
+2. **GORM migration files**: `internal/*/repository/migrations/*.sql`
+   - **Rationale**: SQL migration correctness validated by integration tests, not mutation testing
+   - **Alternative**: Test migration up/down sequences, data integrity checks
+
+3. **Protobuf-generated code**: `*.pb.go`, `*_grpc.pb.go`
+   - **Rationale**: Generated from .proto files, mutation testing adds no value
+   - **Alternative**: Validate protobuf schema correctness, test serialization/deserialization
+
+**Gremlins Configuration**:
+
+```yaml
+# .gremlins.yaml
+exemptions:
+  - "api/client/**"
+  - "api/server/**"
+  - "api/model/**"
+  - "**/migrations/*.sql"
+  - "**/*.pb.go"
+  - "**/*_grpc.pb.go"
+```
+
+**Rationale**: Focus mutation testing effort on hand-written business logic where it provides maximum value.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q12
 
 ### Linting Requirements
 
@@ -1503,6 +1823,44 @@ HashService
   - Derivation similar to AES-GCM-SIV (derive IV from nonce + cleartext) but for different purpose
   - Purpose: Obfuscate actual salt used (pepper-like concept per OWASP Password Storage Cheat Sheet)
   - Security: Fixed salt never revealed, derived salt unique per input
+
+**Pepper Rotation Strategy** (Source: SPECKIT-CLARIFY-QUIZME-05 Q3, 2025-12-24):
+
+**MANDATORY**: Pepper rotation MUST use lazy migration (re-hash on re-authentication).
+
+**Rotation Process**:
+
+1. **Add New Pepper Version**: Deploy new pepper configuration with incremented version
+
+   ```yaml
+   hash_registry:
+     versions:
+       - version: 1
+         pepper: "old-pepper-value"
+       - version: 2
+         pepper: "new-pepper-value"  # New version added
+   ```
+
+2. **Verify Existing Hashes**: Continue accepting hashes with old pepper (version 1)
+
+3. **Re-hash on Re-authentication**: When user logs in, re-hash password with new pepper (version 2)
+
+   ```go
+   if oldHash.Version == 1 {
+       newHash := registry.HashWithVersion(password, 2)
+       db.UpdatePasswordHash(userID, newHash)
+   }
+   ```
+
+4. **Gradual Migration**: Over time, all active users migrated to new pepper
+
+5. **Retire Old Pepper**: After grace period (e.g., 90 days), remove version 1 pepper from config
+
+**NO Forced Re-authentication**: Users NOT required to re-authenticate immediately.
+
+**Rationale**: Lazy migration balances security (pepper rotation) with user experience (no forced password resets).
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q3
 
 **Registry API** (consistent across all 4 types):
 
@@ -1786,17 +2144,51 @@ func main() {
 
 **Session State Management for Horizontal Scaling**:
 
-- **Stateless sessions** (Preferred): JWT tokens, no server-side storage
-- **Sticky sessions**: Load balancer affinity based on session cookie
-- **Distributed session store**: Redis cluster for shared session state
-- **Database-backed sessions**: PostgreSQL with connection pooling
+**CRITICAL**: Sessions MUST use SQL-only storage (PostgreSQL or SQLite). Redis is NOT supported.
+
+**Session Formats**:
+
+1. **JWS (JSON Web Signature)**: Stateless signed tokens
+   - **Pros**: No server-side storage, horizontal scaling trivial
+   - **Cons**: Cannot revoke before expiry, larger cookie size
+   - **Use case**: Low-security browser sessions with short TTL
+
+2. **OPAQUE**: Server-side database storage with opaque session ID
+   - **Pros**: Immediate revocation, smaller cookie size
+   - **Cons**: Database lookup on every request, horizontal scaling requires shared database
+   - **Use case**: Standard browser sessions requiring revocation
+
+3. **JWE (JSON Web Encryption)**: Encrypted stateless tokens
+   - **Pros**: Privacy protection, no server-side storage, horizontal scaling trivial
+   - **Cons**: Cannot revoke before expiry, larger cookie size, encryption overhead
+   - **Use case**: High-security browser sessions with encrypted claims
+
+**Implementation Priority**: JWS → OPAQUE → JWE
+
+**Deployment Priority**: JWE → OPAQUE → JWS
+
+**Rationale**: Implement simplest first (JWS) to validate architecture, deploy most secure first (JWE) for production.
+
+**Legacy Session Migration**: NOT SUPPORTED - session format changes require re-authentication
 
 **Database Scaling Patterns**:
 
-- **Read replicas**: Route read-only queries to PostgreSQL replicas
-- **Connection pooling**: PgBouncer/pgpool-II for connection multiplexing
-- **Database sharding**: Partition data by tenant ID or key range (future consideration)
-- **Caching**: Redis/Memcached for frequently accessed data
+- **Read replicas**: NOT SUPPORTED - all reads directed to primary database
+  - **Rationale**: Replication lag introduces consistency issues for security-critical operations
+  - **Alternative**: Vertical scaling of primary database + connection pooling
+
+- **Connection pooling**: REQUIRED - configurable and hot-reloadable without service restart
+  - **Configuration**: Max connections, idle timeout, connection lifetime
+  - **Hot-reload**: SIGHUP signal triggers config reload without dropping existing connections
+  - **Implementation**: GORM connection pool settings + custom reload handler
+
+- **Database sharding**: Phase 4 implementation (deferred)
+  - **Partitioning strategy**: Tenant ID-based partitioning
+  - **Shard routing**: Application-level routing based on tenant context
+  - **Cross-shard queries**: NOT SUPPORTED - tenant data isolated per shard
+
+- **Caching**: Redis/Memcached NOT USED - SQL-only architecture
+  - **Alternative**: PostgreSQL query result caching + prepared statements
 
 **Distributed Caching Strategy**:
 
@@ -1843,6 +2235,49 @@ func main() {
 - Application: OTLP gRPC:4317 or HTTP:4318 → otel-collector → Grafana OTLP:14317/14318
 - Collector self-monitoring: Internal → Grafana OTLP HTTP:14318
 
+**Sampling Strategy** (Source: SPECKIT-CLARIFY-QUIZME-05 Q14, 2025-12-24):
+
+**MANDATORY**: OTLP Collector configuration MUST include ALL sampling strategies as commented options.
+
+**Tail-based Sampling** (REQUIRED - uncommented by default):
+
+```yaml
+# otel-collector-config.yaml
+processors:
+  # Tail-based sampling (ACTIVE)
+  tail_sampling:
+    policies:
+      - name: sample-errors
+        type: status_code
+        status_code: {status_codes: [ERROR]}
+      - name: sample-slow
+        type: latency
+        latency: {threshold_ms: 1000}
+      - name: sample-random
+        type: probabilistic
+        probabilistic: {sampling_percentage: 10}
+
+  # Head-based sampling (COMMENTED - alternative strategy)
+  # probabilistic_sampler:
+  #   sampling_percentage: 10
+
+  # Attribute-based sampling (COMMENTED - alternative strategy)
+  # attribute_sampler:
+  #   sample_by_attribute:
+  #     - key: http.status_code
+  #       values: ["500", "502", "503"]
+```
+
+**Configuration Strategy**:
+
+1. **Default**: Tail-based sampling active (sample errors, slow requests, 10% random)
+2. **Commented Alternatives**: Head-based, attribute-based sampling available for operator customization
+3. **Documentation**: Explain trade-offs in config comments
+
+**Rationale**: Tail-based sampling provides intelligent sampling (errors + slow requests always captured), while preserving operator flexibility to switch strategies.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q14
+
 **Telemetry Data Retention and Privacy** (Source: CLARIFY-QUIZME-01 Q6, 2025-12-22):
 
 - **Default Retention**: 90 days
@@ -1860,6 +2295,42 @@ func main() {
 
 ### Security
 
+**mTLS Certificate Revocation** (Source: SPECKIT-CLARIFY-QUIZME-05 Q1, 2025-12-24):
+
+**MANDATORY**: mTLS deployments MUST support BOTH CRL Distribution Points (CRLDP) and OCSP for certificate revocation.
+
+**CRLDP Requirements**:
+
+- **Distribution**: One serial number per HTTPS URL (e.g., `https://ca.example.com/crl/serial-12345.crl`)
+- **Signing**: CRLs MUST be signed by issuing CA before publication
+- **Availability**: CRLs MUST be available immediately after revocation (NOT batched/delayed)
+- **Format**: DER-encoded CRL per RFC 5280
+- **Example**: Certificate serial `0x123ABC` → `https://ca.example.com/crl/123ABC.crl`
+
+**OCSP Requirements**:
+
+- **Responder**: MUST implement RFC 6960 OCSP responder
+- **Response Time**: <1 second for cached responses, <5 seconds for database lookups
+- **Stapling**: Nice-to-have (NOT blocking) - server-side OCSP stapling reduces client latency
+
+**Revocation Check Priority**:
+
+1. Check OCSP if available (faster, real-time status)
+2. Fall back to CRLDP if OCSP unavailable
+3. Fail-closed: Reject certificate if BOTH unavailable (strict mode) or fail-open (permissive mode, configurable)
+
+**Configuration**:
+
+```yaml
+mtls:
+  revocation_check: both  # Options: ocsp, crl, both
+  fail_mode: closed       # Options: closed (reject on check failure), open (allow on check failure)
+  ocsp_timeout: 5s
+  crl_cache_ttl: 3600s    # Cache CRLs for 1 hour
+```
+
+**Rationale**: CRLDP provides guaranteed availability (HTTP GET), OCSP provides real-time status. BOTH required for production resilience.
+
 **Docker Secrets**:
 
 - **File permissions**: 400 (r--------) or 440 (r--r-----) (read-only for owner or owner+group)
@@ -1868,23 +2339,86 @@ func main() {
 
 **Source**: .github/instructions/02-02.docker.instructions.md, clarify.md Q9.1
 
+**Unseal Secrets** (Source: SPECKIT-CLARIFY-QUIZME-05 Q2, 2025-12-24):
+
+**MANDATORY**: Services MUST support BOTH key derivation (HKDF) and pre-generated JWKs for unseal secrets.
+
+**Key Derivation Mode (HKDF)**:
+
+```yaml
+unseal:
+  mode: derive
+  master_key: file:///run/secrets/master_key  # 32-byte master key
+  derivation_info: "cryptoutil-kms-v1"        # Application-specific context
+  algorithm: HKDF-SHA256
+```
+
+**Pre-generated JWK Mode**:
+
+```yaml
+unseal:
+  mode: jwk
+  jwk_path: file:///run/secrets/unseal_jwk    # Pre-generated JWK (RSA-4096, EC P-384, etc.)
+```
+
+**Configuration-Driven Selection**:
+
+- **Development**: Use HKDF derivation for simplicity (single master key)
+- **Production**: Use pre-generated JWKs for HSM integration and key rotation
+- **Hybrid**: Support both modes simultaneously (multi-key unlock)
+
+**Implementation Requirements**:
+
+```go
+type UnsealConfig struct {
+    Mode           string `yaml:"mode"`            // "derive" or "jwk"
+    MasterKey      string `yaml:"master_key"`     // For HKDF mode
+    DerivationInfo string `yaml:"derivation_info"` // For HKDF mode
+    JWKPath        string `yaml:"jwk_path"`       // For JWK mode
+}
+```
+
+**Rationale**: HKDF simplifies key management for single-key scenarios, pre-generated JWKs enable HSM integration and advanced key rotation strategies.
+
 ### Multi-Tenancy
 
-**Tenant Isolation**:
+**Tenant Isolation** (Source: SPECKIT-CLARIFY-QUIZME-05 Q6, 2025-12-24):
 
-- **Preferred**: Schema-level tenant isolation (tenant_a.users, tenant_b.users)
-- **Acceptable**: Tenant ID column in shared tables with row-level security (RLS)
-- **NOT SUPPORTED**: Separate databases per tenant (too many connections)
+- **REQUIRED**: Schema-level tenant isolation (e.g., `tenant_a.users`, `tenant_b.users`)
+- **NOT SUPPORTED**: Row-level security (RLS) with tenant ID columns
+- **NOT SUPPORTED**: Separate databases per tenant (connection pool exhaustion)
+
+**Schema Isolation Architecture**:
+
+```sql
+-- Each tenant gets dedicated schema
+CREATE SCHEMA tenant_a;
+CREATE SCHEMA tenant_b;
+
+-- Tables duplicated per schema
+CREATE TABLE tenant_a.users (id SERIAL PRIMARY KEY, email TEXT);
+CREATE TABLE tenant_b.users (id SERIAL PRIMARY KEY, email TEXT);
+```
 
 **Configuration**:
 
 ```yaml
 multi_tenancy:
-  isolation: schema  # or table
+  isolation: schema  # MANDATORY (RLS not supported)
   tenant_id_header: X-Tenant-ID
+  auto_create_schema: true  # Auto-provision schemas for new tenants
 ```
 
-**Source**: clarify.md Q10.2
+**Runtime Tenant Switching**:
+
+```go
+// Set PostgreSQL search_path per request
+db.Exec("SET search_path TO ?, public", tenantID)
+```
+
+**Rationale**: Schema isolation provides database-level isolation without separate database connections, balancing security and resource efficiency.
+
+**Source**: SPECKIT-CLARIFY-QUIZME-05 Q6
 
 ### Certificate Profiles
 
