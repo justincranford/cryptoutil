@@ -775,70 +775,26 @@ Each service has its own Docker image and can scale independently.
 
 #### Authentication and Authorization Requirements
 
-**Source**: QUIZME-02 answers (Q1-Q15) and AUTH-AUTHZ-SINGLE-FACTORS.md
+**Source**: QUIZME-02 answers (Q1-Q15)
+**Reference**: See `.specify/memory/auth-factors.md` for authoritative authentication factor list
 
 **Single Factor Authentication Methods (SFA)**:
 
-**Headless-Based Clients** (`/service/*` paths): 10 methods
+- **Headless-Based Clients** (`/service/*` paths): 10 methods (3 non-federated + 7 federated)
+- **Browser-Based Clients** (`/browser/*` paths): 28 methods (6 non-federated + 22 federated)
+- **Complete list with per-factor storage realms**: `.specify/memory/auth-factors.md`
 
-**Non-Federated** (3 methods):
+**Storage Realm Pattern**:
 
-- Basic (Client ID/Secret) - Storage: YAML + SQL (Config > DB priority)
-- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
-- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
-
-**Federated** (7 methods):
-
-- Basic (Client ID/Secret) - Storage: YAML + SQL (Config > DB priority)
-- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
-- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
-- JWE OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
-- JWS OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
-- Opaque OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
-- Opaque OAuth 2.1 Refresh Token - Storage: YAML + SQL (Config > DB priority)
-
-**Browser-Based Clients** (`/browser/*` paths): 28 methods
-
-**Non-Federated** (6 methods):
-
-- JWE Session Cookie - Storage: YAML + SQL (Config > DB priority)
-- JWS Session Cookie - Storage: YAML + SQL (Config > DB priority)
-- Opaque Session Cookie - Storage: YAML + SQL (Config > DB priority)
-- Basic (Username/Password) - Storage: YAML + SQL (Config > DB priority)
-- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
-- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
-
-**Federated** (22 methods, all non-federated PLUS):
-
-- TOTP - Storage: SQL ONLY (user-specific enrollment data)
-- HOTP - Storage: SQL ONLY (user-specific enrollment data)
-- Recovery Codes - Storage: SQL ONLY (user-specific enrollment data)
-- WebAuthn with Passkeys - Storage: SQL ONLY (user-specific enrollment data)
-- WebAuthn without Passkeys - Storage: SQL ONLY (user-specific enrollment data)
-- Push Notification - Storage: SQL ONLY (user-specific enrollment data)
-- Basic (Email/Password) - Storage: YAML + SQL (Config > DB priority)
-- Magic Link via Email - Storage: SQL ONLY (user-specific one-time tokens)
-- Magic Link via SMS - Storage: SQL ONLY (user-specific one-time tokens)
-- Random OTP via Email - Storage: SQL ONLY (user-specific one-time codes)
-- Random OTP via SMS - Storage: SQL ONLY (user-specific one-time codes)
-- Random OTP via Phone - Storage: SQL ONLY (user-specific one-time codes)
-- Social Login (Google) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Microsoft) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (GitHub) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Facebook) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Apple) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (LinkedIn) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Twitter/X) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Amazon) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Okta) - Storage: YAML + SQL (Config > DB priority for provider config)
-- SAML 2.0 - Storage: YAML + SQL (Config > DB priority for provider config)
-
-**Storage Realm Priority**: Config (YAML) > SQL (GORM) for disaster recovery
+- **YAML + SQL (Config > DB priority)**: Static credentials, provider configs (disaster recovery - service starts without database)
+- **SQL ONLY**: User-specific enrollment data, one-time tokens/codes (dynamic per-user)
+- **Details**: See `.specify/memory/auth-factors.md` Section "Storage Realm Specifications"
 
 **Multi-Factor Authentication (MFA)**:
 
 - MFA = Combination of 2+ single factor authentication methods
 - Factor priority order: Passkey > TOTP > Hardware Keys > Email OTP > SMS OTP > HOTP > Recovery Codes > Push Notifications > Phone Call OTP
+- **Common combinations and patterns**: See `.specify/memory/auth-factors.md` Section "Multi-Factor Authentication"
 
 **Authorization Methods**:
 

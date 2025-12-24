@@ -498,66 +498,25 @@ For public HTTPS endpoint, all services implement TWO security middleware stacks
 
 ### Authentication and Authorization Architecture - CRITICAL
 
-**Source**: QUIZME-02 answers (Q1-Q2, Q3-Q4, Q6-Q7, Q10-Q12, Q15) and AUTH-AUTHZ-SINGLE-FACTORS.md
+**Source**: QUIZME-02 answers (Q1-Q2, Q3-Q4, Q6-Q7, Q10-Q12, Q15)
+**Reference**: See `.specify/memory/auth-factors.md` for authoritative authentication factor list
 
 **Single Factor Authentication Methods** (SFA):
 
-**Headless-Based Clients** (`/service/*` paths): 10 methods
+- **Headless-Based Clients** (`/service/*` paths): 10 methods (3 non-federated + 7 federated)
+- **Browser-Based Clients** (`/browser/*` paths): 28 methods (6 non-federated + 22 federated)
+- **Complete list with per-factor storage realms**: `.specify/memory/auth-factors.md`
 
-**Non-Federated** (3 methods):
+**Storage Realm Pattern**:
 
-- Basic (Client ID/Secret) - Storage: YAML + SQL (Config > DB priority)
-- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
-- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
+- **YAML + SQL (Config > DB priority)**: Static credentials, provider configs (enables service start without database)
+- **SQL ONLY**: User-specific enrollment data, one-time tokens/codes (dynamic per-user)
+- **Details**: See `.specify/memory/auth-factors.md` Section "Storage Realm Specifications"
 
-**Federated** (7 methods):
+**Multi-Factor Authentication (MFA)**:
 
-- Basic (Client ID/Secret) - Storage: YAML + SQL (Config > DB priority)
-- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
-- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
-- JWE OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
-- JWS OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
-- Opaque OAuth 2.1 Access Token - Storage: YAML + SQL (Config > DB priority)
-- Opaque OAuth 2.1 Refresh Token - Storage: YAML + SQL (Config > DB priority)
-
-**Browser-Based Clients** (`/browser/*` paths): 28 methods
-
-**Non-Federated** (6 methods):
-
-- JWE OAuth 2.1 Session Cookie - Storage: YAML + SQL (Config > DB priority)
-- JWS OAuth 2.1 Session Cookie - Storage: YAML + SQL (Config > DB priority)
-- Opaque OAuth 2.1 Session Cookie - Storage: YAML + SQL (Config > DB priority)
-- Basic (Username/Password) - Storage: YAML + SQL (Config > DB priority)
-- Bearer (API Token) - Storage: YAML + SQL (Config > DB priority)
-- HTTPS Client Certificate - Storage: YAML + SQL (Config > DB priority)
-
-**Federated** (22 methods, all non-federated PLUS):
-
-- TOTP (Authenticator App) - Storage: SQL ONLY (user-specific enrollment data)
-- HOTP (Hardware Token) - Storage: SQL ONLY (user-specific enrollment data)
-- Recovery Codes - Storage: SQL ONLY (user-specific enrollment data)
-- WebAuthn with Passkeys - Storage: SQL ONLY (user-specific enrollment data)
-- WebAuthn without Passkeys - Storage: SQL ONLY (user-specific enrollment data)
-- Push Notification - Storage: SQL ONLY (user-specific enrollment data)
-- Email/Password - Storage: YAML + SQL (Config > DB priority)
-- Magic Link (Email) - Storage: SQL ONLY (user-specific one-time tokens)
-- Magic Link (SMS) - Storage: SQL ONLY (user-specific one-time tokens)
-- Random OTP (Email) - Storage: SQL ONLY (user-specific one-time codes)
-- Random OTP (SMS) - Storage: SQL ONLY (user-specific one-time codes)
-- Random OTP (Phone) - Storage: SQL ONLY (user-specific one-time codes)
-- Social Login (Google) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Microsoft) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (GitHub) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Facebook) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Apple) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (LinkedIn) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Twitter/X) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Amazon) - Storage: YAML + SQL (Config > DB priority for provider config)
-- Social Login (Okta) - Storage: YAML + SQL (Config > DB priority for provider config)
-- SAML 2.0 - Storage: YAML + SQL (Config > DB priority for provider config)
-
-**Storage Realm Priority**: Config (YAML) > SQL (GORM) for disaster recovery
-**MFA**: Combine 2+ single factors for Multi-Factor Authentication
+- Combine 2+ single factors (e.g., Password + TOTP, Client ID/Secret + mTLS)
+- Common combinations: See `.specify/memory/auth-factors.md` Section "Multi-Factor Authentication"
 
 **Authorization Methods**:
 
