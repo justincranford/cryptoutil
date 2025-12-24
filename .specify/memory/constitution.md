@@ -104,6 +104,9 @@ Algorithm agility is required: all crypto operations must support configurable a
 - Certificate serial numbers: minimum 64 bits CSPRNG, non-sequential, >0, <2^159
 - Maximum 398 days validity for subscriber certificates
 - Full cert chain validation, MinVersion: TLS 1.3+, never InsecureSkipVerify
+- **mTLS MUST implement BOTH CRLDP and OCSP for certificate revocation checking**
+- **CRLDP MUST provide immediate revocation checks (NOT batched or delayed)**
+- Rationale: Defense in depth - OCSP for online checks, CRLDP as fallback
 
 All data at rest that is secret (e.g. Passwords, Keys) or sensitive (e.g. Personally Identifiable Information) MUST be encrypted or hashed
 
@@ -125,6 +128,9 @@ Multi-layer KMS cryptographic barrier architecture:
 - **Unseal secrets** → **Root keys** → **Intermediate keys** → **Content keys**
 - All keys encrypted at rest, proper key versioning and rotation
 - All KMS cryptoutil instances sharing a database MUST use the same unseal secrets for interoperability; derive same JWKs with same kids, or use same JWKs in enclave (e.g. PKCS#11, PKCS#12, HSM, TPM 2.0, Yubikey)
+- **Unseal secrets MUST support BOTH strategies**: (1) Key derivation from master secret, (2) Pre-generated JWKs stored in enclave
+- **Pepper rotation MUST use lazy migration strategy**: Re-hash passwords ONLY on re-authentication (NOT batch migration)
+- Rationale: Lazy migration avoids service downtime and preserves user sessions
 - NEVER use environment variables for secrets in all deployment; ALWAYS use Docker/Kubernetes secrets, including development, because it needs to reproduce production security
 
 ## IV. Go Testing Requirements
@@ -141,6 +147,7 @@ Multi-layer KMS cryptographic barrier architecture:
 - ✅ **ALWAYS** run tests concurrently: `go test ./...` (default parallelism)
 - ✅ **ALWAYS** use `-shuffle=on`: `go test ./... -shuffle=on` (randomize test order)
 - ✅ **ALWAYS** use `t.Parallel()` in all test functions and sub-tests
+- ✅ **Race detector MUST keep probabilistic execution enabled** (NOT disabled for performance)
 - ❌ **NEVER** use `-p=1` (sequential package execution) - This hides concurrency bugs!
 - ❌ **NEVER** use `-parallel=1` (sequential test execution) - This defeats the purpose!
 
@@ -430,6 +437,9 @@ For public HTTPS endpoint, all services implement TWO security middleware stacks
 
 - SQLite: Single-node deployments
 - PostgreSQL: Distributed/high-availability deployments with shared session data
+- **CRITICAL: Session state MUST use SQL database only (NO Redis)**
+- **Session Token Formats**: JWS (signed), OPAQUE (database reference), JWE (encrypted)
+- Rationale: SQL ensures ACID compliance, transaction support, consistent backups
 
 **MFA Step-Up Authentication** (Q6 - Time-Based):
 
@@ -476,17 +486,22 @@ federation:
   # Identity service for OAuth 2.1 authentication
   identity_url: "https://identity-authz:8180"
   identity_enabled: true
-  identity_timeout: 10s
+  identity_timeout: 10s  # MUST be per-service configurable
 
   # JOSE service for external JWE/JWS operations
   jose_url: "https://jose-server:8280"
   jose_enabled: true
-  jose_timeout: 10s
+  jose_timeout: 10s  # MUST be per-service configurable
 
   # CA service for TLS certificate operations
   ca_url: "https://ca-server:8380"
   ca_enabled: false  # Optional - KMS can use internal TLS certs
-  ca_timeout: 10s
+  ca_timeout: 10s  # MUST be per-service configurable
+
+# Federation Requirements (MANDATORY)
+# - Timeouts MUST be per-service configurable (identity_timeout, jose_timeout, ca_timeout)
+# - API versioning MUST support N-1 backward compatibility (rolling upgrades)
+# - DNS caching MUST be disabled (lookup every request for dynamic service discovery)
 
 # Graceful degradation settings
 federation_fallback:
@@ -622,9 +637,11 @@ federation:
 
 - Deploy full stack (all federated services)
 - Test cross-service communication paths
+- **Cover BOTH /service/* and /browser/* request paths (priority: /service/* first)**
 - Test federation with Docker Compose service discovery
 - Verify health checks detect service failures
 - Test failover and recovery scenarios
+- **Generated code exemptions**: OpenAPI client/server + GORM models + protobuf (excluded from coverage)
 
 ---
 
@@ -642,7 +659,11 @@ federation:
 **Resource Monitoring**:
 
 - OTLP metrics: CPU usage, memory usage, goroutine count
+- **Telemetry sampling**: All strategies in OTLP config (always-on, probabilistic, rate-limiting), tail-based sampling default
 - Health checks: Resource exhaustion detection
+- **Health check failure handling**:
+  - **Kubernetes**: MUST remove from load balancer + restart pod
+  - **Docker**: MUST mark container unhealthy + continue running (manual intervention required)
 - Graceful degradation: Circuit breaker when resources depleted
 
 ### Horizontal Scaling
@@ -663,10 +684,12 @@ federation:
 
 **Database Scaling Patterns**:
 
-- **Read replicas**: Route read-only queries to PostgreSQL replicas
+- **Read replicas**: NOT USED - all reads MUST go to primary database only (prevents stale data)
 - **Connection pooling**: PgBouncer/pgpool-II for connection multiplexing
-- **Database sharding**: Partition data by tenant ID or key range (future consideration)
-- **Caching**: Redis/Memcached for frequently accessed data
+- **Database sharding**: MUST be implemented in Phase 4 with tenant ID partitioning strategy
+- **Multi-tenancy**: MUST use schema-level isolation only (separate schemas per tenant)
+- **Connection pools**: MUST be configurable and hot-reloadable without service restart
+- **Caching**: Redis/Memcached for frequently accessed data (NOT for session state)
 
 **Distributed Caching Strategy**:
 
@@ -749,39 +772,41 @@ federation:
 
 ### GitHub Actions Service Dependencies
 
-**MANDATORY: All workflows running `go test` MUST include PostgreSQL service container**
+**MANDATORY: PostgreSQL workflows MUST use test-containers (NOT GitHub Actions service containers)**
 
-Any workflow executing `go test` on packages that use database repositories (KMS sqlrepository, Identity domain) MUST configure PostgreSQL service:
+**CRITICAL: GitHub Actions service containers NOT ALLOWED for PostgreSQL testing**
 
-```yaml
-env:
-  POSTGRES_HOST: localhost
-  POSTGRES_PORT: 5432
-  POSTGRES_NAME: cryptoutil_test
-  POSTGRES_USER: cryptoutil
-  POSTGRES_PASS: cryptoutil_test_password
+All workflows executing `go test` on packages that use database repositories MUST use test-containers library:
 
-services:
-  postgres:
-    image: postgres:18
-    env:
-      POSTGRES_DB: ${{ env.POSTGRES_NAME }}
-      POSTGRES_PASSWORD: ${{ env.POSTGRES_PASS }}
-      POSTGRES_USER: ${{ env.POSTGRES_USER }}
-    options: >-
-      --health-cmd pg_isready
-      --health-interval 10s
-      --health-timeout 5s
-      --health-retries 5
-    ports:
-      - 5432:5432
+```go
+// Example: PostgreSQL test container in TestMain
+func TestMain(m *testing.M) {
+    ctx := context.Background()
+    postgresContainer, _ := postgres.RunContainer(ctx,
+        testcontainers.WithImage("postgres:18"),
+        postgres.WithDatabase("cryptoutil_test"),
+        postgres.WithUsername("cryptoutil"),
+        postgres.WithPassword("cryptoutil_test_password"),
+    )
+    defer postgresContainer.Terminate(ctx)
+    os.Exit(m.Run())
+}
 ```
 
-**Why Required**: Tests in sqlrepository/domain packages need PostgreSQL; without service = connection refused
+**Why test-containers Required**:
+
+- Better test isolation (each package gets dedicated PostgreSQL instance)
+- Automatic cleanup (containers terminated after tests)
+- Local and CI parity (same test execution pattern)
+- Avoids GitHub Actions service container limitations
+
+**Docker Pre-Pull Requirements**:
+
+- **ONLY for workflows that use Docker images** (e.g., E2E tests with Docker Compose)
+- **NOT for unit/integration tests** (test-containers handles image pulling)
+- Pre-pull step: `docker pull postgres:18 && docker pull otel/opentelemetry-collector-contrib:latest`
 
 **Affected Workflows**: ci-race, ci-mutation, ci-coverage, any workflow running `go test`
-
-**Health Check**: pg_isready (10s interval, 5s timeout, 5 retries = 50s window)
 
 **Details**: .github/instructions/02-01.github.instructions.md
 
