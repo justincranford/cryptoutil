@@ -236,7 +236,7 @@ database:
 
 **Q**: When should the service template be extracted and how should it be validated?
 
-**A**: Extract template in Phase 6, validate with Learn-PS demonstration service.
+**A**: Extract template in Phase 6, validate with Learn-InstantMessenger demonstration service.
 
 **Template Components** (extracted from KMS reference implementation):
 
@@ -255,14 +255,14 @@ database:
 
 **Validation Strategy**:
 
-- Learn-PS service MUST use extracted template
-- Learn-PS MUST pass all unit/integration/E2E tests
+- Learn-InstantMessenger service MUST use extracted template
+- Learn-InstantMessenger MUST pass all unit/integration/E2E tests
 - Deep analysis MUST show no blockers to migrate existing services
-- Only after Learn-PS succeeds can production services migrate
+- Only after Learn-InstantMessenger succeeds can production services migrate
 
 **Migration Priority**:
 
-1. **learn-ps FIRST** (Phase 7) - Validate template reusability
+1. **learn-instantmessenger FIRST** (Phase 7) - Validate template reusability
 2. **One service at a time** - Sequentially refactor jose-ja, pki-ca, identity services
 3. **sm-kms LAST** - Only after ALL other services running excellently on template
 
@@ -320,29 +320,58 @@ database:
 
 **Q**: Which multi-tenancy isolation pattern MUST be implemented?
 
-**A**: Schema-level isolation ONLY (separate PostgreSQL schemas per tenant).
+**A**: Dual-layer isolation - per-row tenant_id (all DBs) + schema-level (PostgreSQL only).
 
 **Implementation Pattern**:
+
+**Layer 1: Per-Row Tenant ID** (PostgreSQL + SQLite):
+
+```sql
+CREATE TABLE tenants (
+  id UUID PRIMARY KEY,  -- UUIDv4
+  name TEXT NOT NULL
+);
+
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  username TEXT NOT NULL
+);
+
+CREATE TABLE sessions (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  user_id UUID NOT NULL
+);
+```
+
+**Layer 2: Schema-Level Isolation** (PostgreSQL only):
 
 ```sql
 -- Tenant A
 CREATE SCHEMA tenant_a;
-CREATE TABLE tenant_a.users (...);  
-CREATE TABLE tenant_a.sessions (...);
+CREATE TABLE tenant_a.users (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL CHECK (tenant_id = 'UUID-for-tenant-a'),
+  username TEXT NOT NULL
+);
 
 -- Tenant B
 CREATE SCHEMA tenant_b;
-CREATE TABLE tenant_b.users (...);
-CREATE TABLE tenant_b.sessions (...);
+CREATE TABLE tenant_b.users (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL CHECK (tenant_id = 'UUID-for-tenant-b'),
+  username TEXT NOT NULL
+);
 ```
 
 **Rejected Patterns**:
 
-- ❌ Table-level isolation with tenant_id column: Increases risk of data leakage
+- ❌ Schema-level isolation ONLY: Doesn't work for SQLite (no schema support)
 - ❌ Row-Level Security (RLS): Adds query complexity and performance overhead
 - ❌ Database-level isolation: Too heavy-weight for multi-tenancy
 
-**Rationale**: Schema-level isolation provides strong separation guarantees without the overhead of separate databases. PostgreSQL schemas are lightweight and well-supported by GORM.
+**Rationale**: Per-row tenant_id works everywhere (PostgreSQL + SQLite). Schema-level adds defense-in-depth for PostgreSQL deployments. Both layers together prevent tenant data leakage.
 
 ---
 
@@ -975,7 +1004,7 @@ processors:
 
   readinessProbe:
     httpGet:
-      path: /admin/v1/readyz  
+      path: /admin/v1/readyz
       port: 9090
       scheme: HTTPS
     initialDelaySeconds: 5
@@ -1749,17 +1778,128 @@ Refer to `application_listener.go` and `config.go` for production-validated IP a
 
 ### Service Template Migration Priority
 
-**Q**: Should identity services (authz, idp, rs) be refactored to use the extracted service template immediately after Learn-PS validation, or later?
+**Q**: Should identity services (authz, idp, rs) be refactored to use the extracted service template immediately after Learn-InstantMessenger validation, or later?
 
 **A** (Source: CLARIFY-QUIZME-01 Q1, 2025-12-22):
 
 Identity services will be migrated **LAST** in the following sequence:
 
-1. **learn-ps** (Phase 7): Validate service template first
-2. **JOSE and CA** (Phases after learn-ps): Migrate next, one at a time, to allow adjustments to the service template to accommodate JOSE and CA service patterns
+1. **learn-instantmessenger** (Phase 7): Validate service template first
+2. **JOSE and CA** (Phases after learn-instantmessenger): Migrate next, one at a time, to allow adjustments to the service template to accommodate JOSE and CA service patterns
 3. **Identity services** (Final phase): Migrate last, ordered by Authz → IdP → RS → RP → SPA
 
-**Rationale**: Learn-PS will validate the service template first, then JOSE and CA migrations will drive template refinements to support different service patterns. Identity services migrate last to benefit from a mature, battle-tested template.
+**Rationale**: Learn-InstantMessenger will validate the service template first, then JOSE and CA migrations will drive template refinements to support different service patterns. Identity services migrate last to benefit from a mature, battle-tested template.
+
+---
+
+### Learn-InstantMessenger Service Specification
+
+**Q**: What are the detailed requirements for the Learn-InstantMessenger demonstration service?
+
+**A**: Encrypted messaging service that validates service template reusability and demonstrates crypto library integration.
+
+**Service Overview**:
+
+- **Purpose**: Secure messaging between users with end-to-end encryption
+- **Deployment**: Single-tenant (no multi-tenancy support)
+- **Authentication**: BASIC username/password ONLY
+- **Authorization**: Sender+receivers mapping controls message access
+
+**Message Encryption Architecture**:
+
+1. Sender calls `PUT /tx` with plaintext message + receiver list
+2. System generates random AES-256-GCM JWK for this message
+3. Message encrypted with AES-256-GCM JWK
+4. For each receiver:
+   - Fetch receiver's public ECDH key
+   - Encrypt AES-256-GCM JWK using ECDH-AESGCMKW with receiver's public key
+   - Store encrypted JWK + encrypted message + receiver ID
+5. Return message ID (UUIDv7)
+
+**API Specification**:
+
+- `PUT /tx` - Send message
+  - Request: `{"receivers": ["user1", "user2"], "message": "plaintext"}`
+  - Response: `{"id": "UUIDv7", "timestamp": "ISO8601"}`
+  - Auth: Sender identity from BASIC auth
+
+- `GET /tx?m={UUIDv7}` - List sent messages (sender's outbox)
+  - Optional filter: `m=UUIDv7` for specific message
+  - Sorting: Timestamp DESC (hardcoded, no pagination)
+  - Auth: Only sender can list their sent messages
+
+- `DELETE /tx/{id}` - Delete sent message
+  - Effect: Removes sender's copy only
+  - Receivers still have their copies (independent deletion)
+  - Auth: Only sender can delete their sent message
+
+- `GET /rx?m={UUIDv7}` - List received messages (receiver's inbox)
+  - Decrypt: Use receiver's private ECDH key to unwrap AES-256-GCM JWK, then decrypt message
+  - Optional filter: `m=UUIDv7` for specific message
+  - Sorting: Timestamp DESC (hardcoded, no pagination)
+  - Auth: Only receiver can list their received messages
+
+- `DELETE /rx/{id}` - Delete received message
+  - Effect: Removes this receiver's copy only
+  - Sender and other receivers unaffected (independent deletion)
+  - Auth: Only receiver can delete their received message
+
+**Database Schema**:
+
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY,  -- UUIDv7
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,  -- PBKDF2-HMAC-SHA256
+  public_key_jwk JSONB NOT NULL,  -- ECDH public key
+  private_key_jwk_encrypted JSONB NOT NULL,  -- Encrypted with password-derived key
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE messages (
+  id UUID PRIMARY KEY,  -- UUIDv7
+  sender_id UUID NOT NULL REFERENCES users(id),
+  message_encrypted BYTEA NOT NULL,  -- AES-256-GCM ciphertext
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE message_receivers (
+  id UUID PRIMARY KEY,  -- UUIDv7
+  message_id UUID NOT NULL REFERENCES messages(id),
+  receiver_id UUID NOT NULL REFERENCES users(id),
+  jwk_encrypted JSONB NOT NULL,  -- AES-256-GCM JWK encrypted for this receiver
+  deleted_by_receiver BOOLEAN NOT NULL DEFAULT FALSE,
+  UNIQUE(message_id, receiver_id)
+);
+
+CREATE INDEX idx_messages_sender ON messages(sender_id, created_at DESC);
+CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, created_at DESC);
+```
+
+**Crypto Libraries Used**:
+
+- JWE encryption/decryption (shared `internal/shared/crypto/jwe`)
+- ECDH key agreement (shared `internal/shared/crypto/ecdh`)
+- AES-GCM encryption (shared `internal/shared/crypto/aes`)
+- PBKDF2 password hashing (shared `internal/shared/crypto/hashes`)
+
+**Service Template Validation**:
+
+- Dual HTTPS servers (public 8888 + admin 9090)
+- PostgreSQL + SQLite support
+- OTLP telemetry integration
+- Health checks (`/admin/v1/livez`, `/admin/v1/readyz`)
+- Graceful shutdown (`/admin/v1/shutdown`)
+- Docker Compose deployment
+- Configuration management (YAML + env vars + CLI params)
+
+**Success Criteria**:
+
+- Service implementation <1000 lines (template handles infrastructure)
+- All unit tests pass (coverage ≥95%)
+- E2E tests validate encryption/decryption flow
+- Docker Compose deployment works (SQLite + PostgreSQL modes)
+- Demonstrates crypto library integration without external dependencies
 
 ---
 

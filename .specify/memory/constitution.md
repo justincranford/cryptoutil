@@ -12,21 +12,21 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 | P2: Identity | 5 services | OAuth 2.1 AuthZ, OIDC 1.0 IdP, Resource Server, Relying Party, Single Page Application | ✅ | ✅ |
 | P3: KMS | 1 service | Key Management Service (ElasticKeys, MaterialKeys, encrypt/decrypt, sign/verify, rotation, policies) | ✅ | ✅ |
 | P4: CA | 1 service | Certificate Authority (X.509 v3, PKIX RFC 5280, CSR, OCSP, CRL, PKI, EST, SCEP, CMPv2, CMC, ACME) | ✅ | ✅ |
-| Demo: Learn-PS | 1 service | Pet Store demonstration service (validates service template reusability) | ✅ | ✅ |
+| Demo: Learn | 1 service | InstantMessenger demonstration service - encrypted messaging between users (validates service template reusability, crypto lib integration) | ✅ | ✅ |
 
 ### Service Catalog (9 Services Total)
 
 | Service | Product | Public Ports | Admin Port | Status | Notes |
 |---------|---------|--------------|------------|--------|-------|
 | sm-kms | Secrets Manager | 8080-8089 | 9090 | ✅ COMPLETE | Reference implementation |
-| pki-ca | PKI | 8443-8449 | 9092 | ⚠️ PARTIAL | Needs dual-server |
-| jose-ja | JOSE | 9443-9449 | 9093 | ⚠️ PARTIAL | Needs dual-server |
+| pki-ca | PKI | 8443-8449 | 9090 | ⚠️ PARTIAL | Needs dual-server |
+| jose-ja | JOSE | 9443-9449 | 9090 | ⚠️ PARTIAL | Needs dual-server |
 | identity-authz | Identity | 18000-18009 | 9091 | ✅ COMPLETE | Dual servers |
 | identity-idp | Identity | 18100-18109 | 9091 | ✅ COMPLETE | Dual servers |
 | identity-rs | Identity | 18200-18209 | 9091 | ⏳ IN PROGRESS | Public server pending |
 | identity-rp | Identity | 18300-18309 | 9091 | ❌ NOT STARTED | Reference implementation |
 | identity-spa | Identity | 18400-18409 | 9091 | ❌ NOT STARTED | Reference implementation |
-| learn-ps | Learn | 8888-8889 | 9095 | ❌ NOT STARTED | Phase 7 validation |
+| learn-ps | Learn | 8888-8889 | 9090 | ❌ NOT STARTED | Phase 7 validation |
 
 **Implementation Priority**: sm-kms (✅) → jose-ja → pki-ca → identity services (authz ✅, idp ✅, rs ⏳, rp ❌, spa ❌) → learn-ps (Phase 7)
 
@@ -687,7 +687,10 @@ federation:
 - **Read replicas**: NOT USED - all reads MUST go to primary database only (prevents stale data)
 - **Connection pooling**: PgBouncer/pgpool-II for connection multiplexing
 - **Database sharding**: MUST be implemented in Phase 4 with tenant ID partitioning strategy
-- **Multi-tenancy**: MUST use schema-level isolation only (separate schemas per tenant)
+- **Multi-tenancy**:
+  - For PostgreSQL+SQLite: MUST use per-row tenant_id column (UUIDv4, FK to tenants.id) in all tables
+  - For PostgreSQL only: MUST ALSO separate tenants into separate schemas (schema name 'tenant_UUID')
+  - NEVER use row-level security (RLS) - per-row tenant_id provides sufficient isolation
 - **Connection pools**: MUST be configurable and hot-reloadable without service restart
 - **Caching**: Redis/Memcached for frequently accessed data (NOT for session state)
 
