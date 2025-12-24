@@ -1,53 +1,170 @@
 # Implementation Progress - DETAILED
 
 **Iteration**: specs/002-cryptoutil
-**Started**: December 17, 2025
-**Last Updated**: December 17, 2025
-**Status**: 🎯 Fresh Start - MVP Quality Focus
+**Started**: December 24, 2025
+**Last Updated**: December 24, 2025
+**Status**: 🚀 Phase 2 - Core Services Implementation
 
 ---
 
 ## Overview
 
-**Primary Goal**: Clean up AI slop from 001-cryptoutil, achieve production MVP quality, then extract reusable service template from SM-KMS for all 8 PRODUCT-SERVICE instances.
+**Primary Goal**: Implement Phase 2 core services (admin servers, CLI enhancements, E2E testing, session state SQL) with evidence-based task completion.
 
 **Key Objectives**:
 
-1. Fast tests (≤12s per package, !integration)
-2. High coverage (95%+ production, 98% infra/util, no exceptions)
-3. Stable CI/CD (0 failures, all workflows green)
-4. High mutation kill rate (98%+ per package)
-5. Clean hash architecture (4 types: Low/High × Random/Deterministic)
-6. Reusable service template (extract from KMS, validate with Learn-PS)
+1. Fast tests (≤15s per package unit, ≤45s E2E)
+2. High coverage (95%+ production, 98% infra/util)
+3. Stable CI/CD (all workflows green)
+4. High mutation kill rate (80%+ early phases, 98%+ later phases)
+5. Session state SQL (JWS/OPAQUE/JWE formats)
+6. Evidence-based completion (MANDATORY validation before marking tasks complete)
 
 ---
 
 ## Section 1: Task Checklist
 
-### Phase 1: Optimize Slow Test Packages (20 tasks) - Target: ≤12 seconds - ✅ COMPLETE (Skipped - All targets met)
+**From**: specs/002-cryptoutil/tasks.md  
+**Status Legend**: ❌ (not started), ⚠️ (in progress/blocked), ✅ (complete)
 
-**Goal**: Aggressive test performance optimization to ensure all !integration tests complete in ≤12 seconds per package.
+---
 
-**Strategy**: Use probabilistic execution (TestProbAlways, TestProbQuarter, TestProbTenth) for algorithm variants while maintaining 100% execution for base algorithms.
+### Phase 2: Core Services
 
-- [x] **P1.1**: Baseline current test timings for all packages ✅ COMPLETE - All packages meet ≤30s target
-  - [x] P1.1.1: Run `go test -json -v ./... 2>&1 | tee test-output/baseline-timing-002.txt` ✅
-  - [x] P1.1.2: Parse JSON output to extract per-package execution times ✅
-  - [x] P1.1.3: Identify all packages >30s execution time ✅ NONE FOUND
-  - [x] P1.1.4: Document baseline in test-output/baseline-timing-002-summary.md ✅
-  - **Result**: ALL 130+ packages ≤0.77s (longest: kms/server/barrier/unsealkeysservice)
-  - **Decision**: Skip P1.2-P1.14 optimization tasks - targets already met
+#### P2.1: Admin Server Migration (BLOCKING)
 
-- [ ] **P1.2**: Analyze internal/jose package performance
-  - [ ] P1.2.1: Identify algorithm variant test patterns
-  - [ ] P1.2.2: Apply probabilistic execution to cipher variants
-  - [ ] P1.2.3: Verify coverage maintained with faster execution
-  - [ ] P1.2.4: Document optimization strategy
+- ❌ **P2.1.1**: Implement JOSE admin server - M effort
+  - Status: Not started
+  - Dependencies: None (Phase 1 complete)
+  - Completion Criteria: Health endpoints working, Docker Compose passes, tests ≥95% coverage
 
-- [ ] **P1.3**: Analyze internal/jose/server package performance
-  - [ ] P1.3.1: Profile test execution hotspots
-  - [ ] P1.3.2: Identify redundant test operations
-  - [ ] P1.3.3: Apply optimizations without coverage loss
+- ❌ **P2.1.2**: Implement CA admin server - M effort
+  - Status: Not started
+  - Dependencies: P2.1.1 (pattern established)
+  - Completion Criteria: Health endpoints working, Docker Compose passes, tests ≥95% coverage
+
+---
+
+#### P2.2: Unified CLI Enhancements
+
+- ❌ **P2.2.1**: Add database migration commands to unified CLI - S effort
+  - Status: Not started
+  - Dependencies: P2.1.1, P2.1.2
+  - Completion Criteria: Commands work on PostgreSQL + SQLite, tests ≥98% coverage
+
+- ❌ **P2.2.2**: Add health check command to unified CLI - S effort
+  - Status: Not started
+  - Dependencies: P2.1.1, P2.1.2
+  - Completion Criteria: Polls livez/readyz endpoints, exit code correct, tests ≥98% coverage
+
+---
+
+#### P2.3: E2E Service API Tests (Priority)
+
+- ❌ **P2.3.1**: E2E tests for JOSE /service/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: P2.1.1
+  - Completion Criteria: Docker Compose deployment works, tests pass, ci-e2e workflow green
+
+- ❌ **P2.3.2**: E2E tests for CA /service/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: P2.1.2
+  - Completion Criteria: Docker Compose deployment works, tests pass, ci-e2e workflow green
+
+- ❌ **P2.3.3**: E2E tests for KMS /service/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: None (KMS complete)
+  - Completion Criteria: Docker Compose deployment works, tests pass, ci-e2e workflow green
+
+- ❌ **P2.3.4**: E2E tests for Identity AuthZ /service/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: None (AuthZ complete)
+  - Completion Criteria: Docker Compose deployment works, tests pass, ci-e2e workflow green
+
+- ❌ **P2.3.5**: E2E tests for Identity IdP /service/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: None (IdP complete)
+  - Completion Criteria: Docker Compose deployment works, tests pass, ci-e2e workflow green
+
+---
+
+#### P2.4: Session State SQL Implementation
+
+- ❌ **P2.4.1**: Implement JWS session token format - L effort
+  - Status: Not started
+  - Dependencies: None
+  - Completion Criteria: JWS tokens work, SQL storage for revocation, tests ≥95% coverage
+
+- ❌ **P2.4.2**: Implement OPAQUE session token format - M effort
+  - Status: Not started
+  - Dependencies: P2.4.1
+  - Completion Criteria: OPAQUE tokens work, SQL storage complete, tests ≥95% coverage
+
+- ❌ **P2.4.3**: Implement JWE session token format - M effort
+  - Status: Not started
+  - Dependencies: P2.4.1
+  - Completion Criteria: JWE tokens work, revocation tracking in SQL, tests ≥95% coverage
+
+---
+
+### Phase 3: Advanced Features
+
+#### P3.1: Browser E2E Tests
+
+- ❌ **P3.1.1**: E2E tests for JOSE /browser/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: P2.3.1, P2.4.3
+  - Completion Criteria: CORS/CSRF/CSP validation, tests pass, ci-e2e workflow green
+
+- ❌ **P3.1.2**: E2E tests for CA /browser/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: P2.3.2, P2.4.3
+  - Completion Criteria: Middleware validation, tests pass, ci-e2e workflow green
+
+- ❌ **P3.1.3**: E2E tests for Identity /browser/* endpoints - M effort
+  - Status: Not started
+  - Dependencies: P2.3.4, P2.3.5, P2.4.3
+  - Completion Criteria: Middleware validation, tests pass, ci-e2e workflow green
+
+---
+
+#### P3.2: Identity RP and SPA
+
+- ❌ **P3.2.1**: Implement Identity Relying Party service - L effort
+  - Status: Not started
+  - Dependencies: P2.3.4, P2.4.3
+  - Completion Criteria: Backend-for-Frontend works, OAuth 2.1 client, tests ≥95% coverage
+
+- ❌ **P3.2.2**: Implement Identity Single Page Application hosting - M effort
+  - Status: Not started
+  - Dependencies: P3.2.1
+  - Completion Criteria: Static file serving works, CSP headers correct, tests ≥95% coverage
+
+---
+
+### Phase 4: Scale & Multi-Tenancy
+
+- ❌ **P4.1.1**: Implement tenant ID database sharding - L effort
+- ❌ **P4.2.1**: Implement schema-level multi-tenancy isolation - L effort
+
+---
+
+### Phase 5: Production Readiness
+
+- ❌ **P5.1.1**: Refactor hash registries for version management - L effort
+- ❌ **P5.2.1**: Implement CRLDP and OCSP revocation checking - L effort
+
+---
+
+### Phase 6: Service Template Extraction
+
+- ❌ **P6.1.1**: Extract service template package structure - M effort
+
+---
+
+### Phase 7: Learn-PS Validation
+
+- ❌ **P7.1.1**: Implement Learn-PS Pet Store using service template - M effort
   - [ ] P1.3.4: Verify ≤12s target achieved
 
 - [ ] **P1.4**: Analyze internal/kms/client package performance
@@ -666,60 +783,61 @@ HashService
 
 ---
 
+---
+
 ## Section 2: Append-Only Timeline (Time-ordered)
 
 Tasks may be implemented out of order from Section 1. Each entry references back to Section 1.
 
+**INSTRUCTIONS**: ALWAYS append new entries chronologically. NEVER delete or modify previous entries.
+
 ---
 
-### 2025-12-22: Authentication Documentation Completion and Constitution Refactoring
+### 2025-12-24: Speckit Workflow - Plan, Tasks, Analyze Generation
 
 **Work Completed**:
 
-- Created .github/instructions/02-10.authentication.instructions.md (382 lines) - comprehensive authentication/authorization reference for all 38 methods
-- Documented ALL 10 headless authentication methods (3 non-federated + 7 federated) with per-factor storage realm specifications
-- Documented ALL 28 browser authentication methods (6 non-federated + 22 federated) with per-factor storage realm specifications
-- Established storage realm pattern: YAML + SQL (Config > DB priority) for static credentials vs SQL ONLY for user-specific enrollment data
-- Refactored constitution.md Section VA (lines 499-578) to include per-factor storage realms for all 38 methods
-- Refactored constitution.md Section X (lines ~1260-1285) to remove amendment history table (versions 1.0.0-3.0.0), simplified to "Latest amendments: 2025-12-22"
-- Updated spec.md Authentication section (lines 730-800) with per-factor storage realm specifications for all 38 methods
-- Removed outdated "MORE TO BE CLARIFIED" markers from spec.md (lines 184, 187) after QUIZME-02 answered all authentication unknowns
-- Verified clarify.md and clarify.md.old byte-for-byte identical, deleted duplicate backup file
-- Renamed plan-probably-out-of-date.md to plan.md to indicate current status
+- Answered all 18 QUIZME-05 questions (session state SQL, database patterns, security, testing, observability, federation, CI/CD)
+- Merged 18 Q&As into clarify.md (+759 lines, reorganized into 10 topical sections)
+- Updated constitution.md with 18 architectural mandates from QUIZME answers
+- Updated spec.md with detailed requirements from QUIZME answers
+- Updated 9 copilot instruction files to reflect QUIZME decisions (architecture, https-ports, observability, cryptography, hashes, authn, testing, database, github)
+- Generated plan.md (1,595 lines, 9 phases: Overview, Current State, Phases 1-7, Dependencies, Success Criteria, Risk Management)
+- Generated tasks.md (32 tasks across Phases 2-7: admin servers, CLI, E2E, sessions, browser, RP/SPA, sharding, security, template, Learn-PS)
+- Generated analyze.md (risk assessment, complexity breakdown, critical path, resource requirements, quality gates, technical debt, parallelization)
 
 **Coverage/Quality Metrics**:
 
-- Authentication documentation: COMPLETE (10+28 factors documented in copilot instructions, constitution, spec)
-- Storage realm specifications: COMPLETE (YAML + SQL vs SQL ONLY distinctions preserved across all documents)
-- Unknown markers: 0 in constitution (only workflow reference), 0 in spec, 0 in clarify
-- All QUIZME-02 questions answered (15 Q&A integrated into clarify.md Section 8)
+- Documentation: constitution.md, spec.md, clarify.md all updated with QUIZME decisions
+- Copilot instructions: 9 files updated (2,300+ lines total)
+- Plan: 1,595 lines, 9 phases with dependencies
+- Tasks: 32 tasks, effort estimates (S/M/L), completion criteria
+- Analysis: 7 sections, 11 risks identified (3 CRITICAL, 3 HIGH, 3 MEDIUM, 2 LOW), parallelization opportunities
 
 **Violations Found**:
 
-- CRITICAL user feedback #1: 10+28 authentication factor lists missing from copilot instructions → FIXED via 02-10.authentication.instructions.md creation
-- CRITICAL user feedback #2: Constitution contains revision tracking noise → FIXED via amendment history table removal
-- Outdated "MORE TO BE CLARIFIED" markers in spec after QUIZME-02 completion → FIXED via reference updates
+- None - All QUIZME questions answered, documentation updated consistently
 
 **Next Steps**:
 
-- All unknowns resolved → No QUIZME-03 generation needed
-- Plan file updated and current → Ready for implementation phase
-- Storage realm pattern established → Implementation can reference authoritative documentation
+- Reset DETAILED.md Section 1+2 for fresh implementation tracking
+- Reset EXECUTIVE.md for stakeholder reporting
+- Begin Phase 2 implementation: P2.1.1 JOSE admin server (BLOCKING task)
 
 **Related Commits**:
 
-- [352a9bbc] docs(auth): add comprehensive 02-10.authentication instructions with 38 methods
-- [0c2be04e] docs(constitution): add storage realms, remove amendment tracking
-- [2b065a92] docs(spec): add per-factor storage realm specifications
-- [4f074550] chore(clarify): remove duplicate clarify.md.old backup file
-- [9efe49e9] docs(spec): remove outdated MORE TO BE CLARIFIED markers for auth
-- [3fa2fad5] chore(plan): rename plan file to indicate current status
+- [cf08519a] feat(speckit): merge 18 QUIZME-05 answers into clarify.md with topical reorganization
+- [3a5b7806] feat(speckit): update constitution.md with 18 architectural mandates from QUIZME
+- [3f8d03bc] feat(speckit): update spec.md and 9 copilot instructions with QUIZME decisions
+- [bdad7242] feat(speckit): generate plan.md with comprehensive 9-phase implementation roadmap
+- [f8f20f02] feat(speckit): generate tasks.md with 32 implementation tasks across 6 phases
+- [40c30500] feat(speckit): generate analyze.md with risk assessment and complexity analysis
 
 **Lessons Learned**:
 
-- Storage realm pattern (YAML + SQL vs SQL ONLY) critical for disaster recovery - service must start even if database unavailable
-- Per-factor documentation prevents configuration mistakes during implementation
-- Constitution refactoring to remove version tracking makes document clearer and more focused on current requirements
-- All MFA and step-up authentication questions answered via QUIZME-02 - no additional clarification needed
+- QUIZME workflow effective for resolving architectural unknowns (18 questions answered in single session)
+- Topical reorganization of clarify.md improves navigability (10 sections vs chronological entries)
+- Plan-tasks-analyze workflow provides comprehensive roadmap before implementation
+- Subagent length limits require focused prompts (had to regenerate tasks.md and analyze.md directly)
 
 ---
