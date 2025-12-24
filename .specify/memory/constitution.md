@@ -499,24 +499,24 @@ For public HTTPS endpoint, all services implement TWO security middleware stacks
 ### Authentication and Authorization Architecture - CRITICAL
 
 **Source**: QUIZME-02 answers (Q1-Q2, Q3-Q4, Q6-Q7, Q10-Q12, Q15)
-**Reference**: See `.specify/memory/auth-factors.md` for authoritative authentication factor list
+**Reference**: See `.specify/memory/authn-authz-factors.md` for authoritative authentication/authorization factor list
 
 **Single Factor Authentication Methods** (SFA):
 
 - **Headless-Based Clients** (`/service/*` paths): 10 methods (3 non-federated + 7 federated)
 - **Browser-Based Clients** (`/browser/*` paths): 28 methods (6 non-federated + 22 federated)
-- **Complete list with per-factor storage realms**: `.specify/memory/auth-factors.md`
+- **Complete list with per-factor storage realms**: `.specify/memory/authn-authz-factors.md`
 
 **Storage Realm Pattern**:
 
 - **YAML + SQL (Config > DB priority)**: Static credentials, provider configs (enables service start without database)
 - **SQL ONLY**: User-specific enrollment data, one-time tokens/codes (dynamic per-user)
-- **Details**: See `.specify/memory/auth-factors.md` Section "Storage Realm Specifications"
+- **Details**: See `.specify/memory/authn-authz-factors.md` Section "Storage Realm Specifications"
 
 **Multi-Factor Authentication (MFA)**:
 
 - Combine 2+ single factors (e.g., Password + TOTP, Client ID/Secret + mTLS)
-- Common combinations: See `.specify/memory/auth-factors.md` Section "Multi-Factor Authentication"
+- Common combinations: See `.specify/memory/authn-authz-factors.md` Section "Multi-Factor Authentication"
 
 **Authorization Methods**:
 

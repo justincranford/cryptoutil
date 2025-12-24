@@ -776,25 +776,25 @@ Each service has its own Docker image and can scale independently.
 #### Authentication and Authorization Requirements
 
 **Source**: QUIZME-02 answers (Q1-Q15)
-**Reference**: See `.specify/memory/auth-factors.md` for authoritative authentication factor list
+**Reference**: See `.specify/memory/authn-authz-factors.md` for authoritative authentication/authorization factor list
 
 **Single Factor Authentication Methods (SFA)**:
 
 - **Headless-Based Clients** (`/service/*` paths): 10 methods (3 non-federated + 7 federated)
 - **Browser-Based Clients** (`/browser/*` paths): 28 methods (6 non-federated + 22 federated)
-- **Complete list with per-factor storage realms**: `.specify/memory/auth-factors.md`
+- **Complete list with per-factor storage realms**: `.specify/memory/authn-authz-factors.md`
 
 **Storage Realm Pattern**:
 
 - **YAML + SQL (Config > DB priority)**: Static credentials, provider configs (disaster recovery - service starts without database)
 - **SQL ONLY**: User-specific enrollment data, one-time tokens/codes (dynamic per-user)
-- **Details**: See `.specify/memory/auth-factors.md` Section "Storage Realm Specifications"
+- **Details**: See `.specify/memory/authn-authz-factors.md` Section "Storage Realm Specifications"
 
 **Multi-Factor Authentication (MFA)**:
 
 - MFA = Combination of 2+ single factor authentication methods
 - Factor priority order: Passkey > TOTP > Hardware Keys > Email OTP > SMS OTP > HOTP > Recovery Codes > Push Notifications > Phone Call OTP
-- **Common combinations and patterns**: See `.specify/memory/auth-factors.md` Section "Multi-Factor Authentication"
+- **Common combinations and patterns**: See `.specify/memory/authn-authz-factors.md` Section "Multi-Factor Authentication"
 
 **Authorization Methods**:
 
