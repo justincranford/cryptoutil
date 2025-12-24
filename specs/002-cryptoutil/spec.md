@@ -262,6 +262,10 @@ HTTPS Issuing CA for TLS Client Certs MUST BE shared per per-service instance ty
 - **Token Acquisition**: Service POSTs to `/oauth/token` with credentials, receives JWT
 - **Token Storage**: Service stores token in memory, refreshes on expiry
 - **Token Validation**: Server validates JWT signature, expiry, issuer, audience
+- **Introspection Caching**: Cache positive results with configurable TTL (default: token TTL), cache negative results for 1 minute
+  - Positive results (active=true): TTL configured per deployment (default: match token expiry)
+  - Negative results (active=false): Fixed 1-minute cache to prevent abuse
+  - Provides operational flexibility while maintaining security
 
 **Authorization**:
 
@@ -2028,6 +2032,23 @@ A: Grace period dual-format support - accept BOTH formats during transition (e.g
 - New token issuance: New logins immediately receive federated-format tokens
 - Prevents: Service disruption and forced user re-authentication
 - See: Federation Configuration section for migration configuration examples
+
+**Q5: How should introspection results be cached?**
+
+A: Cache positive results with configurable TTL, cache negative results for 1 minute - provides operational flexibility while maintaining security
+
+- Positive results (active=true): Configurable TTL per deployment (default: match token expiry)
+- Negative results (active=false): Fixed 1-minute cache to prevent abuse and reduce load
+- Rationale: Positive caching reduces load on authorization server, negative caching prevents attackers from overwhelming introspection endpoint
+- Configuration example:
+
+  ```yaml
+  introspection:
+    cache_positive_ttl: 3600  # 1 hour (or match token TTL)
+    cache_negative_ttl: 60    # 1 minute (fixed)
+  ```
+
+- See: Token Validation section for implementation details
 
 ---
 
