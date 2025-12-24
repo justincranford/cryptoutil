@@ -1,18 +1,10 @@
 # Minimum Versions & Consistency Requirements
 
-**Version**: 1.0.0
-**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/02-04.versions.instructions.md`
 
 ## Version Consistency Principle
 
-**CRITICAL: ALWAYS use the same version in every part of the project**
-
-- Development environment
-- CI/CD workflows
-- Docker images
-- GitHub Actions workflows
-- Documentation examples
+**CRITICAL: ALWAYS use the same version in every part of the project** (development, CI/CD, Docker, GitHub Actions, documentation)
 
 ## Minimum Required Versions
 
@@ -44,39 +36,16 @@
 
 ## Version Update Policy
 
-### Update Frequency
+**Update Frequency**: Security patches (apply immediately), minor versions (update monthly), major versions (evaluate quarterly)
 
-- **Security patches**: Apply immediately when available
-- **Minor versions**: Update monthly (stability + new features)
-- **Major versions**: Evaluate quarterly (breaking changes review)
+**Verification Before Updates**: ALWAYS verify: (1) Check official release notes for breaking changes, (2) Review security advisories and CVE fixes, (3) Validate compatibility with existing dependencies, (4) Test in development environment before CI/CD updates, (5) Update documentation to reflect new version requirements
 
-### Verification Before Updates
-
-**ALWAYS verify before suggesting version updates**:
-
-1. Check official release notes for breaking changes
-2. Review security advisories and CVE fixes
-3. Validate compatibility with existing dependencies
-4. Test in development environment before CI/CD updates
-5. Update documentation to reflect new version requirements
-
-### Consistency Enforcement
-
-**Locations to update when changing versions**:
-
-- `go.mod` (Go version)
-- `pyproject.toml` (Python version)
-- `package.json` (Node version)
-- `.github/workflows/*.yml` (CI/CD workflow versions)
-- `Dockerfile` (base image versions)
-- `docker-compose.yml` (service image versions)
-- `README.md` (developer setup instructions)
-- `docs/DEV-SETUP.md` (detailed setup guide)
+**Consistency Enforcement** (locations to update when changing versions): `go.mod`, `pyproject.toml`, `package.json`, `.github/workflows/*.yml`, `Dockerfile`, `docker-compose.yml`, `README.md`, `docs/DEV-SETUP.md`
 
 ## Key Takeaways
 
-1. **Version Consistency**: Same version across development, CI/CD, Docker, workflows
-2. **Always Latest Stable**: Prefer latest stable versions for security and features
-3. **Verify Before Update**: Check release notes, breaking changes, compatibility
-4. **Update Everywhere**: go.mod, workflows, Dockerfiles, docs when changing versions
-5. **Security First**: Apply security patches immediately, minor/major updates on schedule
+1. Version Consistency: Same version across development, CI/CD, Docker, workflows
+2. Always Latest Stable: Prefer latest stable versions for security and features
+3. Verify Before Update: Check release notes, breaking changes, compatibility
+4. Update Everywhere: go.mod, workflows, Dockerfiles, docs when changing versions
+5. Security First: Apply security patches immediately, minor/major updates on schedule
