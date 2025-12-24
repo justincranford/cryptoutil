@@ -369,6 +369,25 @@ federation_fallback:
   ca_fallback_mode: "self_signed"  # Generate self-signed TLS certs
 ```
 
+#### Session Migration During Federation Transitions
+
+When a service transitions from non-federated (standalone) to federated mode, existing sessions MUST be handled via **grace period dual-format support**:
+
+- **Grace Period**: Accept BOTH old and new token formats during transition (e.g., 24 hours)
+- **Natural Expiration**: Old-format tokens expire according to their TTL (no forced invalidation)
+- **New Issuance**: New logins immediately receive new-format tokens
+- **Configuration Example**:
+
+```yaml
+federation:
+  migration:
+    grace_period_hours: 24  # Accept both formats during transition
+    old_format_enabled: true  # Temporary backward compatibility
+    new_format_enabled: true  # Forward compatibility
+```
+
+**Rationale**: Prevents service disruption by allowing gradual token migration without forcing user re-authentication.
+
 #### Service Discovery Mechanisms
 
 **1. Configuration File** (Preferred for static deployments):
@@ -1998,6 +2017,17 @@ A: Configuration-driven per service deployment - admin configures via YAML, defa
 - Mandatory support: All services MUST implement all three formats (opaque, JWE, JWS)
 - Rationale: Enables deployment flexibility, security/performance tradeoffs per environment
 - See: Session Token Format section and [.github/instructions/02-10.authentication.instructions.md](../../.github/instructions/02-10.authentication.instructions.md) for configuration examples
+
+**Q4: When service transitions from non-federated to federated mode, how are existing sessions handled?**
+
+A: Grace period dual-format support - accept BOTH formats during transition (e.g., 24h), old tokens expire naturally, new tokens issued for new logins
+
+- Grace period: Accept both old-format (non-federated) and new-format (federated) tokens during transition
+- Default grace period: 24 hours (configurable)
+- Old token handling: Expire naturally according to their TTL (no forced invalidation)
+- New token issuance: New logins immediately receive federated-format tokens
+- Prevents: Service disruption and forced user re-authentication
+- See: Federation Configuration section for migration configuration examples
 
 ---
 
