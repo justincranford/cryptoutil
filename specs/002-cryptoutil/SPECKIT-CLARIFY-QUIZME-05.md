@@ -40,7 +40,9 @@ A. Implement ALL 4 patterns with configuration-driven selection per deployment
 B. Implement ONLY stateless sessions (JWT) + database-backed sessions (PostgreSQL)
 C. Implement ONLY stateless sessions (JWT) + sticky sessions (load balancer affinity)
 D. Implement ONLY database-backed sessions (PostgreSQL/SQLite) - no JWT, no Redis, no sticky sessions
-E.
+E. REMOVE REDIS REQUIREMENTS, JWS/OPAQUE/JWE SESSIONS ARE STORED IN SQL DATABASE. IMPLEMENTATION PRIORITY ORDER IS JWS, OPAQUE, JWE. DEPLOYMENT PRIORITY ORDER IS JWE, OPAQUE, JWS.
+
+Answer: E
 
 **Context**: Constitution.md Section VB mentions patterns but doesn't mandate implementation. Spec.md shows options but no decision. Clarify.md lacks Q&A on this.
 
@@ -58,6 +60,8 @@ C. Defer sharding indefinitely - use read replicas and connection pooling only u
 D. Implement sharding in Phase 3 before Identity product goes production, partition by service type
 E.
 
+Answer: A
+
 **Context**: Constitution.md Section VB lists it as pattern but no timeline. No clarify.md Q&A exists. No code implementation found.
 
 ---
@@ -73,6 +77,8 @@ B. Implement BOTH schema-level AND table-level with configuration selection
 C. Implement ONLY table-level isolation with row-level security (RLS)
 D. Defer multi-tenancy entirely - single-tenant deployments only for now
 E.
+
+Answer: A
 
 **Context**: Constitution.md lacks multi-tenancy section. Spec.md mentions it but no mandate. Clarify.md says "Preferred" without implementation requirement.
 
@@ -90,7 +96,9 @@ A. Implement OCSP only (RFC 6960) with soft-fail if responder unavailable
 B. Implement CRL only with periodic refresh (24-hour cache)
 C. Implement BOTH OCSP and CRL with OCSP preferred, CRL fallback
 D. Implement OCSP stapling (RFC 6066) - server provides OCSP response to avoid client lookup
-E.
+E. CRLDP and OCSP MUST ALL be IMPLEMENTED. FOR CRLDP, EACH CRLDP HTTPS URL SHOULD ONLY CONTAIN ONE CERT SERIAL, AND BE SIGNED AND AVAILABLE IMMEDIATELY, NOT BATCHED AND NOT DELAYED 24 HOURS. OCSP Stapling is nice to have now, but not a blocker yet.
+
+Answer: E
 
 **Context**: Constitution.md mandates validation but not HOW. Spec.md lacks revocation details. Clarify.md has no Q&A on this.
 
@@ -108,6 +116,8 @@ C. Support BOTH approaches with configuration selection per deployment
 D. Use derivation for development/testing, pre-generated JWKs for production
 E.
 
+Answer: C
+
 **Context**: Constitution.md line 121 says "or use same JWKs" suggesting choice. No clarify.md Q&A. No code archaeology confirms pattern.
 
 ---
@@ -123,6 +133,8 @@ B. Rolling update: Accept both old and new versions during grace period, gradual
 C. Scheduled maintenance window: Take service offline, re-hash all records, restart service
 D. Lazy migration: Re-hash records opportunistically as users re-authenticate
 E.
+
+Answer: E
 
 **Context**: All docs mention version bump requirement but no migration procedure. Clarify.md lacks Q&A on operational procedure.
 
@@ -142,6 +154,8 @@ C. Use HIGHER probability in race detector (TestProbHalf instead of TestProbTent
 D. Run race detector on subset of packages only (high-risk packages like crypto, concurrency)
 E.
 
+Answer: B
+
 **Context**: Constitution.md mandates parallel tests + shuffle + probabilistic execution. Race detector ~10× overhead conflicts with 15s limit. No clarify.md Q&A.
 
 ---
@@ -157,6 +171,8 @@ B. Test ONLY /browser/api/v1/* paths (browser clients, full middleware stack)
 C. Test BOTH /service/*and /browser/* paths with separate E2E scenarios per path type
 D. Test /service/*paths only in Phase 2, add /browser/* paths in Phase 3+
 E.
+
+Answer: C; priority to /service/*first, then /browser/*
 
 **Context**: Spec.md defines dual paths but E2E tests currently test health checks only. Clarify.md Q10 lists workflows but not path coverage.
 
@@ -174,6 +190,8 @@ C. Any code not written by human developers (includes third-party libraries)
 D. No exemptions - ALL code including generated code MUST meet 85%/98% mutation targets
 E.
 
+Answer: B
+
 **Context**: Clarify.md mentions exemption but no criteria. Constitution.md says "≥85% per package" with no exemptions listed.
 
 ---
@@ -190,7 +208,9 @@ A. Linear scaling: 100% at 0-100 req/s, 50% at 100-1000 req/s, 10% at >1000 req/
 B. Exponential decay: 100% until 500 req/s, then halve every 2× traffic increase (50% at 1000, 25% at 2000, etc.)
 C. Head-based sampling: Always sample first request in trace, probabilistically sample remaining spans
 D. Tail-based sampling: Sample based on error status, latency >1s, or other quality signals
-E.
+E. I would like to see all strategies in OpenTelemetry Collector config as commented out options, with D uncommented; myself or customer should be able to uncomment the desired strategy to use it, if desired.
+
+Answer: E
 
 **Context**: Spec.md mentions adaptive sampling but no algorithm. Clarify.md lacks Q&A. OpenTelemetry Collector config not found.
 
@@ -207,6 +227,8 @@ B. Kubernetes: Remove from load balancer only (no restart). Docker Compose: Stop
 C. Both: Restart service immediately after failure
 D. Both: Mark unhealthy but take no action (manual intervention required)
 E.
+
+Answer: A
 
 **Context**: Health check config defined but failure action not specified. Different for K8s (liveness vs readiness) vs Docker Compose.
 
@@ -226,6 +248,8 @@ C. SIMPLE: Single global timeout only, no per-service configuration
 D. DYNAMIC: Auto-tune timeout based on observed latency percentiles (P99)
 E.
 
+Answer: A
+
 **Context**: Examples show per-service but no mandate. Clarify.md Q8.1 mentions circuit breaker but not timeout granularity.
 
 ---
@@ -241,6 +265,8 @@ B. Backward compatible: Identity v2 works with JOSE v1 OR v2 (support N-1 versio
 C. API gateway translation: Gateway translates between API versions transparently
 D. Version negotiation: Services advertise supported versions, negotiate at runtime
 E.
+
+Answer: B
 
 **Context**: Spec.md shows /v1/ paths but no upgrade strategy. Federation examples assume same version. No clarify.md Q&A.
 
@@ -258,6 +284,8 @@ C. No caching - perform DNS lookup on every request (highest reliability, higher
 D. Use service mesh (Istio/Linkerd) for DNS management (external to services)
 E.
 
+Answer: C
+
 **Context**: Spec.md lists discovery mechanisms but not caching behavior. Clarify.md lacks Q&A on DNS TTL.
 
 ---
@@ -274,7 +302,9 @@ A. Formula: (max_concurrent_requests / avg_request_duration_sec) × safety_facto
 B. Fixed values: PostgreSQL always 25, SQLite always 5 (no dynamic sizing)
 C. Workload-based: Low (<100 req/min) = 10, Medium (100-1000) = 25, High (>1000) = 50
 D. Auto-tune: Start at 10, increment by 5 when pool exhaustion detected, decrement by 5 when idle
-E.
+E. Configurable values; assumption is config is hot reloadable
+
+Answer: E
 
 **Context**: Spec.md mentions ranges but no formula. Constitution.md Section VB lacks formula. Clarify.md has no Q&A.
 
@@ -290,7 +320,9 @@ A. Max lag 1s - if replica lags >1s, route read to primary
 B. Max lag 5s - acceptable for non-critical reads (reports, dashboards)
 C. No lag limit - always use replica for reads (accept stale data)
 D. Dynamic: Strong consistency reads → primary, eventual consistency reads → replica
-E.
+E. Remove read replicas; all reads go to primary only.
+
+Answer: E
 
 **Context**: Spec.md mentions read replicas but no lag tolerance. Clarify.md lacks Q&A on consistency requirements.
 
@@ -310,6 +342,8 @@ C. REQUIRED for: ALL workflows that run `go test` command (conservative, safe)
 D. OPTIONAL for: All workflows - use test-containers library instead of service container
 E.
 
+Answer: D
+
 **Context**: Spec.md line 1704 says "ANY workflow executing go test" but table shows only 5 workflows with PostgreSQL=✅. Ambiguous.
 
 ---
@@ -324,7 +358,9 @@ A. ALWAYS use pre-pull for ALL workflows (consistent startup time)
 B. Use pre-pull ONLY for E2E/load testing workflows (high image count)
 C. Use pre-pull ONLY when workflow timeout is concern (>20 images)
 D. NEVER use pre-pull - on-demand pulling with Docker layer caching sufficient
-E.
+E. Only pre-pull for workflows that use Docker. Not all of them need Docker images.
+
+Answer: E
 
 **Context**: cross-platform.md describes action but no usage policy. Some workflows use it, others don't. Inconsistent.
 

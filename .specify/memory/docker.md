@@ -47,7 +47,7 @@
 ## Service Ports Quick Reference
 
 | Service | Public API | Admin API | Backend |
-|---------|-----------|-----------|---------|  
+|---------|-----------|-----------|---------|
 | kms-sm-sqlite | 8080 | 9090 | SQLite in-memory |
 | kms-sm-postgres-1/2 | 8081/8082 | 9090 | PostgreSQL |
 | otel-collector | 4317/4318 | 13133 | - |

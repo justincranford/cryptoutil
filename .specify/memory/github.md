@@ -19,7 +19,7 @@
 ## Workflow Matrix Reference
 
 | Category | Workflows | Purpose |
-|----------|-----------|---------|  
+|----------|-----------|---------|
 | **CI** | ci-quality, ci-test, ci-coverage, ci-benchmark, ci-mutation, ci-race | Linting, tests, coverage, benchmarks |
 | **Security** | ci-sast, ci-gitleaks, ci-dast | Static/dynamic security analysis |
 | **Integration** | ci-e2e, ci-load | E2E tests, load testing |
