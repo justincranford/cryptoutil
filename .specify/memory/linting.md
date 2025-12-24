@@ -20,7 +20,7 @@
 - Documented bug: Must reference GitHub issue in comment
 - Example: `//nolint:errcheck // See https://github.com/golangci/golangci-lint/issues/XXXX`
 
-**Rationale**: 
+**Rationale**:
 - Linting errors in tests/demos/examples teach bad patterns
 - "This is just a demo" is NOT a valid exception
 - All code represents project quality standards

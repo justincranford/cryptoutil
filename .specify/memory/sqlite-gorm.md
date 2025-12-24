@@ -65,7 +65,7 @@ import (
     "database/sql"
     "fmt"
     "time"
-    
+
     cryptoutilMagic "cryptoutil/internal/shared/magic"
     "gorm.io/driver/sqlite"
     "gorm.io/gorm"
@@ -77,48 +77,48 @@ func OpenSQLite(dsn string, debugMode bool) (*gorm.DB, error) {
     if dsn == ":memory:" {
         dsn = "file::memory:?cache=shared"
     }
-    
+
     // Step 2: Open with modernc driver (CGO-free)
     sqlDB, err := sql.Open("sqlite", dsn)
     if err != nil {
         return nil, fmt.Errorf("failed to open SQLite: %w", err)
     }
-    
+
     // Step 3: Configure SQLite for concurrent operations
     if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
         return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
     }
-    
+
     if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {
         return nil, fmt.Errorf("failed to set busy timeout: %w", err)
     }
-    
+
     // Step 4: Pass to GORM with auto-transactions disabled
     dialector := sqlite.Dialector{Conn: sqlDB}
     gormConfig := &gorm.Config{
         SkipDefaultTransaction: true,  // Explicit transaction control
     }
-    
+
     if debugMode {
         gormConfig.Logger = logger.Default.LogMode(logger.Info)
     }
-    
+
     db, err := gorm.Open(dialector, gormConfig)
     if err != nil {
         return nil, fmt.Errorf("failed to initialize GORM: %w", err)
     }
-    
+
     // Step 5: Configure connection pool for GORM transactions
     sqlDB, err = db.DB()
     if err != nil {
         return nil, fmt.Errorf("failed to get database instance: %w", err)
     }
-    
+
     // CRITICAL: Allow multiple connections for transaction wrapper pattern
     sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)  // 5
     sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)  // 5
     sqlDB.SetConnMaxLifetime(0)  // In-memory: never close connections
-    
+
     return db, nil
 }
 ```
@@ -240,21 +240,21 @@ func (s *UserService) CreateUserWithProfile(ctx context.Context, user *User, pro
             tx.Rollback()
         }
     }()
-    
+
     // Inject transaction into context
     txCtx := WithTransaction(ctx, tx)
-    
+
     // Repositories automatically use transaction
     if err := s.userRepo.Create(txCtx, user); err != nil {
         tx.Rollback()
         return err
     }
-    
+
     if err := s.profileRepo.Create(txCtx, profile); err != nil {
         tx.Rollback()
         return err
     }
-    
+
     return tx.Commit().Error
 }
 ```

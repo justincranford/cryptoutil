@@ -1,7 +1,7 @@
 # Coding Patterns and Standards Specifications
 
-**Version**: 1.0.0  
-**Last Updated**: 2025-12-24  
+**Version**: 1.0.0
+**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/03-01.coding.instructions.md`
 
 ## File Size Limits

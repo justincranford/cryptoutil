@@ -63,12 +63,12 @@ func GenerateSerialNumber() (*big.Int, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to generate serial number: %w", err)
     }
-    
+
     // Ensure >0
     if serialNumber.Cmp(big.NewInt(0)) <= 0 {
         return nil, fmt.Errorf("invalid serial number: must be >0")
     }
-    
+
     return serialNumber, nil
 }
 ```

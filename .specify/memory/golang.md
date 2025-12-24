@@ -150,10 +150,10 @@ import (
     cryptoutilMagic "cryptoutil/internal/shared/magic"
     cryptoutilServer "cryptoutil/internal/server"
     cryptoutilIdentity "cryptoutil/internal/identity"
-    
+
     // CICD packages
     cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-    
+
     // Domain packages
     cryptoutilAuthz "cryptoutil/internal/identity/authz"
     cryptoutilJose "cryptoutil/internal/jose"
@@ -174,7 +174,7 @@ import (
 import (
     // UUID
     googleUuid "github.com/google/uuid"
-    
+
     // JOSE
     jose "github.com/go-jose/go-jose/v4"
     joseJwa "github.com/go-jose/go-jose/v4/jwa"

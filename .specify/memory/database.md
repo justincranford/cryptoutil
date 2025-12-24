@@ -98,7 +98,7 @@ func (nu *NullableUUID) Scan(value interface{}) error {
         nu.UUID, nu.Valid = googleUuid.Nil, false
         return nil
     }
-    
+
     // Handle string (SQLite) or byte slice (PostgreSQL)
     var uuidStr string
     switch v := value.(type) {
@@ -109,12 +109,12 @@ func (nu *NullableUUID) Scan(value interface{}) error {
     default:
         return fmt.Errorf("unsupported type for NullableUUID: %T", value)
     }
-    
+
     parsed, err := googleUuid.Parse(uuidStr)
     if err != nil {
         return err
     }
-    
+
     nu.UUID, nu.Valid = parsed, true
     return nil
 }
@@ -327,7 +327,7 @@ func toAppErr(err error) error {
     if err == nil {
         return nil
     }
-    
+
     switch {
     case errors.Is(err, gorm.ErrRecordNotFound):
         return ErrNotFound  // HTTP 404
@@ -362,7 +362,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id string) (*User, error)
 ```go
 import (
     "embed"
-    
+
     "github.com/golang-migrate/migrate/v4"
     "github.com/golang-migrate/migrate/v4/database/postgres"
     "github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -377,7 +377,7 @@ func RunMigrations(db *sql.DB, dialect string) error {
     if err != nil {
         return fmt.Errorf("failed to create migration source: %w", err)
     }
-    
+
     var driver migrate.Driver
     switch dialect {
     case "postgres":
@@ -390,16 +390,16 @@ func RunMigrations(db *sql.DB, dialect string) error {
     if err != nil {
         return fmt.Errorf("failed to create migration driver: %w", err)
     }
-    
+
     m, err := migrate.NewWithInstance("iofs", source, dialect, driver)
     if err != nil {
         return fmt.Errorf("failed to create migration instance: %w", err)
     }
-    
+
     if err := m.Up(); err != nil && err != migrate.ErrNoChange {
         return fmt.Errorf("failed to apply migrations: %w", err)
     }
-    
+
     return nil
 }
 ```
@@ -418,7 +418,7 @@ func (app *Application) Start(ctx context.Context) error {
     if err := RunMigrations(app.db, app.config.DatabaseDialect); err != nil {
         return fmt.Errorf("failed to run migrations: %w", err)
     }
-    
+
     // 2. Start servers
     // ...
 }
@@ -457,12 +457,12 @@ sqlDB.SetConnMaxLifetime(0)  // In-memory: never close connections
 func (r *Repository) List(ctx context.Context, page, pageSize int) ([]Model, int64, error) {
     var models []Model
     var total int64
-    
+
     // Count total records
     if err := r.db.WithContext(ctx).Model(&Model{}).Count(&total).Error; err != nil {
         return nil, 0, fmt.Errorf("failed to count records: %w", err)
     }
-    
+
     // Fetch page
     offset := (page - 1) * pageSize
     if err := r.db.WithContext(ctx).
@@ -471,7 +471,7 @@ func (r *Repository) List(ctx context.Context, page, pageSize int) ([]Model, int
         Find(&models).Error; err != nil {
         return nil, 0, fmt.Errorf("failed to fetch records: %w", err)
     }
-    
+
     return models, total, nil
 }
 ```
@@ -481,21 +481,21 @@ func (r *Repository) List(ctx context.Context, page, pageSize int) ([]Model, int
 ```go
 func (r *Repository) FindByFilter(ctx context.Context, filter Filter) ([]Model, error) {
     var models []Model
-    
+
     query := r.db.WithContext(ctx).Model(&Model{})
-    
+
     if filter.Name != "" {
         query = query.Where("name LIKE ?", "%"+filter.Name+"%")
     }
-    
+
     if filter.Status != "" {
         query = query.Where("status = ?", filter.Status)
     }
-    
+
     if err := query.Find(&models).Error; err != nil {
         return nil, fmt.Errorf("failed to filter records: %w", err)
     }
-    
+
     return models, nil
 }
 ```

@@ -1,7 +1,7 @@
 # Hash Registry and Password Hashing Specifications
 
-**Version**: 1.0.0  
-**Last Updated**: 2025-12-24  
+**Version**: 1.0.0
+**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/02-08.hashes.instructions.md`
 
 ## Overview
@@ -106,7 +106,7 @@ hash_service:
 
 ## Salt Requirements (ALL 4 Registries)
 
-OWASP recommends to always assume salt is public. 
+OWASP recommends to always assume salt is public.
 
 Encoding deterministic salt in hash parameters is OK, because a secret pepper protects the input from brute force attack vectors.
 

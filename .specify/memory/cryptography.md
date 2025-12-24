@@ -1,7 +1,7 @@
 # Cryptography Specifications
 
-**Version**: 1.0.0  
-**Last Updated**: 2025-12-24  
+**Version**: 1.0.0
+**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/02-07.cryptography.instructions.md`
 
 ## FIPS 140-3 Compliance - MANDATORY
@@ -104,7 +104,7 @@ All cryptoutil instances using the same set of shared unseal secrets MUST derive
 func DeriveUnsealKey(masterSecret, salt, info []byte) ([]byte, error) {
     // Extract: PRK = HKDF-Extract(salt, masterSecret)
     prk := hkdf.Extract(sha256.New, masterSecret, salt)
-    
+
     // Expand: OKM = HKDF-Expand(PRK, info, length)
     reader := hkdf.Expand(sha256.New, prk, info)
     key := make([]byte, 32)  // 256-bit key
@@ -166,14 +166,14 @@ func (kr *ElasticKeyRing) Rotate() error {
     if err != nil {
         return err
     }
-    
+
     // Move current active key to historical keys
     kr.HistoricalKeys[kr.ActiveKeyID] = kr.ActiveKey
-    
+
     // Set new key as active
     kr.ActiveKeyID = generateKeyID()
     kr.ActiveKey = newKey
-    
+
     return nil
 }
 ```

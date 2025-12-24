@@ -86,7 +86,7 @@ func isIPAllowed(remoteAddr string, allowlist []string) bool {
     if ip == nil {
         return false
     }
-    
+
     for _, entry := range allowlist {
         if strings.Contains(entry, "/") {
             // CIDR range
@@ -127,7 +127,7 @@ func (rl *IPRateLimiter) Allow(ip string) bool {
         rl.limiters[ip] = limiter
     }
     rl.mu.Unlock()
-    
+
     return limiter.Allow()
 }
 ```
@@ -498,7 +498,7 @@ func (kr *KeyRing) Encrypt(plaintext []byte) ([]byte, error) {
     if err != nil {
         return nil, err
     }
-    
+
     // Prepend key ID to ciphertext
     return append([]byte(kr.ActiveKeyID), ciphertext...), nil
 }
@@ -506,7 +506,7 @@ func (kr *KeyRing) Encrypt(plaintext []byte) ([]byte, error) {
 func (kr *KeyRing) Decrypt(ciphertext []byte) ([]byte, error) {
     // Extract key ID from ciphertext
     keyID := string(ciphertext[:len(kr.ActiveKeyID)])
-    
+
     // Use matching historical key for decryption
     key, exists := kr.HistoricalKeys[keyID]
     if !exists && keyID != kr.ActiveKeyID {
@@ -515,7 +515,7 @@ func (kr *KeyRing) Decrypt(ciphertext []byte) ([]byte, error) {
     if keyID == kr.ActiveKeyID {
         key = kr.ActiveKey
     }
-    
+
     return aesGCMDecrypt(key, ciphertext[len(keyID):])
 }
 ```
