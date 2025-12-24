@@ -50,23 +50,12 @@
 | security.md | 567 | 551 | -16 | Removed version header, consolidated vulnerability monitoring |
 | service-template.md | 164 | 160 | -4 | Removed version header |
 
-**Batch Total**: -36 lines (net with markdown linting auto-expansion)
-**Commits**: `0a1c4b08` (header optimization) + auto-linting fixes
+**Batch Total**: -1,495 lines
+**Commits**: `59521b7a` (part 2a), `885f6577` (part 2b) - "Optimize memory files batch 3 part 2..."
 
-## Remaining Work (Future Sessions)
+## Remaining Work (BATCH 4)
 
-### Batch 3 Part 2: Deeper Content Consolidation (~850 lines potential)
-
-| File | Current | Target | Potential Reduction | Priority Optimizations |
-|------|---------|--------|---------------------|------------------------|
-| linting.md | 460 | ~200 | -260 | Consolidate verbose linter examples, batch fix strategies, domain isolation |
-| observability.md | 347 | ~150 | -197 | Consolidate telemetry flow diagrams, metric lists, log level descriptions |
-| openapi.md | 449 | ~200 | -249 | Consolidate REST conventions, validation examples, pagination patterns |
-| pki.md | 460 | ~250 | -210 | Consolidate CA/Browser Forum tables, certificate profile requirements |
-| security.md | 551 | ~250 | -301 | Consolidate Windows Firewall examples, network security patterns, key hierarchy |
-| service-template.md | 160 | ~100 | -60 | Consolidate template component descriptions (already fairly concise) |
-
-### Batch 4: Remaining Files (~1,000 lines potential)
+### Batch 4: Final Files (~2,247 lines → target ~1,000 lines, -1,247 reduction)
 
 | File | Current | Target | Potential Reduction | Priority Optimizations |
 |------|---------|--------|---------------------|------------------------|
@@ -76,6 +65,8 @@
 | golang.md | 274 | ~150 | -124 | Consolidate project structure examples, import alias conventions |
 | hashes.md | 186 | ~100 | -86 | Consolidate hash registry patterns, pepper/salt requirements |
 | versions.md | 82 | ~70 | -12 | Already compact, minimal optimization possible |
+
+**Status**: IN PROGRESS
 
 ## Optimization Principles Applied
 
@@ -96,11 +87,10 @@
 
 ## Metrics
 
-- **Total Files Processed**: 12 of 26 (46%)
-- **Total Line Reduction**: -2,950 lines
-- **Token Reduction Estimate**: ~17,700 tokens (6 tokens/line average)
-- **Target Achievement**: 421% of minimum (500 lines), 148% of maximum (2,000 lines)
-- **Remaining Optimization Potential**: ~1,850 lines from 14 remaining files
+- **Total Files Processed**: 18 of 26 (69%)
+- **Total Line Reduction**: -4,445 lines (Batches 1-3)
+- **Remaining Files**: 8 files, ~2,247 lines
+- **Estimated Final Reduction**: ~-5,700 lines total
 
 ## Next Session Tasks
 
