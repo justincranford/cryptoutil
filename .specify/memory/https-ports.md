@@ -12,6 +12,7 @@ All cryptoutil services MUST implement TWO separate HTTPS servers:
 2. **Private HTTPS Endpoint** (Administration, health checks, graceful shutdown)
 
 **Why Two Separate Endpoints**:
+
 - **Security isolation**: Admin APIs separate from public APIs (different threat models)
 - **Network isolation**: Admin accessible only from localhost/orchestrator (not external)
 - **Health check patterns**: Kubernetes-style livez/readyz probes (separate concerns)
@@ -49,11 +50,13 @@ All cryptoutil services MUST implement TWO separate HTTPS servers:
 ### Public HTTP Endpoint
 
 **DNS Names**:
+
 ```
 dnsName: ["localhost"]
 ```
 
 **IP Addresses**:
+
 ```
 ipAddress: [
   "127.0.0.1",              # IPv4 loopback
@@ -65,11 +68,13 @@ ipAddress: [
 ### Private HTTP Endpoint
 
 **DNS Names**:
+
 ```
 dnsName: ["localhost"]
 ```
 
 **IP Addresses**:
+
 ```
 ipAddress: [
   "127.0.0.1",              # IPv4 loopback
@@ -87,6 +92,7 @@ ipAddress: [
 ### Public HTTP Endpoint (/browser paths only)
 
 **Allowed Origins**:
+
 ```
 [
   "http://localhost:8080",
@@ -116,20 +122,20 @@ type ServerConfig struct {
     BindPublicProtocol    string   // "https" (default), "http" (tests/dev only)
     BindPublicAddress     string   // "127.0.0.1" (default), "0.0.0.0" (containers)
     BindPublicPort        uint16   // 8080 (default), 0 (tests - dynamic allocation)
-    
+
     // Private Endpoint Binding
     BindPrivateProtocol   string   // "https" (default), "http" (tests/dev only)
     BindPrivateAddress    string   // "127.0.0.1" (default), rarely changed
     BindPrivatePort       uint16   // 9090 (default), 0 (tests - dynamic allocation)
-    
+
     // Public TLS Configuration
     TLSPublicDNSNames     []string // []string{"localhost"} (default)
     TLSPublicIPAddresses  []string // []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"} (default)
-    
+
     // Private TLS Configuration
     TLSPrivateDNSNames    []string // []string{"localhost"} (default)
     TLSPrivateIPAddresses []string // []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"} (default)
-    
+
     // CORS Configuration (Public /browser paths only)
     CORSAllowedOrigins    []string // []string{"http://localhost:8080", "http://127.0.0.1:8080", ...} (default)
 }
@@ -166,12 +172,13 @@ type ServerConfig struct {
 ### Unit/Integration Tests
 
 **Configuration**:
+
 ```yaml
 public:
   protocol: https
   address: 127.0.0.1
   port: 0  # Dynamic allocation (prevents port conflicts)
-  
+
 private:
   protocol: https
   address: 127.0.0.1
@@ -179,6 +186,7 @@ private:
 ```
 
 **Rationale**:
+
 - Port 0 → OS assigns random available port (parallel test safety)
 - 127.0.0.1 → Prevents Windows Firewall prompts
 - https → Production parity (TLS validation in tests)
@@ -186,12 +194,13 @@ private:
 ### E2E Tests (Local)
 
 **Configuration**:
+
 ```yaml
 public:
   protocol: https
   address: 127.0.0.1
   port: 8080  # Static port (Docker Compose mapping)
-  
+
 private:
   protocol: https
   address: 127.0.0.1
@@ -199,6 +208,7 @@ private:
 ```
 
 **Rationale**:
+
 - Static ports → Docker Compose port mapping stability
 - 127.0.0.1 → Prevents Windows Firewall prompts
 - https → Production parity
@@ -206,12 +216,13 @@ private:
 ### Docker Containers
 
 **Configuration**:
+
 ```yaml
 public:
   protocol: https
   address: 0.0.0.0  # Bind all interfaces (external access required)
   port: 8080
-  
+
 private:
   protocol: https
   address: 127.0.0.1  # Bind loopback only (localhost access only)
@@ -219,6 +230,7 @@ private:
 ```
 
 **Rationale**:
+
 - Public 0.0.0.0 → External access from host/other containers
 - Private 127.0.0.1 → Admin isolated to localhost (security)
 - https → Production parity
@@ -226,12 +238,13 @@ private:
 ### Production
 
 **Configuration**:
+
 ```yaml
 public:
   protocol: https
   address: ${PUBLIC_BIND_ADDRESS}  # Configurable per deployment
   port: ${PUBLIC_PORT}              # Configurable per deployment
-  
+
 private:
   protocol: https
   address: 127.0.0.1  # ALWAYS localhost (admin security)
@@ -239,6 +252,7 @@ private:
 ```
 
 **Rationale**:
+
 - Public configurable → Deployment-specific networking requirements
 - Private ALWAYS 127.0.0.1 → Security isolation (admin not exposed externally)
 - https → Mandatory TLS encryption
@@ -252,6 +266,7 @@ private:
 ### Configuration Requirements
 
 Each configuration set must support:
+
 1. **TLS Server Certificate Chain** (Root CA → Intermediate CA → TLS Server)
 2. **TLS Server Private Key**
 3. **TLS Client Trusted Certificates** (for mTLS validation)
@@ -263,6 +278,7 @@ Each configuration set must support:
 #### Production (All Certs Passed to Container)
 
 **Inputs**:
+
 - Static cert chain for Root CA → Issuing CA (provided)
 - Static private key for Issuing CA (NOT provided)
 - Static cert for TLS Server (provided)
@@ -273,6 +289,7 @@ Each configuration set must support:
 #### E2E Dev Tests (Mixed Static & Auto-Generated)
 
 **Inputs**:
+
 - Static cert chain for Root CA → Issuing CA (provided)
 - Static private key for Issuing CA (provided via Docker Secret)
 
@@ -283,6 +300,7 @@ Each configuration set must support:
 **Inputs**: None (all certificates auto-generated)
 
 **Outcome**:
+
 - Auto-create all certs from Root CA → TLS Server cert
 - Retain TLS Server private key
 - Discard all CA private keys (ephemeral, not reused)
@@ -290,23 +308,28 @@ Each configuration set must support:
 ### Configuration Settings
 
 **Certificate Chains** (Root CA → Issuing CA):
+
 - Specified in configuration file
 - Format: File paths OR embedded PEM-encoded values
 
 **TLS Server Certificate**:
+
 - Specified in configuration file
 - Format: File paths OR embedded PEM-encoded values
 
 **TLS Server Private Key**:
+
 - Production: Docker Secret (NEVER in config file or environment)
 - E2E: Docker Secret (production parity)
 - Unit/Integration: Auto-generated ephemeral key
 
 **Issuing CA Private Key**:
+
 - E2E Dev+Test: Docker Secret (for TLS Server cert signing)
 - Production: NOT PROVIDED (certificates pre-signed)
 
 **TLS Client Trusted Certificates**:
+
 - Specified in configuration file
 - Format: File paths OR embedded PEM-encoded values
 - Usually CA certificates for mTLS validation
@@ -331,6 +354,7 @@ Each configuration set must support:
 | External Access | NOT RECOMMENDED | NOT RECOMMENDED | Authentication optional, authorization not supported |
 
 **Exceptional Use Cases** (require justification):
+
 - Port conflict with another service → Use different port (e.g., 9091)
 - Clear text debugging → Temporarily use HTTP (NEVER in production)
 
@@ -345,6 +369,7 @@ Each configuration set must support:
 **Failure Action**: Restart container (process stuck/crashed)
 
 **Response**:
+
 ```
 HTTP 200 OK
 {"status": "alive"}
@@ -355,6 +380,7 @@ HTTP 200 OK
 **Purpose**: Heavyweight health check (is service ready for traffic?)
 
 **Checks**:
+
 - Database connection healthy
 - Dependent services accessible
 - Critical resources available (unseal keys, TLS certs)
@@ -362,6 +388,7 @@ HTTP 200 OK
 **Failure Action**: Remove from load balancer (do NOT restart)
 
 **Response**:
+
 ```
 HTTP 200 OK
 {"status": "ready", "dependencies": {"database": "healthy", "kms": "healthy"}}
@@ -374,6 +401,7 @@ HTTP 200 OK
 **Purpose**: Trigger graceful shutdown sequence
 
 **Sequence**:
+
 1. Stop accepting new requests (close listeners)
 2. Drain active requests (wait up to 30 seconds)
 3. Close database connections
@@ -381,6 +409,7 @@ HTTP 200 OK
 5. Exit process
 
 **Response**:
+
 ```
 HTTP 200 OK
 {"status": "shutting_down"}
@@ -397,6 +426,7 @@ HTTP 200 OK
 | Process stuck/deadlocked | ❌ Fail | ❌ Fail | Restart container |
 
 **Why Separate**:
+
 - Combined health endpoint can't distinguish these failure modes
 - Liveness failure → Restart (drastic action)
 - Readiness failure → Wait (graceful degradation)
@@ -406,6 +436,7 @@ HTTP 200 OK
 **KMS Reference**: Uses gofiber middleware providing livez/readyz pattern out-of-box
 
 **Consumers**:
+
 - Docker health checks (HEALTHCHECK directive)
 - Kubernetes probes (livenessProbe, readinessProbe)
 - Monitoring systems (Prometheus, Grafana)
@@ -431,6 +462,7 @@ HTTP 200 OK
 | External Access | YES | YES | Browser clients, external services |
 
 **Service-Specific Port Ranges**:
+
 - KMS: 8080-8089
 - Identity: 8180-8189
 - JOSE: 8280-8289
@@ -445,10 +477,12 @@ HTTP 200 OK
 ### Service-to-Service APIs (`/service/**` prefix)
 
 **Access Control**:
+
 - Service clients ONLY (headless, non-browser)
 - Browser clients MUST be blocked by authorization checks
 
 **Middleware Stack**:
+
 1. IP allowlist (restrict to known service CIDR ranges)
 2. Rate limiting (per-IP, per-service quotas)
 3. Request logging (audit trail, forensics)
@@ -456,16 +490,19 @@ HTTP 200 OK
 5. Authorization (scope-based, service-to-service permissions)
 
 **Example Endpoints**:
+
 - `/service/api/v1/keys` (KMS key management)
 - `/service/api/v1/tokens` (Identity token issuance)
 
 ### Browser-to-Service APIs/UI (`/browser/**` prefix)
 
 **Access Control**:
+
 - Browser clients ONLY (user-facing UIs)
 - Service clients MUST be blocked by authorization checks
 
 **Middleware Stack**:
+
 1. IP allowlist (restrict to user access ranges)
 2. CSRF protection (SameSite cookies, CSRF tokens)
 3. CORS policies (Allowed-Origin enforcement)
@@ -476,12 +513,14 @@ HTTP 200 OK
 8. Authorization (resource-level, user permissions)
 
 **Additional Content**:
+
 - HTML pages (login, dashboard, admin UI)
 - JavaScript (client-side logic)
 - CSS (styling)
 - Images, fonts (static assets)
 
 **Example Endpoints**:
+
 - `/browser/api/v1/keys` (KMS key management UI API)
 - `/browser/login` (Identity login page)
 - `/browser/assets/app.js` (JavaScript bundle)
@@ -489,6 +528,7 @@ HTTP 200 OK
 ### API Consistency - MANDATORY
 
 **SAME OpenAPI Specification** served at both prefixes:
+
 - `/service/api/v1/**` (service clients)
 - `/browser/api/v1/**` (browser clients)
 
@@ -519,18 +559,21 @@ if client.Type == "browser" {
 **Rationale**: Security requirements differ dramatically:
 
 **Browser Clients**:
+
 - CORS (prevent cross-origin attacks)
 - CSRF (prevent forged requests)
 - XSS (prevent script injection via CSP)
 - Cookie-based sessions (SameSite, HttpOnly, Secure flags)
 
 **Headless Clients**:
+
 - Different authentication (Bearer tokens, mTLS certificates)
 - DDOS prevention (bot detection, rate limiting)
 - Service mesh integration (mTLS, service discovery)
 - NO browser-specific protections (CORS/CSRF/XSS irrelevant)
 
 **Cross-client access patterns prevented** because:
+
 - Browser clients don't need DDOS bot protections (low volume)
 - Headless clients can't use CORS/CSRF (no browser context)
 - Mixing authentication types creates security vulnerabilities
@@ -540,6 +583,7 @@ if client.Type == "browser" {
 ## Cross-References
 
 **Related Documentation**:
+
 - Service template: `.specify/memory/service-template.md`
 - Security patterns: `.specify/memory/security.md`
 - PKI/TLS configuration: `.specify/memory/pki.md`
