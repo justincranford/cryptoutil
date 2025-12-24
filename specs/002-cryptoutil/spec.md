@@ -833,16 +833,25 @@ Each service has its own Docker image and can scale independently.
 
 **Session Token Format** (Q3 - Configuration-Driven):
 
+Token format selection is configuration-driven per service deployment. Administrators configure format via YAML configuration files, with defaults of opaque tokens for browser-based clients and JWS tokens for headless clients. All three formats (opaque, JWE, JWS) MUST be supported by all services to enable flexible deployment patterns.
+
 ```yaml
 # Non-Federated Mode - Product decides format
 session:
-  token_format: opaque  # or jwe, jws
+  token_format: opaque  # or jwe, jws (default: opaque for browser, jws for headless)
 
 # Federated Mode - Identity Provider decides format
 federation:
   identity:
-    session_token_format: jwe  # or jws, opaque
+    session_token_format: jwe  # or jws, opaque (default: opaque for browser, jws for headless)
 ```
+
+**Configuration Pattern Details** (see [.github/instructions/02-10.authentication.instructions.md](../../.github/instructions/02-10.authentication.instructions.md)):
+
+- Format selection: Administrator-configured via YAML deployment configuration
+- Default behavior: Opaque tokens for browser clients, JWS tokens for headless clients
+- Mandatory support: All services MUST implement all three formats (opaque, JWE, JWS)
+- Rationale: Enables deployment flexibility, security/performance tradeoffs per environment
 
 **Session Storage Backend** (Q4 - PostgreSQL/SQLite Only):
 
@@ -1979,6 +1988,16 @@ A: Containerization requirement - each container has isolated localhost namespac
 - Non-containerized unified deployments NOT SUPPORTED (would cause port collisions)
 - Single-service standalone deployments can run non-containerized
 - Rationale: Container isolation enables consistent admin port across all services
+
+**Q3: What determines session token format selection between opaque, JWE, and JWS?**
+
+A: Configuration-driven per service deployment - admin configures via YAML, default opaque for browser/JWS for headless, all three formats must be supported
+
+- Format selection: Administrator-configured via YAML deployment configuration
+- Default behavior: Opaque tokens for browser-based clients, JWS tokens for headless clients
+- Mandatory support: All services MUST implement all three formats (opaque, JWE, JWS)
+- Rationale: Enables deployment flexibility, security/performance tradeoffs per environment
+- See: Session Token Format section and [.github/instructions/02-10.authentication.instructions.md](../../.github/instructions/02-10.authentication.instructions.md) for configuration examples
 
 ---
 
