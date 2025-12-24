@@ -77,163 +77,19 @@
 
 **The following behaviors are FORBIDDEN - agent MUST continue working**:
 
-### ❌ Status Summaries at End
+❌ **Status Summaries** - No "Here's what we accomplished" messages. Execute next task immediately
+❌ **"Session Complete" Messages** - No "All planned work finished" statements. Read DETAILED.md for next phase
+❌ **"Next Steps" Sections** - No proposing work. Execute steps immediately
+❌ **Strategic Pivots with Handoff** - Document blocker, switch to unblocked task, continue
+❌ **Time/Token Justifications** - Usage is NOT a stopping condition. Continue working
+❌ **Pauses Between Tasks** - Task complete → IMMEDIATELY start next task (zero pause)
+❌ **Asking Permission** - No "Should I proceed?" questions. Autonomous execution required
+❌ **Leaving Uncommitted Changes** - Commit immediately when work complete
+❌ **Ending with Analysis** - Analysis should lead to action, not stopping. Fix identified issues
+❌ **Celebrations Followed by Stopping** - Success is NOT a stopping condition. Check next quality gate
+❌ **Premature Completion Claims** - Phase complete → Start next phase immediately (no asking)
 
-**FORBIDDEN**:
-
-```
-"Here's what we accomplished today:
-- Task 1: Complete ✅
-- Task 2: Complete ✅
-- Task 3: In progress ⏸️
-
-Next steps:
-- Continue Task 3
-- Start Task 4"
-```
-
-**Why Forbidden**: This is a stopping behavior (summary + handoff to user)
-
-**CORRECT Pattern**: No summary. Immediately start Task 3 continuation or Task 4.
-
-### ❌ "Session Complete" Messages
-
-**FORBIDDEN**:
-
-```
-"Session complete! All planned work finished.
-Waiting for next directive from user."
-```
-
-**Why Forbidden**: SpecKit sessions continue until user stops them
-
-**CORRECT Pattern**: Read DETAILED.md for next phase/task and start immediately
-
-### ❌ "Next Steps" Sections
-
-**FORBIDDEN**:
-
-```
-"Completed X, Y, Z.
-
-Next steps:
-1. Review DETAILED.md for Phase 2 tasks
-2. Start Task 2.1
-3. Verify coverage improvements"
-```
-
-**Why Forbidden**: This is a stopping behavior (proposing work instead of executing)
-
-**CORRECT Pattern**: Execute step 1 immediately (read_file DETAILED.md), then execute steps 2-3
-
-### ❌ Strategic Pivots with Handoff
-
-**FORBIDDEN**:
-
-```
-"Current approach not working due to X.
-Should we pivot to approach Y?
-Waiting for your decision."
-```
-
-**Why Forbidden**: This is asking permission to continue (stopping behavior)
-
-**CORRECT Pattern**: Document blocker in DETAILED.md, switch to next unblocked task, continue working
-
-### ❌ Time/Token Justifications
-
-**FORBIDDEN**:
-
-```
-"This session has been running for 2 hours with 500K tokens used.
-Should we continue or take a break?"
-```
-
-**Why Forbidden**: Time and token usage are NOT stopping conditions
-
-**CORRECT Pattern**: Continue working. User will click STOP when ready.
-
-### ❌ Pauses Between Tasks
-
-**FORBIDDEN**:
-
-```
-"Task 1 complete. Waiting to proceed with Task 2."
-```
-
-**Why Forbidden**: No waiting between tasks - immediate continuation required
-
-**CORRECT Pattern**: Task 1 complete → IMMEDIATELY invoke next tool for Task 2 (no pause, no message)
-
-### ❌ Asking Permission
-
-**FORBIDDEN**:
-
-```
-"Ready to start mutation testing. Should I proceed?"
-```
-
-**Why Forbidden**: No permission needed - autonomous execution is expected
-
-**CORRECT Pattern**: Start mutation testing immediately (run_in_terminal gremlins unleash)
-
-### ❌ Leaving Uncommitted Changes
-
-**FORBIDDEN**:
-
-```
-"Made changes to X, Y, Z.
-Here's a summary of the changes.
-Let me know if you want me to commit."
-```
-
-**Why Forbidden**: Changes should be committed immediately when complete
-
-**CORRECT Pattern**: Commit changes immediately, then start next task
-
-### ❌ Ending with Analysis/Documentation
-
-**FORBIDDEN**:
-
-```
-"Analysis complete. Here are the findings:
-- Coverage gaps in X
-- Mutation score below target in Y
-- Linting issues in Z
-
-Waiting for next steps."
-```
-
-**Why Forbidden**: Analysis should lead to action, not stopping
-
-**CORRECT Pattern**: Fix coverage gaps in X, improve mutation score in Y, fix linting in Z (execute fixes)
-
-### ❌ Celebrations Followed by Stopping
-
-**FORBIDDEN**:
-
-```
-"🎉 All tests passing! Coverage at 98%!
-Great progress today. Ready for next directive."
-```
-
-**Why Forbidden**: Success is not a stopping condition
-
-**CORRECT Pattern**: Check gremlins mutation score, fix any issues, move to next task
-
-### ❌ Premature Completion Claims
-
-**FORBIDDEN**:
-
-```
-"Phase 1 foundation complete!
-All domain models, schema, and CRUD operations implemented.
-What would you like to focus on next?"
-```
-
-**Why Forbidden**: Phase complete → Start Phase 2 immediately (no asking)
-
-**CORRECT Pattern**: read_file DETAILED.md → identify Phase 2 first task → start execution
+**Pattern**: Work → Commit → Next tool invocation (ZERO text between tasks)
 
 ---
 

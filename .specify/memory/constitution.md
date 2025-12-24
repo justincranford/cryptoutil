@@ -14,105 +14,23 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 | P4: CA | 1 service | Certificate Authority (X.509 v3, PKIX RFC 5280, CSR, OCSP, CRL, PKI, EST, SCEP, CMPv2, CMC, ACME) | ✅ | ✅ |
 | Demo: Learn-PS | 1 service | Pet Store demonstration service (validates service template reusability) | ✅ | ✅ |
 
-### Complete Service Architecture (9 Services)
+### Service Catalog (9 Services Total)
 
-#### Product Services (8 Core Services)
+| Service | Product | Public Ports | Admin Port | Status | Notes |
+|---------|---------|--------------|------------|--------|-------|
+| sm-kms | Secrets Manager | 8080-8089 | 9090 | ✅ COMPLETE | Reference implementation |
+| pki-ca | PKI | 8443-8449 | 9092 | ⚠️ PARTIAL | Needs dual-server |
+| jose-ja | JOSE | 9443-9449 | 9093 | ⚠️ PARTIAL | Needs dual-server |
+| identity-authz | Identity | 18000-18009 | 9091 | ✅ COMPLETE | Dual servers |
+| identity-idp | Identity | 18100-18109 | 9091 | ✅ COMPLETE | Dual servers |
+| identity-rs | Identity | 18200-18209 | 9091 | ⏳ IN PROGRESS | Public server pending |
+| identity-rp | Identity | 18300-18309 | 9091 | ❌ NOT STARTED | Reference implementation |
+| identity-spa | Identity | 18400-18409 | 9091 | ❌ NOT STARTED | Reference implementation |
+| learn-ps | Learn | 8888-8889 | 9095 | ❌ NOT STARTED | Phase 7 validation |
 
-| Service Alias | Full Name | Public Port | Admin Port | Description |
-|---------------|-----------|-------------|------------|-----------|
-| **sm-kms** | Secrets Manager - Key Management Service | 8080-8089 | 127.0.0.1:9090 | REST APIs for per-tenant Elastic Keys |
-| **pki-ca** | Public Key Infrastructure - Certificate Authority | 8443-8449 | 127.0.0.1:9090 | X.509 certificate lifecycle, EST, OCSP, CRL, time-stamping |
-| **jose-ja** | JOSE - JWK Authority | 9443-9449 | 127.0.0.1:9090 | JWK, JWKS, JWE, JWS, JWT operations |
-| **identity-authz** | Identity - Authorization Server | 18000-18009 | 127.0.0.1:9090 | OAuth 2.1 authorization server, OIDC Discovery |
-| **identity-idp** | Identity - Identity Provider | 18100-18109 | 127.0.0.1:9090 | OIDC authentication, login/consent UI, MFA enrollment |
-| **identity-rs** | Identity - Resource Server | 18200-18209 | 127.0.0.1:9090 | Protected API with token validation (reference implementation) |
-| **identity-rp** | Identity - Relying Party | 18300-18309 | 127.0.0.1:9090 | Backend-for-Frontend pattern (reference implementation) |
-| **identity-spa** | Identity - Single Page Application | 18400-18409 | 127.0.0.1:9090 | Static hosting for SPA clients (reference implementation) |
+**Implementation Priority**: sm-kms (✅) → jose-ja → pki-ca → identity services (authz ✅, idp ✅, rs ⏳, rp ❌, spa ❌) → learn-ps (Phase 7)
 
-#### Demonstration Service (1 Service)
-
-| Service Alias | Full Name | Public Port | Admin Port | Description |
-|---------------|-----------|-------------|------------|-----------|
-| **learn-ps** | Learn - Pet Store | 8888-8889 | 127.0.0.1:9090 | Educational service demonstrating service template usage (Phase 7) |
-
-### Service Status and Implementation Priority
-
-**Implementation Status by Service**:
-
-| Service | Status | Priority | Deliverables | Notes |
-|---------|--------|----------|--------------|-------|
-| sm-kms | ✅ COMPLETE | Phase 0 | Dual servers, admin port 9090, public port 8080, DB migrations, telemetry | Reference implementation for dual-server pattern |
-| pki-ca | ⚠️ PARTIAL | Phase 2.3 | Missing admin server, public port 8380 only | Needs dual-server migration |
-| jose-ja | ⚠️ PARTIAL | Phase 2.1 | Missing admin server, public port 8280 only | Needs dual-server migration |
-| identity-authz | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8180 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/authz/server/public_server.go, 165 lines) |
-| identity-idp | ✅ COMPLETE | Phase 2.2 | Dual servers (public 8181 + admin 9091), DB migrations, telemetry | Public server implemented (internal/identity/idp/server/public_server.go, 165 lines) |
-| identity-rs | ⏳ IN PROGRESS | Phase 2.2 | Public server implemented (2025-12-21), testing pending | Public server created (internal/identity/rs/server/public_server.go, 200 lines, commit 04317efd), E2E validation in progress |
-| identity-rp | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
-| identity-spa | ❌ NOT STARTED | Phase 3+ | No servers | Reference implementation, optional deployment |
-| learn-ps | ❌ NOT STARTED | Phase 7 | No servers | Validates service template reusability |
-
-**Architecture Status Update** (2025-12-21 RS public server implementation):
-
-All three core identity services NOW have public HTTP server implementations:
-
-- `internal/identity/authz/server/public_server.go` ✅ COMPLETE (165 lines, NewPublicServer(), OAuth 2.1 endpoints)
-- `internal/identity/idp/server/public_server.go` ✅ COMPLETE (165 lines, NewPublicServer(), OIDC endpoints)
-- `internal/identity/rs/server/public_server.go` ✅ IMPLEMENTED (200 lines, NewPublicServer(), protected resource endpoints, commit 04317efd 2025-12-21)
-
-**RS Implementation Details** (2025-12-21 commit 04317efd):
-
-- Created public_server.go (200 lines, copied pattern from authz)
-- Updated application.go for dual-server architecture (publicServer + adminServer fields)
-- NewApplication() creates both public and admin servers
-- Start() launches both servers concurrently (errChan size 2)
-- Shutdown() stops both servers with error aggregation
-- PublicPort() accessor method returns actual bound port
-- TLS: Self-signed ECDSA P-256 certificate (production: use CA-signed via Docker secrets)
-- Health endpoints: /browser/api/v1/health, /service/api/v1/health
-- TODO: Register middleware (CORS, token validation) and protected resource routes
-
-**Validation Status**:
-
-- ✅ Code: Compiles cleanly (`go build ./cmd/cryptoutil`)
-- ✅ Tests: Unit tests pass (`go test ./internal/identity/rs/server/...` 0.349s)
-- ⏳ E2E: Workflows triggered (run IDs 20406671780-20406671797), status pending
-- ⏳ Docker: Docker Compose verification pending (rs container health check)
-
-**Evidence (2025-12-21 Implementation)**: Direct file verification via `Get-ChildItem internal\identity\ -Recurse -Filter "*.go"` shows:
-
-- authz/server/public_server.go: ✅ 165 lines, complete implementation with NewPublicServer()
-- idp/server/public_server.go: ✅ 165 lines, complete implementation with NewPublicServer()
-- rs/server/: ❌ Only admin.go (102 lines) and application.go (102 lines) exist, NO public_server.go
-- rs/server/application.go: Only creates adminServer, missing publicServer initialization
-
-**Previous Evidence (2025-12-20)**: 5 E2E workflow failures (workflows 20388807383-20388120287), all failed at "Starting AuthZ server..." with 196-byte logs. This was attributed to missing public servers for all three services.
-
-**Discrepancy Resolution** (2025-12-21):
-
-- WORKFLOW-FIXES-CONSOLIDATED.md Round 7 claimed ALL THREE services (authz, idp, rs) missing public_server.go (2025-12-20)
-- File verification shows authz and idp HAVE public_server.go (likely created after debugging session)
-- Only RS remains incomplete (missing public_server.go)
-
-**Questions Answered**:
-
-- Were authz/idp files created after workflow debugging? **YES** - Files exist now but were missing during Round 7 (2025-12-20)
-- Was actual failure cause different? **NO** - Missing public servers was correct diagnosis for authz/idp
-- Is RS the only incomplete service? **YES** - RS is last service needing public_server.go implementation
-
-**Action Required**: Monitor current workflows (20393846848-20393846852, started 2025-12-21 7:23:58 AM) to determine:
-
-- Do authz and idp services start successfully now? **EXPECTED: YES** (public servers exist)
-- Do E2E/Load/DAST workflows pass for authz/idp flows? **EXPECTED: YES** (complete dual-server architecture)
-- Do E2E/Load/DAST workflows fail for RS flows? **EXPECTED: YES** (missing public server)
-- What errors appear for RS service startup? **EXPECTED**: Similar 196-byte log pattern, "Starting RS server..." but no public server to start
-
-**Impact Reduction** (2025-12-21):
-
-- **Previous Impact** (2025-12-20): 3/3 identity services blocked E2E workflows (authz, idp, rs)
-- **Current Impact** (2025-12-21): 1/3 identity services blocks E2E workflows (rs only)
-- **Workflows Expected to Pass**: E2E tests for OAuth 2.1 (authz) and OIDC (idp) flows
-- **Workflows Expected to Fail**: E2E tests requiring RS (protected resource access, token validation)
-- **Estimated Fix Time**: 1-2 days (implement rs/server/public_server.go, copy pattern from authz/idp)
+**See**: `architecture.md` for complete service catalog and federation patterns
 
 ### Standalone Mode Requirements
 
@@ -457,30 +375,9 @@ For public HTTPS endpoint, all services implement TWO security middleware stacks
 - Middleware enforces mutual exclusivity (service tokens can't access browser paths, vice versa)
 - Prevents unauthorized cross-client access patterns
 
-### Service Examples (All 9 Services)
+**Port Allocation**: See service catalog table above for port ranges. Admin ports: 9090 (KMS), 9091 (Identity), 9092 (CA), 9093 (JOSE), 9095 (Learn)
 
-#### Product Services (8 Core Services)
-
-| Service | Full Name | Public HTTPS | Private HTTPS | Public APIs |
-|---------|-----------|--------------|---------------|-------------|
-| **sm-kms** | Secrets Manager - KMS | :8080 | 127.0.0.1:9090 | Key operations (encrypt/decrypt, sign/verify), UI |
-| **pki-ca** | PKI - Certificate Authority | :8380 | 127.0.0.1:9092 | X.509 cert operations, EST, OCSP, CRL, UI |
-| **jose-ja** | JOSE - JWK Authority | :8280 | 127.0.0.1:9093 | JWK/JWKS/JWE/JWS/JWT operations, UI |
-| **identity-authz** | Identity - Authorization Server | :8180 | 127.0.0.1:9091 | OAuth 2.1 endpoints, OIDC Discovery, UI |
-| **identity-idp** | Identity - Identity Provider | :8181 | 127.0.0.1:9091 | OIDC authentication, login/consent, MFA, UI |
-| **identity-rs** | Identity - Resource Server | :8182 | 127.0.0.1:9091 | Protected API with token validation (reference implementation) |
-| **identity-rp** | Identity - Relying Party | :8183 | 127.0.0.1:9091 | Backend-for-Frontend pattern (reference implementation) |
-| **identity-spa** | Identity - Single Page App | :8184 | 127.0.0.1:9091 | Static hosting for SPA clients (reference implementation) |
-
-#### Demonstration Service (1 Service)
-
-| Service | Full Name | Public HTTPS | Private HTTPS | Public APIs |
-|---------|-----------|--------------|---------------|-------------|
-| **learn-ps** | Learn - Pet Store | :8580 | 127.0.0.1:9095 | Educational service (Phase 7, validates service template) |
-
-**Admin Port Assignment Strategy**: Each product family gets unique admin port to prevent conflicts in unified deployments.
-
-**Windows Firewall Prevention - Tests Only**: Unit/integration tests MUST bind to 127.0.0.1 (NOT 0.0.0.0) to prevent Windows Firewall exception prompts during test automation. Docker containers MUST bind to 0.0.0.0 for container networking compatibility.
+**Windows Firewall Prevention**: Tests bind 127.0.0.1 (not 0.0.0.0). See `https-ports.md` for complete binding patterns
 
 ### Critical Rules
 
