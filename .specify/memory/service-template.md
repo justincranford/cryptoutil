@@ -6,77 +6,30 @@
 
 **CRITICAL: NEVER duplicate service infrastructure code - ALWAYS use extracted template**
 
-All cryptoutil services MUST use a shared service template to ensure consistency, reduce duplication, and maintain quality across the product suite.
+All cryptoutil services MUST use shared service template for consistency, reduced duplication, quality across 9 services.
 
 ## Template Components
 
 **Template extracted from KMS reference implementation**:
 
-### 1. Two HTTPS Servers
+**1. Two HTTPS Servers**: Public (client access) + Private (admin operations). See `02-03.https-ports.instructions.md`
 
-- **Public HTTPS Binding**: External client access (business APIs, browser UIs)
-- **Private API Binding**: Admin operations (health checks, shutdown, diagnostics)
+**2. Two Public API Paths**:
 
-**See**: `.github/instructions/02-03.https-ports.instructions.md` for complete HTTPS binding patterns
+- **`/browser/api/v1/*`**: Session-based auth (browsers) - CSRF, CORS, CSP middleware
+- **`/service/api/v1/*`**: Token-based auth (headless) - IP allowlist, rate limiting
 
-### 2. Two Public API Paths
+**3. Three Private APIs**:
 
-- **`/browser/api/v1/*`**: Session-based authentication for browser clients
-  - Middleware: CSRF protection, CORS policies, CSP headers
-  - Authentication: Cookie-based sessions
-  - Authorization: Resource-level checks
+- **`/admin/v1/livez`**: Liveness (process alive, lightweight, K8s liveness probe)
+- **`/admin/v1/readyz`**: Readiness (dependencies healthy, heavyweight, K8s readiness probe)
+- **`/admin/v1/shutdown`**: Graceful shutdown (drain connections, close resources)
 
-- **`/service/api/v1/*`**: Token-based authentication for headless clients
-  - Middleware: IP allowlist, rate limiting
-  - Authentication: Bearer tokens, mTLS
-  - Authorization: Scope-based checks
+**4. Database Abstraction**: PostgreSQL || SQLite dual support, GORM ORM, embedded migrations, connection pooling. See `03-04.database.instructions.md`, `03-05.sqlite-gorm.instructions.md`
 
-**See**: `.github/instructions/02-03.https-ports.instructions.md` for middleware stack details
+**5. OpenTelemetry Integration**: OTLP export (traces, metrics, logs to otel-collector-contrib), structured logging, Prometheus metrics, trace propagation. See `02-05.observability.instructions.md`
 
-### 3. Three Private APIs
-
-- **`/admin/v1/livez`**: Liveness health probe
-  - Purpose: Process alive check (lightweight)
-  - Use: Kubernetes liveness probe
-  - Response: 200 OK or 503 Service Unavailable
-
-- **`/admin/v1/readyz`**: Readiness health probe
-  - Purpose: Dependencies healthy check (heavyweight)
-  - Use: Kubernetes readiness probe, load balancer health checks
-  - Validates: Database connectivity, federated service availability
-
-- **`/admin/v1/shutdown`**: Graceful shutdown trigger
-  - Purpose: Orchestration-initiated shutdown
-  - Use: CI/CD pipelines, deployment automation
-  - Behavior: Drain connections, close resources, exit gracefully
-
-### 4. Database Abstraction
-
-- **PostgreSQL || SQLite dual support**
-- **GORM ORM** for database operations
-- **Embedded SQL migrations** with golang-migrate
-- **Connection pooling** with proper timeouts
-- **Cross-DB compatibility** patterns (UUID as TEXT, JSON serialization)
-
-**See**: `.github/instructions/03-04.database.instructions.md`, `03-05.sqlite-gorm.instructions.md`
-
-### 5. OpenTelemetry Integration
-
-- **OTLP export**: Traces, metrics, logs to otel-collector-contrib sidecar
-- **Structured logging**: JSON format with correlation IDs
-- **Prometheus metrics**: Exposed via `/admin/v1/metrics` endpoint
-- **Trace propagation**: W3C Trace Context headers
-
-**See**: `.github/instructions/02-05.observability.instructions.md`
-
-### 6. Config Management
-
-- **YAML files**: Primary configuration source
-- **CLI flags**: Override config file values
-- **Docker secrets support**: File dereference pattern (`file:///run/secrets/secret_name`)
-- **Environment variables**: NOT used for secrets (Docker/K8s secrets only)
-
-**See**: `.github/instructions/04-02.docker.instructions.md` for Docker secrets patterns
+**6. Config Management**: YAML files (primary), CLI flags (overrides), Docker secrets (`file://` pattern), NO environment variables for secrets. See `04-02.docker.instructions.md`
 
 ## Template Parameterization
 
