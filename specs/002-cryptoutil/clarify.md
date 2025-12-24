@@ -1,6 +1,6 @@
 # cryptoutil Iteration 2 - Clarifications and Answers
 
-**Last Updated**: December 23, 2025
+**Last Updated**: December 24, 2025
 **Purpose**: Authoritative Q&A for implementation decisions, architectural patterns, and technical trade-offs
 **Organization**: Topical (consolidated from previous iterations)
 
@@ -146,6 +146,92 @@
 
 ---
 
+### Connection Pool Sizing Configuration
+
+**Q**: What is the REQUIRED formula for determining connection pool size?
+
+**A**: Configurable values with hot-reloadable configuration (no fixed formula).
+
+**Configuration Pattern**:
+
+```yaml
+database:
+  driver: postgres
+  connection_pool:
+    max_open_connections: 25      # Maximum concurrent connections
+    max_idle_connections: 10      # Idle connections kept alive
+    connection_max_lifetime: 3600s  # Connection reuse limit (1 hour)
+    connection_max_idle_time: 300s  # Idle timeout (5 minutes)
+```
+
+**Recommended Starting Values**:
+
+- **PostgreSQL**: max_open=25, max_idle=10
+- **SQLite**: max_open=5, max_idle=1 (single-writer limitation)
+- **High-traffic deployments**: Increase max_open based on observed contention
+
+**Hot Reload Support**:
+
+- Configuration changes apply without service restart
+- Monitor connection pool metrics (queue depth, wait time, utilization)
+- Adjust based on production telemetry data
+
+**Monitoring Metrics** (OpenTelemetry):
+
+```yaml
+metrics:
+  - db.connection_pool.max_open
+  - db.connection_pool.max_idle
+  - db.connection_pool.in_use
+  - db.connection_pool.idle
+  - db.connection_pool.wait_count
+  - db.connection_pool.wait_duration
+```
+
+**Rationale**: Connection pool sizing depends on workload patterns, hardware resources, and database capabilities. Configurable values with hot reload enable production tuning without downtime. Fixed formulas over-simplify complex trade-offs between connection overhead and query concurrency.
+
+---
+
+### Read Replica Strategy
+
+**Q**: What replication lag is acceptable and when should reads fall back to primary?
+
+**A**: Remove read replicas entirely - all reads go to primary only.
+
+**Architecture Decision**:
+
+- All read queries directed to primary database
+- No read replica configuration or routing logic
+- Simplifies architecture and eliminates replication lag concerns
+
+**Rejected Pattern**:
+
+```yaml
+# ❌ NOT IMPLEMENTED
+database:
+  primary:
+    dsn: "postgres://primary:5432/cryptoutil"
+  read_replicas:
+    - dsn: "postgres://replica1:5432/cryptoutil"
+    - dsn: "postgres://replica2:5432/cryptoutil"
+  max_replication_lag: 5s
+```
+
+**Rationale for Removal**:
+
+- Read replicas add operational complexity (monitoring lag, failover, consistency)
+- Cryptoutil services are write-heavy (sessions, audit logs, key operations)
+- Read-heavy workloads better served by caching layers (if needed in future)
+- Database sharding (Phase 4) provides better scalability than read replicas
+- Connection pooling sufficient for read concurrency in Phases 1-3
+
+**Future Consideration**:
+
+- If read performance becomes bottleneck: Add caching layer (Redis/Memcached) for specific read-heavy queries
+- If write scalability needed: Implement database sharding (Phase 4 with multi-tenancy)
+
+---
+
 ### Service Template Extraction
 
 **Q**: When should the service template be extracted and how should it be validated?
@@ -179,6 +265,84 @@
 1. **learn-ps FIRST** (Phase 7) - Validate template reusability
 2. **One service at a time** - Sequentially refactor jose-ja, pki-ca, identity services
 3. **sm-kms LAST** - Only after ALL other services running excellently on template
+
+---
+
+### Session State Management for Horizontal Scaling
+
+**Q**: Which session state management pattern(s) should be implemented for horizontal scaling?
+
+**A**: SQL database-backed sessions ONLY (JWS/OPAQUE/JWE formats), NO Redis, NO sticky sessions.
+
+**Implementation Priority** (all stored in SQL database):
+
+1. **JWS Sessions** (HIGHEST priority): Stateless token validation, cryptographic signature verification
+2. **OPAQUE Sessions** (MEDIUM priority): Database lookup for every request, maximum revocation control
+3. **JWE Sessions** (LOWER priority): Encrypted session data, requires decryption on every request
+
+**Deployment Priority** (security preference):
+
+1. **JWE Sessions** (HIGHEST security): Encrypted session data prevents inspection
+2. **OPAQUE Sessions** (MEDIUM security): Database-backed with immediate revocation
+3. **JWS Sessions** (LOWER security): Signed but not encrypted, readable session data
+
+**Rejected Patterns**:
+
+- ❌ Redis cluster: Adds operational complexity, NOT supported
+- ❌ Sticky sessions: Load balancer affinity, prevents true horizontal scaling
+- ❌ Stateless-only: All session formats stored in SQL for auditability and revocation
+
+**Rationale**: Database-backed sessions (PostgreSQL/SQLite) provide consistent storage, auditability, and revocation capabilities across all three token formats. Implementation priority favors simplest-to-implement (JWS) first, deployment priority favors most secure (JWE) for production.
+
+---
+
+### Database Sharding Strategy
+
+**Q**: When should database sharding be implemented and what partition strategy should be used?
+
+**A**: Phase 4 with multi-tenancy features, partition by tenant ID.
+
+**Implementation Plan**:
+
+- **Timeline**: Phase 4 (alongside multi-tenancy implementation)
+- **Partition Strategy**: Tenant ID-based sharding
+- **Rationale**: Aligns with multi-tenancy isolation, natural partition boundary
+
+**Deferred Until Phase 4**:
+
+- Read replicas and connection pooling sufficient for Phases 1-3
+- Sharding adds complexity only justified by multi-tenant deployments
+- Partition by tenant ID provides clean isolation and scalability
+
+---
+
+### Multi-Tenancy Isolation Pattern
+
+**Q**: Which multi-tenancy isolation pattern MUST be implemented?
+
+**A**: Schema-level isolation ONLY (separate PostgreSQL schemas per tenant).
+
+**Implementation Pattern**:
+
+```sql
+-- Tenant A
+CREATE SCHEMA tenant_a;
+CREATE TABLE tenant_a.users (...);  
+CREATE TABLE tenant_a.sessions (...);
+
+-- Tenant B
+CREATE SCHEMA tenant_b;
+CREATE TABLE tenant_b.users (...);
+CREATE TABLE tenant_b.sessions (...);
+```
+
+**Rejected Patterns**:
+
+- ❌ Table-level isolation with tenant_id column: Increases risk of data leakage
+- ❌ Row-Level Security (RLS): Adds query complexity and performance overhead
+- ❌ Database-level isolation: Too heavy-weight for multi-tenancy
+
+**Rationale**: Schema-level isolation provides strong separation guarantees without the overhead of separate databases. PostgreSQL schemas are lightweight and well-supported by GORM.
 
 ---
 
@@ -369,6 +533,108 @@ timeout-coefficient: 2  # Timeout multiplier
 
 ---
 
+### Race Detector with Probabilistic Test Execution
+
+**Q**: Should race detector workflow disable probabilistic execution and accept longer runtimes?
+
+**A**: Keep probabilistic execution enabled - accept that some race conditions may not be caught in single run.
+
+**Race Detector Behavior**:
+
+- Race detector adds ~10× runtime overhead
+- Probabilistic tests (TestProbQuarter, TestProbTenth) still active
+- Accept longer per-package timeout (150s vs 15s for unit tests)
+- Different test cases execute on each run (shuffle + probability)
+
+**Trade-offs**:
+
+- ✅ Stays under GitHub Actions time limits (even with 10× overhead)
+- ✅ Different code paths tested across multiple CI runs
+- ⚠️ Some race conditions may not appear in specific run
+- ❌ Disabling probabilistic execution → >25 minutes per workflow (unacceptable)
+
+**Mitigation**:
+
+- Run race detector on every commit (broad coverage over time)
+- Shuffle tests for different execution orders
+- Local developers can disable probabilistic execution for deep race analysis
+
+**Rationale**: Maintaining <15 minute CI workflows is critical for development velocity. Probabilistic execution with race detector still provides valuable coverage across multiple runs. Organizations requiring 100% deterministic race detection can run exhaustive local tests.
+
+---
+
+### E2E Test API Path Coverage
+
+**Q**: Which API paths MUST be covered by E2E tests for each product?
+
+**A**: Test BOTH `/service/api/v1/*` and `/browser/api/v1/*` paths with separate E2E scenarios per path type.
+
+**Priority Order**:
+
+1. **`/service/api/v1/*` paths** (HIGHEST priority):
+   - Headless client authentication (Bearer tokens, mTLS, Client ID/Secret)
+   - Simpler test implementation (no browser automation)
+   - Backend-to-backend integration scenarios
+   - Examples: API key validation, certificate issuance, JOSE signing
+
+2. **`/browser/api/v1/*` paths** (MEDIUM priority):
+   - Browser client authentication (session cookies, OAuth flows)
+   - Full middleware stack (CORS, CSRF, CSP)
+   - Browser automation required (Playwright/Puppeteer)
+   - Examples: OAuth authorization code flow, OIDC authentication, SPA session management
+
+**Coverage Requirements**:
+
+- ALL products MUST test BOTH path types eventually
+- Initial E2E (Phase 2): `/service/*` paths only for JOSE, CA, KMS
+- Expanded E2E (Phase 3+): Add `/browser/*` paths for all products
+- Identity product: `/service/*` AND `/browser/*` in same phase (OAuth flows require browser)
+
+**Rationale**: Dual API paths serve fundamentally different client types with different authentication patterns. Both MUST be tested to ensure complete coverage. `/service/*` priority enables faster initial E2E implementation.
+
+---
+
+### Mutation Testing Generated Code Exemption
+
+**Q**: What code qualifies as "generated code" eligible for mutation testing exemption?
+
+**A**: OpenAPI-generated code + GORM auto-migration code + protobuf (if used).
+
+**Exemption-Eligible Code**:
+
+1. **OpenAPI-generated models/clients** (oapi-codegen output):
+   - `api/model/*` - OpenAPI schema-generated Go structs
+   - `api/client/*` - OpenAPI-generated HTTP client code
+   - `api/server/*` - OpenAPI-generated server interfaces
+
+2. **GORM auto-migration code**:
+   - `internal/*/models/*_gen.go` - GORM code generation output
+   - Database migration files if generated
+
+3. **Protobuf-generated code** (if used):
+   - `*.pb.go` - protoc compiler output
+   - `*_grpc.pb.go` - gRPC service definitions
+
+**NOT Exemption-Eligible**:
+
+- Hand-written business logic (even if simple)
+- Test helpers and utilities
+- Configuration parsers
+- Third-party libraries (vendor/ directory already excluded)
+
+**Ramp-Up Requirement**:
+
+- Generated code MAY start below 85% mutation coverage
+- MUST have plan to reach ≥85% through:
+  - Additional integration tests exercising generated code paths
+  - Custom validation logic for edge cases
+  - Error handling tests for generated error paths
+- Document exemptions in clarify.md with justification and timeline
+
+**Rationale**: Generated code often has boilerplate that's difficult to meaningfully test with mutations. However, generated code still needs sufficient testing through integration tests that exercise the full generated code paths.
+
+---
+
 ## Cryptography and Hash Service
 
 ### Hash Registry Architecture
@@ -447,6 +713,34 @@ hash_service:
 
 ---
 
+### mTLS Certificate Revocation Checking
+
+**Q**: What revocation checking mechanisms MUST be implemented for mTLS client certificates?
+
+**A**: BOTH CRLDP and OCSP MUST be implemented with immediate CRL publication.
+
+**CRLDP Requirements** (CRITICAL):
+
+- Each CRLDP HTTPS URL MUST contain ONLY ONE certificate serial number
+- CRLs MUST be signed and available IMMEDIATELY upon revocation (NOT batched)
+- CRLs MUST NOT be delayed by 24 hours or any batch processing window
+- HTTPS endpoints MUST be reliable and highly available
+
+**OCSP Requirements**:
+
+- OCSP responder MUST be implemented for all issued certificates
+- OCSP stapling is NICE-TO-HAVE but NOT a blocker for initial implementation
+
+**Implementation Priority**:
+
+1. CRLDP with immediate publication (MANDATORY Phase 2)
+2. OCSP responder (MANDATORY Phase 2)
+3. OCSP stapling (OPTIONAL Phase 3+)
+
+**Rationale**: Immediate CRL publication provides fastest revocation propagation. Per-certificate CRL URLs enable fine-grained revocation without requiring clients to download massive CRLs. OCSP provides additional validation path. OCSP stapling reduces client-side lookup latency but not critical for initial release.
+
+---
+
 ### Pepper Requirements
 
 **Q**: How should pepper be managed and rotated?
@@ -476,6 +770,81 @@ hash_service:
   - Audit logs (track all hash queries for forensics)
   - Strict access control (limit who can query hashes)
 - **RECOMMENDED**: Apply same protections to all 4 registries for consistency
+
+---
+
+### Unseal Secrets Key Management
+
+**Q**: Should unseal secrets derive keys deterministically OR store pre-generated JWKs directly?
+
+**A**: Support BOTH approaches with configuration selection per deployment.
+
+**Option A: Derived Keys** (HKDF-based):
+
+```yaml
+unseal:
+  mode: derive
+  secret: <base64-encoded-secret>
+  # Derives JWKs deterministically using HKDF
+```
+
+**Benefits**: Reproducible across environments, smaller secret size, algorithm-agile
+
+**Option B: Pre-Generated JWKs**:
+
+```yaml
+unseal:
+  mode: jwks
+  jwks_file: /run/secrets/unseal_jwks.json
+  # Uses exact JWKs from file
+```
+
+**Benefits**: Full control over key material, supports imported keys, easier audit
+
+**Configuration Selection**:
+
+- Development/Testing: Prefer derivation (reproducibility, simpler setup)
+- Production: Support both (organization-specific requirements)
+- Migration: Switch between modes by re-encrypting data with new unseal JWKs
+
+**Rationale**: Different organizations have different key management policies. Supporting both approaches provides maximum flexibility without sacrificing security.
+
+---
+
+### Pepper Rotation Operational Procedure
+
+**Q**: What is the REQUIRED procedure for rotating pepper without service interruption?
+
+**A**: Lazy migration - re-hash records opportunistically as users re-authenticate.
+
+**Lazy Migration Pattern**:
+
+1. **Deploy new pepper version**: Bump hash version (v3 → v4), add new pepper to configuration
+2. **Dual-version support**: Service accepts BOTH v3 (old pepper) and v4 (new pepper) hashes
+3. **Re-hash on re-authentication**: When user authenticates with v3 hash, verify with old pepper, then re-hash with v4 pepper and update database
+4. **Gradual migration**: Records naturally migrate over time as users authenticate
+5. **Monitor migration**: Track percentage of records still on old version
+6. **Deprecation**: After 90 days (or sufficient migration %), remove v3 support
+
+**Configuration Example**:
+
+```yaml
+hash_service:
+  password_registry:
+    current_version: 4  # New hashes use v4 + new pepper
+    supported_versions: [3, 4]  # Accept v3 + old pepper during grace period
+    pepper_v3: <old-pepper-base64>
+    pepper_v4: <new-pepper-base64>
+```
+
+**Advantages**:
+
+- Zero downtime (no service interruption)
+- No forced password resets (user convenience)
+- No mass re-hashing job (avoids database load spike)
+- Natural migration tied to user activity
+
+**Rationale**: Lazy migration balances security (new pepper deployed immediately for new hashes) with operational simplicity (no downtime or mass updates). Most active users migrate within days/weeks; inactive accounts migrate over months.
 
 ---
 
@@ -522,6 +891,115 @@ cryptoutil services (OTLP gRPC:4317 or HTTP:4318)
 - Maintains consistent architecture across environments
 - Enables future enhancements (sampling, aggregation, etc.)
 - Prevents direct coupling between services and telemetry platforms
+
+---
+
+### Telemetry Sampling Strategy Configuration
+
+**Q**: What are the exact thresholds and algorithm for adaptive sampling?
+
+**A**: All sampling strategies in OpenTelemetry Collector config as commented options, tail-based sampling uncommented by default.
+
+**OpenTelemetry Collector Configuration Pattern** (`configs/observability/otel-collector-config.yaml`):
+
+```yaml
+processors:
+  # OPTION A: Head-based sampling (commented out)
+  # probabilistic_sampler:
+  #   sampling_percentage: 100  # 100% at low load
+  #   # Decrease to 10% at high load via config hot-reload
+
+  # OPTION B: Tail-based sampling (ACTIVE - uncommented)
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 100
+    expected_new_traces_per_sec: 10
+    policies:
+      - name: sample-errors
+        type: status_code
+        status_code: {status_codes: [ERROR]}
+      - name: sample-slow
+        type: latency
+        latency: {threshold_ms: 1000}
+      - name: sample-probabilistic
+        type: probabilistic
+        probabilistic: {sampling_percentage: 10}
+
+  # OPTION C: Adaptive sampling (commented out)
+  # adaptive_sampler:
+  #   initial_sampling_percentage: 100
+  #   target_spans_per_second: 1000
+
+  # OPTION D: Always-on (commented out)
+  # noop: {}
+```
+
+**Default Strategy**: Tail-based sampling (Option B)
+
+- Sample ALL errors (status_code: ERROR)
+- Sample ALL slow requests (latency >1s)
+- Sample 10% of remaining traces probabilistically
+
+**Customization**:
+
+- Administrator can uncomment desired strategy
+- Swap between strategies by commenting/uncommenting blocks
+- Hot-reload config without service restart (OpenTelemetry Collector feature)
+
+**Rationale**: Tail-based sampling provides best balance of observability (catch all errors and slow requests) and cost (reduce trace volume). Configuration-driven approach enables deployment-specific tuning without code changes.
+
+---
+
+### Health Check Failure Tolerance and Recovery
+
+**Q**: What action should orchestrator take when health checks fail after all retries?
+
+**A**: Kubernetes: Remove from load balancer + restart pod. Docker Compose: Mark unhealthy + continue running.
+
+**Kubernetes Behavior**:
+
+- **Liveness probe failure**: Restart pod (assumes service is deadlocked/crashed)
+- **Readiness probe failure**: Remove from Service load balancer (stop routing traffic)
+- Both use same health check endpoint (`/admin/v1/livez` and `/admin/v1/readyz`)
+- Configuration:
+
+  ```yaml
+  livenessProbe:
+    httpGet:
+      path: /admin/v1/livez
+      port: 9090
+      scheme: HTTPS
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    failureThreshold: 5  # 5 retries = 25s before restart
+
+  readinessProbe:
+    httpGet:
+      path: /admin/v1/readyz  
+      port: 9090
+      scheme: HTTPS
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    failureThreshold: 3  # 3 retries = 15s before removing from LB
+  ```
+
+**Docker Compose Behavior**:
+
+- **Health check failure**: Mark container as "unhealthy" in `docker ps` output
+- **NO automatic restart**: Container continues running (manual intervention required)
+- **NO load balancer removal**: Docker Compose doesn't provide service mesh load balancing
+- Configuration:
+
+  ```yaml
+  healthcheck:
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+    start_period: 10s
+    interval: 5s
+    timeout: 2s
+    retries: 5  # 5 retries = 25s before marking unhealthy
+  ```
+
+**Rationale**: Kubernetes and Docker Compose have different orchestration capabilities. Kubernetes restarts failed pods and manages load balancer registration. Docker Compose marks health status but requires manual intervention for recovery.
 
 ---
 
@@ -685,6 +1163,127 @@ services:
 ```
 
 **Rationale**: Test-containers provide isolated, randomized credentials; Docker secrets enforce secure patterns for production-like E2E tests.
+
+---
+
+### PostgreSQL Service Container Workflows
+
+**Q**: Which workflows beyond ci-race/ci-mutation/ci-coverage REQUIRE PostgreSQL service container?
+
+**A**: OPTIONAL for all workflows - prefer test-containers library over PostgreSQL service container.
+
+**Migration Strategy**:
+
+- **Current State**: Some workflows use PostgreSQL service container for unit/integration tests
+- **Target State**: ALL workflows use test-containers library for database dependencies
+- **Transition**: Gradually migrate workflows from service containers to test-containers
+
+**Test-Containers Benefits**:
+
+- ✅ Isolated database per test suite (no shared state)
+- ✅ Randomized credentials (no hardcoded passwords)
+- ✅ Automatic cleanup (containers removed after tests)
+- ✅ Works locally and in CI/CD identically
+- ✅ No port conflicts (random host ports)
+
+**PostgreSQL Service Container Pattern** (DEPRECATED):
+
+```yaml
+# ❌ DEPRECATED - Use test-containers instead
+services:
+  postgres:
+    image: postgres:18
+    env:
+      POSTGRES_DB: cryptoutil_test
+      POSTGRES_USER: cryptoutil
+      POSTGRES_PASSWORD: cryptoutil_test_password
+    options: >-
+      --health-cmd pg_isready
+      --health-interval 10s
+      --health-timeout 5s
+      --health-retries 5
+    ports:
+      - 5432:5432
+```
+
+**Test-Containers Pattern** (PREFERRED):
+
+```go
+// ✅ PREFERRED - Test-containers provide isolation
+func TestWithPostgreSQL(t *testing.T) {
+    ctx := context.Background()
+    container, err := postgres.RunContainer(ctx,
+        testcontainers.WithImage("postgres:18"),
+        postgres.WithDatabase("cryptoutil_test"),
+        postgres.WithUsername("cryptoutil_"+uuid.New().String()),
+        postgres.WithPassword(uuid.New().String()),
+    )
+    require.NoError(t, err)
+    defer container.Terminate(ctx)
+
+    connStr, err := container.ConnectionString(ctx)
+    require.NoError(t, err)
+    // Use connStr for test
+}
+```
+
+**Rationale**: Test-containers library provides better isolation, security, and developer experience than GitHub Actions service containers. Service containers acceptable during transition period but all new tests MUST use test-containers.
+
+---
+
+### Docker Image Pre-Pull Strategy
+
+**Q**: When should workflows use docker-images-pull action vs on-demand pulling?
+
+**A**: Only pre-pull for workflows that use Docker - not all workflows need Docker images.
+
+**Pre-Pull Decision Matrix**:
+
+| Workflow Type | Pre-Pull? | Rationale |
+|---------------|-----------|-----------|
+| E2E tests (Docker Compose) | ✅ YES | 10+ images, parallel pull saves 2-5 minutes |
+| Load tests (Docker Compose) | ✅ YES | Same as E2E, critical for timeout avoidance |
+| Unit tests (no Docker) | ❌ NO | No Docker images needed |
+| Integration tests (test-containers) | ⚠️ OPTIONAL | Test-containers pulls images on-demand, pre-pull may not help |
+| CI/CD validation (no Docker) | ❌ NO | Linting, formatting, no Docker needed |
+
+**Pre-Pull Action Usage**:
+
+```yaml
+# ✅ CORRECT - E2E workflow with Docker Compose
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pre-pull Docker images
+        uses: ./.github/actions/docker-images-pull
+        with:
+          compose-files: |
+            deployments/compose.integration.yml
+
+      - name: Run E2E tests
+        run: docker compose -f deployments/compose.integration.yml up --abort-on-container-exit
+```
+
+**On-Demand Pulling** (NO pre-pull):
+
+```yaml
+# ✅ CORRECT - Unit test workflow without Docker
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+
+      - name: Run unit tests
+        run: go test ./...
+        # No Docker images needed, no pre-pull
+```
+
+**Rationale**: Pre-pulling images in parallel reduces E2E test startup time by 50-70% (from 5-10 minutes to 2-4 minutes). However, workflows without Docker don't need pre-pull overhead. Test-containers manages its own image pulling, so pre-pull provides minimal benefit.
 
 ---
 
@@ -1456,14 +2055,148 @@ SQLite is **acceptable** for production single-instance deployments with **<1000
 
 ---
 
+### Federation Timeout Configuration Granularity
+
+**Q**: Should federation timeouts be configurable per federated service or use single global timeout?
+
+**A**: Per-service timeout configuration REQUIRED (identity_timeout, jose_timeout, ca_timeout separate).
+
+**Configuration Pattern**:
+
+```yaml
+federation:
+  identity:
+    url: "https://identity-authz:8180"
+    timeout: 10s  # Identity-specific timeout
+    retry:
+      max_attempts: 3
+      backoff: exponential
+
+  jose:
+    url: "https://jose:8280"
+    timeout: 15s  # JOSE-specific timeout (longer for crypto ops)
+    retry:
+      max_attempts: 3
+      backoff: exponential
+
+  ca:
+    url: "https://ca:8380"
+    timeout: 30s  # CA-specific timeout (longer for cert issuance)
+    retry:
+      max_attempts: 2
+      backoff: linear
+```
+
+**Rationale for Per-Service Timeouts**:
+
+- **Identity**: Fast token validation (<10s typical)
+- **JOSE**: Moderate crypto operations (10-15s for signing/verification)
+- **CA**: Slow certificate issuance (20-30s for full CA chain validation)
+- Different services have different performance characteristics
+- Global timeout forces lowest-common-denominator (too short for CA, too long for Identity)
+
+**Rejected Pattern**:
+
+- ❌ Single global `federation_timeout: 10s` - Doesn't accommodate service-specific needs
+
+---
+
+### Cross-Service API Versioning Strategy
+
+**Q**: How should API versioning be handled across federated services deployed independently?
+
+**A**: Backward compatible - support N-1 version (current and previous version).
+
+**Compatibility Requirements**:
+
+- Services MUST support TWO API versions simultaneously (current + previous)
+- Example: Identity v2 MUST work with JOSE v1 OR JOSE v2
+- Forward compatibility NOT required (Identity v1 does NOT need to work with JOSE v2)
+
+**API Version Negotiation**:
+
+```yaml
+# Service advertises supported versions via /admin/v1/version endpoint
+GET https://jose:8280/admin/v1/version
+Response:
+{
+  "current_version": "v2",
+  "supported_versions": ["v1", "v2"],
+  "deprecated_versions": ["v1"]  # v1 supported but deprecated
+}
+```
+
+**Client Version Selection**:
+
+```go
+// Client prefers latest supported version
+if serverSupports("v2") {
+    useAPIVersion("v2")
+} else if serverSupports("v1") {
+    useAPIVersion("v1")
+} else {
+    return ErrVersionMismatch
+}
+```
+
+**Deprecation Timeline**:
+
+- New version released: Support v(N) and v(N-1) for 90 days
+- After 90 days: Drop v(N-1) support, add v(N+1) support
+- Requires coordinated rollout but allows independent deployments within 90-day window
+
+**Rationale**: N-1 compatibility enables gradual rollout of new API versions without requiring synchronized deployments. 90-day overlap provides sufficient time for all services to upgrade.
+
+---
+
+### Service Discovery DNS Caching Behavior
+
+**Q**: How should services handle DNS caching for federated service URLs?
+
+**A**: No caching - perform DNS lookup on every request.
+
+**DNS Resolution Pattern**:
+
+- Resolve federated service hostname on EVERY request
+- Do NOT cache DNS lookup results
+- Do NOT respect DNS TTL (even if low)
+- Use Go's default DNS resolver (respects /etc/resolv.conf)
+
+**Configuration Example**:
+
+```yaml
+federation:
+  identity:
+    url: "https://identity-authz:8180"  # DNS lookup on every request
+  jose:
+    url: "https://jose.cryptoutil.svc.cluster.local:8280"  # DNS lookup on every request
+```
+
+**Trade-offs**:
+
+- ✅ Highest reliability (immediate failover to new IP)
+- ✅ No stale DNS cache issues
+- ✅ Kubernetes service mesh updates reflected immediately
+- ⚠️ Slightly higher latency (DNS lookup overhead ~1-5ms)
+
+**Rejected Patterns**:
+
+- ❌ Cache DNS for 5 minutes - Delays failover, stale IPs during rolling updates
+- ❌ Respect DNS TTL with 30s minimum - Still delays Kubernetes service updates
+- ❌ Service mesh (Istio/Linkerd) - Adds operational complexity, out of scope for Phase 2
+
+**Rationale**: In Kubernetes and Docker Compose environments, service IPs change frequently during rolling updates and scaling events. No-cache DNS ensures immediate failover without stale connection attempts.
+
+---
+
 ## Status Summary
 
-**Last Review**: December 23, 2025
+**Last Review**: December 24, 2025
 **Next Actions**:
 
-1. Update constitution.md with architectural decisions (service template migration, MFA factors, federation fallback)
-2. Update spec.md with finalized requirements (SQLite production, cert profiles, load testing, E2E coverage, telemetry retention)
-3. Update copilot instructions to remove `/admin/v1/metrics` references
+1. Update constitution.md with architectural decisions (session state, multi-tenancy, database sharding, mTLS revocation, unseal secrets)
+2. Update spec.md with finalized requirements (connection pools, read replicas, API versioning, DNS caching, sampling strategy)
+3. Update copilot instructions to reflect new clarifications (probabilistic testing with race detector, E2E path coverage)
 4. Generate plan.md and tasks.md based on all clarifications
 5. Begin implementation with evidence-based validation
 
@@ -1481,3 +2214,24 @@ SQLite is **acceptable** for production single-instance deployments with **<1000
 - Circuit breaker: Fail-fast in open state, retry only in closed/half-open states
 - Session token format: Configuration-driven with all three formats supported
 - Introspection caching: Positive results configurable TTL, negative results 1-minute fixed
+
+**New Clarifications (Session 2025-12-24)**:
+
+- Session state: SQL-backed JWS/OPAQUE/JWE (implementation priority JWS>OPAQUE>JWE, deployment priority JWE>OPAQUE>JWS)
+- Database sharding: Phase 4 with multi-tenancy, partition by tenant ID
+- Multi-tenancy: Schema-level isolation only
+- mTLS revocation: CRLDP+OCSP both required, CRLDP immediate (not batched), OCSP stapling nice-to-have
+- Unseal secrets: Support BOTH derivation and pre-generated JWKs
+- Pepper rotation: Lazy migration (re-hash on re-authentication)
+- Race detector: Keep probabilistic execution enabled
+- E2E coverage: Test BOTH /service/* and /browser/*, priority /service/*
+- Generated code exemption: OpenAPI + GORM + protobuf
+- Sampling: All strategies in OTLP config, tail-based uncommented
+- Health check failure: K8s remove LB + restart; Docker mark unhealthy + continue
+- Federation timeouts: Per-service required (identity_timeout, jose_timeout, ca_timeout)
+- API versioning: Backward compatible (support N-1)
+- DNS caching: No caching, lookup every request
+- Connection pools: Configurable, hot reloadable
+- Read replicas: Removed, all reads to primary
+- PostgreSQL workflows: Optional, use test-containers
+- Docker pre-pull: Only for workflows using Docker
