@@ -99,6 +99,13 @@ For port binding:
 - Public and private endpoints MUST use port 0 (dynamic allocation) to avoid port collisions
 - Rationale: static ports cause port collisions during parallel test automation
 
+**Admin Port Isolation** (Unified Deployments):
+
+- Admin ports (127.0.0.1:9090) REQUIRE containerization for multi-service deployments
+- Each container has isolated localhost namespace, preventing port collisions
+- Non-containerized unified deployments NOT SUPPORTED
+- Rationale: Multiple services using 127.0.0.1:9090 would collide on shared localhost without container isolation
+
 #### CA Architecture Pattern
 
 ##### TLS Issuing CA Configurations
@@ -1962,6 +1969,16 @@ A: Stop retrying immediately - fail-fast until half-open state after 60s timeout
 - Open state: All requests fail immediately without retry attempts
 - After timeout (60s), transition to Half-Open for testing
 - Prevents resource exhaustion and cascading failures
+
+**Q2: How do multiple services avoid admin port collisions in unified deployments?**
+
+A: Containerization requirement - each container has isolated localhost namespace, non-containerized unified deployments not supported
+
+- Admin ports fixed at 127.0.0.1:9090 for all services
+- Containerization REQUIRED for multi-service deployments (each container isolates localhost)
+- Non-containerized unified deployments NOT SUPPORTED (would cause port collisions)
+- Single-service standalone deployments can run non-containerized
+- Rationale: Container isolation enables consistent admin port across all services
 
 ---
 
