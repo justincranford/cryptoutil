@@ -1,15 +1,6 @@
 # Authentication and Authorization Factors Reference
 
-**Version**: 1.1.0
-**Last Updated**: 2025-12-24
-**Authority**: Single source of truth for authentication/authorization methods across all cryptoutil products
 **Referenced By**: constitution.md, spec.md, copilot instructions (02-10.authn.instructions.md)
-
----
-
-## Purpose
-
-This document provides the authoritative list of all authentication and authorization methods supported by cryptoutil products, using compact table format for quick reference.
 
 ---
 
@@ -85,88 +76,35 @@ This document provides the authoritative list of all authentication and authoriz
 
 ## Storage Realm Specifications
 
-### YAML + SQL (Config > DB Priority)
-
-**Purpose**: Disaster recovery - service must start even if database unavailable
-
-**Pattern**:
-
-- Credentials stored in BOTH configuration files AND database
-- Service attempts YAML first, falls back to SQL if YAML unavailable
-- Updates written to BOTH realms for consistency
-
-**Applicable Methods**: Static credentials (Basic auth, Bearer tokens, Client certificates), Provider configurations (Social Login, SAML)
-
-**Rationale**: Pre-configured credentials enable service bootstrap without database dependency
-
-### SQL ONLY
-
-**Purpose**: Dynamic user-specific data requiring persistence
-
-**Pattern**:
-
-- Credentials stored ONLY in database (no YAML support)
-- Cannot be pre-configured in YAML (dynamic per-user enrollment)
-- Updates written to database only
-
-**Applicable Methods**: User-specific enrollment data (TOTP secrets, WebAuthn credentials, Recovery codes), One-time tokens/codes (Magic Links, Random OTPs)
-
-**Rationale**: User enrollment is dynamic and cannot be predetermined in configuration files
+| Realm | Purpose | Pattern | Applicable Methods |
+|-------|---------|---------|-------------------|
+| **YAML + SQL** | Disaster recovery | Config > DB priority, stored in both | Static credentials, provider configs |
+| **SQL ONLY** | Dynamic user data | Database only | User enrollment, OTPs, magic links |
 
 ---
 
 ## Multi-Factor Authentication (MFA)
 
-### Common MFA Combinations
+**Common Combinations**: Password + TOTP/WebAuthn/Push/OTP (browser), Client ID/Secret + mTLS/Bearer (headless)
 
-- Browser + TOTP: Password + Authenticator App (most common)
-- Browser + WebAuthn: Password + Security Key
-- Browser + Push: Password + Mobile App Push
-- Browser + OTP: Password + SMS/Email OTP
-- Headless + mTLS: Client ID/Secret + TLS Client Certificate
-- Headless + Bearer: Client ID/Secret + API Token
+**Step-Up**: Re-auth MANDATORY every 30 min for high-sensitivity operations
 
-### MFA Step-Up Authentication
-
-- Re-authentication MANDATORY every 30 minutes for high-sensitivity operations
-- Session remains valid for low-sensitivity operations
-- Configurable per resource sensitivity level
-
-### MFA Enrollment Workflow
-
-- OPTIONAL enrollment during initial setup
-- Access LIMITED to low-sensitivity resources until additional factors enrolled
-- Only one identifying factor required for initial login
+**Enrollment**: Optional during setup, access limited until enrolled
 
 ---
 
 ## Session Token Formats
 
-| Format | Description | Use Case |
-|--------|-------------|----------|
-| Opaque | Random UUID, server-side lookup | Maximum security, no token inspection |
-| JWE | Encrypted JWT | Stateless, encrypted claims |
-| JWS | Signed JWT | Stateless, inspectable claims |
-
-**Session Storage Backend**: SQLite (single-node), PostgreSQL (distributed). NO Redis/Memcached.
+**Formats**: Opaque (UUID), JWE (encrypted JWT), JWS (signed JWT)
+**Storage**: SQLite (single-node), PostgreSQL (distributed). NO Redis/Memcached.
 
 ---
 
 ## Authorization Methods
 
-### Headless Authorization (2 Methods)
-
-1. **Scope-Based Authorization**: OAuth 2.1 scopes (read:keys, write:keys)
-2. **RBAC**: Role assignments (admin, operator, viewer)
-
-### Browser Authorization (4 Methods)
-
-1. **Scope-Based Authorization**: OAuth 2.1 scopes
-2. **RBAC**: Role assignments
-3. **Resource-Level Access Control**: Per-resource ownership and ACLs
-4. **Consent Tracking**: (scope, resource) tuples
-
-**Zero Trust**: NO caching of authorization decisions, always re-evaluate permissions
+**Headless**: Scope-based, RBAC
+**Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking
+**Zero Trust**: NO caching, always re-evaluate permissions
 
 ---
 

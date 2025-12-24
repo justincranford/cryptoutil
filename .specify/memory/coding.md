@@ -1,7 +1,5 @@
 # Coding Patterns and Standards Specifications
 
-**Version**: 1.0.0
-**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/03-01.coding.instructions.md`
 
 ## File Size Limits
@@ -11,6 +9,7 @@
 **Hard limit**: 500 lines → refactor required
 
 **Why Size Limits Matter**:
+
 - Faster LLM processing and token usage
 - Easier human review and maintenance
 - Better code organization and discoverability
@@ -23,6 +22,7 @@
 **ALWAYS declare default values as named variables** rather than inline literals
 
 **Example**:
+
 ```go
 var defaultConfigFiles = []string{"config.yaml", "app.yaml"}
 var defaultPort = 8080
@@ -45,6 +45,7 @@ Maintains API consistency and reduces confusion when chaining calls.
 **CRITICAL: ALWAYS read complete context before refactoring or modifying code**
 
 **Why This Matters**:
+
 - LLM agents lose exclusion context during narrow-focus refactoring
 - "Verbose comments" may be intentional protection (e.g., self-modification warnings)
 - Design patterns may not be obvious from single file view
@@ -97,22 +98,9 @@ read_file self_modification_test.go   # Validation patterns
 
 ### Format_go Self-Modification Prevention - CRITICAL
 
-**CRITICAL WARNING: enforce_any.go self-modification regression has occurred MULTIPLE times**
+**See**: anti-patterns.md for complete format_go regression details
 
-**Historical Incidents**:
-
-1. **b934879b (Nov 17)**: Added backticks to comments to prevent pattern replacement
-2. **b0e4b6ef (Dec 16)**: Fixed infinite loop (counted "any" instead of "interface{}")
-3. **8c855a6e (Dec 16)**: Fixed test data (used "any" instead of "interface{}")
-4. **71b0e90d (Nov 20)**: Added comprehensive self-exclusion patterns
-
-**Root Cause**: LLM agents lose exclusion context during narrow-focus refactoring
-
-**MANDATORY Rules**:
-
-- ❌ **NEVER modify comments/test data in enforce_any.go or format_go_test.go**
-- ❌ **NEVER change `interface{}` to `any` in format_go package without reading full context**
-- ✅ **ALWAYS read complete context before refactoring self-modifying code**
+**Rules**: NEVER modify enforce_any.go without reading full context (filter.go, magic_cicd.go, tests)
 
 ## Conditional Statement Chaining
 

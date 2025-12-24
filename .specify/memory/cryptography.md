@@ -1,7 +1,5 @@
 # Cryptography Specifications
 
-**Version**: 1.0.0
-**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/02-07.cryptography.instructions.md`
 
 ## FIPS 140-3 Compliance - MANDATORY
@@ -12,235 +10,41 @@ All cryptographic operations MUST use FIPS-approved algorithms ONLY.
 
 ### Approved Algorithms
 
-**Asymmetric Cryptography**:
-- RSA ≥ 2048 bits (2048, 3072, 4096)
-- ECDSA (NIST curves: P-256, P-384, P-521)
-- ECDH (NIST curves: P-256, P-384, P-521)
-- EdDSA (Ed25519, Ed448)
+| Category | Algorithms |
+|----------|------------|
+| **Asymmetric** | RSA ≥2048, ECDSA/ECDH (P-256/384/521), EdDSA (Ed25519/448) |
+| **Symmetric** | AES ≥128 (GCM, CBC+HMAC) |
+| **Digest** | SHA-256/384/512, HMAC-SHA256/384/512 |
+| **KDF** | PBKDF2-HMAC-SHA256/384/512, HKDF-SHA256/384/512 |
 
-**Symmetric Cryptography**:
-- AES ≥ 128 bits (128, 192, 256)
-- AES-GCM (authenticated encryption)
-- AES-CBC (with HMAC for authentication)
+### BANNED Algorithms
 
-**Digest Functions**:
-- SHA-256, SHA-384, SHA-512
-- HMAC-SHA256, HMAC-SHA384, HMAC-SHA512
-
-**Key Derivation**:
-- PBKDF2-HMAC-SHA256, PBKDF2-HMAC-SHA384, PBKDF2-HMAC-SHA512
-- HKDF-SHA256, HKDF-SHA384, HKDF-SHA512
-
-### BANNED Algorithms - NEVER USE
-
-❌ **bcrypt** - NOT FIPS-approved, use PBKDF2-HMAC-SHA256 instead
-❌ **scrypt** - NOT FIPS-approved, use PBKDF2-HMAC-SHA256 instead
-❌ **Argon2** - NOT FIPS-approved, use PBKDF2-HMAC-SHA256 instead
-❌ **MD5** - NOT FIPS-approved, use SHA-256 or SHA-512 instead
-❌ **SHA-1** - NOT FIPS-approved, use SHA-256 or SHA-512 instead
-❌ **RSA < 2048 bits** - Insufficient key length
-❌ **DES, 3DES** - Deprecated ciphers
+❌ **Password Hashing**: bcrypt, scrypt, Argon2 (use PBKDF2-HMAC-SHA256)
+❌ **Digests**: MD5, SHA-1 (use SHA-256/512)
+❌ **Other**: RSA <2048, DES, 3DES
 
 ## Algorithm Agility - MANDATORY
 
-**All cryptographic operations MUST support configurable algorithms with FIPS-approved defaults**
+**Pattern**: Config-driven selection with Algorithm + KeySize fields, switch on type. Support RSA 2048/3072/4096, ECDSA P-256/384/521, EdDSA Ed25519/448, AES 128/192/256, SHA-256/384/512.
 
-### Configurable Algorithm Support
+## Key Management - MANDATORY
 
-**Key Generation**:
-- RSA: 2048, 3072, 4096 bit keys
-- ECDSA: P-256, P-384, P-521 curves
-- EdDSA: Ed25519, Ed448
+### Unseal Key Derivation
 
-**Encryption**:
-- AES-GCM: 128, 192, 256 bit keys
-- AES-HS (AES-HMAC): 256, 384, 512 bit keys
+**ALWAYS use HKDF** for deterministic derivation: Same master secret + salt + info = same unseal key across instances
 
-**Digests**:
-- SHA-256, SHA-384, SHA-512
-- HMAC-SHA256, HMAC-SHA384, HMAC-SHA512
+### Elastic Key Rotation
 
-**Key Derivation**:
-- PBKDF2-HMAC-SHA256, PBKDF2-HMAC-SHA384, PBKDF2-HMAC-SHA512
-- HKDF-SHA256, HKDF-SHA384, HKDF-SHA512
-
-### Configuration-Driven Selection
-
-**Pattern**: Use config structs with Algorithm and KeySize fields, switch on algorithm type:
-
-```go
-type CryptoConfig struct {
-    Algorithm AlgorithmType  // RSA, ECDSA, EdDSA, AES, etc.
-    KeySize   int            // 2048, 3072, 4096, 128, 192, 256, etc.
-}
-
-func GenerateKey(config CryptoConfig) (Key, error) {
-    switch config.Algorithm {
-    case AlgRSA:
-        return rsa.GenerateKey(rand.Reader, config.KeySize)
-    case AlgECDSA:
-        return ecdsa.GenerateKey(getCurve(config.KeySize), rand.Reader)
-    case AlgEdDSA:
-        return ed25519.GenerateKey(rand.Reader)
-    default:
-        return nil, fmt.Errorf("unsupported algorithm: %s", config.Algorithm)
-    }
-}
-```
-
-## Unseal Key Management - MANDATORY
-
-### Unseal Key Derivation - CRITICAL
-
-**ALWAYS derive unseal keys deterministically for interoperability**
-
-All cryptoutil instances using the same set of shared unseal secrets MUST derive the same unseal JWKs, including KIDs and key materials, for cryptographic interoperability between instances.
-
-### Deterministic Derivation Pattern
-
-**Use HKDF with master secret, salt, and purpose-specific info**:
-
-```go
-func DeriveUnsealKey(masterSecret, salt, info []byte) ([]byte, error) {
-    // Extract: PRK = HKDF-Extract(salt, masterSecret)
-    prk := hkdf.Extract(sha256.New, masterSecret, salt)
-
-    // Expand: OKM = HKDF-Expand(PRK, info, length)
-    reader := hkdf.Expand(sha256.New, prk, info)
-    key := make([]byte, 32)  // 256-bit key
-    if _, err := io.ReadFull(reader, key); err != nil {
-        return nil, fmt.Errorf("failed to expand key: %w", err)
-    }
-    return key, nil
-}
-```
-
-**Why Deterministic**: Same master secret + salt + info = same unseal key across all instances
-
-## Elastic Key Rotation
-
-**Key versioning pattern**: Elastic Keys are key rings with active Material Key for encrypting||signing, and historical Material Keys for decrypting||verifying
-
-### Rotation Workflow
-
-**Encryption**:
-- Always use active key
-- Embed key ID with ciphertext||signature
-
-**Decryption**:
-- Use key matching embedded key ID
-- Deterministically identify historical key for decrypting||verifying
-
-**Rotation**:
-- Generate new Material Key
-- Identify it as the active key ID
-- Keep all old keys for decrypting||verifying
-
-### Implementation Pattern
-
-```go
-type ElasticKeyRing struct {
-    ActiveKeyID   string
-    ActiveKey     Key
-    HistoricalKeys map[string]Key  // keyID → key
-}
-
-func (kr *ElasticKeyRing) Encrypt(plaintext []byte) (Ciphertext, error) {
-    // Always use active key, embed key ID
-    ct, err := kr.ActiveKey.Encrypt(plaintext)
-    return Ciphertext{KeyID: kr.ActiveKeyID, Data: ct}, err
-}
-
-func (kr *ElasticKeyRing) Decrypt(ciphertext Ciphertext) ([]byte, error) {
-    // Use key matching embedded key ID
-    key := kr.HistoricalKeys[ciphertext.KeyID]
-    if key == nil {
-        return nil, fmt.Errorf("key %s not found", ciphertext.KeyID)
-    }
-    return key.Decrypt(ciphertext.Data)
-}
-
-func (kr *ElasticKeyRing) Rotate() error {
-    // Generate new Material Key
-    newKey, err := GenerateKey(config)
-    if err != nil {
-        return err
-    }
-
-    // Move current active key to historical keys
-    kr.HistoricalKeys[kr.ActiveKeyID] = kr.ActiveKey
-
-    // Set new key as active
-    kr.ActiveKeyID = generateKeyID()
-    kr.ActiveKey = newKey
-
-    return nil
-}
-```
+**Pattern**: Key ring with active key (encrypt/sign) + historical keys (decrypt/verify). Embed key ID with ciphertext. Rotation: generate new key, move current to historical, keep all old keys.
 
 ## Secure Random Generation - MANDATORY
 
-**ALWAYS use crypto/rand, NEVER use math/rand**
-
-### Required Pattern
-
-```go
-import crand "crypto/rand"
-
-// Generate random bytes
-func generateRandomBytes(length int) ([]byte, error) {
-    bytes := make([]byte, length)
-    if _, err := crand.Read(bytes); err != nil {
-        return nil, fmt.Errorf("failed to generate random bytes: %w", err)
-    }
-    return bytes, nil
-}
-
-// Use for: tokens, nonces, salts, IVs, session IDs
-```
-
-**Why**: `crypto/rand` uses OS-provided CSPRNG (cryptographically secure pseudo-random number generator). `math/rand` is predictable and NOT suitable for cryptographic operations.
+**ALWAYS use crypto/rand** (CSPRNG), NEVER math/rand (predictable)
 
 ## Cryptographic Libraries - MANDATORY
 
-### Preferred Standard Library Packages
-
-**Key Generation**:
-- `crypto/rand` - Random number generation
-- `crypto/rsa` - RSA key generation
-- `crypto/ecdsa` - ECDSA key generation
-- `crypto/ed25519` - EdDSA key generation
-
-**Symmetric Encryption**:
-- `crypto/aes` - AES cipher
-- `crypto/cipher` - Block cipher modes (GCM, CBC)
-
-**Hashing**:
-- `crypto/sha256` - SHA-256 digest
-- `crypto/sha512` - SHA-384, SHA-512 digest
-- `crypto/hmac` - HMAC construction
-
-**TLS**:
-- `crypto/tls` - TLS connections
-
-**Key Derivation**:
-- `golang.org/x/crypto/pbkdf2` - PBKDF2 implementation
-- `golang.org/x/crypto/hkdf` - HKDF implementation
-
-### Third-Party Library Policy
-
-**Avoid third-party crypto libraries unless necessary** (requires security review)
-
-**Acceptable Use Cases**:
-- Implementing protocols not in standard library (e.g., JWT, JOSE)
-- Performance-critical operations with audited implementations
-- Compliance with specific standards (e.g., FIPS modules)
-
-**Review Requirements**:
-- Security audit history
-- Active maintenance and CVE response
-- Community adoption and testing
-- FIPS 140-3 certification (if applicable)
+**Preferred**: `crypto/*` (rand, rsa, ecdsa, ed25519, aes, cipher, sha256, sha512, hmac, tls), `golang.org/x/crypto/*` (pbkdf2, hkdf)
+**Third-Party**: Avoid unless necessary (JWT, JOSE, FIPS modules) - requires security review
 
 ## Key Takeaways
 

@@ -1,7 +1,5 @@
 # Product Suite Architecture Specifications
 
-**Version**: 1.0.0
-**Last Updated**: 2025-12-24
 **Referenced By**: `.github/instructions/02-01.architecture.instructions.md`
 
 ## Product Suite Overview
@@ -117,9 +115,11 @@ federation_fallback:
 ### Cross-Service Authentication
 
 **Service-to-Service mTLS** (Preferred):
+
 - Configure client cert, key, and CA cert via file paths or Docker secrets
 
 **OAuth 2.1 Client Credentials** (Alternative):
+
 - Configure client ID, secret, and token endpoint
 
 ### Federation Testing Requirements

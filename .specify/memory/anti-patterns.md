@@ -12,45 +12,21 @@
 
 ### Format_go Self-Modification - P0 INCIDENTS
 
-**Historical Context**: Multiple P0 regressions (Nov 17, Nov 20, Dec 16 × 2) where LLM agents inadvertently modified self-exclusion patterns during refactoring.
+**Root Cause**: LLM agents lose exclusion context during narrow-focus refactoring, inadvertently modifying self-exclusion patterns.
 
-#### Root Cause
-
-**LLM Context Loss**: During narrow-focus refactoring (e.g., "modernize code to Go 1.25"), agents lose exclusion context:
-
-1. Read single file: `enforce_any.go`
-2. See "verbose comments" and `` `interface{}` `` usage
-3. Apply modernization: Change `` `interface{}` `` → `` `any` ``
-4. **Miss critical context**: These are intentional protection patterns
-5. **Result**: Self-modification protection bypassed
-
-#### Historical Incidents
-
-**Incident 1 (commit b934879b, Nov 17)**:
-- Added backticks to comments to prevent pattern replacement
-- Symptom: Replacement logic caught comment text as code
-
-**Incident 2 (commit 71b0e90d, Nov 20)**:
-- Added comprehensive self-exclusion patterns
-- Symptom: `filter.go` didn't exclude `enforce_any.go` itself
-
-**Incident 3 (commit b0e4b6ef, Dec 16)**:
-- Fixed infinite loop (counted "any" instead of "interface{}")
-- Symptom: Replacement counter logic broken
-
-**Incident 4 (commit 8c855a6e, Dec 16)**:
-- Fixed test data (used "any" instead of "interface{}")
-- Symptom: Test expectations didn't match replacement behavior
+**Historical Incidents**: b934879b (Nov 17), 71b0e90d (Nov 20), b0e4b6ef (Dec 16), 8c855a6e (Dec 16)
 
 #### MANDATORY Prevention Rules
 
 **NEVER DO**:
+
 - ❌ Modify comments or test data in `enforce_any.go` without reading full package context
 - ❌ Change `` `interface{}` `` to `` `any` `` in format_go package without verification
 - ❌ Refactor code in isolation (single-file view)
 - ❌ Simplify "verbose" CRITICAL comments without understanding purpose
 
 **ALWAYS DO**:
+
 - ✅ Read complete package context before refactoring self-modifying code
 - ✅ Check for CRITICAL/SELF-MODIFICATION tags in comments
 - ✅ Verify self-exclusion patterns exist and are respected
@@ -60,246 +36,63 @@
 #### Pattern Recognition
 
 **Indicators of Intentional Protection**:
+
 - **CRITICAL comments**: High-priority annotations requiring preservation
 - **Backticked strings** in code: `` `interface{}` `` → Prevents replacement by pattern matching
 - **Test data patterns**: May use "wrong" values intentionally (e.g., `interface{}` as input to test replacement)
 - **Self-exclusion constants**: `MagicCICDFilterExcludeEnforceAny` in `magic_cicd.go`
 
-#### Code Archaeology Checklist (Before Refactoring)
+#### Code Archaeology Checklist
 
-**Required Reading**:
-1. `enforce_any.go` (target file)
-2. `filter.go` (self-exclusion patterns)
-3. `magic_cicd.go` (exclusion constants)
-4. `format_go_test.go` (test data patterns)
-5. `self_modification_test.go` (validation patterns)
-6. Post-mortems: `docs/P0.*` files (historical lessons)
-7. Git log: `git log --oneline enforce_any.go` (change history)
-
-**Key Questions**:
-1. Why does this code exist? (Read README, post-mortems)
-2. What protections are in place? (Check self-exclusion patterns)
-3. Are "verbose" comments intentional? (Look for CRITICAL tags)
-4. What tests validate this behavior? (Read test files)
-5. Has this failed before? (Check post-mortems, git log)
-
-**Example**:
-```bash
-# Correct archaeology pattern
-read_file enforce_any.go              # Target file
-read_file filter.go                   # Self-exclusion patterns
-read_file magic_cicd.go               # Exclusion constants
-read_file format_go_test.go           # Test data
-read_file self_modification_test.go   # Validation
-git log --oneline enforce_any.go      # Change history
-```
+**Required Reading**: enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go, docs/P0.*, git log
 
 ---
 
 ### Windows Firewall Exception Prevention - CRITICAL
 
-**Problem**: Binding to `0.0.0.0` triggers Windows Firewall exception prompts, blocking CI/CD automation.
+**Problem**: Binding to `0.0.0.0` triggers Windows Firewall prompts in tests.
 
-**Impact**: Each `0.0.0.0` binding = 1 Windows Firewall popup = blocked test execution
+**Rules**:
 
-#### NEVER DO
+- ❌ NEVER bind to `0.0.0.0` in tests (triggers firewall)
+- ❌ NEVER use `localhost` (ambiguous IPv4/IPv6)
+- ✅ ALWAYS use `127.0.0.1` or `cryptoutilMagic.IPv4Loopback` in tests
+- ✅ Use `0.0.0.0` ONLY in Docker containers
 
-❌ **Bind to 0.0.0.0 in unit tests or integration tests**:
-```go
-// WRONG - triggers firewall prompt
-listener, _ := net.Listen("tcp", "0.0.0.0:8080")
-```
-
-❌ **Use "localhost" (may resolve to IPv6 `::1`)**:
-```go
-// WRONG - ambiguous, may resolve to ::1
-listener, _ := net.Listen("tcp", "localhost:8080")
-```
-
-#### ALWAYS DO
-
-✅ **Bind to 127.0.0.1 (IPv4 loopback) in tests**:
-```go
-// CORRECT - no firewall prompt
-addr := fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, port)  // "127.0.0.1"
-listener, _ := net.Listen("tcp", addr)
-```
-
-✅ **Use 0.0.0.0 ONLY in Docker containers**:
-```yaml
-# docker-compose.yml
-services:
-  kms:
-    ports:
-      - "8080:8080"  # Maps external 8080 to container's 0.0.0.0:8080
-    command: ["--bind-address=0.0.0.0"]
-```
-
-**Rationale**: Docker containers run in isolated network namespace → no Windows Firewall prompt
-
-#### Detection Pattern
-
-**Symptoms**:
-- CI/CD hangs during test execution
-- Windows Firewall dialog appears during local test runs
-- `net.Listen` calls timeout in GitHub Actions
-
-**Fix**:
-1. Grep for `0.0.0.0` in test files: `grep -r "0.0.0.0" **/*_test.go`
-2. Replace with `127.0.0.1` or `cryptoutilMagic.IPv4Loopback`
-3. Verify tests pass locally without firewall prompts
+**Detection**: `grep -r "0.0.0.0" **/*_test.go`
 
 ---
 
 ### SQLite Connection Pool Deadlocks - P0 INCIDENT
 
-**Problem**: GORM explicit transactions require multiple connections, but `MaxOpenConns=1` causes deadlock.
+**Problem**: GORM transactions require multiple connections, `MaxOpenConns=1` causes deadlock.
 
-**Symptom**: Tests hang indefinitely when using `db.Begin()` with SQLite
+**Rules**:
 
-#### Root Cause
+- ❌ NEVER set `MaxOpenConns=1` with GORM transactions
+- ❌ NEVER use `sql.TxOptions{ReadOnly: true}` with SQLite (not supported)
+- ✅ ALWAYS set `MaxOpenConns=5` (`cryptoutilMagic.SQLiteMaxOpenConnections`)
+- ✅ ALWAYS enable WAL mode
+- ✅ ALWAYS set busy timeout 30s (`cryptoutilMagic.DBSQLiteBusyTimeout`)
 
-**GORM Transaction Wrapper Pattern**:
-```go
-// GORM transaction acquires connection #1
-tx := db.Begin()
-
-// Repository method uses getDB(ctx, r.db)
-// If ctx has no transaction, uses base db.WithContext(ctx)
-// Tries to acquire connection #2 → DEADLOCK (MaxOpenConns=1)
-result := getDB(ctx, r.db).WithContext(ctx).Create(user).Error
-```
-
-**MaxOpenConns=1**: Prevents second connection acquisition → indefinite hang
-
-#### NEVER DO
-
-❌ **Set MaxOpenConns=1 with GORM transactions**:
-```go
-// WRONG - causes deadlock with GORM transactions
-sqlDB.SetMaxOpenConns(1)
-sqlDB.SetMaxIdleConns(1)
-```
-
-❌ **Use sql.TxOptions{ReadOnly: true} with SQLite** (not supported):
-```go
-// WRONG - SQLite doesn't support read-only transactions
-tx := db.Begin(&sql.TxOptions{ReadOnly: true})
-```
-
-#### ALWAYS DO
-
-✅ **Set MaxOpenConns=5 for GORM transaction support**:
-```go
-// CORRECT - allows GORM transaction wrapper + repository operations
-sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)  // 5
-sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)  // 5
-```
-
-✅ **Enable WAL mode**:
-```go
-// CORRECT - allows multiple concurrent readers + 1 writer
-sqlDB.Exec("PRAGMA journal_mode=WAL;")
-```
-
-✅ **Set busy timeout**:
-```go
-// CORRECT - retry on lock contention instead of immediate failure
-sqlDB.Exec("PRAGMA busy_timeout = 30000;")  // 30 seconds
-```
-
-✅ **Use standard transactions for read operations** (SQLite doesn't support read-only):
-```go
-// CORRECT - standard transaction works for reads
-tx := db.Begin()  // NOT db.Begin(&sql.TxOptions{ReadOnly: true})
-```
-
-#### Rationale
-
-**Why MaxOpenConns=5**:
-- GORM transaction wrapper uses 1 connection
-- Repository operations use separate connection (from pool)
-- SQLite still enforces 1 concurrent writer (via WAL mode + busy timeout)
-- Connection pool prevents contention, busy timeout handles retries
-
-**Reference Implementation**: `internal/server/repository/sqlrepository/sql_provider.go` lines 201-213
-
-#### Magic Constants
-
-Use from `internal/common/magic/magic_database.go`:
-- `cryptoutilMagic.DBSQLiteBusyTimeout` = 30 seconds
-- `cryptoutilMagic.SQLiteMaxOpenConnections` = 5
+**Reference**: `internal/server/repository/sqlrepository/sql_provider.go` lines 201-213
 
 ---
 
 ### Docker Compose Port Conflicts - E2E FAILURES
 
-**Problem**: Multiple services include same telemetry compose file, causing port conflicts on host machine.
+**Problem**: Multiple services including same telemetry compose file cause host port conflicts.
 
-**Historical Incident**: 2025-12-19 session - CA and JOSE deployments both tried to bind OTEL collector ports 4317, 4318, 8888, 8889, 13133 to host.
+**Rules**:
 
-#### Root Cause
+- ❌ NEVER expose container ports to host if multiple instances may run
+- ✅ ALWAYS use container-to-container networking (no host port mappings)
+- ✅ Services communicate via container names (e.g., `opentelemetry-collector-contrib:4317`)
 
-**Naive Compose Include Pattern**:
-```yaml
-# ca/compose.yml
-include:
-  - path: ../telemetry/otel-collector.yml  # Binds ports to host
-
-# jose/compose.yml
-include:
-  - path: ../telemetry/otel-collector.yml  # CONFLICT - same ports
-```
-
-**Result**: Second `docker compose up` fails with "port already allocated"
-
-#### NEVER DO
-
-❌ **Expose container ports to host if multiple instances may run simultaneously**:
-```yaml
-# WRONG - exposes to host, conflicts with other services
-services:
-  opentelemetry-collector:
-    ports:
-      - "4317:4317"  # Host port 4317 → container port 4317
-      - "4318:4318"
-```
-
-❌ **Use same compose include in multiple services without considering port conflicts**
-
-#### ALWAYS DO
-
-✅ **Use container-to-container networking (no host port mappings)**:
-```yaml
-# CORRECT - no host ports, container-to-container only
-services:
-  opentelemetry-collector:
-    # NO ports section (no host mapping)
-    networks:
-      - cryptoutil-network
-```
-
-✅ **Services communicate via Docker network using container names**:
-```go
-// Application configuration
-otlpEndpoint: "opentelemetry-collector-contrib:4317"  // Container name, not localhost
-```
-
-✅ **Test E2E workflows with sequential deployments to catch port conflicts**:
-```bash
-# E2E test pattern
-docker compose -f deployments/ca/compose.yml up -d
-docker compose -f deployments/jose/compose.yml up -d  # Should work (no port conflicts)
-```
-
-#### Detection Pattern
-
-**Symptoms**:
-- `docker compose up` for service B fails after service A succeeds
-- Error: "bind: address already in use" or "port is already allocated"
-- E2E workflow fails with "cannot start service X"
+**Detection**: "bind: address already in use" or "port is already allocated"
 
 **Diagnosis**:
+
 ```bash
 # Check what's using the port
 netstat -ano | findstr "4317"  # Windows
@@ -310,6 +103,7 @@ grep -r "ports:" deployments/*/compose.yml
 ```
 
 **Fix**:
+
 1. Remove host port mappings from shared compose files (e.g., `telemetry/otel-collector.yml`)
 2. Use container-to-container networking only
 3. Update application configs to use container names (not `localhost:4317`)
@@ -330,6 +124,7 @@ grep -r "ports:" deployments/*/compose.yml
 #### Symptom Pattern
 
 **Progressive Configuration Fixes with Zero Symptom Change**:
+
 ```
 Round 3: 331 bytes log - "TLS cert file required"
 Round 4: 313 bytes log - "database DSN required"
@@ -344,6 +139,7 @@ Round 6: 196 bytes log - SAME BYTES (zero change after valid fix)
 #### NEVER DO
 
 ❌ **Keep applying configuration fixes when symptoms don't change**:
+
 ```bash
 # WRONG - 6 rounds of config fixes with zero symptom improvement
 # Round 1: Fix TLS paths
@@ -359,6 +155,7 @@ Round 6: 196 bytes log - SAME BYTES (zero change after valid fix)
 #### ALWAYS DO
 
 ✅ **Code archaeology FIRST - compare with working service before debugging config**:
+
 ```bash
 # CORRECT - 9 minutes to identify root cause
 # 1. Download container logs from failed workflow
@@ -373,6 +170,7 @@ Round 6: 196 bytes log - SAME BYTES (zero change after valid fix)
 ✅ **Check Application.Start() initializes both public + admin servers**
 
 ✅ **Compare container log byte counts across fix attempts**:
+
 - Decreasing bytes = earlier crash = deeper problem
 - Same bytes = no symptom change = implementation issue
 
@@ -419,6 +217,7 @@ See `docs/WORKFLOW-FIXES-CONSOLIDATED.md` for complete timeline of 2025-12-20 wo
 #### NEVER DO
 
 ❌ **Write tests without checking baseline coverage first**:
+
 ```bash
 # WRONG - trial and error
 # Write TestFunc1, run coverage → 60%
@@ -434,23 +233,27 @@ See `docs/WORKFLOW-FIXES-CONSOLIDATED.md` for complete timeline of 2025-12-20 wo
 #### ALWAYS DO
 
 ✅ **Generate baseline coverage**:
+
 ```bash
 go test ./pkg -coverprofile=./test-output/coverage_pkg.out
 ```
 
 ✅ **Analyze HTML to identify RED (uncovered) lines**:
+
 ```bash
 go tool cover -html=./test-output/coverage_pkg.out -o ./test-output/coverage_pkg.html
 # Open in browser, find RED lines
 ```
 
 ✅ **Identify specific functions with coverage gaps**:
+
 ```bash
 go tool cover -func=./test-output/coverage_pkg.out | grep "0.0%"
 # Focus on 0% coverage functions first
 ```
 
 ✅ **Write targeted tests for identified gaps**:
+
 ```go
 // Test covers specific RED line: error path in ParseKey()
 func TestParseKey_InvalidFormat(t *testing.T) {
@@ -460,6 +263,7 @@ func TestParseKey_InvalidFormat(t *testing.T) {
 ```
 
 ✅ **Verify improvement with new coverage report**:
+
 ```bash
 go test ./pkg -coverprofile=./test-output/coverage_pkg_new.out
 go tool cover -func=./test-output/coverage_pkg_new.out | grep total
@@ -483,6 +287,7 @@ go tool cover -func=./test-output/coverage_pkg_new.out | grep total
 #### NEVER DO
 
 ❌ **Separate test functions for algorithm/key size variants**:
+
 ```go
 // WRONG - separate functions
 func TestGenerateKey_RSA2048(t *testing.T) { /* ... */ }
@@ -497,6 +302,7 @@ func TestGenerateKey_ECDSAP256(t *testing.T) { /* ... */ }
 #### ALWAYS DO
 
 ✅ **Use table-driven tests with variants as rows**:
+
 ```go
 // CORRECT - table-driven
 func TestGenerateKey(t *testing.T) {
@@ -544,6 +350,7 @@ func TestGenerateKey(t *testing.T) {
 #### NEVER DO
 
 ❌ **Hardcode 2-second timeouts for network operations**:
+
 ```go
 // WRONG - fails under race detector
 ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -556,6 +363,7 @@ client := &http.Client{Timeout: 2 * time.Second}
 #### ALWAYS DO
 
 ✅ **Use 10+ second timeouts for network operations in race mode**:
+
 ```go
 // CORRECT - accounts for race detector overhead
 timeout := 10 * time.Second
@@ -569,6 +377,7 @@ defer cancel()
 ✅ **Increase test timeouts 10× when race detector enabled**
 
 ✅ **Add thread-safe accessor methods (RLock/RUnlock) for shared state**:
+
 ```go
 // CORRECT - mutex-protected map access
 func (s *SessionStore) Get(sessionID string) (*Session, bool) {
@@ -600,6 +409,7 @@ func (s *SessionStore) Get(sessionID string) (*Session, bool) {
 #### NEVER DO
 
 ❌ **Amend commit after push (breaks shared history)**:
+
 ```bash
 # WRONG - breaks collaborators' repos
 git commit -m "initial"
@@ -610,6 +420,7 @@ git push --force    # DANGEROUS
 ```
 
 ❌ **Amend repeatedly during debugging session**:
+
 ```bash
 # WRONG - loses incremental context
 git commit -m "fix bug"
@@ -625,6 +436,7 @@ git commit --amend
 #### ALWAYS DO
 
 ✅ **Commit each logical unit independently**:
+
 ```bash
 # CORRECT - preserve full timeline
 git commit -m "fix(format_go): restore clean baseline from 07192eac"
@@ -638,6 +450,7 @@ git commit -m "test(format_go): verify self_modification_test catches regression
 ✅ **Enable git bisect to identify when bugs were introduced**
 
 ✅ **Use amend ONLY for immediate typo fixes (within 1 minute, before push)**:
+
 ```bash
 # ACCEPTABLE - immediate typo fix
 git commit -m "fix(auth): add mising validation"  # Typo in message
@@ -647,6 +460,7 @@ git commit --amend -m "fix(auth): add missing validation"  # Fix within 1 minute
 #### Rationale
 
 **Incremental Commits**:
+
 - Preserve context (why each change was made)
 - Enable selective revert (revert specific fix without losing others)
 - Show thought process (debugging steps visible)
@@ -663,6 +477,7 @@ git commit --amend -m "fix(auth): add missing validation"  # Fix within 1 minute
 #### NEVER DO
 
 ❌ **Apply "one more fix" on top of corrupted code**:
+
 ```bash
 # WRONG - HEAD may be corrupted from previous attempts
 # Attempt 1: Apply fix A → test fails
@@ -672,6 +487,7 @@ git commit --amend -m "fix(auth): add missing validation"  # Fix within 1 minute
 ```
 
 ❌ **Mix baseline restoration with new fixes in same commit**:
+
 ```bash
 # WRONG - can't isolate which change fixed the bug
 git checkout 07192eac -- enforce_any.go
@@ -684,6 +500,7 @@ git commit -m "fix everything"  # Too broad
 #### ALWAYS DO
 
 ✅ **Restore clean baseline from known-good commit FIRST**:
+
 ```bash
 # CORRECT - start from known-good state
 # 1. Find last known-good commit
@@ -703,6 +520,7 @@ git commit -m "fix(format_go): restore clean baseline from 07192eac"
 ✅ **Verify baseline works (tests pass)**
 
 ✅ **Apply ONLY the new fix (minimal change)**:
+
 ```bash
 # 5. Apply targeted fix ONLY
 # Edit enforce_any.go: Add filepath.Abs() check
@@ -713,6 +531,7 @@ go test ./internal/cmd/cicd/format_go/
 ```
 
 ✅ **Commit as NEW commit with clear description**:
+
 ```bash
 # 7. Commit fix as new commit (not amend)
 git commit -m "fix(format_go): add defensive check with filepath.Abs()"
@@ -737,6 +556,7 @@ git commit -m "fix(format_go): add defensive check with filepath.Abs()"
 #### NEVER DO
 
 ❌ **Create dated session documentation files**:
+
 ```
 docs/SESSION-2025-12-14-coverage-improvement.md
 docs/SESSION-2025-12-15-mutation-testing.md
@@ -751,6 +571,7 @@ docs/SESSION-2025-12-16-e2e-workflows.md
 #### ALWAYS DO
 
 ✅ **Append to `specs/*/implement/DETAILED.md` Section 2 timeline**:
+
 ```markdown
 ## Section 2: Implementation Timeline
 
@@ -776,6 +597,7 @@ docs/SESSION-2025-12-16-e2e-workflows.md
 **Session-specific work** → Append to `DETAILED.md`
 
 **Permanent reference** → Create dedicated doc:
+
 - `docs/ADR-001-database-choice.md` (architectural decision)
 - `docs/P0.1-format-go-regression.md` (post-mortem)
 - `docs/USER-GUIDE.md` (user documentation)
@@ -793,6 +615,7 @@ docs/SESSION-2025-12-16-e2e-workflows.md
 #### NEVER DO
 
 ❌ **Hardcode service URLs in application code**:
+
 ```go
 // WRONG - hardcoded URL
 identityURL := "https://identity-authz:8180"
@@ -803,6 +626,7 @@ identityURL := "https://identity-authz:8180"
 #### ALWAYS DO
 
 ✅ **Use configuration for service discovery** (YAML, environment, DNS):
+
 ```yaml
 # config.yaml
 federation:
@@ -812,11 +636,13 @@ federation:
 ```
 
 ✅ **Support multiple federation patterns**:
+
 - DNS-based discovery (Kubernetes)
 - Config file URLs (Docker Compose)
 - Service mesh integration (Consul, Istio)
 
 ✅ **Implement graceful degradation when federated services unavailable**:
+
 ```go
 // Graceful degradation pattern
 if federationEnabled {
@@ -847,6 +673,7 @@ return localFallback(ctx)
 #### NEVER DO
 
 ❌ **Run mutation testing on all packages sequentially**:
+
 ```bash
 # WRONG - 45+ minutes sequential
 gremlins unleash
@@ -854,6 +681,7 @@ gremlins unleash
 ```
 
 ❌ **Include test utilities and generated code in mutation scope**:
+
 ```yaml
 # WRONG - wastes time on non-production code
 gremlins unleash --tags=""  # Tests EVERYTHING including testutil/
@@ -862,6 +690,7 @@ gremlins unleash --tags=""  # Tests EVERYTHING including testutil/
 #### ALWAYS DO
 
 ✅ **Parallelize by package using GitHub Actions matrix strategy**:
+
 ```yaml
 # CORRECT - parallel execution
 strategy:
@@ -877,6 +706,7 @@ steps:
 ```
 
 ✅ **Exclude tests, generated code, vendor directories**:
+
 ```yaml
 # CORRECT - focus on business logic only
 gremlins unleash --tags="~integration,~e2e" --exclude="*_test.go,**/testutil/**,**/vendor/**"
@@ -903,6 +733,7 @@ gremlins unleash --tags="~integration,~e2e" --exclude="*_test.go,**/testutil/**,
 #### NEVER DO
 
 ❌ **Test every key size variant (RSA 2048/3072/4096) every time**:
+
 ```go
 // WRONG - tests all variants every run
 tests := []struct {
@@ -921,6 +752,7 @@ tests := []struct {
 #### ALWAYS DO
 
 ✅ **Use `TestProbTenth` (10%) or `TestProbQuarter` (25%) for algorithm variants**:
+
 ```go
 // CORRECT - statistical sampling
 tests := []struct {
@@ -950,6 +782,7 @@ for _, tt := range tests {
 **Statistical Sampling**: Bugs eventually caught without running all variants every time
 
 **Magic Constants**:
+
 - `TestProbAlways = 100` (100%) - Base algorithms
 - `TestProbQuarter = 25` (25%) - Important variants
 - `TestProbTenth = 10` (10%) - Redundant variants
@@ -959,27 +792,35 @@ for _, tt := range tests {
 ## Key Takeaways
 
 ### Context Reading - CRITICAL
+
 **ALWAYS read complete context before refactoring self-modifying code**. Check for CRITICAL tags, self-exclusion patterns, test validation patterns.
 
 ### Windows Firewall - CRITICAL
+
 **ALWAYS bind to 127.0.0.1 in tests** (NEVER 0.0.0.0). Use 0.0.0.0 ONLY in Docker containers (isolated namespace).
 
 ### Coverage Analysis - MANDATORY
+
 **ALWAYS analyze baseline HTML before writing tests**. Identify RED lines, write targeted tests, verify improvement.
 
 ### Incremental Commits - BEST PRACTICE
+
 **NEVER amend repeatedly** - preserve history for bisect. Commit each logical unit independently.
 
 ### Restore from Clean - BEST PRACTICE
+
 **ALWAYS restore clean baseline before applying fixes**. HEAD may be corrupted from previous attempts.
 
 ### Port Conflicts - CRITICAL
+
 **Remove host port mappings for shared services in Docker Compose**. Use container-to-container networking only.
 
 ### Mutation Parallelization - PERFORMANCE
+
 **NEVER run sequentially** - use GitHub Actions matrix. 4-6 packages per job, <20 minutes total.
 
 ### Test Timeouts - COMPATIBILITY
+
 **ALWAYS increase timeouts 10× for race detector mode**. Race detector overhead ~10× normal execution.
 
 ---
@@ -987,6 +828,7 @@ for _, tt := range tests {
 ## Cross-References
 
 **Related Documentation**:
+
 - Format_go protection patterns: `.specify/memory/coding.md`
 - Windows Firewall prevention: `.specify/memory/security.md`
 - SQLite configuration: `.specify/memory/sqlite-gorm.md`
