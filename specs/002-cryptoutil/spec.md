@@ -1318,7 +1318,7 @@ services:
 
 ### Linting Requirements
 
-- golangci-lint v2.6.2+
+- golangci-lint v2.7.2+
 - gofumpt (not gofmt)
 - All linters enabled, no `//nolint:` exceptions without justification
 - UTF-8 without BOM for all files

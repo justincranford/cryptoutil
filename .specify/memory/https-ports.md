@@ -43,51 +43,19 @@ All cryptoutil services MUST implement TWO separate HTTPS servers:
 
 ---
 
-## External TLS Subject Alt Names
+## TLS Subject Alt Names for Auto-Generated Certificates
 
-**For auto-generated TLS certificates** (development, testing):
+**Both Public and Private Endpoints** (development/testing):
 
-### Public HTTP Endpoint
+**DNS Names**: `["localhost"]`
 
-**DNS Names**:
+**IP Addresses**: `["127.0.0.1", "::1", "::ffff:127.0.0.1"]` (IPv4 loopback, IPv6 loopback, IPv4-mapped IPv6)
 
-```
-dnsName: ["localhost"]
-```
-
-**IP Addresses**:
-
-```
-ipAddress: [
-  "127.0.0.1",              # IPv4 loopback
-  "::1",                    # IPv6 loopback
-  "::ffff:127.0.0.1"        # IPv4-mapped IPv6 loopback
-]
-```
-
-### Private HTTP Endpoint
-
-**DNS Names**:
-
-```
-dnsName: ["localhost"]
-```
-
-**IP Addresses**:
-
-```
-ipAddress: [
-  "127.0.0.1",              # IPv4 loopback
-  "::1",                    # IPv6 loopback
-  "::ffff:127.0.0.1"        # IPv4-mapped IPv6 loopback
-]
-```
-
-**Purpose**: If TLS Server certification chains are generated automatically, these values populate the Subject Alt Name extension of TLS Server leaf certificates.
+**Purpose**: Auto-generated TLS Server certificates populate Subject Alt Name extension with these values
 
 ---
 
-## External CORS Origins
+## CORS Configuration
 
 ### Public HTTP Endpoint (/browser paths only)
 
@@ -104,46 +72,11 @@ ipAddress: [
 ]
 ```
 
-**Scope**: ONLY `/browser/**` request paths (browser-to-service APIs/UI)
-
-**Why**: Browser-based requests require CORS policies to prevent cross-origin attacks
-
-### Private HTTP Endpoint
-
-**CORS**: NOT APPLICABLE (no browser UI, admin-only access)
+**See**: `service-template.md` for complete ServerConfig pattern and dependency injection
 
 ---
 
-## ServerConfig Pattern - CRITICAL
-
-```go
-type ServerConfig struct {
-    // Public Endpoint Binding
-    BindPublicProtocol    string   // "https" (default), "http" (tests/dev only)
-    BindPublicAddress     string   // "127.0.0.1" (default), "0.0.0.0" (containers)
-    BindPublicPort        uint16   // 8080 (default), 0 (tests - dynamic allocation)
-
-    // Private Endpoint Binding
-    BindPrivateProtocol   string   // "https" (default), "http" (tests/dev only)
-    BindPrivateAddress    string   // "127.0.0.1" (default), rarely changed
-    BindPrivatePort       uint16   // 9090 (default), 0 (tests - dynamic allocation)
-
-    // Public TLS Configuration
-    TLSPublicDNSNames     []string // []string{"localhost"} (default)
-    TLSPublicIPAddresses  []string // []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"} (default)
-
-    // Private TLS Configuration
-    TLSPrivateDNSNames    []string // []string{"localhost"} (default)
-    TLSPrivateIPAddresses []string // []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"} (default)
-
-    // CORS Configuration (Public /browser paths only)
-    CORSAllowedOrigins    []string // []string{"http://localhost:8080", "http://127.0.0.1:8080", ...} (default)
-}
-```
-
----
-
-## Why This Matters
+## Key Takeaways
 
 ### Windows Firewall Warning Prompts - CRITICAL
 

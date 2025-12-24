@@ -11,6 +11,7 @@
 **ALWAYS use concurrent test execution, NEVER disable parallelization**
 
 **Rationale**:
+
 1. **Fastest test execution**: Parallel tests = faster feedback loop
 2. **Reveals production bugs**: Race conditions, deadlocks, data conflicts exposed
 3. **Production validation**: If tests can't run concurrently, production code can't either
@@ -55,6 +56,7 @@ go test -race -count=2 ./...
 ### Why "No Exceptions" Rule Matters
 
 **UNACCEPTABLE Rationalizations**:
+
 - ❌ "70% is better than 60%" → Still 25 points below target (25% technical debt)
 - ❌ "This package is mostly error handling" → Add error path tests
 - ❌ "This is just a thin wrapper" → Still needs 95% coverage
@@ -111,12 +113,14 @@ func main() {
 ```
 
 **Why This Pattern is MANDATORY**:
+
 - **95%+ coverage achievable**: main() 0% acceptable when internalMain() ≥95%
 - **Dependency injection**: Tests inject mocks for args, stdin, stdout, stderr
 - **Exit code testing**: Tests verify return codes without terminating test process
 - **Happy/sad path testing**: Test all branches (missing args, invalid input, success cases)
 
 **Commands Requiring Pattern**:
+
 - cmd/cicd/cicd.go → internalMain() testable function
 - cmd/cryptoutil/main.go → internalMain() testable function
 - cmd/workflow/main.go → internalMain() testable function
@@ -157,6 +161,7 @@ func TestInternalMain_MissingArgs(t *testing.T) {
 **ALWAYS analyze baseline coverage BEFORE writing tests**
 
 **Workflow Steps**:
+
 1. **Generate baseline**: `go test ./pkg -coverprofile=./test-output/coverage_pkg.out`
 2. **Analyze uncovered lines**: `go tool cover -html=./test-output/coverage_pkg.out -o ./test-output/coverage_pkg.html`
 3. **Identify specific gaps**: Open HTML, find RED (uncovered) lines
@@ -164,6 +169,7 @@ func TestInternalMain_MissingArgs(t *testing.T) {
 5. **Verify improvement**: Re-run coverage, confirm gaps filled
 
 **Why This Matters**:
+
 - Prevents wasted effort writing tests for already-covered code
 - Targets exact missing branches, not guesswork
 - Measurable progress per test addition
@@ -191,10 +197,12 @@ go test ./internal/jose -coverprofile=./test-output/coverage_jose_new.out
 ### Test Output File Locations
 
 **MANDATORY Directory Structure**:
+
 - **Test outputs**: `./test-output/` (project root)
 - **Test fixtures**: `./testdata/` or `pkg/testdata/`
 
 **File Naming Convention**:
+
 - ✅ `./test-output/coverage_<package>_<variant>.out`
 - ✅ `./test-output/coverage_jose_baseline.out`
 - ✅ `./test-output/coverage_identity_auth.out`
@@ -279,17 +287,24 @@ go test -count=5 ./internal/shared/crypto/certificate/
 
 ---
 
-## GitHub Actions Performance Considerations
+**GitHub Actions Performance**: Expect 2.5-5× slower than local (shared CPU, network latency). Apply generous timeouts: 5-10s for network ops, 10-15s for TLS. Infrastructure overhead dominates - optimize locally, accept GitHub slowdown.
 
-### Infrastructure Overhead Multipliers
+**Correct t.Parallel() Behavior**: Individual tests show 0.00s (fast logic), total package time includes infrastructure (setup, pause/resume coordination, teardown). Example: 0.00s individual + 303s total = infrastructure overhead, NOT test bug.
 
-| Environment | Execution Time | Multiplier vs Local | Rationale |
-|-------------|----------------|---------------------|-----------|
+**See**: `github.md` for complete GitHub Actions configuration patterns
+
+---
+
+## Table-Driven Test Patterns - MANDATORY
+
+### Happy Paths Pattern
+
 | Local Development | <2s | 1x (baseline) | Dedicated resources |
 | GitHub Actions (typical) | 5-10s | 2.5-5x | Shared CPU, network latency |
 | GitHub Actions (extreme) | 303s | 150x | Cold starts, container overhead |
 
 **Evidence** (from archived WORKFLOW-sqlrepository-TEST-TIMES.md):
+
 - Local execution: <2s (same tests, same code)
 - GitHub execution: 303s → 601s before t.Parallel() optimization
 - Optimization with t.Parallel(): 601s → 303s (50% reduction)
@@ -298,11 +313,13 @@ go test -count=5 ./internal/shared/crypto/certificate/
 ### Timing Strategy
 
 **Local Development**:
+
 - Fast iteration with minimal timeouts
 - Unit tests: 1-5s typical per package
 - Network operations: 2-5s typical
 
 **GitHub Actions**:
+
 - Apply 2.5-3× multiplier minimum to local timings
 - Add 50-100% safety margin for reliability
 - Unit tests: 5-15s per package target
@@ -321,6 +338,7 @@ go test -count=5 ./internal/shared/crypto/certificate/
 ```
 
 **Why Tests Show 0.00s**:
+
 - Individual test logic executes quickly (milliseconds)
 - Total package time includes: setup, pause/resume coordination, teardown, infrastructure
 - 0.00s individual + 303s total = infrastructure overhead, NOT test performance bugs
@@ -393,11 +411,13 @@ func TestSadPaths(t *testing.T) {
 ### When to Use Statistical Sampling
 
 **Use Probability-Based Testing**:
+
 - ✅ Multiple key sizes of same algorithm (RSA 2048/3072/4096, AES 128/192/256)
 - ✅ Multiple variants of same operation (HMAC-SHA256/384/512, ECDSA P-256/384/521)
 - ✅ Large test suites (>50 test cases with redundant coverage)
 
 **NEVER Use Probability-Based Testing**:
+
 - ❌ Fundamentally different algorithms (RSA vs ECDSA vs EdDSA - always test all)
 - ❌ Business logic branches (error paths, edge cases - always test all)
 - ❌ Small test suites (<20 cases - overhead not worth it)
@@ -405,11 +425,13 @@ func TestSadPaths(t *testing.T) {
 ### Magic Constants
 
 **Defined in `internal/shared/magic/magic_testing.go`**:
+
 - `TestProbAlways = 100` (100%) - Base algorithms, critical paths
 - `TestProbQuarter = 25` (25%) - Important variants
 - `TestProbTenth = 10` (10%) - Redundant key size variants
 
 **Rationale**:
+
 - **Faster test execution**: Running all key size variants adds minimal coverage value but significant time
 - **Comprehensive vs. sampling**: Base algorithms use TestProbAlways (100%), variants use TestProbTenth (10%) or TestProbQuarter (25%)
 - **Maintains quality**: Statistical sampling ensures bugs eventually caught without running all variants every time
@@ -422,6 +444,7 @@ func TestSadPaths(t *testing.T) {
 ### Unit Test Timing Requirements
 
 **MANDATORY Timing Targets**:
+
 - **Per-package**: <15 seconds (unit tests only)
 - **Full suite**: <180 seconds (3 minutes, unit tests only)
 - **Integration/E2E**: Excluded from strict timing (Docker startup overhead acceptable)
@@ -448,15 +471,18 @@ fi
 ### Unique Values and Dynamic Ports
 
 **MANDATORY Patterns**:
+
 - **Unique values**: UUIDv7 for all test data (thread-safe, process-safe)
 - **Dynamic ports**: port 0 pattern for all test servers
 - **TestMain for dependencies**: Start once per package (PostgreSQL containers, service dependencies)
 
 **Test Values - Two Options**:
+
 - **Option A**: Generate once, reuse: `id := googleUuid.NewV7()` then use `id` in test cases
 - **Option B**: Magic values from `internal/identity/magic` package
 
 **NEVER**:
+
 - ❌ Inline hardcoded UUIDs, strings
 - ❌ Call `NewV7()` twice expecting same result
 - ❌ Hardcode port numbers (use port 0)
@@ -464,10 +490,12 @@ fi
 ### Real Dependencies vs Mocks
 
 **Preferred Approach**:
+
 - ✅ **Real dependencies**: Test containers (PostgreSQL, Otel Collector Contrib), real crypto, real HTTP servers
 - ✅ **Rationale**: Real dependencies reveal production bugs; mocks hide integration issues
 
 **Mocks ONLY for**:
+
 - Hard-to-reach corner cases
 - External services that can't run locally (email, SMS, cloud-only APIs)
 
@@ -503,6 +531,7 @@ fi
 ## Race Condition Prevention
 
 **MANDATORY Rules**:
+
 - NEVER write to parent scope variables in parallel sub-tests
 - NEVER use t.Parallel() with global state manipulation (os.Stdout, env vars)
 - ALWAYS use inline assertions: `require.NoError(t, resp.Body.Close())`
@@ -524,6 +553,7 @@ go test -race -count=2 ./...
 ### Configuration and Phased Targets
 
 **Phased Targets**:
+
 - **Phase 4**: ≥85% efficacy (early implementation quality baseline)
 - **Phase 5+**: ≥98% efficacy (production-ready quality)
 
@@ -550,15 +580,18 @@ gremlins unleash ./internal/jose
 ```
 
 **Scope**:
+
 - Focus on: Business logic, parsers, validators, crypto operations
 - Exclude: Generated code, vendor directories, tests
 
 **GitHub Actions Optimization**:
+
 - Package-level parallelization (matrix strategy)
 - Per-package timeout (15 minutes max)
 - Total execution target: <20 minutes
 
 **Windows Compatibility**:
+
 - **Known Issue**: gremlins v0.6.0 panics on Windows in some scenarios
 - **Workaround**: Use CI/CD (Linux) for mutation testing until Windows compatibility verified
 
@@ -598,6 +631,7 @@ func BenchmarkAESEncrypt(b *testing.B) {
 **CRITICAL: Fuzz tests MUST ONLY contain fuzz functions (Fuzz*)**
 
 **Requirements**:
+
 - Use `//go:build !fuzz` tag to exclude property tests from fuzz test runs
 - Fuzz test names MUST be unique, NOT substrings of others (e.g., `FuzzHKDFAllVariants` not `FuzzHKDF`)
 - ALWAYS run from project root: `go test -fuzz=FuzzXXX -fuzztime=15s ./path`
@@ -605,6 +639,7 @@ func BenchmarkAESEncrypt(b *testing.B) {
 - Use unquoted names, PowerShell `;` for chaining
 
 **File Organization**:
+
 - `*_fuzz_test.go`: ONLY fuzz functions (FuzzX), no unit tests
 - `*_test.go`: Unit, integration, table-driven tests
 
@@ -650,12 +685,14 @@ func TestEncryptionRoundTrip(t *testing.T) {
 | Hard | 500 | NEVER EXCEED - refactor required |
 
 **Why Size Limits Matter**:
+
 - Faster LLM processing and token usage
 - Easier human review and maintenance
 - Better test organization and discoverability
 - Forces logical test grouping
 
 **Refactoring Strategies** (when file exceeds 400 lines):
+
 1. Split by functionality: `jwk_util_test.go` → `jwk_util_create_test.go` + `jwk_util_validate_test.go`
 2. Split by algorithm type: `crypto_test.go` → `crypto_rsa_test.go` + `crypto_ecdsa_test.go`
 3. Extract test helpers to `*_test_util.go` files
@@ -738,6 +775,7 @@ resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/api", actualPort))
 **Commands organized as `internal/cmd/cicd/<snake_case>/` subdirectories**
 
 **Requirements**:
+
 - EVERY command MUST exclude its own subdirectory (self-exclusion pattern)
 - Define exclusion in `internal/common/magic/magic_cicd.go`
 - Add self-exclusion test to verify pattern works

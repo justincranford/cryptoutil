@@ -106,7 +106,7 @@ jobs:
       - name: Run linters
         uses: ./.github/actions/golangci-lint
         with:
-          version: v2.6.2
+          version: v2.7.2
           timeout: 5m
 
       - name: Build binary

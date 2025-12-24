@@ -14,7 +14,7 @@ authors = [
 
 [project.optional-dependencies]
 dev = [
-    "golangci-lint>=2.6.2",  # Minimum version enforced - always use latest
+    "golangci-lint>=2.7.2",  # Minimum version enforced - always use latest
 ]
 dependencies = [
     "pytest>=9.0.0",

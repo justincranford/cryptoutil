@@ -31,7 +31,7 @@
 
 | Tool | Minimum Version | Release Date | Reference |
 |------|----------------|--------------|-----------|
-| **golangci-lint** | v2.6.2+ | 2025-11-14 | <https://github.com/golangci/golangci-lint/releases/tag/v2.6.2> |
+| **golangci-lint** | v2.7.2+ | 2025-12-19 | <https://github.com/golangci/golangci-lint/releases/tag/v2.7.2> |
 | **Maven** | 3.9+ | 2023-01-31 | <https://maven.apache.org/docs/history.html#3.9.0> |
 | **pre-commit** | 2.20.0+ | 2022-07-10 | <https://github.com/pre-commit/pre-commit/releases/tag/v2.20.0> |
 

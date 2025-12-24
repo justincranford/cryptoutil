@@ -9,18 +9,21 @@
 ### Enforcement Scope
 
 **ALL code must pass linting - NO EXCEPTIONS**:
+
 - Production code (internal/*, pkg/*)
-- Test code (*_test.go, *_bench_test.go, *_fuzz_test.go)
+- Test code (*_test.go,*_bench_test.go, *_fuzz_test.go)
 - Demo applications (cmd/demo/*)
 - Example code (examples/*)
 - Utility scripts (scripts/*, tools/*)
-- Configuration files (*.yaml, *.json)
+- Configuration files (*.yaml,*.json)
 
 **NEVER use `//nolint:` directives except for documented linter bugs**:
+
 - Documented bug: Must reference GitHub issue in comment
 - Example: `//nolint:errcheck // See https://github.com/golangci/golangci-lint/issues/XXXX`
 
 **Rationale**:
+
 - Linting errors in tests/demos/examples teach bad patterns
 - "This is just a demo" is NOT a valid exception
 - All code represents project quality standards
@@ -41,6 +44,7 @@ go run ./cmd/cicd all-enforce-utf8
 ```
 
 **Why**:
+
 - BOM (Byte Order Mark) breaks Go compiler on some platforms
 - UTF-8 without BOM is universal standard
 - Cross-platform consistency (Windows, Linux, macOS)
@@ -48,14 +52,17 @@ go run ./cmd/cicd all-enforce-utf8
 ### Code Style Conventions
 
 **Type Declarations**:
+
 - ✅ Use `any` (not `interface{}`)
 - Exception: See `03-01.coding.instructions.md` for format_go self-modification protection
 
 **Formatters**:
+
 - ✅ Use `gofumpt` (stricter than `gofmt`)
 - ✅ `golangci-lint run --fix` applies gofumpt automatically
 
 **Indentation**:
+
 - Go code: 4 spaces (tab width = 4)
 - YAML/JSON: 2 spaces
 - Markdown: 2 spaces for nested lists
@@ -66,12 +73,13 @@ go run ./cmd/cicd all-enforce-utf8
 
 ### Version Requirements
 
-**Current Version**: v2.6.2 (minimum required)
+**Current Version**: v2.7.2 (minimum required)
 **See**: `02-04.versions.instructions.md` for version consistency requirements
 
 ### v2 Breaking Changes
 
 **Configuration Key Changes**:
+
 ```yaml
 # OLD (v1.x)
 linters-settings:
@@ -85,11 +93,13 @@ linters-settings:
 ```
 
 **Removed Settings** (no longer needed):
+
 - `wsl.force-err-cuddling` - Always enabled in v2
 - `misspell.ignore-words` - Replaced by allowlist
 - `wrapcheck.ignoreSigs` - Replaced by ignorePackageGlobs
 
 **Built-in Formatters**:
+
 - gofumpt integration: `--fix` applies gofumpt automatically
 - goimports integration: `--fix` organizes imports automatically
 
@@ -110,6 +120,7 @@ git commit -m "style: fix linting issues"
 ```
 
 **Why --fix First**:
+
 - Handles formatting (gofumpt, goimports) automatically
 - Fixes auto-fixable linters (wsl, godot, goconst, importas, copyloopvar)
 - Reduces manual work (only manual-fix linters remain)
@@ -123,6 +134,7 @@ git commit -m "style: fix linting issues"
 **NEVER use `//nolint:wsl` - restructure code instead**
 
 **Rules**:
+
 - Group related statements without blank lines
 - Add blank lines between different statement types
 - Cuddling rules enforced (related statements stay together)
@@ -186,6 +198,7 @@ func NewCipher() {}
 **Declare magic values as constants**
 
 **Storage Locations**:
+
 - Shared constants: `internal/common/magic/magic_*.go`
 - Package-specific constants: `internal/<package>/magic*.go`
 
@@ -202,6 +215,7 @@ server.Start(8080)
 ```
 
 **Magic Constant Files**:
+
 - `magic_network.go` - Ports, timeouts, buffer sizes
 - `magic_database.go` - Connection pool sizes, query timeouts
 - `magic_cryptography.go` - Key sizes, iteration counts
@@ -241,11 +255,13 @@ linters-settings:
 ### Auto-Fixable Linters (--fix support)
 
 **Formatters**:
+
 - `gofmt` - Standard Go formatting
 - `gofumpt` - Stricter gofmt (preferred)
 - `goimports` - Organize imports
 
 **Style Linters**:
+
 - `wsl` - Whitespace linting (cuddling rules)
 - `godot` - Comment period enforcement
 - `goconst` - Detect repeated strings → constants
@@ -259,11 +275,13 @@ linters-settings:
 ### Manual-Fix Linters
 
 **Error Handling**:
+
 - `errcheck` - Check all error returns
 - `wrapcheck` - Wrap external errors
 - `errorlint` - Error handling best practices
 
 **Code Quality**:
+
 - `gosimple` - Simplify code
 - `govet` - Go vet checks
 - `ineffassign` - Detect ineffectual assignments
@@ -271,21 +289,26 @@ linters-settings:
 - `unused` - Detect unused code
 
 **Security**:
+
 - `gosec` - Security issues (G401, G501, etc.)
 
 **Testing**:
+
 - `thelper` - Test helper function conventions
 - `tparallel` - t.Parallel() usage
 - `noctx` - HTTP requests must use context
 
 **Dependencies**:
+
 - `gomodguard` - Block/allow specific dependencies
 - `prealloc` - Preallocate slices for performance
 
 **HTTP**:
+
 - `bodyclose` - Ensure HTTP response bodies closed
 
 **Style**:
+
 - `stylecheck` - Go style guide enforcement
 
 **Workflow**: Fix manually, verify with `golangci-lint run`
@@ -306,12 +329,14 @@ go run ./cmd/cicd go-check-identity-imports
 ```
 
 **Rationale**:
+
 - Identity is domain layer (business logic, repositories, models)
 - Server is presentation layer (HTTP handlers, middleware)
 - Client is infrastructure layer (HTTP clients, external APIs)
 - Domain layer MUST NOT depend on presentation/infrastructure layers
 
 **Allowed Identity Imports**:
+
 - ✅ `internal/identity/*` → `internal/identity/*` (same domain)
 - ✅ `internal/identity/*` → `internal/shared/*` (shared utilities)
 - ✅ `internal/identity/*` → `pkg/*` (public libraries)
@@ -329,6 +354,7 @@ go run ./cmd/cicd go-check-identity-imports
 **Example Batch Operations**:
 
 1. **Copyright Header Fixes** (up to 10 files):
+
 ```json
 {
   "replacements": [
@@ -338,7 +364,8 @@ go run ./cmd/cicd go-check-identity-imports
 }
 ```
 
-2. **godot Comment Fixes** (up to 10 files):
+1. **godot Comment Fixes** (up to 10 files):
+
 ```json
 {
   "replacements": [
@@ -349,6 +376,7 @@ go run ./cmd/cicd go-check-identity-imports
 ```
 
 **Workflow**:
+
 1. Run `golangci-lint run` to identify issues
 2. Group similar issues (e.g., all godot fixes, all copyright headers)
 3. Apply up to 10 related replacements per tool call
@@ -364,10 +392,12 @@ go run ./cmd/cicd go-check-identity-imports
 **Preference**: Use `gosec` (part of golangci-lint)
 
 **detect-secrets** (optional):
+
 - Inline allowlist: `// pragma: allowlist secret`
 - Used for additional secret scanning beyond gosec
 
 **gosec** (preferred):
+
 - G401: Detect weak cryptographic algorithms (MD5, DES)
 - G501: Import blocklist (blacklist packages)
 - G505: Detect weak random number generation (math/rand)
@@ -398,12 +428,14 @@ hash := md5.New()
 3. `internal/cmd/cicd/cicd.go` - CICD tool logic
 
 **Documentation Includes**:
+
 - Hook descriptions and purpose
 - Linter rules and enforcement
 - Troubleshooting common issues
 - Version compatibility notes
 
 **Update Workflow**:
+
 1. Modify `.pre-commit-config.yaml` or `.golangci.yml`
 2. Update `docs/pre-commit-hooks.md` with changes
 3. Commit both files together
