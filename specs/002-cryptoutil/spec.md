@@ -407,6 +407,20 @@ CRYPTOUTIL_FEDERATION_JOSE_URL="https://jose:8280"
 - **Timeout**: Reset circuit after timeout (default: 60s)
 - **Half-Open Requests**: Test N requests before closing circuit (default: 3)
 
+**Circuit Breaker State Transitions**:
+
+- **Closed State**: Normal operation, all retry strategies active (exponential backoff, timeout escalation)
+- **Open State**: Circuit opened after N failures, **FAIL-FAST** mode activated:
+  - All requests immediately fail without retry attempts
+  - No retry mechanisms execute (no exponential backoff, no health checks)
+  - Remains open for timeout duration (default: 60s)
+- **Half-Open State**: After timeout expires, test service availability:
+  - Allow N test requests with retry logic enabled (default: 3 requests)
+  - Success → transition to Closed state
+  - Failure → return to Open state, reset timeout
+
+**Critical**: Retry mechanisms (exponential backoff, timeout escalation, health checks) ONLY execute in Closed and Half-Open states. In Open state, requests fail immediately without any retry attempts.
+
 **Fallback Modes**:
 
 - **Identity Unavailable**:
@@ -1935,5 +1949,21 @@ multi_tenancy:
 
 ---
 
+## Clarifications
+
+### Session 2025-12-23
+
+**Q1: When circuit breaker opens after 5 failures, does retry mechanism continue running?**
+
+A: Stop retrying immediately - fail-fast until half-open state after 60s timeout
+
+- Circuit breaker states: Closed (normal), Open (fail-fast), Half-Open (testing)
+- Retry mechanisms ONLY active in Closed and Half-Open states
+- Open state: All requests fail immediately without retry attempts
+- After timeout (60s), transition to Half-Open for testing
+- Prevents resource exhaustion and cascading failures
+
+---
+
 *Specification Version: 1.2.0*
-*Last Updated: December 11, 2025*
+*Last Updated: December 23, 2025*
