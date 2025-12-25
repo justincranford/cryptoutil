@@ -50,24 +50,27 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 #### P1.2.1: Refactor Template TLS Infrastructure
 
 - [ ] **P1.2.1.1**: Use Shared TLS Code in Service Template
-  - **Status**: BLOCKED BY P1.1.1.1
+  - **Status**: ⚠️ IN PROGRESS (Started 2025-12-25)
   - **Effort**: M (5-7 days)
-  - **Dependencies**: P1.1.1.1 (JOSE crypto moved)
+  - **Dependencies**: ✅ P1.1.1.1 (JOSE crypto moved - COMPLETE)
   - **Coverage**: Target ≥98% (template infrastructure code)
   - **Mutation**: Target ≥98% (template infrastructure code)
-  - **Blockers**: P1.1.1.1 (JOSE crypto must be moved first)
+  - **Blockers**: None (READY TO START)
   - **Notes**: Prevents TLS duplication technical debt in all 9 services
-  - **Commits**: (pending)
+  - **Commits**: (in progress)
   - **Refactoring Required**:
-    - Remove duplicated TLS cert generation code
-    - Use `internal/shared/crypto/certificate/` package
-    - Use `internal/shared/crypto/keygen/` package
-    - Implement parameter injection for all TLS configuration
-    - Support 3 TLS modes: static certs, mixed (static+generated), auto-generated
+    - ✅ Analyze current TLS generation code (public.go, admin.go)
+    - ❌ Define 3 TLS modes (static, mixed, auto-generated)
+    - ❌ Create TLS configuration structs with mode selection
+    - ❌ Refactor PublicHTTPServer to use shared crypto/certificate
+    - ❌ Refactor AdminServer to use shared crypto/certificate
+    - ❌ Remove duplicated generateTLSConfig methods
+    - ❌ Add tests for all 3 TLS modes
+    - ❌ Update documentation (USAGE.md, README.md)
   - **Validation Required**:
-    - sm-kms still builds and runs successfully
-    - All 3 TLS modes tested and working
-    - Zero coverage regression (maintain ≥98%)
+    - ❌ sm-kms still builds and runs successfully
+    - ❌ All 3 TLS modes tested and working
+    - ❌ Zero coverage regression (maintain ≥98%)
 
 ---
 
