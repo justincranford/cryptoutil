@@ -447,3 +447,49 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 	// Wait for port to be fully released.
 	time.Sleep(500 * time.Millisecond)
 }
+
+// TestPublicHTTPServer_Shutdown_DoubleCall tests calling Shutdown twice returns error.
+func TestPublicHTTPServer_Shutdown_DoubleCall(t *testing.T) {
+	t.Parallel()
+
+	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in background.
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		_ = server.Start(ctx)
+	}()
+
+	// Wait for server to start.
+	time.Sleep(1 * time.Second)
+
+	// First shutdown - should succeed.
+	shutdownCtx1, shutdownCancel1 := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel1()
+
+	err = server.Shutdown(shutdownCtx1)
+	require.NoError(t, err)
+
+	// Second shutdown - should return error.
+	shutdownCtx2, shutdownCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel2()
+
+	err = server.Shutdown(shutdownCtx2)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "public server already shutdown")
+
+	// Cleanup.
+	wg.Wait()
+
+	// Wait for port to be fully released.
+	time.Sleep(500 * time.Millisecond)
+}
