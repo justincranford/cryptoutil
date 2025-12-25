@@ -182,7 +182,15 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 - Analyzed tasks.md P2.1.1 requirements (12 files to create, 98% coverage/mutation targets)
 - Updated DETAILED.md Section 1: P2.1.1 status changed from ❌ NOT STARTED to ⚠️ IN PROGRESS
-- Next: Read KMS reference implementation to identify reusable patterns
+- Code archaeology on KMS and newer services (JOSE, Identity AuthZ/IdP/RS/RP)
+- Key findings:
+  - KMS uses complex `application_listener.go` with dual Fiber apps (public + private) - **LEGACY PATTERN**
+  - JOSE/Identity services use cleaner pattern: `Application`, `PublicServer`, `AdminServer` - **PREFERRED PATTERN**
+  - JOSE `application.go`: Unified app managing both servers with `Start()`, `Shutdown()`, port getters
+  - JOSE `admin.go`: 325 lines - livez/readyz/shutdown endpoints, self-signed TLS, mutex-protected state
+  - JOSE `server.go`: 336 lines - public server with business logic, TLS config, dynamic port allocation
+  - Identity services follow same pattern with config-driven binding (not hardcoded ports)
+- Next: Extract reusable patterns into `internal/template/server/` package
 
 **Coverage/Quality Metrics**:
 
@@ -191,14 +199,30 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Lessons Learned**:
 
-- Phase 2.1.1 is CRITICAL - blocks ALL service migrations (Phases 3-6)
-- Must complete before any production work can begin
-- learn-im (Phase 3) validates template, production migrations (Phases 4-6) depend on successful validation
+- Two distinct patterns exist in codebase:
+  - **KMS**: Complex single-file `application_listener.go` (legacy, ~458 lines, harder to maintain)
+  - **JOSE/Identity**: Clean separation (`Application` + `PublicServer` + `AdminServer`, easier to test and reuse)
+- Template should extract JOSE/Identity pattern (cleaner, newer, more maintainable)
+- Key abstraction points identified:
+  1. **Dual HTTPS servers**: Public (business) + Admin (health checks) with independent lifecycles
+  2. **TLS generation**: Self-signed cert generation pattern (ECDSA P-384, 1-year validity)
+  3. **Admin endpoints**: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown` (standardized)
+  4. **Dynamic port allocation**: `port 0` pattern for tests, configured ports for production
+  5. **Graceful shutdown**: Context-based shutdown with timeout, mutex-protected state transitions
+  6. **Health check semantics**: Liveness (process alive) vs Readiness (dependencies healthy)
 
-**Constraints Discovered**: None yet
+**Constraints Discovered**:
 
-**Requirements Discovered**: None yet
+- Must support BOTH blocking and non-blocking server startup modes
+- Admin server ALWAYS binds to `127.0.0.1:9090` (hardcoded, NOT configurable per security requirements)
+- Public server binding configurable (`127.0.0.1` for tests, `0.0.0.0` for containers)
 
-**Related Commits**: (pending - starting code archaeology on KMS reference)
+**Requirements Discovered**:
+
+- Template must support constructor injection (config, handlers, middleware)
+- Template must allow service-specific customization (OpenAPI specs, business logic routes)
+- Template must support dual request paths (`/service/**` vs `/browser/**` middleware stacks)
+
+**Related Commits**: ca555b29 (started P2.1.1 tracking)
 
 ---
