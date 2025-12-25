@@ -1,0 +1,318 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package server
+
+import (
+	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"fmt"
+	"math/big"
+	"net"
+	"sync"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+)
+
+// PublicHTTPServer implements the PublicServer interface for business logic APIs and UIs.
+// Binds to configurable port (0 for tests with dynamic allocation, 8080+ for production).
+//
+// Request Path Prefixes:
+// - /service/** : Service-to-service APIs (headless clients, IP allowlist, rate limiting)
+// - /browser/** : Browser-to-service APIs/UI (sessions, CSRF, CORS, CSP headers)
+//
+// Both paths serve the SAME OpenAPI specification but with different middleware stacks.
+type PublicHTTPServer struct {
+	app        *fiber.App
+	port       int
+	actualPort int
+	listener   net.Listener
+	mu         sync.RWMutex
+	shutdown   bool
+}
+
+// NewPublicHTTPServer creates a new public HTTPS server instance.
+//
+// The server starts in shutdown=false state and ready=false state.
+// Applications must call SetReady(true) after initializing dependencies (database, cache, etc.).
+//
+// Parameters:
+// - ctx: Context for initialization (must not be nil)
+// - port: Port to bind (0 for dynamic allocation in tests, 8080+ for production)
+//
+// Returns:
+// - *PublicHTTPServer: Server instance ready to Start()
+// - error: Non-nil if initialization fails (nil context, Fiber setup failure).
+func NewPublicHTTPServer(ctx context.Context, port int) (*PublicHTTPServer, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("context cannot be nil")
+	}
+
+	const defaultTimeout = 30
+
+	server := &PublicHTTPServer{
+		port: port,
+	}
+
+	server.app = fiber.New(fiber.Config{
+		DisableStartupMessage: true,
+		AppName:               "Public API",
+		ReadTimeout:           defaultTimeout * time.Second,
+		WriteTimeout:          defaultTimeout * time.Second,
+		IdleTimeout:           defaultTimeout * time.Second,
+	})
+
+	// Register public routes (placeholder - to be implemented by services).
+	server.registerRoutes()
+
+	return server, nil
+}
+
+// registerRoutes registers public HTTP endpoints.
+// This is a placeholder - services will inject their own route handlers.
+func (s *PublicHTTPServer) registerRoutes() {
+	// Service-to-service paths.
+	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
+
+	// Browser-to-service paths.
+	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
+}
+
+// handleServiceHealth returns health status for service-to-service clients.
+func (s *PublicHTTPServer) handleServiceHealth(c *fiber.Ctx) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.shutdown {
+		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"status": "shutting down",
+		}); err != nil {
+			return fmt.Errorf("failed to send service health shutdown response: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := c.JSON(fiber.Map{
+		"status": "healthy",
+	}); err != nil {
+		return fmt.Errorf("failed to send service health response: %w", err)
+	}
+
+	return nil
+}
+
+// handleBrowserHealth returns health status for browser clients.
+func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.shutdown {
+		if err := c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"status": "shutting down",
+		}); err != nil {
+			return fmt.Errorf("failed to send browser health shutdown response: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := c.JSON(fiber.Map{
+		"status": "healthy",
+	}); err != nil {
+		return fmt.Errorf("failed to send browser health response: %w", err)
+	}
+
+	return nil
+}
+
+// Start starts the public HTTPS server and blocks until shutdown or error.
+//
+// The server:
+// 1. Generates self-signed TLS certificate (development/testing)
+// 2. Creates TCP listener on configured port (0 = dynamic allocation)
+// 3. Starts HTTPS server with Fiber app
+// 4. Blocks until context cancelled or server error
+// 5. Triggers graceful shutdown on context cancellation
+//
+// Parameters:
+// - ctx: Context for server lifecycle (cancellation triggers shutdown)
+//
+// Returns:
+// - error: Non-nil if server fails to start or encounters runtime error.
+func (s *PublicHTTPServer) Start(ctx context.Context) error {
+	if ctx == nil {
+		return fmt.Errorf("context cannot be nil")
+	}
+
+	// Generate self-signed TLS certificate.
+	tlsConfig, err := s.generateTLSConfig()
+	if err != nil {
+		return fmt.Errorf("failed to generate TLS config: %w", err)
+	}
+
+	// Create TCP listener.
+	bindAddress := cryptoutilMagic.IPv4Loopback
+
+	listenConfig := &net.ListenConfig{}
+
+	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", bindAddress, s.port))
+	if err != nil {
+		return fmt.Errorf("failed to create listener: %w", err)
+	}
+
+	s.mu.Lock()
+	s.listener = listener
+
+	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
+	if !ok {
+		s.mu.Unlock()
+
+		return fmt.Errorf("listener address is not *net.TCPAddr")
+	}
+
+	s.actualPort = tcpAddr.Port
+	s.mu.Unlock()
+
+	// Create TLS listener.
+	tlsListener := tls.NewListener(listener, tlsConfig)
+
+	// Start server in goroutine.
+	errChan := make(chan error, 1)
+
+	go func() {
+		if err := s.app.Listener(tlsListener); err != nil {
+			errChan <- fmt.Errorf("public server error: %w", err)
+		} else {
+			errChan <- nil
+		}
+	}()
+
+	// Wait for either context cancellation or server error.
+	select {
+	case <-ctx.Done():
+		// Context cancelled - trigger graceful shutdown.
+		const shutdownTimeout = 5 * time.Second
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+
+		_ = s.Shutdown(shutdownCtx)
+
+		return fmt.Errorf("public server stopped: %w", ctx.Err())
+	case err := <-errChan:
+		return err
+	}
+}
+
+// Shutdown gracefully shuts down the public server.
+func (s *PublicHTTPServer) Shutdown(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	s.mu.Lock()
+
+	if s.shutdown {
+		s.mu.Unlock()
+
+		return fmt.Errorf("public server already shutdown")
+	}
+
+	s.shutdown = true
+	s.mu.Unlock()
+
+	// Shutdown Fiber app.
+	if err := s.app.ShutdownWithContext(ctx); err != nil {
+		return fmt.Errorf("failed to shutdown public server: %w", err)
+	}
+
+	return nil
+}
+
+// ActualPort returns the actual port the server is listening on (after dynamic allocation).
+func (s *PublicHTTPServer) ActualPort() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.actualPort
+}
+
+// generateTLSConfig generates a self-signed TLS certificate for development/testing.
+func (s *PublicHTTPServer) generateTLSConfig() (*tls.Config, error) {
+	// Generate ECDSA private key.
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate private key: %w", err)
+	}
+
+	// Create certificate template.
+	const (
+		validityDays     = 365
+		hoursPerDay      = 24
+		serialNumberBits = 128
+	)
+
+	validityDuration := validityDays * hoursPerDay * time.Hour
+
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBits))
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate serial number: %w", err)
+	}
+
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Cryptoutil Development"},
+			CommonName:   "localhost",
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(validityDuration),
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		DNSNames:              []string{"localhost"},
+		IPAddresses: []net.IP{
+			net.ParseIP(cryptoutilMagic.IPv4Loopback),
+			net.ParseIP("::1"),
+			net.ParseIP("::ffff:127.0.0.1"),
+		},
+	}
+
+	// Create self-signed certificate.
+	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create certificate: %w", err)
+	}
+
+	// Encode certificate and private key to PEM.
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+
+	privKeyBytes, err := x509.MarshalECPrivateKey(privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal private key: %w", err)
+	}
+
+	privKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: privKeyBytes})
+
+	// Create TLS certificate.
+	cert, err := tls.X509KeyPair(certPEM, privKeyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create TLS certificate: %w", err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS13,
+	}, nil
+}
