@@ -20,7 +20,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 
 	"github.com/gofiber/fiber/v2"

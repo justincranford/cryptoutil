@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"

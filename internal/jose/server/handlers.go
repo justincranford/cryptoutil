@@ -9,7 +9,7 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"

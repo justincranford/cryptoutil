@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 
 	"github.com/stretchr/testify/require"
 )

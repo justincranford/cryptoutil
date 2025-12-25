@@ -11,7 +11,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilUnsealKeysService "cryptoutil/internal/kms/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"

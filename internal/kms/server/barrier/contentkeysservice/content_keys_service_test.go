@@ -12,7 +12,7 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/kms/server/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/kms/server/barrier/unsealkeysservice"

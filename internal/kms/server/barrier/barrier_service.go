@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilContentKeysService "cryptoutil/internal/kms/server/barrier/contentkeysservice"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/kms/server/barrier/rootkeysservice"

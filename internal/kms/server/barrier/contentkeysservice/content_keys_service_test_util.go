@@ -4,7 +4,7 @@ package contentkeysservice
 
 import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 )

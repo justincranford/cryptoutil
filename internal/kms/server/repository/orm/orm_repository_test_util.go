@@ -11,7 +11,7 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 )
 

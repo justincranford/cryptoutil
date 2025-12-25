@@ -5,7 +5,7 @@ package unsealkeysservice
 import (
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/jose/crypto"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 
 	"github.com/stretchr/testify/require"
 )

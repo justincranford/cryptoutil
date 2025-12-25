@@ -6,8 +6,17 @@ package server
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"fmt"
+	"math/big"
+	"net"
 	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -79,7 +88,7 @@ func (s *PublicServer) handleServiceHealth(c *fiber.Ctx) error {
 			"status": "shutting down",
 		})
 	}
-	
+
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 	return c.JSON(fiber.Map{
 		"status": "healthy",
@@ -90,14 +99,14 @@ func (s *PublicServer) handleServiceHealth(c *fiber.Ctx) error {
 func (s *PublicServer) handleBrowserHealth(c *fiber.Ctx) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
+
 	if s.shutdown {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
 			"status": "shutting down",
 		})
 	}
-	
+
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 	return c.JSON(fiber.Map{
 		"status": "healthy",
@@ -133,8 +142,129 @@ func (s *PublicServer) handleDeleteMessage(c *fiber.Ctx) error {
 
 // Start starts the HTTPS server (implements template.PublicServer).
 func (s *PublicServer) Start(ctx context.Context) error {
-	// TODO: Implement TLS server startup.
-	return fmt.Errorf("not implemented")
+	if ctx == nil {
+		return fmt.Errorf("context cannot be nil")
+	}
+
+	// Generate self-signed TLS certificate.
+	tlsConfig, err := s.generateTLSConfig()
+	if err != nil {
+		return fmt.Errorf("failed to generate TLS config: %w", err)
+	}
+
+	// Create TCP listener.
+	const bindAddress = "127.0.0.1" // IPv4 loopback.
+
+	listenConfig := &net.ListenConfig{}
+
+	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", bindAddress, s.port))
+	if err != nil {
+		return fmt.Errorf("failed to create listener: %w", err)
+	}
+
+	s.mu.Lock()
+
+	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
+	if !ok {
+		s.mu.Unlock()
+
+		return fmt.Errorf("listener address is not *net.TCPAddr")
+	}
+
+	s.actualPort = tcpAddr.Port
+	s.mu.Unlock()
+
+	// Create TLS listener.
+	tlsListener := tls.NewListener(listener, tlsConfig)
+
+	// Start server in goroutine.
+	errChan := make(chan error, 1)
+
+	go func() {
+		if err := s.app.Listener(tlsListener); err != nil {
+			errChan <- fmt.Errorf("public server error: %w", err)
+		} else {
+			errChan <- nil
+		}
+	}()
+
+	// Wait for either context cancellation or server error.
+	select {
+	case <-ctx.Done():
+		// Context cancelled - trigger graceful shutdown.
+		const shutdownTimeout = 5
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
+		defer cancel()
+
+		_ = s.Shutdown(shutdownCtx)
+
+		return fmt.Errorf("public server stopped: %w", ctx.Err())
+	case err := <-errChan:
+		return err
+	}
+}
+
+// generateTLSConfig creates a TLS configuration using a self-signed certificate.
+func (s *PublicServer) generateTLSConfig() (*tls.Config, error) {
+	// Generate ECDSA P-384 key for TLS certificate.
+	privateKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate TLS private key: %w", err)
+	}
+
+	// Generate serial number.
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128)) //nolint:mnd // X.509 serial number bit length
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate serial number: %w", err)
+	}
+
+	now := time.Now().UTC()
+
+	// Create self-signed certificate template.
+	template := &x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			CommonName:   "learn-im-server",
+			Organization: []string{"cryptoutil"},
+			Country:      []string{"US"},
+		},
+		NotBefore:             now,
+		NotAfter:              now.Add(365 * 24 * time.Hour), // 1 year.
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		DNSNames:              []string{"localhost", "learn-im-server"},
+		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
+	}
+
+	// Self-sign the certificate.
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, privateKey.Public(), privateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create TLS certificate: %w", err)
+	}
+
+	// Parse the created certificate.
+	cert, err := x509.ParseCertificate(certDER)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse TLS certificate: %w", err)
+	}
+
+	// Create TLS certificate.
+	tlsCert := tls.Certificate{
+		Certificate: [][]byte{certDER},
+		PrivateKey:  privateKey,
+		Leaf:        cert,
+	}
+
+	// Create TLS config.
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+		MinVersion:   tls.VersionTLS13,
+		ClientAuth:   tls.NoClientCert,
+	}
+
+	return tlsConfig, nil
 }
 
 // Shutdown gracefully shuts down the server (implements template.PublicServer).

@@ -19,7 +19,7 @@ import (
 type LearnIMServer struct {
 	app *templateServer.Application
 	db  *gorm.DB
-	
+
 	// Repositories.
 	userRepo    *repository.UserRepository
 	messageRepo *repository.MessageRepository
@@ -37,37 +37,37 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
-	
+
 	if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	}
-	
+
 	if cfg.DB == nil {
 		return nil, fmt.Errorf("database cannot be nil")
 	}
-	
+
 	// Initialize repositories.
 	userRepo := repository.NewUserRepository(cfg.DB)
 	messageRepo := repository.NewMessageRepository(cfg.DB)
-	
+
 	// Create public server with handlers.
 	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
-	
+
 	// Create admin server.
 	adminServer, err := templateServer.NewAdminServer(ctx, cfg.AdminPort)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
-	
+
 	// Create application with both servers.
 	app, err := templateServer.NewApplication(ctx, publicServer, adminServer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create application: %w", err)
 	}
-	
+
 	return &LearnIMServer{
 		app:         app,
 		db:          cfg.DB,
