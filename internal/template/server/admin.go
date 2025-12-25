@@ -218,10 +218,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	// Wrap with TLS.
 	tlsListener := tls.NewListener(listener, tlsConfig)
 
-	// Mark server as ready.
-	s.mu.Lock()
-	s.ready = true
-	s.mu.Unlock()
+	// Note: Server starts with ready=false. Application should call SetReady(true) after initializing dependencies.
 
 	// Start Fiber server in goroutine and monitor context cancellation.
 	errChan := make(chan error, 1)
@@ -289,6 +286,16 @@ func (s *AdminServer) ActualPort() int {
 	defer s.mu.RUnlock()
 
 	return int(s.port)
+}
+
+// SetReady marks the server as ready to accept traffic.
+// This is called by the application after dependencies are initialized.
+// Thread-safe with full Lock.
+func (s *AdminServer) SetReady(ready bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ready = ready
 }
 
 // generateTLSConfig creates a self-signed certificate for admin server.

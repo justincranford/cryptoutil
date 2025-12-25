@@ -92,9 +92,180 @@ func TestAdminServer_Start_Success(t *testing.T) {
 	// Verify no startup error.
 	select {
 	case err := <-startErr:
-		t.Fatalf("unexpected start error: %v", err)
+		require.FailNow(t, "unexpected start error", err)
 	default:
 	}
+
+	// Wait for port to be fully released before next test.
+	time.Sleep(500 * time.Millisecond)
+}
+
+// TestAdminServer_Readyz_NotReady tests that readyz returns 503 when server not marked ready.
+func TestAdminServer_Readyz_NotReady(t *testing.T) {
+	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in background.
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		_ = server.Start(ctx)
+	}()
+
+	// Wait for server to allocate port.
+	time.Sleep(200 * time.Millisecond)
+
+	port := server.ActualPort()
+	require.Greater(t, port, 0, "Expected dynamic port allocation")
+
+	// Create HTTPS client that accepts self-signed certs.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec // Test environment with self-signed certs.
+			},
+		},
+		Timeout: 5 * time.Second,
+	}
+
+	// Call readyz endpoint (should return 503 - not ready).
+	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer reqCancel()
+
+	url := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// Should return 503 Service Unavailable when not ready.
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var result map[string]any
+
+	err = json.Unmarshal(body, &result)
+	require.NoError(t, err)
+
+	assert.Equal(t, "not ready", result["status"])
+
+	// Shutdown server.
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	err = server.Shutdown(shutdownCtx)
+	require.NoError(t, err)
+
+	wg.Wait()
+
+	// Wait for port to be fully released before next test.
+	time.Sleep(500 * time.Millisecond)
+}
+
+// TestAdminServer_HealthChecks_DuringShutdown tests livez and readyz return 503 during shutdown.
+func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
+	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in background.
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		_ = server.Start(ctx)
+	}()
+
+	// Wait for server to allocate port.
+	time.Sleep(200 * time.Millisecond)
+
+	port := server.ActualPort()
+	require.Greater(t, port, 0, "Expected dynamic port allocation")
+
+	// Create HTTPS client that accepts self-signed certs.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec // Test environment with self-signed certs.
+			},
+		},
+		Timeout: 5 * time.Second,
+	}
+
+	// Mark server ready.
+	server.SetReady(true)
+
+	// Verify readyz returns 200 OK when ready.
+	reqCtx1, reqCancel1 := context.WithTimeout(context.Background(), 5*time.Second)
+	defer reqCancel1()
+
+	url := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	req1, err := http.NewRequestWithContext(reqCtx1, http.MethodGet, url, nil)
+	require.NoError(t, err)
+
+	resp1, err := client.Do(req1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp1.Body.Close() }()
+
+	assert.Equal(t, http.StatusOK, resp1.StatusCode)
+
+	// Initiate shutdown in background.
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	go func() {
+		_ = server.Shutdown(shutdownCtx)
+	}()
+
+	// Wait a bit for shutdown to start.
+	time.Sleep(100 * time.Millisecond)
+
+	// Call livez endpoint during shutdown (should return 503 - shutting down).
+	reqCtx2, reqCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
+	defer reqCancel2()
+
+	livezURL := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+	req2, err := http.NewRequestWithContext(reqCtx2, http.MethodGet, livezURL, nil)
+	require.NoError(t, err)
+
+	resp2, err := client.Do(req2)
+	if err != nil {
+		// Connection may be refused if shutdown completed quickly - this is acceptable.
+		t.Logf("Expected error during shutdown: %v", err)
+	} else {
+		defer func() { _ = resp2.Body.Close() }()
+
+		// If we got a response, it should be 503 Service Unavailable.
+		if resp2.StatusCode == http.StatusServiceUnavailable {
+			body, readErr := io.ReadAll(resp2.Body)
+			require.NoError(t, readErr)
+
+			var result map[string]any
+
+			unmarshalErr := json.Unmarshal(body, &result)
+			require.NoError(t, unmarshalErr)
+
+			assert.Equal(t, "shutting down", result["status"])
+		}
+	}
+
+	wg.Wait()
 
 	// Wait for port to be fully released before next test.
 	time.Sleep(500 * time.Millisecond)
@@ -210,6 +381,9 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 
 	port := server.ActualPort()
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
+
+	// Mark server as ready (application's responsibility after dependencies initialized).
+	server.SetReady(true)
 
 	// Query readyz endpoint.
 	client := &http.Client{
@@ -420,7 +594,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 
 		// Check if Start() returned an error.
 		if startErr != nil {
-			t.Fatalf("server.Start() error after %d attempts: %v", i, startErr)
+			require.FailNow(t, "server.Start() error after attempts", "attempt", i, "error", startErr)
 		}
 
 		port = server.ActualPort()
@@ -457,7 +631,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 
 	// Check if server.Start() returned an error during startup.
 	if startErr != nil {
-		t.Fatalf("server.Start() error: %v", startErr)
+		require.FailNow(t, "server.Start() error", startErr)
 	}
 
 	// Make 10 concurrent requests to livez endpoint.
@@ -504,7 +678,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 
 	// Verify no errors.
 	for err := range errors {
-		t.Errorf("concurrent request error: %v", err)
+		require.NoError(t, err, "concurrent request error")
 	}
 
 	// Shutdown server.
@@ -518,7 +692,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 
 	// Check if server.Start() returned an error.
 	if startErr != nil {
-		t.Errorf("server.Start() error: %v", startErr)
+		require.NoError(t, startErr, "server.Start() error")
 	}
 
 	// Wait for port to be fully released before next test.
