@@ -55,22 +55,25 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Dependencies**: ✅ P1.1.1.1 (JOSE crypto moved - COMPLETE)
   - **Coverage**: Target ≥98% (template infrastructure code)
   - **Mutation**: Target ≥98% (template infrastructure code)
-  - **Blockers**: None (READY TO START)
+  - **Blockers**: None
   - **Notes**: Prevents TLS duplication technical debt in all 9 services
-  - **Commits**: (in progress)
+  - **Commits**: 60810081 ("feat(template): create TLS generator with 3-mode support (static, mixed, auto)")
   - **Refactoring Required**:
-    - ✅ Analyze current TLS generation code (public.go, admin.go)
-    - ❌ Define 3 TLS modes (static, mixed, auto-generated)
-    - ❌ Create TLS configuration structs with mode selection
-    - ❌ Refactor PublicHTTPServer to use shared crypto/certificate
-    - ❌ Refactor AdminServer to use shared crypto/certificate
-    - ❌ Remove duplicated generateTLSConfig methods
-    - ❌ Add tests for all 3 TLS modes
-    - ❌ Update documentation (USAGE.md, README.md)
+    - ✅ Analyze current TLS generation code (public.go, admin.go) - ~350 lines duplication
+    - ✅ Define 3 TLS modes (static, mixed, auto-generated) - tls_config.go created
+    - ✅ Create TLS configuration structs with mode selection - TLSMode, TLSConfig, TLSMaterial
+    - ✅ Create TLS generator with mode-aware logic - tls_generator.go with GenerateTLSMaterial
+    - ❌ Refactor PublicHTTPServer to use new TLS infrastructure
+    - ❌ Refactor AdminServer to use new TLS infrastructure
+    - ❌ Refactor other services (jose-ja, learn-im)
+    - ❌ Remove duplicated generateTLSConfig methods (~350 lines total)
+    - ❌ Add comprehensive tests for all 3 TLS modes
+    - ❌ Create documentation (USAGE.md with examples)
   - **Validation Required**:
-    - ❌ sm-kms still builds and runs successfully
-    - ❌ All 3 TLS modes tested and working
+    - ❌ sm-kms still builds and runs successfully with new TLS system
+    - ❌ All 3 TLS modes tested (static, mixed, auto)
     - ❌ Zero coverage regression (maintain ≥98%)
+    - ❌ Zero mutation regression (maintain ≥98%)
 
 ---
 
@@ -874,5 +877,111 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Document pragmatic quality targets for infrastructure code
 
 **Related Commits**: 9d81b75e (PublicHTTPServer implementation and tests)
+
+---
+
+### 2025-12-25: P1.2.1.1 TLS Generator Implementation (Subtask 4/9 Complete)
+
+**Work Completed**:
+
+- Created `internal/template/server/tls_config.go` (85 lines) - TLS configuration infrastructure
+  - **TLSMode** enum: `static`, `mixed`, `auto` (3 const values with detailed comments)
+    - TLSModeStatic: Production CA-signed certificates from Docker secrets
+    - TLSModeMixed: Static CA + auto-generated server certificate (staging/QA)
+    - TLSModeAuto: Full 3-tier CA hierarchy generation (development/testing)
+  - **TLSConfig** struct: Mode selection with parameters for each mode
+    - StaticCertPEM, StaticKeyPEM: Pre-generated certificates (static mode)
+    - MixedCACertPEM, MixedCAKeyPEM: CA credentials for mixed mode
+    - AutoDNSNames, AutoIPAddresses, AutoValidityDays: Auto-generation parameters
+  - **TLSMaterial** struct: Runtime TLS configuration
+    - Config: `*tls.Config` for HTTPS servers
+    - RootCAPool, IntermediateCAPool: Certificate pools for client validation
+  - **Purpose**: Foundation for 3-mode TLS provisioning system
+
+- Created `internal/template/server/tls_generator.go` (310 lines) - Mode-aware TLS initialization logic
+  - **GenerateTLSMaterial(cfg \*TLSConfig)**: Router function for TLS mode selection
+    - Validates config not nil
+    - Routes to mode-specific generators based on TLSMode
+    - Returns error for unknown modes
+  - **generateTLSMaterialStatic(cfg \*TLSConfig)**: Load pre-provided certs/keys (production)
+    - Parses StaticCertPEM and StaticKeyPEM using `tls.X509KeyPair()`
+    - Builds certificate pools from full chain (root CA + intermediates)
+    - Validates chain structure (leaf → intermediates → root)
+    - Returns TLSMaterial with tls.Config, root/intermediate pools
+  - **generateTLSMaterialMixed(cfg \*TLSConfig)**: Static CA + auto-generated server cert (staging/QA)
+    - Parses MixedCACertPEM and MixedCAKeyPEM
+    - Generates ECDSA P-384 server key pair using `keygen.GenerateECDSAKeyPair(elliptic.P384())`
+    - Creates server certificate signed by CA using `certificate.CreateEndEntitySubject()`
+    - Builds TLS certificate using `certificate.BuildTLSCertificate()`
+    - Returns TLSMaterial with generated server cert + CA pools
+  - **generateTLSMaterialAuto(cfg \*TLSConfig)**: Full 3-tier CA hierarchy generation (dev/test)
+    - Generates 3-tier CA hierarchy (Root CA → Intermediate CA) using `certificate.CreateCASubjects()`
+    - Generates ECDSA P-384 server key pair
+    - Creates server certificate signed by issuing CA (last in chain)
+    - Uses AutoDNSNames, AutoIPAddresses, AutoValidityDays from config
+    - Returns TLSMaterial with full auto-generated hierarchy
+  - **Default values**: AutoValidityDays defaults to 365 days if not specified
+  - **TLS configuration**: All modes set MinVersion = TLS 1.3, ClientAuth = NoClientCert (upgradeable)
+  - **Uses shared infrastructure**:
+    - `internal/shared/crypto/certificate`: CreateCASubjects, CreateEndEntitySubject, BuildTLSCertificate
+    - `internal/shared/crypto/keygen`: GenerateECDSAKeyPair for ECDSA P-384 keys
+  - **Linting compliance**:
+    - `pemTypeCertificate` constant for PEM type identifier (goconst)
+    - `interface{}` → `any` (pre-commit hook auto-fix)
+    - Blank lines added per wsl linter
+  - **Tests**: All existing tests pass (45/45 PASS)
+
+**Coverage/Quality Metrics**:
+
+- Build: ✅ Clean (`go build ./internal/template/server/...`)
+- Tests: ✅ All pass (45/45 PASS, no new tests added yet)
+- Lint: ✅ Clean (golangci-lint, pre-commit hooks)
+- Coverage: Not measured yet (new code, tests deferred to Subtask 8)
+- Mutation: Not measured yet (tests deferred)
+- **Note**: Tests for TLS generator deferred to Subtask 8 after refactoring PublicHTTPServer and AdminServer (Subtasks 5-6)
+
+**Subtask Progress** (4/9 complete):
+
+- ✅ Subtask 1: Analyze current TLS duplication (~350 lines)
+- ✅ Subtask 2: Define 3 TLS modes (static, mixed, auto)
+- ✅ Subtask 3: Create TLS configuration structs (tls_config.go)
+- ✅ Subtask 4: Create TLS generator logic (tls_generator.go) - **JUST COMPLETED**
+- ❌ Subtask 5: Refactor PublicHTTPServer to use new infrastructure (NEXT)
+- ❌ Subtask 6: Refactor AdminServer to use new infrastructure
+- ❌ Subtask 7: Remove old generateTLSConfig methods (~350 lines)
+- ❌ Subtask 8: Add comprehensive tests for all 3 TLS modes
+- ❌ Subtask 9: Validation testing (sm-kms, jose-ja, learn-im)
+
+**Key Findings**:
+
+- keygen API uses `GenerateECDSAKeyPair(elliptic.P384())` not `GenerateKey(AlgECDSA, KeySizeP384)` (no generic GenerateKey function exists)
+- certificate API returns `*tls.Certificate` from `BuildTLSCertificate()` (not tls.Certificate value)
+- PEM type checking required constant extraction per goconst linter (avoids magic strings)
+- Pre-commit hooks auto-fix `interface{}` → `any` and add blank lines per wsl linter
+
+**Constraints Discovered**: None (keygen/certificate APIs work as expected)
+
+**Requirements Discovered**: None (TLS modes cover all use cases)
+
+**Lessons Learned**:
+
+- Always check actual API signatures before implementation (assumed generic GenerateKey existed)
+- goconst linter requires constants for repeated strings (PEM type identifiers)
+- Pre-commit hooks provide valuable auto-fixes (interface{} → any, wsl blank lines)
+
+**Related Commits**:
+
+- 60810081: feat(template): create TLS generator with 3-mode support (static, mixed, auto)
+
+**Violations Found**: None
+
+**Next Immediate Steps** (Subtask 5):
+
+1. Read `internal/template/server/public.go` to understand current TLS initialization
+2. Refactor `PublicHTTPServer` struct to accept `TLSConfig` parameter
+3. Update `NewPublicHTTPServer()` to accept TLSConfig, call GenerateTLSMaterial
+4. Remove `generateTLSConfig()` method from public.go (~87 lines)
+5. Update tests to use new TLS configuration pattern
+6. Verify all tests still pass
 
 ---
