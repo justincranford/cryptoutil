@@ -81,27 +81,27 @@ Examples:
 				settings = loadedSettings
 			}
 
-		// Create TLS config for JOSE server.
-		tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-			Mode:             cryptoutilTemplateServer.TLSModeAuto,
-			AutoDNSNames:     []string{"localhost", "jose-server"},
-			AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-			AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-		}
+			// Create TLS config for JOSE server.
+			tlsCfg := &cryptoutilTemplateServer.TLSConfig{
+				Mode:             cryptoutilTemplateServer.TLSModeAuto,
+				AutoDNSNames:     []string{"localhost", "jose-server"},
+				AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+				AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+			}
 
-		// Create and start the server.
-		server, err := cryptoutilJoseServer.NewServer(ctx, settings, tlsCfg)
-	if err != nil {
-		return fmt.Errorf("failed to create JOSE server: %w", err)
-	}
+			// Create and start the server.
+			server, err := cryptoutilJoseServer.NewServer(ctx, settings, tlsCfg)
+			if err != nil {
+				return fmt.Errorf("failed to create JOSE server: %w", err)
+			}
 
-	defer func() {
-		if shutdownErr := server.Shutdown(); shutdownErr != nil {
-			fmt.Printf("Server shutdown error: %v\n", shutdownErr)
-		}
-	}()
+			defer func() {
+				if shutdownErr := server.Shutdown(); shutdownErr != nil {
+					fmt.Printf("Server shutdown error: %v\n", shutdownErr)
+				}
+			}()
 
-	fmt.Printf("JOSE Authority Server starting on %s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
+			fmt.Printf("JOSE Authority Server starting on %s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
 			if err := server.Start(ctx); err != nil {
 				return fmt.Errorf("server error: %w", err)
 			}

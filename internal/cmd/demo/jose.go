@@ -12,10 +12,10 @@ import (
 	"os"
 	"time"
 
+	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
-	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 )
 
 // JOSE demo step counts.

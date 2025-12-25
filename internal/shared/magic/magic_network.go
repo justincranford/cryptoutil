@@ -114,6 +114,11 @@ const (
 	// DefaultPublicPortCAServer - Port for CA Server.
 	DefaultPublicPortCAServer uint16 = 8091
 
+	// DefaultPublicPortLearnIM - Port for Learn Instant Messenger service.
+	DefaultPublicPortLearnIM uint16 = 8888
+	// DefaultPrivatePortLearnIM - Admin port for Learn Instant Messenger service.
+	DefaultPrivatePortLearnIM uint16 = 9090
+
 	// DefaultPublicPortPostgres - Default PostgreSQL port.
 	DefaultPublicPortPostgres uint16 = 5432
 )

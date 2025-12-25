@@ -231,7 +231,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 The package `internal/jose/crypto` contains reusable JOSE crypto code needed by multiple services:
 
 - **learn-im**: Requires JWE for encrypt+MAC secure Instant Messaging (Phase 3)
-- **jose-ja**: JOSE Authority service itself  
+- **jose-ja**: JOSE Authority service itself
 - **sm-kms**: Key management service for key wrapping
 
 Moving to `internal/shared/crypto/jose/` ensures:

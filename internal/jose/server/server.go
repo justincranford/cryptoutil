@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"net"
 
+	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
 	"github.com/gofiber/fiber/v2"
