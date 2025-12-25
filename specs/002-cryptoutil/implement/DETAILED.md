@@ -92,19 +92,31 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Notes**: Template extracted with dual HTTPS pattern, health checks, graceful shutdown
   - **Commits**: 54231a7d, 75bc90f3, 1fb68962, 058c3f5b, 7508f32b, 3dd2a582, c612a7e3, 9d81b75e, aaa9ceba, a57ac001, 056c15d4
 
-### Phase 3: Learn-IM Demonstration Service ⏸️ PENDING
+### Phase 3: Learn-IM Demonstration Service ⚠️ IN PROGRESS
 
 #### P3.1: Learn-IM Implementation
 
-- ❌ **P3.1.1**: Implement learn-im encrypted messaging service
-  - **Status**: BLOCKED BY P2.1.1
+- ⚠️ **P3.1.1**: Implement learn-im encrypted messaging service
+  - **Status**: IN PROGRESS
   - **Effort**: L (21-28 days)
-  - **Dependencies**: P2.1.1 (template extracted)
+  - **Dependencies**: P2.1.1 (template extracted) - ✅ UNBLOCKED
   - **Coverage**: Target ≥95%
   - **Mutation**: Target ≥85%
-  - **Blockers**: P2.1.1 (template extraction)
+  - **Blockers**: None (P2.1.1 complete)
   - **Notes**: CRITICAL - First real-world template validation, blocks all production migrations
-  - **Commits**: (pending)
+  - **Commits**: 0bf38708 (CMD entrypoint, port constants)
+  - **Progress**:
+    - ✅ CMD entrypoint created (cmd/learn-im/main.go)
+    - ✅ Port constants added (8888 public, 9090 admin)
+    - ✅ SQLite initialization with migrations
+    - ✅ Server structure exists with template integration
+    - ✅ Domain models defined (User, Message, MessageReceiver)
+    - ✅ Repository layer complete (UserRepository, MessageRepository)
+    - ❌ Business logic handlers (handleSendMessage, handleReceiveMessages, handleDeleteMessage) - TODO
+    - ❌ Crypto operations for encryption/decryption - TODO
+    - ❌ User registration/authentication - TODO
+    - ❌ Docker Compose deployment - TODO
+    - ❌ E2E tests - TODO
 
 ### Phase 4: Migrate jose-ja to Template ⏸️ PENDING
 
