@@ -44,4 +44,4 @@
 | 05-02.git | Local git commands and commit conventions |
 | 05-03.dast | DAST scanning (Nuclei, ZAP), CI-DAST lessons learned |
 | 06-01.evidence-based | Evidence-based task completion and validation |
-| 06-03.anti-patterns | Common anti-patterns and mistakes to avoid |
+| 06-02.anti-patterns | Common anti-patterns and mistakes to avoid |

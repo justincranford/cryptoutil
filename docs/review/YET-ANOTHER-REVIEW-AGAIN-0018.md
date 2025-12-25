@@ -16,7 +16,7 @@
 ### Critical Fixes Verification
 
 ✅ **Service name**: learn-im (short form), Learn-InstantMessenger (full) - VERIFIED CONSISTENT
-✅ **Admin ports**: 127.0.0.1:9090 for ALL services - VERIFIED CONSISTENT  
+✅ **Admin ports**: 127.0.0.1:9090 for ALL services - VERIFIED CONSISTENT
 ✅ **PostgreSQL/SQLite**: Choice based on deployment type - VERIFIED CONSISTENT
 ✅ **Multi-tenancy**: Dual-layer (row + schema) - VERIFIED CONSISTENT
 ✅ **CRLDP**: Immediate sign+publish, one serial per URL - VERIFIED CONSISTENT
