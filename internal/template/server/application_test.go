@@ -54,7 +54,7 @@ func (m *mockPublicServer) Start(ctx context.Context) error {
 	}
 }
 
-func (m *mockPublicServer) Shutdown() error {
+func (m *mockPublicServer) Shutdown(ctx context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

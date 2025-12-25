@@ -44,7 +44,7 @@ type Application struct {
 // - ActualPort: Return the actual port after dynamic allocation.
 type PublicServer interface {
 	Start(ctx context.Context) error
-	Shutdown() error
+	Shutdown(ctx context.Context) error
 	ActualPort() int
 }
 
@@ -168,7 +168,7 @@ func (a *Application) Shutdown(ctx context.Context) error {
 
 	// Shutdown public server.
 	if a.publicServer != nil {
-		if err := a.publicServer.Shutdown(); err != nil {
+		if err := a.publicServer.Shutdown(ctx); err != nil {
 			shutdownErr = fmt.Errorf("failed to shutdown public server: %w", err)
 		}
 	}
