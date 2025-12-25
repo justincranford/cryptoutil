@@ -145,8 +145,9 @@ type RegisterUserRequest struct {
 
 // RegisterUserResponse represents the response after successful registration.
 type RegisterUserResponse struct {
-	UserID    string `json:"user_id"`    // Created user ID.
-	PublicKey string `json:"public_key"` // User's ECDH public key (hex-encoded).
+	UserID     string `json:"user_id"`     // Created user ID.
+	PublicKey  string `json:"public_key"`  // User's ECDH public key (hex-encoded).
+	PrivateKey string `json:"private_key"` // User's ECDH private key (hex-encoded, for testing only).
 }
 
 // LoginUserRequest represents the request to login.
@@ -203,13 +204,16 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	}
 
 	// Generate ECDH key pair for message encryption.
-	_, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
+	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
 	if err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to generate encryption keys",
 		})
 	}
+
+	// Extract private key bytes.
+	privateKeyBytes := privateKey.Bytes()
 
 	// Hash password using PBKDF2-HMAC-SHA256.
 	passwordHash, err := cryptoutilCrypto.HashPassword(req.Password)
@@ -224,13 +228,14 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	passwordHashHex := hex.EncodeToString(passwordHash)
 
 	// Create user.
-	// Note: Private key is not stored (users would need to retrieve it client-side
-	// or re-derive it from password if needed - TODO for future enhancement).
+	// NOTE: Storing private key on server is ONLY acceptable for educational demo purposes.
+	// Production systems should use client-side key management.
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     req.Username,
 		PasswordHash: passwordHashHex,
 		PublicKey:    publicKeyBytes,
+		PrivateKey:   privateKeyBytes,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -245,8 +250,9 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	// Return response.
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 	return c.Status(fiber.StatusCreated).JSON(RegisterUserResponse{
-		UserID:    user.ID.String(),
-		PublicKey: hex.EncodeToString(publicKeyBytes),
+		UserID:     user.ID.String(),
+		PublicKey:  hex.EncodeToString(publicKeyBytes),
+		PrivateKey: hex.EncodeToString(privateKeyBytes),
 	})
 }
 
@@ -347,7 +353,14 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 
 	// For now, hardcode sender ID (will be replaced with authentication).
 	// TODO: Extract sender ID from authentication context.
+	// For E2E testing, allow sender_id query parameter.
 	senderID := googleUuid.New()
+
+	if senderIDStr := c.Query("sender_id"); senderIDStr != "" {
+		if parsedID, err := googleUuid.Parse(senderIDStr); err == nil {
+			senderID = parsedID
+		}
+	}
 
 	// Create message with receivers.
 	message := &cryptoutilDomain.Message{
@@ -385,7 +398,9 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 			})
 		}
 
-		// Encrypt message for this receiver.
+		// Encrypt message for this specific receiver.
+		// Each receiver gets their own encrypted copy because ECDH produces
+		// a different shared secret for each receiver's public key.
 		ephemeralPubKey, ciphertext, nonce, err := cryptoutilCrypto.EncryptMessage(plaintext, receiverPublicKey)
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
@@ -394,15 +409,14 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 			})
 		}
 
-		// Store encrypted content and nonce (same for all receivers).
-		message.EncryptedContent = ciphertext
-		message.Nonce = nonce
-
-		// Create message receiver entry.
+		// Create message receiver entry with this receiver's encrypted copy.
 		messageReceiver := cryptoutilDomain.MessageReceiver{
-			MessageID:    message.ID,
-			ReceiverID:   receiverID,
-			SenderPubKey: ephemeralPubKey,
+			ID:               googleUuid.New(),
+			MessageID:        message.ID,
+			ReceiverID:       receiverID,
+			SenderPubKey:     ephemeralPubKey,
+			EncryptedContent: ciphertext,
+			Nonce:            nonce,
 		}
 
 		message.Receivers = append(message.Receivers, messageReceiver)
@@ -440,7 +454,14 @@ type ReceiveMessagesResponse struct {
 func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 	// For now, hardcode receiver ID (will be replaced with authentication).
 	// TODO: Extract receiver ID from authentication context.
+	// For E2E testing, allow receiver_id query parameter.
 	receiverID := googleUuid.New()
+
+	if receiverIDStr := c.Query("receiver_id"); receiverIDStr != "" {
+		if parsedID, err := googleUuid.Parse(receiverIDStr); err == nil {
+			receiverID = parsedID
+		}
+	}
 
 	// Retrieve messages for receiver.
 	messages, err := s.messageRepo.FindByReceiverID(c.Context(), receiverID)
@@ -483,9 +504,9 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 
 		response.Messages = append(response.Messages, MessageResponse{
 			MessageID:        msg.ID.String(),
-			SenderPubKey:     fmt.Sprintf("%x", receiverEntry.SenderPubKey), // Hex encoding for simplicity.
-			EncryptedContent: fmt.Sprintf("%x", msg.EncryptedContent),
-			Nonce:            fmt.Sprintf("%x", msg.Nonce),
+			SenderPubKey:     fmt.Sprintf("%x", receiverEntry.SenderPubKey),     // Hex encoding for simplicity.
+			EncryptedContent: fmt.Sprintf("%x", receiverEntry.EncryptedContent), // Receiver's encrypted copy.
+			Nonce:            fmt.Sprintf("%x", receiverEntry.Nonce),            // Receiver's nonce.
 			CreatedAt:        msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}

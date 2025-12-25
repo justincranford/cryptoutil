@@ -16,7 +16,8 @@ type User struct {
 	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Username     string          `gorm:"type:text;uniqueIndex;not null"`
 	PasswordHash string          `gorm:"type:text;not null"`
-	PublicKey    []byte          `gorm:"type:bytea;not null"` // ECDH public key for message encryption.
+	PublicKey    []byte          `gorm:"type:bytea;not null"`  // ECDH public key for message encryption.
+	PrivateKey   []byte          `gorm:"type:bytea;not null"`  // ECDH private key (stored for demo purposes).
 	CreatedAt    time.Time       `gorm:"autoCreateTime"`
 	UpdatedAt    time.Time       `gorm:"autoUpdateTime"`
 }
