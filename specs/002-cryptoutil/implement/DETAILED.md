@@ -15,8 +15,8 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 
 #### P2.1: Template Extraction
 
-- ❌ **P2.1.1**: Extract service template from KMS
-  - **Status**: NOT STARTED
+- ⚠️ **P2.1.1**: Extract service template from KMS
+  - **Status**: IN PROGRESS
   - **Effort**: L (14-21 days)
   - **Dependencies**: None (Phase 1 complete)
   - **Coverage**: Target ≥98%
@@ -176,6 +176,29 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 
 Chronological implementation log with mini-retrospectives. NEVER delete entries - append only.
 
-*Timeline starts when implementation begins. Historical Phase 1 work preserved in git commit history.*
+### 2025-12-25: Started P2.1.1 - Extract Service Template from KMS
+
+**Work Completed**:
+
+- Analyzed tasks.md P2.1.1 requirements (12 files to create, 98% coverage/mutation targets)
+- Updated DETAILED.md Section 1: P2.1.1 status changed from ❌ NOT STARTED to ⚠️ IN PROGRESS
+- Next: Read KMS reference implementation to identify reusable patterns
+
+**Coverage/Quality Metrics**:
+
+- Before: N/A (template package doesn't exist yet)
+- Target: ≥98% coverage, ≥98% mutation score
+
+**Lessons Learned**:
+
+- Phase 2.1.1 is CRITICAL - blocks ALL service migrations (Phases 3-6)
+- Must complete before any production work can begin
+- learn-im (Phase 3) validates template, production migrations (Phases 4-6) depend on successful validation
+
+**Constraints Discovered**: None yet
+
+**Requirements Discovered**: None yet
+
+**Related Commits**: (pending - starting code archaeology on KMS reference)
 
 ---
