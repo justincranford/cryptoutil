@@ -156,7 +156,7 @@ func TestNewApplication_NilContext(t *testing.T) {
 	publicServer := newMockPublicServer(8080)
 	adminServer := newMockAdminServer(9090)
 
-	app, err := cryptoutilTemplateServer.NewApplication(nil, publicServer, adminServer)
+	app, err := cryptoutilTemplateServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
 	assert.Nil(t, app)
