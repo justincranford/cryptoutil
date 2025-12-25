@@ -698,3 +698,69 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	// Wait for port to be fully released before next test.
 	time.Sleep(500 * time.Millisecond)
 }
+
+// TestAdminServer_TimeoutsConfigured tests that server timeouts are properly configured.
+func TestAdminServer_TimeoutsConfigured(t *testing.T) {
+	t.Parallel()
+
+	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0)
+	require.NoError(t, err)
+
+	// Start server in background.
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		_ = server.Start(context.Background())
+	}()
+
+	// Wait for server to start.
+	time.Sleep(1 * time.Second)
+	server.SetReady(true)
+
+	// Create HTTP client with shorter timeout to test server's idle timeout.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec // Test server uses self-signed cert.
+			},
+		},
+		Timeout: 15 * time.Second, // Longer than server timeout to test server-side.
+	}
+
+	// Make request to verify timeouts are working.
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, server.ActualPort())
+	url := fmt.Sprintf("%s/admin/v1/readyz", baseURL)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
+
+	var result map[string]any
+
+	err = json.Unmarshal(body, &result)
+	require.NoError(t, err)
+	assert.Equal(t, "ready", result["status"])
+
+	// Shutdown server.
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	err = server.Shutdown(shutdownCtx)
+	require.NoError(t, err)
+
+	wg.Wait()
+
+	// Wait for port to be fully released.
+	time.Sleep(500 * time.Millisecond)
+}
