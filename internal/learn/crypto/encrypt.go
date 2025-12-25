@@ -9,8 +9,9 @@ import (
 	crand "crypto/rand"
 	"crypto/sha256"
 	"fmt"
-	"golang.org/x/crypto/hkdf"
 	"io"
+
+	"golang.org/x/crypto/hkdf"
 )
 
 // EncryptMessage encrypts a plaintext message for a receiver using hybrid encryption.
