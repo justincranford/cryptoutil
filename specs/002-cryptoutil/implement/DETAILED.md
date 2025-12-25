@@ -24,7 +24,7 @@
 
 ## Section 1: Task Checklist
 
-**From**: specs/002-cryptoutil/tasks.md  
+**From**: specs/002-cryptoutil/tasks.md
 **Status Legend**: ❌ (not started), ⚠️ (in progress/blocked), ✅ (complete)
 
 ---

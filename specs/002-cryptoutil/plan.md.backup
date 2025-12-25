@@ -12,17 +12,15 @@
 1. [Overview](#overview)
 2. [Current State Assessment](#current-state-assessment)
 3. [Phase 1: Foundation (Completed)](#phase-1-foundation-completed)
-4. [Phase 2: Service Template Extraction](#phase-2-service-template-extraction)
-5. [Phase 3: Learn-InstantMessenger Demonstration Service](#phase-3-learn-instantmessenger-demonstration-service)
-6. [Phase 4: Migrate jose-ja to Template](#phase-4-migrate-jose-ja-to-template)
-7. [Phase 5: Migrate pki-ca to Template](#phase-5-migrate-pki-ca-to-template)
-8. [Phase 6: Identity Services Enhancement](#phase-6-identity-services-enhancement)
-9. [Phase 7: Advanced Identity Features](#phase-7-advanced-identity-features)
-10. [Phase 8: Scale & Multi-Tenancy](#phase-8-scale--multi-tenancy)
-11. [Phase 9: Production Readiness](#phase-9-production-readiness)
-12. [Dependencies & Critical Path](#dependencies--critical-path)
-13. [Success Criteria](#success-criteria)
-14. [Risk Management](#risk-management)
+4. [Phase 2: Core Services](#phase-2-core-services)
+5. [Phase 3: Advanced Features](#phase-3-advanced-features)
+6. [Phase 4: Scale & Multi-Tenancy](#phase-4-scale--multi-tenancy)
+7. [Phase 5: Production Readiness](#phase-5-production-readiness)
+8. [Phase 6: Service Template Extraction](#phase-6-service-template-extraction)
+9. [Phase 7: Learn-PS Demonstration Service](#phase-7-learn-ps-demonstration-service)
+10. [Dependencies & Critical Path](#dependencies--critical-path)
+11. [Success Criteria](#success-criteria)
+12. [Risk Management](#risk-management)
 
 ---
 
@@ -38,11 +36,9 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | **P2: Identity** | 5 services (authz, idp, rs, rp, spa) | ⚠️ MIXED - authz/idp/rs complete, rp/spa not started |
 | **P3: KMS** | 1 service (sm-kms) | ✅ COMPLETE - Reference implementation |
 | **P4: CA** | 1 service (pki-ca) | ⚠️ PARTIAL - Missing admin server |
-| **Demo: Learn** | 1 service (learn-instantmessenger) | ❌ NOT STARTED - Phase 3 deliverable |
+| **Demo: Learn-PS** | 1 service (learn-ps) | ❌ NOT STARTED - Phase 7 deliverable |
 
 **Total**: 9 services across 5 products
-
-**Note**: jose-ja is the service name for "JWK Authority" (JA), part of the JOSE product family.
 
 ### Architecture Mandates (Constitution)
 
@@ -56,10 +52,9 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 **Dual-Server Architecture** (ALL Services):
 
 - Public HTTPS Server: `<configurable_address>:<configurable_port>` (default: 127.0.0.1 in tests, 0.0.0.0 in containers)
-- Private HTTPS Server: 127.0.0.1:9090 (admin endpoints, ALL services use same port)
-- Admin Port Configuration: 127.0.0.1:9090 inside container (NEVER exposed to host), or 127.0.0.1:0 for tests (dynamic allocation)
+- Private HTTPS Server: 127.0.0.1:9090/9091/9092/9093 (admin endpoints)
 - Admin Endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
-- Note: Admin port is configurable but low priority - focus on public server configurability
+- Admin Port Isolation: Containerization REQUIRED for multi-service deployments
 
 **Session State Management**:
 
@@ -70,22 +65,19 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 **Database Architecture**:
 
-- PostgreSQL (multi-service deployments in prod||dev) + SQLite (standalone-service deployments in prod||dev)
-- Choice based on deployment type (multi-service vs standalone), NOT environment (prod vs dev)
-- Database sharding: Phase 8 with tenant ID partitioning
-- Multi-tenancy (Dual-Layer Isolation):
-  - Layer 1 (PostgreSQL + SQLite): Per-row tenant_id column (UUIDv4, FK to tenants.id) in all tables
-  - Layer 2 (PostgreSQL only): Schema-level isolation (CREATE SCHEMA tenant_<UUID>)
-  - NEVER use row-level security (RLS) - per-row tenant_id + schema isolation provides sufficient protection
+- PostgreSQL (production/distributed) + SQLite (development/single-node)
+- Database sharding: Phase 4 with tenant ID partitioning
+- Multi-tenancy:
+  - For PostgreSQL+SQLite: Always use per-row tenant_id column (UUIDv4, FK to tenants.id)
+  - For PostgreSQL only: ALSO separate tenants into separate schemas (schema name 'tenant_UUID')
+  - NEVER use row-level security (RLS) - per-row tenant_id provides sufficient isolation
 - Connection pools: Configurable, hot-reloadable
 - Read replicas: NOT SUPPORTED - all reads to primary only
 
 **mTLS Revocation Checking**:
 
 - BOTH CRLDP and OCSP REQUIRED
-- CRLDP: Immediate sign and publish to HTTPS URL (NOT batched), one serial number per URL
-  - URL format: `https://crl.example.com/<base64-url-encoded-serial>.crl`
-  - NEVER batch multiple serials into one CRL file
+- CRLDP: Immediate publication (NOT batched), one serial per HTTPS URL
 - OCSP: Responder required, stapling nice-to-have
 
 **Unseal Secrets**:
@@ -134,12 +126,12 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | **sm-kms** | ✅ Complete | ✅ Port 9090 | ✅ cryptoutil kms | ✅ 3 instances | ✅ All pass | ≥95% |
 | **pki-ca** | ✅ Complete | ❌ Missing | ❌ No cmd | ⚠️ Dev only | ✅ All pass | ≥95% |
 | **jose-ja** | ✅ Complete | ❌ Missing | ❌ No cmd | ⚠️ Needs update | ✅ All pass | ≥95% |
-| **identity-authz** | ✅ Complete | ✅ Port 9090 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
-| **identity-idp** | ✅ Complete | ✅ Port 9090 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
-| **identity-rs** | ✅ Complete | ✅ Port 9090 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
+| **identity-authz** | ✅ Complete | ✅ Port 9091 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
+| **identity-idp** | ✅ Complete | ✅ Port 9091 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
+| **identity-rs** | ✅ Complete | ✅ Port 9091 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
 | **identity-rp** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
 | **identity-spa** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
-| **learn-instantmessenger** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
+| **learn-ps** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
 
 ### Infrastructure Status
 
