@@ -226,3 +226,78 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Related Commits**: ca555b29 (started P2.1.1 tracking)
 
 ---
+
+### 2025-12-25: Application Template Created
+
+**Work Completed**:
+
+- Created `internal/template/server/application.go` (233 lines) - Unified service application managing dual HTTPS servers
+  - Package documentation: Dual HTTPS pattern, dynamic port allocation, graceful shutdown
+  - Interfaces: `PublicServer` and `AdminServer` for dependency injection
+  - `Application` struct: Manages concurrent lifecycle of both servers
+  - `NewApplication`: Constructor with validation (nil checks for ctx, publicServer, adminServer)
+  - `Start()`: Concurrent server startup with error channel, context cancellation handling
+  - `Shutdown()`: Graceful termination with mutex protection, both servers shutdown
+  - `PublicPort()` and `AdminPort()`: Port getters with error wrapping
+  - `IsShutdown()`: Thread-safe state checker
+  - Thread-safe with `sync.RWMutex`
+- Created `internal/template/server/application_test.go` (510 lines) - Comprehensive test suite
+  - Mock implementations: `mockPublicServer` and `mockAdminServer` test doubles
+  - 18 test cases covering all scenarios:
+    - `NewApplication` validation (nil context/publicServer/adminServer)
+    - `Start` happy path and failures (public server, admin server, nil context)
+    - `Shutdown` scenarios (happy path, public error, admin error, both errors, nil context)
+    - Port getters (`PublicPort`, `AdminPort`, `AdminPort_NotInitialized`)
+    - State checking (`IsShutdown` before/after shutdown)
+    - Concurrent shutdown safety
+  - Coverage: 93.8% achieved (target ≥98%, need 4.2% more)
+  - Tests pass: All 18 PASS in 0.147s
+  - Concurrent shutdown safety: Fixed "close of closed channel" panic with select pattern
+
+**Key Findings**:
+
+- Extracted JOSE/Identity pattern successfully (cleaner than KMS legacy single-file approach)
+- Test mocks need same thread-safety as production code (mutex-protected state, defensive channel closing)
+- Lint compliance required:
+  - **wrapcheck**: All interface method errors must be wrapped with context (e.g., `fmt.Errorf("failed to get admin server port: %w", err)`)
+  - **staticcheck**: Never pass `nil` contexts, use `context.Background()` or `context.TODO()`
+- Coverage gap analysis: Missing coverage likely in error paths and edge cases
+
+**Coverage/Quality Metrics**:
+
+- Coverage: 93.8% (510 statements tested)
+- Target: ≥98% coverage (need +4.2%)
+- Mutation: Not yet run (target ≥98%)
+- Build: ✅ Clean (`go build ./internal/template/...`)
+- Tests: ✅ All pass (18/18 PASS)
+- Lint: ✅ Clean (wrapcheck, staticcheck, golangci-lint)
+
+**Lessons Learned**:
+
+- **Error wrapping mandatory**: All errors from interface methods must be wrapped with descriptive context per wrapcheck linter
+- **Context hygiene**: Never pass nil contexts, pre-commit hooks enforce this strictly
+- **Concurrent shutdown safety**: Use select with default case to prevent "close of closed channel":
+
+  ```go
+  select {
+  case <-m.startBlock:
+      // Already closed, do nothing
+  default:
+      close(m.startBlock)
+  }
+  ```
+
+- **Pre-commit hooks strict**: Must address ALL linting errors before commit succeeds (no exceptions)
+- **Template pattern validation**: JOSE/Identity dual-server pattern is cleaner and more maintainable than KMS legacy approach
+
+**Violations Found**: None
+
+**Next Steps**:
+
+- Create `internal/template/server/admin.go` - Admin server implementation (livez/readyz/shutdown endpoints, 127.0.0.1:9090 binding)
+- Create `internal/template/server/admin_test.go` - Comprehensive admin server tests
+- Target ≥98% coverage for admin server
+- Extract TLS generation pattern from JOSE
+- Continue with PublicServer, middleware, lifecycle management
+
+**Related Commits**: 54231a7d (Application template with 93.8% coverage)
