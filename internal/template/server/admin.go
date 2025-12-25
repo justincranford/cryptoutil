@@ -8,15 +8,8 @@ package server
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/tls"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
 	"fmt"
-	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -29,25 +22,38 @@ import (
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
 // Port 0 for tests (dynamic allocation avoids TIME_WAIT), 9090 for production containers.
 type AdminServer struct {
-	app      *fiber.App
-	listener net.Listener
-	port     uint16
-	mu       sync.RWMutex
-	ready    bool
-	shutdown bool
+	app         *fiber.App
+	listener    net.Listener
+	port        uint16
+	tlsMaterial *TLSMaterial
+	mu          sync.RWMutex
+	ready       bool
+	shutdown    bool
 }
 
 // NewAdminServer creates a new admin server instance for private administrative operations.
 // port: 0 for tests (dynamic allocation), 9090 for production containers, other for non-container production.
-func NewAdminServer(ctx context.Context, port uint16) (*AdminServer, error) {
+// tlsCfg: TLS configuration (mode + parameters) for HTTPS server. MUST NOT be nil.
+func NewAdminServer(ctx context.Context, port uint16, tlsCfg *TLSConfig) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
 
+	if tlsCfg == nil {
+		return nil, fmt.Errorf("TLS configuration cannot be nil")
+	}
+
+	// Generate TLS material based on configured mode.
+	tlsMaterial, err := GenerateTLSMaterial(tlsCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
+	}
+
 	server := &AdminServer{
-		port:     port,
-		ready:    false,
-		shutdown: false,
+		port:        port,
+		tlsMaterial: tlsMaterial,
+		ready:       false,
+		shutdown:    false,
 	}
 
 	// Create Fiber app with minimal configuration.
@@ -207,16 +213,8 @@ func (s *AdminServer) Start(ctx context.Context) error {
 		s.port = uint16(tcpAddr.Port) //nolint:gosec // Port range validated above.
 	}
 
-	// Generate self-signed TLS certificate.
-	tlsConfig, err := s.generateTLSConfig()
-	if err != nil {
-		_ = listener.Close()
-
-		return fmt.Errorf("failed to generate TLS config: %w", err)
-	}
-
-	// Wrap with TLS.
-	tlsListener := tls.NewListener(listener, tlsConfig)
+	// Wrap with TLS using pre-generated TLS configuration.
+	tlsListener := tls.NewListener(listener, s.tlsMaterial.Config)
 
 	// Note: Server starts with ready=false. Application should call SetReady(true) after initializing dependencies.
 
@@ -296,75 +294,4 @@ func (s *AdminServer) SetReady(ready bool) {
 	defer s.mu.Unlock()
 
 	s.ready = ready
-}
-
-// generateTLSConfig creates a self-signed certificate for admin server.
-// Uses ECDSA P-256 for FIPS 140-3 compliance, 1-year validity.
-func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
-	// Generate private key.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate private key: %w", err)
-	}
-
-	// Create certificate template.
-	const (
-		validityDays     = 365
-		hoursPerDay      = 24
-		serialNumberBits = 128
-	)
-
-	validityDuration := validityDays * hoursPerDay * time.Hour
-
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBits))
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate serial number: %w", err)
-	}
-
-	template := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			CommonName:   "cryptoutil-admin",
-			Organization: []string{"cryptoutil"},
-		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(validityDuration),
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		BasicConstraintsValid: true,
-		IPAddresses:           []net.IP{net.ParseIP(cryptoutilMagic.IPv4Loopback)},
-	}
-
-	// Self-sign certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create certificate: %w", err)
-	}
-
-	// Encode certificate and key to PEM.
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-
-	privKeyBytes, err := x509.MarshalECPrivateKey(privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal private key: %w", err)
-	}
-
-	privKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: privKeyBytes})
-
-	// Load certificate.
-	cert, err := tls.X509KeyPair(certPEM, privKeyPEM)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load key pair: %w", err)
-	}
-
-	// Create TLS configuration with modern security settings.
-	return &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS13, // Enforce TLS 1.3+.
-		CipherSuites: []uint16{ // FIPS 140-3 approved cipher suites (TLS 1.3 mandatory).
-			tls.TLS_AES_128_GCM_SHA256,
-			tls.TLS_AES_256_GCM_SHA384,
-			tls.TLS_CHACHA20_POLY1305_SHA256,
-		},
-	}, nil
 }

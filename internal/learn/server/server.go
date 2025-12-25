@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	templateServer "cryptoutil/internal/template/server"
 )
 
@@ -57,7 +58,14 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create admin server.
-	adminServer, err := templateServer.NewAdminServer(ctx, cfg.AdminPort)
+	tlsCfg := &templateServer.TLSConfig{
+		Mode:             templateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost"},
+		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
+	adminServer, err := templateServer.NewAdminServer(ctx, cfg.AdminPort, tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
