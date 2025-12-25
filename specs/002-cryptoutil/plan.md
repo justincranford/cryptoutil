@@ -38,11 +38,14 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | **P2: Identity** | 5 services (authz, idp, rs, rp, spa) | ⚠️ MIXED - authz/idp/rs complete, rp/spa not started |
 | **P3: KMS** | 1 service (sm-kms) | ✅ COMPLETE - Reference implementation |
 | **P4: CA** | 1 service (pki-ca) | ⚠️ PARTIAL - Missing admin server |
-| **Demo: Learn** | 1 service (learn-instantmessenger) | ❌ NOT STARTED - Phase 3 deliverable |
+| **Demo: Learn** | 1 service (learn-im) | ❌ NOT STARTED - Phase 3 deliverable |
 
 **Total**: 9 services across 5 products
 
-**Note**: jose-ja is the service name for "JWK Authority" (JA), part of the JOSE product family.
+**Notes**:
+
+- jose-ja is the service name for "JWK Authority" (JA), part of the JOSE product family
+- learn-im is the service name for "Learn-InstantMessenger" (IM), encrypted messaging demonstration
 
 ### Architecture Mandates (Constitution)
 
@@ -139,7 +142,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | **identity-rs** | ✅ Complete | ✅ Port 9090 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
 | **identity-rp** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
 | **identity-spa** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
-| **learn-instantmessenger** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
+| **learn-im** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
 
 ### Infrastructure Status
 
@@ -212,921 +215,23 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 1. **Admin servers missing**: JOSE and CA lack admin servers (Phase 2.1)
 2. **Unified CLI incomplete**: Only KMS has `cryptoutil kms` command (Phase 2.2)
-3. **E2E path coverage**: Only `/service/*` tested, missing `/browser/*` (Phase 2.3)
 
----
+## Phase 2: Service Template Extraction
 
-## Phase 6: Identity Services Enhancement
+**Timeline**: CURRENT PHASE
+**Objective**: Extract reusable template from KMS, validate with learn-im
 
-**Timeline**: After template migrations complete
-**Objective**: Complete admin servers for identity services, add unified CLI, expand E2E coverage
+**CRITICAL**: This phase MUST complete before any service migrations (Phases 3-6).
 
-### Phase 2.1: Admin Server Implementation
+### Phase 2.1: Template Extraction
 
-**Priority**: CRITICAL - Blocking unified CLI and production deployments
+**Priority**: CRITICAL - Enables service consistency and reusability
 
-#### Task 2.1.1: JA Admin Server
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 3-5 days
-- **Dependencies**: KMS admin server (reference implementation)
-
-**Deliverables**:
-
-1. Create `internal/jose/server/admin/` package
-   - Admin server configuration (bind 127.0.0.1:9090)
-   - Livez handler (lightweight check: TLS + process alive)
-   - Readyz handler (heavyweight check: database + downstream services)
-   - Shutdown handler (graceful termination)
-
-2. Update `cmd/jose-server/main.go`
-   - Initialize both public and admin servers
-   - Start servers in separate goroutines
-   - Handle graceful shutdown signals
-
-3. Update Docker Compose
-   - Health check: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez`
-   - start_period: 30s, interval: 5s, retries: 10
-
-4. Tests
-   - Admin endpoint unit tests (livez/readyz/shutdown)
-   - Integration tests (concurrent public + admin servers)
-   - E2E Docker health check validation
-
-**Acceptance Criteria**:
-
-- [ ] Admin server binds to 127.0.0.1:9090
-- [ ] Livez returns 200 OK within 1ms
-- [ ] Readyz validates database connectivity, returns 200 OK
-- [ ] Shutdown gracefully stops both servers
-- [ ] Docker health checks pass consistently
-- [ ] All tests pass with coverage ≥95%
-
-#### Task 2.1.2: CA Admin Server
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 3-5 days
-- **Dependencies**: KMS admin server (reference), JOSE admin server (validation)
-
-**Deliverables**:
-
-1. Create `internal/ca/server/admin/` package
-   - Admin server configuration (bind 127.0.0.1:9090)
-   - Livez handler
-   - Readyz handler (CA chain validation, OCSP responder)
-   - Shutdown handler
-
-2. Update `cmd/ca-server/main.go`
-   - Dual-server initialization
-   - Graceful shutdown
-
-3. Create production Docker Compose
-   - `deployments/ca/compose.yml` with 3 instances (ca-sqlite, ca-postgres-1, ca-postgres-2)
-   - Admin health checks
-   - PostgreSQL backend configuration
-
-4. Tests
-   - Admin endpoint tests
-   - Multi-instance deployment validation
-
-**Acceptance Criteria**:
-
-- [ ] Admin server binds to 127.0.0.1:9090
-- [ ] Livez/readyz handlers implemented
-- [ ] Production compose.yml with 3 instances
-- [ ] Docker health checks pass
-- [ ] Coverage ≥95%
-
-### Phase 2.2: Unified CLI Integration
-
-**Priority**: HIGH - Enables consistent operational interface
-
-#### Task 2.2.1: JOSE CLI Integration
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 2-3 days
-- **Dependencies**: Task 2.1.1 (JOSE admin server)
-
-**Deliverables**:
-
-1. Create `internal/cmd/cryptoutil/jose/` package
-   - `start` command (launch JOSE server)
-   - `status` command (query admin API)
-   - Configuration loading
-
-2. Update `cmd/cryptoutil/main.go`
-   - Register `jose` subcommand
-   - Command routing
-
-3. Documentation
-   - CLI usage examples
-   - Configuration reference
-
-**Acceptance Criteria**:
-
-- [ ] `cryptoutil jose start --config=jose.yml` launches server
-- [ ] `cryptoutil jose status` queries admin API
-- [ ] Configuration validation on startup
-- [ ] Help text documented
-
-#### Task 2.2.2: CA CLI Integration
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 2-3 days
-- **Dependencies**: Task 2.1.2 (CA admin server)
-
-**Deliverables**:
-
-1. Create `internal/cmd/cryptoutil/ca/` package
-   - `start` command
-   - `status` command
-   - `bootstrap` command (offline root CA creation)
-
-2. Update `cmd/cryptoutil/main.go`
-   - Register `ca` subcommand
-
-3. Documentation
-   - CLI usage
-   - Bootstrap workflow
-
-**Acceptance Criteria**:
-
-- [ ] `cryptoutil ca start --config=ca.yml` launches server
-- [ ] `cryptoutil ca bootstrap` creates offline root CA
-- [ ] `cryptoutil ca status` queries admin API
-
-#### Task 2.2.3: Identity CLI Integration
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 2-3 days
-- **Dependencies**: None (admin servers exist)
-
-**Deliverables**:
-
-1. Create `internal/cmd/cryptoutil/identity/` package
-   - `start` command (launch identity services)
-   - `status` command
-
-2. Update `cmd/cryptoutil/main.go`
-   - Register `identity` subcommand
-
-**Acceptance Criteria**:
-
-- [ ] `cryptoutil identity start --config=identity.yml` launches authz+idp+rs
-- [ ] `cryptoutil identity status` queries all 3 admin APIs
-
-### Phase 2.3: E2E Test Expansion
-
-**Priority**: MEDIUM - Required for production validation
-
-#### Task 2.3.1: Service API E2E Tests
-
-- **Status**: ⚠️ PARTIAL - Basic health checks only
-- **Estimated Effort**: 5-7 days
-
-**Deliverables**:
-
-1. JOSE Workflows
-   - JWS signing and verification (`/service/api/v1/sign`, `/service/api/v1/verify`)
-   - JWT issuance and validation (`/service/api/v1/jwt/issue`, `/service/api/v1/jwt/validate`)
-   - JWE encryption and decryption (`/service/api/v1/encrypt`, `/service/api/v1/decrypt`)
-
-2. CA Workflows
-   - Certificate issuance (CSR → `/service/api/v1/certificate`)
-   - Certificate revocation (`/service/api/v1/certificate/{serial}/revoke`)
-   - CRL retrieval (`/service/api/v1/ca/{ca_id}/crl`)
-   - OCSP validation (`/service/api/v1/ocsp`)
-
-3. KMS Workflows
-   - ElasticKey creation (`/service/api/v1/elastickey`)
-   - MaterialKey generation (`/service/api/v1/elastickey/{id}/materialkey`)
-   - Encryption/decryption (`/service/api/v1/elastickey/{id}/encrypt`)
-   - Key rotation (`/service/api/v1/elastickey/{id}/materialkey` + revoke old)
-
-**Test Pattern**:
-
-```go
-func TestJOSESigningE2E(t *testing.T) {
-    // 1. Start Docker Compose stack
-    composeUp(t, "deployments/jose/compose.yml")
-    defer composeDown(t)
-
-    // 2. Obtain OAuth 2.1 access token (client credentials)
-    token := oauth.GetClientToken(clientID, clientSecret)
-
-    // 3. Call /service/api/v1/sign with Bearer token
-    resp := httpClient.Post("/service/api/v1/sign",
-        http.Header{"Authorization": "Bearer " + token},
-        signRequest)
-
-    // 4. Verify JWS signature
-    assert.Equal(t, 200, resp.StatusCode)
-    verifyJWS(t, resp.Body.JWS)
-}
-```
-
-**Acceptance Criteria**:
-
-- [ ] All JOSE/CA/KMS core workflows covered
-- [ ] OAuth 2.1 client credentials flow working
-- [ ] Tests pass consistently in CI/CD
-- [ ] Average execution time <5 minutes
-
-#### Task 2.3.2: Browser API E2E Tests (Phase 3)
-
-- **Status**: ❌ NOT STARTED - Deferred to Phase 3
-- **Estimated Effort**: 7-10 days (requires browser automation)
-
-**Deliverables** (Phase 3):
-
-1. OAuth 2.1 Authorization Code + PKCE flow
-   - User login simulation
-   - Consent screen automation
-   - Code exchange for session cookie
-
-2. OIDC Authentication flow
-   - UserInfo endpoint validation
-   - ID token claims verification
-
-3. Browser automation framework
-   - Playwright or Selenium integration
-   - Headless browser testing
-
-**Rationale for Deferral**: `/service/*` API tests provide core validation faster. Browser automation adds complexity; defer to Phase 3 after core workflows stable.
-
-### Phase 2.4: Session State SQL Implementation
-
-**Priority**: HIGH - Required for horizontal scaling
-
-#### Task 2.4.1: JWS Session Implementation
-
-- **Status**: ⚠️ PARTIAL - Basic session support exists
-- **Estimated Effort**: 3-4 days
-
-**Deliverables**:
-
-1. JWS Session Generator
-   - Sign session claims with private key
-   - Include expiry, user ID, scopes
-   - Format: `eyJ...header.eyJ...payload.signature`
-
-2. JWS Session Validator
-   - Verify signature using public key
-   - Validate expiry, issuer, audience
-   - Extract user context
-
-3. Database Schema
-
-   ```sql
-   CREATE TABLE jws_sessions (
-       session_id UUID PRIMARY KEY,
-       user_id UUID NOT NULL,
-       public_key_id TEXT NOT NULL,  -- Key ID for signature verification
-       expires_at TIMESTAMP NOT NULL,
-       created_at TIMESTAMP NOT NULL
-   );
-   ```
-
-4. Integration with Identity Services
-   - Authz server issues JWS session after authorization
-   - IdP validates JWS session on consent
-   - RS validates JWS session on API requests
-
-**Acceptance Criteria**:
-
-- [ ] JWS sessions signed with RS256/ES256/EdDSA
-- [ ] Signature validation working
-- [ ] Session expiry enforced
-- [ ] Database audit trail maintained
-- [ ] Tests: unit (JWS generation/validation) + integration (end-to-end flow)
-- [ ] Coverage ≥95%
-
-#### Task 2.4.2: OPAQUE Session Implementation
-
-- **Status**: ⚠️ PARTIAL
-- **Estimated Effort**: 3-4 days
-
-**Deliverables**:
-
-1. Opaque Session Generator
-   - Generate cryptographically random session ID (32 bytes)
-   - Store session data in database
-   - Return opaque cookie to client
-
-2. Session Repository
-
-   ```sql
-   CREATE TABLE opaque_sessions (
-       session_id UUID PRIMARY KEY,
-       user_id UUID NOT NULL,
-       scopes TEXT[],  -- Array of granted scopes
-       metadata JSONB,  -- Additional session metadata
-       expires_at TIMESTAMP NOT NULL,
-       created_at TIMESTAMP NOT NULL,
-       last_accessed_at TIMESTAMP
-   );
-   CREATE INDEX idx_opaque_sessions_user_id ON opaque_sessions(user_id);
-   CREATE INDEX idx_opaque_sessions_expires_at ON opaque_sessions(expires_at);
-   ```
-
-3. Session Cleanup Job
-   - Periodic deletion of expired sessions (hourly cron)
-   - Configurable retention period
-
-**Acceptance Criteria**:
-
-- [ ] Opaque sessions generated with CSPRNG
-- [ ] Database lookup <10ms (with index)
-- [ ] Immediate revocation supported
-- [ ] Cleanup job removes expired sessions
-- [ ] Coverage ≥95%
-
-#### Task 2.4.3: JWE Session Implementation
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 4-5 days
-
-**Deliverables**:
-
-1. JWE Session Generator
-   - Encrypt session claims with symmetric key
-   - Include expiry, user ID, scopes in encrypted payload
-   - Format: `eyJ...header.encrypted_key.iv.ciphertext.tag`
-
-2. JWE Session Validator
-   - Decrypt using private key
-   - Validate expiry, issuer
-   - Extract user context
-
-3. Key Management
-   - Use KMS for JWE encryption keys
-   - Support key rotation
-
-4. Database Schema
-
-   ```sql
-   CREATE TABLE jwe_sessions (
-       session_id UUID PRIMARY KEY,
-       user_id UUID NOT NULL,
-       encryption_key_id TEXT NOT NULL,  -- KMS key ID
-       expires_at TIMESTAMP NOT NULL,
-       created_at TIMESTAMP NOT NULL
-   );
-   ```
-
-**Acceptance Criteria**:
-
-- [ ] JWE sessions encrypted with A256GCM
-- [ ] Decryption working
-- [ ] KMS integration for key management
-- [ ] Coverage ≥95%
-
-#### Task 2.4.4: Configuration-Driven Format Selection
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 2-3 days
-- **Dependencies**: Tasks 2.4.1, 2.4.2, 2.4.3
-
-**Deliverables**:
-
-1. Configuration Schema
-
-   ```yaml
-   session:
-     format: jwe  # Options: jws, opaque, jwe
-     ttl: 3600    # Session lifetime in seconds
-     browser_default: opaque  # Default for browser clients
-     headless_default: jws    # Default for service clients
-   ```
-
-2. Format Resolver
-   - Determine format based on client type and configuration
-   - Support per-deployment customization
-
-3. Documentation
-   - Format selection guide
-   - Security trade-offs (JWS vs OPAQUE vs JWE)
-   - Performance implications
-
-**Acceptance Criteria**:
-
-- [ ] All 3 formats selectable via YAML
-- [ ] Defaults: opaque for browser, jws for headless
-- [ ] Format changes apply without code changes
-- [ ] Documentation complete
-
----
-
-## Phase 7: Advanced Identity Features
-
-**Timeline**: FUTURE
-**Objective**: MFA, WebAuthn, federation enhancements, browser API E2E tests
-
-### Phase 3.1: MFA Factor Implementation
-
-**Priority**: HIGH - Required for production security
-
-#### Task 3.1.1: Core MFA Infrastructure
-
-- **Status**: ✅ COMPLETE (Passkey, TOTP, Hardware Keys implemented)
-- **Evidence**: 15+ tests passing for each factor
-
-#### Task 3.1.2: Secondary MFA Factors
-
-- **Status**: ⚠️ PARTIAL
-
-**Remaining Factors** (priority order):
-
-1. **Email OTP** - ✅ COMPLETE (10 tests passing)
-2. **Recovery Codes** - ✅ COMPLETE (13 tests passing)
-3. **SMS OTP** - ✅ COMPLETE (12 tests passing)
-4. **HOTP** - ✅ COMPLETE (12 tests passing)
-5. **Push Notification** - ✅ COMPLETE (6 tests passing)
-6. **Phone Call OTP** - ✅ COMPLETE (6 tests passing)
-
-**All Factors COMPLETE**: All MFA factors implemented and tested.
-
-#### Task 3.1.3: MFA Step-Up Authentication
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 3-4 days
-
-**Deliverables**:
-
-1. Step-Up Trigger Logic
-   - Time-based re-authentication (every 30 minutes)
-   - Operation-based triggers (key rotation, admin actions)
-
-2. Re-authentication Flow
-   - Challenge user with enrolled MFA factor
-   - Upgrade session to high-assurance level
-
-3. Session Metadata
-
-   ```sql
-   ALTER TABLE sessions ADD COLUMN assurance_level TEXT;
-   ALTER TABLE sessions ADD COLUMN last_mfa_at TIMESTAMP;
-   ```
-
-**Acceptance Criteria**:
-
-- [ ] Step-up triggers implemented
-- [ ] Re-authentication flow working
-- [ ] Session metadata tracks MFA status
-- [ ] Tests cover all trigger conditions
-
-### Phase 3.2: Browser API E2E Tests
-
-**Priority**: MEDIUM - Deferred from Phase 2
-
-#### Task 3.2.1: OAuth 2.1 Authorization Code Flow
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 5-7 days
-
-**Deliverables**:
-
-1. Browser Automation Framework
-   - Playwright/Selenium setup
-   - Headless browser configuration
-
-2. Authorization Code Flow Test
-   - User redirected to `/oauth2/v1/authorize`
-   - Login simulation on IdP
-   - Consent screen automation
-   - Code exchange for session cookie
-   - API call with session cookie
-
-3. PKCE Validation
-   - Verify code_challenge/code_verifier flow
-   - Test without PKCE (expect failure)
-
-**Test Pattern**:
-
-```go
-func TestOAuthAuthorizationCodeFlow(t *testing.T) {
-    browser := playwright.NewBrowser()
-
-    // 1. Initiate authorization
-    browser.Navigate("/oauth2/v1/authorize?client_id=...&redirect_uri=...&code_challenge=...")
-
-    // 2. Login on IdP
-    browser.Fill("#username", "testuser")
-    browser.Fill("#password", "testpass")
-    browser.Click("#login")
-
-    // 3. Grant consent
-    browser.Click("#consent-allow")
-
-    // 4. Extract authorization code from redirect
-    code := browser.URL().Query().Get("code")
-
-    // 5. Exchange code for session cookie
-    cookie := oauth.ExchangeCode(code, codeVerifier)
-
-    // 6. Call API with session cookie
-    resp := httpClient.Get("/browser/api/v1/keys",
-        http.Header{"Cookie": cookie})
-
-    assert.Equal(t, 200, resp.StatusCode)
-}
-```
-
-**Acceptance Criteria**:
-
-- [ ] Full OAuth 2.1 flow automated
-- [ ] PKCE validation working
-- [ ] Tests run in CI/CD
-- [ ] Execution time <10 minutes
-
-#### Task 3.2.2: OIDC Authentication Flow
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 3-5 days
-- **Dependencies**: Task 3.2.1
-
-**Deliverables**:
-
-1. OIDC UserInfo Test
-   - Obtain ID token
-   - Call `/oidc/v1/userinfo`
-   - Validate claims (sub, email, name)
-
-2. ID Token Validation
-   - Verify signature
-   - Validate expiry, issuer, audience
-
-**Acceptance Criteria**:
-
-- [ ] UserInfo endpoint tested
-- [ ] ID token claims validated
-- [ ] Coverage for OIDC-specific flows
-
-### Phase 3.3: Identity RP/SPA Implementation
-
-**Priority**: MEDIUM - Reference implementations for customers
-
-#### Task 3.3.1: Relying Party (RP) Service
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 7-10 days
-
-**Deliverables**:
-
-1. Backend-for-Frontend Pattern
-   - OAuth 2.1 client for Authorization Server
-   - Token storage and refresh logic
-   - Session management for SPA clients
-
-2. API Endpoints
-   - `/rp/v1/login` - Initiate OAuth flow
-   - `/rp/v1/callback` - Handle authorization code
-   - `/rp/v1/logout` - End session
-   - `/rp/v1/user` - Retrieve user info
-
-3. Docker Compose
-   - Port: 18300-18309 (public), 9091 (admin)
-   - PostgreSQL backend
-
-4. Unified CLI
-   - `cryptoutil identity-rp start`
-
-**Acceptance Criteria**:
-
-- [ ] BFF pattern implemented
-- [ ] OAuth 2.1 flows working
-- [ ] Docker Compose deployment
-- [ ] Coverage ≥95%
-
-#### Task 3.3.2: Single Page Application (SPA) Service
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 5-7 days
-
-**Deliverables**:
-
-1. Static Hosting Server
-   - Serve HTML/CSS/JavaScript files
-   - Support SPA routing (catch-all route)
-
-2. Sample SPA Application
-   - React/Vue minimal example
-   - OAuth 2.1 Authorization Code + PKCE
-   - API calls with session cookies
-
-3. Docker Compose
-   - Port: 18400-18409 (public), 9091 (admin)
-   - Static file serving
-
-**Acceptance Criteria**:
-
-- [ ] Static hosting working
-- [ ] Sample SPA functional
-- [ ] Docker deployment
-- [ ] Coverage ≥95%
-
----
-
-## Phase 8: Scale & Multi-Tenancy
-
-**Timeline**: FUTURE
-**Objective**: Database sharding, multi-tenant schema isolation, mutation testing ≥85%
-
-### Phase 4.1: Database Sharding
-
-**Priority**: HIGH - Required for multi-tenant scale
-
-#### Task 4.1.1: Shard Router Implementation
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 10-14 days
-
-**Deliverables**:
-
-1. Tenant ID-Based Partitioning
-   - Hash tenant ID to determine shard
-   - Consistent hashing algorithm
-   - Shard mapping table
-
-2. Connection Pool Per Shard
-   - Separate GORM instances per shard
-   - Connection pool configuration
-   - Health monitoring per shard
-
-3. Migration Strategy
-   - Schema initialization per shard
-   - Data migration scripts
-   - Rollback procedures
-
-4. Configuration
-
-   ```yaml
-   sharding:
-     enabled: true
-     partition_strategy: tenant_id
-     shards:
-       - name: shard1
-         dsn: postgres://host1:5432/cryptoutil_shard1
-       - name: shard2
-         dsn: postgres://host2:5432/cryptoutil_shard2
-   ```
-
-**Acceptance Criteria**:
-
-- [ ] Tenant ID routing working
-- [ ] No cross-shard queries
-- [ ] Schema migrations automated
-- [ ] Tests cover shard failover
-- [ ] Documentation complete
-
-### Phase 4.2: Multi-Tenancy Schema Isolation
-
-**Priority**: HIGH - Security requirement
-
-#### Task 4.2.1: Schema-Level Isolation
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 7-10 days
-
-**Deliverables**:
-
-1. Tenant Schema Management
-   - Auto-create schema on tenant registration
-   - Schema naming: `tenant_{uuid}`
-   - Search path switching per request
-
-2. Tenant Context Middleware
-
-   ```go
-   func TenantContextMiddleware(c *fiber.Ctx) error {
-       tenantID := c.Get("X-Tenant-ID")
-       db.Exec("SET search_path TO ?, public", tenantID)
-       return c.Next()
-   }
-   ```
-
-3. Schema Migration
-   - Apply migrations to all tenant schemas
-   - Parallel migration execution
-   - Rollback on failure
-
-4. Tests
-   - Tenant isolation validation
-   - Cross-tenant data leakage tests
-   - Performance benchmarks
-
-**Acceptance Criteria**:
-
-- [ ] Tenant schemas isolated
-- [ ] No cross-tenant data access
-- [ ] Migrations automated
-- [ ] Coverage ≥95%
-
-### Phase 4.3: Mutation Testing ≥85%
-
-**Priority**: MEDIUM - Quality gate
-
-#### Task 4.3.1: Gremlins Integration
-
-- **Status**: ⚠️ PARTIAL - Configuration exists, not enforced
-- **Estimated Effort**: 5-7 days
-
-**Deliverables**:
-
-1. Gremlins Configuration
-
-   ```yaml
-   # .gremlins.yaml
-   threshold:
-     efficacy: 85      # Phase 4 target
-     mutant-coverage: 90
-
-   workers: 4
-   test-cpu: 2
-   timeout-coefficient: 2
-
-   exemptions:
-     - "api/client/**"      # OpenAPI-generated
-     - "api/server/**"
-     - "api/model/**"
-     - "**/migrations/*.sql"
-     - "**/*.pb.go"         # Protobuf-generated
-   ```
-
-2. CI/CD Integration
-   - GitHub workflow: `ci-mutation.yml`
-   - Per-package mutation testing
-   - Fail on score <85%
-
-3. Coverage Improvement
-   - Identify surviving mutants
-   - Add tests to kill mutants
-   - Document challenges in docs/QUALITY-TODOs.md
-
-**Acceptance Criteria**:
-
-- [ ] Mutation score ≥85% per package
-- [ ] CI/CD enforcement active
-- [ ] Exemptions documented
-- [ ] Quality report generated
-
----
-
-## Phase 9: Production Readiness
-
-**Timeline**: FUTURE
-**Objective**: Performance optimization, security hardening, mutation testing ≥98%
-
-### Phase 5.1: Hash Service Refactoring
-
-**Priority**: HIGH - Security architecture improvement
-
-#### Task 5.1.1: Hash Registry Implementation
+#### Task 2.1.1: ServerTemplate Abstraction
 
 - **Status**: ❌ NOT STARTED
 - **Estimated Effort**: 14-21 days
-
-**Deliverables**:
-
-1. Four Registry Types
-   - LowEntropyRandomHashRegistry (PBKDF2, salted)
-   - LowEntropyDeterministicHashRegistry (PBKDF2, fixed + derived salt)
-   - HighEntropyRandomHashRegistry (HKDF, salted)
-   - HighEntropyDeterministicHashRegistry (HKDF, fixed + derived salt)
-
-2. Version Management
-   - v1: 0-31 bytes → SHA-256
-   - v2: 32-47 bytes → SHA-384
-   - v3: 48+ bytes → SHA-512
-   - Output format: `{version}:base64(hash)` or `{version}:{algorithm}:{params}:base64(salt):base64(hash)`
-
-3. Pepper Integration
-   - Pepper stored in Docker secrets
-   - Version-specific peppers
-   - Lazy migration on rotation
-
-4. Configuration-Driven
-
-   ```yaml
-   hash_service:
-     versions:
-       - version: 1
-         algorithm: PBKDF2-HMAC-SHA256
-         iterations: 600000
-         pepper: file:///run/secrets/pepper_v1
-       - version: 2
-         algorithm: PBKDF2-HMAC-SHA384
-         iterations: 720000
-         pepper: file:///run/secrets/pepper_v2
-   ```
-
-**Acceptance Criteria**:
-
-- [ ] All 4 registry types implemented
-- [ ] Version management working
-- [ ] Pepper rotation tested
-- [ ] Backward compatibility verified
-- [ ] Coverage ≥98%
-
-### Phase 5.2: Performance Optimization
-
-**Priority**: MEDIUM
-
-#### Task 5.2.1: Connection Pool Tuning
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 3-5 days
-
-**Deliverables**:
-
-1. Hot-Reloadable Configuration
-   - SIGHUP signal handler
-   - Reload connection pool settings without restart
-
-2. Performance Benchmarks
-   - Baseline metrics
-   - Optimization targets
-   - Continuous monitoring
-
-**Acceptance Criteria**:
-
-- [ ] Hot reload working
-- [ ] Benchmarks documented
-- [ ] No performance regressions
-
-### Phase 5.3: Security Hardening
-
-**Priority**: CRITICAL
-
-#### Task 5.3.1: STRIDE Threat Modeling
-
-- **Status**: ⚠️ PARTIAL - CA only
-- **Estimated Effort**: 7-10 days
-
-**Deliverables**:
-
-1. Threat Model Documentation
-   - Identity service threats
-   - KMS service threats
-   - JOSE service threats
-
-2. Mitigation Implementation
-   - Rate limiting enhancements
-   - Input validation
-   - Output encoding
-
-**Acceptance Criteria**:
-
-- [ ] Threat models documented
-- [ ] Mitigations implemented
-- [ ] Security tests added
-
-### Phase 5.4: Mutation Testing ≥98%
-
-**Priority**: HIGH - Quality gate
-
-#### Task 5.4.1: Gremlins Score Improvement
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 10-14 days
-- **Dependencies**: Phase 4.3.1
-
-**Deliverables**:
-
-1. Update Gremlins Configuration
-
-   ```yaml
-   threshold:
-     efficacy: 98      # Phase 5+ target
-     mutant-coverage: 95
-   ```
-
-2. Test Enhancements
-   - Boundary value tests
-   - Error injection tests
-   - Concurrency tests
-
-**Acceptance Criteria**:
-
-- [ ] Mutation score ≥98% per package
-- [ ] All infrastructure packages at 98%
-- [ ] Production packages at 98%
-
----
-
-## Phase 6: Service Template Extraction
-
-**Timeline**: FUTURE
-**Objective**: Extract reusable template from KMS, validate with Learn-PS
-
-### Phase 6.1: Template Extraction
-
-**Priority**: CRITICAL - Enables service consistency
-
-#### Task 6.1.1: ServerTemplate Abstraction
-
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 14-21 days
+- **Dependencies**: Phase 1 complete (KMS reference implementation)
 
 **Deliverables**:
 
@@ -1150,453 +255,615 @@ func TestOAuthAuthorizationCodeFlow(t *testing.T) {
    ```
 
 2. Parameterization Points
-   - Constructor injection for handlers
-   - Interface-based customization
-   - Configuration-driven behavior
+   - Constructor injection for configuration, handlers, middleware
+   - Interface-based customization for business logic
+   - Configuration-driven behavior (YAML, CLI flags, Docker secrets)
+   - Service-specific OpenAPI specs
 
 3. Documentation
-   - Template usage guide
-   - Customization examples
-   - Migration guide
+   - Template usage guide (README.md)
+   - Customization examples (examples/)
+   - Migration guide for existing services
+   - Architecture decision records (ADRs)
 
 **Acceptance Criteria**:
 
-- [ ] Template extracted from KMS
-- [ ] All common patterns abstracted
-- [ ] Documentation complete
-- [ ] Coverage ≥98%
+- [ ] Template extracted from KMS reference implementation
+- [ ] All common patterns abstracted (dual HTTPS, database, telemetry, config)
+- [ ] Documentation complete with examples
+- [ ] Coverage ≥98% (infrastructure code)
+- [ ] Mutation score ≥98%
+- [ ] Ready for learn-im validation (Phase 3)
 
 ---
 
-## Phase 7: Learn-PS Demonstration Service
+## Phase 3: Learn-IM Demonstration Service
 
-**Timeline**: OBSOLETE - See Phase 3 for Learn-InstantMessenger
-**Objective**: DEPRECATED - Replaced by Learn-InstantMessenger
+**Timeline**: After Phase 2 complete
+**Objective**: Validate template reusability with encrypted instant messaging service
 
-**NOTE**: This phase has been moved to Phase 3 and renamed to Learn-InstantMessenger. See Phase 3 for current implementation details.
+**CRITICAL**: This is the FIRST real-world validation of the service template. All production service migrations (Phases 4-6) depend on successful learn-im implementation.
 
----
+### Phase 3.1: Learn-IM Implementation
+
+**Priority**: CRITICAL - Validates template before production migrations
+
+#### Task 3.1.1: Instant Messenger Service
 
 - **Status**: ❌ NOT STARTED
 - **Estimated Effort**: 21-28 days
+- **Dependencies**: Phase 2 complete (service template extracted)
 
 **Deliverables**:
 
-1. API Implementation
-   - CRUD endpoints for pets, orders, customers
-   - `/browser/api/v1/*` and `/service/api/v1/*`
-   - OAuth 2.1 authentication
-   - Scope-based authorization
+1. Service Implementation
+   - **Service name**: learn-im
+   - **Ports**: 8888-8889 (public), 9090 (admin)
+   - Encrypted messaging between users
+   - PUT /tx API (send encrypted message)
+   - GET /rx API (retrieve encrypted messages)
+   - DELETE /tx and /rx APIs (delete messages)
 
-2. Database Schema
+2. Encryption Architecture
+   - Message encryption: AES-256-GCM
+   - Key agreement: ECDH (Elliptic Curve Diffie-Hellman)
+   - Key wrapping: ECDH-AESGCMKW (JWE algorithm)
+   - Password hashing: PBKDF2-HMAC-SHA256
+   - Crypto libraries: internal/jose (JWE), internal/crypto (ECDH, AES-GCM, PBKDF2)
+
+3. Database Schema
 
    ```sql
-   CREATE TABLE pets (id UUID PRIMARY KEY, name TEXT, species TEXT, price DECIMAL, quantity INT);
-   CREATE TABLE customers (id UUID PRIMARY KEY, name TEXT, email TEXT);
-   CREATE TABLE orders (id UUID PRIMARY KEY, customer_id UUID, total DECIMAL, status TEXT);
-   CREATE TABLE order_items (id UUID PRIMARY KEY, order_id UUID, pet_id UUID, quantity INT, price DECIMAL);
+   CREATE TABLE users (
+       id UUID PRIMARY KEY,
+       username TEXT UNIQUE NOT NULL,
+       password_hash TEXT NOT NULL,
+       public_key_jwk JSONB NOT NULL,
+       created_at TIMESTAMP NOT NULL,
+       updated_at TIMESTAMP NOT NULL
+   );
+
+   CREATE TABLE messages (
+       id UUID PRIMARY KEY,
+       sender_id UUID NOT NULL REFERENCES users(id),
+       encrypted_content TEXT NOT NULL,  -- JWE compact serialization
+       created_at TIMESTAMP NOT NULL,
+       expires_at TIMESTAMP NOT NULL
+   );
+
+   CREATE TABLE message_receivers (
+       id UUID PRIMARY KEY,
+       message_id UUID NOT NULL REFERENCES messages(id),
+       receiver_id UUID NOT NULL REFERENCES users(id),
+       read_at TIMESTAMP,
+       deleted_at TIMESTAMP,
+       UNIQUE(message_id, receiver_id)
+   );
    ```
 
-3. Service Template Usage
-   - Instantiate ServerTemplate
-   - Register routes
-   - Apply middleware
-   - Start dual servers
+4. Service Template Usage
+   - Instantiate ServerTemplate with learn-im config
+   - Register OpenAPI-generated routes
+   - Apply middleware (CORS, CSRF, rate limiting)
+   - Start dual HTTPS servers (public + admin)
+   - Database abstraction (PostgreSQL || SQLite)
+   - OpenTelemetry integration (traces, metrics, logs)
 
-4. Docker Compose
-   - Port: 8888-8889 (public), 9095 (admin)
+5. Docker Compose Deployment
+   - `deployments/compose/learn-im/compose.yml`
+   - Health checks via admin endpoints
    - PostgreSQL + SQLite support
+   - Grafana LGTM stack integration
 
-5. Documentation
-   - README with quick start
-   - Tutorial series (4 parts)
-   - Video demonstration
+6. Documentation
+   - README with quick start guide
+   - API documentation (OpenAPI spec)
+   - Encryption architecture diagram
+   - Tutorial: Building a service with the template (4 parts)
+   - Video demonstration (optional)
+
+**Template Validation Criteria**:
+
+- [ ] learn-im uses ONLY template infrastructure (NO custom dual-server code)
+- [ ] All business logic cleanly separated from template
+- [ ] Template supports different API patterns (PUT/GET/DELETE vs CRUD)
+- [ ] No template blockers discovered during implementation
+- [ ] Coverage ≥95% (service code), ≥98% (template usage)
+- [ ] Mutation score ≥85%
+- [ ] All E2E tests pass (BOTH `/service/**` and `/browser/**` paths)
+- [ ] Docker Compose deployment works
+- [ ] Deep analysis confirms template ready for production service migrations
+
+---
+
+## Phase 4: Migrate jose-ja to Template
+
+**Timeline**: After Phase 3 complete (learn-im validates template)
+**Objective**: Migrate JOSE JWK Authority service to use extracted template
+
+**CRITICAL**: First production service migration. Will drive template refinements for JOSE patterns.
+
+### Phase 4.1: JA Service Migration
+
+**Priority**: HIGH - First production template adoption
+
+#### Task 4.1.1: JA Admin Server Implementation
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 5-7 days
+- **Dependencies**: Phase 3 complete (template validated)
+
+**Deliverables**:
+
+1. Admin Server Using Template
+   - Create `internal/jose/server/admin/` package
+   - Use template for admin server (bind 127.0.0.1:9090)
+   - Implement admin endpoints via template
+     - `/admin/v1/livez` - Lightweight check
+     - `/admin/v1/readyz` - Database + JWK validation
+     - `/admin/v1/shutdown` - Graceful termination
+
+2. Unified CLI Command
+   - `cmd/cryptoutil/jose.go` - Main command
+   - `cryptoutil jose start` - Start JA service
+   - `cryptoutil jose version` - Version info
+   - Configuration: YAML files + CLI flags + Docker secrets
+
+3. Update Docker Compose
+   - `deployments/compose/jose/compose.yml`
+   - Health check: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez`
+   - start_period: 30s, interval: 5s, retries: 10
+
+4. Template Refinements (if needed)
+   - Document any JOSE-specific patterns
+   - Update template if blockers discovered
+   - Add ADRs for design decisions
 
 **Acceptance Criteria**:
 
-- [ ] All CRUD operations working
-- [ ] Template integration complete
-- [ ] Docker Compose deployment
+- [ ] JA admin server uses template
+- [ ] `cryptoutil jose start` command works
+- [ ] Docker health checks pass
+- [ ] All tests pass (unit, integration, E2E)
+- [ ] Coverage ≥95%, mutation ≥85%
+- [ ] Template refined if needed (ADRs documented)
+
+---
+
+## Phase 5: Migrate pki-ca to Template
+
+**Timeline**: After Phase 4 complete (JOSE migration)
+**Objective**: Migrate PKI Certificate Authority service to use extracted template
+
+**CRITICAL**: Second production service migration. Will drive template refinements for CA/PKI patterns.
+
+### Phase 5.1: CA Service Migration
+
+**Priority**: HIGH - Second production template adoption
+
+#### Task 5.1.1: CA Admin Server Implementation
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 5-7 days
+- **Dependencies**: Phase 4 complete (JOSE migrated)
+
+**Deliverables**:
+
+1. Admin Server Using Template
+   - Create `internal/ca/server/admin/` package
+   - Use template for admin server (bind 127.0.0.1:9090)
+   - Implement admin endpoints via template
+     - `/admin/v1/livez` - Lightweight check
+     - `/admin/v1/readyz` - CA chain validation, OCSP responder check
+     - `/admin/v1/shutdown` - Graceful termination
+
+2. Unified CLI Command
+   - `cmd/cryptoutil/ca.go` - Main command
+   - `cryptoutil ca start` - Start CA service
+   - `cryptoutil ca version` - Version info
+   - Configuration: YAML files + CLI flags + Docker secrets
+
+3. Update Docker Compose
+   - `deployments/compose/ca/compose.yml`
+   - Health check: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez`
+   - start_period: 30s, interval: 5s, retries: 10
+
+4. Template Refinements (if needed)
+   - Document any CA/PKI-specific patterns
+   - Update template if blockers discovered
+   - Add ADRs for design decisions
+
+**Acceptance Criteria**:
+
+- [ ] CA admin server uses template
+- [ ] `cryptoutil ca start` command works
+- [ ] Docker health checks pass
+- [ ] All tests pass (unit, integration, E2E)
+- [ ] Coverage ≥95%, mutation ≥85%
+- [ ] Template refined if needed (ADRs documented)
+- [ ] Template now battle-tested with 3 different service patterns (learn-im, JOSE, CA)
+
+---
+
+## Phase 6: Identity Services Enhancement
+
+**Timeline**: After Phases 2-5 complete (template mature)
+**Objective**: Complete identity services admin servers, unified CLI, E2E coverage, migrate to template
+
+**CRITICAL**: Identity services migrate LAST to benefit from mature, battle-tested template refined by learn-im, JOSE, and CA migrations.
+
+### Phase 6.1: Admin Server Implementation
+
+**Priority**: HIGH - Blocking unified CLI and production deployments
+
+#### Task 6.1.1: Identity Service Admin Servers
+
+- **Status**: ⚠️ PARTIAL - authz, idp, rs have admin servers
+- **Estimated Effort**: 7-10 days (rp + spa admin servers)
+- **Dependencies**: Phase 5 complete (CA migrated, template mature)
+
+**Deliverables**:
+
+1. RP (Relying Party) Admin Server
+   - Use template for admin server (bind 127.0.0.1:9090)
+   - `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+   - Readyz: OAuth 2.1 provider connectivity check
+
+2. SPA (Single Page Application) Admin Server
+   - Use template for admin server (bind 127.0.0.1:9090)
+   - `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+   - Readyz: Backend API connectivity check
+
+3. Migrate Existing Identity Services (authz, idp, rs) to Template
+   - Refactor to use template infrastructure
+   - Remove duplicate dual-server code
+   - Use template database, telemetry, config patterns
+
+**Acceptance Criteria**:
+
+- [ ] All 5 identity services use template
+- [ ] All admin servers bind to 127.0.0.1:9090
+- [ ] Docker health checks pass for all services
+- [ ] Coverage ≥95%, mutation ≥85%
+
+### Phase 6.2: Unified CLI
+
+**Priority**: MEDIUM - Improves developer experience
+
+#### Task 6.2.1: Identity CLI Commands
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 3-5 days
+- **Dependencies**: Phase 6.1 complete
+
+**Deliverables**:
+
+1. CLI Commands
+   - `cryptoutil identity-authz start`
+   - `cryptoutil identity-idp start`
+   - `cryptoutil identity-rs start`
+   - `cryptoutil identity-rp start`
+   - `cryptoutil identity-spa start`
+
+2. Unified Configuration
+   - YAML config files
+   - CLI flags override
+   - Docker secrets support
+
+**Acceptance Criteria**:
+
+- [ ] All identity services startable via `cryptoutil` CLI
+- [ ] Configuration hierarchy works (YAML < CLI < secrets)
+- [ ] Documentation updated
+
+### Phase 6.3: E2E Path Coverage
+
+**Priority**: MEDIUM - Compliance requirement
+
+#### Task 6.3.1: Browser Path Tests
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 5-7 days
+
+**Deliverables**:
+
+1. `/browser/**` E2E Tests
+   - CSRF protection validation
+   - CORS policy enforcement
+   - CSP header verification
+   - Session cookie handling
+
+2. Middleware Verification
+   - IP allowlist (both paths)
+   - Rate limiting (both paths)
+   - Request logging (both paths)
+
+**Acceptance Criteria**:
+
+- [ ] BOTH `/service/**` and `/browser/**` paths tested
+- [ ] Middleware behavior verified for each path
 - [ ] Coverage ≥95%
-- [ ] Mutation score ≥85%
-- [ ] Documentation complete
 
-**Service Migration Priority** (AFTER Learn-PS):
+---
 
-1. **learn-ps** - ✅ VALIDATES template (Phase 7)
-2. **jose-ja** - First production migration (Phase 8)
-3. **pki-ca** - Second production migration (Phase 9)
-4. **identity-authz** - Third production migration (Phase 10)
-5. **identity-idp** - Fourth production migration (Phase 11)
-6. **identity-rs** - Fifth production migration (Phase 12)
-7. **identity-rp** - Sixth production migration (Phase 13)
-8. **identity-spa** - Seventh production migration (Phase 14)
-9. **sm-kms** - LAST migration, only after ALL others running excellently (Phase 15+)
+## Phase 7: Advanced Identity Features
 
-**Rationale**: Learn-PS proves template is production-ready without risking existing services. Sequential migrations allow template refinements between services.
+**Timeline**: After Phase 6 complete
+**Objective**: MFA, WebAuthn, advanced authn/authz features
+
+### Phase 7.1: Multi-Factor Authentication
+
+**Priority**: HIGH - Security requirement
+
+#### Task 7.1.1: TOTP (Time-Based One-Time Password)
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 7-10 days
+
+**Deliverables**:
+
+1. TOTP Implementation
+   - QR code enrollment
+   - Code verification
+   - Backup codes
+   - Recovery flow
+
+**Acceptance Criteria**:
+
+- [ ] TOTP enrollment works
+- [ ] 6-digit codes validated
+- [ ] 30-minute MFA step-up enforced
+- [ ] Coverage ≥95%
+
+### Phase 7.2: WebAuthn
+
+**Priority**: MEDIUM - Modern authn
+
+#### Task 7.2.1: WebAuthn Registration & Authentication
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 14-21 days
+
+**Deliverables**:
+
+1. WebAuthn Support
+   - Registration ceremony
+   - Authentication ceremony
+   - Credential management
+   - Browser compatibility
+
+**Acceptance Criteria**:
+
+- [ ] WebAuthn registration works
+- [ ] WebAuthn authentication works
+- [ ] Cross-browser tested
+- [ ] Coverage ≥95%
+
+---
+
+## Phase 8: Scale & Multi-Tenancy
+
+**Timeline**: After Phase 7 complete
+**Objective**: Database sharding, connection pool tuning, multi-tenant isolation
+
+### Phase 8.1: Database Sharding
+
+**Priority**: MEDIUM - Performance optimization
+
+#### Task 8.1.1: Tenant ID Partitioning
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 14-21 days
+
+**Deliverables**:
+
+1. Sharding Implementation
+   - Tenant ID-based sharding
+   - Shard routing logic
+   - Cross-shard queries (if needed)
+
+2. Multi-Tenancy Enhancements
+   - Per-row tenant_id (PostgreSQL + SQLite)
+   - Schema-level isolation (PostgreSQL only)
+   - Tenant provisioning APIs
+
+**Acceptance Criteria**:
+
+- [ ] Sharding reduces query latency
+- [ ] Multi-tenancy isolation verified
+- [ ] Coverage ≥95%
+
+---
+
+## Phase 9: Production Readiness
+
+**Timeline**: After Phase 8 complete
+**Objective**: Production hardening, monitoring, compliance
+
+### Phase 9.1: Security Hardening
+
+**Priority**: CRITICAL - Production requirement
+
+#### Task 9.1.1: Security Audit
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 7-10 days
+
+**Deliverables**:
+
+1. SAST/DAST Scanning
+   - Nuclei scans (info, low, medium, high, critical)
+   - OWASP ZAP active scans
+   - Dependency vulnerability scans
+
+2. Penetration Testing
+   - Authentication bypass attempts
+   - Authorization escalation attempts
+   - Injection attacks (SQL, command, etc.)
+
+**Acceptance Criteria**:
+
+- [ ] Zero HIGH/CRITICAL vulnerabilities
+- [ ] All MEDIUM vulnerabilities mitigated or accepted with risk assessment
+- [ ] Penetration test report clean
+
+### Phase 9.2: Production Monitoring
+
+**Priority**: HIGH - Operational requirement
+
+#### Task 9.2.1: Observability Enhancement
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 5-7 days
+
+**Deliverables**:
+
+1. Dashboards
+   - Service health (livez/readyz status)
+   - Request rates, latencies
+   - Error rates by endpoint
+   - Database connection pool metrics
+
+2. Alerting
+   - SLA violations (p95 latency > threshold)
+   - Error rate spikes
+   - Health check failures
+
+**Acceptance Criteria**:
+
+- [ ] Grafana dashboards deployed
+- [ ] Alerts configured
+- [ ] Runbooks documented
 
 ---
 
 ## Dependencies & Critical Path
 
-### Critical Path Analysis
+### Phase Dependencies
 
 ```
-Phase 1 (COMPLETE)
-    ↓
-Phase 2.1: Admin Servers (CRITICAL BLOCKER)
-    ├── JOSE Admin Server (Task 2.1.1) → 2.2.1 JOSE CLI
-    └── CA Admin Server (Task 2.1.2) → 2.2.2 CA CLI
-        ↓
-Phase 2.2: Unified CLI Integration
-    ├── Task 2.2.1: JOSE CLI
-    ├── Task 2.2.2: CA CLI
-    └── Task 2.2.3: Identity CLI
-        ↓
-Phase 2.3: E2E Service API Tests
-    ├── Task 2.3.1: Service API workflows (JOSE/CA/KMS)
-    └── (Task 2.3.2: Browser API tests → DEFERRED to Phase 3)
-        ↓
-Phase 2.4: Session State SQL
-    ├── Task 2.4.1: JWS Sessions
-    ├── Task 2.4.2: OPAQUE Sessions
-    ├── Task 2.4.3: JWE Sessions
-    └── Task 2.4.4: Configuration-driven selection
-        ↓
-Phase 3: Advanced Features
-    ├── 3.1: MFA Factors (✅ COMPLETE)
-    ├── 3.2: Browser API E2E Tests (deferred from Phase 2)
-    └── 3.3: Identity RP/SPA
-        ↓
-Phase 4: Scale & Multi-Tenancy
-    ├── 4.1: Database Sharding
-    ├── 4.2: Schema Isolation
-    └── 4.3: Mutation ≥85%
-        ↓
-Phase 5: Production Readiness
-    ├── 5.1: Hash Service Refactoring
-    ├── 5.2: Performance Optimization
-    ├── 5.3: Security Hardening
-    └── 5.4: Mutation ≥98%
-        ↓
-Phase 6: Service Template Extraction
-    └── 6.1: Template Abstraction
-        ↓
-Phase 7: Learn-PS (CRITICAL - VALIDATES TEMPLATE)
-    └── 7.1: Pet Store Service
-        ↓
-Phase 8-15: Production Service Migrations (SEQUENTIAL)
-    8: jose-ja
-    9: pki-ca
-    10: identity-authz
-    11: identity-idp
-    12: identity-rs
-    13: identity-rp
-    14: identity-spa
-    15+: sm-kms (LAST, only after all others running excellently)
+Phase 1 (Foundation) ✅
+  ↓
+Phase 2 (Template Extraction) ← CURRENT PHASE, BLOCKING ALL MIGRATIONS
+  ↓
+Phase 3 (learn-im) ← VALIDATES TEMPLATE, CRITICAL BLOCKER FOR PRODUCTION MIGRATIONS
+  ↓
+Phase 4 (jose-ja Migration) ← First production migration
+  ↓
+Phase 5 (pki-ca Migration) ← Second production migration
+  ↓
+Phase 6 (Identity Enhancement) ← Third production migration (LAST, benefits from mature template)
+  ↓
+Phase 7 (Advanced Features) ← MFA, WebAuthn
+  ↓
+Phase 8 (Scale & Multi-Tenancy) ← Performance optimization
+  ↓
+Phase 9 (Production Readiness) ← Security hardening, monitoring
 ```
 
-### Blocking Dependencies
+### Critical Path
 
-| Blocked Task | Requires Completion Of | Reason |
-|--------------|------------------------|--------|
-| 2.2.1 JOSE CLI | 2.1.1 JOSE Admin Server | CLI queries admin API |
-| 2.2.2 CA CLI | 2.1.2 CA Admin Server | CLI queries admin API |
-| 2.3.1 Service API E2E | 2.1.1 + 2.1.2 Admin Servers | Health checks required |
-| 2.4.4 Config Selection | 2.4.1 + 2.4.2 + 2.4.3 Session formats | All formats must exist |
-| 3.2.1 Browser E2E | 2.3.1 Service API E2E | Infrastructure proven first |
-| 4.1 Sharding | 4.2 Schema Isolation | Tenant isolation prerequisite |
-| 4.3 Mutation 85% | 2.x + 3.x complete | Stable codebase required |
-| 5.4 Mutation 98% | 4.3 Mutation 85% | Incremental improvement |
-| 7.1 Learn-PS | 6.1 Template Extraction | Template must exist |
-| 8-15 Migrations | 7.1 Learn-PS | Template validated first |
+1. **Phase 2 Template Extraction** (BLOCKING) - 14-21 days
+   - Blocks ALL service migrations (Phases 3-6)
+   - Highest priority after Phase 1 completion
 
-### Parallelization Opportunities
+2. **Phase 3 learn-im Validation** (CRITICAL) - 21-28 days
+   - MUST succeed before any production service migrations
+   - Validates template with real-world service
+   - Drives template refinements
 
-**Can Run Concurrently**:
+3. **Phases 4-5 Production Migrations** - 10-14 days (sequential)
+   - jose-ja (Phase 4): 5-7 days
+   - pki-ca (Phase 5): 5-7 days
+   - Sequential to allow template refinements between migrations
 
-- Task 2.1.1 (JOSE Admin) + 2.1.2 (CA Admin) - Independent services
-- Task 2.4.1 (JWS) + 2.4.2 (OPAQUE) - Different implementations
-- Task 3.3.1 (Identity RP) + 3.3.2 (Identity SPA) - Independent services
-- Task 5.1 (Hash Service) + 5.2 (Performance) + 5.3 (Security) - Different domains
+4. **Phase 6 Identity Migration** - 15-22 days
+   - Benefits from mature template (refined by learn-im, JOSE, CA)
+   - Largest migration (5 services)
 
-**Must Run Sequentially**:
-
-- Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7
-- Learn-PS (Phase 7) → Production Migrations (Phase 8-15)
+**Total Critical Path**: ~60-85 days (Phases 2-6)
 
 ---
 
 ## Success Criteria
 
-### Phase-Level Criteria
+### Phase 2 Success Criteria
 
-#### Phase 2: Core Services
+- [ ] Service template extracted and documented
+- [ ] Coverage ≥98%, mutation ≥98%
+- [ ] Ready for learn-im validation
 
-- [ ] All services have admin servers (JOSE, CA)
-- [ ] Unified CLI: `cryptoutil {jose|ca|identity|kms} start|status`
-- [ ] E2E tests cover `/service/*` paths for JOSE/CA/KMS
-- [ ] Session state: All 3 formats (JWS, OPAQUE, JWE) implemented
-- [ ] Configuration-driven format selection working
-- [ ] All tests pass with coverage ≥95%
+### Phase 3 Success Criteria
 
-#### Phase 3: Advanced Features
+- [ ] learn-im service implemented using template
+- [ ] NO template blockers discovered
+- [ ] Coverage ≥95%, mutation ≥85%
+- [ ] E2E tests pass (BOTH paths)
 
-- [ ] All 9 MFA factors implemented and tested
-- [ ] Browser API E2E tests cover OAuth 2.1 + OIDC flows
-- [ ] Identity RP and SPA services deployed
-- [ ] Step-up authentication working
-- [ ] Coverage ≥95%
+### Phases 4-5 Success Criteria
 
-#### Phase 4: Scale & Multi-Tenancy
-
-- [ ] Database sharding operational
-- [ ] Multi-tenant schema isolation enforced
-- [ ] No cross-tenant data leakage
-- [ ] Mutation score ≥85% per package
-- [ ] Coverage ≥95%
-
-#### Phase 5: Production Readiness
-
-- [ ] Hash service refactored with 4 registry types
-- [ ] Pepper rotation validated
-- [ ] STRIDE threat models documented
-- [ ] Performance benchmarks established
-- [ ] Mutation score ≥98% per package
-- [ ] Coverage ≥98% (infrastructure/utility)
-
-#### Phase 6: Service Template
-
-- [ ] Template extracted from KMS
-- [ ] All common patterns abstracted
-- [ ] Documentation complete
-- [ ] Coverage ≥98%
-
-#### Phase 7: Learn-PS
-
-- [ ] Pet Store service fully functional
-- [ ] Template integration validated
-- [ ] Docker Compose deployment working
-- [ ] Tutorial documentation complete
+- [ ] jose-ja and pki-ca migrated to template
+- [ ] Template refined based on migration learnings
 - [ ] Coverage ≥95%, mutation ≥85%
 
-### Overall Project Success
+### Phase 6 Success Criteria
 
-**Must Have (MVP)**:
+- [ ] All 5 identity services migrated to template
+- [ ] Unified CLI complete
+- [ ] E2E coverage complete (BOTH paths)
+- [ ] Coverage ≥95%, mutation ≥85%
 
-- [ ] All 9 services deployed and operational
-- [ ] Dual-server pattern implemented for all services
-- [ ] PostgreSQL + SQLite support for all services
-- [ ] Session state SQL-backed (JWS + OPAQUE + JWE)
-- [ ] E2E tests cover BOTH `/service/*` and `/browser/*` paths
-- [ ] All authentication factors implemented (10 headless + 28 browser)
-- [ ] mTLS with CRLDP + OCSP revocation checking
+### Overall Success Criteria
+
+- [ ] All 8 production services use template
+- [ ] Coverage ≥95% (production), ≥98% (infrastructure)
+- [ ] Mutation score ≥85% (early phases), ≥98% (later phases)
+- [ ] Docker Compose deployments work for all services
 - [ ] Unified CLI for all services
-- [ ] Coverage ≥95% (production), ≥98% (infrastructure/utility)
-
-**Should Have (Production)**:
-
-- [ ] Database sharding operational
-- [ ] Multi-tenant schema isolation
-- [ ] Mutation score ≥98% all packages
-- [ ] Hash service version management
-- [ ] STRIDE threat models for all services
-- [ ] Service template extracted and validated
-
-**Nice to Have (Future)**:
-
-- [ ] Kubernetes deployment manifests
-- [ ] Service mesh integration (Istio/Linkerd)
-- [ ] Advanced caching strategies
-- [ ] Read replica support (if requirements change)
+- [ ] Production ready (security, monitoring, compliance)
 
 ---
 
 ## Risk Management
 
-### High-Risk Areas
+### High Risks
 
-#### 1. Admin Server Implementation (Phase 2.1)
+1. **Template Extraction Complexity** (Phase 2)
+   - Risk: Abstraction too rigid or too flexible
+   - Mitigation: learn-im validation (Phase 3) before production migrations
+   - Impact: Could delay all migrations (Phases 4-6)
 
-**Risk**: Breaking KMS reference implementation while extracting patterns
-**Mitigation**:
+2. **learn-im Validation Failures** (Phase 3)
+   - Risk: Template blockers discovered during implementation
+   - Mitigation: Deep analysis and template refinement cycle
+   - Impact: Could require Phase 2 rework
 
-- Copy KMS admin server patterns EXACTLY
-- Comprehensive regression testing
-- Incremental implementation with frequent validation
+3. **Migration Coordination** (Phases 4-6)
+   - Risk: Services drift from template during sequential migrations
+   - Mitigation: Sequential migrations with template updates between phases
+   - Impact: Inconsistent service implementations
 
-#### 2. Session State Migration (Phase 2.4)
+### Medium Risks
 
-**Risk**: Backward compatibility with existing sessions
-**Mitigation**:
+1. **E2E Path Coverage** (Phase 6.3)
+   - Risk: `/browser/**` middleware interactions complex
+   - Mitigation: Reference KMS implementation
+   - Impact: Could delay Phase 6 completion
 
-- Grace period dual-format support
-- Natural expiration of old sessions (no forced invalidation)
-- Extensive integration tests
+2. **MFA Integration** (Phase 7)
+   - Risk: 30-minute step-up conflicts with session duration
+   - Mitigation: Configurable step-up window
+   - Impact: Could require session architecture changes
 
-#### 3. Browser E2E Tests (Phase 3.2)
+### Low Risks
 
-**Risk**: Browser automation flakiness in CI/CD
-**Mitigation**:
+1. **Database Sharding** (Phase 8)
+   - Risk: Cross-shard queries impact performance
+   - Mitigation: Minimize cross-shard operations
+   - Impact: Limited to multi-tenant deployments
 
-- Retry logic for flaky tests
-- Generous timeouts (2.5-3× local timings)
-- Screenshot capture on failures
+### Risk Monitoring
 
-#### 4. Database Sharding (Phase 4.1)
-
-**Risk**: Data loss during migration, cross-shard query bugs
-**Mitigation**:
-
-- Dry-run migrations on test data
-- Rollback procedures documented
-- Shard-by-shard migration (not all-at-once)
-
-#### 5. Service Template Extraction (Phase 6.1)
-
-**Risk**: Over-abstraction, template too rigid for future services
-**Mitigation**:
-
-- Learn-PS validation BEFORE production migrations
-- Iterative refinement between migrations
-- Keep KMS as reference implementation (migrate LAST)
-
-### Medium-Risk Areas
-
-#### 1. Mutation Testing Targets (Phases 4.3, 5.4)
-
-**Risk**: Unable to achieve ≥85%/≥98% on some packages
-**Mitigation**:
-
-- Document exemptions with justification in clarify.md
-- Ramp-up plans for challenging packages
-- Focus on business logic first
-
-#### 2. Multi-Tenancy Isolation (Phase 4.2)
-
-**Risk**: Schema switching overhead, connection pool exhaustion
-**Mitigation**:
-
-- Performance benchmarks before rollout
-- Gradual tenant onboarding
-- Connection pool tuning
-
-#### 3. Hash Service Refactoring (Phase 5.1)
-
-**Risk**: Breaking existing hashes, migration failures
-**Mitigation**:
-
-- Backward compatibility tests
-- Version-aware verification
-- Lazy migration strategy
-
-### Mitigation Strategies
-
-#### General Principles
-
-1. **Incremental Implementation**: Small, testable changes with frequent commits
-2. **Evidence-Based Validation**: Objective metrics (coverage, mutation score, test pass rate)
-3. **Rollback Plans**: Document rollback for every major change
-4. **Communication**: Update PROGRESS.md after each task completion
-
-#### Specific Contingencies
-
-- **Schedule Slippage**: Defer nice-to-have features, maintain must-have MVP
-- **Resource Constraints**: Parallelize independent tasks, prioritize critical path
-- **Technical Blockers**: Escalate immediately, document workarounds
-- **Quality Gate Failures**: Fix before proceeding, no exceptions
-
----
-
-## Appendix: Key Architectural Decisions
-
-### Session State: SQL-Only
-
-**Decision**: Use PostgreSQL/SQLite for session storage, NOT Redis
-**Rationale**: ACID compliance, transaction support, consistent backups, simpler architecture
-**Trade-off**: Slightly higher latency vs Redis, but acceptable for security-critical operations
-
-### Multi-Tenancy: Schema Isolation
-
-**Decision**: Separate PostgreSQL schemas per tenant, NOT row-level security
-**Rationale**: Strong isolation guarantees, no data leakage risk, simpler queries
-**Trade-off**: More resource overhead than RLS, but better security posture
-
-### Read Replicas: Not Supported
-
-**Decision**: All reads directed to primary database
-**Rationale**: Eliminates replication lag consistency issues, simplifies architecture
-**Alternative**: Vertical scaling + connection pooling for read concurrency
-
-### Federation Fallback: Reject All
-
-**Decision**: Production MUST use `reject_all` when Identity service unavailable
-**Rationale**: Security over availability - better to reject than risk stale credentials
-**Development**: Can use `allow_all` for convenience
-
-### Service Template: Learn-PS First
-
-**Decision**: Implement Learn-PS BEFORE migrating production services
-**Rationale**: Validates template reusability without risking existing services
-**Migration Order**: learn-ps → jose-ja → pki-ca → identity services → sm-kms (LAST)
-
-### MFA Factors: All Mandatory
-
-**Decision**: Implement ALL factors including NIST-deprecated (SMS/Phone OTP)
-**Rationale**: Backward compatibility, user accessibility, legacy system support
-**Priority**: Passkey > TOTP > Hardware Keys > Email OTP > Recovery > SMS > Phone > Magic Link > Push
-
-### Mutation Testing: Phased Targets
-
-**Decision**: ≥85% in Phase 4, ≥98% in Phase 5
-**Rationale**: Incremental quality improvement, allows learning curve
-**Exemptions**: OpenAPI + GORM + protobuf generated code (with ramp-up plans)
-
----
-
-## Appendix: Conventions and Standards
-
-### File Naming
-
-- Production: `{package}.go`
-- Tests: `{package}_test.go`
-- Integration: `{package}_integration_test.go`
-- Benchmarks: `{package}_bench_test.go`
-- Fuzz: `{package}_fuzz_test.go`
-
-### Commit Messages
-
-- Format: `<type>(<scope>): <subject>`
-- Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`
-- Examples:
-  - `feat(jose): add admin server endpoints`
-  - `test(identity): add OAuth 2.1 E2E tests`
-  - `refactor(kms): extract ServerTemplate abstraction`
-
-### Documentation
-
-- Constitution: `.specify/memory/constitution.md` (architectural mandates)
-- Spec: `specs/002-cryptoutil/spec.md` (technical requirements)
-- Clarify: `specs/002-cryptoutil/clarify.md` (implementation decisions)
-- Plan: `specs/002-cryptoutil/plan.md` (this document)
-- Tasks: `specs/002-cryptoutil/tasks.md` (generated from plan)
-- Progress: `specs/002-cryptoutil/PROGRESS.md` (iteration tracking)
-
-### Quality Gates
-
-- Coverage: ≥95% (production), ≥98% (infrastructure/utility)
-- Mutation: ≥85% (Phase 4), ≥98% (Phase 5)
-- Test Time: <15s per package, <180s full suite
-- Linting: All golangci-lint checks pass
-- Build: `go build ./...` clean
-
----
-
-**Plan Status**: ACTIVE
-**Next Review**: After Phase 2.1 completion
-**Owner**: Development Team
-**Stakeholders**: Product, Security, Operations
-
----
-
-*End of Implementation Plan*
+- Weekly risk review during Phases 2-6
+- Template refinement ADRs documented
+- Migration post-mortems after each phase

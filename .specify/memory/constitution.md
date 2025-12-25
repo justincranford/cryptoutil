@@ -21,14 +21,14 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 | sm-kms | Secrets Manager | 8080-8089 | 9090 | ✅ COMPLETE | Reference implementation |
 | pki-ca | PKI | 8443-8449 | 9090 | ⚠️ PARTIAL | Needs dual-server |
 | jose-ja | JOSE | 9443-9449 | 9090 | ⚠️ PARTIAL | Needs dual-server |
-| identity-authz | Identity | 18000-18009 | 9091 | ✅ COMPLETE | Dual servers |
-| identity-idp | Identity | 18100-18109 | 9091 | ✅ COMPLETE | Dual servers |
-| identity-rs | Identity | 18200-18209 | 9091 | ⏳ IN PROGRESS | Public server pending |
-| identity-rp | Identity | 18300-18309 | 9091 | ❌ NOT STARTED | Reference implementation |
-| identity-spa | Identity | 18400-18409 | 9091 | ❌ NOT STARTED | Reference implementation |
-| learn-ps | Learn | 8888-8889 | 9090 | ❌ NOT STARTED | Phase 7 validation |
+| identity-authz | Identity | 18000-18009 | 9090 | ✅ COMPLETE | Dual servers |
+| identity-idp | Identity | 18100-18109 | 9090 | ✅ COMPLETE | Dual servers |
+| identity-rs | Identity | 18200-18209 | 9090 | ⏳ IN PROGRESS | Public server pending |
+| identity-rp | Identity | 18300-18309 | 9090 | ❌ NOT STARTED | Reference implementation |
+| identity-spa | Identity | 18400-18409 | 9090 | ❌ NOT STARTED | Reference implementation |
+| learn-im | Learn | 8888-8889 | 9090 | ❌ NOT STARTED | Phase 3 validation |
 
-**Implementation Priority**: sm-kms (✅) → jose-ja → pki-ca → identity services (authz ✅, idp ✅, rs ⏳, rp ❌, spa ❌) → learn-ps (Phase 7)
+**Implementation Priority**: sm-kms (✅) → template extraction (Phase 2) → learn-im (Phase 3, validates template) → jose-ja (Phase 4) → pki-ca (Phase 5) → identity services (authz ✅, idp ✅, rs ⏳, rp ❌, spa ❌, Phase 6)
 
 **See**: `architecture.md` for complete service catalog and federation patterns
 

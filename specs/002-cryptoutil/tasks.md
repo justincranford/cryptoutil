@@ -1,8 +1,8 @@
 # cryptoutil Implementation Tasks
 
-**Generated**: 2025-12-24
+**Generated**: 2025-12-24 (Updated)
 **Source**: specs/002-cryptoutil/plan.md
-**Status**: Phase 2-7 tasks (Phase 1 complete)
+**Status**: Phases 2-9 tasks (Phase 1 complete)
 
 ---
 
@@ -12,449 +12,392 @@ Each task includes:
 
 - **ID**: Unique identifier (P#.#.#)
 - **Title**: Brief description (3-7 words)
-- **Phase**: Implementation phase (2-7)
-- **Effort**: S (1-2 days), M (3-5 days), L (1-2 weeks)
+- **Phase**: Implementation phase (2-9)
+- **Effort**: S (1-2 days), M (3-5 days), L (1-2 weeks), XL (3-4 weeks)
 - **Dependencies**: Blocking tasks (must complete first)
 - **Completion Criteria**: Evidence-based validation
 - **Files/Packages**: Where work will be done
 
 ---
 
-## Phase 2: Core Services
+## Phase 2: Service Template Extraction (CURRENT PHASE)
 
-### P2.1: Admin Server Migration (BLOCKING)
+**CRITICAL**: Phase 2 is BLOCKING all service migrations (Phases 3-6). Must complete before any migrations.
 
-#### P2.1.1: JOSE Admin Server Implementation
+### P2.1: Template Extraction
 
-- **Title**: Implement JOSE admin server
-- **Effort**: M (3-5 days)
+#### P2.1.1: ServerTemplate Abstraction
+
+- **Title**: Extract service template from KMS
+- **Effort**: L (14-21 days)
 - **Dependencies**: None (Phase 1 complete)
 - **Files**:
-  - `internal/jose/server/admin.go` (create)
-  - `internal/jose/server/application.go` (update for dual servers)
-  - `cmd/jose-server/main.go` (update startup)
+  - `internal/template/server/dual_https.go` (create)
+  - `internal/template/server/router.go` (create)
+  - `internal/template/server/middleware.go` (create)
+  - `internal/template/server/lifecycle.go` (create)
+  - `internal/template/client/http_client.go` (create)
+  - `internal/template/client/auth.go` (create)
+  - `internal/template/repository/dual_db.go` (create)
+  - `internal/template/repository/gorm_patterns.go` (create)
+  - `internal/template/repository/transaction.go` (create)
+  - `docs/template/README.md` (create)
+  - `docs/template/USAGE.md` (create)
+  - `docs/template/MIGRATION.md` (create)
 - **Completion Criteria**:
-  - ✅ Admin server binds to 127.0.0.1:9093
-  - ✅ Health endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
-  - ✅ Dual server pattern (public + admin) with concurrent startup
-  - ✅ Tests pass: `go test ./internal/jose/server/...`
-  - ✅ Coverage ≥95%: `go test -cover ./internal/jose/server/...`
-  - ✅ Docker Compose health check passes
-  - ✅ Commit: `feat(jose): implement admin server for health checks and graceful shutdown`
-
-#### P2.1.2: CA Admin Server Implementation
-
-- **Title**: Implement CA admin server
-- **Effort**: M (3-5 days)
-- **Dependencies**: P2.1.1 (pattern established)
-- **Files**:
-  - `internal/ca/server/admin.go` (create)
-  - `internal/ca/server/application.go` (update for dual servers)
-  - `cmd/ca-server/main.go` (update startup)
-- **Completion Criteria**:
-  - ✅ Admin server binds to 127.0.0.1:9092
-  - ✅ Health endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
-  - ✅ Dual server pattern with concurrent startup
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Docker Compose health check passes
-  - ✅ Commit: `feat(ca): implement admin server for health checks and graceful shutdown`
+  - ✅ Template extracted from KMS reference implementation
+  - ✅ All common patterns abstracted (dual HTTPS, database, telemetry, config)
+  - ✅ Constructor injection for configuration, handlers, middleware
+  - ✅ Interface-based customization for business logic
+  - ✅ Service-specific OpenAPI specs support
+  - ✅ Documentation complete with examples
+  - ✅ Tests pass: `go test ./internal/template/...`
+  - ✅ Coverage ≥98%: `go test -cover ./internal/template/...`
+  - ✅ Mutation score ≥98%: `gremlins unleash ./internal/template/...`
+  - ✅ Ready for learn-im validation (Phase 3)
+  - ✅ Commit: `feat(template): extract service template from KMS reference implementation`
 
 ---
 
-### P2.2: Unified CLI Enhancements
+## Phase 3: Learn-IM Demonstration Service
 
-#### P2.2.1: Unified CLI Database Migrations
+**CRITICAL**: Phase 3 is the FIRST real-world template validation. All production service migrations (Phases 4-6) depend on successful learn-im implementation.
 
-- **Title**: Add database migration commands to unified CLI
-- **Effort**: S (1-2 days)
-- **Dependencies**: P2.1.1, P2.1.2
+### P3.1: Learn-IM Implementation
+
+#### P3.1.1: Learn-IM Service Implementation
+
+- **Title**: Implement learn-im encrypted messaging service
+- **Effort**: L (21-28 days)
+- **Dependencies**: P2.1.1 (template extracted)
 - **Files**:
-  - `cmd/cryptoutil/main.go` (add migration subcommands)
-  - `internal/shared/database/migrations.go` (create migration utilities)
+  - `internal/learn/domain/*.go` (create - users, messages)
+  - `internal/learn/server/application.go` (create)
+  - `internal/learn/server/handlers.go` (create)
+  - `internal/learn/repository/*.go` (create)
+  - `cmd/cryptoutil/learn.go` (create)
+  - `cmd/learn-im/main.go` (create)
+  - `deployments/compose/learn-im/compose.yml` (create)
+  - `api/learn/openapi_spec_components.yaml` (create)
+  - `api/learn/openapi_spec_paths.yaml` (create)
+  - `docs/learn-im/README.md` (create)
+  - `docs/learn-im/TUTORIAL.md` (create)
 - **Completion Criteria**:
-  - ✅ Commands: `cryptoutil migrate up`, `cryptoutil migrate down`, `cryptoutil migrate status`
-  - ✅ Support PostgreSQL and SQLite
-  - ✅ Dry-run mode for validation
-  - ✅ Tests pass, coverage ≥98%
-  - ✅ Commit: `feat(cli): add database migration commands to unified CLI`
-
-#### P2.2.2: Unified CLI Health Check
-
-- **Title**: Add health check command to unified CLI
-- **Effort**: S (1-2 days)
-- **Dependencies**: P2.1.1, P2.1.2
-- **Files**:
-  - `cmd/cryptoutil/main.go` (add health subcommand)
-- **Completion Criteria**:
-  - ✅ Command: `cryptoutil health check --service=<service>` or `cryptoutil health check --all`
-  - ✅ Polls `/admin/v1/livez` and `/admin/v1/readyz`
-  - ✅ Exit code 0 (healthy) or 1 (unhealthy)
-  - ✅ Tests pass, coverage ≥98%
-  - ✅ Commit: `feat(cli): add health check command for service monitoring`
+  - ✅ Service name: learn-im
+  - ✅ Ports: 8888-8889 (public), 9090 (admin)
+  - ✅ Encrypted messaging APIs: PUT/GET/DELETE /tx and /rx
+  - ✅ Encryption: AES-256-GCM + ECDH-AESGCMKW
+  - ✅ Database schema (users, messages, message_receivers)
+  - ✅ learn-im uses ONLY template infrastructure (NO custom dual-server code)
+  - ✅ All business logic cleanly separated from template
+  - ✅ Template supports different API patterns (PUT/GET/DELETE vs CRUD)
+  - ✅ No template blockers discovered during implementation
+  - ✅ Tests pass: `go test ./internal/learn/... ./cmd/learn-im/...`
+  - ✅ Coverage ≥95%: `go test -cover ./internal/learn/...`
+  - ✅ Mutation score ≥85%: `gremlins unleash ./internal/learn/...`
+  - ✅ E2E tests pass (BOTH `/service/**` and `/browser/**` paths)
+  - ✅ Docker Compose deployment works
+  - ✅ Deep analysis confirms template ready for production service migrations
+  - ✅ Commit: `feat(learn-im): implement encrypted messaging demonstration service with template`
 
 ---
 
-### P2.3: E2E Service API Tests (Priority)
+## Phase 4: Migrate jose-ja to Template
 
-#### P2.3.1: E2E Tests - JOSE /service/* API
+**CRITICAL**: First production service migration. Will drive template refinements for JOSE patterns.
 
-- **Title**: E2E tests for JOSE /service/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: P2.1.1
+### P4.1: JA Service Migration
+
+#### P4.1.1: JA Admin Server with Template
+
+- **Title**: Migrate jose-ja admin server to template
+- **Effort**: M (5-7 days)
+- **Dependencies**: P3.1.1 (template validated)
 - **Files**:
-  - `test/e2e/jose_service_api_test.go` (create)
-  - `.github/workflows/ci-e2e.yml` (update matrix)
+  - `internal/jose/server/admin/` (create using template)
+  - `cmd/cryptoutil/jose.go` (create)
+  - `deployments/compose/jose/compose.yml` (update)
 - **Completion Criteria**:
-  - ✅ Test coverage: JWK generation, JWKS retrieval, JWE encryption/decryption, JWS signing/verification, JWT operations
-  - ✅ Uses /service/* paths (token-based authentication)
-  - ✅ Docker Compose deployment with health checks
-  - ✅ Tests pass: `go test ./test/e2e/... -run Jose`
-  - ✅ Workflow passes: ci-e2e
-  - ✅ Commit: `test(e2e): add JOSE /service/* API end-to-end tests`
-
-#### P2.3.2: E2E Tests - CA /service/* API
-
-- **Title**: E2E tests for CA /service/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: P2.1.2
-- **Files**:
-  - `test/e2e/ca_service_api_test.go` (create)
-  - `.github/workflows/ci-e2e.yml` (update matrix)
-- **Completion Criteria**:
-  - ✅ Test coverage: CSR submission, certificate issuance, OCSP status, CRL retrieval, EST enrollment
-  - ✅ Uses /service/* paths
-  - ✅ Docker Compose deployment
-  - ✅ Tests pass, workflow passes
-  - ✅ Commit: `test(e2e): add CA /service/* API end-to-end tests`
-
-#### P2.3.3: E2E Tests - KMS /service/* API
-
-- **Title**: E2E tests for KMS /service/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: None (KMS complete)
-- **Files**:
-  - `test/e2e/kms_service_api_test.go` (create)
-  - `.github/workflows/ci-e2e.yml` (update matrix)
-- **Completion Criteria**:
-  - ✅ Test coverage: Elastic Key create/rotate, Material Key operations, encrypt/decrypt, sign/verify
-  - ✅ Uses /service/* paths
-  - ✅ Docker Compose deployment
-  - ✅ Tests pass, workflow passes
-  - ✅ Commit: `test(e2e): add KMS /service/* API end-to-end tests`
-
-#### P2.3.4: E2E Tests - Identity AuthZ /service/* API
-
-- **Title**: E2E tests for Identity AuthZ /service/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: None (AuthZ complete)
-- **Files**:
-  - `test/e2e/identity_authz_service_api_test.go` (create)
-  - `.github/workflows/ci-e2e.yml` (update matrix)
-- **Completion Criteria**:
-  - ✅ Test coverage: OAuth 2.1 flows (authorization code, client credentials), token introspection, token revocation
-  - ✅ Uses /service/* paths
-  - ✅ Docker Compose deployment
-  - ✅ Tests pass, workflow passes
-  - ✅ Commit: `test(e2e): add Identity AuthZ /service/* API end-to-end tests`
-
-#### P2.3.5: E2E Tests - Identity IdP /service/* API
-
-- **Title**: E2E tests for Identity IdP /service/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: None (IdP complete)
-- **Files**:
-  - `test/e2e/identity_idp_service_api_test.go` (create)
-  - `.github/workflows/ci-e2e.yml` (update matrix)
-- **Completion Criteria**:
-  - ✅ Test coverage: OIDC authentication, login, consent, logout, MFA enrollment
-  - ✅ Uses /service/* paths
-  - ✅ Docker Compose deployment
-  - ✅ Tests pass, workflow passes
-  - ✅ Commit: `test(e2e): add Identity IdP /service/* API end-to-end tests`
+  - ✅ JA admin server uses template (bind 127.0.0.1:9090)
+  - ✅ Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+  - ✅ `cryptoutil jose start` command works
+  - ✅ Configuration: YAML + CLI flags + Docker secrets
+  - ✅ Docker health checks pass
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Template refined if needed (ADRs documented)
+  - ✅ Commit: `feat(jose): migrate JA admin server to service template`
 
 ---
 
-### P2.4: Session State SQL Implementation
+## Phase 5: Migrate pki-ca to Template
 
-#### P2.4.1: JWS Session Token Format
+**CRITICAL**: Second production service migration. Will drive template refinements for CA/PKI patterns.
 
-- **Title**: Implement JWS session token format
-- **Effort**: L (1-2 weeks)
-- **Dependencies**: None
+### P5.1: CA Service Migration
+
+#### P5.1.1: CA Admin Server with Template
+
+- **Title**: Migrate pki-ca admin server to template
+- **Effort**: M (5-7 days)
+- **Dependencies**: P4.1.1 (JOSE migrated)
 - **Files**:
-  - `internal/shared/session/jws.go` (create)
-  - `internal/shared/session/storage_sql.go` (create for SQL storage)
-  - `internal/identity/authz/handlers/token.go` (update to support JWS)
+  - `internal/ca/server/admin/` (create using template)
+  - `cmd/cryptoutil/ca.go` (create)
+  - `deployments/compose/ca/compose.yml` (update)
 - **Completion Criteria**:
-  - ✅ JWS token generation with claims (sub, exp, iat, jti, scope)
-  - ✅ JWS token verification with signature validation
-  - ✅ SQL storage for revocation support (store JTI in database)
-  - ✅ Configuration-driven selection (default for headless clients)
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Commit: `feat(session): implement JWS session token format with SQL storage`
+  - ✅ CA admin server uses template (bind 127.0.0.1:9090)
+  - ✅ Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+  - ✅ Readyz: CA chain validation, OCSP responder check
+  - ✅ `cryptoutil ca start` command works
+  - ✅ Configuration: YAML + CLI flags + Docker secrets
+  - ✅ Docker health checks pass
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Template refined if needed (ADRs documented)
+  - ✅ Template now battle-tested with 3 different service patterns (learn-im, JOSE, CA)
+  - ✅ Commit: `feat(ca): migrate CA admin server to service template`
 
-#### P2.4.2: OPAQUE Session Token Format
+---
 
-- **Title**: Implement OPAQUE session token format
+## Phase 6: Identity Services Enhancement
+
+**CRITICAL**: Identity services migrate LAST to benefit from mature, battle-tested template refined by learn-im, JOSE, and CA migrations.
+
+### P6.1: Admin Server Implementation
+
+#### P6.1.1: RP Admin Server with Template
+
+- **Title**: Implement RP admin server with template
 - **Effort**: M (3-5 days)
-- **Dependencies**: P2.4.1
+- **Dependencies**: P5.1.1 (CA migrated, template mature)
 - **Files**:
-  - `internal/shared/session/opaque.go` (create)
-  - `internal/shared/session/storage_sql.go` (update for opaque tokens)
+  - `internal/identity/rp/server/admin/` (create using template)
+  - `cmd/cryptoutil/identity-rp.go` (create)
 - **Completion Criteria**:
-  - ✅ OPAQUE token generation (cryptographically random, ≥256 bits)
-  - ✅ SQL storage for all session data (sessions table)
-  - ✅ Configuration-driven selection (default for browser clients in some deployments)
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Commit: `feat(session): implement OPAQUE session token format with SQL storage`
+  - ✅ RP admin server uses template (bind 127.0.0.1:9090)
+  - ✅ Admin endpoints: livez, readyz (OAuth 2.1 provider check), shutdown
+  - ✅ `cryptoutil identity-rp start` command works
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Commit: `feat(identity-rp): implement admin server with template`
 
-#### P2.4.3: JWE Session Token Format
+#### P6.1.2: SPA Admin Server with Template
 
-- **Title**: Implement JWE session token format
-- **Effort**: M (3-5 days)
-- **Dependencies**: P2.4.1
-- **Files**:
-  - `internal/shared/session/jwe.go` (create)
-  - `internal/shared/session/storage_sql.go` (update for revocation tracking)
-- **Completion Criteria**:
-  - ✅ JWE token generation with encrypted claims
-  - ✅ JWE token decryption and verification
-  - ✅ SQL storage for revocation tracking (store JTI only)
-  - ✅ Configuration-driven selection (default for browser clients in production deployments)
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Commit: `feat(session): implement JWE session token format with SQL storage`
-
----
-
-## Phase 3: Advanced Features
-
-### P3.1: Browser E2E Tests
-
-#### P3.1.1: E2E Tests - JOSE /browser/* API
-
-- **Title**: E2E tests for JOSE /browser/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: P2.3.1, P2.4.3 (JWE browser sessions)
-- **Files**:
-  - `test/e2e/jose_browser_api_test.go` (create)
-- **Completion Criteria**:
-  - ✅ Uses /browser/* paths (session-based authentication)
-  - ✅ CORS, CSRF, CSP middleware validation
-  - ✅ Tests pass, workflow passes
-  - ✅ Commit: `test(e2e): add JOSE /browser/* API end-to-end tests`
-
-#### P3.1.2: E2E Tests - CA /browser/* API
-
-- **Title**: E2E tests for CA /browser/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: P2.3.2, P2.4.3
-- **Files**:
-  - `test/e2e/ca_browser_api_test.go` (create)
-- **Completion Criteria**:
-  - ✅ Uses /browser/* paths
-  - ✅ Middleware validation
-  - ✅ Tests pass, workflow passes
-  - ✅ Commit: `test(e2e): add CA /browser/* API end-to-end tests`
-
-#### P3.1.3: E2E Tests - Identity /browser/* API
-
-- **Title**: E2E tests for Identity /browser/* endpoints
-- **Effort**: M (3-5 days)
-- **Dependencies**: P2.3.4, P2.3.5, P2.4.3
-- **Files**:
-  - `test/e2e/identity_browser_api_test.go` (create)
-- **Completion Criteria**:
-  - ✅ Uses /browser/* paths
-  - ✅ Middleware validation
-  - ✅ Tests pass, workflow passes
-  - ✅ Commit: `test(e2e): add Identity /browser/* API end-to-end tests`
-
----
-
-### P3.2: Identity RP and SPA
-
-#### P3.2.1: Identity RP Implementation
-
-- **Title**: Implement Identity Relying Party service
-- **Effort**: L (1-2 weeks)
-- **Dependencies**: P2.3.4, P2.4.3
-- **Files**:
-  - `internal/identity/rp/server/public_server.go` (create)
-  - `internal/identity/rp/server/admin.go` (create)
-  - `cmd/identity-rp/main.go` (create)
-- **Completion Criteria**:
-  - ✅ Backend-for-Frontend pattern implementation
-  - ✅ Dual servers (public 8300 + admin 9091)
-  - ✅ OAuth 2.1 client implementation
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Docker Compose integration
-  - ✅ Commit: `feat(identity): implement Relying Party service with BFF pattern`
-
-#### P3.2.2: Identity SPA Implementation
-
-- **Title**: Implement Identity Single Page Application hosting
-- **Effort**: M (3-5 days)
-- **Dependencies**: P3.2.1
-- **Files**:
-  - `internal/identity/spa/server/public_server.go` (create)
-  - `internal/identity/spa/server/admin.go` (create)
-  - `cmd/identity-spa/main.go` (create)
-  - `web/spa/` (static files directory)
-- **Completion Criteria**:
-  - ✅ Static file hosting for SPA client
-  - ✅ Dual servers (public 8400 + admin 9091)
-  - ✅ CSP, CORS configuration
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Docker Compose integration
-  - ✅ Commit: `feat(identity): implement SPA hosting service with static file serving`
-
----
-
-## Phase 4: Scale & Multi-Tenancy
-
-### P4.1: Database Sharding
-
-#### P4.1.1: Tenant ID Partitioning Strategy
-
-- **Title**: Implement tenant ID database sharding
-- **Effort**: L (1-2 weeks)
-- **Dependencies**: P3.2.1, P3.2.2
-- **Files**:
-  - `internal/shared/database/sharding.go` (create)
-  - Schema migration scripts
-- **Completion Criteria**:
-  - ✅ Partition by tenant ID
-  - ✅ Configuration-driven shard allocation
-  - ✅ Migration tooling
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Commit: `feat(database): implement tenant ID sharding strategy`
-
----
-
-### P4.2: Schema-Level Multi-Tenancy
-
-#### P4.2.1: Schema Isolation Implementation
-
-- **Title**: Implement schema-level multi-tenancy isolation
-- **Effort**: L (1-2 weeks)
-- **Dependencies**: P4.1.1
-- **Files**:
-  - `internal/shared/database/multitenancy.go` (create)
-  - Schema creation/management utilities
-- **Completion Criteria**:
-  - ✅ Schema-level isolation (tenant_a.users, tenant_b.users)
-  - ✅ Tenant provisioning automation
-  - ✅ Connection pool per-tenant management
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Commit: `feat(database): implement schema-level multi-tenancy isolation`
-
----
-
-## Phase 5: Production Readiness
-
-### P5.1: Hash Service Refactoring
-
-#### P5.1.1: Hash Registry Version Management
-
-- **Title**: Refactor hash registries for version management
-- **Effort**: L (1-2 weeks)
-- **Dependencies**: P4.2.1
-- **Files**:
-  - `internal/shared/crypto/hashes/` (refactor all registries)
-- **Completion Criteria**:
-  - ✅ Version-based registry selection
-  - ✅ Pepper rotation lazy migration support
-  - ✅ Tests pass, coverage ≥98%
-  - ✅ Mutation testing ≥98%
-  - ✅ Commit: `refactor(hashes): implement version-based registry management`
-
----
-
-### P5.2: Security Hardening
-
-#### P5.2.1: mTLS Revocation Checking
-
-- **Title**: Implement CRLDP and OCSP revocation checking
-- **Effort**: L (1-2 weeks)
-- **Dependencies**: P5.1.1
-- **Files**:
-  - `internal/shared/crypto/revocation/crldp.go` (create)
-  - `internal/shared/crypto/revocation/ocsp.go` (create)
-- **Completion Criteria**:
-  - ✅ BOTH CRLDP and OCSP implemented
-  - ✅ CRLDP immediate (not batched)
-  - ✅ OCSP stapling nice-to-have
-  - ✅ Tests pass, coverage ≥98%
-  - ✅ Mutation testing ≥98%
-  - ✅ Commit: `feat(security): implement CRLDP and OCSP revocation checking`
-
----
-
-## Phase 6: Service Template Extraction
-
-### P6.1: Extract Template from KMS
-
-#### P6.1.1: Template Package Structure
-
-- **Title**: Extract service template package structure
-- **Effort**: M (3-5 days)
-- **Dependencies**: P5.2.1
-- **Files**:
-  - `pkg/servicetemplate/` (create)
-  - Documentation and examples
-- **Completion Criteria**:
-  - ✅ Dual-server pattern template
-  - ✅ Database integration template
-  - ✅ OTLP telemetry template
-  - ✅ Configuration management template
-  - ✅ Tests pass, coverage ≥98%
-  - ✅ Commit: `feat(template): extract reusable service template from KMS`
-
----
-
-## Phase 7: Learn-PS Validation
-
-### P7.1: Learn-PS Implementation
-
-#### P7.1.1: Learn-PS Service with Template
-
-- **Title**: Implement Learn-PS Pet Store using service template
+- **Title**: Implement SPA admin server with template
 - **Effort**: M (3-5 days)
 - **Dependencies**: P6.1.1
 - **Files**:
-  - `cmd/learn-ps/main.go` (create)
-  - `internal/learn/petstore/` (create)
+  - `internal/identity/spa/server/admin/` (create using template)
+  - `cmd/cryptoutil/identity-spa.go` (create)
 - **Completion Criteria**:
-  - ✅ Uses service template package
-  - ✅ Dual servers (public 8888 + admin 9090)
-  - ✅ PostgreSQL/SQLite support
-  - ✅ OTLP telemetry integration
-  - ✅ Tests pass, coverage ≥95%
-  - ✅ Docker Compose integration
-  - ✅ Commit: `feat(learn-ps): implement Pet Store using service template`
+  - ✅ SPA admin server uses template (bind 127.0.0.1:9090)
+  - ✅ Admin endpoints: livez, readyz (backend API check), shutdown
+  - ✅ `cryptoutil identity-spa start` command works
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Commit: `feat(identity-spa): implement admin server with template`
+
+#### P6.1.3: Migrate Existing Identity Services to Template
+
+- **Title**: Migrate authz, idp, rs to template
+- **Effort**: M (4-6 days)
+- **Dependencies**: P6.1.2
+- **Files**:
+  - `internal/identity/authz/server/` (refactor)
+  - `internal/identity/idp/server/` (refactor)
+  - `internal/identity/rs/server/` (refactor)
+  - `cmd/cryptoutil/identity-authz.go` (create)
+  - `cmd/cryptoutil/identity-idp.go` (create)
+  - `cmd/cryptoutil/identity-rs.go` (create)
+- **Completion Criteria**:
+  - ✅ All 3 services refactored to use template infrastructure
+  - ✅ Duplicate dual-server code removed
+  - ✅ Template database, telemetry, config patterns used
+  - ✅ All admin servers bind to 127.0.0.1:9090
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Commit: `refactor(identity): migrate authz, idp, rs to service template`
+
+### P6.2: E2E Path Coverage
+
+#### P6.2.1: Browser Path E2E Tests
+
+- **Title**: Implement /browser/** E2E tests
+- **Effort**: M (5-7 days)
+- **Dependencies**: P6.1.3
+- **Files**:
+  - `internal/identity/*/e2e_browser_test.go` (create)
+  - `test/e2e/identity/browser_*.go` (create)
+- **Completion Criteria**:
+  - ✅ BOTH `/service/**` and `/browser/**` paths tested
+  - ✅ CSRF protection validation
+  - ✅ CORS policy enforcement
+  - ✅ CSP header verification
+  - ✅ Session cookie handling
+  - ✅ Middleware behavior verified for each path
+  - ✅ Coverage ≥95%
+  - ✅ Commit: `test(identity): add /browser/** E2E test coverage`
 
 ---
 
-## Summary Statistics
+## Phase 7: Advanced Identity Features
 
-**Total Tasks**: 32 tasks
-**Phase 2**: 13 tasks (admin servers, CLI, E2E service, sessions)
-**Phase 3**: 5 tasks (browser E2E, RP/SPA)
-**Phase 4**: 2 tasks (sharding, multi-tenancy)
-**Phase 5**: 2 tasks (hash service, security)
-**Phase 6**: 1 task (template extraction)
-**Phase 7**: 1 task (Learn-PS validation)
+### P7.1: Multi-Factor Authentication
 
-**Effort Breakdown**:
+#### P7.1.1: TOTP Implementation
 
-- Small (S): 4 tasks (4-8 days total)
-- Medium (M): 20 tasks (60-100 days total)
-- Large (L): 8 tasks (64-128 days total)
+- **Title**: Implement TOTP (Time-Based OTP)
+- **Effort**: M (7-10 days)
+- **Dependencies**: P6.2.1
+- **Files**:
+  - `internal/identity/mfa/totp.go` (create)
+  - `internal/identity/mfa/backup_codes.go` (create)
+  - `api/identity/openapi_spec_paths.yaml` (update - TOTP endpoints)
+- **Completion Criteria**:
+  - ✅ TOTP enrollment (QR code)
+  - ✅ 6-digit code verification
+  - ✅ Backup codes generation
+  - ✅ Recovery flow
+  - ✅ 30-minute MFA step-up enforced
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Commit: `feat(identity-mfa): implement TOTP multi-factor authentication`
 
-**Critical Path**: P2.1.1 → P2.1.2 → P2.3.x → P2.4.x → P3.x → P4.x → P5.x → P6.x → P7.1.1
+### P7.2: WebAuthn
 
-**Evidence-Based Completion**: ALL tasks require tests passing, coverage targets met, and conventional commits
+#### P7.2.1: WebAuthn Support
+
+- **Title**: Implement WebAuthn registration and authentication
+- **Effort**: L (14-21 days)
+- **Dependencies**: P7.1.1
+- **Files**:
+  - `internal/identity/webauthn/registration.go` (create)
+  - `internal/identity/webauthn/authentication.go` (create)
+  - `internal/identity/webauthn/credentials.go` (create)
+  - `api/identity/openapi_spec_paths.yaml` (update - WebAuthn endpoints)
+- **Completion Criteria**:
+  - ✅ WebAuthn registration ceremony
+  - ✅ WebAuthn authentication ceremony
+  - ✅ Credential management
+  - ✅ Browser compatibility (Chrome, Firefox, Edge, Safari)
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Commit: `feat(identity-webauthn): implement WebAuthn registration and authentication`
 
 ---
 
-**Note**: Tasks for Phases 8-15 (production migrations) will be generated after Phase 7 Learn-PS validation proves service template works correctly.
+## Phase 8: Scale & Multi-Tenancy
+
+### P8.1: Database Sharding
+
+#### P8.1.1: Tenant ID Partitioning
+
+- **Title**: Implement database sharding with tenant ID
+- **Effort**: L (14-21 days)
+- **Dependencies**: P7.2.1
+- **Files**:
+  - `internal/shared/database/sharding.go` (create)
+  - `internal/shared/database/tenant.go` (create)
+  - `internal/shared/database/routing.go` (create)
+- **Completion Criteria**:
+  - ✅ Tenant ID-based sharding
+  - ✅ Shard routing logic
+  - ✅ Cross-shard queries (if needed)
+  - ✅ Per-row tenant_id (PostgreSQL + SQLite)
+  - ✅ Schema-level isolation (PostgreSQL only)
+  - ✅ Tenant provisioning APIs
+  - ✅ Sharding reduces query latency
+  - ✅ Multi-tenancy isolation verified
+  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
+  - ✅ Commit: `feat(database): implement tenant ID-based sharding and multi-tenancy isolation`
+
+---
+
+## Phase 9: Production Readiness
+
+### P9.1: Security Hardening
+
+#### P9.1.1: SAST/DAST Security Audit
+
+- **Title**: Perform comprehensive security audit
+- **Effort**: M (7-10 days)
+- **Dependencies**: P8.1.1
+- **Files**:
+  - `docs/security/AUDIT-REPORT.md` (create)
+  - `docs/security/PENTEST-REPORT.md` (create)
+- **Completion Criteria**:
+  - ✅ Nuclei scans (info, low, medium, high, critical)
+  - ✅ OWASP ZAP active scans
+  - ✅ Dependency vulnerability scans
+  - ✅ Penetration testing (authn/authz bypass, injection, etc.)
+  - ✅ Zero HIGH/CRITICAL vulnerabilities
+  - ✅ All MEDIUM vulnerabilities mitigated or risk-accepted
+  - ✅ Reports documented
+  - ✅ Commit: `docs(security): add SAST/DAST audit and penetration test reports`
+
+### P9.2: Production Monitoring
+
+#### P9.2.1: Observability Enhancement
+
+- **Title**: Deploy Grafana dashboards and alerting
+- **Effort**: M (5-7 days)
+- **Dependencies**: P9.1.1
+- **Files**:
+  - `deployments/telemetry/dashboards/*.json` (create)
+  - `deployments/telemetry/alerts/*.yml` (create)
+  - `docs/runbooks/*.md` (create)
+- **Completion Criteria**:
+  - ✅ Grafana dashboards (health, requests, errors, database metrics)
+  - ✅ Alerts (SLA violations, error spikes, health check failures)
+  - ✅ Runbooks documented
+  - ✅ Commit: `feat(monitoring): add Grafana dashboards and alerting for production`
+
+---
+
+## Task Summary
+
+### Phase 2: Service Template Extraction (1 task, 14-21 days)
+
+- P2.1.1: Extract service template from KMS (L)
+
+### Phase 3: Learn-IM Demonstration (1 task, 21-28 days)
+
+- P3.1.1: Implement learn-im service (L)
+
+### Phase 4: Migrate jose-ja (1 task, 5-7 days)
+
+- P4.1.1: Migrate JA admin server to template (M)
+
+### Phase 5: Migrate pki-ca (1 task, 5-7 days)
+
+- P5.1.1: Migrate CA admin server to template (M)
+
+### Phase 6: Identity Enhancement (4 tasks, 15-23 days)
+
+- P6.1.1: RP admin server (M)
+- P6.1.2: SPA admin server (M)
+- P6.1.3: Migrate authz/idp/rs to template (M)
+- P6.2.1: Browser path E2E tests (M)
+
+### Phase 7: Advanced Features (2 tasks, 21-31 days)
+
+- P7.1.1: TOTP implementation (M)
+- P7.2.1: WebAuthn support (L)
+
+### Phase 8: Scale & Multi-Tenancy (1 task, 14-21 days)
+
+- P8.1.1: Database sharding (L)
+
+### Phase 9: Production Readiness (2 tasks, 12-17 days)
+
+- P9.1.1: Security audit (M)
+- P9.2.1: Observability enhancement (M)
+
+**Total**: 13 tasks, ~108-155 days (sequential)
+
+**Critical Path**: Phases 2-6 (~60-85 days)
+
+---
+
+## Notes
+
+- All admin ports: 127.0.0.1:9090 (NEVER exposed to host, or :0 for tests)
+- Database choice: PostgreSQL (multi-service deployments), SQLite (standalone deployments) - NOT environment-based
+- Multi-tenancy: Dual-layer (per-row tenant_id + schema-level for PostgreSQL only)
+- CRLDP: Immediate sign+publish to HTTPS URL with base64-url-encoded serial, one serial per URL
+- Service names: jose-ja (JA/JWK Authority), learn-im (Learn-InstantMessenger)
+- Template validation: learn-im (Phase 3) MUST succeed before production migrations (Phases 4-6)

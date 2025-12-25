@@ -236,7 +236,7 @@ database:
 
 **Q**: When should the service template be extracted and how should it be validated?
 
-**A**: Extract template in Phase 6, validate with Learn-InstantMessenger demonstration service.
+**A**: Extract template in Phase 2, validate with learn-im demonstration service in Phase 3.
 
 **Template Components** (extracted from KMS reference implementation):
 
@@ -255,15 +255,15 @@ database:
 
 **Validation Strategy**:
 
-- Learn-InstantMessenger service MUST use extracted template
-- Learn-InstantMessenger MUST pass all unit/integration/E2E tests
+- learn-im service MUST use extracted template
+- learn-im MUST pass all unit/integration/E2E tests
 - Deep analysis MUST show no blockers to migrate existing services
-- Only after Learn-InstantMessenger succeeds can production services migrate
+- Only after learn-im succeeds can production services migrate
 
 **Migration Priority**:
 
-1. **learn-instantmessenger FIRST** (Phase 7) - Validate template reusability
-2. **One service at a time** - Sequentially refactor jose-ja, pki-ca, identity services
+1. **learn-im FIRST** (Phase 3) - Validate template reusability
+2. **One service at a time** - Sequentially refactor jose-ja (Phase 4), pki-ca (Phase 5), identity services (Phase 6+)
 3. **sm-kms LAST** - Only after ALL other services running excellently on template
 
 ---
@@ -1778,21 +1778,23 @@ Refer to `application_listener.go` and `config.go` for production-validated IP a
 
 ### Service Template Migration Priority
 
-**Q**: Should identity services (authz, idp, rs) be refactored to use the extracted service template immediately after Learn-InstantMessenger validation, or later?
+**Q**: Should identity services (authz, idp, rs) be refactored to use the extracted service template immediately after learn-im validation, or later?
 
 **A** (Source: CLARIFY-QUIZME-01 Q1, 2025-12-22):
 
 Identity services will be migrated **LAST** in the following sequence:
 
-1. **learn-instantmessenger** (Phase 7): Validate service template first
-2. **JOSE and CA** (Phases after learn-instantmessenger): Migrate next, one at a time, to allow adjustments to the service template to accommodate JOSE and CA service patterns
-3. **Identity services** (Final phase): Migrate last, ordered by Authz → IdP → RS → RP → SPA
+1. **learn-im** (Phase 3): Validate service template first
+2. **JOSE and CA** (Phases 4-5): Migrate next, one at a time, to allow adjustments to the service template to accommodate JOSE and CA service patterns
+3. **Identity services** (Phase 6+): Migrate last, ordered by Authz → IdP → RS → RP → SPA
 
-**Rationale**: Learn-InstantMessenger will validate the service template first, then JOSE and CA migrations will drive template refinements to support different service patterns. Identity services migrate last to benefit from a mature, battle-tested template.
+**Rationale**: learn-im will validate the service template first, then JOSE and CA migrations will drive template refinements to support different service patterns. Identity services migrate last to benefit from a mature, battle-tested template.
 
 ---
 
-### Learn-InstantMessenger Service Specification
+### Learn-IM Service Specification
+
+**Service Name**: learn-im (short form), Learn-InstantMessenger (full descriptive name)
 
 **Q**: What are the detailed requirements for the Learn-InstantMessenger demonstration service?
 
