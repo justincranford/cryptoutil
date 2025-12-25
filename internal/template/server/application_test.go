@@ -280,7 +280,7 @@ func TestApplication_Start_NilContext(t *testing.T) {
 	app, err := cryptoutilTemplateServer.NewApplication(context.Background(), publicServer, adminServer)
 	require.NoError(t, err)
 
-	err = app.Start(context.Background())
+	err = app.Start(nil) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "context cannot be nil")

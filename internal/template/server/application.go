@@ -32,7 +32,7 @@ import (
 // Both servers run concurrently and have independent lifecycles managed by the Application.
 type Application struct {
 	publicServer PublicServer
-	adminServer  AdminServer
+	adminServer  IAdminServer
 	mu           sync.RWMutex
 	shutdown     bool
 }
@@ -48,12 +48,12 @@ type PublicServer interface {
 	ActualPort() int
 }
 
-// AdminServer interface defines the contract for admin HTTPS servers.
+// IAdminServer interface defines the contract for admin HTTPS servers.
 // Implementations must provide:
 // - Start: Begin listening on 127.0.0.1:9090 for admin API requests (blocks until shutdown or error)
 // - Shutdown: Gracefully shutdown the admin server with context timeout
 // - ActualPort: Return the actual port (should always be 9090).
-type AdminServer interface {
+type IAdminServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	ActualPort() (int, error)
@@ -64,7 +64,7 @@ type AdminServer interface {
 // Parameters:
 // - ctx: Context for initialization (must not be nil)
 // - publicServer: Public server instance implementing PublicServer interface
-// - adminServer: Admin server instance implementing AdminServer interface
+// - adminServer: Admin server instance implementing IAdminServer interface
 //
 // Returns:
 // - *Application: Configured application ready to start
@@ -72,7 +72,7 @@ type AdminServer interface {
 func NewApplication(
 	ctx context.Context,
 	publicServer PublicServer,
-	adminServer AdminServer,
+	adminServer IAdminServer,
 ) (*Application, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
