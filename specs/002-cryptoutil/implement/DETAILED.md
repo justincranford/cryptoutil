@@ -57,18 +57,18 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Mutation**: Target ≥98% (template infrastructure code)
   - **Blockers**: None
   - **Notes**: Prevents TLS duplication technical debt in all 9 services
-  - **Commits**: 60810081 ("feat(template): create TLS generator with 3-mode support (static, mixed, auto)")
+  - **Commits**: 60810081 ("feat(template): create TLS generator with 3-mode support (static, mixed, auto)"), 070d0e32 ("refactor(template): PublicHTTPServer uses new TLS infrastructure")
   - **Refactoring Required**:
     - ✅ Analyze current TLS generation code (public.go, admin.go) - ~350 lines duplication
     - ✅ Define 3 TLS modes (static, mixed, auto-generated) - tls_config.go created
     - ✅ Create TLS configuration structs with mode selection - TLSMode, TLSConfig, TLSMaterial
     - ✅ Create TLS generator with mode-aware logic - tls_generator.go with GenerateTLSMaterial
-    - ❌ Refactor PublicHTTPServer to use new TLS infrastructure
-    - ❌ Refactor AdminServer to use new TLS infrastructure
-    - ❌ Refactor other services (jose-ja, learn-im)
+    - ✅ Refactor PublicHTTPServer to use new TLS infrastructure (Subtask 5/9)
+    - ❌ Refactor AdminServer to use new TLS infrastructure (Subtask 6/9)
+    - ❌ Refactor other services (jose-ja, learn-im) (Subtask 7/9)
     - ❌ Remove duplicated generateTLSConfig methods (~350 lines total)
-    - ❌ Add comprehensive tests for all 3 TLS modes
-    - ❌ Create documentation (USAGE.md with examples)
+    - ❌ Add comprehensive tests for all 3 TLS modes (Subtask 8/9)
+    - ❌ Create documentation (USAGE.md with examples) (Subtask 9/9)
   - **Validation Required**:
     - ❌ sm-kms still builds and runs successfully with new TLS system
     - ❌ All 3 TLS modes tested (static, mixed, auto)
@@ -983,5 +983,67 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 4. Remove `generateTLSConfig()` method from public.go (~87 lines)
 5. Update tests to use new TLS configuration pattern
 6. Verify all tests still pass
+
+---
+
+### 2025-12-25: P1.2.1.1 PublicHTTPServer Refactoring (Subtask 5/9 Complete)
+
+**Work Completed**:
+
+- Refactored `internal/template/server/public.go` to use new TLS infrastructure
+  - **Removed imports**: crypto/ecdsa, crypto/elliptic, crypto/rand, crypto/x509, crypto/x509/pkix, encoding/pem, math/big (kept crypto/tls)
+  - **Added field**: `tlsMaterial *TLSMaterial` to PublicHTTPServer struct
+  - **Updated constructor**: Added `tlsCfg *TLSConfig` parameter (MANDATORY), calls GenerateTLSMaterial, stores result
+  - **Updated Start()**: Uses `s.tlsMaterial.Config` instead of calling generateTLSConfig()
+  - **Removed method**: generateTLSConfig() (~87 lines eliminated - first of 4 copies)
+
+- Updated `internal/template/server/public_test.go` (12/12 tests updated, all pass)
+  - **Pattern**: TLSModeAuto with localhost + 127.0.0.1 + ::1, 365-day validity
+  - **Test cases**: HappyPath, NilContext, Start_Success, Start_NilContext, ServiceHealth_Healthy, BrowserHealth_Healthy, Shutdown_Graceful, Shutdown_NilContext, ActualPort_BeforeStart, ServiceHealth_DuringShutdown, BrowserHealth_DuringShutdown, Shutdown_DoubleCall
+
+- Fixed critical bug in `tls_generator.go` (Auto mode)
+  - **Bug**: CreateCASubjects() clears intermediate CA private key (security feature)
+  - **Impact**: Server cert signing failed ("issuer private key is not a crypto.Signer")
+  - **Fix**: Save issuing CA private key before CreateCASubjects, restore before signing
+
+**Coverage/Quality Metrics**:
+
+- Build: ✅ Clean
+- Tests: ✅ 12/12 PASS
+- Lines: ~87 removed, ~15 added, net -72 lines
+- Duplication: 1 of 4 copies eliminated (~25% progress toward ~350 line goal)
+
+**Subtask Progress** (5/9 complete):
+
+- ✅ Subtasks 1-5 complete (analysis, modes, config, generator, PublicHTTPServer)
+- ❌ Subtask 6: AdminServer (NEXT)
+- ❌ Subtasks 7-9: jose-ja/learn-im, tests, validation
+
+**Key Findings**:
+
+- CreateCASubjects intentionally clears intermediate CA keys (security design)
+- TLS use case requires issuing CA key preserved (different design assumption)
+- Solution: Save/restore issuing CA key around CreateCASubjects
+- TLSModeAuto with defaults (localhost, 127.0.0.1, ::1) works for all tests
+
+**Constraints Discovered**: CreateCASubjects clears intermediate CA keys (can't disable, must work around)
+
+**Lessons Learned**:
+
+- Check function design assumptions (CreateCASubjects designed for different use case)
+- Crypto libraries prioritize security over convenience (key clearing intentional)
+- Test-driven refactoring enables confident migration (12/12 pass proves correctness)
+
+**Related Commits**: 070d0e32 (PublicHTTPServer refactoring)
+
+**Violations Found**: None
+
+**Next Immediate Steps** (Subtask 6):
+
+1. Read admin.go (should match public.go pattern)
+2. Apply same refactoring: tlsMaterial field, tlsCfg parameter, GenerateTLSMaterial call, update Start(), remove generateTLSConfig (~87 lines)
+3. Update admin_test.go to pass TLSConfig with TLSModeAuto
+4. Verify tests pass
+5. Commit Subtask 6
 
 ---
