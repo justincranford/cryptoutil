@@ -301,3 +301,120 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Continue with PublicServer, middleware, lifecycle management
 
 **Related Commits**: 54231a7d (Application template with 93.8% coverage)
+---
+
+### 2025-12-25: AdminServer Configurable Port Architecture (BREAKING CHANGE)
+
+**Work Completed**:
+
+- **CRITICAL ARCHITECTURAL FIX**: Refactored AdminServer for configurable port to support Windows test isolation
+- Created `internal/template/server/admin.go` (358 lines) - Private admin HTTPS server
+  - Health endpoints: `/admin/v1/livez` (liveness), `/admin/v1/readyz` (readiness), `/admin/v1/shutdown` (graceful shutdown)
+  - Self-signed TLS certificate generation (ECDSA P-384, 1-year validity, localhost + 127.0.0.1 + ::1 SANs)
+  - **BREAKING CHANGE**: `NewAdminServer(ctx context.Context, port uint16)` - added port parameter
+  - **Port Architecture**:
+    - Tests: `port 0` (MANDATORY - dynamic allocation to avoid Windows TIME_WAIT)
+    - Production containers: `port 9090` (recommended, 127.0.0.1 only)
+    - Production non-containers: configurable (always 127.0.0.1 for security)
+  - `Start()` method: Stores actual port when `port==0` with type-safe assertion and overflow validation
+  - `ActualPort()` method: Simplified to return stored `s.port` with RLock (no error return)
+  - Context-aware `Start()` with select pattern monitoring `ctx.Done()`
+  - Idempotent shutdown with mutex protection
+  - Thread-safe with `sync.RWMutex`
+- Created `internal/template/server/admin_test.go` (515 lines) - Comprehensive test suite
+  - 10 test cases covering all scenarios:
+    - `Start_Success` - happy path with port 0, verifies dynamic allocation
+    - `Livez_Alive` - liveness probe returns 200 OK
+    - `Readyz_Ready` - readiness probe returns 200 OK (after marking ready)
+    - `Shutdown_Endpoint` - POST to /admin/v1/shutdown triggers graceful shutdown
+    - `Shutdown_NilContext` - error handling for nil context
+    - `ConcurrentRequests` - 10 concurrent requests to health endpoints
+    - `ActualPort_BeforeStart` - returns 0 before Start() called
+    - `ActualPort_AfterStart` - returns actual dynamically allocated port
+    - `MultipleShutdowns_Idempotent` - multiple Shutdown() calls are safe
+    - `Start_CancelledContext` - Start() returns promptly when context cancelled
+  - **All tests updated** to use:
+    - `NewAdminServer(context.Background(), 0)` - port 0 for dynamic allocation
+    - `server.ActualPort()` - get actual port after Start()
+    - `http.NewRequestWithContext(reqCtx, method, url, body)` - context-aware HTTP requests (noctx compliance)
+    - `client.Do(req)` - explicit HTTP client calls (not `client.Get/Post`)
+  - Coverage: 56.1% (baseline before coverage improvement phase)
+  - Tests: **10/10 PASS in 15.17s** (was 9/10 with timeout failures)
+  - **NO TIME_WAIT delays** - each test gets unique port, immediate socket reuse
+- Updated `.github/instructions/02-03.https-ports.instructions.md`:
+  - Added **CRITICAL** section: "Tests MUST use port 0 (dynamic allocation): Hardcoded ports cause Windows TIME_WAIT delays (2-4 minutes), breaking sequential test execution. Port 0 enables immediate reuse."
+  - Updated `ServerConfig` documentation:
+    - `BindPrivatePort uint16 // 9090 (default for prod containers), 0 (MANDATORY for tests to avoid TIME_WAIT), other (for prod non-containers)`
+  - Clarified binding defaults for tests vs production
+  - Documented Private HTTPS Endpoint configuration matrix
+
+**Root Cause Analysis - Windows TIME_WAIT Issue**:
+
+- **Problem**: Sequential tests failed with "bind: Only one usage of each socket address (protocol/network address/port) is normally permitted"
+- **Root Cause**: Windows TCP TIME_WAIT state holds sockets for **2-4 minutes** after shutdown (configurable via `TcpTimedWaitDelay` registry value)
+- **Impact**: Hardcoded port `9090` cannot be reused until TIME_WAIT expires
+- **Cumulative Effect**: 10 sequential tests → 10 TIME_WAIT sockets → port exhaustion
+- **Why Fiber ShutdownWithContext() Doesn't Help**: Fiber releases application resources but **kernel manages TIME_WAIT** state independently
+- **Solution**: Port 0 uses different ephemeral port each time (no conflicts, immediate reuse, no TIME_WAIT blocking)
+
+**Linting Fixes** (4 rounds of iteration):
+
+1. **noctx linting**: Changed all `client.Get/Post(url)` to `client.Do(http.NewRequestWithContext(ctx, method, url, body))`
+2. **wrapcheck linting**: Wrapped `ctx.Err()` return with `fmt.Errorf("admin server stopped: %w", ctx.Err())`
+3. **gosec linting**: Added port range validation before `int→uint16` conversion to prevent overflow:
+
+   ```go
+   if tcpAddr.Port < 0 || tcpAddr.Port > 65535 {
+       _ = listener.Close()
+       return fmt.Errorf("invalid port number: %d", tcpAddr.Port)
+   }
+   s.port = uint16(tcpAddr.Port) //nolint:gosec // Port range validated above.
+   ```
+
+4. **staticcheck linting**: Added `//nolint:staticcheck // Testing nil context handling.` directive for intentional nil context test in `application_test.go`
+
+**Coverage/Quality Metrics**:
+
+- Coverage: 56.1% (baseline before coverage improvement phase)
+- Target: ≥98% coverage (need +41.9%)
+- Mutation: Not yet run (target ≥98%)
+- Build: ✅ Clean (`go build ./internal/template/...`)
+- Tests: ✅ **All pass (10/10 PASS in 15.17s)** - was 9/10 with timeout failures
+- Lint: ✅ Clean (noctx, wrapcheck, gosec, staticcheck, golangci-lint)
+- Pre-commit hooks: ✅ All pass
+- Pre-push hooks: ✅ All pass (golangci-lint-full, go build, secrets scan)
+
+**Lessons Learned**:
+
+- **Windows TIME_WAIT is 2-4 minutes by default**: Hardcoded ports are incompatible with sequential test execution on Windows (sockets held in TIME_WAIT state)
+- **Port 0 is MANDATORY for tests**: Dynamic port allocation enables immediate socket reuse without TIME_WAIT blocking
+- **Fiber ShutdownWithContext() doesn't guarantee immediate OS socket release**: Kernel manages TIME_WAIT independently of application shutdown
+- **SO_REUSEADDR is platform-specific and complex on Windows**: Port 0 is simpler and more reliable cross-platform solution
+- **Start() methods MUST monitor context cancellation concurrently**: Cannot rely solely on blocking server calls, must use select{} pattern
+- **Context-aware HTTP requests required for noctx linting**: Use `client.Do(http.NewRequestWithContext(ctx, method, url, body))` not `client.Get/Post(url)`
+- **Type assertions need safety checks**: Always use `ok` pattern before type conversion (`tcpAddr, ok := listener.Addr().(*net.TCPAddr)`)
+- **Integer conversions need range validation for gosec**: Validate port range before `int→uint16` conversion to prevent overflow
+- **Intentional nil context tests need nolint directives**: Use `//nolint:staticcheck // Testing nil context handling.` for error handling tests
+- **Iterative commits and pushes essential**: 2 commits (1fb68962, 058c3f5b) with incremental fixes enabled workflow monitoring and validation
+
+**Violations Found**:
+
+- **Instruction file loading issue**: `.github/instructions/01-02.continuous-work.instructions.md` exists at correct path and is documented in `copilot-instructions.md` but is **NOT being loaded** into Copilot context (tooling/configuration problem)
+
+**Next Steps**:
+
+- ✅ **COMPLETED**: AdminServer refactored for configurable port
+- ✅ **COMPLETED**: All tests updated to use port 0 and ActualPort()
+- ✅ **COMPLETED**: All linting errors fixed
+- ✅ **COMPLETED**: Documentation updated (02-03.https-ports.instructions.md)
+- ✅ **COMPLETED**: Committed and pushed (1fb68962, 058c3f5b)
+- ⏳ **PENDING**: Investigate instruction file loading issue
+- ⏳ **PENDING**: Improve AdminServer coverage from 56.1% to ≥98%
+- ⏳ **PENDING**: Run mutation testing (target ≥98%)
+- ⏳ **PENDING**: Update EXECUTIVE.md lessons learned
+- ⏳ **PENDING**: Continue to next task (PublicServer or coverage improvement)
+
+**Related Commits**:
+
+- 1fb68962 "refactor(template): AdminServer configurable port - MANDATORY port 0 for tests to avoid Windows TIME_WAIT (2-4 min) delays"
+- 058c3f5b "fix(template): add nolint directive for nil context test"
