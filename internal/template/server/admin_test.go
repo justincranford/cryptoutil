@@ -72,7 +72,7 @@ func TestAdminServer_Start_Success(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		time.Sleep(50 * time.Millisecond)
 
-		port = server.ActualPort()
+		port, _ = server.ActualPort()
 		if port > 0 {
 			break
 		}
@@ -121,7 +121,9 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	// Wait for server to allocate port.
 	time.Sleep(200 * time.Millisecond)
 
-	port := server.ActualPort()
+	port, err := server.ActualPort()
+
+	require.NoError(t, err)
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Create HTTPS client that accepts self-signed certs.
@@ -194,7 +196,9 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	// Wait for server to allocate port.
 	time.Sleep(200 * time.Millisecond)
 
-	port := server.ActualPort()
+	port, err := server.ActualPort()
+
+	require.NoError(t, err)
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Create HTTPS client that accepts self-signed certs.
@@ -306,7 +310,9 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	// Wait for server to be ready.
 	time.Sleep(200 * time.Millisecond)
 
-	port := server.ActualPort()
+	port, err := server.ActualPort()
+
+	require.NoError(t, err)
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Query livez endpoint.
@@ -379,7 +385,9 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	// Wait for server to be ready.
 	time.Sleep(200 * time.Millisecond)
 
-	port := server.ActualPort()
+	port, err := server.ActualPort()
+
+	require.NoError(t, err)
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Mark server as ready (application's responsibility after dependencies initialized).
@@ -455,7 +463,9 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	// Wait for server to be ready.
 	time.Sleep(200 * time.Millisecond)
 
-	port := server.ActualPort()
+	port, err := server.ActualPort()
+
+	require.NoError(t, err)
 	require.Greater(t, port, 0, "Expected dynamic port allocation")
 
 	// Trigger shutdown via HTTP endpoint.
@@ -544,7 +554,9 @@ func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0)
 	require.NoError(t, err)
 
-	port := server.ActualPort()
+	port, err := server.ActualPort()
+
+	require.NoError(t, err)
 
 	assert.Equal(t, 0, port, "Expected port 0 before server starts")
 }
@@ -597,7 +609,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 			require.FailNow(t, "server.Start() error after attempts", "attempt", i, "error", startErr)
 		}
 
-		port = server.ActualPort()
+		port, _ = server.ActualPort()
 		if port > 0 {
 			healthCtx, healthCancel := context.WithTimeout(context.Background(), 2*time.Second)
 
@@ -732,7 +744,10 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	}
 
 	// Make request to verify timeouts are working.
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, server.ActualPort())
+	port, err := server.ActualPort()
+	require.NoError(t, err)
+
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 	url := fmt.Sprintf("%s/admin/v1/readyz", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)

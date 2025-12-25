@@ -281,11 +281,11 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 
 // ActualPort returns the actual port the admin server is listening on.
 // Returns 0 before Start() is called, or the dynamically allocated port after Start().
-func (s *AdminServer) ActualPort() int {
+func (s *AdminServer) ActualPort() (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return int(s.port)
+	return int(s.port), nil
 }
 
 // SetReady marks the server as ready to accept traffic.
