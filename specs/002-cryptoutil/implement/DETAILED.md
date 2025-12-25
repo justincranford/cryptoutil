@@ -100,23 +100,28 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Status**: IN PROGRESS
   - **Effort**: L (21-28 days)
   - **Dependencies**: P2.1.1 (template extracted) - ✅ UNBLOCKED
-  - **Coverage**: Target ≥95%
+  - **Coverage**: Current 39.9% server, 84.1% crypto (Target ≥95%)
   - **Mutation**: Target ≥85%
   - **Blockers**: None (P2.1.1 complete)
   - **Notes**: CRITICAL - First real-world template validation, blocks all production migrations
-  - **Commits**: 0bf38708 (CMD entrypoint, port constants)
+  - **Commits**: 0bf38708, a3c071b2, 57080820, 902cae52, 44ad79c0
   - **Progress**:
-    - ✅ CMD entrypoint created (cmd/learn-im/main.go)
+    - ✅ CMD entrypoint created (cmd/learn-im/main.go) - commit 0bf38708
     - ✅ Port constants added (8888 public, 9090 admin)
     - ✅ SQLite initialization with migrations
     - ✅ Server structure exists with template integration
     - ✅ Domain models defined (User, Message, MessageReceiver)
     - ✅ Repository layer complete (UserRepository, MessageRepository)
-    - ❌ Business logic handlers (handleSendMessage, handleReceiveMessages, handleDeleteMessage) - TODO
-    - ❌ Crypto operations for encryption/decryption - TODO
-    - ❌ User registration/authentication - TODO
+    - ✅ Crypto service implemented (ECDH, HKDF, AES-GCM, PBKDF2) - commit a3c071b2, 84.1% coverage
+    - ✅ Message handlers implemented (send/receive/delete) - commit 57080820
+    - ✅ User auth endpoints implemented (registration/login) - commit 902cae52
+    - ✅ Handler tests for registration/login - commit 44ad79c0, 7 tests, 39.9% server coverage
+    - ❌ Message handler tests (send/receive/delete) - CURRENT TASK
+    - ❌ E2E tests (full encryption flow) - TODO
+    - ❌ Authentication middleware (JWT) - TODO
+    - ❌ Replace hardcoded user IDs with auth context - TODO
     - ❌ Docker Compose deployment - TODO
-    - ❌ E2E tests - TODO
+    - ❌ Documentation (README, API, TUTORIAL) - TODO
 
 ### Phase 4: Migrate jose-ja to Template ⏸️ PENDING
 
@@ -1517,5 +1522,110 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Regression test for issuing CA key preservation bug
 - Coverage ≥98% for tls_generator.go
 - All tests PASS
+
+---
+
+### 2025-12-25: P3.1.1 Handler Tests for Registration and Login ✅ COMPLETE
+
+**Work Completed**:
+
+- Created comprehensive handler tests for user registration and login endpoints
+- Fixed 6 compilation errors (TLSConfig structure, SQLite driver, helpers)
+- Resolved parallel test database conflicts with unique UUIDs
+- Fixed all linter errors (10 noctx/errcheck violations)
+- Achieved 7/7 tests PASS in 0.964s
+
+**Test Implementation** (internal/learn/server/public_test.go - 451 lines):
+
+**Registration Tests** (4 test cases):
+- TestHandleRegisterUser_Success: Full registration flow with PBKDF2 password hashing
+- TestHandleRegisterUser_UsernameTooShort: Validation error (username < 3 chars)
+- TestHandleRegisterUser_PasswordTooShort: Validation error (password < 8 chars)
+- TestHandleRegisterUser_DuplicateUsername: Conflict error (409) for duplicate registration
+
+**Login Tests** (3 test cases):
+- TestHandleLoginUser_Success: Successful login with PBKDF2 verification
+- TestHandleLoginUser_WrongPassword: Authentication failure (401) for wrong password
+- TestHandleLoginUser_UserNotFound: Authentication failure (401) for nonexistent user
+
+**Test Helpers** (3 functions):
+- `initTestDB()`: Creates unique in-memory SQLite database per test (UUIDv7 + cache=private)
+- `createTestPublicServer()`: Initializes server with TLSModeAuto, dynamic port allocation
+- `createHTTPClient()`: HTTPS client with InsecureSkipVerify for self-signed certs
+
+**Issues Fixed**:
+
+1. **TLSConfig compilation errors** (6 errors):
+   - SubjectDNSNames → AutoDNSNames
+   - SubjectIPAddresses → AutoIPAddresses
+   - Added Mode = TLSModeAuto
+   - Added AutoValidityDays = 365
+   - http.FormatInt → intToString helper
+   - NewInsecureTLSConfig → &tls.Config{InsecureSkipVerify: true}
+
+2. **SQLite CGO dependency**:
+   - Problem: gorm.io/driver/sqlite uses github.com/mattn/go-sqlite3 (CGO required)
+   - Solution: Explicit modernc.org/sqlite driver usage with sql.Open + sqlite.Dialector
+   - Pattern: `sql.Open("sqlite", dsn)` + `gorm.Open(sqlite.Dialector{Conn: sqlDB}, ...)`
+
+3. **Parallel test database conflicts**:
+   - Problem: Shared cache mode caused "table already exists" errors
+   - Solution: Unique UUIDv7 per test with cache=private mode
+   - Pattern: `"file:" + googleUuid.NewV7().String() + "?mode=memory&cache=private"`
+
+4. **Linter violations** (10 errors):
+   - Problem: client.Post violates noctx (no context), defer resp.Body.Close() violates errcheck
+   - Solution: Converted all client.Post → client.Do(req) with context.Background()
+   - Pattern: `http.NewRequestWithContext(context.Background(), http.MethodPost, url, body)` + `defer func() { _ = resp.Body.Close() }()`
+
+**Coverage/Quality Metrics**:
+
+- **Server coverage**: 39.9% (handleRegisterUser 81.8%, handleLoginUser 82.4%)
+- **Crypto coverage**: 84.1% (ECDH, HKDF, AES-GCM, PBKDF2)
+- **Test execution**: 0.964s (PBKDF2 tests 0.91s due to 600k iterations)
+- **Tests**: ✅ 7/7 PASS
+- **Build**: ✅ Clean
+- **Linter**: ✅ Clean (golangci-lint)
+
+**Coverage by Handler**:
+- handleRegisterUser: 81.8% (well-tested)
+- handleLoginUser: 82.4% (well-tested)
+- handleSendMessage: 0.0% (not tested yet - NEXT)
+- handleReceiveMessages: 0.0% (not tested yet - NEXT)
+- handleDeleteMessage: 0.0% (not tested yet - NEXT)
+- registerRoutes: 100%
+
+**Lessons Learned**:
+
+1. **TLSModeAuto requires complete config**: AutoDNSNames, AutoIPAddresses, AutoValidityDays all mandatory
+2. **SQLite driver selection critical**: modernc.org/sqlite for CGO-free builds (NOT github.com/mattn/go-sqlite3)
+3. **Parallel test isolation**: Unique databases prevent schema conflicts, UUIDv7 + cache=private pattern works
+4. **Context propagation**: noctx linter enforces context.Background() in all HTTP requests (prevents hanging calls)
+5. **Error handling**: errcheck linter prevents silent error drops in defer statements
+6. **PBKDF2 timing**: 600k iterations = 0.91s per test (acceptable security/performance trade-off)
+
+**Constraints Discovered**:
+
+- SQLite parallel tests require unique databases (cache=shared causes schema conflicts)
+- TLSModeAuto generates self-signed certs (InsecureSkipVerify required in test clients)
+- PBKDF2 600k iterations adds ~0.7s overhead per password operation (registration/login)
+
+**Requirements Discovered**:
+
+- All HTTP requests MUST use context (noctx linter enforcement)
+- All error returns MUST be checked (errcheck linter enforcement)
+- Test databases MUST be isolated (no shared schema in parallel execution)
+- TLS client MUST skip verification for self-signed certs in tests
+
+**Next Steps**:
+
+- ⏸️ Message handler tests (TestHandleSendMessage, TestHandleReceiveMessages, TestHandleDeleteMessage) - IMMEDIATE
+- ⏸️ E2E tests (full encryption flow) - HIGH PRIORITY
+- ⏸️ Authentication middleware (JWT) - HIGH PRIORITY
+- ⏸️ Replace hardcoded user IDs - HIGH PRIORITY
+
+**Related Commits**: 44ad79c0 ("test(learn-im): add handler tests for registration and login endpoints")
+
+**Violations Found**: None (all tests PASS, linter clean, no regressions)
 
 ---
