@@ -17,23 +17,29 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 
 #### P1.1.1: Refactor JOSE Crypto Package
 
-- [ ] **P1.1.1.1**: Move internal/jose/crypto to internal/shared/crypto/jose
-  - **Status**: NOT STARTED
+- [x] **P1.1.1.1**: Move internal/jose/crypto to internal/shared/crypto/jose
+  - **Status**: ✅ COMPLETE
   - **Effort**: M (3-5 days)
   - **Dependencies**: Phase 1 complete
-  - **Coverage**: Target ≥98% (shared infrastructure code)
-  - **Mutation**: Target ≥98% (shared infrastructure code)
+  - **Coverage**: 82.7% (below 98% target, follow-up improvements needed)
+  - **Mutation**: (not yet measured)
   - **Blockers**: None (READY TO START)
   - **Notes**: BLOCKING ALL PHASES - Must complete before Phase 2 (template extraction)
-  - **Commits**: (pending)
-  - **Files to Move**:
-    - All 27 files from `internal/jose/crypto/*.go`
-    - Destination: `internal/shared/crypto/jose/*.go`
-  - **Imports to Update**:
-    - `internal/template/server/` (service template)
-    - `internal/kms/server/` (sm-kms service)
-    - `cmd/jose-server/` (jose-ja service)
-    - Any other packages importing `internal/jose/crypto`
+  - **Commits**: a01b7de7 ("refactor(jose): move crypto package to internal/shared/crypto/jose for reusability")
+  - **Files Moved**:
+    - ✅ All 27 files from `internal/jose/crypto/*.go`
+    - ✅ Destination: `internal/shared/crypto/jose/*.go`
+  - **Imports Updated**:
+    - ✅ `internal/template/server/` (service template)
+    - ✅ `internal/kms/server/` (sm-kms service, 26 files)
+    - ✅ `internal/jose/server/` (jose-ja service, 2 files)
+    - ✅ `internal/identity/` (identity services, 2 files)
+    - ✅ `internal/learn/server/` (fixed missing generateTLSConfig)
+  - **Validation**:
+    - ✅ Build: `go build ./...` passes
+    - ✅ Tests: `go test ./internal/shared/crypto/jose/...` passes
+    - ⚠️ Coverage: 82.7% (below 98% target, needs improvement)
+    - ❌ Mutation: Not yet measured (follow-up task)
 
 ---
 
@@ -722,6 +728,56 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Add tests for generateTLSConfig error paths
 - Add tests for Shutdown double-call and already-shutdown scenarios
 - Run mutation testing on PublicHTTPServer
+
+---
+
+### 2025-12-25: P1.1.1.1 Complete - JOSE Crypto Package Moved to Shared Location
+
+**Work Completed**:
+
+- ✅ Moved all 27 files from `internal/jose/crypto/` to `internal/shared/crypto/jose/`
+- ✅ Updated imports in 33 Go files across 4 services:
+  - sm-kms (26 files): barrier/*, businesslogic/*, repository/orm/*, client/*
+  - jose-ja (2 files): server/handlers.go, server/server.go
+  - identity (2 files): authz/dpop/*, jwks/*
+  - jose examples (1 file): example/jwe_encrypt_decrypt_test.go
+  - kms client (2 files): client/client_oam_mapper.go, client/client_test.go
+- ✅ Fixed learn-im missing `generateTLSConfig()` method (added as receiver method)
+- ✅ Verified build: `go build ./...` passes
+- ✅ Verified tests: `go test ./internal/shared/crypto/jose/...` passes (19.3s)
+- ✅ Committed: a01b7de7 "refactor(jose): move crypto package to internal/shared/crypto/jose for reusability"
+
+**Coverage/Quality Metrics**:
+
+- Coverage: 82.7% (below 98% target for shared infrastructure)
+- Tests: All passing (19.3s execution time)
+- Build: Clean (no warnings or errors)
+- Mutation: Not yet measured (follow-up task)
+
+**Key Findings**:
+
+1. **learn-im had undefined function**: `generateTLSConfig()` was called as standalone function but doesn't exist - should be receiver method `s.generateTLSConfig()`
+2. **Import pattern consistent**: All services successfully migrated to new path `cryptoutil/internal/shared/crypto/jose`
+3. **Git rename detection**: Git correctly identified all 27 files as renames (R flag), preserving history
+4. **Coverage gap**: 82.7% is significantly below 98% target for shared infrastructure code
+
+**Constraints Discovered**: None
+
+**Requirements Discovered**: None
+
+**Related Commits**:
+
+- a01b7de7: Phase 1.1.1.1 implementation (JOSE crypto package move)
+- d7d10c01: Documentation updates (spec, plan, tasks, clarify, analyze, DETAILED)
+
+**Violations Found**: None
+
+**Next Steps**:
+
+1. ⚠️ **Coverage improvement**: Bring `internal/shared/crypto/jose/` coverage from 82.7% → ≥98%
+2. ❌ **Mutation testing**: Run gremlins on `internal/shared/crypto/jose/` (target ≥98%)
+3. ✅ **Begin P1.2.1.1**: Refactor service template to use shared TLS infrastructure
+
 - Document pragmatic quality targets for infrastructure code
 
 **Related Commits**: 9d81b75e (PublicHTTPServer implementation and tests)
