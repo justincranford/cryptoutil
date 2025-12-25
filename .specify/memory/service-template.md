@@ -63,7 +63,7 @@ func NewService(config *ServiceConfig, handlers HandlerRegistry) (*ServiceTempla
 - ✅ Extract reusable template before implementing new services
 - ✅ ALL new services MUST use template (consistency, reduced duplication)
 - ✅ ALL existing services MUST be refactored to use template (iterative migration)
-- ✅ Template success criteria: learn-ps service validates template works
+- ✅ Template success criteria: learn-im service validates template works
 
 ### NEVER DO
 
@@ -73,7 +73,7 @@ func NewService(config *ServiceConfig, handlers HandlerRegistry) (*ServiceTempla
 
 ### Migration Validation
 
-**Template success criteria (learn-ps service)**:
+**Template success criteria (learn-im service)**:
 
 1. Implements ALL template requirements (dual HTTPS, health checks, config, telemetry)
 2. Passes all unit/integration/e2e tests
@@ -85,7 +85,7 @@ func NewService(config *ServiceConfig, handlers HandlerRegistry) (*ServiceTempla
 
 **HIGH PRIORITY phased migration**:
 
-### Phase 1: learn-ps FIRST - CRITICAL
+### Phase 1: learn-im FIRST - CRITICAL
 
 - **Purpose**: Implement and validate ALL template requirements
 - **Success Criteria**: Passes all tests, workflows, no migration blockers
@@ -109,5 +109,5 @@ func NewService(config *ServiceConfig, handlers HandlerRegistry) (*ServiceTempla
 2. **Dual HTTPS**: Public (business) + Admin (health checks) servers mandatory
 3. **Dual Paths**: `/browser/**` (session-based) vs `/service/**` (token-based)
 4. **Health Checks**: Liveness (process alive) vs Readiness (dependencies healthy)
-5. **Migration Priority**: learn-ps first (validation), production services sequential, sm-kms last
+5. **Migration Priority**: learn-im first (validation), production services sequential, sm-kms last
 6. **Zero Duplication**: Template parameterization prevents code duplication across services

@@ -184,11 +184,11 @@
 
 ---
 
-### Phase 7: Learn-PS Validation (1 task)
+### Phase 7: Learn-IM Validation (1 task)
 
 #### Moderate Tasks (M effort)
 
-- **P7.1.1**: Learn-PS with Template - validates template correctness
+- **P7.1.1**: Learn-IM with Template - validates template correctness
 
 **Phase 7 Parallelization**: None (single task)
 
@@ -231,10 +231,10 @@ P4.1.1 (Sharding) → P4.2.1 (Multi-Tenancy) → P5.1.1 (Hash Registry)
 
 **Mitigation**: Sequential, no shortcuts possible (Week 10-15)
 
-**Critical Path 5: Template → Learn-PS**
+**Critical Path 5: Template → Learn-IM**
 
 ```
-P6.1.1 (Template) → P7.1.1 (Learn-PS)
+P6.1.1 (Template) → P7.1.1 (Learn-IM)
 ```
 
 **Mitigation**: Simple validation chain (Week 16-17)
@@ -263,7 +263,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-PS)
 | P5.1 Hash | ●●●●○ | ●●●●● | ○○○○○ | ○○○○○ | ○○○○○ | ●●●●○ |
 | P5.2 Revocation | ●●●●○ | ●●●●● | ○○○○○ | ○○○○○ | ○○○○○ | ●●●●● |
 | P6.1 Template | ●●●●○ | ○○○○○ | ●●○○○ | ○○○○○ | ●●●○○ | ○○○○○ |
-| P7.1 Learn-PS | ●●●○○ | ○○○○○ | ●●○○○ | ●●○○○ | ●●○○○ | ○○○○○ |
+| P7.1 Learn-IM | ●●●○○ | ○○○○○ | ●●○○○ | ●●○○○ | ●●○○○ | ○○○○○ |
 
 **Legend**: ●●●●● = Expert required, ●●●●○ = Advanced, ●●●○○ = Intermediate, ●●○○○ = Basic, ●○○○○ = Minimal, ○○○○○ = Not needed
 
@@ -272,7 +272,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-PS)
 - **Backend Team (2-3 devs)**: P2.1, P2.2, P2.3, P2.4, P3.1, P4.1, P4.2, P6.1
 - **Security Team (1-2 devs)**: P2.4, P5.1, P5.2 (crypto + revocation)
 - **Frontend Team (1 dev)**: P3.2.2 (SPA), assist with P3.1 (browser middleware validation)
-- **Full-Stack Team (1-2 devs)**: P3.2.1 (RP), P7.1 (Learn-PS)
+- **Full-Stack Team (1-2 devs)**: P3.2.1 (RP), P7.1 (Learn-IM)
 - **DevOps Team (1 dev)**: Docker Compose, workflow updates, CI/CD validation (all phases)
 
 ---
@@ -371,9 +371,9 @@ P6.1.1 (Template) → P7.1.1 (Learn-PS)
 - ✅ Documentation complete (examples, README)
 - ✅ Coverage ≥98%
 
-**P7.1 Learn-PS**:
+**P7.1 Learn-IM**:
 
-- ✅ Learn-PS service starts with dual servers
+- ✅ Learn-IM service starts with dual servers
 - ✅ Uses template package correctly
 - ✅ Docker Compose integration works
 - ✅ Coverage ≥95%
@@ -393,7 +393,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-PS)
 **Phase 4-5 TODOs (Address in Phase 6-7)**:
 
 - `TODO(P6): Extract dual-server pattern to template package`
-- `TODO(P7): Validate template with Learn-PS implementation`
+- `TODO(P7): Validate template with Learn-IM implementation`
 
 ### Forbidden TODOs (NEVER Acceptable)
 
@@ -406,7 +406,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-PS)
 
 **Week 10**: Review P2-P3 TODOs, close or promote to tasks
 **Week 15**: Review P4-P5 TODOs, close or promote to tasks
-**Week 17**: NO TODOs allowed in Learn-PS (template must be clean)
+**Week 17**: NO TODOs allowed in Learn-IM (template must be clean)
 
 ---
 
@@ -459,12 +459,12 @@ P6.1.1 (Template) → P7.1.1 (Learn-PS)
 ### Phase 6-7 Parallelization
 
 **Week 16**: P6.1.1 (template extraction)
-**Week 17**: P7.1.1 (Learn-PS validation)
+**Week 17**: P7.1.1 (Learn-IM validation)
 
 **Team Assignment**:
 
 - Dev 1-2: P6.1.1 (extract template)
-- Dev 3: P7.1.1 (implement Learn-PS)
+- Dev 3: P7.1.1 (implement Learn-IM)
 
 ---
 

@@ -153,7 +153,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | OpenTelemetry | ✅ Complete | OTLP push, tail-based sampling |
 | Docker Compose | ⚠️ Partial | KMS/Identity complete, JOSE/CA need updates |
 | Health checks | ✅ Complete | livez/readyz on 127.0.0.1:909x |
-| Unified CLI | ⚠️ KMS only | Need jose/ca/identity/learn-ps cmds |
+| Unified CLI | ⚠️ KMS only | Need jose/ca/identity/learn-im cmds |
 
 ### Quality Metrics
 

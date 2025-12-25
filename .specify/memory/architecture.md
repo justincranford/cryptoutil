@@ -18,7 +18,7 @@
 | **identity-rs** | Identity | Resource Server (RS) | 18200-18209 | 127.0.0.1:9090 | Protected API with token validation (reference implementation) |
 | **identity-rp** | Identity | Relying Party (RP) | 18300-18309 | 127.0.0.1:9090 | Backend-for-Frontend pattern (reference implementation) |
 | **identity-spa** | Identity | Single Page Application (SPA) | 18400-18409 | 127.0.0.1:9090 | Static hosting for SPA clients (reference implementation) |
-| **learn-ps** | Learn | Pet Store | 8888-8889 | 127.0.0.1:9090 | Educational service demonstrating service template usage |
+| **learn-im** | Learn | InstantMessenger | 8888-8889 | 127.0.0.1:9090 | Educational service demonstrating service template usage |
 
 ## Microservices Architecture Requirements
 

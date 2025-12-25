@@ -92,7 +92,7 @@ The Spec Kit Methodology, driven by GitHub's open-source toolkit, is a Spec-Driv
 
 | Service Alias | Product | Service | Public Port | Admin Port | Description |
 |---------------|-----------|-------------|------------|-------------|
-| **learn-ps** | Learn | Pet Store | 8888-8889 | 127.0.0.1:9090 | Educational service demonstrating service template usage |
+| **learn-im** | Learn | InstantMessenger | 8888-8889 | 127.0.0.1:9090 | Encrypted messaging demonstration service validating service template |
 
 **Source**: Architecture instructions (01-01.architecture.instructions.md), constitution.md Section I
 
@@ -654,12 +654,11 @@ federation:
 - Optional mTLS for production environments
 - Not exposed in Docker port mappings
 
-**Admin Port Assignments** (Source: SPECKIT-CONFLICTS-ANALYSIS C4 answer D, 2025-12-19):
+**Admin Port Assignments** (Source: constitution.md, 2025-12-24):
 
-- **KMS**: Admin port 9090 (all KMS instances share, bound to 127.0.0.1)
-- **Identity**: Admin port 9091 (all 5 Identity services share)
-- **CA**: Admin port 9092 (all CA instances share)
-- **JOSE**: Admin port 9093 (all JOSE instances share)
+- **ALL SERVICES**: Admin port 9090 (bound to 127.0.0.1, NEVER exposed to host)
+- **TESTS**: Admin port 0 (dynamic allocation)
+- **Rationale**: Admin endpoints localhost-only, container network namespace isolation allows same port across all services
 
 **Admin API Context**:
 
@@ -757,7 +756,7 @@ healthcheck:
     │            │  │ SPA: 8184  │  │             │  │          │
     └─────┬──────┘  └─────┬──────┘  └──────┬──────┘  └────┬─────┘
           │               │                │              │
-          │ Admin:9093    │ Admin:9091     │ Admin:9090   │Admin:9092
+          │ Admin:9090    │ Admin:9090     │ Admin:9090   │Admin:9090
           │ (127.0.0.1)   │ (127.0.0.1)    │ (127.0.0.1)  │(127.0.0.1)
           │               │                │              │
     ┌─────▼───────────────▼────────────────▼──────────────▼─────┐
@@ -876,11 +875,11 @@ Core cryptographic primitives for web security standards. Serves as the embedded
 
 **Architecture**: 5 independent microservices that can be deployed standalone or together:
 
-1. **AuthZ Server**: OAuth 2.1 Authorization Server (identity-authz, port 8180, admin 9091)
-2. **IdP Server**: OIDC Identity Provider (identity-idp, port 8181, admin 9091)
-3. **Resource Server**: Protected API with token validation (identity-rs, port 8182, admin 9091) - reference implementation
-4. **Relying Party**: Backend-for-Frontend pattern (identity-rp, port 8183, admin 9091) - reference implementation
-5. **Single Page Application**: Static hosting for SPA clients (identity-spa, port 8184, admin 9091) - reference implementation
+1. **AuthZ Server**: OAuth 2.1 Authorization Server (identity-authz, port 8180, admin 9090)
+2. **IdP Server**: OIDC Identity Provider (identity-idp, port 8181, admin 9090)
+3. **Resource Server**: Protected API with token validation (identity-rs, port 8182, admin 9090) - reference implementation
+4. **Relying Party**: Backend-for-Frontend pattern (identity-rp, port 8183, admin 9090) - reference implementation
+5. **Single Page Application**: Static hosting for SPA clients (identity-spa, port 8184, admin 9090) - reference implementation
 
 Each service has its own Docker image and can scale independently.
 
@@ -1185,9 +1184,9 @@ X.509 certificate lifecycle management with CA/Browser Forum compliance.
 **Deployment Architecture**:
 
 - **3-instance deployment pattern** (matches KMS/JOSE/Identity pattern for consistency)
-- **ca-sqlite**: Port 8380 (public API), Port 9092 (admin), SQLite backend
-- **ca-postgres-1**: Port 8381 (public API), Port 9092 (admin), PostgreSQL backend
-- **ca-postgres-2**: Port 8382 (public API), Port 9092 (admin), PostgreSQL backend
+- **ca-sqlite**: Port 8380 (public API), Port 9090 (admin), SQLite backend
+- **ca-postgres-1**: Port 8381 (public API), Port 9090 (admin), PostgreSQL backend
+- **ca-postgres-2**: Port 8382 (public API), Port 9090 (admin), PostgreSQL backend
 - **Admin ports bound to 127.0.0.1** (not externally accessible, health checks only)
 
 #### Implementation Status
@@ -1963,20 +1962,20 @@ internal/template/
 
 ---
 
-### Learn-PS Demonstration Service (Phase 7)
+### Learn-IM Demonstration Service (Phase 3)
 
-**Goal**: Create working Pet Store service using service template, validate reusability and completeness.
+**Goal**: Create working InstantMessenger service using service template, validate reusability and completeness.
 
-**Implementation Priority**: HIGH - CRITICAL to implement learn-ps FIRST before migrating production services
+**Implementation Priority**: HIGH - CRITICAL to implement learn-im FIRST before migrating production services
 
 **Service Template Migration Priority Order**:
 
-1. **learn-ps FIRST** (Phase 7):
-   - CRITICAL: Implement learn-ps using extracted service template
+1. **learn-im FIRST** (Phase 3):
+   - CRITICAL: Implement learn-im using extracted service template
    - Through iterative implementation, testing, validation, analysis
    - GUARANTEE ALL requirements of service template are met
    - Proves template is production-ready before migrating product services
-2. **One service at a time** (Phase 8+, excludes sm-kms):
+2. **One service at a time** (Phase 4+, excludes sm-kms):
    - MUST refactor each production service to use service template sequentially
    - Identify and fix issues in service template to unblock current service
    - Avoid creating technical debt affecting remaining migrations
@@ -1986,12 +1985,12 @@ internal/template/
    - Only migrate KMS reference implementation after template proven stable across 8 services
    - Reference implementation stays stable until template is battle-tested
 
-**Learn-PS Overview**:
+**Learn-IM Overview**:
 
 - **Product**: Learn (educational/demonstration product)
-- **Service**: PS (Pet Store service)
+- **Service**: IM (InstantMessenger service)
 - **Purpose**: Copy-paste-modify starting point for customers creating new services
-- **Scope**: Complete CRUD API for pet store (pets, orders, customers)
+- **Scope**: Encrypted messaging API (PUT/GET/DELETE for /tx and /rx endpoints)
 
 **API Endpoints** (via `/browser/api/v1/*` and `/service/api/v1/*`):
 
@@ -2078,7 +2077,7 @@ func main() {
     // 3. Apply middleware
     template.ApplyMiddleware(middleware.Config{
         CORS: middleware.CORSConfig{
-            Origins: []string{"https://learn-ps.example.com"},
+            Origins: []string{"https://learn-im.example.com"},
         },
         RateLimit: middleware.RateLimitConfig{
             RequestsPerMinute: 100,
@@ -2106,7 +2105,7 @@ func main() {
 **Customer Value**:
 
 - **Working Example**: See service template in action
-- **Starting Point**: Copy entire Learn-PS directory, modify for use case
+- **Starting Point**: Copy entire Learn-IM directory, modify for use case
 - **Best Practices**: Learn production-ready patterns (error handling, testing, deployment)
 - **API Design**: Reference implementation for REST API design
 
@@ -2301,11 +2300,12 @@ processors:
 
 **CRLDP Requirements**:
 
-- **Distribution**: One serial number per HTTPS URL (e.g., `https://ca.example.com/crl/serial-12345.crl`)
+- **Distribution**: One serial number per HTTPS URL with base64-url-encoded serial (e.g., `https://ca.example.com/crl/EjOrvA.crl`)
+- **Encoding**: Serial numbers MUST be base64-url-encoded (RFC 4648) - uses `-_` instead of `+/`, no padding `=`
 - **Signing**: CRLs MUST be signed by issuing CA before publication
 - **Availability**: CRLs MUST be available immediately after revocation (NOT batched/delayed)
 - **Format**: DER-encoded CRL per RFC 5280
-- **Example**: Certificate serial `0x123ABC` → `https://ca.example.com/crl/123ABC.crl`
+- **Example**: Certificate serial `0x123ABC` → base64-url encode → `EjOrvA` → `https://ca.example.com/crl/EjOrvA.crl`
 
 **OCSP Requirements**:
 
@@ -2382,32 +2382,58 @@ type UnsealConfig struct {
 
 ### Multi-Tenancy
 
-**Tenant Isolation** (Source: SPECKIT-CLARIFY-QUIZME-05 Q6, 2025-12-24):
+**Tenant Isolation** (Source: constitution.md, plan.md, 2025-12-24):
 
-- **REQUIRED**: Schema-level tenant isolation (e.g., `tenant_a.users`, `tenant_b.users`)
-- **NOT SUPPORTED**: Row-level security (RLS) with tenant ID columns
-- **NOT SUPPORTED**: Separate databases per tenant (connection pool exhaustion)
+**REQUIRED**: Dual-layer tenant isolation for defense-in-depth:
 
-**Schema Isolation Architecture**:
+**Layer 1: Per-Row Tenant ID** (PostgreSQL + SQLite):
+
+- ALL tables MUST have `tenant_id UUID NOT NULL` column
+- `tenant_id` is foreign key to `tenants.id` (UUIDv4)
+- ALL queries MUST filter by `WHERE tenant_id = $1`
+- Enforced at application layer (SQL query construction)
+- Works on BOTH PostgreSQL and SQLite
+
+**Layer 2: Schema-Level Isolation** (PostgreSQL ONLY):
+
+- Each tenant gets separate schema: `CREATE SCHEMA tenant_<UUID>`
+- Connection sets search_path: `SET search_path TO tenant_<UUID>`
+- Provides database-level isolation for PostgreSQL deployments
+- NOT applicable to SQLite (no schema support)
+
+**Architecture**:
 
 ```sql
--- Each tenant gets dedicated schema
+-- Layer 1: Per-row tenant_id (PostgreSQL + SQLite)
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id),
+  email TEXT NOT NULL,
+  UNIQUE(tenant_id, email)
+);
+
+-- Layer 2: Schema-level (PostgreSQL only)
 CREATE SCHEMA tenant_a;
 CREATE SCHEMA tenant_b;
-
--- Tables duplicated per schema
-CREATE TABLE tenant_a.users (id SERIAL PRIMARY KEY, email TEXT);
-CREATE TABLE tenant_b.users (id SERIAL PRIMARY KEY, email TEXT);
+SET search_path TO tenant_a;  -- All queries scoped to tenant_a
 ```
 
 **Configuration**:
 
 ```yaml
 multi_tenancy:
-  isolation: schema  # MANDATORY (RLS not supported)
+  isolation: dual-layer  # per-row tenant_id + schema-level (PostgreSQL only)
   tenant_id_header: X-Tenant-ID
-  auto_create_schema: true  # Auto-provision schemas for new tenants
+  auto_create_schema: true  # PostgreSQL only, auto-provision schemas
 ```
+
+**Rationale**:
+
+- Layer 1 (per-row tenant_id): Works on PostgreSQL + SQLite, mandatory defense
+- Layer 2 (schema-level): PostgreSQL-only enhancement, additional isolation
+- Dual-layer provides defense-in-depth (application-level + database-level)
+- NEVER use row-level security (RLS) - layers 1+2 sufficient
+- NOT SUPPORTED: Separate databases per tenant (connection pool exhaustion)
 
 **Runtime Tenant Switching**:
 

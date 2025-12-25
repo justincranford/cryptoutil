@@ -41,21 +41,17 @@
 **Private HTTPS Server** (Admin endpoints):
 
 - Purpose: Internal admin tasks, health checks, metrics
-- Admin Port Assignments:
-  - KMS: 9090 (all KMS instances share, bound to 127.0.0.1)
-  - Identity: 9091 (all 5 Identity services share)
-  - CA: 9092 (all CA instances share)
-  - JOSE: 9093 (all JOSE instances share)
+- Admin Port: 127.0.0.1:9090 (ALL services, all instances)
 - Security: IP restriction (localhost only), optional mTLS, minimal middleware
 - Endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
 - NOT exposed in Docker port mappings
 
-**Rationale for Unique Admin Ports**:
+**Rationale for Shared Admin Port**:
 
 - Admin ports bound to 127.0.0.1 only (not externally accessible)
 - Docker Compose: Each service instance = separate container with isolated network namespace
-- Same admin port can be reused across instances of same product without collision
-- Multiple instances: Admin port 0 in all unit tests, Admin internal 9090/9091/9092/9093 port in docker compose, Admin unique external port mapping per instance
+- Same admin port (9090) can be reused across ALL services without collision
+- Multiple instances: Admin port 0 in all unit tests, Admin internal 9090 in Docker Compose, Admin unique external port mapping per instance if needed
 
 **Implementation Status**:
 
@@ -751,9 +747,11 @@ hash_service:
 **CRLDP Requirements** (CRITICAL):
 
 - Each CRLDP HTTPS URL MUST contain ONLY ONE certificate serial number
+- Serial numbers MUST be base64-url-encoded (RFC 4648) - uses `-_` instead of `+/`, no padding `=`
 - CRLs MUST be signed and available IMMEDIATELY upon revocation (NOT batched)
 - CRLs MUST NOT be delayed by 24 hours or any batch processing window
 - HTTPS endpoints MUST be reliable and highly available
+- Example: Certificate serial `0x123ABC` → base64-url encode → `EjOrvA` → `https://ca.example.com/crl/EjOrvA.crl`
 
 **OCSP Requirements**:
 

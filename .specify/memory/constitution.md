@@ -382,7 +382,7 @@ For public HTTPS endpoint, all services implement TWO security middleware stacks
 - Middleware enforces mutual exclusivity (service tokens can't access browser paths, vice versa)
 - Prevents unauthorized cross-client access patterns
 
-**Port Allocation**: See service catalog table above for port ranges. Admin ports: 9090 (KMS), 9091 (Identity), 9092 (CA), 9093 (JOSE), 9095 (Learn)
+**Port Allocation**: See service catalog table above for port ranges. Admin ports: 9090 (ALL services, all instances)
 
 **Windows Firewall Prevention**: Tests bind 127.0.0.1 (not 0.0.0.0). See `https-ports.md` for complete binding patterns
 
@@ -1042,13 +1042,13 @@ When a gate fails:
 
 **Decision Source**: CLARIFY-QUIZME-01 Q1, 2025-12-22
 
-1. **learn-ps FIRST** (Phase 7):
-   - CRITICAL: Implement learn-ps using service template
+1. **learn-im FIRST** (Phase 7):
+   - CRITICAL: Implement learn-im using service template
    - Iterative implementation, testing, validation, analysis
    - GUARANTEE ALL service template requirements met before migrating production services
    - Validates template is production-ready and truly reusable
 2. **JOSE and CA NEXT** (one at a time, Phases 8-9):
-   - MUST refactor JOSE (jose-ja) and CA (pki-ca) sequentially after learn-ps validation
+   - MUST refactor JOSE (jose-ja) and CA (pki-ca) sequentially after learn-im validation
    - Purpose: Drive template refinements to accommodate different service patterns
    - Identify and fix issues in service template to unblock remaining service migrations
    - Order: jose-ja → pki-ca (allow adjustments between migrations)
@@ -1061,12 +1061,12 @@ When a gate fails:
    - Only migrate KMS if ALL other 8 services running excellently on template
    - Prevents disrupting reference implementation
 
-**Learn-PS Demonstration Requirement**:
+**Learn-IM Demonstration Requirement**:
 
-- Phase 7 MUST implement Learn-PS pet store demonstration service using extracted template
+- Phase 7 MUST implement Learn-IM instant messenger demonstration service using extracted template
 - Purpose: Validate template is truly reusable and production-ready
 - Validates: Service stands up, passes health checks, handles requests, integrates with telemetry
-- Success criteria: Learn-PS implementation <500 lines (proves template handles infrastructure)
+- Success criteria: Learn-IM implementation <500 lines (proves template handles infrastructure)
 
 ---
 

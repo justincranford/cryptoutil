@@ -214,10 +214,10 @@ mvnw.cmd gatling:test
 # Test admin API health checks with 2 virtual admin clients
 ./mvnw gatling:test -Dgatling.simulationClass=cryptoutil.AdminApiSimulation -Dvirtualadminclients=2
 
-# Test admin API against different port
+# Test admin API against different instance
 ./mvnw gatling:test \
   -Dgatling.simulationClass=cryptoutil.AdminApiSimulation \
-  -DadminApiBaseUrl=http://localhost:9091/ \
+  -DadminApiBaseUrl=http://localhost:9090/ \
   -Dvirtualadminclients=5
 ```
 

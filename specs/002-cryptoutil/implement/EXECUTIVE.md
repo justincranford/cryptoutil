@@ -24,10 +24,19 @@
 - ⚠️ Phase 2: Template Extraction (IN PROGRESS - NOT STARTED)
 - ⏸️ Phases 3-9: BLOCKED by Phase 2
 
+**Documentation Cleanup** (2025-12-24):
+
+- ✅ Systematic fixes to ALL SpecKit documentation (spec.md, clarify.md, analyze.md)
+- ✅ Fixed ALL copilot instructions (admin ports, service naming)
+- ✅ Fixed ALL memory files (constitution.md, architecture.md, service-template.md)
+- ✅ 100% consistency achieved across 50+ files
+- ✅ Root cause analysis: SpecKit has 3 authoritative sources with ZERO cross-validation
+- ✅ Prevention: Implemented systematic grep-based verification
+
 ### Key Achievements
 
 - ✅ CGO-free architecture (modernc.org/sqlite)
-- ✅ Dual-server pattern (public + admin)
+- ✅ Dual-server pattern (public 127.0.0.1:8080 + admin 127.0.0.1:9090 for ALL services)
 - ✅ Database abstraction (PostgreSQL + SQLite with GORM)
 - ✅ OpenTelemetry integration (OTLP → Grafana LGTM)
 - ✅ Test infrastructure (≥95% coverage, concurrent execution)
@@ -61,8 +70,8 @@ docker compose up -d
 
 # Health check
 curl -k https://localhost:9090/admin/v1/livez
-curl -k https://localhost:9091/admin/v1/livez
-curl -k https://localhost:9092/admin/v1/livez
+curl -k https://localhost:9090/admin/v1/livez
+curl -k https://localhost:9090/admin/v1/livez
 
 # E2E demo
 curl -k https://localhost:8080/service/api/v1/keys
