@@ -781,6 +781,96 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 2. ❌ **Mutation testing**: Run gremlins on `internal/shared/crypto/jose/` (target ≥98%)
 3. ✅ **Begin P1.2.1.1**: Refactor service template to use shared TLS infrastructure
 
+---
+
+### 2025-12-25: P1.2.1.1 Started - TLS Infrastructure Refactoring
+
+**Work Started**:
+
+**Current TLS Implementation Analysis**:
+
+- `internal/template/server/public.go`: `generateTLSConfig()` method (lines 251-337)
+  - Generates ECDSA P-256 private key
+  - Creates self-signed X.509 certificate (1-year validity)
+  - DNS names: \["localhost"\], IP addresses: \[127.0.0.1, ::1, ::ffff:127.0.0.1\]
+  - TLS 1.3 minimum version
+  - ~87 lines of duplicated code
+
+- `internal/template/server/admin.go`: Similar `generateTLSConfig()` method
+  - Nearly identical implementation
+  - Different Subject CN ("Cryptoutil Development" vs "Admin Server")
+  - ~87 lines of duplicated code
+
+- `internal/jose/server/server.go`: Third copy with ECDSA P-384
+- `internal/learn/server/public.go`: Fourth copy (just added)
+
+**Total Duplication**: ~350 lines across 4 services
+
+**TLS Mode Definitions** (3 modes required):
+
+1. **Static Certificates** (Production)
+   - Input: Pre-generated TLS cert chain (Root CA → Intermediate CA → Server Cert) + Server private key
+   - Source: Docker secrets, Kubernetes secrets, production CA (Let's Encrypt, internal PKI)
+   - Use case: Production deployments with CA-signed certificates
+   - Validation: Full chain validation, verify private key matches leaf cert
+
+2. **Mixed (Dynamic Server with Static CA)** (Staging/QA)
+   - Input: CA cert chain + CA private key (from Docker secrets)
+   - Auto-generate: Server certificate signed by provided CA
+   - Use case: Staging environments with internal CA, consistent CA across instances
+   - Validation: Verify CA chain, generate server cert on startup
+
+3. **Auto-Generated** (Development/Testing)
+   - Input: Configuration parameters only (DNS names, IP addresses, validity period)
+   - Auto-generate: Full 3-tier CA hierarchy (Root CA → Intermediate CA → Server Cert)
+   - Use case: Local development, unit tests, E2E tests
+   - Validation: Self-signed, minimal validation
+   - **Current Implementation**: Template uses this mode exclusively
+
+**Shared Infrastructure Available**:
+
+- `internal/shared/crypto/certificate/certificates.go`:
+  - `CreateCASubjects()`: Multi-tier CA generation
+  - `CreateEndEntitySubject()`: Server cert signed by CA
+  - `BuildTLSCertificate()`: Convert Subject to tls.Certificate
+  - `CertificateTemplateCA()`: CA certificate template
+  - `CertificateTemplateEndEntity()`: Server certificate template
+- `internal/shared/crypto/keygen/keygen.go`:
+  - `GenerateKey()`: Unified key generation (RSA, ECDSA, Ed25519)
+  - Key type selection via configuration
+
+**Refactoring Plan** (Subtasks):
+
+1. ✅ **Analyze current code**: Documented above
+2. ✅ **Define TLS modes**: 3 modes defined (static, mixed, auto-generated)
+3. ❌ **Create configuration structs**: TLSConfig with mode, static paths, generation params
+4. ❌ **Refactor PublicHTTPServer**: Replace generateTLSConfig with mode-aware initialization
+5. ❌ **Refactor AdminServer**: Same pattern as PublicHTTPServer
+6. ❌ **Remove duplicated methods**: Delete all generateTLSConfig implementations
+7. ❌ **Add mode-specific tests**: Unit tests for each TLS mode
+8. ❌ **Validation testing**: Verify sm-kms, jose-ja, learn-im still work
+9. ❌ **Documentation**: Update USAGE.md with TLS configuration examples
+
+**Constraints Discovered**: None yet
+
+**Requirements Discovered**: Need Docker Compose examples for all 3 TLS modes
+
+**Related Commits**:
+
+- 1e528e06: P1.2.1.1 marked in progress
+- (Future commits will be added as work progresses)
+
+**Violations Found**: None
+
+**Next Immediate Steps** (Beginning now):
+
+1. Create `internal/template/server/tls_config.go` with TLS mode definitions
+2. Create `internal/template/server/tls_generator.go` with mode-aware TLS initialization
+3. Refactor `PublicHTTPServer.Start()` to use new TLS infrastructure
+4. Refactor `AdminServer.Start()` to use new TLS infrastructure
+5. Add tests for all 3 modes
+6. Remove old `generateTLSConfig()` methods from all services
+
 - Document pragmatic quality targets for infrastructure code
 
 **Related Commits**: 9d81b75e (PublicHTTPServer implementation and tests)
