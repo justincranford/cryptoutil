@@ -323,11 +323,16 @@ func TestHandleRegisterUser_DuplicateUsername(t *testing.T) {
 	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
+	// Generate key pair for test user.
+	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
+	require.NoError(t, err)
+
 	existingUser := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "existinguser",
 		PasswordHash: hex.EncodeToString(passwordHash),
-		PublicKey:    make([]byte, 65),
+		PublicKey:    publicKeyBytes,
+		PrivateKey:   privateKey.Bytes(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -372,11 +377,16 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
+	// Generate key pair for test user.
+	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
+	require.NoError(t, err)
+
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "loginuser",
 		PasswordHash: hex.EncodeToString(passwordHash),
-		PublicKey:    make([]byte, 65),
+		PublicKey:    publicKeyBytes,
+		PrivateKey:   privateKey.Bytes(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -423,11 +433,16 @@ func TestHandleLoginUser_WrongPassword(t *testing.T) {
 	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
+	// Generate key pair for test user.
+	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
+	require.NoError(t, err)
+
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "wrongpassuser",
 		PasswordHash: hex.EncodeToString(passwordHash),
-		PublicKey:    make([]byte, 65),
+		PublicKey:    publicKeyBytes,
+		PrivateKey:   privateKey.Bytes(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
