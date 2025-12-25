@@ -2,7 +2,7 @@
 
 **Project**: cryptoutil
 **Spec**: 002-cryptoutil
-**Status**: Phase 2 (Service Template Extraction) - IN PROGRESS
+**Status**: Phase 1.1 (Move JOSE Crypto) - CURRENT PHASE
 **Last Updated**: 2025-12-25
 
 ---
@@ -11,7 +11,61 @@
 
 Tracks implementation progress from [tasks.md](../tasks.md). Updated continuously during implementation.
 
-### Phase 2: Service Template Extraction ⏸️ PENDING
+### Phase 1.1: Move JOSE Crypto to Shared Package (NEW - CURRENT PHASE) 🔥 CRITICAL
+
+**CRITICAL**: Phase 1.1 is BLOCKING learn-im implementation (Phase 3). learn-im requires JWE encryption from internal/jose/crypto, but current location creates circular dependency.
+
+#### P1.1.1: Refactor JOSE Crypto Package
+
+- [ ] **P1.1.1.1**: Move internal/jose/crypto to internal/shared/crypto/jose
+  - **Status**: NOT STARTED
+  - **Effort**: M (3-5 days)
+  - **Dependencies**: Phase 1 complete
+  - **Coverage**: Target ≥98% (shared infrastructure code)
+  - **Mutation**: Target ≥98% (shared infrastructure code)
+  - **Blockers**: None (READY TO START)
+  - **Notes**: BLOCKING ALL PHASES - Must complete before Phase 2 (template extraction)
+  - **Commits**: (pending)
+  - **Files to Move**:
+    - All 27 files from `internal/jose/crypto/*.go`
+    - Destination: `internal/shared/crypto/jose/*.go`
+  - **Imports to Update**:
+    - `internal/template/server/` (service template)
+    - `internal/kms/server/` (sm-kms service)
+    - `cmd/jose-server/` (jose-ja service)
+    - Any other packages importing `internal/jose/crypto`
+
+---
+
+### Phase 1.2: Refactor Service Template TLS Code (NEW) 🔥 CRITICAL
+
+**CRITICAL**: Phase 1.2 prevents technical debt in service template. MUST complete before learn-im implementation.
+
+#### P1.2.1: Refactor Template TLS Infrastructure
+
+- [ ] **P1.2.1.1**: Use Shared TLS Code in Service Template
+  - **Status**: BLOCKED BY P1.1.1.1
+  - **Effort**: M (5-7 days)
+  - **Dependencies**: P1.1.1.1 (JOSE crypto moved)
+  - **Coverage**: Target ≥98% (template infrastructure code)
+  - **Mutation**: Target ≥98% (template infrastructure code)
+  - **Blockers**: P1.1.1.1 (JOSE crypto must be moved first)
+  - **Notes**: Prevents TLS duplication technical debt in all 9 services
+  - **Commits**: (pending)
+  - **Refactoring Required**:
+    - Remove duplicated TLS cert generation code
+    - Use `internal/shared/crypto/certificate/` package
+    - Use `internal/shared/crypto/keygen/` package
+    - Implement parameter injection for all TLS configuration
+    - Support 3 TLS modes: static certs, mixed (static+generated), auto-generated
+  - **Validation Required**:
+    - sm-kms still builds and runs successfully
+    - All 3 TLS modes tested and working
+    - Zero coverage regression (maintain ≥98%)
+
+---
+
+### Phase 2: Service Template Extraction (RENUMBERED) ⏸️ PENDING
 
 #### P2.1: Template Extraction
 
@@ -175,6 +229,53 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 ## Section 2: Append-Only Timeline
 
 Chronological implementation log with mini-retrospectives. NEVER delete entries - append only.
+
+### 2025-12-25: Course Corrections - Added P1.1 and P1.2 (NEW PHASES)
+
+**Work Completed**:
+
+- Identified critical architectural issues blocking learn-im implementation
+- Added Phase 1.1: Move JOSE Crypto to Shared Package (3-5 days, M effort)
+- Added Phase 1.2: Refactor Service Template TLS Code (5-7 days, M effort)
+- Updated all documentation: spec.md, plan.md, tasks.md, clarify.md, analyze.md, DETAILED.md
+- Renumbered phases: old Phase 2→3, 3→4, 4→5, 5→6, 6→7, 7→8, 8→9
+
+**Issues Discovered**:
+
+1. **JOSE Crypto Location**: `internal/jose/crypto` is in service-specific location, but needed by learn-im (Phase 3) for JWE encryption → creates circular dependency
+2. **Service Template TLS**: Duplicates TLS cert generation code instead of using `internal/shared/crypto/certificate/` → propagates technical debt to all 9 services
+3. **Hard-coded Values**: Service template has hard-coded values instead of parameter injection patterns
+
+**Constraints Discovered**:
+
+- Phase 1.1 (Move JOSE Crypto) is **BLOCKING** Phase 2 (Template Extraction)
+- Phase 1.2 (Refactor Template TLS) is **BLOCKING** Phase 3 (Learn-IM Implementation)
+- All production service migrations (Phases 4-7) depend on clean shared package organization
+
+**Requirements Discovered**:
+
+- All reusable code **MUST** be in `internal/shared/` packages
+- Shared packages MUST have ≥98% coverage (infrastructure/utility code standard)
+- Shared packages MUST have ≥98% mutation score
+- Service template MUST use parameter injection (NO hard-coded values)
+- Service template MUST support 3 TLS modes: static, mixed, auto-generated
+
+**Lessons Learned**:
+
+1. **Architectural Issues Surface Early**: Service template implementation revealed package organization problems before they could propagate to all services
+2. **Shared Code Organization is CRITICAL**: Incorrect package location creates blockers for dependent services (learn-im needs JWE but can't import internal/jose/crypto)
+3. **Technical Debt Prevention**: Catching TLS duplication NOW (Phase 1.2) prevents rework across 9 services later
+4. **Documentation Updates Required**: Course corrections require updates across 7+ files (copilot instructions, spec, clarify, plan, tasks, analyze, DETAILED.md)
+
+**Next Steps**:
+
+- Complete P1.1.1.1: Move internal/jose/crypto to internal/shared/crypto/jose (3-5 days)
+- Complete P1.2.1.1: Refactor service template TLS code (5-7 days)
+- Resume Phase 2 (Service Template Extraction) after P1.2 complete
+
+**Related Commits**: (documentation updates pending)
+
+---
 
 ### 2025-12-25: Started P2.1.1 - Extract Service Template from KMS
 
@@ -571,6 +672,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 ### 2025-12-25: PublicHTTPServer Implementation and Tests
 
 **Work Completed**:
+
 - Created PublicHTTPServer implementation (public.go, ~330 lines)
 - Mirrors AdminServer design pattern (dual HTTPS endpoints)
 - Implements PublicServer interface from application.go
@@ -579,6 +681,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Committed and pushed (9d81b75e)
 
 **PublicHTTPServer Design**:
+
 - Two health endpoints:
   - `/service/api/v1/health` - Service-to-service clients
   - `/browser/api/v1/health` - Browser clients
@@ -588,6 +691,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Mutex-protected state management
 
 **Test Coverage**:
+
 - 11 tests covering:
   - Constructor validation (happy path, nil context)
   - Server lifecycle (start, shutdown, port allocation)
@@ -605,6 +709,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - generateTLSConfig: 76.2%
 
 **Linting Fixes**:
+
 - noctx: Changed `net.Listen()` → `net.ListenConfig{}.Listen(ctx, ...)`
 - errcheck: Added type assertion check for `*net.TCPAddr`
 - wsl_v5: Added whitespace above assignments in test file
@@ -612,6 +717,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Violations Found**: None
 
 **Next Steps**:
+
 - Improve handleServiceHealth/handleBrowserHealth error path coverage (JSON marshal errors)
 - Add tests for generateTLSConfig error paths
 - Add tests for Shutdown double-call and already-shutdown scenarios

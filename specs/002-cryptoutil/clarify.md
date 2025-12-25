@@ -1898,6 +1898,69 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 - Service implementation <1000 lines (template handles infrastructure)
 - All unit tests pass (coverage ≥95%)
 - E2E tests validate encryption/decryption flow
+
+---
+
+### Shared Package Organization - CRITICAL
+
+**Q**: Why must reusable code be in `internal/shared/` packages, and what are the consequences of placing it in service-specific locations?
+
+**A** (Source: Course correction 2025-12-25):
+
+**MANDATORY**: All reusable code MUST be in `internal/shared/` packages.
+
+**Current Problems**:
+
+1. **internal/jose/crypto**: Contains JWE/JWS/JWK utilities needed by MULTIPLE services (sm-kms, jose-ja, learn-im), but is currently in JOSE service-specific location
+2. **Service Template TLS**: Duplicating TLS cert generation code instead of using existing `internal/shared/crypto/certificate/` infrastructure
+
+**Consequences of Current Organization**:
+
+- **Blocks learn-im implementation**: learn-im needs JWE encryption from `internal/jose/crypto`, but importing service-specific packages creates circular dependencies
+- **Technical debt**: Service template duplicates TLS cert generation code instead of reusing shared infrastructure
+- **Hard-coding**: Service template has hard-coded values instead of parameter injection patterns
+- **Migration delays**: Every service migration will encounter same issues, wasting time on rework
+
+**Course Corrections**:
+
+**Phase 1.1: Move JOSE Crypto** (NEW, BLOCKING):
+
+- Move `internal/jose/crypto/*` → `internal/shared/crypto/jose/`
+- Update all imports in sm-kms, jose-ja, service template
+- Verify tests pass with no coverage regression
+- **Rationale**: Enables learn-im to use JWE without circular dependencies
+
+**Phase 1.2: Refactor Template TLS** (NEW, BLOCKING):
+
+- Remove duplicated TLS code from service template
+- Use `internal/shared/crypto/certificate/` and `internal/shared/crypto/keygen/`
+- Implement parameter injection for all TLS configuration
+- Support all 3 TLS modes: static certs, mixed (static+generated), auto-generated
+- **Rationale**: Prevents technical debt in all service migrations
+
+**Required Shared Packages** (from `spec.md`):
+
+| Package | Purpose | Used By | Status |
+|---------|---------|---------|--------|
+| `internal/shared/crypto/jose/` | JWK/JWE/JWS utilities | sm-kms, jose-ja, learn-im | **MUST MOVE** from internal/jose/crypto |
+| `internal/shared/crypto/certificate/` | TLS cert chains | All services | ✅ Exists, MUST BE USED |
+| `internal/shared/telemetry/` | OTLP integration | All services | ✅ Exists |
+| `internal/shared/magic/` | Magic constants | All packages | ✅ Exists |
+| `internal/shared/crypto/digests/` | Hash algorithms | All services | ✅ Exists |
+| `internal/shared/crypto/hash/` | Password hashing, hash registry | sm-kms, identity | ✅ Exists |
+| `internal/shared/util/` | Utilities | All packages | ✅ Exists |
+
+**Quality Requirements**:
+
+- All shared packages MUST have ≥98% coverage (infrastructure/utility code standard)
+- All shared packages MUST have ≥98% mutation score (infrastructure/utility code standard)
+- All shared packages MUST have comprehensive documentation with usage examples
+
+**Migration Dependencies**:
+
+- Phase 1.1 (Move JOSE Crypto) is **BLOCKING** Phase 2 (Template Extraction)
+- Phase 1.2 (Refactor Template TLS) is **BLOCKING** Phase 3 (Learn-IM Implementation)
+- All production service migrations (Phases 4-7) depend on clean shared package organization
 - Docker Compose deployment works (SQLite + PostgreSQL modes)
 - Demonstrates crypto library integration without external dependencies
 

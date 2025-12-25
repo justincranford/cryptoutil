@@ -213,15 +213,159 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ### Gaps Identified
 
-1. **Admin servers missing**: JOSE and CA lack admin servers (Phase 2.1)
-2. **Unified CLI incomplete**: Only KMS has `cryptoutil kms` command (Phase 2.2)
+1. **Admin servers missing**: JOSE and CA lack admin servers (Phase 3.1)
+2. **Unified CLI incomplete**: Only KMS has `cryptoutil kms` command (Phase 3.2)
+3. **JOSE crypto package mislocated**: internal/jose/crypto should be in internal/shared/crypto/jose/ (Phase 1.1)
+4. **TLS code duplication**: Service template duplicating existing TLS infrastructure (Phase 1.2)
 
-## Phase 2: Service Template Extraction
+---
 
-**Timeline**: CURRENT PHASE
+## Phase 1.1: Move JOSE Crypto to Shared Package (NEW)
+
+**Timeline**: BEFORE Phase 2 (Service Template Extraction)
+**Objective**: Move reusable JOSE crypto code to shared location before learn-im implementation
+**Priority**: CRITICAL - Blocks learn-im service (requires JWE for encrypted messaging)
+
+### Rationale
+
+The package `internal/jose/crypto` contains reusable JOSE crypto code needed by multiple services:
+
+- **learn-im**: Requires JWE for encrypt+MAC secure Instant Messaging (Phase 3)
+- **jose-ja**: JOSE Authority service itself  
+- **sm-kms**: Key management service for key wrapping
+
+Moving to `internal/shared/crypto/jose/` ensures:
+
+1. JWK Gen Service is reusable by all services needing JOSE operations
+2. JWE/JWS utilities are available for learn-im encrypted messaging
+3. No circular dependencies between services
+4. Consistent JOSE implementation across all products
+
+### Phase 1.1.1: Refactor JOSE Crypto Package
+
+**Priority**: CRITICAL - Blocks learn-im implementation
+
+#### Task 1.1.1: Move internal/jose/crypto to internal/shared/crypto/jose/
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 3-5 days (M)
+- **Dependencies**: Phase 1 complete
+
+**Deliverables**:
+
+1. Package Relocation
+   - Move `internal/jose/crypto/` → `internal/shared/crypto/jose/`
+   - Preserve all files, tests, benchmarks
+   - Update package declarations and imports
+
+2. Update Dependencies
+   - Update service template imports (if any)
+   - Update sm-kms imports for JOSE usage
+   - Update jose-ja service imports
+   - Update any other services using JOSE crypto
+
+3. Verify Tests Pass
+   - Run all JOSE crypto tests in new location
+   - Run all dependent package tests (template, kms, jose-ja)
+   - Ensure no coverage regression (maintain ≥95% coverage)
+
+4. Update Documentation
+   - Update import paths in docs/README.md
+   - Update code examples in clarify.md
+   - Document location rationale in spec.md (already added)
+
+**Acceptance Criteria**:
+
+- [ ] All files moved to `internal/shared/crypto/jose/`
+- [ ] All imports updated across codebase
+- [ ] Tests pass: `go test ./internal/shared/crypto/jose/...`
+- [ ] No coverage regression: Coverage ≥95% maintained
+- [ ] Dependent services still build and test successfully
+- [ ] `go build ./...` passes without errors
+- [ ] Commit: `refactor(jose): move crypto package to internal/shared/crypto/jose for reusability`
+
+---
+
+## Phase 1.2: Refactor Service Template TLS Code (NEW)
+
+**Timeline**: AFTER Phase 1.1, BEFORE Phase 2 (Template Extraction continues)
+**Objective**: Eliminate TLS code duplication in service template, use existing shared infrastructure
+**Priority**: CRITICAL - Prevents technical debt in service template
+
+### Rationale
+
+Current service template work shows duplication of TLS certificate generation code. The reusable TLS code already exists in:
+
+- `internal/shared/crypto/certificate/` - TLS cert chain generation
+- `internal/shared/crypto/keygen/` - Key generation utilities
+
+Issues Found:
+
+- Service template creating new TLS generation code that duplicates existing patterns
+- Hard-coded values in service template methods instead of parameter injection
+- Creates technical debt that will need fixing when migrating existing services (Phases 4-9)
+
+### Phase 1.2.1: Refactor Template TLS Infrastructure
+
+**Priority**: CRITICAL - Prevents technical debt propagation
+
+#### Task 1.2.1: Use Shared TLS Code in Service Template
+
+- **Status**: ❌ NOT STARTED
+- **Estimated Effort**: 5-7 days (M)
+- **Dependencies**: Phase 1.1 complete
+
+**Deliverables**:
+
+1. Refactor TLS Certificate Generation
+   - Remove duplicated TLS generation code from service template
+   - Use `internal/shared/crypto/certificate/` for cert chain generation
+   - Use `internal/shared/crypto/keygen/` for key generation
+   - Support all certificate chain patterns (Root CA → Intermediate CA → Issuing CA → TLS Server)
+
+2. Implement Parameter Injection
+   - Replace hard-coded TLS values with injected parameters
+   - Support configurable cert validity periods
+   - Support configurable key algorithms (RSA 2048/3072/4096, ECDSA P-256/384/521)
+   - Support configurable Subject Alternative Names (SANs)
+
+3. Update Service Template Configuration
+   - Add TLS configuration section to template config struct
+   - Support three TLS modes:
+     - Static certs (externally provided, production)
+     - Mixed (Issuing CA provided, auto-generate TLS Server cert)
+     - Auto-generated (full chain generation, development/testing)
+
+4. Verify Integration
+   - Test service template with all three TLS modes
+   - Verify existing services (sm-kms) still work with refactored template
+   - Ensure no coverage regression (maintain ≥98% template coverage)
+
+5. Update Documentation
+   - Document parameter injection patterns in docs/template/USAGE.md
+   - Document TLS configuration options in docs/template/README.md
+   - Add examples for all three TLS modes
+
+**Acceptance Criteria**:
+
+- [ ] No duplicated TLS generation code in service template
+- [ ] Uses `internal/shared/crypto/certificate/` and `internal/shared/crypto/keygen/`
+- [ ] Parameter injection for all TLS configuration
+- [ ] All three TLS modes supported and tested
+- [ ] Tests pass: `go test ./internal/template/...`
+- [ ] Coverage ≥98% maintained for template
+- [ ] Existing services (sm-kms) still build and run successfully
+- [ ] `go build ./...` passes without errors
+- [ ] Commit: `refactor(template): use shared TLS infrastructure and parameter injection`
+
+---
+
+## Phase 2: Service Template Extraction (RENUMBERED)
+
+**Timeline**: AFTER Phase 1.1 and 1.2 complete
 **Objective**: Extract reusable template from KMS, validate with learn-im
 
-**CRITICAL**: This phase MUST complete before any service migrations (Phases 3-6).
+**CRITICAL**: This phase MUST complete before learn-im implementation (Phase 3).
 
 ### Phase 2.1: Template Extraction
 
@@ -229,9 +373,9 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 #### Task 2.1.1: ServerTemplate Abstraction
 
-- **Status**: ❌ NOT STARTED
-- **Estimated Effort**: 14-21 days
-- **Dependencies**: Phase 1 complete (KMS reference implementation)
+- **Status**: ⚠️ IN PROGRESS (needs P1.1 and P1.2 fixes first)
+- **Estimated Effort**: 14-21 days (L)
+- **Dependencies**: Phase 1.1 and 1.2 complete (JOSE crypto moved, TLS refactored)
 
 **Deliverables**:
 
@@ -277,7 +421,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ---
 
-## Phase 3: Learn-IM Demonstration Service
+## Phase 3: Learn-IM Demonstration Service (RENUMBERED from Phase 2)
 
 **Timeline**: After Phase 2 complete
 **Objective**: Validate template reusability with encrypted instant messaging service
@@ -376,7 +520,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ---
 
-## Phase 4: Migrate jose-ja to Template
+## Phase 4: Migrate jose-ja to Template (RENUMBERED from Phase 3)
 
 **Timeline**: After Phase 3 complete (learn-im validates template)
 **Objective**: Migrate JOSE JWK Authority service to use extracted template
@@ -430,7 +574,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ---
 
-## Phase 5: Migrate pki-ca to Template
+## Phase 5: Migrate pki-ca to Template (RENUMBERED from Phase 4)
 
 **Timeline**: After Phase 4 complete (JOSE migration)
 **Objective**: Migrate PKI Certificate Authority service to use extracted template
@@ -485,7 +629,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ---
 
-## Phase 6: Identity Services Enhancement
+## Phase 6: Identity Services Enhancement (RENUMBERED from Phase 5)
 
 **Timeline**: After Phases 2-5 complete (template mature)
 **Objective**: Complete identity services admin servers, unified CLI, E2E coverage, migrate to template
@@ -586,7 +730,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ---
 
-## Phase 7: Advanced Identity Features
+## Phase 7: Advanced Identity Features (RENUMBERED from Phase 6)
 
 **Timeline**: After Phase 6 complete
 **Objective**: MFA, WebAuthn, advanced authn/authz features
@@ -641,7 +785,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ---
 
-## Phase 8: Scale & Multi-Tenancy
+## Phase 8: Scale & Multi-Tenancy (RENUMBERED from Phase 7)
 
 **Timeline**: After Phase 7 complete
 **Objective**: Database sharding, connection pool tuning, multi-tenant isolation
@@ -675,7 +819,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 
 ---
 
-## Phase 9: Production Readiness
+## Phase 9: Production Readiness (RENUMBERED from Phase 8)
 
 **Timeline**: After Phase 8 complete
 **Objective**: Production hardening, monitoring, compliance

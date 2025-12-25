@@ -10,6 +10,24 @@
 
 ### CRITICAL Risks
 
+#### R-CRIT-0A: JOSE Crypto Package Location Blocks learn-im (NEW)
+
+- **Risk**: P1.1.1 (move internal/jose/crypto to internal/shared/crypto/jose/) MUST complete before Phase 2
+- **Impact**: learn-im (Phase 3) needs JWE encryption from JOSE crypto, current location creates circular dependency, blocks ALL service migrations
+- **Probability**: CRITICAL (current blocker)
+- **Mitigation**: Execute Phase 1.1 FIRST (3-5 days), update all imports (sm-kms, jose-ja, template), verify tests pass
+- **Owner**: Backend team
+- **Timeline**: Complete IMMEDIATELY (Week 1), before Phase 2 starts
+
+#### R-CRIT-0B: Service Template Technical Debt Blocks All Migrations (NEW)
+
+- **Risk**: P1.2.1 (refactor template TLS) MUST complete before learn-im implementation
+- **Impact**: Service template duplicates TLS code, has hard-coded values, not using shared infrastructure; propagates technical debt to ALL 9 services
+- **Probability**: CRITICAL (will affect every service migration)
+- **Mitigation**: Execute Phase 1.2 (5-7 days), use internal/shared/crypto/certificate/ and keygen/, implement parameter injection, support all 3 TLS modes
+- **Owner**: Backend + infrastructure team
+- **Timeline**: Complete by Week 2, immediately after Phase 1.1
+
 #### R-CRIT-1: Admin Server Migration Blocking Everything
 
 - **Risk**: P2.1.1 and P2.1.2 (admin servers for JOSE/CA) block ALL subsequent work
@@ -110,7 +128,33 @@
 
 ## 2. Complexity Breakdown
 
-### Phase 2: Core Services (13 tasks)
+### Phase 1.1: Move JOSE Crypto to Shared Package (NEW - 1 task)
+
+#### Moderate Tasks (M effort)
+
+- **P1.1.1.1**: Move internal/jose/crypto to internal/shared/crypto/jose/ (3-5 days)
+  - **Complexity Drivers**: 27 files to move, update imports across 3+ services (sm-kms, jose-ja, template), verify zero coverage regression
+  - **Risk**: Breaking service builds if imports not updated comprehensively
+  - **Mitigation**: Systematic grep for all import references, update in single commit, verify tests pass for each affected service
+
+**Phase 1.1 Parallelization**: None (single task, MUST complete before Phase 2)
+
+---
+
+### Phase 1.2: Refactor Service Template TLS Code (NEW - 1 task)
+
+#### Moderate Tasks (M effort)
+
+- **P1.2.1.1**: Use Shared TLS Infrastructure in Template (5-7 days)
+  - **Complexity Drivers**: Remove duplicated TLS code, implement parameter injection, support 3 TLS modes (static, mixed, auto-generated), maintain existing service compatibility
+  - **Risk**: Breaking sm-kms (currently uses template) if refactoring introduces incompatibilities
+  - **Mitigation**: Extract TLS logic to separate function, inject as parameter, maintain backward compatibility with existing configs, comprehensive tests for all 3 modes
+
+**Phase 1.2 Parallelization**: None (single task, depends on P1.1, MUST complete before Phase 3)
+
+---
+
+### Phase 2: Core Services (13 tasks - RENUMBERED)
 
 #### Simple Tasks (S effort)
 

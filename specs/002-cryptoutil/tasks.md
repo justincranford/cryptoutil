@@ -1,8 +1,8 @@
 # cryptoutil Implementation Tasks
 
-**Generated**: 2025-12-24 (Updated)
+**Generated**: 2025-12-25 (Updated with P1.1 and P1.2)
 **Source**: specs/002-cryptoutil/plan.md
-**Status**: Phases 2-9 tasks (Phase 1 complete)
+**Status**: Phases 1.1-10 tasks (Phase 1 complete, P1.1 starting)
 
 ---
 
@@ -12,17 +12,71 @@ Each task includes:
 
 - **ID**: Unique identifier (P#.#.#)
 - **Title**: Brief description (3-7 words)
-- **Phase**: Implementation phase (2-9)
+- **Phase**: Implementation phase (1.1-10)
 - **Effort**: S (1-2 days), M (3-5 days), L (1-2 weeks), XL (3-4 weeks)
 - **Dependencies**: Blocking tasks (must complete first)
-- **Completion Criteria**: Evidence-based validation
+- **Completion Criteria**: Evidence-based validation (use checklists - [ ])
 - **Files/Packages**: Where work will be done
 
 ---
 
-## Phase 2: Service Template Extraction (CURRENT PHASE)
+## Phase 1.1: Move JOSE Crypto to Shared Package (NEW - CURRENT PHASE)
 
-**CRITICAL**: Phase 2 is BLOCKING all service migrations (Phases 3-6). Must complete before any migrations.
+**CRITICAL**: Phase 1.1 is BLOCKING learn-im implementation (Phase 3). Must complete before service template usage.
+
+### P1.1.1: Refactor JOSE Crypto Package
+
+#### P1.1.1.1: Move internal/jose/crypto to internal/shared/crypto/jose
+
+- **Title**: Move JOSE crypto to shared package
+- **Effort**: M (3-5 days)
+- **Dependencies**: Phase 1 complete
+- **Files**:
+  - `internal/shared/crypto/jose/*.go` (move from internal/jose/crypto/)
+  - All dependent packages (service template, sm-kms, jose-ja)
+  - Documentation updates (docs/README.md, clarify.md, spec.md)
+- **Completion Criteria**:
+  - [ ] All files moved to `internal/shared/crypto/jose/`
+  - [ ] All imports updated across codebase
+  - [ ] Tests pass: `go test ./internal/shared/crypto/jose/...`
+  - [ ] No coverage regression: Coverage ≥95% maintained
+  - [ ] Dependent services still build and test successfully
+  - [ ] `go build ./...` passes without errors
+  - [ ] Commit: `refactor(jose): move crypto package to internal/shared/crypto/jose for reusability`
+
+---
+
+## Phase 1.2: Refactor Service Template TLS Code (NEW)
+
+**CRITICAL**: Phase 1.2 prevents technical debt in service template. Must complete before learn-im implementation.
+
+### P1.2.1: Refactor Template TLS Infrastructure
+
+#### P1.2.1.1: Use Shared TLS Code in Service Template
+
+- **Title**: Use shared TLS infrastructure in template
+- **Effort**: M (5-7 days)
+- **Dependencies**: P1.1.1.1 (JOSE crypto moved)
+- **Files**:
+  - `internal/template/server/*.go` (refactor TLS generation)
+  - `docs/template/USAGE.md` (parameter injection patterns)
+  - `docs/template/README.md` (TLS configuration options)
+- **Completion Criteria**:
+  - [ ] No duplicated TLS generation code in service template
+  - [ ] Uses `internal/shared/crypto/certificate/` and `internal/shared/crypto/keygen/`
+  - [ ] Parameter injection for all TLS configuration
+  - [ ] All three TLS modes supported and tested (static, mixed, auto-generated)
+  - [ ] Tests pass: `go test ./internal/template/...`
+  - [ ] Coverage ≥98% maintained for template
+  - [ ] Existing services (sm-kms) still build and run successfully
+  - [ ] `go build ./...` passes without errors
+  - [ ] Commit: `refactor(template): use shared TLS infrastructure and parameter injection`
+
+---
+
+## Phase 2: Service Template Extraction (RENUMBERED)
+
+**CRITICAL**: Phase 2 is BLOCKING all service migrations (Phases 4-7). Must complete after P1.1 and P1.2.
 
 ### P2.1: Template Extraction
 
@@ -30,7 +84,7 @@ Each task includes:
 
 - **Title**: Extract service template from KMS
 - **Effort**: L (14-21 days)
-- **Dependencies**: None (Phase 1 complete)
+- **Dependencies**: P1.2.1.1 (TLS refactored)
 - **Files**:
   - `internal/template/server/dual_https.go` (create)
   - `internal/template/server/router.go` (create)
@@ -45,23 +99,23 @@ Each task includes:
   - `docs/template/USAGE.md` (create)
   - `docs/template/MIGRATION.md` (create)
 - **Completion Criteria**:
-  - ✅ Template extracted from KMS reference implementation
-  - ✅ All common patterns abstracted (dual HTTPS, database, telemetry, config)
-  - ✅ Constructor injection for configuration, handlers, middleware
-  - ✅ Interface-based customization for business logic
-  - ✅ Service-specific OpenAPI specs support
-  - ✅ Documentation complete with examples
-  - ✅ Tests pass: `go test ./internal/template/...`
-  - ✅ Coverage ≥98%: `go test -cover ./internal/template/...`
-  - ✅ Mutation score ≥98%: `gremlins unleash ./internal/template/...`
-  - ✅ Ready for learn-im validation (Phase 3)
-  - ✅ Commit: `feat(template): extract service template from KMS reference implementation`
+  - [ ] Template extracted from KMS reference implementation
+  - [ ] All common patterns abstracted (dual HTTPS, database, telemetry, config)
+  - [ ] Constructor injection for configuration, handlers, middleware
+  - [ ] Interface-based customization for business logic
+  - [ ] Service-specific OpenAPI specs support
+  - [ ] Documentation complete with examples
+  - [ ] Tests pass: `go test ./internal/template/...`
+  - [ ] Coverage ≥98%: `go test -cover ./internal/template/...`
+  - [ ] Mutation score ≥98%: `gremlins unleash ./internal/template/...`
+  - [ ] Ready for learn-im validation (Phase 3)
+  - [ ] Commit: `feat(template): extract service template from KMS reference implementation`
 
 ---
 
-## Phase 3: Learn-IM Demonstration Service
+## Phase 3: Learn-IM Demonstration Service (RENUMBERED)
 
-**CRITICAL**: Phase 3 is the FIRST real-world template validation. All production service migrations (Phases 4-6) depend on successful learn-im implementation.
+**CRITICAL**: Phase 3 is the FIRST real-world template validation. All production service migrations (Phases 4-7) depend on successful learn-im implementation.
 
 ### P3.1: Learn-IM Implementation
 
@@ -83,26 +137,26 @@ Each task includes:
   - `docs/learn-im/README.md` (create)
   - `docs/learn-im/TUTORIAL.md` (create)
 - **Completion Criteria**:
-  - ✅ Service name: learn-im
-  - ✅ Ports: 8888-8889 (public), 9090 (admin)
-  - ✅ Encrypted messaging APIs: PUT/GET/DELETE /tx and /rx
-  - ✅ Encryption: AES-256-GCM + ECDH-AESGCMKW
-  - ✅ Database schema (users, messages, message_receivers)
-  - ✅ learn-im uses ONLY template infrastructure (NO custom dual-server code)
-  - ✅ All business logic cleanly separated from template
-  - ✅ Template supports different API patterns (PUT/GET/DELETE vs CRUD)
-  - ✅ No template blockers discovered during implementation
-  - ✅ Tests pass: `go test ./internal/learn/... ./cmd/learn-im/...`
-  - ✅ Coverage ≥95%: `go test -cover ./internal/learn/...`
-  - ✅ Mutation score ≥85%: `gremlins unleash ./internal/learn/...`
-  - ✅ E2E tests pass (BOTH `/service/**` and `/browser/**` paths)
-  - ✅ Docker Compose deployment works
-  - ✅ Deep analysis confirms template ready for production service migrations
-  - ✅ Commit: `feat(learn-im): implement encrypted messaging demonstration service with template`
+  - [ ] Service name: learn-im
+  - [ ] Ports: 8888-8889 (public), 9090 (admin)
+  - [ ] Encrypted messaging APIs: PUT/GET/DELETE /tx and /rx
+  - [ ] Encryption: AES-256-GCM + ECDH-AESGCMKW
+  - [ ] Database schema (users, messages, message_receivers)
+  - [ ] learn-im uses ONLY template infrastructure (NO custom dual-server code)
+  - [ ] All business logic cleanly separated from template
+  - [ ] Template supports different API patterns (PUT/GET/DELETE vs CRUD)
+  - [ ] No template blockers discovered during implementation
+  - [ ] Tests pass: `go test ./internal/learn/... ./cmd/learn-im/...`
+  - [ ] Coverage ≥95%: `go test -cover ./internal/learn/...`
+  - [ ] Mutation score ≥85%: `gremlins unleash ./internal/learn/...`
+  - [ ] E2E tests pass (BOTH `/service/**` and `/browser/**` paths)
+  - [ ] Docker Compose deployment works
+  - [ ] Deep analysis confirms template ready for production service migrations
+  - [ ] Commit: `feat(learn-im): implement encrypted messaging demonstration service with template`
 
 ---
 
-## Phase 4: Migrate jose-ja to Template
+## Phase 4: Migrate jose-ja to Template (RENUMBERED)
 
 **CRITICAL**: First production service migration. Will drive template refinements for JOSE patterns.
 
@@ -114,22 +168,31 @@ Each task includes:
 - **Effort**: M (5-7 days)
 - **Dependencies**: P3.1.1 (template validated)
 - **Files**:
-  - `internal/jose/server/admin/` (create using template)
-  - `cmd/cryptoutil/jose.go` (create)
-  - `deployments/compose/jose/compose.yml` (update)
+  - `internal/template/server/dual_https.go` (create)
+  - `internal/template/server/router.go` (create)
+  - `internal/template/server/middleware.go` (create)
+  - `internal/template/server/lifecycle.go` (create)
+  - `internal/template/client/http_client.go` (create)
+  - `internal/template/client/auth.go` (create)
+  - `internal/template/repository/dual_db.go` (create)
+  - `internal/template/repository/gorm_patterns.go` (create)
+  - `internal/template/repository/transaction.go` (create)
+  - `docs/template/README.md` (create)
+  - `docs/template/USAGE.md` (create)
+  - `docs/template/MIGRATION.md` (create)
 - **Completion Criteria**:
-  - ✅ JA admin server uses template (bind 127.0.0.1:9090)
-  - ✅ Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
-  - ✅ `cryptoutil jose start` command works
-  - ✅ Configuration: YAML + CLI flags + Docker secrets
-  - ✅ Docker health checks pass
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Template refined if needed (ADRs documented)
-  - ✅ Commit: `feat(jose): migrate JA admin server to service template`
+  - [ ] jose-ja admin server uses template (bind 127.0.0.1:9090)
+  - [ ] Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+  - [ ] `cryptoutil jose start` command works
+  - [ ] Configuration: YAML + CLI flags + Docker secrets
+  - [ ] Docker health checks pass
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Template refined if needed (ADRs documented)
+  - [ ] Commit: `feat(jose): migrate JA admin server to service template`
 
 ---
 
-## Phase 5: Migrate pki-ca to Template
+## Phase 5: Migrate pki-ca to Template (RENUMBERED)
 
 **CRITICAL**: Second production service migration. Will drive template refinements for CA/PKI patterns.
 
@@ -145,16 +208,16 @@ Each task includes:
   - `cmd/cryptoutil/ca.go` (create)
   - `deployments/compose/ca/compose.yml` (update)
 - **Completion Criteria**:
-  - ✅ CA admin server uses template (bind 127.0.0.1:9090)
-  - ✅ Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
-  - ✅ Readyz: CA chain validation, OCSP responder check
-  - ✅ `cryptoutil ca start` command works
-  - ✅ Configuration: YAML + CLI flags + Docker secrets
-  - ✅ Docker health checks pass
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Template refined if needed (ADRs documented)
-  - ✅ Template now battle-tested with 3 different service patterns (learn-im, JOSE, CA)
-  - ✅ Commit: `feat(ca): migrate CA admin server to service template`
+  - [ ] CA admin server uses template (bind 127.0.0.1:9090)
+  - [ ] Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+  - [ ] Readyz: CA chain validation, OCSP responder check
+  - [ ] `cryptoutil ca start` command works
+  - [ ] Configuration: YAML + CLI flags + Docker secrets
+  - [ ] Docker health checks pass
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Template refined if needed (ADRs documented)
+  - [ ] Template now battle-tested with 3 different service patterns (learn-im, JOSE, CA)
+  - [ ] Commit: `feat(ca): migrate CA admin server to service template`
 
 ---
 
@@ -173,11 +236,11 @@ Each task includes:
   - `internal/identity/rp/server/admin/` (create using template)
   - `cmd/cryptoutil/identity-rp.go` (create)
 - **Completion Criteria**:
-  - ✅ RP admin server uses template (bind 127.0.0.1:9090)
-  - ✅ Admin endpoints: livez, readyz (OAuth 2.1 provider check), shutdown
-  - ✅ `cryptoutil identity-rp start` command works
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Commit: `feat(identity-rp): implement admin server with template`
+  - [ ] RP admin server uses template (bind 127.0.0.1:9090)
+  - [ ] Admin endpoints: livez, readyz (OAuth 2.1 provider check), shutdown
+  - [ ] `cryptoutil identity-rp start` command works
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Commit: `feat(identity-rp): implement admin server with template`
 
 #### P6.1.2: SPA Admin Server with Template
 
@@ -188,11 +251,11 @@ Each task includes:
   - `internal/identity/spa/server/admin/` (create using template)
   - `cmd/cryptoutil/identity-spa.go` (create)
 - **Completion Criteria**:
-  - ✅ SPA admin server uses template (bind 127.0.0.1:9090)
-  - ✅ Admin endpoints: livez, readyz (backend API check), shutdown
-  - ✅ `cryptoutil identity-spa start` command works
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Commit: `feat(identity-spa): implement admin server with template`
+  - [ ] SPA admin server uses template (bind 127.0.0.1:9090)
+  - [ ] Admin endpoints: livez, readyz (backend API check), shutdown
+  - [ ] `cryptoutil identity-spa start` command works
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Commit: `feat(identity-spa): implement admin server with template`
 
 #### P6.1.3: Migrate Existing Identity Services to Template
 
@@ -207,12 +270,12 @@ Each task includes:
   - `cmd/cryptoutil/identity-idp.go` (create)
   - `cmd/cryptoutil/identity-rs.go` (create)
 - **Completion Criteria**:
-  - ✅ All 3 services refactored to use template infrastructure
-  - ✅ Duplicate dual-server code removed
-  - ✅ Template database, telemetry, config patterns used
-  - ✅ All admin servers bind to 127.0.0.1:9090
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Commit: `refactor(identity): migrate authz, idp, rs to service template`
+  - [ ] All 3 services refactored to use template infrastructure
+  - [ ] Duplicate dual-server code removed
+  - [ ] Template database, telemetry, config patterns used
+  - [ ] All admin servers bind to 127.0.0.1:9090
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Commit: `refactor(identity): migrate authz, idp, rs to service template`
 
 ### P6.2: E2E Path Coverage
 
@@ -225,14 +288,14 @@ Each task includes:
   - `internal/identity/*/e2e_browser_test.go` (create)
   - `test/e2e/identity/browser_*.go` (create)
 - **Completion Criteria**:
-  - ✅ BOTH `/service/**` and `/browser/**` paths tested
-  - ✅ CSRF protection validation
-  - ✅ CORS policy enforcement
-  - ✅ CSP header verification
-  - ✅ Session cookie handling
-  - ✅ Middleware behavior verified for each path
-  - ✅ Coverage ≥95%
-  - ✅ Commit: `test(identity): add /browser/** E2E test coverage`
+  - [ ] BOTH `/service/**` and `/browser/**` paths tested
+  - [ ] CSRF protection validation
+  - [ ] CORS policy enforcement
+  - [ ] CSP header verification
+  - [ ] Session cookie handling
+  - [ ] Middleware behavior verified for each path
+  - [ ] Coverage ≥95%
+  - [ ] Commit: `test(identity): add /browser/** E2E test coverage`
 
 ---
 
@@ -250,13 +313,13 @@ Each task includes:
   - `internal/identity/mfa/backup_codes.go` (create)
   - `api/identity/openapi_spec_paths.yaml` (update - TOTP endpoints)
 - **Completion Criteria**:
-  - ✅ TOTP enrollment (QR code)
-  - ✅ 6-digit code verification
-  - ✅ Backup codes generation
-  - ✅ Recovery flow
-  - ✅ 30-minute MFA step-up enforced
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Commit: `feat(identity-mfa): implement TOTP multi-factor authentication`
+  - [ ] TOTP enrollment (QR code)
+  - [ ] 6-digit code verification
+  - [ ] Backup codes generation
+  - [ ] Recovery flow
+  - [ ] 30-minute MFA step-up enforced
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Commit: `feat(identity-mfa): implement TOTP multi-factor authentication`
 
 ### P7.2: WebAuthn
 
@@ -271,12 +334,12 @@ Each task includes:
   - `internal/identity/webauthn/credentials.go` (create)
   - `api/identity/openapi_spec_paths.yaml` (update - WebAuthn endpoints)
 - **Completion Criteria**:
-  - ✅ WebAuthn registration ceremony
-  - ✅ WebAuthn authentication ceremony
-  - ✅ Credential management
-  - ✅ Browser compatibility (Chrome, Firefox, Edge, Safari)
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Commit: `feat(identity-webauthn): implement WebAuthn registration and authentication`
+  - [ ] WebAuthn registration ceremony
+  - [ ] WebAuthn authentication ceremony
+  - [ ] Credential management
+  - [ ] Browser compatibility (Chrome, Firefox, Edge, Safari)
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Commit: `feat(identity-webauthn): implement WebAuthn registration and authentication`
 
 ---
 
@@ -294,16 +357,16 @@ Each task includes:
   - `internal/shared/database/tenant.go` (create)
   - `internal/shared/database/routing.go` (create)
 - **Completion Criteria**:
-  - ✅ Tenant ID-based sharding
-  - ✅ Shard routing logic
-  - ✅ Cross-shard queries (if needed)
-  - ✅ Per-row tenant_id (PostgreSQL + SQLite)
-  - ✅ Schema-level isolation (PostgreSQL only)
-  - ✅ Tenant provisioning APIs
-  - ✅ Sharding reduces query latency
-  - ✅ Multi-tenancy isolation verified
-  - ✅ Tests pass, coverage ≥95%, mutation ≥85%
-  - ✅ Commit: `feat(database): implement tenant ID-based sharding and multi-tenancy isolation`
+  - [ ] Tenant ID-based sharding
+  - [ ] Shard routing logic
+  - [ ] Cross-shard queries (if needed)
+  - [ ] Per-row tenant_id (PostgreSQL + SQLite)
+  - [ ] Schema-level isolation (PostgreSQL only)
+  - [ ] Tenant provisioning APIs
+  - [ ] Sharding reduces query latency
+  - [ ] Multi-tenancy isolation verified
+  - [ ] Tests pass, coverage ≥95%, mutation ≥85%
+  - [ ] Commit: `feat(database): implement tenant ID-based sharding and multi-tenancy isolation`
 
 ---
 
@@ -320,14 +383,14 @@ Each task includes:
   - `docs/security/AUDIT-REPORT.md` (create)
   - `docs/security/PENTEST-REPORT.md` (create)
 - **Completion Criteria**:
-  - ✅ Nuclei scans (info, low, medium, high, critical)
-  - ✅ OWASP ZAP active scans
-  - ✅ Dependency vulnerability scans
-  - ✅ Penetration testing (authn/authz bypass, injection, etc.)
-  - ✅ Zero HIGH/CRITICAL vulnerabilities
-  - ✅ All MEDIUM vulnerabilities mitigated or risk-accepted
-  - ✅ Reports documented
-  - ✅ Commit: `docs(security): add SAST/DAST audit and penetration test reports`
+  - [ ] Nuclei scans (info, low, medium, high, critical)
+  - [ ] OWASP ZAP active scans
+  - [ ] Dependency vulnerability scans
+  - [ ] Penetration testing (authn/authz bypass, injection, etc.)
+  - [ ] Zero HIGH/CRITICAL vulnerabilities
+  - [ ] All MEDIUM vulnerabilities mitigated or risk-accepted
+  - [ ] Reports documented
+  - [ ] Commit: `docs(security): add SAST/DAST audit and penetration test reports`
 
 ### P9.2: Production Monitoring
 
@@ -341,10 +404,10 @@ Each task includes:
   - `deployments/telemetry/alerts/*.yml` (create)
   - `docs/runbooks/*.md` (create)
 - **Completion Criteria**:
-  - ✅ Grafana dashboards (health, requests, errors, database metrics)
-  - ✅ Alerts (SLA violations, error spikes, health check failures)
-  - ✅ Runbooks documented
-  - ✅ Commit: `feat(monitoring): add Grafana dashboards and alerting for production`
+  - [ ] Grafana dashboards (health, requests, errors, database metrics)
+  - [ ] Alerts (SLA violations, error spikes, health check failures)
+  - [ ] Runbooks documented
+  - [ ] Commit: `feat(monitoring): add Grafana dashboards and alerting for production`
 
 ---
 

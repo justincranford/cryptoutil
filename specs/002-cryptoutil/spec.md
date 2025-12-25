@@ -821,6 +821,69 @@ cryptoutil ca status
 
 ---
 
+## Shared Code Organization - CRITICAL
+
+**MANDATORY**: Reusable code needed by service template and all 8+1 services MUST be located in `internal/shared/` packages. This ensures code reuse, prevents duplication, and enables consistent behavior across all services.
+
+### Required Shared Packages
+
+| Package Location | Purpose | Usage |
+|------------------|---------|-------|
+| `internal/shared/crypto/certificate/` | TLS cert chain generation (Root CAs, Intermediate CAs, Policy CAs, Issuing CAs, TLS Servers, TLS Clients) | ✅ **CRITICAL** - All services need TLS cert generation for dual HTTPS servers |
+| `internal/shared/crypto/certificate/tlsconfig/` | TLS configurations (TLS Server configs, TLS Client configs) | ✅ **CRITICAL** - All services need TLS configuration for secure communications |
+| `internal/shared/crypto/jose/` | JOSE crypto generation service (JWK Gen Service, JWE/JWS utilities) | ✅ **CRITICAL** - Required by learn-im (JWE for encrypted messaging), jose-ja, sm-kms |
+| `internal/shared/telemetry/` | OpenTelemetry service (traces, metrics, logs) | ✅ **IMPORTANT** - All services need consistent telemetry |
+| `internal/shared/magic/` | Magic constants and variables | ✅ **IMPORTANT** - Shared constants across all services |
+| `internal/shared/crypto/digests/` | Digest algorithms (SHA-256, SHA-384, SHA-512, HMAC) | ✅ **IMPORTANT** - Cryptographic digests for all services |
+| `internal/shared/crypto/hash/` | Hash service (PBKDF2, HKDF, password hashing) | ✅ **IMPORTANT** - Password and key derivation across services |
+| `internal/shared/util/` | Utility code (validators, converters, helpers) | ✅ **IMPORTANT** - Common utilities across services |
+
+### Course Correction: Move internal/jose/crypto
+
+**CRITICAL**: The package `internal/jose/crypto` is currently in the wrong location. It contains reusable JOSE crypto code needed by multiple services:
+
+- **learn-im**: Requires JWE for encrypt+MAC secure Instant Messaging
+- **jose-ja**: JOSE Authority service itself
+- **sm-kms**: Key management service for key wrapping
+
+**Action Required**: Phase 1.1 MUST move `internal/jose/crypto` to `internal/shared/crypto/jose/` BEFORE work starts on learn-im service. This ensures:
+
+1. JWK Gen Service is reusable by all services needing JOSE operations
+2. JWE/JWS utilities are available for learn-im encrypted messaging
+3. No circular dependencies between services
+4. Consistent JOSE implementation across all products
+
+### Course Correction: Better TLS Code Reuse
+
+**CRITICAL**: Current service template work shows duplication of TLS certificate generation code. The reusable TLS code in `internal/shared/crypto/certificate/` and `internal/shared/crypto/keygen/` MUST be used for auto-generating TLS server cert chains.
+
+**Issues Found**:
+
+- Service template creating new TLS generation code that duplicates existing patterns
+- Hard-coded values in service template methods instead of parameter injection
+- Creates technical debt that will need fixing when migrating existing services (Phases 3-9)
+
+**Action Required**: Phase 1.2 MUST refactor service template to:
+
+1. Use reusable TLS code from `internal/shared/crypto/certificate/` for cert generation
+2. Use parameter injection patterns instead of hard-coded values
+3. Eliminate duplication between service template and existing TLS infrastructure
+4. Document parameter injection patterns for service customization
+
+### Rationale for Shared Packages
+
+**Code Reuse**: Prevents duplication across 9 services (sm-kms, pki-ca, jose-ja, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, learn-im)
+
+**Consistency**: Ensures all services use same TLS patterns, JOSE operations, telemetry, hashing algorithms
+
+**Maintainability**: Single location for cryptographic primitives, easier to update and audit
+
+**Testing**: Shared packages can be tested once and reused with confidence across all services
+
+**Security**: Centralized crypto code reduces risk of inconsistent security implementations
+
+---
+
 ## Product Suite
 
 ### P1: JOSE (JSON Object Signing and Encryption)
