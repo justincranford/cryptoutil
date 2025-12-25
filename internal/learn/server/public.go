@@ -6,14 +6,8 @@ package server
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/tls"
-	"crypto/x509"
-	"crypto/x509/pkix"
 	"fmt"
-	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -21,6 +15,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"cryptoutil/internal/learn/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // PublicServer implements the template.PublicServer interface for learn-im.
@@ -29,14 +25,21 @@ type PublicServer struct {
 	userRepo    *repository.UserRepository
 	messageRepo *repository.MessageRepository
 
-	app        *fiber.App
-	mu         sync.RWMutex
-	shutdown   bool
-	actualPort int
+	app         *fiber.App
+	mu          sync.RWMutex
+	shutdown    bool
+	actualPort  int
+	tlsMaterial *cryptoutilTemplateServer.TLSMaterial
 }
 
 // NewPublicServer creates a new learn-im public server.
-func NewPublicServer(ctx context.Context, port int, userRepo *repository.UserRepository, messageRepo *repository.MessageRepository) (*PublicServer, error) {
+func NewPublicServer(
+	ctx context.Context,
+	port int,
+	userRepo *repository.UserRepository,
+	messageRepo *repository.MessageRepository,
+	tlsCfg *cryptoutilTemplateServer.TLSConfig,
+) (*PublicServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
@@ -49,11 +52,22 @@ func NewPublicServer(ctx context.Context, port int, userRepo *repository.UserRep
 		return nil, fmt.Errorf("message repository cannot be nil")
 	}
 
+	if tlsCfg == nil {
+		return nil, fmt.Errorf("TLS configuration cannot be nil")
+	}
+
+	// Generate TLS material using centralized infrastructure.
+	tlsMaterial, err := cryptoutilTemplateServer.GenerateTLSMaterial(tlsCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
+	}
+
 	s := &PublicServer{
 		port:        port,
 		userRepo:    userRepo,
 		messageRepo: messageRepo,
 		app:         fiber.New(fiber.Config{DisableStartupMessage: true}),
+		tlsMaterial: tlsMaterial,
 	}
 
 	s.registerRoutes()
@@ -146,18 +160,10 @@ func (s *PublicServer) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Generate self-signed TLS certificate.
-	tlsConfig, err := s.generateTLSConfig()
-	if err != nil {
-		return fmt.Errorf("failed to generate TLS config: %w", err)
-	}
-
 	// Create TCP listener.
-	const bindAddress = "127.0.0.1" // IPv4 loopback.
-
 	listenConfig := &net.ListenConfig{}
 
-	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", bindAddress, s.port))
+	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, s.port))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}
@@ -174,8 +180,8 @@ func (s *PublicServer) Start(ctx context.Context) error {
 	s.actualPort = tcpAddr.Port
 	s.mu.Unlock()
 
-	// Create TLS listener.
-	tlsListener := tls.NewListener(listener, tlsConfig)
+	// Create TLS listener using centralized TLS material.
+	tlsListener := tls.NewListener(listener, s.tlsMaterial.Config)
 
 	// Start server in goroutine.
 	errChan := make(chan error, 1)
@@ -203,68 +209,6 @@ func (s *PublicServer) Start(ctx context.Context) error {
 	case err := <-errChan:
 		return err
 	}
-}
-
-// generateTLSConfig creates a TLS configuration using a self-signed certificate.
-func (s *PublicServer) generateTLSConfig() (*tls.Config, error) {
-	// Generate ECDSA P-384 key for TLS certificate.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate TLS private key: %w", err)
-	}
-
-	// Generate serial number.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128)) //nolint:mnd // X.509 serial number bit length
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate serial number: %w", err)
-	}
-
-	now := time.Now().UTC()
-
-	// Create self-signed certificate template.
-	template := &x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			CommonName:   "learn-im-server",
-			Organization: []string{"cryptoutil"},
-			Country:      []string{"US"},
-		},
-		NotBefore:             now,
-		NotAfter:              now.Add(365 * 24 * time.Hour), // 1 year.
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		BasicConstraintsValid: true,
-		DNSNames:              []string{"localhost", "learn-im-server"},
-		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
-	}
-
-	// Self-sign the certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, privateKey.Public(), privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create TLS certificate: %w", err)
-	}
-
-	// Parse the created certificate.
-	cert, err := x509.ParseCertificate(certDER)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse TLS certificate: %w", err)
-	}
-
-	// Create TLS certificate.
-	tlsCert := tls.Certificate{
-		Certificate: [][]byte{certDER},
-		PrivateKey:  privateKey,
-		Leaf:        cert,
-	}
-
-	// Create TLS config.
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{tlsCert},
-		MinVersion:   tls.VersionTLS13,
-		ClientAuth:   tls.NoClientCert,
-	}
-
-	return tlsConfig, nil
 }
 
 // Shutdown gracefully shuts down the server (implements template.PublicServer).

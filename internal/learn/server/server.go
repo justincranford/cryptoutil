@@ -51,8 +51,16 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	userRepo := repository.NewUserRepository(cfg.DB)
 	messageRepo := repository.NewMessageRepository(cfg.DB)
 
+	// Create TLS config for public server.
+	publicTLSCfg := &templateServer.TLSConfig{
+		Mode:             templateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost", "learn-im-server"},
+		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
 	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo)
+	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, publicTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}

@@ -17,6 +17,7 @@ import (
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // NewStartCommand creates the start command for the JOSE server.
@@ -80,21 +81,27 @@ Examples:
 				settings = loadedSettings
 			}
 
-			// Create and start the server.
-			server, err := cryptoutilJoseServer.NewServer(ctx, settings)
-			if err != nil {
-				return fmt.Errorf("failed to create JOSE server: %w", err)
-			}
+		// Create TLS config for JOSE server.
+		tlsCfg := &cryptoutilTemplateServer.TLSConfig{
+			Mode:             cryptoutilTemplateServer.TLSModeAuto,
+			AutoDNSNames:     []string{"localhost", "jose-server"},
+			AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+			AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		}
 
-			defer func() {
-				if shutdownErr := server.Shutdown(); shutdownErr != nil {
-					fmt.Printf("Server shutdown error: %v\n", shutdownErr)
-				}
-			}()
+		// Create and start the server.
+		server, err := cryptoutilJoseServer.NewServer(ctx, settings, tlsCfg)
+	if err != nil {
+		return fmt.Errorf("failed to create JOSE server: %w", err)
+	}
 
-			fmt.Printf("JOSE Authority Server starting on %s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
+	defer func() {
+		if shutdownErr := server.Shutdown(); shutdownErr != nil {
+			fmt.Printf("Server shutdown error: %v\n", shutdownErr)
+		}
+	}()
 
-			// Start the server (blocks until context is cancelled).
+	fmt.Printf("JOSE Authority Server starting on %s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
 			if err := server.Start(ctx); err != nil {
 				return fmt.Errorf("server error: %w", err)
 			}

@@ -14,6 +14,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 )
 
@@ -41,7 +42,15 @@ func runJOSEDemo(ctx context.Context, config *Config) int {
 		true,
 	)
 
-	server, err := cryptoutilJoseServer.NewServer(ctx, settings)
+	// Create TLS configuration for JOSE server.
+	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
+		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost", "jose-server"},
+		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
+	server, err := cryptoutilJoseServer.NewServer(ctx, settings, tlsCfg)
 	if err != nil {
 		progress.FailStep("Starting server", fmt.Errorf("create failed: %w", err))
 		errors.Add("server", "failed to create server", err)

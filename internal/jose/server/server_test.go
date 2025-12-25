@@ -19,9 +19,20 @@ import (
 	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
 	"github.com/stretchr/testify/require"
 )
+
+// createTestTLSConfig creates a TLSConfig for testing.
+func createTestTLSConfig() *cryptoutilTemplateServer.TLSConfig {
+	return &cryptoutilTemplateServer.TLSConfig{
+		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost", "jose-server"},
+		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+}
 
 var (
 	testSettings   *cryptoutilConfig.Settings
@@ -1143,7 +1154,7 @@ func TestServerLifecycle(t *testing.T) {
 		true,
 	)
 
-	server, err := NewServer(context.Background(), settings)
+	server, err := NewServer(context.Background(), settings, createTestTLSConfig())
 	require.NoError(t, err)
 
 	// Test StartNonBlocking.
@@ -1166,7 +1177,7 @@ func TestAPIKeyMiddleware(t *testing.T) {
 		true,
 	)
 
-	server, err := NewServer(context.Background(), settings)
+	server, err := NewServer(context.Background(), settings, createTestTLSConfig())
 	require.NoError(t, err)
 
 	// Initially nil middleware.
@@ -1203,7 +1214,7 @@ func TestNewServerErrorPaths(t *testing.T) {
 	t.Run("NilContext", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := NewServer(nil, validSettings) //nolint:staticcheck // Testing nil context error path.
+		_, err := NewServer(nil, validSettings, nil) //nolint:staticcheck // Testing nil context error path.
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "context cannot be nil")
 	})
@@ -1211,7 +1222,7 @@ func TestNewServerErrorPaths(t *testing.T) {
 	t.Run("NilSettings", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := NewServer(context.Background(), nil)
+		_, err := NewServer(context.Background(), nil, nil)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "settings cannot be nil")
 	})
@@ -1229,7 +1240,7 @@ func TestStartBlocking(t *testing.T) {
 		true,
 	)
 
-	server, err := NewServer(context.Background(), settings)
+	server, err := NewServer(context.Background(), settings, createTestTLSConfig())
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -1255,7 +1266,7 @@ func TestShutdownCoverage(t *testing.T) {
 			true,
 		)
 
-		server, err := NewServer(context.Background(), settings)
+		server, err := NewServer(context.Background(), settings, createTestTLSConfig())
 		require.NoError(t, err)
 
 		require.NoError(t, server.StartNonBlocking())
@@ -1276,7 +1287,7 @@ func TestShutdownCoverage(t *testing.T) {
 			true,
 		)
 
-		server, err := NewServer(context.Background(), settings)
+		server, err := NewServer(context.Background(), settings, createTestTLSConfig())
 		require.NoError(t, err)
 
 		// Shutdown without starting should work.

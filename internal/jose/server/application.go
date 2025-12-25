@@ -10,6 +10,8 @@ import (
 	"sync"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // Application represents the unified JOSE server application (public + admin).
@@ -37,16 +39,32 @@ func NewApplication(
 		shutdown: false,
 	}
 
+	// Create TLS config for public server.
+	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
+		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost", "jose-server"},
+		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
 	// Create public JOSE server.
-	publicServer, err := NewServer(ctx, settings)
+	publicServer, err := NewServer(ctx, settings, tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
 
 	app.publicServer = publicServer
 
+	// Create TLS config for admin server (localhost-only, 1-year validity).
+	adminTLSCfg := &cryptoutilTemplateServer.TLSConfig{
+		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost"},
+		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
 	// Create admin server.
-	adminServer, err := NewAdminServer(ctx, settings)
+	adminServer, err := NewAdminServer(ctx, settings, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
