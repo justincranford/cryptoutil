@@ -268,6 +268,10 @@ func generateTLSMaterialAuto(cfg *TLSConfig) (*TLSMaterial, error) {
 		return nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}
 
+	// CRITICAL: Save issuing CA private key before CreateCASubjects clears it.
+	// CreateCASubjects clears intermediate CA keys for security, but we need the issuing CA key to sign server cert.
+	issuingCAPrivateKey := caKeyPairs[len(caKeyPairs)-1].Private
+
 	// Generate server key pair.
 	serverKeyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
 	if err != nil {
@@ -284,7 +288,9 @@ func generateTLSMaterialAuto(cfg *TLSConfig) (*TLSMaterial, error) {
 	}
 
 	// Use the issuing CA (last in chain) to sign server certificate.
+	// Restore the private key that was cleared by CreateCASubjects.
 	issuingCA := caSubjects[len(caSubjects)-1]
+	issuingCA.KeyMaterial.PrivateKey = issuingCAPrivateKey
 
 	serverSubject, err := cryptoutilCertificate.CreateEndEntitySubject(
 		issuingCA,

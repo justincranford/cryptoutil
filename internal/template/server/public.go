@@ -6,15 +6,8 @@ package server
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/tls"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
 	"fmt"
-	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -33,12 +26,13 @@ import (
 //
 // Both paths serve the SAME OpenAPI specification but with different middleware stacks.
 type PublicHTTPServer struct {
-	app        *fiber.App
-	port       int
-	actualPort int
-	listener   net.Listener
-	mu         sync.RWMutex
-	shutdown   bool
+	app         *fiber.App
+	port        int
+	actualPort  int
+	listener    net.Listener
+	tlsMaterial *TLSMaterial
+	mu          sync.RWMutex
+	shutdown    bool
 }
 
 // NewPublicHTTPServer creates a new public HTTPS server instance.
@@ -49,19 +43,31 @@ type PublicHTTPServer struct {
 // Parameters:
 // - ctx: Context for initialization (must not be nil)
 // - port: Port to bind (0 for dynamic allocation in tests, 8080+ for production)
+// - tlsCfg: TLS configuration (mode, certificates, parameters)
 //
 // Returns:
 // - *PublicHTTPServer: Server instance ready to Start()
-// - error: Non-nil if initialization fails (nil context, Fiber setup failure).
-func NewPublicHTTPServer(ctx context.Context, port int) (*PublicHTTPServer, error) {
+// - error: Non-nil if initialization fails (nil context, TLS generation failure, Fiber setup failure).
+func NewPublicHTTPServer(ctx context.Context, port int, tlsCfg *TLSConfig) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
+	}
+
+	if tlsCfg == nil {
+		return nil, fmt.Errorf("TLS config cannot be nil")
+	}
+
+	// Generate TLS material based on configured mode.
+	tlsMaterial, err := GenerateTLSMaterial(tlsCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}
 
 	const defaultTimeout = 30
 
 	server := &PublicHTTPServer{
-		port: port,
+		port:        port,
+		tlsMaterial: tlsMaterial,
 	}
 
 	server.app = fiber.New(fiber.Config{
@@ -139,7 +145,7 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 // Start starts the public HTTPS server and blocks until shutdown or error.
 //
 // The server:
-// 1. Generates self-signed TLS certificate (development/testing)
+// 1. Uses TLS material generated during NewPublicHTTPServer (configured mode)
 // 2. Creates TCP listener on configured port (0 = dynamic allocation)
 // 3. Starts HTTPS server with Fiber app
 // 4. Blocks until context cancelled or server error
@@ -153,12 +159,6 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	if ctx == nil {
 		return fmt.Errorf("context cannot be nil")
-	}
-
-	// Generate self-signed TLS certificate.
-	tlsConfig, err := s.generateTLSConfig()
-	if err != nil {
-		return fmt.Errorf("failed to generate TLS config: %w", err)
 	}
 
 	// Create TCP listener.
@@ -184,8 +184,8 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	s.actualPort = tcpAddr.Port
 	s.mu.Unlock()
 
-	// Create TLS listener.
-	tlsListener := tls.NewListener(listener, tlsConfig)
+	// Create TLS listener using configured TLS material.
+	tlsListener := tls.NewListener(listener, s.tlsMaterial.Config)
 
 	// Start server in goroutine.
 	errChan := make(chan error, 1)
@@ -246,73 +246,4 @@ func (s *PublicHTTPServer) ActualPort() int {
 	defer s.mu.RUnlock()
 
 	return s.actualPort
-}
-
-// generateTLSConfig generates a self-signed TLS certificate for development/testing.
-func (s *PublicHTTPServer) generateTLSConfig() (*tls.Config, error) {
-	// Generate ECDSA private key.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate private key: %w", err)
-	}
-
-	// Create certificate template.
-	const (
-		validityDays     = 365
-		hoursPerDay      = 24
-		serialNumberBits = 128
-	)
-
-	validityDuration := validityDays * hoursPerDay * time.Hour
-
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBits))
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate serial number: %w", err)
-	}
-
-	template := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			Organization: []string{"Cryptoutil Development"},
-			CommonName:   "localhost",
-		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(validityDuration),
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		BasicConstraintsValid: true,
-		DNSNames:              []string{"localhost"},
-		IPAddresses: []net.IP{
-			net.ParseIP(cryptoutilMagic.IPv4Loopback),
-			net.ParseIP("::1"),
-			net.ParseIP("::ffff:127.0.0.1"),
-		},
-	}
-
-	// Create self-signed certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create certificate: %w", err)
-	}
-
-	// Encode certificate and private key to PEM.
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
-
-	privKeyBytes, err := x509.MarshalECPrivateKey(privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal private key: %w", err)
-	}
-
-	privKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: privKeyBytes})
-
-	// Create TLS certificate.
-	cert, err := tls.X509KeyPair(certPEM, privKeyPEM)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create TLS certificate: %w", err)
-	}
-
-	return &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS13,
-	}, nil
 }
