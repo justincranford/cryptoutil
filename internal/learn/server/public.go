@@ -13,7 +13,10 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 
+	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
+	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
@@ -127,31 +130,232 @@ func (s *PublicServer) handleBrowserHealth(c *fiber.Ctx) error {
 	})
 }
 
+// SendMessageRequest represents the request to send a message.
+type SendMessageRequest struct {
+	ReceiverIDs []string `json:"receiver_ids"` // Receiver user IDs (UUIDs).
+	Message     string   `json:"message"`      // Plaintext message.
+}
+
+// SendMessageResponse represents the response after sending a message.
+type SendMessageResponse struct {
+	MessageID string `json:"message_id"` // Created message ID.
+}
+
 // handleSendMessage handles PUT /messages/tx.
 func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
-	// TODO: Implement message sending.
+	var req SendMessageRequest
+	if err := c.BodyParser(&req); err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	// Validate request.
+	if len(req.ReceiverIDs) == 0 {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "receiver_ids cannot be empty",
+		})
+	}
+
+	if req.Message == "" {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "message cannot be empty",
+		})
+	}
+
+	// For now, hardcode sender ID (will be replaced with authentication).
+	// TODO: Extract sender ID from authentication context.
+	senderID := googleUuid.New()
+
+	// Create message with receivers.
+	message := &cryptoutilDomain.Message{
+		ID:       googleUuid.New(),
+		SenderID: senderID,
+	}
+
+	plaintext := []byte(req.Message)
+
+	// Encrypt message for each receiver.
+	for _, receiverIDStr := range req.ReceiverIDs {
+		receiverID, err := googleUuid.Parse(receiverIDStr)
+		if err != nil {
+			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fmt.Sprintf("invalid receiver ID: %s", receiverIDStr),
+			})
+		}
+
+		// Lookup receiver's public key.
+		receiver, err := s.userRepo.FindByID(c.Context(), receiverID)
+		if err != nil {
+			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": fmt.Sprintf("receiver not found: %s", receiverIDStr),
+			})
+		}
+
+		// Parse receiver's ECDH public key.
+		receiverPublicKey, err := cryptoutilCrypto.ParseECDHPublicKey(receiver.PublicKey)
+		if err != nil {
+			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to parse receiver public key",
+			})
+		}
+
+		// Encrypt message for this receiver.
+		ephemeralPubKey, ciphertext, nonce, err := cryptoutilCrypto.EncryptMessage(plaintext, receiverPublicKey)
+		if err != nil {
+			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to encrypt message",
+			})
+		}
+
+		// Store encrypted content and nonce (same for all receivers).
+		message.EncryptedContent = ciphertext
+		message.Nonce = nonce
+
+		// Create message receiver entry.
+		messageReceiver := cryptoutilDomain.MessageReceiver{
+			MessageID:    message.ID,
+			ReceiverID:   receiverID,
+			SenderPubKey: ephemeralPubKey,
+		}
+
+		message.Receivers = append(message.Receivers, messageReceiver)
+	}
+
+	// Save message with receivers.
+	if err := s.messageRepo.Create(c.Context(), message); err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to save message",
+		})
+	}
+
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-	return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
-		"error": "not implemented",
+	return c.Status(fiber.StatusCreated).JSON(SendMessageResponse{
+		MessageID: message.ID.String(),
 	})
+}
+
+// MessageResponse represents a message in the response.
+type MessageResponse struct {
+	MessageID        string `json:"message_id"`        // Message ID.
+	SenderPubKey     string `json:"sender_pub_key"`    // Ephemeral sender public key (base64).
+	EncryptedContent string `json:"encrypted_content"` // Encrypted message content (base64).
+	Nonce            string `json:"nonce"`             // GCM nonce (base64).
+	CreatedAt        string `json:"created_at"`        // Message timestamp.
+}
+
+// ReceiveMessagesResponse represents the response for receiving messages.
+type ReceiveMessagesResponse struct {
+	Messages []MessageResponse `json:"messages"`
 }
 
 // handleReceiveMessages handles GET /messages/rx.
 func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
-	// TODO: Implement message retrieval.
+	// For now, hardcode receiver ID (will be replaced with authentication).
+	// TODO: Extract receiver ID from authentication context.
+	receiverID := googleUuid.New()
+
+	// Retrieve messages for receiver.
+	messages, err := s.messageRepo.FindByReceiverID(c.Context(), receiverID)
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to retrieve messages",
+		})
+	}
+
+	// Mark messages as received.
+	for _, msg := range messages {
+		if err := s.messageRepo.MarkAsReceived(c.Context(), msg.ID, receiverID); err != nil {
+			// Log error but continue processing other messages.
+			continue
+		}
+	}
+
+	// Build response.
+	response := ReceiveMessagesResponse{
+		Messages: make([]MessageResponse, 0, len(messages)),
+	}
+
+	for _, msg := range messages {
+		// Find receiver entry for this receiver.
+		var receiverEntry *cryptoutilDomain.MessageReceiver
+
+		for i := range msg.Receivers {
+			if msg.Receivers[i].ReceiverID == receiverID {
+				receiverEntry = &msg.Receivers[i]
+
+				break
+			}
+		}
+
+		if receiverEntry == nil {
+			// Skip if receiver entry not found (shouldn't happen).
+			continue
+		}
+
+		response.Messages = append(response.Messages, MessageResponse{
+			MessageID:        msg.ID.String(),
+			SenderPubKey:     fmt.Sprintf("%x", receiverEntry.SenderPubKey), // Hex encoding for simplicity.
+			EncryptedContent: fmt.Sprintf("%x", msg.EncryptedContent),
+			Nonce:            fmt.Sprintf("%x", msg.Nonce),
+			CreatedAt:        msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		})
+	}
+
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-	return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
-		"error": "not implemented",
-	})
+	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 // handleDeleteMessage handles DELETE /messages/:id.
 func (s *PublicServer) handleDeleteMessage(c *fiber.Ctx) error {
-	// TODO: Implement message deletion.
+	messageIDStr := c.Params("id")
+	if messageIDStr == "" {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "message ID is required",
+		})
+	}
+
+	messageID, err := googleUuid.Parse(messageIDStr)
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid message ID",
+		})
+	}
+
+	// Retrieve message to verify ownership.
+	message, err := s.messageRepo.FindByID(c.Context(), messageID)
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "message not found",
+		})
+	}
+
+	// For now, skip ownership verification (will be added with authentication).
+	// TODO: Verify that authenticated user is the sender.
+	_ = message
+
+	// Delete message.
+	if err := s.messageRepo.Delete(c.Context(), messageID); err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to delete message",
+		})
+	}
+
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-	return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{
-		"error": "not implemented",
-	})
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 // Start starts the HTTPS server (implements template.PublicServer).
