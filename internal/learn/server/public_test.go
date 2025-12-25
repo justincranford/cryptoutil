@@ -158,6 +158,49 @@ func createHTTPClient(t *testing.T) *http.Client {
 	}
 }
 
+// registerTestUser is a helper that registers a user and returns the user domain object.
+func registerTestUser(t *testing.T, client *http.Client, baseURL, username, password string) *cryptoutilDomain.User {
+	t.Helper()
+
+	reqBody := map[string]string{
+		"username": username,
+		"password": password,
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+
+	userID, err := googleUuid.Parse(respBody["user_id"])
+	require.NoError(t, err)
+
+	publicKeyBytes, err := hex.DecodeString(respBody["public_key"])
+	require.NoError(t, err)
+
+	pubKey, err := cryptoutilCrypto.ParseECDHPublicKey(publicKeyBytes)
+	require.NoError(t, err)
+
+	return &cryptoutilDomain.User{
+		ID:        userID,
+		Username:  username,
+		PublicKey: pubKey.Bytes(),
+	}
+}
+
 func TestHandleRegisterUser_Success(t *testing.T) {
 	t.Parallel()
 
@@ -448,4 +491,234 @@ func TestHandleLoginUser_UserNotFound(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	require.NoError(t, err)
 	require.Contains(t, respBody["error"], "invalid credentials")
+}
+
+func TestHandleSendMessage_Success(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create receiver user.
+	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Send message.
+	reqBody := map[string]any{
+		"message":      "Hello, receiver!",
+		"receiver_ids": []string{receiver.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.NotEmpty(t, respBody["message_id"])
+}
+
+func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Send message with empty receivers.
+	reqBody := map[string]any{
+		"message":      "Hello!",
+		"receiver_ids": []string{},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "receiver_ids cannot be empty")
+}
+
+func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Send message with invalid receiver ID.
+	reqBody := map[string]any{
+		"message":      "Hello!",
+		"receiver_ids": []string{"not-a-uuid"},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "invalid receiver ID")
+}
+
+func TestHandleReceiveMessages_Empty(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Receive messages when none exist.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var respBody map[string][]any
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Empty(t, respBody["messages"])
+}
+
+func TestHandleDeleteMessage_Success(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create receiver and send message.
+	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	reqBody := map[string]any{
+		"message":      "Test message",
+		"receiver_ids": []string{receiver.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	var sendResp map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&sendResp)
+	require.NoError(t, err)
+
+	_ = resp.Body.Close()
+
+	messageID := sendResp["message_id"]
+
+	// Get message from database to verify it exists.
+	var message cryptoutilDomain.Message
+
+	err = db.Where("id = ?", messageID).First(&message).Error
+	require.NoError(t, err)
+
+	// Delete the message.
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, nil)
+	require.NoError(t, err)
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusNoContent, resp.StatusCode)
+}
+
+func TestHandleDeleteMessage_InvalidID(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Delete with invalid ID.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/not-a-uuid", nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "invalid message ID")
+}
+
+func TestHandleDeleteMessage_NotFound(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Delete non-existent message.
+	nonExistentID := googleUuid.New().String()
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+nonExistentID, nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "message not found")
 }
