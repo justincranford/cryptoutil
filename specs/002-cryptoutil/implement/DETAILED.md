@@ -57,14 +57,14 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Mutation**: Target ≥98% (template infrastructure code)
   - **Blockers**: None
   - **Notes**: Prevents TLS duplication technical debt in all 9 services
-  - **Commits**: 60810081 ("feat(template): create TLS generator with 3-mode support (static, mixed, auto)"), 070d0e32 ("refactor(template): PublicHTTPServer uses new TLS infrastructure")
+  - **Commits**: 60810081 ("feat(template): create TLS generator with 3-mode support (static, mixed, auto)"), 070d0e32 ("refactor(template): PublicHTTPServer uses new TLS infrastructure"), 275aa789 ("refactor(template): AdminServer uses new TLS infrastructure")
   - **Refactoring Required**:
     - ✅ Analyze current TLS generation code (public.go, admin.go) - ~350 lines duplication
     - ✅ Define 3 TLS modes (static, mixed, auto-generated) - tls_config.go created
     - ✅ Create TLS configuration structs with mode selection - TLSMode, TLSConfig, TLSMaterial
     - ✅ Create TLS generator with mode-aware logic - tls_generator.go with GenerateTLSMaterial
     - ✅ Refactor PublicHTTPServer to use new TLS infrastructure (Subtask 5/9)
-    - ❌ Refactor AdminServer to use new TLS infrastructure (Subtask 6/9)
+    - ✅ Refactor AdminServer to use new TLS infrastructure (Subtask 6/9)
     - ❌ Refactor other services (jose-ja, learn-im) (Subtask 7/9)
     - ❌ Remove duplicated generateTLSConfig methods (~350 lines total)
     - ❌ Add comprehensive tests for all 3 TLS modes (Subtask 8/9)
@@ -1045,5 +1045,83 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 3. Update admin_test.go to pass TLSConfig with TLSModeAuto
 4. Verify tests pass
 5. Commit Subtask 6
+
+---
+
+### 2025-12-25: P1.2.1.1 AdminServer Refactoring (Subtask 6/9 Complete)
+
+**Work Completed**:
+
+- Refactored `internal/template/server/admin.go` to use new TLS infrastructure
+  - **Removed imports**: crypto/ecdsa, crypto/elliptic, crypto/rand, crypto/x509, crypto/x509/pkix, encoding/pem, math/big (kept crypto/tls)
+  - **Added field**: `tlsMaterial *TLSMaterial` to AdminServer struct
+  - **Updated constructor**:
+    - Changed signature to `NewAdminServer(ctx context.Context, port uint16, tlsCfg *TLSConfig)`
+    - Added tlsCfg nil check with descriptive error
+    - Calls `GenerateTLSMaterial(tlsCfg)` and stores result in s.tlsMaterial
+  - **Updated Start()**: Uses `s.tlsMaterial.Config` instead of calling generateTLSConfig()
+  - **Removed method**: generateTLSConfig() (lines 305-371, ~67 lines eliminated - second of 4 copies)
+
+- Updated `internal/template/server/admin_test.go` (13/13 tests updated, all pass)
+  - **Pattern**: TLSModeAuto with localhost + 127.0.0.1 + ::1, magic constant for validity days
+  - **Test cases**: TestNewAdminServer_HappyPath, TestNewAdminServer_NilContext, TestAdminServer_Start_Success, TestAdminServer_Readyz_NotReady, TestAdminServer_HealthChecks_DuringShutdown, TestAdminServer_Start_NilContext, TestAdminServer_Livez_Alive, TestAdminServer_Readyz_Ready, TestAdminServer_Shutdown_Endpoint, TestAdminServer_Shutdown_NilContext, TestAdminServer_ActualPort_BeforeStart, TestAdminServer_ConcurrentRequests, TestAdminServer_TimeoutsConfigured
+
+- Fixed integration in `internal/learn/server/server.go`
+  - **Issue**: learn-im NewAdminServer call missing new tlsCfg parameter (caught by pre-commit golangci-lint)
+  - **Fix**: Added TLSConfig creation with TLSModeAuto, AutoValidityDays using magic constant
+  - **Added import**: cryptoutilMagic for TLSTestEndEntityCertValidity1Year constant
+  - **Linting compliance**: Used `cryptoutilMagic.TLSTestEndEntityCertValidity1Year` instead of hardcoded 365 (mnd linter)
+
+**Coverage/Quality Metrics**:
+
+- Build: ✅ Clean (`go build ./internal/template/server/...`)
+- Tests: ✅ 13/13 PASS (all AdminServer tests passing)
+- Lines: ~67 removed, ~15 added, net -52 lines from admin.go
+- Duplication: 2 of 4 copies eliminated (~50% progress toward ~350 line goal)
+- Total eliminated: ~139 lines (~72 from public.go + ~52 from admin.go + error handling simplification)
+- Integration: ✅ learn-im server builds successfully, no regressions
+
+**Subtask Progress** (6/9 complete, 67%):
+
+- ✅ Subtasks 1-6 complete (analysis, modes, config, generator, PublicHTTPServer, AdminServer)
+- ❌ Subtask 7: Refactor jose-ja, learn-im PublicServer (remaining 2 copies)
+- ❌ Subtask 8: Add comprehensive TLS mode tests (≥98% coverage target)
+- ❌ Subtask 9: Validation testing (all services build and run)
+
+**Key Findings**:
+
+- AdminServer refactoring identical to PublicHTTPServer pattern (consistency validates design)
+- Pre-commit hooks caught learn-im integration issue immediately (build would have failed without hooks)
+- Magic constants prevent linting violations (TLSTestEndEntityCertValidity1Year = 365)
+- Same test pattern works for AdminServer as PublicHTTPServer (13/13 pass with TLSModeAuto)
+
+**Constraints Discovered**: None (pattern proven with PublicHTTPServer applies to AdminServer)
+
+**Lessons Learned**:
+
+- Pre-commit hooks provide valuable early integration testing (caught learn-im issue before build)
+- Consistent refactoring patterns reduce errors (AdminServer used proven PublicHTTPServer pattern)
+- Magic constants improve code quality and linting compliance (mnd linter satisfied)
+- Test pattern reusability (TLSModeAuto with localhost/127.0.0.1/::1 works universally)
+
+**Related Commits**: 275aa789 ("refactor(template): AdminServer uses new TLS infrastructure")
+
+**Violations Found**: None
+
+**Next Immediate Steps** (Subtask 7):
+
+1. Locate remaining 2 copies of duplicated TLS code:
+   - `internal/jose/server/server.go` (estimated ~87 lines, same generateTLSConfig pattern)
+   - `internal/learn/server/public.go` (estimated ~87 lines, same generateTLSConfig pattern)
+2. For each file:
+   - Remove 7 crypto imports, add tlsMaterial field
+   - Update constructor to accept tlsCfg parameter, call GenerateTLSMaterial
+   - Update Start() to use s.tlsMaterial.Config
+   - Delete generateTLSConfig() method
+   - Update all test files to pass TLSConfig with TLSModeAuto
+3. Verify tests pass for both services
+4. Commit: "refactor(jose,learn): use new TLS infrastructure - Eliminates remaining 2 generateTLSConfig copies - Part of P1.2.1.1 (Subtask 7/9)"
+5. Expected metrics: ~174 lines removed (2 × ~87), ~30 added (2 × ~15), net -144 lines
+6. Total duplication eliminated after Subtask 7: ~350 lines across 4 services (100% complete)
 
 ---
