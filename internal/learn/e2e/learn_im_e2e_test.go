@@ -164,6 +164,37 @@ type testUser struct {
 	Username   string
 	PrivateKey []byte // ECDH private key (for decryption).
 	PublicKey  []byte // ECDH public key.
+	Token      string // JWT authentication token.
+}
+
+// loginUser logs in a user and returns JWT token.
+func loginUser(t *testing.T, client *http.Client, baseURL, username, password string) string {
+	t.Helper()
+
+	reqBody := map[string]string{
+		"username": username,
+		"password": password,
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/login", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+
+	return respBody["token"]
 }
 
 // registerUser registers a user and returns the user with private key.
@@ -202,16 +233,20 @@ func registerUser(t *testing.T, client *http.Client, baseURL, username, password
 	privateKeyBytes, err := hex.DecodeString(respBody["private_key"])
 	require.NoError(t, err)
 
+	// Login to get JWT token.
+	token := loginUser(t, client, baseURL, username, password)
+
 	return &testUser{
 		ID:         userID,
 		Username:   username,
 		PrivateKey: privateKeyBytes,
 		PublicKey:  publicKeyBytes,
+		Token:      token,
 	}
 }
 
 // sendMessage sends a message to one or more receivers.
-func sendMessage(t *testing.T, client *http.Client, baseURL, message string, senderID googleUuid.UUID, receiverIDs ...googleUuid.UUID) string {
+func sendMessage(t *testing.T, client *http.Client, baseURL, message, token string, receiverIDs ...googleUuid.UUID) string {
 	t.Helper()
 
 	receiverIDStrs := make([]string, len(receiverIDs))
@@ -226,9 +261,10 @@ func sendMessage(t *testing.T, client *http.Client, baseURL, message string, sen
 	reqJSON, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx?sender_id="+senderID.String(), bytes.NewReader(reqJSON))
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -246,11 +282,12 @@ func sendMessage(t *testing.T, client *http.Client, baseURL, message string, sen
 }
 
 // receiveMessages retrieves messages for the specified receiver.
-func receiveMessages(t *testing.T, client *http.Client, baseURL string, receiverID googleUuid.UUID) []map[string]any {
+func receiveMessages(t *testing.T, client *http.Client, baseURL, token string) []map[string]any {
 	t.Helper()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx?receiver_id="+receiverID.String(), nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
 	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -281,11 +318,11 @@ func TestE2E_FullEncryptionFlow(t *testing.T) {
 	// Alice sends encrypted message to Bob.
 	plaintext := "Hello Bob, this is a secret message from Alice!"
 
-	messageID := sendMessage(t, client, baseURL, plaintext, alice.ID, bob.ID)
+	messageID := sendMessage(t, client, baseURL, plaintext, alice.Token, bob.ID)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// Bob receives messages.
-	messages := receiveMessages(t, client, baseURL, bob.ID)
+	messages := receiveMessages(t, client, baseURL, bob.Token)
 	require.Len(t, messages, 1, "Bob should have 1 message")
 
 	receivedMsg := messages[0]
@@ -338,15 +375,15 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	// Alice sends message to both Bob and Charlie.
 	plaintext := "Hello Bob and Charlie!"
 
-	messageID := sendMessage(t, client, baseURL, plaintext, alice.ID, bob.ID, charlie.ID)
+	messageID := sendMessage(t, client, baseURL, plaintext, alice.Token, bob.ID, charlie.ID)
 	require.NotEmpty(t, messageID)
 
 	// Bob receives message.
-	bobMessages := receiveMessages(t, client, baseURL, bob.ID)
+	bobMessages := receiveMessages(t, client, baseURL, bob.Token)
 	require.GreaterOrEqual(t, len(bobMessages), 1, "Bob should have at least 1 message")
 
 	// Charlie receives message.
-	charlieMessages := receiveMessages(t, client, baseURL, charlie.ID)
+	charlieMessages := receiveMessages(t, client, baseURL, charlie.Token)
 	require.GreaterOrEqual(t, len(charlieMessages), 1, "Charlie should have at least 1 message")
 
 	// Verify both Bob and Charlie can decrypt the same message.
@@ -355,7 +392,7 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	require.Equal(t, bobMessages[0]["message_id"], charlieMessages[0]["message_id"], "both should receive same message")
 
 	// Verify Alice does NOT receive the message (she is the sender).
-	aliceMessages := receiveMessages(t, client, baseURL, alice.ID)
+	aliceMessages := receiveMessages(t, client, baseURL, alice.Token)
 	require.Empty(t, aliceMessages, "Alice should not receive her own message")
 }
 
@@ -371,16 +408,17 @@ func TestE2E_MessageDeletion(t *testing.T) {
 	bob := registerUser(t, client, baseURL, "bob", "bobpass123")
 
 	// Alice sends message to Bob.
-	messageID := sendMessage(t, client, baseURL, "Test message", alice.ID, bob.ID)
+	messageID := sendMessage(t, client, baseURL, "Test message", alice.Token, bob.ID)
 	require.NotEmpty(t, messageID)
 
 	// Bob receives message.
-	messages := receiveMessages(t, client, baseURL, bob.ID)
+	messages := receiveMessages(t, client, baseURL, bob.Token)
 	require.Len(t, messages, 1)
 
-	// Delete the message.
+	// Delete the message (Alice is the sender, so she can delete).
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, nil)
 	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+alice.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -390,6 +428,6 @@ func TestE2E_MessageDeletion(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
 
 	// Verify message is gone.
-	messagesAfterDelete := receiveMessages(t, client, baseURL, bob.ID)
+	messagesAfterDelete := receiveMessages(t, client, baseURL, bob.Token)
 	require.Empty(t, messagesAfterDelete, "message should be deleted")
 }

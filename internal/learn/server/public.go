@@ -81,24 +81,27 @@ func NewPublicServer(
 
 // registerRoutes sets up the API endpoints.
 func (s *PublicServer) registerRoutes() {
+	// JWT secret (hardcoded for development - TODO: move to configuration).
+	const jwtSecret = "learn-im-dev-secret-change-in-production"
+
 	// Health endpoints (required by template pattern).
 	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
 	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
 
-	// User management endpoints (authentication).
+	// User management endpoints (authentication - no JWT required).
 	s.app.Post("/service/api/v1/users/register", s.handleRegisterUser)
 	s.app.Post("/service/api/v1/users/login", s.handleLoginUser)
 	s.app.Post("/browser/api/v1/users/register", s.handleRegisterUser)
 	s.app.Post("/browser/api/v1/users/login", s.handleLoginUser)
 
-	// Business logic endpoints (message operations).
-	s.app.Put("/service/api/v1/messages/tx", s.handleSendMessage)
-	s.app.Get("/service/api/v1/messages/rx", s.handleReceiveMessages)
-	s.app.Delete("/service/api/v1/messages/:id", s.handleDeleteMessage)
+	// Business logic endpoints (message operations - JWT required).
+	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(jwtSecret), s.handleSendMessage)
+	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(jwtSecret), s.handleReceiveMessages)
+	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(jwtSecret), s.handleDeleteMessage)
 
-	s.app.Put("/browser/api/v1/messages/tx", s.handleSendMessage)
-	s.app.Get("/browser/api/v1/messages/rx", s.handleReceiveMessages)
-	s.app.Delete("/browser/api/v1/messages/:id", s.handleDeleteMessage)
+	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(jwtSecret), s.handleSendMessage)
+	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(jwtSecret), s.handleReceiveMessages)
+	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(jwtSecret), s.handleDeleteMessage)
 }
 
 // handleServiceHealth returns health status for service-to-service clients.
@@ -158,7 +161,7 @@ type LoginUserRequest struct {
 
 // LoginUserResponse represents the response after successful login.
 type LoginUserResponse struct {
-	UserID    string `json:"user_id"`    // Authenticated user ID.
+	Token     string `json:"token"`      // JWT authentication token.
 	ExpiresAt string `json:"expires_at"` // Token expiration (RFC3339).
 }
 
@@ -302,15 +305,21 @@ func (s *PublicServer) handleLoginUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Generate JWT or session token (expiration: 24h).
-	// For now, return user ID directly (will add proper token-based auth later).
-	const tokenExpirationHours = 24
+	// Generate JWT token.
+	// TODO: Move JWT secret to configuration (currently hardcoded for development).
+	const jwtSecret = "learn-im-dev-secret-change-in-production"
 
-	expiresAt := time.Now().Add(tokenExpirationHours * time.Hour)
+	token, expiresAt, err := GenerateJWT(user.ID, user.Username, jwtSecret)
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to generate authentication token",
+		})
+	}
 
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 	return c.Status(fiber.StatusOK).JSON(LoginUserResponse{
-		UserID:    user.ID.String(),
+		Token:     token,
 		ExpiresAt: expiresAt.Format(time.RFC3339),
 	})
 }
@@ -351,15 +360,13 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// For now, hardcode sender ID (will be replaced with authentication).
-	// TODO: Extract sender ID from authentication context.
-	// For E2E testing, allow sender_id query parameter.
-	senderID := googleUuid.New()
-
-	if senderIDStr := c.Query("sender_id"); senderIDStr != "" {
-		if parsedID, err := googleUuid.Parse(senderIDStr); err == nil {
-			senderID = parsedID
-		}
+	// Extract sender ID from authentication context.
+	senderID, ok := c.Locals(ContextKeyUserID).(googleUuid.UUID)
+	if !ok {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "authentication required",
+		})
 	}
 
 	// Create message with receivers.
@@ -452,15 +459,13 @@ type ReceiveMessagesResponse struct {
 
 // handleReceiveMessages handles GET /messages/rx.
 func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
-	// For now, hardcode receiver ID (will be replaced with authentication).
-	// TODO: Extract receiver ID from authentication context.
-	// For E2E testing, allow receiver_id query parameter.
-	receiverID := googleUuid.New()
-
-	if receiverIDStr := c.Query("receiver_id"); receiverIDStr != "" {
-		if parsedID, err := googleUuid.Parse(receiverIDStr); err == nil {
-			receiverID = parsedID
-		}
+	// Extract receiver ID from authentication context.
+	receiverID, ok := c.Locals(ContextKeyUserID).(googleUuid.UUID)
+	if !ok {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "authentication required",
+		})
 	}
 
 	// Retrieve messages for receiver.
@@ -542,9 +547,22 @@ func (s *PublicServer) handleDeleteMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// For now, skip ownership verification (will be added with authentication).
-	// TODO: Verify that authenticated user is the sender.
-	_ = message
+	// Extract authenticated user ID from context.
+	userID, ok := c.Locals(ContextKeyUserID).(googleUuid.UUID)
+	if !ok {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "authentication required",
+		})
+	}
+
+	// Verify ownership (only sender can delete message).
+	if message.SenderID != userID {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "only the sender can delete this message",
+		})
+	}
 
 	// Delete message.
 	if err := s.messageRepo.Delete(c.Context(), messageID); err != nil {

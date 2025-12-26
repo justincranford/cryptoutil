@@ -158,6 +158,49 @@ func createHTTPClient(t *testing.T) *http.Client {
 	}
 }
 
+// testUserWithToken represents a test user with authentication token.
+type testUserWithToken struct {
+	User  *cryptoutilDomain.User
+	Token string
+}
+
+// registerAndLoginTestUser registers a user and logs in to get JWT token.
+func registerAndLoginTestUser(t *testing.T, client *http.Client, baseURL, username, password string) *testUserWithToken {
+	t.Helper()
+
+	// Register user.
+	user := registerTestUser(t, client, baseURL, username, password)
+
+	// Login to get token.
+	loginReqBody := map[string]string{
+		"username": username,
+		"password": password,
+	}
+	loginReqJSON, err := json.Marshal(loginReqBody)
+	require.NoError(t, err)
+
+	loginReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/login", bytes.NewReader(loginReqJSON))
+	require.NoError(t, err)
+	loginReq.Header.Set("Content-Type", "application/json")
+
+	loginResp, err := client.Do(loginReq)
+	require.NoError(t, err)
+
+	defer func() { _ = loginResp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, loginResp.StatusCode)
+
+	var loginRespBody map[string]string
+
+	err = json.NewDecoder(loginResp.Body).Decode(&loginRespBody)
+	require.NoError(t, err)
+
+	return &testUserWithToken{
+		User:  user,
+		Token: loginRespBody["token"],
+	}
+}
+
 // registerTestUser is a helper that registers a user and returns the user domain object.
 func registerTestUser(t *testing.T, client *http.Client, baseURL, username, password string) *cryptoutilDomain.User {
 	t.Helper()
@@ -417,7 +460,7 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	require.NoError(t, err)
 
-	require.Equal(t, user.ID.String(), respBody["user_id"])
+	require.NotEmpty(t, respBody["token"], "JWT token should be returned")
 	require.NotEmpty(t, respBody["expires_at"])
 }
 
@@ -515,7 +558,8 @@ func TestHandleSendMessage_Success(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	// Create receiver user.
+	// Create sender and receiver users with authentication.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
 	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
 
 	// Send message.
@@ -529,6 +573,7 @@ func TestHandleSendMessage_Success(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -551,6 +596,9 @@ func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
+	// Create sender with authentication.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+
 	// Send message with empty receivers.
 	reqBody := map[string]any{
 		"message":      "Hello!",
@@ -562,6 +610,7 @@ func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -584,10 +633,13 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
+	// Create sender with authentication.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+
 	// Send message with invalid receiver ID.
 	reqBody := map[string]any{
 		"message":      "Hello!",
-		"receiver_ids": []string{"not-a-uuid"},
+		"receiver_ids": []string{"invalid-uuid"},
 	}
 	reqJSON, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -595,6 +647,7 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -617,9 +670,13 @@ func TestHandleReceiveMessages_Empty(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	// Receive messages when none exist.
+	// Create receiver with authentication.
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Retrieve messages without sending any.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
 	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+receiver.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -693,9 +750,13 @@ func TestHandleDeleteMessage_InvalidID(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
+	// Create sender with authentication.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+
 	// Delete with invalid ID.
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/not-a-uuid", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/invalid-id", nil)
 	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -718,11 +779,15 @@ func TestHandleDeleteMessage_NotFound(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	// Delete non-existent message.
-	nonExistentID := googleUuid.New().String()
+	// Create sender with authentication.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+nonExistentID, nil)
+	// Delete non-existent message.
+	messageID := googleUuid.New()
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID.String(), nil)
 	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
