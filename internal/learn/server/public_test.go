@@ -1723,6 +1723,151 @@ func TestShutdown_DuplicateCall(t *testing.T) {
 
 // Removed: TestStart_ListenerError - too complex to set up port conflict scenario
 
+// TestHandleSendMessage_ReceiverPublicKeyParseError tests parsing error on receiver's public key.
+func TestHandleSendMessage_ReceiverPublicKeyParseError(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+
+	// Create receiver with corrupted public key directly in DB.
+	ctx := context.Background()
+
+	receiverID := googleUuid.New()
+	privateKey, _, err := cryptoutilCrypto.GenerateECDHKeyPair()
+	require.NoError(t, err)
+
+	privateKeyBytes := privateKey.Bytes()
+	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
+	require.NoError(t, err)
+
+	passwordHashHex := hex.EncodeToString(passwordHash)
+
+	receiver := &cryptoutilDomain.User{
+		ID:           receiverID,
+		Username:     "receiver",
+		PasswordHash: passwordHashHex,
+		PublicKey:    []byte("corrupted-public-key"), // Invalid public key.
+		PrivateKey:   privateKeyBytes,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	err = db.Create(receiver).Error
+	require.NoError(t, err)
+
+	// Try to send message - should fail due to public key parse error.
+	sendReq := map[string]any{
+		"message":      "Test message",
+		"receiver_ids": []string{receiverID.String()},
+	}
+	sendJSON, err := json.Marshal(sendReq)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(sendJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+	require.Equal(t, "failed to parse receiver public key", result["error"])
+}
+
+// TestHandleReceiveMessages_WithMessages tests successfully retrieving messages.
+func TestHandleReceiveMessages_WithMessages(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create sender and receiver.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Send message from sender to receiver.
+	reqBody := map[string]any{
+		"message":      "Hello receiver",
+		"receiver_ids": []string{receiver.User.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// Receiver retrieves messages.
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+receiver.Token)
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	var rxResp map[string][]map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&rxResp)
+	require.NoError(t, err)
+	require.Len(t, rxResp["messages"], 1)
+
+	// Verify message fields are present and non-empty.
+	msg := rxResp["messages"][0]
+	require.NotEmpty(t, msg["message_id"], "message_id should not be empty")
+	require.NotEmpty(t, msg["sender_pub_key"], "sender_pub_key should not be empty")
+	require.NotEmpty(t, msg["encrypted_content"], "encrypted_content should not be empty")
+	require.NotEmpty(t, msg["nonce"], "nonce should not be empty")
+	require.NotEmpty(t, msg["created_at"], "created_at should not be empty")
+}
+
+// TestHandleDeleteMessage_EmptyID tests delete message with empty message ID.
+func TestHandleDeleteMessage_EmptyID(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create authenticated user.
+	user := registerAndLoginTestUser(t, client, baseURL, "user", "password123")
+
+	// Try to delete message with empty ID (invalid endpoint).
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+user.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// Fiber returns 404 for missing route parameter (messages/ vs messages/:id).
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
 // TestNew_Success tests successful server creation with valid config.
 func TestNew_Success(t *testing.T) {
 	t.Parallel()
