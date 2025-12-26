@@ -24,10 +24,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// createTestTLSConfig creates a TLSConfig for testing.
-func createTestTLSConfig() *cryptoutilTemplateServer.TLSConfig {
-	return &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+// createTestTLSConfig creates a TLSGeneratedSettings for testing.
+func createTestTLSConfig() *cryptoutilTemplateServer.TLSGeneratedSettings {
+	return &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "jose-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,

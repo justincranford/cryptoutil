@@ -31,15 +31,15 @@ type Server struct {
 	listener         net.Listener
 	actualPort       int // Actual port after dynamic allocation.
 	apiKeyMiddleware *cryptoutilJoseMiddleware.APIKeyMiddleware
-	tlsMaterial      *cryptoutilTemplateServer.TLSMaterial
+	tlsMaterial      *cryptoutilConfig.TLSMaterial
 }
 
 // New creates a new JOSE Authority Server instance using context.Background().
 // Deprecated: Use NewServer with explicit TLSConfig instead.
 func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 	// Create default TLS config for backward compatibility.
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "jose-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
@@ -49,7 +49,7 @@ func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 }
 
 // NewServer creates a new JOSE Authority Server instance.
-func NewServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTemplateServer.TLSConfig) (*Server, error) {
+func NewServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTemplateServer.TLSGeneratedSettings) (*Server, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {

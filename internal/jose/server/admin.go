@@ -27,14 +27,14 @@ type AdminServer struct {
 	mu          sync.RWMutex
 	ready       bool
 	shutdown    bool
-	tlsMaterial *cryptoutilTemplateServer.TLSMaterial
+	tlsMaterial *cryptoutilConfig.TLSMaterial
 }
 
 // NewAdminServer creates a new admin server instance for private administrative operations.
 func NewAdminServer(
 	ctx context.Context,
 	settings *cryptoutilConfig.ServerSettings,
-	tlsCfg *cryptoutilTemplateServer.TLSConfig,
+	tlsCfg *cryptoutilTemplateServer.TLSGeneratedSettings,
 ) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

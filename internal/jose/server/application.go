@@ -40,8 +40,8 @@ func NewApplication(
 	}
 
 	// Create TLS config for public server.
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "jose-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
@@ -56,8 +56,8 @@ func NewApplication(
 	app.publicServer = publicServer
 
 	// Create TLS config for admin server (localhost-only, 1-year validity).
-	adminTLSCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	adminTLSCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
