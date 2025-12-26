@@ -100,7 +100,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Status**: IN PROGRESS
   - **Effort**: L (21-28 days)
   - **Dependencies**: P2.1.1 (template extracted) - ✅ UNBLOCKED
-  - **Coverage**: Current 60.1% server, 84.1% crypto (Target ≥95%)
+  - **Coverage**: Current 88.0% server, 84.1% crypto (Target ≥95%)
   - **Mutation**: Target ≥85%
   - **Blockers**: None (P2.1.1 complete)
   - **Notes**: CRITICAL - First real-world template validation, blocks all production migrations
@@ -120,8 +120,9 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
     - ✅ E2E tests (full encryption flow, multi-receiver, deletion) - commit 5204a9c8, 3 tests (3/3 PASS), 60.1% server coverage
     - ✅ Multi-receiver encryption bug fixed (EncryptedContent/Nonce moved to MessageReceiver) - commit 5204a9c8
     - ✅ Server-side PrivateKey storage for educational demo - commit 5204a9c8
-    - ⚠️ Authentication middleware (JWT) - CURRENT TASK (IMMEDIATE)
-    - ❌ Replace hardcoded user IDs with auth context - TODO (IMMEDIATE after JWT)
+    - ✅ Authentication middleware (JWT) - COMPLETE (middleware.go + public.go routes)
+    - ✅ Replace hardcoded user IDs with auth context - COMPLETE (all handlers use c.Locals(ContextKeyUserID))
+    - ❌ Move JWT secret to configuration - TODO (currently hardcoded in 2 locations)
     - ❌ Docker Compose deployment - TODO
     - ❌ Documentation (README, API, TUTORIAL) - TODO
 

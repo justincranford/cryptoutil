@@ -82,9 +82,6 @@ func NewPublicServer(
 
 // registerRoutes sets up the API endpoints.
 func (s *PublicServer) registerRoutes() {
-	// JWT secret (hardcoded for development - TODO: move to configuration).
-	const jwtSecret = "learn-im-dev-secret-change-in-production"
-
 	// Health endpoints (required by template pattern).
 	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
 	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
@@ -96,13 +93,13 @@ func (s *PublicServer) registerRoutes() {
 	s.app.Post("/browser/api/v1/users/login", s.handleLoginUser)
 
 	// Business logic endpoints (message operations - JWT required).
-	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(jwtSecret), s.handleSendMessage)
-	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(jwtSecret), s.handleReceiveMessages)
-	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(jwtSecret), s.handleDeleteMessage)
+	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(JWTSecret), s.handleSendMessage)
+	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(JWTSecret), s.handleReceiveMessages)
+	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(JWTSecret), s.handleDeleteMessage)
 
-	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(jwtSecret), s.handleSendMessage)
-	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(jwtSecret), s.handleReceiveMessages)
-	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(jwtSecret), s.handleDeleteMessage)
+	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(JWTSecret), s.handleSendMessage)
+	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(JWTSecret), s.handleReceiveMessages)
+	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(JWTSecret), s.handleDeleteMessage)
 }
 
 // handleServiceHealth returns health status for service-to-service clients.
@@ -307,10 +304,7 @@ func (s *PublicServer) handleLoginUser(c *fiber.Ctx) error {
 	}
 
 	// Generate JWT token.
-	// TODO: Move JWT secret to configuration (currently hardcoded for development).
-	const jwtSecret = "learn-im-dev-secret-change-in-production"
-
-	token, expiresAt, err := GenerateJWT(user.ID, user.Username, jwtSecret)
+	token, expiresAt, err := GenerateJWT(user.ID, user.Username, JWTSecret)
 	if err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

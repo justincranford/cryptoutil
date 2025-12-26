@@ -23,6 +23,10 @@ const (
 
 	// ContextKeyUserID is the context key for storing user ID from JWT.
 	ContextKeyUserID = "user_id"
+
+	// JWTSecret is the secret key for JWT signing (hardcoded for development).
+	// TODO: Move to configuration (ServerSettings or environment variable).
+	JWTSecret = "learn-im-dev-secret-change-in-production"
 )
 
 // Claims represents JWT claims for learn-im authentication.
