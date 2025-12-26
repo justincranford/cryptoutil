@@ -15,8 +15,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // AdminServer represents the private admin API server for JOSE Authority service.
@@ -34,7 +34,7 @@ type AdminServer struct {
 func NewAdminServer(
 	ctx context.Context,
 	settings *cryptoutilConfig.ServerSettings,
-	tlsCfg *cryptoutilTemplateServer.TLSGeneratedSettings,
+	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -45,7 +45,7 @@ func NewAdminServer(
 	}
 
 	// Generate TLS material using centralized infrastructure.
-	tlsMaterial, err := cryptoutilTemplateServer.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}

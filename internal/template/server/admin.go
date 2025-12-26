@@ -17,6 +17,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -35,17 +36,15 @@ type AdminServer struct {
 // NewAdminServer creates a new admin server instance for private administrative operations.
 // port: 0 for tests (dynamic allocation), 9090 for production containers, other for non-container production.
 // tlsCfg: TLS configuration (mode + parameters) for HTTPS server. MUST NOT be nil.
-func NewAdminServer(ctx context.Context, port uint16, tlsCfg *TLSGeneratedSettings) (*AdminServer, error) {
+func NewAdminServer(ctx context.Context, port uint16, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
-	}
-
-	if tlsCfg == nil {
+	} else if tlsCfg == nil {
 		return nil, fmt.Errorf("TLS configuration cannot be nil")
 	}
 
 	// Generate TLS material based on configured mode.
-	tlsMaterial, err := GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}

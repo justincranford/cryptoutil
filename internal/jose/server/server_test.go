@@ -18,15 +18,15 @@ import (
 
 	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
 	"github.com/stretchr/testify/require"
 )
 
 // createTestTLSConfig creates a TLSGeneratedSettings for testing.
-func createTestTLSConfig() *cryptoutilTemplateServer.TLSGeneratedSettings {
-	return &cryptoutilTemplateServer.TLSGeneratedSettings{
+func createTestTLSConfig() *cryptoutilTLSGenerator.TLSGeneratedSettings {
+	return &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "jose-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},

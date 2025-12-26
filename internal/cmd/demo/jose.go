@@ -14,8 +14,8 @@ import (
 
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // JOSE demo step counts.
@@ -43,7 +43,7 @@ func runJOSEDemo(ctx context.Context, config *Config) int {
 	)
 
 	// Create TLS configuration for JOSE server.
-	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "jose-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},

@@ -1902,4 +1902,3 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 - **Related commits**: eb0e92c9 ("refactor(tls): consolidate TLS types and add new TLS flags")
 - **Violations found**: pflag test conflict (documented as test infrastructure limitation, NOT blocking)
-

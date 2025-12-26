@@ -11,15 +11,16 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	"cryptoutil/internal/learn/repository"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	templateServer "cryptoutil/internal/template/server"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // LearnIMServer represents the learn-im service application.
 type LearnIMServer struct {
-	app *templateServer.Application
+	app *cryptoutilTemplateServer.Application
 	db  *gorm.DB
 
 	// Repositories.
@@ -53,7 +54,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	messageRepo := repository.NewMessageRepository(cfg.DB)
 
 	// Create TLS config for public server.
-	publicTLSCfg := &templateServer.TLSGeneratedSettings{
+	publicTLSCfg := &tlsGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "learn-im-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
@@ -67,20 +68,20 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create admin server.
-	tlsCfg := &templateServer.TLSGeneratedSettings{
+	tlsCfg := &tlsGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	}
 
-	adminServer, err := templateServer.NewAdminServer(ctx, cfg.AdminPort, tlsCfg)
+	adminServer, err := cryptoutilTemplateServer.NewAdminServer(ctx, cfg.AdminPort, tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
 	// Create application with both servers.
-	app, err := templateServer.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create application: %w", err)
 	}

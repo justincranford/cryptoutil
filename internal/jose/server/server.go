@@ -13,10 +13,10 @@ import (
 
 	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -38,7 +38,7 @@ type Server struct {
 // Deprecated: Use NewServer with explicit TLSConfig instead.
 func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 	// Create default TLS config for backward compatibility.
-	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "jose-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
@@ -49,7 +49,7 @@ func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 }
 
 // NewServer creates a new JOSE Authority Server instance.
-func NewServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTemplateServer.TLSGeneratedSettings) (*Server, error) {
+func NewServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*Server, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -59,7 +59,7 @@ func NewServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, t
 	}
 
 	// Generate TLS material.
-	tlsMaterial, err := cryptoutilTemplateServer.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}

@@ -14,10 +14,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // NewStartCommand creates the start command for the JOSE server.
@@ -82,8 +82,8 @@ Examples:
 			}
 
 			// Create TLS config for JOSE server.
-		tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
-			Mode:             cryptoutilConfig.TLSModeAuto,
+			tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
+				Mode:             cryptoutilConfig.TLSModeAuto,
 				AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 				AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 			}

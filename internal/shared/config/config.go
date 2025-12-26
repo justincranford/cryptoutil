@@ -231,8 +231,8 @@ type ServerSettings struct {
 	BindPrivateProtocol         string
 	BindPrivateAddress          string
 	BindPrivatePort             uint16
-	TLSPublicMode               TLSMode  // Default TLSModeAuto
-	TLSPrivateMode              TLSMode  // Default TLSModeAuto
+	TLSPublicMode               TLSMode // Default TLSModeAuto
+	TLSPrivateMode              TLSMode // Default TLSModeAuto
 	TLSPublicDNSNames           []string
 	TLSPublicIPAddresses        []string
 	TLSPrivateDNSNames          []string

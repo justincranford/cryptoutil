@@ -24,13 +24,13 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // initTestDB creates an in-memory SQLite database with schema.
@@ -85,7 +85,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	const testPort = 0
 
 	// TLS config with localhost subject.
-	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
@@ -818,7 +818,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
-	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
@@ -838,7 +838,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	db := initTestDB(t)
 	messageRepo := repository.NewMessageRepository(db)
 
-	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
@@ -858,7 +858,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 
-	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},

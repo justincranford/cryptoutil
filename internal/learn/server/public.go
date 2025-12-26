@@ -16,12 +16,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // PublicServer implements the template.PublicServer interface for learn-im.
@@ -43,7 +43,7 @@ func NewPublicServer(
 	port int,
 	userRepo *repository.UserRepository,
 	messageRepo *repository.MessageRepository,
-	tlsCfg *cryptoutilTemplateServer.TLSGeneratedSettings,
+	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*PublicServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -62,7 +62,7 @@ func NewPublicServer(
 	}
 
 	// Generate TLS material using centralized infrastructure.
-	tlsMaterial, err := cryptoutilTemplateServer.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}

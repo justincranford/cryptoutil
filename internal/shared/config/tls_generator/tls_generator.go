@@ -1,8 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
 
-package server
+package tls_generator
 
 import (
 	"crypto/elliptic"
@@ -13,8 +11,8 @@ import (
 	"net"
 	"time"
 
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 )
 
@@ -52,9 +50,7 @@ func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMateri
 func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
 	if len(cfg.StaticCertPEM) == 0 {
 		return nil, fmt.Errorf("static mode requires StaticCertPEM")
-	}
-
-	if len(cfg.StaticKeyPEM) == 0 {
+	} else if len(cfg.StaticKeyPEM) == 0 {
 		return nil, fmt.Errorf("static mode requires StaticKeyPEM")
 	}
 
@@ -124,9 +120,7 @@ func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLS
 func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
 	if len(cfg.MixedCACertPEM) == 0 {
 		return nil, fmt.Errorf("mixed mode requires MixedCACertPEM")
-	}
-
-	if len(cfg.MixedCAKeyPEM) == 0 {
+	} else if len(cfg.MixedCAKeyPEM) == 0 {
 		return nil, fmt.Errorf("mixed mode requires MixedCAKeyPEM")
 	}
 

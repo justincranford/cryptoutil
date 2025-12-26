@@ -1,8 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
 
-package server
+package tls_generator
 
 import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"

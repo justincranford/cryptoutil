@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // Application represents the unified JOSE server application (public + admin).
@@ -40,7 +40,7 @@ func NewApplication(
 	}
 
 	// Create TLS config for public server.
-	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "jose-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
@@ -56,7 +56,7 @@ func NewApplication(
 	app.publicServer = publicServer
 
 	// Create TLS config for admin server (localhost-only, 1-year validity).
-	adminTLSCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+	adminTLSCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
 		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
