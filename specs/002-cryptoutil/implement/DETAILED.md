@@ -1902,3 +1902,75 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 - **Related commits**: eb0e92c9 ("refactor(tls): consolidate TLS types and add new TLS flags")
 - **Violations found**: pflag test conflict (documented as test infrastructure limitation, NOT blocking)
+
+---
+
+### 2025-12-25: TLS Refactoring Task 4c - Move TLS Files to tls_generator Package ✅ COMPLETE
+
+- **Work completed**:
+  - Created internal/shared/config/tls_generator/ package (new shared package)
+  - Moved 3 files from template/server to tls_generator (git mv preserves history):
+    - tls_config.go: TLSGeneratedSettings struct definition (40 lines)
+    - tls_generator.go: GenerateTLSMaterial function + all TLS logic (331 lines)
+    - tls_generator_test.go: All TLS generator tests (553 lines, 15 tests)
+  - Updated package declarations from "server" to "tls_generator" in all 3 files
+  - Added cryptoutilTLSGenerator import to 14 consuming files across 6 packages:
+    - template/server: admin.go, public.go, admin_test.go, public_test.go (4 files)
+    - learn/server: public.go, server.go, public_test.go (3 files)
+    - learn/e2e: learn_im_e2e_test.go (1 file)
+    - jose/server: admin.go, server.go, application.go, server_test.go, cmd/commands.go (5 files)
+    - cmd/demo: jose.go (1 file)
+  - Updated all type references: cryptoutilTemplateServer.TLSGeneratedSettings → cryptoutilTLSGenerator.TLSGeneratedSettings
+  - Updated all function calls: GenerateTLSMaterial → cryptoutilTLSGenerator.GenerateTLSMaterial
+  - Removed unused cryptoutilTemplateServer imports from 10 files (kept only in template/server tests for NewPublicHTTPServer/NewAdminServer)
+  - Fixed 15+ build errors, 7 import errors, 1 syntax error during migration
+  - All builds passing, all tests passing
+
+- **Coverage/quality metrics**:
+  - **Before**: TLS code in template/server package (not reusable)
+  - **After**: TLS code in shared tls_generator package (reusable across all services)
+  - tls_generator package tests: 15/15 PASS
+  - template/server tests: ALL PASS (admin + public + application tests)
+  - jose/server tests: ALL PASS (81 tests across 3 packages)
+  - learn/server tests: ALL PASS (no regressions)
+  - golangci-lint: PASS for all affected packages
+  - Build: PASS for all 5 services (jose-server, demo, cryptoutil, identity-unified, ca-server)
+
+- **Lessons learned**:
+  1. PowerShell -NoNewline flag removes import newlines (creates syntax errors)
+  2. multi_replace unreliable for import blocks (4/8 files failed due to formatting differences)
+  3. Systematic package-by-package approach prevents overwhelming error counts
+  4. git mv preserves file history better than delete+create
+  5. Test files in external packages (package server_test) still need to import the server package
+  6. Import cleanup essential after type migration (unused imports cause build failures)
+
+- **Constraints discovered**:
+  - External test packages need both tls_generator import (for types) AND server import (for constructors)
+  - PowerShell regex unreliable for Go import syntax
+  - Direct replace_string_in_file more reliable than multi_replace for import additions
+
+- **Requirements discovered**:
+  - All consuming packages need cryptoutilTLSGenerator import when using TLSGeneratedSettings
+  - Template server tests need to keep cryptoutilTemplateServer import for NewPublicHTTPServer/NewAdminServer
+  - Unused imports must be cleaned up package-by-package after type migration
+
+- **Next steps**:
+  1. Add test coverage for TLS settings parsing (getTLSPEMBytes helper)
+  2. Add TestMain for TLS generator efficiency (generate certs once per suite, not per test)
+  3. Rename NewAdminServer → NewAdminHTTPServer (Task 9)
+  4. Create table-driven tests for admin/public server tests (Task 10)
+  5. Create NewHTTPServers wrapper in servers.go (Task 11)
+  6. Update all documentation files (Task 2)
+  7. Complete remaining tasks (Tasks 6, 8-17)
+
+- **Related commits**:
+  - 48c1e1be ("refactor(tls): move TLS files to tls_generator package (Task 4c)")
+
+- **Violations found**: None (build, tests, linting all PASS)
+
+- **Task 4 Status**: ✅ **COMPLETE** - All 3 subtasks done:
+  - ✅ Task 4a: Consolidated TLSMode/TLSMaterial to config.go
+  - ✅ Task 4b: Renamed TLSConfig → TLSGeneratedSettings (13 files updated)
+  - ✅ Task 4c: Moved TLS files to tls_generator package (14 files updated, 10 files cleaned)
+
+- **Architecture Achievement**: TLS generation logic now in shared package (not buried in template/server), making it reusable across all cryptoutil services
