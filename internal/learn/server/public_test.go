@@ -951,6 +951,82 @@ func TestShutdown_MultipleCalls(t *testing.T) {
 	require.Contains(t, err.Error(), "already shutdown")
 }
 
+// TestHandleSendMessage_InvalidTokenFormat tests sending message with invalid Bearer token format.
+func TestHandleSendMessage_InvalidTokenFormat(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	reqBody := map[string]any{
+		"message":      "Test message",
+		"receiver_ids": []string{receiver.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "InvalidFormat token123")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "invalid authorization header format")
+}
+
+// TestHandleSendMessage_InvalidTokenSignature tests sending message with tampered JWT token.
+func TestHandleSendMessage_InvalidTokenSignature(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Generate valid token then tamper with it.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	tamperedToken := sender.Token + "tampered"
+
+	reqBody := map[string]any{
+		"message":      "Test message",
+		"receiver_ids": []string{receiver.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+tamperedToken)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "invalid token")
+}
+
 // TestHandleSendMessage_MissingToken tests sending message without JWT token.
 func TestHandleSendMessage_MissingToken(t *testing.T) {
 	t.Parallel()
