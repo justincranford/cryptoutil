@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -19,6 +20,140 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+// Package-level test fixtures (generated once in TestMain).
+var (
+	testCAKeyPairs      []*cryptoutilKeyGen.KeyPair
+	testCASubjects      []*cryptoutilCertificate.Subject
+	testIssuingCAKey    any
+	testServerKeyPair   *cryptoutilKeyGen.KeyPair
+	testServerSubject   *cryptoutilCertificate.Subject
+	testServerCertPEM   []byte
+	testServerKeyPEM    []byte
+	testECKeyPair       *cryptoutilKeyGen.KeyPair
+	testECServerSubject *cryptoutilCertificate.Subject
+	testECServerCertPEM []byte
+	testECServerKeyPEM  []byte
+)
+
+// TestMain runs once before all tests to generate shared test fixtures.
+// This significantly improves test performance by generating certificates once instead of per-test.
+func TestMain(m *testing.M) {
+	var err error
+
+	// Generate test duration (1 year validity).
+	duration := time.Duration(cryptoutilMagic.TLSTestEndEntityCertValidity1Year) * 24 * time.Hour
+
+	// Generate 2-tier CA hierarchy (Root + Intermediate).
+	testCAKeyPairs = make([]*cryptoutilKeyGen.KeyPair, 2)
+
+	for i := range testCAKeyPairs {
+		testCAKeyPairs[i], err = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+		if err != nil {
+			panic("failed to generate CA key pair: " + err.Error())
+		}
+	}
+
+	testCASubjects, err = cryptoutilCertificate.CreateCASubjects(testCAKeyPairs, "Test CA", duration)
+	if err != nil {
+		panic("failed to create CA subjects: " + err.Error())
+	}
+
+	// Save issuing CA private key (CreateCASubjects clears it).
+	testIssuingCAKey = testCAKeyPairs[len(testCAKeyPairs)-1].Private
+
+	// Generate ECDSA P-384 server key pair and certificate.
+	testServerKeyPair, err = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+	if err != nil {
+		panic("failed to generate server key pair: " + err.Error())
+	}
+
+	// Restore issuing CA private key for signing.
+	issuingCA := testCASubjects[len(testCASubjects)-1]
+	issuingCA.KeyMaterial.PrivateKey = testIssuingCAKey
+
+	testServerSubject, err = cryptoutilCertificate.CreateEndEntitySubject(
+		issuingCA,
+		testServerKeyPair,
+		"Test Server",
+		duration,
+		[]string{"localhost", "test-server"},
+		nil,
+		nil,
+		nil,
+		x509.KeyUsageDigitalSignature|x509.KeyUsageKeyEncipherment,
+		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	)
+	if err != nil {
+		panic("failed to create server subject: " + err.Error())
+	}
+
+	// Serialize server certificate chain to PEM.
+	for _, cert := range testServerSubject.KeyMaterial.CertificateChain {
+		testServerCertPEM = append(testServerCertPEM, pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert.Raw,
+		})...)
+	}
+
+	// Serialize server private key to PKCS8 PEM.
+	keyBytes, err := x509.MarshalPKCS8PrivateKey(testServerSubject.KeyMaterial.PrivateKey)
+	if err != nil {
+		panic("failed to marshal server private key: " + err.Error())
+	}
+
+	testServerKeyPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: keyBytes,
+	})
+
+	// Generate EC P-256 server key pair and certificate (for EC-specific tests).
+	testECKeyPair, err = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+	if err != nil {
+		panic("failed to generate EC key pair: " + err.Error())
+	}
+
+	// Restore issuing CA private key again.
+	issuingCA.KeyMaterial.PrivateKey = testIssuingCAKey
+
+	testECServerSubject, err = cryptoutilCertificate.CreateEndEntitySubject(
+		issuingCA,
+		testECKeyPair,
+		"Test EC Server",
+		duration,
+		[]string{"localhost"},
+		nil,
+		nil,
+		nil,
+		x509.KeyUsageDigitalSignature|x509.KeyUsageKeyEncipherment,
+		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	)
+	if err != nil {
+		panic("failed to create EC server subject: " + err.Error())
+	}
+
+	// Serialize EC server certificate chain to PEM.
+	for _, cert := range testECServerSubject.KeyMaterial.CertificateChain {
+		testECServerCertPEM = append(testECServerCertPEM, pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert.Raw,
+		})...)
+	}
+
+	// Serialize EC server private key to PKCS8 PEM.
+	ecKeyBytes, err := x509.MarshalPKCS8PrivateKey(testECServerSubject.KeyMaterial.PrivateKey)
+	if err != nil {
+		panic("failed to marshal EC server private key: " + err.Error())
+	}
+
+	testECServerKeyPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: ecKeyBytes,
+	})
+
+	// Run all tests.
+	os.Exit(m.Run())
+}
 
 // TestGenerateTLSMaterial_NilConfig verifies that nil config returns error.
 func TestGenerateTLSMaterial_NilConfig(t *testing.T) {
