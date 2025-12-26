@@ -32,6 +32,12 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	require.Equal(t, tlsPublicIPAddresses.value, s.TLSPublicIPAddresses)
 	require.Equal(t, tlsPrivateDNSNames.value, s.TLSPrivateDNSNames)
 	require.Equal(t, tlsPrivateIPAddresses.value, s.TLSPrivateIPAddresses)
+	require.Equal(t, tlsPublicMode.value, s.TLSPublicMode)
+	require.Equal(t, tlsPrivateMode.value, s.TLSPrivateMode)
+	require.Equal(t, tlsStaticCertPEM.value, s.TLSStaticCertPEM)
+	require.Equal(t, tlsStaticKeyPEM.value, s.TLSStaticKeyPEM)
+	require.Equal(t, tlsMixedCACertPEM.value, s.TLSMixedCACertPEM)
+	require.Equal(t, tlsMixedCAKeyPEM.value, s.TLSMixedCAKeyPEM)
 	require.Equal(t, publicBrowserAPIContextPath.value, s.PublicBrowserAPIContextPath)
 	require.Equal(t, publicServiceAPIContextPath.value, s.PublicServiceAPIContextPath)
 	require.Equal(t, corsAllowedOrigins.value, s.CORSAllowedOrigins)
@@ -88,6 +94,12 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--tls-public-ip-addresses=192.168.1.4,192.168.1.6",
 		"--tls-private-dns-names=private1.example.com,private2.example.com",
 		"--tls-private-ip-addresses=192.168.1.5,192.168.1.7",
+		"--tls-public-mode=static",
+		"--tls-private-mode=mixed",
+		"--tls-static-cert-pem=LS0tQkVHSU4=",
+		"--tls-static-key-pem=S0VZLUJFRw==",
+		"--tls-mixed-ca-cert-pem=Q0VSVC0tLQ==",
+		"--tls-mixed-ca-key-pem=S0VZLUtFWQ==",
 		"--browser-api-context-path=/browser",
 		"--service-api-context-path=/service",
 		"--cors-origins=https://example.com",
@@ -139,6 +151,16 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, []string{"192.168.1.4", "192.168.1.6"}, s.TLSPublicIPAddresses)
 	require.Equal(t, []string{"private1.example.com", "private2.example.com"}, s.TLSPrivateDNSNames)
 	require.Equal(t, []string{"192.168.1.5", "192.168.1.7"}, s.TLSPrivateIPAddresses)
+	require.Equal(t, TLSMode("static"), s.TLSPublicMode)
+	require.Equal(t, TLSMode("mixed"), s.TLSPrivateMode)
+	// Base64-decoded "LS0tQkVHSU4=" -> "---BEGIN"
+	require.Equal(t, []byte("---BEGIN"), s.TLSStaticCertPEM)
+	// Base64-decoded "S0VZLUJFRw==" -> "KEY-BEG"
+	require.Equal(t, []byte("KEY-BEG"), s.TLSStaticKeyPEM)
+	// Base64-decoded "Q0VSVC0tLQ==" -> "CERT---"
+	require.Equal(t, []byte("CERT---"), s.TLSMixedCACertPEM)
+	// Base64-decoded "S0VZLUtFWQ==" -> "KEY-KEY"
+	require.Equal(t, []byte("KEY-KEY"), s.TLSMixedCAKeyPEM)
 	require.Equal(t, "/browser", s.PublicBrowserAPIContextPath)
 	require.Equal(t, "/service", s.PublicServiceAPIContextPath)
 	require.Equal(t, []string{"https://example.com"}, s.CORSAllowedOrigins)
