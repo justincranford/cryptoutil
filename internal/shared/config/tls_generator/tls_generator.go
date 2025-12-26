@@ -14,6 +14,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -34,16 +35,26 @@ func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMateri
 		return nil, fmt.Errorf("TLS config cannot be nil")
 	}
 
-	switch cfg.Mode {
-	case cryptoutilConfig.TLSModeStatic:
+	// Prefer explicit static certificates when provided (server cert + chain + key).
+	if len(cfg.StaticCertPEM) > 0 && len(cfg.StaticKeyPEM) > 0 {
 		return generateTLSMaterialStatic(cfg)
-	case cryptoutilConfig.TLSModeMixed:
-		return generateTLSMaterialMixed(cfg)
-	case cryptoutilConfig.TLSModeAuto:
-		return generateTLSMaterialAuto(cfg)
-	default:
-		return nil, fmt.Errorf("unknown TLS mode: %s (must be static, mixed, or auto)", cfg.Mode)
 	}
+
+	// If only partial static material is provided, return informative errors.
+	if len(cfg.StaticCertPEM) == 0 && len(cfg.StaticKeyPEM) > 0 {
+		return nil, fmt.Errorf("static mode requires StaticCertPEM")
+	}
+
+	if len(cfg.StaticKeyPEM) == 0 && len(cfg.StaticCertPEM) > 0 {
+		return nil, fmt.Errorf("static mode requires StaticKeyPEM")
+	}
+
+	// If only CA material present, instruct caller to pre-generate server certificate.
+	if len(cfg.MixedCACertPEM) > 0 || len(cfg.MixedCAKeyPEM) > 0 {
+		return nil, fmt.Errorf("mixed CA material provided; please generate server certificate using GenerateServerCertFromCA and supply StaticCertPEM/StaticKeyPEM")
+	}
+
+	return nil, fmt.Errorf("no TLS certificate material provided; populate StaticCertPEM and StaticKeyPEM or use helper generation functions")
 }
 
 // generateTLSMaterialStatic uses pre-provided TLS certificates (production mode).
@@ -116,16 +127,18 @@ func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLS
 	}, nil
 }
 
-// generateTLSMaterialMixed uses static CA to sign dynamically generated server certificate (staging/QA mode).
-func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
-	if len(cfg.MixedCACertPEM) == 0 {
-		return nil, fmt.Errorf("mixed mode requires MixedCACertPEM")
-	} else if len(cfg.MixedCAKeyPEM) == 0 {
-		return nil, fmt.Errorf("mixed mode requires MixedCAKeyPEM")
+// GenerateServerCertFromCA generates a server certificate signed by the provided CA
+// and returns a TLSGeneratedSettings containing StaticCertPEM (server cert + CA chain)
+// and StaticKeyPEM (server private key). The CA material is expected to be PEM-encoded.
+func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []string, validityDays int) (*TLSGeneratedSettings, error) {
+	if len(caCertPEM) == 0 {
+		return nil, fmt.Errorf("mixed mode requires CA certificate PEM")
+	} else if len(caKeyPEM) == 0 {
+		return nil, fmt.Errorf("mixed mode requires CA private key PEM")
 	}
 
-	// Parse CA certificate chain.
-	block, _ := pem.Decode(cfg.MixedCACertPEM)
+	// Parse CA certificate chain (use first block as issuer).
+	block, _ := pem.Decode(caCertPEM)
 	if block == nil || block.Type != pemTypeCertificate {
 		return nil, fmt.Errorf("failed to decode CA certificate PEM")
 	}
@@ -136,7 +149,7 @@ func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSM
 	}
 
 	// Parse CA private key.
-	keyBlock, _ := pem.Decode(cfg.MixedCAKeyPEM)
+	keyBlock, _ := pem.Decode(caKeyPEM)
 	if keyBlock == nil {
 		return nil, fmt.Errorf("failed to decode CA private key PEM")
 	}
@@ -165,8 +178,8 @@ func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSM
 	}
 
 	// Parse IP addresses.
-	ipAddresses := make([]net.IP, len(cfg.AutoIPAddresses))
-	for i, ipStr := range cfg.AutoIPAddresses {
+	ipAddresses := make([]net.IP, len(ips))
+	for i, ipStr := range ips {
 		ipAddresses[i] = net.ParseIP(ipStr)
 		if ipAddresses[i] == nil {
 			return nil, fmt.Errorf("invalid IP address: %s", ipStr)
@@ -174,11 +187,8 @@ func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSM
 	}
 
 	// Set default validity if not specified.
-	validityDays := cfg.AutoValidityDays
 	if validityDays <= 0 {
-		const defaultValidityDays = 365
-
-		validityDays = defaultValidityDays
+		validityDays = 365
 	}
 
 	duration := time.Duration(validityDays) * 24 * time.Hour //nolint:mnd // Duration calculation (24 hours per day).
@@ -200,10 +210,10 @@ func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSM
 		serverKeyPair,
 		"Server Certificate",
 		duration,
-		cfg.AutoDNSNames,
+		dns,
 		ipAddresses,
-		nil, // No email addresses.
-		nil, // No URIs.
+		nil,
+		nil,
 		x509.KeyUsageDigitalSignature|x509.KeyUsageKeyEncipherment,
 		[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 	)
@@ -211,39 +221,49 @@ func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSM
 		return nil, fmt.Errorf("failed to create server certificate: %w", err)
 	}
 
-	// Build TLS certificate from server subject.
-	tlsCert, rootCAPool, intermediateCAPool, err := cryptoutilCertificate.BuildTLSCertificate(serverSubject)
+	// Build TLS certificate from server subject to validate and obtain chains.
+	_, _, _, err = cryptoutilCertificate.BuildTLSCertificate(serverSubject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
 
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{*tlsCert},
-		MinVersion:   tls.VersionTLS13,
-		ClientCAs:    rootCAPool,
-		ClientAuth:   tls.NoClientCert,
+	// Compose PEM chain: server cert first, then issuer certs (if any) from issuerSubject.KeyMaterial.CertificateChain
+	var pemChain []byte
+	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
+		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: pemTypeCertificate, Bytes: cert.Raw})...)
 	}
 
-	return &cryptoutilConfig.TLSMaterial{
-		Config:             tlsConfig,
-		RootCAPool:         rootCAPool,
-		IntermediateCAPool: intermediateCAPool,
+	// Private key PEM
+	// Marshal PKCS8 private key DER then encode to PEM.
+	dk, err := x509.MarshalPKCS8PrivateKey(serverKeyPair.Private)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
+	}
+
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: dk})
+
+	return &TLSGeneratedSettings{
+		StaticCertPEM: pemChain,
+		StaticKeyPEM:  privateKeyPEM,
+		// Echo back CA material for reference.
+		MixedCACertPEM: caCertPEM,
+		MixedCAKeyPEM:  caKeyPEM,
 	}, nil
 }
 
-// generateTLSMaterialAuto fully auto-generates CA hierarchy and server certificate (development/testing mode).
-func generateTLSMaterialAuto(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
-	// Set default validity if not specified.
-	validityDays := cfg.AutoValidityDays
+// GenerateAutoTLSGeneratedSettings creates a new CA hierarchy and a server certificate
+// for the provided DNS names and IP addresses, returning a TLSGeneratedSettings with
+// StaticCertPEM (server cert + chain) and StaticKeyPEM populated.
+func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays int) (*TLSGeneratedSettings, error) {
+	// Default validity if not provided.
 	if validityDays <= 0 {
-		const defaultValidityDays = 365
-
-		validityDays = defaultValidityDays
+		validityDays = 365
 	}
 
-	duration := time.Duration(validityDays) * 24 * time.Hour //nolint:mnd // Duration calculation (24 hours per day).
+	// Calculate validity period.
+	duration := time.Duration(validityDays) * cryptoutilMagic.HoursPerDay * time.Hour
 
-	// Generate 3-tier CA hierarchy (Root → Intermediate → Server).
+	// Generate 3-tier CA hierarchy (Root → Intermediate → Server CA keys).
 	const caTiers = 3
 
 	caKeyPairs := make([]*cryptoutilKeyGen.KeyPair, caTiers-1) // Root CA and Intermediate CA (2 CAs).
@@ -264,7 +284,6 @@ func generateTLSMaterialAuto(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMa
 	}
 
 	// CRITICAL: Save issuing CA private key before CreateCASubjects clears it.
-	// CreateCASubjects clears intermediate CA keys for security, but we need the issuing CA key to sign server cert.
 	issuingCAPrivateKey := caKeyPairs[len(caKeyPairs)-1].Private
 
 	// Generate server key pair.
@@ -274,8 +293,8 @@ func generateTLSMaterialAuto(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMa
 	}
 
 	// Parse IP addresses.
-	ipAddresses := make([]net.IP, len(cfg.AutoIPAddresses))
-	for i, ipStr := range cfg.AutoIPAddresses {
+	ipAddresses := make([]net.IP, len(ips))
+	for i, ipStr := range ips {
 		ipAddresses[i] = net.ParseIP(ipStr)
 		if ipAddresses[i] == nil {
 			return nil, fmt.Errorf("invalid IP address: %s", ipStr)
@@ -292,7 +311,7 @@ func generateTLSMaterialAuto(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMa
 		serverKeyPair,
 		"Auto-Generated Server Certificate",
 		duration,
-		cfg.AutoDNSNames,
+		dns,
 		ipAddresses,
 		nil, // No email addresses.
 		nil, // No URIs.
@@ -303,22 +322,28 @@ func generateTLSMaterialAuto(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMa
 		return nil, fmt.Errorf("failed to create server certificate: %w", err)
 	}
 
-	// Build TLS certificate from server subject.
-	tlsCert, rootCAPool, intermediateCAPool, err := cryptoutilCertificate.BuildTLSCertificate(serverSubject)
+	// Validate by building TLS certificate.
+	_, _, _, err = cryptoutilCertificate.BuildTLSCertificate(serverSubject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
 
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{*tlsCert},
-		MinVersion:   tls.VersionTLS13,
-		ClientCAs:    rootCAPool,
-		ClientAuth:   tls.NoClientCert,
+	// Compose PEM chain from serverSubject.KeyMaterial.CertificateChain
+	var pemChain []byte
+	for _, cert := range serverSubject.KeyMaterial.CertificateChain {
+		pemChain = append(pemChain, pem.EncodeToMemory(&pem.Block{Type: pemTypeCertificate, Bytes: cert.Raw})...)
 	}
 
-	return &cryptoutilConfig.TLSMaterial{
-		Config:             tlsConfig,
-		RootCAPool:         rootCAPool,
-		IntermediateCAPool: intermediateCAPool,
+	// Marshal server private key to PKCS8 DER then PEM.
+	dk, err := x509.MarshalPKCS8PrivateKey(serverKeyPair.Private)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
+	}
+
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: dk})
+
+	return &TLSGeneratedSettings{
+		StaticCertPEM: pemChain,
+		StaticKeyPEM:  privateKeyPEM,
 	}, nil
 }

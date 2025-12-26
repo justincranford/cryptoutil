@@ -38,11 +38,13 @@ type Server struct {
 // Deprecated: Use NewServer with explicit TLSConfig instead.
 func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 	// Create default TLS config for backward compatibility.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost", "jose-server"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost", "jose-server"},
+		[]string{"127.0.0.1", "::1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate default TLS config: %w", err)
 	}
 
 	return NewServer(context.Background(), settings, tlsCfg)

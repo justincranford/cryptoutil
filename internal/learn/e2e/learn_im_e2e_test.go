@@ -26,7 +26,6 @@ import (
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -83,12 +82,12 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	const testPort = 0
 
 	// TLS config with localhost subject.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{cryptoutilMagic.IPv4Loopback},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
 
 	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, tlsCfg)
 	require.NoError(t, err)

@@ -28,7 +28,6 @@ import (
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -85,12 +84,12 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	const testPort = 0
 
 	// TLS config with localhost subject.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{cryptoutilMagic.IPv4Loopback},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
 
 	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, tlsCfg)
 	require.NoError(t, err)
@@ -818,14 +817,14 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{cryptoutilMagic.IPv4Loopback},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
 
-	_, err := server.NewPublicServer(nil, 0, userRepo, messageRepo, tlsCfg) //nolint:staticcheck // Testing nil context validation.
+	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, tlsCfg) //nolint:staticcheck // Testing nil context validation.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -838,14 +837,14 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	db := initTestDB(t)
 	messageRepo := repository.NewMessageRepository(db)
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{cryptoutilMagic.IPv4Loopback},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
 
-	_, err := server.NewPublicServer(ctx, 0, nil, messageRepo, tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "user repository cannot be nil")
 }
@@ -858,14 +857,14 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{cryptoutilMagic.IPv4Loopback},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
 
-	_, err := server.NewPublicServer(ctx, 0, userRepo, nil, tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message repository cannot be nil")
 }

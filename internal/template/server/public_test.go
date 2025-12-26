@@ -18,8 +18,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
@@ -28,12 +26,7 @@ import (
 func TestNewPublicHTTPServer_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 
@@ -45,12 +38,7 @@ func TestNewPublicHTTPServer_HappyPath(t *testing.T) {
 func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(nil, 0, tlsCfg) //nolint:staticcheck // Testing nil context handling.
 
@@ -63,12 +51,7 @@ func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 func TestPublicHTTPServer_Start_Success(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -106,12 +89,7 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -126,12 +104,7 @@ func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -195,12 +168,7 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -264,12 +232,7 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -315,12 +278,7 @@ func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -356,12 +314,7 @@ func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -375,12 +328,7 @@ func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -453,12 +401,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
@@ -531,12 +474,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_DoubleCall(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPublicTLS
 
 	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)

@@ -15,8 +15,6 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
@@ -28,12 +26,7 @@ import (
 func TestNewAdminHTTPServer_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 
 	require.NoError(t, err)
@@ -42,14 +35,10 @@ func TestNewAdminHTTPServer_HappyPath(t *testing.T) {
 
 // TestNewAdminHTTPServer_NilContext tests that NewAdminHTTPServer rejects nil context.
 func TestNewAdminHTTPServer_NilContext(t *testing.T) {
-	t.Parallel()
+	 t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	// Use shared TestMain-generated fixture for private TLS settings.
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(nil, 0, tlsCfg) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
@@ -60,12 +49,8 @@ func TestNewAdminHTTPServer_NilContext(t *testing.T) {
 // TestAdminServer_Start_Success tests admin server starts and listens on dynamic port.
 func TestAdminServer_Start_Success(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	// Use shared TestMain-generated fixture for private TLS settings.
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -122,12 +107,7 @@ func TestAdminServer_Start_Success(t *testing.T) {
 
 // TestAdminServer_Readyz_NotReady tests that readyz returns 503 when server not marked ready.
 func TestAdminServer_Readyz_NotReady(t *testing.T) {
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -203,12 +183,7 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 
 // TestAdminServer_HealthChecks_DuringShutdown tests livez and readyz return 503 during shutdown.
 func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -311,12 +286,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 func TestAdminServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -329,12 +299,7 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 // TestAdminServer_Livez_Alive tests /admin/v1/livez endpoint when server is alive.
 func TestAdminServer_Livez_Alive(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -410,12 +375,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 // TestAdminServer_Readyz_Ready tests /admin/v1/readyz endpoint when server is ready.
 func TestAdminServer_Readyz_Ready(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -494,12 +454,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 // TestAdminServer_Shutdown_Endpoint tests POST /admin/v1/shutdown triggers graceful shutdown.
 func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -573,12 +528,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 // TestAdminServer_Shutdown_NilContext tests Shutdown accepts nil context and uses Background().
 func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -613,12 +563,7 @@ func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -636,12 +581,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	// Wait for port to be fully released from previous test.
 	time.Sleep(2 * time.Second)
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
@@ -789,12 +729,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: 365,
-	}
+	tlsCfg := testPrivateTLS
 	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 

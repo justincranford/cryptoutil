@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -169,15 +168,13 @@ func TestGenerateTLSMaterial_NilConfig(t *testing.T) {
 func TestGenerateTLSMaterial_UnknownMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSGeneratedSettings{
-		Mode: cryptoutilConfig.TLSMode("invalid-mode"),
-	}
+	// Empty settings should return an informative error about missing material.
+	cfg := &TLSGeneratedSettings{}
 
 	material, err := GenerateTLSMaterial(cfg)
 	require.Error(t, err)
 	require.Nil(t, material)
-	require.Contains(t, err.Error(), "unknown TLS mode")
-	require.Contains(t, err.Error(), "invalid-mode")
+	require.Contains(t, err.Error(), "no TLS certificate material provided")
 }
 
 // TestGenerateTLSMaterialStatic_HappyPath tests static mode with valid certificate chain.
@@ -246,7 +243,6 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 
 	// Test static mode.
 	cfg := &TLSGeneratedSettings{
-		Mode:          cryptoutilConfig.TLSModeStatic,
 		StaticCertPEM: certPEM,
 		StaticKeyPEM:  keyPEM,
 	}
@@ -287,7 +283,6 @@ func TestGenerateTLSMaterialStatic_MissingCertPEM(t *testing.T) {
 	t.Parallel()
 
 	cfg := &TLSGeneratedSettings{
-		Mode:         cryptoutilConfig.TLSModeStatic,
 		StaticKeyPEM: []byte("dummy-key"),
 	}
 
@@ -302,7 +297,6 @@ func TestGenerateTLSMaterialStatic_MissingKeyPEM(t *testing.T) {
 	t.Parallel()
 
 	cfg := &TLSGeneratedSettings{
-		Mode:          cryptoutilConfig.TLSModeStatic,
 		StaticCertPEM: []byte("dummy-cert"),
 	}
 
@@ -317,7 +311,6 @@ func TestGenerateTLSMaterialStatic_InvalidCertPEM(t *testing.T) {
 	t.Parallel()
 
 	cfg := &TLSGeneratedSettings{
-		Mode:          cryptoutilConfig.TLSModeStatic,
 		StaticCertPEM: []byte("invalid-pem-data"),
 		StaticKeyPEM:  []byte("invalid-key-data"),
 	}
@@ -358,17 +351,22 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 		Bytes: caKeyBytes,
 	})
 
-	// Test mixed mode.
+	// Test mixed mode: providing only CA material should instruct caller to pre-generate server cert.
 	cfg := &TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeMixed,
-		MixedCACertPEM:   caCertPEM,
-		MixedCAKeyPEM:    caKeyPEM,
-		AutoDNSNames:     []string{"localhost", "mixed-test"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		MixedCACertPEM: caCertPEM,
+		MixedCAKeyPEM:  caKeyPEM,
 	}
 
 	material, err := GenerateTLSMaterial(cfg)
+	require.Error(t, err)
+	require.Nil(t, material)
+
+	// Use helper to generate server cert signed by CA and then generate TLS material.
+	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost", "mixed-test"}, []string{"127.0.0.1", "::1"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+	require.NoError(t, err)
+	require.NotNil(t, mixedCfg)
+
+	material, err = GenerateTLSMaterial(mixedCfg)
 	require.NoError(t, err)
 	require.NotNil(t, material)
 	require.NotNil(t, material.Config)
@@ -425,30 +423,29 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 func TestGenerateTLSMaterialMixed_MissingCACertPEM(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSGeneratedSettings{
-		Mode:          cryptoutilConfig.TLSModeMixed,
-		MixedCAKeyPEM: []byte("dummy-key"),
-	}
-
-	material, err := GenerateTLSMaterial(cfg)
+	// Expect GenerateServerCertFromCA to fail when CA cert PEM is missing.
+	_, err := GenerateServerCertFromCA(nil, []byte("dummy-key"), []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
-	require.Nil(t, material)
-	require.Contains(t, err.Error(), "mixed mode requires MixedCACertPEM")
+	require.Contains(t, err.Error(), "CA certificate PEM")
 }
 
 // TestGenerateTLSMaterialMixed_MissingCAKeyPEM verifies error when MixedCAKeyPEM is missing.
 func TestGenerateTLSMaterialMixed_MissingCAKeyPEM(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSGeneratedSettings{
-		Mode:           cryptoutilConfig.TLSModeMixed,
-		MixedCACertPEM: []byte("dummy-cert"),
-	}
+	// Generate a valid CA cert without providing the private key to test missing CA key handling.
+	caKeyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+	require.NoError(t, err)
 
-	material, err := GenerateTLSMaterial(cfg)
+	caSubjects, err := cryptoutilCertificate.CreateCASubjects([]*cryptoutilKeyGen.KeyPair{caKeyPair}, "Test CA", time.Duration(cryptoutilMagic.TLSTestEndEntityCertValidity1Year)*24*time.Hour)
+	require.NoError(t, err)
+
+	caCert := caSubjects[0].KeyMaterial.CertificateChain[0]
+	caCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caCert.Raw})
+
+	_, err = GenerateServerCertFromCA(caCertPEM, nil, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
-	require.Nil(t, material)
-	require.Contains(t, err.Error(), "mixed mode requires MixedCAKeyPEM")
+	require.Contains(t, err.Error(), "CA private key PEM")
 }
 
 // TestGenerateTLSMaterialMixed_InvalidIPAddress verifies error when IP address is invalid.
@@ -479,17 +476,9 @@ func TestGenerateTLSMaterialMixed_InvalidIPAddress(t *testing.T) {
 		Bytes: caKeyBytes,
 	})
 
-	// Test with invalid IP address.
-	cfg := &TLSGeneratedSettings{
-		Mode:            cryptoutilConfig.TLSModeMixed,
-		MixedCACertPEM:  caCertPEM,
-		MixedCAKeyPEM:   caKeyPEM,
-		AutoIPAddresses: []string{"invalid-ip"},
-	}
-
-	material, err := GenerateTLSMaterial(cfg)
+	// Test with invalid IP address - GenerateServerCertFromCA should detect invalid IP.
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"invalid-ip"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
-	require.Nil(t, material)
 	require.Contains(t, err.Error(), "invalid IP address")
 }
 
@@ -521,16 +510,10 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 		Bytes: caKeyBytes,
 	})
 
-	cfg := &TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeMixed,
-		MixedCACertPEM:   caCertPEM,
-		MixedCAKeyPEM:    caKeyPEM,
-		AutoDNSNames:     []string{"localhost", "ec-test"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
-
-	material, err := GenerateTLSMaterial(cfg)
+	// Generate server cert signed by EC CA and verify TLS material can be built.
+	mixedCfg, err := GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost", "ec-test"}, []string{"127.0.0.1", "::1"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+	require.NoError(t, err)
+	material, err := GenerateTLSMaterial(mixedCfg)
 	require.NoError(t, err)
 	require.NotNil(t, material)
 	require.NotNil(t, material.Config)
@@ -541,13 +524,9 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 func TestGenerateTLSMaterialAuto_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost", "auto-test"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
-
+	// Generate auto-mode TLSGeneratedSettings using helper and verify resulting TLS material.
+	cfg, err := GenerateAutoTLSGeneratedSettings([]string{"localhost", "auto-test"}, []string{"127.0.0.1", "::1"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+	require.NoError(t, err)
 	material, err := GenerateTLSMaterial(cfg)
 	require.NoError(t, err)
 	require.NotNil(t, material)
@@ -610,13 +589,8 @@ func TestGenerateTLSMaterialAuto_HappyPath(t *testing.T) {
 func TestGenerateTLSMaterialAuto_DefaultValidity(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSGeneratedSettings{
-		Mode:            cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:    []string{"localhost"},
-		AutoIPAddresses: []string{"127.0.0.1"},
-		// AutoValidityDays is 0 (not set) - should default to 365.
-	}
-
+	cfg, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{"127.0.0.1"}, 0) // validityDays=0 -> default
+	require.NoError(t, err)
 	material, err := GenerateTLSMaterial(cfg)
 	require.NoError(t, err)
 	require.NotNil(t, material)
@@ -640,12 +614,8 @@ func TestGenerateTLSMaterialAuto_DefaultValidity(t *testing.T) {
 func TestGenerateTLSMaterialAuto_EmptyDNSNames(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoIPAddresses:  []string{"127.0.0.1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	}
-
+	cfg, err := GenerateAutoTLSGeneratedSettings(nil, []string{"127.0.0.1"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+	require.NoError(t, err)
 	material, err := GenerateTLSMaterial(cfg)
 	require.NoError(t, err)
 	require.NotNil(t, material)
@@ -662,15 +632,8 @@ func TestGenerateTLSMaterialAuto_EmptyDNSNames(t *testing.T) {
 func TestGenerateTLSMaterialAuto_InvalidIPAddress(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSGeneratedSettings{
-		Mode:            cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:    []string{"localhost"},
-		AutoIPAddresses: []string{"not-an-ip"},
-	}
-
-	material, err := GenerateTLSMaterial(cfg)
+	_, err := GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{"not-an-ip"}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 	require.Error(t, err)
-	require.Nil(t, material)
 	require.Contains(t, err.Error(), "invalid IP address")
 }
 

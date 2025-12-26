@@ -43,11 +43,16 @@ func runJOSEDemo(ctx context.Context, config *Config) int {
 	)
 
 	// Create TLS configuration for JOSE server.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost", "jose-server"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost", "jose-server"},
+		[]string{"127.0.0.1", "::1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	if err != nil {
+		progress.FailStep("Generating TLS config", fmt.Errorf("TLS generation failed: %w", err))
+		errors.Add("tls", "failed to generate TLS config", err)
+
+		return exitJOSEDemo(progress, errors, passedSteps, startTime)
 	}
 
 	server, err := cryptoutilJoseServer.NewServer(ctx, settings, tlsCfg)

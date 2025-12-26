@@ -82,10 +82,13 @@ Examples:
 			}
 
 			// Create TLS config for JOSE server.
-			tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-				Mode:             cryptoutilConfig.TLSModeAuto,
-				AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-				AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+			tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+				[]string{},
+				[]string{"127.0.0.1", "::1"},
+				cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to generate TLS config: %w", err)
 			}
 
 			// Create and start the server.

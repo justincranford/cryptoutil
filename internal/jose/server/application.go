@@ -40,11 +40,13 @@ func NewApplication(
 	}
 
 	// Create TLS config for public server.
-	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost", "jose-server"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost", "jose-server"},
+		[]string{"127.0.0.1", "::1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate public TLS config: %w", err)
 	}
 
 	// Create public JOSE server.
@@ -56,11 +58,13 @@ func NewApplication(
 	app.publicServer = publicServer
 
 	// Create TLS config for admin server (localhost-only, 1-year validity).
-	adminTLSCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	adminTLSCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{"127.0.0.1", "::1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)
 	}
 
 	// Create admin server.

@@ -26,12 +26,16 @@ import (
 
 // createTestTLSConfig creates a TLSGeneratedSettings for testing.
 func createTestTLSConfig() *cryptoutilTLSGenerator.TLSGeneratedSettings {
-	return &cryptoutilTLSGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost", "jose-server"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost", "jose-server"},
+		[]string{"127.0.0.1", "::1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to generate test TLS config: %v", err))
 	}
+
+	return tlsCfg
 }
 
 var (

@@ -232,10 +232,10 @@ type ServerSettings struct {
 	BindPrivateAddress          string
 	BindPrivatePort             uint16
 	TLSPublicMode               TLSMode // Default TLSModeAuto
-	TLSPrivateMode              TLSMode // Default TLSModeAuto
 	TLSPublicDNSNames           []string
 	TLSPublicIPAddresses        []string
 	TLSPrivateDNSNames          []string
+	TLSPrivateMode              TLSMode // Default TLSModeAuto
 	TLSPrivateIPAddresses       []string
 	TLSStaticCertPEM            []byte // Default nil. PEM-encoded certificate chain (for TLSModeStatic). Should contain: [Server Cert, Intermediate CA(s), Root CA] or [Server Cert, Root CA].
 	TLSStaticKeyPEM             []byte // Default nil. PEM-encoded private key (for TLSModeStatic).

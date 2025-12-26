@@ -12,7 +12,6 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/repository"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
@@ -53,12 +52,14 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	userRepo := repository.NewUserRepository(cfg.DB)
 	messageRepo := repository.NewMessageRepository(cfg.DB)
 
-	// Create TLS config for public server.
-	publicTLSCfg := &tlsGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost", "learn-im-server"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	// Create TLS config for public server using auto-generated certificates.
+	publicTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost", "learn-im-server"},
+		[]string{"127.0.0.1", "::1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate public TLS config: %w", err)
 	}
 
 	// Create public server with handlers.
@@ -67,15 +68,17 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
 
-	// Create admin server.
-	tlsCfg := &tlsGenerator.TLSGeneratedSettings{
-		Mode:             cryptoutilConfig.TLSModeAuto,
-		AutoDNSNames:     []string{"localhost"},
-		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
-		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	// Create admin server TLS config using auto-generated certificates.
+	adminTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{"127.0.0.1", "::1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)
 	}
 
-	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, cfg.AdminPort, tlsCfg)
+	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, cfg.AdminPort, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
