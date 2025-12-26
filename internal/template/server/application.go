@@ -31,18 +31,18 @@ import (
 //
 // Both servers run concurrently and have independent lifecycles managed by the Application.
 type Application struct {
-	publicServer PublicServer
+	publicServer IPublicServer
 	adminServer  IAdminServer
 	mu           sync.RWMutex
 	shutdown     bool
 }
 
-// PublicServer interface defines the contract for public HTTPS servers.
+// IPublicServer interface defines the contract for public HTTPS servers.
 // Implementations must provide:
 // - Start: Begin listening for HTTPS requests (blocks until shutdown or error)
 // - Shutdown: Gracefully shutdown the server with context timeout
 // - ActualPort: Return the actual port after dynamic allocation.
-type PublicServer interface {
+type IPublicServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	ActualPort() int
@@ -63,7 +63,7 @@ type IAdminServer interface {
 //
 // Parameters:
 // - ctx: Context for initialization (must not be nil)
-// - publicServer: Public server instance implementing PublicServer interface
+// - publicServer: Public server instance implementing IPublicServer interface
 // - adminServer: Admin server instance implementing IAdminServer interface
 //
 // Returns:
@@ -71,7 +71,7 @@ type IAdminServer interface {
 // - error: Non-nil if parameters invalid or initialization fails.
 func NewApplication(
 	ctx context.Context,
-	publicServer PublicServer,
+	publicServer IPublicServer,
 	adminServer IAdminServer,
 ) (*Application, error) {
 	if ctx == nil {
