@@ -1868,6 +1868,55 @@ func TestHandleDeleteMessage_EmptyID(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
 
+// TestHandleLoginUser_EmptyCredentials tests login with empty username or password.
+func TestHandleLoginUser_EmptyCredentials(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	tests := []struct {
+		name     string
+		username string
+		password string
+	}{
+		{"EmptyUsername", "", "password123"},
+		{"EmptyPassword", "username", ""},
+		{"BothEmpty", "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			reqBody := map[string]string{
+				"username": tt.username,
+				"password": tt.password,
+			}
+			reqJSON, err := json.Marshal(reqBody)
+			require.NoError(t, err)
+
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/login", bytes.NewReader(reqJSON))
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+
+			defer func() { _ = resp.Body.Close() }()
+
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+			var result map[string]any
+
+			err = json.NewDecoder(resp.Body).Decode(&result)
+			require.NoError(t, err)
+			require.Equal(t, "username and password are required", result["error"])
+		})
+	}
+}
+
 // TestNew_Success tests successful server creation with valid config.
 func TestNew_Success(t *testing.T) {
 	t.Parallel()
