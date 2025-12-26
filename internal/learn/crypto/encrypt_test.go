@@ -223,3 +223,81 @@ func TestEncryptDecrypt_MultipleReceivers(t *testing.T) {
 	_, err = DecryptMessage(cipher1, nonce1, ephem1, receiver2PrivateKey)
 	require.Error(t, err)
 }
+
+func TestDecryptMessage_InvalidEphemeralPublicKey(t *testing.T) {
+	t.Parallel()
+
+	// Generate receiver's key pair.
+	receiverPrivateKey, receiverPublicKeyBytes, err := GenerateECDHKeyPair()
+	require.NoError(t, err)
+
+	receiverPublicKey, err := ParseECDHPublicKey(receiverPublicKeyBytes)
+	require.NoError(t, err)
+
+	// Encrypt a message.
+	plaintext := []byte("Test message")
+	_, ciphertext, nonce, err := EncryptMessage(plaintext, receiverPublicKey)
+	require.NoError(t, err)
+
+	// Try to decrypt with invalid ephemeral public key bytes.
+	invalidEphemeralKey := []byte{1, 2, 3} // Too short, invalid format.
+	decrypted, err := DecryptMessage(ciphertext, nonce, invalidEphemeralKey, receiverPrivateKey)
+	require.Error(t, err)
+	require.Nil(t, decrypted)
+	require.Contains(t, err.Error(), "failed to parse ephemeral public key")
+}
+
+func TestEncryptDecrypt_EmptyMessage(t *testing.T) {
+	t.Parallel()
+
+	// Generate receiver's key pair.
+	receiverPrivateKey, receiverPublicKeyBytes, err := GenerateECDHKeyPair()
+	require.NoError(t, err)
+
+	receiverPublicKey, err := ParseECDHPublicKey(receiverPublicKeyBytes)
+	require.NoError(t, err)
+
+	// Encrypt an empty message.
+	plaintext := []byte("")
+	ephemeralPublicKeyBytes, ciphertext, nonce, err := EncryptMessage(plaintext, receiverPublicKey)
+	require.NoError(t, err)
+	require.NotNil(t, ephemeralPublicKeyBytes)
+	require.NotNil(t, ciphertext)
+	require.NotNil(t, nonce)
+
+	// Decrypt the empty message.
+	decrypted, err := DecryptMessage(ciphertext, nonce, ephemeralPublicKeyBytes, receiverPrivateKey)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(plaintext, decrypted), "empty message should decrypt correctly")
+	require.Equal(t, 0, len(decrypted), "decrypted message should be empty")
+}
+
+func TestEncryptDecrypt_LargeMessage(t *testing.T) {
+	t.Parallel()
+
+	// Generate receiver's key pair.
+	receiverPrivateKey, receiverPublicKeyBytes, err := GenerateECDHKeyPair()
+	require.NoError(t, err)
+
+	receiverPublicKey, err := ParseECDHPublicKey(receiverPublicKeyBytes)
+	require.NoError(t, err)
+
+	// Encrypt a large message (1 MB).
+	plaintext := make([]byte, 1024*1024)
+	for i := range plaintext {
+		plaintext[i] = byte(i % 256)
+	}
+
+	ephemeralPublicKeyBytes, ciphertext, nonce, err := EncryptMessage(plaintext, receiverPublicKey)
+	require.NoError(t, err)
+	require.NotNil(t, ephemeralPublicKeyBytes)
+	require.NotNil(t, ciphertext)
+	require.NotNil(t, nonce)
+	require.Greater(t, len(ciphertext), len(plaintext), "ciphertext includes GCM tag")
+
+	// Decrypt the large message.
+	decrypted, err := DecryptMessage(ciphertext, nonce, ephemeralPublicKeyBytes, receiverPrivateKey)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(plaintext, decrypted), "large message should decrypt correctly")
+	require.Equal(t, len(plaintext), len(decrypted))
+}
