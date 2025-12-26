@@ -2038,3 +2038,61 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - **Task 6 Status**: 🔄 **IN PROGRESS** - Coverage improved from 77.1% to 79.5%, target 98% requires more tests
 
 ---
+
+### 2025-12-26: Task 9 - Fixed viper BytesBase64P Integration Issue
+
+**Work Completed**:
+
+- Fixed CRITICAL blocker preventing config test coverage completion (Task 9)
+- Root cause analysis:
+  - Created isolated test script (test_viper_bytes.go) to test viper.Get() behavior
+  - Discovered: Viper stores BytesBase64P flags as **strings** (base64-encoded), NOT as []byte
+  - getTLSPEMBytes() was incorrectly attempting type assertion to []byte (always failed)
+- Solution implemented:
+  - Updated getTLSPEMBytes() to handle BytesBase64P as strings
+  - Added manual base64.StdEncoding.DecodeString() to convert string → []byte
+  - Added fallback for []byte type (for config file sources)
+  - Added encoding/base64 import to config.go
+- Test results:
+  - ✅ TestParse_HappyPath_Defaults: PASSED (TLS mode and PEM field default assertions)
+  - ✅ TestParse_HappyPath_Overrides: PASSED (TLS mode and PEM field override assertions with base64 values)
+  - All 6 TLS field assertions now passing (2 modes + 4 PEM fields)
+- Code changes:
+  - config.go: Added encoding/base64 import
+  - config.go: Updated getTLSPEMBytes() function (8 lines → 21 lines with base64 decoding)
+  - config_test.go: Tests committed in previous session (bbf6b724), now passing
+
+**Coverage/Quality Metrics**:
+
+- Before fix: TestParse_HappyPath_Overrides failing (4 assertions expected []byte, got nil)
+- After fix: All config tests passing (TestParse_HappyPath_Defaults + TestParse_HappyPath_Overrides)
+- Package coverage: Unchanged (test additions, not new code coverage)
+
+**Lessons Learned**:
+
+1. **Viper BytesBase64P Integration Pattern**: pflag.BytesBase64P integrates with viper as **string type**, NOT []byte
+2. **Manual Decoding Required**: Must call base64.StdEncoding.DecodeString() to convert viper.GetString() → []byte
+3. **Test Isolation for Investigation**: Creating minimal reproduction script (test_viper_bytes.go) quickly identified root cause
+4. **Fallback Type Handling**: getTLSPEMBytes() should handle BOTH string (from flags) and []byte (from config files)
+5. **Pre-commit Auto-Fix**: golangci-lint auto-fixed formatting on first commit attempt, required second commit
+
+**Constraints Discovered**: None (issue fully resolved)
+
+**Requirements Discovered**: None (existing requirements met)
+
+**Next Steps**:
+
+1. Continue to next task from original checklist (table-driven test conversion)
+2. Review/update NewHTTPServers wrapper in servers.go
+3. Documentation sweep (replace ServerConfig → ServerSettings)
+
+**Related Commits**:
+
+- bbf6b724 ("feat(config): add TLS mode and PEM fields test coverage") - Added failing tests
+- 44e5dbca ("fix(config): resolve viper BytesBase64P integration for TLS PEM fields") - Fixed getTLSPEMBytes
+
+**Violations Found**: None (all tests passing, linting clean, builds passing)
+
+**Task 9 Status**: ✅ **COMPLETE** - All config tests passing, viper BytesBase64P integration resolved
+
+---
