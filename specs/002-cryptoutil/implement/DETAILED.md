@@ -1838,3 +1838,26 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Violations found**: None (all tests PASS, linting clean, coverage maintained)
 
 ---
+
+### 2025-12-25: TLS Refactoring Phase 1 - Settings Rename and Type Addition
+
+- **Work completed**: Renamed Settings → ServerSettings, added TLS types (TLSMode, TLSMaterial), fixed all test files
+- **Coverage/quality metrics**: All config package tests PASS, golangci-lint clean
+- **Lessons learned**:
+  1. PowerShell string replacement unreliable for Go code (created malformed syntax)
+  2. `multi_replace_string_in_file` requires exact whitespace matching
+  3. Manual targeted replacements more reliable than automated bulk operations
+  4. Always read complete package context before refactoring
+- **Constraints discovered**: Test files had complex Settings references requiring careful manual fixes
+- **Requirements discovered**: Need TLSMode (static/mixed/auto) and TLSMaterial struct for TLS configuration
+- **Next steps**:
+  1. Add 6 new TLS-related settings with unique flags (TLSPublicMode, TLSPrivateMode, TLSStaticCertPEM, TLSStaticKeyPEM, TLSMixedCACertPEM, TLSMixedCAKeyPEM)
+  2. Move TLS files to internal/shared/config/tls_generator/
+  3. Rename TLSConfig → TLSGeneratedSettings
+  4. Refactor NewPublicHTTPServer and NewAdminHTTPServer (rename from NewAdminServer)
+  5. Create NewHTTPServers wrapper in servers.go
+  6. Update documentation (copilot instructions, constitution, spec, clarify, plan, tasks, analyze, DETAILED.md, EXECUTIVE.md)
+- **Related commits**: ce2696d9 ("refactor(config): rename Settings to ServerSettings and add TLS types")
+- **Violations found**: None (build, tests, linting all PASS)
+
+---
