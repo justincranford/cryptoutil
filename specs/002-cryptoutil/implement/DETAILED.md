@@ -1974,3 +1974,67 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - ✅ Task 4c: Moved TLS files to tls_generator package (14 files updated, 10 files cleaned)
 
 - **Architecture Achievement**: TLS generation logic now in shared package (not buried in template/server), making it reusable across all cryptoutil services
+
+---
+
+### 2025-12-26: Task 6 - Config Package Test Coverage Improvement (IN PROGRESS)
+
+- **Work completed**:
+  - Created config_coverage_test.go with 13 new tests targeting 0% and 66.7% coverage functions
+  - Fixed pflag shorthand conflicts from Task 5 (9 duplicate shorthands → empty strings)
+  - Fixed TestRegisterAsDurationSetting type mismatch (string → time.Duration)
+  - All 13 new tests passing
+  - Coverage improved: 77.1% → 79.5% (+2.4 percentage points)
+
+- **Tests added**:
+  1. TestGetTLSPEMBytes_NilValue: Tests nil return for non-existent viper key
+  2. TestGetTLSPEMBytes_NonBytesValue: Tests nil return for type assertion failure
+  3. TestNewForJOSEServer_DevMode: Tests JOSE server config with dev defaults
+  4. TestNewForJOSEServer_ProductionMode: Tests JOSE server config with production settings
+  5. TestNewForCAServer_DevMode: Tests CA server config with dev defaults
+  6. TestNewForCAServer_ProductionMode: Tests CA server config with production settings
+  7-13. Register helper tests: TestRegisterAsBoolSetting, TestRegisterAsStringSetting, TestRegisterAsUint16Setting, TestRegisterAsStringSliceSetting, TestRegisterAsStringArraySetting, TestRegisterAsDurationSetting, TestRegisterAsIntSetting
+
+- **Coverage/quality metrics**:
+  - **Before**: 77.1% (24 tests)
+  - **After**: 79.5% (37 tests, +13 new)
+  - **Target**: ≥98% for infrastructure code (config package qualifies)
+  - **Remaining gaps**:
+    - getTLSPEMBytes: 66.7% → 83.3% (still missing []byte success path coverage)
+    - NewForJOSEServer: 0% → 85.7% (panic branch not tested)
+    - NewForCAServer: 0% → 85.7% (panic branch not tested)
+    - Parse: 87.5% (many edge cases uncovered - env vars, file loading, validation)
+    - validateConfiguration: 90.5% (missing validation branch combinations)
+    - Register helpers: Still 66.7% (panic branches not tested, actual usage paths are covered)
+
+- **Lessons learned**:
+  1. Register helper coverage at 66.7% is from panic branches (untested edge cases), not missing test execution
+  2. Setting.value types must match expected types exactly (time.Duration for duration, not string)
+  3. pflag base64 encoding required for bytesBase64 flag type (cannot test getTLSPEMBytes via CLI)
+  4. Test isolation critical (resetFlags() between tests prevents flag conflicts)
+  5. Coverage improvement to 98% requires ~50+ additional edge case tests (substantial effort)
+
+- **Constraints discovered**:
+  - getTLSPEMBytes success path ([]byte type assertion) not accessible via CLI flag testing
+  - Parse function has 363 lines with many error paths and edge cases requiring extensive test coverage
+  - validateConfiguration has multiple validation branches requiring combinatorial testing
+
+- **Requirements discovered**:
+  - Infrastructure code requires ≥98% coverage (higher than production code's ≥95%)
+  - Reaching 98% from 79.5% requires additional ~18.5 percentage points of coverage
+  - Need to add tests for: Parse edge cases, validateConfiguration branches, register helper panics
+
+- **Next steps**:
+  1. Add more tests to reach 98% target (Parse edge cases, validation branches)
+  2. Commit progress and continue to Task 8 (TestMain for TLS generator)
+  3. Per continuous-work.instructions.md: NEVER STOP between tasks until all 17 tasks complete
+
+- **Related commits**:
+  - 421443ec ("fix: remove duplicate flag shorthands to prevent test failures")
+  - 4b1929a4 ("feat: improve config package test coverage from 77.1% to 79.5%")
+
+- **Violations found**: None (all tests passing, linting clean, builds passing)
+
+- **Task 6 Status**: 🔄 **IN PROGRESS** - Coverage improved from 77.1% to 79.5%, target 98% requires more tests
+
+---
