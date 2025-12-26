@@ -14,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -30,7 +31,7 @@ type PublicHTTPServer struct {
 	port        int
 	actualPort  int
 	listener    net.Listener
-	tlsMaterial *TLSMaterial
+	tlsMaterial *cryptoutilConfig.TLSMaterial
 	mu          sync.RWMutex
 	shutdown    bool
 }
@@ -48,7 +49,7 @@ type PublicHTTPServer struct {
 // Returns:
 // - *PublicHTTPServer: Server instance ready to Start()
 // - error: Non-nil if initialization fails (nil context, TLS generation failure, Fiber setup failure).
-func NewPublicHTTPServer(ctx context.Context, port int, tlsCfg *TLSConfig) (*PublicHTTPServer, error) {
+func NewPublicHTTPServer(ctx context.Context, port int, tlsCfg *TLSGeneratedSettings) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}

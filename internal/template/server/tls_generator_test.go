@@ -15,6 +15,7 @@ import (
 	"time"
 
 	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
@@ -35,8 +36,8 @@ func TestGenerateTLSMaterial_NilConfig(t *testing.T) {
 func TestGenerateTLSMaterial_UnknownMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode: TLSMode("invalid-mode"),
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSMode("invalid-mode"),
 	}
 
 	material, err := GenerateTLSMaterial(cfg)
@@ -111,8 +112,8 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 	})
 
 	// Test static mode.
-	cfg := &TLSConfig{
-		Mode:          TLSModeStatic,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeStatic,
 		StaticCertPEM: certPEM,
 		StaticKeyPEM:  keyPEM,
 	}
@@ -152,8 +153,8 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 func TestGenerateTLSMaterialStatic_MissingCertPEM(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:         TLSModeStatic,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeStatic,
 		StaticKeyPEM: []byte("dummy-key"),
 	}
 
@@ -167,8 +168,8 @@ func TestGenerateTLSMaterialStatic_MissingCertPEM(t *testing.T) {
 func TestGenerateTLSMaterialStatic_MissingKeyPEM(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:          TLSModeStatic,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeStatic,
 		StaticCertPEM: []byte("dummy-cert"),
 	}
 
@@ -182,8 +183,8 @@ func TestGenerateTLSMaterialStatic_MissingKeyPEM(t *testing.T) {
 func TestGenerateTLSMaterialStatic_InvalidCertPEM(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:          TLSModeStatic,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeStatic,
 		StaticCertPEM: []byte("invalid-pem-data"),
 		StaticKeyPEM:  []byte("invalid-key-data"),
 	}
@@ -225,8 +226,8 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 	})
 
 	// Test mixed mode.
-	cfg := &TLSConfig{
-		Mode:             TLSModeMixed,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeMixed,
 		MixedCACertPEM:   caCertPEM,
 		MixedCAKeyPEM:    caKeyPEM,
 		AutoDNSNames:     []string{"localhost", "mixed-test"},
@@ -291,8 +292,8 @@ func TestGenerateTLSMaterialMixed_HappyPath(t *testing.T) {
 func TestGenerateTLSMaterialMixed_MissingCACertPEM(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:          TLSModeMixed,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeMixed,
 		MixedCAKeyPEM: []byte("dummy-key"),
 	}
 
@@ -306,8 +307,8 @@ func TestGenerateTLSMaterialMixed_MissingCACertPEM(t *testing.T) {
 func TestGenerateTLSMaterialMixed_MissingCAKeyPEM(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:           TLSModeMixed,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeMixed,
 		MixedCACertPEM: []byte("dummy-cert"),
 	}
 
@@ -346,8 +347,8 @@ func TestGenerateTLSMaterialMixed_InvalidIPAddress(t *testing.T) {
 	})
 
 	// Test with invalid IP address.
-	cfg := &TLSConfig{
-		Mode:            TLSModeMixed,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeMixed,
 		MixedCACertPEM:  caCertPEM,
 		MixedCAKeyPEM:   caKeyPEM,
 		AutoIPAddresses: []string{"invalid-ip"},
@@ -387,8 +388,8 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 		Bytes: caKeyBytes,
 	})
 
-	cfg := &TLSConfig{
-		Mode:             TLSModeMixed,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeMixed,
 		MixedCACertPEM:   caCertPEM,
 		MixedCAKeyPEM:    caKeyPEM,
 		AutoDNSNames:     []string{"localhost", "ec-test"},
@@ -407,8 +408,8 @@ func TestGenerateTLSMaterialMixed_ECPrivateKey(t *testing.T) {
 func TestGenerateTLSMaterialAuto_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:             TLSModeAuto,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "auto-test"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
@@ -476,8 +477,8 @@ func TestGenerateTLSMaterialAuto_HappyPath(t *testing.T) {
 func TestGenerateTLSMaterialAuto_DefaultValidity(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:            TLSModeAuto,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:    []string{"localhost"},
 		AutoIPAddresses: []string{"127.0.0.1"},
 		// AutoValidityDays is 0 (not set) - should default to 365.
@@ -506,8 +507,8 @@ func TestGenerateTLSMaterialAuto_DefaultValidity(t *testing.T) {
 func TestGenerateTLSMaterialAuto_EmptyDNSNames(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:             TLSModeAuto,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeAuto,
 		AutoIPAddresses:  []string{"127.0.0.1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	}
@@ -528,8 +529,8 @@ func TestGenerateTLSMaterialAuto_EmptyDNSNames(t *testing.T) {
 func TestGenerateTLSMaterialAuto_InvalidIPAddress(t *testing.T) {
 	t.Parallel()
 
-	cfg := &TLSConfig{
-		Mode:            TLSModeAuto,
+	cfg := &TLSGeneratedSettings{
+		Mode: cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:    []string{"localhost"},
 		AutoIPAddresses: []string{"not-an-ip"},
 	}

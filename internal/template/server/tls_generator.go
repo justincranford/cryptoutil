@@ -14,6 +14,7 @@ import (
 	"time"
 
 	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 )
 
@@ -30,17 +31,17 @@ const (
 //   - TLSModeAuto: Fully auto-generates 3-tier CA hierarchy and server certificate.
 //
 // Returns TLSMaterial containing tls.Config and certificate pools for client validation.
-func GenerateTLSMaterial(cfg *TLSConfig) (*TLSMaterial, error) {
+func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("TLS config cannot be nil")
 	}
 
 	switch cfg.Mode {
-	case TLSModeStatic:
+	case cryptoutilConfig.TLSModeStatic:
 		return generateTLSMaterialStatic(cfg)
-	case TLSModeMixed:
+	case cryptoutilConfig.TLSModeMixed:
 		return generateTLSMaterialMixed(cfg)
-	case TLSModeAuto:
+	case cryptoutilConfig.TLSModeAuto:
 		return generateTLSMaterialAuto(cfg)
 	default:
 		return nil, fmt.Errorf("unknown TLS mode: %s (must be static, mixed, or auto)", cfg.Mode)
@@ -48,7 +49,7 @@ func GenerateTLSMaterial(cfg *TLSConfig) (*TLSMaterial, error) {
 }
 
 // generateTLSMaterialStatic uses pre-provided TLS certificates (production mode).
-func generateTLSMaterialStatic(cfg *TLSConfig) (*TLSMaterial, error) {
+func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
 	if len(cfg.StaticCertPEM) == 0 {
 		return nil, fmt.Errorf("static mode requires StaticCertPEM")
 	}
@@ -112,7 +113,7 @@ func generateTLSMaterialStatic(cfg *TLSConfig) (*TLSMaterial, error) {
 		ClientAuth:   tls.NoClientCert, // Can be upgraded to RequireAndVerifyClientCert if needed.
 	}
 
-	return &TLSMaterial{
+	return &cryptoutilConfig.TLSMaterial{
 		Config:             tlsConfig,
 		RootCAPool:         rootCAPool,
 		IntermediateCAPool: intermediateCAPool,
@@ -120,7 +121,7 @@ func generateTLSMaterialStatic(cfg *TLSConfig) (*TLSMaterial, error) {
 }
 
 // generateTLSMaterialMixed uses static CA to sign dynamically generated server certificate (staging/QA mode).
-func generateTLSMaterialMixed(cfg *TLSConfig) (*TLSMaterial, error) {
+func generateTLSMaterialMixed(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
 	if len(cfg.MixedCACertPEM) == 0 {
 		return nil, fmt.Errorf("mixed mode requires MixedCACertPEM")
 	}
@@ -229,7 +230,7 @@ func generateTLSMaterialMixed(cfg *TLSConfig) (*TLSMaterial, error) {
 		ClientAuth:   tls.NoClientCert,
 	}
 
-	return &TLSMaterial{
+	return &cryptoutilConfig.TLSMaterial{
 		Config:             tlsConfig,
 		RootCAPool:         rootCAPool,
 		IntermediateCAPool: intermediateCAPool,
@@ -237,7 +238,7 @@ func generateTLSMaterialMixed(cfg *TLSConfig) (*TLSMaterial, error) {
 }
 
 // generateTLSMaterialAuto fully auto-generates CA hierarchy and server certificate (development/testing mode).
-func generateTLSMaterialAuto(cfg *TLSConfig) (*TLSMaterial, error) {
+func generateTLSMaterialAuto(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
 	// Set default validity if not specified.
 	validityDays := cfg.AutoValidityDays
 	if validityDays <= 0 {
@@ -321,7 +322,7 @@ func generateTLSMaterialAuto(cfg *TLSConfig) (*TLSMaterial, error) {
 		ClientAuth:   tls.NoClientCert,
 	}
 
-	return &TLSMaterial{
+	return &cryptoutilConfig.TLSMaterial{
 		Config:             tlsConfig,
 		RootCAPool:         rootCAPool,
 		IntermediateCAPool: intermediateCAPool,

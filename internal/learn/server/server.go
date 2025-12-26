@@ -11,6 +11,7 @@ import (
 
 	"gorm.io/gorm"
 
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	"cryptoutil/internal/learn/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	templateServer "cryptoutil/internal/template/server"
@@ -52,8 +53,8 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	messageRepo := repository.NewMessageRepository(cfg.DB)
 
 	// Create TLS config for public server.
-	publicTLSCfg := &templateServer.TLSConfig{
-		Mode:             templateServer.TLSModeAuto,
+	publicTLSCfg := &templateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost", "learn-im-server"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
@@ -66,8 +67,8 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create admin server.
-	tlsCfg := &templateServer.TLSConfig{
-		Mode:             templateServer.TLSModeAuto,
+	tlsCfg := &templateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,

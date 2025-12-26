@@ -22,6 +22,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
@@ -82,8 +83,8 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	const testPort = 0
 
 	// TLS config with localhost subject.
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,

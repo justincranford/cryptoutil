@@ -96,6 +96,15 @@ const (
 	defaultOTLPHostname                = cryptoutilMagic.DefaultOTLPHostnameDefault
 	defaultOTLPEndpoint                = cryptoutilMagic.DefaultOTLPEndpointDefault
 	defaultUnsealMode                  = cryptoutilMagic.DefaultUnsealModeSysInfo
+	defaultTLSPublicMode               = TLSModeAuto // Auto-generate TLS certificates by default for ease of development
+	defaultTLSPrivateMode              = TLSModeAuto // Auto-generate TLS certificates by default for ease of development
+)
+
+var (
+	defaultTLSStaticCertPEM  = []byte(nil) // No default static cert, must be provided explicitly
+	defaultTLSStaticKeyPEM   = []byte(nil) // No default static key, must be provided explicitly
+	defaultTLSMixedCACertPEM = []byte(nil) // No default mixed CA cert, must be provided explicitly
+	defaultTLSMixedCAKeyPEM  = []byte(nil) // No default mixed CA key, must be provided explicitly
 )
 
 // Configuration profiles for common deployment scenarios.
@@ -432,6 +441,52 @@ var (
 		usage:       "TLS private IP addresses",
 		description: "TLS Private IP Addresses",
 	})
+	tlsPublicMode = *registerSetting(&Setting{
+		name:        "tls-public-mode",
+		shorthand:   "1",
+		value:       defaultTLSPublicMode,
+		usage:       "TLS public mode (static, mixed, auto)",
+		description: "TLS Public Mode",
+	})
+	tlsPrivateMode = *registerSetting(&Setting{
+		name:        "tls-private-mode",
+		shorthand:   "2",
+		value:       defaultTLSPrivateMode,
+		usage:       "TLS private mode (static, mixed, auto)",
+		description: "TLS Private Mode",
+	})
+	tlsStaticCertPEM = *registerSetting(&Setting{
+		name:        "tls-static-cert-pem",
+		shorthand:   "3",
+		value:       defaultTLSStaticCertPEM,
+		usage:       "TLS static cert PEM (for static mode)",
+		description: "TLS Static Cert PEM",
+		redacted:    true,
+	})
+	tlsStaticKeyPEM = *registerSetting(&Setting{
+		name:        "tls-static-key-pem",
+		shorthand:   "4",
+		value:       defaultTLSStaticKeyPEM,
+		usage:       "TLS static key PEM (for static mode)",
+		description: "TLS Static Key PEM",
+		redacted:    true,
+	})
+	tlsMixedCACertPEM = *registerSetting(&Setting{
+		name:        "tls-mixed-ca-cert-pem",
+		shorthand:   "5",
+		value:       defaultTLSMixedCACertPEM,
+		usage:       "TLS mixed CA cert PEM (for mixed mode)",
+		description: "TLS Mixed CA Cert PEM",
+		redacted:    true,
+	})
+	tlsMixedCAKeyPEM = *registerSetting(&Setting{
+		name:        "tls-mixed-ca-key-pem",
+		shorthand:   "6",
+		value:       defaultTLSMixedCAKeyPEM,
+		usage:       "TLS mixed CA key PEM (for mixed mode)",
+		description: "TLS Mixed CA Key PEM",
+		redacted:    true,
+	})
 	publicBrowserAPIContextPath = *registerSetting(&Setting{
 		name:        "browser-api-context-path",
 		shorthand:   "c",
@@ -690,6 +745,21 @@ var (
 	})
 )
 
+// getTLSPEMBytes safely retrieves PEM bytes from viper for BytesBase64 flags.
+// Returns nil if the value is not set or cannot be converted to []byte.
+func getTLSPEMBytes(key string) []byte {
+	val := viper.Get(key)
+	if val == nil {
+		return nil
+	}
+
+	if bytes, ok := val.([]byte); ok {
+		return bytes
+	}
+
+	return nil
+}
+
 // Parse parses command line parameters and returns application settings.
 func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error) {
 	if len(commandParameters) == 0 {
@@ -766,6 +836,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error)
 	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, registerAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.usage)
 	pflag.StringSliceP(tlsPrivateDNSNames.name, tlsPrivateDNSNames.shorthand, registerAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.usage)
 	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, registerAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.usage)
+	pflag.StringP(tlsPublicMode.name, tlsPublicMode.shorthand, string(defaultTLSPublicMode), tlsPublicMode.usage)
+	pflag.StringP(tlsPrivateMode.name, tlsPrivateMode.shorthand, string(defaultTLSPrivateMode), tlsPrivateMode.usage)
+	pflag.BytesBase64P(tlsStaticCertPEM.name, tlsStaticCertPEM.shorthand, []byte(nil), tlsStaticCertPEM.usage)
+	pflag.BytesBase64P(tlsStaticKeyPEM.name, tlsStaticKeyPEM.shorthand, []byte(nil), tlsStaticKeyPEM.usage)
+	pflag.BytesBase64P(tlsMixedCACertPEM.name, tlsMixedCACertPEM.shorthand, []byte(nil), tlsMixedCACertPEM.usage)
+	pflag.BytesBase64P(tlsMixedCAKeyPEM.name, tlsMixedCAKeyPEM.shorthand, []byte(nil), tlsMixedCAKeyPEM.usage)
 	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, registerAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.usage)
 	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, registerAsStringSetting(&bindPrivateAddress), bindPrivateAddress.usage)
 	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, registerAsUint16Setting(&bindPrivatePort), bindPrivatePort.usage)
@@ -859,9 +935,24 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error)
 		}
 	}
 
+	// Parse TLS mode and PEM fields
+	tlsPublicModeStr := viper.GetString(tlsPublicMode.name)
+	if tlsPublicModeStr == "" {
+		tlsPublicModeStr = string(defaultTLSPublicMode)
+	}
+
+	tlsPrivateModeStr := viper.GetString(tlsPrivateMode.name)
+	if tlsPrivateModeStr == "" {
+		tlsPrivateModeStr = string(defaultTLSPrivateMode)
+	}
+
 	s := &ServerSettings{
-		TLSPublicMode:               TLSModeAuto,
-		TLSPrivateMode:              TLSModeAuto,
+		TLSPublicMode:               TLSMode(tlsPublicModeStr),
+		TLSPrivateMode:              TLSMode(tlsPrivateModeStr),
+		TLSStaticCertPEM:            getTLSPEMBytes(tlsStaticCertPEM.name),
+		TLSStaticKeyPEM:             getTLSPEMBytes(tlsStaticKeyPEM.name),
+		TLSMixedCACertPEM:           getTLSPEMBytes(tlsMixedCACertPEM.name),
+		TLSMixedCAKeyPEM:            getTLSPEMBytes(tlsMixedCAKeyPEM.name),
 		SubCommand:                  subCommand,
 		Help:                        viper.GetBool(help.name),
 		ConfigFile:                  viper.GetStringSlice(configFile.name),

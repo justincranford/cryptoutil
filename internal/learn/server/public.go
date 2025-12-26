@@ -16,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
@@ -33,7 +34,7 @@ type PublicServer struct {
 	mu          sync.RWMutex
 	shutdown    bool
 	actualPort  int
-	tlsMaterial *cryptoutilTemplateServer.TLSMaterial
+	tlsMaterial *cryptoutilConfig.TLSMaterial
 }
 
 // NewPublicServer creates a new learn-im public server.
@@ -42,7 +43,7 @@ func NewPublicServer(
 	port int,
 	userRepo *repository.UserRepository,
 	messageRepo *repository.MessageRepository,
-	tlsCfg *cryptoutilTemplateServer.TLSConfig,
+	tlsCfg *cryptoutilTemplateServer.TLSGeneratedSettings,
 ) (*PublicServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

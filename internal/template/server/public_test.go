@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
@@ -26,8 +27,8 @@ import (
 func TestNewPublicHTTPServer_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -43,8 +44,8 @@ func TestNewPublicHTTPServer_HappyPath(t *testing.T) {
 func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -61,8 +62,8 @@ func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 func TestPublicHTTPServer_Start_Success(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -104,8 +105,8 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -124,8 +125,8 @@ func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -193,8 +194,8 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -262,8 +263,8 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -313,8 +314,8 @@ func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -354,8 +355,8 @@ func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -373,8 +374,8 @@ func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -451,8 +452,8 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
@@ -529,8 +530,8 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_DoubleCall(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
-		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+	tlsCfg := &cryptoutilTemplateServer.TLSGeneratedSettings{
+		Mode:             cryptoutilConfig.TLSModeAuto,
 		AutoDNSNames:     []string{"localhost"},
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
