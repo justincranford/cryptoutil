@@ -11,10 +11,12 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
@@ -805,4 +807,767 @@ func TestHandleDeleteMessage_NotFound(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&respBody)
 	require.NoError(t, err)
 	require.Contains(t, respBody["error"], "message not found")
+}
+
+// TestNewPublicServer_NilContext tests constructor with nil context.
+func TestNewPublicServer_NilContext(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	userRepo := repository.NewUserRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+
+	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
+		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost"},
+		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
+	_, err := server.NewPublicServer(nil, 0, userRepo, messageRepo, tlsCfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "context cannot be nil")
+}
+
+// TestNewPublicServer_NilUserRepo tests constructor with nil user repository.
+func TestNewPublicServer_NilUserRepo(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	messageRepo := repository.NewMessageRepository(db)
+
+	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
+		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost"},
+		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
+	_, err := server.NewPublicServer(ctx, 0, nil, messageRepo, tlsCfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "user repository cannot be nil")
+}
+
+// TestNewPublicServer_NilMessageRepo tests constructor with nil message repository.
+func TestNewPublicServer_NilMessageRepo(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	userRepo := repository.NewUserRepository(db)
+
+	tlsCfg := &cryptoutilTemplateServer.TLSConfig{
+		Mode:             cryptoutilTemplateServer.TLSModeAuto,
+		AutoDNSNames:     []string{"localhost"},
+		AutoIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
+		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	}
+
+	_, err := server.NewPublicServer(ctx, 0, userRepo, nil, tlsCfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "message repository cannot be nil")
+}
+
+// TestNewPublicServer_NilTLSConfig tests constructor with nil TLS config.
+func TestNewPublicServer_NilTLSConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	userRepo := repository.NewUserRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+
+	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "TLS configuration cannot be nil")
+}
+
+// TestHandleServiceHealth_WhileRunning tests health endpoint while server running.
+func TestHandleServiceHealth_WhileRunning(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/health", nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Equal(t, "healthy", respBody["status"])
+}
+
+// TestHandleBrowserHealth_WhileRunning tests browser health endpoint.
+func TestHandleBrowserHealth_WhileRunning(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/browser/api/v1/health", nil)
+	require.NoError(t, err)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Equal(t, "healthy", respBody["status"])
+}
+
+// TestShutdown_MultipleCalls tests calling Shutdown multiple times.
+func TestShutdown_MultipleCalls(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	publicServer, _ := createTestPublicServer(t, db)
+
+	// First shutdown should succeed.
+	err := publicServer.Shutdown(ctx)
+	require.NoError(t, err)
+
+	// Second shutdown should return error.
+	err = publicServer.Shutdown(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "already shutdown")
+}
+
+// TestHandleSendMessage_MissingToken tests sending message without JWT token.
+func TestHandleSendMessage_MissingToken(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	reqBody := map[string]any{
+		"message":      "Test message",
+		"receiver_ids": []string{receiver.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	// No Authorization header.
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+// TestHandleReceiveMessages_MissingToken tests receiving messages without JWT token.
+func TestHandleReceiveMessages_MissingToken(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
+	require.NoError(t, err)
+	// No Authorization header.
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+// TestHandleDeleteMessage_MissingToken tests deleting message without JWT token.
+func TestHandleDeleteMessage_MissingToken(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	messageID := googleUuid.New()
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID.String(), nil)
+	require.NoError(t, err)
+	// No Authorization header.
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+// TestHandleDeleteMessage_NotOwner tests deleting message user doesn't own.
+func TestHandleDeleteMessage_NotOwner(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create sender and receiver.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Send message from sender.
+	reqBody := map[string]any{
+		"message":      "Test message",
+		"receiver_ids": []string{receiver.User.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	var sendResp map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&sendResp)
+	require.NoError(t, err)
+
+	_ = resp.Body.Close()
+
+	messageID := sendResp["message_id"]
+
+	// Try to delete from receiver (not owner).
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+receiver.Token)
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "only the sender can delete")
+}
+
+// TestHandleSendMessage_EmptyMessage tests sending empty message.
+func TestHandleSendMessage_EmptyMessage(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	reqBody := map[string]any{
+		"message":      "", // Empty message.
+		"receiver_ids": []string{receiver.ID.String()},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var respBody map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Contains(t, respBody["error"], "message cannot be empty")
+}
+
+// TestHandleRegisterUser_MalformedJSON tests registration with malformed JSON.
+func TestHandleRegisterUser_MalformedJSON(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte("{invalid json")))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+// TestHandleLoginUser_MalformedJSON tests login with malformed JSON.
+func TestHandleLoginUser_MalformedJSON(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/login", bytes.NewReader([]byte("{invalid json")))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+// TestHandleLoginUser_CorruptPasswordHash tests login with corrupted password hash in database.
+func TestHandleLoginUser_CorruptPasswordHash(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Register user.
+	username := "testuser"
+	password := "password123"
+
+	registerReq := fmt.Sprintf(`{"username": "%s", "password": "%s"}`, username, password)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte(registerReq)))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	_ = resp.Body.Close()
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	// Corrupt password hash in database.
+	userRepo := repository.NewUserRepository(db)
+	user, err := userRepo.FindByUsername(context.Background(), username)
+	require.NoError(t, err)
+
+	user.PasswordHash = "not-valid-hex"
+
+	err = userRepo.Update(context.Background(), user)
+	require.NoError(t, err)
+
+	// Test login with corrupted hash.
+	loginReq := fmt.Sprintf(`{"username": "%s", "password": "%s"}`, username, password)
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/login", bytes.NewReader([]byte(loginReq)))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+// TestJWTMiddleware_InvalidSigningMethod tests JWT with invalid signing method.
+func TestJWTMiddleware_InvalidSigningMethod(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create a token with wrong signing method (None instead of HS256).
+	userID := googleUuid.New()
+	claims := &server.Claims{
+		UserID:   userID.String(),
+		Username: "testuser",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
+	tokenString, err := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	require.NoError(t, err)
+
+	// Test with invalid signing method token.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenString)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+// TestJWTMiddleware_InvalidUserIDInToken tests JWT with malformed user ID.
+func TestJWTMiddleware_InvalidUserIDInToken(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create a token with invalid user ID.
+	claims := &server.Claims{
+		UserID:   "not-a-uuid",
+		Username: "testuser",
+	}
+
+	const jwtSecret = "learn-im-dev-secret-change-in-production"
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(jwtSecret))
+	require.NoError(t, err)
+
+	// Test with invalid user ID token.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenString)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+// TestJWTMiddleware_ExpiredToken tests JWT with expired token.
+func TestJWTMiddleware_ExpiredToken(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create an expired token.
+	userID := googleUuid.New()
+	expirationTime := time.Now().Add(-1 * time.Hour) // Expired 1 hour ago.
+
+	claims := &server.Claims{
+		UserID:   userID.String(),
+		Username: "testuser",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
+			Issuer:    server.JWTIssuer,
+		},
+	}
+
+	const jwtSecret = "learn-im-dev-secret-change-in-production"
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(jwtSecret))
+	require.NoError(t, err)
+
+	// Test with expired token.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenString)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+// TestHandleRegisterUser_RepositoryError tests registration when repository fails.
+func TestHandleRegisterUser_RepositoryError(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+
+	// Close database to trigger error.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	_ = sqlDB.Close()
+
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	registerReq := `{"username": "testuser", "password": "password123"}`
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte(registerReq)))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+// TestHandleSendMessage_SaveRepositoryError tests sending message when repository fails during save.
+func TestHandleSendMessage_SaveRepositoryError(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create sender and receiver first (before closing DB).
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Get database connection.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	// Prepare message send request.
+	sendReq := fmt.Sprintf(`{"message": "test", "receiver_ids": ["%s"]}`, receiver.User.ID.String())
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader([]byte(sendReq)))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	// Close database right before the request to trigger save error.
+	_ = sqlDB.Close()
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// Database error can be detected at different points:
+	// - 404 if receiver lookup fails (closed db prevents read)
+	// - 500 if save operation fails
+	// Both are valid error responses for this test scenario.
+	require.True(t, resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusInternalServerError,
+		"expected 404 or 500, got %d", resp.StatusCode)
+}
+
+// TestHandleDeleteMessage_RepositoryError tests deleting message when repository fails.
+func TestHandleDeleteMessage_RepositoryError(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create sender and send a message.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Send message.
+	sendReq := fmt.Sprintf(`{"message": "test", "receiver_ids": ["%s"]}`, receiver.User.ID.String())
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader([]byte(sendReq)))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	var sendResp map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&sendResp)
+	require.NoError(t, err)
+
+	_ = resp.Body.Close()
+
+	messageID := sendResp["message_id"]
+
+	// Close database to trigger error.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	_ = sqlDB.Close()
+
+	// Try to delete message with closed database.
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// Database error during lookup.
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+// TestPublicServer_StartContextCancelled tests server shutdown via context cancellation.
+func TestPublicServer_StartContextCancelled(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	srv, _ := createTestPublicServer(t, db)
+
+	// Create context with cancellation.
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Start server in goroutine.
+	errChan := make(chan error, 1)
+
+	go func() {
+		errChan <- srv.Start(ctx)
+	}()
+
+	// Wait for server to start (brief delay).
+	time.Sleep(100 * time.Millisecond)
+
+	// Cancel context to trigger shutdown.
+	cancel()
+
+	// Wait for server to stop.
+	err := <-errChan
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "context canceled")
+}
+
+// TestPublicServer_DoubleShutdown tests calling Shutdown twice.
+func TestPublicServer_DoubleShutdown(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	srv, _ := createTestPublicServer(t, db)
+
+	// First shutdown should succeed.
+	err := srv.Shutdown(context.Background())
+	require.NoError(t, err)
+
+	// Second shutdown should fail.
+	err = srv.Shutdown(context.Background())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "already shutdown")
+}
+
+// TestHandleSendMessage_EncryptionError tests encryption failure.
+func TestHandleSendMessage_EncryptionError(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create sender and receiver.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Corrupt receiver's public key in database to trigger encryption error.
+	var user cryptoutilDomain.User
+
+	err := db.First(&user, "id = ?", receiver.User.ID).Error
+	require.NoError(t, err)
+
+	// Replace public key with invalid data.
+	user.PublicKey = []byte("invalid-public-key-data")
+	err = db.Save(&user).Error
+	require.NoError(t, err)
+
+	// Try to send message.
+	sendReq := fmt.Sprintf(`{"message": "test", "receiver_ids": ["%s"]}`, receiver.User.ID.String())
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader([]byte(sendReq)))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+// TestHandleReceiveMessages_EmptyInbox tests receiving when no messages exist.
+func TestHandleReceiveMessages_EmptyInbox(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create receiver with no messages.
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Request messages.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+receiver.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var respBody map[string][]any
+
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	require.NoError(t, err)
+	require.Empty(t, respBody["messages"])
+}
+
+// TestHandleReceiveMessages_RepositoryError tests receiving messages when repository fails.
+func TestHandleReceiveMessages_RepositoryError(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create receiver.
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Close database to trigger error.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	_ = sqlDB.Close()
+
+	// Test receiving messages with closed database.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+receiver.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
