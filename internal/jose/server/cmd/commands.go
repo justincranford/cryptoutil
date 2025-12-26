@@ -102,9 +102,7 @@ Examples:
 			}()
 
 			fmt.Printf("JOSE Authority Server starting on %s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
-			if err := server.Start(ctx); err != nil {
-				return fmt.Errorf("server error: %w", err)
-			}
+
 
 			return nil
 		},
