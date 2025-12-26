@@ -96,15 +96,15 @@ const (
 	defaultOTLPHostname                = cryptoutilMagic.DefaultOTLPHostnameDefault
 	defaultOTLPEndpoint                = cryptoutilMagic.DefaultOTLPEndpointDefault
 	defaultUnsealMode                  = cryptoutilMagic.DefaultUnsealModeSysInfo
-	defaultTLSPublicMode               = TLSModeAuto // Auto-generate TLS certificates by default for ease of development
-	defaultTLSPrivateMode              = TLSModeAuto // Auto-generate TLS certificates by default for ease of development
+	defaultTLSPublicMode               = TLSMode(cryptoutilMagic.DefaultTLSPublicMode)
+	defaultTLSPrivateMode              = TLSMode(cryptoutilMagic.DefaultTLSPrivateMode)
 )
 
 var (
-	defaultTLSStaticCertPEM  = []byte(nil) // No default static cert, must be provided explicitly
-	defaultTLSStaticKeyPEM   = []byte(nil) // No default static key, must be provided explicitly
-	defaultTLSMixedCACertPEM = []byte(nil) // No default mixed CA cert, must be provided explicitly
-	defaultTLSMixedCAKeyPEM  = []byte(nil) // No default mixed CA key, must be provided explicitly
+	defaultTLSStaticCertPEM  = cryptoutilMagic.DefaultTLSStaticCertPEM
+	defaultTLSStaticKeyPEM   = cryptoutilMagic.DefaultTLSStaticKeyPEM
+	defaultTLSMixedCACertPEM = cryptoutilMagic.DefaultTLSMixedCACertPEM
+	defaultTLSMixedCAKeyPEM  = cryptoutilMagic.DefaultTLSMixedCAKeyPEM
 )
 
 // Configuration profiles for common deployment scenarios.

@@ -254,9 +254,21 @@ var (
 	DefaultTLSPrivateIPAddresses = []string{IPv4Loopback, IPv6Loopback, IPv4MappedIPv6Loopback}
 	// DefaultIPFilterAllowedIPs - Default allowed IP addresses.
 	DefaultIPFilterAllowedIPs = []string{IPv4Loopback, IPv6Loopback, IPv4MappedIPv6Loopback}
+	// DefaultTLSStaticCertPEM - Default static TLS certificate PEM (nil = must provide explicitly).
+	DefaultTLSStaticCertPEM = []byte(nil)
+	// DefaultTLSStaticKeyPEM - Default static TLS key PEM (nil = must provide explicitly).
+	DefaultTLSStaticKeyPEM = []byte(nil)
+	// DefaultTLSMixedCACertPEM - Default mixed CA certificate PEM (nil = must provide explicitly).
+	DefaultTLSMixedCACertPEM = []byte(nil)
+	// DefaultTLSMixedCAKeyPEM - Default mixed CA key PEM (nil = must provide explicitly).
+	DefaultTLSMixedCAKeyPEM = []byte(nil)
 )
 
 const (
+	// DefaultTLSPublicMode - Default TLS mode for public servers (auto-generate for ease of development).
+	DefaultTLSPublicMode = "auto"
+	// DefaultTLSPrivateMode - Default TLS mode for private/admin servers (auto-generate for ease of development).
+	DefaultTLSPrivateMode = "auto"
 	// DefaultHTTPRequestBodyLimit - Default request body limit in bytes (2MB).
 	DefaultHTTPRequestBodyLimit = 2 << 20
 	// ServerStartupWait - Time to wait for server startup in tests.
