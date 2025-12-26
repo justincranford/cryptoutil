@@ -7,6 +7,7 @@ package config
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"sort"
@@ -753,6 +754,22 @@ func getTLSPEMBytes(key string) []byte {
 		return nil
 	}
 
+	// BytesBase64P flags are stored in viper as strings (base64-encoded)
+	// We need to decode them manually
+	if str, ok := val.(string); ok {
+		if str == "" {
+			return nil
+		}
+
+		bytes, err := base64.StdEncoding.DecodeString(str)
+		if err != nil {
+			return nil
+		}
+
+		return bytes
+	}
+
+	// Fallback: if already []byte (e.g., from config file), use as-is
 	if bytes, ok := val.([]byte); ok {
 		return bytes
 	}
