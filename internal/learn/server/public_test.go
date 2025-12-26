@@ -824,7 +824,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	}
 
-	_, err := server.NewPublicServer(nil, 0, userRepo, messageRepo, tlsCfg)
+	_, err := server.NewPublicServer(nil, 0, userRepo, messageRepo, tlsCfg) //nolint:staticcheck // Testing nil context validation.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
