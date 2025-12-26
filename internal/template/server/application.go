@@ -52,11 +52,13 @@ type IPublicServer interface {
 // Implementations must provide:
 // - Start: Begin listening on 127.0.0.1:9090 for admin API requests (blocks until shutdown or error)
 // - Shutdown: Gracefully shutdown the admin server with context timeout
-// - ActualPort: Return the actual port (should always be 9090).
+// - ActualPort: Return the actual port (should always be 9090)
+// - SetReady: Mark server as ready to handle readyz health checks (thread-safe).
 type IAdminServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	ActualPort() (int, error)
+	SetReady(ready bool)
 }
 
 // NewApplication creates a new service application with public and admin servers.

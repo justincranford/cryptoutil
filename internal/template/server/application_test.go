@@ -82,6 +82,7 @@ type mockAdminServer struct {
 	shutdownErr    error
 	actualPort     int
 	startBlock     chan struct{} // Used to control blocking behavior.
+	ready          bool
 	mu             sync.Mutex
 }
 
@@ -132,6 +133,13 @@ func (m *mockAdminServer) ActualPort() (int, error) {
 	}
 
 	return m.actualPort, nil
+}
+
+func (m *mockAdminServer) SetReady(ready bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.ready = ready
 }
 
 // TestNewApplication_HappyPath tests successful application creation.
