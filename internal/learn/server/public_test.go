@@ -1843,6 +1843,110 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 	require.NotEmpty(t, msg["created_at"], "created_at should not be empty")
 }
 
+// TestHandleReceiveMessages_MultipleMessages tests receiving multiple messages.
+func TestHandleReceiveMessages_MultipleMessages(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create sender and receiver.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Send 3 messages from sender to receiver.
+	for i := 1; i <= 3; i++ {
+		reqBody := map[string]any{
+			"message":      fmt.Sprintf("Message %d", i),
+			"receiver_ids": []string{receiver.User.ID.String()},
+		}
+		reqJSON, err := json.Marshal(reqBody)
+		require.NoError(t, err)
+
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		defer func() { _ = resp.Body.Close() }()
+	}
+
+	// Receiver retrieves all messages.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+receiver.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	var rxResp map[string][]map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&rxResp)
+	require.NoError(t, err)
+	require.Len(t, rxResp["messages"], 3)
+
+	// Verify all messages have required fields.
+	for _, msg := range rxResp["messages"] {
+		require.NotEmpty(t, msg["message_id"])
+		require.NotEmpty(t, msg["sender_pub_key"])
+		require.NotEmpty(t, msg["encrypted_content"])
+		require.NotEmpty(t, msg["nonce"])
+		require.NotEmpty(t, msg["created_at"])
+	}
+}
+
+// TestHandleSendMessage_MultipleReceivers tests sending message to multiple receivers.
+func TestHandleSendMessage_MultipleReceivers(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Create sender and 3 receivers.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver1 := registerTestUser(t, client, baseURL, "receiver1", "password123")
+	receiver2 := registerTestUser(t, client, baseURL, "receiver2", "password123")
+	receiver3 := registerTestUser(t, client, baseURL, "receiver3", "password123")
+
+	// Send message to all 3 receivers.
+	reqBody := map[string]any{
+		"message": "Broadcast message",
+		"receiver_ids": []string{
+			receiver1.ID.String(),
+			receiver2.ID.String(),
+			receiver3.ID.String(),
+		},
+	}
+	reqJSON, err := json.Marshal(reqBody)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	var sendResp map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&sendResp)
+	require.NoError(t, err)
+	require.NotEmpty(t, sendResp["message_id"])
+}
+
 // TestHandleDeleteMessage_EmptyID tests delete message with empty message ID.
 func TestHandleDeleteMessage_EmptyID(t *testing.T) {
 	t.Parallel()
@@ -1937,6 +2041,37 @@ func TestNew_Success(t *testing.T) {
 	_ = srv.PublicPort()
 
 	_, _ = srv.AdminPort()
+}
+
+// TestHandleSendMessage_InvalidBodyParser tests body parsing failure.
+func TestHandleSendMessage_InvalidBodyParser(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Register sender.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+
+	// Send malformed JSON body.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader([]byte("not-valid-json")))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+	require.Equal(t, "invalid request body", result["error"])
 }
 
 // TestNew_NilContext tests server creation with nil context.
