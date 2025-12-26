@@ -1790,3 +1790,51 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Violations Found**: None (all tests PASS, linter clean, schema fixed correctly)
 
 ---
+
+### 2025-12-26: JWT Authentication Middleware and /browser Path Support
+
+**Work completed**:
+
+- ✅ JWT middleware implementation (generation on login, verification on protected routes)
+- ✅ CORS middleware for /browser paths (localhost:8888 allowed origin)
+- ✅ Public server paths: /service and /browser with appropriate middleware stacks
+- ✅ Tests for both /service and /browser paths
+- ✅ All 14 server tests PASS (registration, login, messages, deletion)
+- ✅ All 3 E2E tests PASS (encryption flow, multi-receiver, deletion)
+
+**Coverage/quality metrics**:
+
+- Server coverage: 62.4% (improved from 60.1%)
+- E2E tests: 3/3 PASS (full integration validation)
+- Crypto service: 84.1% coverage (maintained)
+
+**Lessons learned**:
+
+1. **JWT middleware pattern**: Extract user ID from JWT claims context, attach to fiber.Ctx.Locals for handler access
+2. **CORS for browser clients**: MUST include specific allowed origins, methods, headers for /browser paths
+3. **Path-based middleware**: Different security requirements for /service vs /browser paths
+4. **Test authentication**: All message operations now require JWT token in Authorization header
+
+**Constraints discovered**: None (JWT middleware integrates cleanly with existing architecture)
+
+**Requirements discovered**:
+
+- CORS middleware needed for browser client integration
+- JWT secret should be configurable (currently hardcoded for development)
+
+**Next steps**:
+
+- ⏸️ Replace hardcoded user IDs with auth context extraction (30 minutes) - IMMEDIATE
+- ⏸️ Docker Compose deployment (Dockerfile, compose.yml, health checks) - HIGH PRIORITY (2-3 hours)
+- ⏸️ Documentation (README, ENCRYPTION.md, API.md, TUTORIAL.md) - HIGH PRIORITY (4-6 hours)
+- ⏸️ Coverage improvement (target ≥95% for server package) - HIGH PRIORITY (3-4 hours)
+- ⏸️ Optional: Move JWT secret to configuration - LOW PRIORITY (30 minutes)
+
+**Related commits**:
+
+- 1fd15b81 ("feat(learn): add CORS middleware and public server /browser path with tests")
+- f7cb0b97 ("test(learn): fix TestHandleDeleteMessage_Success to include authentication")
+
+**Violations found**: None (all tests PASS, linting clean, coverage maintained)
+
+---
