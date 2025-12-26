@@ -1542,6 +1542,242 @@ func TestHandleReceiveMessages_EmptyInbox(t *testing.T) {
 	require.Empty(t, respBody["messages"])
 }
 
+// TestHandleRegisterUser_UsernameValidation tests username length validation.
+func TestHandleRegisterUser_UsernameValidation(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	tests := []struct {
+		name     string
+		username string
+		wantCode int
+	}{
+		{"TooShort", "ab", http.StatusBadRequest},
+		{"MinLength", "abc", http.StatusCreated},
+		{"MaxLength", "12345678901234567890123456789012345678901234567890", http.StatusCreated},
+		{"TooLong", "123456789012345678901234567890123456789012345678901", http.StatusBadRequest},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			registerReq := fmt.Sprintf(`{"username": "%s", "password": "password123"}`, tt.username)
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte(registerReq)))
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+
+			defer func() { _ = resp.Body.Close() }()
+
+			require.Equal(t, tt.wantCode, resp.StatusCode)
+		})
+	}
+}
+
+// TestHandleRegisterUser_PasswordValidation tests password length validation.
+func TestHandleRegisterUser_PasswordValidation(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	tests := []struct {
+		name     string
+		password string
+		wantCode int
+	}{
+		{"TooShort", "short", http.StatusBadRequest},
+		{"MinLength", "12345678", http.StatusCreated},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			username := fmt.Sprintf("user_%s", googleUuid.New().String()[:8])
+			registerReq := fmt.Sprintf(`{"username": "%s", "password": "%s"}`, username, tt.password)
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte(registerReq)))
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+
+			defer func() { _ = resp.Body.Close() }()
+
+			require.Equal(t, tt.wantCode, resp.StatusCode)
+		})
+	}
+}
+
+// TestHandleDeleteMessage_InvalidMessageID tests delete with invalid UUID.
+func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+
+	// Test with invalid UUID.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/invalid-uuid", http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+}
+
+// TestHandleReceiveMessages_MarkReceivedError tests repository error during message retrieval.
+func TestHandleReceiveMessages_MarkReceivedError(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+
+	// Send a message.
+	sendReqBody := map[string]any{
+		"message":      "Test message",
+		"receiver_ids": []string{receiver.User.ID.String()},
+	}
+	sendReqJSON, err := json.Marshal(sendReqBody)
+	require.NoError(t, err)
+
+	sendReq, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(sendReqJSON))
+	require.NoError(t, err)
+	sendReq.Header.Set("Content-Type", "application/json")
+	sendReq.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	sendResp, err := client.Do(sendReq)
+	require.NoError(t, err)
+
+	defer func() { _ = sendResp.Body.Close() }()
+
+	require.True(t, sendResp.StatusCode == http.StatusOK || sendResp.StatusCode == http.StatusCreated)
+
+	// Close database to cause operations to fail.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	err = sqlDB.Close()
+	require.NoError(t, err)
+
+	// Receive messages - database closed, returns 500.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/inbox", http.NoBody)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+receiver.Token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+}
+
+// TestNew_Success tests successful server creation with valid config.
+func TestNew_Success(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	cfg := &server.Config{
+		PublicPort: 0,
+		AdminPort:  0,
+		DB:         db,
+	}
+
+	srv, err := server.New(context.Background(), cfg)
+	require.NoError(t, err)
+	require.NotNil(t, srv)
+	// Note: Ports are 0 until server starts, which we skip to avoid complexity in this constructor test.
+
+	// Call PublicPort and AdminPort for coverage (they're just pass-through accessors).
+	_ = srv.PublicPort()
+
+	_, _ = srv.AdminPort()
+}
+
+// TestNew_NilContext tests server creation with nil context.
+func TestNew_NilContext(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	cfg := &server.Config{
+		PublicPort: 0,
+		AdminPort:  0,
+		DB:         db,
+	}
+
+	_, err := server.New(nil, cfg) //nolint:staticcheck // Testing nil context validation.
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "context cannot be nil")
+}
+
+// TestNew_NilConfig tests server creation with nil config.
+func TestNew_NilConfig(t *testing.T) {
+	t.Parallel()
+
+	_, err := server.New(context.Background(), nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "config cannot be nil")
+}
+
+// TestNew_NilDatabase tests server creation with nil database.
+func TestNew_NilDatabase(t *testing.T) {
+	t.Parallel()
+
+	cfg := &server.Config{
+		PublicPort: 0,
+		AdminPort:  0,
+		DB:         nil,
+	}
+
+	_, err := server.New(context.Background(), cfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "database cannot be nil")
+}
+
+// TestStart_ContextCancelled tests server start with cancelled context.
+func TestStart_ContextCancelled(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	cfg := &server.Config{
+		PublicPort: 0,
+		AdminPort:  0,
+		DB:         db,
+	}
+
+	srv, err := server.New(context.Background(), cfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately.
+
+	err = srv.Start(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "context canceled")
+
+	// Clean up.
+	_ = srv.Shutdown(context.Background())
+}
+
 // TestHandleReceiveMessages_RepositoryError tests receiving messages when repository fails.
 func TestHandleReceiveMessages_RepositoryError(t *testing.T) {
 	t.Parallel()
