@@ -699,9 +699,11 @@ func TestHandleDeleteMessage_Success(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	// Create receiver and send message.
+	// Create sender and receiver users.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
 	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
 
+	// Send message.
 	reqBody := map[string]any{
 		"message":      "Test message",
 		"receiver_ids": []string{receiver.ID.String()},
@@ -712,6 +714,7 @@ func TestHandleDeleteMessage_Success(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(reqJSON))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -734,6 +737,7 @@ func TestHandleDeleteMessage_Success(t *testing.T) {
 	// Delete the message.
 	req, err = http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, nil)
 	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+sender.Token)
 
 	resp, err = client.Do(req)
 	require.NoError(t, err)
