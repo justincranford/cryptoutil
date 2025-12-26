@@ -183,12 +183,21 @@ func TestAnalyzeSettings_RealSettings(t *testing.T) {
 
 	require.Equal(t, len(allRegisteredSettings), totalMappedByName, "All settings should be accounted for by name")
 
+	// Count settings with non-empty shorthands
+	settingsWithShorthands := 0
+
+	for _, setting := range allRegisteredSettings {
+		if setting.shorthand != "" {
+			settingsWithShorthands++
+		}
+	}
+
 	totalMappedByShorthand := 0
 	for _, settings := range result.SettingsByShorthands {
 		totalMappedByShorthand += len(settings)
 	}
 
-	require.Equal(t, len(allRegisteredSettings), totalMappedByShorthand, "All settings should be accounted for by shorthand")
+	require.Equal(t, settingsWithShorthands, totalMappedByShorthand, "All settings with non-empty shorthands should be accounted for")
 
 	require.Empty(t, result.DuplicateNames, "Production settings should have no duplicate names")
 	require.Empty(t, result.DuplicateShorthands, "Production settings should have no duplicate shorthands")

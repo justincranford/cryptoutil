@@ -443,21 +443,21 @@ var (
 	})
 	tlsPublicMode = *registerSetting(&Setting{
 		name:        "tls-public-mode",
-		shorthand:   "1",
+		shorthand:   "",
 		value:       defaultTLSPublicMode,
 		usage:       "TLS public mode (static, mixed, auto)",
 		description: "TLS Public Mode",
 	})
 	tlsPrivateMode = *registerSetting(&Setting{
 		name:        "tls-private-mode",
-		shorthand:   "2",
+		shorthand:   "",
 		value:       defaultTLSPrivateMode,
 		usage:       "TLS private mode (static, mixed, auto)",
 		description: "TLS Private Mode",
 	})
 	tlsStaticCertPEM = *registerSetting(&Setting{
 		name:        "tls-static-cert-pem",
-		shorthand:   "3",
+		shorthand:   "",
 		value:       defaultTLSStaticCertPEM,
 		usage:       "TLS static cert PEM (for static mode)",
 		description: "TLS Static Cert PEM",
@@ -465,7 +465,7 @@ var (
 	})
 	tlsStaticKeyPEM = *registerSetting(&Setting{
 		name:        "tls-static-key-pem",
-		shorthand:   "4",
+		shorthand:   "",
 		value:       defaultTLSStaticKeyPEM,
 		usage:       "TLS static key PEM (for static mode)",
 		description: "TLS Static Key PEM",
@@ -473,7 +473,7 @@ var (
 	})
 	tlsMixedCACertPEM = *registerSetting(&Setting{
 		name:        "tls-mixed-ca-cert-pem",
-		shorthand:   "5",
+		shorthand:   "",
 		value:       defaultTLSMixedCACertPEM,
 		usage:       "TLS mixed CA cert PEM (for mixed mode)",
 		description: "TLS Mixed CA Cert PEM",
@@ -481,7 +481,7 @@ var (
 	})
 	tlsMixedCAKeyPEM = *registerSetting(&Setting{
 		name:        "tls-mixed-ca-key-pem",
-		shorthand:   "6",
+		shorthand:   "",
 		value:       defaultTLSMixedCAKeyPEM,
 		usage:       "TLS mixed CA key PEM (for mixed mode)",
 		description: "TLS Mixed CA Key PEM",
@@ -503,7 +503,7 @@ var (
 	})
 	privateAdminAPIContextPath = *registerSetting(&Setting{
 		name:        "admin-api-context-path",
-		shorthand:   "0",
+		shorthand:   "",
 		value:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath,
 		usage:       "context path for Private Admin API",
 		description: "Private Admin API Context Path",
@@ -666,7 +666,7 @@ var (
 	})
 	serverShutdownTimeout = *registerSetting(&Setting{
 		name:        "server-shutdown-timeout",
-		shorthand:   "3",
+		shorthand:   "",
 		value:       defaultServerShutdownTimeout,
 		usage:       "server shutdown timeout",
 		description: "Server Shutdown Timeout",
@@ -715,7 +715,7 @@ var (
 	})
 	otlpEndpoint = *registerSetting(&Setting{
 		name:        "otlp-endpoint",
-		shorthand:   "4",
+		shorthand:   "",
 		value:       defaultOTLPEndpoint,
 		usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
 		description: "OTLP Endpoint",
@@ -1313,7 +1313,10 @@ func analyzeSettings(settings []*Setting) analysisResult {
 	}
 	for _, setting := range settings {
 		result.SettingsByNames[setting.name] = append(result.SettingsByNames[setting.name], setting)
-		result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
+		// Only track non-empty shorthands
+		if setting.shorthand != "" {
+			result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
+		}
 	}
 
 	for _, setting := range settings {
