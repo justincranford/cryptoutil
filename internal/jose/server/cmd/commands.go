@@ -103,7 +103,6 @@ Examples:
 
 			fmt.Printf("JOSE Authority Server starting on %s:%d\n", settings.BindPublicAddress, settings.BindPublicPort)
 
-
 			return nil
 		},
 	}
