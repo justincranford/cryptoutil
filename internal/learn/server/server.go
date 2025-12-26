@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/repository"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
@@ -78,7 +79,14 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)
 	}
 
-	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, cfg.AdminPort, adminTLSCfg)
+	// Create temporary ServerSettings for admin server (minimal configuration).
+	// TODO: Refactor learn server to use ServerSettings directly instead of Config struct.
+	adminSettings := &cryptoutilConfig.ServerSettings{
+		BindPrivateAddress: cryptoutilMagic.IPv4Loopback,
+		BindPrivatePort:    cfg.AdminPort,
+	}
+
+	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, adminSettings, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}

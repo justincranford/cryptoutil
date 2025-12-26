@@ -16,11 +16,10 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicHTTPServer implements the PublicServer interface for business logic APIs and UIs.
-// Binds to configurable port (0 for tests with dynamic allocation, 8080+ for production).
+// Binds to configurable address and port from ServerSettings.
 //
 // Request Path Prefixes:
 // - /service/** : Service-to-service APIs (headless clients, IP allowlist, rate limiting)
@@ -29,7 +28,7 @@ import (
 // Both paths serve the SAME OpenAPI specification but with different middleware stacks.
 type PublicHTTPServer struct {
 	app         *fiber.App
-	port        int
+	settings    *cryptoutilConfig.ServerSettings
 	actualPort  int
 	listener    net.Listener
 	tlsMaterial *cryptoutilConfig.TLSMaterial
@@ -44,15 +43,19 @@ type PublicHTTPServer struct {
 //
 // Parameters:
 // - ctx: Context for initialization (must not be nil)
-// - port: Port to bind (0 for dynamic allocation in tests, 8080+ for production)
+// - settings: ServerSettings containing bind address, port, and paths (must not be nil)
 // - tlsCfg: TLS configuration (mode, certificates, parameters)
 //
 // Returns:
 // - *PublicHTTPServer: Server instance ready to Start()
 // - error: Non-nil if initialization fails (nil context, TLS generation failure, Fiber setup failure).
-func NewPublicHTTPServer(ctx context.Context, port int, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
+func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
+	}
+
+	if settings == nil {
+		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
 	if tlsCfg == nil {
@@ -68,7 +71,7 @@ func NewPublicHTTPServer(ctx context.Context, port int, tlsCfg *cryptoutilTLSGen
 	const defaultTimeout = 30
 
 	server := &PublicHTTPServer{
-		port:        port,
+		settings:    settings,
 		tlsMaterial: tlsMaterial,
 	}
 
@@ -148,7 +151,7 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 //
 // The server:
 // 1. Uses TLS material generated during NewPublicHTTPServer (configured mode)
-// 2. Creates TCP listener on configured port (0 = dynamic allocation)
+// 2. Creates TCP listener on configured address and port from ServerSettings
 // 3. Starts HTTPS server with Fiber app
 // 4. Blocks until context cancelled or server error
 // 5. Triggers graceful shutdown on context cancellation
@@ -163,12 +166,10 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Create TCP listener.
-	bindAddress := cryptoutilMagic.IPv4Loopback
-
+	// Create TCP listener using address and port from ServerSettings.
 	listenConfig := &net.ListenConfig{}
 
-	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", bindAddress, s.port))
+	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}

@@ -2,8 +2,6 @@
 
 package tls_generator
 
-import ()
-
 // TLSGeneratedSettings holds configuration for TLS certificate provisioning.
 type TLSGeneratedSettings struct {
 	// StaticCertPEM is the PEM-encoded certificate chain (server certificate followed by intermediates and root).

@@ -18,15 +18,15 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
-// Port 0 for tests (dynamic allocation avoids TIME_WAIT), 9090 for production containers.
+// Binds to address and port from ServerSettings.
 type AdminServer struct {
 	app         *fiber.App
 	listener    net.Listener
-	port        uint16
+	settings    *cryptoutilConfig.ServerSettings
+	actualPort  uint16
 	tlsMaterial *cryptoutilConfig.TLSMaterial
 	mu          sync.RWMutex
 	ready       bool
@@ -34,12 +34,18 @@ type AdminServer struct {
 }
 
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
-// port: 0 for tests (dynamic allocation), 9090 for production containers, other for non-container production.
+// settings: ServerSettings containing bind address, port, and paths (MUST NOT be nil).
 // tlsCfg: TLS configuration (mode + parameters) for HTTPS server. MUST NOT be nil.
-func NewAdminHTTPServer(ctx context.Context, port uint16, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*AdminServer, error) {
+func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
-	} else if tlsCfg == nil {
+	}
+
+	if settings == nil {
+		return nil, fmt.Errorf("settings cannot be nil")
+	}
+
+	if tlsCfg == nil {
 		return nil, fmt.Errorf("TLS configuration cannot be nil")
 	}
 
@@ -50,7 +56,7 @@ func NewAdminHTTPServer(ctx context.Context, port uint16, tlsCfg *cryptoutilTLSG
 	}
 
 	server := &AdminServer{
-		port:        port,
+		settings:    settings,
 		tlsMaterial: tlsMaterial,
 		ready:       false,
 		shutdown:    false,
@@ -174,16 +180,15 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	return nil
 }
 
-// Start begins listening on 127.0.0.1 with configured port for admin API requests.
+// Start begins listening on configured address and port from ServerSettings for admin API requests.
 // This method blocks until shutdown is called or context is cancelled.
 func (s *AdminServer) Start(ctx context.Context) error {
 	if ctx == nil {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Bind to localhost only (127.0.0.1 explicit, not localhost due to IPv6 issues).
-	// Port 0 for tests (dynamic allocation), 9090 for production containers.
-	addr := fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, s.port)
+	// Bind to address and port from ServerSettings.
+	addr := fmt.Sprintf("%s:%d", s.settings.BindPrivateAddress, s.settings.BindPrivatePort)
 
 	// Create listener.
 	var lc net.ListenConfig
@@ -195,8 +200,8 @@ func (s *AdminServer) Start(ctx context.Context) error {
 
 	s.listener = listener
 
-	// Store actual port if dynamic allocation was used.
-	if s.port == 0 {
+	// Store actual port if dynamic allocation was used (port 0).
+	if s.settings.BindPrivatePort == 0 {
 		tcpAddr, ok := listener.Addr().(*net.TCPAddr)
 		if !ok {
 			_ = listener.Close()
@@ -210,7 +215,9 @@ func (s *AdminServer) Start(ctx context.Context) error {
 			return fmt.Errorf("invalid port number: %d", tcpAddr.Port)
 		}
 
-		s.port = uint16(tcpAddr.Port) //nolint:gosec // Port range validated above.
+		s.actualPort = uint16(tcpAddr.Port) //nolint:gosec // Port range validated above.
+	} else {
+		s.actualPort = s.settings.BindPrivatePort
 	}
 
 	// Wrap with TLS using pre-generated TLS configuration.
@@ -283,7 +290,7 @@ func (s *AdminServer) ActualPort() (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return int(s.port), nil
+	return int(s.actualPort), nil
 }
 
 // SetReady marks the server as ready to accept traffic.
