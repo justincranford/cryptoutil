@@ -349,7 +349,7 @@ func TestParse_DryRun_Default(t *testing.T) {
 func TestValidateConfiguration_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	s := &Settings{
+	s := &ServerSettings{
 		BindPublicPort:      8080,
 		BindPrivatePort:     9090,
 		BindPublicProtocol:  "https",
@@ -374,12 +374,12 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings *Settings
+		settings *ServerSettings
 		errMsg   string
 	}{
 		{
 			name: "same non-zero ports",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     8080,
 				BindPublicProtocol:  "https",
@@ -394,7 +394,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid public protocol",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "ftp",
@@ -408,7 +408,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid private protocol",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -422,7 +422,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "https public missing TLS config",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -435,7 +435,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "https private missing TLS config",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "http",
@@ -448,7 +448,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid database URL format",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -464,7 +464,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid CORS origin format",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -480,7 +480,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid log level",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -495,7 +495,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "browser rate limit zero",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -510,7 +510,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "service rate limit zero",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -525,7 +525,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid OTLP endpoint format",
-			settings: &Settings{
+			settings: &ServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",

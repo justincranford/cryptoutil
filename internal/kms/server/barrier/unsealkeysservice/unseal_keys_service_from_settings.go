@@ -34,7 +34,7 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 	u.unsealJWKs = nil
 }
 
-func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
+func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServerSettings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
 		randomBytes, err := cryptoutilRandom.GenerateBytes(cryptoutilMagic.RandomKeySizeBytes)
 		if err != nil {

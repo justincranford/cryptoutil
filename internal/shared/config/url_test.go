@@ -14,12 +14,12 @@ func TestPrivateBaseURL(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings Settings
+		settings ServerSettings
 		expected string
 	}{
 		{
 			name: "https localhost 9090",
-			settings: Settings{
+			settings: ServerSettings{
 				BindPrivateProtocol: "https",
 				BindPrivateAddress:  "localhost",
 				BindPrivatePort:     9090,
@@ -28,7 +28,7 @@ func TestPrivateBaseURL(t *testing.T) {
 		},
 		{
 			name: "http 127.0.0.1 8080",
-			settings: Settings{
+			settings: ServerSettings{
 				BindPrivateProtocol: "http",
 				BindPrivateAddress:  "127.0.0.1",
 				BindPrivatePort:     8080,
@@ -37,7 +37,7 @@ func TestPrivateBaseURL(t *testing.T) {
 		},
 		{
 			name: "https IPv6 9999",
-			settings: Settings{
+			settings: ServerSettings{
 				BindPrivateProtocol: "https",
 				BindPrivateAddress:  "::1",
 				BindPrivatePort:     9999,
@@ -62,12 +62,12 @@ func TestPublicBaseURL(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings Settings
+		settings ServerSettings
 		expected string
 	}{
 		{
 			name: "https localhost 8080",
-			settings: Settings{
+			settings: ServerSettings{
 				BindPublicProtocol: "https",
 				BindPublicAddress:  "localhost",
 				BindPublicPort:     8080,
@@ -76,7 +76,7 @@ func TestPublicBaseURL(t *testing.T) {
 		},
 		{
 			name: "http 0.0.0.0 3000",
-			settings: Settings{
+			settings: ServerSettings{
 				BindPublicProtocol: "http",
 				BindPublicAddress:  "0.0.0.0",
 				BindPublicPort:     3000,
@@ -85,7 +85,7 @@ func TestPublicBaseURL(t *testing.T) {
 		},
 		{
 			name: "https IPv6 443",
-			settings: Settings{
+			settings: ServerSettings{
 				BindPublicProtocol: "https",
 				BindPublicAddress:  "[::]",
 				BindPublicPort:     443,

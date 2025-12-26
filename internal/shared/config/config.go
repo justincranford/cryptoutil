@@ -5,6 +5,8 @@
 package config
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"os"
 	"sort"
@@ -20,6 +22,38 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
+
+// TLSMode defines the three supported TLS certificate provisioning modes.
+type TLSMode string
+
+const (
+	// TLSModeStatic uses pre-generated TLS certificates (production).
+	// Requires: TLS certificate chain (PEM), private key (PEM).
+	// Source: Docker secrets, Kubernetes secrets, CA-signed certificates.
+	TLSModeStatic TLSMode = "static"
+
+	// TLSModeMixed uses static CA to sign dynamically generated server certificates (staging/QA).
+	// Requires: CA certificate chain (PEM), CA private key (PEM).
+	// Auto-generates: Server certificate signed by provided CA on startup.
+	TLSModeMixed TLSMode = "mixed"
+
+	// TLSModeAuto fully auto-generates CA hierarchy and server certificates (development/testing).
+	// Requires: Configuration parameters only (DNS names, IP addresses, validity).
+	// Auto-generates: 3-tier CA hierarchy (Root → Intermediate → Server).
+	TLSModeAuto TLSMode = "auto"
+)
+
+// TLSMaterial holds the runtime TLS configuration and certificate pools.
+type TLSMaterial struct {
+	// Config is the tls.Config for HTTPS servers.
+	Config *tls.Config
+
+	// RootCAPool is the certificate pool for root CAs (for client certificate validation).
+	RootCAPool *x509.CertPool
+
+	// IntermediateCAPool is the certificate pool for intermediate CAs (for chain building).
+	IntermediateCAPool *x509.CertPool
+}
 
 const (
 	defaultLogLevel                    = cryptoutilMagic.DefaultLogLevelInfo                // Balanced verbosity: shows important events without being overwhelming
@@ -171,7 +205,7 @@ var subcommands = map[string]struct{}{
 
 var allRegisteredSettings []*Setting
 
-type Settings struct {
+type ServerSettings struct {
 	SubCommand                  string
 	Help                        bool
 	ConfigFile                  []string
@@ -188,10 +222,16 @@ type Settings struct {
 	BindPrivateProtocol         string
 	BindPrivateAddress          string
 	BindPrivatePort             uint16
+	TLSPublicMode               TLSMode  // Default TLSModeAuto
+	TLSPrivateMode              TLSMode  // Default TLSModeAuto
 	TLSPublicDNSNames           []string
 	TLSPublicIPAddresses        []string
 	TLSPrivateDNSNames          []string
 	TLSPrivateIPAddresses       []string
+	TLSStaticCertPEM            []byte // Default nil. PEM-encoded certificate chain (for TLSModeStatic). Should contain: [Server Cert, Intermediate CA(s), Root CA] or [Server Cert, Root CA].
+	TLSStaticKeyPEM             []byte // Default nil. PEM-encoded private key (for TLSModeStatic).
+	TLSMixedCACertPEM           []byte // Default nil. PEM-encoded CA certificate chain (for TLSModeMixed). Should contain: [Intermediate CA(s), Root CA] or [Root CA].
+	TLSMixedCAKeyPEM            []byte // Default nil. PEM-encoded CA private key (for TLSModeMixed).
 	PublicBrowserAPIContextPath string
 	PublicServiceAPIContextPath string
 	PrivateAdminAPIContextPath  string
@@ -231,12 +271,12 @@ type Settings struct {
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.
-func (s *Settings) PrivateBaseURL() string {
+func (s *ServerSettings) PrivateBaseURL() string {
 	return fmt.Sprintf("%s://%s:%d", s.BindPrivateProtocol, s.BindPrivateAddress, s.BindPrivatePort)
 }
 
 // PublicBaseURL returns the public base URL constructed from protocol, address, and port.
-func (s *Settings) PublicBaseURL() string {
+func (s *ServerSettings) PublicBaseURL() string {
 	return fmt.Sprintf("%s://%s:%d", s.BindPublicProtocol, s.BindPublicAddress, s.BindPublicPort)
 }
 
@@ -651,7 +691,7 @@ var (
 )
 
 // Parse parses command line parameters and returns application settings.
-func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
+func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error) {
 	if len(commandParameters) == 0 {
 		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", \"init\", \"live\", or \"ready\"")
 	}
@@ -819,7 +859,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		}
 	}
 
-	s := &Settings{
+	s := &ServerSettings{
+		TLSPublicMode:               TLSModeAuto,
+		TLSPrivateMode:              TLSModeAuto,
 		SubCommand:                  subCommand,
 		Help:                        viper.GetBool(help.name),
 		ConfigFile:                  viper.GetStringSlice(configFile.name),
@@ -992,7 +1034,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	return s, nil
 }
 
-func logSettings(s *Settings) {
+func logSettings(s *ServerSettings) {
 	if s.VerboseMode {
 		log.Info("Sub Command: ", s.SubCommand)
 
@@ -1198,7 +1240,7 @@ func analyzeSettings(settings []*Setting) analysisResult {
 
 // validateConfiguration performs comprehensive validation of the configuration
 // and returns detailed error messages with suggestions for fixes.
-func validateConfiguration(s *Settings) error {
+func validateConfiguration(s *ServerSettings) error {
 	var errors []string
 
 	// Validate port ranges (port 0 is valid - OS assigns dynamic port).
@@ -1309,7 +1351,7 @@ func resolveFileURL(value string) string {
 }
 
 // NewForJOSEServer creates settings suitable for the JOSE Authority Server.
-func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *Settings {
+func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
 	// Build args for Parse()
 	args := []string{
 		"start", // Subcommand required
@@ -1332,7 +1374,7 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *Settings 
 }
 
 // NewForCAServer creates settings suitable for the CA Server.
-func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *Settings {
+func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
 	// Build args for Parse()
 	args := []string{
 		"start", // Subcommand required

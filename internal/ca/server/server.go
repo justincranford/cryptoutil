@@ -41,7 +41,7 @@ const (
 
 // Server represents the CA Server.
 type Server struct {
-	settings         *cryptoutilConfig.Settings
+	settings         *cryptoutilConfig.ServerSettings
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	issuer           *cryptoutilCAServiceIssuer.Issuer
 	storage          cryptoutilCAStorage.Store
@@ -55,12 +55,12 @@ type Server struct {
 }
 
 // New creates a new CA Server instance using context.Background().
-func New(settings *cryptoutilConfig.Settings) (*Server, error) {
+func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 	return NewServer(context.Background(), settings)
 }
 
 // NewServer creates a new CA Server instance.
-func NewServer(ctx context.Context, settings *cryptoutilConfig.Settings) (*Server, error) {
+func NewServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {

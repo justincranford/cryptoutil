@@ -67,7 +67,7 @@ func TestNewSQLRepository_NilChecks(t *testing.T) {
 		name      string
 		ctx       context.Context
 		telemetry *cryptoutilTelemetry.TelemetryService
-		settings  *cryptoutilConfig.Settings
+		settings  *cryptoutilConfig.ServerSettings
 		errorMsg  string
 	}{
 		{

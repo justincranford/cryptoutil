@@ -30,7 +30,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := &cryptoutilConfig.Settings{
+	settings := &cryptoutilConfig.ServerSettings{
 		OTLPService:  testOTLPService,
 		OTLPEndpoint: testOTLPEndpoint,
 		LogLevel:     testLogLevel,
@@ -141,7 +141,7 @@ func TestGenerateJWK(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := &cryptoutilConfig.Settings{
+	settings := &cryptoutilConfig.ServerSettings{
 		OTLPService:  testOTLPService,
 		OTLPEndpoint: testOTLPEndpoint,
 		LogLevel:     testLogLevel,

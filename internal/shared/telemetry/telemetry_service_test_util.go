@@ -11,7 +11,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 )
 
-func RequireNewForTest(ctx context.Context, settings *cryptoutilConfig.Settings) *TelemetryService {
+func RequireNewForTest(ctx context.Context, settings *cryptoutilConfig.ServerSettings) *TelemetryService {
 	telemetryService, err := NewTelemetryService(ctx, settings)
 	cryptoutilAppErr.RequireNoError(err, "failed to initialize telemetry")
 

@@ -2074,6 +2074,114 @@ func TestHandleSendMessage_InvalidBodyParser(t *testing.T) {
 	require.Equal(t, "invalid request body", result["error"])
 }
 
+// TestHandleRegisterUser_InvalidBody tests registration with malformed JSON.
+func TestHandleRegisterUser_InvalidBody(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Send malformed JSON.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte("{invalid-json")))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+	require.Equal(t, "invalid request body", result["error"])
+}
+
+// TestHandleLoginUser_InvalidBody tests login with malformed JSON.
+func TestHandleLoginUser_InvalidBody(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Send malformed JSON.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/login", bytes.NewReader([]byte("{not:valid")))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var result map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+	require.Equal(t, "invalid request body", result["error"])
+}
+
+// TestHandleReceiveMessages_MessageReceiverNotFound tests when receiver entry not found in message.
+func TestHandleReceiveMessages_MessageReceiverNotFound(t *testing.T) {
+	t.Parallel()
+
+	db := initTestDB(t)
+	_, baseURL := createTestPublicServer(t, db)
+	client := createHTTPClient(t)
+
+	// Register sender and receiver1.
+	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	receiver1 := registerAndLoginTestUser(t, client, baseURL, "receiver1", "password123")
+
+	// Send message to receiver1.
+	sendReqBody := map[string]any{
+		"receiver_ids": []string{receiver1.User.ID.String()},
+		"message":      "Test message",
+	}
+	sendReqJSON, err := json.Marshal(sendReqBody)
+	require.NoError(t, err)
+
+	sendReq, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(sendReqJSON))
+	require.NoError(t, err)
+	sendReq.Header.Set("Content-Type", "application/json")
+	sendReq.Header.Set("Authorization", "Bearer "+sender.Token)
+
+	sendResp, err := client.Do(sendReq)
+	require.NoError(t, err)
+
+	defer func() { _ = sendResp.Body.Close() }()
+
+	require.Equal(t, http.StatusCreated, sendResp.StatusCode)
+
+	// Now have receiver1 receive the message - should work.
+	recvReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
+	require.NoError(t, err)
+	recvReq.Header.Set("Authorization", "Bearer "+receiver1.Token)
+
+	recvResp, err := client.Do(recvReq)
+	require.NoError(t, err)
+
+	defer func() { _ = recvResp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, recvResp.StatusCode)
+
+	var recvResult map[string]any
+
+	err = json.NewDecoder(recvResp.Body).Decode(&recvResult)
+	require.NoError(t, err)
+
+	messages, ok := recvResult["messages"].([]any)
+	require.True(t, ok)
+	require.Len(t, messages, 1)
+}
+
 // TestNew_NilContext tests server creation with nil context.
 func TestNew_NilContext(t *testing.T) {
 	t.Parallel()

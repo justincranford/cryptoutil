@@ -21,7 +21,7 @@ import (
 
 // AdminServer represents the private admin API server for JOSE Authority service.
 type AdminServer struct {
-	settings    *cryptoutilConfig.Settings
+	settings    *cryptoutilConfig.ServerSettings
 	app         *fiber.App
 	listener    net.Listener
 	mu          sync.RWMutex
@@ -33,7 +33,7 @@ type AdminServer struct {
 // NewAdminServer creates a new admin server instance for private administrative operations.
 func NewAdminServer(
 	ctx context.Context,
-	settings *cryptoutilConfig.Settings,
+	settings *cryptoutilConfig.ServerSettings,
 	tlsCfg *cryptoutilTemplateServer.TLSConfig,
 ) (*AdminServer, error) {
 	if ctx == nil {

@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-func RequireNewForTest(applicationName string) *Settings {
+func RequireNewForTest(applicationName string) *ServerSettings {
 	configFileValue, ok := configFile.value.([]string)
 	if !ok {
 		panic("configFile.value must be []string")
@@ -254,7 +254,9 @@ func RequireNewForTest(applicationName string) *Settings {
 		panic("unsealFiles.value must be []string")
 	}
 
-	settings := &Settings{
+	settings := &ServerSettings{
+		TLSPublicMode:               TLSModeAuto,
+		TLSPrivateMode:              TLSModeAuto,
 		ConfigFile:                  configFileValue,
 		LogLevel:                    logLevelValue,
 		VerboseMode:                 verboseModeValue,
@@ -339,7 +341,7 @@ func RequireNewForTest(applicationName string) *Settings {
 	return settings
 }
 
-// NewFromFile loads settings from a YAML configuration file.
-func NewFromFile(filePath string) (*Settings, error) {
+// NewFromFile loads *ServerSettings from a YAML configuration file.
+func NewFromFile(filePath string) (*ServerSettings, error) {
 	return Parse([]string{"--config-file", filePath}, false)
 }

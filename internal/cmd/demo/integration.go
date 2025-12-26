@@ -86,7 +86,7 @@ type integrationServers struct {
 	identityCancel  context.CancelFunc
 	identityBaseURL string
 	kmsServer       *cryptoutilServerApplication.ServerApplicationListener
-	kmsSettings     *cryptoutilConfig.Settings
+	kmsSettings     *cryptoutilConfig.ServerSettings
 	kmsBaseURL      string
 }
 

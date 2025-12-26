@@ -25,13 +25,13 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		setupConfig func() *cryptoutilConfig.Settings
+		setupConfig func() *cryptoutilConfig.ServerSettings
 		expectError bool
 		errorText   string
 	}{
 		{
 			name: "Nil context",
-			setupConfig: func() *cryptoutilConfig.Settings {
+			setupConfig: func() *cryptoutilConfig.ServerSettings {
 				settings := cryptoutilConfig.RequireNewForTest("nil_ctx_test")
 				settings.DevMode = true
 				settings.DatabaseContainer = containerModeDisabled
@@ -43,7 +43,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "Nil telemetry service",
-			setupConfig: func() *cryptoutilConfig.Settings {
+			setupConfig: func() *cryptoutilConfig.ServerSettings {
 				settings := cryptoutilConfig.RequireNewForTest("nil_telemetry_test")
 				settings.DevMode = true
 				settings.DatabaseContainer = containerModeDisabled
@@ -55,7 +55,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "Nil settings",
-			setupConfig: func() *cryptoutilConfig.Settings {
+			setupConfig: func() *cryptoutilConfig.ServerSettings {
 				return nil
 			},
 			expectError: true,
@@ -63,7 +63,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "Empty database URL (non-dev mode)",
-			setupConfig: func() *cryptoutilConfig.Settings {
+			setupConfig: func() *cryptoutilConfig.ServerSettings {
 				settings := cryptoutilConfig.RequireNewForTest("empty_url_test")
 				settings.DevMode = false // Production mode
 				settings.DatabaseURL = ""

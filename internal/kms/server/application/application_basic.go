@@ -20,7 +20,7 @@ type ServerApplicationBasic struct {
 	JWKGenService     *cryptoutilJose.JWKGenService
 }
 
-func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig.Settings) (*ServerApplicationBasic, error) {
+func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*ServerApplicationBasic, error) {
 	serverApplicationBasic := &ServerApplicationBasic{}
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
