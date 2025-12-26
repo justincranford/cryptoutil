@@ -2097,3 +2097,67 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Task 9 Status**: ✅ **COMPLETE** - All config tests passing, viper BytesBase64P integration resolved
 
 ---
+
+### 2025-12-26: Task JWT Consolidation and Learn-IM Status Update
+
+**Work Completed**:
+
+- Consolidated JWT secret from 2 duplicate local variables to single constant in middleware.go
+- Updated DETAILED.md Section 1 to mark JWT tasks complete:
+  - Authentication middleware (JWT) - ✅ COMPLETE (middleware.go exists, routes registered in public.go)
+  - Replace hardcoded user IDs with auth context - ✅ COMPLETE (all 3 message handlers use c.Locals(ContextKeyUserID))
+  - Updated coverage from 60.1% to 88.0% server (verified with go test -cover)
+- Removed duplicate TODO comments in public.go (registerRoutes + handleLoginUser)
+- All message handlers confirmed using JWT auth context:
+  - handleSendMessage: Extracts senderID from context (line 368-373)
+  - handleReceiveMessages: Extracts receiverID from context (line 464-469)
+  - handleDeleteMessage: Extracts userID from context for ownership check (line 553-559)
+
+**Coverage/Quality Metrics**:
+
+- Before: 60.1% server coverage (stale DETAILED.md value)
+- After: 88.0% server coverage (verified, approaching 95% target)
+- All tests passing: ok 7.257s
+- Zero linting violations: golangci-lint clean
+- 2279 lines of public_test.go already exist (comprehensive test suite)
+
+**Lessons Learned**:
+
+1. **DETAILED.md Status Can Become Stale**: Authentication middleware was already complete but marked IN PROGRESS
+2. **JWT Middleware Pattern**: middleware.go defines GenerateJWT() and JWTMiddleware(), public.go registers on routes
+3. **Code Archaeology Critical**: Reading actual code revealed tasks complete, DETAILED.md outdated
+4. **Constant Consolidation**: Single JWTSecret constant in middleware.go prevents duplicate TODOs
+5. **Coverage Gap to 95%**: Need 7% more coverage (88% → 95%), analyze HTML report for uncovered lines
+
+**Constraints Discovered**: None (JWT already implemented correctly)
+
+**Requirements Discovered**:
+
+- JWT secret should move to configuration (currently JWTSecret constant in middleware.go)
+- learn-im Phase 3 completion criteria (tasks.md line 143-151):
+  - Coverage ≥95% - CURRENT 88.0% (need 7.1% more)
+  - Mutation score ≥85% - NOT MEASURED YET
+  - E2E tests pass BOTH /service and /browser paths - TESTS EXIST, need verification
+  - Docker Compose deployment - NOT DONE
+  - Deep analysis confirms template ready - NOT DONE
+
+**Next Steps** (prioritized by blocking dependencies):
+
+1. **Coverage improvement 88% → 95%** - HIGH PRIORITY (3-4 hours, blocking Phase 3 completion)
+2. **Mutation testing ≥85%** - BLOCKING quality gate
+3. **Docker Compose deployment** - HIGH PRIORITY (2-3 hours, Phase 3 completion criteria)
+4. **Documentation (README, API, TUTORIAL)** - HIGH PRIORITY (4-6 hours, Phase 3 completion criteria)
+5. **Move JWT secret to configuration** - LOW PRIORITY (30 minutes, nice-to-have)
+
+**Related Commits**:
+
+- b9ed812f ("refactor(learn): consolidate JWT secret to single constant in middleware.go")
+  - 4 files changed: +181 insertions, -16 deletions
+  - Created: test-output/coverage_template.out
+  - Modified: middleware.go, public.go, DETAILED.md
+
+**Violations Found**: None (all tests passing, linting clean, builds passing)
+
+**Current Task Status**: 🔄 **SEARCHING FOR NEXT WORK** - JWT tasks complete, coverage improvement next priority
+
+---
