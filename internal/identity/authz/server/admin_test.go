@@ -20,8 +20,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 )
 
-// TestNewAdminServer tests admin server creation.
-func TestNewAdminServer(t *testing.T) {
+// TestNewAdminHTTPServer tests admin server creation.
+func TestNewAdminHTTPServer(t *testing.T) {
 	t.Parallel()
 
 	t.Run("ValidConfig", func(t *testing.T) {
@@ -30,7 +30,7 @@ func TestNewAdminServer(t *testing.T) {
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin")
 		ctx := context.Background()
 
-		server, err := NewAdminServer(ctx, cfg)
+		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
 		require.NotNil(t, server)
 		require.NotNil(t, server.app)
@@ -44,7 +44,7 @@ func TestNewAdminServer(t *testing.T) {
 
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_nil_ctx")
 
-		server, err := NewAdminServer(nil, cfg) //nolint:staticcheck // Testing nil context validation requires passing nil.
+		server, err := NewAdminHTTPServer(nil, cfg) //nolint:staticcheck // Testing nil context validation requires passing nil.
 		require.Error(t, err)
 		require.Nil(t, server)
 		require.Contains(t, err.Error(), "context cannot be nil")
@@ -55,7 +55,7 @@ func TestNewAdminServer(t *testing.T) {
 
 		ctx := context.Background()
 
-		server, err := NewAdminServer(ctx, nil)
+		server, err := NewAdminHTTPServer(ctx, nil)
 		require.Error(t, err)
 		require.Nil(t, server)
 		require.Contains(t, err.Error(), "config cannot be nil")
@@ -73,7 +73,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		cfg.AuthZ.AdminPort = 0 // Dynamic port.
 		ctx := context.Background()
 
-		server, err := NewAdminServer(ctx, cfg)
+		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
 		require.NotNil(t, server)
 
@@ -112,7 +112,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_no_start")
 		ctx := context.Background()
 
-		server, err := NewAdminServer(ctx, cfg)
+		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
 
 		// Shutdown without starting should succeed.
@@ -125,7 +125,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_shutdown_nil_ctx")
 		ctx := context.Background()
 
-		server, err := NewAdminServer(ctx, cfg)
+		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
 
 		// Shutdown with nil context should default to Background.
@@ -143,7 +143,7 @@ func TestAdminServerActualPort(t *testing.T) {
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_port_before")
 		ctx := context.Background()
 
-		server, err := NewAdminServer(ctx, cfg)
+		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
 
 		// Should fail before Start.
@@ -160,7 +160,7 @@ func TestAdminServerActualPort(t *testing.T) {
 		cfg.AuthZ.AdminPort = 0 // Dynamic port.
 		ctx := context.Background()
 
-		server, err := NewAdminServer(ctx, cfg)
+		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
 
 		// Start server.
@@ -189,7 +189,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	cfg.AuthZ.AdminPort = 0 // Dynamic port.
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start server.
@@ -249,7 +249,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	cfg.AuthZ.AdminPort = 0 // Dynamic port.
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start server.
@@ -318,7 +318,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	cfg.AuthZ.AdminPort = 0 // Dynamic port.
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start server.

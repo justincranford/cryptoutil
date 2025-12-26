@@ -75,7 +75,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		AutoValidityDays: cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	}
 
-	adminServer, err := cryptoutilTemplateServer.NewAdminServer(ctx, cfg.AdminPort, tlsCfg)
+	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, cfg.AdminPort, tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}

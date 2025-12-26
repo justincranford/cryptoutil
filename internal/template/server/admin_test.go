@@ -24,8 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestNewAdminServer_HappyPath tests successful admin server creation.
-func TestNewAdminServer_HappyPath(t *testing.T) {
+// TestNewAdminHTTPServer_HappyPath tests successful admin server creation.
+func TestNewAdminHTTPServer_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
@@ -34,14 +34,14 @@ func TestNewAdminServer_HappyPath(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 
 	require.NoError(t, err)
 	require.NotNil(t, server)
 }
 
-// TestNewAdminServer_NilContext tests that NewAdminServer rejects nil context.
-func TestNewAdminServer_NilContext(t *testing.T) {
+// TestNewAdminHTTPServer_NilContext tests that NewAdminHTTPServer rejects nil context.
+func TestNewAdminHTTPServer_NilContext(t *testing.T) {
 	t.Parallel()
 
 	tlsCfg := &cryptoutilTLSGenerator.TLSGeneratedSettings{
@@ -50,7 +50,7 @@ func TestNewAdminServer_NilContext(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(nil, 0, tlsCfg) //nolint:staticcheck // Testing nil context handling.
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(nil, 0, tlsCfg) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "context cannot be nil")
@@ -66,7 +66,7 @@ func TestAdminServer_Start_Success(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -128,7 +128,7 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -209,7 +209,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -317,7 +317,7 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	err = server.Start(nil) //nolint:staticcheck // Testing nil context handling.
@@ -335,7 +335,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -416,7 +416,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -500,7 +500,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -579,7 +579,7 @@ func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -619,7 +619,7 @@ func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	port, err := server.ActualPort()
@@ -642,7 +642,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -795,7 +795,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 		AutoIPAddresses:  []string{"127.0.0.1", "::1"},
 		AutoValidityDays: 365,
 	}
-	server, err := cryptoutilTemplateServer.NewAdminServer(context.Background(), 0, tlsCfg)
+	server, err := cryptoutilTemplateServer.NewAdminHTTPServer(context.Background(), 0, tlsCfg)
 	require.NoError(t, err)
 
 	// Start server in background.

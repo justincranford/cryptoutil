@@ -33,10 +33,10 @@ type AdminServer struct {
 	shutdown    bool
 }
 
-// NewAdminServer creates a new admin server instance for private administrative operations.
+// NewAdminHTTPServer creates a new admin server instance for private administrative operations.
 // port: 0 for tests (dynamic allocation), 9090 for production containers, other for non-container production.
 // tlsCfg: TLS configuration (mode + parameters) for HTTPS server. MUST NOT be nil.
-func NewAdminServer(ctx context.Context, port uint16, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*AdminServer, error) {
+func NewAdminHTTPServer(ctx context.Context, port uint16, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if tlsCfg == nil {

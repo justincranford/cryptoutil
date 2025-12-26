@@ -64,7 +64,7 @@ func NewApplication(
 	}
 
 	// Create admin server.
-	adminServer, err := NewAdminServer(ctx, settings, adminTLSCfg)
+	adminServer, err := NewAdminHTTPServer(ctx, settings, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}

@@ -22,7 +22,7 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 	cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_start_nil_ctx")
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start with nil context should fail.
@@ -54,7 +54,7 @@ func TestAdminServer_LoadTLSConfig_InvalidCertFile(t *testing.T) {
 
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// loadTLSConfig should fail with invalid certificate file.
@@ -75,7 +75,7 @@ func TestAdminServer_LoadTLSConfig_NonexistentFiles(t *testing.T) {
 
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// loadTLSConfig should fail with file not found error.
@@ -91,7 +91,7 @@ func TestAdminServer_LoadTLSConfig_NilContext(t *testing.T) {
 	cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_loadtls_nil_ctx")
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// loadTLSConfig with nil context should fail.
@@ -112,7 +112,7 @@ func TestAdminServer_LoadTLSConfig_SelfSigned(t *testing.T) {
 
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// loadTLSConfig should generate self-signed certificate.
@@ -135,7 +135,7 @@ func TestAdminServer_Start_InvalidBindAddress(t *testing.T) {
 
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start should fail with invalid bind address.
@@ -154,7 +154,7 @@ func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 	cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_port_nostart")
 	ctx := context.Background()
 
-	server, err := NewAdminServer(ctx, cfg)
+	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
 	// ActualPort before Start should fail.

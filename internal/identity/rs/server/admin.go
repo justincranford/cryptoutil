@@ -35,8 +35,8 @@ type AdminServer struct {
 	shutdown bool
 }
 
-// NewAdminServer creates a new admin server instance for private administrative operations.
-func NewAdminServer(
+// NewAdminHTTPServer creates a new admin server instance for private administrative operations.
+func NewAdminHTTPServer(
 	ctx context.Context,
 	config *cryptoutilIdentityConfig.Config,
 ) (*AdminServer, error) {

@@ -30,8 +30,8 @@ type AdminServer struct {
 	tlsMaterial *cryptoutilConfig.TLSMaterial
 }
 
-// NewAdminServer creates a new admin server instance for private administrative operations.
-func NewAdminServer(
+// NewAdminHTTPServer creates a new admin server instance for private administrative operations.
+func NewAdminHTTPServer(
 	ctx context.Context,
 	settings *cryptoutilConfig.ServerSettings,
 	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
