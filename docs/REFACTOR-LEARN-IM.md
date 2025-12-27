@@ -4,14 +4,14 @@
 
 This document outlines the tasks required to refactor the learn product and learn-im service to support ALL THREE command-line patterns defined in `docs/CMD-PATTERN.md`: Suite, Product, and Product-Service.
 
-**Status**: ⚠️ IN PROGRESS - 9 commits completed, core implementation done, testing pending
+**Status**: ⚠️ IN PROGRESS - 12 commits completed, core implementation done, testing in progress
 
 **Current Progress**:
 
 - ✅ Phase 1: Directory Structure - COMPLETE
 - ✅ Phase 2: Subcommand Implementation - COMPLETE (stubs for client/init, full for server/health/livez/readyz/shutdown)
 - ✅ Phase 3: PostgreSQL Support - COMPLETE
-- ⚠️ Phase 4: Testing - NOT STARTED (HIGH PRIORITY NEXT)
+- ⚠️ Phase 4: Testing - IN PROGRESS (learn.go unit tests complete, im.go integration tests pending)
 - ⚠️ Phase 5-9: Documentation, Orchestration, CI/CD - NOT STARTED
 
 **Commit Summary**:
@@ -25,6 +25,9 @@ This document outlines the tasks required to refactor the learn product and lear
 7. `b2ea0679` - Fixed unused version variables
 8. `94a97def` - Added PostgreSQL database support
 9. `d67de975` - Implemented HTTP client wrappers for health endpoints
+10. `7679f3e3` - Updated REFACTOR-LEARN-IM.md with completed tasks
+11. `a742616b` - Added comprehensive unit tests for learn command router
+12. `77821cb9` - Documented learn CLI refactoring session in DETAILED.md
 
 **Goal**:
 
@@ -95,7 +98,7 @@ This document outlines the tasks required to refactor the learn product and lear
 
 - [x] `internal/cmd/learn/learn.go` created with proper structure ✅
 - [x] Command routing logic implemented ✅
-- [ ] Unit tests for command parsing (≥95% coverage) - TODO Phase 4
+- [x] Unit tests for command parsing (≥95% coverage) ✅ (commit a742616b - learn_test.go)
 - [x] Conventional commit created ✅ (commit dda7fbc7)
 
 ---
@@ -362,31 +365,45 @@ This document outlines the tasks required to refactor the learn product and lear
 
 ### Task 4.1: Update Unit Tests
 
-**Status**: ❌ Not Started
+**Status**: ⚠️ IN PROGRESS (Commit a742616b - learn.go complete, im.go pending)
 
 **Description**: Create/update unit tests for new command structure.
 
-**Files to Create/Modify**:
+**Files Created**:
 
-- `internal/cmd/learn/learn_test.go` - Command routing tests
-- `internal/cmd/learn/*_test.go` - Subcommand tests
+- `internal/cmd/learn/learn_test.go` ✅ - Command routing tests (7 test functions, 16 subtests)
+
+**Files to Create**:
+
+- `internal/cmd/learn/*_test.go` - Subcommand tests (im.go integration tests with test-containers)
 
 **Test Coverage Requirements**:
 
-- Command parsing and routing: ≥95%
-- Subcommand execution: ≥95%
-- Error handling: All error paths
-- Flag validation: All flag combinations
+- Command parsing and routing: ✅ ≥95% (learn.go fully tested)
+- Subcommand execution: ⚠️ Pending (im.go requires integration tests with databases)
+- Error handling: ✅ All error paths tested (learn.go)
+- Flag validation: ✅ All flag combinations tested (help/version)
 
-**Dependencies**: Phase 2 tasks
+**Implementation Complete (learn_test.go)**:
+
+- 7 test functions with table-driven patterns
+- 16 subtests with parallel execution
+- captureOutput() helper for stdout/stderr capture
+- Tests: NoArguments, HelpCommand (3 variants), VersionCommand (3 variants), UnknownService (3 variants), IMService_RoutesCorrectly, IMService_InvalidSubcommand, Constants (6 variants)
+- All tests pass consistently with shuffle and parallel execution
+- Execution time: <0.1s
+
+**Dependencies**: Phase 2 tasks - SATISFIED
 
 **Completion Criteria**:
 
-- [ ] Unit tests created for all new code
-- [ ] Coverage ≥95% for internal/cmd/learn/
-- [ ] All tests pass with `go test ./internal/cmd/learn/...`
-- [ ] Table-driven test pattern used
-- [ ] Conventional commit created
+- [x] Unit tests created for learn.go ✅ (commit a742616b)
+- [ ] Unit/integration tests created for im.go (requires test-containers for PostgreSQL/SQLite)
+- [x] Coverage ≥95% for internal/cmd/learn/learn.go ✅
+- [ ] Coverage ≥95% for internal/cmd/learn/im.go - TODO (integration tests)
+- [x] Tests pass with `go test ./internal/cmd/learn/...` ✅
+- [x] Table-driven test pattern used ✅
+- [x] Conventional commit created ✅ (a742616b)
 
 ---
 
