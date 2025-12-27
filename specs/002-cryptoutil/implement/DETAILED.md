@@ -2372,3 +2372,128 @@ go test -v ./internal/learn/e2e/... -timeout=60s
 **Current Task Status**: ✅ **E2E TESTS COMPLETE** (service + browser paths covered), 🔄 **MUTATION TESTING IN PROGRESS** (awaiting CI results)
 
 ---
+
+### 2025-12-28: Learn Product CLI Refactoring Implementation
+
+**Work Completed**:
+
+- ✅ **Phase 1: Directory Structure** (Commits dda7fbc7, 8bbf88a2):
+  - Created internal/cmd/learn/learn.go - Product command router
+  - Created internal/cmd/learn/im.go - IM service subcommand handler
+  - Created 3-level configuration hierarchy (configs/cryptoutil, configs/learn, configs/learn/im)
+  - All 3 CLI patterns working (Suite, Product, Product-Service)
+  - Help/version flags standardized across all patterns
+
+- ✅ **Phase 2: Subcommand Implementation** (Commits aedb601d, 7650e339, 0edfaf4b, fd80d1ad, b2ea0679, d67de975):
+  - ALL 7 subcommands implemented:
+    - server: Full implementation with database initialization
+    - client: Stub with help/version (business logic TODO)
+    - init: Stub with help/version (business logic TODO)
+    - health: Full HTTP client wrapper implementation
+    - livez: Full HTTP client wrapper implementation
+    - readyz: Full HTTP client wrapper implementation
+    - shutdown: Full HTTP client wrapper implementation
+  - Suite/Product integration complete (cryptoutil learn, learn standalone)
+  - Product-Service delegation working (learn-im → internal/cmd/learn)
+  - HTTP client helpers with TLS InsecureSkipVerify and context support
+  - URL parsing with --url flag support
+  - Status code validation and formatted output
+
+- ✅ **Phase 3: PostgreSQL Support** (Commit 94a97def):
+  - Dual database support via URL scheme detection
+  - PostgreSQL: pgx/v5 driver, connection pool (25/10/1h)
+  - SQLite: modernc.org/sqlite (CGO-free), WAL mode, busy timeout 30s
+  - DATABASE_URL environment variable support
+  - Magic constants: PostgreSQLMaxOpenConns, PostgreSQLMaxIdleConns, PostgreSQLConnMaxLifetime
+
+- ✅ **Phase 4: Unit Testing** (Commit a742616b):
+  - Created learn_test.go with comprehensive router tests
+  - Table-driven tests for help/version/unknown service
+  - Captures stdout/stderr for verification
+  - All tests pass with parallel execution and shuffle
+  - Covers Learn() function with multiple scenarios
+
+- ✅ **Documentation Updates** (Commit 7679f3e3):
+  - Updated REFACTOR-LEARN-IM.md with completion status
+  - Marked Phase 1-3 tasks as complete
+  - Added Task 2.0 for Suite/Product integration
+  - Added 11-commit summary with hashes
+  - Identified Phase 4 (Testing) as next priority
+
+**Test Execution Results**:
+
+`ash
+go test ./internal/cmd/learn/ -v -shuffle=on
+
+# All tests PASS (7 test functions, 16 subtests total)
+
+# TestLearn_NoArguments: 0.00s
+
+# TestLearn_HelpCommand: 0.00s (3 variants)
+
+# TestLearn_VersionCommand: 0.00s (3 variants)
+
+# TestLearn_UnknownService: 0.00s (3 variants)
+
+# TestLearn_IMService_RoutesCorrectly: 0.00s
+
+# TestLearn_IMService_InvalidSubcommand: 0.00s
+
+# TestLearn_Constants: 0.00s (6 variants)
+
+`
+
+**Coverage/Quality Metrics**:
+
+- learn.go router: Full coverage via learn_test.go
+- im.go: Partial coverage (learn_test.go integration tests only)
+- Next: im_test.go for im.go function-level coverage
+
+**Lessons Learned**:
+
+1. **noctx Linter Requirement**: HTTP client calls MUST use http.NewRequestWithContext() + client.Do(), not client.Get()/Post()
+2. **goconst Enforcement**: ANY string repeated 4+ times MUST be extracted to constant
+3. **Context Pattern for CLI**: Use context.Background() for CLI operations (no server request context)
+4. **Stdout/Stderr Capture Pattern**: Parallel tests with shared captureOutput() can miss timing-dependent output
+5. **Database Dependencies in Tests**: Unit tests calling im.go server functions require database (use integration tests)
+6. **Conventional Commits**: Regular commits (11 total) enable granular rollback and clear history
+
+**Constraints Discovered**:
+
+- im_test.go requires database mocking or test-containers (complex)
+- Coverage profiling to ./test-output/ works only when tests don't call database init functions
+- Full im.go coverage requires integration/E2E tests with real databases
+
+**Next Steps**:
+
+1. **im.go Integration Tests** - MEDIUM PRIORITY (4-6 hours):
+   - Use test-containers for PostgreSQL + SQLite
+   - Test database initialization (both types)
+   - Test server startup/shutdown
+   - Test all 7 subcommands with real servers
+2. **Docker Compose Migration** - HIGH PRIORITY (2-3 hours):
+   - Move compose files to deployments/compose/learn/
+   - Update cryptoutil-compose tool for learn product
+   - Update cryptoutil-e2e tool for learn testing
+3. **Production Validation** - FINAL STEP (2-3 hours):
+   - Run all E2E tests with learn service
+   - Validate service template features demonstrated
+   - Document template reusability for other products
+
+**Related Commits**:
+
+1. dda7fbc7 - Created internal/cmd/learn structure
+2. 8bbf88a2 - Created 3-level configuration hierarchy
+3. aedb601d - Implemented all 6 remaining subcommands with help stubs
+4. 7650e339 - Fixed constant usage for help/version flags
+5. 0edfaf4b - Added learn to Suite, created Product executable
+6. fd80d1ad - Refactored learn-im to delegate
+7. b2ea0679 - Fixed unused version variables
+8. 94a97def - Added PostgreSQL database support
+9. d67de975 - Implemented HTTP client wrappers for health endpoints
+10. 7679f3e3 - Updated REFACTOR-LEARN-IM.md with completed tasks
+11. a742616b - Added comprehensive unit tests for learn command router
+
+**Violations Found**: None (all linting clean, all tests passing, all hooks passing)
+
+**Current Task Status**: ✅ **PHASE 1-3 COMPLETE**, ⚠️ **PHASE 4 PARTIAL** (learn.go tested, im.go integration tests TODO)
