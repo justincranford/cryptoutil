@@ -12,10 +12,11 @@ import (
 )
 
 // Version information (injected during build).
+// Kept for future use when version flag is implemented.
 var (
-	version   = "dev"
-	buildDate = "unknown"
-	gitCommit = "unknown"
+	_ = "dev"     // version
+	_ = "unknown" // buildDate
+	_ = "unknown" // gitCommit
 )
 
 func main() {
