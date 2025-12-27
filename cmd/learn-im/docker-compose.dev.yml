@@ -1,0 +1,28 @@
+# Development overrides for learn-im Docker Compose
+#
+# This file provides development-specific configurations including:
+# - Volume mounts for hot reload
+# - Debug logging
+# - Port exposure
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  learn-im:
+    build:
+      target: builder  # Use builder stage for development
+    volumes:
+      # Mount source code for hot reload (if using air or similar)
+      - ../../:/src:ro
+      # Persistent data volume for development database
+      - learn-im-dev-data:/app/data
+    environment:
+      - LOG_LEVEL=debug
+      - ENV=development
+    # Override command for development (if needed)
+    # command: ["--dev", "--log-level=debug"]
+
+volumes:
+  learn-im-dev-data:
+    name: learn-im-dev-data
