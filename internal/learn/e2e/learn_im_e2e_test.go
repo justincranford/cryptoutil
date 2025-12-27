@@ -573,15 +573,23 @@ func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 	} {
 		msg := recipientData.messages[0]
 
-		var ciphertext, nonce, ephemeralPubKey []byte
-		var errDecode error
+		ciphertextHex, ok := msg["encrypted_content"].(string)
+		require.True(t, ok)
 
-		ciphertext, errDecode = hex.DecodeString(msg["encrypted_content"].(string))
-		require.NoError(t, errDecode)
-		nonce, errDecode = hex.DecodeString(msg["nonce"].(string))
-		require.NoError(t, errDecode)
-		ephemeralPubKey, errDecode = hex.DecodeString(msg["sender_pub_key"].(string))
-		require.NoError(t, errDecode)
+		ciphertext, err := hex.DecodeString(ciphertextHex)
+		require.NoError(t, err)
+
+		nonceHex, ok := msg["nonce"].(string)
+		require.True(t, ok)
+
+		nonce, err := hex.DecodeString(nonceHex)
+		require.NoError(t, err)
+
+		ephemeralPubKeyHex, ok := msg["sender_pub_key"].(string)
+		require.True(t, ok)
+
+		ephemeralPubKey, err := hex.DecodeString(ephemeralPubKeyHex)
+		require.NoError(t, err)
 
 		// Parse recipient's private key.
 		privateKey, err := cryptoutilCrypto.ParseECDHPrivateKey(recipientData.privateKey)
