@@ -119,11 +119,10 @@ func TestInitDatabase_SQLite(t *testing.T) {
 
 // TestInitDatabase_SQLiteFile tests SQLite file-based database initialization.
 func TestInitDatabase_SQLiteFile(t *testing.T) {
-	t.Parallel()
-
+	// Remove t.Parallel() - SQLite file locking issues with concurrent tests.
 	ctx := context.Background()
 
-	// Create temporary database file path.
+	// Create temporary database file path with unique name.
 	tmpFile := fmt.Sprintf("file:%s/test_%s.db?cache=shared", t.TempDir(), googleUuid.NewString())
 
 	// Set environment variable for database URL.

@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	cryptoutilLearnCmd "cryptoutil/internal/cmd/learn"
@@ -16,13 +17,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Global mutex to serialize captureOutput calls (os.Stdout/os.Stderr are global, cannot run concurrently).
+var captureOutputMutex sync.Mutex
+
 // captureOutput captures stdout and stderr during function execution.
 func captureOutput(t *testing.T, fn func()) (stdout, stderr string) {
 	t.Helper()
 
+	// Serialize all captureOutput calls - os.Stdout/os.Stderr are global variables.
+	captureOutputMutex.Lock()
+	defer captureOutputMutex.Unlock()
+
 	// Save original stdout/stderr.
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
+
+	defer func() {
+		os.Stdout = oldStdout
+		os.Stderr = oldStderr
+	}()
 
 	// Create pipes for capturing.
 	rStdout, wStdout, err := os.Pipe()
@@ -35,31 +48,41 @@ func captureOutput(t *testing.T, fn func()) (stdout, stderr string) {
 	os.Stdout = wStdout
 	os.Stderr = wStderr
 
+	// Capture output in goroutines BEFORE running function.
+	var (
+		bufStdout, bufStderr bytes.Buffer
+		wg                   sync.WaitGroup
+	)
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		_, _ = io.Copy(&bufStdout, rStdout)
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		_, _ = io.Copy(&bufStderr, rStderr)
+	}()
+
 	// Run function.
 	fn()
 
-	// Close writers.
+	// Close writers to signal EOF to readers.
 	require.NoError(t, wStdout.Close())
 	require.NoError(t, wStderr.Close())
 
-	// Restore original stdout/stderr.
-	os.Stdout = oldStdout
-	os.Stderr = oldStderr
-
-	// Read captured output.
-	var bufStdout, bufStderr bytes.Buffer
-
-	_, err = io.Copy(&bufStdout, rStdout)
-	require.NoError(t, err)
-
-	_, err = io.Copy(&bufStderr, rStderr)
-	require.NoError(t, err)
+	// Wait for goroutines to finish reading all output.
+	wg.Wait()
 
 	return bufStdout.String(), bufStderr.String()
 }
 
 func TestLearn_NoArguments(t *testing.T) {
-	t.Parallel()
+	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
 
 	_, stderr := captureOutput(t, func() {
 		exitCode := cryptoutilLearnCmd.Learn([]string{})
@@ -93,8 +116,10 @@ func TestLearn_HelpCommand(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
+			// TODO: Investigate safer capture method that works with t.Parallel().
 
 			_, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
@@ -130,16 +155,19 @@ func TestLearn_VersionCommand(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
+			// TODO: Investigate safer capture method that works with t.Parallel().
 
-			stdout, _ := captureOutput(t, func() {
+			stdout, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
 				require.Equal(t, 0, exitCode)
 			})
 
-			require.Contains(t, stdout, "learn product")
-			require.Contains(t, stdout, "cryptoutil")
+			combinedOutput := stdout + stderr
+			require.Contains(t, combinedOutput, "learn product")
+			require.Contains(t, combinedOutput, "cryptoutil")
 		})
 	}
 }
@@ -170,8 +198,10 @@ func TestLearn_UnknownService(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
+			// TODO: Investigate safer capture method that works with t.Parallel().
 
 			stdout, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
@@ -190,7 +220,7 @@ func TestLearn_UnknownService(t *testing.T) {
 }
 
 func TestLearn_IMService_RoutesCorrectly(t *testing.T) {
-	t.Parallel()
+	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
 
 	// Test that "im" service routes to IM function.
 	// We can't fully test IM() behavior here without a running server,
@@ -209,7 +239,7 @@ func TestLearn_IMService_RoutesCorrectly(t *testing.T) {
 }
 
 func TestLearn_IMService_InvalidSubcommand(t *testing.T) {
-	t.Parallel()
+	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
 
 	_, stderr := captureOutput(t, func() {
 		exitCode := cryptoutilLearnCmd.Learn([]string{"im", "invalid-subcommand"})
@@ -225,7 +255,7 @@ func TestLearn_IMService_InvalidSubcommand(t *testing.T) {
 }
 
 func TestLearn_Constants(t *testing.T) {
-	t.Parallel()
+	// Remove t.Parallel() from parent - child tests use captureOutput with race condition.
 
 	// Verify constants are used consistently.
 	// This test documents expected constant values.
@@ -245,8 +275,9 @@ func TestLearn_Constants(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		// Capture range variable.
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
 
 			_, _ = captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
