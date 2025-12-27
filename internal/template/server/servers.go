@@ -26,30 +26,60 @@ type HTTPSServers struct {
 func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*HTTPSServers, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
-	}
-
-	if settings == nil {
+	} else if settings == nil {
 		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
-	var (
-		pubTLS *cryptoutilTLSGenerator.TLSGeneratedSettings
-		err    error
-	)
+	publicTLSGeneratedSettings, err := newFunction(settings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create public TLS settings: %w", err)
+	}
+
+	adminTLSGeneratedSettings, err := newFunction1(settings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create admin TLS settings: %w", err)
+	}
+
+	// Create servers
+	publicServer, err := NewPublicHTTPServer(ctx, settings, publicTLSGeneratedSettings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create public server: %w", err)
+	}
+
+	adminServer, err := NewAdminHTTPServer(ctx, settings, adminTLSGeneratedSettings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create admin server: %w", err)
+	}
+
+	return &HTTPSServers{
+		Settings:     settings,
+		PublicTLS:    publicTLSGeneratedSettings,
+		AdminTLS:     adminTLSGeneratedSettings,
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}, nil
+}
+
+func newFunction(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
+	var publicTLSGeneratedSettings *cryptoutilTLSGenerator.TLSGeneratedSettings
 
 	switch settings.TLSPublicMode {
 	case cryptoutilConfig.TLSModeStatic:
-		pubTLS = &cryptoutilTLSGenerator.TLSGeneratedSettings{
+		publicTLSGeneratedSettings = &cryptoutilTLSGenerator.TLSGeneratedSettings{
 			StaticCertPEM: settings.TLSStaticCertPEM,
 			StaticKeyPEM:  settings.TLSStaticKeyPEM,
 		}
 	case cryptoutilConfig.TLSModeMixed:
-		pubTLS, err = cryptoutilTLSGenerator.GenerateServerCertFromCA(settings.TLSMixedCACertPEM, settings.TLSMixedCAKeyPEM, settings.TLSPublicDNSNames, settings.TLSPublicIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+		var err error
+
+		publicTLSGeneratedSettings, err = cryptoutilTLSGenerator.GenerateServerCertFromCA(settings.TLSMixedCACertPEM, settings.TLSMixedCAKeyPEM, settings.TLSPublicDNSNames, settings.TLSPublicIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate public server cert from CA: %w", err)
 		}
 	case cryptoutilConfig.TLSModeAuto:
-		pubTLS, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(settings.TLSPublicDNSNames, settings.TLSPublicIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+		var err error
+
+		publicTLSGeneratedSettings, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(settings.TLSPublicDNSNames, settings.TLSPublicIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 		if err != nil {
 			return nil, fmt.Errorf("failed to auto-generate public server certs: %w", err)
 		}
@@ -57,21 +87,29 @@ func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServerSettin
 		return nil, fmt.Errorf("unknown public TLS mode: %s", settings.TLSPublicMode)
 	}
 
-	var adminTLS *cryptoutilTLSGenerator.TLSGeneratedSettings
+	return publicTLSGeneratedSettings, nil
+}
+
+func newFunction1(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
+	var adminTLSGeneratedSettings *cryptoutilTLSGenerator.TLSGeneratedSettings
 
 	switch settings.TLSPrivateMode {
 	case cryptoutilConfig.TLSModeStatic:
-		adminTLS = &cryptoutilTLSGenerator.TLSGeneratedSettings{
+		adminTLSGeneratedSettings = &cryptoutilTLSGenerator.TLSGeneratedSettings{
 			StaticCertPEM: settings.TLSStaticCertPEM,
 			StaticKeyPEM:  settings.TLSStaticKeyPEM,
 		}
 	case cryptoutilConfig.TLSModeMixed:
-		adminTLS, err = cryptoutilTLSGenerator.GenerateServerCertFromCA(settings.TLSMixedCACertPEM, settings.TLSMixedCAKeyPEM, settings.TLSPrivateDNSNames, settings.TLSPrivateIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+		var err error
+
+		adminTLSGeneratedSettings, err = cryptoutilTLSGenerator.GenerateServerCertFromCA(settings.TLSMixedCACertPEM, settings.TLSMixedCAKeyPEM, settings.TLSPrivateDNSNames, settings.TLSPrivateIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate admin server cert from CA: %w", err)
 		}
 	case cryptoutilConfig.TLSModeAuto:
-		adminTLS, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(settings.TLSPrivateDNSNames, settings.TLSPrivateIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
+		var err error
+
+		adminTLSGeneratedSettings, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(settings.TLSPrivateDNSNames, settings.TLSPrivateIPAddresses, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 		if err != nil {
 			return nil, fmt.Errorf("failed to auto-generate admin server certs: %w", err)
 		}
@@ -79,22 +117,5 @@ func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServerSettin
 		return nil, fmt.Errorf("unknown admin TLS mode: %s", settings.TLSPrivateMode)
 	}
 
-	// Create servers
-	publicServer, err := NewPublicHTTPServer(ctx, settings, pubTLS)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create public server: %w", err)
-	}
-
-	adminServer, err := NewAdminHTTPServer(ctx, settings, adminTLS)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create admin server: %w", err)
-	}
-
-	return &HTTPSServers{
-		Settings:     settings,
-		PublicTLS:    pubTLS,
-		AdminTLS:     adminTLS,
-		PublicServer: publicServer,
-		AdminServer:  adminServer,
-	}, nil
+	return adminTLSGeneratedSettings, nil
 }
