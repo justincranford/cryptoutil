@@ -41,9 +41,9 @@ func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
 	// Create server with dynamic ports (use minimal config).
 	cfg := &server.Config{
 		DB:         gormDB,
-		PublicPort: 0,        // Dynamic port.
-		AdminPort:  0,        // Dynamic port.
-		JWTSecret:  "test",   // Test secret.
+		PublicPort: 0,      // Dynamic port.
+		AdminPort:  0,      // Dynamic port.
+		JWTSecret:  "test", // Test secret.
 	}
 
 	srv, err := server.New(ctx, cfg)
@@ -98,9 +98,9 @@ func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
 	// Create server with dynamic ports (use minimal config).
 	cfg := &server.Config{
 		DB:         gormDB,
-		PublicPort: 0,        // Dynamic port.
-		AdminPort:  0,        // Dynamic port.
-		JWTSecret:  "test",   // Test secret.
+		PublicPort: 0,      // Dynamic port.
+		AdminPort:  0,      // Dynamic port.
+		JWTSecret:  "test", // Test secret.
 	}
 
 	srv, err := server.New(ctx, cfg)
@@ -157,9 +157,9 @@ func TestIM_ReadyzSubcommand_LiveServer(t *testing.T) {
 	// Create server with dynamic ports (use minimal config).
 	cfg := &server.Config{
 		DB:         gormDB,
-		PublicPort: 0,        // Dynamic port.
-		AdminPort:  0,        // Dynamic port.
-		JWTSecret:  "test",   // Test secret.
+		PublicPort: 0,      // Dynamic port.
+		AdminPort:  0,      // Dynamic port.
+		JWTSecret:  "test", // Test secret.
 	}
 
 	srv, err := server.New(ctx, cfg)
@@ -217,9 +217,9 @@ func TestIM_ShutdownSubcommand_LiveServer(t *testing.T) {
 	// Create server with dynamic ports (use minimal config).
 	cfg := &server.Config{
 		DB:         gormDB,
-		PublicPort: 0,        // Dynamic port.
-		AdminPort:  0,        // Dynamic port.
-		JWTSecret:  "test",   // Test secret.
+		PublicPort: 0,      // Dynamic port.
+		AdminPort:  0,      // Dynamic port.
+		JWTSecret:  "test", // Test secret.
 	}
 
 	srv, err := server.New(ctx, cfg)
