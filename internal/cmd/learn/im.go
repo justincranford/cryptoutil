@@ -31,14 +31,14 @@ func IM(args []string) int {
 	}
 
 	// Check for help flags.
-	if args[0] == "help" || args[0] == "--help" || args[0] == "-h" {
+	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
 		printIMUsage()
 
 		return 0
 	}
 
 	// Check for version flags.
-	if args[0] == "version" || args[0] == "--version" || args[0] == "-v" {
+	if args[0] == versionCommand || args[0] == versionFlag || args[0] == versionShortFlag {
 		printIMVersion()
 
 		return 0
@@ -152,7 +152,7 @@ func imServer(args []string) int {
 // imClient implements the client subcommand.
 // CLI wrapper for client operations.
 func imClient(args []string) int {
-	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		fmt.Fprintln(os.Stderr, `Usage: learn im client [options]
 
 Description:
@@ -176,7 +176,7 @@ Examples:
 // imInit implements the init subcommand.
 // CLI wrapper for database and configuration initialization.
 func imInit(args []string) int {
-	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		fmt.Fprintln(os.Stderr, `Usage: learn im init [options]
 
 Description:
@@ -202,7 +202,7 @@ Examples:
 // imHealth implements the health subcommand.
 // CLI wrapper calling the public health check API.
 func imHealth(args []string) int {
-	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		fmt.Fprintln(os.Stderr, `Usage: learn im health [options]
 
 Description:
@@ -230,7 +230,7 @@ Examples:
 // imLivez implements the livez subcommand.
 // CLI wrapper calling the admin liveness check API.
 func imLivez(args []string) int {
-	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		fmt.Fprintln(os.Stderr, `Usage: learn im livez [options]
 
 Description:
@@ -258,7 +258,7 @@ Examples:
 // imReadyz implements the readyz subcommand.
 // CLI wrapper calling the admin readiness check API.
 func imReadyz(args []string) int {
-	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		fmt.Fprintln(os.Stderr, `Usage: learn im readyz [options]
 
 Description:
@@ -286,7 +286,7 @@ Examples:
 // imShutdown implements the shutdown subcommand.
 // CLI wrapper calling the admin graceful shutdown API.
 func imShutdown(args []string) int {
-	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		fmt.Fprintln(os.Stderr, `Usage: learn im shutdown [options]
 
 Description:
