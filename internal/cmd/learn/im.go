@@ -150,43 +150,165 @@ func imServer(args []string) int {
 }
 
 // imClient implements the client subcommand.
+// CLI wrapper for client operations.
 func imClient(args []string) int {
+	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+		fmt.Fprintln(os.Stderr, `Usage: learn im client [options]
+
+Description:
+  Run client operations for instant messaging service.
+
+Options:
+  --help, -h    Show this help message
+
+Examples:
+  learn im client`)
+
+		return 0
+	}
+
 	fmt.Fprintln(os.Stderr, "❌ Client subcommand not yet implemented")
+	fmt.Fprintln(os.Stderr, "   This will provide CLI tools for interacting with the IM service")
 
 	return 1
 }
 
 // imInit implements the init subcommand.
+// CLI wrapper for database and configuration initialization.
 func imInit(args []string) int {
+	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+		fmt.Fprintln(os.Stderr, `Usage: learn im init [options]
+
+Description:
+  Initialize database schema and configuration for instant messaging service.
+
+Options:
+  --config PATH    Configuration file path
+  --help, -h       Show this help message
+
+Examples:
+  learn im init
+  learn im init --config configs/learn/im/config.yml`)
+
+		return 0
+	}
+
 	fmt.Fprintln(os.Stderr, "❌ Init subcommand not yet implemented")
+	fmt.Fprintln(os.Stderr, "   This will initialize database schema and configuration")
 
 	return 1
 }
 
 // imHealth implements the health subcommand.
+// CLI wrapper calling the public health check API.
 func imHealth(args []string) int {
+	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+		fmt.Fprintln(os.Stderr, `Usage: learn im health [options]
+
+Description:
+  Check service health via public API endpoint.
+  Calls GET /health endpoint on the public server.
+
+Options:
+  --url URL      Service URL (default: https://127.0.0.1:8888)
+  --help, -h     Show this help message
+
+Examples:
+  learn im health
+  learn im health --url https://localhost:8888`)
+
+		return 0
+	}
+
 	fmt.Fprintln(os.Stderr, "❌ Health subcommand not yet implemented")
+	fmt.Fprintln(os.Stderr, "   This will call GET /health on the public server")
+	fmt.Fprintln(os.Stderr, "   Example: curl -k https://127.0.0.1:8888/health")
 
 	return 1
 }
 
 // imLivez implements the livez subcommand.
+// CLI wrapper calling the admin liveness check API.
 func imLivez(args []string) int {
+	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+		fmt.Fprintln(os.Stderr, `Usage: learn im livez [options]
+
+Description:
+  Check service liveness via admin API endpoint.
+  Calls GET /admin/v1/livez endpoint on the admin server.
+
+Options:
+  --url URL      Admin URL (default: https://127.0.0.1:9090)
+  --help, -h     Show this help message
+
+Examples:
+  learn im livez
+  learn im livez --url https://localhost:9090`)
+
+		return 0
+	}
+
 	fmt.Fprintln(os.Stderr, "❌ Livez subcommand not yet implemented")
+	fmt.Fprintln(os.Stderr, "   This will call GET /admin/v1/livez on the admin server")
+	fmt.Fprintln(os.Stderr, "   Example: curl -k https://127.0.0.1:9090/admin/v1/livez")
 
 	return 1
 }
 
 // imReadyz implements the readyz subcommand.
+// CLI wrapper calling the admin readiness check API.
 func imReadyz(args []string) int {
+	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+		fmt.Fprintln(os.Stderr, `Usage: learn im readyz [options]
+
+Description:
+  Check service readiness via admin API endpoint.
+  Calls GET /admin/v1/readyz endpoint on the admin server.
+
+Options:
+  --url URL      Admin URL (default: https://127.0.0.1:9090)
+  --help, -h     Show this help message
+
+Examples:
+  learn im readyz
+  learn im readyz --url https://localhost:9090`)
+
+		return 0
+	}
+
 	fmt.Fprintln(os.Stderr, "❌ Readyz subcommand not yet implemented")
+	fmt.Fprintln(os.Stderr, "   This will call GET /admin/v1/readyz on the admin server")
+	fmt.Fprintln(os.Stderr, "   Example: curl -k https://127.0.0.1:9090/admin/v1/readyz")
 
 	return 1
 }
 
 // imShutdown implements the shutdown subcommand.
+// CLI wrapper calling the admin graceful shutdown API.
 func imShutdown(args []string) int {
+	if len(args) > 0 && (args[0] == "help" || args[0] == "--help" || args[0] == "-h") {
+		fmt.Fprintln(os.Stderr, `Usage: learn im shutdown [options]
+
+Description:
+  Trigger graceful shutdown via admin API endpoint.
+  Calls POST /admin/v1/shutdown endpoint on the admin server.
+
+Options:
+  --url URL      Admin URL (default: https://127.0.0.1:9090)
+  --force        Force shutdown without graceful drain
+  --help, -h     Show this help message
+
+Examples:
+  learn im shutdown
+  learn im shutdown --url https://localhost:9090
+  learn im shutdown --force`)
+
+		return 0
+	}
+
 	fmt.Fprintln(os.Stderr, "❌ Shutdown subcommand not yet implemented")
+	fmt.Fprintln(os.Stderr, "   This will call POST /admin/v1/shutdown on the admin server")
+	fmt.Fprintln(os.Stderr, "   Example: curl -k -X POST https://127.0.0.1:9090/admin/v1/shutdown")
 
 	return 1
 }
