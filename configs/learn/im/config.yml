@@ -1,0 +1,88 @@
+# Learn IM (Instant Messenger) Service Configuration
+# This file contains service-specific settings for learn-im
+
+# Service Information
+service:
+  name: "learn-im"
+  description: >-
+    Educational instant messaging service demonstrating service template
+    patterns
+  version: "1.0.0"
+
+# Observability (inherits from learn product, can override)
+observability:
+  service_name: "cryptoutil-learn-im"
+  # Inherits: otlp_endpoint, otlp_protocol, metrics_enabled, traces_enabled
+  # from parent configs
+
+# Database Configuration
+database:
+  type: "sqlite"  # Development default
+  dsn: ":memory:"  # In-memory for development
+  # For PostgreSQL, use:
+  # type: "postgres"
+  # dsn: "postgres://user:pass@localhost:5432/learn_im?sslmode=disable"
+  max_open_conns: 5
+  max_idle_conns: 2
+  conn_max_lifetime: 60m
+  conn_max_idle_time: 10m
+  auto_migrate: true
+
+# Public Server Configuration
+server:
+  bind_address: "127.0.0.1"
+  bind_port: 8888
+  protocol: "https"
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+
+# Admin Server Configuration (inherits defaults from cryptoutil/config.yml)
+admin:
+  bind_address: "127.0.0.1"
+  bind_port: 9090
+  protocol: "https"
+  # Inherits: read_timeout, write_timeout, idle_timeout from parent configs
+
+# TLS Configuration
+tls:
+  # Development/Test - self-signed certificates
+  enabled: true
+  cert_file: ""  # Auto-generated if empty
+  key_file: ""   # Auto-generated if empty
+  # Production - use Docker secrets
+  # cert_file: "file:///run/secrets/tls_cert"
+  # key_file: "file:///run/secrets/tls_key"
+
+# Feature Flags
+features:
+  health_checks_enabled: true
+  metrics_enabled: true
+  tracing_enabled: true
+
+# Rate Limiting
+rate_limit:
+  enabled: false
+  requests_per_minute: 100
+  burst_size: 20
+
+# CORS Configuration
+cors:
+  enabled: true
+  allowed_origins:
+    - "http://localhost:8888"
+    - "http://127.0.0.1:8888"
+    - "http://[::1]:8888"
+    - "https://localhost:8888"
+    - "https://127.0.0.1:8888"
+    - "https://[::1]:8888"
+  allowed_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allowed_headers:
+    - "Authorization"
+    - "Content-Type"
+  allow_credentials: true
