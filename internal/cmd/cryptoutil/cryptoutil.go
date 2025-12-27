@@ -11,6 +11,7 @@ import (
 	cryptoutilCACmd "cryptoutil/internal/cmd/cryptoutil/ca"
 	cryptoutilIdentityCmd "cryptoutil/internal/cmd/cryptoutil/identity"
 	cryptoutilJoseCmd "cryptoutil/internal/cmd/cryptoutil/jose"
+	cryptoutilLearnCmd "cryptoutil/internal/cmd/learn"
 	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
 
@@ -21,7 +22,7 @@ func Execute() {
 		os.Exit(1)
 	}
 
-	product := os.Args[1]     // Example product: kms, identity, jose, ca
+	product := os.Args[1]     // Example product: kms, identity, jose, ca, learn
 	parameters := os.Args[2:] // Example parameters: --config-file, --port, --host, etc.
 
 	switch product {
@@ -33,6 +34,9 @@ func Execute() {
 		cryptoutilJoseCmd.Execute(parameters)
 	case "ca":
 		cryptoutilCACmd.Execute(parameters)
+	case "learn":
+		exitCode := cryptoutilLearnCmd.Learn(parameters)
+		os.Exit(exitCode)
 	case "help":
 		printUsage(executable)
 	default:
@@ -48,5 +52,6 @@ func printUsage(executable string) {
 	fmt.Println("  identity - Identity Services (authz, idp, rs)")
 	fmt.Println("  jose     - JOSE Authority")
 	fmt.Println("  ca       - Certificate Authority")
+	fmt.Println("  learn    - Educational and demonstration services")
 	fmt.Println("  help     - Show this help message")
 }
