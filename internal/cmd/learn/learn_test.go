@@ -83,7 +83,6 @@ func captureOutput(t *testing.T, fn func()) (stdout, stderr string) {
 
 func TestLearn_NoArguments(t *testing.T) {
 	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-
 	_, stderr := captureOutput(t, func() {
 		exitCode := cryptoutilLearnCmd.Learn([]string{})
 		require.Equal(t, 1, exitCode)
@@ -120,7 +119,6 @@ func TestLearn_HelpCommand(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
 			// TODO: Investigate safer capture method that works with t.Parallel().
-
 			_, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
 				require.Equal(t, 0, exitCode)
@@ -159,7 +157,6 @@ func TestLearn_VersionCommand(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
 			// TODO: Investigate safer capture method that works with t.Parallel().
-
 			stdout, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
 				require.Equal(t, 0, exitCode)
@@ -202,7 +199,6 @@ func TestLearn_UnknownService(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
 			// TODO: Investigate safer capture method that works with t.Parallel().
-
 			stdout, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
 				require.Equal(t, 1, exitCode)
@@ -240,7 +236,6 @@ func TestLearn_IMService_RoutesCorrectly(t *testing.T) {
 
 func TestLearn_IMService_InvalidSubcommand(t *testing.T) {
 	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-
 	_, stderr := captureOutput(t, func() {
 		exitCode := cryptoutilLearnCmd.Learn([]string{"im", "invalid-subcommand"})
 		require.Equal(t, 1, exitCode)
@@ -278,7 +273,6 @@ func TestLearn_Constants(t *testing.T) {
 		// Capture range variable.
 		t.Run(tt.name, func(t *testing.T) {
 			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-
 			_, _ = captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
 				require.Equal(t, tt.exitCode, exitCode)
