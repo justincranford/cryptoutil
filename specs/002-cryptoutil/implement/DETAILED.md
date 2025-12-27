@@ -2291,3 +2291,84 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - Next: Monitor workflow results, strengthen weak assertions if needed
 
 ---
+
+### 2025-12-26: Browser E2E Tests Implementation
+
+**Work Completed**:
+
+- ✅ **Discovered E2E Gap**: Phase 3 requires `/service/**` AND `/browser/**` paths tested
+  - Existing: 3 service E2E tests (FullEncryptionFlow, MultiReceiverEncryption, MessageDeletion)
+  - Missing: No `/browser/**` path coverage
+- ✅ **Added 4 Browser E2E Tests** (commit 2620d585, f73ec922):
+  - `TestE2E_BrowserHealth`: Health endpoint verification (CORS TODO tracked)
+  - `TestE2E_BrowserFullEncryptionFlow`: Complete registration→login→send→receive→decrypt flow
+  - `TestE2E_BrowserMultiReceiverEncryption`: Multiple receivers for same encrypted message
+  - `TestE2E_BrowserMessageDeletion`: Send→receive→delete workflow (sender-only deletion)
+- ✅ **Added 5 Browser Helper Functions**: `registerUserBrowser`, `loginUserBrowser`, `sendMessageBrowser`, `receiveMessagesBrowser`, `deleteMessageBrowser`
+- ✅ **Fixed Implementation Issues**:
+  - Private key parsing: Added `ParseECDHPrivateKey` before `DecryptMessage` calls
+  - Field name corrections: Use `MessageResponse` field names (`message_id`, `encrypted_content`, `sender_pub_key`)
+  - Authorization: DELETE requires sender token, not receiver
+  - Status codes: DELETE returns 204 No Content (not 200 OK)
+  - Error handling: Proper error variable scoping and wsl cuddling
+- ✅ **All 7 E2E Tests Passing**: 3 service + 4 browser (verified both paths work identically)
+
+**Test Execution Results**:
+
+```bash
+go test -v ./internal/learn/e2e/... -timeout=60s
+# 7 tests PASS (3 service + 4 browser)
+# TestE2E_BrowserHealth: 0.12s
+# TestE2E_BrowserFullEncryptionFlow: 2.17s
+# TestE2E_BrowserMultiReceiverEncryption: 2.78s
+# TestE2E_BrowserMessageDeletion: 2.13s
+# TestE2E_FullEncryptionFlow: 2.14s
+# TestE2E_MultiReceiverEncryption: 2.76s
+# TestE2E_MessageDeletion: 2.20s
+```
+
+**Coverage/Quality Metrics**: E2E tests validate end-to-end encryption functionality via both service and browser paths. Tests confirm business logic consistency and API contract compatibility.
+
+**Lessons Learned**:
+
+1. **Reuse Existing Patterns**: Check for existing test types before creating new ones (`testUser` vs `UserCredentials`)
+2. **Clean Up Failed Attempts**: Multiple failed edit attempts can leave duplicate code (removed lines 740-end)
+3. **Match Server API Structure**: E2E tests MUST use exact field names from server response structs (`MessageResponse`)
+4. **Type Conversions Required**: Raw byte arrays need parsing before cryptographic operations (`*ecdh.PrivateKey`)
+5. **Authorization Logic**: DELETE message requires sender token (business rule not obvious from API docs)
+6. **Linting Best Practices**: Extract strings before hex.DecodeString, add wsl cuddling blank lines
+
+**Constraints Discovered**: CORS middleware not yet implemented. TODO tracked in `TestE2E_BrowserHealth` for future CORS middleware implementation.
+
+**Next Steps**:
+
+1. **Mutation Testing Results** - AWAITING (workflow running on f1660b9c):
+   - Monitor ci-mutation workflow for completion
+   - Analyze mutation score (target ≥85%)
+   - Strengthen tests if surviving mutants >15%
+2. **Docker Compose Deployment** - HIGH PRIORITY (2-3 hours):
+   - Create Dockerfile (multi-stage build)
+   - Create docker-compose.yml with health checks
+   - Test deployment and accessibility
+3. **Documentation** - HIGH PRIORITY (4-6 hours):
+   - README.md, API.md, ENCRYPTION.md, TUTORIAL.md, SECURITY.md
+4. **Deep Analysis** - FINAL STEP (2-3 hours):
+   - Validate template ready for production migrations
+   - Document lessons learned
+
+**Related Commits**:
+
+- 2620d585 ("test(learn): add comprehensive E2E tests for /browser/** paths")
+  - 4 browser E2E tests + 5 helper functions
+  - +321 lines (comprehensive test coverage)
+  - Fixed private key parsing, field names, authorization, status codes
+- f73ec922 ("test(learn): fix linting errors in browser E2E tests")
+  - Changed hex.DecodeString pattern to match service tests
+  - Added wsl cuddling blank lines
+  - Satisfied errcheck and wsl_v5 linter requirements
+
+**Violations Found**: None (all tests passing, linting clean after f73ec922)
+
+**Current Task Status**: ✅ **E2E TESTS COMPLETE** (service + browser paths covered), 🔄 **MUTATION TESTING IN PROGRESS** (awaiting CI results)
+
+---
