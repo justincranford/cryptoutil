@@ -195,16 +195,17 @@ func TestLearn_IMService_RoutesCorrectly(t *testing.T) {
 	// Test that "im" service routes to IM function.
 	// We can't fully test IM() behavior here without a running server,
 	// but we can verify routing doesn't panic and handles help.
-	_, stderr := captureOutput(t, func() {
+	stdout, stderr := captureOutput(t, func() {
 		exitCode := cryptoutilLearnCmd.Learn([]string{"im", "help"})
 		require.Equal(t, 0, exitCode)
 	})
 
-	// Should show IM-specific help, not learn product help.
-	require.Contains(t, stderr, "Usage: learn im <subcommand>")
-	require.Contains(t, stderr, "server")
-	require.Contains(t, stderr, "client")
-	require.Contains(t, stderr, "init")
+	// Should show IM-specific help, not learn product help (check combined output).
+	combinedOutput := stdout + stderr
+	require.Contains(t, combinedOutput, "Usage: learn im <subcommand>")
+	require.Contains(t, combinedOutput, "server")
+	require.Contains(t, combinedOutput, "client")
+	require.Contains(t, combinedOutput, "init")
 }
 
 func TestLearn_IMService_InvalidSubcommand(t *testing.T) {
