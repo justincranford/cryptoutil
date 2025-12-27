@@ -253,10 +253,10 @@ func TestIM_ShutdownSubcommand_LiveServer(t *testing.T) {
 	case err := <-errChan:
 		// Server shutdown returns context.Canceled error which is expected.
 		if err != nil && err.Error() != "admin server stopped: context canceled" && err.Error() != "application startup cancelled: context canceled" {
-			t.Fatalf("Unexpected server error: %v", err)
+			require.FailNowf(t, "Unexpected server error", "%v", err)
 		}
 	case <-time.After(10 * time.Second):
-		t.Fatal("Server did not shutdown within timeout")
+		require.FailNow(t, "Server did not shutdown within timeout")
 	}
 }
 

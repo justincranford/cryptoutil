@@ -207,10 +207,10 @@ func TestHTTPPost(t *testing.T) {
 		)
 
 		if err != nil && err.Error() != adminStoppedErr && err.Error() != appCancelledErr {
-			t.Fatalf("Unexpected server error: %v", err)
+			require.FailNowf(t, "Unexpected server error", "%v", err)
 		}
 	case <-time.After(5 * time.Second):
-		t.Fatal("Server did not shutdown within timeout")
+		require.FailNow(t, "Server did not shutdown within timeout")
 	}
 }
 
