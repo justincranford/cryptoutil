@@ -16,6 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	adminHealthPath = "/admin/v1/healthz"
+	adminLivezPath  = "/admin/v1/livez"
+	adminReadyzPath = "/admin/v1/readyz"
+)
+
 // TestIM_HealthSubcommand_SlowResponse tests health check with slow server response.
 func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	t.Parallel()
@@ -58,7 +64,7 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	stdout, stderr := captureOutput(t, func() {
 		exitCode := cryptoutilLearnCmd.IM([]string{
 			"health",
-			"--url", fmt.Sprintf("http://127.0.0.1:%d/admin/v1/healthz", actualPort),
+			"--url", fmt.Sprintf("http://127.0.0.1:%d%s", actualPort, adminHealthPath),
 		})
 		require.Equal(t, 0, exitCode, "Health check should succeed for slow but valid response")
 	})
@@ -73,7 +79,7 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 
 	// Create server that returns empty body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/admin/v1/livez" {
+		if r.URL.Path == adminLivezPath {
 			w.WriteHeader(http.StatusOK)
 			// Empty body - no write.
 		} else {
@@ -84,7 +90,7 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 
 	// Test livez check with empty response.
 	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{"livez", "--url", server.URL + "/admin/v1/livez"})
+		exitCode := cryptoutilLearnCmd.IM([]string{"livez", "--url", server.URL + adminLivezPath})
 		require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK even if body empty")
 	})
 
@@ -105,7 +111,7 @@ func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
 
 	// Test readyz check with 404 response.
 	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{"readyz", "--url", server.URL + "/admin/v1/readyz"})
+		exitCode := cryptoutilLearnCmd.IM([]string{"readyz", "--url", server.URL + adminReadyzPath})
 		require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
 	})
 
