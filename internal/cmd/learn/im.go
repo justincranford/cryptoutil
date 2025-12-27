@@ -6,8 +6,11 @@ package learn
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -223,9 +226,46 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(os.Stderr, "❌ Health subcommand not yet implemented")
-	fmt.Fprintln(os.Stderr, "   This will call GET /health on the public server")
-	fmt.Fprintln(os.Stderr, "   Example: curl -k https://127.0.0.1:8888/health")
+	// Parse URL flag.
+	url := "https://127.0.0.1:8888/health"
+
+	for i := 0; i < len(args); i++ {
+		if args[i] == urlFlag && i+1 < len(args) {
+			baseURL := args[i+1]
+			if !strings.HasSuffix(baseURL, "/health") {
+				url = baseURL + "/health"
+			} else {
+				url = baseURL
+			}
+
+			break
+		}
+	}
+
+	// Call health endpoint.
+	statusCode, body, err := httpGet(url)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "❌ Health check failed: %v\n", err)
+
+		return 1
+	}
+
+	// Display results.
+	if statusCode == http.StatusOK {
+		fmt.Printf("✅ Service is healthy (HTTP %d)\n", statusCode)
+
+		if body != "" {
+			fmt.Println(body)
+		}
+
+		return 0
+	}
+
+	fmt.Fprintf(os.Stderr, "❌ Service is unhealthy (HTTP %d)\n", statusCode)
+
+	if body != "" {
+		fmt.Fprintln(os.Stderr, body)
+	}
 
 	return 1
 }
@@ -251,9 +291,46 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(os.Stderr, "❌ Livez subcommand not yet implemented")
-	fmt.Fprintln(os.Stderr, "   This will call GET /admin/v1/livez on the admin server")
-	fmt.Fprintln(os.Stderr, "   Example: curl -k https://127.0.0.1:9090/admin/v1/livez")
+	// Parse URL flag.
+	url := "https://127.0.0.1:9090/admin/v1/livez"
+
+	for i := 0; i < len(args); i++ {
+		if args[i] == urlFlag && i+1 < len(args) {
+			baseURL := args[i+1]
+			if !strings.HasSuffix(baseURL, "/admin/v1/livez") {
+				url = baseURL + "/admin/v1/livez"
+			} else {
+				url = baseURL
+			}
+
+			break
+		}
+	}
+
+	// Call livez endpoint.
+	statusCode, body, err := httpGet(url)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "❌ Liveness check failed: %v\n", err)
+
+		return 1
+	}
+
+	// Display results.
+	if statusCode == http.StatusOK {
+		fmt.Printf("✅ Service is alive (HTTP %d)\n", statusCode)
+
+		if body != "" {
+			fmt.Println(body)
+		}
+
+		return 0
+	}
+
+	fmt.Fprintf(os.Stderr, "❌ Service is not alive (HTTP %d)\n", statusCode)
+
+	if body != "" {
+		fmt.Fprintln(os.Stderr, body)
+	}
 
 	return 1
 }
@@ -279,9 +356,46 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(os.Stderr, "❌ Readyz subcommand not yet implemented")
-	fmt.Fprintln(os.Stderr, "   This will call GET /admin/v1/readyz on the admin server")
-	fmt.Fprintln(os.Stderr, "   Example: curl -k https://127.0.0.1:9090/admin/v1/readyz")
+	// Parse URL flag.
+	url := "https://127.0.0.1:9090/admin/v1/readyz"
+
+	for i := 0; i < len(args); i++ {
+		if args[i] == urlFlag && i+1 < len(args) {
+			baseURL := args[i+1]
+			if !strings.HasSuffix(baseURL, "/admin/v1/readyz") {
+				url = baseURL + "/admin/v1/readyz"
+			} else {
+				url = baseURL
+			}
+
+			break
+		}
+	}
+
+	// Call readyz endpoint.
+	statusCode, body, err := httpGet(url)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "❌ Readiness check failed: %v\n", err)
+
+		return 1
+	}
+
+	// Display results.
+	if statusCode == http.StatusOK {
+		fmt.Printf("✅ Service is ready (HTTP %d)\n", statusCode)
+
+		if body != "" {
+			fmt.Println(body)
+		}
+
+		return 0
+	}
+
+	fmt.Fprintf(os.Stderr, "❌ Service is not ready (HTTP %d)\n", statusCode)
+
+	if body != "" {
+		fmt.Fprintln(os.Stderr, body)
+	}
 
 	return 1
 }
@@ -309,11 +423,123 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(os.Stderr, "❌ Shutdown subcommand not yet implemented")
-	fmt.Fprintln(os.Stderr, "   This will call POST /admin/v1/shutdown on the admin server")
-	fmt.Fprintln(os.Stderr, "   Example: curl -k -X POST https://127.0.0.1:9090/admin/v1/shutdown")
+	// Parse URL flag.
+	url := "https://127.0.0.1:9090/admin/v1/shutdown"
+
+	for i := 0; i < len(args); i++ {
+		if args[i] == urlFlag && i+1 < len(args) {
+			baseURL := args[i+1]
+			if !strings.HasSuffix(baseURL, "/admin/v1/shutdown") {
+				url = baseURL + "/admin/v1/shutdown"
+			} else {
+				url = baseURL
+			}
+
+			break
+		}
+	}
+
+	// Call shutdown endpoint.
+	statusCode, body, err := httpPost(url)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "❌ Shutdown request failed: %v\n", err)
+
+		return 1
+	}
+
+	// Display results.
+	if statusCode == http.StatusOK || statusCode == http.StatusAccepted {
+		fmt.Printf("✅ Shutdown initiated (HTTP %d)\n", statusCode)
+
+		if body != "" {
+			fmt.Println(body)
+		}
+
+		return 0
+	}
+
+	fmt.Fprintf(os.Stderr, "❌ Shutdown request failed (HTTP %d)\n", statusCode)
+
+	if body != "" {
+		fmt.Fprintln(os.Stderr, body)
+	}
 
 	return 1
+}
+
+// httpGet performs an HTTP GET request with TLS certificate validation disabled.
+// Used by health check CLI wrappers to call API endpoints.
+func httpGet(url string) (int, string, error) {
+	// Create HTTP client that accepts self-signed certificates.
+	// TODO: Add proper certificate validation with --cacert flag.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, // Allow self-signed certificates for dev/testing.
+			},
+		},
+	}
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, "", fmt.Errorf("HTTP GET failed: %w", err)
+	}
+
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resp.StatusCode, "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	return resp.StatusCode, string(body), nil
+}
+
+// httpPost performs an HTTP POST request with TLS certificate validation disabled.
+// Used by shutdown CLI wrapper to call admin API endpoint.
+func httpPost(url string) (int, string, error) {
+	// Create HTTP client that accepts self-signed certificates.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, // Allow self-signed certificates for dev/testing.
+			},
+		},
+	}
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, nil)
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, "", fmt.Errorf("HTTP POST failed: %w", err)
+	}
+
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resp.StatusCode, "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	return resp.StatusCode, string(body), nil
 }
 
 // initDatabase initializes database (PostgreSQL or SQLite) with schema.
@@ -389,8 +615,8 @@ func initPostgreSQL(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)      // 25
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)      // 10
+	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)       // 25
+	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)       // 10
 	sqlDB.SetConnMaxLifetime(cryptoutilMagic.PostgreSQLConnMaxLifetime) // 1 hour
 
 	return db, nil

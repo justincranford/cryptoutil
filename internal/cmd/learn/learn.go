@@ -17,6 +17,7 @@ const (
 	versionCommand   = "version"
 	versionFlag      = "--version"
 	versionShortFlag = "-v"
+	urlFlag          = "--url"
 )
 
 // Learn implements the learn product command router.
