@@ -586,8 +586,8 @@ func initDatabase(ctx context.Context) (*gorm.DB, error) {
 
 // initPostgreSQL initializes PostgreSQL database connection.
 func initPostgreSQL(ctx context.Context, databaseURL string) (*gorm.DB, error) {
-	// Open PostgreSQL database.
-	sqlDB, err := sql.Open("postgres", databaseURL)
+	// Open PostgreSQL database using pgx driver.
+	sqlDB, err := sql.Open("pgx", databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
 	}
