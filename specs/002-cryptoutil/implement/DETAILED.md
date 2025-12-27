@@ -123,7 +123,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
     - ✅ Authentication middleware (JWT) - COMPLETE (middleware.go + public.go routes)
     - ✅ Replace hardcoded user IDs with auth context - COMPLETE (all handlers use c.Locals(ContextKeyUserID))
     - ✅ Move JWT secret to configuration - COMPLETE (commit 0fe35987, added JWTSecret to Config struct)
-    - ❌ Docker Compose deployment - TODO
+    - ✅ Docker Compose deployment - COMPLETE (commit cc150270, Dockerfile + compose.yml + .dockerignore)
     - ❌ Documentation (README, API, TUTORIAL) - TODO
 
 ### Phase 4: Migrate jose-ja to Template ⏸️ PENDING
