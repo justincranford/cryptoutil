@@ -173,13 +173,16 @@ func TestLearn_UnknownService(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, stderr := captureOutput(t, func() {
+			stdout, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilLearnCmd.Learn(tt.args)
 				require.Equal(t, 1, exitCode)
 			})
 
+			// Combine stdout and stderr for error message check.
+			combinedOutput := stdout + stderr
+
 			// Must contain error message.
-			require.Contains(t, stderr, tt.expectedErr)
+			require.Contains(t, combinedOutput, tt.expectedErr)
 			// Should contain usage (may not always appear in parallel tests due to timing).
 			// Just verify exit code is 1 which indicates error path was taken.
 		})
