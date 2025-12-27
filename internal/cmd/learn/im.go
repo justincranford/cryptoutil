@@ -10,12 +10,15 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
+	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
+	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/server"
@@ -313,10 +316,90 @@ Examples:
 	return 1
 }
 
-// initDatabase initializes SQLite database with schema.
+// initDatabase initializes database (PostgreSQL or SQLite) with schema.
+// Database type determined by --database-url flag or DATABASE_URL env var.
+// SQLite: file::memory:?cache=shared or file:/path/to/data.db?cache=shared
+// PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
 func initDatabase(ctx context.Context) (*gorm.DB, error) {
-	// Open SQLite in-memory database.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	// Determine database URL from flags or environment.
+	// Priority: CLI flag > environment variable > default (SQLite in-memory).
+	databaseURL := "file::memory:?cache=shared" // Default: SQLite in-memory
+
+	// TODO: Parse --database-url flag when flag parsing is added.
+	// For now, check environment variable.
+	if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
+		databaseURL = envURL
+	}
+
+	// Detect database type from URL scheme.
+	var (
+		db  *gorm.DB
+		err error
+	)
+
+	switch {
+	case strings.HasPrefix(databaseURL, "postgres://"):
+		db, err = initPostgreSQL(ctx, databaseURL)
+	case strings.HasPrefix(databaseURL, "file:"):
+		db, err = initSQLite(ctx, databaseURL)
+	default:
+		return nil, fmt.Errorf("unsupported database URL scheme: %s", databaseURL)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Auto-migrate schema.
+	if err := db.WithContext(ctx).AutoMigrate(&domain.User{}, &domain.Message{}); err != nil {
+		return nil, fmt.Errorf("failed to migrate schema: %w", err)
+	}
+
+	return db, nil
+}
+
+// initPostgreSQL initializes PostgreSQL database connection.
+func initPostgreSQL(ctx context.Context, databaseURL string) (*gorm.DB, error) {
+	// Open PostgreSQL database.
+	sqlDB, err := sql.Open("postgres", databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
+	}
+
+	// Verify connection.
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return nil, fmt.Errorf("failed to ping PostgreSQL database: %w", err)
+	}
+
+	// Create GORM instance.
+	dialector := postgres.New(postgres.Config{
+		Conn: sqlDB,
+	})
+
+	db, err := gorm.Open(dialector, &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize GORM for PostgreSQL: %w", err)
+	}
+
+	// Configure connection pool.
+	sqlDB, err = db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get database instance: %w", err)
+	}
+
+	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)      // 25
+	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)      // 10
+	sqlDB.SetConnMaxLifetime(cryptoutilMagic.PostgreSQLConnMaxLifetime) // 1 hour
+
+	return db, nil
+}
+
+// initSQLite initializes SQLite database connection.
+func initSQLite(ctx context.Context, databaseURL string) (*gorm.DB, error) {
+	// Open SQLite database.
+	sqlDB, err := sql.Open("sqlite", databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
 	}
@@ -338,7 +421,7 @@ func initDatabase(ctx context.Context) (*gorm.DB, error) {
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize GORM: %w", err)
+		return nil, fmt.Errorf("failed to initialize GORM for SQLite: %w", err)
 	}
 
 	// Configure connection pool for GORM transactions.
@@ -350,11 +433,6 @@ func initDatabase(ctx context.Context) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
 	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
 	sqlDB.SetConnMaxLifetime(0)                                     // In-memory: never close
-
-	// Auto-migrate schema.
-	if err := db.WithContext(ctx).AutoMigrate(&domain.User{}, &domain.Message{}); err != nil {
-		return nil, fmt.Errorf("failed to migrate schema: %w", err)
-	}
 
 	return db, nil
 }

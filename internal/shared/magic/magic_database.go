@@ -32,6 +32,13 @@ const (
 	// SQLiteMaxOpenConnections - Maximum open connections for SQLite.
 	SQLiteMaxOpenConnections = 1
 
+	// PostgreSQLMaxOpenConns - Maximum open connections for PostgreSQL.
+	PostgreSQLMaxOpenConns = 25
+	// PostgreSQLMaxIdleConns - Maximum idle connections for PostgreSQL.
+	PostgreSQLMaxIdleConns = 10
+	// PostgreSQLConnMaxLifetime - Maximum connection lifetime for PostgreSQL.
+	PostgreSQLConnMaxLifetime = 1 * time.Hour
+
 	// DBPostgresContainerStartupTimeout - PostgreSQL container startup timeout.
 	DBPostgresContainerStartupTimeout = 30 * time.Second
 	// DefaultDatabaseInitTotalTimeout - Total timeout for database initialization (5 minutes).
