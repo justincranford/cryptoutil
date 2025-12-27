@@ -56,6 +56,7 @@ func internalMain(args []string) int {
 		PublicPort: int(cryptoutilMagic.DefaultPublicPortLearnIM),
 		AdminPort:  cryptoutilMagic.DefaultPrivatePortLearnIM,
 		DB:         db,
+		JWTSecret:  "learn-im-dev-secret-change-in-production", // TODO: Load from configuration file
 	}
 
 	srv, err := server.New(ctx, cfg)

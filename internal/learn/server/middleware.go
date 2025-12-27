@@ -24,8 +24,9 @@ const (
 	// ContextKeyUserID is the context key for storing user ID from JWT.
 	ContextKeyUserID = "user_id"
 
-	// JWTSecret is the secret key for JWT signing (hardcoded for development).
-	// TODO: Move to configuration (ServerSettings or environment variable).
+	// JWTSecret is DEPRECATED - use Config.JWTSecret instead.
+	// Kept for backward compatibility with tests only.
+	// @deprecated Use server.Config.JWTSecret field instead of this constant.
 	JWTSecret = "learn-im-dev-secret-change-in-production"
 )
 

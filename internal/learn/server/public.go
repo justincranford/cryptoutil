@@ -29,6 +29,7 @@ type PublicServer struct {
 	port        int
 	userRepo    *repository.UserRepository
 	messageRepo *repository.MessageRepository
+	jwtSecret   string // JWT signing secret for authentication
 
 	app         *fiber.App
 	mu          sync.RWMutex
@@ -43,6 +44,7 @@ func NewPublicServer(
 	port int,
 	userRepo *repository.UserRepository,
 	messageRepo *repository.MessageRepository,
+	jwtSecret string,
 	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*PublicServer, error) {
 	if ctx == nil {
@@ -71,6 +73,7 @@ func NewPublicServer(
 		port:        port,
 		userRepo:    userRepo,
 		messageRepo: messageRepo,
+		jwtSecret:   jwtSecret,
 		app:         fiber.New(fiber.Config{DisableStartupMessage: true}),
 		tlsMaterial: tlsMaterial,
 	}
@@ -93,13 +96,13 @@ func (s *PublicServer) registerRoutes() {
 	s.app.Post("/browser/api/v1/users/login", s.handleLoginUser)
 
 	// Business logic endpoints (message operations - JWT required).
-	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(JWTSecret), s.handleSendMessage)
-	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(JWTSecret), s.handleReceiveMessages)
-	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(JWTSecret), s.handleDeleteMessage)
+	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.handleSendMessage)
+	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.handleReceiveMessages)
+	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.handleDeleteMessage)
 
-	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(JWTSecret), s.handleSendMessage)
-	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(JWTSecret), s.handleReceiveMessages)
-	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(JWTSecret), s.handleDeleteMessage)
+	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.handleSendMessage)
+	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.handleReceiveMessages)
+	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.handleDeleteMessage)
 }
 
 // handleServiceHealth returns health status for service-to-service clients.
@@ -304,7 +307,7 @@ func (s *PublicServer) handleLoginUser(c *fiber.Ctx) error {
 	}
 
 	// Generate JWT token.
-	token, expiresAt, err := GenerateJWT(user.ID, user.Username, JWTSecret)
+	token, expiresAt, err := GenerateJWT(user.ID, user.Username, s.jwtSecret)
 	if err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

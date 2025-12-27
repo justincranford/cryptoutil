@@ -91,7 +91,9 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	)
 	require.NoError(t, err)
 
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, tlsCfg)
+	const testJWTSecret = "learn-im-test-secret"
+
+	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, testJWTSecret, tlsCfg)
 	require.NoError(t, err)
 
 	// Start server in background.
@@ -824,7 +826,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, tlsCfg) //nolint:staticcheck // Testing nil context validation.
+	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, "test-secret", tlsCfg) //nolint:staticcheck // Testing nil context validation.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -844,7 +846,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "user repository cannot be nil")
 }
@@ -864,7 +866,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message repository cannot be nil")
 }
@@ -878,7 +880,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
-	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, nil)
+	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, "test-secret", nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "TLS configuration cannot be nil")
 }

@@ -89,7 +89,9 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	)
 	require.NoError(t, err)
 
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, tlsCfg)
+	const testJWTSecret = "learn-im-test-secret-e2e"
+
+	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, testJWTSecret, tlsCfg)
 	require.NoError(t, err)
 
 	// Start server in background.

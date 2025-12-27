@@ -33,6 +33,7 @@ type Config struct {
 	PublicPort int
 	AdminPort  uint16
 	DB         *gorm.DB
+	JWTSecret  string // JWT signing secret (required for authentication)
 }
 
 // New creates a new learn-im server using the template.
@@ -64,7 +65,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, publicTLSCfg)
+	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, cfg.JWTSecret, publicTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
