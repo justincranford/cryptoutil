@@ -85,7 +85,6 @@ func TestInitDatabase_PostgreSQL(t *testing.T) {
 // TestInitDatabase_SQLite tests SQLite in-memory database initialization.
 func TestInitDatabase_SQLite(t *testing.T) {
 	// Remove t.Parallel() - prevent cross-test pollution with shared in-memory SQLite.
-
 	ctx := context.Background()
 
 	// Use unique in-memory database URL to prevent conflicts between parallel tests.
@@ -160,7 +159,6 @@ func TestInitDatabase_SQLiteFile(t *testing.T) {
 // TestInitDatabase_InvalidScheme tests error handling for unsupported database URL schemes.
 func TestInitDatabase_InvalidScheme(t *testing.T) {
 	// Remove t.Parallel() - prevent cross-test pollution with shared in-memory SQLite.
-
 	ctx := context.Background()
 
 	// Set environment variable for invalid database URL.
@@ -180,7 +178,6 @@ func TestInitDatabase_InvalidScheme(t *testing.T) {
 // TestInitPostgreSQL_ConnectionError tests PostgreSQL connection error handling.
 func TestInitPostgreSQL_ConnectionError(t *testing.T) {
 	// Remove t.Parallel() - prevent cross-test pollution.
-
 	ctx := context.Background()
 
 	// Use invalid connection string (nonexistent server).

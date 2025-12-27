@@ -201,7 +201,12 @@ func TestHTTPPost(t *testing.T) {
 	select {
 	case err := <-errChan:
 		// Server shutdown returns context.Canceled error which is expected.
-		if err != nil && err.Error() != "admin server stopped: context canceled" && err.Error() != "application startup cancelled: context canceled" {
+		const (
+			adminStoppedErr = "admin server stopped: context canceled"
+			appCancelledErr = "application startup cancelled: context canceled"
+		)
+
+		if err != nil && err.Error() != adminStoppedErr && err.Error() != appCancelledErr {
 			t.Fatalf("Unexpected server error: %v", err)
 		}
 	case <-time.After(5 * time.Second):
