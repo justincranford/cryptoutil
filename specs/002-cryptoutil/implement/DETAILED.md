@@ -122,7 +122,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
     - ✅ Server-side PrivateKey storage for educational demo - commit 5204a9c8
     - ✅ Authentication middleware (JWT) - COMPLETE (middleware.go + public.go routes)
     - ✅ Replace hardcoded user IDs with auth context - COMPLETE (all handlers use c.Locals(ContextKeyUserID))
-    - ❌ Move JWT secret to configuration - TODO (currently hardcoded in 2 locations)
+    - ✅ Move JWT secret to configuration - COMPLETE (commit 0fe35987, added JWTSecret to Config struct)
     - ❌ Docker Compose deployment - TODO
     - ❌ Documentation (README, API, TUTORIAL) - TODO
 
