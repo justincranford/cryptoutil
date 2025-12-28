@@ -7,10 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	cryptoutilLearnCmd "cryptoutil/internal/cmd/learn"
-
-	"github.com/stretchr/testify/require"
-)
+	"github.com/stretchr/testify/require")
 
 // TestIM_HealthSubcommand_URLWithHealthSuffix tests health check preserves /health suffix.
 func TestIM_HealthSubcommand_URLWithHealthSuffix(t *testing.T) {
@@ -28,16 +25,16 @@ func TestIM_HealthSubcommand_URLWithHealthSuffix(t *testing.T) {
 	defer server.Close()
 
 	// Test health check with URL that already has /health suffix.
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{
 			"health",
 			"--url", server.URL + "/admin/v1/health",
 		})
 		require.Equal(t, 0, exitCode, "Health check should succeed with explicit /health suffix")
 	})
 
-	require.Contains(t, stdout, "✅ Service is healthy")
-	require.Empty(t, stderr)
+	require.Contains(t, output, "✅ Service is healthy")
+	require.Empty(t, output)
 }
 
 // TestIM_LivezSubcommand_URLWithLivezSuffix tests livez check preserves /livez suffix.
@@ -56,16 +53,16 @@ func TestIM_LivezSubcommand_URLWithLivezSuffix(t *testing.T) {
 	defer server.Close()
 
 	// Test livez check with URL that already has /livez suffix.
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{
 			"livez",
 			"--url", server.URL + "/admin/v1/livez",
 		})
 		require.Equal(t, 0, exitCode, "Livez check should succeed with explicit /livez suffix")
 	})
 
-	require.Contains(t, stdout, "✅ Service is alive")
-	require.Empty(t, stderr)
+	require.Contains(t, output, "✅ Service is alive")
+	require.Empty(t, output)
 }
 
 // TestIM_ReadyzSubcommand_URLWithReadyzSuffix tests readyz check preserves /readyz suffix.
@@ -84,16 +81,16 @@ func TestIM_ReadyzSubcommand_URLWithReadyzSuffix(t *testing.T) {
 	defer server.Close()
 
 	// Test readyz check with URL that already has /readyz suffix.
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{
 			"readyz",
 			"--url", server.URL + "/admin/v1/readyz",
 		})
 		require.Equal(t, 0, exitCode, "Readyz check should succeed with explicit /readyz suffix")
 	})
 
-	require.Contains(t, stdout, "✅ Service is ready")
-	require.Empty(t, stderr)
+	require.Contains(t, output, "✅ Service is ready")
+	require.Empty(t, output)
 }
 
 // TestIM_ShutdownSubcommand_URLWithShutdownSuffix tests shutdown preserves /shutdown suffix.
@@ -112,14 +109,14 @@ func TestIM_ShutdownSubcommand_URLWithShutdownSuffix(t *testing.T) {
 	defer server.Close()
 
 	// Test shutdown with URL that already has /shutdown suffix.
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{
 			"shutdown",
 			"--url", server.URL + "/admin/v1/shutdown",
 		})
 		require.Equal(t, 0, exitCode, "Shutdown should succeed with explicit /shutdown suffix")
 	})
 
-	require.Contains(t, stdout, "✅ Shutdown initiated")
-	require.Empty(t, stderr)
+	require.Contains(t, output, "✅ Shutdown initiated")
+	require.Empty(t, output)
 }

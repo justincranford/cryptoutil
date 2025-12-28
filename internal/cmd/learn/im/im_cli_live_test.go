@@ -16,11 +16,8 @@ import (
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	cryptoutilLearnCmd "cryptoutil/internal/cmd/learn"
 	"cryptoutil/internal/learn/domain"
-	"cryptoutil/internal/learn/server"
-)
+	"cryptoutil/internal/learn/server")
 
 // TestIM_HealthSubcommand_LiveServer tests "im health" subcommand with a running server.
 func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
@@ -62,14 +59,14 @@ func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
 	publicPort := srv.PublicPort()
 
 	// Test "im health" subcommand with running server.
-	stdout, _ := captureOutput(t, func() {
+	output := captureOutput(t, func() {
 		args := []string{"health", "--url", fmt.Sprintf("https://127.0.0.1:%d/service/api/v1", publicPort)}
-		exitCode := cryptoutilLearnCmd.IM(args)
+		exitCode := IM(args)
 		require.Equal(t, 0, exitCode)
 	})
 
-	require.Contains(t, stdout, "Service is healthy")
-	require.Contains(t, stdout, "HTTP 200")
+	require.Contains(t, output, "Service is healthy")
+	require.Contains(t, output, "HTTP 200")
 
 	// Shutdown server.
 	shutdownCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
@@ -120,14 +117,14 @@ func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test "im livez" subcommand with running server.
-	stdout, _ := captureOutput(t, func() {
+	output := captureOutput(t, func() {
 		args := []string{"livez", "--url", fmt.Sprintf("https://127.0.0.1:%d", adminPort)}
-		exitCode := cryptoutilLearnCmd.IM(args)
+		exitCode := IM(args)
 		require.Equal(t, 0, exitCode)
 	})
 
-	require.Contains(t, stdout, "Service is alive")
-	require.Contains(t, stdout, "HTTP 200")
+	require.Contains(t, output, "Service is alive")
+	require.Contains(t, output, "HTTP 200")
 
 	// Shutdown server.
 	shutdownCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
@@ -179,14 +176,14 @@ func TestIM_ReadyzSubcommand_LiveServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test "im readyz" subcommand with running server (expected to fail - not ready).
-	_, stderr := captureOutput(t, func() {
+	output := captureOutput(t, func() {
 		args := []string{"readyz", "--url", fmt.Sprintf("https://127.0.0.1:%d", adminPort)}
-		exitCode := cryptoutilLearnCmd.IM(args)
+		exitCode := IM(args)
 		require.Equal(t, 1, exitCode)
 	})
 
-	require.Contains(t, stderr, "Service is not ready")
-	require.Contains(t, stderr, "HTTP 503")
+	require.Contains(t, output, "Service is not ready")
+	require.Contains(t, output, "HTTP 503")
 
 	// Shutdown server.
 	shutdownCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
@@ -239,14 +236,14 @@ func TestIM_ShutdownSubcommand_LiveServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test "im shutdown" subcommand with running server.
-	stdout, _ := captureOutput(t, func() {
+	output := captureOutput(t, func() {
 		args := []string{"shutdown", "--url", fmt.Sprintf("https://127.0.0.1:%d", adminPort)}
-		exitCode := cryptoutilLearnCmd.IM(args)
+		exitCode := IM(args)
 		require.Equal(t, 0, exitCode)
 	})
 
-	require.Contains(t, stdout, "Shutdown initiated")
-	require.Contains(t, stdout, "HTTP 200")
+	require.Contains(t, output, "Shutdown initiated")
+	require.Contains(t, output, "HTTP 200")
 
 	// Wait for server to shutdown (allow generous timeout for graceful shutdown).
 	select {
@@ -262,11 +259,11 @@ func TestIM_ShutdownSubcommand_LiveServer(t *testing.T) {
 
 // TestIM_HealthSubcommand_ServerDown tests "im health" subcommand when server is down.
 func TestIM_HealthSubcommand_ServerDown(t *testing.T) {
-	_, stderr := captureOutput(t, func() {
+	output := captureOutput(t, func() {
 		args := []string{"health", "--url", "https://127.0.0.1:9999"} // Non-existent server.
-		exitCode := cryptoutilLearnCmd.IM(args)
+		exitCode := IM(args)
 		require.Equal(t, 1, exitCode)
 	})
 
-	require.Contains(t, stderr, "Health check failed")
+	require.Contains(t, output, "Health check failed")
 }

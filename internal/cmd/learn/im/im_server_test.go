@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"testing"
 	"time"
-
-	cryptoutilLearnCmd "cryptoutil/internal/cmd/learn"
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/shared/magic"
 
@@ -16,8 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite"
-)
+	_ "modernc.org/sqlite")
 
 func TestIM_ServerSubcommand_Startup(t *testing.T) {
 	t.Skip("Server subcommand requires signal handling (SIGINT/SIGTERM) which blocks test execution")
@@ -44,26 +41,26 @@ func TestIM_ServerSubcommand_Startup(t *testing.T) {
 		defer close(serverDone)
 
 		// Capture output to prevent server logs polluting test output.
-		stdout, stderr := captureOutput(t, func() {
+		output := captureOutput(t, func() {
 			// Note: This will start server and block until shutdown signal.
 			// We'll cancel the context to trigger shutdown.
-			exitCode := cryptoutilLearnCmd.IM([]string{"server"})
+			exitCode := IM([]string{"server"})
 			require.Equal(t, 0, exitCode, "Server should exit cleanly")
 		})
 
 		// Verify server startup messages.
-		require.Contains(t, stdout, "Starting learn-im service")
-		require.Contains(t, stdout, fmt.Sprintf("Public Server: https://127.0.0.1:%d", magic.DefaultPublicPortLearnIM))
-		require.Contains(t, stdout, fmt.Sprintf("Admin Server:  https://127.0.0.1:%d", magic.DefaultPrivatePortLearnIM))
-		require.Empty(t, stderr, "Server should not output errors")
+		require.Contains(t, output, "Starting learn-im service")
+		require.Contains(t, output, fmt.Sprintf("Public Server: https://127.0.0.1:%d", magic.DefaultPublicPortLearnIM))
+		require.Contains(t, output, fmt.Sprintf("Admin Server:  https://127.0.0.1:%d", magic.DefaultPrivatePortLearnIM))
+		require.Empty(t, output, "Server should not output errors")
 	}()
 
 	// Wait a bit for server to start.
 	time.Sleep(500 * time.Millisecond)
 
 	// Verify server is accessible via health check.
-	_, _ = captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{
+	captureOutput(t, func() {
+		exitCode := IM([]string{
 			"health",
 			"--url", fmt.Sprintf("https://127.0.0.1:%d/service/api/v1", magic.DefaultPublicPortLearnIM),
 		})
@@ -83,45 +80,45 @@ func TestIM_ServerSubcommand_Startup(t *testing.T) {
 }
 
 func TestIM_ClientSubcommand_NotImplemented(t *testing.T) {
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{"client"})
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{"client"})
 		require.Equal(t, 1, exitCode, "Client subcommand should return error (not implemented)")
 	})
 
-	require.Empty(t, stdout)
-	require.Contains(t, stderr, "Client subcommand not yet implemented")
-	require.Contains(t, stderr, "This will provide CLI tools for interacting with the IM service")
+	require.Empty(t, output)
+	require.Contains(t, output, "Client subcommand not yet implemented")
+	require.Contains(t, output, "This will provide CLI tools for interacting with the IM service")
 }
 
 func TestIM_ClientSubcommand_Help(t *testing.T) {
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{"client", "--help"})
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{"client", "--help"})
 		require.Equal(t, 0, exitCode, "Help should return success")
 	})
 
-	require.Empty(t, stdout)
-	require.Contains(t, stderr, "Usage: learn im client [options]")
-	require.Contains(t, stderr, "Run client operations for instant messaging service")
+	require.Empty(t, output)
+	require.Contains(t, output, "Usage: learn im client [options]")
+	require.Contains(t, output, "Run client operations for instant messaging service")
 }
 
 func TestIM_InitSubcommand_NotImplemented(t *testing.T) {
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{"init"})
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{"init"})
 		require.Equal(t, 1, exitCode, "Init subcommand should return error (not implemented)")
 	})
 
-	require.Empty(t, stdout)
-	require.Contains(t, stderr, "Init subcommand not yet implemented")
-	require.Contains(t, stderr, "This will initialize database schema and configuration")
+	require.Empty(t, output)
+	require.Contains(t, output, "Init subcommand not yet implemented")
+	require.Contains(t, output, "This will initialize database schema and configuration")
 }
 
 func TestIM_InitSubcommand_Help(t *testing.T) {
-	stdout, stderr := captureOutput(t, func() {
-		exitCode := cryptoutilLearnCmd.IM([]string{"init", "--help"})
+	output := captureOutput(t, func() {
+		exitCode := IM([]string{"init", "--help"})
 		require.Equal(t, 0, exitCode, "Help should return success")
 	})
 
-	require.Empty(t, stdout)
-	require.Contains(t, stderr, "Usage: learn im init [options]")
-	require.Contains(t, stderr, "Initialize database schema and configuration")
+	require.Empty(t, output)
+	require.Contains(t, output, "Usage: learn im init [options]")
+	require.Contains(t, output, "Initialize database schema and configuration")
 }
