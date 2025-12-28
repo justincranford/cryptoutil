@@ -12,53 +12,28 @@ import (
 
 // Message represents an encrypted message in the learn-im system.
 //
-// Messages use hybrid encryption:
-// - Sender's ECDH private key + Receiver's ECDH public key → shared secret
-// - Shared secret + HKDF → AES-256 key
-// - AES-256-GCM encrypts message content.
+// Messages use JWE Compact Serialization format (eyJ...):
+// - Each message is encrypted with a per-message JWK
+// - JWK is stored in messages_jwks table
+// - JWE compact format: BASE64URL(header).BASE64URL(key).BASE64URL(iv).BASE64URL(ciphertext).BASE64URL(tag)
 //
-// NOTE: EncryptedContent and Nonce are stored per-receiver in MessageReceiver table,
-// not in Message table. This is because each receiver gets a different encrypted copy
-// based on their unique public key (ECDH produces different shared secret per receiver).
+// Algorithm: dir (direct encryption) + A256GCM (content encryption)
 type Message struct {
-	ID        googleUuid.UUID `gorm:"type:text;primaryKey"`
-	SenderID  googleUuid.UUID `gorm:"type:text;not null;index"`
-	CreatedAt time.Time       `gorm:"autoCreateTime"`
+	ID            googleUuid.UUID `gorm:"type:text;primaryKey"`
+	SenderID      googleUuid.UUID `gorm:"type:text;not null;index"`
+	RecipientID   googleUuid.UUID `gorm:"type:text;not null;index"`
+	JWECompact    string          `gorm:"type:text;not null"` // JWE Compact Serialization format.
+	KeyID         string          `gorm:"type:text;not null;index"` // References messages_jwks.key_id.
+	CreatedAt     time.Time       `gorm:"autoCreateTime"`
+	ReadAt        *time.Time      `gorm:"default:null;index"`
 
 	// Relationships.
-	Sender    User              `gorm:"foreignKey:SenderID"`
-	Receivers []MessageReceiver `gorm:"foreignKey:MessageID"`
+	Sender    User `gorm:"foreignKey:SenderID"`
+	Recipient User `gorm:"foreignKey:RecipientID"`
+	MessageJWK MessageJWK `gorm:"foreignKey:KeyID;references:KeyID"`
 }
 
 // TableName returns the database table name for Message.
 func (Message) TableName() string {
 	return "messages"
-}
-
-// MessageReceiver represents a message recipient with their encrypted copy.
-//
-// Each receiver gets:
-// 1. Sender's ephemeral ECDH public key (to derive shared secret)
-// 2. Their own encrypted copy of the message (unique per receiver)
-// 3. Their own GCM nonce (unique per receiver)
-//
-// This enables multi-receiver encryption where each receiver can decrypt
-// independently using their private key + sender's ephemeral public key.
-type MessageReceiver struct {
-	ID               googleUuid.UUID `gorm:"type:text;primaryKey"`
-	MessageID        googleUuid.UUID `gorm:"type:text;not null;index"`
-	ReceiverID       googleUuid.UUID `gorm:"type:text;not null;index"`
-	SenderPubKey     []byte          `gorm:"type:bytea;not null"` // Sender's ephemeral ECDH public key.
-	EncryptedContent []byte          `gorm:"type:bytea;not null"` // AES-256-GCM ciphertext (unique per receiver).
-	Nonce            []byte          `gorm:"type:bytea;not null"` // GCM nonce (unique per receiver).
-	ReceivedAt       *time.Time      `gorm:"default:null"`
-
-	// Relationships.
-	Message  Message `gorm:"foreignKey:MessageID"`
-	Receiver User    `gorm:"foreignKey:ReceiverID"`
-}
-
-// TableName returns the database table name for MessageReceiver.
-func (MessageReceiver) TableName() string {
-	return "message_receivers"
 }

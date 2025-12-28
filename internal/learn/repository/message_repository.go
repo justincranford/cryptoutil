@@ -24,7 +24,7 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 	return &MessageRepository{db: db}
 }
 
-// Create inserts a new message with receivers into the database.
+// Create inserts a new message into the database.
 func (r *MessageRepository) Create(ctx context.Context, message *domain.Message) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Create(message).Error; err != nil {
 		return fmt.Errorf("failed to create message: %w", err)
@@ -33,44 +33,43 @@ func (r *MessageRepository) Create(ctx context.Context, message *domain.Message)
 	return nil
 }
 
-// FindByID retrieves a message by ID with its receivers.
+// FindByID retrieves a message by ID.
 func (r *MessageRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*domain.Message, error) {
 	var message domain.Message
-	if err := getDB(ctx, r.db).WithContext(ctx).Preload("Receivers").First(&message, "id = ?", id).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).First(&message, "id = ?", id).Error; err != nil {
 		return nil, fmt.Errorf("failed to find message: %w", err)
 	}
 
 	return &message, nil
 }
 
-// FindByReceiverID retrieves all messages for a specific receiver.
-func (r *MessageRepository) FindByReceiverID(ctx context.Context, receiverID googleUuid.UUID) ([]domain.Message, error) {
+// FindByRecipientID retrieves all messages for a specific recipient.
+func (r *MessageRepository) FindByRecipientID(ctx context.Context, recipientID googleUuid.UUID) ([]domain.Message, error) {
 	var messages []domain.Message
 
 	if err := getDB(ctx, r.db).WithContext(ctx).
-		Joins("JOIN message_receivers ON messages.id = message_receivers.message_id").
-		Where("message_receivers.receiver_id = ?", receiverID).
-		Preload("Receivers").
+		Where("recipient_id = ?", recipientID).
+		Order("created_at DESC").
 		Find(&messages).Error; err != nil {
-		return nil, fmt.Errorf("failed to find messages by receiver: %w", err)
+		return nil, fmt.Errorf("failed to find messages by recipient: %w", err)
 	}
 
 	return messages, nil
 }
 
-// MarkAsReceived updates the received timestamp for a message receiver.
-func (r *MessageRepository) MarkAsReceived(ctx context.Context, messageID, receiverID googleUuid.UUID) error {
+// MarkAsRead updates the read timestamp for a message.
+func (r *MessageRepository) MarkAsRead(ctx context.Context, messageID googleUuid.UUID) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).
-		Model(&domain.MessageReceiver{}).
-		Where("message_id = ? AND receiver_id = ?", messageID, receiverID).
-		Update("received_at", gorm.Expr("CURRENT_TIMESTAMP")).Error; err != nil {
-		return fmt.Errorf("failed to mark message as received: %w", err)
+		Model(&domain.Message{}).
+		Where("id = ?", messageID).
+		Update("read_at", gorm.Expr("CURRENT_TIMESTAMP")).Error; err != nil {
+		return fmt.Errorf("failed to mark message as read: %w", err)
 	}
 
 	return nil
 }
 
-// Delete removes a message and its receivers from the database.
+// Delete removes a message from the database.
 func (r *MessageRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Delete(&domain.Message{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("failed to delete message: %w", err)
