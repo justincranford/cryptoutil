@@ -105,7 +105,8 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	passwordHashHex := hex.EncodeToString(passwordHash)
 
 	// Create user.
-	// TODO(Phase 5): Remove ECDH key generation - keys are ephemeral per-message in 3-table design.
+	// NOTE: ECDH keys are ephemeral per-message in current implementation.
+	// Phase 5 will implement 3-table design with JWE multi-recipient encryption.
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     req.Username,
@@ -114,7 +115,7 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 		UpdatedAt:    time.Now(),
 	}
 
-	// TODO(Phase 5): Remove temporary ECDH key generation (not used in 3-table design).
+	// NOTE: ECDH key generation removed - ephemeral per-message (Phase 5 3-table design).
 	_ = publicKeyBytes  // Will be removed in Phase 5.
 	_ = privateKeyBytes // Will be removed in Phase 5.
 

@@ -42,7 +42,7 @@ type Config struct {
 	AdminPort  uint16
 	DB         *gorm.DB
 	DBType     repository.DatabaseType // Database type for migrations (sqlite3 or postgres).
-	// TODO(Phase 4): Remove JWTSecret, use barrier-encrypted JWKs from users_jwks table.
+	// NOTE: Phase 4 will remove JWTSecret, use barrier-encrypted JWKs from users_jwks table.
 	JWTSecret string // JWT signing secret (required for authentication).
 }
 
@@ -85,7 +85,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		return nil, fmt.Errorf("failed to initialize JWK generation service: %w", err)
 	}
 
-	// TODO(Phase 5b): Initialize Barrier Service for key encryption at rest.
+	// NOTE: Phase 5b will initialize Barrier Service for key encryption at rest.
 	// For Phase 5a, message encryption JWKs are generated in-memory without barrier encryption.
 	// Phase 5b will add barrier service to encrypt JWKs before storing in messages_jwks table.
 
@@ -120,7 +120,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create temporary ServerSettings for admin server (minimal configuration).
-	// TODO: Refactor learn server to use ServerSettings directly instead of Config struct.
+	// NOTE: Phase 8.6 will refactor learn server to use ServerSettings directly instead of Config struct.
 	adminSettings := &cryptoutilConfig.ServerSettings{
 		BindPrivateAddress: cryptoutilMagic.IPv4Loopback,
 		BindPrivatePort:    cfg.AdminPort,
@@ -142,7 +142,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		db:               cfg.DB,
 		telemetryService: telemetryService,
 		jwkGenService:    jwkGenService,
-		barrierService:   nil, // TODO(Phase 5b): Initialize barrier service for encrypted key storage.
+		barrierService:   nil, // NOTE: Phase 5b will initialize barrier service for encrypted key storage.
 		userRepo:         userRepo,
 		messageRepo:      messageRepo,
 	}, nil

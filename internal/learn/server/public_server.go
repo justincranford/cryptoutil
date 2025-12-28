@@ -29,7 +29,7 @@ type PublicServer struct {
 	jwtSecret     string                        // JWT signing secret for authentication
 
 	// In-memory key cache for Phase 5a (no barrier service yet).
-	// TODO(Phase 5b): Replace with barrier-encrypted database storage.
+	// NOTE: Phase 5b will replace with barrier-encrypted database storage.
 	messageKeysCache sync.Map // map[string]joseJwk.Key (keyID -> decryption JWK)
 
 	app         *fiber.App

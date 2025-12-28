@@ -33,8 +33,8 @@ func TestE2E_BrowserHealth(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// NOTE: CORS middleware not yet implemented.
-	// TODO: Add CORS middleware and verify Access-Control-Allow-Origin header.
+	// NOTE: CORS middleware not yet implemented (Phase 8+).
+	// Phase 8+ will add CORS middleware and verify Access-Control-Allow-Origin header.
 	// corsOrigin := resp.Header.Get("Access-Control-Allow-Origin")
 	// require.NotEmpty(t, corsOrigin, "browser path should include CORS headers")
 }

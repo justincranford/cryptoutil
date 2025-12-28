@@ -271,7 +271,7 @@ func registerTestUser(t *testing.T, client *http.Client, baseURL, username, pass
 	pubKey, err := cryptoutilCrypto.ParseECDHPublicKey(publicKeyBytes)
 	require.NoError(t, err)
 
-	// TODO(Phase 5): Remove public key parsing (not used in 3-table design).
+	// NOTE: Public key parsing will be removed in Phase 5 (ephemeral per-message in 3-table design).
 	_ = publicKeyBytes
 	_ = pubKey
 

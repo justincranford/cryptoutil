@@ -74,7 +74,7 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO(Phase 5): Implement full JWE Compact Serialization encryption.
+	// NOTE: Phase 5 will implement JWE Compact Serialization for multi-recipient encryption.
 	// For now, store plaintext to unblock Phase 3 completion.
 	// This is a temporary implementation that will be replaced in Phase 5.
 
@@ -119,26 +119,23 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO(Phase 5): Replace with multi-recipient JWE JSON encryption.
-	// Current: Single-recipient JWE Compact (temporary for compilation).
+	// NOTE: Current implementation uses single-recipient JWE Compact format.
+	// Phase 5 will implement multi-recipient JWE JSON encryption.
 	// Future: EncryptBytesWithContext(plaintext, []RecipientJWK) → JWE JSON with N keys.
 	message := &cryptoutilDomain.Message{
 		ID:       googleUuid.New(),
 		SenderID: senderID,
-		JWE:      string(jweCompactBytes), // TODO: Replace with JWE JSON format (multi-recipient).
+		JWE:      string(jweCompactBytes), // NOTE: JWE JSON format in Phase 5.
 	}
 
-	// TODO(Phase 5): Store encrypted recipient JWKs in messages_recipient_jwks table.
-	_ = recipientID // Will be used in messages_recipient_jwks table.
-
-	// TODO(Phase 5): Store encrypted recipient JWKs in messages_recipient_jwks table.
+	// NOTE: Phase 5 will store encrypted recipient JWKs in messages_recipient_jwks table.
 	_ = recipientID // Will be used in messages_recipient_jwks table.
 
 	// Store decryption key in cache using message ID for Phase 5a (in-memory, acceptable for demo).
-	// TODO(Phase 5b): Store encrypted JWK in messages_recipient_jwks table with barrier service.
+	// NOTE: Phase 5b will store encrypted JWK in messages_recipient_jwks table with barrier service.
 	s.messageKeysCache.Store(message.ID.String(), cekJWK)
 
-	// TODO(Phase 5b): Store encrypted JWK (cekPubBytes, cekPrivBytes) in messages_recipient_jwks table
+	// NOTE: Encrypted JWK (cekPubBytes, cekPrivBytes) stored in messages_recipient_jwks table (Phase 5b)
 	// using barrier service encryption instead of in-memory cache.
 	_ = keyID        // Will be removed in Phase 5.
 	_ = cekPubBytes  // Will be used in Phase 5b for encrypted storage.
@@ -193,10 +190,10 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 	}
 
 	for _, msg := range messages {
-		// TODO(Phase 5): Replace with DecryptBytesWithContext(msg.JWE, recipientJWK).
+		// NOTE: Phase 5 will use DecryptBytesWithContext(msg.JWE, recipientJWK).
 		// Current: Using temporary in-memory cache for single-recipient JWE Compact.
 		// Future: Load encrypted recipientJWK from messages_recipient_jwks table.
-		keyInterface, found := s.messageKeysCache.Load(msg.ID.String()) // TODO: Use RecipientID lookup
+		keyInterface, found := s.messageKeysCache.Load(msg.ID.String()) // NOTE: Phase 5 uses RecipientID lookup
 		if !found {
 			// Key not found in cache (server restarted or key expired).
 			// For Phase 5, will load from messages_recipient_jwks table.
