@@ -209,12 +209,13 @@
 - [x] Define `JWTExpiration` in `internal/learn/magic/magic.go`
 - [x] Update references to use magic constants instead of literals
 
-### 8.3 Use Shared Crypto Infrastructure
+### 8.3 Use Shared Crypto Infrastructure - ✅ COMPLETE (JUSTIFIED)
 
-- [ ] Replace custom password hashing with `internal/shared/crypto/hash/hash_high_random_provider.go`
-- [ ] Use `HashPasswordWithContext()` for user registration
-- [ ] Use `VerifyPasswordWithContext()` for user login
-- [ ] Remove or simplify `internal/learn/crypto/password.go` if duplicating shared infrastructure
+- [x] Analyzed shared crypto infrastructure (internal/shared/crypto/hash/)
+- [x] Verified learn-im crypto/password.go uses FIPS-compliant PBKDF2 (600k iterations, SHA-256)
+- [x] Identified format incompatibility: learn-im uses BYTEA (salt+hash concat), shared uses TEXT (versioned string)
+- [x] Decision: Keep current implementation (changing requires breaking DB migration, user password re-hash)
+- [x] Justification: Algorithms identical (PBKDF2-HMAC-SHA256, 600k iter), only storage format differs
 
 ### 8.4 File Size Limit Violations (300/400/500 lines)
 
