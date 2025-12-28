@@ -12,7 +12,7 @@ import (
 
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilUnsealKeysService "cryptoutil/internal/kms/server/barrier/unsealkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"

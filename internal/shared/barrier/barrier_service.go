@@ -11,10 +11,10 @@ import (
 
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilContentKeysService "cryptoutil/internal/kms/server/barrier/contentkeysservice"
-	cryptoutilIntermediateKeysService "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
-	cryptoutilRootKeysService "cryptoutil/internal/kms/server/barrier/rootkeysservice"
-	cryptoutilUnsealKeysService "cryptoutil/internal/kms/server/barrier/unsealkeysservice"
+	cryptoutilContentKeysService "cryptoutil/internal/shared/barrier/contentkeysservice"
+	cryptoutilIntermediateKeysService "cryptoutil/internal/shared/barrier/intermediatekeysservice"
+	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 )
 

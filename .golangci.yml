@@ -244,15 +244,15 @@ linters:
           alias: cryptoutilBusinessLogic
         - pkg: "cryptoutil/internal/kms/handler"
           alias: cryptoutilOpenapiHandler
-        - pkg: "cryptoutil/internal/kms/server/barrier"
+        - pkg: "cryptoutil/internal/shared/barrier"
           alias: cryptoutilBarrierService
-        - pkg: "cryptoutil/internal/kms/server/barrier/contentkeysservice"
+        - pkg: "cryptoutil/internal/shared/barrier/contentkeysservice"
           alias: cryptoutilContentKeysService
-        - pkg: "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
+        - pkg: "cryptoutil/internal/shared/barrier/intermediatekeysservice"
           alias: cryptoutilIntermediateKeysService
-        - pkg: "cryptoutil/internal/kms/server/barrier/rootkeysservice"
+        - pkg: "cryptoutil/internal/shared/barrier/rootkeysservice"
           alias: cryptoutilRootKeysService
-        - pkg: "cryptoutil/internal/kms/server/barrier/unsealkeysservice"
+        - pkg: "cryptoutil/internal/shared/barrier/unsealkeysservice"
           alias: cryptoutilUnsealKeysService
         - pkg: "cryptoutil/internal/kms/server/repository/orm"
           alias: cryptoutilOrmRepository

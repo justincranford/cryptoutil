@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilUnsealKeysService "cryptoutil/internal/kms/server/barrier/unsealkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 

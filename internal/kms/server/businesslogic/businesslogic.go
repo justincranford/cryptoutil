@@ -12,7 +12,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilBarrierService "cryptoutil/internal/kms/server/barrier"
+	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"

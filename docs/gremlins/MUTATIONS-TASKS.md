@@ -21,17 +21,17 @@ gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/busines
 
 ```powershell
 # Task 2: KMS Barrier - Content Keys Service
-gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/contentkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task02_kms_barrier_content.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/shared/barrier/contentkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task02_kms_barrier_content.txt
 ```
 
 ```powershell
 # Task 3: KMS Barrier - Intermediate Keys Service
-gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/intermediatekeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task03_kms_barrier_intermediate.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/shared/barrier/intermediatekeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task03_kms_barrier_intermediate.txt
 ```
 
 ```powershell
 # Task 4: KMS Barrier - Root Keys Service
-gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/rootkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task04_kms_barrier_root.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/shared/barrier/rootkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/task04_kms_barrier_root.txt
 ```
 
 ```powershell

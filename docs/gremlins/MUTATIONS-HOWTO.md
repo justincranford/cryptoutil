@@ -67,10 +67,10 @@ gremlins unleash --workers 2 --tags '!integration' ./internal/kms/server/busines
 #### 3. Barrier Services (Unseal/Encryption)
 
 ```powershell
-# internal/kms/server/barrier - Key hierarchy operations
-gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/contentkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_barrier_content.txt
+# internal/shared/barrier - Key hierarchy operations
+gremlins unleash --workers 1 --tags '!integration' ./internal/shared/barrier/contentkeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_barrier_content.txt
 
-gremlins unleash --workers 1 --tags '!integration' ./internal/kms/server/barrier/intermediatekeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_barrier_intermediate.txt
+gremlins unleash --workers 1 --tags '!integration' ./internal/shared/barrier/intermediatekeysservice 2>&1 | Tee-Object -FilePath ./test-output/gremlins/kms_barrier_intermediate.txt
 ```
 
 **What to look for**:

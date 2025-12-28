@@ -1,13 +1,23 @@
 // Copyright (c) 2025 Justin Cranford
+//
+//
 
-package contentkeysservice
+package intermediatekeysservice
 
 import (
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilIntermediateKeysService "cryptoutil/internal/kms/server/barrier/intermediatekeysservice"
+	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 )
+
+func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) *IntermediateKeysService {
+	intermediateKeysService, err := NewIntermediateKeysService(telemetryService, jwkGenService, ormRepository, rootKeysService)
+	cryptoutilAppErr.RequireNoError(err, "failed to create intermediateKeysService")
+
+	return intermediateKeysService
+}
 
 // Helper functions for validation tests - allow passing nil values.
 func toTelemetryService(v any) *cryptoutilTelemetry.TelemetryService {
@@ -49,12 +59,12 @@ func toOrmRepository(v any) *cryptoutilOrmRepository.OrmRepository {
 	return repo
 }
 
-func toIntermediateKeysService(v any) *cryptoutilIntermediateKeysService.IntermediateKeysService {
+func toRootKeysService(v any) *cryptoutilRootKeysService.RootKeysService {
 	if v == nil {
 		return nil
 	}
 
-	service, ok := v.(*cryptoutilIntermediateKeysService.IntermediateKeysService)
+	service, ok := v.(*cryptoutilRootKeysService.RootKeysService)
 	if !ok {
 		return nil
 	}

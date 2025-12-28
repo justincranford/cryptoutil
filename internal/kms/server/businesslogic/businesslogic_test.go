@@ -12,7 +12,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilBarrierService "cryptoutil/internal/kms/server/barrier"
+	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 
 	testify "github.com/stretchr/testify/require"
