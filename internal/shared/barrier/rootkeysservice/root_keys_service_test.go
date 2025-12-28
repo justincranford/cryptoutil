@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/shared/magic"
 
@@ -14,7 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite")
+	_ "modernc.org/sqlite"
+)
 
 func TestIM_ServerSubcommand_Startup(t *testing.T) {
 	t.Skip("Server subcommand requires signal handling (SIGINT/SIGTERM) which blocks test execution")

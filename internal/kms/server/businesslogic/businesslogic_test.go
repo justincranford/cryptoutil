@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
+	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )

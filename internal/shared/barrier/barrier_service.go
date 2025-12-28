@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilContentKeysService "cryptoutil/internal/shared/barrier/contentkeysservice"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/shared/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 type BarrierService struct {

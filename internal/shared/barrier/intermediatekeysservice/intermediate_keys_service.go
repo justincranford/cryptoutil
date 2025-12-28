@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"log"
 
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
+	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"

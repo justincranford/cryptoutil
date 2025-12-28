@@ -10,10 +10,10 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
+	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 

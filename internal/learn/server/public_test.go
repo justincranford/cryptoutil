@@ -395,6 +395,7 @@ func TestHandleRegisterUser_DuplicateUsername(t *testing.T) {
 	// TODO(Phase 5): Remove ECDH key generation (not used in 3-table design).
 	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
 	require.NoError(t, err)
+
 	_ = privateKey
 	_ = publicKeyBytes
 
@@ -450,6 +451,7 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	// TODO(Phase 5): Remove ECDH key generation (not used in 3-table design).
 	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
 	require.NoError(t, err)
+
 	_ = privateKey
 	_ = publicKeyBytes
 
@@ -507,6 +509,7 @@ func TestHandleLoginUser_WrongPassword(t *testing.T) {
 	// TODO(Phase 5): Remove ECDH key generation (not used in 3-table design).
 	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
 	require.NoError(t, err)
+
 	_ = privateKey
 	_ = publicKeyBytes
 
@@ -1872,8 +1875,8 @@ func TestHandleSendMessage_ReceiverPublicKeyParseError(t *testing.T) {
 		PasswordHash: passwordHashHex,
 		// TODO(Phase 5): Update test for 3-table design - test corrupted JWK in messages_recipient_jwks.
 		// PublicKey:    []byte("corrupted-public-key"), // Invalid public key.
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	err = db.Create(receiver).Error
