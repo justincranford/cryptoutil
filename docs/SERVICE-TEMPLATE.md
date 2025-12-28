@@ -2,96 +2,106 @@
 
 ## Implementation Checklist
 
-### Phase 1: Package Structure Migration
+### Phase 1: Package Structure Migration ✅
 
-- [ ] Move files from `internal/cmd/learn/im` to layered architecture directories
-- [ ] Update package imports (api/business/repository/util)
-- [ ] Verify build succeeds after package restructure
-- [ ] Run tests to detect broken imports
+- [x] Move files from `internal/cmd/learn/im` to layered architecture directories
+- [x] Update package imports (api/business/repository/util)
+- [x] Verify build succeeds after package restructure
+- [x] Run tests to detect broken imports
 
-### Phase 2: Shared Infrastructure Integration
+### Phase 2: Shared Infrastructure Integration ✅
 
-- [ ] Integrate `internal/shared/barrier` for barrier layer encryption
-- [ ] Integrate `internal/shared/crypto/jose` for JWK generation
-- [ ] Remove version flag from learn-im CLI parameters
-- [ ] Update `internal/learn/server/server.go` to initialize shared services
+- [x] Integrate `internal/shared/barrier` for barrier layer encryption
+- [x] Integrate `internal/shared/crypto/jose` for JWK generation
+- [x] Remove version flag from learn-im CLI parameters
+- [x] Update `internal/learn/server/server.go` to initialize shared services
 
-### Phase 3: Database Schema
+### Phase 3: Database Schema ⚠️ (4 tables → needs refactor to 3 tables)
 
-- [ ] Create migration files (same pattern as KMS)
-- [ ] Define `users_jwks` table with GORM models
-- [ ] Define `users_messages_jwks` table with GORM models
-- [ ] Define `messages_jwks` table with GORM models
-- [ ] Define `messages` table with JWE compact serialization column
-- [ ] Embed migrations with `//go:embed migrations/*.sql`
+- [x] Create migration files (same pattern as KMS)
+- [x] Define `users` table with GORM models (PBKDF2 password hash)
+- [x] Define `messages` table with JWE column
+- [x] Define `messages_jwks` table with GORM models (OLD - to be removed)
+- [x] Define `users_jwks` table with GORM models (OLD - to be removed)
+- [x] Define `users_messages_jwks` table with GORM models (OLD - to be removed)
+- [ ] **REFACTOR**: Define `messages_recipient_jwks` table (NEW - replaces messages_jwks)
+- [ ] **REFACTOR**: Remove obsolete tables (users_jwks, users_messages_jwks, messages_jwks)
+- [x] Embed migrations with `//go:embed migrations/*.sql`
 
-### Phase 4: Remove Hardcoded Secrets
+### Phase 4: Remove Hardcoded Secrets ⚠️ (in progress)
 
-- [ ] Remove hardcoded JWTSecret from `internal/cmd/learn/im/im.go`
-- [ ] Implement barrier encryption for JWK storage
-- [ ] Update user authentication to use encrypted JWKs from database
-- [ ] Verify NO cleartext secrets in code or config files
+- [x] Remove hardcoded JWTSecret from `internal/cmd/learn/im/im.go` (moved to Config)
+- [ ] **TODO**: Implement barrier encryption for JWK storage (Phase 5b marker exists)
+- [ ] **TODO**: Update user authentication to use encrypted JWKs from database
+- [ ] **TODO**: Verify NO cleartext secrets in code or config files
 
-### Phase 5: JWE Message Encryption
+### Phase 5: JWE Message Encryption ⚠️ (partial implementation)
 
-- [ ] Generate per-message JWKs using `internal/shared/crypto/jose`
-- [ ] Encrypt messages with JWE Compact Serialization format
-- [ ] Store encrypted messages in `messages` table
-- [ ] Implement decryption using key ID lookup
+- [x] Generate per-message JWKs using `internal/shared/crypto/jose`
+- [x] Basic message encryption implementation exists (hybrid ECDH+AES-GCM)
+- [ ] **REFACTOR**: Update to use new 3-table schema (messages, messages_recipient_jwks, users)
+- [ ] **REFACTOR**: Use `EncryptBytesWithContext` and `DecryptBytesWithContext` from `internal/shared/crypto/jose/jwe_message_util.go`
+- [ ] **REFACTOR**: Store encrypted JWKs in `messages_recipient_jwks` table
+- [ ] **REFACTOR**: Implement multi-recipient encryption (N recipient AES256 JWKs)
 
-### Phase 6: Manual Key Rotation Support
+### Phase 6: Manual Key Rotation Support ❌
 
 - [ ] Create admin API endpoint for manual key rotation
 - [ ] Update active key ID on rotation
 - [ ] Maintain historical keys for decryption
 - [ ] Document rotation procedures
 
-### Phase 7: Testing & Validation
+### Phase 7: Testing & Validation ⚠️ (tests exist but failing)
 
 - [ ] Unit tests for barrier encryption integration
-- [ ] Unit tests for JWK generation
-- [ ] Integration tests for message encryption/decryption
-- [ ] E2E tests with Docker Compose
+- [x] Unit tests for JWK generation (exists via shared infrastructure)
+- [x] Integration tests for message encryption/decryption (exists but timing issues)
+- [x] E2E tests with Docker Compose (exists)
+- [ ] **FIX**: Resolve test timeout issues (5/10 tests failing with "context deadline exceeded")
 - [ ] Verify coverage ≥95% (production) / ≥98% (infrastructure)
 
 ---
 
 ## Architecture Decisions
 
-ssd
+### Shared Infrastructure Usage ✅ COMPLETED
 
-### Shared Infrastructure Usage
+**Barrier Layer Encryption**: ✅ Imported `internal/shared/barrier` (initialized but not yet used).
 
-**Barrier Layer Encryption**: Use `internal/shared/barrier` (already extracted for template/server).
+**JWK Generation**: ✅ Integrated `internal/shared/crypto/jose` for JWK generation.
 
-**JWK Generation**: Use `internal/shared/crypto/jose` (shared infrastructure, no duplication).
+**Federation Pattern**: ✅ Direct Go package imports (no network calls).
 
-**Federation Pattern**: Direct Go package imports for performance and simplicity (avoid network calls).
+**Import Cycles**: ✅ One-way dependency confirmed - learn-im imports shared infrastructure.
 
-**Import Cycles**: One-way dependency only - learn-im imports shared infrastructure, NEVER the reverse.
+### Database Schema - UPDATED TO 3 TABLES
 
-### Database Schema
+**Migration Pattern**: ✅ Same design as KMS - embedded SQL migrations with golang-migrate.
 
-**Migration Pattern**: Same design as KMS - embedded SQL migrations with golang-migrate.
+**Storage Format**: JWE JSON format (NOT Compact Serialization) in TEXT columns.
 
-**Storage Format**: JWE Compact Serialization (`eyJ...`) in TEXT columns.
+**Versioning**: ✅ Docker image tags provide versioning (no CLI version flag).
 
-**Versioning**: Docker image tags provide versioning (no CLI version flag needed).
+### Cryptographic Algorithms - UPDATED DESIGN
 
-### Cryptographic Algorithms
+| Table | Purpose | JWK Format | Encryption |
+|-------|---------|------------|------------|
+| `users` | User accounts | N/A | Password: PBKDF2-HMAC-SHA256 |
+| `messages` | Encrypted messages | JWE JSON (multi-recipient) | `enc: A256GCM`, `alg: A256GCMKW` per recipient |
+| `messages_recipient_jwks` | Per-recipient decryption keys | JWK JSON (encrypted) | `enc: A256GCM`, `alg: dir` |
 
-| Table | Purpose | JWK Headers |
-|-------|---------|-------------|
-| `users_jwks` | Per-user encryption keys | `alg: ECDH-ES`, `enc: A256GCM` |
-| `users_messages_jwks` | Per-user/message encryption keys | `alg: dir`, `enc: A256GCM` |
-| `messages_jwks` | Per-message encryption keys | `alg: dir`, `enc: A256GCM` |
-| `messages` | Encrypted message content | JWE Compact Serialization |
+**Multi-Recipient Pattern**:
 
-**Key Rotation**: Manual rotation via Admin API (on-demand, not time-based).
+- Each message encrypted with N recipient AES256 JWKs (one per RecipientUserID)
+- Use `EncryptBytesWithContext(plaintext, []RecipientJWK)` → generates JWE with N encrypted keys
+- Use `DecryptBytesWithContext(jwe, recipientJWK)` → decrypts using recipient's specific key
 
-**ECDH P-256**: Key agreement derives shared secret used as AES-256 key for content encryption.
+**Key Storage**:
 
-**Direct Encryption**: Use `alg: dir` (direct key agreement) with `enc: A256GCM` for all tables (simplified from AESGCMKW).
+- `messages.JWE`: JWE JSON format with N encrypted CEK copies (one per recipient)
+- `messages_recipient_jwks.JWK`: Each recipient's decryption JWK (encrypted with `alg: dir`, `enc: A256GCM`)
+
+**No Key Rotation**: Messages are encrypted once, immutable. No rotation needed (ephemeral per-message keys).
 
 ### Secret Management Rules - MANDATORY
 
@@ -102,3 +112,49 @@ ssd
 **ONLY encrypted secrets** in database (barrier layer encryption).
 
 **See**: `03-06.security.instructions.md` for Docker secrets pattern, `02-07.cryptography.instructions.md` for key hierarchy.
+
+---
+
+## Refactoring Tasks for 3-Table Design
+
+### 1. Database Schema Updates
+
+- [ ] Create new migration `0002_refactor_to_3_tables.up.sql`
+- [ ] Drop tables: `users_jwks`, `users_messages_jwks`, `messages_jwks`
+- [ ] Create table: `messages_recipient_jwks` (ID, RecipientUserID, MessageID, JWK encrypted)
+- [ ] Update `messages` table: Remove `key_id` column, update JWE format to JSON (not Compact)
+- [ ] Remove BLOB columns from `users` table: `public_key`, `private_key`
+
+### 2. Domain Model Updates
+
+- [ ] Delete `internal/learn/domain/jwk.go` (UserJWK, UserMessageJWK, MessageJWK structs)
+- [ ] Create `internal/learn/domain/message_recipient_jwk.go` with new MessageRecipientJWK struct
+- [ ] Update `internal/learn/domain/user.go`: Remove PublicKey, PrivateKey fields
+- [ ] Update `internal/learn/domain/message.go`: Change JWECompact to JWE (JSON format), remove KeyID field
+
+### 3. Repository Updates
+
+- [ ] Create `internal/learn/repository/message_recipient_jwk_repository.go`
+- [ ] Update `message_repository.go`: Add multi-recipient message creation
+- [ ] Update `user_repository.go`: Remove key-related methods
+
+### 4. Encryption Implementation
+
+- [ ] Update `internal/learn/server/public.go`: Replace hybrid ECDH encryption with JWE multi-recipient
+- [ ] Use `EncryptBytesWithContext(plaintext, []RecipientJWK)` for sending messages
+- [ ] Use `DecryptBytesWithContext(jwe, recipientJWK)` for receiving messages
+- [ ] Store encrypted recipient JWKs in `messages_recipient_jwks` table
+- [ ] Remove in-memory key cache (`messageKeysCache sync.Map`)
+
+### 5. Crypto Package Cleanup
+
+- [ ] Update or remove `internal/learn/crypto/encrypt.go` (hybrid ECDH no longer used)
+- [ ] Update `internal/learn/crypto/keygen.go` if needed for JWK generation
+- [ ] Keep `internal/learn/crypto/password.go` (PBKDF2 still used)
+
+### 6. Testing Updates
+
+- [ ] Fix test timeout issues (increase HTTP client timeouts to 10s+)
+- [ ] Update tests to use new 3-table schema
+- [ ] Verify multi-recipient encryption/decryption works
+- [ ] Add tests for `messages_recipient_jwks` table operations
