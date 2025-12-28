@@ -233,6 +233,15 @@
   - [x] Create `internal/learn/server/login_test.go` (login feature tests - 8 tests)
   - [x] Create `internal/learn/server/send_test.go` (message send tests)
   - [x] Create `internal/learn/server/receive_delete_test.go` (receive and delete message tests)
+
+**learn_im_e2e_test.go (783 lines - CRITICAL VIOLATION)** - ✅ COMPLETE:
+
+- [x] Split `internal/learn/e2e/learn_im_e2e_test.go` into 3 category files:
+  - [x] Create `internal/learn/e2e/helpers_e2e_test.go` (shared E2E utilities - 480 lines)
+  - [x] Create `internal/learn/e2e/browser_e2e_test.go` (browser path E2E tests - 4 tests, ~230 lines)
+  - [x] Create `internal/learn/e2e/service_e2e_test.go` (service path E2E tests - 3 tests, ~175 lines)
+- [x] Verify all E2E tests compile with no errors
+- [x] Commit with descriptive message referencing Phase 8.4
   - [x] Create `internal/learn/server/middleware_test.go` (JWT middleware tests - 3 tests)
   - [x] Create `internal/learn/server/server_lifecycle_test.go` (server lifecycle and unit tests - 7 tests)
 - [x] Delete original `public_test.go` to eliminate duplicate declarations
