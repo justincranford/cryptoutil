@@ -218,27 +218,27 @@
 
 ### 8.4 File Size Limit Violations (300/400/500 lines)
 
-**public.go (688 lines - CRITICAL VIOLATION)**:
+**public.go (688 lines - CRITICAL VIOLATION)** - ✅ COMPLETE:
 
-- [ ] Split `internal/learn/server/public.go` into smaller files by responsibility:
-  - [ ] Create `internal/learn/server/auth_handlers.go` (register, login handlers)
-  - [ ] Create `internal/learn/server/message_handlers.go` (send, receive handlers)
-  - [ ] Create `internal/learn/server/middleware.go` (move from current middleware.go or create new)
-  - [ ] Create `internal/learn/server/server.go` (server lifecycle and setup)
+- [x] Split `internal/learn/server/public.go` into smaller files by responsibility:
+  - [x] Create `internal/learn/server/auth_handlers.go` (200 lines - register, login handlers)
+  - [x] Create `internal/learn/server/message_handlers.go` (295 lines - send, receive handlers)
+  - [x] Create `internal/learn/server/public_server.go` (250 lines - server lifecycle and setup)
 
-**public_test.go (2401 lines - CRITICAL VIOLATION)**:
+**public_test.go (2401 lines → 2132 lines - CRITICAL VIOLATION)** - ⚠️ PARTIAL:
 
-- [ ] Split `internal/learn/server/public_test.go` by test type AND feature:
-  - [ ] Create `internal/learn/server/unit_test.go` (unit tests not requiring full server)
-  - [ ] Create `internal/learn/server/integration_test.go` (tests requiring full server)
+- [x] Extract test helpers to `internal/learn/server/helpers_test.go` (312 lines)
+  - [x] Remove hardcoded JWT secret - generate random UUID-based secret in tests
+  - [x] Remove hardcoded passwords - registerAndLoginTestUser generates random values
+- [ ] Split remaining tests by test type AND feature (still 2132 lines in public_test.go):
   - [ ] Create `internal/learn/server/register_test.go` (registration feature tests)
   - [ ] Create `internal/learn/server/login_test.go` (login feature tests)
   - [ ] Create `internal/learn/server/send_test.go` (message send tests)
-  - [ ] Create `internal/learn/server/receive_test.go` (message receive tests)
-  - [ ] Create `internal/learn/server/helpers_test.go` (shared test utilities)
-  - [ ] Remove all hardcoded passwords - generate random passwords in tests
+  - [ ] Create `internal/learn/server/receive_delete_test.go` (receive and delete message tests)
+  - [ ] Create `internal/learn/server/middleware_test.go` (JWT middleware tests)
+  - [ ] Create `internal/learn/server/server_lifecycle_test.go` (server lifecycle and unit tests)
 
-**learn_im_e2e_test.go (782 lines - VIOLATION)**:
+**learn_im_e2e_test.go (782 lines - VIOLATION)** - ❌ TODO:
 
 - [ ] Split `internal/learn/e2e/learn_im_e2e_test.go` into smaller E2E test files (target <500 lines)
   - [ ] Create `internal/learn/e2e/auth_e2e_test.go` (authentication E2E tests)
