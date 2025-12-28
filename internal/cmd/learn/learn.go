@@ -8,6 +8,8 @@ package learn
 import (
 	"fmt"
 	"os"
+
+	"cryptoutil/internal/cmd/learn/im"
 )
 
 const (
@@ -51,7 +53,7 @@ func Learn(args []string) int {
 	// Route to service command.
 	switch args[0] {
 	case "im":
-		return IM(args[1:])
+		return im.IM(args[1:])
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown service: %s\n\n", args[0])
 		printUsage()

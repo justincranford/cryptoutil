@@ -8,7 +8,7 @@ package main
 import (
 	"os"
 
-	cryptoutilLearnCmd "cryptoutil/internal/cmd/learn"
+	"cryptoutil/internal/cmd/learn/im"
 )
 
 // Version information (injected during build).
@@ -24,10 +24,10 @@ func main() {
 }
 
 // internalMain implements main logic with testable dependencies.
-// Delegates to internal/cmd/learn.IM() for all functionality.
+// Delegates to internal/cmd/learn/im.IM() for all functionality.
 func internalMain(args []string) int {
 	// For Product-Service pattern, args[0] is the executable name
 	// Pass remaining args to IM() which will route to subcommands
 	// Default behavior: if no args, IM() defaults to "server" subcommand
-	return cryptoutilLearnCmd.IM(args[1:])
+	return im.IM(args[1:])
 }

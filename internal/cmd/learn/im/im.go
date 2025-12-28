@@ -2,7 +2,7 @@
 //
 //
 
-package learn
+package im
 
 import (
 	"context"
@@ -26,6 +26,16 @@ import (
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/server"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+)
+
+const (
+	helpCommand      = "help"
+	helpFlag         = "--help"
+	helpShortFlag    = "-h"
+	versionCommand   = "version"
+	versionFlag      = "--version"
+	versionShortFlag = "-v"
+	urlFlag          = "--url"
 )
 
 // IM implements the instant messaging service subcommand handler.
