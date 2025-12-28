@@ -200,14 +200,14 @@
 - [ ] Remove all `TODO(Phase 5)` comments from learn-im codebase
 - [ ] Remove `messageKeysCache sync.Map` in-memory cache from `public.go`
 
-### 8.2 Move Magic Constants to Magic Package
+### 8.2 Move Magic Constants to Magic Package - ✅ COMPLETE
 
-- [ ] Define `MinUsernameLength` in `internal/learn/magic/magic.go`
-- [ ] Define `MaxUsernameLength` in `internal/learn/magic/magic.go`
-- [ ] Define `MinPasswordLength` in `internal/learn/magic/magic.go`
-- [ ] Define `JWTIssuer` in `internal/learn/magic/magic.go`
-- [ ] Define `JWTExpiration` in `internal/learn/magic/magic.go`
-- [ ] Update references to use magic constants instead of literals
+- [x] Define `MinUsernameLength` in `internal/learn/magic/magic.go`
+- [x] Define `MaxUsernameLength` in `internal/learn/magic/magic.go`
+- [x] Define `MinPasswordLength` in `internal/learn/magic/magic.go`
+- [x] Define `JWTIssuer` in `internal/learn/magic/magic.go`
+- [x] Define `JWTExpiration` in `internal/learn/magic/magic.go`
+- [x] Update references to use magic constants instead of literals
 
 ### 8.3 Use Shared Crypto Infrastructure
 
