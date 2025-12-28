@@ -58,6 +58,8 @@
 
 ## Architecture Decisions
 
+ssd
+
 ### Shared Infrastructure Usage
 
 **Barrier Layer Encryption**: Use `internal/shared/barrier` (already extracted for template/server).

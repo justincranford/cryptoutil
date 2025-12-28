@@ -21,15 +21,23 @@ import (
 	"cryptoutil/internal/learn/repository"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 // PublicServer implements the template.PublicServer interface for learn-im.
 type PublicServer struct {
-	port        int
-	userRepo    *repository.UserRepository
-	messageRepo *repository.MessageRepository
-	jwtSecret   string // JWT signing secret for authentication
+	port          int
+	userRepo      *repository.UserRepository
+	messageRepo   *repository.MessageRepository
+	jwkGenService *cryptoutilJose.JWKGenService // JWK generation for message encryption
+	jwtSecret     string                        // JWT signing secret for authentication
+
+	// In-memory key cache for Phase 5a (no barrier service yet).
+	// TODO(Phase 5b): Replace with barrier-encrypted database storage.
+	messageKeysCache sync.Map // map[string]joseJwk.Key (keyID -> decryption JWK)
 
 	app         *fiber.App
 	mu          sync.RWMutex
@@ -44,6 +52,7 @@ func NewPublicServer(
 	port int,
 	userRepo *repository.UserRepository,
 	messageRepo *repository.MessageRepository,
+	jwkGenService *cryptoutilJose.JWKGenService,
 	jwtSecret string,
 	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*PublicServer, error) {
@@ -59,6 +68,10 @@ func NewPublicServer(
 		return nil, fmt.Errorf("message repository cannot be nil")
 	}
 
+	if jwkGenService == nil {
+		return nil, fmt.Errorf("JWK generation service cannot be nil")
+	}
+
 	if tlsCfg == nil {
 		return nil, fmt.Errorf("TLS configuration cannot be nil")
 	}
@@ -70,12 +83,13 @@ func NewPublicServer(
 	}
 
 	s := &PublicServer{
-		port:        port,
-		userRepo:    userRepo,
-		messageRepo: messageRepo,
-		jwtSecret:   jwtSecret,
-		app:         fiber.New(fiber.Config{DisableStartupMessage: true}),
-		tlsMaterial: tlsMaterial,
+		port:          port,
+		userRepo:      userRepo,
+		messageRepo:   messageRepo,
+		jwkGenService: jwkGenService,
+		jwtSecret:     jwtSecret,
+		app:           fiber.New(fiber.Config{DisableStartupMessage: true}),
+		tlsMaterial:   tlsMaterial,
 	}
 
 	s.registerRoutes()
@@ -391,15 +405,45 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create message with temporary plaintext JWE format.
-	// Phase 5 will replace this with proper JWE Compact Serialization.
+	// Generate JWE JWK for message encryption using dir + A256GCM (direct key agreement with AES-256-GCM).
+	keyID, cekJWK, _, cekPubBytes, cekPrivBytes, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to generate message encryption key",
+		})
+	}
+
+	// Encrypt message using JWE Compact Serialization.
+	// Format: BASE64URL(header).BASE64URL(encrypted_key).BASE64URL(iv).BASE64URL(ciphertext).BASE64URL(tag)
+	jwks := []joseJwk.Key{cekJWK}
+
+	jweMessage, jweCompactBytes, err := cryptoutilJose.EncryptBytes(jwks, []byte(req.Message))
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to encrypt message",
+		})
+	}
+
+	// Store encrypted message with JWE Compact format.
 	message := &cryptoutilDomain.Message{
 		ID:          googleUuid.New(),
 		SenderID:    senderID,
 		RecipientID: recipientID,
-		JWECompact:  req.Message, // TODO(Phase 5): Replace with actual JWE compact string.
-		KeyID:       "temp-key",  // TODO(Phase 5): Replace with actual JWK key_id.
+		JWECompact:  string(jweCompactBytes), // JWE Compact Serialization string
+		KeyID:       keyID.String(),          // Key ID for decryption lookup
 	}
+
+	// Store decryption key in cache for Phase 5a (in-memory, acceptable for demo).
+	// Phase 5b will store encrypted JWK in messages_jwks table with barrier service.
+	s.messageKeysCache.Store(keyID.String(), cekJWK)
+
+	// TODO(Phase 5b): Store encrypted JWK (cekPubBytes, cekPrivBytes) in messages_jwks table
+	// using barrier service encryption instead of in-memory cache.
+	_ = cekPubBytes  // Will be used in Phase 5b for encrypted storage.
+	_ = cekPrivBytes // Will be used in Phase 5b for encrypted storage.
+	_ = jweMessage   // JWE message structure (contains headers, useful for Phase 5b audit logs).
 
 	// Save message.
 	if err := s.messageRepo.Create(c.Context(), message); err != nil {
@@ -463,13 +507,35 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 	}
 
 	for _, msg := range messages {
-		// TODO(Phase 5): Decrypt JWE compact string and return plaintext.
-		// For now, return the stored content as-is (temporary plaintext).
+		// Retrieve decryption key from cache using KeyID.
+		keyInterface, found := s.messageKeysCache.Load(msg.KeyID)
+		if !found {
+			// Key not found in cache (server restarted or key expired).
+			// For Phase 5a, skip this message. Phase 5b will load from database.
+			continue
+		}
+
+		cekJWK, ok := keyInterface.(joseJwk.Key)
+		if !ok {
+			// Invalid key type in cache (should never happen).
+			continue
+		}
+
+		// Decrypt JWE Compact Serialization to get plaintext message.
+		jwks := []joseJwk.Key{cekJWK}
+
+		plaintext, err := cryptoutilJose.DecryptBytes(jwks, []byte(msg.JWECompact))
+		if err != nil {
+			// Decryption failed (corrupted message or wrong key).
+			// For Phase 5a, skip this message. Phase 5b will include audit logging.
+			continue
+		}
+
 		response.Messages = append(response.Messages, MessageResponse{
 			MessageID:        msg.ID.String(),
-			SenderPubKey:     "",                // TODO(Phase 5): Not used with JWE Compact.
-			EncryptedContent: msg.JWECompact,    // TODO(Phase 5): Decrypt this.
-			Nonce:            "",                // TODO(Phase 5): Not used with JWE Compact.
+			SenderPubKey:     "",                // Not used with JWE Compact (symmetric encryption).
+			EncryptedContent: string(plaintext), // Decrypted plaintext message.
+			Nonce:            "",                // Not used with JWE Compact (nonce embedded in format).
 			CreatedAt:        msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}

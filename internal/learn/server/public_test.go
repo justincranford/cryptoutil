@@ -28,8 +28,11 @@ import (
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // initTestDB creates an in-memory SQLite database with schema.
@@ -80,6 +83,21 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
+	// Initialize telemetry for JWKGenService (minimal config for tests).
+	telemetrySettings := &cryptoutilConfig.ServerSettings{
+		LogLevel:     "info",
+		OTLPService:  "learn-im-test",
+		OTLPEnabled:  false, // Tests use in-process telemetry only.
+		OTLPEndpoint: "grpc://localhost:4317",
+	}
+
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	require.NoError(t, err)
+
+	// Initialize JWK Generation Service for message encryption.
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	require.NoError(t, err)
+
 	// Use port 0 for dynamic allocation (prevents port conflicts in tests).
 	const testPort = 0
 
@@ -93,7 +111,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 	const testJWTSecret = "learn-im-test-secret"
 
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, testJWTSecret, tlsCfg)
+	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, jwkGenService, testJWTSecret, tlsCfg)
 	require.NoError(t, err)
 
 	// Start server in background.
@@ -826,7 +844,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, "test-secret", tlsCfg) //nolint:staticcheck // Testing nil context validation.
+	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, nil, "test-secret", tlsCfg) //nolint:staticcheck // Testing nil context validation.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -846,7 +864,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, "test-secret", tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "user repository cannot be nil")
 }
@@ -866,7 +884,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, "test-secret", tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message repository cannot be nil")
 }
@@ -880,7 +898,21 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
-	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, "test-secret", nil)
+	// Initialize telemetry for JWKGenService.
+	telemetrySettings := &cryptoutilConfig.ServerSettings{
+		LogLevel:     "info",
+		OTLPService:  "learn-im-test",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://localhost:4317",
+	}
+
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	require.NoError(t, err)
+
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	require.NoError(t, err)
+
+	_, err = server.NewPublicServer(ctx, 0, userRepo, messageRepo, jwkGenService, "test-secret", nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "TLS configuration cannot be nil")
 }

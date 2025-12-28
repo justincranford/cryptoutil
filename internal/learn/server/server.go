@@ -12,11 +12,12 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/repository"
-	cryptoutilBarrier "cryptoutil/internal/shared/barrier"
+	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
@@ -26,8 +27,9 @@ type LearnIMServer struct {
 	db  *gorm.DB
 
 	// Services.
-	jwkGenService  *cryptoutilJose.JWKGenService
-	barrierService *cryptoutilBarrier.BarrierService
+	telemetryService *cryptoutilTelemetry.TelemetryService
+	jwkGenService    *cryptoutilJose.JWKGenService
+	barrierService   *cryptoutilBarrierService.BarrierService
 
 	// Repositories.
 	userRepo    *repository.UserRepository
@@ -68,9 +70,27 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	// TODO(Phase 2b): Initialize JWK Generation Service for message encryption.
-	// TODO(Phase 2b): Initialize Barrier Service for key encryption at rest.
-	// These services will be fully integrated in Phase 5 (JWE message encryption).
+	// Initialize telemetry service for JWKGenService (minimal config for demo service).
+	telemetrySettings := &cryptoutilConfig.ServerSettings{
+		OTLPService: "learn-im", // Service name for telemetry.
+		OTLPEnabled: false,      // Demo service uses in-process telemetry only.
+	}
+
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
+	}
+
+	// Initialize JWK Generation Service for message encryption.
+	// Uses in-memory key pools with telemetry for monitoring.
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize JWK generation service: %w", err)
+	}
+
+	// TODO(Phase 5b): Initialize Barrier Service for key encryption at rest.
+	// For Phase 5a, message encryption JWKs are generated in-memory without barrier encryption.
+	// Phase 5b will add barrier service to encrypt JWKs before storing in messages_jwks table.
 
 	// Initialize repositories.
 	userRepo := repository.NewUserRepository(cfg.DB)
@@ -87,7 +107,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, cfg.JWTSecret, publicTLSCfg)
+	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, jwkGenService, cfg.JWTSecret, publicTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
@@ -121,12 +141,13 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	return &LearnIMServer{
-		app:            app,
-		db:             cfg.DB,
-		jwkGenService:  nil, // TODO(Phase 2b): Initialize in future PR.
-		barrierService: nil, // TODO(Phase 2b): Initialize in future PR.
-		userRepo:       userRepo,
-		messageRepo:    messageRepo,
+		app:              app,
+		db:               cfg.DB,
+		telemetryService: telemetryService,
+		jwkGenService:    jwkGenService,
+		barrierService:   nil, // TODO(Phase 5b): Initialize barrier service for encrypted key storage.
+		userRepo:         userRepo,
+		messageRepo:      messageRepo,
 	}, nil
 }
 

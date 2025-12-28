@@ -26,8 +26,11 @@ import (
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // initTestDB creates an in-memory SQLite database with schema.
@@ -63,7 +66,7 @@ func initTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Run migrations.
-	err = db.AutoMigrate(&cryptoutilDomain.User{}, &cryptoutilDomain.Message{}, &cryptoutilDomain.MessageReceiver{})
+	err = db.AutoMigrate(&cryptoutilDomain.User{}, &cryptoutilDomain.Message{})
 	require.NoError(t, err)
 
 	return db
@@ -78,6 +81,21 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 
+	// Initialize telemetry for JWKGenService (minimal config for e2e tests).
+	telemetrySettings := &cryptoutilConfig.ServerSettings{
+		LogLevel:     "info",
+		OTLPService:  "learn-im-e2e",
+		OTLPEnabled:  false, // E2E tests use in-process telemetry only.
+		OTLPEndpoint: "grpc://localhost:4317",
+	}
+
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	require.NoError(t, err)
+
+	// Initialize JWK Generation Service for message encryption.
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	require.NoError(t, err)
+
 	// Use port 0 for dynamic allocation (prevents port conflicts in tests).
 	const testPort = 0
 
@@ -91,7 +109,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 	const testJWTSecret = "learn-im-test-secret-e2e"
 
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, testJWTSecret, tlsCfg)
+	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, jwkGenService, testJWTSecret, tlsCfg)
 	require.NoError(t, err)
 
 	// Start server in background.
