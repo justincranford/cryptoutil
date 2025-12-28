@@ -64,8 +64,8 @@ func initTestDB(t *testing.T) *gorm.DB {
 	})
 	require.NoError(t, err)
 
-	// Run migrations.
-	err = db.AutoMigrate(&cryptoutilDomain.User{}, &cryptoutilDomain.Message{}, &cryptoutilDomain.MessageReceiver{})
+	// Run migrations using embedded migration files.
+	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	return db

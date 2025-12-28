@@ -2,8 +2,25 @@
 -- Learn IM database schema (SQLite + PostgreSQL compatible)
 --
 
+-- Users table for user accounts
+-- NOTE: PublicKey/PrivateKey stored as BLOB for backward compatibility
+-- Phase 4 will migrate to JWK-based storage in users_jwks table
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY NOT NULL,
+    username TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    public_key BLOB NOT NULL,   -- ECDH public key (temporary, migrate to users_jwks in Phase 4)
+    private_key BLOB NOT NULL,  -- ECDH private key (temporary, migrate to users_jwks in Phase 4)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(username)
+);
+
+CREATE INDEX idx_users_username ON users(username);
+
 -- Users JWKs table for per-user encryption keys
 -- Algorithm: ECDH-ES (key agreement) + A256GCM (content encryption)
+-- Phase 4 will migrate User.PublicKey/PrivateKey to this table
 CREATE TABLE IF NOT EXISTS users_jwks (
     id TEXT PRIMARY KEY NOT NULL,
     user_id TEXT NOT NULL,

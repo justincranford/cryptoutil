@@ -33,7 +33,8 @@ type Config struct {
 	PublicPort int
 	AdminPort  uint16
 	DB         *gorm.DB
-	JWTSecret  string // JWT signing secret (required for authentication)
+	DBType     repository.DatabaseType // Database type for migrations (sqlite3 or postgres)
+	JWTSecret  string                  // JWT signing secret (required for authentication)
 }
 
 // New creates a new learn-im server using the template.
@@ -48,6 +49,16 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 
 	if cfg.DB == nil {
 		return nil, fmt.Errorf("database cannot be nil")
+	}
+
+	// Apply database migrations.
+	sqlDB, err := cfg.DB.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
+	}
+
+	if err := repository.ApplyMigrations(sqlDB, cfg.DBType); err != nil {
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
 	// Initialize repositories.
