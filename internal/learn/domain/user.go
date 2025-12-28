@@ -16,12 +16,15 @@ import (
 // Simplified 3-table design:
 // - Password stored as PBKDF2-HMAC-SHA256 hash
 // - No ECDH keys stored in users table (keys are ephemeral per-message).
+//
+// UpdatedAt field tracks last modification time (GORM auto-updates on save).
+// Future usage: Track last login time, password changes, profile updates.
 type User struct {
 	ID           googleUuid.UUID `gorm:"type:text;primaryKey"` // UUIDv7
 	Username     string          `gorm:"type:text;uniqueIndex;not null"`
 	PasswordHash string          `gorm:"type:text;not null"` // PBKDF2-HMAC-SHA256 hash
 	CreatedAt    time.Time       `gorm:"autoCreateTime"`
-	UpdatedAt    time.Time       `gorm:"autoUpdateTime"`
+	UpdatedAt    time.Time       `gorm:"autoUpdateTime"` // Last modification timestamp
 }
 
 // TableName returns the database table name for User.

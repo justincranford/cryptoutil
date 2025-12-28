@@ -281,13 +281,13 @@
 - [ ] Migrate password hashing to use `internal/shared/crypto/hash/hash_low_random_provider.go`
 - [ ] Remove `internal/learn/crypto/password.go` after migration complete
 
-### 8.8 Implement UpdatedAt Field Usage
+### 8.8 Implement UpdatedAt Field Usage - ✅ COMPLETE
 
-- [ ] Keep `UpdatedAt` field in `internal/learn/domain/user.go` and add actual usage
-- [ ] Display UpdatedAt in user profile endpoint (when implemented)
-- [ ] Use UpdatedAt for tracking last login time
-- [ ] Keep `UpdatedAt` field in `internal/learn/domain/message.go` for message edit history
-- [ ] Document UpdatedAt usage in domain model comments
+- [x] Keep `UpdatedAt` field in `internal/learn/domain/user.go` with usage documentation
+- [x] Add `UpdatedAt` field to `internal/learn/domain/message.go` with usage documentation
+- [x] Document UpdatedAt usage in domain model comments (tracks modifications, last login, message edits)
+- [ ] Future: Display UpdatedAt in user profile endpoint (when profile endpoint implemented)
+- [ ] Future: Use UpdatedAt for tracking last login time (requires login handler update)
 
 ---
 

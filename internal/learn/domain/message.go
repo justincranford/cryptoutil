@@ -19,11 +19,15 @@ import (
 // - Decryption: DecryptBytesWithContext(jweJSON, recipientJWK) → plaintext
 //
 // Algorithm: enc=A256GCM (content encryption), alg=A256GCMKW (key wrapping per recipient).
+//
+// UpdatedAt field tracks last modification time (GORM auto-updates on save).
+// Future usage: Track message edit history, read status changes.
 type Message struct {
 	ID        googleUuid.UUID `gorm:"type:text;primaryKey"`     // UUIDv7
 	SenderID  googleUuid.UUID `gorm:"type:text;not null;index"` // UUIDv7
 	JWE       string          `gorm:"type:text;not null"`       // JWE JSON format (multi-recipient)
 	CreatedAt time.Time       `gorm:"autoCreateTime"`
+	UpdatedAt time.Time       `gorm:"autoUpdateTime"` // Last modification timestamp
 	ReadAt    *time.Time      `gorm:"default:null;index"`
 
 	// Relationships.
