@@ -12,8 +12,10 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/repository"
+	cryptoutilBarrier "cryptoutil/internal/shared/barrier"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
@@ -22,6 +24,10 @@ import (
 type LearnIMServer struct {
 	app *cryptoutilTemplateServer.Application
 	db  *gorm.DB
+
+	// Services.
+	jwkGenService  *cryptoutilJose.JWKGenService
+	barrierService *cryptoutilBarrier.BarrierService
 
 	// Repositories.
 	userRepo    *repository.UserRepository
@@ -33,8 +39,9 @@ type Config struct {
 	PublicPort int
 	AdminPort  uint16
 	DB         *gorm.DB
-	DBType     repository.DatabaseType // Database type for migrations (sqlite3 or postgres)
-	JWTSecret  string                  // JWT signing secret (required for authentication)
+	DBType     repository.DatabaseType // Database type for migrations (sqlite3 or postgres).
+	// TODO(Phase 4): Remove JWTSecret, use barrier-encrypted JWKs from users_jwks table.
+	JWTSecret string // JWT signing secret (required for authentication).
 }
 
 // New creates a new learn-im server using the template.
@@ -60,6 +67,10 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	if err := repository.ApplyMigrations(sqlDB, cfg.DBType); err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
+
+	// TODO(Phase 2b): Initialize JWK Generation Service for message encryption.
+	// TODO(Phase 2b): Initialize Barrier Service for key encryption at rest.
+	// These services will be fully integrated in Phase 5 (JWE message encryption).
 
 	// Initialize repositories.
 	userRepo := repository.NewUserRepository(cfg.DB)
@@ -110,10 +121,12 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	return &LearnIMServer{
-		app:         app,
-		db:          cfg.DB,
-		userRepo:    userRepo,
-		messageRepo: messageRepo,
+		app:            app,
+		db:             cfg.DB,
+		jwkGenService:  nil, // TODO(Phase 2b): Initialize in future PR.
+		barrierService: nil, // TODO(Phase 2b): Initialize in future PR.
+		userRepo:       userRepo,
+		messageRepo:    messageRepo,
 	}, nil
 }
 

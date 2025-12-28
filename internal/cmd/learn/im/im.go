@@ -29,13 +29,10 @@ import (
 )
 
 const (
-	helpCommand      = "help"
-	helpFlag         = "--help"
-	helpShortFlag    = "-h"
-	versionCommand   = "version"
-	versionFlag      = "--version"
-	versionShortFlag = "-v"
-	urlFlag          = "--url"
+	helpCommand   = "help"
+	helpFlag      = "--help"
+	helpShortFlag = "-h"
+	urlFlag       = "--url"
 )
 
 // IM implements the instant messaging service subcommand handler.
@@ -49,13 +46,6 @@ func IM(args []string) int {
 	// Check for help flags.
 	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
 		printIMUsage()
-
-		return 0
-	}
-
-	// Check for version flags.
-	if args[0] == versionCommand || args[0] == versionFlag || args[0] == versionShortFlag {
-		printIMVersion()
 
 		return 0
 	}
@@ -98,13 +88,7 @@ Available subcommands:
   shutdown    Trigger graceful shutdown (admin API)
 
 Use "learn im <subcommand> help" for subcommand-specific help.
-Use "learn im version" for version information.`)
-}
-
-// printIMVersion prints the instant messaging service version information.
-func printIMVersion() {
-	// Version information should be injected from the calling binary.
-	fmt.Println("learn-im service (cryptoutil learn product)")
+Version information is available via Docker image tags.`)
 }
 
 // imServer implements the server subcommand.
