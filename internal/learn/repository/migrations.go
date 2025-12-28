@@ -27,15 +27,18 @@ const (
 	DatabaseTypePostgreSQL DatabaseType = "postgres"
 )
 
-var (
-	//go:embed migrations/*.sql
-	migrationsFS embed.FS
-)
+//go:embed migrations/*.sql
+var migrationsFS embed.FS
 
 // ApplyMigrations runs database migrations for learn-im service.
 //
 // Migrations are embedded in the binary and applied automatically on startup.
 // Compatible with both PostgreSQL and SQLite (using TEXT type for cross-DB compatibility).
+//
+// 3-table design:
+// - users: User accounts with PBKDF2-HMAC-SHA256 password hashes
+// - messages: Encrypted messages with JWE JSON format (multi-recipient)
+// - messages_recipient_jwks: Per-recipient decryption keys (encrypted JWK).
 func ApplyMigrations(db *sql.DB, dbType DatabaseType) error {
 	sourceDriver, err := iofs.New(migrationsFS, "migrations")
 	if err != nil {

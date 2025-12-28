@@ -10,59 +10,27 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-// UserJWK represents a per-user encryption key stored as JWK.
-// Algorithm: ECDH-ES (key agreement) + A256GCM (content encryption).
-type UserJWK struct {
-	ID         googleUuid.UUID `gorm:"type:text;primaryKey"`
-	UserID     googleUuid.UUID `gorm:"type:text;not null;index"`
-	JWKJson    string          `gorm:"type:text;not null"` // JWK in JSON format.
-	Algorithm  string          `gorm:"type:text;not null;default:'ECDH-ES'"`
-	Encryption string          `gorm:"type:text;not null;default:'A256GCM'"`
-	KeyID      string          `gorm:"type:text;not null"` // kid claim from JWK.
-	IsActive   bool            `gorm:"not null;default:true;index"`
-	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	UpdatedAt  time.Time       `gorm:"autoUpdateTime"`
+// MessageRecipientJWK represents a per-recipient decryption key for a message.
+//
+// Multi-recipient pattern:
+// - Each message can have N recipients
+// - Each recipient gets their own encrypted JWK for decrypting the message
+// - JWK encrypted with alg=dir (direct encryption), enc=A256GCM
+// - Stored in JSON format (NOT Compact Serialization).
+type MessageRecipientJWK struct {
+	ID          googleUuid.UUID `gorm:"type:text;primaryKey"`     // UUIDv7
+	RecipientID googleUuid.UUID `gorm:"type:text;not null;index"` // UUIDv7
+	MessageID   googleUuid.UUID `gorm:"type:text;not null;index"` // UUIDv7
+	JWK         string          `gorm:"type:text;not null"`       // Encrypted JWK in JSON format (enc=A256GCM, alg=dir)
+	CreatedAt   time.Time       `gorm:"autoCreateTime"`
+	UpdatedAt   time.Time       `gorm:"autoUpdateTime"`
+
+	// Relationships.
+	Recipient User    `gorm:"foreignKey:RecipientID"` // UUIDv7
+	Message   Message `gorm:"foreignKey:MessageID"`   // UUIDv7
 }
 
 // TableName returns the database table name.
-func (UserJWK) TableName() string {
-	return "users_jwks"
-}
-
-// UserMessageJWK represents a per-user/message encryption key stored as JWK.
-// Algorithm: dir (direct encryption) + A256GCM (content encryption).
-type UserMessageJWK struct {
-	ID         googleUuid.UUID `gorm:"type:text;primaryKey"`
-	UserID     googleUuid.UUID `gorm:"type:text;not null;index"`
-	MessageID  googleUuid.UUID `gorm:"type:text;not null;index"`
-	JWKJson    string          `gorm:"type:text;not null"` // JWK in JSON format.
-	Algorithm  string          `gorm:"type:text;not null;default:'dir'"`
-	Encryption string          `gorm:"type:text;not null;default:'A256GCM'"`
-	KeyID      string          `gorm:"type:text;not null"` // kid claim from JWK.
-	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	UpdatedAt  time.Time       `gorm:"autoUpdateTime"`
-}
-
-// TableName returns the database table name.
-func (UserMessageJWK) TableName() string {
-	return "users_messages_jwks"
-}
-
-// MessageJWK represents a per-message encryption key stored as JWK.
-// Algorithm: dir (direct encryption) + A256GCM (content encryption).
-type MessageJWK struct {
-	ID         googleUuid.UUID `gorm:"type:text;primaryKey"`
-	MessageID  googleUuid.UUID `gorm:"type:text;not null;index"`
-	JWKJson    string          `gorm:"type:text;not null"` // JWK in JSON format.
-	Algorithm  string          `gorm:"type:text;not null;default:'dir'"`
-	Encryption string          `gorm:"type:text;not null;default:'A256GCM'"`
-	KeyID      string          `gorm:"type:text;not null"` // kid claim from JWK.
-	IsActive   bool            `gorm:"not null;default:true;index"`
-	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	UpdatedAt  time.Time       `gorm:"autoUpdateTime"`
-}
-
-// TableName returns the database table name.
-func (MessageJWK) TableName() string {
-	return "messages_jwks"
+func (MessageRecipientJWK) TableName() string {
+	return "messages_recipient_jwks"
 }

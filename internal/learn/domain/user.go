@@ -12,12 +12,14 @@ import (
 )
 
 // User represents a learn-im user account.
+//
+// Simplified 3-table design:
+// - Password stored as PBKDF2-HMAC-SHA256 hash
+// - No ECDH keys stored in users table (keys are ephemeral per-message).
 type User struct {
-	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
+	ID           googleUuid.UUID `gorm:"type:text;primaryKey"` // UUIDv7
 	Username     string          `gorm:"type:text;uniqueIndex;not null"`
-	PasswordHash string          `gorm:"type:text;not null"`
-	PublicKey    []byte          `gorm:"type:bytea;not null"` // ECDH public key for message encryption.
-	PrivateKey   []byte          `gorm:"type:bytea;not null"` // ECDH private key (stored for demo purposes).
+	PasswordHash string          `gorm:"type:text;not null"` // PBKDF2-HMAC-SHA256 hash
 	CreatedAt    time.Time       `gorm:"autoCreateTime"`
 	UpdatedAt    time.Time       `gorm:"autoUpdateTime"`
 }

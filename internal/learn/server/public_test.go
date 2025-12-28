@@ -259,10 +259,13 @@ func registerTestUser(t *testing.T, client *http.Client, baseURL, username, pass
 	pubKey, err := cryptoutilCrypto.ParseECDHPublicKey(publicKeyBytes)
 	require.NoError(t, err)
 
+	// TODO(Phase 5): Remove public key parsing (not used in 3-table design).
+	_ = publicKeyBytes
+	_ = pubKey
+
 	return &cryptoutilDomain.User{
-		ID:        userID,
-		Username:  username,
-		PublicKey: pubKey.Bytes(),
+		ID:       userID,
+		Username: username,
 	}
 }
 
@@ -389,15 +392,16 @@ func TestHandleRegisterUser_DuplicateUsername(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate key pair for test user.
+	// TODO(Phase 5): Remove ECDH key generation (not used in 3-table design).
 	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
 	require.NoError(t, err)
+	_ = privateKey
+	_ = publicKeyBytes
 
 	existingUser := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "existinguser",
 		PasswordHash: hex.EncodeToString(passwordHash),
-		PublicKey:    publicKeyBytes,
-		PrivateKey:   privateKey.Bytes(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -443,15 +447,16 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate key pair for test user.
+	// TODO(Phase 5): Remove ECDH key generation (not used in 3-table design).
 	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
 	require.NoError(t, err)
+	_ = privateKey
+	_ = publicKeyBytes
 
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "loginuser",
 		PasswordHash: hex.EncodeToString(passwordHash),
-		PublicKey:    publicKeyBytes,
-		PrivateKey:   privateKey.Bytes(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -499,15 +504,16 @@ func TestHandleLoginUser_WrongPassword(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate key pair for test user.
+	// TODO(Phase 5): Remove ECDH key generation (not used in 3-table design).
 	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
 	require.NoError(t, err)
+	_ = privateKey
+	_ = publicKeyBytes
 
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "wrongpassuser",
 		PasswordHash: hex.EncodeToString(passwordHash),
-		PublicKey:    publicKeyBytes,
-		PrivateKey:   privateKey.Bytes(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -844,7 +850,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, nil, "test-secret", tlsCfg) //nolint:staticcheck // Testing nil context validation.
+	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, nil, "test-secret", tlsCfg) //nolint:all // Testing nil context validation.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -1602,10 +1608,11 @@ func TestHandleSendMessage_EncryptionError(t *testing.T) {
 	err := db.First(&user, "id = ?", receiver.User.ID).Error
 	require.NoError(t, err)
 
+	// TODO(Phase 5): Update test for 3-table design - replace with invalid JWK in messages_recipient_jwks.
 	// Replace public key with invalid data.
-	user.PublicKey = []byte("invalid-public-key-data")
-	err = db.Save(&user).Error
-	require.NoError(t, err)
+	// user.PublicKey = []byte("invalid-public-key-data")
+	// err = db.Save(&user).Error
+	// require.NoError(t, err)
 
 	// Try to send message.
 	sendReq := fmt.Sprintf(`{"message": "test", "receiver_ids": ["%s"]}`, receiver.User.ID.String())
@@ -1769,13 +1776,15 @@ func TestHandleLoginUser_HexDecodeError(t *testing.T) {
 	require.NoError(t, err)
 
 	privateKeyBytes := privateKey.Bytes()
+	_ = publicKeyBytes
+	_ = privateKeyBytes
+	_ = publicKeyBytes
+	_ = privateKeyBytes
 
 	user := &cryptoutilDomain.User{
 		ID:           userID,
 		Username:     "testuser",
 		PasswordHash: "zzzzzz", // Invalid hex string.
-		PublicKey:    publicKeyBytes,
-		PrivateKey:   privateKeyBytes,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -1851,6 +1860,7 @@ func TestHandleSendMessage_ReceiverPublicKeyParseError(t *testing.T) {
 	require.NoError(t, err)
 
 	privateKeyBytes := privateKey.Bytes()
+	_ = privateKeyBytes
 	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
@@ -1860,8 +1870,8 @@ func TestHandleSendMessage_ReceiverPublicKeyParseError(t *testing.T) {
 		ID:           receiverID,
 		Username:     "receiver",
 		PasswordHash: passwordHashHex,
-		PublicKey:    []byte("corrupted-public-key"), // Invalid public key.
-		PrivateKey:   privateKeyBytes,
+		// TODO(Phase 5): Update test for 3-table design - test corrupted JWK in messages_recipient_jwks.
+		// PublicKey:    []byte("corrupted-public-key"), // Invalid public key.
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -2303,7 +2313,7 @@ func TestNew_NilContext(t *testing.T) {
 		DB:         db,
 	}
 
-	_, err := server.New(nil, cfg) //nolint:staticcheck // Testing nil context validation.
+	_, err := server.New(nil, cfg) //nolint:all // Testing nil context validation.
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }

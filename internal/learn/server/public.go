@@ -246,17 +246,18 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	passwordHashHex := hex.EncodeToString(passwordHash)
 
 	// Create user.
-	// NOTE: Storing private key on server is ONLY acceptable for educational demo purposes.
-	// Production systems should use client-side key management.
+	// TODO(Phase 5): Remove ECDH key generation - keys are ephemeral per-message in 3-table design.
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     req.Username,
 		PasswordHash: passwordHashHex,
-		PublicKey:    publicKeyBytes,
-		PrivateKey:   privateKeyBytes,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
+
+	// TODO(Phase 5): Remove temporary ECDH key generation (not used in 3-table design).
+	_ = publicKeyBytes  // Will be removed in Phase 5.
+	_ = privateKeyBytes // Will be removed in Phase 5.
 
 	if err := s.userRepo.Create(c.Context(), user); err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
@@ -426,21 +427,28 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// Store encrypted message with JWE Compact format.
+	// TODO(Phase 5): Replace with multi-recipient JWE JSON encryption.
+	// Current: Single-recipient JWE Compact (temporary for compilation).
+	// Future: EncryptBytesWithContext(plaintext, []RecipientJWK) → JWE JSON with N keys.
 	message := &cryptoutilDomain.Message{
-		ID:          googleUuid.New(),
-		SenderID:    senderID,
-		RecipientID: recipientID,
-		JWECompact:  string(jweCompactBytes), // JWE Compact Serialization string
-		KeyID:       keyID.String(),          // Key ID for decryption lookup
+		ID:       googleUuid.New(),
+		SenderID: senderID,
+		JWE:      string(jweCompactBytes), // TODO: Replace with JWE JSON format (multi-recipient).
 	}
 
-	// Store decryption key in cache for Phase 5a (in-memory, acceptable for demo).
-	// Phase 5b will store encrypted JWK in messages_jwks table with barrier service.
-	s.messageKeysCache.Store(keyID.String(), cekJWK)
+	// TODO(Phase 5): Store encrypted recipient JWKs in messages_recipient_jwks table.
+	_ = recipientID // Will be used in messages_recipient_jwks table.
 
-	// TODO(Phase 5b): Store encrypted JWK (cekPubBytes, cekPrivBytes) in messages_jwks table
+	// TODO(Phase 5): Store encrypted recipient JWKs in messages_recipient_jwks table.
+	_ = recipientID // Will be used in messages_recipient_jwks table.
+
+	// Store decryption key in cache using message ID for Phase 5a (in-memory, acceptable for demo).
+	// TODO(Phase 5b): Store encrypted JWK in messages_recipient_jwks table with barrier service.
+	s.messageKeysCache.Store(message.ID.String(), cekJWK)
+
+	// TODO(Phase 5b): Store encrypted JWK (cekPubBytes, cekPrivBytes) in messages_recipient_jwks table
 	// using barrier service encryption instead of in-memory cache.
+	_ = keyID        // Will be removed in Phase 5.
 	_ = cekPubBytes  // Will be used in Phase 5b for encrypted storage.
 	_ = cekPrivBytes // Will be used in Phase 5b for encrypted storage.
 	_ = jweMessage   // JWE message structure (contains headers, useful for Phase 5b audit logs).
@@ -507,11 +515,13 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 	}
 
 	for _, msg := range messages {
-		// Retrieve decryption key from cache using KeyID.
-		keyInterface, found := s.messageKeysCache.Load(msg.KeyID)
+		// TODO(Phase 5): Replace with DecryptBytesWithContext(msg.JWE, recipientJWK).
+		// Current: Using temporary in-memory cache for single-recipient JWE Compact.
+		// Future: Load encrypted recipientJWK from messages_recipient_jwks table.
+		keyInterface, found := s.messageKeysCache.Load(msg.ID.String()) // TODO: Use RecipientID lookup
 		if !found {
 			// Key not found in cache (server restarted or key expired).
-			// For Phase 5a, skip this message. Phase 5b will load from database.
+			// For Phase 5, will load from messages_recipient_jwks table.
 			continue
 		}
 
@@ -521,10 +531,10 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 			continue
 		}
 
-		// Decrypt JWE Compact Serialization to get plaintext message.
+		// Decrypt JWE to get plaintext message.
 		jwks := []joseJwk.Key{cekJWK}
 
-		plaintext, err := cryptoutilJose.DecryptBytes(jwks, []byte(msg.JWECompact))
+		plaintext, err := cryptoutilJose.DecryptBytes(jwks, []byte(msg.JWE))
 		if err != nil {
 			// Decryption failed (corrupted message or wrong key).
 			// For Phase 5a, skip this message. Phase 5b will include audit logging.
