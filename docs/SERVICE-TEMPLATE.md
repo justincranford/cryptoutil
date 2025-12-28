@@ -64,6 +64,32 @@
 
 ## Architecture Decisions
 
+### QUIZME Answers Integration
+
+**JWT Authentication (Q1)**: Config support for JWT format - JWE (encrypted), JWS (signed), or opaque tokens. JWE/JWS are stateless, opaque requires session storage in database.
+
+**Password Hashing (Q2)**: Use `internal/shared/crypto/hash/hash_low_random_provider.go` (PBKDF2-HMAC-SHA256 for low-entropy passwords).
+
+**ServerSettings Integration (Q3)**:
+
+- Use ServerSettings for network/TLS configuration
+- Create separate AppConfig for learn-im business logic
+- Add Realms setting in ServerSettings for username/password auth (file-based and DB-based)
+- Add BrowserSessionCookie setting in ServerSettings for cookie configuration (JWE/JWS/opaque)
+
+**Crypto Cleanup (Q4-Q5)**: Remove `keygen.go` and `encrypt.go` entirely, use shared JWK generation and JWE utilities.
+
+**UpdatedAt Field (Q6)**: Keep UpdatedAt and add actual usage (display in user profile, track message edit history).
+
+**File Splitting (Q7-Q8)**:
+
+- public.go: Split by responsibility into `auth_handlers.go`, `message_handlers.go`, `middleware.go`, `server.go`
+- public_test.go: Split by test type (unit/integration) AND by feature (register/login/send/receive/helpers)
+
+**Inbox/Poll APIs (Q9-Q10)**: Defer to Phase 12, use database polling every 1-5 seconds.
+
+**Test Configuration (Q11-Q12)**: Target ~4 seconds runtime (N=5, M=4, P=3, Q=2), use PostgreSQL test-containers only.
+
 ### Shared Infrastructure Usage ✅ COMPLETED
 
 **Barrier Layer Encryption**: ✅ Imported `internal/shared/barrier` (initialized but not yet used).
@@ -194,17 +220,22 @@
 
 **public.go (688 lines - CRITICAL VIOLATION)**:
 
-- [ ] Split `internal/learn/server/public.go` into smaller files (target <400 lines per file)
-  - [ ] Create `internal/learn/server/handlers_auth.go` (register, login handlers)
-  - [ ] Create `internal/learn/server/handlers_messages.go` (send, receive handlers)
-  - [ ] Keep shared server setup in `public.go`
+- [ ] Split `internal/learn/server/public.go` into smaller files by responsibility:
+  - [ ] Create `internal/learn/server/auth_handlers.go` (register, login handlers)
+  - [ ] Create `internal/learn/server/message_handlers.go` (send, receive handlers)
+  - [ ] Create `internal/learn/server/middleware.go` (move from current middleware.go or create new)
+  - [ ] Create `internal/learn/server/server.go` (server lifecycle and setup)
 
 **public_test.go (2401 lines - CRITICAL VIOLATION)**:
 
-- [ ] Split `internal/learn/server/public_test.go` into smaller test files (target <500 lines per file)
-  - [ ] Create `internal/learn/server/auth_test.go` (register, login tests)
-  - [ ] Create `internal/learn/server/messages_test.go` (send, receive tests)
-  - [ ] Create `internal/learn/server/test_helpers.go` (shared test utilities)
+- [ ] Split `internal/learn/server/public_test.go` by test type AND feature:
+  - [ ] Create `internal/learn/server/unit_test.go` (unit tests not requiring full server)
+  - [ ] Create `internal/learn/server/integration_test.go` (tests requiring full server)
+  - [ ] Create `internal/learn/server/register_test.go` (registration feature tests)
+  - [ ] Create `internal/learn/server/login_test.go` (login feature tests)
+  - [ ] Create `internal/learn/server/send_test.go` (message send tests)
+  - [ ] Create `internal/learn/server/receive_test.go` (message receive tests)
+  - [ ] Create `internal/learn/server/helpers_test.go` (shared test utilities)
   - [ ] Remove all hardcoded passwords - generate random passwords in tests
 
 **learn_im_e2e_test.go (782 lines - VIOLATION)**:
@@ -230,71 +261,71 @@
 
 ### 8.7 Simplify Crypto Package
 
-- [ ] Remove `internal/learn/crypto/keygen.go` (ECDH generation no longer needed)
-- [ ] Remove `internal/learn/crypto/encrypt.go` (use shared JWE utilities instead)
+- [ ] Remove `internal/learn/crypto/keygen.go` entirely (use shared JWK generation)
+- [ ] Remove `internal/learn/crypto/encrypt.go` entirely (use shared JWE utilities)
 - [ ] Use `internal/shared/crypto/jose/jwe_message_util.go`:
   - [ ] Use `EncryptBytesWithContext()` for message encryption
   - [ ] Use `DecryptBytesWithContext()` for message decryption
-- [ ] Keep `internal/learn/crypto/password.go` only if it adds value over shared hash provider
+- [ ] Migrate password hashing to use `internal/shared/crypto/hash/hash_low_random_provider.go`
+- [ ] Remove `internal/learn/crypto/password.go` after migration complete
 
-### 8.8 Remove UpdatedAt if Unused
+### 8.8 Implement UpdatedAt Field Usage
 
-- [ ] Verify if `UpdatedAt` field in `internal/learn/domain/user.go` is actually used
-- [ ] Verify if `UpdatedAt` field in `internal/learn/domain/jwk.go` is actually used
-- [ ] If unused, remove `UpdatedAt` from domain models and database schema
-- [ ] If used, document the use case and keep it
+- [ ] Keep `UpdatedAt` field in `internal/learn/domain/user.go` and add actual usage
+- [ ] Display UpdatedAt in user profile endpoint (when implemented)
+- [ ] Use UpdatedAt for tracking last login time
+- [ ] Keep `UpdatedAt` field in `internal/learn/domain/message.go` for message edit history
+- [ ] Document UpdatedAt usage in domain model comments
 
 ---
 
-## Phase 9: Feature Enhancements
+## Phase 9: Concurrency Integration Tests
 
-### 9.1 Message Listing APIs
-
-- [ ] Implement `/service/api/v1/messages/inbox` - list received messages for authenticated user
-  - [ ] Support query parameter `?limit=N` (default 50, max 1000)
-  - [ ] Support query parameter `?offset=N` (pagination)
-  - [ ] Support query parameter `?read=true|false` (filter by read status)
-  - [ ] Support query parameter `?from=<username>` (filter by sender)
-  - [ ] Support query parameter `?sort=created_at:desc|asc` (sort order)
-- [ ] Implement `/service/api/v1/messages/sent` - list sent messages for authenticated user
-  - [ ] Support query parameter `?limit=N` (default 50, max 1000)
-  - [ ] Support query parameter `?offset=N` (pagination)
-  - [ ] Support query parameter `?to=<username>` (filter by recipient)
-  - [ ] Support query parameter `?sort=created_at:desc|asc` (sort order)
-- [ ] Add database indexes for efficient querying (user_id, created_at, read status)
-- [ ] Unit tests for inbox/sent listing with filters and pagination
-- [ ] Integration tests for inbox/sent APIs
-
-### 9.2 Long Poll API ("You've Got Mail")
-
-- [ ] Implement `/service/api/v1/messages/poll` - long poll endpoint for new messages
-  - [ ] Accept query parameter `?timeout=<seconds>` (default 30s, max 60s)
-  - [ ] Return immediately if unread messages exist
-  - [ ] Block up to timeout seconds waiting for new messages
-  - [ ] Return HTTP 200 with message count when new messages arrive
-  - [ ] Return HTTP 204 (No Content) on timeout with no new messages
-- [ ] Implement in-memory notification channel (per user ID)
-- [ ] Trigger notification on `/service/api/v1/messages/tx` (send message)
-- [ ] Unit tests for long poll endpoint (immediate return, timeout, notification)
-- [ ] Integration tests for concurrent long poll clients
-
-### 9.3 Concurrency Integration Tests
+### 9.1 Concurrency Integration Tests
 
 - [ ] Create `internal/learn/integration/concurrent_test.go` for robustness testing
-  - [ ] Test with N=5 users, M=4 concurrent sends (1 recipient each)
+  - [ ] Test with N=5 users, M=4 concurrent sends (1 recipient each) - target ~4s
   - [ ] Test with N=5 users, P=3 concurrent sends (2 recipients each)
   - [ ] Test with N=5 users, Q=2 concurrent sends (all recipients broadcast)
   - [ ] Verify all messages correctly encrypted/decrypted
   - [ ] Verify no race conditions or data corruption
-  - [ ] Target runtime ~4 seconds (adjust N/M/P/Q if needed)
+  - [ ] Use PostgreSQL test-containers for all integration tests
 - [ ] Add table-driven test structure for different concurrency scenarios
 - [ ] Verify proper transaction isolation and locking
+- [ ] Run with `-race` flag to detect race conditions
 
 ---
 
-## Phase 10: Testing & Validation Commands
+## Phase 10: ServerSettings Integration
 
-### 10.1 Unit Tests
+### 10.1 Add ServerSettings Extensions
+
+- [ ] Add Realms setting in `internal/shared/config/config.go` ServerSettings:
+  - [ ] Support username/password realm configuration files
+  - [ ] Example: `01-username-password-file.yml` for file-based auth
+  - [ ] Example: `02-username-password-db.yml` for database-based auth
+  - [ ] Add username/password min/max length settings per realm
+- [ ] Add BrowserSessionCookie setting in ServerSettings:
+  - [ ] Support cookie type configuration: JWE (encrypted), JWS (signed), opaque (database)
+  - [ ] Example config file: `browser-session-cookie.yml`
+  - [ ] Default to JWS (signed stateless tokens)
+  - [ ] JWE/JWS are stateless, opaque requires session storage in DB
+
+### 10.2 Update learn-im Config
+
+- [ ] Create `internal/learn/server/config.go` with AppConfig struct
+- [ ] Keep learn-im-specific settings in AppConfig:
+  - [ ] JWE algorithm settings
+  - [ ] Message min/max length settings
+  - [ ] Recipients min/max count settings
+- [ ] Embed ServerSettings in AppConfig for network/TLS configuration
+- [ ] Update CLI flags to support both ServerSettings and AppConfig fields
+
+---
+
+## Phase 11: Testing & Validation Commands
+
+### 11.1 Unit Tests
 
 **Run Command**:
 
@@ -310,7 +341,7 @@ go tool cover -html=./test-output/coverage_learn_unit.out -o ./test-output/cover
 - [ ] Coverage ≥98% for infrastructure code (repositories, crypto utilities)
 - [ ] No test timeouts or flakiness
 
-### 10.2 Integration Tests
+### 11.2 Integration Tests
 
 **Run Command**:
 
@@ -326,7 +357,7 @@ go tool cover -html=./test-output/coverage_learn_integration.out -o ./test-outpu
 - [ ] No race conditions detected with `-race` flag
 - [ ] Coverage includes repository and database interactions
 
-### 10.3 Docker Compose (Development Environment)
+### 11.3 Docker Compose (Development Environment)
 
 **Start Command**:
 
@@ -362,7 +393,7 @@ docker compose -f deployments/learn/compose.yml down
 - [ ] Registration and login APIs functional
 - [ ] Message send/receive APIs functional
 
-### 10.4 Demo Application
+### 11.4 Demo Application
 
 **Start Command**:
 
@@ -392,7 +423,7 @@ kill <PID>
 - [ ] All APIs functional in dev mode
 - [ ] Graceful shutdown works
 
-### 10.5 E2E Tests
+### 11.5 E2E Tests
 
 **Run Command**:
 
@@ -410,9 +441,9 @@ go tool cover -html=./test-output/coverage_learn_e2e.out -o ./test-output/covera
 
 ---
 
-## Phase 11: CLI Flag Testing
+## Phase 12: CLI Flag Testing
 
-### 11.1 Test with `-d` (SQLite Dev Mode)
+### 12.1 Test with `-d` (SQLite Dev Mode)
 
 **Command**:
 
@@ -427,7 +458,7 @@ go run ./cmd/learn-im -d
 - [ ] No external dependencies required (PostgreSQL, Docker)
 - [ ] Service starts and handles requests correctly
 
-### 11.2 Test with `-D <dsn>` (PostgreSQL Test-Container)
+### 12.2 Test with `-D <dsn>` (PostgreSQL Test-Container)
 
 **Command**:
 
@@ -443,7 +474,7 @@ go test ./internal/learn/integration/... -v
 - [ ] All tests use PostgreSQL instead of SQLite
 - [ ] Test-container cleaned up after tests complete
 
-### 11.3 Test with `-c learn.yml` (Production-like Config)
+### 12.3 Test with `-c learn.yml` (Production-like Config)
 
 **Command**:
 
@@ -468,15 +499,55 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 
 ---
 
+## Phase 13: Future Enhancements (Deferred)
+
+### 13.1 Message Listing APIs
+
+**Note**: Deferred from Phase 9 per QUIZME Q9 answer.
+
+- [ ] Implement `/service/api/v1/messages/inbox` - list received messages for authenticated user
+  - [ ] Support query parameter `?limit=N` (default 50, max 1000)
+  - [ ] Support query parameter `?offset=N` (pagination)
+  - [ ] Support query parameter `?read=true|false` (filter by read status)
+  - [ ] Support query parameter `?from=<username>` (filter by sender)
+  - [ ] Support query parameter `?sort=created_at:desc|asc` (sort order)
+- [ ] Implement `/service/api/v1/messages/sent` - list sent messages for authenticated user
+  - [ ] Support query parameter `?limit=N` (default 50, max 1000)
+  - [ ] Support query parameter `?offset=N` (pagination)
+  - [ ] Support query parameter `?to=<username>` (filter by recipient)
+  - [ ] Support query parameter `?sort=created_at:desc|asc` (sort order)
+- [ ] Add database indexes for efficient querying (user_id, created_at, read status)
+- [ ] Unit tests for inbox/sent listing with filters and pagination
+- [ ] Integration tests for inbox/sent APIs
+
+### 13.2 Long Poll API ("You've Got Mail")
+
+**Note**: Deferred from Phase 9 per QUIZME Q9-Q10 answers. Implementation uses database polling.
+
+- [ ] Implement `/service/api/v1/messages/poll` - long poll endpoint for new messages
+  - [ ] Accept query parameter `?timeout=<seconds>` (default 30s, max 60s)
+  - [ ] Return immediately if unread messages exist
+  - [ ] Block up to timeout seconds waiting for new messages (database polling every 1-5 seconds)
+  - [ ] Return HTTP 200 with message count when new messages arrive
+  - [ ] Return HTTP 204 (No Content) on timeout with no new messages
+- [ ] Implement database polling mechanism (check messages table every 1-5 seconds)
+- [ ] Trigger notification on `/service/api/v1/messages/tx` (send message)
+- [ ] Unit tests for long poll endpoint (immediate return, timeout, notification)
+- [ ] Integration tests for concurrent long poll clients
+
+---
+
 ## Progress Tracking
 
 **Last Updated**: 2025-12-28
 
-**Overall Status**: 🟡 In Progress
+**Overall Status**: 🟡 In Progress - QUIZME Answered, Ready for Implementation
 
 - ✅ **Phase 1-2 Complete**: Package structure migration, shared infrastructure integration
+- ✅ **QUIZME Complete**: All 12 questions answered, architecture decisions documented
 - ⚠️ **Phase 3-7 Partial**: Database schema needs 3-table refactor, tests have timeout issues
-- ❌ **Phase 8-11 Not Started**: Code quality cleanup, feature enhancements, comprehensive testing
+- ❌ **Phase 8-12 Not Started**: Code quality cleanup, concurrency tests, ServerSettings integration, CLI testing
+- ❌ **Phase 13 Deferred**: Inbox/sent listing and long poll APIs (future enhancements)
 
 **Critical Blockers**:
 
@@ -485,11 +556,13 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 3. jwtSecret still hardcoded in multiple places (violates security requirements)
 4. Custom crypto instead of shared infrastructure (violates DRY principle)
 
-**Next Steps**:
+**Next Steps** (Prioritized):
 
-1. Address file size violations by splitting large files
-2. Remove jwtSecret and use proper authentication infrastructure
-3. Replace custom crypto with shared JWE utilities
-4. Implement inbox/sent listing APIs
-5. Add long poll API for real-time notifications
-6. Add comprehensive concurrency integration tests
+1. **Phase 8.4**: Split large files (public.go → 4 files, public_test.go → 7+ files, e2e → 3 files)
+2. **Phase 8.1**: Remove jwtSecret and deprecated code
+3. **Phase 8.7**: Replace custom crypto with shared hash/JWE utilities
+4. **Phase 8.3**: Migrate password hashing to shared `hash_low_random_provider.go`
+5. **Phase 10**: Add ServerSettings extensions (Realms, BrowserSessionCookie)
+6. **Phase 9**: Implement concurrency integration tests (N=5, M=4, P=3, Q=2, target ~4s)
+7. **Phase 11-12**: Testing and CLI flag validation
+8. **Phase 13**: Future - inbox/sent listing, long poll API (database polling)
