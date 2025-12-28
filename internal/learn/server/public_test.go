@@ -7,8 +7,6 @@ package server_test
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
-	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -19,10 +17,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
@@ -34,240 +28,6 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
-
-// initTestDB creates an in-memory SQLite database with schema.
-func initTestDB(t *testing.T) *gorm.DB {
-	t.Helper()
-
-	ctx := context.Background()
-
-	// Create unique in-memory database per test to avoid table conflicts.
-	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
-
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
-
-	sqlDB, err := sql.Open("sqlite", dsn)
-	require.NoError(t, err)
-
-	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetConnMaxLifetime(0) // In-memory: keep connections alive.
-
-	// Wrap with GORM using sqlite Dialector.
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	// Run migrations using embedded migration files.
-	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
-	require.NoError(t, err)
-
-	return db
-}
-
-// createTestPublicServer creates a PublicServer for testing.
-func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, string) {
-	t.Helper()
-
-	ctx := context.Background()
-
-	userRepo := repository.NewUserRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
-
-	// Initialize telemetry for JWKGenService (minimal config for tests).
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "learn-im-test",
-		OTLPEnabled:  false, // Tests use in-process telemetry only.
-		OTLPEndpoint: "grpc://localhost:4317",
-	}
-
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
-	require.NoError(t, err)
-
-	// Initialize JWK Generation Service for message encryption.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
-	require.NoError(t, err)
-
-	// Use port 0 for dynamic allocation (prevents port conflicts in tests).
-	const testPort = 0
-
-	// TLS config with localhost subject.
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	require.NoError(t, err)
-
-	const testJWTSecret = "learn-im-test-secret"
-
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, jwkGenService, testJWTSecret, tlsCfg)
-	require.NoError(t, err)
-
-	// Start server in background.
-	errChan := make(chan error, 1)
-
-	go func() {
-		if startErr := publicServer.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	// Wait for server to bind to port.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	actualPort := 0
-	for i := 0; i < maxWaitAttempts; i++ {
-		actualPort = publicServer.ActualPort()
-		if actualPort > 0 {
-			break
-		}
-
-		time.Sleep(waitInterval)
-	}
-
-	require.Greater(t, actualPort, 0, "server did not bind to port")
-
-	baseURL := "https://" + cryptoutilMagic.IPv4Loopback + ":" + intToString(actualPort)
-
-	t.Cleanup(func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		_ = publicServer.Shutdown(shutdownCtx)
-	})
-
-	return publicServer, baseURL
-}
-
-// intToString converts int to string.
-func intToString(n int) string {
-	if n < 0 {
-		return "-" + intToString(-n)
-	}
-
-	if n < 10 {
-		return string(rune('0' + n))
-	}
-
-	return intToString(n/10) + string(rune('0'+(n%10)))
-}
-
-// createHTTPClient creates an HTTP client that trusts self-signed certificates.
-func createHTTPClient(t *testing.T) *http.Client {
-	t.Helper()
-
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
-			},
-		},
-		Timeout: 5 * time.Second,
-	}
-}
-
-// testUserWithToken represents a test user with authentication token.
-type testUserWithToken struct {
-	User  *cryptoutilDomain.User
-	Token string
-}
-
-// registerAndLoginTestUser registers a user and logs in to get JWT token.
-func registerAndLoginTestUser(t *testing.T, client *http.Client, baseURL, username, password string) *testUserWithToken {
-	t.Helper()
-
-	// Register user.
-	user := registerTestUser(t, client, baseURL, username, password)
-
-	// Login to get token.
-	loginReqBody := map[string]string{
-		"username": username,
-		"password": password,
-	}
-	loginReqJSON, err := json.Marshal(loginReqBody)
-	require.NoError(t, err)
-
-	loginReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/login", bytes.NewReader(loginReqJSON))
-	require.NoError(t, err)
-	loginReq.Header.Set("Content-Type", "application/json")
-
-	loginResp, err := client.Do(loginReq)
-	require.NoError(t, err)
-
-	defer func() { _ = loginResp.Body.Close() }()
-
-	require.Equal(t, http.StatusOK, loginResp.StatusCode)
-
-	var loginRespBody map[string]string
-
-	err = json.NewDecoder(loginResp.Body).Decode(&loginRespBody)
-	require.NoError(t, err)
-
-	return &testUserWithToken{
-		User:  user,
-		Token: loginRespBody["token"],
-	}
-}
-
-// registerTestUser is a helper that registers a user and returns the user domain object.
-func registerTestUser(t *testing.T, client *http.Client, baseURL, username, password string) *cryptoutilDomain.User {
-	t.Helper()
-
-	reqBody := map[string]string{
-		"username": username,
-		"password": password,
-	}
-	reqJSON, err := json.Marshal(reqBody)
-	require.NoError(t, err)
-
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader(reqJSON))
-	require.NoError(t, err)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, http.StatusCreated, resp.StatusCode)
-
-	var respBody map[string]string
-
-	err = json.NewDecoder(resp.Body).Decode(&respBody)
-	require.NoError(t, err)
-
-	userID, err := googleUuid.Parse(respBody["user_id"])
-	require.NoError(t, err)
-
-	publicKeyBytes, err := hex.DecodeString(respBody["public_key"])
-	require.NoError(t, err)
-
-	pubKey, err := cryptoutilCrypto.ParseECDHPublicKey(publicKeyBytes)
-	require.NoError(t, err)
-
-	// TODO(Phase 5): Remove public key parsing (not used in 3-table design).
-	_ = publicKeyBytes
-	_ = pubKey
-
-	return &cryptoutilDomain.User{
-		ID:       userID,
-		Username: username,
-	}
-}
 
 func TestHandleRegisterUser_Success(t *testing.T) {
 	t.Parallel()
@@ -590,7 +350,7 @@ func TestHandleSendMessage_Success(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and receiver users with authentication.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
 
 	// Send message.
@@ -628,7 +388,7 @@ func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender with authentication.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send message with empty receivers.
 	reqBody := map[string]any{
@@ -665,7 +425,7 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender with authentication.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send message with invalid receiver ID.
 	reqBody := map[string]any{
@@ -702,7 +462,7 @@ func TestHandleReceiveMessages_Empty(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create receiver with authentication.
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Retrieve messages without sending any.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
@@ -731,7 +491,7 @@ func TestHandleDeleteMessage_Success(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and receiver users.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
 
 	// Send message.
@@ -786,7 +546,7 @@ func TestHandleDeleteMessage_InvalidID(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender with authentication.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	// Delete with invalid ID.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/invalid-id", nil)
@@ -815,7 +575,7 @@ func TestHandleDeleteMessage_NotFound(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender with authentication.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	// Delete non-existent message.
 	messageID := googleUuid.New()
@@ -1041,7 +801,7 @@ func TestHandleSendMessage_InvalidTokenSignature(t *testing.T) {
 	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
 
 	// Generate valid token then tamper with it.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 	tamperedToken := sender.Token + "tampered"
 
 	reqBody := map[string]any{
@@ -1151,8 +911,8 @@ func TestHandleDeleteMessage_NotOwner(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and receiver.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send message from sender.
 	reqBody := map[string]any{
@@ -1206,7 +966,7 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
 
 	reqBody := map[string]any{
@@ -1465,8 +1225,8 @@ func TestHandleSendMessage_SaveRepositoryError(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and receiver first (before closing DB).
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Get database connection.
 	sqlDB, err := db.DB()
@@ -1504,8 +1264,8 @@ func TestHandleDeleteMessage_RepositoryError(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and send a message.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send message.
 	sendReq := fmt.Sprintf(`{"message": "test", "receiver_ids": ["%s"]}`, receiver.User.ID.String())
@@ -1602,8 +1362,8 @@ func TestHandleSendMessage_EncryptionError(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and receiver.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Corrupt receiver's public key in database to trigger encryption error.
 	var user cryptoutilDomain.User
@@ -1641,7 +1401,7 @@ func TestHandleReceiveMessages_EmptyInbox(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create receiver with no messages.
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Request messages.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", http.NoBody)
@@ -1745,7 +1505,7 @@ func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	// Test with invalid UUID.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/invalid-uuid", http.NoBody)
@@ -1853,7 +1613,7 @@ func TestHandleSendMessage_ReceiverPublicKeyParseError(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	// Create receiver with corrupted public key directly in DB.
 	ctx := context.Background()
@@ -1918,8 +1678,8 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and receiver.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send message from sender to receiver.
 	reqBody := map[string]any{
@@ -1975,8 +1735,8 @@ func TestHandleReceiveMessages_MultipleMessages(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and receiver.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send 3 messages from sender to receiver.
 	for i := 1; i <= 3; i++ {
@@ -2035,7 +1795,7 @@ func TestHandleSendMessage_MultipleReceivers(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create sender and 3 receivers.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 	receiver1 := registerTestUser(t, client, baseURL, "receiver1", "password123")
 	receiver2 := registerTestUser(t, client, baseURL, "receiver2", "password123")
 	receiver3 := registerTestUser(t, client, baseURL, "receiver3", "password123")
@@ -2079,7 +1839,7 @@ func TestHandleDeleteMessage_EmptyID(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create authenticated user.
-	user := registerAndLoginTestUser(t, client, baseURL, "user", "password123")
+	user := registerAndLoginTestUser(t, client, baseURL)
 
 	// Try to delete message with empty ID (invalid endpoint).
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/", nil)
@@ -2175,7 +1935,7 @@ func TestHandleSendMessage_InvalidBodyParser(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Register sender.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send malformed JSON body.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader([]byte("not-valid-json")))
@@ -2260,8 +2020,8 @@ func TestHandleReceiveMessages_MessageReceiverNotFound(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Register sender and receiver1.
-	sender := registerAndLoginTestUser(t, client, baseURL, "sender", "password123")
-	receiver1 := registerAndLoginTestUser(t, client, baseURL, "receiver1", "password123")
+	sender := registerAndLoginTestUser(t, client, baseURL)
+	receiver1 := registerAndLoginTestUser(t, client, baseURL)
 
 	// Send message to receiver1.
 	sendReqBody := map[string]any{
@@ -2379,7 +2139,7 @@ func TestHandleReceiveMessages_RepositoryError(t *testing.T) {
 	client := createHTTPClient(t)
 
 	// Create receiver.
-	receiver := registerAndLoginTestUser(t, client, baseURL, "receiver", "password123")
+	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	// Close database to trigger error.
 	sqlDB, err := db.DB()
