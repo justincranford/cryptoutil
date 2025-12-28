@@ -17,7 +17,7 @@ import (
 // - JWK is stored in messages_jwks table
 // - JWE compact format: BASE64URL(header).BASE64URL(key).BASE64URL(iv).BASE64URL(ciphertext).BASE64URL(tag)
 //
-// Algorithm: dir (direct encryption) + A256GCM (content encryption)
+// Algorithm: dir (direct encryption) + A256GCM (content encryption).
 type Message struct {
 	ID            googleUuid.UUID `gorm:"type:text;primaryKey"`
 	SenderID      googleUuid.UUID `gorm:"type:text;not null;index"`
