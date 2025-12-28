@@ -20,11 +20,11 @@ import (
 //
 // Algorithm: enc=A256GCM (content encryption), alg=A256GCMKW (key wrapping per recipient).
 type Message struct {
-	ID         googleUuid.UUID `gorm:"type:text;primaryKey"`     // UUIDv7
-	SenderID   googleUuid.UUID `gorm:"type:text;not null;index"` // UUIDv7
-	JWE        string          `gorm:"type:text;not null"`       // JWE JSON format (multi-recipient)
-	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	ReadAt     *time.Time      `gorm:"default:null;index"`
+	ID        googleUuid.UUID `gorm:"type:text;primaryKey"`     // UUIDv7
+	SenderID  googleUuid.UUID `gorm:"type:text;not null;index"` // UUIDv7
+	JWE       string          `gorm:"type:text;not null"`       // JWE JSON format (multi-recipient)
+	CreatedAt time.Time       `gorm:"autoCreateTime"`
+	ReadAt    *time.Time      `gorm:"default:null;index"`
 
 	// Relationships.
 	Sender User `gorm:"foreignKey:SenderID"` // UUIDv7

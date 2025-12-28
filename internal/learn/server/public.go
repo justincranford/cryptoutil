@@ -58,21 +58,13 @@ func NewPublicServer(
 ) (*PublicServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
-	}
-
-	if userRepo == nil {
+	} else if userRepo == nil {
 		return nil, fmt.Errorf("user repository cannot be nil")
-	}
-
-	if messageRepo == nil {
+	} else if messageRepo == nil {
 		return nil, fmt.Errorf("message repository cannot be nil")
-	}
-
-	if jwkGenService == nil {
+	} else if jwkGenService == nil {
 		return nil, fmt.Errorf("JWK generation service cannot be nil")
-	}
-
-	if tlsCfg == nil {
+	} else if tlsCfg == nil {
 		return nil, fmt.Errorf("TLS configuration cannot be nil")
 	}
 

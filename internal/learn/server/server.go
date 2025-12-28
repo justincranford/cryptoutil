@@ -50,13 +50,9 @@ type Config struct {
 func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
-	}
-
-	if cfg == nil {
+	} else if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
-	}
-
-	if cfg.DB == nil {
+	} else if cfg.DB == nil {
 		return nil, fmt.Errorf("database cannot be nil")
 	}
 
@@ -66,7 +62,8 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
 	}
 
-	if err := repository.ApplyMigrations(sqlDB, cfg.DBType); err != nil {
+	err = repository.ApplyMigrations(sqlDB, cfg.DBType)
+	if err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
