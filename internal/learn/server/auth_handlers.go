@@ -12,6 +12,7 @@ import (
 
 	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilMagic "cryptoutil/internal/learn/magic"
 )
 
 // RegisterUserRequest represents the request to register a new user.
@@ -51,20 +52,14 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	}
 
 	// Validate request.
-	const (
-		minUsernameLength = 3
-		maxUsernameLength = 50
-		minPasswordLength = 8
-	)
-
-	if len(req.Username) < minUsernameLength || len(req.Username) > maxUsernameLength {
+	if len(req.Username) < cryptoutilMagic.MinUsernameLength || len(req.Username) > cryptoutilMagic.MaxUsernameLength {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "username must be 3-50 characters",
 		})
 	}
 
-	if len(req.Password) < minPasswordLength {
+	if len(req.Password) < cryptoutilMagic.MinPasswordLength {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "password must be at least 8 characters",

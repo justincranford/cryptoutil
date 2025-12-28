@@ -12,15 +12,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilMagic "cryptoutil/internal/learn/magic"
 )
 
 const (
-	// JWTIssuer is the issuer claim for JWT tokens.
-	JWTIssuer = "learn-im"
-
-	// JWTExpiration is the default JWT token expiration time.
-	JWTExpiration = 24 * time.Hour
-
 	// ContextKeyUserID is the context key for storing user ID from JWT.
 	ContextKeyUserID = "user_id"
 
@@ -39,14 +35,14 @@ type Claims struct {
 
 // GenerateJWT creates a new JWT token for the given user.
 func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(JWTExpiration)
+	expirationTime := time.Now().Add(cryptoutilMagic.JWTExpiration)
 	claims := &Claims{
 		UserID:   userID.String(),
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    JWTIssuer,
+			Issuer:    cryptoutilMagic.JWTIssuer,
 		},
 	}
 

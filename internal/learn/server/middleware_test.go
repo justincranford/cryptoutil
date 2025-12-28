@@ -13,6 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	"cryptoutil/internal/learn/magic"
 	"cryptoutil/internal/learn/server"
 )
 
@@ -94,7 +95,7 @@ func TestJWTMiddleware_ExpiredToken(t *testing.T) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
-			Issuer:    server.JWTIssuer,
+			Issuer:    magic.JWTIssuer,
 		},
 	}
 
