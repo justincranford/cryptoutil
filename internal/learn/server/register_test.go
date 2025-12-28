@@ -357,7 +357,7 @@ func TestNew_NilContext(t *testing.T) {
 		DB:         db,
 	}
 
-	_, err := server.New(nil, cfg)
+	_, err := server.New(context.TODO(), cfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }

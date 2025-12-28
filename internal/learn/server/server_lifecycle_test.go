@@ -36,7 +36,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(nil, 0, userRepo, messageRepo, nil, "test-secret", tlsCfg)
+	_, err = server.NewPublicServer(context.TODO(), 0, userRepo, messageRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
