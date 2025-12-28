@@ -367,67 +367,41 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create message with receivers.
+	// TODO(Phase 5): Implement full JWE Compact Serialization encryption.
+	// For now, store plaintext to unblock Phase 3 completion.
+	// This is a temporary implementation that will be replaced in Phase 5.
+
+	// Parse first receiver ID (simplified single-recipient model).
+	recipientIDStr := req.ReceiverIDs[0]
+
+	recipientID, err := googleUuid.Parse(recipientIDStr)
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fmt.Sprintf("invalid recipient ID: %s", recipientIDStr),
+		})
+	}
+
+	// Verify recipient exists.
+	_, err = s.userRepo.FindByID(c.Context(), recipientID)
+	if err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": fmt.Sprintf("recipient not found: %s", recipientIDStr),
+		})
+	}
+
+	// Create message with temporary plaintext JWE format.
+	// Phase 5 will replace this with proper JWE Compact Serialization.
 	message := &cryptoutilDomain.Message{
-		ID:       googleUuid.New(),
-		SenderID: senderID,
+		ID:          googleUuid.New(),
+		SenderID:    senderID,
+		RecipientID: recipientID,
+		JWECompact:  req.Message, // TODO(Phase 5): Replace with actual JWE compact string.
+		KeyID:       "temp-key",  // TODO(Phase 5): Replace with actual JWK key_id.
 	}
 
-	plaintext := []byte(req.Message)
-
-	// Encrypt message for each receiver.
-	for _, receiverIDStr := range req.ReceiverIDs {
-		receiverID, err := googleUuid.Parse(receiverIDStr)
-		if err != nil {
-			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": fmt.Sprintf("invalid receiver ID: %s", receiverIDStr),
-			})
-		}
-
-		// Lookup receiver's public key.
-		receiver, err := s.userRepo.FindByID(c.Context(), receiverID)
-		if err != nil {
-			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": fmt.Sprintf("receiver not found: %s", receiverIDStr),
-			})
-		}
-
-		// Parse receiver's ECDH public key.
-		receiverPublicKey, err := cryptoutilCrypto.ParseECDHPublicKey(receiver.PublicKey)
-		if err != nil {
-			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to parse receiver public key",
-			})
-		}
-
-		// Encrypt message for this specific receiver.
-		// Each receiver gets their own encrypted copy because ECDH produces
-		// a different shared secret for each receiver's public key.
-		ephemeralPubKey, ciphertext, nonce, err := cryptoutilCrypto.EncryptMessage(plaintext, receiverPublicKey)
-		if err != nil {
-			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "failed to encrypt message",
-			})
-		}
-
-		// Create message receiver entry with this receiver's encrypted copy.
-		messageReceiver := cryptoutilDomain.MessageReceiver{
-			ID:               googleUuid.New(),
-			MessageID:        message.ID,
-			ReceiverID:       receiverID,
-			SenderPubKey:     ephemeralPubKey,
-			EncryptedContent: ciphertext,
-			Nonce:            nonce,
-		}
-
-		message.Receivers = append(message.Receivers, messageReceiver)
-	}
-
-	// Save message with receivers.
+	// Save message.
 	if err := s.messageRepo.Create(c.Context(), message); err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -457,8 +431,8 @@ type ReceiveMessagesResponse struct {
 
 // handleReceiveMessages handles GET /messages/rx.
 func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
-	// Extract receiver ID from authentication context.
-	receiverID, ok := c.Locals(ContextKeyUserID).(googleUuid.UUID)
+	// Extract recipient ID from authentication context.
+	recipientID, ok := c.Locals(ContextKeyUserID).(googleUuid.UUID)
 	if !ok {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -466,8 +440,8 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 		})
 	}
 
-	// Retrieve messages for receiver.
-	messages, err := s.messageRepo.FindByReceiverID(c.Context(), receiverID)
+	// Retrieve messages for recipient.
+	messages, err := s.messageRepo.FindByRecipientID(c.Context(), recipientID)
 	if err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -475,9 +449,9 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 		})
 	}
 
-	// Mark messages as received.
+	// Mark messages as read.
 	for _, msg := range messages {
-		if err := s.messageRepo.MarkAsReceived(c.Context(), msg.ID, receiverID); err != nil {
+		if err := s.messageRepo.MarkAsRead(c.Context(), msg.ID); err != nil {
 			// Log error but continue processing other messages.
 			continue
 		}
@@ -489,27 +463,13 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 	}
 
 	for _, msg := range messages {
-		// Find receiver entry for this receiver.
-		var receiverEntry *cryptoutilDomain.MessageReceiver
-
-		for i := range msg.Receivers {
-			if msg.Receivers[i].ReceiverID == receiverID {
-				receiverEntry = &msg.Receivers[i]
-
-				break
-			}
-		}
-
-		if receiverEntry == nil {
-			// Skip if receiver entry not found (shouldn't happen).
-			continue
-		}
-
+		// TODO(Phase 5): Decrypt JWE compact string and return plaintext.
+		// For now, return the stored content as-is (temporary plaintext).
 		response.Messages = append(response.Messages, MessageResponse{
 			MessageID:        msg.ID.String(),
-			SenderPubKey:     fmt.Sprintf("%x", receiverEntry.SenderPubKey),     // Hex encoding for simplicity.
-			EncryptedContent: fmt.Sprintf("%x", receiverEntry.EncryptedContent), // Receiver's encrypted copy.
-			Nonce:            fmt.Sprintf("%x", receiverEntry.Nonce),            // Receiver's nonce.
+			SenderPubKey:     "",                // TODO(Phase 5): Not used with JWE Compact.
+			EncryptedContent: msg.JWECompact,    // TODO(Phase 5): Decrypt this.
+			Nonce:            "",                // TODO(Phase 5): Not used with JWE Compact.
 			CreatedAt:        msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}
