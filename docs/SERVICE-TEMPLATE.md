@@ -230,13 +230,15 @@
 - [x] Extract test helpers to `internal/learn/server/helpers_test.go` (312 lines)
   - [x] Remove hardcoded JWT secret - generate random UUID-based secret in tests
   - [x] Remove hardcoded passwords - registerAndLoginTestUser generates random values
+- [x] Increase HTTP client timeout from 5s to 30s for concurrent test execution
 - [ ] Split remaining tests by test type AND feature (still 2132 lines in public_test.go):
-  - [ ] Create `internal/learn/server/register_test.go` (registration feature tests)
-  - [ ] Create `internal/learn/server/login_test.go` (login feature tests)
-  - [ ] Create `internal/learn/server/send_test.go` (message send tests)
-  - [ ] Create `internal/learn/server/receive_delete_test.go` (receive and delete message tests)
-  - [ ] Create `internal/learn/server/middleware_test.go` (JWT middleware tests)
-  - [ ] Create `internal/learn/server/server_lifecycle_test.go` (server lifecycle and unit tests)
+  - [ ] Create `internal/learn/server/register_test.go` (registration feature tests) - ~410 lines
+  - [ ] Create `internal/learn/server/login_test.go` (login feature tests) - ~380 lines
+  - [ ] Create `internal/learn/server/send_test.go` (message send tests) - ~500 lines
+  - [ ] Create `internal/learn/server/receive_delete_test.go` (receive and delete message tests) - ~600 lines
+  - [ ] Create `internal/learn/server/middleware_test.go` (JWT middleware tests) - ~130 lines
+  - [ ] Create `internal/learn/server/server_lifecycle_test.go` (server lifecycle and unit tests) - ~280 lines
+  - **Note**: Initial automated split attempt using Python regex extraction had boundary detection issues. Manual extraction or AST-based tool recommended. Test categories identified: 13 register, 8 login, 12 send, 15 receive/delete, 3 middleware, 11 lifecycle tests.
 
 **learn_im_e2e_test.go (782 lines - VIOLATION)** - ❌ TODO:
 
