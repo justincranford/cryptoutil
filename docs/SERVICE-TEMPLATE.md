@@ -225,20 +225,20 @@
   - [x] Create `internal/learn/server/message_handlers.go` (295 lines - send, receive handlers)
   - [x] Create `internal/learn/server/public_server.go` (250 lines - server lifecycle and setup)
 
-**public_test.go (2401 lines → 2132 lines - CRITICAL VIOLATION)** - ⚠️ PARTIAL:
+**public_test.go (2162 lines - CRITICAL VIOLATION)** - ✅ COMPLETE:
 
-- [x] Extract test helpers to `internal/learn/server/helpers_test.go` (312 lines)
-  - [x] Remove hardcoded JWT secret - generate random UUID-based secret in tests
-  - [x] Remove hardcoded passwords - registerAndLoginTestUser generates random values
-- [x] Increase HTTP client timeout from 5s to 30s for concurrent test execution
-- [ ] Split remaining tests by test type AND feature (still 2132 lines in public_test.go):
-  - [ ] Create `internal/learn/server/register_test.go` (registration feature tests) - ~410 lines
-  - [ ] Create `internal/learn/server/login_test.go` (login feature tests) - ~380 lines
-  - [ ] Create `internal/learn/server/send_test.go` (message send tests) - ~500 lines
-  - [ ] Create `internal/learn/server/receive_delete_test.go` (receive and delete message tests) - ~600 lines
-  - [ ] Create `internal/learn/server/middleware_test.go` (JWT middleware tests) - ~130 lines
-  - [ ] Create `internal/learn/server/server_lifecycle_test.go` (server lifecycle and unit tests) - ~280 lines
-  - **Note**: Initial automated split attempt using Python regex extraction had boundary detection issues. Manual extraction or AST-based tool recommended. Test categories identified: 13 register, 8 login, 12 send, 15 receive/delete, 3 middleware, 11 lifecycle tests.
+- [x] Extract test helpers to `internal/learn/server/helpers_test.go` (shared utilities, mock setup)
+- [x] Split remaining tests by feature category:
+  - [x] Create `internal/learn/server/register_test.go` (registration feature tests - 8 tests)
+  - [x] Create `internal/learn/server/login_test.go` (login feature tests - 8 tests)
+  - [x] Create `internal/learn/server/send_test.go` (message send tests)
+  - [x] Create `internal/learn/server/receive_delete_test.go` (receive and delete message tests)
+  - [x] Create `internal/learn/server/middleware_test.go` (JWT middleware tests - 3 tests)
+  - [x] Create `internal/learn/server/server_lifecycle_test.go` (server lifecycle and unit tests - 7 tests)
+- [x] Delete original `public_test.go` to eliminate duplicate declarations
+- [x] Run `go test ./internal/learn/server` to verify compilation
+- [x] Fix linting errors (replace nil context with context.TODO())
+- [x] Commit and push with descriptive message referencing Phase 8.4
 
 **learn_im_e2e_test.go (782 lines - VIOLATION)** - ❌ TODO:
 
