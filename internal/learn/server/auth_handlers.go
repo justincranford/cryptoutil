@@ -26,7 +26,6 @@ type RegisterUserResponse struct {
 	UserID string `json:"user_id"` // Created user ID.
 }
 
-
 // LoginUserRequest represents the request to login.
 type LoginUserRequest struct {
 	Username string `json:"username"` // Username.

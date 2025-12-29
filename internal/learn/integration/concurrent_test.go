@@ -26,12 +26,12 @@ import (
 // initTestConfig returns an AppConfig with all required settings for tests.
 func initTestConfig() *server.AppConfig {
 	cfg := server.DefaultAppConfig()
-	cfg.BindPublicPort = 0                      // Dynamic port
-	cfg.BindPrivatePort = 0                     // Dynamic port
-	cfg.OTLPService = "learn-im-integration"    // Required
-	cfg.LogLevel = "info"                       // Required
+	cfg.BindPublicPort = 0                     // Dynamic port
+	cfg.BindPrivatePort = 0                    // Dynamic port
+	cfg.OTLPService = "learn-im-integration"   // Required
+	cfg.LogLevel = "info"                      // Required
 	cfg.OTLPEndpoint = "grpc://localhost:4317" // Required
-	cfg.OTLPEnabled = false                     // Disable in tests
+	cfg.OTLPEnabled = false                    // Disable in tests
 	return cfg
 }
 
@@ -133,16 +133,16 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 					_ = selectRecipients(users, sender.ID, tt.recipientsEach) // TODO: Create MessageRecipientJWK entries when implementing Phase 9.2
 
 					// Create message via repository.
-				messageID := googleUuid.New()
-				msg := &domain.Message{
-					ID:       messageID,
-					SenderID: sender.ID,
-					JWE:      fmt.Sprintf("encrypted-content-%d", senderIdx),
-				}
+					messageID := googleUuid.New()
+					msg := &domain.Message{
+						ID:       messageID,
+						SenderID: sender.ID,
+						JWE:      fmt.Sprintf("encrypted-content-%d", senderIdx),
+					}
 
-				msgRepo := repository.NewMessageRepository(db)
-				err := msgRepo.Create(context.Background(), msg)
-				require.NoError(t, err)
+					msgRepo := repository.NewMessageRepository(db)
+					err := msgRepo.Create(context.Background(), msg)
+					require.NoError(t, err)
 				}(i)
 			}
 

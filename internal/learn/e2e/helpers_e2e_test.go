@@ -32,7 +32,7 @@ import (
 
 // testUser represents a user with their authentication token for testing.
 type testUser struct {
-	ID       googleUuid.UUID
+	ID       googleUuid.UUID // UUIDv7
 	Username string
 	Token    string // JWT authentication token.
 }

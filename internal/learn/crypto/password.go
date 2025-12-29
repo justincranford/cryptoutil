@@ -62,7 +62,7 @@ func compareHashes(a, b []byte) bool {
 	}
 
 	var result byte
-	for i := 0; i < len(a); i++ {
+	for i := range a {
 		result |= a[i] ^ b[i]
 	}
 

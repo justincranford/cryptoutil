@@ -31,9 +31,9 @@ type AppConfig struct {
 	cryptoutilConfig.ServerSettings
 
 	// Learn-IM-specific settings.
-	JWEAlgorithm       string `mapstructure:"jwe_algorithm" yaml:"jwe_algorithm"`             // JWE algorithm for message encryption (default: dir+A256GCM).
-	MessageMinLength   int    `mapstructure:"message_min_length" yaml:"message_min_length"`   // Minimum message length in characters (default: 1).
-	MessageMaxLength   int    `mapstructure:"message_max_length" yaml:"message_max_length"`   // Maximum message length in characters (default: 10000).
+	JWEAlgorithm       string `mapstructure:"jwe_algorithm" yaml:"jwe_algorithm"`               // JWE algorithm for message encryption (default: dir+A256GCM).
+	MessageMinLength   int    `mapstructure:"message_min_length" yaml:"message_min_length"`     // Minimum message length in characters (default: 1).
+	MessageMaxLength   int    `mapstructure:"message_max_length" yaml:"message_max_length"`     // Maximum message length in characters (default: 10000).
 	RecipientsMinCount int    `mapstructure:"recipients_min_count" yaml:"recipients_min_count"` // Minimum recipients per message (default: 1).
 	RecipientsMaxCount int    `mapstructure:"recipients_max_count" yaml:"recipients_max_count"` // Maximum recipients per message (default: 10).
 

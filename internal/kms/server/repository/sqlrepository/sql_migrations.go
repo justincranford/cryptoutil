@@ -22,13 +22,17 @@ import (
 
 var (
 	//go:embed postgres/*.sql
-	postgresMigrationsFS embed.FS
+	postgresMigrationsFS embed.FS // internal/kms/server/repository/sqlrepository/postgres/*.sql
 
 	//go:embed sqlite/*.sql
-	sqliteMigrationsFS embed.FS
+	sqliteMigrationsFS embed.FS // internal/kms/server/repository/sqlrepository/sqlite/*.sql
 )
 
 func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType) error {
+	return ApplyEmbeddedSQLMigrationsForService(telemetryService, db, dbType, postgresMigrationsFS, sqliteMigrationsFS)
+}
+
+func ApplyEmbeddedSQLMigrationsForService(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType, postgresMigrationsFS embed.FS, sqliteMigrationsFS embed.FS) error {
 	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", dbType)
 
 	var sourceDriver source.Driver
