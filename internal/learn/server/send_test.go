@@ -224,7 +224,9 @@ func TestHandleSendMessage_MissingToken(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+	receiverPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+	receiver := registerTestUser(t, client, baseURL, "receiver", receiverPassword)
 
 	reqBody := map[string]any{
 		"message":      "Test message",

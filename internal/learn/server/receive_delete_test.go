@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func TestHandleReceiveMessages_Empty(t *testing.T) {
@@ -52,7 +53,9 @@ func TestHandleDeleteMessage_Success(t *testing.T) {
 	client := createHTTPClient(t)
 
 	sender := registerAndLoginTestUser(t, client, baseURL)
-	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+	receiverPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+	receiver := registerTestUser(t, client, baseURL, "receiver", receiverPassword)
 
 	reqBody := map[string]any{
 		"message":      "Test message",

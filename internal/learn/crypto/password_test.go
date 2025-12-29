@@ -6,12 +6,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func TestHashPassword(t *testing.T) {
 	t.Parallel()
 
-	password := "MySecurePassword123!"
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
 
 	hash, err := HashPassword(password)
 	require.NoError(t, err)
@@ -37,7 +40,8 @@ func TestHashPassword_DifferentSalts(t *testing.T) {
 func TestVerifyPassword_Success(t *testing.T) {
 	t.Parallel()
 
-	password := "CorrectPassword123"
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
 
 	hash, err := HashPassword(password)
 	require.NoError(t, err)
@@ -64,7 +68,8 @@ func TestVerifyPassword_WrongPassword(t *testing.T) {
 func TestVerifyPassword_InvalidHashLength(t *testing.T) {
 	t.Parallel()
 
-	password := "TestPassword"
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
 	invalidHash := []byte{1, 2, 3} // Too short.
 
 	match, err := VerifyPassword(password, invalidHash)

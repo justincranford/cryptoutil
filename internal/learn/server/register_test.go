@@ -20,6 +20,7 @@ import (
 	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func TestHandleRegisterUser_Success(t *testing.T) {
@@ -29,9 +30,12 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
 	reqBody := map[string]string{
 		"username": "testuser",
-		"password": "password123",
+		"password": password,
 	}
 	reqJSON, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -127,7 +131,10 @@ func TestHandleRegisterUser_DuplicateUsername(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	passwordHash, err := cryptoutilLearnCrypto.HashPassword("password123")
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	passwordHash, err := cryptoutilLearnCrypto.HashPassword(password)
 	require.NoError(t, err)
 
 	existingUser := &cryptoutilLearnDomain.User{
@@ -199,7 +206,10 @@ func TestHandleRegisterUser_RepositoryError(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	registerReq := `{"username": "testuser", "password": "password123"}`
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	registerReq := fmt.Sprintf(`{"username": "testuser", "password": "%s"}`, password)
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte(registerReq)))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
@@ -235,7 +245,10 @@ func TestHandleRegisterUser_UsernameValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			registerReq := fmt.Sprintf(`{"username": "%s", "password": "password123"}`, tt.username)
+			password, err := cryptoutilRandom.GeneratePasswordSimple()
+			require.NoError(t, err)
+
+			registerReq := fmt.Sprintf(`{"username": "%s", "password": "%s"}`, tt.username, password)
 			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte(registerReq)))
 			require.NoError(t, err)
 			req.Header.Set("Content-Type", "application/json")

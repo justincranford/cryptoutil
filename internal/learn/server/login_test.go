@@ -19,6 +19,7 @@ import (
 	cryptoutilLearnCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func TestHandleLoginUser_Success(t *testing.T) {
@@ -29,7 +30,10 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	passwordHash, err := cryptoutilLearnCrypto.HashPassword("password123")
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	passwordHash, err := cryptoutilLearnCrypto.HashPassword(password)
 	require.NoError(t, err)
 
 	user := &cryptoutilLearnDomain.User{
@@ -44,7 +48,7 @@ func TestHandleLoginUser_Success(t *testing.T) {
 
 	reqBody := map[string]string{
 		"username": "loginuser",
-		"password": "password123",
+		"password": password,
 	}
 	reqJSON, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -77,7 +81,10 @@ func TestHandleLoginUser_WrongPassword(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	passwordHash, err := cryptoutilLearnCrypto.HashPassword("password123")
+	correctPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	passwordHash, err := cryptoutilLearnCrypto.HashPassword(correctPassword)
 	require.NoError(t, err)
 
 	user := &cryptoutilLearnDomain.User{
@@ -90,9 +97,12 @@ func TestHandleLoginUser_WrongPassword(t *testing.T) {
 	err = userRepo.Create(context.Background(), user)
 	require.NoError(t, err)
 
+	wrongPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
 	reqBody := map[string]string{
 		"username": "wrongpassuser",
-		"password": "wrongpassword",
+		"password": wrongPassword,
 	}
 	reqJSON, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -122,9 +132,12 @@ func TestHandleLoginUser_UserNotFound(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
 	reqBody := map[string]string{
 		"username": "nonexistent",
-		"password": "password123",
+		"password": password,
 	}
 	reqJSON, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -176,7 +189,8 @@ func TestHandleLoginUser_CorruptPasswordHash(t *testing.T) {
 	client := createHTTPClient(t)
 
 	username := "testuser"
-	password := "password123"
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
 
 	registerReq := fmt.Sprintf(`{"username": "%s", "password": "%s"}`, username, password)
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/service/api/v1/users/register", bytes.NewReader([]byte(registerReq)))
@@ -233,9 +247,12 @@ func TestHandleLoginUser_HexDecodeError(t *testing.T) {
 	err := db.Create(user).Error
 	require.NoError(t, err)
 
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
 	loginReq := map[string]string{
 		"username": "testuser",
-		"password": "password123",
+		"password": password,
 	}
 	loginJSON, err := json.Marshal(loginReq)
 	require.NoError(t, err)
@@ -266,12 +283,15 @@ func TestHandleLoginUser_EmptyCredentials(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
 	tests := []struct {
 		name     string
 		username string
 		password string
 	}{
-		{"EmptyUsername", "", "password123"},
+		{"EmptyUsername", "", password},
 		{"EmptyPassword", "username", ""},
 		{"BothEmpty", "", ""},
 	}
