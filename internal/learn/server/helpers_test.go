@@ -28,6 +28,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // initTestDB creates an in-memory SQLite database with schema.
@@ -203,16 +204,12 @@ type testUserWithToken struct {
 func registerAndLoginTestUser(t *testing.T, client *http.Client, baseURL string) *testUserWithToken {
 	t.Helper()
 
-	// Generate random username and password (QUIZME Q8 requirement - no hardcoded passwords).
-	usernameID, err := googleUuid.NewV7()
+	// Generate random username and password using shared random utilities.
+	username, err := cryptoutilRandom.GenerateUsernameSimple()
 	require.NoError(t, err)
 
-	username := "user_" + usernameID.String()[:8]
-
-	passwordID, err := googleUuid.NewV7()
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
 	require.NoError(t, err)
-
-	password := passwordID.String()
 
 	// Register user.
 	user := registerTestUser(t, client, baseURL, username, password)
