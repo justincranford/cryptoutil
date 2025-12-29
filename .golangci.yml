@@ -221,39 +221,6 @@ linters:
           alias: cryptoutilNetwork
         - pkg: "cryptoutil/internal/common/util/sysinfo"
           alias: cryptoutilSysinfo
-        # Cryptoutil shared
-        - pkg: "cryptoutil/internal/shared/barrier"
-          alias: cryptoutilBarrierService
-        - pkg: "cryptoutil/internal/shared/barrier/contentkeysservice"
-          alias: cryptoutilContentKeysService
-        - pkg: "cryptoutil/internal/shared/barrier/intermediatekeysservice"
-          alias: cryptoutilIntermediateKeysService
-        - pkg: "cryptoutil/internal/shared/barrier/rootkeysservice"
-          alias: cryptoutilRootKeysService
-        - pkg: "cryptoutil/internal/shared/barrier/unsealkeysservice"
-          alias: cryptoutilUnsealKeysService
-        - pkg: "cryptoutil/internal/shared/config"
-          alias: cryptoutilSharedConfig
-        - pkg: "cryptoutil/internal/shared/jwk"
-          alias: cryptoutilSharedJwk
-        - pkg: "cryptoutil/internal/shared/magic"
-          alias: cryptoutilSharedMagic
-        - pkg: "cryptoutil/internal/shared/pool"
-          alias: cryptoutilSharedPool
-        - pkg: "cryptoutil/internal/shared/telemetry"
-          alias: cryptoutilSharedTelemetry
-        - pkg: "cryptoutil/internal/shared/util/random"
-          alias: cryptoutilSharedRandom
-        # Cryptoutil template
-        - pkg: "cryptoutil/internal/template/server"
-          alias: cryptoutilTemplateServer
-        # Cryptoutil learn
-        - pkg: "cryptoutil/internal/learn/crypto"
-          alias: cryptoutilLearnCrypto
-        - pkg: "cryptoutil/internal/learn/repository"
-          alias: cryptoutilLearnRepository
-        - pkg: "cryptoutil/internal/learn/server"
-          alias: cryptoutilLearnServer
         # Cryptoutil infra
         - pkg: "cryptoutil/internal/infra/tls"
           alias: cryptoutilTLS
@@ -277,6 +244,16 @@ linters:
           alias: cryptoutilBusinessLogic
         - pkg: "cryptoutil/internal/kms/handler"
           alias: cryptoutilOpenapiHandler
+        - pkg: "cryptoutil/internal/shared/barrier"
+          alias: cryptoutilBarrierService
+        - pkg: "cryptoutil/internal/shared/barrier/contentkeysservice"
+          alias: cryptoutilContentKeysService
+        - pkg: "cryptoutil/internal/shared/barrier/intermediatekeysservice"
+          alias: cryptoutilIntermediateKeysService
+        - pkg: "cryptoutil/internal/shared/barrier/rootkeysservice"
+          alias: cryptoutilRootKeysService
+        - pkg: "cryptoutil/internal/shared/barrier/unsealkeysservice"
+          alias: cryptoutilUnsealKeysService
         - pkg: "cryptoutil/internal/kms/server/repository/orm"
           alias: cryptoutilOrmRepository
         - pkg: "cryptoutil/internal/kms/server/repository/sqlrepository"
