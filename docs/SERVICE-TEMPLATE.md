@@ -591,36 +591,53 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 
 ## Progress Tracking
 
-**Last Updated**: 2025-12-28 22:30 EST
+**Last Updated**: 2025-12-28 22:35 EST
 
-**Overall Status**: 🟢 Phase 8 COMPLETE (8.1, 8.5, 8.7) - Moving to Phase 8.6
+**Overall Status**: 🟢 Phase 8-9 COMPLETE - Core Service Template Migration Done
 
 - ✅ **Phase 1-2 Complete**: Package structure migration, shared infrastructure integration
 - ✅ **QUIZME Complete**: All 12 questions answered, architecture decisions documented
 - ✅ **Phase 3-7 COMPLETE**: 3-table schema implemented, JWK storage bug fixed, ALL E2E tests pass
-- 🔄 **Phase 8 IN PROGRESS**: Code quality cleanup (8.1, 8.5, 8.7 complete, 8.6 remaining)
-- ❌ **Phase 9-12 Not Started**: Concurrency tests, ServerSettings integration, CLI testing
+- ✅ **Phase 8 COMPLETE**: Code quality cleanup (8.1, 8.5, 8.6, 8.7 complete)
+- ✅ **Phase 9 COMPLETE**: Concurrency integration tests with PostgreSQL test-containers
+- 🔄 **Phase 10-12**: Deferred (see Deferred Work section below)
 - ❌ **Phase 13 Deferred**: Inbox/sent listing and long poll APIs (future enhancements)
 
 **Recent Completions** (2025-12-28):
 
-1. ✅ **Phase 8.1 COMPLETE**: Removed deprecated JWTSecret constant and outdated comments (commit 97bdb8d6)
-2. ✅ **Phase 8.5 COMPLETE**: Converted middleware_test.go to table-driven format (commit 72cee38f)
-3. ✅ **Phase 8.7 COMPLETE**: Removed obsolete ECDH key generation (commit 127b655b)
-   - Removed PublicKey/PrivateKey from RegisterUserResponse (Phase 4 leftovers)
-   - Updated all test helpers (server + e2e) to not expect ECDH keys
-   - Deleted keygen.go, encrypt.go, encrypt_test.go (636 lines removed!)
-   - Deleted obsolete TestHandleSendMessage_ReceiverPublicKeyParseError test
-   - All E2E tests pass (4/4), build succeeds
+1. ✅ **Phase 8.6 COMPLETE**: ServerSettings integration (commits 2044e016, 1521680e)
+   - Created AppConfig with embedded ServerSettings
+   - Updated server.New() signature and all tests
+   - Added named constants for magic numbers and dialectors
+2. ✅ **Phase 9.1 COMPLETE**: Concurrent integration tests (commits 5bf7e203, 7a8705cf)
+   - PostgreSQL test-containers with randomized credentials
+   - Connection retry logic (10 attempts, handles init delays)
+   - 3 table-driven scenarios: 4/3/2 concurrent sends
+   - All tests pass (8.1s total execution)
+   - Explicit UUID generation for User/Message entities
+
+**Deferred Work** (Pending Further Clarification):
+
+1. **Phase 10**: ServerSettings Extensions (Realms, BrowserSessionCookie)
+   - Reason: These are identity-service features, premature for learn-im template
+   - Status: Defer until identity service implementation phase
+2. **Phase 11**: Test Validation Commands
+   - Reason: Partially complete, limited by CGO dependency (GCC not available locally)
+   - Status: Unit tests validated (95.5% coverage), integration tests require CI/CD
+3. **Phase 12**: CLI Production Config Testing
+   - Reason: Requires complete config files and Docker Compose setup
+   - Status: Defer until deployment configuration finalized
 
 **Critical Milestones Achieved**:
 
 1. 3-table schema fully operational (users, messages, messages_recipient_jwks)
 2. Multi-recipient encryption working (each recipient gets own JWK copy)
 3. Cascade delete working (deleting message removes all recipient JWKs)
-4. Server-side decryption working (Phase 5a architecture)
-5. Both `/service/**` and `/browser/**` paths tested and working
-6. Phase 4→5a architectural migration complete (ECDH dead code removed)
+4. ServerSettings integration complete (shared config reuse across services)
+5. Concurrent integration tests pass (PostgreSQL test-containers, race-free)
+6. Server-side decryption working (Phase 5a architecture)
+7. Both `/service/**` and `/browser/**` paths tested and working
+8. Phase 4→5a architectural migration complete (ECDH dead code removed)
 
 **Next Steps** (Prioritized by Dependencies):
 
