@@ -29,10 +29,6 @@ type PublicServer struct {
 	jwkGenService           *cryptoutilJose.JWKGenService             // JWK generation for message encryption
 	jwtSecret               string                                    // JWT signing secret for authentication
 
-	// In-memory key cache for Phase 5a (no barrier service yet).
-	// NOTE: Phase 5b will replace with barrier-encrypted database storage.
-	messageKeysCache sync.Map // map[string]joseJwk.Key (keyID -> decryption JWK)
-
 	app         *fiber.App
 	mu          sync.RWMutex
 	shutdown    bool
