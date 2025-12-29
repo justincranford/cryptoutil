@@ -81,7 +81,7 @@ func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.Dat
 
 	// Create TLS config for public server using auto-generated certificates.
 	publicTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost", "learn-im-server"},
+		[]string{cryptoutilMagic.HostnameLocalhost, "learn-im-server"},
 		[]string{"127.0.0.1", "::1"},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -98,7 +98,7 @@ func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.Dat
 
 	// Create admin server TLS config using auto-generated certificates.
 	adminTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{"127.0.0.1", "::1"},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)

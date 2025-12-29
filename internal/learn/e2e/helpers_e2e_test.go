@@ -91,7 +91,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 		LogLevel:     "info",
 		OTLPService:  "learn-im-e2e",
 		OTLPEnabled:  false, // E2E tests use in-process telemetry only.
-		OTLPEndpoint: "grpc://localhost:4317",
+		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317",
 	}
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
@@ -106,7 +106,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 	// TLS config with localhost subject.
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)

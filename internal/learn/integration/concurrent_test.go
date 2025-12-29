@@ -21,17 +21,18 @@ import (
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // initTestConfig returns an AppConfig with all required settings for tests.
 func initTestConfig() *server.AppConfig {
 	cfg := server.DefaultAppConfig()
-	cfg.BindPublicPort = 0                     // Dynamic port
-	cfg.BindPrivatePort = 0                    // Dynamic port
-	cfg.OTLPService = "learn-im-integration"   // Required
-	cfg.LogLevel = "info"                      // Required
-	cfg.OTLPEndpoint = "grpc://localhost:4317" // Required
-	cfg.OTLPEnabled = false                    // Disable in tests
+	cfg.BindPublicPort = 0                                                                          // Dynamic port
+	cfg.BindPrivatePort = 0                                                                         // Dynamic port
+	cfg.OTLPService = "learn-im-integration"                                                        // Required
+	cfg.LogLevel = "info"                                                                           // Required
+	cfg.OTLPEndpoint = "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317"                 // Required
+	cfg.OTLPEnabled = false                                                                         // Disable in tests
 
 	return cfg
 }

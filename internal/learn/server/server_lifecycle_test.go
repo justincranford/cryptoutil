@@ -31,7 +31,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -53,7 +53,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -74,7 +74,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -95,7 +95,7 @@ func TestNewPublicServer_NilMessageRecipientJWKRepo(t *testing.T) {
 	messageRepo := repository.NewMessageRepository(db)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{"localhost"},
+		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
@@ -120,7 +120,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 		LogLevel:     "info",
 		OTLPService:  "learn-im-test",
 		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://localhost:4317",
+		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317",
 	}
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
