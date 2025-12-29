@@ -22,7 +22,6 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
@@ -73,8 +72,8 @@ func initTestDB(t *testing.T) *gorm.DB {
 	})
 	require.NoError(t, err)
 
-	// Run migrations.
-	err = db.AutoMigrate(&cryptoutilDomain.User{}, &cryptoutilDomain.Message{})
+	// Run migrations using embedded migration files.
+	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	return db
@@ -182,7 +181,7 @@ func createHTTPClient(t *testing.T) *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: 5 * time.Second,
+		Timeout: 30 * time.Second, // Increased for concurrent test execution (matches server tests).
 	}
 }
 

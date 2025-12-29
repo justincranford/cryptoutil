@@ -51,13 +51,20 @@
 - [ ] Maintain historical keys for decryption
 - [ ] Document rotation procedures
 
-### Phase 7: Testing & Validation ⚠️ (tests exist but failing)
+### Phase 7: Testing & Validation ⚠️ (BLOCKED - needs 3-table refactor)
 
 - [ ] Unit tests for barrier encryption integration
 - [x] Unit tests for JWK generation (exists via shared infrastructure)
 - [x] Integration tests for message encryption/decryption (exists but timing issues)
 - [x] E2E tests with Docker Compose (exists)
-- [ ] **FIX**: Resolve test timeout issues (5/10 tests failing with "context deadline exceeded")
+- [x] **BLOCKED**: E2E tests failing - repository still uses old 4-table schema
+  - [x] Fixed: E2E HTTP client timeout increased from 5s to 30s
+  - [x] Fixed: E2E tests now use ApplyMigrations instead of AutoMigrate
+  - [x] Fixed: Added updated_at column to messages table migration
+  - [x] Identified blocker: message_repository.FindByRecipientID() queries non-existent recipient_id column
+  - [ ] **CRITICAL**: Refactor message_repository to use JOIN with messages_recipient_jwks table
+  - [ ] Update all repository methods to work with 3-table schema (messages, messages_recipient_jwks, users)
+  - [ ] Remove old 4-table code paths (users_jwks, users_messages_jwks, messages_jwks references)
 - [ ] Verify coverage ≥95% (production) / ≥98% (infrastructure)
 
 ---

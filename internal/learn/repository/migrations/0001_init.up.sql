@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id TEXT NOT NULL,
     jwe TEXT NOT NULL,  -- JWE JSON format (multi-recipient)
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     read_at TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id)
 );
