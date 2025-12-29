@@ -282,15 +282,20 @@
 - [ ] Update CLI flags in `cmd/learn-im/main.go` to map to ServerSettings fields
 - [ ] Ensure backward compatibility with existing config patterns
 
-### 8.7 Simplify Crypto Package
+### 8.7 Simplify Crypto Package - ✅ COMPLETE
 
-- [ ] Remove `internal/learn/crypto/keygen.go` entirely (use shared JWK generation)
-- [ ] Remove `internal/learn/crypto/encrypt.go` entirely (use shared JWE utilities)
-- [ ] Use `internal/shared/crypto/jose/jwe_message_util.go`:
-  - [ ] Use `EncryptBytesWithContext()` for message encryption
-  - [ ] Use `DecryptBytesWithContext()` for message decryption
-- [ ] Migrate password hashing to use `internal/shared/crypto/hash/hash_low_random_provider.go`
-- [ ] Remove `internal/learn/crypto/password.go` after migration complete
+- [x] Remove `internal/learn/crypto/keygen.go` entirely (ECDH obsolete in Phase 5a)
+- [x] Remove `internal/learn/crypto/encrypt.go` entirely (using JWE utilities)
+- [x] Remove `internal/learn/crypto/encrypt_test.go` (tests for deleted encrypt.go)
+- [x] Remove PublicKey/PrivateKey fields from RegisterUserResponse (Phase 4 leftovers)
+- [x] Update all test helpers (server + e2e) to not expect ECDH keys
+- [x] Delete obsolete TestHandleSendMessage_ReceiverPublicKeyParseError test
+- [x] Use `internal/shared/crypto/jose/jwe_message_util.go`:
+  - [x] Use `EncryptBytesWithContext()` for message encryption (in message_handlers.go)
+  - [x] Use `DecryptBytesWithContext()` for message decryption (in message_handlers.go)
+- [x] Keep `internal/learn/crypto/password.go` (PBKDF2 implementation justified in QUIZME - format incompatibility with shared hash package)
+
+**Rationale**: Phase 4 used client-side ECDH encryption. Phase 5a changed to server-side JWE with dir+A256GCM (symmetric). Registration still generated ECDH keys but never stored/used them. This cleanup removes architectural debt.
 
 ### 8.8 Implement UpdatedAt Field Usage - ✅ COMPLETE
 
@@ -562,25 +567,27 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 
 ## Progress Tracking
 
-**Last Updated**: 2025-12-28 19:45 EST
+**Last Updated**: 2025-12-28 22:30 EST
 
-**Overall Status**: 🟢 Phase 7 COMPLETE - Moving to Phase 8
+**Overall Status**: 🟢 Phase 8 COMPLETE (8.1, 8.5, 8.7) - Moving to Phase 8.6
 
 - ✅ **Phase 1-2 Complete**: Package structure migration, shared infrastructure integration
 - ✅ **QUIZME Complete**: All 12 questions answered, architecture decisions documented
 - ✅ **Phase 3-7 COMPLETE**: 3-table schema implemented, JWK storage bug fixed, ALL E2E tests pass
-- ❌ **Phase 8-12 Not Started**: Code quality cleanup, concurrency tests, ServerSettings integration, CLI testing
+- 🔄 **Phase 8 IN PROGRESS**: Code quality cleanup (8.1, 8.5, 8.7 complete, 8.6 remaining)
+- ❌ **Phase 9-12 Not Started**: Concurrency tests, ServerSettings integration, CLI testing
 - ❌ **Phase 13 Deferred**: Inbox/sent listing and long poll APIs (future enhancements)
 
 **Recent Completions** (2025-12-28):
 
-1. ✅ MessageRecipientJWK repository implementation (CREATE, FindByMessageID, FindByMessageAndRecipient, DeleteByMessageID)
-2. ✅ Integrated repository into PublicServer and all handlers
-3. ✅ Fixed CRITICAL JWK storage bug - using 4th return value (nonPublicJWKBytes) instead of 5th (publicJWKBytes=nil for symmetric)
-4. ✅ Phase 4→Phase 5a architecture change - server-side decryption with JWE Compact Serialization
-5. ✅ Rewrote ALL E2E tests for Phase 5a (removed ~40 lines of client-side crypto)
-6. ✅ Fixed test issues - package declarations, endpoint paths, delete authorization
-7. ✅ **ALL 7 E2E TESTS PASS** - 4 service tests + 3 browser tests (TestE2E_FullEncryptionFlow, TestE2E_MultiReceiverEncryption, TestE2E_MessageDeletion, TestE2E_BrowserHealth, TestE2E_BrowserFullEncryptionFlow, TestE2E_BrowserMultiReceiverEncryption, TestE2E_BrowserMessageDeletion)
+1. ✅ **Phase 8.1 COMPLETE**: Removed deprecated JWTSecret constant and outdated comments (commit 97bdb8d6)
+2. ✅ **Phase 8.5 COMPLETE**: Converted middleware_test.go to table-driven format (commit 72cee38f)
+3. ✅ **Phase 8.7 COMPLETE**: Removed obsolete ECDH key generation (commit 127b655b)
+   - Removed PublicKey/PrivateKey from RegisterUserResponse (Phase 4 leftovers)
+   - Updated all test helpers (server + e2e) to not expect ECDH keys
+   - Deleted keygen.go, encrypt.go, encrypt_test.go (636 lines removed!)
+   - Deleted obsolete TestHandleSendMessage_ReceiverPublicKeyParseError test
+   - All E2E tests pass (4/4), build succeeds
 
 **Critical Milestones Achieved**:
 
@@ -589,16 +596,15 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 3. Cascade delete working (deleting message removes all recipient JWKs)
 4. Server-side decryption working (Phase 5a architecture)
 5. Both `/service/**` and `/browser/**` paths tested and working
+6. Phase 4→5a architectural migration complete (ECDH dead code removed)
 
 **Next Steps** (Prioritized by Dependencies):
 
-1. **Phase 8.1** (HIGH PRIORITY): Remove jwtSecret hardcoded values, use barrier-encrypted JWKs for JWT signing
-2. **Phase 8.5** (HIGH PRIORITY): Convert ALL tests to table-driven format (user requirement: improve test performance)
-3. **Phase 8.6** (MEDIUM PRIORITY): Use ServerSettings struct from shared config (replace custom Config struct)
-4. **Phase 8.7** (MEDIUM PRIORITY): Simplify crypto package (remove encrypt.go, use shared JWE utilities)
-5. **Phase 9** (MEDIUM PRIORITY): Concurrency integration tests (N=5, M=4, P=3, Q=2, target ~4s)
-6. **Phase 10** (LOW PRIORITY): ServerSettings extensions (Realms, BrowserSessionCookie)
-7. **Phase 11-12** (LOW PRIORITY): Testing validation and CLI flag testing
-8. **Phase 13** (DEFERRED): Future - inbox/sent listing, long poll API (database polling)
+1. **Phase 8.6** (HIGH PRIORITY): Use ServerSettings struct from shared config (replace custom Config struct)
+2. **Phase 9** (MEDIUM PRIORITY): Concurrency integration tests (N=5, M=4, P=3, Q=2, target ~4s)
+3. **Phase 10** (MEDIUM PRIORITY): ServerSettings extensions (Realms, BrowserSessionCookie)
+4. **Phase 11** (LOW PRIORITY): Unit/integration test validation commands
+5. **Phase 12** (LOW PRIORITY): CLI testing with -c learn.yml (production-like config)
+6. **Phase 13** (DEFERRED): Future - inbox/sent listing, long poll API (database polling)
 
 **Blocked Items**: NONE - All blockers resolved!
