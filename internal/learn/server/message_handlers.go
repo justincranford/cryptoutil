@@ -4,6 +4,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -74,30 +75,6 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// NOTE: Phase 5 will implement JWE Compact Serialization for multi-recipient encryption.
-	// For now, store plaintext to unblock Phase 3 completion.
-	// This is a temporary implementation that will be replaced in Phase 5.
-
-	// Parse first receiver ID (simplified single-recipient model).
-	recipientIDStr := req.ReceiverIDs[0]
-
-	recipientID, err := googleUuid.Parse(recipientIDStr)
-	if err != nil {
-		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": fmt.Sprintf("invalid recipient ID: %s", recipientIDStr),
-		})
-	}
-
-	// Verify recipient exists.
-	_, err = s.userRepo.FindByID(c.Context(), recipientID)
-	if err != nil {
-		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": fmt.Sprintf("recipient not found: %s", recipientIDStr),
-		})
-	}
-
 	// Generate JWE JWK for message encryption using dir + A256GCM (direct key agreement with AES-256-GCM).
 	keyID, cekJWK, _, cekPubBytes, cekPrivBytes, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 	if err != nil {
@@ -119,28 +96,12 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		})
 	}
 
-	// NOTE: Current implementation uses single-recipient JWE Compact format.
-	// Phase 5 will implement multi-recipient JWE JSON encryption.
-	// Future: EncryptBytesWithContext(plaintext, []RecipientJWK) → JWE JSON with N keys.
+	// Create message with JWE ciphertext.
 	message := &cryptoutilDomain.Message{
 		ID:       googleUuid.New(),
 		SenderID: senderID,
-		JWE:      string(jweCompactBytes), // NOTE: JWE JSON format in Phase 5.
+		JWE:      string(jweCompactBytes),
 	}
-
-	// NOTE: Phase 5 will store encrypted recipient JWKs in messages_recipient_jwks table.
-	_ = recipientID // Will be used in messages_recipient_jwks table.
-
-	// Store decryption key in cache using message ID for Phase 5a (in-memory, acceptable for demo).
-	// NOTE: Phase 5b will store encrypted JWK in messages_recipient_jwks table with barrier service.
-	s.messageKeysCache.Store(message.ID.String(), cekJWK)
-
-	// NOTE: Encrypted JWK (cekPubBytes, cekPrivBytes) stored in messages_recipient_jwks table (Phase 5b)
-	// using barrier service encryption instead of in-memory cache.
-	_ = keyID        // Will be removed in Phase 5.
-	_ = cekPubBytes  // Will be used in Phase 5b for encrypted storage.
-	_ = cekPrivBytes // Will be used in Phase 5b for encrypted storage.
-	_ = jweMessage   // JWE message structure (contains headers, useful for Phase 5b audit logs).
 
 	// Save message.
 	if err := s.messageRepo.Create(c.Context(), message); err != nil {
@@ -149,6 +110,51 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 			"error": "failed to save message",
 		})
 	}
+
+	// Store per-recipient decryption keys in messages_recipient_jwks table.
+	// This enables multi-recipient support where each recipient has their own JWK copy.
+	// Future: Phase 5b will encrypt JWK with barrier service before storing.
+	for _, recipientIDStr := range req.ReceiverIDs {
+		recipientID, err := googleUuid.Parse(recipientIDStr)
+		if err != nil {
+			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fmt.Sprintf("invalid recipient ID: %s", recipientIDStr),
+			})
+		}
+
+		// Verify recipient exists.
+		_, err = s.userRepo.FindByID(c.Context(), recipientID)
+		if err != nil {
+			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": fmt.Sprintf("recipient not found: %s", recipientIDStr),
+			})
+		}
+
+		// Store encrypted JWK for this recipient.
+		// NOTE: Current implementation combines cekPubBytes + cekPrivBytes into JSON format.
+		// Phase 5b will use barrier service to encrypt JWK before storing.
+		// For now, concatenate pub+priv keys as single JSON object: {"pub":"...", "priv":"..."}
+		jwkJSON := fmt.Sprintf(`{"keyID":"%s","pub":%s,"priv":%s}`, keyID, cekPubBytes, cekPrivBytes)
+
+		messageRecipientJWK := &cryptoutilDomain.MessageRecipientJWK{
+			ID:          googleUuid.New(),
+			MessageID:   message.ID,
+			RecipientID: recipientID,
+			JWK:         jwkJSON,
+		}
+
+		if err := s.messageRecipientJWKRepo.Create(c.Context(), messageRecipientJWK); err != nil {
+			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to save recipient JWK",
+			})
+		}
+	}
+
+	// NOTE: Removed in-memory cache (s.messageKeysCache.Store) - now using database storage.
+	_ = jweMessage // JWE message structure (contains headers, useful for Phase 5b audit logs).
 
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 	return c.Status(fiber.StatusCreated).JSON(SendMessageResponse{
@@ -190,19 +196,39 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 	}
 
 	for _, msg := range messages {
-		// NOTE: Phase 5 will use DecryptBytesWithContext(msg.JWE, recipientJWK).
-		// Current: Using temporary in-memory cache for single-recipient JWE Compact.
-		// Future: Load encrypted recipientJWK from messages_recipient_jwks table.
-		keyInterface, found := s.messageKeysCache.Load(msg.ID.String()) // NOTE: Phase 5 uses RecipientID lookup
-		if !found {
-			// Key not found in cache (server restarted or key expired).
-			// For Phase 5, will load from messages_recipient_jwks table.
+		// Load recipient's JWK from messages_recipient_jwks table.
+		recipientJWKRecord, err := s.messageRecipientJWKRepo.FindByRecipientAndMessage(c.Context(), recipientID, msg.ID)
+		if err != nil {
+			// No JWK found for this recipient (message not addressed to them, or data corrupted).
 			continue
 		}
 
-		cekJWK, ok := keyInterface.(joseJwk.Key)
+		// Parse JWK JSON to extract private key bytes.
+		// NOTE: Current format: {"keyID":"...", "pub":{...}, "priv":{...}}
+		// Phase 5b will decrypt JWK using barrier service before parsing.
+		var jwkData map[string]any
+		if err := json.Unmarshal([]byte(recipientJWKRecord.JWK), &jwkData); err != nil {
+			// Invalid JWK JSON format.
+			continue
+		}
+
+		// Extract private key JWK (used for decryption).
+		privKeyData, ok := jwkData["priv"]
 		if !ok {
-			// Invalid key type in cache (should never happen).
+			// Missing private key in JWK.
+			continue
+		}
+
+		privKeyBytes, err := json.Marshal(privKeyData)
+		if err != nil {
+			// Failed to serialize private key.
+			continue
+		}
+
+		// Parse private key into JWK object.
+		cekJWK, err := joseJwk.ParseKey(privKeyBytes)
+		if err != nil {
+			// Failed to parse JWK.
 			continue
 		}
 
@@ -212,7 +238,6 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 		plaintext, err := cryptoutilJose.DecryptBytes(jwks, []byte(msg.JWE))
 		if err != nil {
 			// Decryption failed (corrupted message or wrong key).
-			// For Phase 5a, skip this message. Phase 5b will include audit logging.
 			continue
 		}
 
@@ -270,6 +295,14 @@ func (s *PublicServer) handleDeleteMessage(c *fiber.Ctx) error {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": "only the sender can delete this message",
+		})
+	}
+
+	// Delete recipient JWKs first (cascade delete for orphaned keys).
+	if err := s.messageRecipientJWKRepo.DeleteByMessageID(c.Context(), messageID); err != nil {
+		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to delete recipient JWKs",
 		})
 	}
 
