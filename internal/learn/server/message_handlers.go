@@ -4,16 +4,14 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 // SendMessageRequest represents the request to send a message.
@@ -76,7 +74,9 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 	}
 
 	// Generate JWE JWK for message encryption using dir + A256GCM (direct key agreement with AES-256-GCM).
-	keyID, cekJWK, _, cekPubBytes, cekPrivBytes, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	// For symmetric algorithms (dir), cekJWKBytes contains the complete symmetric JWK (kid, alg, enc, k).
+	// For asymmetric algorithms (RSA-OAEP), cekJWKBytes contains private key JWK (kid, alg, enc, d, n).
+	_, cekJWK, _, cekJWKBytes, _, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 	if err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -133,16 +133,13 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		}
 
 		// Store encrypted JWK for this recipient.
-		// NOTE: Current implementation combines cekPubBytes + cekPrivBytes into JSON format.
+		// NOTE: cekJWKBytes contains complete JWK JSON (kid, alg, enc, k/d fields).
 		// Phase 5b will use barrier service to encrypt JWK before storing.
-		// For now, concatenate pub+priv keys as single JSON object: {"pub":"...", "priv":"..."}
-		jwkJSON := fmt.Sprintf(`{"keyID":"%s","pub":%s,"priv":%s}`, keyID, cekPubBytes, cekPrivBytes)
-
 		messageRecipientJWK := &cryptoutilDomain.MessageRecipientJWK{
 			ID:          googleUuid.New(),
 			MessageID:   message.ID,
 			RecipientID: recipientID,
-			JWK:         jwkJSON,
+			JWK:         string(cekJWKBytes), // Store complete JWK JSON directly.
 		}
 
 		if err := s.messageRecipientJWKRepo.Create(c.Context(), messageRecipientJWK); err != nil {
@@ -203,30 +200,9 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 			continue
 		}
 
-		// Parse JWK JSON to extract private key bytes.
-		// NOTE: Current format: {"keyID":"...", "pub":{...}, "priv":{...}}
+		// Parse JWK JSON - format is complete JWK from GenerateJWEJWK (includes kid, alg, enc, k fields).
 		// Phase 5b will decrypt JWK using barrier service before parsing.
-		var jwkData map[string]any
-		if err := json.Unmarshal([]byte(recipientJWKRecord.JWK), &jwkData); err != nil {
-			// Invalid JWK JSON format.
-			continue
-		}
-
-		// Extract private key JWK (used for decryption).
-		privKeyData, ok := jwkData["priv"]
-		if !ok {
-			// Missing private key in JWK.
-			continue
-		}
-
-		privKeyBytes, err := json.Marshal(privKeyData)
-		if err != nil {
-			// Failed to serialize private key.
-			continue
-		}
-
-		// Parse private key into JWK object.
-		cekJWK, err := joseJwk.ParseKey(privKeyBytes)
+		cekJWK, err := joseJwk.ParseKey([]byte(recipientJWKRecord.JWK))
 		if err != nil {
 			// Failed to parse JWK.
 			continue
