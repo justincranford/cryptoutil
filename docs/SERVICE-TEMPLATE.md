@@ -796,7 +796,7 @@ realms:
 
 **Next Steps**:
 
-1. Phase 8.9: Replace "localhost" literals with cryptoutilMagic.HostnameLocalhost
+1. ~~Phase 8.9: Replace "localhost" literals with cryptoutilMagic.HostnameLocalhost~~ ✅ COMPLETE
 2. **CRITICAL**: Phase 11 ServiceTemplate extraction (blocks future service migrations)
 3. Phase 10: Add mocking infrastructure for EncryptionError test (deferred)
 
@@ -804,3 +804,89 @@ realms:
 
 - cddf15bf: Phase 8.8 Part 3 Fix UUIDv7 collision (remove truncation)
 - 65cca77e: Phase 8.8 Part 3 Test cleanup (error message assertion + skip encryption test)
+
+---
+
+### 2025-12-24 Session 3: Phase 8.9 Localhost Magic Constants
+
+**Work Completed**:
+
+Phase 8.9: Replace all "localhost" string literals with cryptoutilMagic.HostnameLocalhost constant
+
+**Implementation Details**:
+
+1. **Scope Identification**: Searched internal/learn/**/*.go for all "localhost" occurrences
+   - Found 15 total occurrences across 5 files
+   - Patterns identified: TLS DNS names arrays, OTLP endpoint URLs
+
+2. **Files Modified** (5 files, 15 replacements):
+   - internal/learn/server/helpers_test.go (3 occurrences)
+     - Line 116: TLS DNS names `[]string{"localhost"}` → `[]string{cryptoutilMagic.HostnameLocalhost}`
+     - Line 80: OTLP endpoint in DefaultAppConfig()
+     - Line 101: OTLP endpoint in telemetrySettings
+   - internal/learn/server/server_lifecycle_test.go (5 occurrences)
+     - Lines 34, 56, 77, 98: TLS DNS names arrays (4 test functions)
+     - Line 123: OTLP endpoint in TestNewPublicServer_NilTLSConfig
+   - internal/learn/server/server.go (2 occurrences)
+     - Line 84: Public TLS config DNS names (kept "learn-im-server" as second element)
+     - Line 101: Admin TLS config DNS names
+   - internal/learn/integration/concurrent_test.go (1 occurrence)
+     - Line 34: OTLP endpoint in initTestConfig()
+     - Added cryptoutilMagic import
+   - internal/learn/e2e/helpers_e2e_test.go (3 occurrences)
+     - Line 94: OTLP endpoint in telemetrySettings
+     - Line 109: TLS DNS names in createTestPublicServer
+
+3. **Pattern Applied**:
+   - TLS DNS names: `[]string{"localhost"}` → `[]string{cryptoutilMagic.HostnameLocalhost}`
+   - OTLP endpoints: `"grpc://localhost:4317"` → `"grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317"`
+
+4. **Verification**:
+   - Ran tests: 16 tests passing (server_lifecycle_test.go, helpers_test.go, concurrent_test.go)
+   - All pre-commit hooks passing (golangci-lint auto-fix, markdown linting, CI/CD checks)
+   - No TODO/FIXME violations
+
+**Coverage/Quality Metrics**:
+
+- Tests: 16 PASS, 0 FAIL
+- Coverage: Maintained (no new uncovered lines)
+- Linting: Clean (golangci-lint mnd requirements satisfied)
+- Mutation: Not run (no logic changes, only constant substitution)
+
+**Lessons Learned**:
+
+1. **Magic Constant Benefits**:
+   - Centralized network configuration (HostnameLocalhost in magic_network.go)
+   - Satisfies golangci-lint mnd (magic number detector) requirements
+   - Improves maintainability (change once, affects all references)
+   - Enables IDE refactoring support (rename constant, update all usages)
+
+2. **Pattern Consistency**:
+   - URL construction with concatenation maintains clarity
+   - TLS DNS names arrays directly use constant
+   - Pattern established in Phase 8.2 (other magic constants) applied successfully
+
+3. **Import Management**:
+   - Most files already had cryptoutilMagic import
+   - Added import to concurrent_test.go (only file missing it)
+   - golangci-lint auto-fix handled import organization
+
+4. **Comment Preservation**:
+   - Comments containing "localhost" left unchanged (e.g., "TLS config with localhost subject")
+   - Only code literals replaced, not documentation
+
+**Constraints Discovered**: NONE
+
+**Requirements Discovered**: NONE
+
+**Violations Found**: NONE (all linting passing, tests passing)
+
+**Next Steps**:
+
+1. **CRITICAL**: Phase 11 ServiceTemplate extraction (highest priority, blocks future service migrations)
+2. Phase 10: Add mocking infrastructure for EncryptionError test (deferred from Phase 8.8)
+3. Continue with remaining phases from SERVICE-TEMPLATE.md
+
+**Related Commits**:
+
+- 7228b849: Phase 8.9 localhost magic constants (15 replacements, 5 files, 16 tests passing)
