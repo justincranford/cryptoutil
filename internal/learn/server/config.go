@@ -7,6 +7,7 @@ package server
 
 import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -16,8 +17,8 @@ const (
 	DefaultRecipientsMinCount = 1
 	DefaultRecipientsMaxCount = 10
 
-	// Default encryption algorithm.
-	DefaultJWEAlgorithm = "dir+A256GCM"
+	// DefaultJWEAlgorithm is the default JWE algorithm (using magic constant).
+	DefaultJWEAlgorithm = cryptoutilMagic.LearnJWEAlgorithm
 
 	// Default JWT secret (MUST be changed in production).
 	DefaultJWTSecret = "learn-im-dev-secret-change-in-production"

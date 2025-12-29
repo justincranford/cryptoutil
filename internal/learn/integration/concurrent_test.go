@@ -32,6 +32,7 @@ func initTestConfig() *server.AppConfig {
 	cfg.LogLevel = "info"                      // Required
 	cfg.OTLPEndpoint = "grpc://localhost:4317" // Required
 	cfg.OTLPEnabled = false                    // Disable in tests
+
 	return cfg
 }
 
@@ -47,6 +48,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 		postgres.WithPassword("test-password"),
 	)
 	require.NoError(t, err)
+
 	defer pgContainer.Terminate(ctx) //nolint:errcheck // Cleanup
 
 	connStr, err := pgContainer.ConnectionString(ctx)
@@ -62,14 +64,17 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 
 	// Retry connection to PostgreSQL (test-container may not be fully ready).
 	var db *gorm.DB
+
 	maxRetries := 10
 	for i := 0; i < maxRetries; i++ {
 		db, err = gorm.Open(postgresDriver.Open(connStr), &gorm.Config{})
 		if err == nil {
 			break
 		}
+
 		time.Sleep(time.Second)
 	}
+
 	require.NoError(t, err, "Failed to connect to PostgreSQL after %d retries", maxRetries)
 
 	// Create server instance (this will apply migrations via repository.ApplyMigrations).
@@ -126,6 +131,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			var wg sync.WaitGroup
 			for i := 0; i < tt.concurrentSends; i++ {
 				wg.Add(1)
+
 				go func(senderIdx int) {
 					defer wg.Done()
 
@@ -147,6 +153,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			}
 
 			wg.Wait()
+
 			duration := time.Since(start)
 
 			// Verify timing (should complete within target duration).
@@ -154,6 +161,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 
 			// Verify all messages created successfully.
 			var allMessages []domain.Message
+
 			err = db.Find(&allMessages).Error
 			require.NoError(t, err)
 			require.Len(t, allMessages, tt.concurrentSends, "Expected %d messages, got %d", tt.concurrentSends, len(allMessages))

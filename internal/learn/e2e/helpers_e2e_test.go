@@ -179,7 +179,7 @@ func createHTTPClient(t *testing.T) *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: 30 * time.Second, // Increased for concurrent test execution (matches server tests).
+		Timeout: cryptoutilMagic.LearnDefaultTimeout, // Increased for concurrent test execution (matches server tests).
 	}
 }
 
