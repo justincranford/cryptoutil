@@ -43,13 +43,16 @@ func (r *MessageRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*
 	return &message, nil
 }
 
-// FindByRecipientID retrieves all messages for a specific recipient.
+// FindByRecipientID retrieves all messages for a specific recipient using JOIN with messages_recipient_jwks.
+// Uses 3-table schema: messages + messages_recipient_jwks + users.
 func (r *MessageRepository) FindByRecipientID(ctx context.Context, recipientID googleUuid.UUID) ([]domain.Message, error) {
 	var messages []domain.Message
 
+	// JOIN messages with messages_recipient_jwks to find messages for this recipient.
 	if err := getDB(ctx, r.db).WithContext(ctx).
-		Where("recipient_id = ?", recipientID).
-		Order("created_at DESC").
+		Joins("JOIN messages_recipient_jwks ON messages.id = messages_recipient_jwks.message_id").
+		Where("messages_recipient_jwks.recipient_id = ?", recipientID).
+		Order("messages.created_at DESC").
 		Find(&messages).Error; err != nil {
 		return nil, fmt.Errorf("failed to find messages by recipient: %w", err)
 	}

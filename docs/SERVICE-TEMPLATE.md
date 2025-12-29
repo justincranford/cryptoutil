@@ -51,20 +51,22 @@
 - [ ] Maintain historical keys for decryption
 - [ ] Document rotation procedures
 
-### Phase 7: Testing & Validation ⚠️ (BLOCKED - needs 3-table refactor)
+### Phase 7: Testing & Validation ⚠️ (BLOCKED - needs message_recipient_jwks repository)
 
 - [ ] Unit tests for barrier encryption integration
 - [x] Unit tests for JWK generation (exists via shared infrastructure)
 - [x] Integration tests for message encryption/decryption (exists but timing issues)
 - [x] E2E tests with Docker Compose (exists)
-- [x] **BLOCKED**: E2E tests failing - repository still uses old 4-table schema
+- [x] **CRITICAL BLOCKER**: E2E tests require functional 3-table schema implementation
   - [x] Fixed: E2E HTTP client timeout increased from 5s to 30s
   - [x] Fixed: E2E tests now use ApplyMigrations instead of AutoMigrate
   - [x] Fixed: Added updated_at column to messages table migration
-  - [x] Identified blocker: message_repository.FindByRecipientID() queries non-existent recipient_id column
-  - [ ] **CRITICAL**: Refactor message_repository to use JOIN with messages_recipient_jwks table
-  - [ ] Update all repository methods to work with 3-table schema (messages, messages_recipient_jwks, users)
-  - [ ] Remove old 4-table code paths (users_jwks, users_messages_jwks, messages_jwks references)
+  - [x] Fixed: message_repository.FindByRecipientID() now uses JOIN with messages_recipient_jwks
+  - [ ] **BLOCKER**: Create MessageRecipientJWK repository for messages_recipient_jwks table operations
+  - [ ] **BLOCKER**: Update handleSendMessage() to create entries in messages_recipient_jwks table
+  - [ ] **BLOCKER**: Update handleReceiveMessages() to retrieve and decrypt using messages_recipient_jwks
+  - [ ] Remove in-memory cache (messageKeysCache) after migrating to database storage
+  - [ ] Verify E2E tests pass with 3-table schema
 - [ ] Verify coverage ≥95% (production) / ≥98% (infrastructure)
 
 ---
