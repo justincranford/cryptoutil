@@ -13,8 +13,9 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-// GenerateUsernameSimple generates a random username with "user_" prefix and 8-character UUID suffix.
+// GenerateUsernameSimple generates a random username with "user_" prefix and full UUID suffix.
 // Uses UUIDv7 for time-ordered uniqueness and concurrency safety.
+// Returns full UUID (36 chars) to prevent collisions in parallel test execution.
 // For test scenarios requiring specific lengths, use GenerateUsername(t, length) instead.
 func GenerateUsernameSimple() (string, error) {
 	id, err := googleUuid.NewV7()
@@ -22,7 +23,7 @@ func GenerateUsernameSimple() (string, error) {
 		return "", fmt.Errorf("failed to generate UUID for username: %w", err)
 	}
 
-	return "user_" + id.String()[:8], nil
+	return "user_" + id.String(), nil
 }
 
 // GeneratePasswordSimple generates a random password using full UUIDv7 string (36 characters).
