@@ -7,24 +7,18 @@ package repository
 import (
 	"database/sql"
 	"embed"
-	"errors"
-	"fmt"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database"
-	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // DatabaseType represents supported database types for learn-im.
-type DatabaseType string
+type DatabaseType = cryptoutilTemplateServer.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite DatabaseType = "sqlite3"
+	DatabaseTypeSQLite = cryptoutilTemplateServer.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL DatabaseType = "postgres"
+	DatabaseTypePostgreSQL = cryptoutilTemplateServer.DatabaseTypePostgreSQL
 )
 
 //go:embed migrations/*.sql
@@ -40,36 +34,8 @@ var migrationsFS embed.FS
 // - messages: Encrypted messages with JWE JSON format (multi-recipient)
 // - messages_recipient_jwks: Per-recipient decryption keys (encrypted JWK).
 func ApplyMigrations(db *sql.DB, dbType DatabaseType) error {
-	sourceDriver, err := iofs.New(migrationsFS, "migrations")
-	if err != nil {
-		return fmt.Errorf("failed to create iofs source driver: %w", err)
-	}
+	runner := cryptoutilTemplateServer.NewMigrationRunner(migrationsFS, "migrations")
 
-	var databaseDriver database.Driver
-
-	switch dbType {
-	case DatabaseTypeSQLite:
-		databaseDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		if err != nil {
-			return fmt.Errorf("failed to create sqlite driver: %w", err)
-		}
-	case DatabaseTypePostgreSQL:
-		databaseDriver, err = pgx.WithInstance(db, &pgx.Config{})
-		if err != nil {
-			return fmt.Errorf("failed to create postgres driver: %w", err)
-		}
-	default:
-		return fmt.Errorf("unsupported database type: %s", dbType)
-	}
-
-	m, err := migrate.NewWithInstance("iofs", sourceDriver, string(dbType), databaseDriver)
-	if err != nil {
-		return fmt.Errorf("failed to create migrate instance: %w", err)
-	}
-
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	return nil
+	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
+	return runner.Apply(db, dbType)
 }
