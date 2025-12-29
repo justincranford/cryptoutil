@@ -124,8 +124,8 @@ func TestHandleRegisterUser_PasswordTooShort(t *testing.T) {
 }
 
 func TestHandleRegisterUser_DuplicateUsername(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	_, baseURL := createTestPublicServer(t, db)

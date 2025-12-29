@@ -23,8 +23,8 @@ import (
 )
 
 func TestHandleLoginUser_Success(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	_, baseURL := createTestPublicServer(t, db)
@@ -182,8 +182,8 @@ func TestHandleLoginUser_MalformedJSON(t *testing.T) {
 
 // TestHandleLoginUser_CorruptPasswordHash tests login with corrupted password hash in database.
 func TestHandleLoginUser_CorruptPasswordHash(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -227,8 +227,8 @@ func TestHandleLoginUser_CorruptPasswordHash(t *testing.T) {
 
 // TestHandleLoginUser_HexDecodeError tests handling of corrupted password hash.
 func TestHandleLoginUser_HexDecodeError(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)

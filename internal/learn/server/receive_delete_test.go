@@ -197,8 +197,8 @@ func TestHandleDeleteMessage_MissingToken(t *testing.T) {
 
 // TestHandleDeleteMessage_NotOwner tests deleting message user doesn't own.
 func TestHandleDeleteMessage_NotOwner(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -352,8 +352,8 @@ func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
 
 // TestHandleReceiveMessages_WithMessages tests successfully retrieving messages.
 func TestHandleReceiveMessages_WithMessages(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -405,8 +405,8 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 
 // TestHandleReceiveMessages_MultipleMessages tests receiving multiple messages.
 func TestHandleReceiveMessages_MultipleMessages(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -483,8 +483,8 @@ func TestHandleDeleteMessage_EmptyID(t *testing.T) {
 
 // TestHandleReceiveMessages_MessageReceiverNotFound tests when receiver entry not found in message.
 func TestHandleReceiveMessages_MessageReceiverNotFound(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
