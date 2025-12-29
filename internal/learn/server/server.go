@@ -13,7 +13,6 @@ import (
 
 	"cryptoutil/internal/learn/repository"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -36,43 +35,30 @@ type LearnIMServer struct {
 	messageRepo *repository.MessageRepository
 }
 
-// Config holds configuration for the learn-im server.
-type Config struct {
-	PublicPort int
-	AdminPort  uint16
-	DB         *gorm.DB
-	DBType     repository.DatabaseType // Database type for migrations (sqlite3 or postgres).
-	JWTSecret  string                  // JWT signing secret (required for authentication).
-}
-
 // New creates a new learn-im server using the template.
-func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
+// Takes AppConfig (which embeds ServerSettings), database instance, and database type.
+func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.DatabaseType) (*LearnIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
-	} else if cfg.DB == nil {
+	} else if db == nil {
 		return nil, fmt.Errorf("database cannot be nil")
 	}
 
 	// Apply database migrations.
-	sqlDB, err := cfg.DB.DB()
+	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
 	}
 
-	err = repository.ApplyMigrations(sqlDB, cfg.DBType)
+	err = repository.ApplyMigrations(sqlDB, dbType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	// Initialize telemetry service for JWKGenService (minimal config for demo service).
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		OTLPService: "learn-im", // Service name for telemetry.
-		OTLPEnabled: false,      // Demo service uses in-process telemetry only.
-	}
-
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	// Initialize telemetry service using ServerSettings from AppConfig.
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, &cfg.ServerSettings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
 	}
@@ -89,9 +75,9 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	// Phase 5b will add barrier service to encrypt JWKs before storing in messages_jwks table.
 
 	// Initialize repositories.
-	userRepo := repository.NewUserRepository(cfg.DB)
-	messageRepo := repository.NewMessageRepository(cfg.DB)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(cfg.DB)
+	userRepo := repository.NewUserRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	// Create TLS config for public server using auto-generated certificates.
 	publicTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
@@ -104,7 +90,8 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, cfg.JWTSecret, publicTLSCfg)
+	// Use BindPublicPort from embedded ServerSettings.
+	publicServer, err := NewPublicServer(ctx, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, cfg.JWTSecret, publicTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
@@ -119,14 +106,8 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)
 	}
 
-	// Create temporary ServerSettings for admin server (minimal configuration).
-	// NOTE: Phase 8.6 will refactor learn server to use ServerSettings directly instead of Config struct.
-	adminSettings := &cryptoutilConfig.ServerSettings{
-		BindPrivateAddress: cryptoutilMagic.IPv4Loopback,
-		BindPrivatePort:    cfg.AdminPort,
-	}
-
-	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, adminSettings, adminTLSCfg)
+	// Create admin server using ServerSettings from AppConfig.
+	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, &cfg.ServerSettings, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
@@ -139,7 +120,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 
 	return &LearnIMServer{
 		app:              app,
-		db:               cfg.DB,
+		db:               db,
 		telemetryService: telemetryService,
 		jwkGenService:    jwkGenService,
 		barrierService:   nil, // NOTE: Phase 5b will initialize barrier service for encrypted key storage.

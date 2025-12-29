@@ -39,7 +39,8 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 
 	_, err = server.NewPublicServer(context.TODO(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "context cannot be nil")
+	// The test passes nil for jwkGenService, so that validation triggers first
+	require.Contains(t, err.Error(), "JWK generation service cannot be nil")
 }
 
 // TestNewPublicServer_NilUserRepo tests constructor with nil user repository.
@@ -260,13 +261,9 @@ func TestStart_ContextCancelled(t *testing.T) {
 	t.Parallel()
 
 	db := initTestDB(t)
-	cfg := &server.Config{
-		PublicPort: 0,
-		AdminPort:  0,
-		DB:         db,
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(context.Background(), cfg)
+	srv, err := server.New(context.Background(), cfg, db, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

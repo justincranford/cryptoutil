@@ -69,6 +69,19 @@ func initTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
+// initTestConfig creates a properly configured AppConfig for testing.
+func initTestConfig() *server.AppConfig {
+	cfg := server.DefaultAppConfig()
+	cfg.BindPublicPort = 0                     // Dynamic port allocation for tests
+	cfg.BindPrivatePort = 0                    // Dynamic port allocation for tests
+	cfg.OTLPService = "learn-im-test"          // Required for telemetry initialization
+	cfg.LogLevel = "info"                      // Required for logger initialization
+	cfg.OTLPEndpoint = "grpc://localhost:4317" // Required for OTLP endpoint validation
+	cfg.OTLPEnabled = false                    // Disable actual OTLP export in tests
+
+	return cfg
+}
+
 // createTestPublicServer creates a PublicServer for testing.
 func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, string) {
 	t.Helper()

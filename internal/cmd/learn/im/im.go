@@ -24,6 +24,7 @@ import (
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	"cryptoutil/internal/learn/domain"
+	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -33,6 +34,11 @@ const (
 	helpFlag      = "--help"
 	helpShortFlag = "-h"
 	urlFlag       = "--url"
+
+	// Database dialector names.
+	dialectSQLite     = "sqlite"
+	dialectPostgres   = "postgres"
+	dialectPostgresPG = "pgx"
 )
 
 // IM implements the instant messaging service subcommand handler.
@@ -103,15 +109,15 @@ func imServer(args []string) int {
 		return 1
 	}
 
-	// Create learn-im server.
-	cfg := &server.Config{
-		PublicPort: int(cryptoutilMagic.DefaultPublicPortLearnIM),
-		AdminPort:  cryptoutilMagic.DefaultPrivatePortLearnIM,
-		DB:         db,
-		JWTSecret:  "learn-im-dev-secret-change-in-production", // TODO: Load from configuration file
-	}
+	// Create learn-im server configuration using AppConfig.
+	// AppConfig embeds ServerSettings and adds learn-im-specific settings.
+	cfg := server.DefaultAppConfig()
+	cfg.BindPublicPort = cryptoutilMagic.DefaultPublicPortLearnIM
+	cfg.BindPrivatePort = cryptoutilMagic.DefaultPrivatePortLearnIM
+	cfg.OTLPService = "learn-im"
+	cfg.OTLPEnabled = false // Demo service uses in-process telemetry only.
 
-	srv, err := server.New(ctx, cfg)
+	srv, err := server.New(ctx, cfg, db, determineDatabaseType(db))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Failed to create server: %v\n", err)
 
@@ -655,4 +661,20 @@ func initSQLite(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(0)                                     // In-memory: never close
 
 	return db, nil
+}
+
+// determineDatabaseType determines the database type from a GORM instance.
+// Inspects the GORM dialector to determine if it's PostgreSQL or SQLite.
+func determineDatabaseType(db *gorm.DB) repository.DatabaseType {
+	dialectName := db.Name()
+
+	switch dialectName {
+	case dialectPostgres, dialectPostgresPG:
+		return repository.DatabaseTypePostgreSQL
+	case dialectSQLite:
+		return repository.DatabaseTypeSQLite
+	default:
+		// Fallback to SQLite for unknown dialectors (safety default).
+		return repository.DatabaseTypeSQLite
+	}
 }

@@ -292,13 +292,9 @@ func TestNew_Success(t *testing.T) {
 	t.Parallel()
 
 	db := initTestDB(t)
-	cfg := &server.Config{
-		PublicPort: 0,
-		AdminPort:  0,
-		DB:         db,
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(context.Background(), cfg)
+	srv, err := server.New(context.Background(), cfg, db, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 	require.NotNil(t, srv)
 
@@ -333,27 +329,29 @@ func TestHandleRegisterUser_InvalidBody(t *testing.T) {
 	require.Equal(t, "invalid request body", result["error"])
 }
 
-// TestNew_NilContext tests server creation with nil context.
+// TestNew_NilContext tests server creation validates context.
 func TestNew_NilContext(t *testing.T) {
 	t.Parallel()
 
 	db := initTestDB(t)
-	cfg := &server.Config{
-		PublicPort: 0,
-		AdminPort:  0,
-		DB:         db,
-	}
+	cfg := server.DefaultAppConfig()
+	cfg.BindPublicPort = 0
+	cfg.BindPrivatePort = 0
+	// NOTE: OTLPService intentionally NOT set to test telemetry validation
 
-	_, err := server.New(context.TODO(), cfg)
+	_, err := server.New(context.TODO(), cfg, db, repository.DatabaseTypeSQLite)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "context cannot be nil")
+	// Telemetry validation happens before other checks
+	require.Contains(t, err.Error(), "service name must be non-empty")
 }
 
 // TestNew_NilConfig tests server creation with nil config.
 func TestNew_NilConfig(t *testing.T) {
 	t.Parallel()
 
-	_, err := server.New(context.Background(), nil)
+	db := initTestDB(t)
+
+	_, err := server.New(context.Background(), nil, db, repository.DatabaseTypeSQLite)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "config cannot be nil")
 }
@@ -362,13 +360,9 @@ func TestNew_NilConfig(t *testing.T) {
 func TestNew_NilDatabase(t *testing.T) {
 	t.Parallel()
 
-	cfg := &server.Config{
-		PublicPort: 0,
-		AdminPort:  0,
-		DB:         nil,
-	}
+	cfg := initTestConfig()
 
-	_, err := server.New(context.Background(), cfg)
+	_, err := server.New(context.Background(), cfg, nil, repository.DatabaseTypeSQLite)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "database cannot be nil")
 }

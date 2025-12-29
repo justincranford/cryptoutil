@@ -19,8 +19,22 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/domain"
+	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 )
+
+// initTestConfig returns an AppConfig with all required settings for tests.
+func initTestConfig() *server.AppConfig {
+	cfg := server.DefaultAppConfig()
+	cfg.BindPublicPort = 0                     // Dynamic port
+	cfg.BindPrivatePort = 0                    // Dynamic port
+	cfg.OTLPService = "learn-im-test"          // Required
+	cfg.LogLevel = "info"                      // Required
+	cfg.OTLPEndpoint = "grpc://localhost:4317" // Required
+	cfg.OTLPEnabled = false                    // Disable in tests
+
+	return cfg
+}
 
 // TestHTTPGet tests the httpGet helper function (used by health CLI wrappers).
 func TestHTTPGet(t *testing.T) {
@@ -38,14 +52,9 @@ func TestHTTPGet(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create server with dynamic ports.
-	cfg := &server.Config{
-		PublicPort: 0, // Dynamic port
-		AdminPort:  0, // Dynamic port
-		DB:         gormDB,
-		JWTSecret:  "test-secret",
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg)
+	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	// Start server.
@@ -146,14 +155,9 @@ func TestHTTPPost(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create server with dynamic ports.
-	cfg := &server.Config{
-		PublicPort: 0, // Dynamic port
-		AdminPort:  0, // Dynamic port
-		DB:         gormDB,
-		JWTSecret:  "test-secret",
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg)
+	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	// Start server in background with cancellable context.

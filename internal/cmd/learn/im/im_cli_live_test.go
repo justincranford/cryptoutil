@@ -17,7 +17,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"cryptoutil/internal/learn/domain"
-	"cryptoutil/internal/learn/server")
+	"cryptoutil/internal/learn/repository"
+	"cryptoutil/internal/learn/server"
+)
 
 // TestIM_HealthSubcommand_LiveServer tests "im health" subcommand with a running server.
 func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
@@ -36,14 +38,9 @@ func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).
-	cfg := &server.Config{
-		DB:         gormDB,
-		PublicPort: 0,      // Dynamic port.
-		AdminPort:  0,      // Dynamic port.
-		JWTSecret:  "test", // Test secret.
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg)
+	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	// Start server in background.
@@ -93,14 +90,9 @@ func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).
-	cfg := &server.Config{
-		DB:         gormDB,
-		PublicPort: 0,      // Dynamic port.
-		AdminPort:  0,      // Dynamic port.
-		JWTSecret:  "test", // Test secret.
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg)
+	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	// Start server in background.
@@ -152,14 +144,9 @@ func TestIM_ReadyzSubcommand_LiveServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).
-	cfg := &server.Config{
-		DB:         gormDB,
-		PublicPort: 0,      // Dynamic port.
-		AdminPort:  0,      // Dynamic port.
-		JWTSecret:  "test", // Test secret.
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg)
+	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	// Start server in background.
@@ -212,14 +199,9 @@ func TestIM_ShutdownSubcommand_LiveServer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).
-	cfg := &server.Config{
-		DB:         gormDB,
-		PublicPort: 0,      // Dynamic port.
-		AdminPort:  0,      // Dynamic port.
-		JWTSecret:  "test", // Test secret.
-	}
+	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg)
+	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	// Start server in background.
