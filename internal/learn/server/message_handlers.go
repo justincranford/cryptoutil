@@ -150,7 +150,6 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		}
 	}
 
-	// NOTE: Removed in-memory cache (s.messageKeysCache.Store) - now using database storage.
 	_ = jweMessage // JWE message structure (contains headers, useful for Phase 5b audit logs).
 
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.

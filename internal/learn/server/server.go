@@ -42,8 +42,7 @@ type Config struct {
 	AdminPort  uint16
 	DB         *gorm.DB
 	DBType     repository.DatabaseType // Database type for migrations (sqlite3 or postgres).
-	// NOTE: Phase 4 will remove JWTSecret, use barrier-encrypted JWKs from users_jwks table.
-	JWTSecret string // JWT signing secret (required for authentication).
+	JWTSecret  string                  // JWT signing secret (required for authentication).
 }
 
 // New creates a new learn-im server using the template.
