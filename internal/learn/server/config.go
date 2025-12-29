@@ -40,6 +40,10 @@ type AppConfig struct {
 
 	// Authentication settings.
 	JWTSecret string `mapstructure:"jwt_secret" yaml:"jwt_secret"` // JWT signing secret for session tokens.
+
+	// Realm-based validation configuration (Phase 12).
+	// Maps realm names to RealmConfig instances for multi-tenant validation rules.
+	Realms map[string]*RealmConfig `mapstructure:"realms" yaml:"realms"` // Realm-specific validation and security configuration.
 }
 
 // DefaultAppConfig returns the default learn-im application configuration.
@@ -51,6 +55,33 @@ func DefaultAppConfig() *AppConfig {
 		MessageMaxLength:   DefaultMessageMaxLength,
 		RecipientsMinCount: DefaultRecipientsMinCount,
 		RecipientsMaxCount: DefaultRecipientsMaxCount,
-		JWTSecret:          DefaultJWTSecret, // TODO: Load from configuration file in Phase 10.
+		JWTSecret:          DefaultJWTSecret,
+		Realms: map[string]*RealmConfig{
+			"default":    DefaultRealm(),
+			"enterprise": EnterpriseRealm(),
+		},
 	}
+}
+
+// GetRealmConfig retrieves a realm configuration by name with fallback to default.
+// If realmName is empty or not found, returns the "default" realm.
+func (cfg *AppConfig) GetRealmConfig(realmName string) *RealmConfig {
+	if cfg.Realms == nil {
+		return DefaultRealm()
+	}
+
+	// Try requested realm first.
+	if realmName != "" {
+		if realm, exists := cfg.Realms[realmName]; exists {
+			return realm
+		}
+	}
+
+	// Fall back to "default" realm.
+	if defaultRealm, exists := cfg.Realms["default"]; exists {
+		return defaultRealm
+	}
+
+	// Ultimate fallback to hardcoded default.
+	return DefaultRealm()
 }
