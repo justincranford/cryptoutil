@@ -57,17 +57,22 @@ func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.Dat
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	// Initialize telemetry service using ServerSettings from AppConfig.
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, &cfg.ServerSettings)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
+	// Convert repository.DatabaseType to template.DatabaseType.
+	var templateDBType cryptoutilTemplateServer.DatabaseType
+
+	switch dbType {
+	case repository.DatabaseTypePostgreSQL:
+		templateDBType = cryptoutilTemplateServer.DatabaseTypePostgreSQL
+	case repository.DatabaseTypeSQLite:
+		templateDBType = cryptoutilTemplateServer.DatabaseTypeSQLite
+	default:
+		return nil, fmt.Errorf("unsupported database type: %s", dbType)
 	}
 
-	// Initialize JWK Generation Service for message encryption.
-	// Uses in-memory key pools with telemetry for monitoring.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	// Create ServiceTemplate with shared infrastructure (telemetry, JWK gen).
+	template, err := cryptoutilTemplateServer.NewServiceTemplate(ctx, &cfg.ServerSettings, db, templateDBType)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize JWK generation service: %w", err)
+		return nil, fmt.Errorf("failed to create service template: %w", err)
 	}
 
 	// NOTE: Phase 5b will initialize Barrier Service for key encryption at rest.
@@ -91,7 +96,7 @@ func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.Dat
 
 	// Create public server with handlers.
 	// Use BindPublicPort from embedded ServerSettings.
-	publicServer, err := NewPublicServer(ctx, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, cfg.JWTSecret, publicTLSCfg)
+	publicServer, err := NewPublicServer(ctx, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, template.JWKGen(), cfg.JWTSecret, publicTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
@@ -121,9 +126,9 @@ func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.Dat
 	return &LearnIMServer{
 		app:              app,
 		db:               db,
-		telemetryService: telemetryService,
-		jwkGenService:    jwkGenService,
-		barrierService:   nil, // NOTE: Phase 5b will initialize barrier service for encrypted key storage.
+		telemetryService: template.Telemetry(),
+		jwkGenService:    template.JWKGen(),
+		barrierService:   template.Barrier(), // nil until Phase 5b.
 		userRepo:         userRepo,
 		messageRepo:      messageRepo,
 	}, nil

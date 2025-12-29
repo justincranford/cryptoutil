@@ -40,7 +40,7 @@ const (
 //	runner := NewMigrationRunner(migrationsFS, "migrations")
 //	err := runner.Apply(sqlDB, DatabaseTypePostgreSQL)
 type MigrationRunner struct {
-	embedFS     embed.FS
+	embedFS        embed.FS
 	migrationsPath string
 }
 
@@ -53,7 +53,7 @@ type MigrationRunner struct {
 // Returns configured migration runner ready to apply migrations.
 func NewMigrationRunner(embedFS embed.FS, migrationsPath string) *MigrationRunner {
 	return &MigrationRunner{
-		embedFS:     embedFS,
+		embedFS:        embedFS,
 		migrationsPath: migrationsPath,
 	}
 }
