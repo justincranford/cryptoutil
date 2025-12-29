@@ -5,6 +5,7 @@
 package server
 
 import (
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 	"strings"
 	"testing"
 
@@ -17,27 +18,27 @@ func TestValidatePasswordForRealm_ValidPasswords(t *testing.T) {
 	tests := []struct {
 		name     string
 		password string
-		realm    *RealmConfig
+		realm    *cryptoutilTemplateServer.RealmConfig
 	}{
 		{
 			name:     "default realm - valid password with all character types",
 			password: "Abc123!@#xyz",
-			realm:    DefaultRealm(),
+			realm:    cryptoutilTemplateServer.DefaultRealm(),
 		},
 		{
 			name:     "default realm - minimum length with variety",
 			password: "Aa1!Bb2@Cc3#",
-			realm:    DefaultRealm(),
+			realm:    cryptoutilTemplateServer.DefaultRealm(),
 		},
 		{
 			name:     "enterprise realm - strong password",
 			password: "Enterprise2025!SecurePass",
-			realm:    EnterpriseRealm(),
+			realm:    cryptoutilTemplateServer.EnterpriseRealm(),
 		},
 		{
 			name:     "enterprise realm - exactly 16 chars with variety",
 			password: "Entr1se!2025Pasx",
-			realm:    EnterpriseRealm(),
+			realm:    cryptoutilTemplateServer.EnterpriseRealm(),
 		},
 	}
 
@@ -45,7 +46,7 @@ func TestValidatePasswordForRealm_ValidPasswords(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := ValidatePasswordForRealm(tt.password, tt.realm)
+			err := cryptoutilTemplateServer.ValidatePasswordForRealm(tt.password, tt.realm)
 			require.NoError(t, err)
 		})
 	}
@@ -57,7 +58,7 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 	tests := []struct {
 		name        string
 		password    string
-		realm       *RealmConfig
+		realm       *cryptoutilTemplateServer.RealmConfig
 		expectedErr string
 	}{
 		{
@@ -69,55 +70,55 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 		{
 			name:        "too short for default realm",
 			password:    "Abc1!",
-			realm:       DefaultRealm(),
+			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must be at least 12 characters long",
 		},
 		{
 			name:        "too short for enterprise realm",
 			password:    "Abc123!@#xyz",
-			realm:       EnterpriseRealm(),
+			realm:       cryptoutilTemplateServer.EnterpriseRealm(),
 			expectedErr: "password must be at least 16 characters long",
 		},
 		{
 			name:        "missing uppercase",
 			password:    "abc123!@#xyz",
-			realm:       DefaultRealm(),
+			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one uppercase letter",
 		},
 		{
 			name:        "missing lowercase",
 			password:    "ABC123!@#XYZ",
-			realm:       DefaultRealm(),
+			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one lowercase letter",
 		},
 		{
 			name:        "missing digit",
 			password:    "Abcdefg!@#xy",
-			realm:       DefaultRealm(),
+			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one digit",
 		},
 		{
 			name:        "missing special character",
 			password:    "Abc123456xyz",
-			realm:       DefaultRealm(),
+			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one special character",
 		},
 		{
 			name:        "insufficient unique characters",
 			password:    "Aaaa1111!!!!",
-			realm:       DefaultRealm(),
+			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least 8 unique characters",
 		},
 		{
 			name:        "too many consecutive repeated characters (default)",
 			password:    "Abc1aaaa23!@",
-			realm:       DefaultRealm(),
+			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must not contain more than 3 consecutive repeated characters",
 		},
 		{
 			name:        "too many consecutive repeated characters (enterprise)",
 			password:    "Enterprise2025!aaa",
-			realm:       EnterpriseRealm(),
+			realm:       cryptoutilTemplateServer.EnterpriseRealm(),
 			expectedErr: "password must not contain more than 2 consecutive repeated characters",
 		},
 	}
@@ -126,7 +127,7 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := ValidatePasswordForRealm(tt.password, tt.realm)
+			err := cryptoutilTemplateServer.ValidatePasswordForRealm(tt.password, tt.realm)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tt.expectedErr)
 		})
@@ -207,7 +208,7 @@ func TestGetRealmConfig_FallbackToDefault(t *testing.T) {
 func TestValidateUsernameForRealm(t *testing.T) {
 	t.Parallel()
 
-	realm := DefaultRealm()
+	realm := cryptoutilTemplateServer.DefaultRealm()
 
 	tests := []struct {
 		name        string
@@ -262,9 +263,9 @@ func TestValidateUsernameForRealm(t *testing.T) {
 
 			var err error
 			if tt.name == "nil realm" {
-				err = ValidateUsernameForRealm(tt.username, nil)
+				err = cryptoutilTemplateServer.ValidateUsernameForRealm(tt.username, nil)
 			} else {
-				err = ValidateUsernameForRealm(tt.username, realm)
+				err = cryptoutilTemplateServer.ValidateUsernameForRealm(tt.username, realm)
 			}
 
 			if tt.wantErr {

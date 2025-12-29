@@ -8,6 +8,7 @@ package server
 import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 )
 
 // AppConfig holds configuration for the learn-im server.
@@ -29,7 +30,7 @@ type AppConfig struct {
 
 	// Realm-based validation configuration (Phase 12).
 	// Maps realm names to RealmConfig instances for multi-tenant validation rules.
-	Realms map[string]*RealmConfig `mapstructure:"realms" yaml:"realms"` // Realm-specific validation and security configuration.
+	Realms map[string]*cryptoutilTemplateServer.RealmConfig `mapstructure:"realms" yaml:"realms"` // Realm-specific validation and security configuration.
 }
 
 // DefaultAppConfig returns the default learn-im application configuration.
@@ -42,18 +43,18 @@ func DefaultAppConfig() *AppConfig {
 		RecipientsMinCount: cryptoutilSharedMagic.LearnRecipientsMinCount,
 		RecipientsMaxCount: cryptoutilSharedMagic.LearnRecipientsMaxCount,
 		JWTSecret:          "", // MUST be provided at runtime (no default secret).
-		Realms: map[string]*RealmConfig{
-			"default":    DefaultRealm(),
-			"enterprise": EnterpriseRealm(),
-		},
-	}
+	Realms: map[string]*cryptoutilTemplateServer.RealmConfig{
+		"default":    cryptoutilTemplateServer.DefaultRealm(),
+		"enterprise": cryptoutilTemplateServer.EnterpriseRealm(),
+	},
+}
 }
 
 // GetRealmConfig retrieves a realm configuration by name with fallback to default.
 // If realmName is empty or not found, returns the "default" realm.
-func (cfg *AppConfig) GetRealmConfig(realmName string) *RealmConfig {
+func (cfg *AppConfig) GetRealmConfig(realmName string) *cryptoutilTemplateServer.RealmConfig {
 	if cfg.Realms == nil {
-		return DefaultRealm()
+		return cryptoutilTemplateServer.DefaultRealm()
 	}
 
 	// Try requested realm first.
@@ -69,5 +70,5 @@ func (cfg *AppConfig) GetRealmConfig(realmName string) *RealmConfig {
 	}
 
 	// Ultimate fallback to hardcoded default.
-	return DefaultRealm()
+	return cryptoutilTemplateServer.DefaultRealm()
 }

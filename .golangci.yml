@@ -258,6 +258,9 @@ linters:
           alias: cryptoutilOrmRepository
         - pkg: "cryptoutil/internal/kms/server/repository/sqlrepository"
           alias: cryptoutilSQLRepository
+        # Cryptoutil template
+        - pkg: "cryptoutil/internal/template/server"
+          alias: cryptoutilTemplateServer
         # Cryptoutil learn
         - pkg: "cryptoutil/internal/learn/crypto"
           alias: cryptoutilLearnCrypto
