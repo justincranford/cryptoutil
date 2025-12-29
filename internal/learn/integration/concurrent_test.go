@@ -18,11 +18,11 @@ import (
 	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // initTestConfig returns an AppConfig with all required settings for tests.

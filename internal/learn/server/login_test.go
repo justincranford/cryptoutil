@@ -16,8 +16,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
-	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilLearnCrypto "cryptoutil/internal/learn/crypto"
+	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 )
 
@@ -29,10 +29,10 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
+	passwordHash, err := cryptoutilLearnCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
-	user := &cryptoutilDomain.User{
+	user := &cryptoutilLearnDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "loginuser",
 		PasswordHash: hex.EncodeToString(passwordHash),
@@ -77,10 +77,10 @@ func TestHandleLoginUser_WrongPassword(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
+	passwordHash, err := cryptoutilLearnCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
-	user := &cryptoutilDomain.User{
+	user := &cryptoutilLearnDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "wrongpassuser",
 		PasswordHash: hex.EncodeToString(passwordHash),
@@ -222,7 +222,7 @@ func TestHandleLoginUser_HexDecodeError(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.New()
-	user := &cryptoutilDomain.User{
+	user := &cryptoutilLearnDomain.User{
 		ID:           userID,
 		Username:     "testuser",
 		PasswordHash: "zzzzzz",

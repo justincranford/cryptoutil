@@ -10,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
-	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilLearnCrypto "cryptoutil/internal/learn/crypto"
+	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -74,7 +74,7 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	}
 
 	// Hash password using PBKDF2-HMAC-SHA256.
-	passwordHash, err := cryptoutilCrypto.HashPassword(req.Password)
+	passwordHash, err := cryptoutilLearnCrypto.HashPassword(req.Password)
 	if err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -86,7 +86,7 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	passwordHashHex := hex.EncodeToString(passwordHash)
 
 	// Create user.
-	user := &cryptoutilDomain.User{
+	user := &cryptoutilLearnDomain.User{
 		ID:           googleUuid.New(),
 		Username:     req.Username,
 		PasswordHash: passwordHashHex,
@@ -146,7 +146,7 @@ func (s *PublicServer) handleLoginUser(c *fiber.Ctx) error {
 	}
 
 	// Verify password.
-	verified, err := cryptoutilCrypto.VerifyPassword(req.Password, storedPasswordHash)
+	verified, err := cryptoutilLearnCrypto.VerifyPassword(req.Password, storedPasswordHash)
 	if err != nil || !verified {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

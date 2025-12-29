@@ -16,8 +16,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
-	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilLearnCrypto "cryptoutil/internal/learn/crypto"
+	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 )
@@ -127,10 +127,10 @@ func TestHandleRegisterUser_DuplicateUsername(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
+	passwordHash, err := cryptoutilLearnCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
-	existingUser := &cryptoutilDomain.User{
+	existingUser := &cryptoutilLearnDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "existinguser",
 		PasswordHash: hex.EncodeToString(passwordHash),

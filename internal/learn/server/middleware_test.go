@@ -13,9 +13,9 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"cryptoutil/internal/learn/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // TestJWTMiddleware_InvalidTokens tests various invalid JWT scenarios.

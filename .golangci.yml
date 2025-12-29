@@ -258,6 +258,19 @@ linters:
           alias: cryptoutilOrmRepository
         - pkg: "cryptoutil/internal/kms/server/repository/sqlrepository"
           alias: cryptoutilSQLRepository
+        # Cryptoutil learn
+        - pkg: "cryptoutil/internal/learn/crypto"
+          alias: cryptoutilLearnCrypto
+        - pkg: "cryptoutil/internal/learn/domain"
+          alias: cryptoutilLearnDomain
+        - pkg: "cryptoutil/internal/learn/e2e"
+          alias: cryptoutilLearnE2E
+        - pkg: "cryptoutil/internal/learn/integration"
+          alias: cryptoutilLearnIntegration
+        - pkg: "cryptoutil/internal/learn/repository"
+          alias: cryptoutilLearnRepository
+        - pkg: "cryptoutil/internal/learn/server"
+          alias: cryptoutilLearnServer
         # Cryptoutil identity
         - pkg: "cryptoutil/internal/identity/apperr"
           alias: cryptoutilIdentityAppErr

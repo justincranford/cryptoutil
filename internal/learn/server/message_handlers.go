@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
-	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 )
 
@@ -97,7 +97,7 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 	}
 
 	// Create message with JWE ciphertext.
-	message := &cryptoutilDomain.Message{
+	message := &cryptoutilLearnDomain.Message{
 		ID:       googleUuid.New(),
 		SenderID: senderID,
 		JWE:      string(jweCompactBytes),
@@ -135,7 +135,7 @@ func (s *PublicServer) handleSendMessage(c *fiber.Ctx) error {
 		// Store encrypted JWK for this recipient.
 		// NOTE: cekJWKBytes contains complete JWK JSON (kid, alg, enc, k/d fields).
 		// Phase 5b will use barrier service to encrypt JWK before storing.
-		messageRecipientJWK := &cryptoutilDomain.MessageRecipientJWK{
+		messageRecipientJWK := &cryptoutilLearnDomain.MessageRecipientJWK{
 			ID:          googleUuid.New(),
 			MessageID:   message.ID,
 			RecipientID: recipientID,

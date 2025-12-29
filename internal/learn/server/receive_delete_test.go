@@ -14,7 +14,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 )
 
 func TestHandleReceiveMessages_Empty(t *testing.T) {
@@ -79,7 +79,7 @@ func TestHandleDeleteMessage_Success(t *testing.T) {
 	messageID := sendResp["message_id"]
 
 	// Get message from database to verify it exists.
-	var message cryptoutilDomain.Message
+	var message cryptoutilLearnDomain.Message
 
 	err = db.Where("id = ?", messageID).First(&message).Error
 	require.NoError(t, err)

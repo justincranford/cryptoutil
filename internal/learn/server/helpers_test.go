@@ -20,7 +20,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
@@ -196,7 +196,7 @@ func createHTTPClient(t *testing.T) *http.Client {
 
 // testUserWithToken represents a test user with authentication token.
 type testUserWithToken struct {
-	User  *cryptoutilDomain.User
+	User  *cryptoutilLearnDomain.User
 	Token string
 }
 
@@ -245,7 +245,7 @@ func registerAndLoginTestUser(t *testing.T, client *http.Client, baseURL string)
 }
 
 // registerTestUser is a helper that registers a user and returns the user domain object.
-func registerTestUser(t *testing.T, client *http.Client, baseURL, username, password string) *cryptoutilDomain.User {
+func registerTestUser(t *testing.T, client *http.Client, baseURL, username, password string) *cryptoutilLearnDomain.User {
 	t.Helper()
 
 	reqBody := map[string]string{
@@ -274,7 +274,7 @@ func registerTestUser(t *testing.T, client *http.Client, baseURL, username, pass
 	userID, err := googleUuid.Parse(respBody["user_id"])
 	require.NoError(t, err)
 
-	return &cryptoutilDomain.User{
+	return &cryptoutilLearnDomain.User{
 		ID:       userID,
 		Username: username,
 	}
