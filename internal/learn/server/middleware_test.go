@@ -13,13 +13,15 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"cryptoutil/internal/learn/server"
 )
 
 // TestJWTMiddleware_InvalidTokens tests various invalid JWT scenarios.
 func TestJWTMiddleware_InvalidTokens(t *testing.T) {
-	const jwtSecret = "learn-im-dev-secret-change-in-production"
+	jwtSecret, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
 
 	tests := []struct {
 		name         string

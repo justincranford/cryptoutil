@@ -18,6 +18,7 @@ import (
 	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
@@ -42,12 +43,16 @@ func initTestConfig() *server.AppConfig {
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	ctx := context.Background()
 
+	// Generate random database password.
+	dbPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
 	// Start PostgreSQL test-container (more realistic concurrency than SQLite).
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:18-alpine",
 		postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewString())),
 		postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewString())),
-		postgres.WithPassword("test-password"),
+		postgres.WithPassword(dbPassword),
 	)
 	require.NoError(t, err)
 
