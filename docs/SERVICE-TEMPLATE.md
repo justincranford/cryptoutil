@@ -348,30 +348,41 @@ ok      cryptoutil/internal/learn/integration   8.101s
 
 ---
 
-## Phase 10: ServerSettings Integration
+## Phase 10: ServerSettings Integration ✅
 
-### 10.1 Add ServerSettings Extensions
+**Status**: Complete
 
-- [ ] Add Realms setting in `internal/shared/config/config.go` ServerSettings:
-  - [ ] Support username/password realm configuration files
-  - [ ] Example: `01-username-password-file.yml` for file-based auth
-  - [ ] Example: `02-username-password-db.yml` for database-based auth
-  - [ ] Add username/password min/max length settings per realm
-- [ ] Add BrowserSessionCookie setting in ServerSettings:
-  - [ ] Support cookie type configuration: JWE (encrypted), JWS (signed), opaque (database)
-  - [ ] Example config file: `browser-session-cookie.yml`
-  - [ ] Default to JWS (signed stateless tokens)
-  - [ ] JWE/JWS are stateless, opaque requires session storage in DB
+**Commits**:
 
-### 10.2 Update learn-im Config
+- 4779faa7 - "feat(config): add Realms and BrowserSessionCookie to ServerSettings (Phase 10.1)"
+- 2044e016 - "feat(learn): integrate ServerSettings into AppConfig (Phase 8.6 / Phase 10.2)"
 
-- [ ] Create `internal/learn/server/config.go` with AppConfig struct
-- [ ] Keep learn-im-specific settings in AppConfig:
-  - [ ] JWE algorithm settings
-  - [ ] Message min/max length settings
-  - [ ] Recipients min/max count settings
-- [ ] Embed ServerSettings in AppConfig for network/TLS configuration
-- [ ] Update CLI flags to support both ServerSettings and AppConfig fields
+### 10.1 Add ServerSettings Extensions ✅
+
+- [x] Add Realms setting in `internal/shared/config/config.go` ServerSettings:
+  - [x] Support username/password realm configuration files
+  - [x] Added `Realms []string` field to ServerSettings
+  - [x] Added `--realms` CLI flag with `-R` shorthand
+  - [x] Added default value in `magic_identity.go`: `DefaultRealms = []string{}`
+  - [x] Integrated with Viper configuration system
+- [x] Add BrowserSessionCookie setting in ServerSettings:
+  - [x] Support cookie type configuration: JWE (encrypted), JWS (signed), opaque (database)
+  - [x] Added `BrowserSessionCookie string` field to ServerSettings
+  - [x] Added `--browser-session-cookie` CLI flag with `-C` shorthand
+  - [x] Added default value in `magic_identity.go`: `DefaultBrowserSessionCookie = "jws"`
+  - [x] Default to JWS (signed stateless tokens)
+  - [x] JWE/JWS are stateless, opaque requires session storage in DB
+
+### 10.2 Update learn-im Config ✅
+
+- [x] Create `internal/learn/server/config.go` with AppConfig struct
+- [x] Keep learn-im-specific settings in AppConfig:
+  - [x] JWE algorithm settings (`JWEAlgorithm`)
+  - [x] Message min/max length settings (`MessageMinLength`, `MessageMaxLength`)
+  - [x] Recipients min/max count settings (`RecipientsMinCount`, `RecipientsMaxCount`)
+  - [x] JWT secret for authentication (`JWTSecret`)
+- [x] Embed ServerSettings in AppConfig for network/TLS configuration
+- [x] CLI flags support both ServerSettings and AppConfig fields (via embedded struct)
 
 ---
 
