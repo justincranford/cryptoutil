@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func TestHandleSendMessage_Success(t *testing.T) {
@@ -24,7 +25,14 @@ func TestHandleSendMessage_Success(t *testing.T) {
 	client := createHTTPClient(t)
 
 	sender := registerAndLoginTestUser(t, client, baseURL)
-	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	receiverUsername, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err)
+
+	receiverPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	receiver := registerTestUser(t, client, baseURL, receiverUsername, receiverPassword)
 
 	reqBody := map[string]any{
 		"message":      "Hello, receiver!",
@@ -130,7 +138,13 @@ func TestHandleSendMessage_InvalidTokenFormat(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+	receiverUsername, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err)
+
+	receiverPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	receiver := registerTestUser(t, client, baseURL, receiverUsername, receiverPassword)
 
 	reqBody := map[string]any{
 		"message":      "Test message",
@@ -166,7 +180,13 @@ func TestHandleSendMessage_InvalidTokenSignature(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+	receiverUsername, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err)
+
+	receiverPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	receiver := registerTestUser(t, client, baseURL, receiverUsername, receiverPassword)
 
 	sender := registerAndLoginTestUser(t, client, baseURL)
 	tamperedToken := sender.Token + "tampered"
@@ -235,7 +255,14 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 	client := createHTTPClient(t)
 
 	sender := registerAndLoginTestUser(t, client, baseURL)
-	receiver := registerTestUser(t, client, baseURL, "receiver", "password123")
+
+	receiverUsername, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err)
+
+	receiverPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	receiver := registerTestUser(t, client, baseURL, receiverUsername, receiverPassword)
 
 	reqBody := map[string]any{
 		"message":      "",
@@ -334,9 +361,30 @@ func TestHandleSendMessage_MultipleReceivers(t *testing.T) {
 	client := createHTTPClient(t)
 
 	sender := registerAndLoginTestUser(t, client, baseURL)
-	receiver1 := registerTestUser(t, client, baseURL, "receiver1", "password123")
-	receiver2 := registerTestUser(t, client, baseURL, "receiver2", "password123")
-	receiver3 := registerTestUser(t, client, baseURL, "receiver3", "password123")
+
+	receiver1Username, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err)
+
+	receiver1Password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	receiver1 := registerTestUser(t, client, baseURL, receiver1Username, receiver1Password)
+
+	receiver2Username, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err)
+
+	receiver2Password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	receiver2 := registerTestUser(t, client, baseURL, receiver2Username, receiver2Password)
+
+	receiver3Username, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err)
+
+	receiver3Password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err)
+
+	receiver3 := registerTestUser(t, client, baseURL, receiver3Username, receiver3Password)
 
 	reqBody := map[string]any{
 		"message": "Broadcast message",
