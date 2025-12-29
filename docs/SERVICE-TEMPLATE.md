@@ -361,11 +361,26 @@ import cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 ---
 
-### Phase 12: Realm-Based Validation Configuration ❌ TODO
+### Phase 12: Realm-Based Validation Configuration ✅ COMPLETE
 
 **Context**: Enterprise deployments need configurable validation rules (password complexity, session timeouts, MFA requirements) per realm.
 
-**Design**:
+**Implementation**:
+
+- [x] **RealmConfig struct** (`internal/learn/server/realm.go`):
+  - Password rules: min length, character requirements, unique chars, max repeated chars
+  - Session config: timeout, absolute max, refresh enabled
+  - MFA config: required flag, allowed methods
+  - Rate limits: login attempts, message sending
+- [x] **DefaultRealm()**: 12-char passwords, 1-hour sessions, no MFA, balanced rate limits
+- [x] **EnterpriseRealm()**: 16-char passwords, 30-min sessions, MFA required, strict rate limits
+- [x] **ValidatePasswordForRealm()**: 10 validation rules (length, uppercase, lowercase, digits, special chars, uniqueness, repetition)
+- [x] **ValidateUsernameForRealm()**: Length validation (3-64 chars), extensible for realm-specific rules
+- [x] **AppConfig.GetRealmConfig()**: Retrieve realm by name with triple fallback (requested → default → hardcoded)
+- [x] **Comprehensive tests**: 14 test cases covering all validation rules and edge cases
+- [x] **golangci-lint mnd compliance**: All magic numbers extracted to named constants
+
+**Example Usage**:
 
 ```yaml
 realms:
@@ -375,8 +390,13 @@ realms:
     password_require_lowercase: true
     password_require_digits: true
     password_require_special: true
+    password_min_unique_chars: 8
+    password_max_repeated_chars: 3
     session_timeout: 3600
+    session_absolute_max: 86400
     mfa_required: false
+    login_rate_limit: 5
+    message_rate_limit: 10
 
   enterprise:
     password_min_length: 16
@@ -384,17 +404,23 @@ realms:
     password_require_lowercase: true
     password_require_digits: true
     password_require_special: true
+    password_min_unique_chars: 12
+    password_max_repeated_chars: 2
     session_timeout: 1800
+    session_absolute_max: 28800
     mfa_required: true
+    login_rate_limit: 3
+    message_rate_limit: 5
 ```
 
-**Tasks**:
+**Commit**: 8c33feab (Session 4)
 
-- [ ] Define RealmConfig struct
-- [ ] Add realms section to YAML config
-- [ ] Implement validation logic with realm-specific rules
-- [ ] Unit tests for realm-based validation
-- [ ] Integration tests with multiple realms
+**Design Benefits**:
+
+- Multi-tenant support with different security postures per realm
+- Data-driven validation (rules in configuration, not hardcoded)
+- Factory pattern for common configurations (default, enterprise)
+- Extensible design for future realm-specific rules
 
 ---
 
