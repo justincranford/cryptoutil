@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/learn/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"cryptoutil/internal/learn/server"
 )
 
@@ -68,7 +68,7 @@ func TestJWTMiddleware_InvalidTokens(t *testing.T) {
 					RegisteredClaims: jwt.RegisteredClaims{
 						ExpiresAt: jwt.NewNumericDate(expirationTime),
 						IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
-						Issuer:    magic.JWTIssuer,
+						Issuer:    cryptoutilSharedMagic.LearnJWTIssuer,
 					},
 				}
 				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

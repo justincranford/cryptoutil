@@ -13,7 +13,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilMagic "cryptoutil/internal/learn/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -30,14 +30,14 @@ type Claims struct {
 
 // GenerateJWT creates a new JWT token for the given user.
 func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(cryptoutilMagic.JWTExpiration)
+	expirationTime := time.Now().Add(cryptoutilSharedMagic.LearnJWTExpiration)
 	claims := &Claims{
 		UserID:   userID.String(),
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    cryptoutilMagic.JWTIssuer,
+			Issuer:    cryptoutilSharedMagic.LearnJWTIssuer,
 		},
 	}
 
