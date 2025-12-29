@@ -99,6 +99,7 @@ const (
 	defaultUnsealMode                  = cryptoutilMagic.DefaultUnsealModeSysInfo
 	defaultTLSPublicMode               = TLSMode(cryptoutilMagic.DefaultTLSPublicMode)
 	defaultTLSPrivateMode              = TLSMode(cryptoutilMagic.DefaultTLSPrivateMode)
+	defaultBrowserSessionCookie        = cryptoutilMagic.DefaultBrowserSessionCookie
 )
 
 var (
@@ -106,6 +107,7 @@ var (
 	defaultTLSStaticKeyPEM   = cryptoutilMagic.DefaultTLSStaticKeyPEM
 	defaultTLSMixedCACertPEM = cryptoutilMagic.DefaultTLSMixedCACertPEM
 	defaultTLSMixedCAKeyPEM  = cryptoutilMagic.DefaultTLSMixedCAKeyPEM
+	defaultRealms            = cryptoutilMagic.DefaultRealms
 )
 
 // Configuration profiles for common deployment scenarios.
@@ -278,6 +280,8 @@ type ServerSettings struct {
 	OTLPEndpoint                string
 	UnsealMode                  string
 	UnsealFiles                 []string
+	Realms                      []string // Paths to realm configuration files (e.g., 01-username-password-file.yml, 02-username-password-db.yml)
+	BrowserSessionCookie        string   // Cookie type: jwe (encrypted), jws (signed), opaque (database)
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.
@@ -744,6 +748,22 @@ var (
 			"used for N unseal keys or M-of-N unseal shared secrets",
 		description: "Unseal Files",
 	})
+	realms = *registerSetting(&Setting{
+		name:      "realms",
+		shorthand: "R",
+		value:     defaultRealms,
+		usage: "realm configuration files; repeat for multiple realms; e.g. " +
+			"\"--realms=/config/01-username-password-file.yml --realms=/config/02-username-password-db.yml\"; " +
+			"defines authentication realms with username/password policies",
+		description: "Authentication Realms",
+	})
+	browserSessionCookie = *registerSetting(&Setting{
+		name:        "browser-session-cookie",
+		shorthand:   "C",
+		value:       defaultBrowserSessionCookie,
+		usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens",
+		description: "Browser Session Cookie Type",
+	})
 )
 
 // getTLSPEMBytes safely retrieves PEM bytes from viper for BytesBase64 flags.
@@ -1024,6 +1044,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error)
 		OTLPEndpoint:                viper.GetString(otlpEndpoint.name),
 		UnsealMode:                  viper.GetString(unsealMode.name),
 		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
+		Realms:                      viper.GetStringSlice(realms.name),
+		BrowserSessionCookie:        viper.GetString(browserSessionCookie.name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.
@@ -1197,6 +1219,8 @@ func logSettings(s *ServerSettings) {
 			otlpEndpoint.name:                s.OTLPEndpoint,
 			unsealMode.name:                  s.UnsealMode,
 			unsealFiles.name:                 s.UnsealFiles,
+			realms.name:                      s.Realms,
+			browserSessionCookie.name:        s.BrowserSessionCookie,
 		}
 
 		// Iterate through all registered settings and log them

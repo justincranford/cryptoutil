@@ -25,3 +25,12 @@ const (
 	// SystemInitiatorName - System initiator name for automated operations.
 	SystemInitiatorName = "system"
 )
+
+// Authentication realm configuration constants.
+const (
+	// DefaultBrowserSessionCookie - Default browser session cookie type (JWS signed stateless tokens).
+	DefaultBrowserSessionCookie = "jws"
+)
+
+// DefaultRealms - Default realm configuration files slice (empty by default).
+var DefaultRealms = []string{}
