@@ -4,7 +4,7 @@
 
 This document tracks quality improvement tasks discovered through code analysis, coverage reports, and workflow monitoring. Organized by priority and phase alignment.
 
-**Last Updated**: 2025-12-21
+**Last Updated**: 2025-12-24 (Session 4)
 
 ---
 
@@ -415,6 +415,90 @@ When implementing quality improvements (coverage, mutation testing), use this pa
 - [ ] Add linting rule to detect new `context.TODO()` usage
 
 **Estimated Effort**: 1 day
+
+---
+
+## Completed Quality Tasks (Session 4)
+
+### Phase 12: Realm-Based Validation Configuration ✅ COMPLETE
+
+**Package**: `internal/learn/server/`
+
+**Completed** (commit 8c33feab 2025-12-24):
+
+- ✅ Created RealmConfig struct with password/session/MFA/rate-limit rules
+- ✅ Implemented DefaultRealm() factory (12-char passwords, 1-hour sessions, balanced security)
+- ✅ Implemented EnterpriseRealm() factory (16-char passwords, 30-min sessions, strict security)
+- ✅ Implemented ValidatePasswordForRealm() with 10 validation rules
+- ✅ Implemented ValidateUsernameForRealm() with extensible pattern
+- ✅ Added AppConfig.GetRealmConfig() with triple fallback logic
+- ✅ Comprehensive tests (14 test cases, all passing)
+- ✅ golangci-lint mnd compliance (all magic numbers extracted to constants)
+
+**Quality Metrics**:
+
+- Test Coverage: 100% (14/14 test cases passing)
+- Mutation Testing: Not yet run (Phase 5 activity)
+- Test Timing: <1s (realm_validation_test.go: 0.056s)
+- File Size: Well below limits (realm.go: 102 lines, realm_validation.go: ~130 lines)
+
+**Design Benefits**:
+
+- Multi-tenant support with configurable security per realm
+- Data-driven validation (rules in configuration, not hardcoded)
+- Factory pattern for common configurations (default vs. enterprise)
+- Extensible design for future realm-specific rules
+
+**Related**:
+
+- SERVICE-TEMPLATE.md Phase 12 marked complete (commit 80c770af)
+- Supports enterprise deployments with different security requirements
+
+---
+
+### Phase 11: ServiceTemplate Extraction ✅ COMPLETE
+
+**Package**: `internal/template/server/`
+
+**Completed** (commits 732539b8, 1c428ad1 Session 3):
+
+- ✅ Extracted ServiceTemplate infrastructure from sm-kms
+- ✅ Migrated learn-im to use ServiceTemplate
+- ✅ Zero duplicated initialization code (~30 lines removed from learn-im)
+- ✅ All E2E tests passing (service + browser paths)
+- ✅ Full infrastructure: DB, telemetry, JWK generation, barrier encryption
+
+**Quality Impact**:
+
+- Code Duplication: Eliminated across 9 services (future benefit)
+- Maintainability: Single source of truth for service infrastructure
+- Test Coverage: ServiceTemplate 7/7 tests passing
+
+**Related**:
+
+- SERVICE-TEMPLATE.md Phase 11 marked complete
+- Prevents future services from duplicating initialization code
+
+---
+
+### Phase 17.1: LEARN-IM-TEST-COMMANDS.md Review ✅ COMPLETE
+
+**File**: `docs/LEARN-IM-TEST-COMMANDS.md`
+
+**Completed** (commit 012c0777 2025-12-24):
+
+- ✅ Reorganized documentation into clear sections (unit/integration/E2E/race)
+- ✅ Added test patterns documentation (TestMain, table-driven, test-containers)
+- ✅ Documented CGO limitations (race detector, go run requires GCC)
+- ✅ Added coverage targets (≥95% production, ≥98% infrastructure)
+- ✅ Updated examples with PowerShell syntax
+- ✅ Added Windows-specific notes (Docker rootless, test-container limitations)
+
+**Quality Impact**:
+
+- Developer Experience: Clear guidance for running tests
+- Accuracy: Reflects current test patterns and tools
+- Platform Awareness: Windows CGO limitations documented
 
 ---
 
