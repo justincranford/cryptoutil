@@ -7,21 +7,7 @@ package server
 
 import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-)
-
-const (
-	// Default message validation constraints.
-	DefaultMessageMinLength   = 1
-	DefaultMessageMaxLength   = 10000
-	DefaultRecipientsMinCount = 1
-	DefaultRecipientsMaxCount = 10
-
-	// DefaultJWEAlgorithm is the default JWE algorithm (using magic constant).
-	DefaultJWEAlgorithm = cryptoutilMagic.LearnJWEAlgorithm
-
-	// Default JWT secret (MUST be changed in production).
-	DefaultJWTSecret = "learn-im-dev-secret-change-in-production"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AppConfig holds configuration for the learn-im server.
@@ -50,12 +36,12 @@ type AppConfig struct {
 func DefaultAppConfig() *AppConfig {
 	return &AppConfig{
 		ServerSettings:     cryptoutilConfig.ServerSettings{},
-		JWEAlgorithm:       DefaultJWEAlgorithm,
-		MessageMinLength:   DefaultMessageMinLength,
-		MessageMaxLength:   DefaultMessageMaxLength,
-		RecipientsMinCount: DefaultRecipientsMinCount,
-		RecipientsMaxCount: DefaultRecipientsMaxCount,
-		JWTSecret:          DefaultJWTSecret,
+		JWEAlgorithm:       cryptoutilSharedMagic.LearnJWEAlgorithm,
+		MessageMinLength:   cryptoutilSharedMagic.LearnMessageMinLength,
+		MessageMaxLength:   cryptoutilSharedMagic.LearnMessageMaxLength,
+		RecipientsMinCount: cryptoutilSharedMagic.LearnRecipientsMinCount,
+		RecipientsMaxCount: cryptoutilSharedMagic.LearnRecipientsMaxCount,
+		JWTSecret:          "", // MUST be provided at runtime (no default secret).
 		Realms: map[string]*RealmConfig{
 			"default":    DefaultRealm(),
 			"enterprise": EnterpriseRealm(),

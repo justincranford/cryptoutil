@@ -77,7 +77,7 @@ func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.Dat
 
 	// NOTE: Phase 5b will initialize Barrier Service for key encryption at rest.
 	// For Phase 5a, message encryption JWKs are generated in-memory without barrier encryption.
-	// Phase 5b will add barrier service to encrypt JWKs before storing in messages_jwks table.
+	// Phase 5b will add barrier service to encrypt JWKs before storing in messages_recipient_jwks table.
 
 	// Initialize repositories.
 	userRepo := repository.NewUserRepository(db)

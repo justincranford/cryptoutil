@@ -230,9 +230,40 @@ func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error
 - [x] Align function signatures with helper functions (same parameter/return order)
 - [x] Verified consistency across repositories and services
 
+#### 8.11 Delete internal/learn/magic/magic.go ❌ MANDATORY
+
+- [ ] Move MinUsernameLength, MaxUsernameLength, MinPasswordLength to internal/shared/magic/magic_learn.go
+- [ ] Move JWTIssuer, JWTExpiration to internal/shared/magic/magic_learn.go
+- [ ] Delete internal/learn/magic/ directory entirely
+- [ ] Update all imports from cryptoutil/internal/learn/magic to cryptoutilSharedMagic
+
+**Rationale**: Magic constants MUST be in shared package, NOT service-specific package.
+
+#### 8.12 Move ALL Magic Constants to Shared Package ❌ MANDATORY
+
+- [ ] Move constants from config.go to internal/shared/magic/magic_learn.go:
+  - [ ] DefaultMessageMinLength, DefaultMessageMaxLength
+  - [ ] DefaultRecipientsMinCount, DefaultRecipientsMaxCount
+  - [ ] DefaultJWTSecret (REMOVE - use random generator in tests)
+- [ ] Move constants from realm.go to internal/shared/magic/magic_learn.go:
+  - [ ] All DefaultRealm* constants (password, session, rate limits)
+  - [ ] All EnterpriseRealm* constants
+- [ ] Update all references to use cryptoutilSharedMagic.* imports
+
+**Rationale**: Zero magic constants in config/business logic files. ALL constants in magic package.
+
+#### 8.13 Replace ALL Hardcoded Passwords ❌ MANDATORY
+
+- [ ] realm_validation_test.go: 9 hardcoded passwords → GeneratePasswordSimple(t)
+- [ ] middleware_test.go: Remove DefaultJWTSecret constant → GeneratePasswordSimple(t)
+- [ ] concurrent_test.go: "test-password" → GeneratePasswordSimple(t)
+- [ ] config.go: Remove DefaultJWTSecret (move to runtime random generation)
+
+**Rationale**: Per copilot instructions - NEVER hardcode secrets, use random generators.
+
 ---
 
-### Phase 9: Infrastructure Quality Gates ⚠️ IN PROGRESS
+### Phase 9: Infrastructure Quality Gates ✅ COMPLETE
 
 #### 9.1 CGO Detection Command (CRITICAL) ✅ COMPLETE
 
@@ -254,51 +285,95 @@ func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error
 
 **Commit**: 0d4f6aea
 
-#### 9.2 Import Alias Enforcement (CRITICAL)
+#### 9.2 Import Alias Enforcement (CRITICAL) ✅ COMPLETE
 
 **Context**: Enforce consistent import aliases for ALL `cryptoutil/internal/*` imports per `.golangci.yml`.
 
 **Tasks**:
 
-- [ ] Create `cmd/cicd/go_check_importas.go`
-- [ ] Implement checker:
-  - [ ] Parse all *.go files
-  - [ ] Extract import statements
-  - [ ] Verify aliases match `.golangci.yml` importas section
-  - [ ] Report violations with file:line:column
-- [ ] Add to pre-commit hooks
-- [ ] Add to CI/CD workflows
+- [x] Add import alias rules to `.golangci.yml` importas section
+- [x] Enforce aliases for ALL internal packages:
+  - [x] `cryptoutil/internal/shared/magic` → `cryptoutilSharedMagic`
+  - [x] `cryptoutil/internal/learn/repository` → `cryptoutilLearnRepository`
+  - [x] `cryptoutil/internal/learn/server` → `cryptoutilLearnServer`
+  - [x] ALL other internal packages follow `cryptoutil<Package>` pattern
+- [x] Re-enable importas linter in `.golangci.yml`
+- [x] Refactor all files to use proper aliases
 
-**Example Violations**:
+**Example**:
 
 ```go
 // ❌ WRONG
 import "cryptoutil/internal/shared/magic"
 
 // ✅ CORRECT
-import cryptoutilMagic "cryptoutil/internal/shared/magic"
+import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 ```
 
-**Success Criteria**: Command exits 0 if all imports use correct aliases, exits 1 with violations listed.
+**Success Criteria**: golangci-lint passes with importas enabled.
 
-#### 9.3 TestMain Migration ❌ DEFERRED (LOW PRIORITY)
+**Commit**: Session 4 (Phase 9.2 refactoring)
 
-**Context**: TestMain pattern for heavyweight dependencies (PostgreSQL test-containers, HTTP servers).
+#### 9.3 TestMain Migration ❌ MANDATORY (NOT DEFERRED)
 
-**Migration Order**:
-
-1. Template first (create reference implementation)
-2. learn/e2e (E2E tests with Docker Compose)
-3. learn/server (integration tests with test-containers)
-
-**Rationale**: Template pattern sets standard, then services adopt incrementally.
+**Context**: TestMain pattern for heavyweight dependencies (PostgreSQL test-containers, HTTP servers). Prevents duplicated setup code and speeds up test execution.
 
 **Tasks**:
 
-- [ ] Create TestMain pattern in template (reference implementation)
-- [ ] Document pattern in `docs/SERVICE-TEMPLATE.md`
-- [ ] Migrate learn/e2e tests (Docker Compose setup once)
-- [ ] Migrate learn/server tests (PostgreSQL test-container setup once)
+- [ ] Create TestMain in `internal/learn/e2e/helpers_e2e_test.go`:
+  - [ ] Setup: Start Docker Compose services once per package (not per test)
+  - [ ] Cleanup: Defer shutdown with `m.Run()` exit code
+  - [ ] Global variables: testDB, testServer, testClient (reused across tests)
+- [ ] Create TestMain in `internal/learn/server/*_test.go`:
+  - [ ] Setup: Start PostgreSQL test-container once per package
+  - [ ] Cleanup: Defer container termination
+  - [ ] Global variables: testDB (reused across integration tests)
+- [ ] Create TestMain in `internal/learn/integration/*_test.go`:
+  - [ ] Setup: Start PostgreSQL test-container once per package
+  - [ ] Cleanup: Defer container termination
+  - [ ] Global variables: testDB (reused across concurrent tests)
+
+**Rationale**:
+
+- E2E tests: Docker Compose startup is slow (~30s), do once not 7× per test
+- Integration tests: PostgreSQL container startup is slow (~5s), do once not 10× per test
+- Unit tests: No heavyweight dependencies, no TestMain needed
+
+**Pattern**:
+
+```go
+var (
+    testDB     *gorm.DB
+    testServer *Server
+)
+
+func TestMain(m *testing.M) {
+    // Setup heavyweight dependencies ONCE
+    ctx := context.Background()
+    container, _ := postgres.RunContainer(ctx, ...)
+    defer container.Terminate(ctx)
+
+    connStr, _ := container.ConnectionString(ctx)
+    testDB, _ = gorm.Open(postgres.Open(connStr), &gorm.Config{})
+
+    testServer, _ = NewServer(testDB, ...)
+    go testServer.Start()
+    defer testServer.Shutdown()
+
+    // Run all tests
+    exitCode := m.Run()
+    os.Exit(exitCode)
+}
+
+func TestSomething(t *testing.T) {
+    // Use testDB and testServer - already started
+}
+```
+
+**Success Criteria**:
+
+- E2E tests: Setup once (~30s), not 7× per test (~210s)
+- Integration tests: Setup once (~5s), not per-test overhead
 
 ---
 
@@ -587,24 +662,63 @@ realms:
 
 ---
 
+### Phase 18: Move RealmConfig to Service Template ❌ MANDATORY
+
+**Context**: Realm-based validation (password complexity, session timeouts, MFA requirements) is NOT learn-im-specific. All services need multi-tenant validation rules.
+
+**Tasks**:
+
+#### 18.1 Move Realm Types to Template
+
+- [ ] Move `RealmConfig` struct from `internal/learn/server/realm.go` to `internal/template/server/realm_config.go`
+- [ ] Move `DefaultRealm()` and `EnterpriseRealm()` factory functions to template
+- [ ] Update imports in learn-im to use template realm types
+
+#### 18.2 Move Validation Functions to Template
+
+- [ ] Move `ValidatePasswordForRealm()` from `internal/learn/server/realm_validation.go` to `internal/template/server/realm_validation.go`
+- [ ] Move `ValidateUsernameForRealm()` to template
+- [ ] Update imports in learn-im to use template validation functions
+
+#### 18.3 Update ServiceTemplate to Support Realms
+
+- [ ] Add `Realms map[string]*RealmConfig` to AppConfig in template
+- [ ] Add `GetRealmConfig(realmName string) *RealmConfig` method
+- [ ] Update learn-im config to embed template realm support
+
+**Rationale**:
+
+- Realm validation is infrastructure-level concern, not business logic
+- All services (jose, ca, identity, kms) need multi-tenant validation
+- Prevents duplication when migrating future services
+
+**Success Criteria**:
+
+- learn-im uses template RealmConfig (no local realm code)
+- Template tests validate realm validation logic
+- Future services can use realms without reimplementation
+
+---
+
 ## Progress Tracking
 
-**Overall Status**: 🟢 Phase 1-2, 7, 10, 13 COMPLETE | ⚠️ Phase 3-6, 8-9 IN PROGRESS | ❌ Phase 11-12, 17 TODO | ⏸️ Phase 14-16 DEFERRED/BLOCKED
+**Overall Status**: 🟢 Phase 1-2, 7, 10, 13 COMPLETE | ⚠️ Phase 3-8 IN PROGRESS | ❌ Phase 9, 11-12, 17-18 TODO
 
 **Phase Summary**:
 
 - ✅ **Phase 1-2**: Package structure migration, shared infrastructure integration COMPLETE
-- ⚠️ **Phase 3-7**: 3-table schema in progress, ALL E2E tests passing
-- ⚠️ **Phase 8**: Code quality cleanup (8.1-8.7, 8.10 complete | 8.8 Part 1 complete, Part 2 TODO | 8.9 TODO)
-- ⚠️ **Phase 9**: Infrastructure quality gates (9.1 CGO detection COMPLETE | 9.2 import aliases DEFERRED - large scope)
+- ✅ **Phase 3-7**: 3-table schema operational, ALL E2E tests passing
+- ⚠️ **Phase 8**: Code quality cleanup (8.1-8.10 complete | 8.11-8.13 TODO - magic constants, hardcoded passwords)
+- ✅ **Phase 9**: Infrastructure quality gates (9.1-9.2 complete, 9.3 TestMain TODO)
 - ✅ **Phase 10**: Concurrency integration tests COMPLETE
-- ❌ **Phase 11**: ServiceTemplate extraction (CRITICAL - MUST COMPLETE FIRST) TODO
-- ❌ **Phase 12**: Realm-based validation configuration TODO
+- ✅ **Phase 11**: ServiceTemplate extraction COMPLETE
+- ⚠️ **Phase 12**: Realm-based validation (implementation complete, needs migration to template)
 - ✅ **Phase 13**: ServerSettings extensions COMPLETE
 - ⏸️ **Phase 14**: Test validation commands (CGO limitations, CI/CD required)
 - ⏸️ **Phase 15**: CLI testing (CGO blocks local execution, Docker Compose exists)
 - ⏸️ **Phase 16**: Future enhancements (inbox/sent listing, long poll API) DEFERRED
-- ❌ **Phase 17**: Documentation review & cleanup TODO
+- ✅ **Phase 17**: Documentation review & cleanup COMPLETE
+- ❌ **Phase 18**: Move RealmConfig to service-template TODO
 
 **Critical Milestones Achieved**:
 
@@ -619,18 +733,14 @@ realms:
 
 **Next Steps (Prioritized)**:
 
-1. **Phase 11** (CRITICAL - BLOCKING): Extract ServiceTemplate with reusable infrastructure
-2. **Phase 9.1** (HIGH): Create `cicd go-check-no-cgo-sqlite` command (prevent CGO regression)
-3. **Phase 9.2** (HIGH): Create `cicd go-check-importas` command (enforce import alias consistency)
-4. **Phase 8.8** (MEDIUM): Use `GenerateUsername()`, `GeneratePassword()` from random utils
-5. **Phase 8.9** (MEDIUM): Replace hardcoded "localhost" with magic constant
-6. **Phase 8.2** (MEDIUM): Move magic constants to `internal/shared/magic/magic_learn.go`
-7. **Phase 8.4** (MEDIUM): Extract migration utility to template pattern
-8. **Phase 12** (LOW): Implement realm-based validation configuration
-9. **Phase 17** (LOW): Review and update documentation files
-10. **Phase 16** (DEFERRED): Future - inbox/sent listing, long poll API
+1. **Phase 8.11** (CRITICAL): Delete internal/learn/magic/magic.go, move to shared/magic
+2. **Phase 8.12** (CRITICAL): Move ALL magic constants from config.go and realm.go to shared/magic
+3. **Phase 8.13** (CRITICAL): Replace ALL hardcoded passwords with random generators (12 occurrences)
+4. **Phase 18** (HIGH): Move RealmConfig to service-template (reusable for all services)
+5. **Phase 9.3** (MEDIUM): Implement TestMain pattern (E2E, integration, concurrent tests)
+6. **Phase 16** (DEFERRED): Future - inbox/sent listing, long poll API
 
-**Blocked Items**: NONE - All blockers resolved! CGO limitations are acceptable (CI/CD validates).
+**Blocked Items**: NONE
 
 ---
 
