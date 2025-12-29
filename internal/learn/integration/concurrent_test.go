@@ -43,7 +43,8 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	ctx := context.Background()
 
 	// Start PostgreSQL test-container (more realistic concurrency than SQLite).
-	pgContainer, err := postgres.RunContainer(ctx,
+	pgContainer, err := postgres.Run(ctx,
+		"postgres:18-alpine",
 		postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewString())),
 		postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewString())),
 		postgres.WithPassword("test-password"),

@@ -44,6 +44,7 @@ func GenerateEmailAddress(t *testing.T, usernameLength, domainLength int) *strin
 	domain := GenerateDomain(t, domainLength)
 
 	emailAddress := *username + "@" + *domain
+
 	return &emailAddress
 }
 
@@ -60,6 +61,7 @@ func generateValue(t *testing.T, prefix string, suffix string, length, minLength
 	require.NoError(t, err, "failed to generate random string of %d random characters: %w", length-len(prefix)-len(suffix), err)
 
 	value := prefix + randomSuffix + suffix
+
 	return &value
 }
 
@@ -143,6 +145,7 @@ var (
 
 func TestGenerateUsername_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	for _, tt := range usernameTests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -153,6 +156,7 @@ func TestGenerateUsername_HappyPath(t *testing.T) {
 
 func TestGeneratePassword_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	for _, tt := range passwordTests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -163,6 +167,7 @@ func TestGeneratePassword_HappyPath(t *testing.T) {
 
 func TestGenerateDomain_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	for _, tt := range domainTests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -173,6 +178,7 @@ func TestGenerateDomain_HappyPath(t *testing.T) {
 
 func TestGenerateEmailAddress_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	for _, tt := range emailAddressTests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
