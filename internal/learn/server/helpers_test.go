@@ -79,6 +79,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	// Initialize telemetry for JWKGenService (minimal config for tests).
 	telemetrySettings := &cryptoutilConfig.ServerSettings{
@@ -112,7 +113,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 	jwtSecret := jwtSecretID.String()
 
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, jwkGenService, jwtSecret, tlsCfg)
+	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, jwtSecret, tlsCfg)
 	require.NoError(t, err)
 
 	// Start server in background.

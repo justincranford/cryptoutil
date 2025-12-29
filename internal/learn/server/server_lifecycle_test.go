@@ -28,6 +28,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost"},
@@ -36,7 +37,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(context.TODO(), 0, userRepo, messageRepo, nil, "test-secret", tlsCfg)
+	_, err = server.NewPublicServer(context.TODO(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -48,6 +49,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	ctx := context.Background()
 	db := initTestDB(t)
 	messageRepo := repository.NewMessageRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost"},
@@ -56,7 +58,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, nil, "test-secret", tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, messageRecipientJWKRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "user repository cannot be nil")
 }
@@ -68,6 +70,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	ctx := context.Background()
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost"},
@@ -76,9 +79,30 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, nil, "test-secret", tlsCfg)
+	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, messageRecipientJWKRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message repository cannot be nil")
+}
+
+// TestNewPublicServer_NilMessageRecipientJWKRepo tests constructor with nil message recipient JWK repository.
+func TestNewPublicServer_NilMessageRecipientJWKRepo(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	userRepo := repository.NewUserRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{cryptoutilMagic.IPv4Loopback},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
+
+	_, err = server.NewPublicServer(ctx, 0, userRepo, messageRepo, nil, nil, "test-secret", tlsCfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "message recipient JWK repository cannot be nil")
 }
 
 // TestNewPublicServer_NilTLSConfig tests constructor with nil TLS config.
@@ -89,6 +113,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
 	telemetrySettings := &cryptoutilConfig.ServerSettings{
 		LogLevel:     "info",
@@ -103,7 +128,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(ctx, 0, userRepo, messageRepo, jwkGenService, "test-secret", nil)
+	_, err = server.NewPublicServer(ctx, 0, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, "test-secret", nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "TLS configuration cannot be nil")
 }

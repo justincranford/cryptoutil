@@ -22,11 +22,12 @@ import (
 
 // PublicServer implements the template.PublicServer interface for learn-im.
 type PublicServer struct {
-	port          int
-	userRepo      *repository.UserRepository
-	messageRepo   *repository.MessageRepository
-	jwkGenService *cryptoutilJose.JWKGenService // JWK generation for message encryption
-	jwtSecret     string                        // JWT signing secret for authentication
+	port                    int
+	userRepo                *repository.UserRepository
+	messageRepo             *repository.MessageRepository
+	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository // Per-recipient decryption keys
+	jwkGenService           *cryptoutilJose.JWKGenService             // JWK generation for message encryption
+	jwtSecret               string                                    // JWT signing secret for authentication
 
 	// In-memory key cache for Phase 5a (no barrier service yet).
 	// NOTE: Phase 5b will replace with barrier-encrypted database storage.
@@ -45,6 +46,7 @@ func NewPublicServer(
 	port int,
 	userRepo *repository.UserRepository,
 	messageRepo *repository.MessageRepository,
+	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	jwtSecret string,
 	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
@@ -55,6 +57,8 @@ func NewPublicServer(
 		return nil, fmt.Errorf("user repository cannot be nil")
 	} else if messageRepo == nil {
 		return nil, fmt.Errorf("message repository cannot be nil")
+	} else if messageRecipientJWKRepo == nil {
+		return nil, fmt.Errorf("message recipient JWK repository cannot be nil")
 	} else if jwkGenService == nil {
 		return nil, fmt.Errorf("JWK generation service cannot be nil")
 	} else if tlsCfg == nil {
@@ -68,13 +72,14 @@ func NewPublicServer(
 	}
 
 	s := &PublicServer{
-		port:          port,
-		userRepo:      userRepo,
-		messageRepo:   messageRepo,
-		jwkGenService: jwkGenService,
-		jwtSecret:     jwtSecret,
-		app:           fiber.New(fiber.Config{DisableStartupMessage: true}),
-		tlsMaterial:   tlsMaterial,
+		port:                    port,
+		userRepo:                userRepo,
+		messageRepo:             messageRepo,
+		messageRecipientJWKRepo: messageRecipientJWKRepo,
+		jwkGenService:           jwkGenService,
+		jwtSecret:               jwtSecret,
+		app:                     fiber.New(fiber.Config{DisableStartupMessage: true}),
+		tlsMaterial:             tlsMaterial,
 	}
 
 	s.registerRoutes()

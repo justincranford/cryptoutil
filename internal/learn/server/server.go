@@ -92,6 +92,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	// Initialize repositories.
 	userRepo := repository.NewUserRepository(cfg.DB)
 	messageRepo := repository.NewMessageRepository(cfg.DB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(cfg.DB)
 
 	// Create TLS config for public server using auto-generated certificates.
 	publicTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
@@ -104,7 +105,7 @@ func New(ctx context.Context, cfg *Config) (*LearnIMServer, error) {
 	}
 
 	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, jwkGenService, cfg.JWTSecret, publicTLSCfg)
+	publicServer, err := NewPublicServer(ctx, cfg.PublicPort, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, cfg.JWTSecret, publicTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public server: %w", err)
 	}
