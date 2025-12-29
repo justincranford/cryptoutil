@@ -275,12 +275,21 @@
 - [ ] Refactor `internal/learn/crypto/password_test.go` - ensure table-driven
 - [ ] Verify each test uses `t.Run(tt.name, ...)` pattern with test cases slice
 
-### 8.6 Use ServerSettings Struct
+### 8.6 Use ServerSettings Struct - ✅ COMPLETE
 
-- [ ] Update `internal/learn/server/server.go` to use `internal/shared/config/config.go` ServerSettings
-- [ ] Remove custom learn-im config struct - reuse shared ServerSettings
-- [ ] Update CLI flags in `cmd/learn-im/main.go` to map to ServerSettings fields
-- [ ] Ensure backward compatibility with existing config patterns
+- [x] Created `internal/learn/server/config.go` with AppConfig struct (embeds ServerSettings)
+- [x] Updated `internal/learn/server/server.go` to use AppConfig instead of custom Config
+- [x] Changed server.New() signature: added db and dbType parameters for cleaner separation
+- [x] Updated `internal/cmd/learn/im/im.go` CLI to configure both ServerSettings and AppConfig fields
+- [x] Added `determineDatabaseType()` helper to detect PostgreSQL vs SQLite from GORM dialector
+- [x] Added `initTestConfig()` helper for consistent test configuration with required telemetry settings
+- [x] Updated all test files (register_test.go, server_lifecycle_test.go, http_test.go, im_cli_live_test.go)
+- [x] Fixed test expectations for validation order (telemetry initialization before context checks)
+- [x] Added named constants for magic numbers (DefaultMessageMaxLength, etc.) and database dialector names
+
+**Breaking Changes**: server.New(ctx, cfg) → server.New(ctx, cfg, db, dbType), Config struct removed
+
+**Commit**: 2044e016 - refactor(learn): use shared ServerSettings struct (Phase 8.6)
 
 ### 8.7 Simplify Crypto Package - ✅ COMPLETE
 
