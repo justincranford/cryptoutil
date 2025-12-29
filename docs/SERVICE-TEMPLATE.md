@@ -217,11 +217,13 @@ func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error
 
 **Known Issue**: UUIDv7 generates same 8-char prefix when called rapidly in parallel tests → 409 username conflicts. Solutions: (1) Add microsecond delay, (2) Use full UUID, (3) Add random suffix.
 
-#### 8.9 Localhost Magic Constant ❌ TODO
+#### 8.9 Localhost Magic Constant ✅ COMPLETE
 
-- [ ] Replace hardcoded `"localhost"` with `cryptoutilMagic.HostnameLocalhost`
-- [ ] Search and replace across learn-im package
-- [ ] Verify imports: `import cryptoutilMagic "cryptoutil/internal/shared/magic"`
+- [x] Replace hardcoded `"localhost"` with `cryptoutilMagic.HostnameLocalhost`
+- [x] Search and replace across learn-im package (15 replacements in 5 files)
+- [x] Verify imports: `import cryptoutilMagic "cryptoutil/internal/shared/magic"`
+
+**Commit**: Session 3 commits (2 commits for Phase 8.9)
 
 #### 8.10 Pass-Through Function Signatures ✅ COMPLETE
 
