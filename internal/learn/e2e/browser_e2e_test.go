@@ -6,16 +6,13 @@ package e2e_test
 
 import (
 	"context"
-	"encoding/hex"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 )
 
-// TestE2E_BrowserHealth tests the browser health endpoint.
+// TestE2E_BrowserHealth tests the health endpoint via /browser/** paths.
 func TestE2E_BrowserHealth(t *testing.T) {
 	t.Parallel()
 
@@ -29,17 +26,15 @@ func TestE2E_BrowserHealth(t *testing.T) {
 	resp, err := client.Do(req)
 	require.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-
-	// NOTE: CORS middleware not yet implemented (Phase 8+).
-	// Phase 8+ will add CORS middleware and verify Access-Control-Allow-Origin header.
-	// corsOrigin := resp.Header.Get("Access-Control-Allow-Origin")
-	// require.NotEmpty(t, corsOrigin, "browser path should include CORS headers")
 }
 
-// TestE2E_BrowserFullEncryptionFlow tests the complete encryption workflow via /browser/** paths.
+// TestE2E_BrowserFullEncryptionFlow tests full encryption flow via /browser/** paths.
+// Phase 5a: Server-side decryption using JWE Compact Serialization.
 func TestE2E_BrowserFullEncryptionFlow(t *testing.T) {
 	t.Parallel()
 
@@ -47,54 +42,29 @@ func TestE2E_BrowserFullEncryptionFlow(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	// Register two users via browser path.
+	// Register Alice and Bob.
 	alice := registerUserBrowser(t, client, baseURL, "alice_browser", "alicepass123")
 	bob := registerUserBrowser(t, client, baseURL, "bob_browser", "bobpass123")
 
-	require.NotEqual(t, alice.ID, bob.ID)
-	require.NotEmpty(t, alice.Token)
-	require.NotEmpty(t, bob.Token)
-
 	// Alice sends encrypted message to Bob.
-	plaintext := "Browser E2E test message"
+	plaintext := "Browser encrypted message for Bob"
 	messageID := sendMessageBrowser(t, client, baseURL, plaintext, alice.Token, bob.ID)
 	require.NotEmpty(t, messageID)
 
-	// Bob receives and decrypts message.
+	// Bob receives messages - server decrypts and returns plaintext.
 	messages := receiveMessagesBrowser(t, client, baseURL, bob.Token)
 	require.Len(t, messages, 1)
 
-	// Extract encryption data from message.
-	msg := messages[0]
-	ciphertextHex, ok := msg["encrypted_content"].(string)
+	receivedMsg := messages[0]
+
+	// Phase 5a: encrypted_content contains plaintext (server already decrypted).
+	decryptedContent, ok := receivedMsg["encrypted_content"].(string)
 	require.True(t, ok, "encrypted_content should be string")
-
-	nonceHex, ok := msg["nonce"].(string)
-	require.True(t, ok, "nonce should be string")
-
-	ephemeralPubKeyHex, ok := msg["sender_pub_key"].(string)
-	require.True(t, ok, "sender_pub_key should be string")
-
-	ciphertext, err := hex.DecodeString(ciphertextHex)
-	require.NoError(t, err)
-
-	nonce, err := hex.DecodeString(nonceHex)
-	require.NoError(t, err)
-
-	ephemeralPubKey, err := hex.DecodeString(ephemeralPubKeyHex)
-	require.NoError(t, err)
-
-	// Parse Bob's private key.
-	bobPrivateKey, err := cryptoutilCrypto.ParseECDHPrivateKey(bob.PrivateKey)
-	require.NoError(t, err)
-
-	// Decrypt and verify.
-	decrypted, err := cryptoutilCrypto.DecryptMessage(ciphertext, nonce, ephemeralPubKey, bobPrivateKey)
-	require.NoError(t, err)
-	require.Equal(t, plaintext, string(decrypted))
+	require.Equal(t, plaintext, decryptedContent)
 }
 
 // TestE2E_BrowserMultiReceiverEncryption tests message encryption for multiple receivers via /browser/** paths.
+// Phase 5a: Each recipient gets their own JWK copy for decryption.
 func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 	t.Parallel()
 
@@ -120,46 +90,18 @@ func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 	charlieMessages := receiveMessagesBrowser(t, client, baseURL, charlie.Token)
 	require.Len(t, charlieMessages, 1)
 
-	// Verify both can decrypt the same message.
-	for _, recipientData := range []struct {
-		name       string
-		messages   []map[string]any
-		privateKey []byte
-	}{
-		{"Bob", bobMessages, bob.PrivateKey},
-		{"Charlie", charlieMessages, charlie.PrivateKey},
-	} {
-		msg := recipientData.messages[0]
+	// Verify both received the same plaintext (server decrypted for each).
+	bobDecrypted, ok := bobMessages[0]["encrypted_content"].(string)
+	require.True(t, ok)
+	require.Equal(t, plaintext, bobDecrypted)
 
-		ciphertextHex, ok := msg["encrypted_content"].(string)
-		require.True(t, ok)
-
-		ciphertext, err := hex.DecodeString(ciphertextHex)
-		require.NoError(t, err)
-
-		nonceHex, ok := msg["nonce"].(string)
-		require.True(t, ok)
-
-		nonce, err := hex.DecodeString(nonceHex)
-		require.NoError(t, err)
-
-		ephemeralPubKeyHex, ok := msg["sender_pub_key"].(string)
-		require.True(t, ok)
-
-		ephemeralPubKey, err := hex.DecodeString(ephemeralPubKeyHex)
-		require.NoError(t, err)
-
-		// Parse recipient's private key.
-		privateKey, err := cryptoutilCrypto.ParseECDHPrivateKey(recipientData.privateKey)
-		require.NoError(t, err, "%s private key should parse", recipientData.name)
-
-		decrypted, err := cryptoutilCrypto.DecryptMessage(ciphertext, nonce, ephemeralPubKey, privateKey)
-		require.NoError(t, err, "%s should decrypt successfully", recipientData.name)
-		require.Equal(t, plaintext, string(decrypted), "%s should see correct plaintext", recipientData.name)
-	}
+	charlieDecrypted, ok := charlieMessages[0]["encrypted_content"].(string)
+	require.True(t, ok)
+	require.Equal(t, plaintext, charlieDecrypted)
 }
 
 // TestE2E_BrowserMessageDeletion tests message deletion via /browser/** paths.
+// Phase 5a: Cascade delete removes recipient JWKs from messages_recipient_jwks table.
 func TestE2E_BrowserMessageDeletion(t *testing.T) {
 	t.Parallel()
 
@@ -167,12 +109,12 @@ func TestE2E_BrowserMessageDeletion(t *testing.T) {
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
 
-	// Register two users.
+	// Register Alice and Bob.
 	alice := registerUserBrowser(t, client, baseURL, "alice_delete_browser", "alicepass123")
 	bob := registerUserBrowser(t, client, baseURL, "bob_delete_browser", "bobpass123")
 
 	// Alice sends message to Bob.
-	plaintext := "Browser delete test message"
+	plaintext := "Message to be deleted via browser"
 	messageID := sendMessageBrowser(t, client, baseURL, plaintext, alice.Token, bob.ID)
 	require.NotEmpty(t, messageID)
 
@@ -180,13 +122,10 @@ func TestE2E_BrowserMessageDeletion(t *testing.T) {
 	messages := receiveMessagesBrowser(t, client, baseURL, bob.Token)
 	require.Len(t, messages, 1)
 
-	msgIDFromResponse, ok := messages[0]["message_id"].(string)
-	require.True(t, ok, "message_id should be string")
+	// Alice deletes message (sender can delete).
+	deleteMessageBrowser(t, client, baseURL, messageID, alice.Token)
 
-	// Alice (sender) deletes message.
-	deleteMessageBrowser(t, client, baseURL, msgIDFromResponse, alice.Token)
-
-	// Verify message deleted (Bob should no longer see it).
-	remainingMessages := receiveMessagesBrowser(t, client, baseURL, bob.Token)
-	require.Len(t, remainingMessages, 0, "message should be deleted")
+	// Bob receives messages again - should be empty.
+	messagesAfterDelete := receiveMessagesBrowser(t, client, baseURL, bob.Token)
+	require.Len(t, messagesAfterDelete, 0)
 }

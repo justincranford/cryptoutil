@@ -323,6 +323,22 @@ func receiveMessages(t *testing.T, client *http.Client, baseURL, token string) [
 	return respBody["messages"]
 }
 
+// deleteMessage deletes a message via /service/api/v1/messages/:id.
+func deleteMessage(t *testing.T, client *http.Client, baseURL, messageID, token string) {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusNoContent, resp.StatusCode)
+}
+
 // registerUserBrowser registers a user via /browser/api/v1/users/register.
 func registerUserBrowser(t *testing.T, client *http.Client, baseURL, username, password string) *testUser {
 	t.Helper()
