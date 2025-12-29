@@ -28,6 +28,121 @@
 - [ ] **REFACTOR**: Remove obsolete tables (users_jwks, users_messages_jwks, messages_jwks)
 - [x] Embed migrations with `//go:embed migrations/*.sql`
 
+### Phase 3.5: Template Hardening (NEW - CRITICAL BEFORE PHASE 4) ❌ TODO
+
+**CRITICAL**: Template validation gap identified by both Grok and Claude analyses. Learn-im validates template with demo service patterns, but production services (jose-ja, pki-ca, identity) have different requirements.
+
+**Risk**: Starting Phase 4 (jose-ja migration) without template hardening may require significant template rework, affecting all services.
+
+**Implementation Decision**: Complete template hardening BEFORE Phase 4 to prevent downstream rework.
+
+#### 3.5.1 Production Service Requirements Analysis
+
+**Tasks**:
+
+- [ ] Analyze jose-ja requirements (JWK lifecycle, barrier encryption, federation)
+- [ ] Analyze pki-ca requirements (CA hierarchy, certificate storage, OCSP/CRL)
+- [ ] Analyze identity requirements (OAuth 2.1, OIDC, session management)
+- [ ] Create feature matrix: learn-im vs jose-ja vs pki-ca vs identity
+- [ ] Identify template gaps from feature matrix
+
+**Deliverable**: Feature matrix document showing template capabilities vs production requirements
+
+#### 3.5.2 Barrier Service Integration Guide
+
+**Context**: Production services MUST encrypt secrets at rest (JWK private keys, CA keys, OAuth secrets). Learn-im has placeholder but no implementation.
+
+**Tasks**:
+
+- [ ] Document barrier service integration pattern from KMS reference
+- [ ] Create `internal/template/server/barrier_integration.md` guide
+- [ ] Define ServiceTemplate barrier interface: `type SecretEncryptor interface { Encrypt(), Decrypt() }`
+- [ ] Add barrier service parameter to ServiceTemplate constructor (optional, can be nil)
+- [ ] Document when to use barrier vs when to skip (demo services can pass nil)
+
+**Deliverable**: Barrier integration guide with code examples
+
+#### 3.5.3 Template Validator Service
+
+**Purpose**: Exercise ALL template features with production-like configuration (PostgreSQL, TLS, barrier, federation).
+
+**Tasks**:
+
+- [ ] Create `cmd/template-validator` directory
+- [ ] Implement validator that:
+  - [ ] Initializes ServiceTemplate with all features enabled
+  - [ ] Tests dual HTTPS servers (public + admin)
+  - [ ] Tests database operations (PostgreSQL + SQLite)
+  - [ ] Tests TLS configuration (3 modes: static, mixed, auto)
+  - [ ] Tests barrier service integration (encrypt/decrypt secrets)
+  - [ ] Tests telemetry integration (OTLP export)
+  - [ ] Tests graceful shutdown
+- [ ] Add validator to CI/CD workflow
+- [ ] Document validator usage in `docs/SERVICE-TEMPLATE.md`
+
+**Success Criteria**: Validator passes all tests with 0 failures
+
+**Deliverable**: `cmd/template-validator` passing all tests
+
+#### 3.5.4 Template Gap Closure
+
+**Tasks**:
+
+- [ ] Review feature matrix from 3.5.1
+- [ ] Prioritize gaps by impact (CRITICAL → HIGH → MEDIUM → LOW)
+- [ ] Implement CRITICAL gaps (blocking Phase 4)
+- [ ] Implement HIGH gaps (major Phase 4 risk)
+- [ ] Document MEDIUM/LOW gaps as Phase 4-6 enhancements
+- [ ] Update template documentation with new capabilities
+
+**Success Criteria**: All CRITICAL and HIGH gaps closed before Phase 4 start
+
+**Deliverable**: Updated template with production-ready features
+
+#### 3.5.5 Migration Utility Extraction
+
+**Context**: All services need ApplyMigrations() with identical pattern (83 lines duplicated in learn-im, identity, KMS).
+
+**Implementation Decision**: Extract to `internal/template/server/migrations.go` with builder pattern.
+
+**Tasks**:
+
+- [ ] Create `internal/template/server/migrations.go`
+- [ ] Implement MigrationRunner with builder pattern:
+
+  ```go
+  type MigrationRunner struct {
+      embedFS     embed.FS
+      migrationsPath string
+  }
+
+  func NewMigrationRunner(embedFS embed.FS, path string) *MigrationRunner
+  func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error
+  ```
+
+- [ ] Update learn-im to use template migration utility
+- [ ] Document pattern in `docs/SERVICE-TEMPLATE.md`
+
+**Benefits**: Eliminates 83-line duplication across 4+ services, single source of truth for migration logic
+
+**Deliverable**: Migration utility in template with learn-im validation
+
+#### 3.5.6 Phase 3.5 Completion Criteria
+
+**MUST Complete Before Phase 4**:
+
+- ✅ Feature matrix created (learn-im vs production services)
+- ✅ CRITICAL gaps closed (barrier integration, migration utility)
+- ✅ HIGH gaps closed (identified from feature matrix)
+- ✅ Template validator passing all tests
+- ✅ Barrier integration guide documented
+
+**Timeline**: 2-3 weeks additional before Phase 4 start
+
+**Rationale**: Prevents Phase 4-6 template rework, validates template with production patterns, reduces migration risk
+
+---
+
 ### Phase 4: Remove Hardcoded Secrets ⚠️ (in progress)
 
 - [x] Remove hardcoded JWTSecret from `internal/cmd/learn/im/im.go` (moved to Config)
@@ -211,14 +326,20 @@
 - [ ] Remove all `TODO(Phase 5)` comments from learn-im codebase
 - [ ] Remove `messageKeysCache sync.Map` in-memory cache from `public.go`
 
-### 8.2 Move Magic Constants to Magic Package - ✅ COMPLETE
+### 8.2 Move Magic Constants to Shared Magic Package - ✅ COMPLETE
 
-- [x] Define `MinUsernameLength` in `internal/learn/magic/magic.go`
-- [x] Define `MaxUsernameLength` in `internal/learn/magic/magic.go`
-- [x] Define `MinPasswordLength` in `internal/learn/magic/magic.go`
-- [x] Define `JWTIssuer` in `internal/learn/magic/magic.go`
-- [x] Define `JWTExpiration` in `internal/learn/magic/magic.go`
-- [x] Update references to use magic constants instead of literals
+**Implementation Decision**: Move ALL learn-im magic constants to `internal/shared/magic/magic_learn.go`
+
+**Rationale**: Consistency with existing services (identity/kms use `internal/shared/magic/magic_*.go`)
+
+- [x] Move constants from `internal/learn/magic/magic.go` to `internal/shared/magic/magic_learn.go`
+- [x] Define `MinUsernameLength` in shared magic
+- [x] Define `MaxUsernameLength` in shared magic
+- [x] Define `MinPasswordLength` in shared magic
+- [x] Define `JWTIssuer` in shared magic
+- [x] Define `JWTExpiration` in shared magic
+- [x] Update all references to use `cryptoutilMagic` alias
+- [x] Delete `internal/learn/magic/` directory after migration
 
 ### 8.3 Use Shared Crypto Infrastructure - ✅ COMPLETE (JUSTIFIED)
 
@@ -306,7 +427,38 @@
 
 **Rationale**: Phase 4 used client-side ECDH encryption. Phase 5a changed to server-side JWE with dir+A256GCM (symmetric). Registration still generated ECDH keys but never stored/used them. This cleanup removes architectural debt.
 
-### 8.8 Implement UpdatedAt Field Usage - ✅ COMPLETE
+### 8.8 Test User/Password Generation Pattern - ❌ TODO
+
+**Implementation Decision**: Use `GenerateUsername()`, `GeneratePassword()`, `GenerateDomain()`, `GenerateEmailAddress()` from `internal/shared/util/random/usernames_passwords_test.go`
+
+**Rationale**: Provides realistic test data with proper entropy, avoids SAST warnings, enables concurrent test safety
+
+**Tasks**:
+
+- [ ] Update ALL test files to use `cryptoutilRandom.GenerateUsername()` instead of hardcoded usernames
+- [ ] Update ALL test files to use `cryptoutilRandom.GeneratePassword()` instead of hardcoded passwords
+- [ ] Update test helpers in `internal/learn/server/helpers_test.go` to use random generation
+- [ ] Update E2E test helpers in `internal/learn/e2e/helpers_e2e_test.go` to use random generation
+- [ ] Remove hardcoded test credentials from all test files
+- [ ] Verify NO SAST warnings for hardcoded credentials
+- [ ] Update `.github/instructions/03-02.testing.instructions.md` to document pattern
+
+**Test Secret Pattern**: Use `"test-jwt-" + cryptoutilRandom.RandomString(43)` for JWT secrets (258 bits entropy > NIST 256-bit recommendation)
+
+### 8.9 Localhost vs 127.0.0.1 Pattern - ❌ TODO
+
+**Implementation Decision**: Use `cryptoutilMagic.HostnameLocalhost` from `internal/shared/magic/magic_network.go` everywhere
+
+**Rationale**: Consistent with existing magic constants, avoids hardcoded strings, centralizes localhost references
+
+**Tasks**:
+
+- [ ] Replace ALL "localhost" strings in `internal/learn/**` with `cryptoutilMagic.HostnameLocalhost`
+- [ ] Search for hardcoded "localhost" strings: `grep -r '"localhost"' internal/learn/`
+- [ ] Update configuration files to use magic constant reference in documentation
+- [ ] Verify no hardcoded "localhost" strings remain in learn-im codebase
+
+### 8.10 Implement UpdatedAt Field Usage - ✅ COMPLETE
 
 - [x] Keep `UpdatedAt` field in `internal/learn/domain/user.go` with usage documentation
 - [x] Add `UpdatedAt` field to `internal/learn/domain/message.go` with usage documentation
@@ -316,9 +468,115 @@
 
 ---
 
-## Phase 9: Concurrency Integration Tests ✅ COMPLETE (Commit 5bf7e203)
+## Phase 9: Infrastructure Quality Gates ✅
 
-### 9.1 Concurrency Integration Tests ✅
+### 9.1 CGO Dependency Enforcement - ❌ TODO
+
+**Implementation Decision**: Create `cicd` subcommand to reject CGO-based sqlite implementation
+
+**Context**: Project MUST use ONLY `modernc.org/sqlite` (CGO-free), NEVER `github.com/mattn/go-sqlite3` (CGO-dependent)
+
+**Rationale**:
+
+- CGO breaks static linking (requires C toolchain)
+- CGO prevents cross-compilation (platform-specific builds)
+- Project standard: CGO_ENABLED=0 everywhere (except race detector)
+- Dependencies MAY pull in `go-sqlite3` transitively (acceptable if NOT used in project code)
+
+**cicd Subcommand Pattern**:
+
+```bash
+go run ./cmd/cicd go-check-no-cgo-sqlite
+# Checks that NO project source files import github.com/mattn/go-sqlite3
+# Verifies ONLY modernc.org/sqlite is used in project code
+# Allows go-sqlite3 in go.mod if unused (transitive dependency from other packages)
+```
+
+**Reference Implementation**: KMS reference service uses `modernc.org/sqlite` exclusively
+
+**Tasks**:
+
+- [ ] Create `internal/cmd/cicd/go_check_no_cgo_sqlite/` directory
+- [ ] Implement detection logic:
+  - [ ] Scan ALL `.go` files in project (exclude `vendor/`)
+  - [ ] Search for `import "github.com/mattn/go-sqlite3"` or `import _ "github.com/mattn/go-sqlite3"`
+  - [ ] Exit code 1 if found, print violating files
+  - [ ] Exit code 0 if clean
+- [ ] Add command to `internal/cmd/cicd/cicd.go` subcommand registry
+- [ ] Add pre-commit hook configuration in `.pre-commit-config.yaml`:
+
+  ```yaml
+  - id: go-check-no-cgo-sqlite
+    name: Reject CGO-based SQLite implementation
+    entry: go run ./cmd/cicd go-check-no-cgo-sqlite
+    language: system
+    pass_filenames: false
+    files: '\.go$'
+  ```
+
+- [ ] Document in `docs/pre-commit-hooks.md`
+- [ ] Update `.github/instructions/03-03.golang.instructions.md` to reference this check
+
+**Exclusions**: Allow `go-sqlite3` in `go.mod` as transitive dependency (just not imported/used in our code)
+
+### 9.2 Import Alias Enforcement - ❌ TODO
+
+**Implementation Decision**: Create `cicd` subcommand to enforce import aliases for ALL `cryptoutil/internal/*` imports
+
+**Rationale**: Consistency with `.golangci.yml` importas rules, prevents accidental violations, refactoring safety
+
+**cicd Subcommand Pattern**:
+
+```bash
+go run ./cmd/cicd go-check-importas
+# Checks ALL cryptoutil/internal/* imports have aliases per .golangci.yml
+# Verifies consistent alias naming (cryptoutil<PackageName> pattern)
+```
+
+**Enforcement Scope**: ALL `cryptoutil/internal/*` imports require aliases (not just cross-service imports)
+
+**Tasks**:
+
+- [ ] Create `internal/cmd/cicd/go_check_importas/` directory
+- [ ] Implement detection logic:
+  - [ ] Parse `.golangci.yml` to extract importas rules
+  - [ ] Scan ALL `.go` files for `import "cryptoutil/internal/*"`
+  - [ ] Verify each import uses required alias from `.golangci.yml`
+  - [ ] Exit code 1 if violations found, print violating files + line numbers
+  - [ ] Exit code 0 if clean
+- [ ] Add command to `internal/cmd/cicd/cicd.go` subcommand registry
+- [ ] Add pre-commit hook configuration in `.pre-commit-config.yaml`
+- [ ] Document in `docs/pre-commit-hooks.md`
+
+### 9.3 TestMain Pattern Migration - ❌ TODO
+
+**Implementation Decision**: Migrate heavyweight test setup to TestMain pattern (template → learn/e2e → learn/server)
+
+**Priority**: Template first (foundation), then service adoption (ensures pattern correctness)
+
+**Tasks**:
+
+- [ ] **Template Infrastructure** (`internal/template/server/test_main_test.go`):
+  - [ ] Create TestMain function with heavyweight service setup
+  - [ ] Initialize test database (PostgreSQL test-container)
+  - [ ] Initialize test server (HTTPS endpoints)
+  - [ ] Provide test utilities for service tests to reuse
+- [ ] **learn-im E2E Tests** (`internal/learn/e2e/*_test.go`):
+  - [ ] Migrate to TestMain pattern (server created once, reused across all tests)
+  - [ ] Remove per-test server creation (current pattern)
+  - [ ] Verify tests run faster with shared server
+- [ ] **learn-im Server Tests** (`internal/learn/server/*_test.go`):
+  - [ ] Migrate to TestMain pattern where applicable
+  - [ ] Keep unit tests with minimal setup (no TestMain needed)
+  - [ ] Integration tests use TestMain for database/server
+
+**Rationale**: Faster test execution (server created once vs per-test), validates real concurrency patterns, fewer port/connection conflicts
+
+---
+
+## Phase 10: Concurrency Integration Tests ✅ COMPLETE (Commit 5bf7e203)
+
+### 10.1 Concurrency Integration Tests ✅
 
 **Implementation Details**:
 
@@ -348,7 +606,126 @@ ok      cryptoutil/internal/learn/integration   8.101s
 
 ---
 
-## Phase 10: ServerSettings Integration ✅
+## Phase 11: ServiceTemplate Extraction - ❌ TODO (CRITICAL - BLOCKS PHASE 4-6)
+
+**CRITICAL FINDING**: ServiceTemplate referenced in original plan but does NOT exist in codebase yet. This is a **BLOCKING** requirement for Phase 4-6 (jose-ja, pki-ca, identity migrations).
+
+**Implementation Decision**: Extract reusable service infrastructure to `internal/template/server/service_template.go`
+
+**Pattern**: ServiceTemplate contains ALL infrastructure (DB, telemetry, crypto, TLS, migrations)
+
+**Rationale**: Maximum code reuse, consistent patterns across services, faster service development
+
+**Validation**: `list_code_usages "ServiceTemplate"` returns "Symbol not found" - confirms struct doesn't exist yet
+
+**Priority**: MUST complete before Phase 4 (jose-ja migration) to prevent 4+ services duplicating initialization code
+
+**ServiceTemplate Components**:
+
+```go
+type ServiceTemplate struct {
+    sqlDB            *sql.DB
+    gormDB           *gorm.DB
+    telemetryService *TelemetryService
+    jwkGenService    *JWKGenService
+    publicTLSCfg     *tls.Config
+    adminTLSCfg      *tls.Config
+    migrationsApplied bool
+    // Reusable HTTP server infrastructure
+    publicServer     *fiber.App
+    adminServer      *fiber.App
+}
+
+type LearnIMServer struct {
+    template *ServiceTemplate  // Embedded template
+    // Service-specific repos
+    userRepo         UserRepository
+    messageRepo      MessageRepository
+}
+```
+
+**Tasks**:
+
+- [ ] **Extract Template** (`internal/template/server/service_template.go`):
+  - [ ] Define ServiceTemplate struct with all infrastructure components
+  - [ ] Extract database initialization (sqlDB + GORM setup)
+  - [ ] Extract telemetry initialization (OTLP config)
+  - [ ] Extract crypto service initialization (JWK generation)
+  - [ ] Extract TLS configuration (public + admin endpoints)
+  - [ ] Extract migration application pattern
+- [ ] **Extract Migrations Utility** (`internal/template/server/migrations.go`):
+  - [ ] Builder pattern: `NewMigrationRunner(embedFS).Apply(db, dbType)`
+  - [ ] Services pass their `//go:embed migrations/*.sql` FS to template
+  - [ ] Eliminates duplicated ApplyMigrations code across 3 services
+- [ ] **Update learn-im to Use Template** (`internal/learn/server/server.go`):
+  - [ ] Refactor to embed ServiceTemplate
+  - [ ] Delegate infrastructure to template
+  - [ ] Keep service-specific business logic (repos, handlers)
+  - [ ] Verify all tests still pass
+- [ ] **Documentation**:
+  - [ ] Document ServiceTemplate usage pattern
+  - [ ] Provide migration guide for future services
+  - [ ] Update `.github/instructions/02-02.service-template.instructions.md`
+
+**Migration Strategy**: Template first (infrastructure extraction) → learn-im adoption (validation) → future services (reuse)
+
+---
+
+## Phase 12: Realm-Based Validation - ❌ TODO
+
+**Implementation Decision**: Full realm config with validation section (flexible, enterprise-ready)
+
+**Rationale**: Enterprise deployments need per-realm validation policies (username length, password complexity)
+
+**Realm Configuration Pattern**:
+
+```yaml
+realms:
+  - name: username-password-file
+    validation:
+      username:
+        min: 8
+        max: 64
+        pattern: "^[a-zA-Z0-9_-]+$"
+      password:
+        min: 12
+        max: 64
+        complexity: ["uppercase", "lowercase", "digit", "special"]
+```
+
+**Current Violation** in `auth_handlers.go`:
+
+```go
+if len(username) < 3 || len(username) > 50 {
+    return nil, ErrInvalidUsername
+}
+```
+
+**Tasks**:
+
+- [ ] **Define Realm Config Schema** (`internal/shared/config/realm_config.go`):
+  - [ ] Define Realm struct with validation section
+  - [ ] Define UsernameValidation struct (min, max, pattern)
+  - [ ] Define PasswordValidation struct (min, max, complexity)
+  - [ ] Parse realm YAML files
+- [ ] **Load Realm Configs** (`internal/learn/server/server.go`):
+  - [ ] Read realm file paths from ServerSettings.Realms
+  - [ ] Parse each realm config file
+  - [ ] Validate realm configs on startup
+- [ ] **Apply Realm Validation** (`internal/learn/server/auth_handlers.go`):
+  - [ ] Replace hardcoded validation with realm-based rules
+  - [ ] Look up active realm for user registration/login
+  - [ ] Apply realm-specific validation rules
+  - [ ] Return realm-specific error messages
+- [ ] **Testing**:
+  - [ ] Unit tests for realm config parsing
+  - [ ] Unit tests for realm-based validation
+  - [ ] Integration tests with multiple realm configs
+  - [ ] Verify backward compatibility (default realm if none configured)
+
+---
+
+## Phase 13: ServerSettings Integration ✅
 
 **Status**: Complete
 
@@ -357,7 +734,7 @@ ok      cryptoutil/internal/learn/integration   8.101s
 - 4779faa7 - "feat(config): add Realms and BrowserSessionCookie to ServerSettings (Phase 10.1)"
 - 2044e016 - "feat(learn): integrate ServerSettings into AppConfig (Phase 8.6 / Phase 10.2)"
 
-### 10.1 Add ServerSettings Extensions ✅
+### 13.1 Add ServerSettings Extensions ✅
 
 - [x] Add Realms setting in `internal/shared/config/config.go` ServerSettings:
   - [x] Support username/password realm configuration files
@@ -373,7 +750,7 @@ ok      cryptoutil/internal/learn/integration   8.101s
   - [x] Default to JWS (signed stateless tokens)
   - [x] JWE/JWS are stateless, opaque requires session storage in DB
 
-### 10.2 Update learn-im Config ✅
+### 13.2 Update learn-im Config ✅
 
 - [x] Create `internal/learn/server/config.go` with AppConfig struct
 - [x] Keep learn-im-specific settings in AppConfig:
@@ -386,11 +763,11 @@ ok      cryptoutil/internal/learn/integration   8.101s
 
 ---
 
-## Phase 11: Testing & Validation Commands
+## Phase 14: Testing & Validation Commands
 
 **Status**: Partially Complete (CGO Limitations)
 
-### 11.1 Unit Tests ⚠️
+### 14.1 Unit Tests ⚠️
 
 **Run Command**:
 
@@ -412,7 +789,7 @@ go tool cover -html=./test-output/coverage_learn_unit.out -o ./test-output/cover
 - ⏸️ Other packages require CGO (GCC not available): repository, server, e2e, integration
 - ✅ Validation: Production crypto code meets ≥95% coverage target
 
-### 11.2 Integration Tests ⏸️
+### 14.2 Integration Tests ⏸️
 
 **Run Command**:
 
@@ -432,7 +809,7 @@ go tool cover -html=./test-output/coverage_learn_integration.out -o ./test-outpu
 
 **Note**: Integration tests validated in Phase 9.1 (commit 5bf7e203) with PostgreSQL test-containers.
 
-### 11.3 Docker Compose (Development Environment) ⚠️
+### 14.3 Docker Compose (Development Environment) ⚠️
 
 **Status**: ⚠️ Infrastructure exists but CGO blocks local execution
 
@@ -477,7 +854,7 @@ docker compose -f cmd/learn-im/docker-compose.yml down
 
 **Note**: Docker Compose infrastructure complete. Local validation blocked by CGO (sqlite3 driver requires GCC). Full validation available in CI/CD workflows.
 
-### 11.4 Demo Application ⚠️
+### 14.4 Demo Application ⚠️
 
 **Status**: ⚠️ CLI exists but CGO blocks `go run` locally
 
@@ -515,7 +892,7 @@ kill <PID>
 
 **Note**: CLI implementation complete. Local execution blocked by CGO dependency (sqlite3 requires GCC). Tests for CLI exist and pass in CI/CD (im_cli_test.go, im_cli_live_test.go).
 
-### 11.5 E2E Tests ✅
+### 14.5 E2E Tests ✅
 
 **Run Command**:
 
@@ -537,13 +914,13 @@ go tool cover -html=./test-output/coverage_learn_e2e.out -o ./test-output/covera
 
 ---
 
-## Phase 12: CLI Flag Testing
+## Phase 15: CLI Flag Testing
 
 **Status**: ⚠️ Infrastructure complete, CGO blocks local execution
 
 **Note**: CLI implementation exists (`cmd/learn-im/main.go`), config files exist (`configs/learn/im/config.yml`), Docker Compose files exist (`cmd/learn-im/docker-compose*.yml`). Local validation blocked by CGO dependency (sqlite3 driver requires GCC). Full validation available in CI/CD workflows.
 
-### 12.1 Test with `-d` (SQLite Dev Mode) ⚠️
+### 15.1 Test with `-d` (SQLite Dev Mode) ⚠️
 
 **Command**:
 
@@ -562,7 +939,7 @@ go run ./cmd/learn-im -d
 
 **Note**: Tests for CLI dev mode exist (im_cli_test.go) and pass in CI/CD with GCC available.
 
-### 12.2 Test with `-D <dsn>` (PostgreSQL Test-Container) ✅
+### 15.2 Test with `-D <dsn>` (PostgreSQL Test-Container) ✅
 
 **Command**:
 
@@ -582,7 +959,7 @@ go test ./internal/learn/integration/... -v
 
 **Note**: This verification is complete via integration tests. CLI flag testing requires GCC for local execution.
 
-### 12.3 Test with `-c learn.yml` (Production-like Config) ⚠️
+### 15.3 Test with `-c learn.yml` (Production-like Config) ⚠️
 
 **Config Files Available**:
 
@@ -616,9 +993,9 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 
 ---
 
-## Phase 13: Future Enhancements (Deferred)
+## Phase 16: Future Enhancements (Deferred)
 
-### 13.1 Message Listing APIs
+### 16.1 Message Listing APIs
 
 **Note**: Deferred from Phase 9 per QUIZME Q9 answer.
 
@@ -637,7 +1014,7 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 - [ ] Unit tests for inbox/sent listing with filters and pagination
 - [ ] Integration tests for inbox/sent APIs
 
-### 13.2 Long Poll API ("You've Got Mail")
+### 16.2 Long Poll API ("You've Got Mail")
 
 **Note**: Deferred from Phase 9 per QUIZME Q9-Q10 answers. Implementation uses database polling.
 
@@ -656,53 +1033,76 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 
 ## Progress Tracking
 
-**Last Updated**: 2025-12-28 23:15 EST
+**Last Updated**: 2025-12-29 (Updated with QUIZME-02 answers)
 
-**Overall Status**: 🟢 Phase 1-10 COMPLETE - Core Service Template Migration + Extensions Done
+**Overall Status**: 🟢 Phase 1-8, 10, 13 COMPLETE | ❌ Phase 3.5, 9, 11-12, 14-15 TODO | ⏸️ Phase 16 DEFERRED
 
-- ✅ **Phase 1-2 Complete**: Package structure migration, shared infrastructure integration
-- ✅ **QUIZME Complete**: All 12 questions answered, architecture decisions documented
-- ✅ **Phase 3-7 COMPLETE**: 3-table schema implemented, JWK storage bug fixed, ALL E2E tests pass
-- ✅ **Phase 8 COMPLETE**: Code quality cleanup (8.1, 8.5, 8.6, 8.7 complete)
-- ✅ **Phase 9 COMPLETE**: Concurrency integration tests with PostgreSQL test-containers
-- ✅ **Phase 10 COMPLETE**: ServerSettings extensions (Realms, BrowserSessionCookie)
-- ⚠️ **Phase 11 PARTIALLY COMPLETE**: Test validation (CGO limitations, CI/CD required)
-- ⏸️ **Phase 12 DEFERRED**: CLI testing (no main.go yet, requires Docker Compose)
-- ❌ **Phase 13 DEFERRED**: Inbox/sent listing and long poll APIs (future enhancements)
+**Phase Summary**:
 
-**Recent Completions** (2025-12-28):
+- ✅ **Phase 1-2**: Package structure migration, shared infrastructure integration
+- ✅ **Phase 3-7**: 3-table schema implemented, ALL E2E tests pass
+- ❌ **Phase 3.5**: Template Hardening (NEW - CRITICAL BEFORE PHASE 4) - Validates template with production patterns before jose-ja migration
+- ✅ **Phase 8**: Code quality cleanup (8.1-8.7, 8.10 complete | 8.8-8.9 TODO)
+- ❌ **Phase 9**: Infrastructure quality gates (CGO detection, import aliases, TestMain pattern) - TODO
+- ✅ **Phase 10**: Concurrency integration tests with PostgreSQL test-containers
+- ❌ **Phase 11**: ServiceTemplate extraction (CRITICAL - BLOCKS Phase 4-6) - ServiceTemplate struct doesn't exist yet
+- ❌ **Phase 12**: Realm-based validation configuration - TODO
+- ✅ **Phase 13**: ServerSettings extensions (Realms, BrowserSessionCookie)
+- ⚠️ **Phase 14**: Test validation commands (CGO limitations, CI/CD required)
+- ⏸️ **Phase 15**: CLI testing (CGO blocks local execution, Docker Compose exists)
+- ⏸️ **Phase 16**: Inbox/sent listing and long poll APIs (future enhancements)
 
-1. ✅ **Phase 8.6 COMPLETE**: ServerSettings integration (commits 2044e016, 1521680e)
-   - Created AppConfig with embedded ServerSettings
-   - Updated server.New() signature and all tests
-   - Added named constants for magic numbers and dialectors
-2. ✅ **Phase 9.1 COMPLETE**: Concurrent integration tests (commits 5bf7e203, 7a8705cf)
-   - PostgreSQL test-containers with randomized credentials
-   - Connection retry logic (10 attempts, handles init delays)
-   - 3 table-driven scenarios: 4/3/2 concurrent sends
-   - All tests pass (8.1s total execution)
-   - Explicit UUID generation for User/Message entities
-3. ✅ **Phase 10 COMPLETE**: ServerSettings extensions (commits 4779faa7, 8ea32e6c)
-   - Added Realms field ([]string) for authentication realm config files
-   - Added BrowserSessionCookie field (string) for cookie type (jwe/jws/opaque)
-   - CLI flags: --realms/-R, --browser-session-cookie/-C
-   - Defaults: DefaultRealms=[], DefaultBrowserSessionCookie="jws"
-   - AppConfig already embeds ServerSettings (Phase 8.6/10.2)
+**Recent Updates** (2025-12-29):
 
-**Phase 11 Status** (CGO Limitations):
+1. ✅ **QUIZME-02 Answered**: All 10 clarification questions answered
+   - Q1: ServiceTemplate with full infrastructure (DB, telemetry, crypto, TLS, migrations)
+   - Q2: Magic values consolidated to `internal/shared/magic/magic_learn.go`
+   - Q3: Realm-based validation with YAML config (enterprise flexibility)
+   - Q4: Migrations extracted to template pattern (service autonomy preserved)
+   - Q5: Import aliases enforced for ALL `cryptoutil/internal/*` imports
+   - Q6: TestMain migration priority (template first → learn/e2e → learn/server)
+   - Q7: Test secrets use `"test-jwt-" + RandomString(43)` (258 bits entropy)
+   - Q8: Test users use `GenerateUsername()`, `GeneratePassword()` from `internal/shared/util/random`
+   - Q9: Localhost references use `cryptoutilMagic.HostnameLocalhost`
+   - Q10: Infrastructure-first strategy (CGO, importas, magic, migrations, template → services)
 
-- ✅ **11.1 Unit Tests**: Crypto package validated (95.5% coverage meets ≥95% target)
-- ⏸️ **11.2 Other Unit Tests**: Repository/server/e2e require CGO (GCC not available locally)
-- ✅ **11.3 Integration Tests**: Phase 9.1 PostgreSQL test-containers working
-- ⚠️ **11.4 Docker Compose**: Files exist (cmd/learn-im/docker-compose*.yml) but CGO blocks local execution
-- ⚠️ **11.5 Demo App**: CLI exists (cmd/learn-im/main.go) but CGO blocks `go run`
-- ✅ **11.6 E2E Tests**: Phase 7 validated message encryption/decryption workflows
+2. ❌ **CRITICAL FINDING - ServiceTemplate Doesn't Exist**: Referenced in plan but NOT in codebase
+   - Validation: `list_code_usages "ServiceTemplate"` returns "Symbol not found"
+   - Impact: Phase 11 is BLOCKING for Phase 4-6 (4+ services will duplicate initialization code without it)
+   - Mitigation: Updated Phase 11 priority to CRITICAL, MUST complete before Phase 4
 
-**Phase 12 Status** (CGO Limitations):
+3. ❌ **CRITICAL FINDING - Template Validation Gap**: Learn-im validates template with demo patterns only
+   - Risk: Jose-ja, pki-ca, identity have different requirements (barrier, federation, complex APIs)
+   - Mitigation: Added Phase 3.5 (Template Hardening) with feature matrix, validator service, gap closure
+   - Timeline: 2-3 weeks additional before Phase 4 start
 
-- ⚠️ **12.1 Dev Mode**: CLI infrastructure complete but CGO blocks `go run ./cmd/learn-im -d`
-- ✅ **12.2 Test-Container**: Already validated in Phase 9.1 (concurrent integration tests)
-- ⚠️ **12.3 Config File**: Config files exist (configs/learn/im/config.yml) but CGO blocks execution
+4. ❌ **CRITICAL FINDING - Barrier Integration Missing**: Production services need barrier encryption guide
+   - Risk: Jose-ja and pki-ca MUST encrypt JWK private keys at rest, no integration pattern documented
+   - Mitigation: Added Phase 3.5.2 (Barrier Integration Guide) with optional SecretEncryptor interface
+
+5. 📋 **Phase Reorganization**: Phases updated to reflect QUIZME answers and critical findings
+   - Phase 3.5 (NEW): Template Hardening - CRITICAL before Phase 4
+   - Phase 9: Infrastructure quality gates (CGO detection, import alias, TestMain)
+   - Phase 10: Concurrency tests (was Phase 9)
+   - Phase 11: ServiceTemplate extraction (CRITICAL - BLOCKING Phase 4-6)
+   - Phase 12: Realm validation (NEW - from QUIZME Q3)
+   - Phase 13: ServerSettings (was Phase 10)
+   - Phase 14-16: Testing/CLI/Future (was Phase 11-13)
+
+**Phase 14 Status** (CGO Limitations):
+
+- ✅ **14.1 Unit Tests**: Crypto package validated (95.5% coverage meets ≥95% target)
+- ⏸️ **14.2 Other Unit Tests**: Repository/server/e2e require CGO (GCC not available locally)
+- ✅ **14.3 Integration Tests**: Phase 10 PostgreSQL test-containers working
+- ⚠️ **14.4 Docker Compose**: Files exist (cmd/learn-im/docker-compose*.yml) but CGO blocks local execution
+- ⚠️ **14.5 Demo App**: CLI exists (cmd/learn-im/main.go) but CGO blocks `go run`
+- ✅ **14.6 E2E Tests**: Phase 7 validated message encryption/decryption workflows
+
+**Phase 15 Status** (CGO Limitations):
+
+- ⚠️ **15.1 Dev Mode**: CLI infrastructure complete but CGO blocks `go run ./cmd/learn-im -d`
+- ✅ **15.2 Test-Container**: Already validated in Phase 10 (concurrent integration tests)
+- ⚠️ **15.3 Config File**: Config files exist (configs/learn/im/config.yml) but CGO blocks execution
 
 **CGO Dependency Analysis**:
 
@@ -722,13 +1122,18 @@ go run ./cmd/learn-im -c configs/learn/learn.yml
 7. Both `/service/**` and `/browser/**` paths tested and working
 8. Phase 4→5a architectural migration complete (ECDH dead code removed)
 
-**Next Steps** (Prioritized by Dependencies):
+**Next Steps** (Prioritized by QUIZME Infrastructure-First Strategy):
 
-1. **Phase 8.6** (HIGH PRIORITY): Use ServerSettings struct from shared config (replace custom Config struct)
-2. **Phase 9** (MEDIUM PRIORITY): Concurrency integration tests (N=5, M=4, P=3, Q=2, target ~4s)
-3. **Phase 10** (MEDIUM PRIORITY): ServerSettings extensions (Realms, BrowserSessionCookie)
-4. **Phase 11** (LOW PRIORITY): Unit/integration test validation commands
-5. **Phase 12** (LOW PRIORITY): CLI testing with -c learn.yml (production-like config)
-6. **Phase 13** (DEFERRED): Future - inbox/sent listing, long poll API (database polling)
+1. **Phase 9.1** (CRITICAL): Create `cicd go-check-no-cgo-sqlite` command (prevent CGO sqlite regression)
+2. **Phase 9.2** (CRITICAL): Create `cicd go-check-importas` command (enforce import alias consistency)
+3. **Phase 11** (BLOCKING): Extract ServiceTemplate with barrier service integration (MUST complete before Phase 4)
+4. **Phase 3.5** (NEW - HARDENING): Template validation before production migrations (prevents Phase 4-6 rework)
+5. **Phase 8.8** (HIGH): Use `GenerateUsername()`, `GeneratePassword()` from `internal/shared/util/random`
+6. **Phase 8.9** (HIGH): Replace hardcoded "localhost" with `cryptoutilMagic.HostnameLocalhost`
+7. **Phase 8.2** (HIGH): Move magic constants to `internal/shared/magic/magic_learn.go`
+8. **Phase 12** (MEDIUM): Implement realm-based validation configuration
+9. **Phase 9.3** (LOW): Migrate to TestMain pattern (template → e2e → server)
+10. **Phase 14-15** (LOW): Test validation commands and CLI testing
+11. **Phase 16** (DEFERRED): Future - inbox/sent listing, long poll API
 
 **Blocked Items**: NONE - All blockers resolved!

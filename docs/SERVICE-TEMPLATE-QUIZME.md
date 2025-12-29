@@ -1,344 +1,326 @@
-# Service Template QUIZME - learn-im Cleanup
+# Service Template Refactoring - Clarification Questions
 
-**Purpose**: Clarify implementation details before starting Phase 8-11 cleanup tasks.
-
-**Instructions**: Please answer each question below. For multiple choice, select A-D or write your custom answer in option E.
-
----
-
-## Section 1: JWT Authentication Replacement
-
-### Q1: How should JWT authentication be replaced in learn-im?
-
-**Context**: Currently using hardcoded `jwtSecret` for JWT signing. Need to migrate to proper authentication.
-
-**A)** Use session-based authentication with encrypted session cookies (JWE) stored in database
-**B)** Use OAuth 2.1 client credentials flow with identity-authz federation
-**C)** Use both: sessions for browser clients (`/browser/**`), OAuth tokens for service clients (`/service/**`)
-**D)** Keep JWT but derive secret from barrier-encrypted JWK in database
-**E)** Other (please specify):
-
-**Your Answer**: D, you need config support for using JWTs as JWE or JWS or opaque; JWE and JWS are stateless options, opaque tokens require session storage in DB.
+**Date**: 2025-12-29
+**Context**: Technical debt cleanup discovered during Phase 10-12 implementation
 
 ---
 
-## Section 2: Password Hashing Migration
+## Critical Issues Identified
 
-### Q2: Which hash provider should learn-im use for password hashing?
+The following technical debt and pattern violations were discovered:
 
-**Context**: Currently using custom PBKDF2 in `internal/learn/crypto/password.go`. Instructions say to use `hash_high_random_provider.go`.
-
-**A)** `hash_high_random_provider.go` (high-entropy random hash with HKDF)
-**B)** `hash_low_random_provider.go` (low-entropy random hash with PBKDF2)
-**C)** `hash_high_deterministic_provider.go` (high-entropy deterministic hash)
-**D)** `hash_low_deterministic_provider.go` (low-entropy deterministic hash)
-**E)** Other (please specify):
-
-**Your Answer**: B
-
-**Follow-up Q2a**: Should `internal/learn/crypto/password.go` be removed entirely or kept for additional logic?
-
-**Your Answer**: No, remove entirely and use shared hash provider directly in user service.
+1. **CGO Dependency**: go.mod contains `github.com/mattn/go-sqlite3` (CGO-dependent) instead of `modernc.org/sqlite`
+2. **Missing Import Aliases**: 20+ imports of `cryptoutil/internal/learn/*` without importas aliases
+3. **Hardcoded Secrets**: Multiple test files contain hardcoded JWT secrets
+4. **Hardcoded Constants**: Test wait times, intervals outside magic package
+5. **Magic Location**: `internal/learn/magic/` should be `internal/shared/magic/magic_learn.go`
+6. **Duplicated Migrations**: ApplyMigrations duplicated across 3 services
+7. **Hardcoded Validation**: Username/password rules hardcoded instead of realm-based
+8. **Missing TestMain**: E2E and server tests create servers per-test instead of TestMain pattern
+9. **Test User Pattern**: Missing fixed prefix + randomized suffix for concurrent test safety
+10. **ServiceTemplate Incomplete**: Server initialization not using full template pattern
 
 ---
 
-## Section 3: ServerSettings Integration
+## Q1: ServiceTemplate Shared Infrastructure (CRITICAL - Blocks Other Services)
 
-### Q3: How should learn-im integrate with `internal/shared/config/config.go` ServerSettings?
+**Current State**:
 
-**Context**: learn-im has custom Config struct. Need to migrate to shared ServerSettings.
+- Each service duplicates: sqlDB setup, migrations, telemetry init, JWK services, TLS config
+- learn-im duplicates 200+ lines of infrastructure code from kms reference
 
-**A)** Replace entire learn-im Config struct with ServerSettings (remove all custom fields)
-**B)** Embed ServerSettings in learn-im Config struct, add learn-im-specific fields as needed
-**C)** Use ServerSettings for network/TLS only, keep separate AppConfig for business logic
-**D)** Create adapter layer to map ServerSettings to learn-im's existing Config
-**E)** Other (please specify):
+**Proposed Pattern**:
 
-**Your Answer**: C
+```go
+type ServiceTemplate struct {
+    sqlDB            *sql.DB
+    gormDB           *gorm.DB
+    telemetryService *TelemetryService
+    jwkGenService    *JWKGenService
+    publicTLSCfg     *tls.Config
+    adminTLSCfg      *tls.Config
+    migrationsApplied bool
+    // Reusable HTTP server infrastructure
+}
 
-**Follow-up Q3a**: Are there learn-im-specific config fields that don't belong in ServerSettings?
+type LearnIMServer struct {
+    template *ServiceTemplate  // Embedded template
+    // Service-specific repos
+    userRepo         UserRepository
+    messageRepo      MessageRepository
+}
+```
 
-**Examples**: Message encryption settings, user validation rules, etc.
+**Options**:
 
-**Your Answer**:
-AppConfig fields like JWE algorithm settings, message min/max settings, recipients min/max count settings
+- **A**: ServiceTemplate contains ALL infrastructure (DB, telemetry, crypto, TLS, migrations)
+- **B**: ServiceTemplate contains ONLY network (TLS, ports) - services handle DB/crypto
+- **C**: Two-tier: BaseTemplate (network) + DataTemplate (DB/migrations)
+- **D**: Keep current duplication pattern
+- **E**: Other: ___________
 
-Service Template needs to offer username/password realm, in file and DB
-Add Realms setting in ServerSettings; list of realm configuration files: 01-username-password-file.yml, 02-username-password-db.yml
+**Recommended**: **A** (Maximum reuse, consistent patterns, faster development)
 
-- username and password min/max length settings
-Add BrowserSessionCookie setting in ServerSettings; e.g. config file: browser-session-cookie.yml
-- options include choosing cookie type: JWTs as JWE or JWS or opaque; default to JWS
-
----
-
-## Section 4: Message Encryption Simplification
-
-### Q4: Should `internal/learn/crypto/keygen.go` be removed or refactored?
-
-**Context**: Instructions say to remove if ECDH is removed. Need clarification on ECDH usage.
-
-**A)** Remove entirely - no longer needed (use shared JWK generation)
-**B)** Keep but remove ECDH generation - keep other key generation logic
-**C)** Refactor to wrapper around `internal/shared/crypto/jose` for learn-im-specific needs
-**D)** Keep as-is for now - will be needed for future features
-**E)** Other (please specify):
-
-**Your Answer**: A
-
-### Q5: Should `internal/learn/crypto/encrypt.go` be removed or refactored?
-
-**Context**: Instructions say to use `jwe_message_util.go` instead of custom encryption.
-
-**A)** Remove entirely - use `EncryptBytesWithContext` and `DecryptBytesWithContext` directly
-**B)** Keep as thin wrapper around `jwe_message_util.go` for learn-im-specific error handling
-**C)** Keep but significantly simplify - remove hybrid ECDH logic, keep utility functions
-**D)** Keep as-is - provides valuable abstraction layer
-**E)** Other (please specify):
-
-**Your Answer**: A
+A
 
 ---
 
-## Section 5: UpdatedAt Field Usage
+## Q2: Magic Values Consolidation
 
-### Q6: Is the `UpdatedAt` field in domain models actually used?
+**Current State**:
 
-**Context**: Found in `user.go` and `jwk.go` but only set in test code, not read anywhere.
+- `internal/learn/magic/magic.go` contains username/password lengths, JWT config
+- Pattern inconsistent with identity/kms using `internal/shared/magic/magic_*.go`
 
-**A)** Remove from all domain models and database schema (unused field)
-**B)** Keep in User model (might be useful for audit), remove from JWK model
-**C)** Keep in all models - GORM auto-updates it, useful for debugging
-**D)** Add actual usage - display in user profile, track message edit history
-**E)** Other (please specify):
+**Options**:
 
-**Your Answer**: D
+- **A**: Move ALL to `internal/shared/magic/magic_learn.go` (centralized, auditable)
+- **B**: Keep service-specific in `internal/<service>/magic/` (service isolation)
+- **C**: Hybrid: Common in shared, unique in service
+- **D**: Eliminate service magic packages
+- **E**: Other: ___________
 
----
+**Recommended**: **A** (Consistency with existing services)
 
-## Section 6: File Splitting Strategy
-
-### Q7: How should `public.go` (688 lines) be split?
-
-**Context**: Violates 500-line hard limit. Need to split into multiple files.
-
-**A)** 3 files: `handlers_auth.go` (register/login), `handlers_messages.go` (send/receive), `public.go` (server setup)
-**B)** 4 files: Add `handlers_inbox.go` (inbox/sent/poll endpoints when implemented)
-**C)** By layer: `routes.go` (route registration), `handlers.go` (HTTP handlers), `public.go` (server lifecycle)
-**D)** By responsibility: `auth_handlers.go`, `message_handlers.go`, `middleware.go` (move from separate file), `server.go`
-**E)** Other (please specify):
-
-**Your Answer**: D
-
-### Q8: How should `public_test.go` (2401 lines) be split?
-
-**Context**: Violates 500-line hard limit by 4.8×. Needs aggressive splitting.
-
-**A)** 5 files: `auth_test.go`, `messages_test.go`, `inbox_test.go`, `poll_test.go`, `test_helpers.go`
-**B)** By test type: `unit_test.go`, `integration_test.go`, `helpers_test.go`
-**C)** By feature: `register_test.go`, `login_test.go`, `send_test.go`, `receive_test.go`, `helpers_test.go`
-**D)** Keep single file but convert to table-driven tests (should reduce size significantly)
-**E)** Other (please specify):
-
-**Your Answer**: B and C
+A
 
 ---
 
-## Section 7: Inbox/Sent/Poll API Design
+## Q3: Realm Configuration for Validation Rules
 
-### Q9: Should inbox/sent/poll APIs be part of Phase 8 or separate Phase 9?
+**Current Violation** in `auth_handlers.go`:
 
-**Context**: Instructions list these as Phase 9 feature enhancements. Could be implemented earlier.
+```go
+if len(username) < 3 || len(username) > 50 {
+    return nil, ErrInvalidUsername
+}
+```
 
-**A)** Implement in Phase 9 (after all cleanup tasks complete)
-**B)** Implement in Phase 8.9 (interleave with cleanup - implement while refactoring message handlers)
-**C)** Implement as Phase 8.4.5 (part of file splitting - design APIs while splitting handlers)
-**D)** Defer to Phase 12 (post-refactoring enhancements)
-**E)** Other (please specify):
+**Proposed Realm YAML**:
 
-**Your Answer**: D
+```yaml
+realms:
+  - name: username-password-file
+    validation:
+      username:
+        min: 8
+        max: 64
+        pattern: "^[a-zA-Z0-9_-]+$"
+      password:
+        min: 12
+        max: 64
+        complexity: ["uppercase", "lowercase", "digit", "special"]
+```
 
-### Q10: How should the long poll API be implemented?
+**Options**:
 
-**Context**: Need real-time "you've got mail" notification without WebSockets.
+- **A**: Full realm config with validation section (flexible, enterprise-ready)
+- **B**: Hardcoded defaults + optional realm override (backward compatible)
+- **C**: Keep hardcoded (validation rules rarely change)
+- **D**: Use ServerSettings fields (global, not realm-specific)
+- **E**: Other: ___________
 
-**A)** In-memory channel per user (lost on restart, simple)
-**B)** PostgreSQL LISTEN/NOTIFY (persistent, complex)
-**C)** Database polling every 1-5 seconds (simple, higher load)
-**D)** Redis pub/sub (requires Redis dependency, fast)
-**E)** Other (please specify):
+**Recommended**: **A** (Enterprise deployments need per-realm policies)
 
-**Your Answer**: C
-
----
-
-## Section 8: Integration Test Concurrency
-
-### Q11: What are acceptable integration test runtime targets?
-
-**Context**: Instructions suggest N=5, M=4, P=3, Q=2 for ~4 seconds. May need adjustment.
-
-**A)** Target ~4 seconds (N=5, M=4, P=3, Q=2) - original suggestion
-**B)** Target ~10 seconds (increase N/M/P/Q for more thorough testing)
-**C)** Target ~2 seconds (reduce N/M/P/Q for faster CI/CD)
-**D)** No hard target - optimize for maximum coverage within 15-second package limit
-**E)** Other (please specify):
-
-**Your Answer**: A
-
-### Q12: Should integration tests use SQLite or PostgreSQL test-containers?
-
-**Context**: Both are supported. SQLite faster, PostgreSQL more realistic.
-
-**A)** SQLite only (faster, good enough for integration tests)
-**B)** PostgreSQL test-containers only (slower, production-like)
-**C)** Both - run tests twice with different databases
-**D)** SQLite by default, PostgreSQL with `-tags=postgres` build tag
-**E)** Other (please specify):
-
-**Your Answer**: B
+A
 
 ---
 
-## Section 9: CLI Flag Testing Strategy
+## Q4: Migrations Code Extraction (DRY Principle)
 
-### Q13: How should CLI flag combinations be tested?
+**Current Duplication**:
 
-**Context**: Need to test `-d`, `-D <dsn>`, `-c learn.yml` modes.
+- `internal/learn/repository/migrations.go` - 80 lines
+- `internal/identity/repository/migrations.go` - ~80 lines
+- `internal/kms/server/repository/sqlrepository/sql_migrations.go` - ~80 lines
 
-**A)** Manual testing only (document commands, no automated tests)
-**B)** Unit tests that verify flag parsing and config construction
-**C)** Integration tests that start service with each flag combination
-**D)** E2E tests that validate full service lifecycle with each mode
-**E)** Other (please specify):
+**Pattern**:
 
-**Your Answer**: D
+```go
+//go:embed migrations/*.sql
+var migrationsFS embed.FS
 
----
+func ApplyMigrations(db *sql.DB, dbType DatabaseType) error { ... }
+```
 
-## Section 10: Test Coverage Targets
+**Options**:
 
-### Q14: What coverage targets should learn-im achieve?
+- **A**: Extract to `internal/template/server/migrations.go`, services pass embed.FS
+- **B**: Extract to `internal/shared/database/migrations.go` as utility
+- **C**: Keep duplicated (migration logic may diverge)
+- **D**: Builder pattern: `NewMigrationRunner(embedFS).Apply(db)`
+- **E**: Other: ___________
 
-**Context**: Instructions specify ≥95% production, ≥98% infrastructure. Is this realistic for learn-im?
+**Recommended**: **A** (Template pattern, service autonomy for migration files)
 
-**A)** Same as instructions: ≥95% production, ≥98% infrastructure (mandatory targets)
-**B)** Relaxed: ≥90% production, ≥95% infrastructure (learn-im is demo service)
-**C)** Strict: ≥98% production, ≥98% infrastructure (learn-im is template for other services)
-**D)** Per-package targets: 95% domain/server, 90% crypto/util, 85% e2e
-**E)** Other (please specify):
-
-**Your Answer**: A
-
----
-
-## Section 11: Magic Constants Organization
-
-### Q15: Where should learn-im magic constants be defined?
-
-**Context**: Need to move `MinUsernameLength`, `JWTIssuer`, etc. to magic package.
-
-**A)** `internal/learn/magic/magic.go` (single file for all learn-im constants)
-**B)** `internal/learn/magic/magic_server.go`, `magic_auth.go`, `magic_messages.go` (multiple files by category)
-**C)** `internal/shared/magic/magic_learn.go` (shared magic package, learn-im section)
-**D)** Keep in respective packages but export as constants (no separate magic package)
-**E)** Other (please specify):
-
-**Your Answer**: C
+A
 
 ---
 
-## Section 12: Dependency on Barrier Service
+## Q5: Import Alias Enforcement via cicd Subcommand
 
-### Q16: What should learn-im do when barrier service integration is needed?
+**Current Violations** (20+ instances):
 
-**Context**: Instructions mention barrier encryption for JWK storage but barrier service doesn't exist yet.
+```go
+import "cryptoutil/internal/learn/repository"  // ❌ Should be aliased
+import cryptoutilRepository "cryptoutil/internal/learn/repository"  // ✅ Correct
+```
 
-**A)** Add placeholder barrier interface, implement with simple AES256-GCM for now
-**B)** Skip barrier encryption entirely - defer to Phase 12 (post-service-template work)
-**C)** Implement barrier service as part of learn-im work (significant scope creep)
-**D)** Use shared crypto utilities directly, migrate to barrier service when available
-**E)** Other (please specify):
+**Proposed cicd Subcommand**:
 
-**Your Answer**: A for now; add phase at the end to extract barrier service from KMS to service template
+```bash
+go run ./cmd/cicd go-check-importas
+# Checks ALL cryptoutil/internal/* imports have aliases per .golangci.yml
+```
 
----
+**Options**:
 
-## Section 13: Table-Driven Test Conversion
+- **A**: ALL `cryptoutil/internal/*` imports require aliases
+- **B**: Only `cryptoutil/internal/<service>/*` imports need aliases
+- **C**: Only cross-service imports need aliases
+- **D**: No enforcement
+- **E**: Other: ___________
 
-### Q17: How aggressive should table-driven test conversion be?
+**Recommended**: **A** (Consistency, refactoring safety, follows shared pattern)
 
-**Context**: Instructions say ALL tests must be table-driven. Current tests mix patterns.
-
-**A)** Convert ALL tests to table-driven (no exceptions)
-**B)** Convert only tests with multiple similar cases (skip one-off tests)
-**C)** Convert happy path to table-driven, keep error cases as individual tests
-**D)** Prioritize readability - use table-driven where it improves clarity, individual tests otherwise
-**E)** Other (please specify):
-
-**Your Answer**: D
+A
 
 ---
 
-## Section 14: Hardcoded Password Removal
+## Q6: TestMain Pattern Implementation Priority
 
-### Q18: How should test passwords be generated?
+**Current Violations**:
 
-**Context**: Tests currently use hardcoded passwords like "SecurePass123!". Need randomization.
+- `internal/learn/e2e/*_test.go` - creates server per test (slow, fragile)
+- `internal/learn/server/*_test.go` - creates server per test
+- `internal/template/server/test_main_test.go` - missing TestMain infrastructure
 
-**A)** Generate random passwords with `googleUuid.NewV7().String()` (simple, may not meet complexity rules)
-**B)** Use test helper function `GenerateValidPassword()` (ensures complexity requirements met)
-**C)** Use magic constant `TestPassword = "Test123!@#"` (still hardcoded but centralized)
-**D)** Generate once per test file in `TestMain`, reuse across tests
-**E)** Other (please specify): Use GenerateString in internal\shared\util\random\random.go
+**TestMain Benefits**:
 
-**Your Answer**:  E
+- Faster: Server created once, reused across all tests
+- Robust: Validates real concurrency patterns
+- Efficient: Fewer ports/connections
 
----
+**Options**:
 
-## Section 15: E2E Test Scope
+- **A**: template/server → learn/e2e → learn/server (foundation first)
+- **B**: learn/e2e → learn/server → template/server (immediate value)
+- **C**: Fix all simultaneously
+- **D**: Template only, services opt-in
+- **E**: Other: ___________
 
-### Q19: What should learn-im E2E tests cover?
+**Recommended**: **A** (Template ensures pattern correctness before service adoption)
 
-**Context**: Currently has basic E2E tests. Need to define comprehensive scope.
-
-**A)** Full user journey: register → login → send message → receive message → logout
-**B)** Multi-user scenarios: User A sends to User B, User B sends to User C, User C replies to User A
-**C)** Edge cases: Invalid auth, message to non-existent user, concurrent sends, encryption failures
-**D)** All of the above (comprehensive E2E coverage)
-**E)** Other (please specify):
-
-**Your Answer**: D
+A
 
 ---
 
-## Section 16: Docker Compose Configuration
+## Q7: Test Secrets Generation Pattern
 
-### Q20: Should learn-im Docker Compose use shared telemetry services?
+**Current Violations**:
 
-**Context**: KMS uses shared `telemetry/compose-telemetry.yml` for OTLP/Grafana.
+```go
+const testJWTSecret = "learn-im-test-secret-e2e"  // ❌ SAST warning
+const jwtSecret = "learn-im-dev-secret-change-in-production"  // ❌ SAST warning
+```
 
-**A)** Yes - reuse shared telemetry compose file (consistent with KMS pattern)
-**B)** No - learn-im has its own telemetry setup (independence)
-**C)** Optional - provide both standalone and shared telemetry variants
-**D)** Defer - implement telemetry in Phase 12 (post-cleanup)
-**E)** Other (please specify):
+**Options**:
 
-**Your Answer**: A
+- **A**: UUIDv7: `googleUuid.NewV7().String()`
+- **B**: Prefix + UUID: `"test-jwt-" + googleUuid.NewV7().String()`
+- **C**: Magic constant: `cryptoutilMagic.TestJWTSecret`
+- **D**: Derive from test name: `deriveSecret(t.Name())`
+- **E**: Other: ___________
+
+**Recommended**: **B** (Prefix aids debugging, UUID prevents SAST warnings)
+
+E; use "test-jwt-" prefix with RandomString(43) suffix from internal/shared/util/random; 43 chars gives ~258 bits of entropy, exceeding NIST 256-bit recommendation
 
 ---
 
-## Additional Notes
+## Q8: Test User/Password Pattern
 
-**Please add any additional clarifications, concerns, or questions below:**
+**Requested Pattern**:
+
+```go
+username := "test-user-" + randomSuffix
+password := "Test-Pass-" + randomSuffix
+```
+
+**Benefits**: Concurrent test safety, SAST compliance, debuggable logs
+
+**Options**:
+
+- **A**: Prefix + UUIDv7: `"test-user-" + googleUuid.NewV7().String()`
+- **B**: Prefix + randomString: `"test-user-" + randomString(8)`
+- **C**: Fully random: `randomString(16)`
+- **D**: Magic + test name: `cryptoutilMagic.TestUsername + t.Name()`
+- **E**: Other: USE GenerateUsername, GeneratePassword, GenerateDomain, and GenerateEmailAddress from internal\shared\util\random\usernames_passwords_test.go
+
+**Recommended**: **A** (UUID provides timestamp ordering, no collisions)
+
+E
+
+Update .github\instructions\03-02.testing.instructions.md to use GenerateUsername, GeneratePassword, GenerateDomain, and GenerateEmailAddress from internal\shared\util\random\usernames_passwords_test.go methods
 
 ---
 
-**Submission Instructions**:
+## Q9: Localhost vs 127.0.0.1 Pattern
 
-1. Fill in "Your Answer" for each question (A/B/C/D or custom E response)
-2. Add any additional notes in the section above
-3. Save this file and notify me when ready for review
-4. I will use your answers to prioritize and implement Phase 8-11 tasks
+**Current**: "localhost" hardcoded ~50 times in `internal/learn/*`
 
-**Thank you!**
+**Options**:
+
+- **A**: Create `cryptoutilMagic.Localhost = "localhost"`, enforce via linter
+- **B**: Keep "localhost" hardcoded (universally understood)
+- **C**: Use `cryptoutilMagic.IPv4Loopback` ("127.0.0.1") everywhere
+- **D**: Service-specific: `learnMagic.Localhost`
+- **E**: Other: ___________
+
+**Recommended**: **C** (Avoids IPv4/IPv6 ambiguity, Windows Firewall compliance)
+
+E; use HostnameLocalhost from internal\shared\magic\magic_network.go
+
+---
+
+## Q10: Phase Optimization Strategy
+
+**Current SERVICE-TEMPLATE.md**: Phases 1-10 complete, 11-12 partial, 13 deferred
+
+**Discovered Tech Debt** requires new phases for:
+
+- CGO removal
+- Import alias enforcement
+- TestMain pattern migration
+- Hardcoded secrets removal
+- Magic values consolidation
+- ServiceTemplate extraction
+
+**Options**:
+
+- **A**: Infrastructure first (CGO, importas, magic, migrations, template) → Service refactors
+- **B**: Service-first (Complete learn-im fully) → Extract template
+- **C**: Mixed (Critical violations) → Template → Services
+- **D**: Defer template, complete learn-im only
+- **E**: Other: ___________
+
+**Recommended**: **A** (Prevents propagating debt to future services)
+
+A
+
+---
+
+## Summary
+
+| # | Topic | Recommended | Rationale |
+|---|-------|-------------|-----------|
+| Q1 | ServiceTemplate | A - Full infrastructure | Max reuse, consistency |
+| Q2 | Magic consolidation | A - Centralize in shared | Follow existing pattern |
+| Q3 | Realm validation | A - YAML config | Enterprise flexibility |
+| Q4 | Migrations DRY | A - Template extraction | Service autonomy preserved |
+| Q5 | Import aliases | A - ALL internal/* | Consistency, safety |
+| Q6 | TestMain priority | A - Template first | Foundation before adoption |
+| Q7 | Test secrets | B - Prefix + UUID | Debugging + SAST compliance |
+| Q8 | User/pass pattern | A - Prefix + UUIDv7 | Timestamp ordering |
+| Q9 | Localhost handling | C - Always 127.0.0.1 | No ambiguity |
+| Q10 | Phase strategy | A - Infrastructure first | Prevent debt propagation |
