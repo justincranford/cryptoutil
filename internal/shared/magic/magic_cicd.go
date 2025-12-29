@@ -143,13 +143,14 @@ const (
 
 // ValidCommands defines the set of valid cicd commands.
 var ValidCommands = map[string]bool{
-	"lint-text":      true,
-	"lint-go":        true,
-	"format-go":      true,
-	"lint-go-test":   true,
-	"format-go-test": true,
-	"lint-workflow":  true,
-	"lint-go-mod":    true,
+	"lint-text":              true,
+	"lint-go":                true,
+	"format-go":              true,
+	"lint-go-test":           true,
+	"format-go-test":         true,
+	"lint-workflow":          true,
+	"lint-go-mod":            true,
+	"check-no-cgo-sqlite":    true,
 }
 
 // Regex patterns for test enforcement.
