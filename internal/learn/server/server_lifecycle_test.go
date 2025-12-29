@@ -37,7 +37,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	_, err = server.NewPublicServer(context.TODO(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, "test-secret", tlsCfg)
+	_, err = server.NewPublicServer(context.Background(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, "test-secret", tlsCfg)
 	require.Error(t, err)
 	// The test passes nil for jwkGenService, so that validation triggers first
 	require.Contains(t, err.Error(), "JWK generation service cannot be nil")

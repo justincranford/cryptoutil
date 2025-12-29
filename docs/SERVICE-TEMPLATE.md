@@ -1,1184 +1,450 @@
-# Service Template Refactoring - learn-im
+# learn-im Service Template Migration - EXECUTION PLAN
 
-## Overview
+**CRITICAL**: Evidence-based completion per 06-01.evidence-based.instructions.md
 
-**Goal**: Extract reusable service infrastructure from sm-kms (reference implementation) into a ServiceTemplate, then validate it by migrating learn-im to use the template.
+## Your Decisions (QUIZME Answers)
 
-**Scope**: ONLY learn-im migration. Future services (jose-ja, pki-ca, identity) are out of scope for this plan.
+- **Q1**: D (Hybrid) - Fix register/password test files, keep realm_validation with pragma
+- **Q2**: A (Replace context.TODO with context.Background)
+- **Q3**: E (Do TestMain first, then phases 3,5,4,6 in that order)
+- **Q4**: A (Check sizes NOW, split if >500)
+- **Q5**: A (Implement TestMain - HIGH PRIORITY to speed up tests)
+
+## EXECUTION SEQUENCE
+
+### ✅ COMPLETED (Phases 8.11-8.13, 9.2, 18)
+
+**Phase 8.11**: COMPLETE - internal/learn/magic deleted, moved to shared
+**Phase 8.12**: COMPLETE - All magic constants in magic_learn.go
+**Phase 8.13**: COMPLETE - 18 passwords replaced with random generation
+**Phase 9.2**: COMPLETE - TOTP fields added to test data
+**Phase 18**: COMPLETE - Service instantiation pattern extracted
+
+---
+
+### Phase 0: File Size Analysis (IMMEDIATE)
+
+**Priority**: CRITICAL (Q4: Check NOW, split if >500)
+
+```powershell
+# Check all Go files in learn-im
+Get-ChildItem -Recurse -Filter *.go internal/learn | ForEach-Object {
+    $lines = (Get-Content $_.FullName | Measure-Object -Line).Lines
+    if ($lines -gt 400) {
+        Write-Output "$lines $($_.FullName)"
+    }
+} | Sort-Object -Property @{Expression={[int]($_ -split ' ')[0]}} -Descending
+```
 
 **Success Criteria**:
 
-- ServiceTemplate extracted from KMS with reusable infrastructure
-- learn-im successfully migrated to use ServiceTemplate
-- All E2E tests passing (service + browser paths)
-- Coverage ≥95% (production code) / ≥98% (infrastructure code)
-- Zero CGO dependencies (modernc.org/sqlite only)
+- [ ] All files <500 lines (HARD LIMIT) documented
+- [ ] Files 400-500 lines justified with comment
+- [ ] Files >500 split into logical modules
+
+**Evidence Required**: File size report showing all files under hard limit
 
 ---
 
-## Implementation Checklist
+### Phase 1: TestMain Pattern Implementation (HIGH PRIORITY)
 
-### Phase 1: Package Structure Migration ✅ COMPLETE
+**Priority**: HIGH (Q5: TestMain FIRST to speed up test execution)
+**Rationale**: User wants faster local test runs before working on phases 3-6
+**Target Packages**: server, crypto, repository tests
 
-- [x] Move files from `internal/cmd/learn/im` to layered architecture directories
-- [x] Update package imports (api/business/repository/util)
-- [x] Verify build succeeds after package restructure
-- [x] Run tests to detect broken imports
+**Files to Modify**:
 
-### Phase 2: Shared Infrastructure Integration ✅ COMPLETE
-
-- [x] Integrate `internal/shared/barrier` for barrier layer encryption
-- [x] Integrate `internal/shared/crypto/jose` for JWK generation
-- [x] Remove version flag from learn-im CLI parameters
-- [x] Update `internal/learn/server/server.go` to initialize shared services
-
-### Phase 3: Database Schema ⚠️ REFACTOR IN PROGRESS
-
-**Current State**: 4-table schema (users, messages, messages_jwks, users_jwks, users_messages_jwks)
-
-**Target State**: 3-table schema (users, messages, messages_recipient_jwks)
-
-**Completed**:
-
-- [x] Create migration files (same pattern as KMS)
-- [x] Define `users` table with GORM models (PBKDF2 password hash)
-- [x] Define `messages` table with JWE column
-- [x] Define `messages_jwks` table with GORM models (OLD - to be removed)
-- [x] Define `users_jwks` table with GORM models (OLD - to be removed)
-- [x] Define `users_messages_jwks` table with GORM models (OLD - to be removed)
-- [x] Embed migrations with `//go:embed migrations/*.sql`
-
-**TODO**:
-
-- [ ] **REFACTOR**: Define `messages_recipient_jwks` table (NEW - replaces messages_jwks)
-- [ ] **REFACTOR**: Remove obsolete tables (users_jwks, users_messages_jwks, messages_jwks)
-
-### Phase 4: Remove Hardcoded Secrets ⚠️ IN PROGRESS
-
-- [x] Remove hardcoded JWTSecret from `internal/cmd/learn/im/im.go` (moved to Config)
-- [ ] **TODO**: Implement barrier encryption for JWK storage (Phase 5b marker exists)
-- [ ] **TODO**: Update user authentication to use encrypted JWKs from database
-- [ ] **TODO**: Verify NO cleartext secrets in code or config files
-
-### Phase 5: JWE Message Encryption ⚠️ PARTIAL IMPLEMENTATION
-
-- [x] Generate per-message JWKs using `internal/shared/crypto/jose`
-- [x] Basic message encryption implementation exists (hybrid ECDH+AES-GCM)
-- [ ] **REFACTOR**: Update to use new 3-table schema (messages, messages_recipient_jwks, users)
-- [ ] **REFACTOR**: Use `EncryptBytesWithContext` and `DecryptBytesWithContext` from `internal/shared/crypto/jose/jwe_message_util.go`
-- [ ] **REFACTOR**: Store encrypted JWKs in `messages_recipient_jwks` table
-- [ ] **REFACTOR**: Implement multi-recipient encryption (N recipient AES256 JWKs)
-
-### Phase 6: Manual Key Rotation Support ❌ TODO
-
-- [ ] Create admin API endpoint for manual key rotation
-- [ ] Update active key ID on rotation
-- [ ] Maintain historical keys for decryption
-- [ ] Document rotation procedures
-
-### Phase 7: Testing & Validation ✅ COMPLETE
-
-- [x] Unit tests for barrier encryption integration (deferred - not using barrier yet)
-- [x] Unit tests for JWK generation (exists via shared infrastructure)
-- [x] Integration tests for message encryption/decryption
-- [x] E2E tests with Docker Compose
-- [x] **3-table schema implementation COMPLETE**:
-  - [x] Fixed: E2E HTTP client timeout increased from 5s to 30s
-  - [x] Fixed: E2E tests now use ApplyMigrations instead of AutoMigrate
-  - [x] Fixed: Added updated_at column to messages table migration
-  - [x] Fixed: message_repository.FindByRecipientID() now uses JOIN with messages_recipient_jwks
-  - [x] **FIXED**: Created MessageRecipientJWK repository for messages_recipient_jwks table operations
-  - [x] **FIXED**: Updated handleSendMessage() to create entries in messages_recipient_jwks table
-  - [x] **FIXED**: Updated handleReceiveMessages() to retrieve and decrypt using messages_recipient_jwks
-  - [x] **FIXED**: JWK storage bug - using correct 4th return value from GenerateJWEJWK (was 5th)
-  - [x] **FIXED**: Phase 4→Phase 5a architecture change - server-side decryption using JWE Compact
-  - [x] Removed in-memory cache (messageKeysCache) after migrating to database storage
-  - [x] **ALL 7 E2E TESTS PASS** (4 service + 3 browser tests)
-- [x] Verify coverage ≥95% (production) / ≥98% (infrastructure) - will verify in Phase 11
-
----
-
-## Architecture Decisions
-
-### JWT Authentication
-
-**Config support for JWT format**: JWE (encrypted), JWS (signed), or opaque tokens. JWE/JWS are stateless, opaque requires session storage in database.
-
-### Password Hashing
-
-**Use `internal/shared/crypto/hash/hash_low_random_provider.go`**: PBKDF2-HMAC-SHA256 for low-entropy passwords.
-
-### ServerSettings Integration
-
-**Embed ServerSettings in AppConfig**: Reuse dual HTTPS server pattern (public + admin), TLS configuration, CORS origins, bind addresses.
-
-### JWK Storage
-
-**Database-backed with multi-recipient support**: Each recipient gets own encrypted JWK copy in messages_recipient_jwks table.
-
-### Migration Strategy
-
-**Embed migrations with //go:embed**: golang-migrate pattern for versioned schema changes.
-
----
-
-### Phase 8: Code Quality Cleanup ⚠️ IN PROGRESS
-
-#### 8.1 Remove Unused Constants ✅ COMPLETE
-
-- [x] Remove `ContextKeyUserID` from server.go (not used)
-- [x] Remove `ContextKeyRequestID` from server.go (not used)
-
-#### 8.2 Magic Constants Consolidation ✅ COMPLETE
-
-- [x] Move ALL magic values to `internal/shared/magic/magic_learn.go`
-- [x] Update imports across learn-im package
-- [x] Verify golangci-lint mnd linter passes
-
-**Magic Values Consolidated**:
-
-```go
-// HTTP defaults
-LearnServicePort = 8888
-LearnAdminPort = 9090
-LearnDefaultTimeout = 30 * time.Second
-
-// JWE defaults
-LearnJWEAlgorithm = "dir+A256GCM"  // Direct key agreement
-LearnJWEEncryption = "A256GCM"
-
-// Database defaults
-LearnPBKDF2Iterations = 600000  // OWASP 2023 recommendation
-```
-
-**Commit**: e9013980
-
-#### 8.3 Replace Hardcoded Array Literals ✅ COMPLETE
-
-- [x] Created `defaultConfigFiles = []string{"./configs/learn/im/config.yml"}`
-- [x] Updated NewAppConfigFromFile() to use defaultConfigFiles
-- [x] Verified config loading still works
-
-#### 8.4 Extract Duplicated Migration Code ✅ COMPLETE
-
-**Pattern**: ApplyMigrations() is 83 lines duplicated in learn-im, identity, KMS.
-
-**Solution**: Extract to `internal/template/server/migrations.go` with builder pattern:
-
-```go
-type MigrationRunner struct {
-    embedFS     embed.FS
-    migrationsPath string
-}
-
-func NewMigrationRunner(embedFS embed.FS, path string) *MigrationRunner
-func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error
-```
-
-**Benefits**: Eliminates duplication, single source of truth for migration logic.
-
-**Tasks**:
-
-- [x] Create `internal/template/server/migrations.go`
-- [x] Implement MigrationRunner with builder pattern
-- [x] Update learn-im to use template migration utility
-- [x] Remove duplicated ApplyMigrations() from learn-im
-
-**Commit**: 238de064
-
-#### 8.5 Consistent Error Messages ✅ COMPLETE
-
-- [x] Use `fmt.Errorf("failed to X: %w", err)` pattern consistently
-- [x] Avoid generic "error" prefix in error messages
-- [x] Include context in error wrapping
-
-#### 8.6 HTTP Handler Error Handling ✅ COMPLETE
-
-- [x] All handlers return errors instead of calling c.Status() directly
-- [x] Middleware handles error-to-HTTP status mapping
-- [x] Consistent error response format (JSON with code, message, requestID)
-
-#### 8.7 Struct Field Ordering ✅ COMPLETE
-
-- [x] Order fields by: exported→unexported, large→small, alphabetical within groups
-- [x] Verified consistency across all structs in learn-im
-
-#### 8.8 Test User/Password Generation ⚠️ IN PROGRESS
-
-- [x] **Part 1**: Created `GenerateUsernameSimple()` and `GeneratePasswordSimple()` in `internal/shared/util/random`
-- [x] **Part 1**: Updated `registerAndLoginTestUser()` in helpers_test.go to use new generators
-- [x] **Part 2**: Replaced hardcoded "receiver"/"password123" in send_test.go (all 4 occurrences)
-- [ ] **Part 3**: Fix UUIDv7 collision issue causing test failures (username prefix collisions in parallel tests)
-
-**Commits**:
-
-- Part 1: a991c57c (random generators)
-- Part 2: 45ee7f52 (hardcoded value replacement)
-
-**Known Issue**: UUIDv7 generates same 8-char prefix when called rapidly in parallel tests → 409 username conflicts. Solutions: (1) Add microsecond delay, (2) Use full UUID, (3) Add random suffix.
-
-#### 8.9 Localhost Magic Constant ✅ COMPLETE
-
-- [x] Replace hardcoded `"localhost"` with `cryptoutilMagic.HostnameLocalhost`
-- [x] Search and replace across learn-im package (15 replacements in 5 files)
-- [x] Verify imports: `import cryptoutilMagic "cryptoutil/internal/shared/magic"`
-
-**Commit**: Session 3 commits (2 commits for Phase 8.9)
-
-#### 8.10 Pass-Through Function Signatures ✅ COMPLETE
-
-- [x] Align function signatures with helper functions (same parameter/return order)
-- [x] Verified consistency across repositories and services
-
-#### 8.11 Delete internal/learn/magic/magic.go ✅ COMPLETE
-
-- [x] Move MinUsernameLength, MaxUsernameLength, MinPasswordLength to internal/shared/magic/magic_learn.go
-- [x] Move JWTIssuer, JWTExpiration to internal/shared/magic/magic_learn.go
-- [x] Delete internal/learn/magic/ directory entirely
-- [x] Update all imports from cryptoutil/internal/learn/magic to cryptoutilSharedMagic
-
-**Rationale**: Magic constants MUST be in shared package, NOT service-specific package.
-
-**Commit**: Phase 18 (c84b4f6b)
-
-#### 8.12 Move ALL Magic Constants to Shared Package ✅ COMPLETE
-
-- [x] Move constants from config.go to internal/shared/magic/magic_learn.go:
-  - [x] LearnMessageMinLength, LearnMessageMaxLength
-  - [x] LearnRecipientsMinCount, LearnRecipientsMaxCount
-  - [x] DefaultJWTSecret (REMOVED - never used in config.go)
-- [x] Move constants from realm.go to internal/shared/magic/magic_learn.go:
-  - [x] All LearnDefault* constants (password, session, rate limits)
-  - [x] All LearnEnterprise* constants
-- [x] Update all references to use cryptoutilSharedMagic.* imports
-
-**Rationale**: Zero magic constants in config/business logic files. ALL constants in magic package.
-
-**Commit**: Phase 18 (c84b4f6b)
-
-#### 8.13 Replace ALL Hardcoded Passwords ✅ COMPLETE
-
-- [x] register_test.go: 6 hardcoded passwords → cryptoutilRandom.GeneratePasswordSimple()
-- [x] login_test.go: 7 hardcoded passwords → cryptoutilRandom.GeneratePasswordSimple() (manual fixes)
-- [x] send_test.go: 1 hardcoded password → cryptoutilRandom.GeneratePasswordSimple()
-- [x] receive_delete_test.go: 1 hardcoded password → cryptoutilRandom.GeneratePasswordSimple() + import
-- [x] password_test.go: 3 hardcoded passwords → cryptoutilRandom.GeneratePasswordSimple()
-
-**Total**: 18 hardcoded passwords replaced with random generation
-
-**Rationale**: Per copilot instructions - NEVER hardcode secrets, use random generators.
-
-**Commit**: 029680a8
-
----
-
-### Phase 9: Infrastructure Quality Gates ✅ COMPLETE
-
-#### 9.1 CGO Detection Command (CRITICAL) ✅ COMPLETE
-
-**Context**: Project MUST use CGO_ENABLED=0 for static linking. Only modernc.org/sqlite allowed (NOT github.com/mattn/go-sqlite3).
-
-**Tasks**:
-
-- [x] Create `internal/cmd/cicd/check_no_cgo_sqlite/check_no_cgo_sqlite.go`
-- [x] Implement checker:
-  - [x] Scan go.mod for github.com/mattn/go-sqlite3 (fail if found in direct dependencies)
-  - [x] Scan *.go files for `import _ "github.com/mattn/go-sqlite3"` (fail if found)
-  - [x] Verify modernc.org/sqlite exists in go.mod (fail if missing)
-  - [x] Self-exclusion: Skip checker's own source files
-- [x] Add to pre-commit hooks
-- [x] Integrate into cicd command dispatcher
-- [x] Register in magic_cicd.go ValidCommands
-
-**Success Criteria**: Command exits 0 if CGO-free, exits 1 with error message if CGO detected.
-
-**Commit**: 0d4f6aea
-
-#### 9.2 Import Alias Enforcement (CRITICAL) ✅ COMPLETE
-
-**Context**: Enforce consistent import aliases for ALL `cryptoutil/internal/*` imports per `.golangci.yml`.
-
-**Tasks**:
-
-- [x] Add import alias rules to `.golangci.yml` importas section
-- [x] Enforce aliases for ALL internal packages:
-  - [x] `cryptoutil/internal/shared/magic` → `cryptoutilSharedMagic`
-  - [x] `cryptoutil/internal/learn/crypto` → `cryptoutilLearnCrypto`
-  - [x] `cryptoutil/internal/learn/domain` → `cryptoutilLearnDomain`
-  - [x] `cryptoutil/internal/learn/e2e` → `cryptoutilLearnE2E`
-  - [x] `cryptoutil/internal/learn/integration` → `cryptoutilLearnIntegration`
-  - [x] `cryptoutil/internal/learn/repository` → `cryptoutilLearnRepository`
-  - [x] `cryptoutil/internal/learn/server` → `cryptoutilLearnServer`
-  - [x] ALL other internal packages follow `cryptoutil<Package>` pattern
-- [x] Auto-fix violations with `golangci-lint run --fix`
-- [x] Verify all imports use correct aliases
-
-**Success Criteria**: golangci-lint passes with importas enabled, no violations.
-
-**Commit**: ea691f2f
-
-#### 9.3 TestMain Migration ⏸️ LOW PRIORITY (Lightweight Tests)
-
-**Context**: TestMain pattern beneficial for HEAVYWEIGHT dependencies (PostgreSQL test-containers taking >1s, HTTP servers with complex setup). Learn-im E2E tests use SQLite in-memory (fast, lightweight setup <100ms per test). Integration tests already use test-containers efficiently.
-
-**Analysis**: Only 7 E2E tests exist, each with lightweight SQLite in-memory setup (~50ms). TestMain would save ~350ms total (7 × 50ms) but adds complexity (shared state, harder debugging). NOT worth the tradeoff for such small gains.
-
-**Recommendation**: DEFER Phase 9.3 until:
-
-- E2E tests grow to 20+ (>1s total overhead worth eliminating)
-- OR switch to PostgreSQL/Docker Compose (heavyweight setup worth sharing)
-
-**Tasks** (IF implementing):
-
-- [ ] Create TestMain in `internal/learn/e2e/helpers_e2e_test.go`:
-  - [ ] Setup: Start Docker Compose services once per package (not per test)
-  - [ ] Cleanup: Defer shutdown with `m.Run()` exit code
-  - [ ] Global variables: testDB, testServer, testClient (reused across tests)
-- [ ] Create TestMain in `internal/learn/integration/concurrent_test.go`:
-  - [ ] Setup: Start PostgreSQL test-container once per package
-  - [ ] Cleanup: Defer container termination
-  - [ ] Global variables: testDB (reused across integration tests)
-- [ ] Create TestMain in `internal/learn/integration/*_test.go`:
-  - [ ] Setup: Start PostgreSQL test-container once per package
-  - [ ] Cleanup: Defer container termination
-  - [ ] Global variables: testDB (reused across concurrent tests)
-
-**Rationale**:
-
-- E2E tests: Docker Compose startup is slow (~30s), do once not 7× per test
-- Integration tests: PostgreSQL container startup is slow (~5s), do once not 10× per test
-- Unit tests: No heavyweight dependencies, no TestMain needed
+1. `internal/learn/server/server_test.go` - Create TestMain
+2. `internal/learn/crypto/password_test.go` - Create TestMain
+3. `internal/learn/repository/repository_test.go` - Create TestMain (if exists)
 
 **Pattern**:
 
 ```go
 var (
-    testDB     *gorm.DB
+    testDB *gorm.DB
     testServer *Server
 )
 
 func TestMain(m *testing.M) {
-    // Setup heavyweight dependencies ONCE
+    // Setup: Start heavyweight dependencies ONCE
     ctx := context.Background()
-    container, _ := postgres.RunContainer(ctx, ...)
-    defer container.Terminate(ctx)
 
-    connStr, _ := container.ConnectionString(ctx)
-    testDB, _ = gorm.Open(postgres.Open(connStr), &gorm.Config{})
-
-    testServer, _ = NewServer(testDB, ...)
-    go testServer.Start()
-    defer testServer.Shutdown()
+    // In-memory SQLite (lightweight, but still benefits from shared setup)
+    testDB, _ = setupTestDatabase()
+    testServer, _ = setupTestServer(testDB)
 
     // Run all tests
     exitCode := m.Run()
+
+    // Cleanup
+    cleanupTestResources()
     os.Exit(exitCode)
 }
 
 func TestSomething(t *testing.T) {
-    // Use testDB and testServer - already started
+    // Use testDB and testServer - already initialized
 }
 ```
 
 **Success Criteria**:
 
-- E2E tests: Setup once (~30s), not 7× per test (~210s)
-- Integration tests: Setup once (~5s), not per-test overhead
+- [ ] TestMain implemented in 3+ test packages
+- [ ] Tests still pass: `go test ./internal/learn/... -v`
+- [ ] Measurable speedup documented (before/after timing)
 
----
+**Evidence Required**:
 
-### Phase 10: Concurrency Integration Tests ✅ COMPLETE
+```powershell
+# Before TestMain:
+Measure-Command { go test ./internal/learn/... }
 
-- [x] Create `internal/learn/integration/concurrent_test.go`
-- [x] Test concurrent user registration (10 goroutines)
-- [x] Test concurrent message sending (10 users → 10 users = 100 messages)
-- [x] Test concurrent message retrieval (10 users)
-- [x] Use PostgreSQL test-containers for isolation
-- [x] Verify zero race conditions (`go test -race`)
-- [x] All tests passing
+# After TestMain:
+Measure-Command { go test ./internal/learn/... }
 
-**Critical Fixes Applied**:
-
-- [x] Fixed: Thread-safe access to userMap (sync.RWMutex)
-- [x] Fixed: Database timestamp comparisons (allow ±1 second tolerance)
-- [x] Fixed: Race detector timeout increased to 60 seconds (10× normal for race overhead)
-
----
-
-### Phase 11: ServiceTemplate Extraction ✅ COMPLETE
-
-**Status**: Complete - ServiceTemplate extracted and learn-im successfully migrated.
-
-**Commits**:
-
-- `732539b8`: Extract ServiceTemplate infrastructure (7/7 tests pass)
-- `1c428ad1`: Migrate learn-im server to ServiceTemplate pattern
-
-**Tasks**:
-
-#### 11.1 Extract Reusable Infrastructure ✅ COMPLETE
-
-- [x] Create `internal/template/server/service_template.go`
-- [x] Define ServiceTemplate struct with config, db, dbType, telemetry, jwkGen, barrier
-- [x] Implement constructor: `NewServiceTemplate(config, db, dbType, options ...Option) (*ServiceTemplate, error)`
-- [x] Extract initialization logic from learn-im server.go
-- [x] Add comprehensive tests (7/7 passing)
-- [x] Document ServiceTemplate API
-
-#### 11.2 Migrate learn-im to ServiceTemplate ✅ COMPLETE
-
-- [x] Update `internal/learn/server/server.go` to use ServiceTemplate
-- [x] Remove duplicated initialization code (~30 lines removed)
-- [x] Replace manual telemetry/JWK initialization with template accessors
-- [x] Verify E2E tests pass (78.522s)
-- [x] Verify crypto tests pass (1.322s)
-
-#### 11.3 Completion Criteria ✅ COMPLETE
-
-- [x] ServiceTemplate extracted with full infrastructure (DB, telemetry, JWK generation, barrier)
-- [x] learn-im successfully using ServiceTemplate (zero duplicated initialization)
-- [x] All E2E tests passing (service + browser paths)
-- [x] Documentation updated
-
-**Timeline**: Completed in Session 3
-
-**Rationale**: Prevents future services from duplicating initialization code, validates template with real service (learn-im).
-
----
-
-### Phase 12: Realm-Based Validation Configuration ✅ COMPLETE
-
-**Context**: Enterprise deployments need configurable validation rules (password complexity, session timeouts, MFA requirements) per realm.
-
-**Implementation**:
-
-- [x] **RealmConfig struct** (`internal/learn/server/realm.go`):
-  - Password rules: min length, character requirements, unique chars, max repeated chars
-  - Session config: timeout, absolute max, refresh enabled
-  - MFA config: required flag, allowed methods
-  - Rate limits: login attempts, message sending
-- [x] **DefaultRealm()**: 12-char passwords, 1-hour sessions, no MFA, balanced rate limits
-- [x] **EnterpriseRealm()**: 16-char passwords, 30-min sessions, MFA required, strict rate limits
-- [x] **ValidatePasswordForRealm()**: 10 validation rules (length, uppercase, lowercase, digits, special chars, uniqueness, repetition)
-- [x] **ValidateUsernameForRealm()**: Length validation (3-64 chars), extensible for realm-specific rules
-- [x] **AppConfig.GetRealmConfig()**: Retrieve realm by name with triple fallback (requested → default → hardcoded)
-- [x] **Comprehensive tests**: 14 test cases covering all validation rules and edge cases
-- [x] **golangci-lint mnd compliance**: All magic numbers extracted to named constants
-
-**Example Usage**:
-
-```yaml
-realms:
-  default:
-    password_min_length: 12
-    password_require_uppercase: true
-    password_require_lowercase: true
-    password_require_digits: true
-    password_require_special: true
-    password_min_unique_chars: 8
-    password_max_repeated_chars: 3
-    session_timeout: 3600
-    session_absolute_max: 86400
-    mfa_required: false
-    login_rate_limit: 5
-    message_rate_limit: 10
-
-  enterprise:
-    password_min_length: 16
-    password_require_uppercase: true
-    password_require_lowercase: true
-    password_require_digits: true
-    password_require_special: true
-    password_min_unique_chars: 12
-    password_max_repeated_chars: 2
-    session_timeout: 1800
-    session_absolute_max: 28800
-    mfa_required: true
-    login_rate_limit: 3
-    message_rate_limit: 5
+# Document speedup percentage
 ```
 
-**Commit**: 8c33feab (Session 4)
-
-**Design Benefits**:
-
-- Multi-tenant support with different security postures per realm
-- Data-driven validation (rules in configuration, not hardcoded)
-- Factory pattern for common configurations (default, enterprise)
-- Extensible design for future realm-specific rules
-
 ---
 
-### Phase 13: ServerSettings Extensions ✅ COMPLETE
+### Phase 2: Hardcoded Password Fixes (CRITICAL)
 
-- [x] Embed ServerSettings in AppConfig (dual HTTPS, TLS, CORS)
-- [x] Add Realms configuration (Phase 12 prep)
-- [x] Add BrowserSessionCookie configuration
-- [x] Verify all services can reuse ServerSettings pattern
+**Priority**: CRITICAL (Q1: Hybrid approach)
+**Decision**: ✅ COMPLETE - 18 passwords already replaced with GeneratePasswordSimple()
 
----
+**Remaining Work**: Add pragma comments to realm_validation_test.go
 
-### Phase 14: Test Validation Commands ⚠️ CGO LIMITATIONS
+#### 2A. Add Pragma Allowlist to realm_validation_test.go (12 passwords)
 
-#### 14.1 Unit Tests ✅ COMPLETE (Crypto Package)
+**File to Modify**: `internal/learn/server/realm_validation_test.go`
 
-- [x] Crypto package validated (95.5% coverage meets ≥95% target)
-
-#### 14.2 Other Unit Tests ⏸️ CGO BLOCKED
-
-- [ ] Repository/server/e2e unit tests require CGO (GCC not available locally)
-- [ ] Use CI/CD workflows for validation (GCC available in GitHub Actions)
-
-#### 14.3 Integration Tests ✅ COMPLETE
-
-- [x] Phase 10 PostgreSQL test-containers working
-- [x] Concurrent integration tests passing
-
-#### 14.4 Docker Compose ⚠️ CGO BLOCKED
-
-- [x] Files exist (cmd/learn-im/docker-compose*.yml)
-- [ ] Local execution blocked by CGO (GCC required for sqlite)
-- [ ] Use CI/CD workflows for validation
-
-#### 14.5 Demo App ⚠️ CGO BLOCKED
-
-- [x] CLI exists (cmd/learn-im/main.go)
-- [ ] `go run` blocked by CGO (GCC required)
-- [ ] Use Docker containers for local testing
-
-#### 14.6 E2E Tests ✅ COMPLETE
-
-- [x] Phase 7 validated message encryption/decryption workflows
-- [x] All 7 E2E tests passing (service + browser paths)
-
-**CGO Dependency Analysis**:
-
-- **Infrastructure Status**: ✅ Complete (CLI, Docker Compose, configs all exist)
-- **Local Execution**: ⏸️ Blocked by sqlite3 driver requiring GCC compiler
-- **CI/CD Validation**: ✅ All tests pass in GitHub Actions workflows with GCC available
-- **Conclusion**: Infrastructure complete, local validation limited by CGO dependency (acceptable)
-
----
-
-### Phase 15: CLI Testing ⏸️ CGO LIMITATIONS (LOW PRIORITY)
-
-#### 15.1 Dev Mode
-
-- [x] CLI infrastructure complete (`cmd/learn-im/main.go`)
-- [ ] CGO blocks `go run ./cmd/learn-im -d` locally
-- [ ] Use Docker Compose for local testing instead
-
-#### 15.2 Test-Container
-
-- [x] Already validated in Phase 10 (concurrent integration tests)
-
-#### 15.3 Config File
-
-- [x] Config files exist (`configs/learn/im/config.yml`)
-- [ ] CGO blocks local execution
-- [ ] Use CI/CD for validation
-
----
-
-### Phase 16: Future Enhancements ⏸️ DEFERRED
-
-#### 16.1 Inbox/Sent Listing APIs
-
-- [ ] Implement `/service/api/v1/messages/inbox` - list received messages for authenticated user
-  - [ ] Support query parameter `?limit=N` (default 50, max 1000)
-  - [ ] Support query parameter `?offset=N` (pagination)
-  - [ ] Support query parameter `?read=true|false` (filter by read status)
-  - [ ] Support query parameter `?from=<username>` (filter by sender)
-  - [ ] Support query parameter `?sort=created_at:desc|asc` (sort order)
-- [ ] Implement `/service/api/v1/messages/sent` - list sent messages for authenticated user
-  - [ ] Support query parameter `?limit=N` (default 50, max 1000)
-  - [ ] Support query parameter `?offset=N` (pagination)
-  - [ ] Support query parameter `?to=<username>` (filter by recipient)
-  - [ ] Support query parameter `?sort=created_at:desc|asc` (sort order)
-- [ ] Add database indexes for efficient querying (user_id, created_at, read status)
-- [ ] Unit tests for inbox/sent listing with filters and pagination
-- [ ] Integration tests for inbox/sent APIs
-
-#### 16.2 Long Poll API ("You've Got Mail")
-
-- [ ] Implement `/service/api/v1/messages/poll` - long poll endpoint for new messages
-  - [ ] Accept query parameter `?timeout=<seconds>` (default 30s, max 60s)
-  - [ ] Return immediately if unread messages exist
-  - [ ] Block up to timeout seconds waiting for new messages (database polling every 1-5 seconds)
-  - [ ] Return HTTP 200 with message count when new messages arrive
-  - [ ] Return HTTP 204 (No Content) on timeout with no new messages
-- [ ] Implement database polling mechanism (check messages table every 1-5 seconds)
-- [ ] Trigger notification on `/service/api/v1/messages/tx` (send message)
-- [ ] Unit tests for long poll endpoint (immediate return, timeout, notification)
-- [ ] Integration tests for concurrent long poll clients
-
----
-
-### Phase 17: Documentation Review & Cleanup ✅ COMPLETE
-
-**Context**: Existing documentation may contain incorrect, outdated, or missing information. Review and update to ensure accuracy.
-
-#### 17.1 LEARN-IM-TEST-COMMANDS.md ✅ COMPLETE
-
-- [x] Review test commands for accuracy
-- [x] Update with latest test patterns (TestMain, test-containers)
-- [x] Add CGO limitation notes where applicable
-- [x] Verify coverage targets (≥95% production, ≥98% infrastructure)
-- [x] Add Windows-specific notes (Docker rootless, test-container limitations)
-- [x] Update command examples with PowerShell syntax
-
-**Commit**: 012c0777 (Session 4)
-
-#### 17.2 CMD-PATTERN.md ✅ REVIEWED
-
-- [x] Review internalMain() pattern documentation (accurate, no changes needed)
-- [x] Verify command patterns documented correctly (Suite/Product/Product-Service)
-- [x] Confirm ServiceTemplate references are current
-
-**Status**: No updates needed - documentation accurate
-
-#### 17.3 DEV-SETUP.md ✅ REVIEWED
-
-- [x] Review developer setup instructions (accurate, comprehensive)
-- [x] Verify tool versions documented (Go 1.25.5+, golangci-lint v2.7.2+)
-- [x] Confirm CGO-free requirement documented (modernc.org/sqlite)
-- [x] Platform-specific setup guidance current (Windows/Linux/macOS)
-
-**Status**: No updates needed - documentation accurate
-
-#### 17.4 QUALITY-TODOs.md ✅ COMPLETE
-
-- [x] Review outstanding quality TODOs
-- [x] Mark completed items (Phases 11, 12, 17.1)
-- [x] Update with Session 4 achievements
-- [x] Document quality metrics (test coverage, timing, file size)
-- [x] Update last updated date (2025-12-24)
-
-**Commit**: e6f8584a (Session 4)
-
-**Phase 17 Complete**: All documentation reviewed and updated where needed
-
-- [ ] Review developer setup instructions
-- [ ] Add CGO-free requirement (modernc.org/sqlite only)
-- [ ] Update with latest tool versions (golangci-lint v2.7.2+, Go 1.25.5+)
-- [ ] Add import alias enforcement notes
-
-#### 17.4 QUALITY-TODOs.md
-
-- [ ] Review outstanding quality TODOs
-- [ ] Close completed items
-- [ ] Update with Phase 9-17 findings
-- [ ] Prioritize remaining work
-
----
-
-### Phase 18: Move RealmConfig to Service Template ✅ COMPLETE (Commit c84b4f6b)
-
-**Context**: Realm-based validation (password complexity, session timeouts, MFA requirements) is NOT learn-im-specific. All services need multi-tenant validation rules.
-
-**Tasks**:
-
-#### 18.1 Move Realm Types to Template ✅ COMPLETE
-
-- [x] Move `RealmConfig` struct from `internal/learn/server/realm.go` to `internal/template/server/realm_config.go` (73 lines total)
-- [x] Move `DefaultRealm()` and `EnterpriseRealm()` factory functions to template
-- [x] Update imports in learn-im to use template realm types (`cryptoutilTemplateServer.RealmConfig`)
-
-#### 18.2 Move Validation Functions to Template ✅ COMPLETE
-
-- [x] Move `ValidatePasswordForRealm()` from `internal/learn/server/realm_validation.go` to `internal/template/server/realm_validation.go` (122 lines total)
-- [x] Move `ValidateUsernameForRealm()` to template
-- [x] Update imports in learn-im to use template validation functions
-- [x] Updated all 23 tests in `realm_validation_test.go` to use template types
-
-#### 18.3 Update ServiceTemplate to Support Realms ✅ COMPLETE
-
-- [x] Add `Realms map[string]*cryptoutilTemplateServer.RealmConfig` to AppConfig in `internal/learn/server/config.go`
-- [x] Add `GetRealmConfig(realmName string) *cryptoutilTemplateServer.RealmConfig` method
-- [x] Update learn-im config to use template realm support
-- [x] Add `cryptoutilTemplateServer` import alias to `.golangci.yml`
-
-**Rationale**:
-
-- Realm validation is infrastructure-level concern, not business logic
-- All services (jose, ca, identity, kms) need multi-tenant validation
-- Prevents duplication when migrating future services
-
-**Success Criteria**: ✅ ALL MET
-
-- ✅ learn-im uses template RealmConfig (no local realm code)
-- ✅ Template tests validate realm validation logic (23 tests passing)
-- ✅ Future services can use realms without reimplementation
-- ✅ Build passes with 0 errors
-- ✅ Linter passes with 0 violations
-- ✅ Pre-commit hooks pass all 24 checks
-
----
-
----
-
-## Progress Tracking
-
-**Overall Status**: 🟢 Phases 1-2, 7-13, 17-18 COMPLETE | ⚠️ Phases 3-6 IN PROGRESS | ⏸️ Phases 14-15 CGO BLOCKED | ⏸️ Phase 16 DEFERRED
-
-**Phase Summary**:
-
-- ✅ **Phase 1-2**: Package structure migration, shared infrastructure integration COMPLETE
-- ⚠️ **Phase 3-7**: 3-table schema operational, ALL E2E tests passing, PARTIAL barrier/JWE implementation
-- ✅ **Phase 8**: Code quality cleanup COMPLETE (all 8.1-8.13 done)
-- ✅ **Phase 9**: Infrastructure quality gates (9.1-9.2 complete, 9.3 TestMain deferred - lightweight tests)
-- ✅ **Phase 10**: Concurrency integration tests COMPLETE
-- ✅ **Phase 11**: ServiceTemplate extraction COMPLETE
-- ✅ **Phase 12**: Realm-based validation COMPLETE (migrated to template in Phase 18)
-- ✅ **Phase 13**: ServerSettings extensions COMPLETE
-- ⏸️ **Phase 14**: Test validation commands (CGO limitations, CI/CD required)
-- ⏸️ **Phase 15**: CLI testing (CGO blocks local execution, Docker Compose exists)
-- ⏸️ **Phase 16**: Future enhancements (inbox/sent listing, long poll API) DEFERRED
-- ✅ **Phase 17**: Documentation review & cleanup COMPLETE
-- ✅ **Phase 18**: Move RealmConfig to service-template COMPLETE
-
-**Critical Milestones Achieved**:
-
-1. 3-table schema fully operational (users, messages, messages_recipient_jwks)
-2. Multi-recipient encryption working (each recipient gets own JWK copy)
-3. Cascade delete working (deleting message removes all recipient JWKs)
-4. ServerSettings integration complete (shared config reuse)
-5. Concurrent integration tests pass (PostgreSQL test-containers, race-free)
-6. Server-side decryption working (Phase 5a architecture)
-7. Both `/service/**` and `/browser/**` paths tested and working
-8. Phase 4→5a architectural migration complete (ECDH dead code removed)
-9. **ALL code quality cleanup COMPLETE** (magic constants, hardcoded passwords, localhost literals)
-10. **ServiceTemplate extraction COMPLETE** (reusable infrastructure for all services)
-11. **Realm-based validation COMPLETE** (migrated to template, available for all services)
-12. **ALL hardcoded passwords replaced** (18 passwords → random generation)
-
-**Next Steps (Prioritized)**:
-
-1. **Phase 3-6 REFACTOR** (MEDIUM): Complete barrier encryption integration for JWK storage
-2. **Phase 9.3** (LOW): Implement TestMain pattern (E2E, integration, concurrent tests) - deferred due to lightweight SQLite
-3. **Phase 16** (DEFERRED): Future - inbox/sent listing, long poll API
-
-**Blocked Items**: Phase 14-15 (CGO requirements - use CI/CD for validation)
-
-**READY FOR**: Future service migrations (jose-ja, pki-ca, identity) - ServiceTemplate pattern validated
-
----
-
-## Summary
-
-**Completed**: Phases 1-2, 7, 10, 13 (package structure, shared infrastructure, E2E tests, concurrency tests, ServerSettings)
-
-**In Progress**: Phases 3-6, 8 (database schema refactor, secrets, JWE encryption, code quality)
-
-**TODO**: Phases 9, 11-12, 17 (infrastructure gates, ServiceTemplate extraction, realm validation, documentation)
-
-**Deferred**: Phases 14-16 (CGO limitations, future enhancements)
-
-**CRITICAL BLOCKER**: Phase 11 (ServiceTemplate extraction) MUST complete before ANY future service migrations.
-
-**SUCCESS**: learn-im demonstrates reusable template pattern with ALL E2E tests passing, zero CGO dependencies, ≥95%/98% coverage targets.
-
----
-
-## Append-Only Timeline
-
-### 2025-12-24: Session 1 - Infrastructure Quality & Code Cleanup
-
-**Phases Completed**:
-
-- ✅ **Phase 9.1** (0d4f6aea): CGO detection command (`check-no-cgo-sqlite`)
-  - Created internal/cmd/cicd/check_no_cgo_sqlite/ command
-  - Validates modernc.org/sqlite usage, detects banned mattn/go-sqlite3
-  - Integrated into cicd framework with self-exclusion logic
-  - All pre-commit hooks passing
-
-- ✅ **Phase 8.4** (238de064): Migration utility extraction
-  - Created internal/template/server/migrations.go with MigrationRunner
-  - Refactored learn-im migrations.go to use template (83→40 lines)
-  - Eliminated 50+ lines of duplication
-  - Build successful, no errors
-
-- ✅ **Phase 8.2** (e9013980): Magic constants consolidation
-  - Created internal/shared/magic/magic_learn.go with 6 constants
-  - LearnServicePort, LearnAdminPort, LearnDefaultTimeout
-  - LearnJWEAlgorithm, LearnJWEEncryption, LearnPBKDF2Iterations
-  - Refactored config.go and test helpers to use magic constants
-  - golangci-lint mnd linter passing
-
-- ⚠️ **Phase 8.8 Part 1** (a991c57c): Random test user generation (partial)
-  - Created GenerateUsernameSimple() and GeneratePasswordSimple() in random package
-  - Refactored registerAndLoginTestUser() to use shared utilities
-  - Eliminated inline UUID generation in helpers_test.go
-  - Part 2 TODO: Replace remaining hardcoded "receiver"/"password123" in tests
-
-**Coverage/Quality Metrics**:
-
-- internal/cmd/cicd/check_no_cgo_sqlite: New package, tests passing
-- internal/template/server/migrations.go: 111 lines, reusable utility
-- internal/shared/magic/magic_learn.go: 24 lines, 6 constants
-- internal/shared/util/random/random.go: +30 lines, 2 new functions
-- All builds clean, linting passing
-
-**Lessons Learned**:
-
-1. Self-exclusion logic required for tools that scan their own codebase
-2. Indirect dependencies in go.mod are acceptable (only flag direct deps)
-3. golangci-lint auto-fixes files during pre-commit (may require re-commit)
-4. Existing test helpers (GenerateUsername(t, length)) have different signatures than production code needs
-5. Simple UUID-based generators sufficient for test scenarios (no custom length required)
-
-**Constraints Discovered**:
-
-- Naming conflict between test helpers and production code (solved with "Simple" suffix)
-- Test helper functions take *testing.T parameter, production code cannot use them
-- Pre-commit hooks may auto-fix files, requiring multiple commit attempts
-
-**Requirements Discovered**: NONE (all work aligned with existing requirements)
-
-**Violations Found**: NONE (all changes passed linting, tests, pre-commit hooks)
-
-**Next Steps**:
-
-1. Phase 8.8 Part 2: Replace hardcoded test values in send_test.go and E2E tests
-2. Phase 8.9: Replace "localhost" literals with cryptoutilMagic.HostnameLocalhost
-3. **CRITICAL**: Phase 11 ServiceTemplate extraction (blocks future service migrations)
-
-**Related Commits**:
-
-- 0d4f6aea: Phase 9.1 CGO detection command
-- 238de064: Phase 8.4 Migration utility extraction
-- e9013980: Phase 8.2 Magic constants consolidation
-- a991c57c: Phase 8.8 Part 1 Simple username/password generators
-- 3d7e7822: Documentation update with Session 1 post-mortem
-
----
-
-### 2025-12-29: Session 2 - Test User Generation Cleanup & UUIDv7 Collision Discovery
-
-**Phases Completed**:
-
-- ✅ **Phase 8.8 Part 2** (45ee7f52): Hardcoded test value replacement
-  - Replaced all "receiver" and "password123" in send_test.go (4 occurrences)
-  - Added cryptoutilRandom import for GenerateUsernameSimple/PasswordSimple
-  - Updated TestHandleSendMessage_Success, InvalidTokenFormat, InvalidTokenSignature
-  - Updated TestHandleSendMessage_EmptyMessage, MultipleReceivers
-  - +55 lines error handling, -7 hardcoded literals
-  - Build successful, all linting passing
-
-**Coverage/Quality Metrics**:
-
-- internal/learn/server/send_test.go: All hardcoded test values replaced
-- Pattern consistent with helpers_test.go usage (require.NoError for generators)
-- golangci-lint passing, pre-commit hooks passing
-
-**Issues Discovered**:
-
-1. **UUIDv7 Collision in Parallel Tests** (CRITICAL):
-   - UUIDv7 is time-based with ~100µs resolution
-   - GenerateUsernameSimple() truncates to 8 chars ("user_019b6961")
-   - Parallel tests within same millisecond generate identical prefixes
-   - Multiple tests create users with same username → 409 Conflict errors
-   - Affected tests: TestHandleSendMessage_Success, InvalidTokenSignature, EmptyMessage, EncryptionError, MultipleReceivers
-
-**Lessons Learned**:
-
-1. UUIDv7 truncation to 8 chars loses uniqueness when called rapidly (<1ms apart)
-2. Parallel test execution exposes timing-dependent collision vulnerabilities
-3. Time-based identifiers need sufficient granularity for parallel contexts
-4. Random generators in tests must account for rapid parallel invocation patterns
-
-**Constraints Discovered**:
-
-- UUIDv7 unsuitable for high-frequency username generation (time-based collision)
-- 8-char truncation exacerbates collision probability in parallel tests
-- Need either: (1) full UUID string, (2) random suffix after truncation, (3) microsecond delay between calls
-
-**Requirements Discovered**: NONE
-
-**Violations Found**: NONE (commit successful despite test failures - known collision issue documented)
-
-**Next Steps**:
-
-1. **Phase 8.8 Part 3**: Fix UUIDv7 collision issue
-   - Options: (a) Use full UUIDv7 string for username, (b) Add random suffix to truncated prefix, (c) Add time.Sleep(1*time.Microsecond) between generator calls
-   - Priority: MEDIUM (tests fail but code structure correct)
-2. Phase 8.9: Replace "localhost" literals with cryptoutilMagic.HostnameLocalhost
-3. **CRITICAL**: Phase 11 ServiceTemplate extraction (blocks future service migrations)
-
-**Related Commits**:
-
-- 45ee7f52: Phase 8.8 Part 2 Replace hardcoded test values with random generators
-
----
-
-### 2025-12-29: Session 2 (continued) - UUIDv7 Collision Fix & Test Cleanup
-
-**Phases Completed**:
-
-- ✅ **Phase 8.8 Part 3** (cddf15bf, 65cca77e): UUIDv7 collision fix + test cleanup
-  - **Commit cddf15bf**: Removed `[:8]` truncation from GenerateUsernameSimple()
-    - Changed: `return "user_" + id.String()[:8], nil` to `return "user_" + id.String(), nil`
-    - Username now 41 chars (user_019b696a-e6c3-74ce-9ead-94662be9dbc6) vs 13 chars (user_019b6961)
-    - Updated comment: "8-character UUID suffix" to "full UUID suffix"
-    - Added: "Returns full UUID (36 chars) to prevent collisions in parallel test execution"
-  - **Commit 65cca77e**: Fixed unrelated test failures
-    - TestHandleSendMessage_InvalidReceiverID: Updated assertion "invalid receiver ID" to "invalid recipient ID"
-    - TestHandleSendMessage_EncryptionError: Skipped with TODO (requires mocking infrastructure for Phase 10)
-    - Removed invalid code attempting to corrupt User.PublicKey (field doesn't exist in domain)
-
-**Test Results**:
-
-- 10 of 11 tests PASS (TestHandleSendMessage_* suite)
-- 1 test SKIP (EncryptionError - deferred to Phase 10 mocking infrastructure)
-- No collision errors - SQL logs show unique usernames with full UUIDs
-- Parallel execution successful without 409 Conflict errors
-- All TestHandleSendMessage_Success, InvalidTokenSignature, EmptyMessage, MultipleReceivers tests passing
-
-**Coverage/Quality Metrics**:
-
-- internal/shared/util/random/random.go: GenerateUsernameSimple() collision fixed
-- internal/learn/server/send_test.go: 10/11 tests passing, 1 deferred
-- All commits passed pre-commit hooks (golangci-lint, markdown, etc.)
-- Build clean: `go build ./internal/learn/...`
-
-**Root Cause Analysis (UUIDv7 Collision)**:
-
-- **Issue**: UUIDv7 has ~100µs time resolution for uniqueness
-- **Trigger**: Truncating to 8 chars lost uniqueness for calls within same millisecond
-- **Evidence**: Multiple tests generated identical prefix "user_019b6961"
-- **Result**: 409 Conflict errors (username already exists in database)
-- **Fix**: Use full UUID (36 chars) guarantees uniqueness even for rapid parallel calls
-- **Trade-off**: Longer usernames acceptable for test isolation vs collision risk
-
-**Lessons Learned**:
-
-1. Full UUID (36 chars) guarantees uniqueness vs truncated 8-char prefix collision
-2. Time-based identifiers (UUIDv7) require full representation for parallel contexts
-3. Truncation creates collision windows that parallel execution exposes
-4. Test data generators must be collision-resistant under concurrent execution
-5. Skipping tests with TODOs is acceptable when mocking infrastructure unavailable
-
-**Constraints Discovered**:
-
-- UUIDv7 truncation loses uniqueness guarantee (time-based collision window)
-- User.PublicKey field doesn't exist in domain.User struct (JWKs stored separately in MessageRecipientJWK)
-- Encryption error testing requires JWKGenService mocking (not available until Phase 10)
-
-**Requirements Discovered**: NONE
-
-**Violations Found**: NONE (all linting passing, tests fixed or properly skipped)
-
-**Next Steps**:
-
-1. ~~Phase 8.9: Replace "localhost" literals with cryptoutilMagic.HostnameLocalhost~~ ✅ COMPLETE
-2. **CRITICAL**: Phase 11 ServiceTemplate extraction (blocks future service migrations)
-3. Phase 10: Add mocking infrastructure for EncryptionError test (deferred)
-
-**Related Commits**:
-
-- cddf15bf: Phase 8.8 Part 3 Fix UUIDv7 collision (remove truncation)
-- 65cca77e: Phase 8.8 Part 3 Test cleanup (error message assertion + skip encryption test)
-
----
-
-### 2025-12-24 Session 3: Phase 8.9 Localhost Magic Constants
-
-**Work Completed**:
-
-Phase 8.9: Replace all "localhost" string literals with cryptoutilMagic.HostnameLocalhost constant
-
-**Implementation Details**:
-
-1. **Scope Identification**: Searched internal/learn/**/*.go for all "localhost" occurrences
-   - Found 15 total occurrences across 5 files
-   - Patterns identified: TLS DNS names arrays, OTLP endpoint URLs
-
-2. **Files Modified** (5 files, 15 replacements):
-   - internal/learn/server/helpers_test.go (3 occurrences)
-     - Line 116: TLS DNS names `[]string{"localhost"}` → `[]string{cryptoutilMagic.HostnameLocalhost}`
-     - Line 80: OTLP endpoint in DefaultAppConfig()
-     - Line 101: OTLP endpoint in telemetrySettings
-   - internal/learn/server/server_lifecycle_test.go (5 occurrences)
-     - Lines 34, 56, 77, 98: TLS DNS names arrays (4 test functions)
-     - Line 123: OTLP endpoint in TestNewPublicServer_NilTLSConfig
-   - internal/learn/server/server.go (2 occurrences)
-     - Line 84: Public TLS config DNS names (kept "learn-im-server" as second element)
-     - Line 101: Admin TLS config DNS names
-   - internal/learn/integration/concurrent_test.go (1 occurrence)
-     - Line 34: OTLP endpoint in initTestConfig()
-     - Added cryptoutilMagic import
-   - internal/learn/e2e/helpers_e2e_test.go (3 occurrences)
-     - Line 94: OTLP endpoint in telemetrySettings
-     - Line 109: TLS DNS names in createTestPublicServer
-
-3. **Pattern Applied**:
-   - TLS DNS names: `[]string{"localhost"}` → `[]string{cryptoutilMagic.HostnameLocalhost}`
-   - OTLP endpoints: `"grpc://localhost:4317"` → `"grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317"`
-
-4. **Verification**:
-   - Ran tests: 16 tests passing (server_lifecycle_test.go, helpers_test.go, concurrent_test.go)
-   - All pre-commit hooks passing (golangci-lint auto-fix, markdown linting, CI/CD checks)
-   - No TODO/FIXME violations
-
-**Coverage/Quality Metrics**:
-
-- Tests: 16 PASS, 0 FAIL
-- Coverage: Maintained (no new uncovered lines)
-- Linting: Clean (golangci-lint mnd requirements satisfied)
-- Mutation: Not run (no logic changes, only constant substitution)
-
-**Lessons Learned**:
-
-1. **Magic Constant Benefits**:
-   - Centralized network configuration (HostnameLocalhost in magic_network.go)
-   - Satisfies golangci-lint mnd (magic number detector) requirements
-   - Improves maintainability (change once, affects all references)
-   - Enables IDE refactoring support (rename constant, update all usages)
-
-2. **Pattern Consistency**:
-   - URL construction with concatenation maintains clarity
-   - TLS DNS names arrays directly use constant
-   - Pattern established in Phase 8.2 (other magic constants) applied successfully
-
-3. **Import Management**:
-   - Most files already had cryptoutilMagic import
-   - Added import to concurrent_test.go (only file missing it)
-   - golangci-lint auto-fix handled import organization
-
-4. **Comment Preservation**:
-   - Comments containing "localhost" left unchanged (e.g., "TLS config with localhost subject")
-   - Only code literals replaced, not documentation
-
-**Constraints Discovered**: NONE
-
-**Requirements Discovered**: NONE
-
-**Violations Found**: NONE (all linting passing, tests passing)
-
-**Next Steps**:
-
-1. **CRITICAL**: Phase 11 ServiceTemplate extraction (highest priority, blocks future service migrations)
-2. Phase 10: Add mocking infrastructure for EncryptionError test (deferred from Phase 8.8)
-3. Continue with remaining phases from SERVICE-TEMPLATE.md
-
-**Related Commits**:
-
-- 7228b849: Phase 8.9 localhost magic constants (15 replacements, 5 files, 16 tests passing)
-
----
-
-### 2025-12-24 Session 6: Phase 8.13 Password Replacement
-
-**Work Completed**:
-
-Phase 8.13: Replace ALL 18 hardcoded test passwords with cryptoutilRandom.GeneratePasswordSimple()
-
-**Implementation Details**:
-
-1. **Python Batch Replacement** (fix_passwords.py - temporary):
-   - Created automated script to replace hardcoded password literals
-   - Pattern: Replace `"password123"`, `"MySecurePassword123!"`, etc. with password generation
-   - Execution: Replaced 15 of 18 passwords automatically (3 required manual fixes)
-   - Limitation: Script replaced string literals but didn't insert generation code logic
-
-2. **Manual Corrections Required** (6 edits across 2 files):
-   - **login_test.go** (6 manual edits):
-     - TestHandleLoginUser_Success: Added password generation before registration
-     - TestHandleLoginUser_WrongPassword: Generated 2 distinct passwords (correct + wrong)
-     - TestHandleLoginUser_UserNotFound: Added password generation
-     - TestHandleLoginUser_CorruptPasswordHash: Added password generation  
-     - TestHandleLoginUser_HexDecodeError: Added password generation
-     - TestHandleLoginUser_EmptyCredentials: Added password generation
-   - **receive_delete_test.go** (1 import addition):
-     - Added `cryptoutilRandom "cryptoutil/internal/shared/util/random"` import (lines 6-18)
-     - Python script missed this file's import requirement
-
-3. **Files Modified** (5 files, 18 total password replacements):
-   - internal/learn/server/register_test.go: 6 passwords
-   - internal/learn/server/login_test.go: 7 passwords (manual fixes)
-   - internal/learn/server/send_test.go: 1 password
-   - internal/learn/server/receive_delete_test.go: 1 password + import
-   - internal/learn/crypto/password_test.go: 3 passwords
-
-4. **Test Validation**:
-   - Initial server tests hit 2-minute timeout (8 tests still running, 40+ passed)
-   - Root cause: CPU-intensive RSA key generation (4000+ goroutines active)
-   - Solution: Increased timeout from 2min to 5min for server tests
-   - Final result: ALL tests passing including race detector
-   - Zero compilation errors after manual corrections
-
-**Coverage/Quality Metrics**:
-
-- **Server tests**: 48+ tests PASS (registration 8, login 4, send 11, delete 4, lifecycle 7, init 9)
-- **Crypto tests**: 7 tests PASS (hash, verify, compare operations)
-- **E2E tests**: 7 tests PASS (browser health, encryption flows, deletion)
-- **Coverage**: Maintained at ≥95% (no regression)
-- **Compilation**: Zero errors (all manual fixes successful)
-- **Pattern**: Random generation working correctly across all test files
-
-**Test Execution Pattern**:
+**Pattern**:
 
 ```go
-// Import (required in each test file):
-cryptoutilRandom "cryptoutil/internal/shared/util/random"
-
-// Password generation (before each use):
-password, err := cryptoutilRandom.GeneratePasswordSimple()
-require.NoError(t, err)
-
-// For WrongPassword tests (need 2 different passwords):
-correctPassword, err := cryptoutilRandom.GeneratePasswordSimple()
-require.NoError(t, err)
-
-wrongPassword, err := cryptoutilRandom.GeneratePasswordSimple()
-require.NoError(t, err)
+password: "Abc123!@#xyz", // pragma: allowlist secret - Test vector for validation logic
 ```
 
-**Lessons Learned**:
+**Rationale**: These are INTENTIONAL test data with specific character patterns to validate realm rules. Not actual secrets.
 
-1. **Python Batch Replacement Limitations**:
-   - Successfully replaced hardcoded string literals
-   - Couldn't determine WHERE to insert password generation logic
-   - Manual review and correction required for complex test scenarios
-   - Future: Generate AST-aware replacements vs simple string substitution
+**Success Criteria**:
 
-2. **Test Timeout Allocation**:
-   - Server tests with crypto operations need 5-10 minute timeouts
-   - 2-minute timeout insufficient for RSA key generation pools
-   - Goroutine analysis confirms tests progressing normally (not deadlocked)
-   - Performance: ~30-40s average for endpoint tests, up to 80s for complex scenarios
+- [ ] All 12 hardcoded passwords have pragma comment
+- [ ] Comment explains WHY hardcoded (test vectors, not secrets)
+- [ ] Tests still pass: `go test ./internal/learn/server -v -run TestRealm`
 
-3. **Random Generation Benefits**:
-   - Zero hardcoded secrets (aligns with copilot instructions)
-   - Each test run uses unique passwords (better isolation)
-   - Prevents accidental password reuse across test scenarios
-   - Pattern validated across 18 replacements in 5 files
+**Evidence Required**:
 
-4. **Manual Correction Patterns**:
-   - WrongPassword tests need 2 distinct password calls
-   - Import additions often missed by batch scripts
-   - Error handling (`require.NoError(t, err)`) needed after each generation
-   - Password generation MUST occur before registration, not inline
-
-**Constraints Discovered**:
-
-- RSA key generation spawns 4000+ goroutines (by design for parallel key pools)
-- Test timeouts need 10× increase for race detector mode (overhead ~10×)
-- Windows TIME_WAIT delays require dynamic port allocation (port 0) for sequential tests
-
-**Requirements Discovered**: NONE (all work aligned with existing copilot instructions)
-
-**Violations Found**: NONE (all linting passing, tests passing, pre-commit hooks passing)
-
-**Next Steps**:
-
-1. **Phase 3-6 Refactoring** (MEDIUM): Complete barrier encryption integration for JWK storage
-2. **Phase 9.3** (LOW): TestMain pattern for E2E/integration tests (deferred - lightweight SQLite)
-3. **Future Service Migrations**: ServiceTemplate pattern validated, ready for jose-ja, pki-ca, identity
-
-**Related Commits**:
-
-- 029680a8: Phase 8.13 COMPLETE - replace all hardcoded passwords (18 replacements, 5 files)
-- Python script (fix_passwords.py) deleted after commit (temporary tool, no longer needed)
+```powershell
+# Verify no hardcoded passwords WITHOUT pragma:
+grep -n '"password"' internal/learn/server/realm_validation_test.go | grep -v "pragma: allowlist secret"
+# Should return ZERO results
+```
 
 ---
+
+### Phase 3: context.TODO() Replacement (QUICK WIN)
+
+**Priority**: HIGH (Q2: Replace with context.Background)
+
+**Files to Modify**:
+
+1. `internal/learn/server/server_lifecycle_test.go:40`
+2. `internal/learn/server/register_test.go:355`
+
+**Pattern**:
+
+```go
+// Before:
+_, err = server.NewPublicServer(context.TODO(), ...)
+
+// After:
+_, err = server.NewPublicServer(context.Background(), ...)
+```
+
+**Success Criteria**:
+
+- [ ] Zero context.TODO() in learn-im: `grep -r "context.TODO()" internal/learn/` = 0 results
+- [ ] Tests still pass
+
+**Evidence Required**: grep output showing zero matches
+
+---
+
+### Phase 4: Switch Statement Conversion (HIGH)
+
+**Priority**: HIGH (copilot instruction 03-01.coding.instructions.md)
+
+**Files to Modify**:
+
+1. `internal/learn/server/handlers.go` - Convert if/else if/else chains
+
+**Pattern**:
+
+```go
+// Before:
+if username == "" {
+    return c.Status(400).JSON(...)
+} else if password == "" {
+    return c.Status(400).JSON(...)
+} else if len(username) < 3 {
+    return c.Status(400).JSON(...)
+}
+
+// After:
+switch {
+case username == "":
+    return c.Status(400).JSON(...)
+case password == "":
+    return c.Status(400).JSON(...)
+case len(username) < 3:
+    return c.Status(400).JSON(...)
+}
+```
+
+**Success Criteria**:
+
+- [ ] All validation chains converted to switch
+- [ ] golangci-lint passes
+- [ ] Tests still pass
+
+---
+
+### Phase 5: Quality Gates Execution (CRITICAL - EVIDENCE REQUIRED)
+
+**Priority**: CRITICAL (06-01.evidence-based.instructions.md)
+
+**MANDATORY**: Capture ALL output to files for evidence
+
+#### 5A. Build Validation
+
+```powershell
+go build ./internal/learn/... 2>&1 | Tee-Object -FilePath ./test-output/learn_build_evidence.txt
+```
+
+**Success**: Zero errors
+
+#### 5B. Linting Validation
+
+```powershell
+golangci-lint run ./internal/learn/... 2>&1 | Tee-Object -FilePath ./test-output/learn_lint_evidence.txt
+```
+
+**Success**: Zero violations (no exceptions allowed)
+
+#### 5C. Test Validation
+
+```powershell
+go test ./internal/learn/... -v -timeout=10m 2>&1 | Tee-Object -FilePath ./test-output/learn_test_evidence.txt
+```
+
+**Success**: All tests pass, zero skips
+
+#### 5D. Coverage Validation
+
+```powershell
+go test ./internal/learn/... -coverprofile=./test-output/learn_coverage.out -timeout=10m
+go tool cover -func=./test-output/learn_coverage.out | Tee-Object -FilePath ./test-output/learn_coverage_summary.txt
+go tool cover -html=./test-output/learn_coverage.out -o ./test-output/learn_coverage.html
+```
+
+**Success**:
+
+- Production code (server/, crypto/): ≥95% coverage
+- Infrastructure (repository/): ≥98% coverage
+
+#### 5E. Mutation Testing
+
+```powershell
+gremlins unleash --tags="~integration,~e2e" ./internal/learn/... 2>&1 | Tee-Object -FilePath ./test-output/learn_mutation_evidence.txt
+```
+
+**Success**: ≥80% mutation efficacy (Phase 8 target)
+
+#### 5F. Race Detection
+
+```powershell
+go test ./internal/learn/... -race -count=2 -timeout=15m 2>&1 | Tee-Object -FilePath ./test-output/learn_race_evidence.txt
+```
+
+**Success**: Zero race conditions detected
+
+**Evidence Files Created**:
+
+- `./test-output/learn_build_evidence.txt`
+- `./test-output/learn_lint_evidence.txt`
+- `./test-output/learn_test_evidence.txt`
+- `./test-output/learn_coverage_summary.txt`
+- `./test-output/learn_coverage.html`
+- `./test-output/learn_mutation_evidence.txt`
+- `./test-output/learn_race_evidence.txt`
+
+---
+
+### Phase 6: Phases 3-6 Refactoring (User Sequence 3→5→4→6)
+
+**Priority**: MEDIUM (Q3: Do TestMain first, then 3,5,4,6)
+**User Decision**: Complete in order 3→5→4→6 (NOT defer to separate spec)
+
+#### Phase 3: Remove Obsolete Database Tables
+
+**Tables to Remove**:
+
+- users_jwks
+- users_messages_jwks
+- messages_jwks
+
+**Files to Modify**:
+
+- Migration files in `internal/learn/repository/migrations/`
+- Schema files
+- Any queries/models referencing obsolete tables
+
+**Success Criteria**:
+
+- [ ] Tables removed from migrations
+- [ ] No code references obsolete tables: `grep -r "users_jwks\|users_messages_jwks\|messages_jwks" internal/learn/`
+- [ ] Tests pass with new schema
+
+#### Phase 5: Use EncryptBytesWithContext Pattern
+
+**Files to Modify**:
+
+- `internal/learn/crypto/jwe_message_util.go` - Update encryption calls
+- Any files calling old encryption functions
+
+**Pattern**:
+
+```go
+// Before:
+ciphertext, err := encryptFunction(plaintext, key)
+
+// After:
+ciphertext, err := jweMessageUtil.EncryptBytesWithContext(ctx, plaintext, key)
+```
+
+**Success Criteria**:
+
+- [ ] All encryption calls use EncryptBytesWithContext
+- [ ] All decryption calls use DecryptBytesWithContext
+- [ ] Tests pass
+
+#### Phase 4: Implement Barrier Encryption for JWKs
+
+**Files to Modify**:
+
+- JWK storage/retrieval code
+- Database models for JWK columns
+
+**Pattern**: Integrate barrier encryption from KMS barrier package
+
+**Success Criteria**:
+
+- [ ] JWKs encrypted at rest with barrier pattern
+- [ ] Tests verify encryption/decryption
+- [ ] E2E tests pass
+
+#### Phase 6: Manual Key Rotation Admin API
+
+**Files to Create/Modify**:
+
+- `internal/learn/server/admin_handlers.go` - New admin endpoints
+- Admin API routes registration
+
+**Endpoints**:
+
+- `POST /admin/v1/keys/rotate` - Trigger manual rotation
+- `GET /admin/v1/keys/status` - View current key status
+
+**Success Criteria**:
+
+- [ ] Admin endpoints implemented
+- [ ] OpenAPI spec updated
+- [ ] E2E tests verify rotation works
+
+---
+
+## COMPLETION EVIDENCE CHECKLIST
+
+**CRITICAL**: Do NOT claim completion without ALL evidence below
+
+### Code Quality Evidence
+
+- [ ] `learn_build_evidence.txt` - Zero build errors
+- [ ] `learn_lint_evidence.txt` - Zero linting violations
+- [ ] `learn_test_evidence.txt` - All tests pass, zero skips
+
+### Coverage Evidence
+
+- [ ] `learn_coverage_summary.txt` - Shows ≥95% production, ≥98% infrastructure
+- [ ] `learn_coverage.html` - Visual proof of coverage
+
+### Mutation Evidence
+
+- [ ] `learn_mutation_evidence.txt` - Shows ≥80% mutation efficacy
+
+### Race Evidence
+
+- [ ] `learn_race_evidence.txt` - Zero race conditions
+
+### Compliance Evidence
+
+- [ ] Zero hardcoded passwords (except realm_validation with pragma)
+- [ ] Zero context.TODO() usage
+- [ ] All if/else chains converted to switch
+- [ ] All files <500 lines (HARD LIMIT)
+- [ ] TestMain pattern implemented
+
+### Git Evidence
+
+- [ ] Clean working tree: `git status` shows no uncommitted changes
+- [ ] Conventional commit message with evidence summary
+- [ ] All evidence files committed to repository
+
+---
+
+## COMMIT MESSAGE TEMPLATE
+
+```
+feat(learn-im): complete service template migration with evidence
+
+PHASES COMPLETED:
+- Phase 0: File size analysis (all <500 lines)
+- Phase 1: TestMain pattern (3+ packages, X% speedup)
+- Phase 2: Pragma allowlist for realm_validation (12 passwords)
+- Phase 3: context.TODO() replacement (2 instances)
+- Phase 4: Switch statement conversion (handlers.go)
+- Phase 5: Quality gates with evidence capture
+- Phase 3-6: Database cleanup, barrier encryption, key rotation
+
+EVIDENCE PROVIDED:
+- Build: PASS (learn_build_evidence.txt)
+- Linting: PASS (learn_lint_evidence.txt)
+- Tests: PASS (learn_test_evidence.txt)
+- Coverage: X% production / X% infrastructure (learn_coverage_summary.txt)
+- Mutation: X% efficacy (learn_mutation_evidence.txt)
+- Race: PASS (learn_race_evidence.txt)
+
+COMPLIANCE:
+- 02-07.cryptography: Secure random enforced (18 passwords replaced, 12 pragma added)
+- 03-01.coding: Switch statements enforced (handlers.go converted)
+- 03-02.testing: TestMain pattern implemented (3+ packages)
+- 03-07.linting: Zero violations (full run passed)
+- 06-01.evidence-based: ALL evidence files committed
+
+Refs: Phase 8.13 complete, Q1-Q5 QUIZME decisions implemented
+```
+
+---
+
+## SUCCESS CRITERIA
+
+This migration is COMPLETE when:
+
+1. **All Phases Done**: 0,1,2,3,4,5,3-6 executed in sequence
+2. **All Evidence Files Created**: 7 evidence files in ./test-output/
+3. **All Quality Gates Pass**: Build, lint, test, coverage, mutation, race
+4. **Zero Violations**: No hardcoded passwords (except pragma), no context.TODO(), no if/else chains, no files >500 lines
+5. **Git Clean**: All changes committed with evidence-based proof
+6. **User Validation**: User confirms evidence files prove completion
+
+**DO NOT mark complete until ALL evidence exists and user reviews.**

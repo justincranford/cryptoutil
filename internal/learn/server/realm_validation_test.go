@@ -23,22 +23,22 @@ func TestValidatePasswordForRealm_ValidPasswords(t *testing.T) {
 	}{
 		{
 			name:     "default realm - valid password with all character types",
-			password: "Abc123!@#xyz",
+			password: "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation
 			realm:    cryptoutilTemplateServer.DefaultRealm(),
 		},
 		{
 			name:     "default realm - minimum length with variety",
-			password: "Aa1!Bb2@Cc3#",
+			password: "Aa1!Bb2@Cc3#", // pragma: allowlist secret - Test vector for realm validation
 			realm:    cryptoutilTemplateServer.DefaultRealm(),
 		},
 		{
 			name:     "enterprise realm - strong password",
-			password: "Enterprise2025!SecurePass",
+			password: "Enterprise2025!SecurePass", // pragma: allowlist secret - Test vector for realm validation
 			realm:    cryptoutilTemplateServer.EnterpriseRealm(),
 		},
 		{
 			name:     "enterprise realm - exactly 16 chars with variety",
-			password: "Entr1se!2025Pasx",
+			password: "Entr1se!2025Pasx", // pragma: allowlist secret - Test vector for realm validation
 			realm:    cryptoutilTemplateServer.EnterpriseRealm(),
 		},
 	}
@@ -64,61 +64,61 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 	}{
 		{
 			name:        "nil realm",
-			password:    "ValidPass123!",
+			password:    "ValidPass123!", // pragma: allowlist secret - Test vector for realm validation
 			realm:       nil,
 			expectedErr: "realm configuration is nil",
 		},
 		{
 			name:        "too short for default realm",
-			password:    "Abc1!",
+			password:    "Abc1!", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must be at least 12 characters long",
 		},
 		{
 			name:        "too short for enterprise realm",
-			password:    "Abc123!@#xyz",
+			password:    "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.EnterpriseRealm(),
 			expectedErr: "password must be at least 16 characters long",
 		},
 		{
 			name:        "missing uppercase",
-			password:    "abc123!@#xyz",
+			password:    "abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one uppercase letter",
 		},
 		{
 			name:        "missing lowercase",
-			password:    "ABC123!@#XYZ",
+			password:    "ABC123!@#XYZ", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one lowercase letter",
 		},
 		{
 			name:        "missing digit",
-			password:    "Abcdefg!@#xy",
+			password:    "Abcdefg!@#xy", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one digit",
 		},
 		{
 			name:        "missing special character",
-			password:    "Abc123456xyz",
+			password:    "Abc123456xyz", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least one special character",
 		},
 		{
 			name:        "insufficient unique characters",
-			password:    "Aaaa1111!!!!",
+			password:    "Aaaa1111!!!!", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must contain at least 8 unique characters",
 		},
 		{
 			name:        "too many consecutive repeated characters (default)",
-			password:    "Abc1aaaa23!@",
+			password:    "Abc1aaaa23!@", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.DefaultRealm(),
 			expectedErr: "password must not contain more than 3 consecutive repeated characters",
 		},
 		{
 			name:        "too many consecutive repeated characters (enterprise)",
-			password:    "Enterprise2025!aaa",
+			password:    "Enterprise2025!aaa", // pragma: allowlist secret - Test vector for realm validation
 			realm:       cryptoutilTemplateServer.EnterpriseRealm(),
 			expectedErr: "password must not contain more than 2 consecutive repeated characters",
 		},
