@@ -43,11 +43,11 @@ func DefaultAppConfig() *AppConfig {
 		RecipientsMinCount: cryptoutilSharedMagic.LearnRecipientsMinCount,
 		RecipientsMaxCount: cryptoutilSharedMagic.LearnRecipientsMaxCount,
 		JWTSecret:          "", // MUST be provided at runtime (no default secret).
-	Realms: map[string]*cryptoutilTemplateServer.RealmConfig{
-		"default":    cryptoutilTemplateServer.DefaultRealm(),
-		"enterprise": cryptoutilTemplateServer.EnterpriseRealm(),
-	},
-}
+		Realms: map[string]*cryptoutilTemplateServer.RealmConfig{
+			"default":    cryptoutilTemplateServer.DefaultRealm(),
+			"enterprise": cryptoutilTemplateServer.EnterpriseRealm(),
+		},
+	}
 }
 
 // GetRealmConfig retrieves a realm configuration by name with fallback to default.

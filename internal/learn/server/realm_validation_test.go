@@ -5,9 +5,10 @@
 package server
 
 import (
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 	"strings"
 	"testing"
+
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
 	"github.com/stretchr/testify/require"
 )
