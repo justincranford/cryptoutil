@@ -70,6 +70,7 @@ func TestVerifyPassword_InvalidHashLength(t *testing.T) {
 
 	password, err := cryptoutilRandom.GeneratePasswordSimple()
 	require.NoError(t, err)
+
 	invalidHash := []byte{1, 2, 3} // Too short.
 
 	match, err := VerifyPassword(password, invalidHash)
