@@ -9,7 +9,6 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -31,13 +30,11 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-// testUser represents a user with their private key for testing.
+// testUser represents a user with their authentication token for testing.
 type testUser struct {
-	ID         googleUuid.UUID
-	Username   string
-	PrivateKey []byte // ECDH private key (for decryption).
-	PublicKey  []byte // ECDH public key.
-	Token      string // JWT authentication token.
+	ID       googleUuid.UUID
+	Username string
+	Token    string // JWT authentication token.
 }
 
 // initTestDB creates an in-memory SQLite database with schema.
@@ -246,21 +243,13 @@ func registerUser(t *testing.T, client *http.Client, baseURL, username, password
 	userID, err := googleUuid.Parse(respBody["user_id"])
 	require.NoError(t, err)
 
-	publicKeyBytes, err := hex.DecodeString(respBody["public_key"])
-	require.NoError(t, err)
-
-	privateKeyBytes, err := hex.DecodeString(respBody["private_key"])
-	require.NoError(t, err)
-
 	// Login to get JWT token.
 	token := loginUser(t, client, baseURL, username, password)
 
 	return &testUser{
-		ID:         userID,
-		Username:   username,
-		PrivateKey: privateKeyBytes,
-		PublicKey:  publicKeyBytes,
-		Token:      token,
+		ID:       userID,
+		Username: username,
+		Token:    token,
 	}
 }
 
@@ -369,21 +358,13 @@ func registerUserBrowser(t *testing.T, client *http.Client, baseURL, username, p
 	userID, err := googleUuid.Parse(respBody["user_id"])
 	require.NoError(t, err)
 
-	publicKeyBytes, err := hex.DecodeString(respBody["public_key"])
-	require.NoError(t, err)
-
-	privateKeyBytes, err := hex.DecodeString(respBody["private_key"])
-	require.NoError(t, err)
-
 	// Login to get JWT token.
 	token := loginUserBrowser(t, client, baseURL, username, password)
 
 	return &testUser{
-		ID:         userID,
-		Username:   username,
-		PrivateKey: privateKeyBytes,
-		PublicKey:  publicKeyBytes,
-		Token:      token,
+		ID:       userID,
+		Username: username,
+		Token:    token,
 	}
 }
 

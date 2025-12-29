@@ -23,10 +23,9 @@ type RegisterUserRequest struct {
 
 // RegisterUserResponse represents the response after successful registration.
 type RegisterUserResponse struct {
-	UserID     string `json:"user_id"`     // Created user ID.
-	PublicKey  string `json:"public_key"`  // User's ECDH public key (hex-encoded).
-	PrivateKey string `json:"private_key"` // User's ECDH private key (hex-encoded, for testing only).
+	UserID string `json:"user_id"` // Created user ID.
 }
+
 
 // LoginUserRequest represents the request to login.
 type LoginUserRequest struct {
@@ -75,18 +74,6 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// Generate ECDH key pair for message encryption.
-	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
-	if err != nil {
-		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to generate encryption keys",
-		})
-	}
-
-	// Extract private key bytes.
-	privateKeyBytes := privateKey.Bytes()
-
 	// Hash password using PBKDF2-HMAC-SHA256.
 	passwordHash, err := cryptoutilCrypto.HashPassword(req.Password)
 	if err != nil {
@@ -100,8 +87,6 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	passwordHashHex := hex.EncodeToString(passwordHash)
 
 	// Create user.
-	// NOTE: ECDH keys are ephemeral per-message in current implementation.
-	// Phase 5 will implement 3-table design with JWE multi-recipient encryption.
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     req.Username,
@@ -109,10 +94,6 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
-
-	// NOTE: ECDH key generation removed - ephemeral per-message (Phase 5 3-table design).
-	_ = publicKeyBytes  // Will be removed in Phase 5.
-	_ = privateKeyBytes // Will be removed in Phase 5.
 
 	if err := s.userRepo.Create(c.Context(), user); err != nil {
 		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
@@ -124,9 +105,7 @@ func (s *PublicServer) handleRegisterUser(c *fiber.Ctx) error {
 	// Return response.
 	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 	return c.Status(fiber.StatusCreated).JSON(RegisterUserResponse{
-		UserID:     user.ID.String(),
-		PublicKey:  hex.EncodeToString(publicKeyBytes),
-		PrivateKey: hex.EncodeToString(privateKeyBytes),
+		UserID: user.ID.String(),
 	})
 }
 

@@ -6,17 +6,13 @@ package server_test
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 )
 
@@ -327,67 +323,6 @@ func TestHandleSendMessage_EncryptionError(t *testing.T) {
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-}
-
-// TestHandleSendMessage_ReceiverPublicKeyParseError tests parsing error on receiver's public key.
-func TestHandleSendMessage_ReceiverPublicKeyParseError(t *testing.T) {
-	t.Parallel()
-
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
-
-	sender := registerAndLoginTestUser(t, client, baseURL)
-
-	ctx := context.Background()
-
-	receiverID := googleUuid.New()
-	privateKey, _, err := cryptoutilCrypto.GenerateECDHKeyPair()
-	require.NoError(t, err)
-
-	privateKeyBytes := privateKey.Bytes()
-	_ = privateKeyBytes
-	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
-	require.NoError(t, err)
-
-	passwordHashHex := hex.EncodeToString(passwordHash)
-
-	receiver := &cryptoutilDomain.User{
-		ID:           receiverID,
-		Username:     "receiver",
-		PasswordHash: passwordHashHex,
-
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	err = db.Create(receiver).Error
-	require.NoError(t, err)
-
-	sendReq := map[string]any{
-		"message":      "Test message",
-		"receiver_ids": []string{receiverID.String()},
-	}
-	sendJSON, err := json.Marshal(sendReq)
-	require.NoError(t, err)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, baseURL+"/service/api/v1/messages/tx", bytes.NewReader(sendJSON))
-	require.NoError(t, err)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+sender.Token)
-
-	resp, err := client.Do(req)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-
-	var result map[string]any
-
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	require.NoError(t, err)
-	require.Equal(t, "failed to parse receiver public key", result["error"])
 }
 
 // TestHandleSendMessage_MultipleReceivers tests sending message to multiple receivers.

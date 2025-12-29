@@ -8,7 +8,6 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -21,7 +20,6 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilCrypto "cryptoutil/internal/learn/crypto"
 	cryptoutilDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
@@ -265,16 +263,6 @@ func registerTestUser(t *testing.T, client *http.Client, baseURL, username, pass
 
 	userID, err := googleUuid.Parse(respBody["user_id"])
 	require.NoError(t, err)
-
-	publicKeyBytes, err := hex.DecodeString(respBody["public_key"])
-	require.NoError(t, err)
-
-	pubKey, err := cryptoutilCrypto.ParseECDHPublicKey(publicKeyBytes)
-	require.NoError(t, err)
-
-	// NOTE: Public key parsing will be removed in Phase 5 (ephemeral per-message in 3-table design).
-	_ = publicKeyBytes
-	_ = pubKey
 
 	return &cryptoutilDomain.User{
 		ID:       userID,

@@ -32,12 +32,6 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
 	require.NoError(t, err)
 
-	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
-	require.NoError(t, err)
-
-	_ = privateKey
-	_ = publicKeyBytes
-
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
 		Username:     "loginuser",
@@ -85,12 +79,6 @@ func TestHandleLoginUser_WrongPassword(t *testing.T) {
 
 	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
 	require.NoError(t, err)
-
-	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
-	require.NoError(t, err)
-
-	_ = privateKey
-	_ = publicKeyBytes
 
 	user := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
@@ -234,15 +222,6 @@ func TestHandleLoginUser_HexDecodeError(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.New()
-	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
-	require.NoError(t, err)
-
-	privateKeyBytes := privateKey.Bytes()
-	_ = publicKeyBytes
-	_ = privateKeyBytes
-	_ = publicKeyBytes
-	_ = privateKeyBytes
-
 	user := &cryptoutilDomain.User{
 		ID:           userID,
 		Username:     "testuser",
@@ -251,7 +230,7 @@ func TestHandleLoginUser_HexDecodeError(t *testing.T) {
 		UpdatedAt:    time.Now(),
 	}
 
-	err = db.Create(user).Error
+	err := db.Create(user).Error
 	require.NoError(t, err)
 
 	loginReq := map[string]string{

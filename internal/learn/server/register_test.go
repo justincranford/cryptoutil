@@ -53,13 +53,6 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotEmpty(t, respBody["user_id"])
-	require.NotEmpty(t, respBody["public_key"])
-
-	publicKeyBytes, err := hex.DecodeString(respBody["public_key"])
-	require.NoError(t, err)
-
-	const expectedPublicKeyLength = 65 // X9.62 uncompressed format.
-	require.Len(t, publicKeyBytes, expectedPublicKeyLength)
 }
 
 func TestHandleRegisterUser_UsernameTooShort(t *testing.T) {
@@ -136,12 +129,6 @@ func TestHandleRegisterUser_DuplicateUsername(t *testing.T) {
 
 	passwordHash, err := cryptoutilCrypto.HashPassword("password123")
 	require.NoError(t, err)
-
-	privateKey, publicKeyBytes, err := cryptoutilCrypto.GenerateECDHKeyPair()
-	require.NoError(t, err)
-
-	_ = privateKey
-	_ = publicKeyBytes
 
 	existingUser := &cryptoutilDomain.User{
 		ID:           googleUuid.New(),
