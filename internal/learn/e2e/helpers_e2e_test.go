@@ -7,7 +7,6 @@ package e2e_test
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -23,11 +22,7 @@ import (
 
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // testUser represents a user with their authentication token for testing.
@@ -76,7 +71,7 @@ func initTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-// createTestPublicServer creates a PublicServer for testing.
+// createTestPublicServer creates a PublicServer for testing using shared resources from TestMain.
 func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, string) {
 	t.Helper()
 
@@ -86,35 +81,15 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	messageRepo := repository.NewMessageRepository(db)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
-	// Initialize telemetry for JWKGenService (minimal config for e2e tests).
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "learn-im-e2e",
-		OTLPEnabled:  false, // E2E tests use in-process telemetry only.
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317",
-	}
-
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
-	require.NoError(t, err)
-
-	// Initialize JWK Generation Service for message encryption.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
-	require.NoError(t, err)
+	// Get shared resources initialized in TestMain (reuse telemetry, JWK gen, TLS).
+	_, sharedJWKGenService, sharedTLSConfig, _ := getSharedResources(t)
 
 	// Use port 0 for dynamic allocation (prevents port conflicts in tests).
 	const testPort = 0
-
-	// TLS config with localhost subject.
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	require.NoError(t, err)
-
 	const testJWTSecret = "learn-im-test-secret-e2e"
 
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, testJWTSecret, tlsCfg)
+	// Create server using shared JWK generation service and TLS configuration.
+	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, messageRecipientJWKRepo, sharedJWKGenService, testJWTSecret, sharedTLSConfig)
 	require.NoError(t, err)
 
 	// Start server in background.
@@ -177,18 +152,14 @@ func createHTTPClient(t *testing.T) *http.Client {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
-			},
-		},
-		Timeout: cryptoutilMagic.LearnDefaultTimeout, // Increased for concurrent test execution (matches server tests).
-	}
-}
-
-// loginUser logs in a user and returns JWT token.
-func loginUser(t *testing.T, client *http.Client, baseURL, username, password string) string {
+			},returns the shared HTTP client initialized in TestMain.
+func createHTTPClient(t *testing.T) *http.Client {
 	t.Helper()
 
-	reqBody := map[string]string{
-		"username": username,
+	// Get shared HTTP client from TestMain (reuse across all tests).
+	_, _, _, sharedHTTPClient := getSharedResources(t)
+
+	return sharedHTTPClient"username": username,
 		"password": password,
 	}
 	reqJSON, err := json.Marshal(reqBody)

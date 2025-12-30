@@ -34,7 +34,7 @@
 - [ ] Scan for `0.0.0.0` bindings in test files
 - [ ] Scan for hardcoded ports (`:8080`, `:9090`)
 - [ ] Replace with `cryptoutilMagic.IPv4Loopback` and port `:0`
-- [ ] Verify no Windows Firewall prompts during test runs
+- [ ] Verify no Windows Firewall prompts during test runs (i.e. server.test.exe built by Go)
 - [ ] Add detection to lint-go-test
 
 ### ⏳ Phase 4: context.TODO() Replacement
