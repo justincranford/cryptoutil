@@ -14,6 +14,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"cryptoutil/internal/learn/repository"
+	"cryptoutil/internal/learn/server/apis"
+	"cryptoutil/internal/learn/server/realms"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -28,6 +30,10 @@ type PublicServer struct {
 	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository // Per-recipient decryption keys
 	jwkGenService           *cryptoutilJose.JWKGenService             // JWK generation for message encryption
 	jwtSecret               string                                    // JWT signing secret for authentication
+
+	// Handlers (composition pattern).
+	authnHandler   *realms.AuthnHandler
+	messageHandler *apis.MessageHandler
 
 	app         *fiber.App
 	mu          sync.RWMutex
@@ -80,6 +86,12 @@ func NewPublicServer(
 		tlsMaterial:             tlsMaterial,
 	}
 
+	// Create realms handler (authentication/authorization).
+	s.authnHandler = realms.NewAuthnHandler(userRepo, jwtSecret)
+
+	// Create apis handler (business logic).
+	s.messageHandler = apis.NewMessageHandler(messageRepo, messageRecipientJWKRepo, jwkGenService)
+
 	s.registerRoutes()
 
 	return s, nil
@@ -92,19 +104,19 @@ func (s *PublicServer) registerRoutes() {
 	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
 
 	// User management endpoints (authentication - no JWT required).
-	s.app.Post("/service/api/v1/users/register", s.handleRegisterUser)
-	s.app.Post("/service/api/v1/users/login", s.handleLoginUser)
-	s.app.Post("/browser/api/v1/users/register", s.handleRegisterUser)
-	s.app.Post("/browser/api/v1/users/login", s.handleLoginUser)
+	s.app.Post("/service/api/v1/users/register", s.authnHandler.HandleRegisterUser())
+	s.app.Post("/service/api/v1/users/login", s.authnHandler.HandleLoginUser())
+	s.app.Post("/browser/api/v1/users/register", s.authnHandler.HandleRegisterUser())
+	s.app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUser())
 
 	// Business logic endpoints (message operations - JWT required).
-	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.handleSendMessage)
-	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.handleReceiveMessages)
-	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.handleDeleteMessage)
+	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
+	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
 
-	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.handleSendMessage)
-	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.handleReceiveMessages)
-	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.handleDeleteMessage)
+	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
+	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
 }
 
 // handleServiceHealth returns health status for service-to-service clients.
