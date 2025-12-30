@@ -34,6 +34,8 @@ type PublicServer struct {
 	shutdown    bool
 	actualPort  int
 	tlsMaterial *cryptoutilConfig.TLSMaterial
+	ctx         context.Context
+	cancel      context.CancelFunc
 }
 
 // NewPublicServer creates a new learn-im public server.
@@ -147,10 +149,16 @@ func (s *PublicServer) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
+	// Create cancellable context for server lifecycle management.
+	s.mu.Lock()
+	s.ctx, s.cancel = context.WithCancel(ctx)
+	serverCtx := s.ctx
+	s.mu.Unlock()
+
 	// Create TCP listener.
 	listenConfig := &net.ListenConfig{}
 
-	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, s.port))
+	listener, err := listenConfig.Listen(serverCtx, "tcp", fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, s.port))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}
@@ -183,7 +191,7 @@ func (s *PublicServer) Start(ctx context.Context) error {
 
 	// Wait for either context cancellation or server error.
 	select {
-	case <-ctx.Done():
+	case <-serverCtx.Done():
 		// Context cancelled - trigger graceful shutdown.
 		const shutdownTimeout = 5
 
@@ -192,7 +200,7 @@ func (s *PublicServer) Start(ctx context.Context) error {
 
 		_ = s.Shutdown(shutdownCtx)
 
-		return fmt.Errorf("public server stopped: %w", ctx.Err())
+		return fmt.Errorf("public server stopped: %w", serverCtx.Err())
 	case err := <-errChan:
 		return err
 	}
@@ -208,6 +216,11 @@ func (s *PublicServer) Shutdown(ctx context.Context) error {
 	}
 
 	s.shutdown = true
+
+	// Cancel the server context to unblock Start() method.
+	if s.cancel != nil {
+		s.cancel()
+	}
 
 	if s.app != nil {
 		if err := s.app.Shutdown(); err != nil {

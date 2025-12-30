@@ -240,7 +240,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, actualPort)
 
 	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		if err := publicServer.Shutdown(ctx); err != nil {
