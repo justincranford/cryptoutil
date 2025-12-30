@@ -23,6 +23,7 @@
 
 ### ⏳ Phase 0.2: TestMain Pattern (PARTIAL)
 
+- [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 - [x] server/testmain_test.go created
 - [x] crypto/testmain_test.go created
 - [x] template/server/test_main_test.go created
