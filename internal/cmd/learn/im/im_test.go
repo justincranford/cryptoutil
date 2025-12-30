@@ -178,7 +178,9 @@ func TestInitDatabase_InvalidScheme(t *testing.T) {
 // TestInitPostgreSQL_ConnectionError tests PostgreSQL connection error handling.
 func TestInitPostgreSQL_ConnectionError(t *testing.T) {
 	// Remove t.Parallel() - prevent cross-test pollution.
-	ctx := context.Background()
+	// Use 1-second timeout for fast failure (was 5.4s with no timeout).
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 
 	// Use invalid connection string (nonexistent server).
 	db, err := initPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname")
