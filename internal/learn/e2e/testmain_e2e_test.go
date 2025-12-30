@@ -10,10 +10,8 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
@@ -26,7 +24,7 @@ import (
 var (
 	sharedTelemetryService *cryptoutilTelemetry.TelemetryService
 	sharedJWKGenService    *cryptoutilJose.JWKGenService
-	sharedTLSConfig        *cryptoutilConfig.TLSSettings
+	sharedTLSConfig        *cryptoutilTLSGenerator.TLSGeneratedSettings
 	sharedHTTPClient       *http.Client
 )
 
@@ -51,22 +49,22 @@ func TestMain(m *testing.M) {
 	// Initialize shared JWK generation service.
 	sharedJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, sharedTelemetryService, false)
 	if err != nil {
-		_ = sharedTelemetryService.Shutdown(ctx)
+		sharedTelemetryService.Shutdown()
 		panic("failed to initialize shared JWK generation service: " + err.Error())
 	}
 
-	// Initialize shared TLS configuration.
+	// Initialize shared TLS configuration (for server).
 	sharedTLSConfig, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
-		_ = sharedTelemetryService.Shutdown(ctx)
+		sharedTelemetryService.Shutdown()
 		panic("failed to generate shared TLS configuration: " + err.Error())
 	}
 
-	// Initialize shared HTTP client.
+	// Initialize shared HTTP client (for test requests).
 	sharedHTTPClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -80,17 +78,14 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	// Cleanup shared resources.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	_ = sharedTelemetryService.Shutdown(shutdownCtx)
+	sharedTelemetryService.Shutdown()
 
 	os.Exit(exitCode)
 }
 
 // getSharedResources returns the shared test resources.
 // Each test creates its own database and server, but reuses telemetry, JWK gen, TLS, and HTTP client.
-func getSharedResources(t *testing.T) (*cryptoutilTelemetry.TelemetryService, *cryptoutilJose.JWKGenService, *cryptoutilConfig.TLSSettings, *http.Client) {
+func getSharedResources(t *testing.T) (*cryptoutilTelemetry.TelemetryService, *cryptoutilJose.JWKGenService, *cryptoutilTLSGenerator.TLSGeneratedSettings, *http.Client) {
 	t.Helper()
 
 	require.NotNil(t, sharedTelemetryService, "shared telemetry service must be initialized in TestMain")

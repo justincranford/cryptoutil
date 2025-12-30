@@ -144,22 +144,22 @@ func intToString(n int) string {
 	return intToString(n/10) + string(rune('0'+(n%10)))
 }
 
-// createHTTPClient creates an HTTP client that trusts self-signed certificates.
-func createHTTPClient(t *testing.T) *http.Client {
-	t.Helper()
-
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
-			},returns the shared HTTP client initialized in TestMain.
+// createHTTPClient returns the shared HTTP client initialized in TestMain.
 func createHTTPClient(t *testing.T) *http.Client {
 	t.Helper()
 
 	// Get shared HTTP client from TestMain (reuse across all tests).
 	_, _, _, sharedHTTPClient := getSharedResources(t)
 
-	return sharedHTTPClient"username": username,
+	return sharedHTTPClient
+}
+
+// loginUser logs in a user and returns JWT token.
+func loginUser(t *testing.T, client *http.Client, baseURL, username, password string) string {
+	t.Helper()
+
+	reqBody := map[string]string{
+		"username": username,
 		"password": password,
 	}
 	reqJSON, err := json.Marshal(reqBody)
