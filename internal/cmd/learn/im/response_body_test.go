@@ -26,7 +26,6 @@ func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is healthy")
-	require.Empty(t, output)
 }
 
 // TestIM_HealthSubcommand_UnhealthyNoBody tests health check unhealthy with no body.
@@ -44,8 +43,6 @@ func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 		exitCode := IM([]string{"health", "--url", server.URL + "/health"})
 		require.Equal(t, 1, exitCode, "Health should fail with 503")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Service is unhealthy")
 	require.Contains(t, output, "503")
 }
@@ -67,7 +64,6 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is alive")
-	require.Empty(t, output)
 }
 
 // TestIM_LivezSubcommand_NotAliveNoBody tests livez not alive with no body.
@@ -85,8 +81,6 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 		exitCode := IM([]string{"livez", "--url", server.URL + "/livez"})
 		require.Equal(t, 1, exitCode, "Livez should fail with 503")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Service is not alive")
 	require.Contains(t, output, "503")
 }
@@ -112,7 +106,6 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Shutdown initiated")
-	require.Empty(t, output)
 }
 
 // TestIM_ShutdownSubcommand_FailedNoBody tests shutdown failure with no body.
@@ -130,8 +123,6 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 		exitCode := IM([]string{"shutdown", "--url", server.URL + "/shutdown"})
 		require.Equal(t, 1, exitCode, "Shutdown should fail with 500")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Shutdown request failed")
 	require.Contains(t, output, "500")
 }
@@ -159,7 +150,6 @@ func TestIM_HealthSubcommand_LargeBody(t *testing.T) {
 
 	require.Contains(t, output, "✅ Service is healthy")
 	require.Contains(t, output, string(largeBody))
-	require.Empty(t, output)
 }
 
 // TestIM_ShutdownSubcommand_PartialBodyRead tests shutdown with body read error simulation.
@@ -186,7 +176,6 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Shutdown initiated")
-	require.Empty(t, output)
 }
 
 // TestIM_HealthSubcommand_DefaultURL tests health check without --url flag (uses default).
@@ -198,8 +187,6 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 		exitCode := IM([]string{"health"})
 		require.Equal(t, 1, exitCode, "Health check should fail when no server running")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Health check failed:")
 	require.True(t,
 		containsAny(output, []string{
@@ -219,8 +206,6 @@ func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
 		exitCode := IM([]string{"livez"})
 		require.Equal(t, 1, exitCode, "Livez check should fail when no server running")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Liveness check failed:")
 	require.True(t,
 		containsAny(output, []string{

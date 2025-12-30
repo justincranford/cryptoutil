@@ -27,8 +27,6 @@ func TestIM_HealthSubcommand_UnhealthyWithBody(t *testing.T) {
 		exitCode := IM([]string{"health", "--url", server.URL + "/health"})
 		require.Equal(t, 1, exitCode, "Health should fail with 503")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Service is unhealthy")
 	require.Contains(t, output, "503")
 	require.Contains(t, output, errorMessage, "Should include error message from response body")
@@ -51,8 +49,6 @@ func TestIM_LivezSubcommand_NotAliveWithBody(t *testing.T) {
 		exitCode := IM([]string{"livez", "--url", server.URL + "/livez"})
 		require.Equal(t, 1, exitCode, "Livez should fail with 503")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Service is not alive")
 	require.Contains(t, output, "503")
 	require.Contains(t, output, errorMessage, "Should include error message from response body")
@@ -79,7 +75,6 @@ func TestIM_HealthSubcommand_SuccessWithBody(t *testing.T) {
 	require.Contains(t, output, "✅ Service is healthy")
 	require.Contains(t, output, "200")
 	require.Contains(t, output, responseBody, "Should include response body in output")
-	require.Empty(t, output)
 }
 
 // TestIM_LivezSubcommand_AliveWithBody tests livez alive with response body.
@@ -103,5 +98,4 @@ func TestIM_LivezSubcommand_AliveWithBody(t *testing.T) {
 	require.Contains(t, output, "✅ Service is alive")
 	require.Contains(t, output, "200")
 	require.Contains(t, output, responseBody, "Should include response body in output")
-	require.Empty(t, output)
 }

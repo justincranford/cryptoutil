@@ -34,7 +34,6 @@ func TestIM_HealthSubcommand_URLWithHealthSuffix(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is healthy")
-	require.Empty(t, output)
 }
 
 // TestIM_LivezSubcommand_URLWithLivezSuffix tests livez check preserves /livez suffix.
@@ -62,7 +61,6 @@ func TestIM_LivezSubcommand_URLWithLivezSuffix(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is alive")
-	require.Empty(t, output)
 }
 
 // TestIM_ReadyzSubcommand_URLWithReadyzSuffix tests readyz check preserves /readyz suffix.
@@ -90,7 +88,6 @@ func TestIM_ReadyzSubcommand_URLWithReadyzSuffix(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is ready")
-	require.Empty(t, output)
 }
 
 // TestIM_ShutdownSubcommand_URLWithShutdownSuffix tests shutdown preserves /shutdown suffix.
@@ -118,5 +115,4 @@ func TestIM_ShutdownSubcommand_URLWithShutdownSuffix(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Shutdown initiated")
-	require.Empty(t, output)
 }

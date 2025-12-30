@@ -42,7 +42,6 @@ func TestIM_HealthSubcommand_ConnectionRefused(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Health check should fail when server down")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Health check failed:")
 	// Windows: "actively refused it", Linux: "connection refused".
 	require.True(t, containsAny(output, []string{"connection refused", "actively refused"}),
@@ -60,7 +59,6 @@ func TestIM_HealthSubcommand_Non200Status(t *testing.T) {
 		require.Equal(t, 1, exitCode)
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Health check failed:")
 }
 
@@ -73,7 +71,6 @@ func TestIM_LivezSubcommand_InvalidURL(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Liveness check should fail with invalid URL")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Liveness check failed:")
 }
 
@@ -86,7 +83,6 @@ func TestIM_LivezSubcommand_ConnectionRefused(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Liveness check should fail when server down")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Liveness check failed:")
 	// Windows: "actively refused it", Linux: "connection refused".
 	require.True(t, containsAny(output, []string{"connection refused", "actively refused"}),
@@ -102,7 +98,6 @@ func TestIM_LivezSubcommand_Non200Status(t *testing.T) {
 		require.Equal(t, 1, exitCode)
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Liveness check failed:")
 }
 
@@ -115,7 +110,6 @@ func TestIM_ReadyzSubcommand_InvalidURL(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Readiness check should fail with invalid URL")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Readiness check failed:")
 }
 
@@ -128,7 +122,6 @@ func TestIM_ReadyzSubcommand_ConnectionRefused(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Readiness check should fail when server down")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Readiness check failed:")
 	// Windows: "actively refused it", Linux: "connection refused".
 	require.True(t, containsAny(output, []string{"connection refused", "actively refused"}),
@@ -144,7 +137,6 @@ func TestIM_ShutdownSubcommand_InvalidURL(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Shutdown should fail with invalid URL")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Shutdown request failed:")
 }
 
@@ -157,7 +149,6 @@ func TestIM_ShutdownSubcommand_ConnectionRefused(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Shutdown should fail when server down")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Shutdown request failed:")
 	// Windows: "actively refused it", Linux: "connection refused".
 	require.True(t, containsAny(output, []string{"connection refused", "actively refused"}),

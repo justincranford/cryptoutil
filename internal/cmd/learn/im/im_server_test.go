@@ -85,7 +85,6 @@ func TestIM_ClientSubcommand_NotImplemented(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Client subcommand should return error (not implemented)")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "Client subcommand not yet implemented")
 	require.Contains(t, output, "This will provide CLI tools for interacting with the IM service")
 }
@@ -96,7 +95,6 @@ func TestIM_ClientSubcommand_Help(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Help should return success")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "Usage: learn im client [options]")
 	require.Contains(t, output, "Run client operations for instant messaging service")
 }
@@ -107,7 +105,6 @@ func TestIM_InitSubcommand_NotImplemented(t *testing.T) {
 		require.Equal(t, 1, exitCode, "Init subcommand should return error (not implemented)")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "Init subcommand not yet implemented")
 	require.Contains(t, output, "This will initialize database schema and configuration")
 }
@@ -118,7 +115,6 @@ func TestIM_InitSubcommand_Help(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Help should return success")
 	})
 
-	require.Empty(t, output)
 	require.Contains(t, output, "Usage: learn im init [options]")
 	require.Contains(t, output, "Initialize database schema and configuration")
 }

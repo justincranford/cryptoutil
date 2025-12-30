@@ -34,7 +34,6 @@ func TestIM_HealthSubcommand_MultipleURLFlags(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is healthy")
-	require.Empty(t, output)
 }
 
 // TestIM_LivezSubcommand_URLFlagWithoutValue tests livez with --url flag but missing value.
@@ -46,8 +45,6 @@ func TestIM_LivezSubcommand_URLFlagWithoutValue(t *testing.T) {
 		exitCode := IM([]string{"livez", "--url"})
 		require.Equal(t, 1, exitCode, "Should fail with connection error to default")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Liveness check failed")
 	require.True(t,
 		containsAny(output, []string{
@@ -80,7 +77,6 @@ func TestIM_ReadyzSubcommand_ExtraArgumentsIgnored(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is ready")
-	require.Empty(t, output)
 }
 
 // TestIM_ShutdownSubcommand_URLWithoutQueryParameters tests shutdown URL handling.
@@ -107,7 +103,6 @@ func TestIM_ShutdownSubcommand_URLWithoutQueryParameters(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Shutdown initiated")
-	require.Empty(t, output)
 }
 
 // TestIM_HealthSubcommand_URLWithFragment tests health check with URL fragment (fragment should be ignored by HTTP).
@@ -134,7 +129,6 @@ func TestIM_HealthSubcommand_URLWithFragment(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is healthy")
-	require.Empty(t, output)
 }
 
 // TestIM_LivezSubcommand_URLWithUserInfo tests livez with URL containing user info (basic auth style).
@@ -166,7 +160,6 @@ func TestIM_LivezSubcommand_URLWithUserInfo(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is alive")
-	require.Empty(t, output)
 }
 
 // TestIM_ReadyzSubcommand_CaseInsensitiveHTTPStatus tests readyz response with different status code messages.
@@ -187,8 +180,6 @@ func TestIM_ReadyzSubcommand_CaseInsensitiveHTTPStatus(t *testing.T) {
 		})
 		require.Equal(t, 1, exitCode, "Non-200 status should fail")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Service is not ready")
 	require.Contains(t, output, "418")
 }

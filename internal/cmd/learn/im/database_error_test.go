@@ -67,7 +67,6 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is healthy")
-	require.Empty(t, output)
 }
 
 // TestIM_LivezSubcommand_EmptyResponse tests livez check with empty body.
@@ -92,7 +91,6 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 	})
 
 	require.Contains(t, output, "✅ Service is alive")
-	require.Empty(t, output)
 }
 
 // TestIM_ReadyzSubcommand_404NotFound tests readyz check with 404 response.
@@ -111,8 +109,6 @@ func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
 		exitCode := IM([]string{"readyz", "--url", server.URL + adminReadyzPath})
 		require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Service is not ready")
 	require.Contains(t, output, "404")
 }
@@ -133,8 +129,6 @@ func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
 		exitCode := IM([]string{"shutdown", "--url", server.URL + "/admin/v1/shutdown"})
 		require.Equal(t, 1, exitCode, "Shutdown should fail with 500 status")
 	})
-
-	require.Empty(t, output)
 	require.Contains(t, output, "❌ Shutdown request failed")
 	require.Contains(t, output, "500")
 }
