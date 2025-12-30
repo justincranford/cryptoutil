@@ -8,15 +8,12 @@ package integration
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -24,7 +21,6 @@ import (
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // initTestConfig returns an AppConfig with all required settings for tests.
@@ -45,46 +41,10 @@ func initTestConfig() *server.AppConfig {
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	ctx := context.Background()
 
-	// Generate random database password.
-	dbPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	// Use shared PostgreSQL container from TestMain (3-4s startup amortized across tests).
+	// Each test gets a fresh database connection but reuses the same container.
+	db, err := gorm.Open(postgresDriver.Open(sharedConnStr), &gorm.Config{})
 	require.NoError(t, err)
-
-	// Start PostgreSQL test-container (more realistic concurrency than SQLite).
-	pgContainer, err := postgres.Run(ctx,
-		"postgres:18-alpine",
-		postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewString())),
-		postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewString())),
-		postgres.WithPassword(dbPassword),
-	)
-	require.NoError(t, err)
-
-	defer pgContainer.Terminate(ctx) //nolint:errcheck // Cleanup
-
-	connStr, err := pgContainer.ConnectionString(ctx)
-	require.NoError(t, err)
-
-	// Disable SSL for test containers (testcontainers doesn't configure SSL by default).
-	// Append sslmode parameter (check if connStr already has query params).
-	if !strings.Contains(connStr, "?") {
-		connStr += "?sslmode=disable"
-	} else {
-		connStr += "&sslmode=disable"
-	}
-
-	// Retry connection to PostgreSQL (test-container may not be fully ready).
-	var db *gorm.DB
-
-	maxRetries := 10
-	for i := 0; i < maxRetries; i++ {
-		db, err = gorm.Open(postgresDriver.Open(connStr), &gorm.Config{})
-		if err == nil {
-			break
-		}
-
-		time.Sleep(time.Second)
-	}
-
-	require.NoError(t, err, "Failed to connect to PostgreSQL after %d retries", maxRetries)
 
 	// Create server instance (this will apply migrations via repository.ApplyMigrations).
 	cfg := initTestConfig()
