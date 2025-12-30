@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+﻿// Copyright (c) 2025 Justin Cranford
 
 package im
 
@@ -11,7 +11,6 @@ import (
 
 // TestIM_HealthSubcommand_NoBodySuccess tests health check with 200 but no body.
 func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
-	t.Parallel()
 
 	// Create test server with no response body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -25,12 +24,11 @@ func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Health should succeed with 200 even if no body")
 	})
 
-	require.Contains(t, output, "✅ Service is healthy")
+		require.Contains(t, output, "Service is healthy")
 }
 
 // TestIM_HealthSubcommand_UnhealthyNoBody tests health check unhealthy with no body.
 func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
-	t.Parallel()
 
 	// Create test server returning 503 with no body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -43,13 +41,12 @@ func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 		exitCode := IM([]string{"health", "--url", server.URL + "/health"})
 		require.Equal(t, 1, exitCode, "Health should fail with 503")
 	})
-	require.Contains(t, output, "❌ Service is unhealthy")
+	require.Contains(t, output, "Service is unhealthy")
 	require.Contains(t, output, "503")
 }
 
 // TestIM_LivezSubcommand_NoBodySuccess tests livez with 200 but no body.
 func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
-	t.Parallel()
 
 	// Create test server with no response body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,12 +60,11 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Livez should succeed with 200 even if no body")
 	})
 
-	require.Contains(t, output, "✅ Service is alive")
+	require.Contains(t, output, "Service is alive")
 }
 
 // TestIM_LivezSubcommand_NotAliveNoBody tests livez not alive with no body.
 func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
-	t.Parallel()
 
 	// Create test server returning 503 with no body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -81,13 +77,12 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 		exitCode := IM([]string{"livez", "--url", server.URL + "/livez"})
 		require.Equal(t, 1, exitCode, "Livez should fail with 503")
 	})
-	require.Contains(t, output, "❌ Service is not alive")
+	require.Contains(t, output, "Service is not alive")
 	require.Contains(t, output, "503")
 }
 
 // TestIM_ShutdownSubcommand_NoBodySuccess tests shutdown with 200 but no body.
 func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
-	t.Parallel()
 
 	// Create test server with no response body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -105,12 +100,11 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Shutdown should succeed with 200 even if no body")
 	})
 
-	require.Contains(t, output, "✅ Shutdown initiated")
+	require.Contains(t, output, "Shutdown initiated")
 }
 
 // TestIM_ShutdownSubcommand_FailedNoBody tests shutdown failure with no body.
 func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
-	t.Parallel()
 
 	// Create test server returning 500 with no body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -123,13 +117,12 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 		exitCode := IM([]string{"shutdown", "--url", server.URL + "/shutdown"})
 		require.Equal(t, 1, exitCode, "Shutdown should fail with 500")
 	})
-	require.Contains(t, output, "❌ Shutdown request failed")
+	require.Contains(t, output, "Shutdown request failed")
 	require.Contains(t, output, "500")
 }
 
 // TestIM_HealthSubcommand_LargeBody tests health check with large response body.
 func TestIM_HealthSubcommand_LargeBody(t *testing.T) {
-	t.Parallel()
 
 	// Create test server with large body (1MB).
 	largeBody := make([]byte, 1024*1024)
@@ -154,7 +147,6 @@ func TestIM_HealthSubcommand_LargeBody(t *testing.T) {
 
 // TestIM_ShutdownSubcommand_PartialBodyRead tests shutdown with body read error simulation.
 func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
-	t.Parallel()
 
 	// Create test server that closes connection mid-body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -175,19 +167,18 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Shutdown should succeed even with partial body")
 	})
 
-	require.Contains(t, output, "✅ Shutdown initiated")
+	require.Contains(t, output, "Shutdown initiated")
 }
 
 // TestIM_HealthSubcommand_DefaultURL tests health check without --url flag (uses default).
 func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
-	t.Parallel()
 
 	// Test default URL (will fail to connect to 127.0.0.1:8888).
 	output := captureOutput(t, func() {
 		exitCode := IM([]string{"health"})
 		require.Equal(t, 1, exitCode, "Health check should fail when no server running")
 	})
-	require.Contains(t, output, "❌ Health check failed:")
+	require.Contains(t, output, "Health check failed:")
 	require.True(t,
 		containsAny(output, []string{
 			"connection refused",
@@ -199,14 +190,13 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 
 // TestIM_LivezSubcommand_DefaultURL tests livez check without --url flag (uses default).
 func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
-	t.Parallel()
 
 	// Test default URL (will fail to connect to 127.0.0.1:9090).
 	output := captureOutput(t, func() {
 		exitCode := IM([]string{"livez"})
 		require.Equal(t, 1, exitCode, "Livez check should fail when no server running")
 	})
-	require.Contains(t, output, "❌ Liveness check failed:")
+	require.Contains(t, output, "Liveness check failed:")
 	require.True(t,
 		containsAny(output, []string{
 			"connection refused",

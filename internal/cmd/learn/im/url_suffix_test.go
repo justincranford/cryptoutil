@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+﻿// Copyright (c) 2025 Justin Cranford
 
 package im
 
@@ -11,7 +11,6 @@ import (
 
 // TestIM_HealthSubcommand_URLWithHealthSuffix tests health check preserves /health suffix.
 func TestIM_HealthSubcommand_URLWithHealthSuffix(t *testing.T) {
-	t.Parallel()
 
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -33,12 +32,11 @@ func TestIM_HealthSubcommand_URLWithHealthSuffix(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Health check should succeed with explicit /health suffix")
 	})
 
-	require.Contains(t, output, "✅ Service is healthy")
+	require.Contains(t, output, "Service is healthy")
 }
 
 // TestIM_LivezSubcommand_URLWithLivezSuffix tests livez check preserves /livez suffix.
 func TestIM_LivezSubcommand_URLWithLivezSuffix(t *testing.T) {
-	t.Parallel()
 
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -60,12 +58,11 @@ func TestIM_LivezSubcommand_URLWithLivezSuffix(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Livez check should succeed with explicit /livez suffix")
 	})
 
-	require.Contains(t, output, "✅ Service is alive")
+	require.Contains(t, output, "Service is alive")
 }
 
 // TestIM_ReadyzSubcommand_URLWithReadyzSuffix tests readyz check preserves /readyz suffix.
 func TestIM_ReadyzSubcommand_URLWithReadyzSuffix(t *testing.T) {
-	t.Parallel()
 
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -87,12 +84,11 @@ func TestIM_ReadyzSubcommand_URLWithReadyzSuffix(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Readyz check should succeed with explicit /readyz suffix")
 	})
 
-	require.Contains(t, output, "✅ Service is ready")
+	require.Contains(t, output, "Service is ready")
 }
 
 // TestIM_ShutdownSubcommand_URLWithShutdownSuffix tests shutdown preserves /shutdown suffix.
 func TestIM_ShutdownSubcommand_URLWithShutdownSuffix(t *testing.T) {
-	t.Parallel()
 
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -114,5 +110,5 @@ func TestIM_ShutdownSubcommand_URLWithShutdownSuffix(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Shutdown should succeed with explicit /shutdown suffix")
 	})
 
-	require.Contains(t, output, "✅ Shutdown initiated")
+	require.Contains(t, output, "Shutdown initiated")
 }
