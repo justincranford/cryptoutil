@@ -1,5 +1,24 @@
 # learn-im Service Template Migration - EXECUTION PLAN
 
+**⚠️ CRITICAL: CONTINUOUS WORK DIRECTIVE** - Read 01-02.continuous-work.instructions.md BEFORE STARTING
+
+**User's #1 Complaint**: "You violated continuous work directives AGAIN!!!"
+
+**Instructions**:
+
+- ✅ Execute ALL phases WITHOUT stopping between phases
+- ✅ Do NOT ask questions (use copilot instructions)
+- ✅ Do NOT stop for "user approval" (autonomous execution)
+- ✅ Commit work at logical checkpoints, but CONTINUE immediately
+- ✅ Only stop when ALL work in SERVICE-TEMPLATE.md is 100% complete
+
+**Violation Pattern to Avoid**:
+
+- ❌ Complete Phase 5 → Stop and wait for user
+- ✅ Complete Phase 5 → IMMEDIATELY start Phase 6 → Continue until ALL done
+
+---
+
 **CRITICAL**: Evidence-based completion per 06-01.evidence-based.instructions.md
 
 ## Your Decisions (QUIZME Answers)
@@ -104,6 +123,222 @@ Measure-Command { go test ./internal/learn/... }
 
 # Document speedup percentage
 ```
+
+---
+
+### Phase 1.5: Windows Firewall Exception Fix (CRITICAL - RECURRING REGRESSION)
+
+**Priority**: CRITICAL (Regression occurs repeatedly)
+**Rationale**: Tests binding to non-localhost addresses trigger Windows Firewall exceptions, blocking CI/CD automation
+**Root Cause Analysis Required**: Understand WHY this pattern keeps reappearing despite copilot instructions
+
+**Investigation Steps**:
+
+1. **Find Offending Tests**:
+
+```powershell
+# Search for network binding patterns in server tests
+grep -r "Listen\|Serve\|Bind" internal/learn/server/*_test.go
+grep -r '"0.0.0.0' internal/learn/server/*_test.go
+grep -r 'net\.Listen' internal/learn/server/*_test.go
+```
+
+1. **Root Cause Analysis**:
+
+- WHY do tests keep using non-localhost addresses?
+- Is it copy-paste from examples?
+- Is copilot instruction unclear?
+- Are tests starting actual HTTP servers unnecessarily?
+
+1. **Fix According to Copilot Instructions** (03-06.security.instructions.md):
+
+```go
+// ❌ WRONG: Triggers Windows Firewall exception
+listener, err := net.Listen("tcp", "0.0.0.0:8080")
+listener, err := net.Listen("tcp", ":8080")  // Defaults to 0.0.0.0
+
+// ✅ CORRECT: Bind to localhost only
+import cryptoutilMagic "cryptoutil/internal/shared/magic"
+
+addr := fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, port)  // "127.0.0.1:port"
+listener, err := net.Listen("tcp", addr)
+
+// ✅ CORRECT: Use port 0 for dynamic allocation
+listener, err := net.Listen("tcp", "127.0.0.1:0")
+actualPort := listener.Addr().(*net.TCPAddr).Port
+```
+
+1. **Add Detection in cryptoutilCmdCicdLintGotest.Lint**:
+
+**File to Modify**: `internal/cmd/cicd/lint_gotest.go`
+
+**Add Check**:
+
+```go
+// Check for Windows Firewall triggering patterns
+if strings.Contains(content, `"0.0.0.0`) || strings.Contains(content, `":8080"`) {
+    // Verify it's in a test file and likely a Listen/Serve call
+    if strings.Contains(content, "net.Listen") || strings.Contains(content, "http.Serve") {
+        violations = append(violations, fmt.Sprintf(
+            "%s: FIREWALL RISK - Test binds to non-localhost address. "+
+            "Use 127.0.0.1 or cryptoutilMagic.IPv4Loopback to prevent Windows Firewall exceptions. "+
+            "See 03-06.security.instructions.md",
+            filePath,
+        ))
+    }
+}
+```
+
+**Success Criteria**:
+
+- [ ] All tests bind to `127.0.0.1` or `cryptoutilMagic.IPv4Loopback` (NEVER `0.0.0.0`)
+- [ ] Tests use port `0` for dynamic allocation (prevents conflicts)
+- [ ] cryptoutilCmdCicdLintGotest.Lint detects and rejects `0.0.0.0` pattern
+- [ ] Root cause documented in DETAILED.md (why this keeps happening)
+- [ ] go test runs without triggering Windows Firewall exception
+
+**Evidence Required**:
+
+```powershell
+# Verify no firewall-triggering patterns
+grep -r '"0.0.0.0' internal/learn/server/*_test.go  # Should return ZERO
+grep -r '":[0-9]\{4\}"' internal/learn/server/*_test.go | grep -v ':0"'  # Should return ZERO hardcoded ports
+
+# Verify detection works
+go run ./cmd/cicd lint-go-test  # Should catch any violations
+
+# Run tests without firewall prompt
+go test ./internal/learn/server -v  # No Windows Firewall popup
+```
+
+**Root Cause Prevention**:
+
+- Document in 06-02.anti-patterns.instructions.md
+- Add to copilot instructions with examples
+- Automated detection in lint-go-test prevents recurrence
+
+---
+
+### Phase 1.6: CGO Check Consolidation (CODE ORGANIZATION)
+
+**Priority**: MEDIUM (Code cleanup, not blocking)
+**Rationale**: cryptoutilCmdCicdCheckNoCgoSqlite.Check fits better with linting prod+test code than as separate subcommand
+
+**Consolidation Steps**:
+
+1. **Read Current Implementation**:
+
+```powershell
+# Understand what check-no-cgo-sqlite does
+cat internal/cmd/cicd/check_no_cgo_sqlite.go
+```\r\n\r\n1. **Move Logic into lint_go.go**:
+
+**File to Modify**: `internal/cmd/cicd/lint_go.go`
+
+**Add to CryptoutilCmdCicdLintGo.Lint()**:
+
+```go
+func Lint(logger *Logger) error {
+    // Existing circular dependency check...
+
+    // Add: CGO-free SQLite check (moved from check_no_cgo_sqlite.go)
+    if err := checkNoCgoSqlite(logger); err != nil {
+        return fmt.Errorf("CGO SQLite check failed: %w", err)
+    }
+
+    return nil
+}
+
+func checkNoCgoSqlite(logger *Logger) error {
+    // Move implementation from check_no_cgo_sqlite.go here
+    // Check for github.com/mattn/go-sqlite3 import
+    // Ensure only modernc.org/sqlite is used
+    return nil
+}
+```
+
+1. **Update cicd.go**:
+
+**File to Modify**: `internal/cmd/cicd/cicd.go`
+
+**Remove**:
+
+```go
+import (
+    cryptoutilCmdCicdCheckNoCgoSqlite "cryptoutil/internal/cmd/cicd/check_no_cgo_sqlite"  // DELETE
+    // ... other imports ...
+)
+
+const (
+    cmdCheckNoCgoSqlite = "check-no-cgo-sqlite" // DELETE
+)
+
+switch command {
+    case cmdCheckNoCgoSqlite:  // DELETE THIS CASE
+        cmdErr = cryptoutilCmdCicdCheckNoCgoSqlite.Check(logger)
+}
+```
+
+1. **Update CI/CD Workflows**:
+
+**Files to Modify**: `.github/workflows/*.yml`
+
+**Replace**:
+
+```yaml
+# Before:
+- run: go run ./cmd/cicd check-no-cgo-sqlite
+
+# After: (Already runs as part of lint-go)
+- run: go run ./cmd/cicd lint-go
+```\r\n\r\n1. **Delete Obsolete File**:
+
+```powershell
+Remove-Item internal/cmd/cicd/check_no_cgo_sqlite.go
+```\r\n\r\n1. **Update magic/magic_cicd.go**:
+
+**File to Modify**: `internal/shared/magic/magic_cicd.go`
+
+**Remove**:
+
+```go
+ValidCommands = map[string]bool{
+    "check-no-cgo-sqlite": true,  // DELETE
+    // ... other commands ...
+}
+
+UsageCICD = `...check-no-cgo-sqlite...`  // DELETE from help text
+```
+
+**Success Criteria**:
+
+- [ ] CGO check logic moved into lint_go.go
+- [ ] cicd.go no longer has check-no-cgo-sqlite case
+- [ ] check_no_cgo_sqlite.go deleted
+- [ ] CI/CD workflows updated (use lint-go only)
+- [ ] magic_cicd.go ValidCommands updated
+- [ ] go build ./cmd/cicd passes
+- [ ] go run ./cmd/cicd lint-go includes CGO check
+
+**Evidence Required**:
+
+```powershell
+# Verify check-no-cgo-sqlite removed
+grep -r "check-no-cgo-sqlite" .  # Should only find in git history, not current files
+
+# Verify lint-go includes CGO check
+go run ./cmd/cicd lint-go 2>&1 | grep -i "cgo\|sqlite"  # Should show CGO check running
+
+# Build validation
+go build ./cmd/cicd
+```
+
+**Rationale**:
+
+- No-CGO import checking is a LINTING activity (checking code quality/compliance)
+- Fits naturally with other lint-go checks (circular dependencies)
+- Reduces number of subcommands (simpler CLI)
+- Consolidates related checks in one place
 
 ---
 

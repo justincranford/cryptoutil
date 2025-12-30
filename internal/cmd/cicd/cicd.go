@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilCmdCicdCheckNoCgoSqlite "cryptoutil/internal/cmd/cicd/check_no_cgo_sqlite"
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	cryptoutilCmdCicdFormatGo "cryptoutil/internal/cmd/cicd/format_go"
 	cryptoutilCmdCicdFormatGotest "cryptoutil/internal/cmd/cicd/format_gotest"
@@ -24,14 +23,13 @@ import (
 )
 
 const (
-	cmdLintText         = "lint-text"           // [Linter] Text file linters (UTF-8 encoding).
-	cmdLintWorkflow     = "lint-workflow"       // [Linter] Workflow file linters (GitHub Actions).
-	cmdLintGo           = "lint-go"             // [Linter] Go package linters (circular dependencies).
-	cmdFormatGo         = "format-go"           // [Formatter] Go file formatters (any, copyloopvar).
-	cmdLintGoTest       = "lint-go-test"        // [Linter] Go test file linters (test patterns).
-	cmdFormatGoTest     = "format-go-test"      // [Formatter] Go test file formatters (t.Helper).
-	cmdLintGoMod        = "lint-go-mod"         // [Linter] Go module linters (dependency updates).
-	cmdCheckNoCgoSqlite = "check-no-cgo-sqlite" // [Checker] Verify CGO-free SQLite usage.
+	cmdLintText     = "lint-text"      // [Linter] Text file linters (UTF-8 encoding).
+	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
+	cmdLintGo       = "lint-go"        // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
+	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
+	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
+	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
+	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
 )
 
 // Run executes the specified CI/CD check commands.
@@ -80,8 +78,6 @@ func Run(commands []string) error {
 			cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, filesByExtension)
 		case cmdLintGoMod:
 			cmdErr = cryptoutilCmdCicdLintGoMod.Lint(logger)
-		case cmdCheckNoCgoSqlite:
-			cmdErr = cryptoutilCmdCicdCheckNoCgoSqlite.Check(logger)
 		}
 
 		cmdDuration := time.Since(cmdStart)
