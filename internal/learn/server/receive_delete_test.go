@@ -131,11 +131,9 @@ func TestHandleDeleteMessage_InvalidID(t *testing.T) {
 func TestHandleDeleteMessage_NotFound(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
-
 	sender := registerAndLoginTestUser(t, client, baseURL)
 
 	messageID := googleUuid.New()
@@ -162,7 +160,6 @@ func TestHandleDeleteMessage_NotFound(t *testing.T) {
 func TestHandleReceiveMessages_MissingToken(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -182,11 +179,9 @@ func TestHandleReceiveMessages_MissingToken(t *testing.T) {
 func TestHandleDeleteMessage_MissingToken(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
-
 	messageID := googleUuid.New()
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID.String(), nil)
@@ -310,11 +305,9 @@ func TestHandleDeleteMessage_RepositoryError(t *testing.T) {
 func TestHandleReceiveMessages_EmptyInbox(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
-
 	receiver := registerAndLoginTestUser(t, client, baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", http.NoBody)
@@ -471,11 +464,9 @@ func TestHandleReceiveMessages_MultipleMessages(t *testing.T) {
 func TestHandleDeleteMessage_EmptyID(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
-
 	user := registerAndLoginTestUser(t, client, baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/", nil)
