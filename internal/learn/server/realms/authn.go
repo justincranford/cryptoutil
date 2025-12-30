@@ -13,6 +13,7 @@ import (
 	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	cryptoutilLearnRepo "cryptoutil/internal/learn/repository"
 	cryptoutilLearnServerUtil "cryptoutil/internal/learn/server/util"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthnHandler handles authentication operations (login, register).
@@ -52,10 +53,18 @@ func (h *AuthnHandler) HandleRegisterUser() fiber.Handler {
 			})
 		}
 
-		// Validate username format (alphanumeric, 3-20 characters).
-		if !isValidUsername(req.Username) {
+		// Validate username length (3-50 characters).
+		if len(req.Username) < cryptoutilSharedMagic.LearnMinUsernameLength ||
+			len(req.Username) > cryptoutilSharedMagic.LearnMaxUsernameLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Username must be alphanumeric and 3-20 characters",
+				"error": "username must be 3-50 characters",
+			})
+		}
+
+		// Validate password length (minimum 8 characters).
+		if len(req.Password) < cryptoutilSharedMagic.LearnMinPasswordLength {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "password must be at least 8 characters",
 			})
 		}
 
@@ -93,7 +102,7 @@ func (h *AuthnHandler) HandleRegisterUser() fiber.Handler {
 		}
 
 		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-			"id":       user.ID.String(),
+			"user_id":  user.ID.String(),
 			"username": user.Username,
 		})
 	}
@@ -154,26 +163,4 @@ func (h *AuthnHandler) HandleLoginUser() fiber.Handler {
 			"expires_at": expiresAt.Format(time.RFC3339),
 		})
 	}
-}
-
-// isValidUsername checks if username is alphanumeric and 3-20 characters.
-func isValidUsername(username string) bool {
-	const (
-		minUsernameLength = 3
-		maxUsernameLength = 32
-	)
-	if len(username) < minUsernameLength ||
-		len(username) > maxUsernameLength {
-		return false
-	}
-
-	for _, char := range username {
-		if !((char >= 'a' && char <= 'z') ||
-			(char >= 'A' && char <= 'Z') ||
-			(char >= '0' && char <= '9')) {
-			return false
-		}
-	}
-
-	return true
 }
