@@ -8,25 +8,29 @@
 ## 📊 QUICK PROGRESS TRACKER
 
 ### ✅ Phase 0: File Size Analysis
+
 - [ ] Run file size scan for files >400 lines
 - [ ] Document files approaching 500-line hard limit
 - [ ] Create refactoring plan for oversized files
 
 ### ⏳ Phase 1: TestMain Pattern (PARTIAL)
+
 - [x] server/testmain_test.go created
-- [x] crypto/testmain_test.go created  
+- [x] crypto/testmain_test.go created
 - [x] template/server/test_main_test.go created
 - [ ] e2e/testmain_e2e_test.go needs creation
 - [ ] integration/testmain_integration_test.go needs creation
 - [ ] Measure test speedup (before/after)
 
 ### ⏳ Phase 2: Hardcoded Password Fixes (PARTIAL)
+
 - [x] Replaced 18 GeneratePasswordSimple() instances
 - [ ] Add pragma allowlist comments to 12 realm_validation_test.go passwords
 - [ ] Verify no new hardcoded passwords added
 - [ ] Run realm validation tests
 
 ### ⏳ Phase 3: Windows Firewall Exception Fix
+
 - [ ] Scan for `0.0.0.0` bindings in test files
 - [ ] Scan for hardcoded ports (`:8080`, `:9090`)
 - [ ] Replace with `cryptoutilMagic.IPv4Loopback` and port `:0`
@@ -34,17 +38,20 @@
 - [ ] Add detection to lint-go-test
 
 ### ⏳ Phase 4: context.TODO() Replacement
+
 - [ ] Replace context.TODO() in server_lifecycle_test.go:40
 - [ ] Replace context.TODO() in register_test.go:355
 - [ ] Verify zero context.TODO() in internal/learn
 - [ ] Run tests to confirm behavior unchanged
 
 ### ⏳ Phase 5: Switch Statement Conversion
+
 - [ ] Convert if/else chains to switch in handlers.go
 - [ ] Verify golangci-lint passes
 - [ ] Run handler tests
 
 ### ⏳ Phase 6: Quality Gates Execution
+
 - [ ] 6A: Build validation → learn_build_evidence.txt
 - [ ] 6B: Linting validation → learn_lint_evidence.txt
 - [ ] 6C: Test validation → learn_test_evidence.txt
@@ -55,6 +62,7 @@
 - [ ] 6F: Race detection → learn_race_evidence.txt (zero races)
 
 ### ⏳ Phase 7a: Remove Obsolete Database Tables
+
 - [ ] Remove users_jwks table
 - [ ] Remove users_messages_jwks table
 - [ ] Remove messages_jwks table
@@ -63,7 +71,9 @@
 - [ ] Run tests with new schema
 
 ### ⏳ Phase 7c: Implement Barrier Encryption for JWKs
+
 **NOTE**: Must complete BEFORE Phase 7b
+
 - [ ] Integrate KMS barrier encryption pattern
 - [ ] Update JWK storage to use barrier encryption
 - [ ] Update JWK retrieval to use barrier decryption
@@ -71,13 +81,16 @@
 - [ ] Run E2E tests
 
 ### ⏳ Phase 7b: Use EncryptBytesWithContext Pattern
+
 **NOTE**: Depends on Phase 7c completion
+
 - [ ] Update jwe_message_util.go to use EncryptBytesWithContext
 - [ ] Replace old encryption calls with context-aware version
 - [ ] Replace old decryption calls with context-aware version
 - [ ] Run encryption tests
 
 ### ⏳ Phase 7d: Manual Key Rotation Admin API
+
 - [ ] Create admin_handlers.go with rotation endpoints
 - [ ] Add POST /admin/v1/keys/rotate endpoint
 - [ ] Add GET /admin/v1/keys/status endpoint
@@ -85,6 +98,7 @@
 - [ ] Add E2E tests for rotation
 
 ### ⏳ Phase 1.6: CGO Check Consolidation
+
 - [ ] Consolidate CGO detection logic
 - [ ] Document CGO requirements
 - [ ] Add tests for CGO detection
@@ -98,31 +112,35 @@
 Based on test run from test-output/all_tests_output.txt:
 
 #### 1. internal/cmd/learn (1 failure)
+
 - **TestPrintIMVersion**: Expected exit code 0, got 1
 - **Root Cause**: Version command returning non-zero status
 - **Fix Needed**: Investigate version command exit code logic
 
 #### 2. internal/cmd/learn/im (36 failures)
+
 - **Database Migration Issues**:
-  - "index idx_users_username already exists" 
+  - "index idx_users_username already exists"
   - "Dirty database version 1"
   - **Fix Needed**: Add IF NOT EXISTS to CREATE INDEX, add migration cleanup
-  
+
 - **Docker Compatibility**:
   - TestInitDatabase_PostgreSQL panics: "rootless Docker is not supported on Windows"
   - **Fix Needed**: Skip PostgreSQL tests on Windows OR use non-rootless mode
-  
+
 - **Output Assertion Failures**:
   - Tests expect empty output but get Unicode error messages
   - **Fix Needed**: Normalize output or fix encoding in assertions
 
 #### 3. internal/learn/server (TIMEOUT)
+
 - **Test hung for 902.850s** (15 minutes)
 - **Goroutine Analysis**: 1500+ goroutines blocked in IO wait
 - **Servers listening** on 127.0.0.1:8080 and 127.0.0.1:9090
 - **Fix Needed**: Add proper shutdown/cleanup to server tests
 
 #### 4. internal/shared/config (1 failure)
+
 - **TestAnalyzeSettings_RealSettings**: Duplicate shorthands [R C R C]
 - **Fix Needed**: Deduplicate command-line flag shorthands
 
@@ -175,6 +193,7 @@ Based on test run from test-output/all_tests_output.txt:
 ### Evidence Required for Completion
 
 **NO PHASE IS COMPLETE WITHOUT**:
+
 1. ✅ All checkboxes marked
 2. ✅ Evidence files created in ./test-output/
 3. ✅ Post-mortem analysis written
@@ -184,6 +203,7 @@ Based on test run from test-output/all_tests_output.txt:
 ### Quality Gates (Phase 6)
 
 **MANDATORY** for claiming completion:
+
 - Build: Zero errors
 - Linting: Zero violations (no exceptions)
 - Tests: All pass, zero skips
@@ -194,6 +214,7 @@ Based on test run from test-output/all_tests_output.txt:
 ### File Size Limits
 
 **Per copilot instruction 03-01.coding.instructions.md**:
+
 - Soft: 300 lines (ideal)
 - Medium: 400 lines (acceptable with justification)
 - **Hard: 500 lines (NEVER EXCEED)**
@@ -202,6 +223,7 @@ Based on test run from test-output/all_tests_output.txt:
 ### Git Hygiene
 
 **NEVER commit without**:
+
 - Conventional commit message format
 - Reference to evidence files
 - Tests passing
@@ -216,7 +238,7 @@ Based on test run from test-output/all_tests_output.txt:
 The following phases are marked complete in backup but **LACK POST-MORTEMS**:
 
 1. Phase 8.11: Magic constants migration
-2. Phase 8.12: Magic constants consolidation  
+2. Phase 8.12: Magic constants consolidation
 3. Phase 8.13: Password generation (18 instances)
 4. Phase 9.2: TOTP test data fields
 5. Phase 18: Service instantiation extraction
@@ -250,6 +272,7 @@ The following phases are marked complete in backup but **LACK POST-MORTEMS**:
 ### Tools to Update (User Request)
 
 Per original user request, these still need review/updates:
+
 - [ ] Pre-commit hooks configuration
 - [ ] GitHub workflows (13 workflow files)
 - [ ] Python scripts (need to identify which ones)
