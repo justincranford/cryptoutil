@@ -1,13 +1,25 @@
 # Learn-IM Service Template Migration - Active Tasks
 
 **Last Updated**: 2025-12-30
-**Status**: 8/15 phases remaining
+**Status**: 10/17 phases remaining
 
 ---
 
 ## 📊 QUICK PROGRESS TRACKER
 
-### ⏳ Phase 0: TestMain Pattern (PARTIAL)
+### ⏳ Phase 0: Test Baseline Establishment
+
+- [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
+- [ ] Identify broken tests
+- [ ] Fix all broken tests
+
+### ⏳ Phase 0.1: Test Performance Optimization
+
+- [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
+- [ ] Identify top 10 slowest tests
+- [ ] Analyze root causes, and fix problems or make them more efficient
+
+### ⏳ Phase 0.2: TestMain Pattern (PARTIAL)
 
 - [x] server/testmain_test.go created
 - [x] crypto/testmain_test.go created
@@ -16,7 +28,7 @@
 - [ ] integration/testmain_integration_test.go needs creation
 - [ ] Measure test speedup (before/after)
 
-### ⏳ Phase 0.1: Refactor internal/learn/server/ Files
+### ⏳ Phase 0.3: Refactor internal/learn/server/ Files
 
 - [ ] Move repository code from internal/learn/server/ to internal/learn/server/repository/
 - [ ] Move authentication/authorization code from internal/learn/server/ to internal/learn/server/realms/
@@ -29,7 +41,7 @@
 - [ ] Update all imports across the codebase
 - [ ] Run all tests recursively under internal\learn to ensure no breakage
 
-### ⏳ Phase 0.2: Refactor internal/template/server/ Files
+### ⏳ Phase 0.4: Refactor internal/template/server/ Files
 
 - [ ] Move repository code from internal/template/server/ to internal/template/server/repository/
 - [ ] Move listener-related code from internal/template/server/ to internal/template/server/listener/
@@ -179,36 +191,48 @@ Based on test run from test-output/all_tests_output.txt:
    - Server tests need cleanup mechanisms
    - Config shorthands need deduplication
 
-2. **Phase 0**: File Size Analysis (IMMEDIATE)
+2. **Phase 0**: Test Baseline Establishment (IMMEDIATE)
+   - Establish test baseline and fix broken tests
+
+3. **Phase 0.1**: Test Performance Optimization
+   - Identify and fix slow tests
+
+4. **Phase 0.2**: TestMain Pattern
+   - Complete TestMain implementation
+
+5. **Phase 0.3**: Refactor internal/learn/server/ Files
+   - Code organization for learn service
+
+6. **Phase 0.4**: Refactor internal/template/server/ Files
+   - Code organization for template service
+
+7. **Complete Phase 1**: File Size Analysis
    - Independent of test failures
    - Identifies refactoring needs
 
-3. **Complete Phase 1**: TestMain for e2e/integration
-   - Can proceed after test failures fixed
-
-4. **Complete Phase 2**: Pragma comments for passwords
+8. **Complete Phase 2**: Pragma comments for passwords
    - Quick win, independent
 
-5. **Phase 3**: Windows Firewall fixes
+9. **Phase 3**: Windows Firewall fixes
    - CRITICAL recurring regression prevention
 
-6. **Phase 4**: context.TODO() replacement
-   - Quick win, code quality
+10. **Phase 4**: context.TODO() replacement
+    - Quick win, code quality
 
-7. **Phase 5**: Switch statement conversion
-   - Code quality improvement
+11. **Phase 5**: Switch statement conversion
+    - Code quality improvement
 
-8. **Phase 6**: Quality Gates
-   - **MANDATORY BEFORE** claiming any phase complete
-   - Provides evidence for completion
+12. **Phase 6**: Quality Gates
+    - **MANDATORY BEFORE** claiming any phase complete
+    - Provides evidence for completion
 
-9. **Phase 7 (Sequence: 7a → 7c → 7b → 7d)**:
-   - 7a: Remove obsolete tables
-   - 7c: Barrier encryption (prerequisite for 7b)
-   - 7b: EncryptBytesWithContext (depends on 7c)
-   - 7d: Manual rotation API
+13. **Phase 7 (Sequence: 7a → 7c → 7b → 7d)**:
+    - 7a: Remove obsolete tables
+    - 7c: Barrier encryption (prerequisite for 7b)
+    - 7b: EncryptBytesWithContext (depends on 7c)
+    - 7d: Manual rotation API
 
-10. **Phase 1.6**: CGO check consolidation
+14. **Phase 1.6**: CGO check consolidation
     - Final cleanup task
 
 ---
@@ -307,24 +331,57 @@ Per original user request, these still need review/updates:
 
 ## 🎯 NEXT IMMEDIATE ACTIONS
 
-1. **Fix Test Failures** (BLOCKING)
+1. **Phase 0: Test Baseline Establishment**
+   - Re-run all unit, integration, and e2e tests with code coverage; save the baseline
+   - Identify broken tests
+   - Fix all broken tests
+
+2. **Phase 0.1: Test Performance Optimization**
+   - Re-run all unit, integration, and e2e tests with code coverage; save the baseline
+   - Identify top 10 slowest tests
+   - Analyze root causes, and fix problems or make them more efficient
+
+3. **Fix Test Failures** (BLOCKING)
    - Read ./test-output/all_tests_output.txt for details
    - Fix database migration idempotence
    - Fix Windows Docker compatibility
    - Fix server test hangs
    - Fix config shorthand duplicates
 
-2. **Phase 0: File Size Analysis**
-   - Run scan: `Get-ChildItem -Recurse -Filter "*.go" -Path internal/learn | Where-Object { (Get-Content $_.FullName).Count -gt 400 }`
-   - Document findings
-   - Plan refactoring
-
-3. **Complete Phase 1**
+4. **Phase 0.2: Complete TestMain Pattern**
    - Create e2e/testmain_e2e_test.go
    - Create integration/testmain_integration_test.go
    - Measure speedup
 
-4. **Continue Sequential Execution**
+5. **Phase 0.3: Refactor internal/learn/server/ Files**
+   - Move repository code from internal/learn/server/ to internal/learn/server/repository/
+   - Move authentication/authorization code from internal/learn/server/ to internal/learn/server/realms/
+   - Move auth-related middleware from internal/learn/server/ to internal/learn/server/realms/
+   - Move realm validation code from internal/learn/server/ to internal/learn/server/realms/
+   - Move API handler code from internal/learn/server/ to internal/learn/server/apis/
+   - Move business logic code from internal/learn/server/ to internal/learn/server/businesslogic/
+   - Move utility functions from internal/learn/server/ to internal/learn/server/util/
+   - Leave server.go and listener-related code in internal/learn/server/ package
+   - Update all imports across the codebase
+   - Run all tests recursively under internal\learn to ensure no breakage
+
+6. **Phase 0.4: Refactor internal/template/server/ Files**
+   - Move repository code from internal/template/server/ to internal/template/server/repository/
+   - Move listener-related code from internal/template/server/ to internal/template/server/listener/
+   - Move API handler code from internal/template/server/ to internal/template/server/apis/
+   - Move authentication/authorization code from internal/template/server/ to internal/template/server/realms/
+   - Move business logic code from internal/template/server/ to internal/template/server/businesslogic/
+   - Move utility functions from internal/template/server/ to internal/template/server/util/
+   - Leave core files (service_template.go if needed) in internal/template/server/ package
+   - Update all imports across the codebase
+   - Run all tests recursively under internal\template to ensure no breakage
+
+7. **Phase 1: File Size Analysis**
+   - Run scan: `Get-ChildItem -Recurse -Filter "*.go" -Path internal/learn | Where-Object { (Get-Content $_.FullName).Count -gt 400 }`
+   - Document findings
+   - Plan refactoring
+
+8. **Continue Sequential Execution**
    - Mark checkboxes as completed
    - Create evidence files
    - Write post-mortems
