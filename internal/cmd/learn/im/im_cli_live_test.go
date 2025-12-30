@@ -31,11 +31,11 @@ func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
 	sqlDB, err := sql.Open("sqlite", uniqueDSN)
 	require.NoError(t, err)
 
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	// Apply migrations using embedded migration files.
+	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
-	// Apply migrations.
-	err = gormDB.AutoMigrate(&domain.User{}, &domain.Message{})
+	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).
@@ -83,11 +83,11 @@ func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
 	sqlDB, err := sql.Open("sqlite", uniqueDSN)
 	require.NoError(t, err)
 
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	// Apply migrations using embedded migration files.
+	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
-	// Apply migrations.
-	err = gormDB.AutoMigrate(&domain.User{}, &domain.Message{})
+	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).
@@ -137,11 +137,11 @@ func TestIM_ReadyzSubcommand_LiveServer(t *testing.T) {
 	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	require.NoError(t, err)
 
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	// Apply migrations using embedded migration files.
+	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
-	// Apply migrations.
-	err = gormDB.AutoMigrate(&domain.User{}, &domain.Message{})
+	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).
@@ -192,11 +192,11 @@ func TestIM_ShutdownSubcommand_LiveServer(t *testing.T) {
 	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	require.NoError(t, err)
 
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	// Apply migrations using embedded migration files.
+	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
-	// Apply migrations.
-	err = gormDB.AutoMigrate(&domain.User{}, &domain.Message{})
+	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
 	require.NoError(t, err)
 
 	// Create server with dynamic ports (use minimal config).

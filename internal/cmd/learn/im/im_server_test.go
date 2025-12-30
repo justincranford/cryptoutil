@@ -29,11 +29,11 @@ func TestIM_ServerSubcommand_Startup(t *testing.T) {
 
 	defer sqlDB.Close() //nolint:errcheck // Test cleanup, error not critical
 
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	// Apply migrations using embedded migration files.
+	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
-	// Apply migrations.
-	err = gormDB.AutoMigrate(&domain.User{}, &domain.Message{})
+	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
 	require.NoError(t, err)
 
 	// Start server in background goroutine.
