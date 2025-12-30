@@ -59,6 +59,9 @@ func IM(args []string) int {
 
 	// Route to subcommand.
 	switch args[0] {
+	case "version":
+		printIMVersion()
+		return 0
 	case "server":
 		return imServer(args[1:])
 	case "client":
@@ -81,11 +84,19 @@ func IM(args []string) int {
 	}
 }
 
+// printIMVersion prints the instant messaging service version information.
+func printIMVersion() {
+	fmt.Println("learn-im service")
+	fmt.Println("Part of cryptoutil learn product")
+	fmt.Println("Version information available via Docker image tags")
+}
+
 // printIMUsage prints the instant messaging service usage information.
 func printIMUsage() {
 	fmt.Fprintln(os.Stderr, `Usage: learn im <subcommand> [options]
 
 Available subcommands:
+  version     Print version information
   server      Start the instant messaging server (default)
   client      Run client operations
   init        Initialize database and configuration
