@@ -20,7 +20,6 @@
 - [ ] Identify top 10 slowest tests
 - [ ] Analyze root causes, and fix problems or make them more efficient
 - [ ] Fix all lint and format errors
-- [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 
 ### ⏳ Phase 0.2: TestMain Pattern (PARTIAL)
 
@@ -30,6 +29,7 @@
 - [ ] e2e/testmain_e2e_test.go needs creation
 - [ ] integration/testmain_integration_test.go needs creation
 - [ ] Measure test speedup (before/after)
+- [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 
 ### ⏳ Phase 0.3: Refactor internal/learn/server/ Files
 
