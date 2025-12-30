@@ -35,7 +35,7 @@ const (
 	testPort        = 0 // Use port 0 for dynamic allocation (prevents port conflicts in tests).
 )
 
-var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String()
+var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String() // TODO Use random secret in DB, protected at rest with barrier layer encryption
 
 // testUser represents a user with their authentication token for testing.
 type testUser struct {
