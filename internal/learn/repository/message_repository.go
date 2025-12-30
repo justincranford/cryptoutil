@@ -49,9 +49,11 @@ func (r *MessageRepository) FindByRecipientID(ctx context.Context, recipientID g
 	var messages []domain.Message
 
 	// JOIN messages with messages_recipient_jwks to find messages for this recipient.
+	// Preload Sender to populate sender information for response.
 	if err := getDB(ctx, r.db).WithContext(ctx).
 		Joins("JOIN messages_recipient_jwks ON messages.id = messages_recipient_jwks.message_id").
 		Where("messages_recipient_jwks.recipient_id = ?", recipientID).
+		Preload("Sender").
 		Order("messages.created_at DESC").
 		Find(&messages).Error; err != nil {
 		return nil, fmt.Errorf("failed to find messages by recipient: %w", err)

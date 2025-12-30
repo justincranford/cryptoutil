@@ -16,7 +16,8 @@ import (
 )
 
 func TestHandleSendMessage_Success(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -59,7 +60,8 @@ func TestHandleSendMessage_Success(t *testing.T) {
 }
 
 func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -94,7 +96,8 @@ func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
 }
 
 func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -130,7 +133,8 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 
 // TestHandleSendMessage_InvalidTokenFormat tests sending message with invalid Bearer token format.
 func TestHandleSendMessage_InvalidTokenFormat(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -172,7 +176,8 @@ func TestHandleSendMessage_InvalidTokenFormat(t *testing.T) {
 
 // TestHandleSendMessage_InvalidTokenSignature tests sending message with tampered JWT token.
 func TestHandleSendMessage_InvalidTokenSignature(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -217,7 +222,8 @@ func TestHandleSendMessage_InvalidTokenSignature(t *testing.T) {
 
 // TestHandleSendMessage_MissingToken tests sending message without JWT token.
 func TestHandleSendMessage_MissingToken(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -248,7 +254,8 @@ func TestHandleSendMessage_MissingToken(t *testing.T) {
 
 // TestHandleSendMessage_EmptyMessage tests sending empty message.
 func TestHandleSendMessage_EmptyMessage(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -295,7 +302,8 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 // TODO: Rewrite using mock repository instead of closing shared database.
 /*
 func TestHandleSendMessage_SaveRepositoryError(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -327,7 +335,8 @@ func TestHandleSendMessage_SaveRepositoryError(t *testing.T) {
 
 // TestHandleSendMessage_EncryptionError tests encryption failure.
 func TestHandleSendMessage_EncryptionError(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	// TODO: Implement proper encryption error testing when mocking infrastructure available.
 	// Currently difficult to trigger encryption errors without mocking JWKGenService.
@@ -338,7 +347,8 @@ func TestHandleSendMessage_EncryptionError(t *testing.T) {
 
 // TestHandleSendMessage_MultipleReceivers tests sending message to multiple receivers.
 func TestHandleSendMessage_MultipleReceivers(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
@@ -401,7 +411,8 @@ func TestHandleSendMessage_MultipleReceivers(t *testing.T) {
 
 // TestHandleSendMessage_InvalidBodyParser tests body parsing failure.
 func TestHandleSendMessage_InvalidBodyParser(t *testing.T) {
-	t.Parallel()
+	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
+	// See: learn_test_isolation_issue.txt
 
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)

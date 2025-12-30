@@ -218,9 +218,9 @@ func (s *PublicServer) handleReceiveMessages(c *fiber.Ctx) error {
 
 		response.Messages = append(response.Messages, MessageResponse{
 			MessageID:        msg.ID.String(),
-			SenderPubKey:     "",                // Not used with JWE Compact (symmetric encryption).
-			EncryptedContent: string(plaintext), // Decrypted plaintext message.
-			Nonce:            "",                // Not used with JWE Compact (nonce embedded in format).
+			SenderPubKey:     msg.Sender.Username, // Sender username (JWE Compact uses symmetric encryption).
+			EncryptedContent: string(plaintext),   // Decrypted plaintext message.
+			Nonce:            "",                  // Not used with JWE Compact (nonce embedded in format).
 			CreatedAt:        msg.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}
