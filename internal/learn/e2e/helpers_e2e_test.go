@@ -9,7 +9,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 	"testing"
 	"time"
 
@@ -23,36 +25,53 @@ import (
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
+
+// Wait for server to bind to port.
+const (
+	maxWaitAttempts = 50
+	waitInterval    = 100 * time.Millisecond
+	testPort        = 0 // Use port 0 for dynamic allocation (prevents port conflicts in tests).
+)
+
+var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String()
 
 // testUser represents a user with their authentication token for testing.
 type testUser struct {
 	ID       googleUuid.UUID // UUIDv7
 	Username string
+	Password string
 	Token    string // JWT authentication token.
 }
 
 // initTestDB creates an in-memory SQLite database with schema.
-func initTestDB(t *testing.T) *gorm.DB {
-	t.Helper()
-
+func initTestDB() (*gorm.DB, error) {
 	ctx := context.Background()
 
 	// Create unique in-memory database per test to avoid table conflicts.
 	dbID, err := googleUuid.NewV7()
-	require.NoError(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate UUIDv7: %w", err)
+	}
 
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
 
 	sqlDB, err := sql.Open("sqlite", dsn)
-	require.NoError(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open SQLite: %w", err)
+	}
 
 	// Configure SQLite for concurrent operations.
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to enable WAL: %w", err)
+	}
 
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set busy_timeout: %w", err)
+	}
 
 	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
@@ -62,35 +81,32 @@ func initTestDB(t *testing.T) *gorm.DB {
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
-	require.NoError(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open GORM DB: %w", err)
+	}
 
 	// Run migrations using embedded migration files.
 	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
-	require.NoError(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
+	}
 
-	return db
+	return db, nil
 }
 
 // createTestPublicServer creates a PublicServer for testing using shared resources from TestMain.
-func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, string) {
-	t.Helper()
-
+func createTestPublicServer(db *gorm.DB) (*server.PublicServer, string, error) {
 	ctx := context.Background()
 
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
 
-	// Get shared resources initialized in TestMain (reuse telemetry, JWK gen, TLS).
-	_, sharedJWKGenService, sharedTLSConfig, _ := getSharedResources(t)
-
-	// Use port 0 for dynamic allocation (prevents port conflicts in tests).
-	const testPort = 0
-	const testJWTSecret = "learn-im-test-secret-e2e"
-
 	// Create server using shared JWK generation service and TLS configuration.
 	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, messageRecipientJWKRepo, sharedJWKGenService, testJWTSecret, sharedTLSConfig)
-	require.NoError(t, err)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create PublicServer: %w", err)
+	}
 
 	// Start server in background.
 	errChan := make(chan error, 1)
@@ -100,12 +116,6 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 			errChan <- startErr
 		}
 	}()
-
-	// Wait for server to bind to port.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
 
 	actualPort := 0
 	for i := 0; i < maxWaitAttempts; i++ {
@@ -117,41 +127,13 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 		time.Sleep(waitInterval)
 	}
 
-	require.Greater(t, actualPort, 0, "server did not bind to port")
-
-	baseURL := "https://" + cryptoutilMagic.IPv4Loopback + ":" + intToString(actualPort)
-
-	t.Cleanup(func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		_ = publicServer.Shutdown(shutdownCtx)
-	})
-
-	return publicServer, baseURL
-}
-
-// intToString converts int to string.
-func intToString(n int) string {
-	if n < 0 {
-		return "-" + intToString(-n)
+	if actualPort <= 0 {
+		return nil, "", fmt.Errorf("server did not bind to port")
 	}
 
-	if n < 10 {
-		return string(rune('0' + n))
-	}
+	baseURL := "https://" + cryptoutilMagic.IPv4Loopback + ":" + strconv.Itoa(actualPort)
 
-	return intToString(n/10) + string(rune('0'+(n%10)))
-}
-
-// createHTTPClient returns the shared HTTP client initialized in TestMain.
-func createHTTPClient(t *testing.T) *http.Client {
-	t.Helper()
-
-	// Get shared HTTP client from TestMain (reuse across all tests).
-	_, _, _, sharedHTTPClient := getSharedResources(t)
-
-	return sharedHTTPClient
+	return publicServer, baseURL, nil
 }
 
 // loginUser logs in a user and returns JWT token.
@@ -184,8 +166,8 @@ func loginUser(t *testing.T, client *http.Client, baseURL, username, password st
 	return respBody["token"]
 }
 
-// registerUser registers a user and returns the user with private key.
-func registerUser(t *testing.T, client *http.Client, baseURL, username, password string) *testUser {
+// registerServiceUser registers a user and returns the user with private key.
+func registerServiceUser(t *testing.T, client *http.Client, baseURL, username, password string) *testUser {
 	t.Helper()
 
 	reqBody := map[string]string{
@@ -220,6 +202,7 @@ func registerUser(t *testing.T, client *http.Client, baseURL, username, password
 	return &testUser{
 		ID:       userID,
 		Username: username,
+		Password: password,
 		Token:    token,
 	}
 }
@@ -260,8 +243,8 @@ func sendMessage(t *testing.T, client *http.Client, baseURL, message, token stri
 	return respBody["message_id"]
 }
 
-// receiveMessages retrieves messages for the specified receiver.
-func receiveMessages(t *testing.T, client *http.Client, baseURL, token string) []map[string]any {
+// receiveMessagesService retrieves messages for the specified receiver.
+func receiveMessagesService(t *testing.T, client *http.Client, baseURL, token string) []map[string]any {
 	t.Helper()
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/messages/rx", nil)
@@ -283,8 +266,8 @@ func receiveMessages(t *testing.T, client *http.Client, baseURL, token string) [
 	return respBody["messages"]
 }
 
-// deleteMessage deletes a message via /service/api/v1/messages/:id.
-func deleteMessage(t *testing.T, client *http.Client, baseURL, messageID, token string) {
+// deleteMessageService deletes a message via /service/api/v1/messages/:id.
+func deleteMessageService(t *testing.T, client *http.Client, baseURL, messageID, token string) {
 	t.Helper()
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, nil)
@@ -335,6 +318,7 @@ func registerUserBrowser(t *testing.T, client *http.Client, baseURL, username, p
 	return &testUser{
 		ID:       userID,
 		Username: username,
+		Password: password,
 		Token:    token,
 	}
 }
@@ -442,4 +426,24 @@ func deleteMessageBrowser(t *testing.T, client *http.Client, baseURL, messageID,
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
+}
+
+func registerTestUserService(t *testing.T, client *http.Client, baseURL string) *testUser {
+	username, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err, "failed to generate username")
+
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err, "failed to generate password")
+
+	return registerServiceUser(t, client, baseURL, username, password)
+}
+
+func registerTestUserBrowser(t *testing.T, client *http.Client, baseURL string) *testUser {
+	username, err := cryptoutilRandom.GenerateUsernameSimple()
+	require.NoError(t, err, "failed to generate username")
+
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	require.NoError(t, err, "failed to generate password")
+
+	return registerUserBrowser(t, client, baseURL, username, password)
 }

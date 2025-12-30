@@ -1566,7 +1566,6 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
    - SubjectIPAddresses → AutoIPAddresses
    - Added Mode = TLSModeAuto
    - Added AutoValidityDays = 365
-   - http.FormatInt → intToString helper
    - NewInsecureTLSConfig → &tls.Config{InsecureSkipVerify: true}
 
 2. **SQLite CGO dependency**:

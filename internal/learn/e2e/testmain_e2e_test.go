@@ -9,10 +9,10 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
+	"cryptoutil/internal/learn/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -26,6 +26,8 @@ var (
 	sharedJWKGenService    *cryptoutilJose.JWKGenService
 	sharedTLSConfig        *cryptoutilTLSGenerator.TLSGeneratedSettings
 	sharedHTTPClient       *http.Client
+	testPublicServer       *server.PublicServer
+	baseURL                string
 )
 
 // TestMain initializes shared resources once for all E2E tests.
@@ -37,7 +39,7 @@ func TestMain(m *testing.M) {
 		LogLevel:     "info",
 		OTLPService:  "learn-im-e2e-shared",
 		OTLPEnabled:  false, // E2E tests use in-process telemetry only.
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317",
+		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + strconv.Itoa(int(cryptoutilMagic.DefaultPublicPortOtelCollectorGRPC)),
 	}
 
 	var err error
@@ -74,6 +76,21 @@ func TestMain(m *testing.M) {
 		Timeout: cryptoutilMagic.LearnDefaultTimeout,
 	}
 
+	db, err := initTestDB()
+	if err != nil {
+		sharedTelemetryService.Shutdown()
+		panic("failed to initialize test database: " + err.Error())
+	}
+
+	testPublicServer, baseURL, err = createTestPublicServer(db)
+	if err != nil {
+		sharedTelemetryService.Shutdown()
+		panic("failed to create test public server: " + err.Error())
+	}
+	defer func() {
+		_ = testPublicServer.Shutdown(context.Background())
+	}()
+
 	// Run all E2E tests.
 	exitCode := m.Run()
 
@@ -81,17 +98,4 @@ func TestMain(m *testing.M) {
 	sharedTelemetryService.Shutdown()
 
 	os.Exit(exitCode)
-}
-
-// getSharedResources returns the shared test resources.
-// Each test creates its own database and server, but reuses telemetry, JWK gen, TLS, and HTTP client.
-func getSharedResources(t *testing.T) (*cryptoutilTelemetry.TelemetryService, *cryptoutilJose.JWKGenService, *cryptoutilTLSGenerator.TLSGeneratedSettings, *http.Client) {
-	t.Helper()
-
-	require.NotNil(t, sharedTelemetryService, "shared telemetry service must be initialized in TestMain")
-	require.NotNil(t, sharedJWKGenService, "shared JWK generation service must be initialized in TestMain")
-	require.NotNil(t, sharedTLSConfig, "shared TLS configuration must be initialized in TestMain")
-	require.NotNil(t, sharedHTTPClient, "shared HTTP client must be initialized in TestMain")
-
-	return sharedTelemetryService, sharedJWKGenService, sharedTLSConfig, sharedHTTPClient
 }

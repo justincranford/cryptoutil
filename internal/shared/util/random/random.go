@@ -26,7 +26,7 @@ func GenerateUsernameSimple() (string, error) {
 	return "user_" + id.String(), nil
 }
 
-// GeneratePasswordSimple generates a random password using full UUIDv7 string (36 characters).
+// GeneratePasswordSimple generates a random password with "pass_" prefix and full UUID suffix.
 // Provides sufficient entropy for test passwords while maintaining readability.
 // For test scenarios requiring specific lengths, use GeneratePassword(t, length) instead.
 func GeneratePasswordSimple() (string, error) {
@@ -35,7 +35,7 @@ func GeneratePasswordSimple() (string, error) {
 		return "", fmt.Errorf("failed to generate UUID for password: %w", err)
 	}
 
-	return id.String(), nil
+	return "pass_" + id.String(), nil
 }
 
 func GenerateString(length int) (string, error) {

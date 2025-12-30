@@ -16,14 +16,10 @@ import (
 func TestE2E_BrowserHealth(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
-
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/browser/api/v1/health", nil)
 	require.NoError(t, err)
 
-	resp, err := client.Do(req)
+	resp, err := sharedHTTPClient.Do(req)
 	require.NoError(t, err)
 
 	defer func() {
@@ -38,21 +34,17 @@ func TestE2E_BrowserHealth(t *testing.T) {
 func TestE2E_BrowserFullEncryptionFlow(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
+	// Register users.
+	user1 := registerTestUserBrowser(t, sharedHTTPClient, baseURL)
+	user2 := registerTestUserBrowser(t, sharedHTTPClient, baseURL)
 
-	// Register Alice and Bob.
-	alice := registerUserBrowser(t, client, baseURL, "alice_browser", "alicepass123")
-	bob := registerUserBrowser(t, client, baseURL, "bob_browser", "bobpass123")
-
-	// Alice sends encrypted message to Bob.
-	plaintext := "Browser encrypted message for Bob"
-	messageID := sendMessageBrowser(t, client, baseURL, plaintext, alice.Token, bob.ID)
+	// user1 sends encrypted message to user2.
+	plaintext := "Browser encrypted message for user2"
+	messageID := sendMessageBrowser(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID)
 
-	// Bob receives messages - server decrypts and returns plaintext.
-	messages := receiveMessagesBrowser(t, client, baseURL, bob.Token)
+	// user2 receives messages - server decrypts and returns plaintext.
+	messages := receiveMessagesBrowser(t, sharedHTTPClient, baseURL, user2.Token)
 	require.Len(t, messages, 1)
 
 	receivedMsg := messages[0]
@@ -68,36 +60,31 @@ func TestE2E_BrowserFullEncryptionFlow(t *testing.T) {
 func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
-
 	// Register three users.
-	alice := registerUserBrowser(t, client, baseURL, "alice_multi_browser", "alicepass123")
-	bob := registerUserBrowser(t, client, baseURL, "bob_multi_browser", "bobpass123")
-	charlie := registerUserBrowser(t, client, baseURL, "charlie_multi_browser", "charliepass123")
+	user1 := registerTestUserBrowser(t, sharedHTTPClient, baseURL)
+	user2 := registerTestUserBrowser(t, sharedHTTPClient, baseURL)
+	user3 := registerTestUserBrowser(t, sharedHTTPClient, baseURL)
 
-	// Alice sends message to both Bob and Charlie.
+	// user1 sends message to both user2 and user3.
 	plaintext := "Browser multi-receiver test"
-	messageID := sendMessageBrowser(t, client, baseURL, plaintext, alice.Token, bob.ID, charlie.ID)
+	messageID := sendMessageBrowser(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID, user3.ID)
 	require.NotEmpty(t, messageID)
 
-	// Bob receives message.
-	bobMessages := receiveMessagesBrowser(t, client, baseURL, bob.Token)
-	require.Len(t, bobMessages, 1)
+	// user2 receives message.
+	user2Messages := receiveMessagesBrowser(t, sharedHTTPClient, baseURL, user2.Token)
+	require.Len(t, user2Messages, 1)
 
-	// Charlie receives message.
-	charlieMessages := receiveMessagesBrowser(t, client, baseURL, charlie.Token)
-	require.Len(t, charlieMessages, 1)
-
+	// user3 receives message.
+	user3Messages := receiveMessagesBrowser(t, sharedHTTPClient, baseURL, user3.Token)
+	require.Len(t, user3Messages, 1)
 	// Verify both received the same plaintext (server decrypted for each).
-	bobDecrypted, ok := bobMessages[0]["encrypted_content"].(string)
+	user2Decrypted, ok := user2Messages[0]["encrypted_content"].(string)
 	require.True(t, ok)
-	require.Equal(t, plaintext, bobDecrypted)
+	require.Equal(t, plaintext, user2Decrypted)
 
-	charlieDecrypted, ok := charlieMessages[0]["encrypted_content"].(string)
+	user3Decrypted, ok := user3Messages[0]["encrypted_content"].(string)
 	require.True(t, ok)
-	require.Equal(t, plaintext, charlieDecrypted)
+	require.Equal(t, plaintext, user3Decrypted)
 }
 
 // TestE2E_BrowserMessageDeletion tests message deletion via /browser/** paths.
@@ -105,27 +92,22 @@ func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 func TestE2E_BrowserMessageDeletion(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
+	// Register users.
+	user1 := registerTestUserBrowser(t, sharedHTTPClient, baseURL)
+	user2 := registerTestUserBrowser(t, sharedHTTPClient, baseURL)
 
-	// Register Alice and Bob.
-	alice := registerUserBrowser(t, client, baseURL, "alice_delete_browser", "alicepass123")
-	bob := registerUserBrowser(t, client, baseURL, "bob_delete_browser", "bobpass123")
-
-	// Alice sends message to Bob.
+	// user1 sends message to user2.
 	plaintext := "Message to be deleted via browser"
-	messageID := sendMessageBrowser(t, client, baseURL, plaintext, alice.Token, bob.ID)
+	messageID := sendMessageBrowser(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID)
 
-	// Bob receives message.
-	messages := receiveMessagesBrowser(t, client, baseURL, bob.Token)
+	// user2 receives message.
+	messages := receiveMessagesBrowser(t, sharedHTTPClient, baseURL, user2.Token)
 	require.Len(t, messages, 1)
 
-	// Alice deletes message (sender can delete).
-	deleteMessageBrowser(t, client, baseURL, messageID, alice.Token)
-
-	// Bob receives messages again - should be empty.
-	messagesAfterDelete := receiveMessagesBrowser(t, client, baseURL, bob.Token)
+	// user1 deletes message (sender can delete).
+	deleteMessageBrowser(t, sharedHTTPClient, baseURL, messageID, user1.Token)
+	// user2 receives messages again - should be empty.
+	messagesAfterDelete := receiveMessagesBrowser(t, sharedHTTPClient, baseURL, user2.Token)
 	require.Len(t, messagesAfterDelete, 0)
 }

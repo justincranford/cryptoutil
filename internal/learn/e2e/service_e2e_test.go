@@ -14,23 +14,19 @@ import (
 func TestE2E_FullEncryptionFlow(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
+	// Register users.
+	user1 := registerTestUserService(t, sharedHTTPClient, baseURL)
+	user2 := registerTestUserService(t, sharedHTTPClient, baseURL)
 
-	// Register Alice and Bob.
-	alice := registerUser(t, client, baseURL, "alice", "alicepass123")
-	bob := registerUser(t, client, baseURL, "bob", "bobpass123")
+	// user1 sends encrypted message to user2.
+	plaintext := "Hello " + user2.Username + ", this is a secret message from " + user1.Username + "!"
 
-	// Alice sends encrypted message to Bob.
-	plaintext := "Hello Bob, this is a secret message from Alice!"
-
-	messageID := sendMessage(t, client, baseURL, plaintext, alice.Token, bob.ID)
+	messageID := sendMessage(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
-	// Bob receives messages.
-	messages := receiveMessages(t, client, baseURL, bob.Token)
-	require.Len(t, messages, 1, "Bob should have 1 message")
+	// user2 receives messages.
+	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	require.Len(t, messages, 1, "%s should have 1 message", user2.Username)
 
 	receivedMsg := messages[0]
 	require.NotEmpty(t, receivedMsg["message_id"], "message ID should not be empty")
@@ -49,40 +45,36 @@ func TestE2E_FullEncryptionFlow(t *testing.T) {
 func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
+	// Register users.
+	user1 := registerTestUserService(t, sharedHTTPClient, baseURL)
+	user2 := registerTestUserService(t, sharedHTTPClient, baseURL)
+	user3 := registerTestUserService(t, sharedHTTPClient, baseURL)
 
-	// Register Alice, Bob, and Charlie.
-	alice := registerUser(t, client, baseURL, "alice", "alicepass123")
-	bob := registerUser(t, client, baseURL, "bob", "bobpass123")
-	charlie := registerUser(t, client, baseURL, "charlie", "charliepass123")
-
-	// Alice sends message to both Bob and Charlie.
+	// user1 sends message to both user2 and user3.
 	plaintext := "Hello to both of you!"
 
-	messageID := sendMessage(t, client, baseURL, plaintext, alice.Token, bob.ID, charlie.ID)
+	messageID := sendMessage(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID, user3.ID)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
-	// Bob receives messages.
-	bobMessages := receiveMessages(t, client, baseURL, bob.Token)
-	require.GreaterOrEqual(t, len(bobMessages), 1, "Bob should have at least 1 message")
+	// user2 receives messages.
+	user2Messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	require.GreaterOrEqual(t, len(user2Messages), 1, "user2 should have at least 1 message")
 
-	// Verify Bob can decrypt.
-	bobMsg := bobMessages[0]
-	bobDecrypted, ok := bobMsg["encrypted_content"].(string)
+	// Verify user2 can decrypt.
+	user2Msg := user2Messages[0]
+	user2Decrypted, ok := user2Msg["encrypted_content"].(string)
 	require.True(t, ok)
-	require.Equal(t, plaintext, bobDecrypted)
+	require.Equal(t, plaintext, user2Decrypted)
 
-	// Charlie receives messages.
-	charlieMessages := receiveMessages(t, client, baseURL, charlie.Token)
-	require.GreaterOrEqual(t, len(charlieMessages), 1, "Charlie should have at least 1 message")
+	// user3 receives messages.
+	user3Messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user3.Token)
+	require.GreaterOrEqual(t, len(user3Messages), 1, "user3 should have at least 1 message")
 
-	// Verify Charlie can decrypt.
-	charlieMsg := charlieMessages[0]
-	charlieDecrypted, ok := charlieMsg["encrypted_content"].(string)
+	// Verify user3 can decrypt.
+	user3Msg := user3Messages[0]
+	user3Decrypted, ok := user3Msg["encrypted_content"].(string)
 	require.True(t, ok)
-	require.Equal(t, plaintext, charlieDecrypted)
+	require.Equal(t, plaintext, user3Decrypted)
 }
 
 // TestE2E_MessageDeletion tests deleting messages.
@@ -90,28 +82,23 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 func TestE2E_MessageDeletion(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
-	client := createHTTPClient(t)
+	// Register users.
+	user1 := registerTestUserService(t, sharedHTTPClient, baseURL)
+	user2 := registerTestUserService(t, sharedHTTPClient, baseURL)
 
-	// Register Alice and Bob.
-	alice := registerUser(t, client, baseURL, "alice", "alicepass123")
-	bob := registerUser(t, client, baseURL, "bob", "bobpass123")
-
-	// Alice sends message to Bob.
+	// user1 sends message to user2.
 	plaintext := "This message will be deleted!"
 
-	messageID := sendMessage(t, client, baseURL, plaintext, alice.Token, bob.ID)
+	messageID := sendMessage(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
-	// Bob receives messages.
-	messages := receiveMessages(t, client, baseURL, bob.Token)
+	// user2 receives messages.
+	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
 	require.Len(t, messages, 1)
 
-	// Alice deletes the message.
-	deleteMessage(t, client, baseURL, messageID, alice.Token)
-
-	// Bob receives messages again (should be empty).
-	messages = receiveMessages(t, client, baseURL, bob.Token)
-	require.Len(t, messages, 0, "Bob should have no messages after deletion")
+	// user1 deletes the message.
+	deleteMessageService(t, sharedHTTPClient, baseURL, messageID, user1.Token)
+	// user2 receives messages again (should be empty).
+	messages = receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	require.Len(t, messages, 0, "user2 should have no messages after deletion")
 }

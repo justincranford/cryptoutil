@@ -12,6 +12,7 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -172,9 +173,7 @@ func cleanTestDB(t *testing.T) {
 	// Truncate tables to ensure test isolation (schema already exists from TestMain).
 	tables := []string{"messages", "users", "messages_recipient_jwks"}
 	for _, table := range tables {
-		if err := testDB.Exec("DELETE FROM " + table).Error; err != nil {
-			t.Fatalf("cleanTestDB: failed to truncate %s: %v", table, err)
-		}
+		require.NoError(t, testDB.Exec("DELETE FROM "+table).Error)
 	}
 }
 
@@ -200,9 +199,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 		testJWTSecret,
 		testTLSCfg,
 	)
-	if err != nil {
-		t.Fatalf("createTestPublicServerShared: failed to create server: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Start server in background.
 	errChan := make(chan error, 1)
@@ -228,7 +225,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 		select {
 		case err := <-errChan:
-			t.Fatalf("createTestPublicServerShared: server failed to start: %v", err)
+			require.NoError(t, err)
 		case <-time.After(waitInterval):
 		}
 	}
