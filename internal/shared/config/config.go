@@ -750,7 +750,7 @@ var (
 	})
 	realms = *registerSetting(&Setting{
 		name:      "realms",
-		shorthand: "R",
+		shorthand: "r",
 		value:     defaultRealms,
 		usage: "realm configuration files; repeat for multiple realms; e.g. " +
 			"\"--realms=/config/01-username-password-file.yml --realms=/config/02-username-password-db.yml\"; " +
@@ -759,7 +759,7 @@ var (
 	})
 	browserSessionCookie = *registerSetting(&Setting{
 		name:        "browser-session-cookie",
-		shorthand:   "C",
+		shorthand:   "Q",
 		value:       defaultBrowserSessionCookie,
 		usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens",
 		description: "Browser Session Cookie Type",
