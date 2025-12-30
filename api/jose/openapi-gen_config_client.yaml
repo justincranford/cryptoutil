@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+# oapi-codegen configuration for JOSE Authority API client.
 package: client
 output: client/openapi_gen_client.go
 generate:
@@ -6,27 +8,23 @@ generate:
   embedded-spec: true
 output-options:
   skip-prune: true
-  name-normalizer: uppercase
-  user-templates:
-  additional-properties:
-  additional-imports: []
-  import-mapping: {}
-  exclude-schemas: []
-  response-type-suffix: ""
+  name-normalizer: ToCamelCaseWithInitialisms
   additional-initialisms:
-    - JWT
-    - JWK
-    - JWE
-    - JWS
-    - JWKS
-    - TLS
-    - SHA
-    - RSA
-    - EC
-    - OKP
-    - HMAC
-    - AES
-    - GCM
-    - CBC
+    - JWT    # JSON Web Token
+    - JWK    # JSON Web Key
+    - JWE    # JSON Web Encryption
+    - JWS    # JSON Web Signature
+    - JWKS   # JSON Web Key Set
+    - TLS    # Transport Layer Security
+    - SHA    # Secure Hash Algorithm
+    - RSA    # Rivest-Shamir-Adleman
+    - EC     # Elliptic Curve
+    - OKP    # Octet Key Pair
+    - HMAC   # Hash-based Message Authentication Code
+    - AES    # Advanced Encryption Standard
+    - GCM    # Galois/Counter Mode
+    - CBC    # Cipher Block Chaining
+    - IP     # Internet Protocol
+    - URI    # Uniform Resource Identifier
     - IP
     - URI
