@@ -8,13 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"cryptoutil/internal/learn/domain"
+	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
 )
 
@@ -33,8 +31,8 @@ func TestIM_ServerSubcommand_Startup(t *testing.T) {
 	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
-	require.NoError(t, err)
+	// Note: IM([]string{"server"}) creates its own database connection internally.
+	// We just need to ensure migrations are available for the test.
 
 	// Start server in background goroutine.
 	serverDone := make(chan struct{})
