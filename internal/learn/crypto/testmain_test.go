@@ -8,9 +8,7 @@ import (
 	"testing"
 )
 
-var (
-	testSetupComplete bool
-)
+var testSetupComplete bool
 
 func TestMain(m *testing.M) {
 	// Setup: Crypto package tests are lightweight (no heavyweight dependencies).

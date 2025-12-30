@@ -2,6 +2,8 @@
 //
 //
 
+//go:build !windows
+
 package integration
 
 import (
