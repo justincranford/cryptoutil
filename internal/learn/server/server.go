@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/repository"
+	"cryptoutil/internal/learn/server/config"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -37,7 +38,7 @@ type LearnIMServer struct {
 
 // New creates a new learn-im server using the template.
 // Takes AppConfig (which embeds ServerSettings), database instance, and database type.
-func New(ctx context.Context, cfg *AppConfig, db *gorm.DB, dbType repository.DatabaseType) (*LearnIMServer, error) {
+func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType repository.DatabaseType) (*LearnIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {

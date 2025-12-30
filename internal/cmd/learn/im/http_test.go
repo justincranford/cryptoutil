@@ -21,11 +21,12 @@ import (
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	"cryptoutil/internal/learn/server/config"
 )
 
 // initTestConfig returns an AppConfig with all required settings for tests.
-func initTestConfig() *server.AppConfig {
-	cfg := server.DefaultAppConfig()
+func initTestConfig() *config.AppConfig {
+	cfg := config.DefaultAppConfig()
 	cfg.BindPublicPort = 0                     // Dynamic port
 	cfg.BindPrivatePort = 0                    // Dynamic port
 	cfg.OTLPService = "learn-im-test"          // Required

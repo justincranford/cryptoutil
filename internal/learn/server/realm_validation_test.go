@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"cryptoutil/internal/learn/server/config"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 
 	"github.com/stretchr/testify/require"
@@ -138,7 +139,7 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 func TestGetRealmConfig_ExistingRealms(t *testing.T) {
 	t.Parallel()
 
-	cfg := DefaultAppConfig()
+	cfg := config.DefaultAppConfig()
 
 	tests := []struct {
 		name           string
@@ -173,22 +174,22 @@ func TestGetRealmConfig_FallbackToDefault(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		cfg       *AppConfig
+		cfg       *config.AppConfig
 		realmName string
 	}{
 		{
 			name:      "empty realm name",
-			cfg:       DefaultAppConfig(),
+			cfg:       config.DefaultAppConfig(),
 			realmName: "",
 		},
 		{
 			name:      "nonexistent realm",
-			cfg:       DefaultAppConfig(),
+			cfg:       config.DefaultAppConfig(),
 			realmName: "nonexistent",
 		},
 		{
 			name: "nil realms map",
-			cfg: &AppConfig{
+			cfg: &config.AppConfig{
 				Realms: nil,
 			},
 			realmName: "any",

@@ -7,13 +7,7 @@
 
 ## 📊 QUICK PROGRESS TRACKER
 
-### ✅ Phase 0: File Size Analysis
-
-- [ ] Run file size scan for files >400 lines
-- [ ] Document files approaching 500-line hard limit
-- [ ] Create refactoring plan for oversized files
-
-### ⏳ Phase 1: TestMain Pattern (PARTIAL)
+### ⏳ Phase 0: TestMain Pattern (PARTIAL)
 
 - [x] server/testmain_test.go created
 - [x] crypto/testmain_test.go created
@@ -22,10 +16,41 @@
 - [ ] integration/testmain_integration_test.go needs creation
 - [ ] Measure test speedup (before/after)
 
+### ⏳ Phase 0.1: Refactor internal/learn/server/ Files
+
+- [ ] Move repository code from internal/learn/server/ to internal/learn/server/repository/
+- [ ] Move authentication/authorization code from internal/learn/server/ to internal/learn/server/realms/
+- [ ] Move auth-related middleware from internal/learn/server/ to internal/learn/server/realms/
+- [ ] Move realm validation code from internal/learn/server/ to internal/learn/server/realms/
+- [ ] Move API handler code from internal/learn/server/ to internal/learn/server/apis/
+- [ ] Move business logic code from internal/learn/server/ to internal/learn/server/businesslogic/
+- [ ] Move utility functions from internal/learn/server/ to internal/learn/server/util/
+- [ ] Leave server.go and listener-related code in internal/learn/server/ package
+- [ ] Update all imports across the codebase
+- [ ] Run all tests recursively under internal\learn to ensure no breakage
+
+### ⏳ Phase 0.2: Refactor internal/template/server/ Files
+
+- [ ] Move repository code from internal/template/server/ to internal/template/server/repository/
+- [ ] Move listener-related code from internal/template/server/ to internal/template/server/listener/
+- [ ] Move API handler code from internal/template/server/ to internal/template/server/apis/
+- [ ] Move authentication/authorization code from internal/template/server/ to internal/template/server/realms/
+- [ ] Move business logic code from internal/template/server/ to internal/template/server/businesslogic/
+- [ ] Move utility functions from internal/template/server/ to internal/template/server/util/
+- [ ] Leave core files (service_template.go if needed) in internal/template/server/ package
+- [ ] Update all imports across the codebase
+- [ ] Run all tests recursively under internal\template to ensure no breakage
+
+### ✅ Phase 1: File Size Analysis
+
+- [ ] Run file size scan for files >400 lines
+- [ ] Document files approaching 500-line hard limit
+- [ ] Create refactoring plan for oversized files
+
 ### ⏳ Phase 2: Hardcoded Password Fixes (PARTIAL)
 
 - [x] Replaced 18 GeneratePasswordSimple() instances
-- [ ] Add pragma allowlist comments to 12 realm_validation_test.go passwords
+- [ ] Replaced 12 realm_validation_test.go passwords with GeneratePasswordSimple(), with add/remove characters for password policy tests
 - [ ] Verify no new hardcoded passwords added
 - [ ] Run realm validation tests
 

@@ -15,14 +15,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
-	"cryptoutil/internal/learn/server"
+	"cryptoutil/internal/learn/server/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // initTestConfig creates a properly configured AppConfig for testing.
-func initTestConfig() *server.AppConfig {
-	cfg := server.DefaultAppConfig()
+func initTestConfig() *config.AppConfig {
+	cfg := config.DefaultAppConfig()
 	cfg.BindPublicPort = 0                                                          // Dynamic port allocation for tests
 	cfg.BindPrivatePort = 0                                                         // Dynamic port allocation for tests
 	cfg.OTLPService = "learn-im-test"                                               // Required for telemetry initialization

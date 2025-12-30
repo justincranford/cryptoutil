@@ -26,6 +26,7 @@ import (
 	"cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	"cryptoutil/internal/learn/server/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -111,7 +112,7 @@ func imServer(args []string) int {
 
 	// Create learn-im server configuration using AppConfig.
 	// AppConfig embeds ServerSettings and adds learn-im-specific settings.
-	cfg := server.DefaultAppConfig()
+	cfg := config.DefaultAppConfig()
 	cfg.BindPublicPort = cryptoutilMagic.DefaultPublicPortLearnIM
 	cfg.BindPrivatePort = cryptoutilMagic.DefaultPrivatePortLearnIM
 	cfg.OTLPService = "learn-im"

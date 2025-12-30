@@ -20,6 +20,7 @@ import (
 	cryptoutilLearnDomain "cryptoutil/internal/learn/domain"
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	"cryptoutil/internal/learn/server/config"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
@@ -351,7 +352,7 @@ func TestNew_NilContext(t *testing.T) {
 	t.Parallel()
 
 	db := initTestDB(t)
-	cfg := server.DefaultAppConfig()
+	cfg := config.DefaultAppConfig()
 	cfg.BindPublicPort = 0
 	cfg.BindPrivatePort = 0
 	// NOTE: OTLPService intentionally NOT set to test telemetry validation
