@@ -18,7 +18,6 @@ import (
 func TestHandleSendMessage_Success(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -62,7 +61,6 @@ func TestHandleSendMessage_Success(t *testing.T) {
 func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -98,7 +96,6 @@ func TestHandleSendMessage_EmptyReceivers(t *testing.T) {
 func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -135,7 +132,6 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 func TestHandleSendMessage_InvalidTokenFormat(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -178,7 +174,6 @@ func TestHandleSendMessage_InvalidTokenFormat(t *testing.T) {
 func TestHandleSendMessage_InvalidTokenSignature(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -224,7 +219,6 @@ func TestHandleSendMessage_InvalidTokenSignature(t *testing.T) {
 func TestHandleSendMessage_MissingToken(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -256,7 +250,6 @@ func TestHandleSendMessage_MissingToken(t *testing.T) {
 func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -304,7 +297,6 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 func TestHandleSendMessage_SaveRepositoryError(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -349,7 +341,6 @@ func TestHandleSendMessage_EncryptionError(t *testing.T) {
 func TestHandleSendMessage_MultipleReceivers(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -413,7 +404,6 @@ func TestHandleSendMessage_MultipleReceivers(t *testing.T) {
 func TestHandleSendMessage_InvalidBodyParser(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)

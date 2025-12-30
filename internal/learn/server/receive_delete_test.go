@@ -48,7 +48,6 @@ func TestHandleReceiveMessages_Empty(t *testing.T) {
 func TestHandleDeleteMessage_Success(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -103,7 +102,6 @@ func TestHandleDeleteMessage_Success(t *testing.T) {
 func TestHandleDeleteMessage_InvalidID(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -256,7 +254,6 @@ func TestHandleDeleteMessage_NotOwner(t *testing.T) {
 func TestHandleDeleteMessage_RepositoryError(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -332,7 +329,6 @@ func TestHandleReceiveMessages_EmptyInbox(t *testing.T) {
 func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
@@ -540,7 +536,6 @@ func TestHandleReceiveMessages_MessageReceiverNotFound(t *testing.T) {
 func TestHandleReceiveMessages_RepositoryError(t *testing.T) {
 	// NOTE: t.Parallel() removed due to cleanTestDB() data isolation issue
 	// See: learn_test_isolation_issue.txt
-
 	db := initTestDB(t)
 	_, baseURL := createTestPublicServer(t, db)
 	client := createHTTPClient(t)
