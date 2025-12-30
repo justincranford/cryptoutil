@@ -12,12 +12,15 @@
 - [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 - [ ] Identify broken tests
 - [ ] Fix all broken tests
+- [ ] Fix all lint and format errors
 
 ### ⏳ Phase 0.1: Test Performance Optimization
 
 - [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 - [ ] Identify top 10 slowest tests
 - [ ] Analyze root causes, and fix problems or make them more efficient
+- [ ] Fix all lint and format errors
+- [ ] Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 
 ### ⏳ Phase 0.2: TestMain Pattern (PARTIAL)
 
