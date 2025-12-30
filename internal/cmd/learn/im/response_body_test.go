@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/require")
+	"github.com/stretchr/testify/require"
+)
 
 // TestIM_HealthSubcommand_NoBodySuccess tests health check with 200 but no body.
 func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
-
 	// Create test server with no response body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -24,12 +24,11 @@ func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 		require.Equal(t, 0, exitCode, "Health should succeed with 200 even if no body")
 	})
 
-		require.Contains(t, output, "Service is healthy")
+	require.Contains(t, output, "Service is healthy")
 }
 
 // TestIM_HealthSubcommand_UnhealthyNoBody tests health check unhealthy with no body.
 func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
-
 	// Create test server returning 503 with no body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -47,7 +46,6 @@ func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 
 // TestIM_LivezSubcommand_NoBodySuccess tests livez with 200 but no body.
 func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
-
 	// Create test server with no response body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -65,7 +63,6 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 
 // TestIM_LivezSubcommand_NotAliveNoBody tests livez not alive with no body.
 func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
-
 	// Create test server returning 503 with no body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -83,7 +80,6 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 
 // TestIM_ShutdownSubcommand_NoBodySuccess tests shutdown with 200 but no body.
 func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
-
 	// Create test server with no response body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
@@ -105,7 +101,6 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 
 // TestIM_ShutdownSubcommand_FailedNoBody tests shutdown failure with no body.
 func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
-
 	// Create test server returning 500 with no body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -123,7 +118,6 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 
 // TestIM_HealthSubcommand_LargeBody tests health check with large response body.
 func TestIM_HealthSubcommand_LargeBody(t *testing.T) {
-
 	// Create test server with large body (1MB).
 	largeBody := make([]byte, 1024*1024)
 	for i := range largeBody {
@@ -147,7 +141,6 @@ func TestIM_HealthSubcommand_LargeBody(t *testing.T) {
 
 // TestIM_ShutdownSubcommand_PartialBodyRead tests shutdown with body read error simulation.
 func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
-
 	// Create test server that closes connection mid-body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -172,7 +165,6 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 
 // TestIM_HealthSubcommand_DefaultURL tests health check without --url flag (uses default).
 func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
-
 	// Test default URL (will fail to connect to 127.0.0.1:8888).
 	output := captureOutput(t, func() {
 		exitCode := IM([]string{"health"})
@@ -190,7 +182,6 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 
 // TestIM_LivezSubcommand_DefaultURL tests livez check without --url flag (uses default).
 func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
-
 	// Test default URL (will fail to connect to 127.0.0.1:9090).
 	output := captureOutput(t, func() {
 		exitCode := IM([]string{"livez"})

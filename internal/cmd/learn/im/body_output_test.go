@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/require")
+	"github.com/stretchr/testify/require"
+)
 
 // TestIM_HealthSubcommand_UnhealthyWithBody tests health check unhealthy with error body.
 func TestIM_HealthSubcommand_UnhealthyWithBody(t *testing.T) {
-
 	// Create test server returning 503 with error body.
 	errorMessage := "Database connection timeout"
 
@@ -33,7 +33,6 @@ func TestIM_HealthSubcommand_UnhealthyWithBody(t *testing.T) {
 
 // TestIM_LivezSubcommand_NotAliveWithBody tests livez not alive with error body.
 func TestIM_LivezSubcommand_NotAliveWithBody(t *testing.T) {
-
 	// Create test server returning 503 with error body.
 	errorMessage := "Service initialization failed"
 
@@ -54,7 +53,6 @@ func TestIM_LivezSubcommand_NotAliveWithBody(t *testing.T) {
 
 // TestIM_HealthSubcommand_SuccessWithBody tests health check success with response body.
 func TestIM_HealthSubcommand_SuccessWithBody(t *testing.T) {
-
 	// Create test server returning 200 with body.
 	responseBody := "All systems operational"
 
@@ -76,7 +74,6 @@ func TestIM_HealthSubcommand_SuccessWithBody(t *testing.T) {
 
 // TestIM_LivezSubcommand_AliveWithBody tests livez alive with response body.
 func TestIM_LivezSubcommand_AliveWithBody(t *testing.T) {
-
 	// Create test server returning 200 with body.
 	responseBody := "Process is alive and running"
 

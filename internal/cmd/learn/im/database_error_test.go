@@ -11,7 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require")
+	"github.com/stretchr/testify/require"
+)
 
 const (
 	adminHealthPath = "/admin/v1/healthz"
@@ -21,7 +22,6 @@ const (
 
 // TestIM_HealthSubcommand_SlowResponse tests health check with slow server response.
 func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
-
 	// Create slow server.
 	lc := &net.ListenConfig{}
 	listener, err := lc.Listen(context.Background(), "tcp", "127.0.0.1:0")
@@ -70,7 +70,6 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 
 // TestIM_LivezSubcommand_EmptyResponse tests livez check with empty body.
 func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
-
 	// Create server that returns empty body.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == adminLivezPath {
@@ -93,7 +92,6 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 
 // TestIM_ReadyzSubcommand_404NotFound tests readyz check with 404 response.
 func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
-
 	// Create server that returns 404 for readyz endpoint.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
@@ -112,7 +110,6 @@ func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
 
 // TestIM_ShutdownSubcommand_500InternalServerError tests shutdown with 500 error.
 func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
-
 	// Create server that returns 500 for shutdown endpoint.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)

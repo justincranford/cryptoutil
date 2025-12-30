@@ -9,8 +9,9 @@ run:
 
 output:
   formats:
-    text:
+    - format: tab
       path: stdout
+  sort-results: true
   sort-order: [linter, severity, file]
   show-stats: false
 

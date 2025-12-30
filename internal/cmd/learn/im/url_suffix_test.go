@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/require")
+	"github.com/stretchr/testify/require"
+)
 
 // TestIM_HealthSubcommand_URLWithHealthSuffix tests health check preserves /health suffix.
 func TestIM_HealthSubcommand_URLWithHealthSuffix(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/admin/v1/health" {
@@ -37,7 +37,6 @@ func TestIM_HealthSubcommand_URLWithHealthSuffix(t *testing.T) {
 
 // TestIM_LivezSubcommand_URLWithLivezSuffix tests livez check preserves /livez suffix.
 func TestIM_LivezSubcommand_URLWithLivezSuffix(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/admin/v1/livez" {
@@ -63,7 +62,6 @@ func TestIM_LivezSubcommand_URLWithLivezSuffix(t *testing.T) {
 
 // TestIM_ReadyzSubcommand_URLWithReadyzSuffix tests readyz check preserves /readyz suffix.
 func TestIM_ReadyzSubcommand_URLWithReadyzSuffix(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/admin/v1/readyz" {
@@ -89,7 +87,6 @@ func TestIM_ReadyzSubcommand_URLWithReadyzSuffix(t *testing.T) {
 
 // TestIM_ShutdownSubcommand_URLWithShutdownSuffix tests shutdown preserves /shutdown suffix.
 func TestIM_ShutdownSubcommand_URLWithShutdownSuffix(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/admin/v1/shutdown" && r.Method == http.MethodPost {

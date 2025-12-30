@@ -14,7 +14,6 @@ import (
 
 // TestIM_HealthSubcommand_MultipleURLFlags tests health check with multiple --url flags (first wins).
 func TestIM_HealthSubcommand_MultipleURLFlags(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -37,7 +36,6 @@ func TestIM_HealthSubcommand_MultipleURLFlags(t *testing.T) {
 
 // TestIM_LivezSubcommand_URLFlagWithoutValue tests livez with --url flag but missing value.
 func TestIM_LivezSubcommand_URLFlagWithoutValue(t *testing.T) {
-
 	// Pass --url flag without value (should use default URL).
 	output := captureOutput(t, func() {
 		exitCode := IM([]string{"livez", "--url"})
@@ -55,7 +53,6 @@ func TestIM_LivezSubcommand_URLFlagWithoutValue(t *testing.T) {
 
 // TestIM_ReadyzSubcommand_ExtraArgumentsIgnored tests readyz with extra arguments.
 func TestIM_ReadyzSubcommand_ExtraArgumentsIgnored(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -78,7 +75,6 @@ func TestIM_ReadyzSubcommand_ExtraArgumentsIgnored(t *testing.T) {
 
 // TestIM_ShutdownSubcommand_URLWithoutQueryParameters tests shutdown URL handling.
 func TestIM_ShutdownSubcommand_URLWithoutQueryParameters(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
@@ -103,7 +99,6 @@ func TestIM_ShutdownSubcommand_URLWithoutQueryParameters(t *testing.T) {
 
 // TestIM_HealthSubcommand_URLWithFragment tests health check with URL fragment (fragment should be ignored by HTTP).
 func TestIM_HealthSubcommand_URLWithFragment(t *testing.T) {
-
 	// Create test server.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// HTTP strips fragment before sending request.
@@ -128,7 +123,6 @@ func TestIM_HealthSubcommand_URLWithFragment(t *testing.T) {
 
 // TestIM_LivezSubcommand_URLWithUserInfo tests livez with URL containing user info (basic auth style).
 func TestIM_LivezSubcommand_URLWithUserInfo(t *testing.T) {
-
 	// Create test server that expects basic auth in URL.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check for Authorization header (httptest.NewTLSServer strips user info).
@@ -158,7 +152,6 @@ func TestIM_LivezSubcommand_URLWithUserInfo(t *testing.T) {
 
 // TestIM_ReadyzSubcommand_CaseInsensitiveHTTPStatus tests readyz response with different status code messages.
 func TestIM_ReadyzSubcommand_CaseInsensitiveHTTPStatus(t *testing.T) {
-
 	// Create test server returning non-standard status code.
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot) // 418 I'm a teapot.
