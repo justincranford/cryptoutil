@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     UNIQUE(username)
 );
 
-CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
 -- Messages table with multi-recipient JWE encryption
 -- JWE JSON format (NOT Compact Serialization) with N recipient keys
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (sender_id) REFERENCES users(id)
 );
 
-CREATE INDEX idx_messages_sender_id ON messages(sender_id);
-CREATE INDEX idx_messages_created_at ON messages(created_at);
-CREATE INDEX idx_messages_read_at ON messages(read_at);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_read_at ON messages(read_at);
 
 -- Messages Recipient JWKs table for per-recipient decryption keys
 -- Each recipient gets their own encrypted JWK for decrypting the message
@@ -49,5 +49,5 @@ CREATE TABLE IF NOT EXISTS messages_recipient_jwks (
     UNIQUE(recipient_id, message_id)
 );
 
-CREATE INDEX idx_messages_recipient_jwks_recipient_id ON messages_recipient_jwks(recipient_id);
-CREATE INDEX idx_messages_recipient_jwks_message_id ON messages_recipient_jwks(message_id);
+CREATE INDEX IF NOT EXISTS idx_messages_recipient_jwks_recipient_id ON messages_recipient_jwks(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_messages_recipient_jwks_message_id ON messages_recipient_jwks(message_id);
