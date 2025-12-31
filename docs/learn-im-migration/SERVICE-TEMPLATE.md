@@ -73,17 +73,20 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 **Evidence**: `evidence/P0.3-server-refactoring-complete.md`
 **Post-Mortem**: `post-mortems/P0.3-server-refactoring.md` (to be created)
 
-### ⏳ P0.4: Refactor internal/template/server/ Files
+### ✅ P0.4: Refactor internal/template/server/ Files
 
-- [ ] P0.4.1: Move repository code from internal/template/server/ to internal/template/server/repository/
-- [ ] P0.4.2: Move listener-related code from internal/template/server/ to internal/template/server/listener/
-- [ ] P0.4.3: Move API handler code from internal/template/server/ to internal/template/server/apis/
-- [ ] P0.4.4: Move authentication/authorization code from internal/template/server/ to internal/template/server/realms/
-- [ ] P0.4.5: Move business logic code from internal/template/server/ to internal/template/server/businesslogic/
-- [ ] P0.4.6: Move utility functions from internal/template/server/ to internal/template/server/util/
-- [ ] P0.4.7: Leave core files (service_template.go if needed) in internal/template/server/ package
-- [ ] P0.4.8: Update all imports across the codebase
-- [ ] P0.4.9: Run all tests recursively under internal\template to ensure no breakage
+- [x] P0.4.1: Move repository code from internal/template/server/ to internal/template/server/repository/
+- [x] P0.4.2: Move listener-related code from internal/template/server/ to internal/template/server/listener/
+- [ ] P0.4.3: Move API handler code from internal/template/server/ to internal/template/server/apis/ (N/A - template has no APIs)
+- [x] P0.4.4: Move authentication/authorization code from internal/template/server/ to internal/template/server/realms/ (already done from P0.3)
+- [ ] P0.4.5: Move business logic code from internal/template/server/ to internal/template/server/businesslogic/ (N/A - template has no business logic)
+- [ ] P0.4.6: Move utility functions from internal/template/server/ to internal/template/server/util/ (N/A - uses shared utilities)
+- [x] P0.4.7: Leave core files (service_template.go, application.go) in internal/template/server/ package
+- [x] P0.4.8: Update all imports across the codebase
+- [x] P0.4.9: Run all tests recursively under internal\template to ensure no breakage
+
+**Evidence**: `evidence/P0.4-template-refactoring-complete.md` (to be created)
+**Post-Mortem**: `post-mortems/P0.4-template-refactoring.md` (to be created)
 
 ### ⏳ P1.0: File Size Analysis
 
