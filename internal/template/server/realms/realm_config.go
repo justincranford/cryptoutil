@@ -2,7 +2,7 @@
 //
 //
 
-package server
+package realms
 
 import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 

@@ -2,7 +2,7 @@
 //
 //
 
-package server
+package realms
 
 import (
 	"fmt"
