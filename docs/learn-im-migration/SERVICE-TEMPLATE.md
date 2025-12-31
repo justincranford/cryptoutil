@@ -166,11 +166,13 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 - [ ] P7.4.4: Update OpenAPI spec
 - [ ] P7.4.5: Add E2E tests for rotation
 
-### ⏳ P8.0: CGO Check Consolidation
+### ✅ P8.0: CGO Check Consolidation
 
-- [ ] P8.0.1: Consolidate CGO detection logic
-- [ ] P8.0.2: Document CGO requirements
-- [ ] P8.0.3: Add tests for CGO detection
+- [x] P8.0.1: ✅ NO CGO checks found - Pure Go implementation
+- [x] P8.0.2: ✅ Uses modernc.org/sqlite (CGO-free driver)
+- [x] P8.0.3: ✅ Builds with CGO_ENABLED=0, cross-compiles successfully
+- Evidence: `docs/learn-im-migration/evidence/P8.0-cgo-consolidation-complete.md`
+- Status: Already compliant with cryptoutil CGO policy (no work required)
 
 ---
 
