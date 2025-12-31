@@ -44,16 +44,18 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 
 **Post-Mortem**: `post-mortems/P0.1-test-performance-optimization.md`
 
-### ⏳ P0.2: TestMain Pattern (PARTIAL)
+### ✅ P0.2: TestMain Pattern
 
-- [ ] P0.2.1: Re-run all unit, integration, and e2e tests with code coverage; save the baseline
+- [x] P0.2.1: Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 - [x] P0.2.2: server/testmain_test.go created
 - [x] P0.2.3: crypto/testmain_test.go created
 - [x] P0.2.4: template/server/test_main_test.go created
-- [ ] P0.2.5: e2e/testmain_e2e_test.go needs creation
-- [ ] P0.2.6: integration/testmain_integration_test.go needs creation
-- [ ] P0.2.7: Measure test speedup (before/after)
-- [ ] P0.2.8: Re-run all unit, integration, and e2e tests with code coverage; save the baseline
+- [x] P0.2.5: e2e/testmain_e2e_test.go created
+- [x] P0.2.6: integration/testmain_integration_test.go created
+- [x] P0.2.7: Measure test speedup (before/after)
+- [x] P0.2.8: Re-run all unit, integration, and e2e tests with code coverage; save the baseline
+
+**Post-Mortem**: `post-mortems/P0.2-testmain-pattern.md`
 
 ### ⏳ P0.3: Refactor internal/learn/server/ Files
 
