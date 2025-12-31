@@ -88,11 +88,14 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 **Evidence**: `evidence/P0.4-template-refactoring-complete.md` (to be created)
 **Post-Mortem**: `post-mortems/P0.4-template-refactoring.md` (to be created)
 
-### ⏳ P1.0: File Size Analysis
+### ✅ P1.0: File Size Analysis
 
-- [ ] P1.0.1: Run file size scan for files >400 lines
-- [ ] P1.0.2: Document files approaching 500-line hard limit
-- [ ] P1.0.3: Create refactoring plan for oversized files
+- [x] P1.0.1: Run file size scan for files >400 lines
+- [x] P1.0.2: Document files approaching 500-line hard limit
+- [x] P1.0.3: Create refactoring plan for oversized files
+
+**Evidence**: `evidence/P1.0-file-size-analysis-complete.md`
+**Post-Mortem**: `post-mortems/P1.0-file-size-analysis.md` (to be created)
 
 ### ⏳ P2.0: Hardcoded Password Fixes (PARTIAL)
 
