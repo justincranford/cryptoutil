@@ -110,13 +110,13 @@ func (s *PublicServer) registerRoutes() {
 	s.app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUser())
 
 	// Business logic endpoints (message operations - JWT required).
-	s.app.Put("/service/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
-	s.app.Get("/service/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/service/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
+	s.app.Put("/service/api/v1/messages/tx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
+	s.app.Get("/service/api/v1/messages/rx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/service/api/v1/messages/:id", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
 
-	s.app.Put("/browser/api/v1/messages/tx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
-	s.app.Get("/browser/api/v1/messages/rx", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/browser/api/v1/messages/:id", JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
+	s.app.Put("/browser/api/v1/messages/tx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
+	s.app.Get("/browser/api/v1/messages/rx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/browser/api/v1/messages/:id", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
 }
 
 // handleServiceHealth returns health status for service-to-service clients.

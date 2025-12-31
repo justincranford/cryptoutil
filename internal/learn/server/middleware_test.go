@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/learn/server"
+	"cryptoutil/internal/learn/server/util"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
@@ -32,7 +32,7 @@ func TestJWTMiddleware_InvalidTokens(t *testing.T) {
 			name: "invalid signing method (none)",
 			setupToken: func(t *testing.T) string {
 				userID := googleUuid.New()
-				claims := &server.Claims{
+				claims := &util.Claims{
 					UserID:   userID.String(),
 					Username: "testuser",
 				}
@@ -47,7 +47,7 @@ func TestJWTMiddleware_InvalidTokens(t *testing.T) {
 		{
 			name: "malformed user ID in token",
 			setupToken: func(t *testing.T) string {
-				claims := &server.Claims{
+				claims := &util.Claims{
 					UserID:   "not-a-uuid",
 					Username: "testuser",
 				}
@@ -64,7 +64,7 @@ func TestJWTMiddleware_InvalidTokens(t *testing.T) {
 			setupToken: func(t *testing.T) string {
 				userID := googleUuid.New()
 				expirationTime := time.Now().Add(-1 * time.Hour)
-				claims := &server.Claims{
+				claims := &util.Claims{
 					UserID:   userID.String(),
 					Username: "testuser",
 					RegisteredClaims: jwt.RegisteredClaims{
