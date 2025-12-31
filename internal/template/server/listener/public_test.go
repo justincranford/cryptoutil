@@ -19,17 +19,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
+	cryptoutilTemplateServerTestutil "cryptoutil/internal/template/server/testutil"
 )
 
 // TestNewPublicHTTPServer_HappyPath tests successful public server creation.
 func TestNewPublicHTTPServer_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 
 	require.NoError(t, err)
 	require.NotNil(t, server)
@@ -39,9 +39,9 @@ func TestNewPublicHTTPServer_HappyPath(t *testing.T) {
 func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(nil, testServerSettings, tlsCfg) //nolint:staticcheck // Testing nil context handling.
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(nil, cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "context cannot be nil")
@@ -52,9 +52,9 @@ func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 func TestPublicHTTPServer_Start_Success(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -90,9 +90,9 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	err = server.Start(nil) //nolint:staticcheck // Testing nil context handling.
@@ -105,9 +105,9 @@ func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -169,9 +169,9 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -233,9 +233,9 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -279,9 +279,9 @@ func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -315,9 +315,9 @@ func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	port := server.ActualPort()
@@ -329,9 +329,9 @@ func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -402,9 +402,9 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -475,9 +475,9 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_DoubleCall(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := testPublicTLS
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

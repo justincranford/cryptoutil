@@ -19,6 +19,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
+	cryptoutilTemplateServerTestutil "cryptoutil/internal/template/server/testutil"
 )
 
 // TestPublicHTTPServer_TableDriven_HappyPath tests successful public server operations.
@@ -36,9 +37,9 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 			testFunc: func(t *testing.T, _ cryptoutilTemplateServer.IPublicServer) {
 				t.Helper()
 
-				tlsCfg := testPublicTLS
+				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 				require.NoError(t, err)
 				require.NotNil(t, server)
 			},
@@ -231,8 +232,8 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 			t.Parallel()
 
 			// Create fresh server for each test.
-			tlsCfg := testPublicTLS
-			server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+			tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+			server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 			require.NoError(t, err)
 
 			// Run test function.
@@ -257,9 +258,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := testPublicTLS
+				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				return cryptoutilTemplateServer.NewPublicHTTPServer(nil, testServerSettings, tlsCfg) //nolint:staticcheck // Testing nil context.
+				return cryptoutilTemplateServerListener.NewPublicHTTPServer(nil, cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context.
 			},
 			expectedError: "context cannot be nil",
 		},
@@ -269,9 +270,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := testPublicTLS
+				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				err = server.Start(nil) //nolint:staticcheck // Testing nil context.
@@ -286,9 +287,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := testPublicTLS
+				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				ctx, cancel := context.WithCancel(context.Background())
@@ -325,9 +326,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := testPublicTLS
+				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServer.NewPublicHTTPServer(context.Background(), testServerSettings, tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				port := server.ActualPort()

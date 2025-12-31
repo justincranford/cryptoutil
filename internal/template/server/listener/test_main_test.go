@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package server_test
+package listener_test
 
 import (
 	"os"

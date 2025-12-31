@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
-	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
+	cryptoutilTemplateServerTestutil "cryptoutil/internal/template/server/testutil"
 )
 
 // TestApplication_TableDriven_HappyPath tests successful application operations.
@@ -34,8 +34,8 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				adminServer := newMockAdminServer(9090)
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -163,8 +163,8 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 
 			// Create fresh application for each test.
 			ctx := context.Background()
-			publicServer := newMockPublicServer(8080)
-			adminServer := newMockAdminServer(9090)
+			publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+			adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 			app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 			require.NoError(t, err)
@@ -191,8 +191,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
 				t.Helper()
 
-				publicServer := newMockPublicServer(8080)
-				adminServer := newMockAdminServer(9090)
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 				return cryptoutilTemplateServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // Testing nil context.
 			},
@@ -205,7 +205,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				adminServer := newMockAdminServer(9090)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 				return cryptoutilTemplateServer.NewApplication(ctx, nil, adminServer)
 			},
@@ -218,7 +218,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 
 				return cryptoutilTemplateServer.NewApplication(ctx, publicServer, nil)
 			},
@@ -231,8 +231,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				adminServer := newMockAdminServer(9090)
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -250,9 +250,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				publicServer.startErr = errors.New("public server start failed")
-				adminServer := newMockAdminServer(9090)
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				publicServer.StartErr = errors.New("public server start failed")
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -270,9 +270,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				adminServer := newMockAdminServer(9090)
-				adminServer.startErr = errors.New("admin server start failed")
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
+				adminServer.StartErr = errors.New("admin server start failed")
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -290,8 +290,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				adminServer := newMockAdminServer(9090)
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -312,9 +312,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				publicServer.shutdownErr = errors.New("public shutdown failed")
-				adminServer := newMockAdminServer(9090)
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				publicServer.ShutdownErr = errors.New("public shutdown failed")
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -332,9 +332,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				adminServer := newMockAdminServer(9090)
-				adminServer.shutdownErr = errors.New("admin shutdown failed")
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
+				adminServer.ShutdownErr = errors.New("admin shutdown failed")
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -352,10 +352,10 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				publicServer.shutdownErr = errors.New("public shutdown failed")
-				adminServer := newMockAdminServer(9090)
-				adminServer.shutdownErr = errors.New("admin shutdown failed")
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				publicServer.ShutdownErr = errors.New("public shutdown failed")
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
+				adminServer.ShutdownErr = errors.New("admin shutdown failed")
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
@@ -373,8 +373,8 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				t.Helper()
 
 				ctx := context.Background()
-				publicServer := newMockPublicServer(8080)
-				adminServer := newMockAdminServer(0) // Port 0 triggers error in ActualPort.
+				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(0) // Port 0 triggers error in ActualPort.
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
