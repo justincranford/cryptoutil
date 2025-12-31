@@ -23,7 +23,6 @@ const (
 // Claims represents JWT claims for learn-im authentication.
 type Claims = cryptoutilLearnServerUtil.Claims
 
-
 // JWTMiddleware validates JWT tokens and extracts user ID.
 func JWTMiddleware(secret string) fiber.Handler {
 	return func(c *fiber.Ctx) error {

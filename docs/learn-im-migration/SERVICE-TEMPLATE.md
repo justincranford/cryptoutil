@@ -3,6 +3,26 @@
 **Last Updated**: 2025-12-30
 **Status**: 10/17 phases remaining
 
+Most of the Code Resides In
+
+- internal/learn/
+- internal/template/server/
+
+Most of the Docs Resides In
+
+- docs/learn-im-migration/SERVICE-TEMPLATE.md
+- docs/learn-im-migration/CMD-PATTERN.md
+- docs/learn-im-migration/KNOWN-ISSUES.md
+- docs/learn-im-migration/evidence/
+
+## CRITICAL INSTRUCTIONS
+
+MUST: Do regular commit and push
+MUST: Must track progress in docs\SERVICE-TEMPLATE.md with checkmarks for complete tasks and phases
+MUST: Create evidence of completion per phase and task in docs/learn-im-migration/evidence/; prefixed with phase number and task number
+MUST: Write post-mortem analysis for each completed phase in docs/learn-im-migration/post-mortems/
+MUST: Use port-mortem analysis to improve future phases and tasks; add/append/insert extra tasks or phases as needed
+
 ---
 
 ## 📊 QUICK PROGRESS TRACKER
