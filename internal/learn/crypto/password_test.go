@@ -57,7 +57,7 @@ func TestVerifyPassword_Success(t *testing.T) {
 func TestVerifyPassword_WrongPassword(t *testing.T) {
 	t.Parallel()
 
-	password := "CorrectPassword"        // pragma: allowlist secret - Test vector for password verification
+	password := "CorrectPassword"    // pragma: allowlist secret - Test vector for password verification
 	wrongPassword := "WrongPassword" // pragma: allowlist secret - Test vector for password verification
 
 	// Use fast version for testing (1,000 iterations vs 600,000).

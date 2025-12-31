@@ -1,0 +1,172 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+	"context"
+	"fmt"
+
+	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
+
+	googleUuid "github.com/google/uuid"
+)
+
+// OrmBarrierRepository implements BarrierRepository using KMS OrmRepository.
+// This adapter allows existing KMS barrier encryption to work with the new
+// BarrierRepository interface without breaking existing KMS code.
+type OrmBarrierRepository struct {
+	ormRepo *cryptoutilOrmRepository.OrmRepository
+}
+
+// NewOrmBarrierRepository creates a new OrmRepository-based barrier repository.
+func NewOrmBarrierRepository(ormRepo *cryptoutilOrmRepository.OrmRepository) (*OrmBarrierRepository, error) {
+	if ormRepo == nil {
+		return nil, fmt.Errorf("ormRepo must be non-nil")
+	}
+
+	return &OrmBarrierRepository{ormRepo: ormRepo}, nil
+}
+
+// WithTransaction executes the provided function within a database transaction.
+func (r *OrmBarrierRepository) WithTransaction(ctx context.Context, function func(tx BarrierTransaction) error) error {
+	return r.ormRepo.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(ormTx *cryptoutilOrmRepository.OrmTransaction) error {
+		tx := &OrmBarrierTransaction{ormTx: ormTx}
+		return function(tx)
+	})
+}
+
+// Shutdown releases any resources held by the repository.
+func (r *OrmBarrierRepository) Shutdown() {
+	r.ormRepo.Shutdown()
+}
+
+// OrmBarrierTransaction implements BarrierTransaction using KMS OrmTransaction.
+type OrmBarrierTransaction struct {
+	ormTx *cryptoutilOrmRepository.OrmTransaction
+}
+
+// Context returns the transaction context.
+func (tx *OrmBarrierTransaction) Context() context.Context {
+	return tx.ormTx.Context()
+}
+
+// GetRootKeyLatest retrieves the most recently created root key.
+func (tx *OrmBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
+	kmsKey, err := tx.ormTx.GetRootKeyLatest()
+	if err != nil {
+		return nil, err
+	}
+	if kmsKey == nil {
+		return nil, nil
+	}
+
+	return &BarrierRootKey{
+		UUID:      kmsKey.UUID,
+		Encrypted: kmsKey.Encrypted,
+		KEKUUID:   kmsKey.KEKUUID,
+		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
+		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
+	}, nil
+}
+
+// GetRootKey retrieves a specific root key by UUID.
+func (tx *OrmBarrierTransaction) GetRootKey(uuid *googleUuid.UUID) (*BarrierRootKey, error) {
+	kmsKey, err := tx.ormTx.GetRootKey(uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BarrierRootKey{
+		UUID:      kmsKey.UUID,
+		Encrypted: kmsKey.Encrypted,
+		KEKUUID:   kmsKey.KEKUUID,
+		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
+		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
+	}, nil
+}
+
+// AddRootKey persists a new root key to storage.
+func (tx *OrmBarrierTransaction) AddRootKey(key *BarrierRootKey) error {
+	// Convert template BarrierRootKey to KMS BarrierRootKey
+	kmsKey := &cryptoutilOrmRepository.BarrierRootKey{
+		UUID:      key.UUID,
+		Encrypted: key.Encrypted,
+		KEKUUID:   key.KEKUUID,
+	}
+	return tx.ormTx.AddRootKey(kmsKey)
+}
+
+// GetIntermediateKeyLatest retrieves the most recently created intermediate key.
+func (tx *OrmBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediateKey, error) {
+	kmsKey, err := tx.ormTx.GetIntermediateKeyLatest()
+	if err != nil {
+		return nil, err
+	}
+	if kmsKey == nil {
+		return nil, nil
+	}
+
+	return &BarrierIntermediateKey{
+		UUID:      kmsKey.UUID,
+		Encrypted: kmsKey.Encrypted,
+		KEKUUID:   kmsKey.KEKUUID,
+		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
+		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
+	}, nil
+}
+
+// GetIntermediateKey retrieves a specific intermediate key by UUID.
+func (tx *OrmBarrierTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*BarrierIntermediateKey, error) {
+	kmsKey, err := tx.ormTx.GetIntermediateKey(uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BarrierIntermediateKey{
+		UUID:      kmsKey.UUID,
+		Encrypted: kmsKey.Encrypted,
+		KEKUUID:   kmsKey.KEKUUID,
+		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
+		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
+	}, nil
+}
+
+// AddIntermediateKey persists a new intermediate key to storage.
+func (tx *OrmBarrierTransaction) AddIntermediateKey(key *BarrierIntermediateKey) error {
+	// Convert template BarrierIntermediateKey to KMS BarrierIntermediateKey
+	kmsKey := &cryptoutilOrmRepository.BarrierIntermediateKey{
+		UUID:      key.UUID,
+		Encrypted: key.Encrypted,
+		KEKUUID:   key.KEKUUID,
+	}
+	return tx.ormTx.AddIntermediateKey(kmsKey)
+}
+
+// GetContentKey retrieves a specific content key by UUID.
+func (tx *OrmBarrierTransaction) GetContentKey(uuid *googleUuid.UUID) (*BarrierContentKey, error) {
+	kmsKey, err := tx.ormTx.GetContentKey(uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BarrierContentKey{
+		UUID:      kmsKey.UUID,
+		Encrypted: kmsKey.Encrypted,
+		KEKUUID:   kmsKey.KEKUUID,
+		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
+		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
+	}, nil
+}
+
+// AddContentKey persists a new content key to storage.
+func (tx *OrmBarrierTransaction) AddContentKey(key *BarrierContentKey) error {
+	// Convert template BarrierContentKey to KMS BarrierContentKey
+	kmsKey := &cryptoutilOrmRepository.BarrierContentKey{
+		UUID:      key.UUID,
+		Encrypted: key.Encrypted,
+		KEKUUID:   key.KEKUUID,
+	}
+	return tx.ormTx.AddContentKey(kmsKey)
+}
