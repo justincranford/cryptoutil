@@ -57,18 +57,21 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 
 **Post-Mortem**: `post-mortems/P0.2-testmain-pattern.md`
 
-### ⏳ P0.3: Refactor internal/learn/server/ Files
+### ✅ P0.3: Refactor internal/learn/server/ Files
 
-- [ ] P0.3.1: Move repository code from internal/learn/server/ to internal/learn/server/repository/
-- [ ] P0.3.2: Move authentication/authorization code from internal/learn/server/ to internal/learn/server/realms/
-- [ ] P0.3.3: Move auth-related middleware from internal/learn/server/ to internal/learn/server/realms/
-- [ ] P0.3.4: Move realm validation code from internal/learn/server/ to internal/learn/server/realms/
-- [ ] P0.3.5: Move API handler code from internal/learn/server/ to internal/learn/server/apis/
-- [ ] P0.3.6: Move business logic code from internal/learn/server/ to internal/learn/server/businesslogic/
-- [ ] P0.3.7: Move utility functions from internal/learn/server/ to internal/learn/server/util/
-- [ ] P0.3.8: Leave server.go and listener-related code in internal/learn/server/ package
-- [ ] P0.3.9: Update all imports across the codebase
-- [ ] P0.3.10: Run all tests recursively under internal\learn to ensure no breakage
+- [x] P0.3.1: Move repository code from internal/learn/server/ to internal/learn/server/repository/ (N/A - already organized)
+- [x] P0.3.2: Move authentication/authorization code from internal/learn/server/ to internal/learn/server/realms/ (N/A - authn.go already in realms/)
+- [x] P0.3.3: Move auth-related middleware from internal/learn/server/ to internal/learn/server/realms/ (middleware.go moved)
+- [x] P0.3.4: Move realm validation code from internal/learn/server/ to internal/learn/server/realms/ (N/A - tests only, kept in server root)
+- [x] P0.3.5: Move API handler code from internal/learn/server/ to internal/learn/server/apis/ (N/A - already organized)
+- [x] P0.3.6: Move business logic code from internal/learn/server/ to internal/learn/server/businesslogic/ (N/A - directory exists)
+- [x] P0.3.7: Move utility functions from internal/learn/server/ to internal/learn/server/util/ (N/A - already organized)
+- [x] P0.3.8: Leave server.go and listener-related code in internal/learn/server/ package (Done - not moved)
+- [x] P0.3.9: Update all imports across the codebase (public_server.go updated with realms. prefix)
+- [x] P0.3.10: Run all tests recursively under internal\learn to ensure no breakage (All passing: 0.018s crypto, 1.216s e2e, 0.924s server)
+
+**Evidence**: `evidence/P0.3-server-refactoring-complete.md`
+**Post-Mortem**: `post-mortems/P0.3-server-refactoring.md` (to be created)
 
 ### ⏳ P0.4: Refactor internal/template/server/ Files
 
