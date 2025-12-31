@@ -119,12 +119,16 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 **Post-Mortem**: `post-mortems/P3.0-windows-firewall.md` (to be created)
 **Status**: Already compliant - zero violations found
 
-### ⏳ P4.0: context.TODO() Replacement
+### ✅ P4.0: context.TODO() Replacement
 
-- [ ] P4.0.1: Replace context.TODO() in server_lifecycle_test.go:40
-- [ ] P4.0.2: Replace context.TODO() in register_test.go:355
-- [ ] P4.0.3: Verify zero context.TODO() in internal/learn
-- [ ] P4.0.4: Run tests to confirm behavior unchanged
+- [x] P4.0.1: Replace context.TODO() in server_lifecycle_test.go:40 (N/A - not found)
+- [x] P4.0.2: Replace context.TODO() in register_test.go:355 (N/A - not found)
+- [x] P4.0.3: Verify zero context.TODO() in internal/learn
+- [x] P4.0.4: Run tests to confirm behavior unchanged
+
+**Evidence**: `evidence/P4.0-context-todo-complete.md`
+**Post-Mortem**: `post-mortems/P4.0-context-todo.md` (to be created)
+**Status**: Already compliant - zero context.TODO() found
 
 ### ⏳ P5.0: Switch Statement Conversion
 
