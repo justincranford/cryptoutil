@@ -16,7 +16,8 @@ func TestHashPassword(t *testing.T) {
 	password, err := cryptoutilRandom.GeneratePasswordSimple()
 	require.NoError(t, err)
 
-	hash, err := HashPassword(password)
+	// Use fast version for testing (1,000 iterations vs 600,000).
+	hash, err := HashPasswordForTest(password)
 	require.NoError(t, err)
 	require.NotNil(t, hash)
 	require.Equal(t, 64, len(hash), "hash should be 64 bytes (32 salt + 32 hash)")
@@ -27,10 +28,11 @@ func TestHashPassword_DifferentSalts(t *testing.T) {
 
 	password := "SamePassword"
 
-	hash1, err := HashPassword(password)
+	// Use fast version for testing (1,000 iterations vs 600,000).
+	hash1, err := HashPasswordForTest(password)
 	require.NoError(t, err)
 
-	hash2, err := HashPassword(password)
+	hash2, err := HashPasswordForTest(password)
 	require.NoError(t, err)
 
 	// Hashes should differ due to different random salts.
@@ -43,10 +45,11 @@ func TestVerifyPassword_Success(t *testing.T) {
 	password, err := cryptoutilRandom.GeneratePasswordSimple()
 	require.NoError(t, err)
 
-	hash, err := HashPassword(password)
+	// Use fast version for testing (1,000 iterations vs 600,000).
+	hash, err := HashPasswordForTest(password)
 	require.NoError(t, err)
 
-	match, err := VerifyPassword(password, hash)
+	match, err := VerifyPasswordForTest(password, hash)
 	require.NoError(t, err)
 	require.True(t, match, "password should verify successfully")
 }
@@ -57,10 +60,11 @@ func TestVerifyPassword_WrongPassword(t *testing.T) {
 	password := "CorrectPassword"
 	wrongPassword := "WrongPassword"
 
-	hash, err := HashPassword(password)
+	// Use fast version for testing (1,000 iterations vs 600,000).
+	hash, err := HashPasswordForTest(password)
 	require.NoError(t, err)
 
-	match, err := VerifyPassword(wrongPassword, hash)
+	match, err := VerifyPasswordForTest(wrongPassword, hash)
 	require.NoError(t, err)
 	require.False(t, match, "wrong password should not verify")
 }
@@ -73,7 +77,8 @@ func TestVerifyPassword_InvalidHashLength(t *testing.T) {
 
 	invalidHash := []byte{1, 2, 3} // Too short.
 
-	match, err := VerifyPassword(password, invalidHash)
+	// Use fast version for testing (1,000 iterations vs 600,000).
+	match, err := VerifyPasswordForTest(password, invalidHash)
 	require.Error(t, err)
 	require.False(t, match)
 	require.Contains(t, err.Error(), "invalid stored hash length")
@@ -82,11 +87,12 @@ func TestVerifyPassword_InvalidHashLength(t *testing.T) {
 func TestHashPassword_EmptyPassword(t *testing.T) {
 	t.Parallel()
 
-	hash, err := HashPassword("")
+	// Use fast version for testing (1,000 iterations vs 600,000).
+	hash, err := HashPasswordForTest("")
 	require.NoError(t, err)
 	require.NotNil(t, hash)
 
-	match, err := VerifyPassword("", hash)
+	match, err := VerifyPasswordForTest("", hash)
 	require.NoError(t, err)
 	require.True(t, match, "empty password should verify")
 }
