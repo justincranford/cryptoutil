@@ -35,12 +35,14 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 - [x] P0.0.3: Fix all broken tests
 - [ ] P0.0.4: Fix all lint and format errors (BLOCKED: golangci-lint config issue)
 
-### ⏸️ P0.1: Test Performance Optimization
+### ✅ P0.1: Test Performance Optimization
 
 - [x] P0.1.1: Re-run all unit, integration, and e2e tests with code coverage; save the baseline
 - [x] P0.1.2: Identify top 10 slowest tests
 - [x] P0.1.3: Analyze root causes, and fix problems or make them more efficient
 - [ ] P0.1.4: Fix all lint and format errors (BLOCKED: golangci-lint config issue)
+
+**Post-Mortem**: `post-mortems/P0.1-test-performance-optimization.md`
 
 ### ⏳ P0.2: TestMain Pattern (PARTIAL)
 
