@@ -128,14 +128,16 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 - Evidence: `docs/learn-im-migration/evidence/P6-quality-gates-complete.md`
 - Commit: 68573fd1 (import fix), others pushed
 
-### ⏳ P7.1: Remove Obsolete Database Tables
+### ✅ P7.1: Remove Obsolete Database Tables
 
-- [ ] P7.1.1: Remove users_jwks table
-- [ ] P7.1.2: Remove users_messages_jwks table
-- [ ] P7.1.3: Remove messages_jwks table
-- [ ] P7.1.4: Update migration files
-- [ ] P7.1.5: Verify no code references remain
-- [ ] P7.1.6: Run tests with new schema
+- [x] P7.1.1: ✅ users_jwks table - NOT PRESENT (already removed/never existed)
+- [x] P7.1.2: ✅ users_messages_jwks table - NOT PRESENT
+- [x] P7.1.3: ✅ messages_jwks table - NOT PRESENT
+- [x] P7.1.4: ✅ Migration files - Already clean (3-table design)
+- [x] P7.1.5: ✅ Code references - Zero references to obsolete tables
+- [x] P7.1.6: ✅ Tests - All passing (2.2s, schema verification complete)
+- Evidence: `docs/learn-im-migration/evidence/P7.1-remove-obsolete-tables-complete.md`
+- Status: Schema already optimal with 3 tables only
 
 ### ⏳ P7.3: Implement Barrier Encryption for JWKs
 
