@@ -8,17 +8,17 @@ import (
 	"database/sql"
 	"embed"
 
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
+	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"
 )
 
 // DatabaseType represents supported database types for learn-im.
-type DatabaseType = cryptoutilTemplateServer.DatabaseType
+type DatabaseType = cryptoutilTemplateServerRepository.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite = cryptoutilTemplateServer.DatabaseTypeSQLite
+	DatabaseTypeSQLite = cryptoutilTemplateServerRepository.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL = cryptoutilTemplateServer.DatabaseTypePostgreSQL
+	DatabaseTypePostgreSQL = cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL
 )
 
 //go:embed migrations/*.sql
@@ -34,7 +34,7 @@ var migrationsFS embed.FS
 // - messages: Encrypted messages with JWE JSON format (multi-recipient)
 // - messages_recipient_jwks: Per-recipient decryption keys (encrypted JWK).
 func ApplyMigrations(db *sql.DB, dbType DatabaseType) error {
-	runner := cryptoutilTemplateServer.NewMigrationRunner(migrationsFS, "migrations")
+	runner := cryptoutilTemplateServerRepository.NewMigrationRunner(migrationsFS, "migrations")
 
 	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
 	return runner.Apply(db, dbType)

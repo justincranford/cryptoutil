@@ -16,6 +16,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"
 )
 
 // ServiceTemplate encapsulates reusable service infrastructure.
@@ -23,7 +24,7 @@ import (
 type ServiceTemplate struct {
 	config    *cryptoutilConfig.ServerSettings
 	db        *gorm.DB
-	dbType    DatabaseType
+	dbType    cryptoutilTemplateServerRepository.DatabaseType
 	telemetry *cryptoutilTelemetry.TelemetryService
 	jwkGen    *cryptoutilJose.JWKGenService
 	barrier   *cryptoutilBarrierService.BarrierService // Optional (nil for demo services).
@@ -48,7 +49,7 @@ func NewServiceTemplate(
 	ctx context.Context,
 	config *cryptoutilConfig.ServerSettings,
 	db *gorm.DB,
-	dbType DatabaseType,
+	dbType cryptoutilTemplateServerRepository.DatabaseType,
 	options ...ServiceTemplateOption,
 ) (*ServiceTemplate, error) {
 	if ctx == nil {
@@ -61,7 +62,7 @@ func NewServiceTemplate(
 
 	// Validate database type.
 	switch dbType {
-	case DatabaseTypePostgreSQL, DatabaseTypeSQLite:
+	case cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL, cryptoutilTemplateServerRepository.DatabaseTypeSQLite:
 		// Valid database type.
 	default:
 		return nil, fmt.Errorf("invalid database type: %s", dbType)
@@ -116,7 +117,7 @@ func (st *ServiceTemplate) SQLDB() (*sql.DB, error) {
 }
 
 // DBType returns the database type.
-func (st *ServiceTemplate) DBType() DatabaseType {
+func (st *ServiceTemplate) DBType() cryptoutilTemplateServerRepository.DatabaseType {
 	return st.dbType
 }
 

@@ -1,0 +1,404 @@
+// Copyright (c) 2025 Justin Cranford
+
+//nolint:testpackage // Testing private fields requires same-package access.
+package repository_test
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	cryptoutilTemplateServer "cryptoutil/internal/template/server"
+	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
+)
+
+// TestApplication_TableDriven_HappyPath tests successful application operations.
+func TestApplication_TableDriven_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		description string
+		testFunc    func(t *testing.T, app *cryptoutilTemplateServer.Application)
+	}{
+		{
+			name:        "NewApplication",
+			description: "Verify successful application creation with valid servers",
+			testFunc: func(t *testing.T, _ *cryptoutilTemplateServer.Application) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				adminServer := newMockAdminServer(9090)
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+				require.NotNil(t, app)
+				assert.False(t, app.IsShutdown())
+			},
+		},
+		{
+			name:        "Start",
+			description: "Application starts both public and admin servers concurrently",
+			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+				t.Helper()
+
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				defer cancel()
+
+				errChan := make(chan error, 1)
+
+				go func() {
+					errChan <- app.Start(ctx)
+				}()
+
+				// Wait for context timeout.
+				<-ctx.Done()
+
+				// Verify error is context deadline exceeded (expected).
+				err := <-errChan
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "context deadline exceeded")
+			},
+		},
+		{
+			name:        "Shutdown",
+			description: "Application shuts down both servers gracefully",
+			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+				t.Helper()
+
+				ctx := context.Background()
+
+				err := app.Shutdown(ctx)
+				require.NoError(t, err)
+				assert.True(t, app.IsShutdown())
+			},
+		},
+		{
+			name:        "PublicPort",
+			description: "PublicPort returns correct port from public server",
+			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+				t.Helper()
+
+				port := app.PublicPort()
+				assert.Equal(t, 8080, port)
+			},
+		},
+		{
+			name:        "AdminPort",
+			description: "AdminPort returns correct port from admin server",
+			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+				t.Helper()
+
+				port, err := app.AdminPort()
+				require.NoError(t, err)
+				assert.Equal(t, 9090, port)
+			},
+		},
+		{
+			name:        "IsShutdown",
+			description: "IsShutdown tracks shutdown state correctly",
+			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+				t.Helper()
+
+				assert.False(t, app.IsShutdown())
+
+				ctx := context.Background()
+				err := app.Shutdown(ctx)
+				require.NoError(t, err)
+
+				assert.True(t, app.IsShutdown())
+			},
+		},
+		{
+			name:        "ConcurrentShutdown",
+			description: "Concurrent shutdown calls are safe and idempotent",
+			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+				t.Helper()
+
+				ctx := context.Background()
+
+				var wg sync.WaitGroup
+
+				errChan := make(chan error, 5)
+
+				// Launch 5 concurrent shutdown calls.
+				for range 5 {
+					wg.Add(1)
+
+					go func() {
+						defer wg.Done()
+
+						errChan <- app.Shutdown(ctx)
+					}()
+				}
+
+				wg.Wait()
+				close(errChan)
+
+				// Exactly one should succeed, others should be no-ops.
+				successCount := 0
+
+				for err := range errChan {
+					if err == nil {
+						successCount++
+					}
+				}
+
+				assert.GreaterOrEqual(t, successCount, 1, "At least one shutdown should succeed")
+				assert.True(t, app.IsShutdown())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Create fresh application for each test.
+			ctx := context.Background()
+			publicServer := newMockPublicServer(8080)
+			adminServer := newMockAdminServer(9090)
+
+			app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+			require.NoError(t, err)
+
+			// Run test function.
+			tt.testFunc(t, app)
+		})
+	}
+}
+
+// TestApplication_TableDriven_SadPath tests error conditions and edge cases.
+func TestApplication_TableDriven_SadPath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		description   string
+		setupFunc     func(t *testing.T) (*cryptoutilTemplateServer.Application, error)
+		expectedError string
+	}{
+		{
+			name:        "NilContext",
+			description: "NewApplication rejects nil context",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				publicServer := newMockPublicServer(8080)
+				adminServer := newMockAdminServer(9090)
+
+				return cryptoutilTemplateServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // Testing nil context.
+			},
+			expectedError: "context cannot be nil",
+		},
+		{
+			name:        "NilPublicServer",
+			description: "NewApplication rejects nil public server",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				adminServer := newMockAdminServer(9090)
+
+				return cryptoutilTemplateServer.NewApplication(ctx, nil, adminServer)
+			},
+			expectedError: "publicServer cannot be nil",
+		},
+		{
+			name:        "NilAdminServer",
+			description: "NewApplication rejects nil admin server",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+
+				return cryptoutilTemplateServer.NewApplication(ctx, publicServer, nil)
+			},
+			expectedError: "adminServer cannot be nil",
+		},
+		{
+			name:        "Start_NilContext",
+			description: "Start rejects nil context",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				adminServer := newMockAdminServer(9090)
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				err = app.Start(nil) //nolint:staticcheck // Testing nil context.
+
+				return app, fmt.Errorf("failed to start application: %w", err)
+			},
+			expectedError: "context cannot be nil",
+		},
+		{
+			name:        "Start_PublicServerFailure",
+			description: "Start propagates public server start errors",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				publicServer.startErr = errors.New("public server start failed")
+				adminServer := newMockAdminServer(9090)
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				err = app.Start(context.Background())
+
+				return app, fmt.Errorf("failed to start application: %w", err)
+			},
+			expectedError: "public server start failed",
+		},
+		{
+			name:        "Start_AdminServerFailure",
+			description: "Start propagates admin server start errors",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				adminServer := newMockAdminServer(9090)
+				adminServer.startErr = errors.New("admin server start failed")
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				err = app.Start(context.Background())
+
+				return app, fmt.Errorf("failed to start application: %w", err)
+			},
+			expectedError: "admin server start failed",
+		},
+		{
+			name:        "Shutdown_NilContext",
+			description: "Shutdown accepts nil context and uses Background()",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				adminServer := newMockAdminServer(9090)
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				err = app.Shutdown(nil) //nolint:staticcheck // Testing nil context.
+				if err != nil {
+					return app, fmt.Errorf("failed to shutdown application: %w", err)
+				}
+
+				return app, nil
+			},
+			expectedError: "",
+		},
+		{
+			name:        "Shutdown_PublicServerError",
+			description: "Shutdown continues even if public server shutdown fails",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				publicServer.shutdownErr = errors.New("public shutdown failed")
+				adminServer := newMockAdminServer(9090)
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				err = app.Shutdown(context.Background())
+
+				return app, fmt.Errorf("failed to shutdown application: %w", err)
+			},
+			expectedError: "public shutdown failed",
+		},
+		{
+			name:        "Shutdown_AdminServerError",
+			description: "Shutdown continues even if admin server shutdown fails",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				adminServer := newMockAdminServer(9090)
+				adminServer.shutdownErr = errors.New("admin shutdown failed")
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				err = app.Shutdown(context.Background())
+
+				return app, fmt.Errorf("failed to shutdown application: %w", err)
+			},
+			expectedError: "admin shutdown failed",
+		},
+		{
+			name:        "Shutdown_BothServersError",
+			description: "Shutdown reports both server errors when both fail",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				publicServer.shutdownErr = errors.New("public shutdown failed")
+				adminServer := newMockAdminServer(9090)
+				adminServer.shutdownErr = errors.New("admin shutdown failed")
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				err = app.Shutdown(context.Background())
+
+				return app, fmt.Errorf("failed to shutdown application: %w", err)
+			},
+			expectedError: "public shutdown failed",
+		},
+		{
+			name:        "AdminPort_NotInitialized",
+			description: "AdminPort returns error when admin server port is 0",
+			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+				t.Helper()
+
+				ctx := context.Background()
+				publicServer := newMockPublicServer(8080)
+				adminServer := newMockAdminServer(0) // Port 0 triggers error in ActualPort.
+
+				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				require.NoError(t, err)
+
+				_, portErr := app.AdminPort()
+
+				return app, fmt.Errorf("failed to get admin port: %w", portErr)
+			},
+			expectedError: "admin server not initialized",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := tt.setupFunc(t)
+
+			if tt.expectedError == "" {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+			}
+		})
+	}
+}

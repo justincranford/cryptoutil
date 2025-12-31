@@ -19,6 +19,8 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
+	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
+	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"
 )
 
 // LearnIMServer represents the learn-im service application.
@@ -59,13 +61,13 @@ func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType reposit
 	}
 
 	// Convert repository.DatabaseType to template.DatabaseType.
-	var templateDBType cryptoutilTemplateServer.DatabaseType
+	var templateDBType cryptoutilTemplateServerRepository.DatabaseType
 
 	switch dbType {
 	case repository.DatabaseTypePostgreSQL:
-		templateDBType = cryptoutilTemplateServer.DatabaseTypePostgreSQL
+		templateDBType = cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL
 	case repository.DatabaseTypeSQLite:
-		templateDBType = cryptoutilTemplateServer.DatabaseTypeSQLite
+		templateDBType = cryptoutilTemplateServerRepository.DatabaseTypeSQLite
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", dbType)
 	}
@@ -113,7 +115,7 @@ func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType reposit
 	}
 
 	// Create admin server using ServerSettings from AppConfig.
-	adminServer, err := cryptoutilTemplateServer.NewAdminHTTPServer(ctx, &cfg.ServerSettings, adminTLSCfg)
+	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, &cfg.ServerSettings, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
