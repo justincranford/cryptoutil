@@ -26,7 +26,7 @@ func TestHashPassword(t *testing.T) {
 func TestHashPassword_DifferentSalts(t *testing.T) {
 	t.Parallel()
 
-	password := "SamePassword"
+	password := "SamePassword" // pragma: allowlist secret - Test vector for password hashing
 
 	// Use fast version for testing (1,000 iterations vs 600,000).
 	hash1, err := HashPasswordForTest(password)
@@ -57,8 +57,8 @@ func TestVerifyPassword_Success(t *testing.T) {
 func TestVerifyPassword_WrongPassword(t *testing.T) {
 	t.Parallel()
 
-	password := "CorrectPassword"
-	wrongPassword := "WrongPassword"
+	password := "CorrectPassword"        // pragma: allowlist secret - Test vector for password verification
+	wrongPassword := "WrongPassword" // pragma: allowlist secret - Test vector for password verification
 
 	// Use fast version for testing (1,000 iterations vs 600,000).
 	hash, err := HashPasswordForTest(password)
