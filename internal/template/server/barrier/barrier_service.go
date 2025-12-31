@@ -17,15 +17,15 @@ import (
 // BarrierService provides multi-layer encryption using unseal → root → intermediate → content key hierarchy.
 // This version uses BarrierRepository interface to work with any database (KMS OrmRepository, gorm.DB, etc.)
 type BarrierService struct {
-	telemetryService  *cryptoutilTelemetry.TelemetryService
-	jwkGenService     *cryptoutilJose.JWKGenService
-	repository        BarrierRepository
-	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
-	rootKeysService   *RootKeysService
+	telemetryService        *cryptoutilTelemetry.TelemetryService
+	jwkGenService           *cryptoutilJose.JWKGenService
+	repository              BarrierRepository
+	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
+	rootKeysService         *RootKeysService
 	intermediateKeysService *IntermediateKeysService
-	contentKeysService *ContentKeysService
-	closed            bool
-	shutdownOnce      sync.Once
+	contentKeysService      *ContentKeysService
+	closed                  bool
+	shutdownOnce            sync.Once
 }
 
 // NewBarrierService creates a new barrier service using the provided repository.
