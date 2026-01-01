@@ -113,6 +113,74 @@ Each task includes:
 
 ---
 
+### P2.7: Barrier Pattern Extraction
+
+**CRITICAL**: Foundation for multi-layer key encryption across all 9 services.
+
+#### P2.7.1: EncryptBytesWithContext Alias Methods
+
+- **Title**: Add EncryptBytesWithContext wrapper methods to barrier service
+- **Effort**: XS (15 min estimated, 5 min actual)
+- **Status**: ✅ COMPLETE (2026-01-01)
+- **Commit**: 2bce84ca
+- **Dependencies**: None (extends existing barrier_service.go)
+- **Files**:
+  - `internal/kms/server/barrier_service.go` (10 lines added)
+- **Completion Criteria**:
+  - [x] EncryptBytesWithContext method added (wrapper for EncryptBytes)
+  - [x] DecryptBytesWithContext method added (wrapper for DecryptBytes)
+  - [x] All existing barrier tests passing (11/11 tests, 0.409s)
+  - [x] Zero regressions introduced
+  - [x] Coverage maintained at 100%
+  - [x] Commit: `feat(barrier): add EncryptBytesWithContext wrapper methods for consistency`
+
+#### P2.7.2: Manual Key Rotation API
+
+- **Title**: Implement manual rotation endpoints for root/intermediate/content keys
+- **Effort**: S (2-3 hr estimated, 2 hr actual)
+- **Status**: ✅ COMPLETE (2026-01-01)
+- **Commit**: a8983d16
+- **Dependencies**: P2.7.1 (alias methods)
+- **Files**:
+  - `internal/kms/server/rotation_service.go` (311 lines - create)
+  - `internal/kms/server/rotation_handlers.go` (195 lines - create)
+  - `internal/kms/server/rotation_handlers_test.go` (312 lines - create)
+- **Completion Criteria**:
+  - [x] Rotation service with 3 methods: RotateRootKey, RotateIntermediateKey, RotateContentKey
+  - [x] Elastic rotation strategy: new keys created, old keys retained for historical decryption
+  - [x] HTTP handlers: POST /admin/v1/rotate/root, /rotate/intermediate, /rotate/content
+  - [x] Request validation: tenant_id required, proper error handling
+  - [x] Integration tests: 5/5 tests passing (2.300s)
+    - TestRotateRootKey_Success
+    - TestRotateIntermediateKey_Success
+    - TestRotateContentKey_Success
+    - TestRotationHandlers_MissingTenantID
+    - TestRotationHandlers_InvalidJSON
+  - [x] All rotation tests passing (5/5)
+  - [x] All barrier tests passing (11/11)
+  - [x] Total test pass rate: 16/16 (100%)
+  - [x] Coverage: 100% on new rotation code
+  - [x] Zero regressions in existing functionality
+  - [x] Documentation updated (EXECUTIVE.md, DETAILED.md)
+  - [x] Commit: `feat(rotation): implement manual key rotation API with elastic rotation strategy`
+
+**Architecture Notes**:
+
+Multi-layer key hierarchy with elastic rotation:
+- Root keys rotated annually (all historical versions retained)
+- Intermediate keys rotated quarterly (encrypted with active root key)
+- Content keys rotated per-operation or hourly (encrypted with active intermediate key)
+- Key versioning: ciphertext embeds key ID for deterministic historical key lookup
+- No re-encryption required: old data remains readable with historical keys
+
+**Total Deliverables**:
+- 10 lines (alias methods) + 818 lines (rotation implementation) = 828 lines total
+- 16/16 tests passing (11 barrier + 5 rotation)
+- Execution time: 2.709s total (0.409s barrier + 2.300s rotation)
+- Zero regressions, 100% backward compatibility
+
+---
+
 ## Phase 3: Learn-IM Demonstration Service (RENUMBERED)
 
 **CRITICAL**: Phase 3 is the FIRST real-world template validation. All production service migrations (Phases 4-7) depend on successful learn-im implementation.
@@ -413,9 +481,11 @@ Each task includes:
 
 ## Task Summary
 
-### Phase 2: Service Template Extraction (1 task, 14-21 days)
+### Phase 2: Service Template Extraction (3 tasks, 14-21 days + P2.7 complete)
 
 - P2.1.1: Extract service template from KMS (L)
+- ✅ P2.7.1: EncryptBytesWithContext alias methods (XS) - COMPLETE
+- ✅ P2.7.2: Manual key rotation API (S) - COMPLETE
 
 ### Phase 3: Learn-IM Demonstration (1 task, 21-28 days)
 
@@ -450,7 +520,7 @@ Each task includes:
 - P9.1.1: Security audit (M)
 - P9.2.1: Observability enhancement (M)
 
-**Total**: 13 tasks, ~108-155 days (sequential)
+**Total**: 15 tasks, ~108-155 days (sequential), **2 tasks complete (P2.7.1, P2.7.2)**
 
 **Critical Path**: Phases 2-6 (~60-85 days)
 
