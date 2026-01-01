@@ -28,7 +28,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
@@ -50,7 +50,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	ctx := context.Background()
 	db := initTestDB(t)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
@@ -71,7 +71,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	ctx := context.Background()
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
@@ -114,7 +114,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
 
 	telemetrySettings := &cryptoutilConfig.ServerSettings{
 		LogLevel:     "info",

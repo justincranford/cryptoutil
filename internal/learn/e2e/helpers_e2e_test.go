@@ -100,7 +100,7 @@ func createTestPublicServer(db *gorm.DB) (*server.PublicServer, string, error) {
 
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
 
 	// Create server using shared JWK generation service and TLS configuration.
 	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, messageRecipientJWKRepo, sharedJWKGenService, testJWTSecret, sharedTLSConfig)

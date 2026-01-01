@@ -154,3 +154,4 @@ func (tx *GormBarrierTransaction) AddContentKey(key *BarrierContentKey) error {
 	}
 	return nil
 }
+

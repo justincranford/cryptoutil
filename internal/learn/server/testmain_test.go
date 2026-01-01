@@ -12,6 +12,7 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -20,11 +21,13 @@ import (
 
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilTemplateBarrier "cryptoutil/internal/template/server/barrier"
 )
 
 var (
@@ -33,6 +36,7 @@ var (
 	testUserRepo            *repository.UserRepository
 	testMessageRepo         *repository.MessageRepository
 	testMessageRecipientJWK *repository.MessageRecipientJWKRepository
+	testBarrierService      *cryptoutilTemplateBarrier.BarrierService
 	testJWKGenService       *cryptoutilJose.JWKGenService
 	testTelemetryService    *cryptoutilTelemetry.TelemetryService
 	testJWTSecret           string
@@ -82,11 +86,6 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to run migrations: " + err.Error())
 	}
 
-	// Initialize repositories.
-	testUserRepo = repository.NewUserRepository(testDB)
-	testMessageRepo = repository.NewMessageRepository(testDB)
-	testMessageRecipientJWK = repository.NewMessageRecipientJWKRepository(testDB)
-
 	// Initialize telemetry.
 	telemetrySettings := &cryptoutilConfig.ServerSettings{
 		LogLevel:     "info",
@@ -105,6 +104,33 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create JWK service: " + err.Error())
 	}
+
+	// Initialize Barrier Service.
+	// Generate a simple test unseal key using JWE with A256GCM encryption and A256KW key wrapping.
+	_, testUnsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	if err != nil {
+		panic("TestMain: failed to generate test unseal JWK: " + err.Error())
+	}
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{testUnsealJWK})
+	if err != nil {
+		panic("TestMain: failed to create unseal keys service: " + err.Error())
+	}
+
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
+	if err != nil {
+		panic("TestMain: failed to create barrier repository: " + err.Error())
+	}
+
+	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
+	if err != nil {
+		panic("TestMain: failed to create barrier service: " + err.Error())
+	}
+
+	// Initialize repositories.
+	testUserRepo = repository.NewUserRepository(testDB)
+	testMessageRepo = repository.NewMessageRepository(testDB)
+	testMessageRecipientJWK = repository.NewMessageRecipientJWKRepository(testDB, testBarrierService)
 
 	// Generate TLS config.
 	testTLSCfg, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(

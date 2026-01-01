@@ -10,7 +10,9 @@
 CREATE TABLE IF NOT EXISTS barrier_root_keys (
     uuid TEXT PRIMARY KEY NOT NULL,
     encrypted TEXT NOT NULL,  -- JWE encrypted root key
-    kek_uuid TEXT NOT NULL     -- Key Encryption Key UUID (unseal key)
+    kek_uuid TEXT NOT NULL,   -- Key Encryption Key UUID (unseal key)
+    created_at INTEGER NOT NULL,  -- Unix epoch milliseconds
+    updated_at INTEGER NOT NULL   -- Unix epoch milliseconds
 );
 
 CREATE INDEX IF NOT EXISTS idx_barrier_root_keys_kek_uuid ON barrier_root_keys(kek_uuid);
@@ -22,6 +24,8 @@ CREATE TABLE IF NOT EXISTS barrier_intermediate_keys (
     uuid TEXT PRIMARY KEY NOT NULL,
     encrypted TEXT NOT NULL,    -- JWE encrypted intermediate key
     kek_uuid TEXT NOT NULL,     -- Root key UUID that encrypted this key
+    created_at INTEGER NOT NULL,  -- Unix epoch milliseconds
+    updated_at INTEGER NOT NULL,  -- Unix epoch milliseconds
     FOREIGN KEY (kek_uuid) REFERENCES barrier_root_keys(uuid)
 );
 
@@ -34,6 +38,8 @@ CREATE TABLE IF NOT EXISTS barrier_content_keys (
     uuid TEXT PRIMARY KEY NOT NULL,
     encrypted TEXT NOT NULL,    -- JWE encrypted content key
     kek_uuid TEXT NOT NULL,     -- Intermediate key UUID that encrypted this key
+    created_at INTEGER NOT NULL,  -- Unix epoch milliseconds
+    updated_at INTEGER NOT NULL,  -- Unix epoch milliseconds
     FOREIGN KEY (kek_uuid) REFERENCES barrier_intermediate_keys(uuid)
 );
 
