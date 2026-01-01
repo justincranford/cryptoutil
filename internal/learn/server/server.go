@@ -13,12 +13,13 @@ import (
 
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server/config"
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
+	cryptoutilTemplateBarrier "cryptoutil/internal/template/server/barrier"
 	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
 	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"
 )
@@ -31,7 +32,7 @@ type LearnIMServer struct {
 	// Services.
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JWKGenService
-	barrierService   *cryptoutilBarrierService.BarrierService
+	barrierService   *cryptoutilTemplateBarrier.BarrierService
 
 	// Repositories.
 	userRepo    *repository.UserRepository
@@ -78,14 +79,35 @@ func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType reposit
 		return nil, fmt.Errorf("failed to create service template: %w", err)
 	}
 
-	// NOTE: Phase 5b will initialize Barrier Service for key encryption at rest.
-	// For Phase 5a, message encryption JWKs are generated in-memory without barrier encryption.
-	// Phase 5b will add barrier service to encrypt JWKs before storing in messages_recipient_jwks table.
+	// Initialize Barrier Service for key encryption at rest.
+	// Create a simple in-memory unseal keys service for demo purposes.
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSettings(ctx, template.Telemetry(), &cfg.ServerSettings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create unseal keys service: %w", err)
+	}
+
+	// Create GORM barrier repository adapter.
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create barrier repository: %w", err)
+	}
+
+	// Create barrier service with GORM repository.
+	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(
+		ctx,
+		template.Telemetry(),
+		template.JWKGen(),
+		barrierRepo,
+		unsealKeysService,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create barrier service: %w", err)
+	}
 
 	// Initialize repositories.
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, barrierService)
 
 	// Create TLS config for public server using auto-generated certificates.
 	publicTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
@@ -131,7 +153,7 @@ func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType reposit
 		db:               db,
 		telemetryService: template.Telemetry(),
 		jwkGenService:    template.JWKGen(),
-		barrierService:   template.Barrier(), // nil until Phase 5b.
+		barrierService:   barrierService,
 		userRepo:         userRepo,
 		messageRepo:      messageRepo,
 	}, nil
