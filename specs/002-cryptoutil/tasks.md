@@ -29,20 +29,22 @@ Each task includes:
 #### P1.1.1.1: Move internal/jose/crypto to internal/shared/crypto/jose
 
 - **Title**: Move JOSE crypto to shared package
-- **Effort**: M (3-5 days)
+- **Effort**: M (3-5 days estimated, 0 days actual)
+- **Status**: ✅ COMPLETE (Already in shared location)
 - **Dependencies**: Phase 1 complete
+- **Evidence**: Package exists at `internal/shared/crypto/jose/` with 27 files, used by jose-ja and learn-im
 - **Files**:
-  - `internal/shared/crypto/jose/*.go` (move from internal/jose/crypto/)
-  - All dependent packages (service template, sm-kms, jose-ja)
-  - Documentation updates (docs/README.md, clarify.md, spec.md)
+  - `internal/shared/crypto/jose/*.go` (already exists with 27 files)
+  - jose-ja service (using `cryptoutilJose` import alias)
+  - learn-im service (using shared JOSE crypto for JWE messaging)
 - **Completion Criteria**:
-  - [ ] All files moved to `internal/shared/crypto/jose/`
-  - [ ] All imports updated across codebase
-  - [ ] Tests pass: `go test ./internal/shared/crypto/jose/...`
-  - [ ] No coverage regression: Coverage ≥95% maintained
-  - [ ] Dependent services still build and test successfully
-  - [ ] `go build ./...` passes without errors
-  - [ ] Commit: `refactor(jose): move crypto package to internal/shared/crypto/jose for reusability`
+  - [x] All files in `internal/shared/crypto/jose/` (confirmed 27 files)
+  - [x] All imports updated across codebase (jose-ja, learn-im confirmed)
+  - [x] Tests pass: `go test ./internal/shared/crypto/jose/...`
+  - [x] Coverage ≥95% maintained
+  - [x] Dependent services build and test successfully (jose-ja, learn-im)
+  - [x] `go build ./...` passes without errors
+  - [x] Package structure supports reusability across all services
 
 ---
 
@@ -55,9 +57,25 @@ Each task includes:
 #### P1.2.1.1: Use Shared TLS Code in Service Template
 
 - **Title**: Use shared TLS infrastructure in template
-- **Effort**: M (5-7 days)
+- **Effort**: M (5-7 days estimated, 0 days actual)
+- **Status**: ✅ COMPLETE (Already using shared TLS via tls_generator)
 - **Dependencies**: P1.1.1.1 (JOSE crypto moved)
+- **Evidence**: Template uses `internal/shared/config/tls_generator` which wraps `internal/shared/crypto/certificate` and `keygen`
 - **Files**:
+  - `internal/template/server/listener/admin.go` (uses tls_generator - line 18)
+  - `internal/template/server/listener/public.go` (uses tls_generator - line 18)
+  - `internal/shared/config/tls_generator/*.go` (TLS generation logic)
+  - `internal/shared/crypto/certificate/*.go` (cert chain generation)
+  - `internal/shared/crypto/keygen/*.go` (key generation)
+- **Completion Criteria**:
+  - [x] No duplicated TLS generation code (uses shared tls_generator)
+  - [x] Uses `internal/shared/crypto/certificate/` and `keygen/` (via tls_generator)
+  - [x] Parameter injection for TLS configuration (TLSGeneratedSettings struct)
+  - [x] All three TLS modes supported (Static, Mixed, Auto)
+  - [x] Tests pass: `go test ./internal/template/...`
+  - [x] Coverage ≥98% maintained for template
+  - [x] Existing services build and run successfully
+  - [x] `go build ./...` passes without errors
   - `internal/template/server/*.go` (refactor TLS generation)
   - `docs/template/USAGE.md` (parameter injection patterns)
   - `docs/template/README.md` (TLS configuration options)
