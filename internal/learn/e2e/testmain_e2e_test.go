@@ -12,7 +12,11 @@ import (
 	"strconv"
 	"testing"
 
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+
 	"cryptoutil/internal/learn/server"
+	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -28,6 +32,7 @@ var (
 	sharedHTTPClient       *http.Client
 	testPublicServer       *server.PublicServer
 	baseURL                string
+	testBarrierService     *cryptoutilBarrier.BarrierService
 )
 
 // TestMain initializes shared resources once for all E2E tests.
@@ -80,6 +85,34 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		sharedTelemetryService.Shutdown()
 		panic("failed to initialize test database: " + err.Error())
+	}
+
+	// Generate unseal JWK for testing.
+	_, unsealJWK, _, _, _, err := sharedJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	if err != nil {
+		sharedTelemetryService.Shutdown()
+		panic("failed to generate unseal JWK: " + err.Error())
+	}
+
+	// Initialize unseal keys service.
+	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	if err != nil {
+		sharedTelemetryService.Shutdown()
+		panic("failed to create unseal service: " + err.Error())
+	}
+
+	// Initialize barrier repository.
+	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(db)
+	if err != nil {
+		sharedTelemetryService.Shutdown()
+		panic("failed to initialize barrier repository: " + err.Error())
+	}
+
+	// Initialize barrier service for E2E tests.
+	testBarrierService, err = cryptoutilBarrier.NewBarrierService(ctx, sharedTelemetryService, sharedJWKGenService, barrierRepo, unsealService)
+	if err != nil {
+		sharedTelemetryService.Shutdown()
+		panic("failed to initialize test barrier service: " + err.Error())
 	}
 
 	testPublicServer, baseURL, err = createTestPublicServer(db)

@@ -111,7 +111,6 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +194,6 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +296,6 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

@@ -6,22 +6,33 @@ package realms_test
 import (
 	"context"
 	"crypto/tls"
+	"database/sql"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	_ "modernc.org/sqlite" // CGO-free SQLite driver
+
 	"cryptoutil/internal/learn/domain"
+	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
-	"cryptoutil/internal/learn/server/config"
 	"cryptoutil/internal/learn/server/util"
+	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Test helpers duplicated from parent server package for subdirectory test isolation.
@@ -30,10 +41,20 @@ import (
 func initTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	// Use unique in-memory database per test to avoid table conflicts.
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.New().String())
+	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
-	err = db.AutoMigrate(&domain.User{}, &domain.Message{}, &domain.MessagesRecipientJWK{})
+	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
+	require.NoError(t, err)
+
+	// Migrate learn-im domain tables.
+	err = db.AutoMigrate(&domain.User{}, &domain.Message{}, &domain.MessageRecipientJWK{})
+	require.NoError(t, err)
+
+	// Migrate barrier service tables.
+	err = db.AutoMigrate(&cryptoutilBarrier.BarrierRootKey{}, &cryptoutilBarrier.BarrierIntermediateKey{}, &cryptoutilBarrier.BarrierContentKey{})
 	require.NoError(t, err)
 
 	return db
@@ -43,15 +64,49 @@ func initTestDB(t *testing.T) *gorm.DB {
 func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, string) {
 	t.Helper()
 
-	cfg := config.DefaultAppConfig()
-	cfg.BindPublicPort = 0  // Dynamic port
-	cfg.BindPrivatePort = 0 // Dynamic port
-	cfg.OTLPService = "learn-im-test"
-	cfg.LogLevel = "info"
-	cfg.OTLPEndpoint = "grpc://" + cryptoutilSharedMagic.HostnameLocalhost + ":4317"
-	cfg.OTLPEnabled = false
+	ctx := context.Background()
 
-	srv, err := server.NewPublicServer(context.Background(), cfg, db)
+	// Initialize dependencies.
+	telemetrySettings := &cryptoutilConfig.ServerSettings{
+		LogLevel:     "info",
+		OTLPService:  "learn-im-realms-test",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://" + cryptoutilSharedMagic.HostnameLocalhost + ":4317",
+	}
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	require.NoError(t, err)
+
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	require.NoError(t, err)
+
+	// Generate unseal JWK for testing.
+	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+
+	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+
+	barrierService, err := cryptoutilBarrier.NewBarrierService(ctx, telemetryService, jwkGenService, barrierRepo, unsealService)
+	require.NoError(t, err)
+
+	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{cryptoutilSharedMagic.HostnameLocalhost},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
+
+	// Initialize repositories.
+	userRepo := repository.NewUserRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, barrierService)
+
+	jwtSecret := "test-secret-key-minimum-32-chars-required-for-hs256"
+
+	srv, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, jwtSecret, tlsCfg)
 	require.NoError(t, err)
 
 	go func() {
@@ -61,7 +116,8 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	// Wait for server to start
 	time.Sleep(100 * time.Millisecond)
 
-	baseURL := "https://" + cryptoutilSharedMagic.HostnameLocalhost + ":" + srv.GetPublicPort()
+	actualPort := srv.ActualPort()
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.HostnameLocalhost, actualPort)
 
 	return srv, baseURL
 }

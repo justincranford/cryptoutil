@@ -18,6 +18,7 @@ Most of the Docs Resides In
 ## CRITICAL INSTRUCTIONS
 
 MUST: Complete all tasks without stopping
+MUST: Complete all tasks in order without skipping; exception is post-mortem identifies dependency order adjustment needed
 MUST: Do regular commit and push
 MUST: Must track progress in docs\SERVICE-TEMPLATE.md with checkmarks for complete tasks and phases
 MUST: Create evidence of completion per phase and task in docs/learn-im-migration/evidence/; prefixed with phase number and task number

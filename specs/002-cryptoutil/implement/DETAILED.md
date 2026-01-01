@@ -2613,7 +2613,7 @@ go test ./internal/cmd/learn/ -v -shuffle=on
   - Commit: 2bce84ca
 
 - **P7.4 Manual Key Rotation API** (~2 hours actual):
-  
+
   **rotation_service.go** (311 lines):
   - Created RotationService with 3 rotation methods
   - Elastic rotation pattern: new keys created, old keys retained for historical decryption
@@ -2622,14 +2622,14 @@ go test ./internal/cmd/learn/ -v -shuffle=on
   - RotateContentKey: Generates new content key, encrypts with current intermediate key
   - All operations transaction-wrapped for atomicity
   - Timestamp tracking with getCurrentMillis() (Unix milliseconds)
-  
+
   **rotation_handlers.go** (195 lines):
   - 3 HTTP handlers for admin rotation endpoints
   - Request validation: reason field required (10-500 chars)
   - Routes: POST /admin/v1/barrier/rotate/{root,intermediate,content}
   - Response models: RotateRootKeyResponse, RotateIntermediateKeyResponse, RotateContentKeyResponse
   - Returns old/new UUIDs, reason, timestamp for audit
-  
+
   **rotation_handlers_test.go** (312 lines):
   - 5 integration tests, ALL PASSING (2.300s execution)
   - TestRotateRootKey_Success: Validates root key rotation + historical data decryption
