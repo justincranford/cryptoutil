@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/learn/repository"
@@ -80,8 +81,14 @@ func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType reposit
 	}
 
 	// Initialize Barrier Service for key encryption at rest.
-	// Create a simple in-memory unseal keys service for demo purposes.
-	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSettings(ctx, template.Telemetry(), &cfg.ServerSettings)
+	// For learn-im demo service, create a simple in-memory unseal keys service using JWE encryption.
+	// Production services should use NewUnsealKeysServiceFromSettings with proper HSM/KMS integration.
+	_, unsealJWK, _, _, _, err := template.JWKGen().GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate unseal JWK: %w", err)
+	}
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal keys service: %w", err)
 	}
