@@ -129,7 +129,7 @@ func (i *RootKeysService) EncryptKey(tx BarrierTransaction, clearIntermediateKey
 	return encryptedIntermediateKeyBytes, &rootKeyLatestKidUUID, nil
 }
 
-func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
+func (i *RootKeysService) DecryptKey(sqlTransaction BarrierTransaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
 	encryptedIntermediateKey, err := joseJwe.Parse(encryptedIntermediateKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted intermediate key message: %w", err)
@@ -152,7 +152,7 @@ func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 		return nil, fmt.Errorf("failed to get root key: %w", err)
 	}
 
-	decryptedRootKey, err := i.unsealKeysService.DecryptKey([]byte(encryptedRootKey.GetEncrypted()))
+	decryptedRootKey, err := i.unsealKeysService.DecryptKey([]byte(encryptedRootKey.Encrypted))
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt root key: %w", err)
 	}
@@ -167,7 +167,7 @@ func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 
 func (i *RootKeysService) Shutdown() {
 	i.unsealKeysService = nil
-	i.ormRepository = nil
+	i.repository = nil
 	i.jwkGenService = nil
 	i.telemetryService = nil
 }

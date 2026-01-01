@@ -66,8 +66,6 @@ func (tx *OrmBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 		UUID:      kmsKey.UUID,
 		Encrypted: kmsKey.Encrypted,
 		KEKUUID:   kmsKey.KEKUUID,
-		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
-		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
 	}, nil
 }
 
@@ -82,8 +80,6 @@ func (tx *OrmBarrierTransaction) GetRootKey(uuid *googleUuid.UUID) (*BarrierRoot
 		UUID:      kmsKey.UUID,
 		Encrypted: kmsKey.Encrypted,
 		KEKUUID:   kmsKey.KEKUUID,
-		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
-		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
 	}, nil
 }
 
@@ -112,8 +108,6 @@ func (tx *OrmBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediat
 		UUID:      kmsKey.UUID,
 		Encrypted: kmsKey.Encrypted,
 		KEKUUID:   kmsKey.KEKUUID,
-		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
-		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
 	}, nil
 }
 
@@ -128,8 +122,6 @@ func (tx *OrmBarrierTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*Bar
 		UUID:      kmsKey.UUID,
 		Encrypted: kmsKey.Encrypted,
 		KEKUUID:   kmsKey.KEKUUID,
-		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
-		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
 	}, nil
 }
 
@@ -155,8 +147,6 @@ func (tx *OrmBarrierTransaction) GetContentKey(uuid *googleUuid.UUID) (*BarrierC
 		UUID:      kmsKey.UUID,
 		Encrypted: kmsKey.Encrypted,
 		KEKUUID:   kmsKey.KEKUUID,
-		CreatedAt: kmsKey.CreatedAt.UnixMilli(),
-		UpdatedAt: kmsKey.UpdatedAt.UnixMilli(),
 	}, nil
 }
 
