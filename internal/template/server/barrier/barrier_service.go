@@ -123,6 +123,16 @@ func (d *BarrierService) DecryptContentWithContext(ctx context.Context, encrypte
 	return decryptedBytes, nil
 }
 
+// EncryptBytesWithContext is an alias for EncryptContentWithContext for API consistency.
+func (d *BarrierService) EncryptBytesWithContext(ctx context.Context, clearBytes []byte) ([]byte, error) {
+	return d.EncryptContentWithContext(ctx, clearBytes)
+}
+
+// DecryptBytesWithContext is an alias for DecryptContentWithContext for API consistency.
+func (d *BarrierService) DecryptBytesWithContext(ctx context.Context, encryptedBytes []byte) ([]byte, error) {
+	return d.DecryptContentWithContext(ctx, encryptedBytes)
+}
+
 // Shutdown releases all resources held by the barrier service.
 func (d *BarrierService) Shutdown() {
 	d.shutdownOnce.Do(func() {
