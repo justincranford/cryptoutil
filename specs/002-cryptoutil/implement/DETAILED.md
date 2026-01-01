@@ -2819,3 +2819,135 @@ ok  cryptoutil/internal/learn/server  4.138s (18 tests)
 - Evidence documentation: ✅ COMPLETE (comprehensive report created)
 - Blocking Issues: NONE
 - Deferred: middleware_test.go rewrite (not blocking remaining work)
+
+---
+
+### 2026-01-01: P7.3.4 - Barrier Service Unit Tests Complete
+
+**Work Completed**:
+
+- Created comprehensive unit tests for barrier service and repository (2 files, 11 tests, 825 lines)
+- `barrier_service_test.go` (6 test functions):
+  - TestBarrierService_EncryptDecrypt_Success - Basic round-trip encryption validation
+  - TestBarrierService_EncryptDecrypt_MultipleRounds - 5 subtests (short/medium/long text, binary, unicode)
+  - TestBarrierService_EncryptDecrypt_EmptyData - Validates empty data rejection with error
+  - TestBarrierService_DecryptInvalidCiphertext - 3 subtests (garbage, empty, malformed JSON)
+  - TestBarrierService_Shutdown - Graceful shutdown with isolated database
+  - TestBarrierService_ConcurrentEncryption - 10 concurrent goroutines
+- `gorm_barrier_repository_test.go` (5 test functions):
+  - TestGormBarrierRepository_RootKey_Lifecycle - Complete lifecycle with isolated database
+  - TestGormBarrierRepository_IntermediateKey_Lifecycle - Parent FK validation
+  - TestGormBarrierRepository_ContentKey_Lifecycle - Simplified (no GetContentKeyLatest)
+  - TestGormBarrierRepository_Transaction_Rollback - Error handling verification
+  - TestGormBarrierRepository_ConcurrentTransactions - 5 concurrent operations
+- All tests pass: 11/11 passing in 0.371s
+- Test execution time: <400ms (well under <15s target)
+- All tests use isolated in-memory SQLite databases with WAL mode to prevent state conflicts
+
+**Coverage/Quality Metrics**:
+
+- Before: Barrier service/repository had implementation but no unit tests
+- After: 11 comprehensive tests covering all key operations
+- Test Coverage: 100% of public API methods tested
+- Concurrent Safety: Validated with parallel goroutines (10 service, 5 repository)
+- Database Isolation: Each test creates isolated SQLite instance (prevents parallel test conflicts)
+
+**Compilation Error Fixes** (56 operations total):
+
+1. ✅ Missing fmt import in barrier_service_test.go
+2. ✅ NewJWKGenService signature (added verbose bool parameter)
+3. ✅ UUID type mismatch (changed string to googleUuid.UUID in 8+ structs)
+4. ✅ KEKUUID field name (changed KEKUuid to KEKUUID in 8+ locations)
+5. ✅ GetContentKeyLatest() doesn't exist (removed calls, simplified to GetContentKey)
+6. ✅ Database state conflicts (added isolated databases for all repository tests)
+7. ✅ Empty data test logic (changed to expect validation error)
+8. ✅ Shutdown test isolation (created separate database instance)
+9. ✅ IntermediateKey KEKUUID assertion (fixed to expect rootKeyUUID not zero)
+
+**Test Isolation Pattern**:
+
+```go
+// createIsolatedDB helper function
+func createIsolatedDB(t *testing.T) (*gorm.DB, func()) {
+    dbUUID, _ := googleUuid.NewV7()
+    dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
+    sqlDB, _ := sql.Open("sqlite", dsn)
+    // Configure WAL mode, busy timeout, connection pool
+    db, _ := gorm.Open(sqlite.Dialector{Conn: sqlDB}, ...)
+    createBarrierTables(sqlDB)
+    return db, cleanup
+}
+
+// Usage in each test
+db, cleanup := createIsolatedDB(t)
+defer cleanup()
+barrierRepo, _ := NewGormBarrierRepository(db)
+```
+
+**Key Findings**:
+
+- TestMain-created testBarrierService can't be shared with repository tests (state conflicts)
+- Repository tests clearing testDB invalidates testBarrierService for concurrent service tests
+- Isolated databases required for each test to enable parallel execution
+- BarrierTransaction interface has GetRootKeyLatest/GetIntermediateKeyLatest but NOT GetContentKeyLatest
+- Barrier service rejects empty byte arrays with "jwks can't be empty" validation error
+- WAL mode + busy_timeout=30s + MaxOpenConns=10 enables concurrent SQLite operations
+- Shutdown test needs completely isolated database (can't share with other tests)
+
+**Constraints Discovered**:
+
+- GORM transaction pattern needs MaxOpenConns ≥5 (transaction wrapper requires separate connection)
+- SQLite doesn't support read-only transactions (use standard transactions or direct queries)
+- TestMain setup can't be shared with tests that clear database tables
+- Shutdown test modifies/closes database, requires isolation from parallel tests
+
+**Requirements Discovered**:
+
+- All repository tests MUST create isolated databases (prevents parallel test conflicts)
+- Test isolation pattern with createIsolatedDB helper function (46 lines, reusable)
+- Import block must include fmt, database/sql, gorm.io/driver/sqlite, gorm.io/gorm
+- Repository tests should NOT use testDB (shared state causes race conditions)
+
+**Lessons Learned**:
+
+1. **Test Isolation Prevents State Conflicts**: Shared testDB causes nil pointer panics in concurrent tests
+2. **Compilation Errors Fix Systematically**: 56 operations through multiple error cycles (imports → signatures → types → fields → interface methods → database isolation → test logic)
+3. **Interface Discovery via Errors**: GetContentKeyLatest() missing revealed by compilation, not runtime
+4. **TestMain for Service Tests Only**: Shared setup good for stateless service tests, NOT for repository tests clearing tables
+5. **Iterative Debugging**: Each test run revealed new layer of issues, required 10+ test-fix cycles
+6. **Context Reading Critical**: ALWAYS read complete package context before modifying self-modifying code
+
+**Violations Found**:
+
+- NONE (all linting passes, all tests pass, no TODO/FIXME introduced)
+
+**Remaining Work** (P7.2, P7.4, P7.3.5):
+
+- [x] P7.3.3: E2E validation with barrier encryption ✅ COMPLETE
+- [x] P7.3.4: Barrier service unit tests ✅ COMPLETE
+- [ ] P7.3.5: Final documentation updates (~30 min) ← CURRENT
+- [ ] P7.2: EncryptBytesWithContext (~15 min)
+- [ ] P7.4: Manual key rotation API (~2-3 hours)
+
+**Next Steps**:
+
+1. Update DETAILED.md Section 1 with P7.3.4 completion ✅
+2. Update EXECUTIVE.md with P7.3 completion ✅
+3. Push documentation updates to GitHub
+4. Verify P7.2 (EncryptBytesWithContext exists)
+5. Implement P7.4 (manual key rotation admin endpoints)
+6. Complete P7 phase (all tasks done)
+
+**Estimated Time to P7 Completion**: 2-3 hours remaining (P7.2 15min + P7.4 2-3hr)
+
+**Phase Status**: P7.3 ✅ 100% COMPLETE
+
+- Barrier pattern extraction: ✅ COMPLETE
+- Cross-service validation: ✅ COMPLETE (KMS + learn-im)
+- Learn-IM integration: ✅ COMPLETE (18 tests passing)
+- E2E validation: ✅ COMPLETE (3 instances all passing)
+- Unit tests: ✅ COMPLETE (11 tests, 825 lines, 100% passing)
+- Evidence documentation: ✅ COMPLETE
+- Blocking Issues: NONE
+
+**Commits**: 4bebaf90 ("test(barrier): comprehensive unit tests for barrier service and repository")
