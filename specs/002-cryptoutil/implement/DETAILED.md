@@ -2598,6 +2598,114 @@ go test ./internal/cmd/learn/ -v -shuffle=on
 - Disabled 4 tests that closed shared database (incompatible with TestMain pattern)
 - Discovered and documented data isolation issue (8 test failures from cleanTestDB races)
 - Captured Phase 5 quality gate evidence (12 files)
+
+---
+
+### 2026-01-01: P7 Barrier Pattern Extraction Complete (P7.2 + P7.4)
+
+**Work Completed**:
+
+- **P7.2 EncryptBytesWithContext Alias Methods** (~5 min actual vs 15 min estimated):
+  - Added EncryptBytesWithContext → EncryptContentWithContext alias
+  - Added DecryptBytesWithContext → DecryptContentWithContext alias
+  - 10 lines added to barrier_service.go
+  - All 11 existing tests passing (0.409s)
+  - Commit: 2bce84ca
+
+- **P7.4 Manual Key Rotation API** (~2 hours actual):
+  
+  **rotation_service.go** (311 lines):
+  - Created RotationService with 3 rotation methods
+  - Elastic rotation pattern: new keys created, old keys retained for historical decryption
+  - RotateRootKey: Generates new root key, encrypts with unseal key service
+  - RotateIntermediateKey: Generates new intermediate, encrypts with current root key
+  - RotateContentKey: Generates new content key, encrypts with current intermediate key
+  - All operations transaction-wrapped for atomicity
+  - Timestamp tracking with getCurrentMillis() (Unix milliseconds)
+  
+  **rotation_handlers.go** (195 lines):
+  - 3 HTTP handlers for admin rotation endpoints
+  - Request validation: reason field required (10-500 chars)
+  - Routes: POST /admin/v1/barrier/rotate/{root,intermediate,content}
+  - Response models: RotateRootKeyResponse, RotateIntermediateKeyResponse, RotateContentKeyResponse
+  - Returns old/new UUIDs, reason, timestamp for audit
+  
+  **rotation_handlers_test.go** (312 lines):
+  - 5 integration tests, ALL PASSING (2.300s execution)
+  - TestRotateRootKey_Success: Validates root key rotation + historical data decryption
+  - TestRotateIntermediateKey_Success: Validates intermediate key rotation + old ciphertext decryptable
+  - TestRotateContentKey_Success: Validates content key rotation + backward compatibility
+  - TestRotateKey_MissingReason: Tests validation error handling (3 subtests)
+  - TestRotateKey_ShortReason: Tests minimum length validation (3 subtests)
+
+**Design Decisions**:
+
+- **Elastic Rotation Strategy**: New keys created and added to database, old keys retained for decrypting historical data
+- **No Automatic Re-encryption**: Dependent keys NOT automatically re-encrypted after parent rotation
+- **Rationale**: BarrierTransaction interface lacks GetAll* methods needed for bulk re-encryption operations
+- **Benefits**: Simpler implementation (no interface changes), historical data remains decryptable, gradual key adoption
+- **Trade-off**: Old keys accumulate in database (acceptable for security model)
+
+**Implementation Insights**:
+
+- Used `cryptoutilJose.EncryptKey([]joseJwk.Key{parentKey}, childKey)` pattern (not EncryptJWE)
+- Decryption chain for content keys: Parse JWE → Extract kid from header → Fetch root → Decrypt root → Decrypt intermediate → Decrypt content
+- Content key rotation requires 2-level parent decryption (root → intermediate → content)
+- All rotation methods use transaction wrapping via repository.WithTransaction()
+- Key IDs (kid) embedded in JWE headers enable deterministic parent key lookup during decryption
+
+**Test Results**:
+
+- Existing barrier tests: 11/11 PASSING (0.409s) - no regressions introduced
+- New rotation tests: 5/5 PASSING (2.300s execution)
+- **CRITICAL VALIDATION**: Elastic rotation confirmed working - old encrypted data remains decryptable after key rotation
+  - Root key rotation: Historical ciphertext decrypts successfully after new root key created
+  - Intermediate key rotation: Old data decryptable after intermediate rotation
+  - Content key rotation: Backward compatibility validated with new content keys
+
+**Total Implementation**:
+
+- 818 lines created (311 service + 195 handlers + 312 tests)
+- 16/16 all tests passing (11 existing + 5 new)
+- Zero regressions (all existing tests still passing)
+- Commit: a8983d16
+
+**Quality Evidence**:
+
+- ✅ Compilation: go build clean (no errors)
+- ✅ Existing tests: 11/11 passing (validates no regressions)
+- ✅ New tests: 5/5 passing (validates rotation functionality)
+- ✅ Elastic rotation: Historical data decryption validated in all 3 test scenarios
+- ✅ Validation logic: Reason field requirements enforced (10-500 chars)
+- ✅ HTTP API: Correct status codes (200 OK for success, 400 Bad Request for validation errors)
+
+**Phase Status**:
+
+- ✅ P7.3: Interface abstraction + learn-im integration + E2E + unit tests (commits 4bebaf90, 3cebf0e7)
+- ✅ P7.2: EncryptBytesWithContext alias methods (commit 2bce84ca, 5 min)
+- ✅ P7.4: Manual key rotation API (commit a8983d16, 2 hours)
+- **P7 Barrier Pattern Extraction: 100% COMPLETE** ✅
+
+**Lessons Learned**:
+
+1. **Research existing patterns FIRST**: grep_search for similar code prevents using non-existent methods (EncryptJWE vs EncryptKey)
+2. **Test setup consistency**: Matching existing test patterns (barrier_service_test.go) prevents compilation errors
+3. **Elastic rotation validation**: Integration tests MUST verify historical data decryption (critical requirement)
+4. **Transaction wrapping**: All rotation operations need atomicity for correctness
+5. **Decryption chain complexity**: Content key rotation requires multi-level parent decryption (document thoroughly)
+
+**Next Steps**:
+
+- ⏸️ P8: Database abstraction layer (prepare for multi-service migration)
+- ⏸️ P9: Service template finalization (all patterns extracted and validated)
+- ⏸️ P10: Production service migrations (jose, pki-ca, identity-*)
+
+**Related Commits**:
+
+- 2bce84ca: P7.2 EncryptBytesWithContext alias methods
+- a8983d16: P7.4 Manual key rotation API with elastic rotation strategy
+
+**Violations Found**: None (build clean, all tests passing, linting clean, no regressions)
 - Committed database closure fix (6cb630ad)
 - Generated coverage HTML, documented mutation/race limitations
 
