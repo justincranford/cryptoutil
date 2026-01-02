@@ -9,7 +9,7 @@ run:
 
 output:
   formats:
-    - format: tab
+    tab:
       path: stdout
   sort-results: true
   sort-order: [linter, severity, file]
@@ -39,7 +39,7 @@ linters:
     - mnd
     - wsl_v5
     - nlreturn
-    - goheader
+    # - goheader  # Temporarily disabled - causing file corruption with v2
     - depguard
     - exhaustive
     - nilnil

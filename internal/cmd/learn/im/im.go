@@ -61,6 +61,7 @@ func IM(args []string) int {
 	switch args[0] {
 	case "version":
 		printIMVersion()
+
 		return 0
 	case "server":
 		return imServer(args[1:])
