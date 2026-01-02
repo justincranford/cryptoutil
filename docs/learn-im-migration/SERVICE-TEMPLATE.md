@@ -209,15 +209,15 @@ MUST: NO stopping to ask permission - you have PERMANENT permission to continue 
 
 ### ⏳ P7.4: Manual Key Rotation Admin API
 
-- [ ] P7.4.1: Create admin_handlers.go with rotation endpoints
-- [ ] P7.4.1-V: Validate P7.4.1 - Verify admin_handlers.go exists with proper structure
-- [ ] P7.4.2: Add POST /admin/v1/keys/rotate endpoint
-- [ ] P7.4.2-V: Validate P7.4.2 - Verify rotation endpoint works correctly with tests
-- [ ] P7.4.3: Add GET /admin/v1/keys/status endpoint
-- [ ] P7.4.3-V: Validate P7.4.3 - Verify status endpoint works correctly with tests
-- [ ] P7.4.4: Update OpenAPI spec
+- [x] P7.4.1: Create admin_handlers.go with rotation endpoints (rotation_handlers.go exists)
+- [x] P7.4.1-V: Validate P7.4.1 - Verified rotation_handlers.go exists with proper structure
+- [x] P7.4.2: Add POST /admin/v1/barrier/rotate/{root,intermediate,content} endpoints (RegisterRotationRoutes integrated)
+- [x] P7.4.2-V: Validate P7.4.2 - Verified rotation endpoints work correctly, all tests passing (4.1s server, 3.6s realms)
+- [x] P7.4.3: Add GET /admin/v1/barrier/keys/status endpoint (status_handlers.go created, integrated)
+- [x] P7.4.3-V: Validate P7.4.3 - Verified status endpoint works correctly, all tests passing (0.82s status tests, 4.1s integration)
+- [ ] P7.4.4: Update OpenAPI spec with rotation + status endpoints
 - [ ] P7.4.4-V: Validate P7.4.4 - Verify OpenAPI spec is valid and complete
-- [ ] P7.4.5: Add E2E tests for rotation
+- [ ] P7.4.5: Add E2E tests for rotation (full server lifecycle validation)
 - [ ] P7.4.5-V: Validate P7.4.5 - Verify E2E tests pass for rotation scenarios
 - [ ] P7.4-EVIDENCE: Create evidence/P7.4-manual-rotation-complete.md
 - [ ] P7.4-POSTMORTEM: Create post-mortems/P7.4-manual-rotation.md
