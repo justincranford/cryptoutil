@@ -58,12 +58,7 @@ func initTestDB(t *testing.T) *gorm.DB {
 
 // defaultTestConfig creates minimal valid ServerSettings for tests.
 func defaultTestConfig() *cryptoutilConfig.ServerSettings {
-	return &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "service-template-test",
-		OTLPEnabled:  false, // Disabled in tests.
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317",
-	}
+	return cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 }
 
 // TestNewServiceTemplate_HappyPath tests successful ServiceTemplate creation.

@@ -73,14 +73,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Initialize telemetry.
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "barrier-test",
-		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":4317",
-	}
-
-	testTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	testTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
@@ -317,14 +310,7 @@ func TestBarrierService_Shutdown(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create isolated barrier service for shutdown testing.
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "barrier-test-shutdown",
-		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":4317",
-	}
-
-	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
 
 	jwkGenSvc, err := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)

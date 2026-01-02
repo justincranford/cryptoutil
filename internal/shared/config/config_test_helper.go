@@ -56,7 +56,7 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettin
 		BindPrivatePort:             defaultBindPrivatePort,
 		PublicBrowserAPIContextPath: defaultPublicBrowserAPIContextPath,
 		PublicServiceAPIContextPath: defaultPublicServiceAPIContextPath,
-		PrivateAdminAPIContextPath:  "/admin/v1",
+		PrivateAdminAPIContextPath:  defaultAdminServerAPIContextPath,
 		CORSAllowedOrigins:          defaultCORSAllowedOrigins,
 		CORSAllowedMethods:          defaultCORSAllowedMethods,
 		CORSAllowedHeaders:          defaultCORSAllowedHeaders,

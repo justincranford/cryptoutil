@@ -52,13 +52,9 @@ type PublicHTTPServer struct {
 func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
-	}
-
-	if settings == nil {
+	} else if settings == nil {
 		return nil, fmt.Errorf("settings cannot be nil")
-	}
-
-	if tlsCfg == nil {
+	} else if tlsCfg == nil {
 		return nil, fmt.Errorf("TLS config cannot be nil")
 	}
 

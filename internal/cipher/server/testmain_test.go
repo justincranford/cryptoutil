@@ -87,14 +87,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Initialize telemetry.
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "cipher-im-test-main",
-		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":4317",
-	}
-
-	testTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	testTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}

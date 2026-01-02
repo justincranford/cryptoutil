@@ -7,21 +7,13 @@ import (
 	"testing"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewHTTPServers_AutoMode_HappyPath(t *testing.T) {
-	settings := &cryptoutilConfig.ServerSettings{
-		BindPublicPort:        0,
-		BindPrivatePort:       0,
-		TLSPublicMode:         cryptoutilConfig.TLSModeAuto,
-		TLSPrivateMode:        cryptoutilConfig.TLSModeAuto,
-		TLSPublicDNSNames:     []string{"localhost"},
-		TLSPublicIPAddresses:  []string{"127.0.0.1"},
-		TLSPrivateDNSNames:    []string{"localhost"},
-		TLSPrivateIPAddresses: []string{"127.0.0.1"},
-	}
+	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)

@@ -66,6 +66,7 @@ const (
 	defaultBindPrivatePort             = cryptoutilMagic.DefaultPrivatePortCryptoutil       // Non-standard port to avoid conflicts with other services
 	defaultPublicBrowserAPIContextPath = cryptoutilMagic.DefaultPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
 	defaultPublicServiceAPIContextPath = cryptoutilMagic.DefaultPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
+	defaultAdminServerAPIContextPath   = cryptoutilMagic.DefaultPrivateAdminAPIContextPath  // RESTful API versioning for admin API
 	defaultCORSMaxAge                  = cryptoutilMagic.DefaultCORSMaxAge                  // 1 hour cache for CORS preflight requests, balances performance and freshness
 	defaultCSRFTokenName               = cryptoutilMagic.DefaultCSRFTokenName               // Standard CSRF token name, widely recognized by frameworks
 	defaultCSRFTokenSameSite           = cryptoutilMagic.DefaultCSRFTokenSameSiteStrict     // Strict SameSite prevents CSRF while maintaining usability

@@ -13,6 +13,8 @@ import (
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	"cryptoutil/internal/shared/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
@@ -30,10 +32,10 @@ func TestNewBusinessLogicService(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := &cryptoutilConfig.ServerSettings{
-		OTLPService:  testOTLPService,
-		OTLPEndpoint: testOTLPEndpoint,
-		LogLevel:     testLogLevel,
+	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+		OTLPService:                 testOTLPService,
+		OTLPEndpoint:                testOTLPEndpoint,
+		LogLevel:                    testLogLevel,
 	}
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
@@ -141,11 +143,7 @@ func TestGenerateJWK(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := &cryptoutilConfig.ServerSettings{
-		OTLPService:  testOTLPService,
-		OTLPEndpoint: testOTLPEndpoint,
-		LogLevel:     testLogLevel,
-	}
+	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
 

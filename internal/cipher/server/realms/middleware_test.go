@@ -29,6 +29,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
@@ -67,13 +68,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	ctx := context.Background()
 
 	// Initialize dependencies.
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "cipher-im-realms-test",
-		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://" + cryptoutilSharedMagic.HostnameLocalhost + ":4317",
-	}
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
 
 	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)

@@ -30,12 +30,12 @@ func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServerSettin
 		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
-	publicTLSGeneratedSettings, err := newFunction(settings)
+	publicTLSGeneratedSettings, err := createPublicTLSGeneratedSettings(settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create public TLS settings: %w", err)
 	}
 
-	adminTLSGeneratedSettings, err := newFunction1(settings)
+	adminTLSGeneratedSettings, err := createAdminTLSGeneratedSettings(settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin TLS settings: %w", err)
 	}
@@ -60,7 +60,7 @@ func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServerSettin
 	}, nil
 }
 
-func newFunction(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
+func createPublicTLSGeneratedSettings(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
 	var publicTLSGeneratedSettings *cryptoutilTLSGenerator.TLSGeneratedSettings
 
 	switch settings.TLSPublicMode {
@@ -90,7 +90,7 @@ func newFunction(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGener
 	return publicTLSGeneratedSettings, nil
 }
 
-func newFunction1(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
+func createAdminTLSGeneratedSettings(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
 	var adminTLSGeneratedSettings *cryptoutilTLSGenerator.TLSGeneratedSettings
 
 	switch settings.TLSPrivateMode {

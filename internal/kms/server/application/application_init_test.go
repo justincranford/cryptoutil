@@ -39,27 +39,8 @@ func TestServerInit_HappyPath(t *testing.T) {
 		settings *cryptoutilConfig.ServerSettings
 	}{
 		{
-			name: "ValidConfig_InMemoryDB_UnsealModeSysInfo",
-			settings: &cryptoutilConfig.ServerSettings{
-				LogLevel:          "ERROR",
-				VerboseMode:       false,
-				DevMode:           true,
-				DatabaseURL:       "sqlite://file::memory:?cache=shared",
-				UnsealMode:        cryptoutilMagic.DefaultUnsealModeSysInfo,
-				OTLPEnabled:       false,
-				OTLPService:       "application_test",
-				OTLPEndpoint:      "grpc://localhost:4317",
-				TLSPublicDNSNames: []string{"localhost", "127.0.0.1"},
-				TLSPublicIPAddresses: []string{
-					cryptoutilMagic.IPv4Loopback,
-					cryptoutilMagic.IPv6Loopback,
-				},
-				TLSPrivateDNSNames: []string{"localhost", "127.0.0.1"},
-				TLSPrivateIPAddresses: []string{
-					cryptoutilMagic.IPv4Loopback,
-					cryptoutilMagic.IPv6Loopback,
-				},
-			},
+			name:     "ValidConfig_InMemoryDB_UnsealModeSysInfo",
+			settings: cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true),
 		},
 	}
 
@@ -110,38 +91,20 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 	}{
 		{
 			name: "InvalidPublicIPAddress",
-			settings: &cryptoutilConfig.ServerSettings{
-				LogLevel:              "ERROR",
-				VerboseMode:           false,
-				DevMode:               true,
-				DatabaseURL:           "sqlite://file::memory:?cache=shared",
-				UnsealMode:            cryptoutilMagic.DefaultUnsealModeSysInfo,
-				OTLPEnabled:           false,
-				OTLPService:           "application_test",
-				OTLPEndpoint:          "grpc://localhost:4317",
-				TLSPublicDNSNames:     []string{"localhost"},
-				TLSPublicIPAddresses:  []string{"invalid-ip"},
-				TLSPrivateDNSNames:    []string{"localhost"},
-				TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
-			},
+			settings: func() *cryptoutilConfig.ServerSettings {
+				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+				s.TLSPublicIPAddresses = []string{"invalid-ip"}
+				return s
+			}(),
 			expectedErr: "failed to parse public TLS server IP addresses",
 		},
 		{
 			name: "InvalidPrivateIPAddress",
-			settings: &cryptoutilConfig.ServerSettings{
-				LogLevel:              "ERROR",
-				VerboseMode:           false,
-				DevMode:               true,
-				DatabaseURL:           "sqlite://file::memory:?cache=shared",
-				UnsealMode:            cryptoutilMagic.DefaultUnsealModeSysInfo,
-				OTLPEnabled:           false,
-				OTLPService:           "application_test",
-				OTLPEndpoint:          "grpc://localhost:4317",
-				TLSPublicDNSNames:     []string{"localhost"},
-				TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-				TLSPrivateDNSNames:    []string{"localhost"},
-				TLSPrivateIPAddresses: []string{"999.999.999.999"},
-			},
+			settings: func() *cryptoutilConfig.ServerSettings {
+				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+				s.TLSPrivateIPAddresses = []string{"999.999.999.999"}
+				return s
+			}(),
 			expectedErr: "failed to parse private TLS server IP addresses",
 		},
 	}

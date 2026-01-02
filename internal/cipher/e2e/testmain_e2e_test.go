@@ -40,12 +40,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Initialize shared telemetry service.
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "cipher-im-e2e-shared",
-		OTLPEnabled:  false, // E2E tests use in-process telemetry only.
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + strconv.Itoa(int(cryptoutilMagic.DefaultPublicPortOtelCollectorGRPC)),
-	}
+	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 
 	var err error
 

@@ -59,14 +59,7 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 	require.NoError(t, err)
 
 	// Initialize telemetry
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "barrier-rotation-test",
-		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":4317",
-	}
-
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
 
 	// Initialize JWK gen service

@@ -116,14 +116,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	messageRepo := repository.NewMessageRepository(db)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
 
-	telemetrySettings := &cryptoutilConfig.ServerSettings{
-		LogLevel:     "info",
-		OTLPService:  "cipher-im-test",
-		OTLPEnabled:  false,
-		OTLPEndpoint: "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317",
-	}
-
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
 
 	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
