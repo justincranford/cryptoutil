@@ -39,43 +39,43 @@ listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings
 
 #### internal/template/server/
 
-- [ ] **`internal/template/server/listener/servers_test.go`** (line 15)
+- [x] **`internal/template/server/listener/servers_test.go`** (line 15)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
-- [ ] **`internal/template/server/service_template_test.go`** (line ~30-50)
+- [x] **`internal/template/server/service_template_test.go`** (line ~30-50)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
-- [ ] **`internal/template/server/barrier/barrier_service_test.go`** (2 instances: lines ~65, ~145)
+- [x] **`internal/template/server/barrier/barrier_service_test.go`** (2 instances: lines ~65, ~145)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
-- [ ] **`internal/template/server/barrier/rotation_handlers_test.go`** (line ~40)
+- [x] **`internal/template/server/barrier/rotation_handlers_test.go`** (line ~40)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
 #### internal/cipher/
 
-- [ ] **`internal/cipher/server/testmain_test.go`** (line 90)
+- [x] **`internal/cipher/server/testmain_test.go`** (line 90)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
-- [ ] **`internal/cipher/server/server_lifecycle_test.go`** (multiple instances)
+- [x] **`internal/cipher/server/server_lifecycle_test.go`** (multiple instances)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
-- [ ] **`internal/cipher/server/realms/middleware_test.go`** (line ~70)
+- [x] **`internal/cipher/server/realms/middleware_test.go`** (line ~70)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
 #### internal/kms/server/
 
-- [ ] **`internal/kms/server/application/application_init_test.go`** (3 instances: lines 43, 118, 136)
+- [x] **`internal/kms/server/application/application_init_test.go`** (3 instances: lines 43, 118, 136)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
-- [ ] **`internal/kms/server/businesslogic/businesslogic_test.go`** (2 instances)
+- [x] **`internal/kms/server/businesslogic/businesslogic_test.go`** (2 instances)
   - Current: `&cryptoutilConfig.ServerSettings{...}` with partial fields
   - Fix: Replace with `cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)`
 
@@ -109,56 +109,56 @@ listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings
 
 #### Network Configuration:
 
-- [ ] **BindPublicAddress** - MUST NOT be blank (reject "", enforce "127.0.0.1" or "0.0.0.0")
-- [ ] **BindPublicPort** - MUST be 0-65535 (reject negative)
-- [ ] **BindPrivateAddress** - MUST NOT be blank (reject "", enforce "127.0.0.1")
-- [ ] **BindPrivatePort** - MUST be 0-65535 (reject negative)
-- [ ] **BindPublicProtocol** - MUST be "https" (reject "http" in production)
-- [ ] **BindPrivateProtocol** - MUST be "https" (reject "http" in production)
+- [x] **BindPublicAddress** - MUST NOT be blank (reject "", enforce "127.0.0.1" or "0.0.0.0")
+- [x] **BindPublicPort** - MUST be 0-65535 (reject negative)
+- [x] **BindPrivateAddress** - MUST NOT be blank (reject "", enforce "127.0.0.1")
+- [x] **BindPrivatePort** - MUST be 0-65535 (reject negative)
+- [x] **BindPublicProtocol** - MUST be "https" (reject "http" in production)
+- [x] **BindPrivateProtocol** - MUST be "https" (reject "http" in production)
 
 #### TLS Configuration:
 
-- [ ] **TLSPublicDNSNames** - MUST contain at least one entry (reject empty array)
-- [ ] **TLSPublicIPAddresses** - MUST contain at least one entry (reject empty array)
-- [ ] **TLSPrivateDNSNames** - MUST contain at least one entry
-- [ ] **TLSPrivateIPAddresses** - MUST contain at least one entry
+- [x] **TLSPublicDNSNames** - MUST contain at least one entry (reject empty array)
+- [x] **TLSPublicIPAddresses** - MUST contain at least one entry (reject empty array)
+- [x] **TLSPrivateDNSNames** - MUST contain at least one entry
+- [x] **TLSPrivateIPAddresses** - MUST contain at least one entry
 
 #### CORS Configuration:
 
-- [ ] **CORSAllowedOrigins** - MUST contain at least one entry for browser endpoints
-- [ ] Each origin MUST start with "http://" or "https://"
-- [ ] Each origin MUST NOT have trailing slash
+- [x] **CORSAllowedOrigins** - MUST contain at least one entry for browser endpoints
+- [x] Each origin MUST start with "http://" or "https://"
+- [x] Each origin MUST NOT have trailing slash
 
 #### CSRF Configuration:
 
-- [ ] **CSRFEnabled** - If true, validate CSRFCookieName is non-blank
-- [ ] **CSRFCookieName** - MUST NOT be blank if CSRF enabled
+- [x] **CSRFEnabled** - If true, validate CSRFCookieName is non-blank
+- [x] **CSRFCookieName** - MUST NOT be blank if CSRF enabled
 
 #### Rate Limiting:
 
-- [ ] **RateLimitEnabled** - If true, validate rate limit values are positive
-- [ ] **RateLimitRequestsPerMinute** - MUST be positive if rate limiting enabled
-- [ ] **RateLimitBurst** - MUST be positive if rate limiting enabled
+- [x] **RateLimitEnabled** - If true, validate rate limit values are positive
+- [x] **RateLimitRequestsPerMinute** - MUST be positive if rate limiting enabled
+- [x] **RateLimitBurst** - MUST be positive if rate limiting enabled
 
 #### Database Configuration:
 
-- [ ] **DatabaseURL** - MUST NOT be blank
-- [ ] **DatabaseURL** - MUST start with "postgres://" or "file:" for SQLite
-- [ ] **DatabaseMaxOpenConnections** - MUST be positive
-- [ ] **DatabaseMaxIdleConnections** - MUST be ≤ MaxOpenConnections
+- [x] **DatabaseURL** - MUST NOT be blank
+- [x] **DatabaseURL** - MUST start with "postgres://" or "file:" for SQLite
+- [x] **DatabaseMaxOpenConnections** - MUST be positive
+- [x] **DatabaseMaxIdleConnections** - MUST be ≤ MaxOpenConnections
 
 #### OTLP Configuration:
 
-- [ ] **OTLPEnabled** - If true, validate OTLP endpoint is non-blank
-- [ ] **OTLPEndpoint** - MUST NOT be blank if OTLP enabled
-- [ ] **OTLPServiceName** - MUST NOT be blank if OTLP enabled
-- [ ] **OTLPServiceVersion** - MUST NOT be blank if OTLP enabled
+- [x] **OTLPEnabled** - If true, validate OTLP endpoint is non-blank
+- [x] **OTLPEndpoint** - MUST NOT be blank if OTLP enabled
+- [x] **OTLPServiceName** - MUST NOT be blank if OTLP enabled
+- [x] **OTLPServiceVersion** - MUST NOT be blank if OTLP enabled
 
 #### Security Configuration:
 
-- [ ] **SessionSecretKey** - MUST be ≥32 bytes for production (reject weak keys)
-- [ ] **CSPEnabled** - If true, validate CSP directives are non-blank
-- [ ] **DevMode** - WARN if true in production environment
+- [x] **SessionSecretKey** - MUST be ≥32 bytes for production (reject weak keys)
+- [x] **CSPEnabled** - If true, validate CSP directives are non-blank
+- [x] **DevMode** - WARN if true in production environment
 
 ### Validation Error Message Pattern:
 
@@ -229,7 +229,7 @@ TestMain functions initialize shared resources that MUST be cleaned up to preven
 
 ### internal/cipher/
 
-- [ ] **`internal/cipher/e2e/testmain_e2e_test.go`**
+- [x] **`internal/cipher/e2e/testmain_e2e_test.go`**
   - Missing: `sharedJWKGenService.Shutdown()`
   - Missing: `unsealService.Shutdown()` (local variable line 99)
   - Missing: `barrierRepo.Shutdown()` (local variable line 106)
@@ -238,7 +238,7 @@ TestMain functions initialize shared resources that MUST be cleaned up to preven
   - Has: `sharedTelemetryService.Shutdown()` ✅
   - Has: `testPublicServer.Shutdown()` ✅
 
-- [ ] **`internal/cipher/server/testmain_test.go`**
+- [x] **`internal/cipher/server/testmain_test.go`**
   - Missing: `testJWKGenService.Shutdown()`
   - Missing: `unsealKeysService.Shutdown()` (local variable line 115)
   - Missing: `barrierRepo.Shutdown()` (local variable line 120)
@@ -247,14 +247,14 @@ TestMain functions initialize shared resources that MUST be cleaned up to preven
   - Has: `testTelemetryService.Shutdown()` ✅ (but too late - after m.Run())
   - Note: Comment at line 160+ warns about parallel tests, but cleanup should still happen via defer
 
-- [ ] **`internal/cipher/integration/testmain_integration_test.go`**
+- [x] **`internal/cipher/integration/testmain_integration_test.go`**
   - Missing: `sqlDB.Close()` (from gorm db.DB() at line 78)
   - Has: `sharedPGContainer.Terminate()` ✅
   - Note: Opens GORM connection but doesn't close underlying sql.DB
 
 ### internal/template/server/
 
-- [ ] **`internal/template/server/barrier/barrier_service_test.go`**
+- [x] **`internal/template/server/barrier/barrier_service_test.go`**
   - Missing: `testJWKGenService.Shutdown()` (line 89)
   - Missing: `testTelemetryService.Shutdown()` (line 83)
   - Missing: `unsealService.Shutdown()` (local variable line 100)
@@ -270,7 +270,7 @@ These files create services within individual test functions that need cleanup v
 
 ### internal/cipher/
 
-- [ ] **`internal/cipher/server/realms/middleware_test.go`**
+- [x] **`internal/cipher/server/realms/middleware_test.go`**
   - Function: `createTestPublicServer()` (line 66)
   - Missing: `telemetryService.Shutdown()` (line 76)
   - Missing: `jwkGenService.Shutdown()` (line 79)
@@ -281,7 +281,7 @@ These files create services within individual test functions that need cleanup v
   - Has: `srv.Shutdown()` via t.Cleanup() ✅ (line 150+)
   - Note: Services created per-test should be cleaned up in t.Cleanup()
 
-- [ ] **`internal/cipher/server/server_lifecycle_test.go`**
+- [x] **`internal/cipher/server/server_lifecycle_test.go`**
   - Function: Multiple test functions create services
   - Missing: `telemetryService.Shutdown()` (line 126)
   - Missing: `jwkGenService.Shutdown()` (line 129)
@@ -289,7 +289,7 @@ These files create services within individual test functions that need cleanup v
 
 ### internal/template/server/
 
-- [ ] **`internal/template/server/barrier/rotation_handlers_test.go`**
+- [x] **`internal/template/server/barrier/rotation_handlers_test.go`**
   - Function: `setupRotationTestEnvironment()` (line 30)
   - Missing: `testSQLDB.Close()` (line 38)
   - Missing: `telemetryService.Shutdown()` (line 69)
@@ -300,7 +300,7 @@ These files create services within individual test functions that need cleanup v
   - Missing: `rotationService` cleanup (if it has Shutdown method)
   - Note: Helper function creates many services but doesn't clean them up
 
-- [ ] **`internal/template/server/barrier/gorm_barrier_repository_test.go`**
+- [x] **`internal/template/server/barrier/gorm_barrier_repository_test.go`**
   - Multiple test functions create barrierRepo
   - Missing: `barrierRepo.Shutdown()` calls for instances at:
     - Line 67 (TestGormBarrierRepository_StoreRootKey_Success)
@@ -318,15 +318,15 @@ These TestMain files delegate to testutil.Initialize(). Verify testutil cleanup.
 
 ### internal/template/server/
 
-- [ ] **`internal/template/server/test_main_test.go`**
+- [x] **`internal/template/server/test_main_test.go`**
   - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
   - Action: Verify testutil has proper cleanup (TLS configs don't need cleanup)
 
-- [ ] **`internal/template/server/repository/test_main_test.go`**
+- [x] **`internal/template/server/repository/test_main_test.go`**
   - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
   - Action: Same as above
 
-- [ ] **`internal/template/server/listener/test_main_test.go`**
+- [x] **`internal/template/server/listener/test_main_test.go`**
   - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
   - Action: Same as above
 
@@ -338,26 +338,26 @@ Scan remaining test files for any missed service initialization.
 
 ### internal/cipher/
 
-- [ ] `internal/cipher/server/middleware_test.go` - Review for service cleanup
-- [ ] `internal/cipher/server/helpers_test.go` - Review for service cleanup
-- [ ] `internal/cipher/server/realm_validation_test.go` - Review for service cleanup
-- [ ] `internal/cipher/server/realms/realm_validation_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/browser_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/service_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/rotation_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/helpers_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/integration/concurrent_test.go` - Review for service cleanup
-- [ ] `internal/cipher/repository/message_recipient_jwk_repository_test.go` - Review for service cleanup
+- [x] `internal/cipher/server/middleware_test.go` - Review for service cleanup
+- [x] `internal/cipher/server/helpers_test.go` - Review for service cleanup
+- [x] `internal/cipher/server/realm_validation_test.go` - Review for service cleanup
+- [x] `internal/cipher/server/realms/realm_validation_test.go` - Review for service cleanup
+- [x] `internal/cipher/e2e/browser_e2e_test.go` - Review for service cleanup
+- [x] `internal/cipher/e2e/service_e2e_test.go` - Review for service cleanup
+- [x] `internal/cipher/e2e/rotation_e2e_test.go` - Review for service cleanup
+- [x] `internal/cipher/e2e/helpers_e2e_test.go` - Review for service cleanup
+- [x] `internal/cipher/integration/concurrent_test.go` - Review for service cleanup
+- [x] `internal/cipher/repository/message_recipient_jwk_repository_test.go` - Review for service cleanup
 - [ ] `internal/cipher/crypto/password_test.go` - Review for service cleanup (likely no services)
 
 ### internal/template/server/
 
-- [ ] `internal/template/server/service_template_test.go` - Review for service cleanup
-- [ ] `internal/template/server/application_test.go` - Review for service cleanup
-- [ ] `internal/template/server/listener/admin_test.go` - Review for service cleanup
-- [ ] `internal/template/server/listener/public_test.go` - Review for service cleanup
-- [ ] `internal/template/server/listener/servers_test.go` - Review for service cleanup
-- [ ] `internal/template/server/repository/public_table_test.go` - Review for service cleanup
+- [x] `internal/template/server/service_template_test.go` - Review for service cleanup
+- [x] `internal/template/server/application_test.go` - Review for service cleanup
+- [x] `internal/template/server/listener/admin_test.go` - Review for service cleanup
+- [x] `internal/template/server/listener/public_test.go` - Review for service cleanup
+- [x] `internal/template/server/listener/servers_test.go` - Review for service cleanup
+- [x] `internal/template/server/repository/public_table_test.go` - Review for service cleanup
 - [ ] `internal/template/server/repository/application_table_test.go` - Review for service cleanup
 - [ ] `internal/template/server/barrier/status_handlers_test.go` - Review for service cleanup
 
