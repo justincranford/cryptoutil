@@ -49,11 +49,15 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to start PostgreSQL container: %v", err))
 	}
+	defer func() {
+		if err := sharedPGContainer.Terminate(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to terminate PostgreSQL container: %v\n", err)
+		}
+	}() // LIFO: cleanup container last.
 
 	// Get connection string.
 	connStr, err := sharedPGContainer.ConnectionString(ctx)
 	if err != nil {
-		_ = sharedPGContainer.Terminate(ctx)
 		panic(fmt.Sprintf("failed to get connection string: %v", err))
 	}
 
@@ -69,28 +73,21 @@ func TestMain(m *testing.M) {
 	// Verify connection works before running tests.
 	db, err := gorm.Open(postgresDriver.Open(sharedConnStr), &gorm.Config{})
 	if err != nil {
-		_ = sharedPGContainer.Terminate(ctx)
 		panic(fmt.Sprintf("failed to connect to PostgreSQL: %v", err))
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		_ = sharedPGContainer.Terminate(ctx)
 		panic(fmt.Sprintf("failed to get SQL database instance: %v", err))
 	}
+	defer sqlDB.Close() // LIFO: close database connection.
 
 	if err := sqlDB.Ping(); err != nil {
-		_ = sharedPGContainer.Terminate(ctx)
 		panic(fmt.Sprintf("failed to ping PostgreSQL: %v", err))
 	}
 
-	// Run all tests.
+	// Run all tests (defer statements execute cleanup AFTER m.Run() completes).
 	exitCode := m.Run()
-
-	// Cleanup: Terminate PostgreSQL container.
-	if err := sharedPGContainer.Terminate(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to terminate PostgreSQL container: %v\n", err)
-	}
 
 	os.Exit(exitCode)
 }

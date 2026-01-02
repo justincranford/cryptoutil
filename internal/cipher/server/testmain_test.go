@@ -91,12 +91,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
+	defer testTelemetryService.Shutdown() // LIFO: cleanup last service created.
 
 	// Initialize JWK Generation Service.
 	testJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
 	if err != nil {
 		panic("TestMain: failed to create JWK service: " + err.Error())
 	}
+	defer testJWKGenService.Shutdown() // LIFO: cleanup JWK service.
 
 	// Initialize Barrier Service.
 	// Generate a simple test unseal key using JWE with A256GCM encryption and A256KW key wrapping.
@@ -109,16 +111,22 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create unseal keys service: " + err.Error())
 	}
+	defer unsealKeysService.Shutdown() // LIFO: cleanup unseal service.
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
+	defer barrierRepo.Shutdown() // LIFO: cleanup barrier repository.
 
 	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}
+	defer testBarrierService.Shutdown() // LIFO: cleanup barrier service.
+
+	// Defer database close (executes AFTER m.Run() completes, when all parallel tests finished).
+	defer testSQLDB.Close()
 
 	// Initialize repositories.
 	testUserRepo = repository.NewUserRepository(testDB)
@@ -146,22 +154,8 @@ func TestMain(m *testing.M) {
 	// Record start time for benchmark.
 	startTime := time.Now()
 
-	// Run all tests.
+	// Run all tests (defer statements will execute cleanup AFTER m.Run() completes).
 	exitCode := m.Run()
-
-	// CRITICAL: DO NOT close database immediately.
-	// Parallel tests may still be running after m.Run() returns.
-	// The Go test runner will wait for all goroutines to complete before process exit.
-	// Closing resources here would cause "database is closed" errors in slow parallel tests.
-
-	// Cleanup telemetry (safe to shutdown immediately - no active operations).
-	if testTelemetryService != nil {
-		testTelemetryService.Shutdown()
-	}
-
-	// DEFER database close to OS process exit (let Go runtime handle cleanup).
-	// Database will auto-close when process exits.
-	// This prevents "database is closed" errors in long-running parallel tests.
 
 	elapsed := time.Since(startTime)
 

@@ -77,12 +77,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
+	defer testTelemetryService.Shutdown()
 
 	// Initialize JWK gen service.
 	testJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
 	if err != nil {
 		panic("TestMain: failed to create JWK gen service: " + err.Error())
 	}
+	defer testJWKGenService.Shutdown()
 
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
@@ -94,12 +96,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create unseal service: " + err.Error())
 	}
+	defer unsealService.Shutdown()
 
 	// Create barrier repository.
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
+	defer barrierRepo.Shutdown()
 
 	// Create barrier service.
 	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(
@@ -112,22 +116,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}
+	defer testBarrierService.Shutdown()
+	defer testSQLDB.Close()
 
-	// Run all tests.
+	// Run all tests - defer statements execute cleanup AFTER m.Run() completes.
 	exitCode := m.Run()
 
-	// Cleanup.
-	if testBarrierService != nil {
-		testBarrierService.Shutdown()
-	}
-	if testSQLDB != nil {
-		_ = testSQLDB.Close()
-	}
-
 	// Exit with test result code.
-	if exitCode != 0 {
-		panic("Tests failed")
-	}
+	os.Exit(exitCode)
 }
 
 // createBarrierTables creates the barrier encryption tables for testing.

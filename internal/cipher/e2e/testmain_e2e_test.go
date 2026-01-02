@@ -48,13 +48,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("failed to initialize shared telemetry service: " + err.Error())
 	}
+	defer sharedTelemetryService.Shutdown() // LIFO: cleanup last service created first.
 
 	// Initialize shared JWK generation service.
 	sharedJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, sharedTelemetryService, false)
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to initialize shared JWK generation service: " + err.Error())
 	}
+	defer sharedJWKGenService.Shutdown() // LIFO: cleanup after telemetry.
 
 	// Initialize shared TLS configuration (for server).
 	sharedTLSConfig, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
@@ -63,7 +64,6 @@ func TestMain(m *testing.M) {
 		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to generate shared TLS configuration: " + err.Error())
 	}
 
@@ -79,53 +79,53 @@ func TestMain(m *testing.M) {
 
 	db, err := initTestDB()
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to initialize test database: " + err.Error())
 	}
+
+	// Extract sql.DB for proper cleanup.
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic("failed to get sql.DB from gorm.DB: " + err.Error())
+	}
+	defer sqlDB.Close() // LIFO: close database after services using it.
 
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := sharedJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to generate unseal JWK: " + err.Error())
 	}
 
 	// Initialize unseal keys service.
 	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to create unseal service: " + err.Error())
 	}
+	defer unsealService.Shutdown() // LIFO: cleanup unseal service.
 
 	// Initialize barrier repository.
 	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(db)
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to initialize barrier repository: " + err.Error())
 	}
+	defer barrierRepo.Shutdown() // LIFO: cleanup barrier repository.
 
 	// Initialize barrier service for E2E tests.
 	testBarrierService, err = cryptoutilBarrier.NewBarrierService(ctx, sharedTelemetryService, sharedJWKGenService, barrierRepo, unsealService)
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to initialize test barrier service: " + err.Error())
 	}
+	defer testBarrierService.Shutdown() // LIFO: cleanup barrier service.
 
 	testPublicServer, baseURL, err = createTestPublicServer(db)
 	if err != nil {
-		sharedTelemetryService.Shutdown()
 		panic("failed to create test public server: " + err.Error())
 	}
-
 	defer func() {
 		_ = testPublicServer.Shutdown(context.Background())
-	}()
+	}() // LIFO: shutdown server.
 
 	// Run all E2E tests.
 	exitCode := m.Run()
-
-	// Cleanup shared resources.
-	sharedTelemetryService.Shutdown()
 
 	os.Exit(exitCode)
 }
