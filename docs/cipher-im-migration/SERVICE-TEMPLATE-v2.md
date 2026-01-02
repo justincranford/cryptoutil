@@ -1,236 +1,19 @@
 # Service Template Migration - Resource Cleanup Tracking
 
 **Created**: 2026-01-02
-**Scope**: Missing Close() and Shutdown() calls for services and databases
-**Target Directories**: `internal/cipher/`, `internal/template/server/`
+**Scope**: Configuration safety, resource cleanup, and validation enhancement
+**Target Directories**: `internal/cipher/`, `internal/template/server/`, `internal/kms/`, `internal/shared/config/`
 
 ## Overview
 
-This document tracks test files that need resource cleanup fixes. Services from `internal/template/server/` must be properly shut down, and databases like SQLite need Close() calls.
-
-**Common Missing Cleanup Calls**:
-- `sqlDB.Close()`
-- `telemetryService.Shutdown()`
-- `jwkGenService.Shutdown()`
-- `unsealKeysService.Shutdown()`
-- `barrierRepo.Shutdown()`
-- `barrierService.Shutdown()`
-- PostgreSQL test-container cleanup
+This document tracks test files requiring fixes for:
+1. **Windows Firewall exceptions** (blank bind addresses)
+2. **Configuration validation** (missing field validations)
+3. **Resource cleanup** (missing Close/Shutdown calls)
 
 ---
 
-## Phase 1: Critical TestMain Files (High Priority)
-
-TestMain functions initialize shared resources that MUST be cleaned up to prevent resource leaks across test runs.
-
-### internal/cipher/
-
-- [ ] **`internal/cipher/e2e/testmain_e2e_test.go`**
-  - Missing: `sharedJWKGenService.Shutdown()`
-  - Missing: `unsealService.Shutdown()` (local variable line 99)
-  - Missing: `barrierRepo.Shutdown()` (local variable line 106)
-  - Missing: `testBarrierService.Shutdown()`
-  - Missing: `sqlDB.Close()` (db from initTestDB line 89)
-  - Has: `sharedTelemetryService.Shutdown()` ✅
-  - Has: `testPublicServer.Shutdown()` ✅
-
-- [ ] **`internal/cipher/server/testmain_test.go`**
-  - Missing: `testJWKGenService.Shutdown()`
-  - Missing: `unsealKeysService.Shutdown()` (local variable line 115)
-  - Missing: `barrierRepo.Shutdown()` (local variable line 120)
-  - Missing: `testBarrierService.Shutdown()`
-  - Missing: `testSQLDB.Close()` (deferred comment warns against closing too early, but should defer at function start)
-  - Has: `testTelemetryService.Shutdown()` ✅ (but too late - after m.Run())
-  - Note: Comment at line 160+ warns about parallel tests, but cleanup should still happen via defer
-
-- [ ] **`internal/cipher/integration/testmain_integration_test.go`**
-  - Missing: `sqlDB.Close()` (from gorm db.DB() at line 78)
-  - Has: `sharedPGContainer.Terminate()` ✅
-  - Note: Opens GORM connection but doesn't close underlying sql.DB
-
-### internal/template/server/
-
-- [ ] **`internal/template/server/barrier/barrier_service_test.go`**
-  - Missing: `testJWKGenService.Shutdown()` (line 89)
-  - Missing: `testTelemetryService.Shutdown()` (line 83)
-  - Missing: `unsealService.Shutdown()` (local variable line 100)
-  - Missing: `barrierRepo.Shutdown()` (local variable line 106)
-  - Has: `testBarrierService.Shutdown()` ✅ (line 128)
-  - Has: `testSQLDB.Close()` ✅ (line 130)
-
----
-
-## Phase 2: Per-Test Service Initialization Files (Medium Priority)
-
-These files create services within individual test functions that need cleanup via t.Cleanup() or defer.
-
-### internal/cipher/
-
-- [ ] **`internal/cipher/server/realms/middleware_test.go`**
-  - Function: `createTestPublicServer()` (line 66)
-  - Missing: `telemetryService.Shutdown()` (line 76)
-  - Missing: `jwkGenService.Shutdown()` (line 79)
-  - Missing: `unsealService.Shutdown()` (line 86)
-  - Missing: `barrierRepo.Shutdown()` (line 89)
-  - Missing: `barrierService.Shutdown()` (line 92)
-  - Missing: `sqlDB.Close()` (from initTestDB)
-  - Has: `srv.Shutdown()` via t.Cleanup() ✅ (line 150+)
-  - Note: Services created per-test should be cleaned up in t.Cleanup()
-
-- [ ] **`internal/cipher/server/server_lifecycle_test.go`**
-  - Function: Multiple test functions create services
-  - Missing: `telemetryService.Shutdown()` (line 126)
-  - Missing: `jwkGenService.Shutdown()` (line 129)
-  - Note: Uses testBarrierService from TestMain (shared), but creates new telemetry/jwk services per-test
-
-### internal/template/server/
-
-- [ ] **`internal/template/server/barrier/rotation_handlers_test.go`**
-  - Function: `setupRotationTestEnvironment()` (line 30)
-  - Missing: `testSQLDB.Close()` (line 38)
-  - Missing: `telemetryService.Shutdown()` (line 69)
-  - Missing: `jwkGenService.Shutdown()` (line 73)
-  - Missing: `unsealService.Shutdown()` (line 80)
-  - Missing: `barrierRepo.Shutdown()` (line 84)
-  - Missing: `barrierService.Shutdown()` (line 88)
-  - Missing: `rotationService` cleanup (if it has Shutdown method)
-  - Note: Helper function creates many services but doesn't clean them up
-
-- [ ] **`internal/template/server/barrier/gorm_barrier_repository_test.go`**
-  - Multiple test functions create barrierRepo
-  - Missing: `barrierRepo.Shutdown()` calls for instances at:
-    - Line 67 (TestGormBarrierRepository_StoreRootKey_Success)
-    - Line 168 (TestGormBarrierRepository_LoadRootKey_Success)
-    - Line 269 (TestGormBarrierRepository_StoreIntermediateKey_Success)
-    - Line 366 (TestGormBarrierRepository_LoadIntermediateKey_Success)
-    - Line 410 (TestGormBarrierRepository_StoreContentKey_Success)
-  - Has: `sqlDB.Close()` via defer ✅ (line 51)
-
----
-
-## Phase 3: Shared Testutil Pattern Validation (Low Priority)
-
-These TestMain files delegate to testutil.Initialize(). Verify testutil cleanup.
-
-### internal/template/server/
-
-- [ ] **`internal/template/server/test_main_test.go`**
-  - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
-  - Action: Verify testutil has proper cleanup (TLS configs don't need cleanup)
-
-- [ ] **`internal/template/server/repository/test_main_test.go`**
-  - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
-  - Action: Same as above
-
-- [ ] **`internal/template/server/listener/test_main_test.go`**
-  - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
-  - Action: Same as above
-
----
-
-## Phase 4: Review Remaining Test Files (Verification)
-
-Scan remaining test files for any missed service initialization.
-
-### internal/cipher/
-
-- [ ] `internal/cipher/server/middleware_test.go` - Review for service cleanup
-- [ ] `internal/cipher/server/helpers_test.go` - Review for service cleanup
-- [ ] `internal/cipher/server/realm_validation_test.go` - Review for service cleanup
-- [ ] `internal/cipher/server/realms/realm_validation_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/browser_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/service_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/rotation_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/e2e/helpers_e2e_test.go` - Review for service cleanup
-- [ ] `internal/cipher/integration/concurrent_test.go` - Review for service cleanup
-- [ ] `internal/cipher/repository/message_recipient_jwk_repository_test.go` - Review for service cleanup
-- [ ] `internal/cipher/crypto/password_test.go` - Review for service cleanup (likely no services)
-
-### internal/template/server/
-
-- [ ] `internal/template/server/service_template_test.go` - Review for service cleanup
-- [ ] `internal/template/server/application_test.go` - Review for service cleanup
-- [ ] `internal/template/server/listener/admin_test.go` - Review for service cleanup
-- [ ] `internal/template/server/listener/public_test.go` - Review for service cleanup
-- [ ] `internal/template/server/listener/servers_test.go` - Review for service cleanup
-- [ ] `internal/template/server/repository/public_table_test.go` - Review for service cleanup
-- [ ] `internal/template/server/repository/application_table_test.go` - Review for service cleanup
-- [ ] `internal/template/server/barrier/status_handlers_test.go` - Review for service cleanup
-
----
-
-## Cleanup Patterns Reference
-
-### Pattern 1: TestMain Cleanup (Deferred at Top)
-
-```go
-func TestMain(m *testing.M) {
-    ctx := context.Background()
-
-    // Setup resources
-    telemetrySvc, _ := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
-    defer telemetrySvc.Shutdown()
-
-    jwkGenSvc, _ := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
-    defer jwkGenSvc.Shutdown()
-
-    unsealSvc, _ := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
-    defer unsealSvc.Shutdown()
-
-    barrierRepo, _ := cryptoutilBarrier.NewGormBarrierRepository(db)
-    defer barrierRepo.Shutdown()
-
-    barrierSvc, _ := cryptoutilBarrier.NewBarrierService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealSvc)
-    defer barrierSvc.Shutdown()
-
-    sqlDB, _ := sql.Open("sqlite", dsn)
-    defer sqlDB.Close()
-
-    // Run tests
-    exitCode := m.Run()
-
-    os.Exit(exitCode)
-}
-```
-
-### Pattern 2: Per-Test Cleanup (t.Cleanup)
-
-```go
-func setupTestServices(t *testing.T) (*BarrierService, *sql.DB) {
-    t.Helper()
-
-    telemetrySvc, _ := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
-    t.Cleanup(func() { telemetrySvc.Shutdown() })
-
-    jwkGenSvc, _ := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
-    t.Cleanup(func() { jwkGenSvc.Shutdown() })
-
-    // ... more services
-
-    sqlDB, _ := sql.Open("sqlite", dsn)
-    t.Cleanup(func() { _ = sqlDB.Close() })
-
-    return barrierSvc, sqlDB
-}
-```
-
-### Pattern 3: Inline Defer (Simple Cases)
-
-```go
-func TestSomething(t *testing.T) {
-    telemetrySvc, _ := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
-    defer telemetrySvc.Shutdown()
-
-    jwkGenSvc, _ := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
-    defer jwkGenSvc.Shutdown()
-
-    // ... test logic
-}
-```
-
----
-
-## Phase 5: NewTestConfig Migration (CRITICAL - Windows Firewall Root Cause)
+## Phase 1: NewTestConfig Migration (CRITICAL - Windows Firewall Root Cause)
 
 **Root Cause Identified**: Blank `BindPublicAddress=""` + `BindPublicPort=0` → `fmt.Sprintf("%s:%d", "", 0)` → `":0"` → `net.Listen()` binds to **0.0.0.0** (all interfaces) → **Windows Firewall exception prompt**
 
@@ -316,7 +99,7 @@ listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings
 
 ---
 
-## Phase 6: validateConfiguration() Enhancement (Configuration Robustness)
+## Phase 2: validateConfiguration() Enhancement (Configuration Robustness)
 
 **Current State**: `validateConfiguration()` at `internal/shared/config/config.go:1379` validates some fields but is incomplete.
 
@@ -431,19 +214,325 @@ func (s *ServerSettings) validateConfiguration() error {
 
 ---
 
+## Phase 3: Critical TestMain Files (Resource Cleanup)
+
+TestMain functions initialize shared resources that MUST be cleaned up to prevent resource leaks across test runs.
+
+**Common Missing Cleanup Calls**:
+- `sqlDB.Close()`
+- `telemetryService.Shutdown()`
+- `jwkGenService.Shutdown()`
+- `unsealKeysService.Shutdown()`
+- `barrierRepo.Shutdown()`
+- `barrierService.Shutdown()`
+- PostgreSQL test-container cleanup
+
+### internal/cipher/
+
+- [ ] **`internal/cipher/e2e/testmain_e2e_test.go`**
+  - Missing: `sharedJWKGenService.Shutdown()`
+  - Missing: `unsealService.Shutdown()` (local variable line 99)
+  - Missing: `barrierRepo.Shutdown()` (local variable line 106)
+  - Missing: `testBarrierService.Shutdown()`
+  - Missing: `sqlDB.Close()` (db from initTestDB line 89)
+  - Has: `sharedTelemetryService.Shutdown()` ✅
+  - Has: `testPublicServer.Shutdown()` ✅
+
+- [ ] **`internal/cipher/server/testmain_test.go`**
+  - Missing: `testJWKGenService.Shutdown()`
+  - Missing: `unsealKeysService.Shutdown()` (local variable line 115)
+  - Missing: `barrierRepo.Shutdown()` (local variable line 120)
+  - Missing: `testBarrierService.Shutdown()`
+  - Missing: `testSQLDB.Close()` (deferred comment warns against closing too early, but should defer at function start)
+  - Has: `testTelemetryService.Shutdown()` ✅ (but too late - after m.Run())
+  - Note: Comment at line 160+ warns about parallel tests, but cleanup should still happen via defer
+
+- [ ] **`internal/cipher/integration/testmain_integration_test.go`**
+  - Missing: `sqlDB.Close()` (from gorm db.DB() at line 78)
+  - Has: `sharedPGContainer.Terminate()` ✅
+  - Note: Opens GORM connection but doesn't close underlying sql.DB
+
+### internal/template/server/
+
+- [ ] **`internal/template/server/barrier/barrier_service_test.go`**
+  - Missing: `testJWKGenService.Shutdown()` (line 89)
+  - Missing: `testTelemetryService.Shutdown()` (line 83)
+  - Missing: `unsealService.Shutdown()` (local variable line 100)
+  - Missing: `barrierRepo.Shutdown()` (local variable line 106)
+  - Has: `testBarrierService.Shutdown()` ✅ (line 128)
+  - Has: `testSQLDB.Close()` ✅ (line 130)
+
+---
+
+## Phase 4: Per-Test Service Initialization Files (Resource Cleanup)
+
+These files create services within individual test functions that need cleanup via t.Cleanup() or defer.
+
+### internal/cipher/
+
+- [ ] **`internal/cipher/server/realms/middleware_test.go`**
+  - Function: `createTestPublicServer()` (line 66)
+  - Missing: `telemetryService.Shutdown()` (line 76)
+  - Missing: `jwkGenService.Shutdown()` (line 79)
+  - Missing: `unsealService.Shutdown()` (line 86)
+  - Missing: `barrierRepo.Shutdown()` (line 89)
+  - Missing: `barrierService.Shutdown()` (line 92)
+  - Missing: `sqlDB.Close()` (from initTestDB)
+  - Has: `srv.Shutdown()` via t.Cleanup() ✅ (line 150+)
+  - Note: Services created per-test should be cleaned up in t.Cleanup()
+
+- [ ] **`internal/cipher/server/server_lifecycle_test.go`**
+  - Function: Multiple test functions create services
+  - Missing: `telemetryService.Shutdown()` (line 126)
+  - Missing: `jwkGenService.Shutdown()` (line 129)
+  - Note: Uses testBarrierService from TestMain (shared), but creates new telemetry/jwk services per-test
+
+### internal/template/server/
+
+- [ ] **`internal/template/server/barrier/rotation_handlers_test.go`**
+  - Function: `setupRotationTestEnvironment()` (line 30)
+  - Missing: `testSQLDB.Close()` (line 38)
+  - Missing: `telemetryService.Shutdown()` (line 69)
+  - Missing: `jwkGenService.Shutdown()` (line 73)
+  - Missing: `unsealService.Shutdown()` (line 80)
+  - Missing: `barrierRepo.Shutdown()` (line 84)
+  - Missing: `barrierService.Shutdown()` (line 88)
+  - Missing: `rotationService` cleanup (if it has Shutdown method)
+  - Note: Helper function creates many services but doesn't clean them up
+
+- [ ] **`internal/template/server/barrier/gorm_barrier_repository_test.go`**
+  - Multiple test functions create barrierRepo
+  - Missing: `barrierRepo.Shutdown()` calls for instances at:
+    - Line 67 (TestGormBarrierRepository_StoreRootKey_Success)
+    - Line 168 (TestGormBarrierRepository_LoadRootKey_Success)
+    - Line 269 (TestGormBarrierRepository_StoreIntermediateKey_Success)
+    - Line 366 (TestGormBarrierRepository_LoadIntermediateKey_Success)
+    - Line 410 (TestGormBarrierRepository_StoreContentKey_Success)
+  - Has: `sqlDB.Close()` via defer ✅ (line 51)
+
+---
+
+## Phase 5: Shared Testutil Pattern Validation (Verification)
+
+These TestMain files delegate to testutil.Initialize(). Verify testutil cleanup.
+
+### internal/template/server/
+
+- [ ] **`internal/template/server/test_main_test.go`**
+  - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
+  - Action: Verify testutil has proper cleanup (TLS configs don't need cleanup)
+
+- [ ] **`internal/template/server/repository/test_main_test.go`**
+  - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
+  - Action: Same as above
+
+- [ ] **`internal/template/server/listener/test_main_test.go`**
+  - Delegates to: `cryptoutilTemplateServerTestutil.Initialize()`
+  - Action: Same as above
+
+---
+
+## Phase 6: Review Remaining Test Files (Verification)
+
+Scan remaining test files for any missed service initialization.
+
+### internal/cipher/
+
+- [ ] `internal/cipher/server/middleware_test.go` - Review for service cleanup
+- [ ] `internal/cipher/server/helpers_test.go` - Review for service cleanup
+- [ ] `internal/cipher/server/realm_validation_test.go` - Review for service cleanup
+- [ ] `internal/cipher/server/realms/realm_validation_test.go` - Review for service cleanup
+- [ ] `internal/cipher/e2e/browser_e2e_test.go` - Review for service cleanup
+- [ ] `internal/cipher/e2e/service_e2e_test.go` - Review for service cleanup
+- [ ] `internal/cipher/e2e/rotation_e2e_test.go` - Review for service cleanup
+- [ ] `internal/cipher/e2e/helpers_e2e_test.go` - Review for service cleanup
+- [ ] `internal/cipher/integration/concurrent_test.go` - Review for service cleanup
+- [ ] `internal/cipher/repository/message_recipient_jwk_repository_test.go` - Review for service cleanup
+- [ ] `internal/cipher/crypto/password_test.go` - Review for service cleanup (likely no services)
+
+### internal/template/server/
+
+- [ ] `internal/template/server/service_template_test.go` - Review for service cleanup
+- [ ] `internal/template/server/application_test.go` - Review for service cleanup
+- [ ] `internal/template/server/listener/admin_test.go` - Review for service cleanup
+- [ ] `internal/template/server/listener/public_test.go` - Review for service cleanup
+- [ ] `internal/template/server/listener/servers_test.go` - Review for service cleanup
+- [ ] `internal/template/server/repository/public_table_test.go` - Review for service cleanup
+- [ ] `internal/template/server/repository/application_table_test.go` - Review for service cleanup
+- [ ] `internal/template/server/barrier/status_handlers_test.go` - Review for service cleanup
+
+---
+
+## Cleanup Patterns Reference
+
+### Defer Execution Order (LIFO - Last In, First Out)
+
+**CRITICAL**: Go executes defer statements in **reverse order** of declaration (stack-based LIFO).
+
+Resources created FIRST should be deferred LAST (cleanup happens in reverse of creation order).
+
+```go
+// Example: Correct cleanup order (reverse of creation)
+func TestMain(m *testing.M) {
+    ctx := context.Background()
+
+    // 1. Create database (FIRST created)
+    sqlDB, _ := sql.Open("sqlite", dsn)
+    defer sqlDB.Close()  // LAST cleaned up ✅
+
+    // 2. Create telemetry service (depends on nothing)
+    telemetrySvc, _ := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+    defer telemetrySvc.Shutdown()  // 5th cleaned up ✅
+
+    // 3. Create JWK service (depends on telemetry)
+    jwkGenSvc, _ := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+    defer jwkGenSvc.Shutdown()  // 4th cleaned up ✅
+
+    // 4. Create unseal service (depends on nothing)
+    unsealSvc, _ := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+    defer unsealSvc.Shutdown()  // 3rd cleaned up ✅
+
+    // 5. Create barrier repository (depends on DB)
+    barrierRepo, _ := cryptoutilBarrier.NewGormBarrierRepository(sqlDB)
+    defer barrierRepo.Shutdown()  // 2nd cleaned up ✅
+
+    // 6. Create barrier service (depends on telemetry, jwkGen, barrierRepo, unseal) (LAST created)
+    barrierSvc, _ := cryptoutilBarrier.NewBarrierService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealSvc)
+    defer barrierSvc.Shutdown()  // FIRST cleaned up ✅
+
+    // Run tests
+    exitCode := m.Run()
+
+    // Defer stack executes here in REVERSE order:
+    // 1. barrierSvc.Shutdown()      (last defer, first cleanup)
+    // 2. barrierRepo.Shutdown()     (depends on barrierSvc being done)
+    // 3. unsealSvc.Shutdown()       (independent)
+    // 4. jwkGenSvc.Shutdown()       (no dependents remaining)
+    // 5. telemetrySvc.Shutdown()    (no dependents remaining)
+    // 6. sqlDB.Close()              (first defer, last cleanup - all DB users gone)
+
+    os.Exit(exitCode)
+}
+```
+
+### Pattern 1: TestMain Cleanup (Deferred Immediately After Creation)
+
+```go
+func TestMain(m *testing.M) {
+    ctx := context.Background()
+
+    // Setup resources with IMMEDIATE defer after each creation
+    sqlDB, _ := sql.Open("sqlite", dsn)
+    defer sqlDB.Close()  // Deferred FIRST (cleaned up LAST)
+
+    telemetrySvc, _ := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+    defer telemetrySvc.Shutdown()
+
+    jwkGenSvc, _ := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+    defer jwkGenSvc.Shutdown()
+
+    unsealSvc, _ := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+    defer unsealSvc.Shutdown()
+
+    barrierRepo, _ := cryptoutilBarrier.NewGormBarrierRepository(sqlDB)
+    defer barrierRepo.Shutdown()
+
+    barrierSvc, _ := cryptoutilBarrier.NewBarrierService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealSvc)
+    defer barrierSvc.Shutdown()  // Deferred LAST (cleaned up FIRST)
+
+    // Run tests
+    exitCode := m.Run()
+
+    os.Exit(exitCode)
+    // Defers execute here: barrierSvc → barrierRepo → unsealSvc → jwkGenSvc → telemetrySvc → sqlDB
+}
+```
+
+### Pattern 2: Per-Test Cleanup (t.Cleanup - Also LIFO)
+
+**CRITICAL**: `t.Cleanup()` also executes in **reverse order** (LIFO), just like defer.
+
+```go
+func setupTestServices(t *testing.T) (*BarrierService, *sql.DB) {
+    t.Helper()
+
+    // Register cleanups in CREATION order
+    // They will execute in REVERSE order (LIFO)
+
+    sqlDB, _ := sql.Open("sqlite", dsn)
+    t.Cleanup(func() { _ = sqlDB.Close() })  // Registered FIRST, runs LAST ✅
+
+    telemetrySvc, _ := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+    t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+    jwkGenSvc, _ := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+    t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+    barrierRepo, _ := cryptoutilBarrier.NewGormBarrierRepository(sqlDB)
+    t.Cleanup(func() { barrierRepo.Shutdown() })
+
+    barrierSvc, _ := cryptoutilBarrier.NewBarrierService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealSvc)
+    t.Cleanup(func() { barrierSvc.Shutdown() })  // Registered LAST, runs FIRST ✅
+
+    return barrierSvc, sqlDB
+    // After test completes, cleanups run: barrierSvc → barrierRepo → jwkGenSvc → telemetrySvc → sqlDB
+}
+```
+
+### Pattern 3: Inline Defer (Simple Cases)
+
+```go
+func TestSomething(t *testing.T) {
+    // Defer immediately after creation for correct LIFO cleanup
+    telemetrySvc, _ := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+    defer telemetrySvc.Shutdown()  // Cleaned up 2nd
+
+    jwkGenSvc, _ := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+    defer jwkGenSvc.Shutdown()  // Cleaned up 1st (depends on telemetry)
+
+    // ... test logic
+
+    // Function exit: jwkGenSvc.Shutdown() → telemetrySvc.Shutdown()
+}
+```
+
+### Dependency Graph Example
+
+```
+Creation Order (Top to Bottom):
+1. sqlDB              (no dependencies)
+2. telemetrySvc       (no dependencies)
+3. jwkGenSvc          (depends on: telemetrySvc)
+4. unsealSvc          (no dependencies)
+5. barrierRepo        (depends on: sqlDB)
+6. barrierSvc         (depends on: telemetrySvc, jwkGenSvc, barrierRepo, unsealSvc)
+
+Cleanup Order (Bottom to Top - REVERSE):
+6. barrierSvc.Shutdown()      (FIRST cleanup - has most dependencies)
+5. barrierRepo.Shutdown()     (safe: barrierSvc already shut down)
+4. unsealSvc.Shutdown()       (safe: barrierSvc already shut down)
+3. jwkGenSvc.Shutdown()       (safe: barrierSvc already shut down)
+2. telemetrySvc.Shutdown()    (safe: all dependents shut down)
+1. sqlDB.Close()              (LAST cleanup - all DB users shut down)
+```
+
+---
+
 ## Priority Execution Order
 
-1. **Phase 5 (CRITICAL - Windows Firewall)**: Migrate all test files to NewTestConfig - prevents firewall prompts
-2. **Phase 1 (Critical - Resource Leaks)**: Fix all TestMain files - affects ALL tests in the package
-3. **Phase 2 (Medium - Resource Leaks)**: Fix per-test service initialization - prevents leaks in individual tests
-4. **Phase 6 (Medium - Configuration Robustness)**: Enhance validateConfiguration() - catches config errors early
-5. **Phase 3 (Low - Verification)**: Verify testutil pattern - likely already correct
-6. **Phase 4 (Low - Verification)**: Scan remaining files to catch any missed cleanup
+1. **Phase 1 (CRITICAL - Windows Firewall)**: Migrate all test files to NewTestConfig - prevents firewall prompts
+2. **Phase 2 (Medium - Configuration Robustness)**: Enhance validateConfiguration() - catches config errors early
+3. **Phase 3 (High - Resource Leaks)**: Fix all TestMain files - affects ALL tests in the package
+4. **Phase 4 (Medium - Resource Leaks)**: Fix per-test service initialization - prevents leaks in individual tests
+5. **Phase 5 (Low - Verification)**: Verify testutil pattern - likely already correct
+6. **Phase 6 (Low - Verification)**: Scan remaining files to catch any missed cleanup
 
 ---
 
 ## Success Criteria
 
+- [ ] All test files use NewTestConfig() for ServerSettings (no Windows Firewall prompts)
+- [ ] validateConfiguration() enhanced with comprehensive field validation
 - [ ] All TestMain files have proper cleanup via defer for all services
 - [ ] All per-test service creation uses t.Cleanup() or defer
 - [ ] No resource leak warnings in test output
@@ -454,13 +543,16 @@ func (s *ServerSettings) validateConfiguration() error {
 - [ ] All JWK generation services shut down cleanly
 - [ ] All barrier repositories shut down cleanly
 - [ ] All barrier services shut down cleanly
+- [ ] Cleanup order follows LIFO pattern (reverse of creation order)
 
 ---
 
 ## Notes
 
-- **Defer Order**: Resources should be cleaned up in reverse order of creation (LIFO)
+- **Defer Order**: Go executes defer in LIFO (Last In, First Out) - reverse of declaration order
+- **t.Cleanup Order**: Also LIFO - cleanup functions run in reverse of registration order
+- **Dependency Safety**: LIFO ensures dependents are cleaned up before dependencies
 - **TestMain Pattern**: Use defer immediately after successful creation
-- **Per-Test Pattern**: Use t.Cleanup() for test-scoped resources
+- **Per-Test Pattern**: Use t.Cleanup() for test-scoped resources (also LIFO)
 - **Error Handling**: Cleanup functions should handle errors gracefully (log but don't fail)
 - **Parallel Tests**: t.Cleanup() is safe for parallel tests; defer in TestMain runs after all tests complete
