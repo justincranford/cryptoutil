@@ -9,7 +9,6 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
-	"strconv"
 	"testing"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
