@@ -65,7 +65,8 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 	defer cleanup()
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
-	require.NoError(t, err)	t.Cleanup(func() { barrierRepo.Shutdown() })	t.Cleanup(func() { barrierRepo.Shutdown() })
+	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	// Test: GetRootKeyLatest should return nil when no keys exist.
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -268,7 +269,8 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 	defer cleanup()
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
-	require.NoError(t, err)	t.Cleanup(func() { barrierRepo.Shutdown() })
+	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 	// Create parent root key.
 	rootKeyUUID, _ := googleUuid.NewV7()
 	rootKey := &cryptoutilTemplateBarrier.BarrierRootKey{
