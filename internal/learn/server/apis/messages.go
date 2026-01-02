@@ -108,7 +108,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		// Encrypt message using JWE Compact Serialization.
 		jwks := []joseJwk.Key{cekJWK}
 
-		jweMessage, jweCompactBytes, err := cryptoutilJose.EncryptBytes(jwks, []byte(req.Message))
+		jweMessage, jweCompactBytes, err := cryptoutilJose.EncryptBytesWithContext(jwks, []byte(req.Message), nil)
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -217,7 +217,7 @@ func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 			// Decrypt JWE to get plaintext message.
 			jwks := []joseJwk.Key{cekJWK}
 
-			plaintext, err := cryptoutilJose.DecryptBytes(jwks, []byte(msg.JWE))
+			plaintext, err := cryptoutilJose.DecryptBytesWithContext(jwks, []byte(msg.JWE), nil)
 			if err != nil {
 				// Decryption failed.
 				continue

@@ -42,7 +42,7 @@ func (s *ContentKeysService) EncryptContent(sqlTransaction BarrierTransaction, c
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
 
-	_, encryptedContentJWEMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{clearContentKey}, clearContentBytes)
+	_, encryptedContentJWEMessageBytes, err := cryptoutilJose.EncryptBytesWithContext([]joseJwk.Key{clearContentKey}, clearContentBytes, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content with JWK: %w", err)
 	}
@@ -88,7 +88,7 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction BarrierTransaction, e
 		return nil, fmt.Errorf("failed to decrypt content key: %w", err)
 	}
 
-	decryptedBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedContentKey}, encryptedContentJWEMessageBytes)
+	decryptedBytes, err := cryptoutilJose.DecryptBytesWithContext([]joseJwk.Key{decryptedContentKey}, encryptedContentJWEMessageBytes, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt content with content key: %w", err)
 	}
