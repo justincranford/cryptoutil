@@ -308,18 +308,22 @@ func TestBarrierService_Shutdown(t *testing.T) {
 	// Create isolated barrier service for shutdown testing.
 	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
 	jwkGenSvc, err := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
 	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
 	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
 
 	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+	t.Cleanup(func() { unsealService.Shutdown() })
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(shutdownDB)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	service, err := cryptoutilTemplateBarrier.NewBarrierService(
 		ctx,
