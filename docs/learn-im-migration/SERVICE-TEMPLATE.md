@@ -219,8 +219,8 @@ MUST: NO stopping to ask permission - you have PERMANENT permission to continue 
 - [x] P7.4.4-V: Validate P7.4.4 - API.md complete with detailed documentation for all barrier endpoints
 - [x] P7.4.5: Add E2E tests for rotation (rotation_e2e_test.go created, 4 tests - commit a2fb056b)
 - [x] P7.4.5-V: Validate P7.4.5 - All 4 E2E tests passing (9.812s total: GetStatus 4.72s, RotateRoot 8.29s, RotateContent 9.05s, RotateIntermediate 9.12s)
-- [ ] P7.4-EVIDENCE: Create evidence/P7.4-manual-rotation-complete.md
-- [ ] P7.4-POSTMORTEM: Create post-mortems/P7.4-manual-rotation.md
+- [x] P7.4-EVIDENCE: Create evidence/P7.4-manual-rotation-complete.md
+- [x] P7.4-POSTMORTEM: Create post-mortems/P7.4-manual-rotation.md
 
 ### ✅ P8.0: CGO Check Consolidation
 
