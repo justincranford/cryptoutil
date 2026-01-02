@@ -6,6 +6,7 @@ package barrier
 
 import (
 	"fmt"
+
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 

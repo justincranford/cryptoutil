@@ -163,6 +163,16 @@ func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType reposit
 	// Routes: POST /admin/v1/barrier/rotate/{root,intermediate,content}
 	cryptoutilTemplateBarrier.RegisterRotationRoutes(adminServer.App(), rotationService)
 
+	// Create status service for barrier keys status endpoint.
+	statusService, err := cryptoutilTemplateBarrier.NewStatusService(barrierRepo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create status service: %w", err)
+	}
+
+	// Register status endpoint on admin server.
+	// Route: GET /admin/v1/barrier/keys/status
+	cryptoutilTemplateBarrier.RegisterStatusRoutes(adminServer.App(), statusService)
+
 	// Create application with both servers.
 	app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 	if err != nil {
