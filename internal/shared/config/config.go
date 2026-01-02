@@ -1379,6 +1379,15 @@ func analyzeSettings(settings []*Setting) analysisResult {
 func validateConfiguration(s *ServerSettings) error {
 	var errors []string
 
+	// Validate bind addresses (CRITICAL: blank address produces ":port" which binds to 0.0.0.0 triggering Windows Firewall).
+	if s.BindPublicAddress == "" {
+		errors = append(errors, "bind public address cannot be blank (would bind to 0.0.0.0 triggering Windows Firewall): use '127.0.0.1' for localhost or explicit IP")
+	}
+
+	if s.BindPrivateAddress == "" {
+		errors = append(errors, "bind private address cannot be blank (would bind to 0.0.0.0 triggering Windows Firewall): use '127.0.0.1' for localhost or explicit IP")
+	}
+
 	// Validate port ranges (port 0 is valid - OS assigns dynamic port).
 	if s.BindPublicPort > cryptoutilMagic.MaxPortNumber {
 		errors = append(errors, fmt.Sprintf("invalid public port %d: must be between 0 and 65535", s.BindPublicPort))

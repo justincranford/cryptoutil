@@ -381,6 +381,8 @@ func TestValidateConfiguration_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	s := &ServerSettings{
+		BindPublicAddress:   "127.0.0.1",
+		BindPrivateAddress:  "127.0.0.1",
 		BindPublicPort:      8080,
 		BindPrivatePort:     9090,
 		BindPublicProtocol:  "https",
@@ -408,6 +410,40 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		settings *ServerSettings
 		errMsg   string
 	}{
+		{
+			name: "blank public bind address",
+			settings: &ServerSettings{
+				BindPublicAddress:   "",
+				BindPrivateAddress:  "127.0.0.1",
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "bind public address cannot be blank",
+		},
+		{
+			name: "blank private bind address",
+			settings: &ServerSettings{
+				BindPublicAddress:   "127.0.0.1",
+				BindPrivateAddress:  "",
+				BindPublicPort:      8080,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				TLSPublicDNSNames:   []string{"test.com"},
+				TLSPrivateDNSNames:  []string{"test.com"},
+				LogLevel:            "INFO",
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			},
+			errMsg: "bind private address cannot be blank",
+		},
 		{
 			name: "same non-zero ports",
 			settings: &ServerSettings{
