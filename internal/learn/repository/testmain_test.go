@@ -27,6 +27,7 @@ import (
 var (
 	testDB             *gorm.DB
 	testSQLDB          *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection
+	testJWKGenService  *cryptoutilJose.JWKGenService
 	testBarrierService *cryptoutilTemplateBarrier.BarrierService
 )
 
@@ -46,6 +47,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to open SQLite: " + err.Error())
 	}
+	defer testSQLDB.Close()
 
 	// Configure SQLite for concurrent operations.
 	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
@@ -85,12 +87,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
+	defer testTelemetryService.Shutdown()
 
 	// Initialize JWK Generation Service.
-	testJWKGenService, err := cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
+	testJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
 	if err != nil {
 		panic("TestMain: failed to create JWK service: " + err.Error())
 	}
+	defer testJWKGenService.Shutdown()
 
 	// Initialize Barrier Service.
 	// Generate a simple test unseal key using JWE with A256GCM encryption and A256KW key wrapping.
@@ -103,16 +107,19 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create unseal keys service: " + err.Error())
 	}
+	defer unsealKeysService.Shutdown()
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
+	defer barrierRepo.Shutdown()
 
 	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}
+	defer testBarrierService.Shutdown()
 
 	// Run all tests.
 	exitCode := m.Run()

@@ -6,12 +6,12 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	"cryptoutil/internal/learn/domain"
 )
 
@@ -31,7 +31,7 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 				ID:          googleUuid.Must(googleUuid.NewV7()),
 				RecipientID: googleUuid.Must(googleUuid.NewV7()),
 				MessageID:   googleUuid.Must(googleUuid.NewV7()),
-				JWK:         `{"kty":"oct","k":"test-key-data-here"}`,
+				JWK:         generateTestJWK(t),
 			},
 			wantErr: false,
 		},
@@ -105,7 +105,6 @@ func TestMessageRecipientJWKRepository_FindByRecipientAndMessage(t *testing.T) {
 		recipientID googleUuid.UUID
 		messageID   googleUuid.UUID
 		wantErr     bool
-		wantJWK     string
 	}{
 		{
 			name: "found existing JWK",
@@ -113,10 +112,9 @@ func TestMessageRecipientJWKRepository_FindByRecipientAndMessage(t *testing.T) {
 				ID:          googleUuid.Must(googleUuid.NewV7()),
 				RecipientID: googleUuid.Must(googleUuid.NewV7()),
 				MessageID:   googleUuid.Must(googleUuid.NewV7()),
-				JWK:         `{"kty":"oct","k":"secret-key-material"}`,
+				JWK:         generateTestJWK(t),
 			},
 			wantErr: false,
-			wantJWK: `{"kty":"oct","k":"secret-key-material"}`,
 		},
 		{
 			name:        "nonexistent recipient",
@@ -162,7 +160,7 @@ func TestMessageRecipientJWKRepository_FindByRecipientAndMessage(t *testing.T) {
 
 			require.NoError(t, err)
 			require.NotNil(t, retrieved)
-			require.Equal(t, tt.wantJWK, retrieved.JWK)
+			require.Equal(t, tt.setupJWK.JWK, retrieved.JWK)
 		})
 	}
 }
@@ -205,7 +203,7 @@ func TestMessageRecipientJWKRepository_FindByMessageID(t *testing.T) {
 						ID:          googleUuid.Must(googleUuid.NewV7()),
 						RecipientID: googleUuid.Must(googleUuid.NewV7()),
 						MessageID:   tt.messageID,
-						JWK:         fmt.Sprintf(`{"kty":"oct","k":"recipient-%d-key"}`, i+1),
+						JWK:         generateTestJWK(t),
 					}
 					require.NoError(t, repo.Create(ctx, jwk))
 					createdJWKs = append(createdJWKs, jwk)
@@ -255,7 +253,7 @@ func TestMessageRecipientJWKRepository_Delete(t *testing.T) {
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		RecipientID: googleUuid.Must(googleUuid.NewV7()),
 		MessageID:   googleUuid.Must(googleUuid.NewV7()),
-		JWK:         `{"kty":"oct","k":"test-key"}`,
+		JWK:         generateTestJWK(t),
 	}
 	require.NoError(t, repo.Create(ctx, jwk))
 
@@ -312,13 +310,13 @@ func TestMessageRecipientJWKRepository_DeleteByMessageID(t *testing.T) {
 			ID:          googleUuid.Must(googleUuid.NewV7()),
 			RecipientID: googleUuid.Must(googleUuid.NewV7()),
 			MessageID:   messageID,
-			JWK:         `{"kty":"oct","k":"key-1"}`,
+			JWK:         generateTestJWK(t),
 		},
 		{
 			ID:          googleUuid.Must(googleUuid.NewV7()),
 			RecipientID: googleUuid.Must(googleUuid.NewV7()),
 			MessageID:   messageID,
-			JWK:         `{"kty":"oct","k":"key-2"}`,
+			JWK:         generateTestJWK(t),
 		},
 	}
 
@@ -378,7 +376,7 @@ func TestMessageRecipientJWKRepository_BarrierEncryption_RoundTrip(t *testing.T)
 	}{
 		{
 			name:    "simple symmetric key",
-			jwkData: `{"kty":"oct","k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow"}`,
+			jwkData: generateTestJWK(t),
 		},
 		{
 			name:    "RSA public key",
@@ -421,4 +419,14 @@ func TestMessageRecipientJWKRepository_BarrierEncryption_RoundTrip(t *testing.T)
 			require.Equal(t, tt.jwkData, retrieved.JWK, "Barrier encryption/decryption should preserve original JWK data")
 		})
 	}
+}
+
+// generateTestJWK generates a test JWK using the test JWK generation service
+func generateTestJWK(t *testing.T) string {
+	t.Helper()
+
+	// Generate a symmetric key JWK for barrier encryption testing
+	_, _, _, jwkJSON, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	require.NoError(t, err)
+	return string(jwkJSON)
 }

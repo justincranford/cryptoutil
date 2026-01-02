@@ -27,7 +27,6 @@ type Message struct {
 	SenderID  googleUuid.UUID `gorm:"type:text;not null;index"` // UUIDv7
 	JWE       string          `gorm:"type:text;not null"`       // JWE JSON format (multi-recipient)
 	CreatedAt time.Time       `gorm:"autoCreateTime"`
-	UpdatedAt time.Time       `gorm:"autoUpdateTime"` // Last modification timestamp
 	ReadAt    *time.Time      `gorm:"default:null;index"`
 
 	// Relationships.

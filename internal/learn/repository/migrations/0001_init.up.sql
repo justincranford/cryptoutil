@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(username)
 );
 
@@ -25,7 +24,6 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id TEXT NOT NULL,
     jwe TEXT NOT NULL,  -- JWE JSON format (multi-recipient)
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     read_at TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES users(id)
 );
@@ -43,7 +41,6 @@ CREATE TABLE IF NOT EXISTS messages_recipient_jwks (
     message_id TEXT NOT NULL,
     jwk TEXT NOT NULL,  -- Encrypted JWK in JSON format (enc=A256GCM, alg=dir)
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (recipient_id) REFERENCES users(id),
     FOREIGN KEY (message_id) REFERENCES messages(id),
     UNIQUE(recipient_id, message_id)

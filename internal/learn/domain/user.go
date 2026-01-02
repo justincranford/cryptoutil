@@ -24,7 +24,6 @@ type User struct {
 	Username     string          `gorm:"type:text;uniqueIndex;not null"`
 	PasswordHash string          `gorm:"type:text;not null"` // PBKDF2-HMAC-SHA256 hash
 	CreatedAt    time.Time       `gorm:"autoCreateTime"`
-	UpdatedAt    time.Time       `gorm:"autoUpdateTime"` // Last modification timestamp
 }
 
 // TableName returns the database table name for User.
