@@ -65,7 +65,7 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 	defer cleanup()
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
-	require.NoError(t, err)
+	require.NoError(t, err)	t.Cleanup(func() { barrierRepo.Shutdown() })	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	// Test: GetRootKeyLatest should return nil when no keys exist.
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -167,6 +167,7 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	// Create parent root key first.
 	rootKeyUUID, _ := googleUuid.NewV7()
@@ -267,8 +268,7 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 	defer cleanup()
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
-	require.NoError(t, err)
-
+	require.NoError(t, err)	t.Cleanup(func() { barrierRepo.Shutdown() })
 	// Create parent root key.
 	rootKeyUUID, _ := googleUuid.NewV7()
 	rootKey := &cryptoutilTemplateBarrier.BarrierRootKey{
@@ -365,6 +365,7 @@ func TestGormBarrierRepository_Transaction_Rollback(t *testing.T) {
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	// Create a root key inside a transaction that will be rolled back.
 	keyUUID, _ := googleUuid.NewV7()
@@ -409,6 +410,7 @@ func TestGormBarrierRepository_ConcurrentTransactions(t *testing.T) {
 
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	// Launch multiple concurrent transactions.
 	errors := make(chan error, numGoroutines)

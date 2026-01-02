@@ -46,6 +46,7 @@ func initTestDB(t *testing.T) *gorm.DB {
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.New().String())
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
+	t.Cleanup(func() { _ = sqlDB.Close() })
 
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
 	require.NoError(t, err)
@@ -70,9 +71,11 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	// Initialize dependencies.
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
+	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
 	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenService.Shutdown() })
 
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
@@ -80,12 +83,15 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+	t.Cleanup(func() { unsealService.Shutdown() })
 
 	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(db)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	barrierService, err := cryptoutilBarrier.NewBarrierService(ctx, telemetryService, jwkGenService, barrierRepo, unsealService)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierService.Shutdown() })
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilSharedMagic.HostnameLocalhost},

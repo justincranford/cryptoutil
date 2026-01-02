@@ -118,9 +118,11 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
+	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
 	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenService.Shutdown() })
 
 	_, err = server.NewPublicServer(ctx, 0, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, nil, "test-secret", nil)
 	require.Error(t, err)

@@ -38,6 +38,7 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 
 	testSQLDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
+	t.Cleanup(func() { _ = testSQLDB.Close() })
 
 	// Configure SQLite
 	_, err = testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
@@ -61,10 +62,12 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 	// Initialize telemetry
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
+	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	// Initialize JWK gen service
 	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
 	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenService.Shutdown() })
 
 	// Generate unseal JWK for testing
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
@@ -72,14 +75,17 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 
 	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+	t.Cleanup(func() { unsealService.Shutdown() })
 
 	// Create barrier repository
 	barrierRepo, err := NewGormBarrierRepository(testDB)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	// Create barrier service (initializes root and intermediate keys)
 	barrierService, err := NewBarrierService(ctx, telemetryService, jwkGenService, barrierRepo, unsealService)
 	require.NoError(t, err)
+	t.Cleanup(func() { barrierService.Shutdown() })
 
 	// Create rotation service
 	rotationService, err := NewRotationService(jwkGenService, barrierRepo, unsealService)
