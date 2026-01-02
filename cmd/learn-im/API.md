@@ -343,6 +343,125 @@ Trigger graceful shutdown sequence.
 - Releases resources
 - Exits process
 
+### Barrier Key Rotation
+
+**POST** `/admin/v1/barrier/rotate/root`
+
+Manually rotate root encryption key.
+
+**Request Body**:
+
+```json
+{
+  "reason": "Scheduled annual rotation per security policy"
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "old_key_uuid": "019b7c3e-3457-7823-a023-ba80e542d714",
+  "new_key_uuid": "019b7c3e-4567-7824-b045-ce91f7654321",
+  "reason": "Scheduled annual rotation per security policy",
+  "rotated_at": 1767316010
+}
+```
+
+**Errors**:
+
+- `400 Bad Request`: Missing or invalid reason (10-500 chars required)
+- `500 Internal Server Error`: Rotation failed
+
+**Notes**:
+
+- Root key encrypts intermediate keys
+- Old messages remain decryptable with old key
+- New messages encrypted with new key
+- Reason field mandatory (audit trail)
+
+**POST** `/admin/v1/barrier/rotate/intermediate`
+
+Manually rotate intermediate encryption key.
+
+**Request Body**:
+
+```json
+{
+  "reason": "Quarterly rotation per compliance requirements"
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "old_key_uuid": "019b7c3e-3457-7824-af6c-907af8511c23",
+  "new_key_uuid": "019b7c3e-4678-7825-c156-df02e8765432",
+  "reason": "Quarterly rotation per compliance requirements",
+  "rotated_at": 1767316110
+}
+```
+
+**POST** `/admin/v1/barrier/rotate/content`
+
+Manually rotate content encryption key.
+
+**Request Body**:
+
+```json
+{
+  "reason": "Hourly rotation for forward secrecy"
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "new_key_uuid": "019b7c3e-4789-7826-d267-ef13f9876543",
+  "reason": "Hourly rotation for forward secrecy",
+  "rotated_at": 1767316210
+}
+```
+
+**Notes**:
+
+- Content key encrypts actual message content
+- Elastic rotation: no old_key_uuid (old keys retained for decryption)
+- New messages use new key immediately
+- Old messages decrypt with original content key
+
+### Barrier Key Status
+
+**GET** `/admin/v1/barrier/keys/status`
+
+Get current barrier encryption keys status.
+
+**Response** (200 OK):
+
+```json
+{
+  "root_key": {
+    "uuid": "019b7c3e-3457-7823-a023-ba80e542d714",
+    "created_at": 1767316010301,
+    "updated_at": 1767316010301
+  },
+  "intermediate_key": {
+    "uuid": "019b7c3e-3457-7824-af6c-907af8511c23",
+    "created_at": 1767316010313,
+    "updated_at": 1767316010313
+  }
+}
+```
+
+**Notes**:
+
+- Returns latest root and intermediate keys
+- Content keys NOT included (elastic rotation - no "latest" concept)
+- Timestamps in Unix milliseconds
+- Used for monitoring key age
+
 ## Error Responses
 
 All error responses follow consistent format:
