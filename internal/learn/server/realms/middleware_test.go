@@ -25,14 +25,14 @@ import (
 	"cryptoutil/internal/learn/repository"
 	"cryptoutil/internal/learn/server"
 	"cryptoutil/internal/learn/server/util"
-	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
 )
 
 // Test helpers duplicated from parent server package for subdirectory test isolation.

@@ -13,17 +13,24 @@ Most of the Docs Resides In
 - docs/learn-im-migration/SERVICE-TEMPLATE.md
 - docs/learn-im-migration/CMD-PATTERN.md
 - docs/learn-im-migration/KNOWN-ISSUES.md
-- docs/learn-im-migration/evidence/
+- docs/learn-im-migration/evi
 
-## CRITICAL INSTRUCTIONS
+## CRITICAL INSTRUCTIONS - ABSOLUTE ENFORCEMENT
 
-MUST: Complete all tasks without stopping
-MUST: Complete all tasks in order without skipping; exception is post-mortem identifies dependency order adjustment needed
-MUST: Do regular commit and push
-MUST: Must track progress in docs\SERVICE-TEMPLATE.md with checkmarks for complete tasks and phases
+**NEVER STOP UNTIL USER CLICKS STOP BUTTON** - Phase completion is NOT a stopping condition!
+
+MUST: Complete all tasks and phases without stopping (completing a phase = start next phase IMMEDIATELY)
+MUST: Complete all tasks and phases in order without skipping; exception is post-mortem identifies dependency order adjustment needed
+MUST: Do regular commit and push after each logical unit of work
+MUST: Don't leave uncommitted files after you complete each task and phase
+MUST: Track progress in docs\SERVICE-TEMPLATE.md with checkmarks for complete tasks and phases
 MUST: Create evidence of completion per phase and task in docs/learn-im-migration/evidence/; prefixed with phase number and task number
 MUST: Write post-mortem analysis for each completed phase in docs/learn-im-migration/post-mortems/
-MUST: Use port-mortem analysis to improve future phases and tasks; add/append/insert extra tasks or phases as needed
+MUST: Use post-mortem analysis to improve future phases and tasks; add/append/insert extra tasks or phases as needed
+MUST: After completing ANY phase, IMMEDIATELY read this file for next phase and start execution (ZERO text between)
+MUST: NO "Phase X complete!" messages - just commit and start next phase
+MUST: NO "What's next?" questions - read this file and execute next incomplete task
+MUST: NO stopping to ask permission - you have PERMANENT permission to continue until user clicks STOP
 
 ---
 
@@ -166,27 +173,47 @@ MUST: Use port-mortem analysis to improve future phases and tasks; add/append/in
 **NOTE**: Must complete BEFORE P7.2
 
 - [ ] P7.3.1: Integrate KMS barrier encryption pattern
+- [ ] P7.3.1-V: Validate P7.3.1 - Verify barrier encryption integration is complete, correct, and tested
 - [ ] P7.3.2: Update JWK storage to use barrier encryption
+- [ ] P7.3.2-V: Validate P7.3.2 - Verify all JWK storage paths use barrier encryption correctly
 - [ ] P7.3.3: Update JWK retrieval to use barrier decryption
+- [ ] P7.3.3-V: Validate P7.3.3 - Verify all JWK retrieval paths use barrier decryption correctly
 - [ ] P7.3.4: Add tests for encryption/decryption
+- [ ] P7.3.4-V: Validate P7.3.4 - Verify tests cover all encryption/decryption scenarios with ≥95% coverage
 - [ ] P7.3.5: Run E2E tests
+- [ ] P7.3.5-V: Validate P7.3.5 - Verify E2E tests pass and barrier encryption works end-to-end
+- [ ] P7.3-EVIDENCE: Create evidence/P7.3-barrier-encryption-complete.md with test results and coverage
+- [ ] P7.3-POSTMORTEM: Create post-mortems/P7.3-barrier-encryption.md with lessons learned
 
 ### ⏳ P7.2: Use EncryptBytesWithContext Pattern
 
 **NOTE**: Depends on P7.3 completion
 
 - [ ] P7.2.1: Update jwe_message_util.go to use EncryptBytesWithContext
+- [ ] P7.2.1-V: Validate P7.2.1 - Verify jwe_message_util.go correctly uses EncryptBytesWithContext
 - [ ] P7.2.2: Replace old encryption calls with context-aware version
+- [ ] P7.2.2-V: Validate P7.2.2 - Verify all encryption calls use context-aware version
 - [ ] P7.2.3: Replace old decryption calls with context-aware version
+- [ ] P7.2.3-V: Validate P7.2.3 - Verify all decryption calls use context-aware version
 - [ ] P7.2.4: Run encryption tests
+- [ ] P7.2.4-V: Validate P7.2.4 - Verify all encryption tests pass with ≥95% coverage
+- [ ] P7.2-EVIDENCE: Create evidence/P7.2-encrypt-bytes-context-complete.md
+- [ ] P7.2-POSTMORTEM: Create post-mortems/P7.2-encrypt-bytes-context.md
 
 ### ⏳ P7.4: Manual Key Rotation Admin API
 
 - [ ] P7.4.1: Create admin_handlers.go with rotation endpoints
+- [ ] P7.4.1-V: Validate P7.4.1 - Verify admin_handlers.go exists with proper structure
 - [ ] P7.4.2: Add POST /admin/v1/keys/rotate endpoint
+- [ ] P7.4.2-V: Validate P7.4.2 - Verify rotation endpoint works correctly with tests
 - [ ] P7.4.3: Add GET /admin/v1/keys/status endpoint
+- [ ] P7.4.3-V: Validate P7.4.3 - Verify status endpoint works correctly with tests
 - [ ] P7.4.4: Update OpenAPI spec
+- [ ] P7.4.4-V: Validate P7.4.4 - Verify OpenAPI spec is valid and complete
 - [ ] P7.4.5: Add E2E tests for rotation
+- [ ] P7.4.5-V: Validate P7.4.5 - Verify E2E tests pass for rotation scenarios
+- [ ] P7.4-EVIDENCE: Create evidence/P7.4-manual-rotation-complete.md
+- [ ] P7.4-POSTMORTEM: Create post-mortems/P7.4-manual-rotation.md
 
 ### ✅ P8.0: CGO Check Consolidation
 

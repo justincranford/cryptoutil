@@ -15,13 +15,13 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
 	"cryptoutil/internal/learn/server"
-	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
 )
 
 // Shared test resources (initialized once per package).
