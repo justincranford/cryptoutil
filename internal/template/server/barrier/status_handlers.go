@@ -72,7 +72,6 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
