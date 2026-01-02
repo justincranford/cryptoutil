@@ -293,6 +293,13 @@ func (s *AdminServer) ActualPort() (int, error) {
 	return int(s.actualPort), nil
 }
 
+// App returns the underlying fiber.App for custom route registration.
+// This allows callers to register additional admin endpoints before calling Start().
+// Thread-safe with read lock.
+func (s *AdminServer) App() *fiber.App {
+	return s.app
+}
+
 // SetReady marks the server as ready to accept traffic.
 // This is called by the application after dependencies are initialized.
 // Thread-safe with full Lock.

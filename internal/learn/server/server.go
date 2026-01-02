@@ -149,6 +149,20 @@ func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType reposit
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
+	// Create rotation service for manual key rotation admin endpoints.
+	rotationService, err := cryptoutilTemplateBarrier.NewRotationService(
+		template.JWKGen(),
+		barrierRepo,
+		unsealKeysService,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create rotation service: %w", err)
+	}
+
+	// Register rotation endpoints on admin server.
+	// Routes: POST /admin/v1/barrier/rotate/{root,intermediate,content}
+	cryptoutilTemplateBarrier.RegisterRotationRoutes(adminServer.App(), rotationService)
+
 	// Create application with both servers.
 	app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 	if err != nil {
