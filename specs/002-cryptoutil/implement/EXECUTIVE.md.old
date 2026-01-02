@@ -95,7 +95,7 @@ curl -k https://localhost:8080/service/api/v1/keys
 3. Decrypt data: `POST /service/api/v1/keys/{id}/decrypt`
 4. Rotate key: `POST /service/api/v1/keys/{id}/rotate`
 
-**Scenario 2: Learn-IM Encrypted Messaging** - ⏸️ PENDING (Phase 3)
+**Scenario 2: Cipher-IM Encrypted Messaging** - ⏸️ PENDING (Phase 3)
 
 ---
 
@@ -105,9 +105,9 @@ curl -k https://localhost:8080/service/api/v1/keys
 
 **RISK-001: Template Extraction Complexity** (MEDIUM - actively monitored)
 
-- **Severity**: MEDIUM (mitigated by learn-im validation in Phase 3)
-- **Impact**: Could require template refinement if learn-im reveals gaps
-- **Mitigation**: Sequential validation (learn-im before production migrations)
+- **Severity**: MEDIUM (mitigated by cipher-im validation in Phase 3)
+- **Impact**: Could require template refinement if cipher-im reveals gaps
+- **Mitigation**: Sequential validation (cipher-im before production migrations)
 - **Status**: MONITORING (Phase 2 not yet started)
 
 ---

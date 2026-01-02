@@ -14,7 +14,7 @@ import (
 
 // GormBarrierRepository implements BarrierRepository using gorm.DB.
 // This adapter allows barrier encryption to work with any service using gorm.DB
-// (learn-im, future services) without depending on KMS-specific OrmRepository.
+// (cipher-im, future services) without depending on KMS-specific OrmRepository.
 type GormBarrierRepository struct {
 	db *gorm.DB
 }
@@ -154,4 +154,3 @@ func (tx *GormBarrierTransaction) AddContentKey(key *BarrierContentKey) error {
 	}
 	return nil
 }
-

@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"os"
 
+	cryptoutilCipherCmd "cryptoutil/internal/cmd/cipher"
 	cryptoutilCACmd "cryptoutil/internal/cmd/cryptoutil/ca"
 	cryptoutilIdentityCmd "cryptoutil/internal/cmd/cryptoutil/identity"
 	cryptoutilJoseCmd "cryptoutil/internal/cmd/cryptoutil/jose"
-	cryptoutilLearnCmd "cryptoutil/internal/cmd/learn"
 	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
 
@@ -34,8 +34,8 @@ func Execute() {
 		cryptoutilJoseCmd.Execute(parameters)
 	case "ca":
 		cryptoutilCACmd.Execute(parameters)
-	case "learn":
-		exitCode := cryptoutilLearnCmd.Learn(parameters)
+	case "cipher":
+		exitCode := cryptoutilCipherCmd.Cipher(parameters)
 		os.Exit(exitCode)
 	case "help":
 		printUsage(executable)

@@ -13,7 +13,7 @@
 2. [Current State Assessment](#current-state-assessment)
 3. [Phase 1: Foundation (Completed)](#phase-1-foundation-completed)
 4. [Phase 2: Service Template Extraction](#phase-2-service-template-extraction)
-5. [Phase 3: Learn-InstantMessenger Demonstration Service](#phase-3-learn-instantmessenger-demonstration-service)
+5. [Phase 3: Cipher-InstantMessenger Demonstration Service](#phase-3-cipher-instantmessenger-demonstration-service)
 6. [Phase 4: Migrate jose-ja to Template](#phase-4-migrate-jose-ja-to-template)
 7. [Phase 5: Migrate pki-ca to Template](#phase-5-migrate-pki-ca-to-template)
 8. [Phase 6: Identity Services Enhancement](#phase-6-identity-services-enhancement)
@@ -38,14 +38,14 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | **P2: Identity** | 5 services (authz, idp, rs, rp, spa) | ⚠️ MIXED - authz/idp/rs complete, rp/spa not started |
 | **P3: KMS** | 1 service (sm-kms) | ✅ COMPLETE - Reference implementation |
 | **P4: CA** | 1 service (pki-ca) | ⚠️ PARTIAL - Missing admin server |
-| **Demo: Learn** | 1 service (learn-im) | ❌ NOT STARTED - Phase 3 deliverable |
+| **Demo: Cipher** | 1 service (cipher-im) | ❌ NOT STARTED - Phase 3 deliverable |
 
 **Total**: 9 services across 5 products
 
 **Notes**:
 
 - jose-ja is the service name for "JWK Authority" (JA), part of the JOSE product family
-- learn-im is the service name for "Learn-InstantMessenger" (IM), encrypted messaging demonstration
+- cipher-im is the service name for "Cipher-InstantMessenger" (IM), encrypted messaging demonstration
 
 ### Architecture Mandates (Constitution)
 
@@ -142,7 +142,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | **identity-rs** | ✅ Complete | ✅ Port 9090 | ❌ No cmd | ✅ Working | ✅ All pass | ≥95% |
 | **identity-rp** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
 | **identity-spa** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
-| **learn-im** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
+| **cipher-im** | ❌ Not started | ❌ Not started | ❌ No cmd | ❌ No compose | ❌ No tests | 0% |
 
 ### Infrastructure Status
 
@@ -153,7 +153,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 | OpenTelemetry | ✅ Complete | OTLP push, tail-based sampling |
 | Docker Compose | ⚠️ Partial | KMS/Identity complete, JOSE/CA need updates |
 | Health checks | ✅ Complete | livez/readyz on 127.0.0.1:909x |
-| Unified CLI | ⚠️ KMS only | Need jose/ca/identity/learn-im cmds |
+| Unified CLI | ⚠️ KMS only | Need jose/ca/identity/cipher-im cmds |
 
 ### Quality Metrics
 
@@ -223,27 +223,27 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 ## Phase 1.1: Move JOSE Crypto to Shared Package (NEW)
 
 **Timeline**: BEFORE Phase 2 (Service Template Extraction)
-**Objective**: Move reusable JOSE crypto code to shared location before learn-im implementation
-**Priority**: CRITICAL - Blocks learn-im service (requires JWE for encrypted messaging)
+**Objective**: Move reusable JOSE crypto code to shared location before cipher-im implementation
+**Priority**: CRITICAL - Blocks cipher-im service (requires JWE for encrypted messaging)
 
 ### Rationale
 
 The package `internal/jose/crypto` contains reusable JOSE crypto code needed by multiple services:
 
-- **learn-im**: Requires JWE for encrypt+MAC secure Instant Messaging (Phase 3)
+- **cipher-im**: Requires JWE for encrypt+MAC secure Instant Messaging (Phase 3)
 - **jose-ja**: JOSE Authority service itself
 - **sm-kms**: Key management service for key wrapping
 
 Moving to `internal/shared/crypto/jose/` ensures:
 
 1. JWK Gen Service is reusable by all services needing JOSE operations
-2. JWE/JWS utilities are available for learn-im encrypted messaging
+2. JWE/JWS utilities are available for cipher-im encrypted messaging
 3. No circular dependencies between services
 4. Consistent JOSE implementation across all products
 
 ### Phase 1.1.1: Refactor JOSE Crypto Package
 
-**Priority**: CRITICAL - Blocks learn-im implementation
+**Priority**: CRITICAL - Blocks cipher-im implementation
 
 #### Task 1.1.1: Move internal/jose/crypto to internal/shared/crypto/jose/
 
@@ -252,12 +252,12 @@ Moving to `internal/shared/crypto/jose/` ensures:
 - **Actual Effort**: 0 days (already complete)
 - **Dependencies**: Phase 1 complete
 - **Evidence**: Package exists at `internal/shared/crypto/jose/` with 27 files
-- **Usage Validation**: Used by jose-ja and learn-im services via `cryptoutilJose` import alias
+- **Usage Validation**: Used by jose-ja and cipher-im services via `cryptoutilJose` import alias
 
 **Deliverables**:
 
 - ✅ Package located at `internal/shared/crypto/jose/` (already exists)
-- ✅ All imports updated across codebase (jose-ja, learn-im confirmed)
+- ✅ All imports updated across codebase (jose-ja, cipher-im confirmed)
 - ✅ Tests passing: JWK generation, JWE/JWS message utilities (27 test files)
 - ✅ Coverage ≥95% maintained (all crypto packages meet target)
 - ✅ Dependent services build and test successfully
@@ -266,7 +266,7 @@ Moving to `internal/shared/crypto/jose/` ensures:
 **Acceptance Criteria**:
 
 - [x] All files in `internal/shared/crypto/jose/` (confirmed 27 files)
-- [x] All imports updated across codebase (jose-ja, learn-im using shared package)
+- [x] All imports updated across codebase (jose-ja, cipher-im using shared package)
 - [x] Tests pass: `go test ./internal/shared/crypto/jose/...`
 - [x] Coverage ≥95% maintained
 - [x] Dependent services still build and test successfully
@@ -323,7 +323,7 @@ Issues Found:
 - [x] All three TLS modes supported and tested (Static, Mixed, Auto in tls_generator.go)
 - [x] Tests pass: `go test ./internal/template/...`
 - [x] Coverage ≥98% maintained for template (listener packages have high coverage)
-- [x] Existing services (sm-kms, learn-im) build and run successfully
+- [x] Existing services (sm-kms, cipher-im) build and run successfully
 - [x] `go build ./...` passes without errors
 - [x] Template listeners use shared TLS infrastructure cleanly (admin.go line 18, public.go line 18)
 
@@ -332,9 +332,9 @@ Issues Found:
 ## Phase 2: Service Template Extraction (RENUMBERED)
 
 **Timeline**: AFTER Phase 1.1 and 1.2 complete
-**Objective**: Extract reusable template from KMS, validate with learn-im
+**Objective**: Extract reusable template from KMS, validate with cipher-im
 
-**CRITICAL**: This phase MUST complete before learn-im implementation (Phase 3).
+**CRITICAL**: This phase MUST complete before cipher-im implementation (Phase 3).
 
 ### Phase 2.1: Template Extraction
 
@@ -386,7 +386,7 @@ Issues Found:
 - [ ] Documentation complete with examples
 - [ ] Coverage ≥98% (infrastructure code)
 - [ ] Mutation score ≥98%
-- [ ] Ready for learn-im validation (Phase 3)
+- [ ] Ready for cipher-im validation (Phase 3)
 
 ---
 
@@ -453,14 +453,14 @@ Multi-layer key hierarchy with elastic rotation:
 
 ---
 
-## Phase 3: Learn-IM Demonstration Service (RENUMBERED from Phase 2)
+## Phase 3: Cipher-IM Demonstration Service (RENUMBERED from Phase 2)
 
 **Timeline**: After Phase 2 complete
 **Objective**: Validate template reusability with encrypted instant messaging service
 
-**CRITICAL**: This is the FIRST real-world validation of the service template. All production service migrations (Phases 4-6) depend on successful learn-im implementation.
+**CRITICAL**: This is the FIRST real-world validation of the service template. All production service migrations (Phases 4-6) depend on successful cipher-im implementation.
 
-### Phase 3.1: Learn-IM Implementation
+### Phase 3.1: Cipher-IM Implementation
 
 **Priority**: CRITICAL - Validates template before production migrations
 
@@ -473,7 +473,7 @@ Multi-layer key hierarchy with elastic rotation:
 **Deliverables**:
 
 1. Service Implementation
-   - **Service name**: learn-im
+   - **Service name**: cipher-im
    - **Ports**: 8888-8889 (public), 9090 (admin)
    - Encrypted messaging between users
    - PUT /tx API (send encrypted message)
@@ -518,7 +518,7 @@ Multi-layer key hierarchy with elastic rotation:
    ```
 
 4. Service Template Usage
-   - Instantiate ServerTemplate with learn-im config
+   - Instantiate ServerTemplate with cipher-im config
    - Register OpenAPI-generated routes
    - Apply middleware (CORS, CSRF, rate limiting)
    - Start dual HTTPS servers (public + admin)
@@ -526,7 +526,7 @@ Multi-layer key hierarchy with elastic rotation:
    - OpenTelemetry integration (traces, metrics, logs)
 
 5. Docker Compose Deployment
-   - `deployments/compose/learn-im/compose.yml`
+   - `deployments/compose/cipher-im/compose.yml`
    - Health checks via admin endpoints
    - PostgreSQL + SQLite support
    - Grafana LGTM stack integration
@@ -540,7 +540,7 @@ Multi-layer key hierarchy with elastic rotation:
 
 **Template Validation Criteria**:
 
-- [ ] learn-im uses ONLY template infrastructure (NO custom dual-server code)
+- [ ] cipher-im uses ONLY template infrastructure (NO custom dual-server code)
 - [ ] All business logic cleanly separated from template
 - [ ] Template supports different API patterns (PUT/GET/DELETE vs CRUD)
 - [ ] No template blockers discovered during implementation
@@ -554,7 +554,7 @@ Multi-layer key hierarchy with elastic rotation:
 
 ## Phase 4: Migrate jose-ja to Template (RENUMBERED from Phase 3)
 
-**Timeline**: After Phase 3 complete (learn-im validates template)
+**Timeline**: After Phase 3 complete (cipher-im validates template)
 **Objective**: Migrate JOSE JWK Authority service to use extracted template
 
 **CRITICAL**: First production service migration. Will drive template refinements for JOSE patterns.
@@ -657,7 +657,7 @@ Multi-layer key hierarchy with elastic rotation:
 - [ ] All tests pass (unit, integration, E2E)
 - [ ] Coverage ≥95%, mutation ≥85%
 - [ ] Template refined if needed (ADRs documented)
-- [ ] Template now battle-tested with 3 different service patterns (learn-im, JOSE, CA)
+- [ ] Template now battle-tested with 3 different service patterns (cipher-im, JOSE, CA)
 
 ---
 
@@ -666,7 +666,7 @@ Multi-layer key hierarchy with elastic rotation:
 **Timeline**: After Phases 2-5 complete (template mature)
 **Objective**: Complete identity services admin servers, unified CLI, E2E coverage, migrate to template
 
-**CRITICAL**: Identity services migrate LAST to benefit from mature, battle-tested template refined by learn-im, JOSE, and CA migrations.
+**CRITICAL**: Identity services migrate LAST to benefit from mature, battle-tested template refined by cipher-im, JOSE, and CA migrations.
 
 ### Phase 6.1: Admin Server Implementation
 
@@ -922,7 +922,7 @@ Phase 1 (Foundation) ✅
   ↓
 Phase 2 (Template Extraction) ← CURRENT PHASE, BLOCKING ALL MIGRATIONS
   ↓
-Phase 3 (learn-im) ← VALIDATES TEMPLATE, CRITICAL BLOCKER FOR PRODUCTION MIGRATIONS
+Phase 3 (cipher-im) ← VALIDATES TEMPLATE, CRITICAL BLOCKER FOR PRODUCTION MIGRATIONS
   ↓
 Phase 4 (jose-ja Migration) ← First production migration
   ↓
@@ -943,7 +943,7 @@ Phase 9 (Production Readiness) ← Security hardening, monitoring
    - Blocks ALL service migrations (Phases 3-6)
    - Highest priority after Phase 1 completion
 
-2. **Phase 3 learn-im Validation** (CRITICAL) - 21-28 days
+2. **Phase 3 cipher-im Validation** (CRITICAL) - 21-28 days
    - MUST succeed before any production service migrations
    - Validates template with real-world service
    - Drives template refinements
@@ -954,7 +954,7 @@ Phase 9 (Production Readiness) ← Security hardening, monitoring
    - Sequential to allow template refinements between migrations
 
 4. **Phase 6 Identity Migration** - 15-22 days
-   - Benefits from mature template (refined by learn-im, JOSE, CA)
+   - Benefits from mature template (refined by cipher-im, JOSE, CA)
    - Largest migration (5 services)
 
 **Total Critical Path**: ~60-85 days (Phases 2-6)
@@ -967,11 +967,11 @@ Phase 9 (Production Readiness) ← Security hardening, monitoring
 
 - [ ] Service template extracted and documented
 - [ ] Coverage ≥98%, mutation ≥98%
-- [ ] Ready for learn-im validation
+- [ ] Ready for cipher-im validation
 
 ### Phase 3 Success Criteria
 
-- [ ] learn-im service implemented using template
+- [ ] cipher-im service implemented using template
 - [ ] NO template blockers discovered
 - [ ] Coverage ≥95%, mutation ≥85%
 - [ ] E2E tests pass (BOTH paths)
@@ -1006,10 +1006,10 @@ Phase 9 (Production Readiness) ← Security hardening, monitoring
 
 1. **Template Extraction Complexity** (Phase 2)
    - Risk: Abstraction too rigid or too flexible
-   - Mitigation: learn-im validation (Phase 3) before production migrations
+   - Mitigation: cipher-im validation (Phase 3) before production migrations
    - Impact: Could delay all migrations (Phases 4-6)
 
-2. **learn-im Validation Failures** (Phase 3)
+2. **cipher-im Validation Failures** (Phase 3)
    - Risk: Template blockers discovered during implementation
    - Mitigation: Deep analysis and template refinement cycle
    - Impact: Could require Phase 2 rework

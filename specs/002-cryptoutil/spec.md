@@ -92,7 +92,7 @@ The Spec Kit Methodology, driven by GitHub's open-source toolkit, is a Spec-Driv
 
 | Service Alias | Product | Service | Public Port | Admin Port | Description |
 |---------------|-----------|-------------|------------|-------------|
-| **learn-im** | Learn | InstantMessenger | 8888-8889 | 127.0.0.1:9090 | Encrypted messaging demonstration service validating service template |
+| **cipher-im** | Cipher | InstantMessenger | 8888-8889 | 127.0.0.1:9090 | Encrypted messaging demonstration service validating service template |
 
 **Source**: Architecture instructions (01-01.architecture.instructions.md), constitution.md Section I
 
@@ -831,7 +831,7 @@ cryptoutil ca status
 |------------------|---------|-------|
 | `internal/shared/crypto/certificate/` | TLS cert chain generation (Root CAs, Intermediate CAs, Policy CAs, Issuing CAs, TLS Servers, TLS Clients) | ✅ **CRITICAL** - All services need TLS cert generation for dual HTTPS servers |
 | `internal/shared/crypto/certificate/tlsconfig/` | TLS configurations (TLS Server configs, TLS Client configs) | ✅ **CRITICAL** - All services need TLS configuration for secure communications |
-| `internal/shared/crypto/jose/` | JOSE crypto generation service (JWK Gen Service, JWE/JWS utilities) | ✅ **CRITICAL** - Required by learn-im (JWE for encrypted messaging), jose-ja, sm-kms |
+| `internal/shared/crypto/jose/` | JOSE crypto generation service (JWK Gen Service, JWE/JWS utilities) | ✅ **CRITICAL** - Required by cipher-im (JWE for encrypted messaging), jose-ja, sm-kms |
 | `internal/shared/telemetry/` | OpenTelemetry service (traces, metrics, logs) | ✅ **IMPORTANT** - All services need consistent telemetry |
 | `internal/shared/magic/` | Magic constants and variables | ✅ **IMPORTANT** - Shared constants across all services |
 | `internal/shared/crypto/digests/` | Digest algorithms (SHA-256, SHA-384, SHA-512, HMAC) | ✅ **IMPORTANT** - Cryptographic digests for all services |
@@ -842,14 +842,14 @@ cryptoutil ca status
 
 **CRITICAL**: The package `internal/jose/crypto` is currently in the wrong location. It contains reusable JOSE crypto code needed by multiple services:
 
-- **learn-im**: Requires JWE for encrypt+MAC secure Instant Messaging
+- **cipher-im**: Requires JWE for encrypt+MAC secure Instant Messaging
 - **jose-ja**: JOSE Authority service itself
 - **sm-kms**: Key management service for key wrapping
 
-**Action Required**: Phase 1.1 MUST move `internal/jose/crypto` to `internal/shared/crypto/jose/` BEFORE work starts on learn-im service. This ensures:
+**Action Required**: Phase 1.1 MUST move `internal/jose/crypto` to `internal/shared/crypto/jose/` BEFORE work starts on cipher-im service. This ensures:
 
 1. JWK Gen Service is reusable by all services needing JOSE operations
-2. JWE/JWS utilities are available for learn-im encrypted messaging
+2. JWE/JWS utilities are available for cipher-im encrypted messaging
 3. No circular dependencies between services
 4. Consistent JOSE implementation across all products
 
@@ -872,7 +872,7 @@ cryptoutil ca status
 
 ### Rationale for Shared Packages
 
-**Code Reuse**: Prevents duplication across 9 services (sm-kms, pki-ca, jose-ja, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, learn-im)
+**Code Reuse**: Prevents duplication across 9 services (sm-kms, pki-ca, jose-ja, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa, cipher-im)
 
 **Consistency**: Ensures all services use same TLS patterns, JOSE operations, telemetry, hashing algorithms
 
@@ -2025,16 +2025,16 @@ internal/template/
 
 ---
 
-### Learn-IM Demonstration Service (Phase 3)
+### Cipher-IM Demonstration Service (Phase 3)
 
 **Goal**: Create working InstantMessenger service using service template, validate reusability and completeness.
 
-**Implementation Priority**: HIGH - CRITICAL to implement learn-im FIRST before migrating production services
+**Implementation Priority**: HIGH - CRITICAL to implement cipher-im FIRST before migrating production services
 
 **Service Template Migration Priority Order**:
 
-1. **learn-im FIRST** (Phase 3):
-   - CRITICAL: Implement learn-im using extracted service template
+1. **cipher-im FIRST** (Phase 3):
+   - CRITICAL: Implement cipher-im using extracted service template
    - Through iterative implementation, testing, validation, analysis
    - GUARANTEE ALL requirements of service template are met
    - Proves template is production-ready before migrating product services
@@ -2048,9 +2048,9 @@ internal/template/
    - Only migrate KMS reference implementation after template proven stable across 8 services
    - Reference implementation stays stable until template is battle-tested
 
-**Learn-IM Overview**:
+**Cipher-IM Overview**:
 
-- **Product**: Learn (educational/demonstration product)
+- **Product**: Cipher (educational/demonstration product)
 - **Service**: IM (InstantMessenger service)
 - **Purpose**: Copy-paste-modify starting point for customers creating new services
 - **Scope**: Encrypted messaging API (PUT/GET/DELETE for /tx and /rx endpoints)
@@ -2140,7 +2140,7 @@ func main() {
     // 3. Apply middleware
     template.ApplyMiddleware(middleware.Config{
         CORS: middleware.CORSConfig{
-            Origins: []string{"https://learn-im.example.com"},
+            Origins: []string{"https://cipher-im.example.com"},
         },
         RateLimit: middleware.RateLimitConfig{
             RequestsPerMinute: 100,
@@ -2168,7 +2168,7 @@ func main() {
 **Customer Value**:
 
 - **Working Example**: See service template in action
-- **Starting Point**: Copy entire Learn-IM directory, modify for use case
+- **Starting Point**: Copy entire Cipher-IM directory, modify for use case
 - **Best Practices**: Learn production-ready patterns (error handling, testing, deployment)
 - **API Design**: Reference implementation for REST API design
 

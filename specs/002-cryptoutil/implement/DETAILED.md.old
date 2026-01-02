@@ -24,11 +24,11 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Notes**: CRITICAL - Blocking all service migrations (Phases 3-6)
   - **Commits**: (pending)
 
-### Phase 3: Learn-IM Demonstration Service ⏸️ PENDING
+### Phase 3: Cipher-IM Demonstration Service ⏸️ PENDING
 
-#### P3.1: Learn-IM Implementation
+#### P3.1: Cipher-IM Implementation
 
-- ❌ **P3.1.1**: Implement learn-im encrypted messaging service
+- ❌ **P3.1.1**: Implement cipher-im encrypted messaging service
   - **Status**: BLOCKED BY P2.1.1
   - **Effort**: L (21-28 days)
   - **Coverage**: Target ≥95%
@@ -46,7 +46,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Effort**: M (5-7 days)
   - **Coverage**: Target ≥95%
   - **Mutation**: Target ≥85%
-  - **Blockers**: P3.1.1 (learn-im validates template)
+  - **Blockers**: P3.1.1 (cipher-im validates template)
   - **Notes**: First production service migration, will drive JOSE pattern refinements
   - **Commits**: (pending)
 

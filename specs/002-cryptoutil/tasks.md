@@ -22,7 +22,7 @@ Each task includes:
 
 ## Phase 1.1: Move JOSE Crypto to Shared Package (NEW - CURRENT PHASE)
 
-**CRITICAL**: Phase 1.1 is BLOCKING learn-im implementation (Phase 3). Must complete before service template usage.
+**CRITICAL**: Phase 1.1 is BLOCKING cipher-im implementation (Phase 3). Must complete before service template usage.
 
 ### P1.1.1: Refactor JOSE Crypto Package
 
@@ -32,17 +32,17 @@ Each task includes:
 - **Effort**: M (3-5 days estimated, 0 days actual)
 - **Status**: ✅ COMPLETE (Already in shared location)
 - **Dependencies**: Phase 1 complete
-- **Evidence**: Package exists at `internal/shared/crypto/jose/` with 27 files, used by jose-ja and learn-im
+- **Evidence**: Package exists at `internal/shared/crypto/jose/` with 27 files, used by jose-ja and cipher-im
 - **Files**:
   - `internal/shared/crypto/jose/*.go` (already exists with 27 files)
   - jose-ja service (using `cryptoutilJose` import alias)
-  - learn-im service (using shared JOSE crypto for JWE messaging)
+  - cipher-im service (using shared JOSE crypto for JWE messaging)
 - **Completion Criteria**:
   - [x] All files in `internal/shared/crypto/jose/` (confirmed 27 files)
-  - [x] All imports updated across codebase (jose-ja, learn-im confirmed)
+  - [x] All imports updated across codebase (jose-ja, cipher-im confirmed)
   - [x] Tests pass: `go test ./internal/shared/crypto/jose/...`
   - [x] Coverage ≥95% maintained
-  - [x] Dependent services build and test successfully (jose-ja, learn-im)
+  - [x] Dependent services build and test successfully (jose-ja, cipher-im)
   - [x] `go build ./...` passes without errors
   - [x] Package structure supports reusability across all services
 
@@ -50,7 +50,7 @@ Each task includes:
 
 ## Phase 1.2: Refactor Service Template TLS Code (NEW)
 
-**CRITICAL**: Phase 1.2 prevents technical debt in service template. Must complete before learn-im implementation.
+**CRITICAL**: Phase 1.2 prevents technical debt in service template. Must complete before cipher-im implementation.
 
 ### P1.2.1: Refactor Template TLS Infrastructure
 
@@ -126,7 +126,7 @@ Each task includes:
   - [ ] Tests pass: `go test ./internal/template/...`
   - [ ] Coverage ≥98%: `go test -cover ./internal/template/...`
   - [ ] Mutation score ≥98%: `gremlins unleash ./internal/template/...`
-  - [ ] Ready for learn-im validation (Phase 3)
+  - [ ] Ready for cipher-im validation (Phase 3)
   - [ ] Commit: `feat(template): extract service template from KMS reference implementation`
 
 ---
@@ -199,46 +199,46 @@ Multi-layer key hierarchy with elastic rotation:
 
 ---
 
-## Phase 3: Learn-IM Demonstration Service (RENUMBERED)
+## Phase 3: Cipher-IM Demonstration Service (RENUMBERED)
 
-**CRITICAL**: Phase 3 is the FIRST real-world template validation. All production service migrations (Phases 4-7) depend on successful learn-im implementation.
+**CRITICAL**: Phase 3 is the FIRST real-world template validation. All production service migrations (Phases 4-7) depend on successful cipher-im implementation.
 
-### P3.1: Learn-IM Implementation
+### P3.1: Cipher-IM Implementation
 
-#### P3.1.1: Learn-IM Service Implementation
+#### P3.1.1: Cipher-IM Service Implementation
 
-- **Title**: Implement learn-im encrypted messaging service
+- **Title**: Implement cipher-im encrypted messaging service
 - **Effort**: L (21-28 days)
 - **Dependencies**: P2.1.1 (template extracted)
 - **Files**:
-  - `internal/learn/domain/*.go` (create - users, messages)
-  - `internal/learn/server/application.go` (create)
-  - `internal/learn/server/handlers.go` (create)
-  - `internal/learn/repository/*.go` (create)
-  - `cmd/cryptoutil/learn.go` (create)
-  - `cmd/learn-im/main.go` (create)
-  - `deployments/compose/learn-im/compose.yml` (create)
-  - `api/learn/openapi_spec_components.yaml` (create)
-  - `api/learn/openapi_spec_paths.yaml` (create)
-  - `docs/learn-im/README.md` (create)
-  - `docs/learn-im/TUTORIAL.md` (create)
+  - `internal/cipher/domain/*.go` (create - users, messages)
+  - `internal/cipher/server/application.go` (create)
+  - `internal/cipher/server/handlers.go` (create)
+  - `internal/cipher/repository/*.go` (create)
+  - `cmd/cryptoutil/cipher.go` (create)
+  - `cmd/cipher-im/main.go` (create)
+  - `deployments/compose/cipher-im/compose.yml` (create)
+  - `api/cipher/openapi_spec_components.yaml` (create)
+  - `api/cipher/openapi_spec_paths.yaml` (create)
+  - `docs/cipher-im/README.md` (create)
+  - `docs/cipher-im/TUTORIAL.md` (create)
 - **Completion Criteria**:
-  - [ ] Service name: learn-im
+  - [ ] Service name: cipher-im
   - [ ] Ports: 8888-8889 (public), 9090 (admin)
   - [ ] Encrypted messaging APIs: PUT/GET/DELETE /tx and /rx
   - [ ] Encryption: AES-256-GCM + ECDH-AESGCMKW
   - [ ] Database schema (users, messages, message_receivers)
-  - [ ] learn-im uses ONLY template infrastructure (NO custom dual-server code)
+  - [ ] cipher-im uses ONLY template infrastructure (NO custom dual-server code)
   - [ ] All business logic cleanly separated from template
   - [ ] Template supports different API patterns (PUT/GET/DELETE vs CRUD)
   - [ ] No template blockers discovered during implementation
-  - [ ] Tests pass: `go test ./internal/learn/... ./cmd/learn-im/...`
-  - [ ] Coverage ≥95%: `go test -cover ./internal/learn/...`
-  - [ ] Mutation score ≥85%: `gremlins unleash ./internal/learn/...`
+  - [ ] Tests pass: `go test ./internal/cipher/... ./cmd/cipher-im/...`
+  - [ ] Coverage ≥95%: `go test -cover ./internal/cipher/...`
+  - [ ] Mutation score ≥85%: `gremlins unleash ./internal/cipher/...`
   - [ ] E2E tests pass (BOTH `/service/**` and `/browser/**` paths)
   - [ ] Docker Compose deployment works
   - [ ] Deep analysis confirms template ready for production service migrations
-  - [ ] Commit: `feat(learn-im): implement encrypted messaging demonstration service with template`
+  - [ ] Commit: `feat(cipher-im): implement encrypted messaging demonstration service with template`
 
 ---
 
@@ -302,14 +302,14 @@ Multi-layer key hierarchy with elastic rotation:
   - [ ] Docker health checks pass
   - [ ] Tests pass, coverage ≥95%, mutation ≥85%
   - [ ] Template refined if needed (ADRs documented)
-  - [ ] Template now battle-tested with 3 different service patterns (learn-im, JOSE, CA)
+  - [ ] Template now battle-tested with 3 different service patterns (cipher-im, JOSE, CA)
   - [ ] Commit: `feat(ca): migrate CA admin server to service template`
 
 ---
 
 ## Phase 6: Identity Services Enhancement
 
-**CRITICAL**: Identity services migrate LAST to benefit from mature, battle-tested template refined by learn-im, JOSE, and CA migrations.
+**CRITICAL**: Identity services migrate LAST to benefit from mature, battle-tested template refined by cipher-im, JOSE, and CA migrations.
 
 ### P6.1: Admin Server Implementation
 
@@ -505,9 +505,9 @@ Multi-layer key hierarchy with elastic rotation:
 - ✅ P2.7.1: EncryptBytesWithContext alias methods (XS) - COMPLETE
 - ✅ P2.7.2: Manual key rotation API (S) - COMPLETE
 
-### Phase 3: Learn-IM Demonstration (1 task, 21-28 days)
+### Phase 3: Cipher-IM Demonstration (1 task, 21-28 days)
 
-- P3.1.1: Implement learn-im service (L)
+- P3.1.1: Implement cipher-im service (L)
 
 ### Phase 4: Migrate jose-ja (1 task, 5-7 days)
 
@@ -550,5 +550,5 @@ Multi-layer key hierarchy with elastic rotation:
 - Database choice: PostgreSQL (multi-service deployments), SQLite (standalone deployments) - NOT environment-based
 - Multi-tenancy: Dual-layer (per-row tenant_id + schema-level for PostgreSQL only)
 - CRLDP: Immediate sign+publish to HTTPS URL with base64-url-encoded serial, one serial per URL
-- Service names: jose-ja (JA/JWK Authority), learn-im (Learn-InstantMessenger)
-- Template validation: learn-im (Phase 3) MUST succeed before production migrations (Phases 4-6)
+- Service names: jose-ja (JA/JWK Authority), cipher-im (Cipher-InstantMessenger)
+- Template validation: cipher-im (Phase 3) MUST succeed before production migrations (Phases 4-6)

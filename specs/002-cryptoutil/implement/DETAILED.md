@@ -13,7 +13,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 
 ### Phase 1.1: Move JOSE Crypto to Shared Package (NEW - CURRENT PHASE) 🔥 CRITICAL
 
-**CRITICAL**: Phase 1.1 is BLOCKING learn-im implementation (Phase 3). learn-im requires JWE encryption from internal/jose/crypto, but current location creates circular dependency.
+**CRITICAL**: Phase 1.1 is BLOCKING cipher-im implementation (Phase 3). cipher-im requires JWE encryption from internal/jose/crypto, but current location creates circular dependency.
 
 #### P1.1.1: Refactor JOSE Crypto Package
 
@@ -34,7 +34,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
     - ✅ `internal/kms/server/` (sm-kms service, 26 files)
     - ✅ `internal/jose/server/` (jose-ja service, 2 files)
     - ✅ `internal/identity/` (identity services, 2 files)
-    - ✅ `internal/learn/server/` (fixed missing generateTLSConfig)
+    - ✅ `internal/cipher/server/` (fixed missing generateTLSConfig)
   - **Validation**:
     - ✅ Build: `go build ./...` passes
     - ✅ Tests: `go test ./internal/shared/crypto/jose/...` passes
@@ -45,7 +45,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 
 ### Phase 1.2: Refactor Service Template TLS Code (NEW) 🔥 CRITICAL
 
-**CRITICAL**: Phase 1.2 prevents technical debt in service template. MUST complete before learn-im implementation.
+**CRITICAL**: Phase 1.2 prevents technical debt in service template. MUST complete before cipher-im implementation.
 
 #### P1.2.1: Refactor Template TLS Infrastructure
 
@@ -65,7 +65,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
     - ✅ Create TLS generator with mode-aware logic - tls_generator.go with GenerateTLSMaterial
     - ✅ Refactor PublicHTTPServer to use new TLS infrastructure (Subtask 5/9)
     - ✅ Refactor AdminServer to use new TLS infrastructure (Subtask 6/9)
-    - ✅ Refactor other services (jose-ja, learn-im) (Subtask 7/9 COMPLETE - commit 95c7c9ee)
+    - ✅ Refactor other services (jose-ja, cipher-im) (Subtask 7/9 COMPLETE - commit 95c7c9ee)
     - ✅ Remove duplicated generateTLSConfig methods (~435 lines total - revised count: 5 copies found)
     - ✅ Add comprehensive tests for all 3 TLS modes (Subtask 8/9 COMPLETE - 15 tests, 82.9% coverage, commit 9a849f7e)
     - ✅ Validation testing: All services build/run, E2E tests (Subtask 9/9 COMPLETE)
@@ -92,11 +92,11 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Notes**: Template extracted with dual HTTPS pattern, health checks, graceful shutdown
   - **Commits**: 54231a7d, 75bc90f3, 1fb68962, 058c3f5b, 7508f32b, 3dd2a582, c612a7e3, 9d81b75e, aaa9ceba, a57ac001, 056c15d4
 
-### Phase 3: Learn-IM Demonstration Service ⚠️ IN PROGRESS
+### Phase 3: Cipher-IM Demonstration Service ⚠️ IN PROGRESS
 
-#### P3.1: Learn-IM Implementation
+#### P3.1: Cipher-IM Implementation
 
-- ⚠️ **P3.1.1**: Implement learn-im encrypted messaging service
+- ⚠️ **P3.1.1**: Implement cipher-im encrypted messaging service
   - **Status**: IN PROGRESS
   - **Effort**: L (21-28 days)
   - **Dependencies**: P2.1.1 (template extracted) - ✅ UNBLOCKED
@@ -106,7 +106,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Notes**: CRITICAL - First real-world template validation, blocks all production migrations
   - **Commits**: 0bf38708, a3c071b2, 57080820, 902cae52, 44ad79c0, b4933792, 5204a9c8, 65915d4c
   - **Progress**:
-    - ✅ CMD entrypoint created (cmd/learn-im/main.go) - commit 0bf38708
+    - ✅ CMD entrypoint created (cmd/cipher-im/main.go) - commit 0bf38708
     - ✅ Port constants added (8888 public, 9090 admin)
     - ✅ SQLite initialization with migrations
     - ✅ Server structure exists with template integration
@@ -133,10 +133,10 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 - ❌ **P4.1.1**: Migrate jose-ja admin server to template
   - **Status**: BLOCKED BY P3.1.1
   - **Effort**: M (5-7 days)
-  - **Dependencies**: P3.1.1 (learn-im validates template)
+  - **Dependencies**: P3.1.1 (cipher-im validates template)
   - **Coverage**: Target ≥95%
   - **Mutation**: Target ≥85%
-  - **Blockers**: P3.1.1 (learn-im validates template)
+  - **Blockers**: P3.1.1 (cipher-im validates template)
   - **Notes**: First production service migration, will drive JOSE pattern refinements
   - **Commits**: (pending)
 
@@ -267,7 +267,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Work Completed**:
 
-- Identified critical architectural issues blocking learn-im implementation
+- Identified critical architectural issues blocking cipher-im implementation
 - Added Phase 1.1: Move JOSE Crypto to Shared Package (3-5 days, M effort)
 - Added Phase 1.2: Refactor Service Template TLS Code (5-7 days, M effort)
 - Updated all documentation: spec.md, plan.md, tasks.md, clarify.md, analyze.md, DETAILED.md
@@ -275,14 +275,14 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Issues Discovered**:
 
-1. **JOSE Crypto Location**: `internal/jose/crypto` is in service-specific location, but needed by learn-im (Phase 3) for JWE encryption → creates circular dependency
+1. **JOSE Crypto Location**: `internal/jose/crypto` is in service-specific location, but needed by cipher-im (Phase 3) for JWE encryption → creates circular dependency
 2. **Service Template TLS**: Duplicates TLS cert generation code instead of using `internal/shared/crypto/certificate/` → propagates technical debt to all 9 services
 3. **Hard-coded Values**: Service template has hard-coded values instead of parameter injection patterns
 
 **Constraints Discovered**:
 
 - Phase 1.1 (Move JOSE Crypto) is **BLOCKING** Phase 2 (Template Extraction)
-- Phase 1.2 (Refactor Template TLS) is **BLOCKING** Phase 3 (Learn-IM Implementation)
+- Phase 1.2 (Refactor Template TLS) is **BLOCKING** Phase 3 (Cipher-IM Implementation)
 - All production service migrations (Phases 4-7) depend on clean shared package organization
 
 **Requirements Discovered**:
@@ -296,7 +296,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Lessons Learned**:
 
 1. **Architectural Issues Surface Early**: Service template implementation revealed package organization problems before they could propagate to all services
-2. **Shared Code Organization is CRITICAL**: Incorrect package location creates blockers for dependent services (learn-im needs JWE but can't import internal/jose/crypto)
+2. **Shared Code Organization is CRITICAL**: Incorrect package location creates blockers for dependent services (cipher-im needs JWE but can't import internal/jose/crypto)
 3. **Technical Debt Prevention**: Catching TLS duplication NOW (Phase 1.2) prevents rework across 9 services later
 4. **Documentation Updates Required**: Course corrections require updates across 7+ files (copilot instructions, spec, clarify, plan, tasks, analyze, DETAILED.md)
 
@@ -769,7 +769,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - identity (2 files): authz/dpop/*, jwks/*
   - jose examples (1 file): example/jwe_encrypt_decrypt_test.go
   - kms client (2 files): client/client_oam_mapper.go, client/client_test.go
-- ✅ Fixed learn-im missing `generateTLSConfig()` method (added as receiver method)
+- ✅ Fixed cipher-im missing `generateTLSConfig()` method (added as receiver method)
 - ✅ Verified build: `go build ./...` passes
 - ✅ Verified tests: `go test ./internal/shared/crypto/jose/...` passes (19.3s)
 - ✅ Committed: a01b7de7 "refactor(jose): move crypto package to internal/shared/crypto/jose for reusability"
@@ -783,7 +783,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Key Findings**:
 
-1. **learn-im had undefined function**: `generateTLSConfig()` was called as standalone function but doesn't exist - should be receiver method `s.generateTLSConfig()`
+1. **cipher-im had undefined function**: `generateTLSConfig()` was called as standalone function but doesn't exist - should be receiver method `s.generateTLSConfig()`
 2. **Import pattern consistent**: All services successfully migrated to new path `cryptoutil/internal/shared/crypto/jose`
 3. **Git rename detection**: Git correctly identified all 27 files as renames (R flag), preserving history
 4. **Coverage gap**: 82.7% is significantly below 98% target for shared infrastructure code
@@ -826,7 +826,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - ~87 lines of duplicated code
 
 - `internal/jose/server/server.go`: Third copy with ECDSA P-384
-- `internal/learn/server/public.go`: Fourth copy (just added)
+- `internal/cipher/server/public.go`: Fourth copy (just added)
 
 **Total Duplication**: ~350 lines across 4 services
 
@@ -872,7 +872,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 5. ❌ **Refactor AdminServer**: Same pattern as PublicHTTPServer
 6. ❌ **Remove duplicated methods**: Delete all generateTLSConfig implementations
 7. ❌ **Add mode-specific tests**: Unit tests for each TLS mode
-8. ❌ **Validation testing**: Verify sm-kms, jose-ja, learn-im still work
+8. ❌ **Validation testing**: Verify sm-kms, jose-ja, cipher-im still work
 9. ❌ **Documentation**: Update USAGE.md with TLS configuration examples
 
 **Constraints Discovered**: None yet
@@ -971,7 +971,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - ❌ Subtask 6: Refactor AdminServer to use new infrastructure
 - ❌ Subtask 7: Remove old generateTLSConfig methods (~350 lines)
 - ❌ Subtask 8: Add comprehensive tests for all 3 TLS modes
-- ❌ Subtask 9: Validation testing (sm-kms, jose-ja, learn-im)
+- ❌ Subtask 9: Validation testing (sm-kms, jose-ja, cipher-im)
 
 **Key Findings**:
 
@@ -1038,7 +1038,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 - ✅ Subtasks 1-5 complete (analysis, modes, config, generator, PublicHTTPServer)
 - ❌ Subtask 6: AdminServer (NEXT)
-- ❌ Subtasks 7-9: jose-ja/learn-im, tests, validation
+- ❌ Subtasks 7-9: jose-ja/cipher-im, tests, validation
 
 **Key Findings**:
 
@@ -1087,8 +1087,8 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - **Pattern**: TLSModeAuto with localhost + 127.0.0.1 + ::1, magic constant for validity days
   - **Test cases**: TestNewAdminServer_HappyPath, TestNewAdminServer_NilContext, TestAdminServer_Start_Success, TestAdminServer_Readyz_NotReady, TestAdminServer_HealthChecks_DuringShutdown, TestAdminServer_Start_NilContext, TestAdminServer_Livez_Alive, TestAdminServer_Readyz_Ready, TestAdminServer_Shutdown_Endpoint, TestAdminServer_Shutdown_NilContext, TestAdminServer_ActualPort_BeforeStart, TestAdminServer_ConcurrentRequests, TestAdminServer_TimeoutsConfigured
 
-- Fixed integration in `internal/learn/server/server.go`
-  - **Issue**: learn-im NewAdminServer call missing new tlsCfg parameter (caught by pre-commit golangci-lint)
+- Fixed integration in `internal/cipher/server/server.go`
+  - **Issue**: cipher-im NewAdminServer call missing new tlsCfg parameter (caught by pre-commit golangci-lint)
   - **Fix**: Added TLSConfig creation with TLSModeAuto, AutoValidityDays using magic constant
   - **Added import**: cryptoutilMagic for TLSTestEndEntityCertValidity1Year constant
   - **Linting compliance**: Used `cryptoutilMagic.TLSTestEndEntityCertValidity1Year` instead of hardcoded 365 (mnd linter)
@@ -1100,19 +1100,19 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Lines: ~67 removed, ~15 added, net -52 lines from admin.go
 - Duplication: 2 of 4 copies eliminated (~50% progress toward ~350 line goal)
 - Total eliminated: ~139 lines (~72 from public.go + ~52 from admin.go + error handling simplification)
-- Integration: ✅ learn-im server builds successfully, no regressions
+- Integration: ✅ cipher-im server builds successfully, no regressions
 
 **Subtask Progress** (6/9 complete, 67%):
 
 - ✅ Subtasks 1-6 complete (analysis, modes, config, generator, PublicHTTPServer, AdminServer)
-- ❌ Subtask 7: Refactor jose-ja, learn-im PublicServer (remaining 2 copies)
+- ❌ Subtask 7: Refactor jose-ja, cipher-im PublicServer (remaining 2 copies)
 - ❌ Subtask 8: Add comprehensive TLS mode tests (≥98% coverage target)
 - ❌ Subtask 9: Validation testing (all services build and run)
 
 **Key Findings**:
 
 - AdminServer refactoring identical to PublicHTTPServer pattern (consistency validates design)
-- Pre-commit hooks caught learn-im integration issue immediately (build would have failed without hooks)
+- Pre-commit hooks caught cipher-im integration issue immediately (build would have failed without hooks)
 - Magic constants prevent linting violations (TLSTestEndEntityCertValidity1Year = 365)
 - Same test pattern works for AdminServer as PublicHTTPServer (13/13 pass with TLSModeAuto)
 
@@ -1120,7 +1120,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Lessons Learned**:
 
-- Pre-commit hooks provide valuable early integration testing (caught learn-im issue before build)
+- Pre-commit hooks provide valuable early integration testing (caught cipher-im issue before build)
 - Consistent refactoring patterns reduce errors (AdminServer used proven PublicHTTPServer pattern)
 - Magic constants improve code quality and linting compliance (mnd linter satisfied)
 - Test pattern reusability (TLSModeAuto with localhost/127.0.0.1/::1 works universally)
@@ -1133,7 +1133,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 1. Locate remaining 2 copies of duplicated TLS code:
    - `internal/jose/server/server.go` (estimated ~87 lines, same generateTLSConfig pattern)
-   - `internal/learn/server/public.go` (estimated ~87 lines, same generateTLSConfig pattern)
+   - `internal/cipher/server/public.go` (estimated ~87 lines, same generateTLSConfig pattern)
 2. For each file:
    - Remove 7 crypto imports, add tlsMaterial field
    - Update constructor to accept tlsCfg parameter, call GenerateTLSMaterial
@@ -1141,17 +1141,17 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
    - Delete generateTLSConfig() method
    - Update all test files to pass TLSConfig with TLSModeAuto
 3. Verify tests pass for both services
-4. Commit: "refactor(jose,learn): use new TLS infrastructure - Eliminates remaining 2 generateTLSConfig copies - Part of P1.2.1.1 (Subtask 7/9)"
+4. Commit: "refactor(jose,cipher): use new TLS infrastructure - Eliminates remaining 2 generateTLSConfig copies - Part of P1.2.1.1 (Subtask 7/9)"
 5. Expected metrics: ~174 lines removed (2 × ~87), ~30 added (2 × ~15), net -144 lines
 6. Total duplication eliminated after Subtask 7: ~350 lines across 4 services (100% complete)
 
 ---
 
-### 2025-12-25: P1.2.1.1 Refactor Jose/Learn Services (Subtask 7/9 Complete)
+### 2025-12-25: P1.2.1.1 Refactor Jose/Cipher Services (Subtask 7/9 Complete)
 
 **Work Completed**:
 
-- Refactored **3 additional services** to use centralized TLS infrastructure (jose Server, jose AdminServer, learn PublicServer)
+- Refactored **3 additional services** to use centralized TLS infrastructure (jose Server, jose AdminServer, cipher PublicServer)
 - **Jose Server** (`internal/jose/server/server.go`):
   - **Issue found**: Missing error check in cmd/commands.go (false positive "err declared and not used")
   - **Fix**: Added `if err != nil` check between NewServer and defer statement
@@ -1165,14 +1165,14 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - **Integration**: Updated application.go with adminTLSCfg (TLSModeAuto, localhost, 127.0.0.1, ::1)
   - Build verification: ✅ PASS
   - **Metrics**: ~67 lines removed, ~15 added, net -52 lines
-- **Learn PublicServer** (`internal/learn/server/public.go`):
+- **Cipher PublicServer** (`internal/cipher/server/public.go`):
   - **Removed imports**: crypto/ecdsa, crypto/elliptic, crypto/rand, crypto/x509, crypto/x509/pkix, math/big (6 total)
   - **Added imports**: cryptoutilMagic, cryptoutilTemplateServer
   - **Added field**: `tlsMaterial *cryptoutilTemplateServer.TLSMaterial` to PublicServer struct
   - **Updated constructor**: Added tlsCfg parameter, nil check, GenerateTLSMaterial call
   - **Updated Start()**: Uses cryptoutilMagic.IPv4Loopback and s.tlsMaterial.Config
   - **Removed method**: generateTLSConfig() (lines 209-281, ~72 lines eliminated)
-  - **Integration**: Updated server.go with publicTLSCfg (TLSModeAuto, localhost + learn-im-server, 127.0.0.1, ::1)
+  - **Integration**: Updated server.go with publicTLSCfg (TLSModeAuto, localhost + cipher-im-server, 127.0.0.1, ::1)
   - Build verification: ✅ PASS
   - **Metrics**: ~72 lines removed, ~18 added, net -54 lines
 
@@ -1197,7 +1197,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Coverage/Quality Metrics**:
 
-- Build: ✅ Clean (all services: jose, learn, demo)
+- Build: ✅ Clean (all services: jose, cipher, demo)
 - Tests: ✅ 81/81 PASS (jose server tests, all TLS modes work)
 - Pre-commit hooks: ✅ PASS (golangci-lint, formatters, checks)
 - Lines removed: ~208 total (69 + 67 + 72 from 3 generateTLSConfig methods)
@@ -1207,7 +1207,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Subtask Progress** (7/9 complete, 78%):
 
-- ✅ Subtasks 1-7 complete (analysis, modes, config, generator, PublicHTTPServer, AdminServer, Jose/Learn services)
+- ✅ Subtasks 1-7 complete (analysis, modes, config, generator, PublicHTTPServer, AdminServer, Jose/Cipher services)
 - ❌ Subtask 8: Add comprehensive TLS mode tests for all 3 modes (≥98% coverage target)
 - ❌ Subtask 9: Validation testing (all services build, run, E2E tests)
 
@@ -1220,7 +1220,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - **Magic constants crucial**: Using TLSTestEndEntityCertValidity1Year prevents mnd linter warnings
 - **Pre-commit hooks effective**: Caught 2 integration issues before commit (tests, demo file)
 
-**Constraints Discovered**: None (pattern proven with template services applies to Jose/Learn)
+**Constraints Discovered**: None (pattern proven with template services applies to Jose/Cipher)
 
 **Requirements Discovered**:
 
@@ -1237,7 +1237,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 5. **Magic constants have cascading benefits**: Satisfy linter, improve readability, central definition
 6. **Complete code archaeology required**: Jose AdminServer was 5th copy, increasing total from ~350 to ~435 lines
 
-**Related Commits**: 95c7c9ee ("refactor(jose,learn): use centralized TLS infrastructure")
+**Related Commits**: 95c7c9ee ("refactor(jose,cipher): use centralized TLS infrastructure")
 
 **Violations Found**:
 
@@ -1331,7 +1331,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Subtask Progress** (8/9 complete, 89%):
 
-- ✅ Subtasks 1-8 complete (analysis, modes, config, generator, PublicHTTPServer, AdminServer, Jose/Learn services, TLS tests)
+- ✅ Subtasks 1-8 complete (analysis, modes, config, generator, PublicHTTPServer, AdminServer, Jose/Cipher services, TLS tests)
 - ❌ Subtask 9: Validation testing (all services build, run, E2E tests)
 
 **Key Findings**:
@@ -1402,7 +1402,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - ✅ All tests PASS (60.683s)
 - ✅ No issues from move from internal/jose/crypto (Phase 1.1.1.1)
 
-**Learn-IM** (`internal/learn/...`):
+**Cipher-IM** (`internal/cipher/...`):
 
 - ℹ️ No test files (expected for demo service)
 - ✅ generateTLSConfig fix verified (commit 95c7c9ee)
@@ -1448,8 +1448,8 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 1. ✅ Template PublicHTTPServer (Subtask 5)
 2. ✅ Template AdminServer (Subtask 6)
 3. ✅ JOSE PublicHTTPServer + AdminServer (Subtask 7)
-4. ✅ Learn-IM PublicHTTPServer + AdminServer (Subtask 7)
-5. ✅ Fixed Learn-IM generateTLSConfig helper (Subtask 7)
+4. ✅ Cipher-IM PublicHTTPServer + AdminServer (Subtask 7)
+5. ✅ Fixed Cipher-IM generateTLSConfig helper (Subtask 7)
 
 **Quality Gates Achieved**:
 
@@ -1538,7 +1538,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Fixed all linter errors (10 noctx/errcheck violations)
 - Achieved 7/7 tests PASS in 0.964s
 
-**Test Implementation** (internal/learn/server/public_test.go - 451 lines):
+**Test Implementation** (internal/cipher/server/public_test.go - 451 lines):
 
 **Registration Tests** (4 test cases):
 
@@ -1630,7 +1630,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - ⏸️ Authentication middleware (JWT) - HIGH PRIORITY
 - ⏸️ Replace hardcoded user IDs - HIGH PRIORITY
 
-**Related Commits**: 44ad79c0 ("test(learn-im): add handler tests for registration and login endpoints")
+**Related Commits**: 44ad79c0 ("test(cipher-im): add handler tests for registration and login endpoints")
 
 **Violations Found**: None (all tests PASS, linter clean, no regressions)
 
@@ -1640,7 +1640,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Work Completed**:
 
-- Added **8 message handler tests** (273 lines) to `internal/learn/server/public_test.go`
+- Added **8 message handler tests** (273 lines) to `internal/cipher/server/public_test.go`
 - **Coverage improvement**: 39.9% → 61.1% server coverage (+21.2 percentage points)
 - **Tests designed**: sendMessage (3 tests), receiveMessages (1 test), deleteMessage (3 tests)
 - **All 15 tests PASS** (7 registration/login + 8 message handlers) in 1.215s
@@ -1672,7 +1672,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Quality Validation**:
 
 - ✅ All 15 tests PASS (0 failures, 0 skips)
-- ✅ Linter clean (golangci-lint run ./internal/learn/server/... = no output)
+- ✅ Linter clean (golangci-lint run ./internal/cipher/server/... = no output)
 - ✅ Pre-commit hooks PASS (auto-fixed `interface{}` → `any` formatting)
 
 **Test Pattern Consistency**:
@@ -1706,7 +1706,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - ⏸️ Authentication middleware (JWT generation + verification) - HIGH PRIORITY
 - ⏸️ Replace hardcoded user IDs (use auth context) - HIGH PRIORITY
 
-**Related Commits**: b4933792 ("test(learn-im): add message handler tests (send/receive/delete)")
+**Related Commits**: b4933792 ("test(cipher-im): add message handler tests (send/receive/delete)")
 
 **Violations Found**: None (all tests PASS, linter clean, no regressions)
 
@@ -1716,7 +1716,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Work Completed**:
 
-- Created `internal/learn/e2e/learn_im_e2e_test.go` (399 lines)
+- Created `internal/cipher/e2e/cipher_im_e2e_test.go` (399 lines)
 - Implemented 3 comprehensive E2E tests (3/3 PASS):
   - **TestE2E_FullEncryptionFlow**: Alice → Bob full ECDH+HKDF+AES-GCM cycle
   - **TestE2E_MultiReceiverEncryption**: Alice → [Bob, Charlie] with individual encrypted copies
@@ -1784,8 +1784,8 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Related Commits**:
 
-- 5204a9c8 ("test(learn-im): add E2E tests for encryption, multi-receiver, deletion")
-- 65915d4c ("fix(learn-im): add PrivateKey to test user creation")
+- 5204a9c8 ("test(cipher-im): add E2E tests for encryption, multi-receiver, deletion")
+- 65915d4c ("fix(cipher-im): add PrivateKey to test user creation")
 
 **Violations Found**: None (all tests PASS, linter clean, schema fixed correctly)
 
@@ -2097,7 +2097,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 ---
 
-### 2025-12-26: Task JWT Consolidation and Learn-IM Status Update
+### 2025-12-26: Task JWT Consolidation and Cipher-IM Status Update
 
 **Work Completed**:
 
@@ -2133,7 +2133,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Requirements Discovered**:
 
 - JWT secret should move to configuration (currently JWTSecret constant in middleware.go)
-- learn-im Phase 3 completion criteria (tasks.md line 143-151):
+- cipher-im Phase 3 completion criteria (tasks.md line 143-151):
   - Coverage ≥95% - CURRENT 88.0% (need 7.1% more)
   - Mutation score ≥85% - NOT MEASURED YET
   - E2E tests pass BOTH /service and /browser paths - TESTS EXIST, need verification
@@ -2228,7 +2228,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Requirements Discovered**:
 
-1. **Adjusted Phase 3 Criteria Needed**: 95% coverage unrealistic for learn-im due to crypto/rand untestable errors
+1. **Adjusted Phase 3 Criteria Needed**: 95% coverage unrealistic for cipher-im due to crypto/rand untestable errors
 2. **Proposed Adjusted Criteria**:
    - Server package: ≥88% (ACHIEVED 88.3%)
    - Crypto package: ≥85% (ACHIEVED 85.4%)
@@ -2240,7 +2240,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 1. **Mutation Testing** - BLOCKING quality gate (3-4 hours):
    - Install gremlins: `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest`
-   - Run: `gremlins unleash ./internal/learn/...`
+   - Run: `gremlins unleash ./internal/cipher/...`
    - Target: ≥85% mutation score (efficacy)
    - Strengthen weak assertions as needed
 2. **E2E Test Verification** - MEDIUM PRIORITY (1-2 hours):
@@ -2281,7 +2281,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - Realistic coverage analysis and adjusted Phase 3 criteria
   - Next steps prioritization
 - f1660b9c ("build(deps): promote github.com/golang-jwt/jwt/v5 to direct dependency")
-  - JWT moved from indirect to direct dependency (learn-im uses JWT middleware)
+  - JWT moved from indirect to direct dependency (cipher-im uses JWT middleware)
   - Fixed go mod tidy failure in ci-mutation workflow
 - **Mutation Testing Status**: Attempted locally, gremlins v0.6.0 panics on Windows (executor.go:165)
   - Per anti-patterns.md: Windows compatibility issue, must use CI/CD (Linux)
@@ -2315,7 +2315,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Test Execution Results**:
 
 ```bash
-go test -v ./internal/learn/e2e/... -timeout=60s
+go test -v ./internal/cipher/e2e/... -timeout=60s
 # 7 tests PASS (3 service + 4 browser)
 # TestE2E_BrowserHealth: 0.12s
 # TestE2E_BrowserFullEncryptionFlow: 2.17s
@@ -2393,7 +2393,7 @@ go test -v ./internal/learn/e2e/... -timeout=60s
     - readyz: Full HTTP client wrapper implementation
     - shutdown: Full HTTP client wrapper implementation
   - Suite/Product integration complete (cryptoutil learn, learn standalone)
-  - Product-Service delegation working (learn-im → internal/cmd/learn)
+  - Product-Service delegation working (cipher-im → internal/cmd/cipher)
   - HTTP client helpers with TLS InsecureSkipVerify and context support
   - URL parsing with --url flag support
   - Status code validation and formatted output
@@ -2413,7 +2413,7 @@ go test -v ./internal/learn/e2e/... -timeout=60s
   - Covers Learn() function with multiple scenarios
 
 - ✅ **Documentation Updates** (Commit 7679f3e3):
-  - Updated REFACTOR-LEARN-IM.md with completion status
+  - Updated REFACTOR-CIPHER-IM.md with completion status
   - Marked Phase 1-3 tasks as complete
   - Added Task 2.0 for Suite/Product integration
   - Added 11-commit summary with hashes
@@ -2486,11 +2486,11 @@ go test ./internal/cmd/learn/ -v -shuffle=on
 3. aedb601d - Implemented all 6 remaining subcommands with help stubs
 4. 7650e339 - Fixed constant usage for help/version flags
 5. 0edfaf4b - Added learn to Suite, created Product executable
-6. fd80d1ad - Refactored learn-im to delegate
+6. fd80d1ad - Refactored cipher-im to delegate
 7. b2ea0679 - Fixed unused version variables
 8. 94a97def - Added PostgreSQL database support
 9. d67de975 - Implemented HTTP client wrappers for health endpoints
-10. 7679f3e3 - Updated REFACTOR-LEARN-IM.md with completed tasks
+10. 7679f3e3 - Updated REFACTOR-CIPHER-IM.md with completed tasks
 11. a742616b - Added comprehensive unit tests for learn command router
 
 **Violations Found**: None (all linting clean, all tests passing, all hooks passing)
@@ -2681,7 +2681,7 @@ go test ./internal/cmd/learn/ -v -shuffle=on
 
 **Phase Status**:
 
-- ✅ P7.3: Interface abstraction + learn-im integration + E2E + unit tests (commits 4bebaf90, 3cebf0e7)
+- ✅ P7.3: Interface abstraction + cipher-im integration + E2E + unit tests (commits 4bebaf90, 3cebf0e7)
 - ✅ P7.2: EncryptBytesWithContext alias methods (commit 2bce84ca, 5 min)
 - ✅ P7.4: Manual key rotation API (commit a8983d16, 2 hours)
 - **P7 Barrier Pattern Extraction: 100% COMPLETE** ✅
@@ -2747,7 +2747,7 @@ go test ./internal/cmd/learn/ -v -shuffle=on
 - Session Summary: ✅ Complete (learn_session_2025-12-29_summary.txt)
 - Phase 5 Summary: ✅ Evidence summary (learn_phase5_summary.txt)
 
-**Commit**: 6cb630ad - "fix(learn-im): fix TestMain database closure bug - 4 tests disabled"
+**Commit**: 6cb630ad - "fix(cipher-im): fix TestMain database closure bug - 4 tests disabled"
 
 - Files: 10 changed, 593 insertions(+), 2317 deletions(-)
 - Pre-commit hooks: All passed ✅
@@ -2795,7 +2795,7 @@ Extracted KMS barrier encryption pattern into service-template as reusable, repo
   - `BarrierRepository` interface: WithTransaction(), Shutdown()
   - `BarrierTransaction` interface: 9 methods (GetXxxLatest, GetXxx, AddXxx for root/intermediate/content keys)
 - Implemented adapters:
-  - `GormBarrierRepository` (157 lines): GORM adapter for gorm.DB (learn-im, identity, jose, ca services)
+  - `GormBarrierRepository` (157 lines): GORM adapter for gorm.DB (cipher-im, identity, jose, ca services)
   - `OrmBarrierRepository` (165 lines): KMS adapter for custom OrmRepository (sm-kms service)
 - Refactored barrier services to use interfaces (NOT concrete implementations):
   - `BarrierService` (147 lines): EncryptContentWithContext, DecryptContentWithContext
@@ -2807,7 +2807,7 @@ Extracted KMS barrier encryption pattern into service-template as reusable, repo
   - 6e4f2e48: Initial refactoring to use BarrierRepository interface
   - 25175884: Completed refactoring (all barrier services using interfaces)
 
-**P7.3.2: Learn-IM Barrier Integration** (95% COMPLETE ✅):
+**P7.3.2: Cipher-IM Barrier Integration** (95% COMPLETE ✅):
 
 - Created barrier table migrations (50 lines SQLite):
   - barrier_root_keys: uuid, encrypted, kek_uuid, created_at, updated_at
@@ -2838,7 +2838,7 @@ Extracted KMS barrier encryption pattern into service-template as reusable, repo
 **Cross-Service Validation** ✅:
 
 - ✅ KMS Service: OrmRepository adapter (original implementation) - EXISTING
-- ✅ Learn-IM Service: GormBarrierRepository adapter (new validation) - COMPLETE
+- ✅ Cipher-IM Service: GormBarrierRepository adapter (new validation) - COMPLETE
 - **PROOF**: Same BarrierService interface works across TWO different repository implementations
 - **ARCHITECTURAL GOAL ACHIEVED**: Service-template provides truly reusable patterns for all 9 services
 
@@ -2860,7 +2860,7 @@ DEBUG initializeFirstIntermediateJWK: Successfully created first intermediate JW
 --- PASS: TestHandleBrowserHealth_WhileRunning
 --- PASS: TestStart_ContextCancelled
 PASS
-ok  cryptoutil/internal/learn/server  4.138s (18 tests)
+ok  cryptoutil/internal/cipher/server  4.138s (18 tests)
 ```
 
 **Coverage/Quality Metrics**:
@@ -2895,7 +2895,7 @@ ok  cryptoutil/internal/learn/server  4.138s (18 tests)
 1. **Interface Abstraction Enables Reusability**: Same barrier service works across OrmRepository and gorm.DB
 2. **JWK Type Matters**: Unseal requires encryption keys (JWE), not signing keys (ECDSA)
 3. **Migration Schema Must Match Models**: GORM auto-timestamp requires created_at/updated_at in SQL
-4. **Simple Patterns for Demos**: Learn-im uses simple unseal (in-memory JWK), not complex HSM/KMS config
+4. **Simple Patterns for Demos**: Cipher-im uses simple unseal (in-memory JWK), not complex HSM/KMS config
 5. **Test-Driven Refactoring**: 11 compilation errors caught and fixed systematically before runtime
 
 **Violations Found**:
@@ -2922,8 +2922,8 @@ ok  cryptoutil/internal/learn/server  4.138s (18 tests)
 **Phase Status**: P7.3.1-P7.3.2 ✅ 95% COMPLETE
 
 - Barrier pattern extraction: ✅ COMPLETE
-- Cross-service validation: ✅ COMPLETE (KMS + learn-im)
-- Learn-IM integration: ✅ COMPLETE (18 tests passing)
+- Cross-service validation: ✅ COMPLETE (KMS + cipher-im)
+- Cipher-IM integration: ✅ COMPLETE (18 tests passing)
 - Evidence documentation: ✅ COMPLETE (comprehensive report created)
 - Blocking Issues: NONE
 - Deferred: middleware_test.go rewrite (not blocking remaining work)
@@ -3051,8 +3051,8 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 **Phase Status**: P7.3 ✅ 100% COMPLETE
 
 - Barrier pattern extraction: ✅ COMPLETE
-- Cross-service validation: ✅ COMPLETE (KMS + learn-im)
-- Learn-IM integration: ✅ COMPLETE (18 tests passing)
+- Cross-service validation: ✅ COMPLETE (KMS + cipher-im)
+- Cipher-IM integration: ✅ COMPLETE (18 tests passing)
 - E2E validation: ✅ COMPLETE (3 instances all passing)
 - Unit tests: ✅ COMPLETE (11 tests, 825 lines, 100% passing)
 - Evidence documentation: ✅ COMPLETE
@@ -3060,10 +3060,10 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 
 **Commits**: 4bebaf90 ("test(barrier): comprehensive unit tests for barrier service and repository")
 
-### 2026-01-01: Phase 3 Complete - Learn-IM Service Migration
+### 2026-01-01: Phase 3 Complete - Cipher-IM Service Migration
 
 **Work Completed**:
-- Fixed all 4 learn-im test build errors from previous session
+- Fixed all 4 cipher-im test build errors from previous session
 - E2E tests: Added testBarrierService initialization with full dependency chain
 - Realms tests: Updated NewPublicServer to 8-parameter dependency injection
 - Realms tests: Fixed domain type MessagesRecipientJWK to MessageRecipientJWK
@@ -3077,7 +3077,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - After: ALL tests passing (crypto, server, e2e, realms)
 - E2E: 100% passing (4.930s) - barrier service fully initialized
 - Realms: 100% passing (3.241s) - NewPublicServer dependency injection complete
-- Total: 4/4 learn-im test packages passing
+- Total: 4/4 cipher-im test packages passing
 
 **Lessons Learned**:
 1. Barrier service requires 5 parameters: ctx, telemetry, jwkGen, repository, unseal
@@ -3089,12 +3089,12 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 7. Barrier tables MUST be added to AutoMigrate alongside domain tables
 
 **Related Commits**:
-- 38d08200 ("fix(learn-im): resolve E2E and realms test build errors")
-- b17f99ae ("docs(executive): update Phase 3 complete - learn-im migration done")
+- 38d08200 ("fix(cipher-im): resolve E2E and realms test build errors")
+- b17f99ae ("docs(executive): update Phase 3 complete - cipher-im migration done")
 
 **Phase Status**:  PHASE 3 COMPLETE
 
-- Learn-IM service migration:  COMPLETE
+- Cipher-IM service migration:  COMPLETE
 - Barrier service integration:  COMPLETE (all 4 test packages passing)
 - Template validation:  COMPLETE (template proven ready for production services)
 - Blocking Issues: NONE

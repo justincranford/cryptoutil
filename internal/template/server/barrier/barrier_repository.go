@@ -12,7 +12,7 @@ import (
 
 // BarrierRepository defines the interface for barrier key storage operations.
 // This abstraction allows BarrierService to work with different database implementations
-// (KMS OrmRepository, learn-im gorm.DB, etc.) without coupling to specific repository types.
+// (KMS OrmRepository, cipher-im gorm.DB, etc.) without coupling to specific repository types.
 type BarrierRepository interface {
 	// WithTransaction executes the provided function within a database transaction.
 	// The transaction will be automatically committed on success or rolled back on error.

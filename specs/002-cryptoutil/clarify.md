@@ -232,7 +232,7 @@ database:
 
 **Q**: When should the service template be extracted and how should it be validated?
 
-**A**: Extract template in Phase 2, validate with learn-im demonstration service in Phase 3.
+**A**: Extract template in Phase 2, validate with cipher-im demonstration service in Phase 3.
 
 **Template Components** (extracted from KMS reference implementation):
 
@@ -251,14 +251,14 @@ database:
 
 **Validation Strategy**:
 
-- learn-im service MUST use extracted template
-- learn-im MUST pass all unit/integration/E2E tests
+- cipher-im service MUST use extracted template
+- cipher-im MUST pass all unit/integration/E2E tests
 - Deep analysis MUST show no blockers to migrate existing services
-- Only after learn-im succeeds can production services migrate
+- Only after cipher-im succeeds can production services migrate
 
 **Migration Priority**:
 
-1. **learn-im FIRST** (Phase 3) - Validate template reusability
+1. **cipher-im FIRST** (Phase 3) - Validate template reusability
 2. **One service at a time** - Sequentially refactor jose-ja (Phase 4), pki-ca (Phase 5), identity services (Phase 6+)
 3. **sm-kms LAST** - Only after ALL other services running excellently on template
 
@@ -1776,25 +1776,25 @@ Refer to `application_listener.go` and `config.go` for production-validated IP a
 
 ### Service Template Migration Priority
 
-**Q**: Should identity services (authz, idp, rs) be refactored to use the extracted service template immediately after learn-im validation, or later?
+**Q**: Should identity services (authz, idp, rs) be refactored to use the extracted service template immediately after cipher-im validation, or later?
 
 **A** (Source: CLARIFY-QUIZME-01 Q1, 2025-12-22):
 
 Identity services will be migrated **LAST** in the following sequence:
 
-1. **learn-im** (Phase 3): Validate service template first
+1. **cipher-im** (Phase 3): Validate service template first
 2. **JOSE and CA** (Phases 4-5): Migrate next, one at a time, to allow adjustments to the service template to accommodate JOSE and CA service patterns
 3. **Identity services** (Phase 6+): Migrate last, ordered by Authz → IdP → RS → RP → SPA
 
-**Rationale**: learn-im will validate the service template first, then JOSE and CA migrations will drive template refinements to support different service patterns. Identity services migrate last to benefit from a mature, battle-tested template.
+**Rationale**: cipher-im will validate the service template first, then JOSE and CA migrations will drive template refinements to support different service patterns. Identity services migrate last to benefit from a mature, battle-tested template.
 
 ---
 
-### Learn-IM Service Specification
+### Cipher-IM Service Specification
 
-**Service Name**: learn-im (short form), Learn-InstantMessenger (full descriptive name)
+**Service Name**: cipher-im (short form), Cipher-InstantMessenger (full descriptive name)
 
-**Q**: What are the detailed requirements for the Learn-InstantMessenger demonstration service?
+**Q**: What are the detailed requirements for the Cipher-InstantMessenger demonstration service?
 
 **A**: Encrypted messaging service that validates service template reusability and demonstrates crypto library integration.
 
@@ -1911,12 +1911,12 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 
 **Current Problems**:
 
-1. **internal/jose/crypto**: Contains JWE/JWS/JWK utilities needed by MULTIPLE services (sm-kms, jose-ja, learn-im), but is currently in JOSE service-specific location
+1. **internal/jose/crypto**: Contains JWE/JWS/JWK utilities needed by MULTIPLE services (sm-kms, jose-ja, cipher-im), but is currently in JOSE service-specific location
 2. **Service Template TLS**: Duplicating TLS cert generation code instead of using existing `internal/shared/crypto/certificate/` infrastructure
 
 **Consequences of Current Organization**:
 
-- **Blocks learn-im implementation**: learn-im needs JWE encryption from `internal/jose/crypto`, but importing service-specific packages creates circular dependencies
+- **Blocks cipher-im implementation**: cipher-im needs JWE encryption from `internal/jose/crypto`, but importing service-specific packages creates circular dependencies
 - **Technical debt**: Service template duplicates TLS cert generation code instead of reusing shared infrastructure
 - **Hard-coding**: Service template has hard-coded values instead of parameter injection patterns
 - **Migration delays**: Every service migration will encounter same issues, wasting time on rework
@@ -1928,7 +1928,7 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 - Move `internal/jose/crypto/*` → `internal/shared/crypto/jose/`
 - Update all imports in sm-kms, jose-ja, service template
 - Verify tests pass with no coverage regression
-- **Rationale**: Enables learn-im to use JWE without circular dependencies
+- **Rationale**: Enables cipher-im to use JWE without circular dependencies
 
 **Phase 1.2: Refactor Template TLS** (NEW, BLOCKING):
 
@@ -1942,7 +1942,7 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 
 | Package | Purpose | Used By | Status |
 |---------|---------|---------|--------|
-| `internal/shared/crypto/jose/` | JWK/JWE/JWS utilities | sm-kms, jose-ja, learn-im | **MUST MOVE** from internal/jose/crypto |
+| `internal/shared/crypto/jose/` | JWK/JWE/JWS utilities | sm-kms, jose-ja, cipher-im | **MUST MOVE** from internal/jose/crypto |
 | `internal/shared/crypto/certificate/` | TLS cert chains | All services | ✅ Exists, MUST BE USED |
 | `internal/shared/telemetry/` | OTLP integration | All services | ✅ Exists |
 | `internal/shared/magic/` | Magic constants | All packages | ✅ Exists |
@@ -1959,7 +1959,7 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 **Migration Dependencies**:
 
 - Phase 1.1 (Move JOSE Crypto) is **BLOCKING** Phase 2 (Template Extraction)
-- Phase 1.2 (Refactor Template TLS) is **BLOCKING** Phase 3 (Learn-IM Implementation)
+- Phase 1.2 (Refactor Template TLS) is **BLOCKING** Phase 3 (Cipher-IM Implementation)
 - All production service migrations (Phases 4-7) depend on clean shared package organization
 - Docker Compose deployment works (SQLite + PostgreSQL modes)
 - Demonstrates crypto library integration without external dependencies

@@ -10,10 +10,10 @@
 
 ### CRITICAL Risks
 
-#### R-CRIT-0A: JOSE Crypto Package Location Blocks learn-im (NEW)
+#### R-CRIT-0A: JOSE Crypto Package Location Blocks cipher-im (NEW)
 
 - **Risk**: P1.1.1 (move internal/jose/crypto to internal/shared/crypto/jose/) MUST complete before Phase 2
-- **Impact**: learn-im (Phase 3) needs JWE encryption from JOSE crypto, current location creates circular dependency, blocks ALL service migrations
+- **Impact**: cipher-im (Phase 3) needs JWE encryption from JOSE crypto, current location creates circular dependency, blocks ALL service migrations
 - **Probability**: CRITICAL (current blocker)
 - **Mitigation**: Execute Phase 1.1 FIRST (3-5 days), update all imports (sm-kms, jose-ja, template), verify tests pass
 - **Owner**: Backend team
@@ -21,7 +21,7 @@
 
 #### R-CRIT-0B: Service Template Technical Debt Blocks All Migrations (NEW)
 
-- **Risk**: P1.2.1 (refactor template TLS) MUST complete before learn-im implementation
+- **Risk**: P1.2.1 (refactor template TLS) MUST complete before cipher-im implementation
 - **Impact**: Service template duplicates TLS code, has hard-coded values, not using shared infrastructure; propagates technical debt to ALL 9 services
 - **Probability**: CRITICAL (will affect every service migration)
 - **Mitigation**: Execute Phase 1.2 (5-7 days), use internal/shared/crypto/certificate/ and keygen/, implement parameter injection, support all 3 TLS modes
@@ -228,11 +228,11 @@
 
 ---
 
-### Phase 7: Learn-IM Validation (1 task)
+### Phase 7: Cipher-IM Validation (1 task)
 
 #### Moderate Tasks (M effort)
 
-- **P7.1.1**: Learn-IM with Template - validates template correctness
+- **P7.1.1**: Cipher-IM with Template - validates template correctness
 
 **Phase 7 Parallelization**: None (single task)
 
@@ -275,10 +275,10 @@ P4.1.1 (Sharding) → P4.2.1 (Multi-Tenancy) → P5.1.1 (Hash Registry)
 
 **Mitigation**: Sequential, no shortcuts possible (Week 10-15)
 
-**Critical Path 5: Template → Learn-IM**
+**Critical Path 5: Template → Cipher-IM**
 
 ```
-P6.1.1 (Template) → P7.1.1 (Learn-IM)
+P6.1.1 (Template) → P7.1.1 (Cipher-IM)
 ```
 
 **Mitigation**: Simple validation chain (Week 16-17)
@@ -307,7 +307,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-IM)
 | P5.1 Hash | ●●●●○ | ●●●●● | ○○○○○ | ○○○○○ | ○○○○○ | ●●●●○ |
 | P5.2 Revocation | ●●●●○ | ●●●●● | ○○○○○ | ○○○○○ | ○○○○○ | ●●●●● |
 | P6.1 Template | ●●●●○ | ○○○○○ | ●●○○○ | ○○○○○ | ●●●○○ | ○○○○○ |
-| P7.1 Learn-IM | ●●●○○ | ○○○○○ | ●●○○○ | ●●○○○ | ●●○○○ | ○○○○○ |
+| P7.1 Cipher-IM | ●●●○○ | ○○○○○ | ●●○○○ | ●●○○○ | ●●○○○ | ○○○○○ |
 
 **Legend**: ●●●●● = Expert required, ●●●●○ = Advanced, ●●●○○ = Intermediate, ●●○○○ = Basic, ●○○○○ = Minimal, ○○○○○ = Not needed
 
@@ -316,7 +316,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-IM)
 - **Backend Team (2-3 devs)**: P2.1, P2.2, P2.3, P2.4, P3.1, P4.1, P4.2, P6.1
 - **Security Team (1-2 devs)**: P2.4, P5.1, P5.2 (crypto + revocation)
 - **Frontend Team (1 dev)**: P3.2.2 (SPA), assist with P3.1 (browser middleware validation)
-- **Full-Stack Team (1-2 devs)**: P3.2.1 (RP), P7.1 (Learn-IM)
+- **Full-Stack Team (1-2 devs)**: P3.2.1 (RP), P7.1 (Cipher-IM)
 - **DevOps Team (1 dev)**: Docker Compose, workflow updates, CI/CD validation (all phases)
 
 ---
@@ -415,9 +415,9 @@ P6.1.1 (Template) → P7.1.1 (Learn-IM)
 - ✅ Documentation complete (examples, README)
 - ✅ Coverage ≥98%
 
-**P7.1 Learn-IM**:
+**P7.1 Cipher-IM**:
 
-- ✅ Learn-IM service starts with dual servers
+- ✅ Cipher-IM service starts with dual servers
 - ✅ Uses template package correctly
 - ✅ Docker Compose integration works
 - ✅ Coverage ≥95%
@@ -437,7 +437,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-IM)
 **Phase 4-5 TODOs (Address in Phase 6-7)**:
 
 - `TODO(P6): Extract dual-server pattern to template package`
-- `TODO(P7): Validate template with Learn-IM implementation`
+- `TODO(P7): Validate template with Cipher-IM implementation`
 
 ### Forbidden TODOs (NEVER Acceptable)
 
@@ -450,7 +450,7 @@ P6.1.1 (Template) → P7.1.1 (Learn-IM)
 
 **Week 10**: Review P2-P3 TODOs, close or promote to tasks
 **Week 15**: Review P4-P5 TODOs, close or promote to tasks
-**Week 17**: NO TODOs allowed in Learn-IM (template must be clean)
+**Week 17**: NO TODOs allowed in Cipher-IM (template must be clean)
 
 ---
 
@@ -503,12 +503,12 @@ P6.1.1 (Template) → P7.1.1 (Learn-IM)
 ### Phase 6-7 Parallelization
 
 **Week 16**: P6.1.1 (template extraction)
-**Week 17**: P7.1.1 (Learn-IM validation)
+**Week 17**: P7.1.1 (Cipher-IM validation)
 
 **Team Assignment**:
 
 - Dev 1-2: P6.1.1 (extract template)
-- Dev 3: P7.1.1 (implement Learn-IM)
+- Dev 3: P7.1.1 (implement Cipher-IM)
 
 ---
 

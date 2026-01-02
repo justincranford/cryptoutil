@@ -422,7 +422,7 @@ When implementing quality improvements (coverage, mutation testing), use this pa
 
 ### Phase 12: Realm-Based Validation Configuration ✅ COMPLETE
 
-**Package**: `internal/learn/server/`
+**Package**: `internal/cipher/server/`
 
 **Completed** (commit 8c33feab 2025-12-24):
 
@@ -463,8 +463,8 @@ When implementing quality improvements (coverage, mutation testing), use this pa
 **Completed** (commits 732539b8, 1c428ad1 Session 3):
 
 - ✅ Extracted ServiceTemplate infrastructure from sm-kms
-- ✅ Migrated learn-im to use ServiceTemplate
-- ✅ Zero duplicated initialization code (~30 lines removed from learn-im)
+- ✅ Migrated cipher-im to use ServiceTemplate
+- ✅ Zero duplicated initialization code (~30 lines removed from cipher-im)
 - ✅ All E2E tests passing (service + browser paths)
 - ✅ Full infrastructure: DB, telemetry, JWK generation, barrier encryption
 
@@ -481,9 +481,9 @@ When implementing quality improvements (coverage, mutation testing), use this pa
 
 ---
 
-### Phase 17.1: LEARN-IM-TEST-COMMANDS.md Review ✅ COMPLETE
+### Phase 17.1: CIPHER-IM-TEST-COMMANDS.md Review ✅ COMPLETE
 
-**File**: `docs/LEARN-IM-TEST-COMMANDS.md`
+**File**: `docs/CIPHER-IM-TEST-COMMANDS.md`
 
 **Completed** (commit 012c0777 2025-12-24):
 

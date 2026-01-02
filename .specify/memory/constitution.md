@@ -10,7 +10,7 @@ cryptoutil MUST deliver four Products (9 total services: 8 product services + 1 
 | P2: Identity | 5 services (AuthZ, IdP, RS, RP, SPA) | ✅ | ✅ |
 | P3: KMS | 1 service (Key Management Service) | ✅ | ✅ |
 | P4: CA | 1 service (Certificate Authority) | ✅ | ✅ |
-| Demo: Learn | 1 service (InstantMessenger) | ✅ | ✅ |
+| Demo: Cipher | 1 service (InstantMessenger) | ✅ | ✅ |
 
 **See**: [architecture.instructions.md](/.github/instructions/02-01.architecture.instructions.md) for complete service catalog and port allocations
 
@@ -264,7 +264,7 @@ Phase 6 MUST extract reusable service template from proven implementations (KMS,
 
 **Decision Source**: CLARIFY-QUIZME-01 Q1
 
-1. **learn-im FIRST** (Phase 7): Implement using template, validate reusability
+1. **cipher-im FIRST** (Phase 7): Implement using template, validate reusability
 2. **JOSE and CA NEXT** (Phases 8-9): jose-ja → pki-ca (sequential, drive refinements)
 3. **Identity services LAST** (Phases 10-14): authz → idp → rs → rp → spa
 4. **sm-kms NEVER**: Reference implementation remains on current code

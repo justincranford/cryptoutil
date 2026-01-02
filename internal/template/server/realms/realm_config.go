@@ -37,39 +37,39 @@ type RealmConfig struct {
 // Used when no specific realm is configured or as fallback.
 func DefaultRealm() *RealmConfig {
 	return &RealmConfig{
-		PasswordMinLength:        cryptoutilSharedMagic.LearnDefaultPasswordMinLength,
+		PasswordMinLength:        cryptoutilSharedMagic.CipherDefaultPasswordMinLength,
 		PasswordRequireUppercase: true,
 		PasswordRequireLowercase: true,
 		PasswordRequireDigits:    true,
 		PasswordRequireSpecial:   true,
-		PasswordMinUniqueChars:   cryptoutilSharedMagic.LearnDefaultPasswordMinUniqueChars,
-		PasswordMaxRepeatedChars: cryptoutilSharedMagic.LearnDefaultPasswordMaxRepeatedChars,
-		SessionTimeout:           cryptoutilSharedMagic.LearnDefaultSessionTimeout,
-		SessionAbsoluteMax:       cryptoutilSharedMagic.LearnDefaultSessionAbsoluteMax,
+		PasswordMinUniqueChars:   cryptoutilSharedMagic.CipherDefaultPasswordMinUniqueChars,
+		PasswordMaxRepeatedChars: cryptoutilSharedMagic.CipherDefaultPasswordMaxRepeatedChars,
+		SessionTimeout:           cryptoutilSharedMagic.CipherDefaultSessionTimeout,
+		SessionAbsoluteMax:       cryptoutilSharedMagic.CipherDefaultSessionAbsoluteMax,
 		SessionRefreshEnabled:    true,
 		MFARequired:              false,
 		MFAMethods:               []string{},
-		LoginRateLimit:           cryptoutilSharedMagic.LearnDefaultLoginRateLimit,
-		MessageRateLimit:         cryptoutilSharedMagic.LearnDefaultMessageRateLimit,
+		LoginRateLimit:           cryptoutilSharedMagic.CipherDefaultLoginRateLimit,
+		MessageRateLimit:         cryptoutilSharedMagic.CipherDefaultMessageRateLimit,
 	}
 }
 
 // EnterpriseRealm returns a more restrictive realm configuration for enterprise deployments.
 func EnterpriseRealm() *RealmConfig {
 	return &RealmConfig{
-		PasswordMinLength:        cryptoutilSharedMagic.LearnEnterprisePasswordMinLength,
+		PasswordMinLength:        cryptoutilSharedMagic.CipherEnterprisePasswordMinLength,
 		PasswordRequireUppercase: true,
 		PasswordRequireLowercase: true,
 		PasswordRequireDigits:    true,
 		PasswordRequireSpecial:   true,
-		PasswordMinUniqueChars:   cryptoutilSharedMagic.LearnEnterprisePasswordMinUniqueChars,
-		PasswordMaxRepeatedChars: cryptoutilSharedMagic.LearnEnterprisePasswordMaxRepeatedChars,
-		SessionTimeout:           cryptoutilSharedMagic.LearnEnterpriseSessionTimeout,
-		SessionAbsoluteMax:       cryptoutilSharedMagic.LearnEnterpriseSessionAbsoluteMax,
+		PasswordMinUniqueChars:   cryptoutilSharedMagic.CipherEnterprisePasswordMinUniqueChars,
+		PasswordMaxRepeatedChars: cryptoutilSharedMagic.CipherEnterprisePasswordMaxRepeatedChars,
+		SessionTimeout:           cryptoutilSharedMagic.CipherEnterpriseSessionTimeout,
+		SessionAbsoluteMax:       cryptoutilSharedMagic.CipherEnterpriseSessionAbsoluteMax,
 		SessionRefreshEnabled:    true,
 		MFARequired:              true,
 		MFAMethods:               []string{"totp", "webauthn"},
-		LoginRateLimit:           cryptoutilSharedMagic.LearnEnterpriseLoginRateLimit,
-		MessageRateLimit:         cryptoutilSharedMagic.LearnEnterpriseMessageRateLimit,
+		LoginRateLimit:           cryptoutilSharedMagic.CipherEnterpriseLoginRateLimit,
+		MessageRateLimit:         cryptoutilSharedMagic.CipherEnterpriseMessageRateLimit,
 	}
 }

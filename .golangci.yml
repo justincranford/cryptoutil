@@ -262,19 +262,19 @@ linters:
         # Cryptoutil template
         - pkg: "cryptoutil/internal/template/server"
           alias: cryptoutilTemplateServer
-        # Cryptoutil learn
-        - pkg: "cryptoutil/internal/learn/crypto"
-          alias: cryptoutilLearnCrypto
-        - pkg: "cryptoutil/internal/learn/domain"
-          alias: cryptoutilLearnDomain
-        - pkg: "cryptoutil/internal/learn/e2e"
-          alias: cryptoutilLearnE2E
-        - pkg: "cryptoutil/internal/learn/integration"
-          alias: cryptoutilLearnIntegration
-        - pkg: "cryptoutil/internal/learn/repository"
-          alias: cryptoutilLearnRepository
-        - pkg: "cryptoutil/internal/learn/server"
-          alias: cryptoutilLearnServer
+        # Cryptoutil cipher
+        - pkg: "cryptoutil/internal/cipher/crypto"
+          alias: cryptoutilCipherCrypto
+        - pkg: "cryptoutil/internal/cipher/domain"
+          alias: cryptoutilCipherDomain
+        - pkg: "cryptoutil/internal/cipher/e2e"
+          alias: cryptoutilCipherE2E
+        - pkg: "cryptoutil/internal/cipher/integration"
+          alias: cryptoutilCipherIntegration
+        - pkg: "cryptoutil/internal/cipher/repository"
+          alias: cryptoutilCipherRepository
+        - pkg: "cryptoutil/internal/cipher/server"
+          alias: cryptoutilCipherServer
         # Cryptoutil identity
         - pkg: "cryptoutil/internal/identity/apperr"
           alias: cryptoutilIdentityAppErr
