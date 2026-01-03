@@ -1388,6 +1388,16 @@ func validateConfiguration(s *ServerSettings) error {
 		errors = append(errors, "bind private address cannot be blank (would bind to 0.0.0.0 triggering Windows Firewall): use '127.0.0.1' for localhost or explicit IP")
 	}
 
+	// CRITICAL: In test/dev environments, reject 0.0.0.0 to prevent Windows Firewall prompts.
+	// Production containers may use 0.0.0.0 for external access (isolated network namespace).
+	if s.DevMode && s.BindPublicAddress == "0.0.0.0" {
+		errors = append(errors, "CRITICAL: bind public address cannot be 0.0.0.0 in test/dev mode (triggers Windows Firewall prompts): use '127.0.0.1' for localhost")
+	}
+
+	if s.DevMode && s.BindPrivateAddress == "0.0.0.0" {
+		errors = append(errors, "CRITICAL: bind private address cannot be 0.0.0.0 in test/dev mode (triggers Windows Firewall prompts): use '127.0.0.1' for localhost")
+	}
+
 	// Validate port ranges (port 0 is valid - OS assigns dynamic port).
 	if s.BindPublicPort > cryptoutilMagic.MaxPortNumber {
 		errors = append(errors, fmt.Sprintf("invalid public port %d: must be between 0 and 65535", s.BindPublicPort))
