@@ -11,13 +11,13 @@
 **Infrastructure Phases (Phases 1-7)**: ✅ COMPLETE (13 commits)
 - FIPS compliance, Windows Firewall prevention, linting, pepper implementation
 
-**Template Extraction (ACTUAL CORE WORK)**: 🔄 IN PROGRESS (1 of ~6 pattern categories extracted)
+**Template Extraction (ACTUAL CORE WORK)**: 🔄 IN PROGRESS (2 of ~6 pattern categories extracted)
 - E2E test helpers: ✅ COMPLETE (commit be1f90c7)
+- Repository patterns: ✅ TRANSACTION CONTEXT EXTRACTED (commit 8bebdcf2)
 - User-realm patterns: ❌ NOT STARTED
 - Server infrastructure patterns: ❌ NOT STARTED
 - Client patterns: ❌ NOT STARTED
 - Container patterns: ❌ NOT STARTED
-- Repository patterns: ❌ NOT STARTED
 
 ---
 
@@ -33,7 +33,7 @@
 **Migration Order** (per `.github/instructions/02-02.service-template.instructions.md`):
 ✅ cipher-im (THIS TEMPLATE) → jose-ja → pki-ca → identity services (authz, idp, rs, rp, spa) → sm-kms
 
-**Total Commits**: 14
+**Total Commits**: 15
 - Phase 1 (FIPS): 1 commit
 - Phase 2 (Windows Firewall): 4 commits
 - Phase 3 (Template Linting): 1 commit
@@ -42,8 +42,9 @@
 - Phase 6 (Root Cause Docs): 1 commit
 - Phase 7 (Pepper): 2 commits
 - Emergency cleanup: 1 commit (uncommitted files)
-- Template extraction: 1 commit (E2E helpers)
-- Documentation: 1 commit (this update)
+- Template extraction E2E: 1 commit (E2E test helpers)
+- Template extraction Repository: 1 commit (transaction context)
+- Documentation: 1 commit (status update)
 
 ## PHASE 1: FIPS COMPLIANCE - REPLACE bcrypt WITH LowEntropyRandom ✅
 
