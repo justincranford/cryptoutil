@@ -13,6 +13,13 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	// ErrNoRootKeyFound indicates no root keys exist in the database.
+	ErrNoRootKeyFound = errors.New("no root key found")
+	// ErrNoIntermediateKeyFound indicates no intermediate keys exist in the database.
+	ErrNoIntermediateKeyFound = errors.New("no intermediate key found")
+)
+
 // GormBarrierRepository implements BarrierRepository using gorm.DB.
 // This adapter allows barrier encryption to work with any service using gorm.DB
 // (cipher-im, future services) without depending on KMS-specific OrmRepository.
@@ -31,11 +38,16 @@ func NewGormBarrierRepository(db *gorm.DB) (*GormBarrierRepository, error) {
 
 // WithTransaction executes the provided function within a database transaction.
 func (r *GormBarrierRepository) WithTransaction(ctx context.Context, function func(tx BarrierTransaction) error) error {
-	return r.db.WithContext(ctx).Transaction(func(gormTx *gorm.DB) error {
+	err := r.db.WithContext(ctx).Transaction(func(gormTx *gorm.DB) error {
 		tx := &GormBarrierTransaction{gormDB: gormTx}
 
 		return function(tx)
 	})
+	if err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	return nil
 }
 
 // Shutdown releases any resources held by the repository.
@@ -59,7 +71,7 @@ func (tx *GormBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 
 	err := tx.gormDB.Order("created_at DESC").First(&key).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil // No root keys exist yet
+		return nil, ErrNoRootKeyFound
 	}
 
 	if err != nil {
@@ -104,7 +116,7 @@ func (tx *GormBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermedia
 
 	err := tx.gormDB.Order("created_at DESC").First(&key).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil // No intermediate keys exist yet
+		return nil, ErrNoIntermediateKeyFound
 	}
 
 	if err != nil {

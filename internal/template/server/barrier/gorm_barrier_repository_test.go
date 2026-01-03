@@ -28,10 +28,12 @@ func createIsolatedDB(t *testing.T) (*gorm.DB, func()) {
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
+	ctx := context.Background()
+
 	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	sqlDB.SetMaxOpenConns(10)
@@ -48,7 +50,9 @@ func createIsolatedDB(t *testing.T) (*gorm.DB, func()) {
 	require.NoError(t, err)
 
 	cleanup := func() {
-		sqlDB.Close()
+		if closeErr := sqlDB.Close(); closeErr != nil {
+			panic("failed to close SQL DB: " + closeErr.Error())
+		}
 	}
 
 	return db, cleanup
@@ -391,8 +395,8 @@ func TestGormBarrierRepository_Transaction_Rollback(t *testing.T) {
 
 	// Transaction that returns an error (should rollback).
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
-		if err := tx.AddRootKey(key); err != nil {
-			return err
+		if addErr := tx.AddRootKey(key); addErr != nil {
+			return fmt.Errorf("failed to add root key: %w", addErr)
 		}
 		// Force rollback by returning error.
 		return context.Canceled

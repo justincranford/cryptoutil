@@ -119,7 +119,11 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}
 	defer testBarrierService.Shutdown()
-	defer testSQLDB.Close()
+	defer func() {
+		if closeErr := testSQLDB.Close(); closeErr != nil {
+			panic("TestMain: failed to close test SQL DB: " + closeErr.Error())
+		}
+	}()
 
 	// Run all tests - defer statements execute cleanup AFTER m.Run() completes.
 	exitCode := m.Run()
@@ -130,6 +134,8 @@ func TestMain(m *testing.M) {
 
 // createBarrierTables creates the barrier encryption tables for testing.
 func createBarrierTables(db *sql.DB) error {
+	ctx := context.Background()
+
 	schema := `
 	CREATE TABLE IF NOT EXISTS barrier_root_keys (
 		uuid TEXT PRIMARY KEY,
@@ -158,9 +164,12 @@ func createBarrierTables(db *sql.DB) error {
 	);
 	`
 
-	_, err := db.Exec(schema)
+	_, err := db.ExecContext(ctx, schema)
+	if err != nil {
+		return fmt.Errorf("failed to create barrier tables: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 // TestBarrierService_EncryptDecrypt_Success tests successful encryption and decryption.
@@ -291,11 +300,13 @@ func TestBarrierService_Shutdown(t *testing.T) {
 	shutdownSQLDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
-	defer shutdownSQLDB.Close()
+	defer func() {
+		require.NoError(t, shutdownSQLDB.Close())
+	}()
 
-	_, err = shutdownSQLDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = shutdownSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
-	_, err = shutdownSQLDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = shutdownSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	shutdownSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)

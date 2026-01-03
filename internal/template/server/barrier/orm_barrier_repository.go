@@ -31,11 +31,16 @@ func NewOrmBarrierRepository(ormRepo *cryptoutilOrmRepository.OrmRepository) (*O
 
 // WithTransaction executes the provided function within a database transaction.
 func (r *OrmBarrierRepository) WithTransaction(ctx context.Context, function func(tx BarrierTransaction) error) error {
-	return r.ormRepo.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(ormTx *cryptoutilOrmRepository.OrmTransaction) error {
+	err := r.ormRepo.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(ormTx *cryptoutilOrmRepository.OrmTransaction) error {
 		tx := &OrmBarrierTransaction{ormTx: ormTx}
 
 		return function(tx)
 	})
+	if err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	return nil
 }
 
 // Shutdown releases any resources held by the repository.
@@ -57,11 +62,11 @@ func (tx *OrmBarrierTransaction) Context() context.Context {
 func (tx *OrmBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 	kmsKey, err := tx.ormTx.GetRootKeyLatest()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get latest root key: %w", err)
 	}
 
 	if kmsKey == nil {
-		return nil, nil
+		return nil, ErrNoRootKeyFound
 	}
 
 	return &BarrierRootKey{
@@ -75,7 +80,7 @@ func (tx *OrmBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 func (tx *OrmBarrierTransaction) GetRootKey(uuid *googleUuid.UUID) (*BarrierRootKey, error) {
 	kmsKey, err := tx.ormTx.GetRootKey(uuid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get root key: %w", err)
 	}
 
 	return &BarrierRootKey{
@@ -94,18 +99,22 @@ func (tx *OrmBarrierTransaction) AddRootKey(key *BarrierRootKey) error {
 		KEKUUID:   key.KEKUUID,
 	}
 
-	return tx.ormTx.AddRootKey(kmsKey)
+	if err := tx.ormTx.AddRootKey(kmsKey); err != nil {
+		return fmt.Errorf("failed to add root key: %w", err)
+	}
+
+	return nil
 }
 
 // GetIntermediateKeyLatest retrieves the most recently created intermediate key.
 func (tx *OrmBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediateKey, error) {
 	kmsKey, err := tx.ormTx.GetIntermediateKeyLatest()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get latest intermediate key: %w", err)
 	}
 
 	if kmsKey == nil {
-		return nil, nil
+		return nil, ErrNoIntermediateKeyFound
 	}
 
 	return &BarrierIntermediateKey{
@@ -119,7 +128,7 @@ func (tx *OrmBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediat
 func (tx *OrmBarrierTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*BarrierIntermediateKey, error) {
 	kmsKey, err := tx.ormTx.GetIntermediateKey(uuid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get intermediate key: %w", err)
 	}
 
 	return &BarrierIntermediateKey{
@@ -138,14 +147,18 @@ func (tx *OrmBarrierTransaction) AddIntermediateKey(key *BarrierIntermediateKey)
 		KEKUUID:   key.KEKUUID,
 	}
 
-	return tx.ormTx.AddIntermediateKey(kmsKey)
+	if err := tx.ormTx.AddIntermediateKey(kmsKey); err != nil {
+		return fmt.Errorf("failed to add intermediate key: %w", err)
+	}
+
+	return nil
 }
 
 // GetContentKey retrieves a specific content key by UUID.
 func (tx *OrmBarrierTransaction) GetContentKey(uuid *googleUuid.UUID) (*BarrierContentKey, error) {
 	kmsKey, err := tx.ormTx.GetContentKey(uuid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get content key: %w", err)
 	}
 
 	return &BarrierContentKey{
@@ -164,5 +177,9 @@ func (tx *OrmBarrierTransaction) AddContentKey(key *BarrierContentKey) error {
 		KEKUUID:   key.KEKUUID,
 	}
 
-	return tx.ormTx.AddContentKey(kmsKey)
+	if err := tx.ormTx.AddContentKey(kmsKey); err != nil {
+		return fmt.Errorf("failed to add content key: %w", err)
+	}
+
+	return nil
 }

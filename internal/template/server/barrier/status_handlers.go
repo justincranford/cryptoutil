@@ -48,7 +48,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 		// Get latest root key.
 		rootKey, err := tx.GetRootKeyLatest()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get latest root key: %w", err)
 		}
 
 		if rootKey != nil {
@@ -62,7 +62,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 		// Get latest intermediate key.
 		intermediateKey, err := tx.GetIntermediateKeyLatest()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get latest intermediate key: %w", err)
 		}
 
 		if intermediateKey != nil {
@@ -76,7 +76,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get barrier keys status: %w", err)
 	}
 
 	return &response, nil

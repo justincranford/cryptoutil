@@ -3,6 +3,8 @@
 package testutil
 
 import (
+	"fmt"
+
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -40,12 +42,12 @@ func Initialize() error {
 
 	publicTLS, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{cryptoutilMagic.IPv4Loopback}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to generate public TLS settings: %w", err)
 	}
 
 	privateTLS, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings([]string{"localhost"}, []string{cryptoutilMagic.IPv4Loopback}, cryptoutilMagic.TLSTestEndEntityCertValidity1Year)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to generate private TLS settings: %w", err)
 	}
 
 	return nil

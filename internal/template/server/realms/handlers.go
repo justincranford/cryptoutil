@@ -200,6 +200,7 @@ func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.
 
 	// Create and sign token.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("failed to sign JWT: %w", err)

@@ -115,7 +115,7 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("root key rotation transaction failed: %w", err)
 	}
 
 	return result, nil
@@ -200,7 +200,7 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("intermediate key rotation transaction failed: %w", err)
 	}
 
 	return result, nil
@@ -304,7 +304,7 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("content key rotation transaction failed: %w", err)
 	}
 
 	return result, nil

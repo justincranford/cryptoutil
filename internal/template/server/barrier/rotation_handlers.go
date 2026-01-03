@@ -10,6 +10,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+const (
+	// MinRotationReasonLength is the minimum length for rotation reason field.
+	MinRotationReasonLength = 10
+	// MaxRotationReasonLength is the maximum length for rotation reason field.
+	MaxRotationReasonLength = 500
+)
+
 // RotateKeyRequest is the request payload for key rotation endpoints.
 type RotateKeyRequest struct {
 	Reason string `json:"reason" validate:"required,min=10,max=500"`
@@ -50,14 +57,14 @@ func HandleRotateRootKey(rotationService *RotationService) fiber.Handler {
 		}
 
 		// Validate reason length
-		if len(req.Reason) < 10 {
+		if len(req.Reason) < MinRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error":   "validation_error",
 				"message": "Reason must be at least 10 characters",
 			})
 		}
 
-		if len(req.Reason) > 500 {
+		if len(req.Reason) > MaxRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error":   "validation_error",
 				"message": "Reason must be at most 500 characters",
@@ -93,14 +100,14 @@ func HandleRotateIntermediateKey(rotationService *RotationService) fiber.Handler
 		}
 
 		// Validate reason length
-		if len(req.Reason) < 10 {
+		if len(req.Reason) < MinRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error":   "validation_error",
 				"message": "Reason must be at least 10 characters",
 			})
 		}
 
-		if len(req.Reason) > 500 {
+		if len(req.Reason) > MaxRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error":   "validation_error",
 				"message": "Reason must be at most 500 characters",
@@ -136,14 +143,14 @@ func HandleRotateContentKey(rotationService *RotationService) fiber.Handler {
 		}
 
 		// Validate reason length
-		if len(req.Reason) < 10 {
+		if len(req.Reason) < MinRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error":   "validation_error",
 				"message": "Reason must be at least 10 characters",
 			})
 		}
 
-		if len(req.Reason) > 500 {
+		if len(req.Reason) > MaxRotationReasonLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error":   "validation_error",
 				"message": "Reason must be at most 500 characters",
