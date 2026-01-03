@@ -36,10 +36,21 @@ type PBKDF2Params struct {
 
 	// HashFunc returns the hash function for PBKDF2 (e.g., sha256.New).
 	HashFunc func() hash.Hash
+
+	// Pepper is the version-specific secret pepper value.
+	// MANDATORY per OWASP Password Storage Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#peppering
+	// Pattern: PBKDF2(password||pepper, salt, iterations, keyLength)
+	// Storage: Docker/Kubernetes secrets (NEVER in DB/source code)
+	// Rotation: Requires version bump + re-hash all records (lazy migration)
+	Pepper string
 }
 
 // PBKDF2WithParams returns a formatted PBKDF2 hash string using specified parameter set.
 // Format: {version}$hashname$iter$base64(salt)$base64(dk).
+//
+// CRITICAL: OWASP MANDATORY requirement - pepper MUST be concatenated with secret before PBKDF2.
+// Reference: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#peppering
+// Pattern: PBKDF2(password||pepper, salt, iterations, keyLength).
 func PBKDF2WithParams(secret string, params *PBKDF2Params) (string, error) {
 	if secret == "" {
 		return "", errors.New("secret is empty")
@@ -52,7 +63,12 @@ func PBKDF2WithParams(secret string, params *PBKDF2Params) (string, error) {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
-	dk := pbkdf2.Key([]byte(secret), salt, params.Iterations, params.KeyLength, params.HashFunc)
+	// CRITICAL: Concatenate secret||pepper before PBKDF2 (OWASP requirement).
+	// Pepper MUST be configured in params.Pepper (loaded from Docker/K8s secrets).
+	// Empty pepper is allowed (backward compatibility with non-peppered hashes).
+	pepperedSecret := secret + params.Pepper
+
+	dk := pbkdf2.Key([]byte(pepperedSecret), salt, params.Iterations, params.KeyLength, params.HashFunc)
 
 	return fmt.Sprintf("{%s}$%s$%d$%s$%s",
 		params.Version,
@@ -69,7 +85,18 @@ func PBKDF2WithParams(secret string, params *PBKDF2Params) (string, error) {
 //  3. Versioned PBKDF2 format: {version}$pbkdf2-sha512$iter$base64(salt)$base64(dk)
 //
 // Legacy format (no version prefix) is NOT supported - all hashes must be versioned.
+//
+// CRITICAL: This function does NOT support pepper - use VerifySecretWithParams for peppered hashes.
+// For backward compatibility with non-peppered hashes only.
 func VerifySecret(stored, provided string) (bool, error) {
+	return VerifySecretWithParams(stored, provided, &PBKDF2Params{Pepper: ""})
+}
+
+// VerifySecretWithParams verifies a stored hash against a provided secret using specified parameter set.
+// CRITICAL: OWASP MANDATORY requirement - pepper MUST be concatenated with secret before PBKDF2.
+// Reference: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#peppering
+// Pattern: PBKDF2(password||pepper, salt, iterations, keyLength).
+func VerifySecretWithParams(stored, provided string, params *PBKDF2Params) (bool, error) {
 	version, hashname, iter, salt, expectedDK, err := parsePbkdf2Params(stored)
 	if err != nil {
 		return false, err
@@ -89,7 +116,12 @@ func VerifySecret(stored, provided string) (bool, error) {
 		return false, fmt.Errorf("unsupported hash algorithm: %s (supported: %s, %s, %s)", hashname, cryptoutilMagic.PBKDF2DefaultHashName, cryptoutilMagic.PBKDF2SHA384HashName, cryptoutilMagic.PBKDF2SHA512HashName)
 	}
 
-	derived := pbkdf2.Key([]byte(provided), salt, iter, len(expectedDK), hashFunc)
+	// CRITICAL: Concatenate provided||pepper before PBKDF2 (OWASP requirement).
+	// Pepper MUST be configured in params.Pepper (loaded from Docker/K8s secrets).
+	// Empty pepper is allowed (backward compatibility with non-peppered hashes).
+	pepperedSecret := provided + params.Pepper
+
+	derived := pbkdf2.Key([]byte(pepperedSecret), salt, iter, len(expectedDK), hashFunc)
 
 	if len(derived) != len(expectedDK) {
 		return false, nil

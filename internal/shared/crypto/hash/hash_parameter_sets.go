@@ -13,6 +13,12 @@ import (
 
 // HashSecretPBKDF2 returns a formatted PBKDF2 hash string using default parameter set (version "1").
 // Format: {1}$pbkdf2-sha256$iter$base64(salt)$base64(dk).
+//
+// CRITICAL: This function does NOT load pepper from Docker secrets.
+// For production use with OWASP-compliant peppered hashing:
+//  1. Load pepper using ConfigurePeppers(registry, pepperConfigs)
+//  2. Get parameter set: params := registry.GetDefaultParameterSet()
+//  3. Hash with pepper: HashSecretPBKDF2WithParams(secret, params)
 func HashSecretPBKDF2(secret string) (string, error) {
 	hash, err := cryptoutilDigests.PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
 	if err != nil {
@@ -20,6 +26,33 @@ func HashSecretPBKDF2(secret string) (string, error) {
 	}
 
 	return hash, nil
+}
+
+// HashSecretPBKDF2WithParams returns a formatted PBKDF2 hash string using specified parameter set.
+// Format: {version}$pbkdf2-sha256$iter$base64(salt)$base64(dk).
+//
+// CRITICAL: OWASP MANDATORY requirement - params MUST include pepper loaded from Docker/K8s secrets.
+// Pattern: PBKDF2(password||pepper, salt, iterations, keyLength)
+// Reference: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#peppering
+func HashSecretPBKDF2WithParams(secret string, params *cryptoutilDigests.PBKDF2Params) (string, error) {
+	hash, err := cryptoutilDigests.PBKDF2WithParams(secret, params)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
+	}
+
+	return hash, nil
+}
+
+// VerifySecretPBKDF2WithParams verifies a stored hash against a provided secret using specified parameter set.
+// CRITICAL: params MUST include pepper loaded from Docker/K8s secrets (same pepper used during hashing).
+// Pattern: PBKDF2(password||pepper, salt, iterations, keyLength).
+func VerifySecretPBKDF2WithParams(stored, provided string, params *cryptoutilDigests.PBKDF2Params) (bool, error) {
+	valid, err := cryptoutilDigests.VerifySecretWithParams(stored, provided, params)
+	if err != nil {
+		return false, fmt.Errorf("failed to verify secret: %w", err)
+	}
+
+	return valid, nil
 }
 
 // DefaultPBKDF2ParameterSet returns the default PBKDF2-HMAC-SHA256 parameter set (version "1").
