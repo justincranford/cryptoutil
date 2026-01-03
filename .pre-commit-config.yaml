@@ -208,7 +208,7 @@ repos:
   - repo: local
     hooks:
       - id: lint-go
-        name: Run custom CI/CD checks (circular dependencies)
+        name: Run custom CI/CD checks (circular dependencies, non-FIPS algorithms)
         entry: go
         args: [run, cmd/cicd/main.go, lint-go]
         language: system

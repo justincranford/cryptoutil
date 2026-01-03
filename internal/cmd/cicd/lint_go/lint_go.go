@@ -23,6 +23,7 @@ var registeredLinters = []struct {
 }{
 	{"circular-deps", checkCircularDeps},
 	{"cgo-free-sqlite", checkCGOFreeSQLite},
+	{"non-fips-algorithms", checkNonFIPS},
 }
 
 // Lint runs all registered Go linters.
