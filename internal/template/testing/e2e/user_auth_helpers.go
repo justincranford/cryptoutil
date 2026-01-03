@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 
@@ -178,7 +179,7 @@ func RegisterTestUserBrowser(t *testing.T, client *http.Client, baseURL string) 
 func SendAuthenticatedRequest(t *testing.T, client *http.Client, method, url, token string, body []byte) *http.Response {
 	t.Helper()
 
-	var reqBody *bytes.Reader
+	var reqBody io.Reader
 	if body != nil {
 		reqBody = bytes.NewReader(body)
 	}

@@ -13,7 +13,6 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
-	"gorm.io/gorm"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -52,8 +51,8 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 
 	err = repository.WithTransaction(context.Background(), func(sqlTransaction BarrierTransaction) error {
 		encryptedIntermediateKeyLatest, err = sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK from DB
-		// NOTE: "record not found" is EXPECTED on first run - don't treat as fatal error
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		// NOTE: "no intermediate key found" is EXPECTED on first run - don't treat as fatal error
+		if err != nil && !errors.Is(err, ErrNoIntermediateKeyFound) {
 			return fmt.Errorf("failed to get intermediate key latest: %w", err)
 		}
 
@@ -61,10 +60,10 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 	})
 
 	// DEBUG: Log error handling decision.
-	isRecordNotFoundErr := errors.Is(err, gorm.ErrRecordNotFound)
-	log.Printf("DEBUG initializeFirstIntermediateJWK: err=%v, isRecordNotFound=%v, encryptedIntermediateKeyLatest=%v", err, isRecordNotFoundErr, encryptedIntermediateKeyLatest)
+	isNoIntermediateKeyErr := errors.Is(err, ErrNoIntermediateKeyFound)
+	log.Printf("DEBUG initializeFirstIntermediateJWK: err=%v, isNoIntermediateKeyFound=%v, encryptedIntermediateKeyLatest=%v", err, isNoIntermediateKeyErr, encryptedIntermediateKeyLatest)
 
-	if err != nil && !isRecordNotFoundErr {
+	if err != nil && !isNoIntermediateKeyErr {
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 

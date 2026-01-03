@@ -18,7 +18,6 @@ import (
 	googleUuid "github.com/google/uuid"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-	"gorm.io/gorm"
 )
 
 type RootKeysService struct {
@@ -54,8 +53,8 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, reposit
 
 	err = repository.WithTransaction(context.Background(), func(tx BarrierTransaction) error {
 		encryptedRootKeyLatest, err = tx.GetRootKeyLatest() // encrypted root JWK from DB
-		// NOTE: "record not found" is EXPECTED on first run - don't treat as fatal error
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		// NOTE: "no root key found" is EXPECTED on first run - don't treat as fatal error
+		if err != nil && !errors.Is(err, ErrNoRootKeyFound) {
 			return fmt.Errorf("failed to get root key latest: %w", err)
 		}
 
@@ -63,10 +62,10 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, reposit
 	})
 
 	// DEBUG: Log error handling decision
-	isRecordNotFoundErr := errors.Is(err, gorm.ErrRecordNotFound)
-	log.Printf("DEBUG initializeFirstRootJWK: err=%v, isRecordNotFound=%v, encryptedRootKeyLatest=%v", err, isRecordNotFoundErr, encryptedRootKeyLatest)
+	isNoRootKeyErr := errors.Is(err, ErrNoRootKeyFound)
+	log.Printf("DEBUG initializeFirstRootJWK: err=%v, isNoRootKeyFound=%v, encryptedRootKeyLatest=%v", err, isNoRootKeyErr, encryptedRootKeyLatest)
 
-	if err != nil && !isRecordNotFoundErr {
+	if err != nil && !isNoRootKeyErr {
 		return fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
 	}
 

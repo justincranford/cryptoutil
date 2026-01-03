@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -20,12 +21,13 @@ import (
 	"cryptoutil/internal/cipher/domain"
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
+	"cryptoutil/internal/cipher/server/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // initTestConfig returns an AppConfig with all required settings for tests.
-func initTestConfig() *server.AppConfig {
-	cfg := server.DefaultAppConfig()
+func initTestConfig() *config.AppConfig {
+	cfg := config.DefaultAppConfig()
 	cfg.BindPublicPort = 0                                                          // Dynamic port
 	cfg.BindPrivatePort = 0                                                         // Dynamic port
 	cfg.OTLPService = "cipher-im-integration"                                       // Required
