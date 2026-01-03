@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/cipher/domain"
+	cryptoutilRepository "cryptoutil/internal/template/server/repository"
 )
 
 // UserRepository handles database operations for User entities.
@@ -27,7 +28,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 
 // Create inserts a new user into the database.
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
-	if err := getDB(ctx, r.db).WithContext(ctx).Create(user).Error; err != nil {
+	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Create(user).Error; err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -37,7 +38,7 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 // FindByID retrieves a user by ID.
 func (r *UserRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*domain.User, error) {
 	var user domain.User
-	if err := getDB(ctx, r.db).WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
+	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
@@ -47,7 +48,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*dom
 // FindByUsername retrieves a user by username.
 func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*domain.User, error) {
 	var user domain.User
-	if err := getDB(ctx, r.db).WithContext(ctx).First(&user, "username = ?", username).Error; err != nil {
+	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).First(&user, "username = ?", username).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user by username: %w", err)
 	}
 
@@ -56,7 +57,7 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 
 // Update updates an existing user.
 func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
-	if err := getDB(ctx, r.db).WithContext(ctx).Save(user).Error; err != nil {
+	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Save(user).Error; err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 
@@ -65,26 +66,9 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 
 // Delete removes a user from the database.
 func (r *UserRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := getDB(ctx, r.db).WithContext(ctx).Delete(&domain.User{}, "id = ?", id).Error; err != nil {
+	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Delete(&domain.User{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
 	return nil
-}
-
-// txKey is the context key for database transactions.
-type txKey struct{}
-
-// WithTransaction stores a transaction in the context.
-func WithTransaction(ctx context.Context, tx *gorm.DB) context.Context {
-	return context.WithValue(ctx, txKey{}, tx)
-}
-
-// getDB returns the transaction from context if present, otherwise returns the base DB.
-func getDB(ctx context.Context, baseDB *gorm.DB) *gorm.DB {
-	if tx, ok := ctx.Value(txKey{}).(*gorm.DB); ok && tx != nil {
-		return tx
-	}
-
-	return baseDB
 }
