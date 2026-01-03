@@ -19,6 +19,7 @@ var registeredLinters = []struct {
 	linter LinterFunc
 }{
 	{"test-patterns", enforceTestPatterns},
+	{"bind-address-safety", enforceBindAddressSafety},
 }
 
 // Lint runs all registered Go test file linters.
