@@ -13,7 +13,6 @@ import (
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	"cryptoutil/internal/shared/magic"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
