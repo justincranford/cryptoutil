@@ -137,7 +137,7 @@ func TestExample(t *testing.T) {
 			tempDir := t.TempDir()
 			tempFile := filepath.Join(tempDir, "test_file_test.go")
 
-			err := os.WriteFile(tempFile, []byte(tt.fileContent), 0600)
+			err := os.WriteFile(tempFile, []byte(tt.fileContent), 0o600)
 			require.NoError(t, err, "Failed to create temp test file")
 
 			// Run linter.
@@ -198,7 +198,7 @@ func TestExample(t *testing.T) {
 			tempDir := t.TempDir()
 			tempFile := filepath.Join(tempDir, "test_file_test.go")
 
-			err := os.WriteFile(tempFile, []byte(tt.fileContent), 0600)
+			err := os.WriteFile(tempFile, []byte(tt.fileContent), 0o600)
 			require.NoError(t, err)
 
 			// Check file directly.

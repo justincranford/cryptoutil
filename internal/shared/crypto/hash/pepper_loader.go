@@ -27,9 +27,9 @@ type PepperConfig struct {
 // Supports "file://path" or direct path patterns.
 //
 // Security Requirements:
-//  - File MUST be readable (400 or 440 permissions recommended)
-//  - File MUST be in /run/secrets/ (Docker) or /var/run/secrets/kubernetes.io/ (K8s)
-//  - Content SHOULD be base64-encoded 32-byte random value (256 bits)
+//   - File MUST be readable (400 or 440 permissions recommended)
+//   - File MUST be in /run/secrets/ (Docker) or /var/run/secrets/kubernetes.io/ (K8s)
+//   - Content SHOULD be base64-encoded 32-byte random value (256 bits)
 //
 // Returns trimmed secret content (removes trailing newlines/whitespace).
 func LoadPepperFromSecret(secretPath string) (string, error) {

@@ -15,22 +15,22 @@ import (
 // Banned non-FIPS algorithms and their FIPS-approved alternatives.
 var bannedAlgorithms = map[string]string{
 	// Password hashing.
-	"bcrypt":  "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
-	"scrypt":  "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
-	"argon2":  "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
-	"Argon2":  "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
-	"Argon2i": "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
+	"bcrypt":   "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
+	"scrypt":   "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
+	"argon2":   "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
+	"Argon2":   "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
+	"Argon2i":  "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
 	"Argon2id": "PBKDF2-HMAC-SHA256 (600k iterations per OWASP 2025)",
 
 	// Weak digests.
-	"md5.New":         "SHA-256/384/512",
-	"md5.Sum":         "SHA-256/384/512",
-	"sha1.New":        "SHA-256/384/512",
-	"sha1.Sum":        "SHA-256/384/512",
-	"crypto.MD5":      "SHA-256/384/512",
-	"crypto.SHA1":     "SHA-256/384/512",
-	"crypto.SHA224":   "SHA-256/384/512 (SHA-224 is weak)",
-	"sha256.New224":   "SHA-256 (SHA-224 is weak)",
+	"md5.New":       "SHA-256/384/512",
+	"md5.Sum":       "SHA-256/384/512",
+	"sha1.New":      "SHA-256/384/512",
+	"sha1.Sum":      "SHA-256/384/512",
+	"crypto.MD5":    "SHA-256/384/512",
+	"crypto.SHA1":   "SHA-256/384/512",
+	"crypto.SHA224": "SHA-256/384/512 (SHA-224 is weak)",
+	"sha256.New224": "SHA-256 (SHA-224 is weak)",
 
 	// Weak symmetric ciphers.
 	"des.NewCipher":    "AES-GCM (128/192/256 bits)",
@@ -42,24 +42,24 @@ var bannedAlgorithms = map[string]string{
 	"crypto.RC4":       "AES-GCM (128/192/256 bits)",
 
 	// Weak asymmetric algorithms.
-	"dsa.GenerateKey":          "RSA ≥2048 or ECDSA P-256/384/521",
-	"dsa.GenerateParameters":   "RSA ≥2048 or ECDSA P-256/384/521",
-	"dsa.Sign":                 "RSA ≥2048 or ECDSA P-256/384/521",
-	"crypto.DSA":               "RSA ≥2048 or ECDSA P-256/384/521",
-	
+	"dsa.GenerateKey":        "RSA ≥2048 or ECDSA P-256/384/521",
+	"dsa.GenerateParameters": "RSA ≥2048 or ECDSA P-256/384/521",
+	"dsa.Sign":               "RSA ≥2048 or ECDSA P-256/384/521",
+	"crypto.DSA":             "RSA ≥2048 or ECDSA P-256/384/521",
+
 	// Weak elliptic curves.
-	"elliptic.P224":     "P-256/P-384/P-521 (P-224 is weak)",
-	"secp224r1":         "P-256/P-384/P-521 (P-224 is weak)",
+	"elliptic.P224": "P-256/P-384/P-521 (P-224 is weak)",
+	"secp224r1":     "P-256/P-384/P-521 (P-224 is weak)",
 
 	// Imports to detect.
-	`"crypto/md5"`:      "crypto/sha256 or crypto/sha512",
-	`"crypto/sha1"`:     "crypto/sha256 or crypto/sha512",
-	`"crypto/des"`:      "crypto/aes",
-	`"crypto/rc4"`:      "crypto/aes",
-	`"crypto/dsa"`:      "crypto/rsa or crypto/ecdsa or crypto/ed25519",
-	`"golang.org/x/crypto/bcrypt"`:  "golang.org/x/crypto/pbkdf2",
-	`"golang.org/x/crypto/scrypt"`:  "golang.org/x/crypto/pbkdf2",
-	`"golang.org/x/crypto/argon2"`:  "golang.org/x/crypto/pbkdf2",
+	`"crypto/md5"`:                 "crypto/sha256 or crypto/sha512",
+	`"crypto/sha1"`:                "crypto/sha256 or crypto/sha512",
+	`"crypto/des"`:                 "crypto/aes",
+	`"crypto/rc4"`:                 "crypto/aes",
+	`"crypto/dsa"`:                 "crypto/rsa or crypto/ecdsa or crypto/ed25519",
+	`"golang.org/x/crypto/bcrypt"`: "golang.org/x/crypto/pbkdf2",
+	`"golang.org/x/crypto/scrypt"`: "golang.org/x/crypto/pbkdf2",
+	`"golang.org/x/crypto/argon2"`: "golang.org/x/crypto/pbkdf2",
 }
 
 // checkNonFIPS detects banned non-FIPS algorithms in Go code.
@@ -111,9 +111,9 @@ func findGoFiles() ([]string, error) {
 
 		// Exclude test files (intentionally test banned algorithms).
 		// Exclude nonfips.go (contains bannedAlgorithms map with all keywords).
-		if filepath.Ext(path) == ".go" && 
-		   !strings.HasSuffix(path, "_test.go") &&
-		   !strings.HasSuffix(path, "nonfips.go") {
+		if filepath.Ext(path) == ".go" &&
+			!strings.HasSuffix(path, "_test.go") &&
+			!strings.HasSuffix(path, "nonfips.go") {
 			files = append(files, path)
 		}
 
@@ -139,7 +139,7 @@ func checkFileForNonFIPS(filePath string) []string {
 	for banned, alternative := range bannedAlgorithms {
 		// Use case-sensitive exact match for function calls and imports.
 		pattern := regexp.MustCompile(`\b` + regexp.QuoteMeta(banned) + `\b`)
-		
+
 		if pattern.MatchString(contentStr) {
 			// Find line numbers.
 			for i, line := range lines {

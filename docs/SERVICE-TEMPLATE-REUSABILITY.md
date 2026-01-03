@@ -201,7 +201,7 @@ func (s *Service) HashSecret(version int, secret string) (string, error) {
         return "", fmt.Errorf("failed to generate salt: %w", err)
     }
     dk := pbkdf2.Key([]byte(peppered), salt, Version3Iterations, Version3DKLength, sha256.New)
-    return fmt.Sprintf("{%d}$%s$%d$%s$%s", 
+    return fmt.Sprintf("{%d}$%s$%d$%s$%s",
         version, Version3Algorithm, Version3Iterations,
         base64.StdEncoding.EncodeToString(salt),
         base64.StdEncoding.EncodeToString(dk)), nil
@@ -296,17 +296,17 @@ sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)  // 5
 ```go
 func TestMain(m *testing.M) {
     ctx := context.Background()
-    
+
     // Start PostgreSQL test-container ONCE per package
     container, _ := postgres.RunContainer(ctx,
         postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewV7().String())),
         postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewV7().String())),
     )
     defer container.Terminate(ctx)
-    
+
     connStr, _ := container.ConnectionString(ctx)
     testDB, _ = gorm.Open(postgres.Open(connStr), &gorm.Config{})
-    
+
     exitCode := m.Run()
     os.Exit(exitCode)
 }
@@ -344,10 +344,10 @@ func TestMain(m *testing.M) {
     testServer = setupServer(testDB)
     go testServer.Start()
     defer testServer.Shutdown()
-    
+
     // Run all tests
     exitCode := m.Run()
-    
+
     // Cleanup via defer
     os.Exit(exitCode)
 }
@@ -381,7 +381,7 @@ func TestSomething(t *testing.T) {
         sqlDB, _ := db.DB()
         sqlDB.Close()
     })
-    
+
     // Test logic using db
 }
 ```

@@ -46,7 +46,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(cleanCode), 0600)
+	err := os.WriteFile(cleanFile, []byte(cleanCode), 0o600)
 	require.NoError(t, err)
 
 	// Check file.
@@ -72,7 +72,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
 	require.NoError(t, err)
 
 	// Check file.
@@ -101,7 +101,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
 	require.NoError(t, err)
 
 	// Check file.
@@ -130,7 +130,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
 	require.NoError(t, err)
 
 	// Check file.
@@ -158,7 +158,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
 	require.NoError(t, err)
 
 	// Check file.
@@ -190,7 +190,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(bannedFile, []byte(bannedCode), 0600)
+	err := os.WriteFile(bannedFile, []byte(bannedCode), 0o600)
 	require.NoError(t, err)
 
 	// Check file.

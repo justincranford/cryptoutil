@@ -1,7 +1,7 @@
 # Windows Firewall Root Cause Analysis and Prevention
 
-**Created**: 2025-01-02  
-**Status**: COMPREHENSIVE  
+**Created**: 2025-01-02
+**Status**: COMPREHENSIVE
 **Related**: SERVICE-TEMPLATE-v4.md Phase 6, .github/instructions/06-02.anti-patterns.instructions.md
 
 ## Executive Summary
@@ -10,7 +10,7 @@
 
 **Root Cause**: Blank `BindPublicAddress=""` or `BindPrivateAddress=""` in `ServerSettings` struct defaults to `:port` format in `fmt.Sprintf("%s:%d", "", port)`, which Go's `net.Listen()` interprets as `0.0.0.0:port` (all interfaces).
 
-**Impact**: 
+**Impact**:
 - Each `0.0.0.0` binding triggers 1 Windows Firewall exception prompt
 - CI/CD workflows blocked (require manual approval)
 - Security risk (test services exposed to network)
@@ -46,7 +46,7 @@ settings := &cryptoutilConfig.ServerSettings{
 }
 
 // internal/template/server/listener/public.go line 168:
-listener, err := listenConfig.Listen(ctx, "tcp", 
+listener, err := listenConfig.Listen(ctx, "tcp",
     fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPrivatePort))
 
 // When BindPublicAddress="" and BindPublicPort=0:
@@ -160,7 +160,7 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettin
     if bindAddr == "" || bindAddr == "0.0.0.0" || bindAddr == "[::]" {
         panic("CRITICAL: bind address cannot be blank or 0.0.0.0 in tests (triggers Windows Firewall)")
     }
-    
+
     return &ServerSettings{
         BindPublicAddress:  bindAddr,  // ALWAYS explicit (127.0.0.1)
         BindPublicPort:     bindPort,  // Dynamic allocation (0)
@@ -185,7 +185,7 @@ func (s *ServerSettings) validateConfiguration(logger *slog.Logger) error {
     if s.BindPrivateAddress == "" {
         return fmt.Errorf("bind private address cannot be blank (defaults to 0.0.0.0, triggers Windows Firewall)")
     }
-    
+
     // DevMode: Reject 0.0.0.0 (test/dev environments MUST use 127.0.0.1)
     if s.DevMode {
         if s.BindPublicAddress == "0.0.0.0" {
@@ -195,7 +195,7 @@ func (s *ServerSettings) validateConfiguration(logger *slog.Logger) error {
             return fmt.Errorf("CRITICAL: bind private address cannot be 0.0.0.0 in test/dev mode (triggers Windows Firewall prompts)")
         }
     }
-    
+
     // Production: 0.0.0.0 allowed (containers need external access)
     // ...
 }
@@ -372,7 +372,7 @@ func TestMain(m *testing.M) {
     server, _ := NewServer(settings)
     go server.Start()
     defer server.Shutdown()
-    
+
     exitCode := m.Run()
     os.Exit(exitCode)
 }
@@ -481,6 +481,6 @@ curl https://localhost:8080/api/health
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-01-02  
+**Document Version**: 1.0
+**Last Updated**: 2025-01-02
 **Next Review**: After each service migration (jose-ja, pki-ca, identity, sm-kms)

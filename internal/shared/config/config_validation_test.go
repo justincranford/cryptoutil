@@ -14,17 +14,17 @@ import (
 func TestValidateConfiguration_Reject0000InDevMode(t *testing.T) {
 	// Test public address validation.
 	s := &ServerSettings{
-		DevMode:            true,
-		BindPublicAddress:  "0.0.0.0",
-		BindPublicPort:     8080,
-		BindPrivateAddress: "127.0.0.1",
-		BindPrivatePort:    9090,
-		BindPublicProtocol: "https",
+		DevMode:             true,
+		BindPublicAddress:   "0.0.0.0",
+		BindPublicPort:      8080,
+		BindPrivateAddress:  "127.0.0.1",
+		BindPrivatePort:     9090,
+		BindPublicProtocol:  "https",
 		BindPrivateProtocol: "https",
-		LogLevel:           "INFO",
-		DatabaseURL:        "sqlite://file::memory:",
-		TLSPublicDNSNames:  []string{"localhost"},
-		TLSPrivateDNSNames: []string{"localhost"},
+		LogLevel:            "INFO",
+		DatabaseURL:         "sqlite://file::memory:",
+		TLSPublicDNSNames:   []string{"localhost"},
+		TLSPrivateDNSNames:  []string{"localhost"},
 	}
 
 	err := validateConfiguration(s)
@@ -33,17 +33,17 @@ func TestValidateConfiguration_Reject0000InDevMode(t *testing.T) {
 
 	// Test private address validation.
 	s2 := &ServerSettings{
-		DevMode:            true,
-		BindPublicAddress:  "127.0.0.1",
-		BindPublicPort:     8080,
-		BindPrivateAddress: "0.0.0.0",
-		BindPrivatePort:    9090,
-		BindPublicProtocol: "https",
+		DevMode:             true,
+		BindPublicAddress:   "127.0.0.1",
+		BindPublicPort:      8080,
+		BindPrivateAddress:  "0.0.0.0",
+		BindPrivatePort:     9090,
+		BindPublicProtocol:  "https",
 		BindPrivateProtocol: "https",
-		LogLevel:           "INFO",
-		DatabaseURL:        "sqlite://file::memory:",
-		TLSPublicDNSNames:  []string{"localhost"},
-		TLSPrivateDNSNames: []string{"localhost"},
+		LogLevel:            "INFO",
+		DatabaseURL:         "sqlite://file::memory:",
+		TLSPublicDNSNames:   []string{"localhost"},
+		TLSPrivateDNSNames:  []string{"localhost"},
 	}
 
 	err2 := validateConfiguration(s2)
@@ -54,20 +54,20 @@ func TestValidateConfiguration_Reject0000InDevMode(t *testing.T) {
 // TestValidateConfiguration_Allow0000InProdMode tests that validateConfiguration allows 0.0.0.0 in production mode.
 func TestValidateConfiguration_Allow0000InProdMode(t *testing.T) {
 	s := &ServerSettings{
-		DevMode:            false,
-		BindPublicAddress:  "0.0.0.0",
-		BindPublicPort:     8080,
-		BindPrivateAddress: "127.0.0.1",
-		BindPrivatePort:    9090,
-		BindPublicProtocol: "https",
+		DevMode:             false,
+		BindPublicAddress:   "0.0.0.0",
+		BindPublicPort:      8080,
+		BindPrivateAddress:  "127.0.0.1",
+		BindPrivatePort:     9090,
+		BindPublicProtocol:  "https",
 		BindPrivateProtocol: "https",
-		LogLevel:           "INFO",
-		DatabaseURL:        "postgres://user:pass@localhost:5432/db",
-		TLSPublicDNSNames:  []string{"localhost"},
-		TLSPrivateDNSNames: []string{"localhost"},
-		BrowserIPRateLimit: 100,  // Required - not 0
-		ServiceIPRateLimit: 100,  // Required - not 0
-		OTLPEndpoint:       "http://localhost:4317",  // Required format
+		LogLevel:            "INFO",
+		DatabaseURL:         "postgres://user:pass@localhost:5432/db",
+		TLSPublicDNSNames:   []string{"localhost"},
+		TLSPrivateDNSNames:  []string{"localhost"},
+		BrowserIPRateLimit:  100,                     // Required - not 0
+		ServiceIPRateLimit:  100,                     // Required - not 0
+		OTLPEndpoint:        "http://localhost:4317", // Required format
 	}
 
 	err := validateConfiguration(s)
