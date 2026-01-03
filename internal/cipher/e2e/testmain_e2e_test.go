@@ -86,7 +86,10 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("failed to get sql.DB from gorm.DB: " + err.Error())
 	}
-	defer sqlDB.Close() // LIFO: close database after services using it.
+
+	defer func() {
+		_ = sqlDB.Close() // LIFO: close database after services using it.
+	}()
 
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := sharedJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)

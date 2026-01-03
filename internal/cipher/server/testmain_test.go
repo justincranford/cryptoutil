@@ -126,7 +126,9 @@ func TestMain(m *testing.M) {
 	defer testBarrierService.Shutdown() // LIFO: cleanup barrier service.
 
 	// Defer database close (executes AFTER m.Run() completes, when all parallel tests finished).
-	defer testSQLDB.Close()
+	defer func() {
+		_ = testSQLDB.Close()
+	}()
 
 	// Initialize repositories.
 	testUserRepo = repository.NewUserRepository(testDB)
