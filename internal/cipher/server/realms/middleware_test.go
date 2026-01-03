@@ -30,7 +30,6 @@ import (
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
@@ -94,9 +93,9 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	t.Cleanup(func() { barrierService.Shutdown() })
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilSharedMagic.HostnameLocalhost},
-		[]string{cryptoutilSharedMagic.IPv4Loopback},
-		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
+		[]string{cryptoutilMagic.HostnameLocalhost},
+		[]string{cryptoutilMagic.IPv4Loopback},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	require.NoError(t, err)
 
@@ -143,7 +142,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 		t.Fatal("createTestPublicServer: server did not bind to port")
 	}
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.HostnameLocalhost, actualPort)
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.HostnameLocalhost, actualPort)
 
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -167,7 +166,7 @@ func createHTTPClient(t *testing.T) *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout,
+		Timeout: cryptoutilMagic.CipherDefaultTimeout,
 	}
 }
 
@@ -223,7 +222,7 @@ func TestJWTMiddleware_InvalidTokens(t *testing.T) {
 					RegisteredClaims: jwt.RegisteredClaims{
 						ExpiresAt: jwt.NewNumericDate(expirationTime),
 						IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
-						Issuer:    cryptoutilSharedMagic.CipherJWTIssuer,
+						Issuer:    cryptoutilMagic.CipherJWTIssuer,
 					},
 				}
 				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

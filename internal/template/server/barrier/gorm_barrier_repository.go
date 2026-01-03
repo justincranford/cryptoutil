@@ -6,6 +6,7 @@ package barrier
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	googleUuid "github.com/google/uuid"
@@ -32,6 +33,7 @@ func NewGormBarrierRepository(db *gorm.DB) (*GormBarrierRepository, error) {
 func (r *GormBarrierRepository) WithTransaction(ctx context.Context, function func(tx BarrierTransaction) error) error {
 	return r.db.WithContext(ctx).Transaction(func(gormTx *gorm.DB) error {
 		tx := &GormBarrierTransaction{gormDB: gormTx}
+
 		return function(tx)
 	})
 }
@@ -54,13 +56,16 @@ func (tx *GormBarrierTransaction) Context() context.Context {
 // GetRootKeyLatest retrieves the most recently created root key.
 func (tx *GormBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 	var key BarrierRootKey
+
 	err := tx.gormDB.Order("created_at DESC").First(&key).Error
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil // No root keys exist yet
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest root key: %w", err)
 	}
+
 	return &key, nil
 }
 
@@ -71,10 +76,12 @@ func (tx *GormBarrierTransaction) GetRootKey(uuid *googleUuid.UUID) (*BarrierRoo
 	}
 
 	var key BarrierRootKey
+
 	err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&key).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get root key %s: %w", uuid, err)
 	}
+
 	return &key, nil
 }
 
@@ -87,19 +94,23 @@ func (tx *GormBarrierTransaction) AddRootKey(key *BarrierRootKey) error {
 	if err := tx.gormDB.Create(key).Error; err != nil {
 		return fmt.Errorf("failed to add root key: %w", err)
 	}
+
 	return nil
 }
 
 // GetIntermediateKeyLatest retrieves the most recently created intermediate key.
 func (tx *GormBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediateKey, error) {
 	var key BarrierIntermediateKey
+
 	err := tx.gormDB.Order("created_at DESC").First(&key).Error
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil // No intermediate keys exist yet
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest intermediate key: %w", err)
 	}
+
 	return &key, nil
 }
 
@@ -110,10 +121,12 @@ func (tx *GormBarrierTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*Ba
 	}
 
 	var key BarrierIntermediateKey
+
 	err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&key).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get intermediate key %s: %w", uuid, err)
 	}
+
 	return &key, nil
 }
 
@@ -126,6 +139,7 @@ func (tx *GormBarrierTransaction) AddIntermediateKey(key *BarrierIntermediateKey
 	if err := tx.gormDB.Create(key).Error; err != nil {
 		return fmt.Errorf("failed to add intermediate key: %w", err)
 	}
+
 	return nil
 }
 
@@ -136,10 +150,12 @@ func (tx *GormBarrierTransaction) GetContentKey(uuid *googleUuid.UUID) (*Barrier
 	}
 
 	var key BarrierContentKey
+
 	err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&key).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get content key %s: %w", uuid, err)
 	}
+
 	return &key, nil
 }
 
@@ -152,5 +168,6 @@ func (tx *GormBarrierTransaction) AddContentKey(key *BarrierContentKey) error {
 	if err := tx.gormDB.Create(key).Error; err != nil {
 		return fmt.Errorf("failed to add content key: %w", err)
 	}
+
 	return nil
 }
