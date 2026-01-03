@@ -12,7 +12,7 @@
 //
 // Key Features:
 // - JWT-based authentication with HMAC-SHA256 signing
-// - User registration with bcrypt password hashing (FIPS-compliant via PBKDF2 fallback)
+// - User registration with PBKDF2-HMAC-SHA256 password hashing (FIPS-approved, OWASP 2023)
 // - User login with credential validation
 // - JWT middleware for protecting authenticated routes
 //
@@ -57,7 +57,6 @@
 //	    UserRepo:      userRepo,
 //	    JWTSecret:     jwtSecret,
 //	    JWTExpiration: 15 * time.Minute,
-//	    BcryptCost:    14,
 //	    UserModelFactory: func() realms.UserModel { return &User{} },
 //	})
 //
@@ -109,7 +108,7 @@ type UserModel interface {
 	// Used for login validation and duplicate username checks.
 	GetUsername() string
 
-	// GetPasswordHash returns the bcrypt-hashed password.
+	// GetPasswordHash returns the PBKDF2-hashed password (versioned format).
 	// Used for password verification during login.
 	GetPasswordHash() string
 
@@ -121,7 +120,7 @@ type UserModel interface {
 	// Called during user registration to store the provided username.
 	SetUsername(string)
 
-	// SetPasswordHash sets the bcrypt-hashed password.
+	// SetPasswordHash sets the PBKDF2-hashed password (versioned format).
 	// Called during user registration after hashing the plaintext password.
 	SetPasswordHash(string)
 }

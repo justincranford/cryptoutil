@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+
 	googleUuid "github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
-// UserServiceImpl implements user registration and authentication using bcrypt.
+// UserServiceImpl implements user registration and authentication using PBKDF2 (LowEntropyRandom).
 type UserServiceImpl struct {
 	userRepo    UserRepository
 	userFactory func() UserModel // Factory function to create user instances
@@ -36,7 +38,7 @@ func NewUserService(userRepo UserRepository, userFactory func() UserModel) *User
 //
 // Workflow:
 // 1. Validate username and password (non-empty, length requirements)
-// 2. Hash password using bcrypt (cost factor 10)
+// 2. Hash password using PBKDF2-HMAC-SHA256 (LowEntropyRandom, version 1)
 // 3. Create user entity with UUIDv7
 // 4. Save to repository
 // 5. Return created user
@@ -46,8 +48,9 @@ func NewUserService(userRepo UserRepository, userFactory func() UserModel) *User
 // - Password: 8+ characters minimum
 //
 // Security Notes:
-// - Password hashed with bcrypt (OWASP-recommended for passwords)
-// - Cost factor 10 balances security and performance
+// - Password hashed with PBKDF2-HMAC-SHA256 (FIPS-approved, OWASP 2023 recommended)
+// - 600,000 iterations (OWASP 2023 recommendation)
+// - Versioned hash format: {1}$pbkdf2-sha256$600000$base64(salt)$base64(dk)
 // - UUIDv7 provides time-ordered IDs (sortable, indexable)
 // - Returns error (NOT user) on duplicate username (prevents enumeration)
 //
@@ -95,10 +98,8 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 		return nil, fmt.Errorf("password must be at least %d characters", minPasswordLength)
 	}
 
-	// Hash password with bcrypt.
-	const bcryptCostFactor = 10
-
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCostFactor)
+	// Hash password with PBKDF2-HMAC-SHA256 (LowEntropyRandom, FIPS-approved).
+	passwordHash, err := cryptoutilHash.HashSecretPBKDF2(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -108,7 +109,7 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 	user := s.userFactory()
 	user.SetID(userID)
 	user.SetUsername(username)
-	user.SetPasswordHash(string(passwordHash))
+	user.SetPasswordHash(passwordHash)
 
 	// Save to repository.
 	if err := s.userRepo.Create(ctx, user); err != nil {
@@ -122,11 +123,11 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 //
 // Workflow:
 // 1. Find user by username
-// 2. Verify password hash with bcrypt
+// 2. Verify password hash with PBKDF2 (constant-time comparison)
 // 3. Return user on success
 //
 // Security Notes:
-// - Constant-time comparison (bcrypt.CompareHashAndPassword prevents timing attacks)
+// - Constant-time comparison (cryptoutilDigests.VerifySecret prevents timing attacks)
 // - Returns generic error (NOT "user not found" vs "wrong password" - prevents enumeration)
 // - Caller should generate JWT after successful authentication
 //
@@ -157,9 +158,9 @@ func (s *UserServiceImpl) AuthenticateUser(ctx context.Context, username, passwo
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
-	// Verify password.
-	err = bcrypt.CompareHashAndPassword([]byte(user.GetPasswordHash()), []byte(password))
-	if err != nil {
+	// Verify password using PBKDF2 (supports versioned hash format).
+	valid, err := cryptoutilDigests.VerifySecret(user.GetPasswordHash(), password)
+	if err != nil || !valid {
 		// Return generic error (prevent timing attacks).
 		return nil, fmt.Errorf("invalid credentials")
 	}
@@ -190,7 +191,7 @@ func (u *BasicUser) GetUsername() string {
 	return u.Username
 }
 
-// GetPasswordHash returns the user's bcrypt password hash.
+// GetPasswordHash returns the user's PBKDF2 password hash (versioned format).
 func (u *BasicUser) GetPasswordHash() string {
 	return u.PasswordHash
 }
