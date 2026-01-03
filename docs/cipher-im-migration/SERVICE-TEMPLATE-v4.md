@@ -1,556 +1,203 @@
 # SERVICE-TEMPLATE v4 - Complete Remediation Plan
 
-**Created**: 2026-01-02
+**Created**: 2026-01-03
 **Status**: ACTIVE - ALL TASKS HIGHEST PRIORITY AND BLOCKING
 **Previous**: SERVICE-TEMPLATE-v3.md (95% complete but WITH CRITICAL VIOLATIONS)
 
 ---
 
-## EXECUTIVE SUMMARY
+## CRITICAL VIOLATIONS SUMMARY
 
-### CRITICAL VIOLATIONS DISCOVERED IN PHASE 7
+- [ ] **bcrypt FIPS violation** (16 instances) - Replace with LowEntropyRandom (PBKDF2)
+- [ ] **No Hash Service integration** - Use `internal/shared/crypto/hash/`
+- [ ] **Windows Firewall triggers** (11 instances of `0.0.0.0`) - Change to `127.0.0.1`
+- [ ] **Template linting violations** (50+ issues)
+- [ ] **No CICD non-FIPS linter** - Add checkNonFips to pre-commit hooks
+- [ ] **Pepper not implemented** - Move to final phase (strategically last)
 
-**Phase 7 Status**: ❌ **COMPLETE BUT WITH FIPS VIOLATIONS**
-- ✅ Template realms service created (5 files, 694 lines)
-- ✅ Cipher-IM migrated to template realms
-- ❌ **bcrypt used instead of PBKDF2** (16 instances) - **FIPS-140-2/3 VIOLATION**
-- ❌ **No Hash Service integration** - **CRITICAL**
-- ❌ **No pepper implementation** - **MANDATORY OWASP REQUIREMENT**
-- ❌ **Wrong hash output format** - **CRITICAL**
-- ❌ **Windows Firewall triggers remain** (11 instances of `0.0.0.0`)
-- ❌ **Template linting violations** (50+ issues)
+**Migration Order** (per `.github/instructions/02-02.service-template.instructions.md`):
+cipher-im → jose-ja → pki-ca → identity services (authz, idp, rs, rp, spa) → sm-kms
 
-### USER FRUSTRATIONS ADDRESSED
+## PHASE 1: FIPS COMPLIANCE - REPLACE bcrypt WITH LowEntropyRandom
 
-1. **bcrypt Violation** - "FUCKING bcrypt IS BACK AGAIN FOR THE FUCKING 10th TIME"
-   - Root Cause: Agent missed FIPS compliance check during template creation
-   - Impact: Template realms unusable for production, JOSE-JA migration blocked
-   - Fix: Complete rewrite of password hashing using PBKDF2 + Hash Service
+**Estimated**: 6-8 hours | **CRITICAL BLOCKER**
 
-2. **Windows Firewall** - "im fucking sick of this shit continuing to happen"
-   - Root Cause: Some tests still use `0.0.0.0` instead of `127.0.0.1`
-   - Impact: User clicks "Cancel" on every firewall prompt, test quality degraded
-   - Fix: Change all test bindings to `127.0.0.1`, verify no firewall prompts
+### Task 1.1: Integrate Hash Service from internal/shared/crypto/hash/
 
-3. **Work Skipping** - "STOP FUCKING SKIPPING OR DEPRIORITIZING TASKS"
-   - Root Cause: v3 marked tasks as "optional" or "low priority"
-   - Impact: Critical work incomplete, violations introduced
-   - Fix: ALL tasks in v4 marked HIGHEST PRIORITY AND BLOCKING
+- [ ] **1.1.1** Verify Hash Service exists in `internal/shared/crypto/hash/` (NOT sm-kms, NOT cipher/crypto)
+  - If missing, extract from existing implementation
+  - Ensure registries: LowEntropyDeterministic, LowEntropyRandom, HighEntropyDeterministic, HighEntropyRandom
+  - Ensure version framework (v1/v2/v3 support)
+  - Ensure hash format: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)}`
 
-### COMPLETION PHILOSOPHY FOR v4
-
-**ALL WORK IS HIGHEST PRIORITY AND BLOCKING FOR NEXT CHAT SESSION**
-
-- ❌ NO tasks marked "optional"
-- ❌ NO tasks marked "low priority"
-- ❌ NO tasks skipped
-- ❌ NO tasks deprioritized
-- ❌ NO tasks omitted
-- ✅ **ALL tasks MUST be completed**
-- ✅ **DO NOT STOP until all work done**
-- ✅ **DO NOT ASK for permission to continue**
-
----
-
-## PHASE 1: CRITICAL FIPS COMPLIANCE - BCRYPT → PBKDF2
-
-**Priority**: ❌ **BLOCKING - MUST COMPLETE BEFORE ALL OTHER WORK**
-**Estimated Effort**: 8-12 hours
-**Severity**: CRITICAL - Production compliance violation
-
-### Problem Statement
-
-**Files Affected**:
-- `internal/template/server/realms/service.go` (12 instances)
-- `internal/template/server/realms/interfaces.go` (4 instances)
-- `internal/cipher/domain/user.go` (inherits violation)
-- `internal/cipher/repository/user_repository_adapter.go` (inherits violation)
-
-**Violations**:
-1. ❌ Import: `"golang.org/x/crypto/bcrypt"` (line 12 of service.go)
-2. ❌ Usage: `bcrypt.GenerateFromPassword()` (line 101)
-3. ❌ Usage: `bcrypt.CompareHashAndPassword()` (line 161)
-4. ❌ Cost: `const bcryptCostFactor = 10` (line 99)
-5. ❌ FALSE CLAIM: Comment says "FIPS-compliant via PBKDF2 fallback" - **CODE USES BCRYPT**
-
-**FIPS Requirements** (from `.github/instructions/02-07.cryptography.instructions.md`):
-```
-### BANNED Algorithms
-
-❌ bcrypt, scrypt, Argon2 (use PBKDF2) | MD5, SHA-1 (use SHA-256+) | RSA <2048 | DES, 3DES
-```
-
-### Task 1.1: Integrate Hash Service into Template Realms
-
-**BLOCKING**: Create or import Hash Service implementation
-
-**Sub-Tasks**:
-- [ ] **1.1.1**: Find sm-kms Hash Service implementation
-  - Search for `internal/kms/**/hash*.go` files
-  - Read existing PBKDF2 implementation patterns
-  - Identify reusable components (registries, version framework, pepper handling)
-
-- [ ] **1.1.2**: Extract Hash Service to `internal/shared/crypto/hash/`
-  - Move registries: LowEntropyDeterministic, LowEntropyRandom, HighEntropyDeterministic, HighEntropyRandom
-  - Move version framework (v1/v2/v3 support)
-  - Move pepper handling (Docker secrets, config file)
-  - Move hash format parsing/generation: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)}`
-  - Add comprehensive tests
-
-- [ ] **1.1.3**: Create template realms Hash Service integration
-  - Inject Hash Service into UserServiceImpl constructor
-  - Configure for password hashing (LowEntropyRandomHashRegistry)
-  - Set current version (v3 = 2025 OWASP)
-  - Configure pepper from Docker secret
-  - Add integration tests
-
-**Expected Outcome**:
-```go
-// internal/template/server/realms/service.go
-import (
-    cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
-)
-
-type UserServiceImpl struct {
-    userRepo    UserRepository
-    userFactory func() UserModel
-    hashService *cryptoutilHash.Service  // NEW - Hash Service integration
-}
-
-func NewUserService(
-    userRepo UserRepository,
-    userFactory func() UserModel,
-    hashService *cryptoutilHash.Service,  // NEW - Inject Hash Service
-) *UserServiceImpl {
-    return &UserServiceImpl{
-        userRepo:    userRepo,
-        userFactory: userFactory,
-        hashService: hashService,
-    }
-}
-```
-
-### Task 1.2: Replace bcrypt with PBKDF2
-
-**BLOCKING**: Remove all bcrypt usage
-
-**Sub-Tasks**:
-- [ ] **1.2.1**: Replace RegisterUser password hashing
+- [ ] **1.1.2** Inject Hash Service into template realms UserServiceImpl
   ```go
-  // OLD (line 99-101):
-  const bcryptCostFactor = 10
-  passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCostFactor)
-  
-  // NEW:
-  passwordHash, err := s.hashService.HashPassword(ctx, password)
-  // Returns: {3}:PBKDF2-HMAC-SHA256:rounds=600000:base64(randomSalt):base64(hash)
-  ```
-
-- [ ] **1.2.2**: Replace AuthenticateUser password verification
-  ```go
-  // OLD (line 161):
-  err = bcrypt.CompareHashAndPassword([]byte(user.GetPasswordHash()), []byte(password))
-  
-  // NEW:
-  valid, err := s.hashService.VerifyPassword(ctx, user.GetPasswordHash(), password)
-  if err != nil || !valid {
-      return nil, fmt.Errorf("invalid credentials")
+  import cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+  type UserServiceImpl struct {
+      hashService *cryptoutilHash.Service
   }
   ```
 
-- [ ] **1.2.3**: Remove bcrypt import
-  ```go
-  // DELETE line 12:
-  import "golang.org/x/crypto/bcrypt"
-  ```
+- [ ] **1.1.3** Configure for LowEntropyRandom registry (passwords)
+  - Set current version: v3 (2025 OWASP)
+  - Use PBKDF2-HMAC-SHA256 with OWASP-safe pre-configured parameters
+  - Future-proof via standardized encoding with versioning
 
-- [ ] **1.2.4**: Update all comments referencing bcrypt
-  - Line 15: "implements user registration and authentication using **PBKDF2**"
-  - Line 39: "Hash password using **PBKDF2** (OWASP 2025 recommendations)"
-  - Line 49: "Password hashed with **PBKDF2** (FIPS-compliant, NIST-approved)"
-  - Line 99: Delete `const bcryptCostFactor` entirely
-  - Line 193: "returns the user's **PBKDF2** password hash"
+### Task 1.2: Replace bcrypt Usage
 
-- [ ] **1.2.5**: Update interfaces.go comments
-  - Line 15: "**PBKDF2** password hashing (FIPS-140-2/3 compliant)"
-  - Line 60: Remove BcryptCost field example
-  - Line 112: "GetPasswordHash returns the **versioned PBKDF2** hash"
-  - Line 124: "SetPasswordHash sets the **versioned PBKDF2** hash"
+- [ ] **1.2.1** Replace RegisterUser hashing: `bcrypt.GenerateFromPassword()` → `hashService.HashPassword(ctx, password)` using LowEntropyRandom
+- [ ] **1.2.2** Replace AuthenticateUser verification: `bcrypt.CompareHashAndPassword()` → `hashService.VerifyPassword(ctx, hash, password)`
+- [ ] **1.2.3** Remove bcrypt import and `const bcryptCostFactor`
+- [ ] **1.2.4** Update comments: bcrypt → LowEntropyRandom/PBKDF2/versioned hash
 
-### Task 1.3: Add Pepper Support
+### Task 1.3: Update Cipher-IM Integration
 
-**BLOCKING**: Implement MANDATORY OWASP pepper requirement
-
-**Sub-Tasks**:
-- [ ] **1.3.1**: Add pepper configuration to template
-  ```yaml
-  # configs/test/cryptoutil-common.yml
-  hash_service:
-    current_version: 3  # 2025 OWASP
-    pepper_secret: file:///run/secrets/hash_pepper_v3
-  ```
-
-- [ ] **1.3.2**: Create Docker secret for pepper
-  ```yaml
-  # deployments/compose/compose.yml
-  secrets:
-    hash_pepper_v3:
-      file: ./secrets/hash_pepper_v3.secret
-  ```
-
-- [ ] **1.3.3**: Generate secure pepper (32 bytes random)
-  ```bash
-  openssl rand -base64 32 > deployments/compose/secrets/hash_pepper_v3.secret
-  chmod 440 deployments/compose/secrets/hash_pepper_v3.secret
-  ```
-
-- [ ] **1.3.4**: Load pepper in Hash Service initialization
-  ```go
-  pepperPath := viper.GetString("hash_service.pepper_secret")
-  pepperBytes, err := loadSecret(pepperPath)  // Handles file:// prefix
-  if err != nil {
-      return nil, fmt.Errorf("failed to load pepper: %w", err)
-  }
-  ```
+- [ ] **1.3.1** Inject Hash Service into cipher-im server initialization
+- [ ] **1.3.2** Verify cipher-im tests pass
+- [ ] **1.3.3** Verify hash format in database: `{3}:PBKDF2-HMAC-SHA256:rounds=600000:...`
 
 ### Task 1.4: Verify FIPS Compliance
 
-**BLOCKING**: Confirm no FIPS violations remain
-
-**Sub-Tasks**:
-- [ ] **1.4.1**: Grep for banned algorithms
-  ```bash
-  grep -r "bcrypt\|scrypt\|argon2\|MD5\|SHA-1" internal/template/ internal/cipher/
-  # Expected: 0 matches (except in comments explaining why NOT to use them)
-  ```
-
-- [ ] **1.4.2**: Verify Hash Service uses PBKDF2
-  ```bash
-  grep -r "PBKDF2" internal/shared/crypto/hash/
-  # Expected: Multiple matches in implementation
-  ```
-
-- [ ] **1.4.3**: Verify pepper is loaded from secrets
-  ```bash
-  grep -r "loadSecret.*pepper" internal/template/ internal/cipher/
-  # Expected: Matches in Hash Service initialization
-  ```
-
-- [ ] **1.4.4**: Run FIPS compliance tests
-  ```bash
-  go test -v ./internal/shared/crypto/hash/... -run TestFIPSCompliance
-  go test -v ./internal/template/server/realms/... -run TestPasswordHashing
-  ```
-
-### Task 1.5: Update Cipher-IM Integration
-
-**BLOCKING**: Ensure cipher-im uses PBKDF2 (not bcrypt)
-
-**Sub-Tasks**:
-- [ ] **1.5.1**: Update cipher-im server to inject Hash Service
-  ```go
-  // internal/cipher/server/server.go
-  hashService, err := cryptoutilHash.NewService(hashConfig)
-  if err != nil {
-      return nil, fmt.Errorf("failed to create hash service: %w", err)
-  }
-  
-  userService := cryptoutilRealms.NewUserService(
-      userRepo,
-      func() cryptoutilRealms.UserModel { return &domain.User{} },
-      hashService,  // NEW - Inject Hash Service
-  )
-  ```
-
-- [ ] **1.5.2**: Verify cipher-im tests pass with PBKDF2
-  ```bash
-  go test -v ./internal/cipher/... -run TestRegistration
-  go test -v ./internal/cipher/... -run TestAuthentication
-  go test -v ./internal/cipher/e2e/... -run TestUserFlow
-  ```
-
-- [ ] **1.5.3**: Verify hash format in database
-  ```bash
-  # After creating user in cipher-im:
-  # SELECT password_hash FROM cipher_users LIMIT 1;
-  # Expected: {3}:PBKDF2-HMAC-SHA256:rounds=600000:abc123...:def456...
-  ```
-
-### Evidence Required for Phase 1 Completion
-
-- ✅ **Code Evidence**:
-  - `grep -r bcrypt internal/template/ internal/cipher/` = 0 matches
-  - `grep -r PBKDF2 internal/template/ internal/cipher/` > 0 matches
-  - Hash Service extracted to `internal/shared/crypto/hash/`
-  - Pepper loaded from Docker secret
-
-- ✅ **Test Evidence**:
-  - All template realms tests pass
-  - All cipher-im tests pass
-  - E2E tests verify user registration/authentication works
-
-- ✅ **Git Evidence**:
-  - Commit: "feat(template): replace bcrypt with PBKDF2 for FIPS compliance"
-  - Commit: "feat(shared): extract Hash Service from kms to shared"
-  - Commit: "fix(cipher-im): integrate PBKDF2 Hash Service"
-
----
+- [ ] **1.4.1** `grep -r "bcrypt" internal/template/ internal/cipher/` = 0 matches
+- [ ] **1.4.2** Run tests: `go test ./internal/template/... ./internal/cipher/...` = all pass
+- [ ] **1.4.3** Commit: `feat(template): replace bcrypt with LowEntropyRandom for FIPS compliance`
 
 ## PHASE 2: WINDOWS FIREWALL PREVENTION
 
-**Priority**: ❌ **BLOCKING - MUST COMPLETE**
-**Estimated Effort**: 2-4 hours
-**Severity**: HIGH - User extremely frustrated
+**Estimated**: 3-5 hours | **HIGH PRIORITY**
 
-### Problem Statement
+### Task 2.1: Add Linter for Test Bind Addresses (STRATEGIC - DO FIRST)
 
-**11 instances of `0.0.0.0` found in test files**:
-- `internal/shared/config/config_coverage_test.go` (lines 46, 70) - **ACTIVE VIOLATIONS**
-- `internal/shared/config/url_test.go` (lines 78-84) - **TEST CASE DATA (likely safe)**
-- `internal/shared/crypto/certificate/certificates_test.go` (lines 91, 147) - **COMMENTS ONLY (safe)**
-- `internal/shared/config/config_test.go` (line 119) - **CIDR TEST DATA (safe)**
+- [ ] **2.1.1** Augment `internal/cmd/cicd/lint_gotest/` with check for `0.0.0.0` in test bind addresses
+  - Register as linter in existing `cicd lint-gotest` command
+  - Pattern: Reject `"0.0.0.0"` in NewXXXServer(), ServerSettings creation, net.Listen() calls
+  - Message: "Use 127.0.0.1 in tests to prevent Windows Firewall prompts"
 
-**Root Cause**: `NewForJOSEServer("0.0.0.0", 8443, false)` triggers Windows Firewall prompts
-
-### Task 2.1: Fix config_coverage_test.go Violations
-
-**BLOCKING**: Active `0.0.0.0` usage
-
-**Sub-Tasks**:
-- [ ] **2.1.1**: Fix line 46 (JOSE server)
-  ```go
-  // OLD:
-  settings := NewForJOSEServer("0.0.0.0", 8443, false)
-  
-  // NEW:
-  settings := NewForJOSEServer("127.0.0.1", 8443, false)
+- [ ] **2.1.2** Test linter on existing violations
+  ```bash
+  go run ./cmd/cicd lint-gotest ./internal/shared/config/config_coverage_test.go
+  # Expected: 2 violations reported (lines 46, 70)
   ```
 
-- [ ] **2.1.2**: Fix line 70 (CA server)
-  ```go
-  // OLD:
-  settings := NewForCAServer("0.0.0.0", 9380, false)
-  
-  // NEW:
-  settings := NewForCAServer("127.0.0.1", 9380, false)
-  ```
+- [ ] **2.1.3** Commit: `feat(cicd): add lint-gotest check for 0.0.0.0 in test bind addresses`
 
-- [ ] **2.1.3**: Run test to verify no firewall prompts
+### Task 2.2: Fix Active Violations
+
+- [ ] **2.2.1** Fix `internal/shared/config/config_coverage_test.go` line 46
+  - Change: `NewForJOSEServer("0.0.0.0", 8443, false)` → `NewForJOSEServer("127.0.0.1", 8443, false)`
+
+- [ ] **2.2.2** Fix `internal/shared/config/config_coverage_test.go` line 70
+  - Change: `NewForCAServer("0.0.0.0", 9380, false)` → `NewForCAServer("127.0.0.1", 9380, false)`
+
+- [ ] **2.2.3** Verify tests pass and NO firewall prompts
   ```bash
   go test -v ./internal/shared/config/... -run TestNewForJOSEServer
   go test -v ./internal/shared/config/... -run TestNewForCAServer
-  # User verifies: NO Windows Firewall prompts appear
   ```
 
-### Task 2.2: Analyze url_test.go for Server Creation
+- [ ] **2.2.4** Commit: `fix(test): use 127.0.0.1 instead of 0.0.0.0 to prevent Windows Firewall prompts`
 
-**BLOCKING**: Verify test case data doesn't create servers
+### Task 2.3: Verify url_test.go Safety
 
-**Sub-Tasks**:
-- [ ] **2.2.1**: Read full url_test.go (121 lines)
-  - Confirm tests only build URL strings
-  - Verify no `net.Listen()` calls
-  - Check for server creation in table tests
+- [ ] **2.3.1** Confirm `internal/shared/config/url_test.go` only generates URL strings (no server binding)
+- [ ] **2.3.2** Verify `grep -r "net.Listen" internal/shared/config/url_test.go` = 0 matches
+- [ ] **2.3.3** If safe, document as test data (no changes needed)
 
-- [ ] **2.2.2**: If NO server creation, mark as SAFE
-  - ✅ URL string generation with `0.0.0.0` = OK (no firewall trigger)
-  - ❌ Server binding to `0.0.0.0` = NOT OK (triggers firewall)
+### Task 2.4: Root Cause Analysis and Prevention
 
-- [ ] **2.2.3**: If server creation found, fix immediately
+- [ ] **2.4.1** Scan ALL test executables for bind addresses after full test run
+  ```bash
+  strings bin/*.test 2>/dev/null | grep "0.0.0.0" || echo "No violations found"
+  ```
+
+- [ ] **2.4.2** Add runtime validation in NewTestConfig()
   ```go
-  // Replace 0.0.0.0 with 127.0.0.1 in test cases that create servers
+  // internal/shared/config/config_test_helper.go
+  if bindAddr == "" || bindAddr == "0.0.0.0" {
+      panic("CRITICAL: use 127.0.0.1 in tests to prevent Windows Firewall prompts")
+  }
   ```
 
-### Task 2.3: Add Validation to Prevent Future Regressions
+- [ ] **2.4.3** Update anti-patterns documentation
+  - File: `.github/instructions/06-02.anti-patterns.instructions.md`
+  - Add: Windows Firewall root cause (blank bind address → defaults to 0.0.0.0)
+  - Pattern: ALWAYS use NewTestConfig("127.0.0.1", 0, true) in tests
 
-**BLOCKING**: Enforce `127.0.0.1` pattern
+- [ ] **2.4.4** Commit: `docs(anti-patterns): document Windows Firewall root cause and prevention`
 
-**Sub-Tasks**:
-- [ ] **2.3.1**: Add pre-commit hook check
+## PHASE 3: TEMPLATE LINTING
+
+**Estimated**: 2-3 hours | **MEDIUM PRIORITY**
+
+### Task 3.1: Fix Linting Violations
+
+- [ ] **3.1.1** Run auto-fix: `golangci-lint run --fix ./internal/template/...`
+- [ ] **3.1.2** Fix manual violations: errcheck, mnd, nilnil, noctx, unused, wrapcheck
+- [ ] **3.1.3** Verify clean: `golangci-lint run ./internal/template/...` = 0 violations
+- [ ] **3.1.4** Commit: `fix(lint): resolve 50+ linting violations in template realms`
+
+## PHASE 4: SERVICE TEMPLATE REUSABILITY
+
+**Estimated**: 2-3 hours | **MEDIUM PRIORITY**
+
+### Task 4.1: Document Service Template Patterns
+
+**Migration Order** (per `.github/instructions/02-02.service-template.instructions.md`):
+cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → sm-kms
+
+- [ ] **4.1.1** Create succinct `docs/SERVICE-TEMPLATE-REUSABILITY.md` (NOT sprawling doc)
+  - Realms service pattern (schema lifecycle, tenant isolation, generic interfaces)
+  - Barrier service pattern (already in `internal/template/server/barrier/`)
+  - Hash Service pattern (extracted to `internal/shared/crypto/hash/`)
+  - Telemetry pattern (OTLP integration)
+  - Repository patterns (GORM, PostgreSQL/SQLite, test-containers)
+  - Test patterns (TestMain, NewTestConfig, t.Cleanup)
+
+- [ ] **4.1.2** Document migration readiness for ALL 9 services
+  - FIPS compliance complete ✅
+  - Windows Firewall prevention ✅
+  - Template linting clean ✅
+  - Reference: cipher-im as blueprint for jose-ja, pki-ca, identity services, sm-kms
+
+- [ ] **4.1.3** Commit: `docs(template): document service template reusability for 9-service migration`
+
+---
+
+## PHASE 5: CICD NON-FIPS ALGORITHM LINTER
+
+**Estimated**: 2-3 hours | **HIGH PRIORITY**
+
+### Task 5.1: Augment internal/cmd/cicd/lint_go/ with checkNonFips
+
+- [ ] **5.1.1** Add `checkNonFips` to registeredLinters in `internal/cmd/cicd/lint_go/`
+  - Detect: bcrypt, scrypt, Argon2, MD5, SHA-1, DES, 3DES, RSA <2048
+  - Pattern: Search for imports and function calls
+  - Message: "Non-FIPS algorithm detected - use FIPS-approved algorithms only (see .github/instructions/02-07.cryptography.instructions.md)"
+
+- [ ] **5.1.2** Test on template realms (should catch bcrypt before fix)
   ```bash
-  # .pre-commit-config.yaml
-  - id: check-test-bind-addresses
-    name: Check test bind addresses use 127.0.0.1
-    entry: bash -c 'grep -r "0\.0\.0\.0" **/*_test.go && exit 1 || exit 0'
-    language: system
+  go run ./cmd/cicd lint-go ./internal/template/server/realms/
+  # Expected: Violations reported for bcrypt usage
   ```
 
-- [ ] **2.3.2**: Add golangci-lint custom rule
+- [ ] **5.1.3** Integrate into git pre-commit hooks via `.pre-commit-config.yaml`
   ```yaml
-  # .golangci.yml
-  linters-settings:
-    custom:
-      test-bind-address:
-        path: ./cmd/cicd/lint-test-bind-address
-        description: Enforce 127.0.0.1 in test bind addresses
+  - id: cicd-lint-go
+    name: Check Go code for non-FIPS algorithms
+    entry: go run ./cmd/cicd lint-go
+    language: system
+    types: [go]
   ```
 
-- [ ] **2.3.3**: Document pattern in copilot instructions
-  ```markdown
-  # .github/instructions/06-02.anti-patterns.instructions.md
-  
-  ## Windows Firewall Prevention - CRITICAL
-  
-  **ALWAYS bind to 127.0.0.1 in tests (NEVER 0.0.0.0)**
-  
-  - ❌ `NewForJOSEServer("0.0.0.0", 8443, false)` - TRIGGERS FIREWALL
-  - ✅ `NewForJOSEServer("127.0.0.1", 8443, false)` - NO FIREWALL
-  ```
+- [ ] **5.1.4** Verify rejection at pre-commit time
+  - Attempt commit with bcrypt usage → rejected
+  - Message shows FIPS-approved alternatives
 
-### Evidence Required for Phase 2 Completion
-
-- ✅ **Code Evidence**:
-  - `grep -r "0\.0\.0\.0.*Server" **/*_test.go` = 0 matches in server creation
-  - All test bind addresses use `127.0.0.1`
-
-- ✅ **Test Evidence**:
-  - All config tests pass
-  - User confirms: NO Windows Firewall prompts during test runs
-
-- ✅ **Git Evidence**:
-  - Commit: "fix(test): use 127.0.0.1 instead of 0.0.0.0 to prevent Windows Firewall prompts"
+- [ ] **5.1.5** Commit: `feat(cicd): add checkNonFips linter to detect banned algorithms at pre-commit`
 
 ---
 
-## PHASE 3: TEMPLATE LINTING FIXES
-
-**Priority**: ❌ **BLOCKING - MUST COMPLETE**
-**Estimated Effort**: 2-4 hours
-**Severity**: MEDIUM - Code quality
-
-### Problem Statement
-
-**50+ linting violations in template realms** (from Phase 7.4):
-- errcheck: Unchecked errors
-- mnd: Magic number detector
-- nilnil: Return nil, nil pattern
-- noctx: Missing context
-- unused: Unused variables/functions
-- wrapcheck: Unwrapped errors
-- wsl_v5: Whitespace linter
-
-### Task 3.1: Fix All Linting Violations
-
-**BLOCKING**: Zero linting errors required
-
-**Sub-Tasks**:
-- [ ] **3.1.1**: Run golangci-lint on template
-  ```bash
-  golangci-lint run --fix ./internal/template/...
-  # Let auto-fix handle: gofmt, gofumpt, goimports, godot, wsl_v5
-  ```
-
-- [ ] **3.1.2**: Fix manual violations
-  ```bash
-  golangci-lint run ./internal/template/...
-  # Address: errcheck, mnd, nilnil, noctx, unused, wrapcheck
-  ```
-
-- [ ] **3.1.3**: Verify clean output
-  ```bash
-  golangci-lint run ./internal/template/...
-  # Expected: No violations
-  ```
-
-### Evidence Required for Phase 3 Completion
-
-- ✅ **Code Evidence**:
-  - `golangci-lint run ./internal/template/...` = 0 violations
-
-- ✅ **Git Evidence**:
-  - Commit: "fix(lint): resolve 50+ linting violations in template realms"
-
----
-
-## PHASE 4: COMPLETE v3 INCOMPLETE WORK
-
-**Priority**: ❌ **BLOCKING - MUST COMPLETE**
-**Estimated Effort**: 4-8 hours
-**Severity**: MEDIUM - Unfinished work
-
-### Task 4.1: Extract Realms Service Patterns
-
-**From v3 REALMS SERVICE EXTRACTION section**
-
-**Sub-Tasks**:
-- [ ] **4.1.1**: Document realms service reusability
-  - How cipher-im user realm pattern can be generalized
-  - How JOSE-JA OAuth realm will use same pattern
-  - How Identity authentication realm will use same pattern
-  - Schema lifecycle management (CREATE SCHEMA, DROP SCHEMA CASCADE)
-  - Tenant isolation middleware (search_path setting)
-
-- [ ] **4.1.2**: Create realms service design document
-  - Generic RealmService interface
-  - Generic RealmRepository interface
-  - TenantIsolationMiddleware pattern
-  - Product-specific integration patterns
-
-### Task 4.2: Verify JOSE-JA Migration Readiness
-
-**BLOCKING**: Confirm template ready for JOSE-JA
-
-**Sub-Tasks**:
-- [ ] **4.2.1**: Check FIPS compliance complete
-  - ✅ bcrypt removed
-  - ✅ PBKDF2 implemented
-  - ✅ Hash Service integrated
-  - ✅ Pepper configured
-
-- [ ] **4.2.2**: Check Windows Firewall fixes complete
-  - ✅ All test bindings use `127.0.0.1`
-  - ✅ Validation prevents future regressions
-
-- [ ] **4.2.3**: Check template linting clean
-  - ✅ Zero linting violations
-  - ✅ All tests passing
-
-- [ ] **4.2.4**: Document JOSE-JA migration plan
-  - Use cipher-im as blueprint
-  - OAuth realm schema requirements
-  - JWK/JWS/JWE integration with barrier service
-  - Test migration patterns (TestMain, NewTestConfig, t.Cleanup)
-
-### Task 4.3: Verify sm-kms Reusability Patterns
-
-**BLOCKING**: Confirm template offers all reusable parts from sm-kms
-
-**Sub-Tasks**:
-- [ ] **4.3.1**: Verify barrier service reuse
-  - ✅ Already extracted to `internal/template/server/barrier/`
-  - ✅ Cipher-IM using it successfully
-  - ✅ JOSE-JA can use same pattern
-
-- [ ] **4.3.2**: Verify telemetry service reuse
-  - ✅ Already extracted to observability patterns
-  - ✅ OTLP integration standardized
-  - ✅ All services use same pattern
-
-- [ ] **4.3.3**: Verify repository patterns reuse
-  - ✅ GORM patterns standardized
-  - ✅ PostgreSQL/SQLite dual support
-  - ✅ Test-containers pattern established
-
-- [ ] **4.3.4**: Verify Hash Service extraction (NEW - from Phase 1)
-  - ✅ Extracted to `internal/shared/crypto/hash/`
-  - ✅ Version-based policy framework
-  - ✅ Four registries (LowEntropyDeterministic, LowEntropyRandom, HighEntropyDeterministic, HighEntropyRandom)
-  - ✅ Pepper support
-
-### Evidence Required for Phase 4 Completion
-
-- ✅ **Documentation Evidence**:
-  - Realms service design document created
-  - JOSE-JA migration plan documented
-  - sm-kms reusability patterns verified
-
-- ✅ **Git Evidence**:
-  - Commit: "docs(template): document realms service reusability patterns"
-  - Commit: "docs(jose): create JOSE-JA migration plan"
-
----
-
-## PHASE 5: WINDOWS FIREWALL ROOT CAUSE ANALYSIS
+## PHASE 6: WINDOWS FIREWALL ROOT CAUSE
 
 **Priority**: ❌ **BLOCKING - MUST COMPLETE**
 **Estimated Effort**: 2-4 hours
@@ -612,16 +259,16 @@ func NewUserService(
 - [ ] **5.2.1**: Update anti-patterns documentation
   ```markdown
   # docs/cipher-im-migration/WINDOWS-FIREWALL-ROOT-CAUSE.md
-  
+
   ## Root Cause Analysis
-  
+
   **Problem**: Windows Firewall prompts when test executables bind to 0.0.0.0
-  
+
   **Evidence**:
   1. Blank bind addresses (BindPublicAddress="") default to 0.0.0.0
   2. Explicit 0.0.0.0 in test configs (NEVER acceptable)
   3. Dynamic port allocation (:0) without explicit bind address defaults to 0.0.0.0
-  
+
   **Solution**:
   1. ALWAYS use NewTestConfig() in tests
   2. ALWAYS pass "127.0.0.1" as bind address
@@ -633,17 +280,17 @@ func NewUserService(
 - [ ] **5.2.2**: Update copilot instructions with findings
   ```markdown
   # .github/instructions/06-02.anti-patterns.instructions.md
-  
+
   ### Windows Firewall Root Cause - P0 INCIDENT
-  
-  **Root Cause Identified**: Creating ServerSettings with blank BindPublicAddress="" 
-  causes fmt.Sprintf("%s:%d", "", 0) → ":0" → net.Listen() binds to 0.0.0.0 → 
+
+  **Root Cause Identified**: Creating ServerSettings with blank BindPublicAddress=""
+  causes fmt.Sprintf("%s:%d", "", 0) → ":0" → net.Listen() binds to 0.0.0.0 →
   Windows Firewall exception prompt.
-  
+
   **NEVER DO**:
   - ❌ Bind to 0.0.0.0 or use blank BindPublicAddress/BindPrivateAddress in tests
   - ❌ Use &ServerSettings{...} with partial field initialization in tests
-  
+
   **ALWAYS DO**:
   - ✅ Use NewTestConfig(bindAddr, bindPort, devMode)
   - ✅ Use 127.0.0.1 or cryptoutilMagic.IPv4Loopback for test bind addresses
@@ -697,7 +344,7 @@ func NewUserService(
   2. PARALLEL: Phase 2 (Firewall) + Phase 3 (Linting) (2-4 hours each)
   3. SEQUENTIAL: Phase 5 (Root Cause) builds on Phase 2 (2-4 hours)
   4. FINAL: Phase 4 (Verify Readiness) requires Phase 1 complete (4-8 hours)
-  
+
   Total Time: 16-30 hours (with parallelization)
   Without Parallelization: 22-38 hours
   Time Saved: 6-8 hours
@@ -728,26 +375,26 @@ func NewUserService(
 - [ ] **7.1.1**: Add FIPS compliance rule
   ```markdown
   # .github/copilot-instructions.md
-  
+
   ## CRITICAL RULES (NEVER VIOLATE)
-  
-  1. **FIPS Compliance** - ALWAYS check `.github/instructions/02-07.cryptography.instructions.md` 
-     before implementing password hashing. NEVER use bcrypt (use PBKDF2). ALWAYS verify BANNED 
+
+  1. **FIPS Compliance** - ALWAYS check `.github/instructions/02-07.cryptography.instructions.md`
+     before implementing password hashing. NEVER use bcrypt (use PBKDF2). ALWAYS verify BANNED
      algorithms list.
-  
-  2. **Windows Firewall Prevention** - ALWAYS bind to 127.0.0.1 in tests (NEVER 0.0.0.0). 
+
+  2. **Windows Firewall Prevention** - ALWAYS bind to 127.0.0.1 in tests (NEVER 0.0.0.0).
      ALWAYS use NewTestConfig(). See `.github/instructions/06-02.anti-patterns.instructions.md`.
-  
-  3. **Zero Task Skipping** - ALL tasks are HIGHEST PRIORITY. NEVER mark tasks as "optional" 
+
+  3. **Zero Task Skipping** - ALL tasks are HIGHEST PRIORITY. NEVER mark tasks as "optional"
      or "low priority". NEVER skip work. DO NOT STOP until user clicks STOP button.
   ```
 
 - [ ] **7.1.2**: Add pre-implementation checklist
   ```markdown
   # .github/copilot-instructions.md
-  
+
   ## Before Implementing Any Cryptographic Feature
-  
+
   **MANDATORY CHECKLIST**:
   - [ ] Read `.github/instructions/02-07.cryptography.instructions.md` (FIPS requirements)
   - [ ] Read `.github/instructions/02-08.hashes.instructions.md` (Hash Service architecture)
@@ -760,9 +407,9 @@ func NewUserService(
 - [ ] **7.1.3**: Add post-implementation verification
   ```markdown
   # .github/copilot-instructions.md
-  
+
   ## After Implementing Any Feature
-  
+
   **MANDATORY VERIFICATION**:
   - [ ] Run `grep -r "bcrypt\|scrypt\|argon2" .` = 0 matches
   - [ ] Run `grep -r "0\.0\.0\.0.*test" .` = 0 matches in bind addresses
