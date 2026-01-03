@@ -277,267 +277,64 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
   5. Add runtime validation to reject invalid bind addresses
   ```
 
-- [ ] **5.2.2**: Update copilot instructions with findings
-  ```markdown
-  # .github/instructions/06-02.anti-patterns.instructions.md
-
-  ### Windows Firewall Root Cause - P0 INCIDENT
-
-  **Root Cause Identified**: Creating ServerSettings with blank BindPublicAddress=""
-  causes fmt.Sprintf("%s:%d", "", 0) → ":0" → net.Listen() binds to 0.0.0.0 →
-  Windows Firewall exception prompt.
-
-  **NEVER DO**:
-  - ❌ Bind to 0.0.0.0 or use blank BindPublicAddress/BindPrivateAddress in tests
-  - ❌ Use &ServerSettings{...} with partial field initialization in tests
-
-  **ALWAYS DO**:
-  - ✅ Use NewTestConfig(bindAddr, bindPort, devMode)
-  - ✅ Use 127.0.0.1 or cryptoutilMagic.IPv4Loopback for test bind addresses
+- [ ] **6.1.2** Add runtime validation in NewTestConfig
+  ```go
+  func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
+      if bindAddr == "0.0.0.0" || bindAddr == "" {
+          panic("NEVER bind to 0.0.0.0 in tests - use 127.0.0.1")
+      }
+      // ... rest of implementation
+  }
   ```
 
-### Evidence Required for Phase 5 Completion
+- [ ] **6.1.3** Update `.github/instructions/06-02.anti-patterns.instructions.md`
+  - Add "Windows Firewall Exception Prevention" section
+  - Document: `&ServerSettings{}` partial initialization pattern is UNSAFE
+  - Document: ALWAYS use `NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)`
 
-- ✅ **Code Evidence**:
-  - All test bind addresses validated
-  - Runtime validation added
-  - NewTestConfig() enforces 127.0.0.1
-
-- ✅ **Documentation Evidence**:
-  - Root cause analysis document created
-  - Anti-patterns instructions updated
-
-- ✅ **Test Evidence**:
-  - User confirms: NO firewall prompts after fixes
-  - Multiple test runs complete without prompts
-
-- ✅ **Git Evidence**:
-  - Commit: "docs(anti-patterns): add Windows Firewall root cause analysis"
-  - Commit: "feat(config): add runtime validation for test bind addresses"
+- [ ] **6.1.4** Commit: `docs(anti-patterns): document Windows Firewall root cause and prevention`
 
 ---
 
-## PHASE 6: OPTIMIZE TASK ORDER FOR MAXIMUM COMPLETION
+## PHASE 7: PEPPER IMPLEMENTATION (STRATEGIC - END)
 
-**Priority**: ❌ **BLOCKING - MUST COMPLETE**
-**Estimated Effort**: 1-2 hours
-**Severity**: LOW - Planning optimization
+**Estimated**: 2-3 hours | **CRITICAL** (but strategically last)
 
-### Task 6.1: Analyze Task Dependencies
+**Rationale**: Other fixes needed first, but pepper is MANDATORY OWASP requirement
 
-**BLOCKING**: Identify optimal execution order
+### Task 7.1: Add Pepper Configuration
 
-**Sub-Tasks**:
-- [ ] **6.1.1**: Map task dependencies
-  - Phase 1 (FIPS) → Blocks Phase 4 (JOSE-JA readiness)
-  - Phase 2 (Firewall) → Independent
-  - Phase 3 (Linting) → Independent
-  - Phase 5 (Root Cause) → Builds on Phase 2
-
-- [ ] **6.1.2**: Identify parallelizable work
-  - Phase 2 (Firewall) and Phase 3 (Linting) can run in parallel
-  - Phase 1 (FIPS) must complete before Phase 4
-
-- [ ] **6.1.3**: Create optimized execution plan
-  ```
-  1. START: Phase 1 (FIPS) - CRITICAL BLOCKER (8-12 hours)
-  2. PARALLEL: Phase 2 (Firewall) + Phase 3 (Linting) (2-4 hours each)
-  3. SEQUENTIAL: Phase 5 (Root Cause) builds on Phase 2 (2-4 hours)
-  4. FINAL: Phase 4 (Verify Readiness) requires Phase 1 complete (4-8 hours)
-
-  Total Time: 16-30 hours (with parallelization)
-  Without Parallelization: 22-38 hours
-  Time Saved: 6-8 hours
+- [ ] **7.1.1** Add pepper config to `configs/test/cryptoutil-common.yml`
+  ```yaml
+  hash_service:
+    current_version: 3  # 2025 OWASP
+    pepper_secret: file:///run/secrets/hash_pepper_v3
   ```
 
-### Evidence Required for Phase 6 Completion
-
-- ✅ **Planning Evidence**:
-  - Task dependency map created
-  - Optimized execution plan documented
-
-- ✅ **Git Evidence**:
-  - Commit: "docs(plan): optimize SERVICE-TEMPLATE-v4 task execution order"
-
----
-
-## PHASE 7: UPDATE TOP-LEVEL COPILOT INSTRUCTIONS
-
-**Priority**: ❌ **BLOCKING - MUST COMPLETE**
-**Estimated Effort**: 1-2 hours
-**Severity**: HIGH - Prevent future agent mistakes
-
-### Task 7.1: Add CRITICAL Rules to Top-Level Instructions
-
-**BLOCKING**: Prevent bcrypt/firewall regressions
-
-**Sub-Tasks**:
-- [ ] **7.1.1**: Add FIPS compliance rule
-  ```markdown
-  # .github/copilot-instructions.md
-
-  ## CRITICAL RULES (NEVER VIOLATE)
-
-  1. **FIPS Compliance** - ALWAYS check `.github/instructions/02-07.cryptography.instructions.md`
-     before implementing password hashing. NEVER use bcrypt (use PBKDF2). ALWAYS verify BANNED
-     algorithms list.
-
-  2. **Windows Firewall Prevention** - ALWAYS bind to 127.0.0.1 in tests (NEVER 0.0.0.0).
-     ALWAYS use NewTestConfig(). See `.github/instructions/06-02.anti-patterns.instructions.md`.
-
-  3. **Zero Task Skipping** - ALL tasks are HIGHEST PRIORITY. NEVER mark tasks as "optional"
-     or "low priority". NEVER skip work. DO NOT STOP until user clicks STOP button.
+- [ ] **7.1.2** Create Docker secret for pepper
+  ```yaml
+  # deployments/compose/compose.yml
+  secrets:
+    hash_pepper_v3:
+      file: ./secrets/hash_pepper_v3.secret
   ```
 
-- [ ] **7.1.2**: Add pre-implementation checklist
-  ```markdown
-  # .github/copilot-instructions.md
-
-  ## Before Implementing Any Cryptographic Feature
-
-  **MANDATORY CHECKLIST**:
-  - [ ] Read `.github/instructions/02-07.cryptography.instructions.md` (FIPS requirements)
-  - [ ] Read `.github/instructions/02-08.hashes.instructions.md` (Hash Service architecture)
-  - [ ] Verify algorithm is in APPROVED list (NOT BANNED list)
-  - [ ] Check if Hash Service already implements pattern
-  - [ ] Verify pepper requirement for passwords
-  - [ ] Confirm output format matches versioned pattern
+- [ ] **7.1.3** Generate secure pepper (32 bytes)
+  ```bash
+  openssl rand -base64 32 > deployments/compose/secrets/hash_pepper_v3.secret
+  chmod 440 deployments/compose/secrets/hash_pepper_v3.secret
   ```
 
-- [ ] **7.1.3**: Add post-implementation verification
-  ```markdown
-  # .github/copilot-instructions.md
+### Task 7.2: Load Pepper in Hash Service
 
-  ## After Implementing Any Feature
-
-  **MANDATORY VERIFICATION**:
-  - [ ] Run `grep -r "bcrypt\|scrypt\|argon2" .` = 0 matches
-  - [ ] Run `grep -r "0\.0\.0\.0.*test" .` = 0 matches in bind addresses
-  - [ ] Run `golangci-lint run ./...` = 0 violations
-  - [ ] Run all tests = 0 failures
-  - [ ] Commit immediately with conventional commit message
+- [ ] **7.2.1** Update Hash Service initialization to load pepper
+  ```go
+  pepperPath := viper.GetString("hash_service.pepper_secret")
+  pepperBytes, err := loadSecret(pepperPath)  // Handles file:// prefix
   ```
 
-### Evidence Required for Phase 7 Completion
+- [ ] **7.2.2** Verify pepper loaded from Docker secrets (NOT env vars, NOT plaintext config)
 
-- ✅ **Documentation Evidence**:
-  - CRITICAL RULES added to top-level instructions
-  - Pre-implementation checklist added
-  - Post-implementation verification added
+- [ ] **7.2.3** Test hashing produces different outputs with different peppers
 
-- ✅ **Git Evidence**:
-  - Commit: "docs(instructions): add CRITICAL rules to prevent bcrypt/firewall regressions"
-
----
-
-## EXECUTION STRATEGY
-
-### Immediate Actions (DO NOW)
-
-1. ✅ **Read this document completely** - Understand all tasks
-2. 🔄 **Start Phase 1 (FIPS)** - CRITICAL BLOCKER, highest priority
-3. 🔄 **Parallel: Start Phase 2 (Firewall) + Phase 3 (Linting)** - Independent work
-4. 🔄 **Sequential: Phase 5 (Root Cause)** - After Phase 2 complete
-5. 🔄 **Final: Phase 4 (Verify Readiness)** - After Phase 1 complete
-6. 🔄 **Commit frequently** - After each task/subtask completion
-7. 🔄 **Update this document** - Mark tasks complete with ✅ as work progresses
-
-### Continuous Work Philosophy
-
-**PER USER DIRECTIVE**:
-- ❌ DO NOT STOP until all work complete
-- ❌ DO NOT ASK if user wants to continue
-- ❌ DO NOT SKIP any tasks
-- ❌ DO NOT DEPRIORITIZE any tasks
-- ❌ DO NOT OMIT any tasks
-- ✅ ALL WORK IS HIGHEST PRIORITY AND BLOCKING
-- ✅ WORK AUTONOMOUSLY UNTIL COMPLETION
-- ✅ COMMIT FREQUENTLY TO SHOW PROGRESS
-
-### Evidence-Based Completion
-
-**EVERY task MUST have**:
-- ✅ Code evidence (files changed, tests passing, linting clean)
-- ✅ Test evidence (coverage maintained, no failures)
-- ✅ Git evidence (conventional commits pushed)
-
-**NO task marked complete without evidence**
-
----
-
-## SUCCESS CRITERIA
-
-### Phase-Level Success
-
-- ✅ **Phase 1**: Zero bcrypt usage, PBKDF2 implemented, Hash Service integrated, pepper configured
-- ✅ **Phase 2**: Zero `0.0.0.0` in test bind addresses, user confirms no firewall prompts
-- ✅ **Phase 3**: Zero linting violations in template
-- ✅ **Phase 4**: JOSE-JA migration plan complete, sm-kms reusability verified
-- ✅ **Phase 5**: Root cause documented, prevention strategy implemented
-- ✅ **Phase 6**: Optimized task order documented
-- ✅ **Phase 7**: CRITICAL rules added to top-level instructions
-
-### Overall Success
-
-- ✅ **ALL phases complete**
-- ✅ **ALL tasks complete**
-- ✅ **ALL tests passing**
-- ✅ **ALL linting clean**
-- ✅ **ALL commits pushed**
-- ✅ **User confirms: No bcrypt, no firewall prompts, all work done**
-
----
-
-## LESSONS LEARNED (To Be Updated)
-
-**Mistakes That Led to v4**:
-1. Agent created template realms without checking FIPS requirements
-2. Agent used bcrypt (convenient) instead of PBKDF2 (compliant)
-3. Agent marked work as "optional" when user wanted ALL work
-4. Agent didn't find Windows Firewall root cause despite multiple sessions
-5. Agent stopped after partial completion instead of ALL work
-
-**Prevention for Future**:
-1. ALWAYS check copilot instructions BEFORE implementing crypto
-2. ALWAYS verify FIPS compliance BEFORE marking work complete
-3. NEVER mark tasks as "optional" or "low priority"
-4. ALWAYS find root causes (not just symptoms)
-5. ALWAYS work until ALL tasks complete (not partial)
-
----
-
-## FINAL COMMIT MESSAGE TEMPLATE
-
-```
-feat(template): complete SERVICE-TEMPLATE-v4 remediation
-
-CRITICAL FIXES:
-- Replace bcrypt with PBKDF2 for FIPS-140-2/3 compliance
-- Integrate Hash Service with version-based policy framework
-- Implement MANDATORY pepper requirement (OWASP)
-- Fix Windows Firewall triggers (0.0.0.0 → 127.0.0.1)
-- Resolve 50+ template linting violations
-- Complete v3 incomplete work
-- Document root cause analyses
-- Update top-level copilot instructions
-
-EVIDENCE:
-- All tests passing (cipher-im, template, shared)
-- Zero linting violations
-- Zero FIPS violations
-- User confirms: No firewall prompts
-- All phases complete with evidence
-
-BREAKING CHANGES:
-- Password hash format changed from bcrypt to PBKDF2 versioned format
-- Requires pepper secret configuration
-- Requires Hash Service initialization
-
-Closes: (GitHub issue numbers if applicable)
-```
-
----
-
-**DOCUMENT STATUS**: ✅ **READY FOR EXECUTION - ALL TASKS HIGHEST PRIORITY**
-
-**NEXT IMMEDIATE ACTION**: Start Phase 1 (FIPS Compliance) - bcrypt → PBKDF2 remediation
+- [ ] **7.2.4** Commit: `feat(hash): implement MANDATORY pepper requirement from Docker secrets`
