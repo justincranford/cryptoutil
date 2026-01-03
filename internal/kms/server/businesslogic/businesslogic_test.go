@@ -33,10 +33,10 @@ func TestNewBusinessLogicService(t *testing.T) {
 	ctx := context.Background()
 
 	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
-		OTLPService:                 testOTLPService,
-		OTLPEndpoint:                testOTLPEndpoint,
-		LogLevel:                    testLogLevel,
-	}
+	settings.OTLPService = testOTLPService
+	settings.OTLPEndpoint = testOTLPEndpoint
+	settings.LogLevel = testLogLevel
+
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
 
