@@ -43,9 +43,9 @@ func TestNewForJOSEServer_DevMode(t *testing.T) {
 func TestNewForJOSEServer_ProductionMode(t *testing.T) {
 	resetFlags()
 
-	settings := NewForJOSEServer("0.0.0.0", 8443, false)
+	settings := NewForJOSEServer("127.0.0.1", 8443, false)
 	require.NotNil(t, settings)
-	require.Equal(t, "0.0.0.0", settings.BindPublicAddress)
+	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
 	require.Equal(t, uint16(8443), settings.BindPublicPort)
 	require.Equal(t, "jose-server", settings.OTLPService)
 	require.False(t, settings.DevMode)
@@ -67,9 +67,9 @@ func TestNewForCAServer_DevMode(t *testing.T) {
 func TestNewForCAServer_ProductionMode(t *testing.T) {
 	resetFlags()
 
-	settings := NewForCAServer("0.0.0.0", 9380, false)
+	settings := NewForCAServer("127.0.0.1", 9380, false)
 	require.NotNil(t, settings)
-	require.Equal(t, "0.0.0.0", settings.BindPublicAddress)
+	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
 	require.Equal(t, uint16(9380), settings.BindPublicPort)
 	require.Equal(t, "ca-server", settings.OTLPService)
 	require.False(t, settings.DevMode)
