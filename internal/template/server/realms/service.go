@@ -14,18 +14,21 @@ import (
 
 // UserServiceImpl implements user registration and authentication using bcrypt.
 type UserServiceImpl struct {
-	userRepo UserRepository
+	userRepo    UserRepository
+	userFactory func() UserModel // Factory function to create user instances
 }
 
 // NewUserService creates a new UserService.
 //
 // Parameters:
 // - userRepo: Repository for user CRUD operations
+// - userFactory: Factory function to create new UserModel instances (e.g., func() UserModel { return &domain.User{} })
 //
 // Returns configured UserService ready for registration and authentication.
-func NewUserService(userRepo UserRepository) *UserServiceImpl {
+func NewUserService(userRepo UserRepository, userFactory func() UserModel) *UserServiceImpl {
 	return &UserServiceImpl{
-		userRepo: userRepo,
+		userRepo:    userRepo,
+		userFactory: userFactory,
 	}
 }
 
@@ -100,18 +103,12 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// Create user entity.
-	// NOTE: Caller must provide a User implementation that supports SetPasswordHash.
-	// For cipher-im: user := &domain.User{ID: googleUuid.New(), Username: username}
-	// For jose-ja: user := &models.User{ID: googleUuid.New(), Username: username}
+	// Create user entity using factory.
 	userID := googleUuid.Must(googleUuid.NewV7())
-
-	// Create minimal user entity (implementation-specific).
-	user := &BasicUser{
-		ID:           userID,
-		Username:     username,
-		PasswordHash: string(passwordHash),
-	}
+	user := s.userFactory()
+	user.SetID(userID)
+	user.SetUsername(username)
+	user.SetPasswordHash(string(passwordHash))
 
 	// Save to repository.
 	if err := s.userRepo.Create(ctx, user); err != nil {

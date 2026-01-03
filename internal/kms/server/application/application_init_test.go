@@ -94,6 +94,7 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 			settings: func() *cryptoutilConfig.ServerSettings {
 				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 				s.TLSPublicIPAddresses = []string{"invalid-ip"}
+
 				return s
 			}(),
 			expectedErr: "failed to parse public TLS server IP addresses",
@@ -103,6 +104,7 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 			settings: func() *cryptoutilConfig.ServerSettings {
 				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 				s.TLSPrivateIPAddresses = []string{"999.999.999.999"}
+
 				return s
 			}(),
 			expectedErr: "failed to parse private TLS server IP addresses",

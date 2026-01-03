@@ -119,6 +119,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("failed to create test public server: " + err.Error())
 	}
+
 	defer func() {
 		_ = testPublicServer.Shutdown(context.Background())
 	}() // LIFO: shutdown server.

@@ -33,4 +33,3 @@ type Claims struct {
 	// - IssuedAt: Token issuance time (Unix timestamp)
 	jwt.RegisteredClaims
 }
-

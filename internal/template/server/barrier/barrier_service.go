@@ -31,7 +31,7 @@ type BarrierService struct {
 // NewBarrierService creates a new barrier service using the provided repository.
 // The repository can be:
 // - OrmBarrierRepository (wraps KMS OrmRepository for backward compatibility)
-// - GormBarrierRepository (wraps gorm.DB for cipher-im and future services)
+// - GormBarrierRepository (wraps gorm.DB for cipher-im and future services).
 func NewBarrierService(
 	ctx context.Context,
 	telemetryService *cryptoutilTelemetry.TelemetryService,
@@ -42,15 +42,19 @@ func NewBarrierService(
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	}
+
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	}
+
 	if jwkGenService == nil {
 		return nil, fmt.Errorf("jwkGenService must be non-nil")
 	}
+
 	if repository == nil {
 		return nil, fmt.Errorf("repository must be non-nil")
 	}
+
 	if unsealKeysService == nil {
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
@@ -63,6 +67,7 @@ func NewBarrierService(
 	intermediateKeysService, err := NewIntermediateKeysService(telemetryService, jwkGenService, repository, rootKeysService)
 	if err != nil {
 		rootKeysService.Shutdown()
+
 		return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
 	}
 
@@ -70,6 +75,7 @@ func NewBarrierService(
 	if err != nil {
 		rootKeysService.Shutdown()
 		intermediateKeysService.Shutdown()
+
 		return nil, fmt.Errorf("failed to create content keys service: %w", err)
 	}
 
@@ -92,9 +98,12 @@ func (d *BarrierService) EncryptContentWithContext(ctx context.Context, clearByt
 	}
 
 	var encryptedBytes []byte
+
 	err := d.repository.WithTransaction(ctx, func(tx BarrierTransaction) error {
 		var err error
+
 		encryptedBytes, _, err = d.contentKeysService.EncryptContent(tx, clearBytes)
+
 		return err
 	})
 	if err != nil {
@@ -111,9 +120,12 @@ func (d *BarrierService) DecryptContentWithContext(ctx context.Context, encrypte
 	}
 
 	var decryptedBytes []byte
+
 	err := d.repository.WithTransaction(ctx, func(tx BarrierTransaction) error {
 		var err error
+
 		decryptedBytes, err = d.contentKeysService.DecryptContent(tx, encryptedContentJWEMessageBytes)
+
 		return err
 	})
 	if err != nil {
@@ -141,14 +153,17 @@ func (d *BarrierService) Shutdown() {
 			d.contentKeysService.Shutdown()
 			d.contentKeysService = nil
 		}
+
 		if d.intermediateKeysService != nil {
 			d.intermediateKeysService.Shutdown()
 			d.intermediateKeysService = nil
 		}
+
 		if d.rootKeysService != nil {
 			d.rootKeysService.Shutdown()
 			d.rootKeysService = nil
 		}
+
 		d.unsealKeysService = nil
 		d.repository = nil
 		d.telemetryService = nil

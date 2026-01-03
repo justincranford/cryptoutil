@@ -33,6 +33,7 @@ func NewOrmBarrierRepository(ormRepo *cryptoutilOrmRepository.OrmRepository) (*O
 func (r *OrmBarrierRepository) WithTransaction(ctx context.Context, function func(tx BarrierTransaction) error) error {
 	return r.ormRepo.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(ormTx *cryptoutilOrmRepository.OrmTransaction) error {
 		tx := &OrmBarrierTransaction{ormTx: ormTx}
+
 		return function(tx)
 	})
 }
@@ -58,6 +59,7 @@ func (tx *OrmBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if kmsKey == nil {
 		return nil, nil
 	}
@@ -91,6 +93,7 @@ func (tx *OrmBarrierTransaction) AddRootKey(key *BarrierRootKey) error {
 		Encrypted: key.Encrypted,
 		KEKUUID:   key.KEKUUID,
 	}
+
 	return tx.ormTx.AddRootKey(kmsKey)
 }
 
@@ -100,6 +103,7 @@ func (tx *OrmBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediat
 	if err != nil {
 		return nil, err
 	}
+
 	if kmsKey == nil {
 		return nil, nil
 	}
@@ -133,6 +137,7 @@ func (tx *OrmBarrierTransaction) AddIntermediateKey(key *BarrierIntermediateKey)
 		Encrypted: key.Encrypted,
 		KEKUUID:   key.KEKUUID,
 	}
+
 	return tx.ormTx.AddIntermediateKey(kmsKey)
 }
 
@@ -158,5 +163,6 @@ func (tx *OrmBarrierTransaction) AddContentKey(key *BarrierContentKey) error {
 		Encrypted: key.Encrypted,
 		KEKUUID:   key.KEKUUID,
 	}
+
 	return tx.ormTx.AddContentKey(kmsKey)
 }

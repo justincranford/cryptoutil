@@ -13,27 +13,28 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"cryptoutil/internal/cipher/repository"
+	cryptoutilCipherDomain "cryptoutil/internal/cipher/domain"
+	cryptoutilCipherRepository "cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server/apis"
-	"cryptoutil/internal/cipher/server/realms"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
+	cryptoutilTemplateRealms "cryptoutil/internal/template/server/realms"
 )
 
 // PublicServer implements the template.PublicServer interface for cipher-im.
 type PublicServer struct {
 	port                    int
-	userRepo                *repository.UserRepository
-	messageRepo             *repository.MessageRepository
-	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository // Per-recipient decryption keys
-	jwkGenService           *cryptoutilJose.JWKGenService             // JWK generation for message encryption
-	jwtSecret               string                                    // JWT signing secret for authentication
+	userRepo                *cryptoutilCipherRepository.UserRepository
+	messageRepo             *cryptoutilCipherRepository.MessageRepository
+	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
+	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
+	jwtSecret               string                                                    // JWT signing secret for authentication
 
 	// Handlers (composition pattern).
-	authnHandler   *realms.AuthnHandler
+	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
 	messageHandler *apis.MessageHandler
 
 	app         *fiber.App
@@ -49,9 +50,9 @@ type PublicServer struct {
 func NewPublicServer(
 	ctx context.Context,
 	port int,
-	userRepo *repository.UserRepository,
-	messageRepo *repository.MessageRepository,
-	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository,
+	userRepo *cryptoutilCipherRepository.UserRepository,
+	messageRepo *cryptoutilCipherRepository.MessageRepository,
+	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilBarrier.BarrierService,
 	jwtSecret string,
@@ -88,8 +89,16 @@ func NewPublicServer(
 		tlsMaterial:             tlsMaterial,
 	}
 
-	// Create realms handler (authentication/authorization).
-	s.authnHandler = realms.NewAuthnHandler(userRepo, jwtSecret)
+	// Create repository adapter for template realms.
+	userRepoAdapter := cryptoutilCipherRepository.NewUserRepositoryAdapter(userRepo)
+
+	// Create user factory for template realms.
+	userFactory := func() cryptoutilTemplateRealms.UserModel {
+		return &cryptoutilCipherDomain.User{}
+	}
+
+	// Create realms handler using template service (authentication/authorization).
+	s.authnHandler = cryptoutilTemplateRealms.NewUserService(userRepoAdapter, userFactory)
 
 	// Create apis handler (business logic).
 	s.messageHandler = apis.NewMessageHandler(messageRepo, messageRecipientJWKRepo, jwkGenService, barrierService)
@@ -107,18 +116,18 @@ func (s *PublicServer) registerRoutes() {
 
 	// User management endpoints (authentication - no JWT required).
 	s.app.Post("/service/api/v1/users/register", s.authnHandler.HandleRegisterUser())
-	s.app.Post("/service/api/v1/users/login", s.authnHandler.HandleLoginUser())
+	s.app.Post("/service/api/v1/users/login", s.authnHandler.HandleLoginUser(s.jwtSecret))
 	s.app.Post("/browser/api/v1/users/register", s.authnHandler.HandleRegisterUser())
-	s.app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUser())
+	s.app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUser(s.jwtSecret))
 
 	// Business logic endpoints (message operations - JWT required).
-	s.app.Put("/service/api/v1/messages/tx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
-	s.app.Get("/service/api/v1/messages/rx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/service/api/v1/messages/:id", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
+	s.app.Put("/service/api/v1/messages/tx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
+	s.app.Get("/service/api/v1/messages/rx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/service/api/v1/messages/:id", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
 
-	s.app.Put("/browser/api/v1/messages/tx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
-	s.app.Get("/browser/api/v1/messages/rx", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/browser/api/v1/messages/:id", realms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
+	s.app.Put("/browser/api/v1/messages/tx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
+	s.app.Get("/browser/api/v1/messages/rx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/browser/api/v1/messages/:id", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
 }
 
 // handleServiceHealth returns health status for service-to-service clients.

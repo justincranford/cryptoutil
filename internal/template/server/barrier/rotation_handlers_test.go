@@ -129,7 +129,9 @@ func TestRotateRootKey_Success(t *testing.T) {
 
 	// Parse response
 	respBody, _ := io.ReadAll(resp.Body)
+
 	var rotateResp RotateRootKeyResponse
+
 	err = json.Unmarshal(respBody, &rotateResp)
 	require.NoError(t, err)
 
@@ -182,7 +184,9 @@ func TestRotateIntermediateKey_Success(t *testing.T) {
 
 	// Parse response
 	respBody, _ := io.ReadAll(resp.Body)
+
 	var rotateResp RotateIntermediateKeyResponse
+
 	err = json.Unmarshal(respBody, &rotateResp)
 	require.NoError(t, err)
 
@@ -232,7 +236,9 @@ func TestRotateContentKey_Success(t *testing.T) {
 
 	// Parse response
 	respBody, _ := io.ReadAll(resp.Body)
+
 	var rotateResp RotateContentKeyResponse
+
 	err = json.Unmarshal(respBody, &rotateResp)
 	require.NoError(t, err)
 
@@ -279,7 +285,9 @@ func TestRotateKey_MissingReason(t *testing.T) {
 
 			// Parse error response
 			respBody, _ := io.ReadAll(resp.Body)
+
 			var errResp map[string]string
+
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
 			require.Equal(t, "validation_error", errResp["error"])
@@ -315,7 +323,9 @@ func TestRotateKey_ShortReason(t *testing.T) {
 
 			// Parse error response
 			respBody, _ := io.ReadAll(resp.Body)
+
 			var errResp map[string]string
+
 			err = json.Unmarshal(respBody, &errResp)
 			require.NoError(t, err)
 			require.Equal(t, "validation_error", errResp["error"])

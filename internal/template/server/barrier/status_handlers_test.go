@@ -36,6 +36,7 @@ func TestHandleGetBarrierKeysStatus_Success(t *testing.T) {
 
 	// Verify response body.
 	var statusResp BarrierKeysStatusResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&statusResp)
 	require.NoError(t, err)
 	require.NoError(t, resp.Body.Close())

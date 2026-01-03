@@ -34,6 +34,7 @@ func NewStatusService(repo BarrierRepository) (*StatusService, error) {
 	if repo == nil {
 		return nil, fmt.Errorf("repository must be non-nil")
 	}
+
 	return &StatusService{repo: repo}, nil
 }
 
@@ -49,6 +50,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 		if err != nil {
 			return err
 		}
+
 		if rootKey != nil {
 			response.RootKey = &KeyStatusResponse{
 				UUID:      rootKey.UUID.String(),
@@ -62,6 +64,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 		if err != nil {
 			return err
 		}
+
 		if intermediateKey != nil {
 			response.IntermediateKey = &KeyStatusResponse{
 				UUID:      intermediateKey.UUID.String(),

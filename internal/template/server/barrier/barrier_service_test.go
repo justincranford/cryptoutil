@@ -42,6 +42,7 @@ func TestMain(m *testing.M) {
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
 	var err error
+
 	testSQLDB, err = sql.Open("sqlite", dsn)
 	if err != nil {
 		panic("TestMain: failed to open SQLite: " + err.Error())
@@ -158,6 +159,7 @@ func createBarrierTables(db *sql.DB) error {
 	`
 
 	_, err := db.Exec(schema)
+
 	return err
 }
 
@@ -281,7 +283,6 @@ func TestBarrierService_DecryptInvalidCiphertext(t *testing.T) {
 // TestBarrierService_Shutdown tests service shutdown behavior.
 func TestBarrierService_Shutdown(t *testing.T) {
 	// NOTE: Cannot run parallel - creates isolated database but takes exclusive test time.
-
 	ctx := context.Background()
 
 	// Create isolated in-memory database for this test.
@@ -289,6 +290,7 @@ func TestBarrierService_Shutdown(t *testing.T) {
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
 	shutdownSQLDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
+
 	defer shutdownSQLDB.Close()
 
 	_, err = shutdownSQLDB.Exec("PRAGMA journal_mode=WAL;")
@@ -363,6 +365,7 @@ func TestBarrierService_ConcurrentEncryption(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
+
 	const numGoroutines = 10
 
 	// Launch multiple concurrent encryption operations.
@@ -372,11 +375,14 @@ func TestBarrierService_ConcurrentEncryption(t *testing.T) {
 	for i := 0; i < numGoroutines; i++ {
 		go func(id int) {
 			plaintext := []byte("concurrent test data " + string(rune(id)))
+
 			ciphertext, err := testBarrierService.EncryptContentWithContext(ctx, plaintext)
 			if err != nil {
 				errors <- err
+
 				return
 			}
+
 			results <- ciphertext
 		}(i)
 	}

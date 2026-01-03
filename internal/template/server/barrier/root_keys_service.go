@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"log"
 
-	// BarrierRepository interface used instead of OrmRepository
+	// BarrierRepository interface used instead of OrmRepository.
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"

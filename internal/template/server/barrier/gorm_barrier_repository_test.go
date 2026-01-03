@@ -73,6 +73,7 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 		latest, err := tx.GetRootKeyLatest()
 		require.NoError(t, err)
 		require.Nil(t, latest, "No root keys should exist initially")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -99,6 +100,7 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 		require.NotNil(t, latest)
 		require.Equal(t, key1.UUID, latest.UUID)
 		require.Equal(t, key1.Encrypted, latest.Encrypted)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -110,6 +112,7 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 		require.NotNil(t, retrieved)
 		require.Equal(t, key1.UUID, retrieved.UUID)
 		require.Equal(t, key1.Encrypted, retrieved.Encrypted)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -135,6 +138,7 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, latest)
 		require.Equal(t, key2.UUID, latest.UUID, "Latest key should be the most recently created")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -190,6 +194,7 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 		latest, err := tx.GetIntermediateKeyLatest()
 		require.NoError(t, err)
 		require.Nil(t, latest, "No intermediate keys should exist initially")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -217,6 +222,7 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 		require.Equal(t, key1.UUID, latest.UUID)
 		require.Equal(t, key1.Encrypted, latest.Encrypted)
 		require.Equal(t, rootKeyUUID, latest.KEKUUID)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -228,6 +234,7 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 		require.NotNil(t, retrieved)
 		require.Equal(t, key1.UUID, retrieved.UUID)
 		require.Equal(t, key1.Encrypted, retrieved.Encrypted)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -253,6 +260,7 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, latest)
 		require.Equal(t, key2.UUID, latest.UUID, "Latest key should be the most recently created")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -324,6 +332,7 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 		require.Equal(t, key1.UUID, retrieved.UUID)
 		require.Equal(t, key1.Encrypted, retrieved.Encrypted)
 		require.Equal(t, intermediateKeyUUID, retrieved.KEKUUID)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -350,6 +359,7 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 		require.NotNil(t, retrieved)
 		require.Equal(t, key2.UUID, retrieved.UUID)
 		require.Equal(t, key2.Encrypted, retrieved.Encrypted)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -394,6 +404,7 @@ func TestGormBarrierRepository_Transaction_Rollback(t *testing.T) {
 		latest, err := tx.GetRootKeyLatest()
 		require.NoError(t, err)
 		require.Nil(t, latest, "Key should not exist after rollback")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -404,6 +415,7 @@ func TestGormBarrierRepository_ConcurrentTransactions(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
+
 	const numGoroutines = 5
 
 	// Create isolated database for this test.

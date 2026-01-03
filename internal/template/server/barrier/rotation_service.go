@@ -36,9 +36,11 @@ func NewRotationService(
 	if jwkGenService == nil {
 		return nil, fmt.Errorf("jwkGenService must be non-nil")
 	}
+
 	if repository == nil {
 		return nil, fmt.Errorf("repository must be non-nil")
 	}
+
 	if unsealKeysService == nil {
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
@@ -70,6 +72,7 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 		if err != nil {
 			return fmt.Errorf("failed to get current root key: %w", err)
 		}
+
 		if oldRootKey == nil {
 			return fmt.Errorf("no root key found - cannot rotate")
 		}
@@ -138,6 +141,7 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 		if err != nil {
 			return fmt.Errorf("failed to get current intermediate key: %w", err)
 		}
+
 		if oldIntermediateKey == nil {
 			return fmt.Errorf("no intermediate key found - cannot rotate")
 		}
@@ -147,6 +151,7 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 		if err != nil {
 			return fmt.Errorf("failed to get current root key: %w", err)
 		}
+
 		if currentRootKey == nil {
 			return fmt.Errorf("no root key found")
 		}
@@ -221,6 +226,7 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 		if err != nil {
 			return fmt.Errorf("failed to get current intermediate key: %w", err)
 		}
+
 		if currentIntermediateKey == nil {
 			return fmt.Errorf("no intermediate key found")
 		}
@@ -233,6 +239,7 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 
 		// Get root key kid from intermediate key's JWE header
 		var rootKeyKidString string
+
 		err = encryptedIntermediateKeyMsg.ProtectedHeaders().Get(joseJwk.KeyIDKey, &rootKeyKidString)
 		if err != nil {
 			return fmt.Errorf("failed to get root key kid: %w", err)

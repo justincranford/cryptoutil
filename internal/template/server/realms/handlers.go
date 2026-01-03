@@ -1,0 +1,209 @@
+// Copyright (c) 2025 Justin Cranford
+
+package realms
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+	googleUuid "github.com/google/uuid"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+)
+
+// HandleRegisterUser returns a Fiber handler for user registration.
+//
+// Workflow:
+// 1. Parse request body (username, password)
+// 2. Validate input (non-empty, length requirements)
+// 3. Call service.RegisterUser (business logic)
+// 4. Return created user ID and username
+//
+// Request Body:
+//
+//	{
+//	  "username": "alice",
+//	  "password": "securePassword123"
+//	}
+//
+// Success Response (201 Created):
+//
+//	{
+//	  "user_id": "uuid-string",
+//	  "username": "alice"
+//	}
+//
+// Error Responses:
+// - 400 Bad Request: Invalid request body, missing fields, validation failure
+// - 409 Conflict: Username already exists
+// - 500 Internal Server Error: Database errors, password hashing failure.
+func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid request body",
+			})
+		}
+
+		if req.Username == "" || req.Password == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Username and password are required",
+			})
+		}
+
+		// Validate username length (3-50 characters).
+		if len(req.Username) < cryptoutilMagic.CipherMinUsernameLength ||
+			len(req.Username) > cryptoutilMagic.CipherMaxUsernameLength {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "username must be 3-50 characters",
+			})
+		}
+
+		// Validate password length (minimum 8 characters).
+		if len(req.Password) < cryptoutilMagic.CipherMinPasswordLength {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "password must be at least 8 characters",
+			})
+		}
+
+		// Call service layer (business logic).
+		user, err := s.RegisterUser(c.Context(), req.Username, req.Password)
+		if err != nil {
+			// Check for duplicate username (conflict).
+			// Note: Service layer returns generic error for security.
+			// Repository constraint violations bubble up here.
+			if err.Error() == "failed to create user: UNIQUE constraint failed: users.username" ||
+				err.Error() == "failed to create user: duplicate key value violates unique constraint \"users_username_key\"" {
+				return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+					"error": "Username already exists",
+				})
+			}
+
+			// Generic error for other failures.
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to create user",
+			})
+		}
+
+		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+			"user_id":  user.GetID().String(),
+			"username": user.GetUsername(),
+		})
+	}
+}
+
+// HandleLoginUser returns a Fiber handler for user login.
+//
+// Workflow:
+// 1. Parse request body (username, password)
+// 2. Validate input (non-empty)
+// 3. Call service.AuthenticateUser (business logic)
+// 4. Generate JWT token (15-minute expiration)
+// 5. Return token and expiration time
+//
+// Request Body:
+//
+//	{
+//	  "username": "alice",
+//	  "password": "securePassword123"
+//	}
+//
+// Success Response (200 OK):
+//
+//	{
+//	  "token": "jwt-token-string",
+//	  "expires_at": "2025-01-02T15:04:05Z"
+//	}
+//
+// Error Responses:
+// - 400 Bad Request: Invalid request body, missing fields
+// - 401 Unauthorized: Invalid credentials (user not found or wrong password)
+// - 500 Internal Server Error: Database errors, JWT generation failure.
+func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid request body",
+			})
+		}
+
+		if req.Username == "" || req.Password == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Username and password are required",
+			})
+		}
+
+		// Call service layer (business logic).
+		user, err := s.AuthenticateUser(c.Context(), req.Username, req.Password)
+		if err != nil {
+			// Service layer returns generic error for security.
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid credentials",
+			})
+		}
+
+		// Generate JWT token.
+		token, expiresAt, err := GenerateJWT(user.GetID(), user.GetUsername(), jwtSecret)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to generate token",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"token":      token,
+			"expires_at": expiresAt.Format(time.RFC3339),
+		})
+	}
+}
+
+// GenerateJWT creates a new JWT token for the given user.
+//
+// Parameters:
+// - userID: User's unique identifier (UUIDv7)
+// - username: User's username
+// - secret: JWT signing secret (HMAC-SHA256)
+//
+// Returns:
+// - token: JWT token string
+// - expiresAt: Token expiration time (15 minutes from now)
+// - error: JWT generation failure
+//
+// Security Notes:
+// - Algorithm: HMAC-SHA256 (HS256) - symmetric key signing
+// - Expiration: 15 minutes (configurable via cryptoutilMagic.CipherJWTExpiration)
+// - Issuer: "cipher-im" (configurable via cryptoutilMagic.CipherJWTIssuer)
+// - Claims: user_id (string), username (string), iat, exp, iss.
+func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.Time, error) {
+	expirationTime := time.Now().Add(cryptoutilMagic.CipherJWTExpiration)
+	claims := &Claims{
+		UserID:   userID.String(),
+		Username: username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    cryptoutilMagic.CipherJWTIssuer,
+		},
+	}
+
+	// Create and sign token.
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("failed to sign JWT: %w", err)
+	}
+
+	return tokenString, expirationTime, nil
+}

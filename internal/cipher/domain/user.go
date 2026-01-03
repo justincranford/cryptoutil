@@ -9,6 +9,8 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilTemplateRealms "cryptoutil/internal/template/server/realms"
 )
 
 // User represents a cipher-im user account.
@@ -30,3 +32,36 @@ type User struct {
 func (User) TableName() string {
 	return "users"
 }
+
+// GetID returns the user's unique identifier.
+func (u *User) GetID() googleUuid.UUID {
+	return u.ID
+}
+
+// GetUsername returns the user's username.
+func (u *User) GetUsername() string {
+	return u.Username
+}
+
+// GetPasswordHash returns the user's password hash.
+func (u *User) GetPasswordHash() string {
+	return u.PasswordHash
+}
+
+// SetID sets the user's unique identifier.
+func (u *User) SetID(id googleUuid.UUID) {
+	u.ID = id
+}
+
+// SetUsername sets the user's username.
+func (u *User) SetUsername(username string) {
+	u.Username = username
+}
+
+// SetPasswordHash sets the user's password hash.
+func (u *User) SetPasswordHash(hash string) {
+	u.PasswordHash = hash
+}
+
+// Compile-time check that User implements realms.UserModel interface.
+var _ cryptoutilTemplateRealms.UserModel = (*User)(nil)

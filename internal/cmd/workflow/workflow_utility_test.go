@@ -198,6 +198,7 @@ func TestGetWorkflowLogFile(t *testing.T) {
 			require.Equal(t, expectedDir, resultDir, "Log file should be in output directory")
 			require.True(t, strings.Contains(result, tc.workflowName), "Log file should contain workflow name")
 			require.True(t, strings.HasSuffix(result, ".log"), "Log file should have .log extension")
+
 			currentYear := time.Now().UTC().Format("2006")
 			require.True(t, strings.Contains(result, "-"+currentYear+"-"), "Log file should contain timestamp with year")
 		})
