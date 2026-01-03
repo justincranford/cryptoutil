@@ -25,35 +25,32 @@ cipher-im → jose-ja → pki-ca → identity services (authz, idp, rs, rp, spa)
 ### Task 1.1: Integrate Hash Service from internal/shared/crypto/hash/
 
 - [ ] **1.1.1** Verify Hash Service exists in `internal/shared/crypto/hash/` (NOT sm-kms, NOT cipher/crypto)
-  - If missing, extract from existing implementation
   - Ensure registries: LowEntropyDeterministic, LowEntropyRandom, HighEntropyDeterministic, HighEntropyRandom
   - Ensure version framework (v1/v2/v3 support)
   - Ensure hash format: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)}`
 
-- [ ] **1.1.2** Inject Hash Service into template realms UserServiceImpl
+- [ ] **1.1.2** Inject Hash Service into service-template realms UserServiceImpl for reuse by ALL 9 services
   ```go
   import cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
   type UserServiceImpl struct {
       hashService *cryptoutilHash.Service
   }
   ```
+  **Note**: LowEntropyRandom registry already configured with v3 (2025 OWASP), PBKDF2-HMAC-SHA256, versioned format
 
-- [ ] **1.1.3** Configure for LowEntropyRandom registry (passwords)
-  - Set current version: v3 (2025 OWASP)
-  - Use PBKDF2-HMAC-SHA256 with OWASP-safe pre-configured parameters
-  - Future-proof via standardized encoding with versioning
-
-### Task 1.2: Replace bcrypt Usage
+### Task 1.2: Replace bcrypt Usage in Service-Template
 
 - [ ] **1.2.1** Replace RegisterUser hashing: `bcrypt.GenerateFromPassword()` → `hashService.HashPassword(ctx, password)` using LowEntropyRandom
 - [ ] **1.2.2** Replace AuthenticateUser verification: `bcrypt.CompareHashAndPassword()` → `hashService.VerifyPassword(ctx, hash, password)`
 - [ ] **1.2.3** Remove bcrypt import and `const bcryptCostFactor`
 - [ ] **1.2.4** Update comments: bcrypt → LowEntropyRandom/PBKDF2/versioned hash
 
-### Task 1.3: Update Cipher-IM Integration
+### Task 1.3: Verify Cipher-IM Integration (Indirect via Realms)
 
-- [ ] **1.3.1** Inject Hash Service into cipher-im server initialization
-- [ ] **1.3.2** Verify cipher-im tests pass
+**CRITICAL**: Cipher-im uses Hash Service INDIRECTLY via service-template username/password realms (NOT direct injection). All 9 services MUST use realms for registration, authentication, authorization.
+
+- [ ] **1.3.1** Verify cipher-im uses service-template username/password realm (file or DB type) for user operations
+- [ ] **1.3.2** Verify cipher-im tests pass (uses realm methods, NOT direct Hash Service calls)
 - [ ] **1.3.3** Verify hash format in database: `{3}:PBKDF2-HMAC-SHA256:rounds=600000:...`
 
 ### Task 1.4: Verify FIPS Compliance
@@ -68,10 +65,20 @@ cipher-im → jose-ja → pki-ca → identity services (authz, idp, rs, rp, spa)
 
 ### Task 2.1: Add Linter for Test Bind Addresses (STRATEGIC - DO FIRST)
 
-- [ ] **2.1.1** Augment `internal/cmd/cicd/lint_gotest/` with check for `0.0.0.0` in test bind addresses
+- [ ] **2.1.1** Augment `internal/cmd/cicd/lint_gotest/` with check for `0.0.0.0` AND empty bind addresses
   - Register as linter in existing `cicd lint-gotest` command
-  - Pattern: Reject `"0.0.0.0"` in NewXXXServer(), ServerSettings creation, net.Listen() calls
-  - Message: "Use 127.0.0.1 in tests to prevent Windows Firewall prompts"
+  - Pattern: Reject `"0.0.0.0"` AND `""` (blank) in:
+    * NewXXXServer() calls with bind address arguments
+    * ServerSettings struct initialization (partial or full)
+    * net.Listen() calls with address parameters
+    * BindPublicAddress/BindPrivateAddress field assignments
+  - Message: "CRITICAL: don't use 0.0.0.0 or blank bind address in tests, use 127.0.0.1 to prevent Windows Firewall exception prompts"
+  - Create comprehensive tests in `internal/cmd/cicd/lint_gotest/` subdirectory for all patterns:
+    * Direct `"0.0.0.0"` usage
+    * Blank `""` usage (defaults to 0.0.0.0)
+    * Struct literal with blank fields
+    * Variable assignments
+    * Function call arguments
 
 - [ ] **2.1.2** Test linter on existing violations
   ```bash
@@ -94,27 +101,36 @@ cipher-im → jose-ja → pki-ca → identity services (authz, idp, rs, rp, spa)
   go test -v ./internal/shared/config/... -run TestNewForJOSEServer
   go test -v ./internal/shared/config/... -run TestNewForCAServer
   ```
+  **Detection**: Watch for Windows Security Alert dialog "Windows Defender Firewall has blocked some features". If prompt appears, tests are still binding to 0.0.0.0 or blank address.
 
 - [ ] **2.2.4** Commit: `fix(test): use 127.0.0.1 instead of 0.0.0.0 to prevent Windows Firewall prompts`
 
-### Task 2.3: Verify url_test.go Safety
+### Task 2.3: Verify url_test.go Safety AND Add Bind Address Validation Coverage
 
 - [ ] **2.3.1** Confirm `internal/shared/config/url_test.go` only generates URL strings (no server binding)
 - [ ] **2.3.2** Verify `grep -r "net.Listen" internal/shared/config/url_test.go` = 0 matches
-- [ ] **2.3.3** If safe, document as test data (no changes needed)
+- [ ] **2.3.3** Add test coverage to `internal/shared/config/url_test.go` for detecting/rejecting blank or 0.0.0.0 bind addresses
+  - Test validateBindAddress() helper for public listener
+  - Test validateBindAddress() helper for private listener
+  - Verify rejection of blank bind addresses
+  - Verify rejection of 0.0.0.0 bind addresses
+  - Verify acceptance of 127.0.0.1 bind addresses
 
 ### Task 2.4: Root Cause Analysis and Prevention
 
-- [ ] **2.4.1** Scan ALL test executables for bind addresses after full test run
+- [ ] **2.4.1** Scan ALL test executables for bind addresses after full test run (0.0.0.0 AND empty strings)
   ```bash
-  strings bin/*.test 2>/dev/null | grep "0.0.0.0" || echo "No violations found"
+  strings bin/*.test 2>/dev/null | grep "0.0.0.0" || echo "No 0.0.0.0 violations found"
+  # Also check for empty bind address patterns (harder to detect via strings)
+  grep -r 'BindPublicAddress.*""' **/*_test.go
+  grep -r 'BindPrivateAddress.*""' **/*_test.go
   ```
 
 - [ ] **2.4.2** Add runtime validation in NewTestConfig()
   ```go
   // internal/shared/config/config_test_helper.go
   if bindAddr == "" || bindAddr == "0.0.0.0" {
-      panic("CRITICAL: use 127.0.0.1 in tests to prevent Windows Firewall prompts")
+      panic("CRITICAL: don't use 0.0.0.0 or blank bind address in tests, use 127.0.0.1 to prevent Windows Firewall exception prompts")
   }
   ```
 
@@ -124,6 +140,18 @@ cipher-im → jose-ja → pki-ca → identity services (authz, idp, rs, rp, spa)
   - Pattern: ALWAYS use NewTestConfig("127.0.0.1", 0, true) in tests
 
 - [ ] **2.4.4** Commit: `docs(anti-patterns): document Windows Firewall root cause and prevention`
+
+- [ ] **2.4.5** Add requires checks in NewTestConfig to reject bind values NOT equal to 127.0.0.1
+  ```go
+  // internal/shared/config/config_test_helper.go
+  func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
+      if bindAddr != "127.0.0.1" {
+          panic(fmt.Sprintf("CRITICAL: bind address must be 127.0.0.1 in tests (got %q), prevents Windows Firewall prompts", bindAddr))
+      }
+      // ... rest of implementation
+  }
+  ```
+  **Rationale**: Fail fast to reveal ANY callers that were missed during 127.0.0.1 migration
 
 ## PHASE 3: TEMPLATE LINTING
 
@@ -148,7 +176,10 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
 - [ ] **4.1.1** Create succinct `docs/SERVICE-TEMPLATE-REUSABILITY.md` (NOT sprawling doc)
   - Realms service pattern (schema lifecycle, tenant isolation, generic interfaces)
   - Barrier service pattern (already in `internal/template/server/barrier/`)
-  - Hash Service pattern (extracted to `internal/shared/crypto/hash/`)
+  - Hash Service pattern (extracted to `internal/shared/crypto/hash/`, used INDIRECTLY via realms)
+    * ALL 9 services MUST use Hash Service via username/password realms (file/DB types)
+    * Also via username/email realms, magic link realms, random OTP realms, etc.
+    * NEVER direct Hash Service injection into services (violates reusability)
   - Telemetry pattern (OTLP integration)
   - Repository patterns (GORM, PostgreSQL/SQLite, test-containers)
   - Test patterns (TestMain, NewTestConfig, t.Cleanup)
@@ -170,9 +201,10 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
 ### Task 5.1: Augment internal/cmd/cicd/lint_go/ with checkNonFips
 
 - [ ] **5.1.1** Add `checkNonFips` to registeredLinters in `internal/cmd/cicd/lint_go/`
-  - Detect: bcrypt, scrypt, Argon2, MD5, SHA-1, DES, 3DES, RSA <2048
+  - Detect: bcrypt, scrypt, Argon2, MD5, SHA-1, SHA-224 (weak), DES, 3DES, RC4, RC2, EC P-224 (weak), RSA <2048, DSA (any size)
   - Pattern: Search for imports and function calls
   - Message: "Non-FIPS algorithm detected - use FIPS-approved algorithms only (see .github/instructions/02-07.cryptography.instructions.md)"
+  - Approved alternatives: SHA-256/384/512, RSA ≥2048, ECDSA P-256/384/521, EdDSA, AES ≥128, PBKDF2, HKDF
 
 - [ ] **5.1.2** Test on template realms (should catch bcrypt before fix)
   ```bash
@@ -197,38 +229,45 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
 
 ---
 
-## PHASE 6: WINDOWS FIREWALL ROOT CAUSE
+## PHASE 6: WINDOWS FIREWALL ROOT CAUSE PREVENTION
 
-**Priority**: ❌ **BLOCKING - MUST COMPLETE**
-**Estimated Effort**: 2-4 hours
-**Severity**: HIGH - User frustration
+**Estimated**: 2-4 hours | **HIGH PRIORITY**
 
-### Problem Statement
+### Task 6.1: Research Additional Firewall Trigger Use Cases
 
-**User complaint**: "im fucking sick of this shit continuing to happen... many chat sessions"
+- [ ] **6.1.1** Search Go documentation for network binding patterns that trigger OS firewall prompts
+  - net.Listen() variants
+  - http.Server binding patterns
+  - UDP socket binding
+  - Raw socket creation
 
-**Need to find**: WHY does Windows Firewall still prompt despite fixes?
+- [ ] **6.1.2** Internet search for "Windows Firewall prompt Go testing" and related queries
+  - Stack Overflow discussions
+  - GitHub issues in Go repos
+  - Windows developer documentation
 
-### Task 5.1: Deep Diagnostic Analysis
+- [ ] **6.1.3** AI analysis of Go network code patterns that may trigger firewall prompts
+  - Multicast group joining
+  - Network interface enumeration with binding
+  - IPv6 wildcard binding (::)
 
-**BLOCKING**: Find ALL sources of firewall prompts
+### Task 6.2: Deep Diagnostic Analysis
 
-**Sub-Tasks**:
-- [ ] **5.1.1**: Scan ALL test executables for bind addresses
+- [ ] **6.2.1** Scan ALL test executables for bind addresses
   ```bash
   # After running tests:
   strings bin/*.test | grep "0.0.0.0"
   # Expected: 0 matches
   ```
 
-- [ ] **5.1.2**: Check for dynamic port allocation with wrong bind address
+- [ ] **6.2.2** Check for dynamic port allocation with wrong bind address
   ```bash
   grep -r "Listen.*:0" internal/**/*_test.go
   grep -r "net.Listen" internal/**/*_test.go
   # Verify ALL use "127.0.0.1:0" pattern
   ```
 
-- [ ] **5.1.3**: Check NewTestConfig() implementation
+- [ ] **6.2.3** Check NewTestConfig() implementation
   ```go
   // internal/shared/config/config_test_helper.go
   func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
@@ -237,7 +276,7 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
   }
   ```
 
-- [ ] **5.1.4**: Add runtime validation
+- [ ] **6.2.4** Add runtime validation
   ```go
   // internal/template/server/listener/listener.go
   func validateTestBindAddress(addr string) error {
@@ -251,12 +290,9 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
   }
   ```
 
-### Task 5.2: Create Comprehensive Prevention Strategy
+### Task 6.3: Create Comprehensive Prevention Strategy
 
-**BLOCKING**: Prevent future regressions
-
-**Sub-Tasks**:
-- [ ] **5.2.1**: Update anti-patterns documentation
+- [ ] **6.3.1** Update anti-patterns documentation
   ```markdown
   # docs/cipher-im-migration/WINDOWS-FIREWALL-ROOT-CAUSE.md
 
@@ -277,7 +313,7 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
   5. Add runtime validation to reject invalid bind addresses
   ```
 
-- [ ] **6.1.2** Add runtime validation in NewTestConfig
+- [ ] **6.3.2** Add runtime validation in NewTestConfig
   ```go
   func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
       if bindAddr == "0.0.0.0" || bindAddr == "" {
@@ -287,12 +323,12 @@ cipher-im ✅ → jose-ja → pki-ca → identity (authz, idp, rs, rp, spa) → 
   }
   ```
 
-- [ ] **6.1.3** Update `.github/instructions/06-02.anti-patterns.instructions.md`
+- [ ] **6.3.3** Update `.github/instructions/06-02.anti-patterns.instructions.md`
   - Add "Windows Firewall Exception Prevention" section
   - Document: `&ServerSettings{}` partial initialization pattern is UNSAFE
   - Document: ALWAYS use `NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)`
 
-- [ ] **6.1.4** Commit: `docs(anti-patterns): document Windows Firewall root cause and prevention`
+- [ ] **6.3.4** Commit: `docs(anti-patterns): document Windows Firewall root cause and prevention`
 
 ---
 
