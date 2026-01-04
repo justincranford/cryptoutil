@@ -165,7 +165,6 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 func TestE2E_RotateContentKey(t *testing.T) {
 	t.Parallel()
 
-
 	// Step 1: Send baseline message (creates first content key).
 	user1 := registerServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_content", "Pass1234!")
 	user2 := registerServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_content", "Pass1234!")

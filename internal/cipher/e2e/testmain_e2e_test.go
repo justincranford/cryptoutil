@@ -28,7 +28,6 @@ var (
 	testCipherIMServer     *server.CipherIMServer
 	baseURL                string
 	adminURL               string
-
 )
 
 // TestMain initializes shared resources once for all E2E tests.

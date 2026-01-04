@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/cipher/repository"
@@ -20,6 +20,17 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
+
+// cleanTestDBWithError truncates test tables and returns error if any.
+func cleanTestDBWithError(db *gorm.DB) error {
+	tables := []string{"messages", "users", "messages_recipient_jwks"}
+	for _, table := range tables {
+		if err := db.Exec("DELETE FROM " + table).Error; err != nil {
+			return fmt.Errorf("failed to clean table %s: %w", table, err)
+		}
+	}
+	return nil
+}
 
 // initTestConfig creates a properly configured AppConfig for testing.
 func initTestConfig() *config.AppConfig {
@@ -49,14 +60,21 @@ func createHTTPClient(t *testing.T) *http.Client {
 }
 
 // createTestCipherIMServer creates a full CipherIMServer for testing using shared resources.
-// Returns the server instance, public URL, and admin URL.
-func createTestCipherIMServer(t *testing.T, db *gorm.DB) (*server.CipherIMServer, string, string) {
-	t.Helper()
-
+// Returns the server instance, public URL, admin URL, and error.
+// Note: Caller is responsible for calling server.Shutdown() when done.
+func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, string, error) {
 	ctx := context.Background()
 
 	// Clean database for test isolation.
-	cleanTestDB(t)
+	if err := cleanTestDBWithError(db); err != nil {
+		return nil, "", "", fmt.Errorf("failed to clean test DB: %w", err)
+	}
+
+	// Generate JWT secret for this server instance.
+	jwtSecretID, err := googleUuid.NewV7()
+	if err != nil {
+		return nil, "", "", fmt.Errorf("failed to generate JWT secret: %w", err)
+	}
 
 	// Create AppConfig with test settings.
 	cfg := &config.AppConfig{
@@ -73,15 +91,17 @@ func createTestCipherIMServer(t *testing.T, db *gorm.DB) (*server.CipherIMServer
 			TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
 			CORSAllowedOrigins:    []string{},
 			OTLPService:           "cipher-im-server-test",
-			OTLPEndpoint:          "",
+			OTLPEndpoint:          "grpc://localhost:4317",
 			LogLevel:              "error",
 		},
-		JWTSecret: testJWTSecret,
+		JWTSecret: jwtSecretID.String(),
 	}
 
 	// Create full server.
-	cipherServer, err := server.New(ctx, cfg, testDB, repository.DatabaseTypeSQLite)
-	require.NoError(t, err)
+	cipherServer, err := server.New(ctx, cfg, db, repository.DatabaseTypeSQLite)
+	if err != nil {
+		return nil, "", "", fmt.Errorf("failed to create CipherIMServer: %w", err)
+	}
 
 	// Start server in background.
 	errChan := make(chan error, 1)
@@ -113,30 +133,21 @@ func createTestCipherIMServer(t *testing.T, db *gorm.DB) (*server.CipherIMServer
 
 		select {
 		case err := <-errChan:
-			require.NoError(t, err)
+			return nil, "", "", fmt.Errorf("server start error: %w", err)
 		case <-time.After(waitInterval):
 		}
 	}
 
 	if publicPort == 0 {
-		t.Fatal("createTestCipherIMServer: public server did not bind to port")
+		return nil, "", "", fmt.Errorf("public server did not bind to port")
 	}
 
 	if adminPort == 0 {
-		t.Fatal("createTestCipherIMServer: admin server did not bind to port")
+		return nil, "", "", fmt.Errorf("admin server did not bind to port")
 	}
 
 	publicURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, publicPort)
 	adminURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, adminPort)
 
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-
-		if err := cipherServer.Shutdown(ctx); err != nil {
-			t.Logf("createTestCipherIMServer cleanup: failed to shutdown server: %v", err)
-		}
-	})
-
-	return cipherServer, publicURL, adminURL
+	return cipherServer, publicURL, adminURL, nil
 }

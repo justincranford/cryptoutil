@@ -12,7 +12,6 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -21,26 +20,25 @@ import (
 
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilTemplateBarrier "cryptoutil/internal/template/server/barrier"
 )
 
 var (
-	testDB                  *gorm.DB
-	testSQLDB               *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection
-	testUserRepo            *repository.UserRepository
-	testMessageRepo         *repository.MessageRepository
-	testMessageRecipientJWK *repository.MessageRecipientJWKRepository
-	testBarrierService      *cryptoutilTemplateBarrier.BarrierService
-	testJWKGenService       *cryptoutilJose.JWKGenService
-	testTelemetryService    *cryptoutilTelemetry.TelemetryService
-	testJWTSecret           string
-	testTLSCfg              *cryptoutilTLSGenerator.TLSGeneratedSettings
+	testDB    *gorm.DB
+	testSQLDB *sql.DB
+
+	testCipherIMServer *server.CipherIMServer
+	baseURL            string
+	adminURL           string
+
+	testJWKGenService    *cryptoutilJose.JWKGenService
+	testTelemetryService *cryptoutilTelemetry.TelemetryService
+
+	testTLSCfg *cryptoutilTLSGenerator.TLSGeneratedSettings
 )
 
 func TestMain(m *testing.M) {
@@ -100,42 +98,7 @@ func TestMain(m *testing.M) {
 	}
 	defer testJWKGenService.Shutdown() // LIFO: cleanup JWK service.
 
-	// Initialize Barrier Service.
-	// Generate a simple test unseal key using JWE with A256GCM encryption and A256KW key wrapping.
-	_, testUnsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
-	if err != nil {
-		panic("TestMain: failed to generate test unseal JWK: " + err.Error())
-	}
-
-	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{testUnsealJWK})
-	if err != nil {
-		panic("TestMain: failed to create unseal keys service: " + err.Error())
-	}
-	defer unsealKeysService.Shutdown() // LIFO: cleanup unseal service.
-
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
-	if err != nil {
-		panic("TestMain: failed to create barrier repository: " + err.Error())
-	}
-	defer barrierRepo.Shutdown() // LIFO: cleanup barrier repository.
-
-	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
-	if err != nil {
-		panic("TestMain: failed to create barrier service: " + err.Error())
-	}
-	defer testBarrierService.Shutdown() // LIFO: cleanup barrier service.
-
-	// Defer database close (executes AFTER m.Run() completes, when all parallel tests finished).
-	defer func() {
-		_ = testSQLDB.Close()
-	}()
-
-	// Initialize repositories.
-	testUserRepo = repository.NewUserRepository(testDB)
-	testMessageRepo = repository.NewMessageRepository(testDB)
-	testMessageRecipientJWK = repository.NewMessageRecipientJWKRepository(testDB, testBarrierService)
-
-	// Generate TLS config.
+	// Generate TLS config for HTTP client (server creates its own TLS config).
 	testTLSCfg, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
@@ -145,13 +108,17 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to generate TLS config: " + err.Error())
 	}
 
-	// Generate JWT secret.
-	jwtSecretID, err := googleUuid.NewV7()
+	// Create shared CipherIMServer (includes barrier service, repositories, both public and admin servers).
+	testCipherIMServer, baseURL, adminURL, err = createTestCipherIMServer(testDB)
 	if err != nil {
-		panic("TestMain: failed to generate JWT secret: " + err.Error())
+		panic("TestMain: failed to create test cipher-im server: " + err.Error())
 	}
 
-	testJWTSecret = jwtSecretID.String()
+	// Defer database close and server shutdown (LIFO: executes AFTER m.Run() completes).
+	defer func() {
+		_ = testSQLDB.Close()
+	}()
+	defer testCipherIMServer.Shutdown(context.Background())
 
 	// Record start time for benchmark.
 	startTime := time.Now()
@@ -192,7 +159,9 @@ func cleanTestDB(t *testing.T) {
 	}
 }
 
-// createTestPublicServer now uses shared resources.
+// createTestPublicServer creates PublicServer with its own dependencies for test isolation.
+// Note: This old helper creates PublicServer without barrier service.
+// For full server testing with both public and admin servers, use shared testCipherIMServer from TestMain.
 func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, string) {
 	t.Helper()
 
@@ -201,18 +170,32 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	// Clean database for test isolation.
 	cleanTestDB(t)
 
+	// Create repositories for this server instance.
+	userRepo := repository.NewUserRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+	// Create messageRecipientJWKRepo with nil barrier service (repo doesn't actually need barrier service for basic operations).
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
+
+	// Generate JWT secret for this server instance.
+	jwtSecretID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+	jwtSecret := jwtSecretID.String()
+
 	// Use port 0 for dynamic allocation.
 	const testPort = 0
 
+	// Create PublicServer without barrier service (passed as nil).
+	// Barrier service requires unseal keys and adds significant setup complexity.
+	// Tests needing barrier service should use testCipherIMServer from TestMain.
 	publicServer, err := server.NewPublicServer(
 		ctx,
 		testPort,
-		testUserRepo,
-		testMessageRepo,
-		testMessageRecipientJWK,
+		userRepo,
+		messageRepo,
+		messageRecipientJWKRepo, // messageRecipientJWKRepo created with nil barrier service
 		testJWKGenService,
-		testBarrierService,
-		testJWTSecret,
+		nil, // barrierService - nil for lightweight testing
+		jwtSecret,
 		testTLSCfg,
 	)
 	require.NoError(t, err)

@@ -28,7 +28,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
@@ -50,7 +50,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	ctx := context.Background()
 	db := initTestDB(t)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
@@ -71,7 +71,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	ctx := context.Background()
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
 
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
@@ -114,7 +114,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	db := initTestDB(t)
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
@@ -270,3 +270,4 @@ func TestStart_ContextCancelled(t *testing.T) {
 
 	_ = srv.Shutdown(context.Background())
 }
+
