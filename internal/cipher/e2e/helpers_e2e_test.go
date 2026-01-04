@@ -26,7 +26,11 @@ import (
 )
 
 // testPort uses port 0 for dynamic allocation (prevents port conflicts in tests).
-const testPort = 0
+const (
+	testPort        = 0
+	maxWaitAttempts = 50
+	waitInterval    = 100 * time.Millisecond
+)
 
 var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String() // TODO Use random secret in DB, protected at rest with barrier layer encryption
 
@@ -75,25 +79,7 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 	ctx := context.Background()
 
 	// Create AppConfig with test settings.
-	cfg := &config.AppConfig{
-		ServerSettings: cryptoutilConfig.ServerSettings{
-			BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
-			BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
-			BindPublicPort:        0, // Dynamic allocation
-			BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
-			BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
-			BindPrivatePort:       0, // Dynamic allocation
-			TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
-			TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-			TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
-			TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
-			CORSAllowedOrigins:    []string{},
-			OTLPService:           "cipher-im-e2e-test",
-			OTLPEndpoint:          "grpc://localhost:4317",
-			LogLevel:              "error",
-		},
-		JWTSecret: testJWTSecret,
-	}
+	cfg := RequireNewAppConfigForTest()
 
 	// Create full server.
 	cipherServer, err := server.New(ctx, cfg, db, repository.DatabaseTypeSQLite)
@@ -109,12 +95,6 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 			errChan <- startErr
 		}
 	}()
-
-	// Wait for both servers to bind to ports.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
 
 	var publicPort int
 	var adminPort int
@@ -144,17 +124,36 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 		return nil, "", "", fmt.Errorf("createTestCipherIMServer: admin server did not bind to port")
 	}
 
-	publicURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, publicPort)
-	adminURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, adminPort)
+	publicURL := fmt.Sprintf("https://%s:%d", cfg.BindPublicAddress, publicPort)
+	adminURL := fmt.Sprintf("https://%s:%d", cfg.BindPrivateAddress, adminPort)
 
 	return cipherServer, publicURL, adminURL, nil
 }
 
-// loginUser logs in a user and returns JWT token (delegates to template helper).
-func loginUser(t *testing.T, client *http.Client, baseURL, username, password string) string {
-	t.Helper()
+func RequireNewAppConfigForTest() *config.AppConfig {
+	return &config.AppConfig{
+		ServerSettings: *RequireNewServerTemplateSettingsConfigForTest(),
+		JWTSecret:      testJWTSecret,
+	}
+}
 
-	return cryptoutilE2E.LoginUser(t, client, baseURL, "/service/api/v1/users/login", username, password)
+func RequireNewServerTemplateSettingsConfigForTest() *cryptoutilConfig.ServerSettings {
+	return &cryptoutilConfig.ServerSettings{
+		BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
+		BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
+		BindPublicPort:        0,
+		BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
+		BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
+		BindPrivatePort:       0,
+		TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
+		TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
+		TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
+		TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
+		CORSAllowedOrigins:    []string{},
+		OTLPService:           "cipher-im-e2e-test",
+		OTLPEndpoint:          "grpc://localhost:4317",
+		LogLevel:              "error",
+	}
 }
 
 // registerServiceUser registers a user and returns the user with private key (delegates to template helper).
