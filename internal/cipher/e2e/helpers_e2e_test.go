@@ -77,10 +77,10 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 	// Create AppConfig with test settings.
 	cfg := &config.AppConfig{
 		ServerSettings: cryptoutilConfig.ServerSettings{
-			BindPublicProtocol:    cryptoutilMagic.ProtoHTTPS,
+			BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
 			BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
 			BindPublicPort:        0, // Dynamic allocation
-			BindPrivateProtocol:   cryptoutilMagic.ProtoHTTPS,
+			BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
 			BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
 			BindPrivatePort:       0, // Dynamic allocation
 			TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
@@ -88,11 +88,11 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 			TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
 			TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
 			CORSAllowedOrigins:    []string{},
+			OTLPService:           "cipher-im-e2e-test",
+			OTLPEndpoint:          "",
+			LogLevel:              "error",
 		},
-		OTLPService:  "cipher-im-e2e-test",
-		OTLPEndpoint: "",
-		LogLevel:     "error",
-		JWTSecret:    testJWTSecret,
+		JWTSecret: testJWTSecret,
 	}
 
 	// Create full server.
