@@ -21,7 +21,6 @@ import (
 
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
-	"cryptoutil/internal/cipher/server/config"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"

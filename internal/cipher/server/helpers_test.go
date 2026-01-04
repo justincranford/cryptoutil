@@ -47,95 +47,96 @@ func createHTTPClient(t *testing.T) *http.Client {
 		Timeout: cryptoutilMagic.CipherDefaultTimeout, // Increased for concurrent test execution.
 	}
 }
+
 // createTestCipherIMServer creates a full CipherIMServer for testing using shared resources.
 // Returns the server instance, public URL, and admin URL.
 func createTestCipherIMServer(t *testing.T, db *gorm.DB) (*server.CipherIMServer, string, string) {
-t.Helper()
+	t.Helper()
 
-ctx := context.Background()
+	ctx := context.Background()
 
-// Clean database for test isolation.
-cleanTestDB(t)
+	// Clean database for test isolation.
+	cleanTestDB(t)
 
-// Create AppConfig with test settings.
-cfg := &config.AppConfig{
-ServerSettings: cryptoutilConfig.ServerSettings{
-BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
-BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
-BindPublicPort:        0, // Dynamic allocation
-BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
-BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
-BindPrivatePort:       0, // Dynamic allocation
-TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
-TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
-TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
-CORSAllowedOrigins:    []string{},
-OTLPService:           "cipher-im-server-test",
-OTLPEndpoint:          "",
-LogLevel:              "error",
-},
-JWTSecret: testJWTSecret,
-}
+	// Create AppConfig with test settings.
+	cfg := &config.AppConfig{
+		ServerSettings: cryptoutilConfig.ServerSettings{
+			BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
+			BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
+			BindPublicPort:        0, // Dynamic allocation
+			BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
+			BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
+			BindPrivatePort:       0, // Dynamic allocation
+			TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
+			TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
+			TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
+			TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
+			CORSAllowedOrigins:    []string{},
+			OTLPService:           "cipher-im-server-test",
+			OTLPEndpoint:          "",
+			LogLevel:              "error",
+		},
+		JWTSecret: testJWTSecret,
+	}
 
-// Create full server.
-cipherServer, err := server.New(ctx, cfg, testDB, repository.DatabaseTypeSQLite)
-require.NoError(t, err)
+	// Create full server.
+	cipherServer, err := server.New(ctx, cfg, testDB, repository.DatabaseTypeSQLite)
+	require.NoError(t, err)
 
-// Start server in background.
-errChan := make(chan error, 1)
+	// Start server in background.
+	errChan := make(chan error, 1)
 
-go func() {
-if startErr := cipherServer.Start(ctx); startErr != nil {
-errChan <- startErr
-}
-}()
+	go func() {
+		if startErr := cipherServer.Start(ctx); startErr != nil {
+			errChan <- startErr
+		}
+	}()
 
-// Wait for both servers to bind to ports.
-const (
-maxWaitAttempts = 50
-waitInterval    = 100 * time.Millisecond
-)
+	// Wait for both servers to bind to ports.
+	const (
+		maxWaitAttempts = 50
+		waitInterval    = 100 * time.Millisecond
+	)
 
-var publicPort int
-var adminPort int
+	var publicPort int
+	var adminPort int
 
-for i := 0; i < maxWaitAttempts; i++ {
-publicPort = cipherServer.PublicPort()
+	for i := 0; i < maxWaitAttempts; i++ {
+		publicPort = cipherServer.PublicPort()
 
-adminPortValue, _ := cipherServer.AdminPort()
-adminPort = adminPortValue
+		adminPortValue, _ := cipherServer.AdminPort()
+		adminPort = adminPortValue
 
-if publicPort > 0 && adminPort > 0 {
-break
-}
+		if publicPort > 0 && adminPort > 0 {
+			break
+		}
 
-select {
-case err := <-errChan:
-require.NoError(t, err)
-case <-time.After(waitInterval):
-}
-}
+		select {
+		case err := <-errChan:
+			require.NoError(t, err)
+		case <-time.After(waitInterval):
+		}
+	}
 
-if publicPort == 0 {
-t.Fatal("createTestCipherIMServer: public server did not bind to port")
-}
+	if publicPort == 0 {
+		t.Fatal("createTestCipherIMServer: public server did not bind to port")
+	}
 
-if adminPort == 0 {
-t.Fatal("createTestCipherIMServer: admin server did not bind to port")
-}
+	if adminPort == 0 {
+		t.Fatal("createTestCipherIMServer: admin server did not bind to port")
+	}
 
-publicURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, publicPort)
-adminURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, adminPort)
+	publicURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, publicPort)
+	adminURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, adminPort)
 
-t.Cleanup(func() {
-ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-defer cancel()
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
 
-if err := cipherServer.Shutdown(ctx); err != nil {
-t.Logf("createTestCipherIMServer cleanup: failed to shutdown server: %v", err)
-}
-})
+		if err := cipherServer.Shutdown(ctx); err != nil {
+			t.Logf("createTestCipherIMServer cleanup: failed to shutdown server: %v", err)
+		}
+	})
 
-return cipherServer, publicURL, adminURL
+	return cipherServer, publicURL, adminURL
 }

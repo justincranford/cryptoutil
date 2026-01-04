@@ -11,16 +11,12 @@ import (
 	"os"
 	"testing"
 
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-
 	"cryptoutil/internal/cipher/server"
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
 )
 
 // Shared test resources (initialized once per package).
@@ -29,9 +25,10 @@ var (
 	sharedJWKGenService    *cryptoutilJose.JWKGenService
 	sharedTLSConfig        *cryptoutilTLSGenerator.TLSGeneratedSettings
 	sharedHTTPClient       *http.Client
-	testPublicServer       *server.PublicServer
+	testCipherIMServer     *server.CipherIMServer
 	baseURL                string
-	testBarrierService     *cryptoutilBarrier.BarrierService
+	adminURL               string
+
 )
 
 // TestMain initializes shared resources once for all E2E tests.
@@ -91,40 +88,13 @@ func TestMain(m *testing.M) {
 		_ = sqlDB.Close() // LIFO: close database after services using it.
 	}()
 
-	// Generate unseal JWK for testing.
-	_, unsealJWK, _, _, _, err := sharedJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	testCipherIMServer, baseURL, adminURL, err = createTestCipherIMServer(db)
 	if err != nil {
-		panic("failed to generate unseal JWK: " + err.Error())
-	}
-
-	// Initialize unseal keys service.
-	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
-	if err != nil {
-		panic("failed to create unseal service: " + err.Error())
-	}
-	defer unsealService.Shutdown() // LIFO: cleanup unseal service.
-
-	// Initialize barrier repository.
-	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(db)
-	if err != nil {
-		panic("failed to initialize barrier repository: " + err.Error())
-	}
-	defer barrierRepo.Shutdown() // LIFO: cleanup barrier repository.
-
-	// Initialize barrier service for E2E tests.
-	testBarrierService, err = cryptoutilBarrier.NewBarrierService(ctx, sharedTelemetryService, sharedJWKGenService, barrierRepo, unsealService)
-	if err != nil {
-		panic("failed to initialize test barrier service: " + err.Error())
-	}
-	defer testBarrierService.Shutdown() // LIFO: cleanup barrier service.
-
-	testPublicServer, baseURL, err = createTestPublicServer(db)
-	if err != nil {
-		panic("failed to create test public server: " + err.Error())
+		panic("failed to create test cipher-im server: " + err.Error())
 	}
 
 	defer func() {
-		_ = testPublicServer.Shutdown(context.Background())
+		_ = testCipherIMServer.Shutdown(context.Background())
 	}() // LIFO: shutdown server.
 
 	// Run all E2E tests.

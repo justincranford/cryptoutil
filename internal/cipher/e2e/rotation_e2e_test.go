@@ -7,142 +7,28 @@ package e2e_test
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
-
-	"cryptoutil/internal/cipher/repository"
-	"cryptoutil/internal/cipher/server"
-	"cryptoutil/internal/cipher/server/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
-
-// rotationTestServers holds both public and admin server instances for rotation tests.
-type rotationTestServers struct {
-	cipherIMServer *server.CipherIMServer
-	publicURL      string
-	adminURL       string
-	httpClient     *http.Client
-}
-
-// setupRotationTestServers creates a full cipher-im server (public + admin) for rotation E2E tests.
-func setupRotationTestServers(t *testing.T) *rotationTestServers {
-	t.Helper()
-
-	ctx := context.Background()
-
-	// Create test database.
-	db, err := initTestDB()
-	require.NoError(t, err, "failed to create test database")
-
-	// Generate random JWT secret for this test.
-	randomJWTSecret, err := cryptoutilRandom.GenerateString(32)
-	require.NoError(t, err, "failed to generate random JWT secret")
-
-	// Create AppConfig for cipher-im server (embedded ServerSettings).
-	cfg := &config.AppConfig{
-		JWTSecret: randomJWTSecret,
-	}
-	cfg.OTLPService = "cipher-im-e2e-rotation-test"
-	cfg.LogLevel = "error" // Suppress logs during tests.
-	cfg.OTLPEndpoint = "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + strconv.Itoa(int(cryptoutilMagic.DefaultPublicPortOtelCollectorGRPC))
-
-	// Create cipher-im server (public + admin servers).
-	cipherIMServer, err := server.New(ctx, cfg, db, repository.DatabaseTypeSQLite)
-	require.NoError(t, err, "failed to create cipher-im server")
-
-	// Start server in background.
-	errChan := make(chan error, 1)
-
-	go func() {
-		if startErr := cipherIMServer.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	// Wait for server to bind to ports (public).
-	const maxWaitAttempts = 50
-
-	const waitInterval = 100 * time.Millisecond
-
-	publicActualPort := 0
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		publicActualPort = cipherIMServer.PublicPort()
-		if publicActualPort > 0 {
-			break
-		}
-
-		time.Sleep(waitInterval)
-	}
-
-	require.Greater(t, publicActualPort, 0, "public server did not bind to port")
-
-	// Wait for admin server to bind.
-	adminActualPort := 0
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		port, portErr := cipherIMServer.AdminPort()
-		if portErr == nil && port > 0 {
-			adminActualPort = port
-
-			break
-		}
-
-		time.Sleep(waitInterval)
-	}
-
-	require.Greater(t, adminActualPort, 0, "admin server did not bind to port")
-
-	// Cleanup on test completion.
-	t.Cleanup(func() {
-		_ = cipherIMServer.Shutdown(context.Background())
-	})
-
-	publicURL := "https://" + cryptoutilMagic.IPv4Loopback + ":" + strconv.Itoa(publicActualPort)
-	adminURL := "https://" + cryptoutilMagic.IPv4Loopback + ":" + strconv.Itoa(adminActualPort)
-
-	// Create HTTP client for admin requests (insecure TLS for test environment).
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
-			},
-		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout,
-	}
-
-	return &rotationTestServers{
-		cipherIMServer: cipherIMServer,
-		publicURL:      publicURL,
-		adminURL:       adminURL,
-		httpClient:     httpClient,
-	}
-}
 
 // TestE2E_RotateRootKey tests manual root key rotation via admin API.
 func TestE2E_RotateRootKey(t *testing.T) {
 	t.Parallel()
 
-	testServers := setupRotationTestServers(t)
-
 	// Step 1: Send baseline message before rotation.
-	user1 := registerServiceUser(t, testServers.httpClient, testServers.publicURL, "user1_rotate_root", "Pass1234!")
-	user2 := registerServiceUser(t, testServers.httpClient, testServers.publicURL, "user2_rotate_root", "Pass1234!")
+	user1 := registerServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_root", "Pass1234!")
+	user2 := registerServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_root", "Pass1234!")
 
 	plaintext1 := "Message before root key rotation"
 
-	messageID1 := sendMessage(t, testServers.httpClient, testServers.publicURL, plaintext1, user1.Token, user2.ID)
+	messageID1 := sendMessage(t, sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Get initial barrier keys status.
-	initialStatus := getBarrierKeysStatus(t, testServers.httpClient, testServers.adminURL)
+	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminURL)
 
 	initialRootKeyUUID, ok := initialStatus["root_key"].(map[string]any)["uuid"].(string)
 	require.True(t, ok, "initial root_key uuid should be string")
@@ -151,7 +37,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 3: Rotate root key via admin API.
 	rotationReason := "E2E test: manual root key rotation"
 
-	rotateResponse := rotateRootKey(t, testServers.httpClient, testServers.adminURL, rotationReason)
+	rotateResponse := rotateRootKey(t, sharedHTTPClient, adminURL, rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -170,7 +56,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	require.Greater(t, rotatedAt, float64(0), "rotated_at timestamp should be positive")
 
 	// Step 4: Verify status endpoint reflects new root key.
-	updatedStatus := getBarrierKeysStatus(t, testServers.httpClient, testServers.adminURL)
+	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminURL)
 
 	updatedRootKeyUUID, ok := updatedStatus["root_key"].(map[string]any)["uuid"].(string)
 	require.True(t, ok, "updated root_key uuid should be string")
@@ -179,11 +65,11 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 5: Send new message after rotation (uses new root key chain).
 	plaintext2 := "Message after root key rotation"
 
-	messageID2 := sendMessage(t, testServers.httpClient, testServers.publicURL, plaintext2, user1.Token, user2.ID)
+	messageID2 := sendMessage(t, sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify user2 can decrypt BOTH old and new messages (backward compatibility).
-	messages := receiveMessagesService(t, testServers.httpClient, testServers.publicURL, user2.Token)
+	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
 	// Find both messages in received set.
@@ -210,19 +96,17 @@ func TestE2E_RotateRootKey(t *testing.T) {
 func TestE2E_RotateIntermediateKey(t *testing.T) {
 	t.Parallel()
 
-	testServers := setupRotationTestServers(t)
-
 	// Step 1: Send baseline message before rotation.
-	user1 := registerServiceUser(t, testServers.httpClient, testServers.publicURL, "user1_rotate_intermediate", "Pass1234!")
-	user2 := registerServiceUser(t, testServers.httpClient, testServers.publicURL, "user2_rotate_intermediate", "Pass1234!")
+	user1 := registerServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_intermediate", "Pass1234!")
+	user2 := registerServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_intermediate", "Pass1234!")
 
 	plaintext1 := "Message before intermediate key rotation"
 
-	messageID1 := sendMessage(t, testServers.httpClient, testServers.publicURL, plaintext1, user1.Token, user2.ID)
+	messageID1 := sendMessage(t, sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Get initial intermediate key status.
-	initialStatus := getBarrierKeysStatus(t, testServers.httpClient, testServers.adminURL)
+	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminURL)
 
 	initialIntermediateKeyUUID, ok := initialStatus["intermediate_key"].(map[string]any)["uuid"].(string)
 	require.True(t, ok, "initial intermediate_key uuid should be string")
@@ -231,7 +115,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 3: Rotate intermediate key via admin API.
 	rotationReason := "E2E test: manual intermediate key rotation"
 
-	rotateResponse := rotateIntermediateKey(t, testServers.httpClient, testServers.adminURL, rotationReason)
+	rotateResponse := rotateIntermediateKey(t, sharedHTTPClient, adminURL, rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -242,7 +126,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	require.NotEqual(t, oldKeyUUID, newKeyUUID, "new intermediate key should be different from old key")
 
 	// Step 4: Verify status reflects new intermediate key.
-	updatedStatus := getBarrierKeysStatus(t, testServers.httpClient, testServers.adminURL)
+	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminURL)
 
 	updatedIntermediateKeyUUID, ok := updatedStatus["intermediate_key"].(map[string]any)["uuid"].(string)
 	require.True(t, ok, "updated intermediate_key uuid should be string")
@@ -251,11 +135,11 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 5: Send new message after rotation.
 	plaintext2 := "Message after intermediate key rotation"
 
-	messageID2 := sendMessage(t, testServers.httpClient, testServers.publicURL, plaintext2, user1.Token, user2.ID)
+	messageID2 := sendMessage(t, sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify backward compatibility.
-	messages := receiveMessagesService(t, testServers.httpClient, testServers.publicURL, user2.Token)
+	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
 	var foundOldMessage, foundNewMessage bool
@@ -281,21 +165,20 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 func TestE2E_RotateContentKey(t *testing.T) {
 	t.Parallel()
 
-	testServers := setupRotationTestServers(t)
 
 	// Step 1: Send baseline message (creates first content key).
-	user1 := registerServiceUser(t, testServers.httpClient, testServers.publicURL, "user1_rotate_content", "Pass1234!")
-	user2 := registerServiceUser(t, testServers.httpClient, testServers.publicURL, "user2_rotate_content", "Pass1234!")
+	user1 := registerServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_content", "Pass1234!")
+	user2 := registerServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_content", "Pass1234!")
 
 	plaintext1 := "Message before content key rotation"
 
-	messageID1 := sendMessage(t, testServers.httpClient, testServers.publicURL, plaintext1, user1.Token, user2.ID)
+	messageID1 := sendMessage(t, sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Rotate content key (elastic rotation - creates new key, keeps old).
 	rotationReason := "E2E test: manual content key rotation"
 
-	rotateResponse := rotateContentKey(t, testServers.httpClient, testServers.adminURL, rotationReason)
+	rotateResponse := rotateContentKey(t, sharedHTTPClient, adminURL, rotationReason)
 
 	// Content key rotation returns new_key_uuid only (no old_key_uuid - elastic rotation).
 	newKeyUUID, ok := rotateResponse["new_key_uuid"].(string)
@@ -312,11 +195,11 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	// Step 3: Send new message after rotation (uses new content key).
 	plaintext2 := "Message after content key rotation"
 
-	messageID2 := sendMessage(t, testServers.httpClient, testServers.publicURL, plaintext2, user1.Token, user2.ID)
+	messageID2 := sendMessage(t, sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 4: Verify both messages decrypt correctly (elastic rotation preserves old keys).
-	messages := receiveMessagesService(t, testServers.httpClient, testServers.publicURL, user2.Token)
+	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
 	var foundOldMessage, foundNewMessage bool
@@ -342,10 +225,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	t.Parallel()
 
-	testServers := setupRotationTestServers(t)
-
 	// Step 1: Get initial status (root + intermediate keys auto-initialized).
-	initialStatus := getBarrierKeysStatus(t, testServers.httpClient, testServers.adminURL)
+	initialStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminURL)
 
 	// Verify root_key fields.
 	rootKey, ok := initialStatus["root_key"].(map[string]any)
@@ -376,10 +257,10 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	require.Greater(t, intermediateKeyCreatedAt, float64(0), "intermediate_key created_at should be positive timestamp")
 
 	// Step 2: Rotate root key.
-	rotateRootKey(t, testServers.httpClient, testServers.adminURL, "E2E test: verify status update after rotation")
+	rotateRootKey(t, sharedHTTPClient, adminURL, "E2E test: verify status update after rotation")
 
 	// Step 3: Get updated status.
-	updatedStatus := getBarrierKeysStatus(t, testServers.httpClient, testServers.adminURL)
+	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminURL)
 
 	// Verify root_key UUID changed.
 	updatedRootKey, ok := updatedStatus["root_key"].(map[string]any)

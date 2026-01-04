@@ -47,10 +47,10 @@ func createTestPublicServer(db *gorm.DB) (*server.PublicServer, string, error) {
 
 	userRepo := repository.NewUserRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, testBarrierService)
 
-	// Create server using shared JWK generation service and TLS configuration.
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, messageRecipientJWKRepo, sharedJWKGenService, testBarrierService, testJWTSecret, sharedTLSConfig)
+	// Note: This old helper creates PublicServer without barrier service.
+	// For full server testing, use createTestCipherIMServer() instead.
+	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, nil, sharedJWKGenService, nil, testJWTSecret, sharedTLSConfig)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create PublicServer: %w", err)
 	}
@@ -89,7 +89,7 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 			TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
 			CORSAllowedOrigins:    []string{},
 			OTLPService:           "cipher-im-e2e-test",
-			OTLPEndpoint:          "",
+			OTLPEndpoint:          "grpc://localhost:4317",
 			LogLevel:              "error",
 		},
 		JWTSecret: testJWTSecret,
