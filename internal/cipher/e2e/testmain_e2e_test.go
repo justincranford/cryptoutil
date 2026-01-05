@@ -6,7 +6,6 @@ package e2e_test
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os"
@@ -18,7 +17,7 @@ import (
 	"cryptoutil/internal/cipher/server/config"
 	cipherTesting "cryptoutil/internal/cipher/testing"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 )
 
 // Shared test resources (initialized once per package).
@@ -48,20 +47,9 @@ func TestMain(m *testing.M) {
 	adminBaseURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPrivateProtocol, sharedAppConfig.BindPrivateAddress, testCipherIMServer.AdminPort())
 
 	// Create HTTP client with test TLS config.
-	sharedHTTPClient = NewClientForTest()
+	sharedHTTPClient = cryptoutilTLS.NewClientForTest()
 
 	exitCode := m.Run()
 
 	os.Exit(exitCode)
-}
-
-func NewClientForTest() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
-			},
-		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout,
-	}
 }
