@@ -13,11 +13,10 @@ import (
 	"testing"
 
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
-)
 
-import (
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
+
 	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

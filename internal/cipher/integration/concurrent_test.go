@@ -15,8 +15,10 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 
 	"cryptoutil/internal/cipher/domain"
+	"cryptoutil/internal/cipher/repository"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
