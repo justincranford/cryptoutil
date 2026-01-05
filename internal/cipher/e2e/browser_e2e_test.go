@@ -2,7 +2,7 @@
 //
 //
 
-package e2e_test
+package e2e_test_test
 
 import (
 	"context"

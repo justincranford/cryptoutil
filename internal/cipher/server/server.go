@@ -207,6 +207,12 @@ func (s *CipherIMServer) PublicPort() int {
 	return s.app.PublicPort()
 }
 
+// ActualPort returns the actual public server port (alias for PublicPort).
+// Implements ServerWithActualPort interface for e2e testing utilities.
+func (s *CipherIMServer) ActualPort() int {
+	return s.PublicPort()
+}
+
 // AdminPort returns the actual admin server port.
 func (s *CipherIMServer) AdminPort() (int, error) {
 	//nolint:wrapcheck // Pass-through to template, wrapping not needed.

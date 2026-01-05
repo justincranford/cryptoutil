@@ -5,112 +5,25 @@
 package e2e_test
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
-	"cryptoutil/internal/cipher/server/config"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
-)
-
-// testPort uses port 0 for dynamic allocation (prevents port conflicts in tests).
-const (
-	testPort        = 0
-	maxWaitAttempts = 50
-	waitInterval    = 100 * time.Millisecond
 )
 
 var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String() // TODO Use random secret in DB, protected at rest with barrier layer encryption
 
-func RequireNewAppConfigForTest() *config.AppConfig {
-	return &config.AppConfig{
-		ServerSettings: *RequireNewServerTemplateSettingsConfigForTest(),
-		JWTSecret:      testJWTSecret,
-	}
-}
-
-func RequireNewServerTemplateSettingsConfigForTest() *cryptoutilConfig.ServerSettings {
-	settings := cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-e2e-test")
-	return settings
-}
-
-// initTestDB creates an in-memory SQLite database with schema using template helper.
-func initTestDB() (*gorm.DB, error) {
-	ctx := context.Background()
-
-	applyMigrations := func(sqlDB *sql.DB) error {
-		return repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
-	}
-
-	return cryptoutilE2E.InitTestDB(ctx, applyMigrations)
-}
-
 // createTestCipherIMServer creates a full CipherIMServer for testing using shared resources from TestMain.
 // Returns the server instance, public URL, and admin URL.
 func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, string, error) {
-	ctx := context.Background()
-
-	// Create AppConfig with test settings.
-	cfg := RequireNewAppConfigForTest()
-
-	// Create full server.
-	cipherServer, err := server.New(ctx, cfg, db, repository.DatabaseTypeSQLite)
-	if err != nil {
-		return nil, "", "", fmt.Errorf("failed to create cipher server: %w", err)
-	}
-
-	// Start server in background.
-	errChan := make(chan error, 1)
-
-	go func() {
-		if startErr := cipherServer.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	var publicPort int
-	var adminPort int
-
-	for range maxWaitAttempts {
-		publicPort = cipherServer.PublicPort()
-
-		adminPortValue, _ := cipherServer.AdminPort()
-		adminPort = adminPortValue
-
-		if publicPort > 0 && adminPort > 0 {
-			break
-		}
-
-		select {
-		case err := <-errChan:
-			return nil, "", "", fmt.Errorf("server startup error: %w", err)
-		case <-time.After(waitInterval):
-		}
-	}
-
-	if publicPort == 0 {
-		return nil, "", "", fmt.Errorf("createTestCipherIMServer: public server did not bind to port")
-	}
-
-	if adminPort == 0 {
-		return nil, "", "", fmt.Errorf("createTestCipherIMServer: admin server did not bind to port")
-	}
-
-	publicURL := fmt.Sprintf("https://%s:%d", cfg.BindPublicAddress, publicPort)
-	adminURL := fmt.Sprintf("https://%s:%d", cfg.BindPrivateAddress, adminPort)
-
-	return cipherServer, publicURL, adminURL, nil
+	cfg := newTestAppConfig("cipher-im-e2e-test", testJWTSecret)
+	return createTestCipherIMServerInternal(db, cfg)
 }
 
 // sendMessage sends a message to one or more receivers.

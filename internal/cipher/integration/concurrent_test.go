@@ -22,21 +22,7 @@ import (
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
 	"cryptoutil/internal/cipher/server/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
-
-// initTestConfig returns an AppConfig with all required settings for tests.
-func initTestConfig() *config.AppConfig {
-	cfg := config.DefaultAppConfig()
-	cfg.BindPublicPort = 0                                                          // Dynamic port
-	cfg.BindPrivatePort = 0                                                         // Dynamic port
-	cfg.OTLPService = "cipher-im-integration"                                       // Required
-	cfg.LogLevel = "info"                                                           // Required
-	cfg.OTLPEndpoint = "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317" // Required
-	cfg.OTLPEnabled = false                                                         // Disable in tests
-
-	return cfg
-}
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
 // Tests robustness of database transactions, encryption/decryption, and race condition prevention.
@@ -49,7 +35,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create server instance (this will apply migrations via repository.ApplyMigrations).
-	cfg := initTestConfig()
+	cfg := NewTestConfig("cipher-im-integration")
 	srv, err := server.New(ctx, cfg, db, repository.DatabaseTypePostgreSQL)
 	require.NoError(t, err)
 	require.NotNil(t, srv)
