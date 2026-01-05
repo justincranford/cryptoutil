@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
+	"cryptoutil/internal/cipher/integration"
 	"cryptoutil/internal/cipher/server"
 	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
@@ -21,9 +22,9 @@ var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String() // TODO Use ran
 
 // createTestCipherIMServer creates a full CipherIMServer for testing using shared resources from TestMain.
 // Returns the server instance, public URL, and admin URL.
+// Delegates to exported integration.CreateTestCipherIMServer for consistency.
 func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, string, error) {
-	cfg := newTestAppConfig("cipher-im-e2e-test", testJWTSecret)
-	return createTestCipherIMServerInternal(db, cfg)
+	return integration.CreateTestCipherIMServer(db, testJWTSecret)
 }
 
 // sendMessage sends a message to one or more receivers.

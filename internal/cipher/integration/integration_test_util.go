@@ -6,6 +6,7 @@ package integration
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -14,22 +15,10 @@ import (
 	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/cipher/server/config"
+	"cryptoutil/internal/cipher/repository"
+	"cryptoutil/internal/cipher/server"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
-
-// NewTestConfig returns an AppConfig with test-friendly settings.
-// Reuses template helper for consistent ServerSettings across all cipher tests.
-func NewTestConfig(serviceName string) *config.AppConfig {
-	cfg := config.DefaultAppConfig()
-
-	// Override with test-specific settings using template helper.
-	serverSettings := cryptoutilE2E.NewTestServerSettingsWithService(serviceName)
-	cfg.ServerSettings = *serverSettings
-
-	return cfg
-}
 
 // SetupSharedPostgresContainer initializes a PostgreSQL test-container for integration tests.
 // Returns the container and connection string for reuse across tests.
@@ -89,4 +78,55 @@ func VerifyPostgresConnection(connStr string) error {
 	}
 
 	return nil
+}
+
+// InitSharedCipherIMServer creates a full CipherIMServer with PostgreSQL for integration tests.
+// This should be called from TestMain to amortize server startup cost across all tests.
+func InitSharedCipherIMServer(ctx context.Context, db *gorm.DB) (*server.CipherIMServer, error) {
+	cfg := NewTestConfig("cipher-im-integration")
+
+	// Create full server instance (applies migrations via repository.ApplyMigrations).
+	cipherServer, err := server.New(ctx, cfg, db, repository.DatabaseTypePostgreSQL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cipher server: %w", err)
+	}
+
+	return cipherServer, nil
+}
+
+// RunTestMainSetup performs standard TestMain setup for cipher integration tests with PostgreSQL.
+// Returns the initialized server and cleanup function.
+//
+// This is the reusable core of TestMain logic extracted for consistency.
+// Caller should invoke cleanup via defer and call os.Exit(m.Run()).
+func RunTestMainSetup(ctx context.Context) (*server.CipherIMServer, *gorm.DB, func(), error) {
+	// PostgreSQL test-container setup.
+	container, connStr, err := SetupSharedPostgresContainer(ctx)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to setup PostgreSQL container: %w", err)
+	}
+
+	cleanup := func() {
+		_ = container.Terminate(ctx)
+	}
+
+	if err := VerifyPostgresConnection(connStr); err != nil {
+		cleanup()
+		return nil, nil, nil, fmt.Errorf("failed to verify PostgreSQL connection: %w", err)
+	}
+
+	db, err := gorm.Open(postgresDriver.Open(connStr), &gorm.Config{})
+	if err != nil {
+		cleanup()
+		return nil, nil, nil, fmt.Errorf("failed to open database connection: %w", err)
+	}
+
+	// Create full cipher-im server.
+	srv, err := InitSharedCipherIMServer(ctx, db)
+	if err != nil {
+		cleanup()
+		return nil, nil, nil, fmt.Errorf("failed to create cipher server: %w", err)
+	}
+
+	return srv, db, cleanup, nil
 }

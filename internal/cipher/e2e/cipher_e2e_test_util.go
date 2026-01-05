@@ -4,89 +4,28 @@
 package e2e_test
 
 import (
-	"context"
-	"database/sql"
-	"fmt"
-
 	"gorm.io/gorm"
 
+	"cryptoutil/internal/cipher/integration"
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
 	"cryptoutil/internal/cipher/server/config"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
 
 // newTestAppConfig creates an AppConfig with test-friendly settings.
-// Reuses template helper for consistent ServerSettings.
+// Delegates to exported integration.NewTestAppConfig for consistency.
 func newTestAppConfig(serviceName, jwtSecret string) *config.AppConfig {
-	return &config.AppConfig{
-		ServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService(serviceName),
-		JWTSecret:      jwtSecret,
-	}
+	return integration.NewTestAppConfig(serviceName, jwtSecret)
 }
 
 // initTestDB creates an in-memory SQLite database with cipher schema.
-// Reuses template helper for consistent SQLite configuration.
+// Delegates to exported integration.InitTestDB for consistency.
 func initTestDB() (*gorm.DB, error) {
-	ctx := context.Background()
-
-	applyMigrations := func(sqlDB *sql.DB) error {
-		return repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
-	}
-
-	return cryptoutilE2E.InitTestDB(ctx, applyMigrations)
+	return integration.InitTestDB()
 }
 
 // createTestCipherIMServerInternal creates a full CipherIMServer for testing.
-// Returns the server instance, public URL, and admin URL.
-//
-// This helper encapsulates:
-// - Server creation with test config
-// - Background startup
-// - Port allocation waiting
-// - URL construction
+// Delegates to exported integration.CreateTestCipherIMServerInternal for consistency.
 func createTestCipherIMServerInternal(db *gorm.DB, cfg *config.AppConfig) (*server.CipherIMServer, string, string, error) {
-	ctx := context.Background()
-
-	// Create full server.
-	cipherServer, err := server.New(ctx, cfg, db, repository.DatabaseTypeSQLite)
-	if err != nil {
-		return nil, "", "", fmt.Errorf("failed to create cipher server: %w", err)
-	}
-
-	// Start server in background.
-	errChan := cryptoutilE2E.StartServerAsync(ctx, cipherServer)
-
-	// Wait for public server to bind.
-	publicURL, err := cryptoutilE2E.WaitForServerPort(cipherServer, cryptoutilE2E.DefaultServerWaitParams())
-	if err != nil {
-		return nil, "", "", fmt.Errorf("public server failed to bind: %w", err)
-	}
-
-	// Wait for admin server to bind (cipher has separate admin port).
-	adminPort, _ := cipherServer.AdminPort()
-	if adminPort == 0 {
-		// Admin server might still be binding, wait a bit more.
-		const maxAdminWaitAttempts = 50
-		for i := 0; i < maxAdminWaitAttempts; i++ {
-			adminPort, _ = cipherServer.AdminPort()
-			if adminPort > 0 {
-				break
-			}
-
-			select {
-			case err := <-errChan:
-				return nil, "", "", fmt.Errorf("server startup error: %w", err)
-			default:
-			}
-		}
-
-		if adminPort == 0 {
-			return nil, "", "", fmt.Errorf("admin server did not bind to port")
-		}
-	}
-
-	adminURL := fmt.Sprintf("https://%s:%d", cfg.BindPrivateAddress, adminPort)
-
-	return cipherServer, publicURL, adminURL, nil
+	return integration.CreateTestCipherIMServerInternal(db, cfg, repository.DatabaseTypeSQLite)
 }

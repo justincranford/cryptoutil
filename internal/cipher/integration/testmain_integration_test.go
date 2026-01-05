@@ -29,9 +29,9 @@ var (
 	sharedServer      *server.CipherIMServer
 )
 
-// TestMain initializes shared PostgreSQL container and server once for all integration tests.
+// TestMain initializes shared PostgreSQL container and full cipher-im server once for all integration tests.
 // This significantly reduces test execution time by amortizing container startup (3-4s)
-// across all integration tests instead of per-test.
+// and server initialization across all integration tests instead of per-test.
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
@@ -58,11 +58,11 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("failed to open database connection: %v", err))
 	}
 
-	// Create shared server instance (applies migrations via repository.ApplyMigrations).
-	cfg := NewTestConfig("cipher-im-integration")
-	sharedServer, err = server.New(ctx, cfg, sharedDB, repository.DatabaseTypePostgreSQL)
+	// Create full cipher-im server instance (applies migrations, initializes all services).
+	// Uses utility function for consistency.
+	sharedServer, err = InitSharedCipherIMServer(ctx, sharedDB)
 	if err != nil {
-		panic(fmt.Sprintf("failed to create server: %v", err))
+		panic(fmt.Sprintf("failed to create cipher-im server: %v", err))
 	}
 
 	// Run all tests (defer statements execute cleanup AFTER m.Run() completes).

@@ -24,8 +24,6 @@ import (
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
 // Tests robustness of database transactions, encryption/decryption, and race condition prevention.
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
-	ctx := context.Background()
-
 	// Use shared server and database from TestMain (amortizes startup cost).
 	// Server instance is reused across all tests.
 	srv := sharedServer
