@@ -13,17 +13,14 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cipherTesting "cryptoutil/internal/cipher/testing"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
@@ -44,81 +41,22 @@ var (
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := googleUuid.NewV7()
-	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
-
-	// CRITICAL: Store sql.DB reference in package variable.
-	// In-memory SQLite databases are destroyed when all connections close.
-	// Storing reference prevents GC from closing connection during parallel test execution.
-	var err error
-
-	testSQLDB, err = sql.Open("sqlite", dsn)
+	// Setup: Create shared heavyweight resources ONCE using helper.
+	resources, err := cipherTesting.SetupTestServer(ctx, false)
 	if err != nil {
-		panic("TestMain: failed to open SQLite: " + err.Error())
+		panic("TestMain: failed to setup test server: " + err.Error())
 	}
+	defer resources.Shutdown(context.Background())
 
-	// Configure SQLite for concurrent operations.
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
-		panic("TestMain: failed to enable WAL: " + err.Error())
-	}
-
-	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
-		panic("TestMain: failed to set busy timeout: " + err.Error())
-	}
-
-	testSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM.
-	testDB, err = gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		panic("TestMain: failed to create GORM DB: " + err.Error())
-	}
-
-	// Run migrations.
-	if err := repository.ApplyMigrations(testSQLDB, repository.DatabaseTypeSQLite); err != nil {
-		panic("TestMain: failed to run migrations: " + err.Error())
-	}
-
-	// Initialize telemetry.
-	testTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
-	if err != nil {
-		panic("TestMain: failed to create telemetry: " + err.Error())
-	}
-	defer testTelemetryService.Shutdown() // LIFO: cleanup last service created.
-
-	// Initialize JWK Generation Service.
-	testJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
-	if err != nil {
-		panic("TestMain: failed to create JWK service: " + err.Error())
-	}
-	defer testJWKGenService.Shutdown() // LIFO: cleanup JWK service.
-
-	// Generate TLS config for HTTP client (server creates its own TLS config).
-	testTLSCfg, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	if err != nil {
-		panic("TestMain: failed to generate TLS config: " + err.Error())
-	}
-
-	// Create shared CipherIMServer (includes barrier service, repositories, both public and admin servers).
-	testCipherIMServer, baseURL, adminURL, err = createTestCipherIMServer(testDB)
-	if err != nil {
-		panic("TestMain: failed to create test cipher-im server: " + err.Error())
-	}
-
-	// Defer database close and server shutdown (LIFO: executes AFTER m.Run() completes).
-	defer func() {
-		_ = testSQLDB.Close()
-	}()
-	defer testCipherIMServer.Shutdown(context.Background())
+	// Assign to package-level variables for backward compatibility with existing tests.
+	testDB = resources.DB
+	testSQLDB = resources.SQLDB
+	testCipherIMServer = resources.CipherIMServer
+	baseURL = resources.BaseURL
+	adminURL = resources.AdminURL
+	testJWKGenService = resources.JWKGenService
+	testTelemetryService = resources.TelemetryService
+	testTLSCfg = resources.TLSCfg
 
 	// Record start time for benchmark.
 	startTime := time.Now()
