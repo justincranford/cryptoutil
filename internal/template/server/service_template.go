@@ -16,6 +16,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilTemplateServerApplication "cryptoutil/internal/template/server/application"
 	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"
 )
 
@@ -148,3 +149,12 @@ func (st *ServiceTemplate) Shutdown() {
 		st.barrier.Shutdown()
 	}
 }
+
+// StartApplicationCore is a convenience wrapper for application.StartApplicationCore.
+// Creates ApplicationCore with automatic database provisioning.
+// Returns ApplicationCore with initialized telemetry, JWK gen, unseal, and database.
+func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*cryptoutilTemplateServerApplication.ApplicationCore, error) {
+	//nolint:wrapcheck // Pass-through to application layer.
+	return cryptoutilTemplateServerApplication.StartApplicationCore(ctx, settings)
+}
+
