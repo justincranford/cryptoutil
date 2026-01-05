@@ -14,7 +14,6 @@ import (
 
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
-	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
 
 	postgresDriver "gorm.io/driver/postgres"

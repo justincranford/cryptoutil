@@ -67,7 +67,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			start := time.Now()
 
 			// Clean up messages and users from previous subtests.
-			err = db.Exec("DELETE FROM messages").Error
+			err := db.Exec("DELETE FROM messages").Error
 			require.NoError(t, err)
 			err = db.Exec("DELETE FROM users").Error
 			require.NoError(t, err)
