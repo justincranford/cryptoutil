@@ -17,6 +17,7 @@ import (
 	"cryptoutil/internal/shared/container"
 
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
