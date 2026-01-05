@@ -15,13 +15,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	postgresDriver "gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
 	"cryptoutil/internal/cipher/domain"
-	"cryptoutil/internal/cipher/repository"
-	"cryptoutil/internal/cipher/server"
-	"cryptoutil/internal/cipher/server/config"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
@@ -29,16 +24,12 @@ import (
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	ctx := context.Background()
 
-	// Use shared PostgreSQL container from TestMain (3-4s startup amortized across tests).
-	// Each test gets a fresh database connection but reuses the same container.
-	db, err := gorm.Open(postgresDriver.Open(sharedConnStr), &gorm.Config{})
-	require.NoError(t, err)
-
-	// Create server instance (this will apply migrations via repository.ApplyMigrations).
-	cfg := NewTestConfig("cipher-im-integration")
-	srv, err := server.New(ctx, cfg, db, repository.DatabaseTypePostgreSQL)
-	require.NoError(t, err)
+	// Use shared server and database from TestMain (amortizes startup cost).
+	// Server instance is reused across all tests.
+	srv := sharedServer
+	db := sharedDB
 	require.NotNil(t, srv)
+	require.NotNil(t, db)
 
 	// Define test scenarios.
 	tests := []struct {

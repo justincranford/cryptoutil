@@ -23,11 +23,11 @@ import (
 // Reuses template helper for consistent ServerSettings across all cipher tests.
 func NewTestConfig(serviceName string) *config.AppConfig {
 	cfg := config.DefaultAppConfig()
-	
+
 	// Override with test-specific settings using template helper.
 	serverSettings := cryptoutilE2E.NewTestServerSettingsWithService(serviceName)
 	cfg.ServerSettings = *serverSettings
-	
+
 	return cfg
 }
 
