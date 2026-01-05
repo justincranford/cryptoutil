@@ -57,7 +57,7 @@ type IPublicServer interface {
 type IAdminServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
-	ActualPort() (int, error)
+	ActualPort() int
 	SetReady(ready bool)
 }
 
@@ -207,22 +207,16 @@ func (a *Application) PublicPort() int {
 // AdminPort returns the actual port the admin server is listening on.
 //
 // The admin server always binds to 127.0.0.1:9090 per security requirements,
-// so this method should always return 9090 (or error if not initialized).
+// so this method should always return 9090 (or 0 if not initialized).
 //
 // Returns:
-// - int: Actual port number (should be 9090)
-// - error: Non-nil if admin server not initialized.
-func (a *Application) AdminPort() (int, error) {
+// - int: Actual port number (should be 9090, or 0 if not initialized).
+func (a *Application) AdminPort() int {
 	if a.adminServer == nil {
-		return 0, fmt.Errorf("admin server not initialized")
+		return 0
 	}
 
-	port, err := a.adminServer.ActualPort()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get admin server port: %w", err)
-	}
-
-	return port, nil
+	return a.adminServer.ActualPort()
 }
 
 // IsShutdown returns whether the application is shutting down or shutdown.
@@ -246,7 +240,7 @@ func (a *Application) IsShutdown() bool {
 // HTTP 200 OK instead of 503 Service Unavailable.
 //
 // Parameters:
-// - ready: true to mark ready, false to mark not ready
+// - ready: true to mark ready, false to mark not ready.
 func (a *Application) SetReady(ready bool) {
 	if a.adminServer != nil {
 		a.adminServer.SetReady(ready)

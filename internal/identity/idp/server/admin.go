@@ -21,8 +21,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for OpenID Connect identity provider.
@@ -300,18 +300,18 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 }
 
 // ActualPort returns the actual port the admin server is listening on.
-func (s *AdminServer) ActualPort() (int, error) {
+func (s *AdminServer) ActualPort() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.listener == nil {
-		return 0, fmt.Errorf("admin server listener not initialized")
+		return 0
 	}
 
 	tcpAddr, ok := s.listener.Addr().(*net.TCPAddr)
 	if !ok {
-		return 0, fmt.Errorf("admin listener address is not TCP: %T", s.listener.Addr())
+		return 0
 	}
 
-	return tcpAddr.Port, nil
+	return tcpAddr.Port
 }

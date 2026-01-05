@@ -41,5 +41,6 @@ func NewTestServerSettings() *cryptoutilConfig.ServerSettings {
 func NewTestServerSettingsWithService(serviceName string) *cryptoutilConfig.ServerSettings {
 	settings := NewTestServerSettings()
 	settings.OTLPService = serviceName
+
 	return settings
 }

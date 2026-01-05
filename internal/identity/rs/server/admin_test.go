@@ -16,8 +16,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestNewAdminHTTPServer tests admin server creation.
@@ -90,8 +90,7 @@ func TestAdminServerLifecycle(t *testing.T) {
 		time.Sleep(200 * time.Millisecond)
 
 		// Verify server is running.
-		port, err := server.ActualPort()
-		require.NoError(t, err)
+		port := server.ActualPort()
 		require.NotZero(t, port)
 
 		// Shutdown server.
@@ -146,11 +145,10 @@ func TestAdminServerActualPort(t *testing.T) {
 		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
 
-		// Should fail before Start.
-		port, err := server.ActualPort()
-		require.Error(t, err)
+		// Should return 0 before Start.
+		port := server.ActualPort()
+
 		require.Zero(t, port)
-		require.Contains(t, err.Error(), "listener not initialized")
 	})
 
 	t.Run("AfterStart", func(t *testing.T) {
@@ -172,8 +170,7 @@ func TestAdminServerActualPort(t *testing.T) {
 		time.Sleep(200 * time.Millisecond)
 
 		// Should succeed after Start.
-		port, err := server.ActualPort()
-		require.NoError(t, err)
+		port := server.ActualPort()
 		require.NotZero(t, port)
 
 		// Cleanup.
@@ -200,8 +197,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	// Wait for server to be ready.
 	time.Sleep(200 * time.Millisecond)
 
-	port, err := server.ActualPort()
-	require.NoError(t, err)
+	port := server.ActualPort()
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 
@@ -260,8 +256,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	// Wait for server to be ready.
 	time.Sleep(200 * time.Millisecond)
 
-	port, err := server.ActualPort()
-	require.NoError(t, err)
+	port := server.ActualPort()
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 
@@ -329,8 +324,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	// Wait for server to be ready.
 	time.Sleep(200 * time.Millisecond)
 
-	port, err := server.ActualPort()
-	require.NoError(t, err)
+	port := server.ActualPort()
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 

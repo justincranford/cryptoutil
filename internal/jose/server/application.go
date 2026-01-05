@@ -157,9 +157,9 @@ func (a *Application) PublicPort() int {
 }
 
 // AdminPort returns the actual port the admin server is listening on.
-func (a *Application) AdminPort() (int, error) {
+func (a *Application) AdminPort() int {
 	if a.adminServer == nil {
-		return 0, fmt.Errorf("admin server not initialized")
+		return 0
 	}
 
 	return a.adminServer.ActualPort()

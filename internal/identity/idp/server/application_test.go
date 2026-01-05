@@ -159,8 +159,7 @@ func TestApplication_AdminPort(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// AdminPort should delegate to adminServer.
-	port, err := app.AdminPort()
-	require.NoError(t, err)
+	port := app.AdminPort()
 	require.NotZero(t, port) // Dynamic port should be assigned
 
 	// Cleanup.
@@ -175,8 +174,6 @@ func TestApplication_AdminPort_NilServer(t *testing.T) {
 	// Create application with nil admin server.
 	app := &Application{}
 
-	port, err := app.AdminPort()
-	require.Error(t, err)
+	port := app.AdminPort()
 	require.Zero(t, port)
-	require.Contains(t, err.Error(), "admin server not initialized")
 }

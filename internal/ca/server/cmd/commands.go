@@ -121,10 +121,12 @@ func NewHealthCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Check liveness probe
 			livezURL := serverURL + "/admin/v1/livez"
+
 			resp, err := http.Get(livezURL)
 			if err != nil {
 				return fmt.Errorf("failed to check liveness: %w", err)
 			}
+
 			resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
@@ -133,10 +135,12 @@ func NewHealthCommand() *cobra.Command {
 
 			// Check readiness probe
 			readyzURL := serverURL + "/admin/v1/readyz"
+
 			resp, err = http.Get(readyzURL)
 			if err != nil {
 				return fmt.Errorf("failed to check readiness: %w", err)
 			}
+
 			resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
@@ -144,6 +148,7 @@ func NewHealthCommand() *cobra.Command {
 			}
 
 			fmt.Printf("CA server at %s is healthy\n", serverURL)
+
 			return nil
 		},
 	}

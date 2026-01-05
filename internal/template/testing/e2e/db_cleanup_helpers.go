@@ -24,6 +24,7 @@ func CleanTestTables(db *gorm.DB, tables []string) error {
 			return fmt.Errorf("failed to clean table %s: %w", table, err)
 		}
 	}
+
 	return nil
 }
 

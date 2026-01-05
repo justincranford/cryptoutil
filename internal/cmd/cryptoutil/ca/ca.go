@@ -103,14 +103,17 @@ func stopService(parameters []string) { //nolint:wsl_v5
 	fmt.Fprintf(os.Stderr, "Sending shutdown request to admin endpoint (port %d)...\n", adminPort)
 
 	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/shutdown", adminPort)
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
 		os.Exit(1)
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{Timeout: httpTimeout}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to send shutdown request: %v\n", err)
@@ -138,6 +141,7 @@ func statusService(parameters []string) { //nolint:wsl_v5
 	fmt.Fprintf(os.Stderr, "Checking service status (port %d)...\n", adminPort)
 
 	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/readyz", adminPort)
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
@@ -145,6 +149,7 @@ func statusService(parameters []string) { //nolint:wsl_v5
 	}
 
 	client := &http.Client{Timeout: httpTimeout}
+
 	resp, err := client.Do(req) // #nosec G107 - URL constructed from localhost and controlled adminPort
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to check service status: %v\n", err)
@@ -172,6 +177,7 @@ func healthService(parameters []string) { //nolint:wsl_v5
 	fmt.Fprintf(os.Stderr, "Checking service health (port %d)...\n", adminPort)
 
 	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/livez", adminPort)
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
@@ -179,6 +185,7 @@ func healthService(parameters []string) { //nolint:wsl_v5
 	}
 
 	client := &http.Client{Timeout: httpTimeout}
+
 	resp, err := client.Do(req) // #nosec G107 - URL constructed from localhost and controlled adminPort
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to check service health: %v\n", err)

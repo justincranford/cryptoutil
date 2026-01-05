@@ -31,7 +31,7 @@ type IPublicServer interface {
 type IAdminServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
-	ActualPort() (int, error)
+	ActualPort() int
 	SetReady(ready bool)
 }
 
@@ -168,11 +168,10 @@ func (a *ApplicationListener) PublicPort() int {
 }
 
 // AdminPort returns the actual port the admin server is listening on.
-func (a *ApplicationListener) AdminPort() (int, error) {
+func (a *ApplicationListener) AdminPort() int {
 	if a.AdminServer == nil {
-		return 0, fmt.Errorf("admin server not initialized")
+		return 0
 	}
 
-	//nolint:wrapcheck // Pass-through to admin server.
 	return a.AdminServer.ActualPort()
 }

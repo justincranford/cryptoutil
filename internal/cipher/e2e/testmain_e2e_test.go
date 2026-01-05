@@ -26,8 +26,8 @@ var (
 	sharedHTTPClient   *http.Client
 	testCipherIMServer *cryptoutilCipherServer.CipherIMServer
 	sharedAppConfig    *config.AppConfig
-	baseURL            string
-	adminURL           string
+	publicBaseURL      string
+	adminBaseURL       string
 )
 
 // TestMain initializes cipher-im server with SQLite in-memory for fast E2E tests.
@@ -42,14 +42,21 @@ func TestMain(m *testing.M) {
 	}
 
 	testCipherIMServer = cipherTesting.StartCipherIMServer(sharedAppConfig)
+	defer testCipherIMServer.Shutdown(context.Background())
 
-	baseURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPublicProtocol, sharedAppConfig.BindPublicAddress, testCipherIMServer.PublicPort())
-
-	adminPortValue, _ := testCipherIMServer.AdminPort()
-	adminURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPrivateProtocol, sharedAppConfig.BindPrivateAddress, adminPortValue)
+	publicBaseURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPublicProtocol, sharedAppConfig.BindPublicAddress, testCipherIMServer.PublicPort())
+	adminBaseURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPrivateProtocol, sharedAppConfig.BindPrivateAddress, testCipherIMServer.AdminPort())
 
 	// Create HTTP client with test TLS config.
-	sharedHTTPClient = &http.Client{
+	sharedHTTPClient = NewClientForTest()
+
+	exitCode := m.Run()
+
+	os.Exit(exitCode)
+}
+
+func NewClientForTest() *http.Client {
+	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
@@ -57,10 +64,4 @@ func TestMain(m *testing.M) {
 		},
 		Timeout: cryptoutilMagic.CipherDefaultTimeout,
 	}
-
-	exitCode := m.Run()
-
-	_ = testCipherIMServer.Shutdown(context.Background())
-
-	os.Exit(exitCode)
 }

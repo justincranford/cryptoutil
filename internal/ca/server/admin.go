@@ -240,17 +240,17 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 }
 
 // ActualPort returns the actual port the admin server is listening on.
-func (s *AdminServer) ActualPort() (int, error) {
+func (s *AdminServer) ActualPort() int {
 	if s.listener == nil {
-		return 0, fmt.Errorf("admin server listener not initialized")
+		return 0
 	}
 
 	addr, ok := s.listener.Addr().(*net.TCPAddr)
 	if !ok {
-		return 0, fmt.Errorf("invalid admin listener address type")
+		return 0
 	}
 
-	return addr.Port, nil
+	return addr.Port
 }
 
 // generateTLSConfig creates a self-signed certificate for admin server.

@@ -4,7 +4,6 @@ package testutil
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 )
@@ -126,12 +125,8 @@ func (m *MockAdminServer) Shutdown(ctx context.Context) error {
 }
 
 // ActualPort returns the actual port the admin server is listening on.
-func (m *MockAdminServer) ActualPort() (int, error) {
-	if m.actualPort == 0 {
-		return 0, errors.New("admin server not initialized")
-	}
-
-	return m.actualPort, nil
+func (m *MockAdminServer) ActualPort() int {
+	return m.actualPort
 }
 
 // SetReady sets the readiness status of the admin server.

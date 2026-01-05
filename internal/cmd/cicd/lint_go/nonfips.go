@@ -84,10 +84,12 @@ func checkNonFIPS(logger *cryptoutilCmdCicdCommon.Logger) error {
 
 	if len(violations) > 0 {
 		printNonFIPSViolations(violations)
+
 		return fmt.Errorf("found non-FIPS algorithm violations in %d files", len(violations))
 	}
 
 	logger.Log("✅ Non-FIPS algorithm check passed")
+
 	return nil
 }
 
@@ -106,6 +108,7 @@ func findGoFiles() ([]string, error) {
 			case "vendor", "test-output", ".git", "node_modules":
 				return filepath.SkipDir
 			}
+
 			return nil
 		}
 
@@ -132,6 +135,7 @@ func checkFileForNonFIPS(filePath string) []string {
 	}
 
 	var issues []string
+
 	contentStr := string(content)
 	lines := strings.Split(contentStr, "\n")
 
@@ -167,9 +171,11 @@ func printNonFIPSViolations(violations map[string][]string) {
 
 	for filePath, issues := range violations {
 		fmt.Fprintf(os.Stderr, "%s:\n", filePath)
+
 		for _, issue := range issues {
 			fmt.Fprintf(os.Stderr, "  - %s\n", issue)
 		}
+
 		fmt.Fprintln(os.Stderr)
 	}
 

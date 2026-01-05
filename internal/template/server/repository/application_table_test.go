@@ -96,8 +96,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
 				t.Helper()
 
-				port, err := app.AdminPort()
-				require.NoError(t, err)
+				port := app.AdminPort()
 				assert.Equal(t, 9090, port)
 			},
 		},
@@ -368,22 +367,25 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		},
 		{
 			name:        "AdminPort_NotInitialized",
-			description: "AdminPort returns error when admin server port is 0",
+			description: "AdminPort returns 0 when admin server port is 0",
 			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
 				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
-				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(0) // Port 0 triggers error in ActualPort.
+				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(0) // Port 0 returns 0.
 
 				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
-				_, portErr := app.AdminPort()
+				port := app.AdminPort()
+				if port != 0 {
+					return app, fmt.Errorf("expected port 0, got %d", port)
+				}
 
-				return app, fmt.Errorf("failed to get admin port: %w", portErr)
+				return app, fmt.Errorf("admin port is 0")
 			},
-			expectedError: "admin server not initialized",
+			expectedError: "admin port is 0",
 		},
 	}
 

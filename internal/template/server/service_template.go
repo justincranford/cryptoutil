@@ -142,9 +142,11 @@ func (st *ServiceTemplate) Shutdown() {
 	if st.telemetry != nil {
 		st.telemetry.Shutdown()
 	}
+
 	if st.jwkGen != nil {
 		st.jwkGen.Shutdown()
 	}
+
 	if st.barrier != nil {
 		st.barrier.Shutdown()
 	}

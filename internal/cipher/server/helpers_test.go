@@ -99,8 +99,7 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 	for i := 0; i < maxWaitAttempts; i++ {
 		publicPort = cipherServer.PublicPort()
 
-		adminPortValue, _ := cipherServer.AdminPort()
-		adminPort = adminPortValue
+		adminPort = cipherServer.AdminPort()
 
 		if publicPort > 0 && adminPort > 0 {
 			break

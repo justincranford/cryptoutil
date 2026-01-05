@@ -286,11 +286,11 @@ func (s *AdminServer) Shutdown(ctx context.Context) error {
 
 // ActualPort returns the actual port the admin server is listening on.
 // Returns 0 before Start() is called, or the dynamically allocated port after Start().
-func (s *AdminServer) ActualPort() (int, error) {
+func (s *AdminServer) ActualPort() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return int(s.actualPort), nil
+	return int(s.actualPort)
 }
 
 // App returns the underlying fiber.App for custom route registration.

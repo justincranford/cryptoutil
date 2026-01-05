@@ -365,8 +365,7 @@ func (s *CipherIMServer) ActualPort() int {
 }
 
 // AdminPort returns the actual admin server port.
-func (s *CipherIMServer) AdminPort() (int, error) {
-	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
+func (s *CipherIMServer) AdminPort() int {
 	return s.app.AdminPort()
 }
 

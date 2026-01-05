@@ -157,9 +157,7 @@ func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 	server, err := NewAdminHTTPServer(ctx, cfg)
 	require.NoError(t, err)
 
-	// ActualPort before Start should fail.
-	port, err := server.ActualPort()
-	require.Error(t, err)
+	// ActualPort before Start should return 0.
+	port := server.ActualPort()
 	require.Zero(t, port)
-	require.Contains(t, err.Error(), "listener not initialized")
 }

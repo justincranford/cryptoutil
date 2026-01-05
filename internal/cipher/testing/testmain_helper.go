@@ -203,8 +203,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 	for i := 0; i < maxWaitAttempts; i++ {
 		publicPort = resources.CipherIMServer.PublicPort()
 
-		adminPortValue, _ := resources.CipherIMServer.AdminPort()
-		adminPort = adminPortValue
+		adminPort = resources.CipherIMServer.AdminPort()
 
 		if publicPort > 0 && adminPort > 0 {
 			break
@@ -305,8 +304,7 @@ func StartCipherIMServer(appConfig *config.AppConfig) *server.CipherIMServer {
 	for i := 0; i < maxWaitAttempts; i++ {
 		publicPort = cipherImServer.PublicPort()
 
-		adminPortValue, _ := cipherImServer.AdminPort()
-		adminPort = adminPortValue
+		adminPort = cipherImServer.AdminPort()
 
 		if publicPort > 0 && adminPort > 0 {
 			break
