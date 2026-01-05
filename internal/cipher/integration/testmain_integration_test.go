@@ -30,21 +30,13 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Configure automatic PostgreSQL testcontainer provisioning.
+	settings := cryptoutilConfig.RequireNewForTest("cipher-im-integration-test")
+	settings.DatabaseURL = ""         // Empty = use testcontainer.
+	settings.DatabaseContainer = "required" // Require PostgreSQL testcontainer.
+
 	cfg := &config.AppConfig{
-		ServerSettings: cryptoutilConfig.ServerSettings{
-			BindPublicAddress:  cryptoutilMagic.IPv4Loopback,
-			BindPublicPort:     0, // Dynamic port allocation.
-			BindPrivateAddress: cryptoutilMagic.IPv4Loopback,
-			BindPrivatePort:    0,                                                                // Dynamic port allocation.
-			DatabaseURL:        "",                                                               // Empty = use testcontainer.
-			DatabaseContainer:  "required",                                                       // Require PostgreSQL testcontainer.
-			DevMode:            true,
-			LogLevel:           "info",
-			OTLPService:        "cipher-im-integration-test",
-			OTLPEndpoint:       "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317", // Required for OTLP endpoint validation.
-			OTLPEnabled:        false,                                                            // Disable actual OTLP export in tests.
-		},
-		JWTSecret: uuid.Must(uuid.NewUUID()).String(),
+		ServerSettings: *settings,
+		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}
 
 	// Create server with automatic infrastructure (PostgreSQL testcontainer, telemetry, etc.).

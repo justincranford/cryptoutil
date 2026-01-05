@@ -35,21 +35,13 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Configure SQLite in-memory for fast E2E tests.
+	settings := cryptoutilConfig.RequireNewForTest("cipher-im-e2e-test")
+	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory.
+	settings.DatabaseContainer = "disabled"             // No container for E2E.
+
 	cfg := &config.AppConfig{
-		ServerSettings: cryptoutilConfig.ServerSettings{
-			BindPublicAddress:  cryptoutilMagic.IPv4Loopback,
-			BindPublicPort:     0, // Dynamic port allocation.
-			BindPrivateAddress: cryptoutilMagic.IPv4Loopback,
-			BindPrivatePort:    0,                                                                // Dynamic port allocation.
-			DatabaseURL:        "file::memory:?cache=shared",                                     // SQLite in-memory.
-			DatabaseContainer:  "disabled",                                                       // No container for E2E.
-			DevMode:            true,
-			LogLevel:           "info",
-			OTLPService:        "cipher-im-e2e-test",
-			OTLPEndpoint:       "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317", // Required for OTLP endpoint validation.
-			OTLPEnabled:        false,                                                            // Disable actual OTLP export in tests.
-		},
-		JWTSecret: uuid.Must(uuid.NewUUID()).String(),
+		ServerSettings: *settings,
+		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}
 
 	// Create server with automatic infrastructure (SQLite, telemetry, etc.).
@@ -75,8 +67,10 @@ func TestMain(m *testing.M) {
 		waitInterval    = 100 * time.Millisecond
 	)
 
-	var publicPort int
-	var adminPort int
+	var (
+		publicPort int
+		adminPort  int
+	)
 
 	for i := 0; i < maxWaitAttempts; i++ {
 		publicPort = testCipherIMServer.PublicPort()
