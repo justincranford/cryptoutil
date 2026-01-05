@@ -11,76 +11,98 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
-	"cryptoutil/internal/cipher/repository"
+	"github.com/google/uuid"
+
 	"cryptoutil/internal/cipher/server"
-	"cryptoutil/internal/shared/container"
-
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	postgresDriver "gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"cryptoutil/internal/cipher/server/config"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Shared test resources (initialized once per package).
-var (
-	sharedPGContainer *postgres.PostgresContainer
-	sharedConnStr     string
-	sharedDB          *gorm.DB
-	sharedServer      *server.CipherIMServer
-)
+var sharedServer *server.CipherIMServer
 
-// TestMain initializes shared PostgreSQL container and full cipher-im server once for all integration tests.
-// This significantly reduces test execution time by amortizing container startup (3-4s)
-// and server initialization across all integration tests instead of per-test.
+// TestMain initializes cipher-im server with automatic PostgreSQL testcontainer provisioning.
+// Service-template handles container lifecycle, database connection, and cleanup automatically.
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Setup shared PostgreSQL container using utility function.
+	// Configure automatic PostgreSQL testcontainer provisioning.
+	cfg := &config.AppConfig{
+		ServerSettings: cryptoutilConfig.ServerSettings{
+			BindPublicAddress:  cryptoutilMagic.IPv4Loopback,
+			BindPublicPort:     0, // Dynamic port allocation.
+			BindPrivateAddress: cryptoutilMagic.IPv4Loopback,
+			BindPrivatePort:    0,                                                                // Dynamic port allocation.
+			DatabaseURL:        "",                                                               // Empty = use testcontainer.
+			DatabaseContainer:  "required",                                                       // Require PostgreSQL testcontainer.
+			DevMode:            true,
+			LogLevel:           "info",
+			OTLPService:        "cipher-im-integration-test",
+			OTLPEndpoint:       "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317", // Required for OTLP endpoint validation.
+			OTLPEnabled:        false,                                                            // Disable actual OTLP export in tests.
+		},
+		JWTSecret: uuid.Must(uuid.NewUUID()).String(),
+	}
+
+	// Create server with automatic infrastructure (PostgreSQL testcontainer, telemetry, etc.).
 	var err error
-	sharedPGContainer, sharedConnStr, err = container.SetupSharedPostgresContainer(ctx)
+
+	sharedServer, err = server.NewFromConfig(ctx, cfg)
 	if err != nil {
-		panic(fmt.Sprintf("failed to setup PostgreSQL container: %v", err))
+		panic(fmt.Sprintf("failed to create server: %v", err))
 	}
-	defer func() {
-		if err := sharedPGContainer.Terminate(ctx); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to terminate PostgreSQL container: %v\n", err)
+
+	// Start server in background (Start() blocks until shutdown).
+	errChan := make(chan error, 1)
+
+	go func() {
+		if startErr := sharedServer.Start(ctx); startErr != nil {
+			errChan <- startErr
 		}
-	}() // LIFO: cleanup container last.
+	}()
 
-	// Verify connection works before running tests.
-	if err := container.VerifyPostgresConnection(sharedConnStr); err != nil {
-		panic(fmt.Sprintf("failed to verify PostgreSQL connection: %v", err))
+	// Wait for both servers to bind to ports.
+	const (
+		maxWaitAttempts = 50
+		waitInterval    = 100 * time.Millisecond
+	)
+
+	var publicPort int
+	var adminPort int
+
+	for i := 0; i < maxWaitAttempts; i++ {
+		publicPort = sharedServer.PublicPort()
+
+		adminPortValue, _ := sharedServer.AdminPort()
+		adminPort = adminPortValue
+
+		if publicPort > 0 && adminPort > 0 {
+			break
+		}
+
+		select {
+		case err := <-errChan:
+			panic(fmt.Sprintf("server start error: %v", err))
+		case <-time.After(waitInterval):
+		}
 	}
 
-	// Create shared database connection.
-	sharedDB, err = gorm.Open(postgresDriver.Open(sharedConnStr), &gorm.Config{})
-	if err != nil {
-		panic(fmt.Sprintf("failed to open database connection: %v", err))
+	if publicPort == 0 {
+		panic("public server did not bind to port")
 	}
 
-	// Create full cipher-im server instance (applies migrations, initializes all services).
-	// Uses utility function for consistency.
-	sharedServer, err = InitSharedCipherIMServer(ctx, sharedDB)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create cipher-im server: %v", err))
+	if adminPort == 0 {
+		panic("admin server did not bind to port")
 	}
 
-	// Run all tests (defer statements execute cleanup AFTER m.Run() completes).
+	// Run all tests.
 	exitCode := m.Run()
 
+	// Automatic cleanup (database container, connections, services).
+	_ = sharedServer.Shutdown(context.Background())
+
 	os.Exit(exitCode)
-}
-
-// InitSharedCipherIMServer creates a full CipherIMServer with PostgreSQL for integration tests.
-// This should be called from TestMain to amortize server startup cost across all tests.
-func InitSharedCipherIMServer(ctx context.Context, db *gorm.DB) (*server.CipherIMServer, error) {
-	cfg := NewTestConfig("cipher-im-integration")
-
-	// Create full server instance (applies migrations via repository.ApplyMigrations).
-	cipherServer, err := server.New(ctx, cfg, db, repository.DatabaseTypePostgreSQL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cipher server: %w", err)
-	}
-
-	return cipherServer, nil
 }

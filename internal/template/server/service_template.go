@@ -157,4 +157,3 @@ func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.Server
 	//nolint:wrapcheck // Pass-through to application layer.
 	return cryptoutilTemplateServerApplication.StartApplicationCore(ctx, settings)
 }
-

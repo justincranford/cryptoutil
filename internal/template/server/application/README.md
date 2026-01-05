@@ -69,14 +69,14 @@ func TestMain(m *testing.M) {
         },
         JWTSecret: uuid.Must(uuid.NewUUID()).String(),
     }
-    
+
     // Single function call - handles everything.
     app, err := application.StartApplicationListener(ctx, &application.ApplicationListenerConfig{
         Settings:     &cfg.ServerSettings,
         PublicServer: publicServer,
         AdminServer:  adminServer,
     })
-    
+
     exitCode := m.Run()
     app.Shutdown(context.Background()) // Automatic cleanup.
     os.Exit(exitCode)
@@ -117,10 +117,10 @@ Use `ApplicationCore` to provision test databases:
 func TestMain(m *testing.M) {
     core, _ := application.StartApplicationCore(ctx, settings)
     defer core.Shutdown()
-    
+
     // Use core.DB for tests.
     sharedDB = core.DB
-    
+
     os.Exit(m.Run())
 }
 ```
@@ -131,7 +131,7 @@ Use `ApplicationListener` for full service stack:
 func TestMain(m *testing.M) {
     app, _ := application.StartApplicationListener(ctx, config)
     defer app.Shutdown(context.Background())
-    
+
     // HTTP requests to app.PublicPort() and app.AdminPort().
     os.Exit(m.Run())
 }

@@ -7,68 +7,103 @@ package e2e_test
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
-	"cryptoutil/internal/cipher/integration"
-	"cryptoutil/internal/cipher/repository"
 	cryptoutilCipherServer "cryptoutil/internal/cipher/server"
 	"cryptoutil/internal/cipher/server/config"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
 
 // Shared test resources (initialized once per package).
 var (
-	sharedTelemetryService *cryptoutilTelemetry.TelemetryService
-	sharedJWKGenService    *cryptoutilJose.JWKGenService
-	sharedTLSConfig        *cryptoutilTLSGenerator.TLSGeneratedSettings
-	sharedHTTPClient       *http.Client
-	testCipherIMServer     *cryptoutilCipherServer.CipherIMServer
-	baseURL                string
-	adminURL               string
+	sharedHTTPClient   *http.Client
+	testCipherIMServer *cryptoutilCipherServer.CipherIMServer
+	baseURL            string
+	adminURL           string
 )
 
-// TestMain initializes shared resources once for all E2E tests.
+// TestMain initializes cipher-im server with SQLite in-memory for fast E2E tests.
+// Service-template handles database, telemetry, and all infrastructure automatically.
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Initialize shared telemetry service.
-	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	// Configure SQLite in-memory for fast E2E tests.
+	cfg := &config.AppConfig{
+		ServerSettings: cryptoutilConfig.ServerSettings{
+			BindPublicAddress:  cryptoutilMagic.IPv4Loopback,
+			BindPublicPort:     0, // Dynamic port allocation.
+			BindPrivateAddress: cryptoutilMagic.IPv4Loopback,
+			BindPrivatePort:    0,                                                                // Dynamic port allocation.
+			DatabaseURL:        "file::memory:?cache=shared",                                     // SQLite in-memory.
+			DatabaseContainer:  "disabled",                                                       // No container for E2E.
+			DevMode:            true,
+			LogLevel:           "info",
+			OTLPService:        "cipher-im-e2e-test",
+			OTLPEndpoint:       "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317", // Required for OTLP endpoint validation.
+			OTLPEnabled:        false,                                                            // Disable actual OTLP export in tests.
+		},
+		JWTSecret: uuid.Must(uuid.NewUUID()).String(),
+	}
 
+	// Create server with automatic infrastructure (SQLite, telemetry, etc.).
 	var err error
 
-	sharedTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	testCipherIMServer, err = cryptoutilCipherServer.NewFromConfig(ctx, cfg)
 	if err != nil {
-		panic("failed to initialize shared telemetry service: " + err.Error())
+		panic(fmt.Sprintf("failed to create server: %v", err))
 	}
-	defer sharedTelemetryService.Shutdown() // LIFO: cleanup last service created first.
 
-	// Initialize shared JWK generation service.
-	sharedJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, sharedTelemetryService, false)
-	if err != nil {
-		panic("failed to initialize shared JWK generation service: " + err.Error())
-	}
-	defer sharedJWKGenService.Shutdown() // LIFO: cleanup after telemetry.
+	// Start server in background (Start() blocks until shutdown).
+	errChan := make(chan error, 1)
 
-	// Initialize shared TLS configuration (for server).
-	sharedTLSConfig, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	go func() {
+		if startErr := testCipherIMServer.Start(ctx); startErr != nil {
+			errChan <- startErr
+		}
+	}()
+
+	// Wait for both servers to bind to ports.
+	const (
+		maxWaitAttempts = 50
+		waitInterval    = 100 * time.Millisecond
 	)
-	if err != nil {
-		panic("failed to generate shared TLS configuration: " + err.Error())
+
+	var publicPort int
+	var adminPort int
+
+	for i := 0; i < maxWaitAttempts; i++ {
+		publicPort = testCipherIMServer.PublicPort()
+
+		adminPortValue, _ := testCipherIMServer.AdminPort()
+		adminPort = adminPortValue
+
+		if publicPort > 0 && adminPort > 0 {
+			break
+		}
+
+		select {
+		case err := <-errChan:
+			panic(fmt.Sprintf("server start error: %v", err))
+		case <-time.After(waitInterval):
+		}
 	}
 
-	// Initialize shared HTTP client (for test requests).
+	if publicPort == 0 {
+		panic("public server did not bind to port")
+	}
+
+	if adminPort == 0 {
+		panic("admin server did not bind to port")
+	}
+
+	// Setup HTTP client for tests.
 	sharedHTTPClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -78,36 +113,15 @@ func TestMain(m *testing.M) {
 		Timeout: cryptoutilMagic.CipherDefaultTimeout,
 	}
 
-	db, err := integration.InitTestDB()
-	if err != nil {
-		panic("failed to initialize test database: " + err.Error())
-	}
-
-	// Extract sql.DB for proper cleanup.
-	sqlDB, err := db.DB()
-	if err != nil {
-		panic("failed to get sql.DB from gorm.DB: " + err.Error())
-	}
-
-	defer func() {
-		_ = sqlDB.Close() // LIFO: close database after services using it.
-	}()
-
-	cfg := &config.AppConfig{
-		ServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-e2e-test"),
-		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
-	}
-	testCipherIMServer, baseURL, adminURL, err = integration.CreateTestCipherIMServerInternal(db, cfg, repository.DatabaseTypeSQLite)
-	if err != nil {
-		panic("failed to create test cipher-im server: " + err.Error())
-	}
-
-	defer func() {
-		_ = testCipherIMServer.Shutdown(context.Background())
-	}() // LIFO: shutdown server.
+	// Get server URLs (ports already obtained from wait loop).
+	baseURL = fmt.Sprintf("https://127.0.0.1:%d", publicPort)
+	adminURL = fmt.Sprintf("https://127.0.0.1:%d", adminPort)
 
 	// Run all E2E tests.
 	exitCode := m.Run()
+
+	// Automatic cleanup.
+	_ = testCipherIMServer.Shutdown(context.Background())
 
 	os.Exit(exitCode)
 }

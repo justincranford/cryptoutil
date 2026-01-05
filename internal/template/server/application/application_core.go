@@ -21,10 +21,10 @@ import (
 // ApplicationCore extends ApplicationBasic with database infrastructure.
 // Handles automatic database provisioning (SQLite in-memory, PostgreSQL testcontainer, or external DB).
 type ApplicationCore struct {
-	Basic                  *ApplicationBasic
-	DB                     *gorm.DB
-	ShutdownDBContainer    func()
-	Settings               *cryptoutilConfig.ServerSettings
+	Basic               *ApplicationBasic
+	DB                  *gorm.DB
+	ShutdownDBContainer func()
+	Settings            *cryptoutilConfig.ServerSettings
 }
 
 // StartApplicationCore initializes core application infrastructure including database.

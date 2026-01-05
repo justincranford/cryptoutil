@@ -14,10 +14,10 @@ import (
 // ApplicationListener represents the top-level service application.
 // Orchestrates ApplicationCore (database + infrastructure) and HTTP servers (public + admin).
 type ApplicationListener struct {
-	Core          *ApplicationCore
-	PublicServer  IPublicServer
-	AdminServer   IAdminServer
-	Settings      *cryptoutilConfig.ServerSettings
+	Core         *ApplicationCore
+	PublicServer IPublicServer
+	AdminServer  IAdminServer
+	Settings     *cryptoutilConfig.ServerSettings
 }
 
 // IPublicServer interface defines the contract for public HTTPS servers.
@@ -37,9 +37,9 @@ type IAdminServer interface {
 
 // ApplicationListenerConfig holds configuration for creating an ApplicationListener.
 type ApplicationListenerConfig struct {
-	Settings      *cryptoutilConfig.ServerSettings
-	PublicServer  IPublicServer
-	AdminServer   IAdminServer
+	Settings     *cryptoutilConfig.ServerSettings
+	PublicServer IPublicServer
+	AdminServer  IAdminServer
 }
 
 // StartApplicationListener creates and initializes the top-level service application.

@@ -87,7 +87,7 @@ func TestMain(m *testing.M) {
         },
         JWTSecret: uuid.Must(uuid.NewUUID()).String(),
     }
-    
+
     server, _ := server.NewFromConfig(context.Background(), cfg)
     exitCode := m.Run()
     server.Shutdown(context.Background())
