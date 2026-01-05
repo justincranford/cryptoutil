@@ -27,9 +27,9 @@ import (
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	// Use shared server from TestMain (amortizes startup cost).
 	require.NotNil(t, sharedServer)
+	require.NotEmpty(t, sharedServiceBaseURL)
 
 	// Create HTTP client for API calls.
-	baseURL := fmt.Sprintf("https://127.0.0.1:%d/service/api/v1", sharedServer.PublicPort())
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Test server uses self-signed cert.
@@ -73,7 +73,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			start := time.Now()
 
 			// Create test users via API.
-			users := createTestUsersAPI(t, client, baseURL, tt.numUsers)
+			users := createTestUsersAPI(t, client, sharedServiceBaseURL, tt.numUsers)
 
 			// Send messages concurrently.
 			var wg sync.WaitGroup
@@ -88,12 +88,13 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 
 					// Create message via API.
 					messageID := googleUuid.New()
+
 					recipientIDs := make([]googleUuid.UUID, len(recipients))
 					for i, r := range recipients {
 						recipientIDs[i] = r.ID
 					}
 
-					sendMessageAPI(t, client, baseURL, sender.ID, messageID, recipientIDs, fmt.Sprintf("encrypted-content-%d", senderIdx))
+					sendMessageAPI(t, client, sharedServiceBaseURL, sender.ID, messageID, recipientIDs, fmt.Sprintf("encrypted-content-%d", senderIdx))
 				}(i)
 			}
 
@@ -106,8 +107,9 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 
 			// Verify all messages created successfully by querying user inboxes.
 			totalMessagesReceived := 0
+
 			for _, user := range users {
-				messages := getMessagesAPI(t, client, baseURL, user.ID)
+				messages := getMessagesAPI(t, client, sharedServiceBaseURL, user.ID)
 				totalMessagesReceived += len(messages)
 			}
 
@@ -138,12 +140,14 @@ func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUs
 		body, _ := json.Marshal(reqBody)
 		resp, err := client.Post(baseURL+"/users/register", "application/json", bytes.NewReader(body))
 		require.NoError(t, err)
+
 		defer resp.Body.Close()
 
 		require.Equal(t, http.StatusCreated, resp.StatusCode, "Failed to create user %s", username)
 
 		// Parse response.
 		var user domain.User
+
 		err = json.NewDecoder(resp.Body).Decode(&user)
 		require.NoError(t, err)
 
@@ -167,6 +171,7 @@ func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, senderID,
 	body, _ := json.Marshal(reqBody)
 	resp, err := client.Post(baseURL+"/messages", "application/json", bytes.NewReader(body))
 	require.NoError(t, err)
+
 	defer resp.Body.Close()
 
 	require.Equal(t, http.StatusCreated, resp.StatusCode, "Failed to send message")
@@ -178,11 +183,13 @@ func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, userID go
 
 	resp, err := client.Get(fmt.Sprintf("%s/users/%s/messages", baseURL, userID.String()))
 	require.NoError(t, err)
+
 	defer resp.Body.Close()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode, "Failed to get messages")
 
 	var messages []domain.Message
+
 	err = json.NewDecoder(resp.Body).Decode(&messages)
 	require.NoError(t, err)
 

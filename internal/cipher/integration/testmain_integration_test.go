@@ -18,11 +18,20 @@ import (
 	"cryptoutil/internal/cipher/server"
 	"cryptoutil/internal/cipher/server/config"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+)
+
+// Wait for both servers to bind to ports.
+const (
+	maxWaitAttempts = 50
+	waitInterval    = 100 * time.Millisecond
 )
 
 // Shared test resources (initialized once per package).
-var sharedServer *server.CipherIMServer
+var (
+	sharedServer         *server.CipherIMServer
+	sharedAppConfig      *config.AppConfig
+	sharedServiceBaseURL string
+)
 
 // TestMain initializes cipher-im server with automatic PostgreSQL testcontainer provisioning.
 // Service-template handles container lifecycle, database connection, and cleanup automatically.
@@ -31,10 +40,10 @@ func TestMain(m *testing.M) {
 
 	// Configure automatic PostgreSQL testcontainer provisioning.
 	settings := cryptoutilConfig.RequireNewForTest("cipher-im-integration-test")
-	settings.DatabaseURL = ""         // Empty = use testcontainer.
+	settings.DatabaseURL = ""               // Empty = use testcontainer.
 	settings.DatabaseContainer = "required" // Require PostgreSQL testcontainer.
 
-	cfg := &config.AppConfig{
+	sharedAppConfig = &config.AppConfig{
 		ServerSettings: *settings,
 		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}
@@ -42,7 +51,7 @@ func TestMain(m *testing.M) {
 	// Create server with automatic infrastructure (PostgreSQL testcontainer, telemetry, etc.).
 	var err error
 
-	sharedServer, err = server.NewFromConfig(ctx, cfg)
+	sharedServer, err = server.NewFromConfig(ctx, sharedAppConfig)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create server: %v", err))
 	}
@@ -56,14 +65,10 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	// Wait for both servers to bind to ports.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
+	var (
+		publicPort int
+		adminPort  int
 	)
-
-	var publicPort int
-	var adminPort int
 
 	for i := 0; i < maxWaitAttempts; i++ {
 		publicPort = sharedServer.PublicPort()
@@ -89,6 +94,11 @@ func TestMain(m *testing.M) {
 	if adminPort == 0 {
 		panic("admin server did not bind to port")
 	}
+
+	// Compute service base URL from configuration and actual bound port.
+	sharedServiceBaseURL = fmt.Sprintf("https://%s:%d/service/api/v1",
+		sharedAppConfig.BindPublicAddress,
+		publicPort)
 
 	// Run all tests.
 	exitCode := m.Run()
