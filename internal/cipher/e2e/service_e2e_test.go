@@ -6,6 +6,8 @@ package e2e_test
 import (
 	"testing"
 
+	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,8 +17,8 @@ func TestE2E_FullEncryptionFlow(t *testing.T) {
 	t.Parallel()
 
 	// Register users.
-	user1 := registerTestUserService(t, sharedHTTPClient, baseURL)
-	user2 := registerTestUserService(t, sharedHTTPClient, baseURL)
+	user1 := cryptoutilE2E.RegisterTestUserService(t, sharedHTTPClient, baseURL)
+	user2 := cryptoutilE2E.RegisterTestUserService(t, sharedHTTPClient, baseURL)
 
 	// user1 sends encrypted message to user2.
 	plaintext := "Hello " + user2.Username + ", this is a secret message from " + user1.Username + "!"
@@ -46,9 +48,9 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	t.Parallel()
 
 	// Register users.
-	user1 := registerTestUserService(t, sharedHTTPClient, baseURL)
-	user2 := registerTestUserService(t, sharedHTTPClient, baseURL)
-	user3 := registerTestUserService(t, sharedHTTPClient, baseURL)
+	user1 := cryptoutilE2E.RegisterTestUserService(t, sharedHTTPClient, baseURL)
+	user2 := cryptoutilE2E.RegisterTestUserService(t, sharedHTTPClient, baseURL)
+	user3 := cryptoutilE2E.RegisterTestUserService(t, sharedHTTPClient, baseURL)
 
 	// user1 sends message to both user2 and user3.
 	plaintext := "Hello to both of you!"
@@ -83,8 +85,8 @@ func TestE2E_MessageDeletion(t *testing.T) {
 	t.Parallel()
 
 	// Register users.
-	user1 := registerTestUserService(t, sharedHTTPClient, baseURL)
-	user2 := registerTestUserService(t, sharedHTTPClient, baseURL)
+	user1 := cryptoutilE2E.RegisterTestUserService(t, sharedHTTPClient, baseURL)
+	user2 := cryptoutilE2E.RegisterTestUserService(t, sharedHTTPClient, baseURL)
 
 	// user1 sends message to user2.
 	plaintext := "This message will be deleted!"
