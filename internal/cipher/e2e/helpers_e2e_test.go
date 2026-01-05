@@ -43,20 +43,22 @@ func RequireNewAppConfigForTest() *config.AppConfig {
 
 func RequireNewServerTemplateSettingsConfigForTest() *cryptoutilConfig.ServerSettings {
 	return &cryptoutilConfig.ServerSettings{
-		BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
-		BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
-		BindPublicPort:        0,
-		BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
-		BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
-		BindPrivatePort:       0,
-		TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
-		TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-		TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
-		TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
-		CORSAllowedOrigins:    []string{},
-		OTLPService:           "cipher-im-e2e-test",
-		OTLPEndpoint:          "grpc://localhost:4317",
-		LogLevel:              "error",
+		PublicBrowserAPIContextPath: cryptoutilMagic.DefaultPublicBrowserAPIContextPath,
+		PublicServiceAPIContextPath: cryptoutilMagic.DefaultPublicServiceAPIContextPath,
+		BindPublicProtocol:          cryptoutilMagic.ProtocolHTTPS,
+		BindPublicAddress:           cryptoutilMagic.IPv4Loopback,
+		BindPublicPort:              0,
+		BindPrivateProtocol:         cryptoutilMagic.ProtocolHTTPS,
+		BindPrivateAddress:          cryptoutilMagic.IPv4Loopback,
+		BindPrivatePort:             0,
+		TLSPublicDNSNames:           []string{cryptoutilMagic.HostnameLocalhost},
+		TLSPublicIPAddresses:        []string{cryptoutilMagic.IPv4Loopback},
+		TLSPrivateDNSNames:          []string{cryptoutilMagic.HostnameLocalhost},
+		TLSPrivateIPAddresses:       []string{cryptoutilMagic.IPv4Loopback},
+		CORSAllowedOrigins:          []string{},
+		OTLPService:                 "cipher-im-e2e-test",
+		OTLPEndpoint:                "grpc://localhost:4317",
+		LogLevel:                    "error",
 	}
 }
 
