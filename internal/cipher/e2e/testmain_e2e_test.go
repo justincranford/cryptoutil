@@ -11,13 +11,18 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"cryptoutil/internal/cipher/integration"
+	"cryptoutil/internal/cipher/repository"
 	cryptoutilCipherServer "cryptoutil/internal/cipher/server"
+	"cryptoutil/internal/cipher/server/config"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
 
 // Shared test resources (initialized once per package).
@@ -88,7 +93,11 @@ func TestMain(m *testing.M) {
 		_ = sqlDB.Close() // LIFO: close database after services using it.
 	}()
 
-	testCipherIMServer, baseURL, adminURL, err = createTestCipherIMServer(db)
+	cfg := &config.AppConfig{
+		ServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-e2e-test"),
+		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
+	}
+	testCipherIMServer, baseURL, adminURL, err = integration.CreateTestCipherIMServerInternal(db, cfg, repository.DatabaseTypeSQLite)
 	if err != nil {
 		panic("failed to create test cipher-im server: " + err.Error())
 	}

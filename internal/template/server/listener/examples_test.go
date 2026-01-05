@@ -2,11 +2,11 @@
 //
 //
 
-// Package server provides examples of ApplicationListener usage patterns.
+// Package listener_test provides examples of ApplicationListener usage patterns.
 //
 // This file demonstrates the BEFORE and AFTER of migrating to ApplicationListener.
 
-package examples
+package listener_test
 
 import (
 	"context"

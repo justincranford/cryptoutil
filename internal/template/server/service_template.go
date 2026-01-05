@@ -135,3 +135,16 @@ func (st *ServiceTemplate) JWKGen() *cryptoutilJose.JWKGenService {
 func (st *ServiceTemplate) Barrier() *cryptoutilBarrierService.BarrierService {
 	return st.barrier
 }
+
+// Shutdown gracefully shuts down all service components.
+func (st *ServiceTemplate) Shutdown() {
+	if st.telemetry != nil {
+		st.telemetry.Shutdown()
+	}
+	if st.jwkGen != nil {
+		st.jwkGen.Shutdown()
+	}
+	if st.barrier != nil {
+		st.barrier.Shutdown()
+	}
+}

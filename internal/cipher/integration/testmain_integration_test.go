@@ -12,11 +12,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-
+	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
+	"cryptoutil/internal/shared/container"
 
-	postgresDriver "gorm.io/driver/postgres"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"gorm.io/gorm"
 )
 
@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 
 	// Setup shared PostgreSQL container using utility function.
 	var err error
-	sharedPGContainer, sharedConnStr, err = SetupSharedPostgresContainer(ctx)
+	sharedPGContainer, sharedConnStr, err = container.SetupSharedPostgresContainer(ctx)
 	if err != nil {
 		panic(fmt.Sprintf("failed to setup PostgreSQL container: %v", err))
 	}
@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	}() // LIFO: cleanup container last.
 
 	// Verify connection works before running tests.
-	if err := VerifyPostgresConnection(sharedConnStr); err != nil {
+	if err := container.VerifyPostgresConnection(sharedConnStr); err != nil {
 		panic(fmt.Sprintf("failed to verify PostgreSQL connection: %v", err))
 	}
 
@@ -68,4 +68,18 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	os.Exit(exitCode)
+}
+
+// InitSharedCipherIMServer creates a full CipherIMServer with PostgreSQL for integration tests.
+// This should be called from TestMain to amortize server startup cost across all tests.
+func InitSharedCipherIMServer(ctx context.Context, db *gorm.DB) (*server.CipherIMServer, error) {
+	cfg := NewTestConfig("cipher-im-integration")
+
+	// Create full server instance (applies migrations via repository.ApplyMigrations).
+	cipherServer, err := server.New(ctx, cfg, db, repository.DatabaseTypePostgreSQL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cipher server: %w", err)
+	}
+
+	return cipherServer, nil
 }

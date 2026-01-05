@@ -7,12 +7,19 @@ package container
 import (
 	"context"
 	"fmt"
+	"strings"
+
+	googleUuid "github.com/google/uuid"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"gorm.io/gorm"
+
+	postgresDriver "gorm.io/driver/postgres"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
@@ -42,4 +49,64 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Te
 	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUsername, dbPassword, containerHost, containerMappedPort, dbName)
 
 	return databaseURL, terminateContainer, nil
+}
+
+// SetupSharedPostgresContainer initializes a PostgreSQL test-container for integration tests.
+// Returns the container and connection string for reuse across tests.
+//
+// This significantly reduces test execution time by amortizing container startup (3-4s)
+// across all integration tests instead of per-test.
+func SetupSharedPostgresContainer(ctx context.Context) (*postgres.PostgresContainer, string, error) {
+	// Generate random database password.
+	dbPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to generate database password: %w", err)
+	}
+
+	// Start PostgreSQL test-container ONCE for all integration tests.
+	container, err := postgres.Run(ctx,
+		"postgres:18-alpine",
+		postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewString())),
+		postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewString())),
+		postgres.WithPassword(dbPassword),
+	)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to start PostgreSQL container: %w", err)
+	}
+
+	// Get connection string.
+	connStr, err := container.ConnectionString(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get connection string: %w", err)
+	}
+
+	// Disable SSL for test containers (testcontainers doesn't configure SSL by default).
+	if !strings.Contains(connStr, "?") {
+		connStr += "?sslmode=disable"
+	} else {
+		connStr += "&sslmode=disable"
+	}
+
+	return container, connStr, nil
+}
+
+// VerifyPostgresConnection verifies the PostgreSQL connection works.
+// Returns error if connection or ping fails.
+func VerifyPostgresConnection(connStr string) error {
+	db, err := gorm.Open(postgresDriver.Open(connStr), &gorm.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to connect to PostgreSQL: %w", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get SQL database instance: %w", err)
+	}
+	defer sqlDB.Close() //nolint:errcheck
+
+	if err := sqlDB.Ping(); err != nil {
+		return fmt.Errorf("failed to ping PostgreSQL: %w", err)
+	}
+
+	return nil
 }

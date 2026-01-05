@@ -11,21 +11,9 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 
-	"cryptoutil/internal/cipher/integration"
-	"cryptoutil/internal/cipher/server"
 	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
-
-var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String() // TODO Use random secret in DB, protected at rest with barrier layer encryption
-
-// createTestCipherIMServer creates a full CipherIMServer for testing using shared resources from TestMain.
-// Returns the server instance, public URL, and admin URL.
-// Delegates to exported integration.CreateTestCipherIMServer for consistency.
-func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, string, error) {
-	return integration.CreateTestCipherIMServer(db, testJWTSecret)
-}
 
 // sendMessage sends a message to one or more receivers.
 func sendMessage(t *testing.T, client *http.Client, baseURL, message, token string, receiverIDs ...googleUuid.UUID) string {

@@ -29,15 +29,6 @@ func NewTestConfig(serviceName string) *config.AppConfig {
 	return cfg
 }
 
-// NewTestAppConfig creates an AppConfig with test-friendly settings and JWT secret.
-// Exported version for reuse in both E2E and integration tests.
-func NewTestAppConfig(serviceName, jwtSecret string) *config.AppConfig {
-	return &config.AppConfig{
-		ServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService(serviceName),
-		JWTSecret:      jwtSecret,
-	}
-}
-
 // InitTestDB creates an in-memory SQLite database with cipher schema.
 // Exported version for reuse in E2E tests.
 func InitTestDB() (*gorm.DB, error) {
@@ -104,13 +95,4 @@ func CreateTestCipherIMServerInternal(db *gorm.DB, cfg *config.AppConfig, dbType
 	adminURL := fmt.Sprintf("https://%s:%d", cfg.BindPrivateAddress, adminPort)
 
 	return cipherServer, publicURL, adminURL, nil
-}
-
-// CreateTestCipherIMServer creates a full CipherIMServer for testing with default SQLite config.
-// Returns the server instance, public URL, and admin URL.
-//
-// Exported version for reuse in E2E tests.
-func CreateTestCipherIMServer(db *gorm.DB, jwtSecret string) (*server.CipherIMServer, string, string, error) {
-	cfg := NewTestAppConfig("cipher-im-e2e-test", jwtSecret)
-	return CreateTestCipherIMServerInternal(db, cfg, repository.DatabaseTypeSQLite)
 }
