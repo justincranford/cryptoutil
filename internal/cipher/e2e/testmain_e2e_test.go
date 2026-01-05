@@ -11,7 +11,7 @@ import (
 	"os"
 	"testing"
 
-	"cryptoutil/internal/cipher/server"
+	cryptoutilCipherServer "cryptoutil/internal/cipher/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -25,7 +25,7 @@ var (
 	sharedJWKGenService    *cryptoutilJose.JWKGenService
 	sharedTLSConfig        *cryptoutilTLSGenerator.TLSGeneratedSettings
 	sharedHTTPClient       *http.Client
-	testCipherIMServer     *server.CipherIMServer
+	testCipherIMServer     *cryptoutilCipherServer.CipherIMServer
 	baseURL                string
 	adminURL               string
 )

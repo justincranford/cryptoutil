@@ -11,6 +11,9 @@ import (
 	"net/http"
 	"testing"
 
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,8 +22,8 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := registerServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_root", "Pass1234!")
-	user2 := registerServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_root", "Pass1234!")
+	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_root", *cryptoutilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_root", *cryptoutilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before root key rotation"
 
@@ -37,7 +40,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 3: Rotate root key via admin API.
 	rotationReason := "E2E test: manual root key rotation"
 
-	rotateResponse := rotateRootKey(t, sharedHTTPClient, adminURL, rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminURL, "/admin/v1/barrier/rotate/root", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -97,8 +100,8 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := registerServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_intermediate", "Pass1234!")
-	user2 := registerServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_intermediate", "Pass1234!")
+	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_intermediate", *cryptoutilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_intermediate", *cryptoutilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before intermediate key rotation"
 
@@ -115,7 +118,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 3: Rotate intermediate key via admin API.
 	rotationReason := "E2E test: manual intermediate key rotation"
 
-	rotateResponse := rotateIntermediateKey(t, sharedHTTPClient, adminURL, rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminURL, "/admin/v1/barrier/rotate/intermediate", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -166,8 +169,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message (creates first content key).
-	user1 := registerServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_content", "Pass1234!")
-	user2 := registerServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_content", "Pass1234!")
+	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, baseURL, "user1_rotate_content", *cryptoutilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, baseURL, "user2_rotate_content", *cryptoutilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before content key rotation"
 
@@ -177,7 +180,7 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	// Step 2: Rotate content key (elastic rotation - creates new key, keeps old).
 	rotationReason := "E2E test: manual content key rotation"
 
-	rotateResponse := rotateContentKey(t, sharedHTTPClient, adminURL, rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminURL, "/admin/v1/barrier/rotate/content", rotationReason)
 
 	// Content key rotation returns new_key_uuid only (no old_key_uuid - elastic rotation).
 	newKeyUUID, ok := rotateResponse["new_key_uuid"].(string)
@@ -256,7 +259,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	require.Greater(t, intermediateKeyCreatedAt, float64(0), "intermediate_key created_at should be positive timestamp")
 
 	// Step 2: Rotate root key.
-	rotateRootKey(t, sharedHTTPClient, adminURL, "E2E test: verify status update after rotation")
+	rotateKey(t, sharedHTTPClient, adminURL, "/admin/v1/barrier/rotate/root", "E2E test: verify status update after rotation")
 
 	// Step 3: Get updated status.
 	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminURL)
@@ -276,27 +279,6 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	updatedIntermediateKeyUUID, ok := updatedIntermediateKey["uuid"].(string)
 	require.True(t, ok, "updated intermediate_key uuid should be string")
 	require.Equal(t, intermediateKeyUUID, updatedIntermediateKeyUUID, "intermediate_key UUID should remain unchanged after root rotation")
-}
-
-// rotateRootKey rotates root encryption key via admin API.
-func rotateRootKey(t *testing.T, client *http.Client, adminURL, reason string) map[string]any {
-	t.Helper()
-
-	return rotateKey(t, client, adminURL, "/admin/v1/barrier/rotate/root", reason)
-}
-
-// rotateIntermediateKey rotates intermediate encryption key via admin API.
-func rotateIntermediateKey(t *testing.T, client *http.Client, adminURL, reason string) map[string]any {
-	t.Helper()
-
-	return rotateKey(t, client, adminURL, "/admin/v1/barrier/rotate/intermediate", reason)
-}
-
-// rotateContentKey rotates content encryption key via admin API (elastic rotation).
-func rotateContentKey(t *testing.T, client *http.Client, adminURL, reason string) map[string]any {
-	t.Helper()
-
-	return rotateKey(t, client, adminURL, "/admin/v1/barrier/rotate/content", reason)
 }
 
 // rotateKey is a helper function for rotation endpoints.

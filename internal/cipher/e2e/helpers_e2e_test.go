@@ -34,6 +34,32 @@ const (
 
 var testJWTSecret = googleUuid.Must(googleUuid.NewV7()).String() // TODO Use random secret in DB, protected at rest with barrier layer encryption
 
+func RequireNewAppConfigForTest() *config.AppConfig {
+	return &config.AppConfig{
+		ServerSettings: *RequireNewServerTemplateSettingsConfigForTest(),
+		JWTSecret:      testJWTSecret,
+	}
+}
+
+func RequireNewServerTemplateSettingsConfigForTest() *cryptoutilConfig.ServerSettings {
+	return &cryptoutilConfig.ServerSettings{
+		BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
+		BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
+		BindPublicPort:        0,
+		BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
+		BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
+		BindPrivatePort:       0,
+		TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
+		TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
+		TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
+		TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
+		CORSAllowedOrigins:    []string{},
+		OTLPService:           "cipher-im-e2e-test",
+		OTLPEndpoint:          "grpc://localhost:4317",
+		LogLevel:              "error",
+	}
+}
+
 // initTestDB creates an in-memory SQLite database with schema using template helper.
 func initTestDB() (*gorm.DB, error) {
 	ctx := context.Background()
@@ -43,34 +69,6 @@ func initTestDB() (*gorm.DB, error) {
 	}
 
 	return cryptoutilE2E.InitTestDB(ctx, applyMigrations)
-}
-
-// createTestPublicServer creates a PublicServer for testing using shared resources from TestMain.
-func createTestPublicServer(db *gorm.DB) (*server.PublicServer, string, error) {
-	ctx := context.Background()
-
-	userRepo := repository.NewUserRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
-
-	// Note: This old helper creates PublicServer without barrier service.
-	// For full server testing, use createTestCipherIMServer() instead.
-	publicServer, err := server.NewPublicServer(ctx, testPort, userRepo, messageRepo, nil, sharedJWKGenService, nil, testJWTSecret, sharedTLSConfig)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to create PublicServer: %w", err)
-	}
-
-	// Start server in background using template helper.
-	_ = cryptoutilE2E.StartServerAsync(ctx, publicServer)
-
-	// Wait for server to bind to port using template helper.
-	waitParams := cryptoutilE2E.DefaultServerWaitParams()
-
-	baseURL, err := cryptoutilE2E.WaitForServerPort(publicServer, waitParams)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return publicServer, baseURL, nil
 }
 
 // createTestCipherIMServer creates a full CipherIMServer for testing using shared resources from TestMain.
@@ -99,7 +97,7 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 	var publicPort int
 	var adminPort int
 
-	for i := 0; i < maxWaitAttempts; i++ {
+	for range maxWaitAttempts {
 		publicPort = cipherServer.PublicPort()
 
 		adminPortValue, _ := cipherServer.AdminPort()
@@ -128,39 +126,6 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 	adminURL := fmt.Sprintf("https://%s:%d", cfg.BindPrivateAddress, adminPort)
 
 	return cipherServer, publicURL, adminURL, nil
-}
-
-func RequireNewAppConfigForTest() *config.AppConfig {
-	return &config.AppConfig{
-		ServerSettings: *RequireNewServerTemplateSettingsConfigForTest(),
-		JWTSecret:      testJWTSecret,
-	}
-}
-
-func RequireNewServerTemplateSettingsConfigForTest() *cryptoutilConfig.ServerSettings {
-	return &cryptoutilConfig.ServerSettings{
-		BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
-		BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
-		BindPublicPort:        0,
-		BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
-		BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
-		BindPrivatePort:       0,
-		TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
-		TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-		TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
-		TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
-		CORSAllowedOrigins:    []string{},
-		OTLPService:           "cipher-im-e2e-test",
-		OTLPEndpoint:          "grpc://localhost:4317",
-		LogLevel:              "error",
-	}
-}
-
-// registerServiceUser registers a user and returns the user with private key (delegates to template helper).
-func registerServiceUser(t *testing.T, client *http.Client, baseURL, username, password string) *cryptoutilE2E.TestUser {
-	t.Helper()
-
-	return cryptoutilE2E.RegisterServiceUser(t, client, baseURL, username, password)
 }
 
 // sendMessage sends a message to one or more receivers.
@@ -214,20 +179,6 @@ func deleteMessageService(t *testing.T, client *http.Client, baseURL, messageID,
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
-}
-
-// registerUserBrowser registers a user via /browser/api/v1/users/register (delegates to template helper).
-func registerUserBrowser(t *testing.T, client *http.Client, baseURL, username, password string) *cryptoutilE2E.TestUser {
-	t.Helper()
-
-	return cryptoutilE2E.RegisterBrowserUser(t, client, baseURL, username, password)
-}
-
-// loginUserBrowser logs in a user via /browser/api/v1/users/login and returns JWT token (delegates to template helper).
-func loginUserBrowser(t *testing.T, client *http.Client, baseURL, username, password string) string {
-	t.Helper()
-
-	return cryptoutilE2E.LoginUser(t, client, baseURL, "/browser/api/v1/users/login", username, password)
 }
 
 // sendMessageBrowser sends a message to one or more receivers via /browser/api/v1/messages/tx.
