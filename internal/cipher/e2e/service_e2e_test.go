@@ -6,6 +6,7 @@ package e2e_test
 import (
 	"testing"
 
+	cipherClient "cryptoutil/internal/cipher/client"
 	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,8 @@ func TestE2E_FullEncryptionFlow(t *testing.T) {
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
-	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user2.Token)
+	require.NoError(t, err)
 	require.Len(t, messages, 1, "%s should have 1 message", user2.Username)
 
 	receivedMsg := messages[0]
@@ -59,7 +61,8 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
-	user2Messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	user2Messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user2.Token)
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(user2Messages), 1, "user2 should have at least 1 message")
 
 	// Verify user2 can decrypt.
@@ -69,7 +72,8 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	require.Equal(t, plaintext, user2Decrypted)
 
 	// user3 receives messages.
-	user3Messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user3.Token)
+	user3Messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user3.Token)
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(user3Messages), 1, "user3 should have at least 1 message")
 
 	// Verify user3 can decrypt.
@@ -95,12 +99,16 @@ func TestE2E_MessageDeletion(t *testing.T) {
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
-	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user2.Token)
+	require.NoError(t, err)
 	require.Len(t, messages, 1)
 
 	// user1 deletes the message.
-	deleteMessageService(t, sharedHTTPClient, baseURL, messageID, user1.Token)
+	err = cipherClient.DeleteMessageService(sharedHTTPClient, baseURL, messageID, user1.Token)
+	require.NoError(t, err)
+
 	// user2 receives messages again (should be empty).
-	messages = receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	messages, err = cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user2.Token)
+	require.NoError(t, err)
 	require.Len(t, messages, 0, "user2 should have no messages after deletion")
 }

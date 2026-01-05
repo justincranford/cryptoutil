@@ -24,7 +24,8 @@ func TestE2E_BrowserFullEncryptionFlow(t *testing.T) {
 	// user1 sends encrypted message to user2 via browser endpoint.
 	plaintext := "Hello " + user2.Username + ", this is a browser message from " + user1.Username + "!"
 
-	messageID := sendMessageBrowser(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := cipherClient.SendMessageBrowser(sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages via browser endpoint.
@@ -56,7 +57,8 @@ func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 
 	// user1 sends to both user2 and user3 via browser endpoint.
 	plaintext := "Group message from " + user1.Username + " to multiple recipients!"
-	messageID := sendMessageBrowser(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID, user3.ID)
+	messageID, err := cipherClient.SendMessageBrowser(sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID, user3.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives message.
@@ -88,7 +90,8 @@ func TestE2E_BrowserMessageDeletion(t *testing.T) {
 
 	// user1 sends message to user2 via browser endpoint.
 	plaintext := "This message will be deleted!"
-	messageID := sendMessageBrowser(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := cipherClient.SendMessageBrowser(sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives message.

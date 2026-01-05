@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"testing"
 
+	cipherClient "cryptoutil/internal/cipher/client"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 
@@ -72,7 +73,8 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify user2 can decrypt BOTH old and new messages (backward compatibility).
-	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user2.Token)
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
 	// Find both messages in received set.
@@ -142,7 +144,8 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify backward compatibility.
-	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user2.Token)
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
 	var foundOldMessage, foundNewMessage bool
@@ -201,7 +204,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 4: Verify both messages decrypt correctly (elastic rotation preserves old keys).
-	messages := receiveMessagesService(t, sharedHTTPClient, baseURL, user2.Token)
+	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, baseURL, user2.Token)
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
 	var foundOldMessage, foundNewMessage bool
