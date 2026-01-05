@@ -66,7 +66,7 @@ func TestInitDatabase_PostgreSQL(t *testing.T) {
 	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
 
 	// Initialize database.
-	db, err := initDatabase(ctx)
+	db, err := initDatabase(ctx, "")
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
@@ -100,7 +100,7 @@ func TestInitDatabase_SQLite(t *testing.T) {
 	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
 
 	// Initialize database (should use unique in-memory database).
-	db, err := initDatabase(ctx)
+	db, err := initDatabase(ctx, "")
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
@@ -137,7 +137,7 @@ func TestInitDatabase_SQLiteFile(t *testing.T) {
 	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
 
 	// Initialize database.
-	db, err := initDatabase(ctx)
+	db, err := initDatabase(ctx, "")
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
@@ -174,7 +174,7 @@ func TestInitDatabase_InvalidScheme(t *testing.T) {
 	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
 
 	// Initialize database (should fail with unsupported scheme error).
-	db, err := initDatabase(ctx)
+	db, err := initDatabase(ctx, "")
 	require.Error(t, err)
 	require.Nil(t, db)
 	require.Contains(t, err.Error(), "unsupported database URL scheme")

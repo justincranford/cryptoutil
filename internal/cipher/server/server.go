@@ -218,3 +218,11 @@ func (s *CipherIMServer) AdminPort() (int, error) {
 	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
 	return s.app.AdminPort()
 }
+
+// SetReady marks the server as ready to accept traffic.
+//
+// Applications should call SetReady(true) after initializing all dependencies
+// but before starting the server. This enables the /admin/v1/readyz endpoint.
+func (s *CipherIMServer) SetReady(ready bool) {
+	s.app.SetReady(ready)
+}

@@ -237,3 +237,18 @@ func (a *Application) IsShutdown() bool {
 
 	return a.shutdown
 }
+
+// SetReady marks the admin server as ready to accept traffic.
+//
+// Applications should call SetReady(true) after initializing all dependencies
+// (database connections, caches, external services, etc.) but before the server
+// starts accepting requests. This enables the /admin/v1/readyz endpoint to return
+// HTTP 200 OK instead of 503 Service Unavailable.
+//
+// Parameters:
+// - ready: true to mark ready, false to mark not ready
+func (a *Application) SetReady(ready bool) {
+	if a.adminServer != nil {
+		a.adminServer.SetReady(ready)
+	}
+}

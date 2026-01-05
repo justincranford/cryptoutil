@@ -57,6 +57,10 @@ func TestHTTPGet(t *testing.T) {
 	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
+	// Mark server as ready after successful initialization.
+	// This enables /admin/v1/readyz to return 200 OK instead of 503 Service Unavailable.
+	srv.SetReady(true)
+
 	// Start server.
 	errChan := make(chan error, 1)
 
@@ -71,10 +75,6 @@ func TestHTTPGet(t *testing.T) {
 	publicPort := srv.PublicPort()
 	adminPort, err := srv.AdminPort()
 	require.NoError(t, err)
-
-	// Set readiness flag (learn server doesn't call SetReady yet).
-	// TODO: Fix learn server to call SetReady after successful initialization.
-	// For now, skip readyz test as it returns 503 (not ready) which is expected behavior.
 
 	// Create insecure HTTP client (accepts self-signed certs).
 	client := &http.Client{
@@ -114,10 +114,8 @@ func TestHTTPGet(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
-	// Test admin readyz endpoint (expected 503 - not ready).
+	// Test admin readyz endpoint.
 	t.Run("admin_readyz_endpoint", func(t *testing.T) {
-		t.Skip("Skipping readyz test - learn server doesn't call SetReady yet (returns 503 as expected)")
-
 		url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/readyz", adminPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
@@ -127,7 +125,7 @@ func TestHTTPGet(t *testing.T) {
 
 		defer func() { _ = resp.Body.Close() }()
 
-		require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
 	// Shutdown server.

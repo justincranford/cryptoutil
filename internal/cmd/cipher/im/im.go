@@ -7,7 +7,9 @@ package im
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"net/http"
@@ -31,10 +33,18 @@ import (
 )
 
 const (
-	helpCommand   = "help"
-	helpFlag      = "--help"
-	helpShortFlag = "-h"
-	urlFlag       = "--url"
+	helpCommand     = "help"
+	helpFlag        = "--help"
+	helpShortFlag   = "-h"
+	urlFlag         = "--url"
+	cacertFlag      = "--cacert"
+	databaseURLFlag = "--database-url"
+
+	// Default URLs for health check endpoints.
+	defaultHealthURL   = "https://127.0.0.1:8888/health"
+	defaultLivezURL    = "https://127.0.0.1:9090/admin/v1/livez"
+	defaultReadyzURL   = "https://127.0.0.1:9090/admin/v1/readyz"
+	defaultShutdownURL = "https://127.0.0.1:9090/admin/v1/shutdown"
 
 	// Database dialector names.
 	dialectSQLite     = "sqlite"
@@ -112,10 +122,44 @@ Version information is available via Docker image tags.`)
 
 // imServer implements the server subcommand.
 func imServer(args []string) int {
+	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+		fmt.Fprintln(os.Stderr, `Usage: cipher im server [options]
+
+Description:
+  Start the instant messaging server with database initialization.
+  Supports both SQLite (default) and PostgreSQL databases.
+
+Options:
+  --database-url URL    Database URL (default: SQLite in-memory)
+                        SQLite: file::memory:?cache=shared
+                        PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
+  --help, -h            Show this help message
+
+Examples:
+  learn im server
+  learn im server --database-url file:/tmp/cipher.db
+  learn im server --database-url postgres://user:pass@localhost:5432/cipher`)
+
+		return 0
+	}
+
 	ctx := context.Background()
 
-	// Initialize SQLite in-memory database for demonstration.
-	db, err := initDatabase(ctx)
+	// Parse flags.
+	databaseURL := ""
+
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case databaseURLFlag:
+			if i+1 < len(args) && databaseURL == "" { // Only set if not already set
+				databaseURL = args[i+1]
+				i++ // Skip next arg
+			}
+		}
+	}
+
+	// Initialize database (PostgreSQL or SQLite).
+	db, err := initDatabase(ctx, databaseURL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Failed to initialize database: %v\n", err)
 
@@ -136,6 +180,10 @@ func imServer(args []string) int {
 
 		return 1
 	}
+
+	// Mark server as ready after successful initialization.
+	// This enables /admin/v1/readyz to return 200 OK instead of 503 Service Unavailable.
+	srv.SetReady(true)
 
 	// Start server with graceful shutdown.
 	errChan := make(chan error, 1)
@@ -230,33 +278,44 @@ Description:
 
 Options:
   --url URL      Service URL (default: https://127.0.0.1:8888)
+  --cacert FILE  CA certificate file for TLS validation
   --help, -h     Show this help message
 
 Examples:
   learn im health
-  learn im health --url https://localhost:8888`)
+  learn im health --url https://localhost:8888
+  learn im health --cacert /path/to/ca.pem`)
 
 		return 0
 	}
 
-	// Parse URL flag.
-	url := "https://127.0.0.1:8888/health"
+	// Parse flags.
+	url := defaultHealthURL
+	cacertPath := ""
 
 	for i := 0; i < len(args); i++ {
-		if args[i] == urlFlag && i+1 < len(args) {
-			baseURL := args[i+1]
-			if !strings.HasSuffix(baseURL, "/health") {
-				url = baseURL + "/health"
-			} else {
-				url = baseURL
-			}
+		switch args[i] {
+		case urlFlag:
+			if i+1 < len(args) && url == defaultHealthURL { // Only set if not already set
+				baseURL := args[i+1]
+				if !strings.HasSuffix(baseURL, "/health") {
+					url = baseURL + "/health"
+				} else {
+					url = baseURL
+				}
 
-			break
+				i++ // Skip next arg
+			}
+		case cacertFlag:
+			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
+				cacertPath = args[i+1]
+				i++ // Skip next arg
+			}
 		}
 	}
 
 	// Call health endpoint.
-	statusCode, body, err := httpGet(url)
+	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Health check failed: %v\n", err)
 
@@ -295,6 +354,7 @@ Description:
 
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)
+  --cacert FILE  CA certificate file for TLS validation
   --help, -h     Show this help message
 
 Examples:
@@ -304,24 +364,34 @@ Examples:
 		return 0
 	}
 
-	// Parse URL flag.
-	url := "https://127.0.0.1:9090/admin/v1/livez"
+	// Parse flags.
+	url := defaultLivezURL
+
+	var cacertPath string
 
 	for i := 0; i < len(args); i++ {
-		if args[i] == urlFlag && i+1 < len(args) {
-			baseURL := args[i+1]
-			if !strings.HasSuffix(baseURL, "/admin/v1/livez") {
-				url = baseURL + "/admin/v1/livez"
-			} else {
-				url = baseURL
-			}
+		switch args[i] {
+		case urlFlag:
+			if i+1 < len(args) && url == defaultLivezURL { // Only set if not already set
+				baseURL := args[i+1]
+				if !strings.HasSuffix(baseURL, "/admin/v1/livez") {
+					url = baseURL + "/admin/v1/livez"
+				} else {
+					url = baseURL
+				}
 
-			break
+				i++ // Skip next arg
+			}
+		case cacertFlag:
+			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
+				cacertPath = args[i+1]
+				i++ // Skip next arg
+			}
 		}
 	}
 
 	// Call livez endpoint.
-	statusCode, body, err := httpGet(url)
+	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Liveness check failed: %v\n", err)
 
@@ -360,6 +430,7 @@ Description:
 
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)
+  --cacert FILE  CA certificate file for TLS validation
   --help, -h     Show this help message
 
 Examples:
@@ -369,24 +440,34 @@ Examples:
 		return 0
 	}
 
-	// Parse URL flag.
-	url := "https://127.0.0.1:9090/admin/v1/readyz"
+	// Parse flags.
+	url := defaultReadyzURL
+
+	var cacertPath string
 
 	for i := 0; i < len(args); i++ {
-		if args[i] == urlFlag && i+1 < len(args) {
-			baseURL := args[i+1]
-			if !strings.HasSuffix(baseURL, "/admin/v1/readyz") {
-				url = baseURL + "/admin/v1/readyz"
-			} else {
-				url = baseURL
-			}
+		switch args[i] {
+		case urlFlag:
+			if i+1 < len(args) && url == defaultReadyzURL { // Only set if not already set
+				baseURL := args[i+1]
+				if !strings.HasSuffix(baseURL, "/admin/v1/readyz") {
+					url = baseURL + "/admin/v1/readyz"
+				} else {
+					url = baseURL
+				}
 
-			break
+				i++ // Skip next arg
+			}
+		case cacertFlag:
+			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
+				cacertPath = args[i+1]
+				i++ // Skip next arg
+			}
 		}
 	}
 
 	// Call readyz endpoint.
-	statusCode, body, err := httpGet(url)
+	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Readiness check failed: %v\n", err)
 
@@ -425,6 +506,7 @@ Description:
 
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)
+  --cacert FILE  CA certificate file for TLS validation
   --force        Force shutdown without graceful drain
   --help, -h     Show this help message
 
@@ -436,24 +518,34 @@ Examples:
 		return 0
 	}
 
-	// Parse URL flag.
-	url := "https://127.0.0.1:9090/admin/v1/shutdown"
+	// Parse flags.
+	url := defaultShutdownURL
+
+	var cacertPath string
 
 	for i := 0; i < len(args); i++ {
-		if args[i] == urlFlag && i+1 < len(args) {
-			baseURL := args[i+1]
-			if !strings.HasSuffix(baseURL, "/admin/v1/shutdown") {
-				url = baseURL + "/admin/v1/shutdown"
-			} else {
-				url = baseURL
-			}
+		switch args[i] {
+		case urlFlag:
+			if i+1 < len(args) && url == defaultShutdownURL { // Only set if not already set
+				baseURL := args[i+1]
+				if !strings.HasSuffix(baseURL, "/admin/v1/shutdown") {
+					url = baseURL + "/admin/v1/shutdown"
+				} else {
+					url = baseURL
+				}
 
-			break
+				i++ // Skip next arg
+			}
+		case cacertFlag:
+			if i+1 < len(args) && cacertPath == "" { // Only set if not already set
+				cacertPath = args[i+1]
+				i++ // Skip next arg
+			}
 		}
 	}
 
 	// Call shutdown endpoint.
-	statusCode, body, err := httpPost(url)
+	statusCode, body, err := httpPost(url, cacertPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Shutdown request failed: %v\n", err)
 
@@ -480,15 +572,63 @@ Examples:
 	return 1
 }
 
-// httpGet performs an HTTP GET request with TLS certificate validation disabled.
+// loadCACertPool loads a CA certificate from file and returns an x509.CertPool.
+func loadCACertPool(cacertPath string) (*x509.CertPool, error) {
+	if cacertPath == "" {
+		return nil, nil //nolint:nilnil // Valid pattern: no CA cert specified means use system defaults
+	}
+
+	// Read CA certificate file.
+	caCertPEM, err := os.ReadFile(cacertPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CA certificate file: %w", err)
+	}
+
+	// Create certificate pool.
+	caCertPool := x509.NewCertPool()
+
+	// Parse and add certificates to pool.
+	for {
+		block, rest := pem.Decode(caCertPEM)
+		if block == nil {
+			break
+		}
+
+		if block.Type == "CERTIFICATE" {
+			cert, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse CA certificate: %w", err)
+			}
+
+			caCertPool.AddCert(cert)
+		}
+
+		caCertPEM = rest
+	}
+
+	if len(caCertPool.Subjects()) == 0 { //nolint:staticcheck // Subjects() is safe for manually created CertPools
+		return nil, fmt.Errorf("no CA certificates found in file")
+	}
+
+	return caCertPool, nil
+}
+
+// httpGet performs an HTTP GET request with optional CA certificate validation.
 // Used by health check CLI wrappers to call API endpoints.
-func httpGet(url string) (int, string, error) {
-	// Create HTTP client that accepts self-signed certificates.
-	// TODO: Add proper certificate validation with --cacert flag.
+func httpGet(url, cacertPath string) (int, string, error) {
+	// Load CA certificate pool if specified.
+	caCertPool, err := loadCACertPool(cacertPath)
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to load CA certificate: %w", err)
+	}
+
+	// Create HTTP client with proper TLS configuration.
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Allow self-signed certificates for dev/testing.
+				MinVersion:         tls.VersionTLS12,
+				RootCAs:            caCertPool,        // Use CA cert pool if provided, nil = system defaults
+				InsecureSkipVerify: caCertPool == nil, // Skip verification if no CA cert provided (backward compatibility)
 			},
 		},
 	}
@@ -517,14 +657,22 @@ func httpGet(url string) (int, string, error) {
 	return resp.StatusCode, string(body), nil
 }
 
-// httpPost performs an HTTP POST request with TLS certificate validation disabled.
+// httpPost performs an HTTP POST request with optional CA certificate validation.
 // Used by shutdown CLI wrapper to call admin API endpoint.
-func httpPost(url string) (int, string, error) {
-	// Create HTTP client that accepts self-signed certificates.
+func httpPost(url, cacertPath string) (int, string, error) {
+	// Load CA certificate pool if specified.
+	caCertPool, err := loadCACertPool(cacertPath)
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to load CA certificate: %w", err)
+	}
+
+	// Create HTTP client with proper TLS configuration.
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Allow self-signed certificates for dev/testing.
+				MinVersion:         tls.VersionTLS12,
+				RootCAs:            caCertPool,        // Use CA cert pool if provided, nil = system defaults
+				InsecureSkipVerify: caCertPool == nil, // Skip verification if no CA cert provided (backward compatibility)
 			},
 		},
 	}
@@ -559,15 +707,14 @@ func httpPost(url string) (int, string, error) {
 // Database type determined by --database-url flag or DATABASE_URL env var.
 // SQLite: file::memory:?cache=shared or file:/path/to/data.db?cache=shared
 // PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
-func initDatabase(ctx context.Context) (*gorm.DB, error) {
-	// Determine database URL from flags or environment.
-	// Priority: CLI flag > environment variable > default (SQLite in-memory).
-	databaseURL := "file::memory:?cache=shared" // Default: SQLite in-memory
-
-	// TODO: Parse --database-url flag when flag parsing is added.
-	// For now, check environment variable.
-	if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
-		databaseURL = envURL
+func initDatabase(ctx context.Context, databaseURL string) (*gorm.DB, error) {
+	// Use provided database URL, or fall back to environment variable or default.
+	if databaseURL == "" {
+		if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
+			databaseURL = envURL
+		} else {
+			databaseURL = "file::memory:?cache=shared" // Default: SQLite in-memory
+		}
 	}
 
 	// Detect database type from URL scheme.

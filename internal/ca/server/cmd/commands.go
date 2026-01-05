@@ -6,6 +6,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -118,9 +119,31 @@ func NewHealthCommand() *cobra.Command {
 		Short: "Check CA server health",
 		Long:  "Send a health check request to the CA Server.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: Implement health check client.
-			fmt.Printf("Checking health of CA server at %s\n", serverURL)
+			// Check liveness probe
+			livezURL := serverURL + "/admin/v1/livez"
+			resp, err := http.Get(livezURL)
+			if err != nil {
+				return fmt.Errorf("failed to check liveness: %w", err)
+			}
+			resp.Body.Close()
 
+			if resp.StatusCode != http.StatusOK {
+				return fmt.Errorf("liveness check failed with status %d", resp.StatusCode)
+			}
+
+			// Check readiness probe
+			readyzURL := serverURL + "/admin/v1/readyz"
+			resp, err = http.Get(readyzURL)
+			if err != nil {
+				return fmt.Errorf("failed to check readiness: %w", err)
+			}
+			resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				return fmt.Errorf("readiness check failed with status %d", resp.StatusCode)
+			}
+
+			fmt.Printf("CA server at %s is healthy\n", serverURL)
 			return nil
 		},
 	}
