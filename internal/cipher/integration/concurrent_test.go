@@ -23,7 +23,7 @@ import (
 // Tests robustness of database transactions, encryption/decryption, and race condition prevention.
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	// Use shared server from TestMain (amortizes startup cost).
-	require.NotNil(t, sharedServer)
+	require.NotNil(t, cipherImServer)
 	require.NotEmpty(t, sharedServiceBaseURL)
 
 	// Create HTTP client for API calls.

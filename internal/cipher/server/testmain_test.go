@@ -18,9 +18,9 @@ import (
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
 	cipherTesting "cryptoutil/internal/cipher/testing"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 

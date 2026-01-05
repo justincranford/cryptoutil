@@ -262,3 +262,70 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 
 	return resources, nil
 }
+
+// StartCipherIMServer creates and starts a cipher-im server from config.
+// This is a simpler helper for integration tests that provide their own AppConfig.
+//
+// The server is started in the background and this function waits for both public
+// and admin servers to bind to their ports before returning.
+//
+// Example usage:
+//
+//	appConfig := &config.AppConfig{...}
+//	server := StartCipherIMServer(appConfig)
+//	defer server.Shutdown(context.Background())
+func StartCipherIMServer(appConfig *config.AppConfig) *server.CipherIMServer {
+	ctx := context.Background()
+
+	cipherImServer, err := server.NewFromConfig(ctx, appConfig)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create server: %v", err))
+	}
+
+	// Start server in background (Start() blocks until shutdown).
+	errChan := make(chan error, 1)
+
+	go func() {
+		if startErr := cipherImServer.Start(ctx); startErr != nil {
+			errChan <- startErr
+		}
+	}()
+
+	// Wait for both servers to bind to ports.
+	const (
+		maxWaitAttempts = 50
+		waitInterval    = 100 * time.Millisecond
+	)
+
+	var (
+		publicPort int
+		adminPort  int
+	)
+
+	for i := 0; i < maxWaitAttempts; i++ {
+		publicPort = cipherImServer.PublicPort()
+
+		adminPortValue, _ := cipherImServer.AdminPort()
+		adminPort = adminPortValue
+
+		if publicPort > 0 && adminPort > 0 {
+			break
+		}
+
+		select {
+		case err := <-errChan:
+			panic(fmt.Sprintf("server start error: %v", err))
+		case <-time.After(waitInterval):
+		}
+	}
+
+	if publicPort == 0 {
+		panic("public server did not bind to port")
+	}
+
+	if adminPort == 0 {
+		panic("admin server did not bind to port")
+	}
+
+	return cipherImServer
+}
