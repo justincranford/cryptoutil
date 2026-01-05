@@ -3,14 +3,16 @@
 //
 
 // Package ca provides the unified command interface for Certificate Authority service.
-package ca
+package ca //nolint:wsl_v5
 
 import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	cryptoutilCAServer "cryptoutil/internal/ca/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
@@ -21,6 +23,7 @@ const (
 	configFlagShort  = "-c"
 	defaultAdminPort = 9090
 	fileURLPrefix    = "file://"
+	httpTimeout      = 5 * time.Second
 )
 
 // Execute handles CA service commands matching KMS/Identity/JOSE pattern.
@@ -94,36 +97,106 @@ func startService(parameters []string) {
 }
 
 // stopService sends shutdown request to CA admin endpoint.
-func stopService(parameters []string) {
+func stopService(parameters []string) { //nolint:wsl_v5
 	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Fprintf(os.Stderr, "Sending shutdown request to admin endpoint (port %d)...\n", adminPort)
 
-	// TODO: Implement HTTP POST to https://127.0.0.1:<adminPort>/admin/v1/shutdown
-	fmt.Fprintf(os.Stderr, "TODO: HTTP client implementation pending\n")
-	os.Exit(1)
+	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/shutdown", adminPort)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
+		os.Exit(1)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: httpTimeout}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to send shutdown request: %v\n", err)
+		os.Exit(1)
+	}
+
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Fprintf(os.Stderr, "Shutdown request failed with status: %d\n", resp.StatusCode)
+		os.Exit(1)
+	}
+
+	fmt.Fprintf(os.Stderr, "Shutdown request sent successfully\n")
 }
 
 // statusService checks CA service readiness.
-func statusService(parameters []string) {
+func statusService(parameters []string) { //nolint:wsl_v5
 	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Fprintf(os.Stderr, "Checking service status (port %d)...\n", adminPort)
 
-	// TODO: Implement HTTP GET to https://127.0.0.1:<adminPort>/admin/v1/readyz
-	fmt.Fprintf(os.Stderr, "TODO: HTTP client implementation pending\n")
-	os.Exit(1)
+	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/readyz", adminPort)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
+		os.Exit(1)
+	}
+
+	client := &http.Client{Timeout: httpTimeout}
+	resp, err := client.Do(req) // #nosec G107 - URL constructed from localhost and controlled adminPort
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to check service status: %v\n", err)
+		os.Exit(1)
+	}
+
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
+
+	if resp.StatusCode == http.StatusOK {
+		fmt.Fprintf(os.Stderr, "Service is ready\n")
+	} else {
+		fmt.Fprintf(os.Stderr, "Service is not ready (status: %d)\n", resp.StatusCode)
+		os.Exit(1)
+	}
 }
 
 // healthService checks CA service health.
-func healthService(parameters []string) {
+func healthService(parameters []string) { //nolint:wsl_v5
 	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Fprintf(os.Stderr, "Checking service health (port %d)...\n", adminPort)
 
-	// TODO: Implement HTTP GET to https://127.0.0.1:<adminPort>/admin/v1/livez
-	fmt.Fprintf(os.Stderr, "TODO: HTTP client implementation pending\n")
-	os.Exit(1)
+	url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/livez", adminPort)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
+		os.Exit(1)
+	}
+
+	client := &http.Client{Timeout: httpTimeout}
+	resp, err := client.Do(req) // #nosec G107 - URL constructed from localhost and controlled adminPort
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to check service health: %v\n", err)
+		os.Exit(1)
+	}
+
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
+
+	if resp.StatusCode == http.StatusOK {
+		fmt.Fprintf(os.Stderr, "Service is healthy\n")
+	} else {
+		fmt.Fprintf(os.Stderr, "Service is not healthy (status: %d)\n", resp.StatusCode)
+		os.Exit(1)
+	}
 }
 
 // parseConfigFlag extracts --config or -c flag value.
