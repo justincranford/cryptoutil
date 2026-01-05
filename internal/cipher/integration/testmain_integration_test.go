@@ -2,8 +2,6 @@
 //
 //
 
-//go:build !windows
-
 package integration
 
 import (
@@ -95,10 +93,10 @@ func TestMain(m *testing.M) {
 		panic("admin server did not bind to port")
 	}
 
-	// Compute service base URL from configuration and actual bound port.
-	sharedServiceBaseURL = fmt.Sprintf("https://%s:%d/service/api/v1",
-		sharedAppConfig.BindPublicAddress,
-		publicPort)
+	// Compute service base URL (just protocol://host:port, no context path).
+	// Helpers add the full path including /service/api/v1 or /browser/api/v1.
+	sharedServiceBaseURL = fmt.Sprintf("%s://%s:%d",
+		sharedAppConfig.BindPublicProtocol, sharedAppConfig.BindPublicAddress, publicPort)
 
 	// Run all tests.
 	exitCode := m.Run()

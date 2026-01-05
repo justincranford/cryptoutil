@@ -179,6 +179,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	// Generate JWT secret for this server instance.
 	jwtSecretID, err := googleUuid.NewV7()
 	require.NoError(t, err)
+
 	jwtSecret := jwtSecretID.String()
 
 	// Use port 0 for dynamic allocation.

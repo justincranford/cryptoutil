@@ -2,14 +2,11 @@
 //
 //
 
-//go:build !windows
 
 package integration
 
 import (
-	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -19,7 +16,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/cipher/domain"
+	cipherClient "cryptoutil/internal/cipher/client"
+	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
@@ -86,15 +84,12 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 					sender := users[senderIdx%len(users)]
 					recipients := selectRecipients(users, sender.ID, tt.recipientsEach)
 
-					// Create message via API.
-					messageID := googleUuid.New()
-
 					recipientIDs := make([]googleUuid.UUID, len(recipients))
 					for i, r := range recipients {
 						recipientIDs[i] = r.ID
 					}
 
-					sendMessageAPI(t, client, sharedServiceBaseURL, sender.ID, messageID, recipientIDs, fmt.Sprintf("encrypted-content-%d", senderIdx))
+					sendMessageAPI(t, client, sharedServiceBaseURL, recipientIDs, fmt.Sprintf("encrypted-content-%d", senderIdx), sender.Token)
 				}(i)
 			}
 
@@ -109,7 +104,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			totalMessagesReceived := 0
 
 			for _, user := range users {
-				messages := getMessagesAPI(t, client, sharedServiceBaseURL, user.ID)
+				messages := getMessagesAPI(t, client, sharedServiceBaseURL, user.ID, user.Token)
 				totalMessagesReceived += len(messages)
 			}
 
@@ -120,85 +115,40 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 	}
 }
 
-// createTestUsersAPI creates N test users via API calls.
-func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*domain.User {
+// createTestUsersAPI creates N test users via API calls using the reusable helper.
+func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*cryptoutilE2E.TestUser {
 	t.Helper()
 
-	users := make([]*domain.User, numUsers)
+	users := make([]*cryptoutilE2E.TestUser, numUsers)
 
 	for i := 0; i < numUsers; i++ {
-		userID := googleUuid.New()
-		username := fmt.Sprintf("user%d_%s", i, googleUuid.NewString()[:8])
-
-		// Register user via API.
-		reqBody := map[string]interface{}{
-			"id":       userID.String(),
-			"username": username,
-			"password": "test-password-123",
-		}
-
-		body, _ := json.Marshal(reqBody)
-		resp, err := client.Post(baseURL+"/users/register", "application/json", bytes.NewReader(body))
-		require.NoError(t, err)
-
-		defer resp.Body.Close()
-
-		require.Equal(t, http.StatusCreated, resp.StatusCode, "Failed to create user %s", username)
-
-		// Parse response.
-		var user domain.User
-
-		err = json.NewDecoder(resp.Body).Decode(&user)
-		require.NoError(t, err)
-
-		users[i] = &user
+		users[i] = cryptoutilE2E.RegisterTestUserService(t, client, baseURL)
 	}
 
 	return users
 }
 
-// sendMessageAPI sends a message via API call.
-func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, senderID, messageID googleUuid.UUID, recipientIDs []googleUuid.UUID, content string) {
+// sendMessageAPI sends a message via API call using cipher client.
+func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, recipientIDs []googleUuid.UUID, content string, token string) {
 	t.Helper()
 
-	reqBody := map[string]interface{}{
-		"id":            messageID.String(),
-		"sender_id":     senderID.String(),
-		"recipient_ids": recipientIDs,
-		"jwe":           content,
-	}
-
-	body, _ := json.Marshal(reqBody)
-	resp, err := client.Post(baseURL+"/messages", "application/json", bytes.NewReader(body))
-	require.NoError(t, err)
-
-	defer resp.Body.Close()
-
-	require.Equal(t, http.StatusCreated, resp.StatusCode, "Failed to send message")
+	_, err := cipherClient.SendMessage(client, baseURL, content, token, recipientIDs...)
+	require.NoError(t, err, "Failed to send message")
 }
 
-// getMessagesAPI retrieves messages for a user via API call.
-func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, userID googleUuid.UUID) []domain.Message {
+// getMessagesAPI retrieves messages for a user via API call using cipher client.
+func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, userID googleUuid.UUID, token string) []map[string]any {
 	t.Helper()
 
-	resp, err := client.Get(fmt.Sprintf("%s/users/%s/messages", baseURL, userID.String()))
-	require.NoError(t, err)
-
-	defer resp.Body.Close()
-
-	require.Equal(t, http.StatusOK, resp.StatusCode, "Failed to get messages")
-
-	var messages []domain.Message
-
-	err = json.NewDecoder(resp.Body).Decode(&messages)
-	require.NoError(t, err)
+	messages, err := cipherClient.ReceiveMessagesService(client, baseURL, token)
+	require.NoError(t, err, "Failed to get messages")
 
 	return messages
 }
 
 // selectRecipients selects N random recipients (excluding sender).
-func selectRecipients(users []*domain.User, senderID googleUuid.UUID, count int) []*domain.User {
-	recipients := make([]*domain.User, 0, count)
+func selectRecipients(users []*cryptoutilE2E.TestUser, senderID googleUuid.UUID, count int) []*cryptoutilE2E.TestUser {
+	recipients := make([]*cryptoutilE2E.TestUser, 0, count)
 
 	for _, user := range users {
 		if user.ID != senderID && len(recipients) < count {

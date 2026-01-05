@@ -23,6 +23,7 @@ import (
 // cleanTestDBWithError truncates test tables and returns error if any.
 func cleanTestDBWithError(db *gorm.DB) error {
 	tables := []string{"messages", "users", "messages_recipient_jwks"}
+
 	return cryptoutilE2E.CleanTestTables(db, tables)
 }
 
@@ -90,8 +91,10 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 		waitInterval    = 100 * time.Millisecond
 	)
 
-	var publicPort int
-	var adminPort int
+	var (
+		publicPort int
+		adminPort  int
+	)
 
 	for i := 0; i < maxWaitAttempts; i++ {
 		publicPort = cipherServer.PublicPort()
