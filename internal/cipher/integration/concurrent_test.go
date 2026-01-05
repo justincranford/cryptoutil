@@ -7,29 +7,35 @@
 package integration
 
 import (
-	"context"
+	"bytes"
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"sync"
 	"testing"
 	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 
 	"cryptoutil/internal/cipher/domain"
-	"cryptoutil/internal/cipher/repository"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
 // Tests robustness of database transactions, encryption/decryption, and race condition prevention.
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
-	// Use shared server and database from TestMain (amortizes startup cost).
-	// Server instance is reused across all tests.
-	srv := sharedServer
-	db := sharedDB
-	require.NotNil(t, srv)
-	require.NotNil(t, db)
+	// Use shared server from TestMain (amortizes startup cost).
+	require.NotNil(t, sharedServer)
+
+	// Create HTTP client for API calls.
+	baseURL := fmt.Sprintf("https://127.0.0.1:%d/service/api/v1", sharedServer.PublicPort())
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Test server uses self-signed cert.
+		},
+		Timeout: 10 * time.Second,
+	}
 
 	// Define test scenarios.
 	tests := []struct {
@@ -66,14 +72,8 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			start := time.Now()
 
-			// Clean up messages and users from previous subtests.
-			err := db.Exec("DELETE FROM messages").Error
-			require.NoError(t, err)
-			err = db.Exec("DELETE FROM users").Error
-			require.NoError(t, err)
-
-			// Create test users.
-			users := createTestUsers(t, db, tt.numUsers)
+			// Create test users via API.
+			users := createTestUsersAPI(t, client, baseURL, tt.numUsers)
 
 			// Send messages concurrently.
 			var wg sync.WaitGroup
@@ -84,19 +84,16 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 					defer wg.Done()
 
 					sender := users[senderIdx%len(users)]
-					_ = selectRecipients(users, sender.ID, tt.recipientsEach) // TODO: Create MessageRecipientJWK entries when implementing Phase 9.2
+					recipients := selectRecipients(users, sender.ID, tt.recipientsEach)
 
-					// Create message via repository.
+					// Create message via API.
 					messageID := googleUuid.New()
-					msg := &domain.Message{
-						ID:       messageID,
-						SenderID: sender.ID,
-						JWE:      fmt.Sprintf("encrypted-content-%d", senderIdx),
+					recipientIDs := make([]googleUuid.UUID, len(recipients))
+					for i, r := range recipients {
+						recipientIDs[i] = r.ID
 					}
 
-					msgRepo := repository.NewMessageRepository(db)
-					err := msgRepo.Create(context.Background(), msg)
-					require.NoError(t, err)
+					sendMessageAPI(t, client, baseURL, sender.ID, messageID, recipientIDs, fmt.Sprintf("encrypted-content-%d", senderIdx))
 				}(i)
 			}
 
@@ -107,44 +104,89 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			// Verify timing (should complete within target duration).
 			require.Less(t, duration, tt.targetDuration, "Test took too long: %v > %v", duration, tt.targetDuration)
 
-			// Verify all messages created successfully.
-			var allMessages []domain.Message
-
-			err = db.Find(&allMessages).Error
-			require.NoError(t, err)
-			require.Len(t, allMessages, tt.concurrentSends, "Expected %d messages, got %d", tt.concurrentSends, len(allMessages))
-
-			// Verify no data corruption (all messages have valid sender IDs).
-			for _, msg := range allMessages {
-				require.NotEqual(t, googleUuid.Nil, msg.SenderID, "Message has nil sender ID")
-				require.NotEmpty(t, msg.JWE, "Message has empty JWE content")
+			// Verify all messages created successfully by querying user inboxes.
+			totalMessagesReceived := 0
+			for _, user := range users {
+				messages := getMessagesAPI(t, client, baseURL, user.ID)
+				totalMessagesReceived += len(messages)
 			}
+
+			// Each message is sent to N recipients, so total messages received = concurrentSends * recipientsEach.
+			expectedTotalReceived := tt.concurrentSends * tt.recipientsEach
+			require.Equal(t, expectedTotalReceived, totalMessagesReceived, "Expected %d total messages received, got %d", expectedTotalReceived, totalMessagesReceived)
 		})
 	}
 }
 
-// createTestUsers creates N test users in the database.
-func createTestUsers(t *testing.T, db *gorm.DB, numUsers int) []*domain.User {
+// createTestUsersAPI creates N test users via API calls.
+func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*domain.User {
 	t.Helper()
 
 	users := make([]*domain.User, numUsers)
-	userRepo := repository.NewUserRepository(db)
 
 	for i := 0; i < numUsers; i++ {
 		userID := googleUuid.New()
-		user := &domain.User{
-			ID:           userID,
-			Username:     fmt.Sprintf("user%d_%s", i, googleUuid.NewString()[:8]),
-			PasswordHash: "test-hash-123", // Not validating password in this test
+		username := fmt.Sprintf("user%d_%s", i, googleUuid.NewString()[:8])
+
+		// Register user via API.
+		reqBody := map[string]interface{}{
+			"id":       userID.String(),
+			"username": username,
+			"password": "test-password-123",
 		}
 
-		err := userRepo.Create(context.Background(), user)
+		body, _ := json.Marshal(reqBody)
+		resp, err := client.Post(baseURL+"/users/register", "application/json", bytes.NewReader(body))
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusCreated, resp.StatusCode, "Failed to create user %s", username)
+
+		// Parse response.
+		var user domain.User
+		err = json.NewDecoder(resp.Body).Decode(&user)
 		require.NoError(t, err)
 
-		users[i] = user
+		users[i] = &user
 	}
 
 	return users
+}
+
+// sendMessageAPI sends a message via API call.
+func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, senderID, messageID googleUuid.UUID, recipientIDs []googleUuid.UUID, content string) {
+	t.Helper()
+
+	reqBody := map[string]interface{}{
+		"id":            messageID.String(),
+		"sender_id":     senderID.String(),
+		"recipient_ids": recipientIDs,
+		"jwe":           content,
+	}
+
+	body, _ := json.Marshal(reqBody)
+	resp, err := client.Post(baseURL+"/messages", "application/json", bytes.NewReader(body))
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusCreated, resp.StatusCode, "Failed to send message")
+}
+
+// getMessagesAPI retrieves messages for a user via API call.
+func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, userID googleUuid.UUID) []domain.Message {
+	t.Helper()
+
+	resp, err := client.Get(fmt.Sprintf("%s/users/%s/messages", baseURL, userID.String()))
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode, "Failed to get messages")
+
+	var messages []domain.Message
+	err = json.NewDecoder(resp.Body).Decode(&messages)
+	require.NoError(t, err)
+
+	return messages
 }
 
 // selectRecipients selects N random recipients (excluding sender).
