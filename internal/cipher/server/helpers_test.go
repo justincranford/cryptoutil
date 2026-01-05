@@ -5,7 +5,6 @@ package server_test
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 	"testing"
@@ -17,19 +16,14 @@ import (
 	"cryptoutil/internal/cipher/repository"
 	"cryptoutil/internal/cipher/server"
 	"cryptoutil/internal/cipher/server/config"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
 
 // cleanTestDBWithError truncates test tables and returns error if any.
 func cleanTestDBWithError(db *gorm.DB) error {
 	tables := []string{"messages", "users", "messages_recipient_jwks"}
-	for _, table := range tables {
-		if err := db.Exec("DELETE FROM " + table).Error; err != nil {
-			return fmt.Errorf("failed to clean table %s: %w", table, err)
-		}
-	}
-	return nil
+	return cryptoutilE2E.CleanTestTables(db, tables)
 }
 
 // initTestConfig creates a properly configured AppConfig for testing.
@@ -49,14 +43,7 @@ func initTestConfig() *config.AppConfig {
 func createHTTPClient(t *testing.T) *http.Client {
 	t.Helper()
 
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
-			},
-		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout, // Increased for concurrent test execution.
-	}
+	return cryptoutilE2E.CreateInsecureHTTPClient(t)
 }
 
 // createTestCipherIMServer creates a full CipherIMServer for testing using shared resources.
@@ -78,23 +65,8 @@ func createTestCipherIMServer(db *gorm.DB) (*server.CipherIMServer, string, stri
 
 	// Create AppConfig with test settings.
 	cfg := &config.AppConfig{
-		ServerSettings: cryptoutilConfig.ServerSettings{
-			BindPublicProtocol:    cryptoutilMagic.ProtocolHTTPS,
-			BindPublicAddress:     cryptoutilMagic.IPv4Loopback,
-			BindPublicPort:        0, // Dynamic allocation
-			BindPrivateProtocol:   cryptoutilMagic.ProtocolHTTPS,
-			BindPrivateAddress:    cryptoutilMagic.IPv4Loopback,
-			BindPrivatePort:       0, // Dynamic allocation
-			TLSPublicDNSNames:     []string{cryptoutilMagic.HostnameLocalhost},
-			TLSPublicIPAddresses:  []string{cryptoutilMagic.IPv4Loopback},
-			TLSPrivateDNSNames:    []string{cryptoutilMagic.HostnameLocalhost},
-			TLSPrivateIPAddresses: []string{cryptoutilMagic.IPv4Loopback},
-			CORSAllowedOrigins:    []string{},
-			OTLPService:           "cipher-im-server-test",
-			OTLPEndpoint:          "grpc://localhost:4317",
-			LogLevel:              "error",
-		},
-		JWTSecret: jwtSecretID.String(),
+		ServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-server-test"),
+		JWTSecret:      jwtSecretID.String(),
 	}
 
 	// Create full server.
