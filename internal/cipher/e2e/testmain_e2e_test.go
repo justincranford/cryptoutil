@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"cryptoutil/internal/cipher/integration"
 	cryptoutilCipherServer "cryptoutil/internal/cipher/server"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
@@ -72,7 +73,7 @@ func TestMain(m *testing.M) {
 		Timeout: cryptoutilMagic.CipherDefaultTimeout,
 	}
 
-	db, err := initTestDB()
+	db, err := integration.InitTestDB()
 	if err != nil {
 		panic("failed to initialize test database: " + err.Error())
 	}
