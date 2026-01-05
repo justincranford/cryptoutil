@@ -89,8 +89,8 @@ func TestE2E_BrowserMessageDeletion(t *testing.T) {
 	messagesBefore := receiveMessagesBrowser(t, sharedHTTPClient, baseURL, user2.Token)
 	require.Len(t, messagesBefore, 1, "%s should have 1 message before deletion", user2.Username)
 
-	// user2 deletes message via browser endpoint.
-	deleteMessageBrowser(t, sharedHTTPClient, baseURL, messageID, user2.Token)
+	// user1 (sender) deletes message via browser endpoint.
+	deleteMessageBrowser(t, sharedHTTPClient, baseURL, messageID, user1.Token)
 
 	// user2 confirms message deleted.
 	messagesAfter := receiveMessagesBrowser(t, sharedHTTPClient, baseURL, user2.Token)
