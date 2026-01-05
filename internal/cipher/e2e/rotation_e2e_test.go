@@ -28,7 +28,8 @@ func TestE2E_RotateRootKey(t *testing.T) {
 
 	plaintext1 := "Message before root key rotation"
 
-	messageID1 := sendMessage(t, sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Get initial barrier keys status.
@@ -69,7 +70,8 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 5: Send new message after rotation (uses new root key chain).
 	plaintext2 := "Message after root key rotation"
 
-	messageID2 := sendMessage(t, sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify user2 can decrypt BOTH old and new messages (backward compatibility).
@@ -107,7 +109,8 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 
 	plaintext1 := "Message before intermediate key rotation"
 
-	messageID1 := sendMessage(t, sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Get initial intermediate key status.
@@ -140,7 +143,8 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 5: Send new message after rotation.
 	plaintext2 := "Message after intermediate key rotation"
 
-	messageID2 := sendMessage(t, sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify backward compatibility.
@@ -177,7 +181,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 
 	plaintext1 := "Message before content key rotation"
 
-	messageID1 := sendMessage(t, sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext1, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Rotate content key (elastic rotation - creates new key, keeps old).
@@ -200,7 +205,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	// Step 3: Send new message after rotation (uses new content key).
 	plaintext2 := "Message after content key rotation"
 
-	messageID2 := sendMessage(t, sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext2, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 4: Verify both messages decrypt correctly (elastic rotation preserves old keys).

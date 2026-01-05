@@ -24,7 +24,8 @@ func TestE2E_FullEncryptionFlow(t *testing.T) {
 	// user1 sends encrypted message to user2.
 	plaintext := "Hello " + user2.Username + ", this is a secret message from " + user1.Username + "!"
 
-	messageID := sendMessage(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
@@ -57,7 +58,8 @@ func TestE2E_MultiReceiverEncryption(t *testing.T) {
 	// user1 sends message to both user2 and user3.
 	plaintext := "Hello to both of you!"
 
-	messageID := sendMessage(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID, user3.ID)
+	messageID, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID, user3.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
@@ -95,7 +97,8 @@ func TestE2E_MessageDeletion(t *testing.T) {
 	// user1 sends message to user2.
 	plaintext := "This message will be deleted!"
 
-	messageID := sendMessage(t, sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := cipherClient.SendMessage(sharedHTTPClient, baseURL, plaintext, user1.Token, user2.ID)
+	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages.
