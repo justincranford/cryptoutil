@@ -270,7 +270,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	require.Greater(t, intermediateKeyCreatedAt, float64(0), "intermediate_key created_at should be positive timestamp")
 
 	// Step 2: Rotate root key.
-	rotateKey(t, sharedHTTPClient, adminBaseURL, "/admin/v1/barrier/rotate/root", "E2E test: verify status update after rotation")
+	rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", "E2E test: verify status update after rotation")
 
 	// Step 3: Get updated status.
 	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
