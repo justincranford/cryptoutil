@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
 // TestIM_HealthSubcommand_NoBodySuccess tests health check with 200 but no body.
@@ -19,7 +21,7 @@ func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"health", "--url", server.URL + "/health"})
 		require.Equal(t, 0, exitCode, "Health should succeed with 200 even if no body")
 	})
@@ -36,7 +38,7 @@ func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"health", "--url", server.URL + "/health"})
 		require.Equal(t, 1, exitCode, "Health should fail with 503")
 	})
@@ -53,7 +55,7 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"livez", "--url", server.URL + "/livez"})
 		require.Equal(t, 0, exitCode, "Livez should succeed with 200 even if no body")
 	})
@@ -70,7 +72,7 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"livez", "--url", server.URL + "/livez"})
 		require.Equal(t, 1, exitCode, "Livez should fail with 503")
 	})
@@ -91,7 +93,7 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"shutdown", "--url", server.URL + "/shutdown"})
 		require.Equal(t, 0, exitCode, "Shutdown should succeed with 200 even if no body")
 	})
@@ -108,7 +110,7 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"shutdown", "--url", server.URL + "/shutdown"})
 		require.Equal(t, 1, exitCode, "Shutdown should fail with 500")
 	})
@@ -130,7 +132,7 @@ func TestIM_HealthSubcommand_LargeBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"health", "--url", server.URL + "/health"})
 		require.Equal(t, 0, exitCode, "Health should succeed with large body")
 	})
@@ -154,7 +156,7 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"shutdown", "--url", server.URL + "/shutdown"})
 		// Should still succeed because we got 200 status.
 		require.Equal(t, 0, exitCode, "Shutdown should succeed even with partial body")
@@ -166,13 +168,13 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 // TestIM_HealthSubcommand_DefaultURL tests health check without --url flag (uses default).
 func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 	// Test default URL (will fail to connect to 127.0.0.1:8888).
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"health"})
 		require.Equal(t, 1, exitCode, "Health check should fail when no server running")
 	})
 	require.Contains(t, output, "Health check failed:")
 	require.True(t,
-		containsAny(output, []string{
+		cryptoutilTestutil.ContainsAny(output, []string{
 			"connection refused",
 			"actively refused",
 			"dial tcp",
@@ -183,13 +185,13 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 // TestIM_LivezSubcommand_DefaultURL tests livez check without --url flag (uses default).
 func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
 	// Test default URL (will fail to connect to 127.0.0.1:9090).
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"livez"})
 		require.Equal(t, 1, exitCode, "Livez check should fail when no server running")
 	})
 	require.Contains(t, output, "Liveness check failed:")
 	require.True(t,
-		containsAny(output, []string{
+		cryptoutilTestutil.ContainsAny(output, []string{
 			"connection refused",
 			"actively refused",
 			"dial tcp",

@@ -14,30 +14,19 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestNewPublicServer_NilContext tests constructor with nil context.
 func TestNewPublicServer_NilContext(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	userRepo := repository.NewUserRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
+	// Use shared resources from TestMain - no need to create db/repos/tlsCfg in every test.
+	cleanTestDB(t)
+	userRepo := repository.NewUserRepository(testDB)
+	messageRepo := repository.NewMessageRepository(testDB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	require.NoError(t, err)
-
-	_, err = server.NewPublicServer(context.Background(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, nil, "test-secret", tlsCfg)
+	_, err := server.NewPublicServer(context.Background(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, nil, "test-secret", testTLSCfg)
 	require.Error(t, err)
 	// The test passes nil for jwkGenService, so that validation triggers first
 	require.Contains(t, err.Error(), "JWK generation service cannot be nil")
@@ -48,18 +37,11 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	db := initTestDB(t)
-	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
+	cleanTestDB(t)
+	messageRepo := repository.NewMessageRepository(testDB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	require.NoError(t, err)
-
-	_, err = server.NewPublicServer(ctx, 0, nil, messageRepo, messageRecipientJWKRepo, nil, nil, "test-secret", tlsCfg)
+	_, err := server.NewPublicServer(ctx, 0, nil, messageRepo, messageRecipientJWKRepo, nil, nil, "test-secret", testTLSCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "user repository cannot be nil")
 }
@@ -69,18 +51,11 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	db := initTestDB(t)
-	userRepo := repository.NewUserRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
+	cleanTestDB(t)
+	userRepo := repository.NewUserRepository(testDB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	require.NoError(t, err)
-
-	_, err = server.NewPublicServer(ctx, 0, userRepo, nil, messageRecipientJWKRepo, nil, nil, "test-secret", tlsCfg)
+	_, err := server.NewPublicServer(ctx, 0, userRepo, nil, messageRecipientJWKRepo, nil, nil, "test-secret", testTLSCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message repository cannot be nil")
 }
@@ -90,18 +65,11 @@ func TestNewPublicServer_NilMessageRecipientJWKRepo(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	db := initTestDB(t)
-	userRepo := repository.NewUserRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
+	cleanTestDB(t)
+	userRepo := repository.NewUserRepository(testDB)
+	messageRepo := repository.NewMessageRepository(testDB)
 
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	require.NoError(t, err)
-
-	_, err = server.NewPublicServer(ctx, 0, userRepo, messageRepo, nil, nil, nil, "test-secret", tlsCfg)
+	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, nil, nil, nil, "test-secret", testTLSCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message recipient JWK repository cannot be nil")
 }
@@ -111,20 +79,12 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	db := initTestDB(t)
-	userRepo := repository.NewUserRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
+	cleanTestDB(t)
+	userRepo := repository.NewUserRepository(testDB)
+	messageRepo := repository.NewMessageRepository(testDB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
-	require.NoError(t, err)
-	t.Cleanup(func() { telemetryService.Shutdown() })
-
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
-	require.NoError(t, err)
-	t.Cleanup(func() { jwkGenService.Shutdown() })
-
-	_, err = server.NewPublicServer(ctx, 0, userRepo, messageRepo, messageRecipientJWKRepo, jwkGenService, nil, "test-secret", nil)
+	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, messageRecipientJWKRepo, testJWKGenService, nil, "test-secret", nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "TLS configuration cannot be nil")
 }
@@ -133,8 +93,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 func TestHandleServiceHealth_WhileRunning(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
+	_, baseURL := createTestPublicServer(t, testDB)
 	client := createHTTPClient(t)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/health", nil)
@@ -158,8 +117,7 @@ func TestHandleServiceHealth_WhileRunning(t *testing.T) {
 func TestHandleBrowserHealth_WhileRunning(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	_, baseURL := createTestPublicServer(t, db)
+	_, baseURL := createTestPublicServer(t, testDB)
 	client := createHTTPClient(t)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/browser/api/v1/health", nil)
@@ -184,8 +142,7 @@ func TestShutdown_MultipleCalls(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	db := initTestDB(t)
-	publicServer, _ := createTestPublicServer(t, db)
+	publicServer, _ := createTestPublicServer(t, testDB)
 
 	err := publicServer.Shutdown(ctx)
 	require.NoError(t, err)
@@ -199,8 +156,7 @@ func TestShutdown_MultipleCalls(t *testing.T) {
 func TestPublicServer_StartContextCancelled(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	srv, _ := createTestPublicServer(t, db)
+	srv, _ := createTestPublicServer(t, testDB)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -223,8 +179,7 @@ func TestPublicServer_StartContextCancelled(t *testing.T) {
 func TestPublicServer_DoubleShutdown(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	srv, _ := createTestPublicServer(t, db)
+	srv, _ := createTestPublicServer(t, testDB)
 
 	err := srv.Shutdown(context.Background())
 	require.NoError(t, err)
@@ -238,8 +193,7 @@ func TestPublicServer_DoubleShutdown(t *testing.T) {
 func TestShutdown_DuplicateCall(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
-	server, _ := createTestPublicServer(t, db)
+	server, _ := createTestPublicServer(t, testDB)
 
 	ctx := context.Background()
 
@@ -255,10 +209,10 @@ func TestShutdown_DuplicateCall(t *testing.T) {
 func TestStart_ContextCancelled(t *testing.T) {
 	t.Parallel()
 
-	db := initTestDB(t)
+	cleanTestDB(t)
 	cfg := initTestConfig()
 
-	srv, err := server.New(context.Background(), cfg, db, repository.DatabaseTypeSQLite)
+	srv, err := server.New(context.Background(), cfg, testDB, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

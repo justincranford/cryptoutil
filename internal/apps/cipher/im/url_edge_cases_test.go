@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
 // TestIM_HealthSubcommand_MultipleURLFlags tests health check with multiple --url flags (first wins).
@@ -22,7 +24,7 @@ func TestIM_HealthSubcommand_MultipleURLFlags(t *testing.T) {
 	defer server.Close()
 
 	// Pass multiple --url flags (first one should win, second ignored).
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"health",
 			"--url", server.URL + "/health",
@@ -37,13 +39,13 @@ func TestIM_HealthSubcommand_MultipleURLFlags(t *testing.T) {
 // TestIM_LivezSubcommand_URLFlagWithoutValue tests livez with --url flag but missing value.
 func TestIM_LivezSubcommand_URLFlagWithoutValue(t *testing.T) {
 	// Pass --url flag without value (should use default URL).
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"livez", "--url"})
 		require.Equal(t, 1, exitCode, "Should fail with connection error to default")
 	})
 	require.Contains(t, output, "Liveness check failed")
 	require.True(t,
-		containsAny(output, []string{
+		cryptoutilTestutil.ContainsAny(output, []string{
 			"connection refused",
 			"actively refused",
 			"dial tcp",
@@ -60,7 +62,7 @@ func TestIM_ReadyzSubcommand_ExtraArgumentsIgnored(t *testing.T) {
 	defer server.Close()
 
 	// Pass extra arguments after --url (should be ignored).
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"readyz",
 			"--url", server.URL + "/admin/v1/readyz",
@@ -84,7 +86,7 @@ func TestIM_ShutdownSubcommand_URLWithoutQueryParameters(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"shutdown",
 			"--url", server.URL + "/admin/v1/shutdown",
@@ -103,7 +105,7 @@ func TestIM_HealthSubcommand_URLWithFragment(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"health",
 			"--url", server.URL + "/health#section",
@@ -126,7 +128,7 @@ func TestIM_LivezSubcommand_URLWithUserInfo(t *testing.T) {
 	urlParts := strings.Split(server.URL, "//")
 	urlWithUserInfo := urlParts[0] + "//user:pass@" + urlParts[1] + "/livez"
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"livez",
 			"--url", urlWithUserInfo,
@@ -145,7 +147,7 @@ func TestIM_ReadyzSubcommand_CaseInsensitiveHTTPStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"readyz",
 			"--url", server.URL + "/admin/v1/readyz",
