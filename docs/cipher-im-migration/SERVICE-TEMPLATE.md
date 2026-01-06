@@ -11,7 +11,7 @@ Most of the Code Resides In
 Most of the Docs Resides In
 
 - docs/cipher-im-migration/SERVICE-TEMPLATE.md
-- docs/cipher-im-migration/CMD-PATTERN.md
+- .github/instructions/03-03.golang.instructions.md
 - docs/cipher-im-migration/KNOWN-ISSUES.md
 - docs/cipher-im-migration/evi
 
