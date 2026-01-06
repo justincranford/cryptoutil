@@ -374,8 +374,9 @@ Examples:
 		case urlFlag:
 			if i+1 < len(args) && url == defaultLivezURL { // Only set if not already set
 				baseURL := args[i+1]
-				if !strings.HasSuffix(baseURL, "/admin/v1/livez") {
-					url = baseURL + "/admin/v1/livez"
+				livezPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath
+				if !strings.HasSuffix(baseURL, livezPath) {
+					url = baseURL + livezPath
 				} else {
 					url = baseURL
 				}
@@ -450,8 +451,9 @@ Examples:
 		case urlFlag:
 			if i+1 < len(args) && url == defaultReadyzURL { // Only set if not already set
 				baseURL := args[i+1]
-				if !strings.HasSuffix(baseURL, "/admin/v1/readyz") {
-					url = baseURL + "/admin/v1/readyz"
+				readyzPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath
+				if !strings.HasSuffix(baseURL, readyzPath) {
+					url = baseURL + readyzPath
 				} else {
 					url = baseURL
 				}
@@ -528,8 +530,9 @@ Examples:
 		case urlFlag:
 			if i+1 < len(args) && url == defaultShutdownURL { // Only set if not already set
 				baseURL := args[i+1]
-				if !strings.HasSuffix(baseURL, "/admin/v1/shutdown") {
-					url = baseURL + "/admin/v1/shutdown"
+				shutdownPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath
+				if !strings.HasSuffix(baseURL, shutdownPath) {
+					url = baseURL + shutdownPath
 				} else {
 					url = baseURL
 				}

@@ -433,26 +433,26 @@ func TestIM_URLHandling(t *testing.T) {
 		{
 			name:       "health_with_health_suffix",
 			subcommand: "health",
-			path:       "/admin/v1/health",
-			urlSuffix:  "/admin/v1/health",
+			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
+			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 		},
 		{
 			name:       "livez_with_livez_suffix",
 			subcommand: "livez",
-			path:       "/admin/v1/livez",
-			urlSuffix:  "/admin/v1/livez",
+			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
+			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 		},
 		{
 			name:       "readyz_with_readyz_suffix",
 			subcommand: "readyz",
-			path:       "/admin/v1/readyz",
-			urlSuffix:  "/admin/v1/readyz",
+			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
+			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
 		},
 		{
 			name:       "shutdown_with_shutdown_suffix",
 			subcommand: "shutdown",
-			path:       "/admin/v1/shutdown",
-			urlSuffix:  "/admin/v1/shutdown",
+			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
+			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 		},
 	}
 

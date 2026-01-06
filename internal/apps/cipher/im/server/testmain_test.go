@@ -115,7 +115,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
 
 	// Generate JWT secret for this server instance.
-	jwtSecretID, err := googleUuid.NewV7()
+	jwtSecretID, err := cryptoutilJose.GenerateUUIDv7()
 	require.NoError(t, err)
 
 	jwtSecret := jwtSecretID.String()

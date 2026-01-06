@@ -71,7 +71,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 	if useInMemoryDB {
 		dsn = "file::memory:?cache=shared"
 	} else {
-		dbID, err := googleUuid.NewV7()
+		dbID, err := cryptoutilJose.GenerateUUIDv7()
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate DB ID: %w", err)
 		}
@@ -155,7 +155,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 	}
 
 	// Generate JWT secret.
-	jwtSecretID, err := googleUuid.NewV7()
+	jwtSecretID, err := cryptoutilJose.GenerateUUIDv7()
 	if err != nil {
 		resources.JWKGenService.Shutdown()
 		resources.TelemetryService.Shutdown()

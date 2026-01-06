@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := googleUuid.NewV7()
+	dbID, _ := cryptoutilJose.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
 	// CRITICAL: Store sql.DB reference in package variable.
