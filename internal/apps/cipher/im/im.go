@@ -58,7 +58,13 @@ const (
 
 // IM implements the instant messaging service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
-func IM(args []string) int {
+func IM(args []string, stdout, stderr io.Writer) int {
+	return internalIM(args, stdout, stderr)
+}
+
+// internalIM implements the instant messaging service subcommand handler with testable writers.
+// Handles subcommands: server, client, init, health, livez, readyz, shutdown.
+func internalIM(args []string, stdout, stderr io.Writer) int {
 	// Default to "server" subcommand if no args provided (backward compatibility).
 	if len(args) == 0 {
 		args = []string{"server"}
@@ -66,7 +72,7 @@ func IM(args []string) int {
 
 	// Check for help flags.
 	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
-		printIMUsage()
+		printIMUsage(stdout, stderr)
 
 		return 0
 	}
@@ -74,41 +80,41 @@ func IM(args []string) int {
 	// Route to subcommand.
 	switch args[0] {
 	case "version":
-		printIMVersion()
+		printIMVersion(stdout, stderr)
 
 		return 0
 	case "server":
-		return imServer(args[1:])
+		return imServer(args[1:], stdout, stderr)
 	case "client":
-		return imClient(args[1:])
+		return imClient(args[1:], stdout, stderr)
 	case "init":
-		return imInit(args[1:])
+		return imInit(args[1:], stdout, stderr)
 	case "health":
-		return imHealth(args[1:])
+		return imHealth(args[1:], stdout, stderr)
 	case "livez":
-		return imLivez(args[1:])
+		return imLivez(args[1:], stdout, stderr)
 	case "readyz":
-		return imReadyz(args[1:])
+		return imReadyz(args[1:], stdout, stderr)
 	case "shutdown":
-		return imShutdown(args[1:])
+		return imShutdown(args[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n\n", args[0])
-		printIMUsage()
+		fmt.Fprintf(stderr, "Unknown subcommand: %s\n\n", args[0])
+		printIMUsage(stdout, stderr)
 
 		return 1
 	}
 }
 
 // printIMVersion prints the instant messaging service version information.
-func printIMVersion() {
-	fmt.Println("cipher-im service")
-	fmt.Println("Part of cryptoutil cipher product")
-	fmt.Println("Version information available via Docker image tags")
+func printIMVersion(stdout, stderr io.Writer) {
+	fmt.Fprintln(stdout, "cipher-im service")
+	fmt.Fprintln(stdout, "Part of cryptoutil cipher product")
+	fmt.Fprintln(stdout, "Version information available via Docker image tags")
 }
 
 // printIMUsage prints the instant messaging service usage information.
-func printIMUsage() {
-	fmt.Fprintln(os.Stderr, `Usage: cipher im <subcommand> [options]
+func printIMUsage(stdout, stderr io.Writer) {
+	fmt.Fprintln(stderr, `Usage: cipher im <subcommand> [options]
 
 Available subcommands:
   version     Print version information
@@ -125,9 +131,9 @@ Version information is available via Docker image tags.`)
 }
 
 // imServer implements the server subcommand.
-func imServer(args []string) int {
+func imServer(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(os.Stderr, `Usage: cipher im server [options]
+		fmt.Fprintln(stderr, `Usage: cipher im server [options]
 
 Description:
   Start the instant messaging server with database initialization.
@@ -165,7 +171,7 @@ Examples:
 	// Initialize database (PostgreSQL or SQLite).
 	db, err := initDatabase(ctx, databaseURL)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Failed to initialize database: %v\n", err)
+		fmt.Fprintf(stderr, "❌ Failed to initialize database: %v\n", err)
 
 		return 1
 	}
@@ -180,7 +186,7 @@ Examples:
 
 	srv, err := server.New(ctx, cfg, db, determineDatabaseType(db))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Failed to create server: %v\n", err)
+		fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
 
 		return 1
 	}
@@ -193,9 +199,9 @@ Examples:
 	errChan := make(chan error, 1)
 
 	go func() {
-		fmt.Printf("🚀 Starting cipher-im service...\n")
-		fmt.Printf("   Public Server: https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPublicPortCipherIM)
-		fmt.Printf("   Admin Server:  https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPrivatePortCipherIM)
+		fmt.Fprintf(stdout, "🚀 Starting cipher-im service...\n")
+		fmt.Fprintf(stdout, "   Public Server: https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPublicPortCipherIM)
+		fmt.Fprintf(stdout, "   Admin Server:  https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPrivatePortCipherIM)
 
 		errChan <- srv.Start(ctx)
 	}()
@@ -207,7 +213,7 @@ Examples:
 	select {
 	case err := <-errChan:
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "❌ Server error: %v\n", err)
+			fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
 
 			return 1
 		}
@@ -222,9 +228,9 @@ Examples:
 
 // imClient implements the client subcommand.
 // CLI wrapper for client operations.
-func imClient(args []string) int {
+func imClient(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(os.Stderr, `Usage: cipher im client [options]
+		fmt.Fprintln(stderr, `Usage: cipher im client [options]
 
 Description:
   Run client operations for instant messaging service.
@@ -238,17 +244,17 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(os.Stderr, "❌ Client subcommand not yet implemented")
-	fmt.Fprintln(os.Stderr, "   This will provide CLI tools for interacting with the IM service")
+	fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
+	fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the IM service")
 
 	return 1
 }
 
 // imInit implements the init subcommand.
 // CLI wrapper for database and configuration initialization.
-func imInit(args []string) int {
+func imInit(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(os.Stderr, `Usage: cipher im init [options]
+		fmt.Fprintln(stderr, `Usage: cipher im init [options]
 
 Description:
   Initialize database schema and configuration for instant messaging service.
@@ -264,17 +270,17 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(os.Stderr, "❌ Init subcommand not yet implemented")
-	fmt.Fprintln(os.Stderr, "   This will initialize database schema and configuration")
+	fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
+	fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
 
 	return 1
 }
 
 // imHealth implements the health subcommand.
 // CLI wrapper calling the public health check API.
-func imHealth(args []string) int {
+func imHealth(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(os.Stderr, `Usage: cipher im health [options]
+		fmt.Fprintln(stderr, `Usage: cipher im health [options]
 
 Description:
   Check service health via public API endpoint.
@@ -321,26 +327,26 @@ Examples:
 	// Call health endpoint.
 	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Health check failed: %v\n", err)
+		fmt.Fprintf(stderr, "❌ Health check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		fmt.Printf("✅ Service is healthy (HTTP %d)\n", statusCode)
+		fmt.Fprintf(stdout, "✅ Service is healthy (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Println(body)
+			fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(os.Stderr, "❌ Service is unhealthy (HTTP %d)\n", statusCode)
+	fmt.Fprintf(stderr, "❌ Service is unhealthy (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(os.Stderr, body)
+		fmt.Fprintln(stderr, body)
 	}
 
 	return 1
@@ -348,9 +354,9 @@ Examples:
 
 // imLivez implements the livez subcommand.
 // CLI wrapper calling the admin liveness check API.
-func imLivez(args []string) int {
+func imLivez(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(os.Stderr, `Usage: cipher im livez [options]
+		fmt.Fprintln(stderr, `Usage: cipher im livez [options]
 
 Description:
   Check service liveness via admin API endpoint.
@@ -399,26 +405,26 @@ Examples:
 	// Call livez endpoint.
 	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Liveness check failed: %v\n", err)
+		fmt.Fprintf(stderr, "❌ Liveness check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		fmt.Printf("✅ Service is alive (HTTP %d)\n", statusCode)
+		fmt.Fprintf(stdout, "✅ Service is alive (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Println(body)
+			fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(os.Stderr, "❌ Service is not alive (HTTP %d)\n", statusCode)
+	fmt.Fprintf(stderr, "❌ Service is not alive (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(os.Stderr, body)
+		fmt.Fprintln(stderr, body)
 	}
 
 	return 1
@@ -426,9 +432,9 @@ Examples:
 
 // imReadyz implements the readyz subcommand.
 // CLI wrapper calling the admin readiness check API.
-func imReadyz(args []string) int {
+func imReadyz(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(os.Stderr, `Usage: cipher im readyz [options]
+		fmt.Fprintln(stderr, `Usage: cipher im readyz [options]
 
 Description:
   Check service readiness via admin API endpoint.
@@ -477,26 +483,26 @@ Examples:
 	// Call readyz endpoint.
 	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Readiness check failed: %v\n", err)
+		fmt.Fprintf(stderr, "❌ Readiness check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		fmt.Printf("✅ Service is ready (HTTP %d)\n", statusCode)
+		fmt.Fprintf(stdout, "✅ Service is ready (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Println(body)
+			fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(os.Stderr, "❌ Service is not ready (HTTP %d)\n", statusCode)
+	fmt.Fprintf(stderr, "❌ Service is not ready (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(os.Stderr, body)
+		fmt.Fprintln(stderr, body)
 	}
 
 	return 1
@@ -504,9 +510,9 @@ Examples:
 
 // imShutdown implements the shutdown subcommand.
 // CLI wrapper calling the admin graceful shutdown API.
-func imShutdown(args []string) int {
+func imShutdown(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(os.Stderr, `Usage: cipher im shutdown [options]
+		fmt.Fprintln(stderr, `Usage: cipher im shutdown [options]
 
 Description:
   Trigger graceful shutdown via admin API endpoint.
@@ -557,26 +563,26 @@ Examples:
 	// Call shutdown endpoint.
 	statusCode, body, err := httpPost(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Shutdown request failed: %v\n", err)
+		fmt.Fprintf(stderr, "❌ Shutdown request failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK || statusCode == http.StatusAccepted {
-		fmt.Printf("✅ Shutdown initiated (HTTP %d)\n", statusCode)
+		fmt.Fprintf(stdout, "✅ Shutdown initiated (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Println(body)
+			fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(os.Stderr, "❌ Shutdown request failed (HTTP %d)\n", statusCode)
+	fmt.Fprintf(stderr, "❌ Shutdown request failed (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(os.Stderr, body)
+		fmt.Fprintln(stderr, body)
 	}
 
 	return 1

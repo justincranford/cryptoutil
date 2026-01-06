@@ -7,6 +7,7 @@ package cipher
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"cryptoutil/internal/apps/cipher/im"
@@ -33,7 +34,7 @@ func Cipher(args []string) int {
 	return internalCipher(args, os.Stdout, os.Stderr)
 }
 
-func internalCipher(args []string, stdout, stderr *os.File) int {
+func internalCipher(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
 		printUsage(stderr)
 
@@ -57,7 +58,7 @@ func internalCipher(args []string, stdout, stderr *os.File) int {
 	// Route to service command.
 	switch args[0] {
 	case "im":
-		return im.IM(args[1:])
+		return im.IM(args[1:], stdout, stderr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "Unknown service: %s\n\n", args[0])
 		printUsage(stderr)
@@ -67,7 +68,7 @@ func internalCipher(args []string, stdout, stderr *os.File) int {
 }
 
 // printUsage prints the cipher product usage information.
-func printUsage(stderr *os.File) {
+func printUsage(stderr io.Writer) {
 	_, _ = fmt.Fprintln(stderr, `Usage: cipher <service> <subcommand> [options]
 
 Available services:
@@ -78,7 +79,7 @@ Use "cipher version" for version information.`)
 }
 
 // printVersion prints the cipher product version information.
-func printVersion(stdout *os.File) {
+func printVersion(stdout io.Writer) {
 	// Version information should be injected from the calling binary.
 	_, _ = fmt.Fprintln(stdout, "cipher product (cryptoutil)")
 }

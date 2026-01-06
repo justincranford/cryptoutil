@@ -5,22 +5,21 @@
 package cipher
 
 import (
-	"os"
+	"bytes"
 	"strings"
 	"testing"
-
-	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestCipher_NoArguments(t *testing.T) {
-	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := internalCipher([]string{}, os.Stdout, os.Stderr)
-		require.Equal(t, 1, exitCode)
-	})
+	t.Parallel()
 
+	var stdout, stderr bytes.Buffer
+	exitCode := internalCipher([]string{}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Usage: cipher <service> <subcommand> [options]")
 	require.Contains(t, output, "Available services:")
 	require.Contains(t, output, "im")
@@ -50,13 +49,13 @@ func TestCipher_HelpCommand(t *testing.T) {
 	for _, tt := range tests {
 		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			// Remove t.Parallel() - stdout/stderr capture uses global mutex for safety.
-			// The CaptureOutput function serializes all calls to prevent race conditions on os.Stdout/os.Stderr.
-			output := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := internalCipher(tt.args, os.Stdout, os.Stderr)
-				require.Equal(t, 0, exitCode)
-			})
+			t.Parallel()
 
+			var stdout, stderr bytes.Buffer
+			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			require.Equal(t, 0, exitCode)
+
+			output := stdout.String() + stderr.String()
 			require.Contains(t, output, "Usage: cipher <service> <subcommand> [options]")
 			require.Contains(t, output, "Available services:")
 			require.Contains(t, output, "im")
@@ -88,13 +87,13 @@ func TestCipher_VersionCommand(t *testing.T) {
 	for _, tt := range tests {
 		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			// Remove t.Parallel() - stdout/stderr capture uses global mutex for safety.
-			// The captureOutput function serializes all calls to prevent race conditions on os.Stdout/os.Stderr.
-			combinedOutput := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := internalCipher(tt.args, os.Stdout, os.Stderr)
-				require.Equal(t, 0, exitCode)
-			})
+			t.Parallel()
 
+			var stdout, stderr bytes.Buffer
+			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			require.Equal(t, 0, exitCode)
+
+			combinedOutput := stdout.String() + stderr.String()
 			require.Contains(t, combinedOutput, "cipher product")
 			require.Contains(t, combinedOutput, "cryptoutil")
 		})
@@ -129,13 +128,13 @@ func TestCipher_UnknownService(t *testing.T) {
 	for _, tt := range tests {
 		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			// Remove t.Parallel() - stdout/stderr capture uses global mutex for safety.
-			// The captureOutput function serializes all calls to prevent race conditions on os.Stdout/os.Stderr.
-			combinedOutput := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := internalCipher(tt.args, os.Stdout, os.Stderr)
-				require.Equal(t, 1, exitCode)
-			})
+			t.Parallel()
 
+			var stdout, stderr bytes.Buffer
+			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			require.Equal(t, 1, exitCode)
+
+			combinedOutput := stdout.String() + stderr.String()
 			// Must contain error message.
 			require.Contains(t, combinedOutput, tt.expectedErr)
 			// Should contain usage (may not always appear in parallel tests due to timing).
@@ -145,17 +144,17 @@ func TestCipher_UnknownService(t *testing.T) {
 }
 
 func TestCipher_IMService_RoutesCorrectly(t *testing.T) {
-	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
+	t.Parallel()
 
 	// Test that "im" service routes to IM function.
 	// We can't fully test IM() behavior here without a running server,
 	// but we can verify routing doesn't panic and handles help.
-	combinedOutput := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := internalCipher([]string{"im", "help"}, os.Stdout, os.Stderr)
-		require.Equal(t, 0, exitCode)
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalCipher([]string{"im", "help"}, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
 
 	// Should show IM-specific help, not cipher product help (check combined output).
+	combinedOutput := stdout.String() + stderr.String()
 	require.Contains(t, combinedOutput, "Usage: cipher im <subcommand>")
 	require.Contains(t, combinedOutput, "server")
 	require.Contains(t, combinedOutput, "client")
@@ -163,13 +162,14 @@ func TestCipher_IMService_RoutesCorrectly(t *testing.T) {
 }
 
 func TestCipher_IMService_InvalidSubcommand(t *testing.T) {
-	// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := internalCipher([]string{"im", "invalid-subcommand"}, os.Stdout, os.Stderr)
-		require.Equal(t, 1, exitCode)
-	})
+	t.Parallel()
+
+	var stdout, stderr bytes.Buffer
+	exitCode := internalCipher([]string{"im", "invalid-subcommand"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode)
 
 	// Should show IM help with error.
+	output := stdout.String() + stderr.String()
 	require.True(t,
 		strings.Contains(output, "Unknown subcommand") ||
 			strings.Contains(output, "Usage: cipher im <subcommand>"),
@@ -178,7 +178,7 @@ func TestCipher_IMService_InvalidSubcommand(t *testing.T) {
 }
 
 func TestLearn_Constants(t *testing.T) {
-	// Remove t.Parallel() from parent - child tests use captureOutput with race condition.
+	t.Parallel()
 
 	// Verify constants are used consistently.
 	// This test documents expected constant values.
@@ -200,11 +200,11 @@ func TestLearn_Constants(t *testing.T) {
 	for _, tt := range tests {
 		// Capture range variable.
 		t.Run(tt.name, func(t *testing.T) {
-			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-			_ = cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := internalCipher(tt.args, os.Stdout, os.Stderr)
-				require.Equal(t, tt.exitCode, exitCode)
-			})
+			t.Parallel()
+
+			var stdout, stderr bytes.Buffer
+			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			require.Equal(t, tt.exitCode, exitCode)
 		})
 	}
 }

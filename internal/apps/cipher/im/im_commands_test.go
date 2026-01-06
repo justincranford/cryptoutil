@@ -5,6 +5,7 @@
 package im
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -157,31 +158,33 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 			t.Parallel()
 
 			// Test --help flag.
-			helpOutput := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, tt.flagValue})
-				require.Equal(t, 0, exitCode, "%s %s should succeed", tt.subcommand, tt.flagValue)
-			})
+			var stdout, stderr bytes.Buffer
+			exitCode := internalIM([]string{tt.subcommand, tt.flagValue}, &stdout, &stderr)
+			require.Equal(t, 0, exitCode, "%s %s should succeed", tt.subcommand, tt.flagValue)
 
+			helpOutput := stdout.String() + stderr.String()
 			for _, expected := range tt.helpTexts {
 				require.Contains(t, helpOutput, expected, "Help output should contain: %s", expected)
 			}
 
 			// Test -h flag.
-			shortHelpOutput := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, "-h"})
-				require.Equal(t, 0, exitCode, "%s -h should succeed", tt.subcommand)
-			})
+			stdout.Reset()
+			stderr.Reset()
+			exitCode = internalIM([]string{tt.subcommand, "-h"}, &stdout, &stderr)
+			require.Equal(t, 0, exitCode, "%s -h should succeed", tt.subcommand)
 
+			shortHelpOutput := stdout.String() + stderr.String()
 			for _, expected := range tt.helpTexts {
 				require.Contains(t, shortHelpOutput, expected, "Help output (-h) should contain: %s", expected)
 			}
 
 			// Test with help as positional argument.
-			positionalOutput := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, "help"})
-				require.Equal(t, 0, exitCode, "%s help should succeed", tt.subcommand)
-			})
+			stdout.Reset()
+			stderr.Reset()
+			exitCode = internalIM([]string{tt.subcommand, "help"}, &stdout, &stderr)
+			require.Equal(t, 0, exitCode, "%s help should succeed", tt.subcommand)
 
+			positionalOutput := stdout.String() + stderr.String()
 			for _, expected := range tt.helpTexts {
 				require.Contains(t, positionalOutput, expected, "Help output (positional) should contain: %s", expected)
 			}
@@ -193,10 +196,11 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 func TestPrintIMVersion(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"version"})
-		require.Equal(t, 0, exitCode, "version command should succeed")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"version"}, &stdout, &stderr)
+	require.Equal(t, 0, exitCode, "version command should succeed")
+
+	output := stdout.String() + stderr.String()
 
 	require.Contains(t, output, "cipher-im service", "Version output should contain cipher-im service")
 }
@@ -205,11 +209,11 @@ func TestPrintIMVersion(t *testing.T) {
 func TestIM_ClientSubcommand_NotImplemented(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"client"})
-		require.Equal(t, 1, exitCode, "client subcommand should fail (not implemented)")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"client"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "client subcommand should fail (not implemented)")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Client subcommand not yet implemented")
 }
 
@@ -217,11 +221,11 @@ func TestIM_ClientSubcommand_NotImplemented(t *testing.T) {
 func TestIM_InitSubcommand_NotImplemented(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"init"})
-		require.Equal(t, 1, exitCode, "init subcommand should fail (not implemented)")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"init"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "init subcommand should fail (not implemented)")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Init subcommand not yet implemented")
 }
 
@@ -229,12 +233,12 @@ func TestIM_InitSubcommand_NotImplemented(t *testing.T) {
 func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		args := []string{"health", "--url", publicBaseURL + "/service/api/v1"}
-		exitCode := IM(args)
-		require.Equal(t, 0, exitCode)
-	})
+	var stdout, stderr bytes.Buffer
+	args := []string{"health", "--url", publicBaseURL + "/service/api/v1"}
+	exitCode := internalIM(args, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is healthy")
 	require.Contains(t, output, "HTTP 200")
 }
@@ -243,12 +247,12 @@ func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
 func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		args := []string{"livez", "--url", adminBaseURL}
-		exitCode := IM(args)
-		require.Equal(t, 0, exitCode)
-	})
+	var stdout, stderr bytes.Buffer
+	args := []string{"livez", "--url", adminBaseURL}
+	exitCode := internalIM(args, &stdout, &stderr)
+	require.Equal(t, 0, exitCode)
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is alive")
 	require.Contains(t, output, "HTTP 200")
 }
@@ -257,14 +261,14 @@ func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
 func TestIM_ReadyzSubcommand_LiveServer(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		args := []string{"readyz", "--url", adminBaseURL}
-		exitCode := IM(args)
-		// Readyz may return 0 (ready) or 1 (not ready) depending on service state
-		// Both are valid responses
-		require.Contains(t, []int{0, 1}, exitCode, "readyz should return 0 or 1")
-	})
+	var stdout, stderr bytes.Buffer
+	args := []string{"readyz", "--url", adminBaseURL}
+	exitCode := internalIM(args, &stdout, &stderr)
+	// Readyz may return 0 (ready) or 1 (not ready) depending on service state
+	// Both are valid responses
+	require.Contains(t, []int{0, 1}, exitCode, "readyz should return 0 or 1")
 
+	output := stdout.String() + stderr.String()
 	// Check that we got a valid response (either ready or not ready)
 	validResponse := strings.Contains(output, "Service is ready") || strings.Contains(output, "Service is not ready")
 	require.True(t, validResponse, "Output should indicate readiness status")
@@ -333,11 +337,11 @@ func TestIM_SubcommandErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			output := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, "--url", tt.url})
-				require.Equal(t, 1, exitCode, "%s should fail", tt.subcommand)
-			})
+			var stdout, stderr bytes.Buffer
+			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
+			require.Equal(t, 1, exitCode, "%s should fail", tt.subcommand)
 
+			output := stdout.String() + stderr.String()
 			// Check that output contains at least one of the expected strings.
 			require.True(t, cryptoutilTestutil.ContainsAny(output, tt.contains),
 				"output should contain one of %v: %s", tt.contains, output)
@@ -429,11 +433,11 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			output := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, "--url", tt.serverURL + tt.path})
-				require.Equal(t, tt.expectExit, exitCode, "%s should exit with code %d", tt.subcommand, tt.expectExit)
-			})
+			var stdout, stderr bytes.Buffer
+			exitCode := internalIM([]string{tt.subcommand, "--url", tt.serverURL + tt.path}, &stdout, &stderr)
+			require.Equal(t, tt.expectExit, exitCode, "%s should exit with code %d", tt.subcommand, tt.expectExit)
 
+			output := stdout.String() + stderr.String()
 			for _, expected := range tt.expectOutput {
 				require.Contains(t, output, expected, "Output should contain: %s", expected)
 			}
@@ -475,11 +479,11 @@ func TestIM_URLHandling(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			output := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, "--url", testMockServerCustom.URL + tt.urlSuffix})
-				require.Equal(t, 0, exitCode, "%s should succeed with explicit suffix", tt.subcommand)
-			})
+			var stdout, stderr bytes.Buffer
+			exitCode := internalIM([]string{tt.subcommand, "--url", testMockServerCustom.URL + tt.urlSuffix}, &stdout, &stderr)
+			require.Equal(t, 0, exitCode, "%s should succeed with explicit suffix", tt.subcommand)
 
+			output := stdout.String() + stderr.String()
 			require.NotContains(t, output, "failed")
 		})
 	}

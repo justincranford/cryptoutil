@@ -3,6 +3,7 @@
 package im
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,11 +15,11 @@ import (
 func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"health", "--url", testMockServerOK.URL + "/health"})
-		require.Equal(t, 0, exitCode, "Health should succeed with 200 even if no body")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"health", "--url", testMockServerOK.URL + "/health"}, &stdout, &stderr)
+	require.Equal(t, 0, exitCode, "Health should succeed with 200 even if no body")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is healthy")
 }
 
@@ -26,10 +27,11 @@ func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"health", "--url", testMockServerError.URL + "/health"})
-		require.Equal(t, 1, exitCode, "Health should fail with 503")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"health", "--url", testMockServerError.URL + "/health"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "Health should fail with 503")
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is unhealthy")
 	require.Contains(t, output, "503")
 }
@@ -38,11 +40,11 @@ func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"livez", "--url", testMockServerOK.URL + "/livez"})
-		require.Equal(t, 0, exitCode, "Livez should succeed with 200 even if no body")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"livez", "--url", testMockServerOK.URL + "/livez"}, &stdout, &stderr)
+	require.Equal(t, 0, exitCode, "Livez should succeed with 200 even if no body")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is alive")
 }
 
@@ -50,10 +52,11 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"livez", "--url", testMockServerError.URL + "/livez"})
-		require.Equal(t, 1, exitCode, "Livez should fail with 503")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"livez", "--url", testMockServerError.URL + "/livez"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "Livez should fail with 503")
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is not alive")
 	require.Contains(t, output, "503")
 }
@@ -62,11 +65,11 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"})
-		require.Equal(t, 0, exitCode, "Shutdown should succeed with 200 even if no body")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"}, &stdout, &stderr)
+	require.Equal(t, 0, exitCode, "Shutdown should succeed with 200 even if no body")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Shutdown initiated")
 }
 
@@ -74,10 +77,11 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"shutdown", "--url", testMockServerError.URL + "/shutdown"})
-		require.Equal(t, 1, exitCode, "Shutdown should fail with 503")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"shutdown", "--url", testMockServerError.URL + "/shutdown"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "Shutdown should fail with 503")
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Shutdown request failed")
 	require.Contains(t, output, "503")
 }
@@ -86,12 +90,12 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 	t.Parallel()
 
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"})
-		// Should still succeed because we got 200 status.
-		require.Equal(t, 0, exitCode, "Shutdown should succeed even with partial body")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"}, &stdout, &stderr)
+	// Should still succeed because we got 200 status.
+	require.Equal(t, 0, exitCode, "Shutdown should succeed even with partial body")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Shutdown initiated")
 }
 
@@ -100,10 +104,11 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 	t.Parallel()
 
 	// Test default URL (will fail to connect to 127.0.0.1:8888).
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"health"})
-		require.Equal(t, 1, exitCode, "Health check should fail when no server running")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"health"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "Health check should fail when no server running")
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Health check failed:")
 	require.True(t,
 		cryptoutilTestutil.ContainsAny(output, []string{
@@ -119,10 +124,11 @@ func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
 	t.Parallel()
 
 	// Test default URL (will fail to connect to 127.0.0.1:9090).
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"livez"})
-		require.Equal(t, 1, exitCode, "Livez check should fail when no server running")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"livez"}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "Livez check should fail when no server running")
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Liveness check failed:")
 	require.True(t,
 		cryptoutilTestutil.ContainsAny(output, []string{

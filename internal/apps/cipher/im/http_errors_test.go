@@ -3,6 +3,7 @@
 package im
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -13,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
 const (
@@ -60,14 +60,14 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Test health check completes despite slow response.
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{
-			"health",
-			"--url", fmt.Sprintf("http://127.0.0.1:%d%s", actualPort, adminHealthPath),
-		})
-		require.Equal(t, 0, exitCode, "Health check should succeed for slow but valid response")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{
+		"health",
+		"--url", fmt.Sprintf("http://127.0.0.1:%d%s", actualPort, adminHealthPath),
+	}, &stdout, &stderr)
+	require.Equal(t, 0, exitCode, "Health check should succeed for slow but valid response")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is healthy")
 }
 
@@ -76,11 +76,11 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 	t.Parallel()
 
 	// Test livez check with empty response using shared OK server (returns "OK" body).
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"livez", "--url", testMockServerOK.URL + adminLivezPath})
-		require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"livez", "--url", testMockServerOK.URL + adminLivezPath}, &stdout, &stderr)
+	require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK")
 
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is alive")
 }
 
@@ -89,10 +89,11 @@ func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
 	t.Parallel()
 
 	// Use shared error server that returns 503 (close enough to 404 for error case).
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"readyz", "--url", testMockServerError.URL + adminReadyzPath})
-		require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"readyz", "--url", testMockServerError.URL + adminReadyzPath}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Service is not ready")
 	require.Contains(t, output, "503")
 }
@@ -102,10 +103,11 @@ func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
 	t.Parallel()
 
 	// Use shared error server that returns 503 (close enough to 500 for error case).
-	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath})
-		require.Equal(t, 1, exitCode, "Shutdown should fail with error status")
-	})
+	var stdout, stderr bytes.Buffer
+	exitCode := internalIM([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath}, &stdout, &stderr)
+	require.Equal(t, 1, exitCode, "Shutdown should fail with error status")
+
+	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Shutdown request failed")
 	require.Contains(t, output, "503")
 }
