@@ -117,8 +117,8 @@ func TestCipher_HelpCommand(t *testing.T) {
 	for _, tt := range tests {
 		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-			// TODO: Investigate safer capture method that works with t.Parallel().
+			// Remove t.Parallel() - stdout/stderr capture uses global mutex for safety.
+			// The captureOutput function serializes all calls to prevent race conditions on os.Stdout/os.Stderr.
 			_, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilCipherCmd.Cipher(tt.args)
 				require.Equal(t, 0, exitCode)
@@ -155,8 +155,8 @@ func TestCipher_VersionCommand(t *testing.T) {
 	for _, tt := range tests {
 		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-			// TODO: Investigate safer capture method that works with t.Parallel().
+			// Remove t.Parallel() - stdout/stderr capture uses global mutex for safety.
+			// The captureOutput function serializes all calls to prevent race conditions on os.Stdout/os.Stderr.
 			stdout, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilCipherCmd.Cipher(tt.args)
 				require.Equal(t, 0, exitCode)
@@ -197,8 +197,8 @@ func TestCipher_UnknownService(t *testing.T) {
 	for _, tt := range tests {
 		// Capture range variable for parallel tests.
 		t.Run(tt.name, func(t *testing.T) {
-			// Remove t.Parallel() - stdout/stderr capture has race condition with parallel tests.
-			// TODO: Investigate safer capture method that works with t.Parallel().
+			// Remove t.Parallel() - stdout/stderr capture uses global mutex for safety.
+			// The captureOutput function serializes all calls to prevent race conditions on os.Stdout/os.Stderr.
 			stdout, stderr := captureOutput(t, func() {
 				exitCode := cryptoutilCipherCmd.Cipher(tt.args)
 				require.Equal(t, 1, exitCode)

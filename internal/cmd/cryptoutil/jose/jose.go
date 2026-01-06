@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	cryptoutilConfig "cryptoutil/internal/shared/config"
@@ -149,8 +150,14 @@ func parseConfigFlag(parameters []string, defaultValue string) string {
 	return defaultValue
 }
 
-// parseAdminPort extracts admin port from parameters (TODO: add --admin-port flag).
+// parseAdminPort extracts admin port from parameters.
 func parseAdminPort(parameters []string, defaultValue int) int {
-	// TODO: Implement --admin-port flag parsing
+	for i, param := range parameters {
+		if param == "--admin-port" && i+1 < len(parameters) {
+			if port, err := strconv.Atoi(parameters[i+1]); err == nil && port > 0 && port <= 65535 {
+				return port
+			}
+		}
+	}
 	return defaultValue
 }

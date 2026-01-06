@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	cryptoutilIdentityAuthzServer "cryptoutil/internal/identity/authz/server"
@@ -234,7 +235,13 @@ func parseServiceFlag(parameters []string, defaultService string) string {
 
 // parseAdminPort extracts admin port from parameters.
 func parseAdminPort(parameters []string, defaultPort int) int {
-	// TODO: Implement --admin-port flag parsing
+	for i, param := range parameters {
+		if param == "--admin-port" && i+1 < len(parameters) {
+			if port, err := strconv.Atoi(parameters[i+1]); err == nil && port > 0 && port <= 65535 {
+				return port
+			}
+		}
+	}
 	return defaultPort
 }
 
