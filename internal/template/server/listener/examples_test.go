@@ -153,7 +153,7 @@ var (
 	adminURL     string
 )
 
-func TestMainAfter(m *testing.M) {
+func testMainAfter(m *testing.M) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database (reusable helper).
@@ -240,11 +240,11 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 // Usage Example: Health Checks
 // ========================================
 
-func ExampleHealthChecks() {
+func exampleHealthChecks() {
 	// Assuming testListener is initialized in TestMain.
 
 	// Liveness check (lightweight - process alive?).
-	liveResult, err := cryptoutilTemplateServerListener.SendLivenessCheck(testListener.(*cryptoutilTemplateServerListener.ApplicationListener).config)
+	liveResult, err := cryptoutilTemplateServerListener.SendLivenessCheck(testListener.Config())
 	if err != nil {
 		fmt.Printf("Liveness check failed: %v\n", err)
 	} else {
@@ -252,7 +252,7 @@ func ExampleHealthChecks() {
 	}
 
 	// Readiness check (heavyweight - dependencies healthy?).
-	readyResult, err := cryptoutilTemplateServerListener.SendReadinessCheck(testListener.(*cryptoutilTemplateServerListener.ApplicationListener).ApplicationListener.config)
+	readyResult, err := cryptoutilTemplateServerListener.SendReadinessCheck(testListener.Config())
 	if err != nil {
 		fmt.Printf("Readiness check failed: %v\n", err)
 	} else {
@@ -260,7 +260,7 @@ func ExampleHealthChecks() {
 	}
 
 	// Graceful shutdown via API.
-	err = cryptoutilTemplateServerListener.SendShutdownRequest(testListener.(*cryptoutilTemplateServerListener.ApplicationListener).ApplicationListener.config)
+	err = cryptoutilTemplateServerListener.SendShutdownRequest(testListener.Config())
 	if err != nil {
 		fmt.Printf("Shutdown request failed: %v\n", err)
 	} else {

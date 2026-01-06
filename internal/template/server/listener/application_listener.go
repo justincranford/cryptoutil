@@ -342,3 +342,9 @@ func (l *ApplicationListener) ActualPublicPort() uint16 {
 func (l *ApplicationListener) ActualPrivatePort() uint16 {
 	return l.actualPrivatePort
 }
+
+// Config returns the server settings used to configure this listener.
+// Useful for health checks and client connections.
+func (l *ApplicationListener) Config() *cryptoutilConfig.ServerSettings {
+	return l.config
+}
