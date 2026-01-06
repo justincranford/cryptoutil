@@ -34,7 +34,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
     - ✅ `internal/kms/server/` (sm-kms service, 26 files)
     - ✅ `internal/jose/server/` (jose-ja service, 2 files)
     - ✅ `internal/identity/` (identity services, 2 files)
-    - ✅ `internal/cipher/server/` (fixed missing generateTLSConfig)
+    - ✅ `internal/apps/cipher/im/server/` (fixed missing generateTLSConfig)
   - **Validation**:
     - ✅ Build: `go build ./...` passes
     - ✅ Tests: `go test ./internal/shared/crypto/jose/...` passes
@@ -826,7 +826,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - ~87 lines of duplicated code
 
 - `internal/jose/server/server.go`: Third copy with ECDSA P-384
-- `internal/cipher/server/public.go`: Fourth copy (just added)
+- `internal/apps/cipher/im/server/public.go`: Fourth copy (just added)
 
 **Total Duplication**: ~350 lines across 4 services
 
@@ -1087,7 +1087,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - **Pattern**: TLSModeAuto with localhost + 127.0.0.1 + ::1, magic constant for validity days
   - **Test cases**: TestNewAdminServer_HappyPath, TestNewAdminServer_NilContext, TestAdminServer_Start_Success, TestAdminServer_Readyz_NotReady, TestAdminServer_HealthChecks_DuringShutdown, TestAdminServer_Start_NilContext, TestAdminServer_Livez_Alive, TestAdminServer_Readyz_Ready, TestAdminServer_Shutdown_Endpoint, TestAdminServer_Shutdown_NilContext, TestAdminServer_ActualPort_BeforeStart, TestAdminServer_ConcurrentRequests, TestAdminServer_TimeoutsConfigured
 
-- Fixed integration in `internal/cipher/server/server.go`
+- Fixed integration in `internal/apps/cipher/im/server/server.go`
   - **Issue**: cipher-im NewAdminServer call missing new tlsCfg parameter (caught by pre-commit golangci-lint)
   - **Fix**: Added TLSConfig creation with TLSModeAuto, AutoValidityDays using magic constant
   - **Added import**: cryptoutilMagic for TLSTestEndEntityCertValidity1Year constant
@@ -1133,7 +1133,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 1. Locate remaining 2 copies of duplicated TLS code:
    - `internal/jose/server/server.go` (estimated ~87 lines, same generateTLSConfig pattern)
-   - `internal/cipher/server/public.go` (estimated ~87 lines, same generateTLSConfig pattern)
+   - `internal/apps/cipher/im/server/public.go` (estimated ~87 lines, same generateTLSConfig pattern)
 2. For each file:
    - Remove 7 crypto imports, add tlsMaterial field
    - Update constructor to accept tlsCfg parameter, call GenerateTLSMaterial
@@ -1165,7 +1165,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - **Integration**: Updated application.go with adminTLSCfg (TLSModeAuto, localhost, 127.0.0.1, ::1)
   - Build verification: ✅ PASS
   - **Metrics**: ~67 lines removed, ~15 added, net -52 lines
-- **Cipher PublicServer** (`internal/cipher/server/public.go`):
+- **Cipher PublicServer** (`internal/apps/cipher/im/server/public.go`):
   - **Removed imports**: crypto/ecdsa, crypto/elliptic, crypto/rand, crypto/x509, crypto/x509/pkix, math/big (6 total)
   - **Added imports**: cryptoutilMagic, cryptoutilTemplateServer
   - **Added field**: `tlsMaterial *cryptoutilTemplateServer.TLSMaterial` to PublicServer struct
@@ -1402,7 +1402,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - ✅ All tests PASS (60.683s)
 - ✅ No issues from move from internal/jose/crypto (Phase 1.1.1.1)
 
-**Cipher-IM** (`internal/cipher/...`):
+**Cipher-IM** (`internal/apps/cipher/im/...`):
 
 - ℹ️ No test files (expected for demo service)
 - ✅ generateTLSConfig fix verified (commit 95c7c9ee)
@@ -1538,7 +1538,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Fixed all linter errors (10 noctx/errcheck violations)
 - Achieved 7/7 tests PASS in 0.964s
 
-**Test Implementation** (internal/cipher/server/public_test.go - 451 lines):
+**Test Implementation** (internal/apps/cipher/im/server/public_test.go - 451 lines):
 
 **Registration Tests** (4 test cases):
 
@@ -1640,7 +1640,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Work Completed**:
 
-- Added **8 message handler tests** (273 lines) to `internal/cipher/server/public_test.go`
+- Added **8 message handler tests** (273 lines) to `internal/apps/cipher/im/server/public_test.go`
 - **Coverage improvement**: 39.9% → 61.1% server coverage (+21.2 percentage points)
 - **Tests designed**: sendMessage (3 tests), receiveMessages (1 test), deleteMessage (3 tests)
 - **All 15 tests PASS** (7 registration/login + 8 message handlers) in 1.215s
@@ -1672,7 +1672,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Quality Validation**:
 
 - ✅ All 15 tests PASS (0 failures, 0 skips)
-- ✅ Linter clean (golangci-lint run ./internal/cipher/server/... = no output)
+- ✅ Linter clean (golangci-lint run ./internal/apps/cipher/im/server/... = no output)
 - ✅ Pre-commit hooks PASS (auto-fixed `interface{}` → `any` formatting)
 
 **Test Pattern Consistency**:
@@ -1716,7 +1716,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Work Completed**:
 
-- Created `internal/cipher/e2e/cipher_im_e2e_test.go` (399 lines)
+- Created `internal/apps/cipher/im/e2e/cipher_im_e2e_test.go` (399 lines)
 - Implemented 3 comprehensive E2E tests (3/3 PASS):
   - **TestE2E_FullEncryptionFlow**: Alice → Bob full ECDH+HKDF+AES-GCM cycle
   - **TestE2E_MultiReceiverEncryption**: Alice → [Bob, Charlie] with individual encrypted copies
@@ -2240,7 +2240,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 1. **Mutation Testing** - BLOCKING quality gate (3-4 hours):
    - Install gremlins: `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest`
-   - Run: `gremlins unleash ./internal/cipher/...`
+   - Run: `gremlins unleash ./internal/apps/cipher/im/...`
    - Target: ≥85% mutation score (efficacy)
    - Strengthen weak assertions as needed
 2. **E2E Test Verification** - MEDIUM PRIORITY (1-2 hours):
@@ -2315,7 +2315,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Test Execution Results**:
 
 ```bash
-go test -v ./internal/cipher/e2e/... -timeout=60s
+go test -v ./internal/apps/cipher/im/e2e/... -timeout=60s
 # 7 tests PASS (3 service + 4 browser)
 # TestE2E_BrowserHealth: 0.12s
 # TestE2E_BrowserFullEncryptionFlow: 2.17s
@@ -2393,7 +2393,7 @@ go test -v ./internal/cipher/e2e/... -timeout=60s
     - readyz: Full HTTP client wrapper implementation
     - shutdown: Full HTTP client wrapper implementation
   - Suite/Product integration complete (cryptoutil learn, learn standalone)
-  - Product-Service delegation working (cipher-im → internal/cmd/cipher)
+  - Product-Service delegation working (cipher-im → internal/apps/cipher)
   - HTTP client helpers with TLS InsecureSkipVerify and context support
   - URL parsing with --url flag support
   - Status code validation and formatted output
@@ -2860,7 +2860,7 @@ DEBUG initializeFirstIntermediateJWK: Successfully created first intermediate JW
 --- PASS: TestHandleBrowserHealth_WhileRunning
 --- PASS: TestStart_ContextCancelled
 PASS
-ok  cryptoutil/internal/cipher/server  4.138s (18 tests)
+ok  cryptoutil/internal/apps/cipher/im/server  4.138s (18 tests)
 ```
 
 **Coverage/Quality Metrics**:
@@ -3238,3 +3238,97 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Template linting issues are pre-existing infrastructure debt - NOT regressions
 - Cipher migration validates pattern works correctly -  VALIDATED
 - Workflow compatibility confirmed -  CONFIRMED
+
+
+### 2026-01-01: Cipher Internal Directory Structure Refactoring
+
+**Work Completed**:
+- Refactored cipher product to align with Go project structure best practices
+- Moved internal/cmd/cipher/** to internal/apps/cipher/ (Product level)
+- Moved internal/cipher/** to internal/apps/cipher/im/ (Service level)
+- Updated all import paths across 54 files (52 Go files + 2 test files)
+- Updated cmd/cipher/main.go import from cryptoutilCipherCmd to cryptoutilCipherApp
+- Updated cmd/cipher-im/main.go import to internal/apps/cipher/im
+- Fixed 2 test assertion errors (emoji character "?" to "")
+- Fixed 6 linting errors:
+  - e2e/testmain_e2e_test.go: Added defer error handling wrapper for Shutdown
+  - integration/testmain_integration_test.go: Added defer error handling wrapper
+  - e2e/web_client_e2e_test.go: Extracted magic string as testMessageDeletion constant
+  - server/helpers_test.go: Removed 2 unused functions (cleanTestDBWithError, createTestCipherIMServer)
+  - server/helpers_test.go: Cleaned up unused imports (context, fmt, time, googleUuid, gorm, repository, server)
+- Updated cmd/cipher-im/README.md documentation with new paths
+- Cleaned up old empty directories (internal/cmd/cipher, internal/cipher)
+- Updated SpecKit documentation (tasks.md, DETAILED.md) with new paths
+
+**File Move Summary** (54 files total):
+- internal/cmd/cipher/cipher.go  internal/apps/cipher/cipher.go
+- internal/cmd/cipher/cipher_test.go  internal/apps/cipher/cipher_test.go
+- internal/cmd/cipher/version_test.go  internal/apps/cipher/version_test.go
+- internal/cmd/cipher/im/*.go (14 files)  internal/apps/cipher/im/*.go
+- internal/cipher/client/message.go  internal/apps/cipher/im/client/message.go
+- internal/cipher/domain/*.go (3 files)  internal/apps/cipher/im/domain/*.go
+- internal/cipher/e2e/*.go (4 files)  internal/apps/cipher/im/e2e/*.go
+- internal/cipher/integration/*.go (2 files)  internal/apps/cipher/im/integration/*.go
+- internal/cipher/repository/*.go (7 files + migrations/)  internal/apps/cipher/im/repository/*.go
+- internal/cipher/server/*.go (11 files + config/, apis/, util/)  internal/apps/cipher/im/server/*.go
+- internal/cipher/testing/testmain_helper.go  internal/apps/cipher/im/testing/testmain_helper.go
+
+**Coverage/Quality Metrics**:
+- Before: All tests passing, scattered across internal/cmd/cipher and internal/cipher
+- After: All tests passing, consolidated under internal/apps/cipher structure
+- Test execution time: E2E (2.163s), Integration (3.572s), Server (2.473s)
+- Linting: CLEAN (no errors after fixes)
+- Coverage: Maintained (no degradation)
+
+**Import Path Changes**:
+- "cryptoutil/internal/cmd/cipher"  "cryptoutil/internal/apps/cipher"
+- "cryptoutil/internal/cmd/cipher/im"  "cryptoutil/internal/apps/cipher/im"
+- "cryptoutil/internal/cipher/*"  "cryptoutil/internal/apps/cipher/im/*"
+
+**Lessons Learned**:
+1. Use git mv for file moves to preserve Git history across 54 files
+2. PowerShell batch regex replacement effective for updating imports systematically
+3. Test assertion emoji rendering can differ ("?" vs "") - verify in failing tests
+4. Defer error handling requires anonymous function wrapper: defer func() { _ = x.Shutdown() }()
+5. Magic string detection catches test data strings - extract as package constants
+6. SpecKit documents (tasks.md, DETAILED.md) need path updates after refactoring
+7. Directory structure aligns with .github/instructions/03-03.golang.instructions.md patterns:
+   - cmd/cipher/  internal/apps/cipher/cipher.go (Product pattern)
+   - cmd/cipher-im/  internal/apps/cipher/im/im.go (Product-Service pattern)
+
+**Constraints Discovered**:
+- File moves must use git mv to preserve Git blame/history
+- Import path updates require scanning all .go files in moved directories
+- Test assertions sensitive to emoji character rendering in terminal output
+- Linting requires explicit error handling even for deferred cleanup operations
+- SpecKit documentation contains 20+ references to old paths requiring updates
+
+**Requirements Discovered**:
+- Product-level code goes in internal/apps/PRODUCT/PRODUCT.go
+- Service-level code goes in internal/apps/PRODUCT/SERVICE/*.go
+- Command patterns: Suite  Product  Service  Subcommand delegation
+- All file moves MUST preserve Git history (use git mv, NOT cp+rm)
+- Documentation updates MUST include README.md AND SpecKit files
+
+**Violations Found**:
+- NONE (all linting passes, all tests pass, no new TODO/FIXME introduced)
+
+**Alignment with Instructions**:
+-  Implements .github/instructions/03-03.golang.instructions.md Command Line Patterns
+-  Implements .github/instructions/03-03.golang.instructions.md Go Project Structure
+-  Call flow: cmd/cipher-im/main.go  internal/apps/cipher/im/im.go
+-  Call flow: cmd/cipher/main.go  internal/apps/cipher/cipher.go  internal/apps/cipher/im/im.go
+
+**Related Commits**:
+- 08af36d1 ("refactor(cipher): move to internal/apps/cipher structure")
+
+**Phase Status**: Cipher Directory Refactoring  COMPLETE
+
+- File structure migration:  COMPLETE (54 files moved with git mv)
+- Import path updates:  COMPLETE (PowerShell batch regex)
+- Test fixes:  COMPLETE (2 emoji assertions)
+- Linting fixes:  COMPLETE (6 errors resolved)
+- Documentation updates:  COMPLETE (README.md, tasks.md, DETAILED.md)
+- SpecKit alignment:  COMPLETE (paths updated in specs/)
+- Blocking Issues: NONE
+

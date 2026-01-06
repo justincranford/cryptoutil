@@ -211,10 +211,10 @@ Multi-layer key hierarchy with elastic rotation:
 - **Effort**: L (21-28 days)
 - **Dependencies**: P2.1.1 (template extracted)
 - **Files**:
-  - `internal/cipher/domain/*.go` (create - users, messages)
-  - `internal/cipher/server/application.go` (create)
-  - `internal/cipher/server/handlers.go` (create)
-  - `internal/cipher/repository/*.go` (create)
+  - `internal/apps/cipher/im/domain/*.go` (create - users, messages)
+  - `internal/apps/cipher/im/server/application.go` (create)
+  - `internal/apps/cipher/im/server/handlers.go` (create)
+  - `internal/apps/cipher/im/repository/*.go` (create)
   - `cmd/cryptoutil/cipher.go` (create)
   - `cmd/cipher-im/main.go` (create)
   - `deployments/compose/cipher-im/compose.yml` (create)
@@ -232,9 +232,9 @@ Multi-layer key hierarchy with elastic rotation:
   - [ ] All business logic cleanly separated from template
   - [ ] Template supports different API patterns (PUT/GET/DELETE vs CRUD)
   - [ ] No template blockers discovered during implementation
-  - [ ] Tests pass: `go test ./internal/cipher/... ./cmd/cipher-im/...`
-  - [ ] Coverage ≥95%: `go test -cover ./internal/cipher/...`
-  - [ ] Mutation score ≥85%: `gremlins unleash ./internal/cipher/...`
+  - [ ] Tests pass: `go test ./internal/apps/cipher/im/... ./cmd/cipher-im/...`
+  - [ ] Coverage ≥95%: `go test -cover ./internal/apps/cipher/im/...`
+  - [ ] Mutation score ≥85%: `gremlins unleash ./internal/apps/cipher/im/...`
   - [ ] E2E tests pass (BOTH `/service/**` and `/browser/**` paths)
   - [ ] Docker Compose deployment works
   - [ ] Deep analysis confirms template ready for production service migrations
