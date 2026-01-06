@@ -246,3 +246,11 @@ func (s *PublicHTTPServer) ActualPort() int {
 
 	return s.actualPort
 }
+
+// PublicBaseURL returns the base URL for public API access.
+func (s *PublicHTTPServer) PublicBaseURL() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return fmt.Sprintf("%s://%s:%d", s.settings.BindPublicProtocol, s.settings.BindPublicAddress, s.actualPort)
+}

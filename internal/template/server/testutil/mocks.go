@@ -68,6 +68,11 @@ func (m *MockPublicServer) ActualPort() int {
 	return m.actualPort
 }
 
+// PublicBaseURL returns the base URL for the public server.
+func (m *MockPublicServer) PublicBaseURL() string {
+	return fmt.Sprintf("https://127.0.0.1:%d", m.actualPort)
+}
+
 // MockAdminServer is a test double for AdminServer interface.
 type MockAdminServer struct {
 	StartCalled    bool
@@ -127,6 +132,11 @@ func (m *MockAdminServer) Shutdown(ctx context.Context) error {
 // ActualPort returns the actual port the admin server is listening on.
 func (m *MockAdminServer) ActualPort() int {
 	return m.actualPort
+}
+
+// AdminBaseURL returns the base URL for the admin server.
+func (m *MockAdminServer) AdminBaseURL() string {
+	return fmt.Sprintf("https://127.0.0.1:%d", m.actualPort)
 }
 
 // SetReady sets the readiness status of the admin server.

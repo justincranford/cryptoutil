@@ -317,6 +317,11 @@ func (s *Server) ActualPort() int {
 	return s.actualPort
 }
 
+// PublicBaseURL returns the base URL for public API access.
+func (s *Server) PublicBaseURL() string {
+	return fmt.Sprintf("%s://%s:%d", s.settings.BindPublicProtocol, s.settings.BindPublicAddress, s.actualPort)
+}
+
 // generateTLSConfig creates a TLS configuration using the CA's own issuer to generate a TLS server certificate.
 func (s *Server) generateTLSConfig() (*tls.Config, error) {
 	// Generate key for TLS certificate.

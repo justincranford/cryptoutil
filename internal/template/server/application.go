@@ -42,10 +42,12 @@ type Application struct {
 // - Start: Begin listening for HTTPS requests (blocks until shutdown or error)
 // - Shutdown: Gracefully shutdown the server with context timeout
 // - ActualPort: Return the actual port after dynamic allocation.
+// - PublicBaseURL: Return the base URL for public API access.
 type IPublicServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	ActualPort() int
+	PublicBaseURL() string
 }
 
 // IAdminServer interface defines the contract for admin HTTPS servers.
@@ -54,11 +56,13 @@ type IPublicServer interface {
 // - Shutdown: Gracefully shutdown the admin server with context timeout
 // - ActualPort: Return the actual port (should always be 9090)
 // - SetReady: Mark server as ready to handle readyz health checks (thread-safe).
+// - AdminBaseURL: Return the base URL for admin API access.
 type IAdminServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	ActualPort() int
 	SetReady(ready bool)
+	AdminBaseURL() string
 }
 
 // NewApplication creates a new service application with public and admin servers.

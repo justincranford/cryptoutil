@@ -293,6 +293,14 @@ func (s *AdminServer) ActualPort() int {
 	return int(s.actualPort)
 }
 
+// AdminBaseURL returns the base URL for admin API access.
+func (s *AdminServer) AdminBaseURL() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return fmt.Sprintf("%s://%s:%d", s.settings.BindPrivateProtocol, s.settings.BindPrivateAddress, s.actualPort)
+}
+
 // App returns the underlying fiber.App for custom route registration.
 // This allows callers to register additional admin endpoints before calling Start().
 // Thread-safe with read lock.

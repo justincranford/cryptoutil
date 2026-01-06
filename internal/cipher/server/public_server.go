@@ -261,3 +261,11 @@ func (s *PublicServer) ActualPort() int {
 
 	return s.actualPort
 }
+
+// PublicBaseURL returns the base URL for public API access.
+func (s *PublicServer) PublicBaseURL() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return fmt.Sprintf("https://127.0.0.1:%d", s.actualPort)
+}

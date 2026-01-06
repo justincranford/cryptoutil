@@ -253,6 +253,12 @@ func (s *AdminServer) ActualPort() int {
 	return addr.Port
 }
 
+// AdminBaseURL returns the base URL for admin API access.
+func (s *AdminServer) AdminBaseURL() string {
+	port := s.ActualPort()
+	return fmt.Sprintf("%s://%s:%d", s.settings.BindPrivateProtocol, s.settings.BindPrivateAddress, port)
+}
+
 // generateTLSConfig creates a self-signed certificate for admin server.
 func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
 	// Generate private key.

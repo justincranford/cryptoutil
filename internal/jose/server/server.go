@@ -199,6 +199,11 @@ func (s *Server) ActualPort() int {
 	return s.actualPort
 }
 
+// PublicBaseURL returns the base URL for public API access.
+func (s *Server) PublicBaseURL() string {
+	return fmt.Sprintf("%s://%s:%d", s.settings.BindPublicProtocol, s.settings.BindPublicAddress, s.actualPort)
+}
+
 // Shutdown gracefully stops the server.
 func (s *Server) Shutdown() error {
 	s.telemetryService.Slogger.Info("Shutting down JOSE Authority Server")

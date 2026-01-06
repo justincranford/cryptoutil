@@ -25,6 +25,7 @@ type IPublicServer interface {
 	Start(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	ActualPort() int
+	PublicBaseURL() string
 }
 
 // IAdminServer interface defines the contract for admin HTTPS servers.
@@ -33,6 +34,7 @@ type IAdminServer interface {
 	Shutdown(ctx context.Context) error
 	ActualPort() int
 	SetReady(ready bool)
+	AdminBaseURL() string
 }
 
 // ApplicationListenerConfig holds configuration for creating an ApplicationListener.

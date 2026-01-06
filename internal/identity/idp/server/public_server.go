@@ -148,6 +148,11 @@ func (s *PublicServer) ActualPort() int {
 	return s.actualPort
 }
 
+// PublicBaseURL returns the base URL for public API access.
+func (s *PublicServer) PublicBaseURL() string {
+	return fmt.Sprintf("https://127.0.0.1:%d", s.actualPort)
+}
+
 // generateTLSConfig creates a self-signed certificate for TLS.
 // TODO: Replace with CA-signed certificates or Docker secrets for production.
 func (s *PublicServer) generateTLSConfig() (*tls.Config, error) {
