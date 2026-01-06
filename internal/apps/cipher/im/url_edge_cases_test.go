@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
@@ -65,7 +66,7 @@ func TestIM_ReadyzSubcommand_ExtraArgumentsIgnored(t *testing.T) {
 	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"readyz",
-			"--url", server.URL + "/admin/v1/readyz",
+			"--url", server.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
 			"extra", "ignored", "args",
 		})
 		require.Equal(t, 0, exitCode, "Extra args should be ignored")
@@ -89,7 +90,7 @@ func TestIM_ShutdownSubcommand_URLWithoutQueryParameters(t *testing.T) {
 	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"shutdown",
-			"--url", server.URL + "/admin/v1/shutdown",
+			"--url", server.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 		})
 		require.Equal(t, 0, exitCode, "Shutdown should succeed")
 	})
@@ -150,7 +151,7 @@ func TestIM_ReadyzSubcommand_CaseInsensitiveHTTPStatus(t *testing.T) {
 	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"readyz",
-			"--url", server.URL + "/admin/v1/readyz",
+			"--url", server.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
 		})
 		require.Equal(t, 1, exitCode, "Non-200 status should fail")
 	})

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	cipherClient "cryptoutil/internal/apps/cipher/im/client"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 
@@ -42,7 +43,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 3: Rotate root key via admin API.
 	rotationReason := "E2E test: manual root key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, "/admin/v1/barrier/rotate/root", rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -123,7 +124,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 3: Rotate intermediate key via admin API.
 	rotationReason := "E2E test: manual intermediate key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, "/admin/v1/barrier/rotate/intermediate", rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/intermediate", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -188,7 +189,7 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	// Step 2: Rotate content key (elastic rotation - creates new key, keeps old).
 	rotationReason := "E2E test: manual content key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, "/admin/v1/barrier/rotate/content", rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/content", rotationReason)
 
 	// Content key rotation returns new_key_uuid only (no old_key_uuid - elastic rotation).
 	newKeyUUID, ok := rotateResponse["new_key_uuid"].(string)
@@ -324,7 +325,7 @@ func rotateKey(t *testing.T, client *http.Client, adminURL, endpoint, reason str
 func getBarrierKeysStatus(t *testing.T, client *http.Client, adminURL string) map[string]any {
 	t.Helper()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, adminURL+"/admin/v1/barrier/keys/status", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, adminURL+cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/keys/status", nil)
 	require.NoError(t, err, "failed to create status request")
 
 	resp, err := client.Do(req)
