@@ -105,8 +105,7 @@ func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
 	// Wait for server to start.
 	time.Sleep(500 * time.Millisecond)
 
-	adminPort, err := srv.AdminPort()
-	require.NoError(t, err)
+	adminPort := srv.AdminPort()
 
 	// Test "im livez" subcommand with running server.
 	output := captureOutput(t, func() {
@@ -159,8 +158,7 @@ func TestIM_ReadyzSubcommand_LiveServer(t *testing.T) {
 	// Wait for server to start.
 	time.Sleep(500 * time.Millisecond)
 
-	adminPort, err := srv.AdminPort()
-	require.NoError(t, err)
+	adminPort := srv.AdminPort()
 
 	// Test "im readyz" subcommand with running server (expected to fail - not ready).
 	output := captureOutput(t, func() {
@@ -214,8 +212,7 @@ func TestIM_ShutdownSubcommand_LiveServer(t *testing.T) {
 	// Wait for server to start.
 	time.Sleep(500 * time.Millisecond)
 
-	adminPort, err := srv.AdminPort()
-	require.NoError(t, err)
+	adminPort := srv.AdminPort()
 
 	// Test "im shutdown" subcommand with running server.
 	output := captureOutput(t, func() {

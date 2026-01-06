@@ -73,8 +73,7 @@ func TestHTTPGet(t *testing.T) {
 
 	// Get actual ports.
 	publicPort := srv.PublicPort()
-	adminPort, err := srv.AdminPort()
-	require.NoError(t, err)
+	adminPort := srv.AdminPort()
 
 	// Create insecure HTTP client (accepts self-signed certs).
 	client := &http.Client{
@@ -169,8 +168,7 @@ func TestHTTPPost(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// Get actual ports.
-	adminPort, err := srv.AdminPort()
-	require.NoError(t, err)
+	adminPort := srv.AdminPort()
 
 	// Create insecure HTTP client (accepts self-signed certs).
 	client := &http.Client{

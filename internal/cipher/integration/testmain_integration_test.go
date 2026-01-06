@@ -6,7 +6,6 @@ package integration
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
@@ -38,12 +37,11 @@ func TestMain(m *testing.M) {
 	}
 
 	cipherImServer = cipherTesting.StartCipherIMServer(sharedAppConfig)
+	defer cipherImServer.Shutdown(context.Background())
 
-	sharedServiceBaseURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPublicProtocol, sharedAppConfig.BindPublicAddress, cipherImServer.PublicPort())
+	sharedServiceBaseURL = cipherImServer.PublicBaseURL()
 
 	exitCode := m.Run()
-
-	_ = cipherImServer.Shutdown(context.Background())
 
 	os.Exit(exitCode)
 }
