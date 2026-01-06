@@ -93,10 +93,10 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 func TestHandleServiceHealth_WhileRunning(t *testing.T) {
 	t.Parallel()
 
-	_, baseURL := createTestPublicServer(t, testDB)
+	_, svcBaseURL := createTestPublicServer(t, testDB)
 	client := createHTTPClient(t)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/service/api/v1/health", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, svcBaseURL+"/service/api/v1/health", nil)
 	require.NoError(t, err)
 
 	resp, err := client.Do(req)
@@ -117,10 +117,10 @@ func TestHandleServiceHealth_WhileRunning(t *testing.T) {
 func TestHandleBrowserHealth_WhileRunning(t *testing.T) {
 	t.Parallel()
 
-	_, baseURL := createTestPublicServer(t, testDB)
+	_, svcBaseURL := createTestPublicServer(t, testDB)
 	client := createHTTPClient(t)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/browser/api/v1/health", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, svcBaseURL+"/browser/api/v1/health", nil)
 	require.NoError(t, err)
 
 	resp, err := client.Do(req)
@@ -224,4 +224,3 @@ func TestStart_ContextCancelled(t *testing.T) {
 
 	_ = srv.Shutdown(context.Background())
 }
-

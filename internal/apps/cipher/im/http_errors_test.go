@@ -13,13 +13,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
 const (
-	adminHealthPath = "/admin/v1/healthz"
-	adminLivezPath  = "/admin/v1/livez"
-	adminReadyzPath = "/admin/v1/readyz"
+	adminHealthPath = cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/healthz"
+	adminLivezPath  = cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath
+	adminReadyzPath = cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath
 )
 
 // TestIM_HealthSubcommand_SlowResponse tests health check with slow server response.
@@ -122,7 +123,7 @@ func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
 
 	// Test shutdown with 500 response.
 	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"shutdown", "--url", server.URL + "/admin/v1/shutdown"})
+		exitCode := IM([]string{"shutdown", "--url", server.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath})
 		require.Equal(t, 1, exitCode, "Shutdown should fail with 500 status")
 	})
 	require.Contains(t, output, "Shutdown request failed")
