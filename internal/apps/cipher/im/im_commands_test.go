@@ -17,12 +17,12 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
 var (

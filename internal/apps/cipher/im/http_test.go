@@ -13,27 +13,26 @@ import (
 	"testing"
 	"time"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 )
 
 // initTestConfig returns an AppConfig with all required settings for tests.
 func initTestConfig() *config.AppConfig {
-	cfg := config.DefaultAppConfig()
-	cfg.BindPublicPort = 0                     // Dynamic port
-	cfg.BindPrivatePort = 0                    // Dynamic port
-	cfg.OTLPService = "cipher-im-test"         // Required
-	cfg.LogLevel = "info"                      // Required
-	cfg.OTLPEndpoint = "grpc://localhost:4317" // Required
-	cfg.OTLPEnabled = false                    // Disable in tests
+	settings := cryptoutilConfig.RequireNewForTest("cipher-im-http-test")
+	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast tests.
 
-	return cfg
+	return &config.AppConfig{
+		ServerSettings: *settings,
+		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
+	}
 }
 
 // TestHTTPGet tests the httpGet helper function (used by health CLI wrappers).

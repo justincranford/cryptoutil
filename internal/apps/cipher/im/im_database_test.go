@@ -1,6 +1,4 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
 
 package im
 
@@ -25,10 +23,6 @@ import (
 // TestInitDatabase_PostgreSQL tests PostgreSQL database initialization using test-containers.
 func TestInitDatabase_PostgreSQL(t *testing.T) {
 	t.Parallel()
-
-	if runtime.GOOS == "windows" {
-		t.Skip("Skipping PostgreSQL container test on Windows - testcontainers-go does not support rootless Docker")
-	}
 
 	ctx := context.Background()
 
