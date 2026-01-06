@@ -369,6 +369,16 @@ func (s *CipherIMServer) AdminPort() int {
 	return s.app.AdminPort()
 }
 
+// PublicBaseURL returns the base URL for the public server.
+func (s *CipherIMServer) PublicBaseURL() string {
+	return s.app.PublicBaseURL()
+}
+
+// AdminBaseURL returns the base URL for the admin server.
+func (s *CipherIMServer) AdminBaseURL() string {
+	return s.app.AdminBaseURL()
+}
+
 // SetReady marks the server as ready to accept traffic.
 //
 // Applications should call SetReady(true) after initializing all dependencies

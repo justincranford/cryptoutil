@@ -223,6 +223,36 @@ func (a *Application) AdminPort() int {
 	return a.adminServer.ActualPort()
 }
 
+// PublicBaseURL returns the base URL for the public server.
+//
+// Returns the complete base URL (protocol + address + port) for making requests
+// to the public API endpoints. Useful for constructing full URLs in tests and clients.
+//
+// Returns:
+// - string: Base URL (e.g., "https://127.0.0.1:8080"), or empty string if not initialized.
+func (a *Application) PublicBaseURL() string {
+	if a.publicServer == nil {
+		return ""
+	}
+
+	return a.publicServer.PublicBaseURL()
+}
+
+// AdminBaseURL returns the base URL for the admin server.
+//
+// Returns the complete base URL (protocol + address + port) for making requests
+// to the admin API endpoints (health checks, shutdown, etc.). Useful for tests and monitoring.
+//
+// Returns:
+// - string: Base URL (e.g., "https://127.0.0.1:9090"), or empty string if not initialized.
+func (a *Application) AdminBaseURL() string {
+	if a.adminServer == nil {
+		return ""
+	}
+
+	return a.adminServer.AdminBaseURL()
+}
+
 // IsShutdown returns whether the application is shutting down or shutdown.
 //
 // Thread-safe check for shutdown state, useful for health checks and request handling.

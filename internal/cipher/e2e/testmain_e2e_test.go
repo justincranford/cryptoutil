@@ -6,7 +6,6 @@ package e2e_test
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -43,10 +42,8 @@ func TestMain(m *testing.M) {
 	testCipherIMServer = cipherTesting.StartCipherIMServer(sharedAppConfig)
 	defer testCipherIMServer.Shutdown(context.Background())
 
-	publicBaseURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPublicProtocol, sharedAppConfig.BindPublicAddress, testCipherIMServer.PublicPort())
-	adminBaseURL = fmt.Sprintf("%s://%s:%d", sharedAppConfig.BindPrivateProtocol, sharedAppConfig.BindPrivateAddress, testCipherIMServer.AdminPort())
-
-	// Create HTTP client with test TLS config.
+	publicBaseURL = testCipherIMServer.PublicBaseURL()
+	adminBaseURL = testCipherIMServer.AdminBaseURL()
 	sharedHTTPClient = cryptoutilTLS.NewClientForTest()
 
 	exitCode := m.Run()

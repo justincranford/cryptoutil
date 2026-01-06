@@ -58,14 +58,14 @@ func NewPublicServer(
 	// Basic health endpoint for now.
 	app.Get("/browser/api/v1/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status": "ok",
+			"status":  "ok",
 			"service": "rs",
 		})
 	})
 
 	app.Get("/service/api/v1/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status": "ok",
+			"status":  "ok",
 			"service": "rs",
 		})
 	})
