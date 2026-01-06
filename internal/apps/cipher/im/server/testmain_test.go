@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
@@ -22,6 +21,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
@@ -115,7 +115,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, nil)
 
 	// Generate JWT secret for this server instance.
-	jwtSecretID, err := cryptoutilJose.GenerateUUIDv7()
+	jwtSecretID, err := cryptoutilRandom.GenerateUUIDv7()
 	require.NoError(t, err)
 
 	jwtSecret := jwtSecretID.String()

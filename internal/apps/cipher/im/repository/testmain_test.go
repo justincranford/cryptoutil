@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -21,6 +20,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilTemplateBarrier "cryptoutil/internal/template/server/barrier"
 )
 
@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := cryptoutilJose.GenerateUUIDv7()
+	dbID, _ := cryptoutilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
 	// CRITICAL: Store sql.DB reference in package variable.

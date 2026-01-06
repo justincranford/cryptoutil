@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"time"
 
-	googleUuid "github.com/google/uuid"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -25,6 +24,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
 )
 
@@ -71,7 +71,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 	if useInMemoryDB {
 		dsn = "file::memory:?cache=shared"
 	} else {
-		dbID, err := cryptoutilJose.GenerateUUIDv7()
+		dbID, err := cryptoutilRandom.GenerateUUIDv7()
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate DB ID: %w", err)
 		}
@@ -155,7 +155,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 	}
 
 	// Generate JWT secret.
-	jwtSecretID, err := cryptoutilJose.GenerateUUIDv7()
+	jwtSecretID, err := cryptoutilRandom.GenerateUUIDv7()
 	if err != nil {
 		resources.JWKGenService.Shutdown()
 		resources.TelemetryService.Shutdown()
