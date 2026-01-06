@@ -256,6 +256,7 @@ func (s *AdminServer) ActualPort() int {
 // AdminBaseURL returns the base URL for admin API access.
 func (s *AdminServer) AdminBaseURL() string {
 	port := s.ActualPort()
+
 	return fmt.Sprintf("%s://%s:%d", s.settings.BindPrivateProtocol, s.settings.BindPrivateAddress, port)
 }
 

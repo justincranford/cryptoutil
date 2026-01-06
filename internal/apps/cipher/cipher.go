@@ -30,22 +30,26 @@ const (
 // - Product: cipher im server
 // - Product-Service: cipher-im server (via main.go delegation).
 func Cipher(args []string) int {
+	return internalCipher(args, os.Stdout, os.Stderr)
+}
+
+func internalCipher(args []string, stdout, stderr *os.File) int {
 	if len(args) == 0 {
-		printUsage()
+		printUsage(stderr)
 
 		return 1
 	}
 
 	// Check for help flags.
 	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
-		printUsage()
+		printUsage(stderr)
 
 		return 0
 	}
 
 	// Check for version flags.
 	if args[0] == versionCommand || args[0] == versionFlag || args[0] == versionShortFlag {
-		printVersion()
+		printVersion(stdout)
 
 		return 0
 	}
@@ -55,16 +59,16 @@ func Cipher(args []string) int {
 	case "im":
 		return im.IM(args[1:])
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown service: %s\n\n", args[0])
-		printUsage()
+		_, _ = fmt.Fprintf(stderr, "Unknown service: %s\n\n", args[0])
+		printUsage(stderr)
 
 		return 1
 	}
 }
 
 // printUsage prints the cipher product usage information.
-func printUsage() {
-	fmt.Fprintln(os.Stderr, `Usage: cipher <service> <subcommand> [options]
+func printUsage(stderr *os.File) {
+	_, _ = fmt.Fprintln(stderr, `Usage: cipher <service> <subcommand> [options]
 
 Available services:
   im          Instant messaging service
@@ -74,7 +78,7 @@ Use "cipher version" for version information.`)
 }
 
 // printVersion prints the cipher product version information.
-func printVersion() {
+func printVersion(stdout *os.File) {
 	// Version information should be injected from the calling binary.
-	fmt.Println("cipher product (cryptoutil)")
+	_, _ = fmt.Fprintln(stdout, "cipher product (cryptoutil)")
 }

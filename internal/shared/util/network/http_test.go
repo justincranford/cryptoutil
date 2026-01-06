@@ -72,12 +72,15 @@ func TestMain(m *testing.M) {
 	testRedirectServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == testRootPath {
 			http.Redirect(w, r, "/final", http.StatusFound)
+
 			return
 		}
-		if r.URL.Path == "/final" {
+		switch r.URL.Path {
+
+		case "/final":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("Final"))
-		} else if r.URL.Path == "/redirected" {
+		case "/redirected":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("Redirected"))
 		}

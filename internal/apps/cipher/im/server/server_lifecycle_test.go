@@ -22,6 +22,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 
 	// Use shared resources from TestMain - no need to create db/repos/tlsCfg in every test.
 	cleanTestDB(t)
+
 	userRepo := repository.NewUserRepository(testDB)
 	messageRepo := repository.NewMessageRepository(testDB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
@@ -37,7 +38,9 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
+
 	cleanTestDB(t)
+
 	messageRepo := repository.NewMessageRepository(testDB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
@@ -51,7 +54,9 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
+
 	cleanTestDB(t)
+
 	userRepo := repository.NewUserRepository(testDB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
@@ -65,7 +70,9 @@ func TestNewPublicServer_NilMessageRecipientJWKRepo(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
+
 	cleanTestDB(t)
+
 	userRepo := repository.NewUserRepository(testDB)
 	messageRepo := repository.NewMessageRepository(testDB)
 
@@ -79,7 +86,9 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
+
 	cleanTestDB(t)
+
 	userRepo := repository.NewUserRepository(testDB)
 	messageRepo := repository.NewMessageRepository(testDB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
@@ -210,6 +219,7 @@ func TestStart_ContextCancelled(t *testing.T) {
 	t.Parallel()
 
 	cleanTestDB(t)
+
 	cfg := initTestConfig()
 
 	srv, err := server.New(context.Background(), cfg, testDB, repository.DatabaseTypeSQLite)

@@ -212,11 +212,13 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 	// Configure SQLite for concurrent operations (WAL mode, busy timeout).
 	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
 		_ = sqlDB.Close()
+
 		return nil, nil, fmt.Errorf("failed to enable WAL: %w", err)
 	}
 
 	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
 		_ = sqlDB.Close()
+
 		return nil, nil, fmt.Errorf("failed to set busy timeout: %w", err)
 	}
 
@@ -230,6 +232,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 	})
 	if err != nil {
 		_ = sqlDB.Close()
+
 		return nil, nil, fmt.Errorf("failed to create GORM DB: %w", err)
 	}
 

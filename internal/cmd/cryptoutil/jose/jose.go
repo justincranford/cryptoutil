@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
+	cryptoutilConfig "cryptoutil/internal/shared/config"
 )
 
 const (
@@ -159,5 +159,6 @@ func parseAdminPort(parameters []string, defaultValue int) int {
 			}
 		}
 	}
+
 	return defaultValue
 }

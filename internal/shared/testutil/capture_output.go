@@ -43,6 +43,7 @@ func CaptureOutput(t *testing.T, fn func()) string {
 	// Read from pipe in background.
 	go func() {
 		var buf bytes.Buffer
+
 		_, _ = io.Copy(&buf, r)
 		outputChan <- buf.String()
 	}()
