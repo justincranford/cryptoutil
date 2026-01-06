@@ -2,227 +2,80 @@
 
 ## Overview
 
-This document describes three aspirational patterns for organizing command-line executables in the cryptoutil project. These patterns provide structured and uniform approaches to command-line interfaces for cryptographic services.
+This document describes aspirational patterns for organizing cryptoutil's command-line executables for suite, products, and services.
 
 ## Patterns
 
 ### 1. Suite Pattern
 
-**Description**: A single unified `cryptoutil` executable that provides subcommands for all products and services.
+**Description**: A single unified `cryptoutil` executable that routes to internal cryptoutil suite, then product, then service, then subcommand.
 
 **Call Flow**:
 
 ```
-cmd/cryptoutil/main.go
-  → internal/cmd/cryptoutil/cryptoutil.go
-    → internal/cmd/PRODUCT/PRODUCT.go
-      → PRODUCT(args) function
-        → SERVICE(args) function
-          → server|client|init|etc subcommand functions
+cmd/cryptoutil/main.go PRODUCT SERVICE SUBCOMMAND
+  → internal/app/cryptoutil/cryptoutil.go PRODUCT SERVICE SUBCOMMAND
+    → internal/app/PRODUCT/PRODUCT.go SERVICE SUBCOMMAND
+      → internal/app/PRODUCT/SERVICE/SERVICE.go SUBCOMMAND
 ```
 
 **Examples**:
 
-- `cryptoutil identity authz server --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `cryptoutil identity authz server` → `internal/cmd/identity/identity.go` → `authz(args)` → `server(args)`
+- `cmd/cryptoutil/main.go cipher im server` → `internal/app/cryptoutil/cryptoutil.go cipher im server` → `internal/app/cipher/cipher.go im server` → `internal/app/cipher/im/im.go server`
+- `cmd/cryptoutil/main.go jose ja client` → `internal/app/cryptoutil/cryptoutil.go jose ja client` → `internal/app/jose/jose.go ja client` → `internal/app/jose/ja/ja.go client`
+- `cmd/cryptoutil/main.go pki ca health` → `internal/app/cryptoutil/cryptoutil.go pki ca health` → `internal/app/pki/pki.go ca health` → `internal/app/pki/ca/ca.go health`
+- `cmd/cryptoutil/main.go identity authz livez` → `internal/app/cryptoutil/cryptoutil.go identity authz livez` → `internal/app/identity/identity.go authz livez` → `internal/app/identity/authz/authz.go livez`
+- `cmd/cryptoutil/main.go identity idp readyz` → `internal/app/cryptoutil/cryptoutil.go identity idp readyz` → `internal/app/identity/identity.go idp readyz` → `internal/app/identity/idp/idp.go readyz`
+- `cmd/cryptoutil/main.go sm kms shutdown` → `internal/app/cryptoutil/cryptoutil.go sm kms shutdown` → `internal/app/sm/sm.go kms shutdown` → `internal/app/sm/kms/kms.go shutdown`
 
-- `cryptoutil identity authz client --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `cryptoutil identity authz client` → `internal/cmd/identity/identity.go` → `authz(args)` → `client(args)`
-
-- `cryptoutil identity authz init --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `cryptoutil identity authz init` → `internal/cmd/identity/identity.go` → `authz(args)` → `init(args)`
-
-- `cryptoutil identity authz health --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `cryptoutil identity authz health` → `internal/cmd/identity/identity.go` → `authz(args)` → `health(args)`
-
-- `cryptoutil identity authz livez --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `cryptoutil identity authz livez` → `internal/cmd/identity/identity.go` → `authz(args)` → `livez(args)`
-
-- `cryptoutil identity authz readyz --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `cryptoutil identity authz readyz` → `internal/cmd/identity/identity.go` → `authz(args)` → `readyz(args)`
-
-- `cryptoutil identity shutdown stop --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `cryptoutil identity shutdown stop` → `internal/cmd/identity/identity.go` → `authz(args)` → `shutdown(args)`
-
-- `cryptoutil jose ja client --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `cryptoutil jose ja client` → `internal/cmd/jose/jose.go` → `ja(args)` → `client(args)`
-
-- `cryptoutil jose ja server --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `cryptoutil jose ja server` → `internal/cmd/jose/jose.go` → `ja(args)` → `server(args)`
-
-- `cryptoutil jose ja init --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `cryptoutil jose ja init` → `internal/cmd/jose/jose.go` → `ja(args)` → `init(args)`
-
-- `cryptoutil jose ja health --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `cryptoutil jose ja health` → `internal/cmd/jose/jose.go` → `ja(args)` → `health(args)`
-
-- `cryptoutil jose ja livez --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `cryptoutil jose ja livez` → `internal/cmd/jose/jose.go` → `ja(args)` → `livez(args)`
-
-- `cryptoutil jose ja readyz --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `cryptoutil jose ja readyz` → `internal/cmd/jose/jose.go` → `ja(args)` → `readyz(args)`
-
-- `cryptoutil jose shutdown stop --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `cryptoutil jose shutdown stop` → `internal/cmd/jose/jose.go` → `ja(args)` → `shutdown(args)`
-
-- `cryptoutil pki ca server --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `cryptoutil pki ca server` → `internal/cmd/pki/pki.go` → `ca(args)` → `server(args)`
-
-- `cryptoutil pki ca init --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `cryptoutil pki ca init` → `internal/cmd/pki/pki.go` → `ca(args)` → `init(args)`
-
-- `cryptoutil pki ca health --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `cryptoutil pki ca health` → `internal/cmd/pki/pki.go` → `ca(args)` → `health(args)`
-
-- `cryptoutil pki ca livez --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `cryptoutil pki ca livez` → `internal/cmd/pki/pki.go` → `ca(args)` → `livez(args)`
-
-- `cryptoutil pki ca readyz --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `cryptoutil pki ca readyz` → `internal/cmd/pki/pki.go` → `ca(args)` → `readyz(args)`
-
-- `cryptoutil pki shutdown stop --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `cryptoutil pki shutdown stop` → `internal/cmd/pki/pki.go` → `ca(args)` → `shutdown(args)`
-
-- `cryptoutil sm kms server --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `cryptoutil sm kms server` → `internal/cmd/sm/sm.go` → `kms(args)` → `server(args)`
-
-- `cryptoutil sm kms client --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `cryptoutil sm kms client` → `internal/cmd/sm/sm.go` → `kms(args)` → `client(args)`
-
-- `cryptoutil sm kms init --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `cryptoutil sm kms init` → `internal/cmd/sm/sm.go` → `kms(args)` → `init(args)`
-
-- `cryptoutil sm kms health --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `cryptoutil sm kms health` → `internal/cmd/sm/sm.go` → `kms(args)` → `health(args)`
-
-- `cryptoutil sm kms livez --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `cryptoutil sm kms livez` → `internal/cmd/sm/sm.go` → `kms(args)` → `livez(args)`
-
-- `cryptoutil sm kms readyz --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `cryptoutil sm kms readyz` → `internal/cmd/sm/sm.go` → `kms(args)` → `readyz(args)`
-
-- `cryptoutil sm shutdown stop --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `cryptoutil sm shutdown stop` → `internal/cmd/sm/sm.go` → `kms(args)` → `shutdown(args)`
-
-- `cryptoutil cipher im server --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cryptoutil cipher im server` → `internal/cmd/cipher/cipher.go` → `im(args)` → `server(args)`
-
-- `cryptoutil cipher im client --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cryptoutil cipher im client` → `internal/cmd/cipher/cipher.go` → `im(args)` → `client(args)`
-
-- `cryptoutil cipher im init --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cryptoutil cipher im init` → `internal/cmd/cipher/cipher.go` → `im(args)` → `init(args)`
-
-- `cryptoutil cipher im health --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cryptoutil cipher im health` → `internal/cmd/cipher/cipher.go` → `im(args)` → `health(args)`
-
-- `cryptoutil cipher im livez --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cryptoutil cipher im livez` → `internal/cmd/cipher/cipher.go` → `im(args)` → `livez(args)`
-
-- `cryptoutil cipher im readyz --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cryptoutil cipher im readyz` → `internal/cmd/cipher/cipher.go` → `im(args)` → `readyz(args)`
-
-- `cryptoutil cipher shutdown stop --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cryptoutil cipher shutdown stop` → `internal/cmd/cipher/cipher.go` → `im(args)` → `shutdown(args)`
+Cryptoutil suite supports these subcommands: health, readyz, livez, shutdown, init.
+Every product supports these subcommands: health, readyz, livez, shutdown, init.
+Every service supports these subcommands: health, readyz, livez, shutdown, init, server, client.
 
 ---
 
 ### 2. Product Pattern
 
-**Description**: Separate executables for each product, with subcommands for services within that product.
+**Description**: Separate executables per product that routes to product entry point, then service entry point, then subcommand.
 
 **Call Flow**:
 
 ```
 cmd/PRODUCT/main.go
-  → internal/cmd/PRODUCT/PRODUCT.go
-    → PRODUCT(args) function
-      → SERVICE(args) function
-        → server|client|init|etc subcommand functions
+  → internal/app/PRODUCT/PRODUCT.go SERVICE SUBCOMMAND
+    → internal/app/PRODUCT/SERVICE/SERVICE.go SUBCOMMAND
 ```
 
 **Examples**:
 
-- `identity authz server --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `identity authz server` → `internal/cmd/identity/identity.go` → `authz(args)` → `server(args)`
-
-- `jose ja client --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `jose ja client` → `internal/cmd/jose/jose.go` → `ja(args)` → `client(args)`
-
-- `pki ca init --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `pki ca init` → `internal/cmd/pki/pki.go` → `ca(args)` → `init(args)`
-
-- `sm kms server --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `sm kms server` → `internal/cmd/sm/sm.go` → `kms(args)` → `server(args)`
-
-- `cipher im server --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cipher im server` → `internal/cmd/cipher/cipher.go` → `im(args)` → `server(args)`
-
-- `cipher im client --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cipher im client` → `internal/cmd/cipher/cipher.go` → `im(args)` → `client(args)`
+- `cmd/cipher/main.go im server` → `internal/app/cipher/cipher.go im server` → `internal/app/cipher/im/im.go server`
+- `cmd/jose/main.go ja client` → `internal/app/jose/ja.go ja client` → `internal/app/jose/ja/ja.go client`
+- `cmd/pki/main.go ca health` → `internal/app/pki/pki.go ca health` → `internal/app/pki/ca/ca.go health`
+- `cmd/identity/main.go authz livez` → `internal/app/identity/identity.go authz livez` → `internal/app/identity/authz/authz.go livez`
+- `cmd/identity/main.go idp readyz` → `internal/app/identity/identity.go readyz` → `internal/app/identity/authz/authz.go readyz`
+- `cmd/sm/main.go kms shutdown` → `internal/app/sm/sm.go kms shutdown` → `internal/app/sm/kms/kms.go shutdown`
 
 ---
 
 ### 3. Product-Service Pattern
 
-**Description**: Separate executables for each product-service combination, providing focused functionality.
+**Description**: Separate executables for each product-service combination that routes to service entry point, then subcommand.
 
 **Call Flow**:
 
 ```
 cmd/PRODUCT-SERVICE/main.go
-  → internal/cmd/PRODUCT/PRODUCT.go
-    → SERVICE(args) function
-      → server|client|init|etc subcommand functions
+  → internal/app/PRODUCT/SERVICE/SERVICE.go SUBCOMMAND
 ```
 
 **Examples**:
 
-- `identity-authz server --config configs/cryptoutil/config.yml --config configs/identity/config.yml --config configs/identity/authz/config.yml`
-  → `identity-authz server` → `internal/cmd/identity/identity.go` → `authz(args)` → `server(args)`
-
-- `jose-ja client --config configs/cryptoutil/config.yml --config configs/jose/config.yml --config configs/jose/ja/config.yml`
-  → `jose-ja client` → `internal/cmd/jose/jose.go` → `ja(args)` → `client(args)`
-
-- `pki-ca init --config configs/cryptoutil/config.yml --config configs/pki/config.yml --config configs/pki/ca/config.yml`
-  → `pki-ca init` → `internal/cmd/pki/pki.go` → `ca(args)` → `init(args)`
-
-- `sm-kms server --config configs/cryptoutil/config.yml --config configs/sm/config.yml --config configs/sm/kms/config.yml`
-  → `sm-kms server` → `internal/cmd/sm/sm.go` → `kms(args)` → `server(args)`
-
-- `cipher-im server --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cipher-im server` → `internal/cmd/cipher/cipher.go` → `im(args)` → `server(args)`
-
-- `cipher-im client --config configs/cryptoutil/config.yml --config configs/cipher/config.yml --config configs/cipher/im/config.yml`
-  → `cipher-im client` → `internal/cmd/cipher/cipher.go` → `im(args)` → `client(args)`
-
-## Comparison
-
-| Aspect | Suite Pattern | Product Pattern | Product-Service Pattern |
-|--------|---------------|-----------------|------------------------|
-| **Executables** | 1 (`cryptoutil`) | N (per product) | M (per service) |
-| **Command Length** | Longer | Medium | Shortest |
-| **Discoverability** | Single entry point | Product-focused | Service-focused |
-| **Deployment** | Monolithic | Product isolation | Service isolation |
-| **Complexity** | High (routing) | Medium | Low |
-| **Maintenance** | Complex | Moderate | Simple |
-
-## Recommended Pattern
-
-**Product-Service Pattern** is recommended for the following reasons:
-
-1. **Service Isolation**: Each service has its own executable, enabling independent deployment and scaling
-2. **Clear Ownership**: Each binary corresponds to a specific service, making responsibilities clear
-3. **Operational Simplicity**: Easier to manage, monitor, and troubleshoot individual services
-4. **Container-First**: Aligns with microservices architecture and container deployment patterns
-5. **Future-Proof**: Supports independent evolution of each service
-
-## Implementation Notes
-
-- All patterns support the same subcommand structure: `server`, `client`, `init`, etc.
-- Configuration files follow the pattern: `configs/PRODUCT/SERVICE/config.yml`
-- Internal command structure uses `internal/cmd/PRODUCT/PRODUCT.go` with `SERVICE(args)` functions
-- Each service supports standard operations: server startup, client operations, initialization
+- `cmd/cipher-im/main.go server` → `internal/app/cipher/im/im.go server`
+- `cmd/jose-ja/main.go client` → `internal/app/jose/ja/ja.go client`
+- `cmd/pki-ca/main.go health` → `internal/app/pki/ca/ca.go health`
+- `cmd/identity-authz/main.go livez` → `internal/app/identity/authz/authz.go livez`
+- `cmd/identity-idp/main.go readyz` → `internal/app/identity/authz/authz.go readyz`
+- `cmd/sm-kms/main.go shutdown` → `internal/app/sm/kms/kms.go shutdown`
 
 ## Top-Level Commands
 
@@ -236,7 +89,7 @@ These commands are available regardless of the chosen pattern and provide orches
 
 ```
 cmd/cryptoutil-compose/main.go
-  → internal/cmd/cryptoutil-compose/cryptoutil-compose.go
+  → internal/app/cryptoutil-compose/cryptoutil-compose.go
     → compose(args) function
       → up|down|clean|status subcommand functions
 ```
@@ -270,7 +123,7 @@ cmd/cryptoutil-compose/main.go
 
 ```
 cmd/cryptoutil-demo/main.go
-  → internal/cmd/cryptoutil-demo/cryptoutil-demo.go
+  → internal/app/cryptoutil-demo/cryptoutil-demo.go
     → demo(args) function
       → start|test|stop subcommand functions
 ```
@@ -304,7 +157,7 @@ cmd/cryptoutil-demo/main.go
 
 ```
 cmd/cryptoutil-e2e/main.go
-  → internal/cmd/cryptoutil-e2e/cryptoutil-e2e.go
+  → internal/app/cryptoutil-e2e/cryptoutil-e2e.go
     → e2e(args) function
       → run|report|cleanup subcommand functions
 ```
