@@ -238,20 +238,20 @@ only (user devices) and never transmit them to servers.
 
 ```bash
 # Unit tests
-go test ./internal/cipher/server/... -v
+go test ./internal/apps/cipher/im/server/... -v
 
 # E2E tests
-go test ./internal/cipher/e2e/... -v
+go test ./internal/apps/cipher/im/e2e/... -v
 
 # Coverage report
-go test ./internal/cipher/... -coverprofile=coverage.out
+go test ./internal/apps/cipher/im/... -coverprofile=coverage.out
 go tool cover -html=coverage.out
 
 # Mutation testing
-gremlins unleash ./internal/cipher/server
+gremlins unleash ./internal/apps/cipher/im/server
 
 # All quality checks
-golangci-lint run ./internal/cipher/... ./cmd/cipher-im/...
+golangci-lint run ./internal/apps/cipher/im/... ./cmd/cipher-im/...
 ```
 
 ## Development
@@ -266,7 +266,7 @@ cmd/cipher-im/
 ├── docker-compose.dev.yml     # Development overrides
 └── .dockerignore              # Build context optimization
 
-internal/cipher/
+internal/apps/cipher/im/
 ├── server/                    # HTTP server implementation
 │   ├── server.go              # Server config and initialization
 │   ├── public.go              # Public HTTPS endpoints

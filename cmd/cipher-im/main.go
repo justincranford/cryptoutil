@@ -8,7 +8,7 @@ package main
 import (
 	"os"
 
-	"cryptoutil/internal/cmd/cipher/im"
+	"cryptoutil/internal/apps/cipher/im"
 )
 
 // Version information (injected during build).
@@ -24,7 +24,7 @@ func main() {
 }
 
 // internalMain implements main logic with testable dependencies.
-// Delegates to internal/cmd/cipher/im.IM() for all functionality.
+// Delegates to internal/apps/cipher/im.IM() for all functionality.
 func internalMain(args []string) int {
 	// For Product-Service pattern, args[0] is the executable name
 	// Pass remaining args to IM() which will route to subcommands

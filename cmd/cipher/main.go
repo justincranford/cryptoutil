@@ -7,10 +7,10 @@ package main
 import (
 	"os"
 
-	cryptoutilCipherCmd "cryptoutil/internal/cmd/cipher"
+	cryptoutilCipherApp "cryptoutil/internal/apps/cipher"
 )
 
 func main() {
-	exitCode := cryptoutilCipherCmd.Cipher(os.Args[1:])
+	exitCode := cryptoutilCipherApp.Cipher(os.Args[1:])
 	os.Exit(exitCode)
 }

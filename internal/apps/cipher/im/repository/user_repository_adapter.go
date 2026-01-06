@@ -1,0 +1,64 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package repository
+
+import (
+	"context"
+
+	googleUuid "github.com/google/uuid"
+
+	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
+	cryptoutilTemplateRealms "cryptoutil/internal/template/server/realms"
+)
+
+// UserRepositoryAdapter adapts UserRepository to realms.UserRepository interface.
+// This allows cipher-im to use the template realms service while keeping
+// the existing UserRepository implementation unchanged.
+type UserRepositoryAdapter struct {
+	repo *UserRepository
+}
+
+// NewUserRepositoryAdapter creates a new UserRepositoryAdapter.
+func NewUserRepositoryAdapter(repo *UserRepository) *UserRepositoryAdapter {
+	return &UserRepositoryAdapter{repo: repo}
+}
+
+// Create creates a new user in the database.
+// Adapts realms.UserModel interface to concrete cipher domain.User.
+func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilTemplateRealms.UserModel) error {
+	// Type assertion: UserModel -> *cipher.domain.User
+	concreteUser, ok := user.(*cryptoutilCipherDomain.User)
+	if !ok {
+		// This should never happen if used correctly
+		panic("UserRepositoryAdapter.Create: expected *cipher.domain.User")
+	}
+
+	return a.repo.Create(ctx, concreteUser)
+}
+
+// FindByUsername finds a user by username.
+// Adapts realms.UserModel interface to concrete cipher domain.User.
+func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username string) (cryptoutilTemplateRealms.UserModel, error) {
+	user, err := a.repo.FindByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil // *cipher.domain.User implements UserModel
+}
+
+// FindByID finds a user by ID.
+// Adapts realms.UserModel interface to concrete cipher domain.User.
+func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID) (cryptoutilTemplateRealms.UserModel, error) {
+	user, err := a.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil // *cipher.domain.User implements UserModel
+}
+
+// Compile-time check that UserRepositoryAdapter implements realms.UserRepository interface.
+var _ cryptoutilTemplateRealms.UserRepository = (*UserRepositoryAdapter)(nil)
