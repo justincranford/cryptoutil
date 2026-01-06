@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
 const (
@@ -58,7 +60,7 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Test health check completes despite slow response.
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{
 			"health",
 			"--url", fmt.Sprintf("http://127.0.0.1:%d%s", actualPort, adminHealthPath),
@@ -83,7 +85,7 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 	defer server.Close()
 
 	// Test livez check with empty response.
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"livez", "--url", server.URL + adminLivezPath})
 		require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK even if body empty")
 	})
@@ -101,7 +103,7 @@ func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
 	defer server.Close()
 
 	// Test readyz check with 404 response.
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"readyz", "--url", server.URL + adminReadyzPath})
 		require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
 	})
@@ -119,7 +121,7 @@ func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
 	defer server.Close()
 
 	// Test shutdown with 500 response.
-	output := captureOutput(t, func() {
+	output := cryptoutilTestutil.CaptureOutput(t, func() {
 		exitCode := IM([]string{"shutdown", "--url", server.URL + "/admin/v1/shutdown"})
 		require.Equal(t, 1, exitCode, "Shutdown should fail with 500 status")
 	})
