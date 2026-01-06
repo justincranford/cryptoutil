@@ -49,10 +49,10 @@ cmd/PRODUCT/main.go
 **Examples**:
 
 - `cmd/cipher/main.go im server` → `internal/app/cipher/cipher.go im server` → `internal/app/cipher/im/im.go server`
-- `cmd/jose/main.go ja client` → `internal/app/jose/ja.go ja client` → `internal/app/jose/ja/ja.go client`
+- `cmd/jose/main.go ja client` → `internal/app/jose/jose.go ja client` → `internal/app/jose/ja/ja.go client`
 - `cmd/pki/main.go ca health` → `internal/app/pki/pki.go ca health` → `internal/app/pki/ca/ca.go health`
 - `cmd/identity/main.go authz livez` → `internal/app/identity/identity.go authz livez` → `internal/app/identity/authz/authz.go livez`
-- `cmd/identity/main.go idp readyz` → `internal/app/identity/identity.go readyz` → `internal/app/identity/authz/authz.go readyz`
+- `cmd/identity/main.go idp readyz` → `internal/app/identity/identity.go idp readyz` → `internal/app/identity/idp/idp.go readyz`
 - `cmd/sm/main.go kms shutdown` → `internal/app/sm/sm.go kms shutdown` → `internal/app/sm/kms/kms.go shutdown`
 
 ---
@@ -74,7 +74,7 @@ cmd/PRODUCT-SERVICE/main.go
 - `cmd/jose-ja/main.go client` → `internal/app/jose/ja/ja.go client`
 - `cmd/pki-ca/main.go health` → `internal/app/pki/ca/ca.go health`
 - `cmd/identity-authz/main.go livez` → `internal/app/identity/authz/authz.go livez`
-- `cmd/identity-idp/main.go readyz` → `internal/app/identity/authz/authz.go readyz`
+- `cmd/identity-idp/main.go readyz` → `internal/app/identity/idp/idp.go readyz`
 - `cmd/sm-kms/main.go shutdown` → `internal/app/sm/kms/kms.go shutdown`
 
 ## Top-Level Commands
@@ -106,12 +106,12 @@ cmd/cryptoutil-compose/main.go
 - `cryptoutil-compose identity-rp up` - Start identity-rp service only
 - `cryptoutil-compose identity-rs up` - Start identity-rs service only
 - `cryptoutil-compose identity-spa up` - Start identity-spa service only
-- `cryptoutil-compose jose up` - Start all services for cipher product
-- `cryptoutil-compose jose-ja up` - Start cipher-im service only
-- `cryptoutil-compose pki up` - Start all services for cipher product
-- `cryptoutil-compose pki-ca up` - Start cipher-im service only
-- `cryptoutil-compose sm up` - Start all services for cipher product
-- `cryptoutil-compose sm-kms up` - Start cipher-im service only
+- `cryptoutil-compose jose up` - Start all services for jose product
+- `cryptoutil-compose jose-ja up` - Start jose-ja service only
+- `cryptoutil-compose pki up` - Start all services for pki product
+- `cryptoutil-compose pki-ca up` - Start pki-ca service only
+- `cryptoutil-compose sm up` - Start all services for sm product
+- `cryptoutil-compose sm-kms up` - Start sm-kms service only
 - `cryptoutil-compose cipher up` - Start all services for cipher product
 - `cryptoutil-compose cipher-im up` - Start cipher-im service only
 
@@ -140,12 +140,12 @@ cmd/cryptoutil-demo/main.go
 - `cryptoutil-demo identity-rp up` - Start identity-rp service only, with demo configs
 - `cryptoutil-demo identity-rs up` - Start identity-rs service only, with demo configs
 - `cryptoutil-demo identity-spa up` - Start identity-spa service only, with demo configs
-- `cryptoutil-demo jose up` - Start all services for cipher product, with demo configs
-- `cryptoutil-demo jose-ja up` - Start cipher-im service only, with demo configs
-- `cryptoutil-demo pki up` - Start all services for cipher product, with demo configs
-- `cryptoutil-demo pki-ca up` - Start cipher-im service only, with demo configs
-- `cryptoutil-demo sm up` - Start all services for cipher product, with demo configs
-- `cryptoutil-demo sm-kms up` - Start cipher-im service only, with demo configs
+- `cryptoutil-demo jose up` - Start all services for jose product, with demo configs
+- `cryptoutil-demo jose-ja up` - Start jose-ja service only, with demo configs
+- `cryptoutil-demo pki up` - Start all services for pki product, with demo configs
+- `cryptoutil-demo pki-ca up` - Start pki-ca service only, with demo configs
+- `cryptoutil-demo sm up` - Start all services for sm product, with demo configs
+- `cryptoutil-demo sm-kms up` - Start sm-kms service only, with demo configs
 - `cryptoutil-demo cipher up` - Start all services for cipher product, with demo configs
 - `cryptoutil-demo cipher-im up` - Start cipher-im service only, with demo configs
 
@@ -180,9 +180,9 @@ cmd/cryptoutil-e2e/main.go
 - `cryptoutil-e2e identity-spa up` - Start identity-spa service only, with e2e configs
 - `cryptoutil-e2e jose up` - Start all services for cipher product, with e2e configs
 - `cryptoutil-e2e jose-ja up` - Start cipher-im service only, with e2e configs
-- `cryptoutil-e2e pki up` - Start all services for cipher product, with e2e configs
-- `cryptoutil-e2e pki-ca up` - Start cipher-im service only, with e2e configs
-- `cryptoutil-e2e sm up` - Start all services for cipher product, with e2e configs
-- `cryptoutil-e2e sm-kms up` - Start cipher-im service only, with e2e configs
+- `cryptoutil-e2e pki up` - Start all services for pki product, with e2e configs
+- `cryptoutil-e2e pki-ca up` - Start pki-ca service only, with e2e configs
+- `cryptoutil-e2e sm up` - Start all services for sm product, with e2e configs
+- `cryptoutil-e2e sm-kms up` - Start sm-kms service only, with e2e configs
 - `cryptoutil-e2e cipher up` - Start all services for cipher product, with e2e configs
 - `cryptoutil-e2e cipher-im up` - Start cipher-im service only, with e2e configs
