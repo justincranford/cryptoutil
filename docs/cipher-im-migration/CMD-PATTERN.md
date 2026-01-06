@@ -28,9 +28,9 @@ cmd/cryptoutil/main.go PRODUCT SERVICE SUBCOMMAND
 - `cmd/cryptoutil/main.go identity idp readyz` → `internal/app/cryptoutil/cryptoutil.go identity idp readyz` → `internal/app/identity/identity.go idp readyz` → `internal/app/identity/idp/idp.go readyz`
 - `cmd/cryptoutil/main.go sm kms shutdown` → `internal/app/cryptoutil/cryptoutil.go sm kms shutdown` → `internal/app/sm/sm.go kms shutdown` → `internal/app/sm/kms/kms.go shutdown`
 
-Cryptoutil suite supports these subcommands: health, readyz, livez, shutdown, init.
-Every product supports these subcommands: health, readyz, livez, shutdown, init.
-Every service supports these subcommands: health, readyz, livez, shutdown, init, server, client.
+Cryptoutil suite supports these subcommands: health, readyz, livez, shutdown, init, compose, demo, e2e.
+Every product supports these subcommands: health, readyz, livez, shutdown, init, compose, demo, e2e.
+Every service supports these subcommands: health, readyz, livez, shutdown, init, compose, demo, e2e, server, client.
 
 ---
 
