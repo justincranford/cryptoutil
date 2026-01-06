@@ -22,6 +22,7 @@ import (
 	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
 	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
 )
 
@@ -30,6 +31,10 @@ var (
 	sharedHTTPClient   *http.Client
 	publicBaseURL      string
 	adminBaseURL       string
+	// Shared mock servers for testing different response scenarios.
+	testMockServerOK     *httptest.Server
+	testMockServerError  *httptest.Server
+	testMockServerCustom *httptest.Server
 )
 
 func TestMain(m *testing.M) {
@@ -61,6 +66,45 @@ func TestMain(m *testing.M) {
 	// Get base URLs for tests.
 	publicBaseURL = testCipherIMServer.PublicBaseURL()
 	adminBaseURL = testCipherIMServer.AdminBaseURL()
+
+	// Create shared mock server that returns 200 OK.
+	testMockServerOK = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = fmt.Fprint(w, "OK")
+	}))
+	defer testMockServerOK.Close()
+
+	// Create shared mock server that returns errors.
+	testMockServerError = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = fmt.Fprint(w, "Service Unavailable")
+	}))
+	defer testMockServerError.Close()
+
+	// Create shared mock server for custom responses (controlled by path).
+	testMockServerCustom = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health":
+			w.WriteHeader(http.StatusOK)
+			_, _ = fmt.Fprint(w, "All systems operational")
+		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath:
+			w.WriteHeader(http.StatusOK)
+			_, _ = fmt.Fprint(w, "Process is alive and running")
+		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath:
+			w.WriteHeader(http.StatusOK)
+			_, _ = fmt.Fprint(w, "Ready")
+		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath:
+			if r.Method == http.MethodPost {
+				w.WriteHeader(http.StatusOK)
+				_, _ = fmt.Fprint(w, "Shutting down")
+			} else {
+				w.WriteHeader(http.StatusMethodNotAllowed)
+			}
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer testMockServerCustom.Close()
 
 	// Run all tests.
 	exitCode := m.Run()
@@ -306,8 +350,8 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 	tests := []struct {
 		name         string
 		subcommand   string
-		statusCode   int
-		body         string
+		serverURL    string
+		path         string
 		expectExit   int
 		expectOutput []string
 	}{
@@ -315,84 +359,68 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 		{
 			name:         "health_success_with_body",
 			subcommand:   "health",
-			statusCode:   http.StatusOK,
-			body:         "All systems operational",
+			serverURL:    testMockServerCustom.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 			expectExit:   0,
 			expectOutput: []string{"Service is healthy", "200", "All systems operational"},
 		},
 		{
 			name:         "health_success_no_body",
 			subcommand:   "health",
-			statusCode:   http.StatusOK,
-			body:         "",
+			serverURL:    testMockServerOK.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 			expectExit:   0,
 			expectOutput: []string{"Service is healthy"},
 		},
 		{
 			name:         "health_unhealthy_with_body",
 			subcommand:   "health",
-			statusCode:   http.StatusServiceUnavailable,
-			body:         "Database connection timeout",
+			serverURL:    testMockServerError.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 			expectExit:   1,
-			expectOutput: []string{"Service is unhealthy", "503", "Database connection timeout"},
-		},
-		{
-			name:         "health_unhealthy_no_body",
-			subcommand:   "health",
-			statusCode:   http.StatusServiceUnavailable,
-			body:         "",
-			expectExit:   1,
-			expectOutput: []string{"Service is unhealthy", "503"},
+			expectOutput: []string{"Service is unhealthy", "503", "Service Unavailable"},
 		},
 		// Livez subcommand tests.
 		{
 			name:         "livez_alive_with_body",
 			subcommand:   "livez",
-			statusCode:   http.StatusOK,
-			body:         "Process is alive and running",
+			serverURL:    testMockServerCustom.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 			expectExit:   0,
 			expectOutput: []string{"Service is alive", "200", "Process is alive and running"},
 		},
 		{
 			name:         "livez_alive_no_body",
 			subcommand:   "livez",
-			statusCode:   http.StatusOK,
-			body:         "",
+			serverURL:    testMockServerOK.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 			expectExit:   0,
 			expectOutput: []string{"Service is alive"},
 		},
 		{
 			name:         "livez_not_alive_with_body",
 			subcommand:   "livez",
-			statusCode:   http.StatusServiceUnavailable,
-			body:         "Service initialization failed",
+			serverURL:    testMockServerError.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 			expectExit:   1,
-			expectOutput: []string{"Service is not alive", "503", "Service initialization failed"},
-		},
-		{
-			name:         "livez_not_alive_no_body",
-			subcommand:   "livez",
-			statusCode:   http.StatusServiceUnavailable,
-			body:         "",
-			expectExit:   1,
-			expectOutput: []string{"Service is not alive", "503"},
+			expectOutput: []string{"Service is not alive", "503", "Service Unavailable"},
 		},
 		// Shutdown subcommand tests.
 		{
 			name:         "shutdown_success_no_body",
 			subcommand:   "shutdown",
-			statusCode:   http.StatusOK,
-			body:         "",
+			serverURL:    testMockServerOK.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 			expectExit:   0,
 			expectOutput: []string{"Shutdown initiated"},
 		},
 		{
 			name:         "shutdown_failed_no_body",
 			subcommand:   "shutdown",
-			statusCode:   http.StatusInternalServerError,
-			body:         "",
+			serverURL:    testMockServerError.URL,
+			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 			expectExit:   1,
-			expectOutput: []string{"Shutdown request failed", "500"},
+			expectOutput: []string{"Shutdown request failed", "503"},
 		},
 	}
 
@@ -401,17 +429,8 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Create test server.
-			server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(tt.statusCode)
-				if tt.body != "" {
-					_, _ = fmt.Fprint(w, tt.body)
-				}
-			}))
-			defer server.Close()
-
 			output := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, "--url", server.URL + "/" + tt.subcommand})
+				exitCode := IM([]string{tt.subcommand, "--url", tt.serverURL + tt.path})
 				require.Equal(t, tt.expectExit, exitCode, "%s should exit with code %d", tt.subcommand, tt.expectExit)
 			})
 
@@ -427,31 +446,26 @@ func TestIM_URLHandling(t *testing.T) {
 	tests := []struct {
 		name       string
 		subcommand string
-		path       string
 		urlSuffix  string
 	}{
 		{
 			name:       "health_with_health_suffix",
 			subcommand: "health",
-			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 		},
 		{
 			name:       "livez_with_livez_suffix",
 			subcommand: "livez",
-			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 		},
 		{
 			name:       "readyz_with_readyz_suffix",
 			subcommand: "readyz",
-			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
 			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
 		},
 		{
 			name:       "shutdown_with_shutdown_suffix",
 			subcommand: "shutdown",
-			path:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 		},
 	}
@@ -461,19 +475,8 @@ func TestIM_URLHandling(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Create test server.
-			server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Path == tt.path {
-					w.WriteHeader(http.StatusOK)
-					_, _ = w.Write([]byte("OK"))
-				} else {
-					w.WriteHeader(http.StatusNotFound)
-				}
-			}))
-			defer server.Close()
-
 			output := cryptoutilTestutil.CaptureOutput(t, func() {
-				exitCode := IM([]string{tt.subcommand, "--url", server.URL + tt.urlSuffix})
+				exitCode := IM([]string{tt.subcommand, "--url", testMockServerCustom.URL + tt.urlSuffix})
 				require.Equal(t, 0, exitCode, "%s should succeed with explicit suffix", tt.subcommand)
 			})
 

@@ -28,9 +28,9 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 		{
 			name: "valid JWK creation",
 			jwk: &domain.MessageRecipientJWK{
-				ID:           testJWKGenService.GenerateUUIDv7(),
-				RecipientID:  testJWKGenService.GenerateUUIDv7(),
-				MessageID:    testJWKGenService.GenerateUUIDv7(),
+				ID:           *testJWKGenService.GenerateUUIDv7(),
+				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
+				MessageID:    *testJWKGenService.GenerateUUIDv7(),
 				EncryptedJWK: generateTestJWK(t),
 			},
 			wantErr: false,
@@ -38,9 +38,9 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 		{
 			name: "empty JWK field",
 			jwk: &domain.MessageRecipientJWK{
-				ID:           testJWKGenService.GenerateUUIDv7(),
-				RecipientID:  testJWKGenService.GenerateUUIDv7(),
-				MessageID:    testJWKGenService.GenerateUUIDv7(),
+				ID:           *testJWKGenService.GenerateUUIDv7(),
+				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
+				MessageID:    *testJWKGenService.GenerateUUIDv7(),
 				EncryptedJWK: "",
 			},
 			wantErr: false, // Repository no longer validates JWK content (validation moved to handler)
@@ -48,9 +48,9 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 		{
 			name: "large JWK payload",
 			jwk: &domain.MessageRecipientJWK{
-				ID:           testJWKGenService.GenerateUUIDv7(),
-				RecipientID:  testJWKGenService.GenerateUUIDv7(),
-				MessageID:    testJWKGenService.GenerateUUIDv7(),
+				ID:           *testJWKGenService.GenerateUUIDv7(),
+				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
+				MessageID:    *testJWKGenService.GenerateUUIDv7(),
 				EncryptedJWK: `{"kty":"RSA","n":"` + string(make([]byte, 2048)) + `","e":"AQAB"}`,
 			},
 			wantErr: false,
@@ -110,29 +110,29 @@ func TestMessageRecipientJWKRepository_FindByRecipientAndMessage(t *testing.T) {
 		{
 			name: "found existing JWK",
 			setupJWK: &domain.MessageRecipientJWK{
-				ID:           testJWKGenService.GenerateUUIDv7(),
-				RecipientID:  testJWKGenService.GenerateUUIDv7(),
-				MessageID:    testJWKGenService.GenerateUUIDv7(),
+				ID:           *testJWKGenService.GenerateUUIDv7(),
+				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
+				MessageID:    *testJWKGenService.GenerateUUIDv7(),
 				EncryptedJWK: generateTestJWK(t),
 			},
 			wantErr: false,
 		},
 		{
 			name:        "nonexistent recipient",
-			recipientID: testJWKGenService.GenerateUUIDv7(),
-			messageID:   testJWKGenService.GenerateUUIDv7(),
+			recipientID: *testJWKGenService.GenerateUUIDv7(),
+			messageID:   *testJWKGenService.GenerateUUIDv7(),
 			wantErr:     true,
 		},
 		{
 			name:        "nonexistent message",
-			recipientID: testJWKGenService.GenerateUUIDv7(),
-			messageID:   testJWKGenService.GenerateUUIDv7(),
+			recipientID: *testJWKGenService.GenerateUUIDv7(),
+			messageID:   *testJWKGenService.GenerateUUIDv7(),
 			wantErr:     true,
 		},
 		{
 			name:        "both nonexistent",
-			recipientID: testJWKGenService.GenerateUUIDv7(),
-			messageID:   testJWKGenService.GenerateUUIDv7(),
+			recipientID: *testJWKGenService.GenerateUUIDv7(),
+			messageID:   *testJWKGenService.GenerateUUIDv7(),
 			wantErr:     true,
 		},
 	}
@@ -182,13 +182,13 @@ func TestMessageRecipientJWKRepository_FindByMessageID(t *testing.T) {
 	}{
 		{
 			name:      "find all recipients for message",
-			messageID: testJWKGenService.GenerateUUIDv7(),
+			messageID: *testJWKGenService.GenerateUUIDv7(),
 			wantCount: 3,
 			wantErr:   false,
 		},
 		{
 			name:      "nonexistent message",
-			messageID: testJWKGenService.GenerateUUIDv7(),
+			messageID: *testJWKGenService.GenerateUUIDv7(),
 			wantCount: 0,
 			wantErr:   false, // No error, just empty result
 		},
@@ -204,8 +204,8 @@ func TestMessageRecipientJWKRepository_FindByMessageID(t *testing.T) {
 			if tt.wantCount > 0 {
 				for i := 0; i < tt.wantCount; i++ {
 					jwk := &domain.MessageRecipientJWK{
-						ID:           testJWKGenService.GenerateUUIDv7(),
-						RecipientID:  testJWKGenService.GenerateUUIDv7(),
+						ID:           *testJWKGenService.GenerateUUIDv7(),
+						RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 						MessageID:    tt.messageID,
 						EncryptedJWK: generateTestJWK(t),
 					}
@@ -255,9 +255,9 @@ func TestMessageRecipientJWKRepository_Delete(t *testing.T) {
 
 	// Create test JWK
 	jwk := &domain.MessageRecipientJWK{
-		ID:           testJWKGenService.GenerateUUIDv7(),
-		RecipientID:  testJWKGenService.GenerateUUIDv7(),
-		MessageID:    testJWKGenService.GenerateUUIDv7(),
+		ID:           *testJWKGenService.GenerateUUIDv7(),
+		RecipientID:  *testJWKGenService.GenerateUUIDv7(),
+		MessageID:    *testJWKGenService.GenerateUUIDv7(),
 		EncryptedJWK: generateTestJWK(t),
 	}
 	require.NoError(t, repo.Create(ctx, jwk))
@@ -274,7 +274,7 @@ func TestMessageRecipientJWKRepository_Delete(t *testing.T) {
 		},
 		{
 			name:    "delete nonexistent JWK (idempotent)",
-			id:      testJWKGenService.GenerateUUIDv7(),
+			id:      *testJWKGenService.GenerateUUIDv7(),
 			wantErr: false,
 		},
 	}
@@ -308,19 +308,19 @@ func TestMessageRecipientJWKRepository_DeleteByMessageID(t *testing.T) {
 	ctx := context.Background()
 	repo := NewMessageRecipientJWKRepository(testDB, testBarrierService)
 
-	messageID := testJWKGenService.GenerateUUIDv7()
+	messageID := *testJWKGenService.GenerateUUIDv7()
 
 	// Create multiple JWKs for same message
 	jwks := []*domain.MessageRecipientJWK{
 		{
-			ID:           testJWKGenService.GenerateUUIDv7(),
-			RecipientID:  testJWKGenService.GenerateUUIDv7(),
+			ID:           *testJWKGenService.GenerateUUIDv7(),
+			RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 			MessageID:    messageID,
 			EncryptedJWK: generateTestJWK(t),
 		},
 		{
-			ID:           testJWKGenService.GenerateUUIDv7(),
-			RecipientID:  testJWKGenService.GenerateUUIDv7(),
+			ID:           *testJWKGenService.GenerateUUIDv7(),
+			RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 			MessageID:    messageID,
 			EncryptedJWK: generateTestJWK(t),
 		},
@@ -342,7 +342,7 @@ func TestMessageRecipientJWKRepository_DeleteByMessageID(t *testing.T) {
 		},
 		{
 			name:      "delete nonexistent message (idempotent)",
-			messageID: testJWKGenService.GenerateUUIDv7(),
+			messageID: *testJWKGenService.GenerateUUIDv7(),
 			wantErr:   false,
 		},
 	}
@@ -408,9 +408,9 @@ func TestMessageRecipientJWKRepository_BarrierEncryption_RoundTrip(t *testing.T)
 			t.Parallel()
 
 			jwk := &domain.MessageRecipientJWK{
-				ID:           testJWKGenService.GenerateUUIDv7(),
-				RecipientID:  testJWKGenService.GenerateUUIDv7(),
-				MessageID:    testJWKGenService.GenerateUUIDv7(),
+				ID:           *testJWKGenService.GenerateUUIDv7(),
+				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
+				MessageID:    *testJWKGenService.GenerateUUIDv7(),
 				EncryptedJWK: tt.jwkData,
 			}
 

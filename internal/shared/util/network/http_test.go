@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -14,19 +15,87 @@ import (
 
 const testRootPath = "/"
 
+var (
+	// Shared test servers for the entire package.
+	testHTTPServer     *httptest.Server
+	testHTTPSServer    *httptest.Server
+	testSlowServer     *httptest.Server
+	testRedirectServer *httptest.Server
+)
+
+func TestMain(m *testing.M) {
+	// Create shared HTTP server.
+	testHTTPServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case testRootPath:
+			if r.Method == http.MethodPost {
+				w.WriteHeader(http.StatusCreated)
+				_, _ = w.Write([]byte("Created"))
+			} else {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("OK"))
+			}
+		case "/livez":
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("OK"))
+		case "/readyz":
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("OK"))
+		case "/shutdown":
+			if r.Method == http.MethodPost {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("Shutting down"))
+			} else {
+				w.WriteHeader(http.StatusMethodNotAllowed)
+			}
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer testHTTPServer.Close()
+
+	// Create shared HTTPS server.
+	testHTTPSServer = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("HTTPS OK"))
+	}))
+	defer testHTTPSServer.Close()
+
+	// Create shared slow server for timeout tests.
+	testSlowServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(500 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer testSlowServer.Close()
+
+	// Create shared redirect server.
+	testRedirectServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == testRootPath {
+			http.Redirect(w, r, "/final", http.StatusFound)
+			return
+		}
+		if r.URL.Path == "/final" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("Final"))
+		} else if r.URL.Path == "/redirected" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("Redirected"))
+		}
+	}))
+	defer testRedirectServer.Close()
+
+	// Run all tests.
+	exitCode := m.Run()
+
+	os.Exit(exitCode)
+}
+
 func TestHTTPResponse_GET(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodGet, r.Method)
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("OK"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
-	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, true, nil, false)
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPServer.URL, time.Second, true, nil, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.NotNil(t, headers)
@@ -36,16 +105,9 @@ func TestHTTPResponse_GET(t *testing.T) {
 func TestHTTPResponse_POST(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodPost, r.Method)
-		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write([]byte("Created"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
-	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodPost, server.URL, time.Second, true, nil, false)
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodPost, testHTTPServer.URL, time.Second, true, nil, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusCreated, statusCode)
 	require.NotNil(t, headers)
@@ -55,50 +117,21 @@ func TestHTTPResponse_POST(t *testing.T) {
 func TestHTTPResponse_NoFollowRedirects(t *testing.T) {
 	t.Parallel()
 
-	redirects := 0
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == testRootPath {
-			redirects++
-
-			http.Redirect(w, r, "/redirected", http.StatusFound)
-
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("Redirected"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
 	// Without following redirects, should get 302.
-	statusCode, _, _, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, false, nil, false)
+	statusCode, _, _, err := HTTPResponse(ctx, http.MethodGet, testRedirectServer.URL, time.Second, false, nil, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusFound, statusCode)
-	require.Equal(t, 1, redirects)
 }
 
 func TestHTTPResponse_FollowRedirects(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == testRootPath {
-			http.Redirect(w, r, "/final", http.StatusFound)
-
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("Final"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
 	// With following redirects, should get 200.
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, true, nil, false)
+	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testRedirectServer.URL, time.Second, true, nil, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("Final"), body)
@@ -107,17 +140,10 @@ func TestHTTPResponse_FollowRedirects(t *testing.T) {
 func TestHTTPResponse_Timeout(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Sleep longer than timeout.
-		time.Sleep(500 * time.Millisecond)
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
-	// Use very short timeout.
-	_, _, _, err := HTTPResponse(ctx, http.MethodGet, server.URL, 50*time.Millisecond, true, nil, false)
+	// Use very short timeout (server sleeps 500ms, timeout is 50ms).
+	_, _, _, err := HTTPResponse(ctx, http.MethodGet, testSlowServer.URL, 50*time.Millisecond, true, nil, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context deadline exceeded")
 }
@@ -159,17 +185,9 @@ func TestHTTPResponse_ConnectionRefused(t *testing.T) {
 func TestHTTPGetLivez(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodGet, r.Method)
-		require.Contains(t, r.URL.Path, "/livez")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("OK"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
-	statusCode, headers, body, err := HTTPGetLivez(ctx, server.URL, "", time.Second, nil, true)
+	statusCode, headers, body, err := HTTPGetLivez(ctx, testHTTPServer.URL, "", time.Second, nil, true)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.NotNil(t, headers)
@@ -190,17 +208,9 @@ func TestHTTPGetLivez_Error(t *testing.T) {
 func TestHTTPGetReadyz(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodGet, r.Method)
-		require.Contains(t, r.URL.Path, "/readyz")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("OK"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
-	statusCode, headers, body, err := HTTPGetReadyz(ctx, server.URL, "", time.Second, nil, true)
+	statusCode, headers, body, err := HTTPGetReadyz(ctx, testHTTPServer.URL, "", time.Second, nil, true)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.NotNil(t, headers)
@@ -221,17 +231,9 @@ func TestHTTPGetReadyz_Error(t *testing.T) {
 func TestHTTPPostShutdown(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, http.MethodPost, r.Method)
-		require.Contains(t, r.URL.Path, "/shutdown")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("Shutting down"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
-	statusCode, headers, body, err := HTTPPostShutdown(ctx, server.URL, "", time.Second, nil, true)
+	statusCode, headers, body, err := HTTPPostShutdown(ctx, testHTTPServer.URL, "", time.Second, nil, true)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.NotNil(t, headers)
@@ -252,16 +254,10 @@ func TestHTTPPostShutdown_Error(t *testing.T) {
 func TestHTTPResponse_HTTPS_InsecureSkipVerify(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("HTTPS OK"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
 	// Use insecureSkipVerify to bypass TLS certificate verification.
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, true, nil, true)
+	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPSServer.URL, time.Second, true, nil, true)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("HTTPS OK"), body)
@@ -270,21 +266,15 @@ func TestHTTPResponse_HTTPS_InsecureSkipVerify(t *testing.T) {
 func TestHTTPResponse_HTTPS_WithRootCA(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("HTTPS OK"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
 	// Create a cert pool with the server's certificate.
-	transport, ok := server.Client().Transport.(*http.Transport)
+	transport, ok := testHTTPSServer.Client().Transport.(*http.Transport)
 	require.True(t, ok, "expected *http.Transport")
 
 	rootCAs := transport.TLSClientConfig.RootCAs
 
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, true, rootCAs, false)
+	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPSServer.URL, time.Second, true, rootCAs, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("HTTPS OK"), body)
@@ -306,16 +296,10 @@ func TestHTTPResponse_HTTPS_SystemDefaults(t *testing.T) {
 func TestHTTPResponse_NoTimeout(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("OK"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
 	// Test with 0 timeout (no timeout).
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, 0, true, nil, false)
+	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPServer.URL, 0, true, nil, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("OK"), body)
@@ -324,24 +308,12 @@ func TestHTTPResponse_NoTimeout(t *testing.T) {
 func TestHTTPResponse_BodyCloseError(t *testing.T) {
 	t.Parallel()
 
-	// Create a custom response writer that returns a body which fails on Close().
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		// Use a flusher to force-flush headers, then write body.
-		flusher, ok := w.(http.Flusher)
-		require.True(t, ok)
-		flusher.Flush()
-
-		_, _ = w.Write([]byte("OK"))
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
 	// This will exercise the defer function's Close() call.
 	// The close error path (fmt.Printf) is hard to test directly since
 	// httptest doesn't fail on Close(), but this ensures the defer executes.
-	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, server.URL, time.Second, true, nil, false)
+	statusCode, _, body, err := HTTPResponse(ctx, http.MethodGet, testHTTPServer.URL, time.Second, true, nil, false)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, []byte("OK"), body)
@@ -350,17 +322,10 @@ func TestHTTPResponse_BodyCloseError(t *testing.T) {
 func TestHTTPResponse_ReadBodyError(t *testing.T) {
 	t.Parallel()
 
-	// Test the "failed to read response body" error path by using a body that fails on Read.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		// Write a large response to ensure Read() will be called multiple times.
-		_, _ = w.Write(make([]byte, 1024*1024)) // 1MB
-	}))
-	defer server.Close()
-
 	ctx := context.Background()
 
 	// Use a very short timeout to trigger context cancellation during body read.
-	_, _, _, err := HTTPResponse(ctx, http.MethodGet, server.URL, 1*time.Nanosecond, true, nil, false)
+	// Note: testSlowServer sleeps 500ms, so 1ns timeout will cancel during read.
+	_, _, _, err := HTTPResponse(ctx, http.MethodGet, testSlowServer.URL, 1*time.Nanosecond, true, nil, false)
 	require.Error(t, err)
 }

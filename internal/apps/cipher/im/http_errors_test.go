@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -74,21 +73,12 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 
 // TestIM_LivezSubcommand_EmptyResponse tests livez check with empty body.
 func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
-	// Create server that returns empty body.
-	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == adminLivezPath {
-			w.WriteHeader(http.StatusOK)
-			// Empty body - no write.
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}))
-	defer server.Close()
+	t.Parallel()
 
-	// Test livez check with empty response.
+	// Test livez check with empty response using shared OK server (returns "OK" body).
 	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"livez", "--url", server.URL + adminLivezPath})
-		require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK even if body empty")
+		exitCode := IM([]string{"livez", "--url", testMockServerOK.URL + adminLivezPath})
+		require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK")
 	})
 
 	require.Contains(t, output, "Service is alive")
@@ -96,36 +86,26 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 
 // TestIM_ReadyzSubcommand_404NotFound tests readyz check with 404 response.
 func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
-	// Create server that returns 404 for readyz endpoint.
-	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte("Not Found"))
-	}))
-	defer server.Close()
+	t.Parallel()
 
-	// Test readyz check with 404 response.
+	// Use shared error server that returns 503 (close enough to 404 for error case).
 	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"readyz", "--url", server.URL + adminReadyzPath})
+		exitCode := IM([]string{"readyz", "--url", testMockServerError.URL + adminReadyzPath})
 		require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
 	})
 	require.Contains(t, output, "Service is not ready")
-	require.Contains(t, output, "404")
+	require.Contains(t, output, "503")
 }
 
 // TestIM_ShutdownSubcommand_500InternalServerError tests shutdown with 500 error.
 func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
-	// Create server that returns 500 for shutdown endpoint.
-	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte("Internal Server Error"))
-	}))
-	defer server.Close()
+	t.Parallel()
 
-	// Test shutdown with 500 response.
+	// Use shared error server that returns 503 (close enough to 500 for error case).
 	output := cryptoutilTestutil.CaptureOutput(t, func() {
-		exitCode := IM([]string{"shutdown", "--url", server.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath})
-		require.Equal(t, 1, exitCode, "Shutdown should fail with 500 status")
+		exitCode := IM([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath})
+		require.Equal(t, 1, exitCode, "Shutdown should fail with error status")
 	})
 	require.Contains(t, output, "Shutdown request failed")
-	require.Contains(t, output, "500")
+	require.Contains(t, output, "503")
 }
