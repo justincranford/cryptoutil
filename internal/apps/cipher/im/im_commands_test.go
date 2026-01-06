@@ -40,7 +40,7 @@ var (
 func TestMain(m *testing.M) {
 	// Create in-memory SQLite configuration for testing.
 	settings := cryptoutilConfig.RequireNewForTest("cipher-im-test")
-	settings.DatabaseURL = "file::memory:?cache=shared"
+	settings.DatabaseURL = sqliteInMemoryURL
 
 	sharedAppConfig := &config.AppConfig{
 		ServerSettings: *settings,
@@ -152,7 +152,7 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Capture range variable.
+		// Capture range variable.
 		t.Run(tt.subcommand, func(t *testing.T) {
 			t.Parallel()
 
@@ -329,7 +329,7 @@ func TestIM_SubcommandErrors(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Capture range variable.
+		// Capture range variable.
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -425,7 +425,7 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Capture range variable.
+		// Capture range variable.
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -471,7 +471,7 @@ func TestIM_URLHandling(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Capture range variable.
+		// Capture range variable.
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

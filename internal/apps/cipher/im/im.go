@@ -48,6 +48,10 @@ const (
 
 	// Database dialector names.
 	dialectSQLite     = "sqlite"
+	dialectPostgreSQL = "postgres"
+
+	// SQLite in-memory database URL for shared cache.
+	sqliteInMemoryURL = "file::memory:?cache=shared"
 	dialectPostgres   = "postgres"
 	dialectPostgresPG = "pgx"
 )
@@ -131,7 +135,7 @@ Description:
 
 Options:
   --database-url URL    Database URL (default: SQLite in-memory)
-                        SQLite: file::memory:?cache=shared
+                        SQLite: sqliteInMemoryURL
                         PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
   --help, -h            Show this help message
 
@@ -374,6 +378,7 @@ Examples:
 		case urlFlag:
 			if i+1 < len(args) && url == defaultLivezURL { // Only set if not already set
 				baseURL := args[i+1]
+
 				livezPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath
 				if !strings.HasSuffix(baseURL, livezPath) {
 					url = baseURL + livezPath
@@ -451,6 +456,7 @@ Examples:
 		case urlFlag:
 			if i+1 < len(args) && url == defaultReadyzURL { // Only set if not already set
 				baseURL := args[i+1]
+
 				readyzPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath
 				if !strings.HasSuffix(baseURL, readyzPath) {
 					url = baseURL + readyzPath
@@ -530,6 +536,7 @@ Examples:
 		case urlFlag:
 			if i+1 < len(args) && url == defaultShutdownURL { // Only set if not already set
 				baseURL := args[i+1]
+
 				shutdownPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath
 				if !strings.HasSuffix(baseURL, shutdownPath) {
 					url = baseURL + shutdownPath
@@ -708,7 +715,7 @@ func httpPost(url, cacertPath string) (int, string, error) {
 
 // initDatabase initializes database (PostgreSQL or SQLite) with schema.
 // Database type determined by --database-url flag or DATABASE_URL env var.
-// SQLite: file::memory:?cache=shared or file:/path/to/data.db?cache=shared
+// SQLite: sqliteInMemoryURL or file:/path/to/data.db?cache=shared
 // PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
 func initDatabase(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	// Use provided database URL, or fall back to environment variable or default.
@@ -716,7 +723,7 @@ func initDatabase(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 		if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
 			databaseURL = envURL
 		} else {
-			databaseURL = "file::memory:?cache=shared" // Default: SQLite in-memory
+			databaseURL = sqliteInMemoryURL // Default: SQLite in-memory
 		}
 	}
 
