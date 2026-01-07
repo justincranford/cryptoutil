@@ -37,10 +37,10 @@ type CipherIMServer struct {
 	messageRepo *repository.MessageRepository
 }
 
-// NewFromConfig creates a new cipher-im server from AppConfig only.
+// NewFromConfig creates a new cipher-im server from CipherImServerSettings only.
 // This is the PREFERRED constructor - automatically provisions database (SQLite, PostgreSQL testcontainer, or external).
 // Uses service-template application layer for infrastructure management.
-func NewFromConfig(ctx context.Context, cfg *config.AppConfig) (*CipherIMServer, error) {
+func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*CipherIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {

@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 	settings := cryptoutilConfig.RequireNewForTest("cipher-im-test")
 	settings.DatabaseURL = "file::memory:?cache=shared"
 
-	sharedAppConfig := &config.AppConfig{
+	sharedAppConfig := &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
 		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
 	}

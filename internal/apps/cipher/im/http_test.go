@@ -20,12 +20,12 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 )
 
-// initTestConfig returns an AppConfig with all required settings for tests.
-func initTestConfig() *config.AppConfig {
+// initTestConfig returns an CipherImServerSettings with all required settings for tests.
+func initTestConfig() *config.CipherImServerSettings {
 	settings := cryptoutilConfig.RequireNewForTest("cipher-im-http-test")
 	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast tests.
 
-	return &config.AppConfig{
+	return &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
 		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
 	}

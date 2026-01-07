@@ -12,8 +12,8 @@ import (
 	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 )
 
-// initTestConfig creates a properly configured AppConfig for testing.
-func initTestConfig() *config.AppConfig {
+// initTestConfig creates a properly configured CipherImServerSettings for testing.
+func initTestConfig() *config.CipherImServerSettings {
 	cfg := config.DefaultAppConfig()
 	cfg.BindPublicPort = 0                                                          // Dynamic port allocation for tests
 	cfg.BindPrivatePort = 0                                                         // Dynamic port allocation for tests

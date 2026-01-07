@@ -11,9 +11,9 @@ import (
 	cryptoutilTemplateServerRealms "cryptoutil/internal/apps/template/service/server/realms"
 )
 
-// AppConfig holds configuration for the cipher-im server.
+// CipherImServerSettings holds configuration for the cipher-im server.
 // Embeds ServiceTemplateServerSettings for network/TLS configuration and adds cipher-im-specific settings.
-type AppConfig struct {
+type CipherImServerSettings struct {
 	// ServiceTemplateServerSettings provides standard server configuration.
 	// Includes: network binding, TLS, CORS, CSRF, rate limiting, database, OTLP telemetry.
 	cryptoutilConfig.ServiceTemplateServerSettings
@@ -34,8 +34,8 @@ type AppConfig struct {
 }
 
 // DefaultAppConfig returns the default cipher-im application configuration.
-func DefaultAppConfig() *AppConfig {
-	return &AppConfig{
+func DefaultAppConfig() *CipherImServerSettings {
+	return &CipherImServerSettings{
 		ServiceTemplateServerSettings:     cryptoutilConfig.ServiceTemplateServerSettings{},
 		JWEAlgorithm:       cryptoutilSharedMagic.CipherJWEAlgorithm,
 		MessageMinLength:   cryptoutilSharedMagic.CipherMessageMinLength,
@@ -52,7 +52,7 @@ func DefaultAppConfig() *AppConfig {
 
 // GetRealmConfig retrieves a realm configuration by name with fallback to default.
 // If realmName is empty or not found, returns the "default" realm.
-func (cfg *AppConfig) GetRealmConfig(realmName string) *cryptoutilTemplateServerRealms.RealmConfig {
+func (cfg *CipherImServerSettings) GetRealmConfig(realmName string) *cryptoutilTemplateServerRealms.RealmConfig {
 	if cfg.Realms == nil {
 		return cryptoutilTemplateServerRealms.DefaultRealm()
 	}

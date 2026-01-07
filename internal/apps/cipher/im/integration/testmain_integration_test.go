@@ -20,7 +20,7 @@ import (
 // Shared test resources (initialized once per package).
 var (
 	cipherImServer       *server.CipherIMServer
-	sharedAppConfig      *config.AppConfig
+	sharedAppConfig      *config.CipherImServerSettings
 	sharedServiceBaseURL string
 )
 
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	settings.DatabaseURL = ""               // Empty = use testcontainer.
 	settings.DatabaseContainer = "required" // Require PostgreSQL testcontainer.
 
-	sharedAppConfig = &config.AppConfig{
+	sharedAppConfig = &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
 		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}

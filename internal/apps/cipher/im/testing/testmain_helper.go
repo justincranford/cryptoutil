@@ -84,8 +84,8 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 		return nil, fmt.Errorf("failed to generate JWT secret: %w", err)
 	}
 
-	// Create AppConfig with test settings.
-	cfg := &config.AppConfig{
+	// Create CipherImServerSettings with test settings.
+	cfg := &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-test"),
 		JWTSecret:      jwtSecretID.String(),
 	}
@@ -186,20 +186,20 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 }
 
 // StartCipherIMService creates and starts a cipher-im server from config.
-// This is a simpler helper for integration tests that provide their own AppConfig.
+// This is a simpler helper for integration tests that provide their own CipherImServerSettings.
 //
 // The server is started in the background and this function waits for both public
 // and admin servers to bind to their ports before returning.
 //
 // Example usage:
 //
-//	appConfig := &config.AppConfig{...}
-//	server := StartCipherIMService(appConfig)
+//	CipherImServerSettings := &config.CipherImServerSettings{...}
+//	server := StartCipherIMService(CipherImServerSettings)
 //	defer server.Shutdown(context.Background())
-func StartCipherIMService(appConfig *config.AppConfig) *server.CipherIMServer {
+func StartCipherIMService(CipherImServerSettings *config.CipherImServerSettings) *server.CipherIMServer {
 	ctx := context.Background()
 
-	cipherImServer, err := server.NewFromConfig(ctx, appConfig)
+	cipherImServer, err := server.NewFromConfig(ctx, CipherImServerSettings)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create server: %v", err))
 	}

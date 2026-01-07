@@ -140,8 +140,8 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 
-	// Create cipher-im server configuration using AppConfig.
-	// AppConfig embeds ServiceTemplateServerSettings and adds cipher-im-specific settings.
+	// Create cipher-im server configuration using CipherImServerSettings.
+	// CipherImServerSettings embeds ServiceTemplateServerSettings and adds cipher-im-specific settings.
 	cfg := config.DefaultAppConfig()
 	cfg.BindPublicPort = cryptoutilMagic.DefaultPublicPortCipherIM
 	cfg.BindPrivatePort = cryptoutilMagic.DefaultPrivatePortCipherIM

@@ -174,7 +174,7 @@ func TestGetRealmConfig_FallbackToDefault(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		cfg       *config.AppConfig
+		cfg       *config.CipherImServerSettings
 		realmName string
 	}{
 		{
@@ -189,7 +189,7 @@ func TestGetRealmConfig_FallbackToDefault(t *testing.T) {
 		},
 		{
 			name: "nil realms map",
-			cfg: &config.AppConfig{
+			cfg: &config.CipherImServerSettings{
 				Realms: nil,
 			},
 			realmName: "any",
