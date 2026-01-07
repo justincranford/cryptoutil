@@ -354,58 +354,51 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 	tests := []struct {
 		name         string
 		subcommand   string
-		serverURL    string
-		path         string
+		url          string
 		expectExit   int
 		expectOutput []string
 	}{
 		// Health subcommand tests.
 		{
-			name:         "health_success_with_body",
-			subcommand:   "health",
-			serverURL:    testMockServerCustom.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
-			expectExit:   0,
-			expectOutput: []string{"Service is healthy", "200", "All systems operational"},
-		},
-		{
 			name:         "health_success_no_body",
 			subcommand:   "health",
-			serverURL:    testMockServerOK.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
+			url:          testMockServerOK.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 			expectExit:   0,
 			expectOutput: []string{"Service is healthy"},
 		},
 		{
+			name:         "health_success_with_body",
+			subcommand:   "health",
+			url:          testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
+			expectExit:   0,
+			expectOutput: []string{"Service is healthy", "200", "All systems operational"},
+		},
+		{
 			name:         "health_unhealthy_with_body",
 			subcommand:   "health",
-			serverURL:    testMockServerError.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
+			url:          testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 			expectExit:   1,
 			expectOutput: []string{"Service is unhealthy", "503", "Service Unavailable"},
 		},
 		// Livez subcommand tests.
 		{
-			name:         "livez_alive_with_body",
-			subcommand:   "livez",
-			serverURL:    testMockServerCustom.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
-			expectExit:   0,
-			expectOutput: []string{"Service is alive", "200", "Process is alive and running"},
-		},
-		{
 			name:         "livez_alive_no_body",
 			subcommand:   "livez",
-			serverURL:    testMockServerOK.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
+			url:          testMockServerOK.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 			expectExit:   0,
 			expectOutput: []string{"Service is alive"},
 		},
 		{
+			name:         "livez_alive_with_body",
+			subcommand:   "livez",
+			url:          testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
+			expectExit:   0,
+			expectOutput: []string{"Service is alive", "200", "Process is alive and running"},
+		},
+		{
 			name:         "livez_not_alive_with_body",
 			subcommand:   "livez",
-			serverURL:    testMockServerError.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
+			url:          testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 			expectExit:   1,
 			expectOutput: []string{"Service is not alive", "503", "Service Unavailable"},
 		},
@@ -413,16 +406,14 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 		{
 			name:         "shutdown_success_no_body",
 			subcommand:   "shutdown",
-			serverURL:    testMockServerOK.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
+			url:          testMockServerOK.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 			expectExit:   0,
 			expectOutput: []string{"Shutdown initiated"},
 		},
 		{
 			name:         "shutdown_failed_no_body",
 			subcommand:   "shutdown",
-			serverURL:    testMockServerError.URL,
-			path:         cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
+			url:          testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 			expectExit:   1,
 			expectOutput: []string{"Shutdown request failed", "503"},
 		},
@@ -434,7 +425,7 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
-			exitCode := internalIM([]string{tt.subcommand, "--url", tt.serverURL + tt.path}, &stdout, &stderr)
+			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
 			require.Equal(t, tt.expectExit, exitCode, "%s should exit with code %d", tt.subcommand, tt.expectExit)
 
 			output := stdout.String() + stderr.String()
