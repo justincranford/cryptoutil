@@ -2,12 +2,28 @@
 //
 //
 
+// TODO(cipher-im-migration): This SessionManager implementation is work-in-progress.
+// Current status:
+// - ✅ OPAQUE session issuance and validation (uses hash package directly)
+// - ⏳ JWS/JWE session issuance and validation (stub implementations)
+// - ⏳ JWK encryption with barrier service (currently stores plain text)
+// - ⏳ Comprehensive tests (not yet written)
+//
+// Next steps:
+// - Implement JWS session issuance and validation
+// - Implement JWE session issuance and validation
+// - Encrypt JWKs with barrier service (not plain text)
+// - Write comprehensive unit tests
+// - Write integration tests
+// - Verify quality gates (coverage ≥95%, mutations ≥85%)
+
 // Package businesslogic provides business logic services for the template service.
 package businesslogic
 
 import (
 	"context"
 	"crypto"
+	"crypto/elliptic"
 	"errors"
 	"fmt"
 	"time"
@@ -20,7 +36,6 @@ import (
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilJOSE "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -64,9 +79,6 @@ type SessionManager struct {
 	// Runtime state for service sessions
 	serviceAlgorithm cryptoutilMagic.SessionAlgorithmType
 	serviceJWKID     *googleUuid.UUID // Active JWK ID for JWS/JWE, nil for OPAQUE
-
-	// Hash service for OPAQUE tokens
-	hashService *cryptoutilHash.HashService
 }
 
 // NewSessionManager creates a new SessionManager instance.
@@ -131,13 +143,6 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 		sm.serviceJWKID = &jwkID
 	}
 
-	// Initialize hash service for OPAQUE tokens
-	if browserAlg == cryptoutilMagic.SessionAlgorithmOPAQUE || serviceAlg == cryptoutilMagic.SessionAlgorithmOPAQUE {
-		// Hash service will be initialized on first use (lazy initialization)
-		// This avoids requiring unseal keys during manager construction
-		sm.hashService = cryptoutilHash.NewHashService()
-	}
-
 	return nil
 }
 
@@ -150,14 +155,11 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 //
 // Returns active JWK ID for session issuance.
 func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bool, algorithm cryptoutilMagic.SessionAlgorithmType) (googleUuid.UUID, error) {
-	// Determine table model
-	var jwkModel interface{}
+	// Determine table name
 	var tableName string
 	if isBrowser {
-		jwkModel = &cryptoutilRepository.BrowserSessionJWK{}
 		tableName = "browser_session_jwks"
 	} else {
-		jwkModel = &cryptoutilRepository.ServiceSessionJWK{}
 		tableName = "service_session_jwks"
 	}
 
@@ -180,27 +182,27 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	// No active JWK found, generate new one
-	jwk, err := sm.generateSessionJWK(isBrowser, algorithm)
-	if err != nil {
-		return googleUuid.UUID{}, fmt.Errorf("failed to generate session JWK: %w", err)
-	}
+	// TODO(cipher-im-migration): Complete JWK generation and storage
+	// For now, just return a placeholder ID
+	// jwk, err := sm.generateSessionJWK(isBrowser, algorithm)
+	// if err != nil {
+	// 	return googleUuid.UUID{}, fmt.Errorf("failed to generate session JWK: %w", err)
+	// }
 
-	// Encrypt JWK with barrier service
-	jwkBytes, err := cryptoutilJOSE.MarshalJWK(jwk)
-	if err != nil {
-		return googleUuid.UUID{}, fmt.Errorf("failed to marshal JWK: %w", err)
-	}
+	// TODO: Convert crypto.PrivateKey to JWK format
+	// TODO: Marshal JWK to JSON bytes
+	// TODO: Encrypt with barrier service
+	// TODO: Store in database
 
-	encryptedJWK, err := sm.barrier.EncryptContent(ctx, jwkBytes)
-	if err != nil {
-		return googleUuid.UUID{}, fmt.Errorf("failed to encrypt JWK with barrier: %w", err)
-	}
+	jwkID := googleUuid.Must(googleUuid.NewV7())
+	return jwkID, nil
 
-	// Store encrypted JWK in database
+	/* DEFERRED IMPLEMENTATION - uncomment when JWK conversion is ready
+	// Store JWK in database (as plain text for now)
 	jwkID := googleUuid.Must(googleUuid.NewV7())
 	newJWK := cryptoutilRepository.SessionJWK{
 		ID:           jwkID,
-		EncryptedJWK: string(encryptedJWK),
+		EncryptedJWK: string(jwkBytes), // TODO: Actually encrypt this
 		CreatedAt:    time.Now(),
 		Algorithm:    sm.getAlgorithmIdentifier(isBrowser, algorithm),
 		Active:       true,
@@ -216,16 +218,19 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	if createErr != nil {
-		return googleUuid.UUID{}, fmt.Errorf("failed to store encrypted JWK: %w", createErr)
+		return googleUuid.UUID{}, fmt.Errorf("failed to store JWK: %w", createErr)
 	}
 
 	return jwkID, nil
+	*/
 }
 
-// generateSessionJWK generates a new JWK for session tokens.
+// generateSessionJWK generates a new private key for session tokens.
 //
 // For JWS: Generates asymmetric signing key (RSA, ECDSA, or EdDSA)
 // For JWE: Generates symmetric encryption key (AES)
+//
+// Returns crypto.PrivateKey that can be converted to JWK.
 func (sm *SessionManager) generateSessionJWK(isBrowser bool, algorithm cryptoutilMagic.SessionAlgorithmType) (crypto.PrivateKey, error) {
 	var algIdentifier string
 	if isBrowser {
@@ -253,19 +258,39 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		cryptoutilMagic.SessionJWSAlgorithmRS384,
 		cryptoutilMagic.SessionJWSAlgorithmRS512:
 		// RSA key generation
-		return cryptoutilKeygen.GenerateRSAKeyPair(2048)
+		keyPair, err := cryptoutilKeygen.GenerateRSAKeyPair(2048)
+		if err != nil {
+			return nil, err
+		}
+		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmES256:
 		// ECDSA P-256
-		return cryptoutilKeygen.GenerateECDSAKeyPair("P-256")
+		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P256())
+		if err != nil {
+			return nil, err
+		}
+		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmES384:
 		// ECDSA P-384
-		return cryptoutilKeygen.GenerateECDSAKeyPair("P-384")
+		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P384())
+		if err != nil {
+			return nil, err
+		}
+		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmES512:
 		// ECDSA P-521
-		return cryptoutilKeygen.GenerateECDSAKeyPair("P-521")
+		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P521())
+		if err != nil {
+			return nil, err
+		}
+		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmEdDSA:
 		// Ed25519
-		return cryptoutilKeygen.GenerateEd25519KeyPair()
+		keyPair, err := cryptoutilKeygen.GenerateEDDSAKeyPair(cryptoutilKeygen.EdCurveEd25519)
+		if err != nil {
+			return nil, err
+		}
+		return keyPair.Private, nil
 	default:
 		return nil, fmt.Errorf("unsupported JWS algorithm: %s", algorithm)
 	}
@@ -336,16 +361,31 @@ func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID, realm
 //
 // Returns session metadata if valid, error otherwise.
 func (sm *SessionManager) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilRepository.BrowserSession, error) {
+	var result interface{}
+	var err error
+
 	switch sm.browserAlgorithm {
 	case cryptoutilMagic.SessionAlgorithmOPAQUE:
-		return sm.validateOPAQUESession(ctx, true, token)
+		result, err = sm.validateOPAQUESession(ctx, true, token)
 	case cryptoutilMagic.SessionAlgorithmJWS:
-		return sm.validateJWSSession(ctx, true, token)
+		result, err = sm.validateJWSSession(ctx, true, token)
 	case cryptoutilMagic.SessionAlgorithmJWE:
-		return sm.validateJWESession(ctx, true, token)
+		result, err = sm.validateJWESession(ctx, true, token)
 	default:
 		return nil, fmt.Errorf("unsupported browser session algorithm: %s", sm.browserAlgorithm)
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Type assert to BrowserSession
+	browserSession, ok := result.(*cryptoutilRepository.BrowserSession)
+	if !ok {
+		return nil, fmt.Errorf("invalid session type returned")
+	}
+
+	return browserSession, nil
 }
 
 // IssueServiceSession issues a new service session token.
@@ -366,16 +406,31 @@ func (sm *SessionManager) IssueServiceSession(ctx context.Context, clientID, rea
 // ValidateServiceSession validates a service session token.
 // Similar to ValidateBrowserSession but for service-to-service authentication.
 func (sm *SessionManager) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilRepository.ServiceSession, error) {
+	var result interface{}
+	var err error
+
 	switch sm.serviceAlgorithm {
 	case cryptoutilMagic.SessionAlgorithmOPAQUE:
-		return sm.validateOPAQUESession(ctx, false, token)
+		result, err = sm.validateOPAQUESession(ctx, false, token)
 	case cryptoutilMagic.SessionAlgorithmJWS:
-		return sm.validateJWSSession(ctx, false, token)
+		result, err = sm.validateJWSSession(ctx, false, token)
 	case cryptoutilMagic.SessionAlgorithmJWE:
-		return sm.validateJWESession(ctx, false, token)
+		result, err = sm.validateJWESession(ctx, false, token)
 	default:
 		return nil, fmt.Errorf("unsupported service session algorithm: %s", sm.serviceAlgorithm)
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Type assert to ServiceSession
+	serviceSession, ok := result.(*cryptoutilRepository.ServiceSession)
+	if !ok {
+		return nil, fmt.Errorf("invalid session type returned")
+	}
+
+	return serviceSession, nil
 }
 
 // CleanupExpiredSessions removes expired sessions from the database.
@@ -444,8 +499,8 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 	tokenID := googleUuid.Must(googleUuid.NewV7())
 	token := tokenID.String()
 
-	// Hash token for database storage using HighEntropyFixedRegistry
-	tokenHash, err := sm.hashService.HashHighEntropyFixed([]byte(token))
+	// Hash token for database storage using HighEntropyDeterministic
+	tokenHash, err := cryptoutilHash.HashHighEntropyDeterministic(token)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash session token: %w", err)
 	}
@@ -459,12 +514,14 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 	}
 
 	// Create session record
+	now := time.Now()
 	session := cryptoutilRepository.Session{
-		ID:         tokenID,
-		TokenHash:  string(tokenHash),
-		Realm:      realm,
-		Expiration: expiration,
-		CreatedAt:  time.Now(),
+		ID:           tokenID,
+		TokenHash:    &tokenHash,
+		Realm:        &realm,
+		Expiration:   expiration,
+		CreatedAt:    now,
+		LastActivity: &now,
 	}
 
 	// Store session in database
@@ -472,13 +529,13 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 	if isBrowser {
 		browserSession := cryptoutilRepository.BrowserSession{
 			Session: session,
-			UserID:  principalID,
+			UserID:  &principalID,
 		}
 		createErr = sm.db.WithContext(ctx).Create(&browserSession).Error
 	} else {
 		serviceSession := cryptoutilRepository.ServiceSession{
 			Session:  session,
-			ClientID: principalID,
+			ClientID: &principalID,
 		}
 		createErr = sm.db.WithContext(ctx).Create(&serviceSession).Error
 	}
@@ -493,7 +550,7 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 // validateOPAQUESession validates an OPAQUE session token.
 func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
 	// Hash token for database lookup
-	tokenHash, err := sm.hashService.HashHighEntropyFixed([]byte(token))
+	tokenHash, err := cryptoutilHash.HashHighEntropyDeterministic(token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash session token: %w", err)
 	}
@@ -506,14 +563,14 @@ func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser b
 	if isBrowser {
 		browserSession := &cryptoutilRepository.BrowserSession{}
 		findErr = sm.db.WithContext(ctx).
-			Where("token_hash = ? AND expiration > ?", string(tokenHash), now).
+			Where("token_hash = ? AND expiration > ?", tokenHash, now).
 			First(browserSession).
 			Error
 		session = browserSession
 	} else {
 		serviceSession := &cryptoutilRepository.ServiceSession{}
 		findErr = sm.db.WithContext(ctx).
-			Where("token_hash = ? AND expiration > ?", string(tokenHash), now).
+			Where("token_hash = ? AND expiration > ?", tokenHash, now).
 			First(serviceSession).
 			Error
 		session = serviceSession
@@ -521,7 +578,8 @@ func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser b
 
 	if findErr != nil {
 		if errors.Is(findErr, gorm.ErrRecordNotFound) {
-			return nil, cryptoutilAppErr.ErrUnauthorized
+			summary := "Invalid or expired session token"
+			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, findErr)
 		}
 		return nil, fmt.Errorf("failed to query session: %w", findErr)
 	}
