@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/viper"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerRealms "cryptoutil/internal/apps/template/service/server/realms"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Cipher-IM specific default values.
@@ -98,12 +98,12 @@ func Parse(parameters []string, validateSubcommand bool) (*CipherImServerSetting
 	// Build CipherImServerSettings by embedding base settings and adding cipher-im specific values.
 	settings := &CipherImServerSettings{
 		ServiceTemplateServerSettings: *baseSettings,
-		JWEAlgorithm:                   viper.GetString("jwe-algorithm"),
-		MessageMinLength:               viper.GetInt("message-min-length"),
-		MessageMaxLength:               viper.GetInt("message-max-length"),
-		RecipientsMinCount:             viper.GetInt("recipients-min-count"),
-		RecipientsMaxCount:             viper.GetInt("recipients-max-count"),
-		JWTSecret:                      viper.GetString("jwt-secret"),
+		JWEAlgorithm:                  viper.GetString("jwe-algorithm"),
+		MessageMinLength:              viper.GetInt("message-min-length"),
+		MessageMaxLength:              viper.GetInt("message-max-length"),
+		RecipientsMinCount:            viper.GetInt("recipients-min-count"),
+		RecipientsMaxCount:            viper.GetInt("recipients-max-count"),
+		JWTSecret:                     viper.GetString("jwt-secret"),
 		Realms: map[string]*cryptoutilTemplateServerRealms.RealmConfig{
 			"default":    cryptoutilTemplateServerRealms.DefaultRealm(),
 			"enterprise": cryptoutilTemplateServerRealms.EnterpriseRealm(),
@@ -137,8 +137,8 @@ func DefaultTestConfig() *CipherImServerSettings {
 		ServiceTemplateServerSettings: cryptoutilConfig.ServiceTemplateServerSettings{
 			BindPublicPort:  cryptoutilSharedMagic.DefaultPublicPortCipherIM,
 			BindPrivatePort: cryptoutilSharedMagic.DefaultPrivatePortCipherIM,
-			TLSPublicMode:   cryptoutilConfig.TLSModeAuto,  // Auto-generate TLS for tests.
-			TLSPrivateMode:  cryptoutilConfig.TLSModeAuto,  // Auto-generate TLS for tests.
+			TLSPublicMode:   cryptoutilConfig.TLSModeAuto, // Auto-generate TLS for tests.
+			TLSPrivateMode:  cryptoutilConfig.TLSModeAuto, // Auto-generate TLS for tests.
 			OTLPService:     "cipher-im",
 			OTLPEnabled:     false,
 		},
