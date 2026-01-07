@@ -19,37 +19,30 @@ import (
 func TestIM_SubcommandHelpFlags(t *testing.T) {
 	tests := []struct {
 		subcommand string
-		flagValue  string
 		helpTexts  []string
 	}{
 		{
 			subcommand: "client",
-			flagValue:  "--help",
 			helpTexts:  []string{"cipher im client", "Run client operations"},
 		},
 		{
 			subcommand: "init",
-			flagValue:  "--help",
 			helpTexts:  []string{"cipher im init", "Initialize database schema"},
 		},
 		{
 			subcommand: "health",
-			flagValue:  "--help",
 			helpTexts:  []string{"cipher im health", "Check service health"},
 		},
 		{
 			subcommand: "livez",
-			flagValue:  "--help",
 			helpTexts:  []string{"cipher im livez", "Check service liveness"},
 		},
 		{
 			subcommand: "readyz",
-			flagValue:  "--help",
 			helpTexts:  []string{"cipher im readyz", "Check service readiness"},
 		},
 		{
 			subcommand: "shutdown",
-			flagValue:  "--help",
 			helpTexts:  []string{"cipher im shutdown", "Trigger graceful shutdown"},
 		},
 	}
@@ -61,12 +54,11 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 
 			// Test --help flag.
 			var stdout, stderr bytes.Buffer
-			exitCode := internalIM([]string{tt.subcommand, tt.flagValue}, &stdout, &stderr)
-			require.Equal(t, 0, exitCode, "%s %s should succeed", tt.subcommand, tt.flagValue)
+			exitCode := internalIM([]string{tt.subcommand, "--help"}, &stdout, &stderr)
+			require.Equal(t, 0, exitCode, "%s --help should succeed", tt.subcommand)
 
-			helpOutput := stdout.String() + stderr.String()
 			for _, expected := range tt.helpTexts {
-				require.Contains(t, helpOutput, expected, "Help output should contain: %s", expected)
+				require.Contains(t, stdout.String()+stderr.String(), expected, "Help output should contain: %s", expected)
 			}
 
 			// Test -h flag.
@@ -75,9 +67,8 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 			exitCode = internalIM([]string{tt.subcommand, "-h"}, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s -h should succeed", tt.subcommand)
 
-			shortHelpOutput := stdout.String() + stderr.String()
 			for _, expected := range tt.helpTexts {
-				require.Contains(t, shortHelpOutput, expected, "Help output (-h) should contain: %s", expected)
+				require.Contains(t, stdout.String()+stderr.String(), expected, "Help output (-h) should contain: %s", expected)
 			}
 
 			// Test with help as positional argument.
@@ -86,9 +77,8 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 			exitCode = internalIM([]string{tt.subcommand, "help"}, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s help should succeed", tt.subcommand)
 
-			positionalOutput := stdout.String() + stderr.String()
 			for _, expected := range tt.helpTexts {
-				require.Contains(t, positionalOutput, expected, "Help output (positional) should contain: %s", expected)
+				require.Contains(t, stdout.String()+stderr.String(), expected, "Help output (positional) should contain: %s", expected)
 			}
 		})
 	}
@@ -141,7 +131,6 @@ func TestIM_SubcommandNotImplemented(t *testing.T) {
 // TestIM_SubcommandLiveServer tests health check subcommands with shared test server.
 func TestIM_SubcommandLiveServer(t *testing.T) {
 	tests := []struct {
-		name             string
 		subcommand       string
 		url              string
 		expectedExitCode int
@@ -149,21 +138,18 @@ func TestIM_SubcommandLiveServer(t *testing.T) {
 		customCheck      func(t *testing.T, output string) // For special cases like readyz
 	}{
 		{
-			name:             "health",
 			subcommand:       "health",
 			url:              publicBaseURL + "/service/api/v1",
 			expectedExitCode: 0,
 			expectedOutputs:  []string{"Service is healthy", "HTTP 200"},
 		},
 		{
-			name:             "livez",
 			subcommand:       "livez",
 			url:              adminBaseURL,
 			expectedExitCode: 0,
 			expectedOutputs:  []string{"Service is alive", "HTTP 200"},
 		},
 		{
-			name:       "readyz",
 			subcommand: "readyz",
 			url:        adminBaseURL,
 			customCheck: func(t *testing.T, output string) {
@@ -177,7 +163,7 @@ func TestIM_SubcommandLiveServer(t *testing.T) {
 
 	for _, tt := range tests {
 		// Capture range variable.
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.subcommand, func(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
