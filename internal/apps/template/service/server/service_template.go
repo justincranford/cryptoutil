@@ -23,7 +23,7 @@ import (
 // ServiceTemplate encapsulates reusable service infrastructure.
 // Provides common initialization for telemetry, crypto, barrier, and dual HTTPS servers.
 type ServiceTemplate struct {
-	config    *cryptoutilConfig.ServerSettings
+	config    *cryptoutilConfig.ServiceTemplateServerSettings
 	db        *gorm.DB
 	dbType    cryptoutilTemplateServerRepository.DatabaseType
 	telemetry *cryptoutilTelemetry.TelemetryService
@@ -48,7 +48,7 @@ func WithBarrier(barrier *cryptoutilBarrierService.BarrierService) ServiceTempla
 // Does NOT run migrations or create HTTP servers (caller-specific).
 func NewServiceTemplate(
 	ctx context.Context,
-	config *cryptoutilConfig.ServerSettings,
+	config *cryptoutilConfig.ServiceTemplateServerSettings,
 	db *gorm.DB,
 	dbType cryptoutilTemplateServerRepository.DatabaseType,
 	options ...ServiceTemplateOption,
@@ -102,7 +102,7 @@ func NewServiceTemplate(
 }
 
 // Config returns the server configuration.
-func (st *ServiceTemplate) Config() *cryptoutilConfig.ServerSettings {
+func (st *ServiceTemplate) Config() *cryptoutilConfig.ServiceTemplateServerSettings {
 	return st.config
 }
 
@@ -155,7 +155,7 @@ func (st *ServiceTemplate) Shutdown() {
 // StartApplicationCore is a convenience wrapper for application.StartApplicationCore.
 // Creates ApplicationCore with automatic database provisioning.
 // Returns ApplicationCore with initialized telemetry, JWK gen, unseal, and database.
-func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*cryptoutilTemplateServerApplication.ApplicationCore, error) {
+func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilTemplateServerApplication.ApplicationCore, error) {
 	//nolint:wrapcheck // Pass-through to application layer.
 	return cryptoutilTemplateServerApplication.StartApplicationCore(ctx, settings)
 }

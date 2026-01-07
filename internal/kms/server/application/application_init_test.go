@@ -36,7 +36,7 @@ func TestServerInit_HappyPath(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings *cryptoutilConfig.ServerSettings
+		settings *cryptoutilConfig.ServiceTemplateServerSettings
 	}{
 		{
 			name:     "ValidConfig_InMemoryDB_UnsealModeSysInfo",
@@ -86,12 +86,12 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		settings    *cryptoutilConfig.ServerSettings
+		settings    *cryptoutilConfig.ServiceTemplateServerSettings
 		expectedErr string
 	}{
 		{
 			name: "InvalidPublicIPAddress",
-			settings: func() *cryptoutilConfig.ServerSettings {
+			settings: func() *cryptoutilConfig.ServiceTemplateServerSettings {
 				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 				s.TLSPublicIPAddresses = []string{"invalid-ip"}
 
@@ -101,7 +101,7 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 		},
 		{
 			name: "InvalidPrivateIPAddress",
-			settings: func() *cryptoutilConfig.ServerSettings {
+			settings: func() *cryptoutilConfig.ServiceTemplateServerSettings {
 				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 				s.TLSPrivateIPAddresses = []string{"999.999.999.999"}
 

@@ -140,7 +140,7 @@ var (
 	ErrMaxPingAttemptsExceeded                      = errors.New("exceeded maximum DB ping attempts")
 )
 
-func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServerSettings) (*SQLRepository, error) {
+func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*SQLRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {

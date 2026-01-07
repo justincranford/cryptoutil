@@ -12,11 +12,11 @@ import (
 )
 
 // AppConfig holds configuration for the cipher-im server.
-// Embeds ServerSettings for network/TLS configuration and adds cipher-im-specific settings.
+// Embeds ServiceTemplateServerSettings for network/TLS configuration and adds cipher-im-specific settings.
 type AppConfig struct {
-	// ServerSettings provides standard server configuration.
+	// ServiceTemplateServerSettings provides standard server configuration.
 	// Includes: network binding, TLS, CORS, CSRF, rate limiting, database, OTLP telemetry.
-	cryptoutilConfig.ServerSettings
+	cryptoutilConfig.ServiceTemplateServerSettings
 
 	// Cipher-IM-specific settings.
 	JWEAlgorithm       string `mapstructure:"jwe_algorithm" yaml:"jwe_algorithm"`               // JWE algorithm for message encryption (default: dir+A256GCM).
@@ -36,7 +36,7 @@ type AppConfig struct {
 // DefaultAppConfig returns the default cipher-im application configuration.
 func DefaultAppConfig() *AppConfig {
 	return &AppConfig{
-		ServerSettings:     cryptoutilConfig.ServerSettings{},
+		ServiceTemplateServerSettings:     cryptoutilConfig.ServiceTemplateServerSettings{},
 		JWEAlgorithm:       cryptoutilSharedMagic.CipherJWEAlgorithm,
 		MessageMinLength:   cryptoutilSharedMagic.CipherMessageMinLength,
 		MessageMaxLength:   cryptoutilSharedMagic.CipherMessageMaxLength,

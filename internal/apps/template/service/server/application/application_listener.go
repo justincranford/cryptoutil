@@ -17,7 +17,7 @@ type ApplicationListener struct {
 	Core         *ApplicationCore
 	PublicServer IPublicServer
 	AdminServer  IAdminServer
-	Settings     *cryptoutilConfig.ServerSettings
+	Settings     *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
 // IPublicServer interface defines the contract for public HTTPS servers.
@@ -39,7 +39,7 @@ type IAdminServer interface {
 
 // ApplicationListenerConfig holds configuration for creating an ApplicationListener.
 type ApplicationListenerConfig struct {
-	Settings     *cryptoutilConfig.ServerSettings
+	Settings     *cryptoutilConfig.ServiceTemplateServerSettings
 	PublicServer IPublicServer
 	AdminServer  IAdminServer
 }

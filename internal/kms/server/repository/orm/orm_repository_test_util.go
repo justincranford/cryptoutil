@@ -15,7 +15,7 @@ import (
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 )
 
-func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JWKGenService, settings *cryptoutilConfig.ServerSettings) *OrmRepository {
+func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JWKGenService, settings *cryptoutilConfig.ServiceTemplateServerSettings) *OrmRepository {
 	ormRepository, err := NewOrmRepository(ctx, telemetryService, sqlRepository, jwkGenService, settings)
 	cryptoutilAppErr.RequireNoError(err, "failed to create new ORM repository")
 

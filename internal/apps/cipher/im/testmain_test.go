@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 	settings.DatabaseURL = "file::memory:?cache=shared"
 
 	sharedAppConfig := &config.AppConfig{
-		ServerSettings: *settings,
+		ServiceTemplateServerSettings: *settings,
 		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
 	}
 

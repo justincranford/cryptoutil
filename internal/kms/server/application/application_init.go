@@ -29,7 +29,7 @@ const (
 	defaultPEMFileMode = cryptoutilMagic.FilePermOwnerReadWriteOnly
 )
 
-func ServerInit(settings *cryptoutilConfig.ServerSettings) error {
+func ServerInit(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
 	ctx := context.Background()
 
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
@@ -46,7 +46,7 @@ func ServerInit(settings *cryptoutilConfig.ServerSettings) error {
 	return nil
 }
 
-func generateTLSServerSubjects(settings *cryptoutilConfig.ServerSettings, serverApplicationBasic *ServerApplicationBasic) (*cryptoutilCertificate.Subject, *cryptoutilCertificate.Subject, error) {
+func generateTLSServerSubjects(settings *cryptoutilConfig.ServiceTemplateServerSettings, serverApplicationBasic *ServerApplicationBasic) (*cryptoutilCertificate.Subject, *cryptoutilCertificate.Subject, error) {
 	publicTLSServerIPAddresses, err := cryptoutilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)

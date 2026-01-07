@@ -128,13 +128,13 @@ func TestSendServerListenerShutdownRequest(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		settingsFunc  func(t *testing.T) *cryptoutilConfig.ServerSettings
+		settingsFunc  func(t *testing.T) *cryptoutilConfig.ServiceTemplateServerSettings
 		expectError   bool
 		errorContains string
 	}{
 		{
 			name: "Shutdown_InvalidURL_Error",
-			settingsFunc: func(t *testing.T) *cryptoutilConfig.ServerSettings {
+			settingsFunc: func(t *testing.T) *cryptoutilConfig.ServiceTemplateServerSettings {
 				t.Helper()
 
 				settings := cryptoutilConfig.RequireNewForTest("shutdown_request_invalid")

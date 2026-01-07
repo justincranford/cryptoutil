@@ -16,7 +16,7 @@ import (
 
 // Application represents the unified JOSE server application (public + admin).
 type Application struct {
-	settings     *cryptoutilConfig.ServerSettings
+	settings     *cryptoutilConfig.ServiceTemplateServerSettings
 	publicServer *Server
 	adminServer  *AdminServer
 	mu           sync.RWMutex
@@ -26,7 +26,7 @@ type Application struct {
 // NewApplication creates a new JOSE application with public and admin servers.
 func NewApplication(
 	ctx context.Context,
-	settings *cryptoutilConfig.ServerSettings,
+	settings *cryptoutilConfig.ServiceTemplateServerSettings,
 ) (*Application, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

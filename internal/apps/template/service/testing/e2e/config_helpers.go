@@ -9,13 +9,13 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
-// NewTestServerSettings creates ServerSettings with test-friendly defaults.
-// Reusable for all services requiring ServerSettings in tests.
+// NewTestServerSettings creates ServiceTemplateServerSettings with test-friendly defaults.
+// Reusable for all services requiring ServiceTemplateServerSettings in tests.
 //
 // All bind addresses use 127.0.0.1 (loopback only) to prevent Windows Firewall prompts.
 // All ports use 0 (dynamic allocation) to prevent port conflicts in parallel tests.
-func NewTestServerSettings() *cryptoutilConfig.ServerSettings {
-	return &cryptoutilConfig.ServerSettings{
+func NewTestServerSettings() *cryptoutilConfig.ServiceTemplateServerSettings {
+	return &cryptoutilConfig.ServiceTemplateServerSettings{
 		PublicBrowserAPIContextPath: cryptoutilMagic.DefaultPublicBrowserAPIContextPath,
 		PublicServiceAPIContextPath: cryptoutilMagic.DefaultPublicServiceAPIContextPath,
 		BindPublicProtocol:          cryptoutilMagic.ProtocolHTTPS,
@@ -37,9 +37,9 @@ func NewTestServerSettings() *cryptoutilConfig.ServerSettings {
 	}
 }
 
-// NewTestServerSettingsWithService creates ServerSettings with custom service name.
+// NewTestServerSettingsWithService creates ServiceTemplateServerSettings with custom service name.
 // Useful when multiple service instances need distinct telemetry names.
-func NewTestServerSettingsWithService(serviceName string) *cryptoutilConfig.ServerSettings {
+func NewTestServerSettingsWithService(serviceName string) *cryptoutilConfig.ServiceTemplateServerSettings {
 	settings := NewTestServerSettings()
 	settings.OTLPService = serviceName
 

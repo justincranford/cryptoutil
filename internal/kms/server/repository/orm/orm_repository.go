@@ -27,7 +27,7 @@ type OrmRepository struct {
 	gormDB           *gorm.DB
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JWKGenService, settings *cryptoutilConfig.ServerSettings) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JWKGenService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*OrmRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {

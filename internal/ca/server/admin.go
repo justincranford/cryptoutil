@@ -27,7 +27,7 @@ import (
 
 // AdminServer represents the private admin API server for CA service.
 type AdminServer struct {
-	settings *cryptoutilConfig.ServerSettings
+	settings *cryptoutilConfig.ServiceTemplateServerSettings
 	app      *fiber.App
 	listener net.Listener
 	mu       sync.RWMutex
@@ -38,7 +38,7 @@ type AdminServer struct {
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
 func NewAdminHTTPServer(
 	ctx context.Context,
-	settings *cryptoutilConfig.ServerSettings,
+	settings *cryptoutilConfig.ServiceTemplateServerSettings,
 ) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

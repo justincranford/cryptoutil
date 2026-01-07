@@ -218,7 +218,7 @@ var subcommands = map[string]struct{}{
 
 var allRegisteredSettings []*Setting
 
-type ServerSettings struct {
+type ServiceTemplateServerSettings struct {
 	SubCommand                  string
 	Help                        bool
 	ConfigFile                  []string
@@ -286,12 +286,12 @@ type ServerSettings struct {
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.
-func (s *ServerSettings) PrivateBaseURL() string {
+func (s *ServiceTemplateServerSettings) PrivateBaseURL() string {
 	return fmt.Sprintf("%s://%s:%d", s.BindPrivateProtocol, s.BindPrivateAddress, s.BindPrivatePort)
 }
 
 // PublicBaseURL returns the public base URL constructed from protocol, address, and port.
-func (s *ServerSettings) PublicBaseURL() string {
+func (s *ServiceTemplateServerSettings) PublicBaseURL() string {
 	return fmt.Sprintf("%s://%s:%d", s.BindPublicProtocol, s.BindPublicAddress, s.BindPublicPort)
 }
 
@@ -799,7 +799,7 @@ func getTLSPEMBytes(key string) []byte {
 }
 
 // Parse parses command line parameters and returns application settings.
-func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error) {
+func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerSettings, error) {
 	if len(commandParameters) == 0 {
 		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", \"init\", \"live\", or \"ready\"")
 	}
@@ -984,7 +984,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error)
 		tlsPrivateModeStr = string(defaultTLSPrivateMode)
 	}
 
-	s := &ServerSettings{
+	s := &ServiceTemplateServerSettings{
 		TLSPublicMode:               TLSMode(tlsPublicModeStr),
 		TLSPrivateMode:              TLSMode(tlsPrivateModeStr),
 		TLSStaticCertPEM:            getTLSPEMBytes(tlsStaticCertPEM.name),
@@ -1165,7 +1165,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServerSettings, error)
 	return s, nil
 }
 
-func logSettings(s *ServerSettings) {
+func logSettings(s *ServiceTemplateServerSettings) {
 	if s.VerboseMode {
 		log.Info("Sub Command: ", s.SubCommand)
 
@@ -1376,7 +1376,7 @@ func analyzeSettings(settings []*Setting) analysisResult {
 
 // validateConfiguration performs comprehensive validation of the configuration
 // and returns detailed error messages with suggestions for fixes.
-func validateConfiguration(s *ServerSettings) error {
+func validateConfiguration(s *ServiceTemplateServerSettings) error {
 	var errors []string
 
 	// Validate bind addresses (CRITICAL: blank address produces ":port" which binds to 0.0.0.0 triggering Windows Firewall).
@@ -1506,7 +1506,7 @@ func resolveFileURL(value string) string {
 }
 
 // NewForJOSEServer creates settings suitable for the JOSE Authority Server.
-func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
+func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceTemplateServerSettings {
 	// Build args for Parse()
 	args := []string{
 		"start", // Subcommand required
@@ -1529,7 +1529,7 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServerSet
 }
 
 // NewForCAServer creates settings suitable for the CA Server.
-func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
+func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *ServiceTemplateServerSettings {
 	// Build args for Parse()
 	args := []string{
 		"start", // Subcommand required

@@ -13,17 +13,17 @@ import (
 
 // HTTPSServers is a convenience wrapper for public/admin HTTPS servers and their settings.
 type HTTPSServers struct {
-	Settings     *cryptoutilConfig.ServerSettings
+	Settings     *cryptoutilConfig.ServiceTemplateServerSettings
 	PublicTLS    *cryptoutilTLSGenerator.TLSGeneratedSettings
 	AdminTLS     *cryptoutilTLSGenerator.TLSGeneratedSettings
 	PublicServer *PublicHTTPServer
 	AdminServer  *AdminServer
 }
 
-// NewHTTPServers creates public and admin HTTPS servers using provided ServerSettings.
+// NewHTTPServers creates public and admin HTTPS servers using provided ServiceTemplateServerSettings.
 // It will generate TLS material based on TLSPublicMode/TLSPrivateMode and return
 // an HTTPSServers wrapper containing servers and TLS configs.
-func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*HTTPSServers, error) {
+func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*HTTPSServers, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -60,7 +60,7 @@ func NewHTTPServers(ctx context.Context, settings *cryptoutilConfig.ServerSettin
 	}, nil
 }
 
-func createPublicTLSGeneratedSettings(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
+func createPublicTLSGeneratedSettings(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
 	var publicTLSGeneratedSettings *cryptoutilTLSGenerator.TLSGeneratedSettings
 
 	switch settings.TLSPublicMode {
@@ -90,7 +90,7 @@ func createPublicTLSGeneratedSettings(settings *cryptoutilConfig.ServerSettings)
 	return publicTLSGeneratedSettings, nil
 }
 
-func createAdminTLSGeneratedSettings(settings *cryptoutilConfig.ServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
+func createAdminTLSGeneratedSettings(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
 	var adminTLSGeneratedSettings *cryptoutilTLSGenerator.TLSGeneratedSettings
 
 	switch settings.TLSPrivateMode {

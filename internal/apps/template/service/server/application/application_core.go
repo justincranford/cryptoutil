@@ -24,7 +24,7 @@ type ApplicationCore struct {
 	Basic               *ApplicationBasic
 	DB                  *gorm.DB
 	ShutdownDBContainer func()
-	Settings            *cryptoutilConfig.ServerSettings
+	Settings            *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
 // StartApplicationCore initializes core application infrastructure including database.
@@ -32,7 +32,7 @@ type ApplicationCore struct {
 // - SQLite in-memory: DatabaseURL="file::memory:?cache=shared"
 // - PostgreSQL testcontainer: DatabaseURL empty + DatabaseContainer="required"/"preferred"
 // - External DB: DatabaseURL with postgres:// or file:// scheme.
-func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*ApplicationCore, error) {
+func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ApplicationCore, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {
@@ -95,7 +95,7 @@ func (a *ApplicationCore) Shutdown() {
 // 1. Internal managed SQLite instance (file::memory:?cache=shared)
 // 2. Internal managed PostgreSQL testcontainer (DatabaseContainer=required/preferred)
 // 3. External DB connection (postgres:// or file:// scheme).
-func provisionDatabase(ctx context.Context, basic *ApplicationBasic, settings *cryptoutilConfig.ServerSettings) (*gorm.DB, func(), error) {
+func provisionDatabase(ctx context.Context, basic *ApplicationBasic, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*gorm.DB, func(), error) {
 	databaseURL := settings.DatabaseURL
 	containerMode := settings.DatabaseContainer
 

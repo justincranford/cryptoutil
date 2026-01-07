@@ -57,14 +57,14 @@ func NewFromConfig(ctx context.Context, cfg *config.AppConfig) (*CipherIMServer,
 		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)
 	}
 
-	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, &cfg.ServerSettings, adminTLSCfg)
+	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, &cfg.ServiceTemplateServerSettings, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
 	// Start application core (telemetry, JWK gen, unseal, database).
 	// This automatically provisions database based on cfg.DatabaseURL and cfg.DatabaseContainer.
-	core, err := cryptoutilTemplateServer.StartApplicationCore(ctx, &cfg.ServerSettings)
+	core, err := cryptoutilTemplateServer.StartApplicationCore(ctx, &cfg.ServiceTemplateServerSettings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}

@@ -19,7 +19,7 @@ import (
 )
 
 // PublicHTTPServer implements the PublicServer interface for business logic APIs and UIs.
-// Binds to configurable address and port from ServerSettings.
+// Binds to configurable address and port from ServiceTemplateServerSettings.
 //
 // Request Path Prefixes:
 // - /service/** : Service-to-service APIs (headless clients, IP allowlist, rate limiting)
@@ -28,7 +28,7 @@ import (
 // Both paths serve the SAME OpenAPI specification but with different middleware stacks.
 type PublicHTTPServer struct {
 	app         *fiber.App
-	settings    *cryptoutilConfig.ServerSettings
+	settings    *cryptoutilConfig.ServiceTemplateServerSettings
 	actualPort  int
 	listener    net.Listener
 	tlsMaterial *cryptoutilConfig.TLSMaterial
@@ -43,13 +43,13 @@ type PublicHTTPServer struct {
 //
 // Parameters:
 // - ctx: Context for initialization (must not be nil)
-// - settings: ServerSettings containing bind address, port, and paths (must not be nil)
+// - settings: ServiceTemplateServerSettings containing bind address, port, and paths (must not be nil)
 // - tlsCfg: TLS configuration (mode, certificates, parameters)
 //
 // Returns:
 // - *PublicHTTPServer: Server instance ready to Start()
 // - error: Non-nil if initialization fails (nil context, TLS generation failure, Fiber setup failure).
-func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
+func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -147,7 +147,7 @@ func (s *PublicHTTPServer) handleBrowserHealth(c *fiber.Ctx) error {
 //
 // The server:
 // 1. Uses TLS material generated during NewPublicHTTPServer (configured mode)
-// 2. Creates TCP listener on configured address and port from ServerSettings
+// 2. Creates TCP listener on configured address and port from ServiceTemplateServerSettings
 // 3. Starts HTTPS server with Fiber app
 // 4. Blocks until context cancelled or server error
 // 5. Triggers graceful shutdown on context cancellation
@@ -162,7 +162,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Create TCP listener using address and port from ServerSettings.
+	// Create TCP listener using address and port from ServiceTemplateServerSettings.
 	listenConfig := &net.ListenConfig{}
 
 	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))

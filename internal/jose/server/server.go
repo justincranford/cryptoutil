@@ -23,7 +23,7 @@ import (
 
 // Server represents the JOSE Authority Server.
 type Server struct {
-	settings         *cryptoutilConfig.ServerSettings
+	settings         *cryptoutilConfig.ServiceTemplateServerSettings
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JWKGenService
 	keyStore         *KeyStore
@@ -36,7 +36,7 @@ type Server struct {
 
 // New creates a new JOSE Authority Server instance using context.Background().
 // Deprecated: Use NewServer with explicit TLSConfig instead.
-func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
+func New(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Server, error) {
 	// Create default TLS config for backward compatibility.
 	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost", "jose-server"},
@@ -51,7 +51,7 @@ func New(settings *cryptoutilConfig.ServerSettings) (*Server, error) {
 }
 
 // NewServer creates a new JOSE Authority Server instance.
-func NewServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*Server, error) {
+func NewServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*Server, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {

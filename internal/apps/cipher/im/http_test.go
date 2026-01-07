@@ -26,7 +26,7 @@ func initTestConfig() *config.AppConfig {
 	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast tests.
 
 	return &config.AppConfig{
-		ServerSettings: *settings,
+		ServiceTemplateServerSettings: *settings,
 		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
 	}
 }

@@ -170,7 +170,7 @@ func testMainAfter(m *testing.M) {
 
 	// Configure application (product-specific settings injected here).
 	cfg := &cryptoutilTemplateServerListener.ApplicationConfig{
-		ServerSettings: cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true),
+		ServiceTemplateServerSettings: cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true),
 		DB:             db,
 		DBType:         cryptoutilTemplateServerRepository.DatabaseTypeSQLite,
 		// PublicHandlers: registerCipherIMHandlers, // Inject product-specific routes

@@ -11,15 +11,15 @@ import (
 )
 
 var (
-	serverSettings *cryptoutilConfig.ServerSettings
+	serverSettings *cryptoutilConfig.ServiceTemplateServerSettings
 	publicTLS      *cryptoutilTLSGenerator.TLSGeneratedSettings
 	privateTLS     *cryptoutilTLSGenerator.TLSGeneratedSettings
 )
 
 // Initialize is called from TestMain to setup shared test fixtures.
 func Initialize() error {
-	// Create shared ServerSettings fixture for tests (port 0 for dynamic allocation).
-	serverSettings = &cryptoutilConfig.ServerSettings{
+	// Create shared ServiceTemplateServerSettings fixture for tests (port 0 for dynamic allocation).
+	serverSettings = &cryptoutilConfig.ServiceTemplateServerSettings{
 		BindPublicProtocol:          "https",
 		BindPublicAddress:           cryptoutilMagic.IPv4Loopback,
 		BindPublicPort:              0,
@@ -53,8 +53,8 @@ func Initialize() error {
 	return nil
 }
 
-// ServerSettings returns the shared test ServerSettings fixture.
-func ServerSettings() *cryptoutilConfig.ServerSettings {
+// ServiceTemplateServerSettings returns the shared test ServiceTemplateServerSettings fixture.
+func ServiceTemplateServerSettings() *cryptoutilConfig.ServiceTemplateServerSettings {
 	return serverSettings
 }
 

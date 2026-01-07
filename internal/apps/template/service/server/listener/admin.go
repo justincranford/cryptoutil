@@ -21,11 +21,11 @@ import (
 )
 
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
-// Binds to address and port from ServerSettings.
+// Binds to address and port from ServiceTemplateServerSettings.
 type AdminServer struct {
 	app         *fiber.App
 	listener    net.Listener
-	settings    *cryptoutilConfig.ServerSettings
+	settings    *cryptoutilConfig.ServiceTemplateServerSettings
 	actualPort  uint16
 	tlsMaterial *cryptoutilConfig.TLSMaterial
 	mu          sync.RWMutex
@@ -34,9 +34,9 @@ type AdminServer struct {
 }
 
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
-// settings: ServerSettings containing bind address, port, and paths (MUST NOT be nil).
+// settings: ServiceTemplateServerSettings containing bind address, port, and paths (MUST NOT be nil).
 // tlsCfg: TLS configuration (mode + parameters) for HTTPS server. MUST NOT be nil.
-func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*AdminServer, error) {
+func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
@@ -180,14 +180,14 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	return nil
 }
 
-// Start begins listening on configured address and port from ServerSettings for admin API requests.
+// Start begins listening on configured address and port from ServiceTemplateServerSettings for admin API requests.
 // This method blocks until shutdown is called or context is cancelled.
 func (s *AdminServer) Start(ctx context.Context) error {
 	if ctx == nil {
 		return fmt.Errorf("context cannot be nil")
 	}
 
-	// Bind to address and port from ServerSettings.
+	// Bind to address and port from ServiceTemplateServerSettings.
 	addr := fmt.Sprintf("%s:%d", s.settings.BindPrivateAddress, s.settings.BindPrivatePort)
 
 	// Create listener.

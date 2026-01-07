@@ -12,7 +12,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServerSettings) *SQLRepository {
+func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) *SQLRepository {
 	sqlRepository, err := NewSQLRepository(ctx, telemetryService, settings)
 	cryptoutilAppErr.RequireNoError(err, "failed to initialize SQL provider")
 

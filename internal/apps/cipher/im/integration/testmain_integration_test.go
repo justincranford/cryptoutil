@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 	settings.DatabaseContainer = "required" // Require PostgreSQL testcontainer.
 
 	sharedAppConfig = &config.AppConfig{
-		ServerSettings: *settings,
+		ServiceTemplateServerSettings: *settings,
 		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}
 

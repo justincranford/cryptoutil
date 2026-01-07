@@ -48,7 +48,7 @@ import (
 // - Shutdown: Direct shutdown for cleanup.
 type ApplicationListener struct {
 	app               *cryptoutilTemplateServer.Application
-	config            *cryptoutilConfig.ServerSettings
+	config            *cryptoutilConfig.ServiceTemplateServerSettings
 	shutdownFunc      func()
 	actualPublicPort  uint16
 	actualPrivatePort uint16
@@ -111,14 +111,14 @@ type PublicServerFactory func(
 // ApplicationConfig encapsulates all product-service specific configuration.
 //
 // This is the injection point for product-specific:
-// - ServerSettings (bind addresses, ports, TLS, OTLP)
+// - ServiceTemplateServerSettings (bind addresses, ports, TLS, OTLP)
 // - Database connection and type
 // - Public server factory (product-specific server creation)
 // - Handler registration (OpenAPI, business logic routes)
 // - Optional barrier service configuration.
 type ApplicationConfig struct {
-	// ServerSettings contains common settings (bind addresses, TLS, OTLP, etc.).
-	ServerSettings *cryptoutilConfig.ServerSettings
+	// ServiceTemplateServerSettings contains common settings (bind addresses, TLS, OTLP, etc.).
+	ServiceTemplateServerSettings *cryptoutilConfig.ServiceTemplateServerSettings
 
 	// Database connection (managed externally, e.g., test-container or production pool).
 	DB *gorm.DB
@@ -154,7 +154,7 @@ type ApplicationConfig struct {
 //
 // Parameters:
 // - ctx: Context for initialization (must not be nil)
-// - cfg: Product-service configuration (ServerSettings, DB, handlers)
+// - cfg: Product-service configuration (ServiceTemplateServerSettings, DB, handlers)
 //
 // Returns:
 // - *ApplicationListener: Running service ready for requests
@@ -163,7 +163,7 @@ type ApplicationConfig struct {
 // Example cipher-im usage:
 //
 //	cfg := &ApplicationConfig{
-//	    ServerSettings: cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true),
+//	    ServiceTemplateServerSettings: cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true),
 //	    DB: testDB,
 //	    DBType: cryptoutilTemplateServerRepository.DatabaseTypeSQLite,
 //	    PublicHandlers: func(srv cryptoutilTemplateServer.IPublicServer) error {
@@ -177,8 +177,8 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
 		return nil, fmt.Errorf("config cannot be nil")
-	} else if cfg.ServerSettings == nil {
-		return nil, fmt.Errorf("config.ServerSettings cannot be nil")
+	} else if cfg.ServiceTemplateServerSettings == nil {
+		return nil, fmt.Errorf("config.ServiceTemplateServerSettings cannot be nil")
 	} else if cfg.DB == nil {
 		return nil, fmt.Errorf("config.DB cannot be nil")
 	} else if cfg.PublicServerFactory == nil {
@@ -187,7 +187,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 
 	// Create ServiceTemplate with shared infrastructure.
 	// This initializes telemetry, JWK generation, and optionally barrier service.
-	template, err := cryptoutilTemplateServer.NewServiceTemplate(ctx, cfg.ServerSettings, cfg.DB, cfg.DBType)
+	template, err := cryptoutilTemplateServer.NewServiceTemplate(ctx, cfg.ServiceTemplateServerSettings, cfg.DB, cfg.DBType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create service template: %w", err)
 	}
@@ -207,7 +207,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 	// cfg.PublicHandlers(publicServer) // Inject product-specific routes
 
 	// TODO: Create admin server (reusable across all services).
-	// adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, cfg.ServerSettings, adminTLSCfg)
+	// adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, cfg.ServiceTemplateServerSettings, adminTLSCfg)
 	// if err != nil {
 	//     return nil, fmt.Errorf("failed to create admin server: %w", err)
 	// }
@@ -229,7 +229,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 
 	return &ApplicationListener{
 		app:          nil, // TODO: Populate after Application creation
-		config:       cfg.ServerSettings,
+		config:       cfg.ServiceTemplateServerSettings,
 		shutdownFunc: shutdownFunc,
 		// TODO: Extract actual ports from started servers
 		actualPublicPort:  0,
@@ -247,7 +247,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 // Returns:
 // - []byte: Response body (usually "OK" or JSON status)
 // - error: Non-nil if request fails or times out.
-func SendLivenessCheck(settings *cryptoutilConfig.ServerSettings) ([]byte, error) {
+func SendLivenessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
@@ -269,7 +269,7 @@ func SendLivenessCheck(settings *cryptoutilConfig.ServerSettings) ([]byte, error
 // Returns:
 // - []byte: Response body with dependency status details
 // - error: Non-nil if request fails or dependencies unhealthy.
-func SendReadinessCheck(settings *cryptoutilConfig.ServerSettings) ([]byte, error) {
+func SendReadinessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
@@ -293,7 +293,7 @@ func SendReadinessCheck(settings *cryptoutilConfig.ServerSettings) ([]byte, erro
 //
 // Returns:
 // - error: Non-nil if shutdown request fails to send (service may already be down).
-func SendShutdownRequest(settings *cryptoutilConfig.ServerSettings) error {
+func SendShutdownRequest(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
@@ -345,6 +345,6 @@ func (l *ApplicationListener) ActualPrivatePort() uint16 {
 
 // Config returns the server settings used to configure this listener.
 // Useful for health checks and client connections.
-func (l *ApplicationListener) Config() *cryptoutilConfig.ServerSettings {
+func (l *ApplicationListener) Config() *cryptoutilConfig.ServiceTemplateServerSettings {
 	return l.config
 }

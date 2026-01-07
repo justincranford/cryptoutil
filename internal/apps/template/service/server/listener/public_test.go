@@ -29,7 +29,7 @@ func TestNewPublicHTTPServer_HappyPath(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 
 	require.NoError(t, err)
 	require.NotNil(t, server)
@@ -41,7 +41,7 @@ func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(nil, cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context handling.
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(nil, cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "context cannot be nil")
@@ -54,7 +54,7 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -92,7 +92,7 @@ func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	err = server.Start(nil) //nolint:staticcheck // Testing nil context handling.
@@ -107,7 +107,7 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -171,7 +171,7 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -235,7 +235,7 @@ func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -281,7 +281,7 @@ func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -317,7 +317,7 @@ func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	port := server.ActualPort()
@@ -331,7 +331,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -404,7 +404,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -477,7 +477,7 @@ func TestPublicHTTPServer_Shutdown_DoubleCall(t *testing.T) {
 
 	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -57,7 +57,7 @@ type TelemetryService struct {
 	logsProviderSdk    *logSdk.LoggerProvider     // Not exported, but still needed to do shutdown
 	metricsProviderSdk *metricSdk.MeterProvider   // Not exported, but still needed to do shutdown
 	tracesProviderSdk  *traceSdk.TracerProvider   // Not exported, but still needed to do shutdown
-	settings           *cryptoutilConfig.ServerSettings // Store settings for health checks
+	settings           *cryptoutilConfig.ServiceTemplateServerSettings // Store settings for health checks
 }
 
 const (
@@ -72,7 +72,7 @@ const (
 	MaxTracesBatchSize  = cryptoutilMagic.DefaultTracesBatchSize  // Conservative for traces to prevent memory issues
 )
 
-func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*TelemetryService, error) {
+func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
 
 	if ctx == nil {
@@ -244,7 +244,7 @@ func (s *TelemetryService) Shutdown() {
 	})
 }
 
-func initLogger(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
+func initLogger(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
 	slogLevel, err := ParseLogLevel(settings.LogLevel)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse log level: %w", err)
@@ -306,7 +306,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.ServerSettings) 
 	return slogger, otelProvider, nil
 }
 
-func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.ServerSettings) (*metricSdk.MeterProvider, error) {
+func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*metricSdk.MeterProvider, error) {
 	if settings.VerboseMode {
 		slogger.Debug("initializing metrics provider")
 	}
@@ -385,7 +385,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	return metricsProvider, nil
 }
 
-func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.ServerSettings) (*traceSdk.TracerProvider, error) {
+func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*traceSdk.TracerProvider, error) {
 	if settings.VerboseMode {
 		slogger.Debug("initializing traces provider")
 	}
@@ -478,7 +478,7 @@ func doExampleTraceSpan(ctx context.Context, tracer traceApi.Tracer, slogger *st
 	return spanCtx
 }
 
-func getOtelMetricsTracesAttributes(settings *cryptoutilConfig.ServerSettings) []attributeApi.KeyValue {
+func getOtelMetricsTracesAttributes(settings *cryptoutilConfig.ServiceTemplateServerSettings) []attributeApi.KeyValue {
 	return []attributeApi.KeyValue{
 		oltpSemanticConventions.DeploymentID(settings.OTLPEnvironment),   // deployment.environment.name (e.g. local-standalone, adhoc, dev, qa, preprod, prod)
 		oltpSemanticConventions.HostName(settings.OTLPHostname),          // service.instance.id (e.g. 12)
@@ -488,11 +488,11 @@ func getOtelMetricsTracesAttributes(settings *cryptoutilConfig.ServerSettings) [
 	}
 }
 
-func getOtelLogsAttributes(settings *cryptoutilConfig.ServerSettings) []attributeApi.KeyValue {
+func getOtelLogsAttributes(settings *cryptoutilConfig.ServiceTemplateServerSettings) []attributeApi.KeyValue {
 	return getOtelMetricsTracesAttributes(settings) // same (for now)
 }
 
-func getSlogStdoutAttributes(settings *cryptoutilConfig.ServerSettings) []stdoutLogExporter.Attr {
+func getSlogStdoutAttributes(settings *cryptoutilConfig.ServiceTemplateServerSettings) []stdoutLogExporter.Attr {
 	otelAttrs := getOtelLogsAttributes(settings)
 	slogAttrs := make([]stdoutLogExporter.Attr, 0, len(otelAttrs))
 
@@ -518,7 +518,7 @@ func parseProtocolAndEndpoint(otlpEndpoint *string) (bool, bool, bool, bool, *st
 }
 
 // checkSidecarHealth performs a connectivity check to the OTLP sidecar during startup.
-func checkSidecarHealth(ctx context.Context, settings *cryptoutilConfig.ServerSettings) error {
+func checkSidecarHealth(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
 	// Parse the endpoint to determine protocol and address
 	isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 	if err != nil {
@@ -559,7 +559,7 @@ func checkSidecarHealth(ctx context.Context, settings *cryptoutilConfig.ServerSe
 }
 
 // checkSidecarHealthWithRetry performs connectivity check to OTLP sidecar with retry logic, before init logsProvider; caller must log results.
-func checkSidecarHealthWithRetry(ctx context.Context, settings *cryptoutilConfig.ServerSettings) ([]error, error) {
+func checkSidecarHealthWithRetry(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]error, error) {
 	maxRetries := cryptoutilMagic.DefaultSidecarHealthCheckMaxRetries
 	retryDelay := cryptoutilMagic.DefaultSidecarHealthCheckRetryDelay
 

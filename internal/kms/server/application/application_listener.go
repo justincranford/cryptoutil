@@ -69,7 +69,7 @@ type TLSServerConfig struct {
 	Config              *tls.Config
 }
 
-func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServerSettings) ([]byte, error) {
+func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
@@ -81,7 +81,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServerSettings) 
 	return result, nil
 }
 
-func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServerSettings) ([]byte, error) {
+func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
@@ -93,7 +93,7 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServerSettings)
 	return result, nil
 }
 
-func SendServerListenerShutdownRequest(settings *cryptoutilConfig.ServerSettings) error {
+func SendServerListenerShutdownRequest(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
@@ -106,7 +106,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.ServerSettings
 }
 
 // StartServerListenerApplication creates and starts a new server application listener.
-func StartServerListenerApplication(settings *cryptoutilConfig.ServerSettings) (*ServerApplicationListener, error) {
+func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ServerApplicationListener, error) {
 	ctx := context.Background()
 
 	serverApplicationCore, err := StartServerApplicationCore(ctx, settings)
@@ -422,7 +422,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 	}
 }
 
-func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp, privateFiberApp *fiber.App, publicListener, privateListener net.Listener, settings *cryptoutilConfig.ServerSettings) func() {
+func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp, privateFiberApp *fiber.App, publicListener, privateListener net.Listener, settings *cryptoutilConfig.ServiceTemplateServerSettings) func() {
 	return func() {
 		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
@@ -475,7 +475,7 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 	}
 }
 
-func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServerSettings) fiber.Handler {
+func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
 	return otelfiber.Middleware(
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
@@ -485,7 +485,7 @@ func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Te
 	)
 }
 
-func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServerSettings) func(c *fiber.Ctx) error {
+func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
 
 	if len(settings.AllowedIPs) > 0 {
@@ -656,7 +656,7 @@ func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[s
 	}
 }
 
-func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.ServerSettings) fiber.Handler {
+func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		method := c.Method()
 		for _, supported := range settings.CORSAllowedMethods {
@@ -842,7 +842,7 @@ func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ct
 	}
 }
 
-func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.ServerSettings) fiber.Handler {
+func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
 	return cors.New(cors.Config{ // Cross-Origin Resource Sharing (CORS)
 		AllowOrigins: strings.Join(settings.CORSAllowedOrigins, ","), // cryptoutilConfig.defaultAllowedCORSOrigins
 		AllowMethods: strings.Join(settings.CORSAllowedMethods, ","), // cryptoutilConfig.defaultAllowedCORSMethods
@@ -852,7 +852,7 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.ServerSettin
 	})
 }
 
-func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.ServerSettings) fiber.Handler {
+func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
 	// Content Security Policy for enhanced XSS protection
 	// This CSP is specifically designed to work with Swagger UI while maintaining security
 	csp := buildContentSecurityPolicy(settings)
@@ -873,7 +873,7 @@ func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.ServerSetting
 }
 
 // buildContentSecurityPolicy creates a CSP tailored for the cryptoutil application.
-func buildContentSecurityPolicy(settings *cryptoutilConfig.ServerSettings) string {
+func buildContentSecurityPolicy(settings *cryptoutilConfig.ServiceTemplateServerSettings) string {
 	// Base CSP - very restrictive
 	csp := "default-src 'none';"
 
@@ -955,7 +955,7 @@ var expectedBrowserHeaders = map[string]string{
 }
 
 // publicBrowserAdditionalSecurityHeadersMiddleware adds security headers not covered by Helmet.
-func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServerSettings) fiber.Handler {
+func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
 	// Setup metrics for header validation
 	meter := telemetryService.MetricsProvider.Meter("security-headers")
 
@@ -1051,7 +1051,7 @@ func validateSecurityHeaders(c *fiber.Ctx) []string {
 	return missing
 }
 
-func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.ServerSettings) fiber.Handler {
+func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
 	csrfConfig := csrf.Config{
 		CookieName:        settings.CSRFTokenName,
 		CookieSameSite:    settings.CSRFTokenSameSite,
@@ -1103,7 +1103,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.ServerSettin
 // TRUE  => Skip CSRF check for /oauth2/v1/* and /openid/v1/* OAuth 2.1 endpoints (machine-to-machine, never browser-based)
 // FALSE => Enforce CSRF check for /browser/api/v1/* requests by browser clients (e.g. web apps, Swagger UI)
 // ASSUME: UI Authentication only authorizes browser users to access /browser/api/v1/*.
-func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.ServerSettings) func(c *fiber.Ctx) bool {
+func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.ServiceTemplateServerSettings) func(c *fiber.Ctx) bool {
 	return func(c *fiber.Ctx) bool {
 		url := c.OriginalURL()
 

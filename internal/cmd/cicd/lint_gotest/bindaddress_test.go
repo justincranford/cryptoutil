@@ -41,14 +41,14 @@ func TestExample(t *testing.T) {
 import "testing"
 
 func TestExample(t *testing.T) {
-	settings := &cryptoutilConfig.ServerSettings{
+	settings := &cryptoutilConfig.ServiceTemplateServerSettings{
 		BindPublicAddress: "0.0.0.0",
 		BindPublicPort: 8080,
 	}
 	_ = settings
 }`,
 			wantError:   true,
-			description: "Should fail with 0.0.0.0 in ServerSettings",
+			description: "Should fail with 0.0.0.0 in ServiceTemplateServerSettings",
 		},
 		{
 			name: "unsafe_blank_bind_address",
@@ -57,7 +57,7 @@ func TestExample(t *testing.T) {
 import "testing"
 
 func TestExample(t *testing.T) {
-	settings := &cryptoutilConfig.ServerSettings{
+	settings := &cryptoutilConfig.ServiceTemplateServerSettings{
 		BindPublicAddress: "",
 		BindPublicPort: 8080,
 	}
@@ -73,14 +73,14 @@ func TestExample(t *testing.T) {
 import "testing"
 
 func TestExample(t *testing.T) {
-	settings := &cryptoutilConfig.ServerSettings{
+	settings := &cryptoutilConfig.ServiceTemplateServerSettings{
 		BindPublicAddress: "127.0.0.1",
 		BindPublicPort: 8080,
 	}
 	_ = settings
 }`,
 			wantError:   true,
-			description: "Should fail with direct ServerSettings{} (no NewTestConfig)",
+			description: "Should fail with direct ServiceTemplateServerSettings{} (no NewTestConfig)",
 		},
 		{
 			name: "safe_with_new_test_config",
@@ -168,7 +168,7 @@ func TestCheckBindAddressSafety(t *testing.T) {
 
 func TestExample(t *testing.T) {
 	addr1 := "0.0.0.0:8080"
-	settings := &cryptoutilConfig.ServerSettings{
+	settings := &cryptoutilConfig.ServiceTemplateServerSettings{
 		BindPublicAddress: "",
 		BindPrivateAddress: "",
 	}

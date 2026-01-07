@@ -39,7 +39,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 				require.NotNil(t, server)
 			},
@@ -233,7 +233,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 
 			// Create fresh server for each test.
 			tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
-			server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+			server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 			require.NoError(t, err)
 
 			// Run test function.
@@ -260,7 +260,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				return cryptoutilTemplateServerListener.NewPublicHTTPServer(nil, cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context.
+				return cryptoutilTemplateServerListener.NewPublicHTTPServer(nil, cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context.
 			},
 			expectedError: "context cannot be nil",
 		},
@@ -272,7 +272,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				err = server.Start(nil) //nolint:staticcheck // Testing nil context.
@@ -289,7 +289,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				ctx, cancel := context.WithCancel(context.Background())
@@ -328,7 +328,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServerSettings(), tlsCfg)
+				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				port := server.ActualPort()

@@ -380,7 +380,7 @@ func TestParse_DryRun_Default(t *testing.T) {
 func TestValidateConfiguration_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	s := &ServerSettings{
+	s := &ServiceTemplateServerSettings{
 		BindPublicAddress:   "127.0.0.1",
 		BindPrivateAddress:  "127.0.0.1",
 		BindPublicPort:      8080,
@@ -407,12 +407,12 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings *ServerSettings
+		settings *ServiceTemplateServerSettings
 		errMsg   string
 	}{
 		{
 			name: "blank public bind address",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicAddress:   "",
 				BindPrivateAddress:  "127.0.0.1",
 				BindPublicPort:      8080,
@@ -429,7 +429,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "blank private bind address",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicAddress:   "127.0.0.1",
 				BindPrivateAddress:  "",
 				BindPublicPort:      8080,
@@ -446,7 +446,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "same non-zero ports",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     8080,
 				BindPublicProtocol:  "https",
@@ -461,7 +461,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid public protocol",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "ftp",
@@ -475,7 +475,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid private protocol",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -489,7 +489,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "https public missing TLS config",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -502,7 +502,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "https private missing TLS config",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "http",
@@ -515,7 +515,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid database URL format",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -531,7 +531,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid CORS origin format",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -547,7 +547,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid log level",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -562,7 +562,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "browser rate limit zero",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -577,7 +577,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "service rate limit zero",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",
@@ -592,7 +592,7 @@ func TestValidateConfiguration_Errors(t *testing.T) {
 		},
 		{
 			name: "invalid OTLP endpoint format",
-			settings: &ServerSettings{
+			settings: &ServiceTemplateServerSettings{
 				BindPublicPort:      8080,
 				BindPrivatePort:     9090,
 				BindPublicProtocol:  "https",

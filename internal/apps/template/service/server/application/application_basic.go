@@ -20,12 +20,12 @@ type ApplicationBasic struct {
 	TelemetryService  *cryptoutilTelemetry.TelemetryService
 	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 	JWKGenService     *cryptoutilJose.JWKGenService
-	Settings          *cryptoutilConfig.ServerSettings
+	Settings          *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
 // StartApplicationBasic initializes basic service infrastructure.
 // This includes telemetry, unseal keys, and JWK generation services.
-func StartApplicationBasic(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*ApplicationBasic, error) {
+func StartApplicationBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ApplicationBasic, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {

@@ -39,7 +39,7 @@ func createTestTLSConfig() *cryptoutilTLSGenerator.TLSGeneratedSettings {
 }
 
 var (
-	testSettings   *cryptoutilConfig.ServerSettings
+	testSettings   *cryptoutilConfig.ServiceTemplateServerSettings
 	testServer     *Server
 	testBaseURL    string
 	testHTTPClient *http.Client

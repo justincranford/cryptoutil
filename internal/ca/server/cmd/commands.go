@@ -59,7 +59,7 @@ Examples:
 			}()
 
 			// Load configuration.
-			var settings *cryptoutilConfig.ServerSettings
+			var settings *cryptoutilConfig.ServiceTemplateServerSettings
 
 			var err error
 

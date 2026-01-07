@@ -68,7 +68,7 @@ func TestNewSQLRepository_NilInputs(t *testing.T) {
 		name          string
 		ctx           context.Context
 		telemetry     *cryptoutilTelemetry.TelemetryService
-		settings      *cryptoutilConfig.ServerSettings
+		settings      *cryptoutilConfig.ServiceTemplateServerSettings
 		errorContains string
 	}{
 		{

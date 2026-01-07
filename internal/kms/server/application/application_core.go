@@ -22,10 +22,10 @@ type ServerApplicationCore struct {
 	OrmRepository          *cryptoutilOrmRepository.OrmRepository
 	BarrierService         *cryptoutilBarrierService.BarrierService
 	BusinessLogicService   *cryptoutilBusinessLogic.BusinessLogicService
-	Settings               *cryptoutilConfig.ServerSettings
+	Settings               *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
-func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServerSettings) (*ServerApplicationCore, error) {
+func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ServerApplicationCore, error) {
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start basic server application: %w", err)

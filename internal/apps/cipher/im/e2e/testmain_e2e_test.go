@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast E2E tests.
 
 	sharedAppConfig = &config.AppConfig{
-		ServerSettings: *settings,
+		ServiceTemplateServerSettings: *settings,
 		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}
 

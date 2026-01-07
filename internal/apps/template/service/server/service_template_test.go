@@ -56,8 +56,8 @@ func initTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-// defaultTestConfig creates minimal valid ServerSettings for tests.
-func defaultTestConfig() *cryptoutilConfig.ServerSettings {
+// defaultTestConfig creates minimal valid ServiceTemplateServerSettings for tests.
+func defaultTestConfig() *cryptoutilConfig.ServiceTemplateServerSettings {
 	return cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
 }
 

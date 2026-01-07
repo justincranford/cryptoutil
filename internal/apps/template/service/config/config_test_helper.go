@@ -12,7 +12,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
-// NewTestConfig creates a ServerSettings instance for testing without calling Parse().
+// NewTestConfig creates a ServiceTemplateServerSettings instance for testing without calling Parse().
 // This bypasses pflag's global FlagSet to allow multiple config creations in tests.
 //
 // Use this in tests instead of NewForJOSEServer/NewForCAServer/etc to avoid
@@ -23,8 +23,8 @@ import (
 //   - bindPort: public bind port (use 0 for dynamic allocation)
 //   - devMode: enable development mode (in-memory SQLite, relaxed security)
 //
-// Returns directly populated ServerSettings matching NewForJOSEServer/NewForCAServer behavior.
-func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
+// Returns directly populated ServiceTemplateServerSettings matching NewForJOSEServer/NewForCAServer behavior.
+func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServiceTemplateServerSettings {
 	// Generate unique OTLP instance ID for test isolation.
 	instanceID := googleUuid.New().String()
 
@@ -34,7 +34,7 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettin
 		dbURL = "sqlite://file::memory:?cache=shared" // In-memory SQLite for dev/test mode.
 	}
 
-	s := &ServerSettings{
+	s := &ServiceTemplateServerSettings{
 		TLSPublicMode:               TLSModeAuto,
 		TLSPrivateMode:              TLSModeAuto,
 		ConfigFile:                  []string{},

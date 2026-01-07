@@ -13,7 +13,7 @@ import (
 // TestValidateConfiguration_Reject0000InDevMode tests that validateConfiguration rejects 0.0.0.0 in dev mode.
 func TestValidateConfiguration_Reject0000InDevMode(t *testing.T) {
 	// Test public address validation.
-	s := &ServerSettings{
+	s := &ServiceTemplateServerSettings{
 		DevMode:             true,
 		BindPublicAddress:   "0.0.0.0",
 		BindPublicPort:      8080,
@@ -32,7 +32,7 @@ func TestValidateConfiguration_Reject0000InDevMode(t *testing.T) {
 	require.Contains(t, err.Error(), "CRITICAL: bind public address cannot be 0.0.0.0 in test/dev mode")
 
 	// Test private address validation.
-	s2 := &ServerSettings{
+	s2 := &ServiceTemplateServerSettings{
 		DevMode:             true,
 		BindPublicAddress:   "127.0.0.1",
 		BindPublicPort:      8080,
@@ -53,7 +53,7 @@ func TestValidateConfiguration_Reject0000InDevMode(t *testing.T) {
 
 // TestValidateConfiguration_Allow0000InProdMode tests that validateConfiguration allows 0.0.0.0 in production mode.
 func TestValidateConfiguration_Allow0000InProdMode(t *testing.T) {
-	s := &ServerSettings{
+	s := &ServiceTemplateServerSettings{
 		DevMode:             false,
 		BindPublicAddress:   "0.0.0.0",
 		BindPublicPort:      8080,
