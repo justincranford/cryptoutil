@@ -7,7 +7,6 @@ package im
 import (
 	"context"
 	"crypto/tls"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"testing"
@@ -15,10 +14,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilConfig "cryptoutil/internal/shared/config"
@@ -39,21 +35,10 @@ func initTestConfig() *config.AppConfig {
 func TestHTTPGet(t *testing.T) {
 	ctx := context.Background()
 
-	// Initialize in-memory SQLite database.
-	sqlDB, err := sqlOpen("sqlite", "file::memory:?cache=shared")
-	require.NoError(t, err)
-
-	// Apply migrations using embedded migration files.
-	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
-	require.NoError(t, err)
-
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
-	require.NoError(t, err)
-
 	// Create server with dynamic ports.
 	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
+	srv, err := server.NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
 	// Mark server as ready after successful initialization.
@@ -139,21 +124,10 @@ func TestHTTPPost(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Initialize in-memory SQLite database.
-	sqlDB, err := sqlOpen("sqlite", "file::memory:?cache=shared")
-	require.NoError(t, err)
-
-	// Apply migrations using embedded migration files.
-	err = repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite)
-	require.NoError(t, err)
-
-	gormDB, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{})
-	require.NoError(t, err)
-
 	// Create server with dynamic ports.
 	cfg := initTestConfig()
 
-	srv, err := server.New(ctx, cfg, gormDB, repository.DatabaseTypeSQLite)
+	srv, err := server.NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start server in background with cancellable context.
@@ -218,19 +192,4 @@ func TestIMServer(t *testing.T) {
 	// This test would require mocking os.Signal and context handling.
 	// Skipping for now as imServer is tested via integration tests.
 	t.Skip("imServer requires signal mocking - tested via integration tests")
-}
-
-// sqlOpen wrapper for test cleanup.
-func sqlOpen(driver, dsn string) (*sql.DB, error) {
-	switch driver {
-	case "sqlite":
-		db, err := sql.Open("sqlite", dsn)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open SQLite database: %w", err)
-		}
-
-		return db, nil
-	default:
-		return nil, fmt.Errorf("unsupported driver: %s", driver)
-	}
 }

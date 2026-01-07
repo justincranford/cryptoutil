@@ -222,7 +222,7 @@ func TestStart_ContextCancelled(t *testing.T) {
 
 	cfg := initTestConfig()
 
-	srv, err := server.New(context.Background(), cfg, testDB, repository.DatabaseTypeSQLite)
+	srv, err := server.NewFromConfig(context.Background(), cfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -9,12 +9,10 @@ import (
 	"context"
 	"fmt"
 
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	tlsGenerator "cryptoutil/internal/shared/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -22,7 +20,6 @@ import (
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/template/server/barrier"
 	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
-	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"
 )
 
 // CipherIMServer represents the cipher-im service application.
@@ -190,157 +187,6 @@ func NewFromConfig(ctx context.Context, cfg *config.AppConfig) (*CipherIMServer,
 	}, nil
 }
 
-// New creates a new cipher-im server using the template.
-// Takes AppConfig (which embeds ServerSettings), database instance, and database type.
-// DEPRECATED: Use NewFromConfig instead - this function requires manual database management.
-func New(ctx context.Context, cfg *config.AppConfig, db *gorm.DB, dbType repository.DatabaseType) (*CipherIMServer, error) {
-	if ctx == nil {
-		return nil, fmt.Errorf("context cannot be nil")
-	} else if cfg == nil {
-		return nil, fmt.Errorf("config cannot be nil")
-	} else if db == nil {
-		return nil, fmt.Errorf("database cannot be nil")
-	}
-
-	// Apply database migrations.
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
-	}
-
-	err = repository.ApplyMigrations(sqlDB, dbType)
-	if err != nil {
-		return nil, fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	// Convert repository.DatabaseType to template.DatabaseType.
-	var templateDBType cryptoutilTemplateServerRepository.DatabaseType
-
-	switch dbType {
-	case repository.DatabaseTypePostgreSQL:
-		templateDBType = cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL
-	case repository.DatabaseTypeSQLite:
-		templateDBType = cryptoutilTemplateServerRepository.DatabaseTypeSQLite
-	default:
-		return nil, fmt.Errorf("unsupported database type: %s", dbType)
-	}
-
-	// Create ServiceTemplate with shared infrastructure (telemetry, JWK gen).
-	template, err := cryptoutilTemplateServer.NewServiceTemplate(ctx, &cfg.ServerSettings, db, templateDBType)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create service template: %w", err)
-	}
-
-	// Initialize Barrier Service for key encryption at rest.
-	// For cipher-im demo service, create a simple in-memory unseal keys service using JWE encryption.
-	// Production services should use NewUnsealKeysServiceFromSettings with proper HSM/KMS integration.
-	_, unsealJWK, _, _, _, err := template.JWKGen().GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate unseal JWK: %w", err)
-	}
-
-	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create unseal keys service: %w", err)
-	}
-
-	// Create GORM barrier repository adapter.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create barrier repository: %w", err)
-	}
-
-	// Create barrier service with GORM repository.
-	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(
-		ctx,
-		template.Telemetry(),
-		template.JWKGen(),
-		barrierRepo,
-		unsealKeysService,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create barrier service: %w", err)
-	}
-
-	// Initialize repositories.
-	userRepo := repository.NewUserRepository(db)
-	messageRepo := repository.NewMessageRepository(db)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(db, barrierService)
-
-	// Create TLS config for public server using auto-generated certificates.
-	publicTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost, "cipher-im-server"},
-		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate public TLS config: %w", err)
-	}
-
-	// Create public server with handlers.
-	// Use BindPublicPort from embedded ServerSettings.
-	publicServer, err := NewPublicServer(ctx, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, template.JWKGen(), barrierService, cfg.JWTSecret, publicTLSCfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create public server: %w", err)
-	}
-
-	// Create admin server TLS config using auto-generated certificates.
-	adminTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)
-	}
-
-	// Create admin server using ServerSettings from AppConfig.
-	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, &cfg.ServerSettings, adminTLSCfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create admin server: %w", err)
-	}
-
-	// Create rotation service for manual key rotation admin endpoints.
-	rotationService, err := cryptoutilTemplateBarrier.NewRotationService(
-		template.JWKGen(),
-		barrierRepo,
-		unsealKeysService,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create rotation service: %w", err)
-	}
-
-	// Register rotation endpoints on admin server.
-	// Routes: POST /admin/v1/barrier/rotate/{root,intermediate,content}
-	cryptoutilTemplateBarrier.RegisterRotationRoutes(adminServer.App(), rotationService)
-
-	// Create status service for barrier keys status endpoint.
-	statusService, err := cryptoutilTemplateBarrier.NewStatusService(barrierRepo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create status service: %w", err)
-	}
-
-	// Register status endpoint on admin server.
-	// Route: GET /admin/v1/barrier/keys/status
-	cryptoutilTemplateBarrier.RegisterStatusRoutes(adminServer.App(), statusService)
-
-	// Create application with both servers.
-	app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create application: %w", err)
-	}
-
-	return &CipherIMServer{
-		app:              app,
-		db:               db,
-		telemetryService: template.Telemetry(),
-		jwkGenService:    template.JWKGen(),
-		barrierService:   barrierService,
-		userRepo:         userRepo,
-		messageRepo:      messageRepo,
-	}, nil
-}
-
 // Start starts both public and admin servers.
 func (s *CipherIMServer) Start(ctx context.Context) error {
 	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
@@ -377,6 +223,21 @@ func (s *CipherIMServer) PublicBaseURL() string {
 // AdminBaseURL returns the base URL for the admin server.
 func (s *CipherIMServer) AdminBaseURL() string {
 	return s.app.AdminBaseURL()
+}
+
+// DB returns the database instance.
+func (s *CipherIMServer) DB() *gorm.DB {
+	return s.db
+}
+
+// JWKGen returns the JWK generation service.
+func (s *CipherIMServer) JWKGen() *cryptoutilJose.JWKGenService {
+	return s.jwkGenService
+}
+
+// Telemetry returns the telemetry service.
+func (s *CipherIMServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+	return s.telemetryService
 }
 
 // SetReady marks the server as ready to accept traffic.

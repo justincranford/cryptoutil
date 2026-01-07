@@ -72,7 +72,7 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 
 	// Check for help flags.
 	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
-		printIMUsage(stdout, stderr)
+		printIMUsage(stdout)
 
 		return 0
 	}
@@ -80,74 +80,47 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 	// Route to subcommand.
 	switch args[0] {
 	case "version":
-		printIMVersion(stdout, stderr)
+		printIMVersion(stdout)
 
 		return 0
 	case "server":
 		return imServiceServerStart(args[1:], stdout, stderr)
 	case "client":
-		return imClient(args[1:], stdout, stderr)
+		return imServiceClient(args[1:], stdout, stderr)
 	case "init":
-		return imInit(args[1:], stdout, stderr)
+		return imServiceInit(args[1:], stdout, stderr)
 	case "health":
-		return imHealth(args[1:], stdout, stderr)
+		return imServiceHealth(args[1:], stdout, stderr)
 	case "livez":
-		return imLivez(args[1:], stdout, stderr)
+		return imServiceLivez(args[1:], stdout, stderr)
 	case "readyz":
-		return imReadyz(args[1:], stdout, stderr)
+		return imServiceReadyz(args[1:], stdout, stderr)
 	case "shutdown":
-		return imShutdown(args[1:], stdout, stderr)
+		return imServiceShutdown(args[1:], stdout, stderr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "Unknown subcommand: %s\n\n", args[0])
-		printIMUsage(stdout, stderr)
+		printIMUsage(stdout)
 
 		return 1
 	}
 }
 
 // printIMVersion prints the instant messaging service version information.
-func printIMVersion(stdout, stderr io.Writer) {
+func printIMVersion(stdout io.Writer) {
 	_, _ = fmt.Fprintln(stdout, "cipher-im service")
 	_, _ = fmt.Fprintln(stdout, "Part of cryptoutil cipher product")
 	_, _ = fmt.Fprintln(stdout, "Version information available via Docker image tags")
 }
 
 // printIMUsage prints the instant messaging service usage information.
-func printIMUsage(stdout, stderr io.Writer) {
-	_, _ = fmt.Fprintln(stderr, `Usage: cipher im <subcommand> [options]
-
-Available subcommands:
-  version     Print version information
-  server      Start the instant messaging server (default)
-  client      Run client operations
-  init        Initialize database and configuration
-  health      Check service health (public API)
-  livez       Check service liveness (admin API)
-  readyz      Check service readiness (admin API)
-  shutdown    Trigger graceful shutdown (admin API)
-
-Use "learn im <subcommand> help" for subcommand-specific help.
-Version information is available via Docker image tags.`)
+func printIMUsage(stderr io.Writer) {
+	_, _ = fmt.Fprintln(stderr, IMUsageMain)
 }
 
 // imServiceServerStart implements the server subcommand.
 func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		_, _ = fmt.Fprintln(stderr, `Usage: cipher im server [options]
-
-Description:
-  Start the instant messaging server with database initialization.
-  Supports both SQLite (default) and PostgreSQL databases.
-
-Options:
-  --database-url URL    Database URL (default: SQLite in-memory)
-                        SQLite: sqliteInMemoryURL
-                        PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
-  --help, -h            Show this help message
-
-Examples:
-  learn im server
-  learn im server --database-url file:/tmp/cipher.db`)
+		_, _ = fmt.Fprintln(stderr, IMUsageServer)
 
 		return 0
 	}
@@ -167,14 +140,6 @@ Examples:
 		}
 	}
 
-	// Initialize database (PostgreSQL or SQLite).
-	db, err := initDatabase(ctx, databaseURL)
-	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "❌ Failed to initialize database: %v\n", err)
-
-		return 1
-	}
-
 	// Create cipher-im server configuration using AppConfig.
 	// AppConfig embeds ServerSettings and adds cipher-im-specific settings.
 	cfg := config.DefaultAppConfig()
@@ -182,8 +147,13 @@ Examples:
 	cfg.BindPrivatePort = cryptoutilMagic.DefaultPrivatePortCipherIM
 	cfg.OTLPService = "cipher-im"
 	cfg.OTLPEnabled = false // Demo service uses in-process telemetry only.
+	cfg.DatabaseURL = databaseURL
+	if cfg.DatabaseURL == "" {
+		cfg.DatabaseURL = sqliteInMemoryURL
+	}
+	cfg.JWTSecret = "cipher-im-demo-secret" // Demo secret for alpha project
 
-	srv, err := server.New(ctx, cfg, db, determineDatabaseType(db))
+	srv, err := server.NewFromConfig(ctx, cfg)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
 
@@ -225,20 +195,11 @@ Examples:
 	return 0
 }
 
-// imClient implements the client subcommand.
+// imServiceClient implements the client subcommand.
 // CLI wrapper for client operations.
-func imClient(args []string, stdout, stderr io.Writer) int {
+func imServiceClient(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		_, _ = fmt.Fprintln(stderr, `Usage: cipher im client [options]
-
-Description:
-  Run client operations for instant messaging service.
-
-Options:
-  --help, -h    Show this help message
-
-Examples:
-  learn im client`)
+		_, _ = fmt.Fprintln(stderr, IMUsageClient)
 
 		return 0
 	}
@@ -249,22 +210,11 @@ Examples:
 	return 1
 }
 
-// imInit implements the init subcommand.
+// imServiceInit implements the init subcommand.
 // CLI wrapper for database and configuration initialization.
-func imInit(args []string, stdout, stderr io.Writer) int {
+func imServiceInit(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		_, _ = fmt.Fprintln(stderr, `Usage: cipher im init [options]
-
-Description:
-  Initialize database schema and configuration for instant messaging service.
-
-Options:
-  --config PATH    Configuration file path
-  --help, -h       Show this help message
-
-Examples:
-  learn im init
-  learn im init --config configs/learn/im/config.yml`)
+		_, _ = fmt.Fprintln(stderr, IMUsageInit)
 
 		return 0
 	}
@@ -275,25 +225,11 @@ Examples:
 	return 1
 }
 
-// imHealth implements the health subcommand.
+// imServiceHealth implements the health subcommand.
 // CLI wrapper calling the public health check API.
-func imHealth(args []string, stdout, stderr io.Writer) int {
+func imServiceHealth(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		_, _ = fmt.Fprintln(stderr, `Usage: cipher im health [options]
-
-Description:
-  Check service health via public API endpoint.
-  Calls GET /health endpoint on the public server.
-
-Options:
-  --url URL      Service URL (default: https://127.0.0.1:8888)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  learn im health
-  learn im health --url https://localhost:8888
-  learn im health --cacert /path/to/ca.pem`)
+		_, _ = fmt.Fprintln(stderr, IMUsageHealth)
 
 		return 0
 	}
@@ -351,24 +287,11 @@ Examples:
 	return 1
 }
 
-// imLivez implements the livez subcommand.
+// imServiceLivez implements the livez subcommand.
 // CLI wrapper calling the admin liveness check API.
-func imLivez(args []string, stdout, stderr io.Writer) int {
+func imServiceLivez(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, `Usage: cipher im livez [options]
-
-Description:
-  Check service liveness via admin API endpoint.
-  Calls GET /admin/v1/livez endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  learn im livez
-  learn im livez --url https://localhost:9090`)
+		fmt.Fprintln(stderr, IMUsageLivez)
 
 		return 0
 	}
@@ -429,24 +352,11 @@ Examples:
 	return 1
 }
 
-// imReadyz implements the readyz subcommand.
+// imServiceReadyz implements the readyz subcommand.
 // CLI wrapper calling the admin readiness check API.
-func imReadyz(args []string, stdout, stderr io.Writer) int {
+func imServiceReadyz(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, `Usage: cipher im readyz [options]
-
-Description:
-  Check service readiness via admin API endpoint.
-  Calls GET /admin/v1/readyz endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --help, -h     Show this help message
-
-Examples:
-  learn im readyz
-  learn im readyz --url https://localhost:9090`)
+		fmt.Fprintln(stderr, IMUsageReadyz)
 
 		return 0
 	}
@@ -507,26 +417,11 @@ Examples:
 	return 1
 }
 
-// imShutdown implements the shutdown subcommand.
+// imServiceShutdown implements the shutdown subcommand.
 // CLI wrapper calling the admin graceful shutdown API.
-func imShutdown(args []string, stdout, stderr io.Writer) int {
+func imServiceShutdown(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, `Usage: cipher im shutdown [options]
-
-Description:
-  Trigger graceful shutdown via admin API endpoint.
-  Calls POST /admin/v1/shutdown endpoint on the admin server.
-
-Options:
-  --url URL      Admin URL (default: https://127.0.0.1:9090)
-  --cacert FILE  CA certificate file for TLS validation
-  --force        Force shutdown without graceful drain
-  --help, -h     Show this help message
-
-Examples:
-  learn im shutdown
-  learn im shutdown --url https://localhost:9090
-  learn im shutdown --force`)
+		fmt.Fprintln(stderr, IMUsageShutdown)
 
 		return 0
 	}

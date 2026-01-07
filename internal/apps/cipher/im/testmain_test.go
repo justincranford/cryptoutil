@@ -37,7 +37,7 @@ var (
 func TestMain(m *testing.M) {
 	// Create in-memory SQLite configuration for testing.
 	settings := cryptoutilConfig.RequireNewForTest("cipher-im-test")
-	settings.DatabaseURL = sqliteInMemoryURL
+	settings.DatabaseURL = "file::memory:?cache=shared"
 
 	sharedAppConfig := &config.AppConfig{
 		ServerSettings: *settings,
