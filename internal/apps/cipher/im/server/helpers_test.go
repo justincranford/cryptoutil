@@ -8,13 +8,13 @@ import (
 	"testing"
 
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // initTestConfig creates a properly configured CipherImServerSettings for testing.
 func initTestConfig() *config.CipherImServerSettings {
-	cfg := config.DefaultAppConfig()
+	cfg := config.DefaultTestConfig()
 	cfg.BindPublicPort = 0                                                          // Dynamic port allocation for tests
 	cfg.BindPrivatePort = 0                                                         // Dynamic port allocation for tests
 	cfg.OTLPService = "cipher-im-test"                                              // Required for telemetry initialization

@@ -139,7 +139,7 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 func TestGetRealmConfig_ExistingRealms(t *testing.T) {
 	t.Parallel()
 
-	cfg := config.DefaultAppConfig()
+	cfg := config.DefaultTestConfig()
 
 	tests := []struct {
 		name           string
@@ -179,12 +179,12 @@ func TestGetRealmConfig_FallbackToDefault(t *testing.T) {
 	}{
 		{
 			name:      "empty realm name",
-			cfg:       config.DefaultAppConfig(),
+			cfg:       config.DefaultTestConfig(),
 			realmName: "",
 		},
 		{
 			name:      "nonexistent realm",
-			cfg:       config.DefaultAppConfig(),
+			cfg:       config.DefaultTestConfig(),
 			realmName: "nonexistent",
 		},
 		{

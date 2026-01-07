@@ -99,6 +99,7 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 		return imServiceShutdown(args[1:], stdout, stderr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "Unknown subcommand: %s\n\n", args[0])
+
 		printIMUsage(stdout)
 
 		return 1
@@ -127,31 +128,33 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 
 	ctx := context.Background()
 
-	// Parse flags.
-	databaseURL := ""
+	// Parse configuration using config.Parse() which leverages viper+pflag.
+	// This replaces the manual flag parsing and DefaultAppConfig() pattern.
+	// The Parse() function:
+	//   1. Calls parent ServiceTemplateServerSettings.Parse() for base settings
+	//   2. Adds cipher-im specific flags (JWE algorithm, message constraints, JWT secret)
+	//   3. Merges config files, environment variables, and command-line flags
+	//   4. Returns fully populated CipherImServerSettings
+	//
+	// Note: We prepend "start" as the subcommand for Parse() to validate.
+	argsWithSubcommand := append([]string{"start"}, args...)
 
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case databaseURLFlag:
-			if i+1 < len(args) && databaseURL == "" { // Only set if not already set
-				databaseURL = args[i+1]
-				i++ // Skip next arg
-			}
-		}
+	cfg, err := config.Parse(argsWithSubcommand, true)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
+
+		return 1
 	}
 
-	// Create cipher-im server configuration using CipherImServerSettings.
-	// CipherImServerSettings embeds ServiceTemplateServerSettings and adds cipher-im-specific settings.
-	cfg := config.DefaultAppConfig()
-	cfg.BindPublicPort = cryptoutilMagic.DefaultPublicPortCipherIM
-	cfg.BindPrivatePort = cryptoutilMagic.DefaultPrivatePortCipherIM
-	cfg.OTLPService = "cipher-im"
-	cfg.OTLPEnabled = false // Demo service uses in-process telemetry only.
-	cfg.DatabaseURL = databaseURL
+	// Override demo-specific defaults if not explicitly set.
+	// For production deployments, these should be provided via config file or environment variables.
 	if cfg.DatabaseURL == "" {
 		cfg.DatabaseURL = sqliteInMemoryURL
 	}
-	cfg.JWTSecret = "cipher-im-demo-secret" // Demo secret for alpha project
+
+	if cfg.JWTSecret == "" {
+		cfg.JWTSecret = "cipher-im-demo-secret" // Demo secret for alpha project
+	}
 
 	srv, err := server.NewFromConfig(ctx, cfg)
 	if err != nil {
@@ -169,8 +172,8 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 
 	go func() {
 		_, _ = fmt.Fprintf(stdout, "🚀 Starting cipher-im service...\n")
-		_, _ = fmt.Fprintf(stdout, "   Public Server: https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPublicPortCipherIM)
-		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPrivatePortCipherIM)
+		_, _ = fmt.Fprintf(stdout, "   Public Server: https://127.0.0.1:%d\n", cfg.BindPublicPort)
+		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://127.0.0.1:%d\n", cfg.BindPrivatePort)
 
 		errChan <- srv.Start(ctx)
 	}()

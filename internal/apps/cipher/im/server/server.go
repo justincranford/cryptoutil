@@ -13,6 +13,7 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	tlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -47,14 +48,51 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	// Create admin server first (needed for ApplicationListener).
-	adminTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)
+	// Generate TLS configuration for admin server based on config settings.
+	// Uses TLSPrivateMode (static, mixed, auto) from ServiceTemplateServerSettings.
+	// For demo/dev environments, typically uses TLSModeAuto (auto-generated certificates).
+	var adminTLSCfg *tlsGenerator.TLSGeneratedSettings
+
+	var err error
+
+	// Use TLSPrivateMode to determine how to generate admin TLS configuration.
+	// Empty string defaults to auto mode for backward compatibility.
+	tlsPrivateMode := cfg.TLSPrivateMode
+	if tlsPrivateMode == "" {
+		tlsPrivateMode = cryptoutilConfig.TLSModeAuto
+	}
+
+	switch tlsPrivateMode {
+	case cryptoutilConfig.TLSModeStatic:
+		// Static mode: Use pre-provided certificates from config.
+		adminTLSCfg = &tlsGenerator.TLSGeneratedSettings{
+			StaticCertPEM: cfg.TLSStaticCertPEM,
+			StaticKeyPEM:  cfg.TLSStaticKeyPEM,
+		}
+	case cryptoutilConfig.TLSModeMixed:
+		// Mixed mode: Generate server cert from CA.
+		adminTLSCfg, err = tlsGenerator.GenerateServerCertFromCA(
+			cfg.TLSMixedCACertPEM,
+			cfg.TLSMixedCAKeyPEM,
+			cfg.TLSPrivateDNSNames,
+			cfg.TLSPrivateIPAddresses,
+			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate admin TLS config (mixed mode): %w", err)
+		}
+	case cryptoutilConfig.TLSModeAuto:
+		// Auto mode: Fully auto-generate CA hierarchy and server certificate.
+		adminTLSCfg, err = tlsGenerator.GenerateAutoTLSGeneratedSettings(
+			cfg.TLSPrivateDNSNames,
+			cfg.TLSPrivateIPAddresses,
+			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate admin TLS config (auto mode): %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported TLS private mode: %s", tlsPrivateMode)
 	}
 
 	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, &cfg.ServiceTemplateServerSettings, adminTLSCfg)
@@ -122,16 +160,54 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	messageRepo := repository.NewMessageRepository(core.DB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(core.DB, barrierService)
 
-	// Create TLS config for public server using auto-generated certificates.
-	publicTLSCfg, err := tlsGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost, "cipher-im-server"},
-		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-	)
-	if err != nil {
+	// Generate TLS configuration for public server based on config settings.
+	// Uses TLSPublicMode (static, mixed, auto) from ServiceTemplateServerSettings.
+	var publicTLSCfg *tlsGenerator.TLSGeneratedSettings
+
+	// Use TLSPublicMode to determine how to generate public TLS configuration.
+	// Empty string defaults to auto mode for backward compatibility.
+	tlsPublicMode := cfg.TLSPublicMode
+	if tlsPublicMode == "" {
+		tlsPublicMode = cryptoutilConfig.TLSModeAuto
+	}
+
+	switch tlsPublicMode {
+	case cryptoutilConfig.TLSModeStatic:
+		// Static mode: Use pre-provided certificates from config.
+		publicTLSCfg = &tlsGenerator.TLSGeneratedSettings{
+			StaticCertPEM: cfg.TLSStaticCertPEM,
+			StaticKeyPEM:  cfg.TLSStaticKeyPEM,
+		}
+	case cryptoutilConfig.TLSModeMixed:
+		// Mixed mode: Generate server cert from CA.
+		publicTLSCfg, err = tlsGenerator.GenerateServerCertFromCA(
+			cfg.TLSMixedCACertPEM,
+			cfg.TLSMixedCAKeyPEM,
+			cfg.TLSPublicDNSNames,
+			cfg.TLSPublicIPAddresses,
+			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		)
+		if err != nil {
+			core.Shutdown()
+
+			return nil, fmt.Errorf("failed to generate public TLS config (mixed mode): %w", err)
+		}
+	case cryptoutilConfig.TLSModeAuto:
+		// Auto mode: Fully auto-generate CA hierarchy and server certificate.
+		publicTLSCfg, err = tlsGenerator.GenerateAutoTLSGeneratedSettings(
+			cfg.TLSPublicDNSNames,
+			cfg.TLSPublicIPAddresses,
+			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		)
+		if err != nil {
+			core.Shutdown()
+
+			return nil, fmt.Errorf("failed to generate public TLS config (auto mode): %w", err)
+		}
+	default:
 		core.Shutdown()
 
-		return nil, fmt.Errorf("failed to generate public TLS config: %w", err)
+		return nil, fmt.Errorf("unsupported TLS public mode: %s", tlsPublicMode)
 	}
 
 	// Create public server with handlers.

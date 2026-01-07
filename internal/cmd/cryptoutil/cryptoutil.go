@@ -16,16 +16,22 @@ import (
 )
 
 func Execute() {
-	executable := os.Args[0] // Example executable: ./cryptoutil
+	i := 0
+
+	executable := os.Args[i++] // Example executable: ./cryptoutil
 	if len(os.Args) < 2 {
 		printUsage(executable)
 		os.Exit(1)
 	}
 
-	product := os.Args[1]     // Example product: kms, identity, jose, ca, learn
-	parameters := os.Args[2:] // Example parameters: --config-file, --port, --host, etc.
+	// TODO product := os.Args[i++] // Example products: sm, identity, jose, pki, cipher
+	service := os.Args[i++]     // Example services: kms, ca, ja, im, authz, idp, rs, rp, spa
+	parameters := os.Args[i++:] // Example parameters: --config-file, --port, --host, etc.
 
-	switch product {
+	// TODO fix the switch values to use product values, and call corresponding PRODUCT.go
+	// current implementation is a mismatch of product and service names to be fixed later
+
+	switch service {
 	case "kms":
 		cryptoutilKmsCmd.Server(parameters)
 	case "identity":
@@ -41,7 +47,7 @@ func Execute() {
 		printUsage(executable)
 	default:
 		printUsage(executable)
-		fmt.Printf("Unknown command: %s %s\n", executable, product)
+		fmt.Printf("Unknown command: %s %s\n", executable, service)
 		os.Exit(1)
 	}
 }

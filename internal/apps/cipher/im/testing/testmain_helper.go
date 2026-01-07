@@ -18,11 +18,11 @@ import (
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 )
 
 // TestServerResources holds shared resources created by SetupTestServer.
@@ -69,6 +69,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 
 	// Generate TLS config for HTTP client.
 	var err error
+
 	resources.TLSCfg, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{cryptoutilMagic.HostnameLocalhost},
 		[]string{cryptoutilMagic.IPv4Loopback},
@@ -87,7 +88,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 	// Create CipherImServerSettings with test settings.
 	cfg := &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-test"),
-		JWTSecret:      jwtSecretID.String(),
+		JWTSecret:                     jwtSecretID.String(),
 	}
 	cfg.DatabaseURL = dsn // Set database URL for NewFromConfig
 
