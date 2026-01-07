@@ -17,7 +17,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"

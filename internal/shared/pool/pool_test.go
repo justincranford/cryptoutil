@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"

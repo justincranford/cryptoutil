@@ -9,7 +9,7 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
+	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 )
 
 // initTestConfig creates a properly configured AppConfig for testing.

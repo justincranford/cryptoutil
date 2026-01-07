@@ -13,13 +13,13 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	tlsGenerator "cryptoutil/internal/template/config/tls_generator"
+	tlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilTemplateServer "cryptoutil/internal/template/server"
-	cryptoutilTemplateBarrier "cryptoutil/internal/template/server/barrier"
-	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
+	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 )
 
 // CipherIMServer represents the cipher-im service application.

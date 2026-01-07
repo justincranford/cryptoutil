@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	_ "github.com/jackc/pgx/v5/stdlib"

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilTemplateServerRealms "cryptoutil/internal/template/server/realms"
+	cryptoutilTemplateServerRealms "cryptoutil/internal/apps/template/service/server/realms"
 
 	"github.com/stretchr/testify/require"
 )

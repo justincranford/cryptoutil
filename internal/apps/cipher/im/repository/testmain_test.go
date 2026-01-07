@@ -16,12 +16,12 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilTemplateBarrier "cryptoutil/internal/template/server/barrier"
+	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 )
 
 var (

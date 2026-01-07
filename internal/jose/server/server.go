@@ -12,8 +12,8 @@ import (
 	"net"
 
 	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
-	cryptoutilConfig "cryptoutil/internal/template/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/template/config/tls_generator"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"

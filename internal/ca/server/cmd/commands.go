@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	cryptoutilCAServer "cryptoutil/internal/ca/server"
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 

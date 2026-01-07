@@ -14,7 +14,7 @@ import (
 	cipherClient "cryptoutil/internal/apps/cipher/im/client"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
+	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 
 	"github.com/stretchr/testify/require"
 )

@@ -6,9 +6,9 @@
 package config
 
 import (
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServerRealms "cryptoutil/internal/template/server/realms"
+	cryptoutilTemplateServerRealms "cryptoutil/internal/apps/template/service/server/realms"
 )
 
 // AppConfig holds configuration for the cipher-im server.

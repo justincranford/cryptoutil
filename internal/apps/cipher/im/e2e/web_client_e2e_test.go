@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	cipherClient "cryptoutil/internal/apps/cipher/im/client"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
+	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 
 	"github.com/stretchr/testify/require"
 )

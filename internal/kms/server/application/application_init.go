@@ -11,7 +11,7 @@ import (
 	"net"
 	"os"
 
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"

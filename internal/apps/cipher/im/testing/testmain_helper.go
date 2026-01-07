@@ -17,12 +17,12 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/template/config/tls_generator"
+	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
+	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 )
 
 // TestServerResources holds shared resources created by SetupTestServer.

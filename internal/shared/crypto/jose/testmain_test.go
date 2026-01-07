@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 

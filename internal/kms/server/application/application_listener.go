@@ -21,7 +21,7 @@ import (
 	"time"
 
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilNetwork "cryptoutil/internal/shared/util/network"

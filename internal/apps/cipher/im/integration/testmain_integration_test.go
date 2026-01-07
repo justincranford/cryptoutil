@@ -14,7 +14,7 @@ import (
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 // Shared test resources (initialized once per package).

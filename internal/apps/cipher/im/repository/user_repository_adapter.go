@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilTemplateRealms "cryptoutil/internal/template/server/realms"
+	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 )
 
 // UserRepositoryAdapter adapts UserRepository to realms.UserRepository interface.

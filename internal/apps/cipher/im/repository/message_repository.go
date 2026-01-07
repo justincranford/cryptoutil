@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilRepository "cryptoutil/internal/template/server/repository"
+	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // MessageRepository handles database operations for Message entities.

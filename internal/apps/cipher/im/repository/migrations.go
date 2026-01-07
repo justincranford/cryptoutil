@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"embed"
 
-	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"
+	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // DatabaseType represents supported database types for cipher-im.

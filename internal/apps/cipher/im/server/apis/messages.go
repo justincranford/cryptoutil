@@ -14,7 +14,7 @@ import (
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	cryptoutilCipherServerUtil "cryptoutil/internal/apps/cipher/im/server/util"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
+	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 )
 
 // MessageHandler handles message operations (send, receive, delete).

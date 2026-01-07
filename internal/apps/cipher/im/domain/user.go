@@ -10,7 +10,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilTemplateRealms "cryptoutil/internal/template/server/realms"
+	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 )
 
 // User represents a cipher-im user account.

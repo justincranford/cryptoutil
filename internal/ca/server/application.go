@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 // Application represents the unified CA server application (public + admin).

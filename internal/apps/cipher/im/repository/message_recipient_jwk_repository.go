@@ -12,8 +12,8 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
-	cryptoutilRepository "cryptoutil/internal/template/server/repository"
+	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // MessageRecipientJWKRepository handles database operations for MessageRecipientJWK entities.

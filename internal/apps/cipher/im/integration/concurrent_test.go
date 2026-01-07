@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cipherClient "cryptoutil/internal/apps/cipher/im/client"
-	cryptoutilE2E "cryptoutil/internal/template/testing/e2e"
+	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.

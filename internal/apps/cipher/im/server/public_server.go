@@ -16,12 +16,12 @@ import (
 	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
-	cryptoutilConfig "cryptoutil/internal/template/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/template/config/tls_generator"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilBarrier "cryptoutil/internal/template/server/barrier"
-	cryptoutilTemplateRealms "cryptoutil/internal/template/server/realms"
+	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 )
 
 // PublicServer implements the template.PublicServer interface for cipher-im.

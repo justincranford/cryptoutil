@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	slogMulti "github.com/samber/slog-multi"
