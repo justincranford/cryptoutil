@@ -236,49 +236,67 @@ func TestIM_SubcommandNotImplemented(t *testing.T) {
 	}
 }
 
-// TestIM_HealthSubcommand_LiveServer tests health check with shared test server.
-func TestIM_HealthSubcommand_LiveServer(t *testing.T) {
-	t.Parallel()
+// TestIM_SubcommandLiveServer tests health check subcommands with shared test server.
+func TestIM_SubcommandLiveServer(t *testing.T) {
+	tests := []struct {
+		name             string
+		subcommand       string
+		url              string
+		expectedExitCode int
+		expectedOutputs  []string
+		customCheck      func(t *testing.T, output string) // For special cases like readyz
+	}{
+		{
+			name:             "health",
+			subcommand:       "health",
+			url:              publicBaseURL + "/service/api/v1",
+			expectedExitCode: 0,
+			expectedOutputs:  []string{"Service is healthy", "HTTP 200"},
+		},
+		{
+			name:             "livez",
+			subcommand:       "livez",
+			url:              adminBaseURL,
+			expectedExitCode: 0,
+			expectedOutputs:  []string{"Service is alive", "HTTP 200"},
+		},
+		{
+			name:       "readyz",
+			subcommand: "readyz",
+			url:        adminBaseURL,
+			customCheck: func(t *testing.T, output string) {
+				// Readyz may return 0 (ready) or 1 (not ready) depending on service state
+				// Check that we got a valid response (either ready or not ready)
+				validResponse := strings.Contains(output, "Service is ready") || strings.Contains(output, "Service is not ready")
+				require.True(t, validResponse, "Output should indicate readiness status")
+			},
+		},
+	}
 
-	var stdout, stderr bytes.Buffer
-	args := []string{"health", "--url", publicBaseURL + "/service/api/v1"}
-	exitCode := internalIM(args, &stdout, &stderr)
-	require.Equal(t, 0, exitCode)
+	for _, tt := range tests {
+		// Capture range variable.
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	output := stdout.String() + stderr.String()
-	require.Contains(t, output, "Service is healthy")
-	require.Contains(t, output, "HTTP 200")
-}
+			var stdout, stderr bytes.Buffer
+			args := []string{tt.subcommand, "--url", tt.url}
+			exitCode := internalIM(args, &stdout, &stderr)
 
-// TestIM_LivezSubcommand_LiveServer tests livez check with shared test server.
-func TestIM_LivezSubcommand_LiveServer(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-	args := []string{"livez", "--url", adminBaseURL}
-	exitCode := internalIM(args, &stdout, &stderr)
-	require.Equal(t, 0, exitCode)
-
-	output := stdout.String() + stderr.String()
-	require.Contains(t, output, "Service is alive")
-	require.Contains(t, output, "HTTP 200")
-}
-
-// TestIM_ReadyzSubcommand_LiveServer tests readyz check with shared test server.
-func TestIM_ReadyzSubcommand_LiveServer(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-	args := []string{"readyz", "--url", adminBaseURL}
-	exitCode := internalIM(args, &stdout, &stderr)
-	// Readyz may return 0 (ready) or 1 (not ready) depending on service state
-	// Both are valid responses
-	require.Contains(t, []int{0, 1}, exitCode, "readyz should return 0 or 1")
-
-	output := stdout.String() + stderr.String()
-	// Check that we got a valid response (either ready or not ready)
-	validResponse := strings.Contains(output, "Service is ready") || strings.Contains(output, "Service is not ready")
-	require.True(t, validResponse, "Output should indicate readiness status")
+			if tt.customCheck != nil {
+				// For readyz: check exit code is 0 or 1, and custom output check
+				require.Contains(t, []int{0, 1}, exitCode, "%s should return 0 or 1", tt.subcommand)
+				output := stdout.String() + stderr.String()
+				tt.customCheck(t, output)
+			} else {
+				// For health and livez: exact exit code and output checks
+				require.Equal(t, tt.expectedExitCode, exitCode, "%s should succeed", tt.subcommand)
+				output := stdout.String() + stderr.String()
+				for _, expected := range tt.expectedOutputs {
+					require.Contains(t, output, expected, "Output should contain: %s", expected)
+				}
+			}
+		})
+	}
 }
 
 // TestIM_SubcommandErrors tests error handling for all health check subcommands.
