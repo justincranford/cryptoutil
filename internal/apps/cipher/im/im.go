@@ -84,7 +84,7 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 
 		return 0
 	case "server":
-		return imServer(args[1:], stdout, stderr)
+		return imServiceServerStart(args[1:], stdout, stderr)
 	case "client":
 		return imClient(args[1:], stdout, stderr)
 	case "init":
@@ -98,7 +98,7 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 	case "shutdown":
 		return imShutdown(args[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "Unknown subcommand: %s\n\n", args[0]) //nolint:errcheck // CLI stderr output, not recoverable
+		_, _ = fmt.Fprintf(stderr, "Unknown subcommand: %s\n\n", args[0])
 		printIMUsage(stdout, stderr)
 
 		return 1
@@ -107,14 +107,14 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 
 // printIMVersion prints the instant messaging service version information.
 func printIMVersion(stdout, stderr io.Writer) {
-	fmt.Fprintln(stdout, "cipher-im service") //nolint:errcheck // CLI stdout output, not recoverable
-	fmt.Fprintln(stdout, "Part of cryptoutil cipher product") //nolint:errcheck // CLI stdout output, not recoverable
-	fmt.Fprintln(stdout, "Version information available via Docker image tags") //nolint:errcheck // CLI stdout output, not recoverable
+	_, _ = fmt.Fprintln(stdout, "cipher-im service")
+	_, _ = fmt.Fprintln(stdout, "Part of cryptoutil cipher product")
+	_, _ = fmt.Fprintln(stdout, "Version information available via Docker image tags")
 }
 
 // printIMUsage prints the instant messaging service usage information.
 func printIMUsage(stdout, stderr io.Writer) {
-	fmt.Fprintln(stderr, `Usage: cipher im <subcommand> [options]
+	_, _ = fmt.Fprintln(stderr, `Usage: cipher im <subcommand> [options]
 
 Available subcommands:
   version     Print version information
@@ -130,10 +130,10 @@ Use "learn im <subcommand> help" for subcommand-specific help.
 Version information is available via Docker image tags.`)
 }
 
-// imServer implements the server subcommand.
-func imServer(args []string, stdout, stderr io.Writer) int {
+// imServiceServerStart implements the server subcommand.
+func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, `Usage: cipher im server [options]
+		_, _ = fmt.Fprintln(stderr, `Usage: cipher im server [options]
 
 Description:
   Start the instant messaging server with database initialization.
@@ -147,8 +147,7 @@ Options:
 
 Examples:
   learn im server
-  learn im server --database-url file:/tmp/cipher.db
-  learn im server --database-url postgres://user:pass@localhost:5432/cipher`)
+  learn im server --database-url file:/tmp/cipher.db`)
 
 		return 0
 	}
@@ -171,7 +170,7 @@ Examples:
 	// Initialize database (PostgreSQL or SQLite).
 	db, err := initDatabase(ctx, databaseURL)
 	if err != nil {
-		fmt.Fprintf(stderr, "❌ Failed to initialize database: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to initialize database: %v\n", err)
 
 		return 1
 	}
@@ -186,7 +185,7 @@ Examples:
 
 	srv, err := server.New(ctx, cfg, db, determineDatabaseType(db))
 	if err != nil {
-		fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
 
 		return 1
 	}
@@ -199,9 +198,9 @@ Examples:
 	errChan := make(chan error, 1)
 
 	go func() {
-		fmt.Fprintf(stdout, "🚀 Starting cipher-im service...\n")
-		fmt.Fprintf(stdout, "   Public Server: https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPublicPortCipherIM)
-		fmt.Fprintf(stdout, "   Admin Server:  https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPrivatePortCipherIM)
+		_, _ = fmt.Fprintf(stdout, "🚀 Starting cipher-im service...\n")
+		_, _ = fmt.Fprintf(stdout, "   Public Server: https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPublicPortCipherIM)
+		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://127.0.0.1:%d\n", cryptoutilMagic.DefaultPrivatePortCipherIM)
 
 		errChan <- srv.Start(ctx)
 	}()
@@ -213,7 +212,7 @@ Examples:
 	select {
 	case err := <-errChan:
 		if err != nil {
-			fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
+			_, _ = fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
 
 			return 1
 		}
@@ -230,7 +229,7 @@ Examples:
 // CLI wrapper for client operations.
 func imClient(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, `Usage: cipher im client [options]
+		_, _ = fmt.Fprintln(stderr, `Usage: cipher im client [options]
 
 Description:
   Run client operations for instant messaging service.
@@ -244,8 +243,8 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
-	fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the IM service")
+	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
+	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the IM service")
 
 	return 1
 }
@@ -254,7 +253,7 @@ Examples:
 // CLI wrapper for database and configuration initialization.
 func imInit(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, `Usage: cipher im init [options]
+		_, _ = fmt.Fprintln(stderr, `Usage: cipher im init [options]
 
 Description:
   Initialize database schema and configuration for instant messaging service.
@@ -270,8 +269,8 @@ Examples:
 		return 0
 	}
 
-	fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
-	fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
+	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
+	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
 
 	return 1
 }
@@ -280,7 +279,7 @@ Examples:
 // CLI wrapper calling the public health check API.
 func imHealth(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, `Usage: cipher im health [options]
+		_, _ = fmt.Fprintln(stderr, `Usage: cipher im health [options]
 
 Description:
   Check service health via public API endpoint.
@@ -327,14 +326,14 @@ Examples:
 	// Call health endpoint.
 	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(stderr, "❌ Health check failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Health check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		fmt.Fprintf(stdout, "✅ Service is healthy (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Service is healthy (HTTP %d)\n", statusCode)
 
 		if body != "" {
 			fmt.Fprintln(stdout, body)

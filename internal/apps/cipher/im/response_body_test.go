@@ -16,6 +16,7 @@ func TestIM_HealthSubcommand_NoBodySuccess(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"health", "--url", testMockServerOK.URL + "/health"}, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Health should succeed with 200 even if no body")
 
@@ -28,6 +29,7 @@ func TestIM_HealthSubcommand_UnhealthyNoBody(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"health", "--url", testMockServerError.URL + "/health"}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Health should fail with 503")
 
@@ -41,6 +43,7 @@ func TestIM_LivezSubcommand_NoBodySuccess(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"livez", "--url", testMockServerOK.URL + "/livez"}, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Livez should succeed with 200 even if no body")
 
@@ -53,6 +56,7 @@ func TestIM_LivezSubcommand_NotAliveNoBody(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"livez", "--url", testMockServerError.URL + "/livez"}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Livez should fail with 503")
 
@@ -66,6 +70,7 @@ func TestIM_ShutdownSubcommand_NoBodySuccess(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"}, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Shutdown should succeed with 200 even if no body")
 
@@ -78,6 +83,7 @@ func TestIM_ShutdownSubcommand_FailedNoBody(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"shutdown", "--url", testMockServerError.URL + "/shutdown"}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Shutdown should fail with 503")
 
@@ -91,6 +97,7 @@ func TestIM_ShutdownSubcommand_PartialBodyRead(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"shutdown", "--url", testMockServerOK.URL + "/shutdown"}, &stdout, &stderr)
 	// Should still succeed because we got 200 status.
 	require.Equal(t, 0, exitCode, "Shutdown should succeed even with partial body")
@@ -105,6 +112,7 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 
 	// Test default URL (will fail to connect to 127.0.0.1:8888).
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"health"}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Health check should fail when no server running")
 
@@ -125,6 +133,7 @@ func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
 
 	// Test default URL (will fail to connect to 127.0.0.1:9090).
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"livez"}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Livez check should fail when no server running")
 

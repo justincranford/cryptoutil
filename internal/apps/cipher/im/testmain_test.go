@@ -24,10 +24,10 @@ import (
 )
 
 var (
-	testCipherIMServer *server.CipherIMServer
-	sharedHTTPClient   *http.Client
-	publicBaseURL      string
-	adminBaseURL       string
+	testCipherIMService *server.CipherIMServer
+	sharedHTTPClient    *http.Client
+	publicBaseURL       string
+	adminBaseURL        string
 	// Shared mock servers for testing different response scenarios.
 	testMockServerOK     *httptest.Server
 	testMockServerError  *httptest.Server
@@ -44,15 +44,15 @@ func TestMain(m *testing.M) {
 		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
 	}
 
-	// Start server once for all tests in this package (following e2e pattern).
-	testCipherIMServer = cipherTesting.StartCipherIMServer(sharedAppConfig)
+	// Start service once for all tests in this package (following e2e pattern).
+	testCipherIMService = cipherTesting.StartCipherIMService(sharedAppConfig)
 
 	// Defer shutdown.
 	defer func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := testCipherIMServer.Shutdown(shutdownCtx); err != nil {
+		if err := testCipherIMService.Shutdown(shutdownCtx); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to shutdown test server: %v\n", err)
 		}
 	}()
@@ -61,8 +61,8 @@ func TestMain(m *testing.M) {
 	sharedHTTPClient = cryptoutilTLS.NewClientForTest()
 
 	// Get base URLs for tests.
-	publicBaseURL = testCipherIMServer.PublicBaseURL()
-	adminBaseURL = testCipherIMServer.AdminBaseURL()
+	publicBaseURL = testCipherIMService.PublicBaseURL()
+	adminBaseURL = testCipherIMService.AdminBaseURL()
 
 	// Create shared mock server that returns 200 OK.
 	testMockServerOK = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

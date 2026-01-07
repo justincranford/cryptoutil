@@ -262,7 +262,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 	return resources, nil
 }
 
-// StartCipherIMServer creates and starts a cipher-im server from config.
+// StartCipherIMService creates and starts a cipher-im server from config.
 // This is a simpler helper for integration tests that provide their own AppConfig.
 //
 // The server is started in the background and this function waits for both public
@@ -271,9 +271,9 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 // Example usage:
 //
 //	appConfig := &config.AppConfig{...}
-//	server := StartCipherIMServer(appConfig)
+//	server := StartCipherIMService(appConfig)
 //	defer server.Shutdown(context.Background())
-func StartCipherIMServer(appConfig *config.AppConfig) *server.CipherIMServer {
+func StartCipherIMService(appConfig *config.AppConfig) *server.CipherIMServer {
 	ctx := context.Background()
 
 	cipherImServer, err := server.NewFromConfig(ctx, appConfig)

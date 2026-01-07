@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}
 
-	testCipherIMServer = cipherTesting.StartCipherIMServer(sharedAppConfig)
+	testCipherIMServer = cipherTesting.StartCipherIMService(sharedAppConfig)
 
 	defer func() {
 		_ = testCipherIMServer.Shutdown(context.Background())

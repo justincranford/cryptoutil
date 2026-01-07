@@ -61,6 +61,7 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 
 	// Test health check completes despite slow response.
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{
 		"health",
 		"--url", fmt.Sprintf("http://127.0.0.1:%d%s", actualPort, adminHealthPath),
@@ -77,6 +78,7 @@ func TestIM_LivezSubcommand_EmptyResponse(t *testing.T) {
 
 	// Test livez check with empty response using shared OK server (returns "OK" body).
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"livez", "--url", testMockServerOK.URL + adminLivezPath}, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "Livez should succeed with 200 OK")
 
@@ -90,6 +92,7 @@ func TestIM_ReadyzSubcommand_404NotFound(t *testing.T) {
 
 	// Use shared error server that returns 503 (close enough to 404 for error case).
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"readyz", "--url", testMockServerError.URL + adminReadyzPath}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Readyz should fail with non-200 status")
 
@@ -104,6 +107,7 @@ func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
 
 	// Use shared error server that returns 503 (close enough to 500 for error case).
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Shutdown should fail with error status")
 
