@@ -18,7 +18,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilCrypto "cryptoutil/internal/shared/crypto"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
 	cryptoutilJOSE "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/shared/crypto/keygen"
@@ -313,8 +313,16 @@ func (sm *SessionManager) getAlgorithmIdentifier(isBrowser bool, sessionAlgorith
 //
 // Returns session token string for client.
 func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID, realm string) (string, error) {
-	// Implementation will be added in next commit
-	return "", errors.New("not implemented yet")
+	switch sm.browserAlgorithm {
+	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+		return sm.issueOPAQUESession(ctx, true, userID, realm)
+	case cryptoutilMagic.SessionAlgorithmJWS:
+		return sm.issueJWSSession(ctx, true, userID, realm)
+	case cryptoutilMagic.SessionAlgorithmJWE:
+		return sm.issueJWESession(ctx, true, userID, realm)
+	default:
+		return "", fmt.Errorf("unsupported browser session algorithm: %s", sm.browserAlgorithm)
+	}
 }
 
 // ValidateBrowserSession validates a browser session token.
@@ -328,22 +336,46 @@ func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID, realm
 //
 // Returns session metadata if valid, error otherwise.
 func (sm *SessionManager) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilRepository.BrowserSession, error) {
-	// Implementation will be added in next commit
-	return nil, errors.New("not implemented yet")
+	switch sm.browserAlgorithm {
+	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+		return sm.validateOPAQUESession(ctx, true, token)
+	case cryptoutilMagic.SessionAlgorithmJWS:
+		return sm.validateJWSSession(ctx, true, token)
+	case cryptoutilMagic.SessionAlgorithmJWE:
+		return sm.validateJWESession(ctx, true, token)
+	default:
+		return nil, fmt.Errorf("unsupported browser session algorithm: %s", sm.browserAlgorithm)
+	}
 }
 
 // IssueServiceSession issues a new service session token.
 // Similar to IssueBrowserSession but for service-to-service authentication.
 func (sm *SessionManager) IssueServiceSession(ctx context.Context, clientID, realm string) (string, error) {
-	// Implementation will be added in next commit
-	return "", errors.New("not implemented yet")
+	switch sm.serviceAlgorithm {
+	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+		return sm.issueOPAQUESession(ctx, false, clientID, realm)
+	case cryptoutilMagic.SessionAlgorithmJWS:
+		return sm.issueJWSSession(ctx, false, clientID, realm)
+	case cryptoutilMagic.SessionAlgorithmJWE:
+		return sm.issueJWESession(ctx, false, clientID, realm)
+	default:
+		return "", fmt.Errorf("unsupported service session algorithm: %s", sm.serviceAlgorithm)
+	}
 }
 
 // ValidateServiceSession validates a service session token.
 // Similar to ValidateBrowserSession but for service-to-service authentication.
 func (sm *SessionManager) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilRepository.ServiceSession, error) {
-	// Implementation will be added in next commit
-	return nil, errors.New("not implemented yet")
+	switch sm.serviceAlgorithm {
+	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+		return sm.validateOPAQUESession(ctx, false, token)
+	case cryptoutilMagic.SessionAlgorithmJWS:
+		return sm.validateJWSSession(ctx, false, token)
+	case cryptoutilMagic.SessionAlgorithmJWE:
+		return sm.validateJWESession(ctx, false, token)
+	default:
+		return nil, fmt.Errorf("unsupported service session algorithm: %s", sm.serviceAlgorithm)
+	}
 }
 
 // CleanupExpiredSessions removes expired sessions from the database.
@@ -404,4 +436,124 @@ func (sm *SessionManager) StartCleanupTask(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// issueOPAQUESession issues an OPAQUE session token (hashed UUIDv7).
+func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool, principalID, realm string) (string, error) {
+	// Generate UUIDv7 token
+	tokenID := googleUuid.Must(googleUuid.NewV7())
+	token := tokenID.String()
+
+	// Hash token for database storage using HighEntropyFixedRegistry
+	tokenHash, err := sm.hashService.HashHighEntropyFixed([]byte(token))
+	if err != nil {
+		return "", fmt.Errorf("failed to hash session token: %w", err)
+	}
+
+	// Calculate expiration
+	var expiration time.Time
+	if isBrowser {
+		expiration = time.Now().Add(sm.config.BrowserSessionExpiration)
+	} else {
+		expiration = time.Now().Add(sm.config.ServiceSessionExpiration)
+	}
+
+	// Create session record
+	session := cryptoutilRepository.Session{
+		ID:         tokenID,
+		TokenHash:  string(tokenHash),
+		Realm:      realm,
+		Expiration: expiration,
+		CreatedAt:  time.Now(),
+	}
+
+	// Store session in database
+	var createErr error
+	if isBrowser {
+		browserSession := cryptoutilRepository.BrowserSession{
+			Session: session,
+			UserID:  principalID,
+		}
+		createErr = sm.db.WithContext(ctx).Create(&browserSession).Error
+	} else {
+		serviceSession := cryptoutilRepository.ServiceSession{
+			Session:  session,
+			ClientID: principalID,
+		}
+		createErr = sm.db.WithContext(ctx).Create(&serviceSession).Error
+	}
+
+	if createErr != nil {
+		return "", fmt.Errorf("failed to store session: %w", createErr)
+	}
+
+	return token, nil
+}
+
+// validateOPAQUESession validates an OPAQUE session token.
+func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
+	// Hash token for database lookup
+	tokenHash, err := sm.hashService.HashHighEntropyFixed([]byte(token))
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash session token: %w", err)
+	}
+
+	// Look up session by token hash
+	now := time.Now()
+	var session interface{}
+	var findErr error
+
+	if isBrowser {
+		browserSession := &cryptoutilRepository.BrowserSession{}
+		findErr = sm.db.WithContext(ctx).
+			Where("token_hash = ? AND expiration > ?", string(tokenHash), now).
+			First(browserSession).
+			Error
+		session = browserSession
+	} else {
+		serviceSession := &cryptoutilRepository.ServiceSession{}
+		findErr = sm.db.WithContext(ctx).
+			Where("token_hash = ? AND expiration > ?", string(tokenHash), now).
+			First(serviceSession).
+			Error
+		session = serviceSession
+	}
+
+	if findErr != nil {
+		if errors.Is(findErr, gorm.ErrRecordNotFound) {
+			return nil, cryptoutilAppErr.ErrUnauthorized
+		}
+		return nil, fmt.Errorf("failed to query session: %w", findErr)
+	}
+
+	// Update last activity timestamp
+	updateErr := sm.db.WithContext(ctx).Model(session).
+		Update("last_activity", now).
+		Error
+	if updateErr != nil {
+		// Log warning but don't fail validation
+		fmt.Printf("Failed to update session activity: %v\n", updateErr)
+	}
+
+	return session, nil
+}
+
+// issueJWSSession issues a JWS session token (signed JWT).
+func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, principalID, realm string) (string, error) {
+	return "", errors.New("JWS session issuance not implemented yet")
+}
+
+// validateJWSSession validates a JWS session token.
+func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
+	return nil, errors.New("JWS session validation not implemented yet")
+}
+
+// issueJWESession issues a JWE session token (encrypted JWT).
+func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, principalID, realm string) (string, error) {
+	return "", errors.New("JWE session issuance not implemented yet")
+}
+
+// validateJWESession validates a JWE session token.
+func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
+	return nil, errors.New("JWE session validation not implemented yet")
 }

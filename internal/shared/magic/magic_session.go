@@ -26,17 +26,6 @@ const (
 	SessionAlgorithmJWE SessionAlgorithmType = "JWE"
 )
 
-// Default session algorithm types for browser and service sessions.
-const (
-	// DefaultBrowserSessionAlgorithm is the default algorithm for browser session tokens.
-	// OPAQUE provides better security for browser sessions (server-side validation only).
-	DefaultBrowserSessionAlgorithm = SessionAlgorithmOPAQUE
-
-	// DefaultServiceSessionAlgorithm is the default algorithm for service session tokens.
-	// JWS provides better performance for service-to-service (stateless validation).
-	DefaultServiceSessionAlgorithm = SessionAlgorithmJWS
-)
-
 // JWS algorithm identifiers for session tokens.
 const (
 	// SessionJWSAlgorithmRS256 is RSA-SHA256 signature algorithm.
