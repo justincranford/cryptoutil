@@ -101,6 +101,16 @@ const (
 	defaultTLSPublicMode               = TLSMode(cryptoutilMagic.DefaultTLSPublicMode)
 	defaultTLSPrivateMode              = TLSMode(cryptoutilMagic.DefaultTLSPrivateMode)
 	defaultBrowserSessionCookie        = cryptoutilMagic.DefaultBrowserSessionCookie
+	defaultBrowserSessionAlgorithm     = cryptoutilMagic.DefaultBrowserSessionAlgorithm
+	defaultBrowserSessionJWSAlgorithm  = cryptoutilMagic.DefaultBrowserSessionJWSAlgorithm
+	defaultBrowserSessionJWEAlgorithm  = cryptoutilMagic.DefaultBrowserSessionJWEAlgorithm
+	defaultBrowserSessionExpiration    = cryptoutilMagic.DefaultBrowserSessionExpiration
+	defaultServiceSessionAlgorithm     = cryptoutilMagic.DefaultServiceSessionAlgorithm
+	defaultServiceSessionJWSAlgorithm  = cryptoutilMagic.DefaultServiceSessionJWSAlgorithm
+	defaultServiceSessionJWEAlgorithm  = cryptoutilMagic.DefaultServiceSessionJWEAlgorithm
+	defaultServiceSessionExpiration    = cryptoutilMagic.DefaultServiceSessionExpiration
+	defaultSessionIdleTimeout          = cryptoutilMagic.DefaultSessionIdleTimeout
+	defaultSessionCleanupInterval      = cryptoutilMagic.DefaultSessionCleanupInterval
 )
 
 var (
@@ -279,10 +289,20 @@ type ServiceTemplateServerSettings struct {
 	OTLPEnvironment             string
 	OTLPHostname                string
 	OTLPEndpoint                string
-	UnsealMode                  string
-	UnsealFiles                 []string
-	Realms                      []string // Paths to realm configuration files (e.g., 01-username-password-file.yml, 02-username-password-db.yml)
-	BrowserSessionCookie        string   // Cookie type: jwe (encrypted), jws (signed), opaque (database)
+	UnsealMode                    string
+	UnsealFiles                   []string
+	Realms                        []string      // Paths to realm configuration files (e.g., 01-username-password-file.yml, 02-username-password-db.yml)
+	BrowserSessionCookie          string        // Cookie type: jwe (encrypted), jws (signed), opaque (database) - DEPRECATED: use BrowserSessionAlgorithm
+	BrowserSessionAlgorithm       string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
+	BrowserSessionJWSAlgorithm    string        // JWS algorithm for browser sessions (e.g., RS256, ES256, EdDSA)
+	BrowserSessionJWEAlgorithm    string        // JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
+	BrowserSessionExpiration      time.Duration // Browser session expiration duration
+	ServiceSessionAlgorithm       string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
+	ServiceSessionJWSAlgorithm    string        // JWS algorithm for service sessions (e.g., RS256, ES256, EdDSA)
+	ServiceSessionJWEAlgorithm    string        // JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
+	ServiceSessionExpiration      time.Duration // Service session expiration duration
+	SessionIdleTimeout            time.Duration // Session idle timeout duration
+	SessionCleanupInterval        time.Duration // Interval for cleaning up expired sessions
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.
@@ -762,8 +782,78 @@ var (
 		name:        "browser-session-cookie",
 		shorthand:   "Q",
 		value:       defaultBrowserSessionCookie,
-		usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens",
+		usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens [DEPRECATED: use browser-session-algorithm]",
 		description: "Browser Session Cookie Type",
+	})
+	browserSessionAlgorithm = *registerSetting(&Setting{
+		name:        "browser-session-algorithm",
+		shorthand:   "",
+		value:       defaultBrowserSessionAlgorithm,
+		usage:       "browser session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
+		description: "Browser Session Algorithm",
+	})
+	browserSessionJWSAlgorithm = *registerSetting(&Setting{
+		name:        "browser-session-jws-algorithm",
+		shorthand:   "",
+		value:       defaultBrowserSessionJWSAlgorithm,
+		usage:       "JWS algorithm for browser sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
+		description: "Browser Session JWS Algorithm",
+	})
+	browserSessionJWEAlgorithm = *registerSetting(&Setting{
+		name:        "browser-session-jwe-algorithm",
+		shorthand:   "",
+		value:       defaultBrowserSessionJWEAlgorithm,
+		usage:       "JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
+		description: "Browser Session JWE Algorithm",
+	})
+	browserSessionExpiration = *registerSetting(&Setting{
+		name:        "browser-session-expiration",
+		shorthand:   "",
+		value:       defaultBrowserSessionExpiration,
+		usage:       "browser session expiration duration (e.g., 24h, 48h)",
+		description: "Browser Session Expiration",
+	})
+	serviceSessionAlgorithm = *registerSetting(&Setting{
+		name:        "service-session-algorithm",
+		shorthand:   "",
+		value:       defaultServiceSessionAlgorithm,
+		usage:       "service session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
+		description: "Service Session Algorithm",
+	})
+	serviceSessionJWSAlgorithm = *registerSetting(&Setting{
+		name:        "service-session-jws-algorithm",
+		shorthand:   "",
+		value:       defaultServiceSessionJWSAlgorithm,
+		usage:       "JWS algorithm for service sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
+		description: "Service Session JWS Algorithm",
+	})
+	serviceSessionJWEAlgorithm = *registerSetting(&Setting{
+		name:        "service-session-jwe-algorithm",
+		shorthand:   "",
+		value:       defaultServiceSessionJWEAlgorithm,
+		usage:       "JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
+		description: "Service Session JWE Algorithm",
+	})
+	serviceSessionExpiration = *registerSetting(&Setting{
+		name:        "service-session-expiration",
+		shorthand:   "",
+		value:       defaultServiceSessionExpiration,
+		usage:       "service session expiration duration (e.g., 168h for 7 days)",
+		description: "Service Session Expiration",
+	})
+	sessionIdleTimeout = *registerSetting(&Setting{
+		name:        "session-idle-timeout",
+		shorthand:   "",
+		value:       defaultSessionIdleTimeout,
+		usage:       "session idle timeout duration (e.g., 2h)",
+		description: "Session Idle Timeout",
+	})
+	sessionCleanupInterval = *registerSetting(&Setting{
+		name:        "session-cleanup-interval",
+		shorthand:   "",
+		value:       defaultSessionCleanupInterval,
+		usage:       "interval for cleaning up expired sessions (e.g., 1h)",
+		description: "Session Cleanup Interval",
 	})
 )
 
@@ -1043,10 +1133,20 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 		OTLPEnvironment:             viper.GetString(otlpEnvironment.name),
 		OTLPHostname:                viper.GetString(otlpHostname.name),
 		OTLPEndpoint:                viper.GetString(otlpEndpoint.name),
-		UnsealMode:                  viper.GetString(unsealMode.name),
-		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
-		Realms:                      viper.GetStringSlice(realms.name),
-		BrowserSessionCookie:        viper.GetString(browserSessionCookie.name),
+		UnsealMode:                    viper.GetString(unsealMode.name),
+		UnsealFiles:                   viper.GetStringSlice(unsealFiles.name),
+		Realms:                        viper.GetStringSlice(realms.name),
+		BrowserSessionCookie:          viper.GetString(browserSessionCookie.name),
+		BrowserSessionAlgorithm:       viper.GetString(browserSessionAlgorithm.name),
+		BrowserSessionJWSAlgorithm:    viper.GetString(browserSessionJWSAlgorithm.name),
+		BrowserSessionJWEAlgorithm:    viper.GetString(browserSessionJWEAlgorithm.name),
+		BrowserSessionExpiration:      viper.GetDuration(browserSessionExpiration.name),
+		ServiceSessionAlgorithm:       viper.GetString(serviceSessionAlgorithm.name),
+		ServiceSessionJWSAlgorithm:    viper.GetString(serviceSessionJWSAlgorithm.name),
+		ServiceSessionJWEAlgorithm:    viper.GetString(serviceSessionJWEAlgorithm.name),
+		ServiceSessionExpiration:      viper.GetDuration(serviceSessionExpiration.name),
+		SessionIdleTimeout:            viper.GetDuration(sessionIdleTimeout.name),
+		SessionCleanupInterval:        viper.GetDuration(sessionCleanupInterval.name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.
