@@ -13,7 +13,7 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 )
 
 type ServerApplicationCore struct {

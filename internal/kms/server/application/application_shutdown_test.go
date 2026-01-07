@@ -8,7 +8,7 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 
 	"github.com/stretchr/testify/require"
 )

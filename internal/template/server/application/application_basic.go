@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )

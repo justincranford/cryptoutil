@@ -16,7 +16,7 @@ import (
 	"time"
 
 	cryptoutilCAServer "cryptoutil/internal/ca/server"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 )
 
 const (

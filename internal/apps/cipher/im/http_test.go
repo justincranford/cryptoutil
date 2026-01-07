@@ -17,7 +17,7 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 )
 
 // initTestConfig returns an AppConfig with all required settings for tests.

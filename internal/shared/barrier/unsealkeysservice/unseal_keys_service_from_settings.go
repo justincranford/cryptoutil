@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilFiles "cryptoutil/internal/shared/util/files"

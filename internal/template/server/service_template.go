@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilTemplateServerApplication "cryptoutil/internal/template/server/application"

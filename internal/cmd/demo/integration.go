@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"

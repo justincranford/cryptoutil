@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 )
 
 // ApplicationListener represents the top-level service application.

@@ -8,7 +8,7 @@ import (
 	"context"
 
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 

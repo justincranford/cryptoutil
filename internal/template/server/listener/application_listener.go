@@ -31,7 +31,7 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
 	cryptoutilTemplateServer "cryptoutil/internal/template/server"

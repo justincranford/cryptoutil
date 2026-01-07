@@ -7,7 +7,7 @@ package cmd
 import (
 	"log"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )
 

@@ -21,6 +21,7 @@ func initTestConfig() *config.AppConfig {
 	cfg.LogLevel = "info"                                                           // Required for logger initialization
 	cfg.OTLPEndpoint = "grpc://" + cryptoutilMagic.HostnameLocalhost + ":" + "4317" // Required for OTLP endpoint validation
 	cfg.OTLPEnabled = false                                                         // Disable actual OTLP export in tests
+	cfg.UnsealMode = cryptoutilMagic.DefaultUnsealModeSysInfo                       // Required for unseal service initialization
 
 	return cfg
 }

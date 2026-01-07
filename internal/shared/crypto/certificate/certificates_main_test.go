@@ -11,7 +11,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilPool "cryptoutil/internal/shared/pool"

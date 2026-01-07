@@ -18,7 +18,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 

@@ -13,7 +13,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilContainer "cryptoutil/internal/shared/container"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -176,10 +176,16 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 	}
 
 	// Configure SQLite for concurrent operations.
-	if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
-		_ = sqlDB.Close()
+	// Note: Skip WAL mode for in-memory databases as it's not supported.
+	isInMemory := databaseURL == ":memory:" || databaseURL == "file::memory:?cache=shared" ||
+		(len(databaseURL) >= 7 && databaseURL[:7] == "file:/:" && (len(databaseURL) < 9 || databaseURL[7:9] == ":m"))
 
-		return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
+	if !isInMemory {
+		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+			_ = sqlDB.Close()
+
+			return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
+		}
 	}
 
 	if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {

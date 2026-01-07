@@ -5,7 +5,7 @@
 package e2e
 
 import (
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -33,6 +33,7 @@ func NewTestServerSettings() *cryptoutilConfig.ServerSettings {
 		OTLPEndpoint:                "grpc://localhost:4317",
 		OTLPEnabled:                 false, // Disable actual OTLP export in tests
 		LogLevel:                    "error",
+		UnsealMode:                  cryptoutilMagic.DefaultUnsealModeSysInfo,
 	}
 }
 

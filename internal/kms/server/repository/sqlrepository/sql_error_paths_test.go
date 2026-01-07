@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 

@@ -17,8 +17,8 @@ import (
 	"time"
 
 	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/template/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"

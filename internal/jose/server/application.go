@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/template/config/tls_generator"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 

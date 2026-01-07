@@ -18,7 +18,7 @@ import (
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )

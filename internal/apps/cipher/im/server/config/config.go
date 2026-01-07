@@ -6,7 +6,7 @@
 package config
 
 import (
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerRealms "cryptoutil/internal/template/server/realms"
 )

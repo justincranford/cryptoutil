@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )

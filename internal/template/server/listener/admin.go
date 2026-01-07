@@ -16,8 +16,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilConfig "cryptoutil/internal/template/config"
+	cryptoutilTLSGenerator "cryptoutil/internal/template/config/tls_generator"
 )
 
 // AdminServer represents the private admin API server for health checks and graceful shutdown.

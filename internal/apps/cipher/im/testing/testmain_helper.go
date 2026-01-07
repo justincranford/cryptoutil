@@ -17,7 +17,7 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/shared/config/tls_generator"
+	cryptoutilTLSGenerator "cryptoutil/internal/template/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -63,18 +63,9 @@ type TestServerResources struct {
 func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResources, error) {
 	resources := &TestServerResources{}
 
-	// Setup database DSN.
-	var dsn string
-	if useInMemoryDB {
-		dsn = "file::memory:?cache=shared"
-	} else {
-		dbID, err := cryptoutilRandom.GenerateUUIDv7()
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate DB ID: %w", err)
-		}
-
-		dsn = "file:" + dbID.String() + "?mode=memory&cache=shared"
-	}
+	// Setup database DSN - always use normalized in-memory format for tests.
+	// Note: WAL mode is handled by application_core.go which special-cases in-memory databases.
+	dsn := "file::memory:?cache=shared"
 
 	// Generate TLS config for HTTP client.
 	var err error

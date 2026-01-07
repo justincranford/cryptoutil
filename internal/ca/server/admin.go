@@ -21,7 +21,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 

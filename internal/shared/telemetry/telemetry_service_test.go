@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 )
 
 var (

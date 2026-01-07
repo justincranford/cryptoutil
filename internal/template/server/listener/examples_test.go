@@ -21,7 +21,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/template/server/listener"
 	cryptoutilTemplateServerRepository "cryptoutil/internal/template/server/repository"

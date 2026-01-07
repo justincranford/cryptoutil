@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 )
 
 const (

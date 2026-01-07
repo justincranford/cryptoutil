@@ -9,7 +9,7 @@ import (
 	"database/sql"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+	cryptoutilConfig "cryptoutil/internal/template/config"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 
