@@ -181,8 +181,7 @@ func TestIM_SubcommandLiveServer(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
-			args := []string{tt.subcommand, "--url", tt.url}
-			exitCode := internalIM(args, &stdout, &stderr)
+			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
 
 			if tt.customCheck != nil {
 				// For readyz: check exit code is 0 or 1, and custom output check
