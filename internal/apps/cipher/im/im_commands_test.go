@@ -53,7 +53,9 @@ func TestIM_SubcommandHelpFlags(t *testing.T) {
 			t.Parallel()
 
 			// Test --help flag.
+
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalIM([]string{tt.subcommand, "--help"}, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s --help should succeed", tt.subcommand)
 
@@ -89,6 +91,7 @@ func TestPrintIMVersion(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalIM([]string{"version"}, &stdout, &stderr)
 	require.Equal(t, 0, exitCode, "version command should succeed")
 
@@ -119,6 +122,7 @@ func TestIM_SubcommandNotImplemented(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalIM([]string{tt.subcommand}, &stdout, &stderr)
 			require.Equal(t, 1, exitCode, "%s subcommand should fail (not implemented)", tt.subcommand)
 
@@ -166,17 +170,21 @@ func TestIM_SubcommandLiveServer(t *testing.T) {
 		t.Run(tt.subcommand, func(t *testing.T) {
 			t.Parallel()
 
+
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
 
 			if tt.customCheck != nil {
 				// For readyz: check exit code is 0 or 1, and custom output check
 				require.Contains(t, []int{0, 1}, exitCode, "%s should return 0 or 1", tt.subcommand)
+
 				output := stdout.String() + stderr.String()
 				tt.customCheck(t, output)
 			} else {
 				// For health and livez: exact exit code and output checks
 				require.Equal(t, tt.expectedExitCode, exitCode, "%s should succeed", tt.subcommand)
+
 				output := stdout.String() + stderr.String()
 				for _, expected := range tt.expectedOutputs {
 					require.Contains(t, output, expected, "Output should contain: %s", expected)
@@ -250,6 +258,7 @@ func TestIM_SubcommandErrors(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
 			require.Equal(t, 1, exitCode, "%s should fail", tt.subcommand)
 
@@ -337,6 +346,7 @@ func TestIM_SubcommandResponseBodies(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
 			require.Equal(t, tt.expectExit, exitCode, "%s should exit with code %d", tt.subcommand, tt.expectExit)
 
@@ -383,11 +393,119 @@ func TestIM_URLHandling(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s should succeed with explicit suffix", tt.subcommand)
 
 			output := stdout.String() + stderr.String()
 			require.NotContains(t, output, "failed")
+		})
+	}
+}
+
+// TestIM_URLEdgeCases tests various URL edge cases using table-driven tests.
+func TestIM_URLEdgeCases(t *testing.T) {
+	tests := []struct {
+		name         string
+		args         []string
+		wantExitCode int
+		wantContains []string
+		wantAny      []string // for cases where we check ContainsAny
+	}{
+		{
+			name: "HealthSubcommand_ExtraURLIgnored",
+			args: []string{
+				"health",
+				"--url", testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
+				"--url", "https://invalid-second-url:9999",
+			},
+			wantExitCode: 0,
+			wantContains: []string{"Service is healthy"},
+		},
+		{
+			name: "HealthSubcommand_URLWithFragment",
+			args: []string{
+				"health",
+				"--url", testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health#section",
+			},
+			wantExitCode: 0,
+			wantContains: []string{"Service is healthy"},
+		},
+		{
+			name: "ReadyzSubcommand_ExtraArgumentsIgnored",
+			args: []string{
+				"readyz",
+				"--url", testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
+				"extra", "ignored", "args",
+			},
+			wantExitCode: 0,
+			wantContains: []string{"Service is ready"},
+		},
+		{
+			name: "ShutdownSubcommand_URLWithoutQueryParameters",
+			args: []string{
+				"shutdown",
+				"--url", testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
+			},
+			wantExitCode: 0,
+			wantContains: []string{"Shutdown initiated"},
+		},
+		{
+			name: "LivezSubcommand_URLWithUserInfo",
+			args: []string{
+				"livez",
+				"--url", func() string {
+					// Extract host from server URL and add user info.
+					urlParts := strings.Split(testMockServerOK.URL, "//")
+
+					return urlParts[0] + "//user:pass@" + urlParts[1] + "/livez"
+				}(),
+			},
+			wantExitCode: 0,
+			wantContains: []string{"Service is alive"},
+		},
+		{
+			name:         "LivezSubcommand_URLFlagWithoutValue",
+			args:         []string{"livez", "--url"},
+			wantExitCode: 1,
+			wantContains: []string{"Liveness check failed"},
+			wantAny: []string{
+				"connection refused",
+				"actively refused",
+				"dial tcp",
+			},
+		},
+		{
+			name: "ReadyzSubcommand_CaseInsensitiveHTTPStatus",
+			args: []string{
+				"readyz",
+				"--url", testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
+			},
+			wantExitCode: 1,
+			wantContains: []string{"Service is not ready", "503"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var stdout, stderr bytes.Buffer
+
+			exitCode := internalIM(tt.args, &stdout, &stderr)
+			require.Equal(t, tt.wantExitCode, exitCode)
+
+			output := stdout.String() + stderr.String()
+
+			for _, want := range tt.wantContains {
+				require.Contains(t, output, want)
+			}
+
+			if len(tt.wantAny) > 0 {
+				require.True(t,
+					cryptoutilTestutil.ContainsAny(output, tt.wantAny),
+					"Should contain one of: %v, got: %s", tt.wantAny, output)
+			}
 		})
 	}
 }

@@ -98,7 +98,7 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 	case "shutdown":
 		return imShutdown(args[1:], stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "Unknown subcommand: %s\n\n", args[0])
+		fmt.Fprintf(stderr, "Unknown subcommand: %s\n\n", args[0]) //nolint:errcheck // CLI stderr output, not recoverable
 		printIMUsage(stdout, stderr)
 
 		return 1
@@ -107,9 +107,9 @@ func internalIM(args []string, stdout, stderr io.Writer) int {
 
 // printIMVersion prints the instant messaging service version information.
 func printIMVersion(stdout, stderr io.Writer) {
-	fmt.Fprintln(stdout, "cipher-im service")
-	fmt.Fprintln(stdout, "Part of cryptoutil cipher product")
-	fmt.Fprintln(stdout, "Version information available via Docker image tags")
+	fmt.Fprintln(stdout, "cipher-im service") //nolint:errcheck // CLI stdout output, not recoverable
+	fmt.Fprintln(stdout, "Part of cryptoutil cipher product") //nolint:errcheck // CLI stdout output, not recoverable
+	fmt.Fprintln(stdout, "Version information available via Docker image tags") //nolint:errcheck // CLI stdout output, not recoverable
 }
 
 // printIMUsage prints the instant messaging service usage information.
