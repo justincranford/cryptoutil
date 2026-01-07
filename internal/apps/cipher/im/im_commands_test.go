@@ -205,28 +205,35 @@ func TestPrintIMVersion(t *testing.T) {
 	require.Contains(t, output, "cipher-im service", "Version output should contain cipher-im service")
 }
 
-// TestIM_ClientSubcommand_NotImplemented tests client subcommand is not implemented.
-func TestIM_ClientSubcommand_NotImplemented(t *testing.T) {
-	t.Parallel()
+// TestIM_SubcommandNotImplemented tests subcommands that are not yet implemented.
+func TestIM_SubcommandNotImplemented(t *testing.T) {
+	tests := []struct {
+		subcommand      string
+		expectedMessage string
+	}{
+		{
+			subcommand:      "client",
+			expectedMessage: "Client subcommand not yet implemented",
+		},
+		{
+			subcommand:      "init",
+			expectedMessage: "Init subcommand not yet implemented",
+		},
+	}
 
-	var stdout, stderr bytes.Buffer
-	exitCode := internalIM([]string{"client"}, &stdout, &stderr)
-	require.Equal(t, 1, exitCode, "client subcommand should fail (not implemented)")
+	for _, tt := range tests {
+		// Capture range variable.
+		t.Run(tt.subcommand, func(t *testing.T) {
+			t.Parallel()
 
-	output := stdout.String() + stderr.String()
-	require.Contains(t, output, "Client subcommand not yet implemented")
-}
+			var stdout, stderr bytes.Buffer
+			exitCode := internalIM([]string{tt.subcommand}, &stdout, &stderr)
+			require.Equal(t, 1, exitCode, "%s subcommand should fail (not implemented)", tt.subcommand)
 
-// TestIM_InitSubcommand_NotImplemented tests init subcommand is not implemented.
-func TestIM_InitSubcommand_NotImplemented(t *testing.T) {
-	t.Parallel()
-
-	var stdout, stderr bytes.Buffer
-	exitCode := internalIM([]string{"init"}, &stdout, &stderr)
-	require.Equal(t, 1, exitCode, "init subcommand should fail (not implemented)")
-
-	output := stdout.String() + stderr.String()
-	require.Contains(t, output, "Init subcommand not yet implemented")
+			output := stdout.String() + stderr.String()
+			require.Contains(t, output, tt.expectedMessage)
+		})
+	}
 }
 
 // TestIM_HealthSubcommand_LiveServer tests health check with shared test server.
@@ -441,27 +448,27 @@ func TestIM_URLHandling(t *testing.T) {
 	tests := []struct {
 		name       string
 		subcommand string
-		urlSuffix  string
+		url        string
 	}{
 		{
 			name:       "health_with_health_suffix",
 			subcommand: "health",
-			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
+			url:        testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health",
 		},
 		{
 			name:       "livez_with_livez_suffix",
 			subcommand: "livez",
-			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
+			url:        testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath,
 		},
 		{
 			name:       "readyz_with_readyz_suffix",
 			subcommand: "readyz",
-			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
+			url:        testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath,
 		},
 		{
 			name:       "shutdown_with_shutdown_suffix",
 			subcommand: "shutdown",
-			urlSuffix:  cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
+			url:        testMockServerCustom.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath,
 		},
 	}
 
@@ -471,7 +478,7 @@ func TestIM_URLHandling(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
-			exitCode := internalIM([]string{tt.subcommand, "--url", testMockServerCustom.URL + tt.urlSuffix}, &stdout, &stderr)
+			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)
 			require.Equal(t, 0, exitCode, "%s should succeed with explicit suffix", tt.subcommand)
 
 			output := stdout.String() + stderr.String()
