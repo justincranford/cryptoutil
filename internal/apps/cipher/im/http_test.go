@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/apps/cipher/im/server"
@@ -27,7 +26,6 @@ func initTestConfig() *config.CipherImServerSettings {
 
 	return &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
-		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
 	}
 }
 

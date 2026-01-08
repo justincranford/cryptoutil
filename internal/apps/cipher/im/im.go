@@ -148,10 +148,6 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 		cfg.DatabaseURL = sqliteInMemoryURL
 	}
 
-	if cfg.JWTSecret == "" {
-		cfg.JWTSecret = "cipher-im-demo-secret" // Demo secret for alpha project
-	}
-
 	srv, err := server.NewFromConfig(ctx, cfg)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)

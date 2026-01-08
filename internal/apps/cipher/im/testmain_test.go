@@ -13,8 +13,6 @@ import (
 	"testing"
 	"time"
 
-	googleUuid "github.com/google/uuid"
-
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
@@ -41,7 +39,6 @@ func TestMain(m *testing.M) {
 
 	sharedAppConfig := &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
-		JWTSecret:                     googleUuid.Must(googleUuid.NewUUID()).String(),
 	}
 
 	// Start service once for all tests in this package (following e2e pattern).

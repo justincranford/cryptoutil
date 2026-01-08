@@ -10,8 +10,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/uuid"
-
 	cryptoutilCipherServer "cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
@@ -36,7 +34,6 @@ func TestMain(m *testing.M) {
 
 	sharedAppConfig = &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
-		JWTSecret:      uuid.Must(uuid.NewUUID()).String(),
 	}
 
 	testCipherIMServer = cipherTesting.StartCipherIMService(sharedAppConfig)
