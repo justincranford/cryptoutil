@@ -54,6 +54,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	err = db.AutoMigrate(
 		&cryptoutilRepository.BrowserSession{},
 		&cryptoutilRepository.ServiceSession{},
+		&cryptoutilRepository.BrowserSessionJWK{},
+		&cryptoutilRepository.ServiceSessionJWK{},
 	)
 	require.NoError(t, err)
 
@@ -67,12 +69,16 @@ func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilMagic.Se
 	db := setupTestDB(t)
 
 	config := &cryptoutilConfig.ServiceTemplateServerSettings{
-		BrowserSessionAlgorithm:  string(browserAlg),
-		ServiceSessionAlgorithm:  string(serviceAlg),
-		BrowserSessionExpiration: 24 * time.Hour,
-		ServiceSessionExpiration: 7 * 24 * time.Hour,
-		SessionIdleTimeout:       2 * time.Hour,
-		SessionCleanupInterval:   time.Hour,
+		BrowserSessionAlgorithm:     string(browserAlg),
+		ServiceSessionAlgorithm:     string(serviceAlg),
+		BrowserSessionExpiration:    24 * time.Hour,
+		ServiceSessionExpiration:    7 * 24 * time.Hour,
+		SessionIdleTimeout:          2 * time.Hour,
+		SessionCleanupInterval:      time.Hour,
+		BrowserSessionJWSAlgorithm:  "RS256",
+		BrowserSessionJWEAlgorithm:  "dir+A256GCM",
+		ServiceSessionJWSAlgorithm:  "RS256",
+		ServiceSessionJWEAlgorithm:  "dir+A256GCM",
 	}
 
 	sm := NewSessionManager(db, nil, config)

@@ -30,6 +30,7 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"gorm.io/gorm"
 
@@ -197,14 +198,39 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		switch algIdentifier {
 		case "RS256", "RS384", "RS512":
 			jwk, genErr = cryptoutilJOSE.GenerateRSAJWK(2048)
+			if genErr == nil {
+				// Set 'alg' attribute for signing
+				var algValue joseJwa.SignatureAlgorithm
+				switch algIdentifier {
+				case "RS256":
+					algValue = joseJwa.RS256()
+				case "RS384":
+					algValue = joseJwa.RS384()
+				case "RS512":
+					algValue = joseJwa.RS512()
+				}
+				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
+			}
 		case "ES256":
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P256())
+			if genErr == nil {
+				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES256())
+			}
 		case "ES384":
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P384())
+			if genErr == nil {
+				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES384())
+			}
 		case "ES512":
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P521())
+			if genErr == nil {
+				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES512())
+			}
 		case "EdDSA":
 			jwk, genErr = cryptoutilJOSE.GenerateEDDSAJWK("Ed25519")
+			if genErr == nil {
+				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())
+			}
 		default:
 			return googleUuid.UUID{}, fmt.Errorf("unsupported JWS algorithm: %s", algIdentifier)
 		}
@@ -773,14 +799,21 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	// TODO: Decrypt JWK bytes with barrier service when encryption is implemented
 
 	// Parse JWK from JSON
-	jwk, err := joseJwk.ParseKey(jwkBytes)
+	privateJWK, err := joseJwk.ParseKey(jwkBytes)
 	if err != nil {
 		summary := "Failed to parse session JWK"
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
 	}
 
+	// Extract public key from private JWK for verification
+	publicJWK, err := privateJWK.PublicKey()
+	if err != nil {
+		summary := "Failed to extract public key from JWK"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
+	}
+
 	// Verify JWT signature
-	claimsBytes, err := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{jwk}, []byte(token))
+	claimsBytes, err := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
 	if err != nil {
 		summary := "Invalid JWT signature"
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
