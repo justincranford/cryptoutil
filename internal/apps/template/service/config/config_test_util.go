@@ -254,6 +254,56 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 		panic("unsealFiles.value must be []string")
 	}
 
+	browserSessionAlgorithmValue, ok := browserSessionAlgorithm.value.(string)
+	if !ok {
+		panic("browserSessionAlgorithm.value must be string")
+	}
+
+	browserSessionJWSAlgorithmValue, ok := browserSessionJWSAlgorithm.value.(string)
+	if !ok {
+		panic("browserSessionJWSAlgorithm.value must be string")
+	}
+
+	browserSessionJWEAlgorithmValue, ok := browserSessionJWEAlgorithm.value.(string)
+	if !ok {
+		panic("browserSessionJWEAlgorithm.value must be string")
+	}
+
+	browserSessionExpirationValue, ok := browserSessionExpiration.value.(time.Duration)
+	if !ok {
+		panic("browserSessionExpiration.value must be time.Duration")
+	}
+
+	serviceSessionAlgorithmValue, ok := serviceSessionAlgorithm.value.(string)
+	if !ok {
+		panic("serviceSessionAlgorithm.value must be string")
+	}
+
+	serviceSessionJWSAlgorithmValue, ok := serviceSessionJWSAlgorithm.value.(string)
+	if !ok {
+		panic("serviceSessionJWSAlgorithm.value must be string")
+	}
+
+	serviceSessionJWEAlgorithmValue, ok := serviceSessionJWEAlgorithm.value.(string)
+	if !ok {
+		panic("serviceSessionJWEAlgorithm.value must be string")
+	}
+
+	serviceSessionExpirationValue, ok := serviceSessionExpiration.value.(time.Duration)
+	if !ok {
+		panic("serviceSessionExpiration.value must be time.Duration")
+	}
+
+	sessionIdleTimeoutValue, ok := sessionIdleTimeout.value.(time.Duration)
+	if !ok {
+		panic("sessionIdleTimeout.value must be time.Duration")
+	}
+
+	sessionCleanupIntervalValue, ok := sessionCleanupInterval.value.(time.Duration)
+	if !ok {
+		panic("sessionCleanupInterval.value must be time.Duration")
+	}
+
 	settings := &ServiceTemplateServerSettings{
 		TLSPublicMode:               TLSModeAuto,
 		TLSPrivateMode:              TLSModeAuto,
@@ -308,6 +358,17 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 		OTLPEndpoint:                otlpEndpointValue,
 		UnsealMode:                  unsealModeValue,
 		UnsealFiles:                 unsealFilesValue,
+		// Session Manager settings
+		BrowserSessionAlgorithm:    browserSessionAlgorithmValue,
+		BrowserSessionJWSAlgorithm: browserSessionJWSAlgorithmValue,
+		BrowserSessionJWEAlgorithm: browserSessionJWEAlgorithmValue,
+		BrowserSessionExpiration:   browserSessionExpirationValue,
+		ServiceSessionAlgorithm:    serviceSessionAlgorithmValue,
+		ServiceSessionJWSAlgorithm: serviceSessionJWSAlgorithmValue,
+		ServiceSessionJWEAlgorithm: serviceSessionJWEAlgorithmValue,
+		ServiceSessionExpiration:   serviceSessionExpirationValue,
+		SessionIdleTimeout:         sessionIdleTimeoutValue,
+		SessionCleanupInterval:     sessionCleanupIntervalValue,
 	}
 	// Overrides for testing
 	settings.LogLevel = cryptoutilMagic.TestDefaultLogLevelAll

@@ -35,18 +35,23 @@ func NewSessionManagerService(
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
+
 	if db == nil {
 		return nil, fmt.Errorf("database cannot be nil")
 	}
+
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetry service cannot be nil")
 	}
+
 	if jwkGenService == nil {
 		return nil, fmt.Errorf("JWK generation service cannot be nil")
 	}
+
 	if barrierService == nil {
 		return nil, fmt.Errorf("barrier service cannot be nil")
 	}
+
 	if config == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	}
@@ -77,6 +82,7 @@ func (s *SessionManagerService) IssueBrowserSession(
 	if ctx == nil {
 		return "", fmt.Errorf("context cannot be nil")
 	}
+
 	if userID == "" {
 		return "", fmt.Errorf("user ID cannot be empty")
 	}
@@ -92,6 +98,7 @@ func (s *SessionManagerService) ValidateBrowserSession(
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
+
 	if token == "" {
 		return nil, fmt.Errorf("token cannot be empty")
 	}
@@ -108,6 +115,7 @@ func (s *SessionManagerService) IssueServiceSession(
 	if ctx == nil {
 		return "", fmt.Errorf("context cannot be nil")
 	}
+
 	if clientID == "" {
 		return "", fmt.Errorf("client ID cannot be empty")
 	}
@@ -123,6 +131,7 @@ func (s *SessionManagerService) ValidateServiceSession(
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
+
 	if token == "" {
 		return nil, fmt.Errorf("token cannot be empty")
 	}

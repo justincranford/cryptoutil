@@ -94,6 +94,9 @@ linters:
       # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
       - path: "internal/jose/server/handlers\\.go$"
         linters: [wrapcheck]
+      # Exclude wrapcheck from cipher-im session manager wrapper (internal package).
+      - path: "internal/apps/cipher/im/server/businesslogic/session_manager_service\\.go$"
+        linters: [wrapcheck]
 
   settings:
     errcheck:

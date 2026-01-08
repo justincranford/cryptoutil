@@ -123,6 +123,11 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	// Use port 0 for dynamic allocation.
 	const testPort = 0
 
+	// Get session manager from testCipherIMServer (created in TestMain).
+	// Session manager is required for PublicServer creation.
+	sessionManager := testCipherIMServer.SessionManager()
+	require.NotNil(t, sessionManager, "testCipherIMServer.SessionManager() should not be nil")
+
 	// Create PublicServer without barrier service (passed as nil).
 	// Barrier service requires unseal keys and adds significant setup complexity.
 	// Tests needing barrier service should use testCipherIMServer from TestMain.
@@ -133,7 +138,8 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 		messageRepo,
 		messageRecipientJWKRepo, // messageRecipientJWKRepo created with nil barrier service
 		testJWKGenService,
-		nil, // barrierService - nil for lightweight testing
+		nil,            // barrierService - nil for lightweight testing
+		sessionManager, // sessionManagerService - from testCipherIMServer
 		jwtSecret,
 		testTLSCfg,
 	)

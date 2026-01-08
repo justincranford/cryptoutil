@@ -5,11 +5,23 @@ package apis
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+)
+
+// Session type constants.
+const (
+	SessionTypeBrowser = "browser"
+	SessionTypeService = "service"
+)
+
+// Error message constants.
+const (
+	errMsgInvalidRequestBody = "Invalid request body format"
 )
 
 // SessionHandler handles session management endpoints for cipher-im.
@@ -52,8 +64,10 @@ type SessionValidateResponse struct {
 // IssueSession creates a new session token.
 func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	var req SessionIssueRequest
+
 	if err := c.BodyParser(&req); err != nil {
-		summary := "Invalid request body format"
+		summary := errMsgInvalidRequestBody
+
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
 
@@ -62,8 +76,10 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 
 	// Issue session based on type.
 	var token string
+
 	var err error
-	if req.SessionType == "browser" {
+
+	if req.SessionType == SessionTypeBrowser {
 		token, err = h.sessionManager.IssueBrowserSession(ctx, req.UserID, req.Realm)
 	} else {
 		token, err = h.sessionManager.IssueServiceSession(ctx, req.UserID, req.Realm)
@@ -71,6 +87,7 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 
 	if err != nil {
 		summary := "Failed to issue session token"
+
 		return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, err)
 	}
 
@@ -79,14 +96,20 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 		Token: token,
 	}
 
-	return c.JSON(resp)
+	if jsonErr := c.JSON(resp); jsonErr != nil {
+		return fmt.Errorf("failed to write JSON response: %w", jsonErr)
+	}
+
+	return nil
 }
 
 // ValidateSession validates an existing session token.
 func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 	var req SessionValidateRequest
+
 	if err := c.BodyParser(&req); err != nil {
-		summary := "Invalid request body format"
+		summary := errMsgInvalidRequestBody
+
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
 
@@ -95,8 +118,10 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 
 	// Validate session based on type.
 	var userID, realm string
+
 	var valid bool
-	if req.SessionType == "browser" {
+
+	if req.SessionType == SessionTypeBrowser {
 		browserSession, err := h.sessionManager.ValidateBrowserSession(ctx, req.Token)
 		if err != nil {
 			valid = false
@@ -104,9 +129,11 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 			if browserSession.UserID != nil {
 				userID = *browserSession.UserID
 			}
+
 			if browserSession.Realm != nil {
 				realm = *browserSession.Realm
 			}
+
 			valid = true
 		}
 	} else {
@@ -117,9 +144,11 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 			if serviceSession.ClientID != nil {
 				userID = *serviceSession.ClientID
 			}
+
 			if serviceSession.Realm != nil {
 				realm = *serviceSession.Realm
 			}
+
 			valid = true
 		}
 	}
@@ -131,5 +160,9 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 		Valid:  valid,
 	}
 
-	return c.JSON(resp)
+	if jsonErr := c.JSON(resp); jsonErr != nil {
+		return fmt.Errorf("failed to write JSON response: %w", jsonErr)
+	}
+
+	return nil
 }

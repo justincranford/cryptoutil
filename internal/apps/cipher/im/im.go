@@ -26,7 +26,6 @@ import (
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	"cryptoutil/internal/apps/cipher/im/domain"
-	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
@@ -47,14 +46,10 @@ const (
 	defaultReadyzURL   = "https://127.0.0.1:9090/admin/v1/readyz"
 	defaultShutdownURL = "https://127.0.0.1:9090/admin/v1/shutdown"
 
-	// Database dialector names.
-	dialectSQLite     = "sqlite"
-	dialectPostgreSQL = "postgres"
-
 	// SQLite in-memory database URL for shared cache.
-	sqliteInMemoryURL = "file::memory:?cache=shared"
-	dialectPostgres   = "postgres"
-	dialectPostgresPG = "pgx"
+	sqliteInMemoryURL  = "file::memory:?cache=shared"
+	dialectPostgres    = "postgres"
+	dialectPostgresPG  = "pgx"
 )
 
 // IM implements the instant messaging service subcommand handler.
@@ -276,16 +271,16 @@ func imServiceHealth(args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stdout, "✅ Service is healthy (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Fprintln(stdout, body)
+			_, _ = fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(stderr, "❌ Service is unhealthy (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Service is unhealthy (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(stderr, body)
+		_, _ = fmt.Fprintln(stderr, body)
 	}
 
 	return 1
@@ -295,7 +290,7 @@ func imServiceHealth(args []string, stdout, stderr io.Writer) int {
 // CLI wrapper calling the admin liveness check API.
 func imServiceLivez(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, IMUsageLivez)
+		_, _ = fmt.Fprintln(stderr, IMUsageLivez)
 
 		return 0
 	}
@@ -331,26 +326,26 @@ func imServiceLivez(args []string, stdout, stderr io.Writer) int {
 	// Call livez endpoint.
 	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(stderr, "❌ Liveness check failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Liveness check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		fmt.Fprintf(stdout, "✅ Service is alive (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Service is alive (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Fprintln(stdout, body)
+			_, _ = fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(stderr, "❌ Service is not alive (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Service is not alive (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(stderr, body)
+		_, _ = fmt.Fprintln(stderr, body)
 	}
 
 	return 1
@@ -360,7 +355,7 @@ func imServiceLivez(args []string, stdout, stderr io.Writer) int {
 // CLI wrapper calling the admin readiness check API.
 func imServiceReadyz(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, IMUsageReadyz)
+		_, _ = fmt.Fprintln(stderr, IMUsageReadyz)
 
 		return 0
 	}
@@ -396,26 +391,26 @@ func imServiceReadyz(args []string, stdout, stderr io.Writer) int {
 	// Call readyz endpoint.
 	statusCode, body, err := httpGet(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(stderr, "❌ Readiness check failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Readiness check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		fmt.Fprintf(stdout, "✅ Service is ready (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Service is ready (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Fprintln(stdout, body)
+			_, _ = fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(stderr, "❌ Service is not ready (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Service is not ready (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(stderr, body)
+		_, _ = fmt.Fprintln(stderr, body)
 	}
 
 	return 1
@@ -425,7 +420,7 @@ func imServiceReadyz(args []string, stdout, stderr io.Writer) int {
 // CLI wrapper calling the admin graceful shutdown API.
 func imServiceShutdown(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
-		fmt.Fprintln(stderr, IMUsageShutdown)
+		_, _ = fmt.Fprintln(stderr, IMUsageShutdown)
 
 		return 0
 	}
@@ -461,26 +456,26 @@ func imServiceShutdown(args []string, stdout, stderr io.Writer) int {
 	// Call shutdown endpoint.
 	statusCode, body, err := httpPost(url, cacertPath)
 	if err != nil {
-		fmt.Fprintf(stderr, "❌ Shutdown request failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Shutdown request failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK || statusCode == http.StatusAccepted {
-		fmt.Fprintf(stdout, "✅ Shutdown initiated (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Shutdown initiated (HTTP %d)\n", statusCode)
 
 		if body != "" {
-			fmt.Fprintln(stdout, body)
+			_, _ = fmt.Fprintln(stdout, body)
 		}
 
 		return 0
 	}
 
-	fmt.Fprintf(stderr, "❌ Shutdown request failed (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Shutdown request failed (HTTP %d)\n", statusCode)
 
 	if body != "" {
-		fmt.Fprintln(stderr, body)
+		_, _ = fmt.Fprintln(stderr, body)
 	}
 
 	return 1
@@ -744,18 +739,3 @@ func initSQLite(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	return db, nil
 }
 
-// determineDatabaseType determines the database type from a GORM instance.
-// Inspects the GORM dialector to determine if it's PostgreSQL or SQLite.
-func determineDatabaseType(db *gorm.DB) repository.DatabaseType {
-	dialectName := db.Name()
-
-	switch dialectName {
-	case dialectPostgres, dialectPostgresPG:
-		return repository.DatabaseTypePostgreSQL
-	case dialectSQLite:
-		return repository.DatabaseTypeSQLite
-	default:
-		// Fallback to SQLite for unknown dialectors (safety default).
-		return repository.DatabaseTypeSQLite
-	}
-}

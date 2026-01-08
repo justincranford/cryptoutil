@@ -37,11 +37,11 @@ var (
 func TestMain(m *testing.M) {
 	// Create in-memory SQLite configuration for testing.
 	settings := cryptoutilConfig.RequireNewForTest("cipher-im-test")
-	settings.DatabaseURL = "file::memory:?cache=shared"
+	settings.DatabaseURL = sqliteInMemoryURL
 
 	sharedAppConfig := &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
-		JWTSecret:      googleUuid.Must(googleUuid.NewUUID()).String(),
+		JWTSecret:                     googleUuid.Must(googleUuid.NewUUID()).String(),
 	}
 
 	// Start service once for all tests in this package (following e2e pattern).

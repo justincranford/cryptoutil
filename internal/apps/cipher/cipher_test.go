@@ -16,6 +16,7 @@ func TestCipher_NoArguments(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalCipher([]string{}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
@@ -52,6 +53,7 @@ func TestCipher_HelpCommand(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalCipher(tt.args, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
@@ -90,6 +92,7 @@ func TestCipher_VersionCommand(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalCipher(tt.args, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
@@ -131,6 +134,7 @@ func TestCipher_UnknownService(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalCipher(tt.args, &stdout, &stderr)
 			require.Equal(t, 1, exitCode)
 
@@ -150,6 +154,7 @@ func TestCipher_IMService_RoutesCorrectly(t *testing.T) {
 	// We can't fully test IM() behavior here without a running server,
 	// but we can verify routing doesn't panic and handles help.
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalCipher([]string{"im", "help"}, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
@@ -165,6 +170,7 @@ func TestCipher_IMService_InvalidSubcommand(t *testing.T) {
 	t.Parallel()
 
 	var stdout, stderr bytes.Buffer
+
 	exitCode := internalCipher([]string{"im", "invalid-subcommand"}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
@@ -203,6 +209,7 @@ func TestLearn_Constants(t *testing.T) {
 			t.Parallel()
 
 			var stdout, stderr bytes.Buffer
+
 			exitCode := internalCipher(tt.args, &stdout, &stderr)
 			require.Equal(t, tt.exitCode, exitCode)
 		})

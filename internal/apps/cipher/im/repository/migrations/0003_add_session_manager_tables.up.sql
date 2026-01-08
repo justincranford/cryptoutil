@@ -1,44 +1,68 @@
 --
 -- SessionManager tables for template-based session management
 -- Supports OPAQUE, JWS, and JWE session types with mixed algorithms
+-- 
+-- Table names match GORM model TableName() methods:
+--   - browser_session_jwks, service_session_jwks
+--   - browser_sessions, service_sessions
 --
 
--- Session JWKs table (Elastic Key Ring pattern)
--- Stores active + historical JWKs for each session type and algorithm
--- Active key encrypts/signs new sessions; historical keys decrypt/verify existing sessions
-CREATE TABLE IF NOT EXISTS session_jwks (
+-- Browser Session JWKs table (Elastic Key Ring pattern)
+-- Stores active + historical JWKs for browser session type
+CREATE TABLE IF NOT EXISTS browser_session_jwks (
     id TEXT PRIMARY KEY NOT NULL,
+    encrypted_jwk TEXT NOT NULL,      -- Encrypted JWK using barrier service (JWE format)
     algorithm TEXT NOT NULL,          -- OPAQUE, JWS_RSA2048, JWS_RSA3072, JWS_RSA4096, JWE_AES256GCM, JWE_AES384HS, JWE_AES512HS
-    session_type TEXT NOT NULL,       -- BROWSER, SERVICE
-    jwk_data TEXT NOT NULL,           -- Encrypted JWK using barrier service (JWE format)
-    status TEXT NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE (current), HISTORICAL (for verification only), REVOKED
-    created_at INTEGER NOT NULL,      -- Unix epoch milliseconds
-    rotated_at INTEGER              -- Unix epoch milliseconds (when rotated from ACTIVE to HISTORICAL)
+    active INTEGER NOT NULL DEFAULT 1,  -- 1=active (current), 0=inactive (for verification only)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_session_jwks_algorithm_type ON session_jwks(algorithm, session_type);
-CREATE INDEX IF NOT EXISTS idx_session_jwks_status ON session_jwks(status);
-CREATE INDEX IF NOT EXISTS idx_session_jwks_created_at ON session_jwks(created_at);
+CREATE INDEX IF NOT EXISTS idx_browser_session_jwks_algorithm ON browser_session_jwks(algorithm);
+CREATE INDEX IF NOT EXISTS idx_browser_session_jwks_active ON browser_session_jwks(active);
+CREATE INDEX IF NOT EXISTS idx_browser_session_jwks_created_at ON browser_session_jwks(created_at);
 
--- Session tokens table
--- Active sessions with metadata and revocation support
--- Token value NOT stored (privacy); only metadata for management/cleanup
-CREATE TABLE IF NOT EXISTS session_tokens (
+-- Service Session JWKs table (Elastic Key Ring pattern)
+-- Stores active + historical JWKs for service session type
+CREATE TABLE IF NOT EXISTS service_session_jwks (
     id TEXT PRIMARY KEY NOT NULL,
-    token_id TEXT NOT NULL,           -- UUID extracted from token payload for identification
-    user_id TEXT NOT NULL,            -- Associated user identifier
-    algorithm TEXT NOT NULL,          -- OPAQUE, JWS_RSA2048, etc.
-    session_type TEXT NOT NULL,       -- BROWSER, SERVICE
-    jwk_id TEXT NOT NULL,             -- JWK used to create this session
-    issued_at INTEGER NOT NULL,       -- Unix epoch milliseconds
-    expires_at INTEGER NOT NULL,      -- Unix epoch milliseconds
-    revoked_at INTEGER,              -- Unix epoch milliseconds (NULL if not revoked)
-    FOREIGN KEY (jwk_id) REFERENCES session_jwks(id)
+    encrypted_jwk TEXT NOT NULL,      -- Encrypted JWK using barrier service (JWE format)
+    algorithm TEXT NOT NULL,          -- OPAQUE, JWS_RSA2048, JWS_RSA3072, JWS_RSA4096, JWE_AES256GCM, JWE_AES384HS, JWE_AES512HS
+    active INTEGER NOT NULL DEFAULT 1,  -- 1=active (current), 0=inactive (for verification only)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_session_tokens_token_id ON session_tokens(token_id);
-CREATE INDEX IF NOT EXISTS idx_session_tokens_user_id ON session_tokens(user_id);
-CREATE INDEX IF NOT EXISTS idx_session_tokens_algorithm_type ON session_tokens(algorithm, session_type);
-CREATE INDEX IF NOT EXISTS idx_session_tokens_expires_at ON session_tokens(expires_at);
-CREATE INDEX IF NOT EXISTS idx_session_tokens_revoked_at ON session_tokens(revoked_at);
-CREATE INDEX IF NOT EXISTS idx_session_tokens_jwk_id ON session_tokens(jwk_id);
+CREATE INDEX IF NOT EXISTS idx_service_session_jwks_algorithm ON service_session_jwks(algorithm);
+CREATE INDEX IF NOT EXISTS idx_service_session_jwks_active ON service_session_jwks(active);
+CREATE INDEX IF NOT EXISTS idx_service_session_jwks_created_at ON service_session_jwks(created_at);
+
+-- Browser Sessions table
+-- Active browser sessions with metadata
+CREATE TABLE IF NOT EXISTS browser_sessions (
+    id TEXT PRIMARY KEY NOT NULL,
+    token_hash TEXT,                  -- Hashed token (OPAQUE only), NULL for JWE/JWS
+    expiration TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP,          -- Last activity timestamp for idle timeout
+    realm TEXT,                       -- Realm identifier for multi-tenancy
+    user_id TEXT                      -- User identifier
+);
+
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_token_hash ON browser_sessions(token_hash);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_expiration ON browser_sessions(expiration);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_user_id ON browser_sessions(user_id);
+
+-- Service Sessions table
+-- Active service sessions with metadata
+CREATE TABLE IF NOT EXISTS service_sessions (
+    id TEXT PRIMARY KEY NOT NULL,
+    token_hash TEXT,                  -- Hashed token (OPAQUE only), NULL for JWE/JWS
+    expiration TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP,          -- Last activity timestamp for idle timeout
+    realm TEXT,                       -- Realm identifier for multi-tenancy
+    client_id TEXT                    -- Client identifier
+);
+
+CREATE INDEX IF NOT EXISTS idx_service_sessions_token_hash ON service_sessions(token_hash);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_expiration ON service_sessions(expiration);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_client_id ON service_sessions(client_id);

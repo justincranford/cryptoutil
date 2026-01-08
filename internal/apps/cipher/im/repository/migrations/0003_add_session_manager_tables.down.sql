@@ -1,16 +1,24 @@
 --
 -- Rollback SessionManager tables
+-- Drops tables in reverse order of creation to respect any foreign key constraints
 --
 
-DROP INDEX IF EXISTS idx_session_tokens_jwk_id;
-DROP INDEX IF EXISTS idx_session_tokens_revoked_at;
-DROP INDEX IF EXISTS idx_session_tokens_expires_at;
-DROP INDEX IF EXISTS idx_session_tokens_algorithm_type;
-DROP INDEX IF EXISTS idx_session_tokens_user_id;
-DROP INDEX IF EXISTS idx_session_tokens_token_id;
-DROP TABLE IF EXISTS session_tokens;
+DROP INDEX IF EXISTS idx_service_sessions_client_id;
+DROP INDEX IF EXISTS idx_service_sessions_expiration;
+DROP INDEX IF EXISTS idx_service_sessions_token_hash;
+DROP TABLE IF EXISTS service_sessions;
 
-DROP INDEX IF EXISTS idx_session_jwks_created_at;
-DROP INDEX IF EXISTS idx_session_jwks_status;
-DROP INDEX IF EXISTS idx_session_jwks_algorithm_type;
-DROP TABLE IF EXISTS session_jwks;
+DROP INDEX IF EXISTS idx_browser_sessions_user_id;
+DROP INDEX IF EXISTS idx_browser_sessions_expiration;
+DROP INDEX IF EXISTS idx_browser_sessions_token_hash;
+DROP TABLE IF EXISTS browser_sessions;
+
+DROP INDEX IF EXISTS idx_service_session_jwks_created_at;
+DROP INDEX IF EXISTS idx_service_session_jwks_active;
+DROP INDEX IF EXISTS idx_service_session_jwks_algorithm;
+DROP TABLE IF EXISTS service_session_jwks;
+
+DROP INDEX IF EXISTS idx_browser_session_jwks_created_at;
+DROP INDEX IF EXISTS idx_browser_session_jwks_active;
+DROP INDEX IF EXISTS idx_browser_session_jwks_algorithm;
+DROP TABLE IF EXISTS browser_session_jwks;

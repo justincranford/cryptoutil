@@ -34,6 +34,17 @@ func NewTestServerSettings() *cryptoutilConfig.ServiceTemplateServerSettings {
 		OTLPEnabled:                 false, // Disable actual OTLP export in tests
 		LogLevel:                    "error",
 		UnsealMode:                  cryptoutilMagic.DefaultUnsealModeSysInfo,
+		// Session Manager settings - use OPAQUE for simplicity in tests (no JWK generation needed).
+		BrowserSessionAlgorithm:    cryptoutilMagic.DefaultBrowserSessionAlgorithm,
+		BrowserSessionJWSAlgorithm: cryptoutilMagic.DefaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm: cryptoutilMagic.DefaultBrowserSessionJWEAlgorithm,
+		BrowserSessionExpiration:   cryptoutilMagic.DefaultBrowserSessionExpiration,
+		ServiceSessionAlgorithm:    cryptoutilMagic.DefaultServiceSessionAlgorithm,
+		ServiceSessionJWSAlgorithm: cryptoutilMagic.DefaultServiceSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm: cryptoutilMagic.DefaultServiceSessionJWEAlgorithm,
+		ServiceSessionExpiration:   cryptoutilMagic.DefaultServiceSessionExpiration,
+		SessionIdleTimeout:         cryptoutilMagic.DefaultSessionIdleTimeout,
+		SessionCleanupInterval:     cryptoutilMagic.DefaultSessionCleanupInterval,
 	}
 }
 
