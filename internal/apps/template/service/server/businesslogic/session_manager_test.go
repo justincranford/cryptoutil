@@ -83,6 +83,7 @@ func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilMagic.Se
 		ServiceSessionJWEAlgorithm: "dir+A256GCM",
 	}
 
+	// Use nil barrier service for tests (enables plain text JWK storage for testing)
 	sm := NewSessionManager(db, nil, config)
 
 	err := sm.Initialize(context.Background())
@@ -98,6 +99,7 @@ func TestSessionManager_NewSessionManager(t *testing.T) {
 		ServiceSessionAlgorithm: string(cryptoutilMagic.SessionAlgorithmJWS),
 	}
 
+	// Use nil barrier service for tests (enables plain text JWK storage for testing)
 	sm := NewSessionManager(db, nil, config)
 	require.NotNil(t, sm)
 	require.Equal(t, db, sm.db)
