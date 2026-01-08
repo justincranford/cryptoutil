@@ -289,20 +289,20 @@ type ServiceTemplateServerSettings struct {
 	OTLPEnvironment             string
 	OTLPHostname                string
 	OTLPEndpoint                string
-	UnsealMode                    string
-	UnsealFiles                   []string
-	Realms                        []string      // Paths to realm configuration files (e.g., 01-username-password-file.yml, 02-username-password-db.yml)
-	BrowserSessionCookie          string        // Cookie type: jwe (encrypted), jws (signed), opaque (database) - DEPRECATED: use BrowserSessionAlgorithm
-	BrowserSessionAlgorithm       string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
-	BrowserSessionJWSAlgorithm    string        // JWS algorithm for browser sessions (e.g., RS256, ES256, EdDSA)
-	BrowserSessionJWEAlgorithm    string        // JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
-	BrowserSessionExpiration      time.Duration // Browser session expiration duration
-	ServiceSessionAlgorithm       string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
-	ServiceSessionJWSAlgorithm    string        // JWS algorithm for service sessions (e.g., RS256, ES256, EdDSA)
-	ServiceSessionJWEAlgorithm    string        // JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
-	ServiceSessionExpiration      time.Duration // Service session expiration duration
-	SessionIdleTimeout            time.Duration // Session idle timeout duration
-	SessionCleanupInterval        time.Duration // Interval for cleaning up expired sessions
+	UnsealMode                  string
+	UnsealFiles                 []string
+	Realms                      []string      // Paths to realm configuration files (e.g., 01-username-password-file.yml, 02-username-password-db.yml)
+	BrowserSessionCookie        string        // Cookie type: jwe (encrypted), jws (signed), opaque (database) - DEPRECATED: use BrowserSessionAlgorithm
+	BrowserSessionAlgorithm     string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
+	BrowserSessionJWSAlgorithm  string        // JWS algorithm for browser sessions (e.g., RS256, ES256, EdDSA)
+	BrowserSessionJWEAlgorithm  string        // JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
+	BrowserSessionExpiration    time.Duration // Browser session expiration duration
+	ServiceSessionAlgorithm     string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
+	ServiceSessionJWSAlgorithm  string        // JWS algorithm for service sessions (e.g., RS256, ES256, EdDSA)
+	ServiceSessionJWEAlgorithm  string        // JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)
+	ServiceSessionExpiration    time.Duration // Service session expiration duration
+	SessionIdleTimeout          time.Duration // Session idle timeout duration
+	SessionCleanupInterval      time.Duration // Interval for cleaning up expired sessions
 }
 
 // PrivateBaseURL returns the private base URL constructed from protocol, address, and port.
@@ -1133,20 +1133,20 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 		OTLPEnvironment:             viper.GetString(otlpEnvironment.name),
 		OTLPHostname:                viper.GetString(otlpHostname.name),
 		OTLPEndpoint:                viper.GetString(otlpEndpoint.name),
-		UnsealMode:                    viper.GetString(unsealMode.name),
-		UnsealFiles:                   viper.GetStringSlice(unsealFiles.name),
-		Realms:                        viper.GetStringSlice(realms.name),
-		BrowserSessionCookie:          viper.GetString(browserSessionCookie.name),
-		BrowserSessionAlgorithm:       viper.GetString(browserSessionAlgorithm.name),
-		BrowserSessionJWSAlgorithm:    viper.GetString(browserSessionJWSAlgorithm.name),
-		BrowserSessionJWEAlgorithm:    viper.GetString(browserSessionJWEAlgorithm.name),
-		BrowserSessionExpiration:      viper.GetDuration(browserSessionExpiration.name),
-		ServiceSessionAlgorithm:       viper.GetString(serviceSessionAlgorithm.name),
-		ServiceSessionJWSAlgorithm:    viper.GetString(serviceSessionJWSAlgorithm.name),
-		ServiceSessionJWEAlgorithm:    viper.GetString(serviceSessionJWEAlgorithm.name),
-		ServiceSessionExpiration:      viper.GetDuration(serviceSessionExpiration.name),
-		SessionIdleTimeout:            viper.GetDuration(sessionIdleTimeout.name),
-		SessionCleanupInterval:        viper.GetDuration(sessionCleanupInterval.name),
+		UnsealMode:                  viper.GetString(unsealMode.name),
+		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
+		Realms:                      viper.GetStringSlice(realms.name),
+		BrowserSessionCookie:        viper.GetString(browserSessionCookie.name),
+		BrowserSessionAlgorithm:     viper.GetString(browserSessionAlgorithm.name),
+		BrowserSessionJWSAlgorithm:  viper.GetString(browserSessionJWSAlgorithm.name),
+		BrowserSessionJWEAlgorithm:  viper.GetString(browserSessionJWEAlgorithm.name),
+		BrowserSessionExpiration:    viper.GetDuration(browserSessionExpiration.name),
+		ServiceSessionAlgorithm:     viper.GetString(serviceSessionAlgorithm.name),
+		ServiceSessionJWSAlgorithm:  viper.GetString(serviceSessionJWSAlgorithm.name),
+		ServiceSessionJWEAlgorithm:  viper.GetString(serviceSessionJWEAlgorithm.name),
+		ServiceSessionExpiration:    viper.GetDuration(serviceSessionExpiration.name),
+		SessionIdleTimeout:          viper.GetDuration(sessionIdleTimeout.name),
+		SessionCleanupInterval:      viper.GetDuration(sessionCleanupInterval.name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.

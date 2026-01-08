@@ -55,12 +55,12 @@ func (ServiceSessionJWK) TableName() string {
 //   - JWS: TokenHash is NULL, session identified by jti claim in JWT
 //   - OPAQUE: TokenHash stores hashed UUIDv7 token, session identified by hash lookup
 type Session struct {
-	ID           googleUuid.UUID  `gorm:"type:text;primaryKey"`
-	TokenHash    *string          `gorm:"type:text;index"` // Hashed token (OPAQUE only), NULL for JWE/JWS.
-	Expiration   time.Time        `gorm:"not null;index"`
-	CreatedAt    time.Time        `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	LastActivity *time.Time       // Last activity timestamp for idle timeout.
-	Realm        *string          `gorm:"type:text"` // Realm identifier for multi-tenancy.
+	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
+	TokenHash    *string         `gorm:"type:text;index"` // Hashed token (OPAQUE only), NULL for JWE/JWS.
+	Expiration   time.Time       `gorm:"not null;index"`
+	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	LastActivity *time.Time      // Last activity timestamp for idle timeout.
+	Realm        *string         `gorm:"type:text"` // Realm identifier for multi-tenancy.
 }
 
 // BrowserSession represents a browser user session.
