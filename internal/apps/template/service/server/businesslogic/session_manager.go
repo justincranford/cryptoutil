@@ -185,29 +185,64 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	// No active JWK found, generate new one
-	// TODO(cipher-im-migration): Complete JWK generation and storage
-	// For now, just return a placeholder ID
-	// jwk, err := sm.generateSessionJWK(isBrowser, algorithm)
+	var jwk joseJwk.Key
+	var genErr error
+
+	// Determine which JWK generation function to use based on algorithm
+	algIdentifier := sm.getAlgorithmIdentifier(isBrowser, algorithm)
+
+	switch algorithm {
+	case cryptoutilMagic.SessionAlgorithmJWS:
+		// Generate signing JWK based on algorithm
+		switch algIdentifier {
+		case "RS256", "RS384", "RS512":
+			jwk, genErr = cryptoutilJOSE.GenerateRSAJWK(2048)
+		case "ES256":
+			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P256())
+		case "ES384":
+			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P384())
+		case "ES512":
+			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P521())
+		case "EdDSA":
+			jwk, genErr = cryptoutilJOSE.GenerateEDDSAJWK("Ed25519")
+		default:
+			return googleUuid.UUID{}, fmt.Errorf("unsupported JWS algorithm: %s", algIdentifier)
+		}
+	case cryptoutilMagic.SessionAlgorithmJWE:
+		// Generate encryption JWK based on algorithm
+		switch algIdentifier {
+		case "dir+A256GCM", "A256GCMKW+A256GCM":
+			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(256)
+		default:
+			return googleUuid.UUID{}, fmt.Errorf("unsupported JWE algorithm: %s", algIdentifier)
+		}
+	default:
+		return googleUuid.UUID{}, fmt.Errorf("unsupported session algorithm: %s", algorithm)
+	}
+
+	if genErr != nil {
+		return googleUuid.UUID{}, fmt.Errorf("failed to generate JWK: %w", genErr)
+	}
+
+	// Marshal JWK to JSON bytes
+	jwkBytes, marshalErr := json.Marshal(jwk)
+	if marshalErr != nil {
+		return googleUuid.UUID{}, fmt.Errorf("failed to marshal JWK: %w", marshalErr)
+	}
+
+	// TODO: Encrypt JWK with barrier service
+	// encryptedJWK, err := sm.barrier.EncryptContent(ctx, jwkBytes)
 	// if err != nil {
-	// 	return googleUuid.UUID{}, fmt.Errorf("failed to generate session JWK: %w", err)
+	//     return googleUuid.UUID{}, fmt.Errorf("failed to encrypt JWK: %w", err)
 	// }
 
-	// TODO: Convert crypto.PrivateKey to JWK format
-	// TODO: Marshal JWK to JSON bytes
-	// TODO: Encrypt with barrier service
-	// TODO: Store in database
-
-	jwkID := googleUuid.Must(googleUuid.NewV7())
-	return jwkID, nil
-
-	/* DEFERRED IMPLEMENTATION - uncomment when JWK conversion is ready
-	// Store JWK in database (as plain text for now)
+	// Store JWK in database (plain text for now, TODO: use encrypted)
 	jwkID := googleUuid.Must(googleUuid.NewV7())
 	newJWK := cryptoutilRepository.SessionJWK{
 		ID:           jwkID,
 		EncryptedJWK: string(jwkBytes), // TODO: Actually encrypt this
 		CreatedAt:    time.Now(),
-		Algorithm:    sm.getAlgorithmIdentifier(isBrowser, algorithm),
+		Algorithm:    algIdentifier,
 		Active:       true,
 	}
 
@@ -225,7 +260,6 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	return jwkID, nil
-	*/
 }
 
 // generateSessionJWK generates a new private key for session tokens.
