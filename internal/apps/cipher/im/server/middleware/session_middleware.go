@@ -40,7 +40,6 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 
 		// Validate token using SessionManager
 		ctx := context.Background()
-		var err error
 
 		if isBrowser {
 			// Validate browser session

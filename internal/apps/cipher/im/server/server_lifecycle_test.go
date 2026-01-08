@@ -27,7 +27,7 @@ func TestNewPublicServer_NilContext(t *testing.T) {
 	messageRepo := repository.NewMessageRepository(testDB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
-	_, err := server.NewPublicServer(context.Background(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, nil, nil, "test-secret", testTLSCfg)
+	_, err := server.NewPublicServer(context.Background(), 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, nil, nil, testTLSCfg)
 	require.Error(t, err)
 	// The test passes nil for jwkGenService, so that validation triggers first
 	require.Contains(t, err.Error(), "JWK generation service cannot be nil")
@@ -44,7 +44,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	messageRepo := repository.NewMessageRepository(testDB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
-	_, err := server.NewPublicServer(ctx, 0, nil, messageRepo, messageRecipientJWKRepo, nil, nil, nil, "test-secret", testTLSCfg)
+	_, err := server.NewPublicServer(ctx, 0, nil, messageRepo, messageRecipientJWKRepo, nil, nil, nil, testTLSCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "user repository cannot be nil")
 }
@@ -60,7 +60,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	userRepo := repository.NewUserRepository(testDB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
 
-	_, err := server.NewPublicServer(ctx, 0, userRepo, nil, messageRecipientJWKRepo, nil, nil, nil, "test-secret", testTLSCfg)
+	_, err := server.NewPublicServer(ctx, 0, userRepo, nil, messageRecipientJWKRepo, nil, nil, nil, testTLSCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message repository cannot be nil")
 }
@@ -76,7 +76,7 @@ func TestNewPublicServer_NilMessageRecipientJWKRepo(t *testing.T) {
 	userRepo := repository.NewUserRepository(testDB)
 	messageRepo := repository.NewMessageRepository(testDB)
 
-	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, nil, nil, nil, nil, "test-secret", testTLSCfg)
+	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, nil, nil, nil, nil, testTLSCfg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message recipient JWK repository cannot be nil")
 }
@@ -96,7 +96,7 @@ func TestNewPublicServer_NilTLSConfig(t *testing.T) {
 	// Get session manager from testCipherIMServer to pass validation.
 	sessionManager := testCipherIMServer.SessionManager()
 
-	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, messageRecipientJWKRepo, testJWKGenService, nil, sessionManager, "test-secret", nil)
+	_, err := server.NewPublicServer(ctx, 0, userRepo, messageRepo, messageRecipientJWKRepo, testJWKGenService, nil, sessionManager, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "TLS configuration cannot be nil")
 }

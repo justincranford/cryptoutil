@@ -22,7 +22,6 @@ import (
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // TestServerResources holds shared resources created by SetupTestServer.
@@ -79,16 +78,9 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 		return nil, fmt.Errorf("failed to generate TLS config: %w", err)
 	}
 
-	// Generate JWT secret.
-	jwtSecretID, err := cryptoutilRandom.GenerateUUIDv7()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate JWT secret: %w", err)
-	}
-
 	// Create CipherImServerSettings with test settings.
 	cfg := &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-test"),
-		JWTSecret:                     jwtSecretID.String(),
 	}
 	cfg.DatabaseURL = dsn // Set database URL for NewFromConfig
 
