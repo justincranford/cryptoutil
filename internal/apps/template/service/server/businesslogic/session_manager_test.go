@@ -7,6 +7,8 @@ package businesslogic
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -25,9 +27,9 @@ import (
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Open SQLite with modernc driver (CGO-free)
-	dsn := "file::memory:?cache=shared"
-	sqlDB, err := sql.Open("sqlite", dsn)
+	// Create unique database name to avoid sharing between tests
+	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
+	sqlDB, err := sql.Open("sqlite", dbName)
 	require.NoError(t, err)
 
 	// Enable WAL mode for better concurrency
@@ -69,16 +71,16 @@ func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilMagic.Se
 	db := setupTestDB(t)
 
 	config := &cryptoutilConfig.ServiceTemplateServerSettings{
-		BrowserSessionAlgorithm:     string(browserAlg),
-		ServiceSessionAlgorithm:     string(serviceAlg),
-		BrowserSessionExpiration:    24 * time.Hour,
-		ServiceSessionExpiration:    7 * 24 * time.Hour,
-		SessionIdleTimeout:          2 * time.Hour,
-		SessionCleanupInterval:      time.Hour,
-		BrowserSessionJWSAlgorithm:  "RS256",
-		BrowserSessionJWEAlgorithm:  "dir+A256GCM",
-		ServiceSessionJWSAlgorithm:  "RS256",
-		ServiceSessionJWEAlgorithm:  "dir+A256GCM",
+		BrowserSessionAlgorithm:    string(browserAlg),
+		ServiceSessionAlgorithm:    string(serviceAlg),
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWSAlgorithm: "RS256",
+		BrowserSessionJWEAlgorithm: "dir+A256GCM",
+		ServiceSessionJWSAlgorithm: "RS256",
+		ServiceSessionJWEAlgorithm: "dir+A256GCM",
 	}
 
 	sm := NewSessionManager(db, nil, config)

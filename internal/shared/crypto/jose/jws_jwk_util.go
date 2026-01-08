@@ -306,14 +306,18 @@ func ExtractAlgFromJWSJWK(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, 
 		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
 
-	var alg joseJwa.SignatureAlgorithm
-
-	err := jwk.Get(joseJwk.AlgorithmKey, &alg) // Example: RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, EdDSA
-	if err != nil {
-		return nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
+	// Retrieve the algorithm via the helper which returns a generic KeyAlgorithm.
+	keyAlg, ok := jwk.Algorithm()
+	if !ok {
+		return nil, fmt.Errorf("can't get JWK %d 'alg' attribute: missing algorithm", i)
 	}
 
-	return &alg, nil
+	// Ensure it's a signature algorithm (not a key encryption algorithm).
+	if sigAlg, isSig := keyAlg.(joseJwa.SignatureAlgorithm); isSig {
+		return &sigAlg, nil
+	}
+
+	return nil, fmt.Errorf("JWK %d 'alg' is not a signature algorithm", i)
 }
 
 func IsJWSAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {

@@ -210,26 +210,41 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					algValue = joseJwa.RS512()
 				}
 				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
+				}
 			}
 		case "ES256":
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P256())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES256())
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
+				}
 			}
 		case "ES384":
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P384())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES384())
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
+				}
 			}
 		case "ES512":
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P521())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES512())
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
+				}
 			}
 		case "EdDSA":
 			jwk, genErr = cryptoutilJOSE.GenerateEDDSAJWK("Ed25519")
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
+				}
 			}
 		default:
 			return googleUuid.UUID{}, fmt.Errorf("unsupported JWS algorithm: %s", algIdentifier)
@@ -237,8 +252,23 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	case cryptoutilMagic.SessionAlgorithmJWE:
 		// Generate encryption JWK based on algorithm
 		switch algIdentifier {
-		case "dir+A256GCM", "A256GCMKW+A256GCM":
+		case "dir+A256GCM":
 			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(256)
+			if genErr == nil {
+				// Set 'enc' and 'alg' attributes for encryption
+				genErr = jwk.Set("enc", joseJwa.A256GCM())
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.DIRECT())
+				}
+			}
+		case "A256GCMKW+A256GCM":
+			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(256)
+			if genErr == nil {
+				genErr = jwk.Set("enc", joseJwa.A256GCM())
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.A256GCMKW())
+				}
+			}
 		default:
 			return googleUuid.UUID{}, fmt.Errorf("unsupported JWE algorithm: %s", algIdentifier)
 		}
@@ -692,11 +722,12 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 
 	// TODO: Decrypt JWK bytes with barrier service when encryption is implemented
 
-	// Parse JWK from JSON
+	// Parse JWK from JSON and ensure 'alg' is properly typed for signing
 	jwk, err := joseJwk.ParseKey(jwkBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse JWK: %w", err)
 	}
+	// Algorithm type normalization no longer needed; extraction handles typing.
 
 	// Create JWT claims
 	jti := googleUuid.Must(googleUuid.NewV7())
@@ -811,6 +842,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 		summary := "Failed to extract public key from JWK"
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
 	}
+	// No normalization required; verification utilities will validate algorithm type.
 
 	// Verify JWT signature
 	claimsBytes, err := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
@@ -1098,28 +1130,21 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, parseJtiErr)
 	}
 
-	tokenHash, hashErr := cryptoutilHash.HashHighEntropyDeterministic(jti.String())
-	if hashErr != nil {
-		return nil, fmt.Errorf("failed to hash jti: %w", hashErr)
-	}
-
-	// Look up session in database by hashed jti (enables revocation)
+	// Look up session in database by jti (enables revocation)
 	var session interface{}
 	var findErr error
 
 	if isBrowser {
 		browserSession := &cryptoutilRepository.BrowserSession{}
 		findErr = sm.db.WithContext(ctx).
-			Joins("Session").
-			Where("sessions.token_hash = ?", tokenHash).
+			Where("id = ?", jti).
 			First(browserSession).
 			Error
 		session = browserSession
 	} else {
 		serviceSession := &cryptoutilRepository.ServiceSession{}
 		findErr = sm.db.WithContext(ctx).
-			Joins("Session").
-			Where("sessions.token_hash = ?", tokenHash).
+			Where("id = ?", jti).
 			First(serviceSession).
 			Error
 		session = serviceSession

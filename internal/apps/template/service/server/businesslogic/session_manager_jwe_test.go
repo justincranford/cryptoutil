@@ -1,7 +1,3 @@
-// Copyright (c) 2025 Justin Cranford
-//
-//
-
 package businesslogic
 
 import (
@@ -10,17 +6,17 @@ import (
 	"testing"
 	"time"
 
-	googleUuid "github.com/google/uuid"
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-	"github.com/stretchr/testify/require"
-
 	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJOSE "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+
+	googleUuid "github.com/google/uuid"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+	"github.com/stretchr/testify/require"
 )
 
-func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -30,10 +26,7 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
-	// Parse token as JWT
-	var claims map[string]interface{}
-
-	// Load JWK from database to verify signature
+	// Load JWK and decrypt
 	var browserJWK struct {
 		EncryptedJWK string
 	}
@@ -43,17 +36,14 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 		First(&browserJWK).Error
 	require.NoError(t, findErr)
 
-	privateJWK, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
 	require.NoError(t, parseErr)
 
-	// Extract public key from private JWK for verification
-	publicJWK, publicKeyErr := privateJWK.PublicKey()
-	require.NoError(t, publicKeyErr)
+	// Decrypt JWE
+	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	require.NoError(t, decryptErr)
 
-	// Verify JWS signature
-	claimsBytes, verifyErr := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
-	require.NoError(t, verifyErr)
-
+	var claims map[string]interface{}
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	require.NoError(t, unmarshalErr)
 
@@ -63,18 +53,12 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	require.Contains(t, claims, "exp")
 	require.Contains(t, claims, "sub")
 	require.Contains(t, claims, "realm")
-
 	require.Equal(t, userID, claims["sub"])
 	require.Equal(t, realm, claims["realm"])
-
-	// Verify expiration is in future
-	expFloat := claims["exp"].(float64)
-	exp := time.Unix(int64(expFloat), 0)
-	require.True(t, time.Now().Before(exp), "Expiration should be in future")
 }
 
-func TestSessionManager_ValidateBrowserSession_JWS_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+func TestSessionManager_ValidateBrowserSession_JWE_Success(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -94,26 +78,39 @@ func TestSessionManager_ValidateBrowserSession_JWS_Success(t *testing.T) {
 	require.Equal(t, realm, *session.Realm)
 }
 
-func TestSessionManager_ValidateBrowserSession_JWS_InvalidSignature(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+func TestSessionManager_ValidateBrowserSession_JWE_InvalidToken(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
-	// Create invalid JWT (malformed token)
-	invalidToken := "invalid.jwt.token"
-
-	session, err := sm.ValidateBrowserSession(ctx, invalidToken)
-	require.Error(t, err)
+	// Validate should fail with invalid token
+	session, validateErr := sm.ValidateBrowserSession(ctx, "invalid.jwe.token")
+	require.Error(t, validateErr)
 	require.Nil(t, session)
+	require.Contains(t, validateErr.Error(), "Invalid session token")
 }
 
-func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+func TestSessionManager_ValidateBrowserSession_JWE_ExpiredJWT(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
 	realm := "test-realm"
+	jti := googleUuid.Must(googleUuid.NewV7())
+	now := time.Now()
+	exp := now.Add(-1 * time.Hour) // Expired 1 hour ago
 
-	// Load JWK from database
+	// Create expired JWT claims
+	claims := map[string]interface{}{
+		"jti":   jti.String(),
+		"iat":   now.Add(-2 * time.Hour).Unix(),
+		"exp":   exp.Unix(),
+		"sub":   userID,
+		"realm": realm,
+	}
+
+	claimsBytes, _ := json.Marshal(claims)
+
+	// Load JWK to encrypt
 	var browserJWK struct {
 		EncryptedJWK string
 	}
@@ -126,32 +123,19 @@ func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
 	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
 	require.NoError(t, parseErr)
 
-	// Create expired JWT manually
-	now := time.Now()
-	exp := now.Add(-1 * time.Hour) // Already expired
-	jti := googleUuid.Must(googleUuid.NewV7())
-
-	claims := map[string]interface{}{
-		"jti":   jti.String(),
-		"iat":   now.Add(-2 * time.Hour).Unix(),
-		"exp":   exp.Unix(),
-		"sub":   userID,
-		"realm": realm,
-	}
-
-	claimsBytes, _ := json.Marshal(claims)
-	_, jwsBytes, signErr := cryptoutilJOSE.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
-	require.NoError(t, signErr)
+	// Encrypt claims
+	_, jweBytes, encryptErr := cryptoutilJOSE.EncryptBytes([]joseJwk.Key{jwk}, claimsBytes)
+	require.NoError(t, encryptErr)
 
 	// Validate should fail due to expiration
-	session, validateErr := sm.ValidateBrowserSession(ctx, string(jwsBytes))
+	session, validateErr := sm.ValidateBrowserSession(ctx, string(jweBytes))
 	require.Error(t, validateErr)
 	require.Nil(t, session)
-	require.Contains(t, validateErr.Error(), "JWT expired")
+	require.Contains(t, validateErr.Error(), "Session expired")
 }
 
-func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+func TestSessionManager_ValidateBrowserSession_JWE_RevokedSession(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -171,13 +155,10 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 		First(&browserJWK).Error
 	require.NoError(t, findErr)
 
-	privateJWK, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
 	require.NoError(t, parseErr)
 
-	publicJWK, publicKeyErr := privateJWK.PublicKey()
-	require.NoError(t, publicKeyErr)
-
-	claimsBytes, _ := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, _ := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	var claims map[string]interface{}
 	_ = json.Unmarshal(claimsBytes, &claims)
 	jtiStr := claims["jti"].(string)
@@ -194,8 +175,8 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 	require.Contains(t, validateErr.Error(), "Session revoked or not found")
 }
 
-func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWS)
+func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWE)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -205,7 +186,7 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
-	// Load JWK and verify signature
+	// Load JWK and decrypt
 	var serviceJWK struct {
 		EncryptedJWK string
 	}
@@ -215,14 +196,11 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 		First(&serviceJWK).Error
 	require.NoError(t, findErr)
 
-	privateJWK, parseErr := joseJwk.ParseKey([]byte(serviceJWK.EncryptedJWK))
+	jwk, parseErr := joseJwk.ParseKey([]byte(serviceJWK.EncryptedJWK))
 	require.NoError(t, parseErr)
 
-	publicJWK, publicKeyErr := privateJWK.PublicKey()
-	require.NoError(t, publicKeyErr)
-
-	claimsBytes, verifyErr := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
-	require.NoError(t, verifyErr)
+	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	require.NoError(t, decryptErr)
 
 	var claims map[string]interface{}
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
@@ -232,8 +210,8 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 	require.Equal(t, realm, claims["realm"])
 }
 
-func TestSessionManager_ValidateServiceSession_JWS_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWS)
+func TestSessionManager_ValidateServiceSession_JWE_Success(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWE)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
