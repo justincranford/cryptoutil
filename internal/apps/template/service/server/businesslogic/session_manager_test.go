@@ -61,6 +61,12 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	)
 	require.NoError(t, err)
 
+	// Verify tables were created
+	var tableCount int
+	err = db.Raw("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('browser_sessions', 'service_sessions', 'browser_session_jwks', 'service_session_jwks')").Scan(&tableCount).Error
+	require.NoError(t, err)
+	require.Equal(t, 4, tableCount, "All 4 session tables should be created")
+
 	return db
 }
 
@@ -334,4 +340,110 @@ func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
 	var count int64
 	sm.db.Model(&cryptoutilRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
 	require.Equal(t, int64(2), count)
+}
+
+// TestSessionManager_GenerateSessionJWK tests JWK generation.
+func TestSessionManager_GenerateSessionJWK(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+
+	// Test browser JWK generation for JWS
+	browserJWK, err := sm.generateSessionJWK(true, cryptoutilMagic.SessionAlgorithmJWS)
+	require.NoError(t, err)
+	require.NotNil(t, browserJWK)
+
+	// Test service JWK generation for JWE  
+	serviceJWK, err := sm.generateSessionJWK(false, cryptoutilMagic.SessionAlgorithmJWE)
+	require.NoError(t, err)
+	require.NotNil(t, serviceJWK)
+
+	// Test error case: unsupported algorithm (cast to SessionAlgorithmType)
+	_, err = sm.generateSessionJWK(true, cryptoutilMagic.SessionAlgorithmType("invalid-algorithm"))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported session algorithm")
+}
+
+// TestSessionManager_GenerateJWSKey tests JWS key generation.
+func TestSessionManager_GenerateJWSKey(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+
+	privateKey, err := sm.generateJWSKey(cryptoutilMagic.SessionJWSAlgorithmRS256)
+	require.NoError(t, err)
+	require.NotNil(t, privateKey)
+
+	// Test unsupported algorithm
+	_, err = sm.generateJWSKey("invalid-algorithm")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported JWS algorithm")
+}
+
+// TestSessionManager_GenerateJWEKey tests JWE key generation.
+func TestSessionManager_GenerateJWEKey(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+
+	privateKey, err := sm.generateJWEKey(cryptoutilMagic.SessionJWEAlgorithmDirA256GCM)
+	require.NoError(t, err)
+	require.NotNil(t, privateKey)
+
+	// Test unsupported algorithm
+	_, err = sm.generateJWEKey("invalid-algorithm")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported JWE algorithm")
+}
+
+// TestSessionManager_StartCleanupTask tests the cleanup task startup.
+func TestSessionManager_StartCleanupTask(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	
+	// Create a context that we can cancel to stop the cleanup task
+	ctx, cancel := context.WithCancel(context.Background())
+	
+	// Start cleanup task in a goroutine
+	done := make(chan bool, 1)
+	go func() {
+		sm.StartCleanupTask(ctx)
+		done <- true
+	}()
+	
+	// Let it run for a brief moment
+	time.Sleep(10 * time.Millisecond)
+	
+	// Cancel context to stop the cleanup task
+	cancel()
+	
+	// Wait for cleanup task to finish
+	select {
+	case <-done:
+		// Task completed successfully
+	case <-time.After(1 * time.Second):
+		t.Fatal("Cleanup task did not stop within timeout")
+	}
+}
+
+// TestSessionManager_ErrorCases tests various error scenarios for better coverage.
+func TestSessionManager_ErrorCases(t *testing.T) {
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	ctx := context.Background()
+
+	// Test validation with empty token (will fail in hash function)
+	_, err := sm.ValidateBrowserSession(ctx, "")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to hash session token")
+
+	_, err = sm.ValidateServiceSession(ctx, "")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to hash session token")
+
+	// Test validation with invalid token format
+	_, err = sm.ValidateBrowserSession(ctx, "invalid-token")
+	require.Error(t, err) // Should fail validation (either hash failure or record not found)
+
+	_, err = sm.ValidateServiceSession(ctx, "invalid-token")
+	require.Error(t, err) // Should fail validation
+
+	// Test with malformed UUID-like token 
+	_, err = sm.ValidateBrowserSession(ctx, "not-a-valid-uuid-format-that-is-long-enough")
+	require.Error(t, err) // Should fail validation
+
+	_, err = sm.ValidateServiceSession(ctx, "not-a-valid-uuid-format-that-is-long-enough")
+	require.Error(t, err) // Should fail validation
 }
