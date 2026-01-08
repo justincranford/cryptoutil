@@ -169,6 +169,104 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 	}
 }
 
+// HandleLoginUserWithSession returns a Fiber handler for user login that issues session tokens.
+//
+// Workflow:
+// 1. Parse request body (username, password)
+// 2. Validate input (non-empty)
+// 3. Call service.AuthenticateUser (business logic)
+// 4. Issue session token via SessionManager (configurable: JWE, JWS, or OPAQUE)
+// 5. Return session token and expiration time
+//
+// Request Body:
+//
+//	{
+//	  "username": "alice",
+//	  "password": "securePassword123"
+//	}
+//
+// Success Response (200 OK):
+//
+//	{
+//	  "token": "session-token-string",
+//	  "expires_at": "2025-01-02T15:04:05Z"
+//	}
+//
+// Error Responses:
+// - 400 Bad Request: Invalid request body, missing fields
+// - 401 Unauthorized: Invalid credentials (user not found or wrong password)
+// - 500 Internal Server Error: Database errors, session generation failure
+//
+// Parameters:
+// - sessionManager: Service providing session token issuance (must not be nil)
+// - isBrowser: true for browser sessions, false for service sessions.
+func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager interface{}, isBrowser bool) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var req struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid request body",
+			})
+		}
+
+		if req.Username == "" || req.Password == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Username and password are required",
+			})
+		}
+
+		// Call service layer (business logic).
+		user, err := s.AuthenticateUser(c.Context(), req.Username, req.Password)
+		if err != nil {
+			// Service layer returns generic error for security.
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid credentials",
+			})
+		}
+
+		// Issue session token via SessionManager using type assertion.
+		// SessionManager interface is defined in the specific service implementation.
+		type sessionIssuer interface {
+			IssueBrowserSession(ctx context.Context, userID string, realm string) (string, error)
+			IssueServiceSession(ctx context.Context, userID string, realm string) (string, error)
+		}
+
+		manager, ok := sessionManager.(sessionIssuer)
+		if !ok {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Invalid session manager implementation",
+			})
+		}
+
+		var token string
+		var issueErr error
+		if isBrowser {
+			token, issueErr = manager.IssueBrowserSession(c.Context(), user.GetID().String(), "default")
+		} else {
+			token, issueErr = manager.IssueServiceSession(c.Context(), user.GetID().String(), "default")
+		}
+
+		if issueErr != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to generate session token",
+			})
+		}
+
+		// Session expiration is handled by SessionManager configuration.
+		// For compatibility, return current time + configured session expiration.
+		expiresAt := time.Now().Add(15 * time.Minute) // Default 15min, actual expiration from SessionManager config.
+
+		return c.JSON(fiber.Map{
+			"token":      token,
+			"expires_at": expiresAt.Format(time.RFC3339),
+		})
+	}
+}
+
 // GenerateJWT creates a new JWT token for the given user.
 //
 // Parameters:

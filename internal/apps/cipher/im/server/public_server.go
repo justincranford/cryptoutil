@@ -17,6 +17,7 @@ import (
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
+	"cryptoutil/internal/apps/cipher/im/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
@@ -33,7 +34,6 @@ type PublicServer struct {
 	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
 	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
 	sessionManagerService   *businesslogic.SessionManagerService                      // Session management service
-	jwtSecret               string                                                    // JWT signing secret for authentication
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
@@ -58,7 +58,6 @@ func NewPublicServer(
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilBarrier.BarrierService,
 	sessionManagerService *businesslogic.SessionManagerService,
-	jwtSecret string,
 	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*PublicServer, error) {
 	if ctx == nil {
@@ -90,7 +89,6 @@ func NewPublicServer(
 		messageRecipientJWKRepo: messageRecipientJWKRepo,
 		jwkGenService:           jwkGenService,
 		sessionManagerService:   sessionManagerService,
-		jwtSecret:               jwtSecret,
 		app:                     fiber.New(fiber.Config{DisableStartupMessage: true}),
 		tlsMaterial:             tlsMaterial,
 	}
@@ -119,30 +117,34 @@ func (s *PublicServer) registerRoutes() {
 	// Create session handler.
 	sessionHandler := apis.NewSessionHandler(s.sessionManagerService)
 
+	// Create session middleware for browser and service paths.
+	browserSessionMiddleware := middleware.BrowserSessionMiddleware(s.sessionManagerService)
+	serviceSessionMiddleware := middleware.ServiceSessionMiddleware(s.sessionManagerService)
+
 	// Health endpoints (required by template pattern).
 	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
 	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
 
-	// Session management endpoints (JWT required for session operations).
-	s.app.Post("/service/api/v1/sessions/issue", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.IssueSession)
-	s.app.Post("/service/api/v1/sessions/validate", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.ValidateSession)
-	s.app.Post("/browser/api/v1/sessions/issue", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.IssueSession)
-	s.app.Post("/browser/api/v1/sessions/validate", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.ValidateSession)
+	// Session management endpoints (no middleware - these endpoints create/validate sessions).
+	s.app.Post("/service/api/v1/sessions/issue", sessionHandler.IssueSession)
+	s.app.Post("/service/api/v1/sessions/validate", sessionHandler.ValidateSession)
+	s.app.Post("/browser/api/v1/sessions/issue", sessionHandler.IssueSession)
+	s.app.Post("/browser/api/v1/sessions/validate", sessionHandler.ValidateSession)
 
-	// User management endpoints (authentication - no JWT required).
+	// User management endpoints (authentication - no middleware, returns session token on login).
 	s.app.Post("/service/api/v1/users/register", s.authnHandler.HandleRegisterUser())
-	s.app.Post("/service/api/v1/users/login", s.authnHandler.HandleLoginUser(s.jwtSecret))
+	s.app.Post("/service/api/v1/users/login", s.authnHandler.HandleLoginUserWithSession(s.sessionManagerService, false))
 	s.app.Post("/browser/api/v1/users/register", s.authnHandler.HandleRegisterUser())
-	s.app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUser(s.jwtSecret))
+	s.app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUserWithSession(s.sessionManagerService, true))
 
-	// Business logic endpoints (message operations - JWT required).
-	s.app.Put("/service/api/v1/messages/tx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
-	s.app.Get("/service/api/v1/messages/rx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/service/api/v1/messages/:id", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
+	// Business logic endpoints (message operations - session required).
+	s.app.Put("/service/api/v1/messages/tx", serviceSessionMiddleware, s.messageHandler.HandleSendMessage())
+	s.app.Get("/service/api/v1/messages/rx", serviceSessionMiddleware, s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/service/api/v1/messages/:id", serviceSessionMiddleware, s.messageHandler.HandleDeleteMessage())
 
-	s.app.Put("/browser/api/v1/messages/tx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleSendMessage())
-	s.app.Get("/browser/api/v1/messages/rx", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/browser/api/v1/messages/:id", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), s.messageHandler.HandleDeleteMessage())
+	s.app.Put("/browser/api/v1/messages/tx", browserSessionMiddleware, s.messageHandler.HandleSendMessage())
+	s.app.Get("/browser/api/v1/messages/rx", browserSessionMiddleware, s.messageHandler.HandleReceiveMessages())
+	s.app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
 }
 
 // handleServiceHealth returns health status for service-to-service clients.
