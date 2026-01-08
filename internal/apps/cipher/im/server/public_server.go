@@ -19,21 +19,21 @@ import (
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the template.PublicServer interface for cipher-im.
 type PublicServer struct {
-	port                     int
-	userRepo                 *cryptoutilCipherRepository.UserRepository
-	messageRepo              *cryptoutilCipherRepository.MessageRepository
-	messageRecipientJWKRepo  *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
-	jwkGenService            *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
-	sessionManagerService    *businesslogic.SessionManagerService                      // Session management service
-	jwtSecret                string                                                    // JWT signing secret for authentication
+	port                    int
+	userRepo                *cryptoutilCipherRepository.UserRepository
+	messageRepo             *cryptoutilCipherRepository.MessageRepository
+	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
+	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
+	sessionManagerService   *businesslogic.SessionManagerService                      // Session management service
+	jwtSecret               string                                                    // JWT signing secret for authentication
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
@@ -84,15 +84,15 @@ func NewPublicServer(
 	}
 
 	s := &PublicServer{
-		port:                     port,
-		userRepo:                 userRepo,
-		messageRepo:              messageRepo,
-		messageRecipientJWKRepo:  messageRecipientJWKRepo,
-		jwkGenService:            jwkGenService,
-		sessionManagerService:    sessionManagerService,
-		jwtSecret:                jwtSecret,
-		app:                      fiber.New(fiber.Config{DisableStartupMessage: true}),
-		tlsMaterial:              tlsMaterial,
+		port:                    port,
+		userRepo:                userRepo,
+		messageRepo:             messageRepo,
+		messageRecipientJWKRepo: messageRecipientJWKRepo,
+		jwkGenService:           jwkGenService,
+		sessionManagerService:   sessionManagerService,
+		jwtSecret:               jwtSecret,
+		app:                     fiber.New(fiber.Config{DisableStartupMessage: true}),
+		tlsMaterial:             tlsMaterial,
 	}
 
 	// Create repository adapter for template realms.

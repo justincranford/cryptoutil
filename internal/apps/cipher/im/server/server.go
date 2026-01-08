@@ -30,9 +30,9 @@ type CipherIMServer struct {
 	db  *gorm.DB
 
 	// Services.
-	telemetryService     *cryptoutilTelemetry.TelemetryService
-	jwkGenService        *cryptoutilJose.JWKGenService
-	barrierService       *cryptoutilTemplateBarrier.BarrierService
+	telemetryService      *cryptoutilTelemetry.TelemetryService
+	jwkGenService         *cryptoutilJose.JWKGenService
+	barrierService        *cryptoutilTemplateBarrier.BarrierService
 	sessionManagerService *businesslogic.SessionManagerService
 
 	// Repositories.
@@ -272,12 +272,12 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	return &CipherIMServer{
 		app:                   app,
 		db:                    core.DB,
-		telemetryService:     core.Basic.TelemetryService,
-		jwkGenService:        core.Basic.JWKGenService,
-		barrierService:       barrierService,
+		telemetryService:      core.Basic.TelemetryService,
+		jwkGenService:         core.Basic.JWKGenService,
+		barrierService:        barrierService,
 		sessionManagerService: sessionManagerService,
-		userRepo:             userRepo,
-		messageRepo:          messageRepo,
+		userRepo:              userRepo,
+		messageRepo:           messageRepo,
 	}, nil
 }
 

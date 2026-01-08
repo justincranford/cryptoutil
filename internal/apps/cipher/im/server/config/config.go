@@ -18,12 +18,11 @@ import (
 
 // Cipher-IM specific default values.
 const (
-	defaultJWEAlgorithm       = cryptoutilSharedMagic.CipherJWEAlgorithm
-	defaultMessageMinLength   = cryptoutilSharedMagic.CipherMessageMinLength
-	defaultMessageMaxLength   = cryptoutilSharedMagic.CipherMessageMaxLength
-	defaultRecipientsMinCount = cryptoutilSharedMagic.CipherRecipientsMinCount
-	defaultRecipientsMaxCount = cryptoutilSharedMagic.CipherRecipientsMaxCount
-	defaultJWTSecret          = "" // MUST be provided at runtime (no default secret).
+	defaultMessageJWEAlgorithm = cryptoutilSharedMagic.CipherJWEAlgorithm
+	defaultMessageMinLength    = cryptoutilSharedMagic.CipherMessageMinLength
+	defaultMessageMaxLength    = cryptoutilSharedMagic.CipherMessageMaxLength
+	defaultRecipientsMinCount  = cryptoutilSharedMagic.CipherRecipientsMinCount
+	defaultRecipientsMaxCount  = cryptoutilSharedMagic.CipherRecipientsMaxCount
 )
 
 // CipherImServerSettings holds configuration for the cipher-im server.
@@ -34,14 +33,11 @@ type CipherImServerSettings struct {
 	cryptoutilConfig.ServiceTemplateServerSettings
 
 	// Cipher-IM-specific settings.
-	JWEAlgorithm       string `mapstructure:"jwe_algorithm" yaml:"jwe_algorithm"`               // JWE algorithm for message encryption (default: dir+A256GCM).
-	MessageMinLength   int    `mapstructure:"message_min_length" yaml:"message_min_length"`     // Minimum message length in characters (default: 1).
-	MessageMaxLength   int    `mapstructure:"message_max_length" yaml:"message_max_length"`     // Maximum message length in characters (default: 10000).
-	RecipientsMinCount int    `mapstructure:"recipients_min_count" yaml:"recipients_min_count"` // Minimum recipients per message (default: 1).
-	RecipientsMaxCount int    `mapstructure:"recipients_max_count" yaml:"recipients_max_count"` // Maximum recipients per message (default: 10).
-
-	// Authentication settings.
-	JWTSecret string `mapstructure:"jwt_secret" yaml:"jwt_secret"` // JWT signing secret for session tokens.
+	MessageJWEAlgorithm string `mapstructure:"message_jwe_algorithm" yaml:"message_jwe_algorithm"` // JWE algorithm for message encryption (default: dir+A256GCM).
+	MessageMinLength    int    `mapstructure:"message_min_length" yaml:"message_min_length"`       // Minimum message length in characters (default: 1).
+	MessageMaxLength    int    `mapstructure:"message_max_length" yaml:"message_max_length"`       // Maximum message length in characters (default: 10000).
+	RecipientsMinCount  int    `mapstructure:"recipients_min_count" yaml:"recipients_min_count"`   // Minimum recipients per message (default: 1).
+	RecipientsMaxCount  int    `mapstructure:"recipients_max_count" yaml:"recipients_max_count"`   // Maximum recipients per message (default: 10).
 
 	// Realm-based validation configuration (Phase 12).
 	// Maps realm names to RealmConfig instances for multi-tenant validation rules.
@@ -81,12 +77,11 @@ func Parse(parameters []string, validateSubcommand bool) (*CipherImServerSetting
 
 	// Register cipher-im specific flags with pflag.
 	// These flags extend the base template settings with cipher-im specific configuration.
-	pflag.String("jwe-algorithm", defaultJWEAlgorithm, "JWE algorithm for message encryption (e.g., dir+A256GCM)")
+	pflag.String("message-jwe-algorithm", defaultMessageJWEAlgorithm, "JWE algorithm for message encryption (e.g., dir+A256GCM)")
 	pflag.Int("message-min-length", defaultMessageMinLength, "minimum message length in characters")
 	pflag.Int("message-max-length", defaultMessageMaxLength, "maximum message length in characters")
 	pflag.Int("recipients-min-count", defaultRecipientsMinCount, "minimum recipients per message")
 	pflag.Int("recipients-max-count", defaultRecipientsMaxCount, "maximum recipients per message")
-	pflag.String("jwt-secret", defaultJWTSecret, "JWT signing secret for session tokens (REQUIRED)")
 
 	// Parse cipher-im specific flags.
 	// Note: pflag has already parsed base flags in cryptoutilConfig.Parse(), so we just bind to viper.
@@ -98,12 +93,11 @@ func Parse(parameters []string, validateSubcommand bool) (*CipherImServerSetting
 	// Build CipherImServerSettings by embedding base settings and adding cipher-im specific values.
 	settings := &CipherImServerSettings{
 		ServiceTemplateServerSettings: *baseSettings,
-		JWEAlgorithm:                  viper.GetString("jwe-algorithm"),
+		MessageJWEAlgorithm:           viper.GetString("message-jwe-algorithm"),
 		MessageMinLength:              viper.GetInt("message-min-length"),
 		MessageMaxLength:              viper.GetInt("message-max-length"),
 		RecipientsMinCount:            viper.GetInt("recipients-min-count"),
 		RecipientsMaxCount:            viper.GetInt("recipients-max-count"),
-		JWTSecret:                     viper.GetString("jwt-secret"),
 		Realms: map[string]*cryptoutilTemplateServerRealms.RealmConfig{
 			"default":    cryptoutilTemplateServerRealms.DefaultRealm(),
 			"enterprise": cryptoutilTemplateServerRealms.EnterpriseRealm(),
@@ -142,12 +136,11 @@ func DefaultTestConfig() *CipherImServerSettings {
 			OTLPService:     "cipher-im",
 			OTLPEnabled:     false,
 		},
-		JWEAlgorithm:       defaultJWEAlgorithm,
-		MessageMinLength:   defaultMessageMinLength,
-		MessageMaxLength:   defaultMessageMaxLength,
-		RecipientsMinCount: defaultRecipientsMinCount,
-		RecipientsMaxCount: defaultRecipientsMaxCount,
-		JWTSecret:          "test-secret", // Test-only secret.
+		MessageJWEAlgorithm: defaultMessageJWEAlgorithm,
+		MessageMinLength:    defaultMessageMinLength,
+		MessageMaxLength:    defaultMessageMaxLength,
+		RecipientsMinCount:  defaultRecipientsMinCount,
+		RecipientsMaxCount:  defaultRecipientsMaxCount,
 		Realms: map[string]*cryptoutilTemplateServerRealms.RealmConfig{
 			"default":    cryptoutilTemplateServerRealms.DefaultRealm(),
 			"enterprise": cryptoutilTemplateServerRealms.EnterpriseRealm(),

@@ -47,9 +47,9 @@ const (
 	defaultShutdownURL = "https://127.0.0.1:9090/admin/v1/shutdown"
 
 	// SQLite in-memory database URL for shared cache.
-	sqliteInMemoryURL  = "file::memory:?cache=shared"
-	dialectPostgres    = "postgres"
-	dialectPostgresPG  = "pgx"
+	sqliteInMemoryURL = "file::memory:?cache=shared"
+	dialectPostgres   = "postgres"
+	dialectPostgresPG = "pgx"
 )
 
 // IM implements the instant messaging service subcommand handler.
@@ -738,4 +738,3 @@ func initSQLite(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 
 	return db, nil
 }
-

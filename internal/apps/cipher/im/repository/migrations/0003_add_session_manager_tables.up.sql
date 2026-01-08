@@ -1,7 +1,7 @@
 --
 -- SessionManager tables for template-based session management
 -- Supports OPAQUE, JWS, and JWE session types with mixed algorithms
--- 
+--
 -- Table names match GORM model TableName() methods:
 --   - browser_session_jwks, service_session_jwks
 --   - browser_sessions, service_sessions

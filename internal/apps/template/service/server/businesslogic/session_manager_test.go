@@ -351,7 +351,7 @@ func TestSessionManager_GenerateSessionJWK(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, browserJWK)
 
-	// Test service JWK generation for JWE  
+	// Test service JWK generation for JWE
 	serviceJWK, err := sm.generateSessionJWK(false, cryptoutilMagic.SessionAlgorithmJWE)
 	require.NoError(t, err)
 	require.NotNil(t, serviceJWK)
@@ -393,23 +393,23 @@ func TestSessionManager_GenerateJWEKey(t *testing.T) {
 // TestSessionManager_StartCleanupTask tests the cleanup task startup.
 func TestSessionManager_StartCleanupTask(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
-	
+
 	// Create a context that we can cancel to stop the cleanup task
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	// Start cleanup task in a goroutine
 	done := make(chan bool, 1)
 	go func() {
 		sm.StartCleanupTask(ctx)
 		done <- true
 	}()
-	
+
 	// Let it run for a brief moment
 	time.Sleep(10 * time.Millisecond)
-	
+
 	// Cancel context to stop the cleanup task
 	cancel()
-	
+
 	// Wait for cleanup task to finish
 	select {
 	case <-done:
@@ -440,7 +440,7 @@ func TestSessionManager_ErrorCases(t *testing.T) {
 	_, err = sm.ValidateServiceSession(ctx, "invalid-token")
 	require.Error(t, err) // Should fail validation
 
-	// Test with malformed UUID-like token 
+	// Test with malformed UUID-like token
 	_, err = sm.ValidateBrowserSession(ctx, "not-a-valid-uuid-format-that-is-long-enough")
 	require.Error(t, err) // Should fail validation
 
