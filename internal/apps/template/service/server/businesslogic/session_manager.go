@@ -834,10 +834,246 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 
 // issueJWESession issues a JWE session token (encrypted JWT).
 func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, principalID, realm string) (string, error) {
-	return "", errors.New("JWE session issuance not implemented yet")
+	// Load JWK from database
+	var jwkID googleUuid.UUID
+	if isBrowser {
+		jwkID = *sm.browserJWKID
+	} else {
+		jwkID = *sm.serviceJWKID
+	}
+
+	var jwkBytes []byte
+	var loadErr error
+
+	if isBrowser {
+		var browserJWK cryptoutilRepository.BrowserSessionJWK
+		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&browserJWK).Error
+		if loadErr == nil {
+			jwkBytes = []byte(browserJWK.EncryptedJWK)
+		}
+	} else {
+		var serviceJWK cryptoutilRepository.ServiceSessionJWK
+		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&serviceJWK).Error
+		if loadErr == nil {
+			jwkBytes = []byte(serviceJWK.EncryptedJWK)
+		}
+	}
+
+	if loadErr != nil {
+		return "", fmt.Errorf("failed to load session JWK: %w", loadErr)
+	}
+
+	// TODO: Decrypt JWK with barrier service (currently plain text)
+	// decryptedJWK, err := sm.barrier.DecryptContent(ctx, jwkBytes)
+	// if err != nil {
+	//     return "", fmt.Errorf("failed to decrypt session JWK: %w", err)
+	// }
+	// jwk, err := joseJwk.ParseKey(decryptedJWK)
+
+	// Parse JWK from JSON bytes
+	jwk, parseErr := joseJwk.ParseKey(jwkBytes)
+	if parseErr != nil {
+		return "", fmt.Errorf("failed to parse JWK: %w", parseErr)
+	}
+
+	// Create JWT claims
+	now := time.Now()
+	var exp time.Time
+	if isBrowser {
+		exp = now.Add(sm.config.BrowserSessionExpiration)
+	} else {
+		exp = now.Add(sm.config.ServiceSessionExpiration)
+	}
+	jti := googleUuid.Must(googleUuid.NewV7())
+
+	claims := map[string]interface{}{
+		"jti":   jti.String(),
+		"iat":   now.Unix(),
+		"exp":   exp.Unix(),
+		"sub":   principalID,
+		"realm": realm,
+	}
+
+	claimsBytes, marshalErr := json.Marshal(claims)
+	if marshalErr != nil {
+		return "", fmt.Errorf("failed to marshal JWT claims: %w", marshalErr)
+	}
+
+	// Encrypt JWT claims with JWK
+	_, jweBytes, encryptErr := cryptoutilJOSE.EncryptBytes([]joseJwk.Key{jwk}, claimsBytes)
+	if encryptErr != nil {
+		return "", fmt.Errorf("failed to encrypt JWT: %w", encryptErr)
+	}
+
+	// Hash jti for database storage (enables revocation)
+	tokenHash, hashErr := cryptoutilHash.HashHighEntropyDeterministic(jti.String())
+	if hashErr != nil {
+		return "", fmt.Errorf("failed to hash jti: %w", hashErr)
+	}
+
+	// Store session metadata in database
+	session := cryptoutilRepository.Session{
+		ID:           jti,
+		TokenHash:    &tokenHash,
+		Realm:        &realm,
+		Expiration:   exp,
+		CreatedAt:    now,
+		LastActivity: &now,
+	}
+
+	var createErr error
+	if isBrowser {
+		browserSession := cryptoutilRepository.BrowserSession{
+			Session: session,
+			UserID:  &principalID,
+		}
+		createErr = sm.db.WithContext(ctx).Create(&browserSession).Error
+	} else {
+		serviceSession := cryptoutilRepository.ServiceSession{
+			Session:  session,
+			ClientID: &principalID,
+		}
+		createErr = sm.db.WithContext(ctx).Create(&serviceSession).Error
+	}
+
+	if createErr != nil {
+		return "", fmt.Errorf("failed to create session: %w", createErr)
+	}
+
+	return string(jweBytes), nil
 }
 
 // validateJWESession validates a JWE session token.
 func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
-	return nil, errors.New("JWE session validation not implemented yet")
+	// Load JWK from database
+	var jwkID googleUuid.UUID
+	if isBrowser {
+		jwkID = *sm.browserJWKID
+	} else {
+		jwkID = *sm.serviceJWKID
+	}
+
+	var jwkBytes []byte
+	var loadErr error
+
+	if isBrowser {
+		var browserJWK cryptoutilRepository.BrowserSessionJWK
+		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&browserJWK).Error
+		if loadErr == nil {
+			jwkBytes = []byte(browserJWK.EncryptedJWK)
+		}
+	} else {
+		var serviceJWK cryptoutilRepository.ServiceSessionJWK
+		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&serviceJWK).Error
+		if loadErr == nil {
+			jwkBytes = []byte(serviceJWK.EncryptedJWK)
+		}
+	}
+
+	if loadErr != nil {
+		summary := "Invalid session token"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, loadErr)
+	}
+
+	// TODO: Decrypt JWK with barrier service (currently plain text)
+	// decryptedJWK, err := sm.barrier.DecryptContent(ctx, jwkBytes)
+	// if err != nil {
+	//     summary := "Invalid session token"
+	//     return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
+	// }
+	// jwk, err := joseJwk.ParseKey(decryptedJWK)
+
+	// Parse JWK from JSON bytes
+	jwk, parseErr := joseJwk.ParseKey(jwkBytes)
+	if parseErr != nil {
+		summary := "Invalid session token"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, parseErr)
+	}
+
+	// Decrypt and verify JWT
+	claimsBytes, verifyErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	if verifyErr != nil {
+		summary := "Invalid session token"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, verifyErr)
+	}
+
+	// Parse JWT claims
+	var claims map[string]interface{}
+	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
+	if unmarshalErr != nil {
+		summary := "Invalid session token"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, unmarshalErr)
+	}
+
+	// Validate expiration claim
+	expFloat, expOk := claims["exp"].(float64)
+	if !expOk {
+		summary := "Missing or invalid exp claim"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("exp claim not found or invalid type"))
+	}
+	exp := time.Unix(int64(expFloat), 0)
+	now := time.Now()
+	if now.After(exp) {
+		summary := "Session expired"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("token expired at %v", exp))
+	}
+
+	// Extract jti (token ID) and hash it for database lookup
+	jtiStr, jtiOk := claims["jti"].(string)
+	if !jtiOk {
+		summary := "Missing or invalid jti claim"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("jti claim not found or invalid type"))
+	}
+
+	jti, parseJtiErr := googleUuid.Parse(jtiStr)
+	if parseJtiErr != nil {
+		summary := "Invalid jti claim format"
+		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, parseJtiErr)
+	}
+
+	tokenHash, hashErr := cryptoutilHash.HashHighEntropyDeterministic(jti.String())
+	if hashErr != nil {
+		return nil, fmt.Errorf("failed to hash jti: %w", hashErr)
+	}
+
+	// Look up session in database by hashed jti (enables revocation)
+	var session interface{}
+	var findErr error
+
+	if isBrowser {
+		browserSession := &cryptoutilRepository.BrowserSession{}
+		findErr = sm.db.WithContext(ctx).
+			Joins("Session").
+			Where("sessions.token_hash = ?", tokenHash).
+			First(browserSession).
+			Error
+		session = browserSession
+	} else {
+		serviceSession := &cryptoutilRepository.ServiceSession{}
+		findErr = sm.db.WithContext(ctx).
+			Joins("Session").
+			Where("sessions.token_hash = ?", tokenHash).
+			First(serviceSession).
+			Error
+		session = serviceSession
+	}
+
+	if findErr != nil {
+		if errors.Is(findErr, gorm.ErrRecordNotFound) {
+			summary := "Session revoked or not found"
+			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, findErr)
+		}
+		return nil, fmt.Errorf("failed to query session: %w", findErr)
+	}
+
+	// Update last activity timestamp
+	updateErr := sm.db.WithContext(ctx).Model(session).
+		Update("last_activity", now).
+		Error
+	if updateErr != nil {
+		// Log warning but don't fail validation
+		fmt.Printf("Failed to update session activity: %v\n", updateErr)
+	}
+
+	return session, nil
 }
