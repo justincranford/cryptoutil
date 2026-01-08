@@ -4,9 +4,9 @@
 package middleware
 
 import (
-	"context"
 	"strings"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/gofiber/fiber/v2"
 
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
@@ -39,7 +39,7 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 		}
 
 		// Validate token using SessionManager
-		ctx := context.Background()
+		ctx := c.Context()
 
 		if isBrowser {
 			// Validate browser session
@@ -52,7 +52,10 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 			// Store session in context for downstream handlers
 			c.Locals("session", session)
 			if session.UserID != nil {
-				c.Locals("user_id", *session.UserID)
+				// Parse the UserID string as a UUID for user_id
+				if userID, parseErr := googleUuid.Parse(*session.UserID); parseErr == nil {
+					c.Locals("user_id", userID)
+				}
 			}
 			if session.Realm != nil {
 				c.Locals("realm", *session.Realm)
@@ -68,7 +71,14 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 			// Store session in context for downstream handlers
 			c.Locals("session", session)
 			if session.ClientID != nil {
+				// For cipher-im, ClientID actually contains the UserID
+				// because we're using service sessions for user authentication
 				c.Locals("client_id", *session.ClientID)
+				
+				// Parse the ClientID string as a UUID for user_id
+				if userID, parseErr := googleUuid.Parse(*session.ClientID); parseErr == nil {
+					c.Locals("user_id", userID)
+				}
 			}
 			if session.Realm != nil {
 				c.Locals("realm", *session.Realm)
