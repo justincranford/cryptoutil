@@ -29,6 +29,7 @@ import (
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -650,7 +651,14 @@ func initDatabase(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	}
 
 	// Auto-migrate schema.
-	if err := db.WithContext(ctx).AutoMigrate(&domain.User{}, &domain.Message{}); err != nil {
+	if err := db.WithContext(ctx).AutoMigrate(
+		&domain.User{},
+		&domain.Message{},
+		&cryptoutilTemplateRepository.BrowserSessionJWK{},
+		&cryptoutilTemplateRepository.ServiceSessionJWK{},
+		&cryptoutilTemplateRepository.BrowserSession{},
+		&cryptoutilTemplateRepository.ServiceSession{},
+	); err != nil {
 		return nil, fmt.Errorf("failed to migrate schema: %w", err)
 	}
 

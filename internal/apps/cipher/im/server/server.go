@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/repository"
+	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	tlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
@@ -29,9 +30,10 @@ type CipherIMServer struct {
 	db  *gorm.DB
 
 	// Services.
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JWKGenService
-	barrierService   *cryptoutilTemplateBarrier.BarrierService
+	telemetryService     *cryptoutilTelemetry.TelemetryService
+	jwkGenService        *cryptoutilJose.JWKGenService
+	barrierService       *cryptoutilTemplateBarrier.BarrierService
+	sessionManagerService *businesslogic.SessionManagerService
 
 	// Repositories.
 	userRepo    *repository.UserRepository
@@ -160,6 +162,21 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	messageRepo := repository.NewMessageRepository(core.DB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(core.DB, barrierService)
 
+	// Initialize SessionManager service for session management.
+	sessionManagerService, err := businesslogic.NewSessionManagerService(
+		ctx,
+		core.DB,
+		core.Basic.TelemetryService,
+		core.Basic.JWKGenService,
+		barrierService,
+		&cfg.ServiceTemplateServerSettings,
+	)
+	if err != nil {
+		core.Shutdown()
+
+		return nil, fmt.Errorf("failed to create session manager service: %w", err)
+	}
+
 	// Generate TLS configuration for public server based on config settings.
 	// Uses TLSPublicMode (static, mixed, auto) from ServiceTemplateServerSettings.
 	var publicTLSCfg *tlsGenerator.TLSGeneratedSettings
@@ -211,7 +228,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	}
 
 	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, core.Basic.JWKGenService, barrierService, cfg.JWTSecret, publicTLSCfg)
+	publicServer, err := NewPublicServer(ctx, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, core.Basic.JWKGenService, barrierService, sessionManagerService, cfg.JWTSecret, publicTLSCfg)
 	if err != nil {
 		core.Shutdown()
 
@@ -253,13 +270,14 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	}
 
 	return &CipherIMServer{
-		app:              app,
-		db:               core.DB,
-		telemetryService: core.Basic.TelemetryService,
-		jwkGenService:    core.Basic.JWKGenService,
-		barrierService:   barrierService,
-		userRepo:         userRepo,
-		messageRepo:      messageRepo,
+		app:                   app,
+		db:                    core.DB,
+		telemetryService:     core.Basic.TelemetryService,
+		jwkGenService:        core.Basic.JWKGenService,
+		barrierService:       barrierService,
+		sessionManagerService: sessionManagerService,
+		userRepo:             userRepo,
+		messageRepo:          messageRepo,
 	}, nil
 }
 
@@ -314,6 +332,11 @@ func (s *CipherIMServer) JWKGen() *cryptoutilJose.JWKGenService {
 // Telemetry returns the telemetry service.
 func (s *CipherIMServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 	return s.telemetryService
+}
+
+// SessionManager returns the session manager service.
+func (s *CipherIMServer) SessionManager() *businesslogic.SessionManagerService {
+	return s.sessionManagerService
 }
 
 // SetReady marks the server as ready to accept traffic.

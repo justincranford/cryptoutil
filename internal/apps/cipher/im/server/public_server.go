@@ -16,6 +16,7 @@ import (
 	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
+	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -26,12 +27,13 @@ import (
 
 // PublicServer implements the template.PublicServer interface for cipher-im.
 type PublicServer struct {
-	port                    int
-	userRepo                *cryptoutilCipherRepository.UserRepository
-	messageRepo             *cryptoutilCipherRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
-	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
-	jwtSecret               string                                                    // JWT signing secret for authentication
+	port                     int
+	userRepo                 *cryptoutilCipherRepository.UserRepository
+	messageRepo              *cryptoutilCipherRepository.MessageRepository
+	messageRecipientJWKRepo  *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
+	jwkGenService            *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
+	sessionManagerService    *businesslogic.SessionManagerService                      // Session management service
+	jwtSecret                string                                                    // JWT signing secret for authentication
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
@@ -55,6 +57,7 @@ func NewPublicServer(
 	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilBarrier.BarrierService,
+	sessionManagerService *businesslogic.SessionManagerService,
 	jwtSecret string,
 	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*PublicServer, error) {
@@ -68,6 +71,8 @@ func NewPublicServer(
 		return nil, fmt.Errorf("message recipient JWK repository cannot be nil")
 	} else if jwkGenService == nil {
 		return nil, fmt.Errorf("JWK generation service cannot be nil")
+	} else if sessionManagerService == nil {
+		return nil, fmt.Errorf("session manager service cannot be nil")
 	} else if tlsCfg == nil {
 		return nil, fmt.Errorf("TLS configuration cannot be nil")
 	}
@@ -79,14 +84,15 @@ func NewPublicServer(
 	}
 
 	s := &PublicServer{
-		port:                    port,
-		userRepo:                userRepo,
-		messageRepo:             messageRepo,
-		messageRecipientJWKRepo: messageRecipientJWKRepo,
-		jwkGenService:           jwkGenService,
-		jwtSecret:               jwtSecret,
-		app:                     fiber.New(fiber.Config{DisableStartupMessage: true}),
-		tlsMaterial:             tlsMaterial,
+		port:                     port,
+		userRepo:                 userRepo,
+		messageRepo:              messageRepo,
+		messageRecipientJWKRepo:  messageRecipientJWKRepo,
+		jwkGenService:            jwkGenService,
+		sessionManagerService:    sessionManagerService,
+		jwtSecret:                jwtSecret,
+		app:                      fiber.New(fiber.Config{DisableStartupMessage: true}),
+		tlsMaterial:              tlsMaterial,
 	}
 
 	// Create repository adapter for template realms.
@@ -110,9 +116,18 @@ func NewPublicServer(
 
 // registerRoutes sets up the API endpoints.
 func (s *PublicServer) registerRoutes() {
+	// Create session handler.
+	sessionHandler := apis.NewSessionHandler(s.sessionManagerService)
+
 	// Health endpoints (required by template pattern).
 	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
 	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
+
+	// Session management endpoints (JWT required for session operations).
+	s.app.Post("/service/api/v1/sessions/issue", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.IssueSession)
+	s.app.Post("/service/api/v1/sessions/validate", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.ValidateSession)
+	s.app.Post("/browser/api/v1/sessions/issue", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.IssueSession)
+	s.app.Post("/browser/api/v1/sessions/validate", cryptoutilTemplateRealms.JWTMiddleware(s.jwtSecret), sessionHandler.ValidateSession)
 
 	// User management endpoints (authentication - no JWT required).
 	s.app.Post("/service/api/v1/users/register", s.authnHandler.HandleRegisterUser())
