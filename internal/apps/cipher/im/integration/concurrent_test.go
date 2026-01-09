@@ -62,7 +62,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			name:            "N=5 users, Q=2 concurrent sends (all recipients broadcast)",
 			numUsers:        5,
 			concurrentSends: 2,
-			recipientsEach:  4, // All other users (broadcast)
+			recipientsEach:  4,                // All other users (broadcast)
 			targetDuration:  10 * time.Second, // Adjusted from 6s (observed ~7s)
 		},
 	}

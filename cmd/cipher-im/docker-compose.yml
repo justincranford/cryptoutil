@@ -1,27 +1,31 @@
 # Cipher-IM Docker Compose Configuration
 #
-# Complete stack: cipher-im + PostgreSQL + OpenTelemetry + Grafana
-# Follows KMS compose patterns for production-like deployment.
+# Complete stack: 3x cipher-im (1 SQLite, 2 PostgreSQL) + PostgreSQL 18.1 + OpenTelemetry + Grafana
+# Follows KMS compose patterns for production-like multi-instance deployment.
 #
 # Usage:
 #   docker compose up -d                    # Start all services
 #   docker compose ps                       # Check status
-#   docker compose logs -f cipher-im        # View logs
+#   docker compose logs -f cipher-im-sqlite # View SQLite instance logs
+#   docker compose logs -f cipher-im-pg-1   # View PostgreSQL instance 1 logs
+#   docker compose logs -f cipher-im-pg-2   # View PostgreSQL instance 2 logs
 #   docker compose down                     # Stop and remove
 #   docker compose down -v                  # Stop and remove volumes
 #
 # Services:
-#   - cipher-im: https://localhost:8888 (public), https://localhost:9090 (admin)
-#   - postgres: localhost:5432
+#   - cipher-im-sqlite: https://localhost:8888 (public), https://localhost:9090 (admin) - Standalone SQLite
+#   - cipher-im-pg-1: https://localhost:8889 (public), https://localhost:9091 (admin) - Shared PostgreSQL
+#   - cipher-im-pg-2: https://localhost:8890 (public), https://localhost:9092 (admin) - Shared PostgreSQL
+#   - postgres: localhost:5432 (PostgreSQL 18.1)
 #   - otel-collector: (internal only, no host ports)
 #   - grafana: http://localhost:3000 (admin/admin)
 
 name: cipher-im
 
 services:
-  # PostgreSQL Database
+  # PostgreSQL 18.1 Database (shared by cipher-im-pg-1 and cipher-im-pg-2)
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18.1-alpine
     container_name: cipher-im-postgres
     hostname: cipher-im-postgres
     environment:
@@ -100,8 +104,8 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  # Cipher-IM Service
-  cipher-im:
+  # Cipher-IM Service - SQLite Standalone Instance
+  cipher-im-sqlite:
     build:
       context: ../..
       dockerfile: cmd/cipher-im/Dockerfile
@@ -109,23 +113,66 @@ services:
         GO_VERSION: 1.25.5
         ALPINE_VERSION: 3.19
     image: cipher-im:local
-    container_name: cipher-im
-    hostname: cipher-im
+    container_name: cipher-im-sqlite
+    hostname: cipher-im-sqlite
     ports:
       - "8888:8888"  # Public HTTPS API
       - "9090:9090"  # Admin HTTPS API
     environment:
-      # Database configuration (commented out - using SQLite default for now)
-      # DATABASE_DSN: "postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
+      # Using default SQLite in-memory database (no DATABASE_DSN needed)
       # OpenTelemetry configuration
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
-      OTEL_SERVICE_NAME: "cipher-im"
-      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development"
+      OTEL_SERVICE_NAME: "cipher-im-sqlite"
+      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=sqlite"
     command:
       - "server"
-      # Using SQLite for now due to PostgreSQL timestamp int4/int8 schema issue
-      # TODO: Fix barrier_root_keys.created_at/updated_at to use bigint (int8) not integer (int4)
-      # - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
+      # SQLite default - no database-url flag needed
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9090/admin/v1/livez"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_started
+    networks:
+      - cipher-im-network
+    restart: unless-stopped
+    labels:
+      com.cryptoutil.service: "cipher-im"
+      com.cryptoutil.backend: "sqlite"
+      com.cryptoutil.instance: "1"
+      com.cryptoutil.environment: "development"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Cipher-IM Service - PostgreSQL Instance 1
+  cipher-im-pg-1:
+    image: cipher-im:local  # Reuse built image from cipher-im-sqlite
+    container_name: cipher-im-pg-1
+    hostname: cipher-im-pg-1
+    ports:
+      - "8889:8888"  # Public HTTPS API (mapped to different host port)
+      - "9091:9090"  # Admin HTTPS API (mapped to different host port)
+    environment:
+      # PostgreSQL shared database
+      DATABASE_DSN: "postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
+      # OpenTelemetry configuration
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
+      OTEL_SERVICE_NAME: "cipher-im-pg-1"
+      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-1"
+    command:
+      - "server"
+      - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -137,6 +184,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      cipher-im-sqlite:
+        condition: service_healthy  # Wait for first instance to complete schema init
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
@@ -144,6 +193,58 @@ services:
     restart: unless-stopped
     labels:
       com.cryptoutil.service: "cipher-im"
+      com.cryptoutil.backend: "postgresql"
+      com.cryptoutil.instance: "1"
+      com.cryptoutil.environment: "development"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Cipher-IM Service - PostgreSQL Instance 2
+  cipher-im-pg-2:
+    image: cipher-im:local  # Reuse built image from cipher-im-sqlite
+    container_name: cipher-im-pg-2
+    hostname: cipher-im-pg-2
+    ports:
+      - "8890:8888"  # Public HTTPS API (mapped to different host port)
+      - "9092:9090"  # Admin HTTPS API (mapped to different host port)
+    environment:
+      # PostgreSQL shared database (same as cipher-im-pg-1)
+      DATABASE_DSN: "postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
+      # OpenTelemetry configuration
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
+      OTEL_SERVICE_NAME: "cipher-im-pg-2"
+      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-2"
+    command:
+      - "server"
+      - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9090/admin/v1/livez"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cipher-im-pg-1:
+        condition: service_healthy  # Wait for first PostgreSQL instance
+      opentelemetry-collector-contrib:
+        condition: service_started
+    networks:
+      - cipher-im-network
+    restart: unless-stopped
+    labels:
+      com.cryptoutil.service: "cipher-im"
+      com.cryptoutil.backend: "postgresql"
+      com.cryptoutil.instance: "2"
       com.cryptoutil.environment: "development"
     deploy:
       resources:

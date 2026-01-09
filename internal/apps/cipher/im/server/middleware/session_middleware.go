@@ -6,8 +6,8 @@ package middleware
 import (
 	"strings"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
@@ -74,7 +74,7 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 				// For cipher-im, ClientID actually contains the UserID
 				// because we're using service sessions for user authentication
 				c.Locals("client_id", *session.ClientID)
-				
+
 				// Parse the ClientID string as a UUID for user_id
 				if userID, parseErr := googleUuid.Parse(*session.ClientID); parseErr == nil {
 					c.Locals("user_id", userID)

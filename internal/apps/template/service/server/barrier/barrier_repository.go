@@ -70,8 +70,8 @@ type BarrierRootKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"` // JWE-encrypted root key
 	KEKUUID   googleUuid.UUID `gorm:"type:text"`          // KEK UUID (nil for root keys)
-	CreatedAt int64           `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64           `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64           `gorm:"type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64           `gorm:"type:bigint;autoUpdateTime:milli"`
 }
 
 // TableName specifies the database table name for barrier root keys.
@@ -85,8 +85,8 @@ type BarrierIntermediateKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"` // JWE-encrypted intermediate key
 	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"` // Parent root key UUID
-	CreatedAt int64           `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64           `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64           `gorm:"type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64           `gorm:"type:bigint;autoUpdateTime:milli"`
 }
 
 // TableName specifies the database table name for barrier intermediate keys.
@@ -100,8 +100,8 @@ type BarrierContentKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"` // JWE-encrypted content key
 	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"` // Parent intermediate key UUID
-	CreatedAt int64           `gorm:"autoCreateTime:milli"`
-	UpdatedAt int64           `gorm:"autoUpdateTime:milli"`
+	CreatedAt int64           `gorm:"type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64           `gorm:"type:bigint;autoUpdateTime:milli"`
 }
 
 // TableName specifies the database table name for barrier content keys.
