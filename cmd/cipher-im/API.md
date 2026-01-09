@@ -13,15 +13,16 @@ Complete API documentation for the cipher-im interactive messaging service.
 ### Bearer Token (Service APIs)
 
 ```http
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer <session-token>
 ```
 
-Obtain JWT token via `/service/api/v1/login` endpoint.
+Obtain session token via `/service/api/v1/users/login` endpoint.
+Session tokens use JWE (JSON Web Encryption) or JWS (JSON Web Signature) format.
 
 ### Session Cookie (Browser APIs)
 
 Browser APIs use session-based authentication with HTTP-only cookies.
-Login via `/browser/api/v1/login` sets session cookie automatically.
+Login via `/browser/api/v1/users/login` sets session cookie automatically.
 
 ## Public APIs
 
@@ -84,9 +85,9 @@ Create new user account with cryptographic keypairs.
 
 ### User Login
 
-**POST** `/service/api/v1/login`
+**POST** `/service/api/v1/users/login`
 
-Authenticate user and obtain JWT token.
+Authenticate user and obtain session token.
 
 **Request Body**:
 
@@ -101,7 +102,7 @@ Authenticate user and obtain JWT token.
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token": "<session-token>",
   "expires_in": 3600,
   "token_type": "Bearer"
 }
@@ -116,6 +117,7 @@ Authenticate user and obtain JWT token.
 
 - Token valid for 1 hour
 - Use token in `Authorization: Bearer <token>` header
+- Session token format: JWE (encrypted) or JWS (signed)
 
 ### Send Message
 
@@ -126,7 +128,7 @@ Send encrypted message to one or more receivers.
 **Headers**:
 
 ```http
-Authorization: Bearer <jwt-token>
+Authorization: Bearer <session-token>
 Content-Type: application/json
 ```
 
@@ -156,7 +158,7 @@ Content-Type: application/json
 **Errors**:
 
 - `400 Bad Request`: Invalid receiver IDs or empty content
-- `401 Unauthorized`: Missing or invalid JWT token
+- `401 Unauthorized`: Missing or invalid session token
 - `404 Not Found`: One or more receiver IDs do not exist
 
 **Notes**:
@@ -175,7 +177,7 @@ List all messages received by authenticated user.
 **Headers**:
 
 ```http
-Authorization: Bearer <jwt-token>
+Authorization: Bearer <session-token>
 ```
 
 **Query Parameters**:
@@ -208,7 +210,7 @@ Authorization: Bearer <jwt-token>
 
 **Errors**:
 
-- `401 Unauthorized`: Missing or invalid JWT token
+- `401 Unauthorized`: Missing or invalid session token
 
 **Notes**:
 
@@ -225,7 +227,7 @@ Delete specific message (receiver copy only).
 **Headers**:
 
 ```http
-Authorization: Bearer <jwt-token>
+Authorization: Bearer <session-token>
 ```
 
 **Path Parameters**:
@@ -238,7 +240,7 @@ No response body.
 
 **Errors**:
 
-- `401 Unauthorized`: Missing or invalid JWT token
+- `401 Unauthorized`: Missing or invalid session token
 - `403 Forbidden`: User is not the receiver of this message
 - `404 Not Found`: Message does not exist
 
@@ -560,32 +562,32 @@ curl -k -X POST https://localhost:8888/service/api/v1/register \
 # Response: {"id":"<bob-id>","username":"bob",...}
 
 # 3. Alice logs in
-curl -k -X POST https://localhost:8888/service/api/v1/login \
+curl -k -X POST https://localhost:8888/service/api/v1/users/login \
   -H "Content-Type: application/json" \
   -d '{"username":"alice","password":"SecurePass123"}'
-# Response: {"token":"<alice-jwt>","expires_in":3600}
+# Response: {"token":"<alice-session-token>","expires_in":3600}
 
 # 4. Alice sends message to Bob
 curl -k -X POST https://localhost:8888/service/api/v1/messages \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <alice-jwt>" \
+  -H "Authorization: Bearer <alice-session-token>" \
   -d '{"receiver_ids":["<bob-id>"],"content":"Hello Bob!"}'
 # Response: {"message_id":"<msg-id>","receiver_count":1}
 
 # 5. Bob logs in
-curl -k -X POST https://localhost:8888/service/api/v1/login \
+curl -k -X POST https://localhost:8888/service/api/v1/users/login \
   -H "Content-Type: application/json" \
   -d '{"username":"bob","password":"SecurePass456"}'
-# Response: {"token":"<bob-jwt>","expires_in":3600}
+# Response: {"token":"<bob-session-token>","expires_in":3600}
 
 # 6. Bob retrieves messages
 curl -k -X GET https://localhost:8888/service/api/v1/messages \
-  -H "Authorization: Bearer <bob-jwt>"
+  -H "Authorization: Bearer <bob-session-token>"
 # Response: {"messages":[{"content":"Hello Bob!","sender_username":"alice"}]}
 
 # 7. Bob deletes message
 curl -k -X DELETE https://localhost:8888/service/api/v1/messages/<msg-id> \
-  -H "Authorization: Bearer <bob-jwt>"
+  -H "Authorization: Bearer <bob-session-token>"
 # Response: 204 No Content
 ```
 

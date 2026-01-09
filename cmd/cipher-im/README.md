@@ -7,7 +7,7 @@ including dual HTTPS endpoints, health checks, and end-to-end encryption.
 
 - **Dual HTTPS Servers**: Separate public (8888) and admin (9090) endpoints
 - **End-to-End Encryption**: RSA-OAEP message encryption with Ed25519 signing
-- **JWT Authentication**: Secure user authentication and session management
+- **SessionManager Authentication**: JWE/JWS-based secure session management
 - **Health Checks**: Kubernetes-style livez/readyz probes
 - **Multi-Database**: PostgreSQL or SQLite (in-memory for development)
 - **Docker Ready**: Container deployment with health monitoring
@@ -74,8 +74,8 @@ POST /service/api/v1/register
   "password": "secure-password"
 }
 
-# User login (returns JWT token)
-POST /service/api/v1/login
+# User login (returns session token)
+POST /service/api/v1/users/login
 {
   "username": "alice",
   "password": "secure-password"
@@ -83,7 +83,7 @@ POST /service/api/v1/login
 
 # Send encrypted message
 POST /service/api/v1/messages
-Authorization: Bearer <jwt-token>
+Authorization: Bearer <session-token>
 {
   "receiver_ids": ["user-uuid-1", "user-uuid-2"],
   "content": "Hello, World!"
@@ -91,11 +91,11 @@ Authorization: Bearer <jwt-token>
 
 # List received messages
 GET /service/api/v1/messages
-Authorization: Bearer <jwt-token>
+Authorization: Bearer <session-token>
 
 # Delete message
 DELETE /service/api/v1/messages/:id
-Authorization: Bearer <jwt-token>
+Authorization: Bearer <session-token>
 ```
 
 **Browser APIs** (`/browser/api/v1/*` - browser clients):
@@ -135,7 +135,6 @@ POST /admin/v1/shutdown
 ### Environment Variables
 
 - `DATABASE_URL`: Database connection string
-- `JWT_SECRET`: JWT signing secret (override default)
 - `LOG_LEVEL`: Logging verbosity
 
 ### Database URLs

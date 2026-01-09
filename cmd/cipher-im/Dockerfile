@@ -12,11 +12,11 @@ ARG ALPINE_VERSION=3.19
 FROM golang:${GO_VERSION}-alpine AS builder
 WORKDIR /build
 
-# Install build dependencies with pinned versions
+# Install build dependencies
 RUN apk add --no-cache \
-    git=2.45.2-r0 \
-    ca-certificates=20240705-r0 \
-    tzdata=2024b-r0
+    git \
+    ca-certificates \
+    tzdata
 
 # Copy go.mod and go.sum first for dependency caching
 COPY go.mod go.sum ./
@@ -36,11 +36,11 @@ FROM alpine:${ALPINE_VERSION} AS runtime
 
 WORKDIR /app
 
-# Install runtime dependencies with pinned versions
+# Install runtime dependencies
 RUN apk add --no-cache \
-        ca-certificates=20240705-r0 \
-        wget=1.24.5-r0 \
-        tzdata=2024b-r0 && \
+        ca-certificates \
+        wget \
+        tzdata && \
     addgroup -S cipher -g 1000 && \
     adduser -S cipher -u 1000 -G cipher
 
