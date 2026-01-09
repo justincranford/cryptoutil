@@ -1,0 +1,628 @@
+// Copyright 2025 Cisco Systems, Inc. and its affiliates.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package service
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+	"testing"
+
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	_ "modernc.org/sqlite" // CGO-free SQLite driver
+
+	"cryptoutil/internal/apps/template/service/server/repository"
+)
+
+// setupRealmTestDB creates an in-memory SQLite database for testing realm service.
+func setupRealmTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+
+	// Create unique database name to avoid sharing between tests.
+	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
+	sqlDB, err := sql.Open("sqlite", dbName)
+	require.NoError(t, err)
+
+	// Enable WAL mode for better concurrency.
+	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	require.NoError(t, err)
+
+	// Set busy timeout for concurrent writes.
+	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	require.NoError(t, err)
+
+	// Pass to GORM with auto-transactions disabled.
+	dialector := sqlite.Dialector{Conn: sqlDB}
+	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
+	require.NoError(t, err)
+
+	// Configure connection pool.
+	sqlDB, err = db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(5)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(0)
+
+	// Auto-migrate all required tables.
+	err = db.AutoMigrate(
+		&repository.Tenant{},
+		&repository.TenantRealm{},
+	)
+	require.NoError(t, err)
+
+	return db
+}
+
+// setupRealmService creates a RealmService with all dependencies for testing.
+func setupRealmService(t *testing.T) (RealmService, *gorm.DB) {
+	t.Helper()
+
+	db := setupRealmTestDB(t)
+	realmRepo := repository.NewTenantRealmRepository(db)
+	svc := NewRealmService(realmRepo)
+
+	return svc, db
+}
+
+// createRealmTestTenant creates a tenant for testing realms.
+func createRealmTestTenant(t *testing.T, db *gorm.DB, tenantName string) *repository.Tenant {
+	t.Helper()
+
+	tenant := &repository.Tenant{
+		ID:          googleUuid.New(),
+		Name:        tenantName,
+		Description: "Test tenant for realm testing",
+		Active:      true,
+	}
+	require.NoError(t, db.Create(tenant).Error)
+
+	return tenant
+}
+
+// TestRealmService_CreateRealm_UsernamePassword tests creating a username/password realm.
+func TestRealmService_CreateRealm_UsernamePassword(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-username-"+googleUuid.NewString()[:8])
+
+	config := &UsernamePasswordConfig{
+		MinPasswordLength: 8,
+		RequireUppercase:  true,
+		RequireLowercase:  true,
+		RequireDigit:      true,
+		RequireSpecial:    false,
+	}
+
+	realm, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
+	require.NoError(t, err)
+	require.NotNil(t, realm)
+	require.Equal(t, tenant.ID, realm.TenantID)
+	require.Equal(t, string(RealmTypeUsernamePassword), realm.Type)
+	require.True(t, realm.Active)
+	require.Equal(t, "db", realm.Source)
+	require.NotEmpty(t, realm.Config)
+}
+
+// TestRealmService_CreateRealm_LDAP tests creating an LDAP realm.
+func TestRealmService_CreateRealm_LDAP(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-ldap-"+googleUuid.NewString()[:8])
+
+	config := &LDAPConfig{
+		URL:           "ldap://ldap.example.com:389",
+		BindDN:        "cn=admin,dc=example,dc=com",
+		BindPassword:  "adminpassword",
+		BaseDN:        "dc=example,dc=com",
+		UserFilter:    "(uid=%s)",
+		GroupFilter:   "(member=%s)",
+		UseTLS:        true,
+		SkipTLSVerify: false,
+	}
+
+	realm, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeLDAP), config)
+	require.NoError(t, err)
+	require.NotNil(t, realm)
+	require.Equal(t, string(RealmTypeLDAP), realm.Type)
+}
+
+// TestRealmService_CreateRealm_OAuth2 tests creating an OAuth2 realm.
+func TestRealmService_CreateRealm_OAuth2(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-oauth2-"+googleUuid.NewString()[:8])
+
+	config := &OAuth2Config{
+		ProviderURL:  "https://auth.example.com",
+		ClientID:     "my-client-id",
+		ClientSecret: "my-client-secret",
+		Scopes:       []string{"openid", "profile", "email"},
+		RedirectURI:  "https://myapp.example.com/callback",
+		UseDiscovery: true,
+	}
+
+	realm, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeOAuth2), config)
+	require.NoError(t, err)
+	require.NotNil(t, realm)
+	require.Equal(t, string(RealmTypeOAuth2), realm.Type)
+}
+
+// TestRealmService_CreateRealm_SAML tests creating a SAML realm.
+func TestRealmService_CreateRealm_SAML(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-saml-"+googleUuid.NewString()[:8])
+
+	config := &SAMLConfig{
+		MetadataURL:  "https://idp.example.com/metadata",
+		EntityID:     "https://myapp.example.com",
+		AssertionURL: "https://myapp.example.com/saml/acs",
+		SignRequests: true,
+	}
+
+	realm, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeSAML), config)
+	require.NoError(t, err)
+	require.NotNil(t, realm)
+	require.Equal(t, string(RealmTypeSAML), realm.Type)
+}
+
+// TestRealmService_CreateRealm_InvalidType tests creating a realm with invalid type.
+func TestRealmService_CreateRealm_InvalidType(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-invalid-"+googleUuid.NewString()[:8])
+
+	_, err := svc.CreateRealm(ctx, tenant.ID, "invalid_type", nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported realm type")
+}
+
+// TestRealmService_CreateRealm_InvalidConfig tests creating a realm with invalid configuration.
+func TestRealmService_CreateRealm_InvalidConfig(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-invalid-config-"+googleUuid.NewString()[:8])
+
+	// LDAP config without required URL.
+	config := &LDAPConfig{
+		BaseDN: "dc=example,dc=com",
+		// Missing required URL.
+	}
+
+	_, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeLDAP), config)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid realm configuration")
+}
+
+// TestRealmService_GetRealm tests retrieving a realm by ID.
+func TestRealmService_GetRealm(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-get-"+googleUuid.NewString()[:8])
+
+	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
+	require.NoError(t, err)
+
+	// Get realm.
+	retrieved, err := svc.GetRealm(ctx, tenant.ID, created.RealmID)
+	require.NoError(t, err)
+	require.Equal(t, created.ID, retrieved.ID)
+	require.Equal(t, created.RealmID, retrieved.RealmID)
+	require.Equal(t, created.Type, retrieved.Type)
+}
+
+// TestRealmService_GetRealm_WrongTenant tests getting realm with wrong tenant.
+func TestRealmService_GetRealm_WrongTenant(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant1 := createRealmTestTenant(t, db, "realm-tenant1-"+googleUuid.NewString()[:8])
+	tenant2 := createRealmTestTenant(t, db, "realm-tenant2-"+googleUuid.NewString()[:8])
+
+	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	created, err := svc.CreateRealm(ctx, tenant1.ID, string(RealmTypeUsernamePassword), config)
+	require.NoError(t, err)
+
+	// Try to get realm from wrong tenant.
+	_, err = svc.GetRealm(ctx, tenant2.ID, created.RealmID)
+	require.Error(t, err)
+}
+
+// TestRealmService_ListRealms tests listing realms for a tenant.
+func TestRealmService_ListRealms(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-list-"+googleUuid.NewString()[:8])
+
+	// Create multiple realms.
+	config1 := &UsernamePasswordConfig{MinPasswordLength: 8}
+	_, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config1)
+	require.NoError(t, err)
+
+	config2 := &LDAPConfig{URL: "ldap://ldap.example.com", BaseDN: "dc=example,dc=com"}
+	_, err = svc.CreateRealm(ctx, tenant.ID, string(RealmTypeLDAP), config2)
+	require.NoError(t, err)
+
+	// List all realms.
+	realms, err := svc.ListRealms(ctx, tenant.ID, false)
+	require.NoError(t, err)
+	require.Len(t, realms, 2)
+}
+
+// TestRealmService_ListRealms_ActiveOnly tests listing only active realms.
+func TestRealmService_ListRealms_ActiveOnly(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-active-"+googleUuid.NewString()[:8])
+
+	// Create active realm.
+	config1 := &UsernamePasswordConfig{MinPasswordLength: 8}
+	_, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config1)
+	require.NoError(t, err)
+
+	// Create and deactivate realm.
+	config2 := &LDAPConfig{URL: "ldap://ldap.example.com", BaseDN: "dc=example,dc=com"}
+	inactive, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeLDAP), config2)
+	require.NoError(t, err)
+
+	err = svc.DeleteRealm(ctx, tenant.ID, inactive.RealmID) // Soft delete.
+	require.NoError(t, err)
+
+	// List only active realms.
+	realms, err := svc.ListRealms(ctx, tenant.ID, true)
+	require.NoError(t, err)
+	require.Len(t, realms, 1)
+	require.Equal(t, string(RealmTypeUsernamePassword), realms[0].Type)
+}
+
+// TestRealmService_UpdateRealm tests updating a realm's configuration.
+func TestRealmService_UpdateRealm(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-update-"+googleUuid.NewString()[:8])
+
+	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
+	require.NoError(t, err)
+
+	// Update configuration.
+	newConfig := &UsernamePasswordConfig{
+		MinPasswordLength: 12,
+		RequireUppercase:  true,
+	}
+
+	updated, err := svc.UpdateRealm(ctx, tenant.ID, created.RealmID, newConfig, nil)
+	require.NoError(t, err)
+	require.NotNil(t, updated)
+
+	// Verify config was updated.
+	parsedConfig, err := svc.GetRealmConfig(ctx, tenant.ID, created.RealmID)
+	require.NoError(t, err)
+	pwConfig, ok := parsedConfig.(*UsernamePasswordConfig)
+	require.True(t, ok)
+	require.Equal(t, 12, pwConfig.MinPasswordLength)
+	require.True(t, pwConfig.RequireUppercase)
+}
+
+// TestRealmService_UpdateRealm_ActiveFlag tests updating realm active status.
+func TestRealmService_UpdateRealm_ActiveFlag(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-active-flag-"+googleUuid.NewString()[:8])
+
+	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
+	require.NoError(t, err)
+	require.True(t, created.Active)
+
+	// Deactivate realm.
+	active := false
+	updated, err := svc.UpdateRealm(ctx, tenant.ID, created.RealmID, nil, &active)
+	require.NoError(t, err)
+	require.False(t, updated.Active)
+}
+
+// TestRealmService_DeleteRealm tests soft deleting a realm.
+func TestRealmService_DeleteRealm(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-delete-"+googleUuid.NewString()[:8])
+
+	config := &UsernamePasswordConfig{MinPasswordLength: 8}
+	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), config)
+	require.NoError(t, err)
+
+	// Delete realm.
+	err = svc.DeleteRealm(ctx, tenant.ID, created.RealmID)
+	require.NoError(t, err)
+
+	// Verify realm is inactive but still exists.
+	retrieved, err := svc.GetRealm(ctx, tenant.ID, created.RealmID)
+	require.NoError(t, err)
+	require.False(t, retrieved.Active)
+}
+
+// TestRealmService_GetRealmConfig tests parsing realm configuration.
+func TestRealmService_GetRealmConfig(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupRealmService(t)
+	ctx := context.Background()
+
+	tenant := createRealmTestTenant(t, db, "realm-config-"+googleUuid.NewString()[:8])
+
+	originalConfig := &UsernamePasswordConfig{
+		MinPasswordLength: 10,
+		RequireUppercase:  true,
+		RequireLowercase:  true,
+		RequireDigit:      true,
+		RequireSpecial:    true,
+	}
+
+	created, err := svc.CreateRealm(ctx, tenant.ID, string(RealmTypeUsernamePassword), originalConfig)
+	require.NoError(t, err)
+
+	// Get and parse config.
+	parsedConfig, err := svc.GetRealmConfig(ctx, tenant.ID, created.RealmID)
+	require.NoError(t, err)
+
+	pwConfig, ok := parsedConfig.(*UsernamePasswordConfig)
+	require.True(t, ok)
+	require.Equal(t, 10, pwConfig.MinPasswordLength)
+	require.True(t, pwConfig.RequireUppercase)
+	require.True(t, pwConfig.RequireLowercase)
+	require.True(t, pwConfig.RequireDigit)
+	require.True(t, pwConfig.RequireSpecial)
+}
+
+// TestUsernamePasswordConfig_Validate tests UsernamePasswordConfig validation.
+func TestUsernamePasswordConfig_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		config  *UsernamePasswordConfig
+		wantErr bool
+	}{
+		{
+			name:    "valid",
+			config:  &UsernamePasswordConfig{MinPasswordLength: 8},
+			wantErr: false,
+		},
+		{
+			name:    "invalid_zero_length",
+			config:  &UsernamePasswordConfig{MinPasswordLength: 0},
+			wantErr: true,
+		},
+		{
+			name:    "invalid_negative_length",
+			config:  &UsernamePasswordConfig{MinPasswordLength: -1},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := tt.config.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestLDAPConfig_Validate tests LDAPConfig validation.
+func TestLDAPConfig_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		config  *LDAPConfig
+		wantErr bool
+	}{
+		{
+			name: "valid",
+			config: &LDAPConfig{
+				URL:    "ldap://ldap.example.com",
+				BaseDN: "dc=example,dc=com",
+			},
+			wantErr: false,
+		},
+		{
+			name:    "missing_url",
+			config:  &LDAPConfig{BaseDN: "dc=example,dc=com"},
+			wantErr: true,
+		},
+		{
+			name:    "missing_basedn",
+			config:  &LDAPConfig{URL: "ldap://ldap.example.com"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := tt.config.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestOAuth2Config_Validate tests OAuth2Config validation.
+func TestOAuth2Config_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		config  *OAuth2Config
+		wantErr bool
+	}{
+		{
+			name: "valid_with_discovery",
+			config: &OAuth2Config{
+				ClientID:     "my-client",
+				ProviderURL:  "https://auth.example.com",
+				UseDiscovery: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid_without_discovery",
+			config: &OAuth2Config{
+				ClientID:     "my-client",
+				AuthorizeURL: "https://auth.example.com/authorize",
+				TokenURL:     "https://auth.example.com/token",
+				UseDiscovery: false,
+			},
+			wantErr: false,
+		},
+		{
+			name:    "missing_client_id",
+			config:  &OAuth2Config{ProviderURL: "https://auth.example.com", UseDiscovery: true},
+			wantErr: true,
+		},
+		{
+			name: "discovery_without_provider_url",
+			config: &OAuth2Config{
+				ClientID:     "my-client",
+				UseDiscovery: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "no_discovery_missing_urls",
+			config: &OAuth2Config{
+				ClientID:     "my-client",
+				UseDiscovery: false,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := tt.config.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestSAMLConfig_Validate tests SAMLConfig validation.
+func TestSAMLConfig_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		config  *SAMLConfig
+		wantErr bool
+	}{
+		{
+			name: "valid_with_metadata_url",
+			config: &SAMLConfig{
+				MetadataURL: "https://idp.example.com/metadata",
+				EntityID:    "https://myapp.example.com",
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid_with_metadata_xml",
+			config: &SAMLConfig{
+				MetadataXML: "<xml>...</xml>",
+				EntityID:    "https://myapp.example.com",
+			},
+			wantErr: false,
+		},
+		{
+			name:    "missing_metadata",
+			config:  &SAMLConfig{EntityID: "https://myapp.example.com"},
+			wantErr: true,
+		},
+		{
+			name: "missing_entity_id",
+			config: &SAMLConfig{
+				MetadataURL: "https://idp.example.com/metadata",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := tt.config.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
