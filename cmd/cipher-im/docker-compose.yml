@@ -125,9 +125,9 @@ services:
       OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=sqlite"
       # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
       CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "HS256"
       CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "HS256"
     command:
       - "server"
       - "--database-url=file::memory:?cache=shared"
@@ -179,9 +179,9 @@ services:
       OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-1"
       # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
       CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "HS256"
       CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "HS256"
     command:
       - "server"
       - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
@@ -237,9 +237,9 @@ services:
       OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-2"
       # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
       CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "HS256"
       CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "HS256"
     command:
       - "server"
       - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"

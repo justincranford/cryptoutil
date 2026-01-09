@@ -193,6 +193,28 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	case cryptoutilMagic.SessionAlgorithmJWS:
 		// Generate signing JWK based on algorithm
 		switch algIdentifier {
+		case "HS256", "HS384", "HS512":
+			// HMAC symmetric key algorithms
+			var hmacBits int
+			var algValue joseJwa.SignatureAlgorithm
+			switch algIdentifier {
+			case "HS256":
+				hmacBits = cryptoutilMagic.HMACKeySize256
+				algValue = joseJwa.HS256()
+			case "HS384":
+				hmacBits = cryptoutilMagic.HMACKeySize384
+				algValue = joseJwa.HS384()
+			case "HS512":
+				hmacBits = cryptoutilMagic.HMACKeySize512
+				algValue = joseJwa.HS512()
+			}
+			jwk, genErr = cryptoutilJOSE.GenerateHMACJWK(hmacBits)
+			if genErr == nil {
+				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
+				if genErr == nil {
+					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
+				}
+			}
 		case "RS256", "RS384", "RS512":
 			jwk, genErr = cryptoutilJOSE.GenerateRSAJWK(2048)
 			if genErr == nil {

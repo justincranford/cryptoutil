@@ -91,10 +91,10 @@ cors:
 session:
   # Browser session algorithm (OPAQUE, JWS, JWE)
   browser-session-algorithm: "JWS"
-  browser-session-jws-algorithm: "RS256"
+  browser-session-jws-algorithm: "HS256"  # HS256 for faster testing (symmetric key)
   browser-session-jwe-algorithm: "dir+A256GCM"
 
   # Service session algorithm (OPAQUE, JWS, JWE)
   service-session-algorithm: "JWS"
-  service-session-jws-algorithm: "RS256"
+  service-session-jws-algorithm: "HS256"  # HS256 for faster testing (symmetric key)
   service-session-jwe-algorithm: "dir+A256GCM"
