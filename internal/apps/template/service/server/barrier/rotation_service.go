@@ -7,7 +7,6 @@ package barrier
 import (
 	"context"
 	"fmt"
-	"time"
 
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -57,7 +56,6 @@ type RotateRootKeyResult struct {
 	OldKeyUUID googleUuid.UUID
 	NewKeyUUID googleUuid.UUID
 	Reason     string
-	RotatedAt  int64
 }
 
 // RotateRootKey creates a new root key encrypted with the unseal key.
@@ -97,7 +95,6 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 			UUID:      *rootKeyKidUUID,
 			Encrypted: string(encryptedRootKeyBytes),
 			KEKUUID:   googleUuid.UUID{}, // Root keys have no parent
-			CreatedAt: getCurrentMillis(),
 		}
 
 		if err := tx.AddRootKey(newRootKey); err != nil {
@@ -109,7 +106,6 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 			OldKeyUUID: oldRootKey.UUID,
 			NewKeyUUID: *rootKeyKidUUID,
 			Reason:     reason,
-			RotatedAt:  getCurrentMillis(),
 		}
 
 		return nil
@@ -126,7 +122,6 @@ type RotateIntermediateKeyResult struct {
 	OldKeyUUID googleUuid.UUID
 	NewKeyUUID googleUuid.UUID
 	Reason     string
-	RotatedAt  int64
 }
 
 // RotateIntermediateKey creates a new intermediate key encrypted with the current root key.
@@ -182,7 +177,6 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 			UUID:      *intermediateKeyKidUUID,
 			Encrypted: string(encryptedIntermediateKeyBytes),
 			KEKUUID:   currentRootKey.UUID,
-			CreatedAt: getCurrentMillis(),
 		}
 
 		if err := tx.AddIntermediateKey(newIntermediateKey); err != nil {
@@ -194,7 +188,6 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 			OldKeyUUID: oldIntermediateKey.UUID,
 			NewKeyUUID: *intermediateKeyKidUUID,
 			Reason:     reason,
-			RotatedAt:  getCurrentMillis(),
 		}
 
 		return nil
@@ -210,7 +203,6 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 type RotateContentKeyResult struct {
 	NewKeyUUID googleUuid.UUID
 	Reason     string
-	RotatedAt  int64
 }
 
 // RotateContentKey creates a new content key encrypted with the current intermediate key.
@@ -287,7 +279,6 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 			UUID:      *contentKeyKidUUID,
 			Encrypted: string(encryptedContentKeyBytes),
 			KEKUUID:   currentIntermediateKey.UUID,
-			CreatedAt: getCurrentMillis(),
 		}
 
 		if err := tx.AddContentKey(newContentKey); err != nil {
@@ -298,7 +289,6 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 		result = &RotateContentKeyResult{
 			NewKeyUUID: *contentKeyKidUUID,
 			Reason:     reason,
-			RotatedAt:  getCurrentMillis(),
 		}
 
 		return nil
@@ -308,9 +298,4 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 	}
 
 	return result, nil
-}
-
-// getCurrentMillis returns current time in milliseconds since Unix epoch.
-func getCurrentMillis() int64 {
-	return time.Now().UnixMilli()
 }

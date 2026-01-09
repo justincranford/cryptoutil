@@ -13,9 +13,7 @@ import (
 
 // KeyStatusResponse represents the status of a specific barrier key.
 type KeyStatusResponse struct {
-	UUID      string `json:"uuid"`       // Key UUID
-	CreatedAt int64  `json:"created_at"` // Creation timestamp (milliseconds)
-	UpdatedAt int64  `json:"updated_at"` // Last update timestamp (milliseconds)
+	UUID string `json:"uuid"` // Key UUID
 }
 
 // BarrierKeysStatusResponse represents the current status of all barrier key layers.
@@ -53,9 +51,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 
 		if rootKey != nil {
 			response.RootKey = &KeyStatusResponse{
-				UUID:      rootKey.UUID.String(),
-				CreatedAt: rootKey.CreatedAt,
-				UpdatedAt: rootKey.UpdatedAt,
+				UUID: rootKey.UUID.String(),
 			}
 		}
 
@@ -67,9 +63,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 
 		if intermediateKey != nil {
 			response.IntermediateKey = &KeyStatusResponse{
-				UUID:      intermediateKey.UUID.String(),
-				CreatedAt: intermediateKey.CreatedAt,
-				UpdatedAt: intermediateKey.UpdatedAt,
+				UUID: intermediateKey.UUID.String(),
 			}
 		}
 

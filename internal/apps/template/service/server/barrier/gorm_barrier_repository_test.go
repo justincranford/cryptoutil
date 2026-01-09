@@ -88,8 +88,6 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 		UUID:      key1UUID,
 		Encrypted: "encrypted_root_key_1",
 		KEKUUID:   googleUuid.UUID{},
-		CreatedAt: 1000,
-		UpdatedAt: 1000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -127,8 +125,6 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 		UUID:      key2UUID,
 		Encrypted: "encrypted_root_key_2",
 		KEKUUID:   googleUuid.UUID{},
-		CreatedAt: 2000,
-		UpdatedAt: 2000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -184,8 +180,6 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 		UUID:      rootKeyUUID,
 		Encrypted: "encrypted_root_key_1",
 		KEKUUID:   googleUuid.UUID{},
-		CreatedAt: 1000,
-		UpdatedAt: 1000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -209,8 +203,6 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 		UUID:      key1UUID,
 		Encrypted: "encrypted_intermediate_key_1",
 		KEKUUID:   rootKeyUUID,
-		CreatedAt: 1000,
-		UpdatedAt: 1000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -249,8 +241,6 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 		UUID:      key2UUID,
 		Encrypted: "encrypted_intermediate_key_2",
 		KEKUUID:   rootKeyUUID,
-		CreatedAt: 2000,
-		UpdatedAt: 2000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -289,8 +279,6 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 		UUID:      rootKeyUUID,
 		Encrypted: "encrypted_root_key",
 		KEKUUID:   googleUuid.UUID{},
-		CreatedAt: 1000,
-		UpdatedAt: 1000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -304,8 +292,6 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 		UUID:      intermediateKeyUUID,
 		Encrypted: "encrypted_intermediate_key",
 		KEKUUID:   rootKeyUUID,
-		CreatedAt: 1000,
-		UpdatedAt: 1000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -319,8 +305,6 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 		UUID:      key1UUID,
 		Encrypted: "encrypted_content_key_1",
 		KEKUUID:   intermediateKeyUUID,
-		CreatedAt: 1000,
-		UpdatedAt: 1000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -347,8 +331,6 @@ func TestGormBarrierRepository_ContentKey_Lifecycle(t *testing.T) {
 		UUID:      key2UUID,
 		Encrypted: "encrypted_content_key_2",
 		KEKUUID:   intermediateKeyUUID,
-		CreatedAt: 2000,
-		UpdatedAt: 2000,
 	}
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
@@ -389,8 +371,6 @@ func TestGormBarrierRepository_Transaction_Rollback(t *testing.T) {
 		UUID:      keyUUID,
 		Encrypted: "encrypted_root_key",
 		KEKUUID:   googleUuid.UUID{},
-		CreatedAt: 1000,
-		UpdatedAt: 1000,
 	}
 
 	// Transaction that returns an error (should rollback).
@@ -440,8 +420,6 @@ func TestGormBarrierRepository_ConcurrentTransactions(t *testing.T) {
 				UUID:      keyUUID,
 				Encrypted: "encrypted_root_key_" + string(rune(id)),
 				KEKUUID:   googleUuid.UUID{},
-				CreatedAt: int64(1000 + id),
-				UpdatedAt: int64(1000 + id),
 			}
 
 			err := barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {

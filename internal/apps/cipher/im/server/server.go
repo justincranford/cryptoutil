@@ -142,6 +142,30 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		return nil, fmt.Errorf("failed to create barrier repository: %w", err)
 	}
 
+	// Drop stale barrier tables completely before AutoMigrate creates clean schema.
+	// GORM AutoMigrate doesn't drop removed columns, and GORM Migrator.DropColumn
+	// generates invalid SQL for SQLite (comments cause "incomplete input" errors).
+	// Dropping tables ensures clean schema matching current struct definitions.
+	if err := core.DB.Migrator().DropTable(
+		&cryptoutilTemplateBarrier.BarrierRootKey{},
+		&cryptoutilTemplateBarrier.BarrierIntermediateKey{},
+		&cryptoutilTemplateBarrier.BarrierContentKey{},
+	); err != nil {
+		// Ignore error if tables don't exist (first run).
+		core.Basic.TelemetryService.Slogger.Info("dropping barrier tables (if exist)", "error", err)
+	}
+
+	// Now AutoMigrate barrier tables with clean schema.
+	if err := core.DB.AutoMigrate(
+		&cryptoutilTemplateBarrier.BarrierRootKey{},
+		&cryptoutilTemplateBarrier.BarrierIntermediateKey{},
+		&cryptoutilTemplateBarrier.BarrierContentKey{},
+	); err != nil {
+		core.Shutdown()
+
+		return nil, fmt.Errorf("failed to migrate barrier tables: %w", err)
+	}
+
 	// Create barrier service with GORM repository.
 	// For cipher-im demo service, unseal keys are already initialized in ApplicationBasic.
 	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(

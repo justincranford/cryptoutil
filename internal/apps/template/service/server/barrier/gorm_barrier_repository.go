@@ -69,7 +69,7 @@ func (tx *GormBarrierTransaction) Context() context.Context {
 func (tx *GormBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 	var key BarrierRootKey
 
-	err := tx.gormDB.Order("created_at DESC").First(&key).Error
+	err := tx.gormDB.Order("uuid DESC").First(&key).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrNoRootKeyFound
 	}
@@ -114,7 +114,7 @@ func (tx *GormBarrierTransaction) AddRootKey(key *BarrierRootKey) error {
 func (tx *GormBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediateKey, error) {
 	var key BarrierIntermediateKey
 
-	err := tx.gormDB.Order("created_at DESC").First(&key).Error
+	err := tx.gormDB.Order("uuid DESC").First(&key).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrNoIntermediateKeyFound
 	}

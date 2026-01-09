@@ -32,7 +32,6 @@ services:
       POSTGRES_DB: cipher_im
       POSTGRES_USER: cipher_user
       POSTGRES_PASSWORD: cipher_pass  # pragma: allowlist secret
-      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
@@ -124,9 +123,17 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
       OTEL_SERVICE_NAME: "cipher-im-sqlite"
       OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=sqlite"
+      # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
+      CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
+      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
+      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "RS256"
     command:
       - "server"
-      # SQLite default - no database-url flag needed
+      - "--database-url=file::memory:?cache=shared"
+      - "--config=/etc/cipher-im/config.yml"
+    volumes:
+      - ../../configs/cipher/im/config.yml:/etc/cipher-im/config.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
