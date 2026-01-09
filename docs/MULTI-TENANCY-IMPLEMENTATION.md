@@ -143,13 +143,22 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 - **Completed**: 2026-01-09 (commits 2b2031a0, 75c68dd3)
 - **Deliverables**: 9 repository implementations, 20 unit tests (100% pass rate), composite UNIQUE constraints enforced
 
-### Phase 3: Business Logic
-- [ ] TenantService for tenant CRUD
-- [ ] RegistrationService for user/client registration
-- [ ] VerificationService for admin approval
-- [ ] RealmService for realm configuration
-- [ ] Update SessionManager to use tenant_id
-- [ ] Unit tests for all services
+### Phase 3: Business Logic ✅ COMPLETE
+- [x] TenantService for tenant CRUD
+- [x] RegistrationService for user/client registration
+- [x] VerificationService for admin approval
+- [x] RealmService for realm configuration
+- [x] Update SessionManager to use tenant_id
+- [x] Unit tests for all services
+- **Completed**: 2026-01-09 (commits d6a70f94, 474b16d9)
+- **Deliverables**:
+  - SessionManager API updated: realm string → tenantID, realmID UUID
+  - TenantService: Create/Get/List/Update/Delete tenants
+  - RegistrationService: Register users/clients with new or existing tenants
+  - VerificationService: Approve/Reject pending registrations, cleanup expired
+  - RealmService: Create/Get/List/Update/Delete realms with typed configs
+  - 30+ unit tests for all services
+- **Note**: Tests require CGO (golang-migrate/sqlite3 in repository)
 
 ### Phase 4: API Layer
 - [ ] Tenant management APIs
