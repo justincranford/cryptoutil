@@ -29,13 +29,13 @@ import (
 
 // mockTenantRepository implements repository.TenantRepository for testing.
 type mockTenantRepository struct {
-	createFn                 func(ctx context.Context, tenant *repository.Tenant) error
-	getByIDFn                func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error)
-	getByNameFn              func(ctx context.Context, name string) (*repository.Tenant, error)
-	listFn                   func(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error)
-	updateFn                 func(ctx context.Context, tenant *repository.Tenant) error
-	deleteFn                 func(ctx context.Context, id googleUuid.UUID) error
-	countUsersAndClientsFn   func(ctx context.Context, tenantID googleUuid.UUID) (int64, int64, error)
+	createFn               func(ctx context.Context, tenant *repository.Tenant) error
+	getByIDFn              func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error)
+	getByNameFn            func(ctx context.Context, name string) (*repository.Tenant, error)
+	listFn                 func(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error)
+	updateFn               func(ctx context.Context, tenant *repository.Tenant) error
+	deleteFn               func(ctx context.Context, id googleUuid.UUID) error
+	countUsersAndClientsFn func(ctx context.Context, tenantID googleUuid.UUID) (int64, int64, error)
 }
 
 func (m *mockTenantRepository) Create(ctx context.Context, tenant *repository.Tenant) error {

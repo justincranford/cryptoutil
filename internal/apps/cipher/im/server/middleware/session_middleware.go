@@ -57,9 +57,8 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 					c.Locals("user_id", userID)
 				}
 			}
-			if session.Realm != nil {
-				c.Locals("realm", *session.Realm)
-			}
+			c.Locals("tenant_id", session.TenantID)
+			c.Locals("realm_id", session.RealmID)
 		} else {
 			// Validate service session
 			session, validateErr := sessionManager.ValidateServiceSession(ctx, token)
@@ -80,9 +79,8 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 					c.Locals("user_id", userID)
 				}
 			}
-			if session.Realm != nil {
-				c.Locals("realm", *session.Realm)
-			}
+			c.Locals("tenant_id", session.TenantID)
+			c.Locals("realm_id", session.RealmID)
 		}
 
 		return c.Next()

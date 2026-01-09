@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
@@ -27,7 +28,8 @@ func NewSessionHandler(sessionManager *businesslogic.SessionManagerService) *Ses
 // SessionIssueRequest represents the request body for issuing a session.
 type SessionIssueRequest struct {
 	UserID      string `json:"user_id" validate:"required,min=1,max=255"`
-	Realm       string `json:"realm" validate:"required,min=1,max=255"`
+	TenantID    string `json:"tenant_id" validate:"required,uuid"`
+	RealmID     string `json:"realm_id" validate:"required,uuid"`
 	SessionType string `json:"session_type" validate:"required,oneof=browser service"`
 }
 
@@ -44,9 +46,10 @@ type SessionValidateRequest struct {
 
 // SessionValidateResponse represents the response body for session validation.
 type SessionValidateResponse struct {
-	UserID string `json:"user_id"`
-	Realm  string `json:"realm"`
-	Valid  bool   `json:"valid"`
+	UserID   string `json:"user_id"`
+	TenantID string `json:"tenant_id"`
+	RealmID  string `json:"realm_id"`
+	Valid    bool   `json:"valid"`
 }
 
 // IssueSession creates a new session token.
@@ -57,16 +60,28 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
 
+	// Parse tenant and realm IDs.
+	tenantID, err := googleUuid.Parse(req.TenantID)
+	if err != nil {
+		summary := "Invalid tenant_id format"
+		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
+	}
+
+	realmID, err := googleUuid.Parse(req.RealmID)
+	if err != nil {
+		summary := "Invalid realm_id format"
+		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
+	}
+
 	// Create context from request context.
 	ctx := context.Background()
 
 	// Issue session based on type.
 	var token string
-	var err error
 	if req.SessionType == "browser" {
-		token, err = h.sessionManager.IssueBrowserSession(ctx, req.UserID, req.Realm)
+		token, err = h.sessionManager.IssueBrowserSession(ctx, req.UserID, tenantID, realmID)
 	} else {
-		token, err = h.sessionManager.IssueServiceSession(ctx, req.UserID, req.Realm)
+		token, err = h.sessionManager.IssueServiceSession(ctx, req.UserID, tenantID, realmID)
 	}
 
 	if err != nil {
@@ -94,7 +109,7 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	// Validate session based on type.
-	var userID, realm string
+	var userID, tenantID, realmID string
 	var valid bool
 	if req.SessionType == "browser" {
 		browserSession, err := h.sessionManager.ValidateBrowserSession(ctx, req.Token)
@@ -104,9 +119,8 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 			if browserSession.UserID != nil {
 				userID = *browserSession.UserID
 			}
-			if browserSession.Realm != nil {
-				realm = *browserSession.Realm
-			}
+			tenantID = browserSession.TenantID.String()
+			realmID = browserSession.RealmID.String()
 			valid = true
 		}
 	} else {
@@ -117,18 +131,18 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 			if serviceSession.ClientID != nil {
 				userID = *serviceSession.ClientID
 			}
-			if serviceSession.Realm != nil {
-				realm = *serviceSession.Realm
-			}
+			tenantID = serviceSession.TenantID.String()
+			realmID = serviceSession.RealmID.String()
 			valid = true
 		}
 	}
 
 	// Format response.
 	resp := SessionValidateResponse{
-		UserID: userID,
-		Realm:  realm,
-		Valid:  valid,
+		UserID:   userID,
+		TenantID: tenantID,
+		RealmID:  realmID,
+		Valid:    valid,
 	}
 
 	return c.JSON(resp)

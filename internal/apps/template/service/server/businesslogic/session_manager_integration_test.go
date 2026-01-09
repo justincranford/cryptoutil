@@ -62,13 +62,15 @@ func TestSessionManager_Integration_CrossAlgorithm(t *testing.T) {
 
 			// Issue browser session
 			userID := googleUuid.Must(googleUuid.NewV7()).String()
-			browserToken, err := sm.IssueBrowserSession(ctx, userID, "test-realm")
+			tenantID := googleUuid.Must(googleUuid.NewV7())
+			realmID := googleUuid.Must(googleUuid.NewV7())
+			browserToken, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 			require.NoError(t, err)
 			require.NotEmpty(t, browserToken)
 
 			// Issue service session
 			clientID := googleUuid.Must(googleUuid.NewV7()).String()
-			serviceToken, err := sm.IssueServiceSession(ctx, clientID, "test-realm")
+			serviceToken, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
 			require.NoError(t, err)
 			require.NotEmpty(t, serviceToken)
 
@@ -117,10 +119,12 @@ func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 
 			// 1. Issue multiple sessions for same user
 			userID := googleUuid.Must(googleUuid.NewV7()).String()
+			tenantID := googleUuid.Must(googleUuid.NewV7())
+			realmID := googleUuid.Must(googleUuid.NewV7())
 			var tokens []string
 
 			for i := 0; i < 3; i++ {
-				token, err := sm.IssueBrowserSession(ctx, userID, "test-realm")
+				token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 				require.NoError(t, err)
 				tokens = append(tokens, token)
 			}
@@ -141,7 +145,7 @@ func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 			// 4. Test cleanup of expired sessions
 			// Create short-lived session for expiration test
 			shortSM := setupShortSessionManager(t, alg.browserAlgorithm, alg.serviceAlgorithm)
-			shortToken, err := shortSM.IssueBrowserSession(ctx, userID, "test-realm")
+			shortToken, err := shortSM.IssueBrowserSession(ctx, userID, tenantID, realmID)
 			require.NoError(t, err)
 
 			// Wait for expiration
@@ -167,9 +171,12 @@ func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
 	// Test realistic workflow: user logs in (browser session) and API client connects (service session)
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	browserRealmID := googleUuid.Must(googleUuid.NewV7())
+	serviceRealmID := googleUuid.Must(googleUuid.NewV7())
 
 	// Step 1: User logs in via browser
-	browserToken, err := sm.IssueBrowserSession(ctx, userID, "production")
+	browserToken, err := sm.IssueBrowserSession(ctx, userID, tenantID, browserRealmID)
 	require.NoError(t, err)
 	require.NotEmpty(t, browserToken)
 
@@ -178,10 +185,11 @@ func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, browserSession)
 	require.Equal(t, userID, *browserSession.UserID)
-	require.Equal(t, "production", *browserSession.Realm)
+	require.Equal(t, tenantID, browserSession.TenantID)
+	require.Equal(t, browserRealmID, browserSession.RealmID)
 
 	// Step 3: API client authenticates
-	serviceToken, err := sm.IssueServiceSession(ctx, clientID, "api")
+	serviceToken, err := sm.IssueServiceSession(ctx, clientID, tenantID, serviceRealmID)
 	require.NoError(t, err)
 	require.NotEmpty(t, serviceToken)
 
@@ -190,21 +198,23 @@ func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, serviceSession)
 	require.Equal(t, clientID, *serviceSession.ClientID)
-	require.Equal(t, "api", *serviceSession.Realm)
+	require.Equal(t, tenantID, serviceSession.TenantID)
+	require.Equal(t, serviceRealmID, serviceSession.RealmID)
 
 	// Step 5: Issue multiple sessions for load testing scenario
 	var browserTokens []string
 	var serviceTokens []string
+	testRealmID := googleUuid.Must(googleUuid.NewV7())
 
 	for i := 0; i < 10; i++ {
 		userID := googleUuid.Must(googleUuid.NewV7()).String()
 		clientID := googleUuid.Must(googleUuid.NewV7()).String()
 
-		browserToken, err := sm.IssueBrowserSession(ctx, userID, "test")
+		browserToken, err := sm.IssueBrowserSession(ctx, userID, tenantID, testRealmID)
 		require.NoError(t, err)
 		browserTokens = append(browserTokens, browserToken)
 
-		serviceToken, err := sm.IssueServiceSession(ctx, clientID, "test")
+		serviceToken, err := sm.IssueServiceSession(ctx, clientID, tenantID, testRealmID)
 		require.NoError(t, err)
 		serviceTokens = append(serviceTokens, serviceToken)
 	}

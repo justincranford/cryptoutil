@@ -426,5 +426,3 @@ func TestUnverifiedClientRepository_DeleteExpired(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, validClient.ClientID, result.ClientID)
 }
-
-

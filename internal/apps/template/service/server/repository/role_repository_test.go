@@ -182,7 +182,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		Username:  "testuser2-" + googleUuid.New().String()[:8],
-			Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
+		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
 		Active:    true,
 		CreatedAt: time.Now(),
 	}
@@ -498,4 +498,3 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 	require.True(t, foundActive, "Active realm should be found")
 	require.True(t, foundInactive, "Inactive realm should be found in all realms list")
 }
-

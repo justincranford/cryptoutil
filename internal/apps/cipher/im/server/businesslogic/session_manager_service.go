@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
@@ -77,7 +78,8 @@ func NewSessionManagerService(
 func (s *SessionManagerService) IssueBrowserSession(
 	ctx context.Context,
 	userID string,
-	realm string,
+	tenantID googleUuid.UUID,
+	realmID googleUuid.UUID,
 ) (string, error) {
 	if ctx == nil {
 		return "", fmt.Errorf("context cannot be nil")
@@ -87,7 +89,7 @@ func (s *SessionManagerService) IssueBrowserSession(
 		return "", fmt.Errorf("user ID cannot be empty")
 	}
 
-	return s.sessionManager.IssueBrowserSession(ctx, userID, realm)
+	return s.sessionManager.IssueBrowserSession(ctx, userID, tenantID, realmID)
 }
 
 // ValidateBrowserSession validates a browser session token and returns the session.
@@ -110,7 +112,8 @@ func (s *SessionManagerService) ValidateBrowserSession(
 func (s *SessionManagerService) IssueServiceSession(
 	ctx context.Context,
 	clientID string,
-	realm string,
+	tenantID googleUuid.UUID,
+	realmID googleUuid.UUID,
 ) (string, error) {
 	if ctx == nil {
 		return "", fmt.Errorf("context cannot be nil")
@@ -120,7 +123,7 @@ func (s *SessionManagerService) IssueServiceSession(
 		return "", fmt.Errorf("client ID cannot be empty")
 	}
 
-	return s.sessionManager.IssueServiceSession(ctx, clientID, realm)
+	return s.sessionManager.IssueServiceSession(ctx, clientID, tenantID, realmID)
 }
 
 // ValidateServiceSession validates a service session token and returns the session.

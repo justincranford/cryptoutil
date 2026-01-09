@@ -124,9 +124,10 @@ func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "test-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
-	token, err := sm.IssueBrowserSession(ctx, userID, realm)
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -140,8 +141,8 @@ func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
 	require.NoError(t, findErr)
 	require.NotNil(t, session.TokenHash)
 	require.NotEmpty(t, *session.TokenHash)
-	require.NotNil(t, session.Realm)
-	require.Equal(t, realm, *session.Realm)
+	require.Equal(t, tenantID, session.TenantID)
+	require.Equal(t, realmID, session.RealmID)
 	require.NotNil(t, session.UserID)
 	require.Equal(t, userID, *session.UserID)
 }
@@ -151,10 +152,11 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "test-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
 	// Issue session
-	token, err := sm.IssueBrowserSession(ctx, userID, realm)
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Validate session
@@ -163,8 +165,8 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_Success(t *testing.T) {
 	require.NotNil(t, session)
 	require.NotNil(t, session.UserID)
 	require.Equal(t, userID, *session.UserID)
-	require.NotNil(t, session.Realm)
-	require.Equal(t, realm, *session.Realm)
+	require.Equal(t, tenantID, session.TenantID)
+	require.Equal(t, realmID, session.RealmID)
 }
 
 func TestSessionManager_ValidateBrowserSession_OPAQUE_InvalidToken(t *testing.T) {
@@ -183,10 +185,11 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "test-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
 	// Issue session
-	token, err := sm.IssueBrowserSession(ctx, userID, realm)
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Manually expire the session by updating database
@@ -209,9 +212,10 @@ func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "service-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
-	token, err := sm.IssueServiceSession(ctx, clientID, realm)
+	token, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -225,8 +229,8 @@ func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
 	require.NoError(t, findErr)
 	require.NotNil(t, session.TokenHash)
 	require.NotEmpty(t, *session.TokenHash)
-	require.NotNil(t, session.Realm)
-	require.Equal(t, realm, *session.Realm)
+	require.Equal(t, tenantID, session.TenantID)
+	require.Equal(t, realmID, session.RealmID)
 	require.NotNil(t, session.ClientID)
 	require.Equal(t, clientID, *session.ClientID)
 }
@@ -236,10 +240,11 @@ func TestSessionManager_ValidateServiceSession_OPAQUE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "service-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
 	// Issue session
-	token, err := sm.IssueServiceSession(ctx, clientID, realm)
+	token, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Validate session
@@ -248,8 +253,8 @@ func TestSessionManager_ValidateServiceSession_OPAQUE_Success(t *testing.T) {
 	require.NotNil(t, session)
 	require.NotNil(t, session.ClientID)
 	require.Equal(t, clientID, *session.ClientID)
-	require.NotNil(t, session.Realm)
-	require.Equal(t, realm, *session.Realm)
+	require.Equal(t, tenantID, session.TenantID)
+	require.Equal(t, realmID, session.RealmID)
 }
 
 func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
@@ -258,7 +263,9 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 
 	// Create expired session
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	token, err := sm.IssueBrowserSession(ctx, userID, "test-realm")
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Manually expire it
@@ -290,7 +297,9 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 
 	// Create session
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	_, err := sm.IssueBrowserSession(ctx, userID, "test-realm")
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+	_, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Manually set last_activity to past idle threshold
@@ -317,12 +326,15 @@ func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID1 := googleUuid.Must(googleUuid.NewV7())
+	realmID2 := googleUuid.Must(googleUuid.NewV7())
 
 	// Issue multiple sessions for same user
-	token1, err1 := sm.IssueBrowserSession(ctx, userID, "realm1")
+	token1, err1 := sm.IssueBrowserSession(ctx, userID, tenantID, realmID1)
 	require.NoError(t, err1)
 
-	token2, err2 := sm.IssueBrowserSession(ctx, userID, "realm2")
+	token2, err2 := sm.IssueBrowserSession(ctx, userID, tenantID, realmID2)
 	require.NoError(t, err2)
 
 	require.NotEqual(t, token1, token2)

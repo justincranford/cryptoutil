@@ -20,9 +20,10 @@ func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "test-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
-	token, err := sm.IssueBrowserSession(ctx, userID, realm)
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -52,9 +53,11 @@ func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
 	require.Contains(t, claims, "iat")
 	require.Contains(t, claims, "exp")
 	require.Contains(t, claims, "sub")
-	require.Contains(t, claims, "realm")
+	require.Contains(t, claims, "tenant_id")
+	require.Contains(t, claims, "realm_id")
 	require.Equal(t, userID, claims["sub"])
-	require.Equal(t, realm, claims["realm"])
+	require.Equal(t, tenantID.String(), claims["tenant_id"])
+	require.Equal(t, realmID.String(), claims["realm_id"])
 }
 
 func TestSessionManager_ValidateBrowserSession_JWE_Success(t *testing.T) {
@@ -62,10 +65,11 @@ func TestSessionManager_ValidateBrowserSession_JWE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "test-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
 	// Issue session
-	token, err := sm.IssueBrowserSession(ctx, userID, realm)
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Validate session
@@ -74,8 +78,8 @@ func TestSessionManager_ValidateBrowserSession_JWE_Success(t *testing.T) {
 	require.NotNil(t, session)
 	require.NotNil(t, session.UserID)
 	require.Equal(t, userID, *session.UserID)
-	require.NotNil(t, session.Realm)
-	require.Equal(t, realm, *session.Realm)
+	require.Equal(t, tenantID, session.TenantID)
+	require.Equal(t, realmID, session.RealmID)
 }
 
 func TestSessionManager_ValidateBrowserSession_JWE_InvalidToken(t *testing.T) {
@@ -94,18 +98,20 @@ func TestSessionManager_ValidateBrowserSession_JWE_ExpiredJWT(t *testing.T) {
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "test-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 	jti := googleUuid.Must(googleUuid.NewV7())
 	now := time.Now()
 	exp := now.Add(-1 * time.Hour) // Expired 1 hour ago
 
 	// Create expired JWT claims
 	claims := map[string]interface{}{
-		"jti":   jti.String(),
-		"iat":   now.Add(-2 * time.Hour).Unix(),
-		"exp":   exp.Unix(),
-		"sub":   userID,
-		"realm": realm,
+		"jti":       jti.String(),
+		"iat":       now.Add(-2 * time.Hour).Unix(),
+		"exp":       exp.Unix(),
+		"sub":       userID,
+		"tenant_id": tenantID.String(),
+		"realm_id":  realmID.String(),
 	}
 
 	claimsBytes, _ := json.Marshal(claims)
@@ -139,10 +145,11 @@ func TestSessionManager_ValidateBrowserSession_JWE_RevokedSession(t *testing.T) 
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "test-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
 	// Issue session
-	token, err := sm.IssueBrowserSession(ctx, userID, realm)
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Parse token to extract jti
@@ -180,9 +187,10 @@ func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "service-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
-	token, err := sm.IssueServiceSession(ctx, clientID, realm)
+	token, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -207,7 +215,8 @@ func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
 	require.NoError(t, unmarshalErr)
 
 	require.Equal(t, clientID, claims["sub"])
-	require.Equal(t, realm, claims["realm"])
+	require.Equal(t, tenantID.String(), claims["tenant_id"])
+	require.Equal(t, realmID.String(), claims["realm_id"])
 }
 
 func TestSessionManager_ValidateServiceSession_JWE_Success(t *testing.T) {
@@ -215,10 +224,11 @@ func TestSessionManager_ValidateServiceSession_JWE_Success(t *testing.T) {
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
-	realm := "service-realm"
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
 
 	// Issue session
-	token, err := sm.IssueServiceSession(ctx, clientID, realm)
+	token, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
 	require.NoError(t, err)
 
 	// Validate session
@@ -227,6 +237,6 @@ func TestSessionManager_ValidateServiceSession_JWE_Success(t *testing.T) {
 	require.NotNil(t, session)
 	require.NotNil(t, session.ClientID)
 	require.Equal(t, clientID, *session.ClientID)
-	require.NotNil(t, session.Realm)
-	require.Equal(t, realm, *session.Realm)
+	require.Equal(t, tenantID, session.TenantID)
+	require.Equal(t, realmID, session.RealmID)
 }

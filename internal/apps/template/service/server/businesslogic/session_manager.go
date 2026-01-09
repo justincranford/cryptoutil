@@ -453,17 +453,18 @@ func (sm *SessionManager) getAlgorithmIdentifier(isBrowser bool, sessionAlgorith
 // Parameters:
 //   - ctx: Context for database operations
 //   - userID: User identifier (optional, can be empty string)
-//   - realm: Realm identifier (optional, can be empty string)
+//   - tenantID: Tenant identifier for multi-tenancy isolation
+//   - realmID: Realm identifier within tenant
 //
 // Returns session token string for client.
-func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID, realm string) (string, error) {
+func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID string, tenantID, realmID googleUuid.UUID) (string, error) {
 	switch sm.browserAlgorithm {
 	case cryptoutilMagic.SessionAlgorithmOPAQUE:
-		return sm.issueOPAQUESession(ctx, true, userID, realm)
+		return sm.issueOPAQUESession(ctx, true, userID, tenantID, realmID)
 	case cryptoutilMagic.SessionAlgorithmJWS:
-		return sm.issueJWSSession(ctx, true, userID, realm)
+		return sm.issueJWSSession(ctx, true, userID, tenantID, realmID)
 	case cryptoutilMagic.SessionAlgorithmJWE:
-		return sm.issueJWESession(ctx, true, userID, realm)
+		return sm.issueJWESession(ctx, true, userID, tenantID, realmID)
 	default:
 		return "", fmt.Errorf("unsupported browser session algorithm: %s", sm.browserAlgorithm)
 	}
@@ -509,14 +510,14 @@ func (sm *SessionManager) ValidateBrowserSession(ctx context.Context, token stri
 
 // IssueServiceSession issues a new service session token.
 // Similar to IssueBrowserSession but for service-to-service authentication.
-func (sm *SessionManager) IssueServiceSession(ctx context.Context, clientID, realm string) (string, error) {
+func (sm *SessionManager) IssueServiceSession(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error) {
 	switch sm.serviceAlgorithm {
 	case cryptoutilMagic.SessionAlgorithmOPAQUE:
-		return sm.issueOPAQUESession(ctx, false, clientID, realm)
+		return sm.issueOPAQUESession(ctx, false, clientID, tenantID, realmID)
 	case cryptoutilMagic.SessionAlgorithmJWS:
-		return sm.issueJWSSession(ctx, false, clientID, realm)
+		return sm.issueJWSSession(ctx, false, clientID, tenantID, realmID)
 	case cryptoutilMagic.SessionAlgorithmJWE:
-		return sm.issueJWESession(ctx, false, clientID, realm)
+		return sm.issueJWESession(ctx, false, clientID, tenantID, realmID)
 	default:
 		return "", fmt.Errorf("unsupported service session algorithm: %s", sm.serviceAlgorithm)
 	}
@@ -613,7 +614,7 @@ func (sm *SessionManager) StartCleanupTask(ctx context.Context) {
 }
 
 // issueOPAQUESession issues an OPAQUE session token (hashed UUIDv7).
-func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool, principalID, realm string) (string, error) {
+func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool, principalID string, tenantID, realmID googleUuid.UUID) (string, error) {
 	// Generate UUIDv7 token
 	tokenID := googleUuid.Must(googleUuid.NewV7())
 	token := tokenID.String()
@@ -636,8 +637,9 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 	now := time.Now()
 	session := cryptoutilRepository.Session{
 		ID:           tokenID,
+		TenantID:     tenantID,
+		RealmID:      realmID,
 		TokenHash:    &tokenHash,
-		Realm:        &realm,
 		Expiration:   expiration,
 		CreatedAt:    now,
 		LastActivity: &now,
@@ -716,7 +718,7 @@ func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser b
 }
 
 // issueJWSSession issues a JWS session token (signed JWT).
-func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, principalID, realm string) (string, error) {
+func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, principalID string, tenantID, realmID googleUuid.UUID) (string, error) {
 	// Load JWK from database
 	var jwkID googleUuid.UUID
 	if isBrowser {
@@ -774,11 +776,12 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	}
 
 	claims := map[string]interface{}{
-		"jti":   jti.String(),
-		"iat":   now.Unix(),
-		"exp":   exp.Unix(),
-		"sub":   principalID,
-		"realm": realm,
+		"jti":       jti.String(),
+		"iat":       now.Unix(),
+		"exp":       exp.Unix(),
+		"sub":       principalID,
+		"tenant_id": tenantID.String(),
+		"realm_id":  realmID.String(),
 	}
 
 	claimsBytes, err := json.Marshal(claims)
@@ -800,8 +803,9 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 
 	session := cryptoutilRepository.Session{
 		ID:           jti,
+		TenantID:     tenantID,
+		RealmID:      realmID,
 		TokenHash:    &tokenHash,
-		Realm:        &realm,
 		Expiration:   exp,
 		CreatedAt:    now,
 		LastActivity: &now,
@@ -978,7 +982,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 }
 
 // issueJWESession issues a JWE session token (encrypted JWT).
-func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, principalID, realm string) (string, error) {
+func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, principalID string, tenantID, realmID googleUuid.UUID) (string, error) {
 	// Load JWK from database
 	var jwkID googleUuid.UUID
 	if isBrowser {
@@ -1038,11 +1042,12 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	jti := googleUuid.Must(googleUuid.NewV7())
 
 	claims := map[string]interface{}{
-		"jti":   jti.String(),
-		"iat":   now.Unix(),
-		"exp":   exp.Unix(),
-		"sub":   principalID,
-		"realm": realm,
+		"jti":       jti.String(),
+		"iat":       now.Unix(),
+		"exp":       exp.Unix(),
+		"sub":       principalID,
+		"tenant_id": tenantID.String(),
+		"realm_id":  realmID.String(),
 	}
 
 	claimsBytes, marshalErr := json.Marshal(claims)
@@ -1065,8 +1070,9 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	// Store session metadata in database
 	session := cryptoutilRepository.Session{
 		ID:           jti,
+		TenantID:     tenantID,
+		RealmID:      realmID,
 		TokenHash:    &tokenHash,
-		Realm:        &realm,
 		Expiration:   exp,
 		CreatedAt:    now,
 		LastActivity: &now,

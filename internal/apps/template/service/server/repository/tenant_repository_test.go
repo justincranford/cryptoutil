@@ -178,9 +178,9 @@ func TestTenantRepository_GetByName(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name      string
+		name       string
 		tenantName string
-		wantError bool
+		wantError  bool
 	}{
 		{
 			name:       "happy path - existing tenant",
@@ -239,10 +239,10 @@ func TestTenantRepository_List(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name       string
-		activeOnly bool
-		minCount   int
-		hasActive  bool
+		name        string
+		activeOnly  bool
+		minCount    int
+		hasActive   bool
 		hasInactive bool
 	}{
 		{
@@ -276,7 +276,7 @@ func TestTenantRepository_List(t *testing.T) {
 				if tenant.ID == inactiveTenant.ID {
 					foundInactive = true
 				}
-				
+
 				if tt.activeOnly {
 					require.True(t, tenant.Active)
 				}
@@ -330,10 +330,10 @@ func TestTenantRepository_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name        string
-		setupFunc   func(tenantID googleUuid.UUID)
-		wantError   bool
-		errorMsg    string
+		name      string
+		setupFunc func(tenantID googleUuid.UUID)
+		wantError bool
+		errorMsg  string
 	}{
 		{
 			name: "happy path - tenant without users or clients",
