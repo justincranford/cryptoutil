@@ -1,0 +1,501 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package repository
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+)
+
+// uniqueRoleTenantName returns a unique tenant name for tests.
+func uniqueRoleTenantName(base string) string {
+	return base + " " + googleUuid.New().String()[:8]
+}
+
+func TestRoleRepository_Create(t *testing.T) {
+	db := setupTestDB(t)
+	tenantRepo := NewTenantRepository(db)
+	roleRepo := NewRoleRepository(db)
+	ctx := context.Background()
+
+	tenant := &Tenant{
+		ID:          googleUuid.New(),
+		Name:        uniqueRoleTenantName("Test"),
+		Description: "Test tenant",
+		Active:      true,
+		CreatedAt:   time.Now(),
+	}
+
+	err := tenantRepo.Create(ctx, tenant)
+	require.NoError(t, err)
+
+	// Create first role for duplicate test.
+	firstRole := &Role{
+		ID:          googleUuid.New(),
+		TenantID:    tenant.ID,
+		Name:        "admin",
+		Description: "Administrator role",
+		CreatedAt:   time.Now(),
+	}
+	err = roleRepo.Create(ctx, firstRole)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		role      *Role
+		wantError bool
+	}{
+		{
+			name: "happy path - valid role",
+			role: &Role{
+				ID:          googleUuid.New(),
+				TenantID:    tenant.ID,
+				Name:        "user",
+				Description: "User role",
+				CreatedAt:   time.Now(),
+			},
+			wantError: false,
+		},
+		{
+			name: "duplicate role name for tenant",
+			role: &Role{
+				ID:          googleUuid.New(),
+				TenantID:    tenant.ID,
+				Name:        "admin",
+				Description: "Duplicate admin role",
+				CreatedAt:   time.Now(),
+			},
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := roleRepo.Create(ctx, tt.role)
+
+			if tt.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestRoleRepository_GetByName(t *testing.T) {
+	db := setupTestDB(t)
+	tenantRepo := NewTenantRepository(db)
+	roleRepo := NewRoleRepository(db)
+	ctx := context.Background()
+
+	tenant := &Tenant{
+		ID:          googleUuid.New(),
+		Name:        uniqueRoleTenantName("Test"),
+		Description: "Test tenant",
+		Active:      true,
+		CreatedAt:   time.Now(),
+	}
+
+	err := tenantRepo.Create(ctx, tenant)
+	require.NoError(t, err)
+
+	role := &Role{
+		ID:          googleUuid.New(),
+		TenantID:    tenant.ID,
+		Name:        "admin",
+		Description: "Administrator role",
+		CreatedAt:   time.Now(),
+	}
+
+	err = roleRepo.Create(ctx, role)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		tenantID  googleUuid.UUID
+		roleName  string
+		wantError bool
+	}{
+		{
+			name:      "happy path - existing role",
+			tenantID:  tenant.ID,
+			roleName:  "admin",
+			wantError: false,
+		},
+		{
+			name:      "not found - wrong tenant",
+			tenantID:  googleUuid.New(),
+			roleName:  "admin",
+			wantError: true,
+		},
+		{
+			name:      "not found - wrong role name",
+			tenantID:  tenant.ID,
+			roleName:  "nonexistent",
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := roleRepo.GetByName(ctx, tt.tenantID, tt.roleName)
+
+			if tt.wantError {
+				require.Error(t, err)
+				require.Nil(t, result)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				require.Equal(t, role.ID, result.ID)
+				require.Equal(t, role.Name, result.Name)
+			}
+		})
+	}
+}
+
+func TestUserRoleRepository_Assign(t *testing.T) {
+	db := setupTestDB(t)
+	tenantRepo := NewTenantRepository(db)
+	userRepo := NewUserRepository(db)
+	roleRepo := NewRoleRepository(db)
+	userRoleRepo := NewUserRoleRepository(db)
+	ctx := context.Background()
+
+	tenant := &Tenant{
+		ID:          googleUuid.New(),
+		Name:        uniqueRoleTenantName("Test"),
+		Description: "Test tenant",
+		Active:      true,
+		CreatedAt:   time.Now(),
+	}
+
+	err := tenantRepo.Create(ctx, tenant)
+	require.NoError(t, err)
+
+	user := &User{
+		ID:        googleUuid.New(),
+		TenantID:  tenant.ID,
+		Username:  "testuser2-" + googleUuid.New().String()[:8],
+			Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
+		Active:    true,
+		CreatedAt: time.Now(),
+	}
+
+	err = userRepo.Create(ctx, user)
+	require.NoError(t, err)
+
+	role := &Role{
+		ID:          googleUuid.New(),
+		TenantID:    tenant.ID,
+		Name:        "admin",
+		Description: "Administrator role",
+		CreatedAt:   time.Now(),
+	}
+
+	err = roleRepo.Create(ctx, role)
+	require.NoError(t, err)
+
+	userRole := &UserRole{
+		UserID:    user.ID,
+		RoleID:    role.ID,
+		TenantID:  tenant.ID,
+		CreatedAt: time.Now(),
+	}
+
+	err = userRoleRepo.Assign(ctx, userRole)
+	require.NoError(t, err)
+
+	roles, err := userRoleRepo.ListRolesByUser(ctx, user.ID)
+	require.NoError(t, err)
+	require.Len(t, roles, 1)
+	require.Equal(t, role.ID, roles[0].ID)
+}
+
+func TestUserRoleRepository_Revoke(t *testing.T) {
+	db := setupTestDB(t)
+	tenantRepo := NewTenantRepository(db)
+	userRepo := NewUserRepository(db)
+	roleRepo := NewRoleRepository(db)
+	userRoleRepo := NewUserRoleRepository(db)
+	ctx := context.Background()
+
+	tenant := &Tenant{
+		ID:          googleUuid.New(),
+		Name:        uniqueRoleTenantName("Test"),
+		Description: "Test tenant",
+		Active:      true,
+		CreatedAt:   time.Now(),
+	}
+
+	err := tenantRepo.Create(ctx, tenant)
+	require.NoError(t, err)
+
+	user := &User{
+		ID:        googleUuid.New(),
+		TenantID:  tenant.ID,
+		Username:  "testuser",
+		Email:     "test@example.com",
+		Active:    true,
+		CreatedAt: time.Now(),
+	}
+
+	err = userRepo.Create(ctx, user)
+	require.NoError(t, err)
+
+	role := &Role{
+		ID:          googleUuid.New(),
+		TenantID:    tenant.ID,
+		Name:        "admin",
+		Description: "Administrator role",
+		CreatedAt:   time.Now(),
+	}
+
+	err = roleRepo.Create(ctx, role)
+	require.NoError(t, err)
+
+	userRole := &UserRole{
+		UserID:    user.ID,
+		RoleID:    role.ID,
+		TenantID:  tenant.ID,
+		CreatedAt: time.Now(),
+	}
+
+	err = userRoleRepo.Assign(ctx, userRole)
+	require.NoError(t, err)
+
+	err = userRoleRepo.Revoke(ctx, user.ID, role.ID)
+	require.NoError(t, err)
+
+	roles, err := userRoleRepo.ListRolesByUser(ctx, user.ID)
+	require.NoError(t, err)
+	require.Len(t, roles, 0)
+}
+
+func TestClientRoleRepository_Assign(t *testing.T) {
+	db := setupTestDB(t)
+	tenantRepo := NewTenantRepository(db)
+	clientRepo := NewClientRepository(db)
+	roleRepo := NewRoleRepository(db)
+	clientRoleRepo := NewClientRoleRepository(db)
+	ctx := context.Background()
+
+	tenant := &Tenant{
+		ID:          googleUuid.New(),
+		Name:        uniqueRoleTenantName("Test"),
+		Description: "Test tenant",
+		Active:      true,
+		CreatedAt:   time.Now(),
+	}
+
+	err := tenantRepo.Create(ctx, tenant)
+	require.NoError(t, err)
+
+	client := &Client{
+		ID:        googleUuid.New(),
+		TenantID:  tenant.ID,
+		ClientID:  "client-" + googleUuid.New().String()[:8],
+		Active:    true,
+		CreatedAt: time.Now(),
+	}
+
+	err = clientRepo.Create(ctx, client)
+	require.NoError(t, err)
+
+	role := &Role{
+		ID:          googleUuid.New(),
+		TenantID:    tenant.ID,
+		Name:        "service",
+		Description: "Service role",
+		CreatedAt:   time.Now(),
+	}
+
+	err = roleRepo.Create(ctx, role)
+	require.NoError(t, err)
+
+	clientRole := &ClientRole{
+		ClientID:  client.ID,
+		RoleID:    role.ID,
+		TenantID:  tenant.ID,
+		CreatedAt: time.Now(),
+	}
+
+	err = clientRoleRepo.Assign(ctx, clientRole)
+	require.NoError(t, err)
+
+	roles, err := clientRoleRepo.ListRolesByClient(ctx, client.ID)
+	require.NoError(t, err)
+	require.Len(t, roles, 1)
+	require.Equal(t, role.ID, roles[0].ID)
+}
+
+func TestTenantRealmRepository_Create(t *testing.T) {
+	db := setupTestDB(t)
+	tenantRepo := NewTenantRepository(db)
+	realmRepo := NewTenantRealmRepository(db)
+	ctx := context.Background()
+
+	tenant := &Tenant{
+		ID:          googleUuid.New(),
+		Name:        uniqueRoleTenantName("Test"),
+		Description: "Test tenant",
+		Active:      true,
+		CreatedAt:   time.Now(),
+	}
+
+	err := tenantRepo.Create(ctx, tenant)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		realm     *TenantRealm
+		wantError bool
+	}{
+		{
+			name: "happy path - DB realm",
+			realm: &TenantRealm{
+				ID:        googleUuid.New(),
+				TenantID:  tenant.ID,
+				RealmID:   googleUuid.New(),
+				Type:      "DB",
+				Active:    true,
+				CreatedAt: time.Now(),
+			},
+			wantError: false,
+		},
+		{
+			name: "duplicate realm ID for tenant",
+			realm: func() *TenantRealm {
+				existingRealm := &TenantRealm{
+					ID:        googleUuid.New(),
+					TenantID:  tenant.ID,
+					RealmID:   googleUuid.New(),
+					Type:      "DB",
+					Active:    true,
+					CreatedAt: time.Now(),
+				}
+				err := realmRepo.Create(ctx, existingRealm)
+				require.NoError(t, err)
+
+				return &TenantRealm{
+					ID:        googleUuid.New(),
+					TenantID:  tenant.ID,
+					RealmID:   existingRealm.RealmID,
+					Type:      "DB",
+					Active:    true,
+					CreatedAt: time.Now(),
+				}
+			}(),
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := realmRepo.Create(ctx, tt.realm)
+
+			if tt.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestTenantRealmRepository_ListByTenant(t *testing.T) {
+	db := setupTestDB(t)
+	tenantRepo := NewTenantRepository(db)
+	realmRepo := NewTenantRealmRepository(db)
+	ctx := context.Background()
+
+	tenant := &Tenant{
+		ID:          googleUuid.New(),
+		Name:        uniqueRoleTenantName("Test"),
+		Description: "Test tenant",
+		Active:      true,
+		CreatedAt:   time.Now(),
+	}
+
+	err := tenantRepo.Create(ctx, tenant)
+	require.NoError(t, err)
+
+	activeRealm := &TenantRealm{
+		ID:        googleUuid.New(),
+		TenantID:  tenant.ID,
+		RealmID:   googleUuid.New(),
+		Type:      "DB",
+		Active:    true,
+		CreatedAt: time.Now(),
+	}
+
+	inactiveRealm := &TenantRealm{
+		ID:        googleUuid.New(),
+		TenantID:  tenant.ID,
+		RealmID:   googleUuid.New(),
+		Type:      "FILE",
+		Active:    false,
+		CreatedAt: time.Now(),
+	}
+
+	err = realmRepo.Create(ctx, activeRealm)
+	require.NoError(t, err)
+
+	err = realmRepo.Create(ctx, inactiveRealm)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name       string
+		activeOnly bool
+		minCount   int
+	}{
+		{
+			name:       "all realms",
+			activeOnly: false,
+			minCount:   2,
+		},
+		{
+			name:       "active realms only",
+			activeOnly: true,
+			minCount:   1,
+		},
+	}
+
+	var foundActive, foundInactive bool
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := realmRepo.ListByTenant(ctx, tenant.ID, tt.activeOnly)
+
+			require.NoError(t, err)
+			require.GreaterOrEqual(t, len(result), tt.minCount)
+
+			if tt.activeOnly {
+				for _, realm := range result {
+					require.True(t, realm.Active)
+					if realm.ID == activeRealm.ID {
+						foundActive = true
+					}
+				}
+			} else {
+				for _, realm := range result {
+					if realm.ID == activeRealm.ID {
+						foundActive = true
+					}
+					if realm.ID == inactiveRealm.ID {
+						foundInactive = true
+					}
+				}
+			}
+		})
+	}
+
+	require.True(t, foundActive, "Active realm should be found")
+	require.True(t, foundInactive, "Inactive realm should be found in all realms list")
+}
+

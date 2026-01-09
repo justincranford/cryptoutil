@@ -7,6 +7,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	googleUuid "github.com/google/uuid"
@@ -105,10 +106,9 @@ func (r *TenantRepositoryImpl) Delete(ctx context.Context, id googleUuid.UUID) e
 	}
 
 	if users > 0 || clients > 0 {
-		return cryptoutilAppErr.NewConflictError(
-			fmt.Sprintf("cannot delete tenant: has %d users and %d clients", users, clients),
-			nil,
-		)
+		summary := fmt.Sprintf("cannot delete tenant: has %d users and %d clients", users, clients)
+
+		return cryptoutilAppErr.NewHTTP409Conflict(&summary, nil)
 	}
 
 	if err := r.db.WithContext(ctx).Delete(&Tenant{}, "id = ?", id).Error; err != nil {
@@ -138,12 +138,26 @@ func toAppErr(err error) error {
 	}
 
 	if err == gorm.ErrRecordNotFound {
-		return cryptoutilAppErr.NewNotFoundError("record not found", err)
+		summary := "record not found"
+
+		return cryptoutilAppErr.NewHTTP404NotFound(&summary, err)
 	}
 
 	if err == gorm.ErrDuplicatedKey {
-		return cryptoutilAppErr.NewConflictError("duplicate key violation", err)
+		summary := "duplicate key violation"
+
+		return cryptoutilAppErr.NewHTTP409Conflict(&summary, err)
 	}
 
-	return cryptoutilAppErr.NewInternalError("database error", err)
+	// Check for SQLite UNIQUE constraint violations (error code 2067 or message contains "UNIQUE constraint")
+	errMsg := err.Error()
+	if strings.Contains(errMsg, "UNIQUE constraint") || strings.Contains(errMsg, "(2067)") {
+		summary := "duplicate key violation"
+
+		return cryptoutilAppErr.NewHTTP409Conflict(&summary, err)
+	}
+
+	summary := "database error"
+
+	return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, err)
 }
