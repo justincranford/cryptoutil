@@ -135,6 +135,11 @@ func DefaultTestConfig() *CipherImServerSettings {
 			TLSPrivateMode:  cryptoutilConfig.TLSModeAuto, // Auto-generate TLS for tests.
 			OTLPService:     "cipher-im",
 			OTLPEnabled:     false,
+			// Session configuration - MUST match cipher-im config.yml defaults.
+			BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
+			BrowserSessionJWSAlgorithm: "HS256", // Faster than RS256 for testing.
+			ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
+			ServiceSessionJWSAlgorithm: "HS256", // Faster than RS256 for testing.
 		},
 		MessageJWEAlgorithm: defaultMessageJWEAlgorithm,
 		MessageMinLength:    defaultMessageMinLength,

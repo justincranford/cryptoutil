@@ -68,8 +68,11 @@ type BarrierTransaction interface {
 // Root keys are encrypted by the unseal key (HSM/KMS/Shamir).
 type BarrierRootKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
-	Encrypted string          `gorm:"type:text;not null"` // JWE-encrypted root key
-	KEKUUID   googleUuid.UUID `gorm:"type:text"`          // KEK UUID (nil for root keys)
+	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted root key
+	KEKUUID   googleUuid.UUID `gorm:"type:text"`                              // KEK UUID (nil for root keys)
+	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
+	// TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
 }
 
 // TableName specifies the database table name for barrier root keys.
@@ -81,8 +84,11 @@ func (BarrierRootKey) TableName() string {
 // Intermediate keys are encrypted by root keys.
 type BarrierIntermediateKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
-	Encrypted string          `gorm:"type:text;not null"` // JWE-encrypted intermediate key
-	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"` // Parent root key UUID
+	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted intermediate key
+	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent root key UUID
+	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
+	// TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
 }
 
 // TableName specifies the database table name for barrier intermediate keys.
@@ -94,8 +100,11 @@ func (BarrierIntermediateKey) TableName() string {
 // Content keys are encrypted by intermediate keys and used for actual data encryption.
 type BarrierContentKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
-	Encrypted string          `gorm:"type:text;not null"` // JWE-encrypted content key
-	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"` // Parent intermediate key UUID
+	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted content key
+	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent intermediate key UUID
+	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
+	// TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
 }
 
 // TableName specifies the database table name for barrier content keys.

@@ -6,6 +6,7 @@ package barrier
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -27,6 +28,7 @@ type RotateRootKeyResponse struct {
 	OldKeyUUID string `json:"old_key_uuid"`
 	NewKeyUUID string `json:"new_key_uuid"`
 	Reason     string `json:"reason"`
+	RotatedAt  int64  `json:"rotated_at"` // Unix epoch milliseconds
 }
 
 // RotateIntermediateKeyResponse is the response for intermediate key rotation.
@@ -34,12 +36,14 @@ type RotateIntermediateKeyResponse struct {
 	OldKeyUUID string `json:"old_key_uuid"`
 	NewKeyUUID string `json:"new_key_uuid"`
 	Reason     string `json:"reason"`
+	RotatedAt  int64  `json:"rotated_at"` // Unix epoch milliseconds
 }
 
 // RotateContentKeyResponse is the response for content key rotation.
 type RotateContentKeyResponse struct {
 	NewKeyUUID string `json:"new_key_uuid"`
 	Reason     string `json:"reason"`
+	RotatedAt  int64  `json:"rotated_at"` // Unix epoch milliseconds
 }
 
 // HandleRotateRootKey handles POST /admin/v1/barrier/rotate/root requests.
@@ -80,6 +84,7 @@ func HandleRotateRootKey(rotationService *RotationService) fiber.Handler {
 			OldKeyUUID: result.OldKeyUUID.String(),
 			NewKeyUUID: result.NewKeyUUID.String(),
 			Reason:     result.Reason,
+			RotatedAt:  time.Now().UnixMilli(),
 		})
 	}
 }
@@ -122,6 +127,7 @@ func HandleRotateIntermediateKey(rotationService *RotationService) fiber.Handler
 			OldKeyUUID: result.OldKeyUUID.String(),
 			NewKeyUUID: result.NewKeyUUID.String(),
 			Reason:     result.Reason,
+			RotatedAt:  time.Now().UnixMilli(),
 		})
 	}
 }
@@ -163,6 +169,7 @@ func HandleRotateContentKey(rotationService *RotationService) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(&RotateContentKeyResponse{
 			NewKeyUUID: result.NewKeyUUID.String(),
 			Reason:     result.Reason,
+			RotatedAt:  time.Now().UnixMilli(),
 		})
 	}
 }
