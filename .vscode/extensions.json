@@ -48,7 +48,7 @@
     "gruntfuggly.todo-tree",                             // TODO/FIXME tree
 
     // Shell & Terminal
-    "ms-vscode.powershell",                              // PowerShell language support
+    // "ms-vscode.powershell",                           // PowerShell language support (Windows only)
 
     // Data & Utilities
     "mechatroner.rainbow-csv",                           // CSV highlighting

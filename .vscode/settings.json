@@ -518,5 +518,7 @@
       "parameterNames": true, // Show parameter names - Default: false, Recommended: true
       "rangeVariableTypes": true // Show range variable types - Default: false, Recommended: true
     } // Configure inlay hints - Default: {}, Recommended: all enabled
-  } // gopls language server configuration - Default: {}, Recommended: configured settings
+  },
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "python-envs.pythonProjects": [] // gopls language server configuration - Default: {}, Recommended: configured settings
 }
