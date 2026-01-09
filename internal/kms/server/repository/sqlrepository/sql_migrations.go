@@ -15,7 +15,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
@@ -48,7 +48,7 @@ func ApplyEmbeddedSQLMigrationsForService(telemetryService *cryptoutilTelemetry.
 			return fmt.Errorf("failed to create iofs source driver for SQLite migration: %w", err)
 		}
 
-		databaseDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+		databaseDriver, err = sqlite.WithInstance(db, &sqlite.Config{})
 		if err != nil {
 			return fmt.Errorf("failed to create sqlite driver: %w", err)
 		}

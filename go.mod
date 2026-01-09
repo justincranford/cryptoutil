@@ -17,6 +17,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/leanovate/gopter v0.2.11
 	github.com/lestrrat-go/jwx/v3 v3.0.12
+	github.com/lib/pq v1.10.9
 	github.com/oapi-codegen/fiber-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/pquerna/otp v1.5.0
@@ -115,7 +116,6 @@ require (
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc/v3 v3.0.2 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3 // indirect
 	github.com/magiconair/properties v1.8.10 // indirect
 	github.com/mailru/easyjson v0.9.1 // indirect

@@ -14,7 +14,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
@@ -106,7 +106,7 @@ func Migrate(db *sql.DB, dbType string) error {
 	var m *migrate.Migrate
 
 	if dbType == dbTypeSQLite {
-		sqliteDriver, err := sqlite3.WithInstance(db, &sqlite3.Config{
+		sqliteDriver, err := sqlite.WithInstance(db, &sqlite.Config{
 			MigrationsTable: "schema_migrations",
 		})
 		if err != nil {

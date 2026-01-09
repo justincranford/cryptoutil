@@ -53,8 +53,10 @@ func Lint(logger *cryptoutilCmdCicdCommon.Logger) error {
 }
 
 const (
-	bannedCGOModule   = "github.com/mattn/go-sqlite3"
-	requiredCGOModule = "modernc.org/sqlite"
+	bannedCGOModule          = "github.com/mattn/go-sqlite3"
+	bannedCGOMigrateModule   = "github.com/golang-migrate/migrate/v4/database/sqlite3"
+	requiredCGOModule        = "modernc.org/sqlite"
+	requiredCGOMigrateModule = "github.com/golang-migrate/migrate/v4/database/sqlite"
 )
 
 // checkCGOFreeSQLite verifies the project uses CGO-free SQLite (modernc.org/sqlite).
@@ -111,6 +113,10 @@ func checkGoModForCGO(path string) ([]string, error) {
 		// Indirect dependencies are acceptable since we're not importing them.
 		if strings.Contains(line, bannedCGOModule) && !strings.Contains(line, "// indirect") {
 			violations = append(violations, fmt.Sprintf("go.mod:%d: banned CGO module '%s' (direct dependency)", lineNum, bannedCGOModule))
+		}
+
+		if strings.Contains(line, bannedCGOMigrateModule) && !strings.Contains(line, "// indirect") {
+			violations = append(violations, fmt.Sprintf("go.mod:%d: banned CGO migrate module '%s' (direct dependency)", lineNum, bannedCGOMigrateModule))
 		}
 	}
 
@@ -203,6 +209,11 @@ func checkGoFileForCGO(path string) ([]string, error) {
 			strings.Contains(line, `"github.com/mattn/go-sqlite3"`) {
 			violations = append(violations, fmt.Sprintf("%s:%d: banned CGO import detected", path, lineNum))
 		}
+
+		if (strings.Contains(line, "import") || strings.HasPrefix(line, "_")) &&
+			strings.Contains(line, `"github.com/golang-migrate/migrate/v4/database/sqlite3"`) {
+			violations = append(violations, fmt.Sprintf("%s:%d: banned CGO migrate import detected", path, lineNum))
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -245,6 +256,8 @@ func printCGOViolations(goModViolations, importViolations []string, hasRequired 
 
 	fmt.Fprintln(os.Stderr, "Fix:")
 	fmt.Fprintf(os.Stderr, "  1. Remove %s from go.mod and code\n", bannedCGOModule)
-	fmt.Fprintf(os.Stderr, "  2. Use %s (CGO-free) instead\n", requiredCGOModule)
-	fmt.Fprintln(os.Stderr, "  3. Run: go mod tidy")
+	fmt.Fprintf(os.Stderr, "  2. Remove %s from go.mod and code\n", bannedCGOMigrateModule)
+	fmt.Fprintf(os.Stderr, "  3. Use %s (CGO-free) instead\n", requiredCGOModule)
+	fmt.Fprintf(os.Stderr, "  4. Use %s (CGO-free) instead\n", requiredCGOMigrateModule)
+	fmt.Fprintln(os.Stderr, "  5. Run: go mod tidy")
 }

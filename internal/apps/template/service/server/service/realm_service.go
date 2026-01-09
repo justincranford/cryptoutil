@@ -74,14 +74,14 @@ func (c *UsernamePasswordConfig) Validate() error {
 
 // LDAPConfig configures an LDAP realm.
 type LDAPConfig struct {
-	URL            string `json:"url"`
-	BindDN         string `json:"bind_dn"`
-	BindPassword   string `json:"bind_password"`
-	BaseDN         string `json:"base_dn"`
-	UserFilter     string `json:"user_filter"`
-	GroupFilter    string `json:"group_filter"`
-	UseTLS         bool   `json:"use_tls"`
-	SkipTLSVerify  bool   `json:"skip_tls_verify"`
+	URL           string `json:"url"`
+	BindDN        string `json:"bind_dn"`
+	BindPassword  string `json:"bind_password"`
+	BaseDN        string `json:"base_dn"`
+	UserFilter    string `json:"user_filter"`
+	GroupFilter   string `json:"group_filter"`
+	UseTLS        bool   `json:"use_tls"`
+	SkipTLSVerify bool   `json:"skip_tls_verify"`
 }
 
 // GetType returns RealmTypeLDAP.
@@ -102,15 +102,15 @@ func (c *LDAPConfig) Validate() error {
 
 // OAuth2Config configures an OAuth2/OIDC realm.
 type OAuth2Config struct {
-	ProviderURL    string   `json:"provider_url"`
-	ClientID       string   `json:"client_id"`
-	ClientSecret   string   `json:"client_secret"`
-	Scopes         []string `json:"scopes"`
-	RedirectURI    string   `json:"redirect_uri"`
-	UseDiscovery   bool     `json:"use_discovery"`
-	AuthorizeURL   string   `json:"authorize_url"`
-	TokenURL       string   `json:"token_url"`
-	UserInfoURL    string   `json:"userinfo_url"`
+	ProviderURL  string   `json:"provider_url"`
+	ClientID     string   `json:"client_id"`
+	ClientSecret string   `json:"client_secret"`
+	Scopes       []string `json:"scopes"`
+	RedirectURI  string   `json:"redirect_uri"`
+	UseDiscovery bool     `json:"use_discovery"`
+	AuthorizeURL string   `json:"authorize_url"`
+	TokenURL     string   `json:"token_url"`
+	UserInfoURL  string   `json:"userinfo_url"`
 }
 
 // GetType returns RealmTypeOAuth2.

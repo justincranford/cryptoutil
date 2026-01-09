@@ -16,17 +16,15 @@ import (
 )
 
 func Execute() {
-	i := 0
-
-	executable := os.Args[i++] // Example executable: ./cryptoutil
+	executable := os.Args[0] // Example executable: ./cryptoutil
 	if len(os.Args) < 2 {
 		printUsage(executable)
 		os.Exit(1)
 	}
 
-	// TODO product := os.Args[i++] // Example products: sm, identity, jose, pki, cipher
-	service := os.Args[i++]     // Example services: kms, ca, ja, im, authz, idp, rs, rp, spa
-	parameters := os.Args[i++:] // Example parameters: --config-file, --port, --host, etc.
+	// TODO product := os.Args[1] // Example products: sm, identity, jose, pki, cipher
+	service := os.Args[1]     // Example services: kms, ca, ja, im, authz, idp, rs, rp, spa
+	parameters := os.Args[2:] // Example parameters: --config-file, --port, --host, etc.
 
 	// TODO fix the switch values to use product values, and call corresponding PRODUCT.go
 	// current implementation is a mismatch of product and service names to be fixed later
