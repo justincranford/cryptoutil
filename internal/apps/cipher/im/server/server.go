@@ -19,6 +19,7 @@ import (
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -164,6 +165,27 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		core.Shutdown()
 
 		return nil, fmt.Errorf("failed to migrate barrier tables: %w", err)
+	}
+
+	// Drop stale session JWK tables completely before AutoMigrate creates clean schema.
+	// PostgreSQL strict typing rejects boolean for int4 columns (active column).
+	// SQLite type affinity masks this issue. Drop tables to ensure clean schema.
+	if err := core.DB.Migrator().DropTable(
+		&cryptoutilTemplateRepository.BrowserSessionJWK{},
+		&cryptoutilTemplateRepository.ServiceSessionJWK{},
+	); err != nil {
+		// Ignore error if tables don't exist (first run).
+		core.Basic.TelemetryService.Slogger.Info("dropping session JWK tables (if exist)", "error", err)
+	}
+
+	// Now AutoMigrate session JWK tables with clean schema.
+	if err := core.DB.AutoMigrate(
+		&cryptoutilTemplateRepository.BrowserSessionJWK{},
+		&cryptoutilTemplateRepository.ServiceSessionJWK{},
+	); err != nil {
+		core.Shutdown()
+
+		return nil, fmt.Errorf("failed to migrate session JWK tables: %w", err)
 	}
 
 	// Create barrier service with GORM repository.

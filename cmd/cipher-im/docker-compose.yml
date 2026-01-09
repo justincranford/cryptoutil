@@ -177,9 +177,17 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
       OTEL_SERVICE_NAME: "cipher-im-pg-1"
       OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-1"
+      # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
+      CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
+      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
+      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "RS256"
     command:
       - "server"
       - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
+      - "--config=/etc/cipher-im/config.yml"
+    volumes:
+      - ../../configs/cipher/im/config.yml:/etc/cipher-im/config.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -227,9 +235,17 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
       OTEL_SERVICE_NAME: "cipher-im-pg-2"
       OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-2"
+      # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
+      CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
+      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "RS256"
+      CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
+      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "RS256"
     command:
       - "server"
       - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
+      - "--config=/etc/cipher-im/config.yml"
+    volumes:
+      - ../../configs/cipher/im/config.yml:/etc/cipher-im/config.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
