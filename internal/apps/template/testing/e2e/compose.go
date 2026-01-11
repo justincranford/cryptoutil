@@ -48,9 +48,9 @@ func (cm *ComposeManager) Stop(ctx context.Context) error {
 	return downCmd.Run()
 }
 
-// WaitForHealth polls /admin/v1/livez until healthy or timeout.
-func (cm *ComposeManager) WaitForHealth(adminURL string, timeout time.Duration) error {
-	healthURL := adminURL + "/admin/v1/livez"
+// WaitForHealth polls an health endpoint until healthy or timeout.
+// Supports both admin endpoints (/admin/v1/livez) and public endpoints (/health).
+func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration) error {
 	timeoutCh := time.After(timeout)
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
@@ -70,4 +70,33 @@ func (cm *ComposeManager) WaitForHealth(adminURL string, timeout time.Duration) 
 			}
 		}
 	}
+}
+
+// WaitForMultipleServices waits for multiple services to be healthy concurrently.
+// Returns error if any service fails health check within timeout.
+func (cm *ComposeManager) WaitForMultipleServices(services map[string]string, timeout time.Duration) error {
+	type result struct {
+		name string
+		err  error
+	}
+
+	resultsCh := make(chan result, len(services))
+
+	// Start health checks for all services concurrently.
+	for name, healthURL := range services {
+		go func(serviceName, url string) {
+			err := cm.WaitForHealth(url, timeout)
+			resultsCh <- result{name: serviceName, err: err}
+		}(name, healthURL)
+	}
+
+	// Collect results.
+	for i := 0; i < len(services); i++ {
+		res := <-resultsCh
+		if res.err != nil {
+			return fmt.Errorf("service %s health check failed: %w", res.name, res.err)
+		}
+	}
+
+	return nil
 }

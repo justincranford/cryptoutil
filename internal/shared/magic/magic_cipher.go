@@ -121,3 +121,59 @@ const (
 	// CipherEnterpriseMessageRateLimit is the enterprise realm messages sent per minute.
 	CipherEnterpriseMessageRateLimit = 5
 )
+
+// E2E Test Configuration.
+const (
+	// CipherE2EComposeFile is the path to the cipher-im docker compose file (relative from e2e test directory).
+	// Path: internal/apps/cipher/im/e2e → ../../../../../cmd/cipher-im/docker-compose.yml
+	// Levels: e2e→im(1)→cipher(2)→apps(3)→internal(4)→cryptoutil(5), then cmd/cipher-im
+	CipherE2EComposeFile = "../../../../../cmd/cipher-im/docker-compose.yml"
+
+	// CipherE2ESQLiteContainer is the SQLite instance container name.
+	CipherE2ESQLiteContainer = "cipher-im-sqlite"
+
+	// CipherE2EPostgreSQL1Container is the PostgreSQL instance 1 container name.
+	CipherE2EPostgreSQL1Container = "cipher-im-pg-1"
+
+	// CipherE2EPostgreSQL2Container is the PostgreSQL instance 2 container name.
+	CipherE2EPostgreSQL2Container = "cipher-im-pg-2"
+
+	// CipherE2EOtelCollectorContainer is the OpenTelemetry Collector container name.
+	CipherE2EOtelCollectorContainer = "cipher-im-otel-collector"
+
+	// CipherE2EGrafanaContainer is the Grafana LGTM container name.
+	CipherE2EGrafanaContainer = "cipher-im-grafana"
+
+	// CipherE2EHealthTimeout is the timeout for health checks during E2E tests.
+	CipherE2EHealthTimeout = 60 * time.Second
+
+	// CipherE2EHealthPollInterval is the interval between health check attempts.
+	CipherE2EHealthPollInterval = 2 * time.Second
+
+	// CipherE2ESQLitePublicPort is the SQLite instance public HTTPS port.
+	CipherE2ESQLitePublicPort = 8888
+
+	// CipherE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port.
+	CipherE2EPostgreSQL1PublicPort = 8889
+
+	// CipherE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port.
+	CipherE2EPostgreSQL2PublicPort = 8890
+
+	// CipherE2EGrafanaPort is the Grafana UI port.
+	CipherE2EGrafanaPort = 3000
+
+	// CipherE2EOtelCollectorGRPCPort is the OTLP gRPC port.
+	CipherE2EOtelCollectorGRPCPort = 4317
+
+	// CipherE2EOtelCollectorHTTPPort is the OTLP HTTP port.
+	CipherE2EOtelCollectorHTTPPort = 4318
+
+	// CipherE2EHealthEndpoint is the public health check endpoint.
+	CipherE2EHealthEndpoint = "/health"
+
+	// CipherE2EAdminLivezEndpoint is the admin liveness check endpoint.
+	CipherE2EAdminLivezEndpoint = "/admin/v1/livez"
+
+	// CipherE2EAdminReadyzEndpoint is the admin readiness check endpoint.
+	CipherE2EAdminReadyzEndpoint = "/admin/v1/readyz"
+)

@@ -13,12 +13,16 @@
 #   docker compose down -v                  # Stop and remove volumes
 #
 # Services:
-#   - cipher-im-sqlite: https://localhost:8888 (public), https://localhost:9090 (admin) - Standalone SQLite
-#   - cipher-im-pg-1: https://localhost:8889 (public), https://localhost:9091 (admin) - Shared PostgreSQL
-#   - cipher-im-pg-2: https://localhost:8890 (public), https://localhost:9092 (admin) - Shared PostgreSQL
+#   - cipher-im-sqlite: https://localhost:8888 (public) - Standalone SQLite
+#   - cipher-im-pg-1: https://localhost:8889 (public) - Shared PostgreSQL
+#   - cipher-im-pg-2: https://localhost:8890 (public) - Shared PostgreSQL
 #   - postgres: localhost:5432 (PostgreSQL 18.1)
 #   - otel-collector: (internal only, no host ports)
 #   - grafana: http://localhost:3000 (admin/admin)
+#
+# Health Checks:
+#   - Public health endpoint: https://localhost:8888/health (external clients)
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/v1/livez (internal container only)
 
 name: cipher-im
 
@@ -115,25 +119,14 @@ services:
     container_name: cipher-im-sqlite
     hostname: cipher-im-sqlite
     ports:
-      - "8888:8888"  # Public HTTPS API
-      - "9090:9090"  # Admin HTTPS API
-    environment:
-      # Using default SQLite in-memory database (no DATABASE_DSN needed)
-      # OpenTelemetry configuration
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
-      OTEL_SERVICE_NAME: "cipher-im-sqlite"
-      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=sqlite"
-      # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
-      CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "HS256"
-      CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "HS256"
+      - "8888:8888"  # Public HTTPS API ONLY - external access
+      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=file::memory:?cache=shared"
-      - "--config=/etc/cipher-im/config.yml"
+      - "--config=/etc/cipher-im/config-sqlite.yml"
     volumes:
-      - ../../configs/cipher/im/config.yml:/etc/cipher-im/config.yml:ro
+      - ../../configs/cipher/im/config-sqlite.yml:/etc/cipher-im/config-sqlite.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -168,26 +161,14 @@ services:
     container_name: cipher-im-pg-1
     hostname: cipher-im-pg-1
     ports:
-      - "8889:8888"  # Public HTTPS API (mapped to different host port)
-      - "9091:9090"  # Admin HTTPS API (mapped to different host port)
-    environment:
-      # PostgreSQL shared database
-      DATABASE_DSN: "postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
-      # OpenTelemetry configuration
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
-      OTEL_SERVICE_NAME: "cipher-im-pg-1"
-      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-1"
-      # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
-      CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "HS256"
-      CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "HS256"
+      - "8889:8888"  # Public HTTPS API ONLY - external access (mapped to different host port)
+      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
-      - "--config=/etc/cipher-im/config.yml"
+      - "--config=/etc/cipher-im/config-pg-1.yml"
     volumes:
-      - ../../configs/cipher/im/config.yml:/etc/cipher-im/config.yml:ro
+      - ../../configs/cipher/im/config-pg-1.yml:/etc/cipher-im/config-pg-1.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -226,26 +207,14 @@ services:
     container_name: cipher-im-pg-2
     hostname: cipher-im-pg-2
     ports:
-      - "8890:8888"  # Public HTTPS API (mapped to different host port)
-      - "9092:9090"  # Admin HTTPS API (mapped to different host port)
-    environment:
-      # PostgreSQL shared database (same as cipher-im-pg-1)
-      DATABASE_DSN: "postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
-      # OpenTelemetry configuration
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://cipher-im-otel-collector:4317"
-      OTEL_SERVICE_NAME: "cipher-im-pg-2"
-      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0.0,deployment.environment=development,instance=pg-2"
-      # Session configuration (Viper uses CRYPTOUTIL_ prefix with underscores replacing hyphens)
-      CRYPTOUTIL_SERVICE_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_SERVICE_SESSION_JWS_ALGORITHM: "HS256"
-      CRYPTOUTIL_BROWSER_SESSION_ALGORITHM: "JWS"
-      CRYPTOUTIL_BROWSER_SESSION_JWS_ALGORITHM: "HS256"
+      - "8890:8888"  # Public HTTPS API ONLY - external access (mapped to different host port)
+      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=postgres://cipher_user:cipher_pass@cipher-im-postgres:5432/cipher_im?sslmode=disable"
-      - "--config=/etc/cipher-im/config.yml"
+      - "--config=/etc/cipher-im/config-pg-2.yml"
     volumes:
-      - ../../configs/cipher/im/config.yml:/etc/cipher-im/config.yml:ro
+      - ../../configs/cipher/im/config-pg-2.yml:/etc/cipher-im/config-pg-2.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",

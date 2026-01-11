@@ -170,7 +170,6 @@ func TestIM_SubcommandLiveServer(t *testing.T) {
 		t.Run(tt.subcommand, func(t *testing.T) {
 			t.Parallel()
 
-
 			var stdout, stderr bytes.Buffer
 
 			exitCode := internalIM([]string{tt.subcommand, "--url", tt.url}, &stdout, &stderr)

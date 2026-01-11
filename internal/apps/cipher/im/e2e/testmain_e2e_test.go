@@ -10,32 +10,28 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	templateE2E "cryptoutil/internal/apps/template/testing/e2e"
 	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Shared test resources (initialized once per package).
 var (
-	sharedHTTPClient  *http.Client
-	composeManager    *templateE2E.ComposeManager
-	composeFile       = "deployments/compose/cipher-im/compose.yml"
+	sharedHTTPClient *http.Client
+	composeManager   *templateE2E.ComposeManager
 
-	// Three cipher-im instances with different backends.
-	sqliteInstance    = "cipher-im-sqlite"
-	postgres1Instance = "cipher-im-postgres-1"
-	postgres2Instance = "cipher-im-postgres-2"
+	// Three cipher-im instances with different backends (actual container names).
+	sqliteContainer    = cryptoutilMagic.CipherE2ESQLiteContainer       // "cipher-im-sqlite"
+	postgres1Container = cryptoutilMagic.CipherE2EPostgreSQL1Container  // "cipher-im-pg-1"
+	postgres2Container = cryptoutilMagic.CipherE2EPostgreSQL2Container  // "cipher-im-pg-2"
 
 	// Service URLs (mapped from container ports to host ports).
-	sqlitePublicURL     = "https://127.0.0.1:8080"
-	sqliteAdminURL      = "https://127.0.0.1:9090"
-	postgres1PublicURL  = "https://127.0.0.1:8081"
-	postgres1AdminURL   = "https://127.0.0.1:9091"
-	postgres2PublicURL  = "https://127.0.0.1:8082"
-	postgres2AdminURL   = "https://127.0.0.1:9092"
-	otelCollectorURL    = "http://127.0.0.1:4317"
-	grafanaURL          = "http://127.0.0.1:3000"
+	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8888"
+	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8889"
+	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8890"
+	otelCollectorURL   = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilMagic.CipherE2EOtelCollectorGRPCPort)  // "http://127.0.0.1:4317"
+	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilMagic.CipherE2EGrafanaPort)            // "http://127.0.0.1:3000"
 )
 
 // TestMain orchestrates docker compose lifecycle for E2E tests.
@@ -44,7 +40,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Initialize compose manager with reusable helper.
-	composeManager = templateE2E.NewComposeManager(composeFile)
+	composeManager = templateE2E.NewComposeManager(cryptoutilMagic.CipherE2EComposeFile)
 	sharedHTTPClient = cryptoutilTLS.NewClientForTest()
 
 	// Step 1: Start docker compose stack.
@@ -53,22 +49,16 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	// Step 2: Wait for all services to be healthy.
-	fmt.Println("Waiting for services to be healthy...")
-	healthTimeout := 60 * time.Second
+	// Step 2: Wait for all services to be healthy using public /health endpoint.
+	healthChecks := map[string]string{
+		sqliteContainer:    sqlitePublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
+		postgres1Container: postgres1PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
+		postgres2Container: postgres2PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
+	}
 
-	if err := composeManager.WaitForHealth(sqliteAdminURL, healthTimeout); err != nil {
-		fmt.Printf("SQLite instance health check failed: %v\n", err)
-		_ = composeManager.Stop(ctx)
-		os.Exit(1)
-	}
-	if err := composeManager.WaitForHealth(postgres1AdminURL, healthTimeout); err != nil {
-		fmt.Printf("PostgreSQL-1 instance health check failed: %v\n", err)
-		_ = composeManager.Stop(ctx)
-		os.Exit(1)
-	}
-	if err := composeManager.WaitForHealth(postgres2AdminURL, healthTimeout); err != nil {
-		fmt.Printf("PostgreSQL-2 instance health check failed: %v\n", err)
+	fmt.Println("Waiting for all cipher-im instances to be healthy...")
+	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilMagic.CipherE2EHealthTimeout); err != nil {
+		fmt.Printf("Service health checks failed: %v\n", err)
 		_ = composeManager.Stop(ctx)
 		os.Exit(1)
 	}

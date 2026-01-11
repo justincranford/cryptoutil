@@ -21,8 +21,6 @@ import (
 
 // TestInitDatabase_PostgreSQL tests PostgreSQL database initialization using test-containers.
 func TestInitDatabase_PostgreSQL(t *testing.T) {
-	t.Skip("Database models (users, messages) not yet implemented - tracked in cipher-im roadmap")
-
 	t.Parallel()
 
 	ctx := context.Background()
@@ -76,16 +74,14 @@ func TestInitDatabase_PostgreSQL(t *testing.T) {
 	var tableCount int
 
 	err = sqlDB.QueryRowContext(ctx,
-		"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('users', 'messages')",
+		"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('users', 'messages', 'messages_recipient_jwks')",
 	).Scan(&tableCount)
 	require.NoError(t, err)
-	require.Equal(t, 2, tableCount, "Expected 2 tables (users, messages) to be created")
+	require.Equal(t, 3, tableCount, "Expected 3 tables (users, messages, messages_recipient_jwks) to be created")
 }
 
 // TestInitDatabase_SQLite tests SQLite in-memory database initialization.
 func TestInitDatabase_SQLite(t *testing.T) {
-	t.Skip("Database models (users, messages) not yet implemented - tracked in cipher-im roadmap")
-
 	// Remove t.Parallel() - prevent cross-test pollution with shared in-memory SQLite.
 	ctx := context.Background()
 
@@ -112,16 +108,14 @@ func TestInitDatabase_SQLite(t *testing.T) {
 	var tableCount int
 
 	err = sqlDB.QueryRowContext(ctx,
-		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('users', 'messages')",
+		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('users', 'messages', 'messages_recipient_jwks')",
 	).Scan(&tableCount)
 	require.NoError(t, err)
-	require.Equal(t, 2, tableCount, "Expected 2 tables (users, messages) to be created")
+	require.Equal(t, 3, tableCount, "Expected 3 tables (users, messages, messages_recipient_jwks) to be created")
 }
 
 // TestInitDatabase_SQLiteFile tests SQLite file-based database initialization.
 func TestInitDatabase_SQLiteFile(t *testing.T) {
-	t.Skip("Database models (users, messages) not yet implemented - tracked in cipher-im roadmap")
-
 	// Remove t.Parallel() - SQLite file locking issues with concurrent tests.
 	ctx := context.Background()
 
@@ -151,10 +145,10 @@ func TestInitDatabase_SQLiteFile(t *testing.T) {
 	var tableCount int
 
 	err = sqlDB.QueryRowContext(ctx,
-		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('users', 'messages')",
+		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('users', 'messages', 'messages_recipient_jwks')",
 	).Scan(&tableCount)
 	require.NoError(t, err)
-	require.Equal(t, 2, tableCount, "Expected 2 tables (users, messages) to be created")
+	require.Equal(t, 3, tableCount, "Expected 3 tables (users, messages, messages_recipient_jwks) to be created")
 
 	// Close database before test cleanup (Windows file locking).
 	require.NoError(t, sqlDB.Close())

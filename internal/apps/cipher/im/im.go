@@ -25,6 +25,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
+	cipherIMRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -673,6 +674,11 @@ func initPostgreSQL(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)       // 10
 	sqlDB.SetConnMaxLifetime(cryptoutilMagic.PostgreSQLConnMaxLifetime) // 1 hour
 
+	// Run migrations.
+	if err := cipherIMRepository.ApplyMigrations(sqlDB, cipherIMRepository.DatabaseTypePostgreSQL); err != nil {
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
+	}
+
 	return db, nil
 }
 
@@ -713,6 +719,11 @@ func initSQLite(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
 	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
 	sqlDB.SetConnMaxLifetime(0)                                     // In-memory: never close
+
+	// Run migrations.
+	if err := cipherIMRepository.ApplyMigrations(sqlDB, cipherIMRepository.DatabaseTypeSQLite); err != nil {
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
+	}
 
 	return db, nil
 }
