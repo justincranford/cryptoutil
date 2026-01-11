@@ -13,22 +13,23 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilTemplateServiceTesting "cryptoutil/internal/apps/template/service/testing/httpservertests"
 )
 
 // TestAdminServer_Start_NilContext tests Start with nil context.
 func TestAdminServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_start_nil_ctx")
-	ctx := context.Background()
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_authz_admin_start_nil_ctx")
+		ctx := context.Background()
+		server, err := NewAdminHTTPServer(ctx, cfg)
+		require.NoError(t, err)
+		return server
+	}
 
-	server, err := NewAdminHTTPServer(ctx, cfg)
-	require.NoError(t, err)
-
-	// Start with nil context should fail.
-	err = server.Start(nil) //nolint:staticcheck // Testing nil context validation requires passing nil.
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "context cannot be nil")
+	cryptoutilTemplateServiceTesting.TestStartNilContext(t, createServer)
 }
 
 // TestAdminServer_LoadTLSConfig_InvalidCertFile tests loadTLSConfig with invalid certificate file.
