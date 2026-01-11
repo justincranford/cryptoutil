@@ -158,6 +158,7 @@ func (s *SessionManagerService) CleanupExpiredSessions(
 func (s *SessionManagerService) IssueBrowserSession(ctx context.Context, userID string, realm string) (string, error) {
 	// For single-tenant cipher-im, use nil UUIDs for tenant and realm.
 	var nilUUID googleUuid.UUID
+
 	return s.sessionManager.IssueBrowserSession(ctx, userID, nilUUID, nilUUID)
 }
 
@@ -166,5 +167,6 @@ func (s *SessionManagerService) IssueBrowserSession(ctx context.Context, userID 
 func (s *SessionManagerService) IssueServiceSession(ctx context.Context, userID string, realm string) (string, error) {
 	// For single-tenant cipher-im, use nil UUIDs for tenant and realm.
 	var nilUUID googleUuid.UUID
+
 	return s.sessionManager.IssueServiceSession(ctx, userID, nilUUID, nilUUID)
 }

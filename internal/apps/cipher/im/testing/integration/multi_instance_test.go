@@ -33,6 +33,7 @@ func TestThreeInstanceDeployment(t *testing.T) {
 	// Start stack
 	err := runDockerCompose("up", "-d")
 	require.NoError(t, err, "docker compose up should succeed")
+
 	defer func() { _ = runDockerCompose("down", "-v") }()
 
 	// Wait for health checks
@@ -55,13 +56,14 @@ func TestThreeInstanceDeployment(t *testing.T) {
 	}
 
 	for _, inst := range instances {
-		inst := inst
+
 		t.Run(inst.name, func(t *testing.T) {
 			t.Parallel()
 
 			url := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, inst.adminPort)
 			resp, err := client.Get(url)
 			require.NoError(t, err, "GET livez should succeed for %s", inst.name)
+
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, 200, resp.StatusCode, "%s should be healthy", inst.name)
@@ -76,6 +78,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 	// Start stack
 	err := runDockerCompose("up", "-d")
 	require.NoError(t, err, "docker compose up should succeed")
+
 	defer func() { _ = runDockerCompose("down", "-v") }()
 
 	// Wait for health checks
@@ -85,6 +88,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 	dsn := "postgres://cipher_user:cipher_pass@127.0.0.1:5432/cipher_im?sslmode=disable"
 	db, err := sql.Open("postgres", dsn)
 	require.NoError(t, err, "connecting to PostgreSQL should succeed")
+
 	defer func() { _ = db.Close() }()
 
 	err = db.PingContext(ctx)
@@ -92,6 +96,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 
 	// Verify barrier_root_keys table exists (created by both instances)
 	var tableExists bool
+
 	query := `
 		SELECT EXISTS (
 			SELECT FROM information_schema.tables
@@ -105,6 +110,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 
 	// Verify both instances can see root keys (either instance could have created them)
 	var rootKeyCount int
+
 	err = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM barrier_root_keys").Scan(&rootKeyCount)
 	require.NoError(t, err, "counting root keys should succeed")
 	require.GreaterOrEqual(t, rootKeyCount, 1, "should have at least 1 root key")
@@ -123,6 +129,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 
 	// Verify session JWKs created with HS256 algorithm
 	var sessionJWKCount int
+
 	err = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM browser_session_jwks WHERE active = true").Scan(&sessionJWKCount)
 	require.NoError(t, err, "counting active session JWKs should succeed")
 	require.GreaterOrEqual(t, sessionJWKCount, 1, "should have at least 1 active session JWK")
@@ -133,6 +140,7 @@ func TestSQLiteInstanceIsolation(t *testing.T) {
 	// Start stack
 	err := runDockerCompose("up", "-d")
 	require.NoError(t, err, "docker compose up should succeed")
+
 	defer func() { _ = runDockerCompose("down", "-v") }()
 
 	// Wait for health checks
@@ -145,6 +153,7 @@ func TestSQLiteInstanceIsolation(t *testing.T) {
 	url := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, 9090)
 	resp, err := client.Get(url)
 	require.NoError(t, err, "GET livez should succeed for SQLite instance")
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, 200, resp.StatusCode, "SQLite instance should be healthy")
@@ -153,6 +162,7 @@ func TestSQLiteInstanceIsolation(t *testing.T) {
 	readyzURL := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, 9090)
 	resp, err = client.Get(readyzURL)
 	require.NoError(t, err, "GET readyz should succeed for SQLite instance")
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, 200, resp.StatusCode, "SQLite instance should be ready")
@@ -163,6 +173,7 @@ func TestCrossInstanceDeployment(t *testing.T) {
 	// Start stack
 	err := runDockerCompose("up", "-d", "--remove-orphans")
 	require.NoError(t, err, "docker compose up should succeed")
+
 	defer func() { _ = runDockerCompose("down", "-v") }()
 
 	// Wait for health checks
@@ -193,13 +204,14 @@ func TestCrossInstanceDeployment(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
+
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			url := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, tt.adminPort)
 			resp, err := client.Get(url)
 			require.NoError(t, err, "GET readyz should succeed for %s", tt.name)
+
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, 200, resp.StatusCode, "%s should be ready", tt.name)

@@ -163,8 +163,8 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 
 	go func() {
 		_, _ = fmt.Fprintf(stdout, "🚀 Starting cipher-im service...\n")
-		_, _ = fmt.Fprintf(stdout, "   Public Server: https://127.0.0.1:%d\n", cfg.BindPublicPort)
-		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://127.0.0.1:%d\n", cfg.BindPrivatePort)
+		_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
+		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
 
 		errChan <- srv.Start(ctx)
 	}()

@@ -38,7 +38,7 @@ func TestE2E_HealthChecks(t *testing.T) {
 			healthResp, err := sharedHTTPClient.Get(healthURL)
 			require.NoError(t, err, "Health check should succeed for %s", tt.name)
 			require.NoError(t, healthResp.Body.Close())
-			require.Equal(t, http.StatusOK, healthResp.StatusCode, 
+			require.Equal(t, http.StatusOK, healthResp.StatusCode,
 				"%s should return 200 OK for /health", tt.name)
 		})
 	}
@@ -107,18 +107,18 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 			// Register user in current instance.
 			registerURL := inst.publicURL + "/service/api/v1/users/register"
 			registerBody := fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password)
-			
-			resp, err := sharedHTTPClient.Post(registerURL, "application/json", 
+
+			resp, err := sharedHTTPClient.Post(registerURL, "application/json",
 				bytes.NewBufferString(registerBody))
 			require.NoError(t, err, "User registration should succeed in %s", inst.name)
 			require.NoError(t, resp.Body.Close())
-			require.Equal(t, http.StatusCreated, resp.StatusCode, 
+			require.Equal(t, http.StatusCreated, resp.StatusCode,
 				"User should be created in %s", inst.name)
 
 			// Verify user can login in the SAME instance.
 			loginURL := inst.publicURL + "/service/api/v1/users/login"
 			loginBody := fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password)
-			
+
 			loginResp, err := sharedHTTPClient.Post(loginURL, "application/json",
 				bytes.NewBufferString(loginBody))
 			require.NoError(t, err, "Login should succeed in same instance %s", inst.name)
@@ -138,7 +138,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 				require.NoError(t, err, "Login attempt should complete in %s", otherInst.name)
 				require.NoError(t, otherLoginResp.Body.Close())
 				require.NotEqual(t, http.StatusOK, otherLoginResp.StatusCode,
-					"User from %s should NOT exist in %s (tenant isolation)", 
+					"User from %s should NOT exist in %s (tenant isolation)",
 					inst.name, otherInst.name)
 			}
 		})

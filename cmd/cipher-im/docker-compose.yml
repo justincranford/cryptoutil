@@ -58,6 +58,8 @@ services:
           cpus: '0.25'
 
   # OpenTelemetry Collector
+  # Note: No healthcheck - otel-collector-contrib image is minimal (no curl/wget).
+  # Services depend on it with service_started (not service_healthy) which is sufficient.
   opentelemetry-collector-contrib:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: cipher-im-otel-collector

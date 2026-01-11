@@ -126,6 +126,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	// Tests needing barrier service should use testCipherIMServer from TestMain.
 	publicServer, err := server.NewPublicServer(
 		ctx,
+		cryptoutilMagic.IPv4Loopback,
 		testPort,
 		userRepo,
 		messageRepo,

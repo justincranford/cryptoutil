@@ -274,7 +274,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	}
 
 	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, core.Basic.JWKGenService, barrierService, sessionManagerService, publicTLSCfg)
+	publicServer, err := NewPublicServer(ctx, cfg.BindPublicAddress, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, core.Basic.JWKGenService, barrierService, sessionManagerService, publicTLSCfg)
 	if err != nil {
 		core.Shutdown()
 

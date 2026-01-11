@@ -129,12 +129,14 @@ func Parse(parameters []string, validateSubcommand bool) (*CipherImServerSetting
 func DefaultTestConfig() *CipherImServerSettings {
 	return &CipherImServerSettings{
 		ServiceTemplateServerSettings: cryptoutilConfig.ServiceTemplateServerSettings{
-			BindPublicPort:  cryptoutilSharedMagic.DefaultPublicPortCipherIM,
-			BindPrivatePort: cryptoutilSharedMagic.DefaultPrivatePortCipherIM,
-			TLSPublicMode:   cryptoutilConfig.TLSModeAuto, // Auto-generate TLS for tests.
-			TLSPrivateMode:  cryptoutilConfig.TLSModeAuto, // Auto-generate TLS for tests.
-			OTLPService:     "cipher-im",
-			OTLPEnabled:     false,
+			BindPublicAddress:  cryptoutilSharedMagic.IPv4Loopback,               // Use loopback for tests (no firewall prompts)
+			BindPublicPort:     cryptoutilSharedMagic.DefaultPublicPortCipherIM,
+			BindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,               // Use loopback for tests (no firewall prompts)
+			BindPrivatePort:    cryptoutilSharedMagic.DefaultPrivatePortCipherIM,
+			TLSPublicMode:      cryptoutilConfig.TLSModeAuto,                     // Auto-generate TLS for tests.
+			TLSPrivateMode:     cryptoutilConfig.TLSModeAuto,                     // Auto-generate TLS for tests.
+			OTLPService:        "cipher-im",
+			OTLPEnabled:        false,
 			// Session configuration - MUST match cipher-im config.yml defaults.
 			BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 			BrowserSessionJWSAlgorithm: "HS256", // Faster than RS256 for testing.

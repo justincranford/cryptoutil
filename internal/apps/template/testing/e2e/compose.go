@@ -31,6 +31,8 @@ func NewComposeManager(composeFile string) *ComposeManager {
 }
 
 // Start brings up docker compose stack.
+// Note: Does NOT use --wait because some containers (otel-collector) may not have healthchecks.
+// Use WaitForMultipleServices() after Start() to wait for specific services to be healthy.
 func (cm *ComposeManager) Start(ctx context.Context) error {
 	fmt.Println("Starting docker compose stack...")
 	startCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "up", "-d")
@@ -55,19 +57,27 @@ func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration)
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
+	fmt.Printf("[WaitForHealth] Starting health check for %s (timeout: %v)\n", healthURL, timeout)
+	attempts := 0
+
 	for {
 		select {
 		case <-timeoutCh:
+			fmt.Printf("[WaitForHealth] TIMEOUT for %s after %d attempts\n", healthURL, attempts)
 			return fmt.Errorf("health check timeout after %v", timeout)
 		case <-ticker.C:
+			attempts++
 			resp, err := cm.HTTPClient.Get(healthURL)
 			if err != nil {
+				fmt.Printf("[WaitForHealth] Attempt %d for %s: connection error: %v\n", attempts, healthURL, err)
 				continue // Retry on connection errors.
 			}
 			_ = resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {
+				fmt.Printf("[WaitForHealth] SUCCESS for %s after %d attempts\n", healthURL, attempts)
 				return nil // Healthy!
 			}
+			fmt.Printf("[WaitForHealth] Attempt %d for %s: HTTP %d\n", attempts, healthURL, resp.StatusCode)
 		}
 	}
 }

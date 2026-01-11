@@ -22,9 +22,9 @@ var (
 	composeManager   *templateE2E.ComposeManager
 
 	// Three cipher-im instances with different backends (actual container names).
-	sqliteContainer    = cryptoutilMagic.CipherE2ESQLiteContainer       // "cipher-im-sqlite"
-	postgres1Container = cryptoutilMagic.CipherE2EPostgreSQL1Container  // "cipher-im-pg-1"
-	postgres2Container = cryptoutilMagic.CipherE2EPostgreSQL2Container  // "cipher-im-pg-2"
+	sqliteContainer    = cryptoutilMagic.CipherE2ESQLiteContainer      // "cipher-im-sqlite"
+	postgres1Container = cryptoutilMagic.CipherE2EPostgreSQL1Container // "cipher-im-pg-1"
+	postgres2Container = cryptoutilMagic.CipherE2EPostgreSQL2Container // "cipher-im-pg-2"
 
 	// Service URLs (mapped from container ports to host ports).
 	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8888"
@@ -57,9 +57,12 @@ func TestMain(m *testing.M) {
 	}
 
 	fmt.Println("Waiting for all cipher-im instances to be healthy...")
+
 	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilMagic.CipherE2EHealthTimeout); err != nil {
 		fmt.Printf("Service health checks failed: %v\n", err)
+
 		_ = composeManager.Stop(ctx)
+
 		os.Exit(1)
 	}
 

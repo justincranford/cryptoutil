@@ -57,6 +57,7 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	var req SessionIssueRequest
 	if err := c.BodyParser(&req); err != nil {
 		summary := "Invalid request body format"
+
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
 
@@ -64,12 +65,14 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	tenantID, err := googleUuid.Parse(req.TenantID)
 	if err != nil {
 		summary := "Invalid tenant_id format"
+
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
 
 	realmID, err := googleUuid.Parse(req.RealmID)
 	if err != nil {
 		summary := "Invalid realm_id format"
+
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
 
@@ -86,6 +89,7 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 
 	if err != nil {
 		summary := "Failed to issue session token"
+
 		return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, err)
 	}
 
@@ -102,6 +106,7 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 	var req SessionValidateRequest
 	if err := c.BodyParser(&req); err != nil {
 		summary := "Invalid request body format"
+
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
 
@@ -109,8 +114,11 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	// Validate session based on type.
-	var userID, tenantID, realmID string
-	var valid bool
+	var (
+		userID, tenantID, realmID string
+		valid                     bool
+	)
+
 	if req.SessionType == "browser" {
 		browserSession, err := h.sessionManager.ValidateBrowserSession(ctx, req.Token)
 		if err != nil {
@@ -119,6 +127,7 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 			if browserSession.UserID != nil {
 				userID = *browserSession.UserID
 			}
+
 			tenantID = browserSession.TenantID.String()
 			realmID = browserSession.RealmID.String()
 			valid = true
@@ -131,6 +140,7 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 			if serviceSession.ClientID != nil {
 				userID = *serviceSession.ClientID
 			}
+
 			tenantID = serviceSession.TenantID.String()
 			realmID = serviceSession.RealmID.String()
 			valid = true

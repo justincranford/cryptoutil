@@ -145,7 +145,9 @@ const (
 	CipherE2EGrafanaContainer = "cipher-im-grafana"
 
 	// CipherE2EHealthTimeout is the timeout for health checks during E2E tests.
-	CipherE2EHealthTimeout = 60 * time.Second
+	// Must account for cascade dependencies: sqlite (30s) → pg-1 (30s) → pg-2 (30s) = 90s worst case.
+	// Increased to 180s to handle slower CI/CD environments and Windows systems.
+	CipherE2EHealthTimeout = 180 * time.Second
 
 	// CipherE2EHealthPollInterval is the interval between health check attempts.
 	CipherE2EHealthPollInterval = 2 * time.Second
@@ -169,7 +171,8 @@ const (
 	CipherE2EOtelCollectorHTTPPort = 4318
 
 	// CipherE2EHealthEndpoint is the public health check endpoint.
-	CipherE2EHealthEndpoint = "/health"
+	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).
+	CipherE2EHealthEndpoint = "/service/api/v1/health"
 
 	// CipherE2EAdminLivezEndpoint is the admin liveness check endpoint.
 	CipherE2EAdminLivezEndpoint = "/admin/v1/livez"

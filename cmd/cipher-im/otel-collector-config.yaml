@@ -28,8 +28,8 @@ processors:
         value: cryptoutil
         action: upsert
       - key: deployment.environment
-        from_attribute: OTEL_RESOURCE_ATTRIBUTES
-        action: extract
+        value: development
+        action: upsert
 
 exporters:
   # Export to Grafana OTEL LGTM stack
@@ -44,7 +44,12 @@ exporters:
     sampling_initial: 5
     sampling_thereafter: 200
 
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
 service:
+  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]

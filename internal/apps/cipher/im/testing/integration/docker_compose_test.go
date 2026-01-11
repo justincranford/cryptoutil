@@ -56,6 +56,7 @@ func TestMain(m *testing.M) {
 func TestDockerComposeFullStack(t *testing.T) {
 	// Step 1: Start full stack
 	t.Log("Starting Docker Compose stack...")
+
 	err := runDockerCompose("up", "-d")
 	require.NoError(t, err, "docker compose up should succeed")
 
@@ -65,6 +66,7 @@ func TestDockerComposeFullStack(t *testing.T) {
 
 	// Step 3: Verify all services running
 	t.Log("Verifying services status...")
+
 	err = runDockerCompose("ps")
 	require.NoError(t, err, "docker compose ps should succeed")
 
@@ -84,6 +86,7 @@ func TestDockerComposeFullStack(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := client.Get(tt.url)
 			require.NoError(t, err, "GET %s should succeed", tt.url)
+
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, http.StatusOK, resp.StatusCode, "should return 200 OK")
@@ -92,6 +95,7 @@ func TestDockerComposeFullStack(t *testing.T) {
 			require.NoError(t, err, "reading response body should succeed")
 
 			var healthStatus map[string]string
+
 			err = json.Unmarshal(body, &healthStatus)
 			require.NoError(t, err, "unmarshaling JSON should succeed")
 
@@ -101,6 +105,7 @@ func TestDockerComposeFullStack(t *testing.T) {
 
 	// Step 5: Cleanup
 	t.Log("Cleaning up Docker Compose stack...")
+
 	err = runDockerCompose("down", "-v")
 	require.NoError(t, err, "docker compose down should succeed")
 
@@ -114,6 +119,7 @@ func TestAllInstancesHealthy(t *testing.T) {
 	// Start stack
 	err := runDockerCompose("up", "-d")
 	require.NoError(t, err, "docker compose up should succeed")
+
 	defer func() { _ = runDockerCompose("down", "-v") }()
 
 	// Wait for health checks
@@ -132,7 +138,7 @@ func TestAllInstancesHealthy(t *testing.T) {
 	client := createHTTPSClient()
 
 	for _, tt := range tests {
-		tt := tt
+
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -140,6 +146,7 @@ func TestAllInstancesHealthy(t *testing.T) {
 			livezURL := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, tt.adminPort)
 			resp, err := client.Get(livezURL)
 			require.NoError(t, err, "GET livez should succeed")
+
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, http.StatusOK, resp.StatusCode, "livez should return 200 OK")
@@ -148,6 +155,7 @@ func TestAllInstancesHealthy(t *testing.T) {
 			require.NoError(t, err, "reading livez body should succeed")
 
 			var status map[string]string
+
 			err = json.Unmarshal(body, &status)
 			require.NoError(t, err, "unmarshaling livez JSON should succeed")
 
@@ -157,6 +165,7 @@ func TestAllInstancesHealthy(t *testing.T) {
 			readyzURL := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, tt.adminPort)
 			resp, err = client.Get(readyzURL)
 			require.NoError(t, err, "GET readyz should succeed")
+
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, http.StatusOK, resp.StatusCode, "readyz should return 200 OK")

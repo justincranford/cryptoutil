@@ -23,11 +23,11 @@ import (
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the template.PublicServer interface for cipher-im.
 type PublicServer struct {
+	bindAddress             string
 	port                    int
 	userRepo                *cryptoutilCipherRepository.UserRepository
 	messageRepo             *cryptoutilCipherRepository.MessageRepository
@@ -51,6 +51,7 @@ type PublicServer struct {
 // NewPublicServer creates a new cipher-im public server.
 func NewPublicServer(
 	ctx context.Context,
+	bindAddress string,
 	port int,
 	userRepo *cryptoutilCipherRepository.UserRepository,
 	messageRepo *cryptoutilCipherRepository.MessageRepository,
@@ -62,6 +63,8 @@ func NewPublicServer(
 ) (*PublicServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
+	} else if bindAddress == "" {
+		return nil, fmt.Errorf("bind address cannot be empty")
 	} else if userRepo == nil {
 		return nil, fmt.Errorf("user repository cannot be nil")
 	} else if messageRepo == nil {
@@ -83,6 +86,7 @@ func NewPublicServer(
 	}
 
 	s := &PublicServer{
+		bindAddress:             bindAddress,
 		port:                    port,
 		userRepo:                userRepo,
 		messageRepo:             messageRepo,
@@ -198,7 +202,7 @@ func (s *PublicServer) Start(ctx context.Context) error {
 	// Create TCP listener.
 	listenConfig := &net.ListenConfig{}
 
-	listener, err := listenConfig.Listen(serverCtx, "tcp", fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, s.port))
+	listener, err := listenConfig.Listen(serverCtx, "tcp", fmt.Sprintf("%s:%d", s.bindAddress, s.port))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}

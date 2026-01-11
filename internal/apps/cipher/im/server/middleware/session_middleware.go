@@ -22,6 +22,7 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
 			summary := "Missing Authorization header"
+
 			return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, nil)
 		}
 
@@ -29,12 +30,14 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			summary := "Invalid Authorization header format (expected: Bearer <token>)"
+
 			return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, nil)
 		}
 
 		token := parts[1]
 		if token == "" {
 			summary := "Empty token in Authorization header"
+
 			return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, nil)
 		}
 
@@ -46,17 +49,20 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 			session, validateErr := sessionManager.ValidateBrowserSession(ctx, token)
 			if validateErr != nil {
 				summary := "Invalid or expired browser session token"
+
 				return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, validateErr)
 			}
 
 			// Store session in context for downstream handlers
 			c.Locals("session", session)
+
 			if session.UserID != nil {
 				// Parse the UserID string as a UUID for user_id
 				if userID, parseErr := googleUuid.Parse(*session.UserID); parseErr == nil {
 					c.Locals("user_id", userID)
 				}
 			}
+
 			c.Locals("tenant_id", session.TenantID)
 			c.Locals("realm_id", session.RealmID)
 		} else {
@@ -64,11 +70,13 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 			session, validateErr := sessionManager.ValidateServiceSession(ctx, token)
 			if validateErr != nil {
 				summary := "Invalid or expired service session token"
+
 				return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, validateErr)
 			}
 
 			// Store session in context for downstream handlers
 			c.Locals("session", session)
+
 			if session.ClientID != nil {
 				// For cipher-im, ClientID actually contains the UserID
 				// because we're using service sessions for user authentication
@@ -79,6 +87,7 @@ func SessionMiddleware(sessionManager *businesslogic.SessionManagerService, isBr
 					c.Locals("user_id", userID)
 				}
 			}
+
 			c.Locals("tenant_id", session.TenantID)
 			c.Locals("realm_id", session.RealmID)
 		}

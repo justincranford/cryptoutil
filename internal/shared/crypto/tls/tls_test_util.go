@@ -12,10 +12,12 @@ import (
 )
 
 // NewClientForTest creates an HTTP client configured for testing with insecure TLS.
+// Uses TLS 1.3 to match server requirements.
 func NewClientForTest() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
+				MinVersion:         tls.VersionTLS13,
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
