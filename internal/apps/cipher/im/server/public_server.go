@@ -13,7 +13,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
@@ -22,6 +21,7 @@ import (
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -98,7 +98,7 @@ func NewPublicServer(
 
 	// Create user factory for template realms.
 	userFactory := func() cryptoutilTemplateRealms.UserModel {
-		return &cryptoutilCipherDomain.User{}
+		return &cryptoutilTemplateRepository.User{}
 	}
 
 	// Create realms handler using template service (authentication/authorization).

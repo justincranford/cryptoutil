@@ -9,8 +9,8 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
+	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // UserRepositoryAdapter adapts UserRepository to realms.UserRepository interface.
@@ -26,38 +26,38 @@ func NewUserRepositoryAdapter(repo *UserRepository) *UserRepositoryAdapter {
 }
 
 // Create creates a new user in the database.
-// Adapts realms.UserModel interface to concrete cipher domain.User.
+// Adapts realms.UserModel interface to concrete template repository.User.
 func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilTemplateRealms.UserModel) error {
-	// Type assertion: UserModel -> *cipher.domain.User
-	concreteUser, ok := user.(*cryptoutilCipherDomain.User)
+	// Type assertion: UserModel -> *repository.User
+	concreteUser, ok := user.(*cryptoutilRepository.User)
 	if !ok {
 		// This should never happen if used correctly
-		panic("UserRepositoryAdapter.Create: expected *cipher.domain.User")
+		panic("UserRepositoryAdapter.Create: expected *repository.User")
 	}
 
 	return a.repo.Create(ctx, concreteUser)
 }
 
 // FindByUsername finds a user by username.
-// Adapts realms.UserModel interface to concrete cipher domain.User.
+// Adapts realms.UserModel interface to concrete template repository.User.
 func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username string) (cryptoutilTemplateRealms.UserModel, error) {
 	user, err := a.repo.FindByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil // *cipher.domain.User implements UserModel
+	return user, nil // *repository.User implements UserModel
 }
 
 // FindByID finds a user by ID.
-// Adapts realms.UserModel interface to concrete cipher domain.User.
+// Adapts realms.UserModel interface to concrete template repository.User.
 func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID) (cryptoutilTemplateRealms.UserModel, error) {
 	user, err := a.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil // *cipher.domain.User implements UserModel
+	return user, nil // *repository.User implements UserModel
 }
 
 // Compile-time check that UserRepositoryAdapter implements realms.UserRepository interface.

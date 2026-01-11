@@ -6,15 +6,23 @@
 -- Users table for user accounts
 -- Password stored as PBKDF2-HMAC-SHA256 hash
 -- No ECDH keys (ephemeral per-message encryption)
+-- TenantID supports multi-tenant template pattern (optional for single-tenant cipher-im)
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY NOT NULL,
+    tenant_id TEXT,
     username TEXT NOT NULL,
     password_hash TEXT NOT NULL,
+    email TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(username)
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_tenant_id ON users(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_active ON users(active);
 
 -- Messages table with multi-recipient JWE encryption
 -- JWE JSON format (NOT Compact Serialization) with N recipient keys

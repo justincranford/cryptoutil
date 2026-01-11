@@ -169,7 +169,7 @@ func TestVerificationService_ListPendingClients(t *testing.T) {
 			ID:           googleUuid.New(),
 			TenantID:     tenant.ID,
 			ClientID:     "client" + googleUuid.NewString()[:8],
-			ClientSecret: "secret",
+			ClientSecretHash: "secret",
 			ExpiresAt:    time.Now().Add(72 * time.Hour),
 		}
 		require.NoError(t, db.Create(unverifiedClient).Error)
@@ -314,7 +314,7 @@ func TestVerificationService_ApproveClient_Success(t *testing.T) {
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		ClientID:     "pendingclient" + googleUuid.NewString()[:8],
-		ClientSecret: "clientsecret",
+		ClientSecretHash: "clientsecret",
 		ExpiresAt:    time.Now().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedClient).Error)
@@ -377,7 +377,7 @@ func TestVerificationService_RejectClient(t *testing.T) {
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		ClientID:     "rejectclient" + googleUuid.NewString()[:8],
-		ClientSecret: "secret",
+		ClientSecretHash: "secret",
 		ExpiresAt:    time.Now().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedClient).Error)
@@ -427,7 +427,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		ClientID:     "expiredclient" + googleUuid.NewString()[:8],
-		ClientSecret: "secret",
+		ClientSecretHash: "secret",
 		ExpiresAt:    time.Now().Add(-1 * time.Hour),
 	}
 	require.NoError(t, db.Create(expiredClient).Error)

@@ -25,10 +25,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	"cryptoutil/internal/apps/cipher/im/domain"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -637,23 +635,7 @@ func initDatabase(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("unsupported database URL scheme: %s", databaseURL)
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	// Auto-migrate schema.
-	if err := db.WithContext(ctx).AutoMigrate(
-		&domain.User{},
-		&domain.Message{},
-		&cryptoutilTemplateRepository.BrowserSessionJWK{},
-		&cryptoutilTemplateRepository.ServiceSessionJWK{},
-		&cryptoutilTemplateRepository.BrowserSession{},
-		&cryptoutilTemplateRepository.ServiceSession{},
-	); err != nil {
-		return nil, fmt.Errorf("failed to migrate schema: %w", err)
-	}
-
-	return db, nil
+	return db, err
 }
 
 // initPostgreSQL initializes PostgreSQL database connection.

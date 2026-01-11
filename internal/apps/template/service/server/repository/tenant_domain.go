@@ -27,9 +27,10 @@ func (Tenant) TableName() string {
 }
 
 // User represents a verified user associated with a tenant.
+// For single-tenant deployments (cipher-im), TenantID can be zero UUID.
 type User struct {
 	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
-	TenantID     googleUuid.UUID `gorm:"type:text;not null;index"`
+	TenantID     googleUuid.UUID `gorm:"type:text;index"`
 	Username     string          `gorm:"type:text;not null;uniqueIndex"`
 	PasswordHash string          `gorm:"type:text;not null"`
 	Email        string          `gorm:"type:text;uniqueIndex"`
@@ -46,16 +47,46 @@ func (User) TableName() string {
 	return "users"
 }
 
+// GetID returns the user's unique identifier.
+func (u *User) GetID() googleUuid.UUID {
+	return u.ID
+}
+
+// GetUsername returns the user's username.
+func (u *User) GetUsername() string {
+	return u.Username
+}
+
+// GetPasswordHash returns the user's password hash.
+func (u *User) GetPasswordHash() string {
+	return u.PasswordHash
+}
+
+// SetID sets the user's unique identifier.
+func (u *User) SetID(id googleUuid.UUID) {
+	u.ID = id
+}
+
+// SetUsername sets the user's username.
+func (u *User) SetUsername(username string) {
+	u.Username = username
+}
+
+// SetPasswordHash sets the user's password hash.
+func (u *User) SetPasswordHash(hash string) {
+	u.PasswordHash = hash
+}
+
 // Client represents a verified non-browser client associated with a tenant.
 type Client struct {
-	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
-	TenantID     googleUuid.UUID `gorm:"type:text;not null;index"`
-	ClientID     string          `gorm:"type:text;not null;uniqueIndex"`
-	ClientSecret string          `gorm:"type:text;not null"`
-	Name         string          `gorm:"type:text"`
-	Active       bool            `gorm:"not null;default:true;index"`
-	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	ID               googleUuid.UUID `gorm:"type:text;primaryKey"`
+	TenantID         googleUuid.UUID `gorm:"type:text;not null;index"`
+	ClientID         string          `gorm:"type:text;not null;uniqueIndex"`
+	ClientSecretHash string          `gorm:"type:text;not null"`
+	Name             string          `gorm:"type:text"`
+	Active           bool            `gorm:"not null;default:true;index"`
+	CreatedAt        time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt        time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 
 	// Relationship.
 	Tenant *Tenant `gorm:"foreignKey:TenantID;references:ID"`
@@ -94,13 +125,13 @@ func (u *UnverifiedUser) IsExpired() bool {
 // UnverifiedClient represents a client awaiting admin verification.
 // Auto-expires after ExpiresAt timestamp.
 type UnverifiedClient struct {
-	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
-	TenantID     googleUuid.UUID `gorm:"type:text;not null;index"`
-	ClientID     string          `gorm:"type:text;not null;uniqueIndex"`
-	ClientSecret string          `gorm:"type:text;not null"`
-	Name         string          `gorm:"type:text"`
-	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	ExpiresAt    time.Time       `gorm:"not null;index"` // Auto-expire timestamp.
+	ID               googleUuid.UUID `gorm:"type:text;primaryKey"`
+	TenantID         googleUuid.UUID `gorm:"type:text;not null;index"`
+	ClientID         string          `gorm:"type:text;not null;uniqueIndex"`
+	ClientSecretHash string          `gorm:"type:text;not null"`
+	Name             string          `gorm:"type:text"`
+	CreatedAt        time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	ExpiresAt        time.Time       `gorm:"not null;index"` // Auto-expire timestamp.
 
 	// Relationship.
 	Tenant *Tenant `gorm:"foreignKey:TenantID;references:ID"`

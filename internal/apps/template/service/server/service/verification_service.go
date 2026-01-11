@@ -196,13 +196,12 @@ func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, u
 
 	// Create the verified client.
 	client := &repository.Client{
-		ID:           googleUuid.New(),
-		TenantID:     unverifiedClient.TenantID,
-		ClientID:     unverifiedClient.ClientID,
-		ClientSecret: unverifiedClient.ClientSecret,
-		Active:       true,
+		ID:               googleUuid.New(),
+		TenantID:         unverifiedClient.TenantID,
+		ClientID:         unverifiedClient.ClientID,
+		ClientSecretHash: unverifiedClient.ClientSecretHash,
+		Active:           true,
 	}
-
 	if err := s.clientRepo.Create(ctx, client); err != nil {
 		return nil, fmt.Errorf("failed to create verified client: %w", err)
 	}

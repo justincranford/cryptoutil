@@ -160,7 +160,7 @@ func TestRealmService_CreateRealm_OAuth2(t *testing.T) {
 	config := &OAuth2Config{
 		ProviderURL:  "https://auth.example.com",
 		ClientID:     "my-client-id",
-		ClientSecret: "my-client-secret",
+		ClientSecretHash: "my-client-secret",
 		Scopes:       []string{"openid", "profile", "email"},
 		RedirectURI:  "https://myapp.example.com/callback",
 		UseDiscovery: true,

@@ -8,6 +8,8 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // Message represents an encrypted message in the cipher-im system.
@@ -30,7 +32,7 @@ type Message struct {
 	ReadAt    *time.Time      `gorm:"default:null;index"`
 
 	// Relationships.
-	Sender User `gorm:"foreignKey:SenderID"` // UUIDv7
+	Sender cryptoutilTemplateRepository.User `gorm:"foreignKey:SenderID"` // UUIDv7
 }
 
 // TableName returns the database table name for Message.

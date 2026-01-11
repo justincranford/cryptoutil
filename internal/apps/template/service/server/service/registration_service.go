@@ -35,7 +35,7 @@ type RegistrationService interface {
 	RegisterUser(ctx context.Context, username, email, passwordHash string, newTenant *NewTenantInfo, existingTenantID *googleUuid.UUID) (*RegistrationResult, error)
 
 	// RegisterClient registers a new client (creates tenant if newTenant, or creates unverified client if existing tenant).
-	RegisterClient(ctx context.Context, clientID, clientSecret string, newTenant *NewTenantInfo, existingTenantID *googleUuid.UUID) (*RegistrationResult, error)
+	RegisterClient(ctx context.Context, clientID, clientSecretHash string, newTenant *NewTenantInfo, existingTenantID *googleUuid.UUID) (*RegistrationResult, error)
 }
 
 // NewTenantInfo contains information for creating a new tenant during registration.
@@ -177,7 +177,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 }
 
 // RegisterClient registers a new client (creates tenant if newTenant, or creates unverified client if existing tenant).
-func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, clientSecret string, newTenant *NewTenantInfo, existingTenantID *googleUuid.UUID) (*RegistrationResult, error) {
+func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, clientSecretHash string, newTenant *NewTenantInfo, existingTenantID *googleUuid.UUID) (*RegistrationResult, error) {
 	// Validate input: exactly one of newTenant or existingTenantID must be provided.
 	if (newTenant == nil && existingTenantID == nil) || (newTenant != nil && existingTenantID != nil) {
 		return nil, fmt.Errorf("exactly one of newTenant or existingTenantID must be provided")
@@ -193,11 +193,11 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 
 		// Create client.
 		client := &repository.Client{
-			ID:           googleUuid.New(),
-			TenantID:     tenant.ID,
-			ClientID:     clientID,
-			ClientSecret: clientSecret,
-			Active:       true,
+			ID:               googleUuid.New(),
+			TenantID:         tenant.ID,
+			ClientID:         clientID,
+			ClientSecretHash: clientSecretHash,
+			Active:           true,
 		}
 
 		if err := s.clientRepo.Create(ctx, client); err != nil {
@@ -231,11 +231,11 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 	// Case 2: Existing tenant registration (pending verification).
 	expiresAt := time.Now().Add(DefaultRegistrationExpiryHours * time.Hour)
 	unverifiedClient := &repository.UnverifiedClient{
-		ID:           googleUuid.New(),
-		TenantID:     *existingTenantID,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		ExpiresAt:    expiresAt,
+		ID:               googleUuid.New(),
+		TenantID:         *existingTenantID,
+		ClientID:         clientID,
+		ClientSecretHash: clientSecretHash,
+		ExpiresAt:        expiresAt,
 	}
 
 	if err := s.unverifiedClientRepo.Create(ctx, unverifiedClient); err != nil {

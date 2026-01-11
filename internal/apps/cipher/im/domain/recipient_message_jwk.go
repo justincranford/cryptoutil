@@ -8,6 +8,8 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // MessageRecipientJWK represents a per-recipient decryption key for a message.
@@ -25,8 +27,8 @@ type MessageRecipientJWK struct {
 	CreatedAt    time.Time       `gorm:"autoCreateTime"`
 
 	// Relationships.
-	Recipient User    `gorm:"foreignKey:RecipientID"` // UUIDv7
-	Message   Message `gorm:"foreignKey:MessageID"`   // UUIDv7
+	Recipient cryptoutilTemplateRepository.User `gorm:"foreignKey:RecipientID"` // UUIDv7
+	Message   Message                           `gorm:"foreignKey:MessageID"`   // UUIDv7
 }
 
 // TableName returns the database table name.
