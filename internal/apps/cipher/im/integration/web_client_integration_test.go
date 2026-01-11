@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
-package e2e_test
+package integration
 
 import (
 	"testing"
