@@ -14,6 +14,7 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilTemplateServiceTesting "cryptoutil/internal/apps/template/service/testing/httpservertests"
 )
 
 // TestNewPublicServer_NilContext tests constructor with nil context.
@@ -153,15 +154,13 @@ func TestHandleBrowserHealth_WhileRunning(t *testing.T) {
 func TestShutdown_MultipleCalls(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	publicServer, _ := createTestPublicServer(t, testDB)
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		publicServer, _ := createTestPublicServer(t, testDB)
+		return publicServer
+	}
 
-	err := publicServer.Shutdown(ctx)
-	require.NoError(t, err)
-
-	err = publicServer.Shutdown(ctx)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "already shutdown")
+	cryptoutilTemplateServiceTesting.TestShutdownDoubleCall(t, createServer)
 }
 
 // TestPublicServer_StartContextCancelled tests server shutdown via context cancellation.
@@ -191,30 +190,26 @@ func TestPublicServer_StartContextCancelled(t *testing.T) {
 func TestPublicServer_DoubleShutdown(t *testing.T) {
 	t.Parallel()
 
-	srv, _ := createTestPublicServer(t, testDB)
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		srv, _ := createTestPublicServer(t, testDB)
+		return srv
+	}
 
-	err := srv.Shutdown(context.Background())
-	require.NoError(t, err)
-
-	err = srv.Shutdown(context.Background())
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "already shutdown")
+	cryptoutilTemplateServiceTesting.TestShutdownDoubleCall(t, createServer)
 }
 
 // TestShutdown_DuplicateCall tests calling Shutdown twice.
 func TestShutdown_DuplicateCall(t *testing.T) {
 	t.Parallel()
 
-	server, _ := createTestPublicServer(t, testDB)
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		server, _ := createTestPublicServer(t, testDB)
+		return server
+	}
 
-	ctx := context.Background()
-
-	err := server.Shutdown(ctx)
-	require.NoError(t, err)
-
-	err = server.Shutdown(ctx)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "already shutdown")
+	cryptoutilTemplateServiceTesting.TestShutdownDoubleCall(t, createServer)
 }
 
 // TestStart_ContextCancelled tests server start with cancelled context.
