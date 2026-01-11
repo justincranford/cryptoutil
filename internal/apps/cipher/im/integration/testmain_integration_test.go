@@ -18,7 +18,7 @@ import (
 // Shared test resources (initialized once per package).
 var (
 	cipherImServer       *server.CipherIMServer
-	sharedAppConfig      *config.CipherImServerSettings
+	testCipherIMServer   *config.CipherImServerSettings
 	sharedServiceBaseURL string
 )
 
@@ -29,11 +29,11 @@ func TestMain(m *testing.M) {
 	settings.DatabaseURL = ""               // Empty = use testcontainer.
 	settings.DatabaseContainer = "required" // Require PostgreSQL testcontainer.
 
-	sharedAppConfig = &config.CipherImServerSettings{
+	testCipherIMServer = &config.CipherImServerSettings{
 		ServiceTemplateServerSettings: *settings,
 	}
 
-	cipherImServer = cipherTesting.StartCipherIMService(sharedAppConfig)
+	cipherImServer = cipherTesting.StartCipherIMService(testCipherIMServer)
 
 	defer func() {
 		_ = cipherImServer.Shutdown(context.Background())

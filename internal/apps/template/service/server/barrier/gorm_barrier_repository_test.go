@@ -72,11 +72,11 @@ func TestGormBarrierRepository_RootKey_Lifecycle(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { barrierRepo.Shutdown() })
 
-	// Test: GetRootKeyLatest should return nil when no keys exist.
+	// Test: GetRootKeyLatest should return ErrNoRootKeyFound when no keys exist.
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
 		latest, err := tx.GetRootKeyLatest()
-		require.NoError(t, err)
-		require.Nil(t, latest, "No root keys should exist initially")
+		require.ErrorIs(t, err, cryptoutilTemplateBarrier.ErrNoRootKeyFound, "Should get ErrNoRootKeyFound when no root keys exist")
+		require.Nil(t, latest, "Latest should be nil when error occurs")
 
 		return nil
 	})
@@ -187,11 +187,11 @@ func TestGormBarrierRepository_IntermediateKey_Lifecycle(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Test: GetIntermediateKeyLatest should return nil when no keys exist.
+	// Test: GetIntermediateKeyLatest should return ErrNoIntermediateKeyFound when no intermediate keys exist.
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
 		latest, err := tx.GetIntermediateKeyLatest()
-		require.NoError(t, err)
-		require.Nil(t, latest, "No intermediate keys should exist initially")
+		require.ErrorIs(t, err, cryptoutilTemplateBarrier.ErrNoIntermediateKeyFound, "Should get ErrNoIntermediateKeyFound when no intermediate keys exist")
+		require.Nil(t, latest, "Latest should be nil when error occurs")
 
 		return nil
 	})
