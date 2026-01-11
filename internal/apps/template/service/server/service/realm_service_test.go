@@ -28,6 +28,7 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilPwdGen "cryptoutil/internal/shared/pwdgen"
 )
 
 // setupRealmTestDB creates an in-memory SQLite database for testing realm service.
@@ -131,10 +132,15 @@ func TestRealmService_CreateRealm_LDAP(t *testing.T) {
 
 	tenant := createRealmTestTenant(t, db, "realm-ldap-"+googleUuid.NewString()[:8])
 
+	pwdGen, err := cryptoutilPwdGen.NewPasswordGenerator(cryptoutilPwdGen.BasicPolicy)
+	require.NoError(t, err)
+	bindPassword, err := pwdGen.Generate()
+	require.NoError(t, err)
+
 	config := &LDAPConfig{
 		URL:           "ldap://ldap.example.com:389",
 		BindDN:        "cn=admin,dc=example,dc=com",
-		BindPassword:  "adminpassword",
+		BindPassword:  bindPassword,
 		BaseDN:        "dc=example,dc=com",
 		UserFilter:    "(uid=%s)",
 		GroupFilter:   "(member=%s)",
@@ -157,10 +163,15 @@ func TestRealmService_CreateRealm_OAuth2(t *testing.T) {
 
 	tenant := createRealmTestTenant(t, db, "realm-oauth2-"+googleUuid.NewString()[:8])
 
+	pwdGen, err := cryptoutilPwdGen.NewPasswordGenerator(cryptoutilPwdGen.StrongPolicy)
+	require.NoError(t, err)
+	clientSecret, err := pwdGen.Generate()
+	require.NoError(t, err)
+
 	config := &OAuth2Config{
 		ProviderURL:  "https://auth.example.com",
 		ClientID:     "my-client-id",
-		ClientSecretHash: "my-client-secret",
+		ClientSecret: clientSecret,
 		Scopes:       []string{"openid", "profile", "email"},
 		RedirectURI:  "https://myapp.example.com/callback",
 		UseDiscovery: true,
