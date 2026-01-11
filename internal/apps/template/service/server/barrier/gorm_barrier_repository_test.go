@@ -386,7 +386,7 @@ func TestGormBarrierRepository_Transaction_Rollback(t *testing.T) {
 	// Verify key was NOT persisted (transaction rolled back).
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
 		latest, err := tx.GetRootKeyLatest()
-		require.NoError(t, err)
+		require.ErrorIs(t, err, cryptoutilTemplateBarrier.ErrNoRootKeyFound, "Should return ErrNoRootKeyFound when no keys exist")
 		require.Nil(t, latest, "Key should not exist after rollback")
 
 		return nil
