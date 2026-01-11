@@ -39,14 +39,17 @@ CREATE INDEX IF NOT EXISTS idx_service_session_jwks_created_at ON service_sessio
 -- Active browser sessions with metadata
 CREATE TABLE IF NOT EXISTS browser_sessions (
     id TEXT PRIMARY KEY NOT NULL,
+    tenant_id TEXT,                   -- Tenant identifier for multi-tenancy (NULL for single-tenant)
+    realm_id TEXT,                    -- Realm identifier for multi-tenancy (NULL for single-tenant)
     token_hash TEXT,                  -- Hashed token (OPAQUE only), NULL for JWE/JWS
     expiration TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_activity TIMESTAMP,          -- Last activity timestamp for idle timeout
-    realm TEXT,                       -- Realm identifier for multi-tenancy
     user_id TEXT                      -- User identifier
 );
 
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_tenant_id ON browser_sessions(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_browser_sessions_realm_id ON browser_sessions(realm_id);
 CREATE INDEX IF NOT EXISTS idx_browser_sessions_token_hash ON browser_sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_browser_sessions_expiration ON browser_sessions(expiration);
 CREATE INDEX IF NOT EXISTS idx_browser_sessions_user_id ON browser_sessions(user_id);
@@ -55,14 +58,17 @@ CREATE INDEX IF NOT EXISTS idx_browser_sessions_user_id ON browser_sessions(user
 -- Active service sessions with metadata
 CREATE TABLE IF NOT EXISTS service_sessions (
     id TEXT PRIMARY KEY NOT NULL,
+    tenant_id TEXT,                   -- Tenant identifier for multi-tenancy (NULL for single-tenant)
+    realm_id TEXT,                    -- Realm identifier for multi-tenancy (NULL for single-tenant)
     token_hash TEXT,                  -- Hashed token (OPAQUE only), NULL for JWE/JWS
     expiration TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_activity TIMESTAMP,          -- Last activity timestamp for idle timeout
-    realm TEXT,                       -- Realm identifier for multi-tenancy
     client_id TEXT                    -- Client identifier
 );
 
+CREATE INDEX IF NOT EXISTS idx_service_sessions_tenant_id ON service_sessions(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_service_sessions_realm_id ON service_sessions(realm_id);
 CREATE INDEX IF NOT EXISTS idx_service_sessions_token_hash ON service_sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_service_sessions_expiration ON service_sessions(expiration);
 CREATE INDEX IF NOT EXISTS idx_service_sessions_client_id ON service_sessions(client_id);

@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	cipherClient "cryptoutil/internal/apps/cipher/im/client"
+	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
-	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 
 	"github.com/stretchr/testify/require"
 )

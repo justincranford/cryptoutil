@@ -74,8 +74,8 @@ func NewSessionManagerService(
 	}, nil
 }
 
-// IssueBrowserSession creates a new browser session token.
-func (s *SessionManagerService) IssueBrowserSession(
+// IssueBrowserSessionWithTenant creates a new browser session token (multi-tenant version).
+func (s *SessionManagerService) IssueBrowserSessionWithTenant(
 	ctx context.Context,
 	userID string,
 	tenantID googleUuid.UUID,
@@ -108,8 +108,8 @@ func (s *SessionManagerService) ValidateBrowserSession(
 	return s.sessionManager.ValidateBrowserSession(ctx, token)
 }
 
-// IssueServiceSession creates a new service session token.
-func (s *SessionManagerService) IssueServiceSession(
+// IssueServiceSessionWithTenant creates a new service session token (multi-tenant version).
+func (s *SessionManagerService) IssueServiceSessionWithTenant(
 	ctx context.Context,
 	clientID string,
 	tenantID googleUuid.UUID,
@@ -151,4 +151,20 @@ func (s *SessionManagerService) CleanupExpiredSessions(
 	}
 
 	return s.sessionManager.CleanupExpiredSessions(ctx)
+}
+
+// IssueBrowserSession (simplified signature for single-tenant applications).
+// Wrapper method for compatibility with template realms handler.
+func (s *SessionManagerService) IssueBrowserSession(ctx context.Context, userID string, realm string) (string, error) {
+	// For single-tenant cipher-im, use nil UUIDs for tenant and realm.
+	var nilUUID googleUuid.UUID
+	return s.sessionManager.IssueBrowserSession(ctx, userID, nilUUID, nilUUID)
+}
+
+// IssueServiceSession (simplified signature for single-tenant applications).
+// Wrapper method for compatibility with template realms handler.
+func (s *SessionManagerService) IssueServiceSession(ctx context.Context, userID string, realm string) (string, error) {
+	// For single-tenant cipher-im, use nil UUIDs for tenant and realm.
+	var nilUUID googleUuid.UUID
+	return s.sessionManager.IssueServiceSession(ctx, userID, nilUUID, nilUUID)
 }

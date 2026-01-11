@@ -79,9 +79,9 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	// Issue session based on type.
 	var token string
 	if req.SessionType == "browser" {
-		token, err = h.sessionManager.IssueBrowserSession(ctx, req.UserID, tenantID, realmID)
+		token, err = h.sessionManager.IssueBrowserSessionWithTenant(ctx, req.UserID, tenantID, realmID)
 	} else {
-		token, err = h.sessionManager.IssueServiceSession(ctx, req.UserID, tenantID, realmID)
+		token, err = h.sessionManager.IssueServiceSessionWithTenant(ctx, req.UserID, tenantID, realmID)
 	}
 
 	if err != nil {

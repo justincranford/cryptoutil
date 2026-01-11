@@ -21,6 +21,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilTemplateServiceTesting "cryptoutil/internal/apps/template/service/testing/httpservertests"
 )
 
 // TestNewPublicHTTPServer_HappyPath tests successful public server creation.
@@ -90,15 +91,15 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		require.NoError(t, err)
+		return server
+	}
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
-	require.NoError(t, err)
-
-	err = server.Start(nil) //nolint:staticcheck // Testing nil context handling.
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "context cannot be nil")
+	cryptoutilTemplateServiceTesting.TestStartNilContext(t, createServer)
 }
 
 // TestPublicHTTPServer_ServiceHealth_Healthy tests /service/api/v1/health returns healthy.
@@ -233,82 +234,30 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
-
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	var startErr error
-
-	go func() {
-		defer wg.Done()
-
-		startErr = server.Start(ctx)
-	}()
-
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
-
-	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
-
-	err = server.Shutdown(shutdownCtx)
-	require.NoError(t, err)
-
-	wg.Wait()
-
-	// Verify Start() returned an error (context cancelled) - but it may be nil if shutdown completed cleanly.
-	if startErr != nil {
-		assert.Contains(t, startErr.Error(), "public server stopped")
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		require.NoError(t, err)
+		return server
 	}
 
-	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	cryptoutilTemplateServiceTesting.TestShutdownGraceful(t, createServer)
 }
 
 // TestPublicHTTPServer_Shutdown_NilContext tests Shutdown accepts nil context.
 func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		require.NoError(t, err)
+		return server
+	}
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
-
-	// Shutdown with nil context (should use Background()).
-	err = server.Shutdown(nil) //nolint:staticcheck // Testing nil context handling.
-	require.NoError(t, err)
-
-	wg.Wait()
-
-	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	cryptoutilTemplateServiceTesting.TestShutdownNilContext(t, createServer)
 }
 
 // TestPublicHTTPServer_ActualPort_BeforeStart tests ActualPort before server starts.
@@ -475,46 +424,13 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 func TestPublicHTTPServer_Shutdown_DoubleCall(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		require.NoError(t, err)
+		return server
+	}
 
-	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Start server in background.
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
-
-	// First shutdown - should succeed.
-	shutdownCtx1, shutdownCancel1 := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel1()
-
-	err = server.Shutdown(shutdownCtx1)
-	require.NoError(t, err)
-
-	// Second shutdown - should return error.
-	shutdownCtx2, shutdownCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel2()
-
-	err = server.Shutdown(shutdownCtx2)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "public server already shutdown")
-
-	// Cleanup.
-	wg.Wait()
-
-	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	cryptoutilTemplateServiceTesting.TestShutdownDoubleCall(t, createServer)
 }

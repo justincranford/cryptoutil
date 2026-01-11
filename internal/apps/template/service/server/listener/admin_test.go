@@ -18,6 +18,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilTemplateServiceTesting "cryptoutil/internal/apps/template/service/testing/httpservertests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -283,14 +284,15 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 func TestAdminServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
-	require.NoError(t, err)
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
+		server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		require.NoError(t, err)
+		return server
+	}
 
-	err = server.Start(nil) //nolint:staticcheck // Testing nil context handling.
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "context cannot be nil")
+	cryptoutilTemplateServiceTesting.TestStartNilContext(t, createServer)
 }
 
 // TestAdminServer_Livez_Alive tests /admin/v1/livez endpoint when server is alive.
@@ -519,31 +521,16 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 // TestAdminServer_Shutdown_NilContext tests Shutdown accepts nil context and uses Background().
 func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
-	require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+		t.Helper()
+		tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
+		server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		require.NoError(t, err)
+		return server
+	}
 
-	// Start server in background.
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		_ = server.Start(ctx)
-	}()
-
-	// Wait for server to be ready.
-	time.Sleep(200 * time.Millisecond)
-
-	// Shutdown with nil context (should use Background()).
-	err = server.Shutdown(nil) //nolint:staticcheck // Testing nil context handling.
-	require.NoError(t, err)
-
-	wg.Wait()
+	cryptoutilTemplateServiceTesting.TestShutdownNilContext(t, createServer)
 
 	// Wait for OS socket cleanup (TCP TIME_WAIT state).
 	// Windows needs longer for socket release - ConcurrentRequests runs next.
