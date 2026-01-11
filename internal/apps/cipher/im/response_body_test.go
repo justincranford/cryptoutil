@@ -123,6 +123,7 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 			"connection refused",
 			"actively refused",
 			"dial tcp",
+			"EOF", // Can happen when nothing is listening.
 		}),
 		"Should contain connection error for default URL: %s", output)
 }
@@ -144,6 +145,7 @@ func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
 			"connection refused",
 			"actively refused",
 			"dial tcp",
+			"EOF", // Can happen when nothing is listening.
 		}),
 		"Should contain connection error for default URL: %s", output)
 }

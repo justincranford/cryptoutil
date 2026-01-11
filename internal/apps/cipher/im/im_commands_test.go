@@ -473,6 +473,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 				"connection refused",
 				"actively refused",
 				"dial tcp",
+				"EOF", // Can happen when nothing is listening on default port.
 			},
 		},
 		{
