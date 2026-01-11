@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilTemplateServiceTesting "cryptoutil/internal/apps/template/service/testing/httpservertests"
+	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 )
 
 // TestAdminServer_Start_NilContext tests Start with nil context.

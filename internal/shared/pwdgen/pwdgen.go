@@ -12,10 +12,10 @@ import (
 
 // CharSetConfig defines a character set with minimum and maximum requirements.
 type CharSetConfig struct {
-	Name       string   // Name of this character set (for error messages)
-	Characters []rune   // UTF-8 characters in this set
-	Min        int      // Minimum required characters from this set
-	Max        int      // Maximum allowed characters from this set (use MaxInt for unlimited)
+	Name       string // Name of this character set (for error messages)
+	Characters []rune // UTF-8 characters in this set
+	Min        int    // Minimum required characters from this set
+	Max        int    // Maximum allowed characters from this set (use MaxInt for unlimited)
 }
 
 // PasswordPolicy defines the policy for password generation.
@@ -55,7 +55,7 @@ var (
 	BasicPolicy = PasswordPolicy{
 		Name:                 "basic",
 		MinLength:            8,
-		MaxLength            16,
+		MaxLength:            16,
 		AllowDuplicates:      true,
 		AllowAdjacentRepeats: false,
 		StartCharacters:      append([]rune{}, LowercaseLetters...),
@@ -71,7 +71,7 @@ var (
 	StrongPolicy = PasswordPolicy{
 		Name:                 "strong",
 		MinLength:            12,
-		MaxLength            24,
+		MaxLength:            24,
 		AllowDuplicates:      true,
 		AllowAdjacentRepeats: false,
 		StartCharacters:      append(append([]rune{}, LowercaseLetters...), UppercaseLetters...),
@@ -88,7 +88,7 @@ var (
 	EnterprisePolicy = PasswordPolicy{
 		Name:                 "enterprise",
 		MinLength:            16,
-		MaxLength            32,
+		MaxLength:            32,
 		AllowDuplicates:      false,
 		AllowAdjacentRepeats: false,
 		StartCharacters:      append([]rune{}, LowercaseLetters...),
