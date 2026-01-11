@@ -16,6 +16,7 @@
 package integration_test
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -84,7 +85,13 @@ func TestDockerComposeFullStack(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := client.Get(tt.url)
+			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			defer cancel()
+
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, tt.url, nil)
+			require.NoError(t, err, "Creating request should succeed")
+
+			resp, err := client.Do(req)
 			require.NoError(t, err, "GET %s should succeed", tt.url)
 
 			defer func() { _ = resp.Body.Close() }()
@@ -138,13 +145,18 @@ func TestAllInstancesHealthy(t *testing.T) {
 	client := createHTTPSClient()
 
 	for _, tt := range tests {
-
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			defer cancel()
+
 			// Validate livez endpoint
 			livezURL := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, tt.adminPort)
-			resp, err := client.Get(livezURL)
+			livezReq, err := http.NewRequestWithContext(ctx, http.MethodGet, livezURL, nil)
+			require.NoError(t, err, "Creating livez request should succeed")
+
+			resp, err := client.Do(livezReq)
 			require.NoError(t, err, "GET livez should succeed")
 
 			defer func() { _ = resp.Body.Close() }()
@@ -163,7 +175,10 @@ func TestAllInstancesHealthy(t *testing.T) {
 
 			// Validate readyz endpoint
 			readyzURL := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, tt.adminPort)
-			resp, err = client.Get(readyzURL)
+			readyzReq, err := http.NewRequestWithContext(ctx, http.MethodGet, readyzURL, nil)
+			require.NoError(t, err, "Creating readyz request should succeed")
+
+			resp, err = client.Do(readyzReq)
 			require.NoError(t, err, "GET readyz should succeed")
 
 			defer func() { _ = resp.Body.Close() }()
@@ -199,11 +214,18 @@ func createHTTPSClient() *http.Client {
 func runDockerCompose(args ...string) error {
 	composeDir := filepath.Join("..", "..", "..", "..", "..", "..", "cmd", "cipher-im")
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
 	cmdArgs := append([]string{"compose"}, args...)
-	cmd := exec.Command("docker", cmdArgs...)
+	cmd := exec.CommandContext(ctx, "docker", cmdArgs...)
 	cmd.Dir = composeDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("docker compose %v failed: %w", args, err)
+	}
+
+	return nil
 }

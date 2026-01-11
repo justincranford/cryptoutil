@@ -5,12 +5,19 @@ package apis
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+)
+
+// Constants for repeated strings.
+const (
+	errInvalidRequestBody = "Invalid request body format"
+	sessionTypeBrowser    = "browser"
 )
 
 // SessionHandler handles session management endpoints for cipher-im.
@@ -56,7 +63,7 @@ type SessionValidateResponse struct {
 func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	var req SessionIssueRequest
 	if err := c.BodyParser(&req); err != nil {
-		summary := "Invalid request body format"
+		summary := errInvalidRequestBody
 
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
@@ -81,7 +88,7 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 
 	// Issue session based on type.
 	var token string
-	if req.SessionType == "browser" {
+	if req.SessionType == sessionTypeBrowser {
 		token, err = h.sessionManager.IssueBrowserSessionWithTenant(ctx, req.UserID, tenantID, realmID)
 	} else {
 		token, err = h.sessionManager.IssueServiceSessionWithTenant(ctx, req.UserID, tenantID, realmID)
@@ -98,14 +105,18 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 		Token: token,
 	}
 
-	return c.JSON(resp)
+	if err := c.JSON(resp); err != nil {
+		return fmt.Errorf("failed to encode JSON response: %w", err)
+	}
+
+	return nil
 }
 
 // ValidateSession validates an existing session token.
 func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 	var req SessionValidateRequest
 	if err := c.BodyParser(&req); err != nil {
-		summary := "Invalid request body format"
+		summary := errInvalidRequestBody
 
 		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
 	}
@@ -119,7 +130,7 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 		valid                     bool
 	)
 
-	if req.SessionType == "browser" {
+	if req.SessionType == sessionTypeBrowser {
 		browserSession, err := h.sessionManager.ValidateBrowserSession(ctx, req.Token)
 		if err != nil {
 			valid = false
@@ -155,5 +166,9 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 		Valid:    valid,
 	}
 
-	return c.JSON(resp)
+	if err := c.JSON(resp); err != nil {
+		return fmt.Errorf("failed to encode JSON response: %w", err)
+	}
+
+	return nil
 }

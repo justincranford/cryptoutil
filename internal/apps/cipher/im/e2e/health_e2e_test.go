@@ -6,7 +6,9 @@ package e2e_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -34,8 +36,14 @@ func TestE2E_HealthChecks(t *testing.T) {
 			t.Parallel()
 
 			// Public health check (external clients MUST use this endpoint).
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
 			healthURL := tt.publicURL + cryptoutilMagic.CipherE2EHealthEndpoint
-			healthResp, err := sharedHTTPClient.Get(healthURL)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+			require.NoError(t, err, "Creating health check request should succeed")
+
+			healthResp, err := sharedHTTPClient.Do(req)
 			require.NoError(t, err, "Health check should succeed for %s", tt.name)
 			require.NoError(t, healthResp.Body.Close())
 			require.Equal(t, http.StatusOK, healthResp.StatusCode,
@@ -60,9 +68,19 @@ func TestE2E_TelemetryServices(t *testing.T) {
 		// A more robust check would use `docker exec` to query the internal health endpoint.
 
 		// Verify the service is accessible by attempting a connection (will fail, but proves routing).
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
 		client := &http.Client{Timeout: 2 * time.Second}
 		// Note: OTLP gRPC port 4317 won't respond to HTTP, but connection attempt proves DNS resolution.
-		_, err := client.Get(otelCollectorURL)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorURL, nil)
+		require.NoError(t, err, "Creating OTLP request should succeed")
+
+		resp, err := client.Do(req)
+		if resp != nil {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
+		}
 		// We expect an error (gRPC port doesn't speak HTTP), but NO "connection refused" or "no such host".
 		// This proves the container is running and network routing works.
 		require.Error(t, err, "OTLP gRPC port should not respond to HTTP GET")
@@ -74,8 +92,14 @@ func TestE2E_TelemetryServices(t *testing.T) {
 		t.Parallel()
 
 		// Grafana HTTP API health check.
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
 		client := &http.Client{Timeout: 5 * time.Second}
-		resp, err := client.Get(grafanaURL + "/api/health")
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", nil)
+		require.NoError(t, err, "Creating Grafana health request should succeed")
+
+		resp, err := client.Do(req)
 		require.NoError(t, err, "Grafana health endpoint should respond")
 		require.NoError(t, resp.Body.Close())
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Grafana should return 200 OK")
@@ -105,11 +129,17 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 			password := "TestPassword123!"
 
 			// Register user in current instance.
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
 			registerURL := inst.publicURL + "/service/api/v1/users/register"
 			registerBody := fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password)
 
-			resp, err := sharedHTTPClient.Post(registerURL, "application/json",
-				bytes.NewBufferString(registerBody))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, registerURL, bytes.NewBufferString(registerBody))
+			require.NoError(t, err, "Creating registration request should succeed")
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := sharedHTTPClient.Do(req)
 			require.NoError(t, err, "User registration should succeed in %s", inst.name)
 			require.NoError(t, resp.Body.Close())
 			require.Equal(t, http.StatusCreated, resp.StatusCode,
@@ -119,8 +149,11 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 			loginURL := inst.publicURL + "/service/api/v1/users/login"
 			loginBody := fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password)
 
-			loginResp, err := sharedHTTPClient.Post(loginURL, "application/json",
-				bytes.NewBufferString(loginBody))
+			loginReq, err := http.NewRequestWithContext(ctx, http.MethodPost, loginURL, bytes.NewBufferString(loginBody))
+			require.NoError(t, err, "Creating login request should succeed")
+			loginReq.Header.Set("Content-Type", "application/json")
+
+			loginResp, err := sharedHTTPClient.Do(loginReq)
 			require.NoError(t, err, "Login should succeed in same instance %s", inst.name)
 			require.NoError(t, loginResp.Body.Close())
 			require.Equal(t, http.StatusOK, loginResp.StatusCode,
@@ -133,8 +166,11 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 				}
 
 				otherLoginURL := otherInst.publicURL + "/service/api/v1/users/login"
-				otherLoginResp, err := sharedHTTPClient.Post(otherLoginURL, "application/json",
-					bytes.NewBufferString(loginBody))
+				otherLoginReq, err := http.NewRequestWithContext(ctx, http.MethodPost, otherLoginURL, bytes.NewBufferString(loginBody))
+				require.NoError(t, err, "Creating other login request should succeed")
+				otherLoginReq.Header.Set("Content-Type", "application/json")
+
+				otherLoginResp, err := sharedHTTPClient.Do(otherLoginReq)
 				require.NoError(t, err, "Login attempt should complete in %s", otherInst.name)
 				require.NoError(t, otherLoginResp.Body.Close())
 				require.NotEqual(t, http.StatusOK, otherLoginResp.StatusCode,

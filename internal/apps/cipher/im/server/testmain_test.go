@@ -73,18 +73,6 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-// Helper functions now use shared test resources from TestMain.
-
-// initTestDB is deprecated - tests should use testDB directly or call cleanTestDB for isolation.
-// Kept for backward compatibility during migration.
-func initTestDB(t *testing.T) *gorm.DB {
-	t.Helper()
-	// Clean existing data for test isolation while reusing schema and connection.
-	cleanTestDB(t)
-
-	return testDB
-}
-
 // cleanTestDB truncates all tables for test isolation while preserving schema.
 func cleanTestDB(t *testing.T) {
 	t.Helper()

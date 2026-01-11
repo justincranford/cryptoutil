@@ -19,6 +19,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
@@ -56,12 +57,17 @@ func TestThreeInstanceDeployment(t *testing.T) {
 	}
 
 	for _, inst := range instances {
-
 		t.Run(inst.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			defer cancel()
+
 			url := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, inst.adminPort)
-			resp, err := client.Get(url)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+			require.NoError(t, err, "Creating request should succeed")
+
+			resp, err := client.Do(req)
 			require.NoError(t, err, "GET livez should succeed for %s", inst.name)
 
 			defer func() { _ = resp.Body.Close() }()
@@ -150,8 +156,14 @@ func TestSQLiteInstanceIsolation(t *testing.T) {
 	// Instead, validate that SQLite instance is healthy and responding
 	client := createHTTPSClient()
 
+	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	defer cancel()
+
 	url := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, 9090)
-	resp, err := client.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	require.NoError(t, err, "Creating livez request should succeed")
+
+	resp, err := client.Do(req)
 	require.NoError(t, err, "GET livez should succeed for SQLite instance")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -160,7 +172,10 @@ func TestSQLiteInstanceIsolation(t *testing.T) {
 
 	// Validate readyz endpoint (confirms database initialization succeeded)
 	readyzURL := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, 9090)
-	resp, err = client.Get(readyzURL)
+	readyzReq, err := http.NewRequestWithContext(ctx, http.MethodGet, readyzURL, nil)
+	require.NoError(t, err, "Creating readyz request should succeed")
+
+	resp, err = client.Do(readyzReq)
 	require.NoError(t, err, "GET readyz should succeed for SQLite instance")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -204,12 +219,17 @@ func TestCrossInstanceDeployment(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			defer cancel()
+
 			url := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, tt.adminPort)
-			resp, err := client.Get(url)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+			require.NoError(t, err, "Creating request should succeed")
+
+			resp, err := client.Do(req)
 			require.NoError(t, err, "GET readyz should succeed for %s", tt.name)
 
 			defer func() { _ = resp.Body.Close() }()

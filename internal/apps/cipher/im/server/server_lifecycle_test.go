@@ -14,8 +14,8 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServiceTesting "cryptoutil/internal/apps/template/service/testing/httpservertests"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestNewPublicServer_NilContext tests constructor with nil context.
@@ -158,6 +158,7 @@ func TestShutdown_MultipleCalls(t *testing.T) {
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
 		publicServer, _ := createTestPublicServer(t, testDB)
+
 		return publicServer
 	}
 
@@ -194,6 +195,7 @@ func TestPublicServer_DoubleShutdown(t *testing.T) {
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
 		srv, _ := createTestPublicServer(t, testDB)
+
 		return srv
 	}
 
@@ -207,6 +209,7 @@ func TestShutdown_DuplicateCall(t *testing.T) {
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
 		server, _ := createTestPublicServer(t, testDB)
+
 		return server
 	}
 
