@@ -259,6 +259,28 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 func (g *PasswordGenerator) meetsRequirements(password string) bool {
 	passwordRunes := []rune(password)
 
+	// Check for duplicates if not allowed.
+	if !g.policy.AllowDuplicates {
+		seen := make(map[rune]bool)
+		for _, r := range passwordRunes {
+			if seen[r] {
+				return false // Duplicate found.
+			}
+
+			seen[r] = true
+		}
+	}
+
+	// Check for adjacent repeats if not allowed.
+	if !g.policy.AllowAdjacentRepeats {
+		for i := 1; i < len(passwordRunes); i++ {
+			if passwordRunes[i] == passwordRunes[i-1] {
+				return false // Adjacent repeat found.
+			}
+		}
+	}
+
+	// Check CharSet requirements.
 	for _, cs := range g.policy.CharSets {
 		count := 0
 		for _, pr := range passwordRunes {

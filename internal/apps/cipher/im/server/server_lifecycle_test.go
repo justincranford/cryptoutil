@@ -236,3 +236,103 @@ func TestStart_ContextCancelled(t *testing.T) {
 
 	_ = srv.Shutdown(context.Background())
 }
+
+// TestCipherIMServer_Accessors tests all accessor methods on CipherIMServer.
+func TestCipherIMServer_Accessors(t *testing.T) {
+	t.Parallel()
+
+	// Use the shared testCipherIMServer from TestMain.
+	srv := testCipherIMServer
+	require.NotNil(t, srv)
+
+	// Test PublicPort.
+	publicPort := srv.PublicPort()
+	require.Greater(t, publicPort, 0, "PublicPort should return positive port")
+
+	// Test ActualPort (alias for PublicPort).
+	actualPort := srv.ActualPort()
+	require.Equal(t, publicPort, actualPort, "ActualPort should equal PublicPort")
+
+	// Test AdminPort.
+	adminPort := srv.AdminPort()
+	require.Greater(t, adminPort, 0, "AdminPort should return positive port")
+
+	// Test PublicBaseURL.
+	publicBaseURL := srv.PublicBaseURL()
+	require.NotEmpty(t, publicBaseURL, "PublicBaseURL should not be empty")
+	require.Contains(t, publicBaseURL, "https://", "PublicBaseURL should start with https://")
+
+	// Test AdminBaseURL.
+	adminBaseURL := srv.AdminBaseURL()
+	require.NotEmpty(t, adminBaseURL, "AdminBaseURL should not be empty")
+	require.Contains(t, adminBaseURL, "https://", "AdminBaseURL should start with https://")
+
+	// Test DB.
+	db := srv.DB()
+	require.NotNil(t, db, "DB should not be nil")
+
+	// Test JWKGen.
+	jwkGen := srv.JWKGen()
+	require.NotNil(t, jwkGen, "JWKGen should not be nil")
+
+	// Test Telemetry.
+	telemetry := srv.Telemetry()
+	require.NotNil(t, telemetry, "Telemetry should not be nil")
+
+	// Test SessionManager.
+	sessionManager := srv.SessionManager()
+	require.NotNil(t, sessionManager, "SessionManager should not be nil")
+}
+
+// TestCipherIMServer_SetReady tests the SetReady method.
+func TestCipherIMServer_SetReady(t *testing.T) {
+	t.Parallel()
+
+	cleanTestDB(t)
+
+	cfg := initTestConfig()
+
+	srv, err := server.NewFromConfig(context.Background(), cfg)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = srv.Shutdown(context.Background())
+	}()
+
+	// Start server in background.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	errChan := make(chan error, 1)
+
+	go func() {
+		errChan <- srv.Start(ctx)
+	}()
+
+	// Wait for server to be ready.
+	time.Sleep(200 * time.Millisecond)
+
+	// Test SetReady - should not panic.
+	require.NotPanics(t, func() {
+		srv.SetReady(true)
+	}, "SetReady(true) should not panic")
+
+	require.NotPanics(t, func() {
+		srv.SetReady(false)
+	}, "SetReady(false) should not panic")
+
+	// Cancel context to stop server.
+	cancel()
+}
+
+// TestPublicServer_PublicBaseURL tests the PublicBaseURL accessor.
+func TestPublicServer_PublicBaseURL(t *testing.T) {
+	t.Parallel()
+
+	publicServer, baseURL := createTestPublicServer(t, testDB)
+
+	// Test PublicBaseURL method.
+	result := publicServer.PublicBaseURL()
+	require.Equal(t, baseURL, result, "PublicBaseURL should match expected base URL")
+	require.Contains(t, result, "https://", "PublicBaseURL should start with https://")
+}
