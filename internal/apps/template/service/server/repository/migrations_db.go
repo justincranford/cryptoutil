@@ -9,6 +9,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -47,6 +48,51 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS embed.
 
 	// Run migrations.
 	if err := ApplyMigrations(sqlDB, DatabaseTypePostgreSQL, migrationsFS); err != nil {
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
+	}
+
+	return db, nil
+}
+
+func InitSQLite(ctx context.Context, databaseURL string, migrationsFS embed.FS) (*gorm.DB, error) {
+	// Open SQLite database.
+	sqlDB, err := sql.Open("sqlite", databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
+	}
+
+	// Enable WAL mode for concurrent operations.
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
+		return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
+	}
+
+	// Set busy timeout for concurrent write operations.
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
+		return nil, fmt.Errorf("failed to set busy timeout: %w", err)
+	}
+
+	// Create GORM instance.
+	dialector := sqlite.Dialector{Conn: sqlDB}
+
+	db, err := gorm.Open(dialector, &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize GORM for SQLite: %w", err)
+	}
+
+	// Configure connection pool for GORM transactions.
+	sqlDB, err = db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get database instance: %w", err)
+	}
+
+	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
+	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
+	sqlDB.SetConnMaxLifetime(0)                                     // In-memory: never close
+
+	// Run migrations.
+	if err := ApplyMigrations(sqlDB, DatabaseTypeSQLite, migrationsFS); err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 

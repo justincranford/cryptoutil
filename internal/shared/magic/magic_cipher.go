@@ -155,11 +155,20 @@ const (
 	// CipherE2ESQLitePublicPort is the SQLite instance public HTTPS port.
 	CipherE2ESQLitePublicPort = 8888
 
+	// CipherE2ESQLiteAdminPort is the SQLite instance admin HTTPS port.
+	CipherE2ESQLiteAdminPort = 9090
+
 	// CipherE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port.
 	CipherE2EPostgreSQL1PublicPort = 8889
 
+	// CipherE2EPostgreSQL1AdminPort is the PostgreSQL instance 1 admin HTTPS port.
+	CipherE2EPostgreSQL1AdminPort = 9091
+
 	// CipherE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port.
 	CipherE2EPostgreSQL2PublicPort = 8890
+
+	// CipherE2EPostgreSQL2AdminPort is the PostgreSQL instance 2 admin HTTPS port.
+	CipherE2EPostgreSQL2AdminPort = 9092
 
 	// CipherE2EGrafanaPort is the Grafana UI port.
 	CipherE2EGrafanaPort = 3000
