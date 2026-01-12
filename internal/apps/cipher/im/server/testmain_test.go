@@ -112,7 +112,7 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 	// Create PublicServer without barrier service (passed as nil).
 	// Barrier service requires unseal keys and adds significant setup complexity.
 	// Tests needing barrier service should use testCipherIMServer from TestMain.
-	publicServer, err := server.NewPublicServer(
+	publicServer, err := server.newPublicServer(
 		ctx,
 		cryptoutilMagic.IPv4Loopback,
 		testPort,

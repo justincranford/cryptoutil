@@ -48,8 +48,8 @@ type PublicServer struct {
 	cancel      context.CancelFunc
 }
 
-// NewPublicServer creates a new cipher-im public server.
-func NewPublicServer(
+// newPublicServer creates a new cipher-im public server.
+func newPublicServer(
 	ctx context.Context,
 	bindAddress string,
 	port int,
