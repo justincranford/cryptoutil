@@ -13,7 +13,7 @@
 // - Dynamic port allocation (port 0) for test isolation
 // - Coverage targets: ≥98% for infrastructure code
 
-package integration_test
+package e2e_test
 
 import (
 	"context"
@@ -40,20 +40,8 @@ const (
 )
 
 // TestMain ensures Docker Compose stack is clean before and after all tests.
-func TestMain(m *testing.M) {
-	// Cleanup any existing stack
-	_ = runDockerCompose("down", "-v")
-
-	// Run tests
-	exitCode := m.Run()
-
-	// Cleanup after tests
-	_ = runDockerCompose("down", "-v")
-
-	os.Exit(exitCode)
-}
-
 // TestDockerComposeFullStack validates full stack deployment lifecycle.
+// Stack is already running via TestMain in testmain_e2e_test.go.
 func TestDockerComposeFullStack(t *testing.T) {
 	// Step 1: Start full stack
 	t.Log("Starting Docker Compose stack...")

@@ -13,7 +13,7 @@
 // - Coverage targets: ≥98% for infrastructure code
 // - TestMain pattern for heavyweight Docker Compose startup
 
-package integration_test
+package e2e_test
 
 import (
 	"context"
