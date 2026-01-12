@@ -17,8 +17,8 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // initTestDB creates a test database for ServiceTemplate tests.

@@ -18,15 +18,15 @@ import (
 
 // mockPublicServer is a mock implementation of IPublicServer for testing.
 type mockPublicServer struct {
-	mu              sync.RWMutex
-	started         bool
-	startErr        error
-	shutdownErr     error
-	port            int
-	baseURL         string
-	startDelay      time.Duration
-	blockUntilStop  bool
-	stopChan        chan struct{}
+	mu             sync.RWMutex
+	started        bool
+	startErr       error
+	shutdownErr    error
+	port           int
+	baseURL        string
+	startDelay     time.Duration
+	blockUntilStop bool
+	stopChan       chan struct{}
 }
 
 func newMockPublicServer(port int, baseURL string) *mockPublicServer {
