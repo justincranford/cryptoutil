@@ -201,7 +201,7 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 // Parameters:
 // - sessionManager: Service providing session token issuance (must not be nil)
 // - isBrowser: true for browser sessions, false for service sessions.
-func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager interface{}, isBrowser bool) fiber.Handler {
+func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrowser bool) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req struct {
 			Username string `json:"username"`

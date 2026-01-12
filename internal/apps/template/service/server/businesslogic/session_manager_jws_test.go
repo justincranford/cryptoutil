@@ -32,7 +32,7 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	require.NotEmpty(t, token)
 
 	// Parse token as JWT
-	var claims map[string]interface{}
+	var claims map[string]any
 
 	// Load JWK from database to verify signature
 	var browserJWK struct {
@@ -136,7 +136,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
 	exp := now.Add(-1 * time.Hour) // Already expired
 	jti := googleUuid.Must(googleUuid.NewV7())
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"jti":       jti.String(),
 		"iat":       now.Add(-2 * time.Hour).Unix(),
 		"exp":       exp.Unix(),
@@ -185,7 +185,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 	require.NoError(t, publicKeyErr)
 
 	claimsBytes, _ := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
-	var claims map[string]interface{}
+	var claims map[string]any
 	_ = json.Unmarshal(claimsBytes, &claims)
 	jtiStr := claims["jti"].(string)
 
@@ -232,7 +232,7 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 	claimsBytes, verifyErr := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
 	require.NoError(t, verifyErr)
 
-	var claims map[string]interface{}
+	var claims map[string]any
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	require.NoError(t, unmarshalErr)
 

@@ -36,6 +36,7 @@ func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS embed.
 	databaseURL, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		closeDB()
+
 		return nil, nil, fmt.Errorf("failed to get PostgreSQL connection string: %w", err)
 	}
 
@@ -43,9 +44,11 @@ func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS embed.
 	gormDB, err := serverTemplateRepository.InitPostgreSQL(ctx, databaseURL, migrationsFS)
 	if err != nil {
 		closeDB()
+
 		return nil, nil, fmt.Errorf("failed to initialize database: %w", err)
 	} else if gormDB == nil {
 		closeDB()
+
 		return nil, nil, fmt.Errorf("gormDB must be non-nil")
 	}
 
@@ -53,12 +56,14 @@ func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS embed.
 	sqlDB, err := gormDB.DB()
 	if err != nil {
 		closeDB()
+
 		return nil, nil, fmt.Errorf("failed to get sql.DB: %w", err)
 	}
 
 	err = sqlDB.PingContext(ctx)
 	if err != nil {
 		closeDB()
+
 		return nil, nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
@@ -104,8 +109,10 @@ func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS embed.FS
 // Supports: postgres:// (PostgreSQL), file: (SQLite).
 // Returns: *gorm.DB, error.
 func InitDatabase(ctx context.Context, databaseURL string, migrationsFS embed.FS) (*gorm.DB, error) {
-	var db *gorm.DB
-	var err error
+	var (
+		db  *gorm.DB
+		err error
+	)
 
 	switch {
 	case len(databaseURL) >= 11 && databaseURL[:11] == "postgres://":

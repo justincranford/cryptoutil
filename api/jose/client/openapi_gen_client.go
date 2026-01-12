@@ -146,7 +146,7 @@ type JWKResponse struct {
 	Kty JWKResponseKty `json:"kty"`
 
 	// PublicJWK Public key in JWK format.
-	PublicJWK *map[string]interface{} `json:"public_jwk,omitempty"`
+	PublicJWK *map[string]any `json:"public_jwk,omitempty"`
 
 	// Use Intended use of the key.
 	Use *string `json:"use,omitempty"`
@@ -157,7 +157,7 @@ type JWKResponseKty string
 
 // JWKS JSON Web Key Set (RFC 7517).
 type JWKS struct {
-	Keys []map[string]interface{} `json:"keys"`
+	Keys []map[string]any `json:"keys"`
 }
 
 // JWSSignRequest defines model for JWSSignRequest.
@@ -202,7 +202,7 @@ type JWSVerifyResponse struct {
 // JWTCreateRequest defines model for JWTCreateRequest.
 type JWTCreateRequest struct {
 	// Claims JWT claims.
-	Claims map[string]interface{} `json:"claims"`
+	Claims map[string]any `json:"claims"`
 
 	// Kid Key ID to use for signing.
 	Kid openapi_types.UUID `json:"kid"`
@@ -226,7 +226,7 @@ type JWTVerifyRequest struct {
 // JWTVerifyResponse defines model for JWTVerifyResponse.
 type JWTVerifyResponse struct {
 	// Claims Decoded claims (if valid).
-	Claims *map[string]interface{} `json:"claims,omitempty"`
+	Claims *map[string]any `json:"claims,omitempty"`
 
 	// Error Error message (if invalid).
 	Error *string `json:"error,omitempty"`

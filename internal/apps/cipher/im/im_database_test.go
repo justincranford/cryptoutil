@@ -4,6 +4,7 @@ package im
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -90,6 +91,7 @@ func TestInitDatabase_HappyPaths(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
+
 			tableCount, cleanup := tt.setupFunc(t, ctx)
 			defer cleanup()
 
@@ -112,7 +114,11 @@ func TestInitDatabase_ErrorPaths(t *testing.T) {
 				gormDB, err := cryptoutilTemplateServerTestutil.InitDatabase(ctx, "mysql://user:pass@localhost:3306/dbname", cipherIMRepository.MigrationsFS)
 				require.Nil(t, gormDB)
 
-				return err
+				if err != nil {
+					return fmt.Errorf("failed to initialize database: %w", err)
+				}
+
+				return nil
 			},
 			expectedErrMsg: "unsupported database URL scheme",
 		},
@@ -127,7 +133,11 @@ func TestInitDatabase_ErrorPaths(t *testing.T) {
 				gormDB, err := serverTemplateRepository.InitPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname", cipherIMRepository.MigrationsFS)
 				require.Nil(t, gormDB)
 
-				return err
+				if err != nil {
+					return fmt.Errorf("failed to initialize PostgreSQL: %w", err)
+				}
+
+				return nil
 			},
 			expectedErrMsg: "ping",
 		},
@@ -138,7 +148,11 @@ func TestInitDatabase_ErrorPaths(t *testing.T) {
 				gormDB, err := serverTemplateRepository.InitSQLite(ctx, "file:/nonexistent/invalid/path.db", cipherIMRepository.MigrationsFS)
 				require.Nil(t, gormDB)
 
-				return err
+				if err != nil {
+					return fmt.Errorf("failed to initialize SQLite: %w", err)
+				}
+
+				return nil
 			},
 			expectedErrMsg: "", // Error message varies by platform, just check it's an error.
 		},
@@ -152,6 +166,7 @@ func TestInitDatabase_ErrorPaths(t *testing.T) {
 			err := tt.setupFunc(ctx)
 
 			require.Error(t, err)
+
 			if tt.expectedErrMsg != "" {
 				require.Contains(t, err.Error(), tt.expectedErrMsg)
 			}

@@ -44,7 +44,7 @@ func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
 	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	require.NoError(t, decryptErr)
 
-	var claims map[string]interface{}
+	var claims map[string]any
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	require.NoError(t, unmarshalErr)
 
@@ -105,7 +105,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_ExpiredJWT(t *testing.T) {
 	exp := now.Add(-1 * time.Hour) // Expired 1 hour ago
 
 	// Create expired JWT claims
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"jti":       jti.String(),
 		"iat":       now.Add(-2 * time.Hour).Unix(),
 		"exp":       exp.Unix(),
@@ -166,7 +166,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_RevokedSession(t *testing.T) 
 	require.NoError(t, parseErr)
 
 	claimsBytes, _ := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
-	var claims map[string]interface{}
+	var claims map[string]any
 	_ = json.Unmarshal(claimsBytes, &claims)
 	jtiStr := claims["jti"].(string)
 
@@ -210,7 +210,7 @@ func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
 	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	require.NoError(t, decryptErr)
 
-	var claims map[string]interface{}
+	var claims map[string]any
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	require.NoError(t, unmarshalErr)
 

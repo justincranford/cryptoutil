@@ -479,7 +479,7 @@ func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID string
 //
 // Returns session metadata if valid, error otherwise.
 func (sm *SessionManager) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilRepository.BrowserSession, error) {
-	var result interface{}
+	var result any
 	var err error
 
 	switch sm.browserAlgorithm {
@@ -524,7 +524,7 @@ func (sm *SessionManager) IssueServiceSession(ctx context.Context, clientID stri
 // ValidateServiceSession validates a service session token.
 // Similar to ValidateBrowserSession but for service-to-service authentication.
 func (sm *SessionManager) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilRepository.ServiceSession, error) {
-	var result interface{}
+	var result any
 	var err error
 
 	switch sm.serviceAlgorithm {
@@ -667,7 +667,7 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 }
 
 // validateOPAQUESession validates an OPAQUE session token.
-func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
+func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser bool, token string) (any, error) {
 	// Hash token for database lookup
 	tokenHash, err := cryptoutilHash.HashHighEntropyDeterministic(token)
 	if err != nil {
@@ -676,7 +676,7 @@ func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser b
 
 	// Look up session by token hash
 	now := time.Now()
-	var session interface{}
+	var session any
 	var findErr error
 
 	if isBrowser {
@@ -773,7 +773,7 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 		exp = now.Add(sm.config.ServiceSessionExpiration)
 	}
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"jti":       jti.String(),
 		"iat":       now.Unix(),
 		"exp":       exp.Unix(),
@@ -832,7 +832,7 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 }
 
 // validateJWSSession validates a JWS session token.
-func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
+func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool, token string) (any, error) {
 	// Load JWK from database
 	var jwkID googleUuid.UUID
 	if isBrowser {
@@ -900,7 +900,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Parse and validate claims
-	var claims map[string]interface{}
+	var claims map[string]any
 	if err := json.Unmarshal(claimsBytes, &claims); err != nil {
 		summary := "Failed to parse JWT claims"
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
@@ -940,7 +940,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 
 	// Look up session by token hash
 	now := time.Now()
-	var session interface{}
+	var session any
 	var findErr error
 
 	if isBrowser {
@@ -1039,7 +1039,7 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	}
 	jti := googleUuid.Must(googleUuid.NewV7())
 
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		"jti":       jti.String(),
 		"iat":       now.Unix(),
 		"exp":       exp.Unix(),
@@ -1099,7 +1099,7 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 }
 
 // validateJWESession validates a JWE session token.
-func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool, token string) (interface{}, error) {
+func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool, token string) (any, error) {
 	// Load JWK from database
 	var jwkID googleUuid.UUID
 	if isBrowser {
@@ -1159,7 +1159,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	// Parse JWT claims
-	var claims map[string]interface{}
+	var claims map[string]any
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	if unmarshalErr != nil {
 		summary := "Invalid session token"
@@ -1193,7 +1193,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	// Look up session in database by jti (enables revocation)
-	var session interface{}
+	var session any
 	var findErr error
 
 	if isBrowser {
