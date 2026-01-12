@@ -173,7 +173,7 @@ func TestInitSQLite_InvalidPath(t *testing.T) {
 	ctx := context.Background()
 
 	// Use invalid file path (directory doesn't exist).
-	db, err := initSQLite(ctx, "file:/nonexistent/invalid/path.db")
+	db, err := serverTemplateRepository.InitSQLite(ctx, "file:/nonexistent/invalid/path.db", cipherIMRepository.MigrationsFS)
 	require.Error(t, err)
 	require.Nil(t, db)
 }
