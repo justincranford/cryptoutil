@@ -8,7 +8,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"embed"
 	"encoding/pem"
 	"fmt"
 	"io"
@@ -18,14 +17,11 @@ import (
 	"strings"
 	"syscall"
 
-	"gorm.io/gorm"
-
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	serverTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -603,36 +599,4 @@ func httpPost(url, cacertPath string) (int, string, error) {
 	}
 
 	return resp.StatusCode, string(body), nil
-}
-
-// InitDatabase initializes database (PostgreSQL or SQLite) with schema.
-// Database type determined by --database-url flag or DATABASE_URL env var.
-// SQLite: sqliteInMemoryURL or file:/path/to/data.db?cache=shared
-// PostgreSQL: postgres://user:pass@host:port/dbname?sslmode=disable
-func InitDatabase(ctx context.Context, databaseURL string, migrationsFS embed.FS) (*gorm.DB, error) {
-	// Use provided database URL, or fall back to environment variable or default.
-	if databaseURL == "" {
-		if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
-			databaseURL = envURL
-		} else {
-			databaseURL = sqliteInMemoryURL // Default: SQLite in-memory
-		}
-	}
-
-	// Detect database type from URL scheme.
-	var (
-		db  *gorm.DB
-		err error
-	)
-
-	switch {
-	case strings.HasPrefix(databaseURL, "postgres://"):
-		db, err = serverTemplateRepository.InitPostgreSQL(ctx, databaseURL, migrationsFS)
-	case strings.HasPrefix(databaseURL, "file:"):
-		db, err = serverTemplateRepository.InitSQLite(ctx, databaseURL, migrationsFS)
-	default:
-		return nil, fmt.Errorf("unsupported database URL scheme: %s", databaseURL)
-	}
-
-	return db, err
 }

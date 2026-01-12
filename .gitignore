@@ -59,6 +59,9 @@ local-scripts/
 **/orm_coverage
 **/*_coverage
 **/*_functions.txt
+**/test_*.db
+**/test_*.db-shm
+**/test_*.db-wal
 
 # Output of test or workflow reports
 **/dast-reports/

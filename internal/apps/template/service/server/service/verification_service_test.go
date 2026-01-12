@@ -111,7 +111,7 @@ func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*rep
 		ID:          googleUuid.New(),
 		Name:        tenantName,
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -166,11 +166,11 @@ func TestVerificationService_ListPendingClients(t *testing.T) {
 	// Create pending clients.
 	for i := 0; i < 2; i++ {
 		unverifiedClient := &repository.UnverifiedClient{
-			ID:           googleUuid.New(),
-			TenantID:     tenant.ID,
-			ClientID:     "client" + googleUuid.NewString()[:8],
+			ID:               googleUuid.New(),
+			TenantID:         tenant.ID,
+			ClientID:         "client" + googleUuid.NewString()[:8],
 			ClientSecretHash: "secret",
-			ExpiresAt:    time.Now().Add(72 * time.Hour),
+			ExpiresAt:        time.Now().Add(72 * time.Hour),
 		}
 		require.NoError(t, db.Create(unverifiedClient).Error)
 	}
@@ -311,11 +311,11 @@ func TestVerificationService_ApproveClient_Success(t *testing.T) {
 
 	// Create unverified client.
 	unverifiedClient := &repository.UnverifiedClient{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     "pendingclient" + googleUuid.NewString()[:8],
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         "pendingclient" + googleUuid.NewString()[:8],
 		ClientSecretHash: "clientsecret",
-		ExpiresAt:    time.Now().Add(72 * time.Hour),
+		ExpiresAt:        time.Now().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedClient).Error)
 
@@ -374,11 +374,11 @@ func TestVerificationService_RejectClient(t *testing.T) {
 
 	// Create unverified client.
 	unverifiedClient := &repository.UnverifiedClient{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     "rejectclient" + googleUuid.NewString()[:8],
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         "rejectclient" + googleUuid.NewString()[:8],
 		ClientSecretHash: "secret",
-		ExpiresAt:    time.Now().Add(72 * time.Hour),
+		ExpiresAt:        time.Now().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedClient).Error)
 
@@ -424,11 +424,11 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 
 	// Create expired client.
 	expiredClient := &repository.UnverifiedClient{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     "expiredclient" + googleUuid.NewString()[:8],
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         "expiredclient" + googleUuid.NewString()[:8],
 		ClientSecretHash: "secret",
-		ExpiresAt:    time.Now().Add(-1 * time.Hour),
+		ExpiresAt:        time.Now().Add(-1 * time.Hour),
 	}
 	require.NoError(t, db.Create(expiredClient).Error)
 

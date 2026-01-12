@@ -301,7 +301,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						ID:          id,
 						Name:        "Original Name",
 						Description: "Original Description",
-						Active: 1,
+						Active:      1,
 						CreatedAt:   time.Now(),
 					}, nil
 				}
@@ -323,7 +323,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						ID:          id,
 						Name:        "Old Name",
 						Description: "Old Description",
-						Active: 1,
+						Active:      1,
 						CreatedAt:   time.Now(),
 					}, nil
 				}
@@ -537,7 +537,7 @@ func TestTenantService_UpdateTenant_UpdateError(t *testing.T) {
 		ID:          tenantID,
 		Name:        "old-name",
 		Description: "old description",
-		Active: 1,
+		Active:      1,
 	}
 
 	tenantRepo := &mockTenantRepository{

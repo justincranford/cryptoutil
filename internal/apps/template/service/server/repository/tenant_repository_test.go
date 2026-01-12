@@ -63,7 +63,7 @@ func TestTenantRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        dupName,
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 	err := repo.Create(ctx, firstTenant)
@@ -80,7 +80,7 @@ func TestTenantRepository_Create(t *testing.T) {
 				ID:          googleUuid.New(),
 				Name:        uniqueTenantName("Acme"),
 				Description: "Test tenant",
-				Active: 1,
+				Active:      1,
 				CreatedAt:   time.Now(),
 			},
 			wantError: false,
@@ -91,7 +91,7 @@ func TestTenantRepository_Create(t *testing.T) {
 				ID:          googleUuid.New(),
 				Name:        dupName,
 				Description: "Duplicate tenant",
-				Active: 1,
+				Active:      1,
 				CreatedAt:   time.Now(),
 			},
 			wantError: true,
@@ -120,7 +120,7 @@ func TestTenantRepository_GetByID(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("GetByID"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -170,7 +170,7 @@ func TestTenantRepository_GetByName(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("GetByName"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -220,7 +220,7 @@ func TestTenantRepository_List(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("ActiveList"),
 		Description: "Active tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -228,7 +228,7 @@ func TestTenantRepository_List(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("InactiveList"),
 		Description: "Inactive tenant",
-		Active: 0,
+		Active:      0,
 		CreatedAt:   time.Now(),
 	}
 
@@ -301,7 +301,7 @@ func TestTenantRepository_Update(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Update"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -350,7 +350,7 @@ func TestTenantRepository_Delete(t *testing.T) {
 					TenantID:  tenantID,
 					Username:  "testuser-" + googleUuid.New().String()[:8],
 					Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
-					Active: 1,
+					Active:    1,
 					CreatedAt: time.Now(),
 				}
 				err := userRepo.Create(ctx, user)
@@ -367,7 +367,7 @@ func TestTenantRepository_Delete(t *testing.T) {
 				ID:          googleUuid.New(),
 				Name:        "Tenant " + googleUuid.NewString(),
 				Description: "Test tenant",
-				Active: 1,
+				Active:      1,
 				CreatedAt:   time.Now(),
 			}
 
@@ -402,7 +402,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueTenantName("Count"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -414,7 +414,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "testuser-" + googleUuid.New().String()[:8],
 		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now(),
 	}
 
@@ -425,7 +425,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  "client-" + googleUuid.New().String()[:8],
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now(),
 	}
 
