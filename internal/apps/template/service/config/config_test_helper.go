@@ -31,7 +31,7 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServiceTempl
 	// Determine database URL based on dev mode.
 	dbURL := cryptoutilMagic.DefaultDatabaseURL
 	if devMode {
-		dbURL = "sqlite://file::memory:?cache=shared" // In-memory SQLite for dev/test mode.
+		dbURL = "file::memory:?cache=shared" // In-memory SQLite for dev/test mode.
 	}
 
 	s := &ServiceTemplateServerSettings{

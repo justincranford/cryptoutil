@@ -110,6 +110,7 @@ func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS embed.FS
 	err = sqlDB.PingContext(ctx)
 	if err != nil {
 		closeDB()
+
 		return nil, nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
@@ -269,4 +270,3 @@ func HelpTest_InitDatabase_SadPaths(t *testing.T, migrationsFS embed.FS) {
 		})
 	}
 }
-

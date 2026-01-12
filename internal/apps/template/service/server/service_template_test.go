@@ -170,3 +170,115 @@ func TestNewServiceTemplate_WithBarrierOption(t *testing.T) {
 	// Barrier is nil because we passed nil (Phase 5b will initialize properly).
 	require.Nil(t, st.Barrier())
 }
+
+// TestServiceTemplate_Shutdown tests graceful shutdown of all components.
+func TestServiceTemplate_Shutdown(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	cfg := defaultTestConfig()
+
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite)
+	require.NoError(t, err)
+	require.NotNil(t, st)
+
+	// Verify components are initialized.
+	require.NotNil(t, st.Telemetry())
+	require.NotNil(t, st.JWKGen())
+
+	// Shutdown should not panic and should release resources.
+	st.Shutdown()
+
+	// After shutdown, components should still be accessible (not set to nil).
+	require.NotNil(t, st.Telemetry())
+	require.NotNil(t, st.JWKGen())
+}
+
+// TestServiceTemplate_Shutdown_WithBarrier tests shutdown with barrier service.
+func TestServiceTemplate_Shutdown_WithBarrier(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	cfg := defaultTestConfig()
+
+	// NOTE: Using nil barrier for now (Phase 5b will add proper barrier initialization).
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite, WithBarrier(nil))
+	require.NoError(t, err)
+	require.NotNil(t, st)
+
+	// Shutdown should handle nil barrier gracefully.
+	st.Shutdown()
+}
+
+// TestServiceTemplate_Shutdown_NilComponents tests shutdown with nil components.
+func TestServiceTemplate_Shutdown_NilComponents(t *testing.T) {
+	t.Parallel()
+
+	// Create ServiceTemplate with nil components (edge case).
+	st := &ServiceTemplate{
+		telemetry: nil,
+		jwkGen:    nil,
+		barrier:   nil,
+	}
+
+	// Shutdown should not panic with nil components.
+	st.Shutdown()
+}
+
+// TestServiceTemplate_SQLDB_Error tests SQLDB accessor error handling.
+func TestServiceTemplate_SQLDB_Error(t *testing.T) {
+	t.Parallel()
+
+	// Create ServiceTemplate with mock GORM DB that will fail.
+	// This is hard to test without mocking since GORM.DB() rarely fails in practice.
+	// For now, we test the happy path (covered in TestNewServiceTemplate_HappyPath).
+	// If we need error coverage, we'd need to use a mock framework.
+	t.Skip("SQLDB error path requires mocking framework - happy path covered in HappyPath test")
+}
+
+// TestStartApplicationCore_PassThrough tests the wrapper function.
+func TestStartApplicationCore_PassThrough(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use minimal test config.
+	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+
+	// StartApplicationCore should pass through to application.StartApplicationCore.
+	core, err := StartApplicationCore(ctx, settings)
+	require.NoError(t, err)
+	require.NotNil(t, core)
+
+	// Cleanup.
+	defer core.Shutdown()
+
+	// Verify core components initialized.
+	require.NotNil(t, core.DB)
+	require.NotNil(t, core.Basic)
+}
+
+// TestStartApplicationCore_NilContext tests wrapper with nil context.
+func TestStartApplicationCore_NilContext(t *testing.T) {
+	t.Parallel()
+
+	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+
+	//nolint:staticcheck // Testing nil context validation.
+	_, err := StartApplicationCore(nil, settings)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "ctx cannot be nil")
+}
+
+// TestStartApplicationCore_NilSettings tests wrapper with nil settings.
+func TestStartApplicationCore_NilSettings(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	_, err := StartApplicationCore(ctx, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "settings cannot be nil")
+}
