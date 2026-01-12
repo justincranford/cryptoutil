@@ -9,10 +9,11 @@ import (
 	"testing"
 	"time"
 
+	cipherIMRepository "cryptoutil/internal/apps/cipher/im/repository"
+	serverTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilContainer "cryptoutil/internal/shared/container"
+
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 
 	googleUuid "github.com/google/uuid"
 
@@ -25,41 +26,19 @@ func TestInitDatabase_PostgreSQL(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Start PostgreSQL container with randomized credentials.
-	dbName := fmt.Sprintf("test_%s", googleUuid.NewString())
-	username := fmt.Sprintf("user_%s", googleUuid.NewString())
-	password := fmt.Sprintf("pass_%s", googleUuid.NewString())
-
-	container, err := postgres.Run(ctx,
-		"postgres:18-alpine",
-		postgres.WithDatabase(dbName),
-		postgres.WithUsername(username),
-		postgres.WithPassword(password),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(30*time.Second),
-		),
-	)
+	// Start PostgreSQL postgresContainer with randomized credentials.
+	postgresContainer, err := cryptoutilContainer.NewPostgresTestContainer(ctx)
 	require.NoError(t, err)
 
 	defer func() {
-		require.NoError(t, container.Terminate(ctx))
+		require.NoError(t, postgresContainer.Terminate(ctx))
 	}()
 
-	// Get connection string.
-	connStr, err := container.ConnectionString(ctx, "sslmode=disable")
+	databaseURL, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
 	require.NoError(t, err)
 
-	// Set environment variable for database URL.
-	originalEnv := os.Getenv("DATABASE_URL")
-
-	require.NoError(t, os.Setenv("DATABASE_URL", connStr))
-
-	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
-
 	// Initialize database.
-	db, err := initDatabase(ctx, "")
+	db, err := initDatabase(ctx, databaseURL)
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
@@ -181,7 +160,7 @@ func TestInitPostgreSQL_ConnectionError(t *testing.T) {
 	defer cancel()
 
 	// Use invalid connection string (nonexistent server).
-	db, err := initPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname")
+	db, err := serverTemplateRepository.InitPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname", cipherIMRepository.MigrationsFS)
 	require.Error(t, err)
 	require.Nil(t, db)
 	require.Contains(t, err.Error(), "ping")

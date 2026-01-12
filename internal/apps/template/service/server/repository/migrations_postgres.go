@@ -1,0 +1,61 @@
+package repository
+
+import (
+	"context"
+	"database/sql"
+	"embed"
+	"fmt"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS embed.FS) (*gorm.DB, error) {
+	sqlDB, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
+	}
+
+	// Verify connection.
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return nil, fmt.Errorf("failed to ping PostgreSQL database: %w", err)
+	}
+
+	// Create GORM instance.
+	dialector := postgres.New(postgres.Config{
+		Conn: sqlDB,
+	})
+
+	db, err := gorm.Open(dialector, &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize GORM for PostgreSQL: %w", err)
+	}
+
+	// Configure connection pool.
+	sqlDB, err = db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get database instance: %w", err)
+	}
+
+	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)       // 25
+	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)       // 10
+	sqlDB.SetConnMaxLifetime(cryptoutilMagic.PostgreSQLConnMaxLifetime) // 1 hour
+
+	// Run migrations.
+	if err := ApplyMigrations(sqlDB, DatabaseTypePostgreSQL, migrationsFS); err != nil {
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
+	}
+
+	return db, nil
+}
+
+func ApplyMigrations(db *sql.DB, dbType DatabaseType, migrationsFS embed.FS) error {
+	runner := NewMigrationRunner(migrationsFS, "migrations")
+
+	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
+	return runner.Apply(db, dbType)
+}

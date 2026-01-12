@@ -128,7 +128,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
 	}
 
-	err = repository.ApplyMigrations(sqlDB, dbType)
+	err = repository.ApplyCipherIMMigrations(sqlDB, dbType)
 	if err != nil {
 		core.Shutdown()
 

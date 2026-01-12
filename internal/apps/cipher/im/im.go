@@ -18,7 +18,6 @@ import (
 	"strings"
 	"syscall"
 
-	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -28,6 +27,7 @@ import (
 	cipherIMRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
 	"cryptoutil/internal/apps/cipher/im/server/config"
+	serverTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -629,7 +629,7 @@ func initDatabase(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 
 	switch {
 	case strings.HasPrefix(databaseURL, "postgres://"):
-		db, err = initPostgreSQL(ctx, databaseURL)
+		db, err = serverTemplateRepository.InitPostgreSQL(ctx, databaseURL, cipherIMRepository.MigrationsFS)
 	case strings.HasPrefix(databaseURL, "file:"):
 		db, err = initSQLite(ctx, databaseURL)
 	default:
@@ -637,49 +637,6 @@ func initDatabase(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	}
 
 	return db, err
-}
-
-// initPostgreSQL initializes PostgreSQL database connection.
-func initPostgreSQL(ctx context.Context, databaseURL string) (*gorm.DB, error) {
-	// Open PostgreSQL database using pgx driver.
-	sqlDB, err := sql.Open("pgx", databaseURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
-	}
-
-	// Verify connection.
-	if err := sqlDB.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("failed to ping PostgreSQL database: %w", err)
-	}
-
-	// Create GORM instance.
-	dialector := postgres.New(postgres.Config{
-		Conn: sqlDB,
-	})
-
-	db, err := gorm.Open(dialector, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize GORM for PostgreSQL: %w", err)
-	}
-
-	// Configure connection pool.
-	sqlDB, err = db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get database instance: %w", err)
-	}
-
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)       // 25
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)       // 10
-	sqlDB.SetConnMaxLifetime(cryptoutilMagic.PostgreSQLConnMaxLifetime) // 1 hour
-
-	// Run migrations.
-	if err := cipherIMRepository.ApplyMigrations(sqlDB, cipherIMRepository.DatabaseTypePostgreSQL); err != nil {
-		return nil, fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	return db, nil
 }
 
 // initSQLite initializes SQLite database connection.
@@ -721,7 +678,7 @@ func initSQLite(ctx context.Context, databaseURL string) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(0)                                     // In-memory: never close
 
 	// Run migrations.
-	if err := cipherIMRepository.ApplyMigrations(sqlDB, cipherIMRepository.DatabaseTypeSQLite); err != nil {
+	if err := cipherIMRepository.ApplyCipherIMMigrations(sqlDB, cipherIMRepository.DatabaseTypeSQLite); err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 

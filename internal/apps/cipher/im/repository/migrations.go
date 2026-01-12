@@ -22,9 +22,9 @@ const (
 )
 
 //go:embed migrations/*.sql
-var migrationsFS embed.FS
+var MigrationsFS embed.FS
 
-// ApplyMigrations runs database migrations for cipher-im service.
+// ApplyCipherIMMigrations runs database migrations for cipher-im service.
 //
 // Migrations are embedded in the binary and applied automatically on startup.
 // Compatible with both PostgreSQL and SQLite (using TEXT type for cross-DB compatibility).
@@ -33,9 +33,6 @@ var migrationsFS embed.FS
 // - users: User accounts with PBKDF2-HMAC-SHA256 password hashes
 // - messages: Encrypted messages with JWE JSON format (multi-recipient)
 // - messages_recipient_jwks: Per-recipient decryption keys (encrypted JWK).
-func ApplyMigrations(db *sql.DB, dbType DatabaseType) error {
-	runner := cryptoutilTemplateServerRepository.NewMigrationRunner(migrationsFS, "migrations")
-
-	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
-	return runner.Apply(db, dbType)
+func ApplyCipherIMMigrations(db *sql.DB, dbType DatabaseType) error {
+	return cryptoutilTemplateServerRepository.ApplyMigrations(db, dbType, MigrationsFS)
 }

@@ -31,14 +31,14 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Te
 		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(cryptoutilMagic.DBPostgresContainerStartupTimeout),
 	}
 
-	container, terminateContainer, err := StartContainer(ctx, telemetryService, postgresContainerRequest)
+	postgresContainer, terminateContainer, err := StartContainer(ctx, telemetryService, postgresContainerRequest)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to start postgres container", "error", err)
 
 		return "", nil, fmt.Errorf("failed to start sqlite container: %w", err)
 	}
 
-	containerHost, containerMappedPort, err := GetContainerHostAndMappedPort(ctx, telemetryService, container, "5432")
+	containerHost, containerMappedPort, err := GetContainerHostAndMappedPort(ctx, telemetryService, postgresContainer, "5432")
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get postgres container host and mapped port", "error", err)
 		terminateContainer()
