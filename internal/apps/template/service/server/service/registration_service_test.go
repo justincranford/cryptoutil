@@ -276,7 +276,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 						ID:          tenantID,
 						Name:        name,
 						Description: description,
-						Active:      true,
+						Active: 1,
 					}, nil
 				}
 				userRepo.createFn = func(ctx context.Context, user *repository.User) error {
@@ -525,7 +525,7 @@ func TestRegistrationService_RegisterClient_NewTenant(t *testing.T) {
 
 	tenantSvc := &mockTenantService{
 		createTenantFn: func(ctx context.Context, name, description string) (*repository.Tenant, error) {
-			return &repository.Tenant{ID: tenantID, Name: name, Active: true}, nil
+			return &repository.Tenant{ID: tenantID, Name: name, Active: 1}, nil
 		},
 	}
 	clientRepo := &mockClientRepository{

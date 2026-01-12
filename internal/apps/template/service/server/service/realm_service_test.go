@@ -89,7 +89,7 @@ func createRealmTestTenant(t *testing.T, db *gorm.DB, tenantName string) *reposi
 		ID:          googleUuid.New(),
 		Name:        tenantName,
 		Description: "Test tenant for realm testing",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 

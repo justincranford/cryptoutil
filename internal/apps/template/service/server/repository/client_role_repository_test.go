@@ -69,7 +69,7 @@ func TestClientRoleRepository_Assign_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for client role assignment",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -79,7 +79,7 @@ func TestClientRoleRepository_Assign_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		ClientID:     googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret",
-		Active:       true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -121,7 +121,7 @@ func TestClientRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for duplicate assignment",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -131,7 +131,7 @@ func TestClientRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		TenantID:     tenant.ID,
 		ClientID:     googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret",
-		Active:       true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -203,7 +203,7 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for listing roles",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -214,7 +214,7 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		ClientID:     clientUUID.String(),
 		ClientSecretHash: "hashed_secret",
-		Active:       true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -262,7 +262,7 @@ func TestClientRoleRepository_ListRolesByClient_NoRoles(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for no roles",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -273,7 +273,7 @@ func TestClientRoleRepository_ListRolesByClient_NoRoles(t *testing.T) {
 		TenantID:     tenant.ID,
 		ClientID:     clientUUID.String(),
 		ClientSecretHash: "hashed_secret",
-		Active:       true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -296,7 +296,7 @@ func TestClientRoleRepository_Revoke_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for revoke",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -306,7 +306,7 @@ func TestClientRoleRepository_Revoke_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		ClientID:     googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret",
-		Active:       true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -345,7 +345,7 @@ func TestClientRoleRepository_ListClientsByRole_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for listing clients by role",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -364,7 +364,7 @@ func TestClientRoleRepository_ListClientsByRole_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		ClientID:     googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret1",
-		Active:       true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(client1).Error)
 
@@ -373,7 +373,7 @@ func TestClientRoleRepository_ListClientsByRole_HappyPath(t *testing.T) {
 		TenantID:     tenant.ID,
 		ClientID:     googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret2",
-		Active:       true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(client2).Error)
 

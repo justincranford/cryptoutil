@@ -28,7 +28,7 @@ func TestUserRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("UserCreate"),
 		Description: "Test tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -50,7 +50,7 @@ func TestUserRepository_Create(t *testing.T) {
 				TenantID:  tenant.ID,
 				Username:  "testuser-" + googleUuid.New().String()[:8],
 				Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
-				Active:    true,
+				Active: 1,
 				CreatedAt: time.Now(),
 			},
 			wantError: false,
@@ -62,7 +62,7 @@ func TestUserRepository_Create(t *testing.T) {
 				TenantID:  tenant.ID,
 				Username:  dupUsername,
 				Email:     "different@example.com",
-				Active:    true,
+				Active: 1,
 				CreatedAt: time.Now(),
 			},
 			wantError: true,
@@ -75,7 +75,7 @@ func TestUserRepository_Create(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  dupUsername,
 		Email:     "first@example.com",
-		Active:    true,
+		Active: 1,
 		CreatedAt: time.Now(),
 	}
 	err = userRepo.Create(ctx, firstUser)
@@ -104,7 +104,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -116,7 +116,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "testuser-" + googleUuid.New().String()[:8],
 		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
-		Active:    true,
+		Active: 1,
 		CreatedAt: time.Now(),
 	}
 
@@ -167,7 +167,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        "Tenant 1",
 		Description: "First tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -175,7 +175,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        "Tenant 2",
 		Description: "Second tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -190,7 +190,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant1.ID,
 		Username:  "user1",
 		Email:     "user1@example.com",
-		Active:    true,
+		Active: 1,
 		CreatedAt: time.Now(),
 	}
 
@@ -199,7 +199,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant1.ID,
 		Username:  "user2",
 		Email:     "user2@example.com",
-		Active:    true,
+		Active: 1,
 		CreatedAt: time.Now(),
 	}
 
@@ -208,7 +208,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant2.ID,
 		Username:  "user3",
 		Email:     "user3@example.com",
-		Active:    true,
+		Active: 1,
 		CreatedAt: time.Now(),
 	}
 
@@ -240,7 +240,7 @@ func TestClientRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -258,7 +258,7 @@ func TestClientRepository_Create(t *testing.T) {
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
 				ClientID:  "client123",
-				Active:    true,
+				Active: 1,
 				CreatedAt: time.Now(),
 			},
 			wantError: false,
@@ -269,7 +269,7 @@ func TestClientRepository_Create(t *testing.T) {
 				ID:        googleUuid.New(),
 				TenantID:  tenant.ID,
 				ClientID:  "client123",
-				Active:    true,
+				Active: 1,
 				CreatedAt: time.Now(),
 			},
 			wantError: true,
@@ -299,7 +299,7 @@ func TestUnverifiedUserRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -333,7 +333,7 @@ func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -386,7 +386,7 @@ func TestUnverifiedClientRepository_DeleteExpired(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
-		Active:      true,
+		Active: 1,
 		CreatedAt:   time.Now(),
 	}
 

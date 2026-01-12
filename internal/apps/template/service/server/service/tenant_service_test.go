@@ -209,7 +209,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 				require.NotNil(t, tenant)
 				require.Equal(t, tt.tenantName, tenant.Name)
 				require.Equal(t, tt.description, tenant.Description)
-				require.True(t, tenant.Active)
+				require.Equal(t, 1, tenant.Active)
 			}
 		})
 	}
@@ -231,7 +231,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
-					return &repository.Tenant{ID: id, Name: "Test Tenant", Active: true}, nil
+					return &repository.Tenant{ID: id, Name: "Test Tenant", Active: 1}, nil
 				}
 			},
 			wantErr: false,
@@ -301,7 +301,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						ID:          id,
 						Name:        "Original Name",
 						Description: "Original Description",
-						Active:      true,
+						Active: 1,
 						CreatedAt:   time.Now(),
 					}, nil
 				}
@@ -323,7 +323,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						ID:          id,
 						Name:        "Old Name",
 						Description: "Old Description",
-						Active:      true,
+						Active: 1,
 						CreatedAt:   time.Now(),
 					}, nil
 				}
@@ -374,7 +374,11 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 					require.Equal(t, *tt.descUpdate, tenant.Description)
 				}
 				if tt.activeUpdate != nil {
-					require.Equal(t, *tt.activeUpdate, tenant.Active)
+					expectedActive := 0
+					if *tt.activeUpdate {
+						expectedActive = 1
+					}
+					require.Equal(t, expectedActive, tenant.Active)
 				}
 			}
 		})
@@ -453,12 +457,12 @@ func TestTenantService_ListTenants(t *testing.T) {
 	activeTenant := &repository.Tenant{
 		ID:     googleUuid.New(),
 		Name:   "active-tenant",
-		Active: true,
+		Active: 1,
 	}
 	inactiveTenant := &repository.Tenant{
 		ID:     googleUuid.New(),
 		Name:   "inactive-tenant",
-		Active: false,
+		Active: 0,
 	}
 
 	tests := []struct {
@@ -533,7 +537,7 @@ func TestTenantService_UpdateTenant_UpdateError(t *testing.T) {
 		ID:          tenantID,
 		Name:        "old-name",
 		Description: "old description",
-		Active:      true,
+		Active: 1,
 	}
 
 	tenantRepo := &mockTenantRepository{

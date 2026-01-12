@@ -111,7 +111,7 @@ func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*rep
 		ID:          googleUuid.New(),
 		Name:        tenantName,
 		Description: "Test tenant",
-		Active:      true,
+		Active: 1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -208,7 +208,7 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 	require.Equal(t, tenant.ID, user.TenantID)
 	require.Equal(t, unverifiedUser.Username, user.Username)
 	require.Equal(t, unverifiedUser.Email, user.Email)
-	require.True(t, user.Active)
+	require.Equal(t, 1, user.Active)
 
 	// Verify unverified user was deleted.
 	var count int64
@@ -325,7 +325,7 @@ func TestVerificationService_ApproveClient_Success(t *testing.T) {
 	require.NotNil(t, client)
 	require.Equal(t, tenant.ID, client.TenantID)
 	require.Equal(t, unverifiedClient.ClientID, client.ClientID)
-	require.True(t, client.Active)
+	require.Equal(t, 1, client.Active)
 
 	// Verify unverified client was deleted.
 	var count int64
