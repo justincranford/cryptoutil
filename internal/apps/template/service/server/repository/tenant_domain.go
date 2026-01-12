@@ -16,7 +16,7 @@ type Tenant struct {
 	ID          googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Name        string          `gorm:"type:text;not null;uniqueIndex"`
 	Description string          `gorm:"type:text"`
-	Active      bool            `gorm:"not null;default:true;index"`
+	Active      int             `gorm:"type:integer;not null;default:1;index"` // INTEGER for SQLite/PostgreSQL compatibility.
 	CreatedAt   time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt   time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 }
@@ -24,6 +24,20 @@ type Tenant struct {
 // TableName returns the database table name for Tenant.
 func (Tenant) TableName() string {
 	return "tenants"
+}
+
+// IsActive returns true if the tenant is active.
+func (t *Tenant) IsActive() bool {
+	return t.Active == 1
+}
+
+// SetActive sets the tenant's active state.
+func (t *Tenant) SetActive(active bool) {
+	if active {
+		t.Active = 1
+	} else {
+		t.Active = 0
+	}
 }
 
 // User represents a verified user associated with a tenant.
@@ -34,7 +48,7 @@ type User struct {
 	Username     string          `gorm:"type:text;not null;uniqueIndex"`
 	PasswordHash string          `gorm:"type:text;not null"`
 	Email        string          `gorm:"type:text;uniqueIndex"`
-	Active       bool            `gorm:"not null;default:true;index"`
+	Active       int             `gorm:"type:integer;not null;default:1;index"` // INTEGER for SQLite/PostgreSQL compatibility.
 	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 
@@ -77,6 +91,20 @@ func (u *User) SetPasswordHash(hash string) {
 	u.PasswordHash = hash
 }
 
+// IsActive returns true if the user is active.
+func (u *User) IsActive() bool {
+	return u.Active == 1
+}
+
+// SetActive sets the user's active state.
+func (u *User) SetActive(active bool) {
+	if active {
+		u.Active = 1
+	} else {
+		u.Active = 0
+	}
+}
+
 // Client represents a verified non-browser client associated with a tenant.
 type Client struct {
 	ID               googleUuid.UUID `gorm:"type:text;primaryKey"`
@@ -84,7 +112,7 @@ type Client struct {
 	ClientID         string          `gorm:"type:text;not null;uniqueIndex"`
 	ClientSecretHash string          `gorm:"type:text;not null"`
 	Name             string          `gorm:"type:text"`
-	Active           bool            `gorm:"not null;default:true;index"`
+	Active           int             `gorm:"type:integer;not null;default:1;index"` // INTEGER for SQLite/PostgreSQL compatibility.
 	CreatedAt        time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt        time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 
@@ -95,6 +123,20 @@ type Client struct {
 // TableName returns the database table name for Client.
 func (Client) TableName() string {
 	return "clients"
+}
+
+// IsActive returns true if the client is active.
+func (c *Client) IsActive() bool {
+	return c.Active == 1
+}
+
+// SetActive sets the client's active state.
+func (c *Client) SetActive(active bool) {
+	if active {
+		c.Active = 1
+	} else {
+		c.Active = 0
+	}
 }
 
 // UnverifiedUser represents a user awaiting admin verification.

@@ -65,7 +65,7 @@ func (s *TenantServiceImpl) CreateTenant(ctx context.Context, name, description 
 		ID:          googleUuid.New(),
 		Name:        name,
 		Description: description,
-		Active:      true,
+		Active:      1, // 1 = active.
 	}
 
 	if err := s.tenantRepo.Create(ctx, tenant); err != nil {
@@ -120,7 +120,7 @@ func (s *TenantServiceImpl) UpdateTenant(ctx context.Context, id googleUuid.UUID
 		tenant.Description = *description
 	}
 	if active != nil {
-		tenant.Active = *active
+		tenant.SetActive(*active)
 	}
 
 	// Save changes.

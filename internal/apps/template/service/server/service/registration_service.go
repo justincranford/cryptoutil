@@ -122,7 +122,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 			Username:     username,
 			Email:        email,
 			PasswordHash: passwordHash,
-			Active:       true,
+			Active:       1, // 1 = active.
 		}
 
 		if err := s.userRepo.Create(ctx, user); err != nil {
@@ -197,7 +197,7 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 			TenantID:         tenant.ID,
 			ClientID:         clientID,
 			ClientSecretHash: clientSecretHash,
-			Active:           true,
+			Active:           1, // 1 = active.
 		}
 
 		if err := s.clientRepo.Create(ctx, client); err != nil {

@@ -131,7 +131,7 @@ func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unv
 		Username:     unverifiedUser.Username,
 		Email:        unverifiedUser.Email,
 		PasswordHash: unverifiedUser.PasswordHash,
-		Active:       true,
+		Active:       1,
 	}
 
 	if err := s.userRepo.Create(ctx, user); err != nil {
@@ -200,7 +200,7 @@ func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, u
 		TenantID:         unverifiedClient.TenantID,
 		ClientID:         unverifiedClient.ClientID,
 		ClientSecretHash: unverifiedClient.ClientSecretHash,
-		Active:           true,
+		Active:           1,
 	}
 	if err := s.clientRepo.Create(ctx, client); err != nil {
 		return nil, fmt.Errorf("failed to create verified client: %w", err)
