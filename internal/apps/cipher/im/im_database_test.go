@@ -4,8 +4,9 @@ package im
 
 import (
 	"context"
+	"database/sql"
+	"embed"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -21,33 +22,14 @@ import (
 )
 
 // TestInitDatabase_PostgreSQL tests PostgreSQL database initialization using test-containers.
-func TestInitDatabase_PostgreSQL(t *testing.T) {
+func TestInitDatabase_PostgreSQLContainer(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 
 	// Start PostgreSQL postgresContainer with randomized credentials.
-	postgresContainer, err := cryptoutilContainer.NewPostgresTestContainer(ctx)
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, postgresContainer.Terminate(ctx))
-	}()
-
-	databaseURL, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err)
-
-	// Initialize database.
-	db, err := initDatabase(ctx, databaseURL)
-	require.NoError(t, err)
-	require.NotNil(t, db)
-
-	// Verify database connection.
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-
-	err = sqlDB.PingContext(ctx)
-	require.NoError(t, err)
+	sqlDB, closeDB, err := NewInitializedPostgresTestDatabase(ctx, cipherIMRepository.MigrationsFS)
+	defer closeDB()
 
 	// Verify schema migration (tables exist).
 	var tableCount int
@@ -60,28 +42,12 @@ func TestInitDatabase_PostgreSQL(t *testing.T) {
 }
 
 // TestInitDatabase_SQLite tests SQLite in-memory database initialization.
-func TestInitDatabase_SQLite(t *testing.T) {
+func TestInitDatabase_SQLiteInMemory(t *testing.T) {
 	// Remove t.Parallel() - prevent cross-test pollution with shared in-memory SQLite.
 	ctx := context.Background()
 
-	// Use unique in-memory database URL to prevent conflicts between parallel tests.
-	originalEnv := os.Getenv("DATABASE_URL")
-	uniqueDB := fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.NewString())
-	require.NoError(t, os.Setenv("DATABASE_URL", uniqueDB))
-
-	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
-
-	// Initialize database (should use unique in-memory database).
-	db, err := initDatabase(ctx, "")
-	require.NoError(t, err)
-	require.NotNil(t, db)
-
-	// Verify database connection.
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-
-	err = sqlDB.PingContext(ctx)
-	require.NoError(t, err)
+	// Start SQLite in-memory database with randomized credentials.
+	sqlDB, err := NewInitializedSQLiteTestDatabase(ctx, cipherIMRepository.MigrationsFS, true)
 
 	// Verify schema migration (tables exist).
 	var tableCount int
@@ -98,27 +64,8 @@ func TestInitDatabase_SQLiteFile(t *testing.T) {
 	// Remove t.Parallel() - SQLite file locking issues with concurrent tests.
 	ctx := context.Background()
 
-	// Create temporary database file path with unique name.
-	tmpFile := fmt.Sprintf("file:%s/test_%s.db?cache=shared", t.TempDir(), googleUuid.NewString())
-
-	// Set environment variable for database URL.
-	originalEnv := os.Getenv("DATABASE_URL")
-
-	require.NoError(t, os.Setenv("DATABASE_URL", tmpFile))
-
-	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
-
-	// Initialize database.
-	db, err := initDatabase(ctx, "")
-	require.NoError(t, err)
-	require.NotNil(t, db)
-
-	// Verify database connection.
-	sqlDB, err := db.DB()
-	require.NoError(t, err)
-
-	err = sqlDB.PingContext(ctx)
-	require.NoError(t, err)
+	// Start SQLite file database with randomized credentials.
+	sqlDB, err := NewInitializedSQLiteTestDatabase(ctx, cipherIMRepository.MigrationsFS, false)
 
 	// Verify schema migration (tables exist).
 	var tableCount int
@@ -133,22 +80,88 @@ func TestInitDatabase_SQLiteFile(t *testing.T) {
 	require.NoError(t, sqlDB.Close())
 }
 
-// TestInitDatabase_InvalidScheme tests error handling for unsupported database URL schemes.
-func TestInitDatabase_InvalidScheme(t *testing.T) {
+func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS embed.FS) (*sql.DB, func(), error) {
+	postgresContainer, err := cryptoutilContainer.NewPostgresTestContainer(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create PostgreSQL container: %w", err)
+	}
+
+	closeDB := func() {
+		err := postgresContainer.Terminate(ctx)
+		if err != nil {
+			fmt.Printf("failed to terminate PostgreSQL container: %v\n", err)
+		}
+	}
+
+	databaseURL, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		closeDB()
+		return nil, nil, fmt.Errorf("failed to get PostgreSQL connection string: %w", err)
+	}
+
+	// Initialize database.
+	gormDB, err := InitDatabase(ctx, databaseURL, migrationsFS)
+	if err != nil {
+		closeDB()
+		return nil, nil, fmt.Errorf("failed to initialize database: %w", err)
+	} else if gormDB == nil {
+		closeDB()
+		return nil, nil, fmt.Errorf("gormDB must be non-nil: %w", err)
+	}
+
+	// Verify database connection.
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		return nil, nil, fmt.Errorf("sqlDB must be non-nill: %w", err)
+	}
+
+	err = sqlDB.PingContext(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	return sqlDB, closeDB, nil
+}
+
+func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS embed.FS, inMemory bool) (*sql.DB, error) {
+	var databaseURL string
+	if inMemory {
+		databaseURL = fmt.Sprintf("file:%s?mode=memory&cache=shared", googleUuid.NewString())
+	} else {
+		databaseURL = fmt.Sprintf("file:%s/test_%s.db?cache=shared", googleUuid.NewString(), googleUuid.NewString())
+	}
+
+	// Initialize unique in-memory SQLite database
+	gormDB, err := InitDatabase(ctx, databaseURL, migrationsFS)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize database: %w", err)
+	} else if gormDB == nil {
+		return nil, fmt.Errorf("gormDB must be non-nill: %w", err)
+	}
+
+	// Verify database connection.
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		return nil, fmt.Errorf("sqlDB must be non-nill: %w", err)
+	}
+
+	err = sqlDB.PingContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	return sqlDB, nil
+}
+
+// TestInitDatabase_InvalidDbType tests error handling for unsupported database URL schemes.
+func TestInitDatabase_InvalidDbType(t *testing.T) {
 	// Remove t.Parallel() - prevent cross-test pollution with shared in-memory SQLite.
 	ctx := context.Background()
 
-	// Set environment variable for invalid database URL.
-	originalEnv := os.Getenv("DATABASE_URL")
-
-	require.NoError(t, os.Setenv("DATABASE_URL", "mysql://user:pass@localhost:3306/dbname"))
-
-	defer func() { _ = os.Setenv("DATABASE_URL", originalEnv) }()
-
 	// Initialize database (should fail with unsupported scheme error).
-	db, err := initDatabase(ctx, "")
+	gormDB, err := InitDatabase(ctx, "mysql://user:pass@localhost:3306/dbname", cipherIMRepository.MigrationsFS)
 	require.Error(t, err)
-	require.Nil(t, db)
+	require.Nil(t, gormDB)
 	require.Contains(t, err.Error(), "unsupported database URL scheme")
 }
 
@@ -160,9 +173,9 @@ func TestInitPostgreSQL_ConnectionError(t *testing.T) {
 	defer cancel()
 
 	// Use invalid connection string (nonexistent server).
-	db, err := serverTemplateRepository.InitPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname", cipherIMRepository.MigrationsFS)
+	gormDB, err := serverTemplateRepository.InitPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname", cipherIMRepository.MigrationsFS)
 	require.Error(t, err)
-	require.Nil(t, db)
+	require.Nil(t, gormDB)
 	require.Contains(t, err.Error(), "ping")
 }
 
@@ -173,7 +186,7 @@ func TestInitSQLite_InvalidPath(t *testing.T) {
 	ctx := context.Background()
 
 	// Use invalid file path (directory doesn't exist).
-	db, err := serverTemplateRepository.InitSQLite(ctx, "file:/nonexistent/invalid/path.db", cipherIMRepository.MigrationsFS)
+	gormDB, err := serverTemplateRepository.InitSQLite(ctx, "file:/nonexistent/invalid/path.db", cipherIMRepository.MigrationsFS)
 	require.Error(t, err)
-	require.Nil(t, db)
+	require.Nil(t, gormDB)
 }
