@@ -164,17 +164,16 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		tableName = "service_session_jwks"
 	}
 
-	// Check for existing active JWK
+	// Check for existing JWK (deterministic selection using max timestamp)
 	var existingJWK cryptoutilRepository.SessionJWK
 	err := sm.db.WithContext(ctx).
 		Table(tableName).
-		Where("active = ?", 1).
 		Order("created_at DESC").
 		First(&existingJWK).
 		Error
 
 	if err == nil {
-		// Found existing active JWK, use it
+		// Found existing JWK with latest timestamp, use it
 		return existingJWK.ID, nil
 	}
 
@@ -325,7 +324,6 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		EncryptedJWK: string(encryptedJWK),
 		CreatedAt:    time.Now(),
 		Algorithm:    algIdentifier,
-		Active:       1,
 	}
 
 	var createErr error

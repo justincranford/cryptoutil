@@ -136,9 +136,9 @@ func TestPostgreSQLSharedState(t *testing.T) {
 	// Verify session JWKs created with HS256 algorithm
 	var sessionJWKCount int
 
-	err = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM browser_session_jwks WHERE active = true").Scan(&sessionJWKCount)
-	require.NoError(t, err, "counting active session JWKs should succeed")
-	require.GreaterOrEqual(t, sessionJWKCount, 1, "should have at least 1 active session JWK")
+	err = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM browser_session_jwks").Scan(&sessionJWKCount)
+	require.NoError(t, err, "counting session JWKs should succeed")
+	require.GreaterOrEqual(t, sessionJWKCount, 1, "should have at least 1 session JWK")
 }
 
 // TestSQLiteInstanceIsolation validates SQLite instance has isolated in-memory database.
