@@ -285,9 +285,10 @@ func TestCipherIMServer_Accessors(t *testing.T) {
 }
 
 // TestCipherIMServer_SetReady tests the SetReady method.
+// This test creates its own CipherIMServer via NewFromConfig which requires
+// exclusive database access for barrier service initialization. Therefore,
+// t.Parallel() is NOT used here to avoid SQLite deadlocks.
 func TestCipherIMServer_SetReady(t *testing.T) {
-	t.Parallel()
-
 	cleanTestDB(t)
 
 	cfg := initTestConfig()
@@ -358,6 +359,8 @@ func TestNewFromConfig_NilConfig(t *testing.T) {
 }
 
 // TestNewFromConfig_UnsupportedTLSPrivateMode tests NewFromConfig with unsupported TLS private mode.
+// This test does NOT require t.Parallel() removal because TLS private mode is
+// checked before any database operations are initiated.
 func TestNewFromConfig_UnsupportedTLSPrivateMode(t *testing.T) {
 	t.Parallel()
 
@@ -370,9 +373,11 @@ func TestNewFromConfig_UnsupportedTLSPrivateMode(t *testing.T) {
 }
 
 // TestNewFromConfig_UnsupportedTLSPublicMode tests NewFromConfig with unsupported TLS public mode.
+// This test creates database resources before hitting the TLS public mode check.
+// However, since it uses in-memory SQLite and database operations complete before
+// the error, and the test doesn't modify shared state, t.Parallel() is safe.
+// Note: If this test starts deadlocking, remove t.Parallel().
 func TestNewFromConfig_UnsupportedTLSPublicMode(t *testing.T) {
-	t.Parallel()
-
 	cfg := initTestConfig()
 	cfg.TLSPublicMode = "unsupported-mode"
 
