@@ -117,6 +117,7 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 	if browserAlg == "" {
 		browserAlg = cryptoutilMagic.DefaultBrowserSessionAlgorithm
 	}
+
 	sm.browserAlgorithm = browserAlg
 
 	// Parse service session algorithm
@@ -124,6 +125,7 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 	if serviceAlg == "" {
 		serviceAlg = cryptoutilMagic.DefaultServiceSessionAlgorithm
 	}
+
 	sm.serviceAlgorithm = serviceAlg
 
 	// Initialize browser session JWKs if using JWS/JWE
@@ -132,6 +134,7 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to initialize browser session JWK: %w", err)
 		}
+
 		sm.browserJWKID = &jwkID
 	}
 
@@ -141,6 +144,7 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to initialize service session JWK: %w", err)
 		}
+
 		sm.serviceJWKID = &jwkID
 	}
 
@@ -166,12 +170,12 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 
 	// Check for existing JWK (deterministic selection using max timestamp)
 	var existingJWK cryptoutilRepository.SessionJWK
+
 	err := sm.db.WithContext(ctx).
 		Table(tableName).
 		Order("created_at DESC").
 		First(&existingJWK).
 		Error
-
 	if err == nil {
 		// Found existing JWK with latest timestamp, use it
 		return existingJWK.ID, nil
@@ -182,8 +186,10 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	// No active JWK found, generate new one
-	var jwk joseJwk.Key
-	var genErr error
+	var (
+		jwk    joseJwk.Key
+		genErr error
+	)
 
 	// Determine which JWK generation function to use based on algorithm
 	algIdentifier := sm.getAlgorithmIdentifier(isBrowser, algorithm)
@@ -194,8 +200,11 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		switch algIdentifier {
 		case "HS256", "HS384", "HS512":
 			// HMAC symmetric key algorithms
-			var hmacBits int
-			var algValue joseJwa.SignatureAlgorithm
+			var (
+				hmacBits int
+				algValue joseJwa.SignatureAlgorithm
+			)
+
 			switch algIdentifier {
 			case "HS256":
 				hmacBits = cryptoutilMagic.HMACKeySize256
@@ -207,6 +216,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				hmacBits = cryptoutilMagic.HMACKeySize512
 				algValue = joseJwa.HS512()
 			}
+
 			jwk, genErr = cryptoutilJOSE.GenerateHMACJWK(hmacBits)
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
@@ -219,6 +229,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 			if genErr == nil {
 				// Set 'alg' attribute for signing
 				var algValue joseJwa.SignatureAlgorithm
+
 				switch algIdentifier {
 				case "RS256":
 					algValue = joseJwa.RS256()
@@ -227,6 +238,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				case "RS512":
 					algValue = joseJwa.RS512()
 				}
+
 				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
 				if genErr == nil {
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
@@ -305,8 +317,11 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	// Encrypt JWK with barrier service (skip encryption if no barrier service for tests)
-	var encryptedJWK []byte
-	var encryptErr error
+	var (
+		encryptedJWK []byte
+		encryptErr   error
+	)
+
 	if sm.barrier != nil {
 		encryptedJWK, encryptErr = sm.barrier.EncryptBytesWithContext(ctx, jwkBytes)
 		if encryptErr != nil {
@@ -327,6 +342,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	var createErr error
+
 	if isBrowser {
 		browserJWK := cryptoutilRepository.BrowserSessionJWK{SessionJWK: newJWK}
 		createErr = sm.db.WithContext(ctx).Create(&browserJWK).Error
@@ -379,6 +395,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		if err != nil {
 			return nil, err
 		}
+
 		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmES256:
 		// ECDSA P-256
@@ -386,6 +403,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		if err != nil {
 			return nil, err
 		}
+
 		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmES384:
 		// ECDSA P-384
@@ -393,6 +411,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		if err != nil {
 			return nil, err
 		}
+
 		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmES512:
 		// ECDSA P-521
@@ -400,6 +419,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		if err != nil {
 			return nil, err
 		}
+
 		return keyPair.Private, nil
 	case cryptoutilMagic.SessionJWSAlgorithmEdDSA:
 		// Ed25519
@@ -407,6 +427,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		if err != nil {
 			return nil, err
 		}
+
 		return keyPair.Private, nil
 	default:
 		return nil, fmt.Errorf("unsupported JWS algorithm: %s", algorithm)
@@ -432,11 +453,13 @@ func (sm *SessionManager) getAlgorithmIdentifier(isBrowser bool, sessionAlgorith
 		if isBrowser {
 			return sm.config.BrowserSessionJWSAlgorithm
 		}
+
 		return sm.config.ServiceSessionJWSAlgorithm
 	case cryptoutilMagic.SessionAlgorithmJWE:
 		if isBrowser {
 			return sm.config.BrowserSessionJWEAlgorithm
 		}
+
 		return sm.config.ServiceSessionJWEAlgorithm
 	default:
 		return string(sessionAlgorithm)
@@ -479,8 +502,10 @@ func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID string
 //
 // Returns session metadata if valid, error otherwise.
 func (sm *SessionManager) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilRepository.BrowserSession, error) {
-	var result any
-	var err error
+	var (
+		result any
+		err    error
+	)
 
 	switch sm.browserAlgorithm {
 	case cryptoutilMagic.SessionAlgorithmOPAQUE:
@@ -524,8 +549,10 @@ func (sm *SessionManager) IssueServiceSession(ctx context.Context, clientID stri
 // ValidateServiceSession validates a service session token.
 // Similar to ValidateBrowserSession but for service-to-service authentication.
 func (sm *SessionManager) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilRepository.ServiceSession, error) {
-	var result any
-	var err error
+	var (
+		result any
+		err    error
+	)
 
 	switch sm.serviceAlgorithm {
 	case cryptoutilMagic.SessionAlgorithmOPAQUE:
@@ -645,6 +672,7 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 
 	// Store session in database
 	var createErr error
+
 	if isBrowser {
 		browserSession := cryptoutilRepository.BrowserSession{
 			Session: session,
@@ -676,8 +704,11 @@ func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser b
 
 	// Look up session by token hash
 	now := time.Now()
-	var session any
-	var findErr error
+
+	var (
+		session any
+		findErr error
+	)
 
 	if isBrowser {
 		browserSession := &cryptoutilRepository.BrowserSession{}
@@ -698,8 +729,10 @@ func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser b
 	if findErr != nil {
 		if errors.Is(findErr, gorm.ErrRecordNotFound) {
 			summary := "Invalid or expired session token"
+
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, findErr)
 		}
+
 		return nil, fmt.Errorf("failed to query session: %w", findErr)
 	}
 
@@ -725,17 +758,21 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 		jwkID = *sm.serviceJWKID
 	}
 
-	var jwkBytes []byte
-	var loadErr error
+	var (
+		jwkBytes []byte
+		loadErr  error
+	)
 
 	if isBrowser {
 		var browserJWK cryptoutilRepository.BrowserSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&browserJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(browserJWK.EncryptedJWK)
 		}
 	} else {
 		var serviceJWK cryptoutilRepository.ServiceSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&serviceJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(serviceJWK.EncryptedJWK)
@@ -766,6 +803,7 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	// Create JWT claims
 	jti := googleUuid.Must(googleUuid.NewV7())
 	now := time.Now()
+
 	var exp time.Time
 	if isBrowser {
 		exp = now.Add(sm.config.BrowserSessionExpiration)
@@ -810,6 +848,7 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	}
 
 	var createErr error
+
 	if isBrowser {
 		browserSession := cryptoutilRepository.BrowserSession{
 			Session: session,
@@ -841,17 +880,21 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 		jwkID = *sm.serviceJWKID
 	}
 
-	var jwkBytes []byte
-	var loadErr error
+	var (
+		jwkBytes []byte
+		loadErr  error
+	)
 
 	if isBrowser {
 		var browserJWK cryptoutilRepository.BrowserSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&browserJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(browserJWK.EncryptedJWK)
 		}
 	} else {
 		var serviceJWK cryptoutilRepository.ServiceSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&serviceJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(serviceJWK.EncryptedJWK)
@@ -860,16 +903,21 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 
 	if loadErr != nil {
 		summary := "Failed to load session JWK"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, loadErr)
 	}
 
 	// Decrypt JWK bytes with barrier service (skip decryption if no barrier service for tests)
-	var decryptedJWKBytes []byte
-	var decryptErr error
+	var (
+		decryptedJWKBytes []byte
+		decryptErr        error
+	)
+
 	if sm.barrier != nil {
 		decryptedJWKBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, jwkBytes)
 		if decryptErr != nil {
 			summary := "Failed to decrypt JWK"
+
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, decryptErr)
 		}
 	} else {
@@ -881,6 +929,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	privateJWK, err := joseJwk.ParseKey(decryptedJWKBytes)
 	if err != nil {
 		summary := "Failed to parse session JWK"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
 	}
 
@@ -888,6 +937,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	publicJWK, err := privateJWK.PublicKey()
 	if err != nil {
 		summary := "Failed to extract public key from JWK"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
 	}
 	// No normalization required; verification utilities will validate algorithm type.
@@ -896,6 +946,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	claimsBytes, err := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
 	if err != nil {
 		summary := "Invalid JWT signature"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
 	}
 
@@ -903,6 +954,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	var claims map[string]any
 	if err := json.Unmarshal(claimsBytes, &claims); err != nil {
 		summary := "Failed to parse JWT claims"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
 	}
 
@@ -910,12 +962,14 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	expFloat, ok := claims["exp"].(float64)
 	if !ok {
 		summary := "Missing or invalid exp claim"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("exp claim not found"))
 	}
 
 	exp := time.Unix(int64(expFloat), 0)
 	if time.Now().After(exp) {
 		summary := "JWT expired"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("token expired at %v", exp))
 	}
 
@@ -923,12 +977,14 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	jtiStr, ok := claims["jti"].(string)
 	if !ok {
 		summary := "Missing or invalid jti claim"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("jti claim not found"))
 	}
 
 	jti, err := googleUuid.Parse(jtiStr)
 	if err != nil {
 		summary := "Invalid jti format"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, err)
 	}
 
@@ -940,8 +996,11 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 
 	// Look up session by token hash
 	now := time.Now()
-	var session any
-	var findErr error
+
+	var (
+		session any
+		findErr error
+	)
 
 	if isBrowser {
 		browserSession := &cryptoutilRepository.BrowserSession{}
@@ -962,8 +1021,10 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	if findErr != nil {
 		if errors.Is(findErr, gorm.ErrRecordNotFound) {
 			summary := "Session revoked or not found"
+
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, findErr)
 		}
+
 		return nil, fmt.Errorf("failed to query session: %w", findErr)
 	}
 
@@ -989,17 +1050,21 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 		jwkID = *sm.serviceJWKID
 	}
 
-	var jwkBytes []byte
-	var loadErr error
+	var (
+		jwkBytes []byte
+		loadErr  error
+	)
 
 	if isBrowser {
 		var browserJWK cryptoutilRepository.BrowserSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&browserJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(browserJWK.EncryptedJWK)
 		}
 	} else {
 		var serviceJWK cryptoutilRepository.ServiceSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&serviceJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(serviceJWK.EncryptedJWK)
@@ -1011,8 +1076,11 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	}
 
 	// Decrypt JWK with barrier service (skip decryption if no barrier service for tests)
-	var decryptedJWKBytes []byte
-	var decryptErr error
+	var (
+		decryptedJWKBytes []byte
+		decryptErr        error
+	)
+
 	if sm.barrier != nil {
 		decryptedJWKBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, jwkBytes)
 		if decryptErr != nil {
@@ -1031,12 +1099,14 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 
 	// Create JWT claims
 	now := time.Now()
+
 	var exp time.Time
 	if isBrowser {
 		exp = now.Add(sm.config.BrowserSessionExpiration)
 	} else {
 		exp = now.Add(sm.config.ServiceSessionExpiration)
 	}
+
 	jti := googleUuid.Must(googleUuid.NewV7())
 
 	claims := map[string]any{
@@ -1077,6 +1147,7 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	}
 
 	var createErr error
+
 	if isBrowser {
 		browserSession := cryptoutilRepository.BrowserSession{
 			Session: session,
@@ -1108,17 +1179,21 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 		jwkID = *sm.serviceJWKID
 	}
 
-	var jwkBytes []byte
-	var loadErr error
+	var (
+		jwkBytes []byte
+		loadErr  error
+	)
 
 	if isBrowser {
 		var browserJWK cryptoutilRepository.BrowserSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&browserJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(browserJWK.EncryptedJWK)
 		}
 	} else {
 		var serviceJWK cryptoutilRepository.ServiceSessionJWK
+
 		loadErr = sm.db.WithContext(ctx).Where("id = ?", jwkID).First(&serviceJWK).Error
 		if loadErr == nil {
 			jwkBytes = []byte(serviceJWK.EncryptedJWK)
@@ -1127,16 +1202,21 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 
 	if loadErr != nil {
 		summary := "Invalid session token"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, loadErr)
 	}
 
 	// Decrypt JWK with barrier service (skip decryption if no barrier service for tests)
-	var decryptedJWKBytes []byte
-	var decryptErr error
+	var (
+		decryptedJWKBytes []byte
+		decryptErr        error
+	)
+
 	if sm.barrier != nil {
 		decryptedJWKBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, jwkBytes)
 		if decryptErr != nil {
 			summary := "Invalid session token"
+
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, decryptErr)
 		}
 	} else {
@@ -1148,6 +1228,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	jwk, parseErr := joseJwk.ParseKey(decryptedJWKBytes)
 	if parseErr != nil {
 		summary := "Invalid session token"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, parseErr)
 	}
 
@@ -1155,14 +1236,17 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	claimsBytes, verifyErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	if verifyErr != nil {
 		summary := "Invalid session token"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, verifyErr)
 	}
 
 	// Parse JWT claims
 	var claims map[string]any
+
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	if unmarshalErr != nil {
 		summary := "Invalid session token"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, unmarshalErr)
 	}
 
@@ -1170,12 +1254,16 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	expFloat, expOk := claims["exp"].(float64)
 	if !expOk {
 		summary := "Missing or invalid exp claim"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("exp claim not found or invalid type"))
 	}
+
 	exp := time.Unix(int64(expFloat), 0)
+
 	now := time.Now()
 	if now.After(exp) {
 		summary := "Session expired"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("token expired at %v", exp))
 	}
 
@@ -1183,18 +1271,22 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	jtiStr, jtiOk := claims["jti"].(string)
 	if !jtiOk {
 		summary := "Missing or invalid jti claim"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("jti claim not found or invalid type"))
 	}
 
 	jti, parseJtiErr := googleUuid.Parse(jtiStr)
 	if parseJtiErr != nil {
 		summary := "Invalid jti claim format"
+
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, parseJtiErr)
 	}
 
 	// Look up session in database by jti (enables revocation)
-	var session any
-	var findErr error
+	var (
+		session any
+		findErr error
+	)
 
 	if isBrowser {
 		browserSession := &cryptoutilRepository.BrowserSession{}
@@ -1215,8 +1307,10 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	if findErr != nil {
 		if errors.Is(findErr, gorm.ErrRecordNotFound) {
 			summary := "Session revoked or not found"
+
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, findErr)
 		}
+
 		return nil, fmt.Errorf("failed to query session: %w", findErr)
 	}
 

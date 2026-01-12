@@ -42,6 +42,7 @@ func (m *mockTenantRepository) Create(ctx context.Context, tenant *repository.Te
 	if m.createFn != nil {
 		return m.createFn(ctx, tenant)
 	}
+
 	return nil
 }
 
@@ -49,6 +50,7 @@ func (m *mockTenantRepository) GetByID(ctx context.Context, id googleUuid.UUID) 
 	if m.getByIDFn != nil {
 		return m.getByIDFn(ctx, id)
 	}
+
 	return nil, errors.New("not implemented")
 }
 
@@ -56,6 +58,7 @@ func (m *mockTenantRepository) GetByName(ctx context.Context, name string) (*rep
 	if m.getByNameFn != nil {
 		return m.getByNameFn(ctx, name)
 	}
+
 	return nil, errors.New("not implemented")
 }
 
@@ -63,6 +66,7 @@ func (m *mockTenantRepository) List(ctx context.Context, activeOnly bool) ([]*re
 	if m.listFn != nil {
 		return m.listFn(ctx, activeOnly)
 	}
+
 	return nil, errors.New("not implemented")
 }
 
@@ -70,6 +74,7 @@ func (m *mockTenantRepository) Update(ctx context.Context, tenant *repository.Te
 	if m.updateFn != nil {
 		return m.updateFn(ctx, tenant)
 	}
+
 	return nil
 }
 
@@ -77,6 +82,7 @@ func (m *mockTenantRepository) Delete(ctx context.Context, id googleUuid.UUID) e
 	if m.deleteFn != nil {
 		return m.deleteFn(ctx, id)
 	}
+
 	return nil
 }
 
@@ -84,6 +90,7 @@ func (m *mockTenantRepository) CountUsersAndClients(ctx context.Context, tenantI
 	if m.countUsersAndClientsFn != nil {
 		return m.countUsersAndClientsFn(ctx, tenantID)
 	}
+
 	return 0, 0, nil
 }
 
@@ -100,6 +107,7 @@ func (m *mockRoleRepository) Create(ctx context.Context, role *repository.Role) 
 	if m.createFn != nil {
 		return m.createFn(ctx, role)
 	}
+
 	return nil
 }
 
@@ -107,6 +115,7 @@ func (m *mockRoleRepository) GetByName(ctx context.Context, tenantID googleUuid.
 	if m.getByNameFn != nil {
 		return m.getByNameFn(ctx, tenantID, name)
 	}
+
 	return nil, errors.New("not implemented")
 }
 
@@ -114,6 +123,7 @@ func (m *mockRoleRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*
 	if m.getByIDFn != nil {
 		return m.getByIDFn(ctx, id)
 	}
+
 	return nil, errors.New("not implemented")
 }
 
@@ -121,6 +131,7 @@ func (m *mockRoleRepository) ListByTenant(ctx context.Context, tenantID googleUu
 	if m.listByTenantFn != nil {
 		return m.listByTenantFn(ctx, tenantID)
 	}
+
 	return nil, errors.New("not implemented")
 }
 
@@ -128,6 +139,7 @@ func (m *mockRoleRepository) Delete(ctx context.Context, id googleUuid.UUID) err
 	if m.deleteFn != nil {
 		return m.deleteFn(ctx, id)
 	}
+
 	return errors.New("not implemented")
 }
 
@@ -367,17 +379,21 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, tenant)
+
 				if tt.nameUpdate != nil {
 					require.Equal(t, *tt.nameUpdate, tenant.Name)
 				}
+
 				if tt.descUpdate != nil {
 					require.Equal(t, *tt.descUpdate, tenant.Description)
 				}
+
 				if tt.activeUpdate != nil {
 					expectedActive := 0
 					if *tt.activeUpdate {
 						expectedActive = 1
 					}
+
 					require.Equal(t, expectedActive, tenant.Active)
 				}
 			}

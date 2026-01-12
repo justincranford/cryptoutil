@@ -93,9 +93,11 @@ func TestPublicHTTPServer_Start_NilContext(t *testing.T) {
 
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
+
 		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
+
 		return server
 	}
 
@@ -236,9 +238,11 @@ func TestPublicHTTPServer_Shutdown_Graceful(t *testing.T) {
 
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
+
 		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
+
 		return server
 	}
 
@@ -251,9 +255,11 @@ func TestPublicHTTPServer_Shutdown_NilContext(t *testing.T) {
 
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
+
 		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
+
 		return server
 	}
 
@@ -426,9 +432,11 @@ func TestPublicHTTPServer_Shutdown_DoubleCall(t *testing.T) {
 
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
+
 		tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
 		server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
+
 		return server
 	}
 

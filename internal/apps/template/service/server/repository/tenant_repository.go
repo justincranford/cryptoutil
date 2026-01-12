@@ -137,13 +137,13 @@ func toAppErr(err error) error {
 		return nil
 	}
 
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		summary := "record not found"
 
 		return cryptoutilAppErr.NewHTTP404NotFound(&summary, err)
 	}
 
-	if err == gorm.ErrDuplicatedKey {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		summary := "duplicate key violation"
 
 		return cryptoutilAppErr.NewHTTP409Conflict(&summary, err)

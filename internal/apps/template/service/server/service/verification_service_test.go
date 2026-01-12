@@ -217,6 +217,7 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 
 	// Verify role was assigned.
 	var userRole repository.UserRole
+
 	err = db.Where("user_id = ? AND role_id = ?", user.ID, role.ID).First(&userRole).Error
 	require.NoError(t, err)
 }

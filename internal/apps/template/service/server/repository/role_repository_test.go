@@ -28,7 +28,7 @@ func TestRoleRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -98,7 +98,7 @@ func TestRoleRepository_GetByName(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -171,7 +171,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -183,7 +183,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "testuser2-" + googleUuid.New().String()[:8],
 		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now(),
 	}
 
@@ -229,7 +229,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -241,7 +241,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "testuser",
 		Email:     "test@example.com",
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now(),
 	}
 
@@ -289,7 +289,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -300,7 +300,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  "client-" + googleUuid.New().String()[:8],
-		Active: 1,
+		Active:    1,
 		CreatedAt: time.Now(),
 	}
 
@@ -344,7 +344,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -363,7 +363,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 				TenantID:  tenant.ID,
 				RealmID:   googleUuid.New(),
 				Type:      "DB",
-				Active: true,
+				Active:    true,
 				CreatedAt: time.Now(),
 			},
 			wantError: false,
@@ -376,7 +376,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 					TenantID:  tenant.ID,
 					RealmID:   googleUuid.New(),
 					Type:      "DB",
-					Active: true,
+					Active:    true,
 					CreatedAt: time.Now(),
 				}
 				err := realmRepo.Create(ctx, existingRealm)
@@ -387,7 +387,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 					TenantID:  tenant.ID,
 					RealmID:   existingRealm.RealmID,
 					Type:      "DB",
-					Active: true,
+					Active:    true,
 					CreatedAt: time.Now(),
 				}
 			}(),
@@ -418,7 +418,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 		ID:          googleUuid.New(),
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
-		Active: 1,
+		Active:      1,
 		CreatedAt:   time.Now(),
 	}
 
@@ -430,7 +430,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant.ID,
 		RealmID:   googleUuid.New(),
 		Type:      "DB",
-		Active: true,
+		Active:    true,
 		CreatedAt: time.Now(),
 	}
 
@@ -439,7 +439,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant.ID,
 		RealmID:   googleUuid.New(),
 		Type:      "FILE",
-		Active: false,
+		Active:    false,
 		CreatedAt: time.Now(),
 	}
 
@@ -478,6 +478,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 			if tt.activeOnly {
 				for _, realm := range result {
 					require.True(t, realm.Active)
+
 					if realm.ID == activeRealm.ID {
 						foundActive = true
 					}
@@ -487,6 +488,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 					if realm.ID == activeRealm.ID {
 						foundActive = true
 					}
+
 					if realm.ID == inactiveRealm.ID {
 						foundInactive = true
 					}

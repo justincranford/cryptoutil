@@ -121,11 +121,13 @@ func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 			userID := googleUuid.Must(googleUuid.NewV7()).String()
 			tenantID := googleUuid.Must(googleUuid.NewV7())
 			realmID := googleUuid.Must(googleUuid.NewV7())
+
 			var tokens []string
 
 			for i := 0; i < 3; i++ {
 				token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 				require.NoError(t, err)
+
 				tokens = append(tokens, token)
 			}
 
@@ -153,6 +155,7 @@ func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 
 			// Verify session is expired
 			var validationErr error
+
 			_, validationErr = shortSM.ValidateBrowserSession(ctx, shortToken)
 			require.Error(t, validationErr, "Expired session should be invalid")
 
@@ -202,8 +205,11 @@ func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
 	require.Equal(t, serviceRealmID, serviceSession.RealmID)
 
 	// Step 5: Issue multiple sessions for load testing scenario
-	var browserTokens []string
-	var serviceTokens []string
+	var (
+		browserTokens []string
+		serviceTokens []string
+	)
+
 	testRealmID := googleUuid.Must(googleUuid.NewV7())
 
 	for i := 0; i < 10; i++ {
@@ -212,10 +218,12 @@ func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
 
 		browserToken, err := sm.IssueBrowserSession(ctx, userID, tenantID, testRealmID)
 		require.NoError(t, err)
+
 		browserTokens = append(browserTokens, browserToken)
 
 		serviceToken, err := sm.IssueServiceSession(ctx, clientID, tenantID, testRealmID)
 		require.NoError(t, err)
+
 		serviceTokens = append(serviceTokens, serviceToken)
 	}
 

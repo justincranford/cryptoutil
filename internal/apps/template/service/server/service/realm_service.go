@@ -69,6 +69,7 @@ func (c *UsernamePasswordConfig) Validate() error {
 	if c.MinPasswordLength < 1 {
 		return fmt.Errorf("min_password_length must be at least 1")
 	}
+
 	return nil
 }
 
@@ -94,9 +95,11 @@ func (c *LDAPConfig) Validate() error {
 	if c.URL == "" {
 		return fmt.Errorf("url is required")
 	}
+
 	if c.BaseDN == "" {
 		return fmt.Errorf("base_dn is required")
 	}
+
 	return nil
 }
 
@@ -123,12 +126,15 @@ func (c *OAuth2Config) Validate() error {
 	if c.ClientID == "" {
 		return fmt.Errorf("client_id is required")
 	}
+
 	if c.UseDiscovery && c.ProviderURL == "" {
 		return fmt.Errorf("provider_url is required when use_discovery is true")
 	}
+
 	if !c.UseDiscovery && (c.AuthorizeURL == "" || c.TokenURL == "") {
 		return fmt.Errorf("authorize_url and token_url are required when use_discovery is false")
 	}
+
 	return nil
 }
 
@@ -153,9 +159,11 @@ func (c *SAMLConfig) Validate() error {
 	if c.MetadataURL == "" && c.MetadataXML == "" {
 		return fmt.Errorf("either metadata_url or metadata_xml is required")
 	}
+
 	if c.EntityID == "" {
 		return fmt.Errorf("entity_id is required")
 	}
+
 	return nil
 }
 
@@ -208,11 +216,13 @@ func (s *RealmServiceImpl) CreateRealm(ctx context.Context, tenantID googleUuid.
 
 	// Serialize configuration to JSON.
 	var configJSON string
+
 	if config != nil {
 		configBytes, err := json.Marshal(config)
 		if err != nil {
 			return nil, fmt.Errorf("failed to serialize realm configuration: %w", err)
 		}
+
 		configJSON = string(configBytes)
 	}
 
@@ -270,10 +280,12 @@ func (s *RealmServiceImpl) UpdateRealm(ctx context.Context, tenantID, realmID go
 		if err := config.Validate(); err != nil {
 			return nil, fmt.Errorf("invalid realm configuration: %w", err)
 		}
+
 		configBytes, err := json.Marshal(config)
 		if err != nil {
 			return nil, fmt.Errorf("failed to serialize realm configuration: %w", err)
 		}
+
 		realm.Config = string(configBytes)
 	}
 
@@ -343,6 +355,7 @@ func (s *RealmServiceImpl) parseRealmConfig(realmType, configJSON string) (Realm
 	}
 
 	var config RealmConfig
+
 	switch RealmType(realmType) {
 	case RealmTypeUsernamePassword:
 		config = &UsernamePasswordConfig{}

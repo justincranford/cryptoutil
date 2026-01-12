@@ -38,6 +38,7 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	var browserJWK struct {
 		EncryptedJWK string
 	}
+
 	findErr := sm.db.Table("browser_session_jwks").
 		Where("id = ?", sm.browserJWKID).
 		Select("encrypted_jwk").
@@ -122,6 +123,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
 	var browserJWK struct {
 		EncryptedJWK string
 	}
+
 	findErr := sm.db.Table("browser_session_jwks").
 		Where("id = ?", sm.browserJWKID).
 		Select("encrypted_jwk").
@@ -172,6 +174,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 	var browserJWK struct {
 		EncryptedJWK string
 	}
+
 	findErr := sm.db.Table("browser_session_jwks").
 		Where("id = ?", sm.browserJWKID).
 		Select("encrypted_jwk").
@@ -185,7 +188,9 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 	require.NoError(t, publicKeyErr)
 
 	claimsBytes, _ := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+
 	var claims map[string]any
+
 	_ = json.Unmarshal(claimsBytes, &claims)
 	jtiStr := claims["jti"].(string)
 
@@ -217,6 +222,7 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 	var serviceJWK struct {
 		EncryptedJWK string
 	}
+
 	findErr := sm.db.Table("service_session_jwks").
 		Where("id = ?", sm.serviceJWKID).
 		Select("encrypted_jwk").
@@ -233,6 +239,7 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 	require.NoError(t, verifyErr)
 
 	var claims map[string]any
+
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	require.NoError(t, unmarshalErr)
 

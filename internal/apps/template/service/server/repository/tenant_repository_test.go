@@ -269,10 +269,12 @@ func TestTenantRepository_List(t *testing.T) {
 
 			// Verify our test tenants are in the results.
 			var foundActive, foundInactive bool
+
 			for _, tenant := range result {
 				if tenant.ID == activeTenant.ID {
 					foundActive = true
 				}
+
 				if tenant.ID == inactiveTenant.ID {
 					foundInactive = true
 				}
@@ -285,6 +287,7 @@ func TestTenantRepository_List(t *testing.T) {
 			if tt.hasActive {
 				require.True(t, foundActive, "Active tenant should be in results")
 			}
+
 			if tt.hasInactive {
 				require.True(t, foundInactive, "Inactive tenant should be in results")
 			}

@@ -286,9 +286,11 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
+
 		tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
 		server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
+
 		return server
 	}
 
@@ -521,12 +523,13 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 // TestAdminServer_Shutdown_NilContext tests Shutdown accepts nil context and uses Background().
 func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
+
 		tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
 		server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
+
 		return server
 	}
 

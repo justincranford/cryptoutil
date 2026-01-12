@@ -63,6 +63,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// Verify tables were created
 	var tableCount int
+
 	err = db.Raw("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('browser_sessions', 'service_sessions', 'browser_session_jwks', 'service_session_jwks')").Scan(&tableCount).Error
 	require.NoError(t, err)
 	require.Equal(t, 4, tableCount, "All 4 session tables should be created")
@@ -137,6 +138,7 @@ func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
 
 	// Verify session stored in database
 	var session cryptoutilRepository.BrowserSession
+
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
 	require.NotNil(t, session.TokenHash)
@@ -194,6 +196,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.
 
 	// Manually expire the session by updating database
 	var session cryptoutilRepository.BrowserSession
+
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
 
@@ -225,6 +228,7 @@ func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
 
 	// Verify session stored in database
 	var session cryptoutilRepository.ServiceSession
+
 	findErr := sm.db.Where("client_id = ?", clientID).First(&session).Error
 	require.NoError(t, findErr)
 	require.NotNil(t, session.TokenHash)
@@ -270,6 +274,7 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 
 	// Manually expire it
 	var session cryptoutilRepository.BrowserSession
+
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
 
@@ -304,6 +309,7 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 
 	// Manually set last_activity to past idle threshold
 	var session cryptoutilRepository.BrowserSession
+
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
 
@@ -411,8 +417,10 @@ func TestSessionManager_StartCleanupTask(t *testing.T) {
 
 	// Start cleanup task in a goroutine
 	done := make(chan bool, 1)
+
 	go func() {
 		sm.StartCleanupTask(ctx)
+
 		done <- true
 	}()
 

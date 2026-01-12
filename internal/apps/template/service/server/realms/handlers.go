@@ -243,8 +243,11 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 			})
 		}
 
-		var token string
-		var issueErr error
+		var (
+			token    string
+			issueErr error
+		)
+
 		if isBrowser {
 			token, issueErr = manager.IssueBrowserSession(c.Context(), user.GetID().String(), "default")
 		} else {

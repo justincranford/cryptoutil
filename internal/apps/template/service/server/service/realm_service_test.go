@@ -89,7 +89,7 @@ func createRealmTestTenant(t *testing.T, db *gorm.DB, tenantName string) *reposi
 		ID:          googleUuid.New(),
 		Name:        tenantName,
 		Description: "Test tenant for realm testing",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -358,6 +358,7 @@ func TestRealmService_UpdateRealm(t *testing.T) {
 	// Verify config was updated.
 	parsedConfig, err := svc.GetRealmConfig(ctx, tenant.ID, created.RealmID)
 	require.NoError(t, err)
+
 	pwConfig, ok := parsedConfig.(*UsernamePasswordConfig)
 	require.True(t, ok)
 	require.Equal(t, 12, pwConfig.MinPasswordLength)
@@ -470,6 +471,7 @@ func TestUsernamePasswordConfig_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tt.config.Validate()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -512,6 +514,7 @@ func TestLDAPConfig_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tt.config.Validate()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -576,6 +579,7 @@ func TestOAuth2Config_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tt.config.Validate()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -628,6 +632,7 @@ func TestSAMLConfig_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tt.config.Validate()
 			if tt.wantErr {
 				require.Error(t, err)

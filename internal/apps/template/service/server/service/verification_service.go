@@ -119,6 +119,7 @@ func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unv
 		if err != nil {
 			return nil, fmt.Errorf("failed to get role %s: %w", roleID, err)
 		}
+
 		if role.TenantID != tenantID {
 			return nil, fmt.Errorf("role %s does not belong to the specified tenant", roleID)
 		}
@@ -189,6 +190,7 @@ func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, u
 		if err != nil {
 			return nil, fmt.Errorf("failed to get role %s: %w", roleID, err)
 		}
+
 		if role.TenantID != tenantID {
 			return nil, fmt.Errorf("role %s does not belong to the specified tenant", roleID)
 		}

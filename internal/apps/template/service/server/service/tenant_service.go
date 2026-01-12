@@ -116,9 +116,11 @@ func (s *TenantServiceImpl) UpdateTenant(ctx context.Context, id googleUuid.UUID
 	if name != nil {
 		tenant.Name = *name
 	}
+
 	if description != nil {
 		tenant.Description = *description
 	}
+
 	if active != nil {
 		tenant.SetActive(*active)
 	}
