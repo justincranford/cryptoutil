@@ -168,7 +168,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	var existingJWK cryptoutilRepository.SessionJWK
 	err := sm.db.WithContext(ctx).
 		Table(tableName).
-		Where("active = ?", true).
+		Where("active = ?", 1).
 		Order("created_at DESC").
 		First(&existingJWK).
 		Error
