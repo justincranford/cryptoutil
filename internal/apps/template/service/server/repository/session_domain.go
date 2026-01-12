@@ -22,7 +22,21 @@ type SessionJWK struct {
 	EncryptedJWK string          `gorm:"type:text;not null"` // JWK encrypted with barrier layer.
 	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 	Algorithm    string          `gorm:"type:text;not null"` // JWE or JWS algorithm identifier.
-	Active       bool            `gorm:"not null;default:true"`
+	Active       int             `gorm:"type:integer;not null;default:1;index"`
+}
+
+// IsActive returns true if the SessionJWK is active.
+func (s *SessionJWK) IsActive() bool {
+	return s.Active == 1
+}
+
+// SetActive sets the active state of the SessionJWK.
+func (s *SessionJWK) SetActive(active bool) {
+	if active {
+		s.Active = 1
+	} else {
+		s.Active = 0
+	}
 }
 
 // BrowserSessionJWK represents a JWK for browser session tokens.

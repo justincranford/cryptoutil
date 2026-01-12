@@ -325,7 +325,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		EncryptedJWK: string(encryptedJWK),
 		CreatedAt:    time.Now(),
 		Algorithm:    algIdentifier,
-		Active:       true,
+		Active:       1,
 	}
 
 	var createErr error
