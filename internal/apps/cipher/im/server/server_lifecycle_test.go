@@ -336,3 +336,100 @@ func TestPublicServer_PublicBaseURL(t *testing.T) {
 	require.Equal(t, baseURL, result, "PublicBaseURL should match expected base URL")
 	require.Contains(t, result, "https://", "PublicBaseURL should start with https://")
 }
+
+// TestNewFromConfig_NilContext tests NewFromConfig with nil context.
+func TestNewFromConfig_NilContext(t *testing.T) {
+	t.Parallel()
+
+	cfg := initTestConfig()
+
+	_, err := server.NewFromConfig(nil, cfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "context cannot be nil")
+}
+
+// TestNewFromConfig_NilConfig tests NewFromConfig with nil config.
+func TestNewFromConfig_NilConfig(t *testing.T) {
+	t.Parallel()
+
+	_, err := server.NewFromConfig(context.Background(), nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "config cannot be nil")
+}
+
+// TestNewFromConfig_UnsupportedTLSPrivateMode tests NewFromConfig with unsupported TLS private mode.
+func TestNewFromConfig_UnsupportedTLSPrivateMode(t *testing.T) {
+	t.Parallel()
+
+	cfg := initTestConfig()
+	cfg.TLSPrivateMode = "unsupported-mode"
+
+	_, err := server.NewFromConfig(context.Background(), cfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported TLS private mode")
+}
+
+// TestNewFromConfig_UnsupportedTLSPublicMode tests NewFromConfig with unsupported TLS public mode.
+func TestNewFromConfig_UnsupportedTLSPublicMode(t *testing.T) {
+	t.Parallel()
+
+	cfg := initTestConfig()
+	cfg.TLSPublicMode = "unsupported-mode"
+
+	_, err := server.NewFromConfig(context.Background(), cfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported TLS public mode")
+}
+
+// TestNewPublicServer_EmptyBindAddress tests constructor with empty bind address.
+func TestNewPublicServer_EmptyBindAddress(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	cleanTestDB(t)
+
+	userRepo := repository.NewUserRepository(testDB)
+	messageRepo := repository.NewMessageRepository(testDB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
+	sessionManager := testCipherIMServer.SessionManager()
+
+	_, err := server.NewPublicServer(ctx, "", 0, userRepo, messageRepo, messageRecipientJWKRepo, testJWKGenService, nil, sessionManager, testTLSCfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "bind address cannot be empty")
+}
+
+// TestNewPublicServer_NilJWKGenService tests constructor with nil JWK gen service.
+func TestNewPublicServer_NilJWKGenService(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	cleanTestDB(t)
+
+	userRepo := repository.NewUserRepository(testDB)
+	messageRepo := repository.NewMessageRepository(testDB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
+	sessionManager := testCipherIMServer.SessionManager()
+
+	_, err := server.NewPublicServer(ctx, cryptoutilMagic.IPv4Loopback, 0, userRepo, messageRepo, messageRecipientJWKRepo, nil, nil, sessionManager, testTLSCfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "JWK generation service cannot be nil")
+}
+
+// TestNewPublicServer_NilSessionManager tests constructor with nil session manager.
+func TestNewPublicServer_NilSessionManager(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	cleanTestDB(t)
+
+	userRepo := repository.NewUserRepository(testDB)
+	messageRepo := repository.NewMessageRepository(testDB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(testDB, nil)
+
+	_, err := server.NewPublicServer(ctx, cryptoutilMagic.IPv4Loopback, 0, userRepo, messageRepo, messageRecipientJWKRepo, testJWKGenService, nil, nil, testTLSCfg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "session manager service cannot be nil")
+}
