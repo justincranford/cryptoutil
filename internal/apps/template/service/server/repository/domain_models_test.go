@@ -37,6 +37,7 @@ func TestClient_IsActive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			client := &repository.Client{Active: tt.active}
 			require.Equal(t, tt.expected, client.IsActive())
 		})
@@ -59,6 +60,7 @@ func TestClient_SetActive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			client := &repository.Client{}
 			client.SetActive(tt.active)
 			require.Equal(t, tt.expected, client.Active)
@@ -90,6 +92,7 @@ func TestUnverifiedUser_IsExpired(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			user := &repository.UnverifiedUser{ExpiresAt: tt.expiresAt}
 			require.Equal(t, tt.expected, user.IsExpired())
 		})
@@ -120,6 +123,7 @@ func TestUnverifiedClient_IsExpired(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			client := &repository.UnverifiedClient{ExpiresAt: tt.expiresAt}
 			require.Equal(t, tt.expected, client.IsExpired())
 		})

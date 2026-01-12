@@ -37,6 +37,7 @@ func TestTenant_IsActive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			tenant := &repository.Tenant{Active: tt.active}
 			require.Equal(t, tt.expected, tenant.IsActive())
 		})
@@ -59,6 +60,7 @@ func TestTenant_SetActive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			tenant := &repository.Tenant{}
 			tenant.SetActive(tt.active)
 			require.Equal(t, tt.expected, tenant.Active)
@@ -143,6 +145,7 @@ func TestUser_SetActive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			user := &repository.User{}
 			user.SetActive(tt.active)
 			require.Equal(t, tt.expected, user.Active)
