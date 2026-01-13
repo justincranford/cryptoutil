@@ -14,292 +14,292 @@ import (
 )
 
 func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
-	configFileValue, ok := configFile.value.([]string)
+	configFileValue, ok := configFile.Value.([]string)
 	if !ok {
 		panic("configFile.value must be []string")
 	}
 
-	logLevelValue, ok := logLevel.value.(string)
+	logLevelValue, ok := logLevel.Value.(string)
 	if !ok {
 		panic("logLevel.value must be string")
 	}
 
-	verboseModeValue, ok := verboseMode.value.(bool)
+	verboseModeValue, ok := verboseMode.Value.(bool)
 	if !ok {
 		panic("verboseMode.value must be bool")
 	}
 
-	devModeValue, ok := devMode.value.(bool)
+	devModeValue, ok := devMode.Value.(bool)
 	if !ok {
 		panic("devMode.value must be bool")
 	}
 
-	demoModeValue, ok := demoMode.value.(bool)
+	demoModeValue, ok := demoMode.Value.(bool)
 	if !ok {
 		panic("demoMode.value must be bool")
 	}
 
-	bindPublicProtocolValue, ok := bindPublicProtocol.value.(string)
+	bindPublicProtocolValue, ok := bindPublicProtocol.Value.(string)
 	if !ok {
 		panic("bindPublicProtocol.value must be string")
 	}
 
-	bindPublicAddressValue, ok := bindPublicAddress.value.(string)
+	bindPublicAddressValue, ok := bindPublicAddress.Value.(string)
 	if !ok {
 		panic("bindPublicAddress.value must be string")
 	}
 
-	tlsPublicDNSNamesValue, ok := tlsPublicDNSNames.value.([]string)
+	tlsPublicDNSNamesValue, ok := tlsPublicDNSNames.Value.([]string)
 	if !ok {
 		panic("tlsPublicDNSNames.value must be []string")
 	}
 
-	tlsPublicIPAddressesValue, ok := tlsPublicIPAddresses.value.([]string)
+	tlsPublicIPAddressesValue, ok := tlsPublicIPAddresses.Value.([]string)
 	if !ok {
 		panic("tlsPublicIPAddresses.value must be []string")
 	}
 
-	tlsPrivateDNSNamesValue, ok := tlsPrivateDNSNames.value.([]string)
+	tlsPrivateDNSNamesValue, ok := tlsPrivateDNSNames.Value.([]string)
 	if !ok {
 		panic("tlsPrivateDNSNames.value must be []string")
 	}
 
-	tlsPrivateIPAddressesValue, ok := tlsPrivateIPAddresses.value.([]string)
+	tlsPrivateIPAddressesValue, ok := tlsPrivateIPAddresses.Value.([]string)
 	if !ok {
 		panic("tlsPrivateIPAddresses.value must be []string")
 	}
 
-	bindPrivateProtocolValue, ok := bindPrivateProtocol.value.(string)
+	bindPrivateProtocolValue, ok := bindPrivateProtocol.Value.(string)
 	if !ok {
 		panic("bindPrivateProtocol.value must be string")
 	}
 
-	bindPrivateAddressValue, ok := bindPrivateAddress.value.(string)
+	bindPrivateAddressValue, ok := bindPrivateAddress.Value.(string)
 	if !ok {
 		panic("bindPrivateAddress.value must be string")
 	}
 
-	publicBrowserAPIContextPathValue, ok := publicBrowserAPIContextPath.value.(string)
+	publicBrowserAPIContextPathValue, ok := publicBrowserAPIContextPath.Value.(string)
 	if !ok {
 		panic("publicBrowserAPIContextPath.value must be string")
 	}
 
-	publicServiceAPIContextPathValue, ok := publicServiceAPIContextPath.value.(string)
+	publicServiceAPIContextPathValue, ok := publicServiceAPIContextPath.Value.(string)
 	if !ok {
 		panic("publicServiceAPIContextPath.value must be string")
 	}
 
-	corsAllowedOriginsValue, ok := corsAllowedOrigins.value.([]string)
+	corsAllowedOriginsValue, ok := corsAllowedOrigins.Value.([]string)
 	if !ok {
 		panic("corsAllowedOrigins.value must be []string")
 	}
 
-	corsAllowedMethodsValue, ok := corsAllowedMethods.value.([]string)
+	corsAllowedMethodsValue, ok := corsAllowedMethods.Value.([]string)
 	if !ok {
 		panic("corsAllowedMethods.value must be []string")
 	}
 
-	corsAllowedHeadersValue, ok := corsAllowedHeaders.value.([]string)
+	corsAllowedHeadersValue, ok := corsAllowedHeaders.Value.([]string)
 	if !ok {
 		panic("corsAllowedHeaders.value must be []string")
 	}
 
-	corsMaxAgeValue, ok := corsMaxAge.value.(uint16)
+	corsMaxAgeValue, ok := corsMaxAge.Value.(uint16)
 	if !ok {
 		panic("corsMaxAge.value must be uint16")
 	}
 
-	csrfTokenNameValue, ok := csrfTokenName.value.(string)
+	csrfTokenNameValue, ok := csrfTokenName.Value.(string)
 	if !ok {
 		panic("csrfTokenName.value must be string")
 	}
 
-	csrfTokenSameSiteValue, ok := csrfTokenSameSite.value.(string)
+	csrfTokenSameSiteValue, ok := csrfTokenSameSite.Value.(string)
 	if !ok {
 		panic("csrfTokenSameSite.value must be string")
 	}
 
-	csrfTokenMaxAgeValue, ok := csrfTokenMaxAge.value.(time.Duration)
+	csrfTokenMaxAgeValue, ok := csrfTokenMaxAge.Value.(time.Duration)
 	if !ok {
 		panic("csrfTokenMaxAge.value must be time.Duration")
 	}
 
-	csrfTokenCookieSecureValue, ok := csrfTokenCookieSecure.value.(bool)
+	csrfTokenCookieSecureValue, ok := csrfTokenCookieSecure.Value.(bool)
 	if !ok {
 		panic("csrfTokenCookieSecure.value must be bool")
 	}
 
-	csrfTokenCookieHTTPOnlyValue, ok := csrfTokenCookieHTTPOnly.value.(bool)
+	csrfTokenCookieHTTPOnlyValue, ok := csrfTokenCookieHTTPOnly.Value.(bool)
 	if !ok {
 		panic("csrfTokenCookieHTTPOnly.value must be bool")
 	}
 
-	csrfTokenCookieSessionOnlyValue, ok := csrfTokenCookieSessionOnly.value.(bool)
+	csrfTokenCookieSessionOnlyValue, ok := csrfTokenCookieSessionOnly.Value.(bool)
 	if !ok {
 		panic("csrfTokenCookieSessionOnly.value must be bool")
 	}
 
-	csrfTokenSingleUseTokenValue, ok := csrfTokenSingleUseToken.value.(bool)
+	csrfTokenSingleUseTokenValue, ok := csrfTokenSingleUseToken.Value.(bool)
 	if !ok {
 		panic("csrfTokenSingleUseToken.value must be bool")
 	}
 
-	browserIPRateLimitValue, ok := browserIPRateLimit.value.(uint16)
+	browserIPRateLimitValue, ok := browserIPRateLimit.Value.(uint16)
 	if !ok {
 		panic("browserIPRateLimit.value must be uint16")
 	}
 
-	serviceIPRateLimitValue, ok := serviceIPRateLimit.value.(uint16)
+	serviceIPRateLimitValue, ok := serviceIPRateLimit.Value.(uint16)
 	if !ok {
 		panic("serviceIPRateLimit.value must be uint16")
 	}
 
-	requestBodyLimitValue, ok := requestBodyLimit.value.(int)
+	requestBodyLimitValue, ok := requestBodyLimit.Value.(int)
 	if !ok {
 		panic("requestBodyLimit.value must be int")
 	}
 
-	allowedIPsValue, ok := allowedIps.value.([]string)
+	allowedIPsValue, ok := allowedIps.Value.([]string)
 	if !ok {
 		panic("allowedIps.value must be []string")
 	}
 
-	allowedCIDRsValue, ok := allowedCidrs.value.([]string)
+	allowedCIDRsValue, ok := allowedCidrs.Value.([]string)
 	if !ok {
 		panic("allowedCidrs.value must be []string")
 	}
 
-	swaggerUIUsernameValue, ok := swaggerUIUsername.value.(string)
+	swaggerUIUsernameValue, ok := swaggerUIUsername.Value.(string)
 	if !ok {
 		panic("swaggerUIUsername.value must be string")
 	}
 
-	swaggerUIPasswordValue, ok := swaggerUIPassword.value.(string)
+	swaggerUIPasswordValue, ok := swaggerUIPassword.Value.(string)
 	if !ok {
 		panic("swaggerUIPassword.value must be string")
 	}
 
-	databaseContainerValue, ok := databaseContainer.value.(string)
+	databaseContainerValue, ok := databaseContainer.Value.(string)
 	if !ok {
 		panic("databaseContainer.value must be string")
 	}
 
-	databaseURLValue, ok := databaseURL.value.(string)
+	databaseURLValue, ok := databaseURL.Value.(string)
 	if !ok {
 		panic("databaseURL.value must be string")
 	}
 
-	databaseInitTotalTimeoutValue, ok := databaseInitTotalTimeout.value.(time.Duration)
+	databaseInitTotalTimeoutValue, ok := databaseInitTotalTimeout.Value.(time.Duration)
 	if !ok {
 		panic("databaseInitTotalTimeout.value must be time.Duration")
 	}
 
-	databaseInitRetryWaitValue, ok := databaseInitRetryWait.value.(time.Duration)
+	databaseInitRetryWaitValue, ok := databaseInitRetryWait.Value.(time.Duration)
 	if !ok {
 		panic("databaseInitRetryWait.value must be time.Duration")
 	}
 
-	serverShutdownTimeoutValue, ok := serverShutdownTimeout.value.(time.Duration)
+	serverShutdownTimeoutValue, ok := serverShutdownTimeout.Value.(time.Duration)
 	if !ok {
 		panic("serverShutdownTimeout.value must be time.Duration")
 	}
 
-	otlpValue, ok := otlpEnabled.value.(bool)
+	otlpValue, ok := otlpEnabled.Value.(bool)
 	if !ok {
 		panic("otlp.value must be bool")
 	}
 
-	otlpConsoleValue, ok := otlpConsole.value.(bool)
+	otlpConsoleValue, ok := otlpConsole.Value.(bool)
 	if !ok {
 		panic("otlpConsole.value must be bool")
 	}
 
-	otlpServiceValue, ok := otlpService.value.(string)
+	otlpServiceValue, ok := otlpService.Value.(string)
 	if !ok {
 		panic("otlpService.value must be string")
 	}
 
-	otlpInstanceValue, ok := otlpInstance.value.(string)
+	otlpInstanceValue, ok := otlpInstance.Value.(string)
 	if !ok {
 		panic("otlpInstance.value must be string")
 	}
 
-	otlpVersionValue, ok := otlpVersion.value.(string)
+	otlpVersionValue, ok := otlpVersion.Value.(string)
 	if !ok {
 		panic("otlpVersion.value must be string")
 	}
 
-	otlpEnvironmentValue, ok := otlpEnvironment.value.(string)
+	otlpEnvironmentValue, ok := otlpEnvironment.Value.(string)
 	if !ok {
 		panic("otlpEnvironment.value must be string")
 	}
 
-	otlpHostnameValue, ok := otlpHostname.value.(string)
+	otlpHostnameValue, ok := otlpHostname.Value.(string)
 	if !ok {
 		panic("otlpHostname.value must be string")
 	}
 
-	otlpEndpointValue, ok := otlpEndpoint.value.(string)
+	otlpEndpointValue, ok := otlpEndpoint.Value.(string)
 	if !ok {
 		panic("otlpEndpoint.value must be string")
 	}
 
-	unsealModeValue, ok := unsealMode.value.(string)
+	unsealModeValue, ok := unsealMode.Value.(string)
 	if !ok {
 		panic("unsealMode.value must be string")
 	}
 
-	unsealFilesValue, ok := unsealFiles.value.([]string)
+	unsealFilesValue, ok := unsealFiles.Value.([]string)
 	if !ok {
 		panic("unsealFiles.value must be []string")
 	}
 
-	browserSessionAlgorithmValue, ok := browserSessionAlgorithm.value.(string)
+	browserSessionAlgorithmValue, ok := browserSessionAlgorithm.Value.(string)
 	if !ok {
 		panic("browserSessionAlgorithm.value must be string")
 	}
 
-	browserSessionJWSAlgorithmValue, ok := browserSessionJWSAlgorithm.value.(string)
+	browserSessionJWSAlgorithmValue, ok := browserSessionJWSAlgorithm.Value.(string)
 	if !ok {
 		panic("browserSessionJWSAlgorithm.value must be string")
 	}
 
-	browserSessionJWEAlgorithmValue, ok := browserSessionJWEAlgorithm.value.(string)
+	browserSessionJWEAlgorithmValue, ok := browserSessionJWEAlgorithm.Value.(string)
 	if !ok {
 		panic("browserSessionJWEAlgorithm.value must be string")
 	}
 
-	browserSessionExpirationValue, ok := browserSessionExpiration.value.(time.Duration)
+	browserSessionExpirationValue, ok := browserSessionExpiration.Value.(time.Duration)
 	if !ok {
 		panic("browserSessionExpiration.value must be time.Duration")
 	}
 
-	serviceSessionAlgorithmValue, ok := serviceSessionAlgorithm.value.(string)
+	serviceSessionAlgorithmValue, ok := serviceSessionAlgorithm.Value.(string)
 	if !ok {
 		panic("serviceSessionAlgorithm.value must be string")
 	}
 
-	serviceSessionJWSAlgorithmValue, ok := serviceSessionJWSAlgorithm.value.(string)
+	serviceSessionJWSAlgorithmValue, ok := serviceSessionJWSAlgorithm.Value.(string)
 	if !ok {
 		panic("serviceSessionJWSAlgorithm.value must be string")
 	}
 
-	serviceSessionJWEAlgorithmValue, ok := serviceSessionJWEAlgorithm.value.(string)
+	serviceSessionJWEAlgorithmValue, ok := serviceSessionJWEAlgorithm.Value.(string)
 	if !ok {
 		panic("serviceSessionJWEAlgorithm.value must be string")
 	}
 
-	serviceSessionExpirationValue, ok := serviceSessionExpiration.value.(time.Duration)
+	serviceSessionExpirationValue, ok := serviceSessionExpiration.Value.(time.Duration)
 	if !ok {
 		panic("serviceSessionExpiration.value must be time.Duration")
 	}
 
-	sessionIdleTimeoutValue, ok := sessionIdleTimeout.value.(time.Duration)
+	sessionIdleTimeoutValue, ok := sessionIdleTimeout.Value.(time.Duration)
 	if !ok {
 		panic("sessionIdleTimeout.value must be time.Duration")
 	}
 
-	sessionCleanupIntervalValue, ok := sessionCleanupInterval.value.(time.Duration)
+	sessionCleanupIntervalValue, ok := sessionCleanupInterval.Value.(time.Duration)
 	if !ok {
 		panic("sessionCleanupInterval.value must be time.Duration")
 	}

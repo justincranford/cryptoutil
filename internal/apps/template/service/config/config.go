@@ -114,11 +114,12 @@ const (
 )
 
 var (
-	defaultTLSStaticCertPEM  = cryptoutilMagic.DefaultTLSStaticCertPEM
-	defaultTLSStaticKeyPEM   = cryptoutilMagic.DefaultTLSStaticKeyPEM
-	defaultTLSMixedCACertPEM = cryptoutilMagic.DefaultTLSMixedCACertPEM
-	defaultTLSMixedCAKeyPEM  = cryptoutilMagic.DefaultTLSMixedCAKeyPEM
-	defaultRealms            = cryptoutilMagic.DefaultRealms
+	defaultTLSStaticCertPEM   = cryptoutilMagic.DefaultTLSStaticCertPEM
+	defaultTLSStaticKeyPEM    = cryptoutilMagic.DefaultTLSStaticKeyPEM
+	defaultTLSMixedCACertPEM  = cryptoutilMagic.DefaultTLSMixedCACertPEM
+	defaultTLSMixedCAKeyPEM   = cryptoutilMagic.DefaultTLSMixedCAKeyPEM
+	defaultBrowserRealms      = cryptoutilMagic.DefaultBrowserRealms
+	defaultServiceRealms      = cryptoutilMagic.DefaultServiceRealms
 )
 
 // Configuration profiles for common deployment scenarios.
@@ -226,7 +227,7 @@ var subcommands = map[string]struct{}{
 	"ready": {},
 }
 
-var allRegisteredSettings []*Setting
+var allServeiceTemplateServerRegisteredSettings []*Setting
 
 type ServiceTemplateServerSettings struct {
 	SubCommand                  string
@@ -291,7 +292,8 @@ type ServiceTemplateServerSettings struct {
 	OTLPEndpoint                string
 	UnsealMode                  string
 	UnsealFiles                 []string
-	Realms                      []string      // Paths to realm configuration files (e.g., 01-username-password-file.yml, 02-username-password-db.yml)
+	BrowserRealms               []string      // Paths to browser realm configuration files (session-based auth)
+	ServiceRealms               []string      // Paths to service realm configuration files (token-based auth)
 	BrowserSessionCookie        string        // Cookie type: jwe (encrypted), jws (signed), opaque (database) - DEPRECATED: use BrowserSessionAlgorithm
 	BrowserSessionAlgorithm     string        // Session algorithm: OPAQUE (hashed), JWS (signed JWT), JWE (encrypted JWT)
 	BrowserSessionJWSAlgorithm  string        // JWS algorithm for browser sessions (e.g., RS256, ES256, EdDSA)
@@ -317,13 +319,13 @@ func (s *ServiceTemplateServerSettings) PublicBaseURL() string {
 
 // Setting Input values for pflag.*P(name, shortname, value, usage).
 type Setting struct {
-	name        string // unique long name for the flag
-	env         string // unique environment variable name for the flag
-	shorthand   string // unique short name for the flag
-	value       any    // default value for the flag
-	usage       string // description of the flag for help text
-	description string // human-readable description for logging/display
-	redacted    bool   // whether to redact the value in logs (except in dev+verbose mode)
+	Name        string // unique long name for the flag
+	Env         string // unique environment variable name for the flag
+	Shorthand   string // unique short name for the flag
+	Value       any    // default value for the flag
+	Usage       string // description of the flag for help text
+	Description string // human-readable description for logging/display
+	Redacted    bool   // whether to redact the value in logs (except in dev+verbose mode)
 }
 
 type analysisResult struct {
@@ -334,527 +336,536 @@ type analysisResult struct {
 }
 
 var (
-	help = *setEnvAndRegisterSetting(&Setting{
-		name:      "help",
-		shorthand: "h",
-		value:     defaultHelp,
-		usage: "print help; you can run the server with parameters like this:\n" +
+	help = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:      "help",
+		Shorthand: "h",
+		Value:     defaultHelp,
+		Usage: "print help; you can run the server with parameters like this:\n" +
 			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n", // pragma: allowlist secret
-		description: "Help",
+		Description: "Help",
 	})
-	configFile = *setEnvAndRegisterSetting(&Setting{
-		name:        "config",
-		shorthand:   "y",
-		value:       defaultConfigFiles,
-		usage:       "path to config file (can be specified multiple times)",
-		description: "Config files",
+	configFile = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "config",
+		Shorthand:   "y",
+		Value:       defaultConfigFiles,
+		Usage:       "path to config file (can be specified multiple times)",
+		Description: "Config files",
 	})
-	logLevel = *setEnvAndRegisterSetting(&Setting{
-		name:        "log-level",
-		shorthand:   "l",
-		value:       defaultLogLevel,
-		usage:       "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
-		description: "Log Level",
+	logLevel = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "log-level",
+		Shorthand:   "l",
+		Value:       defaultLogLevel,
+		Usage:       "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
+		Description: "Log Level",
 	})
-	verboseMode = *setEnvAndRegisterSetting(&Setting{
-		name:        "verbose",
-		shorthand:   "v",
-		value:       defaultVerboseMode,
-		usage:       "verbose modifier for log level",
-		description: "Verbose mode",
+	verboseMode = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "verbose",
+		Shorthand:   "v",
+		Value:       defaultVerboseMode,
+		Usage:       "verbose modifier for log level",
+		Description: "Verbose mode",
 	})
-	devMode = *setEnvAndRegisterSetting(&Setting{
-		name:        "dev",
-		shorthand:   "d",
-		value:       defaultDevMode,
-		usage:       "run in development mode; enables in-memory SQLite",
-		description: "Dev mode",
+	devMode = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "dev",
+		Shorthand:   "d",
+		Value:       defaultDevMode,
+		Usage:       "run in development mode; enables in-memory SQLite",
+		Description: "Dev mode",
 	})
-	demoMode = *setEnvAndRegisterSetting(&Setting{
-		name:        "demo",
-		shorthand:   "X",
-		value:       defaultDemoMode,
-		usage:       "run in demo mode; auto-seeds demo data on startup",
-		description: "Demo mode",
+	demoMode = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "demo",
+		Shorthand:   "X",
+		Value:       defaultDemoMode,
+		Usage:       "run in demo mode; auto-seeds demo data on startup",
+		Description: "Demo mode",
 	})
-	resetDemoMode = *setEnvAndRegisterSetting(&Setting{
-		name:        "reset-demo",
-		shorthand:   "g",
-		value:       defaultResetDemoMode,
-		usage:       "reset demo mode; clears and re-seeds demo data on startup",
-		description: "Reset demo mode",
+	resetDemoMode = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "reset-demo",
+		Shorthand:   "g",
+		Value:       defaultResetDemoMode,
+		Usage:       "reset demo mode; clears and re-seeds demo data on startup",
+		Description: "Reset demo mode",
 	})
-	dryRun = *setEnvAndRegisterSetting(&Setting{
-		name:        "dry-run",
-		shorthand:   "Y",
-		value:       defaultDryRun,
-		usage:       "validate configuration and exit without starting server",
-		description: "Dry run",
+	dryRun = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "dry-run",
+		Shorthand:   "Y",
+		Value:       defaultDryRun,
+		Usage:       "validate configuration and exit without starting server",
+		Description: "Dry run",
 	})
-	profile = *setEnvAndRegisterSetting(&Setting{
-		name:        "profile",
-		shorthand:   "f",
-		value:       defaultProfile,
-		usage:       "configuration profile: dev, stg, prod, test",
-		description: "Configuration profile",
+	profile = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "profile",
+		Shorthand:   "f",
+		Value:       defaultProfile,
+		Usage:       "configuration profile: dev, stg, prod, test",
+		Description: "Configuration profile",
 	})
-	bindPublicProtocol = *setEnvAndRegisterSetting(&Setting{
-		name:        "bind-public-protocol",
-		shorthand:   "t",
-		value:       defaultBindPublicProtocol,
-		usage:       "bind public protocol (http or https)",
-		description: "Bind Public Protocol",
+	bindPublicProtocol = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "bind-public-protocol",
+		Shorthand:   "t",
+		Value:       defaultBindPublicProtocol,
+		Usage:       "bind public protocol (http or https)",
+		Description: "Bind Public Protocol",
 	})
-	bindPublicAddress = *setEnvAndRegisterSetting(&Setting{
-		name:        "bind-public-address",
-		shorthand:   "a",
-		value:       defaultBindPublicAddress,
-		usage:       "bind public address",
-		description: "Bind Public Address",
+	bindPublicAddress = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "bind-public-address",
+		Shorthand:   "a",
+		Value:       defaultBindPublicAddress,
+		Usage:       "bind public address",
+		Description: "Bind Public Address",
 	})
-	bindPublicPort = *setEnvAndRegisterSetting(&Setting{
-		name:        "bind-public-port",
-		shorthand:   "p",
-		value:       defaultBindPublicPort,
-		usage:       "bind public port",
-		description: "Bind Public Port",
+	bindPublicPort = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "bind-public-port",
+		Shorthand:   "p",
+		Value:       defaultBindPublicPort,
+		Usage:       "bind public port",
+		Description: "Bind Public Port",
 	})
-	bindPrivateProtocol = *setEnvAndRegisterSetting(&Setting{
-		name:        "bind-private-protocol",
-		shorthand:   "T",
-		value:       defaultBindPrivateProtocol,
-		usage:       "bind private protocol (http or https)",
-		description: "Bind Private Protocol",
+	bindPrivateProtocol = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "bind-private-protocol",
+		Shorthand:   "T",
+		Value:       defaultBindPrivateProtocol,
+		Usage:       "bind private protocol (http or https)",
+		Description: "Bind Private Protocol",
 	})
-	bindPrivateAddress = *setEnvAndRegisterSetting(&Setting{
-		name:        "bind-private-address",
-		shorthand:   "A",
-		value:       defaultBindPrivateAddress,
-		usage:       "bind private address",
-		description: "Bind Private Address",
+	bindPrivateAddress = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "bind-private-address",
+		Shorthand:   "A",
+		Value:       defaultBindPrivateAddress,
+		Usage:       "bind private address",
+		Description: "Bind Private Address",
 	})
-	bindPrivatePort = *setEnvAndRegisterSetting(&Setting{
-		name:        "bind-private-port",
-		shorthand:   "P",
-		value:       defaultBindPrivatePort,
-		usage:       "bind private port",
-		description: "Bind Private Port",
+	bindPrivatePort = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "bind-private-port",
+		Shorthand:   "P",
+		Value:       defaultBindPrivatePort,
+		Usage:       "bind private port",
+		Description: "Bind Private Port",
 	})
-	tlsPublicDNSNames = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-public-dns-names",
-		shorthand:   "n",
-		value:       defaultTLSPublicDNSNames,
-		usage:       "TLS public DNS names",
-		description: "TLS Public DNS Names",
+	tlsPublicDNSNames = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-public-dns-names",
+		Shorthand:   "n",
+		Value:       defaultTLSPublicDNSNames,
+		Usage:       "TLS public DNS names",
+		Description: "TLS Public DNS Names",
 	})
-	tlsPrivateDNSNames = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-private-dns-names",
-		shorthand:   "j",
-		value:       defaultTLSPrivateDNSNames,
-		usage:       "TLS private DNS names",
-		description: "TLS Private DNS Names",
+	tlsPrivateDNSNames = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-private-dns-names",
+		Shorthand:   "j",
+		Value:       defaultTLSPrivateDNSNames,
+		Usage:       "TLS private DNS names",
+		Description: "TLS Private DNS Names",
 	})
-	tlsPublicIPAddresses = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-public-ip-addresses",
-		shorthand:   "i",
-		value:       defaultTLSPublicIPAddresses,
-		usage:       "TLS public IP addresses",
-		description: "TLS Public IP Addresses",
+	tlsPublicIPAddresses = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-public-ip-addresses",
+		Shorthand:   "i",
+		Value:       defaultTLSPublicIPAddresses,
+		Usage:       "TLS public IP addresses",
+		Description: "TLS Public IP Addresses",
 	})
-	tlsPrivateIPAddresses = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-private-ip-addresses",
-		shorthand:   "k",
-		value:       defaultTLSPrivateIPAddresses,
-		usage:       "TLS private IP addresses",
-		description: "TLS Private IP Addresses",
+	tlsPrivateIPAddresses = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-private-ip-addresses",
+		Shorthand:   "k",
+		Value:       defaultTLSPrivateIPAddresses,
+		Usage:       "TLS private IP addresses",
+		Description: "TLS Private IP Addresses",
 	})
-	tlsPublicMode = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-public-mode",
-		shorthand:   "",
-		value:       defaultTLSPublicMode,
-		usage:       "TLS public mode (static, mixed, auto)",
-		description: "TLS Public Mode",
+	tlsPublicMode = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-public-mode",
+		Shorthand:   "",
+		Value:       defaultTLSPublicMode,
+		Usage:       "TLS public mode (static, mixed, auto)",
+		Description: "TLS Public Mode",
 	})
-	tlsPrivateMode = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-private-mode",
-		shorthand:   "",
-		value:       defaultTLSPrivateMode,
-		usage:       "TLS private mode (static, mixed, auto)",
-		description: "TLS Private Mode",
+	tlsPrivateMode = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-private-mode",
+		Shorthand:   "",
+		Value:       defaultTLSPrivateMode,
+		Usage:       "TLS private mode (static, mixed, auto)",
+		Description: "TLS Private Mode",
 	})
-	tlsStaticCertPEM = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-static-cert-pem",
-		shorthand:   "",
-		value:       defaultTLSStaticCertPEM,
-		usage:       "TLS static cert PEM (for static mode)",
-		description: "TLS Static Cert PEM",
-		redacted:    true,
+	tlsStaticCertPEM = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-static-cert-pem",
+		Shorthand:   "",
+		Value:       defaultTLSStaticCertPEM,
+		Usage:       "TLS static cert PEM (for static mode)",
+		Description: "TLS Static Cert PEM",
+		Redacted:    true,
 	})
-	tlsStaticKeyPEM = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-static-key-pem",
-		shorthand:   "",
-		value:       defaultTLSStaticKeyPEM,
-		usage:       "TLS static key PEM (for static mode)",
-		description: "TLS Static Key PEM",
-		redacted:    true,
+	tlsStaticKeyPEM = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-static-key-pem",
+		Shorthand:   "",
+		Value:       defaultTLSStaticKeyPEM,
+		Usage:       "TLS static key PEM (for static mode)",
+		Description: "TLS Static Key PEM",
+		Redacted:    true,
 	})
-	tlsMixedCACertPEM = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-mixed-ca-cert-pem",
-		shorthand:   "",
-		value:       defaultTLSMixedCACertPEM,
-		usage:       "TLS mixed CA cert PEM (for mixed mode)",
-		description: "TLS Mixed CA Cert PEM",
-		redacted:    true,
+	tlsMixedCACertPEM = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-mixed-ca-cert-pem",
+		Shorthand:   "",
+		Value:       defaultTLSMixedCACertPEM,
+		Usage:       "TLS mixed CA cert PEM (for mixed mode)",
+		Description: "TLS Mixed CA Cert PEM",
+		Redacted:    true,
 	})
-	tlsMixedCAKeyPEM = *setEnvAndRegisterSetting(&Setting{
-		name:        "tls-mixed-ca-key-pem",
-		shorthand:   "",
-		value:       defaultTLSMixedCAKeyPEM,
-		usage:       "TLS mixed CA key PEM (for mixed mode)",
-		description: "TLS Mixed CA Key PEM",
-		redacted:    true,
+	tlsMixedCAKeyPEM = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "tls-mixed-ca-key-pem",
+		Shorthand:   "",
+		Value:       defaultTLSMixedCAKeyPEM,
+		Usage:       "TLS mixed CA key PEM (for mixed mode)",
+		Description: "TLS Mixed CA Key PEM",
+		Redacted:    true,
 	})
-	publicBrowserAPIContextPath = *setEnvAndRegisterSetting(&Setting{
-		name:        "browser-api-context-path",
-		shorthand:   "c",
-		value:       defaultPublicBrowserAPIContextPath,
-		usage:       "context path for Public Browser API",
-		description: "Public Browser API Context Path",
+	publicBrowserAPIContextPath = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "browser-api-context-path",
+		Shorthand:   "c",
+		Value:       defaultPublicBrowserAPIContextPath,
+		Usage:       "context path for Public Browser API",
+		Description: "Public Browser API Context Path",
 	})
-	publicServiceAPIContextPath = *setEnvAndRegisterSetting(&Setting{
-		name:        "service-api-context-path",
-		shorthand:   "b",
-		value:       defaultPublicServiceAPIContextPath,
-		usage:       "context path for Public Server API",
-		description: "Public Service API Context Path",
+	publicServiceAPIContextPath = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "service-api-context-path",
+		Shorthand:   "b",
+		Value:       defaultPublicServiceAPIContextPath,
+		Usage:       "context path for Public Server API",
+		Description: "Public Service API Context Path",
 	})
-	privateAdminAPIContextPath = *setEnvAndRegisterSetting(&Setting{
-		name:        "admin-api-context-path",
-		shorthand:   "",
-		value:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath,
-		usage:       "context path for Private Admin API",
-		description: "Private Admin API Context Path",
+	privateAdminAPIContextPath = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "admin-api-context-path",
+		Shorthand:   "",
+		Value:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath,
+		Usage:       "context path for Private Admin API",
+		Description: "Private Admin API Context Path",
 	})
-	corsAllowedOrigins = *setEnvAndRegisterSetting(&Setting{
-		name:        "cors-origins",
-		shorthand:   "o",
-		value:       defaultCORSAllowedOrigins,
-		usage:       "CORS allowed origins",
-		description: "CORS Allowed Origins",
+	corsAllowedOrigins = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "cors-origins",
+		Shorthand:   "o",
+		Value:       defaultCORSAllowedOrigins,
+		Usage:       "CORS allowed origins",
+		Description: "CORS Allowed Origins",
 	})
-	corsAllowedMethods = *setEnvAndRegisterSetting(&Setting{
-		name:        "cors-methods",
-		shorthand:   "m",
-		value:       defaultCORSAllowedMethods,
-		usage:       "CORS allowed methods",
-		description: "CORS Allowed Methods",
+	corsAllowedMethods = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "cors-methods",
+		Shorthand:   "m",
+		Value:       defaultCORSAllowedMethods,
+		Usage:       "CORS allowed methods",
+		Description: "CORS Allowed Methods",
 	})
-	corsAllowedHeaders = *setEnvAndRegisterSetting(&Setting{
-		name:        "cors-headers",
-		shorthand:   "H",
-		value:       defaultCORSAllowedHeaders,
-		usage:       "CORS allowed headers",
-		description: "CORS Allowed Headers",
+	corsAllowedHeaders = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "cors-headers",
+		Shorthand:   "H",
+		Value:       defaultCORSAllowedHeaders,
+		Usage:       "CORS allowed headers",
+		Description: "CORS Allowed Headers",
 	})
-	corsMaxAge = *setEnvAndRegisterSetting(&Setting{
-		name:        "cors-max-age",
-		shorthand:   "x",
-		value:       defaultCORSMaxAge,
-		usage:       "CORS max age in seconds",
-		description: "CORS Max Age",
+	corsMaxAge = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "cors-max-age",
+		Shorthand:   "x",
+		Value:       defaultCORSMaxAge,
+		Usage:       "CORS max age in seconds",
+		Description: "CORS Max Age",
 	})
-	csrfTokenName = *setEnvAndRegisterSetting(&Setting{
-		name:        "csrf-token-name",
-		shorthand:   "N",
-		value:       defaultCSRFTokenName,
-		usage:       "CSRF token name",
-		description: "CSRF Token Name",
+	csrfTokenName = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "csrf-token-name",
+		Shorthand:   "N",
+		Value:       defaultCSRFTokenName,
+		Usage:       "CSRF token name",
+		Description: "CSRF Token Name",
 	})
-	csrfTokenSameSite = *setEnvAndRegisterSetting(&Setting{
-		name:        "csrf-token-same-site",
-		shorthand:   "S",
-		value:       defaultCSRFTokenSameSite,
-		usage:       "CSRF token SameSite attribute",
-		description: "CSRF Token SameSite",
+	csrfTokenSameSite = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "csrf-token-same-site",
+		Shorthand:   "S",
+		Value:       defaultCSRFTokenSameSite,
+		Usage:       "CSRF token SameSite attribute",
+		Description: "CSRF Token SameSite",
 	})
-	csrfTokenMaxAge = *setEnvAndRegisterSetting(&Setting{
-		name:        "csrf-token-max-age",
-		shorthand:   "M",
-		value:       defaultCSRFTokenMaxAge,
-		usage:       "CSRF token max age (expiration)",
-		description: "CSRF Token Max Age",
+	csrfTokenMaxAge = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "csrf-token-max-age",
+		Shorthand:   "M",
+		Value:       defaultCSRFTokenMaxAge,
+		Usage:       "CSRF token max age (expiration)",
+		Description: "CSRF Token Max Age",
 	})
-	csrfTokenCookieSecure = *setEnvAndRegisterSetting(&Setting{
-		name:        "csrf-token-cookie-secure",
-		shorthand:   "R",
-		value:       defaultCSRFTokenCookieSecure,
-		usage:       "CSRF token cookie Secure attribute",
-		description: "CSRF Token Cookie Secure",
+	csrfTokenCookieSecure = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "csrf-token-cookie-secure",
+		Shorthand:   "R",
+		Value:       defaultCSRFTokenCookieSecure,
+		Usage:       "CSRF token cookie Secure attribute",
+		Description: "CSRF Token Cookie Secure",
 	})
-	csrfTokenCookieHTTPOnly = *setEnvAndRegisterSetting(&Setting{
-		name:        "csrf-token-cookie-http-only",
-		shorthand:   "J",
-		value:       defaultCSRFTokenCookieHTTPOnly, // False needed for Swagger UI submit CSRF workaround
-		usage:       "CSRF token cookie HttpOnly attribute",
-		description: "CSRF Token Cookie HTTPOnly",
+	csrfTokenCookieHTTPOnly = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "csrf-token-cookie-http-only",
+		Shorthand:   "J",
+		Value:       defaultCSRFTokenCookieHTTPOnly, // False needed for Swagger UI submit CSRF workaround
+		Usage:       "CSRF token cookie HttpOnly attribute",
+		Description: "CSRF Token Cookie HTTPOnly",
 	})
-	csrfTokenCookieSessionOnly = *setEnvAndRegisterSetting(&Setting{
-		name:        "csrf-token-cookie-session-only",
-		shorthand:   "E",
-		value:       defaultCSRFTokenCookieSessionOnly,
-		usage:       "CSRF token cookie SessionOnly attribute",
-		description: "CSRF Token Cookie SessionOnly",
+	csrfTokenCookieSessionOnly = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "csrf-token-cookie-session-only",
+		Shorthand:   "E",
+		Value:       defaultCSRFTokenCookieSessionOnly,
+		Usage:       "CSRF token cookie SessionOnly attribute",
+		Description: "CSRF Token Cookie SessionOnly",
 	})
-	csrfTokenSingleUseToken = *setEnvAndRegisterSetting(&Setting{
-		name:        "csrf-token-single-use-token",
-		shorthand:   "G",
-		value:       defaultCSRFTokenSingleUseToken,
-		usage:       "CSRF token SingleUse attribute",
-		description: "CSRF Token SingleUseToken",
+	csrfTokenSingleUseToken = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "csrf-token-single-use-token",
+		Shorthand:   "G",
+		Value:       defaultCSRFTokenSingleUseToken,
+		Usage:       "CSRF token SingleUse attribute",
+		Description: "CSRF Token SingleUseToken",
 	})
-	browserIPRateLimit = *setEnvAndRegisterSetting(&Setting{
-		name:        "browser-rate-limit",
-		shorthand:   "e",
-		value:       defaultBrowserIPRateLimit,
-		usage:       "rate limit for browser API requests per second",
-		description: "Browser IP Rate Limit",
+	browserIPRateLimit = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "browser-rate-limit",
+		Shorthand:   "e",
+		Value:       defaultBrowserIPRateLimit,
+		Usage:       "rate limit for browser API requests per second",
+		Description: "Browser IP Rate Limit",
 	})
-	serviceIPRateLimit = *setEnvAndRegisterSetting(&Setting{
-		name:        "service-rate-limit",
-		shorthand:   "w",
-		value:       defaultServiceIPRateLimit,
-		usage:       "rate limit for service API requests per second",
-		description: "Service IP Rate Limit",
+	serviceIPRateLimit = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "service-rate-limit",
+		Shorthand:   "w",
+		Value:       defaultServiceIPRateLimit,
+		Usage:       "rate limit for service API requests per second",
+		Description: "Service IP Rate Limit",
 	})
-	allowedIps = *setEnvAndRegisterSetting(&Setting{
-		name:        "allowed-ips",
-		shorthand:   "I",
-		value:       defaultAllowedIps,
-		usage:       "comma-separated list of allowed IPs",
-		description: "Allowed IPs",
+	allowedIps = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "allowed-ips",
+		Shorthand:   "I",
+		Value:       defaultAllowedIps,
+		Usage:       "comma-separated list of allowed IPs",
+		Description: "Allowed IPs",
 	})
-	allowedCidrs = *setEnvAndRegisterSetting(&Setting{
-		name:        "allowed-cidrs",
-		shorthand:   "C",
-		value:       defaultAllowedCIDRs,
-		usage:       "comma-separated list of allowed CIDRs",
-		description: "Allowed CIDRs",
+	allowedCidrs = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "allowed-cidrs",
+		Shorthand:   "C",
+		Value:       defaultAllowedCIDRs,
+		Usage:       "comma-separated list of allowed CIDRs",
+		Description: "Allowed CIDRs",
 	})
-	swaggerUIUsername = *setEnvAndRegisterSetting(&Setting{
-		name:        "swagger-ui-username",
-		shorthand:   "1",
-		value:       defaultSwaggerUIUsername,
-		usage:       "username for Swagger UI basic authentication",
-		description: "Swagger UI Username",
+	swaggerUIUsername = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "swagger-ui-username",
+		Shorthand:   "1",
+		Value:       defaultSwaggerUIUsername,
+		Usage:       "username for Swagger UI basic authentication",
+		Description: "Swagger UI Username",
 	})
-	swaggerUIPassword = *setEnvAndRegisterSetting(&Setting{
-		name:        "swagger-ui-password",
-		shorthand:   "2",
-		value:       defaultSwaggerUIPassword,
-		usage:       "password for Swagger UI basic authentication",
-		description: "Swagger UI Password",
-		redacted:    true,
+	swaggerUIPassword = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "swagger-ui-password",
+		Shorthand:   "2",
+		Value:       defaultSwaggerUIPassword,
+		Usage:       "password for Swagger UI basic authentication",
+		Description: "Swagger UI Password",
+		Redacted:    true,
 	})
-	requestBodyLimit = *setEnvAndRegisterSetting(&Setting{
-		name:        "request-body-limit",
-		shorthand:   "L",
-		value:       defaultRequestBodyLimit,
-		usage:       "Maximum request body size in bytes",
-		description: "Request Body Limit",
+	requestBodyLimit = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "request-body-limit",
+		Shorthand:   "L",
+		Value:       defaultRequestBodyLimit,
+		Usage:       "Maximum request body size in bytes",
+		Description: "Request Body Limit",
 	})
-	databaseContainer = *setEnvAndRegisterSetting(&Setting{
-		name:        "database-container",
-		shorthand:   "D",
-		value:       defaultDatabaseContainer,
-		usage:       "database container mode; true to use container, false to use local database",
-		description: "Database Container",
+	databaseContainer = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "database-container",
+		Shorthand:   "D",
+		Value:       defaultDatabaseContainer,
+		Usage:       "database container mode; true to use container, false to use local database",
+		Description: "Database Container",
 	})
-	databaseURL = *setEnvAndRegisterSetting(&Setting{
-		name:        "database-url",
-		shorthand:   "u",
-		value:       defaultDatabaseURL,
-		usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:18\n", // pragma: allowlist secret
-		description: "Database URL",
-		redacted:    true,
+	databaseURL = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "database-url",
+		Shorthand:   "u",
+		Value:       defaultDatabaseURL,
+		Usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:18\n", // pragma: allowlist secret
+		Description: "Database URL",
+		Redacted:    true,
 	})
-	databaseInitTotalTimeout = *setEnvAndRegisterSetting(&Setting{
-		name:        "database-init-total-timeout",
-		shorthand:   "Z",
-		value:       defaultDatabaseInitTotalTimeout,
-		usage:       "database init total timeout",
-		description: "Database Init Total Timeout",
+	databaseInitTotalTimeout = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "database-init-total-timeout",
+		Shorthand:   "Z",
+		Value:       defaultDatabaseInitTotalTimeout,
+		Usage:       "database init total timeout",
+		Description: "Database Init Total Timeout",
 	})
-	databaseInitRetryWait = *setEnvAndRegisterSetting(&Setting{
-		name:        "database-init-retry-wait",
-		shorthand:   "W",
-		value:       defaultDatabaseInitRetryWait,
-		usage:       "database init retry wait",
-		description: "Database Init Retry Wait",
+	databaseInitRetryWait = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "database-init-retry-wait",
+		Shorthand:   "W",
+		Value:       defaultDatabaseInitRetryWait,
+		Usage:       "database init retry wait",
+		Description: "Database Init Retry Wait",
 	})
-	serverShutdownTimeout = *setEnvAndRegisterSetting(&Setting{
-		name:        "server-shutdown-timeout",
-		shorthand:   "",
-		value:       defaultServerShutdownTimeout,
-		usage:       "server shutdown timeout",
-		description: "Server Shutdown Timeout",
+	serverShutdownTimeout = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "server-shutdown-timeout",
+		Shorthand:   "",
+		Value:       defaultServerShutdownTimeout,
+		Usage:       "server shutdown timeout",
+		Description: "Server Shutdown Timeout",
 	})
-	otlpEnabled = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp",
-		shorthand:   "z",
-		value:       defaultOTLPEnabled,
-		usage:       "enable OTLP export",
-		description: "OTLP Export",
+	otlpEnabled = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp",
+		Shorthand:   "z",
+		Value:       defaultOTLPEnabled,
+		Usage:       "enable OTLP export",
+		Description: "OTLP Export",
 	})
-	otlpConsole = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp-console",
-		shorthand:   "q",
-		value:       defaultOTLPConsole,
-		usage:       "enable OTLP logging to console (STDOUT)",
-		description: "OTLP Console",
+	otlpConsole = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp-console",
+		Shorthand:   "q",
+		Value:       defaultOTLPConsole,
+		Usage:       "enable OTLP logging to console (STDOUT)",
+		Description: "OTLP Console",
 	})
-	otlpService = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp-service",
-		shorthand:   "s",
-		value:       defaultOTLPService,
-		usage:       "OTLP service",
-		description: "OTLP Service",
+	otlpService = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp-service",
+		Shorthand:   "s",
+		Value:       defaultOTLPService,
+		Usage:       "OTLP service",
+		Description: "OTLP Service",
 	})
-	otlpVersion = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp-version",
-		shorthand:   "B",
-		value:       defaultOTLPVersion,
-		usage:       "OTLP version",
-		description: "OTLP Version",
+	otlpVersion = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp-version",
+		Shorthand:   "B",
+		Value:       defaultOTLPVersion,
+		Usage:       "OTLP version",
+		Description: "OTLP Version",
 	})
-	otlpEnvironment = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp-environment",
-		shorthand:   "K",
-		value:       defaultOTLPEnvironment,
-		usage:       "OTLP environment",
-		description: "OTLP Environment",
+	otlpEnvironment = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp-environment",
+		Shorthand:   "K",
+		Value:       defaultOTLPEnvironment,
+		Usage:       "OTLP environment",
+		Description: "OTLP Environment",
 	})
-	otlpHostname = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp-hostname",
-		shorthand:   "O",
-		value:       defaultOTLPHostname,
-		usage:       "OTLP hostname",
-		description: "OTLP Hostname",
+	otlpHostname = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp-hostname",
+		Shorthand:   "O",
+		Value:       defaultOTLPHostname,
+		Usage:       "OTLP hostname",
+		Description: "OTLP Hostname",
 	})
-	otlpEndpoint = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp-endpoint",
-		shorthand:   "",
-		value:       defaultOTLPEndpoint,
-		usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
-		description: "OTLP Endpoint",
+	otlpEndpoint = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp-endpoint",
+		Shorthand:   "",
+		Value:       defaultOTLPEndpoint,
+		Usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
+		Description: "OTLP Endpoint",
 	})
-	otlpInstance = *setEnvAndRegisterSetting(&Setting{
-		name:        "otlp-instance",
-		shorthand:   "V",
-		value:       defaultOTLPInstance,
-		usage:       "OTLP instance id",
-		description: "OTLP Instance",
+	otlpInstance = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "otlp-instance",
+		Shorthand:   "V",
+		Value:       defaultOTLPInstance,
+		Usage:       "OTLP instance id",
+		Description: "OTLP Instance",
 	})
-	unsealMode = *setEnvAndRegisterSetting(&Setting{
-		name:        "unseal-mode",
-		shorthand:   "5",
-		value:       defaultUnsealMode,
-		usage:       "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
-		description: "Unseal Mode",
+	unsealMode = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "unseal-mode",
+		Shorthand:   "5",
+		Value:       defaultUnsealMode,
+		Usage:       "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
+		Description: "Unseal Mode",
 	})
-	unsealFiles = *setEnvAndRegisterSetting(&Setting{
-		name:      "unseal-files",
-		shorthand: "F",
-		value:     defaultUnsealFiles,
-		usage: "unseal files; repeat for multiple files; e.g. " +
+	unsealFiles = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:      "unseal-files",
+		Shorthand: "F",
+		Value:     defaultUnsealFiles,
+		Usage: "unseal files; repeat for multiple files; e.g. " +
 			"\"--unseal-files=/docker/secrets/unseal_1of3 --unseal-files=/docker/secrets/unseal_2of3\"; " +
 			"used for N unseal keys or M-of-N unseal shared secrets",
-		description: "Unseal Files",
+		Description: "Unseal Files",
 	})
-	realms = *setEnvAndRegisterSetting(&Setting{
-		name:      "realms",
-		shorthand: "r",
-		value:     defaultRealms,
-		usage: "realm configuration files; repeat for multiple realms; e.g. " +
-			"\"--realms=/config/01-username-password-file.yml --realms=/config/02-username-password-db.yml\"; " +
-			"defines authentication realms with username/password policies",
-		description: "Authentication Realms",
+	browserRealms = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:      "browser-realms",
+		Shorthand: "r",
+		Value:     defaultBrowserRealms,
+		Usage: "browser realm configuration files; repeat for multiple realms; e.g. " +
+			"\"--browser-realms=/config/01-jwe-session-cookie.yml --browser-realms=/config/02-jws-session-cookie.yml\"; " +
+			"defines session-based authentication realms for browser clients",
+		Description: "Browser Authentication Realms",
 	})
-	browserSessionCookie = *setEnvAndRegisterSetting(&Setting{
-		name:        "browser-session-cookie",
-		shorthand:   "Q",
-		value:       defaultBrowserSessionCookie,
-		usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens [DEPRECATED: use browser-session-algorithm]",
-		description: "Browser Session Cookie Type",
+	serviceRealms = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:      "service-realms",
+		Shorthand: "",
+		Value:     defaultServiceRealms,
+		Usage: "service realm configuration files; repeat for multiple realms; e.g. " +
+			"\"--service-realms=/config/01-bearer-token.yml --service-realms=/config/02-client-cert.yml\"; " +
+			"defines token-based authentication realms for service clients",
+		Description: "Service Authentication Realms",
 	})
-	browserSessionAlgorithm = *setEnvAndRegisterSetting(&Setting{
-		name:        "browser-session-algorithm",
-		shorthand:   "",
-		value:       defaultBrowserSessionAlgorithm,
-		usage:       "browser session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
-		description: "Browser Session Algorithm",
+	browserSessionCookie = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "browser-session-cookie",
+		Shorthand:   "Q",
+		Value:       defaultBrowserSessionCookie,
+		Usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens [DEPRECATED: use browser-session-algorithm]",
+		Description: "Browser Session Cookie Type",
 	})
-	browserSessionJWSAlgorithm = *setEnvAndRegisterSetting(&Setting{
-		name:        "browser-session-jws-algorithm",
-		shorthand:   "",
-		value:       defaultBrowserSessionJWSAlgorithm,
-		usage:       "JWS algorithm for browser sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
-		description: "Browser Session JWS Algorithm",
+	browserSessionAlgorithm = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "browser-session-algorithm",
+		Shorthand:   "",
+		Value:       defaultBrowserSessionAlgorithm,
+		Usage:       "browser session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
+		Description: "Browser Session Algorithm",
 	})
-	browserSessionJWEAlgorithm = *setEnvAndRegisterSetting(&Setting{
-		name:        "browser-session-jwe-algorithm",
-		shorthand:   "",
-		value:       defaultBrowserSessionJWEAlgorithm,
-		usage:       "JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
-		description: "Browser Session JWE Algorithm",
+	browserSessionJWSAlgorithm = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "browser-session-jws-algorithm",
+		Shorthand:   "",
+		Value:       defaultBrowserSessionJWSAlgorithm,
+		Usage:       "JWS algorithm for browser sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
+		Description: "Browser Session JWS Algorithm",
 	})
-	browserSessionExpiration = *setEnvAndRegisterSetting(&Setting{
-		name:        "browser-session-expiration",
-		shorthand:   "",
-		value:       defaultBrowserSessionExpiration,
-		usage:       "browser session expiration duration (e.g., 24h, 48h)",
-		description: "Browser Session Expiration",
+	browserSessionJWEAlgorithm = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "browser-session-jwe-algorithm",
+		Shorthand:   "",
+		Value:       defaultBrowserSessionJWEAlgorithm,
+		Usage:       "JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
+		Description: "Browser Session JWE Algorithm",
 	})
-	serviceSessionAlgorithm = *setEnvAndRegisterSetting(&Setting{
-		name:        "service-session-algorithm",
-		shorthand:   "",
-		value:       defaultServiceSessionAlgorithm,
-		usage:       "service session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
-		description: "Service Session Algorithm",
+	browserSessionExpiration = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "browser-session-expiration",
+		Shorthand:   "",
+		Value:       defaultBrowserSessionExpiration,
+		Usage:       "browser session expiration duration (e.g., 24h, 48h)",
+		Description: "Browser Session Expiration",
 	})
-	serviceSessionJWSAlgorithm = *setEnvAndRegisterSetting(&Setting{
-		name:        "service-session-jws-algorithm",
-		shorthand:   "",
-		value:       defaultServiceSessionJWSAlgorithm,
-		usage:       "JWS algorithm for service sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
-		description: "Service Session JWS Algorithm",
+	serviceSessionAlgorithm = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "service-session-algorithm",
+		Shorthand:   "",
+		Value:       defaultServiceSessionAlgorithm,
+		Usage:       "service session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
+		Description: "Service Session Algorithm",
 	})
-	serviceSessionJWEAlgorithm = *setEnvAndRegisterSetting(&Setting{
-		name:        "service-session-jwe-algorithm",
-		shorthand:   "",
-		value:       defaultServiceSessionJWEAlgorithm,
-		usage:       "JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
-		description: "Service Session JWE Algorithm",
+	serviceSessionJWSAlgorithm = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "service-session-jws-algorithm",
+		Shorthand:   "",
+		Value:       defaultServiceSessionJWSAlgorithm,
+		Usage:       "JWS algorithm for service sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
+		Description: "Service Session JWS Algorithm",
 	})
-	serviceSessionExpiration = *setEnvAndRegisterSetting(&Setting{
-		name:        "service-session-expiration",
-		shorthand:   "",
-		value:       defaultServiceSessionExpiration,
-		usage:       "service session expiration duration (e.g., 168h for 7 days)",
-		description: "Service Session Expiration",
+	serviceSessionJWEAlgorithm = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "service-session-jwe-algorithm",
+		Shorthand:   "",
+		Value:       defaultServiceSessionJWEAlgorithm,
+		Usage:       "JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
+		Description: "Service Session JWE Algorithm",
 	})
-	sessionIdleTimeout = *setEnvAndRegisterSetting(&Setting{
-		name:        "session-idle-timeout",
-		shorthand:   "",
-		value:       defaultSessionIdleTimeout,
-		usage:       "session idle timeout duration (e.g., 2h)",
-		description: "Session Idle Timeout",
+	serviceSessionExpiration = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "service-session-expiration",
+		Shorthand:   "",
+		Value:       defaultServiceSessionExpiration,
+		Usage:       "service session expiration duration (e.g., 168h for 7 days)",
+		Description: "Service Session Expiration",
 	})
-	sessionCleanupInterval = *setEnvAndRegisterSetting(&Setting{
-		name:        "session-cleanup-interval",
-		shorthand:   "",
-		value:       defaultSessionCleanupInterval,
-		usage:       "interval for cleaning up expired sessions (e.g., 1h)",
-		description: "Session Cleanup Interval",
+	sessionIdleTimeout = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "session-idle-timeout",
+		Shorthand:   "",
+		Value:       defaultSessionIdleTimeout,
+		Usage:       "session idle timeout duration (e.g., 2h)",
+		Description: "Session Idle Timeout",
+	})
+	sessionCleanupInterval = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
+		Name:        "session-cleanup-interval",
+		Shorthand:   "",
+		Value:       defaultSessionCleanupInterval,
+		Usage:       "interval for cleaning up expired sessions (e.g., 1h)",
+		Description: "Session Cleanup Interval",
 	})
 )
 
@@ -909,73 +920,75 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 
 	// Explicitly bind boolean environment variables (viper.AutomaticEnv may not handle booleans correctly)
 	// Note: viper.BindEnv errors are logged but don't prevent startup as they are extremely rare
-	for _, setting := range allRegisteredSettings {
-		if _, ok := setting.value.(bool); ok {
-			if err := viper.BindEnv(setting.name, setting.env); err != nil {
-				fmt.Printf("Warning: failed to bind environment variable %s: %v\n", setting.env, err)
+	for _, setting := range allServeiceTemplateServerRegisteredSettings {
+		if _, ok := setting.Value.(bool); ok {
+			if err := viper.BindEnv(setting.Name, setting.Env); err != nil {
+				fmt.Printf("Warning: failed to bind environment variable %s: %v\n", setting.Env, err)
 			}
 		}
 	}
 
 	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
-	pflag.BoolP(help.name, help.shorthand, RegisterAsBoolSetting(&help), help.usage)
-	pflag.StringSliceP(configFile.name, configFile.shorthand, RegisterAsStringSliceSetting(&configFile), configFile.usage)
-	pflag.StringP(logLevel.name, logLevel.shorthand, RegisterAsStringSetting(&logLevel), logLevel.usage)
-	pflag.BoolP(verboseMode.name, verboseMode.shorthand, RegisterAsBoolSetting(&verboseMode), verboseMode.usage)
-	pflag.BoolP(devMode.name, devMode.shorthand, RegisterAsBoolSetting(&devMode), devMode.usage)
-	pflag.BoolP(demoMode.name, demoMode.shorthand, RegisterAsBoolSetting(&demoMode), demoMode.usage)
-	pflag.BoolP(dryRun.name, dryRun.shorthand, RegisterAsBoolSetting(&dryRun), dryRun.usage)
-	pflag.StringP(profile.name, profile.shorthand, RegisterAsStringSetting(&profile), profile.usage)
-	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, RegisterAsStringSetting(&bindPublicProtocol), bindPublicProtocol.usage)
-	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, RegisterAsStringSetting(&bindPublicAddress), bindPublicAddress.usage)
-	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, RegisterAsUint16Setting(&bindPublicPort), bindPublicPort.usage)
-	pflag.StringSliceP(tlsPublicDNSNames.name, tlsPublicDNSNames.shorthand, RegisterAsStringSliceSetting(&tlsPublicDNSNames), tlsPublicDNSNames.usage)
-	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, RegisterAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.usage)
-	pflag.StringSliceP(tlsPrivateDNSNames.name, tlsPrivateDNSNames.shorthand, RegisterAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.usage)
-	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, RegisterAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.usage)
-	pflag.StringP(tlsPublicMode.name, tlsPublicMode.shorthand, string(defaultTLSPublicMode), tlsPublicMode.usage)
-	pflag.StringP(tlsPrivateMode.name, tlsPrivateMode.shorthand, string(defaultTLSPrivateMode), tlsPrivateMode.usage)
-	pflag.BytesBase64P(tlsStaticCertPEM.name, tlsStaticCertPEM.shorthand, []byte(nil), tlsStaticCertPEM.usage)
-	pflag.BytesBase64P(tlsStaticKeyPEM.name, tlsStaticKeyPEM.shorthand, []byte(nil), tlsStaticKeyPEM.usage)
-	pflag.BytesBase64P(tlsMixedCACertPEM.name, tlsMixedCACertPEM.shorthand, []byte(nil), tlsMixedCACertPEM.usage)
-	pflag.BytesBase64P(tlsMixedCAKeyPEM.name, tlsMixedCAKeyPEM.shorthand, []byte(nil), tlsMixedCAKeyPEM.usage)
-	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, RegisterAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.usage)
-	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, RegisterAsStringSetting(&bindPrivateAddress), bindPrivateAddress.usage)
-	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, RegisterAsUint16Setting(&bindPrivatePort), bindPrivatePort.usage)
-	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, RegisterAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.usage)
-	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, RegisterAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.usage)
-	pflag.StringP(privateAdminAPIContextPath.name, privateAdminAPIContextPath.shorthand, RegisterAsStringSetting(&privateAdminAPIContextPath), privateAdminAPIContextPath.usage)
-	pflag.StringSliceP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, RegisterAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.usage)
-	pflag.StringSliceP(corsAllowedMethods.name, corsAllowedMethods.shorthand, RegisterAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.usage)
-	pflag.StringSliceP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, RegisterAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.usage)
-	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, RegisterAsUint16Setting(&corsMaxAge), corsMaxAge.usage)
-	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, RegisterAsStringSetting(&csrfTokenName), csrfTokenName.usage)
-	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, RegisterAsStringSetting(&csrfTokenSameSite), csrfTokenSameSite.usage)
-	pflag.DurationP(csrfTokenMaxAge.name, csrfTokenMaxAge.shorthand, RegisterAsDurationSetting(&csrfTokenMaxAge), csrfTokenMaxAge.usage)
-	pflag.BoolP(csrfTokenCookieSecure.name, csrfTokenCookieSecure.shorthand, RegisterAsBoolSetting(&csrfTokenCookieSecure), csrfTokenCookieSecure.usage)
-	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, RegisterAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.usage)
-	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, RegisterAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.usage)
-	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, RegisterAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.usage)
-	pflag.Uint16P(browserIPRateLimit.name, browserIPRateLimit.shorthand, RegisterAsUint16Setting(&browserIPRateLimit), browserIPRateLimit.usage)
-	pflag.Uint16P(serviceIPRateLimit.name, serviceIPRateLimit.shorthand, RegisterAsUint16Setting(&serviceIPRateLimit), serviceIPRateLimit.usage)
-	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, RegisterAsStringSliceSetting(&allowedIps), allowedIps.usage)
-	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, RegisterAsStringSliceSetting(&allowedCidrs), allowedCidrs.usage)
-	pflag.IntP(requestBodyLimit.name, requestBodyLimit.shorthand, RegisterAsIntSetting(&requestBodyLimit), requestBodyLimit.usage)
-	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, RegisterAsStringSetting(&databaseContainer), databaseContainer.usage)
-	pflag.StringP(databaseURL.name, databaseURL.shorthand, RegisterAsStringSetting(&databaseURL), databaseURL.usage)
-	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, RegisterAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.usage)
-	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, RegisterAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.usage)
-	pflag.DurationP(serverShutdownTimeout.name, serverShutdownTimeout.shorthand, RegisterAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.usage)
-	pflag.BoolP(otlpEnabled.name, otlpEnabled.shorthand, RegisterAsBoolSetting(&otlpEnabled), otlpEnabled.usage)
-	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, RegisterAsBoolSetting(&otlpConsole), otlpConsole.usage)
-	pflag.StringP(otlpService.name, otlpService.shorthand, RegisterAsStringSetting(&otlpService), otlpService.usage)
-	pflag.StringP(otlpVersion.name, otlpVersion.shorthand, RegisterAsStringSetting(&otlpVersion), otlpVersion.usage)
-	pflag.StringP(otlpEnvironment.name, otlpEnvironment.shorthand, RegisterAsStringSetting(&otlpEnvironment), otlpEnvironment.usage)
-	pflag.StringP(otlpHostname.name, otlpHostname.shorthand, RegisterAsStringSetting(&otlpHostname), otlpHostname.usage)
-	pflag.StringP(otlpEndpoint.name, otlpEndpoint.shorthand, RegisterAsStringSetting(&otlpEndpoint), otlpEndpoint.usage)
-	pflag.StringP(otlpInstance.name, otlpInstance.shorthand, RegisterAsStringSetting(&otlpInstance), otlpInstance.usage)
-	pflag.StringP(unsealMode.name, unsealMode.shorthand, RegisterAsStringSetting(&unsealMode), unsealMode.usage)
-	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, RegisterAsStringArraySetting(&unsealFiles), unsealFiles.usage)
+	pflag.BoolP(help.Name, help.Shorthand, RegisterAsBoolSetting(&help), help.Usage)
+	pflag.StringSliceP(configFile.Name, configFile.Shorthand, RegisterAsStringSliceSetting(&configFile), configFile.Usage)
+	pflag.StringP(logLevel.Name, logLevel.Shorthand, RegisterAsStringSetting(&logLevel), logLevel.Usage)
+	pflag.BoolP(verboseMode.Name, verboseMode.Shorthand, RegisterAsBoolSetting(&verboseMode), verboseMode.Usage)
+	pflag.BoolP(devMode.Name, devMode.Shorthand, RegisterAsBoolSetting(&devMode), devMode.Usage)
+	pflag.BoolP(demoMode.Name, demoMode.Shorthand, RegisterAsBoolSetting(&demoMode), demoMode.Usage)
+	pflag.BoolP(dryRun.Name, dryRun.Shorthand, RegisterAsBoolSetting(&dryRun), dryRun.Usage)
+	pflag.StringP(profile.Name, profile.Shorthand, RegisterAsStringSetting(&profile), profile.Usage)
+	pflag.StringP(bindPublicProtocol.Name, bindPublicProtocol.Shorthand, RegisterAsStringSetting(&bindPublicProtocol), bindPublicProtocol.Usage)
+	pflag.StringP(bindPublicAddress.Name, bindPublicAddress.Shorthand, RegisterAsStringSetting(&bindPublicAddress), bindPublicAddress.Usage)
+	pflag.Uint16P(bindPublicPort.Name, bindPublicPort.Shorthand, RegisterAsUint16Setting(&bindPublicPort), bindPublicPort.Usage)
+	pflag.StringSliceP(tlsPublicDNSNames.Name, tlsPublicDNSNames.Shorthand, RegisterAsStringSliceSetting(&tlsPublicDNSNames), tlsPublicDNSNames.Usage)
+	pflag.StringSliceP(tlsPublicIPAddresses.Name, tlsPublicIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.Usage)
+	pflag.StringSliceP(tlsPrivateDNSNames.Name, tlsPrivateDNSNames.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.Usage)
+	pflag.StringSliceP(tlsPrivateIPAddresses.Name, tlsPrivateIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.Usage)
+	pflag.StringP(tlsPublicMode.Name, tlsPublicMode.Shorthand, string(defaultTLSPublicMode), tlsPublicMode.Usage)
+	pflag.StringP(tlsPrivateMode.Name, tlsPrivateMode.Shorthand, string(defaultTLSPrivateMode), tlsPrivateMode.Usage)
+	pflag.BytesBase64P(tlsStaticCertPEM.Name, tlsStaticCertPEM.Shorthand, []byte(nil), tlsStaticCertPEM.Usage)
+	pflag.BytesBase64P(tlsStaticKeyPEM.Name, tlsStaticKeyPEM.Shorthand, []byte(nil), tlsStaticKeyPEM.Usage)
+	pflag.BytesBase64P(tlsMixedCACertPEM.Name, tlsMixedCACertPEM.Shorthand, []byte(nil), tlsMixedCACertPEM.Usage)
+	pflag.BytesBase64P(tlsMixedCAKeyPEM.Name, tlsMixedCAKeyPEM.Shorthand, []byte(nil), tlsMixedCAKeyPEM.Usage)
+	pflag.StringP(bindPrivateProtocol.Name, bindPrivateProtocol.Shorthand, RegisterAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.Usage)
+	pflag.StringP(bindPrivateAddress.Name, bindPrivateAddress.Shorthand, RegisterAsStringSetting(&bindPrivateAddress), bindPrivateAddress.Usage)
+	pflag.Uint16P(bindPrivatePort.Name, bindPrivatePort.Shorthand, RegisterAsUint16Setting(&bindPrivatePort), bindPrivatePort.Usage)
+	pflag.StringP(publicBrowserAPIContextPath.Name, publicBrowserAPIContextPath.Shorthand, RegisterAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.Usage)
+	pflag.StringP(publicServiceAPIContextPath.Name, publicServiceAPIContextPath.Shorthand, RegisterAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.Usage)
+	pflag.StringP(privateAdminAPIContextPath.Name, privateAdminAPIContextPath.Shorthand, RegisterAsStringSetting(&privateAdminAPIContextPath), privateAdminAPIContextPath.Usage)
+	pflag.StringSliceP(corsAllowedOrigins.Name, corsAllowedOrigins.Shorthand, RegisterAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.Usage)
+	pflag.StringSliceP(corsAllowedMethods.Name, corsAllowedMethods.Shorthand, RegisterAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.Usage)
+	pflag.StringSliceP(corsAllowedHeaders.Name, corsAllowedHeaders.Shorthand, RegisterAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.Usage)
+	pflag.Uint16P(corsMaxAge.Name, corsMaxAge.Shorthand, RegisterAsUint16Setting(&corsMaxAge), corsMaxAge.Usage)
+	pflag.StringP(csrfTokenName.Name, csrfTokenName.Shorthand, RegisterAsStringSetting(&csrfTokenName), csrfTokenName.Usage)
+	pflag.StringP(csrfTokenSameSite.Name, csrfTokenSameSite.Shorthand, RegisterAsStringSetting(&csrfTokenSameSite), csrfTokenSameSite.Usage)
+	pflag.DurationP(csrfTokenMaxAge.Name, csrfTokenMaxAge.Shorthand, RegisterAsDurationSetting(&csrfTokenMaxAge), csrfTokenMaxAge.Usage)
+	pflag.BoolP(csrfTokenCookieSecure.Name, csrfTokenCookieSecure.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieSecure), csrfTokenCookieSecure.Usage)
+	pflag.BoolP(csrfTokenCookieHTTPOnly.Name, csrfTokenCookieHTTPOnly.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.Usage)
+	pflag.BoolP(csrfTokenCookieSessionOnly.Name, csrfTokenCookieSessionOnly.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.Usage)
+	pflag.BoolP(csrfTokenSingleUseToken.Name, csrfTokenSingleUseToken.Shorthand, RegisterAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.Usage)
+	pflag.Uint16P(browserIPRateLimit.Name, browserIPRateLimit.Shorthand, RegisterAsUint16Setting(&browserIPRateLimit), browserIPRateLimit.Usage)
+	pflag.Uint16P(serviceIPRateLimit.Name, serviceIPRateLimit.Shorthand, RegisterAsUint16Setting(&serviceIPRateLimit), serviceIPRateLimit.Usage)
+	pflag.StringSliceP(allowedIps.Name, allowedIps.Shorthand, RegisterAsStringSliceSetting(&allowedIps), allowedIps.Usage)
+	pflag.StringSliceP(allowedCidrs.Name, allowedCidrs.Shorthand, RegisterAsStringSliceSetting(&allowedCidrs), allowedCidrs.Usage)
+	pflag.IntP(requestBodyLimit.Name, requestBodyLimit.Shorthand, RegisterAsIntSetting(&requestBodyLimit), requestBodyLimit.Usage)
+	pflag.StringP(databaseContainer.Name, databaseContainer.Shorthand, RegisterAsStringSetting(&databaseContainer), databaseContainer.Usage)
+	pflag.StringP(databaseURL.Name, databaseURL.Shorthand, RegisterAsStringSetting(&databaseURL), databaseURL.Usage)
+	pflag.DurationP(databaseInitTotalTimeout.Name, databaseInitTotalTimeout.Shorthand, RegisterAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.Usage)
+	pflag.DurationP(databaseInitRetryWait.Name, databaseInitRetryWait.Shorthand, RegisterAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.Usage)
+	pflag.DurationP(serverShutdownTimeout.Name, serverShutdownTimeout.Shorthand, RegisterAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.Usage)
+	pflag.BoolP(otlpEnabled.Name, otlpEnabled.Shorthand, RegisterAsBoolSetting(&otlpEnabled), otlpEnabled.Usage)
+	pflag.BoolP(otlpConsole.Name, otlpConsole.Shorthand, RegisterAsBoolSetting(&otlpConsole), otlpConsole.Usage)
+	pflag.StringP(otlpService.Name, otlpService.Shorthand, RegisterAsStringSetting(&otlpService), otlpService.Usage)
+	pflag.StringP(otlpVersion.Name, otlpVersion.Shorthand, RegisterAsStringSetting(&otlpVersion), otlpVersion.Usage)
+	pflag.StringP(otlpEnvironment.Name, otlpEnvironment.Shorthand, RegisterAsStringSetting(&otlpEnvironment), otlpEnvironment.Usage)
+	pflag.StringP(otlpHostname.Name, otlpHostname.Shorthand, RegisterAsStringSetting(&otlpHostname), otlpHostname.Usage)
+	pflag.StringP(otlpEndpoint.Name, otlpEndpoint.Shorthand, RegisterAsStringSetting(&otlpEndpoint), otlpEndpoint.Usage)
+	pflag.StringP(otlpInstance.Name, otlpInstance.Shorthand, RegisterAsStringSetting(&otlpInstance), otlpInstance.Usage)
+	pflag.StringP(unsealMode.Name, unsealMode.Shorthand, RegisterAsStringSetting(&unsealMode), unsealMode.Usage)
+	pflag.StringArrayP(unsealFiles.Name, unsealFiles.Shorthand, RegisterAsStringArraySetting(&unsealFiles), unsealFiles.Usage)
+	pflag.StringSliceP(browserRealms.Name, browserRealms.Shorthand, RegisterAsStringSliceSetting(&browserRealms), browserRealms.Usage)
+	pflag.StringSliceP(serviceRealms.Name, serviceRealms.Shorthand, RegisterAsStringSliceSetting(&serviceRealms), serviceRealms.Usage)
 
 	err := pflag.CommandLine.Parse(subCommandParameters)
 	if err != nil {
@@ -995,7 +1008,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	viper.SetEnvPrefix("CRYPTOUTIL")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	configFiles := viper.GetStringSlice(configFile.name)
+	configFiles := viper.GetStringSlice(configFile.Name)
 	if len(configFiles) > 0 {
 		// Set the first config file
 		if info, err := os.Stat(configFiles[0]); err == nil && !info.IsDir() {
@@ -1018,7 +1031,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	}
 
 	// Apply configuration profile if specified
-	profileName := viper.GetString(profile.name)
+	profileName := viper.GetString(profile.Name)
 	if profileName != "" {
 		if profileConfig, exists := profiles[profileName]; exists {
 			// Apply profile settings (these can be overridden by config files or command line flags)
@@ -1033,12 +1046,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	}
 
 	// Parse TLS mode and PEM fields
-	tlsPublicModeStr := viper.GetString(tlsPublicMode.name)
+	tlsPublicModeStr := viper.GetString(tlsPublicMode.Name)
 	if tlsPublicModeStr == "" {
 		tlsPublicModeStr = string(defaultTLSPublicMode)
 	}
 
-	tlsPrivateModeStr := viper.GetString(tlsPrivateMode.name)
+	tlsPrivateModeStr := viper.GetString(tlsPrivateMode.Name)
 	if tlsPrivateModeStr == "" {
 		tlsPrivateModeStr = string(defaultTLSPrivateMode)
 	}
@@ -1046,76 +1059,77 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	s := &ServiceTemplateServerSettings{
 		TLSPublicMode:               TLSMode(tlsPublicModeStr),
 		TLSPrivateMode:              TLSMode(tlsPrivateModeStr),
-		TLSStaticCertPEM:            getTLSPEMBytes(tlsStaticCertPEM.name),
-		TLSStaticKeyPEM:             getTLSPEMBytes(tlsStaticKeyPEM.name),
-		TLSMixedCACertPEM:           getTLSPEMBytes(tlsMixedCACertPEM.name),
-		TLSMixedCAKeyPEM:            getTLSPEMBytes(tlsMixedCAKeyPEM.name),
+		TLSStaticCertPEM:            getTLSPEMBytes(tlsStaticCertPEM.Name),
+		TLSStaticKeyPEM:             getTLSPEMBytes(tlsStaticKeyPEM.Name),
+		TLSMixedCACertPEM:           getTLSPEMBytes(tlsMixedCACertPEM.Name),
+		TLSMixedCAKeyPEM:            getTLSPEMBytes(tlsMixedCAKeyPEM.Name),
 		SubCommand:                  subCommand,
-		Help:                        viper.GetBool(help.name),
-		ConfigFile:                  viper.GetStringSlice(configFile.name),
-		LogLevel:                    viper.GetString(logLevel.name),
-		VerboseMode:                 viper.GetBool(verboseMode.name),
-		DevMode:                     viper.GetBool(devMode.name),
-		DemoMode:                    viper.GetBool(demoMode.name),
-		ResetDemoMode:               viper.GetBool(resetDemoMode.name),
-		DryRun:                      viper.GetBool(dryRun.name),
-		Profile:                     viper.GetString(profile.name),
-		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),
-		BindPublicAddress:           viper.GetString(bindPublicAddress.name),
-		BindPublicPort:              viper.GetUint16(bindPublicPort.name),
-		TLSPublicDNSNames:           viper.GetStringSlice(tlsPublicDNSNames.name),
-		TLSPublicIPAddresses:        viper.GetStringSlice(tlsPublicIPAddresses.name),
-		TLSPrivateDNSNames:          viper.GetStringSlice(tlsPrivateDNSNames.name),
-		TLSPrivateIPAddresses:       viper.GetStringSlice(tlsPrivateIPAddresses.name),
-		BindPrivateProtocol:         viper.GetString(bindPrivateProtocol.name),
-		BindPrivateAddress:          viper.GetString(bindPrivateAddress.name),
-		BindPrivatePort:             viper.GetUint16(bindPrivatePort.name),
-		PublicBrowserAPIContextPath: viper.GetString(publicBrowserAPIContextPath.name),
-		PublicServiceAPIContextPath: viper.GetString(publicServiceAPIContextPath.name),
-		PrivateAdminAPIContextPath:  viper.GetString(privateAdminAPIContextPath.name),
-		CORSAllowedOrigins:          viper.GetStringSlice(corsAllowedOrigins.name),
-		CORSAllowedMethods:          viper.GetStringSlice(corsAllowedMethods.name),
-		CORSAllowedHeaders:          viper.GetStringSlice(corsAllowedHeaders.name),
-		CORSMaxAge:                  viper.GetUint16(corsMaxAge.name),
-		RequestBodyLimit:            viper.GetInt(requestBodyLimit.name),
-		CSRFTokenName:               viper.GetString(csrfTokenName.name),
-		CSRFTokenSameSite:           viper.GetString(csrfTokenSameSite.name),
-		CSRFTokenMaxAge:             viper.GetDuration(csrfTokenMaxAge.name),
-		CSRFTokenCookieSecure:       viper.GetBool(csrfTokenCookieSecure.name),
-		CSRFTokenCookieHTTPOnly:     viper.GetBool(csrfTokenCookieHTTPOnly.name),
-		CSRFTokenCookieSessionOnly:  viper.GetBool(csrfTokenCookieSessionOnly.name),
-		CSRFTokenSingleUseToken:     viper.GetBool(csrfTokenSingleUseToken.name),
-		BrowserIPRateLimit:          viper.GetUint16(browserIPRateLimit.name),
-		ServiceIPRateLimit:          viper.GetUint16(serviceIPRateLimit.name),
-		AllowedIPs:                  viper.GetStringSlice(allowedIps.name),
-		AllowedCIDRs:                viper.GetStringSlice(allowedCidrs.name),
-		DatabaseContainer:           viper.GetString(databaseContainer.name),
-		DatabaseURL:                 viper.GetString(databaseURL.name),
-		DatabaseInitTotalTimeout:    viper.GetDuration(databaseInitTotalTimeout.name),
-		DatabaseInitRetryWait:       viper.GetDuration(databaseInitRetryWait.name),
-		ServerShutdownTimeout:       viper.GetDuration(serverShutdownTimeout.name),
-		OTLPEnabled:                 viper.GetBool(otlpEnabled.name),
-		OTLPConsole:                 viper.GetBool(otlpConsole.name),
-		OTLPService:                 viper.GetString(otlpService.name),
-		OTLPInstance:                viper.GetString(otlpInstance.name),
-		OTLPVersion:                 viper.GetString(otlpVersion.name),
-		OTLPEnvironment:             viper.GetString(otlpEnvironment.name),
-		OTLPHostname:                viper.GetString(otlpHostname.name),
-		OTLPEndpoint:                viper.GetString(otlpEndpoint.name),
-		UnsealMode:                  viper.GetString(unsealMode.name),
-		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
-		Realms:                      viper.GetStringSlice(realms.name),
-		BrowserSessionCookie:        viper.GetString(browserSessionCookie.name),
-		BrowserSessionAlgorithm:     viper.GetString(browserSessionAlgorithm.name),
-		BrowserSessionJWSAlgorithm:  viper.GetString(browserSessionJWSAlgorithm.name),
-		BrowserSessionJWEAlgorithm:  viper.GetString(browserSessionJWEAlgorithm.name),
-		BrowserSessionExpiration:    viper.GetDuration(browserSessionExpiration.name),
-		ServiceSessionAlgorithm:     viper.GetString(serviceSessionAlgorithm.name),
-		ServiceSessionJWSAlgorithm:  viper.GetString(serviceSessionJWSAlgorithm.name),
-		ServiceSessionJWEAlgorithm:  viper.GetString(serviceSessionJWEAlgorithm.name),
-		ServiceSessionExpiration:    viper.GetDuration(serviceSessionExpiration.name),
-		SessionIdleTimeout:          viper.GetDuration(sessionIdleTimeout.name),
-		SessionCleanupInterval:      viper.GetDuration(sessionCleanupInterval.name),
+		Help:                        viper.GetBool(help.Name),
+		ConfigFile:                  viper.GetStringSlice(configFile.Name),
+		LogLevel:                    viper.GetString(logLevel.Name),
+		VerboseMode:                 viper.GetBool(verboseMode.Name),
+		DevMode:                     viper.GetBool(devMode.Name),
+		DemoMode:                    viper.GetBool(demoMode.Name),
+		ResetDemoMode:               viper.GetBool(resetDemoMode.Name),
+		DryRun:                      viper.GetBool(dryRun.Name),
+		Profile:                     viper.GetString(profile.Name),
+		BindPublicProtocol:          viper.GetString(bindPublicProtocol.Name),
+		BindPublicAddress:           viper.GetString(bindPublicAddress.Name),
+		BindPublicPort:              viper.GetUint16(bindPublicPort.Name),
+		TLSPublicDNSNames:           viper.GetStringSlice(tlsPublicDNSNames.Name),
+		TLSPublicIPAddresses:        viper.GetStringSlice(tlsPublicIPAddresses.Name),
+		TLSPrivateDNSNames:          viper.GetStringSlice(tlsPrivateDNSNames.Name),
+		TLSPrivateIPAddresses:       viper.GetStringSlice(tlsPrivateIPAddresses.Name),
+		BindPrivateProtocol:         viper.GetString(bindPrivateProtocol.Name),
+		BindPrivateAddress:          viper.GetString(bindPrivateAddress.Name),
+		BindPrivatePort:             viper.GetUint16(bindPrivatePort.Name),
+		PublicBrowserAPIContextPath: viper.GetString(publicBrowserAPIContextPath.Name),
+		PublicServiceAPIContextPath: viper.GetString(publicServiceAPIContextPath.Name),
+		PrivateAdminAPIContextPath:  viper.GetString(privateAdminAPIContextPath.Name),
+		CORSAllowedOrigins:          viper.GetStringSlice(corsAllowedOrigins.Name),
+		CORSAllowedMethods:          viper.GetStringSlice(corsAllowedMethods.Name),
+		CORSAllowedHeaders:          viper.GetStringSlice(corsAllowedHeaders.Name),
+		CORSMaxAge:                  viper.GetUint16(corsMaxAge.Name),
+		RequestBodyLimit:            viper.GetInt(requestBodyLimit.Name),
+		CSRFTokenName:               viper.GetString(csrfTokenName.Name),
+		CSRFTokenSameSite:           viper.GetString(csrfTokenSameSite.Name),
+		CSRFTokenMaxAge:             viper.GetDuration(csrfTokenMaxAge.Name),
+		CSRFTokenCookieSecure:       viper.GetBool(csrfTokenCookieSecure.Name),
+		CSRFTokenCookieHTTPOnly:     viper.GetBool(csrfTokenCookieHTTPOnly.Name),
+		CSRFTokenCookieSessionOnly:  viper.GetBool(csrfTokenCookieSessionOnly.Name),
+		CSRFTokenSingleUseToken:     viper.GetBool(csrfTokenSingleUseToken.Name),
+		BrowserIPRateLimit:          viper.GetUint16(browserIPRateLimit.Name),
+		ServiceIPRateLimit:          viper.GetUint16(serviceIPRateLimit.Name),
+		AllowedIPs:                  viper.GetStringSlice(allowedIps.Name),
+		AllowedCIDRs:                viper.GetStringSlice(allowedCidrs.Name),
+		DatabaseContainer:           viper.GetString(databaseContainer.Name),
+		DatabaseURL:                 viper.GetString(databaseURL.Name),
+		DatabaseInitTotalTimeout:    viper.GetDuration(databaseInitTotalTimeout.Name),
+		DatabaseInitRetryWait:       viper.GetDuration(databaseInitRetryWait.Name),
+		ServerShutdownTimeout:       viper.GetDuration(serverShutdownTimeout.Name),
+		OTLPEnabled:                 viper.GetBool(otlpEnabled.Name),
+		OTLPConsole:                 viper.GetBool(otlpConsole.Name),
+		OTLPService:                 viper.GetString(otlpService.Name),
+		OTLPInstance:                viper.GetString(otlpInstance.Name),
+		OTLPVersion:                 viper.GetString(otlpVersion.Name),
+		OTLPEnvironment:             viper.GetString(otlpEnvironment.Name),
+		OTLPHostname:                viper.GetString(otlpHostname.Name),
+		OTLPEndpoint:                viper.GetString(otlpEndpoint.Name),
+		UnsealMode:                  viper.GetString(unsealMode.Name),
+		UnsealFiles:                 viper.GetStringSlice(unsealFiles.Name),
+		BrowserRealms:               viper.GetStringSlice(browserRealms.Name),
+		ServiceRealms:               viper.GetStringSlice(serviceRealms.Name),
+		BrowserSessionCookie:        viper.GetString(browserSessionCookie.Name),
+		BrowserSessionAlgorithm:     viper.GetString(browserSessionAlgorithm.Name),
+		BrowserSessionJWSAlgorithm:  viper.GetString(browserSessionJWSAlgorithm.Name),
+		BrowserSessionJWEAlgorithm:  viper.GetString(browserSessionJWEAlgorithm.Name),
+		BrowserSessionExpiration:    viper.GetDuration(browserSessionExpiration.Name),
+		ServiceSessionAlgorithm:     viper.GetString(serviceSessionAlgorithm.Name),
+		ServiceSessionJWSAlgorithm:  viper.GetString(serviceSessionJWSAlgorithm.Name),
+		ServiceSessionJWEAlgorithm:  viper.GetString(serviceSessionJWEAlgorithm.Name),
+		ServiceSessionExpiration:    viper.GetDuration(serviceSessionExpiration.Name),
+		SessionIdleTimeout:          viper.GetDuration(sessionIdleTimeout.Name),
+		SessionCleanupInterval:      viper.GetDuration(sessionCleanupInterval.Name),
 	}
 
 	// Resolve file:// URLs for sensitive settings from Docker secrets or Kubernetes secrets.
@@ -1240,70 +1254,71 @@ func logSettings(s *ServiceTemplateServerSettings) {
 
 		// Create a map to get values by setting name
 		valueMap := map[string]any{
-			help.name:                        s.Help,
-			configFile.name:                  s.ConfigFile,
-			logLevel.name:                    s.LogLevel,
-			verboseMode.name:                 s.VerboseMode,
-			devMode.name:                     s.DevMode,
-			dryRun.name:                      s.DryRun,
-			profile.name:                     s.Profile,
-			bindPublicProtocol.name:          s.BindPublicProtocol,
-			bindPublicAddress.name:           s.BindPublicAddress,
-			bindPublicPort.name:              s.BindPublicPort,
-			tlsPublicDNSNames.name:           s.TLSPublicDNSNames,
-			tlsPublicIPAddresses.name:        s.TLSPublicIPAddresses,
-			tlsPrivateDNSNames.name:          s.TLSPrivateDNSNames,
-			tlsPrivateIPAddresses.name:       s.TLSPrivateIPAddresses,
-			bindPrivateProtocol.name:         s.BindPrivateProtocol,
-			bindPrivateAddress.name:          s.BindPrivateAddress,
-			bindPrivatePort.name:             s.BindPrivatePort,
-			publicBrowserAPIContextPath.name: s.PublicBrowserAPIContextPath,
-			publicServiceAPIContextPath.name: s.PublicServiceAPIContextPath,
-			privateAdminAPIContextPath.name:  s.PrivateAdminAPIContextPath,
-			corsAllowedOrigins.name:          s.CORSAllowedOrigins,
-			corsAllowedMethods.name:          s.CORSAllowedMethods,
-			corsAllowedHeaders.name:          s.CORSAllowedHeaders,
-			corsMaxAge.name:                  s.CORSMaxAge,
-			requestBodyLimit.name:            s.RequestBodyLimit,
-			csrfTokenName.name:               s.CSRFTokenName,
-			csrfTokenSameSite.name:           s.CSRFTokenSameSite,
-			csrfTokenMaxAge.name:             s.CSRFTokenMaxAge,
-			csrfTokenCookieSecure.name:       s.CSRFTokenCookieSecure,
-			csrfTokenCookieHTTPOnly.name:     s.CSRFTokenCookieHTTPOnly,
-			csrfTokenCookieSessionOnly.name:  s.CSRFTokenCookieSessionOnly,
-			csrfTokenSingleUseToken.name:     s.CSRFTokenSingleUseToken,
-			browserIPRateLimit.name:          s.BrowserIPRateLimit,
-			serviceIPRateLimit.name:          s.ServiceIPRateLimit,
-			allowedIps.name:                  s.AllowedIPs,
-			allowedCidrs.name:                s.AllowedCIDRs,
-			databaseContainer.name:           s.DatabaseContainer,
-			databaseURL.name:                 s.DatabaseURL,
-			databaseInitTotalTimeout.name:    s.DatabaseInitTotalTimeout,
-			databaseInitRetryWait.name:       s.DatabaseInitRetryWait,
-			otlpEnabled.name:                 s.OTLPEnabled,
-			otlpConsole.name:                 s.OTLPConsole,
-			otlpService.name:                 s.OTLPService,
-			otlpVersion.name:                 s.OTLPVersion,
-			otlpEnvironment.name:             s.OTLPEnvironment,
-			otlpHostname.name:                s.OTLPHostname,
-			otlpEndpoint.name:                s.OTLPEndpoint,
-			unsealMode.name:                  s.UnsealMode,
-			unsealFiles.name:                 s.UnsealFiles,
-			realms.name:                      s.Realms,
-			browserSessionCookie.name:        s.BrowserSessionCookie,
+			help.Name:                        s.Help,
+			configFile.Name:                  s.ConfigFile,
+			logLevel.Name:                    s.LogLevel,
+			verboseMode.Name:                 s.VerboseMode,
+			devMode.Name:                     s.DevMode,
+			dryRun.Name:                      s.DryRun,
+			profile.Name:                     s.Profile,
+			bindPublicProtocol.Name:          s.BindPublicProtocol,
+			bindPublicAddress.Name:           s.BindPublicAddress,
+			bindPublicPort.Name:              s.BindPublicPort,
+			tlsPublicDNSNames.Name:           s.TLSPublicDNSNames,
+			tlsPublicIPAddresses.Name:        s.TLSPublicIPAddresses,
+			tlsPrivateDNSNames.Name:          s.TLSPrivateDNSNames,
+			tlsPrivateIPAddresses.Name:       s.TLSPrivateIPAddresses,
+			bindPrivateProtocol.Name:         s.BindPrivateProtocol,
+			bindPrivateAddress.Name:          s.BindPrivateAddress,
+			bindPrivatePort.Name:             s.BindPrivatePort,
+			publicBrowserAPIContextPath.Name: s.PublicBrowserAPIContextPath,
+			publicServiceAPIContextPath.Name: s.PublicServiceAPIContextPath,
+			privateAdminAPIContextPath.Name:  s.PrivateAdminAPIContextPath,
+			corsAllowedOrigins.Name:          s.CORSAllowedOrigins,
+			corsAllowedMethods.Name:          s.CORSAllowedMethods,
+			corsAllowedHeaders.Name:          s.CORSAllowedHeaders,
+			corsMaxAge.Name:                  s.CORSMaxAge,
+			requestBodyLimit.Name:            s.RequestBodyLimit,
+			csrfTokenName.Name:               s.CSRFTokenName,
+			csrfTokenSameSite.Name:           s.CSRFTokenSameSite,
+			csrfTokenMaxAge.Name:             s.CSRFTokenMaxAge,
+			csrfTokenCookieSecure.Name:       s.CSRFTokenCookieSecure,
+			csrfTokenCookieHTTPOnly.Name:     s.CSRFTokenCookieHTTPOnly,
+			csrfTokenCookieSessionOnly.Name:  s.CSRFTokenCookieSessionOnly,
+			csrfTokenSingleUseToken.Name:     s.CSRFTokenSingleUseToken,
+			browserIPRateLimit.Name:          s.BrowserIPRateLimit,
+			serviceIPRateLimit.Name:          s.ServiceIPRateLimit,
+			allowedIps.Name:                  s.AllowedIPs,
+			allowedCidrs.Name:                s.AllowedCIDRs,
+			databaseContainer.Name:           s.DatabaseContainer,
+			databaseURL.Name:                 s.DatabaseURL,
+			databaseInitTotalTimeout.Name:    s.DatabaseInitTotalTimeout,
+			databaseInitRetryWait.Name:       s.DatabaseInitRetryWait,
+			otlpEnabled.Name:                 s.OTLPEnabled,
+			otlpConsole.Name:                 s.OTLPConsole,
+			otlpService.Name:                 s.OTLPService,
+			otlpVersion.Name:                 s.OTLPVersion,
+			otlpEnvironment.Name:             s.OTLPEnvironment,
+			otlpHostname.Name:                s.OTLPHostname,
+			otlpEndpoint.Name:                s.OTLPEndpoint,
+			unsealMode.Name:                  s.UnsealMode,
+			unsealFiles.Name:                 s.UnsealFiles,
+			browserRealms.Name:               s.BrowserRealms,
+			serviceRealms.Name:               s.ServiceRealms,
+			browserSessionCookie.Name:        s.BrowserSessionCookie,
 		}
 
 		// Iterate through all registered settings and log them
-		for _, setting := range allRegisteredSettings {
-			value := valueMap[setting.name]
-			if setting.redacted && (!s.DevMode || !s.VerboseMode) {
+		for _, setting := range allServeiceTemplateServerRegisteredSettings {
+			value := valueMap[setting.Name]
+			if setting.Redacted && (!s.DevMode || !s.VerboseMode) {
 				value = "REDACTED"
 			}
 
-			log.Info(setting.description+" (-"+setting.shorthand+"): ", value)
+			log.Info(setting.Description+" (-"+setting.Shorthand+"): ", value)
 		}
 
-		analysis := analyzeSettings(allRegisteredSettings)
+		analysis := analyzeSettings(allServeiceTemplateServerRegisteredSettings)
 
 		var usedShorthands []string
 
@@ -1333,8 +1348,8 @@ func resetFlags() {
 	viper.Reset()
 }
 
-func setEnvAndRegisterSetting(setting *Setting) *Setting {
-	setting.env = "CRYPTOUTIL_" + strings.ToUpper(strings.ReplaceAll(setting.name, "-", "_"))
+func SetEnvAndRegisterSetting(allRegisteredSettings []*Setting, setting *Setting) *Setting {
+	setting.Env = "CRYPTOUTIL_" + strings.ToUpper(strings.ReplaceAll(setting.Name, "-", "_"))
 
 	allRegisteredSettings = append(allRegisteredSettings, setting)
 
@@ -1343,59 +1358,59 @@ func setEnvAndRegisterSetting(setting *Setting) *Setting {
 
 // Helper functions for safe type assertions in configuration.
 func RegisterAsBoolSetting(s *Setting) bool {
-	if v, ok := s.value.(bool); ok {
+	if v, ok := s.Value.(bool); ok {
 		return v
 	}
 
-	panic(fmt.Sprintf("setting %s value is not bool", s.name))
+	panic(fmt.Sprintf("setting %s value is not bool", s.Name))
 }
 
 func RegisterAsStringSetting(s *Setting) string {
-	if v, ok := s.value.(string); ok {
+	if v, ok := s.Value.(string); ok {
 		return v
 	}
 
-	panic(fmt.Sprintf("setting %s value is not string", s.name))
+	panic(fmt.Sprintf("setting %s value is not string", s.Name))
 }
 
 func RegisterAsUint16Setting(s *Setting) uint16 {
-	if v, ok := s.value.(uint16); ok {
+	if v, ok := s.Value.(uint16); ok {
 		return v
 	}
 
-	panic(fmt.Sprintf("setting %s value is not uint16", s.name))
+	panic(fmt.Sprintf("setting %s value is not uint16", s.Name))
 }
 
 func RegisterAsStringSliceSetting(s *Setting) []string {
-	if v, ok := s.value.([]string); ok {
+	if v, ok := s.Value.([]string); ok {
 		return v
 	}
 
-	panic(fmt.Sprintf("setting %s value is not []string", s.name))
+	panic(fmt.Sprintf("setting %s value is not []string", s.Name))
 }
 
 func RegisterAsStringArraySetting(s *Setting) []string {
-	if v, ok := s.value.([]string); ok {
+	if v, ok := s.Value.([]string); ok {
 		return v
 	}
 
-	panic(fmt.Sprintf("setting %s value is not []string for array", s.name))
+	panic(fmt.Sprintf("setting %s value is not []string for array", s.Name))
 }
 
 func RegisterAsDurationSetting(s *Setting) time.Duration {
-	if v, ok := s.value.(time.Duration); ok {
+	if v, ok := s.Value.(time.Duration); ok {
 		return v
 	}
 
-	panic(fmt.Sprintf("setting %s value is not time.Duration", s.name))
+	panic(fmt.Sprintf("setting %s value is not time.Duration", s.Name))
 }
 
 func RegisterAsIntSetting(s *Setting) int {
-	if v, ok := s.value.(int); ok {
+	if v, ok := s.Value.(int); ok {
 		return v
 	}
 
-	panic(fmt.Sprintf("setting %s value is not int", s.name))
+	panic(fmt.Sprintf("setting %s value is not int", s.Name))
 }
 
 func formatDefault(value any) string {
@@ -1425,20 +1440,20 @@ func analyzeSettings(settings []*Setting) analysisResult {
 		SettingsByShorthands: make(map[string][]*Setting),
 	}
 	for _, setting := range settings {
-		result.SettingsByNames[setting.name] = append(result.SettingsByNames[setting.name], setting)
+		result.SettingsByNames[setting.Name] = append(result.SettingsByNames[setting.Name], setting)
 		// Only track non-empty shorthands
-		if setting.shorthand != "" {
-			result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
+		if setting.Shorthand != "" {
+			result.SettingsByShorthands[setting.Shorthand] = append(result.SettingsByShorthands[setting.Shorthand], setting)
 		}
 	}
 
 	for _, setting := range settings {
-		if len(result.SettingsByNames[setting.name]) > 1 {
-			result.DuplicateNames = append(result.DuplicateNames, setting.name)
+		if len(result.SettingsByNames[setting.Name]) > 1 {
+			result.DuplicateNames = append(result.DuplicateNames, setting.Name)
 		}
 
-		if setting.shorthand != "" && len(result.SettingsByShorthands[setting.shorthand]) > 1 {
-			result.DuplicateShorthands = append(result.DuplicateShorthands, setting.shorthand)
+		if setting.Shorthand != "" && len(result.SettingsByShorthands[setting.Shorthand]) > 1 {
+			result.DuplicateShorthands = append(result.DuplicateShorthands, setting.Shorthand)
 		}
 	}
 

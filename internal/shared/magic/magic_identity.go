@@ -51,5 +51,16 @@ const (
 	DefaultServiceSessionJWEAlgorithm = "dir+A256GCM"
 )
 
-// DefaultRealms - Default realm configuration files slice (empty by default).
-var DefaultRealms = []string{}
+// DefaultBrowserRealms - Default browser realm configuration files (session-based auth).
+var DefaultBrowserRealms = []string{
+	"jwe-session-cookie",
+	"jws-session-cookie",
+	"opaque-session-cookie",
+}
+
+// DefaultServiceRealms - Default service realm configuration files (token-based auth).
+var DefaultServiceRealms = []string{
+	"bearer-api-token",
+	"https-client-cert",
+	"basic-username-password",
+}

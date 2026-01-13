@@ -27,6 +27,56 @@ type CipherImServerSettings struct {
 	RecipientsMaxCount int
 }
 
+// Cipher-IM specific default values.
+const (
+	defaultMessageJWEAlgorithm = cryptoutilSharedMagic.CipherJWEAlgorithm
+	defaultMessageMinLength    = cryptoutilSharedMagic.CipherMessageMinLength
+	defaultMessageMaxLength    = cryptoutilSharedMagic.CipherMessageMaxLength
+	defaultRecipientsMinCount  = cryptoutilSharedMagic.CipherRecipientsMinCount
+	defaultRecipientsMaxCount  = cryptoutilSharedMagic.CipherRecipientsMaxCount
+)
+
+var allCipherIMServerRegisteredSettings []*cryptoutilTemplateConfig.Setting
+
+// Cipher-IM specific Setting objects for parameter attributes.
+var (
+	messageJWEAlgorithm = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+		Name:        "message-jwe-algorithm",
+		Shorthand:   "",
+		Value:       defaultMessageJWEAlgorithm,
+		Usage:       "JWE algorithm for message encryption (e.g., dir+A256GCM)",
+		Description: "Message JWE Algorithm",
+	})
+	messageMinLength = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+		Name:        "message-min-length",
+		Shorthand:   "",
+		Value:       defaultMessageMinLength,
+		Usage:       "minimum message length in characters",
+		Description: "Message Min Length",
+	})
+	messageMaxLength = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+		Name:        "message-max-length",
+		Shorthand:   "",
+		Value:       defaultMessageMaxLength,
+		Usage:       "maximum message length in characters",
+		Description: "Message Max Length",
+	})
+	recipientsMinCount = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+		Name:        "recipients-min-count",
+		Shorthand:   "",
+		Value:       defaultRecipientsMinCount,
+		Usage:       "minimum recipients per message",
+		Description: "Recipients Min Count",
+	})
+	recipientsMaxCount = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+		Name:        "recipients-max-count",
+		Shorthand:   "",
+		Value:       defaultRecipientsMaxCount,
+		Usage:       "maximum recipients per message",
+		Description: "Recipients Max Count",
+	})
+)
+
 func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	// Parse base template settings first.
 	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
@@ -35,14 +85,34 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	}
 
 	// Register cipher-im specific flags.
-	pflag.StringP("message-jwe-algorithm", "j", cryptoutilSharedMagic.CipherJWEAlgorithm, "JWE algorithm for message encryption (e.g., dir+A256GCM)")
-	pflag.IntP("message-min-length", "m", cryptoutilSharedMagic.CipherMessageMinLength, "Minimum message length in characters")
-	pflag.IntP("message-max-length", "M", cryptoutilSharedMagic.CipherMessageMaxLength, "Maximum message length in characters")
-	pflag.IntP("recipients-min-count", "r", cryptoutilSharedMagic.CipherRecipientsMinCount, "Minimum recipients per message")
-	pflag.IntP("recipients-max-count", "R", cryptoutilSharedMagic.CipherRecipientsMaxCount, "Maximum recipients per message")
+	pflag.StringP(messageJWEAlgorithm.Name, messageJWEAlgorithm.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(messageJWEAlgorithm), messageJWEAlgorithm.Description)
+	pflag.IntP(messageMinLength.Name, messageMinLength.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(messageMinLength), messageMinLength.Description)
+	pflag.IntP(messageMaxLength.Name, messageMaxLength.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(messageMaxLength), messageMaxLength.Description)
+	pflag.IntP(recipientsMinCount.Name, recipientsMinCount.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(recipientsMinCount), recipientsMinCount.Description)
+	pflag.IntP(recipientsMaxCount.Name, recipientsMaxCount.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(recipientsMaxCount), recipientsMaxCount.Description)
 
 	// Parse flags.
 	pflag.Parse()
+
+	if strVal, ok := messageJWEAlgorithm.Value.(string); ok {
+		pflag.String(messageJWEAlgorithm.Name, strVal, messageJWEAlgorithm.Description)
+	}
+
+	if intVal, ok := messageMinLength.Value.(int); ok {
+		pflag.Int(messageMinLength.Name, intVal, messageMinLength.Description)
+	}
+
+	if intVal, ok := messageMaxLength.Value.(int); ok {
+		pflag.Int(messageMaxLength.Name, intVal, messageMaxLength.Description)
+	}
+
+	if intVal, ok := recipientsMinCount.Value.(int); ok {
+		pflag.Int(recipientsMinCount.Name, intVal, recipientsMinCount.Description)
+	}
+
+	if intVal, ok := recipientsMaxCount.Value.(int); ok {
+		pflag.Int(recipientsMaxCount.Name, intVal, recipientsMaxCount.Description)
+	}
 
 	// Bind flags to viper.
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
@@ -52,11 +122,11 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	// Create cipher-im settings.
 	settings := &CipherImServerSettings{
 		ServiceTemplateServerSettings: baseSettings,
-		MessageJWEAlgorithm:           viper.GetString("message-jwe-algorithm"),
-		MessageMinLength:              viper.GetInt("message-min-length"),
-		MessageMaxLength:              viper.GetInt("message-max-length"),
-		RecipientsMinCount:            viper.GetInt("recipients-min-count"),
-		RecipientsMaxCount:            viper.GetInt("recipients-max-count"),
+		MessageJWEAlgorithm:           viper.GetString(messageJWEAlgorithm.Name),
+		MessageMinLength:              viper.GetInt(messageMinLength.Name),
+		MessageMaxLength:              viper.GetInt(messageMaxLength.Name),
+		RecipientsMinCount:            viper.GetInt(recipientsMinCount.Name),
+		RecipientsMaxCount:            viper.GetInt(recipientsMaxCount.Name),
 	}
 
 	// Initialize cipher-im specific realms (6 non-federated authn methods).
@@ -64,10 +134,14 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	// The database migration (0005_add_realms.up.sql) creates default realms.
 	// See internal/apps/cipher/im/repository/realm_domain.go for realm types.
 	// See internal/apps/cipher/im/service/realm_service.go for realm management.
-	settings.Realms = []string{
+	// Browser realms (session-based authentication).
+	settings.BrowserRealms = []string{
 		"jwe-session-cookie",
 		"jws-session-cookie",
 		"opaque-session-cookie",
+	}
+	// Service realms (token-based authentication).
+	settings.ServiceRealms = []string{
 		"basic-username-password",
 		"bearer-api-token",
 		"https-client-cert",
@@ -129,7 +203,8 @@ func logCipherImSettings(s *CipherImServerSettings) {
 	fmt.Fprintf(os.Stderr, "  Public Server: %s\n", s.PublicBaseURL())
 	fmt.Fprintf(os.Stderr, "  Private Server: %s\n", s.PrivateBaseURL())
 	fmt.Fprintf(os.Stderr, "  OTLP Service: %s\n", s.OTLPService)
-	fmt.Fprintf(os.Stderr, "  Realms: %s\n", strings.Join(s.Realms, ", "))
+	fmt.Fprintf(os.Stderr, "  Browser Realms: %s\n", strings.Join(s.BrowserRealms, ", "))
+	fmt.Fprintf(os.Stderr, "  Service Realms: %s\n", strings.Join(s.ServiceRealms, ", "))
 	fmt.Fprintf(os.Stderr, "  Message JWE Algorithm: %s\n", s.MessageJWEAlgorithm)
 	fmt.Fprintf(os.Stderr, "  Message Length: %d - %d\n", s.MessageMinLength, s.MessageMaxLength)
 	fmt.Fprintf(os.Stderr, "  Recipients Count: %d - %d\n", s.RecipientsMinCount, s.RecipientsMaxCount)

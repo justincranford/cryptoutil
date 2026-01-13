@@ -17,59 +17,59 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	commandParameters := []string{"start"}
 	s, err := Parse(commandParameters, true) // true => If --help is set, help is printed and the program exits
 	require.NoError(t, err)
-	require.Equal(t, help.value, s.Help)
-	require.Equal(t, configFile.value, s.ConfigFile)
-	require.Equal(t, logLevel.value, s.LogLevel)
-	require.Equal(t, verboseMode.value, s.VerboseMode)
-	require.Equal(t, devMode.value, s.DevMode)
-	require.Equal(t, bindPublicProtocol.value, s.BindPublicProtocol)
-	require.Equal(t, bindPublicAddress.value, s.BindPublicAddress)
-	require.Equal(t, bindPublicPort.value, s.BindPublicPort)
-	require.Equal(t, bindPrivateProtocol.value, s.BindPrivateProtocol)
-	require.Equal(t, bindPrivateAddress.value, s.BindPrivateAddress)
-	require.Equal(t, bindPrivatePort.value, s.BindPrivatePort)
-	require.Equal(t, tlsPublicDNSNames.value, s.TLSPublicDNSNames)
-	require.Equal(t, tlsPublicIPAddresses.value, s.TLSPublicIPAddresses)
-	require.Equal(t, tlsPrivateDNSNames.value, s.TLSPrivateDNSNames)
-	require.Equal(t, tlsPrivateIPAddresses.value, s.TLSPrivateIPAddresses)
-	require.Equal(t, tlsPublicMode.value, s.TLSPublicMode)
-	require.Equal(t, tlsPrivateMode.value, s.TLSPrivateMode)
-	require.Equal(t, tlsStaticCertPEM.value, s.TLSStaticCertPEM)
-	require.Equal(t, tlsStaticKeyPEM.value, s.TLSStaticKeyPEM)
-	require.Equal(t, tlsMixedCACertPEM.value, s.TLSMixedCACertPEM)
-	require.Equal(t, tlsMixedCAKeyPEM.value, s.TLSMixedCAKeyPEM)
-	require.Equal(t, publicBrowserAPIContextPath.value, s.PublicBrowserAPIContextPath)
-	require.Equal(t, publicServiceAPIContextPath.value, s.PublicServiceAPIContextPath)
-	require.Equal(t, corsAllowedOrigins.value, s.CORSAllowedOrigins)
-	require.Equal(t, corsAllowedMethods.value, s.CORSAllowedMethods)
-	require.Equal(t, corsAllowedHeaders.value, s.CORSAllowedHeaders)
-	require.Equal(t, corsMaxAge.value, s.CORSMaxAge)
-	require.Equal(t, csrfTokenName.value, s.CSRFTokenName)
-	require.Equal(t, csrfTokenSameSite.value, s.CSRFTokenSameSite)
-	require.Equal(t, csrfTokenMaxAge.value, s.CSRFTokenMaxAge)
-	require.Equal(t, csrfTokenCookieSecure.value, s.CSRFTokenCookieSecure)
-	require.Equal(t, csrfTokenCookieHTTPOnly.value, s.CSRFTokenCookieHTTPOnly)
-	require.Equal(t, csrfTokenCookieSessionOnly.value, s.CSRFTokenCookieSessionOnly)
-	require.Equal(t, csrfTokenSingleUseToken.value, s.CSRFTokenSingleUseToken)
-	require.Equal(t, browserIPRateLimit.value, s.BrowserIPRateLimit)
-	require.Equal(t, serviceIPRateLimit.value, s.ServiceIPRateLimit)
-	require.Equal(t, allowedIps.value, s.AllowedIPs)
-	require.Equal(t, allowedCidrs.value, s.AllowedCIDRs)
-	require.Equal(t, databaseContainer.value, s.DatabaseContainer)
-	require.Equal(t, databaseURL.value, s.DatabaseURL)
-	require.Equal(t, databaseInitTotalTimeout.value, s.DatabaseInitTotalTimeout)
-	require.Equal(t, databaseInitRetryWait.value, s.DatabaseInitRetryWait)
-	require.Equal(t, otlpEnabled.value, s.OTLPEnabled)
-	require.Equal(t, otlpConsole.value, s.OTLPConsole)
-	require.Equal(t, otlpService.value, s.OTLPService)
+	require.Equal(t, help.Value, s.Help)
+	require.Equal(t, configFile.Value, s.ConfigFile)
+	require.Equal(t, logLevel.Value, s.LogLevel)
+	require.Equal(t, verboseMode.Value, s.VerboseMode)
+	require.Equal(t, devMode.Value, s.DevMode)
+	require.Equal(t, bindPublicProtocol.Value, s.BindPublicProtocol)
+	require.Equal(t, bindPublicAddress.Value, s.BindPublicAddress)
+	require.Equal(t, bindPublicPort.Value, s.BindPublicPort)
+	require.Equal(t, bindPrivateProtocol.Value, s.BindPrivateProtocol)
+	require.Equal(t, bindPrivateAddress.Value, s.BindPrivateAddress)
+	require.Equal(t, bindPrivatePort.Value, s.BindPrivatePort)
+	require.Equal(t, tlsPublicDNSNames.Value, s.TLSPublicDNSNames)
+	require.Equal(t, tlsPublicIPAddresses.Value, s.TLSPublicIPAddresses)
+	require.Equal(t, tlsPrivateDNSNames.Value, s.TLSPrivateDNSNames)
+	require.Equal(t, tlsPrivateIPAddresses.Value, s.TLSPrivateIPAddresses)
+	require.Equal(t, tlsPublicMode.Value, s.TLSPublicMode)
+	require.Equal(t, tlsPrivateMode.Value, s.TLSPrivateMode)
+	require.Equal(t, tlsStaticCertPEM.Value, s.TLSStaticCertPEM)
+	require.Equal(t, tlsStaticKeyPEM.Value, s.TLSStaticKeyPEM)
+	require.Equal(t, tlsMixedCACertPEM.Value, s.TLSMixedCACertPEM)
+	require.Equal(t, tlsMixedCAKeyPEM.Value, s.TLSMixedCAKeyPEM)
+	require.Equal(t, publicBrowserAPIContextPath.Value, s.PublicBrowserAPIContextPath)
+	require.Equal(t, publicServiceAPIContextPath.Value, s.PublicServiceAPIContextPath)
+	require.Equal(t, corsAllowedOrigins.Value, s.CORSAllowedOrigins)
+	require.Equal(t, corsAllowedMethods.Value, s.CORSAllowedMethods)
+	require.Equal(t, corsAllowedHeaders.Value, s.CORSAllowedHeaders)
+	require.Equal(t, corsMaxAge.Value, s.CORSMaxAge)
+	require.Equal(t, csrfTokenName.Value, s.CSRFTokenName)
+	require.Equal(t, csrfTokenSameSite.Value, s.CSRFTokenSameSite)
+	require.Equal(t, csrfTokenMaxAge.Value, s.CSRFTokenMaxAge)
+	require.Equal(t, csrfTokenCookieSecure.Value, s.CSRFTokenCookieSecure)
+	require.Equal(t, csrfTokenCookieHTTPOnly.Value, s.CSRFTokenCookieHTTPOnly)
+	require.Equal(t, csrfTokenCookieSessionOnly.Value, s.CSRFTokenCookieSessionOnly)
+	require.Equal(t, csrfTokenSingleUseToken.Value, s.CSRFTokenSingleUseToken)
+	require.Equal(t, browserIPRateLimit.Value, s.BrowserIPRateLimit)
+	require.Equal(t, serviceIPRateLimit.Value, s.ServiceIPRateLimit)
+	require.Equal(t, allowedIps.Value, s.AllowedIPs)
+	require.Equal(t, allowedCidrs.Value, s.AllowedCIDRs)
+	require.Equal(t, databaseContainer.Value, s.DatabaseContainer)
+	require.Equal(t, databaseURL.Value, s.DatabaseURL)
+	require.Equal(t, databaseInitTotalTimeout.Value, s.DatabaseInitTotalTimeout)
+	require.Equal(t, databaseInitRetryWait.Value, s.DatabaseInitRetryWait)
+	require.Equal(t, otlpEnabled.Value, s.OTLPEnabled)
+	require.Equal(t, otlpConsole.Value, s.OTLPConsole)
+	require.Equal(t, otlpService.Value, s.OTLPService)
 	// OTLP instance is generated by default; ensure it's non-empty
 	require.NotEmpty(t, s.OTLPInstance)
-	require.Equal(t, otlpVersion.value, s.OTLPVersion)
-	require.Equal(t, otlpEnvironment.value, s.OTLPEnvironment)
-	require.Equal(t, otlpHostname.value, s.OTLPHostname)
-	require.Equal(t, otlpEndpoint.value, s.OTLPEndpoint)
-	require.Equal(t, unsealMode.value, s.UnsealMode)
-	unsealFilesSlice, ok := unsealFiles.value.([]string)
+	require.Equal(t, otlpVersion.Value, s.OTLPVersion)
+	require.Equal(t, otlpEnvironment.Value, s.OTLPEnvironment)
+	require.Equal(t, otlpHostname.Value, s.OTLPHostname)
+	require.Equal(t, otlpEndpoint.Value, s.OTLPEndpoint)
+	require.Equal(t, unsealMode.Value, s.UnsealMode)
+	unsealFilesSlice, ok := unsealFiles.Value.([]string)
 	require.True(t, ok, "unsealFiles.value should be []string")
 	require.Equal(t, unsealFilesSlice, s.UnsealFiles)
 }
@@ -196,20 +196,20 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 }
 
 func TestAnalyzeSettings_RealSettings(t *testing.T) {
-	result := analyzeSettings(allRegisteredSettings)
+	result := analyzeSettings(allServeiceTemplateServerRegisteredSettings)
 
 	totalMappedByName := 0
 	for _, settings := range result.SettingsByNames {
 		totalMappedByName += len(settings)
 	}
 
-	require.Equal(t, len(allRegisteredSettings), totalMappedByName, "All settings should be accounted for by name")
+	require.Equal(t, len(allServeiceTemplateServerRegisteredSettings), totalMappedByName, "All settings should be accounted for by name")
 
 	// Count settings with non-empty shorthands
 	settingsWithShorthands := 0
 
-	for _, setting := range allRegisteredSettings {
-		if setting.shorthand != "" {
+	for _, setting := range allServeiceTemplateServerRegisteredSettings {
+		if setting.Shorthand != "" {
 			settingsWithShorthands++
 		}
 	}
@@ -235,26 +235,26 @@ func TestAnalyzeSettings_RealSettings(t *testing.T) {
 
 func TestAnalyzeSettings_NoDuplicates(t *testing.T) {
 	result := analyzeSettings([]*Setting{
-		{name: "unique1", shorthand: "a", value: "value1", usage: "usage1"},
-		{name: "unique2", shorthand: "b", value: "value2", usage: "usage2"},
-		{name: "unique3", shorthand: "c", value: "value3", usage: "usage3"},
+		{Name: "unique1", Shorthand: "a", Value: "value1", Usage: "usage1"},
+		{Name: "unique2", Shorthand: "b", Value: "value2", Usage: "usage2"},
+		{Name: "unique3", Shorthand: "c", Value: "value3", Usage: "usage3"},
 	})
 
 	require.Len(t, result.SettingsByNames, 3)
 	require.Len(t, result.SettingsByNames["unique1"], 1)
 	require.Len(t, result.SettingsByNames["unique2"], 1)
 	require.Len(t, result.SettingsByNames["unique3"], 1)
-	require.Equal(t, "unique1", result.SettingsByNames["unique1"][0].name)
-	require.Equal(t, "unique2", result.SettingsByNames["unique2"][0].name)
-	require.Equal(t, "unique3", result.SettingsByNames["unique3"][0].name)
+	require.Equal(t, "unique1", result.SettingsByNames["unique1"][0].Name)
+	require.Equal(t, "unique2", result.SettingsByNames["unique2"][0].Name)
+	require.Equal(t, "unique3", result.SettingsByNames["unique3"][0].Name)
 
 	require.Len(t, result.SettingsByShorthands, 3)
 	require.Len(t, result.SettingsByShorthands["a"], 1)
 	require.Len(t, result.SettingsByShorthands["b"], 1)
 	require.Len(t, result.SettingsByShorthands["c"], 1)
-	require.Equal(t, "a", result.SettingsByShorthands["a"][0].shorthand)
-	require.Equal(t, "b", result.SettingsByShorthands["b"][0].shorthand)
-	require.Equal(t, "c", result.SettingsByShorthands["c"][0].shorthand)
+	require.Equal(t, "a", result.SettingsByShorthands["a"][0].Shorthand)
+	require.Equal(t, "b", result.SettingsByShorthands["b"][0].Shorthand)
+	require.Equal(t, "c", result.SettingsByShorthands["c"][0].Shorthand)
 
 	require.Empty(t, result.DuplicateNames)
 
@@ -263,9 +263,9 @@ func TestAnalyzeSettings_NoDuplicates(t *testing.T) {
 
 func TestAnalyzeSettings_DuplicateNamesOnly(t *testing.T) {
 	result := analyzeSettings([]*Setting{
-		{name: "duplicate", shorthand: "a", value: "value1", usage: "usage1"},
-		{name: "duplicate", shorthand: "b", value: "value2", usage: "usage2"},
-		{name: "unique", shorthand: "c", value: "value3", usage: "usage3"},
+		{Name: "duplicate", Shorthand: "a", Value: "value1", Usage: "usage1"},
+		{Name: "duplicate", Shorthand: "b", Value: "value2", Usage: "usage2"},
+		{Name: "unique", Shorthand: "c", Value: "value3", Usage: "usage3"},
 	})
 
 	require.Len(t, result.SettingsByNames, 2)
@@ -280,9 +280,9 @@ func TestAnalyzeSettings_DuplicateNamesOnly(t *testing.T) {
 
 func TestAnalyzeSettings_DuplicateShorthandsOnly(t *testing.T) {
 	result := analyzeSettings([]*Setting{
-		{name: "unique1", shorthand: "d", value: "value1", usage: "usage1"},
-		{name: "unique2", shorthand: "d", value: "value2", usage: "usage2"},
-		{name: "unique3", shorthand: "u", value: "value3", usage: "usage3"},
+		{Name: "unique1", Shorthand: "d", Value: "value1", Usage: "usage1"},
+		{Name: "unique2", Shorthand: "d", Value: "value2", Usage: "usage2"},
+		{Name: "unique3", Shorthand: "u", Value: "value3", Usage: "usage3"},
 	})
 
 	require.Len(t, result.SettingsByShorthands, 2)
@@ -297,10 +297,10 @@ func TestAnalyzeSettings_DuplicateShorthandsOnly(t *testing.T) {
 
 func TestAnalyzeSettings_DuplicateNames_And_DuplicateShorthands(t *testing.T) {
 	result := analyzeSettings([]*Setting{
-		{name: "duplicate", shorthand: "d", value: "value1", usage: "usage1"},
-		{name: "duplicate", shorthand: "d", value: "value2", usage: "usage2"},
-		{name: "unique1", shorthand: "u", value: "value3", usage: "usage3"},
-		{name: "unique2", shorthand: "U", value: "value4", usage: "usage4"},
+		{Name: "duplicate", Shorthand: "d", Value: "value1", Usage: "usage1"},
+		{Name: "duplicate", Shorthand: "d", Value: "value2", Usage: "usage2"},
+		{Name: "unique1", Shorthand: "u", Value: "value3", Usage: "usage3"},
+		{Name: "unique2", Shorthand: "U", Value: "value4", Usage: "usage4"},
 	})
 
 	require.Len(t, result.SettingsByNames, 3)
