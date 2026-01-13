@@ -28,6 +28,7 @@ import (
 type RealmType string
 
 const (
+	// Federated realm types (external identity providers).
 	// RealmTypeUsernamePassword is a database-based username/password realm.
 	RealmTypeUsernamePassword RealmType = "username_password"
 
@@ -39,6 +40,41 @@ const (
 
 	// RealmTypeSAML is a SAML-based authentication realm.
 	RealmTypeSAML RealmType = "saml"
+
+	// Non-federated browser realm types (session-based, /browser/** paths).
+	// RealmTypeJWESessionCookie uses JSON Web Encryption for stateless encrypted session cookies.
+	RealmTypeJWESessionCookie RealmType = "jwe-session-cookie"
+
+	// RealmTypeJWSSessionCookie uses JSON Web Signature for stateless signed session cookies.
+	RealmTypeJWSSessionCookie RealmType = "jws-session-cookie"
+
+	// RealmTypeOpaqueSessionCookie uses server-side session storage with opaque token cookies.
+	RealmTypeOpaqueSessionCookie RealmType = "opaque-session-cookie"
+
+	// RealmTypeBasicUsernamePassword uses HTTP Basic authentication with username/password.
+	RealmTypeBasicUsernamePassword RealmType = "basic-username-password"
+
+	// RealmTypeBearerAPIToken uses Bearer token authentication from browser clients.
+	RealmTypeBearerAPIToken RealmType = "bearer-api-token"
+
+	// RealmTypeHTTPSClientCert uses mTLS client certificate authentication from browsers.
+	RealmTypeHTTPSClientCert RealmType = "https-client-cert"
+
+	// Non-federated service realm types (token-based, /service/** paths).
+	// RealmTypeJWESessionToken uses JSON Web Encryption for stateless encrypted service tokens.
+	RealmTypeJWESessionToken RealmType = "jwe-session-token"
+
+	// RealmTypeJWSSessionToken uses JSON Web Signature for stateless signed service tokens.
+	RealmTypeJWSSessionToken RealmType = "jws-session-token"
+
+	// RealmTypeOpaqueSessionToken uses server-side token storage with opaque tokens.
+	RealmTypeOpaqueSessionToken RealmType = "opaque-session-token"
+
+	// RealmTypeBasicClientIDSecret uses HTTP Basic authentication with client_id/client_secret.
+	RealmTypeBasicClientIDSecret RealmType = "basic-client-id-secret"
+
+	// Note: bearer-api-token and https-client-cert are shared between browser and service realms.
+	// The realm configuration (BrowserRealms vs ServiceRealms) determines the request path enforcement.
 )
 
 // RealmConfig holds configuration for a specific realm type.
@@ -162,6 +198,240 @@ func (c *SAMLConfig) Validate() error {
 
 	if c.EntityID == "" {
 		return fmt.Errorf("entity_id is required")
+	}
+
+	return nil
+}
+
+// JWESessionCookieConfig configures a JWE session cookie realm (browser, /browser/** paths).
+type JWESessionCookieConfig struct {
+	EncryptionAlgorithm string `json:"encryption_algorithm"` // e.g., "dir+A256GCM"
+	SessionExpiryMinutes int   `json:"session_expiry_minutes"` // e.g., 15
+}
+
+// GetType returns RealmTypeJWESessionCookie.
+func (c *JWESessionCookieConfig) GetType() RealmType {
+	return RealmTypeJWESessionCookie
+}
+
+// Validate validates the configuration.
+func (c *JWESessionCookieConfig) Validate() error {
+	if c.SessionExpiryMinutes < 1 {
+		return fmt.Errorf("session_expiry_minutes must be at least 1")
+	}
+
+	return nil
+}
+
+// JWSSessionCookieConfig configures a JWS session cookie realm (browser, /browser/** paths).
+type JWSSessionCookieConfig struct {
+	SigningAlgorithm     string `json:"signing_algorithm"`      // e.g., "RS256", "ES256", "EdDSA"
+	SessionExpiryMinutes int    `json:"session_expiry_minutes"` // e.g., 15
+}
+
+// GetType returns RealmTypeJWSSessionCookie.
+func (c *JWSSessionCookieConfig) GetType() RealmType {
+	return RealmTypeJWSSessionCookie
+}
+
+// Validate validates the configuration.
+func (c *JWSSessionCookieConfig) Validate() error {
+	if c.SessionExpiryMinutes < 1 {
+		return fmt.Errorf("session_expiry_minutes must be at least 1")
+	}
+
+	return nil
+}
+
+// OpaqueSessionCookieConfig configures an opaque session cookie realm (browser, /browser/** paths).
+type OpaqueSessionCookieConfig struct {
+	TokenLengthBytes     int    `json:"token_length_bytes"`     // e.g., 32 bytes
+	SessionExpiryMinutes int    `json:"session_expiry_minutes"` // e.g., 15
+	StorageType          string `json:"storage_type"`           // "database" or "redis"
+}
+
+// GetType returns RealmTypeOpaqueSessionCookie.
+func (c *OpaqueSessionCookieConfig) GetType() RealmType {
+	return RealmTypeOpaqueSessionCookie
+}
+
+// Validate validates the configuration.
+func (c *OpaqueSessionCookieConfig) Validate() error {
+	if c.TokenLengthBytes < 16 {
+		return fmt.Errorf("token_length_bytes must be at least 16")
+	}
+
+	if c.SessionExpiryMinutes < 1 {
+		return fmt.Errorf("session_expiry_minutes must be at least 1")
+	}
+
+	if c.StorageType != "database" && c.StorageType != "redis" {
+		return fmt.Errorf("storage_type must be 'database' or 'redis'")
+	}
+
+	return nil
+}
+
+// BasicUsernamePasswordConfig configures a Basic HTTP authentication realm (browser, /browser/** paths).
+// Note: This is different from RealmTypeUsernamePassword which is federated.
+type BasicUsernamePasswordConfig struct {
+	MinPasswordLength int  `json:"min_password_length"`
+	RequireUppercase  bool `json:"require_uppercase"`
+	RequireLowercase  bool `json:"require_lowercase"`
+	RequireDigit      bool `json:"require_digit"`
+	RequireSpecial    bool `json:"require_special"`
+}
+
+// GetType returns RealmTypeBasicUsernamePassword.
+func (c *BasicUsernamePasswordConfig) GetType() RealmType {
+	return RealmTypeBasicUsernamePassword
+}
+
+// Validate validates the configuration.
+func (c *BasicUsernamePasswordConfig) Validate() error {
+	if c.MinPasswordLength < 1 {
+		return fmt.Errorf("min_password_length must be at least 1")
+	}
+
+	return nil
+}
+
+// BearerAPITokenConfig configures a Bearer token authentication realm.
+// Used for both browser (/browser/**) and service (/service/**) paths.
+type BearerAPITokenConfig struct {
+	TokenExpiryDays   int  `json:"token_expiry_days"`   // e.g., 30 for long-lived service tokens
+	TokenLengthBytes  int  `json:"token_length_bytes"`  // e.g., 64 bytes
+	AllowRefreshToken bool `json:"allow_refresh_token"` // Allow token refresh
+}
+
+// GetType returns RealmTypeBearerAPIToken.
+func (c *BearerAPITokenConfig) GetType() RealmType {
+	return RealmTypeBearerAPIToken
+}
+
+// Validate validates the configuration.
+func (c *BearerAPITokenConfig) Validate() error {
+	if c.TokenExpiryDays < 1 {
+		return fmt.Errorf("token_expiry_days must be at least 1")
+	}
+
+	if c.TokenLengthBytes < 32 {
+		return fmt.Errorf("token_length_bytes must be at least 32")
+	}
+
+	return nil
+}
+
+// HTTPSClientCertConfig configures mTLS client certificate authentication.
+// Used for both browser (/browser/**) and service (/service/**) paths.
+type HTTPSClientCertConfig struct {
+	RequireClientCert bool     `json:"require_client_cert"` // Require client certificate
+	TrustedCAs        []string `json:"trusted_cas"`         // PEM-encoded CA certificates
+	ValidateOCSP      bool     `json:"validate_ocsp"`       // Check OCSP revocation
+	ValidateCRL       bool     `json:"validate_crl"`        // Check CRL revocation
+}
+
+// GetType returns RealmTypeHTTPSClientCert.
+func (c *HTTPSClientCertConfig) GetType() RealmType {
+	return RealmTypeHTTPSClientCert
+}
+
+// Validate validates the configuration.
+func (c *HTTPSClientCertConfig) Validate() error {
+	if c.RequireClientCert && len(c.TrustedCAs) == 0 {
+		return fmt.Errorf("trusted_cas is required when require_client_cert is true")
+	}
+
+	return nil
+}
+
+// JWESessionTokenConfig configures a JWE session token realm (service, /service/** paths).
+type JWESessionTokenConfig struct {
+	EncryptionAlgorithm string `json:"encryption_algorithm"` // e.g., "dir+A256GCM"
+	TokenExpiryMinutes  int    `json:"token_expiry_minutes"` // e.g., 60
+}
+
+// GetType returns RealmTypeJWESessionToken.
+func (c *JWESessionTokenConfig) GetType() RealmType {
+	return RealmTypeJWESessionToken
+}
+
+// Validate validates the configuration.
+func (c *JWESessionTokenConfig) Validate() error {
+	if c.TokenExpiryMinutes < 1 {
+		return fmt.Errorf("token_expiry_minutes must be at least 1")
+	}
+
+	return nil
+}
+
+// JWSSessionTokenConfig configures a JWS session token realm (service, /service/** paths).
+type JWSSessionTokenConfig struct {
+	SigningAlgorithm   string `json:"signing_algorithm"`    // e.g., "RS256", "ES256", "EdDSA"
+	TokenExpiryMinutes int    `json:"token_expiry_minutes"` // e.g., 60
+}
+
+// GetType returns RealmTypeJWSSessionToken.
+func (c *JWSSessionTokenConfig) GetType() RealmType {
+	return RealmTypeJWSSessionToken
+}
+
+// Validate validates the configuration.
+func (c *JWSSessionTokenConfig) Validate() error {
+	if c.TokenExpiryMinutes < 1 {
+		return fmt.Errorf("token_expiry_minutes must be at least 1")
+	}
+
+	return nil
+}
+
+// OpaqueSessionTokenConfig configures an opaque session token realm (service, /service/** paths).
+type OpaqueSessionTokenConfig struct {
+	TokenLengthBytes   int    `json:"token_length_bytes"`   // e.g., 32 bytes
+	TokenExpiryMinutes int    `json:"token_expiry_minutes"` // e.g., 60
+	StorageType        string `json:"storage_type"`         // "database" or "redis"
+}
+
+// GetType returns RealmTypeOpaqueSessionToken.
+func (c *OpaqueSessionTokenConfig) GetType() RealmType {
+	return RealmTypeOpaqueSessionToken
+}
+
+// Validate validates the configuration.
+func (c *OpaqueSessionTokenConfig) Validate() error {
+	if c.TokenLengthBytes < 16 {
+		return fmt.Errorf("token_length_bytes must be at least 16")
+	}
+
+	if c.TokenExpiryMinutes < 1 {
+		return fmt.Errorf("token_expiry_minutes must be at least 1")
+	}
+
+	if c.StorageType != "database" && c.StorageType != "redis" {
+		return fmt.Errorf("storage_type must be 'database' or 'redis'")
+	}
+
+	return nil
+}
+
+// BasicClientIDSecretConfig configures HTTP Basic authentication with client_id/client_secret (service, /service/** paths).
+type BasicClientIDSecretConfig struct {
+	MinSecretLength int  `json:"min_secret_length"`
+	RequireUppercase bool `json:"require_uppercase"`
+	RequireLowercase bool `json:"require_lowercase"`
+	RequireDigit     bool `json:"require_digit"`
+	RequireSpecial   bool `json:"require_special"`
+}
+
+// GetType returns RealmTypeBasicClientIDSecret.
+func (c *BasicClientIDSecretConfig) GetType() RealmType {
+	return RealmTypeBasicClientIDSecret
+}
+
+// Validate validates the configuration.
+func (c *BasicClientIDSecretConfig) Validate() error {
+	if c.MinSecretLength < 1 {
+		return fmt.Errorf("min_secret_length must be at least 1")
 	}
 
 	return nil
@@ -341,7 +611,18 @@ func (s *RealmServiceImpl) GetRealmConfig(ctx context.Context, tenantID, realmID
 // validateRealmType validates that the realm type is supported.
 func (s *RealmServiceImpl) validateRealmType(realmType string) error {
 	switch RealmType(realmType) {
+	// Federated realm types.
 	case RealmTypeUsernamePassword, RealmTypeLDAP, RealmTypeOAuth2, RealmTypeSAML:
+		return nil
+	// Non-federated browser realm types.
+	case RealmTypeJWESessionCookie, RealmTypeJWSSessionCookie, RealmTypeOpaqueSessionCookie:
+		return nil
+	case RealmTypeBasicUsernamePassword, RealmTypeBearerAPIToken, RealmTypeHTTPSClientCert:
+		return nil
+	// Non-federated service realm types.
+	case RealmTypeJWESessionToken, RealmTypeJWSSessionToken, RealmTypeOpaqueSessionToken:
+		return nil
+	case RealmTypeBasicClientIDSecret:
 		return nil
 	default:
 		return fmt.Errorf("unsupported realm type: %s", realmType)
@@ -357,6 +638,7 @@ func (s *RealmServiceImpl) parseRealmConfig(realmType, configJSON string) (Realm
 	var config RealmConfig
 
 	switch RealmType(realmType) {
+	// Federated realm types.
 	case RealmTypeUsernamePassword:
 		config = &UsernamePasswordConfig{}
 	case RealmTypeLDAP:
@@ -365,6 +647,28 @@ func (s *RealmServiceImpl) parseRealmConfig(realmType, configJSON string) (Realm
 		config = &OAuth2Config{}
 	case RealmTypeSAML:
 		config = &SAMLConfig{}
+	// Non-federated browser realm types.
+	case RealmTypeJWESessionCookie:
+		config = &JWESessionCookieConfig{}
+	case RealmTypeJWSSessionCookie:
+		config = &JWSSessionCookieConfig{}
+	case RealmTypeOpaqueSessionCookie:
+		config = &OpaqueSessionCookieConfig{}
+	case RealmTypeBasicUsernamePassword:
+		config = &BasicUsernamePasswordConfig{}
+	case RealmTypeBearerAPIToken:
+		config = &BearerAPITokenConfig{}
+	case RealmTypeHTTPSClientCert:
+		config = &HTTPSClientCertConfig{}
+	// Non-federated service realm types.
+	case RealmTypeJWESessionToken:
+		config = &JWESessionTokenConfig{}
+	case RealmTypeJWSSessionToken:
+		config = &JWSSessionTokenConfig{}
+	case RealmTypeOpaqueSessionToken:
+		config = &OpaqueSessionTokenConfig{}
+	case RealmTypeBasicClientIDSecret:
+		config = &BasicClientIDSecretConfig{}
 	default:
 		return nil, fmt.Errorf("unsupported realm type: %s", realmType)
 	}
