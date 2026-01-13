@@ -98,14 +98,14 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		return nil, fmt.Errorf("unsupported TLS private mode: %s", tlsPrivateMode)
 	}
 
-	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, &cfg.ServiceTemplateServerSettings, adminTLSCfg)
+	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, cfg.ServiceTemplateServerSettings, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
 	// Start application core (telemetry, JWK gen, unseal, database).
 	// This automatically provisions database based on cfg.DatabaseURL and cfg.DatabaseContainer.
-	core, err := cryptoutilTemplateServer.StartApplicationCore(ctx, &cfg.ServiceTemplateServerSettings)
+	core, err := cryptoutilTemplateServer.StartApplicationCore(ctx, cfg.ServiceTemplateServerSettings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
@@ -215,7 +215,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		core.Basic.TelemetryService,
 		core.Basic.JWKGenService,
 		barrierService,
-		&cfg.ServiceTemplateServerSettings,
+		cfg.ServiceTemplateServerSettings,
 	)
 	if err != nil {
 		core.Shutdown()

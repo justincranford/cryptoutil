@@ -7,6 +7,7 @@ package repository
 import (
 	"database/sql"
 	"embed"
+	"fmt"
 
 	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
@@ -34,5 +35,9 @@ var MigrationsFS embed.FS
 // - messages: Encrypted messages with JWE JSON format (multi-recipient)
 // - messages_recipient_jwks: Per-recipient decryption keys (encrypted JWK).
 func ApplyCipherIMMigrations(db *sql.DB, dbType DatabaseType) error {
-	return cryptoutilTemplateServerRepository.ApplyMigrations(db, dbType, MigrationsFS)
+	if err := cryptoutilTemplateServerRepository.ApplyMigrations(db, dbType, MigrationsFS); err != nil {
+		return fmt.Errorf("failed to apply cipher-im migrations: %w", err)
+	}
+
+	return nil
 }

@@ -25,7 +25,7 @@ func initTestConfig() *config.CipherImServerSettings {
 	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast tests.
 
 	return &config.CipherImServerSettings{
-		ServiceTemplateServerSettings: *settings,
+		ServiceTemplateServerSettings: settings,
 	}
 }
 

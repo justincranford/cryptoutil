@@ -6,6 +6,9 @@ import "time"
 
 // Cipher-IM Service Magic Constants.
 const (
+	// OTLPServiceCipherIM is the OTLP service name for cipher-im telemetry.
+	OTLPServiceCipherIM = "cipher-im"
+
 	// CipherServicePort is the default public HTTPS server port for cipher-im.
 	CipherServicePort = 8888
 

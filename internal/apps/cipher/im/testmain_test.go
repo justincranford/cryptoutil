@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 	settings.DatabaseURL = sqliteInMemoryURL
 
 	sharedAppConfig := &config.CipherImServerSettings{
-		ServiceTemplateServerSettings: *settings,
+		ServiceTemplateServerSettings: settings,
 	}
 
 	// Start service once for all tests in this package (following e2e pattern).

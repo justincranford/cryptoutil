@@ -6,20 +6,16 @@ package server_test
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server"
 	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
@@ -73,6 +69,9 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
+// DISABLED: Old test helper functions from previous implementation.
+// These may need to be refactored or removed entirely during realm refactoring.
+/*
 // cleanTestDB truncates all tables for test isolation while preserving schema.
 func cleanTestDB(t *testing.T) {
 	t.Helper()
@@ -172,3 +171,4 @@ func createTestPublicServer(t *testing.T, db *gorm.DB) (*server.PublicServer, st
 
 	return publicServer, baseURL
 }
+*/

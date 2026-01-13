@@ -80,7 +80,7 @@ func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResour
 
 	// Create CipherImServerSettings with test settings.
 	cfg := &config.CipherImServerSettings{
-		ServiceTemplateServerSettings: *cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-test"),
+		ServiceTemplateServerSettings: cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-test"),
 	}
 	cfg.DatabaseURL = dsn // Set database URL for NewFromConfig
 

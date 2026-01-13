@@ -78,35 +78,35 @@ func TestNewForCAServer_ProductionMode(t *testing.T) {
 // TestRegisterAsBoolSetting tests registerAsBoolSetting function.
 func TestRegisterAsBoolSetting(t *testing.T) {
 	setting := Setting{value: true}
-	result := registerAsBoolSetting(&setting)
+	result := RegisterAsBoolSetting(&setting)
 	require.True(t, result)
 }
 
 // TestRegisterAsStringSetting tests registerAsStringSetting function.
 func TestRegisterAsStringSetting(t *testing.T) {
 	setting := Setting{value: "test-value"}
-	result := registerAsStringSetting(&setting)
+	result := RegisterAsStringSetting(&setting)
 	require.Equal(t, "test-value", result)
 }
 
 // TestRegisterAsUint16Setting tests registerAsUint16Setting function.
 func TestRegisterAsUint16Setting(t *testing.T) {
 	setting := Setting{value: uint16(8080)}
-	result := registerAsUint16Setting(&setting)
+	result := RegisterAsUint16Setting(&setting)
 	require.Equal(t, uint16(8080), result)
 }
 
 // TestRegisterAsStringSliceSetting tests registerAsStringSliceSetting function.
 func TestRegisterAsStringSliceSetting(t *testing.T) {
 	setting := Setting{value: []string{"item1", "item2"}}
-	result := registerAsStringSliceSetting(&setting)
+	result := RegisterAsStringSliceSetting(&setting)
 	require.Equal(t, []string{"item1", "item2"}, result)
 }
 
 // TestRegisterAsStringArraySetting tests registerAsStringArraySetting function.
 func TestRegisterAsStringArraySetting(t *testing.T) {
 	setting := Setting{value: []string{"item1", "item2"}}
-	result := registerAsStringArraySetting(&setting)
+	result := RegisterAsStringArraySetting(&setting)
 	require.Equal(t, []string{"item1", "item2"}, result)
 }
 
@@ -114,13 +114,13 @@ func TestRegisterAsStringArraySetting(t *testing.T) {
 func TestRegisterAsDurationSetting(t *testing.T) {
 	// Use time.Duration type, not string
 	setting := Setting{value: time.Duration(5 * time.Minute)}
-	result := registerAsDurationSetting(&setting)
+	result := RegisterAsDurationSetting(&setting)
 	require.Equal(t, time.Duration(5*time.Minute), result)
 }
 
 // TestRegisterAsIntSetting tests registerAsIntSetting function.
 func TestRegisterAsIntSetting(t *testing.T) {
 	setting := Setting{value: 100}
-	result := registerAsIntSetting(&setting)
+	result := RegisterAsIntSetting(&setting)
 	require.Equal(t, 100, result)
 }

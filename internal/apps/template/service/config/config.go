@@ -918,64 +918,64 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	}
 
 	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
-	pflag.BoolP(help.name, help.shorthand, registerAsBoolSetting(&help), help.usage)
-	pflag.StringSliceP(configFile.name, configFile.shorthand, registerAsStringSliceSetting(&configFile), configFile.usage)
-	pflag.StringP(logLevel.name, logLevel.shorthand, registerAsStringSetting(&logLevel), logLevel.usage)
-	pflag.BoolP(verboseMode.name, verboseMode.shorthand, registerAsBoolSetting(&verboseMode), verboseMode.usage)
-	pflag.BoolP(devMode.name, devMode.shorthand, registerAsBoolSetting(&devMode), devMode.usage)
-	pflag.BoolP(demoMode.name, demoMode.shorthand, registerAsBoolSetting(&demoMode), demoMode.usage)
-	pflag.BoolP(dryRun.name, dryRun.shorthand, registerAsBoolSetting(&dryRun), dryRun.usage)
-	pflag.StringP(profile.name, profile.shorthand, registerAsStringSetting(&profile), profile.usage)
-	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, registerAsStringSetting(&bindPublicProtocol), bindPublicProtocol.usage)
-	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, registerAsStringSetting(&bindPublicAddress), bindPublicAddress.usage)
-	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, registerAsUint16Setting(&bindPublicPort), bindPublicPort.usage)
-	pflag.StringSliceP(tlsPublicDNSNames.name, tlsPublicDNSNames.shorthand, registerAsStringSliceSetting(&tlsPublicDNSNames), tlsPublicDNSNames.usage)
-	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, registerAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.usage)
-	pflag.StringSliceP(tlsPrivateDNSNames.name, tlsPrivateDNSNames.shorthand, registerAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.usage)
-	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, registerAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.usage)
+	pflag.BoolP(help.name, help.shorthand, RegisterAsBoolSetting(&help), help.usage)
+	pflag.StringSliceP(configFile.name, configFile.shorthand, RegisterAsStringSliceSetting(&configFile), configFile.usage)
+	pflag.StringP(logLevel.name, logLevel.shorthand, RegisterAsStringSetting(&logLevel), logLevel.usage)
+	pflag.BoolP(verboseMode.name, verboseMode.shorthand, RegisterAsBoolSetting(&verboseMode), verboseMode.usage)
+	pflag.BoolP(devMode.name, devMode.shorthand, RegisterAsBoolSetting(&devMode), devMode.usage)
+	pflag.BoolP(demoMode.name, demoMode.shorthand, RegisterAsBoolSetting(&demoMode), demoMode.usage)
+	pflag.BoolP(dryRun.name, dryRun.shorthand, RegisterAsBoolSetting(&dryRun), dryRun.usage)
+	pflag.StringP(profile.name, profile.shorthand, RegisterAsStringSetting(&profile), profile.usage)
+	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, RegisterAsStringSetting(&bindPublicProtocol), bindPublicProtocol.usage)
+	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, RegisterAsStringSetting(&bindPublicAddress), bindPublicAddress.usage)
+	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, RegisterAsUint16Setting(&bindPublicPort), bindPublicPort.usage)
+	pflag.StringSliceP(tlsPublicDNSNames.name, tlsPublicDNSNames.shorthand, RegisterAsStringSliceSetting(&tlsPublicDNSNames), tlsPublicDNSNames.usage)
+	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, RegisterAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.usage)
+	pflag.StringSliceP(tlsPrivateDNSNames.name, tlsPrivateDNSNames.shorthand, RegisterAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.usage)
+	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, RegisterAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.usage)
 	pflag.StringP(tlsPublicMode.name, tlsPublicMode.shorthand, string(defaultTLSPublicMode), tlsPublicMode.usage)
 	pflag.StringP(tlsPrivateMode.name, tlsPrivateMode.shorthand, string(defaultTLSPrivateMode), tlsPrivateMode.usage)
 	pflag.BytesBase64P(tlsStaticCertPEM.name, tlsStaticCertPEM.shorthand, []byte(nil), tlsStaticCertPEM.usage)
 	pflag.BytesBase64P(tlsStaticKeyPEM.name, tlsStaticKeyPEM.shorthand, []byte(nil), tlsStaticKeyPEM.usage)
 	pflag.BytesBase64P(tlsMixedCACertPEM.name, tlsMixedCACertPEM.shorthand, []byte(nil), tlsMixedCACertPEM.usage)
 	pflag.BytesBase64P(tlsMixedCAKeyPEM.name, tlsMixedCAKeyPEM.shorthand, []byte(nil), tlsMixedCAKeyPEM.usage)
-	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, registerAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.usage)
-	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, registerAsStringSetting(&bindPrivateAddress), bindPrivateAddress.usage)
-	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, registerAsUint16Setting(&bindPrivatePort), bindPrivatePort.usage)
-	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, registerAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.usage)
-	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, registerAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.usage)
-	pflag.StringP(privateAdminAPIContextPath.name, privateAdminAPIContextPath.shorthand, registerAsStringSetting(&privateAdminAPIContextPath), privateAdminAPIContextPath.usage)
-	pflag.StringSliceP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, registerAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.usage)
-	pflag.StringSliceP(corsAllowedMethods.name, corsAllowedMethods.shorthand, registerAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.usage)
-	pflag.StringSliceP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, registerAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.usage)
-	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, registerAsUint16Setting(&corsMaxAge), corsMaxAge.usage)
-	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, registerAsStringSetting(&csrfTokenName), csrfTokenName.usage)
-	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, registerAsStringSetting(&csrfTokenSameSite), csrfTokenSameSite.usage)
-	pflag.DurationP(csrfTokenMaxAge.name, csrfTokenMaxAge.shorthand, registerAsDurationSetting(&csrfTokenMaxAge), csrfTokenMaxAge.usage)
-	pflag.BoolP(csrfTokenCookieSecure.name, csrfTokenCookieSecure.shorthand, registerAsBoolSetting(&csrfTokenCookieSecure), csrfTokenCookieSecure.usage)
-	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, registerAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.usage)
-	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, registerAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.usage)
-	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, registerAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.usage)
-	pflag.Uint16P(browserIPRateLimit.name, browserIPRateLimit.shorthand, registerAsUint16Setting(&browserIPRateLimit), browserIPRateLimit.usage)
-	pflag.Uint16P(serviceIPRateLimit.name, serviceIPRateLimit.shorthand, registerAsUint16Setting(&serviceIPRateLimit), serviceIPRateLimit.usage)
-	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, registerAsStringSliceSetting(&allowedIps), allowedIps.usage)
-	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, registerAsStringSliceSetting(&allowedCidrs), allowedCidrs.usage)
-	pflag.IntP(requestBodyLimit.name, requestBodyLimit.shorthand, registerAsIntSetting(&requestBodyLimit), requestBodyLimit.usage)
-	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, registerAsStringSetting(&databaseContainer), databaseContainer.usage)
-	pflag.StringP(databaseURL.name, databaseURL.shorthand, registerAsStringSetting(&databaseURL), databaseURL.usage)
-	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, registerAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.usage)
-	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, registerAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.usage)
-	pflag.DurationP(serverShutdownTimeout.name, serverShutdownTimeout.shorthand, registerAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.usage)
-	pflag.BoolP(otlpEnabled.name, otlpEnabled.shorthand, registerAsBoolSetting(&otlpEnabled), otlpEnabled.usage)
-	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, registerAsBoolSetting(&otlpConsole), otlpConsole.usage)
-	pflag.StringP(otlpService.name, otlpService.shorthand, registerAsStringSetting(&otlpService), otlpService.usage)
-	pflag.StringP(otlpVersion.name, otlpVersion.shorthand, registerAsStringSetting(&otlpVersion), otlpVersion.usage)
-	pflag.StringP(otlpEnvironment.name, otlpEnvironment.shorthand, registerAsStringSetting(&otlpEnvironment), otlpEnvironment.usage)
-	pflag.StringP(otlpHostname.name, otlpHostname.shorthand, registerAsStringSetting(&otlpHostname), otlpHostname.usage)
-	pflag.StringP(otlpEndpoint.name, otlpEndpoint.shorthand, registerAsStringSetting(&otlpEndpoint), otlpEndpoint.usage)
-	pflag.StringP(otlpInstance.name, otlpInstance.shorthand, registerAsStringSetting(&otlpInstance), otlpInstance.usage)
-	pflag.StringP(unsealMode.name, unsealMode.shorthand, registerAsStringSetting(&unsealMode), unsealMode.usage)
-	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, registerAsStringArraySetting(&unsealFiles), unsealFiles.usage)
+	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, RegisterAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.usage)
+	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, RegisterAsStringSetting(&bindPrivateAddress), bindPrivateAddress.usage)
+	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, RegisterAsUint16Setting(&bindPrivatePort), bindPrivatePort.usage)
+	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, RegisterAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.usage)
+	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, RegisterAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.usage)
+	pflag.StringP(privateAdminAPIContextPath.name, privateAdminAPIContextPath.shorthand, RegisterAsStringSetting(&privateAdminAPIContextPath), privateAdminAPIContextPath.usage)
+	pflag.StringSliceP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, RegisterAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.usage)
+	pflag.StringSliceP(corsAllowedMethods.name, corsAllowedMethods.shorthand, RegisterAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.usage)
+	pflag.StringSliceP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, RegisterAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.usage)
+	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, RegisterAsUint16Setting(&corsMaxAge), corsMaxAge.usage)
+	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, RegisterAsStringSetting(&csrfTokenName), csrfTokenName.usage)
+	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, RegisterAsStringSetting(&csrfTokenSameSite), csrfTokenSameSite.usage)
+	pflag.DurationP(csrfTokenMaxAge.name, csrfTokenMaxAge.shorthand, RegisterAsDurationSetting(&csrfTokenMaxAge), csrfTokenMaxAge.usage)
+	pflag.BoolP(csrfTokenCookieSecure.name, csrfTokenCookieSecure.shorthand, RegisterAsBoolSetting(&csrfTokenCookieSecure), csrfTokenCookieSecure.usage)
+	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, RegisterAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.usage)
+	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, RegisterAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.usage)
+	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, RegisterAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.usage)
+	pflag.Uint16P(browserIPRateLimit.name, browserIPRateLimit.shorthand, RegisterAsUint16Setting(&browserIPRateLimit), browserIPRateLimit.usage)
+	pflag.Uint16P(serviceIPRateLimit.name, serviceIPRateLimit.shorthand, RegisterAsUint16Setting(&serviceIPRateLimit), serviceIPRateLimit.usage)
+	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, RegisterAsStringSliceSetting(&allowedIps), allowedIps.usage)
+	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, RegisterAsStringSliceSetting(&allowedCidrs), allowedCidrs.usage)
+	pflag.IntP(requestBodyLimit.name, requestBodyLimit.shorthand, RegisterAsIntSetting(&requestBodyLimit), requestBodyLimit.usage)
+	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, RegisterAsStringSetting(&databaseContainer), databaseContainer.usage)
+	pflag.StringP(databaseURL.name, databaseURL.shorthand, RegisterAsStringSetting(&databaseURL), databaseURL.usage)
+	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, RegisterAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.usage)
+	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, RegisterAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.usage)
+	pflag.DurationP(serverShutdownTimeout.name, serverShutdownTimeout.shorthand, RegisterAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.usage)
+	pflag.BoolP(otlpEnabled.name, otlpEnabled.shorthand, RegisterAsBoolSetting(&otlpEnabled), otlpEnabled.usage)
+	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, RegisterAsBoolSetting(&otlpConsole), otlpConsole.usage)
+	pflag.StringP(otlpService.name, otlpService.shorthand, RegisterAsStringSetting(&otlpService), otlpService.usage)
+	pflag.StringP(otlpVersion.name, otlpVersion.shorthand, RegisterAsStringSetting(&otlpVersion), otlpVersion.usage)
+	pflag.StringP(otlpEnvironment.name, otlpEnvironment.shorthand, RegisterAsStringSetting(&otlpEnvironment), otlpEnvironment.usage)
+	pflag.StringP(otlpHostname.name, otlpHostname.shorthand, RegisterAsStringSetting(&otlpHostname), otlpHostname.usage)
+	pflag.StringP(otlpEndpoint.name, otlpEndpoint.shorthand, RegisterAsStringSetting(&otlpEndpoint), otlpEndpoint.usage)
+	pflag.StringP(otlpInstance.name, otlpInstance.shorthand, RegisterAsStringSetting(&otlpInstance), otlpInstance.usage)
+	pflag.StringP(unsealMode.name, unsealMode.shorthand, RegisterAsStringSetting(&unsealMode), unsealMode.usage)
+	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, RegisterAsStringArraySetting(&unsealFiles), unsealFiles.usage)
 
 	err := pflag.CommandLine.Parse(subCommandParameters)
 	if err != nil {
@@ -1342,7 +1342,7 @@ func setEnvAndRegisterSetting(setting *Setting) *Setting {
 }
 
 // Helper functions for safe type assertions in configuration.
-func registerAsBoolSetting(s *Setting) bool {
+func RegisterAsBoolSetting(s *Setting) bool {
 	if v, ok := s.value.(bool); ok {
 		return v
 	}
@@ -1350,7 +1350,7 @@ func registerAsBoolSetting(s *Setting) bool {
 	panic(fmt.Sprintf("setting %s value is not bool", s.name))
 }
 
-func registerAsStringSetting(s *Setting) string {
+func RegisterAsStringSetting(s *Setting) string {
 	if v, ok := s.value.(string); ok {
 		return v
 	}
@@ -1358,7 +1358,7 @@ func registerAsStringSetting(s *Setting) string {
 	panic(fmt.Sprintf("setting %s value is not string", s.name))
 }
 
-func registerAsUint16Setting(s *Setting) uint16 {
+func RegisterAsUint16Setting(s *Setting) uint16 {
 	if v, ok := s.value.(uint16); ok {
 		return v
 	}
@@ -1366,7 +1366,7 @@ func registerAsUint16Setting(s *Setting) uint16 {
 	panic(fmt.Sprintf("setting %s value is not uint16", s.name))
 }
 
-func registerAsStringSliceSetting(s *Setting) []string {
+func RegisterAsStringSliceSetting(s *Setting) []string {
 	if v, ok := s.value.([]string); ok {
 		return v
 	}
@@ -1374,7 +1374,7 @@ func registerAsStringSliceSetting(s *Setting) []string {
 	panic(fmt.Sprintf("setting %s value is not []string", s.name))
 }
 
-func registerAsStringArraySetting(s *Setting) []string {
+func RegisterAsStringArraySetting(s *Setting) []string {
 	if v, ok := s.value.([]string); ok {
 		return v
 	}
@@ -1382,7 +1382,7 @@ func registerAsStringArraySetting(s *Setting) []string {
 	panic(fmt.Sprintf("setting %s value is not []string for array", s.name))
 }
 
-func registerAsDurationSetting(s *Setting) time.Duration {
+func RegisterAsDurationSetting(s *Setting) time.Duration {
 	if v, ok := s.value.(time.Duration); ok {
 		return v
 	}
@@ -1390,7 +1390,7 @@ func registerAsDurationSetting(s *Setting) time.Duration {
 	panic(fmt.Sprintf("setting %s value is not time.Duration", s.name))
 }
 
-func registerAsIntSetting(s *Setting) int {
+func RegisterAsIntSetting(s *Setting) int {
 	if v, ok := s.value.(int); ok {
 		return v
 	}

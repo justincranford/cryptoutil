@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast integration tests.
 
 	testCipherIMServer = &config.CipherImServerSettings{
-		ServiceTemplateServerSettings: *settings,
+		ServiceTemplateServerSettings: settings,
 	}
 
 	cipherImServer = cipherTesting.StartCipherIMService(testCipherIMServer)
