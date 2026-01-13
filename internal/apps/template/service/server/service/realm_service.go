@@ -22,6 +22,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // RealmType represents the type of authentication realm.
@@ -257,16 +258,16 @@ func (c *OpaqueSessionCookieConfig) GetType() RealmType {
 
 // Validate validates the configuration.
 func (c *OpaqueSessionCookieConfig) Validate() error {
-	if c.TokenLengthBytes < 16 {
-		return fmt.Errorf("token_length_bytes must be at least 16")
+	if c.TokenLengthBytes < cryptoutilMagic.RealmMinTokenLengthBytes {
+		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilMagic.RealmMinTokenLengthBytes)
 	}
 
 	if c.SessionExpiryMinutes < 1 {
 		return fmt.Errorf("session_expiry_minutes must be at least 1")
 	}
 
-	if c.StorageType != "database" && c.StorageType != "redis" {
-		return fmt.Errorf("storage_type must be 'database' or 'redis'")
+	if c.StorageType != cryptoutilMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilMagic.RealmStorageTypeRedis {
+		return fmt.Errorf("storage_type must be '%s' or '%s'", cryptoutilMagic.RealmStorageTypeDatabase, cryptoutilMagic.RealmStorageTypeRedis)
 	}
 
 	return nil
@@ -315,8 +316,8 @@ func (c *BearerAPITokenConfig) Validate() error {
 		return fmt.Errorf("token_expiry_days must be at least 1")
 	}
 
-	if c.TokenLengthBytes < 32 {
-		return fmt.Errorf("token_length_bytes must be at least 32")
+	if c.TokenLengthBytes < cryptoutilMagic.RealmMinBearerTokenLengthBytes {
+		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilMagic.RealmMinBearerTokenLengthBytes)
 	}
 
 	return nil
@@ -399,16 +400,16 @@ func (c *OpaqueSessionTokenConfig) GetType() RealmType {
 
 // Validate validates the configuration.
 func (c *OpaqueSessionTokenConfig) Validate() error {
-	if c.TokenLengthBytes < 16 {
-		return fmt.Errorf("token_length_bytes must be at least 16")
+	if c.TokenLengthBytes < cryptoutilMagic.RealmMinTokenLengthBytes {
+		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilMagic.RealmMinTokenLengthBytes)
 	}
 
 	if c.TokenExpiryMinutes < 1 {
 		return fmt.Errorf("token_expiry_minutes must be at least 1")
 	}
 
-	if c.StorageType != "database" && c.StorageType != "redis" {
-		return fmt.Errorf("storage_type must be 'database' or 'redis'")
+	if c.StorageType != cryptoutilMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilMagic.RealmStorageTypeRedis {
+		return fmt.Errorf("storage_type must be '%s' or '%s'", cryptoutilMagic.RealmStorageTypeDatabase, cryptoutilMagic.RealmStorageTypeRedis)
 	}
 
 	return nil
@@ -530,7 +531,12 @@ func (s *RealmServiceImpl) GetRealm(ctx context.Context, tenantID, realmID googl
 
 // ListRealms lists all realms for a tenant.
 func (s *RealmServiceImpl) ListRealms(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*repository.TenantRealm, error) {
-	return s.realmRepo.ListByTenant(ctx, tenantID, activeOnly)
+	realms, err := s.realmRepo.ListByTenant(ctx, tenantID, activeOnly)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list realms: %w", err)
+	}
+
+	return realms, nil
 }
 
 // UpdateRealm updates realm configuration.
@@ -632,7 +638,7 @@ func (s *RealmServiceImpl) validateRealmType(realmType string) error {
 // parseRealmConfig parses JSON configuration into the appropriate typed config.
 func (s *RealmServiceImpl) parseRealmConfig(realmType, configJSON string) (RealmConfig, error) {
 	if configJSON == "" {
-		return nil, nil
+		return nil, nil //nolint:nilnil // Empty config is valid - returns nil value with nil error
 	}
 
 	var config RealmConfig

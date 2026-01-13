@@ -72,3 +72,18 @@ var DefaultServiceRealms = []string{
 	"bearer-api-token",         // Service Realm #5: Bearer (API Token) - Long-lived service credentials
 	"https-client-cert",        // Service Realm #6: HTTPS Client Certificate - mTLS for high-security service-to-service
 }
+
+// Realm configuration validation constants.
+const (
+	// RealmMinTokenLengthBytes - Minimum token length in bytes for random tokens (16 bytes = 128 bits).
+	RealmMinTokenLengthBytes = 16
+
+	// RealmMinBearerTokenLengthBytes - Minimum bearer token length in bytes (32 bytes = 256 bits).
+	RealmMinBearerTokenLengthBytes = 32
+
+	// RealmStorageTypeDatabase - Database storage type for session/token persistence.
+	RealmStorageTypeDatabase = "database"
+
+	// RealmStorageTypeRedis - Redis storage type for session/token persistence.
+	RealmStorageTypeRedis = "redis"
+)
