@@ -133,7 +133,7 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	// Template uses cryptoutilSharedMagic.DefaultBrowserRealms (6 browser realms) and
 	// cryptoutilSharedMagic.DefaultServiceRealms (6 service realms) as defaults.
 	// See internal/shared/magic/magic_identity.go for complete realm definitions.
-	// See internal/apps/cipher/im/repository/realm_domain.go for realm types.
+	// See internal/apps/template/service/server/repository/tenant_domain.go for TenantRealm types.
 	// See internal/apps/cipher/im/service/realm_service.go for realm management.
 	// Realms are stored in database and loaded at runtime via migration 0005_add_realms.up.sql.
 

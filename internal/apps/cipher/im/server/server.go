@@ -40,7 +40,7 @@ type CipherIMServer struct {
 	// Repositories.
 	userRepo    *repository.UserRepository
 	messageRepo *repository.MessageRepository
-	realmRepo   repository.RealmRepository
+	realmRepo   cryptoutilTemplateRepository.TenantRealmRepository // Uses service-template repository.
 }
 
 // NewFromConfig creates a new cipher-im server from CipherImServerSettings only.
@@ -210,8 +210,8 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	messageRepo := repository.NewMessageRepository(core.DB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(core.DB, barrierService)
 
-	// Initialize realm repository and service.
-	realmRepo := repository.NewRealmRepository(core.DB)
+	// Initialize realm repository and service (using service-template implementation).
+	realmRepo := cryptoutilTemplateRepository.NewTenantRealmRepository(core.DB)
 	realmService := businesslogic.NewRealmService(realmRepo)
 
 	// Initialize SessionManager service for session management.
