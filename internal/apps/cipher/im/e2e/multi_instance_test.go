@@ -37,6 +37,7 @@ func TestThreeInstanceDeployment(t *testing.T) {
 
 			resp, err := sharedHTTPClient.Do(req)
 			require.NoError(t, err, "Health check should succeed for %s", name)
+
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, http.StatusOK, resp.StatusCode, "%s should return 200 OK", name)
@@ -52,6 +53,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 	dsn := "postgres://cipher_user:cipher_pass@127.0.0.1:5432/cipher_im?sslmode=disable"
 	db, err := sql.Open("postgres", dsn)
 	require.NoError(t, err, "Connecting to PostgreSQL should succeed")
+
 	defer func() { _ = db.Close() }()
 
 	err = db.PingContext(ctx)
@@ -67,6 +69,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 	for _, table := range tables {
 		t.Run(table, func(t *testing.T) {
 			var exists bool
+
 			query := `SELECT EXISTS (
 				SELECT FROM information_schema.tables
 				WHERE table_schema = 'public' AND table_name = $1
@@ -77,6 +80,7 @@ func TestPostgreSQLSharedState(t *testing.T) {
 
 			// Verify at least 1 row exists (either instance could have created it).
 			var count int
+
 			err = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+table).Scan(&count)
 			require.NoError(t, err, "Counting %s rows should succeed", table)
 			require.GreaterOrEqual(t, count, 1, "Should have at least 1 row in %s", table)
@@ -94,6 +98,7 @@ func TestSQLiteInstanceIsolation(t *testing.T) {
 
 	resp, err := sharedHTTPClient.Do(req)
 	require.NoError(t, err, "SQLite health check should succeed")
+
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode, "SQLite instance should be healthy")
@@ -119,7 +124,8 @@ func TestCrossInstanceDeployment(t *testing.T) {
 
 			resp, err := sharedHTTPClient.Do(req)
 			require.NoError(t, err, "GET health should succeed for %s", name)
-			defer func() { _ = resp.Body.Close() }()
+
+		defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, http.StatusOK, resp.StatusCode, "%s should be ready", name)
 		})
