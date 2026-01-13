@@ -8,13 +8,12 @@ import (
 	"context"
 	"crypto/hmac"
 	crand "crypto/rand"
+	"crypto/sha256"
 	"encoding/base32"
 	"encoding/binary"
 	"fmt"
 	"strings"
 	"time"
-
-	sha1 "crypto/sha1" //nolint:gosec // SHA1 required by RFC 6238 (TOTP) and RFC 4226 (HOTP).
 
 	googleUuid "github.com/google/uuid"
 
@@ -188,8 +187,9 @@ func (t *TOTPAuthenticator) generateTOTPAtTime(secret string, testTime time.Time
 	// Calculate time counter.
 	counter := uint64(testTime.Unix()) / uint64(t.period.Seconds()) //nolint:gosec // No overflow in time-to-counter conversion.
 
-	// Generate HMAC-SHA1.
-	h := hmac.New(sha1.New, key)
+	// FIPS 140-2/140-3 compliance: Use HMAC-SHA256 instead of SHA-1.
+	// Note: RFC 6238 specifies SHA-1 as default, but SHA-256 is also supported.
+	h := hmac.New(sha256.New, key)
 	if err := binary.Write(h, binary.BigEndian, counter); err != nil {
 		return "", fmt.Errorf("failed to write counter: %w", err)
 	}
@@ -291,8 +291,9 @@ func (h *HOTPAuthenticator) GenerateHOTP(ctx context.Context, secret string, cou
 		return "", fmt.Errorf("failed to decode secret: %w", err)
 	}
 
-	// Generate HMAC-SHA1.
-	hm := hmac.New(sha1.New, key)
+	// FIPS 140-2/140-3 compliance: Use HMAC-SHA256 instead of SHA-1.
+	// Note: RFC 4226 specifies SHA-1 as default, but SHA-256 is also supported.
+	hm := hmac.New(sha256.New, key)
 	if err := binary.Write(hm, binary.BigEndian, counter); err != nil {
 		return "", fmt.Errorf("failed to write counter: %w", err)
 	}

@@ -65,8 +65,9 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 		digestFunction = sha256.New
 		digestLength = 32
 	case DigestSHA224:
-		digestFunction = sha256.New224
-		digestLength = 28
+		// FIPS 140-2/140-3 compliance: Use full SHA-256 instead of SHA-224
+		digestFunction = sha256.New
+		digestLength = 32
 	default:
 		return nil, fmt.Errorf("invalid digest name: %s. %w", digestName, ErrInvalidNilDigestFunction)
 	}
