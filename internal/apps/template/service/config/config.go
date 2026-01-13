@@ -910,7 +910,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	// Explicitly bind boolean environment variables (viper.AutomaticEnv may not handle booleans correctly)
 	// Note: viper.BindEnv errors are logged but don't prevent startup as they are extremely rare
 	for _, setting := range allRegisteredSettings {
-		if val, ok := setting.value.(bool); ok && val {
+		if _, ok := setting.value.(bool); ok {
 			if err := viper.BindEnv(setting.name, setting.env); err != nil {
 				fmt.Printf("Warning: failed to bind environment variable %s: %v\n", setting.env, err)
 			}
