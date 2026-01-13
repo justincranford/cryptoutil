@@ -206,8 +206,8 @@ func (c *SAMLConfig) Validate() error {
 
 // JWESessionCookieConfig configures a JWE session cookie realm (browser, /browser/** paths).
 type JWESessionCookieConfig struct {
-	EncryptionAlgorithm string `json:"encryption_algorithm"` // e.g., "dir+A256GCM"
-	SessionExpiryMinutes int   `json:"session_expiry_minutes"` // e.g., 15
+	EncryptionAlgorithm  string `json:"encryption_algorithm"`   // e.g., "dir+A256GCM"
+	SessionExpiryMinutes int    `json:"session_expiry_minutes"` // e.g., 15
 }
 
 // GetType returns RealmTypeJWESessionCookie.
@@ -417,7 +417,7 @@ func (c *OpaqueSessionTokenConfig) Validate() error {
 
 // BasicClientIDSecretConfig configures HTTP Basic authentication with client_id/client_secret (service, /service/** paths).
 type BasicClientIDSecretConfig struct {
-	MinSecretLength int  `json:"min_secret_length"`
+	MinSecretLength  int  `json:"min_secret_length"`
 	RequireUppercase bool `json:"require_uppercase"`
 	RequireLowercase bool `json:"require_lowercase"`
 	RequireDigit     bool `json:"require_digit"`
