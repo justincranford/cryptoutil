@@ -185,6 +185,7 @@ Each task includes:
 **Architecture Notes**:
 
 Multi-layer key hierarchy with elastic rotation:
+
 - Root keys rotated annually (all historical versions retained)
 - Intermediate keys rotated quarterly (encrypted with active root key)
 - Content keys rotated per-operation or hourly (encrypted with active intermediate key)
@@ -192,6 +193,7 @@ Multi-layer key hierarchy with elastic rotation:
 - No re-encryption required: old data remains readable with historical keys
 
 **Total Deliverables**:
+
 - 10 lines (alias methods) + 818 lines (rotation implementation) = 828 lines total
 - 16/16 tests passing (11 barrier + 5 rotation)
 - Execution time: 2.709s total (0.409s barrier + 2.300s rotation)

@@ -65,6 +65,7 @@ func (r *GormUserRepository) FindByUsername(ctx context.Context, username string
 **Pattern**: Service layer NEVER imports infrastructure (GORM, HTTP handlers).
 
 **Dependencies**:
+
 - ✅ `service` → `repository interface` (dependency injection)
 - ✅ `service` → `domain models`
 - ❌ `service` → `gorm.DB` (FORBIDDEN - breaks abstraction)
@@ -313,6 +314,7 @@ func TestMain(m *testing.M) {
 ```
 
 **Benefits**:
+
 - ✅ Heavyweight setup runs ONCE (not per test)
 - ✅ Automatic cleanup via defer
 - ✅ Isolated databases (randomized credentials)
@@ -387,6 +389,7 @@ func TestSomething(t *testing.T) {
 ```
 
 **Benefits**:
+
 - ✅ Automatic cleanup (even on panic/failure)
 - ✅ LIFO order (reverse of registration)
 - ✅ Scoped to subtest (`t.Run`)
@@ -410,16 +413,19 @@ resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/api", actualPort))
 ### Completed Phases
 
 ✅ **Phase 1: FIPS Compliance** (Commit: f092a2ce)
+
 - Replaced bcrypt with PBKDF2-HMAC-SHA256
 - 600,000 iterations (OWASP 2025)
 - Versioned format: `{3}$pbkdf2-sha256$600000$salt$dk`
 
 ✅ **Phase 2: Windows Firewall Prevention** (Commits: e824a46c, e84eca64, 7137a11c, d28184d0)
+
 - 4-layer defense: Runtime validation, CICD linter, test helper, documentation
 - Mandatory 127.0.0.1 binding in tests
 - NewTestConfig() enforces safe defaults
 
 ✅ **Phase 3: Template Linting** (Commit: d5040fd7)
+
 - 0 golangci-lint violations in `internal/template/`
 - mnd: Named constants (MinRotationReasonLength, MaxRotationReasonLength)
 - nilnil: Sentinel errors (ErrNoRootKeyFound, ErrNoIntermediateKeyFound)
@@ -431,16 +437,19 @@ resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/api", actualPort))
 ### Pending Phases
 
 ⏳ **Phase 5: CICD Non-FIPS Algorithm Linter**
+
 - Detect: bcrypt, scrypt, Argon2, MD5, SHA-1, DES, 3DES, RC4
 - Integrate into pre-commit hooks
 - Reject banned algorithms at commit time
 
 ⏳ **Phase 6: Windows Firewall Root Cause Prevention**
+
 - Research additional trigger patterns (multicast, IPv6, broadcast)
 - Deep diagnostic analysis (scan test executables)
 - Comprehensive prevention strategy
 
 ⏳ **Phase 7: Pepper Implementation**
+
 - Docker secrets for pepper storage (MANDATORY OWASP)
 - 32-byte secure random pepper
 - Hash format includes pepper: `PBKDF2(password || pepper, salt, ...)`

@@ -48,7 +48,7 @@ func TestHashPassword(t *testing.T) {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
 				require.True(t, strings.HasPrefix(hash, "$pbkdf2-sha256$"))
-				
+
 				// Verify hash format: $pbkdf2-sha256$iterations$salt$hash
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 5)
@@ -66,7 +66,7 @@ func TestVerifyPassword(t *testing.T) {
 	t.Parallel()
 
 	const testPassword = "TestPassword123!"
-	
+
 	// Generate a hash for testing.
 	hash, err := HashPassword(testPassword)
 	require.NoError(t, err)
@@ -223,7 +223,7 @@ func TestHashPasswordWithIterations(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
-				
+
 				// Verify password works with generated hash.
 				match, err := VerifyPassword(tt.password, hash)
 				require.NoError(t, err)

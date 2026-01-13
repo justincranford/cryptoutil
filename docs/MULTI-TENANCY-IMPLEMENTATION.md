@@ -48,6 +48,7 @@
 ### Existing Session Infrastructure
 
 **Location**: `internal/apps/template/service/server/`
+
 - ✅ SessionManager implementation exists
 - ✅ Supports OPAQUE, JWE, JWS session types
 - ✅ Browser and Service session separation
@@ -56,11 +57,13 @@
 
 **Problem with Current Realm Implementation**:
 The comment in `0003_add_session_manager_tables.up.sql` says:
+
 ```sql
 realm TEXT,  -- Realm identifier for multi-tenancy
 ```
 
 This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True multi-tenancy requires:
+
 - Tenant table with tenant metadata
 - User/Client tables with foreign keys to tenants
 - Realm configurations per tenant
@@ -69,6 +72,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 ### Files Requiring Changes
 
 **New Tables Required**:
+
 1. `tenants` - Tenant information
 2. `users` - Verified users with tenant_id FK
 3. `clients` - Verified clients with tenant_id FK
@@ -80,10 +84,12 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 9. `client_roles` - Client-role associations
 
 **Migration Files**:
+
 - Template: New migration for tenant tables
 - Cipher-IM: New migration for tenant tables
 
 **Code Changes**:
+
 - SessionManager: Update to use tenant_id instead of realm string
 - APIs: Registration, verification, tenant management
 - Middleware: Tenant extraction from requests
@@ -122,6 +128,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 ## Implementation Plan
 
 ### Phase 1: Database Schema ✅ COMPLETE
+
 - [x] Create tenant tables migration (template)
 - [x] Create user/client tables with tenant FK
 - [x] Create unverified tables
@@ -133,6 +140,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 - **Deliverables**: 9 domain models, migration 0004 (up/down), Session struct updated
 
 ### Phase 2: Repository Layer ✅ COMPLETE
+
 - [x] TenantRepository interface and implementation
 - [x] UserRepository with tenant filtering
 - [x] ClientRepository with tenant filtering
@@ -144,6 +152,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 - **Deliverables**: 9 repository implementations, 20 unit tests (100% pass rate), composite UNIQUE constraints enforced
 
 ### Phase 3: Business Logic ✅ COMPLETE
+
 - [x] TenantService for tenant CRUD
 - [x] RegistrationService for user/client registration
 - [x] VerificationService for admin approval
@@ -161,6 +170,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 - **Note**: Tests require CGO (golang-migrate/sqlite3 in repository)
 
 ### Phase 4: API Layer
+
 - [ ] Tenant management APIs
 - [ ] User registration API (new tenant or existing)
 - [ ] Client registration API (new tenant or existing)
@@ -169,6 +179,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 - [ ] Integration tests for API flows
 
 ### Phase 5: Cipher-IM Integration
+
 - [ ] Apply tenant migrations to cipher-im
 - [ ] Update cipher-im to use SessionManager
 - [ ] Create cipher-im specific tenant logic
@@ -176,6 +187,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 - [ ] E2E tests with multi-tenant scenarios
 
 ### Phase 6: Testing and Documentation
+
 - [ ] Coverage validation (≥95% target)
 - [ ] Mutation testing (≥85% target)
 - [ ] E2E tests with Docker Compose
@@ -185,18 +197,21 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 ## Timeline Tracking
 
 ### 2026-01-09: Initial Analysis
+
 - Read existing session manager implementation
 - Identified incorrect realm usage (string vs true multi-tenancy)
 - Created work tracking document
 - Defined implementation phases
 
 ### 2026-01-09: Phase 1 Complete
+
 - Created 9 domain models with proper GORM tags
 - Created migration 0004_add_multi_tenancy (up/down SQL)
 - Updated Session struct with TenantID/RealmID UUIDs
 - Committed 2b2031a0
 
 ### 2026-01-09: Phase 2 Implementation Complete
+
 - Implemented all 9 repository interfaces and implementations
 - TenantRepository with 7 methods (Create, GetByID, GetByName, List, Update, Delete, CountUsersAndClients)
 - UserRepository, ClientRepository, UnverifiedUserRepository, UnverifiedClientRepository
@@ -205,6 +220,7 @@ This is INCORRECT - storing a string realm identifier is NOT multi-tenancy. True
 - Committed 2b2031a0
 
 ### 2026-01-09: Phase 2 Testing Complete
+
 - Created 3 comprehensive test files with 20 test cases
 - Fixed compilation errors (error constructors, struct fields, method signatures)
 - Fixed test isolation issues (unique identifiers with UUID suffixes)

@@ -7,6 +7,7 @@ This guide documents manual testing commands for the cipher-im service after suc
 ## Test Status
 
 ✅ **COMPLETED**:
+
 - User model consolidation (deleted cipher-im User, using template User)
 - SQL migrations updated (users, browser_sessions, service_sessions with tenant_id)
 - Session manager interface fixed (method signature matching)
@@ -23,6 +24,7 @@ This guide documents manual testing commands for the cipher-im service after suc
   - TestE2E_BrowserMessageDeletion
 
 ✅ **Docker Compose Infrastructure**:
+
 - All 5 containers running and healthy (verified 2026-01-11T04:48)
 - Health checks passing for all instances
 - Container logs show successful initialization
@@ -39,6 +41,7 @@ docker compose up -d
 ```
 
 Expected output:
+
 ```
 [+] Running 9/9
  ✔ Network cipher-im-network           Created
@@ -60,6 +63,7 @@ docker compose ps
 ```
 
 Expected output (all healthy):
+
 ```
 NAME                        STATUS
 cipher-im-grafana          Up (healthy)
@@ -90,6 +94,7 @@ docker compose logs -f
 ```
 
 Expected log patterns:
+
 ```
 time=2026-01-11T04:47:31.740Z level=INFO msg="database connection established successfully"
 DEBUG initializeFirstRootJWK: Successfully created first root JWK
@@ -118,23 +123,27 @@ docker compose down -v
 ## Service Endpoints
 
 ### cipher-im-sqlite (In-Memory SQLite)
-- **Public API**: https://127.0.0.1:8888
-- **Admin API**: https://127.0.0.1:9090
+
+- **Public API**: <https://127.0.0.1:8888>
+- **Admin API**: <https://127.0.0.1:9090>
 - **Database**: SQLite in-memory (`file::memory:?cache=shared`)
 
 ### cipher-im-pg-1 (PostgreSQL Instance 1)
-- **Public API**: https://127.0.0.1:8889
-- **Admin API**: https://127.0.0.1:9091
+
+- **Public API**: <https://127.0.0.1:8889>
+- **Admin API**: <https://127.0.0.1:9091>
 - **Database**: Shared PostgreSQL `cipher_im` database
 
 ### cipher-im-pg-2 (PostgreSQL Instance 2)
-- **Public API**: https://127.0.0.1:8890
-- **Admin API**: https://127.0.0.1:9092
+
+- **Public API**: <https://127.0.0.1:8890>
+- **Admin API**: <https://127.0.0.1:9092>
 - **Database**: Shared PostgreSQL `cipher_im` database
 
 ### Supporting Services
+
 - **PostgreSQL Database**: localhost:5432
-- **Grafana OTEL LGTM**: http://localhost:3000
+- **Grafana OTEL LGTM**: <http://localhost:3000>
 - **OpenTelemetry Collector**: Internal only (4317, 4318)
 
 ---
@@ -159,6 +168,7 @@ curl.exe -k https://127.0.0.1:9092/admin/v1/livez  # pg-2
 ```
 
 Expected response (HTTP 200):
+
 ```json
 {"status":"ok"}
 ```
@@ -183,6 +193,7 @@ curl.exe -k -X POST https://127.0.0.1:8890/api/v1/register `
 ```
 
 Expected response (HTTP 201):
+
 ```json
 {
   "user_id": "01234567-89ab-cdef-0123-456789abcdef",
@@ -200,6 +211,7 @@ curl.exe -k -X POST https://127.0.0.1:8888/api/v1/login `
 ```
 
 Expected response (HTTP 200):
+
 ```json
 {
   "session_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -220,6 +232,7 @@ curl.exe -k -X POST https://127.0.0.1:8888/api/v1/messages `
 ```
 
 Expected response (HTTP 201):
+
 ```json
 {
   "message_id": "01234567-89ab-cdef-0123-456789abcdef",
@@ -236,6 +249,7 @@ curl.exe -k -X GET https://127.0.0.1:8888/api/v1/messages `
 ```
 
 Expected response (HTTP 200):
+
 ```json
 {
   "messages": [
@@ -318,6 +332,7 @@ go test ./internal/apps/cipher/im/e2e -v -count=1
 ```
 
 Expected output:
+
 ```
 === RUN   TestE2E_RotateRootKey
 --- PASS: TestE2E_RotateRootKey (0.15s)
@@ -395,6 +410,7 @@ SELECT id, username, tenant_id FROM users;
 ### Certificate Issues
 
 If you get SSL/TLS certificate errors:
+
 - Use `curl.exe -k` flag (insecure, for development only)
 - Do NOT use PowerShell `Invoke-WebRequest` without PowerShell Core 7+ (lacks `-SkipCertificateCheck`)
 - Containers use auto-generated self-signed certificates in dev mode
@@ -404,6 +420,7 @@ If you get SSL/TLS certificate errors:
 Windows PowerShell 5.1 does NOT support `-SkipCertificateCheck` parameter.
 
 **Solutions**:
+
 1. Use `curl.exe` with `-k` flag (recommended)
 2. Upgrade to PowerShell Core 7+: `winget install Microsoft.PowerShell`
 3. Use certificate validation workaround (not recommended)
@@ -435,9 +452,10 @@ go tool cover -func=test-output/coverage_im_main.out
 ## OpenAPI/Swagger Documentation
 
 If available, Swagger UI should be accessible at:
-- https://127.0.0.1:8888/swagger/index.html (cipher-im-sqlite)
-- https://127.0.0.1:8889/swagger/index.html (cipher-im-pg-1)
-- https://127.0.0.1:8890/swagger/index.html (cipher-im-pg-2)
+
+- <https://127.0.0.1:8888/swagger/index.html> (cipher-im-sqlite)
+- <https://127.0.0.1:8889/swagger/index.html> (cipher-im-pg-1)
+- <https://127.0.0.1:8890/swagger/index.html> (cipher-im-pg-2)
 
 **Note**: UI files not found in workspace - may not be implemented yet.
 
@@ -446,27 +464,32 @@ If available, Swagger UI should be accessible at:
 ## Summary of Verified Features
 
 ✅ **User Management**:
+
 - User registration with username/password
 - User login with session token issuance
 - Template User model with tenant_id support
 
 ✅ **Session Management**:
+
 - Browser session creation (JWT with HS256)
 - Service session creation (JWT with HS256)
 - Tenant-aware session tables
 
 ✅ **Message Encryption**:
+
 - Multi-receiver message encryption (JWE)
 - Message decryption with content keys
 - Message deletion
 
 ✅ **Barrier Key Management**:
+
 - Root JWK initialization
 - Intermediate JWK initialization
 - Key rotation (root, intermediate, content)
 - Key status retrieval
 
 ✅ **Infrastructure**:
+
 - SQLite in-memory deployment
 - PostgreSQL multi-instance deployment
 - Health check endpoints (livez, readyz)
@@ -478,6 +501,7 @@ If available, Swagger UI should be accessible at:
 ## Contact/Support
 
 For issues or questions, see:
+
 - E2E test source: `internal/apps/cipher/im/e2e/`
 - Docker Compose config: `cmd/cipher-im/docker-compose.yml`
 - Application config: `configs/cipher/cipher-im-config.yml`

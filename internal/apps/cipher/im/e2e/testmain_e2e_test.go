@@ -32,6 +32,12 @@ var (
 	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8890"
 	otelCollectorURL   = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilMagic.CipherE2EOtelCollectorGRPCPort)  // "http://127.0.0.1:4317"
 	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilMagic.CipherE2EGrafanaPort)            // "http://127.0.0.1:3000"
+
+	healthChecks = map[string]string{
+		sqliteContainer:    sqlitePublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
+		postgres1Container: postgres1PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
+		postgres2Container: postgres2PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
+	}
 )
 
 // TestMain orchestrates docker compose lifecycle for E2E tests.
@@ -50,12 +56,6 @@ func TestMain(m *testing.M) {
 	}
 
 	// Step 2: Wait for all services to be healthy using public /health endpoint.
-	healthChecks := map[string]string{
-		sqliteContainer:    sqlitePublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
-		postgres1Container: postgres1PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
-		postgres2Container: postgres2PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
-	}
-
 	fmt.Println("Waiting for all cipher-im instances to be healthy...")
 
 	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilMagic.CipherE2EHealthTimeout); err != nil {

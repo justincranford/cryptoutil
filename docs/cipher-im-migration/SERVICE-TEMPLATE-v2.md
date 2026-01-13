@@ -7,6 +7,7 @@
 ## Overview
 
 This document tracks test files requiring fixes for:
+
 1. **Windows Firewall exceptions** (blank bind addresses)
 2. **Configuration validation** (missing field validations)
 3. **Resource cleanup** (missing Close/Shutdown calls)
@@ -20,6 +21,7 @@ This document tracks test files requiring fixes for:
 **Solution**: All test files MUST use `NewTestConfig(bindAddr, bindPort, devMode)` from `internal/shared/config/config_test_helper.go` instead of creating `&cryptoutilConfig.ServerSettings{}` with partial/blank fields.
 
 **Critical Bind Address Pattern** (validated in code):
+
 ```go
 // internal/template/server/listener/public.go line 168:
 listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))
@@ -35,7 +37,7 @@ listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings
 // net.Listen("tcp", "127.0.0.1:0") == localhost only, no firewall prompt
 ```
 
-### Files Requiring NewTestConfig Migration (20+ files):
+### Files Requiring NewTestConfig Migration (20+ files)
 
 #### internal/template/server/
 
@@ -91,7 +93,7 @@ listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings
   - Current: `&ServerSettings{...}` with minimal fields for validation testing
   - Fix: Consider using NewTestConfig for consistency, but won't trigger firewall
 
-#### Good Example (Already Correct):
+#### Good Example (Already Correct)
 
 - ✅ **`internal/jose/server/server_test.go`**
   - Uses: `cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)`
@@ -105,9 +107,9 @@ listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings
 
 **Goal**: Add comprehensive validation for ALL ServerSettings fields to catch configuration errors early.
 
-### Missing Validations to Add:
+### Missing Validations to Add
 
-#### Network Configuration:
+#### Network Configuration
 
 - [x] **BindPublicAddress** - MUST NOT be blank (reject "", enforce "127.0.0.1" or "0.0.0.0")
 - [x] **BindPublicPort** - MUST be 0-65535 (reject negative)
@@ -116,51 +118,51 @@ listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings
 - [x] **BindPublicProtocol** - MUST be "https" (reject "http" in production)
 - [x] **BindPrivateProtocol** - MUST be "https" (reject "http" in production)
 
-#### TLS Configuration:
+#### TLS Configuration
 
 - [x] **TLSPublicDNSNames** - MUST contain at least one entry (reject empty array)
 - [x] **TLSPublicIPAddresses** - MUST contain at least one entry (reject empty array)
 - [x] **TLSPrivateDNSNames** - MUST contain at least one entry
 - [x] **TLSPrivateIPAddresses** - MUST contain at least one entry
 
-#### CORS Configuration:
+#### CORS Configuration
 
 - [x] **CORSAllowedOrigins** - MUST contain at least one entry for browser endpoints
 - [x] Each origin MUST start with "http://" or "https://"
 - [x] Each origin MUST NOT have trailing slash
 
-#### CSRF Configuration:
+#### CSRF Configuration
 
 - [x] **CSRFEnabled** - If true, validate CSRFCookieName is non-blank
 - [x] **CSRFCookieName** - MUST NOT be blank if CSRF enabled
 
-#### Rate Limiting:
+#### Rate Limiting
 
 - [x] **RateLimitEnabled** - If true, validate rate limit values are positive
 - [x] **RateLimitRequestsPerMinute** - MUST be positive if rate limiting enabled
 - [x] **RateLimitBurst** - MUST be positive if rate limiting enabled
 
-#### Database Configuration:
+#### Database Configuration
 
 - [x] **DatabaseURL** - MUST NOT be blank
 - [x] **DatabaseURL** - MUST start with "postgres://" or "file:" for SQLite
 - [x] **DatabaseMaxOpenConnections** - MUST be positive
 - [x] **DatabaseMaxIdleConnections** - MUST be ≤ MaxOpenConnections
 
-#### OTLP Configuration:
+#### OTLP Configuration
 
 - [x] **OTLPEnabled** - If true, validate OTLP endpoint is non-blank
 - [x] **OTLPEndpoint** - MUST NOT be blank if OTLP enabled
 - [x] **OTLPServiceName** - MUST NOT be blank if OTLP enabled
 - [x] **OTLPServiceVersion** - MUST NOT be blank if OTLP enabled
 
-#### Security Configuration:
+#### Security Configuration
 
 - [x] **SessionSecretKey** - MUST be ≥32 bytes for production (reject weak keys)
 - [x] **CSPEnabled** - If true, validate CSP directives are non-blank
 - [x] **DevMode** - WARN if true in production environment
 
-### Validation Error Message Pattern:
+### Validation Error Message Pattern
 
 ```go
 // Example comprehensive validation:
@@ -219,6 +221,7 @@ func (s *ServerSettings) validateConfiguration() error {
 TestMain functions initialize shared resources that MUST be cleaned up to prevent resource leaks across test runs.
 
 **Common Missing Cleanup Calls**:
+
 - `sqlDB.Close()`
 - `telemetryService.Shutdown()`
 - `jwkGenService.Shutdown()`

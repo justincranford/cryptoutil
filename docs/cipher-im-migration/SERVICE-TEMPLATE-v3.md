@@ -11,7 +11,7 @@
 
 **Grok's Work Completion Status**: ✅ **EXCELLENT** - All critical issues resolved
 
-### Work Completed by Grok (95% Complete):
+### Work Completed by Grok (95% Complete)
 
 1. ✅ **Phase 1 (Windows Firewall Root Cause)**: COMPLETE
    - All critical test files migrated to NewTestConfig()
@@ -41,7 +41,7 @@
    - Most files reviewed and fixed
    - 3 trivial files remaining (no services to clean up)
 
-### Bugs Fixed by Agent (After Grok's Work):
+### Bugs Fixed by Agent (After Grok's Work)
 
 1. ✅ **Bug #1-2**: Duplicate t.Cleanup() in barrier test (syntax errors)
 2. ✅ **Bug #3**: Incomplete NewTestConfig() migration in businesslogic_test.go
@@ -53,7 +53,7 @@
 
 ## SUCCESS CRITERIA STATUS
 
-### Core Requirements:
+### Core Requirements
 
 - ✅ **All test files use NewTestConfig()** - 95% complete (2 low-priority files don't need migration)
 - ✅ **validateConfiguration() enhanced** - COMPLETE with comprehensive field validation
@@ -66,7 +66,7 @@
 - ✅ **All services shut down cleanly** - Telemetry, JWK, Barrier, etc.
 - ✅ **Cleanup follows LIFO pattern** - Verified in all TestMain/t.Cleanup
 
-### Test Performance:
+### Test Performance
 
 - ✅ **Cipher-IM packages**: 5/5 PASSING (fastest: 0.034s, slowest: 3.856s)
 - ✅ **Template packages**: 5/5 PASSING (fastest: 0.047s, slowest: 18.482s)
@@ -78,7 +78,7 @@
 
 ## GAPS & INCOMPLETE WORK
 
-### Phase 1: Low-Priority NewTestConfig Migration (Optional):
+### Phase 1: Low-Priority NewTestConfig Migration (Optional)
 
 **Files NOT migrated (by design - don't start servers)**:
 
@@ -92,7 +92,7 @@
    - **Risk**: ZERO - never calls `net.Listen()` or starts servers
    - **Decision**: ✅ **NO ACTION NEEDED** (correctly marked low priority)
 
-### Phase 6: Trivial Files Review (No Services):
+### Phase 6: Trivial Files Review (No Services)
 
 **Files NOT reviewed (by design - no services to clean up)**:
 
@@ -118,7 +118,7 @@
 
 **Answer**: ✅ **YES** - cipher-im is production-ready and demonstrates all template patterns
 
-### Evidence:
+### Evidence
 
 1. ✅ **Windows Firewall Prevention**: All critical files use NewTestConfig()
 2. ✅ **Configuration Safety**: Comprehensive validation catches errors early
@@ -159,6 +159,7 @@
    - createTestPublicServer() pattern
 
 **Actions**:
+
 - [ ] Create JOSE-JA service template migration plan
 - [ ] Identify JOSE-specific business logic (JWK, JWS, JWE, JWT)
 - [ ] Map cipher-im patterns to JOSE-JA requirements
@@ -169,6 +170,7 @@
 ### Phase 2: JOSE-Specific Enhancements
 
 **JOSE Business Logic**:
+
 - JWK generation and validation
 - JWS signing and verification
 - JWE encryption and decryption
@@ -176,6 +178,7 @@
 - Key rotation and versioning
 
 **Testing Requirements**:
+
 - ✅ Use cipher-im TestMain pattern for resource cleanup
 - ✅ Use NewTestConfig() for all ServerSettings
 - ✅ Add per-test t.Cleanup() for JOSE-specific services
@@ -187,7 +190,7 @@
 
 ## REALMS SERVICE EXTRACTION (CRITICAL - Blocking JOSE-JA)
 
-### Problem Statement:
+### Problem Statement
 
 **cipher-im implements user realm pattern** (schema: `realm_users`, `realm_sessions`, `realm_passwords`, domain models, API endpoints)
 
@@ -199,11 +202,12 @@
 
 **Question**: Should realms be a **reusable service** in the template? Or product-specific implementations?
 
-### Analysis Required:
+### Analysis Required
 
 #### Option 1: Realms as Template Service (Recommended)
 
 **Pros**:
+
 - ✅ Single implementation of realm CRUD logic
 - ✅ Reusable across all products (cipher-im, JOSE, Identity, CA)
 - ✅ Consistent API patterns
@@ -211,11 +215,13 @@
 - ✅ Reduced code duplication
 
 **Cons**:
+
 - ⚠️ Requires generic schema abstraction
 - ⚠️ Product-specific domain models still needed
 - ⚠️ May be overkill for simple cases
 
 **Implementation**:
+
 ```
 internal/template/server/realms/
   ├── service.go           // Generic realm CRUD operations
@@ -228,6 +234,7 @@ internal/template/server/realms/
 ```
 
 **Product Usage**:
+
 ```go
 // internal/cipher/server/realms/cipher_realms.go
 type CipherRealm struct {
@@ -242,17 +249,20 @@ type CipherRealm struct {
 #### Option 2: Product-Specific Realm Implementations
 
 **Pros**:
+
 - ✅ Maximum flexibility per product
 - ✅ No abstraction overhead
 - ✅ Direct control over schema
 
 **Cons**:
+
 - ❌ Massive code duplication across products
 - ❌ Inconsistent APIs between products
 - ❌ 4× maintenance burden (cipher-im, JOSE, Identity, CA)
 - ❌ Schema migration logic duplicated
 
 **Implementation**:
+
 ```
 internal/cipher/server/realms/     // Cipher-specific
 internal/jose/server/realms/       // JOSE-specific
@@ -292,7 +302,7 @@ internal/ca/server/realms/         // CA-specific
    - Business logic: Product-specific services
    - API endpoints: Product-specific handlers
 
-### Implementation Plan:
+### Implementation Plan
 
 #### Phase 1: Extract Cipher-IM Realms to Template (CURRENT - HIGH PRIORITY)
 
@@ -301,6 +311,7 @@ internal/ca/server/realms/         // CA-specific
 **Tasks**:
 
 1. [ ] **Create generic realm service**:
+
    ```go
    // internal/template/server/realms/service.go
    type RealmService interface {
@@ -313,6 +324,7 @@ internal/ca/server/realms/         // CA-specific
    ```
 
 2. [ ] **Create generic realm repository**:
+
    ```go
    // internal/template/server/realms/repository.go
    type RealmRepository interface {
@@ -324,6 +336,7 @@ internal/ca/server/realms/         // CA-specific
    ```
 
 3. [ ] **Create realm middleware**:
+
    ```go
    // internal/template/server/realms/middleware.go
    func TenantIsolationMiddleware(realmRepo RealmRepository) fiber.Handler {
@@ -350,6 +363,7 @@ internal/ca/server/realms/         // CA-specific
    ```
 
 4. [ ] **Refactor cipher-im to use template realms**:
+
    ```go
    // internal/cipher/server/realms/cipher_realms.go
    type CipherRealmService struct {
@@ -430,6 +444,7 @@ internal/ca/server/realms/         // CA-specific
 **Tasks**:
 
 1. [ ] **Define JOSE realm schema**:
+
    ```go
    // internal/jose/server/realms/jose_realms.go
    type JOSERealm struct {
@@ -440,6 +455,7 @@ internal/ca/server/realms/         // CA-specific
    ```
 
 2. [ ] **Create JOSE-specific tables**:
+
    ```go
    func (s *JOSERealmService) createJOSETables(ctx context.Context, schemaName string) error {
        // Set search_path
@@ -477,6 +493,7 @@ internal/ca/server/realms/         // CA-specific
    ```
 
 3. [ ] **Use realm middleware in JOSE APIs**:
+
    ```go
    // internal/jose/server/server.go
    func (s *JOSEServer) setupRoutes() {
@@ -497,6 +514,7 @@ internal/ca/server/realms/         // CA-specific
 **Objective**: Identity services implement authentication realms using generic template
 
 **Similar to JOSE-JA but with authentication-specific schema**:
+
 - `realm_accounts` (users, emails, phone numbers)
 - `realm_mfa_enrollments` (TOTP, WebAuthn, SMS)
 - `realm_login_sessions` (login attempts, session cookies)
@@ -506,6 +524,7 @@ internal/ca/server/realms/         // CA-specific
 **Objective**: CA service implements certificate realms using generic template
 
 **Similar pattern with CA-specific schema**:
+
 - `realm_certificates` (issued certificates)
 - `realm_crl` (certificate revocation lists)
 - `realm_ocsp` (OCSP responder data)
@@ -514,11 +533,12 @@ internal/ca/server/realms/         // CA-specific
 
 ## REALMS SERVICE API DESIGN
 
-### Generic Realm Metadata Table (Shared by All Products):
+### Generic Realm Metadata Table (Shared by All Products)
 
 **Location**: `public` schema (NOT realm-specific)
 
 **Schema**:
+
 ```sql
 CREATE TABLE public.realms (
     id TEXT PRIMARY KEY,                    -- UUIDv7
@@ -537,9 +557,10 @@ CREATE INDEX idx_realms_product ON public.realms(product);
 CREATE INDEX idx_realms_status ON public.realms(status);
 ```
 
-### Generic Realm CRUD Operations:
+### Generic Realm CRUD Operations
 
 **Create Realm**:
+
 ```http
 POST /admin/v1/realms
 Content-Type: application/json
@@ -564,6 +585,7 @@ Response 201:
 ```
 
 **List Realms**:
+
 ```http
 GET /admin/v1/realms?product=cipher-im&status=active&page=1&size=50
 
@@ -588,6 +610,7 @@ Response 200:
 ```
 
 **Get Realm**:
+
 ```http
 GET /admin/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP
 
@@ -605,6 +628,7 @@ Response 200:
 ```
 
 **Update Realm**:
+
 ```http
 PATCH /admin/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP
 Content-Type: application/json
@@ -628,6 +652,7 @@ Response 200:
 ```
 
 **Delete Realm** (soft delete by default):
+
 ```http
 DELETE /admin/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP
 
@@ -635,15 +660,17 @@ Response 204 No Content
 ```
 
 **Hard Delete Realm** (drop schema):
+
 ```http
 DELETE /admin/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP?hard=true
 
 Response 204 No Content
 ```
 
-### Product-Specific Realm Operations:
+### Product-Specific Realm Operations
 
 **Cipher-IM** (User Realms):
+
 ```http
 POST /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/users
 GET  /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/users
@@ -651,6 +678,7 @@ GET  /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/users/{id}
 ```
 
 **JOSE-JA** (OAuth Realms):
+
 ```http
 POST /service/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/clients
 GET  /service/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/clients
@@ -658,6 +686,7 @@ POST /service/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/tokens
 ```
 
 **Identity** (Authentication Realms):
+
 ```http
 POST /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/accounts
 GET  /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/accounts
@@ -668,7 +697,7 @@ POST /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/mfa-enrollments
 
 ## IMPLEMENTATION PRIORITY
 
-### Immediate (High Priority):
+### Immediate (High Priority)
 
 1. ✅ **Verify remaining trivial files** (#2, #3 from Phase 6) - 30 minutes
 2. ✅ **Create SERVICE-TEMPLATE-v3.md** - CURRENT (this document)
@@ -676,13 +705,13 @@ POST /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/mfa-enrollments
 4. 🔄 **Refactor cipher-im to use template realms** - 2-4 hours
 5. 🔄 **Add comprehensive tests for generic realms** - 2-4 hours
 
-### Next (Medium Priority):
+### Next (Medium Priority)
 
 6. 🔄 **Start JOSE-JA migration using template** - 8-16 hours
 7. 🔄 **Implement JOSE OAuth realms** - 4-8 hours
 8. 🔄 **Validate JOSE-JA meets success criteria** - 2-4 hours
 
-### Future (Lower Priority):
+### Future (Lower Priority)
 
 9. ⏳ **Identity services realm migration** - 8-16 hours
 10. ⏳ **CA service realm migration** - 4-8 hours
@@ -694,9 +723,10 @@ POST /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/mfa-enrollments
 
 **Per user request**: "iteratively monitor workflows and fix them, until all workflows are passing"
 
-### Current Workflow Status:
+### Current Workflow Status
 
 **Need to check**:
+
 - [ ] ci-quality (linting, formatting, build)
 - [ ] ci-test (unit tests)
 - [ ] ci-coverage (coverage reports)
@@ -709,6 +739,7 @@ POST /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/mfa-enrollments
 - [ ] ci-gitleaks (secret scanning)
 
 **Actions**:
+
 1. [ ] Run `gh run list --limit 20` to see recent workflow runs
 2. [ ] Identify failing workflows
 3. [ ] For each failure, download logs and diagnose
@@ -717,6 +748,7 @@ POST /browser/api/v1/realms/01JH5XQZK2ABCDEFGHIJKLMNOP/mfa-enrollments
 6. [ ] Repeat until all passing
 
 **Pattern for Iterative Fixes**:
+
 ```bash
 # 1. Check workflow status
 gh run list --limit 10
@@ -742,20 +774,20 @@ gh run watch
 
 ## NEXT STEPS (Ordered by Priority)
 
-### Immediate Actions (DO NOW):
+### Immediate Actions (DO NOW)
 
 1. ✅ **Verify application_table_test.go and status_handlers_test.go** - 15 minutes
 2. 🔄 **Extract realms service to template** - START IMMEDIATELY (high value, blocks JOSE-JA)
 3. 🔄 **Monitor and fix failing workflows** - START IMMEDIATELY (unblocks CI/CD)
 
-### Short-Term Actions (THIS SESSION):
+### Short-Term Actions (THIS SESSION)
 
 4. 🔄 **Refactor cipher-im to use template realms** - After realms extraction
 5. 🔄 **Add comprehensive tests for realms service** - After refactor
 6. 🔄 **Validate cipher-im still passes all tests** - After refactor
 7. 🔄 **Create JOSE-JA migration plan** - After realms validated
 
-### Medium-Term Actions (NEXT SESSION):
+### Medium-Term Actions (NEXT SESSION)
 
 8. ⏳ **Start JOSE-JA migration** - Use cipher-im as blueprint
 9. ⏳ **Implement JOSE OAuth realms** - Use template realms service
@@ -765,7 +797,7 @@ gh run watch
 
 ## LESSONS LEARNED FROM CIPHER-IM
 
-### What Worked Well:
+### What Worked Well
 
 1. ✅ **Comprehensive planning**: SERVICE-TEMPLATE-v2.md documented all issues upfront
 2. ✅ **Phased approach**: 6 phases with clear dependencies and priorities
@@ -775,7 +807,7 @@ gh run watch
 6. ✅ **Test coverage**: 100% passing tests after migration
 7. ✅ **Resource cleanup**: Zero resource leaks, repeatable test execution
 
-### What to Improve for JOSE-JA:
+### What to Improve for JOSE-JA
 
 1. ⚠️ **Realms extraction first**: Do generic extraction BEFORE JOSE-JA migration
 2. ⚠️ **Document product-specific patterns**: Identify what varies vs what's generic
@@ -783,7 +815,7 @@ gh run watch
 4. ⚠️ **Migration checklist**: Service-specific checklist for JOSE-JA migration
 5. ⚠️ **Performance monitoring**: Track test timing during migration
 
-### Grok's Excellence:
+### Grok's Excellence
 
 1. ✅ **Systematic approach**: Methodically worked through all phases
 2. ✅ **Proper documentation**: Updated checkmarks as work completed

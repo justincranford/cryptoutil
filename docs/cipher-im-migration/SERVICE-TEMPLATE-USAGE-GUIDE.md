@@ -5,6 +5,7 @@ This guide shows how to use the new service-template application layer to simpli
 ## Quick Reference: Old vs New
 
 ### OLD: Manual Database Management (50+ lines)
+
 ```go
 func TestMain(m *testing.M) {
     ctx := context.Background()
@@ -43,6 +44,7 @@ func TestMain(m *testing.M) {
 ```
 
 ### NEW: Automatic Infrastructure (15 lines)
+
 ```go
 func TestMain(m *testing.M) {
     ctx := context.Background()
@@ -75,6 +77,7 @@ func TestMain(m *testing.M) {
 ```
 
 **Benefits**:
+
 - **50+ lines → 15 lines** (70% reduction)
 - **Zero manual container management**
 - **Zero manual service initialization**
@@ -88,50 +91,50 @@ File: `internal/cipher/integration/testmain_integration_test.go`
 package integration
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"testing"
+ "context"
+ "fmt"
+ "os"
+ "testing"
 
-	"github.com/google/uuid"
+ "github.com/google/uuid"
 
-	"cryptoutil/internal/cipher/server"
-	"cryptoutil/internal/cipher/server/config"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
+ "cryptoutil/internal/cipher/server"
+ "cryptoutil/internal/cipher/server/config"
+ cryptoutilConfig "cryptoutil/internal/shared/config"
 )
 
 var sharedServer *server.CipherIMServer
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
+ ctx := context.Background()
 
-	// Configure automatic PostgreSQL testcontainer.
-	cfg := &config.AppConfig{
-		ServerSettings: cryptoutilConfig.ServerSettings{
-			DatabaseURL:       "",           // Empty = use testcontainer.
-			DatabaseContainer: "required",   // Require PostgreSQL testcontainer.
-			BindPublicPort:    0,            // Dynamic port allocation.
-			BindPrivatePort:   0,            // Dynamic port allocation.
-			DevMode:           true,
-		},
-		JWTSecret: uuid.Must(uuid.NewUUID()).String(),
-	}
+ // Configure automatic PostgreSQL testcontainer.
+ cfg := &config.AppConfig{
+  ServerSettings: cryptoutilConfig.ServerSettings{
+   DatabaseURL:       "",           // Empty = use testcontainer.
+   DatabaseContainer: "required",   // Require PostgreSQL testcontainer.
+   BindPublicPort:    0,            // Dynamic port allocation.
+   BindPrivatePort:   0,            // Dynamic port allocation.
+   DevMode:           true,
+  },
+  JWTSecret: uuid.Must(uuid.NewUUID()).String(),
+ }
 
-	// Create server with automatic infrastructure (PostgreSQL, telemetry, etc.).
-	var err error
+ // Create server with automatic infrastructure (PostgreSQL, telemetry, etc.).
+ var err error
 
-	sharedServer, err = server.NewFromConfig(ctx, cfg)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create server: %v", err))
-	}
+ sharedServer, err = server.NewFromConfig(ctx, cfg)
+ if err != nil {
+  panic(fmt.Sprintf("failed to create server: %v", err))
+ }
 
-	// Run tests.
-	exitCode := m.Run()
+ // Run tests.
+ exitCode := m.Run()
 
-	// Cleanup.
-	_ = sharedServer.Shutdown(context.Background())
+ // Cleanup.
+ _ = sharedServer.Shutdown(context.Background())
 
-	os.Exit(exitCode)
+ os.Exit(exitCode)
 }
 ```
 
@@ -143,74 +146,74 @@ File: `internal/cipher/e2e/testmain_e2e_test.go`
 package e2e_test
 
 import (
-	"context"
-	"crypto/tls"
-	"fmt"
-	"net/http"
-	"os"
-	"testing"
+ "context"
+ "crypto/tls"
+ "fmt"
+ "net/http"
+ "os"
+ "testing"
 
-	"github.com/google/uuid"
+ "github.com/google/uuid"
 
-	"cryptoutil/internal/cipher/server"
-	"cryptoutil/internal/cipher/server/config"
-	cryptoutilConfig "cryptoutil/internal/shared/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+ "cryptoutil/internal/cipher/server"
+ "cryptoutil/internal/cipher/server/config"
+ cryptoutilConfig "cryptoutil/internal/shared/config"
+ cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	sharedHTTPClient   *http.Client
-	testCipherIMServer *server.CipherIMServer
-	baseURL            string
-	adminURL           string
+ sharedHTTPClient   *http.Client
+ testCipherIMServer *server.CipherIMServer
+ baseURL            string
+ adminURL           string
 )
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
+ ctx := context.Background()
 
-	// Configure SQLite in-memory for fast E2E tests.
-	cfg := &config.AppConfig{
-		ServerSettings: cryptoutilConfig.ServerSettings{
-			DatabaseURL:       "file::memory:?cache=shared", // SQLite in-memory.
-			DatabaseContainer: "disabled",                   // No container for E2E.
-			BindPublicPort:    0,                            // Dynamic port allocation.
-			BindPrivatePort:   0,                            // Dynamic port allocation.
-			DevMode:           true,
-		},
-		JWTSecret: uuid.Must(uuid.NewUUID()).String(),
-	}
+ // Configure SQLite in-memory for fast E2E tests.
+ cfg := &config.AppConfig{
+  ServerSettings: cryptoutilConfig.ServerSettings{
+   DatabaseURL:       "file::memory:?cache=shared", // SQLite in-memory.
+   DatabaseContainer: "disabled",                   // No container for E2E.
+   BindPublicPort:    0,                            // Dynamic port allocation.
+   BindPrivatePort:   0,                            // Dynamic port allocation.
+   DevMode:           true,
+  },
+  JWTSecret: uuid.Must(uuid.NewUUID()).String(),
+ }
 
-	// Create server with automatic infrastructure (SQLite, telemetry, etc.).
-	var err error
+ // Create server with automatic infrastructure (SQLite, telemetry, etc.).
+ var err error
 
-	testCipherIMServer, err = server.NewFromConfig(ctx, cfg)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create server: %v", err))
-	}
+ testCipherIMServer, err = server.NewFromConfig(ctx, cfg)
+ if err != nil {
+  panic(fmt.Sprintf("failed to create server: %v", err))
+ }
 
-	// Setup HTTP client for tests.
-	sharedHTTPClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
-			},
-		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout,
-	}
+ // Setup HTTP client for tests.
+ sharedHTTPClient = &http.Client{
+  Transport: &http.Transport{
+   TLSClientConfig: &tls.Config{
+    InsecureSkipVerify: true, //nolint:gosec // Test environment only.
+   },
+  },
+  Timeout: cryptoutilMagic.CipherDefaultTimeout,
+ }
 
-	// Get server URLs.
-	baseURL = fmt.Sprintf("https://127.0.0.1:%d", testCipherIMServer.PublicPort())
+ // Get server URLs.
+ baseURL = fmt.Sprintf("https://127.0.0.1:%d", testCipherIMServer.PublicPort())
 
-	adminPort, _ := testCipherIMServer.AdminPort()
-	adminURL = fmt.Sprintf("https://127.0.0.1:%d", adminPort)
+ adminPort, _ := testCipherIMServer.AdminPort()
+ adminURL = fmt.Sprintf("https://127.0.0.1:%d", adminPort)
 
-	// Run tests.
-	exitCode := m.Run()
+ // Run tests.
+ exitCode := m.Run()
 
-	// Cleanup.
-	_ = testCipherIMServer.Shutdown(context.Background())
+ // Cleanup.
+ _ = testCipherIMServer.Shutdown(context.Background())
 
-	os.Exit(exitCode)
+ os.Exit(exitCode)
 }
 ```
 
@@ -227,17 +230,20 @@ func TestMain(m *testing.M) {
 ## Migration Checklist
 
 ### Step 1: Update Integration Tests
+
 - [  ] Replace manual container setup with `NewFromConfig`
 - [ ] Set `DatabaseContainer: "required"` for PostgreSQL
 - [ ] Remove manual cleanup (handled by `Shutdown`)
 
 ### Step 2: Update E2E Tests
+
 - [ ] Replace manual DB setup with `NewFromConfig`
 - [ ] Set `DatabaseURL: "file::memory:?cache=shared"` for SQLite
 - [ ] Set `DatabaseContainer: "disabled"`
 - [ ] Remove manual cleanup (handled by `Shutdown`)
 
 ### Step 3: Validate
+
 - [ ] Run integration tests: `go test ./internal/cipher/integration -v`
 - [ ] Run E2E tests: `go test ./internal/cipher/e2e -v`
 - [ ] Verify automatic cleanup (no hanging containers)
@@ -245,28 +251,31 @@ func TestMain(m *testing.M) {
 ## Future Enhancements
 
 ### Main.go Support
+
 The same pattern will work in `cmd/cipher-im/main.go`:
 
 ```go
 func main() {
-	cfg := loadConfig() // Load from flags/env/file.
+ cfg := loadConfig() // Load from flags/env/file.
 
-	ctx := context.Background()
+ ctx := context.Background()
 
-	server, err := server.NewFromConfig(ctx, cfg)
-	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
-	}
+ server, err := server.NewFromConfig(ctx, cfg)
+ if err != nil {
+  log.Fatalf("failed to create server: %v", err)
+ }
 
-	// Start server (blocks until shutdown).
-	if err := server.Start(ctx); err != nil {
-		log.Fatalf("server failed: %v", err)
-	}
+ // Start server (blocks until shutdown).
+ if err := server.Start(ctx); err != nil {
+  log.Fatalf("server failed: %v", err)
+ }
 }
 ```
 
 ### Other Services
+
 Once cipher-im validates the pattern, migrate:
+
 1. jose-ja (Phase 2)
 2. pki-ca (Phase 2)
 3. identity services (Phase 2)

@@ -11,6 +11,7 @@ User model consolidation successfully completed with all E2E tests passing and D
 ## Completion Checklist
 
 ### ✅ Code Changes
+
 - [x] Deleted cipher-im-specific User model
 - [x] Updated all imports to use template User model
 - [x] Added tenant_id column to users table (migration 0001)
@@ -19,6 +20,7 @@ User model consolidation successfully completed with all E2E tests passing and D
 - [x] All code compiles successfully
 
 ### ✅ Testing
+
 - [x] **ALL 10 E2E TESTS PASSING**:
   - TestE2E_RotateRootKey
   - TestE2E_RotateIntermediateKey
@@ -32,6 +34,7 @@ User model consolidation successfully completed with all E2E tests passing and D
   - TestE2E_BrowserMessageDeletion
 
 ### ✅ Infrastructure
+
 - [x] Docker Compose stack deployed successfully
 - [x] All 5 containers healthy:
   - cipher-im-sqlite (ports 8888, 9090)
@@ -43,6 +46,7 @@ User model consolidation successfully completed with all E2E tests passing and D
 - [x] Health checks passing (livez, readyz)
 
 ### ✅ Documentation
+
 - [x] Comprehensive testing guide created
 - [x] Manual test commands documented
 - [x] Docker Compose workflows documented
@@ -57,6 +61,7 @@ User model consolidation successfully completed with all E2E tests passing and D
 **File**: `internal/apps/cipher/im/repository/migrations/0001_init.up.sql`
 
 Added template User fields to users table:
+
 ```sql
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY NOT NULL,
@@ -77,6 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_users_active ON users(active);
 **File**: `internal/apps/cipher/im/repository/migrations/0003_add_session_manager_tables.up.sql`
 
 Added tenant_id to session tables:
+
 ```sql
 -- browser_sessions
 tenant_id TEXT,
@@ -92,6 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_service_sessions_tenant_id ON service_sessions(te
 **File**: `internal/apps/template/service/server/businesslogic/session_manager.go`
 
 Renamed original methods and added interface-compatible wrappers:
+
 ```go
 // Original methods (renamed)
 func (s *SessionManagerService) IssueBrowserSessionWithTenantRealm(
@@ -129,6 +136,7 @@ func (s *SessionManagerService) IssueServiceSession(
 ### 3. Code Deletions
 
 **Deleted Files**:
+
 - `internal/apps/cipher/im/domain/user.go` (replaced by template User)
 - `internal/apps/cipher/im/domain/user_test.go`
 
@@ -169,6 +177,7 @@ ok      cryptoutil/internal/apps/cipher/im/e2e  3.110s
 ### Docker Compose Deployment (Verified 2026-01-11T04:48)
 
 All containers healthy:
+
 ```
 NAME                        STATUS
 cipher-im-grafana          Up 1 minute (healthy)
@@ -180,6 +189,7 @@ cipher-im-sqlite           Up 1 minute (healthy)
 ```
 
 Container initialization logs (cipher-im-sqlite):
+
 ```
 time=2026-01-11T04:47:31.740Z level=INFO msg="database connection established successfully"
 2026/01/11 04:47:32 DEBUG initializeFirstRootJWK: Successfully created first root JWK
@@ -232,6 +242,7 @@ go test ./internal/apps/cipher/im/e2e -v -count=1
 ## Migration Strategy
 
 This was an **alpha project migration** with:
+
 - ✅ No production data to migrate
 - ✅ Direct schema updates in migration files
 - ✅ No backward compatibility requirements
@@ -244,6 +255,7 @@ The template User model provides multi-tenancy support for future expansion whil
 ## Known Issues/Limitations
 
 1. **Code Coverage Test**: Full test suite with coverage causes memory exhaustion. Use individual package testing:
+
    ```powershell
    go test ./internal/apps/cipher/im -coverprofile=coverage.out
    go test ./internal/apps/cipher/im/repository -coverprofile=coverage_repo.out
@@ -251,7 +263,7 @@ The template User model provides multi-tenancy support for future expansion whil
    ```
 
 2. **UI Not Found**: No UI files discovered in workspace. Service appears to be API-only. Swagger/OpenAPI documentation may be available at:
-   - https://127.0.0.1:8888/swagger/index.html (if implemented)
+   - <https://127.0.0.1:8888/swagger/index.html> (if implemented)
 
 3. **PowerShell Version**: Windows PowerShell 5.1 lacks `-SkipCertificateCheck` parameter. Use `curl.exe -k` for HTTPS testing with self-signed certificates.
 

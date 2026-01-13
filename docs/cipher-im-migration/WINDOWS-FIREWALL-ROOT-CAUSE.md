@@ -11,6 +11,7 @@
 **Root Cause**: Blank `BindPublicAddress=""` or `BindPrivateAddress=""` in `ServerSettings` struct defaults to `:port` format in `fmt.Sprintf("%s:%d", "", port)`, which Go's `net.Listen()` interprets as `0.0.0.0:port` (all interfaces).
 
 **Impact**:
+
 - Each `0.0.0.0` binding triggers 1 Windows Firewall exception prompt
 - CI/CD workflows blocked (require manual approval)
 - Security risk (test services exposed to network)
@@ -37,6 +38,7 @@
 ### Critical Code Path
 
 **Problem Code**:
+
 ```go
 // WRONG: Blank addresses default to 0.0.0.0 (all interfaces)
 settings := &cryptoutilConfig.ServerSettings{
@@ -56,6 +58,7 @@ net.Listen("tcp", ":0") → binds to 0.0.0.0:0 (ALL INTERFACES)
 ```
 
 **Correct Pattern**:
+
 ```go
 // ✅ CORRECT: Use NewTestConfig helper with explicit 127.0.0.1
 settings := cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)
@@ -81,12 +84,14 @@ net.Listen("tcp", "127.0.0.1:0") → binds to localhost only
 ### Why This Matters
 
 **Go's net.Listen() Behavior**:
+
 - `net.Listen("tcp", "127.0.0.1:0")` → Localhost IPv4 only (safe)
 - `net.Listen("tcp", ":0")` → **ALL interfaces** (0.0.0.0:dynamic_port + [::]:dynamic_port)
 - `net.Listen("tcp", "0.0.0.0:0")` → **ALL IPv4 interfaces** (triggers firewall)
 - `net.Listen("tcp", "[::]:0")` → **ALL IPv6 interfaces** (triggers firewall)
 
 **Windows Firewall Trigger**:
+
 - Binding to `0.0.0.0` or `[::]` = **external network access potential**
 - Windows Firewall prompts for user approval
 - Blocks automation (CI/CD, pre-commit hooks, local test runs)
@@ -112,24 +117,29 @@ net.Listen("tcp", "127.0.0.1:0") → binds to localhost only
 ### Additional Firewall Triggers (Not Found in Codebase)
 
 **Multicast/Broadcast**:
+
 - `net.ListenMulticastUDP()` - Always triggers firewall (external network)
 - `net.ListenPacket("udp", "0.0.0.0:0")` - UDP binding to all interfaces
 - Broadcast sockets (`SO_BROADCAST` option)
 
 **IPv6 Wildcards**:
+
 - `net.Listen("tcp", "[::]:0")` - IPv6 all interfaces
 - `net.Listen("tcp6", ":0")` - IPv6 default binding
 
 **Raw Sockets** (Requires admin privileges):
+
 - `syscall.Socket(syscall.AF_INET, syscall.SOCK_RAW, ...)` - Low-level packet access
 - ICMP echo (ping) implementations
 - Custom protocol implementations
 
 **Network Interface Enumeration with Binding**:
+
 - `net.Interfaces()` → `net.ListenPacket("udp", iface.Name+":0")` - Per-interface binding
 - Port scanning or network discovery tools
 
 **Cross-Platform Considerations**:
+
 - Docker containers: `0.0.0.0` REQUIRED for external access (isolated namespace)
 - Windows tests: `127.0.0.1` MANDATORY (prevents firewall prompts)
 - Linux/macOS: `127.0.0.1` RECOMMENDED (explicit localhost, no ambiguity)
@@ -154,6 +164,7 @@ settings := &cryptoutilConfig.ServerSettings{
 ```
 
 **Helper Implementation**:
+
 ```go
 // internal/shared/config/config_test_helper.go
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
@@ -208,16 +219,19 @@ func (s *ServerSettings) validateConfiguration(logger *slog.Logger) error {
 **Linter**: `internal/cmd/cicd/lint_gotest/bindaddress.go`
 
 **Detection Patterns**:
+
 1. `"0.0.0.0"` string literals in test files
 2. `net.Listen("tcp", ":0")` without bind address
 3. `&ServerSettings{}` direct initialization (bypasses NewTestConfig)
 4. Blank `BindPublicAddress` or `BindPrivateAddress` fields
 
 **Exclusions**:
+
 - `url_test.go` - Legitimate URL parsing tests
 - `bindaddress_test.go` - Test cases for linter validation
 
 **Execution**:
+
 ```bash
 # Manual execution
 go run ./cmd/cicd lint-gotest
@@ -227,6 +241,7 @@ pre-commit run lint-gotest --all-files
 ```
 
 **Example Output**:
+
 ```
 ❌ Found 4 bind address violations:
   internal/kms/server/application/application_init_test.go:43
@@ -237,11 +252,13 @@ pre-commit run lint-gotest --all-files
 ### Layer 4: Documentation (MANDATORY)
 
 **Files Updated**:
+
 1. `.github/instructions/06-02.anti-patterns.instructions.md` - Anti-patterns reference
 2. `docs/cipher-im-migration/WINDOWS-FIREWALL-ROOT-CAUSE.md` - This document
 3. `docs/cipher-im-migration/SERVICE-TEMPLATE-v4.md` - Phase 6 checklist
 
 **Key Sections**:
+
 - Root cause analysis with code path tracing
 - NEVER DO / ALWAYS DO checklists
 - Detection commands for finding violations
@@ -251,12 +268,14 @@ pre-commit run lint-gotest --all-files
 ### Layer 5: Comprehensive Testing (MANDATORY)
 
 **Test Coverage**:
+
 - `config_test.go` - NewTestConfig validation (panic on unsafe addresses)
 - `config_validation_test.go` - validateConfiguration error cases
 - `bindaddress_test.go` - Linter detection patterns (7 test cases)
 - Integration tests - Real bind addresses in E2E workflows
 
 **Test Pattern**:
+
 ```go
 func TestNewTestConfig_RejectUnsafeBindAddress(t *testing.T) {
     unsafeAddresses := []string{"", "0.0.0.0", "[::]"}
@@ -347,6 +366,7 @@ pre-commit run lint-gotest --all-files
 ### Unit Tests
 
 **ALWAYS use NewTestConfig**:
+
 ```go
 func TestSomething(t *testing.T) {
     settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
@@ -355,6 +375,7 @@ func TestSomething(t *testing.T) {
 ```
 
 **NEVER directly initialize ServerSettings**:
+
 ```go
 // ❌ WRONG - bypasses validation, triggers firewall
 settings := &cryptoutilConfig.ServerSettings{
@@ -366,6 +387,7 @@ settings := &cryptoutilConfig.ServerSettings{
 ### Integration Tests
 
 **Use test-containers with explicit bind addresses**:
+
 ```go
 func TestMain(m *testing.M) {
     settings := cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)
@@ -381,6 +403,7 @@ func TestMain(m *testing.M) {
 ### E2E Tests (Docker Compose)
 
 **Container binding**: `0.0.0.0` allowed (isolated namespace)
+
 ```yaml
 services:
   cryptoutil:
@@ -390,6 +413,7 @@ services:
 ```
 
 **Host-to-container access**: Use `localhost` or `127.0.0.1`
+
 ```bash
 curl https://localhost:8080/api/health
 ```
@@ -424,16 +448,19 @@ curl https://localhost:8080/api/health
 ### P0 Incident Prevention
 
 **Historical Mistake** (Pre-Phase 2):
+
 - 20+ test files used `&ServerSettings{}` with blank `BindPublicAddress`/`BindPrivateAddress`
 - Each test execution triggered Windows Firewall prompt
 - CI/CD workflows blocked (manual approval required)
 - Developer productivity lost (interruptions during local testing)
 
 **Root Cause**:
+
 - Assumption: "Port 0 is dynamic, bind address is optional"
 - Reality: Blank bind address defaults to `":0"` → `net.Listen()` interprets as `0.0.0.0:0`
 
 **Prevention** (Post-Phase 2):
+
 - 5-layer defense: NewTestConfig + runtime validation + CICD linter + documentation + testing
 - Zero violations in current codebase (verified via grep + linter)
 - Automatic enforcement (pre-commit hooks, CI workflows)
@@ -441,11 +468,13 @@ curl https://localhost:8080/api/health
 ### Code Archaeology Insights
 
 **Symptom Pattern**:
+
 - Windows Firewall prompts during local test runs
 - CI workflows hanging (waiting for manual approval)
 - Inconsistent behavior (some tests trigger, others don't)
 
 **Diagnostic Process**:
+
 1. Grep for `0.0.0.0` string literals → Found config tests
 2. Trace `fmt.Sprintf("%s:%d", "", 0)` → Identified blank address issue
 3. Analyze `net.Listen()` Go documentation → Confirmed `:0` = `0.0.0.0:0`
@@ -453,6 +482,7 @@ curl https://localhost:8080/api/health
 5. Implement 5-layer prevention → Zero violations
 
 **Time Investment**:
+
 - Initial debugging: ~40 minutes (wrong assumptions about port 0)
 - Code archaeology: ~9 minutes (grep + documentation)
 - Linter development: ~60 minutes (4 detection patterns + tests)

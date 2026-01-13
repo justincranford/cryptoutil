@@ -11,12 +11,14 @@ This guide explains the new `ApplicationListener` pattern for service-template a
 ### Problem Statement
 
 **Before**: Each TestMain had messy, inconsistent startup code:
+
 - Different patterns for creating telemetry, JWK gen, barrier service
 - Duplicate TLS certificate generation
 - Manual server creation with different parameter orders
 - No standard health check or shutdown patterns
 
 **After**: Unified ApplicationListener provides:
+
 - Single entry point: `StartApplicationListener(ctx, cfg)`
 - Consistent health checks: `SendLivenessCheck(settings)`, `SendReadinessCheck(settings)`
 - Graceful shutdown: `SendShutdownRequest(settings)` or `listener.Shutdown()`
@@ -51,6 +53,7 @@ ApplicationListener (THIS GUIDE)
 **Status**: Created with interfaces and TODO markers
 
 **Components**:
+
 - ✅ `ApplicationListener` struct
 - ✅ `ApplicationConfig` injection point
 - ✅ `HandlerRegistration` function type
@@ -58,6 +61,7 @@ ApplicationListener (THIS GUIDE)
 - ✅ Shutdown patterns
 
 **TODOs Remaining**:
+
 1. Public server factory integration (product-specific)
 2. Admin server creation from template
 3. Application startup orchestration
@@ -105,6 +109,7 @@ func NewPublicServerFromConfig(
 ```
 
 **Services Needing Factories**:
+
 - [ ] cipher-im: `NewPublicServerFromConfig` in `internal/cipher/server/`
 - [ ] jose-ja: `NewPublicServerFromConfig` in `internal/jose/server/`
 - [ ] identity-authz: `NewPublicServerFromConfig` in `internal/identity/authz/server/`
@@ -118,6 +123,7 @@ func NewPublicServerFromConfig(
 **File**: `internal/template/server/listener/application_listener.go`
 
 **Tasks**:
+
 1. Remove TODO markers from `StartApplicationListener`
 2. Integrate product-specific server factory (passed via cfg)
 3. Create admin server using existing `NewAdminHTTPServer`
@@ -201,6 +207,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 **Example**: `internal/cipher/server/testmain_test.go`
 
 **Before** (150+ lines of boilerplate):
+
 ```go
 func TestMain(m *testing.M) {
     ctx := context.Background()
@@ -237,6 +244,7 @@ func TestMain(m *testing.M) {
 ```
 
 **After** (30 lines, clean and consistent):
+
 ```go
 var (
     testListener *listener.ApplicationListener
@@ -285,6 +293,7 @@ func TestMain(m *testing.M) {
 ```
 
 **Helper Function** (reusable across all services):
+
 ```go
 // createInMemoryDB creates an in-memory SQLite database configured for concurrent operations.
 // Returns GORM DB, sql.DB (for migrations), and error.
@@ -330,6 +339,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Consistency Across Services
 
 **All services use same pattern**:
+
 - cipher-im TestMain
 - jose-ja TestMain
 - identity-* TestMain
@@ -341,6 +351,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Encapsulation
 
 **Hides complexity**:
+
 - Telemetry initialization
 - JWK generation service
 - Barrier service (optional)
@@ -348,6 +359,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 - Server lifecycle management
 
 **Exposes simple interface**:
+
 - StartApplicationListener(ctx, cfg)
 - SendLivenessCheck(settings)
 - SendReadinessCheck(settings)
@@ -357,12 +369,14 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Testing Benefits
 
 **Simplified TestMain**:
+
 - Consistent database setup pattern
 - Single application startup call
 - Automatic port extraction (no hardcoded ports)
 - Clean shutdown via defer
 
 **Better isolation**:
+
 - Each test package gets isolated server
 - Database cleaned between tests (cleanTestDB helper)
 - No shared state between packages
@@ -370,11 +384,13 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Production Benefits
 
 **Same code path**:
+
 - TestMain uses ApplicationListener
 - Production `cmd/cipher-im/main.go` uses ApplicationListener
 - Same initialization, same health checks, same shutdown
 
 **Operational consistency**:
+
 - Health check endpoints work identically
 - Graceful shutdown behavior matches across environments
 - TLS configuration consistent (test vs production)
@@ -426,6 +442,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Unit Tests (per-service)
 
 **Test NewPublicServerFromConfig**:
+
 - [ ] Validates nil parameters
 - [ ] Creates server with correct bind port
 - [ ] Registers handlers successfully
@@ -434,6 +451,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Integration Tests
 
 **Test ApplicationListener lifecycle**:
+
 - [ ] StartApplicationListener succeeds with valid config
 - [ ] Liveness check responds after startup
 - [ ] Readiness check validates dependencies
@@ -443,6 +461,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### E2E Tests
 
 **Test full service stack**:
+
 - [ ] Start listener with PostgreSQL test-container
 - [ ] Send requests to public APIs
 - [ ] Verify health checks pass
@@ -462,6 +481,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Phase 5: Configuration Validation
 
 **Add pre-flight checks**:
+
 - Validate bind addresses (127.0.0.1 for tests, 0.0.0.0 for containers)
 - Verify TLS certificates exist and are valid
 - Check database connectivity before server startup
@@ -470,6 +490,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Phase 6: Metrics and Monitoring
 
 **Add telemetry to ApplicationListener**:
+
 - Track startup duration
 - Monitor health check latency
 - Alert on readiness failures
@@ -478,6 +499,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ### Phase 7: Hot-Reload Configuration
 
 **Support runtime configuration changes**:
+
 - Watch config file for changes
 - Reload TLS certificates without restart
 - Update rate limits dynamically
@@ -486,6 +508,7 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 ## Summary
 
 The ApplicationListener pattern provides:
+
 1. **Consistent**: Same startup code across all services
 2. **Simple**: 150+ lines → 30 lines per TestMain
 3. **Encapsulated**: Hides infrastructure complexity
@@ -493,6 +516,7 @@ The ApplicationListener pattern provides:
 5. **Production-Ready**: Same code path for test and production
 
 **Next Steps**:
+
 1. Implement Phase 2 factories (cipher-im first)
 2. Complete Phase 3 ApplicationListener
 3. Migrate Phase 4 TestMain (cipher-im validation)

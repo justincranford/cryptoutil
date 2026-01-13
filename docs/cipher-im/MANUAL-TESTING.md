@@ -25,9 +25,9 @@ Three cipher-im instances with different backends:
 
 | Instance | Public API | Admin API | Database |
 |----------|-----------|-----------|----------|
-| cipher-im-sqlite | https://127.0.0.1:8080 | https://127.0.0.1:9090 | SQLite in-memory |
-| cipher-im-postgres-1 | https://127.0.0.1:8081 | https://127.0.0.1:9091 | PostgreSQL (tenant_1 schema) |
-| cipher-im-postgres-2 | https://127.0.0.1:8082 | https://127.0.0.1:9092 | PostgreSQL (tenant_2 schema) |
+| cipher-im-sqlite | <https://127.0.0.1:8080> | <https://127.0.0.1:9090> | SQLite in-memory |
+| cipher-im-postgres-1 | <https://127.0.0.1:8081> | <https://127.0.0.1:9091> | PostgreSQL (tenant_1 schema) |
+| cipher-im-postgres-2 | <https://127.0.0.1:8082> | <https://127.0.0.1:9092> | PostgreSQL (tenant_2 schema) |
 
 ## Health Checks
 
@@ -149,7 +149,7 @@ start https://127.0.0.1:8082/ui/
 
 ### Verify Traces in Grafana
 
-1. Open Grafana: http://127.0.0.1:3000
+1. Open Grafana: <http://127.0.0.1:3000>
 2. Navigate to **Explore** → **Tempo** (traces)
 3. Filter by service: `cipher-im-sqlite` or `cipher-im-postgres-1`
 4. Execute API requests via curl (creates traces)

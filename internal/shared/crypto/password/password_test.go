@@ -23,27 +23,27 @@ func TestVerifyPassword_PBKDF2(t *testing.T) {
 	t.Parallel()
 
 	const testPassword = "TestPassword123!"
-	
+
 	// Generate PBKDF2 hash.
 	hash, err := HashPassword(testPassword)
 	require.NoError(t, err)
 
 	tests := []struct {
-		name         string
-		password     string
-		expectMatch  bool
+		name          string
+		password      string
+		expectMatch   bool
 		expectUpgrade bool
 	}{
 		{
-			name:         "correct password",
-			password:     testPassword,
-			expectMatch:  true,
+			name:          "correct password",
+			password:      testPassword,
+			expectMatch:   true,
 			expectUpgrade: false, // PBKDF2 doesn't need upgrade
 		},
 		{
-			name:         "incorrect password",
-			password:     "WrongPassword",
-			expectMatch:  false,
+			name:          "incorrect password",
+			password:      "WrongPassword",
+			expectMatch:   false,
 			expectUpgrade: false,
 		},
 	}
@@ -64,27 +64,27 @@ func TestVerifyPassword_Bcrypt_Legacy(t *testing.T) {
 	t.Parallel()
 
 	const testPassword = "LegacyPassword123!"
-	
+
 	// Generate legacy bcrypt hash (simulating existing database record).
 	bcryptHash, err := bcrypt.GenerateFromPassword([]byte(testPassword), bcrypt.DefaultCost)
 	require.NoError(t, err)
 
 	tests := []struct {
-		name         string
-		password     string
-		expectMatch  bool
+		name          string
+		password      string
+		expectMatch   bool
 		expectUpgrade bool
 	}{
 		{
-			name:         "correct legacy password",
-			password:     testPassword,
-			expectMatch:  true,
+			name:          "correct legacy password",
+			password:      testPassword,
+			expectMatch:   true,
 			expectUpgrade: true, // bcrypt always needs upgrade
 		},
 		{
-			name:         "incorrect legacy password",
-			password:     "WrongPassword",
-			expectMatch:  false,
+			name:          "incorrect legacy password",
+			password:      "WrongPassword",
+			expectMatch:   false,
 			expectUpgrade: true, // bcrypt always needs upgrade
 		},
 	}
@@ -183,30 +183,30 @@ func TestMigrationWorkflow(t *testing.T) {
 	t.Parallel()
 
 	const userPassword = "UserPassword123!"
-	
+
 	// Step 1: User has legacy bcrypt password.
 	bcryptHash, err := bcrypt.GenerateFromPassword([]byte(userPassword), bcrypt.DefaultCost)
 	require.NoError(t, err)
-	
+
 	// Step 2: User logs in - verify with bcrypt (legacy).
 	match, needsUpgrade, err := VerifyPassword(userPassword, string(bcryptHash))
 	require.NoError(t, err)
 	require.True(t, match, "legacy password should match")
 	require.True(t, needsUpgrade, "bcrypt should always need upgrade")
-	
+
 	// Step 3: Upgrade to PBKDF2 (opportunistic migration).
 	var newHash string
 	if needsUpgrade {
 		newHash, err = HashPassword(userPassword)
 		require.NoError(t, err)
 	}
-	
+
 	// Step 4: Verify with new PBKDF2 hash.
 	match, needsUpgrade, err = VerifyPassword(userPassword, newHash)
 	require.NoError(t, err)
 	require.True(t, match, "upgraded password should match")
 	require.False(t, needsUpgrade, "PBKDF2 should not need upgrade")
-	
+
 	// Step 5: Wrong password should still fail.
 	match, _, err = VerifyPassword("WrongPassword", newHash)
 	require.NoError(t, err)

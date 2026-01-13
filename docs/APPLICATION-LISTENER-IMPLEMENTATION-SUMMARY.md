@@ -13,6 +13,7 @@ This implementation provides better encapsulation for starting full service appl
 **Purpose**: Unified service lifecycle management for ALL cryptoutil services
 
 **Key Components**:
+
 - `ApplicationListener` struct - Encapsulates full service (telemetry, DB, servers, shutdown)
 - `ApplicationConfig` struct - Injection point for product-specific configuration
 - `PublicServerFactory` type - Function signature for creating product-specific servers
@@ -30,6 +31,7 @@ This implementation provides better encapsulation for starting full service appl
 **File**: `docs/SERVICE-TEMPLATE-APPLICATION-LISTENER-GUIDE.md` (2,000+ lines)
 
 **Sections**:
+
 1. **Overview**: Problem statement and architecture
 2. **Implementation Roadmap**: 7 phases from core to production
 3. **Phase 1-4 Details**: What to implement and when
@@ -44,6 +46,7 @@ This implementation provides better encapsulation for starting full service appl
 **File**: `internal/template/server/listener/examples_test.go`
 
 **Demonstrates**:
+
 - **BEFORE**: 150+ line messy TestMain with manual setup
 - **AFTER**: 30 line clean TestMain using ApplicationListener
 - Reusable `createInMemoryDB()` helper
@@ -138,6 +141,7 @@ func NewPublicServerFromConfig(
 ```
 
 **Services Needing Factories**:
+
 - [ ] cipher-im (validation service for pattern)
 - [ ] jose-ja
 - [ ] identity-authz
@@ -150,6 +154,7 @@ func NewPublicServerFromConfig(
 **File**: `internal/template/server/listener/application_listener.go`
 
 **Tasks**:
+
 1. Remove TODO markers
 2. Call `cfg.PublicServerFactory(ctx, cfg, template)`
 3. Create admin server with `NewAdminHTTPServer`
@@ -163,6 +168,7 @@ func NewPublicServerFromConfig(
 **Target**: `internal/cipher/server/testmain_test.go` (validation)
 
 **Pattern**:
+
 ```go
 var testListener *listener.ApplicationListener
 
@@ -192,6 +198,7 @@ func TestMain(m *testing.M) {
 ```
 
 **After cipher-im validation, rollout to**:
+
 - [ ] jose-ja TestMain files
 - [ ] identity-* TestMain files
 - [ ] pki-ca TestMain files
@@ -300,6 +307,7 @@ func TestMain(m *testing.M) {
 ## Conclusion
 
 This implementation provides:
+
 - ✅ **Interface Parity**: Matches sm-kms ApplicationListener pattern
 - ✅ **Product Flexibility**: Factory pattern allows product-specific customization
 - ✅ **Testing Simplification**: 150+ lines → 30 lines per TestMain

@@ -12,22 +12,24 @@
 **COMPLETED** ✅ (2026-01-03):
 
 **Phase 7.1 - Template Realms Service Implementation**:
+
 - **Analysis**: Cipher-im realms analyzed (5 files studied)
 - **Extraction Design**: 1092-line comprehensive roadmap created
 - **Template Package**: `internal/template/server/realms/` created
 - **Core Files Implemented**:
-  * `interfaces.go` (198 lines) - UserModel, UserRepository interfaces
-  * `jwt.go` (37 lines) - Claims struct for JWT tokens
-  * `middleware.go` (126 lines) - JWTMiddleware for Fiber
-  * `service.go` (208 lines) - UserServiceImpl with bcrypt password hashing
+  - `interfaces.go` (198 lines) - UserModel, UserRepository interfaces
+  - `jwt.go` (37 lines) - Claims struct for JWT tokens
+  - `middleware.go` (126 lines) - JWTMiddleware for Fiber
+  - `service.go` (208 lines) - UserServiceImpl with bcrypt password hashing
 - **Linting Fixes**: Fixed duplicate import and missing errors import
 - **Commits**:
-  * `2fd50c31` - "feat(template): add realms service infrastructure"
-  * `dd6bf51d` - "docs(cipher-im): update REALMS-SERVICE-ANALYSIS with Phase 7.1 status"
-  * `497c4af2` - "fix(lint): remove duplicate magic import and add missing errors import"
-  * `2e292600` - "docs(cipher-im): mark Phase 7.1 complete with linting fixes"
+  - `2fd50c31` - "feat(template): add realms service infrastructure"
+  - `dd6bf51d` - "docs(cipher-im): update REALMS-SERVICE-ANALYSIS with Phase 7.1 status"
+  - `497c4af2` - "fix(lint): remove duplicate magic import and add missing errors import"
+  - `2e292600` - "docs(cipher-im): mark Phase 7.1 complete with linting fixes"
 
 **Phase 7.2 - Cipher-IM Migration**:
+
 - **Fiber Handlers**: Added HandleRegisterUser, HandleLoginUser to template realms
 - **Factory Pattern**: Updated template service to accept user factory function
 - **Domain Model**: Implemented UserModel interface on cipher.User (6 methods)
@@ -35,34 +37,38 @@
 - **Server Integration**: Updated cipher public_server.go to use template realms
 - **Package Deletion**: Removed internal/cipher/server/realms/ (authn.go, middleware.go, tests)
 - **Commits**:
-  * `ba6baf1c` - "feat(cipher-im): migrate to template realms service"
-  * `a82fadb6` - "docs(cipher-im): update Phase 7.2 completion with migration details"
-  * `2459cba2` - "docs(cipher-im): add Phase 7.2 completion to DETAILED.md timeline"
+  - `ba6baf1c` - "feat(cipher-im): migrate to template realms service"
+  - `a82fadb6` - "docs(cipher-im): update Phase 7.2 completion with migration details"
+  - `2459cba2` - "docs(cipher-im): add Phase 7.2 completion to DETAILED.md timeline"
 - **Validation**:
-  * Build: PASS ✅ (go build ./...)
-  * Tests: PASS ✅ (go test ./internal/cipher/... - all tests passing)
-  * Linting: PASS ✅ (golangci-lint run ./internal/cipher/...)
+  - Build: PASS ✅ (go build ./...)
+  - Tests: PASS ✅ (go test ./internal/cipher/... - all tests passing)
+  - Linting: PASS ✅ (golangci-lint run ./internal/cipher/...)
 
 **Phase 7.3 - JOSE-JA Migration**:
+
 - **Status**: ❌ SKIPPED - Not applicable
 - **Rationale**: JOSE-JA is pure cryptographic service (JWK/JWS/JWE operations) without user authentication
 - **Decision**: Template realms service applies only to services with user registration/login
 
 **Phase 7.4 - Workflow Validation**:
+
 - **Linting Fixes**: Fixed errcheck and wsl_v5 violations in cipher test files
 - **Commits**:
-  * `77e05e56` - "fix(lint): add errcheck handling for defer Close() in cipher tests"
-  * `b8d77f64` - "docs(cipher-im): add Phase 7.4 workflow validation to DETAILED.md"
+  - `77e05e56` - "fix(lint): add errcheck handling for defer Close() in cipher tests"
+  - `b8d77f64` - "docs(cipher-im): add Phase 7.4 workflow validation to DETAILED.md"
 - **Validation**:
-  * Cipher Linting: PASS ✅ (golangci-lint run ./internal/cipher/...)
-  * Cipher Tests: PASS ✅ (crypto, e2e 3.2s, repository, server 1.1s)
-  * Full Build: PASS ✅ (go build ./...)
-  * Workflow Compatibility: ✅ CONFIRMED (CI-Quality uses wildcard builds/linting)
+  - Cipher Linting: PASS ✅ (golangci-lint run ./internal/cipher/...)
+  - Cipher Tests: PASS ✅ (crypto, e2e 3.2s, repository, server 1.1s)
+  - Full Build: PASS ✅ (go build ./...)
+  - Workflow Compatibility: ✅ CONFIRMED (CI-Quality uses wildcard builds/linting)
 
 **IN PROGRESS** 🔄:
+
 - None
 
 **PENDING** ⏳:
+
 - Template package linting cleanup (50+ violations - pre-existing infrastructure debt)
 - Unit tests for template realms handlers (HandleRegisterUser, HandleLoginUser)
 - Integration tests for template service with different domain models
@@ -73,6 +79,7 @@
 ## Executive Summary
 
 **Current State**:
+
 - ✅ Template realms service created and validated with cipher-im migration
 - ✅ Cipher-im successfully migrated to use template realms (old package deleted)
 - ✅ Factory pattern enables service-specific user model implementations
@@ -80,6 +87,7 @@
 
 **Template Realms Architecture**:
 The template realms package provides three layers:
+
 1. **Domain Interface Layer** (interfaces.go): UserModel and UserRepository interfaces
 2. **Business Logic Layer** (service.go): UserServiceImpl with registration and authentication
 3. **HTTP Integration Layer** (handlers.go, middleware.go): Fiber handlers and JWT middleware
@@ -104,6 +112,7 @@ The template realms package provides three layers:
    - Middleware reusable across all services
 
 **Migration Statistics**:
+
 - **Lines Removed**: 3447 (old cipher realms package)
 - **Lines Added**: 694 (template realms) + 190 (adapter + integration)
 - **Net Reduction**: 2563 lines (72.7% reduction)
@@ -111,6 +120,7 @@ The template realms package provides three layers:
 - **Files Created**: 2 (handlers.go, user_repository_adapter.go)
 
 **Files Modified**:
+
 - `internal/template/server/realms/handlers.go` (CREATED - 125 lines)
 - `internal/template/server/realms/service.go` (MODIFIED - added factory pattern)
 - `internal/cipher/domain/user.go` (MODIFIED - UserModel interface implementation)
@@ -119,12 +129,14 @@ The template realms package provides three layers:
 - `internal/cipher/server/realms/` (DELETED - entire package)
 
 **Validation**:
+
 - Build: ✅ PASS (go build ./...)
 - Tests: ✅ PASS (all cipher tests passing)
 - Linting: ✅ PASS (golangci-lint run ./...)
 - Commit: ✅ ba6baf1c pushed to main
 
 **Extraction Goal**:
+
 - ✅ Create generic `internal/template/server/realms/` service (COMPLETE)
 - ✅ Support multiple domain models via factory pattern (VALIDATED with cipher.User)
 - ✅ Maintain same authentication patterns (JWT, login/register) (COMPLETE)
@@ -172,6 +184,7 @@ func (User) TableName() string {
 ```
 
 **Key Features**:
+
 - UUIDv7 primary key (time-ordered, suitable for distributed systems)
 - Username unique index (enforces uniqueness at database level)
 - PasswordHash stored as PBKDF2-HMAC-SHA256 (FIPS-compliant)
@@ -196,6 +209,7 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 ```
 
 **Key Features**:
+
 - TEXT primary key (supports UUIDv7 as string)
 - Unique constraint on username
 - Index on username for fast lookups
@@ -223,6 +237,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository
 ```
 
 **Key Features**:
+
 - GORM-based persistence layer
 - Context-aware (supports transactions via WithTransaction pattern)
 - Error wrapping (fmt.Errorf for better stack traces)
@@ -248,21 +263,22 @@ func NewAuthnHandler(userRepo *UserRepository, jwtSecret string) *AuthnHandler
 ```
 
 **Key Features**:
+
 - **HandleRegisterUser**:
-  * Accepts username + password JSON
-  * Validates inputs (non-empty, username length 3-32 chars)
-  * Checks for duplicate username (returns 409 Conflict)
-  * Hashes password with bcrypt (cost 14)
-  * Creates User entity with UUIDv7
-  * Stores in database via UserRepository
-  * Returns 201 Created with user ID
+  - Accepts username + password JSON
+  - Validates inputs (non-empty, username length 3-32 chars)
+  - Checks for duplicate username (returns 409 Conflict)
+  - Hashes password with bcrypt (cost 14)
+  - Creates User entity with UUIDv7
+  - Stores in database via UserRepository
+  - Returns 201 Created with user ID
 
 - **HandleLoginUser**:
-  * Accepts username + password JSON
-  * Finds user by username (returns 401 if not found)
-  * Compares password hash (returns 401 if mismatch)
-  * Generates JWT token (15-minute expiration)
-  * Returns 200 OK with token
+  - Accepts username + password JSON
+  - Finds user by username (returns 401 if not found)
+  - Compares password hash (returns 401 if mismatch)
+  - Generates JWT token (15-minute expiration)
+  - Returns 200 OK with token
 
 **Dependencies**: UserRepository, bcrypt, JWT, Fiber
 
@@ -275,6 +291,7 @@ func JWTMiddleware(secret string) fiber.Handler
 ```
 
 **Key Features**:
+
 - Extracts Authorization header
 - Validates "Bearer <token>" format
 - Parses JWT with HMAC-SHA256 signature verification
@@ -284,6 +301,7 @@ func JWTMiddleware(secret string) fiber.Handler
 - Returns 401 Unauthorized on any validation failure
 
 **JWT Claims Structure**:
+
 ```go
 type Claims struct {
     UserID string `json:"user_id"` // UUIDv7 string
@@ -311,6 +329,7 @@ s.app.Delete("/service/api/v1/messages/:id", realms.JWTMiddleware(s.jwtSecret), 
 ```
 
 **Key Features**:
+
 - Separate `/service/**` and `/browser/**` paths (template pattern)
 - Authentication routes public (register, login)
 - Business routes protected (JWT middleware)
@@ -372,6 +391,7 @@ type UserRepository interface {
 ```
 
 **Rationale**:
+
 - `UserModel` interface allows any domain model (cipher.User, jose.User, identity.User)
 - `UserRepository` interface allows any repository implementation (GORM, mock, etc.)
 - Getter/setter pattern enables generic handlers to work with different structs
@@ -534,6 +554,7 @@ func (h *AuthnHandler) HandleLoginUser() fiber.Handler {
 ```
 
 **Key Changes from Cipher-IM**:
+
 - Uses `UserModel` interface instead of concrete `cipher.User`
 - Uses `UserRepository` interface instead of concrete repository
 - Factory pattern for creating User instances (supports different concrete types)
@@ -592,6 +613,7 @@ func generateJWT(userID googleUuid.UUID, secret string, expiration time.Duration
 ## Cipher-IM Refactoring Plan
 
 ### Goal
+
 Convert cipher-im to use extracted template realms service (dogfooding pattern).
 
 ### Steps
@@ -691,6 +713,7 @@ rm -rf internal/cipher/server/realms/
 ## JOSE-JA Migration Plan
 
 ### Goal
+
 Implement user management for jose-ja using template realms service.
 
 ### Prerequisites
@@ -879,6 +902,7 @@ func (s *PublicServer) registerRoutes() {
 **Objective**: Create `internal/template/server/realms/` with generic interfaces and handlers
 
 **Tasks**:
+
 1. ✅ Create `internal/template/server/realms/interfaces.go`
    - Define `UserModel` interface (GetID, GetUsername, GetPasswordHash, SetID, SetUsername, SetPasswordHash)
    - Define `UserRepository` interface (Create, FindByUsername, FindByID)
@@ -907,6 +931,7 @@ func (s *PublicServer) registerRoutes() {
    - Test JWT middleware (valid token, invalid token, missing token)
 
 **Completion Criteria**:
+
 - [ ] All files created with comprehensive godoc
 - [ ] All tests passing (≥95% coverage)
 - [ ] golangci-lint clean
@@ -917,6 +942,7 @@ func (s *PublicServer) registerRoutes() {
 **Objective**: Convert cipher-im to use template realms service (validates design works)
 
 **Tasks**:
+
 1. ✅ Add `UserModel` interface methods to `internal/cipher/domain/user.go`
    - Implement GetID, GetUsername, GetPasswordHash
    - Implement SetID, SetUsername, SetPasswordHash
@@ -947,6 +973,7 @@ func (s *PublicServer) registerRoutes() {
    - Verify JWT middleware protects routes
 
 **Completion Criteria**:
+
 - [ ] All cipher-im tests passing (5/5 packages)
 - [ ] E2E tests demonstrate register → login → authenticated requests
 - [ ] golangci-lint clean
@@ -957,6 +984,7 @@ func (s *PublicServer) registerRoutes() {
 **Objective**: Add user management to jose-ja using template realms service
 
 **Tasks**:
+
 1. ✅ Create `internal/jose/domain/user.go`
    - Define User struct (ID, Username, PasswordHash, CreatedAt)
    - Implement `UserModel` interface methods
@@ -992,6 +1020,7 @@ func (s *PublicServer) registerRoutes() {
    - Add E2E tests for authenticated JWK operations
 
 **Completion Criteria**:
+
 - [ ] All jose-ja tests passing
 - [ ] E2E tests demonstrate register → login → create JWK (authenticated)
 - [ ] golangci-lint clean
@@ -1006,6 +1035,7 @@ func (s *PublicServer) registerRoutes() {
 **File**: `internal/template/server/realms/authn_handler_test.go`
 
 **Test Cases**:
+
 1. **TestNewAuthnHandler_Defaults**
    - Verify default JWT expiration (15 min)
    - Verify default bcrypt cost (14)
@@ -1052,6 +1082,7 @@ func (s *PublicServer) registerRoutes() {
 **File**: `internal/cipher/e2e/authn_e2e_test.go`
 
 **Test Cases**:
+
 1. **TestE2E_RegisterAndLogin**
    - Register user
    - Login with credentials
@@ -1066,6 +1097,7 @@ func (s *PublicServer) registerRoutes() {
 **File**: `internal/jose/e2e/authn_e2e_test.go`
 
 **Test Cases**:
+
 1. **TestE2E_RegisterAndCreateJWK**
    - Register user
    - Login to get token
@@ -1084,6 +1116,7 @@ func (s *PublicServer) registerRoutes() {
 **Problem**: If cipher User or jose User adds new fields (e.g., email, role), interface may not support.
 
 **Mitigation**:
+
 - Keep `UserModel` interface minimal (ID, Username, PasswordHash only)
 - Services extend domain models independently (e.g., cipher adds Email, jose adds Role)
 - Interface only requires fields needed for authentication (username, password)
@@ -1093,6 +1126,7 @@ func (s *PublicServer) registerRoutes() {
 **Problem**: Adapter pattern adds indirection (cipher.UserRepository → adapter → template realms).
 
 **Mitigation**:
+
 - Adapter is thin (just type conversions)
 - Negligible performance overhead
 - Enables type safety (compile-time interface checks)
@@ -1102,6 +1136,7 @@ func (s *PublicServer) registerRoutes() {
 **Problem**: Each service needs secure JWT secret (32+ bytes, random).
 
 **Mitigation**:
+
 - Use Docker secrets for production (file:///run/secrets/jwt_secret)
 - Generate random secret on startup if not provided (dev mode only)
 - Document in service template docs
@@ -1111,6 +1146,7 @@ func (s *PublicServer) registerRoutes() {
 **Problem**: Two separate user databases (no SSO between services).
 
 **Consideration**: This is INTENTIONAL DESIGN:
+
 - Cipher-IM users are messaging users
 - JOSE-JA users are JWK management users
 - Different domains, different user pools
@@ -1123,6 +1159,7 @@ func (s *PublicServer) registerRoutes() {
 ## Success Criteria
 
 ### Phase 7.1 Success (Template Realms Service)
+
 - [ ] `internal/template/server/realms/` package created
 - [ ] All interfaces defined (UserModel, UserRepository)
 - [ ] Authentication handlers generic (work with any domain model)
@@ -1131,6 +1168,7 @@ func (s *PublicServer) registerRoutes() {
 - [ ] golangci-lint clean
 
 ### Phase 7.2 Success (Cipher-IM Refactoring)
+
 - [ ] Cipher-IM uses template realms service
 - [ ] `internal/cipher/server/realms/` deleted
 - [ ] All cipher-im tests passing (5/5 packages)
@@ -1138,6 +1176,7 @@ func (s *PublicServer) registerRoutes() {
 - [ ] No regression in functionality
 
 ### Phase 7.3 Success (JOSE-JA User Management)
+
 - [ ] JOSE-JA has user management (register, login)
 - [ ] JWK operations require authentication
 - [ ] All jose-ja tests passing
@@ -1145,6 +1184,7 @@ func (s *PublicServer) registerRoutes() {
 - [ ] Template realms pattern validated (works for 2 services)
 
 ### Overall Success (Realms Extraction Complete)
+
 - [ ] Generic realms service extracted to template
 - [ ] Two services using template realms (cipher-im, jose-ja)
 - [ ] Zero code duplication (authentication logic centralized)
@@ -1156,22 +1196,26 @@ func (s *PublicServer) registerRoutes() {
 ## Next Steps
 
 **Immediate** (Phase 7.1):
+
 1. Create `internal/template/server/realms/` package structure
 2. Define interfaces (UserModel, UserRepository)
 3. Implement generic AuthnHandler
 4. Write comprehensive tests
 
 **Follow-Up** (Phase 7.2):
+
 1. Refactor cipher-im to use template realms
 2. Delete cipher-im realms package
 3. Validate all tests passing
 
 **Final** (Phase 7.3):
+
 1. Implement jose-ja user management
 2. Wire template realms into jose-ja server
 3. Add E2E tests for authenticated JWK operations
 
 **Documentation**:
+
 1. Update SERVICE-TEMPLATE-v4.md with realms extraction results
 2. Document UserModel/UserRepository interface contracts
 3. Add migration guide for other services (ca, identity)
@@ -1181,6 +1225,7 @@ func (s *PublicServer) registerRoutes() {
 ## References
 
 **Cipher-IM Implementation**:
+
 - `internal/cipher/domain/user.go` - User domain model
 - `internal/cipher/repository/user_repository.go` - GORM repository
 - `internal/cipher/server/realms/authn.go` - Authentication handlers
@@ -1188,11 +1233,13 @@ func (s *PublicServer) registerRoutes() {
 - `internal/cipher/server/public_server.go` - Route registration
 
 **Template Documentation**:
+
 - `docs/cipher-im-migration/SERVICE-TEMPLATE-v2.md` - Grok's cleanup work
 - `docs/cipher-im-migration/SERVICE-TEMPLATE-v3.md` - Deep analysis results
 - `02-02.service-template.instructions.md` - Service template requirements
 
 **Related Patterns**:
+
 - `02-10.authn.instructions.md` - Authentication patterns (10+28 methods)
 - `03-04.database.instructions.md` - GORM patterns, transaction support
 - `03-05.sqlite-gorm.instructions.md` - SQLite configuration

@@ -9,14 +9,17 @@
 ## WORK SUMMARY
 
 **Infrastructure Phases (Phases 1-7)**: ✅ COMPLETE (15 commits)
+
 - FIPS compliance, Windows Firewall prevention, linting, pepper implementation
 
 **Template Extraction**: ✅ COMPLETE (3 commits)
+
 - E2E test helpers: ✅ COMPLETE (commit be1f90c7)
 - Repository patterns: ✅ COMPLETE (commit 8bebdcf2)
 - Barrier service bug fixes: ✅ COMPLETE (commit b74c4c7a)
 
 **Test Status**: ✅ ALL CIPHER TESTS PASS
+
 - cipher/e2e: PASS (3.454s)
 - cipher/repository: PASS (0.273s)
 - cipher/server: PASS (2.008s)
@@ -36,6 +39,7 @@
 ✅ cipher-im (THIS TEMPLATE - **COMPLETE**) → jose-ja → pki-ca → identity services (authz, idp, rs, rp, spa) → sm-kms
 
 **Total Commits**: 17
+
 - Phase 1 (FIPS): 1 commit (f092a2ce)
 - Phase 2 (Windows Firewall): 4 commits (e824a46c, e84eca64, 7137a11c, d28184d0)
 - Phase 3 (Template Linting): 1 commit (d5040fd7)
@@ -62,12 +66,14 @@
   - ✅ Hash format confirmed: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)}`
 
 - [x] **1.1.2** Inject Hash Service into service-template realms UserServiceImpl for reuse by ALL 9 services
+
   ```go
   import cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
   type UserServiceImpl struct {
       hashService *cryptoutilHash.Service
   }
   ```
+
   **Implementation**: LowEntropyRandom registry configured with v3 (2025 OWASP), PBKDF2-HMAC-SHA256, versioned format
 
 ### Task 1.2: Replace bcrypt Usage in Service-Template ✅
@@ -150,19 +156,20 @@
   - ✅ Validation implemented in e84eca64
   - Register as linter in existing `cicd lint-gotest` command
   - Pattern: Reject `"0.0.0.0"` AND `""` (blank) in:
-    * NewXXXServer() calls with bind address arguments
-    * ServerSettings struct initialization (partial or full)
-    * net.Listen() calls with address parameters
-    * BindPublicAddress/BindPrivateAddress field assignments
+    - NewXXXServer() calls with bind address arguments
+    - ServerSettings struct initialization (partial or full)
+    - net.Listen() calls with address parameters
+    - BindPublicAddress/BindPrivateAddress field assignments
   - Message: "CRITICAL: don't use 0.0.0.0 or blank bind address in tests, use 127.0.0.1 to prevent Windows Firewall exception prompts"
   - Create comprehensive tests in `internal/cmd/cicd/lint_gotest/` subdirectory for all patterns:
-    * Direct `"0.0.0.0"` usage
-    * Blank `""` usage (defaults to 0.0.0.0)
-    * Struct literal with blank fields
-    * Variable assignments
-    * Function call arguments
+    - Direct `"0.0.0.0"` usage
+    - Blank `""` usage (defaults to 0.0.0.0)
+    - Struct literal with blank fields
+    - Variable assignments
+    - Function call arguments
 
 - [ ] **2.1.2** Test linter on existing violations
+
   ```bash
   go run ./cmd/cicd lint-gotest ./internal/shared/config/config_coverage_test.go
   # Expected: 2 violations reported (lines 46, 70)
@@ -179,10 +186,12 @@
   - Change: `NewForCAServer("0.0.0.0", 9380, false)` → `NewForCAServer("127.0.0.1", 9380, false)`
 
 - [ ] **2.2.3** Verify tests pass and NO firewall prompts
+
   ```bash
   go test -v ./internal/shared/config/... -run TestNewForJOSEServer
   go test -v ./internal/shared/config/... -run TestNewForCAServer
   ```
+
   **Detection**: Watch for Windows Security Alert dialog "Windows Defender Firewall has blocked some features". If prompt appears, tests are still binding to 0.0.0.0 or blank address.
 
 - [ ] **2.2.4** Commit: `fix(test): use 127.0.0.1 instead of 0.0.0.0 to prevent Windows Firewall prompts`
@@ -201,6 +210,7 @@
 ### Task 2.4: Root Cause Analysis and Prevention
 
 - [ ] **2.4.1** Scan ALL test executables for bind addresses after full test run (0.0.0.0 AND empty strings)
+
   ```bash
   strings bin/*.test 2>/dev/null | grep "0.0.0.0" || echo "No 0.0.0.0 violations found"
   # Also check for empty bind address patterns (harder to detect via strings)
@@ -209,6 +219,7 @@
   ```
 
 - [ ] **2.4.2** Add runtime validation in NewTestConfig()
+
   ```go
   // internal/shared/config/config_test_helper.go
   if bindAddr == "" || bindAddr == "0.0.0.0" {
@@ -224,6 +235,7 @@
 - [ ] **2.4.4** Commit: `docs(anti-patterns): document Windows Firewall root cause and prevention`
 
 - [ ] **2.4.5** Add requires checks in NewTestConfig to reject bind values NOT equal to 127.0.0.1
+
   ```go
   // internal/shared/config/config_test_helper.go
   func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServerSettings {
@@ -233,6 +245,7 @@
       // ... rest of implementation
   }
   ```
+
   **Rationale**: Fail fast to reveal ANY callers that were missed during 127.0.0.1 migration
 
 ## PHASE 3: TEMPLATE LINTING ✅
@@ -261,9 +274,9 @@
   - ✅ Realms service pattern (schema lifecycle, tenant isolation, generic interfaces)
   - ✅ Barrier service pattern (already in `internal/template/server/barrier/`)
   - ✅ Hash Service pattern (extracted to `internal/shared/crypto/hash/`, used INDIRECTLY via realms)
-    * ALL 9 services MUST use Hash Service via username/password realms (file/DB types)
-    * Also via username/email realms, magic link realms, random OTP realms, etc.
-    * NEVER direct Hash Service injection into services (violates reusability)
+    - ALL 9 services MUST use Hash Service via username/password realms (file/DB types)
+    - Also via username/email realms, magic link realms, random OTP realms, etc.
+    - NEVER direct Hash Service injection into services (violates reusability)
   - ✅ Telemetry pattern (OTLP integration)
   - ✅ Repository patterns (GORM, PostgreSQL/SQLite, test-containers)
   - ✅ Test patterns (TestMain, NewTestConfig, t.Cleanup)
@@ -345,6 +358,7 @@
   - ✅ Verified REJECTS 0.0.0.0 or blank addresses
 
 - [ ] **6.2.4** Add runtime validation
+
   ```go
   // internal/template/server/listener/listener.go
   func validateTestBindAddress(addr string) error {
@@ -363,9 +377,9 @@
 - [x] **6.3.1** Update anti-patterns documentation
   - ✅ File: `docs/cipher-im-migration/WINDOWS-FIREWALL-ROOT-CAUSE.md`
   - ✅ Root Cause Analysis with evidence:
-    * Blank bind addresses default to 0.0.0.0
-    * Explicit 0.0.0.0 NEVER acceptable
-    * Dynamic port (:0) requires explicit bind address
+    - Blank bind addresses default to 0.0.0.0
+    - Explicit 0.0.0.0 NEVER acceptable
+    - Dynamic port (:0) requires explicit bind address
   - ✅ Solution: ALWAYS use NewTestConfig() with "127.0.0.1"
 
 - [x] **6.3.2** Add runtime validation in NewTestConfig
@@ -391,32 +405,39 @@
 ### Task 7.1: Add Pepper Configuration ✅
 
 - [x] **7.1.1** Add pepper config to `configs/test/cryptoutil-common.yml`
+
   ```yaml
   hash_service:
     current_version: 3  # 2025 OWASP
     pepper_secret: file:///run/secrets/hash_pepper_v3
   ```
+
   **NOTE**: Configuration-driven loading deferred to service initialization implementation
 
 - [x] **7.1.2** Create Docker secret for pepper
+
   ```yaml
   # deployments/compose/compose.yml
   secrets:
     hash_pepper_v3.secret:
       file: ../kms/secrets/hash_pepper_v3.secret
   ```
+
   **Commit**: 374442fe - Added to compose.yml and healthcheck-secrets
 
 - [x] **7.1.3** Generate secure pepper (32 bytes)
+
   ```bash
   openssl rand -base64 32 > deployments/kms/secrets/hash_pepper_v3.secret
   chmod 440 deployments/kms/secrets/hash_pepper_v3.secret
   ```
+
   **Generated**: `7t1qT7/OxY7lzqe8E5Q89AfNF2iNzu+QrvLJJe+V/WY=` (32 bytes, 256-bit entropy)
 
 ### Task 7.2: Load Pepper in Hash Service ✅
 
 - [x] **7.2.1** Update Hash Service initialization to load pepper
+
   ```go
   // internal/shared/crypto/hash/pepper_loader.go
   peppers := []PepperConfig{
@@ -424,6 +445,7 @@
   }
   ConfigurePeppers(registry, peppers)  // Loads pepper from Docker secret
   ```
+
   **Implementation**:
   - `LoadPepperFromSecret`: Loads from file with `file://` prefix support
   - `ConfigurePeppers`: Updates parameter sets in registry
@@ -438,10 +460,10 @@
 - [x] **7.2.3** Test hashing produces different outputs with different peppers
   **CRITICAL OWASP Tests**:
   - TestPepperedHashing_DifferentPeppersProduceDifferentHashes: PASS
-    * Same password + different peppers = different hashes ✅
+    - Same password + different peppers = different hashes ✅
   - TestPepperedVerification_CorrectPepperRequired: PASS
-    * Correct pepper required for verification ✅
-    * Wrong pepper fails verification ✅
+    - Correct pepper required for verification ✅
+    - Wrong pepper fails verification ✅
 
 - [x] **7.2.4** Commit: `feat(hash): implement MANDATORY pepper requirement from Docker secrets`
   **Commits**:
@@ -449,6 +471,7 @@
   - c3c72406: Complete pepper implementation (PBKDF2 concatenation, loading, tests)
 
 **Test Results**:
+
 - All pepper tests: PASS (8 tests, 13 subtests)
 - Hash package coverage: 91.3% (target: ≥95%, within acceptable range for new feature)
 - Digests package coverage: 96.9% (meets ≥98% infrastructure target)

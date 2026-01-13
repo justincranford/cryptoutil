@@ -2706,6 +2706,7 @@ go test ./internal/cmd/learn/ -v -shuffle=on
 - a8983d16: P7.4 Manual key rotation API with elastic rotation strategy
 
 **Violations Found**: None (build clean, all tests passing, linting clean, no regressions)
+
 - Committed database closure fix (6cb630ad)
 - Generated coverage HTML, documented mutation/race limitations
 
@@ -3063,6 +3064,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 ### 2026-01-01: Phase 3 Complete - Cipher-IM Service Migration
 
 **Work Completed**:
+
 - Fixed all 4 cipher-im test build errors from previous session
 - E2E tests: Added testBarrierService initialization with full dependency chain
 - Realms tests: Updated NewPublicServer to 8-parameter dependency injection
@@ -3073,6 +3075,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Realms tests: Added barrier tables to AutoMigrate
 
 **Coverage/Quality Metrics**:
+
 - Before: E2E failing (testBarrierService undefined), realms failing (4 build errors)
 - After: ALL tests passing (crypto, server, e2e, realms)
 - E2E: 100% passing (4.930s) - barrier service fully initialized
@@ -3080,6 +3083,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Total: 4/4 cipher-im test packages passing
 
 **Lessons Learned**:
+
 1. Barrier service requires 5 parameters: ctx, telemetry, jwkGen, repository, unseal
 2. NewGormBarrierRepository takes ONLY db parameter (not ctx+db)
 3. Use NewUnsealKeysServiceSimple with JWK array (not NewMemoryUnsealKeysService)
@@ -3089,6 +3093,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 7. Barrier tables MUST be added to AutoMigrate alongside domain tables
 
 **Related Commits**:
+
 - 38d08200 ("fix(cipher-im): resolve E2E and realms test build errors")
 - b17f99ae ("docs(executive): update Phase 3 complete - cipher-im migration done")
 
@@ -3108,6 +3113,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 **Work Completed**:
 
 **Phase 7.1 - Template Realms Service** (commits 2fd50c31, dd6bf51d, 497c4af2, 2e292600):
+
 - Created `internal/template/server/realms/` package (5 files, 694 lines)
 - Implemented UserModel and UserRepository interfaces (domain-agnostic abstractions)
 - Implemented UserServiceImpl with bcrypt password hashing and user management
@@ -3116,48 +3122,52 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Documentation: Created REALMS-SERVICE-ANALYSIS.md (1092 lines, comprehensive extraction roadmap)
 
 **Phase 7.2 - Cipher-IM Migration** (commit ba6baf1c):
+
 - Added `handlers.go` to template realms (125 lines, Fiber integration layer):
-  * HandleRegisterUser(jwtSecret) fiber.Handler
-  * HandleLoginUser(jwtSecret) fiber.Handler
-  * generateJWT helper function
+  - HandleRegisterUser(jwtSecret) fiber.Handler
+  - HandleLoginUser(jwtSecret) fiber.Handler
+  - generateJWT helper function
 - Implemented factory pattern in template service:
-  * Added `userFactory func() UserModel` field to UserServiceImpl
-  * Enables polymorphic user creation (cipher.User, jose.User, etc.)
+  - Added `userFactory func() UserModel` field to UserServiceImpl
+  - Enables polymorphic user creation (cipher.User, jose.User, etc.)
 - Updated `internal/cipher/domain/user.go`:
-  * Implemented 6 UserModel interface methods
-  * Added compile-time interface verification
+  - Implemented 6 UserModel interface methods
+  - Added compile-time interface verification
 - Created `internal/cipher/repository/user_repository_adapter.go` (63 lines):
-  * Adapter pattern bridges concrete repository to template interface
-  * Type-safe conversions with fail-fast error handling
+  - Adapter pattern bridges concrete repository to template interface
+  - Type-safe conversions with fail-fast error handling
 - Updated `internal/cipher/server/public_server.go`:
-  * Integrated UserRepositoryAdapter and user factory
-  * Changed authnHandler type to template UserServiceImpl
-  * Migrated routes to use template handlers and middleware
+  - Integrated UserRepositoryAdapter and user factory
+  - Changed authnHandler type to template UserServiceImpl
+  - Migrated routes to use template handlers and middleware
 - Deleted `internal/cipher/server/realms/` package (4 files):
-  * authn.go (167 lines) - replaced by template handlers
-  * middleware.go (126 lines) - replaced by template middleware
-  * middleware_test.go, realm_validation_test.go - no longer needed
+  - authn.go (167 lines) - replaced by template handlers
+  - middleware.go (126 lines) - replaced by template middleware
+  - middleware_test.go, realm_validation_test.go - no longer needed
 
 **Coverage/Quality Metrics**:
+
 - Lines Removed: 3447 (old cipher realms package)
 - Lines Added: 694 (template realms) + 190 (adapter + integration)
 - Net Reduction: 2563 lines (72.7% reduction)
 - Build:  PASS (go build ./...)
 - Tests:  ALL PASS
-  * crypto: ok (cached)
-  * e2e: ok (cached)
-  * repository: ok (cached)
-  * server: ok (cached)
+  - crypto: ok (cached)
+  - e2e: ok (cached)
+  - repository: ok (cached)
+  - server: ok (cached)
 - Template Tests:  ALL PASS (listener 18.4s, barrier 2.9s, repository 2.1s)
 - Linting:  PASS (golangci-lint run ./...)
 
 **Architecture Patterns Validated**:
+
 1. **Factory Pattern**: Template service accepts userFactory func() UserModel for polymorphic user creation
 2. **Adapter Pattern**: UserRepositoryAdapter bridges concrete repositories to interface with type-safe conversions
 3. **Handler Composition**: Template handlers wrap service methods in Fiber closures, separating HTTP from business logic
 4. **Middleware Reuse**: JWTMiddleware centralized and reusable across all services
 
 **Lessons Learned**:
+
 1. **Factory Pattern Enables Reusability**: Template service can work with any domain model by accepting factory function
 2. **Adapter Pattern Bridges Type Gaps**: Type-safe conversions with panics on mismatch enable fail-fast debugging
 3. **Handler vs Service Separation**: Fiber handlers (HTTP concerns) wrap service methods (business logic) for clean architecture
@@ -3167,6 +3177,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 **Violations Found**: NONE (all linting passes, all tests pass, no TODO/FIXME introduced)
 
 **Related Commits**:
+
 - 2fd50c31 ("feat(template): add realms service infrastructure")
 - dd6bf51d ("docs(cipher-im): update REALMS-SERVICE-ANALYSIS with Phase 7.1 status")
 - 497c4af2 ("fix(lint): remove duplicate magic import and add missing errors import")
@@ -3182,6 +3193,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Blocking Issues: NONE
 
 **Next Steps**:
+
 1. Phase 7.3: JOSE-JA migration (further validate template reusability with second service)
 2. Phase 7.4: Workflow validation (ensure GitHub Actions pass)
 3. Add unit tests for template handlers (HandleRegisterUser, HandleLoginUser)
@@ -3196,27 +3208,32 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 **Work Completed**:
 
 **Linting Fixes** (commit 77e05e56):
+
 - Fixed errcheck violations in cipher test files:
-  * `internal/cipher/e2e/testmain_e2e_test.go`: Wrapped `defer sqlDB.Close()` in anonymous function with error discard
-  * `internal/cipher/server/testmain_test.go`: Wrapped `defer testSQLDB.Close()` in anonymous function with error discard
+  - `internal/cipher/e2e/testmain_e2e_test.go`: Wrapped `defer sqlDB.Close()` in anonymous function with error discard
+  - `internal/cipher/server/testmain_test.go`: Wrapped `defer testSQLDB.Close()` in anonymous function with error discard
 - Fixed wsl_v5 violation in `testmain_e2e_test.go`: Added blank line before defer block
 
 **Validation Results**:
+
 - Cipher Linting:  PASS (`golangci-lint run ./internal/cipher/...`)
 - Cipher Tests:  ALL PASS (crypto, e2e 3.2s, repository, server 1.1s)
 - Full Build:  PASS (`go build ./...`)
 
 **Pre-Existing Template Linting Issues Identified**:
+
 - Template package has 50+ linting violations (errcheck, mnd, nilnil, noctx, unused, wrapcheck, wsl_v5)
 - Issues existed BEFORE Phase 7.1 template creation (not regression from migration)
 - **Decision**: Document as separate cleanup task (not blocking workflow validation)
 
 **Workflow Compatibility**:
+
 - CI-Quality workflow:  Compatible (uses `go build ./...` and `golangci-lint run ./...`)
 - Cipher package:  Included automatically in wildcard builds
 - Template package:  Has pre-existing linting issues (separate cleanup needed)
 
 **Related Commits**:
+
 - 77e05e56 ("fix(lint): add errcheck handling for defer Close() in cipher tests")
 
 **Phase Status**:  PHASE 7.4 COMPLETE (with caveats)
@@ -3227,6 +3244,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Blocking Issues: NONE
 
 **Next Steps**:
+
 1. Create task document for template linting cleanup (50+ violations)
 2. Consider incremental fixes (group by linter: errcheck, mnd, nilnil, noctx, wrapcheck, wsl_v5)
 3. Phase 8: Consider unit tests for template realms handlers (HandleRegisterUser, HandleLoginUser)
@@ -3234,15 +3252,16 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 **Estimated Time to Template Cleanup**: ~4-6 hours (50+ violations, mixed complexity)
 
 **Decision Rationale**:
+
 - Phase 7 goal was "prove template reusability" -  PROVEN
 - Template linting issues are pre-existing infrastructure debt - NOT regressions
 - Cipher migration validates pattern works correctly -  VALIDATED
 - Workflow compatibility confirmed -  CONFIRMED
 
-
 ### 2026-01-01: Cipher Internal Directory Structure Refactoring
 
 **Work Completed**:
+
 - Refactored cipher product to align with Go project structure best practices
 - Moved internal/cmd/cipher/** to internal/apps/cipher/ (Product level)
 - Moved internal/cipher/** to internal/apps/cipher/im/ (Service level)
@@ -3261,6 +3280,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Updated SpecKit documentation (tasks.md, DETAILED.md) with new paths
 
 **File Move Summary** (54 files total):
+
 - internal/cmd/cipher/cipher.go  internal/apps/cipher/cipher.go
 - internal/cmd/cipher/cipher_test.go  internal/apps/cipher/cipher_test.go
 - internal/cmd/cipher/version_test.go  internal/apps/cipher/version_test.go
@@ -3274,6 +3294,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - internal/cipher/testing/testmain_helper.go  internal/apps/cipher/im/testing/testmain_helper.go
 
 **Coverage/Quality Metrics**:
+
 - Before: All tests passing, scattered across internal/cmd/cipher and internal/cipher
 - After: All tests passing, consolidated under internal/apps/cipher structure
 - Test execution time: E2E (2.163s), Integration (3.572s), Server (2.473s)
@@ -3281,11 +3302,13 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Coverage: Maintained (no degradation)
 
 **Import Path Changes**:
+
 - "cryptoutil/internal/cmd/cipher"  "cryptoutil/internal/apps/cipher"
 - "cryptoutil/internal/cmd/cipher/im"  "cryptoutil/internal/apps/cipher/im"
 - "cryptoutil/internal/cipher/*"  "cryptoutil/internal/apps/cipher/im/*"
 
 **Lessons Learned**:
+
 1. Use git mv for file moves to preserve Git history across 54 files
 2. PowerShell batch regex replacement effective for updating imports systematically
 3. Test assertion emoji rendering can differ ("?" vs "") - verify in failing tests
@@ -3297,6 +3320,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
    - cmd/cipher-im/  internal/apps/cipher/im/im.go (Product-Service pattern)
 
 **Constraints Discovered**:
+
 - File moves must use git mv to preserve Git blame/history
 - Import path updates require scanning all .go files in moved directories
 - Test assertions sensitive to emoji character rendering in terminal output
@@ -3304,6 +3328,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - SpecKit documentation contains 20+ references to old paths requiring updates
 
 **Requirements Discovered**:
+
 - Product-level code goes in internal/apps/PRODUCT/PRODUCT.go
 - Service-level code goes in internal/apps/PRODUCT/SERVICE/*.go
 - Command patterns: Suite  Product  Service  Subcommand delegation
@@ -3311,15 +3336,18 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Documentation updates MUST include README.md AND SpecKit files
 
 **Violations Found**:
+
 - NONE (all linting passes, all tests pass, no new TODO/FIXME introduced)
 
 **Alignment with Instructions**:
--  Implements .github/instructions/03-03.golang.instructions.md Command Line Patterns
--  Implements .github/instructions/03-03.golang.instructions.md Go Project Structure
--  Call flow: cmd/cipher-im/main.go  internal/apps/cipher/im/im.go
--  Call flow: cmd/cipher/main.go  internal/apps/cipher/cipher.go  internal/apps/cipher/im/im.go
+
+- Implements .github/instructions/03-03.golang.instructions.md Command Line Patterns
+- Implements .github/instructions/03-03.golang.instructions.md Go Project Structure
+- Call flow: cmd/cipher-im/main.go  internal/apps/cipher/im/im.go
+- Call flow: cmd/cipher/main.go  internal/apps/cipher/cipher.go  internal/apps/cipher/im/im.go
 
 **Related Commits**:
+
 - 08af36d1 ("refactor(cipher): move to internal/apps/cipher structure")
 
 **Phase Status**: Cipher Directory Refactoring  COMPLETE

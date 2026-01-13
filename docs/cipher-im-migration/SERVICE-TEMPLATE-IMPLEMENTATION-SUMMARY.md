@@ -56,28 +56,33 @@
 ### Automatic Database Provisioning
 
 **Configuration-Driven**:
+
 - `DatabaseURL=""` + `DatabaseContainer="required"` → PostgreSQL testcontainer
 - `DatabaseURL="file::memory:?cache=shared"` → SQLite in-memory
 - `DatabaseURL="postgres://..."` + `DatabaseContainer="disabled"` → External DB
 
 **Graceful Fallback**:
+
 - `DatabaseContainer="preferred"` → Try testcontainer, fall back to external
 
 ### Simplified Test Setup
 
 **Before** (manual management):
+
 - 50+ lines per TestMain
 - Manual container lifecycle
 - Manual service initialization
 - Complex defer cleanup chains
 
 **After** (automatic):
+
 - 15 lines per TestMain
 - Single `NewFromConfig()` call
 - Automatic cleanup via `Shutdown()`
 - Zero manual container management
 
 **Example**:
+
 ```go
 func TestMain(m *testing.M) {
     cfg := &config.AppConfig{
@@ -113,19 +118,24 @@ ApplicationListener (Top Level)
 ## Testing Strategy
 
 ### Unit Tests
+
 - Test each layer independently
 - Mock dependencies (telemetry, unseal, JWK)
 - Validate database provisioning logic
 
 ### Integration Tests
+
 Use `NewFromConfig` with PostgreSQL testcontainer:
+
 ```go
 cfg.DatabaseURL = ""
 cfg.DatabaseContainer = "required"
 ```
 
 ### E2E Tests
+
 Use `NewFromConfig` with SQLite in-memory (faster):
+
 ```go
 cfg.DatabaseURL = "file::memory:?cache=shared"
 cfg.DatabaseContainer = "disabled"
@@ -154,11 +164,13 @@ cfg.DatabaseContainer = "disabled"
 After cipher-im validates the pattern:
 
 **Phase 2**: One service at a time
+
 - jose-ja server
 - pki-ca server
 - identity services (authz, idp, rs, rp, spa)
 
 **Phase 3**: sm-kms last
+
 - Only after ALL other services validated
 - Validates template handles all edge cases
 
@@ -176,11 +188,13 @@ After cipher-im validates the pattern:
 ## Cross-References
 
 **Documentation**:
+
 - `internal/template/server/application/README.md` - Architecture details
 - `docs/cipher-im-migration/SERVICE-TEMPLATE-USAGE-GUIDE.md` - Usage examples
 - `02-02.service-template.instructions.md` - Service template requirements
 
 **Reference Implementation**:
+
 - `internal/kms/server/application/application_basic.go`
 - `internal/kms/server/application/application_core.go`
 - `internal/kms/server/application/application_listener.go`

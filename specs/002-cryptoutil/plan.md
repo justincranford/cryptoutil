@@ -444,6 +444,7 @@ Issues Found:
 **Architecture**:
 
 Multi-layer key hierarchy with elastic rotation:
+
 - **Root Keys**: Rotated annually, all historical versions retained
 - **Intermediate Keys**: Rotated quarterly, encrypted with active root key
 - **Content Keys**: Rotated per-operation or hourly, encrypted with active intermediate key
