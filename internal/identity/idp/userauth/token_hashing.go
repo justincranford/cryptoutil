@@ -44,10 +44,10 @@ func HashToken(plaintext string) (string, error) {
 
 // VerifyToken compares a plaintext token against a PBKDF2 hash.
 // Returns nil if token matches, ErrTokenMismatch if mismatch.
-// Supports legacy bcrypt hashes during migration (read-only).
+// Supports legacy hashes during migration (read-only).
 //
 // Security notes:
-//   - Constant-time comparison via PBKDF2/bcrypt verification.
+//   - Constant-time comparison via PBKDF2 or legacy hash verification.
 //   - Safe against timing attacks.
 //   - Validates hash format before comparison.
 func VerifyToken(plaintext, hash string) error {

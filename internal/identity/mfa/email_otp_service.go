@@ -109,7 +109,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 		return cryptoutilIdentityAppErr.ErrOTPAlreadyUsed
 	}
 
-	// Verify OTP code (supports both bcrypt legacy and PBKDF2 new hashes).
+	// Verify OTP code (PBKDF2-HMAC-SHA256, FIPS-compliant).
 	match, _, err := cryptoutilPassword.VerifyPassword(code, otp.CodeHash)
 	if err != nil {
 		return fmt.Errorf("%w: verification failed", cryptoutilIdentityAppErr.ErrInvalidOTP)

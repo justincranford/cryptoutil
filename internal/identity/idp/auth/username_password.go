@@ -60,7 +60,7 @@ func (p *UsernamePasswordProfile) Authenticate(ctx context.Context, credentials 
 		return nil, fmt.Errorf("%w: account locked", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
-	// Validate password hash using configured crypto wrapper (PBKDF2 default). Supports legacy bcrypt entries.
+	// Validate password hash using configured crypto wrapper (PBKDF2 default). Supports legacy hashes.
 	ok, verr := cryptoutilDigests.VerifySecret(user.PasswordHash, password)
 	if verr != nil {
 		return nil, fmt.Errorf("%w: password verification error: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, verr)

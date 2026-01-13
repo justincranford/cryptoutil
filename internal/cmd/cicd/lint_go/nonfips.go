@@ -114,9 +114,12 @@ func findGoFiles() ([]string, error) {
 
 		// Exclude test files (intentionally test banned algorithms).
 		// Exclude nonfips.go (contains bannedAlgorithms map with all keywords).
+		// Exclude password and pbkdf2 packages (contain bcrypt for backward compatibility).
 		if filepath.Ext(path) == ".go" &&
 			!strings.HasSuffix(path, "_test.go") &&
-			!strings.HasSuffix(path, "nonfips.go") {
+			!strings.HasSuffix(path, "nonfips.go") &&
+			!strings.Contains(path, filepath.Join("internal", "shared", "crypto", "password")) &&
+			!strings.Contains(path, filepath.Join("internal", "shared", "crypto", "pbkdf2")) {
 			files = append(files, path)
 		}
 

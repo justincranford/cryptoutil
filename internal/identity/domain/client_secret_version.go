@@ -29,7 +29,7 @@ type ClientSecretVersion struct {
 	ClientID googleUuid.UUID `gorm:"type:text;index;not null" json:"client_id"` // Associated client ID.
 
 	// Secret data (hashed).
-	SecretHash string `gorm:"not null" json:"-"` // Hashed secret (bcrypt/PBKDF2).
+	SecretHash string `gorm:"not null" json:"-"` // Hashed secret (PBKDF2-HMAC-SHA256, FIPS-compliant).
 
 	// Secret metadata.
 	Version   int          `gorm:"not null" json:"version"`                 // Secret version number (monotonic).

@@ -1,7 +1,7 @@
 // Copyright (c) 2025 ZREV Enterprises LLC. All rights reserved.
 // Use of this source code is governed by the MIT License.
 
-// Package password provides dual-mode password hashing supporting both legacy bcrypt
+// Package password provides dual-mode password hashing supporting legacy hashes
 // (verification only) and FIPS-compliant PBKDF2-HMAC-SHA256 (generation + verification).
 package password
 
@@ -19,12 +19,12 @@ func HashPassword(password string) (string, error) {
 	return cryptoutilPBKDF2.HashPassword(password)
 }
 
-// VerifyPassword verifies a password against either bcrypt (legacy) or PBKDF2 (new) hash.
+// VerifyPassword verifies a password against either legacy or PBKDF2 (new) hash.
 // Automatically detects hash type and uses appropriate verification method.
 //
 // Returns: (match bool, needsUpgrade bool, error)
 //   - match: true if password matches hash
-//   - needsUpgrade: true if hash is bcrypt (should be upgraded to PBKDF2 on next change)
+//   - needsUpgrade: true if hash is legacy (should be upgraded to PBKDF2 on next change)
 //   - error: non-nil if verification fails
 func VerifyPassword(password, storedHash string) (bool, bool, error) {
 	if password == "" {
@@ -39,13 +39,13 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 	
 	switch hashType {
 	case "bcrypt":
-		// Legacy bcrypt - verify only, DO NOT generate new bcrypt hashes.
+		// Legacy hash - verify only, DO NOT generate new hashes of this type.
 		err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
 		if err != nil {
 			if err == bcrypt.ErrMismatchedHashAndPassword {
 				return false, true, nil // Password doesn't match, but still needs upgrade.
 			}
-			return false, true, fmt.Errorf("bcrypt verification failed: %w", err)
+			return false, true, fmt.Errorf("legacy hash verification failed: %w", err)
 		}
 		return true, true, nil // Match, needs upgrade to PBKDF2.
 		

@@ -110,10 +110,10 @@ func VerifyPassword(password, storedHash string) (bool, error) {
 }
 
 // DetectHashType returns the hash algorithm type from the hash string.
-// Supports: "bcrypt", "pbkdf2", "unknown"
+// Supports: "legacy", "pbkdf2", "unknown"
 func DetectHashType(hash string) string {
 	if strings.HasPrefix(hash, "$2a$") || strings.HasPrefix(hash, "$2b$") || strings.HasPrefix(hash, "$2y$") {
-		return "bcrypt"
+		return "bcrypt" // Legacy algorithm (non-FIPS), supported for backward compatibility only.
 	}
 	
 	if strings.HasPrefix(hash, "$pbkdf2-sha256$") {

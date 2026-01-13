@@ -104,7 +104,7 @@ const (
 
 // Password hashing.
 const (
-	// REMOVED: DefaultBcryptCost = 12  // bcrypt is NOT FIPS-140-3 approved. Use PBKDF2-HMAC-SHA256 (see internal/common/magic/magic_crypto.go: PBKDF2DefaultIterations).
+	// REMOVED: DefaultBcryptCost = 12 (non-FIPS). Use PBKDF2-HMAC-SHA256 (see internal/common/magic/magic_crypto.go: PBKDF2DefaultIterations).
 	MinPasswordLength = 8   // Minimum password length.
 	MaxPasswordLength = 128 // Maximum password length.
 )

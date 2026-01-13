@@ -13,7 +13,7 @@ import (
 type RecoveryCode struct {
 	ID        googleUuid.UUID `gorm:"type:text;primaryKey"`
 	UserID    googleUuid.UUID `gorm:"type:text;index;not null"`
-	CodeHash  string          `gorm:"type:text;not null"` // bcrypt hash of code.
+	CodeHash  string          `gorm:"type:text;not null"` // PBKDF2-HMAC-SHA256 hash of code (FIPS-compliant).
 	Used      bool            `gorm:"not null;default:false;index"`
 	UsedAt    *time.Time      `gorm:"index"`
 	CreatedAt time.Time       `gorm:"not null"`

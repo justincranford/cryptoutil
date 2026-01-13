@@ -88,7 +88,7 @@ func (s *RecoveryCodeService) Verify(ctx context.Context, userID googleUuid.UUID
 			continue
 		}
 
-		// Compare plaintext with hash (supports both bcrypt legacy and PBKDF2 new).
+		// Compare plaintext with hash (PBKDF2-HMAC-SHA256, FIPS-compliant).
 		match, _, err := cryptoutilPassword.VerifyPassword(plaintext, code.CodeHash)
 		if err == nil && match {
 			// Code matches - mark as used.

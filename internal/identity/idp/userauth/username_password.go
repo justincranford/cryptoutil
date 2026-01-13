@@ -166,7 +166,8 @@ func (u *UsernamePasswordAuthenticator) VerifyAuth(ctx context.Context, challeng
 	}
 
 	// Verify password.
-	if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(password)); err != nil {
+	match, _, err := cryptoutilPassword.VerifyPassword(password, string(passwordHash))
+	if err != nil || !match {
 		// Note: Failed attempt tracking would be implemented here if User model had those fields.
 		// For now, just return error.
 		return nil, fmt.Errorf("invalid password")
@@ -189,7 +190,7 @@ func (u *UsernamePasswordAuthenticator) VerifyAuth(ctx context.Context, challeng
 	return user, nil
 }
 
-// HashPassword hashes a password using bcrypt.
+// HashPassword hashes a password using PBKDF2-HMAC-SHA256 (FIPS-compliant).
 func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, error) {
 	if len(password) < cryptoutilIdentityMagic.MinPasswordLength {
 		return nil, fmt.Errorf("password too short (minimum %d characters)", cryptoutilIdentityMagic.MinPasswordLength)
@@ -234,7 +235,7 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 		return fmt.Errorf("failed to retrieve credential: %w", err)
 	}
 
-	// Verify old password (supports both bcrypt legacy and PBKDF2 new hashes).
+	// Verify old password (supports legacy and PBKDF2 hashes).
 	match, needsUpgrade, err := cryptoutilPassword.VerifyPassword(oldPassword, string(currentHash))
 	if err != nil {
 		return fmt.Errorf("password verification failed: %w", err)
@@ -250,7 +251,7 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 	}
 	newHash := []byte(newHashStr)
 
-	// If old hash was bcrypt, opportunistically upgrade to PBKDF2.
+	// If old hash was legacy algorithm, opportunistically upgrade to PBKDF2.
 	if needsUpgrade {
 		// Note: newHash is already PBKDF2, which is the desired behavior.
 	}
