@@ -25,6 +25,54 @@ const (
 	defaultRecipientsMaxCount  = cryptoutilSharedMagic.CipherRecipientsMaxCount
 )
 
+// Cipher-IM specific Setting objects for parameter attributes.
+var (
+	messageJWEAlgorithm = setting{
+		name:        "message-jwe-algorithm",
+		shorthand:   "",
+		value:       defaultMessageJWEAlgorithm,
+		usage:       "JWE algorithm for message encryption (e.g., dir+A256GCM)",
+		description: "Message JWE Algorithm",
+	}
+	messageMinLength = setting{
+		name:        "message-min-length",
+		shorthand:   "",
+		value:       defaultMessageMinLength,
+		usage:       "minimum message length in characters",
+		description: "Message Min Length",
+	}
+	messageMaxLength = setting{
+		name:        "message-max-length",
+		shorthand:   "",
+		value:       defaultMessageMaxLength,
+		usage:       "maximum message length in characters",
+		description: "Message Max Length",
+	}
+	recipientsMinCount = setting{
+		name:        "recipients-min-count",
+		shorthand:   "",
+		value:       defaultRecipientsMinCount,
+		usage:       "minimum recipients per message",
+		description: "Recipients Min Count",
+	}
+	recipientsMaxCount = setting{
+		name:        "recipients-max-count",
+		shorthand:   "",
+		value:       defaultRecipientsMaxCount,
+		usage:       "maximum recipients per message",
+		description: "Recipients Max Count",
+	}
+)
+
+// setting holds flag configuration attributes.
+type setting struct {
+	name        string // unique long name for the flag
+	shorthand   string // unique short name for the flag
+	value       any    // default value for the flag
+	usage       string // description of the flag for help text
+	description string // human-readable description for logging/display
+}
+
 // CipherImServerSettings holds configuration for the cipher-im server.
 // Embeds ServiceTemplateServerSettings for network/TLS configuration and adds cipher-im-specific settings.
 type CipherImServerSettings struct {
@@ -77,11 +125,25 @@ func Parse(parameters []string, validateSubcommand bool) (*CipherImServerSetting
 
 	// Register cipher-im specific flags with pflag.
 	// These flags extend the base template settings with cipher-im specific configuration.
-	pflag.String("message-jwe-algorithm", defaultMessageJWEAlgorithm, "JWE algorithm for message encryption (e.g., dir+A256GCM)")
-	pflag.Int("message-min-length", defaultMessageMinLength, "minimum message length in characters")
-	pflag.Int("message-max-length", defaultMessageMaxLength, "maximum message length in characters")
-	pflag.Int("recipients-min-count", defaultRecipientsMinCount, "minimum recipients per message")
-	pflag.Int("recipients-max-count", defaultRecipientsMaxCount, "maximum recipients per message")
+	if strVal, ok := messageJWEAlgorithm.value.(string); ok {
+		pflag.String(messageJWEAlgorithm.name, strVal, messageJWEAlgorithm.usage)
+	}
+
+	if intVal, ok := messageMinLength.value.(int); ok {
+		pflag.Int(messageMinLength.name, intVal, messageMinLength.usage)
+	}
+
+	if intVal, ok := messageMaxLength.value.(int); ok {
+		pflag.Int(messageMaxLength.name, intVal, messageMaxLength.usage)
+	}
+
+	if intVal, ok := recipientsMinCount.value.(int); ok {
+		pflag.Int(recipientsMinCount.name, intVal, recipientsMinCount.usage)
+	}
+
+	if intVal, ok := recipientsMaxCount.value.(int); ok {
+		pflag.Int(recipientsMaxCount.name, intVal, recipientsMaxCount.usage)
+	}
 
 	// Parse cipher-im specific flags.
 	// Note: pflag has already parsed base flags in cryptoutilConfig.Parse(), so we just bind to viper.
@@ -93,11 +155,11 @@ func Parse(parameters []string, validateSubcommand bool) (*CipherImServerSetting
 	// Build CipherImServerSettings by embedding base settings and adding cipher-im specific values.
 	settings := &CipherImServerSettings{
 		ServiceTemplateServerSettings: *baseSettings,
-		MessageJWEAlgorithm:           viper.GetString("message-jwe-algorithm"),
-		MessageMinLength:              viper.GetInt("message-min-length"),
-		MessageMaxLength:              viper.GetInt("message-max-length"),
-		RecipientsMinCount:            viper.GetInt("recipients-min-count"),
-		RecipientsMaxCount:            viper.GetInt("recipients-max-count"),
+		MessageJWEAlgorithm:           viper.GetString(messageJWEAlgorithm.name),
+		MessageMinLength:              viper.GetInt(messageMinLength.name),
+		MessageMaxLength:              viper.GetInt(messageMaxLength.name),
+		RecipientsMinCount:            viper.GetInt(recipientsMinCount.name),
+		RecipientsMaxCount:            viper.GetInt(recipientsMaxCount.name),
 		Realms: map[string]*cryptoutilTemplateServerRealms.RealmConfig{
 			"default":    cryptoutilTemplateServerRealms.DefaultRealm(),
 			"enterprise": cryptoutilTemplateServerRealms.EnterpriseRealm(),
