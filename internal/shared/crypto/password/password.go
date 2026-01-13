@@ -6,6 +6,7 @@
 package password
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
@@ -16,7 +17,12 @@ import (
 // HashPassword generates a FIPS-compliant PBKDF2-HMAC-SHA256 hash.
 // Always use this for new passwords.
 func HashPassword(password string) (string, error) {
-	return cryptoutilPBKDF2.HashPassword(password)
+	hash, err := cryptoutilPBKDF2.HashPassword(password)
+	if err != nil {
+		return "", fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	return hash, nil
 }
 
 // VerifyPassword verifies a password against either legacy or PBKDF2 (new) hash.
@@ -30,40 +36,43 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 	if password == "" {
 		return false, false, fmt.Errorf("password cannot be empty")
 	}
-	
+
 	if storedHash == "" {
 		return false, false, fmt.Errorf("stored hash cannot be empty")
 	}
-	
+
 	hashType := cryptoutilPBKDF2.DetectHashType(storedHash)
-	
+
 	switch hashType {
 	case "bcrypt":
 		// Legacy hash - verify only, DO NOT generate new hashes of this type.
 		err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password))
 		if err != nil {
-			if err == bcrypt.ErrMismatchedHashAndPassword {
+			if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 				return false, true, nil // Password doesn't match, but still needs upgrade.
 			}
+
 			return false, true, fmt.Errorf("legacy hash verification failed: %w", err)
 		}
+
 		return true, true, nil // Match, needs upgrade to PBKDF2.
-		
+
 	case "pbkdf2":
 		// Modern FIPS-compliant PBKDF2.
 		match, err := cryptoutilPBKDF2.VerifyPassword(password, storedHash)
 		if err != nil {
 			return false, false, fmt.Errorf("pbkdf2 verification failed: %w", err)
 		}
+
 		return match, false, nil // No upgrade needed.
-		
+
 	default:
 		return false, false, fmt.Errorf("unknown hash type: %s", hashType)
 	}
 }
 
 // DetectHashType returns the hash algorithm type from the hash string.
-// Supports: "bcrypt", "pbkdf2", "unknown"
+// Supports: "bcrypt", "pbkdf2", "unknown".
 func DetectHashType(hash string) string {
 	return cryptoutilPBKDF2.DetectHashType(hash)
 }
