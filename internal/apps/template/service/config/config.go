@@ -114,12 +114,12 @@ const (
 )
 
 var (
-	defaultTLSStaticCertPEM   = cryptoutilMagic.DefaultTLSStaticCertPEM
-	defaultTLSStaticKeyPEM    = cryptoutilMagic.DefaultTLSStaticKeyPEM
-	defaultTLSMixedCACertPEM  = cryptoutilMagic.DefaultTLSMixedCACertPEM
-	defaultTLSMixedCAKeyPEM   = cryptoutilMagic.DefaultTLSMixedCAKeyPEM
-	defaultBrowserRealms      = cryptoutilMagic.DefaultBrowserRealms
-	defaultServiceRealms      = cryptoutilMagic.DefaultServiceRealms
+	defaultTLSStaticCertPEM  = cryptoutilMagic.DefaultTLSStaticCertPEM
+	defaultTLSStaticKeyPEM   = cryptoutilMagic.DefaultTLSStaticKeyPEM
+	defaultTLSMixedCACertPEM = cryptoutilMagic.DefaultTLSMixedCACertPEM
+	defaultTLSMixedCAKeyPEM  = cryptoutilMagic.DefaultTLSMixedCAKeyPEM
+	defaultBrowserRealms     = cryptoutilMagic.DefaultBrowserRealms
+	defaultServiceRealms     = cryptoutilMagic.DefaultServiceRealms
 )
 
 // Configuration profiles for common deployment scenarios.

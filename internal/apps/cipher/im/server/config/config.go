@@ -129,23 +129,13 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 		RecipientsMaxCount:            viper.GetInt(recipientsMaxCount.Name),
 	}
 
-	// Initialize cipher-im specific realms (6 non-federated authn methods).
-	// NOTE: Realms are now stored in database and loaded at runtime.
-	// The database migration (0005_add_realms.up.sql) creates default realms.
+	// NOTE: BrowserRealms and ServiceRealms are inherited from template configuration.
+	// Template uses cryptoutilSharedMagic.DefaultBrowserRealms (6 browser realms) and
+	// cryptoutilSharedMagic.DefaultServiceRealms (6 service realms) as defaults.
+	// See internal/shared/magic/magic_identity.go for complete realm definitions.
 	// See internal/apps/cipher/im/repository/realm_domain.go for realm types.
 	// See internal/apps/cipher/im/service/realm_service.go for realm management.
-	// Browser realms (session-based authentication).
-	settings.BrowserRealms = []string{
-		"jwe-session-cookie",
-		"jws-session-cookie",
-		"opaque-session-cookie",
-	}
-	// Service realms (token-based authentication).
-	settings.ServiceRealms = []string{
-		"basic-username-password",
-		"bearer-api-token",
-		"https-client-cert",
-	}
+	// Realms are stored in database and loaded at runtime via migration 0005_add_realms.up.sql.
 
 	// Override template defaults with cipher-im specific values.
 	// NOTE: Only override public port - private admin port (9090) is universal across all services.
