@@ -135,6 +135,7 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
+	// TODO Why is this needed here? It should be handled automatically in config.Parse().
 	// Override demo-specific defaults if not explicitly set.
 	// For production deployments, these should be provided via config file or environment variables.
 	if cfg.DatabaseURL == "" {

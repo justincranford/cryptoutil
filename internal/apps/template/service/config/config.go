@@ -318,6 +318,7 @@ func (s *ServiceTemplateServerSettings) PublicBaseURL() string {
 // Setting Input values for pflag.*P(name, shortname, value, usage).
 type Setting struct {
 	name        string // unique long name for the flag
+	env         string // unique environment variable name for the flag
 	shorthand   string // unique short name for the flag
 	value       any    // default value for the flag
 	usage       string // description of the flag for help text
@@ -333,7 +334,7 @@ type analysisResult struct {
 }
 
 var (
-	help = *registerSetting(&Setting{
+	help = *setEnvAndRegisterSetting(&Setting{
 		name:      "help",
 		shorthand: "h",
 		value:     defaultHelp,
@@ -341,147 +342,147 @@ var (
 			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n", // pragma: allowlist secret
 		description: "Help",
 	})
-	configFile = *registerSetting(&Setting{
+	configFile = *setEnvAndRegisterSetting(&Setting{
 		name:        "config",
 		shorthand:   "y",
 		value:       defaultConfigFiles,
 		usage:       "path to config file (can be specified multiple times)",
 		description: "Config files",
 	})
-	logLevel = *registerSetting(&Setting{
+	logLevel = *setEnvAndRegisterSetting(&Setting{
 		name:        "log-level",
 		shorthand:   "l",
 		value:       defaultLogLevel,
 		usage:       "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
 		description: "Log Level",
 	})
-	verboseMode = *registerSetting(&Setting{
+	verboseMode = *setEnvAndRegisterSetting(&Setting{
 		name:        "verbose",
 		shorthand:   "v",
 		value:       defaultVerboseMode,
 		usage:       "verbose modifier for log level",
 		description: "Verbose mode",
 	})
-	devMode = *registerSetting(&Setting{
+	devMode = *setEnvAndRegisterSetting(&Setting{
 		name:        "dev",
 		shorthand:   "d",
 		value:       defaultDevMode,
 		usage:       "run in development mode; enables in-memory SQLite",
 		description: "Dev mode",
 	})
-	demoMode = *registerSetting(&Setting{
+	demoMode = *setEnvAndRegisterSetting(&Setting{
 		name:        "demo",
 		shorthand:   "X",
 		value:       defaultDemoMode,
 		usage:       "run in demo mode; auto-seeds demo data on startup",
 		description: "Demo mode",
 	})
-	resetDemoMode = *registerSetting(&Setting{
+	resetDemoMode = *setEnvAndRegisterSetting(&Setting{
 		name:        "reset-demo",
 		shorthand:   "g",
 		value:       defaultResetDemoMode,
 		usage:       "reset demo mode; clears and re-seeds demo data on startup",
 		description: "Reset demo mode",
 	})
-	dryRun = *registerSetting(&Setting{
+	dryRun = *setEnvAndRegisterSetting(&Setting{
 		name:        "dry-run",
 		shorthand:   "Y",
 		value:       defaultDryRun,
 		usage:       "validate configuration and exit without starting server",
 		description: "Dry run",
 	})
-	profile = *registerSetting(&Setting{
+	profile = *setEnvAndRegisterSetting(&Setting{
 		name:        "profile",
 		shorthand:   "f",
 		value:       defaultProfile,
 		usage:       "configuration profile: dev, stg, prod, test",
 		description: "Configuration profile",
 	})
-	bindPublicProtocol = *registerSetting(&Setting{
+	bindPublicProtocol = *setEnvAndRegisterSetting(&Setting{
 		name:        "bind-public-protocol",
 		shorthand:   "t",
 		value:       defaultBindPublicProtocol,
 		usage:       "bind public protocol (http or https)",
 		description: "Bind Public Protocol",
 	})
-	bindPublicAddress = *registerSetting(&Setting{
+	bindPublicAddress = *setEnvAndRegisterSetting(&Setting{
 		name:        "bind-public-address",
 		shorthand:   "a",
 		value:       defaultBindPublicAddress,
 		usage:       "bind public address",
 		description: "Bind Public Address",
 	})
-	bindPublicPort = *registerSetting(&Setting{
+	bindPublicPort = *setEnvAndRegisterSetting(&Setting{
 		name:        "bind-public-port",
 		shorthand:   "p",
 		value:       defaultBindPublicPort,
 		usage:       "bind public port",
 		description: "Bind Public Port",
 	})
-	bindPrivateProtocol = *registerSetting(&Setting{
+	bindPrivateProtocol = *setEnvAndRegisterSetting(&Setting{
 		name:        "bind-private-protocol",
 		shorthand:   "T",
 		value:       defaultBindPrivateProtocol,
 		usage:       "bind private protocol (http or https)",
 		description: "Bind Private Protocol",
 	})
-	bindPrivateAddress = *registerSetting(&Setting{
+	bindPrivateAddress = *setEnvAndRegisterSetting(&Setting{
 		name:        "bind-private-address",
 		shorthand:   "A",
 		value:       defaultBindPrivateAddress,
 		usage:       "bind private address",
 		description: "Bind Private Address",
 	})
-	bindPrivatePort = *registerSetting(&Setting{
+	bindPrivatePort = *setEnvAndRegisterSetting(&Setting{
 		name:        "bind-private-port",
 		shorthand:   "P",
 		value:       defaultBindPrivatePort,
 		usage:       "bind private port",
 		description: "Bind Private Port",
 	})
-	tlsPublicDNSNames = *registerSetting(&Setting{
+	tlsPublicDNSNames = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-public-dns-names",
 		shorthand:   "n",
 		value:       defaultTLSPublicDNSNames,
 		usage:       "TLS public DNS names",
 		description: "TLS Public DNS Names",
 	})
-	tlsPrivateDNSNames = *registerSetting(&Setting{
+	tlsPrivateDNSNames = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-private-dns-names",
 		shorthand:   "j",
 		value:       defaultTLSPrivateDNSNames,
 		usage:       "TLS private DNS names",
 		description: "TLS Private DNS Names",
 	})
-	tlsPublicIPAddresses = *registerSetting(&Setting{
+	tlsPublicIPAddresses = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-public-ip-addresses",
 		shorthand:   "i",
 		value:       defaultTLSPublicIPAddresses,
 		usage:       "TLS public IP addresses",
 		description: "TLS Public IP Addresses",
 	})
-	tlsPrivateIPAddresses = *registerSetting(&Setting{
+	tlsPrivateIPAddresses = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-private-ip-addresses",
 		shorthand:   "k",
 		value:       defaultTLSPrivateIPAddresses,
 		usage:       "TLS private IP addresses",
 		description: "TLS Private IP Addresses",
 	})
-	tlsPublicMode = *registerSetting(&Setting{
+	tlsPublicMode = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-public-mode",
 		shorthand:   "",
 		value:       defaultTLSPublicMode,
 		usage:       "TLS public mode (static, mixed, auto)",
 		description: "TLS Public Mode",
 	})
-	tlsPrivateMode = *registerSetting(&Setting{
+	tlsPrivateMode = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-private-mode",
 		shorthand:   "",
 		value:       defaultTLSPrivateMode,
 		usage:       "TLS private mode (static, mixed, auto)",
 		description: "TLS Private Mode",
 	})
-	tlsStaticCertPEM = *registerSetting(&Setting{
+	tlsStaticCertPEM = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-static-cert-pem",
 		shorthand:   "",
 		value:       defaultTLSStaticCertPEM,
@@ -489,7 +490,7 @@ var (
 		description: "TLS Static Cert PEM",
 		redacted:    true,
 	})
-	tlsStaticKeyPEM = *registerSetting(&Setting{
+	tlsStaticKeyPEM = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-static-key-pem",
 		shorthand:   "",
 		value:       defaultTLSStaticKeyPEM,
@@ -497,7 +498,7 @@ var (
 		description: "TLS Static Key PEM",
 		redacted:    true,
 	})
-	tlsMixedCACertPEM = *registerSetting(&Setting{
+	tlsMixedCACertPEM = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-mixed-ca-cert-pem",
 		shorthand:   "",
 		value:       defaultTLSMixedCACertPEM,
@@ -505,7 +506,7 @@ var (
 		description: "TLS Mixed CA Cert PEM",
 		redacted:    true,
 	})
-	tlsMixedCAKeyPEM = *registerSetting(&Setting{
+	tlsMixedCAKeyPEM = *setEnvAndRegisterSetting(&Setting{
 		name:        "tls-mixed-ca-key-pem",
 		shorthand:   "",
 		value:       defaultTLSMixedCAKeyPEM,
@@ -513,140 +514,140 @@ var (
 		description: "TLS Mixed CA Key PEM",
 		redacted:    true,
 	})
-	publicBrowserAPIContextPath = *registerSetting(&Setting{
+	publicBrowserAPIContextPath = *setEnvAndRegisterSetting(&Setting{
 		name:        "browser-api-context-path",
 		shorthand:   "c",
 		value:       defaultPublicBrowserAPIContextPath,
 		usage:       "context path for Public Browser API",
 		description: "Public Browser API Context Path",
 	})
-	publicServiceAPIContextPath = *registerSetting(&Setting{
+	publicServiceAPIContextPath = *setEnvAndRegisterSetting(&Setting{
 		name:        "service-api-context-path",
 		shorthand:   "b",
 		value:       defaultPublicServiceAPIContextPath,
 		usage:       "context path for Public Server API",
 		description: "Public Service API Context Path",
 	})
-	privateAdminAPIContextPath = *registerSetting(&Setting{
+	privateAdminAPIContextPath = *setEnvAndRegisterSetting(&Setting{
 		name:        "admin-api-context-path",
 		shorthand:   "",
 		value:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath,
 		usage:       "context path for Private Admin API",
 		description: "Private Admin API Context Path",
 	})
-	corsAllowedOrigins = *registerSetting(&Setting{
+	corsAllowedOrigins = *setEnvAndRegisterSetting(&Setting{
 		name:        "cors-origins",
 		shorthand:   "o",
 		value:       defaultCORSAllowedOrigins,
 		usage:       "CORS allowed origins",
 		description: "CORS Allowed Origins",
 	})
-	corsAllowedMethods = *registerSetting(&Setting{
+	corsAllowedMethods = *setEnvAndRegisterSetting(&Setting{
 		name:        "cors-methods",
 		shorthand:   "m",
 		value:       defaultCORSAllowedMethods,
 		usage:       "CORS allowed methods",
 		description: "CORS Allowed Methods",
 	})
-	corsAllowedHeaders = *registerSetting(&Setting{
+	corsAllowedHeaders = *setEnvAndRegisterSetting(&Setting{
 		name:        "cors-headers",
 		shorthand:   "H",
 		value:       defaultCORSAllowedHeaders,
 		usage:       "CORS allowed headers",
 		description: "CORS Allowed Headers",
 	})
-	corsMaxAge = *registerSetting(&Setting{
+	corsMaxAge = *setEnvAndRegisterSetting(&Setting{
 		name:        "cors-max-age",
 		shorthand:   "x",
 		value:       defaultCORSMaxAge,
 		usage:       "CORS max age in seconds",
 		description: "CORS Max Age",
 	})
-	csrfTokenName = *registerSetting(&Setting{
+	csrfTokenName = *setEnvAndRegisterSetting(&Setting{
 		name:        "csrf-token-name",
 		shorthand:   "N",
 		value:       defaultCSRFTokenName,
 		usage:       "CSRF token name",
 		description: "CSRF Token Name",
 	})
-	csrfTokenSameSite = *registerSetting(&Setting{
+	csrfTokenSameSite = *setEnvAndRegisterSetting(&Setting{
 		name:        "csrf-token-same-site",
 		shorthand:   "S",
 		value:       defaultCSRFTokenSameSite,
 		usage:       "CSRF token SameSite attribute",
 		description: "CSRF Token SameSite",
 	})
-	csrfTokenMaxAge = *registerSetting(&Setting{
+	csrfTokenMaxAge = *setEnvAndRegisterSetting(&Setting{
 		name:        "csrf-token-max-age",
 		shorthand:   "M",
 		value:       defaultCSRFTokenMaxAge,
 		usage:       "CSRF token max age (expiration)",
 		description: "CSRF Token Max Age",
 	})
-	csrfTokenCookieSecure = *registerSetting(&Setting{
+	csrfTokenCookieSecure = *setEnvAndRegisterSetting(&Setting{
 		name:        "csrf-token-cookie-secure",
 		shorthand:   "R",
 		value:       defaultCSRFTokenCookieSecure,
 		usage:       "CSRF token cookie Secure attribute",
 		description: "CSRF Token Cookie Secure",
 	})
-	csrfTokenCookieHTTPOnly = *registerSetting(&Setting{
+	csrfTokenCookieHTTPOnly = *setEnvAndRegisterSetting(&Setting{
 		name:        "csrf-token-cookie-http-only",
 		shorthand:   "J",
 		value:       defaultCSRFTokenCookieHTTPOnly, // False needed for Swagger UI submit CSRF workaround
 		usage:       "CSRF token cookie HttpOnly attribute",
 		description: "CSRF Token Cookie HTTPOnly",
 	})
-	csrfTokenCookieSessionOnly = *registerSetting(&Setting{
+	csrfTokenCookieSessionOnly = *setEnvAndRegisterSetting(&Setting{
 		name:        "csrf-token-cookie-session-only",
 		shorthand:   "E",
 		value:       defaultCSRFTokenCookieSessionOnly,
 		usage:       "CSRF token cookie SessionOnly attribute",
 		description: "CSRF Token Cookie SessionOnly",
 	})
-	csrfTokenSingleUseToken = *registerSetting(&Setting{
+	csrfTokenSingleUseToken = *setEnvAndRegisterSetting(&Setting{
 		name:        "csrf-token-single-use-token",
 		shorthand:   "G",
 		value:       defaultCSRFTokenSingleUseToken,
 		usage:       "CSRF token SingleUse attribute",
 		description: "CSRF Token SingleUseToken",
 	})
-	browserIPRateLimit = *registerSetting(&Setting{
+	browserIPRateLimit = *setEnvAndRegisterSetting(&Setting{
 		name:        "browser-rate-limit",
 		shorthand:   "e",
 		value:       defaultBrowserIPRateLimit,
 		usage:       "rate limit for browser API requests per second",
 		description: "Browser IP Rate Limit",
 	})
-	serviceIPRateLimit = *registerSetting(&Setting{
+	serviceIPRateLimit = *setEnvAndRegisterSetting(&Setting{
 		name:        "service-rate-limit",
 		shorthand:   "w",
 		value:       defaultServiceIPRateLimit,
 		usage:       "rate limit for service API requests per second",
 		description: "Service IP Rate Limit",
 	})
-	allowedIps = *registerSetting(&Setting{
+	allowedIps = *setEnvAndRegisterSetting(&Setting{
 		name:        "allowed-ips",
 		shorthand:   "I",
 		value:       defaultAllowedIps,
 		usage:       "comma-separated list of allowed IPs",
 		description: "Allowed IPs",
 	})
-	allowedCidrs = *registerSetting(&Setting{
+	allowedCidrs = *setEnvAndRegisterSetting(&Setting{
 		name:        "allowed-cidrs",
 		shorthand:   "C",
 		value:       defaultAllowedCIDRs,
 		usage:       "comma-separated list of allowed CIDRs",
 		description: "Allowed CIDRs",
 	})
-	swaggerUIUsername = *registerSetting(&Setting{
+	swaggerUIUsername = *setEnvAndRegisterSetting(&Setting{
 		name:        "swagger-ui-username",
 		shorthand:   "1",
 		value:       defaultSwaggerUIUsername,
 		usage:       "username for Swagger UI basic authentication",
 		description: "Swagger UI Username",
 	})
-	swaggerUIPassword = *registerSetting(&Setting{
+	swaggerUIPassword = *setEnvAndRegisterSetting(&Setting{
 		name:        "swagger-ui-password",
 		shorthand:   "2",
 		value:       defaultSwaggerUIPassword,
@@ -654,21 +655,21 @@ var (
 		description: "Swagger UI Password",
 		redacted:    true,
 	})
-	requestBodyLimit = *registerSetting(&Setting{
+	requestBodyLimit = *setEnvAndRegisterSetting(&Setting{
 		name:        "request-body-limit",
 		shorthand:   "L",
 		value:       defaultRequestBodyLimit,
 		usage:       "Maximum request body size in bytes",
 		description: "Request Body Limit",
 	})
-	databaseContainer = *registerSetting(&Setting{
+	databaseContainer = *setEnvAndRegisterSetting(&Setting{
 		name:        "database-container",
 		shorthand:   "D",
 		value:       defaultDatabaseContainer,
 		usage:       "database container mode; true to use container, false to use local database",
 		description: "Database Container",
 	})
-	databaseURL = *registerSetting(&Setting{
+	databaseURL = *setEnvAndRegisterSetting(&Setting{
 		name:        "database-url",
 		shorthand:   "u",
 		value:       defaultDatabaseURL,
@@ -676,91 +677,91 @@ var (
 		description: "Database URL",
 		redacted:    true,
 	})
-	databaseInitTotalTimeout = *registerSetting(&Setting{
+	databaseInitTotalTimeout = *setEnvAndRegisterSetting(&Setting{
 		name:        "database-init-total-timeout",
 		shorthand:   "Z",
 		value:       defaultDatabaseInitTotalTimeout,
 		usage:       "database init total timeout",
 		description: "Database Init Total Timeout",
 	})
-	databaseInitRetryWait = *registerSetting(&Setting{
+	databaseInitRetryWait = *setEnvAndRegisterSetting(&Setting{
 		name:        "database-init-retry-wait",
 		shorthand:   "W",
 		value:       defaultDatabaseInitRetryWait,
 		usage:       "database init retry wait",
 		description: "Database Init Retry Wait",
 	})
-	serverShutdownTimeout = *registerSetting(&Setting{
+	serverShutdownTimeout = *setEnvAndRegisterSetting(&Setting{
 		name:        "server-shutdown-timeout",
 		shorthand:   "",
 		value:       defaultServerShutdownTimeout,
 		usage:       "server shutdown timeout",
 		description: "Server Shutdown Timeout",
 	})
-	otlpEnabled = *registerSetting(&Setting{
+	otlpEnabled = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp",
 		shorthand:   "z",
 		value:       defaultOTLPEnabled,
 		usage:       "enable OTLP export",
 		description: "OTLP Export",
 	})
-	otlpConsole = *registerSetting(&Setting{
+	otlpConsole = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp-console",
 		shorthand:   "q",
 		value:       defaultOTLPConsole,
 		usage:       "enable OTLP logging to console (STDOUT)",
 		description: "OTLP Console",
 	})
-	otlpService = *registerSetting(&Setting{
+	otlpService = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp-service",
 		shorthand:   "s",
 		value:       defaultOTLPService,
 		usage:       "OTLP service",
 		description: "OTLP Service",
 	})
-	otlpVersion = *registerSetting(&Setting{
+	otlpVersion = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp-version",
 		shorthand:   "B",
 		value:       defaultOTLPVersion,
 		usage:       "OTLP version",
 		description: "OTLP Version",
 	})
-	otlpEnvironment = *registerSetting(&Setting{
+	otlpEnvironment = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp-environment",
 		shorthand:   "K",
 		value:       defaultOTLPEnvironment,
 		usage:       "OTLP environment",
 		description: "OTLP Environment",
 	})
-	otlpHostname = *registerSetting(&Setting{
+	otlpHostname = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp-hostname",
 		shorthand:   "O",
 		value:       defaultOTLPHostname,
 		usage:       "OTLP hostname",
 		description: "OTLP Hostname",
 	})
-	otlpEndpoint = *registerSetting(&Setting{
+	otlpEndpoint = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp-endpoint",
 		shorthand:   "",
 		value:       defaultOTLPEndpoint,
 		usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
 		description: "OTLP Endpoint",
 	})
-	otlpInstance = *registerSetting(&Setting{
+	otlpInstance = *setEnvAndRegisterSetting(&Setting{
 		name:        "otlp-instance",
 		shorthand:   "V",
 		value:       defaultOTLPInstance,
 		usage:       "OTLP instance id",
 		description: "OTLP Instance",
 	})
-	unsealMode = *registerSetting(&Setting{
+	unsealMode = *setEnvAndRegisterSetting(&Setting{
 		name:        "unseal-mode",
 		shorthand:   "5",
 		value:       defaultUnsealMode,
 		usage:       "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
 		description: "Unseal Mode",
 	})
-	unsealFiles = *registerSetting(&Setting{
+	unsealFiles = *setEnvAndRegisterSetting(&Setting{
 		name:      "unseal-files",
 		shorthand: "F",
 		value:     defaultUnsealFiles,
@@ -769,7 +770,7 @@ var (
 			"used for N unseal keys or M-of-N unseal shared secrets",
 		description: "Unseal Files",
 	})
-	realms = *registerSetting(&Setting{
+	realms = *setEnvAndRegisterSetting(&Setting{
 		name:      "realms",
 		shorthand: "r",
 		value:     defaultRealms,
@@ -778,77 +779,77 @@ var (
 			"defines authentication realms with username/password policies",
 		description: "Authentication Realms",
 	})
-	browserSessionCookie = *registerSetting(&Setting{
+	browserSessionCookie = *setEnvAndRegisterSetting(&Setting{
 		name:        "browser-session-cookie",
 		shorthand:   "Q",
 		value:       defaultBrowserSessionCookie,
 		usage:       "browser session cookie type: jwe (encrypted), jws (signed), opaque (database); defaults to jws for stateless signed tokens [DEPRECATED: use browser-session-algorithm]",
 		description: "Browser Session Cookie Type",
 	})
-	browserSessionAlgorithm = *registerSetting(&Setting{
+	browserSessionAlgorithm = *setEnvAndRegisterSetting(&Setting{
 		name:        "browser-session-algorithm",
 		shorthand:   "",
 		value:       defaultBrowserSessionAlgorithm,
 		usage:       "browser session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
 		description: "Browser Session Algorithm",
 	})
-	browserSessionJWSAlgorithm = *registerSetting(&Setting{
+	browserSessionJWSAlgorithm = *setEnvAndRegisterSetting(&Setting{
 		name:        "browser-session-jws-algorithm",
 		shorthand:   "",
 		value:       defaultBrowserSessionJWSAlgorithm,
 		usage:       "JWS algorithm for browser sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
 		description: "Browser Session JWS Algorithm",
 	})
-	browserSessionJWEAlgorithm = *registerSetting(&Setting{
+	browserSessionJWEAlgorithm = *setEnvAndRegisterSetting(&Setting{
 		name:        "browser-session-jwe-algorithm",
 		shorthand:   "",
 		value:       defaultBrowserSessionJWEAlgorithm,
 		usage:       "JWE algorithm for browser sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
 		description: "Browser Session JWE Algorithm",
 	})
-	browserSessionExpiration = *registerSetting(&Setting{
+	browserSessionExpiration = *setEnvAndRegisterSetting(&Setting{
 		name:        "browser-session-expiration",
 		shorthand:   "",
 		value:       defaultBrowserSessionExpiration,
 		usage:       "browser session expiration duration (e.g., 24h, 48h)",
 		description: "Browser Session Expiration",
 	})
-	serviceSessionAlgorithm = *registerSetting(&Setting{
+	serviceSessionAlgorithm = *setEnvAndRegisterSetting(&Setting{
 		name:        "service-session-algorithm",
 		shorthand:   "",
 		value:       defaultServiceSessionAlgorithm,
 		usage:       "service session algorithm: OPAQUE (hashed UUIDv7), JWS (signed JWT), JWE (encrypted JWT)",
 		description: "Service Session Algorithm",
 	})
-	serviceSessionJWSAlgorithm = *registerSetting(&Setting{
+	serviceSessionJWSAlgorithm = *setEnvAndRegisterSetting(&Setting{
 		name:        "service-session-jws-algorithm",
 		shorthand:   "",
 		value:       defaultServiceSessionJWSAlgorithm,
 		usage:       "JWS algorithm for service sessions (e.g., RS256, RS384, RS512, ES256, ES384, ES512, EdDSA)",
 		description: "Service Session JWS Algorithm",
 	})
-	serviceSessionJWEAlgorithm = *registerSetting(&Setting{
+	serviceSessionJWEAlgorithm = *setEnvAndRegisterSetting(&Setting{
 		name:        "service-session-jwe-algorithm",
 		shorthand:   "",
 		value:       defaultServiceSessionJWEAlgorithm,
 		usage:       "JWE algorithm for service sessions (e.g., dir+A256GCM, A256GCMKW+A256GCM)",
 		description: "Service Session JWE Algorithm",
 	})
-	serviceSessionExpiration = *registerSetting(&Setting{
+	serviceSessionExpiration = *setEnvAndRegisterSetting(&Setting{
 		name:        "service-session-expiration",
 		shorthand:   "",
 		value:       defaultServiceSessionExpiration,
 		usage:       "service session expiration duration (e.g., 168h for 7 days)",
 		description: "Service Session Expiration",
 	})
-	sessionIdleTimeout = *registerSetting(&Setting{
+	sessionIdleTimeout = *setEnvAndRegisterSetting(&Setting{
 		name:        "session-idle-timeout",
 		shorthand:   "",
 		value:       defaultSessionIdleTimeout,
 		usage:       "session idle timeout duration (e.g., 2h)",
 		description: "Session Idle Timeout",
 	})
-	sessionCleanupInterval = *registerSetting(&Setting{
+	sessionCleanupInterval = *setEnvAndRegisterSetting(&Setting{
 		name:        "session-cleanup-interval",
 		shorthand:   "",
 		value:       defaultSessionCleanupInterval,
@@ -908,44 +909,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 
 	// Explicitly bind boolean environment variables (viper.AutomaticEnv may not handle booleans correctly)
 	// Note: viper.BindEnv errors are logged but don't prevent startup as they are extremely rare
-	if err := viper.BindEnv("verbose", "CRYPTOUTIL_VERBOSE"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_VERBOSE: %v\n", err)
-	}
-
-	if err := viper.BindEnv("dev", "CRYPTOUTIL_DEV_MODE"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_DEV_MODE: %v\n", err)
-	}
-
-	if err := viper.BindEnv("dry-run", "CRYPTOUTIL_DRY_RUN"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_DRY_RUN: %v\n", err)
-	}
-
-	if err := viper.BindEnv("otlp", "CRYPTOUTIL_OTLP"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP: %v\n", err)
-	}
-
-	if err := viper.BindEnv("otlp-instance", "CRYPTOUTIL_OTLP_INSTANCE"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP_INSTANCE: %v\n", err)
-	}
-
-	if err := viper.BindEnv("otlp-console", "CRYPTOUTIL_OTLP_CONSOLE"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP_CONSOLE: %v\n", err)
-	}
-
-	if err := viper.BindEnv("csrf-token-cookie-secure", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE: %v\n", err)
-	}
-
-	if err := viper.BindEnv("csrf-token-cookie-http-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY: %v\n", err)
-	}
-
-	if err := viper.BindEnv("csrf-token-cookie-session-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY: %v\n", err)
-	}
-
-	if err := viper.BindEnv("csrf-token-single-use-token", "CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN"); err != nil {
-		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN: %v\n", err)
+	for _, setting := range allRegisteredSettings {
+		if val, ok := setting.value.(bool); ok && val {
+			if err := viper.BindEnv(setting.name, setting.env); err != nil {
+				fmt.Printf("Warning: failed to bind environment variable %s: %v\n", setting.env, err)
+			}
+		}
 	}
 
 	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
@@ -1364,7 +1333,9 @@ func resetFlags() {
 	viper.Reset()
 }
 
-func registerSetting(setting *Setting) *Setting {
+func setEnvAndRegisterSetting(setting *Setting) *Setting {
+	setting.env = "CRYPTOUTIL_" + strings.ToUpper(strings.ReplaceAll(setting.name, "-", "_"))
+
 	allRegisteredSettings = append(allRegisteredSettings, setting)
 
 	return setting
