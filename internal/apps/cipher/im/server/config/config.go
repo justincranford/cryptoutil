@@ -60,6 +60,10 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	}
 
 	// Initialize cipher-im specific realms (6 non-federated authn methods).
+	// NOTE: Realms are now stored in database and loaded at runtime.
+	// The database migration (0005_add_realms.up.sql) creates default realms.
+	// See internal/apps/cipher/im/repository/realm_domain.go for realm types.
+	// See internal/apps/cipher/im/service/realm_service.go for realm management.
 	settings.Realms = []string{
 		"jwe-session-cookie",
 		"jws-session-cookie",

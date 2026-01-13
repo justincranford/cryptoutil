@@ -35,10 +35,12 @@ type CipherIMServer struct {
 	jwkGenService         *cryptoutilJose.JWKGenService
 	barrierService        *cryptoutilTemplateBarrier.BarrierService
 	sessionManagerService *businesslogic.SessionManagerService
+	realmService          businesslogic.RealmService
 
 	// Repositories.
 	userRepo    *repository.UserRepository
 	messageRepo *repository.MessageRepository
+	realmRepo   repository.RealmRepository
 }
 
 // NewFromConfig creates a new cipher-im server from CipherImServerSettings only.
@@ -208,6 +210,10 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	messageRepo := repository.NewMessageRepository(core.DB)
 	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(core.DB, barrierService)
 
+	// Initialize realm repository and service.
+	realmRepo := repository.NewRealmRepository(core.DB)
+	realmService := businesslogic.NewRealmService(realmRepo)
+
 	// Initialize SessionManager service for session management.
 	sessionManagerService, err := businesslogic.NewSessionManagerService(
 		ctx,
@@ -322,8 +328,10 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		jwkGenService:         core.Basic.JWKGenService,
 		barrierService:        barrierService,
 		sessionManagerService: sessionManagerService,
+		realmService:          realmService,
 		userRepo:              userRepo,
 		messageRepo:           messageRepo,
+		realmRepo:             realmRepo,
 	}, nil
 }
 

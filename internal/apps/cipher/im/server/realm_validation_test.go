@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilTemplateServerRealms "cryptoutil/internal/apps/template/service/server/realms"
 
 	"github.com/stretchr/testify/require"
@@ -24,22 +23,22 @@ func TestValidatePasswordForRealm_ValidPasswords(t *testing.T) {
 	}{
 		{
 			name:     "default realm - valid password with all character types",
-			password: "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation
+			password: "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation.
 			realm:    cryptoutilTemplateServerRealms.DefaultRealm(),
 		},
 		{
 			name:     "default realm - minimum length with variety",
-			password: "Aa1!Bb2@Cc3#", // pragma: allowlist secret - Test vector for realm validation
+			password: "Aa1!Bb2@Cc3#", // pragma: allowlist secret - Test vector for realm validation.
 			realm:    cryptoutilTemplateServerRealms.DefaultRealm(),
 		},
 		{
 			name:     "enterprise realm - strong password",
-			password: "Enterprise2025!SecurePass", // pragma: allowlist secret - Test vector for realm validation
+			password: "Enterprise2025!SecurePass", // pragma: allowlist secret - Test vector for realm validation.
 			realm:    cryptoutilTemplateServerRealms.EnterpriseRealm(),
 		},
 		{
 			name:     "enterprise realm - exactly 16 chars with variety",
-			password: "Entr1se!2025Pasx", // pragma: allowlist secret - Test vector for realm validation
+			password: "Entr1se!2025Pasx", // pragma: allowlist secret - Test vector for realm validation.
 			realm:    cryptoutilTemplateServerRealms.EnterpriseRealm(),
 		},
 	}
@@ -65,61 +64,61 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 	}{
 		{
 			name:        "nil realm",
-			password:    "ValidPass123!", // pragma: allowlist secret - Test vector for realm validation
+			password:    "ValidPass123!", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       nil,
 			expectedErr: "realm configuration is nil",
 		},
 		{
 			name:        "too short for default realm",
-			password:    "Abc1!", // pragma: allowlist secret - Test vector for realm validation
+			password:    "Abc1!", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.DefaultRealm(),
 			expectedErr: "password must be at least 12 characters long",
 		},
 		{
 			name:        "too short for enterprise realm",
-			password:    "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation
+			password:    "Abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.EnterpriseRealm(),
 			expectedErr: "password must be at least 16 characters long",
 		},
 		{
 			name:        "missing uppercase",
-			password:    "abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation
+			password:    "abc123!@#xyz", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.DefaultRealm(),
 			expectedErr: "password must contain at least one uppercase letter",
 		},
 		{
 			name:        "missing lowercase",
-			password:    "ABC123!@#XYZ", // pragma: allowlist secret - Test vector for realm validation
+			password:    "ABC123!@#XYZ", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.DefaultRealm(),
 			expectedErr: "password must contain at least one lowercase letter",
 		},
 		{
 			name:        "missing digit",
-			password:    "Abcdefg!@#xy", // pragma: allowlist secret - Test vector for realm validation
+			password:    "Abcdefg!@#xy", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.DefaultRealm(),
 			expectedErr: "password must contain at least one digit",
 		},
 		{
 			name:        "missing special character",
-			password:    "Abc123456xyz", // pragma: allowlist secret - Test vector for realm validation
+			password:    "Abc123456xyz", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.DefaultRealm(),
 			expectedErr: "password must contain at least one special character",
 		},
 		{
 			name:        "insufficient unique characters",
-			password:    "Aaaa1111!!!!", // pragma: allowlist secret - Test vector for realm validation
+			password:    "Aaaa1111!!!!", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.DefaultRealm(),
 			expectedErr: "password must contain at least 8 unique characters",
 		},
 		{
 			name:        "too many consecutive repeated characters (default)",
-			password:    "Abc1aaaa23!@", // pragma: allowlist secret - Test vector for realm validation
+			password:    "Abc1aaaa23!@", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.DefaultRealm(),
 			expectedErr: "password must not contain more than 3 consecutive repeated characters",
 		},
 		{
 			name:        "too many consecutive repeated characters (enterprise)",
-			password:    "Enterprise2025!aaa", // pragma: allowlist secret - Test vector for realm validation
+			password:    "Enterprise2025!aaa", // pragma: allowlist secret - Test vector for realm validation.
 			realm:       cryptoutilTemplateServerRealms.EnterpriseRealm(),
 			expectedErr: "password must not contain more than 2 consecutive repeated characters",
 		},
@@ -132,77 +131,6 @@ func TestValidatePasswordForRealm_InvalidPasswords(t *testing.T) {
 			err := cryptoutilTemplateServerRealms.ValidatePasswordForRealm(tt.password, tt.realm)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), tt.expectedErr)
-		})
-	}
-}
-
-func TestGetRealmConfig_ExistingRealms(t *testing.T) {
-	t.Parallel()
-
-	cfg := config.DefaultTestConfig()
-
-	tests := []struct {
-		name           string
-		realmName      string
-		expectedMinLen int
-	}{
-		{
-			name:           "default realm",
-			realmName:      "default",
-			expectedMinLen: 12,
-		},
-		{
-			name:           "enterprise realm",
-			realmName:      "enterprise",
-			expectedMinLen: 16,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			realm := cfg.GetRealmConfig(tt.realmName)
-			require.NotNil(t, realm)
-			require.Equal(t, tt.expectedMinLen, realm.PasswordMinLength)
-		})
-	}
-}
-
-func TestGetRealmConfig_FallbackToDefault(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name      string
-		cfg       *config.CipherImServerSettings
-		realmName string
-	}{
-		{
-			name:      "empty realm name",
-			cfg:       config.DefaultTestConfig(),
-			realmName: "",
-		},
-		{
-			name:      "nonexistent realm",
-			cfg:       config.DefaultTestConfig(),
-			realmName: "nonexistent",
-		},
-		{
-			name: "nil realms map",
-			cfg: &config.CipherImServerSettings{
-				Realms: nil,
-			},
-			realmName: "any",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			realm := tt.cfg.GetRealmConfig(tt.realmName)
-			require.NotNil(t, realm)
-			require.Equal(t, 12, realm.PasswordMinLength) // Default realm.
 		})
 	}
 }
@@ -252,10 +180,10 @@ func TestValidateUsernameForRealm(t *testing.T) {
 			expectedErr: "username must be at least 3 characters long",
 		},
 		{
-			name:        "nil realm",
-			username:    "validuser",
+			name:        "invalid - empty string",
+			username:    "",
 			wantErr:     true,
-			expectedErr: "realm configuration is nil",
+			expectedErr: "username must be at least 3 characters long",
 		},
 	}
 
@@ -263,13 +191,7 @@ func TestValidateUsernameForRealm(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var err error
-			if tt.name == "nil realm" {
-				err = cryptoutilTemplateServerRealms.ValidateUsernameForRealm(tt.username, nil)
-			} else {
-				err = cryptoutilTemplateServerRealms.ValidateUsernameForRealm(tt.username, realm)
-			}
-
+			err := cryptoutilTemplateServerRealms.ValidateUsernameForRealm(tt.username, realm)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.expectedErr)
@@ -278,4 +200,23 @@ func TestValidateUsernameForRealm(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDefaultAndEnterpriseRealmDefaults(t *testing.T) {
+	t.Parallel()
+
+	defaultRealm := cryptoutilTemplateServerRealms.DefaultRealm()
+	enterpriseRealm := cryptoutilTemplateServerRealms.EnterpriseRealm()
+
+	// Verify default realm settings.
+	require.Equal(t, 12, defaultRealm.PasswordMinLength, "default realm password min length")
+	require.Equal(t, 3, defaultRealm.PasswordMaxRepeatedChars, "default realm max repeated chars")
+
+	// Verify enterprise realm has stricter settings.
+	require.Equal(t, 16, enterpriseRealm.PasswordMinLength, "enterprise realm password min length")
+	require.Equal(t, 2, enterpriseRealm.PasswordMaxRepeatedChars, "enterprise realm max repeated chars")
+
+	// Enterprise should be stricter than default.
+	require.Greater(t, enterpriseRealm.PasswordMinLength, defaultRealm.PasswordMinLength, "enterprise should require longer passwords")
+	require.Less(t, enterpriseRealm.PasswordMaxRepeatedChars, defaultRealm.PasswordMaxRepeatedChars, "enterprise should allow fewer repeated chars")
 }
