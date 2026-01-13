@@ -8,11 +8,11 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
 )
 
 // RecoveryCodeRepository defines minimal repository interface.
@@ -49,8 +49,8 @@ func (s *RecoveryCodeService) GenerateForUser(ctx context.Context, userID google
 	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRecoveryCodeLifetime)
 
 	for i, plaintext := range plaintextCodes {
-		// Hash code with bcrypt (cost 10 = default).
-		hash, err := bcrypt.GenerateFromPassword([]byte(plaintext), bcrypt.DefaultCost)
+		// Hash code with PBKDF2 (FIPS-compliant).
+		hash, err := cryptoutilPassword.HashPassword(plaintext)
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash recovery code: %w", err)
 		}
@@ -88,8 +88,9 @@ func (s *RecoveryCodeService) Verify(ctx context.Context, userID googleUuid.UUID
 			continue
 		}
 
-		// Compare plaintext with bcrypt hash.
-		if err := bcrypt.CompareHashAndPassword([]byte(code.CodeHash), []byte(plaintext)); err == nil {
+		// Compare plaintext with hash (supports both bcrypt legacy and PBKDF2 new).
+		match, _, err := cryptoutilPassword.VerifyPassword(plaintext, code.CodeHash)
+		if err == nil && match {
 			// Code matches - mark as used.
 			code.MarkAsUsed()
 

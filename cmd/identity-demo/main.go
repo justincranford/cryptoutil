@@ -21,7 +21,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
@@ -29,6 +28,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
 )
 
 const (
@@ -267,8 +267,8 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 }
 
 func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) error {
-	// Hash the client secret.
-	hashedSecret, err := bcrypt.GenerateFromPassword([]byte(demoClientSecret), bcrypt.DefaultCost)
+	// Hash the client secret with PBKDF2 (FIPS-compliant).
+	hashedSecret, err := cryptoutilPassword.HashPassword(demoClientSecret)
 	if err != nil {
 		return fmt.Errorf("failed to hash client secret: %w", err)
 	}
@@ -280,7 +280,7 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                demoClientID,
-		ClientSecret:            string(hashedSecret),
+		ClientSecret:            hashedSecret,
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    demoClientName,
 		Description:             "Demo OAuth 2.1 client for testing",

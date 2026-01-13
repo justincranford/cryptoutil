@@ -13,9 +13,9 @@ import (
 	cryptoutilIdentityEmail "cryptoutil/internal/identity/email"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRateLimit "cryptoutil/internal/identity/ratelimit"
+	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
 
 	googleUuid "github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // EmailOTPService handles email-based OTP generation and verification.
@@ -60,8 +60,8 @@ func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, e
 		return fmt.Errorf("failed to generate OTP: %w", err)
 	}
 
-	// Hash OTP with bcrypt.
-	hashedOTP, err := bcrypt.GenerateFromPassword([]byte(plainOTP), bcrypt.DefaultCost)
+	// Hash OTP with PBKDF2 (FIPS-compliant).
+	hashedOTP, err := cryptoutilPassword.HashPassword(plainOTP)
 	if err != nil {
 		return fmt.Errorf("failed to hash OTP: %w", err)
 	}
@@ -70,7 +70,7 @@ func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, e
 	otp := &cryptoutilIdentityDomain.EmailOTP{
 		ID:        googleUuid.New(),
 		UserID:    userID,
-		CodeHash:  string(hashedOTP),
+		CodeHash:  hashedOTP,
 		Used:      false,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultEmailOTPLifetime),
@@ -109,8 +109,12 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 		return cryptoutilIdentityAppErr.ErrOTPAlreadyUsed
 	}
 
-	// Verify OTP code using bcrypt.
-	if err := bcrypt.CompareHashAndPassword([]byte(otp.CodeHash), []byte(code)); err != nil {
+	// Verify OTP code (supports both bcrypt legacy and PBKDF2 new hashes).
+	match, _, err := cryptoutilPassword.VerifyPassword(code, otp.CodeHash)
+	if err != nil {
+		return fmt.Errorf("%w: verification failed", cryptoutilIdentityAppErr.ErrInvalidOTP)
+	}
+	if !match {
 		return cryptoutilIdentityAppErr.ErrInvalidOTP
 	}
 

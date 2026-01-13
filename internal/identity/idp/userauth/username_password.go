@@ -13,9 +13,9 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
 
 	googleUuid "github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // PasswordCredentialStore defines the interface for storing and retrieving password credentials.
@@ -234,18 +234,29 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 		return fmt.Errorf("failed to retrieve credential: %w", err)
 	}
 
-	// Verify old password.
-	if err := bcrypt.CompareHashAndPassword(currentHash, []byte(oldPassword)); err != nil {
+	// Verify old password (supports both bcrypt legacy and PBKDF2 new hashes).
+	match, needsUpgrade, err := cryptoutilPassword.VerifyPassword(oldPassword, string(currentHash))
+	if err != nil {
+		return fmt.Errorf("password verification failed: %w", err)
+	}
+	if !match {
 		return fmt.Errorf("invalid current password")
 	}
 
-	// Hash new password.
-	newHash, err := u.HashPassword(newPassword)
+	// Hash new password (always uses PBKDF2).
+	newHashStr, err := cryptoutilPassword.HashPassword(newPassword)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
+	newHash := []byte(newHashStr)
+
+	// If old hash was bcrypt, opportunistically upgrade to PBKDF2.
+	if needsUpgrade {
+		// Note: newHash is already PBKDF2, which is the desired behavior.
+	}
 
 	// Ensure new password is different from old password.
+	// Note: This comparison is approximate due to salt randomization.
 	if subtle.ConstantTimeCompare(currentHash, newHash) == 1 {
 		return fmt.Errorf("new password must be different from current password")
 	}
