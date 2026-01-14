@@ -18,14 +18,15 @@ import (
 //   - JWS algorithms: Generate asymmetric signing JWK
 //   - OPAQUE: Not used (no JWKs stored for hash-based tokens)
 //
-// Selection: The latest JWK is deterministically selected using max(CreatedAt).
+// Selection: The latest active JWK is deterministically selected using max(CreatedAt).
 // This eliminates race conditions in multi-instance deployments where multiple
 // instances share the same database.
 type SessionJWK struct {
 	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
 	EncryptedJWK string          `gorm:"type:text;not null"` // JWK encrypted with barrier layer.
 	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP;index"`
-	Algorithm    string          `gorm:"type:text;not null"` // JWE or JWS algorithm identifier.
+	Algorithm    string          `gorm:"type:text;not null"`          // JWE or JWS algorithm identifier.
+	Active       bool            `gorm:"not null;default:true;index"` // Active key for signing, historical keys for verification.
 }
 
 // BrowserSessionJWK represents a JWK for browser session tokens.

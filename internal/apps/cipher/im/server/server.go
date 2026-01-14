@@ -137,6 +137,14 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
+	// Ensure default tenant exists (cipher-im is single-tenant).
+	// This allows user creation without requiring explicit tenant management.
+	if err := ensureDefaultTenant(core.DB); err != nil {
+		core.Shutdown()
+
+		return nil, fmt.Errorf("failed to ensure default tenant: %w", err)
+	}
+
 	// Create GORM barrier repository adapter.
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(core.DB)
 	if err != nil {
@@ -145,50 +153,8 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		return nil, fmt.Errorf("failed to create barrier repository: %w", err)
 	}
 
-	// Drop stale barrier tables completely before AutoMigrate creates clean schema.
-	// GORM AutoMigrate doesn't drop removed columns, and GORM Migrator.DropColumn
-	// generates invalid SQL for SQLite (comments cause "incomplete input" errors).
-	// Dropping tables ensures clean schema matching current struct definitions.
-	if err := core.DB.Migrator().DropTable(
-		&cryptoutilTemplateBarrier.BarrierRootKey{},
-		&cryptoutilTemplateBarrier.BarrierIntermediateKey{},
-		&cryptoutilTemplateBarrier.BarrierContentKey{},
-	); err != nil {
-		// Ignore error if tables don't exist (first run).
-		core.Basic.TelemetryService.Slogger.Info("dropping barrier tables (if exist)", "error", err)
-	}
-
-	// Now AutoMigrate barrier tables with clean schema.
-	if err := core.DB.AutoMigrate(
-		&cryptoutilTemplateBarrier.BarrierRootKey{},
-		&cryptoutilTemplateBarrier.BarrierIntermediateKey{},
-		&cryptoutilTemplateBarrier.BarrierContentKey{},
-	); err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to migrate barrier tables: %w", err)
-	}
-
-	// Drop stale session JWK tables completely before AutoMigrate creates clean schema.
-	// PostgreSQL strict typing rejects boolean for int4 columns (active column).
-	// SQLite type affinity masks this issue. Drop tables to ensure clean schema.
-	if err := core.DB.Migrator().DropTable(
-		&cryptoutilTemplateRepository.BrowserSessionJWK{},
-		&cryptoutilTemplateRepository.ServiceSessionJWK{},
-	); err != nil {
-		// Ignore error if tables don't exist (first run).
-		core.Basic.TelemetryService.Slogger.Info("dropping session JWK tables (if exist)", "error", err)
-	}
-
-	// Now AutoMigrate session JWK tables with clean schema.
-	if err := core.DB.AutoMigrate(
-		&cryptoutilTemplateRepository.BrowserSessionJWK{},
-		&cryptoutilTemplateRepository.ServiceSessionJWK{},
-	); err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to migrate session JWK tables: %w", err)
-	}
+	// NOTE: Session JWK tables are created by golang-migrate SQL migrations (1001_session_management.up.sql).
+	// GORM AutoMigrate is NOT used because it conflicts with SQL migration comments.
 
 	// Create barrier service with GORM repository.
 	// For cipher-im demo service, unseal keys are already initialized in ApplicationBasic.
@@ -215,6 +181,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	realmService := businesslogic.NewRealmService(realmRepo)
 
 	// Initialize SessionManager service for session management.
+	// Pass cipher-im's default tenant ID so single-tenant convenience methods work correctly.
 	sessionManagerService, err := businesslogic.NewSessionManagerService(
 		ctx,
 		core.DB,
@@ -222,6 +189,8 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		core.Basic.JWKGenService,
 		barrierService,
 		cfg.ServiceTemplateServerSettings,
+		cryptoutilMagic.CipherIMDefaultTenantID,
+		cryptoutilMagic.CipherIMDefaultRealmID,
 	)
 	if err != nil {
 		core.Shutdown()
@@ -399,4 +368,35 @@ func (s *CipherIMServer) SessionManager() *businesslogic.SessionManagerService {
 // but before starting the server. This enables the /admin/v1/readyz endpoint.
 func (s *CipherIMServer) SetReady(ready bool) {
 	s.app.SetReady(ready)
+}
+
+// ensureDefaultTenant creates the default tenant for cipher-im if it doesn't exist.
+// Cipher-im operates as a single-tenant service, so all users belong to the default tenant.
+// This function is idempotent - it won't create duplicates if the tenant already exists.
+func ensureDefaultTenant(db *gorm.DB) error {
+	// Check if default tenant already exists.
+	var count int64
+	if err := db.Model(&cryptoutilTemplateRepository.Tenant{}).
+		Where("id = ?", cryptoutilMagic.CipherIMDefaultTenantID).
+		Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to check for default tenant: %w", err)
+	}
+
+	if count > 0 {
+		return nil // Default tenant already exists.
+	}
+
+	// Create default tenant.
+	tenant := &cryptoutilTemplateRepository.Tenant{
+		ID:          cryptoutilMagic.CipherIMDefaultTenantID,
+		Name:        cryptoutilMagic.CipherIMDefaultTenantName,
+		Description: "Default tenant for cipher-im single-tenant deployment",
+		Active:      1,
+	}
+
+	if err := db.Create(tenant).Error; err != nil {
+		return fmt.Errorf("failed to create default tenant: %w", err)
+	}
+
+	return nil
 }

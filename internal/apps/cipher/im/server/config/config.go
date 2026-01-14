@@ -94,26 +94,6 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	// Parse flags.
 	pflag.Parse()
 
-	if strVal, ok := messageJWEAlgorithm.Value.(string); ok {
-		pflag.String(messageJWEAlgorithm.Name, strVal, messageJWEAlgorithm.Description)
-	}
-
-	if intVal, ok := messageMinLength.Value.(int); ok {
-		pflag.Int(messageMinLength.Name, intVal, messageMinLength.Description)
-	}
-
-	if intVal, ok := messageMaxLength.Value.(int); ok {
-		pflag.Int(messageMaxLength.Name, intVal, messageMaxLength.Description)
-	}
-
-	if intVal, ok := recipientsMinCount.Value.(int); ok {
-		pflag.Int(recipientsMinCount.Name, intVal, recipientsMinCount.Description)
-	}
-
-	if intVal, ok := recipientsMaxCount.Value.(int); ok {
-		pflag.Int(recipientsMaxCount.Name, intVal, recipientsMaxCount.Description)
-	}
-
 	// Bind flags to viper.
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		return nil, fmt.Errorf("failed to bind flags: %w", err)

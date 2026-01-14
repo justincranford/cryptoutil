@@ -25,7 +25,8 @@ func TestToAppErr_RecordNotFound(t *testing.T) {
 	err := toAppErr(gorm.ErrRecordNotFound)
 	require.Error(t, err)
 
-	appErr, ok := err.(*cryptoutilAppErr.Error)
+	appErr := &cryptoutilAppErr.Error{}
+	ok := errors.As(err, &appErr)
 	require.True(t, ok)
 	require.Equal(t, 404, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }
@@ -36,7 +37,8 @@ func TestToAppErr_DuplicatedKey(t *testing.T) {
 	err := toAppErr(gorm.ErrDuplicatedKey)
 	require.Error(t, err)
 
-	appErr, ok := err.(*cryptoutilAppErr.Error)
+	appErr := &cryptoutilAppErr.Error{}
+	ok := errors.As(err, &appErr)
 	require.True(t, ok)
 	require.Equal(t, 409, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }
@@ -47,7 +49,8 @@ func TestToAppErr_SQLiteUniqueConstraint(t *testing.T) {
 	err := toAppErr(errors.New("constraint failed: UNIQUE constraint failed: users.email (2067)"))
 	require.Error(t, err)
 
-	appErr, ok := err.(*cryptoutilAppErr.Error)
+	appErr := &cryptoutilAppErr.Error{}
+	ok := errors.As(err, &appErr)
 	require.True(t, ok)
 	require.Equal(t, 409, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }
@@ -58,7 +61,8 @@ func TestToAppErr_SQLiteUniqueConstraintErrorCode(t *testing.T) {
 	err := toAppErr(errors.New("some error (2067)"))
 	require.Error(t, err)
 
-	appErr, ok := err.(*cryptoutilAppErr.Error)
+	appErr := &cryptoutilAppErr.Error{}
+	ok := errors.As(err, &appErr)
 	require.True(t, ok)
 	require.Equal(t, 409, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }
@@ -69,7 +73,8 @@ func TestToAppErr_GenericDatabaseError(t *testing.T) {
 	err := toAppErr(errors.New("database connection failed"))
 	require.Error(t, err)
 
-	appErr, ok := err.(*cryptoutilAppErr.Error)
+	appErr := &cryptoutilAppErr.Error{}
+	ok := errors.As(err, &appErr)
 	require.True(t, ok)
 	require.Equal(t, 500, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }
@@ -81,7 +86,8 @@ func TestToAppErr_WrappedRecordNotFound(t *testing.T) {
 	err := toAppErr(wrappedErr)
 	require.Error(t, err)
 
-	appErr, ok := err.(*cryptoutilAppErr.Error)
+	appErr := &cryptoutilAppErr.Error{}
+	ok := errors.As(err, &appErr)
 	require.True(t, ok)
 	require.Equal(t, 404, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }
@@ -93,7 +99,8 @@ func TestToAppErr_WrappedDuplicatedKey(t *testing.T) {
 	err := toAppErr(wrappedErr)
 	require.Error(t, err)
 
-	appErr, ok := err.(*cryptoutilAppErr.Error)
+	appErr := &cryptoutilAppErr.Error{}
+	ok := errors.As(err, &appErr)
 	require.True(t, ok)
 	require.Equal(t, 409, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
 }

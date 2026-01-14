@@ -47,7 +47,7 @@ services:
       - --demo
     ports:
       - "8080:8080"  # Public API (HTTPS)
-      - "9090:9090"  # Admin API (HTTPS)
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     volumes:
       - ./config/common.yml:/etc/cryptoutil/common.yml:ro
       - ./config/sqlite.yml:/etc/cryptoutil/sqlite.yml:ro

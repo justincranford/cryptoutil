@@ -14,8 +14,10 @@ import (
 //
 // All bind addresses use 127.0.0.1 (loopback only) to prevent Windows Firewall prompts.
 // All ports use 0 (dynamic allocation) to prevent port conflicts in parallel tests.
+// DevMode is enabled to use random unseal key (avoids sysinfo collection that can timeout).
 func NewTestServerSettings() *cryptoutilConfig.ServiceTemplateServerSettings {
 	return &cryptoutilConfig.ServiceTemplateServerSettings{
+		DevMode:                     cryptoutilMagic.TestDefaultDevMode, // Use random unseal key, avoids sysinfo timeout
 		PublicBrowserAPIContextPath: cryptoutilMagic.DefaultPublicBrowserAPIContextPath,
 		PublicServiceAPIContextPath: cryptoutilMagic.DefaultPublicServiceAPIContextPath,
 		BindPublicProtocol:          cryptoutilMagic.ProtocolHTTPS,
@@ -33,7 +35,7 @@ func NewTestServerSettings() *cryptoutilConfig.ServiceTemplateServerSettings {
 		OTLPEndpoint:                "grpc://localhost:4317",
 		OTLPEnabled:                 false, // Disable actual OTLP export in tests
 		LogLevel:                    "error",
-		UnsealMode:                  cryptoutilMagic.DefaultUnsealModeSysInfo,
+		UnsealMode:                  cryptoutilMagic.DefaultUnsealModeSysInfo, // Ignored when DevMode=true
 		// Session Manager settings - use OPAQUE for simplicity in tests (no JWK generation needed).
 		BrowserSessionAlgorithm:    cryptoutilMagic.DefaultBrowserSessionAlgorithm,
 		BrowserSessionJWSAlgorithm: cryptoutilMagic.DefaultBrowserSessionJWSAlgorithm,

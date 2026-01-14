@@ -17,13 +17,20 @@ CREATE INDEX IF NOT EXISTS idx_tenants_active ON tenants(active);
 CREATE INDEX IF NOT EXISTS idx_tenants_name ON tenants(name);
 CREATE INDEX IF NOT EXISTS idx_tenants_created_at ON tenants(created_at);
 
+-- Insert default tenant for single-tenant applications
+-- This tenant is referenced by SessionManagerService when using default tenant ID
+-- Uses well-known UUID 00000000-0000-0000-0000-000000000001 (CipherIMDefaultTenantID)
+INSERT INTO tenants (id, name, description, active)
+VALUES ('00000000-0000-0000-0000-000000000001', 'default', 'Default tenant for single-tenant applications', 1)
+ON CONFLICT (id) DO NOTHING;
+
 -- Users table (verified users)
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY NOT NULL,
     tenant_id TEXT NOT NULL,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    email TEXT UNIQUE,
+    email TEXT,
     active INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -60,7 +67,7 @@ CREATE TABLE IF NOT EXISTS unverified_users (
     tenant_id TEXT NOT NULL,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    email TEXT UNIQUE,
+    email TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE

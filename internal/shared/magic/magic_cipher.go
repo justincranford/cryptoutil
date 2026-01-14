@@ -2,7 +2,11 @@
 
 package magic
 
-import "time"
+import (
+	"time"
+
+	googleUuid "github.com/google/uuid"
+)
 
 // Cipher-IM Service Magic Constants.
 const (
@@ -39,6 +43,20 @@ const (
 
 	// CipherMinPasswordLength is the minimum acceptable password length.
 	CipherMinPasswordLength = 8
+)
+
+// Default tenant for single-tenant cipher-im deployment.
+var (
+	// CipherIMDefaultTenantID is the default tenant UUID for cipher-im.
+	// Uses a well-known UUID for single-tenant deployments.
+	CipherIMDefaultTenantID = googleUuid.MustParse("00000000-0000-0000-0000-000000000001")
+
+	// CipherIMDefaultTenantName is the default tenant name for cipher-im.
+	CipherIMDefaultTenantName = "default"
+
+	// CipherIMDefaultRealmID is the default realm UUID for cipher-im.
+	// Uses the same well-known UUID as the tenant for single-tenant deployments.
+	CipherIMDefaultRealmID = googleUuid.MustParse("00000000-0000-0000-0000-000000000001")
 )
 
 // JWT token configuration.
@@ -158,20 +176,11 @@ const (
 	// CipherE2ESQLitePublicPort is the SQLite instance public HTTPS port.
 	CipherE2ESQLitePublicPort = 8888
 
-	// CipherE2ESQLiteAdminPort is the SQLite instance admin HTTPS port.
-	CipherE2ESQLiteAdminPort = 9090
-
 	// CipherE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port.
 	CipherE2EPostgreSQL1PublicPort = 8889
 
-	// CipherE2EPostgreSQL1AdminPort is the PostgreSQL instance 1 admin HTTPS port.
-	CipherE2EPostgreSQL1AdminPort = 9091
-
 	// CipherE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port.
 	CipherE2EPostgreSQL2PublicPort = 8890
-
-	// CipherE2EPostgreSQL2AdminPort is the PostgreSQL instance 2 admin HTTPS port.
-	CipherE2EPostgreSQL2AdminPort = 9092
 
 	// CipherE2EGrafanaPort is the Grafana UI port.
 	CipherE2EGrafanaPort = 3000
@@ -185,10 +194,4 @@ const (
 	// CipherE2EHealthEndpoint is the public health check endpoint.
 	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).
 	CipherE2EHealthEndpoint = "/service/api/v1/health"
-
-	// CipherE2EAdminLivezEndpoint is the admin liveness check endpoint.
-	CipherE2EAdminLivezEndpoint = "/admin/v1/livez"
-
-	// CipherE2EAdminReadyzEndpoint is the admin readiness check endpoint.
-	CipherE2EAdminReadyzEndpoint = "/admin/v1/readyz"
 )

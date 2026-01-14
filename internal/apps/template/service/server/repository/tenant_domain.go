@@ -47,7 +47,7 @@ type User struct {
 	TenantID     googleUuid.UUID `gorm:"type:text;index"`
 	Username     string          `gorm:"type:text;not null;uniqueIndex"`
 	PasswordHash string          `gorm:"type:text;not null"`
-	Email        string          `gorm:"type:text;uniqueIndex"`
+	Email        string          `gorm:"type:text;index"`                       // Optional email, not unique (allows empty/NULL).
 	Active       int             `gorm:"type:integer;not null;default:1;index"` // INTEGER for SQLite/PostgreSQL compatibility.
 	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
@@ -146,7 +146,7 @@ type UnverifiedUser struct {
 	TenantID     googleUuid.UUID `gorm:"type:text;not null;index"`
 	Username     string          `gorm:"type:text;not null;uniqueIndex"`
 	PasswordHash string          `gorm:"type:text;not null"`
-	Email        string          `gorm:"type:text;uniqueIndex"`
+	Email        string          `gorm:"type:text;index"` // Optional email, not unique (allows empty/NULL).
 	CreatedAt    time.Time       `gorm:"not null;default:CURRENT_TIMESTAMP"`
 	ExpiresAt    time.Time       `gorm:"not null;index"` // Auto-expire timestamp.
 

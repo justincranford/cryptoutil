@@ -8,6 +8,7 @@ package businesslogic
 import (
 	"context"
 
+	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
@@ -21,6 +22,7 @@ import (
 type SessionManagerService = cryptoutilTemplateBusinessLogic.SessionManagerService
 
 // NewSessionManagerService creates a new SessionManagerService instance.
+// The defaultTenantID and defaultRealmID are used by the single-tenant convenience methods.
 func NewSessionManagerService(
 	ctx context.Context,
 	db *gorm.DB,
@@ -28,6 +30,8 @@ func NewSessionManagerService(
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilTemplateBarrier.BarrierService,
 	config *cryptoutilConfig.ServiceTemplateServerSettings,
+	defaultTenantID googleUuid.UUID,
+	defaultRealmID googleUuid.UUID,
 ) (*SessionManagerService, error) {
 	return cryptoutilTemplateBusinessLogic.NewSessionManagerService(
 		ctx,
@@ -36,5 +40,7 @@ func NewSessionManagerService(
 		jwkGenService,
 		barrierService,
 		config,
+		defaultTenantID,
+		defaultRealmID,
 	)
 }

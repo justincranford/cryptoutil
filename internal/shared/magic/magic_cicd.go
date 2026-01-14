@@ -134,6 +134,7 @@ const (
 	Commands:
 	  lint-text      - [Linter] Enforce UTF-8 encoding without BOM for text files
 	  lint-go        - [Linter] Check for circular dependencies in Go packages
+	  lint-compose   - [Linter] Detect admin port 9090 exposure in Docker Compose files
 	  format-go      - [Formatter] Auto-fix Go files (any -> any, loop var copies)
 	  lint-go-test   - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
 	  format-go-test - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
@@ -145,6 +146,7 @@ const (
 var ValidCommands = map[string]bool{
 	"lint-text":      true,
 	"lint-go":        true,
+	"lint-compose":   true,
 	"format-go":      true,
 	"lint-go-test":   true,
 	"format-go-test": true,
@@ -169,10 +171,11 @@ var (
 var (
 	// CICDSelfExclusionPatterns - Self-exclusion patterns for each cicd command.
 	// CRITICAL: Each command excludes its own subdirectory to prevent self-modification.
-	// Keys match command names: lint-text, lint-go, format-go, lint-go-test, format-go-test, lint-workflow, lint-go-mod.
+	// Keys match command names: lint-text, lint-go, lint-compose, format-go, lint-go-test, format-go-test, lint-workflow, lint-go-mod.
 	CICDSelfExclusionPatterns = map[string]string{
 		"lint-text":      `internal[/\\]cmd[/\\]cicd[/\\]lint_text[/\\].*\.go$`,
 		"lint-go":        `internal[/\\]cmd[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
+		"lint-compose":   `internal[/\\]cmd[/\\]cicd[/\\]lint_compose[/\\].*\.go$`,
 		"format-go":      `internal[/\\]cmd[/\\]cicd[/\\]format_go[/\\].*\.go$`,
 		"lint-go-test":   `internal[/\\]cmd[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,
 		"format-go-test": `internal[/\\]cmd[/\\]cicd[/\\]format_gotest[/\\].*\.go$`,

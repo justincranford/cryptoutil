@@ -23,6 +23,7 @@ import (
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the template.PublicServer interface for cipher-im.
@@ -102,8 +103,11 @@ func NewPublicServer(
 	userRepoAdapter := cryptoutilCipherRepository.NewUserRepositoryAdapter(userRepo)
 
 	// Create user factory for template realms.
+	// Sets the default tenant ID for single-tenant cipher-im deployment.
 	userFactory := func() cryptoutilTemplateRealms.UserModel {
-		return &cryptoutilTemplateRepository.User{}
+		return &cryptoutilTemplateRepository.User{
+			TenantID: cryptoutilMagic.CipherIMDefaultTenantID,
+		}
 	}
 
 	// Create realms handler using template service (authentication/authorization).

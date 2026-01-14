@@ -41,7 +41,7 @@
   }, // Configure PowerShell Core (pwsh) terminal for shell integration support; fallback to Windows PowerShell 5.1 if needed
 
     // Diff Editor Settings
-  "diffEditor.ignoreTrimWhitespace": true, // Ignore trimmed whitespace in diff - Default: true
+  "diffEditor.ignoreTrimWhitespace": false, // Ignore trimmed whitespace in diff - Default: true
   "diffEditor.hideUnchangedRegions.enabled": false, // Hide unchanged regions in diff - Default: false
 
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings

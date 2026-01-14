@@ -5,6 +5,7 @@ package realms
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -42,12 +43,15 @@ import (
 // - 500 Internal Server Error: Database errors, password hashing failure.
 func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		log.Printf("[DEBUG] HandleRegisterUser: Request received")
+
 		var req struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		}
 
 		if err := c.BodyParser(&req); err != nil {
+			log.Printf("[DEBUG] HandleRegisterUser: BodyParser error: %v", err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid request body",
 			})
@@ -75,8 +79,10 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 		}
 
 		// Call service layer (business logic).
+		log.Printf("[DEBUG] HandleRegisterUser: Calling RegisterUser for username=%s", req.Username)
 		user, err := s.RegisterUser(c.Context(), req.Username, req.Password)
 		if err != nil {
+			log.Printf("[ERROR] HandleRegisterUser: RegisterUser failed: %v", err)
 			// Check for duplicate username (conflict).
 			// Note: Service layer returns generic error for security.
 			// Repository constraint violations bubble up here.
@@ -255,6 +261,8 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		}
 
 		if issueErr != nil {
+			log.Printf("ERROR: Failed to generate session token: %v", issueErr)
+
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to generate session token",
 			})

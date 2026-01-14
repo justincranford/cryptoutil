@@ -215,6 +215,16 @@ repos:
         pass_filenames: false
         require_serial: false
 
+      - id: lint-compose
+        name: Detect admin port 9090 exposure in Docker Compose files
+        entry: go
+        args: [run, cmd/cicd/main.go, lint-compose]
+        language: system
+        pass_filenames: false
+        files: '(compose.*\.ya?ml|docker-compose.*\.ya?ml)$'
+        require_serial: false
+        stages: [pre-commit]
+
       - id: cicd-enforce-internal
         name: Run custom CI/CD enforcement (text-utf8, go-formatters, test-patterns)
         entry: powershell

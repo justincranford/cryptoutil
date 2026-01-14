@@ -168,16 +168,17 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		tableName = "service_session_jwks"
 	}
 
-	// Check for existing JWK (deterministic selection using max timestamp)
+	// Check for existing active JWK (deterministic selection using max timestamp)
 	var existingJWK cryptoutilRepository.SessionJWK
 
 	err := sm.db.WithContext(ctx).
 		Table(tableName).
+		Where("active = ?", true).
 		Order("created_at DESC").
 		First(&existingJWK).
 		Error
 	if err == nil {
-		// Found existing JWK with latest timestamp, use it
+		// Found existing active JWK with latest timestamp, use it
 		return existingJWK.ID, nil
 	}
 
@@ -339,6 +340,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		EncryptedJWK: string(encryptedJWK),
 		CreatedAt:    time.Now(),
 		Algorithm:    algIdentifier,
+		Active:       true, // Mark as active key for signing.
 	}
 
 	var createErr error
@@ -355,7 +357,23 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		return googleUuid.UUID{}, fmt.Errorf("failed to store JWK: %w", createErr)
 	}
 
-	return jwkID, nil
+	// After creating our JWK, re-query to get the canonical active JWK.
+	// In multi-instance deployments, another instance might have created a JWK
+	// at nearly the same time. By re-querying with ORDER BY created_at DESC,
+	// all instances will converge on the same JWK (the one with latest timestamp).
+	var canonicalJWK cryptoutilRepository.SessionJWK
+
+	canonicalErr := sm.db.WithContext(ctx).
+		Table(tableName).
+		Where("active = ?", true).
+		Order("created_at DESC").
+		First(&canonicalJWK).
+		Error
+	if canonicalErr != nil {
+		return googleUuid.UUID{}, fmt.Errorf("failed to query canonical JWK after creation: %w", canonicalErr)
+	}
+
+	return canonicalJWK.ID, nil
 }
 
 // generateSessionJWK generates a new private key for session tokens.

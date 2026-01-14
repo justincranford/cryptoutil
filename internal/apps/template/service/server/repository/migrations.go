@@ -27,6 +27,17 @@ const (
 	DatabaseTypePostgreSQL DatabaseType = "postgres"
 )
 
+// MigrationsFS contains embedded base infrastructure migrations (1001-1004).
+// Services that use service-template MUST apply these migrations first,
+// then apply their own app-specific migrations (1005+).
+//
+// Migration version numbering convention:
+//   - 1001-1004: Service-template base infrastructure (session mgmt, barrier, realms template, multi-tenancy)
+//   - 1005+: App-specific tables (cipher-im users/messages, identity accounts, etc.)
+//
+//go:embed migrations/*.sql
+var MigrationsFS embed.FS
+
 // MigrationRunner applies database migrations from embedded filesystem.
 //
 // Supports both PostgreSQL and SQLite databases using golang-migrate.

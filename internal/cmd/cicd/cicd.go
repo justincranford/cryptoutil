@@ -13,6 +13,7 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	cryptoutilCmdCicdFormatGo "cryptoutil/internal/cmd/cicd/format_go"
 	cryptoutilCmdCicdFormatGotest "cryptoutil/internal/cmd/cicd/format_gotest"
+	cryptoutilCmdCicdLintCompose "cryptoutil/internal/cmd/cicd/lint_compose"
 	cryptoutilCmdCicdLintGo "cryptoutil/internal/cmd/cicd/lint_go"
 	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/cmd/cicd/lint_go_mod"
 	cryptoutilCmdCicdLintGotest "cryptoutil/internal/cmd/cicd/lint_gotest"
@@ -26,6 +27,7 @@ const (
 	cmdLintText     = "lint-text"      // [Linter] Text file linters (UTF-8 encoding).
 	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
 	cmdLintGo       = "lint-go"        // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
+	cmdLintCompose  = "lint-compose"   // [Linter] Docker Compose file linters (admin port exposure).
 	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
 	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
 	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
@@ -68,6 +70,8 @@ func Run(commands []string) error {
 			cmdErr = cryptoutilCmdCicdLintText.Lint(logger, filesByExtension)
 		case cmdLintGo:
 			cmdErr = cryptoutilCmdCicdLintGo.Lint(logger)
+		case cmdLintCompose:
+			cmdErr = cryptoutilCmdCicdLintCompose.Lint(logger, filesByExtension)
 		case cmdFormatGo:
 			cmdErr = cryptoutilCmdCicdFormatGo.Format(logger, filesByExtension)
 		case cmdLintGoTest:

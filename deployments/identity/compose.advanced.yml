@@ -89,7 +89,7 @@ services:
       - --db-url=postgres://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@identity-postgres:5432/$(cat /run/secrets/postgres_db)?sslmode=disable
     ports:
       - "8080-8089:8080"  # Port range allows scaling (8080, 8081, 8082, etc.)
-      - "9080-9089:9090"  # Admin API port range
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
@@ -134,7 +134,7 @@ services:
       - --authz-url=https://identity-authz:8080
     ports:
       - "8100-8109:8081"  # Port range for scaling
-      - "9100-9109:9090"  # Admin API port range
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
@@ -176,7 +176,7 @@ services:
       - --authz-url=https://identity-authz:8080
     ports:
       - "8200-8209:8082"  # Port range for scaling
-      - "9200-9209:9090"  # Admin API port range
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
@@ -217,7 +217,7 @@ services:
       - --idp-url=https://identity-idp:8081
     ports:
       - "8300-8309:8083"  # Port range for scaling
-      - "9300-9309:9090"  # Admin API port range
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO
       - OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317

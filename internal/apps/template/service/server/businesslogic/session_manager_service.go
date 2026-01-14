@@ -20,10 +20,15 @@ import (
 // SessionManagerService provides session management functionality.
 // It wraps the template SessionManager with validation.
 type SessionManagerService struct {
-	sessionManager *SessionManager
+	sessionManager  *SessionManager
+	defaultTenantID googleUuid.UUID // Default tenant ID for single-tenant convenience methods.
+	defaultRealmID  googleUuid.UUID // Default realm ID for single-tenant convenience methods.
 }
 
 // NewSessionManagerService creates a new SessionManagerService instance.
+// The defaultTenantID and defaultRealmID are used by the single-tenant convenience methods
+// (IssueBrowserSession, IssueServiceSession) to specify which tenant and realm to use.
+// For multi-tenant applications, use IssueBrowserSessionWithTenant or IssueServiceSessionWithTenant.
 func NewSessionManagerService(
 	ctx context.Context,
 	db *gorm.DB,
@@ -31,6 +36,8 @@ func NewSessionManagerService(
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilTemplateBarrier.BarrierService,
 	config *cryptoutilConfig.ServiceTemplateServerSettings,
+	defaultTenantID googleUuid.UUID,
+	defaultRealmID googleUuid.UUID,
 ) (*SessionManagerService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -69,7 +76,9 @@ func NewSessionManagerService(
 	}
 
 	return &SessionManagerService{
-		sessionManager: sessionManager,
+		sessionManager:  sessionManager,
+		defaultTenantID: defaultTenantID,
+		defaultRealmID:  defaultRealmID,
 	}, nil
 }
 
@@ -154,18 +163,14 @@ func (s *SessionManagerService) CleanupExpiredSessions(
 
 // IssueBrowserSession (simplified signature for single-tenant applications).
 // Wrapper method for compatibility with template realms handler.
+// Uses the defaultTenantID and defaultRealmID configured during construction.
 func (s *SessionManagerService) IssueBrowserSession(ctx context.Context, userID string, realm string) (string, error) {
-	// For single-tenant applications, use nil UUIDs for tenant and realm.
-	var nilUUID googleUuid.UUID
-
-	return s.sessionManager.IssueBrowserSession(ctx, userID, nilUUID, nilUUID)
+	return s.sessionManager.IssueBrowserSession(ctx, userID, s.defaultTenantID, s.defaultRealmID)
 }
 
 // IssueServiceSession (simplified signature for single-tenant applications).
 // Wrapper method for compatibility with template realms handler.
+// Uses the defaultTenantID and defaultRealmID configured during construction.
 func (s *SessionManagerService) IssueServiceSession(ctx context.Context, userID string, realm string) (string, error) {
-	// For single-tenant applications, use nil UUIDs for tenant and realm.
-	var nilUUID googleUuid.UUID
-
-	return s.sessionManager.IssueServiceSession(ctx, userID, nilUUID, nilUUID)
+	return s.sessionManager.IssueServiceSession(ctx, userID, s.defaultTenantID, s.defaultRealmID)
 }

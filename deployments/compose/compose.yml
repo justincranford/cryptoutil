@@ -207,8 +207,7 @@ services:
     ports:
 
       - "8080:8080"  # Public API
-
-      - "9090:9090"  # Admin API
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
 
@@ -289,8 +288,7 @@ services:
     ports:
 
       - "8081:8080"  # Public API (host:container)
-
-      - "9091:9090"  # Admin API (host:container)
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
 
@@ -377,8 +375,7 @@ services:
     ports:
 
       - "8082:8080"  # Public API (host:container)
-
-      - "9092:9090"  # Admin API (host:container)
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
 
@@ -459,8 +456,7 @@ services:
     ports:
 
       - "8443:8443"  # HTTPS public (CA uses 8443, not 8080)
-
-      - "9443:9090"  # Admin API (host:container mapping)
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
 
@@ -549,8 +545,7 @@ services:
     ports:
 
       - "8092:8092"  # HTTPS public
-
-      - "9093:9090"  # Admin API (JOSE product uses 9093)
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
 
@@ -687,8 +682,7 @@ services:
     ports:
 
       - "8090:8080"  # OAuth 2.1 authorization endpoints
-
-      - "9080:9090"  # Admin API
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
 
@@ -765,8 +759,7 @@ services:
     ports:
 
       - "8091:8081"  # OIDC identity provider endpoints
-
-      - "9081:9090"  # Admin API
+      # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
 
