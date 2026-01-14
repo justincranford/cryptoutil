@@ -69,89 +69,90 @@ func TestE2E_HealthChecks(t *testing.T) {
 	}
 }
 
-// TestE2E_TelemetryServices validates otel-collector and Grafana LGTM containers are healthy.
-func TestE2E_TelemetryServices(t *testing.T) {
+// TestE2E_OtelCollectorHealth validates OpenTelemetry Collector container is running and reachable.
+func TestE2E_OtelCollectorHealth(t *testing.T) {
 	t.Parallel()
 
-	t.Run(cryptoutilMagic.CipherE2EOtelCollectorContainer, func(t *testing.T) {
-		t.Parallel()
+	// OpenTelemetry Collector health check.
+	// The otel-collector-contrib image exposes health check extension on port 13133 (internal only).
+	// Since the health port is not exposed to host, we verify the container is running by:
+	// 1. Attempting connection to OTLP gRPC port 4317 (will fail with protocol error, not connection refused)
+	// 2. Verifying cipher-im services successfully send telemetry (no connection refused errors)
 
-		// OpenTelemetry Collector health check via HTTP endpoint.
-		// The otel-collector-contrib image exposes a health check extension on port 13133.
-		// However, this port is not exposed to the host in the compose.yml for security.
-		// We verify the container is running and accepting OTLP connections by checking
-		// that cipher-im services are successfully sending telemetry (no connection errors).
-		// For E2E, we rely on docker compose health checks and the fact that services start.
-		// A more robust check would use `docker exec` to query the internal health endpoint.
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
-		// Verify the service is accessible by attempting a connection (will fail, but proves routing).
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
+	client := &http.Client{Timeout: 2 * time.Second}
 
-		client := &http.Client{Timeout: 2 * time.Second}
-		// Note: OTLP gRPC port 4317 won't respond to HTTP, but connection attempt proves DNS resolution.
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorURL, nil)
-		require.NoError(t, err, "Creating OTLP request should succeed")
+	// Note: OTLP gRPC port 4317 won't respond to HTTP GET, but connection attempt proves:
+	// - Container is running (not "connection refused")
+	// - DNS resolution works (not "no such host")
+	// - Network routing works (can reach container from host)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorURL, http.NoBody)
+	require.NoError(t, err, "Creating OTLP health probe request should succeed")
 
-		resp, err := client.Do(req)
-		if resp != nil {
+	resp, err := client.Do(req)
+	if resp != nil {
+		defer func() {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
-		}
-		// We expect an error (gRPC port doesn't speak HTTP), but NO "connection refused" or "no such host".
-		// This proves the container is running and network routing works.
-		require.Error(t, err, "OTLP gRPC port should not respond to HTTP GET")
-		require.NotContains(t, err.Error(), "connection refused", "Container should be running")
-		require.NotContains(t, err.Error(), "no such host", "Container DNS should resolve")
-	})
+		}()
+	}
 
-	t.Run(cryptoutilMagic.CipherE2EGrafanaContainer, func(t *testing.T) {
-		t.Parallel()
+	// We expect an error (gRPC port doesn't speak HTTP), but NOT "connection refused" or "no such host".
+	// This proves the container is running and network routing works.
+	require.Error(t, err, "OTLP gRPC port should not respond to HTTP GET (protocol mismatch expected)")
+	require.NotContains(t, err.Error(), "connection refused", "Container should be running and accepting connections")
+	require.NotContains(t, err.Error(), "no such host", "Container DNS should resolve correctly")
+}
 
-		// Grafana HTTP API health check with retries (Grafana can be slow to start).
-		client := &http.Client{Timeout: 5 * time.Second}
+// TestE2E_GrafanaHealth validates Grafana LGTM container is running and API is accessible.
+func TestE2E_GrafanaHealth(t *testing.T) {
+	t.Parallel()
 
-		var lastErr error
+	// Grafana HTTP API health check with retries (Grafana can be slow to start).
+	client := &http.Client{Timeout: 5 * time.Second}
 
-		for attempt := 0; attempt < 5; attempt++ {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	var lastErr error
 
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", nil)
-			if err != nil {
-				cancel()
+	for attempt := 0; attempt < 5; attempt++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
-				lastErr = fmt.Errorf("creating Grafana health request: %w", err)
-
-				time.Sleep(2 * time.Second)
-
-				continue
-			}
-
-			resp, err := client.Do(req)
-
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", http.NoBody)
+		if err != nil {
 			cancel()
 
-			if err != nil {
-				lastErr = fmt.Errorf("Grafana health endpoint (attempt %d): %w", attempt+1, err)
-
-				time.Sleep(2 * time.Second)
-
-				continue
-			}
-
-			_ = resp.Body.Close()
-
-			if resp.StatusCode == http.StatusOK {
-				return // Success.
-			}
-
-			lastErr = fmt.Errorf("Grafana returned status %d (attempt %d)", resp.StatusCode, attempt+1)
+			lastErr = fmt.Errorf("creating Grafana health request: %w", err)
 
 			time.Sleep(2 * time.Second)
+
+			continue
 		}
 
-		require.NoError(t, lastErr, "Grafana health check should succeed after retries")
-	})
+		resp, err := client.Do(req)
+
+		cancel()
+
+		if err != nil {
+			lastErr = fmt.Errorf("Grafana health endpoint (attempt %d): %w", attempt+1, err)
+
+			time.Sleep(2 * time.Second)
+
+			continue
+		}
+
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode == http.StatusOK {
+			return // Success.
+		}
+
+		lastErr = fmt.Errorf("Grafana returned status %d (attempt %d)", resp.StatusCode, attempt+1)
+
+		time.Sleep(2 * time.Second)
+	}
+
+	require.NoError(t, lastErr, "Grafana health check should succeed after retries")
 }
 
 // TestE2E_CrossInstanceIsolation verifies database backend isolation behavior.
@@ -299,30 +300,6 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 		require.NotEqual(t, http.StatusOK, sqliteLoginResp.StatusCode,
 			"PostgreSQL user should NOT exist in SQLite (database isolation)")
 	})
-}
-
-// TestE2E_ThreeInstanceDeployment validates all 3 instances are healthy (uses TestMain infrastructure).
-func TestE2E_ThreeInstanceDeployment(t *testing.T) {
-	// TestMain already started docker compose and verified health.
-	// Just verify we can reach each instance using shared HTTP client.
-
-	// Use healthChecks map from testmain_e2e_test.go (already has correct endpoint).
-	for name, healthURL := range healthChecks {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			ctx := context.Background()
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, http.NoBody)
-			require.NoError(t, err, "Creating health request should succeed")
-
-			resp, err := sharedHTTPClient.Do(req)
-			require.NoError(t, err, "Health check should succeed for %s", name)
-
-			defer func() { _ = resp.Body.Close() }()
-
-			require.Equal(t, http.StatusOK, resp.StatusCode, "%s should return 200 OK", name)
-		})
-	}
 }
 
 // TestE2E_PostgreSQLSharedState validates pg-1 and pg-2 share database state (uses TestMain infrastructure).
