@@ -1,23 +1,13 @@
 // Copyright (c) 2025 Justin Cranford
-//
-// Consolidated E2E tests for cipher-im service.
-// Uses shared TestMain lifecycle from testmain_e2e_test.go (stack already running).
-//
-// Per 03-02.testing.instructions.md:
-// - Table-driven tests with t.Parallel() for orthogonal scenarios.
-// - TestMain pattern for heavyweight service startup (in testmain_e2e_test.go).
-// - Coverage targets: ≥98% for infrastructure code.
-//
-// Per 02-03.https-ports.instructions.md:
-// - Admin port 9090 is NEVER exposed to host - internal container use ONLY.
-// - External clients MUST use public endpoints (/service/** or /browser/**).
 
 package e2e_test
 
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,8 +22,17 @@ import (
 
 const (
 	httpClientTimeout = 10 * time.Second
-	testPassword      = "TestPassword123!"
 )
+
+// generateTestPassword creates a cryptographically secure random password for testing.
+// NEVER use hardcoded passwords in tests - always generate them dynamically.
+func generateTestPassword(t *testing.T) string {
+	t.Helper()
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	require.NoError(t, err, "Failed to generate random password")
+	return "TestPwd_" + base64.URLEncoding.EncodeToString(randomBytes)
+}
 
 // TestE2E_HealthChecks validates /health endpoint for all instances (external clients use public endpoint).
 func TestE2E_HealthChecks(t *testing.T) {
@@ -69,41 +68,31 @@ func TestE2E_HealthChecks(t *testing.T) {
 	}
 }
 
-// TestE2E_OtelCollectorHealth validates OpenTelemetry Collector container is running and reachable.
+// TestE2E_OtelCollectorHealth validates OpenTelemetry Collector health endpoint is accessible.
 func TestE2E_OtelCollectorHealth(t *testing.T) {
 	t.Parallel()
 
-	// OpenTelemetry Collector health check.
-	// The otel-collector-contrib image exposes health check extension on port 13133 (internal only).
-	// Since the health port is not exposed to host, we verify the container is running by:
-	// 1. Attempting connection to OTLP gRPC port 4317 (will fail with protocol error, not connection refused)
-	// 2. Verifying cipher-im services successfully send telemetry (no connection refused errors)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	// OpenTelemetry Collector health check extension exposes HTTP endpoint on port 13133.
+	// We use HTTP GET to verify the container is running and accessible (following KMS Dockerfile pattern).
+	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 	defer cancel()
 
-	client := &http.Client{Timeout: 2 * time.Second}
+	client := &http.Client{Timeout: httpClientTimeout}
 
-	// Note: OTLP gRPC port 4317 won't respond to HTTP GET, but connection attempt proves:
-	// - Container is running (not "connection refused")
-	// - DNS resolution works (not "no such host")
-	// - Network routing works (can reach container from host)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorURL, http.NoBody)
-	require.NoError(t, err, "Creating OTLP health probe request should succeed")
+	// Health check HTTP endpoint (13133 is the standard health check extension port).
+	healthCheckURL := "http://localhost:13133/healthz"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthCheckURL, http.NoBody)
+	require.NoError(t, err, "Creating OTLP health check request should succeed")
 
 	resp, err := client.Do(req)
-	if resp != nil {
-		defer func() {
-			_, _ = io.Copy(io.Discard, resp.Body)
-			_ = resp.Body.Close()
-		}()
-	}
+	require.NoError(t, err, "OTLP health check should succeed (container running and accessible)")
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		require.NoError(t, resp.Body.Close())
+	}()
 
-	// We expect an error (gRPC port doesn't speak HTTP), but NOT "connection refused" or "no such host".
-	// This proves the container is running and network routing works.
-	require.Error(t, err, "OTLP gRPC port should not respond to HTTP GET (protocol mismatch expected)")
-	require.NotContains(t, err.Error(), "connection refused", "Container should be running and accepting connections")
-	require.NotContains(t, err.Error(), "no such host", "Container DNS should resolve correctly")
+	require.Equal(t, http.StatusOK, resp.StatusCode,
+		"OpenTelemetry Collector health endpoint should return 200 OK")
 }
 
 // TestE2E_GrafanaHealth validates Grafana LGTM container is running and API is accessible.
@@ -167,7 +156,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 
 		// Create a unique user in SQLite instance.
 		username := fmt.Sprintf("sqlite_user_%d", time.Now().UnixNano())
-		password := testPassword
+		password := generateTestPassword(t)
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 		defer cancel()
@@ -219,7 +208,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 
 		// Create a unique user in pg-1.
 		username := fmt.Sprintf("pg_shared_user_%d", time.Now().UnixNano())
-		password := testPassword
+		password := generateTestPassword(t)
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 		defer cancel()
@@ -269,7 +258,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 
 		// Create a unique user in pg-2.
 		username := fmt.Sprintf("pg_isolated_user_%d", time.Now().UnixNano())
-		password := testPassword
+		password := generateTestPassword(t)
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 		defer cancel()

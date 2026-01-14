@@ -27,9 +27,9 @@ const (
 //
 // Migration version numbering convention:
 //   - 1001-1004: Service-template base infrastructure (loaded from template package)
-//   - 1005-1006: Cipher-im app-specific tables (messages, messages_recipient_jwks, cipher_im_realms)
+//   - 1005: Cipher-im app-specific tables (messages, messages_recipient_jwks)
 //
-// CRITICAL: This embed ONLY contains cipher-im specific migrations (1005-1006).
+// CRITICAL: This embed ONLY contains cipher-im specific migrations (1005 only).
 // Service-template base infrastructure migrations (1001-1004) are loaded from template package first.
 //
 //go:embed migrations/*.sql
@@ -117,11 +117,11 @@ func GetMergedMigrationsFS() fs.FS {
 // - 1003_realms_template: template_realms table structure (services create their own <service>_realms tables)
 // - 1004_add_multi_tenancy: tenants, users, clients, unverified_users, unverified_clients, roles, user_roles, client_roles
 //
-// Phase 2 - Cipher-im specific tables (1005-1006):
+// Phase 2 - Cipher-im specific tables (1005 only):
 // - 1005_init: messages (multi-recipient JWE), messages_recipient_jwks (per-recipient decryption keys)
-// - 1006_add_cipher_im_realms: cipher_im_realms configuration (6 non-federated authn methods)
 //
 // NOTE: users table comes from template 1004_add_multi_tenancy (NOT cipher-im 1005).
+// NOTE: cipher-im uses template_realms from template 1003_realms_template (NOT custom cipher_im_realms table).
 func ApplyCipherIMMigrations(db *sql.DB, dbType DatabaseType) error {
 	// Apply all migrations in sequence (1001-1006) using merged filesystem.
 	runner := cryptoutilTemplateServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
@@ -132,5 +132,3 @@ func ApplyCipherIMMigrations(db *sql.DB, dbType DatabaseType) error {
 
 	return nil
 }
-
-
