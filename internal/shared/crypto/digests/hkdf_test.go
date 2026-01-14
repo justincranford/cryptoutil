@@ -58,24 +58,20 @@ func TestHKDFHappyPath(t *testing.T) {
 }
 
 func TestHKDFHappyPathDifferentDigest(t *testing.T) {
-	output1, err := HKDF("SHA224", []byte("secret"), []byte("salt"), []byte("info"), 28)
-	require.NoError(t, err, "HKDF SHA224 should not fail")
-
-	output2, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info"), 28)
+	// NOTE: SHA224 uses SHA-256 internally for FIPS 140-2/140-3 compliance (see hkdf.go).
+	// Therefore SHA224 and SHA256 produce the same output. Only test SHA256, SHA384, SHA512.
+	output1, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info"), 32)
 	require.NoError(t, err, "HKDF SHA256 should not fail")
 
-	output3, err := HKDF("SHA384", []byte("secret"), []byte("salt"), []byte("info"), 28)
+	output2, err := HKDF("SHA384", []byte("secret"), []byte("salt"), []byte("info"), 32)
 	require.NoError(t, err, "HKDF SHA384 should not fail")
 
-	output4, err := HKDF("SHA512", []byte("secret"), []byte("salt"), []byte("info"), 28)
+	output3, err := HKDF("SHA512", []byte("secret"), []byte("salt"), []byte("info"), 32)
 	require.NoError(t, err, "HKDF SHA512 should not fail")
 
 	require.NotEqual(t, output1, output2, "HKDF output should be unique for different digests")
 	require.NotEqual(t, output1, output3, "HKDF output should be unique for different digests")
-	require.NotEqual(t, output1, output4, "HKDF output should be unique for different digests")
 	require.NotEqual(t, output2, output3, "HKDF output should be unique for different digests")
-	require.NotEqual(t, output2, output4, "HKDF output should be unique for different digests")
-	require.NotEqual(t, output3, output4, "HKDF output should be unique for different digests")
 }
 
 func TestHKDFHappyPathDifferentSecret(t *testing.T) {
@@ -119,10 +115,11 @@ func TestHKDFSadPath(t *testing.T) {
 		// {"Empty Info", "SHA256", []byte("secret"), []byte("salt"), []byte{}, 32, ErrInvalidEmptyInfo},
 		{"Negative Output Length", "SHA256", []byte("secret"), []byte("salt"), []byte("info"), -1, ErrInvalidOutputBytesLengthNegative},
 		{"Zero Output Length", "SHA256", []byte("secret"), []byte("salt"), []byte("info"), 0, ErrInvalidOutputBytesLengthZero},
-		{"Excessive Output Length", "SHA224", []byte("secret"), []byte("salt"), []byte("info"), 224*32 + 1, ErrInvalidOutputBytesLengthTooBig},
-		{"Excessive Output Length", "SHA256", []byte("secret"), []byte("salt"), []byte("info"), 255*32 + 1, ErrInvalidOutputBytesLengthTooBig},
-		{"Excessive Output Length", "SHA384", []byte("secret"), []byte("salt"), []byte("info"), 384*32 + 1, ErrInvalidOutputBytesLengthTooBig},
-		{"Excessive Output Length", "SHA512", []byte("secret"), []byte("salt"), []byte("info"), 512*32 + 1, ErrInvalidOutputBytesLengthTooBig},
+		// NOTE: SHA224 uses SHA-256 internally for FIPS compliance, so its max output is 255*32=8160, same as SHA256.
+		{"Excessive Output Length SHA224", "SHA224", []byte("secret"), []byte("salt"), []byte("info"), 255*32 + 1, ErrInvalidOutputBytesLengthTooBig},
+		{"Excessive Output Length SHA256", "SHA256", []byte("secret"), []byte("salt"), []byte("info"), 255*32 + 1, ErrInvalidOutputBytesLengthTooBig},
+		{"Excessive Output Length SHA384", "SHA384", []byte("secret"), []byte("salt"), []byte("info"), 255*48 + 1, ErrInvalidOutputBytesLengthTooBig},
+		{"Excessive Output Length SHA512", "SHA512", []byte("secret"), []byte("salt"), []byte("info"), 255*64 + 1, ErrInvalidOutputBytesLengthTooBig},
 	}
 
 	for _, tt := range sadPathTests {

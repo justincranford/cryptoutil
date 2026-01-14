@@ -120,12 +120,12 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 	// Accept either connection failure OR HTTP error (if Docker containers are running on default port).
 	require.True(t,
 		cryptoutilTestutil.ContainsAny(output, []string{
-			"Health check failed:",   // Connection error
-			"Service is unhealthy",   // HTTP error from unexpected service
-			"connection refused",     // TCP connection refused
-			"actively refused",       // Windows connection refused
-			"dial tcp",               // Go dial error
-			"EOF",                    // Connection closed
+			"Health check failed:", // Connection error
+			"Service is unhealthy", // HTTP error from unexpected service
+			"connection refused",   // TCP connection refused
+			"actively refused",     // Windows connection refused
+			"dial tcp",             // Go dial error
+			"EOF",                  // Connection closed
 		}),
 		"Should contain error message for default URL: %s", output)
 }

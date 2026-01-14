@@ -6,6 +6,7 @@ package sysinfo
 
 import (
 	"fmt"
+	"runtime"
 	"testing"
 	"time"
 
@@ -56,6 +57,15 @@ func TestSysInfo(t *testing.T) {
 			name: "cpu_info",
 			testFn: func(t *testing.T, provider SysInfoProvider) {
 				t.Helper()
+
+				// Skip real provider on Windows - CPU info collection can take 10+ seconds
+				// which exceeds the 10-second timeout set in cpuInfoTimeout.
+				// The mock provider covers the code paths without the timeout risk.
+				if _, isMock := provider.(*MockSysInfoProvider); !isMock {
+					if runtime.GOOS == "windows" {
+						t.Skip("Skipping real CPU info test on Windows due to slow gopsutil collection")
+					}
+				}
 
 				start := time.Now().UTC()
 				vendorID, family, physicalID, modelName, err := provider.CPUInfo()

@@ -9,8 +9,11 @@ import (
 	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 )
 
+// RequireNewFromSysInfoForTest creates an UnsealKeysService using MockSysInfoProvider.
+// Using the mock provider avoids slow sysinfo collection (CPU info can take 4+ seconds on Windows).
 func RequireNewFromSysInfoForTest() UnsealKeysService {
-	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+	mockProvider := &cryptoutilSysinfo.MockSysInfoProvider{}
+	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(mockProvider)
 	cryptoutilAppErr.RequireNoError(err, "failed to create unseal repository")
 
 	return unsealKeysService

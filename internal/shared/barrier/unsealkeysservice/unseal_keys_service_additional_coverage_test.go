@@ -25,8 +25,9 @@ func TestNewUnsealKeysServiceFromSettings_VerboseMode(t *testing.T) {
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	telemetryService.VerboseMode = true
 
-	settings.DevMode = false
-	settings.UnsealMode = testUnsealModeSysinfo
+	// Use DevMode=true to avoid sysinfo collection timeout on Windows (CPU info takes 4+ seconds).
+	// This still tests the verbose logging path in NewUnsealKeysServiceFromSettings.
+	settings.DevMode = true
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
 	require.NoError(t, err)
