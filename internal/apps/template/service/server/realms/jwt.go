@@ -11,12 +11,14 @@ import (
 //
 // Structure:
 // - UserID: UUIDv7 string identifying the authenticated user
+// - Username: Username for logging/debugging
 // - RegisteredClaims: Standard JWT fields (ExpiresAt, IssuedAt, etc.)
 //
 // Example Token Payload:
 //
 //	{
 //	  "user_id": "01JGE123456789ABCDEFGHIJK",
+//	  "username": "testuser",
 //	  "exp": 1735948800,
 //	  "iat": 1735948700
 //	}

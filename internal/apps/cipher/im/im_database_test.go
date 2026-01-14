@@ -13,7 +13,7 @@ const (
 	//                               barrier_root_keys, barrier_intermediate_keys, barrier_content_keys,
 	//                               template_realms, tenants, users, clients, unverified_users, unverified_clients,
 	//                               roles, user_roles, client_roles
-	// Cipher-IM tables (1005 only): messages, messages_recipient_jwks
+	// Cipher-IM tables (2001+): messages, messages_recipient_jwks
 	countTablesQueryPostgres = `
 		SELECT COUNT(*) FROM information_schema.tables
 		WHERE table_schema = 'public'
@@ -47,7 +47,7 @@ const (
 
 // TestInitDatabase_HappyPaths tests successful database initialization for PostgreSQL and SQLite.
 func TestInitDatabase_HappyPaths(t *testing.T) {
-	// Use merged filesystem to get all migrations (1001-1006).
+	// Use merged filesystem to get all migrations (1001-1999 template + 2001+ cipher-im).
 	cryptoutilTemplateServerTestutil.HelpTest_InitDatabase_HappyPaths(
 		t,
 		cipherIMRepository.GetMergedMigrationsFS(),

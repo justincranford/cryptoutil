@@ -26,10 +26,11 @@ const (
 // MigrationsFS contains embedded cipher-im specific migrations (1005-1006 only).
 //
 // Migration version numbering convention:
-//   - 1001-1004: Service-template base infrastructure (loaded from template package)
-//   - 1005: Cipher-im app-specific tables (messages, messages_recipient_jwks)
+//   - 1001-1999: Service-template base infrastructure (reserved range, loaded from template package)
+//   - 2001+: Cipher-im app-specific tables (messages, messages_recipient_jwks)
 //
-// CRITICAL: This embed ONLY contains cipher-im specific migrations (1005 only).
+// CRITICAL: This embed ONLY contains cipher-im specific migrations (2001+).
+// CRITICAL: Template can add migrations 1005-1999 without conflicts with cipher-im migrations.
 // Service-template base infrastructure migrations (1001-1004) are loaded from template package first.
 //
 //go:embed migrations/*.sql
@@ -43,7 +44,7 @@ type mergedFS struct {
 }
 
 func (m *mergedFS) Open(name string) (fs.File, error) {
-	// Try cipher-im filesystem first (1005-1006).
+	// Try cipher-im filesystem first (2001+).
 	file, err := m.cipherIMFS.Open(name)
 	if err == nil {
 		return file, nil
@@ -99,7 +100,7 @@ func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
 }
 
 // GetMergedMigrationsFS returns a filesystem combining template and cipher-im migrations.
-// This is used by tests to access all migrations (1001-1006) in sequence.
+// This is used by tests to access all migrations (1001-1999 template + 2001+ cipher-im) in sequence.
 func GetMergedMigrationsFS() fs.FS {
 	return &mergedFS{
 		templateFS: cryptoutilTemplateServerRepository.MigrationsFS,
@@ -117,17 +118,17 @@ func GetMergedMigrationsFS() fs.FS {
 // - 1003_realms_template: template_realms table structure (services create their own <service>_realms tables)
 // - 1004_add_multi_tenancy: tenants, users, clients, unverified_users, unverified_clients, roles, user_roles, client_roles
 //
-// Phase 2 - Cipher-im specific tables (1005 only):
-// - 1005_init: messages (multi-recipient JWE), messages_recipient_jwks (per-recipient decryption keys)
+// Phase 2 - Cipher-im specific tables (2001+):
+// - 2001_init: messages (multi-recipient JWE), messages_recipient_jwks (per-recipient decryption keys)
 //
-// NOTE: users table comes from template 1004_add_multi_tenancy (NOT cipher-im 1005).
+// NOTE: users table comes from template 1004_add_multi_tenancy (NOT cipher-im 2001).
 // NOTE: cipher-im uses template_realms from template 1003_realms_template (NOT custom cipher_im_realms table).
 func ApplyCipherIMMigrations(db *sql.DB, dbType DatabaseType) error {
-	// Apply all migrations in sequence (1001-1006) using merged filesystem.
+	// Apply all migrations in sequence (1001-1999 template + 2001+ cipher-im) using merged filesystem.
 	runner := cryptoutilTemplateServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
-		return fmt.Errorf("failed to apply cipher-im migrations (1001-1006): %w", err)
+		return fmt.Errorf("failed to apply cipher-im migrations (1001-1999 + 2001+): %w", err)
 	}
 
 	return nil
