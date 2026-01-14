@@ -9,7 +9,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"net/http"
 	"testing"
 	"time"
