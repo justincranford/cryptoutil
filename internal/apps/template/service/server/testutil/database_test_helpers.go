@@ -5,8 +5,8 @@ package testutil
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"fmt"
+	"io/fs"
 	"testing"
 	"time"
 
@@ -23,7 +23,7 @@ import (
 // NewInitializedPostgresTestDatabase creates and initializes a PostgreSQL test database using test-containers.
 // Returns: sqlDB (*sql.DB), closeDB (cleanup function), error.
 // Usage: sqlDB, closeDB, err := NewInitializedPostgresTestDatabase(ctx, migrationsFS); defer closeDB().
-func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS embed.FS) (*sql.DB, func(), error) {
+func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS fs.FS) (*sql.DB, func(), error) {
 	postgresContainer, err := cryptoutilContainer.NewPostgresTestContainer(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create PostgreSQL container: %w", err)
@@ -76,7 +76,7 @@ func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS embed.
 // NewInitializedSQLiteTestDatabase creates and initializes a SQLite test database (in-memory or file-based).
 // Returns: sqlDB (*sql.DB), error.
 // Usage: sqlDB, err := NewInitializedSQLiteTestDatabase(ctx, migrationsFS, true).
-func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS embed.FS, inMemory bool) (*sql.DB, func(), error) {
+func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS fs.FS, inMemory bool) (*sql.DB, func(), error) {
 	var databaseURL string
 	if inMemory {
 		// Unique in-memory database (prevents cross-test pollution).
@@ -120,7 +120,7 @@ func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS embed.FS
 // InitDatabase is a database-agnostic initializer that dispatches to PostgreSQL or SQLite based on URL scheme.
 // Supports: postgres:// (PostgreSQL), file: (SQLite).
 // Returns: *gorm.DB, error.
-func InitDatabase(ctx context.Context, databaseURL string, migrationsFS embed.FS) (*gorm.DB, error) {
+func InitDatabase(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
 	var (
 		db  *gorm.DB
 		err error
@@ -145,7 +145,7 @@ func InitDatabase(ctx context.Context, databaseURL string, migrationsFS embed.FS
 // HelpTest_InitDatabase_HappyPaths tests successful database initialization for PostgreSQL and SQLite.
 // It verifies that the database schema is correctly created by counting the number of tables.
 // Expected table count and query must be provided for each database type.
-func HelpTest_InitDatabase_HappyPaths(t *testing.T, migrationsFS embed.FS, expectedTableCount int, countTablesQueryPostgres, countTablesQuerySQLite string) {
+func HelpTest_InitDatabase_HappyPaths(t *testing.T, migrationsFS fs.FS, expectedTableCount int, countTablesQueryPostgres, countTablesQuerySQLite string) {
 	tests := []struct {
 		name      string
 		setupFunc func(t *testing.T, ctx context.Context) (*sql.DB, func(), string)
@@ -207,7 +207,7 @@ func HelpTest_InitDatabase_HappyPaths(t *testing.T, migrationsFS embed.FS, expec
 }
 
 // HelpTest_InitDatabase_SadPaths tests error handling for database initialization failures.
-func HelpTest_InitDatabase_SadPaths(t *testing.T, migrationsFS embed.FS) {
+func HelpTest_InitDatabase_SadPaths(t *testing.T, migrationsFS fs.FS) {
 	tests := []struct {
 		name           string
 		setupFunc      func(ctx context.Context) error

@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"fmt"
+	"io/fs"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS embed.FS) (*gorm.DB, error) {
+func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
 	sqlDB, err := sql.Open("pgx", databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
@@ -54,7 +54,7 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS embed.
 	return db, nil
 }
 
-func InitSQLite(ctx context.Context, databaseURL string, migrationsFS embed.FS) (*gorm.DB, error) {
+func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
 	// Open SQLite database.
 	sqlDB, err := sql.Open("sqlite", databaseURL)
 	if err != nil {
@@ -99,7 +99,7 @@ func InitSQLite(ctx context.Context, databaseURL string, migrationsFS embed.FS) 
 	return db, nil
 }
 
-func ApplyMigrations(db *sql.DB, dbType DatabaseType, migrationsFS embed.FS) error {
+func ApplyMigrations(db *sql.DB, dbType DatabaseType, migrationsFS fs.FS) error {
 	runner := NewMigrationRunner(migrationsFS, "migrations")
 
 	//nolint:wrapcheck // Pass-through to template, wrapping not needed.

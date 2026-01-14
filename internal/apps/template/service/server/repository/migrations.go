@@ -9,6 +9,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -51,20 +52,20 @@ var MigrationsFS embed.FS
 //	runner := NewMigrationRunner(migrationsFS, "migrations")
 //	err := runner.Apply(sqlDB, DatabaseTypePostgreSQL)
 type MigrationRunner struct {
-	embedFS        embed.FS
+	fsys           interface{ fs.FS }
 	migrationsPath string
 }
 
-// NewMigrationRunner creates a new migration runner with embedded filesystem.
+// NewMigrationRunner creates a new migration runner with filesystem.
 //
 // Parameters:
-//   - embedFS: Embedded filesystem containing migration files
-//   - migrationsPath: Path within embedFS where migrations are located (e.g., "migrations")
+//   - fsys: Filesystem containing migration files (can be embed.FS or any fs.FS implementation)
+//   - migrationsPath: Path within fsys where migrations are located (e.g., "migrations")
 //
 // Returns configured migration runner ready to apply migrations.
-func NewMigrationRunner(embedFS embed.FS, migrationsPath string) *MigrationRunner {
+func NewMigrationRunner(fsys interface{ fs.FS }, migrationsPath string) *MigrationRunner {
 	return &MigrationRunner{
-		embedFS:        embedFS,
+		fsys:           fsys,
 		migrationsPath: migrationsPath,
 	}
 }
@@ -80,7 +81,7 @@ func NewMigrationRunner(embedFS embed.FS, migrationsPath string) *MigrationRunne
 //
 // Returns error if migrations fail to apply.
 func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error {
-	sourceDriver, err := iofs.New(r.embedFS, r.migrationsPath)
+	sourceDriver, err := iofs.New(r.fsys, r.migrationsPath)
 	if err != nil {
 		return fmt.Errorf("failed to create iofs source driver: %w", err)
 	}
