@@ -22,9 +22,9 @@ import (
 	_ "modernc.org/sqlite"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // ========================================
@@ -146,22 +146,29 @@ func TestMainBefore(m *testing.M) {
 // AFTER: Clean TestMain (30 lines)
 // ========================================
 
+// Example functions below are for documentation purposes only.
+// They demonstrate the AFTER pattern but are not executed in tests.
+// Prefixed with underscore to indicate they are intentionally unused.
+
+//nolint:unused // Example variables for documentation
 var (
 	// Single listener encapsulates ALL infrastructure (telemetry, JWK gen, DB, servers).
-	testListener *cryptoutilTemplateServerListener.ApplicationListener
-	baseURL      string
-	adminURL     string
+	_testListener *cryptoutilTemplateServerListener.ApplicationListener
+	_baseURL      string
+	_adminURL     string
 )
 
-func testMainAfter(m *testing.M) {
+//nolint:unused // Example function for documentation
+func _testMainAfter(m *testing.M) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database (reusable helper).
-	db, sqlDB, err := createInMemoryDB(ctx)
+	db, sqlDB, err := _createInMemoryDB(ctx)
 	if err != nil {
 		panic("failed to create database: " + err.Error())
 	}
-	defer sqlDB.Close()
+
+	defer func() { _ = sqlDB.Close() }()
 
 	// Apply migrations (product-specific, but pattern is standard).
 	// if err := repository.ApplyMigrations(sqlDB, repository.DatabaseTypeSQLite); err != nil {
@@ -171,22 +178,22 @@ func testMainAfter(m *testing.M) {
 	// Configure application (product-specific settings injected here).
 	cfg := &cryptoutilTemplateServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true),
-		DB:             db,
-		DBType:         cryptoutilTemplateServerRepository.DatabaseTypeSQLite,
+		DB:                            db,
+		DBType:                        cryptoutilTemplateServerRepository.DatabaseTypeSQLite,
 		// PublicHandlers: registerCipherIMHandlers, // Inject product-specific routes
 		// AdminHandlers:  registerBarrierRotation,  // Optional: barrier rotation endpoints
 	}
 
 	// Start application (ONE LINE - encapsulates 150+ lines of boilerplate!).
-	testListener, err = cryptoutilTemplateServerListener.StartApplicationListener(ctx, cfg)
+	_testListener, err = cryptoutilTemplateServerListener.StartApplicationListener(ctx, cfg)
 	if err != nil {
 		panic("failed to start application: " + err.Error())
 	}
-	defer testListener.Shutdown()
+	defer _testListener.Shutdown()
 
 	// Extract URLs for tests (automatic port allocation).
-	baseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, testListener.ActualPublicPort())
-	adminURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, testListener.ActualPrivatePort())
+	_baseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, _testListener.ActualPublicPort())
+	_adminURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, _testListener.ActualPrivatePort())
 
 	os.Exit(m.Run())
 }
@@ -195,12 +202,14 @@ func testMainAfter(m *testing.M) {
 // Reusable Helper Functions
 // ========================================
 
-// createInMemoryDB creates an in-memory SQLite database configured for concurrent operations.
+// _createInMemoryDB creates an in-memory SQLite database configured for concurrent operations.
 // Returns GORM DB, sql.DB (for migrations), and error.
 //
 // This helper is REUSABLE across all services (cipher-im, jose-ja, identity-*, pki-ca).
 // Extract to internal/template/testing/database/ for shared usage.
-func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
+//
+//nolint:unused // Example function for documentation
+func _createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 	dbID, _ := googleUuid.NewV7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
@@ -243,11 +252,12 @@ func createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 // Usage Example: Health Checks
 // ========================================
 
-func exampleHealthChecks() {
-	// Assuming testListener is initialized in TestMain.
+//nolint:unused // Example function for documentation
+func _exampleHealthChecks() {
+	// Assuming _testListener is initialized in TestMain.
 
 	// Liveness check (lightweight - process alive?).
-	liveResult, err := cryptoutilTemplateServerListener.SendLivenessCheck(testListener.Config())
+	liveResult, err := cryptoutilTemplateServerListener.SendLivenessCheck(_testListener.Config())
 	if err != nil {
 		fmt.Printf("Liveness check failed: %v\n", err)
 	} else {
@@ -255,7 +265,7 @@ func exampleHealthChecks() {
 	}
 
 	// Readiness check (heavyweight - dependencies healthy?).
-	readyResult, err := cryptoutilTemplateServerListener.SendReadinessCheck(testListener.Config())
+	readyResult, err := cryptoutilTemplateServerListener.SendReadinessCheck(_testListener.Config())
 	if err != nil {
 		fmt.Printf("Readiness check failed: %v\n", err)
 	} else {
@@ -263,7 +273,7 @@ func exampleHealthChecks() {
 	}
 
 	// Graceful shutdown via API.
-	err = cryptoutilTemplateServerListener.SendShutdownRequest(testListener.Config())
+	err = cryptoutilTemplateServerListener.SendShutdownRequest(_testListener.Config())
 	if err != nil {
 		fmt.Printf("Shutdown request failed: %v\n", err)
 	} else {

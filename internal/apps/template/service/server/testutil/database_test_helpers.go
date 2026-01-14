@@ -234,6 +234,10 @@ func HelpTest_InitDatabase_SadPaths(t *testing.T, migrationsFS embed.FS) {
 
 				// Use invalid connection string (nonexistent server).
 				gormDB, err := serverTemplateRepository.InitPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname", migrationsFS)
+				if err != nil {
+					err = fmt.Errorf("expected error from InitPostgreSQL: %w", err)
+				}
+
 				require.Error(t, err)
 				require.Nil(t, gormDB)
 
@@ -246,6 +250,10 @@ func HelpTest_InitDatabase_SadPaths(t *testing.T, migrationsFS embed.FS) {
 			setupFunc: func(ctx context.Context) error {
 				// Use invalid file path (directory doesn't exist).
 				gormDB, err := serverTemplateRepository.InitSQLite(ctx, "file:/nonexistent/invalid/path.db", migrationsFS)
+				if err != nil {
+					err = fmt.Errorf("expected error from InitSQLite: %w", err)
+				}
+
 				require.Error(t, err)
 				require.Nil(t, gormDB)
 

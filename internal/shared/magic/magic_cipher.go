@@ -147,7 +147,7 @@ const (
 const (
 	// CipherE2EComposeFile is the path to the cipher-im docker compose file (relative from e2e test directory).
 	// Path: internal/apps/cipher/im/e2e → ../../../../../cmd/cipher-im/docker-compose.yml
-	// Levels: e2e→im(1)→cipher(2)→apps(3)→internal(4)→cryptoutil(5), then cmd/cipher-im
+	// Levels: e2e→im(1)→cipher(2)→apps(3)→internal(4)→cryptoutil(5), then cmd/cipher-im.
 	CipherE2EComposeFile = "../../../../../cmd/cipher-im/docker-compose.yml"
 
 	// CipherE2ESQLiteContainer is the SQLite instance container name.

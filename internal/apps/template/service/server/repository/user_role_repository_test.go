@@ -23,20 +23,22 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 func setupUserRoleTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dsn := "file::memory:?cache=shared"
+	dsn := cryptoutilMagic.SQLiteInMemoryDSN
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	dialector := sqlite.Dialector{Conn: sqlDB}
@@ -69,7 +71,7 @@ func TestUserRoleRepository_Assign_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for user role assignment",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -80,7 +82,7 @@ func TestUserRoleRepository_Assign_HappyPath(t *testing.T) {
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
 		PasswordHash: "hashed_password",
-		Active: 1,
+		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
 
@@ -122,7 +124,7 @@ func TestUserRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for duplicate assignment",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -133,7 +135,7 @@ func TestUserRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
 		PasswordHash: "hashed_password",
-		Active: 1,
+		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
 
@@ -205,7 +207,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for listing roles",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -217,7 +219,7 @@ func TestUserRoleRepository_ListRolesByUser_HappyPath(t *testing.T) {
 		Username:     userID.String(),
 		Email:        googleUuid.New().String() + "@example.com",
 		PasswordHash: "hashed_password",
-		Active: 1,
+		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
 
@@ -265,7 +267,7 @@ func TestUserRoleRepository_ListRolesByUser_NoRoles(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for no roles",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -277,7 +279,7 @@ func TestUserRoleRepository_ListRolesByUser_NoRoles(t *testing.T) {
 		Username:     userID.String(),
 		Email:        googleUuid.New().String() + "@example.com",
 		PasswordHash: "hashed_password",
-		Active: 1,
+		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
 
@@ -300,7 +302,7 @@ func TestUserRoleRepository_Revoke_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for revoke",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -311,7 +313,7 @@ func TestUserRoleRepository_Revoke_HappyPath(t *testing.T) {
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
 		PasswordHash: "hashed_password",
-		Active: 1,
+		Active:       1,
 	}
 	require.NoError(t, db.Create(user).Error)
 
@@ -350,7 +352,7 @@ func TestUserRoleRepository_ListUsersByRole_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for listing users by role",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -370,7 +372,7 @@ func TestUserRoleRepository_ListUsersByRole_HappyPath(t *testing.T) {
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
 		PasswordHash: "hashed_password",
-		Active: 1,
+		Active:       1,
 	}
 	require.NoError(t, db.Create(user1).Error)
 
@@ -380,7 +382,7 @@ func TestUserRoleRepository_ListUsersByRole_HappyPath(t *testing.T) {
 		Username:     googleUuid.New().String(),
 		Email:        googleUuid.New().String() + "@example.com",
 		PasswordHash: "hashed_password",
-		Active: 1,
+		Active:       1,
 	}
 	require.NoError(t, db.Create(user2).Error)
 

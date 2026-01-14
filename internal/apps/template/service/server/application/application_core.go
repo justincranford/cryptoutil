@@ -106,9 +106,9 @@ func provisionDatabase(ctx context.Context, basic *ApplicationBasic, settings *c
 
 	var isPostgres bool
 
-	if databaseURL == "" || databaseURL == "file::memory:?cache=shared" || databaseURL == ":memory:" {
+	if databaseURL == "" || databaseURL == cryptoutilMagic.SQLiteInMemoryDSN || databaseURL == cryptoutilMagic.SQLiteMemoryPlaceholder {
 		isSQLite = true
-		databaseURL = "file::memory:?cache=shared" // Normalize SQLite in-memory URL.
+		databaseURL = cryptoutilMagic.SQLiteInMemoryDSN // Normalize SQLite in-memory URL.
 	} else if len(databaseURL) >= 9 && databaseURL[:9] == "postgres:" {
 		isPostgres = true
 	} else if len(databaseURL) >= 7 && databaseURL[:7] == "file://" {
@@ -181,14 +181,14 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 		(len(databaseURL) >= 7 && databaseURL[:7] == "file:/:" && (len(databaseURL) < 9 || databaseURL[7:9] == ":m"))
 
 	if !isInMemory {
-		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+		if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
 			_ = sqlDB.Close()
 
 			return nil, fmt.Errorf("failed to enable WAL mode: %w", err)
 		}
 	}
 
-	if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
 		_ = sqlDB.Close()
 
 		return nil, fmt.Errorf("failed to set busy timeout: %w", err)
@@ -199,7 +199,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
-		gormConfig.Logger = gormConfig.Logger.LogMode(4) // Info level.
+		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilMagic.GormLogModeInfo)
 	}
 
 	db, err := gorm.Open(dialector, gormConfig)
@@ -226,7 +226,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 func openPostgreSQL(ctx context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
-		gormConfig.Logger = gormConfig.Logger.LogMode(4) // Info level.
+		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilMagic.GormLogModeInfo)
 	}
 
 	db, err := gorm.Open(postgres.Open(databaseURL), gormConfig)
@@ -240,8 +240,8 @@ func openPostgreSQL(ctx context.Context, databaseURL string, debugMode bool) (*g
 		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	sqlDB.SetMaxOpenConns(25)
-	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)
+	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)
 
 	return db, nil
 }

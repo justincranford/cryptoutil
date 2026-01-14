@@ -22,10 +22,12 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 
 	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
 		t.Helper()
+
 		cfg := cryptoutilIdentityConfig.RequireNewForTest("test_idp_admin_start_nil_ctx")
 		ctx := context.Background()
 		server, err := NewAdminHTTPServer(ctx, cfg)
 		require.NoError(t, err)
+
 		return server
 	}
 

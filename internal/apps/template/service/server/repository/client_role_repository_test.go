@@ -23,20 +23,22 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 func setupClientRoleTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dsn := "file::memory:?cache=shared"
+	dsn := cryptoutilMagic.SQLiteInMemoryDSN
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	dialector := sqlite.Dialector{Conn: sqlDB}
@@ -69,17 +71,17 @@ func TestClientRoleRepository_Assign_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for client role assignment",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
 	// Create test client.
 	client := &Client{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     googleUuid.New().String(),
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret",
-		Active: 1,
+		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -121,17 +123,17 @@ func TestClientRoleRepository_Assign_DuplicateAssignment(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for duplicate assignment",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
 	// Create test client.
 	client := &Client{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     googleUuid.New().String(),
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret",
-		Active: 1,
+		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -203,18 +205,18 @@ func TestClientRoleRepository_ListRolesByClient_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for listing roles",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
 	// Create test client.
 	clientUUID := googleUuid.New()
 	client := &Client{
-		ID:           clientUUID,
-		TenantID:     tenant.ID,
-		ClientID:     clientUUID.String(),
+		ID:               clientUUID,
+		TenantID:         tenant.ID,
+		ClientID:         clientUUID.String(),
 		ClientSecretHash: "hashed_secret",
-		Active: 1,
+		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -262,18 +264,18 @@ func TestClientRoleRepository_ListRolesByClient_NoRoles(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for no roles",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
 	// Create test client with no roles.
 	clientUUID := googleUuid.New()
 	client := &Client{
-		ID:           clientUUID,
-		TenantID:     tenant.ID,
-		ClientID:     clientUUID.String(),
+		ID:               clientUUID,
+		TenantID:         tenant.ID,
+		ClientID:         clientUUID.String(),
 		ClientSecretHash: "hashed_secret",
-		Active: 1,
+		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -296,17 +298,17 @@ func TestClientRoleRepository_Revoke_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for revoke",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
 	// Create test client.
 	client := &Client{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     googleUuid.New().String(),
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret",
-		Active: 1,
+		Active:           1,
 	}
 	require.NoError(t, db.Create(client).Error)
 
@@ -345,7 +347,7 @@ func TestClientRoleRepository_ListClientsByRole_HappyPath(t *testing.T) {
 		ID:          tenantID,
 		Name:        tenantID.String(),
 		Description: "Test tenant for listing clients by role",
-		Active: 1,
+		Active:      1,
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -360,20 +362,20 @@ func TestClientRoleRepository_ListClientsByRole_HappyPath(t *testing.T) {
 
 	// Create test clients.
 	client1 := &Client{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     googleUuid.New().String(),
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret1",
-		Active: 1,
+		Active:           1,
 	}
 	require.NoError(t, db.Create(client1).Error)
 
 	client2 := &Client{
-		ID:           googleUuid.New(),
-		TenantID:     tenant.ID,
-		ClientID:     googleUuid.New().String(),
+		ID:               googleUuid.New(),
+		TenantID:         tenant.ID,
+		ClientID:         googleUuid.New().String(),
 		ClientSecretHash: "hashed_secret2",
-		Active: 1,
+		Active:           1,
 	}
 	require.NoError(t, db.Create(client2).Error)
 

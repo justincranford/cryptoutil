@@ -3,12 +3,13 @@ package container
 import (
 	"context"
 	"fmt"
-	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 func NewPostgresTestContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
@@ -24,11 +25,12 @@ func NewPostgresTestContainer(ctx context.Context) (*postgres.PostgresContainer,
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
-				WithStartupTimeout(30*time.Second),
+				WithStartupTimeout(cryptoutilMagic.DBPostgresContainerStartupTimeout),
 		),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start container: %w", err)
 	}
+
 	return container, nil
 }

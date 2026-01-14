@@ -32,6 +32,7 @@ import (
 
 const (
 	httpClientTimeout = 10 * time.Second
+	testPassword      = "TestPassword123!"
 )
 
 // TestE2E_HealthChecks validates /health endpoint for all instances (external clients use public endpoint).
@@ -118,17 +119,21 @@ func TestE2E_TelemetryServices(t *testing.T) {
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", nil)
 			if err != nil {
 				cancel()
+
 				lastErr = fmt.Errorf("creating Grafana health request: %w", err)
+
 				time.Sleep(2 * time.Second)
 
 				continue
 			}
 
 			resp, err := client.Do(req)
+
 			cancel()
 
 			if err != nil {
 				lastErr = fmt.Errorf("Grafana health endpoint (attempt %d): %w", attempt+1, err)
+
 				time.Sleep(2 * time.Second)
 
 				continue
@@ -141,6 +146,7 @@ func TestE2E_TelemetryServices(t *testing.T) {
 			}
 
 			lastErr = fmt.Errorf("Grafana returned status %d (attempt %d)", resp.StatusCode, attempt+1)
+
 			time.Sleep(2 * time.Second)
 		}
 
@@ -150,7 +156,7 @@ func TestE2E_TelemetryServices(t *testing.T) {
 
 // TestE2E_CrossInstanceIsolation verifies database backend isolation behavior.
 // - SQLite instances are isolated (separate databases, users NOT shared)
-// - PostgreSQL instances pg-1 and pg-2 SHARE state (same database, same tenant)
+// - PostgreSQL instances pg-1 and pg-2 SHARE state (same database, same tenant).
 func TestE2E_CrossInstanceIsolation(t *testing.T) {
 	t.Parallel()
 
@@ -160,7 +166,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 
 		// Create a unique user in SQLite instance.
 		username := fmt.Sprintf("sqlite_user_%d", time.Now().UnixNano())
-		password := "TestPassword123!"
+		password := testPassword
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 		defer cancel()
@@ -212,7 +218,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 
 		// Create a unique user in pg-1.
 		username := fmt.Sprintf("pg_shared_user_%d", time.Now().UnixNano())
-		password := "TestPassword123!"
+		password := testPassword
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 		defer cancel()
@@ -262,7 +268,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 
 		// Create a unique user in pg-2.
 		username := fmt.Sprintf("pg_isolated_user_%d", time.Now().UnixNano())
-		password := "TestPassword123!"
+		password := testPassword
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 		defer cancel()

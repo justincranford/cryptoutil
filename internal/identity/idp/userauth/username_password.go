@@ -236,10 +236,11 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 	}
 
 	// Verify old password (supports legacy and PBKDF2 hashes).
-	match, needsUpgrade, err := cryptoutilPassword.VerifyPassword(oldPassword, string(currentHash))
+	match, _, err := cryptoutilPassword.VerifyPassword(oldPassword, string(currentHash))
 	if err != nil {
 		return fmt.Errorf("password verification failed: %w", err)
 	}
+
 	if !match {
 		return fmt.Errorf("invalid current password")
 	}
@@ -249,12 +250,10 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
+
 	newHash := []byte(newHashStr)
 
-	// If old hash was legacy algorithm, opportunistically upgrade to PBKDF2.
-	if needsUpgrade {
-		// Note: newHash is already PBKDF2, which is the desired behavior.
-	}
+	// Note: If old hash was legacy algorithm, new password uses PBKDF2 (automatic upgrade).
 
 	// Ensure new password is different from old password.
 	// Note: This comparison is approximate due to salt randomization.

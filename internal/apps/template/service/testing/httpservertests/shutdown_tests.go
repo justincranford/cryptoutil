@@ -16,6 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test-specific timing constants.
+const (
+	testShutdownTimeout   = 5 * time.Second
+	testServerStartupWait = 1 * time.Second
+	testPortReleaseWait   = 500 * time.Millisecond
+)
+
 // HTTPServer represents a minimal HTTP server interface for shutdown testing.
 type HTTPServer interface {
 	Start(ctx context.Context) error
@@ -45,10 +52,10 @@ func TestShutdownGraceful(t *testing.T, createServer func(t *testing.T) HTTPServ
 	}()
 
 	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	time.Sleep(testServerStartupWait)
 
 	// Shutdown server.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), testShutdownTimeout)
 	defer shutdownCancel()
 
 	err := server.Shutdown(shutdownCtx)
@@ -62,7 +69,7 @@ func TestShutdownGraceful(t *testing.T, createServer func(t *testing.T) HTTPServ
 	}
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(testPortReleaseWait)
 }
 
 // TestShutdownNilContext verifies that Shutdown accepts nil context (background fallback).
@@ -86,7 +93,7 @@ func TestShutdownNilContext(t *testing.T, createServer func(t *testing.T) HTTPSe
 	}()
 
 	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	time.Sleep(testServerStartupWait)
 
 	// Shutdown with nil context (should use background context internally).
 	err := server.Shutdown(nil) //nolint:staticcheck // Testing nil context handling.
@@ -95,7 +102,7 @@ func TestShutdownNilContext(t *testing.T, createServer func(t *testing.T) HTTPSe
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(testPortReleaseWait)
 }
 
 // TestShutdownDoubleCall verifies that calling Shutdown twice returns error.
@@ -119,17 +126,17 @@ func TestShutdownDoubleCall(t *testing.T, createServer func(t *testing.T) HTTPSe
 	}()
 
 	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	time.Sleep(testServerStartupWait)
 
 	// First shutdown - should succeed.
-	shutdownCtx1, shutdownCancel1 := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx1, shutdownCancel1 := context.WithTimeout(context.Background(), testShutdownTimeout)
 	defer shutdownCancel1()
 
 	err := server.Shutdown(shutdownCtx1)
 	require.NoError(t, err, "First shutdown should succeed")
 
 	// Second shutdown - should return error.
-	shutdownCtx2, shutdownCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx2, shutdownCancel2 := context.WithTimeout(context.Background(), testShutdownTimeout)
 	defer shutdownCancel2()
 
 	err = server.Shutdown(shutdownCtx2)
@@ -140,7 +147,7 @@ func TestShutdownDoubleCall(t *testing.T, createServer func(t *testing.T) HTTPSe
 	wg.Wait()
 
 	// Wait for port to be fully released.
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(testPortReleaseWait)
 }
 
 // TestStartNilContext verifies that Start rejects nil context.

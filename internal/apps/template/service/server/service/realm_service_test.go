@@ -41,11 +41,11 @@ func setupRealmTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Enable WAL mode for better concurrency.
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
 
 	// Set busy timeout for concurrent writes.
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	// Pass to GORM with auto-transactions disabled.

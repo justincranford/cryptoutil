@@ -91,17 +91,32 @@ func (s *TenantServiceImpl) CreateTenant(ctx context.Context, name, description 
 
 // GetTenant retrieves a tenant by ID.
 func (s *TenantServiceImpl) GetTenant(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
-	return s.tenantRepo.GetByID(ctx, id)
+	tenant, err := s.tenantRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tenant by ID: %w", err)
+	}
+
+	return tenant, nil
 }
 
 // GetTenantByName retrieves a tenant by name.
 func (s *TenantServiceImpl) GetTenantByName(ctx context.Context, name string) (*repository.Tenant, error) {
-	return s.tenantRepo.GetByName(ctx, name)
+	tenant, err := s.tenantRepo.GetByName(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tenant by name: %w", err)
+	}
+
+	return tenant, nil
 }
 
 // ListTenants retrieves all tenants with optional active filtering.
 func (s *TenantServiceImpl) ListTenants(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error) {
-	return s.tenantRepo.List(ctx, activeOnly)
+	tenants, err := s.tenantRepo.List(ctx, activeOnly)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list tenants: %w", err)
+	}
+
+	return tenants, nil
 }
 
 // UpdateTenant updates tenant information.
@@ -109,7 +124,7 @@ func (s *TenantServiceImpl) UpdateTenant(ctx context.Context, id googleUuid.UUID
 	// Get existing tenant.
 	tenant, err := s.tenantRepo.GetByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get tenant for update: %w", err)
 	}
 
 	// Update fields if provided.
@@ -135,5 +150,9 @@ func (s *TenantServiceImpl) UpdateTenant(ctx context.Context, id googleUuid.UUID
 
 // DeleteTenant deletes a tenant (fails if users/clients exist).
 func (s *TenantServiceImpl) DeleteTenant(ctx context.Context, id googleUuid.UUID) error {
-	return s.tenantRepo.Delete(ctx, id)
+	if err := s.tenantRepo.Delete(ctx, id); err != nil {
+		return fmt.Errorf("failed to delete tenant: %w", err)
+	}
+
+	return nil
 }

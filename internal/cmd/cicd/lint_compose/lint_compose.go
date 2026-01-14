@@ -110,6 +110,7 @@ func checkComposeFile(filePath string) ([]Violation, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
+
 	defer func() { _ = file.Close() }()
 
 	var violations []Violation
@@ -165,11 +166,16 @@ func checkComposeFile(filePath string) ([]Violation, error) {
 	return violations, nil
 }
 
+const (
+	// lineSeparatorLength defines the length of line separators in output.
+	lineSeparatorLength = 60
+)
+
 // printViolations outputs all detected violations.
 func printViolations(violations []Violation) {
 	fmt.Println()
 	fmt.Println("❌ SECURITY VIOLATIONS: Admin port 9090 exposed to host")
-	fmt.Println(strings.Repeat("=", 60))
+	fmt.Println(strings.Repeat("=", lineSeparatorLength))
 
 	for _, v := range violations {
 		fmt.Printf("\n📁 File: %s\n", v.File)
@@ -179,7 +185,7 @@ func printViolations(violations []Violation) {
 	}
 
 	fmt.Println()
-	fmt.Println(strings.Repeat("=", 60))
+	fmt.Println(strings.Repeat("=", lineSeparatorLength))
 	fmt.Println("💡 Fix: Remove port mapping or use internal-only networking")
 	fmt.Println("   Admin APIs should only be accessible from within containers")
 	fmt.Println("   (health checks use 127.0.0.1:9090 inside container)")

@@ -97,9 +97,9 @@ func checkNonFIPS(logger *cryptoutilCmdCicdCommon.Logger) error {
 func findGoFiles() ([]string, error) {
 	var files []string
 
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+	err := filepath.Walk(".", func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
 
 		// Skip directories to exclude.
@@ -125,8 +125,11 @@ func findGoFiles() ([]string, error) {
 
 		return nil
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to walk directory tree: %w", err)
+	}
 
-	return files, err
+	return files, nil
 }
 
 // checkFileForNonFIPS checks a single Go file for non-FIPS algorithm usage.

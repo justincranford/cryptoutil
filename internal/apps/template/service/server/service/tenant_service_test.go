@@ -27,6 +27,11 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 )
 
+// Test error summary constants.
+const (
+	testErrSummaryTenantNotFound = "tenant not found"
+)
+
 // mockTenantRepository implements repository.TenantRepository for testing.
 type mockTenantRepository struct {
 	createFn               func(ctx context.Context, tenant *repository.Tenant) error
@@ -252,7 +257,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 			name:     "tenant not found",
 			tenantID: googleUuid.New(),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				summary := "tenant not found"
+				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
 					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
@@ -350,7 +355,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			tenantID:   googleUuid.New(),
 			nameUpdate: stringPtr("Test"),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				summary := "tenant not found"
+				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
 					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
@@ -599,7 +604,7 @@ func TestTenantService_GetTenantByName(t *testing.T) {
 		{
 			name: "tenant not found",
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				summary := "tenant not found"
+				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByNameFn = func(ctx context.Context, name string) (*repository.Tenant, error) {
 					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}

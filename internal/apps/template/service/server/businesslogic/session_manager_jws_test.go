@@ -71,8 +71,10 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	require.Equal(t, tenantID.String(), claims["tenant_id"])
 	require.Equal(t, realmID.String(), claims["realm_id"])
 
-	// Verify expiration is in future
-	expFloat := claims["exp"].(float64)
+	// Verify expiration is in future.
+	expFloat, ok := claims["exp"].(float64)
+	require.True(t, ok, "exp claim should be float64")
+
 	exp := time.Unix(int64(expFloat), 0)
 	require.True(t, time.Now().Before(exp), "Expiration should be in future")
 }
@@ -187,15 +189,21 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 	publicJWK, publicKeyErr := privateJWK.PublicKey()
 	require.NoError(t, publicKeyErr)
 
-	claimsBytes, _ := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, verifyErr := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	require.NoError(t, verifyErr)
 
 	var claims map[string]any
 
-	_ = json.Unmarshal(claimsBytes, &claims)
-	jtiStr := claims["jti"].(string)
+	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
+	require.NoError(t, unmarshalErr)
 
-	// Delete session from database (simulate revocation)
-	jti, _ := googleUuid.Parse(jtiStr)
+	jtiStr, ok := claims["jti"].(string)
+	require.True(t, ok, "jti claim should be string")
+
+	// Delete session from database (simulate revocation).
+	jti, parseJTIErr := googleUuid.Parse(jtiStr)
+	require.NoError(t, parseJTIErr)
+
 	deleteErr := sm.db.Where("id = ?", jti).Delete(&cryptoutilRepository.BrowserSession{}).Error
 	require.NoError(t, deleteErr)
 

@@ -83,4 +83,10 @@ const (
 
 	// DefaultSessionCleanupInterval is the default interval for cleaning up expired sessions.
 	DefaultSessionCleanupInterval = 1 * time.Hour
+
+	// DefaultCompatibilitySessionExpiration is the default session expiration for API compatibility.
+	DefaultCompatibilitySessionExpiration = 15 * time.Minute
+
+	// DefaultShutdownTimeout is the default timeout for graceful shutdown operations.
+	DefaultShutdownTimeout = 30 * time.Second
 )

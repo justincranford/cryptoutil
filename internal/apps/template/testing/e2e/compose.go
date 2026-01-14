@@ -35,48 +35,77 @@ func NewComposeManager(composeFile string) *ComposeManager {
 // Use WaitForMultipleServices() after Start() to wait for specific services to be healthy.
 func (cm *ComposeManager) Start(ctx context.Context) error {
 	fmt.Println("Starting docker compose stack...")
+
 	startCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "up", "-d")
 	startCmd.Stdout = os.Stdout
 	startCmd.Stderr = os.Stderr
-	return startCmd.Run()
+
+	if err := startCmd.Run(); err != nil {
+		return fmt.Errorf("failed to start docker compose: %w", err)
+	}
+
+	return nil
 }
 
 // Stop tears down docker compose stack.
 func (cm *ComposeManager) Stop(ctx context.Context) error {
 	fmt.Println("Stopping docker compose stack...")
+
 	downCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "down", "-v")
 	downCmd.Stdout = os.Stdout
 	downCmd.Stderr = os.Stderr
-	return downCmd.Run()
+
+	if err := downCmd.Run(); err != nil {
+		return fmt.Errorf("failed to stop docker compose: %w", err)
+	}
+
+	return nil
 }
 
 // WaitForHealth polls an health endpoint until healthy or timeout.
 // Supports both admin endpoints (/admin/v1/livez) and public endpoints (/health).
 func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration) error {
+	ctx := context.Background()
+
 	timeoutCh := time.After(timeout)
+
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
 	fmt.Printf("[WaitForHealth] Starting health check for %s (timeout: %v)\n", healthURL, timeout)
+
 	attempts := 0
 
 	for {
 		select {
 		case <-timeoutCh:
 			fmt.Printf("[WaitForHealth] TIMEOUT for %s after %d attempts\n", healthURL, attempts)
+
 			return fmt.Errorf("health check timeout after %v", timeout)
 		case <-ticker.C:
 			attempts++
-			resp, err := cm.HTTPClient.Get(healthURL)
+
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+			if err != nil {
+				fmt.Printf("[WaitForHealth] Attempt %d for %s: request creation error: %v\n", attempts, healthURL, err)
+
+				continue // Retry on request creation errors.
+			}
+
+			resp, err := cm.HTTPClient.Do(req)
 			if err != nil {
 				fmt.Printf("[WaitForHealth] Attempt %d for %s: connection error: %v\n", attempts, healthURL, err)
+
 				continue // Retry on connection errors.
 			}
+
 			_ = resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {
 				fmt.Printf("[WaitForHealth] SUCCESS for %s after %d attempts\n", healthURL, attempts)
+
 				return nil // Healthy!
 			}
+
 			fmt.Printf("[WaitForHealth] Attempt %d for %s: HTTP %d\n", attempts, healthURL, resp.StatusCode)
 		}
 	}

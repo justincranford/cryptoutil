@@ -27,15 +27,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"time"
 
 	"gorm.io/gorm"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
 )
 
 // ApplicationListener encapsulates complete service lifecycle (telemetry, DB, servers, shutdown).
@@ -320,7 +319,7 @@ func (l *ApplicationListener) Shutdown() {
 	}
 
 	if l.app != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.DefaultShutdownTimeout)
 		defer cancel()
 
 		_ = l.app.Shutdown(ctx) // Best-effort shutdown, ignore errors during cleanup.

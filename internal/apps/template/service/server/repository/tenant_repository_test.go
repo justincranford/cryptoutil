@@ -14,19 +14,21 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // setupTestDB creates an in-memory SQLite database for testing.
 func setupTestDB(t *testing.T) *gorm.DB {
-	dsn := "file::memory:?cache=shared"
+	dsn := cryptoutilMagic.SQLiteInMemoryDSN
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	dialector := sqlite.Dialector{Conn: sqlDB}

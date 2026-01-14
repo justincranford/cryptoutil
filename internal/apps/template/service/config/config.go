@@ -1348,10 +1348,10 @@ func resetFlags() {
 	viper.Reset()
 }
 
-func SetEnvAndRegisterSetting(allRegisteredSettings []*Setting, setting *Setting) *Setting {
+func SetEnvAndRegisterSetting(_ []*Setting, setting *Setting) *Setting {
 	setting.Env = "CRYPTOUTIL_" + strings.ToUpper(strings.ReplaceAll(setting.Name, "-", "_"))
 
-	allRegisteredSettings = append(allRegisteredSettings, setting)
+	allServeiceTemplateServerRegisteredSettings = append(allServeiceTemplateServerRegisteredSettings, setting)
 
 	return setting
 }
@@ -1476,11 +1476,11 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 
 	// CRITICAL: In test/dev environments, reject 0.0.0.0 to prevent Windows Firewall prompts.
 	// Production containers may use 0.0.0.0 for external access (isolated network namespace).
-	if s.DevMode && s.BindPublicAddress == "0.0.0.0" {
+	if s.DevMode && s.BindPublicAddress == cryptoutilMagic.IPv4AnyAddress {
 		errors = append(errors, "CRITICAL: bind public address cannot be 0.0.0.0 in test/dev mode (triggers Windows Firewall prompts): use '127.0.0.1' for localhost")
 	}
 
-	if s.DevMode && s.BindPrivateAddress == "0.0.0.0" {
+	if s.DevMode && s.BindPrivateAddress == cryptoutilMagic.IPv4AnyAddress {
 		errors = append(errors, "CRITICAL: bind private address cannot be 0.0.0.0 in test/dev mode (triggers Windows Firewall prompts): use '127.0.0.1' for localhost")
 	}
 

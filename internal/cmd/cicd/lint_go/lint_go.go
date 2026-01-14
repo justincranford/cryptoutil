@@ -12,6 +12,12 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
+// Directory exclusions for lint checks.
+const (
+	excludeDirVendor = "vendor"
+	excludeDirGit    = ".git"
+)
+
 // LinterFunc is a function type for individual Go linters.
 // Each linter receives a logger, returning an error if issues are found.
 type LinterFunc func(logger *cryptoutilCmdCicdCommon.Logger) error
@@ -160,7 +166,7 @@ func checkGoFilesForCGO() ([]string, error) {
 		}
 
 		// Skip vendor directories and linting package itself.
-		if info.IsDir() && (info.Name() == "vendor" || info.Name() == ".git") {
+		if info.IsDir() && (info.Name() == excludeDirVendor || info.Name() == excludeDirGit) {
 			return filepath.SkipDir
 		}
 

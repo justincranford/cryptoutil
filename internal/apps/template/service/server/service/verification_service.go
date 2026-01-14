@@ -82,12 +82,22 @@ func NewVerificationService(
 
 // ListPendingUsers lists all unverified users for a tenant.
 func (s *VerificationServiceImpl) ListPendingUsers(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedUser, error) {
-	return s.unverifiedUserRepo.ListByTenant(ctx, tenantID)
+	users, err := s.unverifiedUserRepo.ListByTenant(ctx, tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list pending users: %w", err)
+	}
+
+	return users, nil
 }
 
 // ListPendingClients lists all unverified clients for a tenant.
 func (s *VerificationServiceImpl) ListPendingClients(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedClient, error) {
-	return s.unverifiedClientRepo.ListByTenant(ctx, tenantID)
+	clients, err := s.unverifiedClientRepo.ListByTenant(ctx, tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list pending clients: %w", err)
+	}
+
+	return clients, nil
 }
 
 // ApproveUser approves a pending user registration and assigns roles.

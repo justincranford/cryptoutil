@@ -285,6 +285,7 @@ func TestGenerate_Uniqueness(t *testing.T) {
 	require.NoError(t, err)
 
 	passwords := make(map[string]bool)
+
 	for i := 0; i < 100; i++ {
 		password, err := gen.Generate()
 		require.NoError(t, err)
@@ -319,10 +320,12 @@ func containsRune(chars []rune, r rune) bool {
 
 func countChars(password string, chars []rune) int {
 	count := 0
+
 	for _, c := range password {
 		for _, allowed := range chars {
 			if c == allowed {
 				count++
+
 				break
 			}
 		}
@@ -337,6 +340,7 @@ func hasNoDuplicates(password string) bool {
 		if seen[c] {
 			return false
 		}
+
 		seen[c] = true
 	}
 

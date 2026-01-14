@@ -40,6 +40,16 @@ const (
 	MaxInt = int(^uint(0) >> 1)
 )
 
+// Password policy length constants.
+const (
+	basicPolicyMinLength      = 8
+	basicPolicyMaxLength      = 16
+	strongPolicyMinLength     = 12
+	strongPolicyMaxLength     = 24
+	enterprisePolicyMinLength = 16
+	enterprisePolicyMaxLength = 32
+)
+
 // Common character sets.
 var (
 	LowercaseLetters = []rune("abcdefghijklmnopqrstuvwxyz")
@@ -54,8 +64,8 @@ var (
 	// BasicPolicy: 8-16 chars, must have lowercase, uppercase, digit.
 	BasicPolicy = PasswordPolicy{
 		Name:                 "basic",
-		MinLength:            8,
-		MaxLength:            16,
+		MinLength:            basicPolicyMinLength,
+		MaxLength:            basicPolicyMaxLength,
 		AllowDuplicates:      true,
 		AllowAdjacentRepeats: false,
 		StartCharacters:      append([]rune{}, LowercaseLetters...),
@@ -70,8 +80,8 @@ var (
 	// StrongPolicy: 12-24 chars, must have lowercase, uppercase, digit, special.
 	StrongPolicy = PasswordPolicy{
 		Name:                 "strong",
-		MinLength:            12,
-		MaxLength:            24,
+		MinLength:            strongPolicyMinLength,
+		MaxLength:            strongPolicyMaxLength,
 		AllowDuplicates:      true,
 		AllowAdjacentRepeats: false,
 		StartCharacters:      append(append([]rune{}, LowercaseLetters...), UppercaseLetters...),
@@ -87,8 +97,8 @@ var (
 	// EnterprisePolicy: 16-32 chars, strict requirements.
 	EnterprisePolicy = PasswordPolicy{
 		Name:                 "enterprise",
-		MinLength:            16,
-		MaxLength:            32,
+		MinLength:            enterprisePolicyMinLength,
+		MaxLength:            enterprisePolicyMaxLength,
 		AllowDuplicates:      false,
 		AllowAdjacentRepeats: false,
 		StartCharacters:      append([]rune{}, LowercaseLetters...),
@@ -126,6 +136,7 @@ func (p *PasswordPolicy) Validate() error {
 	}
 
 	totalMinRequired := 0
+
 	for _, cs := range p.CharSets {
 		if len(cs.Characters) == 0 {
 			return fmt.Errorf("CharSet '%s' has no characters", cs.Name)
@@ -185,9 +196,10 @@ func (g *PasswordGenerator) randomLength() (int, error) {
 	}
 
 	rangeSize := g.policy.MaxLength - g.policy.MinLength + 1
+
 	n, err := rand.Int(rand.Reader, big.NewInt(int64(rangeSize)))
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to generate random length: %w", err)
 	}
 
 	return g.policy.MinLength + int(n.Int64()), nil
@@ -201,14 +213,16 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 	if len(g.policy.StartCharacters) > 0 {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(g.policy.StartCharacters))))
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to generate start character index: %w", err)
 		}
+
 		password[0] = g.policy.StartCharacters[idx.Int64()]
 	} else {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(allChars))))
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to generate first character index: %w", err)
 		}
+
 		password[0] = allChars[idx.Int64()]
 	}
 
@@ -216,14 +230,16 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 	if len(g.policy.EndCharacters) > 0 {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(g.policy.EndCharacters))))
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to generate end character index: %w", err)
 		}
+
 		password[length-1] = g.policy.EndCharacters[idx.Int64()]
 	} else {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(allChars))))
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to generate last character index: %w", err)
 		}
+
 		password[length-1] = allChars[idx.Int64()]
 	}
 
@@ -232,7 +248,7 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 		for attempts := 0; attempts < 100; attempts++ {
 			idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(allChars))))
 			if err != nil {
-				return "", err
+				return "", fmt.Errorf("failed to generate random middle character index: %w", err)
 			}
 
 			char := allChars[idx.Int64()]
@@ -248,6 +264,7 @@ func (g *PasswordGenerator) generateCandidate(length int, allChars []rune) (stri
 			}
 
 			password[i] = char
+
 			break
 		}
 	}
@@ -283,6 +300,7 @@ func (g *PasswordGenerator) meetsRequirements(password string) bool {
 	// Check CharSet requirements.
 	for _, cs := range g.policy.CharSets {
 		count := 0
+
 		for _, pr := range passwordRunes {
 			if g.containsRune(cs.Characters, pr) {
 				count++

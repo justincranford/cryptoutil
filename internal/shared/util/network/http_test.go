@@ -75,8 +75,8 @@ func TestMain(m *testing.M) {
 
 			return
 		}
-		switch r.URL.Path {
 
+		switch r.URL.Path {
 		case "/final":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("Final"))

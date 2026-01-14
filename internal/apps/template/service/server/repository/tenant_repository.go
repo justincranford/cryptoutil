@@ -17,6 +17,13 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 )
 
+// Error summary messages.
+const (
+	errSummaryRecordNotFound        = "record not found"
+	errSummaryDuplicateKeyViolation = "duplicate key violation"
+	errSummaryDatabaseError         = "database error"
+)
+
 // TenantRepository provides CRUD operations for tenants.
 type TenantRepository interface {
 	Create(ctx context.Context, tenant *Tenant) error
@@ -139,13 +146,13 @@ func toAppErr(err error) error {
 	}
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		summary := "record not found"
+		summary := errSummaryRecordNotFound
 
 		return cryptoutilAppErr.NewHTTP404NotFound(&summary, err)
 	}
 
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		summary := "duplicate key violation"
+		summary := errSummaryDuplicateKeyViolation
 
 		return cryptoutilAppErr.NewHTTP409Conflict(&summary, err)
 	}
@@ -153,12 +160,12 @@ func toAppErr(err error) error {
 	// Check for SQLite UNIQUE constraint violations (error code 2067 or message contains "UNIQUE constraint")
 	errMsg := err.Error()
 	if strings.Contains(errMsg, "UNIQUE constraint") || strings.Contains(errMsg, "(2067)") {
-		summary := "duplicate key violation"
+		summary := errSummaryDuplicateKeyViolation
 
 		return cryptoutilAppErr.NewHTTP409Conflict(&summary, err)
 	}
 
-	summary := "database error"
+	summary := errSummaryDatabaseError
 
 	return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, err)
 }

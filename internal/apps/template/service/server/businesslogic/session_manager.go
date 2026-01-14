@@ -41,6 +41,24 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
+// Session validation error messages.
+const (
+	errMsgMissingInvalidExpClaim = "Missing or invalid exp claim"
+	errMsgMissingInvalidJTIClaim = "Missing or invalid jti claim"
+	errMsgSessionRevokedNotFound = "Session revoked or not found"
+	errMsgInvalidSessionToken    = "Invalid session token"
+	algIdentifierHS256           = "HS256"
+	algIdentifierHS384           = "HS384"
+	algIdentifierHS512           = "HS512"
+	algIdentifierRS256           = "RS256"
+	algIdentifierRS384           = "RS384"
+	algIdentifierRS512           = "RS512"
+	algIdentifierES256           = "ES256"
+	algIdentifierES384           = "ES384"
+	algIdentifierES512           = "ES512"
+	algIdentifierEdDSA           = "EdDSA"
+)
+
 // SessionManager manages session tokens for browser and service clients.
 //
 // Supports three session token algorithms:
@@ -199,7 +217,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	case cryptoutilMagic.SessionAlgorithmJWS:
 		// Generate signing JWK based on algorithm
 		switch algIdentifier {
-		case "HS256", "HS384", "HS512":
+		case algIdentifierHS256, algIdentifierHS384, algIdentifierHS512:
 			// HMAC symmetric key algorithms
 			var (
 				hmacBits int
@@ -207,13 +225,13 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 			)
 
 			switch algIdentifier {
-			case "HS256":
+			case algIdentifierHS256:
 				hmacBits = cryptoutilMagic.HMACKeySize256
 				algValue = joseJwa.HS256()
-			case "HS384":
+			case algIdentifierHS384:
 				hmacBits = cryptoutilMagic.HMACKeySize384
 				algValue = joseJwa.HS384()
-			case "HS512":
+			case algIdentifierHS512:
 				hmacBits = cryptoutilMagic.HMACKeySize512
 				algValue = joseJwa.HS512()
 			}
@@ -225,18 +243,18 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case "RS256", "RS384", "RS512":
-			jwk, genErr = cryptoutilJOSE.GenerateRSAJWK(2048)
+		case algIdentifierRS256, algIdentifierRS384, algIdentifierRS512:
+			jwk, genErr = cryptoutilJOSE.GenerateRSAJWK(cryptoutilMagic.RSAKeySize2048)
 			if genErr == nil {
 				// Set 'alg' attribute for signing
 				var algValue joseJwa.SignatureAlgorithm
 
 				switch algIdentifier {
-				case "RS256":
+				case algIdentifierRS256:
 					algValue = joseJwa.RS256()
-				case "RS384":
+				case algIdentifierRS384:
 					algValue = joseJwa.RS384()
-				case "RS512":
+				case algIdentifierRS512:
 					algValue = joseJwa.RS512()
 				}
 
@@ -245,7 +263,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case "ES256":
+		case algIdentifierES256:
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P256())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES256())
@@ -253,7 +271,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case "ES384":
+		case algIdentifierES384:
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P384())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES384())
@@ -261,7 +279,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case "ES512":
+		case algIdentifierES512:
 			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P521())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES512())
@@ -269,7 +287,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case "EdDSA":
+		case algIdentifierEdDSA:
 			jwk, genErr = cryptoutilJOSE.GenerateEDDSAJWK("Ed25519")
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())
@@ -283,8 +301,8 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	case cryptoutilMagic.SessionAlgorithmJWE:
 		// Generate encryption JWK based on algorithm
 		switch algIdentifier {
-		case "dir+A256GCM":
-			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(256)
+		case cryptoutilMagic.SessionJWEAlgorithmDirA256GCM:
+			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(cryptoutilMagic.AESKeySize256)
 			if genErr == nil {
 				// Set 'enc' and 'alg' attributes for encryption
 				genErr = jwk.Set("enc", joseJwa.A256GCM())
@@ -292,8 +310,8 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.DIRECT())
 				}
 			}
-		case "A256GCMKW+A256GCM":
-			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(256)
+		case cryptoutilMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
+			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(cryptoutilMagic.AESKeySize256)
 			if genErr == nil {
 				genErr = jwk.Set("enc", joseJwa.A256GCM())
 				if genErr == nil {
@@ -409,9 +427,9 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		cryptoutilMagic.SessionJWSAlgorithmRS384,
 		cryptoutilMagic.SessionJWSAlgorithmRS512:
 		// RSA key generation
-		keyPair, err := cryptoutilKeygen.GenerateRSAKeyPair(2048)
+		keyPair, err := cryptoutilKeygen.GenerateRSAKeyPair(cryptoutilMagic.RSAKeySize2048)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to generate RSA key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
@@ -419,7 +437,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		// ECDSA P-256
 		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P256())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to generate ECDSA P-256 key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
@@ -427,7 +445,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		// ECDSA P-384
 		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P384())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to generate ECDSA P-384 key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
@@ -435,7 +453,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		// ECDSA P-521
 		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P521())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to generate ECDSA P-521 key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
@@ -443,7 +461,7 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 		// Ed25519
 		keyPair, err := cryptoutilKeygen.GenerateEDDSAKeyPair(cryptoutilKeygen.EdCurveEd25519)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to generate EdDSA key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
@@ -458,7 +476,12 @@ func (sm *SessionManager) generateJWEKey(algorithm string) (crypto.PrivateKey, e
 	case cryptoutilMagic.SessionJWEAlgorithmDirA256GCM,
 		cryptoutilMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
 		// AES-256 key generation (32 bytes)
-		return cryptoutilKeygen.GenerateAESKey(256)
+		key, err := cryptoutilKeygen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate AES key: %w", err)
+		}
+
+		return key, nil
 	default:
 		return nil, fmt.Errorf("unsupported JWE algorithm: %s", algorithm)
 	}
@@ -979,7 +1002,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	// Validate expiration
 	expFloat, ok := claims["exp"].(float64)
 	if !ok {
-		summary := "Missing or invalid exp claim"
+		summary := errMsgMissingInvalidExpClaim
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("exp claim not found"))
 	}
@@ -994,7 +1017,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	// Extract jti and validate against database
 	jtiStr, ok := claims["jti"].(string)
 	if !ok {
-		summary := "Missing or invalid jti claim"
+		summary := errMsgMissingInvalidJTIClaim
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("jti claim not found"))
 	}
@@ -1038,7 +1061,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 
 	if findErr != nil {
 		if errors.Is(findErr, gorm.ErrRecordNotFound) {
-			summary := "Session revoked or not found"
+			summary := errMsgSessionRevokedNotFound
 
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, findErr)
 		}
@@ -1219,7 +1242,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	if loadErr != nil {
-		summary := "Invalid session token"
+		summary := errMsgInvalidSessionToken
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, loadErr)
 	}
@@ -1233,7 +1256,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	if sm.barrier != nil {
 		decryptedJWKBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, jwkBytes)
 		if decryptErr != nil {
-			summary := "Invalid session token"
+			summary := errMsgInvalidSessionToken
 
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, decryptErr)
 		}
@@ -1245,7 +1268,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	// Parse JWK from JSON bytes
 	jwk, parseErr := joseJwk.ParseKey(decryptedJWKBytes)
 	if parseErr != nil {
-		summary := "Invalid session token"
+		summary := errMsgInvalidSessionToken
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, parseErr)
 	}
@@ -1253,7 +1276,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	// Decrypt and verify JWT
 	claimsBytes, verifyErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	if verifyErr != nil {
-		summary := "Invalid session token"
+		summary := errMsgInvalidSessionToken
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, verifyErr)
 	}
@@ -1263,7 +1286,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 	if unmarshalErr != nil {
-		summary := "Invalid session token"
+		summary := errMsgInvalidSessionToken
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, unmarshalErr)
 	}
@@ -1271,7 +1294,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	// Validate expiration claim
 	expFloat, expOk := claims["exp"].(float64)
 	if !expOk {
-		summary := "Missing or invalid exp claim"
+		summary := errMsgMissingInvalidExpClaim
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("exp claim not found or invalid type"))
 	}
@@ -1288,7 +1311,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	// Extract jti (token ID) and hash it for database lookup
 	jtiStr, jtiOk := claims["jti"].(string)
 	if !jtiOk {
-		summary := "Missing or invalid jti claim"
+		summary := errMsgMissingInvalidJTIClaim
 
 		return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, fmt.Errorf("jti claim not found or invalid type"))
 	}
@@ -1324,7 +1347,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 
 	if findErr != nil {
 		if errors.Is(findErr, gorm.ErrRecordNotFound) {
-			summary := "Session revoked or not found"
+			summary := errMsgSessionRevokedNotFound
 
 			return nil, cryptoutilAppErr.NewHTTP401Unauthorized(&summary, findErr)
 		}

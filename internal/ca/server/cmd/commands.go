@@ -13,8 +13,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cryptoutilCAServer "cryptoutil/internal/ca/server"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilCAServer "cryptoutil/internal/ca/server"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -118,30 +118,42 @@ func NewHealthCommand() *cobra.Command {
 		Use:   "health",
 		Short: "Check CA server health",
 		Long:  "Send a health check request to the CA Server.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// Check liveness probe
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			ctx := cmd.Context()
+
+			// Check liveness probe.
 			livezURL := serverURL + "/admin/v1/livez"
 
-			resp, err := http.Get(livezURL)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, livezURL, nil)
+			if err != nil {
+				return fmt.Errorf("failed to create liveness request: %w", err)
+			}
+
+			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return fmt.Errorf("failed to check liveness: %w", err)
 			}
 
-			resp.Body.Close()
+			_ = resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
 				return fmt.Errorf("liveness check failed with status %d", resp.StatusCode)
 			}
 
-			// Check readiness probe
+			// Check readiness probe.
 			readyzURL := serverURL + "/admin/v1/readyz"
 
-			resp, err = http.Get(readyzURL)
+			req, err = http.NewRequestWithContext(ctx, http.MethodGet, readyzURL, nil)
+			if err != nil {
+				return fmt.Errorf("failed to create readiness request: %w", err)
+			}
+
+			resp, err = http.DefaultClient.Do(req)
 			if err != nil {
 				return fmt.Errorf("failed to check readiness: %w", err)
 			}
 
-			resp.Body.Close()
+			_ = resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
 				return fmt.Errorf("readiness check failed with status %d", resp.StatusCode)

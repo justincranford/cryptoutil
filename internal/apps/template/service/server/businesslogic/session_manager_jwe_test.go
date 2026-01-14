@@ -169,15 +169,21 @@ func TestSessionManager_ValidateBrowserSession_JWE_RevokedSession(t *testing.T) 
 	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
 	require.NoError(t, parseErr)
 
-	claimsBytes, _ := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	require.NoError(t, decryptErr)
 
 	var claims map[string]any
 
-	_ = json.Unmarshal(claimsBytes, &claims)
-	jtiStr := claims["jti"].(string)
+	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
+	require.NoError(t, unmarshalErr)
 
-	// Delete session from database (simulate revocation)
-	jti, _ := googleUuid.Parse(jtiStr)
+	jtiStr, ok := claims["jti"].(string)
+	require.True(t, ok, "jti claim should be string")
+
+	// Delete session from database (simulate revocation).
+	jti, parseJTIErr := googleUuid.Parse(jtiStr)
+	require.NoError(t, parseJTIErr)
+
 	deleteErr := sm.db.Where("id = ?", jti).Delete(&cryptoutilRepository.BrowserSession{}).Error
 	require.NoError(t, deleteErr)
 

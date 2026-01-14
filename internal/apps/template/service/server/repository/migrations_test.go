@@ -5,6 +5,7 @@
 package repository_test
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 	"testing"
@@ -33,7 +34,7 @@ func TestMigrationRunner_Apply_SQLite(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
 
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	runner := repository.NewMigrationRunner(testMigrationsFS, "test_migrations")
 	err = runner.Apply(db, repository.DatabaseTypeSQLite)
@@ -43,7 +44,7 @@ func TestMigrationRunner_Apply_SQLite(t *testing.T) {
 	// Verify table was created.
 	var count int
 
-	err = db.QueryRow("SELECT COUNT(*) FROM test_table").Scan(&count)
+	err = db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM test_table").Scan(&count)
 	require.NoError(t, err)
 }
 
@@ -54,7 +55,7 @@ func TestMigrationRunner_Apply_InvalidPath(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
 
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	runner := repository.NewMigrationRunner(testMigrationsFS, "nonexistent")
 	err = runner.Apply(db, repository.DatabaseTypeSQLite)
@@ -70,7 +71,7 @@ func TestMigrationRunner_Apply_UnsupportedDatabaseType(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
 
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	runner := repository.NewMigrationRunner(testMigrationsFS, "test_migrations")
 	err = runner.Apply(db, repository.DatabaseType("unsupported"))
@@ -86,7 +87,7 @@ func TestMigrationRunner_Apply_NoChanges(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
 
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	runner := repository.NewMigrationRunner(testMigrationsFS, "test_migrations")
 

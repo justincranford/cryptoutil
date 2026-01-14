@@ -114,6 +114,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 	if err != nil {
 		return fmt.Errorf("%w: verification failed", cryptoutilIdentityAppErr.ErrInvalidOTP)
 	}
+
 	if !match {
 		return cryptoutilIdentityAppErr.ErrInvalidOTP
 	}

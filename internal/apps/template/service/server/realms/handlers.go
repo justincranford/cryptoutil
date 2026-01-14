@@ -52,6 +52,7 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 
 		if err := c.BodyParser(&req); err != nil {
 			log.Printf("[DEBUG] HandleRegisterUser: BodyParser error: %v", err)
+
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid request body",
 			})
@@ -80,6 +81,7 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 
 		// Call service layer (business logic).
 		log.Printf("[DEBUG] HandleRegisterUser: Calling RegisterUser for username=%s", req.Username)
+
 		user, err := s.RegisterUser(c.Context(), req.Username, req.Password)
 		if err != nil {
 			log.Printf("[ERROR] HandleRegisterUser: RegisterUser failed: %v", err)
@@ -270,7 +272,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		// Session expiration is handled by SessionManager configuration.
 		// For compatibility, return current time + configured session expiration.
-		expiresAt := time.Now().Add(15 * time.Minute) // Default 15min, actual expiration from SessionManager config.
+		expiresAt := time.Now().Add(cryptoutilMagic.DefaultCompatibilitySessionExpiration)
 
 		return c.JSON(fiber.Map{
 			"token":      token,

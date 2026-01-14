@@ -90,6 +90,12 @@ const (
 	DefaultDatabaseURL = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret
 )
 
+// GORM logger configuration.
+const (
+	// GormLogModeInfo - GORM logger info level.
+	GormLogModeInfo = 4
+)
+
 // Test database configurations.
 const (
 	// TestDatabaseSQLite - SQLite test database configuration name.
@@ -98,4 +104,12 @@ const (
 	TestDatabasePostgres1 = "postgres1"
 	// TestDatabasePostgres2 - PostgreSQL test database configuration name 2.
 	TestDatabasePostgres2 = "postgres2"
+)
+
+// SQLite DSN patterns.
+const (
+	// SQLiteInMemoryDSN - SQLite in-memory DSN for testing.
+	SQLiteInMemoryDSN = "file::memory:?cache=shared"
+	// SQLiteMemoryPlaceholder - SQLite memory placeholder pattern.
+	SQLiteMemoryPlaceholder = ":memory:"
 )

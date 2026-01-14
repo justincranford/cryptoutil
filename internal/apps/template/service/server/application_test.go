@@ -53,7 +53,7 @@ func (m *mockPublicServer) Start(ctx context.Context) error {
 	if m.blockUntilStop {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("public server context cancelled: %w", ctx.Err())
 		case <-m.stopChan:
 			return nil
 		}
@@ -74,13 +74,6 @@ func (m *mockPublicServer) ActualPort() int {
 
 func (m *mockPublicServer) PublicBaseURL() string {
 	return m.baseURL
-}
-
-func (m *mockPublicServer) isStarted() bool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	return m.started
 }
 
 // mockAdminServer is a mock implementation of IAdminServer for testing.
@@ -121,7 +114,7 @@ func (m *mockAdminServer) Start(ctx context.Context) error {
 	if m.blockUntilStop {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("admin server context cancelled: %w", ctx.Err())
 		case <-m.stopChan:
 			return nil
 		}
@@ -143,18 +136,12 @@ func (m *mockAdminServer) ActualPort() int {
 func (m *mockAdminServer) SetReady(ready bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	m.ready = ready
 }
 
 func (m *mockAdminServer) AdminBaseURL() string {
 	return m.baseURL
-}
-
-func (m *mockAdminServer) isStarted() bool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	return m.started
 }
 
 func (m *mockAdminServer) isReady() bool {
@@ -186,7 +173,7 @@ func TestNewApplication_NilContext(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(nil, publicServer, adminServer)
+	app, err := server.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally
 
 	require.Error(t, err)
 	require.Nil(t, app)
@@ -232,7 +219,7 @@ func TestApplication_Start_NilContext(t *testing.T) {
 	app, err := server.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
-	err = app.Start(nil)
+	err = app.Start(nil) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
@@ -321,7 +308,7 @@ func TestApplication_Shutdown_NilContext(t *testing.T) {
 	app, err := server.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
-	err = app.Shutdown(nil)
+	err = app.Shutdown(nil) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally (Shutdown accepts nil)
 
 	require.NoError(t, err)
 	require.True(t, app.IsShutdown())
