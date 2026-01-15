@@ -96,11 +96,9 @@ func NewPublicServer(
 	userRepoAdapter := cryptoutilCipherRepository.NewUserRepositoryAdapter(userRepo)
 
 	// Create user factory for template realms.
-	// Sets the default tenant ID for single-tenant cipher-im deployment.
+	// Generates fresh User model per request with NO hardcoded tenant.
 	userFactory := func() cryptoutilTemplateRealms.UserModel {
-		return &cryptoutilTemplateRepository.User{
-			TenantID: cryptoutilMagic.CipherIMDefaultTenantID,
-		}
+		return &cryptoutilTemplateRepository.User{}
 	}
 
 	// Create realms handler using template service (authentication/authorization).
