@@ -79,4 +79,3 @@ func NewMockServerCustom() *httptest.Server {
 	})
 	return httptest.NewTLSServer(handler)
 }
-

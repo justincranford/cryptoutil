@@ -18,7 +18,7 @@ func NewSessionHandler(sessionManager *cryptoutilTemplateBusinessLogic.SessionMa
 	return cryptoutilTemplateAPIs.NewSessionHandler(sessionManager)
 }
 
-// Re-export request/response types for backward compatibility.
+// Re-export request/response types.
 type (
 	SessionIssueRequest     = cryptoutilTemplateAPIs.SessionIssueRequest
 	SessionIssueResponse    = cryptoutilTemplateAPIs.SessionIssueResponse

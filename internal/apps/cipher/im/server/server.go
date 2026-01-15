@@ -12,14 +12,15 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/repository"
-	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	tlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -34,8 +35,8 @@ type CipherIMServer struct {
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	jwkGenService         *cryptoutilJose.JWKGenService
 	barrierService        *cryptoutilTemplateBarrier.BarrierService
-	sessionManagerService *businesslogic.SessionManagerService
-	realmService          businesslogic.RealmService
+	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
+	realmService          cryptoutilTemplateService.RealmService
 
 	// Repositories.
 	userRepo    *repository.UserRepository
@@ -178,11 +179,11 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 
 	// Initialize realm repository and service (using service-template implementation).
 	realmRepo := cryptoutilTemplateRepository.NewTenantRealmRepository(core.DB)
-	realmService := businesslogic.NewRealmService(realmRepo)
+	realmService := cryptoutilTemplateService.NewRealmService(realmRepo)
 
-	// Initialize SessionManager service for session management.
+	// Initialize SessionManager service for session management using template directly.
 	// Pass cipher-im's default tenant ID so single-tenant convenience methods work correctly.
-	sessionManagerService, err := businesslogic.NewSessionManagerService(
+	sessionManagerService, err := cryptoutilTemplateBusinessLogic.NewSessionManagerService(
 		ctx,
 		core.DB,
 		core.Basic.TelemetryService,
@@ -358,7 +359,7 @@ func (s *CipherIMServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 }
 
 // SessionManager returns the session manager service.
-func (s *CipherIMServer) SessionManager() *businesslogic.SessionManagerService {
+func (s *CipherIMServer) SessionManager() *cryptoutilTemplateBusinessLogic.SessionManagerService {
 	return s.sessionManagerService
 }
 

@@ -5,15 +5,14 @@ package e2e_test
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"database/sql"
-	"encoding/base64"
 	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 
 	_ "github.com/lib/pq" // PostgreSQL driver.
 	"github.com/stretchr/testify/require"
@@ -24,13 +23,13 @@ const (
 )
 
 // generateTestPassword creates a cryptographically secure random password for testing.
-// NEVER use hardcoded passwords in tests - always generate them dynamically.
+// Uses shared utility to ensure consistency across all services.
 func generateTestPassword(t *testing.T) string {
 	t.Helper()
-	randomBytes := make([]byte, 16)
-	_, err := rand.Read(randomBytes)
+	password, err := cryptoutilRandom.GeneratePasswordSimple()
 	require.NoError(t, err, "Failed to generate random password")
-	return "TestPwd_" + base64.URLEncoding.EncodeToString(randomBytes)
+
+	return password
 }
 
 // TestE2E_HealthChecks validates /health endpoint for all instances (external clients use public endpoint).

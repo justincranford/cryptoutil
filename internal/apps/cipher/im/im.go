@@ -135,13 +135,6 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	// TODO Why is this needed here? It should be handled automatically in config.Parse().
-	// Override demo-specific defaults if not explicitly set.
-	// For production deployments, these should be provided via config file or environment variables.
-	if cfg.DatabaseURL == "" {
-		cfg.DatabaseURL = sqliteInMemoryURL
-	}
-
 	srv, err := server.NewFromConfig(ctx, cfg)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)

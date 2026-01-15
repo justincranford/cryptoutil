@@ -9,11 +9,11 @@ import (
 
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
-	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
-	"cryptoutil/internal/apps/cipher/im/server/middleware"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -25,9 +25,9 @@ type PublicServer struct {
 
 	userRepo                *cryptoutilCipherRepository.UserRepository
 	messageRepo             *cryptoutilCipherRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
-	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
-	sessionManagerService   *businesslogic.SessionManagerService                      // Session management service
+	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository                 // Per-recipient decryption keys
+	jwkGenService           *cryptoutilJose.JWKGenService                                             // JWK generation for message encryption
+	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService                    // Session management service
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
@@ -45,7 +45,7 @@ func NewPublicServer(
 	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilBarrier.BarrierService,
-	sessionManagerService *businesslogic.SessionManagerService,
+	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService,
 	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*PublicServer, error) {
 	if ctx == nil {
@@ -116,9 +116,9 @@ func (s *PublicServer) registerRoutes() {
 	// Create session handler.
 	sessionHandler := apis.NewSessionHandler(s.sessionManagerService)
 
-	// Create session middleware for browser and service paths.
-	browserSessionMiddleware := middleware.BrowserSessionMiddleware(s.sessionManagerService)
-	serviceSessionMiddleware := middleware.ServiceSessionMiddleware(s.sessionManagerService)
+	// Create session middleware for browser and service paths using template middleware directly.
+	browserSessionMiddleware := cryptoutilTemplateMiddleware.BrowserSessionMiddleware(s.sessionManagerService)
+	serviceSessionMiddleware := cryptoutilTemplateMiddleware.ServiceSessionMiddleware(s.sessionManagerService)
 
 	// Get underlying Fiber app from base for route registration.
 	app := s.base.App()

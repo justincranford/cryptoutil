@@ -12,9 +12,9 @@ import (
 
 	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
-	cryptoutilCipherServerUtil "cryptoutil/internal/apps/cipher/im/server/util"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 )
 
 // MessageHandler handles message operations (send, receive, delete).
@@ -92,7 +92,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Extract sender ID from authentication context.
-		senderID, ok := c.Locals(cryptoutilCipherServerUtil.ContextKeyUserID).(googleUuid.UUID)
+		senderID, ok := c.Locals(cryptoutilTemplateMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -190,7 +190,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Extract recipient ID from authentication context.
-		recipientID, ok := c.Locals(cryptoutilCipherServerUtil.ContextKeyUserID).(googleUuid.UUID)
+		recipientID, ok := c.Locals(cryptoutilTemplateMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -294,7 +294,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		}
 
 		// Extract authenticated user ID from context.
-		userID, ok := c.Locals(cryptoutilCipherServerUtil.ContextKeyUserID).(googleUuid.UUID)
+		userID, ok := c.Locals(cryptoutilTemplateMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
