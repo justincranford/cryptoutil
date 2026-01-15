@@ -114,3 +114,30 @@ func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error {
 
 	return nil
 }
+
+// ApplyMigrationsFromFS is a convenience function for applying migrations from embed.FS.
+// Automatically detects database type from provided string.
+//
+// Parameters:
+//   - db: SQL database connection
+//   - migrationFS: Embedded filesystem containing migration files
+//   - migrationsPath: Path within filesystem (e.g., "migrations")
+//   - databaseType: Either "sqlite" or "postgres"
+//
+// Returns error if migrations fail to apply.
+func ApplyMigrationsFromFS(db *sql.DB, migrationFS fs.FS, migrationsPath string, databaseType string) error {
+	var dbType DatabaseType
+
+	switch databaseType {
+	case "sqlite", "sqlite3":
+		dbType = DatabaseTypeSQLite
+	case "postgres", "postgresql":
+		dbType = DatabaseTypePostgreSQL
+	default:
+		return fmt.Errorf("unsupported database type: %s", databaseType)
+	}
+
+	runner := NewMigrationRunner(migrationFS, migrationsPath)
+
+	return runner.Apply(db, dbType)
+}
