@@ -172,12 +172,14 @@ func TestHTTPPost(t *testing.T) {
 	select {
 	case err := <-errChan:
 		// Server shutdown returns context.Canceled error which is expected.
+		// After wrapping, the error message will include the wrapper prefix.
 		const (
-			adminStoppedErr = "admin server stopped: context canceled"
-			appCancelledErr = "application startup cancelled: context canceled"
+			adminStoppedErr     = "admin server stopped: context canceled"
+			appCancelledErr     = "application startup cancelled: context canceled"
+			wrappedAppCancelled = "failed to start application: application startup cancelled: context canceled"
 		)
 
-		if err != nil && err.Error() != adminStoppedErr && err.Error() != appCancelledErr {
+		if err != nil && err.Error() != adminStoppedErr && err.Error() != appCancelledErr && err.Error() != wrappedAppCancelled {
 			require.FailNowf(t, "Unexpected server error", "%v", err)
 		}
 	case <-time.After(5 * time.Second):
