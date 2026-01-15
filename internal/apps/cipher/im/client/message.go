@@ -5,14 +5,13 @@
 package client
 
 import (
-	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	googleUuid "github.com/google/uuid"
+
+	cryptoutilTemplateClient "cryptoutil/internal/apps/template/service/client"
 )
 
 // SendMessage sends a message to one or more receivers via /service/api/v1/messages/tx.
@@ -32,9 +31,9 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/service/api/v1/messages/tx", token, reqJSON)
+	resp, err := cryptoutilTemplateClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/service/api/v1/messages/tx", token, reqJSON)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to send message: %w", err)
 	}
 
 	defer func() { _ = resp.Body.Close() }()
@@ -44,8 +43,8 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 	}
 
 	var respBody map[string]string
-	if err := DecodeJSONResponse(resp, &respBody); err != nil {
-		return "", err
+	if err := cryptoutilTemplateClient.DecodeJSONResponse(resp, &respBody); err != nil {
+		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	messageID, ok := respBody["message_id"]
@@ -58,9 +57,9 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 
 // ReceiveMessagesService retrieves messages for the specified receiver via /service/api/v1/messages/rx.
 func ReceiveMessagesService(client *http.Client, baseURL, token string) ([]map[string]any, error) {
-	resp, err := SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/service/api/v1/messages/rx", token, nil)
+	resp, err := cryptoutilTemplateClient.SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/service/api/v1/messages/rx", token, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to receive messages: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -70,8 +69,8 @@ func ReceiveMessagesService(client *http.Client, baseURL, token string) ([]map[s
 	}
 
 	var respBody map[string][]map[string]any
-	if err := DecodeJSONResponse(resp, &respBody); err != nil {
-		return nil, err
+	if err := cryptoutilTemplateClient.DecodeJSONResponse(resp, &respBody); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	messages, ok := respBody["messages"]
@@ -84,9 +83,9 @@ func ReceiveMessagesService(client *http.Client, baseURL, token string) ([]map[s
 
 // DeleteMessageService deletes a message via /service/api/v1/messages/:id.
 func DeleteMessageService(client *http.Client, baseURL, messageID, token string) error {
-	resp, err := SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, token, nil)
+	resp, err := cryptoutilTemplateClient.SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/service/api/v1/messages/"+messageID, token, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete message: %w", err)
 	}
 
 	defer func() { _ = resp.Body.Close() }()
@@ -115,9 +114,9 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	resp, err := SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/browser/api/v1/messages/tx", token, reqJSON)
+	resp, err := cryptoutilTemplateClient.SendAuthenticatedRequest(client, http.MethodPut, baseURL+"/browser/api/v1/messages/tx", token, reqJSON)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to send message: %w", err)
 	}
 
 	defer func() { _ = resp.Body.Close() }()
@@ -127,8 +126,8 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 	}
 
 	var respBody map[string]string
-	if err := DecodeJSONResponse(resp, &respBody); err != nil {
-		return "", err
+	if err := cryptoutilTemplateClient.DecodeJSONResponse(resp, &respBody); err != nil {
+		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	messageID, ok := respBody["message_id"]
@@ -141,9 +140,9 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 
 // ReceiveMessagesBrowser retrieves messages for the specified receiver via /browser/api/v1/messages/rx.
 func ReceiveMessagesBrowser(client *http.Client, baseURL, token string) ([]map[string]any, error) {
-	resp, err := SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/browser/api/v1/messages/rx", token, nil)
+	resp, err := cryptoutilTemplateClient.SendAuthenticatedRequest(client, http.MethodGet, baseURL+"/browser/api/v1/messages/rx", token, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to receive messages: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -153,8 +152,8 @@ func ReceiveMessagesBrowser(client *http.Client, baseURL, token string) ([]map[s
 	}
 
 	var respBody map[string][]map[string]any
-	if err := DecodeJSONResponse(resp, &respBody); err != nil {
-		return nil, err
+	if err := cryptoutilTemplateClient.DecodeJSONResponse(resp, &respBody); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	messages, ok := respBody["messages"]
@@ -167,9 +166,9 @@ func ReceiveMessagesBrowser(client *http.Client, baseURL, token string) ([]map[s
 
 // DeleteMessageBrowser deletes a message via /browser/api/v1/messages/:id.
 func DeleteMessageBrowser(client *http.Client, baseURL, messageID, token string) error {
-	resp, err := SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/browser/api/v1/messages/"+messageID, token, nil)
+	resp, err := cryptoutilTemplateClient.SendAuthenticatedRequest(client, http.MethodDelete, baseURL+"/browser/api/v1/messages/"+messageID, token, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete message: %w", err)
 	}
 
 	defer func() { _ = resp.Body.Close() }()
@@ -201,45 +200,4 @@ func decodeErrorResponse(resp *http.Response) error {
 	}
 
 	return &errorResp
-}
-
-// SendAuthenticatedRequest sends an HTTP request with Bearer token authorization.
-// Reusable for all services implementing JWT-based authentication.
-func SendAuthenticatedRequest(client *http.Client, method, url, token string, body []byte) (*http.Response, error) {
-	var reqBody io.Reader
-	if body != nil {
-		reqBody = bytes.NewReader(body)
-	}
-
-	req, err := http.NewRequestWithContext(context.Background(), method, url, reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-
-	return resp, nil
-}
-
-// DecodeJSONResponse decodes HTTP response body into provided target struct.
-// Reusable for all services returning JSON responses.
-func DecodeJSONResponse(resp *http.Response, target any) error {
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
-		return fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	return nil
 }
