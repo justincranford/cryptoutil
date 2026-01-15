@@ -12,10 +12,10 @@ import (
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	"cryptoutil/internal/apps/cipher/im/server/middleware"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 )
 

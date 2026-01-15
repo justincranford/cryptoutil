@@ -18,7 +18,6 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTestutil "cryptoutil/internal/apps/template/service/testutil"
 	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
