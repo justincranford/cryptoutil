@@ -63,10 +63,10 @@ func TestMain(m *testing.M) {
 	publicBaseURL = testCipherIMService.PublicBaseURL()
 	adminBaseURL = testCipherIMService.AdminBaseURL()
 
-	// Create shared mock server that returns 200 OK.
-	tesShared mock servers already initialized from template testutil.
+	// Shared mock servers already initialized from template testutil.
 	defer testMockServerOK.Close()
-	defer testMockServerError
+	defer testMockServerError.Close()
+
 	// Run all tests.
 	exitCode := m.Run()
 
