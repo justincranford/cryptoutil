@@ -51,7 +51,12 @@ func (m *mergedFS) Open(name string) (fs.File, error) {
 	}
 
 	// Fall back to template filesystem (1001-1004).
-	return m.templateFS.Open(name)
+	file, err = m.templateFS.Open(name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open from template: %w", err)
+	}
+
+	return file, nil
 }
 
 func (m *mergedFS) ReadDir(name string) ([]fs.DirEntry, error) {
@@ -85,7 +90,12 @@ func (m *mergedFS) ReadFile(name string) ([]byte, error) {
 	}
 
 	// Fall back to template filesystem (1001-1004).
-	return fs.ReadFile(m.templateFS, name)
+	data, err = fs.ReadFile(m.templateFS, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from template: %w", err)
+	}
+
+	return data, nil
 }
 
 func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
@@ -96,7 +106,12 @@ func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
 	}
 
 	// Fall back to template filesystem.
-	return fs.Stat(m.templateFS, name)
+	info, err = fs.Stat(m.templateFS, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat from template: %w", err)
+	}
+
+	return info, nil
 }
 
 // GetMergedMigrationsFS returns a filesystem combining template and cipher-im migrations.

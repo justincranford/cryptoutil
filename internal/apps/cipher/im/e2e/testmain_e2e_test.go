@@ -30,7 +30,6 @@ var (
 	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8888"
 	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8889"
 	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8890"
-	otelCollectorURL   = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilMagic.CipherE2EOtelCollectorGRPCPort)  // "http://127.0.0.1:4317"
 	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilMagic.CipherE2EGrafanaPort)            // "http://127.0.0.1:3000"
 
 	healthChecks = map[string]string{

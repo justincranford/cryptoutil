@@ -13,7 +13,7 @@ const (
 	//                               barrier_root_keys, barrier_intermediate_keys, barrier_content_keys,
 	//                               template_realms, tenants, users, clients, unverified_users, unverified_clients,
 	//                               roles, user_roles, client_roles
-	// Cipher-IM tables (2001+): messages, messages_recipient_jwks
+	// Cipher-IM tables (2001+): messages, messages_recipient_jwks.
 	countTablesQueryPostgres = `
 		SELECT COUNT(*) FROM information_schema.tables
 		WHERE table_schema = 'public'
@@ -41,7 +41,7 @@ const (
 	//                       template_realms, tenants, users, clients, unverified_users, unverified_clients,
 	//                       roles, user_roles, client_roles
 	// Cipher-IM tables (2): messages, messages_recipient_jwks
-	// Total: 18 tables
+	// Total: 18 tables.
 	expectedTableCount = 18
 )
 

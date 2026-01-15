@@ -26,6 +26,7 @@ const (
 // Uses shared utility to ensure consistency across all services.
 func generateTestPassword(t *testing.T) string {
 	t.Helper()
+
 	password, err := cryptoutilRandom.GeneratePasswordSimple()
 	require.NoError(t, err, "Failed to generate random password")
 

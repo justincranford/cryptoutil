@@ -25,9 +25,9 @@ type PublicServer struct {
 
 	userRepo                *cryptoutilCipherRepository.UserRepository
 	messageRepo             *cryptoutilCipherRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository                 // Per-recipient decryption keys
-	jwkGenService           *cryptoutilJose.JWKGenService                                             // JWK generation for message encryption
-	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService                    // Session management service
+	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
+	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
+	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService    // Session management service
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
@@ -147,12 +147,20 @@ func (s *PublicServer) registerRoutes() {
 
 // Start starts the HTTPS server by delegating to PublicServerBase.
 func (s *PublicServer) Start(ctx context.Context) error {
-	return s.base.Start(ctx)
+	if err := s.base.Start(ctx); err != nil {
+		return fmt.Errorf("failed to start public server: %w", err)
+	}
+
+	return nil
 }
 
 // Shutdown gracefully shuts down the server by delegating to PublicServerBase.
 func (s *PublicServer) Shutdown(ctx context.Context) error {
-	return s.base.Shutdown(ctx)
+	if err := s.base.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to shutdown public server: %w", err)
+	}
+
+	return nil
 }
 
 // ActualPort returns the actual port the server is listening on by delegating to PublicServerBase.
