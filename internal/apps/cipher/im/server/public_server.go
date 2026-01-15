@@ -5,31 +5,25 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
-	"net"
-	"sync"
-	"time"
-
-	"github.com/gofiber/fiber/v2"
 
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
 	"cryptoutil/internal/apps/cipher/im/server/businesslogic"
 	"cryptoutil/internal/apps/cipher/im/server/middleware"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
-// PublicServer implements the template.PublicServer interface for cipher-im.
+// PublicServer implements the cipher-im public server by embedding PublicServerBase.
 type PublicServer struct {
-	bindAddress             string
-	port                    int
+	base *cryptoutilTemplateServer.PublicServerBase // Reusable server infrastructure
+
 	userRepo                *cryptoutilCipherRepository.UserRepository
 	messageRepo             *cryptoutilCipherRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
@@ -39,14 +33,6 @@ type PublicServer struct {
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
 	messageHandler *apis.MessageHandler
-
-	app         *fiber.App
-	mu          sync.RWMutex
-	shutdown    bool
-	actualPort  int
-	tlsMaterial *cryptoutilConfig.TLSMaterial
-	ctx         context.Context
-	cancel      context.CancelFunc
 }
 
 // NewPublicServer creates a new cipher-im public server.
@@ -87,16 +73,23 @@ func NewPublicServer(
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}
 
+	// Create PublicServerBase with reusable infrastructure.
+	base, err := cryptoutilTemplateServer.NewPublicServerBase(&cryptoutilTemplateServer.PublicServerConfig{
+		BindAddress: bindAddress,
+		Port:        port,
+		TLSMaterial: tlsMaterial,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create public server base: %w", err)
+	}
+
 	s := &PublicServer{
-		bindAddress:             bindAddress,
-		port:                    port,
+		base:                    base,
 		userRepo:                userRepo,
 		messageRepo:             messageRepo,
 		messageRecipientJWKRepo: messageRecipientJWKRepo,
 		jwkGenService:           jwkGenService,
 		sessionManagerService:   sessionManagerService,
-		app:                     fiber.New(fiber.Config{DisableStartupMessage: true}),
-		tlsMaterial:             tlsMaterial,
 	}
 
 	// Create repository adapter for template realms.
@@ -130,168 +123,47 @@ func (s *PublicServer) registerRoutes() {
 	browserSessionMiddleware := middleware.BrowserSessionMiddleware(s.sessionManagerService)
 	serviceSessionMiddleware := middleware.ServiceSessionMiddleware(s.sessionManagerService)
 
-	// Health endpoints (required by template pattern).
-	s.app.Get("/service/api/v1/health", s.handleServiceHealth)
-	s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
+	// Get underlying Fiber app from base for route registration.
+	app := s.base.App()
 
 	// Session management endpoints (no middleware - these endpoints create/validate sessions).
-	s.app.Post("/service/api/v1/sessions/issue", sessionHandler.IssueSession)
-	s.app.Post("/service/api/v1/sessions/validate", sessionHandler.ValidateSession)
-	s.app.Post("/browser/api/v1/sessions/issue", sessionHandler.IssueSession)
-	s.app.Post("/browser/api/v1/sessions/validate", sessionHandler.ValidateSession)
+	app.Post("/service/api/v1/sessions/issue", sessionHandler.IssueSession)
+	app.Post("/service/api/v1/sessions/validate", sessionHandler.ValidateSession)
+	app.Post("/browser/api/v1/sessions/issue", sessionHandler.IssueSession)
+	app.Post("/browser/api/v1/sessions/validate", sessionHandler.ValidateSession)
 
 	// User management endpoints (authentication - no middleware, returns session token on login).
-	s.app.Post("/service/api/v1/users/register", s.authnHandler.HandleRegisterUser())
-	s.app.Post("/service/api/v1/users/login", s.authnHandler.HandleLoginUserWithSession(s.sessionManagerService, false))
-	s.app.Post("/browser/api/v1/users/register", s.authnHandler.HandleRegisterUser())
-	s.app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUserWithSession(s.sessionManagerService, true))
+	app.Post("/service/api/v1/users/register", s.authnHandler.HandleRegisterUser())
+	app.Post("/service/api/v1/users/login", s.authnHandler.HandleLoginUserWithSession(s.sessionManagerService, false))
+	app.Post("/browser/api/v1/users/register", s.authnHandler.HandleRegisterUser())
+	app.Post("/browser/api/v1/users/login", s.authnHandler.HandleLoginUserWithSession(s.sessionManagerService, true))
 
 	// Business logic endpoints (message operations - session required).
-	s.app.Put("/service/api/v1/messages/tx", serviceSessionMiddleware, s.messageHandler.HandleSendMessage())
-	s.app.Get("/service/api/v1/messages/rx", serviceSessionMiddleware, s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/service/api/v1/messages/:id", serviceSessionMiddleware, s.messageHandler.HandleDeleteMessage())
+	app.Put("/service/api/v1/messages/tx", serviceSessionMiddleware, s.messageHandler.HandleSendMessage())
+	app.Get("/service/api/v1/messages/rx", serviceSessionMiddleware, s.messageHandler.HandleReceiveMessages())
+	app.Delete("/service/api/v1/messages/:id", serviceSessionMiddleware, s.messageHandler.HandleDeleteMessage())
 
-	s.app.Put("/browser/api/v1/messages/tx", browserSessionMiddleware, s.messageHandler.HandleSendMessage())
-	s.app.Get("/browser/api/v1/messages/rx", browserSessionMiddleware, s.messageHandler.HandleReceiveMessages())
-	s.app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
+	app.Put("/browser/api/v1/messages/tx", browserSessionMiddleware, s.messageHandler.HandleSendMessage())
+	app.Get("/browser/api/v1/messages/rx", browserSessionMiddleware, s.messageHandler.HandleReceiveMessages())
+	app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
 }
 
-// handleServiceHealth returns health status for service-to-service clients.
-func (s *PublicServer) handleServiceHealth(c *fiber.Ctx) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if s.shutdown {
-		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
-		})
-	}
-
-	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-	return c.JSON(fiber.Map{
-		"status": "healthy",
-	})
-}
-
-// handleBrowserHealth returns health status for browser clients.
-func (s *PublicServer) handleBrowserHealth(c *fiber.Ctx) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if s.shutdown {
-		//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"status": "shutting down",
-		})
-	}
-
-	//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-	return c.JSON(fiber.Map{
-		"status": "healthy",
-	})
-}
-
-// Start starts the HTTPS server (implements template.PublicServer).
+// Start starts the HTTPS server by delegating to PublicServerBase.
 func (s *PublicServer) Start(ctx context.Context) error {
-	if ctx == nil {
-		return fmt.Errorf("context cannot be nil")
-	}
-
-	// Create cancellable context for server lifecycle management.
-	s.mu.Lock()
-	s.ctx, s.cancel = context.WithCancel(ctx)
-	serverCtx := s.ctx
-	s.mu.Unlock()
-
-	// Create TCP listener.
-	listenConfig := &net.ListenConfig{}
-
-	listener, err := listenConfig.Listen(serverCtx, "tcp", fmt.Sprintf("%s:%d", s.bindAddress, s.port))
-	if err != nil {
-		return fmt.Errorf("failed to create listener: %w", err)
-	}
-
-	s.mu.Lock()
-
-	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
-	if !ok {
-		s.mu.Unlock()
-
-		return fmt.Errorf("listener address is not *net.TCPAddr")
-	}
-
-	s.actualPort = tcpAddr.Port
-	s.mu.Unlock()
-
-	// Create TLS listener using centralized TLS material.
-	tlsListener := tls.NewListener(listener, s.tlsMaterial.Config)
-
-	// Start server in goroutine.
-	errChan := make(chan error, 1)
-
-	go func() {
-		if err := s.app.Listener(tlsListener); err != nil {
-			errChan <- fmt.Errorf("public server error: %w", err)
-		} else {
-			errChan <- nil
-		}
-	}()
-
-	// Wait for either context cancellation or server error.
-	select {
-	case <-serverCtx.Done():
-		// Context cancelled - trigger graceful shutdown.
-		const shutdownTimeout = 5
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
-		defer cancel()
-
-		_ = s.Shutdown(shutdownCtx)
-
-		return fmt.Errorf("public server stopped: %w", serverCtx.Err())
-	case err := <-errChan:
-		return err
-	}
+	return s.base.Start(ctx)
 }
 
-// Shutdown gracefully shuts down the server (implements template.PublicServer).
+// Shutdown gracefully shuts down the server by delegating to PublicServerBase.
 func (s *PublicServer) Shutdown(ctx context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.shutdown {
-		return fmt.Errorf("public server already shutdown")
-	}
-
-	s.shutdown = true
-
-	// Cancel the server context to unblock Start() method.
-	if s.cancel != nil {
-		s.cancel()
-	}
-
-	if s.app != nil {
-		if err := s.app.Shutdown(); err != nil {
-			return fmt.Errorf("failed to shutdown fiber app: %w", err)
-		}
-	}
-
-	return nil
+	return s.base.Shutdown(ctx)
 }
 
-// ActualPort returns the actual port the server is listening on (implements template.PublicServer).
+// ActualPort returns the actual port the server is listening on by delegating to PublicServerBase.
 func (s *PublicServer) ActualPort() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return s.actualPort
+	return s.base.ActualPort()
 }
 
-// PublicBaseURL returns the base URL for public API access.
+// PublicBaseURL returns the base URL for public API access by delegating to PublicServerBase.
 func (s *PublicServer) PublicBaseURL() string {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return fmt.Sprintf("https://127.0.0.1:%d", s.actualPort)
+	return s.base.PublicBaseURL()
 }
