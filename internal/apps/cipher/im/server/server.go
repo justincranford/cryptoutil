@@ -13,12 +13,10 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	tlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -45,8 +43,7 @@ type CipherIMServer struct {
 }
 
 // NewFromConfig creates a new cipher-im server from CipherImServerSettings only.
-// This is the PREFERRED constructor - automatically provisions database (SQLite, PostgreSQL testcontainer, or external).
-// Uses service-template application layer for infrastructure management.
+// Uses service-template builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*CipherIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -54,350 +51,152 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 		return nil, fmt.Errorf("config cannot be nil")
 	}
 
-	// Generate TLS configuration for admin server based on config settings.
-	// Uses TLSPrivateMode (static, mixed, auto) from ServiceTemplateServerSettings.
-	// For demo/dev environments, typically uses TLSModeAuto (auto-generated certificates).
-	var adminTLSCfg *tlsGenerator.TLSGeneratedSettings
+	// Create server builder with template config.
+	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
-	var err error
+	// Register cipher-im specific migrations.
+	builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
 
-	// Use TLSPrivateMode to determine how to generate admin TLS configuration.
-	// Empty string defaults to auto mode for backward compatibility.
-	tlsPrivateMode := cfg.TLSPrivateMode
-	if tlsPrivateMode == "" {
-		tlsPrivateMode = cryptoutilConfig.TLSModeAuto
-	}
-
-	switch tlsPrivateMode {
-	case cryptoutilConfig.TLSModeStatic:
-		// Static mode: Use pre-provided certificates from config.
-		adminTLSCfg = &tlsGenerator.TLSGeneratedSettings{
-			StaticCertPEM: cfg.TLSStaticCertPEM,
-			StaticKeyPEM:  cfg.TLSStaticKeyPEM,
-		}
-	case cryptoutilConfig.TLSModeMixed:
-		// Mixed mode: Generate server cert from CA.
-		adminTLSCfg, err = tlsGenerator.GenerateServerCertFromCA(
-			cfg.TLSMixedCACertPEM,
-			cfg.TLSMixedCAKeyPEM,
-			cfg.TLSPrivateDNSNames,
-			cfg.TLSPrivateIPAddresses,
-			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate admin TLS config (mixed mode): %w", err)
-		}
-	case cryptoutilConfig.TLSModeAuto:
-		// Auto mode: Fully auto-generate CA hierarchy and server certificate.
-		adminTLSCfg, err = tlsGenerator.GenerateAutoTLSGeneratedSettings(
-			cfg.TLSPrivateDNSNames,
-			cfg.TLSPrivateIPAddresses,
-			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate admin TLS config (auto mode): %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported TLS private mode: %s", tlsPrivateMode)
-	}
-
-	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(ctx, cfg.ServiceTemplateServerSettings, adminTLSCfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create admin server: %w", err)
-	}
-
-	// Start application core (telemetry, JWK gen, unseal, database).
-	// This automatically provisions database based on cfg.DatabaseURL and cfg.DatabaseContainer.
-	core, err := cryptoutilTemplateServer.StartApplicationCore(ctx, cfg.ServiceTemplateServerSettings)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start application core: %w", err)
-	}
-
-	// Determine database type from core.
-	var dbType repository.DatabaseType
-
-	// GORM doesn't expose dialect name directly, so check DatabaseURL instead.
-	if cfg.DatabaseURL == "" || cfg.DatabaseURL == "file::memory:?cache=shared" || cfg.DatabaseURL == ":memory:" || (len(cfg.DatabaseURL) >= 7 && cfg.DatabaseURL[:7] == "file://") {
-		dbType = repository.DatabaseTypeSQLite
-	} else {
-		dbType = repository.DatabaseTypePostgreSQL
-	}
-
-	// Apply database migrations.
-	sqlDB, err := core.DB.DB()
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
-	}
-
-	err = repository.ApplyCipherIMMigrations(sqlDB, dbType)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to apply migrations: %w", err)
-	}
-
-	// Ensure default tenant exists (cipher-im is single-tenant).
-	// This allows user creation without requiring explicit tenant management.
-	if err := ensureDefaultTenant(core.DB); err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to ensure default tenant: %w", err)
-	}
-
-	// Create GORM barrier repository adapter.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(core.DB)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create barrier repository: %w", err)
-	}
-
-	// NOTE: Session JWK tables are created by golang-migrate SQL migrations (1001_session_management.up.sql).
-	// GORM AutoMigrate is NOT used because it conflicts with SQL migration comments.
-
-	// Create barrier service with GORM repository.
-	// For cipher-im demo service, unseal keys are already initialized in ApplicationBasic.
-	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(
-		ctx,
-		core.Basic.TelemetryService,
-		core.Basic.JWKGenService,
-		barrierRepo,
-		core.Basic.UnsealKeysService,
-	)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create barrier service: %w", err)
-	}
-
-	// Initialize repositories.
-	userRepo := repository.NewUserRepository(core.DB)
-	messageRepo := repository.NewMessageRepository(core.DB)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(core.DB, barrierService)
-
-	// Initialize realm repository and service (using service-template implementation).
-	realmRepo := cryptoutilTemplateRepository.NewTenantRealmRepository(core.DB)
-	realmService := cryptoutilTemplateService.NewRealmService(realmRepo)
-
-	// Initialize SessionManager service for session management using template directly.
-	// Pass cipher-im's default tenant ID so single-tenant convenience methods work correctly.
-	sessionManagerService, err := cryptoutilTemplateBusinessLogic.NewSessionManagerService(
-		ctx,
-		core.DB,
-		core.Basic.TelemetryService,
-		core.Basic.JWKGenService,
-		barrierService,
-		cfg.ServiceTemplateServerSettings,
+	// Ensure default tenant and realm exist.
+	builder.WithDefaultTenant(
 		cryptoutilMagic.CipherIMDefaultTenantID,
 		cryptoutilMagic.CipherIMDefaultRealmID,
 	)
-	if err != nil {
-		core.Shutdown()
 
-		return nil, fmt.Errorf("failed to create session manager service: %w", err)
-	}
+	// Register cipher-im specific public routes.
+	builder.WithPublicRouteRegistration(func(
+		base *cryptoutilTemplateServer.PublicServerBase,
+		res *cryptoutilTemplateBuilder.ServiceResources,
+	) error {
+		// Create cipher-im specific repositories.
+		userRepo := repository.NewUserRepository(res.DB)
+		messageRepo := repository.NewMessageRepository(res.DB)
+		messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
 
-	// Generate TLS configuration for public server based on config settings.
-	// Uses TLSPublicMode (static, mixed, auto) from ServiceTemplateServerSettings.
-	var publicTLSCfg *tlsGenerator.TLSGeneratedSettings
-
-	// Use TLSPublicMode to determine how to generate public TLS configuration.
-	// Empty string defaults to auto mode for backward compatibility.
-	tlsPublicMode := cfg.TLSPublicMode
-	if tlsPublicMode == "" {
-		tlsPublicMode = cryptoutilConfig.TLSModeAuto
-	}
-
-	switch tlsPublicMode {
-	case cryptoutilConfig.TLSModeStatic:
-		// Static mode: Use pre-provided certificates from config.
-		publicTLSCfg = &tlsGenerator.TLSGeneratedSettings{
-			StaticCertPEM: cfg.TLSStaticCertPEM,
-			StaticKeyPEM:  cfg.TLSStaticKeyPEM,
-		}
-	case cryptoutilConfig.TLSModeMixed:
-		// Mixed mode: Generate server cert from CA.
-		publicTLSCfg, err = tlsGenerator.GenerateServerCertFromCA(
-			cfg.TLSMixedCACertPEM,
-			cfg.TLSMixedCAKeyPEM,
-			cfg.TLSPublicDNSNames,
-			cfg.TLSPublicIPAddresses,
-			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		// Create public server with cipher-im handlers.
+		publicServer, err := NewPublicServer(
+			base,
+			res.SessionManager,
+			res.RealmService,
+			userRepo,
+			messageRepo,
+			messageRecipientJWKRepo,
+			res.JWKGenService,
+			res.BarrierService,
 		)
 		if err != nil {
-			core.Shutdown()
-
-			return nil, fmt.Errorf("failed to generate public TLS config (mixed mode): %w", err)
+			return fmt.Errorf("failed to create public server: %w", err)
 		}
-	case cryptoutilConfig.TLSModeAuto:
-		// Auto mode: Fully auto-generate CA hierarchy and server certificate.
-		publicTLSCfg, err = tlsGenerator.GenerateAutoTLSGeneratedSettings(
-			cfg.TLSPublicDNSNames,
-			cfg.TLSPublicIPAddresses,
-			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
-		)
-		if err != nil {
-			core.Shutdown()
 
-			return nil, fmt.Errorf("failed to generate public TLS config (auto mode): %w", err)
+		// Register all routes (standard + domain-specific).
+		if err := publicServer.registerRoutes(); err != nil {
+			return fmt.Errorf("failed to register public routes: %w", err)
 		}
-	default:
-		core.Shutdown()
 
-		return nil, fmt.Errorf("unsupported TLS public mode: %s", tlsPublicMode)
-	}
+		return nil
+	})
 
-	// Create public server with handlers.
-	publicServer, err := NewPublicServer(ctx, cfg.BindPublicAddress, int(cfg.BindPublicPort), userRepo, messageRepo, messageRecipientJWKRepo, core.Basic.JWKGenService, barrierService, sessionManagerService, publicTLSCfg)
+	// Build complete service infrastructure.
+	resources, err := builder.Build()
 	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create public server: %w", err)
+		return nil, fmt.Errorf("failed to build cipher-im service: %w", err)
 	}
 
-	// Create rotation service for manual key rotation admin endpoints.
-	rotationService, err := cryptoutilTemplateBarrier.NewRotationService(
-		core.Basic.JWKGenService,
-		barrierRepo,
-		core.Basic.UnsealKeysService,
-	)
-	if err != nil {
-		core.Shutdown()
+	// Create cipher-im specific repositories for server struct.
+	userRepo := repository.NewUserRepository(resources.DB)
+	messageRepo := repository.NewMessageRepository(resources.DB)
 
-		return nil, fmt.Errorf("failed to create rotation service: %w", err)
-	}
-
-	// Register rotation endpoints on admin server.
-	cryptoutilTemplateBarrier.RegisterRotationRoutes(adminServer.App(), rotationService)
-
-	// Create status service for barrier keys status endpoint.
-	statusService, err := cryptoutilTemplateBarrier.NewStatusService(barrierRepo)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create status service: %w", err)
-	}
-
-	// Register status endpoint on admin server.
-	cryptoutilTemplateBarrier.RegisterStatusRoutes(adminServer.App(), statusService)
-
-	// Create application with both servers.
-	app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create application: %w", err)
-	}
-
-	return &CipherIMServer{
-		app:                   app,
-		db:                    core.DB,
-		telemetryService:      core.Basic.TelemetryService,
-		jwkGenService:         core.Basic.JWKGenService,
-		barrierService:        barrierService,
-		sessionManagerService: sessionManagerService,
-		realmService:          realmService,
+	// Create cipher-im server wrapper.
+	server := &CipherIMServer{
+		app:                   resources.Application,
+		db:                    resources.DB,
+		telemetryService:      resources.TelemetryService,
+		jwkGenService:         resources.JWKGenService,
+		barrierService:        resources.BarrierService,
+		sessionManagerService: resources.SessionManager,
+		realmService:          resources.RealmService,
 		userRepo:              userRepo,
 		messageRepo:           messageRepo,
-		realmRepo:             realmRepo,
-	}, nil
+		realmRepo:             resources.RealmRepository,
+	}
+
+	return server, nil
 }
 
-// Start starts both public and admin servers.
+// Start begins serving both public and admin HTTPS endpoints.
+// Blocks until context is cancelled or an unrecoverable error occurs.
 func (s *CipherIMServer) Start(ctx context.Context) error {
-	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
-	return s.app.Start(ctx)
+	if err := s.app.Start(ctx); err != nil {
+		return fmt.Errorf("failed to start application: %w", err)
+	}
+
+	return nil
 }
 
-// Shutdown gracefully shuts down both servers.
+// Shutdown gracefully shuts down all servers and closes database connections.
 func (s *CipherIMServer) Shutdown(ctx context.Context) error {
-	//nolint:wrapcheck // Pass-through to template, wrapping not needed.
-	return s.app.Shutdown(ctx)
+	if err := s.app.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to shutdown application: %w", err)
+	}
+
+	return nil
 }
 
-// PublicPort returns the actual public server port.
-func (s *CipherIMServer) PublicPort() int {
-	return s.app.PublicPort()
-}
-
-// ActualPort returns the actual public server port (alias for PublicPort).
-// Implements ServerWithActualPort interface for e2e testing utilities.
-func (s *CipherIMServer) ActualPort() int {
-	return s.PublicPort()
-}
-
-// AdminPort returns the actual admin server port.
-func (s *CipherIMServer) AdminPort() int {
-	return s.app.AdminPort()
-}
-
-// PublicBaseURL returns the base URL for the public server.
-func (s *CipherIMServer) PublicBaseURL() string {
-	return s.app.PublicBaseURL()
-}
-
-// AdminBaseURL returns the base URL for the admin server.
-func (s *CipherIMServer) AdminBaseURL() string {
-	return s.app.AdminBaseURL()
-}
-
-// DB returns the database instance.
+// DB returns the GORM database connection (for tests).
 func (s *CipherIMServer) DB() *gorm.DB {
 	return s.db
 }
 
-// JWKGen returns the JWK generation service.
+// App returns the application wrapper (for tests).
+func (s *CipherIMServer) App() *cryptoutilTemplateServer.Application {
+	return s.app
+}
+
+// JWKGen returns the JWK generation service (for tests).
 func (s *CipherIMServer) JWKGen() *cryptoutilJose.JWKGenService {
 	return s.jwkGenService
 }
 
-// Telemetry returns the telemetry service.
+// Telemetry returns the telemetry service (for tests).
 func (s *CipherIMServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
-// SessionManager returns the session manager service.
-func (s *CipherIMServer) SessionManager() *cryptoutilTemplateBusinessLogic.SessionManagerService {
-	return s.sessionManagerService
+// PublicPort returns the actual port the public server is listening on (for tests).
+// Useful when configured with port 0 for dynamic allocation.
+func (s *CipherIMServer) PublicPort() int {
+	return s.app.PublicPort()
 }
 
-// SetReady marks the server as ready to accept traffic.
-//
-// Applications should call SetReady(true) after initializing all dependencies
-// but before starting the server. This enables the /admin/v1/readyz endpoint.
+// AdminPort returns the actual port the admin server is listening on (for tests).
+// Useful when configured with port 0 for dynamic allocation.
+func (s *CipherIMServer) AdminPort() int {
+	return s.app.AdminPort()
+}
+
+// SetReady marks the server as ready (enables /admin/v1/readyz to return 200 OK).
 func (s *CipherIMServer) SetReady(ready bool) {
 	s.app.SetReady(ready)
 }
 
-// ensureDefaultTenant creates the default tenant for cipher-im if it doesn't exist.
-// Cipher-im operates as a single-tenant service, so all users belong to the default tenant.
-// This function is idempotent - it won't create duplicates if the tenant already exists.
-func ensureDefaultTenant(db *gorm.DB) error {
-	// Check if default tenant already exists.
-	var count int64
-	if err := db.Model(&cryptoutilTemplateRepository.Tenant{}).
-		Where("id = ?", cryptoutilMagic.CipherIMDefaultTenantID).
-		Count(&count).Error; err != nil {
-		return fmt.Errorf("failed to check for default tenant: %w", err)
-	}
+// PublicBaseURL returns the public server base URL (for tests).
+func (s *CipherIMServer) PublicBaseURL() string {
+	return s.app.PublicBaseURL()
+}
 
-	if count > 0 {
-		return nil // Default tenant already exists.
-	}
+// AdminBaseURL returns the admin server base URL (for tests).
+func (s *CipherIMServer) AdminBaseURL() string {
+	return s.app.AdminBaseURL()
+}
 
-	// Create default tenant.
-	tenant := &cryptoutilTemplateRepository.Tenant{
-		ID:          cryptoutilMagic.CipherIMDefaultTenantID,
-		Name:        cryptoutilMagic.CipherIMDefaultTenantName,
-		Description: "Default tenant for cipher-im single-tenant deployment",
-		Active:      1,
-	}
+// PublicServerActualPort returns the actual port the public server is listening on.
+// Useful when configured with port 0 for dynamic allocation.
+func (s *CipherIMServer) PublicServerActualPort() int {
+	return s.app.PublicPort()
+}
 
-	if err := db.Create(tenant).Error; err != nil {
-		return fmt.Errorf("failed to create default tenant: %w", err)
-	}
-
-	return nil
+// AdminServerActualPort returns the actual port the admin server is listening on.
+// Useful when configured with port 0 for dynamic allocation.
+func (s *CipherIMServer) AdminServerActualPort() int {
+	return s.app.AdminPort()
 }

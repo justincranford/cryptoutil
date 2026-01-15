@@ -4,18 +4,17 @@
 package server
 
 import (
-	"context"
 	"fmt"
 
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 )
 
@@ -28,30 +27,31 @@ type PublicServer struct {
 	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
 	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
 	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService    // Session management service
+	realmService            cryptoutilTemplateService.RealmService                    // Realm management service
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
 	messageHandler *apis.MessageHandler
 }
 
-// NewPublicServer creates a new cipher-im public server.
-// Exported for testing from external test packages.
+// NewPublicServer creates a new cipher-im public server using builder-provided infrastructure.
+// Used by ServerBuilder during route registration.
 func NewPublicServer(
-	ctx context.Context,
-	bindAddress string,
-	port int,
+	base *cryptoutilTemplateServer.PublicServerBase,
+	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService,
+	realmService cryptoutilTemplateService.RealmService,
 	userRepo *cryptoutilCipherRepository.UserRepository,
 	messageRepo *cryptoutilCipherRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilBarrier.BarrierService,
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService,
-	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
 ) (*PublicServer, error) {
-	if ctx == nil {
-		return nil, fmt.Errorf("context cannot be nil")
-	} else if bindAddress == "" {
-		return nil, fmt.Errorf("bind address cannot be empty")
+	if base == nil {
+		return nil, fmt.Errorf("public server base cannot be nil")
+	} else if sessionManagerService == nil {
+		return nil, fmt.Errorf("session manager service cannot be nil")
+	} else if realmService == nil {
+		return nil, fmt.Errorf("realm service cannot be nil")
 	} else if userRepo == nil {
 		return nil, fmt.Errorf("user repository cannot be nil")
 	} else if messageRepo == nil {
@@ -60,26 +60,8 @@ func NewPublicServer(
 		return nil, fmt.Errorf("message recipient JWK repository cannot be nil")
 	} else if jwkGenService == nil {
 		return nil, fmt.Errorf("JWK generation service cannot be nil")
-	} else if sessionManagerService == nil {
-		return nil, fmt.Errorf("session manager service cannot be nil")
-	} else if tlsCfg == nil {
-		return nil, fmt.Errorf("TLS configuration cannot be nil")
-	}
-
-	// Generate TLS material using centralized infrastructure.
-	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
-	}
-
-	// Create PublicServerBase with reusable infrastructure.
-	base, err := cryptoutilTemplateServer.NewPublicServerBase(&cryptoutilTemplateServer.PublicServerConfig{
-		BindAddress: bindAddress,
-		Port:        port,
-		TLSMaterial: tlsMaterial,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create public server base: %w", err)
+	} else if barrierService == nil {
+		return nil, fmt.Errorf("barrier service cannot be nil")
 	}
 
 	s := &PublicServer{
@@ -89,6 +71,7 @@ func NewPublicServer(
 		messageRecipientJWKRepo: messageRecipientJWKRepo,
 		jwkGenService:           jwkGenService,
 		sessionManagerService:   sessionManagerService,
+		realmService:            realmService,
 	}
 
 	// Create repository adapter for template realms.
@@ -103,16 +86,15 @@ func NewPublicServer(
 	// Create realms handler using template service (authentication/authorization).
 	s.authnHandler = cryptoutilTemplateRealms.NewUserService(userRepoAdapter, userFactory)
 
-	// Create apis handler (business logic).
+	// Create message handler (business logic).
 	s.messageHandler = apis.NewMessageHandler(messageRepo, messageRecipientJWKRepo, jwkGenService, barrierService)
-
-	s.registerRoutes()
 
 	return s, nil
 }
 
 // registerRoutes sets up the API endpoints.
-func (s *PublicServer) registerRoutes() {
+// Called by ServerBuilder after NewPublicServer returns.
+func (s *PublicServer) registerRoutes() error {
 	// Create session handler.
 	sessionHandler := apis.NewSessionHandler(s.sessionManagerService)
 
@@ -143,29 +125,8 @@ func (s *PublicServer) registerRoutes() {
 	app.Put("/browser/api/v1/messages/tx", browserSessionMiddleware, s.messageHandler.HandleSendMessage())
 	app.Get("/browser/api/v1/messages/rx", browserSessionMiddleware, s.messageHandler.HandleReceiveMessages())
 	app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
-}
-
-// Start starts the HTTPS server by delegating to PublicServerBase.
-func (s *PublicServer) Start(ctx context.Context) error {
-	if err := s.base.Start(ctx); err != nil {
-		return fmt.Errorf("failed to start public server: %w", err)
-	}
 
 	return nil
-}
-
-// Shutdown gracefully shuts down the server by delegating to PublicServerBase.
-func (s *PublicServer) Shutdown(ctx context.Context) error {
-	if err := s.base.Shutdown(ctx); err != nil {
-		return fmt.Errorf("failed to shutdown public server: %w", err)
-	}
-
-	return nil
-}
-
-// ActualPort returns the actual port the server is listening on by delegating to PublicServerBase.
-func (s *PublicServer) ActualPort() int {
-	return s.base.ActualPort()
 }
 
 // PublicBaseURL returns the base URL for public API access by delegating to PublicServerBase.

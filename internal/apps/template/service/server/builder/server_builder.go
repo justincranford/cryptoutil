@@ -164,20 +164,18 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
 
-	// Apply domain-specific migrations if provided.
-	if b.migrationFS != nil {
-		sqlDB, err := core.DB.DB()
-		if err != nil {
-			core.Shutdown()
+	// Apply migrations (template + domain merged into single migration stream).
+	sqlDB, err := core.DB.DB()
+	if err != nil {
+		core.Shutdown()
 
-			return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
-		}
+		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
+	}
 
-		if err := b.applyMigrations(sqlDB); err != nil {
-			core.Shutdown()
+	if err := b.applyMigrations(sqlDB); err != nil {
+		core.Shutdown()
 
-			return nil, err
-		}
+		return nil, err
 	}
 
 	// Ensure default tenant exists if configured.
@@ -381,7 +379,7 @@ func (b *ServerBuilder) generateTLSConfig(
 	}
 }
 
-// applyMigrations runs golang-migrate with domain-specific migrations.
+// applyMigrations runs template + domain migrations as a merged stream.
 func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	// Determine database type from URL.
 	var databaseType string
@@ -391,12 +389,117 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 		databaseType = "postgres"
 	}
 
-	// Apply migrations using template migration runner.
-	if err := cryptoutilTemplateRepository.ApplyMigrationsFromFS(sqlDB, b.migrationFS, b.migrationsPath, databaseType); err != nil {
+	// Merge template migrations with domain migrations (if provided).
+	var migrationsFS fs.FS = cryptoutilTemplateRepository.MigrationsFS
+	var migrationsPath = "migrations"
+
+	if b.migrationFS != nil {
+		// Create merged FS combining template + domain migrations.
+		migrationsFS = &mergedMigrations{
+			templateFS:   cryptoutilTemplateRepository.MigrationsFS,
+			templatePath: "migrations",
+			domainFS:     b.migrationFS,
+			domainPath:   b.migrationsPath,
+		}
+		migrationsPath = "" // Root of merged FS
+	}
+
+	// Apply migrations using merged FS.
+	if err := cryptoutilTemplateRepository.ApplyMigrationsFromFS(sqlDB, migrationsFS, migrationsPath, databaseType); err != nil {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
 	return nil
+}
+
+// mergedMigrations combines template and domain migrations into a single filesystem view.
+type mergedMigrations struct {
+	templateFS   fs.FS
+	templatePath string
+	domainFS     fs.FS
+	domainPath   string
+}
+
+func (m *mergedMigrations) Open(name string) (fs.File, error) {
+	// Try domain migrations first (they have higher version numbers).
+	if m.domainFS != nil {
+		fullPath := m.domainPath
+		if name != "." && name != "" {
+			fullPath = m.domainPath + "/" + name
+		}
+
+		if f, err := m.domainFS.Open(fullPath); err == nil {
+			return f, nil
+		}
+	}
+
+	// Fall back to template migrations.
+	fullPath := m.templatePath
+	if name != "." && name != "" {
+		fullPath = m.templatePath + "/" + name
+	}
+
+	return m.templateFS.Open(fullPath)
+}
+
+func (m *mergedMigrations) ReadDir(name string) ([]fs.DirEntry, error) {
+	var entries []fs.DirEntry
+
+	// Read template migrations.
+	templatePath := m.templatePath
+	if name != "." && name != "" {
+		templatePath = m.templatePath + "/" + name
+	}
+
+	if templateEntries, err := fs.ReadDir(m.templateFS, templatePath); err == nil {
+		entries = append(entries, templateEntries...)
+	}
+
+	// Read domain migrations.
+	if m.domainFS != nil {
+		domainPath := m.domainPath
+		if name != "." && name != "" {
+			domainPath = m.domainPath + "/" + name
+		}
+
+		if domainEntries, err := fs.ReadDir(m.domainFS, domainPath); err == nil {
+			entries = append(entries, domainEntries...)
+		}
+	}
+
+	return entries, nil
+}
+
+func (m *mergedMigrations) ReadFile(name string) ([]byte, error) {
+	// Try domain migrations first.
+	if m.domainFS != nil {
+		fullPath := m.domainPath + "/" + name
+
+		if data, err := fs.ReadFile(m.domainFS, fullPath); err == nil {
+			return data, nil
+		}
+	}
+
+	// Fall back to template migrations.
+	fullPath := m.templatePath + "/" + name
+
+	return fs.ReadFile(m.templateFS, fullPath)
+}
+
+func (m *mergedMigrations) Stat(name string) (fs.FileInfo, error) {
+	// Try domain migrations first.
+	if m.domainFS != nil {
+		fullPath := m.domainPath + "/" + name
+
+		if info, err := fs.Stat(m.domainFS, fullPath); err == nil {
+			return info, nil
+		}
+	}
+
+	// Fall back to template migrations.
+	fullPath := m.templatePath + "/" + name
+
+	return fs.Stat(m.templateFS, fullPath)
 }
 
 // ensureDefaultTenant creates default tenant and realm if they don't exist.
