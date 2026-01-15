@@ -1,7 +1,7 @@
 # Cipher-IM → Service-Template Extraction Plan
 
-**Created**: 2026-01-14  
-**Status**: CRITICAL - BLOCKING ALL SERVICES  
+**Created**: 2026-01-14
+**Status**: CRITICAL - BLOCKING ALL SERVICES
 **Priority**: P0 - Must complete before any other service implementations
 
 ---
@@ -168,7 +168,7 @@ type PublicServerBase struct {
     tlsMaterial *TLSMaterial
     ctx         context.Context
     cancel      context.CancelFunc
-    
+
     // Extensibility hooks
     registerCustomRoutes func(*fiber.App)
 }

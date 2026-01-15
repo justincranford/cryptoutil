@@ -10,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 )
 
 // ContextKeySession is the Fiber context key for storing session information.

@@ -27,6 +27,9 @@ REMAINING Work (from EXTRACTION-PLAN.md):
 4. GenerateJWT -  ALREADY IN TEMPLATE
    - GenerateJWT already exists in template/service/server/realms/handlers.go
    - No extraction needed
+   - Check if duplicate GenerateJWT code in cipher-im
+   - Remove duplicate GenerateJWT code in cipher-im (if present)
+   - Retest cipher-im to ensure it works with GenerateJWT from template
 
 5. Public Server Infrastructure (Phase 4) -  NOT STARTED
    - 298 lines in public_server.go
@@ -69,4 +72,3 @@ NEXT IMMEDIATE ACTIONS:
 2. Extract public server infrastructure (largest remaining piece)
 3. Extract test utilities
 4. Move realm validation tests to template
-
