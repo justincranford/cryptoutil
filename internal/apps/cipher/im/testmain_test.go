@@ -30,8 +30,9 @@ var (
 
 // Shared mock servers from template testutil.
 var (
-	testMockServerOK    = cryptoutilTestutil.NewMockServerOK()
-	testMockServerError = cryptoutilTestutil.NewMockServerError()
+	testMockServerOK     = cryptoutilTestutil.NewMockServerOK()
+	testMockServerError  = cryptoutilTestutil.NewMockServerError()
+	testMockServerCustom = cryptoutilTestutil.NewMockServerCustom()
 )
 
 func TestMain(m *testing.M) {
@@ -66,6 +67,7 @@ func TestMain(m *testing.M) {
 	// Shared mock servers already initialized from template testutil.
 	defer testMockServerOK.Close()
 	defer testMockServerError.Close()
+	defer testMockServerCustom.Close()
 
 	// Run all tests.
 	exitCode := m.Run()

@@ -1,4 +1,6 @@
 ﻿// Copyright (c) 2025 Justin Cranford
+//
+// SPDX-License-Identifier: MIT
 
 package testutil
 
@@ -10,39 +12,70 @@ import (
 )
 
 // NewInsecureTLSClient creates an HTTP client that accepts self-signed certificates.
-// Used for testing HTTPS endpoints with self-signed TLS certificates.
+// Used for testing HTTPS endpoints with self-signed certificates.
 func NewInsecureTLSClient(timeout time.Duration) *http.Client {
 return &http.Client{
 Transport: &http.Transport{
 TLSClientConfig: &tls.Config{
-InsecureSkipVerify: true, //nolint:gosec // Test client for self-signed certs.
+InsecureSkipVerify: true, //nolint:gosec // G402: Tests use self-signed certs
 },
 },
 Timeout: timeout,
 }
 }
 
-// NewMockServerOK creates a mock HTTP server that always returns 200 OK.
-// Used for testing health check endpoints.
+// NewMockServerOK creates a test server that returns 200 OK responses.
+// Used for testing health check success cases.
 func NewMockServerOK() *httptest.Server {
-return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 w.WriteHeader(http.StatusOK)
-}))
+w.Write([]byte(`{"status":"healthy"}`))
+})
+return httptest.NewTLSServer(handler)
 }
 
-// NewMockServerError creates a mock HTTP server that always returns 503 Service Unavailable.
-// Used for testing error handling in health check endpoints.
+// NewMockServerError creates a test server that returns 503 unavailable responses.
+// Used for testing health check error handling.
 func NewMockServerError() *httptest.Server {
-return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 w.WriteHeader(http.StatusServiceUnavailable)
-}))
+w.Write([]byte(`{"status":"unhealthy"}`))
+})
+return httptest.NewTLSServer(handler)
 }
 
-// NewMockServerSlow creates a mock HTTP server with configurable delay before responding.
-// Used for testing timeout handling in health check endpoints.
+// NewMockServerSlow creates a test server with configurable delay.
+// Used for testing timeout handling.
 func NewMockServerSlow(delay time.Duration) *httptest.Server {
-return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 time.Sleep(delay)
 w.WriteHeader(http.StatusOK)
-}))
+w.Write([]byte(`{"status":"delayed"}`))
+})
+return httptest.NewTLSServer(handler)
+}
+
+// NewMockServerCustom creates a test server with custom path-based responses.
+// Used for testing multiple endpoints with different responses.
+func NewMockServerCustom() *httptest.Server {
+handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+switch r.URL.Path {
+case "/admin/v1/health":
+w.WriteHeader(http.StatusOK)
+w.Write([]byte(`{"status":"healthy","message":"All systems operational"}`))
+case "/admin/v1/livez":
+w.WriteHeader(http.StatusOK)
+w.Write([]byte(`{"status":"live"}`))
+case "/admin/v1/readyz":
+w.WriteHeader(http.StatusOK)
+w.Write([]byte(`{"status":"ready"}`))
+case "/admin/v1/shutdown":
+w.WriteHeader(http.StatusOK)
+w.Write([]byte(`{"status":"shutting down"}`))
+default:
+w.WriteHeader(http.StatusNotFound)
+w.Write([]byte(`{"error":"not found"}`))
+}
+})
+return httptest.NewTLSServer(handler)
 }
