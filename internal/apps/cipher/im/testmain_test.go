@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"cryptoutil/internal/apps/cipher/im/server/config"
 	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTestutil "cryptoutil/internal/apps/template/service/testutil"
 	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -26,10 +26,9 @@ var (
 	sharedHTTPClient    *http.Client
 	publicBaseURL       string
 	adminBaseURL        string
-	// Shared mock servers for testing different response scenarios.
-	testMockServerOK     *httptest.Server
-	testMockServerError  *httptest.Server
-	testMockServerCustom *httptest.Server
+	// Shared mock servers from template testutil.
+	testMockServerOK    = cryptoutilTestutil.NewMockServerOK()
+	testMockServerError = cryptoutilTestutil.NewMockServerError()
 )
 
 func TestMain(m *testing.M) {
@@ -62,44 +61,9 @@ func TestMain(m *testing.M) {
 	adminBaseURL = testCipherIMService.AdminBaseURL()
 
 	// Create shared mock server that returns 200 OK.
-	testMockServerOK = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = fmt.Fprint(w, "OK")
-	}))
+	tesShared mock servers already initialized from template testutil.
 	defer testMockServerOK.Close()
-
-	// Create shared mock server that returns errors.
-	testMockServerError = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusServiceUnavailable)
-		_, _ = fmt.Fprint(w, "Service Unavailable")
-	}))
-	defer testMockServerError.Close()
-
-	// Create shared mock server for custom responses (controlled by path).
-	testMockServerCustom = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/health":
-			w.WriteHeader(http.StatusOK)
-			_, _ = fmt.Fprint(w, "All systems operational")
-		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath:
-			w.WriteHeader(http.StatusOK)
-			_, _ = fmt.Fprint(w, "Process is alive and running")
-		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath:
-			w.WriteHeader(http.StatusOK)
-			_, _ = fmt.Fprint(w, "Ready")
-		case cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath:
-			if r.Method == http.MethodPost {
-				w.WriteHeader(http.StatusOK)
-				_, _ = fmt.Fprint(w, "Shutting down")
-			} else {
-				w.WriteHeader(http.StatusMethodNotAllowed)
-			}
-		default:
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}))
-	defer testMockServerCustom.Close()
-
+	defer testMockServerError
 	// Run all tests.
 	exitCode := m.Run()
 
