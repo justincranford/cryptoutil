@@ -3343,19 +3343,158 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 
 - Implements .github/instructions/03-03.golang.instructions.md Command Line Patterns
 - Implements .github/instructions/03-03.golang.instructions.md Go Project Structure
-- Call flow: cmd/cipher-im/main.go  internal/apps/cipher/im/im.go
-- Call flow: cmd/cipher/main.go  internal/apps/cipher/cipher.go  internal/apps/cipher/im/im.go
+- Call flow: cmd/cipher-im/main.go → internal/apps/cipher/im/im.go
+- Call flow: cmd/cipher/main.go → internal/apps/cipher/cipher.go → internal/apps/cipher/im/im.go
 
 **Related Commits**:
 
 - 08af36d1 ("refactor(cipher): move to internal/apps/cipher structure")
 
-**Phase Status**: Cipher Directory Refactoring  COMPLETE
+**Phase Status**: Cipher Directory Refactoring → COMPLETE
 
-- File structure migration:  COMPLETE (54 files moved with git mv)
-- Import path updates:  COMPLETE (PowerShell batch regex)
-- Test fixes:  COMPLETE (2 emoji assertions)
-- Linting fixes:  COMPLETE (6 errors resolved)
-- Documentation updates:  COMPLETE (README.md, tasks.md, DETAILED.md)
-- SpecKit alignment:  COMPLETE (paths updated in specs/)
+- File structure migration: ✅ COMPLETE (54 files moved with git mv)
+- Import path updates: ✅ COMPLETE (PowerShell batch regex)
+- Test fixes: ✅ COMPLETE (2 emoji assertions)
+- Linting fixes: ✅ COMPLETE (6 errors resolved)
+- Documentation updates: ✅ COMPLETE (README.md, tasks.md, DETAILED.md)
+- SpecKit alignment: ✅ COMPLETE (paths updated in specs/)
 - Blocking Issues: NONE
+
+---
+
+### 2025-01-15: Phase 2 - Refactor cipher-im to Use Server Builder
+
+**Work Completed**:
+
+**Refactored cipher-im server initialization** to use ServerBuilder pattern from Phase 1, dramatically reducing boilerplate code:
+
+1. **server.go** (internal/apps/cipher/im/server/server.go):
+   - Reduced from 404 lines to 161 lines (60% reduction)
+   - Replaced 260 lines of boilerplate with builder pattern:
+     ```go
+     NewServerBuilder(ctx, cfg).
+         WithDomainMigrations(...).
+         WithDefaultTenant(...).
+         WithPublicRouteRegistration(...).
+         Build()
+     ```
+   - Added 7 accessor methods for test compatibility:
+     * `JWKGen()`, `Telemetry()`, `PublicPort()`, `AdminPort()`
+     * `SetReady()`, `PublicBaseURL()`, `AdminBaseURL()`
+   - Wrapped errors in `Start()` and `Shutdown()` for linter compliance
+
+2. **public_server.go** (internal/apps/cipher/im/server/public_server.go):
+   - Reduced from 175 lines to 137 lines (22% reduction)
+   - Changed signature: now takes pre-initialized `PublicServerBase` from builder
+   - `registerRoutes()` returns error (required by builder callback pattern)
+
+3. **server_builder.go** (internal/apps/template/service/server/builder/server_builder.go):
+   - Enhanced from 323 lines to 514 lines (added 191 lines for merged migrations)
+   - **Implemented Merged Filesystem Pattern** (120 lines) to solve critical migration bug:
+     * Created `mergedMigrations` type implementing `fs.FS` interface
+     * Combines template migrations (1001-1004: tenants, sessions, barrier, realms)
+     * With domain migrations (2001+: application-specific tables)
+     * Solves golang-migrate validation error: "no migration found for version 1004"
+   - Merged migrations pattern allows golang-migrate to validate ALL database versions (1001-1004 + 2001+) against single unified filesystem
+
+**Migration Bug Fix** (CRITICAL):
+
+**Problem**: Builder tried to ensure default tenant BEFORE creating tenants table
+- Error: "SQL logic error: no such table: tenants (1)"
+- Root cause: Builder only applied domain migrations (2001+), not template migrations (1001-1004)
+
+**Attempted Fix 1** (FAILED):
+- Applied template migrations FIRST, then domain migrations SECOND sequentially
+- Error: "no migration found for version 1004: read down for version 1004 migrations: file does not exist"
+- Root cause: golang-migrate validates ALL database versions against source filesystem
+  * Template migrations created versions 1001-1004 in schema_migrations table
+  * But domain migrations filesystem only contains 2001+
+  * golang-migrate tries to validate existing 1004 version against domain FS → fails
+
+**Final Solution** (SUCCESSFUL):
+- Implemented `mergedMigrations` type with `fs.FS` interface:
+  ```go
+  type mergedMigrations struct {
+      templateFS   fs.FS    // 1001-1004 migrations
+      templatePath string
+      domainFS     fs.FS    // 2001+ migrations
+      domainPath   string
+  }
+  
+  // fs.FS interface implementation:
+  func (m *mergedMigrations) Open(name) (fs.File, error)
+  func (m *mergedMigrations) ReadDir(name) ([]fs.DirEntry, error)
+  func (m *mergedMigrations) ReadFile(name) ([]byte, error)
+  func (m *mergedMigrations) Stat(name) (fs.FileInfo, error)
+  ```
+- `applyMigrations()` creates merged FS when domain migrations exist:
+  ```go
+  if b.migrationFS != nil {
+      migrationsFS = &mergedMigrations{
+          templateFS:   cryptoutilTemplateRepository.MigrationsFS,
+          templatePath: "migrations",
+          domainFS:     b.migrationFS,
+          domainPath:   b.migrationsPath,
+      }
+  }
+  ```
+- golang-migrate sees unified migration stream (1001-1004 + 2001+) and validates successfully
+
+**Test Fixes**:
+
+1. Fixed 5 compilation errors (missing arguments, wrong method names)
+2. Added 7 accessor methods for test compatibility
+3. Fixed error message assertion for wrapped errors:
+   - Before: `"application startup cancelled: context canceled"`
+   - After: `"failed to start application: application startup cancelled: context canceled"`
+   - Updated http_test.go to handle wrapped error message
+
+**Coverage/Quality Metrics**:
+
+- Build: ✅ All packages compile successfully
+- Tests: ✅ All cipher-im tests pass (except E2E requiring Docker Desktop)
+- Linting: ✅ No linting errors
+- Migrations: ✅ Template + domain migrations apply correctly
+- Total reduction: 579 lines → 298 lines (49% reduction, 281 lines eliminated)
+
+**Constraints Discovered**:
+
+1. **golang-migrate validation**: MUST see ALL database versions in source filesystem
+   - Cannot apply template migrations separately from domain migrations
+   - Solution: Merge both into single fs.FS view
+2. **Test compatibility**: Builder-based initialization changes accessor patterns
+   - Tests expect specific methods (JWKGen, Telemetry, ports, URLs, SetReady)
+   - Solution: Add delegation methods to Server struct
+3. **Error wrapping**: Linter requires error wrapping for Start/Shutdown
+   - Changes error messages in tests
+   - Solution: Update test assertions to handle wrapped messages
+
+**Requirements Discovered**:
+
+1. **Merged Filesystem Pattern**: Required for services with both template + domain migrations
+   - Template provides base tables (tenants, realms, sessions, barrier)
+   - Domain provides application-specific tables (messages, recipients, etc.)
+   - Pattern combines both into single view for golang-migrate
+2. **Test Accessor Methods**: Builder pattern requires delegation methods for test access
+   - JWKGen, Telemetry, PublicPort, AdminPort, SetReady, PublicBaseURL, AdminBaseURL
+   - Pattern: Server struct delegates to embedded Application struct
+
+**Related Commits**:
+
+- 73387394 ("feat(template): add server builder and migration helpers") - Phase 1
+- 4da47701 ("refactor(cipher-im): use server builder; add merged migrations; reduce 579→298 lines (49%)")
+- 8492a913 ("test(cipher-im): fix error message assertion for wrapped errors")
+
+**Phase Status**: Cipher-IM Server Builder Refactoring → COMPLETE
+
+- Server.go refactoring: ✅ COMPLETE (60% reduction: 404→161 lines)
+- PublicServer.go refactoring: ✅ COMPLETE (22% reduction: 175→137 lines)
+- Merged migrations pattern: ✅ COMPLETE (120 lines, solves golang-migrate validation)
+- Test compatibility: ✅ COMPLETE (7 accessor methods added)
+- Error wrapping: ✅ COMPLETE (test assertions updated)
+- Build validation: ✅ COMPLETE (all packages compile)
+- Test validation: ✅ COMPLETE (all tests pass except E2E requiring Docker)
+- Linting validation: ✅ COMPLETE (zero linting errors)
+- Blocking Issues: NONE
+
+**Next Phase**: Phase 3 - Create cipher-pubsub service to validate builder effectiveness
