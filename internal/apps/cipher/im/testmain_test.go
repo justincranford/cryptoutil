@@ -26,7 +26,10 @@ var (
 	sharedHTTPClient    *http.Client
 	publicBaseURL       string
 	adminBaseURL        string
-	// Shared mock servers from template testutil.
+)
+
+// Shared mock servers from template testutil.
+var (
 	testMockServerOK    = cryptoutilTestutil.NewMockServerOK()
 	testMockServerError = cryptoutilTestutil.NewMockServerError()
 )
