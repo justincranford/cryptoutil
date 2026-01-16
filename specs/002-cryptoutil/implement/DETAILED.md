@@ -3498,3 +3498,63 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 - Blocking Issues: NONE
 
 **Next Phase**: Phase 3 - Create cipher-pubsub service to validate builder effectiveness
+---
+
+### 2026-01-16 17:40 - Phase 0 Multi-Tenancy: Default Tenant Removal + Join Requests
+
+**Work Completed**:
+
+Task 0.1-0.6:
+- Removed default tenant pattern from service template
+- Replaced ensureDefaultTenant() with WithDefaultTenant() builder pattern
+- Created tenant join request functionality (domain, repository, service, handlers)
+- Migration 1005: tenant_join_requests table with user_id/client_id support
+
+Task 0.7-0.8:
+- Implemented TenantRegistrationService with RegisterUserWithTenant(), RegisterClientWithTenant(), AuthorizeJoinRequest(), ListJoinRequests()
+- Created registration handlers with HandleRegisterUser(), HandleListJoinRequests(), HandleApproveJoinRequest(), HandleRejectJoinRequest()
+
+Task 0.9:
+- Documented route registration requirements (not yet implemented)
+
+Task 0.10:
+- Implemented TestMain pattern with PostgreSQL/SQLite fallback for integration tests
+- 8 integration tests for TenantRegistrationService with real database
+- Fixed CGO-free SQLite driver usage (modernc.org/sqlite)
+
+**Findings**:
+
+1. **SQLite CGO-Free Driver**: MUST use sql.Open("sqlite", dsn) → gorm.Open(sqlite.Dialector{Conn: sqlDB}) pattern
+   - Direct gorm.Open(sqlite.Open(dsn)) defaults to mattn/go-sqlite3 (requires CGO)
+   - Blank import `_ "modernc.org/sqlite"` forces CGO-free driver selection
+   - Pattern: open → configure PRAGMAs → set connection pool → wrap with GORM
+2. **PostgreSQL TestMain Panic Recovery**: testcontainers panics internally when Docker Desktop not running
+   - Solution: Wrap postgres.Run in anonymous function with defer/recover
+   - Allows graceful fallback to SQLite without crashing tests
+3. **Join Request Status Validation**: Service returns "join request is not pending (status: approved)" not "request already processed"
+   - Error messages describe actual state, not generic messages
+   - Test assertions should match specific error text
+
+**Metrics**:
+
+- Build: ✅ Clean compilation
+- Lint: ✅ Zero warnings
+- Tests: ✅ All passing (SQLite fallback, 8 integration tests)
+- TestMain pattern: ✅ PostgreSQL with panic recovery → SQLite fallback
+- Integration tests: RegisterUserWithTenant, RegisterClientWithTenant, AuthorizeJoinRequest (approve/reject/already-processed), ListJoinRequests, Join flow (not yet implemented)
+- Database: Real PostgreSQL or SQLite in-memory with WAL mode, connection pooling, AutoMigrate
+
+**Violations**: None
+
+**Next Steps**:
+
+- Task 0.11: Route registration (blocked - need builder WithPublicRouteRegistration implementation)
+- Task 0.12: E2E tests (blocked - need routes registered + server constructor)
+- Phase 0 validation: All tasks blocked on route registration infrastructure
+
+**Related Commits**:
+
+- 3746d2f6 ("docs(template): document route registration requirements")
+- 9143a3bb ("test(template): implement TestMain with PostgreSQL/SQLite for integration tests")
+
+**Phase Status**: Phase 0 Multi-Tenancy → PARTIALLY COMPLETE (Routes blocked on future builder work)

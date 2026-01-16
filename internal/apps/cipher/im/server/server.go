@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 
+	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/repository"
@@ -57,12 +58,6 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	// Register cipher-im specific migrations.
 	builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
 
-	// Ensure default tenant and realm exist.
-	builder.WithDefaultTenant(
-		cryptoutilMagic.CipherIMDefaultTenantID,
-		cryptoutilMagic.CipherIMDefaultRealmID,
-	)
-
 	// Register cipher-im specific public routes.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilTemplateServer.PublicServerBase,
@@ -100,6 +95,13 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build cipher-im service: %w", err)
+	}
+
+	// Ensure default tenant exists for cipher-im demo.
+	// This is a simplified pattern for educational demos - production services should use
+	// the tenant join request workflow (TenantRegistrationService).
+	if err := ensureDefaultTenant(ctx, resources.DB, resources.RealmRepository); err != nil {
+		return nil, fmt.Errorf("failed to ensure default tenant: %w", err)
 	}
 
 	// Create cipher-im specific repositories for server struct.
@@ -199,4 +201,49 @@ func (s *CipherIMServer) PublicServerActualPort() int {
 // Useful when configured with port 0 for dynamic allocation.
 func (s *CipherIMServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
+}
+
+// ensureDefaultTenant creates the default tenant and realm for cipher-im if they don't exist.
+// This is a simplified pattern for educational demos - production services should use
+// the tenant join request workflow (TenantRegistrationService).
+func ensureDefaultTenant(
+	ctx context.Context,
+	db *gorm.DB,
+	realmRepo cryptoutilTemplateRepository.TenantRealmRepository,
+) error {
+	// Create tenant repository.
+	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(db)
+
+	// Check if default tenant exists.
+	_, err := tenantRepo.GetByID(ctx, cryptoutilMagic.CipherIMDefaultTenantID)
+	if err == nil {
+		// Tenant already exists, nothing to do.
+		return nil
+	}
+
+	// Create default tenant.
+	tenant := &cryptoutilTemplateRepository.Tenant{
+		ID:   cryptoutilMagic.CipherIMDefaultTenantID,
+		Name: "cipher-im-default",
+	}
+
+	if err := tenantRepo.Create(ctx, tenant); err != nil {
+		return fmt.Errorf("failed to create default tenant: %w", err)
+	}
+
+	// Create default realm for tenant.
+	realm := &cryptoutilTemplateRepository.TenantRealm{
+		ID:       googleUuid.New(),
+		TenantID: cryptoutilMagic.CipherIMDefaultTenantID,
+		RealmID:  cryptoutilMagic.CipherIMDefaultRealmID,
+		Type:     "username_password", // Simple username/password authentication for demo.
+		Active:   true,
+		Source:   "db",
+	}
+
+	if err := realmRepo.Create(ctx, realm); err != nil {
+		return fmt.Errorf("failed to create default realm: %w", err)
+	}
+
+	return nil
 }
