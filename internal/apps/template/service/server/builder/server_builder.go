@@ -13,6 +13,8 @@ import (
 
 	"gorm.io/gorm"
 
+	googleUuid "github.com/google/uuid"
+
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
@@ -24,19 +26,18 @@ import (
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	googleUuid "github.com/google/uuid"
 )
 
 // ServiceResources contains all initialized service resources available to domain-specific code.
 type ServiceResources struct {
 	// Infrastructure.
-	DB                *gorm.DB
-	TelemetryService  *cryptoutilTelemetry.TelemetryService
-	JWKGenService     *cryptoutilJose.JWKGenService
-	BarrierService    *cryptoutilBarrier.BarrierService
-	SessionManager    *cryptoutilTemplateBusinessLogic.SessionManagerService
-	RealmService      cryptoutilTemplateService.RealmService
-	RealmRepository   cryptoutilTemplateRepository.TenantRealmRepository
+	DB               *gorm.DB
+	TelemetryService *cryptoutilTelemetry.TelemetryService
+	JWKGenService    *cryptoutilJose.JWKGenService
+	BarrierService   *cryptoutilBarrier.BarrierService
+	SessionManager   *cryptoutilTemplateBusinessLogic.SessionManagerService
+	RealmService     cryptoutilTemplateService.RealmService
+	RealmRepository  cryptoutilTemplateRepository.TenantRealmRepository
 
 	// Application wrapper.
 	Application *cryptoutilTemplateServer.Application
@@ -391,7 +392,7 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 
 	// Merge template migrations with domain migrations (if provided).
 	var migrationsFS fs.FS = cryptoutilTemplateRepository.MigrationsFS
-	var migrationsPath = "migrations"
+	migrationsPath := "migrations"
 
 	if b.migrationFS != nil {
 		// Create merged FS combining template + domain migrations.
@@ -510,4 +511,3 @@ func (b *ServerBuilder) ensureDefaultTenant(db *gorm.DB) error {
 
 	return nil
 }
-

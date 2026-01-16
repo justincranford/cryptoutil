@@ -3420,7 +3420,7 @@ barrierRepo, _ := NewGormBarrierRepository(db)
       domainFS     fs.FS    // 2001+ migrations
       domainPath   string
   }
-  
+
   // fs.FS interface implementation:
   func (m *mergedMigrations) Open(name) (fs.File, error)
   func (m *mergedMigrations) ReadDir(name) ([]fs.DirEntry, error)

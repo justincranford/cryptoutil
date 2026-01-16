@@ -38,6 +38,7 @@
 | [03-05.sqlite-gorm](.github/instructions/03-05.sqlite-gorm.instructions.md) | Instructions for SQLite configuration with GORM, transaction patterns, and concurrent operations |
 | [03-06.security](.github/instructions/03-06.security.instructions.md) | Instructions for security implementation patterns |
 | [03-07.linting](.github/instructions/03-07.linting.instructions.md) | Instructions for code quality, linting, and maintenance standards |
+| [03-08.server-builder](.github/instructions/03-08.server-builder.instructions.md) | Server builder pattern and merged migrations |
 | [04-01.github](.github/instructions/04-01.github.instructions.md) | CI/CD workflow configuration |
 | [04-02.docker](.github/instructions/04-02.docker.instructions.md) | Instructions for Docker and Docker Compose configuration |
 | [05-01.cross-platform](.github/instructions/05-01.cross-platform.instructions.md) | Platform-specific tooling |

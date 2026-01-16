@@ -156,10 +156,10 @@ func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username str
 func (s *PublicServer) registerRoutes() {
     // Session endpoints (no middleware)
     app.Post("/service/api/v1/sessions/issue", sessionHandler.IssueSession)
-    
+
     // User endpoints (authentication, no middleware)
     app.Post("/service/api/v1/users/register", s.authnHandler.HandleRegisterUser())
-    
+
     // Business logic endpoints (session middleware required)
     app.Put("/service/api/v1/messages/tx", serviceSessionMiddleware, s.messageHandler.HandleSendMessage())
 }
@@ -197,15 +197,15 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
         WithDefaultTenant(cryptoutilMagic.CipherIMDefaultTenantID, cryptoutilMagic.CipherIMDefaultRealmID).
         WithPublicServerHandlers(registerCipherIMRoutes).
         Build()
-    
+
     if err != nil {
         return nil, err
     }
-    
+
     // Extract domain-specific repositories from app
     messageRepo := repository.NewMessageRepository(app.DB())
     messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(app.DB(), app.BarrierService())
-    
+
     return &CipherIMServer{
         app:         app,
         messageRepo: messageRepo,
@@ -336,7 +336,7 @@ func (s *PublicServer) registerRoutes() {
     // Standard routes (sessions, authentication) - handled by template
     cryptoutilTemplateRoutes.RegisterSessionRoutes(s.base.App(), s.sessionManagerService)
     cryptoutilTemplateRoutes.RegisterUserAuthRoutes(s.base.App(), s.authnHandler, s.sessionManagerService)
-    
+
     // Domain-specific routes only
     app := s.base.App()
     app.Put("/service/api/v1/messages/tx", serviceSessionMiddleware, s.messageHandler.HandleSendMessage())
