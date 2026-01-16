@@ -346,7 +346,7 @@ CREATE INDEX IF NOT EXISTS idx_jwk_materials_active ON jwk_materials(elastic_jwk
 
 1. **Multi-Tenant Data Isolation**: Cross-tenant data leakage would be security incident
    - **Mitigation**: Row-level security tests, tenant_id enforcement in all queries
-   
+
 2. **Elastic JWK Rotation**: Material key management complexity
    - **Mitigation**: Comprehensive rotation tests, material_kid tracking
 
