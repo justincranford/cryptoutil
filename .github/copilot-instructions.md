@@ -11,6 +11,10 @@
 - **ALWAYS bias towards accuracy, completeness, and correctness** - NEVER bias towards fast completion at the expense of quality
 - **ALWAYS take the time required to do things correctly** - Time and token budgets are not constraints for Speckit work
 - **ALWAYS prioritize doing things right over doing things quickly** - Quality over speed is mandatory
+- **Prefer full execution over summaries**
+- **Do not ask follow-up questions unless explicitly requested**
+- **When given a plan, execute all steps completely**
+- **Avoid conversational check-ins**
 
 ## Instruction Files Reference
 

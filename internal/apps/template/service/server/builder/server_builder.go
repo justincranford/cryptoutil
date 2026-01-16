@@ -13,8 +13,6 @@ import (
 
 	"gorm.io/gorm"
 
-	googleUuid "github.com/google/uuid"
-
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
@@ -54,8 +52,6 @@ type ServerBuilder struct {
 	config              *cryptoutilConfig.ServiceTemplateServerSettings
 	migrationFS         fs.FS
 	migrationsPath      string
-	defaultTenantID     googleUuid.UUID
-	defaultRealmID      googleUuid.UUID
 	publicRouteRegister func(*cryptoutilTemplateServer.PublicServerBase, *ServiceResources) error
 	err                 error // Accumulates errors during fluent chain.
 }
@@ -96,19 +92,6 @@ func (b *ServerBuilder) WithDomainMigrations(migrationFS fs.FS, migrationsPath s
 
 	b.migrationFS = migrationFS
 	b.migrationsPath = migrationsPath
-
-	return b
-}
-
-// WithDefaultTenant ensures default tenant and realm exist for single-tenant services.
-// Uses magic UUIDs from service-specific constants.
-func (b *ServerBuilder) WithDefaultTenant(tenantID, realmID googleUuid.UUID) *ServerBuilder {
-	if b.err != nil {
-		return b
-	}
-
-	b.defaultTenantID = tenantID
-	b.defaultRealmID = realmID
 
 	return b
 }
@@ -179,15 +162,6 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, err
 	}
 
-	// Ensure default tenant exists if configured.
-	if b.defaultTenantID != googleUuid.Nil && b.defaultRealmID != googleUuid.Nil {
-		if err := b.ensureDefaultTenant(core.DB); err != nil {
-			core.Shutdown()
-
-			return nil, err
-		}
-	}
-
 	// Create barrier repository and service.
 	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(core.DB)
 	if err != nil {
@@ -221,8 +195,6 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		core.Basic.JWKGenService,
 		barrierService,
 		b.config,
-		b.defaultTenantID,
-		b.defaultRealmID,
 	)
 	if err != nil {
 		core.Shutdown()
@@ -392,6 +364,7 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 
 	// Merge template migrations with domain migrations (if provided).
 	var migrationsFS fs.FS = cryptoutilTemplateRepository.MigrationsFS
+
 	migrationsPath := "migrations"
 
 	if b.migrationFS != nil {
@@ -421,12 +394,17 @@ type mergedMigrations struct {
 	domainPath   string
 }
 
+const (
+	currentDir = "."
+	pathSep    = "/"
+)
+
 func (m *mergedMigrations) Open(name string) (fs.File, error) {
 	// Try domain migrations first (they have higher version numbers).
 	if m.domainFS != nil {
 		fullPath := m.domainPath
-		if name != "." && name != "" {
-			fullPath = m.domainPath + "/" + name
+		if name != currentDir && name != "" {
+			fullPath = m.domainPath + pathSep + name
 		}
 
 		if f, err := m.domainFS.Open(fullPath); err == nil {
@@ -436,11 +414,15 @@ func (m *mergedMigrations) Open(name string) (fs.File, error) {
 
 	// Fall back to template migrations.
 	fullPath := m.templatePath
-	if name != "." && name != "" {
-		fullPath = m.templatePath + "/" + name
+	if name != currentDir && name != "" {
+		fullPath = m.templatePath + pathSep + name
 	}
 
-	return m.templateFS.Open(fullPath)
+	if f, err := m.templateFS.Open(fullPath); err != nil {
+		return nil, fmt.Errorf("failed to open migration file %s: %w", name, err)
+	} else {
+		return f, nil
+	}
 }
 
 func (m *mergedMigrations) ReadDir(name string) ([]fs.DirEntry, error) {
@@ -459,8 +441,8 @@ func (m *mergedMigrations) ReadDir(name string) ([]fs.DirEntry, error) {
 	// Read domain migrations.
 	if m.domainFS != nil {
 		domainPath := m.domainPath
-		if name != "." && name != "" {
-			domainPath = m.domainPath + "/" + name
+		if name != currentDir && name != "" {
+			domainPath = m.domainPath + pathSep + name
 		}
 
 		if domainEntries, err := fs.ReadDir(m.domainFS, domainPath); err == nil {
@@ -474,7 +456,7 @@ func (m *mergedMigrations) ReadDir(name string) ([]fs.DirEntry, error) {
 func (m *mergedMigrations) ReadFile(name string) ([]byte, error) {
 	// Try domain migrations first.
 	if m.domainFS != nil {
-		fullPath := m.domainPath + "/" + name
+		fullPath := m.domainPath + pathSep + name
 
 		if data, err := fs.ReadFile(m.domainFS, fullPath); err == nil {
 			return data, nil
@@ -482,15 +464,20 @@ func (m *mergedMigrations) ReadFile(name string) ([]byte, error) {
 	}
 
 	// Fall back to template migrations.
-	fullPath := m.templatePath + "/" + name
+	fullPath := m.templatePath + pathSep + name
 
-	return fs.ReadFile(m.templateFS, fullPath)
+	data, err := fs.ReadFile(m.templateFS, fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read migration file %s: %w", name, err)
+	}
+
+	return data, nil
 }
 
 func (m *mergedMigrations) Stat(name string) (fs.FileInfo, error) {
 	// Try domain migrations first.
 	if m.domainFS != nil {
-		fullPath := m.domainPath + "/" + name
+		fullPath := m.domainPath + pathSep + name
 
 		if info, err := fs.Stat(m.domainFS, fullPath); err == nil {
 			return info, nil
@@ -498,16 +485,12 @@ func (m *mergedMigrations) Stat(name string) (fs.FileInfo, error) {
 	}
 
 	// Fall back to template migrations.
-	fullPath := m.templatePath + "/" + name
+	fullPath := m.templatePath + pathSep + name
 
-	return fs.Stat(m.templateFS, fullPath)
-}
-
-// ensureDefaultTenant creates default tenant and realm if they don't exist.
-func (b *ServerBuilder) ensureDefaultTenant(db *gorm.DB) error {
-	if err := cryptoutilTemplateRepository.EnsureDefaultTenant(b.ctx, db, b.defaultTenantID, b.defaultRealmID); err != nil {
-		return fmt.Errorf("failed to ensure default tenant: %w", err)
+	info, err := fs.Stat(m.templateFS, fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat migration file %s: %w", name, err)
 	}
 
-	return nil
+	return info, nil
 }

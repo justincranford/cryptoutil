@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025 Justin Cranford
 //
 // SPDX-License-Identifier: MIT
 
@@ -29,8 +29,9 @@ func NewInsecureTLSClient(timeout time.Duration) *http.Client {
 func NewMockServerOK() *httptest.Server {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"healthy"}`))
+		_, _ = w.Write([]byte(`{"status":"healthy"}`))
 	})
+
 	return httptest.NewTLSServer(handler)
 }
 
@@ -39,8 +40,9 @@ func NewMockServerOK() *httptest.Server {
 func NewMockServerError() *httptest.Server {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte("Service Unavailable"))
+		_, _ = w.Write([]byte("Service Unavailable"))
 	})
+
 	return httptest.NewTLSServer(handler)
 }
 
@@ -50,8 +52,9 @@ func NewMockServerSlow(delay time.Duration) *httptest.Server {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(delay)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"delayed"}`))
+		_, _ = w.Write([]byte(`{"status":"delayed"}`))
 	})
+
 	return httptest.NewTLSServer(handler)
 }
 
@@ -62,20 +65,21 @@ func NewMockServerCustom() *httptest.Server {
 		switch r.URL.Path {
 		case "/admin/v1/health":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("All systems operational"))
+			_, _ = w.Write([]byte("All systems operational"))
 		case "/admin/v1/livez":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Process is alive and running"))
+			_, _ = w.Write([]byte("Process is alive and running"))
 		case "/admin/v1/readyz":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Service is ready to accept requests"))
+			_, _ = w.Write([]byte("Service is ready to accept requests"))
 		case "/admin/v1/shutdown":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Graceful shutdown initiated"))
+			_, _ = w.Write([]byte("Graceful shutdown initiated"))
 		default:
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("Not found"))
+			_, _ = w.Write([]byte("Not found"))
 		}
 	})
+
 	return httptest.NewTLSServer(handler)
 }
