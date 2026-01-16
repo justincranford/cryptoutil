@@ -41,7 +41,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A, max 1000 material JWKs per elastic JWK. When limit reached, user or client must generate a new elastic JWK, and manually migrate to use it.
 
 ---
 
@@ -69,7 +69,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** D
 
 ---
 
@@ -97,7 +97,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** Old material JWK is never retired. For asymmetric signing, the public material JWK remains available for verification of historical signatures. For asymmetric encryption, the old private material JWK can still be used to decrypt data encrypted with it. For symmetric encryption, the old material JWK can still be used to decrypt, but not for encryption. For symmetric signing, the old material JWK can still be used to verify historical signatures, but not for new signing operations.
 
 ---
 
@@ -127,7 +127,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** D
 
 ---
 
@@ -155,7 +155,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B, 1% default per elastic JWK, can be overridden
 
 ---
 
@@ -183,7 +183,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A
 
 ---
 
@@ -213,7 +213,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B, default 5 min TTL
 
 ---
 
@@ -241,7 +241,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B; is there a more descriptive status code, or should we stick with 404? If HTTP 404, is there a way to communicate extra information in the response body to indicate that the endpoint exists but deliverately empty? And security concern about that, such as enumeration, or does UUIDv7 in path mitigate that? Any other security concerns or considerations?
 
 ---
 
@@ -269,7 +269,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B is default, but can be overridden per elastic JWK if needed. Options include making the elastic JWK public to all, sharing with specific tenant(s), or keeping it private within the tenant.
 
 ---
 
@@ -299,7 +299,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A; it is MANDATORY for service-template to provide browser UI and service API for registering users || clients. Tenants can only be created via registering a new user || client, and specifying the option to create a new tenant or join an existing tenant. Tenant management user UI and service APIs must support viewing tenant, managing tenant details, managing tenant members, or deleting the tenant. Tenants MUST never be created directly without going through the registration flow.
 
 ---
 
@@ -325,7 +325,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 - **Pros**: Consistent with other services, no duplication
 - **Cons**: Limited to service-template capabilities
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): C and D; this is what session-template is supposed to support already. If not, then fix session-template to support RBAC for tenant members, so it can be reused by jose-ja and cipher-im.
 
 **YOUR ANSWER: __**
 
@@ -355,7 +355,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A; realms are for authentication and authorization purposes only, so tenant-scoped JWKs MUST be available with the tenant
 
 ---
 
@@ -383,7 +383,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 - **Pros**: UX-friendly, automatic extension
 - **Cons**: Complex expiration logic
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): A; this is how service-template is supposed to work, and offer that reusable functionality for all 9 product-services, including jose-ja and cipher-im.
 
 **YOUR ANSWER: __**
 
@@ -413,7 +413,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B, session management for product-services is completely independent of the elastic JWKs managed inside the jose-ja service
 
 ---
 
@@ -441,7 +441,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 - **Pros**: Optimized per operation cost
 - **Cons**: Configuration complexity
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): Rate limiting MUST be per-browser or per-service at the Fiber level. This is how I originally implemented in sm-kms, and extracted for reuse in service-template. If it is not working that way, then service-template needs to be fixed for work like originally implemented in sm-kms.
 
 **YOUR ANSWER: __**
 
@@ -471,7 +471,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A; that is how sm-kms was implemented, and the same logic should be extracted for reuse in service-template. If it is not working that way, then service-template needs to be fixed for work like originally implemented in sm-kms..
 
 ---
 
@@ -499,7 +499,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 - **Pros**: Smooth transition, retry safety
 - **Cons**: Two keys active, key management complexity
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): WRONG context. Barrier keys encrypt new content using latest material AES JWK, and support historical decrypt. There is no need to re-encrypt existing JWKs when rotating barrier keys. After rotating the barrier key, only new material JWKs will be encrypted with the new barrier key, while existing JWKs remain encrypted with their original barrier key.
 
 **YOUR ANSWER: __**
 
@@ -527,7 +527,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 - **Pros**: No jose-ja changes needed
 - **Cons**: Tight coupling to barrier service internals
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): Barrier service encrypted content in JWE format, which contains a copy of the barrier key's in the JWE kid header. That JWE kid can be used to look up the corresponding barrier key. This should already be implemented in the current barrier service in service-template, which was extracted from the original sm-ks for reuse by all product-services built on top of service-template.
 
 **YOUR ANSWER: __**
 
@@ -559,7 +559,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** D; look at the openapi docs for sm-kms, that is how all product-service OpenAPI specs should be organized; components and paths are in separate files, and paths doc references components doc.
 
 ---
 
@@ -587,7 +587,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A
 
 ---
 
@@ -617,7 +617,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A; it is extremely important to use UUIDv7 for all parallel testing collision avoidance. Maximum concurrency in all tests is mandatory for fastest test execution, and for revealing concurrency issues in main product code.
 
 ---
 
@@ -645,7 +645,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A; e2e tests should use Docker Compose in TestMain to start all jose-ca services and dependencies once, and then reuse them for all tests in the e2e package. That is the same pattern used in cipher-im.
 
 ---
 
@@ -675,7 +675,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A; it worked for cipher-im which inherits from service-template, and it worked for sm-kms which was extracted to create service-template.
 
 ---
 
@@ -703,7 +703,7 @@ After answering, these will inform detailed task breakdowns in JOSE-JA-REFACTORI
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A
 
 ---
 

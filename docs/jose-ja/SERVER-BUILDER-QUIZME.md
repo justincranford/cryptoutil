@@ -56,7 +56,7 @@ func (b *ServerBuilder) WithDomainMigrations(migrationFS fs.FS, migrationsPath s
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B
 
 ---
 
@@ -93,9 +93,9 @@ if b.defaultTenantID != googleUuid.Nil && b.defaultRealmID != googleUuid.Nil {
 - **Pros**: Focused documentation
 - **Cons**: Developers may not find it
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): There is no such thing as default tenant. If it mentions default tenant, remove it, and replace it with guidance that default tenant is not allowed. New tenants must only ever be created via registering a browser user || service client, and specifying option to associate them with a new tenant.
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** E
 
 ---
 
@@ -133,7 +133,7 @@ builder.WithPublicRouteRegistration(func(base *PublicServerBase, res *ServiceRes
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** C
 
 ---
 
@@ -163,7 +163,7 @@ builder.WithPublicRouteRegistration(func(base *PublicServerBase, res *ServiceRes
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B; but not too verbose, keep instructions concise
 
 ---
 
@@ -193,9 +193,9 @@ builder.WithPublicRouteRegistration(func(base *PublicServerBase, res *ServiceRes
 - **Pros**: Focused on test-specific concerns
 - **Cons**: Production code developers may not see it
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): Globally rename ShutdownCore to ShutdownCoreServices. Globally rename ShutdownContainer to ShutdownTestContainers. Then the names will be more obvious.
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __**  E
 
 ---
 
@@ -223,9 +223,9 @@ builder.WithPublicRouteRegistration(func(base *PublicServerBase, res *ServiceRes
 - **Pros**: Enforces numbering programmatically
 - **Cons**: Adds runtime validation overhead
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach):  Add explicit number ranges (template 1001-1999, domain 2001-2999) with rationale
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** E
 
 ---
 
@@ -259,7 +259,7 @@ builder.WithPublicRouteRegistration(func(base *PublicServerBase, res *ServiceRes
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** C
 
 ---
 
@@ -294,7 +294,7 @@ builder.WithPublicRouteRegistration(func(base *PublicServerBase, res *ServiceRes
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B; 02-03.https-ports.instructions.md should already cover those 3 options for TLS details
 
 ---
 
@@ -338,7 +338,7 @@ func (b *ServerBuilder) WithDomainMigrations(...) *ServerBuilder {
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** C
 
 ---
 
@@ -370,7 +370,7 @@ func (b *ServerBuilder) WithDomainMigrations(...) *ServerBuilder {
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B
 
 ---
 
@@ -405,7 +405,7 @@ func (s *Server) PublicPort() int               // Match field exactly
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** C
 
 ---
 
@@ -435,9 +435,9 @@ func (s *Server) PublicPort() int               // Match field exactly
 - **Pros**: Reference without duplication
 - **Cons**: External navigation
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): My assumption is service-template migrations are always applied first, followed by domain-specific migrations. Add note: "Service-template migrations (1001-1999) are applied before domain-specific migrations (2001-2999) to ensure base functionality is in place before applying domain-specific changes."
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** E
 
 ---
 
@@ -474,7 +474,7 @@ func (s *Server) PublicPort() int               // Match field exactly
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B; keep concise, not verbose, to avoid wasting LLM tokens
 
 ---
 
@@ -506,7 +506,7 @@ func (s *Server) PublicPort() int               // Match field exactly
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** D
 
 ---
 
@@ -538,7 +538,7 @@ func (s *Server) PublicPort() int               // Match field exactly
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B; also, make sure 03-02.testing.instructions.md includes note: "use TestMain for test suites, because service initialization is slow (5-30 seconds depending on database type and migration count)"
 
 ---
 
@@ -570,7 +570,7 @@ func (s *Server) PublicPort() int               // Match field exactly
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** B
 
 ---
 
@@ -602,9 +602,9 @@ func (s *Server) PublicPort() int               // Match field exactly
 - **Pros**: Real-world example
 - **Cons**: Preventable issues for early services
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): All product-service are multi-tenant. There is no such thing as a single-tenant product-service. Fix the instructions to remove references to single-tenant product-service.
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** E
 
 ---
 
@@ -614,11 +614,11 @@ func (s *Server) PublicPort() int               // Match field exactly
 
 **Gap Identified**: Instructions mention BarrierService in ServiceResources but don't explain when/how to use it.
 
-**Context**: BarrierService encrypts/decrypts private keys for storage (used by cipher-im for message private keys, jose-ja for JWK private keys).
+**Context**: BarrierService encrypts/decrypts private keys for storage (used by cipher-im for message private keys, jose-ja for JWK private||symmetric keys).
 
 **Question**: Should instructions add BarrierService usage guidance?
 
-**A)** YES - Add section: "Use BarrierService for all private key storage" with encrypt/decrypt example
+**A)** YES - Add section: "Use BarrierService for all sensitive content storage" with encrypt/decrypt example
 - **Pros**: Clear security pattern
 - **Cons**: May overlap with cryptography instructions
 
@@ -636,7 +636,7 @@ func (s *Server) PublicPort() int               // Match field exactly
 
 **E)** Write-in (describe approach):
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** A
 
 ---
 
@@ -666,9 +666,9 @@ func (s *Server) PublicPort() int               // Match field exactly
 - **Pros**: Leverages existing auth docs
 - **Cons**: Cross-file navigation
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): SessionManager is for all browser user AND service client sessions!!! FIX! Check if service-template and cipher-im and following this pattern. If not, it needs to be included in the plan and tasks for docs\jose-ja, because it is a blocker for all products-services!
 
-**YOUR ANSWER: __**
+**YOUR ANSWER: __** E
 
 ---
 
@@ -696,7 +696,7 @@ func (s *Server) PublicPort() int               // Match field exactly
 - **Pros**: Real-world evidence
 - **Cons**: External navigation, may not exist
 
-**E)** Write-in (describe approach):
+**E)** Write-in (describe approach): side-by-side comparison is too verbose and not desirable to include in copilot instructions
 
 **YOUR ANSWER: __**
 
