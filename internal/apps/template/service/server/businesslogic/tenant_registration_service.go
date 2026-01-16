@@ -1,0 +1,149 @@
+// Copyright (c) 2025 Justin Cranford.
+// Licensed under the MIT License. See LICENSE file in the project root for license information.
+
+package businesslogic
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	googleUuid "github.com/google/uuid"
+	"gorm.io/gorm"
+
+	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+)
+
+// TenantRegistrationService handles tenant creation and join request workflows.
+type TenantRegistrationService struct {
+	db              *gorm.DB
+	tenantRepo      cryptoutilTemplateRepository.TenantRepository
+	userRepo        cryptoutilTemplateRepository.UserRepository
+	joinRequestRepo cryptoutilTemplateRepository.TenantJoinRequestRepository
+}
+
+// NewTenantRegistrationService creates a new tenant registration service.
+func NewTenantRegistrationService(
+	db *gorm.DB,
+	tenantRepo cryptoutilTemplateRepository.TenantRepository,
+	userRepo cryptoutilTemplateRepository.UserRepository,
+	joinRequestRepo cryptoutilTemplateRepository.TenantJoinRequestRepository,
+) *TenantRegistrationService {
+	return &TenantRegistrationService{
+		db:              db,
+		tenantRepo:      tenantRepo,
+		userRepo:        userRepo,
+		joinRequestRepo: joinRequestRepo,
+	}
+}
+
+// RegisterUserWithTenant registers a user with a tenant (create or join).
+func (s *TenantRegistrationService) RegisterUserWithTenant(
+	ctx context.Context,
+	userID googleUuid.UUID,
+	tenantName string,
+	createTenant bool,
+) (*cryptoutilTemplateRepository.Tenant, error) {
+	if createTenant {
+		// Create new tenant with user as admin
+		tenant := &cryptoutilTemplateRepository.Tenant{
+			ID:   googleUuid.New(),
+			Name: tenantName,
+		}
+
+		if err := s.tenantRepo.Create(ctx, tenant); err != nil {
+			return nil, fmt.Errorf("failed to create tenant: %w", err)
+		}
+
+		// TODO: Assign admin role to user (requires role management system)
+
+		return tenant, nil
+	}
+
+	// Create join request for existing tenant
+	// User must provide existing tenant ID - find by name
+	// This is a simplified flow; production would have tenant discovery
+	return nil, fmt.Errorf("join existing tenant flow not yet implemented")
+}
+
+// RegisterClientWithTenant registers a client with a tenant.
+func (s *TenantRegistrationService) RegisterClientWithTenant(
+	ctx context.Context,
+	clientID googleUuid.UUID,
+	tenantID googleUuid.UUID,
+) error {
+	// Verify tenant exists
+	_, err := s.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		return fmt.Errorf("tenant not found: %w", err)
+	}
+
+	// Create join request for client
+	joinRequest := &cryptoutilTemplateDomain.TenantJoinRequest{
+		ID:          googleUuid.New(),
+		ClientID:    &clientID,
+		TenantID:    tenantID,
+		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		RequestedAt: time.Now().UTC(),
+	}
+
+	if err := s.joinRequestRepo.Create(ctx, joinRequest); err != nil {
+		return fmt.Errorf("failed to create client join request: %w", err)
+	}
+
+	return nil
+}
+
+// AuthorizeJoinRequest approves or rejects a join request.
+func (s *TenantRegistrationService) AuthorizeJoinRequest(
+	ctx context.Context,
+	requestID googleUuid.UUID,
+	adminUserID googleUuid.UUID,
+	approved bool,
+) error {
+	// Get join request
+	joinRequest, err := s.joinRequestRepo.GetByID(ctx, requestID)
+	if err != nil {
+		return fmt.Errorf("failed to get join request: %w", err)
+	}
+
+	// Verify request is pending
+	if joinRequest.Status != cryptoutilTemplateDomain.JoinRequestStatusPending {
+		return fmt.Errorf("join request is not pending (status: %s)", joinRequest.Status)
+	}
+
+	// TODO: Verify admin has permission for this tenant
+
+	// Update request status
+	now := time.Now().UTC()
+	joinRequest.ProcessedAt = &now
+	joinRequest.ProcessedBy = &adminUserID
+
+	if approved {
+		joinRequest.Status = cryptoutilTemplateDomain.JoinRequestStatusApproved
+		// TODO: Assign user/client to tenant with appropriate role
+	} else {
+		joinRequest.Status = cryptoutilTemplateDomain.JoinRequestStatusRejected
+	}
+
+	if err := s.joinRequestRepo.Update(ctx, joinRequest); err != nil {
+		return fmt.Errorf("failed to update join request: %w", err)
+	}
+
+	return nil
+}
+
+// ListJoinRequests lists join requests for a tenant.
+func (s *TenantRegistrationService) ListJoinRequests(
+	ctx context.Context,
+	tenantID googleUuid.UUID,
+) ([]*cryptoutilTemplateDomain.TenantJoinRequest, error) {
+	// TODO: Verify caller has admin permission for this tenant
+	requests, err := s.joinRequestRepo.ListByTenant(ctx, tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list join requests: %w", err)
+	}
+
+	return requests, nil
+}
