@@ -3,6 +3,37 @@
 **Last Updated**: 2026-01-16
 **Based On**: JOSE-JA-REFACTORING-PLAN-V3.md
 
+## MANDATORY Execution Rules
+
+**Quality Gates (EVERY task MUST pass ALL before marking complete)**:
+1. ✅ **Build**: `go build ./...` (zero errors)
+2. ✅ **Linting**: `golangci-lint run --fix ./...` (zero warnings)
+3. ✅ **Tests**: `go test ./...` (100% pass, no skips without tracking)
+4. ✅ **Coverage**: ≥95% production code, ≥98% infrastructure/utility code
+5. ✅ **Mutation**: `gremlins unleash ./internal/[package]` ≥85% production, ≥98% infrastructure (run per package, NOT deferred)
+6. ✅ **Evidence**: Objective proof of completion (build output, test output, coverage report, mutation score, commit hash)
+7. ✅ **Git**: Conventional commit after EACH logical unit with evidence in commit message
+
+**Continuous Execution (NO EXCEPTIONS)**:
+- ❌ NEVER stop to ask "Should I continue with Task X?"
+- ❌ NEVER stop to ask "Ready to proceed with Phase Y?"
+- ❌ NEVER pause between tasks for status updates ("Here's what we did...")
+- ❌ NEVER skip validation steps to save time ("I'll add tests later")
+- ❌ NEVER mark tasks complete without running ALL 7 quality gates
+- ❌ NEVER defer mutation testing to "cleanup phase" (run per package during implementation)
+- ❌ NEVER say "Coverage should be good" without generating report
+- ✅ ALWAYS commit after each task completion with evidence
+- ✅ ALWAYS start next task immediately after commit (zero pause, zero text to user)
+- ✅ ALWAYS update specs/002-cryptoutil/implement/DETAILED.md Section 2 timeline after each phase
+- ✅ ALWAYS run quality gates BEFORE marking task complete (not after)
+
+**Evidence Requirements (NO task complete without ALL)**:
+- **Build output**: Showing `go build ./...` zero errors
+- **Test output**: Showing `go test ./...` 100% pass (X/X tests)
+- **Coverage report**: Showing ≥95%/≥98% targets met
+- **Mutation score**: Showing ≥85%/≥98% targets met (when applicable to package)
+- **Git commit hash**: With conventional message including evidence
+
 ## Task Organization
 
 Tasks are organized by **SEQUENTIAL PHASES**:
@@ -101,7 +132,7 @@ Tasks are organized by **SEQUENTIAL PHASES**:
       FOREIGN KEY (processed_by) REFERENCES users(id),
       CHECK ((user_id IS NOT NULL AND client_id IS NULL) OR (user_id IS NULL AND client_id IS NOT NULL))
   );
-  
+
   CREATE INDEX IF NOT EXISTS idx_tenant_join_requests_tenant ON tenant_join_requests(tenant_id);
   CREATE INDEX IF NOT EXISTS idx_tenant_join_requests_status ON tenant_join_requests(status);
   ```
@@ -372,7 +403,7 @@ Tasks are organized by **SEQUENTIAL PHASES**:
       FOREIGN KEY (tenant_id, realm_id) REFERENCES tenant_realms(tenant_id, realm_id),
       UNIQUE(tenant_id, realm_id, kid)
   );
-  
+
   CREATE INDEX IF NOT EXISTS idx_elastic_jwks_tenant_realm ON elastic_jwks(tenant_id, realm_id);
   CREATE INDEX IF NOT EXISTS idx_elastic_jwks_kid ON elastic_jwks(kid);
   ```
@@ -403,7 +434,7 @@ Tasks are organized by **SEQUENTIAL PHASES**:
       FOREIGN KEY (elastic_jwk_id) REFERENCES elastic_jwks(id),
       UNIQUE(elastic_jwk_id, material_kid)
   );
-  
+
   CREATE INDEX IF NOT EXISTS idx_material_jwks_elastic ON material_jwks(elastic_jwk_id);
   CREATE INDEX IF NOT EXISTS idx_material_jwks_active ON material_jwks(elastic_jwk_id, active);
   ```

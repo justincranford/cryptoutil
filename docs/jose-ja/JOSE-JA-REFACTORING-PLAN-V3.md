@@ -1,10 +1,29 @@
 # JOSE-JA Refactoring Plan v3 (Includes Service-Template Prerequisites)
 
 **Last Updated**: 2026-01-16
-**Based On**: 
+**Based On**:
 - JOSE-JA-QUIZME-ROUND2.md (24 questions answered)
 - SERVER-BUILDER-QUIZME.md (20 questions answered)
 - Service-template investigation findings
+
+## Core Principles - MANDATORY
+
+**Quality Over Speed (NO EXCEPTIONS)**:
+- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
+- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step (build, lint, test, coverage, mutation)
+- ✅ **Reliability**: ≥95% coverage production, ≥98% infrastructure/utility, ≥85% mutation production, ≥98% mutation infrastructure
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark tasks complete without objective evidence
+
+**Continuous Execution (NO STOPPING)**:
+- Work continues until ALL tasks complete OR user clicks STOP button
+- NEVER stop to ask permission between tasks ("Should I continue?")
+- NEVER pause for status updates or celebrations ("Here's what we did...")
+- NEVER give up when encountering complexity (find solutions, refactor, investigate)
+- NEVER skip tasks to "save time" or because they seem "less important"
+- Task complete → Commit → IMMEDIATELY start next task (zero pause, zero text to user)
 
 ## Executive Summary
 
@@ -26,7 +45,7 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 **Desired State**: NO default tenant pattern. ALL tenants created via user/client registration with explicit tenant creation OR join existing tenant flow.
 
-**Architectural Requirement**: 
+**Architectural Requirement**:
 - Users register via `/browser/api/v1/auth/register` or `/service/api/v1/auth/register`
 - Choose: Create new tenant OR join existing tenant
 - If new tenant: User becomes admin, others request to join (requires admin approval)
