@@ -51,14 +51,14 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/apps/template/service/server/builder/server_builder.go`
 
-- [ ] 0.1.1 Remove `defaultTenantID` field from ServerBuilder struct
-- [ ] 0.1.2 Remove `defaultRealmID` field from ServerBuilder struct
-- [ ] 0.1.3 Remove `WithDefaultTenant(tenantID, realmID)` method (lines ~103-114)
-- [ ] 0.1.4 Remove call to `ensureDefaultTenant()` in `Build()` method (lines ~183-189)
-- [ ] 0.1.5 Remove `ensureDefaultTenant()` helper method (lines ~506+)
-- [ ] 0.1.6 Remove passing defaultTenantID/defaultRealmID to SessionManagerService constructor (lines ~217-224)
-- [ ] 0.1.7 Run `golangci-lint run --fix` to clean up imports/formatting
-- [ ] 0.1.8 Verify `go build ./internal/apps/template/...` succeeds
+- [x] 0.1.1 Remove `defaultTenantID` field from ServerBuilder struct
+- [x] 0.1.2 Remove `defaultRealmID` field from ServerBuilder struct
+- [x] 0.1.3 Remove `WithDefaultTenant(tenantID, realmID)` method (lines ~103-114)
+- [x] 0.1.4 Remove call to `ensureDefaultTenant()` in `Build()` method (lines ~183-189)
+- [x] 0.1.5 Remove `ensureDefaultTenant()` helper method (lines ~506+)
+- [x] 0.1.6 Remove passing defaultTenantID/defaultRealmID to SessionManagerService constructor (lines ~217-224)
+- [x] 0.1.7 Run `golangci-lint run --fix` to clean up imports/formatting
+- [x] 0.1.8 Verify `go build ./internal/apps/template/...` succeeds
 
 **Evidence**: Build succeeds, WithDefaultTenant method removed
 
@@ -68,9 +68,9 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/apps/template/service/server/repository/seeding.go`
 
-- [ ] 0.2.1 Delete entire file `seeding.go` (contains only EnsureDefaultTenant function)
-- [ ] 0.2.2 Run `golangci-lint run --fix` to clean up any references
-- [ ] 0.2.3 Verify `go build ./internal/apps/template/...` succeeds
+- [x] 0.2.1 Delete entire file `seeding.go` (contains only EnsureDefaultTenant function)
+- [x] 0.2.2 Run `golangci-lint run --fix` to clean up any references
+- [x] 0.2.3 Verify `go build ./internal/apps/template/...` succeeds
 
 **Evidence**: File deleted, build succeeds
 
@@ -80,19 +80,19 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/apps/template/service/server/businesslogic/session_manager_service.go`
 
-- [ ] 0.3.1 Remove `defaultTenantID` field
-- [ ] 0.3.2 Remove `defaultRealmID` field
-- [ ] 0.3.3 Remove `IssueBrowserSession(ctx, userID)` method (single-tenant version)
-- [ ] 0.3.4 Remove `ValidateBrowserSession(ctx, token)` method (single-tenant version)
-- [ ] 0.3.5 Remove `IssueServiceSession(ctx, clientID)` method (single-tenant version)
-- [ ] 0.3.6 Remove `ValidateServiceSession(ctx, token)` method (single-tenant version)
-- [ ] 0.3.7 KEEP `IssueBrowserSessionWithTenant(ctx, userID, tenantID, realmID)` (multi-tenant version)
-- [ ] 0.3.8 KEEP `ValidateBrowserSessionWithTenant(ctx, token)` (multi-tenant version)
-- [ ] 0.3.9 KEEP `IssueServiceSessionWithTenant(ctx, clientID, tenantID, realmID)` (multi-tenant version)
-- [ ] 0.3.10 KEEP `ValidateServiceSessionWithTenant(ctx, token)` (multi-tenant version)
-- [ ] 0.3.11 Update constructor `NewSessionManagerService()` to remove defaultTenantID/defaultRealmID params
-- [ ] 0.3.12 Run `golangci-lint run --fix`
-- [ ] 0.3.13 Verify `go build ./internal/apps/template/...` succeeds
+- [x] 0.3.1 Remove `defaultTenantID` field
+- [x] 0.3.2 Remove `defaultRealmID` field
+- [x] 0.3.3 Remove `IssueBrowserSession(ctx, userID)` method (single-tenant version)
+- [x] 0.3.4 Remove `ValidateBrowserSession(ctx, token)` method (single-tenant version)
+- [x] 0.3.5 Remove `IssueServiceSession(ctx, clientID)` method (single-tenant version)
+- [x] 0.3.6 Remove `ValidateServiceSession(ctx, token)` method (single-tenant version)
+- [x] 0.3.7 KEEP `IssueBrowserSessionWithTenant(ctx, userID, tenantID, realmID)` (multi-tenant version)
+- [x] 0.3.8 KEEP `ValidateBrowserSessionWithTenant(ctx, token)` (multi-tenant version)
+- [x] 0.3.9 KEEP `IssueServiceSessionWithTenant(ctx, clientID, tenantID, realmID)` (multi-tenant version)
+- [x] 0.3.10 KEEP `ValidateServiceSessionWithTenant(ctx, token)` (multi-tenant version)
+- [x] 0.3.11 Update constructor `NewSessionManagerService()` to remove defaultTenantID/defaultRealmID params
+- [x] 0.3.12 Run `golangci-lint run --fix`
+- [x] 0.3.13 Verify `go build ./internal/apps/template/...` succeeds
 
 **Evidence**: Single-tenant methods removed, only multi-tenant methods remain
 
@@ -102,11 +102,11 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/shared/magic/magic_template.go` (if exists)
 
-- [ ] 0.4.1 Search for `TemplateDefaultTenantID` constant, remove if exists
-- [ ] 0.4.2 Search for `TemplateDefaultRealmID` constant, remove if exists
-- [ ] 0.4.3 Run `grep -r "TemplateDefaultTenantID" internal/` to verify no usage
-- [ ] 0.4.4 Run `grep -r "TemplateDefaultRealmID" internal/` to verify no usage
-- [ ] 0.4.5 Run `golangci-lint run --fix`
+- [x] 0.4.1 Search for `TemplateDefaultTenantID` constant, remove if exists
+- [x] 0.4.2 Search for `TemplateDefaultRealmID` constant, remove if exists
+- [x] 0.4.3 Run `grep -r "TemplateDefaultTenantID" internal/` to verify no usage
+- [x] 0.4.4 Run `grep -r "TemplateDefaultRealmID" internal/` to verify no usage
+- [x] 0.4.5 Run `golangci-lint run --fix`
 
 **Evidence**: Magic constants removed, grep shows no usage
 
@@ -152,16 +152,16 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/apps/template/service/server/repository/tenant_join_requests.go`
 
-- [ ] 0.6.1 Create `TenantJoinRequest` model struct
-- [ ] 0.6.2 Create `TenantJoinRequestRepository` interface
-- [ ] 0.6.3 Implement `Create(ctx, request)` method
-- [ ] 0.6.4 Implement `Update(ctx, request)` method
-- [ ] 0.6.5 Implement `ListByTenant(ctx, tenantID, status)` method
-- [ ] 0.6.6 Implement `GetByID(ctx, id)` method
-- [ ] 0.6.7 Implement GORM repository struct
-- [ ] 0.6.8 Add error mapping to HTTP errors
-- [ ] 0.6.9 Write unit tests (≥98% coverage)
-- [ ] 0.6.10 Run `go test ./internal/apps/template/service/server/repository/` -cover
+- [x] 0.6.1 Create `TenantJoinRequest` model struct
+- [x] 0.6.2 Create `TenantJoinRequestRepository` interface
+- [x] 0.6.3 Implement `Create(ctx, request)` method
+- [x] 0.6.4 Implement `Update(ctx, request)` method
+- [x] 0.6.5 Implement `ListByTenant(ctx, tenantID, status)` method
+- [x] 0.6.6 Implement `GetByID(ctx, id)` method
+- [x] 0.6.7 Implement GORM repository struct
+- [x] 0.6.8 Add error mapping to HTTP errors
+- [x] 0.6.9 Write unit tests (≥98% coverage)
+- [x] 0.6.10 Run `go test ./internal/apps/template/service/server/repository/` -cover
 
 **Evidence**: Tests pass, coverage ≥98%
 
@@ -191,8 +191,9 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 ### 0.8 Create Registration API Handlers
 
 **File**: `internal/apps/template/service/server/handlers/registration.go`
+**Note**: Handlers exist at `internal/apps/template/service/server/apis/registration_handlers.go` but have TODOs for validation/hashing (usable for basic testing)
 
-- [ ] 0.8.1 Create `RegistrationHandler` struct
+- [x] 0.8.1 Create `RegistrationHandler` struct
 - [ ] 0.8.2 Implement `HandleRegister()` handler:
   - POST `/browser/api/v1/auth/register` and `/service/api/v1/auth/register`
   - Request body: `{username, password, create_tenant, join_tenant_id, tenant_name}`
@@ -283,10 +284,10 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/apps/cipher/im/server/server.go`
 
-- [ ] 1.1.1 Locate `builder.WithDefaultTenant(...)` call
-- [ ] 1.1.2 Remove call entirely
-- [ ] 1.1.3 Verify SessionManager usage is multi-tenant (should be using WithTenant methods)
-- [ ] 1.1.4 Run `go build ./internal/apps/cipher/im/...` (verify succeeds)
+- [x] 1.1.1 Locate `builder.WithDefaultTenant(...)` call
+- [x] 1.1.2 Remove call entirely
+- [x] 1.1.3 Verify SessionManager usage is multi-tenant (should be using WithTenant methods)
+- [x] 1.1.4 Run `go build ./internal/apps/cipher/im/...` (verify succeeds)
 
 **Evidence**: Build succeeds, WithDefaultTenant call removed
 
@@ -387,7 +388,7 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/jose/repository/migrations/2001_elastic_jwks.up.sql`
 
-- [ ] 2.1.1 Create migration with schema:
+- [x] 2.1.1 Create migration with schema:
   ```sql
   CREATE TABLE IF NOT EXISTS elastic_jwks (
       id TEXT PRIMARY KEY NOT NULL,
@@ -407,9 +408,9 @@ Tasks are organized by **SEQUENTIAL PHASES**:
   CREATE INDEX IF NOT EXISTS idx_elastic_jwks_tenant_realm ON elastic_jwks(tenant_id, realm_id);
   CREATE INDEX IF NOT EXISTS idx_elastic_jwks_kid ON elastic_jwks(kid);
   ```
-- [ ] 2.1.2 Create down migration `2001_elastic_jwks.down.sql`
-- [ ] 2.1.3 Test migration applies to PostgreSQL
-- [ ] 2.1.4 Test migration applies to SQLite
+- [x] 2.1.2 Create down migration `2001_elastic_jwks.down.sql`
+- [x] 2.1.3 Test migration applies to PostgreSQL
+- [x] 2.1.4 Test migration applies to SQLite
 
 **Evidence**: Migration applies successfully
 
@@ -419,7 +420,7 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/jose/repository/migrations/2002_material_jwks.up.sql`
 
-- [ ] 2.2.1 Create migration with schema:
+- [x] 2.2.1 Create migration with schema:
   ```sql
   CREATE TABLE IF NOT EXISTS material_jwks (
       id TEXT PRIMARY KEY NOT NULL,
@@ -450,7 +451,7 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/jose/repository/migrations/2003_audit_config.up.sql`
 
-- [ ] 2.3.1 Create migration with schema:
+- [x] 2.3.1 Create migration with schema:
   ```sql
   CREATE TABLE IF NOT EXISTS tenant_audit_config (
       tenant_id TEXT NOT NULL,
@@ -472,9 +473,9 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/jose/repository/migrations/2004_audit_log.up.sql`
 
-- [ ] 2.4.1 Create migration with schema (see plan for full schema)
-- [ ] 2.4.2 Create down migration
-- [ ] 2.4.3 Test migration applies
+- [x] 2.4.1 Create migration with schema (see plan for full schema)
+- [x] 2.4.2 Create down migration
+- [x] 2.4.3 Test migration applies
 
 **Evidence**: Migration applies successfully
 
@@ -484,12 +485,12 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/jose/domain/models.go`
 
-- [ ] 2.5.1 Create `ElasticJWK` struct
-- [ ] 2.5.2 Create `MaterialJWK` struct
-- [ ] 2.5.3 Create `AuditLogEntry` struct
-- [ ] 2.5.4 Create `AuditConfig` struct
-- [ ] 2.5.5 Add GORM tags for multi-tenancy
-- [ ] 2.5.6 Write model validation tests
+- [x] 2.5.1 Create `ElasticJWK` struct
+- [x] 2.5.2 Create `MaterialJWK` struct
+- [x] 2.5.3 Create `AuditLogEntry` struct
+- [x] 2.5.4 Create `AuditConfig` struct
+- [x] 2.5.5 Add GORM tags for multi-tenancy
+- [x] 2.5.6 Write model validation tests
 
 **Evidence**: Models created with GORM tags
 
@@ -499,14 +500,14 @@ Tasks are organized by **SEQUENTIAL PHASES**:
 
 **File**: `internal/jose/repository/elastic_jwk_repository.go`
 
-- [ ] 2.6.1 Define `ElasticJWKRepository` interface
-- [ ] 2.6.2 Implement GORM repository
-- [ ] 2.6.3 Implement `Create(ctx, elasticJWK)` with tenant_id isolation
-- [ ] 2.6.4 Implement `Get(ctx, tenantID, kid)` with tenant_id enforcement
-- [ ] 2.6.5 Implement `List(ctx, tenantID, realmID)` with pagination
-- [ ] 2.6.6 Implement `IncrementMaterialCount(ctx, elasticKID)` with transaction
-- [ ] 2.6.7 Write unit tests (≥98% coverage)
-- [ ] 2.6.8 Run `go test ./internal/jose/repository/` -cover
+- [x] 2.6.1 Define `ElasticJWKRepository` interface
+- [x] 2.6.2 Implement GORM repository
+- [x] 2.6.3 Implement `Create(ctx, elasticJWK)` with tenant_id isolation
+- [x] 2.6.4 Implement `Get(ctx, tenantID, kid)` with tenant_id enforcement
+- [x] 2.6.5 Implement `List(ctx, tenantID, realmID)` with pagination
+- [x] 2.6.6 Implement `IncrementMaterialCount(ctx, elasticKID)` with transaction
+- [x] 2.6.7 Write unit tests (≥98% coverage)
+- [x] 2.6.8 Run `go test ./internal/jose/repository/` -cover
 
 **Evidence**: Tests pass, coverage ≥98%
 
