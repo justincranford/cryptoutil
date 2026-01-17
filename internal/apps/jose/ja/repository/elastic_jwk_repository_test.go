@@ -175,7 +175,7 @@ func TestElasticJWKRepository_List(t *testing.T) {
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(testDB)
 
-	// Create multiple test JWKs.
+	// Create multiple test JWKs - use unique tenant/realm for this test to avoid conflicts.
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
 	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	var createdJWKs []*cryptoutilJoseJADomain.ElasticJWK
@@ -186,7 +186,7 @@ func TestElasticJWKRepository_List(t *testing.T) {
 			ID:           *id,
 			TenantID:     *tenantID,
 			RealmID:      *realmID,
-			KID:          "test-list-" + id.String()[:8],
+			KID:          "test-list-" + id.String(), // Use full UUID to avoid collisions
 			KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
 			Algorithm:    "RS256",
 			Use:          "sig",
@@ -197,11 +197,12 @@ func TestElasticJWKRepository_List(t *testing.T) {
 		createdJWKs = append(createdJWKs, jwk)
 	}
 
-	defer func() {
+	// CRITICAL: Use t.Cleanup instead of defer to ensure cleanup happens AFTER parallel subtests complete.
+	t.Cleanup(func() {
 		for _, jwk := range createdJWKs {
 			_ = repo.Delete(ctx, jwk.ID)
 		}
-	}()
+	})
 
 	tests := []struct {
 		name      string
