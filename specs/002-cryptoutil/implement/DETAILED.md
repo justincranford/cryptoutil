@@ -126,19 +126,37 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
     - ✅ Docker Compose deployment - COMPLETE (commit cc150270, Dockerfile + compose.yml + .dockerignore)
     - ✅ Documentation (README, API, ENCRYPTION) - COMPLETE (commit b743bb3e, 1362 lines total)
 
-### Phase 4: Migrate jose-ja to Template ⏸️ PENDING
+### Phase 4: Migrate jose-ja to Template ⚠️ IN PROGRESS
 
 #### P4.1: JA Service Migration
 
-- ❌ **P4.1.1**: Migrate jose-ja admin server to template
-  - **Status**: BLOCKED BY P3.1.1
+- ⚠️ **P4.1.1**: Migrate jose-ja admin server to template
+  - **Status**: IN PROGRESS
   - **Effort**: M (5-7 days)
-  - **Dependencies**: P3.1.1 (cipher-im validates template)
+  - **Dependencies**: P3.1.1 (cipher-im validates template) - ✅ COMPLETE
   - **Coverage**: Target ≥95%
   - **Mutation**: Target ≥85%
-  - **Blockers**: P3.1.1 (cipher-im validates template)
-  - **Notes**: First production service migration, will drive JOSE pattern refinements
-  - **Commits**: (pending)
+  - **Blockers**: None
+  - **Notes**: First production service migration using ServerBuilder pattern
+  - **Commits**: 9f8fa445 (database schema, repository, ServerBuilder integration)
+  - **Progress**:
+    - ✅ Directory structure created (`internal/apps/jose/ja/`)
+    - ✅ Domain models (ElasticJWK, MaterialJWK, AuditConfig, AuditLog)
+    - ✅ SQL migrations (2001-2004: elastic_jwks, material_jwks, audit_config, audit_log)
+    - ✅ Repository layer (ElasticJWKRepository, MaterialJWKRepository, AuditConfigRepository, AuditLogRepository)
+    - ✅ Merged migrations FS pattern for template + domain migrations
+    - ✅ Config package with test helpers
+    - ✅ Server structure with ServerBuilder integration
+    - ✅ Public server with route registration
+    - ✅ Session handlers
+    - ✅ JWK handlers (CRUD operations)
+    - ✅ Magic constants (magic_jose.go)
+    - ✅ Build passes (`go build ./internal/apps/jose/ja/...`)
+    - ✅ Linting passes (`golangci-lint run ./internal/apps/jose/ja/...`)
+    - ❌ Tests not yet created (no test files)
+    - ❌ E2E tests pending
+    - ❌ Coverage validation pending
+    - ❌ Mutation testing pending
 
 ### Phase 5: Migrate pki-ca to Template ⏸️ PENDING
 
@@ -3594,3 +3612,123 @@ Task 0.10:
 3. **Session Method Naming**: Phase 0 renamed methods to `WithTenant` suffix to indicate multi-tenancy support
 
 **Phase Status**: P3.1.1 cipher-im → IN PROGRESS (tests passing, needs coverage/mutation validation)
+
+---
+
+### 2026-01-17 - Phase 4 JOSE-JA: Database Schema, Repository, and ServerBuilder Integration
+
+**Work Completed**:
+
+**Directory Structure Created**:
+- `internal/apps/jose/ja/domain/` - Domain models
+- `internal/apps/jose/ja/repository/` - Repository layer with migrations
+- `internal/apps/jose/ja/server/` - Server layer with config and APIs
+
+**Domain Models** (`internal/apps/jose/ja/domain/models.go`):
+- `ElasticJWK` - Elastic key with tenant/realm isolation, key type, max materials
+- `MaterialJWK` - Material key version with active flag, encrypted JWK storage, rotation
+- `AuditConfig` - Per-tenant, per-operation audit configuration with sampling rate
+- `AuditLog` - Audit trail for JOSE operations
+- `KeyType` constants (RSA, EC, OKP, oct) for key type enumeration
+
+**SQL Migrations** (2001-2004):
+- `2001_elastic_jwks.up/down.sql` - Elastic JWK table with indexes
+- `2002_material_jwks.up/down.sql` - Material JWK table with FK to elastic_jwks
+- `2003_audit_config.up/down.sql` - Audit configuration per tenant/operation
+- `2004_audit_log.up/down.sql` - Audit log entries with JSON request/response
+
+**Repository Layer**:
+- `ElasticJWKRepository` - CRUD with multi-tenancy (Get requires tenantID + realmID)
+- `MaterialJWKRepository` - Material key management with rotation support
+- `AuditConfigRepository` - Audit config CRUD with sampling logic
+- `AuditLogRepository` - Audit log persistence
+- `migrations.go` - Merged migrations FS pattern (template 1001-1004 + domain 2001+)
+
+**Server Layer**:
+- `server/config/config.go` - Configuration struct matching template pattern
+- `server/config/config_test_helper.go` - Test configuration utilities
+- `server/server.go` - JoseJAServer using ServerBuilder pattern
+- `server/public_server.go` - Route registration for JOSE APIs
+- `server/apis/sessions.go` - Session management handlers
+- `server/apis/jwk_handler.go` - JWK CRUD and cryptographic operation handlers
+
+**Magic Constants** (`internal/shared/magic/magic_jose.go`):
+- Port assignments (JoseJAServicePort=9443, JoseJAAdminPort=9090)
+- Elastic key limits (min=1, max=100, default=10)
+- Audit configuration (enabled, sampling rates)
+- E2E test port assignments
+
+**Linting Fixes Applied**:
+1. `godot` - Added periods to comments (auto-fixed)
+2. `wsl_v5` - Added whitespace above declarations (auto-fixed)
+3. `mnd` - Added `JoseJAAuditFallbackSamplingRate=0.01` magic constant
+4. `wrapcheck` - Wrapped Transaction error in RotateMaterial
+5. `nilerr` - Proper handling of record-not-found vs other errors in ShouldAudit
+
+**Key Implementation Patterns**:
+
+1. **Multi-Tenancy**: All repository methods require tenantID + realmID for proper isolation
+   ```go
+   Get(ctx, tenantID, realmID uuid.UUID, kid string) (*ElasticJWK, error)
+   List(ctx, tenantID, realmID uuid.UUID, offset, limit int) ([]*ElasticJWK, int64, error)
+   ```
+
+2. **Pagination Support**: List methods return (items, total, error) tuple
+   ```go
+   elasticJWKs, total, err := r.elasticJWKRepo.List(ctx, tenantUUID, realmUUID, offset, limit)
+   ```
+
+3. **ServerBuilder Integration**: Uses builder pattern for infrastructure setup
+   ```go
+   builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+   builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
+   builder.WithPublicRouteRegistration(registrationCallback)
+   resources, err := builder.Build()
+   ```
+
+4. **Merged Migrations**: Combines template (1001-1004) + domain (2001+) migrations
+   - Solves golang-migrate validation requirements
+   - Pattern from cipher-im reused
+
+**Validation**:
+- ✅ Build: `go build ./internal/apps/jose/ja/...` passes
+- ✅ Build: `go build ./...` (full project) passes
+- ✅ Linting: `golangci-lint run ./internal/apps/jose/ja/...` passes (0 errors)
+- ⚠️ Tests: No test files exist yet
+- ⚠️ Coverage: Not measured (no tests)
+- ⚠️ Mutation: Not measured (no tests)
+
+**Commits**:
+- 9f8fa445 ("feat(jose-ja): implement database schema, repository, and ServerBuilder integration")
+
+**Files Created** (20 files, 2478 lines):
+- domain/models.go
+- repository/audit_repository.go
+- repository/elastic_jwk_repository.go
+- repository/material_jwk_repository.go
+- repository/migrations.go
+- repository/migrations/2001_elastic_jwks.down.sql
+- repository/migrations/2001_elastic_jwks.up.sql
+- repository/migrations/2002_material_jwks.down.sql
+- repository/migrations/2002_material_jwks.up.sql
+- repository/migrations/2003_audit_config.down.sql
+- repository/migrations/2003_audit_config.up.sql
+- repository/migrations/2004_audit_log.down.sql
+- repository/migrations/2004_audit_log.up.sql
+- server/apis/jwk_handler.go
+- server/apis/sessions.go
+- server/config/config.go
+- server/config/config_test_helper.go
+- server/public_server.go
+- server/server.go
+- internal/shared/magic/magic_jose.go
+
+**Next Steps**:
+1. Create unit tests for repository layer
+2. Create unit tests for handler layer
+3. Create integration tests with SQLite
+4. Create E2E tests with PostgreSQL
+5. Achieve ≥95% coverage target
+6. Run mutation testing (≥85% target)
+
+**Phase Status**: P4.1.1 jose-ja → IN PROGRESS (infrastructure complete, tests pending)
