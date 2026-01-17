@@ -12,6 +12,7 @@ import (
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
@@ -27,10 +28,10 @@ type PublicServer struct {
 
 	userRepo                *cryptoutilCipherRepository.UserRepository
 	messageRepo             *cryptoutilCipherRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
-	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
-	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService    // Session management service
-	realmService            cryptoutilTemplateService.RealmService                    // Realm management service
+	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository  // Per-recipient decryption keys
+	jwkGenService           *cryptoutilJose.JWKGenService                              // JWK generation for message encryption
+	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService     // Session management service
+	realmService            cryptoutilTemplateService.RealmService                     // Realm management service
 	registrationService     *cryptoutilTemplateBusinessLogic.TenantRegistrationService // Tenant registration service
 
 	// Cipher-IM demo state (auto-created tenant on first registration).
@@ -102,6 +103,7 @@ func NewPublicServer(
 		// First user registration - create demo tenant.
 		ctx := context.Background()
 		dummyUserID := googleUuid.New() // Temporary user ID for tenant creation.
+
 		tenant, err := s.registrationService.RegisterUserWithTenant(
 			ctx,
 			dummyUserID,
@@ -111,6 +113,7 @@ func NewPublicServer(
 		if err != nil {
 			// Log error but continue with zero UUID (will fail later with better error).
 			fmt.Printf("Warning: Failed to create demo tenant: %v\n", err)
+
 			return &cryptoutilTemplateRepository.User{
 				TenantID: googleUuid.UUID{},
 			}
@@ -166,6 +169,9 @@ func (s *PublicServer) registerRoutes() error {
 	app.Put("/browser/api/v1/messages/tx", browserSessionMiddleware, s.messageHandler.HandleSendMessage())
 	app.Get("/browser/api/v1/messages/rx", browserSessionMiddleware, s.messageHandler.HandleReceiveMessages())
 	app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
+
+	// Register tenant registration routes (from template).
+	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(app, s.registrationService)
 
 	return nil
 }

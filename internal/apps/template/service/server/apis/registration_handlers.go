@@ -109,6 +109,7 @@ func (h *RegistrationHandlers) HandleListJoinRequests(c *fiber.Ctx) error {
 	}
 
 	summaries := make([]JoinRequestSummary, len(requests))
+
 	for i, req := range requests {
 		summary := JoinRequestSummary{
 			ID:          req.ID.String(),
