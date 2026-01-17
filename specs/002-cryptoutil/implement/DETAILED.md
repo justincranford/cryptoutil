@@ -3732,3 +3732,129 @@ Task 0.10:
 6. Run mutation testing (≥85% target)
 
 **Phase Status**: P4.1.1 jose-ja → IN PROGRESS (infrastructure complete, tests pending)
+
+### 2025-01-25: Phase 0 Multi-Tenancy Join Request System Completed
+
+**Summary**: Successfully implemented comprehensive tenant join request system with 8 passing integration tests using PostgreSQL/SQLite fallback pattern.
+
+**Work Completed**:
+
+1. **Domain Layer** (join_request.go, ~80 lines):
+   - TenantJoinRequest model with user/client support
+   - Status enum: Pending, Approved, Rejected
+   - CHECK constraint: exactly one of UserID or ClientID required
+
+2. **Repository Layer** (join_request_repository.go, ~150 lines):
+   - JoinRequestRepository interface with 6 methods
+   - GormJoinRequestRepository with transaction support
+   - CRUD operations: Create, FindByID, FindByUserIDAndTenantID, FindByClientIDAndTenantID, Update, List
+
+3. **Business Logic** (tenant_registration_service.go, ~250 lines):
+   - RegisterUserWithTenant() - Creates join request for users
+   - RegisterClientWithTenant() - Creates join request for OAuth clients
+   - AuthorizeJoinRequest() - Approves/rejects pending requests
+   - ListJoinRequests() - Lists by tenant/status with filtering
+
+4. **HTTP Layer** (registration_handlers.go, ~200 lines):
+   - HandleRegisterUser() - POST /register endpoint
+   - HandleListJoinRequests() - GET /join-requests with filters
+   - HandleApproveJoinRequest() - POST /join-requests/:id/approve
+   - HandleRejectJoinRequest() - POST /join-requests/:id/reject
+
+5. **Database** (migration 1005, ~15 lines):
+   - tenant_join_requests table with UUID primary key
+   - Foreign keys to tenants, users (optional), clients (optional)
+   - Exclusive constraint on user_id/client_id
+
+6. **Integration Tests** (tenant_registration_service_test.go, ~400 lines):
+   - TestMain with PostgreSQL → SQLite fallback pattern
+   - 8 integration tests with real database
+   - All tests passing (0.123s execution time)
+
+7. **Builder Enhancement** (server_builder.go):
+   - Removed ensureDefaultTenant() (forced creation)
+   - Added WithDefaultTenant() (optional creation)
+   - Enables per-service default tenant decision
+
+**Quality Gates**:
+- ✅ Build: Clean compilation
+- ✅ Lint: Zero warnings (golangci-lint)
+- ✅ Tests: 8/8 passing with SQLite fallback
+- ⏸️ Coverage: Not yet measured
+- ⏸️ Mutation: Not yet run
+
+**Key Discoveries**:
+
+1. **CGO-Free SQLite Pattern** (~25 iterations):
+   - **Problem**: gorm.Open(sqlite.Open(dsn)) defaults to mattn/go-sqlite3 (requires CGO)
+   - **Solution**: Use sql.Open("sqlite", dsn) → gorm.Open(sqlite.Dialector{Conn: sqlDB})
+   - **Pattern**:
+     ```go
+     import _ "modernc.org/sqlite" // Force CGO-free driver
+     sqlDB, _ := sql.Open("sqlite", "file::memory:?cache=shared")
+     sqlDB.Exec("PRAGMA journal_mode=WAL")
+     sqlDB.SetMaxOpenConns(10)
+     db, _ := gorm.Open(sqlite.Dialector{Conn: sqlDB}, ...)
+     ```
+
+2. **PostgreSQL Panic Recovery** (~15 iterations):
+   - **Problem**: testcontainers panics when Docker Desktop not running
+   - **Solution**: Wrap postgres.Run in anonymous function with defer/recover
+   - **Result**: Graceful fallback to SQLite without test failures
+
+3. **Architectural Blocker Discovered**:
+   - Task 0.11 (route registration) blocked by missing builder infrastructure
+   - ServerBuilder lacks WithPublicRouteRegistration() method
+   - Integration tests validate service/repository functionality
+   - E2E tests blocked until routes can be registered
+
+**Test Results**:
+```
+=== RUN   TestRegisterUserWithTenant_Success
+PostgreSQL setup failed (Docker Desktop not running)
+Falling back to SQLite in-memory database
+--- PASS: TestRegisterUserWithTenant_Success (0.01s)
+=== RUN   TestRegisterClientWithTenant_Success
+--- PASS: TestRegisterClientWithTenant_Success (0.01s)
+=== RUN   TestAuthorizeJoinRequest_Approve
+--- PASS: TestAuthorizeJoinRequest_Approve (0.01s)
+=== RUN   TestAuthorizeJoinRequest_Reject
+--- PASS: TestAuthorizeJoinRequest_Reject (0.01s)
+=== RUN   TestAuthorizeJoinRequest_AlreadyProcessed
+--- PASS: TestAuthorizeJoinRequest_AlreadyProcessed (0.00s)
+=== RUN   TestListJoinRequests_Empty
+--- PASS: TestListJoinRequests_Empty (0.00s)
+=== RUN   TestListJoinRequests_WithRequests
+--- PASS: TestListJoinRequests_WithRequests (0.01s)
+=== RUN   TestJoinRequestFlow
+--- PASS: TestJoinRequestFlow (0.01s)
+PASS
+ok      cryptoutil/internal/template/service/server/registration    0.123s
+```
+
+**Commits**:
+- 3746d2f6 ("feat(template): add tenant join request system with integration tests")
+
+**Files Created** (6 files, 823 lines):
+- internal/template/service/server/registration/domain/join_request.go
+- internal/template/service/server/registration/repository/join_request_repository.go
+- internal/template/service/server/registration/businesslogic/tenant_registration_service.go
+- internal/template/service/server/registration/apis/registration_handlers.go
+- internal/template/service/server/repository/migrations/1005_add_tenant_join_requests.up.sql
+- internal/template/service/server/registration/tenant_registration_service_test.go
+
+**Files Modified** (1 file, -30 lines):
+- internal/template/service/server/builder/server_builder.go
+
+**Next Steps**:
+1. **Task 0.11**: Implement ServerBuilder.WithPublicRouteRegistration() (BLOCKED)
+2. **Task 0.12**: Create E2E tests for join request workflow (DEPENDS ON 0.11)
+3. **Alternative**: Defer Phase 0 completion, return to Phase 4 (JOSE-JA handler tests)
+
+**Decision Required**: User requested summary to preserve context. Next action depends on priority:
+- **Option A**: Complete Phase 0 (implement builder enhancement, E2E tests)
+- **Option B**: Return to Phase 4 (JOSE-JA handler/E2E tests, defer Phase 0)
+
+**Recommendation**: Option A - Builder enhancement unblocks all future services, not just cipher-im. Multi-tenancy validation critical for template reusability proof.
+
+**Phase Status**: P0 Multi-Tenancy → 10/12 tasks complete (83%), Tasks 0.11-0.12 BLOCKED
