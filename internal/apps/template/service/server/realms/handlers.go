@@ -5,7 +5,6 @@ package realms
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -43,16 +42,12 @@ import (
 // - 500 Internal Server Error: Database errors, password hashing failure.
 func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		log.Printf("[DEBUG] HandleRegisterUser: Request received")
-
 		var req struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		}
 
 		if err := c.BodyParser(&req); err != nil {
-			log.Printf("[DEBUG] HandleRegisterUser: BodyParser error: %v", err)
-
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid request body",
 			})
@@ -80,11 +75,8 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 		}
 
 		// Call service layer (business logic).
-		log.Printf("[DEBUG] HandleRegisterUser: Calling RegisterUser for username=%s", req.Username)
-
 		user, err := s.RegisterUser(c.Context(), req.Username, req.Password)
 		if err != nil {
-			log.Printf("[ERROR] HandleRegisterUser: RegisterUser failed: %v", err)
 			// Check for duplicate username (conflict).
 			// Note: Service layer returns generic error for security.
 			// Repository constraint violations bubble up here.
@@ -239,9 +231,10 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		// Issue session token via SessionManager using type assertion.
 		// SessionManager interface is defined in the specific service implementation.
+		// The multi-tenant version requires tenantID and realmID parameters.
 		type sessionIssuer interface {
-			IssueBrowserSession(ctx context.Context, userID string, realm string) (string, error)
-			IssueServiceSession(ctx context.Context, userID string, realm string) (string, error)
+			IssueBrowserSessionWithTenant(ctx context.Context, userID string, tenantID googleUuid.UUID, realmID googleUuid.UUID) (string, error)
+			IssueServiceSessionWithTenant(ctx context.Context, clientID string, tenantID googleUuid.UUID, realmID googleUuid.UUID) (string, error)
 		}
 
 		manager, ok := sessionManager.(sessionIssuer)
@@ -256,15 +249,17 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 			issueErr error
 		)
 
+		// Use default tenant and realm for single-tenant deployments.
+		tenantID := cryptoutilMagic.CipherIMDefaultTenantID
+		realmID := cryptoutilMagic.CipherIMDefaultRealmID
+
 		if isBrowser {
-			token, issueErr = manager.IssueBrowserSession(c.Context(), user.GetID().String(), "default")
+			token, issueErr = manager.IssueBrowserSessionWithTenant(c.Context(), user.GetID().String(), tenantID, realmID)
 		} else {
-			token, issueErr = manager.IssueServiceSession(c.Context(), user.GetID().String(), "default")
+			token, issueErr = manager.IssueServiceSessionWithTenant(c.Context(), user.GetID().String(), tenantID, realmID)
 		}
 
 		if issueErr != nil {
-			log.Printf("ERROR: Failed to generate session token: %v", issueErr)
-
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to generate session token",
 			})
