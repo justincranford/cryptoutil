@@ -195,3 +195,29 @@ func TestSettingRegistrations(t *testing.T) {
 	require.NotEmpty(t, auditEnabledSetting.Usage)
 	require.NotEmpty(t, auditSamplingRateSetting.Usage)
 }
+
+// TestNewTestConfig verifies the test config helper function.
+func TestNewTestConfig(t *testing.T) {
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8080, true)
+
+	require.NotNil(t, cfg)
+	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.Equal(t, uint16(8080), cfg.BindPublicPort)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, cfg.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cfg.DefaultMaxMaterials)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, cfg.AuditEnabled)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate, cfg.AuditSamplingRate)
+}
+
+// TestDefaultTestConfig verifies the default test config helper function.
+func TestDefaultTestConfig(t *testing.T) {
+	cfg := DefaultTestConfig()
+
+	require.NotNil(t, cfg)
+	require.NotNil(t, cfg.ServiceTemplateServerSettings)
+	require.Equal(t, uint16(0), cfg.BindPublicPort) // Dynamic port allocation.
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceJoseJA, cfg.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, cfg.DefaultMaxMaterials)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, cfg.AuditEnabled)
+	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate, cfg.AuditSamplingRate)
+}
