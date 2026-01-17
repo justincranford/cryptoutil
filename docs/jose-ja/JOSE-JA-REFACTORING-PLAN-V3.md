@@ -8,9 +8,9 @@
 
 **Progress Tracking**:
 - Use JOSE-JA-REFACTORING-TASKS-V3.md for task checklists ([ ] / [x])
-- Phase 0 Status: ❌ NOT STARTED
-- Phase 1 Status: ❌ BLOCKED BY PHASE 0
-- Phase 2 Status: ⚠️ Infrastructure complete (commit 9f8fa445), tests pending, blocked by Phase 0/1
+- Phase 0 Status: ⚠️ PARTIAL (0.1-0.5 complete, 0.6-0.8 pending - tenant registration service/handlers NOT implemented)
+- Phase 1 Status: ⚠️ PARTIAL (1.1 complete - ensureDefaultTenant removed, 1.2-1.3 blocked by Phase 0.6-0.8)
+- Phase 2 Status: ⚠️ Infrastructure complete (commit 9f8fa445), tests partially complete (elastic_jwk_repository_test passing), blocked by Phase 0/1 completion
 
 ## Core Principles - MANDATORY
 
