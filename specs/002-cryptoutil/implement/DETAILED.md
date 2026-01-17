@@ -3931,11 +3931,11 @@ ok      cryptoutil/internal/template/service/server/registration    0.123s
      - `MockMaterialJWKRepository`: 9 methods (Create, GetByMaterialKID, GetByID, GetActiveMaterial, ListByElasticJWK, RotateMaterial, RetireMaterial, Delete, CountMaterials)
      - `MockAuditConfigRepository`: 5 methods (Get, GetAllForTenant, Upsert, Delete, ShouldAudit)
      - `MockAuditLogRepository`: 6 methods (Create, List, ListByElasticJWK, ListByOperation, GetByRequestID, DeleteOlderThan)
-   
+
    - **Test Helpers**:
      - `setupTestHandler()`: Returns handler instance + 4 mock repositories
      - `setupFiberApp()`: Creates test Fiber app with route registration
-   
+
    - **20 Comprehensive Test Functions** (all passing):
      1. `TestNewJWKHandler`: Constructor validation
      2. `TestHandleCreateElasticJWK_Success`: Happy path with mocked Create

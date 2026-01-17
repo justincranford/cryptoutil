@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -923,3 +924,884 @@ func TestHandleDecrypt_NotImplemented(t *testing.T) {
 	require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
 }
+
+// ==================== Additional Error Path Tests ====================
+
+func TestHandleDeleteElasticJWK_MissingKID(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Route without :kid param path - simulates empty kid.
+	app.Delete("/elastic-jwks/", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleDeleteElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodDelete, "/elastic-jwks/", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleDeleteElasticJWK_RepositoryDeleteError(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, _, _, _ := setupTestHandler()
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	kid := "test-delete-error"
+
+	elasticJWK := &joseJADomain.ElasticJWK{
+		ID:       googleUuid.New(),
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KID:      kid,
+	}
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, kid).Return(elasticJWK, nil)
+	elasticRepo.On("Delete", mock.Anything, elasticJWK.ID).Return(errors.New("delete failed"))
+
+	app.Delete("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleDeleteElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/elastic-jwks/%s", kid), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+}
+
+func TestHandleCreateMaterialJWK_CreateRepositoryError(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, materialRepo, _, _ := setupTestHandler()
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	kid := "test-create-error"
+
+	elasticJWK := &joseJADomain.ElasticJWK{
+		ID:                   googleUuid.New(),
+		TenantID:             tenantID,
+		RealmID:              realmID,
+		KID:                  kid,
+		MaxMaterials:         5,
+		CurrentMaterialCount: 2,
+	}
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, kid).Return(elasticJWK, nil)
+	materialRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.MaterialJWK")).Return(errors.New("create failed"))
+
+	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleCreateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+	materialRepo.AssertExpectations(t)
+}
+
+func TestHandleCreateMaterialJWK_IncrementCountError(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, materialRepo, _, _ := setupTestHandler()
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	kid := "test-increment-error"
+
+	elasticJWK := &joseJADomain.ElasticJWK{
+		ID:                   googleUuid.New(),
+		TenantID:             tenantID,
+		RealmID:              realmID,
+		KID:                  kid,
+		MaxMaterials:         5,
+		CurrentMaterialCount: 2,
+	}
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, kid).Return(elasticJWK, nil)
+	materialRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.MaterialJWK")).Return(nil)
+	elasticRepo.On("IncrementMaterialCount", mock.Anything, elasticJWK.ID).Return(errors.New("increment failed"))
+
+	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleCreateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+	materialRepo.AssertExpectations(t)
+}
+
+func TestHandleListMaterialJWKs_RepositoryError(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, materialRepo, _, _ := setupTestHandler()
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	kid := "test-list-error"
+
+	elasticJWK := &joseJADomain.ElasticJWK{
+		ID:       googleUuid.New(),
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KID:      kid,
+	}
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, kid).Return(elasticJWK, nil)
+	materialRepo.On("ListByElasticJWK", mock.Anything, elasticJWK.ID, 0, defaultLimit).Return(nil, int64(0), errors.New("list failed"))
+
+	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleListMaterialJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+	materialRepo.AssertExpectations(t)
+}
+
+func TestHandleGetActiveMaterialJWK_NoActiveMaterial(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, materialRepo, _, _ := setupTestHandler()
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	kid := "test-no-active"
+
+	elasticJWK := &joseJADomain.ElasticJWK{
+		ID:       googleUuid.New(),
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KID:      kid,
+	}
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, kid).Return(elasticJWK, nil)
+	materialRepo.On("GetActiveMaterial", mock.Anything, elasticJWK.ID).Return(nil, errors.New("no active material"))
+
+	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleGetActiveMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/elastic-jwks/%s/materials/active", kid), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+	materialRepo.AssertExpectations(t)
+}
+
+func TestHandleRotateMaterialJWK_RotateRepositoryError(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, materialRepo, _, _ := setupTestHandler()
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	kid := "test-rotate-error"
+
+	elasticJWK := &joseJADomain.ElasticJWK{
+		ID:                   googleUuid.New(),
+		TenantID:             tenantID,
+		RealmID:              realmID,
+		KID:                  kid,
+		MaxMaterials:         5,
+		CurrentMaterialCount: 2,
+	}
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, kid).Return(elasticJWK, nil)
+	materialRepo.On("RotateMaterial", mock.Anything, elasticJWK.ID, mock.AnythingOfType("*domain.MaterialJWK")).Return(errors.New("rotate failed"))
+
+	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleRotateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials/rotate", kid), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+	materialRepo.AssertExpectations(t)
+}
+
+func TestMapAlgorithmToKeyType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		algorithm string
+		expected  string
+	}{
+		{"RSA 2048", "RSA/2048", joseJADomain.KeyTypeRSA},
+		{"RSA 3072", "RSA/3072", joseJADomain.KeyTypeRSA},
+		{"RSA 4096", "RSA/4096", joseJADomain.KeyTypeRSA},
+		{"EC P256", "EC/P256", joseJADomain.KeyTypeEC},
+		{"EC P384", "EC/P384", joseJADomain.KeyTypeEC},
+		{"EC P521", "EC/P521", joseJADomain.KeyTypeEC},
+		{"OKP Ed25519", "OKP/Ed25519", joseJADomain.KeyTypeOKP},
+		{"OKP Ed448", "OKP/Ed448", joseJADomain.KeyTypeOKP},
+		{"oct 256", "oct/256", joseJADomain.KeyTypeOct},
+		{"oct 384", "oct/384", joseJADomain.KeyTypeOct},
+		{"oct 512", "oct/512", joseJADomain.KeyTypeOct},
+		{"unknown", "unknown", ""},
+		{"empty", "", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := mapAlgorithmToKeyType(tt.algorithm)
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+// Tests for missing context error paths.
+
+func TestHandleGetElasticJWK_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing both tenant and realm.
+	app.Get("/elastic-jwks/:kid", handler.HandleGetElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleGetElasticJWK_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Set invalid tenant_id format (string instead of UUID).
+	app.Get("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleGetElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleGetElasticJWK_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Set invalid realm_id format (string instead of UUID).
+	app.Get("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleGetElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleListElasticJWKs_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing context.
+	app.Get("/elastic-jwks", handler.HandleListElasticJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleListElasticJWKs_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Get("/elastic-jwks", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleListElasticJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleListElasticJWKs_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Get("/elastic-jwks", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleListElasticJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleListElasticJWKs_RepositoryError(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	elasticRepo.On("List", mock.Anything, tenantID, realmID, 0, 100).Return(nil, int64(0), errors.New("list failed"))
+
+	app.Get("/elastic-jwks", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleListElasticJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+}
+
+func TestHandleDeleteElasticJWK_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing context (after KID validation passes).
+	app.Delete("/elastic-jwks/:kid", handler.HandleDeleteElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodDelete, "/elastic-jwks/test-kid", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleDeleteElasticJWK_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Delete("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleDeleteElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodDelete, "/elastic-jwks/test-kid", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleDeleteElasticJWK_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Delete("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleDeleteElasticJWK())
+
+	req := httptest.NewRequest(fiber.MethodDelete, "/elastic-jwks/test-kid", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleCreateElasticJWK_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing context.
+	app.Post("/elastic-jwks", handler.HandleCreateElasticJWK())
+
+	reqBody := `{"kid":"test","algorithm":"RSA/2048","use":"sig","max_materials":5}`
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks", strings.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleCreateElasticJWK_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Post("/elastic-jwks", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleCreateElasticJWK())
+
+	reqBody := `{"kid":"test","algorithm":"RSA/2048","use":"sig","max_materials":5}`
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks", strings.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleCreateElasticJWK_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Post("/elastic-jwks", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleCreateElasticJWK())
+
+	reqBody := `{"kid":"test","algorithm":"RSA/2048","use":"sig","max_materials":5}`
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks", strings.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleCreateMaterialJWK_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing context.
+	app.Post("/elastic-jwks/:kid/materials", handler.HandleCreateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleCreateMaterialJWK_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleCreateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleCreateMaterialJWK_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleCreateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleCreateMaterialJWK_ElasticJWKNotFound(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, "nonexistent").Return(nil, errors.New("not found"))
+
+	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleCreateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/nonexistent/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+}
+
+func TestHandleListMaterialJWKs_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing context.
+	app.Get("/elastic-jwks/:kid/materials", handler.HandleListMaterialJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleListMaterialJWKs_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleListMaterialJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleListMaterialJWKs_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleListMaterialJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleListMaterialJWKs_ElasticJWKNotFound(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, "nonexistent").Return(nil, errors.New("not found"))
+
+	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleListMaterialJWKs())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/nonexistent/materials", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+}
+
+func TestHandleGetActiveMaterialJWK_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing context.
+	app.Get("/elastic-jwks/:kid/materials/active", handler.HandleGetActiveMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials/active", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleGetActiveMaterialJWK_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleGetActiveMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials/active", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleGetActiveMaterialJWK_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleGetActiveMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials/active", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleGetActiveMaterialJWK_ElasticJWKNotFound(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, "nonexistent").Return(nil, errors.New("not found"))
+
+	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleGetActiveMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/nonexistent/materials/active", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+}
+
+func TestHandleRotateMaterialJWK_MissingContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	// Test missing context.
+	app.Post("/elastic-jwks/:kid/materials/rotate", handler.HandleRotateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials/rotate", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleRotateMaterialJWK_InvalidTenantFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "not-a-uuid")
+		c.Locals("realm_id", googleUuid.New())
+		return c.Next()
+	}, handler.HandleRotateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials/rotate", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleRotateMaterialJWK_InvalidRealmFormat(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("realm_id", "not-a-uuid")
+		return c.Next()
+	}, handler.HandleRotateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials/rotate", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+}
+
+func TestHandleRotateMaterialJWK_ElasticJWKNotFound(t *testing.T) {
+	t.Parallel()
+
+	handler, elasticRepo, _, _, _ := setupTestHandler()
+
+	app := setupFiberApp()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	elasticRepo.On("Get", mock.Anything, tenantID, realmID, "nonexistent").Return(nil, errors.New("not found"))
+
+	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+		c.Locals("realm_id", realmID)
+		return c.Next()
+	}, handler.HandleRotateMaterialJWK())
+
+	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/nonexistent/materials/rotate", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
+	elasticRepo.AssertExpectations(t)
+}
+
