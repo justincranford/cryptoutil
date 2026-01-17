@@ -333,3 +333,167 @@ func TestElasticJWKRepository_Delete(t *testing.T) {
 	_, err = repo.Get(ctx, testJWK.TenantID, testJWK.RealmID, testJWK.KID)
 	require.Error(t, err)
 }
+
+// TestElasticJWKRepository_GetByID tests retrieving an Elastic JWK by its UUID.
+func TestElasticJWKRepository_GetByID(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	// Create a test JWK first.
+	id, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+		ID:           *id,
+		TenantID:     *tenantID,
+		RealmID:      *realmID,
+		KID:          "test-getbyid-" + id.String()[:8],
+		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		Algorithm:    "RS256",
+		Use:          "sig",
+		MaxMaterials: 10,
+		CreatedAt:    time.Now(),
+	}
+	require.NoError(t, repo.Create(ctx, testJWK))
+
+	defer func() {
+		_ = repo.Delete(ctx, testJWK.ID)
+	}()
+
+	// Test GetByID with existing ID.
+	retrieved, err := repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, testJWK.ID, retrieved.ID)
+	require.Equal(t, testJWK.KID, retrieved.KID)
+	require.Equal(t, testJWK.TenantID, retrieved.TenantID)
+	require.Equal(t, testJWK.RealmID, retrieved.RealmID)
+
+	// Test GetByID with non-existent ID.
+	nonExistentID := googleUuid.New()
+	_, err = repo.GetByID(ctx, nonExistentID)
+	require.Error(t, err)
+}
+
+// TestElasticJWKRepository_IncrementMaterialCount tests atomic material count increment.
+func TestElasticJWKRepository_IncrementMaterialCount(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	// Create a test JWK with initial count of 0.
+	id, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+		ID:                   *id,
+		TenantID:             *tenantID,
+		RealmID:              *realmID,
+		KID:                  "test-increment-" + id.String()[:8],
+		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
+		Algorithm:            "RS256",
+		Use:                  "sig",
+		MaxMaterials:         10,
+		CurrentMaterialCount: 0,
+		CreatedAt:            time.Now(),
+	}
+	require.NoError(t, repo.Create(ctx, testJWK))
+
+	defer func() {
+		_ = repo.Delete(ctx, testJWK.ID)
+	}()
+
+	// Increment count.
+	err := repo.IncrementMaterialCount(ctx, testJWK.ID)
+	require.NoError(t, err)
+
+	// Verify increment.
+	retrieved, err := repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, 1, retrieved.CurrentMaterialCount)
+
+	// Increment again.
+	err = repo.IncrementMaterialCount(ctx, testJWK.ID)
+	require.NoError(t, err)
+
+	retrieved, err = repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, 2, retrieved.CurrentMaterialCount)
+
+	// Increment multiple times to verify atomicity.
+	for i := 0; i < 3; i++ {
+		err = repo.IncrementMaterialCount(ctx, testJWK.ID)
+		require.NoError(t, err)
+	}
+
+	retrieved, err = repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, 5, retrieved.CurrentMaterialCount)
+}
+
+// TestElasticJWKRepository_DecrementMaterialCount tests atomic material count decrement.
+func TestElasticJWKRepository_DecrementMaterialCount(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	// Create a test JWK with initial count of 5.
+	id, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+		ID:                   *id,
+		TenantID:             *tenantID,
+		RealmID:              *realmID,
+		KID:                  "test-decrement-" + id.String()[:8],
+		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
+		Algorithm:            "RS256",
+		Use:                  "sig",
+		MaxMaterials:         10,
+		CurrentMaterialCount: 5,
+		CreatedAt:            time.Now(),
+	}
+	require.NoError(t, repo.Create(ctx, testJWK))
+
+	defer func() {
+		_ = repo.Delete(ctx, testJWK.ID)
+	}()
+
+	// Decrement count.
+	err := repo.DecrementMaterialCount(ctx, testJWK.ID)
+	require.NoError(t, err)
+
+	// Verify decrement.
+	retrieved, err := repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, 4, retrieved.CurrentMaterialCount)
+
+	// Decrement multiple times.
+	for i := 0; i < 3; i++ {
+		err = repo.DecrementMaterialCount(ctx, testJWK.ID)
+		require.NoError(t, err)
+	}
+
+	retrieved, err = repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, 1, retrieved.CurrentMaterialCount)
+
+	// Decrement to 0.
+	err = repo.DecrementMaterialCount(ctx, testJWK.ID)
+	require.NoError(t, err)
+
+	retrieved, err = repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, 0, retrieved.CurrentMaterialCount)
+
+	// Attempt to decrement when already at 0 (should not go negative).
+	err = repo.DecrementMaterialCount(ctx, testJWK.ID)
+	require.NoError(t, err)
+
+	retrieved, err = repo.GetByID(ctx, testJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, 0, retrieved.CurrentMaterialCount)
+}
