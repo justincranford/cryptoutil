@@ -3558,3 +3558,39 @@ Task 0.10:
 - 9143a3bb ("test(template): implement TestMain with PostgreSQL/SQLite for integration tests")
 
 **Phase Status**: Phase 0 Multi-Tenancy → PARTIALLY COMPLETE (Routes blocked on future builder work)
+---
+
+### 2026-01-16 19:30 - Fix: Multi-Tenant Session Interface in Cipher-IM
+
+**Work Completed**:
+
+**Root Cause Analysis**:
+- cipher-im integration tests were failing with HTTP 500 errors on login
+- Added debug logging to trace the issue through registration → authentication → session issuance
+- Found: SessionManagerService type assertion to sessionIssuer interface was failing
+- Root cause: Phase 0 multi-tenancy changed SessionManagerService method signatures:
+  - OLD: `IssueBrowserSession(ctx, userID, realm string)`
+  - NEW: `IssueBrowserSessionWithTenant(ctx, userID string, tenantID, realmID googleUuid.UUID)`
+- handlers.go still used old interface definition → type assertion failed at runtime
+
+**Fix Applied**:
+- Updated `internal/apps/template/service/server/realms/handlers.go`:
+  - Changed sessionIssuer interface to use multi-tenant method signatures
+  - Updated calls to pass `tenantID` and `realmID` using magic constants
+- Removed all debug logging after fix verified
+
+**Validation**:
+- All 13 cipher-im integration tests: PASS (3.299s)
+- All template service tests: PASS (0.058s)
+- golangci-lint: CLEAN (zero errors)
+- Coverage: repository 32.0%, server 64.6% (integration tests provide E2E coverage)
+
+**Commits**:
+- 762823ee ("fix(cipher-im): update sessionIssuer interface for multi-tenant methods")
+
+**Lessons Learned**:
+1. **Interface Drift Detection**: When modifying shared interfaces (Phase 0 SessionManagerService), ALL consumers must be updated
+2. **Type Assertions Fail Silently**: Go's type assertions at runtime don't give clear error messages - need logging to trace
+3. **Session Method Naming**: Phase 0 renamed methods to `WithTenant` suffix to indicate multi-tenancy support
+
+**Phase Status**: P3.1.1 cipher-im → IN PROGRESS (tests passing, needs coverage/mutation validation)
