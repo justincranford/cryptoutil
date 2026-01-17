@@ -75,7 +75,7 @@ type AuditLogEntry struct {
 	TenantID     googleUuid.UUID  `gorm:"type:text;not null;index:idx_audit_log_tenant"`
 	RealmID      googleUuid.UUID  `gorm:"type:text;not null;index:idx_audit_log_tenant_realm"`
 	ElasticJWKID *googleUuid.UUID `gorm:"type:text;index:idx_audit_log_elastic_jwk"` // NULL for non-key operations.
-	MaterialKID  *string          `gorm:"type:text"`                                  // NULL for non-material operations.
+	MaterialKID  *string          `gorm:"type:text;column:material_kid"`              // NULL for non-material operations.
 	Operation    string           `gorm:"type:text;not null;index:idx_audit_log_operation"`
 	Success      bool             `gorm:"not null;index:idx_audit_log_success"`
 	ErrorMessage *string          `gorm:"type:text"`
