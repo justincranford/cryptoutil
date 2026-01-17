@@ -4,8 +4,6 @@ package magic
 
 import (
 	"time"
-
-	googleUuid "github.com/google/uuid"
 )
 
 // Cipher-IM Service Magic Constants.
@@ -43,20 +41,6 @@ const (
 
 	// CipherMinPasswordLength is the minimum acceptable password length.
 	CipherMinPasswordLength = 8
-)
-
-// Default tenant for single-tenant cipher-im deployment.
-var (
-	// CipherIMDefaultTenantID is the default tenant UUID for cipher-im.
-	// Uses a well-known UUID for single-tenant deployments.
-	CipherIMDefaultTenantID = googleUuid.MustParse("00000000-0000-0000-0000-000000000001")
-
-	// CipherIMDefaultTenantName is the default tenant name for cipher-im.
-	CipherIMDefaultTenantName = "default"
-
-	// CipherIMDefaultRealmID is the default realm UUID for cipher-im.
-	// Uses the same well-known UUID as the tenant for single-tenant deployments.
-	CipherIMDefaultRealmID = googleUuid.MustParse("00000000-0000-0000-0000-000000000001")
 )
 
 // JWT token configuration.

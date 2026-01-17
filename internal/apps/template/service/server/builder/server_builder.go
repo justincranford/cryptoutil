@@ -29,13 +29,14 @@ import (
 // ServiceResources contains all initialized service resources available to domain-specific code.
 type ServiceResources struct {
 	// Infrastructure.
-	DB               *gorm.DB
-	TelemetryService *cryptoutilTelemetry.TelemetryService
-	JWKGenService    *cryptoutilJose.JWKGenService
-	BarrierService   *cryptoutilBarrier.BarrierService
-	SessionManager   *cryptoutilTemplateBusinessLogic.SessionManagerService
-	RealmService     cryptoutilTemplateService.RealmService
-	RealmRepository  cryptoutilTemplateRepository.TenantRealmRepository
+	DB                  *gorm.DB
+	TelemetryService    *cryptoutilTelemetry.TelemetryService
+	JWKGenService       *cryptoutilJose.JWKGenService
+	BarrierService      *cryptoutilBarrier.BarrierService
+	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
+	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
+	RealmService        cryptoutilTemplateService.RealmService
+	RealmRepository     cryptoutilTemplateRepository.TenantRealmRepository
 
 	// Application wrapper.
 	Application *cryptoutilTemplateServer.Application
@@ -202,6 +203,17 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to create session manager service: %w", err)
 	}
 
+	// Create tenant registration service and dependencies.
+	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(core.DB)
+	userRepo := cryptoutilTemplateRepository.NewUserRepository(core.DB)
+	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(core.DB)
+	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
+		core.DB,
+		tenantRepo,
+		userRepo,
+		joinRequestRepo,
+	)
+
 	// Generate public TLS configuration.
 	publicTLSCfg, err := b.generateTLSConfig(
 		b.config.TLSPublicMode,
@@ -241,15 +253,16 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 
 	// Prepare service resources for domain-specific initialization.
 	resources := &ServiceResources{
-		DB:                core.DB,
-		TelemetryService:  core.Basic.TelemetryService,
-		JWKGenService:     core.Basic.JWKGenService,
-		BarrierService:    barrierService,
-		SessionManager:    sessionManager,
-		RealmService:      realmService,
-		RealmRepository:   realmRepo,
-		ShutdownCore:      core.Shutdown,
-		ShutdownContainer: core.ShutdownDBContainer,
+		DB:                  core.DB,
+		TelemetryService:    core.Basic.TelemetryService,
+		JWKGenService:       core.Basic.JWKGenService,
+		BarrierService:      barrierService,
+		SessionManager:      sessionManager,
+		RegistrationService: registrationService,
+		RealmService:        realmService,
+		RealmRepository:     realmRepo,
+		ShutdownCore:        core.Shutdown,
+		ShutdownContainer:   core.ShutdownDBContainer,
 	}
 
 	// Register domain-specific public routes if provided.

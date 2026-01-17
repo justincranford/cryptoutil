@@ -249,9 +249,28 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 			issueErr error
 		)
 
-		// Use default tenant and realm for single-tenant deployments.
-		tenantID := cryptoutilMagic.CipherIMDefaultTenantID
-		realmID := cryptoutilMagic.CipherIMDefaultRealmID
+		// Extract tenant ID from authenticated user model.
+		// For services using dynamic tenant creation (cipher-im), this is populated from user.TenantID.
+		// For multi-tenant deployments, the realm lookup would query tenant_realms table.
+		type tenantAware interface {
+			GetTenantID() googleUuid.UUID
+		}
+
+		var tenantID googleUuid.UUID
+		if templateUser, ok := user.(tenantAware); ok {
+			tenantID = templateUser.GetTenantID()
+		} else {
+			// Fallback for user models without TenantID exposure.
+			// This should not happen in practice since template.User implements this.
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "User model does not expose tenant ID",
+			})
+		}
+
+		// TODO: Implement proper realm lookup for multi-tenant deployments.
+		// For now, use zero UUID as realm system is incomplete (no default realm created).
+		// This requires realm management system with GetDefaultRealm(tenantID) method.
+		realmID := googleUuid.UUID{} // Zero UUID placeholder.
 
 		if isBrowser {
 			token, issueErr = manager.IssueBrowserSessionWithTenant(c.Context(), user.GetID().String(), tenantID, realmID)

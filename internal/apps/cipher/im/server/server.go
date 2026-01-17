@@ -71,6 +71,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 			base,
 			res.SessionManager,
 			res.RealmService,
+			res.RegistrationService,
 			userRepo,
 			messageRepo,
 			messageRecipientJWKRepo,

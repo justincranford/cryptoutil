@@ -91,6 +91,11 @@ func (u *User) SetPasswordHash(hash string) {
 	u.PasswordHash = hash
 }
 
+// GetTenantID returns the user's tenant ID.
+func (u *User) GetTenantID() googleUuid.UUID {
+	return u.TenantID
+}
+
 // IsActive returns true if the user is active.
 func (u *User) IsActive() bool {
 	return u.Active == 1

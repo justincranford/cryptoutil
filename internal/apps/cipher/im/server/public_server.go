@@ -4,7 +4,10 @@
 package server
 
 import (
+	"context"
 	"fmt"
+
+	googleUuid "github.com/google/uuid"
 
 	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/apis"
@@ -16,7 +19,6 @@ import (
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the cipher-im public server by embedding PublicServerBase.
@@ -29,6 +31,10 @@ type PublicServer struct {
 	jwkGenService           *cryptoutilJose.JWKGenService                             // JWK generation for message encryption
 	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService    // Session management service
 	realmService            cryptoutilTemplateService.RealmService                    // Realm management service
+	registrationService     *cryptoutilTemplateBusinessLogic.TenantRegistrationService // Tenant registration service
+
+	// Cipher-IM demo state (auto-created tenant on first registration).
+	demoTenantID *googleUuid.UUID
 
 	// Handlers (composition pattern).
 	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
@@ -41,6 +47,7 @@ func NewPublicServer(
 	base *cryptoutilTemplateServer.PublicServerBase,
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService,
 	realmService cryptoutilTemplateService.RealmService,
+	registrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService,
 	userRepo *cryptoutilCipherRepository.UserRepository,
 	messageRepo *cryptoutilCipherRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository,
@@ -53,6 +60,8 @@ func NewPublicServer(
 		return nil, fmt.Errorf("session manager service cannot be nil")
 	} else if realmService == nil {
 		return nil, fmt.Errorf("realm service cannot be nil")
+	} else if registrationService == nil {
+		return nil, fmt.Errorf("registration service cannot be nil")
 	} else if userRepo == nil {
 		return nil, fmt.Errorf("user repository cannot be nil")
 	} else if messageRepo == nil {
@@ -73,16 +82,45 @@ func NewPublicServer(
 		jwkGenService:           jwkGenService,
 		sessionManagerService:   sessionManagerService,
 		realmService:            realmService,
+		registrationService:     registrationService,
 	}
 
 	// Create repository adapter for template realms.
 	userRepoAdapter := cryptoutilCipherRepository.NewUserRepositoryAdapter(userRepo)
 
 	// Create user factory for template realms.
-	// Generates fresh User model per request with default tenant ID for cipher-im demo.
+	// For cipher-im demo: Creates tenant dynamically on first user registration.
+	// All subsequent users share the same demo tenant.
 	userFactory := func() cryptoutilTemplateRealms.UserModel {
+		// Check if demo tenant already created.
+		if s.demoTenantID != nil {
+			return &cryptoutilTemplateRepository.User{
+				TenantID: *s.demoTenantID,
+			}
+		}
+
+		// First user registration - create demo tenant.
+		ctx := context.Background()
+		dummyUserID := googleUuid.New() // Temporary user ID for tenant creation.
+		tenant, err := s.registrationService.RegisterUserWithTenant(
+			ctx,
+			dummyUserID,
+			"Cipher-IM Demo Tenant",
+			true, // createTenant = true
+		)
+		if err != nil {
+			// Log error but continue with zero UUID (will fail later with better error).
+			fmt.Printf("Warning: Failed to create demo tenant: %v\n", err)
+			return &cryptoutilTemplateRepository.User{
+				TenantID: googleUuid.UUID{},
+			}
+		}
+
+		// Store tenant ID for reuse.
+		s.demoTenantID = &tenant.ID
+
 		return &cryptoutilTemplateRepository.User{
-			TenantID: cryptoutilMagic.CipherIMDefaultTenantID,
+			TenantID: tenant.ID,
 		}
 	}
 
