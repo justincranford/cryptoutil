@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 
-	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/repository"
@@ -21,7 +20,6 @@ import (
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
