@@ -20,7 +20,7 @@ type ElasticJWK struct {
 	ID                   googleUuid.UUID `gorm:"type:text;primaryKey"`
 	TenantID             googleUuid.UUID `gorm:"type:text;not null;index:idx_elastic_jwks_tenant_realm"`
 	RealmID              googleUuid.UUID `gorm:"type:text;not null;index:idx_elastic_jwks_tenant_realm"`
-	KID                  string          `gorm:"type:text;not null;uniqueIndex:idx_elastic_jwks_unique_kid"`
+	KID                  string          `gorm:"type:text;not null;uniqueIndex:idx_elastic_jwks_unique_kid;column:kid"`
 	KeyType              string          `gorm:"type:text;not null;column:kty"`             // RSA, EC, OKP, oct.
 	Algorithm            string          `gorm:"type:text;not null;column:alg;index"`       // RS256, ES256, EdDSA, A256GCM, etc.
 	Use                  string          `gorm:"type:text;not null;column:use;index"`       // sig or enc.

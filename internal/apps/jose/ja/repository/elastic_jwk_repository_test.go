@@ -1,0 +1,334 @@
+// Copyright (c) 2025 Justin Cranford
+//
+
+package repository
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
+	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+)
+
+func TestElasticJWKRepository_Create(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		jwk     func() *cryptoutilJoseJADomain.ElasticJWK
+		wantErr bool
+	}{
+		{
+			name: "valid elastic JWK creation",
+			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
+				id, _ := cryptoutilRandom.GenerateUUIDv7()
+				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+				realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+				return &cryptoutilJoseJADomain.ElasticJWK{
+					ID:           *id,
+					TenantID:     *tenantID,
+					RealmID:      *realmID,
+					KID:          "test-kid-" + id.String()[:8],
+					KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+					Algorithm:    "RS256",
+					Use:          "sig",
+					MaxMaterials: 10,
+					CreatedAt:    time.Now(),
+				}
+			},
+			wantErr: false,
+		},
+		{
+			name: "elastic JWK with EC key type",
+			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
+				id, _ := cryptoutilRandom.GenerateUUIDv7()
+				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+				realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+				return &cryptoutilJoseJADomain.ElasticJWK{
+					ID:           *id,
+					TenantID:     *tenantID,
+					RealmID:      *realmID,
+					KID:          "test-ec-" + id.String()[:8],
+					KeyType:      cryptoutilJoseJADomain.KeyTypeEC,
+					Algorithm:    "ES256",
+					Use:          "sig",
+					MaxMaterials: 5,
+					CreatedAt:    time.Now(),
+				}
+			},
+			wantErr: false,
+		},
+		{
+			name: "elastic JWK with OKP key type",
+			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
+				id, _ := cryptoutilRandom.GenerateUUIDv7()
+				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+				realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+				return &cryptoutilJoseJADomain.ElasticJWK{
+					ID:           *id,
+					TenantID:     *tenantID,
+					RealmID:      *realmID,
+					KID:          "test-okp-" + id.String()[:8],
+					KeyType:      cryptoutilJoseJADomain.KeyTypeOKP,
+					Algorithm:    "EdDSA",
+					Use:          "sig",
+					MaxMaterials: 20,
+					CreatedAt:    time.Now(),
+				}
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			testJWK := tt.jwk()
+			repo := NewElasticJWKRepository(testDB)
+			err := repo.Create(ctx, testJWK)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+
+			// Verify retrieval works.
+			retrieved, err := repo.Get(ctx, testJWK.TenantID, testJWK.RealmID, testJWK.KID)
+			require.NoError(t, err)
+			require.Equal(t, testJWK.ID, retrieved.ID)
+			require.Equal(t, testJWK.TenantID, retrieved.TenantID)
+			require.Equal(t, testJWK.RealmID, retrieved.RealmID)
+			require.Equal(t, testJWK.KID, retrieved.KID)
+			require.Equal(t, testJWK.KeyType, retrieved.KeyType)
+			require.Equal(t, testJWK.MaxMaterials, retrieved.MaxMaterials)
+
+			// Cleanup.
+			require.NoError(t, repo.Delete(ctx, testJWK.ID))
+		})
+	}
+}
+
+func TestElasticJWKRepository_Get(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	// Create a test JWK first - use unique IDs for this test function.
+	id, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+		ID:           *id,
+		TenantID:     *tenantID,
+		RealmID:      *realmID,
+		KID:          "test-get-" + id.String()[:8],
+		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		Algorithm:    "RS256",
+		Use:          "sig",
+		MaxMaterials: 10,
+		CreatedAt:    time.Now(),
+	}
+	require.NoError(t, repo.Create(ctx, testJWK))
+
+	t.Cleanup(func() {
+		_ = repo.Delete(ctx, testJWK.ID)
+	})
+
+	// Run subtests sequentially to avoid race conditions with shared test data.
+	t.Run("existing JWK", func(t *testing.T) {
+		retrieved, err := repo.Get(ctx, testJWK.TenantID, testJWK.RealmID, testJWK.KID)
+		require.NoError(t, err)
+		require.Equal(t, testJWK.ID, retrieved.ID)
+		require.Equal(t, testJWK.KID, retrieved.KID)
+	})
+
+	t.Run("non-existent KID", func(t *testing.T) {
+		_, err := repo.Get(ctx, testJWK.TenantID, testJWK.RealmID, "non-existent-kid")
+		require.Error(t, err)
+	})
+
+	t.Run("wrong tenant ID", func(t *testing.T) {
+		_, err := repo.Get(ctx, googleUuid.New(), testJWK.RealmID, testJWK.KID)
+		require.Error(t, err)
+	})
+
+	t.Run("wrong realm ID", func(t *testing.T) {
+		_, err := repo.Get(ctx, testJWK.TenantID, googleUuid.New(), testJWK.KID)
+		require.Error(t, err)
+	})
+}
+
+func TestElasticJWKRepository_List(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	// Create multiple test JWKs.
+	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+	var createdJWKs []*cryptoutilJoseJADomain.ElasticJWK
+
+	for i := 0; i < 5; i++ {
+		id, _ := cryptoutilRandom.GenerateUUIDv7()
+		jwk := &cryptoutilJoseJADomain.ElasticJWK{
+			ID:           *id,
+			TenantID:     *tenantID,
+			RealmID:      *realmID,
+			KID:          "test-list-" + id.String()[:8],
+			KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+			Algorithm:    "RS256",
+			Use:          "sig",
+			MaxMaterials: 10,
+			CreatedAt:    time.Now(),
+		}
+		require.NoError(t, repo.Create(ctx, jwk))
+		createdJWKs = append(createdJWKs, jwk)
+	}
+
+	defer func() {
+		for _, jwk := range createdJWKs {
+			_ = repo.Delete(ctx, jwk.ID)
+		}
+	}()
+
+	tests := []struct {
+		name      string
+		tenantID  googleUuid.UUID
+		realmID   googleUuid.UUID
+		offset    int
+		limit     int
+		wantCount int
+		wantTotal int64
+	}{
+		{
+			name:      "list all JWKs",
+			tenantID:  *tenantID,
+			realmID:   *realmID,
+			offset:    0,
+			limit:     100,
+			wantCount: 5,
+			wantTotal: 5,
+		},
+		{
+			name:      "list with pagination - first page",
+			tenantID:  *tenantID,
+			realmID:   *realmID,
+			offset:    0,
+			limit:     2,
+			wantCount: 2,
+			wantTotal: 5,
+		},
+		{
+			name:      "list with pagination - second page",
+			tenantID:  *tenantID,
+			realmID:   *realmID,
+			offset:    2,
+			limit:     2,
+			wantCount: 2,
+			wantTotal: 5,
+		},
+		{
+			name:      "list with wrong tenant",
+			tenantID:  googleUuid.New(),
+			realmID:   *realmID,
+			offset:    0,
+			limit:     100,
+			wantCount: 0,
+			wantTotal: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			jwks, total, err := repo.List(ctx, tt.tenantID, tt.realmID, tt.offset, tt.limit)
+			require.NoError(t, err)
+			require.Len(t, jwks, tt.wantCount)
+			require.Equal(t, tt.wantTotal, total)
+		})
+	}
+}
+
+func TestElasticJWKRepository_Update(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	// Create a test JWK first.
+	id, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+		ID:           *id,
+		TenantID:     *tenantID,
+		RealmID:      *realmID,
+		KID:          "test-update-" + id.String()[:8],
+		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		Algorithm:    "RS256",
+		Use:          "sig",
+		MaxMaterials: 10,
+		CreatedAt:    time.Now(),
+	}
+	require.NoError(t, repo.Create(ctx, testJWK))
+
+	defer func() {
+		_ = repo.Delete(ctx, testJWK.ID)
+	}()
+
+	// Update the JWK.
+	testJWK.MaxMaterials = 20
+
+	err := repo.Update(ctx, testJWK)
+	require.NoError(t, err)
+
+	// Verify the update.
+	retrieved, err := repo.Get(ctx, testJWK.TenantID, testJWK.RealmID, testJWK.KID)
+	require.NoError(t, err)
+	require.Equal(t, 20, retrieved.MaxMaterials)
+}
+
+func TestElasticJWKRepository_Delete(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewElasticJWKRepository(testDB)
+
+	// Create a test JWK first.
+	id, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+		ID:           *id,
+		TenantID:     *tenantID,
+		RealmID:      *realmID,
+		KID:          "test-delete-" + id.String()[:8],
+		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		Algorithm:    "RS256",
+		Use:          "sig",
+		MaxMaterials: 10,
+		CreatedAt:    time.Now(),
+	}
+	require.NoError(t, repo.Create(ctx, testJWK))
+
+	// Delete the JWK.
+	err := repo.Delete(ctx, testJWK.ID)
+	require.NoError(t, err)
+
+	// Verify it's deleted.
+	_, err = repo.Get(ctx, testJWK.TenantID, testJWK.RealmID, testJWK.KID)
+	require.Error(t, err)
+}
