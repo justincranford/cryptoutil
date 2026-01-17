@@ -3858,3 +3858,63 @@ ok      cryptoutil/internal/template/service/server/registration    0.123s
 **Recommendation**: Option A - Builder enhancement unblocks all future services, not just cipher-im. Multi-tenancy validation critical for template reusability proof.
 
 **Phase Status**: P0 Multi-Tenancy → 10/12 tasks complete (83%), Tasks 0.11-0.12 BLOCKED
+### 2025-01-25: Phase 0 Task 0.11 Complete - Route Registration Infrastructure
+
+**Work Completed**:
+
+1. **Route Registration Helper** (`internal/apps/template/service/server/apis/registration_routes.go`, NEW):
+   - Created `RegisterRegistrationRoutes(app, registrationService)` helper function
+   - Registers all tenant join request routes for both `/browser/**` and `/service/**` paths:
+     - POST /browser|service/api/v1/auth/register
+     - GET /browser|service/api/v1/admin/join-requests
+     - POST /browser|service/api/v1/admin/join-requests/:id/approve
+     - POST /browser|service/api/v1/admin/join-requests/:id/reject
+
+2. **Cipher-IM Integration** (`internal/apps/cipher/im/server/public_server.go`, MODIFIED):
+   - Added import for `cryptoutilTemplateAPIs`
+   - Added call to `RegisterRegistrationRoutes(app, s.registrationService)`
+   - Demonstrates template integration pattern for other services
+
+3. **E2E Tests Created** (`internal/apps/cipher/im/e2e/e2e_test.go`, MODIFIED):
+   - `TestE2E_RegistrationFlowWithTenantCreation` - Tests user registration with automatic tenant creation
+   - `TestE2E_RegistrationFlowWithJoinRequest` - Tests join request workflow
+   - `TestE2E_AdminJoinRequestManagement` - Tests listing and managing join requests
+   - **Status**: Tests created but require Docker to execute
+
+4. **Golangci-lint Configuration Fixed** (`.golangci.yml`, MODIFIED):
+   - Fixed v1.64.8 compatibility issues (v2 syntax not supported)
+   - Removed `version: "2"` declaration
+   - Changed `output.formats.tab` to `output.format: tab`
+   - Changed `wsl_v5` to `wsl`
+   - Removed invalid `severity` options from gosec and revive
+
+5. **WSL Linting Fixes**:
+   - Fixed `registration_handlers.go` (added blank line before for range loop)
+   - Fixed `public_server.go` (added blank line before if statement)
+
+**Quality Gates**:
+- ✅ Build: Clean compilation (all packages)
+- ✅ Lint: Working (golangci-lint v1.64.8 compatible)
+- ✅ Tests: 8/8 tenant registration tests passing
+- ⏸️ E2E: Created but blocked by Docker (not running in environment)
+- ⏸️ Coverage: Not measured for route registration code
+
+**Commits**:
+- 36b8efc5 ("feat(template): add RegisterRegistrationRoutes helper for multi-tenant route registration")
+
+**Files Changed** (6 files, +414 insertions, -193 deletions):
+- `internal/apps/template/service/server/apis/registration_routes.go` (NEW)
+- `internal/apps/cipher/im/server/public_server.go` (MODIFIED)
+- `internal/apps/cipher/im/e2e/e2e_test.go` (MODIFIED)
+- `internal/apps/template/service/server/apis/registration_handlers.go` (MODIFIED)
+- `.golangci.yml` (MODIFIED)
+- `specs/002-cryptoutil/implement/DETAILED.md` (MODIFIED)
+
+**Phase 0 Status**:
+- ✅ Tasks 0.1-0.10: COMPLETE
+- ✅ Task 0.11: COMPLETE (route registration infrastructure)
+- ⏸️ Task 0.12: E2E tests CREATED but blocked by Docker
+
+**Next Steps**: Proceed to Phase 4 (JOSE-JA handler tests) while E2E tests await Docker environment.
+
+**Phase Status**: P0 Multi-Tenancy → 11/12 tasks complete (92%), Task 0.12 blocked by Docker
