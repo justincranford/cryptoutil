@@ -37,12 +37,51 @@ func (r *materialJWKGormRepository) Create(ctx context.Context, materialJWK *dom
 	return nil
 }
 
-// GetByMaterialKID retrieves a Material JWK by its material KID.
+// GetByID retrieves a Material JWK by its UUID.
+func (r *materialJWKGormRepository) GetByID(ctx context.Context, materialJWKID googleUuid.UUID) (*domain.MaterialJWK, error) {
+	var materialJWK domain.MaterialJWK
+
+	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
+		Where("id = ?", materialJWKID).
+		First(&materialJWK).
+		Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("material JWK not found: %w", err)
+		}
+
+		return nil, fmt.Errorf("failed to get material JWK: %w", err)
+	}
+
+	return &materialJWK, nil
+}
+
+// GetByMaterialKID retrieves a Material JWK by its material KID within an Elastic JWK.
 func (r *materialJWKGormRepository) GetByMaterialKID(ctx context.Context, elasticJWKID googleUuid.UUID, materialKID string) (*domain.MaterialJWK, error) {
 	var materialJWK domain.MaterialJWK
 
 	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("elastic_jwk_id = ? AND material_kid = ?", elasticJWKID, materialKID).
+		First(&materialJWK).
+		Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("material JWK not found: %w", err)
+		}
+
+		return nil, fmt.Errorf("failed to get material JWK: %w", err)
+	}
+
+	return &materialJWK, nil
+}
+
+// GetByMaterialKIDGlobal retrieves a Material JWK by its material KID globally.
+// The material_kid is globally unique (UUID), so no elastic_jwk_id is needed.
+func (r *materialJWKGormRepository) GetByMaterialKIDGlobal(ctx context.Context, materialKID string) (*domain.MaterialJWK, error) {
+	var materialJWK domain.MaterialJWK
+
+	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
+		Where("material_kid = ?", materialKID).
 		First(&materialJWK).
 		Error
 	if err != nil {

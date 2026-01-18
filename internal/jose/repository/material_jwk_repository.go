@@ -17,9 +17,16 @@ type MaterialJWKRepository interface {
 	// Create creates a new Material JWK.
 	Create(ctx context.Context, materialJWK *domain.MaterialJWK) error
 
-	// GetByMaterialKID retrieves a Material JWK by its material KID.
-	// Used for decrypt/verify operations that specify a specific key version.
+	// GetByID retrieves a Material JWK by its UUID.
+	GetByID(ctx context.Context, materialJWKID googleUuid.UUID) (*domain.MaterialJWK, error)
+
+	// GetByMaterialKID retrieves a Material JWK by its material KID within an Elastic JWK.
+	// Used for lookups that know the elastic JWK context.
 	GetByMaterialKID(ctx context.Context, elasticJWKID googleUuid.UUID, materialKID string) (*domain.MaterialJWK, error)
+
+	// GetByMaterialKIDGlobal retrieves a Material JWK by its material KID globally.
+	// Used for decrypt/verify operations that only have the material_kid from JWS/JWE headers.
+	GetByMaterialKIDGlobal(ctx context.Context, materialKID string) (*domain.MaterialJWK, error)
 
 	// ListByElasticJWK retrieves all Material JWKs for an Elastic JWK with pagination.
 	ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]domain.MaterialJWK, error)
