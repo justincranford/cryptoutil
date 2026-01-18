@@ -61,6 +61,7 @@ func TestAdminServer_Start_Success(t *testing.T) {
 
 	// Start server in background.
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 
 	startErr := make(chan error, 1)
@@ -118,6 +119,7 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 
 	// Start server in background.
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 
 	go func() {
@@ -192,6 +194,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 
 	// Start server in background.
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 
 	go func() {
@@ -309,6 +312,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 
 	// Start server in background.
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 
 	go func() {
@@ -383,6 +387,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 
 	// Start server in background.
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 
 	go func() {
@@ -460,6 +465,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 
 	// Start server in background and track goroutine.
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 
 	go func() {
@@ -556,7 +562,6 @@ func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 // TestAdminServer_ConcurrentRequests tests multiple concurrent requests to admin endpoints.
 func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-
 	// Wait for port to be fully released from previous test.
 	time.Sleep(2 * time.Second)
 
@@ -643,6 +648,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	const numRequests = 10
 
 	var requestWG sync.WaitGroup
+
 	requestWG.Add(numRequests)
 
 	errors := make(chan error, numRequests)

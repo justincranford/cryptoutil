@@ -18,12 +18,12 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 )
 
 var (
@@ -118,6 +118,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}
+
 	defer testBarrierService.Shutdown()
 	defer func() {
 		if closeErr := testSQLDB.Close(); closeErr != nil {

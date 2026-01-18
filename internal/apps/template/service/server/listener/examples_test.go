@@ -255,7 +255,6 @@ func _createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 //nolint:unused // Example function for documentation
 func _exampleHealthChecks() {
 	// Assuming _testListener is initialized in TestMain.
-
 	// Liveness check (lightweight - process alive?).
 	liveResult, err := cryptoutilTemplateServerListener.SendLivenessCheck(_testListener.Config())
 	if err != nil {

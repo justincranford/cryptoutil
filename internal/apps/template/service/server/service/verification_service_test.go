@@ -212,6 +212,7 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 
 	// Verify unverified user was deleted.
 	var count int64
+
 	db.Model(&repository.UnverifiedUser{}).Where("id = ?", unverifiedUser.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 
@@ -330,6 +331,7 @@ func TestVerificationService_ApproveClient_Success(t *testing.T) {
 
 	// Verify unverified client was deleted.
 	var count int64
+
 	db.Model(&repository.UnverifiedClient{}).Where("id = ?", unverifiedClient.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
@@ -360,6 +362,7 @@ func TestVerificationService_RejectUser(t *testing.T) {
 
 	// Verify unverified user was deleted.
 	var count int64
+
 	db.Model(&repository.UnverifiedUser{}).Where("id = ?", unverifiedUser.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
@@ -389,6 +392,7 @@ func TestVerificationService_RejectClient(t *testing.T) {
 
 	// Verify unverified client was deleted.
 	var count int64
+
 	db.Model(&repository.UnverifiedClient{}).Where("id = ?", unverifiedClient.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
@@ -439,15 +443,18 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 
 	// Verify expired records were deleted.
 	var expiredUserCount int64
+
 	db.Model(&repository.UnverifiedUser{}).Where("id = ?", expiredUser.ID).Count(&expiredUserCount)
 	require.Equal(t, int64(0), expiredUserCount)
 
 	var expiredClientCount int64
+
 	db.Model(&repository.UnverifiedClient{}).Where("id = ?", expiredClient.ID).Count(&expiredClientCount)
 	require.Equal(t, int64(0), expiredClientCount)
 
 	// Verify valid user still exists.
 	var validUserCount int64
+
 	db.Model(&repository.UnverifiedUser{}).Where("id = ?", validUser.ID).Count(&validUserCount)
 	require.Equal(t, int64(1), validUserCount)
 }

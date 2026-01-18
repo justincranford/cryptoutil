@@ -107,6 +107,7 @@ func TestUserRoleRepository_Assign_HappyPath(t *testing.T) {
 
 	// Verify assignment.
 	var count int64
+
 	db.Model(&UserRole{}).Where("user_id = ? AND role_id = ?", user.ID, role.ID).Count(&count)
 	require.Equal(t, int64(1), count)
 }
@@ -335,6 +336,7 @@ func TestUserRoleRepository_Revoke_HappyPath(t *testing.T) {
 
 	// Verify revocation.
 	var count int64
+
 	db.Model(&UserRole{}).Where("user_id = ? AND role_id = ?", user.ID, role.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 }

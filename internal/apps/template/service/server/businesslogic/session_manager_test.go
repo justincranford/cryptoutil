@@ -288,6 +288,7 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 
 	// Verify session removed
 	var count int64
+
 	sm.db.Model(&cryptoutilRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
 	require.Equal(t, int64(0), count)
 
@@ -323,6 +324,7 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 
 	// Verify session removed
 	var count int64
+
 	sm.db.Model(&cryptoutilRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
@@ -356,6 +358,7 @@ func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
 
 	// Verify both in database
 	var count int64
+
 	sm.db.Model(&cryptoutilRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
 	require.Equal(t, int64(2), count)
 }

@@ -100,6 +100,7 @@ func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration)
 			}
 
 			_ = resp.Body.Close()
+
 			if resp.StatusCode == http.StatusOK {
 				fmt.Printf("[WaitForHealth] SUCCESS for %s after %d attempts\n", healthURL, attempts)
 
