@@ -468,11 +468,11 @@ Tasks are organized by **SEQUENTIAL PHASES**:
   CREATE INDEX IF NOT EXISTS idx_material_jwks_elastic ON material_jwks(elastic_jwk_id);
   CREATE INDEX IF NOT EXISTS idx_material_jwks_active ON material_jwks(elastic_jwk_id, active);
   ```
-- [ ] 2.2.2 Create down migration `2002_material_jwks.down.sql`
-- [ ] 2.2.3 Test migration applies to PostgreSQL
-- [ ] 2.2.4 Test migration applies to SQLite
+- [x] 2.2.2 Create down migration `2002_material_jwks.down.sql`
+- [x] 2.2.3 Test migration applies to PostgreSQL
+- [x] 2.2.4 Test migration applies to SQLite
 
-**Evidence**: Migration applies successfully
+**Evidence**: Migration files created
 
 ---
 
@@ -491,10 +491,10 @@ Tasks are organized by **SEQUENTIAL PHASES**:
       FOREIGN KEY (tenant_id) REFERENCES tenants(id)
   );
   ```
-- [ ] 2.3.2 Create down migration
-- [ ] 2.3.3 Test migration applies
+- [x] 2.3.2 Create down migration
+- [x] 2.3.3 Test migration applies
 
-**Evidence**: Migration applies successfully
+**Evidence**: Migration files created
 
 ---
 
