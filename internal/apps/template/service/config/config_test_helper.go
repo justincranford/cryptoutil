@@ -52,8 +52,8 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServiceTempl
 		TLSPrivateDNSNames:          defaultTLSPrivateDNSNames,
 		TLSPrivateIPAddresses:       defaultTLSPrivateIPAddresses,
 		BindPrivateProtocol:         defaultBindPrivateProtocol,
-		BindPrivateAddress:          defaultBindPrivateAddress,
-		BindPrivatePort:             defaultBindPrivatePort,
+		BindPrivateAddress:          bindAddr,
+		BindPrivatePort:             0, // Dynamic port allocation for tests (avoids port conflicts in parallel testing)
 		PublicBrowserAPIContextPath: defaultPublicBrowserAPIContextPath,
 		PublicServiceAPIContextPath: defaultPublicServiceAPIContextPath,
 		PrivateAdminAPIContextPath:  defaultAdminServerAPIContextPath,
