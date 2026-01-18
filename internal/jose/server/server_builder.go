@@ -19,6 +19,7 @@ import (
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJoseConfig "cryptoutil/internal/jose/config"
 	"cryptoutil/internal/jose/repository"
+	"cryptoutil/internal/jose/server/middleware"
 	"cryptoutil/internal/jose/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -162,8 +163,16 @@ func registerJosePublicRoutes(
 	// Well-known endpoints (no auth required for public key discovery).
 	app.Get("/.well-known/jwks.json", h.handleJWKS)
 
+	// Create rate limiter middleware.
+	rateLimiter := middleware.NewRateLimiter(&middleware.RateLimitConfig{
+		Max:              middleware.DefaultRateLimit, // 100 requests per second per IP.
+		Expiration:       middleware.DefaultRateLimitExpiration,
+		TelemetryService: telemetryService,
+	})
+
 	// Service API v1 group (headless clients).
 	serviceV1 := app.Group("/service/api/v1/jose")
+	serviceV1.Use(rateLimiter)
 	serviceV1.Post("/jwk/generate", h.handleJWKGenerate)
 	serviceV1.Get("/jwk/:kid", h.handleJWKGet)
 	serviceV1.Delete("/jwk/:kid", h.handleJWKDelete)
@@ -181,6 +190,7 @@ func registerJosePublicRoutes(
 
 	// Browser API v1 group (browser clients).
 	browserV1 := app.Group("/browser/api/v1/jose")
+	browserV1.Use(rateLimiter)
 	browserV1.Post("/jwk/generate", h.handleJWKGenerate)
 	browserV1.Get("/jwk/:kid", h.handleJWKGet)
 	browserV1.Delete("/jwk/:kid", h.handleJWKDelete)
@@ -199,6 +209,7 @@ func registerJosePublicRoutes(
 	// Admin API routes (browser clients only).
 	// TODO: Add admin permission middleware.
 	browserAdminV1 := app.Group("/browser/api/v1/admin")
+	browserAdminV1.Use(rateLimiter)
 	browserAdminV1.Get("/audit-config", auditH.handleGetAuditConfig)
 	browserAdminV1.Get("/audit-config/:operation", auditH.handleGetAuditConfigByOperation)
 	browserAdminV1.Put("/audit-config", auditH.handleSetAuditConfig)

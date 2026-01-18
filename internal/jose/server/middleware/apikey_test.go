@@ -28,6 +28,7 @@ func TestAPIKeyMiddleware_NoKey(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestAPIKeyMiddleware_ValidKey(t *testing.T) {
@@ -52,6 +53,7 @@ func TestAPIKeyMiddleware_ValidKey(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestAPIKeyMiddleware_InvalidKey(t *testing.T) {
@@ -71,6 +73,7 @@ func TestAPIKeyMiddleware_InvalidKey(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestAPIKeyMiddleware_CustomHeader(t *testing.T) {
@@ -91,6 +94,7 @@ func TestAPIKeyMiddleware_CustomHeader(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestAPIKeyMiddleware_QueryParam(t *testing.T) {
@@ -110,6 +114,7 @@ func TestAPIKeyMiddleware_QueryParam(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestAPIKeyMiddleware_Skipper(t *testing.T) {
@@ -135,12 +140,14 @@ func TestAPIKeyMiddleware_Skipper(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 
 	// Private route should require API key.
 	req = httptest.NewRequest("GET", "/private", nil)
 	resp, err = app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestAPIKeyMiddleware_DynamicValidator(t *testing.T) {
@@ -170,6 +177,7 @@ func TestAPIKeyMiddleware_DynamicValidator(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 	require.True(t, validatorCalled)
 }
 
@@ -192,6 +200,7 @@ func TestAPIKeyMiddleware_ValidatorError(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestDefaultAPIKeyConfig(t *testing.T) {
@@ -274,6 +283,7 @@ func TestGetAPIKeyInfo_NoInfo(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestRequireAPIKey_Helper(t *testing.T) {
@@ -294,6 +304,7 @@ func TestRequireAPIKey_Helper(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 }
 
 func TestNewAPIKeyValidatorFromStore(t *testing.T) {
