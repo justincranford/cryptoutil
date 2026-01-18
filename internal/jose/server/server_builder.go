@@ -19,6 +19,7 @@ import (
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJoseConfig "cryptoutil/internal/jose/config"
 	"cryptoutil/internal/jose/repository"
+	"cryptoutil/internal/jose/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -26,20 +27,21 @@ import (
 // JoseServer represents the JOSE Authority Server using the service template.
 // This wraps the service-template Application with JOSE-specific functionality.
 type JoseServer struct {
-	app              *cryptoutilTemplateServer.Application
-	db               *gorm.DB
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JWKGenService
-	barrierService   *cryptoutilTemplateBarrier.BarrierService
-	sessionManager   *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService     cryptoutilTemplateService.RealmService
-	realmRepo        cryptoutilTemplateRepository.TenantRealmRepository
-	elasticJWKRepo   repository.ElasticJWKRepository
-	materialJWKRepo  repository.MaterialJWKRepository
-	auditConfigRepo  repository.AuditConfigRepository
-	auditLogRepo     repository.AuditLogRepository
-	keyStore         *KeyStore // In-memory key store for legacy API compatibility.
-	cfg              *cryptoutilJoseConfig.JoseServerSettings
+	app               *cryptoutilTemplateServer.Application
+	db                *gorm.DB
+	telemetryService  *cryptoutilTelemetry.TelemetryService
+	jwkGenService     *cryptoutilJose.JWKGenService
+	barrierService    *cryptoutilTemplateBarrier.BarrierService
+	sessionManager    *cryptoutilTemplateBusinessLogic.SessionManagerService
+	realmService      cryptoutilTemplateService.RealmService
+	realmRepo         cryptoutilTemplateRepository.TenantRealmRepository
+	elasticJWKRepo    repository.ElasticJWKRepository
+	materialJWKRepo   repository.MaterialJWKRepository
+	elasticJWKService *service.ElasticJWKService
+	auditConfigRepo   repository.AuditConfigRepository
+	auditLogRepo      repository.AuditLogRepository
+	keyStore          *KeyStore // In-memory key store for legacy API compatibility.
+	cfg               *cryptoutilJoseConfig.JoseServerSettings
 }
 
 // NewFromConfig creates a new JOSE server from JoseServerSettings.
@@ -57,13 +59,14 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 	// Register JOSE-specific migrations (2001-2004).
 	builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
 
-	// Capture repositories and keyStore from route registration closure.
+	// Capture repositories and services from route registration closure.
 	var (
-		elasticJWKRepo  repository.ElasticJWKRepository
-		materialJWKRepo repository.MaterialJWKRepository
-		auditConfigRepo repository.AuditConfigRepository
-		auditLogRepo    repository.AuditLogRepository
-		keyStore        *KeyStore
+		elasticJWKRepo    repository.ElasticJWKRepository
+		materialJWKRepo   repository.MaterialJWKRepository
+		elasticJWKService *service.ElasticJWKService
+		auditConfigRepo   repository.AuditConfigRepository
+		auditLogRepo      repository.AuditLogRepository
+		keyStore          *KeyStore
 	)
 
 	// Register JOSE-specific public routes.
@@ -77,6 +80,14 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 		auditConfigRepo = repository.NewAuditConfigGormRepository(res.DB)
 		auditLogRepo = repository.NewAuditLogGormRepository(res.DB)
 
+		// Create ElasticJWKService.
+		elasticJWKService = service.NewElasticJWKService(
+			elasticJWKRepo,
+			materialJWKRepo,
+			res.JWKGenService,
+			res.BarrierService,
+		)
+
 		// Create in-memory key store for legacy API compatibility.
 		keyStore = NewKeyStore()
 
@@ -85,6 +96,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 			base.App(),
 			res.TelemetryService,
 			res.JWKGenService,
+			elasticJWKService,
 			keyStore,
 			cfg,
 		)
@@ -98,20 +110,21 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 
 	// Create JOSE server wrapper.
 	server := &JoseServer{
-		app:              resources.Application,
-		db:               resources.DB,
-		telemetryService: resources.TelemetryService,
-		jwkGenService:    resources.JWKGenService,
-		barrierService:   resources.BarrierService,
-		sessionManager:   resources.SessionManager,
-		realmService:     resources.RealmService,
-		realmRepo:        resources.RealmRepository,
-		elasticJWKRepo:   elasticJWKRepo,
-		materialJWKRepo:  materialJWKRepo,
-		auditConfigRepo:  auditConfigRepo,
-		auditLogRepo:     auditLogRepo,
-		keyStore:         keyStore,
-		cfg:              cfg,
+		app:               resources.Application,
+		db:                resources.DB,
+		telemetryService:  resources.TelemetryService,
+		jwkGenService:     resources.JWKGenService,
+		barrierService:    resources.BarrierService,
+		sessionManager:    resources.SessionManager,
+		realmService:      resources.RealmService,
+		realmRepo:         resources.RealmRepository,
+		elasticJWKRepo:    elasticJWKRepo,
+		materialJWKRepo:   materialJWKRepo,
+		elasticJWKService: elasticJWKService,
+		auditConfigRepo:   auditConfigRepo,
+		auditLogRepo:      auditLogRepo,
+		keyStore:          keyStore,
+		cfg:               cfg,
 	}
 
 	return server, nil
@@ -123,14 +136,16 @@ func registerJosePublicRoutes(
 	app *fiber.App,
 	telemetryService *cryptoutilTelemetry.TelemetryService,
 	jwkGenService *cryptoutilJose.JWKGenService,
+	elasticJWKService *service.ElasticJWKService,
 	keyStore *KeyStore,
 	_ *cryptoutilJoseConfig.JoseServerSettings,
 ) error {
 	// Create handler adapter that wraps existing handler functions.
 	h := &joseHandlerAdapter{
-		telemetryService: telemetryService,
-		jwkGenService:    jwkGenService,
-		keyStore:         keyStore,
+		telemetryService:  telemetryService,
+		jwkGenService:     jwkGenService,
+		elasticJWKService: elasticJWKService,
+		keyStore:          keyStore,
 	}
 
 	// Well-known endpoints (no auth required for public key discovery).
@@ -150,6 +165,9 @@ func registerJosePublicRoutes(
 	serviceV1.Post("/jwt/sign", h.handleJWTSign)
 	serviceV1.Post("/jwt/verify", h.handleJWTVerify)
 
+	// Elastic JWK JWKS endpoint - returns public keys for verification/encryption.
+	serviceV1.Get("/elastic-jwks/:kid/.well-known/jwks.json", h.handleElasticJWKS)
+
 	// Browser API v1 group (browser clients).
 	browserV1 := app.Group("/browser/api/v1/jose")
 	browserV1.Post("/jwk/generate", h.handleJWKGenerate)
@@ -163,6 +181,9 @@ func registerJosePublicRoutes(
 	browserV1.Post("/jwe/decrypt", h.handleJWEDecrypt)
 	browserV1.Post("/jwt/sign", h.handleJWTSign)
 	browserV1.Post("/jwt/verify", h.handleJWTVerify)
+
+	// Elastic JWK JWKS endpoint for browser clients.
+	browserV1.Get("/elastic-jwks/:kid/.well-known/jwks.json", h.handleElasticJWKS)
 
 	// Legacy API routes (for backward compatibility).
 	legacyV1 := app.Group("/jose/v1")

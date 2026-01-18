@@ -5,7 +5,9 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,14 +18,25 @@ import (
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+
+	"cryptoutil/internal/jose/service"
+)
+
+// Default tenant and realm IDs for JWKS endpoint.
+// These match the jose-ja server defaults for now.
+// TODO: Extract from authentication context in the future.
+var (
+	defaultJWKSTenantID = googleUuid.MustParse("f47ac10b-58cc-4372-a567-0e02b2c3d479")
+	defaultJWKSRealmID  = googleUuid.MustParse("7c9e6679-7425-40de-944b-e07fc1f90ae7")
 )
 
 // joseHandlerAdapter provides JOSE-specific route handlers using the existing KeyStore.
 // This adapter wraps the handler logic to work with both the legacy Server and new JoseServer.
 type joseHandlerAdapter struct {
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JWKGenService
-	keyStore         *KeyStore
+	telemetryService  *cryptoutilTelemetry.TelemetryService
+	jwkGenService     *cryptoutilJose.JWKGenService
+	elasticJWKService *service.ElasticJWKService
+	keyStore          *KeyStore
 }
 
 // ============================================================================
@@ -494,4 +507,127 @@ func (h *joseHandlerAdapter) handleJWTVerify(c *fiber.Ctx) error {
 		"valid":  true,
 		"claims": claims,
 	})
+}
+
+// ============================================================================
+// Elastic JWK JWKS Handler
+// ============================================================================
+
+// handleElasticJWKS handles GET /service/api/v1/jose/elastic-jwks/:kid/.well-known/jwks.json
+// Returns public keys for an elastic JWK in JWKS format for external verification/encryption.
+// Symmetric keys (AES, HMAC) return 404 since they cannot be published.
+// Sets Cache-Control: max-age=300 for caching.
+func (h *joseHandlerAdapter) handleElasticJWKS(c *fiber.Ctx) error {
+	// Get elastic key ID from path parameter.
+	kidStr := c.Params("kid")
+	if kidStr == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Missing kid parameter",
+		})
+	}
+
+	// Parse the KID.
+	kid, err := googleUuid.Parse(kidStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid kid format",
+		})
+	}
+
+	// Check if elasticJWKService is available.
+	if h.elasticJWKService == nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Elastic JWK service not configured",
+		})
+	}
+
+	// Get public keys from elastic JWK service.
+	// Note: tenant isolation is handled by the service layer using context.
+	ctx := context.Background()
+
+	publicJWKs, err := h.elasticJWKService.GetDecryptedPublicJWKs(ctx, defaultJWKSTenantID, defaultJWKSRealmID, kid)
+	if err != nil {
+		h.telemetryService.Slogger.Error("Failed to get elastic JWK public keys", "kid", kidStr, "error", err)
+
+		// Check for "not found" errors.
+		if isNotFoundError(err) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "Elastic key not found",
+			})
+		}
+
+		// Check for symmetric key errors (cannot publish symmetric keys).
+		if isSymmetricKeyError(err) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "JWKS not available for symmetric keys",
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve public keys",
+		})
+	}
+
+	// Symmetric keys have nil public JWKs - return 404.
+	if len(publicJWKs) == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "JWKS not available for symmetric keys",
+		})
+	}
+
+	// Build JWKS response.
+	keys := make([]json.RawMessage, 0, len(publicJWKs))
+
+	for _, jwk := range publicJWKs {
+		if jwk == nil {
+			continue
+		}
+
+		keyJSON, err := json.Marshal(jwk)
+		if err != nil {
+			h.telemetryService.Slogger.Error("Failed to marshal public JWK", "error", err)
+
+			continue
+		}
+
+		keys = append(keys, keyJSON)
+	}
+
+	// Return 404 if no valid public keys (shouldn't happen for asymmetric keys).
+	if len(keys) == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "No public keys available",
+		})
+	}
+
+	// Set Cache-Control header (5 minutes).
+	c.Set("Cache-Control", "max-age=300")
+	c.Set("Content-Type", "application/json")
+
+	// Return JWKS format.
+	return c.JSON(fiber.Map{
+		"keys": keys,
+	})
+}
+
+// isNotFoundError checks if the error indicates a not-found condition.
+func isNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errStr := strings.ToLower(err.Error())
+
+	return strings.Contains(errStr, "not found") || strings.Contains(errStr, "does not exist")
+}
+
+// isSymmetricKeyError checks if the error indicates a symmetric key (no public key).
+func isSymmetricKeyError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errStr := strings.ToLower(err.Error())
+
+	return strings.Contains(errStr, "symmetric") || strings.Contains(errStr, "no public key")
 }
