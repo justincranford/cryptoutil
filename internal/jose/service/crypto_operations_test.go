@@ -11,6 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testNonExistentKID is used for tests that need a KID that doesn't exist.
+const testNonExistentKID = "nonexistent-kid-12345"
+
 // Tests in this file use the shared testElasticJWKSvc from elastic_jwk_service_test.go TestMain.
 
 // TestSign_Success tests successful signing with an Elastic JWK.
@@ -584,4 +587,624 @@ func TestGetDecryptedPublicJWKs_SymmetricKeyFails(t *testing.T) {
 	_, err = testElasticJWKSvc.GetDecryptedPublicJWKs(testCtx, tenantID, realmID, createResp.ElasticJWK.ID)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "symmetric keys cannot be exposed via JWKS")
+}
+
+// TestGetDecryptedMaterialJWK_Success tests successful retrieval of decrypted material JWK.
+func TestGetDecryptedMaterialJWK_Success(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create an Elastic JWK with an asymmetric key.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Get the decrypted material JWK.
+	privateJWK, publicJWK, err := testElasticJWKSvc.GetDecryptedMaterialJWK(testCtx, createResp.MaterialJWK.ID)
+	require.NoError(t, err)
+	require.NotNil(t, privateJWK)
+	require.NotNil(t, publicJWK)
+}
+
+// TestGetDecryptedMaterialJWK_NotFound tests that GetDecryptedMaterialJWK fails for non-existent material.
+func TestGetDecryptedMaterialJWK_NotFound(t *testing.T) {
+	t.Parallel()
+
+	// Try to get a non-existent material JWK.
+	nonExistentID := googleUuid.New()
+	_, _, err := testElasticJWKSvc.GetDecryptedMaterialJWK(testCtx, nonExistentID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get material JWK")
+}
+
+// TestGetDecryptedPublicJWKs_TenantMismatch tests that GetDecryptedPublicJWKs fails for wrong tenant.
+func TestGetDecryptedPublicJWKs_TenantMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	wrongTenantID := googleUuid.New()
+
+	// Create an Elastic JWK.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Try to get public JWKs with wrong tenant.
+	_, err = testElasticJWKSvc.GetDecryptedPublicJWKs(testCtx, wrongTenantID, realmID, createResp.ElasticJWK.ID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found in specified tenant/realm")
+}
+
+// TestGetDecryptedPublicJWKs_RealmMismatch tests that GetDecryptedPublicJWKs fails for wrong realm.
+func TestGetDecryptedPublicJWKs_RealmMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	wrongRealmID := googleUuid.New()
+
+	// Create an Elastic JWK.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Try to get public JWKs with wrong realm.
+	_, err = testElasticJWKSvc.GetDecryptedPublicJWKs(testCtx, tenantID, wrongRealmID, createResp.ElasticJWK.ID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found in specified tenant/realm")
+}
+
+// TestSign_RealmMismatch tests that signing fails when realm doesn't match.
+func TestSign_RealmMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	wrongRealmID := googleUuid.New()
+
+	// Create an Elastic JWK.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Try to sign with wrong realm.
+	_, err = testElasticJWKSvc.Sign(testCtx, &SignRequest{
+		TenantID:     tenantID,
+		RealmID:      wrongRealmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Payload:      []byte("test"),
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found in specified tenant/realm")
+}
+
+// TestEncrypt_RealmMismatch tests that encryption fails when realm doesn't match.
+func TestEncrypt_RealmMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	wrongRealmID := googleUuid.New()
+
+	// Create an Elastic JWK for encryption.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ECDH-ES+A256KW",
+		USE:      "enc",
+	})
+	require.NoError(t, err)
+
+	// Try to encrypt with wrong realm.
+	_, err = testElasticJWKSvc.Encrypt(testCtx, &EncryptRequest{
+		TenantID:     tenantID,
+		RealmID:      wrongRealmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Plaintext:    []byte("test plaintext"),
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found in specified tenant/realm")
+}
+
+// TestVerify_RealmMismatch tests that verification fails when material_kid belongs to different tenant.
+func TestVerify_RealmMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	wrongTenantID := googleUuid.New()
+
+	// Create and sign with correct tenant.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	signResp, err := testElasticJWKSvc.Sign(testCtx, &SignRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Payload:      []byte("test payload"),
+	})
+	require.NoError(t, err)
+
+	// Try to verify with wrong tenant.
+	_, err = testElasticJWKSvc.Verify(testCtx, &VerifyRequest{
+		TenantID:        wrongTenantID,
+		JWSMessageBytes: signResp.JWSMessageBytes,
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found for tenant")
+}
+
+// TestDecrypt_RealmMismatch tests that decryption fails when material_kid belongs to different tenant.
+func TestDecrypt_RealmMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	wrongTenantID := googleUuid.New()
+
+	// Create and encrypt with correct tenant.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ECDH-ES+A256KW",
+		USE:      "enc",
+	})
+	require.NoError(t, err)
+
+	encryptResp, err := testElasticJWKSvc.Encrypt(testCtx, &EncryptRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Plaintext:    []byte("test plaintext"),
+	})
+	require.NoError(t, err)
+
+	// Try to decrypt with wrong tenant.
+	_, err = testElasticJWKSvc.Decrypt(testCtx, &DecryptRequest{
+		TenantID:        wrongTenantID,
+		JWEMessageBytes: encryptResp.JWEMessageBytes,
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found for tenant")
+}
+
+// TestListElasticJWKs_Success tests successful listing of Elastic JWKs.
+func TestListElasticJWKs_Success(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create a few Elastic JWKs.
+	for i := 0; i < 3; i++ {
+		_, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+			TenantID: tenantID,
+			RealmID:  realmID,
+			KTY:      "EC",
+			ALG:      "ES256",
+			USE:      "sig",
+		})
+		require.NoError(t, err)
+	}
+
+	// List the Elastic JWKs.
+	elasticJWKs, err := testElasticJWKSvc.ListElasticJWKs(testCtx, tenantID, realmID, 0, 100)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(elasticJWKs), 3)
+}
+
+// TestGetElasticJWK_NotFound tests that GetElasticJWK fails for non-existent elastic JWK.
+func TestGetElasticJWK_NotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Try to get a non-existent elastic JWK.
+	_, err := testElasticJWKSvc.GetElasticJWK(testCtx, tenantID, realmID, testNonExistentKID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found")
+}
+
+// TestGetActiveMaterialJWK_NotFound tests that GetActiveMaterialJWK fails for non-existent elastic JWK.
+func TestGetActiveMaterialJWK_NotFound(t *testing.T) {
+	t.Parallel()
+
+	nonExistentID := googleUuid.New()
+
+	// Try to get active material for non-existent elastic JWK.
+	_, _, _, err := testElasticJWKSvc.GetActiveMaterialJWK(testCtx, nonExistentID)
+	require.Error(t, err)
+}
+
+// TestGetMaterialJWKByKID_NotFound tests that GetMaterialJWKByKID fails for non-existent material KID.
+func TestGetMaterialJWKByKID_NotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create an Elastic JWK to have a valid elastic ID.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Try to get material by non-existent KID.
+	_, _, _, err = testElasticJWKSvc.GetMaterialJWKByKID(testCtx, createResp.ElasticJWK.ID, testNonExistentKID)
+	require.Error(t, err)
+}
+
+// TestVerify_InvalidJWS tests that verification fails with invalid JWS.
+func TestVerify_InvalidJWS(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+
+	// Try to verify invalid JWS.
+	_, err := testElasticJWKSvc.Verify(testCtx, &VerifyRequest{
+		TenantID:        tenantID,
+		JWSMessageBytes: []byte("invalid-jws-data"),
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse JWS message")
+}
+
+// TestDecrypt_InvalidJWE tests that decryption fails with invalid JWE.
+func TestDecrypt_InvalidJWE(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+
+	// Try to decrypt invalid JWE.
+	_, err := testElasticJWKSvc.Decrypt(testCtx, &DecryptRequest{
+		TenantID:        tenantID,
+		JWEMessageBytes: []byte("invalid-jwe-data"),
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse JWE message")
+}
+
+// TestSign_NotFound tests that signing fails when elastic JWK doesn't exist.
+func TestSign_NotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	nonExistentID := googleUuid.New()
+
+	// Try to sign with non-existent elastic JWK.
+	_, err := testElasticJWKSvc.Sign(testCtx, &SignRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: nonExistentID,
+		Payload:      []byte("test"),
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get elastic JWK")
+}
+
+// TestEncrypt_NotFound tests that encryption fails when elastic JWK doesn't exist.
+func TestEncrypt_NotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	nonExistentID := googleUuid.New()
+
+	// Try to encrypt with non-existent elastic JWK.
+	_, err := testElasticJWKSvc.Encrypt(testCtx, &EncryptRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: nonExistentID,
+		Plaintext:    []byte("test"),
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get elastic JWK")
+}
+
+// TestVerify_MaterialNotFound tests that verification fails when material JWK lookup fails.
+func TestVerify_MaterialNotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create and sign with correct tenant.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	signResp, err := testElasticJWKSvc.Sign(testCtx, &SignRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Payload:      []byte("test payload"),
+	})
+	require.NoError(t, err)
+
+	// Create a JWS with non-existent kid (manually crafted would be complex, so we just test with wrong tenant).
+	differentTenantID := googleUuid.New()
+	_, err = testElasticJWKSvc.Verify(testCtx, &VerifyRequest{
+		TenantID:        differentTenantID,
+		JWSMessageBytes: signResp.JWSMessageBytes,
+	})
+	require.Error(t, err)
+}
+
+// TestDecrypt_MaterialNotFound tests that decryption fails when material JWK lookup fails.
+func TestDecrypt_MaterialNotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create and encrypt with correct tenant.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ECDH-ES+A256KW",
+		USE:      "enc",
+	})
+	require.NoError(t, err)
+
+	encryptResp, err := testElasticJWKSvc.Encrypt(testCtx, &EncryptRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Plaintext:    []byte("test plaintext"),
+	})
+	require.NoError(t, err)
+
+	// Try to decrypt with different tenant (material will not be found for this tenant).
+	differentTenantID := googleUuid.New()
+	_, err = testElasticJWKSvc.Decrypt(testCtx, &DecryptRequest{
+		TenantID:        differentTenantID,
+		JWEMessageBytes: encryptResp.JWEMessageBytes,
+	})
+	require.Error(t, err)
+}
+
+// TestListElasticJWKs_EmptyResult tests listing returns empty for non-existent tenant/realm.
+func TestListElasticJWKs_EmptyResult(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// List Elastic JWKs for tenant/realm with no JWKs.
+	elasticJWKs, err := testElasticJWKSvc.ListElasticJWKs(testCtx, tenantID, realmID, 0, 100)
+	require.NoError(t, err)
+	require.Empty(t, elasticJWKs)
+}
+
+// TestCanRotate_Success tests that CanRotate returns true for a valid elastic JWK.
+func TestCanRotate_Success(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create an Elastic JWK.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Check if we can rotate.
+	canRotate, count, err := testElasticJWKSvc.CanRotate(testCtx, createResp.ElasticJWK.ID)
+	require.NoError(t, err)
+	require.True(t, canRotate)
+	require.Equal(t, int64(1), count)
+}
+
+// TestCanRotate_NotFound tests that CanRotate returns 0 count for non-existent elastic JWK.
+func TestCanRotate_NotFound(t *testing.T) {
+	t.Parallel()
+
+	nonExistentID := googleUuid.New()
+
+	// Check if we can rotate non-existent JWK - returns true with 0 count (no materials).
+	canRotate, count, err := testElasticJWKSvc.CanRotate(testCtx, nonExistentID)
+	require.NoError(t, err)
+	require.True(t, canRotate) // Can rotate because count is 0 < MaxMaterialsPerElasticJWK
+	require.Equal(t, int64(0), count)
+}
+
+// TestGetMaterialCount_Success tests that GetMaterialCount returns correct count.
+func TestGetMaterialCount_Success(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create an Elastic JWK.
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Get material count.
+	count, err := testElasticJWKSvc.GetMaterialCount(testCtx, createResp.ElasticJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), count)
+
+	// Rotate and check count again.
+	_, err = testElasticJWKSvc.RotateMaterial(testCtx, tenantID, realmID, createResp.ElasticJWK.ID)
+	require.NoError(t, err)
+
+	count, err = testElasticJWKSvc.GetMaterialCount(testCtx, createResp.ElasticJWK.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(2), count)
+}
+
+// TestGetMaterialCount_NotFound tests that GetMaterialCount returns 0 for non-existent elastic JWK.
+func TestGetMaterialCount_NotFound(t *testing.T) {
+	t.Parallel()
+
+	nonExistentID := googleUuid.New()
+
+	// Get material count for non-existent JWK - returns 0 (no materials).
+	count, err := testElasticJWKSvc.GetMaterialCount(testCtx, nonExistentID)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count)
+}
+
+// TestGetDecryptedPublicJWKs_NotFound tests that GetDecryptedPublicJWKs fails for non-existent elastic JWK.
+func TestGetDecryptedPublicJWKs_NotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	nonExistentID := googleUuid.New()
+
+	// Try to get public JWKs for non-existent elastic JWK.
+	_, err := testElasticJWKSvc.GetDecryptedPublicJWKs(testCtx, tenantID, realmID, nonExistentID)
+	require.Error(t, err)
+}
+
+// TestCreateElasticJWK_InvalidSignatureAlgorithm tests that creating a signing JWK with invalid algorithm fails.
+func TestCreateElasticJWK_InvalidSignatureAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Try to create with invalid signing algorithm.
+	_, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "INVALID-SIG-ALG",
+		USE:      "sig",
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported signature algorithm")
+}
+
+// TestCreateElasticJWK_InvalidEncryptionAlgorithm tests that creating an encryption JWK with invalid algorithm fails.
+func TestCreateElasticJWK_InvalidEncryptionAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Try to create with invalid encryption algorithm.
+	_, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "INVALID-ENC-ALG",
+		USE:      "enc",
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported encryption algorithm")
+}
+
+// TestSign_UseTypeMismatch tests that signing fails when the elastic JWK is not a signing key.
+func TestSign_UseTypeMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create an encryption JWK (use=enc).
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ECDH-ES",
+		USE:      "enc",
+	})
+	require.NoError(t, err)
+
+	// Try to sign with an encryption key - should fail.
+	payload := []byte("test payload to sign")
+	_, err = testElasticJWKSvc.Sign(testCtx, &SignRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Payload:      payload,
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not a signing key")
+}
+
+// TestEncrypt_UseTypeMismatch tests that encryption fails when the elastic JWK is not an encryption key.
+func TestEncrypt_UseTypeMismatch(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Create a signing JWK (use=sig).
+	createResp, err := testElasticJWKSvc.CreateElasticJWK(testCtx, &CreateElasticJWKRequest{
+		TenantID: tenantID,
+		RealmID:  realmID,
+		KTY:      "EC",
+		ALG:      "ES256",
+		USE:      "sig",
+	})
+	require.NoError(t, err)
+
+	// Try to encrypt with a signing key - should fail.
+	plaintext := []byte("test plaintext to encrypt")
+	_, err = testElasticJWKSvc.Encrypt(testCtx, &EncryptRequest{
+		TenantID:     tenantID,
+		RealmID:      realmID,
+		ElasticJWKID: createResp.ElasticJWK.ID,
+		Plaintext:    plaintext,
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not an encryption key")
 }
