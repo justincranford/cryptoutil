@@ -300,6 +300,7 @@ func TestMaterialJWKRepository_ListByElasticJWK(t *testing.T) {
 
 	// Create 3 material JWKs.
 	materialIDs := make([]googleUuid.UUID, 3)
+
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilRandom.GenerateUUIDv7()
 		materialKID, _ := cryptoutilRandom.GenerateUUIDv7()
@@ -578,6 +579,7 @@ func TestMaterialJWKRepository_CountMaterials(t *testing.T) {
 
 	// Create 3 materials.
 	materialIDs := make([]googleUuid.UUID, 3)
+
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilRandom.GenerateUUIDv7()
 		materialKID, _ := cryptoutilRandom.GenerateUUIDv7()

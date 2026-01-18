@@ -500,6 +500,7 @@ func (h *JWKHandler) HandleListMaterialJWKs() fiber.Handler {
 				BarrierVersion: mat.BarrierVersion,
 				CreatedAt:      mat.CreatedAt.Unix(),
 			}
+
 			if mat.RetiredAt != nil {
 				retiredUnix := mat.RetiredAt.Unix()
 				responses[i].RetiredAt = &retiredUnix

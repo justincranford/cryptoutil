@@ -31,6 +31,7 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 				id, _ := cryptoutilRandom.GenerateUUIDv7()
 				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
 				realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+
 				return &cryptoutilJoseJADomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
@@ -51,6 +52,7 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 				id, _ := cryptoutilRandom.GenerateUUIDv7()
 				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
 				realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+
 				return &cryptoutilJoseJADomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
@@ -71,6 +73,7 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 				id, _ := cryptoutilRandom.GenerateUUIDv7()
 				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
 				realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+
 				return &cryptoutilJoseJADomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
@@ -97,6 +100,7 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 
 			if tt.wantErr {
 				require.Error(t, err)
+
 				return
 			}
 
@@ -178,6 +182,7 @@ func TestElasticJWKRepository_List(t *testing.T) {
 	// Create multiple test JWKs - use unique tenant/realm for this test to avoid conflicts.
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
 	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
+
 	var createdJWKs []*cryptoutilJoseJADomain.ElasticJWK
 
 	for i := 0; i < 5; i++ {

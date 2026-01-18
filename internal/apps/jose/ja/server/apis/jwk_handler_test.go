@@ -31,6 +31,7 @@ type MockElasticJWKRepository struct {
 
 func (m *MockElasticJWKRepository) Create(ctx context.Context, jwk *joseJADomain.ElasticJWK) error {
 	args := m.Called(ctx, jwk)
+
 	return args.Error(0)
 }
 
@@ -39,7 +40,8 @@ func (m *MockElasticJWKRepository) Get(ctx context.Context, tenantID, realmID go
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*joseJADomain.ElasticJWK), args.Error(1)
+
+	return args.Get(0).(*joseJADomain.ElasticJWK), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*joseJADomain.ElasticJWK, error) {
@@ -47,34 +49,40 @@ func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UU
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*joseJADomain.ElasticJWK), args.Error(1)
+
+	return args.Get(0).(*joseJADomain.ElasticJWK), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockElasticJWKRepository) List(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]*joseJADomain.ElasticJWK, int64, error) {
 	args := m.Called(ctx, tenantID, realmID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2)
+		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 	}
-	return args.Get(0).([]*joseJADomain.ElasticJWK), args.Get(1).(int64), args.Error(2)
+
+	return args.Get(0).([]*joseJADomain.ElasticJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockElasticJWKRepository) Update(ctx context.Context, jwk *joseJADomain.ElasticJWK) error {
 	args := m.Called(ctx, jwk)
+
 	return args.Error(0)
 }
 
 func (m *MockElasticJWKRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
 	args := m.Called(ctx, id)
+
 	return args.Error(0)
 }
 
 func (m *MockElasticJWKRepository) IncrementMaterialCount(ctx context.Context, id googleUuid.UUID) error {
 	args := m.Called(ctx, id)
+
 	return args.Error(0)
 }
 
 func (m *MockElasticJWKRepository) DecrementMaterialCount(ctx context.Context, id googleUuid.UUID) error {
 	args := m.Called(ctx, id)
+
 	return args.Error(0)
 }
 
@@ -85,6 +93,7 @@ type MockMaterialJWKRepository struct {
 
 func (m *MockMaterialJWKRepository) Create(ctx context.Context, jwk *joseJADomain.MaterialJWK) error {
 	args := m.Called(ctx, jwk)
+
 	return args.Error(0)
 }
 
@@ -93,7 +102,8 @@ func (m *MockMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materi
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1)
+
+	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*joseJADomain.MaterialJWK, error) {
@@ -101,7 +111,8 @@ func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.U
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1)
+
+	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*joseJADomain.MaterialJWK, error) {
@@ -109,35 +120,41 @@ func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elast
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1)
+
+	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*joseJADomain.MaterialJWK, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2)
+		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 	}
-	return args.Get(0).([]*joseJADomain.MaterialJWK), args.Get(1).(int64), args.Error(2)
+
+	return args.Get(0).([]*joseJADomain.MaterialJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *joseJADomain.MaterialJWK) error {
 	args := m.Called(ctx, elasticJWKID, newMaterial)
+
 	return args.Error(0)
 }
 
 func (m *MockMaterialJWKRepository) RetireMaterial(ctx context.Context, id googleUuid.UUID) error {
 	args := m.Called(ctx, id)
+
 	return args.Error(0)
 }
 
 func (m *MockMaterialJWKRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
 	args := m.Called(ctx, id)
+
 	return args.Error(0)
 }
 
 func (m *MockMaterialJWKRepository) CountMaterials(ctx context.Context, elasticJWKID googleUuid.UUID) (int64, error) {
 	args := m.Called(ctx, elasticJWKID)
-	return args.Get(0).(int64), args.Error(1)
+
+	return args.Get(0).(int64), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 // MockAuditConfigRepository is a mock implementation of AuditConfigRepository.
@@ -150,7 +167,8 @@ func (m *MockAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*joseJADomain.AuditConfig), args.Error(1)
+
+	return args.Get(0).(*joseJADomain.AuditConfig), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*joseJADomain.AuditConfig, error) {
@@ -158,21 +176,25 @@ func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantI
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*joseJADomain.AuditConfig), args.Error(1)
+
+	return args.Get(0).([]*joseJADomain.AuditConfig), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockAuditConfigRepository) Upsert(ctx context.Context, config *joseJADomain.AuditConfig) error {
 	args := m.Called(ctx, config)
+
 	return args.Error(0)
 }
 
 func (m *MockAuditConfigRepository) Delete(ctx context.Context, tenantID googleUuid.UUID, operation string) error {
 	args := m.Called(ctx, tenantID, operation)
+
 	return args.Error(0)
 }
 
 func (m *MockAuditConfigRepository) ShouldAudit(ctx context.Context, tenantID googleUuid.UUID, operation string) (bool, error) {
 	args := m.Called(ctx, tenantID, operation)
+
 	return args.Bool(0), args.Error(1)
 }
 
@@ -183,31 +205,35 @@ type MockAuditLogRepository struct {
 
 func (m *MockAuditLogRepository) Create(ctx context.Context, entry *joseJADomain.AuditLogEntry) error {
 	args := m.Called(ctx, entry)
+
 	return args.Error(0)
 }
 
 func (m *MockAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2)
+		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 	}
-	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2)
+
+	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2)
+		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 	}
-	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2)
+
+	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, operation, offset, limit)
 	if args.Get(0) == nil {
-		return nil, args.Get(1).(int64), args.Error(2)
+		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 	}
-	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2)
+
+	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*joseJADomain.AuditLogEntry, error) {
@@ -215,12 +241,14 @@ func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID s
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*joseJADomain.AuditLogEntry), args.Error(1)
+
+	return args.Get(0).(*joseJADomain.AuditLogEntry), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 func (m *MockAuditLogRepository) DeleteOlderThan(ctx context.Context, tenantID googleUuid.UUID, days int) (int64, error) {
 	args := m.Called(ctx, tenantID, days)
-	return args.Get(0).(int64), args.Error(1)
+
+	return args.Get(0).(int64), args.Error(1) //nolint:errcheck // Mock type assertion controlled by test
 }
 
 // setupTestHandler creates a test handler with mocks.
@@ -257,6 +285,7 @@ func setupFiberApp() *fiber.App {
 			})
 		},
 	})
+
 	return app
 }
 
@@ -305,6 +334,7 @@ func TestHandleCreateElasticJWK_Success(t *testing.T) {
 	app.Post("/jwk", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
@@ -327,6 +357,7 @@ func TestHandleCreateElasticJWK_Success(t *testing.T) {
 
 	// Parse response.
 	var response ElasticJWKResponse
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.NotEmpty(t, response.KID)
 	require.Equal(t, tenantID.String(), response.TenantID)
@@ -376,6 +407,7 @@ func TestHandleCreateElasticJWK_InvalidAlgorithm(t *testing.T) {
 	app.Post("/jwk", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
@@ -411,6 +443,7 @@ func TestHandleCreateElasticJWK_RepositoryError(t *testing.T) {
 	app.Post("/jwk", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
@@ -461,6 +494,7 @@ func TestHandleGetElasticJWK_Success(t *testing.T) {
 	app.Get("/jwk/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleGetElasticJWK())
 
@@ -471,6 +505,7 @@ func TestHandleGetElasticJWK_Success(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	var response ElasticJWKResponse
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.Equal(t, kid.String(), response.KID)
 	require.Equal(t, tenantID.String(), response.TenantID)
@@ -496,6 +531,7 @@ func TestHandleGetElasticJWK_NotFound(t *testing.T) {
 	app.Get("/jwk/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleGetElasticJWK())
 
@@ -550,6 +586,7 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 	app.Get("/jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleListElasticJWKs())
 
@@ -560,6 +597,7 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	var response ListResponse
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.Equal(t, int64(2), response.Total)
 
@@ -591,6 +629,7 @@ func TestHandleDeleteElasticJWK_Success(t *testing.T) {
 	app.Delete("/jwk/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleDeleteElasticJWK())
 
@@ -631,6 +670,7 @@ func TestHandleCreateMaterialJWK_Success(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -668,6 +708,7 @@ func TestHandleCreateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -714,6 +755,7 @@ func TestHandleListMaterialJWKs_Success(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleListMaterialJWKs())
 
@@ -759,6 +801,7 @@ func TestHandleGetActiveMaterialJWK_Success(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleGetActiveMaterialJWK())
 
@@ -799,6 +842,7 @@ func TestHandleRotateMaterialJWK_Success(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 
@@ -836,6 +880,7 @@ func TestHandleRotateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 
@@ -940,6 +985,7 @@ func TestHandleDeleteElasticJWK_MissingKID(t *testing.T) {
 	app.Delete("/elastic-jwks/", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleDeleteElasticJWK())
 
@@ -973,6 +1019,7 @@ func TestHandleDeleteElasticJWK_RepositoryDeleteError(t *testing.T) {
 	app.Delete("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleDeleteElasticJWK())
 
@@ -1010,6 +1057,7 @@ func TestHandleCreateMaterialJWK_CreateRepositoryError(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -1049,6 +1097,7 @@ func TestHandleCreateMaterialJWK_IncrementCountError(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -1085,6 +1134,7 @@ func TestHandleListMaterialJWKs_RepositoryError(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleListMaterialJWKs())
 
@@ -1121,6 +1171,7 @@ func TestHandleGetActiveMaterialJWK_NoActiveMaterial(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleGetActiveMaterialJWK())
 
@@ -1159,6 +1210,7 @@ func TestHandleRotateMaterialJWK_RotateRepositoryError(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 
@@ -1198,6 +1250,7 @@ func TestMapAlgorithmToKeyType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			result := mapAlgorithmToKeyType(tt.algorithm)
 			require.Equal(t, tt.expected, result)
 		})
@@ -1234,6 +1287,7 @@ func TestHandleGetElasticJWK_InvalidTenantFormat(t *testing.T) {
 	app.Get("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleGetElasticJWK())
 
@@ -1255,6 +1309,7 @@ func TestHandleGetElasticJWK_InvalidRealmFormat(t *testing.T) {
 	app.Get("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleGetElasticJWK())
 
@@ -1292,6 +1347,7 @@ func TestHandleListElasticJWKs_InvalidTenantFormat(t *testing.T) {
 	app.Get("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleListElasticJWKs())
 
@@ -1312,6 +1368,7 @@ func TestHandleListElasticJWKs_InvalidRealmFormat(t *testing.T) {
 	app.Get("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleListElasticJWKs())
 
@@ -1337,6 +1394,7 @@ func TestHandleListElasticJWKs_RepositoryError(t *testing.T) {
 	app.Get("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleListElasticJWKs())
 
@@ -1376,6 +1434,7 @@ func TestHandleDeleteElasticJWK_InvalidTenantFormat(t *testing.T) {
 	app.Delete("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleDeleteElasticJWK())
 
@@ -1396,6 +1455,7 @@ func TestHandleDeleteElasticJWK_InvalidRealmFormat(t *testing.T) {
 	app.Delete("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleDeleteElasticJWK())
 
@@ -1435,6 +1495,7 @@ func TestHandleCreateElasticJWK_InvalidTenantFormat(t *testing.T) {
 	app.Post("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
@@ -1457,6 +1518,7 @@ func TestHandleCreateElasticJWK_InvalidRealmFormat(t *testing.T) {
 	app.Post("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
@@ -1496,6 +1558,7 @@ func TestHandleCreateMaterialJWK_InvalidTenantFormat(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -1516,6 +1579,7 @@ func TestHandleCreateMaterialJWK_InvalidRealmFormat(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -1541,6 +1605,7 @@ func TestHandleCreateMaterialJWK_ElasticJWKNotFound(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -1580,6 +1645,7 @@ func TestHandleListMaterialJWKs_InvalidTenantFormat(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleListMaterialJWKs())
 
@@ -1600,6 +1666,7 @@ func TestHandleListMaterialJWKs_InvalidRealmFormat(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleListMaterialJWKs())
 
@@ -1625,6 +1692,7 @@ func TestHandleListMaterialJWKs_ElasticJWKNotFound(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleListMaterialJWKs())
 
@@ -1664,6 +1732,7 @@ func TestHandleGetActiveMaterialJWK_InvalidTenantFormat(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleGetActiveMaterialJWK())
 
@@ -1684,6 +1753,7 @@ func TestHandleGetActiveMaterialJWK_InvalidRealmFormat(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleGetActiveMaterialJWK())
 
@@ -1709,6 +1779,7 @@ func TestHandleGetActiveMaterialJWK_ElasticJWKNotFound(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials/active", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleGetActiveMaterialJWK())
 
@@ -1748,6 +1819,7 @@ func TestHandleRotateMaterialJWK_InvalidTenantFormat(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", "not-a-uuid")
 		c.Locals("realm_id", googleUuid.New())
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 
@@ -1768,6 +1840,7 @@ func TestHandleRotateMaterialJWK_InvalidRealmFormat(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("realm_id", "not-a-uuid")
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 
@@ -1793,6 +1866,7 @@ func TestHandleRotateMaterialJWK_ElasticJWKNotFound(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 
@@ -1843,6 +1917,7 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleListMaterialJWKs())
 
@@ -1852,6 +1927,7 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	var response ListResponse
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.Equal(t, int64(1), response.Total)
 
@@ -1886,6 +1962,7 @@ func TestHandleRotateMaterialJWK_IncrementCountError(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 
@@ -1912,6 +1989,7 @@ func TestHandleGetElasticJWK_MissingKID(t *testing.T) {
 	app.Get("/elastic-jwks/", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleGetElasticJWK())
 
@@ -1934,6 +2012,7 @@ func TestHandleCreateElasticJWK_InvalidBody(t *testing.T) {
 	app.Post("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
@@ -1962,6 +2041,7 @@ func TestHandleCreateElasticJWK_DefaultMaxMaterials(t *testing.T) {
 	app.Post("/elastic-jwks", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateElasticJWK())
 
@@ -1982,6 +2062,7 @@ func TestHandleCreateElasticJWK_DefaultMaxMaterials(t *testing.T) {
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
 	var response ElasticJWKResponse
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
 	require.Equal(t, 10, response.MaxMaterials)
 
@@ -2002,6 +2083,7 @@ func TestHandleDeleteElasticJWK_NotFound(t *testing.T) {
 	app.Delete("/elastic-jwks/:kid", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleDeleteElasticJWK())
 
@@ -2027,6 +2109,7 @@ func TestHandleCreateMaterialJWK_MissingKID(t *testing.T) {
 	app.Post("/elastic-jwks//materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleCreateMaterialJWK())
 
@@ -2050,6 +2133,7 @@ func TestHandleListMaterialJWKs_MissingKID(t *testing.T) {
 	app.Get("/elastic-jwks//materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleListMaterialJWKs())
 
@@ -2073,6 +2157,7 @@ func TestHandleGetActiveMaterialJWK_MissingKID(t *testing.T) {
 	app.Get("/elastic-jwks//materials/active", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleGetActiveMaterialJWK())
 
@@ -2096,6 +2181,7 @@ func TestHandleRotateMaterialJWK_MissingKID(t *testing.T) {
 	app.Post("/elastic-jwks//materials/rotate", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)
 		c.Locals("realm_id", realmID)
+
 		return c.Next()
 	}, handler.HandleRotateMaterialJWK())
 

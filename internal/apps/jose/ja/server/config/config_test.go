@@ -150,7 +150,7 @@ func TestLogJoseJASettings(t *testing.T) {
 	logJoseJASettings(settings)
 
 	// Restore stderr and read captured output.
-	w.Close()
+	_ = w.Close() //nolint:errcheck // Test cleanup
 
 	os.Stderr = oldStderr
 

@@ -18,10 +18,13 @@ func NewSessionHandler(sessionManager *cryptoutilTemplateBusinessLogic.SessionMa
 	return cryptoutilTemplateAPIs.NewSessionHandler(sessionManager)
 }
 
-// Re-export request/response types.
 type (
-	SessionIssueRequest     = cryptoutilTemplateAPIs.SessionIssueRequest
-	SessionIssueResponse    = cryptoutilTemplateAPIs.SessionIssueResponse
-	SessionValidateRequest  = cryptoutilTemplateAPIs.SessionValidateRequest
+	// SessionIssueRequest represents a session issue request.
+	SessionIssueRequest = cryptoutilTemplateAPIs.SessionIssueRequest
+	// SessionIssueResponse represents a session issue response.
+	SessionIssueResponse = cryptoutilTemplateAPIs.SessionIssueResponse
+	// SessionValidateRequest represents a session validate request.
+	SessionValidateRequest = cryptoutilTemplateAPIs.SessionValidateRequest
+	// SessionValidateResponse represents a session validate response.
 	SessionValidateResponse = cryptoutilTemplateAPIs.SessionValidateResponse
 )

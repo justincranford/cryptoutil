@@ -2,6 +2,7 @@
 //
 //
 
+// Package repository provides data access layer implementations for JOSE-JA service.
 package repository
 
 import (
