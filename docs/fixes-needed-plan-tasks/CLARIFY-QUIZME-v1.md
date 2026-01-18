@@ -16,20 +16,11 @@
 
 **Pattern A** (fixes-needed-PLAN.md line 300): Returns 201 (Create) vs 202 (Join)
 ```json
-Response 201 (Create):
+Response 200 (Create):
 {
-    "user_id": "uuid",
-    "tenant_id": "uuid",
-    "realm_id": "uuid",
-    "session_token": "encrypted-jwt"
-}
-
-Response 202 (Join):
-{
-    "join_request_id": "uuid",
-    "tenant_id": "uuid",
-    "status": "pending",
-    "message": "Join request submitted. Waiting for admin approval."
+    "user_id": "uuidv7",
+    "tenant_id": "uuidv4",
+    "status": "pending"
 }
 ```
 
@@ -40,17 +31,20 @@ func RegisterUserWithTenant(...) (*cryptoutilTemplateRepository.Tenant, error)
 
 **Question**: Which registration response pattern is CORRECT for all 9 services?
 
-**A)** Pattern A (201 Create with session_token, 202 Join with join_request_id) - HTTP status differentiation  
-**B)** Pattern B (Always return Tenant object, caller determines HTTP status) - Service layer agnostic  
-**C)** Hybrid: Service returns RegisterResult struct (union of both patterns), handler chooses HTTP status  
-**D)** Different patterns per service type (browser vs service clients have different needs)  
-**E)** Write-in: _______________________________________________________________
+**A)** Pattern A (201 Create with session_token, 202 Join with join_request_id) - HTTP status differentiation
+**B)** Pattern B (Always return Tenant object, caller determines HTTP status) - Service layer agnostic
+**C)** Hybrid: Service returns RegisterResult struct (union of both patterns), handler chooses HTTP status
+**D)** Different patterns per service type (browser vs service clients have different needs)
+**E)** Write-in: I specified a new Pattern A format that I want you to use. User must receive HTTP 403 for all endpoints requiring authn until approved, or HTTP 401 if they are rejected. User is not actually saved in users table, they are saved in pending_users table, and not moved to users table unless approved.
+
+Answer: E
 
 **Follow-up**: If join request is rejected, should user be notified via:
 - Polling `/browser/api/v1/auth/join-requests/:id`?
 - Webhook/callback URL provided during registration?
 - Email notification?
 - All API calls return 403 Forbidden until approved?
+
 
 ---
 
@@ -67,11 +61,13 @@ func RegisterUserWithTenant(...) (*cryptoutilTemplateRepository.Tenant, error)
 
 **Question**: When joining EXISTING tenant (not creating new), when does user receive a valid session token?
 
-**A)** NEVER until admin approves join request (user cannot access ANY endpoints until approval)  
-**B)** Immediately with limited permissions (read-only access, cannot create resources)  
-**C)** Immediately with full permissions to tenant's data (admin can revoke later)  
-**D)** Depends on tenant's join policy setting (auto-approve, manual-approve, invite-only)  
-**E)** Write-in: _______________________________________________________________
+**A)** NEVER until admin approves join request (user cannot access ANY endpoints until approval)
+**B)** Immediately with limited permissions (read-only access, cannot create resources)
+**C)** Immediately with full permissions to tenant's data (admin can revoke later)
+**D)** Depends on tenant's join policy setting (auto-approve, manual-approve, invite-only)
+**E)** Write-in: I removed session_token and join_request_id from response. See answer in Q1.1. For Q1.2, answer is A, as per Q1.1 answer.
+
+Answer: E
 
 **Implications for cipher-im**:
 - If A: cipher-im messages cannot be created until admin approves
@@ -101,11 +97,13 @@ Response 201 (Create):
 
 **Question**: When user creates NEW tenant via registration, what realm configuration is created?
 
-**A)** Single DB-based username/password realm named "default" (all 9 services use this pattern)  
-**B)** Single file-based username/password realm named "default" (all 9 services use this pattern)  
-**C)** Service-specific realm type (cipher-im uses DB, jose-ja uses file, identity-* uses OAuth)  
-**D)** NO realm created during registration (admin must configure realm before users can login)  
-**E)** Write-in: _______________________________________________________________
+**A)** Single DB-based username/password realm named "default" (all 9 services use this pattern)
+**B)** Single file-based username/password realm named "default" (all 9 services use this pattern)
+**C)** Service-specific realm type (cipher-im uses DB, jose-ja uses file, identity-* uses OAuth)
+**D)** NO realm created during registration (admin must configure realm before users can login)
+**E)** Write-in: I removed realm_id from response. See answer in Q1.1. For Q1.3, new user creates new tenant with new DB-based username/password realm".
+
+Answer: E
 
 **Follow-up**: If tenant has 5 realms (3 LDAP, 1 OAuth, 1 DB), how does registration endpoint know which realm to use?
 - Always create user in DB realm?
@@ -139,11 +137,13 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 
 **Question**: How are registration endpoints registered in ServerBuilder if they don't require authentication?
 
-**A)** Always registered in PublicServerBase (template infrastructure, not domain-specific)  
-**B)** Registered in `WithPublicRouteRegistration` callback (domain-specific, each service registers own)  
-**C)** Registered in separate "unauthenticated routes" callback (new builder method needed)  
-**D)** Registration endpoints are NOT part of service-template (each service implements own)  
-**E)** Write-in: _______________________________________________________________
+**A)** Always registered in PublicServerBase (template infrastructure, not domain-specific)
+**B)** Registered in `WithPublicRouteRegistration` callback (domain-specific, each service registers own)
+**C)** Registered in separate "unauthenticated routes" callback (new builder method needed)
+**D)** Registration endpoints are NOT part of service-template (each service implements own)
+**E)** Write-in: Endpoints must be changed to `/browser/api/v1/register` and `/service/api/v1/register`, and be unauthenticated. Enforce strong rate limiting. Registration logic MUST BE template infrastructure.
+
+Answer:
 
 **Implications**:
 - If A: Registration logic becomes template infrastructure (coupled to service-template)
@@ -176,11 +176,13 @@ func NewPublicServer(...) (*PublicServer, error) {
 
 **Question**: Should cipher-im have a demo tenant for E2E testing and demonstrations?
 
-**A)** YES - Keep demo tenant for cipher-im ONLY (jose-ja and other 8 services do NOT create demo tenant)  
-**B)** YES - All 9 services create demo tenant for E2E testing (configurable via `--demo-mode` flag)  
-**C)** NO - Remove demo tenant from cipher-im (E2E tests use registration API to create tenant)  
-**D)** YES - But move demo tenant creation to E2E test setup (TestMain), NOT server startup  
-**E)** Write-in: _______________________________________________________________
+**A)** YES - Keep demo tenant for cipher-im ONLY (jose-ja and other 8 services do NOT create demo tenant)
+**B)** YES - All 9 services create demo tenant for E2E testing (configurable via `--demo-mode` flag)
+**C)** NO - Remove demo tenant from cipher-im (E2E tests use registration API to create tenant)
+**D)** YES - But move demo tenant creation to E2E test setup (TestMain), NOT server startup
+**E)** Write-in:
+
+Answer: C; E2E tests more complex is design intent
 
 **Implications for fixes-needed-PLAN**:
 - If A or B: Plan contradicts "NO default tenant" principle
@@ -208,11 +210,13 @@ func NewPublicServer(...) (*PublicServer, error) {
 
 **Question**: Is `internal/apps/template/` the CANONICAL location for reusable service infrastructure?
 
-**A)** YES - `internal/apps/template/` is the ONLY location for reusable service infrastructure  
-**B)** NO - Should be `internal/shared/template/` (shared across all apps, not "app-specific")  
-**C)** NO - Should be `pkg/template/` (public library for external consumers)  
-**D)** SPLIT - Infrastructure in `internal/shared/`, app patterns in `internal/apps/template/`  
-**E)** Write-in: _______________________________________________________________
+**A)** YES - `internal/apps/template/` is the ONLY location for reusable service infrastructure
+**B)** NO - Should be `internal/shared/template/` (shared across all apps, not "app-specific")
+**C)** NO - Should be `pkg/template/` (public library for external consumers)
+**D)** SPLIT - Infrastructure in `internal/shared/`, app patterns in `internal/apps/template/`
+**E)** Write-in:
+
+Answer: A; `internal/apps/template/` the CANONICAL location, and shared+reused by all internal/apps/PRODUCT/SERVICE`
 
 **Implications**:
 - If B: Requires moving 50+ files from `internal/apps/template/` to `internal/shared/template/`
@@ -240,11 +244,13 @@ func NewPublicServer(...) (*PublicServer, error) {
 
 **Question**: Is tenant_join_requests (1005) TEMPLATE infrastructure or DOMAIN logic?
 
-**A)** TEMPLATE infrastructure (1005) - All 9 services use join requests (reusable)  
-**B)** DOMAIN logic (2001+ for each service) - Only some services need join requests  
-**C)** OPTIONAL template (10XX range) - Services opt-in via builder configuration  
-**D)** Split: Join request TABLE is template (1005), but join request LOGIC is domain (each service customizes approval workflow)  
-**E)** Write-in: _______________________________________________________________
+**A)** TEMPLATE infrastructure (1005) - All 9 services use join requests (reusable)
+**B)** DOMAIN logic (2001+ for each service) - Only some services need join requests
+**C)** OPTIONAL template (10XX range) - Services opt-in via builder configuration
+**D)** Split: Join request TABLE is template (1005), but join request LOGIC is domain (each service customizes approval workflow)
+**E)** Write-in:
+
+Answer: A; ALL SERVICES NEED MULTI-TENANT JOIN!!!!
 
 **Implications**:
 - If A: tenant_join_requests becomes mandatory for all 9 services (even if some don't need multi-tenant join)
@@ -273,11 +279,13 @@ func NewPublicServer(...) (*PublicServer, error) {
 
 **Question**: If realms are ONLY for authentication, what is their purpose beyond login method selection?
 
-**A)** Realms determine HOW user authenticates (password, OAuth, LDAP, WebAuthn) but ALL realms in tenant see SAME data  
-**B)** Realms provide logical data isolation within tenant (OAuth users see different messages than password users)  
-**C)** Realms are legacy from multi-realm design, should be REMOVED entirely (tenant_id is sufficient)  
-**D)** Realms enable SSO federation (SAML, OIDC) while keeping tenant data unified  
-**E)** Write-in: _______________________________________________________________
+**A)** Realms determine HOW user authenticates (password, OAuth, LDAP, WebAuthn) but ALL realms in tenant see SAME data
+**B)** Realms provide logical data isolation within tenant (OAuth users see different messages than password users)
+**C)** Realms are legacy from multi-realm design, should be REMOVED entirely (tenant_id is sufficient)
+**D)** Realms enable SSO federation (SAML, OIDC) while keeping tenant data unified
+**E)** Write-in:
+
+Answer: A
 
 **Implications for fixes-needed-PLAN**:
 - If A: Plan is correct (realms = authn only, no data filtering)
@@ -299,26 +307,14 @@ IssueBrowserSessionWithTenant(ctx, userID, tenantID, realmID) (string, error)
 
 **Question**: If user has sessions in 2 different realms (password + OAuth), do they see SAME data or DIFFERENT data?
 
-**A)** SAME data (realm_id is for audit logging only, not data filtering)  
-**B)** DIFFERENT data (realm_id acts as data partition key)  
-**C)** Depends on service implementation (cipher-im ignores realm, jose-ja uses it)  
-**D)** Realm switching requires new session (user must logout and re-authenticate)  
-**E)** Write-in: _______________________________________________________________
+**A)** SAME data (realm_id is for audit logging only, not data filtering)
+**B)** DIFFERENT data (realm_id acts as data partition key)
+**C)** Depends on service implementation (cipher-im ignores realm, jose-ja uses it)
+**D)** Realm switching requires new session (user must logout and re-authenticate)
+**E)** Write-in:
 
-**Test Case**:
-```
-1. User registers with tenant_id=T1, realm_id=R1 (password realm)
-2. User creates message M1
-3. User logs out
-4. User authenticates with realm_id=R2 (OAuth realm), same tenant_id=T1
-5. User queries messages
+Answer: A
 
-Expected result:
-- A: User sees message M1 (realm doesn't filter data)
-- B: User sees EMPTY list (realm isolates data)
-- C: Undefined (each service decides)
-- D: Step 4 fails (cannot switch realms)
-```
 
 ---
 
@@ -342,11 +338,13 @@ type UserServiceImpl struct {
 
 **Question**: Where should Hash Service be created and injected?
 
-**A)** ServerBuilder creates Hash Service (adds to ServiceResources) - All services share same hash config  
-**B)** Each service creates own Hash Service - Allows service-specific hash policies (different PBKDF2 iterations)  
-**C)** RealmService creates Hash Service per realm - Different realms can have different hash policies  
-**D)** Hash Service is global singleton - Created once in main(), passed to all services  
-**E)** Write-in: _______________________________________________________________
+**A)** ServerBuilder creates Hash Service (adds to ServiceResources) - All services share same hash config
+**B)** Each service creates own Hash Service - Allows service-specific hash policies (different PBKDF2 iterations)
+**C)** RealmService creates Hash Service per realm - Different realms can have different hash policies
+**D)** Hash Service is global singleton - Created once in main(), passed to all services
+**E)** Write-in:
+
+Answer: A
 
 **Implications**:
 - If A: Need to add Hash Service to ServerBuilder.Build()
@@ -368,11 +366,13 @@ type UserServiceImpl struct {
 
 **Question**: Should pepper be TENANT-SPECIFIC or GLOBAL for all tenants?
 
-**A)** GLOBAL pepper (all tenants use same pepper) - Simpler, one Docker secret  
-**B)** TENANT-SPECIFIC pepper (each tenant has unique pepper) - Better isolation, more complex  
-**C)** HYBRID: Global pepper for password hashing, tenant-specific pepper for PII hashing  
-**D)** REALM-SPECIFIC pepper (each realm has unique pepper) - Maximum isolation  
-**E)** Write-in: _______________________________________________________________
+**A)** GLOBAL pepper (all tenants use same pepper) - Simpler, one Docker secret
+**B)** TENANT-SPECIFIC pepper (each tenant has unique pepper) - Better isolation, more complex
+**C)** HYBRID: Global pepper for password hashing, tenant-specific pepper for PII hashing
+**D)** REALM-SPECIFIC pepper (each realm has unique pepper) - Maximum isolation
+**E)** Write-in:
+
+Answer: A
 
 **Security implications**:
 - If A: Pepper compromise affects ALL tenants
@@ -410,11 +410,13 @@ func TestMain(m *testing.M) {
 
 **Question**: Should TestMain create ONE shared tenant for all tests, or should EACH test create own tenant?
 
-**A)** ONE shared tenant in TestMain (all tests use same testTenantID) - Faster, but tests interfere  
-**B)** EACH test creates own tenant (t.Run() creates unique tenant) - Isolated, but 100× slower  
-**C)** EACH test PACKAGE creates own tenant (TestMain per package) - Balanced isolation  
-**D)** Hybrid: Shared tenant for read-only tests, unique tenant for write tests  
-**E)** Write-in: _______________________________________________________________
+**A)** ONE shared tenant in TestMain (all tests use same testTenantID) - Faster, but tests interfere
+**B)** EACH test creates own tenant (t.Run() creates unique tenant) - Isolated, but 100× slower
+**C)** EACH test PACKAGE creates own tenant (TestMain per package) - Balanced isolation
+**D)** Hybrid: Shared tenant for read-only tests, unique tenant for write tests
+**E)** Write-in:
+
+Answer: C; users are created per test, not shared across tests, and users are unique and isolated per test via UUIDv7 in usernames, passwords, and tenant IDs
 
 **Implications**:
 - If A: Test fixtures pollute each other (user from Test1 visible in Test2)
@@ -453,11 +455,13 @@ tenant, err := s.registrationService.RegisterUserWithTenant(
 
 **Question**: Should E2E tests use HTTP registration endpoint or call service methods directly?
 
-**A)** HTTP registration endpoint (realistic E2E simulation) - Tests full stack  
-**B)** Direct service method calls (faster, bypasses HTTP) - Unit test approach  
-**C)** Hybrid: HTTP for first tenant, direct calls for subsequent users - Balanced  
-**D)** Depends on test type (smoke tests use HTTP, performance tests use direct calls)  
-**E)** Write-in: _______________________________________________________________
+**A)** HTTP registration endpoint (realistic E2E simulation) - Tests full stack
+**B)** Direct service method calls (faster, bypasses HTTP) - Unit test approach
+**C)** Hybrid: HTTP for first tenant, direct calls for subsequent users - Balanced
+**D)** Depends on test type (smoke tests use HTTP, performance tests use direct calls)
+**E)** Write-in:
+
+Answer: A; E2E tests must simulate real user interactions via HTTP endpoints to ensure full stack validation.
 
 **Implications**:
 - If A: E2E tests require running server (Docker Compose, slower)
@@ -486,22 +490,13 @@ CREATE TABLE IF NOT EXISTS elastic_jwk (
 
 **Question**: If two tenants create JWKs with SAME kid (key ID), how are they differentiated?
 
-**A)** kid is GLOBALLY unique (enforced at application level) - Cross-tenant collision check  
-**B)** kid is UNIQUE per tenant (database constraint: UNIQUE(tenant_id, kid)) - Tenant-scoped uniqueness  
-**C)** kid can duplicate across tenants (NO uniqueness constraint) - kid is descriptive only  
-**D)** kid MUST include tenant_id prefix (e.g., "T1-mykey-2024") - Enforced naming convention  
-**E)** Write-in: _______________________________________________________________
+**A)** kid is GLOBALLY unique (enforced at application level) - Cross-tenant collision check
+**B)** kid is UNIQUE per tenant (database constraint: UNIQUE(tenant_id, kid)) - Tenant-scoped uniqueness
+**C)** kid can duplicate across tenants (NO uniqueness constraint) - kid is descriptive only
+**D)** kid MUST include tenant_id prefix (e.g., "T1-mykey-2024") - Enforced naming convention
+**E)** Write-in:
 
-**JWKS Endpoint Implications**:
-```
-GET /service/api/v1/.well-known/jwks.json
-```
-
-**Returns**:
-- If A: ALL tenants' public keys (global JWKS)
-- If B: ONLY current tenant's public keys (tenant-scoped JWKS)
-- If C: ONLY current tenant's public keys (tenant_id from session token)
-- If D: kid identifies tenant (parseable format)
+Answer: A; kid must be globally unique across all tenants to prevent collisions.
 
 ---
 
@@ -521,22 +516,13 @@ type JWKSConfig struct {
 
 **Question**: Should jose-ja allow cross-tenant access to JWKs for JWT verification?
 
-**A)** YES - Public keys are public (any tenant can verify JWTs signed by any tenant)  
-**B)** NO - Each tenant's JWKs are isolated (tenant A cannot verify tenant B's JWTs)  
-**C)** CONFIGURABLE - Admin enables/disables cross-tenant JWKS access per tenant  
-**D)** NEVER for production, ALWAYS for dev/testing  
-**E)** Write-in: _______________________________________________________________
+**A)** YES - Public keys are public (any tenant can verify JWTs signed by any tenant)
+**B)** NO - Each tenant's JWKs are isolated (tenant A cannot verify tenant B's JWTs)
+**C)** CONFIGURABLE - Admin enables/disables cross-tenant JWKS access per tenant
+**D)** NEVER for production, ALWAYS for dev/testing
+**E)** Write-in:
 
-**Use Case**:
-```
-Tenant A (jose-ja) signs JWT with kid="A-signing-2024"
-Tenant B (identity-authz) verifies JWT
-
-- A: Identity-authz fetches JWKS from jose-ja (cross-tenant allowed)
-- B: Identity-authz CANNOT verify (tenant isolation enforced)
-- C: Depends on jose-ja admin configuration
-- D: Only works in dev mode
-```
+Answer: C
 
 ---
 
@@ -550,18 +536,20 @@ Tenant B (identity-authz) verifies JWT
 
 **But current codebase shows**:
 - ✅ ServerBuilder exists
-- ✅ TenantRegistrationService exists  
+- ✅ TenantRegistrationService exists
 - ✅ Registration handlers exist
 - ✅ Join request tables/repos exist
 - ❌ WithDefaultTenant() still referenced in copilot instructions (03-08.server-builder.instructions.md)
 
 **Question**: What is the ACTUAL blocker preventing jose-ja implementation RIGHT NOW?
 
-**A)** Nothing - jose-ja can start immediately (Phase 0 already done)  
-**B)** Documentation - Copilot instructions still reference WithDefaultTenant (confusing)  
-**C)** Testing - No E2E tests validate registration flow works correctly  
-**D)** Hash Service - Not integrated into ServerBuilder (passwords cannot be hashed)  
-**E)** Write-in: _______________________________________________________________
+**A)** Nothing - jose-ja can start immediately (Phase 0 already done)
+**B)** Documentation - Copilot instructions still reference WithDefaultTenant (confusing)
+**C)** Testing - No E2E tests validate registration flow works correctly
+**D)** Hash Service - Not integrated into ServerBuilder (passwords cannot be hashed)
+**E)** Write-in:
+
+Answer: B; fix copilot instructions to remove all references to default tenants
 
 **If A**: Plan's Phase 0 is redundant
 **If B**: Simple documentation fix
@@ -584,11 +572,13 @@ Tenant B (identity-authz) verifies JWT
 
 **Question**: Which cipher-im issues MUST be fixed before jose-ja implementation?
 
-**A)** ALL 4 issues (perfect alignment required)  
-**B)** Issues 1+2 only (demo tenant and E2E patterns)  
-**C)** Issue 3 only (Hash Service integration is blocker)  
-**D)** NONE (cipher-im is reference implementation, imperfections acceptable)  
-**E)** Write-in: _______________________________________________________________
+**A)** ALL 4 issues (perfect alignment required)
+**B)** Issues 1+2 only (demo tenant and E2E patterns)
+**C)** Issue 3 only (Hash Service integration is blocker)
+**D)** NONE (cipher-im is reference implementation, imperfections acceptable)
+**E)** Write-in:
+
+Answer: A
 
 **Implications**:
 - If A: 3-5 days additional cipher-im work before jose-ja
@@ -608,16 +598,13 @@ Tenant B (identity-authz) verifies JWT
 
 **Question**: If jose-ja migration reveals fundamental template design flaw, what is rollback strategy?
 
-**A)** Revert jose-ja changes, fix template, re-migrate jose-ja  
-**B)** Keep jose-ja with workaround, fix template for pki-ca  
-**C)** Pause all migrations, redesign template, re-migrate cipher-im AND jose-ja  
-**D)** No rollback - Template design is final (cipher-im validation sufficient)  
-**E)** Write-in: _______________________________________________________________
+**A)** Revert jose-ja changes, fix template, re-migrate jose-ja
+**B)** Keep jose-ja with workaround, fix template for pki-ca
+**C)** Pause all migrations, redesign template, re-migrate cipher-im AND jose-ja
+**D)** No rollback - Template design is final (cipher-im validation sufficient)
+**E)** Write-in:
 
-**Scenarios requiring rollback**:
-- Template doesn't support SAML (identity-idp requirement)
-- Template doesn't support certificate lifecycle (pki-ca requirement)
-- Template doesn't support key rotation webhooks (jose-ja requirement)
+Answer: D
 
 ---
 
@@ -632,11 +619,13 @@ Tenant B (identity-authz) verifies JWT
 
 **Question**: What is acceptable latency for registration endpoint?
 
-**A)** <100ms (same as login) - High performance required  
-**B)** <500ms (user can wait) - Reasonable for one-time operation  
-**C)** <2000ms (with progress indicator) - Acceptable for complex setup  
-**D)** <5000ms (async job) - Background processing, email confirmation  
-**E)** Write-in: _______________________________________________________________
+**A)** <100ms (same as login) - High performance required
+**B)** <500ms (user can wait) - Reasonable for one-time operation
+**C)** <2000ms (with progress indicator) - Acceptable for complex setup
+**D)** <5000ms (async job) - Background processing, email confirmation
+**E)** Write-in:
+
+Answer: B
 
 **Implications for database**:
 - If A: Need caching, optimistic locking, connection pooling
@@ -656,11 +645,13 @@ Tenant B (identity-authz) verifies JWT
 
 **Question**: What constitutes "perfect alignment" for cipher-im and jose-ja?
 
-**A)** Zero code duplication (all infrastructure in service-template)  
-**B)** Consistent API paths (/service/api/v1/*, /browser/api/v1/*, /admin/api/v1/*)  
-**C)** Identical registration flow (both use tenant join requests)  
-**D)** All copilot instructions followed (no violations in either service)  
-**E)** Write-in: _______________________________________________________________
+**A)** Zero code duplication (all infrastructure in service-template)
+**B)** Consistent API paths (/service/api/v1/*, /browser/api/v1/*, /admin/api/v1/*)
+**C)** Identical registration flow (both use tenant join requests)
+**D)** All copilot instructions followed (no violations in either service)
+**E)** Write-in: A, B, C
+
+Answer: E
 
 **Validation checklist** (which apply?):
 - [ ] Both services use ServerBuilder
@@ -682,11 +673,13 @@ Tenant B (identity-authz) verifies JWT
 
 **Question**: What percentage of questions must be answered to proceed with fixes-needed-PLAN execution?
 
-**A)** 100% (all questions answered) - No ambiguity allowed  
-**B)** 80% (critical questions answered) - Some design decisions can be deferred  
-**C)** 50% (blocking questions answered) - Iterative refinement acceptable  
-**D)** 0% (execute plan, refine on discovery) - Agile approach  
-**E)** Write-in: _______________________________________________________________
+**A)** 100% (all questions answered) - No ambiguity allowed
+**B)** 80% (critical questions answered) - Some design decisions can be deferred
+**C)** 50% (blocking questions answered) - Iterative refinement acceptable
+**D)** 0% (execute plan, refine on discovery) - Agile approach
+**E)** Write-in:
+
+Answer: A
 
 **Critical questions** (MUST answer before proceeding):
 - Q1.1: Registration response pattern

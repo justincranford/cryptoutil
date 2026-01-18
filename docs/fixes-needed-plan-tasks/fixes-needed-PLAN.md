@@ -61,12 +61,17 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 **Desired State**: NO default tenant pattern. ALL tenants created via user/client registration with explicit tenant creation OR join existing tenant flow.
 
-**Architectural Requirement**:
-- Users register via `/browser/api/v1/auth/register` or `/service/api/v1/auth/register`
+**Architectural Requirement** (from QUIZME Q1.1, Q1.2, Q2.1 answers):
+- Users register via `/browser/api/v1/register` or `/service/api/v1/register` (NOT /auth/register)
+- Registration endpoints are unauthenticated (rate-limited, template infrastructure)
+- User saved in pending_users table (NOT users table) until approved
 - Registration parameter: `tenant_id` (absence = create new, presence = request join)
-- If new tenant: User becomes admin, others request to join (requires admin approval)
+- If new tenant: User becomes admin upon approval, tenant created during approval
 - If join existing: Creates join request, requires admin authorization via `/admin/api/v1/join-requests/:id`
-- Tests use TestMain pattern to start service once per package, tests needing tenant MUST register user/client with tenant creation
+- HTTP 403 Forbidden returned for ALL authn endpoints until user approved
+- HTTP 401 Unauthorized returned if user rejected
+- NO session_token issued until user approved (removed from registration response)
+- Tests use TestMain pattern to start service once per package, tests needing tenant MUST register user via HTTP endpoint
 
 ---
 
@@ -145,15 +150,63 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 ---
 
-### 0.5 Create Tenant Join Requests Migration
+### 0.5 Create pending_users Table Migration (NEW)
 
 **Files**:
-- `internal/apps/template/service/server/repository/migrations/1005_tenant_join_requests.up.sql`
-- `internal/apps/template/service/server/repository/migrations/1005_tenant_join_requests.down.sql`
+- `internal/apps/template/service/server/repository/migrations/1005_pending_users.up.sql`
+- `internal/apps/template/service/server/repository/migrations/1005_pending_users.down.sql`
+
+**Rationale** (from QUIZME Q1.1 answer):
+- Users NOT saved in users table until approved
+- Saved in pending_users table during registration
+- Moved to users table only upon admin approval
+- HTTP 403 for all authn endpoints until approved
+- HTTP 401 if rejected
 
 **Schema**:
 ```sql
--- 1005_tenant_join_requests.up.sql
+-- 1005_pending_users.up.sql
+CREATE TABLE IF NOT EXISTS pending_users (
+    id TEXT PRIMARY KEY NOT NULL,
+    username TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    tenant_id TEXT,         -- NULL if creating new tenant
+    requested_tenant_name TEXT,  -- For new tenant creation
+    status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
+    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP,
+    processed_by TEXT,
+    rejection_reason TEXT,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    FOREIGN KEY (processed_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_users_username ON pending_users(username);
+CREATE INDEX IF NOT EXISTS idx_pending_users_status ON pending_users(status);
+CREATE INDEX IF NOT EXISTS idx_pending_users_tenant ON pending_users(tenant_id) WHERE tenant_id IS NOT NULL;
+
+-- 1005_pending_users.down.sql
+DROP TABLE IF EXISTS pending_users;
+```
+
+**Quality Gates**:
+1. Migration applies to PostgreSQL test container
+2. Migration applies to SQLite in-memory
+3. Migration rollback works (down migration)
+4. Tests verify schema constraints (CHECK, FOREIGN KEY)
+5. Evidence: Test output + commit hash
+
+---
+
+### 0.6 Create Tenant Join Requests Migration
+
+**Files**:
+- `internal/apps/template/service/server/repository/migrations/1006_tenant_join_requests.up.sql`
+- `internal/apps/template/service/server/repository/migrations/1006_tenant_join_requests.down.sql`
+
+**Schema**:
+```sql
+-- 1006_tenant_join_requests.up.sql
 CREATE TABLE IF NOT EXISTS tenant_join_requests (
     id TEXT PRIMARY KEY NOT NULL,
     user_id TEXT,           -- NULL for service client requests
