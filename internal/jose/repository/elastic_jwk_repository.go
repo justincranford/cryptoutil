@@ -20,6 +20,9 @@ type ElasticJWKRepository interface {
 	// Get retrieves an Elastic JWK by tenant ID, realm ID, and KID.
 	Get(ctx context.Context, tenantID, realmID googleUuid.UUID, kid string) (*domain.ElasticJWK, error)
 
+	// GetByID retrieves an Elastic JWK by its ID.
+	GetByID(ctx context.Context, elasticJWKID googleUuid.UUID) (*domain.ElasticJWK, error)
+
 	// List retrieves all Elastic JWKs for a tenant/realm with pagination.
 	List(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]domain.ElasticJWK, error)
 

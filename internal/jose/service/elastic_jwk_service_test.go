@@ -21,12 +21,12 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	"cryptoutil/internal/jose/domain"
+	"cryptoutil/internal/jose/repository"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
 )
 
 var (
@@ -525,4 +525,3 @@ func TestMapToJWAEncryptionAlgorithms(t *testing.T) {
 		})
 	}
 }
-
