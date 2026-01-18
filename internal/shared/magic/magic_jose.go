@@ -15,6 +15,15 @@ const (
 	JoseJAAdminPort = 9090
 )
 
+// JOSE Key Use Constants.
+const (
+	// JoseKeyUseSig indicates a key is used for signing (JWS).
+	JoseKeyUseSig = "sig"
+
+	// JoseKeyUseEnc indicates a key is used for encryption (JWE).
+	JoseKeyUseEnc = "enc"
+)
+
 // JOSE-JA Elastic Key Configuration.
 const (
 	// JoseJADefaultMaxMaterials is the default maximum number of material keys per elastic key.

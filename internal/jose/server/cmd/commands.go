@@ -14,9 +14,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilJoseServer "cryptoutil/internal/jose/server"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 

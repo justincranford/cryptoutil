@@ -10,6 +10,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -77,7 +78,7 @@ func (s *Server) handleJWKGenerate(c *fiber.Ctx) error {
 	)
 
 	// Generate JWK based on use (signing vs encryption).
-	if req.Use == "enc" {
+	if req.Use == cryptoutilMagic.JoseKeyUseEnc {
 		// Map GenerateAlgorithm to JWE encryption parameters.
 		enc, keyAlg := mapToEncryptionAlgorithms(alg)
 

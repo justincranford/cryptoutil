@@ -17,8 +17,9 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:embed migrations/*.sql
 // MigrationsFS contains embedded SQL migration files for JOSE repository.
+//
+//go:embed migrations/*.sql
 var MigrationsFS embed.FS
 
 // RunMigrations runs all database migrations for JOSE repository.
