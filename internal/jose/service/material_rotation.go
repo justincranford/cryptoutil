@@ -102,13 +102,28 @@ func (s *ElasticJWKService) RotateMaterial(ctx context.Context, tenantID, realmI
 
 	// Rotate atomically (retire old, insert new).
 	if err := s.materialRepo.RotateMaterial(ctx, elasticJWKID, newMaterial); err != nil {
+		s.logAuditFailure(ctx, tenantID, realmID, AuditOperationRotate, "elastic_jwk", elasticJWK.KID, err, map[string]any{
+			"elastic_jwk_id": elasticJWKID.String(),
+		})
+
 		return nil, fmt.Errorf("failed to rotate material: %w", err)
 	}
 
 	// Increment material count in elastic JWK.
 	if err := s.elasticRepo.IncrementMaterialCount(ctx, elasticJWKID); err != nil {
+		s.logAuditFailure(ctx, tenantID, realmID, AuditOperationRotate, "elastic_jwk", elasticJWK.KID, err, map[string]any{
+			"elastic_jwk_id": elasticJWKID.String(),
+		})
+
 		return nil, fmt.Errorf("failed to increment material count: %w", err)
 	}
+
+	// Log successful rotation.
+	s.logAuditSuccess(ctx, tenantID, realmID, AuditOperationRotate, "elastic_jwk", elasticJWK.KID, map[string]any{
+		"elastic_jwk_id": elasticJWKID.String(),
+		"material_kid":   materialKID,
+		"material_count": count + 1,
+	})
 
 	return &MaterialRotationResponse{
 		MaterialJWK: newMaterial,

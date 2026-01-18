@@ -27,6 +27,7 @@ type ElasticJWKService struct {
 	materialRepo repository.MaterialJWKRepository
 	jwkGenSvc    *cryptoutilJose.JWKGenService
 	barrierSvc   *cryptoutilBarrier.BarrierService
+	auditLogSvc  *AuditLogService // Optional: nil to disable audit logging.
 }
 
 // NewElasticJWKService creates a new ElasticJWKService.
@@ -42,6 +43,13 @@ func NewElasticJWKService(
 		jwkGenSvc:    jwkGenSvc,
 		barrierSvc:   barrierSvc,
 	}
+}
+
+// WithAuditLogging adds audit logging to the service.
+func (s *ElasticJWKService) WithAuditLogging(auditLogSvc *AuditLogService) *ElasticJWKService {
+	s.auditLogSvc = auditLogSvc
+
+	return s
 }
 
 // CreateElasticJWKRequest contains parameters for creating an Elastic JWK.
@@ -149,13 +157,33 @@ func (s *ElasticJWKService) CreateElasticJWK(ctx context.Context, req *CreateEla
 
 	// Store the Elastic JWK.
 	if err := s.elasticRepo.Create(ctx, elasticJWK); err != nil {
+		s.logAuditFailure(ctx, req.TenantID, req.RealmID, AuditOperationKeyGen, "elastic_jwk", kid, err, map[string]any{
+			"kty": req.KTY,
+			"alg": req.ALG,
+			"use": req.USE,
+		})
+
 		return nil, fmt.Errorf("failed to create elastic JWK: %w", err)
 	}
 
 	// Store the Material JWK.
 	if err := s.materialRepo.Create(ctx, materialJWK); err != nil {
+		s.logAuditFailure(ctx, req.TenantID, req.RealmID, AuditOperationKeyGen, "elastic_jwk", kid, err, map[string]any{
+			"kty": req.KTY,
+			"alg": req.ALG,
+			"use": req.USE,
+		})
+
 		return nil, fmt.Errorf("failed to create material JWK: %w", err)
 	}
+
+	// Log successful key generation.
+	s.logAuditSuccess(ctx, req.TenantID, req.RealmID, AuditOperationKeyGen, "elastic_jwk", kid, map[string]any{
+		"kty":          req.KTY,
+		"alg":          req.ALG,
+		"use":          req.USE,
+		"material_kid": materialKID,
+	})
 
 	return &CreateElasticJWKResponse{
 		ElasticJWK:  elasticJWK,
@@ -353,4 +381,22 @@ func mapToJWAEncryptionAlgorithms(alg string) (joseJwa.ContentEncryptionAlgorith
 	default:
 		return cryptoutilJose.EncInvalid, cryptoutilJose.AlgEncInvalid, fmt.Errorf("unsupported encryption algorithm: %s", alg)
 	}
+}
+
+// logAuditSuccess logs a successful operation if audit logging is enabled.
+func (s *ElasticJWKService) logAuditSuccess(ctx context.Context, tenantID, realmID googleUuid.UUID, operation, resourceType, resourceID string, metadata map[string]any) {
+	if s.auditLogSvc == nil {
+		return
+	}
+
+	_, _ = s.auditLogSvc.LogSuccess(ctx, tenantID, realmID, operation, resourceType, resourceID, metadata)
+}
+
+// logAuditFailure logs a failed operation if audit logging is enabled.
+func (s *ElasticJWKService) logAuditFailure(ctx context.Context, tenantID, realmID googleUuid.UUID, operation, resourceType, resourceID string, err error, metadata map[string]any) {
+	if s.auditLogSvc == nil {
+		return
+	}
+
+	_, _ = s.auditLogSvc.LogFailure(ctx, tenantID, realmID, operation, resourceType, resourceID, err, metadata)
 }

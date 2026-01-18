@@ -95,6 +95,9 @@ linters:
       # Exclude wrapcheck from jose handler adapter (Fiber HTTP response helpers).
       - path: "internal/jose/server/handler_adapter\\.go$"
         linters: [wrapcheck]
+      # Exclude wrapcheck from jose audit config handlers (Fiber HTTP response helpers).
+      - path: "internal/jose/server/audit_config_handlers\\.go$"
+        linters: [wrapcheck]
       # Exclude wrapcheck from jose server builder (template app Start/Shutdown delegation).
       - path: "internal/jose/server/server_builder\\.go$"
         linters: [wrapcheck]

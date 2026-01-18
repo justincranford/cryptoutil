@@ -88,6 +88,19 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServiceTempl
 		OTLPInstance:                instanceID,
 		UnsealMode:                  defaultUnsealMode,
 		UnsealFiles:                 []string{},
+		BrowserRealms:               []string{},
+		ServiceRealms:               []string{},
+		BrowserSessionCookie:        defaultBrowserSessionCookie,
+		BrowserSessionAlgorithm:     defaultBrowserSessionAlgorithm,
+		BrowserSessionJWSAlgorithm:  defaultBrowserSessionJWSAlgorithm,
+		BrowserSessionJWEAlgorithm:  defaultBrowserSessionJWEAlgorithm,
+		BrowserSessionExpiration:    defaultBrowserSessionExpiration,
+		ServiceSessionAlgorithm:     defaultServiceSessionAlgorithm,
+		ServiceSessionJWSAlgorithm:  defaultServiceSessionJWSAlgorithm,
+		ServiceSessionJWEAlgorithm:  defaultServiceSessionJWEAlgorithm,
+		ServiceSessionExpiration:    defaultServiceSessionExpiration,
+		SessionIdleTimeout:          defaultSessionIdleTimeout,
+		SessionCleanupInterval:      defaultSessionCleanupInterval,
 	}
 
 	// Validate configuration before returning.

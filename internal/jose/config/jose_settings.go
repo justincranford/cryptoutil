@@ -154,3 +154,19 @@ func NewDevSettings() *JoseServerSettings {
 		AuditSamplingRate:         defaultAuditSamplingRate,
 	}
 }
+
+// NewTestSettings creates settings for testing without calling Parse().
+// This bypasses pflag's global FlagSet to allow multiple config creations in tests.
+// Use this in tests instead of NewDevSettings to avoid "flag redefined" panics.
+func NewTestSettings() *JoseServerSettings {
+	return &JoseServerSettings{
+		ServiceTemplateServerSettings: cryptoutilTemplateConfig.NewTestConfig(
+			cryptoutilSharedMagic.IPv4Loopback,
+			0, // Dynamic port allocation for tests.
+			true,
+		),
+		MaxMaterialsPerElasticKey: defaultMaxMaterialsPerElasticKey,
+		AuditEnabled:              defaultAuditEnabled,
+		AuditSamplingRate:         defaultAuditSamplingRate,
+	}
+}

@@ -27,21 +27,22 @@ import (
 // JoseServer represents the JOSE Authority Server using the service template.
 // This wraps the service-template Application with JOSE-specific functionality.
 type JoseServer struct {
-	app               *cryptoutilTemplateServer.Application
-	db                *gorm.DB
-	telemetryService  *cryptoutilTelemetry.TelemetryService
-	jwkGenService     *cryptoutilJose.JWKGenService
-	barrierService    *cryptoutilTemplateBarrier.BarrierService
-	sessionManager    *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService      cryptoutilTemplateService.RealmService
-	realmRepo         cryptoutilTemplateRepository.TenantRealmRepository
-	elasticJWKRepo    repository.ElasticJWKRepository
-	materialJWKRepo   repository.MaterialJWKRepository
-	elasticJWKService *service.ElasticJWKService
-	auditConfigRepo   repository.AuditConfigRepository
-	auditLogRepo      repository.AuditLogRepository
-	keyStore          *KeyStore // In-memory key store for legacy API compatibility.
-	cfg               *cryptoutilJoseConfig.JoseServerSettings
+	app                *cryptoutilTemplateServer.Application
+	db                 *gorm.DB
+	telemetryService   *cryptoutilTelemetry.TelemetryService
+	jwkGenService      *cryptoutilJose.JWKGenService
+	barrierService     *cryptoutilTemplateBarrier.BarrierService
+	sessionManager     *cryptoutilTemplateBusinessLogic.SessionManagerService
+	realmService       cryptoutilTemplateService.RealmService
+	realmRepo          cryptoutilTemplateRepository.TenantRealmRepository
+	elasticJWKRepo     repository.ElasticJWKRepository
+	materialJWKRepo    repository.MaterialJWKRepository
+	elasticJWKService  *service.ElasticJWKService
+	auditConfigRepo    repository.AuditConfigRepository
+	auditLogRepo       repository.AuditLogRepository
+	auditConfigService *service.AuditConfigService
+	keyStore           *KeyStore // In-memory key store for legacy API compatibility.
+	cfg                *cryptoutilJoseConfig.JoseServerSettings
 }
 
 // NewFromConfig creates a new JOSE server from JoseServerSettings.
@@ -61,12 +62,13 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 
 	// Capture repositories and services from route registration closure.
 	var (
-		elasticJWKRepo    repository.ElasticJWKRepository
-		materialJWKRepo   repository.MaterialJWKRepository
-		elasticJWKService *service.ElasticJWKService
-		auditConfigRepo   repository.AuditConfigRepository
-		auditLogRepo      repository.AuditLogRepository
-		keyStore          *KeyStore
+		elasticJWKRepo     repository.ElasticJWKRepository
+		materialJWKRepo    repository.MaterialJWKRepository
+		elasticJWKService  *service.ElasticJWKService
+		auditConfigRepo    repository.AuditConfigRepository
+		auditLogRepo       repository.AuditLogRepository
+		auditConfigService *service.AuditConfigService
+		keyStore           *KeyStore
 	)
 
 	// Register JOSE-specific public routes.
@@ -79,6 +81,9 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 		materialJWKRepo = repository.NewMaterialJWKRepository(res.DB)
 		auditConfigRepo = repository.NewAuditConfigGormRepository(res.DB)
 		auditLogRepo = repository.NewAuditLogGormRepository(res.DB)
+
+		// Create AuditConfigService.
+		auditConfigService = service.NewAuditConfigService(auditConfigRepo)
 
 		// Create ElasticJWKService.
 		elasticJWKService = service.NewElasticJWKService(
@@ -97,6 +102,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 			res.TelemetryService,
 			res.JWKGenService,
 			elasticJWKService,
+			auditConfigService,
 			keyStore,
 			cfg,
 		)
@@ -110,21 +116,22 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 
 	// Create JOSE server wrapper.
 	server := &JoseServer{
-		app:               resources.Application,
-		db:                resources.DB,
-		telemetryService:  resources.TelemetryService,
-		jwkGenService:     resources.JWKGenService,
-		barrierService:    resources.BarrierService,
-		sessionManager:    resources.SessionManager,
-		realmService:      resources.RealmService,
-		realmRepo:         resources.RealmRepository,
-		elasticJWKRepo:    elasticJWKRepo,
-		materialJWKRepo:   materialJWKRepo,
-		elasticJWKService: elasticJWKService,
-		auditConfigRepo:   auditConfigRepo,
-		auditLogRepo:      auditLogRepo,
-		keyStore:          keyStore,
-		cfg:               cfg,
+		app:                resources.Application,
+		db:                 resources.DB,
+		telemetryService:   resources.TelemetryService,
+		jwkGenService:      resources.JWKGenService,
+		barrierService:     resources.BarrierService,
+		sessionManager:     resources.SessionManager,
+		realmService:       resources.RealmService,
+		realmRepo:          resources.RealmRepository,
+		elasticJWKRepo:     elasticJWKRepo,
+		materialJWKRepo:    materialJWKRepo,
+		elasticJWKService:  elasticJWKService,
+		auditConfigRepo:    auditConfigRepo,
+		auditLogRepo:       auditLogRepo,
+		auditConfigService: auditConfigService,
+		keyStore:           keyStore,
+		cfg:                cfg,
 	}
 
 	return server, nil
@@ -137,6 +144,7 @@ func registerJosePublicRoutes(
 	telemetryService *cryptoutilTelemetry.TelemetryService,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	elasticJWKService *service.ElasticJWKService,
+	auditConfigService *service.AuditConfigService,
 	keyStore *KeyStore,
 	_ *cryptoutilJoseConfig.JoseServerSettings,
 ) error {
@@ -147,6 +155,9 @@ func registerJosePublicRoutes(
 		elasticJWKService: elasticJWKService,
 		keyStore:          keyStore,
 	}
+
+	// Create audit config handlers.
+	auditH := newAuditConfigHandlers(auditConfigService)
 
 	// Well-known endpoints (no auth required for public key discovery).
 	app.Get("/.well-known/jwks.json", h.handleJWKS)
@@ -184,6 +195,13 @@ func registerJosePublicRoutes(
 
 	// Elastic JWK JWKS endpoint for browser clients.
 	browserV1.Get("/elastic-jwks/:kid/.well-known/jwks.json", h.handleElasticJWKS)
+
+	// Admin API routes (browser clients only).
+	// TODO: Add admin permission middleware.
+	browserAdminV1 := app.Group("/browser/api/v1/admin")
+	browserAdminV1.Get("/audit-config", auditH.handleGetAuditConfig)
+	browserAdminV1.Get("/audit-config/:operation", auditH.handleGetAuditConfigByOperation)
+	browserAdminV1.Put("/audit-config", auditH.handleSetAuditConfig)
 
 	// Legacy API routes (for backward compatibility).
 	legacyV1 := app.Group("/jose/v1")

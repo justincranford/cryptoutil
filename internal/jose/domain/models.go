@@ -68,6 +68,7 @@ type AuditLogEntry struct {
 	TenantID     googleUuid.UUID  `gorm:"type:text;not null;index:idx_audit_log_tenant_realm"`
 	RealmID      googleUuid.UUID  `gorm:"type:text;not null;index:idx_audit_log_tenant_realm"`
 	UserID       *googleUuid.UUID `gorm:"type:text"`
+	SessionID    *googleUuid.UUID `gorm:"type:text"`                                        // Optional: session that performed the operation.
 	Operation    string           `gorm:"type:text;not null;index:idx_audit_log_operation"` // encrypt, decrypt, sign, verify, keygen, rotate.
 	ResourceType string           `gorm:"type:text;not null;index:idx_audit_log_resource,composite:resource_id"`
 	ResourceID   string           `gorm:"type:text;not null;index:idx_audit_log_resource,composite:resource_type"`

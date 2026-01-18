@@ -77,8 +77,19 @@ func (s *ElasticJWKService) Sign(ctx context.Context, req *SignRequest) (*SignRe
 	// Sign using the shared crypto utility.
 	jwsMessage, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{privateJWK}, req.Payload)
 	if err != nil {
+		s.logAuditFailure(ctx, req.TenantID, req.RealmID, AuditOperationSign, "elastic_jwk", elasticJWK.KID, err, map[string]any{
+			"elastic_jwk_id": req.ElasticJWKID.String(),
+			"material_kid":   activeMaterial.MaterialKID,
+		})
+
 		return nil, fmt.Errorf("failed to sign payload: %w", err)
 	}
+
+	// Log successful sign operation.
+	s.logAuditSuccess(ctx, req.TenantID, req.RealmID, AuditOperationSign, "elastic_jwk", elasticJWK.KID, map[string]any{
+		"elastic_jwk_id": req.ElasticJWKID.String(),
+		"material_kid":   activeMaterial.MaterialKID,
+	})
 
 	return &SignResponse{
 		JWSMessage:      jwsMessage,
@@ -148,8 +159,19 @@ func (s *ElasticJWKService) Encrypt(ctx context.Context, req *EncryptRequest) (*
 	// Encrypt using the shared crypto utility.
 	jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{publicJWK}, req.Plaintext)
 	if err != nil {
+		s.logAuditFailure(ctx, req.TenantID, req.RealmID, AuditOperationEncrypt, "elastic_jwk", elasticJWK.KID, err, map[string]any{
+			"elastic_jwk_id": req.ElasticJWKID.String(),
+			"material_kid":   activeMaterial.MaterialKID,
+		})
+
 		return nil, fmt.Errorf("failed to encrypt plaintext: %w", err)
 	}
+
+	// Log successful encrypt operation.
+	s.logAuditSuccess(ctx, req.TenantID, req.RealmID, AuditOperationEncrypt, "elastic_jwk", elasticJWK.KID, map[string]any{
+		"elastic_jwk_id": req.ElasticJWKID.String(),
+		"material_kid":   activeMaterial.MaterialKID,
+	})
 
 	return &EncryptResponse{
 		JWEMessage:      jweMessage,
@@ -222,8 +244,19 @@ func (s *ElasticJWKService) Verify(ctx context.Context, req *VerifyRequest) (*Ve
 	// Verify using the shared crypto utility.
 	payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{publicJWK}, req.JWSMessageBytes)
 	if err != nil {
+		s.logAuditFailure(ctx, req.TenantID, elasticJWK.RealmID, AuditOperationVerify, "elastic_jwk", elasticJWK.KID, err, map[string]any{
+			"elastic_jwk_id": elasticJWK.ID.String(),
+			"material_kid":   material.MaterialKID,
+		})
+
 		return nil, fmt.Errorf("failed to verify JWS signature: %w", err)
 	}
+
+	// Log successful verify operation.
+	s.logAuditSuccess(ctx, req.TenantID, elasticJWK.RealmID, AuditOperationVerify, "elastic_jwk", elasticJWK.KID, map[string]any{
+		"elastic_jwk_id": elasticJWK.ID.String(),
+		"material_kid":   material.MaterialKID,
+	})
 
 	return &VerifyResponse{
 		Payload:     payload,
@@ -295,8 +328,19 @@ func (s *ElasticJWKService) Decrypt(ctx context.Context, req *DecryptRequest) (*
 	// Decrypt using the shared crypto utility.
 	plaintext, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{privateJWK}, req.JWEMessageBytes)
 	if err != nil {
+		s.logAuditFailure(ctx, req.TenantID, elasticJWK.RealmID, AuditOperationDecrypt, "elastic_jwk", elasticJWK.KID, err, map[string]any{
+			"elastic_jwk_id": elasticJWK.ID.String(),
+			"material_kid":   material.MaterialKID,
+		})
+
 		return nil, fmt.Errorf("failed to decrypt JWE message: %w", err)
 	}
+
+	// Log successful decrypt operation.
+	s.logAuditSuccess(ctx, req.TenantID, elasticJWK.RealmID, AuditOperationDecrypt, "elastic_jwk", elasticJWK.KID, map[string]any{
+		"elastic_jwk_id": elasticJWK.ID.String(),
+		"material_kid":   material.MaterialKID,
+	})
 
 	return &DecryptResponse{
 		Plaintext:   plaintext,
