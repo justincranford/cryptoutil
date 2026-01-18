@@ -25,14 +25,17 @@ import (
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
+	ctx := context.Background()
+
 	// Open SQL database first with modernc driver.
 	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	require.NoError(t, err)
 
 	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	sqlDB.SetMaxOpenConns(5)

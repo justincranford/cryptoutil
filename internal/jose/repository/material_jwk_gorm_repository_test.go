@@ -28,15 +28,16 @@ import (
 func setupMaterialJWKTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
+	ctx := context.Background()
 	dsn := "file::memory:?cache=shared"
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
 
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	sqlDB.SetMaxOpenConns(5)
@@ -60,7 +61,7 @@ func setupMaterialJWKTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	})
 
 	return db

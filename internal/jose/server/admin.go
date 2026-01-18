@@ -159,6 +159,7 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	go func() {
 		// Wait for response to be sent.
 		const shutdownDelay = 100 * time.Millisecond
+
 		time.Sleep(shutdownDelay)
 
 		// Shutdown server gracefully.

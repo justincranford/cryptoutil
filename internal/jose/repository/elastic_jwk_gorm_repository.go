@@ -31,12 +31,14 @@ func (r *elasticJWKGormRepository) Create(ctx context.Context, elasticJWK *domai
 	if err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).Create(elasticJWK).Error; err != nil {
 		return fmt.Errorf("failed to create elastic JWK: %w", err)
 	}
+
 	return nil
 }
 
 // Get retrieves an Elastic JWK by tenant ID, realm ID, and KID with tenant enforcement.
 func (r *elasticJWKGormRepository) Get(ctx context.Context, tenantID, realmID googleUuid.UUID, kid string) (*domain.ElasticJWK, error) {
 	var elasticJWK domain.ElasticJWK
+
 	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("tenant_id = ? AND realm_id = ? AND kid = ?", tenantID, realmID, kid).
 		First(&elasticJWK).
@@ -45,6 +47,7 @@ func (r *elasticJWKGormRepository) Get(ctx context.Context, tenantID, realmID go
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("elastic JWK not found: %w", err)
 		}
+
 		return nil, fmt.Errorf("failed to get elastic JWK: %w", err)
 	}
 
@@ -54,6 +57,7 @@ func (r *elasticJWKGormRepository) Get(ctx context.Context, tenantID, realmID go
 // List retrieves all Elastic JWKs for a tenant/realm with pagination.
 func (r *elasticJWKGormRepository) List(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]domain.ElasticJWK, error) {
 	var elasticJWKs []domain.ElasticJWK
+
 	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).
 		Offset(offset).

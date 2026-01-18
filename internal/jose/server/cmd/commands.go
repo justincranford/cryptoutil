@@ -46,7 +46,7 @@ Examples:
 
   # Start with custom bind address and port
   jose-server start --bind 0.0.0.0 --port 8090`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -125,7 +125,7 @@ func NewHealthCommand() *cobra.Command {
 		Use:   "health",
 		Short: "Check JOSE server health",
 		Long:  "Send a health check request to the JOSE Authority Server.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			// NOTE: Health check client will be implemented when remote health checking is needed.
 			// For local health checks, use admin endpoints directly (e.g., curl https://127.0.0.1:9090/admin/v1/livez).
 			fmt.Printf("Checking health of JOSE server at %s\n", serverURL)

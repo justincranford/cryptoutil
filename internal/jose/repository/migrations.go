@@ -6,6 +6,7 @@ package repository
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -17,6 +18,7 @@ import (
 )
 
 //go:embed migrations/*.sql
+// MigrationsFS contains embedded SQL migration files for JOSE repository.
 var MigrationsFS embed.FS
 
 // RunMigrations runs all database migrations for JOSE repository.
@@ -32,6 +34,7 @@ func RunMigrations(db *gorm.DB, driverName string) error {
 	}
 
 	var databaseDriver database.Driver
+
 	switch driverName {
 	case "postgres", "postgresql":
 		databaseDriver, err = pgx.WithInstance(sqlDB, &pgx.Config{})
@@ -52,7 +55,7 @@ func RunMigrations(db *gorm.DB, driverName string) error {
 		return fmt.Errorf("failed to create migrator: %w", err)
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 

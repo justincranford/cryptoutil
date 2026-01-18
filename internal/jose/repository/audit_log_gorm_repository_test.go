@@ -25,14 +25,17 @@ import (
 func setupAuditLogTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
+	ctx := context.Background()
+
 	// Open SQL database first with modernc driver.
 	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	require.NoError(t, err)
 
 	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	sqlDB.SetMaxOpenConns(5)
@@ -402,6 +405,7 @@ func TestAuditLogGormRepository_DeleteOlderThan_Partial(t *testing.T) {
 
 	// Create new entries after cutoff.
 	time.Sleep(10 * time.Millisecond)
+
 	for i := 0; i < 2; i++ {
 		entry := createTestAuditLogEntry(tenantID, realmID, "decrypt")
 		err := repo.Create(ctx, entry)
@@ -472,10 +476,12 @@ func TestAuditLogGormRepository_CreateWithSampling_Probabilistic(t *testing.T) {
 
 	// With 0.5 sampling rate, should create roughly half.
 	createdCount := 0
+
 	for i := 0; i < 100; i++ {
 		entry := createTestAuditLogEntry(tenantID, realmID, "encrypt")
 		created, err := repo.CreateWithSampling(ctx, entry, 0.5)
 		require.NoError(t, err)
+
 		if created {
 			createdCount++
 		}

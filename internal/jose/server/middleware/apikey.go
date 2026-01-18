@@ -192,8 +192,8 @@ func SecureCompare(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-// ValidateAPIKeyFromStore validates an API key against a key store.
-// This is a helper for integrating with dynamic key storage.
+// APIKeyStore is an interface for integrating with dynamic key storage.
+// It validates an API key against a key store.
 type APIKeyStore interface {
 	GetClientByAPIKey(ctx context.Context, apiKey string) (clientName string, found bool, err error)
 }

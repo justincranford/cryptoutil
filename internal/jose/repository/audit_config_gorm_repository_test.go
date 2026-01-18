@@ -21,17 +21,27 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 )
 
+// Test operation constants.
+const (
+	testOpEncrypt = "encrypt"
+	testOpKeygen  = "keygen"
+	testOpRotate  = "rotate"
+)
+
 func setupAuditConfigTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
+
+	ctx := context.Background()
 
 	// Open SQL database first with modernc driver.
 	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	require.NoError(t, err)
 
 	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
-	_, err = sqlDB.Exec("PRAGMA busy_timeout = 30000;")
+
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
 	sqlDB.SetMaxOpenConns(5)
@@ -61,7 +71,7 @@ func TestAuditConfigGormRepository_Get(t *testing.T) {
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
-	operation := "encrypt"
+	operation := testOpEncrypt
 
 	// Create config.
 	config := &domain.AuditConfig{
@@ -143,7 +153,7 @@ func TestAuditConfigGormRepository_Upsert_Create(t *testing.T) {
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
-	operation := "keygen"
+	operation := testOpKeygen
 
 	config := &domain.AuditConfig{
 		TenantID:     tenantID,
@@ -169,7 +179,7 @@ func TestAuditConfigGormRepository_Upsert_Update(t *testing.T) {
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
-	operation := "rotate"
+	operation := testOpRotate
 
 	// Create config.
 	config := &domain.AuditConfig{
@@ -309,7 +319,7 @@ func TestAuditConfigGormRepository_TenantIsolation(t *testing.T) {
 
 	tenant1 := googleUuid.New()
 	tenant2 := googleUuid.New()
-	operation := "encrypt"
+	operation := testOpEncrypt
 
 	// Create config for tenant1.
 	config1 := &domain.AuditConfig{
@@ -360,7 +370,7 @@ func TestAuditConfigGormRepository_WithTransaction(t *testing.T) {
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
-	operation := "keygen"
+	operation := testOpKeygen
 
 	// Create config within transaction.
 	tx := db.Begin()
@@ -394,7 +404,7 @@ func TestAuditConfigGormRepository_WithTransaction_Rollback(t *testing.T) {
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
-	operation := "rotate"
+	operation := testOpRotate
 
 	// Create config within transaction.
 	tx := db.Begin()

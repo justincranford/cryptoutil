@@ -2,6 +2,7 @@
 //
 //
 
+// Package repository provides data access layer implementations for JOSE domain models.
 package repository
 
 import (
@@ -35,11 +36,13 @@ func (r *AuditConfigGormRepository) Get(ctx context.Context, tenantID googleUuid
 	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
 
 	var config domain.AuditConfig
+
 	err := db.WithContext(ctx).Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).First(&config).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("audit config not found for tenant %s operation %s", tenantID, operation)
 		}
+
 		return nil, fmt.Errorf("failed to get audit config: %w", err)
 	}
 
@@ -51,6 +54,7 @@ func (r *AuditConfigGormRepository) GetAll(ctx context.Context, tenantID googleU
 	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
 
 	var configs []domain.AuditConfig
+
 	err := db.WithContext(ctx).Where("tenant_id = ?", tenantID.String()).Find(&configs).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get audit configs: %w", err)

@@ -77,11 +77,13 @@ func (r *AuditLogGormRepository) GetByID(ctx context.Context, id googleUuid.UUID
 	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
 
 	var entry domain.AuditLogEntry
+
 	err := db.WithContext(ctx).Where("id = ?", id.String()).First(&entry).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("audit log entry not found: %s", id)
 		}
+
 		return nil, fmt.Errorf("failed to get audit log entry: %w", err)
 	}
 
@@ -93,6 +95,7 @@ func (r *AuditLogGormRepository) ListByTenantRealm(ctx context.Context, tenantID
 	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
 
 	var entries []domain.AuditLogEntry
+
 	err := db.WithContext(ctx).
 		Where("tenant_id = ? AND realm_id = ?", tenantID.String(), realmID.String()).
 		Order("created_at DESC").
@@ -111,6 +114,7 @@ func (r *AuditLogGormRepository) ListByOperation(ctx context.Context, tenantID g
 	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
 
 	var entries []domain.AuditLogEntry
+
 	err := db.WithContext(ctx).
 		Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).
 		Order("created_at DESC").
@@ -129,6 +133,7 @@ func (r *AuditLogGormRepository) ListByResource(ctx context.Context, resourceTyp
 	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
 
 	var entries []domain.AuditLogEntry
+
 	err := db.WithContext(ctx).
 		Where("resource_type = ? AND resource_id = ?", resourceType, resourceID).
 		Order("created_at DESC").
@@ -150,6 +155,7 @@ func (r *AuditLogGormRepository) ListByTimeRange(ctx context.Context, tenantID g
 	endMillis := end.UnixMilli()
 
 	var entries []domain.AuditLogEntry
+
 	err := db.WithContext(ctx).
 		Where("tenant_id = ? AND created_at >= ? AND created_at <= ?", tenantID.String(), startMillis, endMillis).
 		Order("created_at DESC").
@@ -168,6 +174,7 @@ func (r *AuditLogGormRepository) Count(ctx context.Context, tenantID googleUuid.
 	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
 
 	var count int64
+
 	err := db.WithContext(ctx).Model(&domain.AuditLogEntry{}).Where("tenant_id = ?", tenantID.String()).Count(&count).Error
 	if err != nil {
 		return 0, fmt.Errorf("failed to count audit log entries: %w", err)
