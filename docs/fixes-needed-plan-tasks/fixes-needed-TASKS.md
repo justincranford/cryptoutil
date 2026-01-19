@@ -109,48 +109,21 @@
 
 ---
 
-### 0.5 Create Tenant Join Requests Migration
-**Files**: `internal/apps/template/service/server/repository/migrations/1005_tenant_join_requests.{up,down}.sql`
+### 0.5 REMOVED - pending_users table is sufficient (per Q5.1)
 
-- [ ] 0.5.1 Create up migration with schema (id, user_id, client_id, tenant_id, status, timestamps)
-- [ ] 0.5.2 Create down migration
-- [ ] 0.5.3 Test migration applies to PostgreSQL
-- [ ] 0.5.4 Test migration applies to SQLite
-- [ ] 0.5.5 Verify migration numbers sequential (1001-1004 exist, adding 1005)
-
-**Evidence**: Migration applies successfully to both databases
+**User Decision**: "WTF is tenant_join_requests (1006)? Only pending_users (1005) needed?"
 
 ---
 
-### 0.6 Implement Tenant Join Request Repository
-**File**: `internal/apps/template/service/server/repository/tenant_join_request_repository.go`
+### 0.6 REMOVED - TenantJoinRequestRepository not needed
 
-- [ ] 0.6.1 Create TenantJoinRequestRepository interface
-- [ ] 0.6.2 Implement Create(ctx, request) error
-- [ ] 0.6.3 Implement GetByID(ctx, id, tenantID) (*TenantJoinRequest, error)
-- [ ] 0.6.4 Implement ListByTenant(ctx, tenantID, status, page, size) ([]*TenantJoinRequest, int, error)
-- [ ] 0.6.5 Implement Update(ctx, request) error
-- [ ] 0.6.6 **CRITICAL: Filter by tenant_id ONLY (NOT realm_id)**
-- [ ] 0.6.7 Write unit tests (≥98% coverage)
-- [ ] 0.6.8 Run mutation testing (≥98% score)
-
-**Evidence**: Coverage ≥98%, mutation ≥98%, NO realm_id filtering
+**User Decision**: Removed with migration 1005
 
 ---
 
-### 0.7 Implement Tenant Registration Service
-**File**: `internal/apps/template/service/server/businesslogic/tenant_registration_service.go`
+### 0.7 REMOVED - Tenant Registration Service simplified
 
-- [ ] 0.7.1 Create TenantRegistrationService interface
-- [ ] 0.7.2 Implement RegisterUserWithTenant(ctx, username, passwordHash, tenantID) (*RegisterResult, error)
-- [ ] 0.7.3 Implement RegisterClientWithTenant(ctx, clientID, clientSecretHash, tenantID) (*RegisterResult, error)
-- [ ] 0.7.4 Implement AuthorizeJoinRequest(ctx, adminUserID, joinRequestID, approve) error
-- [ ] 0.7.5 Implement ListJoinRequests(ctx, tenantID, status, page, size) ([]*TenantJoinRequest, int, error)
-- [ ] 0.7.6 **CRITICAL: Use cryptoutilMagic.TestPassword in tests (NO hardcoded passwords)**
-- [ ] 0.7.7 Write unit tests (≥95% coverage)
-- [ ] 0.7.8 Run mutation testing (≥85% score)
-
-**Evidence**: Coverage ≥95%, mutation ≥85%, NO hardcoded passwords
+**User Decision**: Simplified to use pending_users table only
 
 ---
 

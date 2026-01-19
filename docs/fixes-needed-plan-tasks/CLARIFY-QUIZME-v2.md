@@ -23,13 +23,13 @@
 
 **Options**:
 
-A. **Unique within pending_users only** - Same username can exist in both tables (pending + users)  
-B. **Unique across pending_users + users** - Database constraint prevents duplicates  
-C. **Unique per tenant within pending_users** - Same username allowed for different tenants  
-D. **No uniqueness constraint** - Application logic handles duplicates  
-E. **Write-in**: _______
+A. **Unique within pending_users only** - Same username can exist in both tables (pending + users)
+B. **Unique across pending_users + users** - Database constraint prevents duplicates
+C. **Unique per tenant within pending_users** - Same username allowed for different tenants
+D. **No uniqueness constraint** - Application logic handles duplicates
+E. **Write-in**: Unique per tenant across users and pending_users
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -41,13 +41,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **PRIMARY KEY (id) only** - Minimal indexes  
-B. **PRIMARY KEY (id), INDEX (username)** - Fast login checks  
-C. **PRIMARY KEY (id), INDEX (username), INDEX (tenant_id), INDEX (status)** - All query patterns  
-D. **PRIMARY KEY (id), UNIQUE INDEX (username, tenant_id), INDEX (status, requested_at)** - Composite indexes  
-E. **Write-in**: _______
+A. **PRIMARY KEY (id) only** - Minimal indexes
+B. **PRIMARY KEY (id), INDEX (username)** - Fast login checks
+C. **PRIMARY KEY (id), INDEX (username), INDEX (tenant_id), INDEX (status)** - All query patterns
+D. **PRIMARY KEY (id), UNIQUE INDEX (username, tenant_id), INDEX (status, requested_at)** - Composite indexes
+E. **Write-in**: you figure it out!!!
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -59,13 +59,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Username must be valid email** - Validate email format, send verification email  
-B. **Username can be non-email** - Add separate `email` field to pending_users  
-C. **Username email validation optional** - Accept both email and non-email usernames  
-D. **Username email validation per realm** - Email realm requires email, password realm allows non-email  
-E. **Write-in**: _______
+A. **Username must be valid email** - Validate email format, send verification email
+B. **Username can be non-email** - Add separate `email` field to pending_users
+C. **Username email validation optional** - Accept both email and non-email usernames
+D. **Username email validation per realm** - Email realm requires email, password realm allows non-email
+E. **Write-in**: Email/password is a different realm, not implemented yet
 
-**Answer**: ❓
+**Answer**:  E
 
 ---
 
@@ -77,13 +77,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No expiration** - Entries remain until explicitly approved/rejected  
-B. **30-day expiration** - Auto-delete after 30 days, send email reminder at 7 days  
-C. **90-day expiration** - Auto-delete after 90 days, no reminders  
-D. **Configurable expiration** - YAML config: `pending_users_expiration_days: 30`  
-E. **Write-in**: _______
+A. **No expiration** - Entries remain until explicitly approved/rejected
+B. **30-day expiration** - Auto-delete after 30 days, send email reminder at 7 days
+C. **90-day expiration** - Auto-delete after 90 days, no reminders
+D. **Configurable expiration** - YAML config: `pending_users_expiration_days: 30`
+E. **Write-in**: D, but specify in hours not days
 
-**Answer**: ❓
+**Answer**:  E
 
 ---
 
@@ -97,13 +97,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Template infrastructure** - All 9 services get same admin dashboard APIs  
-B. **Domain-specific** - Each service implements custom admin dashboard (jose-ja, cipher-im, etc.)  
-C. **Hybrid** - Template provides base GET/POST, domain adds custom fields/validation  
-D. **External service** - Separate admin-dashboard service manages all 9 services  
-E. **Write-in**: _______
+A. **Template infrastructure** - All 9 services get same admin dashboard APIs
+B. **Domain-specific** - Each service implements custom admin dashboard (jose-ja, cipher-im, etc.)
+C. **Hybrid** - Template provides base GET/POST, domain adds custom fields/validation
+D. **External service** - Separate admin-dashboard service manages all 9 services
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -115,13 +115,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No email notifications** - Users poll status via login attempts (HTTP 403/401 responses)  
-B. **Email notifications with SMTP config** - Template infrastructure with configurable SMTP  
-C. **Email notifications via external service** - Queue email jobs to external email service  
-D. **Email notifications optional per deployment** - YAML config: `email_notifications_enabled: true/false`  
-E. **Write-in**: _______
+A. **No email notifications** - Users poll status via login attempts (HTTP 403/401 responses)
+B. **Email notifications with SMTP config** - Template infrastructure with configurable SMTP
+C. **Email notifications via external service** - Queue email jobs to external email service
+D. **Email notifications optional per deployment** - YAML config: `email_notifications_enabled: true/false`
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -133,13 +133,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No webhooks** - Keep template simple  
-B. **Webhooks with configurable URLs** - YAML config: `webhook_url: https://example.com/hooks/user-approved`  
-C. **Webhooks with retry logic** - Template provides reliable delivery with exponential backoff  
-D. **Webhooks via event bus** - Template publishes events to NATS/Kafka/Redis Streams  
-E. **Write-in**: _______
+A. **No webhooks** - Keep template simple
+B. **Webhooks with configurable URLs** - YAML config: `webhook_url: https://example.com/hooks/user-approved`
+C. **Webhooks with retry logic** - Template provides reliable delivery with exponential backoff
+D. **Webhooks via event bus** - Template publishes events to NATS/Kafka/Redis Streams
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -151,13 +151,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No status API** - User polls via login attempts (HTTP 403 = pending, HTTP 401 = rejected, HTTP 200 = approved)  
-B. **Status API with registration ID** - `/browser/api/v1/registration/:id/status` returns pending/approved/rejected  
-C. **Status API with username** - `/browser/api/v1/registration/status?username=user@example.com` (security risk?)  
-D. **Status API with magic link** - Email contains unique status check URL (most secure)  
-E. **Write-in**: _______
+A. **No status API** - User polls via login attempts (HTTP 403 = pending, HTTP 401 = rejected, HTTP 200 = approved)
+B. **Status API with registration ID** - `/browser/api/v1/registration/:id/status` returns pending/approved/rejected
+C. **Status API with username** - `/browser/api/v1/registration/status?username=user@example.com` (security risk?)
+D. **Status API with magic link** - Email contains unique status check URL (most secure)
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -171,13 +171,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Per IP address only** - 10 registrations per IP per hour  
-B. **Per username only** - 3 registrations per username per hour (prevent username squatting)  
-C. **Both IP and username** - 10/hour per IP AND 3/hour per username (most restrictive)  
-D. **Per IP with CAPTCHA after threshold** - 10/hour per IP, require CAPTCHA after 3 attempts  
-E. **Write-in**: _______
+A. **Per IP address only** - 10 registrations per IP per hour
+B. **Per username only** - 3 registrations per username per hour (prevent username squatting)
+C. **Both IP and username** - 10/hour per IP AND 3/hour per username (most restrictive)
+D. **Per IP with CAPTCHA after threshold** - 10/hour per IP, require CAPTCHA after 3 attempts
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -189,13 +189,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **In-memory (sync.Map)** - Simple, single-node only, lost on restart  
-B. **Redis** - Distributed, requires Redis dependency (adds complexity)  
-C. **PostgreSQL** - Leverages existing DB, slower than Redis but consistent  
-D. **SQLite** - For SQLite deployments use in-memory, PostgreSQL deployments use PostgreSQL  
-E. **Write-in**: _______
+A. **In-memory (sync.Map)** - Simple, single-node only, lost on restart
+B. **Redis** - Distributed, requires Redis dependency (adds complexity)
+C. **PostgreSQL** - Leverages existing DB, slower than Redis but consistent
+D. **SQLite** - For SQLite deployments use in-memory, PostgreSQL deployments use PostgreSQL
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -207,13 +207,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **10 per hour per IP** - Strict, suitable for small deployments  
-B. **100 per hour per IP** - Lenient, suitable for large organizations  
-C. **10 per minute per IP, 100 per hour per IP** - Burst allows quick legitimate use, hour limit prevents sustained abuse  
-D. **Configurable** - YAML: `registration_rate_limit_per_hour: 100`  
-E. **Write-in**: _______
+A. **10 per hour per IP** - Strict, suitable for small deployments
+B. **100 per hour per IP** - Lenient, suitable for large organizations
+C. **10 per minute per IP, 100 per hour per IP** - Burst allows quick legitimate use, hour limit prevents sustained abuse
+D. **Configurable** - YAML: `registration_rate_limit_per_hour: 100`
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: D; low default
 
 ---
 
@@ -227,13 +227,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **100,000 iterations** - Fast, minimum acceptable for 2025  
-B. **200,000 iterations** - Balanced, NIST SP 800-132 recommendation  
-C. **600,000 iterations** - Secure, OWASP 2023 recommendation  
-D. **Configurable** - YAML: `pbkdf2_iterations: 600000`  
-E. **Write-in**: _______
+A. **100,000 iterations** - Fast, minimum acceptable for 2025
+B. **200,000 iterations** - Balanced, NIST SP 800-132 recommendation
+C. **600,000 iterations** - Secure, OWASP 2023 recommendation
+D. **Configurable** - YAML: `pbkdf2_iterations: 600000`
+E. **Write-in**: It's 610,000 and its already implemented in hash service. Look it up there.
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -245,13 +245,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No rotation** - Pepper is permanent, change only on security incident (manual intervention)  
-B. **Lazy migration** - New hashes use new pepper, old hashes remain on old pepper (version prefix identifies pepper)  
-C. **Forced re-hash** - All users must reset password on pepper rotation (disruptive)  
-D. **Dual-pepper support** - Support old + new pepper simultaneously, re-hash on next login  
-E. **Write-in**: _______
+A. **No rotation** - Pepper is permanent, change only on security incident (manual intervention)
+B. **Lazy migration** - New hashes use new pepper, old hashes remain on old pepper (version prefix identifies pepper)
+C. **Forced re-hash** - All users must reset password on pepper rotation (disruptive)
+D. **Dual-pepper support** - Support old + new pepper simultaneously, re-hash on next login
+E. **Write-in**: Look up current implementation in hash service for pepper rotation strategy.
 
-**Answer**: ❓
+**Answer**:  E
 
 ---
 
@@ -263,13 +263,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Single version only** - All hashes use same algorithm, upgrade requires forced re-hash  
-B. **Multiple versions supported** - Hash output format: `{version}:{algorithm}:{iterations}:salt:hash`  
-C. **Automatic migration** - Old hashes upgraded to new version on next login (lazy migration)  
-D. **Configurable current version** - YAML: `hash_service.current_version: 2`  
-E. **Write-in**: _______
+A. **Single version only** - All hashes use same algorithm, upgrade requires forced re-hash
+B. **Multiple versions supported** - Hash output format: `{version}:{algorithm}:{iterations}:salt:hash`
+C. **Automatic migration** - Old hashes upgraded to new version on next login (lazy migration)
+D. **Configurable current version** - YAML: `hash_service.current_version: 2`
+E. **Write-in**: C, Look up current implementation in hash service for hash algorithm versioning.
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -281,13 +281,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Global iteration count** - All tenants use same value (simplest)  
-B. **Per-tenant iteration count** - Tenants table has `pbkdf2_iterations` column  
-C. **Per-tenant hash policy** - Tenants table has `hash_policy_version` column referencing policy configurations  
-D. **No per-tenant configuration** - Security policy should be consistent across all tenants  
-E. **Write-in**: _______
+A. **Global iteration count** - All tenants use same value (simplest)
+B. **Per-tenant iteration count** - Tenants table has `pbkdf2_iterations` column
+C. **Per-tenant hash policy** - Tenants table has `hash_policy_version` column referencing policy configurations
+D. **No per-tenant configuration** - Security policy should be consistent across all tenants
+E. **Write-in**: D, security policy is part of the hash service configuration, not per-tenant
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -301,13 +301,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Separate transactions** - Each migration in own transaction (golang-migrate default)  
-B. **Single transaction** - Both migrations in one transaction (all-or-nothing)  
-C. **1005 then 1006 sequentially** - 1005 commits first, then 1006 starts (dependency enforcement)  
-D. **No dependencies** - 1006 does NOT depend on 1005 (independent tables)  
-E. **Write-in**: _______
+A. **Separate transactions** - Each migration in own transaction (golang-migrate default)
+B. **Single transaction** - Both migrations in one transaction (all-or-nothing)
+C. **1005 then 1006 sequentially** - 1005 commits first, then 1006 starts (dependency enforcement)
+D. **No dependencies** - 1006 does NOT depend on 1005 (independent tables)
+E. **Write-in**: WTF is tenant_join_requests (1006)? Only pending_users (1005) needed?
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -319,13 +319,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No DOWN migrations** - Align with QUIZME-v1 Q9.1 answer D (forward-only)  
-B. **DOWN migrations implemented** - Provide rollback capability for testing/development  
-C. **DOWN migrations for dev, not prod** - Development uses rollback, production forward-only  
-D. **Partial DOWN** - Drop tables but don't restore old schema (data loss acceptable for rollback)  
-E. **Write-in**: _______
+A. **No DOWN migrations** - Align with QUIZME-v1 Q9.1 answer D (forward-only)
+B. **DOWN migrations implemented** - Provide rollback capability for testing/development
+C. **DOWN migrations for dev, not prod** - Development uses rollback, production forward-only
+D. **Partial DOWN** - Drop tables but don't restore old schema (data loss acceptable for rollback)
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: B
 
 ---
 
@@ -339,13 +339,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No conditional patterns** - All instructions apply to `**` (all files)  
-B. **Test-specific patterns** - Testing instructions use `**/*_test.go`, `**/*_bench_test.go`, etc.  
-C. **Layer-specific patterns** - Server instructions `internal/apps/*/server/**/*.go`, repository instructions `internal/apps/*/repository/**/*.go`  
-D. **Comprehensive patterns** - All 28 instruction files get specific glob patterns  
-E. **Write-in**: _______
+A. **No conditional patterns** - All instructions apply to `**` (all files)
+B. **Test-specific patterns** - Testing instructions use `**/*_test.go`, `**/*_bench_test.go`, etc.
+C. **Layer-specific patterns** - Server instructions `internal/apps/*/server/**/*.go`, repository instructions `internal/apps/*/repository/**/*.go`
+D. **Comprehensive patterns** - All 28 instruction files get specific glob patterns
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -357,13 +357,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Broad patterns** - `internal/apps/**/*.go` (simple, applies to all services)  
-B. **Medium patterns** - `internal/apps/*/server/**/*.go` (layer-specific)  
-C. **Narrow patterns** - `internal/apps/template/server/application.go` (file-specific)  
-D. **Mixed granularity** - Critical files get narrow patterns, general guidance gets broad patterns  
-E. **Write-in**: _______
+A. **Broad patterns** - `internal/apps/**/*.go` (simple, applies to all services)
+B. **Medium patterns** - `internal/apps/*/server/**/*.go` (layer-specific)
+C. **Narrow patterns** - `internal/apps/template/server/application.go` (file-specific)
+D. **Mixed granularity** - Critical files get narrow patterns, general guidance gets broad patterns
+E. **Write-in**: NO GLOB PATTERNS
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -377,13 +377,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Daily-use first** - code-review, test-generate (Week 1), rest later  
-B. **By complexity** - Simple prompts (generate-docs) first, complex (fix-bug) later  
-C. **By impact** - High-value prompts (test-generate ≥95% coverage) first  
-D. **User preference** - User decides priority based on immediate needs  
-E. **Write-in**: _______
+A. **Daily-use first** - code-review, test-generate (Week 1), rest later
+B. **By complexity** - Simple prompts (generate-docs) first, complex (fix-bug) later
+C. **By impact** - High-value prompts (test-generate ≥95% coverage) first
+D. **User preference** - User decides priority based on immediate needs
+E. **Write-in**: I don't want any of those prompts
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -395,13 +395,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Minimal** - `name`, `description`, `applyTo` only  
-B. **Standard** - `name`, `description`, `applyTo`, `tags`, `prerequisites`  
-C. **Comprehensive** - Add `author`, `version`, `last_updated`, `examples`  
-D. **Match instructions** - Same frontmatter structure as `.github/instructions/*.instructions.md` files  
-E. **Write-in**: _______
+A. **Minimal** - `name`, `description`, `applyTo` only
+B. **Standard** - `name`, `description`, `applyTo`, `tags`, `prerequisites`
+C. **Comprehensive** - Add `author`, `version`, `last_updated`, `examples`
+D. **Match instructions** - Same frontmatter structure as `.github/instructions/*.instructions.md` files
+E. **Write-in**: I have no idea what is the context for this, or what this is for
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -415,13 +415,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Always handoff** - Security identifies issue, database agent fixes (clean separation)  
-B. **Never handoff** - Security agent fixes SQL injection directly (faster)  
-C. **Conditional handoff** - Simple fixes (parameterized queries) done by security, complex (query rewrite) handed off  
-D. **User decides** - Security agent asks user "Handoff to database agent or fix now?"  
-E. **Write-in**: _______
+A. **Always handoff** - Security identifies issue, database agent fixes (clean separation)
+B. **Never handoff** - Security agent fixes SQL injection directly (faster)
+C. **Conditional handoff** - Simple fixes (parameterized queries) done by security, complex (query rewrite) handed off
+D. **User decides** - Security agent asks user "Handoff to database agent or fix now?"
+E. **Write-in**: I have no idea what is the context for this, or what this is for
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -433,13 +433,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Always handoff** - Performance optimizes, testing writes regression tests  
-B. **Never handoff** - Performance writes benchmarks and regression tests directly  
-C. **Conditional** - Simple benchmarks by performance, comprehensive test suite by testing agent  
-D. **User decides** - Performance agent asks "Write tests or handoff?"  
-E. **Write-in**: _______
+A. **Always handoff** - Performance optimizes, testing writes regression tests
+B. **Never handoff** - Performance writes benchmarks and regression tests directly
+C. **Conditional** - Simple benchmarks by performance, comprehensive test suite by testing agent
+D. **User decides** - Performance agent asks "Write tests or handoff?"
+E. **Write-in**: I have no idea what is the context for this, or what this is for
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -453,13 +453,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Docker Compose** - E2E tests always use `docker compose up` (most realistic)  
-B. **Direct Go** - E2E tests start servers in TestMain (faster, simpler)  
-C. **Hybrid** - Local dev uses direct Go, CI uses Docker Compose (balance speed and realism)  
-D. **Configurable** - Flag: `go test -e2e-mode=docker` or `go test -e2e-mode=direct`  
-E. **Write-in**: _______
+A. **Docker Compose** - E2E tests always use `docker compose up` (most realistic)
+B. **Direct Go** - E2E tests start servers in TestMain (faster, simpler)
+C. **Hybrid** - Local dev uses direct Go, CI uses Docker Compose (balance speed and realism)
+D. **Configurable** - Flag: `go test -e2e-mode=docker` or `go test -e2e-mode=direct`
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A; e2e must be realistic customer experience
 
 ---
 
@@ -471,13 +471,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Always test-containers** - E2E tests use real PostgreSQL via test-containers  
-B. **Always mock** - E2E tests use mock database (fast, no Docker dependency)  
-C. **SQLite in-memory** - E2E tests use SQLite in-memory (real SQL, no Docker)  
-D. **Hybrid** - Local dev uses SQLite, CI uses PostgreSQL test-containers  
-E. **Write-in**: _______
+A. **Always test-containers** - E2E tests use real PostgreSQL via test-containers
+B. **Always mock** - E2E tests use mock database (fast, no Docker dependency)
+C. **SQLite in-memory** - E2E tests use SQLite in-memory (real SQL, no Docker)
+D. **Hybrid** - Local dev uses SQLite, CI uses PostgreSQL test-containers
+E. **Write-in**: E2E uses docker compose which starts PostgreSQL container
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -489,13 +489,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Separate e2e/ directory** - `test/e2e/jose_ja_e2e_test.go`  
-B. **Inline with build tags** - `internal/apps/jose/ja/*_e2e_test.go` with `//go:build e2e`  
-C. **Inline without tags** - `*_e2e_test.go` runs with `go test ./...` (always executed)  
-D. **Per-package e2e/ subdirectory** - `internal/apps/jose/ja/e2e/registration_test.go`  
-E. **Write-in**: _______
+A. **Separate e2e/ directory** - `test/e2e/jose_ja_e2e_test.go`
+B. **Inline with build tags** - `internal/apps/jose/ja/*_e2e_test.go` with `//go:build e2e`
+C. **Inline without tags** - `*_e2e_test.go` runs with `go test ./...` (always executed)
+D. **Per-package e2e/ subdirectory** - `internal/apps/jose/ja/e2e/registration_test.go`
+E. **Write-in**: Per product-service e2e/ subdirectory
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -509,13 +509,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **High-level only** - Patterns, principles, NO code examples (<1000 lines)  
-B. **Medium detail** - Patterns + minimal code examples (1000-2000 lines)  
-C. **Comprehensive** - Patterns + extensive code examples + troubleshooting (2000+ lines)  
-D. **Hybrid** - ARCHITECTURE.md high-level, separate docs/arch/*.md for detailed guides  
-E. **Write-in**: _______
+A. **High-level only** - Patterns, principles, NO code examples (<1000 lines)
+B. **Medium detail** - Patterns + minimal code examples (1000-2000 lines)
+C. **Comprehensive** - Patterns + extensive code examples + troubleshooting (2000+ lines)
+D. **Hybrid** - ARCHITECTURE.md high-level, separate docs/arch/*.md for detailed guides
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: A
 
 ---
 
@@ -527,13 +527,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Any pattern change** - Product added, service template modified, testing strategy updated  
-B. **Major changes only** - New product/service, core pattern overhaul, quality gate thresholds  
-C. **Breaking changes only** - Incompatible API changes, migration required changes  
-D. **Discretionary** - Developer judgment on significance  
-E. **Write-in**: _______
+A. **Any pattern change** - Product added, service template modified, testing strategy updated
+B. **Major changes only** - New product/service, core pattern overhaul, quality gate thresholds
+C. **Breaking changes only** - Incompatible API changes, migration required changes
+D. **Discretionary** - Developer judgment on significance
+E. **Write-in**: When I decide
 
-**Answer**: ❓
+**Answer**: E
 
 ---
 
@@ -545,13 +545,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **Semantic versioning** - v1.0.0 (major.minor.patch), increment on changes  
-B. **Date-based versioning** - v2025-01-18, increment daily/weekly  
-C. **Git-based versioning** - Git commit hash is version (no explicit version in file)  
-D. **No versioning** - Always latest, git log provides history  
-E. **Write-in**: _______
+A. **Semantic versioning** - v1.0.0 (major.minor.patch), increment on changes
+B. **Date-based versioning** - v2025-01-18, increment daily/weekly
+C. **Git-based versioning** - Git commit hash is version (no explicit version in file)
+D. **No versioning** - Always latest, git log provides history
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: D
 
 ---
 
@@ -563,13 +563,13 @@ E. **Write-in**: _______
 
 **Options**:
 
-A. **No code examples** - Descriptions only, keep files concise  
-B. **Minimal examples** - 1-2 code snippets per instruction file  
-C. **Comprehensive examples** - Multiple examples per pattern (good/bad, before/after)  
-D. **External examples** - Link to example files in testdata/ or docs/examples/  
-E. **Write-in**: _______
+A. **No code examples** - Descriptions only, keep files concise
+B. **Minimal examples** - 1-2 code snippets per instruction file
+C. **Comprehensive examples** - Multiple examples per pattern (good/bad, before/after)
+D. **External examples** - Link to example files in testdata/ or docs/examples/
+E. **Write-in**:
 
-**Answer**: ❓
+**Answer**: B
 
 ---
 

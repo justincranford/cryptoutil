@@ -1,7 +1,7 @@
 # Copilot Enhancement Strategy
 
-**Version**: 1.0.0  
-**Last Updated**: 2026-01-18  
+**Version**: 1.0.0
+**Last Updated**: 2026-01-18
 **Purpose**: Identify concrete prompts, agents, and instruction improvements from awesome-copilot best practices
 
 ---
@@ -60,7 +60,7 @@
 - **Example**:
   ```md
   ## Quick Reference
-  
+
   | Pattern | When to Use | Example |
   |---------|-------------|---------|
   | Table-driven tests | 3+ similar cases | `tests := []struct{...}` |
@@ -75,7 +75,7 @@
 - **Example**:
   ```md
   ## Common Mistakes
-  
+
   ❌ NEVER use `0.0.0.0` in tests (triggers Windows Firewall)
   ❌ NEVER skip `defer resp.Body.Close()` (resource leak)
   ✅ ALWAYS use `127.0.0.1` for loopback binding
@@ -93,13 +93,13 @@
 - **Example** (improved):
   ```md
   Use constructor injection for dependencies:
-  
+
   ```go
   // ✅ CORRECT
   func NewService(db *gorm.DB, logger *zap.Logger) *Service {
       return &Service{db: db, logger: logger}
   }
-  
+
   // ❌ WRONG
   func NewService() *Service {
       db := getGlobalDB()  // Hidden dependency
@@ -149,7 +149,7 @@ tools: [read_file, replace_string_in_file, runTests]
 
 # Extract Function Refactor
 
-**Input**: 
+**Input**:
 - ${file:targetFile}
 - ${input:startLine} to ${input:endLine}
 - ${input:newFunctionName}
@@ -190,7 +190,7 @@ tools: [read_file, semantic_search, create_file, runTests]
 4. Generate property-based tests if applicable
 5. Run tests and verify coverage ≥95%
 
-**Output**: 
+**Output**:
 - `*_test.go` file with comprehensive tests
 - Coverage report
 ```
