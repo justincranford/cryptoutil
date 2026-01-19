@@ -6,5 +6,4 @@
 DROP INDEX IF EXISTS idx_elastic_jwks_use;
 DROP INDEX IF EXISTS idx_elastic_jwks_alg;
 DROP INDEX IF EXISTS idx_elastic_jwks_kid;
-DROP INDEX IF EXISTS idx_elastic_jwks_tenant_realm;
-DROP TABLE IF EXISTS elastic_jwks;
+DROP INDEX IF EXISTS idx_elastic_jwks_tenant;

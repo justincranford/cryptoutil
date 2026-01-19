@@ -25,11 +25,9 @@ func TestMaterialJWKRepository_Create(t *testing.T) {
 	// Create parent ElasticJWK first.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -82,11 +80,9 @@ func TestMaterialJWKRepository_GetByMaterialKID(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -141,11 +137,9 @@ func TestMaterialJWKRepository_GetByID(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -200,11 +194,9 @@ func TestMaterialJWKRepository_GetActiveMaterial(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -278,11 +270,9 @@ func TestMaterialJWKRepository_ListByElasticJWK(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -357,11 +347,9 @@ func TestMaterialJWKRepository_RotateMaterial(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -442,11 +430,9 @@ func TestMaterialJWKRepository_RetireMaterial(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -500,11 +486,9 @@ func TestMaterialJWKRepository_Delete(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",
@@ -552,11 +536,9 @@ func TestMaterialJWKRepository_CountMaterials(t *testing.T) {
 	// Setup parent ElasticJWK.
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *elasticJWKID,
 		TenantID:             *tenantID,
-		RealmID:              *realmID,
 		KID:                  "test-elastic-" + elasticJWKID.String()[:8],
 		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
 		Algorithm:            "RS256",

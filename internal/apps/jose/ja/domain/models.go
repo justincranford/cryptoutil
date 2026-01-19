@@ -16,14 +16,14 @@ import (
 // Each ElasticJWK can have multiple MaterialJWKs (key versions).
 // Only one MaterialJWK is active at a time (used for signing/encrypting).
 // Retired MaterialJWKs remain available for verification/decryption.
+// CRITICAL: TenantID for data scoping only - realms are authentication-only, NOT data scope.
 type ElasticJWK struct {
 	ID                   googleUuid.UUID `gorm:"type:text;primaryKey"`
-	TenantID             googleUuid.UUID `gorm:"type:text;not null;index:idx_elastic_jwks_tenant_realm"`
-	RealmID              googleUuid.UUID `gorm:"type:text;not null;index:idx_elastic_jwks_tenant_realm"`
+	TenantID             googleUuid.UUID `gorm:"type:text;not null;index:idx_elastic_jwks_tenant"`
 	KID                  string          `gorm:"type:text;not null;uniqueIndex:idx_elastic_jwks_unique_kid;column:kid"`
-	KeyType              string          `gorm:"type:text;not null;column:kty"`             // RSA, EC, OKP, oct.
-	Algorithm            string          `gorm:"type:text;not null;column:alg;index"`       // RS256, ES256, EdDSA, A256GCM, etc.
-	Use                  string          `gorm:"type:text;not null;column:use;index"`       // sig or enc.
+	KeyType              string          `gorm:"type:text;not null;column:kty"`              // RSA, EC, OKP, oct.
+	Algorithm            string          `gorm:"type:text;not null;column:alg;index"`        // RS256, ES256, EdDSA, A256GCM, etc.
+	Use                  string          `gorm:"type:text;not null;column:use;index"`        // sig or enc.
 	MaxMaterials         int             `gorm:"not null;default:1000;column:max_materials"` // Maximum material versions.
 	CurrentMaterialCount int             `gorm:"not null;default:0;column:current_material_count"`
 	CreatedAt            time.Time       `gorm:"not null;autoCreateTime"`
@@ -37,15 +37,15 @@ func (ElasticJWK) TableName() string {
 // MaterialJWK represents a specific key version within an ElasticJWK.
 // Private and public JWKs are encrypted at rest using barrier encryption.
 type MaterialJWK struct {
-	ID             googleUuid.UUID  `gorm:"type:text;primaryKey"`
-	ElasticJWKID   googleUuid.UUID  `gorm:"type:text;not null;index:idx_material_jwks_elastic"`
-	MaterialKID    string           `gorm:"type:text;not null;uniqueIndex:idx_material_jwks_unique_kid;column:material_kid"`
-	PrivateJWKJWE  string           `gorm:"type:text;not null;column:private_jwk_jwe"`  // JWE-encrypted private JWK.
-	PublicJWKJWE   string           `gorm:"type:text;not null;column:public_jwk_jwe"`   // JWE-encrypted public JWK.
-	Active         bool             `gorm:"not null;default:false;index:idx_material_jwks_active"`
-	CreatedAt      time.Time        `gorm:"not null;autoCreateTime"`
-	RetiredAt      *time.Time       `gorm:"index"`
-	BarrierVersion int              `gorm:"not null;column:barrier_version;index"`
+	ID             googleUuid.UUID `gorm:"type:text;primaryKey"`
+	ElasticJWKID   googleUuid.UUID `gorm:"type:text;not null;index:idx_material_jwks_elastic"`
+	MaterialKID    string          `gorm:"type:text;not null;uniqueIndex:idx_material_jwks_unique_kid;column:material_kid"`
+	PrivateJWKJWE  string          `gorm:"type:text;not null;column:private_jwk_jwe"` // JWE-encrypted private JWK.
+	PublicJWKJWE   string          `gorm:"type:text;not null;column:public_jwk_jwe"`  // JWE-encrypted public JWK.
+	Active         bool            `gorm:"not null;default:false;index:idx_material_jwks_active"`
+	CreatedAt      time.Time       `gorm:"not null;autoCreateTime"`
+	RetiredAt      *time.Time      `gorm:"index"`
+	BarrierVersion int             `gorm:"not null;column:barrier_version;index"`
 
 	// Relations.
 	ElasticJWK ElasticJWK `gorm:"foreignKey:ElasticJWKID"`
@@ -70,12 +70,14 @@ func (AuditConfig) TableName() string {
 }
 
 // AuditLogEntry represents a single audit log entry for cryptographic operations.
+// CRITICAL: TenantID for data scoping only - realms are authentication-only, NOT data scope.
+// SessionID added per task requirements for traceability.
 type AuditLogEntry struct {
 	ID           googleUuid.UUID  `gorm:"type:text;primaryKey"`
 	TenantID     googleUuid.UUID  `gorm:"type:text;not null;index:idx_audit_log_tenant"`
-	RealmID      googleUuid.UUID  `gorm:"type:text;not null;index:idx_audit_log_tenant_realm"`
+	SessionID    *googleUuid.UUID `gorm:"type:text;index:idx_audit_log_session"`     // Session context for operation.
 	ElasticJWKID *googleUuid.UUID `gorm:"type:text;index:idx_audit_log_elastic_jwk"` // NULL for non-key operations.
-	MaterialKID  *string          `gorm:"type:text;column:material_kid"`              // NULL for non-material operations.
+	MaterialKID  *string          `gorm:"type:text;column:material_kid"`             // NULL for non-material operations.
 	Operation    string           `gorm:"type:text;not null;index:idx_audit_log_operation"`
 	Success      bool             `gorm:"not null;index:idx_audit_log_success"`
 	ErrorMessage *string          `gorm:"type:text"`

@@ -54,10 +54,10 @@ type CreateElasticJWKRequest struct {
 }
 
 // ElasticJWKResponse represents the response for an elastic JWK.
+// CRITICAL: No realm_id - realms are authn-only, NOT data scope.
 type ElasticJWKResponse struct {
 	KID                  string `json:"kid"`
 	TenantID             string `json:"tenant_id"`
-	RealmID              string `json:"realm_id"`
 	KeyType              string `json:"kty"`
 	Algorithm            string `json:"alg"`
 	Use                  string `json:"use"`
@@ -87,6 +87,7 @@ type ListResponse struct {
 const defaultLimit = 100
 
 // HandleCreateElasticJWK creates a new elastic JWK container.
+// CRITICAL: tenant_id for data scoping only - realms are authn-only, NOT data scope.
 func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req CreateElasticJWKRequest
@@ -96,13 +97,12 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 			})
 		}
 
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -110,13 +110,6 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		if !ok {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Invalid tenant ID format",
-			})
-		}
-
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
 			})
 		}
 
@@ -141,7 +134,6 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		elasticJWK := &joseJADomain.ElasticJWK{
 			ID:                   kid,
 			TenantID:             tenantUUID,
-			RealmID:              realmUUID,
 			KID:                  kid.String(),
 			KeyType:              keyType,
 			Algorithm:            req.Algorithm,
@@ -161,7 +153,6 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		return c.Status(fiber.StatusCreated).JSON(ElasticJWKResponse{
 			KID:                  elasticJWK.KID,
 			TenantID:             elasticJWK.TenantID.String(),
-			RealmID:              elasticJWK.RealmID.String(),
 			KeyType:              elasticJWK.KeyType,
 			Algorithm:            elasticJWK.Algorithm,
 			Use:                  elasticJWK.Use,
@@ -182,13 +173,12 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 			})
 		}
 
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -199,16 +189,9 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 			})
 		}
 
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
-			})
-		}
-
 		ctx := c.Context()
 
-		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, realmUUID, kid)
+		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Elastic JWK not found",
@@ -218,7 +201,6 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 		return c.JSON(ElasticJWKResponse{
 			KID:                  elasticJWK.KID,
 			TenantID:             elasticJWK.TenantID.String(),
-			RealmID:              elasticJWK.RealmID.String(),
 			KeyType:              elasticJWK.KeyType,
 			Algorithm:            elasticJWK.Algorithm,
 			Use:                  elasticJWK.Use,
@@ -229,16 +211,15 @@ func (h *JWKHandler) HandleGetElasticJWK() fiber.Handler {
 	}
 }
 
-// HandleListElasticJWKs lists all elastic JWKs for a tenant/realm.
+// HandleListElasticJWKs lists all elastic JWKs for a tenant.
 func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -249,20 +230,13 @@ func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 			})
 		}
 
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
-			})
-		}
-
 		// Parse pagination parameters.
 		offset := c.QueryInt("offset", 0)
 		limit := c.QueryInt("limit", defaultLimit)
 
 		ctx := c.Context()
 
-		elasticJWKs, total, err := h.elasticJWKRepo.List(ctx, tenantUUID, realmUUID, offset, limit)
+		elasticJWKs, total, err := h.elasticJWKRepo.List(ctx, tenantUUID, offset, limit)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to list elastic JWKs",
@@ -274,7 +248,6 @@ func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 			responses[i] = ElasticJWKResponse{
 				KID:                  jwk.KID,
 				TenantID:             jwk.TenantID.String(),
-				RealmID:              jwk.RealmID.String(),
 				KeyType:              jwk.KeyType,
 				Algorithm:            jwk.Algorithm,
 				Use:                  jwk.Use,
@@ -301,13 +274,12 @@ func (h *JWKHandler) HandleDeleteElasticJWK() fiber.Handler {
 			})
 		}
 
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -318,17 +290,10 @@ func (h *JWKHandler) HandleDeleteElasticJWK() fiber.Handler {
 			})
 		}
 
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
-			})
-		}
-
 		ctx := c.Context()
 
 		// First, get the elastic JWK to verify ownership and get its ID.
-		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, realmUUID, kid)
+		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Elastic JWK not found",
@@ -356,13 +321,12 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 			})
 		}
 
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -373,17 +337,10 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 			})
 		}
 
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
-			})
-		}
-
 		ctx := c.Context()
 
 		// Get elastic JWK.
-		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, realmUUID, kid)
+		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Elastic JWK not found",
@@ -446,13 +403,12 @@ func (h *JWKHandler) HandleListMaterialJWKs() fiber.Handler {
 			})
 		}
 
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -463,21 +419,14 @@ func (h *JWKHandler) HandleListMaterialJWKs() fiber.Handler {
 			})
 		}
 
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
-			})
-		}
-
 		// Parse pagination parameters.
 		offset := c.QueryInt("offset", 0)
 		limit := c.QueryInt("limit", defaultLimit)
 
 		ctx := c.Context()
 
-		// Verify elastic JWK exists and belongs to tenant/realm.
-		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, realmUUID, kid)
+		// Verify elastic JWK exists and belongs to tenant.
+		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Elastic JWK not found",
@@ -524,13 +473,12 @@ func (h *JWKHandler) HandleGetActiveMaterialJWK() fiber.Handler {
 			})
 		}
 
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -541,17 +489,10 @@ func (h *JWKHandler) HandleGetActiveMaterialJWK() fiber.Handler {
 			})
 		}
 
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
-			})
-		}
-
 		ctx := c.Context()
 
-		// Verify elastic JWK exists and belongs to tenant/realm.
-		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, realmUUID, kid)
+		// Verify elastic JWK exists and belongs to tenant.
+		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Elastic JWK not found",
@@ -585,13 +526,12 @@ func (h *JWKHandler) HandleRotateMaterialJWK() fiber.Handler {
 			})
 		}
 
-		// Get tenant and realm from session context.
+		// Get tenant from session context.
 		tenantID := c.Locals("tenant_id")
 
-		realmID := c.Locals("realm_id")
-		if tenantID == nil || realmID == nil {
+		if tenantID == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing tenant or realm context",
+				"error": "Missing tenant context",
 			})
 		}
 
@@ -602,17 +542,10 @@ func (h *JWKHandler) HandleRotateMaterialJWK() fiber.Handler {
 			})
 		}
 
-		realmUUID, ok := realmID.(googleUuid.UUID)
-		if !ok {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Invalid realm ID format",
-			})
-		}
-
 		ctx := c.Context()
 
-		// Verify elastic JWK exists and belongs to tenant/realm.
-		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, realmUUID, kid)
+		// Verify elastic JWK exists and belongs to tenant.
+		elasticJWK, err := h.elasticJWKRepo.Get(ctx, tenantUUID, kid)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "Elastic JWK not found",

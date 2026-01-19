@@ -8,6 +8,4 @@ DROP INDEX IF EXISTS idx_audit_log_request_id;
 DROP INDEX IF EXISTS idx_audit_log_created_at;
 DROP INDEX IF EXISTS idx_audit_log_operation;
 DROP INDEX IF EXISTS idx_audit_log_elastic_jwk;
-DROP INDEX IF EXISTS idx_audit_log_tenant_realm;
-DROP INDEX IF EXISTS idx_audit_log_tenant;
-DROP TABLE IF EXISTS audit_log;
+DROP INDEX IF EXISTS idx_audit_log_session;

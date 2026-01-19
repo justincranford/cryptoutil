@@ -222,12 +222,10 @@ func TestAuditLogRepository_Create(t *testing.T) {
 	// Create audit log entry.
 	id, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	requestID, _ := cryptoutilRandom.GenerateUUIDv7()
 	entry := &cryptoutilJoseJADomain.AuditLogEntry{
 		ID:        *id,
 		TenantID:  *tenantID,
-		RealmID:   *realmID,
 		Operation: "sign",
 		Success:   true,
 		RequestID: requestID.String(),
@@ -253,7 +251,6 @@ func TestAuditLogRepository_List(t *testing.T) {
 
 	// Create multiple entries for same tenant.
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilRandom.GenerateUUIDv7()
@@ -261,7 +258,6 @@ func TestAuditLogRepository_List(t *testing.T) {
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
-			RealmID:   *realmID,
 			Operation: "verify",
 			Success:   true,
 			RequestID: requestID.String(),
@@ -298,7 +294,6 @@ func TestAuditLogRepository_ListByElasticJWK(t *testing.T) {
 
 	// Create entries for specific ElasticJWK.
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
 
 	for i := 0; i < 2; i++ {
@@ -307,7 +302,6 @@ func TestAuditLogRepository_ListByElasticJWK(t *testing.T) {
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:           *id,
 			TenantID:     *tenantID,
-			RealmID:      *realmID,
 			ElasticJWKID: elasticJWKID,
 			Operation:    "sign",
 			Success:      true,
@@ -339,7 +333,6 @@ func TestAuditLogRepository_ListByOperation(t *testing.T) {
 
 	// Create entries with different operations.
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 
 	operations := []string{"sign", "sign", "verify"}
 	for i, op := range operations {
@@ -348,7 +341,6 @@ func TestAuditLogRepository_ListByOperation(t *testing.T) {
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
-			RealmID:   *realmID,
 			Operation: op,
 			Success:   true,
 			RequestID: requestID.String(),
@@ -385,12 +377,10 @@ func TestAuditLogRepository_GetByRequestID(t *testing.T) {
 	// Create entry.
 	id, _ := cryptoutilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 	requestID, _ := cryptoutilRandom.GenerateUUIDv7()
 	entry := &cryptoutilJoseJADomain.AuditLogEntry{
 		ID:        *id,
 		TenantID:  *tenantID,
-		RealmID:   *realmID,
 		Operation: "encrypt",
 		Success:   true,
 		RequestID: requestID.String(),
@@ -417,7 +407,6 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 
 	// Create entries.
 	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	realmID, _ := cryptoutilRandom.GenerateUUIDv7()
 
 	// Create 3 entries.
 	for i := 0; i < 3; i++ {
@@ -426,7 +415,6 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
-			RealmID:   *realmID,
 			Operation: "sign",
 			Success:   true,
 			RequestID: requestID.String(),

@@ -1,6 +1,7 @@
 --
 -- JOSE-JA database schema (SQLite + PostgreSQL compatible)
 -- 2004: Audit log - cryptographic operation audit entries
+-- CRITICAL: tenant_id for data scoping, session_id for traceability - realms are authn-only
 --
 
 -- Audit log table for tracking cryptographic operations
@@ -9,7 +10,7 @@
 CREATE TABLE IF NOT EXISTS audit_log (
     id TEXT PRIMARY KEY NOT NULL,
     tenant_id TEXT NOT NULL,
-    realm_id TEXT NOT NULL,
+    session_id TEXT,                                -- Session context for operation
     elastic_jwk_id TEXT,                            -- NULL for operations not involving specific key
     material_kid TEXT,                              -- NULL for operations not involving specific material
     operation TEXT NOT NULL,                        -- Operation: generate, sign, verify, encrypt, decrypt, rotate
@@ -26,9 +27,6 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_audit_log_tenant ON audit_log(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_tenant_realm ON audit_log(tenant_id, realm_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_elastic_jwk ON audit_log(elastic_jwk_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_operation ON audit_log(operation);
-CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_log_session ON audit_log(session_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_request_id ON audit_log(request_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_success ON audit_log(success);

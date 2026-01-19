@@ -15,18 +15,19 @@ import (
 )
 
 // ElasticJWKRepository defines the interface for Elastic JWK persistence.
+// CRITICAL: Methods filter by tenant_id ONLY - realms are authn-only, NOT data scope.
 type ElasticJWKRepository interface {
 	// Create stores a new Elastic JWK.
 	Create(ctx context.Context, elasticJWK *cryptoutilJoseJADomain.ElasticJWK) error
 
-	// Get retrieves an Elastic JWK by KID within a tenant/realm.
-	Get(ctx context.Context, tenantID, realmID googleUuid.UUID, kid string) (*cryptoutilJoseJADomain.ElasticJWK, error)
+	// Get retrieves an Elastic JWK by KID within a tenant.
+	Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilJoseJADomain.ElasticJWK, error)
 
 	// GetByID retrieves an Elastic JWK by its UUID.
 	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilJoseJADomain.ElasticJWK, error)
 
-	// List retrieves all Elastic JWKs for a tenant/realm with pagination.
-	List(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.ElasticJWK, int64, error)
+	// List retrieves all Elastic JWKs for a tenant with pagination.
+	List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.ElasticJWK, int64, error)
 
 	// Update updates an existing Elastic JWK.
 	Update(ctx context.Context, elasticJWK *cryptoutilJoseJADomain.ElasticJWK) error
@@ -60,11 +61,12 @@ func (r *gormElasticJWKRepository) Create(ctx context.Context, elasticJWK *crypt
 	return nil
 }
 
-// Get retrieves an Elastic JWK by KID within a tenant/realm.
-func (r *gormElasticJWKRepository) Get(ctx context.Context, tenantID, realmID googleUuid.UUID, kid string) (*cryptoutilJoseJADomain.ElasticJWK, error) {
+// Get retrieves an Elastic JWK by KID within a tenant.
+// CRITICAL: Filters by tenant_id ONLY - realms are authn-only, NOT data scope.
+func (r *gormElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilJoseJADomain.ElasticJWK, error) {
 	var elasticJWK cryptoutilJoseJADomain.ElasticJWK
 	if err := r.db.WithContext(ctx).
-		Where("tenant_id = ? AND realm_id = ? AND kid = ?", tenantID.String(), realmID.String(), kid).
+		Where("tenant_id = ? AND kid = ?", tenantID.String(), kid).
 		First(&elasticJWK).Error; err != nil {
 		return nil, fmt.Errorf("failed to get elastic JWK: %w", err)
 	}
@@ -84,8 +86,9 @@ func (r *gormElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UU
 	return &elasticJWK, nil
 }
 
-// List retrieves all Elastic JWKs for a tenant/realm with pagination.
-func (r *gormElasticJWKRepository) List(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.ElasticJWK, int64, error) {
+// List retrieves all Elastic JWKs for a tenant with pagination.
+// CRITICAL: Filters by tenant_id ONLY - realms are authn-only, NOT data scope.
+func (r *gormElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.ElasticJWK, int64, error) {
 	var (
 		elasticJWKs []*cryptoutilJoseJADomain.ElasticJWK
 		total       int64
@@ -95,14 +98,14 @@ func (r *gormElasticJWKRepository) List(ctx context.Context, tenantID, realmID g
 
 	if err := r.db.WithContext(ctx).
 		Model(&cryptoutilJoseJADomain.ElasticJWK{}).
-		Where("tenant_id = ? AND realm_id = ?", tenantID.String(), realmID.String()).
+		Where("tenant_id = ?", tenantID.String()).
 		Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count elastic JWKs: %w", err)
 	}
 
 	// Fetch page.
 	if err := r.db.WithContext(ctx).
-		Where("tenant_id = ? AND realm_id = ?", tenantID.String(), realmID.String()).
+		Where("tenant_id = ?", tenantID.String()).
 		Offset(offset).
 		Limit(limit).
 		Order("created_at DESC").
