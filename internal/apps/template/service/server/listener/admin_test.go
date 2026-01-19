@@ -148,7 +148,7 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
 
@@ -338,7 +338,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
@@ -416,7 +416,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
@@ -453,7 +453,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	time.Sleep(3 * time.Second)
 }
 
-// TestAdminServer_Shutdown_Endpoint tests POST /admin/v1/shutdown triggers graceful shutdown.
+// TestAdminServer_Shutdown_Endpoint tests POST /admin/api/v1/shutdown triggers graceful shutdown.
 func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
 	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
@@ -491,7 +491,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/v1/shutdown", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilMagic.IPv4Loopback, port)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, url, nil)
 	require.NoError(t, err)
@@ -611,7 +611,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 		if port > 0 {
 			healthCtx, healthCancel := context.WithTimeout(context.Background(), 2*time.Second)
 
-			healthURL := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+			healthURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
 
 			healthReq, _ := http.NewRequestWithContext(healthCtx, http.MethodGet, healthURL, nil)
 
@@ -660,7 +660,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 			reqCtx, reqCancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer reqCancel()
 
-			url := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+			url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
 
 			req, reqErr := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 			if reqErr != nil {
@@ -747,7 +747,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	port := server.ActualPort()
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
-	url := fmt.Sprintf("%s/admin/v1/readyz", baseURL)
+	url := fmt.Sprintf("%s/admin/api/v1/readyz", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	require.NoError(t, err)
