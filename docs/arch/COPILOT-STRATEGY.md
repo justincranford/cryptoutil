@@ -1,536 +1,333 @@
-# Copilot Enhancement Strategy
+# Copilot Continuous Work Strategy
 
-**Version**: 1.0.0
-**Last Updated**: 2026-01-18
-**Purpose**: Identify concrete prompts, agents, and instruction improvements from awesome-copilot best practices
-
----
-
-## What I DON'T Want
-
-- ❌ Collections (unnecessary organizational overhead)
-- ❌ MCP servers (overcomplicated for my needs)
-- ❌ Skills directory (adds complexity without clear benefit)
-- ❌ Reams of documentation (want concise, actionable guidance)
-
-## What I DO Want
-
-**Focus Areas**:
-1. **Instructions best practices** - What patterns from awesome-copilot can improve my 28 instruction files?
-2. **Useful prompts** - Concrete examples I can adapt and use
-3. **Useful agents** - Concrete examples showing when to use agents vs prompts
-4. **Clear guidance** - When to use prompts vs agents vs instructions
+**Version**: 2.0.0
+**Last Updated**: 2025-01-18
+**Purpose**: Define continuous iteration loop for implementing features and fixing bugs until complete
 
 ---
 
-## Instructions Best Practices
+## Core Principle: Continuous Iteration Loop
 
-### Current State (28 files)
+**NEVER stop until problem is completely solved and all tests pass**
 
-**Strengths**:
-- Good organization (01-methodology, 02-architecture, 03-implementation, 04-cicd, 05-platform, 06-quality)
-- Tactical guidance format with quick reference sections
-- Cross-references between related files
-- Comprehensive coverage of technology stack
-
-**Gaps** (from awesome-copilot patterns):
-
-**1. Missing `applyTo` Glob Patterns**:
-- **Problem**: All 28 instructions apply globally (no conditional application)
-- **awesome-copilot pattern**: Use `applyTo` frontmatter to scope instructions
-- **Examples**:
-  ```yaml
-  ---
-  description: "Go testing patterns"
-  applyTo: "**/*_test.go"
-  ---
-  ```
-  ```yaml
-  ---
-  description: "Docker configuration"
-  applyTo: "Dockerfile|docker-compose.yml|deployments/**"
-  ---
-  ```
-
-**Action**: Add `applyTo` patterns to all 28 instruction files (see QUIZME-v2 for patterns)
-
-**2. Quick Reference Format Inconsistency**:
-- **Problem**: Some files have tables, some have lists, some have code blocks
-- **awesome-copilot pattern**: Consistent format (tables for complex, lists for simple)
-- **Example**:
-  ```md
-  ## Quick Reference
-
-  | Pattern | When to Use | Example |
-  |---------|-------------|---------|
-  | Table-driven tests | 3+ similar cases | `tests := []struct{...}` |
-  | Parallel tests | Independent test cases | `t.Parallel()` |
-  ```
-
-**Action**: Standardize quick reference sections across all instructions
-
-**3. Missing Anti-Pattern Sections**:
-- **Problem**: Only 1 file (06-02) has comprehensive anti-patterns
-- **awesome-copilot pattern**: Every instruction file should include "NEVER DO" sections
-- **Example**:
-  ```md
-  ## Common Mistakes
-
-  ❌ NEVER use `0.0.0.0` in tests (triggers Windows Firewall)
-  ❌ NEVER skip `defer resp.Body.Close()` (resource leak)
-  ✅ ALWAYS use `127.0.0.1` for loopback binding
-  ```
-
-**Action**: Add anti-pattern sections to high-risk instruction files (testing, database, docker, security)
-
-**4. Missing Code-Inline Examples**:
-- **Problem**: Some patterns described but no code examples
-- **awesome-copilot pattern**: Show concrete code, not just descriptions
-- **Example** (current):
-  ```md
-  Use constructor injection for dependencies
-  ```
-- **Example** (improved):
-  ```md
-  Use constructor injection for dependencies:
-
-  ```go
-  // ✅ CORRECT
-  func NewService(db *gorm.DB, logger *zap.Logger) *Service {
-      return &Service{db: db, logger: logger}
-  }
-
-  // ❌ WRONG
-  func NewService() *Service {
-      db := getGlobalDB()  // Hidden dependency
-      return &Service{db: db}
-  }
-  ```
-  ```
-
-**Action**: Add code examples to abstract patterns (10-15 instruction files need updates)
-
----
-
-## Useful Prompts (From awesome-copilot)
-
-### Prompts I Should Create
-
-**1. Code Review Prompt** (`.github/prompts/code-review.prompt.md`):
-```yaml
----
-description: "Perform comprehensive code review"
-argument-hint: "file paths to review"
-tools: [read_file, grep_search, list_code_usages]
----
-
-# Code Review Workflow
-
-**Input**: ${file:filesToReview}
-
-**Steps**:
-1. Check code quality (naming, structure, duplication)
-2. Verify test coverage exists
-3. Check for security issues (SQL injection, XSS, secrets)
-4. Verify error handling patterns
-5. Check for race conditions (shared state, goroutines)
-6. Verify proper resource cleanup (defer, Close())
-
-**Output**: Markdown report with findings categorized by severity
 ```
-
-**2. Refactor Extract Function** (`.github/prompts/refactor-extract.prompt.md`):
-```yaml
----
-description: "Extract function from large function body"
-argument-hint: "file path and line range"
-tools: [read_file, replace_string_in_file, runTests]
----
-
-# Extract Function Refactor
-
-**Input**:
-- ${file:targetFile}
-- ${input:startLine} to ${input:endLine}
-- ${input:newFunctionName}
-
-**Workflow**:
-1. Read target file and identify code block
-2. Analyze dependencies (params, return values, side effects)
-3. Create new function with extracted code
-4. Replace original code with function call
-5. Run tests to verify behavior unchanged
-6. Update documentation if needed
-
-**Quality Gates**:
-- ✅ Tests pass after extraction
-- ✅ No new linting warnings
-- ✅ Function complexity reduced
-```
-
-**3. Generate Tests** (`.github/prompts/test-generate.prompt.md`):
-```yaml
----
-description: "Generate comprehensive test suite for function/type"
-argument-hint: "function or type name"
-tools: [read_file, semantic_search, create_file, runTests]
----
-
-# Test Generation Workflow
-
-**Input**: ${input:functionOrTypeName}
-
-**Steps**:
-1. Find function/type definition
-2. Analyze signature (params, returns, errors)
-3. Generate table-driven test with cases:
-   - Happy path (valid inputs)
-   - Error cases (nil, empty, invalid)
-   - Edge cases (boundary values)
-4. Generate property-based tests if applicable
-5. Run tests and verify coverage ≥95%
-
-**Output**:
-- `*_test.go` file with comprehensive tests
-- Coverage report
-```
-
-**4. Fix Bug** (`.github/prompts/fix-bug.prompt.md`):
-```yaml
----
-description: "Systematic bug investigation and fix"
-argument-hint: "bug description or error message"
-tools: [semantic_search, read_file, grep_search, get_errors, runTests]
----
-
-# Bug Fix Workflow
-
-**Input**: ${input:bugDescription}
-
-**Steps**:
-1. Reproduce bug (create failing test)
-2. Identify root cause (trace execution, read related code)
-3. Propose fix with minimal changes
-4. Implement fix
-5. Verify tests pass
-6. Add regression test to prevent recurrence
-
-**Quality Gates**:
-- ✅ Failing test demonstrates bug
-- ✅ Fix resolves test failure
-- ✅ All existing tests still pass
-- ✅ Regression test added
-```
-
-**5. Optimize Performance** (`.github/prompts/optimize-performance.prompt.md`):
-```yaml
----
-description: "Identify and fix performance bottlenecks"
-argument-hint: "package or function to optimize"
-tools: [read_file, semantic_search, run_in_terminal]
----
-
-# Performance Optimization Workflow
-
-**Input**: ${input:targetPackage}
-
-**Steps**:
-1. Run benchmarks: `go test -bench=. -benchmem ${targetPackage}`
-2. Identify hot paths (allocations, execution time)
-3. Analyze algorithmic complexity
-4. Propose optimizations:
-   - Reduce allocations (preallocate, reuse buffers)
-   - Improve algorithms (O(n²) → O(n log n))
-   - Add caching for expensive operations
-5. Implement changes
-6. Re-run benchmarks, verify improvement
-7. Ensure tests still pass
-
-**Quality Gates**:
-- ✅ Benchmarks show measurable improvement
-- ✅ No functionality regressions
-- ✅ Code readability maintained
-```
-
-**6. Generate Documentation** (`.github/prompts/generate-docs.prompt.md`):
-```yaml
----
-description: "Generate comprehensive package/function documentation"
-argument-hint: "package path or function name"
-tools: [read_file, list_dir, create_file]
----
-
-# Documentation Generation
-
-**Input**: ${input:packagePath}
-
-**Steps**:
-1. Read package files
-2. Extract exported types, functions, constants
-3. Generate godoc comments for undocumented items
-4. Create package-level documentation
-5. Generate examples for complex functions
-6. Create README if missing
-
-**Output**:
-- Godoc comments added to code
-- README.md with usage examples
-- Example tests demonstrating usage
+┌─────────────────────────────────────────────┐
+│ 1. Understand Problem                      │
+│    - Read requirements/bug reports         │
+│    - Read existing code and tests          │
+│    - Identify affected files               │
+└──────────────┬──────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 2. Make Changes                             │
+│    - Implement feature OR fix bug           │
+│    - Update tests                           │
+│    - Update documentation                   │
+└──────────────┬──────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 3. Run Unit Tests                           │
+│    - go test ./... -cover                   │
+│    - Coverage ≥95% production               │
+│    - Coverage ≥98% infrastructure           │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │ Tests Pass? │
+        └──────┬──────┘
+               │
+        ┌──────┴──────┐
+        │     NO      │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 4. Debug Failures                           │
+│    - Read test output                       │
+│    - Identify root cause                    │
+│    - Fix implementation OR tests            │
+│    - Go back to step 2                      │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │     YES     │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 5. Run Linting                              │
+│    - golangci-lint run --fix                │
+│    - Fix all warnings                       │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │  Clean?     │
+        └──────┬──────┘
+               │
+        ┌──────┴──────┐
+        │     NO      │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 6. Fix Linting Issues                       │
+│    - Apply fixes manually                   │
+│    - Go back to step 2                      │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │     YES     │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 7. Run Integration Tests (if applicable)    │
+│    - go test ./... -tags=integration        │
+│    - Verify database operations             │
+│    - Verify external service interactions   │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │ Tests Pass? │
+        └──────┬──────┘
+               │
+        ┌──────┴──────┐
+        │     NO      │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 8. Debug Integration Failures               │
+│    - Check container logs                   │
+│    - Verify test data isolation             │
+│    - Fix integration code                   │
+│    - Go back to step 2                      │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │     YES     │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 9. Run E2E Tests (if applicable)            │
+│    - docker compose up -d                   │
+│    - go test ./internal/.../e2e/... -v      │
+│    - Test /service/** AND /browser/** paths │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │ Tests Pass? │
+        └──────┬──────┘
+               │
+        ┌──────┴──────┐
+        │     NO      │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 10. Debug E2E Failures                      │
+│     - Check service logs                    │
+│     - Verify configuration                  │
+│     - Fix E2E code or services              │
+│     - Go back to step 2                     │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │     YES     │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 11. Run Mutation Tests (if applicable)      │
+│     - gremlins unleash ./internal/...       │
+│     - Efficacy ≥85% production              │
+│     - Efficacy ≥98% infrastructure          │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │   Pass?     │
+        └──────┬──────┘
+               │
+        ┌──────┴──────┐
+        │     NO      │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 12. Fix Surviving Mutants                   │
+│     - Identify weak assertions              │
+│     - Add targeted test cases               │
+│     - Go back to step 2                     │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │     YES     │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 13. Commit Changes                          │
+│     - git add -A                            │
+│     - git commit -m "type(scope): message"  │
+│     - Conventional commits format           │
+└──────────────┬──────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 14. Check for More Work                     │
+│     - Read todo list                        │
+│     - Read plan/tasks documents             │
+│     - Check for TODOs in code               │
+└──────────────┬──────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │ More Work?  │
+        └──────┬──────┘
+               │
+        ┌──────┴──────┐
+        │     YES     │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 15. Start Next Task                         │
+│     - Go back to step 1                     │
+└─────────────────────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │     NO      │
+        └──────┬──────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 16. DONE - All Work Complete                │
+│     - All tests pass                        │
+│     - All quality gates met                 │
+│     - All tasks completed                   │
+└─────────────────────────────────────────────┘
 ```
 
 ---
 
-## Useful Agents (From awesome-copilot)
+## Quality Gates (MANDATORY)
 
-### When to Use Agents vs Prompts
+**Code Quality**:
+- ✅ `go build ./...` - No compilation errors
+- ✅ `golangci-lint run` - No warnings
+- ✅ No new TODOs without tracking
 
-**Use Prompts When**:
-- Task is well-defined and sequential
-- No complex decision trees
-- Can complete in single execution
-- Example: "Generate tests for function X"
+**Test Quality**:
+- ✅ `go test ./...` - All tests pass
+- ✅ Coverage ≥95% (production code)
+- ✅ Coverage ≥98% (infrastructure/utility code)
+- ✅ No skipped tests without documentation
 
-**Use Agents When**:
-- Task requires multiple phases with decisions
-- Need to hand off to specialized sub-agents
-- Long-running investigation needed
-- Example: "Refactor entire package to use new pattern"
+**Mutation Testing**:
+- ✅ `gremlins unleash` - Efficacy ≥85% (production)
+- ✅ `gremlins unleash` - Efficacy ≥98% (infrastructure)
+- ✅ No surviving mutants without justification
 
-### Agents I Should Create
+**Integration/E2E** (when applicable):
+- ✅ Database operations work (PostgreSQL + SQLite)
+- ✅ External services integrate correctly
+- ✅ Both `/service/**` and `/browser/**` paths tested
 
-**1. Security Audit Agent** (`.github/agents/expert.security.agent.md`):
-```yaml
----
-description: "Comprehensive security audit of codebase"
-handoffs:
-  - label: "Found SQL injection risk"
-    target: "expert.database"
-    prompt: "Review parameterized query usage in ${affectedFiles}"
-  - label: "Found XSS risk"
-    target: "expert.testing"
-    prompt: "Create security tests for input sanitization in ${affectedFiles}"
----
-
-# Security Audit Agent
-
-## Setup
-- Load all .go files
-- Load all SQL files
-- Load all YAML configs
-
-## Workflow
-1. Scan for common vulnerabilities:
-   - SQL injection (raw string concatenation in queries)
-   - XSS (unescaped HTML output)
-   - Secrets in code (hardcoded passwords, API keys)
-   - Weak crypto (MD5, SHA-1, weak random)
-2. Analyze authentication flows
-3. Check authorization patterns (zero-trust violations)
-4. Review input validation
-5. Check error messages (info disclosure)
-6. Verify HTTPS/TLS configuration
-
-## Output
-- Security report with severity ratings
-- Concrete code examples of violations
-- Recommended fixes with patches
-```
-
-**2. Performance Analyst Agent** (`.github/agents/expert.performance.agent.md`):
-```yaml
----
-description: "Analyze and improve code performance"
-handoffs:
-  - label: "Found database N+1 query"
-    target: "expert.database"
-    prompt: "Optimize query patterns in ${affectedFiles}"
-  - label: "Found excessive allocations"
-    target: "expert.testing"
-    prompt: "Add benchmarks and verify optimization in ${affectedFiles}"
----
-
-# Performance Analyst Agent
-
-## Setup
-- Run benchmarks across all packages
-- Collect profiling data (CPU, memory, allocations)
-
-## Workflow
-1. Identify hot paths (CPU time)
-2. Identify allocation hotspots (memory pressure)
-3. Analyze algorithmic complexity (O(n²) loops)
-4. Check for common anti-patterns:
-   - String concatenation in loops (use strings.Builder)
-   - Unbounded goroutines (use worker pools)
-   - N+1 database queries (use joins/batching)
-   - Excessive reflection (cache reflect.Type)
-5. Propose optimizations with benchmarks
-6. Implement changes
-7. Verify improvements
-
-## Output
-- Performance report with before/after benchmarks
-- Specific code changes with evidence
-```
-
-**3. Database Expert Agent** (`.github/agents/expert.database.agent.md`):
-```yaml
----
-description: "Database design, optimization, and migration expert"
-handoffs:
-  - label: "Schema needs indexing"
-    target: "expert.performance"
-    prompt: "Benchmark query performance before/after index in ${affectedFiles}"
----
-
-# Database Expert Agent
-
-## Setup
-- Load all GORM models
-- Load all migration files
-- Load all repository files
-
-## Workflow
-1. Review schema design:
-   - Normalization (appropriate denormalization)
-   - Indexes (missing, unused, redundant)
-   - Constraints (FK, CHECK, UNIQUE)
-   - Data types (appropriate for usage)
-2. Analyze query patterns:
-   - N+1 queries (suggest eager loading)
-   - Full table scans (suggest indexes)
-   - Inefficient joins (suggest query rewrite)
-3. Review transaction usage:
-   - Missing transactions (data consistency)
-   - Unnecessary transactions (performance)
-   - Deadlock risks (lock ordering)
-4. Migration quality:
-   - Rollback compatibility
-   - Zero-downtime migrations
-   - Data migration correctness
-
-## Output
-- Database optimization report
-- Index recommendations with rationale
-- Query rewrites with benchmarks
-- Migration improvements
-```
-
-**4. Testing Expert Agent** (`.github/agents/expert.testing.agent.md`):
-```yaml
----
-description: "Comprehensive testing strategy and implementation"
-handoffs:
-  - label: "Need integration tests"
-    target: "expert.database"
-    prompt: "Review database test patterns in ${affectedFiles}"
-  - label: "Need E2E tests"
-    target: "speckit.implement"
-    prompt: "Implement E2E tests for ${feature}"
----
-
-# Testing Expert Agent
-
-## Setup
-- Analyze current test coverage
-- Identify untested code paths
-- Load mutation testing reports
-
-## Workflow
-1. Coverage analysis:
-   - Identify RED lines in HTML coverage report
-   - Categorize gaps (error paths, edge cases, integration)
-2. Generate tests:
-   - Unit tests (≥95% production, ≥98% infrastructure)
-   - Integration tests (database, external services)
-   - E2E tests (both /service/** and /browser/** paths)
-   - Property-based tests (gopter for complex functions)
-3. Mutation testing:
-   - Run gremlins per package
-   - Fix surviving mutants (weak tests)
-   - Target ≥85% production, ≥98% infrastructure
-4. Test quality:
-   - Remove flaky tests (race conditions, timing)
-   - Fix test data isolation (UUIDv7 for uniqueness)
-   - Verify no hardcoded passwords (use magic constants)
-
-## Output
-- Comprehensive test suite
-- Coverage reports (≥95%/≥98%)
-- Mutation scores (≥85%/≥98%)
-- Test quality improvements
-```
+**Git**:
+- ✅ Conventional commit format
+- ✅ Clean working tree
+- ✅ Changes match task scope
 
 ---
 
-## Prompts vs Agents - Decision Matrix
+## When to Use Different Strategies
 
-| Scenario | Use Prompt | Use Agent | Rationale |
-|----------|-----------|-----------|-----------|
-| Generate tests for 1 function | ✅ | ❌ | Single-step, well-defined |
-| Generate tests for entire package | ❌ | ✅ | Requires analysis, prioritization, iteration |
-| Fix 1 known bug | ✅ | ❌ | Reproduce, fix, test - linear workflow |
-| Investigate performance regression | ❌ | ✅ | Profiling, analysis, multiple fixes, validation |
-| Extract 1 function | ✅ | ❌ | Single refactor with tests |
-| Refactor package to new pattern | ❌ | ✅ | Multiple files, interdependencies, migration |
-| Review 1 PR file | ✅ | ❌ | Checklist-based review |
-| Comprehensive security audit | ❌ | ✅ | Multiple vulnerability types, context-dependent |
-| Generate godoc for 1 type | ✅ | ❌ | Template-based generation |
-| Generate full package docs | ❌ | ✅ | Package overview, examples, cross-references |
-| Add 1 index to database | ✅ | ❌ | Write migration, test |
-| Optimize database schema | ❌ | ✅ | Analyze all queries, propose changes, benchmarks |
+### Continuous Work Loop (DEFAULT)
+**Use For**: Feature implementation, bug fixes, refactoring, documentation updates
 
-**Rule of Thumb**:
-- **Prompts** = Single file, single purpose, <30 min work, linear steps
-- **Agents** = Multiple files, investigation needed, >30 min work, complex decisions
+**Pattern**: Implement → test → debug → iterate until complete
 
----
+**Evidence Required**: All quality gates pass before moving to next task
 
-## Implementation Priority
+### SpecKit Workflow
+**Use For**: New features requiring design-before-implement, unclear requirements, architectural changes
 
-### Phase 1: High-Value Prompts (Week 1)
-1. `code-review.prompt.md` (daily use)
-2. `test-generate.prompt.md` (daily use)
-3. `fix-bug.prompt.md` (weekly use)
-4. `refactor-extract.prompt.md` (weekly use)
+**Pattern**: Constitution → Clarify → Spec → Plan → Tasks → Implement
 
-### Phase 2: Specialized Agents (Week 2-3)
-1. `expert.testing.agent.md` (coverage gaps, mutation testing)
-2. `expert.security.agent.md` (security audits)
-3. `expert.performance.agent.md` (optimization work)
-4. `expert.database.agent.md` (schema design, query optimization)
+**See**: [01-03.speckit.instructions.md](.github/instructions/01-03.speckit.instructions.md)
 
-### Phase 3: Instruction Improvements (Week 4)
-1. Add `applyTo` patterns to all 28 instruction files
-2. Standardize quick reference sections
-3. Add anti-pattern sections to high-risk files
-4. Add code examples to abstract patterns
+### Investigation
+**Use For**: Understanding existing codebase, debugging complex issues, performance analysis
+
+**Pattern**: Read code → run tests → trace execution → document findings
+
+**Tools**: `semantic_search`, `grep_search`, `read_file`, `list_code_usages`
 
 ---
 
-## Success Metrics
+## Communication Patterns
 
-**Prompts**:
-- ✅ Used ≥5 times per week (daily workflow integration)
-- ✅ Save ≥30 minutes per use (efficiency gain)
-- ✅ Consistent output quality (90%+ of runs useful)
+**Progress Updates**: Update todo list after each task completion (NOT after each commit)
 
-**Agents**:
-- ✅ Reduce manual investigation time by 50%
-- ✅ Improve code quality (fewer bugs, better performance)
-- ✅ Increase test coverage (≥95%/≥98% targets met consistently)
+**Problem Identification**: Document blockers in DETAILED.md timeline, continue with unblocked tasks
 
-**Instructions**:
-- ✅ Reduce Copilot mistakes (fewer corrections needed)
-- ✅ Faster onboarding (new team members productive faster)
-- ✅ Consistent code style (fewer PR review cycles)
+**Completion**: Mark task complete ONLY when all quality gates pass with evidence
+
+**Status**: Report status at natural breakpoints (task complete, phase complete), NOT mid-task
 
 ---
 
-## Next Steps
+## Anti-Patterns - NEVER DO
 
-1. Answer QUIZME-v2 questions (applyTo patterns, prompt priorities, agent specialization)
-2. Implement Phase 1 prompts (4 high-value prompts)
-3. Test prompts with real work (collect feedback)
-4. Implement Phase 2 agents (4 expert agents)
-5. Update instructions with patterns (Phase 3)
+❌ **Stop mid-loop to ask permission** - Continue until all quality gates pass
+❌ **Skip quality gates** - Every gate must pass before proceeding
+❌ **Batch commits** - Commit after each logical unit of work
+❌ **Ask "should I continue?"** - Continue automatically until complete
+❌ **Mark tasks complete without evidence** - Require objective proof (test output, coverage reports)
+❌ **Stop when encountering blockers** - Document blocker, switch to unblocked task
+❌ **Create session documentation files** - Append to DETAILED.md Section 2 timeline
+❌ **Amend commits repeatedly** - Use incremental commits for history preservation
+
+---
+
+## Copilot Instructions vs Prompts vs Agents
+
+### Instructions (.github/instructions/*.instructions.md)
+**Purpose**: Persistent rules applied automatically based on file patterns
+
+**Use For**:
+- Coding standards (Go patterns, testing patterns)
+- Architecture decisions (database, Docker, PKI)
+- Project-specific conventions (import aliases, magic constants)
+
+**Example**: `03-02.testing.instructions.md` applies automatically when working in `*_test.go` files
+
+### Prompts (.github/prompts/*.prompt.md)
+**Purpose**: Reusable workflows for common tasks
+
+**Use For**:
+- SpecKit workflows (constitution, clarify, plan, tasks, implement)
+- Autonomous execution patterns
+- Plan/task/QUIZME management
+
+**Example**: `speckit.implement.prompt.md` for implementing features with SpecKit methodology
+
+### Agents (NOT USED)
+**Decision**: Project does NOT use agent files (.agent.md)
+
+**Rationale**: Low maintenance burden, instructions + prompts provide sufficient guidance
+
+---
+
+## Key Takeaways
+
+1. **Continuous Iteration**: Never stop until all quality gates pass
+2. **Quality Gates Mandatory**: Coverage, mutation, linting, tests ALL must pass
+3. **Evidence-Based Completion**: Objective proof required before marking complete
+4. **Incremental Commits**: Commit after each logical unit, NOT batch
+5. **Autonomous Execution**: Continue automatically without asking permission
+6. **SpecKit for Design**: Use SpecKit when requirements unclear or architecture changes needed
+7. **Low Maintenance**: Instructions + prompts only (no agents)
+
