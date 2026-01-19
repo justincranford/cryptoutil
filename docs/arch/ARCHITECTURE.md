@@ -131,7 +131,7 @@
 - `POST /browser/api/v1/authn` - Browser user login (returns session token)
 - `POST /service/api/v1/authn` - Service login (returns session token)
 
-**Session vs Authentication Endpoints** (QUIZME-v3 Q1.1, Q1.2):
+**Session vs Authentication Endpoints**:
 - **Authentication Endpoints**: Verify credentials BEFORE session creation (username/password, client credentials, OAuth callbacks)
 - **Session Endpoints**: Manage session lifecycle AFTER authentication succeeds (issue/validate/refresh/revoke)
 - **Flow**: Authentication verifies identity → Session endpoints create/manage session token → Middleware validates session on subsequent requests
@@ -176,17 +176,17 @@ builder.WithPublicRouteRegistration(func(base, res) error {
 resources, err := builder.Build()
 ```
 
-### Cipher-IM Encryption Patterns (Educational Reference)
+### Per-Message Key Rotation Pattern
 
-**Message Key Rotation** (QUIZME-v3 Q3.1):
+**Message Key Rotation** (MANDATORY for all services):
 - **Pattern**: Rotate per message (new JWK for each message)
-- **Rationale**: Demonstrates most secure pattern, highest overhead acceptable for educational service
-- **Production Services**: May use hourly/daily rotation for performance
+- **Rationale**: Most secure pattern - limits key exposure to single message
+- **Overhead**: Higher computational cost acceptable for cryptographic security
 
-**Message JWK Storage** (QUIZME-v3 Q3.2):
-- **Pattern**: Separate `message_jwks` table (domain-specific storage)
+**Message JWK Storage** (MANDATORY for all services):
+- **Pattern**: Separate domain table for JWK storage (e.g., `message_jwks`)
 - **Encryption**: JWK encrypted with Barrier service BEFORE storing, decrypted AFTER retrieving
-- **Why NOT Barrier-only**: Domain table provides more control over JWK lifecycle, metadata, rotation tracking
+- **Why NOT Barrier-only**: Domain table provides control over JWK lifecycle, metadata, rotation tracking
 - **Template Integration**: Barrier service encrypts/decrypts, domain table manages persistence
 
 ### Migration Priority
@@ -246,11 +246,11 @@ internal/apps/
 
 **Rule**: `internal/apps/template/` is CANONICAL. All services import and extend template.
 
-### Service Federation Architecture (QUIZME-v3 Q2.1, Q2.2)
+### Service Federation Architecture
 
-**Service Discovery** (Q2.1):
+**Service Discovery**:
 - **Pattern**: Static YAML configuration (NO dynamic discovery)
-- **Rationale**: User has answered this multiple times - services use static config for federation
+- **Rationale**: Explicit configuration over implicit discovery, deterministic behavior
 - **Config**:
   ```yaml
   federation:
@@ -262,7 +262,7 @@ internal/apps/
 - **Docker Compose**: Use service names (e.g., `identity-authz:8180`)
 - **Kubernetes**: Use FQDN (e.g., `identity-authz.cryptoutil-ns.svc.cluster.local:8180`)
 
-**Federation Fallback Pattern** (Q2.2):
+**Federation Fallback Pattern**:
 - **NO circuit breakers**: Static config for federated services (NOT dynamic health checks)
 - **Fallback Mechanism**: Per-service database realms + per-service config realms
 - **If federated service down**: Per-service realms ALWAYS available for operator fallback
@@ -390,7 +390,7 @@ db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 
 **Total**: 13 headless methods + 28 browser methods (MFA combinations supported)
 
-### OAuth 2.1 Identity Product (QUIZME-v3 Q4.1, Q4.2)
+### OAuth 2.1 Identity Product
 
 **Flow Priority** (identity-authz):
 - **Authorization Code + PKCE**: Browser and native apps (modern, secure)
@@ -490,7 +490,7 @@ func TestMain(m *testing.M) {
 
 **NO demo tenants**: E2E tests create tenants via `/auth/register` endpoint
 
-**Database Cleanup** (QUIZME-v3 Q6.1, Q6.2):
+**Database Cleanup** (MANDATORY):
 - **MANDATORY**: `docker compose down -v` at end of TestMain
 - **Rationale**: Removes PostgreSQL volumes, prevents disk space exhaustion, ensures clean state for next package
 - **Pattern**:
@@ -499,14 +499,14 @@ func TestMain(m *testing.M) {
       // Start docker compose
       cmd := exec.Command("docker", "compose", "-f", "e2e/compose.yml", "up", "-d")
       cmd.Run()
-      
+
       // Run tests
       exitCode := m.Run()
-      
+
       // CRITICAL: Cleanup volumes
       cleanup := exec.Command("docker", "compose", "-f", "e2e/compose.yml", "down", "-v")
       cleanup.Run()
-      
+
       os.Exit(exitCode)
   }
   ```
