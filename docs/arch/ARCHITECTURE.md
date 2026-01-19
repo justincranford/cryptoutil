@@ -614,9 +614,26 @@ func TestMain(m *testing.M) {
 
 ### Mutation Testing
 
-**gremlins**: ≥85% production, ≥98% infrastructure/utility (per package)
+**Mutation Testing Classification** (gremlins):
 
-**Parallel execution**: GitHub Actions matrix (4-6 packages per job)
+| Category | Packages | Minimum Score | Rationale |
+|----------|----------|---------------|-----------|
+| **Production Code** | `internal/jose/ja/service/`, `internal/jose/ja/server/apis/`, `internal/ca/service/`, `internal/identity/*/service/` | ≥85% | Business logic with acceptable gaps in error paths |
+| **Infrastructure** | `internal/shared/*`, `pkg/*`, `internal/apps/template/`, `internal/cmd/cicd/*` | ≥98% | Reusable utilities must be bulletproof, used across all services |
+| **Generated Code** | `api/client/*`, `api/server/*`, `api/model/*` (oapi-codegen), GORM models | EXEMPT | Auto-generated code is stable, mutation testing adds no value |
+
+**Execution**:
+- Per-package during implementation: `gremlins unleash ./internal/jose/ja/service`
+- Parallel in CI: GitHub Actions matrix (4-6 packages per job, 15-minute timeout)
+
+**Coverage Requirements** (MANDATORY):
+- ≥85% production code mutation efficacy
+- ≥98% infrastructure/utility code mutation efficacy
+- EXEMPT generated code (OpenAPI stubs, protobuf, GORM models)
+
+**Timing Targets**:
+- <20 minutes total with parallel execution (4-6 jobs)
+- Sequential would be 45+ minutes (avoid)
 
 ---
 
