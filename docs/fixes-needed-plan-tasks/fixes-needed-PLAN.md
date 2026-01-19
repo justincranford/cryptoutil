@@ -61,7 +61,7 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 **Desired State**: NO default tenant pattern. ALL tenants created via user/client registration with explicit tenant creation OR join existing tenant flow.
 
-**Architectural Requirement** (from QUIZME Q1.1, Q1.2, Q2.1 answers):
+**Architectural Requirement**:
 - Users register via `/browser/api/v1/register` or `/service/api/v1/register` (NOT /auth/register)
 - Registration endpoints are unauthenticated (rate-limited, template infrastructure)
 - User saved in pending_users table (NOT users table) until approved
@@ -156,14 +156,14 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 - `internal/apps/template/service/server/repository/migrations/1005_pending_users.up.sql`
 - `internal/apps/template/service/server/repository/migrations/1005_pending_users.down.sql`
 
-**Rationale** (from QUIZME Q1.1 answer):
+**Rationale**:
 - Users NOT saved in users table until approved
 - Saved in pending_users table during registration
 - Moved to users table only upon admin approval
 - HTTP 403 for all authn endpoints until approved
 - HTTP 401 if rejected
 
-**Schema Requirements** (from QUIZME-v2 Q1.1, Q1.2, Q1.4):
+**Schema Requirements**:
 - **Q1.1 Uniqueness**: `username` unique per tenant across BOTH `pending_users` AND `users` tables (prevents duplicate registrations while pending)
 - **Q1.2 Indexes**: Composite index `(username, tenant_id)`, status + requested_at index for cleanup queries
 - **Q1.4 Expiration**: Configurable expiration in HOURS (not days), default 72 hours, auto-delete expired entries
@@ -200,12 +200,12 @@ CREATE INDEX IF NOT EXISTS idx_pending_users_expires ON pending_users(expires_at
 DROP TABLE IF EXISTS pending_users;
 ```
 
-**Email Validation** (from QUIZME-v2 Q1.3):
+**Email Validation**:
 - ❌ NO email validation on username field (username can be non-email)
 - ✅ Email/password authentication is a DIFFERENT realm (not implemented yet)
 - ✅ Username field accepts any string (simplified registration flow)
 
-**Expiration Configuration** (from QUIZME-v2 Q1.4):
+**Expiration Configuration**:
 ```yaml
 # configs/template/template-server.yaml
 pending_users_expiration_hours: 72  # Default 72 hours (3 days)
@@ -233,13 +233,13 @@ pending_users_expiration_hours: 72  # Default 72 hours (3 days)
 - `internal/apps/template/service/server/apis/registration_handlers.go`
 - `internal/apps/template/service/server/apis/join_request_handlers.go`
 
-**Admin Dashboard** (from QUIZME-v2 Q2.1, Q2.2, Q2.3, Q2.4):
+**Admin Dashboard**:
 - ✅ **Q2.1**: Template infrastructure provides admin dashboard APIs (NOT domain-specific)
 - ❌ **Q2.2**: NO email notifications (users poll status via login attempts)
 - ❌ **Q2.3**: NO webhook callbacks (keep template simple)
 - ❌ **Q2.4**: NO unauthenticated status API (users poll via login: HTTP 403=pending, HTTP 401=rejected, HTTP 200=approved)
 
-**Rate Limiting** (from QUIZME-v2 Q3.1, Q3.2, Q3.3):
+**Rate Limiting**:
 - ✅ **Q3.1**: Per IP address only (10 registrations per IP per hour)
 - ✅ **Q3.2**: In-memory (sync.Map) - simple, single-node, lost on restart
 - ✅ **Q3.3**: Configurable thresholds with low defaults
@@ -446,7 +446,7 @@ adminServer.PUT("/admin/api/v1/join-requests/:id", joinRequestHandlers.Authorize
 - `internal/apps/cipher/im/server/apis/*_test.go`
 - `internal/apps/cipher/im/repository/*_test.go`
 
-**Hash Service Configuration** (from QUIZME-v2 Q4.1-Q4.4):
+**Hash Service Configuration**:
 - **Q4.1**: PBKDF2 iterations = 610,000 (ALREADY IMPLEMENTED in hash service - verify in magic constants)
 - **Q4.2**: Lazy migration for pepper rotation (hash service ALREADY IMPLEMENTS this pattern)
 - **Q4.3**: Multiple hash algorithm versions supported (hash service ALREADY IMPLEMENTS version prefix pattern)
@@ -490,7 +490,7 @@ func TestMain(m *testing.M) {
 - ✅ ALWAYS: `registerUser(server, "user1", cryptoutilMagic.TestPassword, ...)`
 - ✅ ALTERNATIVE: `registerUser(server, "user1", googleUuid.NewV7().String(), ...)`
 
-**Migration Strategy** (from QUIZME-v2 Q5.1-Q5.2):
+**Migration Strategy**:
 - **Q5.1**: ONLY pending_users (1005) needed - NO tenant_join_requests (1006) table
 - **Q5.2**: DOWN migrations implemented for dev/test rollback (production forward-only)
 
@@ -936,7 +936,7 @@ type GenerateJWKRequest struct {
 
 ## Phase 8: JOSE-JA - E2E Testing (3-4 days)
 
-**E2E Test Execution Pattern** (from QUIZME-v2 Q9.1-Q9.3):
+**E2E Test Execution Pattern**:
 - **Q9.1**: Docker Compose for E2E tests (realistic customer experience, NOT direct Go)
 - **Q9.2**: Docker Compose starts PostgreSQL container (NOT test-containers, NOT SQLite)
 - **Q9.3**: Per product-service e2e/ subdirectory (`internal/apps/jose/ja/e2e/` pattern)
@@ -964,21 +964,21 @@ internal/apps/jose/ja/
 
 ## Phase 9: JOSE-JA - Documentation (2-3 days)
 
-**Copilot Instructions applyTo Patterns** (from QUIZME-v2 Q6.1-Q6.2):
+**Copilot Instructions applyTo Patterns**:
 - **Q6.1**: NO conditional applyTo patterns (all instructions apply to `**`)
 - **Q6.2**: NO glob patterns (keep `applyTo: "**"` for all instruction files)
 
 **Rationale**: Glob patterns add complexity without benefit. Global application (`**`) is simpler and sufficient.
 
-**Prompt Implementation Priority** (from QUIZME-v2 Q7.1-Q7.2):
+**Prompt Implementation Priority**:
 - **Q7.1**: NO prompts desired (user does not want code-review, test-generate, fix-bug, refactor-extract, optimize-performance, generate-docs)
 - **Q7.2**: N/A (no prompts to implement)
 
-**Agent Handoff Patterns** (from QUIZME-v2 Q8.1-Q8.2):
+**Agent Handoff Patterns**:
 - **Q8.1**: N/A (user unclear on context)
 - **Q8.2**: N/A (user unclear on context)
 
-**Documentation Standards** (from QUIZME-v2 Q10.1-Q10.4):
+**Documentation Standards**:
 - **Q10.1**: ARCHITECTURE.md high-level only (NO code examples, < 1000 lines)
 - **Q10.2**: Update ARCHITECTURE.md when user decides (discretionary)
 - **Q10.3**: NO versioning for ARCHITECTURE.md (git log provides history)

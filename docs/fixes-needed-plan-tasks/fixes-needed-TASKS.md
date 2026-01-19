@@ -113,12 +113,12 @@
 
 **User Decision**: "WTF is tenant_join_requests (1006)? Only pending_users (1005) needed?"
 
-**Implementation Details from QUIZME-v2**:
-- Q1.1: Username unique per tenant across pending_users AND users
-- Q1.2: Composite index (username, tenant_id), status+requested_at index
-- Q1.4: Expiration in HOURS (configurable, default 72h), auto-delete expired
-- Q1.3: NO email validation on username (accepts any string)
-- Q5.2: DOWN migrations for dev/test rollback
+**Implementation Details**:
+- Username unique per tenant across pending_users AND users
+- Composite index (username, tenant_id), status+requested_at index
+- Expiration in HOURS (configurable, default 72h), auto-delete expired
+- NO email validation on username (accepts any string)
+- DOWN migrations for dev/test rollback
 
 ---
 
@@ -137,14 +137,14 @@
 ### 0.8 Create Registration HTTP Handlers
 **Files**: `internal/apps/template/service/server/apis/{registration,join_request}_handlers.go`
 
-**Implementation Details from QUIZME-v2**:
-- Q2.1: Admin dashboard in template infrastructure (NOT domain-specific)
-- Q2.2: NO email notifications (users poll via login)
-- Q2.3: NO webhook callbacks (keep simple)
-- Q2.4: NO unauthenticated status API (poll via login: 403=pending, 401=rejected)
-- Q3.1: Rate limiting per IP only (10 registrations/hour)
-- Q3.2: In-memory rate limiting (sync.Map, single-node)
-- Q3.3: Configurable thresholds with low defaults
+**Implementation Details**:
+- Admin dashboard in template infrastructure (NOT domain-specific)
+- NO email notifications (users poll via login)
+- NO webhook callbacks (keep simple)
+- NO unauthenticated status API (poll via login: 403=pending, 401=rejected)
+- Rate limiting per IP only (10 registrations/hour)
+- In-memory rate limiting (sync.Map, single-node)
+- Configurable thresholds with low defaults
 
 - [ ] 0.8.1 Implement POST /browser/api/v1/auth/register (user registration)
 - [ ] 0.8.2 Implement POST /service/api/v1/auth/register (client registration)
@@ -205,7 +205,7 @@
 ### 1.2 Update cipher-im Tests to Registration Pattern
 **Files**: `internal/apps/cipher/im/server/apis/*_test.go`
 
-**Hash Service Configuration from QUIZME-v2**:
+**Hash Service Configuration**:
 - Q4.1: Verify PBKDF2 iterations = 610,000 in `internal/shared/magic/magic_cryptography.go`
 - Q4.2: Lazy migration for pepper rotation (already implemented in hash service)
 - Q4.3: Multiple hash versions supported (already implemented in hash service)
