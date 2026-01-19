@@ -131,6 +131,12 @@
 - `POST /browser/api/v1/authn` - Browser user login (returns session token)
 - `POST /service/api/v1/authn` - Service login (returns session token)
 
+**Session vs Authentication Endpoints** (QUIZME-v3 Q1.1, Q1.2):
+- **Authentication Endpoints**: Verify credentials BEFORE session creation (username/password, client credentials, OAuth callbacks)
+- **Session Endpoints**: Manage session lifecycle AFTER authentication succeeds (issue/validate/refresh/revoke)
+- **Flow**: Authentication verifies identity → Session endpoints create/manage session token → Middleware validates session on subsequent requests
+- **Why Separate**: Authentication may involve multiple steps (MFA, OAuth redirects), sessions are simple token operations
+
 **Admin Endpoints** (AdminServer, 127.0.0.1:9090 ONLY):
 - `GET /admin/api/v1/livez` - Liveness probe (lightweight, restart on failure)
 - `GET /admin/api/v1/readyz` - Readiness probe (heavyweight with dependency checks, remove from LB on failure)
@@ -169,6 +175,19 @@ builder.WithPublicRouteRegistration(func(base, res) error {
 // Build returns all infrastructure
 resources, err := builder.Build()
 ```
+
+### Cipher-IM Encryption Patterns (Educational Reference)
+
+**Message Key Rotation** (QUIZME-v3 Q3.1):
+- **Pattern**: Rotate per message (new JWK for each message)
+- **Rationale**: Demonstrates most secure pattern, highest overhead acceptable for educational service
+- **Production Services**: May use hourly/daily rotation for performance
+
+**Message JWK Storage** (QUIZME-v3 Q3.2):
+- **Pattern**: Separate `message_jwks` table (domain-specific storage)
+- **Encryption**: JWK encrypted with Barrier service BEFORE storing, decrypted AFTER retrieving
+- **Why NOT Barrier-only**: Domain table provides more control over JWK lifecycle, metadata, rotation tracking
+- **Template Integration**: Barrier service encrypts/decrypts, domain table manages persistence
 
 ### Migration Priority
 
@@ -226,6 +245,41 @@ internal/apps/
 ```
 
 **Rule**: `internal/apps/template/` is CANONICAL. All services import and extend template.
+
+### Service Federation Architecture (QUIZME-v3 Q2.1, Q2.2)
+
+**Service Discovery** (Q2.1):
+- **Pattern**: Static YAML configuration (NO dynamic discovery)
+- **Rationale**: User has answered this multiple times - services use static config for federation
+- **Config**:
+  ```yaml
+  federation:
+    identity_url: "https://identity-authz:8180"  # Static service name (Docker) or FQDN (K8s)
+    identity_enabled: true
+    jose_url: "https://jose-ja:8280"
+  ```
+- **NO dynamic discovery**: Config file specifies all federated service URLs, restart required on changes
+- **Docker Compose**: Use service names (e.g., `identity-authz:8180`)
+- **Kubernetes**: Use FQDN (e.g., `identity-authz.cryptoutil-ns.svc.cluster.local:8180`)
+
+**Federation Fallback Pattern** (Q2.2):
+- **NO circuit breakers**: Static config for federated services (NOT dynamic health checks)
+- **Fallback Mechanism**: Per-service database realms + per-service config realms
+- **If federated service down**: Per-service realms ALWAYS available for operator fallback
+- **Example**: If identity-authz down, jose-ja uses local database realm for emergency access
+- **Configuration**:
+  ```yaml
+  realms:
+    - type: federated
+      provider: identity-authz
+      url: "https://identity-authz:8180"
+    - type: database
+      name: local-fallback
+      enabled: true  # Always enabled for operator access
+    - type: config
+      name: emergency-operators
+      users: ["admin@localhost"]
+  ```
 
 ---
 
@@ -336,6 +390,20 @@ db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 
 **Total**: 13 headless methods + 28 browser methods (MFA combinations supported)
 
+### OAuth 2.1 Identity Product (QUIZME-v3 Q4.1, Q4.2)
+
+**Flow Priority** (identity-authz):
+- **Authorization Code + PKCE**: Browser and native apps (modern, secure)
+- **Client Credentials**: Service-to-service (simplest for cryptoutil internal)
+- **BOTH required**: Cover all use cases (NOT client credentials only)
+
+**Token Storage Configuration** (identity-authz):
+- **Configurable**: Same as session tokens (stateful opaque, stateless JWE, stateless JWS)
+- **Config**: `token_storage_mode: opaque|jwe|jws` in YAML
+- **Stateful Opaque**: PostgreSQL/SQLite storage, instant revocation, slower validation
+- **Stateless JWE**: Encrypted JWT, no storage, fast validation, delayed revocation (requires expiry)
+- **Stateless JWS**: Signed JWT, no storage, fast validation, delayed revocation (requires expiry)
+
 ### Authorization Pattern
 
 **Zero Trust**: ALWAYS re-evaluate permissions (NO caching of authz decisions)
@@ -421,6 +489,28 @@ func TestMain(m *testing.M) {
 **Registration**: Via HTTP endpoints (realistic user flow)
 
 **NO demo tenants**: E2E tests create tenants via `/auth/register` endpoint
+
+**Database Cleanup** (QUIZME-v3 Q6.1, Q6.2):
+- **MANDATORY**: `docker compose down -v` at end of TestMain
+- **Rationale**: Removes PostgreSQL volumes, prevents disk space exhaustion, ensures clean state for next package
+- **Pattern**:
+  ```go
+  func TestMain(m *testing.M) {
+      // Start docker compose
+      cmd := exec.Command("docker", "compose", "-f", "e2e/compose.yml", "up", "-d")
+      cmd.Run()
+      
+      // Run tests
+      exitCode := m.Run()
+      
+      // CRITICAL: Cleanup volumes
+      cleanup := exec.Command("docker", "compose", "-f", "e2e/compose.yml", "down", "-v")
+      cleanup.Run()
+      
+      os.Exit(exitCode)
+  }
+  ```
+- **NO tenant cleanup**: Rely on database cleanup (volumes removed by `-v` flag)
 
 ### Mutation Testing
 
