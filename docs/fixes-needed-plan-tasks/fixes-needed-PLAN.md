@@ -163,6 +163,11 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 - HTTP 403 for all authn endpoints until approved
 - HTTP 401 if rejected
 
+**Schema Requirements** (from QUIZME-v2 Q1.1, Q1.2, Q1.4):
+- **Q1.1 Uniqueness**: `username` unique per tenant across BOTH `pending_users` AND `users` tables (prevents duplicate registrations while pending)
+- **Q1.2 Indexes**: Composite index `(username, tenant_id)`, status + requested_at index for cleanup queries
+- **Q1.4 Expiration**: Configurable expiration in HOURS (not days), default 72 hours, auto-delete expired entries
+
 **Schema**:
 ```sql
 -- 1005_pending_users.up.sql
@@ -177,24 +182,42 @@ CREATE TABLE IF NOT EXISTS pending_users (
     processed_at TIMESTAMP,
     processed_by TEXT,
     rejection_reason TEXT,
+    expires_at TIMESTAMP,   -- Q1.4: Expiration in hours (calculated from requested_at + config)
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
     FOREIGN KEY (processed_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_pending_users_username ON pending_users(username);
-CREATE INDEX IF NOT EXISTS idx_pending_users_status ON pending_users(status);
-CREATE INDEX IF NOT EXISTS idx_pending_users_tenant ON pending_users(tenant_id) WHERE tenant_id IS NOT NULL;
+-- Q1.2: Composite unique index (username, tenant_id) prevents duplicates per tenant
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pending_users_username_tenant ON pending_users(username, tenant_id);
+
+-- Q1.2: Status + requested_at for cleanup queries (find expired entries)
+CREATE INDEX IF NOT EXISTS idx_pending_users_status_requested ON pending_users(status, requested_at);
+
+-- Q1.4: Expiration cleanup index
+CREATE INDEX IF NOT EXISTS idx_pending_users_expires ON pending_users(expires_at) WHERE expires_at IS NOT NULL;
 
 -- 1005_pending_users.down.sql
 DROP TABLE IF EXISTS pending_users;
+```
+
+**Email Validation** (from QUIZME-v2 Q1.3):
+- ❌ NO email validation on username field (username can be non-email)
+- ✅ Email/password authentication is a DIFFERENT realm (not implemented yet)
+- ✅ Username field accepts any string (simplified registration flow)
+
+**Expiration Configuration** (from QUIZME-v2 Q1.4):
+```yaml
+# configs/template/template-server.yaml
+pending_users_expiration_hours: 72  # Default 72 hours (3 days)
 ```
 
 **Quality Gates**:
 1. Migration applies to PostgreSQL test container
 2. Migration applies to SQLite in-memory
 3. Migration rollback works (down migration)
-4. Tests verify schema constraints (CHECK, FOREIGN KEY)
-5. Evidence: Test output + commit hash
+4. Tests verify schema constraints (CHECK, FOREIGN KEY, UNIQUE)
+5. Tests verify expiration cleanup (auto-delete expired entries)
+6. Evidence: Test output + commit hash
 
 ---
 
@@ -209,6 +232,23 @@ DROP TABLE IF EXISTS pending_users;
 **Files**:
 - `internal/apps/template/service/server/apis/registration_handlers.go`
 - `internal/apps/template/service/server/apis/join_request_handlers.go`
+
+**Admin Dashboard** (from QUIZME-v2 Q2.1, Q2.2, Q2.3, Q2.4):
+- ✅ **Q2.1**: Template infrastructure provides admin dashboard APIs (NOT domain-specific)
+- ❌ **Q2.2**: NO email notifications (users poll status via login attempts)
+- ❌ **Q2.3**: NO webhook callbacks (keep template simple)
+- ❌ **Q2.4**: NO unauthenticated status API (users poll via login: HTTP 403=pending, HTTP 401=rejected, HTTP 200=approved)
+
+**Rate Limiting** (from QUIZME-v2 Q3.1, Q3.2, Q3.3):
+- ✅ **Q3.1**: Per IP address only (10 registrations per IP per hour)
+- ✅ **Q3.2**: In-memory (sync.Map) - simple, single-node, lost on restart
+- ✅ **Q3.3**: Configurable thresholds with low defaults
+
+**Rate Limiting Configuration**:
+```yaml
+# configs/template/template-server.yaml
+registration_rate_limit_per_hour: 10  # Low default per IP
+```
 
 **Endpoints**:
 
@@ -406,6 +446,21 @@ adminServer.PUT("/admin/api/v1/join-requests/:id", joinRequestHandlers.Authorize
 - `internal/apps/cipher/im/server/apis/*_test.go`
 - `internal/apps/cipher/im/repository/*_test.go`
 
+**Hash Service Configuration** (from QUIZME-v2 Q4.1-Q4.4):
+- **Q4.1**: PBKDF2 iterations = 610,000 (ALREADY IMPLEMENTED in hash service - verify in magic constants)
+- **Q4.2**: Lazy migration for pepper rotation (hash service ALREADY IMPLEMENTS this pattern)
+- **Q4.3**: Multiple hash algorithm versions supported (hash service ALREADY IMPLEMENTS version prefix pattern)
+- **Q4.4**: Global security policy (NOT per-tenant - consistent across all tenants)
+
+**Implementation Notes**:
+- Hash service in `internal/shared/crypto/hash/` already implements 4 registries:
+  - LowEntropyDeterministicHashRegistry (PII with PBKDF2)
+  - LowEntropyRandomHashRegistry (Passwords with PBKDF2)
+  - HighEntropyDeterministicHashRegistry (Config blobs with HKDF)
+  - HighEntropyRandomHashRegistry (API keys with HKDF)
+- Verify current iteration count in `internal/shared/magic/magic_cryptography.go`
+- Verify pepper rotation pattern in hash service tests
+
 **Pattern**:
 ```go
 func TestMain(m *testing.M) {
@@ -435,11 +490,16 @@ func TestMain(m *testing.M) {
 - ✅ ALWAYS: `registerUser(server, "user1", cryptoutilMagic.TestPassword, ...)`
 - ✅ ALTERNATIVE: `registerUser(server, "user1", googleUuid.NewV7().String(), ...)`
 
+**Migration Strategy** (from QUIZME-v2 Q5.1-Q5.2):
+- **Q5.1**: ONLY pending_users (1005) needed - NO tenant_join_requests (1006) table
+- **Q5.2**: DOWN migrations implemented for dev/test rollback (production forward-only)
+
 **Quality Gates**:
 1. Tests: `go test ./internal/apps/cipher/... -cover` (100% pass)
 2. Coverage: Maintained or improved
 3. Security: NO hardcoded passwords
-4. Evidence: Test output + commit hash
+4. Hash Service: Verify 610,000 iterations in magic constants
+5. Evidence: Test output + commit hash
 
 ---
 
@@ -876,6 +936,25 @@ type GenerateJWKRequest struct {
 
 ## Phase 8: JOSE-JA - E2E Testing (3-4 days)
 
+**E2E Test Execution Pattern** (from QUIZME-v2 Q9.1-Q9.3):
+- **Q9.1**: Docker Compose for E2E tests (realistic customer experience, NOT direct Go)
+- **Q9.2**: Docker Compose starts PostgreSQL container (NOT test-containers, NOT SQLite)
+- **Q9.3**: Per product-service e2e/ subdirectory (`internal/apps/jose/ja/e2e/` pattern)
+
+**Directory Structure**:
+```
+internal/apps/jose/ja/
+├── domain/
+├── repository/
+├── service/
+├── server/
+└── e2e/              # E2E tests in product-service subdirectory
+    ├── registration_test.go
+    ├── jwk_generation_test.go
+    ├── elastic_key_rotation_test.go
+    └── audit_logging_test.go
+```
+
 **See V3 for detailed tasks** - CRITICAL changes:
 - ✅ TestMain pattern with registration flow
 - ✅ NO hardcoded passwords
@@ -884,6 +963,26 @@ type GenerateJWKRequest struct {
 ---
 
 ## Phase 9: JOSE-JA - Documentation (2-3 days)
+
+**Copilot Instructions applyTo Patterns** (from QUIZME-v2 Q6.1-Q6.2):
+- **Q6.1**: NO conditional applyTo patterns (all instructions apply to `**`)
+- **Q6.2**: NO glob patterns (keep `applyTo: "**"` for all instruction files)
+
+**Rationale**: Glob patterns add complexity without benefit. Global application (`**`) is simpler and sufficient.
+
+**Prompt Implementation Priority** (from QUIZME-v2 Q7.1-Q7.2):
+- **Q7.1**: NO prompts desired (user does not want code-review, test-generate, fix-bug, refactor-extract, optimize-performance, generate-docs)
+- **Q7.2**: N/A (no prompts to implement)
+
+**Agent Handoff Patterns** (from QUIZME-v2 Q8.1-Q8.2):
+- **Q8.1**: N/A (user unclear on context)
+- **Q8.2**: N/A (user unclear on context)
+
+**Documentation Standards** (from QUIZME-v2 Q10.1-Q10.4):
+- **Q10.1**: ARCHITECTURE.md high-level only (NO code examples, < 1000 lines)
+- **Q10.2**: Update ARCHITECTURE.md when user decides (discretionary)
+- **Q10.3**: NO versioning for ARCHITECTURE.md (git log provides history)
+- **Q10.4**: Minimal code examples in instruction files (1-2 snippets per file)
 
 **CRITICAL Changes**:
 - ❌ NO MIGRATION-GUIDE.md (pre-alpha project)
