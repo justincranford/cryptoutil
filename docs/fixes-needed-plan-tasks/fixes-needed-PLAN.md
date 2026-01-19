@@ -4,6 +4,10 @@
 
 **Architecture Reference**: See [docs/arch/ARCHITECTURE.md](../arch/ARCHITECTURE.md) for comprehensive design patterns, principles, and implementation guidelines.
 
+**Tasks Reference**: See [fixes-needed-TASKS.md](fixes-needed-TASKS.md) for detailed task breakdown with checkboxes.
+
+**Progress Tracking - MANDATORY**: As tasks are completed, check them off in fixes-needed-TASKS.md to track progress. Each checkbox represents objective evidence of completion (build succeeds, tests pass, coverage met, mutation score met, commit created).
+
 **Critical Fixes from V3**:
 - ✅ Port 9090 for admin endpoints (was incorrectly 8080)
 - ✅ PostgreSQL 18+ requirement (was incorrectly 16+)

@@ -435,16 +435,44 @@ When answers are provided:
 
 ### QUIZME Question Guidelines
 
+**CRITICAL: QUIZME is ONLY for UNKNOWN answers requiring user input**
+
+Reference: `.github/instructions/01-03.speckit.instructions.md` lines 28-40
+
+**MANDATORY: Search BEFORE Creating Questions**:
+1. Search codebase: `semantic_search`, `grep_search`, `file_search`
+2. Search copilot instructions: `.github/instructions/*.instructions.md`
+3. Search existing documentation: `docs/`, `specs/*/constitution.md`, `specs/*/spec.md`
+4. Search implementation: `internal/`, `cmd/`, `api/`
+5. Only after exhaustive search: Add question to QUIZME
+
+**NEVER Include Questions With Known Answers**:
+- ❌ Answers found in codebase/documentation → Add to clarify.md instead
+- ❌ Answers found in copilot instructions → Document in constitution.md instead
+- ❌ Answers found in implementation → Document in plan.md/tasks.md instead
+- ❌ Agent-provided answers in QUIZME → Violates QUIZME purpose
+
+**Historical Lesson Learned (2025-01-16)**:
+- QUIZME v4 created with 20 questions ALL having agent-provided answers
+- Violated format: "DO NOT include questions for which you already know the answer"
+- Corrected: Removed all 20 questions, created v5 documenting no unknowns
+- Prevention: Search exhaustively BEFORE adding any question to QUIZME
+
 **DO**:
-- ✅ Search codebase/instructions FIRST before adding question
+- ✅ Search codebase/instructions EXHAUSTIVELY before adding any question
+- ✅ Verify question has NO answer in existing documentation
 - ✅ Provide concrete code examples in context
 - ✅ Include implications of each choice
 - ✅ Keep questions focused and specific
 - ✅ Use multiple-choice format for guidance
+- ✅ Leave Answer: field BLANK (user fills it)
 
 **DON'T**:
 - ❌ Ask questions with answers in existing documentation
-- ❌ Pre-fill write-in answers (defeats purpose)
+- ❌ Ask questions with answers in codebase implementation
+- ❌ Ask questions with answers in copilot instructions
+- ❌ Pre-fill Answer: field with agent-provided answers
+- ❌ Pre-fill write-in (E) answers with examples
 - ❌ Ask vague or open-ended questions
 - ❌ Include multiple decisions in one question
 - ❌ Leave questions without context

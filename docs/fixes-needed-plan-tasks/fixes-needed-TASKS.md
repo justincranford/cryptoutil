@@ -6,6 +6,13 @@
 
 **Architecture Reference**: See [docs/arch/ARCHITECTURE.md](../arch/ARCHITECTURE.md) for comprehensive design patterns, principles, and implementation guidelines.
 
+**PROGRESS TRACKING - MANDATORY**: Check off tasks in this document as they are completed. Each checkbox (- [ ]) represents objective evidence of completion:
+- Build succeeds (`go build ./...`)
+- Tests pass (`go test ./...`)
+- Coverage targets met (≥95% production, ≥98% infrastructure)
+- Mutation scores met (≥85% production, ≥98% infrastructure, when applicable)
+- Commit created with conventional message and evidence
+
 **Critical Fixes from V3**:
 - ✅ Port 9090 for admin endpoints
 - ✅ PostgreSQL 18+ requirement
