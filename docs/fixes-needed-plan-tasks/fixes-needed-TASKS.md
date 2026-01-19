@@ -113,6 +113,13 @@
 
 **User Decision**: "WTF is tenant_join_requests (1006)? Only pending_users (1005) needed?"
 
+**Implementation Details from QUIZME-v2**:
+- Q1.1: Username unique per tenant across pending_users AND users
+- Q1.2: Composite index (username, tenant_id), status+requested_at index
+- Q1.4: Expiration in HOURS (configurable, default 72h), auto-delete expired
+- Q1.3: NO email validation on username (accepts any string)
+- Q5.2: DOWN migrations for dev/test rollback
+
 ---
 
 ### 0.6 REMOVED - TenantJoinRequestRepository not needed
@@ -130,13 +137,23 @@
 ### 0.8 Create Registration HTTP Handlers
 **Files**: `internal/apps/template/service/server/apis/{registration,join_request}_handlers.go`
 
+**Implementation Details from QUIZME-v2**:
+- Q2.1: Admin dashboard in template infrastructure (NOT domain-specific)
+- Q2.2: NO email notifications (users poll via login)
+- Q2.3: NO webhook callbacks (keep simple)
+- Q2.4: NO unauthenticated status API (poll via login: 403=pending, 401=rejected)
+- Q3.1: Rate limiting per IP only (10 registrations/hour)
+- Q3.2: In-memory rate limiting (sync.Map, single-node)
+- Q3.3: Configurable thresholds with low defaults
+
 - [ ] 0.8.1 Implement POST /browser/api/v1/auth/register (user registration)
 - [ ] 0.8.2 Implement POST /service/api/v1/auth/register (client registration)
 - [ ] 0.8.3 Implement GET /admin/api/v1/join-requests (list join requests)
 - [ ] 0.8.4 Implement PUT /admin/api/v1/join-requests/:id (approve/reject)
 - [ ] 0.8.5 **CRITICAL: Consistent paths (/admin/api/v1, NOT /admin/v1)**
 - [ ] 0.8.6 **CRITICAL: tenant_id param (absence=create, presence=join)**
-- [ ] 0.8.7 Write integration tests (≥95% coverage)
+- [ ] 0.8.7 **NEW: In-memory rate limiting per IP (configurable threshold)**
+- [ ] 0.8.8 Write integration tests (≥95% coverage)
 
 **Evidence**: Coverage ≥95%, all endpoints tested
 
@@ -188,10 +205,17 @@
 ### 1.2 Update cipher-im Tests to Registration Pattern
 **Files**: `internal/apps/cipher/im/server/apis/*_test.go`
 
+**Hash Service Configuration from QUIZME-v2**:
+- Q4.1: Verify PBKDF2 iterations = 610,000 in `internal/shared/magic/magic_cryptography.go`
+- Q4.2: Lazy migration for pepper rotation (already implemented in hash service)
+- Q4.3: Multiple hash versions supported (already implemented in hash service)
+- Q4.4: Global security policy (NOT per-tenant configuration)
+
 - [ ] 1.2.1 Add TestMain pattern for per-package tenant setup
 - [ ] 1.2.2 Use registerUser() with cryptoutilMagic.TestPassword
 - [ ] 1.2.3 **CRITICAL: NO hardcoded passwords ("pass1", "pass2")**
-- [ ] 1.2.4 Verify all tests pass
+- [ ] 1.2.4 **NEW: Verify hash service uses 610,000 PBKDF2 iterations**
+- [ ] 1.2.5 Verify all tests pass
 
 **Evidence**: All tests pass, NO hardcoded passwords
 
