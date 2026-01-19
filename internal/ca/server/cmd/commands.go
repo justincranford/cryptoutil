@@ -122,7 +122,7 @@ func NewHealthCommand() *cobra.Command {
 			ctx := cmd.Context()
 
 			// Check liveness probe.
-			livezURL := serverURL + "/admin/v1/livez"
+			livezURL := serverURL + "/admin/api/v1/livez"
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, livezURL, nil)
 			if err != nil {
@@ -141,7 +141,7 @@ func NewHealthCommand() *cobra.Command {
 			}
 
 			// Check readiness probe.
-			readyzURL := serverURL + "/admin/v1/readyz"
+			readyzURL := serverURL + "/admin/api/v1/readyz"
 
 			req, err = http.NewRequestWithContext(ctx, http.MethodGet, readyzURL, nil)
 			if err != nil {

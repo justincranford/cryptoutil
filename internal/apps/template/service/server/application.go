@@ -11,7 +11,7 @@
 // - Dual HTTPS servers (public + admin) with independent lifecycles
 // - Dynamic port allocation for testing (port 0)
 // - Configured ports for production deployments
-// - Health check endpoints (/admin/v1/livez, /admin/v1/readyz)
+// - Health check endpoints (/admin/api/v1/livez, /admin/api/v1/readyz)
 // - Graceful shutdown with context-based timeout
 // - Self-signed TLS certificate generation
 // - Mutex-protected state management
@@ -270,7 +270,7 @@ func (a *Application) IsShutdown() bool {
 //
 // Applications should call SetReady(true) after initializing all dependencies
 // (database connections, caches, external services, etc.) but before the server
-// starts accepting requests. This enables the /admin/v1/readyz endpoint to return
+// starts accepting requests. This enables the /admin/api/v1/readyz endpoint to return
 // HTTP 200 OK instead of 503 Service Unavailable.
 //
 // Parameters:

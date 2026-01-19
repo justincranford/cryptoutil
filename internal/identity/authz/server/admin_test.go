@@ -178,7 +178,7 @@ func TestAdminServerActualPort(t *testing.T) {
 	})
 }
 
-// TestAdminEndpointLivez tests /admin/v1/livez endpoint.
+// TestAdminEndpointLivez tests /admin/api/v1/livez endpoint.
 func TestAdminEndpointLivez(t *testing.T) {
 	t.Parallel()
 
@@ -202,7 +202,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 
 	t.Run("LivezReturnsAlive", func(t *testing.T) {
-		statusCode, body := doAdminGet(t, baseURL+"/admin/v1/livez")
+		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/livez")
 		require.Equal(t, http.StatusOK, statusCode)
 
 		var response map[string]any
@@ -225,7 +225,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 			},
 		}
 
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/admin/v1/livez", nil)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/admin/api/v1/livez", nil)
 		require.NoError(t, err)
 
 		resp, err := client.Do(req)
@@ -237,7 +237,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	})
 }
 
-// TestAdminEndpointReadyz tests /admin/v1/readyz endpoint.
+// TestAdminEndpointReadyz tests /admin/api/v1/readyz endpoint.
 func TestAdminEndpointReadyz(t *testing.T) {
 	t.Parallel()
 
@@ -293,7 +293,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 			},
 		}
 
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/admin/v1/readyz", nil)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL+"/admin/api/v1/readyz", nil)
 		require.NoError(t, err)
 
 		resp, err := client.Do(req)
@@ -305,7 +305,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	})
 }
 
-// TestAdminEndpointShutdown tests /admin/v1/shutdown endpoint.
+// TestAdminEndpointShutdown tests /admin/api/v1/shutdown endpoint.
 func TestAdminEndpointShutdown(t *testing.T) {
 	t.Parallel()
 
@@ -330,7 +330,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 
 	t.Run("ShutdownViaEndpoint", func(t *testing.T) {
 		// Call shutdown endpoint.
-		statusCode, body := doAdminPost(t, baseURL+"/admin/v1/shutdown")
+		statusCode, body := doAdminPost(t, baseURL+"/admin/api/v1/shutdown")
 		require.Equal(t, http.StatusOK, statusCode)
 
 		var response map[string]any

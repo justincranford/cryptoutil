@@ -63,16 +63,16 @@ func NewMockServerSlow(delay time.Duration) *httptest.Server {
 func NewMockServerCustom() *httptest.Server {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/admin/v1/health":
+		case "/admin/api/v1/health":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("All systems operational"))
-		case "/admin/v1/livez":
+		case "/admin/api/v1/livez":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("Process is alive and running"))
-		case "/admin/v1/readyz":
+		case "/admin/api/v1/readyz":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("Service is ready to accept requests"))
-		case "/admin/v1/shutdown":
+		case "/admin/api/v1/shutdown":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("Graceful shutdown initiated"))
 		default:

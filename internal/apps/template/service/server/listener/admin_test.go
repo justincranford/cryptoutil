@@ -226,7 +226,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	reqCtx1, reqCancel1 := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel1()
 
-	url := fmt.Sprintf("https://%s:%d/admin/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
 	req1, err := http.NewRequestWithContext(reqCtx1, http.MethodGet, url, nil)
 	require.NoError(t, err)
 
@@ -252,7 +252,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	reqCtx2, reqCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel2()
 
-	livezURL := fmt.Sprintf("https://%s:%d/admin/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+	livezURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
 	req2, err := http.NewRequestWithContext(reqCtx2, http.MethodGet, livezURL, nil)
 	require.NoError(t, err)
 
@@ -300,7 +300,7 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 	cryptoutilTemplateServiceTesting.TestStartNilContext(t, createServer)
 }
 
-// TestAdminServer_Livez_Alive tests /admin/v1/livez endpoint when server is alive.
+// TestAdminServer_Livez_Alive tests /admin/api/v1/livez endpoint when server is alive.
 func TestAdminServer_Livez_Alive(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
 	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
@@ -375,7 +375,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	time.Sleep(3 * time.Second)
 }
 
-// TestAdminServer_Readyz_Ready tests /admin/v1/readyz endpoint when server is ready.
+// TestAdminServer_Readyz_Ready tests /admin/api/v1/readyz endpoint when server is ready.
 func TestAdminServer_Readyz_Ready(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
 	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()

@@ -54,9 +54,9 @@
   - `/browser/api/v1/*` - Browser clients (session cookies, CSRF, CORS, CSP)
   - `/service/api/v1/*` - Headless clients (bearer tokens, mTLS, IP allowlist)
 - **Admin Server**: Health checks (ALWAYS 127.0.0.1:9090)
-  - `/admin/v1/livez` - Liveness (process alive? → restart if fail)
-  - `/admin/v1/readyz` - Readiness (dependencies healthy? → remove from LB if fail)
-  - `/admin/v1/shutdown` - Graceful shutdown (drain requests, close resources)
+  - `/admin/api/v1/livez` - Liveness (process alive? → restart if fail)
+  - `/admin/api/v1/readyz` - Readiness (dependencies healthy? → remove from LB if fail)
+  - `/admin/api/v1/shutdown` - Graceful shutdown (drain requests, close resources)
 
 **2. Database Abstraction**:
 - PostgreSQL (production) OR SQLite (dev/test) dual support
@@ -132,9 +132,9 @@
 - `POST /service/api/v1/authn` - Service login (returns session token)
 
 **Admin Endpoints** (AdminServer, 127.0.0.1:9090 ONLY):
-- `GET /admin/v1/livez` - Liveness probe (lightweight, restart on failure)
-- `GET /admin/v1/readyz` - Readiness probe (heavyweight with dependency checks, remove from LB on failure)
-- `POST /admin/v1/shutdown` - Graceful shutdown trigger
+- `GET /admin/api/v1/livez` - Liveness probe (lightweight, restart on failure)
+- `GET /admin/api/v1/readyz` - Readiness probe (heavyweight with dependency checks, remove from LB on failure)
+- `POST /admin/api/v1/shutdown` - Graceful shutdown trigger
 
 **Join Request Admin Endpoints** (Template infrastructure):
 - `GET /browser/api/v1/tenant/join-requests` - List pending join requests
@@ -481,7 +481,7 @@ services:
     healthcheck:
       # Use wget (available in Alpine), NOT curl
       # Use 127.0.0.1 (NOT localhost - may resolve to ::1 IPv6)
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
 
@@ -521,12 +521,12 @@ hash-pepper: "file:///run/secrets/hash_pepper.secret"
 **Probes**:
 ```yaml
 livenessProbe:
-  httpGet: {path: /admin/v1/livez, port: 9090, scheme: HTTPS}
+  httpGet: {path: /admin/api/v1/livez, port: 9090, scheme: HTTPS}
   initialDelaySeconds: 10
   periodSeconds: 10
 
 readinessProbe:
-  httpGet: {path: /admin/v1/readyz, port: 9090, scheme: HTTPS}
+  httpGet: {path: /admin/api/v1/readyz, port: 9090, scheme: HTTPS}
   initialDelaySeconds: 15
   periodSeconds: 5
 ```

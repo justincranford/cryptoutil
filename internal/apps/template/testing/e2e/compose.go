@@ -63,7 +63,7 @@ func (cm *ComposeManager) Stop(ctx context.Context) error {
 }
 
 // WaitForHealth polls an health endpoint until healthy or timeout.
-// Supports both admin endpoints (/admin/v1/livez) and public endpoints (/health).
+// Supports both admin endpoints (/admin/api/v1/livez) and public endpoints (/health).
 func (cm *ComposeManager) WaitForHealth(healthURL string, timeout time.Duration) error {
 	ctx := context.Background()
 

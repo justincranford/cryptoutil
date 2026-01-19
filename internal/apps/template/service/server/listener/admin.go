@@ -81,7 +81,7 @@ func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServiceT
 
 // registerRoutes sets up admin API endpoints.
 func (s *AdminServer) registerRoutes() {
-	api := s.app.Group("/admin/v1")
+	api := s.app.Group("/admin/api/v1")
 
 	// Health check endpoints.
 	api.Get("/livez", s.handleLivez)

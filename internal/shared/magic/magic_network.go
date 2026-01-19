@@ -174,7 +174,7 @@ const (
 	DefaultPublicServiceAPIContextPath = "/service/api/v1"
 
 	// DefaultPrivateAdminAPIContextPath - Default private admin API context path.
-	DefaultPrivateAdminAPIContextPath = "/admin/v1"
+	DefaultPrivateAdminAPIContextPath = "/admin/api/v1"
 
 	// PrivateAdminLivezRequestPath - Livez endpoint path (relative to admin context path).
 	PrivateAdminLivezRequestPath = "/livez"

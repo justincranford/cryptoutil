@@ -37,7 +37,7 @@ func DefaultDemoEndpoints() *DemoEndpoints {
 		TokenEndpoint:     "https://localhost:8082/oauth2/token",
 		JWKSEndpoint:      "https://localhost:8082/.well-known/jwks.json",
 		KMSAPIEndpoint:    "https://localhost:8080/api/v1",
-		KMSHealthEndpoint: "https://localhost:9090/admin/v1/livez",
+		KMSHealthEndpoint: "https://localhost:9090/admin/api/v1/livez",
 	}
 }
 

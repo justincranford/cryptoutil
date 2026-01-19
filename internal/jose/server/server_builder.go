@@ -272,7 +272,7 @@ func (s *JoseServer) AdminPort() int {
 	return s.app.AdminPort()
 }
 
-// SetReady marks the server as ready (enables /admin/v1/readyz to return 200 OK).
+// SetReady marks the server as ready (enables /admin/api/v1/readyz to return 200 OK).
 func (s *JoseServer) SetReady(ready bool) {
 	s.app.SetReady(ready)
 }
