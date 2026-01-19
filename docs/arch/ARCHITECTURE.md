@@ -62,7 +62,7 @@
 - PostgreSQL (production) OR SQLite (dev/test) dual support
 - GORM ORM for type-safe queries
 - Embedded migrations (golang-migrate)
-- Template migrations 1001-1999 (sessions, barrier, realms, multi-tenancy)
+- Template migrations 1001-1005 (sessions, barrier, realms, multi-tenancy, pending_users)
 - Domain migrations 2001+ (service-specific tables)
 
 **3. Multi-Tenancy Infrastructure**:
@@ -72,10 +72,14 @@
 - `users` table (with tenant_id FK)
 - `pending_users` table (registration requests awaiting approval, unique username per tenant)
 
-**4. Barrier Service** (MANDATORY):
-- Unseal key → Root key → Intermediate keys → Content keys
-- HKDF-based deterministic key derivation
-- Encryption-at-rest for sensitive data
+**4. Barrier Service** (MANDATORY - Multi-Layer Key Hierarchy):
+- **Unseal Key**: NEVER stored in app, Docker secrets at runtime, HKDF-derived from shared secrets
+- **Root Key**: Encrypted at rest with unseal key, rotated annually
+- **Intermediate Keys**: Encrypted with root key, rotated quarterly  
+- **Content Keys**: Encrypted with intermediate keys, rotated per-operation (messages) or hourly (sessions/data)
+- **HKDF Derivation**: Deterministic key derivation ensures all instances derive same keys from same secrets
+- **Encryption-at-rest**: ALL sensitive data (JWKs, passwords, tokens) encrypted before storage
+- **Pattern**: Per-message JWK encrypted with Barrier before storage in domain table (e.g., `message_jwks`)
 
 **5. Telemetry**:
 - OpenTelemetry (traces, metrics, logs via OTLP)
@@ -94,22 +98,42 @@
 - No storage required for stateless JWE or stateless JWS
 - 30-minute re-authentication for high-sensitivity operations
 
-**8. Hash Service**:
+**8. Hash Service** (Version-Based Policy Framework):
 - **4 Hash Registries**:
-  - LowEntropyDeterministic (PBKDF2 with fixed salt) - PII lookup (usernames, emails, IPs)
-  - LowEntropyRandom (PBKDF2 with random salt) - Password hashing
-  - HighEntropyDeterministic (HKDF with fixed info) - Config blob integrity
-  - HighEntropyRandom (HKDF with random salt) - API key storage
-- **PBKDF2 Iteration Count**: 600,000 (OWASP 2023 recommendation, FIPS 140-3 compliant)
-- **Pepper**: Global security policy (Docker secret), version-specific
-- **Lazy Migration**: Old hashes upgraded on next authentication (NO forced bulk re-hash)
-- **Version Format**: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)`
-- **Versions**:
-  - V5 (OWASP 2023, 600k iterations, 16-byte salt, HMAC-SHA256) - Latest (Default)
+  - **LowEntropyDeterministic**: `PBKDF2(input||pepper, fixedSalt, HIGH_iter, 256)` - PII lookup (usernames, emails, IPs)
+  - **LowEntropyRandom**: `PBKDF2(password||pepper, randomSalt, OWASP_iter, 256)` - Password hashing  
+  - **HighEntropyDeterministic**: `HKDF-Extract+Expand(input||pepper, fixedSalt, info, 256)` - Config blob integrity
+  - **HighEntropyRandom**: `HKDF-Extract+Expand(key||pepper, randomSalt, info, 256)` - API key storage
+- **Version Tuple**: Each version = (4 Registries + Unique Pepper) based on NIST/OWASP policy
+- **Pepper Management**: 
+  - MANDATORY for ALL inputs (Docker/K8s secret preferred)
+  - NEVER in DB/source (mutually exclusive from hashes)
+  - Version-specific (different pepper per version)
+  - Rotation requires version bump + lazy migration
+- **Hash Output Format**: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)`
+- **Lazy Migration**: Old hashes stay on original version, new hashes use current version, rehash on next authentication
+- **Supported Versions**:
+  - V5 (OWASP 2023, 600k iterations, 16-byte salt, HMAC-SHA256) - Current (Default)
   - V4 (NIST 2021, 310k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only
-  - V3 (OWASP 2019, 100k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only
+  - V3 (OWASP 2019, 100k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only  
   - V2 (NIST 2010, 10k iterations, 16-byte salt, HMAC-SHA1) - Legacy, testing only
   - V1 (PKCS#5 v2.0 2000, 1k iterations, 8-byte salt, HMAC-SHA1) - Legacy, testing only
+
+**9. FIPS 140-3 Compliance** (MANDATORY - ALWAYS Enabled):
+- **Approved Algorithms ONLY**:
+  - Asymmetric: RSA ≥2048, ECDSA (P-256/384/521), ECDH (P-256/384/521), EdDSA (25519/448)
+  - Symmetric: AES ≥128 (GCM, CBC+HMAC)
+  - Digest: SHA-256/384/512, HMAC-SHA256/384/512
+  - KDF: PBKDF2-HMAC-SHA256/384/512, HKDF-SHA256/384/512
+- **BANNED Algorithms**: bcrypt, scrypt, Argon2, MD5, SHA-1, RSA <2048, DES, 3DES
+- **Algorithm Agility**: Configurable algorithms with FIPS-approved defaults
+- **Secure Random**: ALWAYS `crypto/rand`, NEVER `math/rand`
+
+**10. Elastic Key Rotation** (Active + Historical Keys):
+- **Key Ring Pattern**: Active key (encrypt/sign) + Historical keys (decrypt/verify)
+- **Key ID Embedding**: Embed key ID with ciphertext/signature to identify correct historical key
+- **Rotation**: Generate new key → set as active → keep ALL old keys for decryption/verification
+- **NO deletion**: Historical keys NEVER deleted (required for decrypting old data)
 
 ### Public Server APIs (Template Infrastructure)
 
@@ -188,6 +212,38 @@ resources, err := builder.Build()
 - **Encryption**: JWK encrypted with Barrier service BEFORE storing, decrypted AFTER retrieving
 - **Why NOT Barrier-only**: Domain table provides control over JWK lifecycle, metadata, rotation tracking
 - **Template Integration**: Barrier service encrypts/decrypts, domain table manages persistence
+
+### ServerBuilder Pattern
+
+**Eliminates 260+ Lines Per Service**:
+- **Usage**: `NewServerBuilder(ctx, cfg).WithDomainMigrations(...).WithPublicRouteRegistration(...).Build()`
+- **Returns**: `ServiceResources` struct with initialized:
+  - DB (*gorm.DB)
+  - TelemetryService (*telemetry.TelemetryService)
+  - JWKGenService (*jose.JWKGenService)
+  - BarrierService (*barrier.BarrierService)
+  - SessionManager (*business_logic.SessionManagerService)
+  - RealmService (service.RealmService)
+  - RealmRepository (repository.TenantRealmRepository)
+  - Application (*server.Application)
+  - ShutdownCore (func())
+  - ShutdownContainer (func())
+
+**Merged Migrations Pattern**:
+- Template migrations (1001-1005) + Domain migrations (2001+) combined via `mergedMigrations` fs.FS implementation
+- golang-migrate validates ALL versions against single unified filesystem
+- Template migrations:
+  - 1001: Sessions tables
+  - 1002: Barrier encryption keys
+  - 1003: Realm tables
+  - 1004: Multi-tenancy (tenants, tenant_realms)
+  - 1005: Pending users (registration approval workflow)
+- Domain migrations: 2001+ (service-specific, e.g., cipher-im message tables, jose JWK tables)
+
+**NO Default Tenant**: 
+- Services start "cold" without any pre-created tenant/realm
+- ALL tenants created via `/browser/api/v1/register` or `/service/api/v1/register` endpoints
+- Tests use TestMain pattern: start server once per package, register test tenant via HTTP
 
 ### Migration Priority
 
